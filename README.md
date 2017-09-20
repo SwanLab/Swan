@@ -1,2 +1,5 @@
-# FEM-MAT-OO
-Finite element method in Matlab Object Oriented
+Master's Thesis: Finite Element Method
+
+Professor:  Àlex Ferrer Ferré
+
+Students:   Nacho Izquierdo Pérez, Raül Rubio Serrano
