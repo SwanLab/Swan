@@ -2,11 +2,11 @@
 clc; clear all;
 
 %% File name
-% name_in  = 'toyExample.msh';
-% name_out = 'results_toyExample';
+name_in  = 'toyExample.msh';
+name_out = 'results_toyExample';
 
-name_in  = 'Cantileverbeam.msh';
-name_out = 'results_Cantileverbeam'; 
+% name_in  = 'Cantileverbeam.msh';
+% name_out = 'results_Cantileverbeam'; 
 
 folder_in  = 'Input';
 folder_out = 'Output';
@@ -20,7 +20,7 @@ filename_out = fullfile(dir_out,name_out);
 %% Physical Problem Object
 % cantilever = Physical_Problem();
 % cantilever.preProcess(filename_in);
-% toyExample = Physical_Problem();
-% toyExample.preProcess(filename_in);
-% toyExample.computeVariables();
-% toyExample.postProcess(filename_out);
+toyExample = Physical_Problem();
+toyExample.preProcess(filename_in);
+toyExample.computeVariables();
+toyExample.postProcess(filename_out);
