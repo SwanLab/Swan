@@ -7,7 +7,7 @@ name_out = 'results_toyExample';
 
 % name_in  = 'Cantileverbeam.msh';
 % name_out = 'results_Cantileverbeam'; 
-
+%testttttttttttttttttttttttttttttt
 folder_in  = 'Input';
 folder_out = 'Output';
 
