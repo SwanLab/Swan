@@ -1,26 +1,26 @@
-function Main
+% function Main
+clc; clear all;
 
-%% Preprocess
-nunkn = 2;
+%% File name
+% name_in  = 'toyExample.msh';
+% name_out = 'results_toyExample';
 
-mesh = Mesh();
-bc = BC(nunkn);
+name_in  = 'Cantileverbeam.msh';
+name_out = 'results_Cantileverbeam'; 
 
-%% Process
+folder_in  = 'Input';
+folder_out = 'Output';
 
-geometry = Geometry(mesh);
-dof = DOF(geometry.nnode,mesh.connec,nunkn,mesh.npnod,bc.displacements);
+dir_in  = fullfile(pwd,folder_in);
+dir_out = fullfile(pwd,folder_out);
 
-element = Element_Elastic();
-element = element.computeLHS(nunkn,mesh.nelem,geometry);
-element = element.computeRHS(nunkn,mesh.nelem,geometry.nnode,bc,dof.idx);
+filename_in  = fullfile(dir_in,name_in);
+filename_out = fullfile(dir_out,name_out); 
 
-[LHS,RHS] = Assemble.Compute(element,geometry.nnode,nunkn,dof);
-
-d_u = zeros(dof.ndof,1);
-d_u = Solver.analytical(d_u,LHS,RHS',dof.vR,dof.vL,bc.displacements);
-
-%% Postprocess
-disp(d_u);
-
-end
+%% Physical Problem Object
+% cantilever = Physical_Problem();
+% cantilever.preProcess(filename_in);
+% toyExample = Physical_Problem();
+% toyExample.preProcess(filename_in);
+% toyExample.computeVariables();
+% toyExample.postProcess(filename_out);

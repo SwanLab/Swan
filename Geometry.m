@@ -6,9 +6,9 @@ classdef Geometry
         cartDeriv
         area
         ndime
-        nnode
+        nnode % preguntar
+        ngaus % preguntar
     end
-    
     
     methods
         function obj = Geometry(mesh)

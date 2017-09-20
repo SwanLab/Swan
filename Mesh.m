@@ -10,10 +10,8 @@ classdef Mesh
     
     
     methods
-        function obj = Mesh()
-            [obj.coord,obj.connec] = Preprocess.readFromGiD();
-            obj.coord = obj.coord(:,2:4);
-            obj.connec = obj.connec(:,2:4);
+        function obj = Mesh(filename)
+            [obj.coord,obj.connec] = Preprocess.readFromGiD(filename);
             obj.nelem = length(obj.connec(:,1));
             obj.npnod = length(obj.coord(:,1));
         end

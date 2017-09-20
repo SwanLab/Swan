@@ -1,4 +1,4 @@
-classdef Element
+classdef Element<handle
     %UNTITLED6 Summary of this class goes here
     %   Detailed explanation goes here TEST
     

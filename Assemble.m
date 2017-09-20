@@ -3,7 +3,7 @@ classdef Assemble
     %   Detailed explanation goes here
     
     properties
-        % test
+        
     end
     
     methods (Static)
