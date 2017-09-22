@@ -9,10 +9,10 @@ classdef Ke<Matrix_Elemental
         function obj = Ke(nstre,nunkn,nelem,geometry)
             
             % Strain-displacement matrix
-            Bmat = B(nstre,nunkn,nelem,geometry.nnode,geometry.cartDeriv);
+            Bmat = B(nstre,nunkn,nelem,geometry.nnode,geometry.cartDeriv,geometry.ndime);
             
             % Elastic matrix
-            Cmat = C(nstre,nelem);
+            Cmat = C(nstre,nelem,geometry.ndime);
             
             % Compute Ke
             for i = 1:nelem

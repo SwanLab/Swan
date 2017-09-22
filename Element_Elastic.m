@@ -3,7 +3,7 @@ classdef Element_Elastic<Element
     %   Detailed explanation goes here
     
     properties
-        nstre = 3;
+        nstre=6;
     end
     
     

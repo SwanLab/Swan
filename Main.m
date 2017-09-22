@@ -2,12 +2,12 @@
 clc; clear all;
 
 %% File name
-name_in  = 'toyExample.msh';
-name_out = 'results_toyExample';
+name_in  = 'tetraExample.msh';
+name_out = 'results_tetra';
 
 % name_in  = 'Cantileverbeam.msh';
 % name_out = 'results_Cantileverbeam'; 
-%testttttttttttttttttttttttttttttt
+
 folder_in  = 'Input';
 folder_out = 'Output';
 
