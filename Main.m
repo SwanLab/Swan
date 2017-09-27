@@ -2,7 +2,7 @@
 clc; clear all;
 
 %% File name
-name_in  = 'tetraExample.msh';
+name_in  = 'CantileverToy_Tetrahedra';
 name_out = 'results_tetra';
 
 % name_in  = 'Cantileverbeam.msh';
