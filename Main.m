@@ -1,12 +1,20 @@
-% function Main
-clc; clear all;
+function obj = Main
 
-%% File name
+
+
+%% Steps
+% 1 - Run 'Main.m'
+% 2 - Create object --> obj = Physical_Problem();
+% 3 - Preprocess    --> obj.preProcess(filename_in);
+% 4 - Compute       --> obj.computeVariables();
+% 5 - Postprocess   --> obj.postProcess(filename_out);
+
+
+%% Main.m
+
 name_in  = 'CantileverToy_Tetrahedra';
-name_out = 'results_tetra';
+name_out = 'results-toyExample'; 
 
-% name_in  = 'Cantileverbeam.msh';
-% name_out = 'results_Cantileverbeam'; 
 
 folder_in  = 'Input';
 folder_out = 'Output';
@@ -17,10 +25,12 @@ dir_out = fullfile(pwd,folder_out);
 filename_in  = fullfile(dir_in,name_in);
 filename_out = fullfile(dir_out,name_out); 
 
-%% Physical Problem Object
-% cantilever = Physical_Problem();
-% cantilever.preProcess(filename_in);
-toyExample = Physical_Problem();
-toyExample.preProcess(filename_in);
-toyExample.computeVariables();
-toyExample.postProcess(filename_out);
+
+
+obj = Physical_Problem();
+obj.preProcess(filename_in);
+obj.computeVariables();
+obj.postProcess(filename_out);
+
+end
+
