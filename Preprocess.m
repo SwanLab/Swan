@@ -82,21 +82,23 @@ classdef Preprocess<handle
         end
         
         function [fixnodes, forces] = getBC()
-            %             % Dirichlet
-%             %             % Node - Dimension - Value
-%                         fixnodes = [
-%                             1 1 0
-%                             1 2 0
-%                             3 1 0
-%                             3 2 0
-%                             8 1 0
-%                             8 2 0
-%                             ];
-%             
-%                         % Neumann --> Fpunc (global)
-%                         forces = [
-%                             11 2 -1
-%                             ];
+
+                        % Dirichlet
+                        % Node - Dimension - Value
+                        fixnodes = [
+                            1 1 0
+                            1 2 0
+                            3 1 0
+                            3 2 0
+                            8 1 0
+                            8 2 0
+                            ];
+            
+                        % Neumann --> Fpunc (global)
+                        forces = [
+                            11 2 -1
+                            ];
+
             
  %%%%%%%%%%%%%%%%%%%%%%3D tetrahedra
  fixnodes=[46 1 0 
@@ -234,7 +236,7 @@ forces= [4 1 0
 %                 3975 1 0
 %                 3975 2 0
 %                 ];
-%             
+
 %             %% Force Prescribed
 %             % Node                Dimension                Value
 %             forces = [
