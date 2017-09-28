@@ -13,9 +13,9 @@ classdef Geometry
     methods
         function obj = Geometry(mesh)
             switch mesh.geometryType
-                case 'Triangle'
+                case 'TRIANGLE'
                     geometryObject = Triangle_Linear();
-                case 'Tetrahedra'
+                case 'TETRAHEDRA'
                     geometryObject = Tetrahedra();
             end
             obj.ndime = geometryObject.ndime;

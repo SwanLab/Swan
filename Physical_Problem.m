@@ -11,9 +11,21 @@ classdef Physical_Problem<handle
     
     methods
         function obj = preProcess(obj,filename)
-            obj.dim.nunkn = 3;
             obj.mesh = Mesh(filename);
-            obj.bc = BC(obj.dim.nunkn);
+            switch obj.mesh.ptype
+                case 'ELASTIC'
+                    switch obj.mesh.pdim
+                        case '2D'
+                            obj.dim.ndim=2;
+                            obj.dim.nunkn=2;
+                            obj.dim.nstre=3;      
+                        case '3D'
+                            obj.dim.ndim=3;
+                            obj.dim.nunkn=3;
+                            obj.dim.nstre=6;      
+                    end
+            end 
+            obj.bc = BC(obj.dim.nunkn,filename);
         end
         
         function obj = computeVariables(obj)

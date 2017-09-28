@@ -2,17 +2,22 @@ clear all; close all; clc
 %% TEST
 % - 
 
-% Load the results for 2-d test
-load './test-2d/d_u.mat'
-
+% Load the results for 2-d and 3-dtest
+tests={'test2d';
+      'test3d'};
 % Parent directory
 [parentdir,~,~] = fileparts(pwd);
 
 % Run Main.m
-obj = Main;
+for i=1:length(tests)
+file_name=tests{i};
+load_file=strcat('./tests/',file_name);
+load(load_file)
+obj = MainFunc(file_name);
 
 if sum(abs(obj.variables.displacement - d_u)) < 1e-6
-    disp('TEST PASSED');
+    disp(strcat(file_name,' PASSED'));
 else
-    disp('TEST FAILED');
+    disp(strcat(file_name,' FAILED'));
+end
 end

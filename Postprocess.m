@@ -12,15 +12,15 @@ classdef Postprocess
             conectivities=input.mesh.connec;
             geometryType=input.mesh.geometryType;
             nnode=length(conectivities(1,:));
-            ndim=input.mesh.ndim;
+            ndim=input.dim.ndim;
             etype = geometryType;
-            ptype = '3D';
+            ptype = input.mesh.pdim;
             switch  etype
-                case 'Triangle'
+                case 'TRIANGLE'
                     gtype = 'Triangle'; %gid type
                 case 'QUAD'
                     gtype = 'Quadrilateral';
-                case 'Tetrahedra'
+                case 'TETRAHEDRA'
                     gtype = 'Tetrahedra';
                 case 'HEXAHEDRA'
                     gtype = 'Hexahedra';
@@ -50,8 +50,8 @@ classdef Postprocess
             fprintf(fid,['end coordinates \n \n']);
             fprintf(fid,['elements \n']);
             
-            switch  gtype
-                case 'Triangle'
+            switch  geometryType
+                case 'TRIANGLE'
                     %         for i = 1 : nelem
                     %             if (nnode==3)
                     %             fprintf(fid,['%6.0f %6.0f %6.0f %6.0f  1 \n'],i,conectivities(i,:));
@@ -59,7 +59,7 @@ classdef Postprocess
                     %         end
                     fprintf(fid,['%6.0f %6.0f %6.0f %6.0f  1 \n'],[1:nelem;conectivities']);
                     
-                case 'Quadrilateral'
+                case 'QUAD'
                     %         for i = 1 : nelem
                     %             if (nnode==4)
                     %             fprintf(fid,['%6.0f %6.0f %6.0f %6.0f %6.0f  1 \n'],i,conectivities(i,:));
@@ -76,11 +76,11 @@ classdef Postprocess
                     elseif (nnode==9)
                         fprintf(fid,['%6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f 1 \n'],[1:nelem;conectivities']);
                     end
-                case 'Tetrahedra'   
+                case 'TETRAHEDRA'   
                     fprintf(fid,['%6.0f %6.0f %6.0f %6.0f %6.0f  1 \n'],[1:nelem;conectivities']);
                     
                     
-                case 'Hexahedra'
+                case 'HEXAHEDRA'
                     %         for i = 1 : nelem
                     %             fprintf(fid,['%6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f  1 \n'],i,conectivities(i,:));
                     %         end
@@ -100,15 +100,15 @@ classdef Postprocess
             geometryType=input.mesh.geometryType;
             ngaus = input.dim.ngaus;
             etype = geometryType;
-            ndime=input.mesh.ndim; npnod=input.mesh.npnod; nnode=length(input.mesh.connec(1,:));
+            ndime=input.dim.ndim; npnod=input.mesh.npnod; nnode=length(input.mesh.connec(1,:));
             nndof = input.dim.nunkn*npnod; 
             structural_values=input.variables;
             switch  etype
-                case 'Triangle'
+                case 'TRIANGLE'
                     gtype = 'Triangle'; %gid type
                 case 'QUAD'
                     gtype = 'Quadrilateral';
-                case 'Tetrahedra'
+                case 'TETRAHEDRA'
                     gtype= 'Tetrahedra';
                 case 'HEXAHEDRA'
                     gtype = 'Hexahedra';
@@ -121,7 +121,7 @@ classdef Postprocess
             fid = fopen(res_file,'w');
             
             switch  etype
-                case 'Triangle'
+                case 'TRIANGLE'
                     if nnode==3
                         idxgp = [1 2 3]; job=2;
                         gid_write_headerpost(fid,gtype,ngaus,job)
@@ -136,7 +136,7 @@ classdef Postprocess
                         idxgp = [1 7 9 3 4 8 6 2 5]; job=1;
                         gid_write_headerpost(fid,gtype,ngaus,job)
                     end
-                case 'Tetrahedra'
+                case 'TETRAHEDRA'
                     idxgp = [1 2 3 4 ]; job =3;
                     gid_write_headerpost(fid,gtype,ngaus,job)
                 case 'HEXAHEDRA'
