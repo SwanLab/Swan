@@ -11,7 +11,7 @@ classdef Physical_Problem<handle
     
     methods
         function obj = preProcess(obj,filename)
-            obj.dim.nunkn = 2;
+            obj.dim.nunkn = 3;
             obj.mesh = Mesh(filename);
             obj.bc = BC(obj.dim.nunkn);
         end
@@ -42,8 +42,8 @@ classdef Physical_Problem<handle
         function obj = postProcess(obj,filename)
             iter = 1; % static
             postprocess = Postprocess();
-            postprocess.ToGid(filename,iter,obj.mesh.coord,obj.mesh.connec,obj.dim.nnode,obj.mesh.nelem,obj.mesh.npnod);
-            postprocess.ToGidPost(filename,iter,obj.dim.ngaus,obj.variables.displacement);
+            postprocess.ToGid(filename, obj,iter);
+            postprocess.ToGidPost(filename,obj,iter);
         end
     end
     

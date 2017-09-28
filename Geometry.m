@@ -12,30 +12,39 @@ classdef Geometry
     
     methods
         function obj = Geometry(mesh)
-            triangleLinear = Triangle_Linear();
-            obj.ndime = triangleLinear.ndime;
-            obj.nnode = triangleLinear.nnode;
+            switch mesh.geometryType
+                case 'Triangle'
+                    geometryObject = Triangle_Linear();
+                case 'Tetrahedra'
+                    geometryObject = Tetrahedra();
+            end
+            obj.ndime = geometryObject.ndime;
+            obj.nnode = geometryObject.nnode;
+            obj.ngaus=geometryObject.ngaus;
             for i = 1:obj.ndime
                 a = mesh.coord(:,i);
                 elcoord(:,i,:) = a(permute(mesh.connec',[1,3,2]));
             end
             for i = 1:obj.ndime
                 % Jacobian
-                deriv_perm = permute(triangleLinear.deriv(i,:,:),[2,1,3]);
+                deriv_perm = permute(geometryObject.deriv(i,:,:),[2,1,3]);
                 deriv_perm_large = repmat(deriv_perm,1,obj.ndime,mesh.nelem);
                 jacobian(i,:,:) = sum(deriv_perm_large.*elcoord,1);
             end
-            
-            [invJ,detJ] = multinverse2x2(jacobian);
-            
+            switch obj.ndime
+                case 2
+                    [invJ,detJ] = multinverse2x2(jacobian);
+                case 3
+                    [invJ,detJ] = multinverse3x3(jacobian);
+            end
             for i = 1:obj.ndime
                 % Cartesian Derivatives
                 deriv_perm = permute(invJ(i,:,:),[2,1,3]);
-                deriv_perm_large = repmat(deriv_perm,1,triangleLinear.nnode,1) .*repmat(triangleLinear.deriv,1,1,mesh.nelem);
+                deriv_perm_large = repmat(deriv_perm,1,geometryObject.nnode,1) .*repmat(geometryObject.deriv,1,1,mesh.nelem);
                 obj.cartDeriv(i,:,:) = sum(deriv_perm_large);
             end
             % Area
-            obj.area = triangleLinear.weigp*detJ;
+            obj.area = geometryObject.weigp*detJ;
         end
     end
     

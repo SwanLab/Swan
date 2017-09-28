@@ -5,7 +5,7 @@ classdef Preprocess<handle
     end
     
     methods(Static)
-        function [coord,connec,dim] = readFromGiD(filename)
+        function [coord,connec,dim,geom] = readFromGiD(filename)
             % *************************************************************************
             %
             %
@@ -42,6 +42,8 @@ classdef Preprocess<handle
                     if strcmp(first, 'MESH') == 1
                         indice = find(strcmp(data,'dimension'));
                         dim = str2double(data{indice+1});
+                        indice= find(strcmp(data,'Elemtype'));
+                        geom = strjoin(data(indice+1));
                         % Find nodal coordinates
                     elseif strcmp(first, 'coordinates') == 1
                         while strcmp(data{1}, 'end') == 0
@@ -80,6 +82,7 @@ classdef Preprocess<handle
         end
         
         function [fixnodes, forces] = getBC()
+
                         % Dirichlet
                         % Node - Dimension - Value
                         fixnodes = [
@@ -95,8 +98,39 @@ classdef Preprocess<handle
                         forces = [
                             11 2 -1
                             ];
+
             
-            
+ %%%%%%%%%%%%%%%%%%%%%%3D tetrahedra
+ fixnodes=[46 1 0 
+46 2 0
+46 3 0
+47 1 0 
+47 2 0
+47 3 0
+48 1 0 
+48 2 0
+48 3 0
+49 1 0 
+49 2 0
+49 3 0
+50 1 0 
+50 2 0
+50 3 0
+51 1 0 
+51 2 0
+51 3 0
+52 1 0 
+52 2 0
+52 3 0
+53 1 0 
+53 2 0
+53 3 0
+54 1 0 
+54 2 0
+54 3 0];
+forces= [4 1 0 
+4 2 -1
+4 3 0];
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %             fixnodes = [
 %                 1 1 0
@@ -202,7 +236,7 @@ classdef Preprocess<handle
 %                 3975 1 0
 %                 3975 2 0
 %                 ];
-            
+
 %             %% Force Prescribed
 %             % Node                Dimension                Value
 %             forces = [
