@@ -1,6 +1,6 @@
-function obj = Main
 
-
+clc
+clear all
 
 %% Steps
 % 1 - Run 'Main.m'
@@ -13,8 +13,8 @@ function obj = Main
 %% Main.m
 
 name_in  = 'CantileverToy_Tetrahedra';
-name_out = 'results-toyExample'; 
-
+ 
+name_out=strcat('results-',name_in);
 
 folder_in  = 'Input';
 folder_out = 'Output';
@@ -32,5 +32,5 @@ obj.preProcess(filename_in);
 obj.computeVariables();
 obj.postProcess(filename_out);
 
-end
+
 
