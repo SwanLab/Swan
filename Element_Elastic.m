@@ -3,13 +3,13 @@ classdef Element_Elastic<Element
     %   Detailed explanation goes here
     
     properties
-        nstre=6;
+ 
     end
     
     
     methods
-        function obj = computeLHS(obj,nunkn,nelem,geometry)
-            Kel = Ke(obj.nstre,nunkn,nelem,geometry);
+        function obj = computeLHS(obj,nstre,nunkn,nelem,geometry)
+            Kel = Ke(nstre,nunkn,nelem,geometry);
             obj.LHS = Kel.value;
         end
         

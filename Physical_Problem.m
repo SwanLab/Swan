@@ -35,7 +35,7 @@ classdef Physical_Problem<handle
             
             % Create Element_Elastic object
             element = Element_Elastic();
-            element.computeLHS(obj.dim.nunkn,obj.mesh.nelem,geometry);
+            element.computeLHS(obj.dim.nstre,obj.dim.nunkn,obj.mesh.nelem,geometry);
             element.computeRHS(obj.dim.nunkn,obj.mesh.nelem,geometry.nnode,obj.bc,dof.idx);
             
             % Assembly
