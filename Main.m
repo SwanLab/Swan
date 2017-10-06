@@ -12,7 +12,8 @@ clear all
 
 %% Main.m
 
-name_in  = 'CantileverToy_Tetrahedra';
+%name_in  = 'CantileverToy_Tetrahedra';
+name_in  = 'CantileverToy_Hexahedra';
  
 name_out=strcat('results-',name_in);
 
