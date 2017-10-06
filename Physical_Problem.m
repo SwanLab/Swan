@@ -11,9 +11,21 @@ classdef Physical_Problem<handle
     
     methods
         function obj = preProcess(obj,filename)
-            obj.dim.nunkn = 2;
             obj.mesh = Mesh(filename);
-            obj.bc = BC(obj.dim.nunkn);
+            switch obj.mesh.ptype
+                case 'ELASTIC'
+                    switch obj.mesh.pdim
+                        case '2D'
+                            obj.dim.ndim=2;
+                            obj.dim.nunkn=2;
+                            obj.dim.nstre=3;      
+                        case '3D'
+                            obj.dim.ndim=3;
+                            obj.dim.nunkn=3;
+                            obj.dim.nstre=6;      
+                    end
+            end 
+            obj.bc = BC(obj.dim.nunkn,filename);
         end
         
         function obj = computeVariables(obj)
@@ -23,7 +35,7 @@ classdef Physical_Problem<handle
             
             % Create Element_Elastic object
             element = Element_Elastic();
-            element.computeLHS(obj.dim.nunkn,obj.mesh.nelem,geometry);
+            element.computeLHS(obj.dim.nstre,obj.dim.nunkn,obj.mesh.nelem,geometry);
             element.computeRHS(obj.dim.nunkn,obj.mesh.nelem,geometry.nnode,obj.bc,dof.idx);
             
             % Assembly
@@ -42,8 +54,8 @@ classdef Physical_Problem<handle
         function obj = postProcess(obj,filename)
             iter = 1; % static
             postprocess = Postprocess();
-            postprocess.ToGid(filename,iter,obj.mesh.coord,obj.mesh.connec,obj.dim.nnode,obj.mesh.nelem,obj.mesh.npnod);
-            postprocess.ToGidPost(filename,iter,obj.dim.ngaus,obj.variables.displacement);
+            postprocess.ToGid(filename, obj,iter);
+            postprocess.ToGidPost(filename,obj,iter);
         end
     end
     
