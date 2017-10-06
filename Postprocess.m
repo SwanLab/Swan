@@ -9,12 +9,16 @@ classdef Postprocess
         % Mesh
         function ToGid(file_name,input,istep)
             coordinates=input.mesh.coord;
+            
             conectivities=input.mesh.connec;
+            if length(coordinates(1,:))==2
+                coordinates(:,3)=0;
+            end
             geometryType=input.mesh.geometryType;
             nnode=length(conectivities(1,:));
             ndim=input.dim.ndim;
             etype = geometryType;
-            ptype = input.mesh.pdim;
+            ptype = '3D';
             switch  etype
                 case 'TRIANGLE'
                     gtype = 'Triangle'; %gid type

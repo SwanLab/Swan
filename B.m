@@ -33,7 +33,7 @@ classdef B<Matrix_Local
                         % associated to shear strain, gamma23
                         obj.value(6,j+1,:)=cartd(3,inode,:);
                         obj.value(6,j+2,:)=cartd(2,inode,:);
-            end
+                    end
             end
         end
     end

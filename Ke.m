@@ -7,17 +7,19 @@ classdef Ke<Matrix_Elemental
     
     methods
         function obj = Ke(nstre,nunkn,nelem,geometry)
-            
-            % Strain-displacement matrix
-            Bmat = B(nstre,nunkn,nelem,geometry.nnode,geometry.cartDeriv,geometry.ndime);
-            
+            obj.value=zeros(nunkn*geometry.nnode,nunkn*geometry.nnode,nelem);
             % Elastic matrix
             Cmat = C(nstre,nelem,geometry.ndime);
             
+            for igauss=1:geometry.ngaus
+            % Strain-displacement matrix
+            Bmat = B(nstre,nunkn,nelem,geometry.nnode,geometry.cartDeriv(:,:,:,igauss),geometry.ndime);
+            
             % Compute Ke
             for i = 1:nelem
-               obj.value(:,:,i) = Bmat.value(:,:,i)'*Cmat.value(:,:,i)*...
-                   Bmat.value(:,:,i)*geometry.area(i);
+               obj.value(:,:,i) = obj.value(:,:,i)+Bmat.value(:,:,i)'*Cmat.value(:,:,i)*...
+                   Bmat.value(:,:,i)*geometry.area(i,igauss);
+            end
             end
 
         end
