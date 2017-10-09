@@ -1,10 +1,12 @@
 clear all; close all; clc
 %% TEST
 % - 
-
-% Load the results for 2-d and 3-dtest
-tests={'test2d';
-      'test3d'};
+tic
+% Load the results for 2-d and 3-d tests
+tests={'test2d_triangle';
+        'test2d_quad';
+        'test3d_hexahedra';
+      'test3d_tetrahedra'};
 % Parent directory
 [parentdir,~,~] = fileparts(pwd);
 
@@ -21,3 +23,4 @@ else
     disp(strcat(file_name,' FAILED'));
 end
 end
+toc
