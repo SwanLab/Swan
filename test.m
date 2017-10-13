@@ -1,4 +1,4 @@
-clear all; close all; clc
+clear; close all; clc
 %% TEST
 % - 
 tic
@@ -6,7 +6,8 @@ tic
 tests={'test2d_triangle';
         'test2d_quad';
         'test3d_hexahedra';
-      'test3d_tetrahedra'};
+      'test3d_tetrahedra';
+      'test3d_tetrahedra_bis'};
 % Parent directory
 [parentdir,~,~] = fileparts(pwd);
 
