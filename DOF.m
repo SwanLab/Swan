@@ -1,26 +1,29 @@
 classdef DOF
-    %UNTITLED3 Summary of this class goes here
+    %DOF Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties
+    properties (GetAccess = {?Physical_Problem, ?Element, ?Solver}, SetAccess = private)
         ndof
+    end
+    properties (GetAccess = {?Physical_Problem, ?Element}, SetAccess = private)
         idx
+    end
+    properties (GetAccess = ?Solver, SetAccess = private)
         vR
         vL
     end
     
-    methods
+    methods (Access = ?Physical_Problem)
         % Constructor
         function obj = DOF(nnode,connec,nunkn,npnod,fixnodes)
             % Compute idx
             lnods = connec';
             for i = 1:nnode
                 for j = 1:nunkn
-                    obj.idx(nunkn*i-nunkn+j,:) = nunkn.*lnods(i,:) - nunkn + j;
+                    obj.idx(nunkn*(i-1)+j,:) = nunkn.*lnods(i,:) - nunkn + j;
                 end
             end
             obj.ndof = nunkn*npnod;
-            
             
             % *************************************************************
             if (size(fixnodes,1)>0)

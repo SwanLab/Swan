@@ -1,5 +1,5 @@
-classdef Solver
-    %Solver Summary of this class goes here
+classdef PhysicalVariables
+    %PhysicalVariables Summary of this class goes here
     %   Detailed explanation goes here
     
     properties

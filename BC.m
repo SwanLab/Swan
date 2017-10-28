@@ -1,26 +1,26 @@
 classdef BC
-    %UNTITLED Summary of this class goes here
+    %BC Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties
-        displacements
-        Fpointload
+    properties (GetAccess = {?Physical_Problem,?Element}, SetAccess = private)
+        fixnodes
+        neunodes
         iN
         iD
     end
     
-    methods
+    methods (Access = ?Physical_Problem)
         % Constructor
         function obj = BC(nunkn,filename)
             if nargin ~= 0 
-                [obj.displacements,obj.Fpointload] = Preprocess.getBC(filename);
+                [obj.fixnodes,obj.neunodes] = Preprocess.getBC(filename);
                 
-                for i = 1:length(obj.displacements(:,1))
-                    obj.iD(i) = obj.displacements(i,1)*nunkn - nunkn + obj.displacements(i,2);
+                for i = 1:length(obj.fixnodes(:,1))
+                    obj.iD(i) = obj.fixnodes(i,1)*nunkn - nunkn + obj.fixnodes(i,2);
                 end
                 
-                for i = 1:length(obj.Fpointload(:,1))
-                    obj.iN(i)= obj.Fpointload(i,1)*nunkn - nunkn + obj.Fpointload(i,2);
+                for i = 1:length(obj.neunodes(:,1))
+                    obj.iN(i)= obj.neunodes(i,1)*nunkn - nunkn + obj.neunodes(i,2);
                 end
                 
             end

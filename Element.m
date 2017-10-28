@@ -1,13 +1,17 @@
 classdef Element<handle
-    %UNTITLED6 Summary of this class goes here
+    %Element Summary of this class goes here
     %   Detailed explanation goes here TEST
     
-    properties
+    properties (GetAccess = ?Physical_Problem, SetAccess = protected)
         RHS
         LHS
     end
     
-    methods
+    properties (GetAccess = {?Element_Elastic,?Element_Thermal,?PhysicalVariables}, SetAccess = protected)
+        B
+    end
+    
+    methods     
     end
     
 end
