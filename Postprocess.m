@@ -1,22 +1,24 @@
 classdef Postprocess
-    %UNTITLED3 Summary of this class goes here
+    %Postprocess Summary of this class goes here
     %   Detailed explanation goes here
+    
+    % !! NEEDS A REVISION !!
     
     properties
     end
     
-    methods(Static)
+    methods(Access = ?Physical_Problem, Static)
         % Mesh
         function ToGid(file_name,input,istep)
-            coordinates=input.mesh.coord;
+            coordinates = input.mesh.coord;
             
-            conectivities=input.mesh.connec;
+            conectivities = input.mesh.connec;
             if length(coordinates(1,:))==2
                 coordinates(:,3)=0;
             end
-            geometryType=input.mesh.geometryType;
-            nnode=length(conectivities(1,:));
-            ndim=input.dim.ndim;
+            geometryType = input.mesh.geometryType;
+            nnode = length(conectivities(1,:));
+            ndim = input.dim.ndim;
             etype = geometryType;
             ptype = '3D';
             switch  etype
@@ -101,12 +103,12 @@ classdef Postprocess
         
         % Results
         function ToGidPost(file_name,input,istep)
-            geometryType=input.mesh.geometryType;
-            ngaus = input.dim.ngaus;
+            geometryType = input.mesh.geometryType;
+            ngaus = input.geometry.ngaus;
             etype = geometryType;
-            ndime=input.dim.ndim; npnod=input.mesh.npnod; nnode=length(input.mesh.connec(1,:));
+            ndime = input.dim.ndim; npnod=input.mesh.npnod; nnode=length(input.mesh.connec(1,:));
             nndof = input.dim.nunkn*npnod; 
-            structural_values=input.variables;
+            results = input.variables;
             switch  etype
                 case 'TRIANGLE'
                     gtype = 'Triangle'; %gid type
@@ -121,15 +123,15 @@ classdef Postprocess
             
             % Escribe el fichero de resultados
             
-            res_file =strcat(file_name,'_',num2str(istep),'.flavia.res');
+            res_file = strcat(file_name,'_',num2str(istep),'.flavia.res');
             fid = fopen(res_file,'w');
             
             switch  etype
                 case 'TRIANGLE'
-                    if nnode==3
+                    if nnode == 3
                         idxgp = [1 2 3]; job=2;
                         gid_write_headerpost(fid,gtype,ngaus,job)
-                    elseif nnode==6
+                    elseif nnode == 6
                         idxgp = [];
                     end
                 case 'QUAD'
@@ -148,8 +150,8 @@ classdef Postprocess
                     gid_write_headerpost(fid,gtype,ngaus,job)
             end
             
-%             stres = structural_values.stress;
-%             strain = structural_values.strain(:,1:nstre,:);
+%             stres = results.stress;
+%             strain = results.strain(:,1:nstre,:);
 %             
 %             nameres = ['Stress'];
 %             postProcess.gid_write_gauss_tensorfield(fid,nameres,istep,stres,idxgp,ngaus,nstre,nelem);
@@ -158,17 +160,39 @@ classdef Postprocess
 %             postProcess.gid_write_gauss_tensorfield(fid,nameres,istep,strain,idxgp,ngaus,nstre,nelem);
 %            
 %             
-            nameres = 'DISPLACEMENT';
-            tdisp(1:npnod,1)=structural_values.displacement(1:ndime:nndof);
-            tdisp(1:npnod,2)=structural_values.displacement(2:ndime:nndof);
+            nameres = 'Displacement';
+            tdisp(1:npnod,1)=results.d_u(1:ndime:nndof);
+            tdisp(1:npnod,2)=results.d_u(2:ndime:nndof);
             if ndime==3
-            tdisp(1:npnod,3)=structural_values.displacement(3:ndime:nndof);
+            tdisp(1:npnod,3)=results.d_u(3:ndime:nndof);
             end
             
             gid_write_vfield(fid,nameres,istep,tdisp);
             
+%             !! THIS STILL HAS TO BE IMPLEMENTED !!            
+% 
+%              nameres = 'Strain';
+%             tdisp(1:npnod,1)=results.strain(1:ndime:nndof);
+%             tdisp(1:npnod,2)=results.strain(2:ndime:nndof);
+%             if ndime==3
+%             tdisp(1:npnod,3)=results.strain(3:ndime:nndof);
+%             end
+%             
+%             nstre = 3;
+%             nelem = 16;
+%             gid_write_gauss_tensorfield(fid,nameres,istep,tdisp,'DELETE ME I AM USELESS',ngaus,nstre,nelem);
+%             
+%              nameres = 'Stress';
+%             tdisp(1:npnod,1)=results.stress(1:ndime:nndof);
+%             tdisp(1:npnod,2)=results.stress(2:ndime:nndof);
+%             if ndime==3
+%             tdisp(1:npnod,3)=results.stress(3:ndime:nndof);
+%             end
+%             
+%             gid_write_vfield(fid,nameres,istep,tdisp);
+%             
 %             nameres = 'F_ext';
-%             postProcess.gid_write_vfield(fid,nameres,istep,reshape(full(structural_values.fext),ndime,[])');
+%             postProcess.gid_write_vfield(fid,nameres,istep,reshape(full(results.fext),ndime,[])');
 %             
            fclose(fid);
 

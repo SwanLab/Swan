@@ -1,8 +1,8 @@
 classdef Geometry
-    %UNTITLED4 Summary of this class goes here
+    %Geometry Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties
+    properties (GetAccess = {?Physical_Problem,?Element,?Postprocess}, SetAccess = private)
         cartDeriv
         area
         ndime
@@ -10,7 +10,7 @@ classdef Geometry
         ngaus % preguntar
     end
     
-    methods
+    methods (Access = ?Physical_Problem)
         function obj = Geometry(mesh)
             switch mesh.geometryType
                 case 'TRIANGLE'
@@ -25,7 +25,7 @@ classdef Geometry
             
             obj.ndime = geometryObject.ndime;
             obj.nnode = geometryObject.nnode;
-            obj.ngaus=geometryObject.ngaus;
+            obj.ngaus = geometryObject.ngaus;
             for i = 1:obj.ndime
                 a = mesh.coord(:,i);
                 elcoord(:,i,:) = a(permute(mesh.connec',[1,3,2]));

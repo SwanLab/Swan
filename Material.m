@@ -1,13 +1,12 @@
 classdef Material
-    %UNTITLED10 Summary of this class goes here
+    %Material Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties
-        matProp
+    properties (Access = protected)
+        nelem
     end
     
     methods
-
     end
     
 end

@@ -1,16 +1,15 @@
-classdef Material_Elastic<Material
-    %UNTITLED Summary of this class goes here
+classdef Material_Elastic < Material
+    %Material_Elastic Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties
+    % !! This has to be revised. !!
+    % !! The best structure will depend on how this is wanted to be initialized !!
+    
+    properties (GetAccess = {?Element_Elastic,?PhysicalVars_Elastic}, SetAccess = protected)
+        C
     end
     
     methods
-        function obj = Material_Elastic()
-            obj.matProp.kappa = .9107;
-            obj.matProp.mu = .3446;
-        end
-    end
-    
+    end    
 end
 

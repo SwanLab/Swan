@@ -24,8 +24,8 @@ classdef Preprocess<handle
         
         function [fixnodes, forces] = getBC(filename)
         run(filename)
-        fixnodes=lnodes;
-        forces=pointload_complete;
+        fixnodes = lnodes;
+        forces = pointload_complete;
         end
         
     end

@@ -1,7 +1,8 @@
 classdef Mesh
     % Class containing the coordinates and connectivities of the mesh
     
-    properties
+    properties (GetAccess = {?Physical_Problem,?Geometry,?Postprocess},SetAccess = private)
+        % !! More elegant if Physical_Problem & subclasses !!
         coord
         connec
         nelem
@@ -9,8 +10,7 @@ classdef Mesh
         geometryType
         ptype
         pdim
-    end
-    
+    end    
     
     methods
         function obj = Mesh(filename)
