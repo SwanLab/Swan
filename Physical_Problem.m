@@ -2,12 +2,12 @@ classdef Physical_Problem<handle
     %Physical_Problem Summary of this class goes here
     %   Detailed explanation goes here
     
-    
     %% Restricted properties definition ===================================
-    properties (GetAccess = ?Postprocess, SetAccess = private)
-        mesh
+    properties (GetAccess = public, SetAccess = private)
+        %mesh
         geometry
         dim
+        mesh
         variables
     end
     
@@ -63,7 +63,7 @@ classdef Physical_Problem<handle
             
             % Solver
             sol = obj.solver.solve(LHS,RHS',obj.dof,obj.bc.fixnodes);
-            obj.variables = obj.physicalVars.computeVars(sol,obj.dim,obj.geometry.nnode,obj.mesh.nelem,obj.geometry.ngaus,obj.dof.idx,obj.element,obj.material);
+            obj.variables=obj.physicalVars.computeVars(sol,obj.dim,obj.geometry.nnode,obj.mesh.nelem,obj.geometry.ngaus,obj.dof.idx,obj.element,obj.material);
         end
         
         function obj = postProcess(obj,filename)

@@ -26,7 +26,5 @@ filename_out = fullfile(dir_out,name_out);
 obj = Physical_Problem();
 obj.preProcess(filename_in);
 obj.computeVariables();
-obj.postProcess(filename_out);
-
 end
 

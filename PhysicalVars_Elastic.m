@@ -2,7 +2,7 @@ classdef PhysicalVars_Elastic < PhysicalVariables
     %PhysicalVars_Elastic Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (GetAccess = ?Postprocess, SetAccess = protected)
+    properties (GetAccess = public, SetAccess = protected)
         d_u
         strain
         stress
