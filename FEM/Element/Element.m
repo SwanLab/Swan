@@ -7,7 +7,7 @@ classdef Element<handle
         LHS
     end
     
-    properties (GetAccess = {?Element_Elastic,?Element_Thermal,?PhysicalVariables}, SetAccess = protected)
+    properties (GetAccess = {?Element_Elastic,?Element_Thermal,?PhysicalVariables}, SetAccess = {?Physical_Problem,?Element})
         B
     end
     

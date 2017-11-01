@@ -42,11 +42,15 @@ classdef Physical_Problem<handle
                         case '2D'
                             obj.material = Material_Elastic_ISO_2D(obj.mesh.nelem);
                             obj.physicalVars = PhysicalVars_Elastic_2D;
+                            obj.element = Element_Elastic();
+                            obj.element.B = B2;
                         case '3D'
                             obj.material = Material_Elastic_ISO_3D(obj.mesh.nelem);
                             obj.physicalVars = PhysicalVars_Elastic_3D;
+                            obj.element = Element_Elastic();
+                            obj.element.B = B3;
                     end
-                    obj.element = Element_Elastic(obj.dim.ndim);
+                    
                 case 'THERMAL'
                     error('Still not implemented.')
                 otherwise
@@ -59,7 +63,7 @@ classdef Physical_Problem<handle
         
         function computeVariables(obj)
             % Create Element_Elastic object
-            obj.element.computeLHS(obj.dim.nunkn,obj.mesh.nelem,obj.geometry,obj.material);
+            obj.element.computeLHS(obj.dim.nunkn,obj.dim.nstre,obj.mesh.nelem,obj.geometry,obj.material);
             obj.element.computeRHS(obj.dim.nunkn,obj.mesh.nelem,obj.geometry.nnode,obj.bc,obj.dof.idx);
             
             % Assembly

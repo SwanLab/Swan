@@ -1,6 +1,6 @@
 clc
-clear all
-addpath('.\FEM\');
+clear variables
+addpath(genpath('.\FEM\'));
 %% Steps
 % 1 - Run 'Main.m'
 % 2 - Create object --> obj = Physical_Problem();
