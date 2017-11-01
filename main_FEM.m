@@ -3,11 +3,10 @@ clear variables
 addpath(genpath('.\FEM\'));
 %% Steps
 % 1 - Run 'Main.m'
-% 2 - Create object --> obj = Physical_Problem();
-% 3 - Preprocess    --> obj.preProcess(filename_in);
-% 4 - Compute       --> obj.computeVariables();
-% 5 - Postprocess   --> obj.postProcess(filename_out);
-
+% 2 - Create object --> obj = Physical_Problem(filename);
+% 3 - Preprocess    --> obj.preProcess;
+% 4 - Compute       --> obj.computeVariables;
+% 5 - Postprocess   --> obj.postProcess;
 %% test
 run('test.m')
 clear variables
