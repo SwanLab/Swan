@@ -34,7 +34,7 @@ classdef Postprocess
             nelem  = size(conectivities,1);           % Number of elements
             npnod  = size(coordinates,1);                    % Number of nodes
             
-            msh_file = strcat(file_name,'_',num2str(istep),'.flavia.msh');
+            msh_file = fullfile('Output',strcat(file_name,'_',num2str(istep),'.flavia.msh'));
             
             fid = fopen(msh_file,'w');
             fprintf(fid,'### \n');
@@ -123,7 +123,7 @@ classdef Postprocess
             
             % Escribe el fichero de resultados
             
-            res_file = strcat(file_name,'_',num2str(istep),'.flavia.res');
+            res_file = fullfile('Output',strcat(file_name,'_',num2str(istep),'.flavia.res'));
             fid = fopen(res_file,'w');
             
             switch  etype

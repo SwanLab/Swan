@@ -9,17 +9,7 @@ classdef Element_Elastic < Element
     end
     
     methods (Access = ?Physical_Problem)
-        function obj = Element_Elastic(ndim)
-            switch ndim
-                case 2
-                    % !! B should be property of Element_Elastic or Element !!
-                    obj.B = B2;
-                case 3
-                    obj.B = B3;
-            end
-        end
-        
-        function obj = computeLHS(obj,nunkn,nelem,geometry,material)
+        function obj = computeLHS(obj,nunkn,nstre,nelem,geometry,material)
             
             Ke = zeros(nunkn*geometry.nnode,nunkn*geometry.nnode,nelem);
             % Elastic matrix
@@ -30,9 +20,19 @@ classdef Element_Elastic < Element
                 [obj.B, Bmat] = obj.B.computeB(nunkn,nelem,geometry.nnode,geometry.cartDeriv(:,:,:,igauss));
                 
                 % Compute Ke
-                for i = 1:nelem
-                    Ke(:,:,i) = Ke(:,:,i)+Bmat(:,:,i)'*Cmat(:,:,i)*...
-                        Bmat(:,:,i)*geometry.area(i,igauss);
+%                 for i = 1:nelem
+%                     Ke(:,:,i) = Ke(:,:,i)+Bmat(:,:,i)'*Cmat(:,:,i)*...
+%                         Bmat(:,:,i)*geometry.area(i,igauss);
+%                 end
+               for iv=1:geometry.nnode*nunkn
+                    for jv=1:geometry.nnode*nunkn
+                        for istre=1:nstre
+                            for jstre=1:nstre
+                                v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:).*Bmat(jstre,jv,:));
+                                Ke(iv,jv,:)=squeeze(Ke(iv,jv,:)) + v(:).*geometry.area(:,igauss);
+                            end
+                        end
+                    end
                 end
             end
             obj.LHS = Ke;

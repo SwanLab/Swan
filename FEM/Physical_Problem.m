@@ -19,12 +19,16 @@ classdef Physical_Problem<handle
         dof
         solver
         physicalVars
+        problemID
     end
     
     %% Public methods definition ==========================================
     methods (Access = public)
-        function obj = preProcess(obj,filename)
-            obj.mesh = Mesh(filename);
+        function obj=Physical_Problem(problemID)
+            obj.problemID=problemID;
+        end
+        function preProcess(obj)
+            obj.mesh = Mesh(obj.problemID);
             
             % Create Objects
             obj.dim = DIM(obj.mesh.ptype,obj.mesh.pdim);
@@ -38,24 +42,28 @@ classdef Physical_Problem<handle
                         case '2D'
                             obj.material = Material_Elastic_ISO_2D(obj.mesh.nelem);
                             obj.physicalVars = PhysicalVars_Elastic_2D;
+                            obj.element = Element_Elastic();
+                            obj.element.B = B2;
                         case '3D'
                             obj.material = Material_Elastic_ISO_3D(obj.mesh.nelem);
                             obj.physicalVars = PhysicalVars_Elastic_3D;
+                            obj.element = Element_Elastic();
+                            obj.element.B = B3;
                     end
-                    obj.element = Element_Elastic(obj.dim.ndim);
+                    
                 case 'THERMAL'
                     error('Still not implemented.')
                 otherwise
                     error('Invalid ptype.')
             end
-            obj.bc = BC(obj.dim.nunkn,filename);
+            obj.bc = BC(obj.dim.nunkn,obj.problemID);
             obj.dof = DOF(obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.bc.fixnodes);
             obj.solver = Solver_Analytical;
         end
         
-        function obj = computeVariables(obj)
+        function computeVariables(obj)
             % Create Element_Elastic object
-            obj.element.computeLHS(obj.dim.nunkn,obj.mesh.nelem,obj.geometry,obj.material);
+            obj.element.computeLHS(obj.dim.nunkn,obj.dim.nstre,obj.mesh.nelem,obj.geometry,obj.material);
             obj.element.computeRHS(obj.dim.nunkn,obj.mesh.nelem,obj.geometry.nnode,obj.bc,obj.dof.idx);
             
             % Assembly
@@ -66,11 +74,11 @@ classdef Physical_Problem<handle
             obj.variables=obj.physicalVars.computeVars(sol,obj.dim,obj.geometry.nnode,obj.mesh.nelem,obj.geometry.ngaus,obj.dof.idx,obj.element,obj.material);
         end
         
-        function obj = postProcess(obj,filename)
+        function postProcess(obj)
             iter = 1; % static
             postprocess = Postprocess();
-            postprocess.ToGid(filename,obj,iter);
-            postprocess.ToGidPost(filename,obj,iter);
+            postprocess.ToGid(obj.problemID,obj,iter);
+            postprocess.ToGidPost(obj.problemID,obj,iter);
         end
         
         function setMatProps(obj,props)

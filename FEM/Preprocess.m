@@ -6,6 +6,7 @@ classdef Preprocess<handle
     
     methods(Static)
         function data = readFromGiD(filename)
+        addpath('.\Input\')
         run(filename)
         data=struct;
         data.xpoints=gidcoord;
