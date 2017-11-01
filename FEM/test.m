@@ -1,7 +1,7 @@
 clear all; close all; clc
 %% TEST
 % - 
-tic
+
 % Load the results for 2-d and 3-d tests
 tests={'test2d_triangle';
        'test2d_quad';
@@ -17,8 +17,8 @@ file_name_in=strcat('./Input/',tests{i});
 
 load_file=strcat('./tests/',file_name);
 load(load_file)
-obj = Physical_Problem();
-obj.preProcess(file_name_in);
+obj = Physical_Problem(file_name_in);
+obj.preProcess;
 obj.computeVariables;
 if sum(abs(obj.variables.d_u - d_u)) < 1e-6
     disp(strcat(file_name,' PASSED'));
@@ -26,4 +26,3 @@ else
     disp(strcat(file_name,' FAILED'));
 end
 end
-toc
