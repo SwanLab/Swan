@@ -11,17 +11,17 @@ classdef Material_Elastic_ISO_3D < Material_Elastic_ISO
             obj = obj.computeC;
         end
         
-        function obj = setProps(obj,props)
-            obj = setProps_parent(obj,props);
-            obj = obj.computeC;
-        end
-    end
-    
-    methods (Access = protected)
-        function obj = setProps_parent(obj,props)
-            setProps_parent@Material_Elastic_ISO(obj,props);
-        end
-    end
+%         function obj = setProps(obj,props)
+%             obj = setProps_parent(obj,props);
+%             obj = obj.computeC;
+%         end
+%     end
+%     
+%     methods (Access = protected)
+%         function obj = setProps_parent(obj,props)
+%             setProps_parent@Material_Elastic_ISO(obj,props);
+%         end
+     end
     
     methods (Access = private)
         function obj = computeC(obj)

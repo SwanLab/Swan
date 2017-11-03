@@ -1,28 +1,27 @@
-%% path adding
-addpath('./OOP FEM/')
-addpath('./Topology Optimization/')
-
-%% main
-clc 
+clc
 clear variables
+addpath(genpath('.\FEM\'));
+addpath(genpath('.\Topology Optimization\'));
+%% test
+run('test.m')
+clear variables
+%% settings
 settings=struct;
+settings.filename='TOPOPT_TEST';
 settings.method='SIMPALL';
 settings.material='ISOTROPIC';
-settings.topoptproblem='Compliance_st_VolPer';
-HSbounds.gamma_plus=1;
-HSbounds.gamma_minus=0;
-HSbounds.E_plus=1;
-HSbounds.E_minus=1e-3;
-HSbounds.nu_plus=1/3;
-HSbounds.nu_minus=1/3;
-
-physProblem=PhysProblem_SolidMechanics('TOPOPT_TEST');
-physProblem.preProcess;
-rho=ones(physProblem.element.nelem,physProblem.element.geometry.ngauss);
-
+settings.topoptproblem='Compliance_st_Volume';
+settings.initial_case='full';
+settings.TOL.rho_plus=1;
+settings.TOL.rho_minus=0;
+settings.TOL.E_plus=1;
+settings.TOL.E_minus=1e-3;
+settings.TOL.nu_plus=1/3;
+settings.TOL.nu_minus=1/3;
+%% main
 switch settings.topoptproblem
-    case 'Compliance_st_VolPer'
-        test=TopOpt_Problem_Compliance_st_VolPer(rho,HSbounds,physProblem,settings);
+    case 'Compliance_st_Volume'
+        test=TopOpt_Problem_Compliance_st_Volume(settings);
     otherwise
         disp('Problem not added')
 end

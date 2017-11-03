@@ -16,8 +16,8 @@ classdef Material_Elastic_ISO < Material_Elastic
         end
     end
     
-    methods (Access = protected)
-        function obj = setProps_parent(props)
+    methods (Access = ?Physical_Problem)
+        function obj = setProps(obj,props)
             obj.kappa = props.kappa;
             obj.mu = props.mu;
         end

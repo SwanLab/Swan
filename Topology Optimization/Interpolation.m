@@ -4,8 +4,8 @@ classdef Interpolation < handle
         E_minus
         nu_plus
         nu_minus
-        gamma_plus
-        gamma_minus
+        rho_plus
+        rho_minus
     end
     methods (Static)
     computeMatProp()

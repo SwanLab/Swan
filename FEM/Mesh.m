@@ -1,7 +1,7 @@
 classdef Mesh
     % Class containing the coordinates and connectivities of the mesh
     
-    properties (GetAccess = {?Physical_Problem,?Geometry,?Postprocess},SetAccess = private)
+    properties (GetAccess = {?Physical_Problem,?Geometry,?Postprocess,?TopOpt_Problem},SetAccess = private)
         % !! More elegant if Physical_Problem & subclasses !!
         coord
         connec
