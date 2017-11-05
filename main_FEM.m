@@ -1,6 +1,7 @@
 clc
 clear variables
 addpath(genpath('.\FEM\'));
+addpath(genpath('.\Input\'));
 %% Steps
 % 1 - Run 'Main.m'
 % 2 - Create object --> obj = Physical_Problem(filename);
@@ -11,17 +12,22 @@ addpath(genpath('.\FEM\'));
 run('test.m')
 clear variables
 %% Main.m
+name_in = 'CantileverToy_Triangular';
+name_out = strcat('results-',name_in);
 
-triangle = Physical_Problem('CantileverToy_Triangular');
+triangle = Physical_Problem;
 % props.kappa = 1; props.mu = 0.4;
 % obj.setMatProps(props);
-triangle.preProcess;
+triangle.preProcess(name_in);
 triangle.computeVariables;
-triangle.postProcess;
+triangle.postProcess(name_out);
 
-tetrahedra=Physical_Problem('CantileverToy_Tetrahedra');
-tetrahedra.preProcess;
+name_in = 'CantileverToy_Tetrahedra';
+name_out = strcat('results-',name_in);
+
+tetrahedra = Physical_Problem;
+tetrahedra.preProcess(name_in);
 tetrahedra.computeVariables;
-tetrahedra.postProcess;
+tetrahedra.postProcess(name_out);
 
 
