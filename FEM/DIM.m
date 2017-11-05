@@ -2,7 +2,7 @@ classdef DIM
     %DIM Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (GetAccess = {?Physical_Problem,?PhysicalVariables}, SetAccess = private)
+    properties (GetAccess = public, SetAccess = private)
         nstre
 %         nnode
     end

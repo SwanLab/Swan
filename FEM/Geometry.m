@@ -2,7 +2,7 @@ classdef Geometry
     %Geometry Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (GetAccess = {?Physical_Problem,?Element,?Postprocess,?TopOpt_Problem}, SetAccess = private)
+    properties (GetAccess = public, SetAccess = private)
         cartDeriv
         area
         ndime

@@ -7,7 +7,7 @@ run('test.m')
 clear variables
 %% settings
 settings=struct;
-settings.filename='TOPOPT_TEST';
+settings.filename='TOPOPT_TEST';    
 settings.method='SIMPALL';
 settings.material='ISOTROPIC';
 settings.topoptproblem='Compliance_st_Volume';
