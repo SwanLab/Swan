@@ -2,13 +2,16 @@ classdef Physical_Problem<handle
     %Physical_Problem Summary of this class goes here
     %   Detailed explanation goes here
     
-    %% Restricted properties definition ===================================
+    %% Public GetAccess properties definition =============================
     properties (GetAccess = public, SetAccess = private)
-        %mesh
+        variables
+    end
+    
+    %% Restricted properties definition ===================================
+    properties (GetAccess = ?Postprocess, SetAccess = private)
+        mesh
         geometry
         dim
-        mesh
-        variables
         RHS
         LHS
     end

@@ -32,7 +32,7 @@ classdef Postprocess
                     gtype = 'Hexahedra';
             end
             nelem  = size(conectivities,1);           % Number of elements
-            npnod  = size(coordinates,1);                    % Number of nodes
+            npnod  = size(coordinates,1);             % Number of nodes
             
             msh_file = fullfile('Output',strcat(file_name,'_',num2str(istep),'.flavia.msh'));
             
@@ -58,11 +58,6 @@ classdef Postprocess
             
             switch  geometryType
                 case 'TRIANGLE'
-                    %         for i = 1 : nelem
-                    %             if (nnode==3)
-                    %             fprintf(fid,['%6.0f %6.0f %6.0f %6.0f  1 \n'],i,conectivities(i,:));
-                    %             end
-                    %         end
                     fprintf(fid,['%6.0f %6.0f %6.0f %6.0f  1 \n'],[1:nelem;conectivities']);
                     
                 case 'QUAD'
