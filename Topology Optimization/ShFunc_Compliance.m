@@ -12,6 +12,8 @@ classdef ShFunc_Compliance< Shape_Functional
             
             strain = physicalProblem.variables.strain;
             stress = physicalProblem.variables.stress;
+            
+            %derivada C
             P_interp = zeros(physicalProblem.dim.nstre,physicalProblem.dim.nstre,length(rho));
             P_interp(1,1,:) = matProps.c1 + matProps.c2;
             P_interp(2,2,:) = matProps.c1 + matProps.c2;

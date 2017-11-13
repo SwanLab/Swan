@@ -39,6 +39,9 @@ classdef Geometry
                     jacobian(i,:,:) = sum(deriv_perm_large.*elcoord,1);
                 end
                 switch obj.ndime
+                    case 1
+                        invJ = 1./jacobian;
+                        detJ = jacobian;
                     case 2
                         [invJ,detJ] = multinverse2x2(jacobian);
                     case 3

@@ -15,8 +15,7 @@ classdef Mesh
     end    
     
     methods
-        function obj = Mesh(filename)
-             
+        function obj = Mesh(filename) 
             data = Preprocess.readFromGiD(filename);
             obj.coord=data.xpoints(:,2:4);
             obj.connec=data.connectivities(:,2:length(data.connectivities(1,:)));
