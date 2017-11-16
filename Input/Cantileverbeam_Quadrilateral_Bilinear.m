@@ -1,6 +1,6 @@
 %==================================================================
 %                        General Data File
-% Title: QUADRILATERAL
+% Title: QUADRILATERAL BILINEAR
 % Units: SI
 % Dimensions: 2D
 % Type of problem: Plane_Stress
@@ -12,7 +12,7 @@
 %% Data
 
 Data_prb = {
-'QUADRILATERAL';
+'QUAD';
 'SI';
 '2D';
 'Plane_Stress';

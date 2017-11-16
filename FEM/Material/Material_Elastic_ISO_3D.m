@@ -7,8 +7,7 @@ classdef Material_Elastic_ISO_3D < Material_Elastic_ISO
     
     methods (Access = ?Material)
         function obj = Material_Elastic_ISO_3D(nelem)
-            obj.nelem = nelem;
-            obj = obj.computeC;
+            obj@Material_Elastic_ISO(nelem);
         end
     end
     
