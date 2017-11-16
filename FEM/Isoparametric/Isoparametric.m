@@ -1,11 +1,11 @@
 classdef Isoparametric
-    %UNTITLED3 Summary of this class goes here
+    %Isoparametric Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
         type
         ndime
-        nnode
+        nnode % nnode is no longer given by Isoparametric subclasses --> REMOVE
         ngaus
         weigp
         posgp

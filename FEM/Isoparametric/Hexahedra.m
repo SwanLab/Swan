@@ -8,9 +8,9 @@ classdef Hexahedra < Isoparametric
             obj.type = 'HEXAHEDRA';
             obj.ndime = 3;          % 1D/2D/3D
             obj.nnode = 8;
-            obj.ngaus = 8;          
+            obj.ngaus = 8;
             %COMPUTE WEIGP AND POSGP
-      
+            
             nlocs = 2;
             posgl(1)=-0.577350269189626;
             posgl(2)= 0.577350269189626;
@@ -28,7 +28,7 @@ classdef Hexahedra < Isoparametric
                         obj.posgp(3,igaus)=posgl(klocs);
                     end
                 end
-            end 
+            end
             for igauss=1:obj.ngaus
                 s=obj.posgp(1,igauss);
                 t=obj.posgp(2,igauss);
@@ -50,5 +50,5 @@ classdef Hexahedra < Isoparametric
             end
         end
     end
-
+    
 end
