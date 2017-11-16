@@ -5,25 +5,13 @@ classdef Material_Elastic_ISO_2D < Material_Elastic_ISO
     properties
     end
     
-    methods (Access = ?Physical_Problem)
+    methods (Access = ?Material)
         function obj = Material_Elastic_ISO_2D(nelem)
-            obj = obj@Material_Elastic_ISO(nelem);
-            obj = obj.computeC;
-        end
-        
-        function obj = setProps(obj,props)
-            obj = setProps_parent(obj,props);
-            obj = obj.computeC;
+            obj@Material_Elastic_ISO(nelem);
         end
     end
     
     methods (Access = protected)
-        function obj = setProps_parent(obj,props)
-            setProps_parent@Material_Elastic_ISO(obj,props);
-        end
-    end
-    
-    methods (Access = private)
         function obj = computeC(obj)
             C = zeros(3,3,obj.nelem);
             

@@ -17,17 +17,5 @@ classdef PhysicalVars_Elastic_3D < PhysicalVars_Elastic
         end
     end
     
-    methods (Access = protected, Static)
-        % Compute strains
-        function strain = computeStrain(d_u,dim,nnode,nelem,ngaus,idx,element)
-            strain = computeStrain@PhysicalVars_Elastic(d_u,dim,nnode,nelem,ngaus,idx,element);
-        end
-        
-        % Compute stresses
-        function stress = computeStress(strain,C,ngaus,nstre)
-            stress = computeStress@PhysicalVars_Elastic(strain,C,ngaus,nstre);
-        end
-    end
-    
 end
 

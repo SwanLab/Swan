@@ -3,13 +3,16 @@ classdef Material_Elastic < Material
     %   Detailed explanation goes here
     
     % !! This has to be revised. !!
-    % !! The best structure will depend on how this is wanted to be initialized !!
+    % !! The best structure depends on how this is wanted to be initialized !!
     
-    properties (GetAccess = {?Element_Elastic,?PhysicalVars_Elastic}, SetAccess = protected)
+    properties (GetAccess = {?Element_Elastic,?PhysicalVars_Elastic}, SetAccess = protected)        
         C
     end
     
-    methods
+    methods (Access = protected)
+        function obj = Material_Elastic(nelem)
+            obj@Material(nelem);            
+        end
     end    
 end
 

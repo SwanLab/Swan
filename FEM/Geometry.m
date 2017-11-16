@@ -6,44 +6,67 @@ classdef Geometry
         cartDeriv
         area
         ndime
-        nnode % preguntar
-        ngaus % preguntar
+        nnode
+        ngaus
+    end
+    properties (GetAccess = ?Postprocess, SetAccess = private)
+        posgp
     end
     
     methods (Access = ?Physical_Problem)
         function obj = Geometry(mesh)
+            obj.nnode = size(mesh.connec,2);
             switch mesh.geometryType
                 case 'TRIANGLE'
-                    geometryObject = Triangle_Linear();
-                case 'QUAD'
-                    geometryObject = Quadrilateral();
+                    switch obj.nnode
+                        case 3
+                            geometryObject = Triangle_Linear;
+                        case 6
+                            geometryObject = Triangle_Quadratic;
+                        otherwise
+                            error('Invalid nnode for element TRIANGLE.');
+                    end
+                case 'QUADRILATERAL'
+                    switch obj.nnode
+                        case 4
+                            geometryObject = Quadrilateral_Bilinear;
+                        case 8
+                            geometryObject = Quadrilateral_Serendipity;
+                        otherwise
+                            error('Invalid nnode for element QUADRILATERAL.');
+                    end
                 case 'TETRAHEDRA'
-                    geometryObject = Tetrahedra();
+                    geometryObject = Tetrahedra;
                 case 'HEXAHEDRA'
-                    geometryObject = Hexahedra();
+                    geometryObject = Hexahedra;
+                otherwise
+                    error('Invalid mesh type.')
             end
             
+            obj.posgp = geometryObject.posgp;
             obj.ndime = geometryObject.ndime;
-            obj.nnode = geometryObject.nnode;
             obj.ngaus = geometryObject.ngaus;
             for i = 1:obj.ndime
                 a = mesh.coord(:,i);
                 elcoord(:,i,:) = a(permute(mesh.connec',[1,3,2]));
             end
-            %gauss loop
-            for igauss=1:obj.ngaus
+            % Gauss loop
+            for igauss = 1:obj.ngaus
                 for i = 1:obj.ndime
                     % Jacobian
                     deriv_perm = permute(geometryObject.deriv(i,:,igauss),[2,1,3]);
                     deriv_perm_large = repmat(deriv_perm,1,obj.ndime,mesh.nelem);
                     jacobian(i,:,:) = sum(deriv_perm_large.*elcoord,1);
                 end
-                switch obj.ndime
-                    case 2
+                
+                % !! SWITCH EXECPCIÓ? !!
+                switch mesh.pdim
+                    case '2D'
                         [invJ,detJ] = multinverse2x2(jacobian);
-                    case 3
+                    case '3D'
                         [invJ,detJ] = multinverse3x3(jacobian);
                 end
+                
                 for i = 1:obj.ndime
                     % Cartesian Derivatives
                     deriv_perm = permute(invJ(i,:,:),[2,1,3]);

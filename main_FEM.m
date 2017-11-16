@@ -10,19 +10,32 @@ addpath(genpath('.\Input\'));
 % 4 - Compute       --> obj.computeVariables;
 % 5 - Postprocess   --> obj.postProcess;
 %% test
-run('test.m')
-clear variables
+% !! NOTE: Test function doesn't work because file MainFunc is missing.
+% run('test.m')
+% clear variables
+
 %% Main.m
-triangle = Physical_Problem('CantileverToy_Triangular');
+triangle_linear = Physical_Problem('CantileverBeam_Triangle_Linear');
 % props.kappa = 1; props.mu = 0.4;
-% triangle.setMatProps(props);
-triangle.preProcess;
-triangle.computeVariables;
-triangle.postProcess;
+% triangle_linear.setMatProps(props);
+triangle_linear.preProcess;
+triangle_linear.computeVariables;
+triangle_linear.postProcess;
 
-tetrahedra = Physical_Problem('CantileverToy_Tetrahedra');
-tetrahedra.preProcess;
-tetrahedra.computeVariables;
-tetrahedra.postProcess;
 
+triangle_quadratic = Physical_Problem('CantileverBeam_Triangle_Quadratic');
+triangle_quadratic.preProcess;
+triangle_quadratic.computeVariables;
+triangle_quadratic.postProcess;
+
+
+quadrilateral_bilinear = Physical_Problem('Cantileverbeam_Quadrilateral_Bilinear');
+quadrilateral_bilinear.preProcess;
+quadrilateral_bilinear.computeVariables;
+quadrilateral_bilinear.postProcess;
+
+quadrilateral_serendipity = Physical_Problem('Cantileverbeam_Quadrilateral_Serendipity');
+quadrilateral_serendipity.preProcess
+quadrilateral_serendipity.computeVariables;
+quadrilateral_serendipity.postProcess;
 
