@@ -1,0 +1,6 @@
+\select@language {english}
+\contentsline {section}{\numberline {1}Session 3: The SLERP Method}{1}{section.1}
+\contentsline {section}{\numberline {2}Session 5: Compliance gradient computation}{3}{section.2}
+\contentsline {subsection}{\numberline {2.1}Problem Definition}{3}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Differential definition}{3}{subsection.2.2}
+\contentsline {subsection}{\numberline {2.3}Gradient Computation}{3}{subsection.2.3}
