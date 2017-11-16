@@ -42,7 +42,7 @@ classdef Postprocess
                         otherwise
                             error('Element type %s with %.0f nodes has not being implemented.',gytpe,nnode);
                     end
-                case 'QUADRILATERAL'
+                case 'QUAD'
                     switch nnode
                         case 4
                             fprintf(fid,'%6.0f %6.0f %6.0f %6.0f %6.0f  1 \n',[1:nelem;conectivities']);
@@ -89,7 +89,7 @@ classdef Postprocess
             switch  etype
                 case 'TRIANGLE'
                     etype = 'Triangle'; %gid type
-                case 'QUADRILATERAL'
+                case 'QUAD'
                     etype = 'Quadrilateral';
                 case 'TETRAHEDRA'
                     etype= 'Tetrahedra';
@@ -135,7 +135,7 @@ classdef Postprocess
             switch  gtype %gid type
                 case 'TRIANGLE'
                     etype = 'Triangle';
-                case 'QUADRILATERAL'
+                case 'QUAD'
                     etype = 'Quadrilateral';
                 case 'TETRAHEDRA'
                     etype = 'Tetrahedra';

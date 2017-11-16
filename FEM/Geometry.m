@@ -26,7 +26,7 @@ classdef Geometry
                         otherwise
                             error('Invalid nnode for element TRIANGLE.');
                     end
-                case 'QUADRILATERAL'
+                case 'QUAD'
                     switch obj.nnode
                         case 4
                             geometryObject = Quadrilateral_Bilinear;
