@@ -1,3 +1,8 @@
+
+
+
+
+
 classdef ShFunc_Compliance< Shape_Functional
     properties 
     end
@@ -11,22 +16,13 @@ classdef ShFunc_Compliance< Shape_Functional
             compliance=physicalProblem.variables.d_u'*physicalProblem.RHS;    
             
             strain = physicalProblem.variables.strain;
-            stress = physicalProblem.variables.stress;
-            
-            %derivada C
-            P_interp = zeros(physicalProblem.dim.nstre,physicalProblem.dim.nstre,length(rho));
-            P_interp(1,1,:) = matProps.c1 + matProps.c2;
-            P_interp(2,2,:) = matProps.c1 + matProps.c2;
-            P_interp(1,2,:) = matProps.c2;
-            P_interp(2,1,:) = matProps.c2;
-            P_interp(3,3,:) = matProps.c1;            
             
             gradient_compliance = zeros(physicalProblem.mesh.nelem,physicalProblem.geometry.ngaus);
             
             for igaus=1:physicalProblem.geometry.ngaus
                 for istre=1:physicalProblem.dim.nstre
                     for jstre = 1:physicalProblem.dim.nstre
-                        gradient_compliance(:,igaus) = gradient_compliance(:,igaus) + (squeeze(stress(istre,:,igaus))*squeeze(P_interp(istre,jstre,:))*squeeze(strain(jstre,:,igaus)))';
+                        gradient_compliance(:,igaus) = gradient_compliance(:,igaus) + (squeeze(strain(istre,:,igaus))*squeeze(matProps.dC(istre,jstre,:,igaus))*squeeze(strain(jstre,:,igaus)))';
                     end
                 end
             end

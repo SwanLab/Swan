@@ -5,15 +5,15 @@ classdef Physical_Problem<handle
     %% Public GetAccess properties definition =============================
     properties (GetAccess = public, SetAccess = private)
         variables
-    end
-    
-    %% Restricted properties definition ===================================
-    properties (GetAccess = ?Postprocess, SetAccess = private)
         mesh
         geometry
         dim
         RHS
         LHS
+    end
+    
+    %% Restricted properties definition ===================================
+    properties (GetAccess = ?Postprocess, SetAccess = private)        
     end
     
     %% Private properties definition ======================================
