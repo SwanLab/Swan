@@ -20,8 +20,14 @@ classdef Element_Elastic < Element
                 [obj.B, Bmat] = obj.B.computeB(nunkn,nelem,geometry.nnode,geometry.cartDeriv(:,:,:,igauss));
                 
                 % Compute Ke
-               for iv = 1:geometry.nnode*nunkn
-                    for jv = 1:geometry.nnode*nunkn
+                if nelem < 1000 %Just to reduce test.m compute time TO BE REMOVED
+                for i = 1:nelem
+                    Ke(:,:,i) = Ke(:,:,i)+Bmat(:,:,i)'*Cmat(:,:,i)*...
+                        Bmat(:,:,i)*geometry.area(i,igauss);
+                end
+                else
+                for iv=1:geometry.nnode*nunkn
+                    for jv=1:geometry.nnode*nunkn
                         for istre=1:nstre
                             for jstre=1:nstre
                                 v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:).*Bmat(jstre,jv,:));
@@ -29,6 +35,7 @@ classdef Element_Elastic < Element
                             end
                         end
                     end
+                end
                 end
             end
             obj.LHS = Ke;

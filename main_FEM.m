@@ -10,18 +10,14 @@ addpath(genpath('.\Input\'));
 % 4 - Compute       --> obj.computeVariables;
 % 5 - Postprocess   --> obj.postProcess;
 %% test
-
 run('test.m')
 clear variables
-
 %% Main.m
-% triangle_linear = Physical_Problem('CantileverBeam_Triangle_Linear');
-% % props.kappa = 1; props.mu = 0.4;
-% % triangle_linear.setMatProps(props);
-% triangle_linear.preProcess;
-% triangle_linear.computeVariables;
-% triangle_linear.postProcess;
-% 
+triangle_linear = Physical_Problem('CantileverBeam_Triangle_Linear');
+triangle_linear.preProcess;
+triangle_linear.computeVariables;
+triangle_linear.postProcess;
+
 % 
 % triangle_quadratic = Physical_Problem('CantileverBeam_Triangle_Quadratic');
 % triangle_quadratic.preProcess;
@@ -33,9 +29,9 @@ clear variables
 % quadrilateral_bilinear.preProcess;
 % quadrilateral_bilinear.computeVariables;
 % quadrilateral_bilinear.postProcess;
-
-quadrilateral_serendipity = Physical_Problem('Cantileverbeam_Quadrilateral_Serendipity');
-quadrilateral_serendipity.preProcess
-quadrilateral_serendipity.computeVariables;
-quadrilateral_serendipity.postProcess;
+% 
+% quadrilateral_serendipity = Physical_Problem('Cantileverbeam_Quadrilateral_Serendipity');
+% quadrilateral_serendipity.preProcess
+% quadrilateral_serendipity.computeVariables;
+% quadrilateral_serendipity.postProcess;
 

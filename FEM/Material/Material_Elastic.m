@@ -15,4 +15,3 @@ classdef Material_Elastic < Material
         end
     end    
 end
-

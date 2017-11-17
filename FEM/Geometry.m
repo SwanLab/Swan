@@ -2,7 +2,7 @@ classdef Geometry
     %Geometry Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (GetAccess = {?Physical_Problem,?Element,?Postprocess}, SetAccess = private)
+    properties (GetAccess = public, SetAccess = private)
         cartDeriv
         area
         ndime
@@ -57,8 +57,7 @@ classdef Geometry
                     deriv_perm = permute(geometryObject.deriv(i,:,igauss),[2,1,3]);
                     deriv_perm_large = repmat(deriv_perm,1,obj.ndime,mesh.nelem);
                     jacobian(i,:,:) = sum(deriv_perm_large.*elcoord,1);
-                end
-                
+                end                
                 % !! SWITCH EXECPCIÓ? !!
                 switch mesh.pdim
                     case '2D'

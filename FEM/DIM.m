@@ -1,12 +1,14 @@
 classdef DIM
     %DIM Summary of this class goes here
     %   Detailed explanation goes here
-    
+    properties (GetAccess = public, SetAccess = private)
+        nstre
+%         nnode
+    end
     properties (GetAccess = {?Physical_Problem,?PhysicalVariables,?Postprocess}, SetAccess = private)
         ndim
 %         ngaus
         nunkn
-        nstre
     end
     
     methods (Access = ?Physical_Problem)

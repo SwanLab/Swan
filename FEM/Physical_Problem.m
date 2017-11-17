@@ -5,13 +5,15 @@ classdef Physical_Problem < handle
     %% Public GetAccess properties definition =============================
     properties (GetAccess = public, SetAccess = private)
         variables
-    end
-    
-    %% Restricted properties definition ===================================
-    properties (GetAccess = ?Postprocess, SetAccess = private)
         mesh
         geometry
         dim
+        RHS
+        LHS
+    end
+    
+    %% Restricted properties definition ===================================
+    properties (GetAccess = ?Postprocess, SetAccess = private)        
     end
     
     %% Private properties definition ======================================
@@ -51,10 +53,10 @@ classdef Physical_Problem < handle
             obj.element.computeRHS(obj.dim.nunkn,obj.mesh.nelem,obj.geometry.nnode,obj.bc,obj.dof.idx);
             
             % Assembly
-            [LHS,RHS] = obj.Assemble(obj.element,obj.geometry.nnode,obj.dim.nunkn,obj.dof);
+            [obj.LHS,obj.RHS] = obj.Assemble(obj.element,obj.geometry.nnode,obj.dim.nunkn,obj.dof);
             
             % Solver
-            sol = obj.solver.solve(LHS,RHS',obj.dof,obj.bc.fixnodes);
+            sol = obj.solver.solve(obj.LHS,obj.RHS,obj.dof,obj.bc.fixnodes);
             obj.variables = obj.physicalVars.computeVars(sol,obj.dim,obj.geometry.nnode,obj.mesh.nelem,obj.geometry.ngaus,obj.dof.idx,obj.element,obj.material);
         end
         
@@ -84,7 +86,7 @@ classdef Physical_Problem < handle
             end
             
             % Compute RHS
-            RHS = zeros(1,dof.ndof);
+            RHS = zeros(dof.ndof,1);
             for i = 1:length(dof.idx(:,1)) % nnode*nunkn
                 b = squeeze(element.RHS(i,1,:));
                 ind = dof.idx(i,:);
