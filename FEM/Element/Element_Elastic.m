@@ -15,12 +15,12 @@ classdef Element_Elastic < Element
             % Elastic matrix
             Cmat = material.C;
             
-            for igauss=1:geometry.ngaus
+            for igauss = 1 :geometry.ngaus
                 % Strain-displacement matrix
                 [obj.B, Bmat] = obj.B.computeB(nunkn,nelem,geometry.nnode,geometry.cartDeriv(:,:,:,igauss));
                 
                 % Compute Ke
-                if nelem < 1000 %Just to reduce test.m compute time
+                if nelem < 1000 %Just to reduce test.m compute time TO BE REMOVED
                 for i = 1:nelem
                     Ke(:,:,i) = Ke(:,:,i)+Bmat(:,:,i)'*Cmat(:,:,i)*...
                         Bmat(:,:,i)*geometry.area(i,igauss);
@@ -31,7 +31,7 @@ classdef Element_Elastic < Element
                         for istre=1:nstre
                             for jstre=1:nstre
                                 v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:).*Bmat(jstre,jv,:));
-                                Ke(iv,jv,:)=squeeze(Ke(iv,jv,:)) + v(:).*geometry.area(:,igauss);
+                                Ke(iv,jv,:) = squeeze(Ke(iv,jv,:)) + v(:).*geometry.area(:,igauss);
                             end
                         end
                     end

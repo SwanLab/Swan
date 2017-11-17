@@ -22,7 +22,7 @@ classdef ShFunc_Compliance< Shape_Functional
             for igaus=1:physicalProblem.geometry.ngaus
                 for istre=1:physicalProblem.dim.nstre
                     for jstre = 1:physicalProblem.dim.nstre
-                        gradient_compliance(:,igaus) = gradient_compliance(:,igaus) + (squeeze(strain(istre,:,igaus))*squeeze(matProps.dC(istre,jstre,:,igaus))*squeeze(strain(jstre,:,igaus)))';
+                        gradient_compliance(:,igaus) = gradient_compliance(:,igaus) + (squeeze(strain(igaus,istre,:))'*squeeze(matProps.dC(istre,jstre,:,igaus))*squeeze(strain(igaus,istre,:)));
                     end
                 end
             end

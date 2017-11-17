@@ -1,4 +1,4 @@
-classdef Physical_Problem<handle
+classdef Physical_Problem < handle
     %Physical_Problem Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -29,38 +29,19 @@ classdef Physical_Problem<handle
     
     %% Public methods definition ==========================================
     methods (Access = public)
-        function obj=Physical_Problem(problemID)
-            obj.problemID=problemID;
+        function obj = Physical_Problem(problemID)
+            obj.problemID = problemID;
         end
+        
         function preProcess(obj)
             obj.mesh = Mesh(obj.problemID);
             
             % Create Objects
             obj.dim = DIM(obj.mesh.ptype,obj.mesh.pdim);
             obj.geometry = Geometry(obj.mesh);
-            
-            switch obj.mesh.ptype
-                case 'ELASTIC'
-                    % !! IT HAS BEEN ASSUMED THAT THERE'S ONLY ISOTROPIC MATERIALS. 
-                    %    THIS HAS TO BE CHANGED FOR THE OPT TOP PROBLEM !!
-                    switch obj.mesh.pdim
-                        case '2D'
-                            obj.material = Material_Elastic_ISO_2D(obj.mesh.nelem);
-                            obj.physicalVars = PhysicalVars_Elastic_2D;
-                            obj.element = Element_Elastic();
-                            obj.element.B = B2;
-                        case '3D'
-                            obj.material = Material_Elastic_ISO_3D(obj.mesh.nelem);
-                            obj.physicalVars = PhysicalVars_Elastic_3D;
-                            obj.element = Element_Elastic();
-                            obj.element.B = B3;
-                    end
-                    
-                case 'THERMAL'
-                    error('Still not implemented.')
-                otherwise
-                    error('Invalid ptype.')
-            end
+            obj.element = Element.create(obj.mesh.ptype,obj.mesh.pdim);
+            obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem);
+            obj.physicalVars = PhysicalVariables.create(obj.mesh.ptype,obj.mesh.pdim);
             obj.bc = BC(obj.dim.nunkn,obj.problemID);
             obj.dof = DOF(obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.bc.fixnodes);
             obj.solver = Solver_Analytical;
@@ -76,18 +57,18 @@ classdef Physical_Problem<handle
             
             % Solver
             sol = obj.solver.solve(obj.LHS,obj.RHS,obj.dof,obj.bc.fixnodes);
-            obj.variables=obj.physicalVars.computeVars(sol,obj.dim,obj.geometry.nnode,obj.mesh.nelem,obj.geometry.ngaus,obj.dof.idx,obj.element,obj.material);
+            obj.variables = obj.physicalVars.computeVars(sol,obj.dim,obj.geometry.nnode,obj.mesh.nelem,obj.geometry.ngaus,obj.dof.idx,obj.element,obj.material);
         end
         
         function postProcess(obj)
             iter = 1; % static
-            postprocess = Postprocess();
-            postprocess.ToGid(obj.problemID,obj,iter);
-            postprocess.ToGidPost(obj.problemID,obj,iter);
+            postprocess = Postprocess;
+            postprocess.ToGiD(obj.problemID,obj,iter);
+            postprocess.ToGiDpost(obj.problemID,obj,iter);
         end
         
         function setMatProps(obj,props)
-            obj.material.setProps(props);
+            obj.material = obj.material.setProps(props);
         end
     end
     
@@ -105,7 +86,7 @@ classdef Physical_Problem<handle
             end
             
             % Compute RHS
-            RHS = sparse(dof.ndof,1);
+            RHS = zeros(dof.ndof,1);
             for i = 1:length(dof.idx(:,1)) % nnode*nunkn
                 b = squeeze(element.RHS(i,1,:));
                 ind = dof.idx(i,:);

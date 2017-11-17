@@ -6,6 +6,8 @@ classdef Solver
     end
     
     methods
+        %% !! HERE A CREATE FUNCTION SHOULD BE IMPLEMENTED !!
+        % Not necessary until no other solvers are implemented
     end
     
 end

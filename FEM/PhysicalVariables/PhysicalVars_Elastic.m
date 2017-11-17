@@ -9,10 +9,9 @@ classdef PhysicalVars_Elastic < PhysicalVariables
     end
     
     methods (Access = protected, Static)
-        % !! NEEDS REVISION !!
+        %% !! NEEDS REVISION !!
         % Compute strains (e=B·u)
         function strain = computeStrain(d_u,dim,nnode,nelem,ngaus,idx,element)
-            
             strain = zeros(dim.nstre,nelem,ngaus);
             for igaus = 1:ngaus
                 Bmat = element.B.value(igaus);
@@ -27,7 +26,8 @@ classdef PhysicalVars_Elastic < PhysicalVariables
                 end
             end
         end
-        
+    end
+    methods (Access = protected, Static)
         % Compute stresses
         function stres = computeStress(strain,C,ngaus,nstre)
             stres = zeros(size(strain));
@@ -40,5 +40,6 @@ classdef PhysicalVars_Elastic < PhysicalVariables
             end
         end
     end
+    
 end
 
