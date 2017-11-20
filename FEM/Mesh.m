@@ -4,11 +4,11 @@ classdef Mesh
         % !! More elegant if Physical_Problem & subclasses !!
         nelem
         npnod
-    end
-    properties (GetAccess = {?Physical_Problem,?Geometry,?Postprocess,?TopOpt_Problem},SetAccess = private)
-        % !! More elegant if Physical_Problem & subclasses !!
         coord
         connec
+    end
+    properties (GetAccess = {?Physical_Problem,?Geometry,?Postprocess,?TopOpt_Problem},SetAccess = {?Physical_Problem})
+        % !! More elegant if Physical_Problem & subclasses !!
         geometryType
         ptype
         pdim
