@@ -21,25 +21,22 @@ classdef Algorithm_SLERP < handle
             obj.Stiff_smooth=physProblem.computeKsmooth;
             cost.h_C_0=cost.value;
             iter=0;
-            
-
+            cost.computef(x_ini,physProblem,interpolation,filter);
+            constraint.computef(x_ini,physProblem,interpolation,filter);
             while(obj.stop_Criteria_opt)
-                iter=iter+1;
+                iter=iter+1
                 obj.plotX(x_ini,physProblem)
                 volume = constraint.value;
-                cost.computef(x_ini,physProblem,interpolation,filter);
-                constraint.computef(x_ini,physProblem,interpolation,filter);
+                
                 obj.lambda = obj.lambda+obj.penalty*constraint.value;
                 
                 cost_ini = cost.value + obj.lambda*constraint.value + 0.5*obj.penalty*(constraint.value.*constraint.value);
                 gradient_ini = constraint.gradient*obj.lambda' + constraint.gradient*(obj.penalty'.*constraint.value) + cost.gradient;
                 
-                theta = obj.computeTheta(x_ini,gradient_ini);
+                theta = obj.computeTheta(x_ini,gradient_ini)
                 while(obj.stop_Criteria_ls) 
                     
                     x_ls=obj.designVariableUpdate(x_ini,obj.kappa,theta,gradient_ini);  
-                    
-                    obj.plotX(x_ls,physProblem)
                     cost.computef(x_ls,physProblem,interpolation,filter);
                     constraint.computef(x_ls,physProblem,interpolation,filter);
                     
