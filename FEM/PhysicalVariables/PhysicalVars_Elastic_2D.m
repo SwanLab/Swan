@@ -24,7 +24,7 @@ classdef PhysicalVars_Elastic_2D < PhysicalVars_Elastic
         function strain = computeEz(strain,dim,nelem,material)
             mu = material.mu;
             kappa = material.kappa;
-            epoiss = (kappa - mu)./(kappa + mu);
+            epoiss = (kappa(1,1) - mu(1,1))./(kappa(1,1) + mu(1,1));
             epoiss = ones(1,nelem)*epoiss;
             strain(dim.nstre+1,:,:) = (-epoiss./(1-epoiss)).*(strain(1,:,:)+strain(2,:,:));
         end

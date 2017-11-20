@@ -66,6 +66,76 @@ classdef Physical_Problem < FEM
         function setMatProps(obj,props)
             obj.material = obj.material.setProps(props);
         end
+        
+        function Msmooth=computeMass(obj,job)
+            meshMass=obj.mesh;
+            meshMass.geometryType='Triangle_Linear_Mass';
+            geom=Geometry(meshMass);
+            lnods=obj.mesh.connec';
+            emat = zeros(geom.nnode,geom.nnode,obj.mesh.nelem);
+            for igaus=1:geom.ngaus
+                for inode=1:geom.nnode
+                    for jnode=1:geom.nnode
+                        emat(inode,jnode,:)=squeeze(emat(inode,jnode,:)) + geom.weigp(igaus)*geom.shape(inode,igaus)*geom.shape(jnode,igaus)*geom.djacob(:,igaus);
+                    end
+                end
+            end
+            
+            if (job==1)
+                % lumped mass matrix
+                elumped = zeros(geom.nnode,obj.mesh.nelem);
+                Msmooth = zeros(geom.nnode,1);
+                [nproc,coeff] = nprocedure(etype,nnode);
+                if (nproc==1)
+                    for inode=1:nnode
+                        for jnode=1:nnode
+                            elumped(inode,:)=elumped(inode,:)+squeeze(emat(inode,jnode,:))';
+                        end
+                    end
+                elseif (nproc==2)
+                    for inode=1:nnode
+                        for jnode=1:nnode
+                            elumped(inode,:)=elumped(inode,:)+squeeze(emat(inode,jnode,:))';
+                        end
+                        elumped(inode,:)=elumped(inode,:)*coeff(inode);
+                    end
+                end
+                for inode=1:nnode
+                    Msmooth = Msmooth + sparse(lnods(inode,:),1,elumped(inode,:),npnod,1);
+                end
+            elseif (job==2)
+                
+                Msmooth = sparse(obj.mesh.npnod,obj.mesh.npnod);
+                for k=1:geom.nnode
+                    for l=1:geom.nnode
+                        vmass = squeeze(emat(k,l,:));
+                        Msmooth = Msmooth + sparse(lnods(k,:),lnods(l,:),vmass,obj.mesh.npnod,obj.mesh.npnod);
+                    end
+                end
+                
+            end
+        end
+        function StifMat=computeKsmooth(obj)
+            StifMat=sparse(obj.mesh.npnod,obj.mesh.npnod);
+            nnode=obj.geometry.nnode;
+            nunkn=1;
+            nstre=2;
+            element_smooth=Element.create('THERMAL',obj.mesh.pdim);
+            element_smooth.computeLHS(nunkn,nstre,obj.mesh.nelem,obj.geometry,obj.material);
+            estiff=element_smooth.LHS;
+            lnods=obj.mesh.connec';
+            for a=1:nnode
+                for i=1:nunkn
+                    idx(nunkn*a-nunkn+i,:) = nunkn.*lnods(a,:)-nunkn+i;
+                end
+            end
+            for k=1:nnode*nunkn
+                for l=1:nnode*nunkn
+                    vestiff = squeeze(estiff(k,l,:));
+                    StifMat = StifMat + sparse(idx(k,:),idx(l,:),vestiff,obj.mesh.npnod,obj.mesh.npnod);
+                end
+            end
+        end
     end
     
     %% Private methods definition =========================================

@@ -53,17 +53,17 @@ classdef Interpolation_ISO_SIMPALL < Interpolation
             dlam_func=matlabFunction(dlam);     
             
             for igauss=1:ngauss
-                mu(:,igauss)=mu_func(rho(:,igauss));
-                kappa(:,igauss)=kappa_func(rho(:,igauss));
-                dC(1,1,:,igauss)=2*dmu_func(rho(:,igauss))+dlam_func(rho(:,igauss));
-                dC(1,2,:,igauss)=  dlam_func(rho(:,igauss));
+                mu(:,igauss)= mu_func(rho(:,igauss));
+                kappa(:,igauss)= kappa_func(rho(:,igauss));
+                dC(1,1,:,igauss)= 2*dmu_func(rho(:,igauss))+dlam_func(rho(:,igauss));
+                dC(1,2,:,igauss)= dlam_func(rho(:,igauss));
                 dC(1,3,:,igauss)= zeros(length(rho(:,igauss)),1);
                 dC(2,1,:,igauss)= dlam_func(rho(:,igauss));
                 dC(2,2,:,igauss)= 2*dmu_func(rho(:,igauss))+dlam_func(rho(:,igauss));
-                dC(2,3,:,igauss)=  zeros(length(rho(:,igauss)),1);
-                dC(3,1,:,igauss)=   zeros(length(rho(:,igauss)),1);
-                dC(3,2,:,igauss)=  zeros(length(rho(:,igauss)),1) ;
-                dC(3,3,:,igauss)=    dmu_func(rho(:,igauss));
+                dC(2,3,:,igauss)= zeros(length(rho(:,igauss)),1);
+                dC(3,1,:,igauss)= zeros(length(rho(:,igauss)),1);
+                dC(3,2,:,igauss)= zeros(length(rho(:,igauss)),1) ;
+                dC(3,3,:,igauss)= dmu_func(rho(:,igauss));
             end
             
             matProps=struct;
