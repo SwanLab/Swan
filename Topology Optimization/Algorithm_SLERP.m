@@ -20,21 +20,25 @@ classdef Algorithm_SLERP < handle
             obj.Msmooth=physProblem.computeMass(2);
             obj.Stiff_smooth=physProblem.computeKsmooth;
             cost.h_C_0=cost.value;
+            iter=0;
             
-            cost.computef(x_ini,physProblem,interpolation,filter);
-            constraint.computef(x_ini,physProblem,interpolation,filter);
-            obj.lambda = obj.lambda+obj.penalty*constraint.value;
-            
-            cost_ini = cost.value + obj.lambda*constraint.value + 0.5*obj.penalty*(constraint.value.*constraint.value);
-            gradient_ini = constraint.gradient*obj.lambda' + constraint.gradient*(obj.penalty'.*constraint.value) + cost.gradient;
-            
-            theta = obj.computeTheta(x_ini,gradient_ini);
+
             while(obj.stop_Criteria_opt)
-               % obj.plotX(x_ini,physProblem)
+                iter=iter+1;
+                obj.plotX(x_ini,physProblem)
                 volume = constraint.value;
+                cost.computef(x_ini,physProblem,interpolation,filter);
+                constraint.computef(x_ini,physProblem,interpolation,filter);
+                obj.lambda = obj.lambda+obj.penalty*constraint.value;
+                
+                cost_ini = cost.value + obj.lambda*constraint.value + 0.5*obj.penalty*(constraint.value.*constraint.value);
+                gradient_ini = constraint.gradient*obj.lambda' + constraint.gradient*(obj.penalty'.*constraint.value) + cost.gradient;
+                
+                theta = obj.computeTheta(x_ini,gradient_ini);
                 while(obj.stop_Criteria_ls) 
                     
                     x_ls=obj.designVariableUpdate(x_ini,obj.kappa,theta,gradient_ini);  
+                    
                     obj.plotX(x_ls,physProblem)
                     cost.computef(x_ls,physProblem,interpolation,filter);
                     constraint.computef(x_ls,physProblem,interpolation,filter);
@@ -52,10 +56,7 @@ classdef Algorithm_SLERP < handle
                 end
                 obj.stop_Criteria_ls=1;
                 x_ini=x_ls;
-                theta=theta_ls;
-                cost_ini=cost_ls;
-                gradient_ini=gradient_ls;
-                obj.lambda = obj.lambda+obj.penalty*constraint.value;
+                obj.kappa=1;
                 active_constr = obj.penalty > 0;
                 obj.stop_Criteria_opt = theta >= obj.optimality_tol || any(abs(constraint.value(active_constr)) > obj.constr_tol(active_constr));
             end
