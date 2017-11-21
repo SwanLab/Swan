@@ -3,8 +3,8 @@ classdef ShFunc_Volume< Shape_Functional
         Vfrac
     end
     methods 
-        function obj=ShFunc_Volume(Vfrac)
-            obj.Vfrac=Vfrac;
+        function obj=ShFunc_Volume(volumesettings)
+            obj.Vfrac=volumesettings.Vfrac;
         end
         function computef(obj, x, physicalProblem, interpolation,filter)
             mass=physicalProblem.computeMass(2);

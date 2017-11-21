@@ -16,7 +16,7 @@ classdef Algorithm_SLERP < handle
         fhtri
     end 
     methods
-        function x=updateX(obj,x_ini,cost,constraint, physProblem, interpolation,filter)  
+        function updateX(obj,x_ini,cost,constraint, physProblem, interpolation,filter)  
             obj.Msmooth=physProblem.computeMass(2);
             obj.Stiff_smooth=physProblem.computeKsmooth;
             cost.h_C_0=cost.value;
@@ -24,27 +24,22 @@ classdef Algorithm_SLERP < handle
             cost.computef(x_ini,physProblem,interpolation,filter);
             constraint.computef(x_ini,physProblem,interpolation,filter);
             while(obj.stop_Criteria_opt)
-                iter=iter+1
+                iter=iter+1;
                 obj.plotX(x_ini,physProblem)
-                volume = constraint.value;
-                
-                obj.lambda = obj.lambda+obj.penalty*constraint.value;
-                
+                volume = constraint.value;                
+                obj.lambda = obj.lambda+obj.penalty*constraint.value;                
                 cost_ini = cost.value + obj.lambda*constraint.value + 0.5*obj.penalty*(constraint.value.*constraint.value);
                 gradient_ini = constraint.gradient*obj.lambda' + constraint.gradient*(obj.penalty'.*constraint.value) + cost.gradient;
-                
-                theta = obj.computeTheta(x_ini,gradient_ini)
-                while(obj.stop_Criteria_ls) 
-                    
+                theta = obj.computeTheta(x_ini,gradient_ini);                
+                while(obj.stop_Criteria_ls)                     
                     x_ls=obj.designVariableUpdate(x_ini,obj.kappa,theta,gradient_ini);  
                     cost.computef(x_ls,physProblem,interpolation,filter);
                     constraint.computef(x_ls,physProblem,interpolation,filter);
                     
-                    cost_ls = cost.value + obj.lambda*constraint.value + 0.5*obj.penalty*(constraint.value.*constraint.value);
-                    gradient_ls = constraint.gradient*obj.lambda' + constraint.gradient*(obj.penalty'.*constraint.value) + cost.gradient;                    
-                    theta_ls =obj.computeTheta(x_ls,gradient_ls);
+                    cost_ls = cost.value + obj.lambda*constraint.value + 0.5*obj.penalty*(constraint.value.*constraint.value);             
                     volume_ls = constraint.value;
-                    
+                    gradient_ls=constraint.gradient*obj.lambda' + constraint.gradient*(obj.penalty'.*constraint.value) + cost.gradient;
+                    theta_ls = obj.computeTheta(x_ls,gradient_ls);
                     incr_vol_ls = abs(volume_ls - volume);
                     incr_cost = (cost_ls - cost_ini)/abs(cost_ini);
                     
@@ -52,13 +47,11 @@ classdef Algorithm_SLERP < handle
                     obj.stop_Criteria_ls = ~((incr_cost < 0 && incr_vol_ls < obj.max_constr_change) || obj.kappa <= obj.kappa_min);              
                 end
                 obj.stop_Criteria_ls=1;
-                x_ini=x_ls;
+                x_ini=x_ls;                
                 obj.kappa=1;
                 active_constr = obj.penalty > 0;
-                obj.stop_Criteria_opt = theta >= obj.optimality_tol || any(abs(constraint.value(active_constr)) > obj.constr_tol(active_constr));
-            end
-            x=x_ini;
-        
+                obj.stop_Criteria_opt = theta_ls >= obj.optimality_tol || any(abs(constraint.value(active_constr)) > obj.constr_tol(active_constr));
+            end        
         end
         function theta=computeTheta(obj,phi,g)
             norm_phi = sqrt(obj.scalar_product(phi,phi));
@@ -83,7 +76,7 @@ classdef Algorithm_SLERP < handle
     methods
         function plotX(obj,x,physicalProblem)
             
-                gamma_nodal=x<0;
+                rho_nodal=x<0;
             if isempty(obj.fhtri)
                 fh = figure;
                 mp = get(0, 'MonitorPositions');
@@ -95,13 +88,13 @@ classdef Algorithm_SLERP < handle
                 height = mp(1,4);
                 size_screen_offset = round([0.7*width,0.52*height,-0.71*width,-0.611*height],0);
                 set(fh,'Position',mp(select_screen,:) + size_screen_offset);
-                obj.fhtri = trisurf(physicalProblem.mesh.connec,physicalProblem.mesh.coord(:,1),physicalProblem.mesh.coord(:,2),double(gamma_nodal), ...
+                obj.fhtri = trisurf(physicalProblem.mesh.connec,physicalProblem.mesh.coord(:,1),physicalProblem.mesh.coord(:,2),double(rho_nodal), ...
                     'EdgeColor','none','LineStyle','none','FaceLighting','phong');
                 view([0,90]);
                 colormap(flipud(gray));
                 set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
             else
-                set(obj.fhtri,'FaceVertexCData',double(gamma_nodal));
+                set(obj.fhtri,'FaceVertexCData',double(rho_nodal));
                 set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
                 drawnow;
             end  
