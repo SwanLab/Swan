@@ -63,9 +63,14 @@
 \usepackage{makeidx}
 \usepackage{bookmark}
 \usepackage{listings}
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks=false,
+	pdfborder={0 0 0},
+}
 \usepackage{amssymb}
 \DeclareUnicodeCharacter{00A0}{~}
-\usepackage{hyperref}
+
 \makeindex
 
 \begin{document}
@@ -79,7 +84,7 @@
 			{\LARGE \textbf{CLASS SESSIONS}} \\[0.35cm]
 			\rule{14cm}{0.6pt} \\[0.5cm]
 			% {\large \textsc{Memoria}} \\[1cm]
-			{\large Marc \textsc{Núñez}} \\[0.15cm]
+			{\large Marc \textsc{Núñez}} \\
 			{\large Albert \textsc{Torres}} \\
 			{\large Oriol \textsc{Trujillo}} \\
 			\vfill
@@ -100,7 +105,9 @@
 %%%%%%%%%%%%%%
 %% Document %%
 %%%%%%%%%%%%%%
+	\include{./chapter/S1_TOPOPTPROBLEM}
 	\include{./chapter/S3_SLERP}
+	\include{./chapter/S4_NUMERICALMETHODS}
 	\include{./chapter/S5_GRADIENT}
 	\clearpage
 \end{document}
