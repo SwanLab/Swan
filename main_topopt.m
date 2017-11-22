@@ -3,8 +3,8 @@ clear variables;close all;
 addpath(genpath('.\FEM\'));
 addpath(genpath('.\Topology Optimization\'));
 %% test
-%run('test.m')
-clear variables
+run('test.m');
+clear variables;
 %% settings
 settings=struct;
 settings.filename='TOPOPT_TEST';    
