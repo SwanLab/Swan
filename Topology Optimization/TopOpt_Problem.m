@@ -11,15 +11,10 @@ classdef TopOpt_Problem < handle
         settings
     end
     methods (Access = public)
-        function preProcess(obj)
-            %initialize phys Problem
-            obj.physicalProblem.preProcess;
-            %initialize x
-            switch obj.settings.initial_case
-                case 'full'
-                    obj.x=-0.7071*ones(obj.physicalProblem.mesh.npnod,obj.physicalProblem.geometry.ngaus);
-            end
-            %choose interpolation
+        function obj=TopOpt_Problem(settings)
+            obj.settings=settings;
+            obj.TOL=obj.settings.TOL;
+            obj.physicalProblem=Physical_Problem(obj.settings.filename);        
             switch obj.settings.material
                 case 'ISOTROPIC'
                     switch obj.settings.method
@@ -28,14 +23,30 @@ classdef TopOpt_Problem < handle
                         otherwise
                             disp('Method not added')
                     end
-            end    
-            obj.algorithm=Algorithm_SLERP;
+            end
+            switch obj.settings.algorithm
+                case 'SLERP'
+                    obj.algorithm=Algorithm_SLERP(settings);
+            end
+            switch obj.settings.filter
+                case 'P1'
+                    obj.filter=Filter_SLERP;
+            end
+        end
+            
+        function preProcess(obj)
+            %initializa physical problem
+            obj.physicalProblem.preProcess;
+            %initialize design variable
+            switch obj.settings.initial_case
+                case 'full'
+                    obj.x=-0.7071*ones(obj.physicalProblem.mesh.npnod,obj.physicalProblem.geometry.ngaus);
+            end
         end
         function computeVariables(obj)
-            obj.preProcess;
             obj.cost.computef(obj.x,obj.physicalProblem,obj.interpolation,obj.filter);
             obj.constraint.computef(obj.x, obj.physicalProblem, obj.interpolation,obj.filter);
-            obj.x=obj.algorithm.updateX(obj.x,obj.cost,obj.constraint,obj.physicalProblem,obj.interpolation,obj.filter);
+            obj.algorithm.updateX(obj.x,obj.cost,obj.constraint,obj.physicalProblem,obj.interpolation,obj.filter);
            % obj.postProcess;
         end
         function postProcess(obj)
