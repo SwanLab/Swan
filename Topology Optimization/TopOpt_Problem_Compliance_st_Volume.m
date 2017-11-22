@@ -3,13 +3,10 @@ classdef TopOpt_Problem_Compliance_st_Volume < TopOpt_Problem
     end
     methods
         function obj=TopOpt_Problem_Compliance_st_Volume(settings)
-            obj.TOL=settings.TOL;
-            obj.cost_func=ShFunc_Compliance;
-            obj.constraint_func=ShFunc_Volume(settings);
-            obj.settings=settings;
-            %wip
-            obj.physicalProblem=Physical_Problem(settings.filename);
-            %wip
+            obj@TopOpt_Problem(settings);
+            obj.cost=ShFunc_Compliance;
+            obj.constraint=ShFunc_Volume(settings.volume);
+             
         end
     end
 end

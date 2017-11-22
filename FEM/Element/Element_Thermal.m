@@ -1,4 +1,4 @@
-classdef Element_Elastic < Element
+classdef Element_Thermal < Element
     %Element_Elastic Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -9,12 +9,9 @@ classdef Element_Elastic < Element
     end
     
     methods (Access = ?Physical_Problem)
-        function obj = computeLHS(obj,nunkn,nstre,nelem,geometry,material)
-            
+        function obj = computeLHS(obj,nunkn,nstre,nelem,geometry,material)           
             Ke = zeros(nunkn*geometry.nnode,nunkn*geometry.nnode,nelem);
-            % Elastic matrix
-            Cmat = material.C;
-            
+            % Elastic matrix           
             for igauss = 1 :geometry.ngaus
                 % Strain-displacement matrix
                 [obj.B, Bmat] = obj.B.computeB(nunkn,nelem,geometry.nnode,geometry.cartDeriv(:,:,:,igauss));
@@ -22,17 +19,17 @@ classdef Element_Elastic < Element
                 % Compute Ke
                 if nelem < 1000 %Just to reduce test.m compute time TO BE REMOVED
                 for i = 1:nelem
-                    Ke(:,:,i) = Ke(:,:,i)+Bmat(:,:,i)'*Cmat(:,:,i)*...
+                    Ke(:,:,i) = Ke(:,:,i)+Bmat(:,:,i)'*...
                         Bmat(:,:,i)*geometry.dvolu(i,igauss);
                 end
                 else
                 for iv=1:geometry.nnode*nunkn
                     for jv=1:geometry.nnode*nunkn
                         for istre=1:nstre
-                            for jstre=1:nstre
-                                v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:).*Bmat(jstre,jv,:));
+                           % for jstre=1:nstre
+                                v = squeeze(Bmat(istre,iv,:).*Bmat(istre,jv,:));
                                 Ke(iv,jv,:) = squeeze(Ke(iv,jv,:)) + v(:).*geometry.dvolu(:,igauss);
-                            end
+                            %end
                         end
                     end
                 end

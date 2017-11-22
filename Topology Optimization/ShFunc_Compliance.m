@@ -1,38 +1,36 @@
-
-
-
-
-
 classdef ShFunc_Compliance< Shape_Functional
-    properties 
+    properties
+        h_C_0=1; %compliance incial
     end
-    methods (Static)
-        function [compliance, gradient_compliance]=computef(rho,physicalProblem,interpolation)
+    methods
+        function computef(obj,x,physicalProblem,interpolation,filter)  
+            mass=physicalProblem.computeMass(2);
+            P=filter.computePoperator(mass,physicalProblem);
+            rho=filter.getP0fromP1(x,physicalProblem.mesh.coord,physicalProblem.mesh.connec,P);
             %Update phys problem
             matProps=interpolation.computeMatProp(rho);
             physicalProblem.setMatProps(matProps);
             physicalProblem.computeVariables;
-            
-            compliance=physicalProblem.variables.d_u'*physicalProblem.RHS;    
-            
-            strain = physicalProblem.variables.strain;
-            
-            gradient_compliance = zeros(physicalProblem.mesh.nelem,physicalProblem.geometry.ngaus);
-            
+            M0 = sparse(1:physicalProblem.mesh.nelem,1:physicalProblem.mesh.nelem,physicalProblem.geometry.dvolu);
+            %compute compliance
+            compliance=physicalProblem.variables.d_u'*physicalProblem.RHS;  
+            compliance=compliance/abs(obj.h_C_0);
+            %compute gradient
+            strain = physicalProblem.variables.strain;  
+            gradient_compliance = zeros(physicalProblem.mesh.nelem,physicalProblem.geometry.ngaus); 
             for igaus=1:physicalProblem.geometry.ngaus
                 for istre=1:physicalProblem.dim.nstre
                     for jstre = 1:physicalProblem.dim.nstre
-                        gradient_compliance(:,igaus) = gradient_compliance(:,igaus) + (squeeze(strain(igaus,istre,:))'*squeeze(matProps.dC(istre,jstre,:,igaus))*squeeze(strain(igaus,istre,:)));
+                    gradient_compliance(:,igaus) = gradient_compliance(:,igaus) + (squeeze(-strain(igaus,istre,:)).*squeeze(matProps.dC(istre,jstre,:,igaus)).*squeeze(strain(igaus,jstre,:)));
                     end
                 end
-            end
-
+            end 
+            gradient_compliance=gradient_compliance/abs(obj.h_C_0);
+            gradient_compliance=filter.getP1fromP0(gradient_compliance,M0,P);
+            gradient_compliance = mass*gradient_compliance;
             
-            %gradient_compliance = P_operator'*M0*gradient_compliance;
-            %commented:L2, uncommented:h1
-            %gradient_compliance = (epsilon_P0_gradient^2*Stiff_smooth + Msmooth)\(Msmooth*gradient);
-            %gradient_compliance =physicalProblem.element.computeMass*gradient_compliance;
-    
+            obj.value=compliance;
+            obj.gradient=gradient_compliance;
         end
     end
 end

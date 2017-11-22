@@ -1,5 +1,9 @@
 classdef Interpolation_ISO_SIMPALL < Interpolation
     properties
+        mu_func
+        kappa_func
+        dmu_func
+        dlam_func
     end
     methods
         function obj=Interpolation_ISO_SIMPALL(HSbounds)
@@ -11,18 +15,17 @@ classdef Interpolation_ISO_SIMPALL < Interpolation
             obj.nu_minus=HSbounds.nu_minus;
         end
         function matProps=computeMatProp(obj, rho)
+            ngauss=length(rho(1,:));
+            if isempty(obj.mu_func)
             rho_plus=obj.rho_plus;
             rho_minus=obj.rho_minus;
             E_plus=obj.E_plus;
             E_minus=obj.E_minus;
             nu_plus=obj.nu_plus;
             nu_minus=obj.nu_minus;
-            ngauss=length(rho(1,:));
+            
             mu=sparse(length(rho(:,1)),ngauss);
             kappa=sparse(length(rho(:,1)),ngauss);
-            p1=sparse(length(rho(:,1)),ngauss);
-            p2=sparse(length(rho(:,1)),ngauss);
-            
             syms c1 c2 c3 c4
             syms gamm
             
@@ -47,23 +50,23 @@ classdef Interpolation_ISO_SIMPALL < Interpolation
             lam = kappa_sym - 2/d*mu_sym;
             dlam = diff(lam);
             
-            mu_func = matlabFunction(mu_sym);
-            kappa_func = matlabFunction(kappa_sym);
-            dmu_func=matlabFunction(dmu);
-            dlam_func=matlabFunction(dlam);     
-            
+            obj.mu_func = matlabFunction(mu_sym);
+            obj.kappa_func = matlabFunction(kappa_sym);
+            obj.dmu_func=matlabFunction(dmu);
+            obj.dlam_func=matlabFunction(dlam);     
+            end
             for igauss=1:ngauss
-                mu(:,igauss)=mu_func(rho(:,igauss));
-                kappa(:,igauss)=kappa_func(rho(:,igauss));
-                dC(1,1,:,igauss)=2*dmu_func(rho(:,igauss))+dlam_func(rho(:,igauss));
-                dC(1,2,:,igauss)=  dlam_func(rho(:,igauss));
+                mu(:,igauss)= obj.mu_func(rho(:,igauss));
+                kappa(:,igauss)= obj.kappa_func(rho(:,igauss));
+                dC(1,1,:,igauss)= 2*obj.dmu_func(rho(:,igauss))+obj.dlam_func(rho(:,igauss));
+                dC(1,2,:,igauss)= obj.dlam_func(rho(:,igauss));
                 dC(1,3,:,igauss)= zeros(length(rho(:,igauss)),1);
-                dC(2,1,:,igauss)= dlam_func(rho(:,igauss));
-                dC(2,2,:,igauss)= 2*dmu_func(rho(:,igauss))+dlam_func(rho(:,igauss));
-                dC(2,3,:,igauss)=  zeros(length(rho(:,igauss)),1);
-                dC(3,1,:,igauss)=   zeros(length(rho(:,igauss)),1);
-                dC(3,2,:,igauss)=  zeros(length(rho(:,igauss)),1) ;
-                dC(3,3,:,igauss)=    dmu_func(rho(:,igauss));
+                dC(2,1,:,igauss)= obj.dlam_func(rho(:,igauss));
+                dC(2,2,:,igauss)= 2*obj.dmu_func(rho(:,igauss))+obj.dlam_func(rho(:,igauss));
+                dC(2,3,:,igauss)= zeros(length(rho(:,igauss)),1);
+                dC(3,1,:,igauss)= zeros(length(rho(:,igauss)),1);
+                dC(3,2,:,igauss)= zeros(length(rho(:,igauss)),1) ;
+                dC(3,3,:,igauss)= obj.dmu_func(rho(:,igauss));
             end
             
             matProps=struct;

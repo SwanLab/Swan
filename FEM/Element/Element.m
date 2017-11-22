@@ -26,9 +26,9 @@ classdef Element<handle
                             element = Element_Elastic;
                             element.B = B3;
                     end
-                    
                 case 'THERMAL'
-                    error('Still not implemented.')
+                    element = Element_Thermal;
+                    element.B = B_thermal;     
                 otherwise
                     error('Invalid ptype.')
             end
