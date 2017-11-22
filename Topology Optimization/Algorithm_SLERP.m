@@ -1,24 +1,27 @@
-classdef Algorithm_SLERP < handle
+classdef Algorithm_SLERP < Algorithm
     properties
         stop_Criteria_ls=1;
         stop_Criteria_opt=1;
-        lambda=0;
-        kappa=1;
-        kfrac=2;
-        max_constr_change=+Inf;
-        kappa_min=1.0000e-15;
-        penalty = 1;
-        constr_tol=1;
-        optimality_tol=0.0175;
-        Msmooth
-        Stiff_smooth
-        epsilon_scalar_product_P1=0.03;
-        fhtri
+        lambda
+        kappa
+        kfrac
+        max_constr_change
+        kappa_min
+        penalty                  
     end 
     methods
+        function obj=Algorithm_SLERP(settings)
+            obj@Algorithm(settings);
+            obj.kappa=1;
+            obj.lambda=0;
+            obj.penalty=ones(settings.nconstr,1);
+            obj.kfrac=2;
+            obj.max_constr_change=+Inf;
+            obj.kappa_min=1.0000e-15;
+        end
         function updateX(obj,x_ini,cost,constraint, physProblem, interpolation,filter)  
             obj.Msmooth=physProblem.computeMass(2);
-            obj.Stiff_smooth=physProblem.computeKsmooth;
+            obj.Ksmooth=physProblem.computeKsmooth;
             cost.h_C_0=cost.value;
             iter=0;
             cost.computef(x_ini,physProblem,interpolation,filter);
@@ -37,7 +40,7 @@ classdef Algorithm_SLERP < handle
                     constraint.computef(x_ls,physProblem,interpolation,filter);
                     
                     cost_ls = cost.value + obj.lambda*constraint.value + 0.5*obj.penalty*(constraint.value.*constraint.value);             
-                    volume_ls = constraint.value;
+                    volume_ls =constraint.value; %obj.shfunc_volume(x_ls,physProblem,interpolation,filter) 
                     gradient_ls=constraint.gradient*obj.lambda' + constraint.gradient*(obj.penalty'.*constraint.value) + cost.gradient;
                     theta_ls = obj.computeTheta(x_ls,gradient_ls);
                     incr_vol_ls = abs(volume_ls - volume);
@@ -69,36 +72,7 @@ classdef Algorithm_SLERP < handle
             beta2 = sin(kappa*theta)/sin(theta);
             phi = beta1*phi_n + beta2*gradient/norm_g;
         end
-        function sp=scalar_product(obj,f,g)
-            sp=f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Stiff_smooth+obj.Msmooth)*g;
-        end
-    end
-    methods
-        function plotX(obj,x,physicalProblem)
-            
-                rho_nodal=x<0;
-            if isempty(obj.fhtri)
-                fh = figure;
-                mp = get(0, 'MonitorPositions');
-                select_screen=1;
-                if size(mp,1) < select_screen
-                    select_screen = size(mp,1);
-                end
-                width = mp(1,3);
-                height = mp(1,4);
-                size_screen_offset = round([0.7*width,0.52*height,-0.71*width,-0.611*height],0);
-                set(fh,'Position',mp(select_screen,:) + size_screen_offset);
-                obj.fhtri = trisurf(physicalProblem.mesh.connec,physicalProblem.mesh.coord(:,1),physicalProblem.mesh.coord(:,2),double(rho_nodal), ...
-                    'EdgeColor','none','LineStyle','none','FaceLighting','phong');
-                view([0,90]);
-                colormap(flipud(gray));
-                set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
-            else
-                set(obj.fhtri,'FaceVertexCData',double(rho_nodal));
-                set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
-                drawnow;
-            end  
-        end
+
     end
     
 end

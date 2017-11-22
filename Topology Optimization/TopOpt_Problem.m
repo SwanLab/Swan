@@ -14,9 +14,7 @@ classdef TopOpt_Problem < handle
         function obj=TopOpt_Problem(settings)
             obj.settings=settings;
             obj.TOL=obj.settings.TOL;
-            obj.physicalProblem=Physical_Problem(obj.settings.filename);
-            
-            %choose interpolation
+            obj.physicalProblem=Physical_Problem(obj.settings.filename);        
             switch obj.settings.material
                 case 'ISOTROPIC'
                     switch obj.settings.method
@@ -28,7 +26,7 @@ classdef TopOpt_Problem < handle
             end
             switch obj.settings.algorithm
                 case 'SLERP'
-                    obj.algorithm=Algorithm_SLERP;
+                    obj.algorithm=Algorithm_SLERP(settings);
             end
             switch obj.settings.filter
                 case 'P1'
