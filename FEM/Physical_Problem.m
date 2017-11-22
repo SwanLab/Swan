@@ -1,4 +1,4 @@
-classdef Physical_Problem < handle
+classdef Physical_Problem < FEM
     %Physical_Problem Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -6,10 +6,7 @@ classdef Physical_Problem < handle
     properties (GetAccess = public, SetAccess = private)
         variables
         mesh
-        geometry
         dim
-        RHS
-        LHS
     end
     
     %% Restricted properties definition ===================================
@@ -22,7 +19,6 @@ classdef Physical_Problem < handle
         material
         element
         dof
-        solver
         physicalVars
         problemID
     end
@@ -38,7 +34,7 @@ classdef Physical_Problem < handle
             
             % Create Objects
             obj.dim = DIM(obj.mesh.ptype,obj.mesh.pdim);
-            obj.geometry = Geometry(obj.mesh);
+            obj.geometry=Geometry(obj.mesh);
             obj.element = Element.create(obj.mesh.ptype,obj.mesh.pdim);
             obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem);
             obj.physicalVars = PhysicalVariables.create(obj.mesh.ptype,obj.mesh.pdim);
