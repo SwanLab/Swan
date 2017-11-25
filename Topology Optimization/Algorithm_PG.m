@@ -30,7 +30,7 @@ classdef Algorithm_PG < Algorithm
             constraint.computef(x_ini,physProblem,interpolation,filter);
             obj.shfunc_volume.computef(x_ini,physProblem,interpolation,filter);
             while(obj.stop_Criteria_opt)
-                iter=iter+1
+                iter=iter+1;
                 obj.plotX(x_ini,physProblem)
                 volume = obj.shfunc_volume.value;                 
                 obj.lambda = obj.lambda+obj.penalty*constraint.value;                
@@ -54,7 +54,7 @@ classdef Algorithm_PG < Algorithm
                     obj.stop_Criteria_ls = ~((incr_cost < 0 && incr_vol_ls < obj.max_constr_change) || obj.kappa <= obj.kappa_min);              
                 end
                 obj.stop_Criteria_ls=1;         
-                incre_x = sqrt(obj.scalar_product(x_ls - x_ini,x_ls - x_ini))/sqrt(obj.scalar_product(x_ini,x_ini))
+                incre_x = sqrt(obj.scalar_product(x_ls - x_ini,x_ls - x_ini))/sqrt(obj.scalar_product(x_ini,x_ini));
                 x_ini=x_ls;  
                 active_constr = obj.penalty > 0;
                 obj.stop_Criteria_opt = incre_x >= obj.optimality_tol || any(abs(constraint.value(active_constr)) > obj.constr_tol(active_constr));
@@ -71,8 +71,7 @@ classdef Algorithm_PG < Algorithm
         end
         function rho=designVariableUpdate(obj,design_variable,kappa,gradient)
             rho_n = design_variable;
-            rho_step = rho_n - 
-            *gradient;
+            rho_step = rho_n-kappa*gradient;
             ub = ones(length(rho_n(:,1)),1);
             lb = zeros(length(rho_n(:,1)),1);
             rho = max(min(rho_step,ub),lb);
