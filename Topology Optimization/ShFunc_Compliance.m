@@ -4,14 +4,9 @@ classdef ShFunc_Compliance< Shape_Functional
     end
     methods
         function computef(obj,x,physicalProblem,interpolation,filter)  
-            mass=physicalProblem.computeMass(2);
-            P=filter.computePoperator(mass,physicalProblem);
-            rho=filter.getP0fromP1(x,physicalProblem.mesh.coord,physicalProblem.mesh.connec,P);
-            %Update phys problem
+            mass=filter.Msmooth;
+            rho=filter.getP0fromP1(x);
             matProps=interpolation.computeMatProp(rho);
-            physicalProblem.setMatProps(matProps);
-            physicalProblem.computeVariables;
-            M0 = sparse(1:physicalProblem.mesh.nelem,1:physicalProblem.mesh.nelem,physicalProblem.geometry.dvolu);
             %compute compliance
             compliance=physicalProblem.variables.d_u'*physicalProblem.RHS;  
             compliance=compliance/abs(obj.h_C_0);
@@ -26,7 +21,7 @@ classdef ShFunc_Compliance< Shape_Functional
                 end
             end 
             gradient_compliance=gradient_compliance/abs(obj.h_C_0);
-            gradient_compliance=filter.getP1fromP0(gradient_compliance,M0,P);
+            gradient_compliance=filter.getP1fromP0(gradient_compliance);
             gradient_compliance = mass*gradient_compliance;
             
             obj.value=compliance;

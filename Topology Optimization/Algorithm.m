@@ -11,15 +11,17 @@ classdef Algorithm < handle
     methods
         function obj=Algorithm(settings)
             obj.shfunc_volume=ShFunc_Volume(settings.volume);
-            obj.optimality_tol=settings.optimality_tol;
-            obj.constr_tol=settings.constr_tol;
             obj.epsilon_scalar_product_P1=settings.epsilon_scalar_product_P1;
         end 
         function sp=scalar_product(obj,f,g)
             sp=f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
         end
-        function plotX(obj,x,physicalProblem)            
-            rho_nodal=x<0;
+        function plotX(obj,x,physicalProblem)
+            if any(x<0)
+                rho_nodal=x<0;
+            else
+                rho_nodal=x;                
+            end
             if isempty(obj.fhtri)
                 fh = figure;
                 mp = get(0, 'MonitorPositions');
@@ -43,4 +45,14 @@ classdef Algorithm < handle
             end  
         end
     end
+    methods (Static)
+        function physicalProblem=updateEquilibrium(x,physicalProblem,interpolation,filter)
+            rho=filter.getP0fromP1(x);
+            %Update phys problem
+            matProps=interpolation.computeMatProp(rho);
+            physicalProblem.setMatProps(matProps);
+            physicalProblem.computeVariables;
+        end
+    end
+
 end
