@@ -27,23 +27,32 @@ classdef TopOpt_Problem < handle
             switch obj.settings.algorithm
                 case 'SLERP'
                     obj.algorithm=Algorithm_SLERP(settings);
-            end
-            switch obj.settings.filter
-                case 'P1'
-                    obj.filter=Filter_SLERP;
+                    obj.settings.ini_value=-0.7071;
+                    switch obj.settings.filter
+                        case 'P1'
+                            obj.filter=Filter_SLERP;
+                    end
+                case 'PROJECTED GRADIENT'
+                    obj.algorithm=Algorithm_PG(settings);
+                    obj.settings.ini_value=1;
+                    switch obj.settings.filter
+                        case 'P1'
+                            obj.filter=Filter_PG;
+                    end
             end
         end
             
         function preProcess(obj)
-            %initializa physical problem
-            obj.physicalProblem.preProcess;
             %initialize design variable
+            obj.physicalProblem.preProcess;
+            obj.filter.preProcess(obj.physicalProblem);
             switch obj.settings.initial_case
                 case 'full'
-                    obj.x=-0.7071*ones(obj.physicalProblem.mesh.npnod,obj.physicalProblem.geometry.ngaus);
+                    obj.x=obj.settings.ini_value*ones(obj.physicalProblem.mesh.npnod,obj.physicalProblem.geometry.ngaus);
             end
         end
         function computeVariables(obj)
+            obj.physicalProblem.computeVariables;
             obj.cost.computef(obj.x,obj.physicalProblem,obj.interpolation,obj.filter);
             obj.constraint.computef(obj.x, obj.physicalProblem, obj.interpolation,obj.filter);
             obj.algorithm.updateX(obj.x,obj.cost,obj.constraint,obj.physicalProblem,obj.interpolation,obj.filter);
