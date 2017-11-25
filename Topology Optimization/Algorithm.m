@@ -54,4 +54,5 @@ classdef Algorithm < handle
             physicalProblem.computeVariables;
         end
     end
+
 end
