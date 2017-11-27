@@ -20,6 +20,8 @@ classdef TopOpt_Problem < handle
                     switch obj.settings.method
                         case 'SIMPALL'
                             obj.interpolation=Interpolation_ISO_SIMPALL(obj.TOL);
+                        case 'SIMP'
+                            obj.interpolation=Interpolation_ISO_SIMP(obj.TOL);
                         otherwise
                             disp('Method not added')
                     end
