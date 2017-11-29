@@ -7,7 +7,7 @@ classdef Postprocess
     properties
     end
     
-    methods (Access = ?Physical_Problem)
+    methods (Access = public)
         % Export Mesh
         function ToGiD(obj,file_name,input,istep)
             [nnode,ndim,pdim,gtype,etype,nelem,npnod,coordinates,conectivities] = obj.getBasicParams(input);
@@ -75,7 +75,7 @@ classdef Postprocess
             fclose(fid);
         end
         
-        % Export Results
+        % Export Results from Physical Problem
         function ToGiDpost(obj,file_name,input,istep)
             % Write the file with the results
             res_file = fullfile('Output',strcat(file_name,'_',num2str(istep),'.flavia.res'));
@@ -121,6 +121,50 @@ classdef Postprocess
             obj.PrintTensor(fid,ndim,'Strain','Vector',1,'OnGaussPoints',gauss_points_name,results.strain);
             fclose(fid);
         end
+        
+        %Export Results from any input
+        function ToGiDpostX(obj,file_name,x,input,istep)
+            % Write the file with the results
+            res_file = fullfile('Output',strcat(file_name,'_',num2str(istep),'.flavia.res'));
+            fid = fopen(res_file,'w');
+            
+            ngaus = input.geometry.ngaus;
+            posgp = input.geometry.posgp';
+            [~,ndim,~,~,etype,~,~,~,~] = obj.getBasicParams(input);
+            
+            switch  etype
+                case 'TRIANGLE'
+                    etype = 'Triangle'; %gid type
+                case 'QUAD'
+                    etype = 'Quadrilateral';
+                case 'TETRAHEDRA'
+                    etype= 'Tetrahedra';
+                case 'HEXAHEDRA'
+                    etype = 'Hexahedra';
+            end
+            
+            %% File Header
+            fprintf(fid,'GiD Post Results File 1.0\n\n');
+            obj.printTitle(fid);
+            
+            %% Print Gauss Points Header
+            gauss_points_name = 'Guass up?';
+            fprintf(fid,'GaussPoints "%s" Elemtype %s\n',gauss_points_name,etype);
+            fprintf(fid,'Number of Gauss Points: %.0f\n',ngaus);
+            fprintf(fid,'Nodes not included\n');
+            fprintf(fid,'Natural Coordinates: given\n');
+            for igaus = 1:ngaus
+                for idime = 1:ndim
+                    fprintf(fid,'%12.5d ',posgp(igaus,idime));
+                end
+                fprintf(fid,'\n');
+            end
+            fprintf(fid,'End GaussPoints\n');
+            
+            %% Print Results
+            obj.PrintVector(fid,ndim,file_name,'Vector',1,'OnNodes','',x);
+            fclose(fid);
+        end
     end
     
     methods (Access = private, Static)
@@ -159,6 +203,8 @@ classdef Postprocess
             switch nameres
                 case 'Displacements'
                     index = 'U';
+                case 'Level-set'
+                    index = 'LS';
             end
             switch ndim
                 case 2
@@ -171,7 +217,7 @@ classdef Postprocess
             
             % Print Variables ---------------------------------------------
             fprintf(fid,'Values\n');
-            for inode = 1:round(length(results)/ndim)
+            for inode = 1:round(length(results)/ndim)-1
                 fprintf(fid,'%6.0f ',inode);
                 for idime = 1:ndim
                     fprintf(fid,'%12.5d ',results(ndim*(inode-1)+idime));

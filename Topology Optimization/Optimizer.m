@@ -1,32 +1,36 @@
 classdef Optimizer < handle
     properties 
         fhtri
-        kappa
-        
+        kappa        
         stop_criteria=1;
         Msmooth
         Ksmooth
         constr_tol
         optimality_tol
-        epsilon_scalar_product_P1;
+        epsilon_scalar_product_P1
+        name
     end
     methods
         function obj=Optimizer(settings)
             obj.epsilon_scalar_product_P1=settings.epsilon_scalar_product_P1;
+            obj.name = settings.filename;
             
         end 
         function x=solveProblem(obj,x_ini,cost,constraint,physProblem,interpolation,filter)
             obj.Msmooth=physProblem.computeMass(2);
             obj.Ksmooth=physProblem.computeKsmooth;
             cost.computef(x_ini,physProblem,interpolation,filter);
-            constraint.computef(x_ini,physProblem,interpolation,filter);
-            
-            while(obj.stop_criteria)
-                obj.plotX(x_ini,physProblem)
+            constraint.computef(x_ini,physProblem,interpolation,filter); 
+            obj.plotX(x_ini,physProblem)
+%             obj.printX(obj.name,x_ini,physicalProblem,iter)
+            while(obj.stop_criteria)                               
                 x=obj.updateX(x_ini,cost,constraint,physProblem,interpolation,filter);
+                obj.plotX(x,physProblem)  
+%                 obj.printX(obj.name,x,physProblem,iter);
                 x_ini=x;
             end
         end
+        
         function sp=scalar_product(obj,f,g)
             sp=f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
         end
@@ -60,6 +64,14 @@ classdef Optimizer < handle
                 drawnow;
             end
         end
+        
+%         function printX(obj,name,x,physicalProblem,iter)
+%             postprocess = Postprocess;
+%             postprocess.ToGiD(name,physicalProblem,iter);
+%             postprocess.ToGiD('Physical Data',physicalProblem,iter);
+%             postprocess.ToGiD(name,physicalProblem,iter);
+%             postprocess.ToGiDpostX(name,x,physicalProblem,iter);
+%         end
     
     end
     methods (Static)

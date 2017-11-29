@@ -16,7 +16,7 @@ classdef Filter < handle
         end
     end
     methods (Static)
-         function obj=create(type, optimizer)
+        function obj=create(type, optimizer)
             switch type
                 case 'P1'
                     switch optimizer
