@@ -1,5 +1,5 @@
 classdef Algorithm < handle
-    properties 
+    properties
         fhtri
         shfunc_volume
         Msmooth
@@ -12,7 +12,7 @@ classdef Algorithm < handle
         function obj=Algorithm(settings)
             obj.shfunc_volume=ShFunc_Volume(settings.volume);
             obj.epsilon_scalar_product_P1=settings.epsilon_scalar_product_P1;
-        end 
+        end
         function sp=scalar_product(obj,f,g)
             sp=f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
         end
@@ -20,7 +20,7 @@ classdef Algorithm < handle
             if any(x<0)
                 rho_nodal=x<0;
             else
-                rho_nodal=x;                
+                rho_nodal=x;
             end
             if isempty(obj.fhtri)
                 fh = figure;
@@ -42,7 +42,12 @@ classdef Algorithm < handle
                 set(obj.fhtri,'FaceVertexCData',double(rho_nodal));
                 set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
                 drawnow;
-            end  
+            end
+        end     
+        function printX(obj,name,x,physicalProblem,iter)
+            postprocess = Postprocess;
+            postprocess.ToGiD(name,physicalProblem,iter);
+            postprocess.ToGiDpostX(name,x,physicalProblem,iter);
         end
     end
     methods (Static)
@@ -54,5 +59,5 @@ classdef Algorithm < handle
             physicalProblem.computeVariables;
         end
     end
-
+    
 end

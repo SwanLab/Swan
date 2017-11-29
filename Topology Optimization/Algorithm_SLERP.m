@@ -30,8 +30,9 @@ classdef Algorithm_SLERP < Algorithm
             cost.computef(x_ini,physProblem,interpolation,filter);
             constraint.computef(x_ini,physProblem,interpolation,filter);
             obj.shfunc_volume.computef(x_ini,physProblem,interpolation,filter);
+%             obj.printX('Level-set',x_ini,physProblem,iter);
             while(obj.stop_Criteria_opt)
-                iter=iter+1
+                iter=iter+1;
                 obj.plotX(x_ini,physProblem)
                 volume = obj.shfunc_volume.value;                 
                 obj.lambda = obj.lambda+obj.penalty*constraint.value;                
@@ -55,6 +56,7 @@ classdef Algorithm_SLERP < Algorithm
                     obj.kappa = obj.kappa/obj.kfrac;
                     obj.stop_Criteria_ls = ~((incr_cost < 0 && incr_vol_ls < obj.max_constr_change) || obj.kappa <= obj.kappa_min);              
                 end
+%                 obj.printX('Level-set',x_ls,physProblem,iter);
                 obj.stop_Criteria_ls=1;
                 x_ini=x_ls;                
                 obj.kappa=1;
@@ -78,7 +80,8 @@ classdef Algorithm_SLERP < Algorithm
             beta2 = sin(kappa*theta)/sin(theta);
             phi = beta1*phi_n + beta2*gradient/norm_g;
         end
-
+        
+        
     end
     
 end

@@ -42,8 +42,7 @@ classdef TopOpt_Problem < handle
                             obj.filter=Filter_PG;
                     end
             end
-        end
-            
+        end            
         function preProcess(obj)
             %initialize design variable
             obj.physicalProblem.preProcess;

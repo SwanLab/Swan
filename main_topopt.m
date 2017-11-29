@@ -16,8 +16,8 @@ settings.material='ISOTROPIC';
 settings.ptype='Compliance_st_Volume';
 settings.initial_case='full';
 
-% settings.algorithm='SLERP';
-settings.algorithm='PROJECTED GRADIENT';
+settings.algorithm='SLERP';
+% settings.algorithm='PROJECTED GRADIENT';
 
 settings.filter='P1';
 settings.TOL.rho_plus=1;
