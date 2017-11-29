@@ -1,6 +1,6 @@
 classdef ShFunc_Compliance< Shape_Functional
     properties
-        h_C_0=1; %compliance incial
+        h_C_0; %compliance incial
     end
     methods
         function computef(obj,x,physicalProblem,interpolation,filter)  
@@ -8,8 +8,8 @@ classdef ShFunc_Compliance< Shape_Functional
             rho=filter.getP0fromP1(x);
             matProps=interpolation.computeMatProp(rho);
             %compute compliance
-            compliance=physicalProblem.variables.d_u'*physicalProblem.RHS;  
-            compliance=compliance/abs(obj.h_C_0);
+            compliance=physicalProblem.variables.d_u'*physicalProblem.RHS; 
+            
             %compute gradient
             strain = physicalProblem.variables.strain;  
             gradient_compliance = zeros(physicalProblem.mesh.nelem,physicalProblem.geometry.ngaus); 
@@ -20,10 +20,15 @@ classdef ShFunc_Compliance< Shape_Functional
                     end
                 end
             end 
-            gradient_compliance=gradient_compliance/abs(obj.h_C_0);
+            
             gradient_compliance=filter.getP1fromP0(gradient_compliance);
             gradient_compliance = mass*gradient_compliance;
-            
+            if isempty(obj.h_C_0)
+                obj.h_C_0=compliance;
+            else
+                compliance=compliance/abs(obj.h_C_0);
+                gradient_compliance=gradient_compliance/abs(obj.h_C_0);
+            end            
             obj.value=compliance;
             obj.gradient=gradient_compliance;
         end
