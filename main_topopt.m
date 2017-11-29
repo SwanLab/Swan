@@ -9,7 +9,8 @@ clear variables;
 settings=struct;
 settings.filename='TOPOPT_TEST';
 
-settings.method='SIMPALL';
+% settings.method='SIMP_P3';
+settings.method='SIMP_Adaptative';
 % settings.method='SIMPALL';
 
 settings.material='ISOTROPIC';
