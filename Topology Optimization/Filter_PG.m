@@ -1,6 +1,5 @@
 classdef Filter_PG < Filter
     properties
-        
     end
     methods 
         function x_gp = getP0fromP1(obj,x)            

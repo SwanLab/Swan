@@ -16,6 +16,18 @@ classdef Filter < handle
         end
     end
     methods (Static)
+        function obj=create(type, optimizer)
+            switch type
+                case 'P1'
+                    switch optimizer
+                        case {'MMA','PROJECTED GRADIENT'} 
+                            obj=Filter_PG;
+                        case 'SLERP'
+                            obj=Filter_SLERP;
+                    end
+            end
+                           
+        end
         function P_operator=computePoperator(Msmooth,physicalProblem)
             
             nelem=physicalProblem.mesh.nelem;
