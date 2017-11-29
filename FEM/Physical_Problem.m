@@ -49,6 +49,7 @@ classdef Physical_Problem < handle
         
         function computeVariables(obj)
             % Create Element_Elastic object
+            %disp('Solving Physical Problem')
             obj.element.computeLHS(obj.dim.nunkn,obj.dim.nstre,obj.mesh.nelem,obj.geometry,obj.material);
             obj.element.computeRHS(obj.dim.nunkn,obj.mesh.nelem,obj.geometry.nnode,obj.bc,obj.dof.idx);
             

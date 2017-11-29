@@ -1,7 +1,9 @@
-classdef Algorithm < handle
+classdef Optimizer < handle
     properties 
         fhtri
-        shfunc_volume
+        kappa
+        
+        stop_criteria=1;
         Msmooth
         Ksmooth
         constr_tol
@@ -9,18 +11,31 @@ classdef Algorithm < handle
         epsilon_scalar_product_P1;
     end
     methods
-        function obj=Algorithm(settings)
-            obj.shfunc_volume=ShFunc_Volume(settings.volume);
+        function obj=Optimizer(settings)
             obj.epsilon_scalar_product_P1=settings.epsilon_scalar_product_P1;
+            
         end 
+        function x=solveProblem(obj,x_ini,cost,constraint,physProblem,interpolation,filter)
+            obj.Msmooth=physProblem.computeMass(2);
+            obj.Ksmooth=physProblem.computeKsmooth;
+            cost.computef(x_ini,physProblem,interpolation,filter);
+            constraint.computef(x_ini,physProblem,interpolation,filter);
+            
+            while(obj.stop_criteria)
+                obj.plotX(x_ini,physProblem)
+                x=obj.updateX(x_ini,cost,constraint,physProblem,interpolation,filter);
+                x_ini=x;
+            end
+        end
         function sp=scalar_product(obj,f,g)
             sp=f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
         end
+        
         function plotX(obj,x,physicalProblem)
             if any(x<0)
                 rho_nodal=x<0;
             else
-                rho_nodal=x;                
+                rho_nodal=x;
             end
             if isempty(obj.fhtri)
                 fh = figure;
@@ -38,12 +53,14 @@ classdef Algorithm < handle
                 view([0,90]);
                 colormap(flipud(gray));
                 set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
+                drawnow;
             else
                 set(obj.fhtri,'FaceVertexCData',double(rho_nodal));
                 set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
                 drawnow;
-            end  
+            end
         end
+    
     end
     methods (Static)
         function physicalProblem=updateEquilibrium(x,physicalProblem,interpolation,filter)
