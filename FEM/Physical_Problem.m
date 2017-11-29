@@ -66,8 +66,7 @@ classdef Physical_Problem < FEM
         
         function setMatProps(obj,props)
             obj.material = obj.material.setProps(props);
-        end
-        
+        end        
         function Msmooth=computeMass(obj,job)
             meshMass=obj.mesh;
             meshMass.geometryType='Triangle_Linear_Mass';

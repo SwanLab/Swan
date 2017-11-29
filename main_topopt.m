@@ -7,14 +7,19 @@ run('test.m');
 clear variables;
 %% settings
 settings=struct;
-settings.filename='TOPOPT_TEST';    
+settings.filename='TOPOPT_TEST';
+
 settings.method='SIMPALL';
+% settings.method='SIMPALL';
+
 settings.material='ISOTROPIC';
 settings.ptype='Compliance_st_Volume';
 settings.initial_case='full';
+
 settings.optimizer='SLERP';
 %settings.optimizer='PROJECTED GRADIENT';
 %settings.optimizer='MMA';
+
 settings.filter='P1';
 settings.TOL.rho_plus=1;
 settings.TOL.rho_minus=0;
