@@ -2,7 +2,6 @@ clc
 clear variables;close all;
 addpath(genpath('.\FEM\'));
 addpath(genpath('.\Topology Optimization\'));
-addpath(genpath('.\PostProcess\'));
 %% test
 run('test.m');
 clear variables;
