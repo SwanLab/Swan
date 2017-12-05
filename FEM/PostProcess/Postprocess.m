@@ -79,7 +79,7 @@ classdef Postprocess
             end
             fprintf(fid,'End Values\n');
         end
-        function PrintEscalar(obj,fid,ndim,nameres,indexName,problemType,result_type,istep,result_location,location_name,results)
+        function PrintScalar(obj,fid,ndim,nameres,indexName,problemType,result_type,istep,result_location,location_name,results)
             % Print Header ------------------------------------------------
             fprintf(fid,'\nResult "%s" "%s" %.0f %s %s "%s"\n',nameres,problemType,istep,result_type,result_location,location_name);
             fprintf(fid,'ComponentNames  "%s"\n',indexName);                      

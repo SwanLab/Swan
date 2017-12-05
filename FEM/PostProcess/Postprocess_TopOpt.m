@@ -117,7 +117,7 @@ classdef Postprocess_TopOpt < Postprocess
             obj.PrintVector(fid,ndim,'Displacements','U','Elastic Problem','Vector',1,'OnNodes','',input.variables.d_u);
             obj.PrintTensor(fid,ndim,'Stress','S','Elastic Problem','Vector',1,'OnGaussPoints',gauss_points_name,input.variables.stress);
             obj.PrintTensor(fid,ndim,'Strain','E','Elastic Problem','Vector',1,'OnGaussPoints',gauss_points_name,input.variables.strain);
-            obj.PrintEscalar(fid,ndim,'LevelSet','LS','Elastic Problem','Scalar',1,'OnNodes',gauss_points_name,obj.Values);
+            obj.PrintScalar(fid,ndim,'LevelSet','LS','Elastic Problem','Scalar',1,'OnNodes',gauss_points_name,obj.Values);
             fclose(fid);
         end       
     end
