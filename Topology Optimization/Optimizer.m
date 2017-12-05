@@ -1,7 +1,7 @@
 classdef Optimizer < handle
-    properties 
+    properties
         fhtri
-        kappa        
+        kappa
         stop_criteria=1;
         Msmooth
         Ksmooth
@@ -15,19 +15,21 @@ classdef Optimizer < handle
             obj.epsilon_scalar_product_P1=settings.epsilon_scalar_product_P1;
             obj.name = settings.filename;
             
-        end 
+        end
         function x=solveProblem(obj,x_ini,cost,constraint,physProblem,interpolation,filter)
             obj.Msmooth=physProblem.computeMass(2);
             obj.Ksmooth=physProblem.computeKsmooth;
             cost.computef(x_ini,physProblem,interpolation,filter);
-            constraint.computef(x_ini,physProblem,interpolation,filter); 
+            constraint.computef(x_ini,physProblem,interpolation,filter);
             obj.plotX(x_ini,physProblem)
-%             obj.printX(obj.name,x_ini,physicalProblem,iter)
-            while(obj.stop_criteria)                               
+            iter=0;
+            obj.print(x_ini,physProblem,iter);
+            while(obj.stop_criteria)
+                iter=iter+1;
                 x=obj.updateX(x_ini,cost,constraint,physProblem,interpolation,filter);
-                obj.plotX(x,physProblem)  
-%                 obj.printX(obj.name,x,physProblem,iter);
-                x_ini=x;
+                obj.plotX(x,physProblem)
+                obj.print(x,physProblem,iter);
+                x_ini=x;                
             end
         end
         
@@ -64,15 +66,13 @@ classdef Optimizer < handle
                 drawnow;
             end
         end
+       
+        function print(obj,Data,physicalProblem,iter)
+            postprocess = Postprocess_TopOpt(Data);
+            postprocess.ToGiD(obj.name,physicalProblem,iter);
+            postprocess.ToGiDpost(obj.name,physicalProblem,iter);
+        end
         
-%         function printX(obj,name,x,physicalProblem,iter)
-%             postprocess = Postprocess;
-%             postprocess.ToGiD(name,physicalProblem,iter);
-%             postprocess.ToGiD('Physical Data',physicalProblem,iter);
-%             postprocess.ToGiD(name,physicalProblem,iter);
-%             postprocess.ToGiDpostX(name,x,physicalProblem,iter);
-%         end
-    
     end
     methods (Static)
         function physicalProblem=updateEquilibrium(x,physicalProblem,interpolation,filter)
