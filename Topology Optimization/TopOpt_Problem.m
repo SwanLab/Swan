@@ -26,7 +26,10 @@ classdef TopOpt_Problem < handle
                     obj.settings.ini_value=1;
                 case 'MMA'
                     obj.optimizer=Optimizer_MMA(settings);
-                    obj.settings.ini_value=1;         
+                    obj.settings.ini_value=1;
+                case 'IPOPT'
+                    obj.optimizer=Optimizer_IPOPT(settings);
+                    obj.settings.ini_value=1;
             end
             obj.filter=Filter.create(obj.settings.filter,obj.settings.optimizer);
         end

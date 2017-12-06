@@ -8,6 +8,8 @@ classdef Physical_Problem < handle
         mesh
         geometry
         dim
+        dof
+        bc
         RHS
         LHS
     end
@@ -17,11 +19,9 @@ classdef Physical_Problem < handle
     end
     
     %% Private properties definition ======================================
-    properties (Access = private)
-        bc
+    properties (Access = private)   
         material
         element
-        dof
         solver
         physicalVars
         problemID

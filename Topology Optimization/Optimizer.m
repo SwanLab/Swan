@@ -2,25 +2,26 @@ classdef Optimizer < handle
     properties 
         fhtri
         kappa
-        
+        objfunc
         stop_criteria=1;
         Msmooth
         Ksmooth
         constr_tol
         optimality_tol
-        epsilon_scalar_product_P1;
+        epsilon_scalar_product_P1
+        shfunc_volume
     end
     methods
         function obj=Optimizer(settings)
             obj.epsilon_scalar_product_P1=settings.epsilon_scalar_product_P1;
+            obj.shfunc_volume=ShFunc_Volume(settings.volume);  
             
         end 
         function x=solveProblem(obj,x_ini,cost,constraint,physProblem,interpolation,filter)
             obj.Msmooth=physProblem.computeMass(2);
             obj.Ksmooth=physProblem.computeKsmooth;
             cost.computef(x_ini,physProblem,interpolation,filter);
-            constraint.computef(x_ini,physProblem,interpolation,filter);
-            
+            constraint.computef(x_ini,physProblem,interpolation,filter);  
             while(obj.stop_criteria)
                 obj.plotX(x_ini,physProblem)
                 x=obj.updateX(x_ini,cost,constraint,physProblem,interpolation,filter);

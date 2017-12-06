@@ -3,17 +3,18 @@ classdef DOF
     %   Detailed explanation goes here
     
     properties (GetAccess = {?Physical_Problem, ?Element, ?Solver}, SetAccess = private)
-        ndof
+        
     end
     properties (GetAccess = {?Physical_Problem, ?Element}, SetAccess = private)
         idx
     end
-    properties (GetAccess = ?Solver, SetAccess = private)
+    properties (GetAccess = public, SetAccess = private)
         vR
+        ndof
         vL
     end
     
-    methods (Access = ?Physical_Problem)
+    methods (Access = {?Physical_Problem,?Filter})
         % Constructor
         function obj = DOF(nnode,connec,nunkn,npnod,fixnodes)
             % Compute idx
