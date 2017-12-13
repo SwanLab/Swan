@@ -3,31 +3,18 @@ classdef Filter < handle
         M0
         Msmooth
         Ksmooth
-        fixnodes_per
-        dof_per
-        solver
-        rhs
         P_operator
         coordinates
         connectivities
-        epsilon
-        A_nodal_2_gauss
     end
     methods 
         function preProcess(obj,physicalProblem)
             obj.M0 = sparse(1:physicalProblem.mesh.nelem,1:physicalProblem.mesh.nelem,physicalProblem.geometry.dvolu);
             obj.Msmooth=physicalProblem.computeMass(2);
             obj.Ksmooth=physicalProblem.computeKsmooth;
-            obj.fixnodes_per=physicalProblem.bc.fixnodes_perimeter;
-            obj.fixnodes_per(:,2)=ones(length(obj.fixnodes_per(:,1)),1);
-            obj.fixnodes_per(:,3)=zeros(length(obj.fixnodes_per(:,1)),1);
-            obj.dof_per=DOF(physicalProblem.geometry.nnode,physicalProblem.mesh.connec,1,physicalProblem.mesh.npnod,obj.fixnodes_per);
-            obj.solver = Solver_Analytical;
             obj.P_operator=obj.computePoperator(obj.Msmooth,physicalProblem);
             obj.coordinates=physicalProblem.mesh.coord;
-            obj.connectivities=physicalProblem.mesh.connec;    
-            obj.epsilon=0.03;
-            obj.A_nodal_2_gauss=obj.computeA(physicalProblem);
+            obj.connectivities=physicalProblem.mesh.connec;  
         end
         function A_nodal_2_gauss=computeA(obj,physProblem)
             
@@ -57,14 +44,14 @@ classdef Filter < handle
                 case 'P1'
                     switch optimizer
                         case {'MMA','PROJECTED GRADIENT','IPOPT'} 
-                            obj=Filter_PG;
+                            obj=Filter_Density;
                         case 'SLERP'
                             obj=Filter_SLERP;
                     end
                 case 'PDE'
                     switch optimizer
                         case {'MMA','PROJECTED GRADIENT','IPOPT'} 
-                            obj=Filter_PG_PDE;
+                            obj=Filter_Density_PDE;
                         case 'SLERP'
                             obj=Filter_SLERP_PDE;
                     end

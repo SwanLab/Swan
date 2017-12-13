@@ -1,28 +1,25 @@
 classdef ShFunc_Perimeter< Shape_Functional
-    properties 
+    properties
         epsilon
         Perimeter_target
+        filter_pde
     end
     methods
-        function obj=ShFunc_Perimeter(persettings)
-            obj.epsilon=persettings.epsilon;
-            obj.Perimeter_target=persettings.Perimeter_target;
+        function obj=ShFunc_Perimeter(settings)
+            obj.epsilon=settings.epsilon;
+            obj.Perimeter_target=settings.Perimeter_target;
+            switch settings.optimizer
+                case 'SLERP'
+                    obj.filter_pde=Filter_SLERP_PDE;
+                otherwise
+                    obj.filter_pde=Filter_Density_PDE;
+            end
         end
-    end
-    methods
-        function computef(obj,x,~,~,filter)
-            
-            %             switch algorithm
-            %                 case 'level_set'
-            %                     rhs = faireF2(coordinates',element.conectivities',design_variable);
-            %
-            %                 otherwise % case 'Projected_gradient'
-            %                     rhs = Msmooth*design_variable;
-            %
-            %             end
-            Msmooth=filter.Msmooth;
-            x_reg=filter.getP0fromP1_perimeter(x,obj.epsilon);
-            Perimeter = 0.5/obj.epsilon*((1 - x_reg)'*filter.rhs);
+        function computef(obj,x,physProblem,~,~)
+            obj.checkFilterPre(physProblem)
+            Msmooth=obj.filter_pde.Msmooth;
+            x_reg=obj.filter_pde.getP0fromP1_per(x,obj.epsilon);
+            Perimeter = 0.5/obj.epsilon*((1 - x_reg)'*obj.filter_pde.rhs);
             Perimeter_gradient = 0.5/obj.epsilon*(1 - 2*x_reg);
             
             constraint = Perimeter/obj.Perimeter_target - 1;
@@ -32,6 +29,11 @@ classdef ShFunc_Perimeter< Shape_Functional
             
             obj.value=constraint;
             obj.gradient=constraint_gradient;
+        end
+        function checkFilterPre(obj, physProblem)
+            if isempty(obj.filter_pde.Msmooth)
+                obj.filter_pde.preProcess(physProblem);
+            end
         end
     end
 end

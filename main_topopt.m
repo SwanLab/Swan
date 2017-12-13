@@ -10,12 +10,17 @@ settings=struct;
 settings.filename='TOPOPT_TEST';    
 settings.method='SIMPALL';
 settings.material='ISOTROPIC';
-settings.ptype='Compliance_st_VolumePerimeter';
 settings.initial_case='full';
-%settings.optimizer='SLERP';
-settings.optimizer='PROJECTED GRADIENT';
+
+%settings.ptype='Compliance_st_Volume';
+settings.ptype='ComplianceLamPerimeter_st_Volume';
+%settings.ptype='Compliance_st_VolumePerimeter';
+
+settings.optimizer='SLERP';
+%settings.optimizer='PROJECTED GRADIENT';
 %settings.optimizer='MMA';
 %settings.optimizer='IPOPT';
+
 settings.filter='P1';
 settings.TOL.rho_plus=1;
 settings.TOL.rho_minus=0;
@@ -27,6 +32,8 @@ settings.epsilon_scalar_product_P1=0.03;
 settings.volume.Vfrac=0.5;
 settings.perimeter.epsilon=0.0175;
 settings.perimeter.Perimeter_target=3.5;
+settings.perimeter.optimizer=settings.optimizer;
+settings.perimeter.lambda=0.1;
 %% main
 tic
 switch settings.ptype
@@ -36,9 +43,13 @@ switch settings.ptype
     case 'Compliance_st_VolumePerimeter'
         settings.nconstr=2;
         test=TopOpt_Problem_Compliance_st_VolumePerimeter(settings);
+    case 'ComplianceLamPerimeter_st_Volume'
+        settings.nconstr=1;
+        test=TopOpt_Problem_ComplianceLamPerimeter_st_Volume(settings);
     otherwise
         disp('Problem not added')
 end
+% test=Incremental_Scheme(settings,physProblem);
 test.preProcess;
 test.computeVariables;
 toc
