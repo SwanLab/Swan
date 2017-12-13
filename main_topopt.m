@@ -18,8 +18,8 @@ settings.material='ISOTROPIC';
 settings.ptype='Compliance_st_Volume';
 settings.initial_case='full';
 
-settings.optimizer='SLERP';
-%settings.optimizer='PROJECTED GRADIENT';
+% settings.optimizer='SLERP';
+settings.optimizer='PROJECTED GRADIENT';
 % settings.optimizer='MMA';
 
 settings.filter='P1';
