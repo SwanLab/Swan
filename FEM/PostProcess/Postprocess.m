@@ -94,5 +94,69 @@ classdef Postprocess
             fprintf(fid,'End Values\n');
         end
     end
+    
+    methods (Access = public)
+        
+        function Print_make_video_characteristic_function(obj,gidPath,file_name,files_folder,iterations_to_print,output_video_name)
+        file_tcl_name = 'tcl_gid.tcl';
+        field2print = 'LevelSet';
+        componentfield = 'LS';
+        file_list = obj.create_file_list(iterations_to_print,file_name,files_folder);
+        min_value = -1e-32;
+        max_value = 'Standard';
+        file_tcl_name_with_path = fullfile(files_folder,file_tcl_name);
+        fid = fopen(file_tcl_name_with_path,'w+');
+        fprintf(fid,'GiD_Process PostProcess \n');
+        fprintf(fid,['set arg1 "',file_list,'"\n']);
+        fprintf(fid,['set arg2 "',output_video_name,'"\n']);
+        fprintf(fid,['set arg3 "',field2print,'"\n']);
+        fprintf(fid,['set arg4 "',componentfield,'"\n']);
+        fprintf(fid,['set arg5 "',num2str(min_value),'"\n']);
+        fprintf(fid,['set arg6 "',max_value,'"\n']);
+        fprintf(fid,['source "',fullfile(pwd,'FEM','PostProcess','Make_Video_characteristic.tcl'),'"\n']);
+        fprintf(fid,['Make_Video_characteristic $arg1 $arg2 $arg3 $arg4 $arg5 $arg6 \n']);
+        fprintf(fid,['GiD_Process Mescape Quit']);
+        fclose(fid);
+
+        obj.execute_tcl_files(gidPath,file_tcl_name_with_path)
+        end
+        
+        
+        function Print_make_video_stress(obj,gidPath,file_name,files_folder,iterations_to_print,output_video_name)
+            file_tcl_name = 'tcl_gid.tcl';
+            field2print = 'Stress';
+            componentfield = 'S';
+            file_list = obj.create_file_list(iterations_to_print,file_name,files_folder);
+            file_tcl_name_with_path = fullfile(files_folder,file_tcl_name);
+            fid = fopen(file_tcl_name_with_path,'w+');
+            fprintf(fid,'GiD_Process PostProcess \n');
+            fprintf(fid,['set arg1 "',file_list,'"\n']);
+            fprintf(fid,['set arg2 "',output_video_name,'"\n']);
+            fprintf(fid,['set arg3 "',field2print,'"\n']);
+            fprintf(fid,['set arg4 "',componentfield,'"\n']);
+            fprintf(fid,['source "',fullfile(pwd,'FEM','PostProcess','Make_Video_stress.tcl'),'"\n']);
+            fprintf(fid,['Make_Video_stress $arg1 $arg2 $arg3 $arg4 \n']);
+            fprintf(fid,['GiD_Process Mescape Quit']);
+            fclose(fid);
+
+            obj.execute_tcl_files(gidPath,file_tcl_name_with_path)
+        end
+        
+        function file_list = create_file_list(obj,iterations_to_print,file_name,files_folder)
+            file_list = [];
+            for iter = 1:length(iterations_to_print)
+                msh_file = fullfile(files_folder,strcat(file_name,'_',num2str(iterations_to_print(iter)),'.flavia.res'));
+                file_list = [file_list, ' ',msh_file];
+            end
+            
+        end
+        
+        function execute_tcl_files(obj,gidPath,file_tcl_name_with_path)
+            system([fullfile(gidPath,'gid_offscreen'),' -t "source ',file_tcl_name_with_path,'"'])
+            system(['rm ',file_tcl_name_with_path])
+        end
+        
+        
+    end
 end
 

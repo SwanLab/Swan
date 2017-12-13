@@ -1,7 +1,8 @@
 clc
 clear variables;close all;
-addpath(genpath('.\FEM\'));
-addpath(genpath('.\Topology Optimization\'));
+ 
+addpath(genpath(fullfile('.','FEM')));
+addpath(genpath(fullfile('.','Topology Optimization')));
 %% test
 run('test.m');
 clear variables;
@@ -29,7 +30,7 @@ settings.TOL.E_minus=1e-3;
 settings.TOL.nu_plus=1/3;
 settings.TOL.nu_minus=1/3;
 settings.epsilon_scalar_product_P1=0.03;
-settings.volume.Vfrac=0.3;
+settings.volume.Vfrac=0.4;
 %% main
 tic
 switch settings.ptype
@@ -42,3 +43,16 @@ end
 test.preProcess;
 test.computeVariables;
 toc
+%% Video creation
+post = Postprocess;
+gidPath = '/opt/GiDx64/13.0.2/';
+files_name = test.settings.filename;
+files_folder = fullfile(pwd,'Output','TOPOPT_RESULTS');
+iterations = 1:test.optimizer.niter;
+
+output_video_name = fullfile(pwd,'CharacteristicVideo');
+post.Print_make_video_characteristic_function(gidPath,files_name,files_folder,iterations,output_video_name)
+
+
+output_video_name = fullfile(pwd,'StressVideo');
+post.Print_make_video_stress(gidPath,files_name,files_folder,iterations,output_video_name)

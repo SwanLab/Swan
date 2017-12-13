@@ -9,6 +9,7 @@ classdef Optimizer < handle
         optimality_tol
         epsilon_scalar_product_P1
         name
+        niter
     end
     methods
         function obj=Optimizer(settings)
@@ -31,6 +32,7 @@ classdef Optimizer < handle
                 obj.print(x,physProblem,iter);
                 x_ini=x;                
             end
+            obj.niter = iter;
         end
         
         function sp=scalar_product(obj,f,g)
