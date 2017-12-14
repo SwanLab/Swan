@@ -59,9 +59,8 @@ classdef Physical_Problem < FEM
         
         function postProcess(obj)
             iter = 1; % static
-            postprocess = Postprocess_PhysicalProblem(obj.variables);
-            postprocess.ToGiD(obj.problemID,obj,iter);
-            postprocess.ToGiDpost(obj.problemID,obj,iter);
+            postprocess = Postprocess_PhysicalProblem(obj);
+            postprocess.print(obj.problemID,iter);
         end
         
         function setMatProps(obj,props)

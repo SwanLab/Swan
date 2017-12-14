@@ -1,6 +1,6 @@
 classdef Postprocess
     properties
-        Values
+        physical_problem
     end
     
     methods (Access = protected)
@@ -82,7 +82,7 @@ classdef Postprocess
         function PrintScalar(obj,fid,ndim,nameres,indexName,problemType,result_type,istep,result_location,location_name,results)
             % Print Header ------------------------------------------------
             fprintf(fid,'\nResult "%s" "%s" %.0f %s %s "%s"\n',nameres,problemType,istep,result_type,result_location,location_name);
-            fprintf(fid,'ComponentNames  "%s"\n',indexName);                      
+            fprintf(fid,'ComponentNames  "%s"\n',indexName);
             
             % Print Variables ---------------------------------------------
             fprintf(fid,'Values\n');
@@ -90,57 +90,134 @@ classdef Postprocess
                 fprintf(fid,'%6.0f ',inode);
                 fprintf(fid,'%12.5d ',results(inode));
                 fprintf(fid,'\n');
-            end            
+            end
             fprintf(fid,'End Values\n');
         end
+        
+        function  [fid,ndim,gauss_points_name] = write_header_res_file(obj,file_name,istep)
+            
+            res_file = fullfile('Output',strcat(file_name,'_',num2str(istep),'.flavia.res'));
+            fid = fopen(res_file,'w');
+            
+            ngaus = obj.physical_problem.geometry.ngaus;
+            posgp = obj.physical_problem.geometry.posgp';
+            [~,ndim,~,~,etype,~,~,~,~] = obj.getBasicParams(obj.physical_problem);
+            
+            switch  etype
+                case 'TRIANGLE'
+                    etype = 'Triangle'; %gid type
+                case 'QUAD'
+                    etype = 'Quadrilateral';
+                case 'TETRAHEDRA'
+                    etype= 'Tetrahedra';
+                case 'HEXAHEDRA'
+                    etype = 'Hexahedra';
+            end
+            
+            %% File Header
+            fprintf(fid,'GiD Post Results File 1.0\n\n');
+            obj.printTitle(fid);
+            
+            %% Print Gauss Points Header
+            gauss_points_name = 'Guass up?';
+            fprintf(fid,'GaussPoints "%s" Elemtype %s\n',gauss_points_name,etype);
+            fprintf(fid,'Number of Gauss Points: %.0f\n',ngaus);
+            fprintf(fid,'Nodes not included\n');
+            fprintf(fid,'Natural Coordinates: given\n');
+            for igaus = 1:ngaus
+                for idime = 1:ndim
+                    fprintf(fid,'%12.5d ',posgp(igaus,idime));
+                end
+                fprintf(fid,'\n');
+            end
+            fprintf(fid,'End GaussPoints\n');
+            
+        end
+        
+        
+        function ToGiD(obj,file_name,input,istep)
+            [nnode,ndim,pdim,gtype,etype,nelem,npnod,coordinates,conectivities] = obj.getBasicParams(input);
+            
+            msh_file = fullfile('Output',strcat(file_name,'_',num2str(istep),'.flavia.msh'));
+            
+            fid = fopen(msh_file,'w');
+            obj.printTitle(fid);
+            
+            fprintf(fid,'MESH "WORKPIECE" dimension %3.0f   Elemtype %s   Nnode %2.0f \n \n',ndim,etype,nnode);
+            fprintf(fid,'coordinates \n');
+            switch pdim
+                case '2D'
+                    for i = 1:npnod
+                        fprintf(fid,'%6.0f %12.5d %12.5d \n',i,coordinates(i,1:ndim));
+                    end
+                case '3D'
+                    for i = 1:npnod
+                        fprintf(fid,'%6.0f %12.5d %12.5d %12.5d \n',i,coordinates(i,:));
+                    end
+            end
+            fprintf(fid,'end coordinates \n \n');
+            
+            fprintf(fid,'elements \n');
+            switch  gtype
+                case 'TRIANGLE'
+                    switch nnode
+                        case 3
+                            fprintf(fid,'%6.0f %6.0f %6.0f %6.0f  1 \n',[1:nelem;conectivities']);
+                        case 6
+                            fprintf(fid,'%6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f 1 \n',[1:nelem;conectivities']);
+                        otherwise
+                            error('Element type %s with %.0f nodes has not being implemented.',gytpe,nnode);
+                    end
+                case 'QUAD'
+                    switch nnode
+                        case 4
+                            fprintf(fid,'%6.0f %6.0f %6.0f %6.0f %6.0f  1 \n',[1:nelem;conectivities']);
+                        case 8
+                            fprintf(fid,'%6.0f %6.0f %6.0f %6.0f %6.0f  %6.0f %6.0f %6.0f %6.0f 1 \n',[1:nelem;conectivities']);
+                        case 9
+                            fprintf(fid,'%6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f 1 \n',[1:nelem;conectivities']);
+                        otherwise
+                            error('Element type %s with %.0f nodes has not being implemented.',gytpe,nnode);
+                    end
+                case 'TETRAHEDRA'
+                    switch nnode
+                        case 4
+                            fprintf(fid,'%6.0f %6.0f %6.0f %6.0f %6.0f  1 \n',[1:nelem;conectivities']);
+                        otherwise
+                            error('Element type %s with %.0f nodes has not being implemented.',gytpe,nnode);
+                    end
+                case 'HEXAHEDRA'
+                    switch nnode
+                        case 8
+                            fprintf(fid,'%6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f  1 \n',[1:nelem;conectivities']);
+                        otherwise
+                            error('Element type %s with %.0f nodes has not being implemented.',gytpe,nnode);
+                    end
+                otherwise
+                    error('Element type %s has not being implemented.',gytpe,nnode);
+            end
+            
+            fprintf(fid,'end elements\n\n');
+            fclose(fid);
+        end
+        
+ 
+    end
+    
+    methods (Abstract, Access = protected)
+        
+        ToGiDpost(obj);
+        
     end
     
     methods (Access = public)
         
-        function Print_make_video_characteristic_function(obj,gidPath,file_name,files_folder,iterations_to_print,output_video_name)
-        file_tcl_name = 'tcl_gid.tcl';
-        field2print = 'LevelSet';
-        componentfield = 'LS';
-        file_list = obj.create_file_list(iterations_to_print,file_name,files_folder);
-        min_value = -1e-32;
-        max_value = 'Standard';
-        file_tcl_name_with_path = fullfile(files_folder,file_tcl_name);
-        fid = fopen(file_tcl_name_with_path,'w+');
-        fprintf(fid,'GiD_Process PostProcess \n');
-        fprintf(fid,['set arg1 "',file_list,'"\n']);
-        fprintf(fid,['set arg2 "',output_video_name,'"\n']);
-        fprintf(fid,['set arg3 "',field2print,'"\n']);
-        fprintf(fid,['set arg4 "',componentfield,'"\n']);
-        fprintf(fid,['set arg5 "',num2str(min_value),'"\n']);
-        fprintf(fid,['set arg6 "',max_value,'"\n']);
-        fprintf(fid,['source "',fullfile(pwd,'FEM','PostProcess','Make_Video_characteristic.tcl'),'"\n']);
-        fprintf(fid,['Make_Video_characteristic $arg1 $arg2 $arg3 $arg4 $arg5 $arg6 \n']);
-        fprintf(fid,['GiD_Process Mescape Quit']);
-        fclose(fid);
-
-        obj.execute_tcl_files(gidPath,file_tcl_name_with_path)
-        end
         
-        
-        function Print_make_video_stress(obj,gidPath,file_name,files_folder,iterations_to_print,output_video_name)
-            file_tcl_name = 'tcl_gid.tcl';
-            field2print = 'Stress';
-            componentfield = 'S';
-            file_list = obj.create_file_list(iterations_to_print,file_name,files_folder);
-            file_tcl_name_with_path = fullfile(files_folder,file_tcl_name);
-            fid = fopen(file_tcl_name_with_path,'w+');
-            fprintf(fid,'GiD_Process PostProcess \n');
-            fprintf(fid,['set arg1 "',file_list,'"\n']);
-            fprintf(fid,['set arg2 "',output_video_name,'"\n']);
-            fprintf(fid,['set arg3 "',field2print,'"\n']);
-            fprintf(fid,['set arg4 "',componentfield,'"\n']);
-            fprintf(fid,['source "',fullfile(pwd,'FEM','PostProcess','Make_Video_stress.tcl'),'"\n']);
-            fprintf(fid,['Make_Video_stress $arg1 $arg2 $arg3 $arg4 \n']);
-            fprintf(fid,['GiD_Process Mescape Quit']);
-            fclose(fid);
-
-            obj.execute_tcl_files(gidPath,file_tcl_name_with_path)
+        function  print(obj,file_name,istep)
+            obj.ToGiD(file_name,obj.physical_problem,istep)
+            obj.ToGiDpost(file_name,istep)
         end
+
         
         function file_list = create_file_list(obj,iterations_to_print,file_name,files_folder)
             file_list = [];

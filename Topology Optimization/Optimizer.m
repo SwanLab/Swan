@@ -70,9 +70,8 @@ classdef Optimizer < handle
         end
        
         function print(obj,Data,physicalProblem,iter)
-            postprocess = Postprocess_TopOpt(Data);
-            postprocess.ToGiD(obj.name,physicalProblem,iter);
-            postprocess.ToGiDpost(obj.name,physicalProblem,iter);
+            postprocess = Postprocess_TopOpt(Data,physicalProblem);
+            postprocess.print(obj.name,iter);
         end
         
     end

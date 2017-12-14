@@ -44,10 +44,10 @@ test.preProcess;
 test.computeVariables;
 toc
 %% Video creation
-post = Postprocess;
+post = Postprocess_TopOpt;
 gidPath = '/opt/GiDx64/13.0.2/';
 files_name = test.settings.filename;
-files_folder = fullfile(pwd,'Output','TOPOPT_RESULTS');
+files_folder = fullfile(pwd,'Output');
 iterations = 1:test.optimizer.niter;
 
 output_video_name = fullfile(pwd,'CharacteristicVideo');
