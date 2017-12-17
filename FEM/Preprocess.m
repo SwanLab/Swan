@@ -1,14 +1,15 @@
 classdef Preprocess<handle
     % Only reads
     
-   %% !! SUSCEPTIBLE OF BEING RENAMED !! 
+    %% !! SUSCEPTIBLE OF BEING RENAMED !!
     
     properties
     end
     
     methods(Static)
         function data = readFromGiD(filename)
-            addpath('.\Input\')
+            
+            addpath(fullfile('.','Input'))
             run(filename)
             data = struct;
             data.xpoints=gidcoord;
