@@ -7,6 +7,7 @@ classdef Physical_Problem < FEM
         variables
         mesh
         dim
+        problemID
     end
     
     %% Restricted properties definition ===================================
@@ -20,7 +21,6 @@ classdef Physical_Problem < FEM
         element
         dof
         physicalVars
-        problemID
     end
     
     %% Public methods definition ==========================================
@@ -59,8 +59,9 @@ classdef Physical_Problem < FEM
         
         function postProcess(obj)
             iter = 1; % static
-            postprocess = Postprocess_PhysicalProblem(obj);
-            postprocess.print(obj.problemID,iter);
+            postprocess = Postprocess_PhysicalProblem();
+            results.physicalVars = obj.variables;
+            postprocess.print(obj,obj.problemID,iter,results);
         end
         
         function setMatProps(obj,props)

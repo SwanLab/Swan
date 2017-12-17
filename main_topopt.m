@@ -18,8 +18,8 @@ settings.material='ISOTROPIC';
 settings.ptype='Compliance_st_Volume';
 settings.initial_case='full';
 
-% settings.optimizer='SLERP';
-settings.optimizer='PROJECTED GRADIENT';
+settings.optimizer='SLERP';
+%settings.optimizer='PROJECTED GRADIENT';
 % settings.optimizer='MMA';
 
 settings.filter='P1';
@@ -44,15 +44,20 @@ test.preProcess;
 test.computeVariables;
 toc
 %% Video creation
-post = Postprocess_TopOpt;
 gidPath = '/opt/GiDx64/13.0.2/';
 files_name = test.settings.filename;
 files_folder = fullfile(pwd,'Output');
 iterations = 1:test.optimizer.niter;
 
-output_video_name = fullfile(pwd,'CharacteristicVideo');
-post.Print_make_video_characteristic_function(gidPath,files_name,files_folder,iterations,output_video_name)
+My_VideoMaker = VideoMaker_TopOpt.Create(settings.optimizer);
+My_VideoMaker.Set_up_make_video(gidPath,files_name,files_folder,iterations)
 
 
-output_video_name = fullfile(pwd,'StressVideo');
-post.Print_make_video_stress(gidPath,files_name,files_folder,iterations,output_video_name)
+output_video_name_design_variable = fullfile(pwd,'DesignVariable_Video');
+My_VideoMaker.Make_video_design_variable(output_video_name_design_variable)
+
+output_video_name_design_variable_reg = fullfile(pwd,'DesignVariable_Reg_Video');
+My_VideoMaker.Make_video_design_variable_reg(output_video_name_design_variable_reg)
+
+output_video_name_stress = fullfile(pwd,'Stress_Video');
+My_VideoMaker.Make_video_stress(output_video_name_stress)

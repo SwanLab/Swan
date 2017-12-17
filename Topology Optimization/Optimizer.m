@@ -10,11 +10,13 @@ classdef Optimizer < handle
         epsilon_scalar_product_P1
         name
         niter
+        optimizer
     end
     methods
         function obj=Optimizer(settings)
             obj.epsilon_scalar_product_P1=settings.epsilon_scalar_product_P1;
             obj.name = settings.filename;
+            obj.optimizer = settings.optimizer;
             
         end
         function x=solveProblem(obj,x_ini,cost,constraint,physProblem,interpolation,filter)
@@ -24,12 +26,12 @@ classdef Optimizer < handle
             constraint.computef(x_ini,physProblem,interpolation,filter);
             obj.plotX(x_ini,physProblem)
             iter=0;
-            obj.print(x_ini,physProblem,iter);
+            obj.print(x_ini,physProblem,filter.getP0fromP1(x_ini),iter);
             while(obj.stop_criteria)
                 iter=iter+1;
                 x=obj.updateX(x_ini,cost,constraint,physProblem,interpolation,filter);
                 obj.plotX(x,physProblem)
-                obj.print(x,physProblem,iter);
+                obj.print(x,physProblem,filter.getP0fromP1(x),iter);
                 x_ini=x;                
             end
             obj.niter = iter;
@@ -69,9 +71,13 @@ classdef Optimizer < handle
             end
         end
        
-        function print(obj,Data,physicalProblem,iter)
-            postprocess = Postprocess_TopOpt(Data,physicalProblem);
-            postprocess.print(obj.name,iter);
+        function print(obj,design_variable,physicalProblem,design_variable_reg,iter)
+            postprocess = Postprocess_TopOpt.Create(obj.optimizer);
+            results.physicalVars = physicalProblem.variables;
+            results.design_variable = design_variable;
+            results.design_variable_reg = design_variable_reg;
+            postprocess.print(physicalProblem,obj.name,iter,results);
+
         end
         
     end
