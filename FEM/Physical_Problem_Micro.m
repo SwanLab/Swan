@@ -9,12 +9,6 @@ classdef Physical_Problem_Micro < Physical_Problem
     
     %% Private properties definition ======================================
     properties (Access = private)
-        bc
-        material
-        element
-        dof
-        physicalVars
-        problemID
     end
     
     %% Public methods definition ==========================================
@@ -24,7 +18,8 @@ classdef Physical_Problem_Micro < Physical_Problem
         end
         
         function preProcess(obj)
-            % Create Objects
+            obj.bc = BC(obj.dim.nunkn,obj.problemID);
+            obj.dof = DOF(obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.bc.fixnodes);
             obj.element = Element_Elastic_Micro;
             obj.physicalVars = PhysicalVars_Elastic_2D_Micro;
             obj.solver = Solver_Periodic;
@@ -38,9 +33,9 @@ classdef Physical_Problem_Micro < Physical_Problem
             [obj.LHS,obj.RHS] = obj.Assemble(obj.element,obj.geometry.nnode,obj.dim.nunkn,obj.dof);
             
             % Solver
-            sol = obj.solver.solve(obj.LHS,obj.RHS,obj.dof,obj.bc.fixnodes); 
+            sol = obj.solver.solve(obj.LHS,obj.RHS,obj.dof,obj.bc.fixnodes);
             obj.variables = obj.physicalVars.computeVars(sol,obj.dim,obj.geometry,obj.mesh.nelem,obj.dof.idx,obj.element,obj.material);
-        end        
+        end
         
         function computeChomog(obj)
             

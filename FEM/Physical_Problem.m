@@ -7,6 +7,7 @@ classdef Physical_Problem < FEM
         variables
         mesh
         dim
+        problemID
     end
     
     %% Private properties definition ======================================
@@ -16,7 +17,6 @@ classdef Physical_Problem < FEM
         element
         dof
         physicalVars
-        problemID
     end
     
     %% Public methods definition ==========================================
@@ -26,14 +26,13 @@ classdef Physical_Problem < FEM
             obj.mesh = Mesh(obj.problemID);
             obj.dim = DIM(obj.mesh.ptype,obj.mesh.pdim);
             obj.geometry=Geometry(obj.mesh);
-            obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem);
-            
-            obj.bc = BC(obj.dim.nunkn,obj.problemID);
-            obj.dof = DOF(obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.bc.fixnodes);
+            obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem); 
         end
         
         function preProcess(obj)
             % Create Objects
+            obj.bc = BC(obj.dim.nunkn,obj.problemID);
+            obj.dof = DOF(obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.bc.fixnodes);
             obj.element = Element.create(obj.mesh.ptype,obj.mesh.pdim);
             obj.physicalVars = PhysicalVariables.create(obj.mesh.ptype,obj.mesh.pdim);
             obj.solver = Solver_Dirichlet_Conditions;
@@ -53,9 +52,9 @@ classdef Physical_Problem < FEM
         
         function postProcess(obj)
             iter = 1; % static
-            postprocess = Postprocess_PhysicalProblem(obj.variables);
-            postprocess.ToGiD(obj.problemID,obj,iter);
-            postprocess.ToGiDpost(obj.problemID,obj,iter);
+            postprocess = Postprocess_PhysicalProblem();
+            results.physicalVars = obj.variables;
+            postprocess.print(obj,obj.problemID,iter,results);
         end
         
         function setMatProps(obj,props)
