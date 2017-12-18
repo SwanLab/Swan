@@ -1,4 +1,3 @@
-
 classdef Element<handle
     %Element Summary of this class goes here
     %   Detailed explanation goes here TEST
@@ -20,7 +19,7 @@ classdef Element<handle
                 case 'ELASTIC'
                     switch pdim
                         case '2D'
-                            element = Element_Elastic;
+                            element = Element_Elastic;                            
                             element.B = B2;
                         case '3D'
                             element = Element_Elastic;
@@ -28,12 +27,25 @@ classdef Element<handle
                     end
                 case 'THERMAL'
                     element = Element_Thermal;
-                    element.B = B_thermal;     
+                    element.B = B_thermal;
                 otherwise
                     error('Invalid ptype.')
             end
         end
     end
+    methods (Access = ?Physical_Problem)
+        function obj = computeRHS(obj,nunkn,nelem,nnode,bc,idx)
+            RHSPuntual = obj.computePuntualRHS(nunkn,nelem,nnode,bc,idx);
+            RHSSuperficial  = obj.computeSuperficialRHS(nunkn,nelem,nnode,bc,idx);
+            RHSVolumetric  = obj.computeVolumetricRHS(nunkn,nelem,nnode,bc,idx);
+            obj.RHS = RHSSuperficial + RHSVolumetric + RHSPuntual;
+        end
+    end
     
+    methods (Abstract, Access = protected)
+        r = computePuntualRHS(obj)
+        r = computeSuperficialRHS(obj)
+        r = computeVolumetricRHS(obj)
+    end
 end
 

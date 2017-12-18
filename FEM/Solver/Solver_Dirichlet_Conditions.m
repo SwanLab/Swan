@@ -1,12 +1,11 @@
-classdef Solver_Analytical<Solver
+classdef Solver_Dirichlet_Conditions < Solver
     %AnalyticalSolver Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
     end
     
-    methods (Access = ?Physical_Problem,Static)
-        
+    methods (Access = ?Physical_Problem, Static)
         % Analytical Solver (A·X=b)
         function x = solve(LHS,RHS,dof,fixnodes)
             x = zeros(dof.ndof,1);

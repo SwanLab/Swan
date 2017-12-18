@@ -1,4 +1,4 @@
-classdef BC
+ classdef BC
     %BC Summary of this class goes here
     %   Detailed explanation goes here
     

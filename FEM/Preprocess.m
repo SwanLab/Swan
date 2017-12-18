@@ -23,6 +23,7 @@ classdef Preprocess<handle
             data.geometry = strjoin(Data_prb(1));
             data.problem_dim = strjoin(Data_prb(3));
             data.problem_type = strjoin(Data_prb(5));
+            data.scale = strjoin(Data_prb(6));
         end
         
         function [fixnodes, forces] = getBC(filename)

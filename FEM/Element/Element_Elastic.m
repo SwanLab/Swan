@@ -21,27 +21,28 @@ classdef Element_Elastic < Element
                 
                 % Compute Ke
                 if nelem < 1000 %Just to reduce test.m compute time TO BE REMOVED
-                for i = 1:nelem
-                    Ke(:,:,i) = Ke(:,:,i)+Bmat(:,:,i)'*Cmat(:,:,i)*...
-                        Bmat(:,:,i)*geometry.dvolu(i,igauss);
-                end
+                    for i = 1:nelem
+                        Ke(:,:,i) = Ke(:,:,i)+Bmat(:,:,i)'*Cmat(:,:,i)*...
+                            Bmat(:,:,i)*geometry.dvolu(i,igauss);
+                    end
                 else
-                for iv=1:geometry.nnode*nunkn
-                    for jv=1:geometry.nnode*nunkn
-                        for istre=1:nstre
-                            for jstre=1:nstre
-                                v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:).*Bmat(jstre,jv,:));
-                                Ke(iv,jv,:) = squeeze(Ke(iv,jv,:)) + v(:).*geometry.dvolu(:,igauss);
+                    for iv=1:geometry.nnode*nunkn
+                        for jv=1:geometry.nnode*nunkn
+                            for istre=1:nstre
+                                for jstre=1:nstre
+                                    v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:).*Bmat(jstre,jv,:));
+                                    Ke(iv,jv,:) = squeeze(Ke(iv,jv,:)) + v(:).*geometry.dvolu(:,igauss);
+                                end
                             end
                         end
                     end
                 end
-                end
             end
             obj.LHS = Ke;
         end
-        
-        function obj = computeRHS(obj,nunkn,nelem,nnode,bc,idx)
+    end
+    methods (Access = protected)
+        function Fext = computePuntualRHS(obj,nunkn,nelem,nnode,bc,idx)
             Fext = zeros(nnode*nunkn,1,nelem);
             for i = 1:length(bc.iN)
                 for j = 1:nelem
@@ -53,9 +54,14 @@ classdef Element_Elastic < Element
                     ind = [];
                 end
             end
-            obj.RHS = Fext;
         end
-        
+        function Fext = computeSuperficialRHS(obj,nunkn,nelem,nnode,bc,idx) %To be donne
+            Fext = zeros(nnode*nunkn,1,nelem);
+        end
+        function Fext = computeVolumetricRHS(obj,nunkn,nelem,nnode,bc,idx)%To be done
+            Fext = zeros(nnode*nunkn,1,nelem);
+            
+        end
     end
     
 end
