@@ -3,8 +3,11 @@ classdef ShFunc_Volume< Shape_Functional
         Vfrac
     end
     methods 
-        function obj=ShFunc_Volume(volumesettings)
-            obj.Vfrac=volumesettings.Vfrac;
+        function obj=ShFunc_Volume(settings)
+            obj@Shape_Functional(settings);
+        end
+        function Vfrac=get.Vfrac(obj)
+            Vfrac=obj.target_parameters.Vfrac;
         end
         function computef(obj, x, ~, ~,filter)
             mass=filter.Msmooth;

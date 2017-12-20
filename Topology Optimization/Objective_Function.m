@@ -1,5 +1,7 @@
-classdef Objective_Function < Shape_Functional
+classdef Objective_Function < handle
     properties
+        value
+        gradient
     end
     methods
         computeFunction(obj)

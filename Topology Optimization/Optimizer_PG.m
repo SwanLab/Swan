@@ -5,17 +5,25 @@ classdef Optimizer_PG < Optimizer
         volume_initial
         kappa_min
         max_constr_change
+        optimality_tol
+        constr_tol
+        nconstr
     end 
     methods
         function obj=Optimizer_PG(settings)
             obj@Optimizer(settings);
-            obj.optimality_tol=1e-3;
-            obj.constr_tol(1:settings.nconstr)=1e-3;
             obj.kfrac=2;
             obj.kappa_min=1e-15;
             obj.max_constr_change=+Inf;
+            obj.nconstr=settings.nconstr;
         end
-        function x=updateX(obj,x_ini,cost,constraint,physProblem,interpolation,filter) 
+        function optimality_tol=get.optimality_tol(obj)
+            optimality_tol=obj.target_parameters.optimality_tol;
+        end
+        function constr_tol=get.constr_tol(obj)
+            constr_tol(1:obj.nconstr)=obj.target_parameters.constr_tol;
+        end
+        function x=updateX(obj,x_ini,cost,constraint,physProblem,interpolation,filter)                 
                 x=obj.updateRho(x_ini,obj.objfunc.gradient);
                 physProblem=obj.updateEquilibrium(x,physProblem,interpolation,filter);
                 cost.computef(x,physProblem,interpolation,filter);

@@ -5,7 +5,7 @@ classdef TopOpt_Problem_ComplianceLamPerimeter_st_Volume < TopOpt_Problem
         function obj=TopOpt_Problem_ComplianceLamPerimeter_st_Volume(settings)
             obj@TopOpt_Problem(settings);
             obj.cost=ShFunc_CompliancePerimeter(settings);
-            obj.constraint=ShFunc_Volume(settings.volume);             
+            obj.constraint=ShFunc_Volume(settings);             
         end
     end
 end

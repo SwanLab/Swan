@@ -7,13 +7,16 @@ classdef Optimizer_AugLag < Optimizer
     methods
         function obj=Optimizer_AugLag(settings,optimizer_unconstr)
             obj@Optimizer(settings);
-            obj.objfunc=Objective_Function_AugLag(settings);
+            obj.objfunc=Objective_Function_AugLag(settings);             
             obj.optimizer_unconstr=optimizer_unconstr;          
         end
         function x=updateX(obj,x_ini,cost,constraint, physProblem, interpolation,filter)  
             obj.checkInitial;
             obj.iter=obj.iter+1;
             iter=obj.iter
+            obj.optimizer_unconstr.target_parameters=obj.target_parameters;
+            obj.shfunc_volume.target_parameters=obj.target_parameters;
+            obj.optimizer_unconstr.shfunc_volume.target_parameters=obj.target_parameters;
             obj.shfunc_volume.computef(x_ini,physProblem,interpolation,filter);
             
             obj.objfunc.lambda = obj.objfunc.lambda+obj.objfunc.penalty.*constraint.value';
@@ -39,6 +42,7 @@ classdef Optimizer_AugLag < Optimizer
             if isempty(obj.optimizer_unconstr.Ksmooth) 
             obj.optimizer_unconstr.Msmooth=obj.Msmooth;
             obj.optimizer_unconstr.Ksmooth=obj.Ksmooth;
+            obj.optimizer_unconstr.epsilon_scalar_product_P1=obj.epsilon_scalar_product_P1;
             end
         end
         

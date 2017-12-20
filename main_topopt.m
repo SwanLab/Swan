@@ -7,13 +7,13 @@ addpath(genpath('.\Topology Optimization\'));
 clear variables
 %% settings
 settings=struct;
-settings.filename='TOPOPT_TEST';    
+settings.filename='TOPOPT_TEST';
 settings.method='SIMPALL';
 settings.material='ISOTROPIC';
 settings.initial_case='full';
 
-%settings.ptype='Compliance_st_Volume';
-settings.ptype='ComplianceLamPerimeter_st_Volume';
+settings.ptype='Compliance_st_Volume';
+%settings.ptype='ComplianceLamPerimeter_st_Volume';
 %settings.ptype='Compliance_st_VolumePerimeter';
 
 settings.optimizer='SLERP';
@@ -28,28 +28,24 @@ settings.TOL.E_plus=1;
 settings.TOL.E_minus=1e-3;
 settings.TOL.nu_plus=1/3;
 settings.TOL.nu_minus=1/3;
-settings.epsilon_scalar_product_P1=0.03;
-settings.volume.Vfrac=0.5;
-settings.perimeter.epsilon=0.0175;
-settings.perimeter.Perimeter_target=3.5;
+settings.target_parameters.Vfrac=0.5;
+settings.target_parameters.optimality_tol=1e-3;
+settings.target_parameters.constr_tol=1e-3;
+settings.target_parameters.Perimeter_target=3.5;
 settings.perimeter.optimizer=settings.optimizer;
 settings.perimeter.lambda=0.1;
+
+settings.nsteps=1;
+settings.Vfrac_final=settings.target_parameters.Vfrac;
+settings.optimality_final=settings.target_parameters.optimality_tol;
+settings.constr_final=settings.target_parameters.constr_tol;
+settings.Vfrac_initial=1;
+settings.optimality_initial=1e-1;
+settings.constr_initial=1e-1;
 %% main
 tic
-switch settings.ptype
-    case 'Compliance_st_Volume'
-        settings.nconstr=1;
-        test=TopOpt_Problem_Compliance_st_Volume(settings);
-    case 'Compliance_st_VolumePerimeter'
-        settings.nconstr=2;
-        test=TopOpt_Problem_Compliance_st_VolumePerimeter(settings);
-    case 'ComplianceLamPerimeter_st_Volume'
-        settings.nconstr=1;
-        test=TopOpt_Problem_ComplianceLamPerimeter_st_Volume(settings);
-    otherwise
-        disp('Problem not added')
-end
-% test=Incremental_Scheme(settings,physProblem);
+test=TopOpt_Problem.create(settings);
 test.preProcess;
 test.computeVariables;
+
 toc

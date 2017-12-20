@@ -7,8 +7,9 @@ classdef ShFunc_CompliancePerimeter< Shape_Functional
     end
     methods 
         function obj=ShFunc_CompliancePerimeter(settings)
-        obj.compliance=ShFunc_Compliance();
-        obj.perimeter=ShFunc_Perimeter(settings.perimeter);
+        obj@Shape_Functional(settings);
+        obj.compliance=ShFunc_Compliance(settings);
+        obj.perimeter=ShFunc_Perimeter(settings);
         obj.lambda=settings.perimeter.lambda;
         end
     end

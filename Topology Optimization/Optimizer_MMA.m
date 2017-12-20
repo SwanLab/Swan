@@ -25,15 +25,14 @@ classdef Optimizer_MMA < Optimizer
     end 
     methods
         function obj=Optimizer_MMA(settings)
-            obj@Optimizer(settings);
-            obj.kkttol=1e-3;
-            obj.kktnorm=obj.kkttol+10;
+            obj@Optimizer(settings);           
             obj.maxoutit=1e4;
         end
-        
+        function kkttol=get.kkttol(obj)
+            kkttol=obj.target_parameters.optimality_tol;
+        end          
         function x=updateX(obj,x,cost,constraint, physProblem, interpolation,filter)      
                 obj.checkInitial(x,cost,constraint);
-           
                 obj.outit=obj.outit+1;
                 iter=obj.outit
                 obj.outeriter = obj.outeriter+1;

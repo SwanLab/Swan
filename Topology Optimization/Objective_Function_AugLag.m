@@ -1,4 +1,4 @@
-classdef Objective_Function_AugLag < Shape_Functional
+classdef Objective_Function_AugLag < Objective_Function
     properties
         value_initial 
         lambda

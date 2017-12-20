@@ -11,8 +11,12 @@ classdef Optimizer_IPOPT < Optimizer
             obj@Optimizer(settings);
             obj.m=settings.nconstr;
             obj.max_iter=5e3;
-            obj.constraint_tolerance=1e-3;
-            obj.optimality_tolerance=1e-4;
+        end
+        function optimality_tolerance=get.optimality_tolerance(obj)
+            optimality_tolerance=obj.target_parameters.optimality_tol;
+        end
+        function constraint_tolerance=get.constraint_tolerance(obj)
+            constraint_tolerance=obj.target_parameters.constr_tol*1e-1;
         end
         
         function x=solveProblem(obj,x_ini,cost,constraint, physProblem, interpolation,filter) 
