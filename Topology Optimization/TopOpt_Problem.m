@@ -66,9 +66,10 @@ classdef TopOpt_Problem < handle
             obj.incropt.alpha_optimality= obj.generate_incr_sequence(0,1,nsteps,'linear');
         end
         function computeVariables(obj)
-            for t = 1:obj.settings.nsteps
-                incremental_step=t
-                obj.update_target_parameters(t)
+            for istep = 1:obj.settings.nsteps
+                incremental_step=istep
+                
+                obj.update_target_parameters(istep)
                 obj.physicalProblem.computeVariables;
                 obj.cost.computef(obj.x,obj.physicalProblem,obj.interpolation,obj.filter);
                 obj.constraint.computef(obj.x, obj.physicalProblem, obj.interpolation,obj.filter);

@@ -33,7 +33,7 @@ classdef Optimizer < handle
                 iter=iter+1;
                 x=obj.updateX(x_ini,cost,constraint,physProblem,interpolation,filter);
                 obj.plotX(x,physProblem)
-                obj.print(x,physProblem,filter.getP0fromP1(x),iter);
+               % obj.print(x,physProblem,filter.getP0fromP1(x),iter);
                 x_ini=x;                
             end
             obj.stop_criteria=1;

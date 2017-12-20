@@ -4,7 +4,7 @@ clear variables;close all;
 addpath(genpath('./FEM'));
 addpath(genpath('./Topology Optimization'));
 %% test
-%run('test.m');
+run('test.m');
 clear variables;
 %% settings
 settings=struct;
