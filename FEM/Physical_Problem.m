@@ -11,7 +11,7 @@ classdef Physical_Problem < FEM
     end
     
     %% Private properties definition ======================================
-    properties (Access = private)
+    properties (Access = protected)
         bc
         material
         element

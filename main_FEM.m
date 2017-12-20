@@ -20,19 +20,20 @@ triangle_linear.postProcess;
 
 fprintf('Ok\n');
 
-post = Postprocess_PhysicalProblem;
-gidPath = 'C:\Program Files\GiD\GiD 13.0.3\'; %write your GiD path
-files_name = triangle_linear.problemID;
-files_folder = fullfile(pwd,'Output');
-iterations = 1:1;
+% post = Postprocess_PhysicalProblem;
+% gidPath = 'C:\Program Files\GiD\GiD 13.0.3\'; %write your GiD path
+% files_name = triangle_linear.problemID;
+% files_folder = fullfile(pwd,'Output');
+% iterations = 1:1;
 
-output_video_name = fullfile(pwd,'StressVideo');
-post.Print_make_video_stress(gidPath,files_name,files_folder,iterations,output_video_name)
+% output_video_name = fullfile(pwd,'StressVideo');
+% post.Print_make_video_stress(gidPath,files_name,files_folder,iterations,output_video_name)
 
 
 % Micro_Square_Triangle = Physical_Problem_Micro('RVE_Square_Triangle');
 % Micro_Square_Triangle.preProcess;
-% Micro_Square_Triangle.computeVariables;
+% Micro_Square_Triangle.computeVariables([0 0 1]);
+% Micro_Square_Triangle.computeChomog;
 % Micro_Square_Triangle.postProcess;
 
  

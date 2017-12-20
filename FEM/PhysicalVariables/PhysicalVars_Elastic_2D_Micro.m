@@ -9,7 +9,7 @@ classdef PhysicalVars_Elastic_2D_Micro < PhysicalVars_Elastic_2D
         stress_homog
     end
     
-    methods (Access = ?Physical_Problem)
+    methods (Access = {?Physical_Problem, ?PhysicalVars_Elastic_2D})
         function obj = computeVars(obj,d_u,dim,G,nelem,idx,element,material)
             computeVars@PhysicalVars_Elastic_2D(d_u,dim,G,nelem,idx,element,material);
             

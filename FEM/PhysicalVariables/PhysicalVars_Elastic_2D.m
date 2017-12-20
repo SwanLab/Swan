@@ -7,7 +7,7 @@ classdef PhysicalVars_Elastic_2D < PhysicalVars_Elastic
     properties
     end
     
-    methods (Access = ?Physical_Problem)
+    methods (Access = {?Physical_Problem, ?PhysicalVars_Elastic_2D})
         function obj = computeVars(obj,d_u,dim,G,nelem,idx,element,material)            
             nstre = 3;
             obj.d_u = d_u;

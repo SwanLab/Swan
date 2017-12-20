@@ -4,12 +4,12 @@ classdef Element<handle
     
     %% !! NEEDS REVISION !! -> should B be a class?? Or just be contained in element ??
     
-    properties (GetAccess = ?Physical_Problem, SetAccess = protected)
+    properties (GetAccess = {?Physical_Problem, ?Element_Elastic_Micro}, SetAccess = protected)
         RHS
         LHS
     end
     
-    properties (GetAccess = {?Element_Elastic,?Element_Thermal,?PhysicalVariables}, SetAccess = {?Physical_Problem,?Element})
+    properties (GetAccess = {?Element_Elastic,?Element_Thermal,?PhysicalVariables,?Element_Elastic_Micro}, SetAccess = {?Physical_Problem,?Element, ?Element_Elastic_Micro})
         B
     end
     
@@ -33,7 +33,7 @@ classdef Element<handle
             end
         end
     end
-    methods (Access = ?Physical_Problem)
+    methods (Access = {?Physical_Problem, ?Element})
         function obj = computeRHS(obj,nunkn,nelem,nnode,bc,idx)
             RHSPuntual = obj.computePuntualRHS(nunkn,nelem,nnode,bc,idx);
             RHSSuperficial  = obj.computeSuperficialRHS(nunkn,nelem,nnode,bc,idx);
