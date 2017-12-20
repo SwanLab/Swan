@@ -3,19 +3,20 @@ classdef Physical_Problem < FEM
     %   Detailed explanation goes here
     
     %% Public GetAccess properties definition =============================
-    properties (GetAccess = public, SetAccess = private)
+    properties (GetAccess = public, SetAccess = protected)
         variables
         mesh
         dim
+        dof
+        bc
         problemID
     end
     
-    %% Private properties definition ======================================
-    properties (Access = protected)
-        bc
+        
+    %% Restricted properties definition ===================================
+    properties (GetAccess = {?Postprocess,?Physical_Problem_Micro}, SetAccess = protected)
         material
         element
-        dof
         physicalVars
     end
     

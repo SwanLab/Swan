@@ -29,28 +29,33 @@ classdef VideoMaker < handle
                 msh_file = fullfile(files_folder,strcat(file_name,'_',num2str(iterations_to_print(iter)),'.flavia.res'));
                 file_list = [file_list, ' ',msh_file];
             end
-           file_list= replace(file_list,'\','\\\\');
+            %             file_list= replace(file_list,'\','\\\\');
         end
         
         function execute_tcl_files(gidPath,file_tcl_name_with_path)
             %system([fullfile(gidPath,'gid_offscreen'),' -t "source ',file_tcl_name_with_path,'"'])
             file_tcl_name_tcl= replace(file_tcl_name_with_path,'\','\\');
             system(['"',fullfile(gidPath,'gid_offscreen'),'"', ' -t ' ,'"source ',file_tcl_name_tcl,'"'])
-            system(['DEL ',file_tcl_name_with_path])
+            if ispc
+                system(['DEL ',file_tcl_name_with_path]);
+            elseif isunix
+                system(['rm ',file_tcl_name_with_path]);
+            elseif ismac
+            end
+            
         end
         
         function [output_string] = replace_special_character(input_string)
-            
-            output_string = replace(input_string,'\','\\\\');
-            
-            
-        end
-        
-        
+            if ispc
+                output_string = replace(input_string,'\','\\\\');                
+            elseif isunix                
+            elseif ismac
+            end
+        end      
     end
-    
-    
-    
-    
-    
 end
+
+
+
+
+

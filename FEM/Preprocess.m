@@ -27,9 +27,10 @@ classdef Preprocess<handle
             data.scale = strjoin(Data_prb(6));
         end
         
-        function [fixnodes, forces] = getBC(filename)
+        function [fixnodes,fixnodes_perimeter, forces] = getBC(filename)
             run(filename)
             fixnodes = lnodes;
+            fixnodes_perimeter=External_border_nodes;
             forces = pointload_complete;
         end
         

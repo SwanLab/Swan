@@ -17,25 +17,21 @@ classdef  VideoMaker_TopOpt_levelSet < VideoMaker_TopOpt_density
         
   end
         
-  methods (Access = private)
-      
-         function Make_video_characteristic_function(obj,field2print,componentfield,output_video_name)
+  methods (Access = private)      
+         function Make_video_characteristic_function(obj,field2print,componentfield,output_video_name_in)
             file_tcl_name = 'tcl_gid.tcl';
             file_list = obj.create_file_list(obj.iterations_to_print,obj.file_name,obj.files_folder);
             
-            [output_video_name] = replace_special_character(output_video_name);
-            [file_list] = replace_special_character(file_list);
-            
+            [output_video_name] = obj.replace_special_character(output_video_name_in);
+            [file_list] = obj.replace_special_character(file_list);            
             
             min_value = -1e-32;
-
-            
             
             file_tcl_name_with_path = fullfile(obj.files_folder,file_tcl_name);
-            filepath = fullfile(pwd,'FEM','PostProcess','Make_Video_characteristic.tcl');
-                  
-            fid = fopen(file_tcl_name_with_path,'w+');
+            file_path_in = fullfile(pwd,'FEM','PostProcess','Make_Video_characteristic.tcl');
+            filepath = obj.replace_special_character(file_path_in);
             
+            fid = fopen(file_tcl_name_with_path,'w+');            
 
             fprintf(fid,'GiD_Process PostProcess \n');
             fprintf(fid,'%s\n',['set arg1 "',file_list,'"']);
