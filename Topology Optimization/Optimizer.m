@@ -1,7 +1,8 @@
 classdef Optimizer < handle
-    properties 
+    properties
         fhtri
         kappa
+<<<<<<< HEAD
         objfunc
         stop_criteria=1;
         Msmooth
@@ -9,11 +10,15 @@ classdef Optimizer < handle
         target_parameters=struct;
         epsilon_scalar_product_P1
         shfunc_volume
+        name
+        niter
+        optimizer
     end
     methods
         function obj=Optimizer(settings)       
             obj.shfunc_volume=ShFunc_Volume(settings);  
             obj.target_parameters=settings.target_parameters;
+            obj.optimizer = settings.optimizer;
         end 
         
         function x=solveProblem(obj,x_ini,cost,constraint,physProblem,interpolation,filter) 
@@ -22,13 +27,21 @@ classdef Optimizer < handle
             obj.Ksmooth=physProblem.computeKsmooth;
             cost.computef(x_ini,physProblem,interpolation,filter);
             constraint.computef(x_ini,physProblem,interpolation,filter);  
+            obj.plotX(x_ini,physProblem)
+            iter=0;
+            obj.print(x_ini,physProblem,filter.getP0fromP1(x_ini),iter);
             while(obj.stop_criteria)
-                obj.plotX(x_ini,physProblem)
+                iter=iter+1;
                 x=obj.updateX(x_ini,cost,constraint,physProblem,interpolation,filter);
-                x_ini=x;
+                obj.plotX(x,physProblem)
+                obj.print(x,physProblem,filter.getP0fromP1(x),iter);
+                x_ini=x;                
             end
             obj.stop_criteria=1;
+            obj.niter = iter;
+
         end
+        
         function sp=scalar_product(obj,f,g)
             sp=f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
         end
@@ -72,7 +85,16 @@ classdef Optimizer < handle
                 drawnow;
             end
         end
-    
+       
+        function print(obj,design_variable,physicalProblem,design_variable_reg,iter)
+            postprocess = Postprocess_TopOpt.Create(obj.optimizer);
+            results.physicalVars = physicalProblem.variables;
+            results.design_variable = design_variable;
+            results.design_variable_reg = design_variable_reg;
+            postprocess.print(physicalProblem,obj.name,iter,results);
+
+        end
+        
     end
     methods (Static)
         function physicalProblem=updateEquilibrium(x,physicalProblem,interpolation,filter)

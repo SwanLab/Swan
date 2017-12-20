@@ -59,7 +59,6 @@ classdef Optimizer_SLERP < Optimizer
             beta2 = sin(obj.kappa*theta)/sin(theta);
             phi = beta1*phi_n + beta2*gradient/norm_g;
         end
-
         function computeKappa(obj,~,~,~)
             obj.kappa=1;
         end

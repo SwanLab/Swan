@@ -1,4 +1,4 @@
-classdef Physical_Problem < handle
+classdef Physical_Problem < FEM
     %Physical_Problem Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -6,14 +6,13 @@ classdef Physical_Problem < handle
     properties (GetAccess = public, SetAccess = private)
         variables
         mesh
-        geometry
         dim
         dof
         bc
         RHS
         LHS
-    end
-    
+        problemID
+
     %% Restricted properties definition ===================================
     properties (GetAccess = ?Postprocess, SetAccess = private)        
     end
@@ -24,7 +23,6 @@ classdef Physical_Problem < handle
         element
         solver
         physicalVars
-        problemID
     end
     
     %% Public methods definition ==========================================
@@ -38,7 +36,7 @@ classdef Physical_Problem < handle
             
             % Create Objects
             obj.dim = DIM(obj.mesh.ptype,obj.mesh.pdim);
-            obj.geometry = Geometry(obj.mesh);
+            obj.geometry=Geometry(obj.mesh);
             obj.element = Element.create(obj.mesh.ptype,obj.mesh.pdim);
             obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem);
             obj.physicalVars = PhysicalVariables.create(obj.mesh.ptype,obj.mesh.pdim);
@@ -63,15 +61,14 @@ classdef Physical_Problem < handle
         
         function postProcess(obj)
             iter = 1; % static
-            postprocess = Postprocess;
-            postprocess.ToGiD(obj.problemID,obj,iter);
-            postprocess.ToGiDpost(obj.problemID,obj,iter);
+            postprocess = Postprocess_PhysicalProblem();
+            results.physicalVars = obj.variables;
+            postprocess.print(obj,obj.problemID,iter,results);
         end
         
         function setMatProps(obj,props)
             obj.material = obj.material.setProps(props);
-        end
-        
+        end        
         function Msmooth=computeMass(obj,job)
             meshMass=obj.mesh;
             meshMass.geometryType='Triangle_Linear_Mass';

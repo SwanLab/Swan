@@ -13,10 +13,21 @@ addpath(genpath('.\Input\'));
 run('test.m')
 clear variables
 %% Main.m
-triangle_linear = Physical_Problem('CantileverBeam_Triangle_Linear');
-triangle_linear.preProcess;
-triangle_linear.computeVariables;
-triangle_linear.postProcess;
+test_triangle_linear = Physical_Problem('CantileverBeam_Triangle_Linear');
+test_triangle_linear.preProcess;
+test_triangle_linear.computeVariables;
+test_triangle_linear.postProcess;
+
+post = Postprocess_PhysicalProblem;
+gidPath = '/opt/GiDx64/13.0.2/'; %write your GiD path
+files_name = test_triangle_linear.problemID;
+files_folder = fullfile(pwd,'Output');
+iterations = 1:1;
+
+output_video_name = fullfile(pwd,'StressVideo');
+post.Print_make_video_stress(gidPath,files_name,files_folder,iterations,output_video_name)
+
+
 
 % 
 % triangle_quadratic = Physical_Problem('CantileverBeam_Triangle_Quadratic');
