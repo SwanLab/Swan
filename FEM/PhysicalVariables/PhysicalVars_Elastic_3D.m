@@ -8,12 +8,12 @@ classdef PhysicalVars_Elastic_3D < PhysicalVars_Elastic
     end
     
     methods (Access = ?Physical_Problem)
-        function obj = computeVars(obj,d_u,dim,nnode,nelem,ngaus,idx,element,material)
+        function obj = computeVars(obj,d_u,dim,G,nelem,idx,element,material)
             nstre = 6;
             obj.d_u = d_u;
-            strain = obj.computeStrain(d_u,dim,nnode,nelem,ngaus,idx,element);
+            strain = obj.computeStrain(d_u,dim,G.nnode,nelem,G.ngaus,idx,element);
             obj.strain = strain;
-            obj.stress = obj.computeStress(strain,material.C,ngaus,nstre);
+            obj.stress = obj.computeStress(strain,material.C,G.ngaus,nstre);
         end
     end
     

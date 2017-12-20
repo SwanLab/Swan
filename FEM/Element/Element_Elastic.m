@@ -19,13 +19,6 @@ classdef Element_Elastic < Element
                 % Strain-displacement matrix
                 [obj.B, Bmat] = obj.B.computeB(nunkn,nelem,geometry.nnode,geometry.cartDeriv(:,:,:,igauss));
                 
-                % Compute Ke
-                if nelem < 1000 %Just to reduce test.m compute time TO BE REMOVED
-                for i = 1:nelem
-                    Ke(:,:,i) = Ke(:,:,i)+Bmat(:,:,i)'*Cmat(:,:,i)*...
-                        Bmat(:,:,i)*geometry.dvolu(i,igauss);
-                end
-                else
                 for iv=1:geometry.nnode*nunkn
                     for jv=1:geometry.nnode*nunkn
                         for istre=1:nstre
@@ -34,14 +27,15 @@ classdef Element_Elastic < Element
                                 Ke(iv,jv,:) = squeeze(Ke(iv,jv,:)) + v(:).*geometry.dvolu(:,igauss);
                             end
                         end
+                        
                     end
-                end
                 end
             end
             obj.LHS = Ke;
         end
-        
-        function obj = computeRHS(obj,nunkn,nelem,nnode,bc,idx)
+    end
+    methods (Access = protected)
+        function Fext = computePuntualRHS(obj,nunkn,nelem,nnode,bc,idx)
             Fext = zeros(nnode*nunkn,1,nelem);
             for i = 1:length(bc.iN)
                 for j = 1:nelem
@@ -53,9 +47,14 @@ classdef Element_Elastic < Element
                     ind = [];
                 end
             end
-            obj.RHS = Fext;
         end
-        
+        function Fext = computeSuperficialRHS(obj,nunkn,nelem,nnode,bc,idx) %To be donne
+            Fext = zeros(nnode*nunkn,1,nelem);
+        end
+        function Fext = computeVolumetricRHS(obj,nunkn,nelem,nnode,bc,idx)%To be done
+            Fext = zeros(nnode*nunkn,1,nelem);
+            
+        end
     end
     
 end

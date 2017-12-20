@@ -3,7 +3,7 @@ classdef Physical_Problem < FEM
     %   Detailed explanation goes here
     
     %% Public GetAccess properties definition =============================
-    properties (GetAccess = public, SetAccess = private)
+    properties (GetAccess = public, SetAccess = protected)
         variables
         mesh
         dim
@@ -11,12 +11,10 @@ classdef Physical_Problem < FEM
         bc
         problemID
     end
-    %% Restricted properties definition ===================================
-    properties (GetAccess = ?Postprocess, SetAccess = private)        
-    end
     
-    %% Private properties definition ======================================
-    properties (Access = private)   
+        
+    %% Restricted properties definition ===================================
+    properties (GetAccess = {?Postprocess,?Physical_Problem_Micro}, SetAccess = protected)
         material
         element
         physicalVars
@@ -26,25 +24,22 @@ classdef Physical_Problem < FEM
     methods (Access = public)
         function obj = Physical_Problem(problemID)
             obj.problemID = problemID;
+            obj.mesh = Mesh(obj.problemID);
+            obj.dim = DIM(obj.mesh.ptype,obj.mesh.pdim);
+            obj.geometry=Geometry(obj.mesh);
+            obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem); 
         end
         
         function preProcess(obj)
-            obj.mesh = Mesh(obj.problemID);
-            
             % Create Objects
-            obj.dim = DIM(obj.mesh.ptype,obj.mesh.pdim);
-            obj.geometry=Geometry(obj.mesh);
-            obj.element = Element.create(obj.mesh.ptype,obj.mesh.pdim);
-            obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem);
-            obj.physicalVars = PhysicalVariables.create(obj.mesh.ptype,obj.mesh.pdim);
             obj.bc = BC(obj.dim.nunkn,obj.problemID);
             obj.dof = DOF(obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.bc.fixnodes);
-            obj.solver = Solver_Analytical;
+            obj.element = Element.create(obj.mesh.ptype,obj.mesh.pdim);
+            obj.physicalVars = PhysicalVariables.create(obj.mesh.ptype,obj.mesh.pdim);
+            obj.solver = Solver_Dirichlet_Conditions;
         end
         
         function computeVariables(obj)
-            % Create Element_Elastic object
-            %disp('Solving Physical Problem')
             obj.element.computeLHS(obj.dim.nunkn,obj.dim.nstre,obj.mesh.nelem,obj.geometry,obj.material);
             obj.element.computeRHS(obj.dim.nunkn,obj.mesh.nelem,obj.geometry.nnode,obj.bc,obj.dof.idx);
             
@@ -53,7 +48,7 @@ classdef Physical_Problem < FEM
             
             % Solver
             sol = obj.solver.solve(obj.LHS,obj.RHS,obj.dof,obj.bc.fixnodes);
-            obj.variables = obj.physicalVars.computeVars(sol,obj.dim,obj.geometry.nnode,obj.mesh.nelem,obj.geometry.ngaus,obj.dof.idx,obj.element,obj.material);
+            obj.variables = obj.physicalVars.computeVars(sol,obj.dim,obj.geometry,obj.mesh.nelem,obj.dof.idx,obj.element,obj.material);
         end
         
         function postProcess(obj)
@@ -65,7 +60,7 @@ classdef Physical_Problem < FEM
         
         function setMatProps(obj,props)
             obj.material = obj.material.setProps(props);
-        end        
+        end
         function Msmooth=computeMass(obj,job)
             meshMass=obj.mesh;
             meshMass.geometryType='Triangle_Linear_Mass';
@@ -138,9 +133,8 @@ classdef Physical_Problem < FEM
     end
     
     %% Private methods definition =========================================
-    methods (Access = private, Static)
-        function [LHS,RHS] = Assemble(element,nnode,nunkn,dof)
-            
+    methods (Access = protected, Static)
+        function [LHS,RHS] = Assemble(element,nnode,nunkn,dof)            
             % Compute LHS
             LHS = sparse(dof.ndof,dof.ndof);
             for i = 1:nnode*nunkn
@@ -148,8 +142,7 @@ classdef Physical_Problem < FEM
                     a = squeeze(element.LHS(i,j,:));
                     LHS = LHS + sparse(dof.idx(i,:),dof.idx(j,:),a,dof.ndof,dof.ndof);
                 end
-            end
-            
+            end            
             % Compute RHS
             RHS = zeros(dof.ndof,1);
             for i = 1:length(dof.idx(:,1)) % nnode*nunkn

@@ -2,7 +2,7 @@
 %                        General Data File
 % Title: TETRAHEDRA
 % Units: SI
-% Dimensions: 3D
+% Dimensions: 2D
 % Type of problem: Plane_Stress
 % Type of Phisics: ELASTIC
 % Micro/Macro: MACRO
