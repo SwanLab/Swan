@@ -2,6 +2,7 @@ classdef Filter < handle
     properties 
         M0
         Msmooth
+        Ksmooth
         P_operator
         coordinates
         connectivities
@@ -10,9 +11,31 @@ classdef Filter < handle
         function preProcess(obj,physicalProblem)
             obj.M0 = sparse(1:physicalProblem.mesh.nelem,1:physicalProblem.mesh.nelem,physicalProblem.geometry.dvolu);
             obj.Msmooth=physicalProblem.computeMass(2);
+            obj.Ksmooth=physicalProblem.computeKsmooth;
             obj.P_operator=obj.computePoperator(obj.Msmooth,physicalProblem);
             obj.coordinates=physicalProblem.mesh.coord;
-            obj.connectivities=physicalProblem.mesh.connec;
+            obj.connectivities=physicalProblem.mesh.connec;  
+        end
+        function A_nodal_2_gauss=computeA(obj,physProblem)
+            
+            nelem=physProblem.mesh.nelem; nnode=physProblem.geometry.nnode;
+            A_nodal_2_gauss = sparse(nelem,physProblem.mesh.npnod);
+            fn=ones(1,nelem);
+            lnods=obj.connectivities';
+            fe=zeros(nnode,nelem);
+            for inode=1:nnode
+                fe(inode,:)=fn(lnods(inode,:));
+            end
+            fg=zeros(physProblem.geometry.ngaus,nelem);
+            shape=physProblem.geometry.shape;
+            for igaus=1:physProblem.geometry.ngaus
+                for inode=1:nnode
+                    fg(igaus,:) = fg(igaus,:) + shape(inode)*fe(inode,:);
+                    
+                    A_nodal_2_gauss = A_nodal_2_gauss + sparse([1:nelem],[lnods(inode,:)],ones(nelem,1)*shape(inode),nelem,physProblem.mesh.npnod);
+                    % B_nodal_2_gauss = B_nodal_2_gauss + sparse([1:nelem],[lnods(inode,:)],dvolu*shape(inode),nelem,dim.npnod);
+                end
+            end
         end
     end
     methods (Static)
@@ -20,10 +43,17 @@ classdef Filter < handle
             switch type
                 case 'P1'
                     switch optimizer
-                        case {'MMA','PROJECTED GRADIENT'} 
-                            obj=Filter_PG;
+                        case {'MMA','PROJECTED GRADIENT','IPOPT'} 
+                            obj=Filter_Density;
                         case 'SLERP'
                             obj=Filter_SLERP;
+                    end
+                case 'PDE'
+                    switch optimizer
+                        case {'MMA','PROJECTED GRADIENT','IPOPT'} 
+                            obj=Filter_Density_PDE;
+                        case 'SLERP'
+                            obj=Filter_SLERP_PDE;
                     end
             end
                            

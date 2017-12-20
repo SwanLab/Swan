@@ -1,8 +1,11 @@
-classdef ShFunc_Compliance< Shape_Functional
+classdef ShFunc_Compliance < Shape_Functional
     properties
         h_C_0; %compliance incial
     end
     methods
+        function obj=ShFunc_Compliance(settings)
+            obj@Shape_Functional(settings);
+        end
         function computef(obj,x,physicalProblem,interpolation,filter)  
             mass=filter.Msmooth;
             rho=filter.getP0fromP1(x);

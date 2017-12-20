@@ -2,28 +2,30 @@ classdef Optimizer < handle
     properties
         fhtri
         kappa
+        objfunc
         stop_criteria=1;
         Msmooth
         Ksmooth
-        constr_tol
-        optimality_tol
+        target_parameters=struct;
         epsilon_scalar_product_P1
+        shfunc_volume
         name
         niter
         optimizer
     end
     methods
-        function obj=Optimizer(settings)
-            obj.epsilon_scalar_product_P1=settings.epsilon_scalar_product_P1;
-            obj.name = settings.filename;
+        function obj=Optimizer(settings)       
+            obj.shfunc_volume=ShFunc_Volume(settings);  
+            obj.target_parameters=settings.target_parameters;
             obj.optimizer = settings.optimizer;
-            
-        end
-        function x=solveProblem(obj,x_ini,cost,constraint,physProblem,interpolation,filter)
+        end 
+        
+        function x=solveProblem(obj,x_ini,cost,constraint,physProblem,interpolation,filter) 
+            obj.epsilon_scalar_product_P1=1*obj.estimate_mesh_size(physProblem.mesh.coord,physProblem.mesh.connec);
             obj.Msmooth=physProblem.computeMass(2);
             obj.Ksmooth=physProblem.computeKsmooth;
             cost.computef(x_ini,physProblem,interpolation,filter);
-            constraint.computef(x_ini,physProblem,interpolation,filter);
+            constraint.computef(x_ini,physProblem,interpolation,filter);  
             obj.plotX(x_ini,physProblem)
             iter=0;
             obj.print(x_ini,physProblem,filter.getP0fromP1(x_ini),iter);
@@ -34,13 +36,25 @@ classdef Optimizer < handle
                 obj.print(x,physProblem,filter.getP0fromP1(x),iter);
                 x_ini=x;                
             end
+            obj.stop_criteria=1;
             obj.niter = iter;
+
         end
         
         function sp=scalar_product(obj,f,g)
             sp=f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
         end
-        
+        function h=estimate_mesh_size(obj,coordinates,conectivities)
+            x1 = coordinates(conectivities(:,1));
+            x2 = coordinates(conectivities(:,2));
+            x3 = coordinates(conectivities(:,3));
+            
+            x1x2 = abs(x2-x1);
+            x2x3 = abs(x3-x2);
+            x1x3 = abs(x1-x3);
+            hs = max([x1x2,x2x3,x1x3]');
+            h = mean(hs);
+        end
         function plotX(obj,x,physicalProblem)
             if any(x<0)
                 rho_nodal=x<0;

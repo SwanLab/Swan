@@ -7,19 +7,18 @@ classdef Physical_Problem < FEM
         variables
         mesh
         dim
+        dof
+        bc
         problemID
     end
-    
     %% Restricted properties definition ===================================
     properties (GetAccess = ?Postprocess, SetAccess = private)        
     end
     
     %% Private properties definition ======================================
-    properties (Access = private)
-        bc
+    properties (Access = private)   
         material
         element
-        dof
         physicalVars
     end
     
