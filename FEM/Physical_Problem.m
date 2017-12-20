@@ -9,10 +9,8 @@ classdef Physical_Problem < FEM
         dim
         dof
         bc
-        RHS
-        LHS
         problemID
-
+    end
     %% Restricted properties definition ===================================
     properties (GetAccess = ?Postprocess, SetAccess = private)        
     end
@@ -21,7 +19,6 @@ classdef Physical_Problem < FEM
     properties (Access = private)   
         material
         element
-        solver
         physicalVars
     end
     

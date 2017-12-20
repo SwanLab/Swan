@@ -2,7 +2,6 @@ classdef Optimizer < handle
     properties
         fhtri
         kappa
-<<<<<<< HEAD
         objfunc
         stop_criteria=1;
         Msmooth

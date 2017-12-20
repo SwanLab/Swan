@@ -1,8 +1,8 @@
 clc
 clear variables;close all;
  
-addpath(genpath(fullfile('.','FEM')));
-addpath(genpath(fullfile('.','Topology Optimization')));
+addpath(genpath('./FEM'));
+addpath(genpath('./Topology Optimization'));
 %% test
 %run('test.m');
 clear variables;
@@ -48,7 +48,7 @@ settings.constr_final=settings.target_parameters.constr_tol;
 settings.Vfrac_initial=1;
 settings.optimality_initial=1e-1;
 settings.constr_initial=1e-1;
-r
+
 %% main
 tic
 test=TopOpt_Problem.create(settings);
