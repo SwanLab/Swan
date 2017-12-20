@@ -17,23 +17,33 @@ classdef  VideoMaker_TopOpt_levelSet < VideoMaker_TopOpt_density
         
   end
         
-  methods (Access = private)
-      
-         function Make_video_characteristic_function(obj,field2print,componentfield,output_video_name)
+  methods (Access = private)      
+         function Make_video_characteristic_function(obj,field2print,componentfield,output_video_name_in)
             file_tcl_name = 'tcl_gid.tcl';
             file_list = obj.create_file_list(obj.iterations_to_print,obj.file_name,obj.files_folder);
+            
+            [output_video_name] = obj.replace_special_character(output_video_name_in);
+            [file_list] = obj.replace_special_character(file_list);            
+            
             min_value = -1e-32;
+            
             file_tcl_name_with_path = fullfile(obj.files_folder,file_tcl_name);
-            fid = fopen(file_tcl_name_with_path,'w+');
+            file_path_in = fullfile(pwd,'FEM','PostProcess','Make_Video_characteristic.tcl');
+            filepath = obj.replace_special_character(file_path_in);
+            
+            fid = fopen(file_tcl_name_with_path,'w+');            
+
             fprintf(fid,'GiD_Process PostProcess \n');
-            fprintf(fid,['set arg1 "',file_list,'"\n']);
-            fprintf(fid,['set arg2 "',output_video_name,'"\n']);
-            fprintf(fid,['set arg3 "',field2print,'"\n']);
-            fprintf(fid,['set arg4 "',componentfield,'"\n']);
-            fprintf(fid,['set arg5 "',num2str(min_value),'"\n']);
-            fprintf(fid,['source "',fullfile(pwd,'FEM','PostProcess','Make_Video_characteristic.tcl'),'"\n']);
-            fprintf(fid,['Make_Video_characteristic $arg1 $arg2 $arg3 $arg4 $arg5 \n']);
-            fprintf(fid,['GiD_Process Mescape Quit']);
+            fprintf(fid,'%s\n',['set arg1 "',file_list,'"']);
+            fprintf(fid,'%s\n',['set arg2 "',output_video_name,'"']);
+            fprintf(fid,'%s\n',['set arg3 "',field2print,'"']);
+            fprintf(fid,'%s\n',['set arg4 "',componentfield,'"']);
+            fprintf(fid,'%s\n',['set arg5 "',num2str(min_value),'"']);
+            
+            
+            fprintf(fid,'%s\n',['source "',filepath,'"']);
+            fprintf(fid,'%s\n',['Make_Video_characteristic $arg1 $arg2 $arg3 $arg4 $arg5']);
+            fprintf(fid,'%s\n',['GiD_Process Mescape Quit']);
             fclose(fid);
             obj.execute_tcl_files(obj.gidPath,file_tcl_name_with_path)
         end

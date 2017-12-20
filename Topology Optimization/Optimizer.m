@@ -12,12 +12,14 @@ classdef Optimizer < handle
         name
         niter
         optimizer
+        maxiter
     end
     methods
         function obj=Optimizer(settings)       
             obj.shfunc_volume=ShFunc_Volume(settings);  
             obj.target_parameters=settings.target_parameters;
             obj.optimizer = settings.optimizer;
+            obj.maxiter = settings.maxiter;
         end 
         
         function x=solveProblem(obj,x_ini,cost,constraint,physProblem,interpolation,filter) 
@@ -29,7 +31,7 @@ classdef Optimizer < handle
             obj.plotX(x_ini,physProblem)
             iter=0;
             obj.print(x_ini,physProblem,filter.getP0fromP1(x_ini),iter);
-            while(obj.stop_criteria)
+            while(obj.stop_criteria && iter < obj.maxiter)
                 iter=iter+1;
                 x=obj.updateX(x_ini,cost,constraint,physProblem,interpolation,filter);
                 obj.plotX(x,physProblem)

@@ -12,6 +12,7 @@ classdef Mesh
         geometryType
         ptype
         pdim
+        scale
     end    
     
 
@@ -25,6 +26,7 @@ classdef Mesh
             obj.ptype = data.problem_type;
             obj.nelem = length(obj.connec(:,1));
             obj.npnod = length(obj.coord(:,1));
+            obj.scale = data.scale;
         end
     end
     

@@ -50,6 +50,7 @@ settings.constr_final=settings.target_parameters.constr_tol;
 settings.Vfrac_initial=1;
 settings.optimality_initial=1e-1;
 settings.constr_initial=1e-1;
+settings.maxiter = 5;
 
 %% main
 tic
@@ -58,7 +59,7 @@ test.preProcess;
 test.computeVariables;
 toc
 %% Video creation
-gidPath = '/opt/GiDx64/13.0.2/';
+gidPath = 'C:\Program Files\GiD\GiD 13.0.3';
 files_name = test.settings.filename;
 files_folder = fullfile(pwd,'Output');
 iterations = 1:test.optimizer.niter;
@@ -66,6 +67,8 @@ iterations = 1:test.optimizer.niter;
 My_VideoMaker = VideoMaker_TopOpt.Create(settings.optimizer);
 My_VideoMaker.Set_up_make_video(gidPath,files_name,files_folder,iterations)
 
+output_video_name_design_variable_reg = fullfile(pwd,'DesignVariable_Reg_Video');
+My_VideoMaker.Make_video_design_variable_reg(output_video_name_design_variable_reg)
 
 output_video_name_design_variable = fullfile(pwd,'DesignVariable_Video');
 My_VideoMaker.Make_video_design_variable(output_video_name_design_variable)

@@ -15,7 +15,6 @@ classdef PhysicalVariables
                         case '3D'
                             physicalVars = PhysicalVars_Elastic_3D;
                     end
-                    
                 case 'THERMAL'
                     error('Still not implemented.')
                 otherwise
