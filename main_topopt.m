@@ -3,6 +3,8 @@ clear variables;close all;
  
 addpath(genpath('./FEM'));
 addpath(genpath('./Topology Optimization'));
+% addpath(genpath(fullfile('.','FEM')));
+% addpath(genpath(fullfile('.','Topology Optimization')));
 %% test
 %run('test.m');
 clear variables;
