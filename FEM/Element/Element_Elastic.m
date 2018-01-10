@@ -13,7 +13,7 @@ classdef Element_Elastic < Element
             
             Ke = zeros(nunkn*geometry.nnode,nunkn*geometry.nnode,nelem);
             % Elastic matrix
-            Cmat = material.C;
+             Cmat = material.C;           
             
             for igauss = 1 :geometry.ngaus
                 % Strain-displacement matrix
@@ -35,19 +35,6 @@ classdef Element_Elastic < Element
         end
     end
     methods (Access = protected)
-        function Fext = computePuntualRHS(obj,nunkn,nelem,nnode,bc,idx)
-            Fext = zeros(nnode*nunkn,1,nelem);
-            for i = 1:length(bc.iN)
-                for j = 1:nelem
-                    ind = find(idx(:,j) == bc.iN(i));
-                    if ~isempty(ind)
-                        Fext(ind,:,j) = bc.neunodes(i,3);
-                    end
-                    % clear ind
-                    ind = [];
-                end
-            end
-        end
         function Fext = computeSuperficialRHS(obj,nunkn,nelem,nnode,bc,idx) %To be donne
             Fext = zeros(nnode*nunkn,1,nelem);
         end

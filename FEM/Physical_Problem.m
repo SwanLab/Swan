@@ -12,7 +12,7 @@ classdef Physical_Problem < FEM
         problemID
     end
     
-        
+    
     %% Restricted properties definition ===================================
     properties (GetAccess = {?Postprocess,?Physical_Problem_Micro}, SetAccess = protected)
         material
@@ -27,7 +27,7 @@ classdef Physical_Problem < FEM
             obj.mesh = Mesh(obj.problemID);
             obj.dim = DIM(obj.mesh.ptype,obj.mesh.pdim);
             obj.geometry=Geometry(obj.mesh);
-            obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem); 
+            obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem);
         end
         
         function preProcess(obj)
@@ -44,7 +44,7 @@ classdef Physical_Problem < FEM
             obj.element.computeRHS(obj.dim.nunkn,obj.mesh.nelem,obj.geometry.nnode,obj.bc,obj.dof.idx);
             
             % Assembly
-            [obj.LHS,obj.RHS] = obj.Assemble(obj.element,obj.geometry.nnode,obj.dim.nunkn,obj.dof);
+            [obj.LHS,obj.RHS] = obj.Assemble(obj.element,obj.geometry.nnode,obj.dim.nunkn,obj.dof, obj.bc);
             
             % Solver
             sol = obj.solver.solve(obj.LHS,obj.RHS,obj.dof,obj.bc.fixnodes);
@@ -139,7 +139,7 @@ classdef Physical_Problem < FEM
     
     %% Private methods definition =========================================
     methods (Access = protected, Static)
-        function [LHS,RHS] = Assemble(element,nnode,nunkn,dof)            
+        function [LHS,RHS] = Assemble(element,nnode,nunkn,dof,bc)
             % Compute LHS
             LHS = sparse(dof.ndof,dof.ndof);
             for i = 1:nnode*nunkn
@@ -147,13 +147,21 @@ classdef Physical_Problem < FEM
                     a = squeeze(element.LHS(i,j,:));
                     LHS = LHS + sparse(dof.idx(i,:),dof.idx(j,:),a,dof.ndof,dof.ndof);
                 end
-            end            
+            end
+            LHS = 1/2 * (LHS + LHS');
             % Compute RHS
             RHS = zeros(dof.ndof,1);
-            for i = 1:length(dof.idx(:,1)) % nnode*nunkn
+            for i = 1:nnode*nunkn
                 b = squeeze(element.RHS(i,1,:));
                 ind = dof.idx(i,:);
-                RHS(ind) = b;
+                RHS = RHS + sparse(ind,1,b',dof.ndof,1);
+            end
+            
+            %Compute Global Puntual Forces
+            if ~isempty(bc.iN)
+                FextPoint = zeros(dof.ndof,1);
+                FextPoint(bc.iN)=bc.neunodes(:,3);
+                RHS = RHS + FextPoint;
             end
         end
     end

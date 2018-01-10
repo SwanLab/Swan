@@ -6,10 +6,9 @@ classdef Solver_Periodic < Solver
     end
     
     methods (Access = {?Physical_Problem,?Physical_Problem_Micro})
-        function x = solve(LHS,RHS,dof,fixnodes,pnods)
-            x = zeros(dof.ndof,1);
-            n = size(dof.ndof,1);
-            nlib = size(pnods(1,:),2);%%%%%%
+        function x = solve(obj,x,LHS,RHS,dof,nunkn,pnods)
+            n = dof.ndof;
+            nlib = size(pnods(1,:),2);
             pglib = zeros(nlib*nunkn,1);
             qglib = zeros(nlib*nunkn,1);
             for iunkn = 1:nunkn
