@@ -10,9 +10,11 @@ classdef Optimizer < handle
         epsilon_scalar_product_P1
         shfunc_volume
         name
-        niter
+        niter=0
         optimizer
         maxiter
+        plotting 
+        printing
     end
     methods
         function obj=Optimizer(settings)       
@@ -20,6 +22,8 @@ classdef Optimizer < handle
             obj.target_parameters=settings.target_parameters;
             obj.optimizer = settings.optimizer;
             obj.maxiter = settings.maxiter;
+            obj.plotting = settings.plotting;
+            obj.printing = settings.printing;
         end 
         
         function x=solveProblem(obj,x_ini,cost,constraint,physProblem,interpolation,filter) 
@@ -29,18 +33,17 @@ classdef Optimizer < handle
             cost.computef(x_ini,physProblem,interpolation,filter);
             constraint.computef(x_ini,physProblem,interpolation,filter);  
             obj.plotX(x_ini,physProblem)
-            iter=0;
-            obj.print(x_ini,physProblem,filter.getP0fromP1(x_ini),iter);
-            while(obj.stop_criteria && iter < obj.maxiter)
-                iter=iter+1;
+            
+            obj.print(x_ini,physProblem,filter.getP0fromP1(x_ini),obj.niter);
+            while(obj.stop_criteria && obj.niter < obj.maxiter)
+                obj.niter=obj.niter+1;
                 x=obj.updateX(x_ini,cost,constraint,physProblem,interpolation,filter);
                 obj.plotX(x,physProblem)
-               % obj.print(x,physProblem,filter.getP0fromP1(x),iter);
+                obj.print(x,physProblem,filter.getP0fromP1(x),obj.niter);
                 x_ini=x;                
             end
             obj.stop_criteria=1;
-            obj.niter = iter;
-
+            x=x_ini;
         end
         
         function sp=scalar_product(obj,f,g)
@@ -58,6 +61,9 @@ classdef Optimizer < handle
             h = mean(hs);
         end
         function plotX(obj,x,physicalProblem)
+            if ~(obj.plotting)
+                return
+            end
             if any(x<0)
                 rho_nodal=x<0;
             else
@@ -88,12 +94,15 @@ classdef Optimizer < handle
         end
        
         function print(obj,design_variable,physicalProblem,design_variable_reg,iter)
+            if ~(obj.printing)
+                return
+            end
             postprocess = Postprocess_TopOpt.Create(obj.optimizer);
             results.physicalVars = physicalProblem.variables;
             results.design_variable = design_variable;
             results.design_variable_reg = design_variable_reg;
             postprocess.print(physicalProblem,obj.name,iter,results);
-
+            
         end
         
     end

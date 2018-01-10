@@ -64,11 +64,12 @@ classdef TopOpt_Problem < handle
             obj.incropt.alpha_vol = obj.generate_incr_sequence(1/nsteps,1,nsteps,'linear');
             obj.incropt.alpha_constr = obj.generate_incr_sequence(0,1,nsteps,'linear');
             obj.incropt.alpha_optimality= obj.generate_incr_sequence(0,1,nsteps,'linear');
+            obj.incropt.alpha_epsilon = obj.generate_incr_sequence(0,1,nsteps,'custom',8);
+            obj.create_epsilon_perimeter;
         end
         function computeVariables(obj)
             for istep = 1:obj.settings.nsteps
-                incremental_step=istep
-                
+                incremental_step=istep                
                 obj.update_target_parameters(istep)
                 obj.physicalProblem.computeVariables;
                 obj.cost.computef(obj.x,obj.physicalProblem,obj.interpolation,obj.filter);
@@ -78,14 +79,36 @@ classdef TopOpt_Problem < handle
         end
         function update_target_parameters(obj,t)            
             target_parameters.Vfrac = (1-obj.incropt.alpha_vol(t))*obj.settings.Vfrac_initial+obj.incropt.alpha_vol(t)*obj.settings.Vfrac_final;
-            % target_parameters.epsilon = update_parameter(target_parameters.epsilon_ini,target_parameters.epsilon_final,target_parameters.alpha_eps(t));
+            target_parameters.epsilon = (1-obj.incropt.alpha_epsilon(t))*obj.settings.epsilon_initial+obj.incropt.alpha_epsilon(t)*obj.settings.epsilon_final;
             %target_parameters.epsilon_isotropy = update_parameter(target_parameters.epsilon_isotropy_ini,target_parameters.epsilon_isotropy_final,target_parameters.alpha_isotropy2d(t));
             target_parameters.constr_tol = (1-obj.incropt.alpha_constr(t))*obj.settings.constr_initial+obj.incropt.alpha_constr(t)*obj.settings.constr_final;
             target_parameters.optimality_tol = (1-obj.incropt.alpha_optimality(t))*obj.settings.optimality_initial+obj.incropt.alpha_optimality(t)*obj.settings.optimality_final;
             obj.cost.target_parameters=target_parameters;
-%            obj.cost.h_C_0=[];
+            %obj.cost.compliance.h_C_0=[];
             obj.constraint.target_parameters=target_parameters;
             obj.optimizer.target_parameters=target_parameters;
+        end
+        function create_epsilon_perimeter(obj)
+            xmin = min(obj.physicalProblem.mesh.coord);
+            xmax = max(obj.physicalProblem.mesh.coord);
+            epsilon0 = norm(xmax-xmin)/2;
+            
+            x1 = obj.physicalProblem.mesh.coord(obj.physicalProblem.mesh.connec(:,1));
+            x2 = obj.physicalProblem.mesh.coord(obj.physicalProblem.mesh.connec(:,2));
+            x3 = obj.physicalProblem.mesh.coord(obj.physicalProblem.mesh.connec(:,3));
+            
+            x1x2 = abs(x2-x1);
+            x2x3 = abs(x3-x2);
+            x1x3 = abs(x1-x3);
+            hs = max([x1x2,x2x3,x1x3]');
+            h = mean(hs);
+            
+            epsilon_end =h;
+            frac = 2;
+            kmax = ceil(log10(epsilon0/epsilon_end)/log10(frac));
+            epsilon_iter = epsilon0./frac.^(1:kmax);
+            obj.settings.epsilon_initial=epsilon_iter(1);
+            obj.settings.epsilon_final=epsilon_iter(end);
         end
         function postProcess(obj)
         end

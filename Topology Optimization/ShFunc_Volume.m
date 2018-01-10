@@ -4,7 +4,7 @@ classdef ShFunc_Volume< Shape_Functional
     end
     methods 
         function obj=ShFunc_Volume(settings)
-            obj@Shape_Functional(settings);
+%            obj@Shape_Functional(settings);
         end
         function Vfrac=get.Vfrac(obj)
             Vfrac=obj.target_parameters.Vfrac;

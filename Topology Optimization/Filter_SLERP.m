@@ -3,8 +3,14 @@ classdef Filter_SLERP < Filter
     end
     methods 
         function x_gp = getP0fromP1(obj,x)
-            M2=obj.faireF2(obj.coordinates',obj.connectivities',x);
-            x_gp = obj.P_operator*M2;
+            if norm(x) == norm(obj.x)
+                x_gp=obj.x_reg;
+            else
+                M2=obj.faireF2(obj.coordinates',obj.connectivities',x);
+                x_gp = obj.P_operator*M2;
+                obj.x=x;
+                obj.x_reg=x_gp;
+            end
         end
         function x_reg = getP1fromP0(obj,x)
             

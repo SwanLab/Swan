@@ -10,15 +10,15 @@ addpath(genpath('.\Input\'));
 % 4 - Compute       --> obj.computeVariables;
 % 5 - Postprocess   --> obj.postProcess;
 %% test
-run('test.m')
+%run('test.m')
 clear variables
 %% Main.m
-triangle_linear = Physical_Problem('CantileverBeam_Triangle_Linear');
+tic
+triangle_linear = Physical_Problem('topopt_quad');
 triangle_linear.preProcess;
 triangle_linear.computeVariables;
 triangle_linear.postProcess;
-
-fprintf('Ok\n');
+toc
 
 % post = Postprocess_PhysicalProblem;
 % gidPath = 'C:\Program Files\GiD\GiD 13.0.3\'; %write your GiD path

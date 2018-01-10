@@ -4,7 +4,7 @@ classdef ShFunc_Compliance < Shape_Functional
     end
     methods
         function obj=ShFunc_Compliance(settings)
-            obj@Shape_Functional(settings);
+%            obj@Shape_Functional(settings);
         end
         function computef(obj,x,physicalProblem,interpolation,filter)  
             mass=filter.Msmooth;

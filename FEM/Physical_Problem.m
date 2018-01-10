@@ -63,7 +63,12 @@ classdef Physical_Problem < FEM
         end
         function Msmooth=computeMass(obj,job)
             meshMass=obj.mesh;
-            meshMass.geometryType='Triangle_Linear_Mass';
+            switch obj.geometry.type
+                case 'TRIANGLE'
+                    meshMass.geometryType='Triangle_Linear_Mass';
+                case 'QUADRILATERAL'
+                    meshMass.geometryType='Quad_Mass';
+            end
             geom=Geometry(meshMass);
             lnods=obj.mesh.connec';
             emat = zeros(geom.nnode,geom.nnode,obj.mesh.nelem);
