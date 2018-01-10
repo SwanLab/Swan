@@ -5,26 +5,27 @@ classdef PhysicalVars_Elastic_2D_Micro < PhysicalVars_Elastic_2D
     
     % !! STUDY TO INTRODUCE JUST C !!
     
-    properties
+    properties (Access = {?Physical_Problem_Micro, ?PhysicalVars_Elastic_2D})
         stress_homog
     end
     
-    methods (Access = {?Physical_Problem, ?PhysicalVars_Elastic_2D})
-        function obj = computeVars(obj,d_u,dim,G,nelem,idx,element,material)
-            computeVars@PhysicalVars_Elastic_2D(d_u,dim,G,nelem,idx,element,material);
-            
-            strain = obj.computeStrain(d_u,dim,G.nnode,nelem,G.ngaus,idx,element);
-            strain = obj.computeEz(strain,dim,nelem,material);
-            obj.strain = permute(strain, [3 1 2]);
-            stress = obj.computeStress(strain,material.C,G.ngaus,dim.nstre);
-            stress = permute(stress, [3 1 2]);
-            
-            for i=1:size(stress,2)
-                newStress(i) = sum(stress(:,i,:))*G.dvolu;
-            end
-            obj.stress_homog = newStress./sum(G.dvolu);
-            
+    methods (Access = {?Physical_Problem, ?PhysicalVars_Elastic_2D, ?PhysicalVars_Elastic_2D_Micro})
+        function obj = PhysicalVars_Elastic_2D_Micro(ndof)
+            obj.d_u = zeros(ndof,1);      
         end
         
+        function obj = computeVars(obj,d_u,dim,G,nelem,idx,element,material,nstre)
+            obj = computeVars@PhysicalVars_Elastic_2D(obj,d_u,dim,G,nelem,idx,element,material,nstre);
+            stress_h = zeros(dim.nstre,1);
+            for ielem=1:nelem
+                for igaus=1:G.ngaus
+                    for istres=1:nstre
+                        stress_h(istres) = stress_h(istres) + obj.stress(igaus,istres,ielem)*G.dvolu(ielem,igaus);
+                    end
+                end
+            end
+            obj.stress_homog = stress_h / sum(G.dvolu);
+        end
     end
 end
+
