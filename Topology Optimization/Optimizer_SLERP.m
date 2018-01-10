@@ -19,7 +19,7 @@ classdef Optimizer_SLERP < Optimizer
             obj.nconstr=settings.nconstr;
         end
         function optimality_tol=get.optimality_tol(obj)
-            optimality_tol=0.0175*1e-3/obj.target_parameters.optimality_tol;
+            optimality_tol=0.0175*obj.target_parameters.optimality_tol/1e-3;
         end
         function constr_tol=get.constr_tol(obj)
             constr_tol(1:obj.nconstr)=obj.target_parameters.constr_tol;
