@@ -11,7 +11,7 @@ classdef PhysicalVars_Elastic_2D < PhysicalVars_Elastic
         function obj = computeVars(obj,d_u,dim,G,nelem,idx,element,material,nstre)            
             obj.d_u = d_u;
             strain = obj.computeStrain(d_u,dim,G.nnode,nelem,G.ngaus,idx,element);
-            strain = obj.computeEz(strain,dim,nelem,material);
+%             strain = obj.computeEz(strain,dim,nelem,material);
             obj.strain = permute(strain, [3 1 2]);
             stress = obj.computeStress(strain,material.C,G.ngaus,dim.nstre);
             obj.stress = permute(stress, [3 1 2]);

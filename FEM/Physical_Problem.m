@@ -61,7 +61,8 @@ classdef Physical_Problem < FEM
         function setMatProps(obj,props)
             obj.material = obj.material.setProps(props);
         end
-        function Msmooth=computeMass(obj,job)
+        
+        function Msmooth = computeMass(obj,job)
             meshMass=obj.mesh;
             meshMass.geometryType='Triangle_Linear_Mass';
             geom=Geometry(meshMass);
@@ -109,7 +110,8 @@ classdef Physical_Problem < FEM
                 
             end
         end
-        function StifMat=computeKsmooth(obj)
+        
+        function StifMat = computeKsmooth(obj)
             StifMat=sparse(obj.mesh.npnod,obj.mesh.npnod);
             nnode=obj.geometry.nnode;
             nunkn=1;
