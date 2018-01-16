@@ -25,7 +25,7 @@ classdef Physical_Problem_Micro < Physical_Problem
             obj.bc = BC_Micro(obj.dim.nunkn,obj.problemID,obj.mesh.coord);
             obj.dof = DOF(obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.bc.fixnodes);
             obj.element = Element_Elastic_Micro;
-            obj.variables = PhysicalVars_Elastic_2D_Micro(obj.dof.ndof,obj.dim.nstre);
+            obj.variables = PhysicalVars_Elastic_2D_Micro(obj.dof.ndof);
             obj.solver = Solver_Periodic;
         end
         
@@ -36,27 +36,27 @@ classdef Physical_Problem_Micro < Physical_Problem
             
             % Assembly
             [obj.LHS,obj.RHS] = obj.Assemble(obj.element,obj.geometry.nnode,obj.dim.nunkn,obj.dof,obj.bc);
-            comparison1(obj.LHS);
-            comparison2(obj.RHS);
+%            comparison1(obj.LHS);
+%            comparison2(obj.RHS);
             % Solver
             sol = obj.solver.solve(obj.variables.d_u,obj.LHS,obj.RHS,obj.dof,obj.dim.nunkn,obj.bc.pnodes);
             
-            comparison3(sol);
+%            comparison3(sol);
             
-            obj.variables = obj.variables.computeVars(sol,obj.dim,obj.geometry,obj.mesh.nelem,obj.dof.idx,obj.element,obj.material,obj.dim.nstre,vstrain);
+            obj.variables = obj.variables.computeVars(sol,obj.dim,obj.geometry,obj.mesh.nelem,obj.dof.idx,obj.element,obj.material,vstrain);
             
             obj.StressHomog = obj.variables.stress_homog;
         end
         
         function [Chomog,tstress,tstrain] = computeChomog(obj)
-            obj.variables = PhysicalVars_Elastic_2D_Micro(obj.dof.ndof,obj.dim.nstre);
+            obj.variables = PhysicalVars_Elastic_2D_Micro(obj.dof.ndof);
             vstrain=diag(ones(obj.dim.nstre,1));
             Chomog =  zeros(obj.dim.nstre,obj.dim.nstre);
-            for n=1:obj.dim.nstre
-                obj.computeVariables(vstrain(n,:));
-                Chomog(:,n) = obj.variables.stress_homog;
-                tstress(n,:,:,:) = obj.variables.stress;
-                tstrain(n,:,:,:) = obj.variables.strain;
+            for istre=1:obj.dim.nstre
+                obj.computeVariables(vstrain(istre,:));
+                Chomog(:,istre) = obj.variables.stress_homog;
+                tstress(istre,:,:,:) = obj.variables.stress;
+                tstrain(istre,:,:,:) = obj.variables.strain;
             end
         end
     end
