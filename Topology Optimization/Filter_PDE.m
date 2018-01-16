@@ -14,7 +14,7 @@ classdef Filter_PDE < Filter
             obj.fixnodes_per(:,2)=ones(length(obj.fixnodes_per(:,1)),1);
             obj.fixnodes_per(:,3)=zeros(length(obj.fixnodes_per(:,1)),1);
             obj.dof_per=DOF(physicalProblem.geometry.nnode,physicalProblem.mesh.connec,1,physicalProblem.mesh.npnod,obj.fixnodes_per);
-            obj.solver = Solver_Analytical;                    
+            obj.solver = Solver_Dirichlet_Conditions;                    
             obj.epsilon=0.03;
             obj.A_nodal_2_gauss=obj.computeA(physicalProblem);
         end
