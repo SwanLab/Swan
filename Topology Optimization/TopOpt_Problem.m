@@ -62,10 +62,7 @@ classdef TopOpt_Problem < handle
             %initialize design variable
             obj.physicalProblem.preProcess;
             obj.filter.preProcess(obj.physicalProblem);
-            switch obj.settings.initial_case
-                case 'full'
-                    obj.x=obj.settings.ini_value*ones(obj.physicalProblem.mesh.npnod,obj.physicalProblem.geometry.ngaus);
-            end
+            obj.compute_initial_design;
             nsteps=obj.settings.nsteps;
             obj.incropt.alpha_vol = obj.generate_incr_sequence(1/nsteps,1,nsteps,'linear');
             obj.incropt.alpha_constr = obj.generate_incr_sequence(0,1,nsteps,'linear');
@@ -75,7 +72,7 @@ classdef TopOpt_Problem < handle
             for t = 1:obj.settings.nsteps
                 incremental_step=t
                 obj.update_target_parameters(t)
-%                 obj.physicalProblem.computeVariables; %HAS TO BE MODIFIED FOR MICRO
+                %                 obj.physicalProblem.computeVariables; %HAS TO BE MODIFIED FOR MICRO
                 obj.cost.computef(obj.x,obj.physicalProblem,obj.interpolation,obj.filter);
                 obj.constraint.computef(obj.x, obj.physicalProblem, obj.interpolation,obj.filter);
                 obj.x=obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,obj.physicalProblem,obj.interpolation,obj.filter);
@@ -127,6 +124,43 @@ classdef TopOpt_Problem < handle
                     error('Incremental sequence type not detected.')
             end
             
+        end
+    end
+    
+    methods (Access=private)
+        function obj = compute_initial_design(obj)
+            obj.x=obj.settings.ini_value*ones(obj.physicalProblem.mesh.npnod,obj.physicalProblem.geometry.ngaus);
+            switch obj.settings.initial_case
+                case 'circle'
+                    width = max(obj.physicalProblem.mesh.coord(:,1)) - min(obj.physicalProblem.mesh.coord(:,1));
+                    height = max(obj.physicalProblem.mesh.coord(:,2)) - min(obj.physicalProblem.mesh.coord(:,2));
+                    center_x = 0.5*(max(obj.physicalProblem.mesh.coord(:,1)) + min(obj.physicalProblem.mesh.coord(:,1)));
+                    center_y = 0.5*(max(obj.physicalProblem.mesh.coord(:,2)) + min(obj.physicalProblem.mesh.coord(:,2)));
+                    radius = 0.2*min([width,height]);
+                    
+                    initial_holes = (obj.physicalProblem.mesh.coord(:,1)-center_x).^2 + (obj.physicalProblem.mesh.coord(:,2)-center_y).^2 - radius^2 < 0;
+                    obj.x(initial_holes) = 1;
+                    %fracc = 1;
+                    
+                case 'horiz'
+                    initial_holes = obj.physicalProblem.mesh.coord(:,2) > 0.6 | obj.physicalProblem.mesh.coord(:,2) < 0.4;
+                    obj.x(initial_holes) = 1;
+                    %                   fracc = 1;
+                case 'square'
+                    width = max(obj.physicalProblem.mesh.coord(:,1)) - min(obj.physicalProblem.mesh.coord(:,1));
+                    height = max(obj.physicalProblem.mesh.coord(:,2)) - min(obj.physicalProblem.mesh.coord(:,2));
+                    center_x = 0.5*(max(obj.physicalProblem.mesh.coord(:,1)) + min(obj.physicalProblem.mesh.coord(:,1)));
+                    center_y = 0.5*(max(obj.physicalProblem.mesh.coord(:,2)) + min(obj.physicalProblem.mesh.coord(:,2)));
+                    
+                    offset_x = 0.2*width;
+                    offset_y = 0.2*height;
+                    
+                    xrange = obj.physicalProblem.mesh.coord(:,1) < (center_x+offset_x) & obj.physicalProblem.mesh.coord(:,1) > (center_x-offset_x);
+                    yrange = obj.physicalProblem.mesh.coord(:,2) < (center_y+offset_y) & obj.physicalProblem.mesh.coord(:,2) > (center_y-offset_y);
+                    initial_holes = and(xrange,yrange);
+                    obj.x(initial_holes) = 1;
+                    %fracc = 1;
+            end
         end
     end
     

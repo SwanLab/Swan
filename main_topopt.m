@@ -18,7 +18,11 @@ settings.filename='TOPOPT_TEST_MICRO';
 settings.method='SIMPALL';
 
 settings.material='ISOTROPIC';
-settings.initial_case='full';
+% settings.initial_case='full';
+% settings.initial_case='circle';
+settings.initial_case='horiz';
+% settings.initial_case='square';
+
 
 % settings.ptype='Compliance_st_Volume';
 % settings.ptype='ComplianceLamPerimeter_st_Volume';
