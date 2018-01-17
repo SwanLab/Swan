@@ -160,8 +160,18 @@ classdef TopOpt_Problem < handle
                     initial_holes = and(xrange,yrange);
                     obj.x(initial_holes) = 1;
                     %fracc = 1;
+                    
+                case 'feasible'
+                    initial_holes = false(size(obj.physicalProblem.mesh.coord,1),1);
+                    obj.x(initial_holes) = 1;
+                    %fracc = min(1,element.Vfrac);
+                case 'rand'
+                    initial_holes = rand(size(obj.physicalProblem.mesh.coord,1),1) > 0.1;
+                    obj.x(initial_holes) = 1;
+                    %fracc = 1;                    
+                otherwise
+                    error('Initialize design variable case not detected.');
             end
         end
-    end
-    
+    end    
 end
