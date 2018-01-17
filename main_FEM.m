@@ -33,7 +33,7 @@ fprintf('Ok\n');
 
 Micro_Square_Triangle = Physical_Problem_Micro('RVE_Square_Triangle');
 Micro_Square_Triangle.preProcess;
-Micro_Square_Triangle.computeVariables([1 0 0]);
+%Micro_Square_Triangle.computeVariables([1 0 0]);
 Micro_Square_Triangle.postProcess;
 [Chomog,tstress,tstrain] = Micro_Square_Triangle.computeChomog;
 
