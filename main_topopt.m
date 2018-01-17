@@ -20,9 +20,10 @@ settings.method='SIMPALL';
 settings.material='ISOTROPIC';
 settings.initial_case='full';
 
-%settings.ptype='Compliance_st_Volume';
-settings.ptype='ComplianceLamPerimeter_st_Volume';
+% settings.ptype='Compliance_st_Volume';
+% settings.ptype='ComplianceLamPerimeter_st_Volume';
 % settings.ptype='Compliance_st_VolumePerimeter';
+settings.ptype='Micro_Chomog_alphabeta';
 
 settings.optimizer='SLERP';
 %settings.optimizer='PROJECTED GRADIENT';
@@ -52,6 +53,9 @@ settings.Vfrac_initial=1;
 settings.optimality_initial=1e-1;
 settings.constr_initial=1e-1;
 settings.maxiter = 5;
+
+settings.micro.alpha =sqrt(2)/2*[1 1 0]';
+settings.micro.beta =sqrt(2)/2*[1 1 0]';
 
 %% main
 tic
