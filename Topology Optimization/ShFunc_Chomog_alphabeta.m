@@ -10,7 +10,7 @@ classdef ShFunc_Chomog_alphabeta < ShFunc_Chomog
             obj.beta=settings.micro.beta;
         end
         function computef(obj,x,physicalProblem,interpolation,filter)
-            [obj.Chomog,obj.tstress,obj.tstrain] = physicalProblem.computeChomog;
+            %[obj.Chomog,obj.tstress,obj.tstrain] = physicalProblem.computeChomog;
             inv_matCh = inv(obj.Chomog);
             costfunc = obj.projection_Chomog(inv_matCh,obj.alpha,obj.beta);
             obj.compute_Chomog_Derivatives(physicalProblem.dim.nstre,physicalProblem.mesh.nelem,physicalProblem.geometry.ngaus,x,interpolation,filter);

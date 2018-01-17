@@ -13,6 +13,7 @@ classdef Optimizer < handle
         niter
         optimizer
         maxiter
+        physicalProblem
     end
     methods
         function obj=Optimizer(settings)       
@@ -96,14 +97,35 @@ classdef Optimizer < handle
 
         end
         
-    end
-    methods (Static)
-        function physicalProblem=updateEquilibrium(x,physicalProblem,interpolation,filter)
+       function update_physical_variables(obj,x,interpolation,filter)
             rho=filter.getP0fromP1(x);
             %Update phys problem
             matProps=interpolation.computeMatProp(rho);
-            physicalProblem.setMatProps(matProps);
-            physicalProblem.computeVariables;
-        end
+            obj.physicalProblem.setMatProps(matProps);
+            obj.compute_physical_variables;
+       end
+        
+       function compute_physical_variables(obj)
+           switch obj.physicalProblem.mesh.ptype
+               case 'MICRO'
+                  obj.physicalProblem.computeChomog;
+               case 'MACRO'
+                  obj.physicalProblem.computeVariables;
+           end
+              
+       end
+        
+        
+        
+        
+    end
+    methods (Static)
+%         function physicalProblem=updateEquilibrium(x,physicalProblem,interpolation,filter)
+%             rho=filter.getP0fromP1(x);
+%             %Update phys problem
+%             matProps=interpolation.computeMatProp(rho);
+%             physicalProblem.setMatProps(matProps);
+%             physicalProblem.computeVariables;
+%         end
     end
 end
