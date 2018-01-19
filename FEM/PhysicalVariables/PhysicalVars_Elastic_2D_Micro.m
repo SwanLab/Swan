@@ -11,6 +11,10 @@ classdef PhysicalVars_Elastic_2D_Micro < PhysicalVars_Elastic_2D
         strain_fluct
     end
     
+    properties (GetAccess = public, SetAccess = ?Physical_Problem_Micro)
+        Chomog
+    end
+    
     methods (Access = {?Physical_Problem, ?PhysicalVars_Elastic_2D, ?PhysicalVars_Elastic_2D_Micro})
         function obj = PhysicalVars_Elastic_2D_Micro(ndof)
             obj.d_u = zeros(ndof,1);

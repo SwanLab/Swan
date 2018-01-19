@@ -27,12 +27,12 @@ classdef TopOpt_Problem < handle
                     settings.nconstr=1;
                     obj=TopOpt_Problem_ComplianceLamPerimeter_st_Volume(settings);
                     obj.physicalProblem=Physical_Problem(obj.settings.filename);
-                case 'Micro_Chomog_alphabeta'
+                case 'Chomog_alphabeta'
                     settings.nconstr=1;
-                    obj=TopOpt_Problem_Micro_Chomog(settings);
+                    obj=TopOpt_Problem_Chomog(settings);
                     obj.physicalProblem=Physical_Problem_Micro(obj.settings.filename);
                 otherwise
-                    disp('Problem not added')
+                    error('Problem not added');
             end
         end
     end
@@ -45,15 +45,19 @@ classdef TopOpt_Problem < handle
                 case 'SLERP'
                     obj.optimizer=Optimizer_AugLag(settings,Optimizer_SLERP(settings));
                     obj.settings.ini_value=-0.7071;
+                    obj.settings.hole_value=1;
                 case 'PROJECTED GRADIENT'
                     obj.optimizer=Optimizer_AugLag(settings,Optimizer_PG(settings));
                     obj.settings.ini_value=1;
+                    obj.settings.hole_value=0;
                 case 'MMA'
                     obj.optimizer=Optimizer_MMA(settings);
                     obj.settings.ini_value=1;
+                    obj.settings.hole_value=0;
                 case 'IPOPT'
                     obj.optimizer=Optimizer_IPOPT(settings);
                     obj.settings.ini_value=1;
+                    obj.settings.hole_value=0;
             end
             obj.filter=Filter.create(obj.settings.filter,obj.settings.optimizer);
         end
@@ -72,12 +76,15 @@ classdef TopOpt_Problem < handle
             for t = 1:obj.settings.nsteps
                 incremental_step=t
                 obj.update_target_parameters(t)
-                %obj.physicalProblem.computeVariables([]); %HAS TO BE MODIFIED FOR MICRO
-                obj.optimizer.compute_physical_variables
                 
+                %obj.physicalProblem.computeVariables([]); %HAS TO BE MODIFIED FOR MICRO
+                
+                obj.compute_physical_variables;                
                 obj.cost.computef(obj.x,obj.physicalProblem,obj.interpolation,obj.filter);
                 obj.constraint.computef(obj.x, obj.physicalProblem, obj.interpolation,obj.filter);
-                obj.x=obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,obj.physicalProblem,obj.interpolation,obj.filter);
+                
+                obj.optimizer.setPhysicalProblem(obj.physicalProblem)
+                obj.x=obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,obj.interpolation,obj.filter);
             end
         end
         function update_target_parameters(obj,t)
@@ -87,7 +94,7 @@ classdef TopOpt_Problem < handle
             target_parameters.constr_tol = (1-obj.incropt.alpha_constr(t))*obj.settings.constr_initial+obj.incropt.alpha_constr(t)*obj.settings.constr_final;
             target_parameters.optimality_tol = (1-obj.incropt.alpha_optimality(t))*obj.settings.optimality_initial+obj.incropt.alpha_optimality(t)*obj.settings.optimality_final;
             obj.cost.target_parameters=target_parameters;
-            %            obj.cost.h_C_0=[];
+            %obj.cost.h_C_0=[];
             obj.constraint.target_parameters=target_parameters;
             obj.optimizer.target_parameters=target_parameters;
         end
@@ -141,12 +148,12 @@ classdef TopOpt_Problem < handle
                     radius = 0.2*min([width,height]);
                     
                     initial_holes = (obj.physicalProblem.mesh.coord(:,1)-center_x).^2 + (obj.physicalProblem.mesh.coord(:,2)-center_y).^2 - radius^2 < 0;
-                    obj.x(initial_holes) = 1;
+                    obj.x(initial_holes) = obj.settings.hole_value;
                     %fracc = 1;
                     
-                case 'horiz'
+                case 'horizontal'
                     initial_holes = obj.physicalProblem.mesh.coord(:,2) > 0.6 | obj.physicalProblem.mesh.coord(:,2) < 0.4;
-                    obj.x(initial_holes) = 1;
+                    obj.x(initial_holes) = obj.settings.hole_value;
                     %                   fracc = 1;
                 case 'square'
                     width = max(obj.physicalProblem.mesh.coord(:,1)) - min(obj.physicalProblem.mesh.coord(:,1));
@@ -160,20 +167,29 @@ classdef TopOpt_Problem < handle
                     xrange = obj.physicalProblem.mesh.coord(:,1) < (center_x+offset_x) & obj.physicalProblem.mesh.coord(:,1) > (center_x-offset_x);
                     yrange = obj.physicalProblem.mesh.coord(:,2) < (center_y+offset_y) & obj.physicalProblem.mesh.coord(:,2) > (center_y-offset_y);
                     initial_holes = and(xrange,yrange);
-                    obj.x(initial_holes) = 1;
+                    obj.x(initial_holes) = obj.settings.hole_value;
                     %fracc = 1;
                     
                 case 'feasible'
                     initial_holes = false(size(obj.physicalProblem.mesh.coord,1),1);
-                    obj.x(initial_holes) = 1;
+                    obj.x(initial_holes) = obj.settings.hole_value;
                     %fracc = min(1,element.Vfrac);
                 case 'rand'
                     initial_holes = rand(size(obj.physicalProblem.mesh.coord,1),1) > 0.1;
-                    obj.x(initial_holes) = 1;
+                    obj.x(initial_holes) = obj.settings.hole_value;
                     %fracc = 1;                    
                 otherwise
                     error('Initialize design variable case not detected.');
             end
+        end
+        
+        function obj = compute_physical_variables(obj)
+            switch obj.physicalProblem.mesh.scale
+                case 'MICRO'
+                    obj.physicalProblem.computeChomog;
+                case 'MACRO'
+                    obj.physicalProblem.computeVariables;
+            end            
         end
     end    
 end

@@ -19,15 +19,15 @@ classdef Optimizer_IPOPT < Optimizer
             constraint_tolerance=obj.target_parameters.constr_tol*1e-1;
         end
         
-        function x=solveProblem(obj,x_ini,cost,constraint, physProblem, interpolation,filter) 
-            cost.computef(x_ini,physProblem,interpolation,filter)
-            funcs.objective = @(x) obj.objective(x,cost,physProblem,interpolation,filter);
-            funcs.gradient = @(x) obj.gradient(x,cost,physProblem,interpolation,filter);
-            funcs.constraints = @(x) obj.constraint(x,constraint,physProblem,interpolation,filter);
-            funcs.jacobian = @(x) sparse(obj.constraint_gradient(x,constraint,physProblem,interpolation,filter)');
+        function x=solveProblem(obj,x_ini,cost,constraint,interpolation,filter) 
+            cost.computef(x_ini,obj.physicalProblem,interpolation,filter)
+            funcs.objective = @(x) obj.objective(x,cost,interpolation,filter);
+            funcs.gradient = @(x) obj.gradient(x,cost,obj.physicalProblem,interpolation,filter);
+            funcs.constraints = @(x) obj.constraint(x,constraint,obj.physicalProblem,interpolation,filter);
+            funcs.jacobian = @(x) sparse(obj.constraint_gradient(x,constraint,obj.physicalProblem,interpolation,filter)');
             n = length(x_ini);
             funcs.jacobianstructure = @() sparse(ones(obj.m,n));
-            plotx=@(x) obj.plotX(x,physProblem);
+            plotx=@(x) obj.plotX(x,obj.physicalProblem);
             funcs.iterfunc = @(iter,fval,data) obj.outputfun_ipopt(iter,fval,data,plotx);
             
             options.ipopt.print_level           = 0;
@@ -53,9 +53,9 @@ classdef Optimizer_IPOPT < Optimizer
             
             [x, obj.info] = ipopt(x_ini,funcs,options);
         end
-        function f=objective(obj,x,cost,physProblem,interpolation,filter)
-            physProblem=obj.updateEquilibrium(x,physProblem,interpolation,filter);
-            cost.computef(x,physProblem,interpolation,filter)
+        function f=objective(obj,x,cost,interpolation,filter)
+            obj.update_physical_variables(x_ls,interpolation,filter);
+            cost.computef(x,obj.physicalProblem,interpolation,filter)
             f=cost.value;
         end
     end

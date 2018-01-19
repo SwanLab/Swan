@@ -15,7 +15,7 @@ classdef ShFunc_Chomog < Shape_Functional
         function compute_Chomog_Derivatives(obj,nstre,nelem,ngaus,x,interpolation,filter)
             rho=filter.getP0fromP1(x);
             matProps=interpolation.computeMatProp(rho);
-            mass=filter.Msmooth;
+%           mass=filter.Msmooth;
             
             obj.Chomog_Derivatives = zeros(nstre,nstre,ngaus,nelem);
             for istreChomog = 1:nstre
@@ -25,7 +25,7 @@ classdef ShFunc_Chomog < Shape_Functional
                             for jstre = 1:nstre
                                 obj.Chomog_Derivatives(istreChomog,jstreChomog,igaus,:) = ...
                                     squeeze(obj.Chomog_Derivatives(istreChomog,jstreChomog,igaus,:)) + ...
-                                    (squeeze(obj.tstrain(istreChomog,igaus,istre,:))...%(squeeze(-obj.tstrain(istreChomog,igaus,istre,:))...
+                                    (squeeze(obj.tstrain(istreChomog,igaus,istre,:))...
                                     .*squeeze(matProps.dC(istre,jstre,:,igaus))...
                                     .*squeeze(obj.tstrain(jstreChomog,igaus,jstre,:)));
                             end
