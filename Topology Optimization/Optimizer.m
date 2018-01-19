@@ -29,14 +29,14 @@ classdef Optimizer < handle
             obj.Ksmooth=obj.physicalProblem.computeKsmooth;
             cost.computef(x_ini,obj.physicalProblem,interpolation,filter);
             constraint.computef(x_ini,obj.physicalProblem,interpolation,filter);
-            obj.plotX(x_ini,obj.physicalProblem)
+            obj.plotX(x_ini)
             iter=0;
-            obj.print(x_ini,obj.physicalProblem,filter.getP0fromP1(x_ini),iter);
+            obj.print(x_ini,filter.getP0fromP1(x_ini),iter);
             while(obj.stop_criteria && iter < obj.maxiter)
                 iter=iter+1;
                 x=obj.updateX(x_ini,cost,constraint,interpolation,filter);
-                obj.plotX(x,obj.physicalProblem)
-                obj.print(x,obj.physicalProblem,filter.getP0fromP1(x),iter);
+                obj.plotX(x)
+                obj.print(x,filter.getP0fromP1(x),iter);
                 x_ini=x;
             end
             obj.stop_criteria=1;
@@ -60,7 +60,7 @@ classdef Optimizer < handle
             hs = max([x1x2,x2x3,x1x3]');
             h = mean(hs);
         end
-        function plotX(obj,x,physicalProblem)
+        function plotX(obj,x)
             if any(x<0)
                 rho_nodal=x<0;
             else
@@ -77,7 +77,7 @@ classdef Optimizer < handle
                 height = mp(1,4);
                 size_screen_offset = round([0.7*width,0.52*height,-0.71*width,-0.611*height],0);
                 set(fh,'Position',mp(select_screen,:) + size_screen_offset);
-                obj.fhtri = trisurf(physicalProblem.mesh.connec,physicalProblem.mesh.coord(:,1),physicalProblem.mesh.coord(:,2),double(rho_nodal), ...
+                obj.fhtri = trisurf(obj.physicalProblem.mesh.connec,obj.physicalProblem.mesh.coord(:,1),obj.physicalProblem.mesh.coord(:,2),double(rho_nodal), ...
                     'EdgeColor','none','LineStyle','none','FaceLighting','phong');
                 view([0,90]);
                 colormap(flipud(gray));
@@ -89,12 +89,12 @@ classdef Optimizer < handle
                 drawnow;
             end
         end
-        function print(obj,design_variable,physicalProblem,design_variable_reg,iter)
+        function print(obj,design_variable,design_variable_reg,iter)
             postprocess = Postprocess_TopOpt.Create(obj.optimizer);
-            results.physicalVars = physicalProblem.variables;
+            results.physicalVars = obj.physicalProblem.variables;
             results.design_variable = design_variable;
             results.design_variable_reg = design_variable_reg;
-            postprocess.print(physicalProblem,obj.name,iter,results);
+            postprocess.print(obj.physicalProblem,obj.name,iter,results);
         end
         function compute_physical_variables(obj)
             switch obj.physicalProblem.mesh.scale

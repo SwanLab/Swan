@@ -54,7 +54,7 @@ classdef Optimizer_IPOPT < Optimizer
             [x, obj.info] = ipopt(x_ini,funcs,options);
         end
         function f=objective(obj,x,cost,interpolation,filter)
-            obj.update_physical_variables(x_ls,interpolation,filter);
+            obj.update_physical_variables(x,interpolation,filter); 
             cost.computef(x,obj.physicalProblem,interpolation,filter)
             f=cost.value;
         end

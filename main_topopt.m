@@ -26,15 +26,15 @@ settings.initial_case='square';
 % settings.initial_case='rand';
 
 
-% settings.ptype='Compliance_st_Volume';
-settings.ptype='ComplianceLamPerimeter_st_Volume';
+settings.ptype='Compliance_st_Volume';
+% settings.ptype='ComplianceLamPerimeter_st_Volume';
 % settings.ptype='Compliance_st_VolumePerimeter';
 % settings.ptype='Chomog_alphabeta';
 
-settings.optimizer='SLERP';
-%settings.optimizer='PROJECTED GRADIENT';
+% settings.optimizer='SLERP';
+settings.optimizer='PROJECTED GRADIENT';
 %settings.optimizer='MMA';
-%settings.optimizer='IPOPT';
+% settings.optimizer='IPOPT';
 
 settings.filter='P1';
 settings.TOL.rho_plus=1;
@@ -58,7 +58,7 @@ settings.constr_final=settings.target_parameters.constr_tol;
 settings.Vfrac_initial=1;
 settings.optimality_initial=1e-1;
 settings.constr_initial=1e-1;
-settings.maxiter = inf;
+settings.maxiter = 55;
 
 settings.micro.alpha =sqrt(2)/2*[1 1 0]';
 settings.micro.beta =sqrt(2)/2*[1 1 0]';

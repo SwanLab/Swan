@@ -75,15 +75,11 @@ classdef TopOpt_Problem < handle
         function computeVariables(obj)
             for t = 1:obj.settings.nsteps
                 incremental_step=t
-                obj.update_target_parameters(t)
-                
-                %obj.physicalProblem.computeVariables([]); %HAS TO BE MODIFIED FOR MICRO
-                
+                obj.update_target_parameters(t)                          
                 obj.compute_physical_variables;                
                 obj.cost.computef(obj.x,obj.physicalProblem,obj.interpolation,obj.filter);
-                obj.constraint.computef(obj.x, obj.physicalProblem, obj.interpolation,obj.filter);
-                
-                obj.optimizer.setPhysicalProblem(obj.physicalProblem)
+                obj.constraint.computef(obj.x, obj.physicalProblem, obj.interpolation,obj.filter);                
+                obj.optimizer.setPhysicalProblem(obj.physicalProblem);
                 obj.x=obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,obj.interpolation,obj.filter);
             end
         end
