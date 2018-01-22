@@ -16,7 +16,8 @@ classdef ShFunc_Chomog < Shape_Functional
             rho=filter.getP0fromP1(x);
             matProps=interpolation.computeMatProp(rho);
 %           mass=filter.Msmooth;
-            
+%             obj.tstrain = permute(obj.tstrain,[2 3 4]);
+%             obj.tstress = permute(obj.tstrain,);
             obj.Chomog_Derivatives = zeros(nstre,nstre,ngaus,nelem);
             for istreChomog = 1:nstre
                 for jstreChomog = 1:nstre

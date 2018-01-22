@@ -27,7 +27,7 @@ classdef Optimizer_IPOPT < Optimizer
             funcs.jacobian = @(x) sparse(obj.constraint_gradient(x,constraint,obj.physicalProblem,interpolation,filter)');
             n = length(x_ini);
             funcs.jacobianstructure = @() sparse(ones(obj.m,n));
-            plotx=@(x) obj.plotX(x,obj.physicalProblem);
+            plotx=@(x) obj.plotX(x);
             funcs.iterfunc = @(iter,fval,data) obj.outputfun_ipopt(iter,fval,data,plotx);
             
             options.ipopt.print_level           = 0;

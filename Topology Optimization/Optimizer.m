@@ -45,7 +45,7 @@ classdef Optimizer < handle
         end
         
         function setPhysicalProblem(obj,pProblem)
-            obj.physicalProblem = pProblem;  
+            obj.physicalProblem = pProblem;
         end
     end
     methods (Access = private)
@@ -59,6 +59,33 @@ classdef Optimizer < handle
             x1x3 = abs(x1-x3);
             hs = max([x1x2,x2x3,x1x3]');
             h = mean(hs);
+        end
+        function print(obj,design_variable,design_variable_reg,iter)
+            postprocess = Postprocess_TopOpt.Create(obj.optimizer);
+            results.physicalVars = obj.physicalProblem.variables;
+            results.design_variable = design_variable;
+            results.design_variable_reg = design_variable_reg;
+            postprocess.print(obj.physicalProblem,obj.name,iter,results);
+        end
+        function compute_physical_variables(obj)
+            switch obj.physicalProblem.mesh.scale
+                case 'MICRO'
+                    obj.physicalProblem.computeChomog;
+                case 'MACRO'
+                    obj.physicalProblem.computeVariables;
+            end
+        end
+    end
+    methods (Access = protected)
+        function update_physical_variables(obj,x,interpolation,filter)
+            rho=filter.getP0fromP1(x);
+            %Update phys problem
+            matProps=interpolation.computeMatProp(rho);
+            obj.physicalProblem.setMatProps(matProps);
+            obj.compute_physical_variables;
+        end
+        function sp=scalar_product(obj,f,g)
+            sp=f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
         end
         function plotX(obj,x)
             if any(x<0)
@@ -89,33 +116,6 @@ classdef Optimizer < handle
                 drawnow;
             end
         end
-        function print(obj,design_variable,design_variable_reg,iter)
-            postprocess = Postprocess_TopOpt.Create(obj.optimizer);
-            results.physicalVars = obj.physicalProblem.variables;
-            results.design_variable = design_variable;
-            results.design_variable_reg = design_variable_reg;
-            postprocess.print(obj.physicalProblem,obj.name,iter,results);
-        end
-        function compute_physical_variables(obj)
-            switch obj.physicalProblem.mesh.scale
-                case 'MICRO'
-                    obj.physicalProblem.computeChomog;
-                case 'MACRO'
-                    obj.physicalProblem.computeVariables;
-            end
-        end
-    end
-    methods (Access = protected)
-        function update_physical_variables(obj,x,interpolation,filter)
-            rho=filter.getP0fromP1(x);
-            %Update phys problem
-            matProps=interpolation.computeMatProp(rho);
-            obj.physicalProblem.setMatProps(matProps);
-            obj.compute_physical_variables;
-        end
-        function sp=scalar_product(obj,f,g)
-            sp=f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
-        end        
     end
     methods (Static)
         %         function physicalProblem=updateEquilibrium(x,physicalProblem,interpolation,filter)

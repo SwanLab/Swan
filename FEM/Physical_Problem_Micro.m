@@ -50,6 +50,8 @@ classdef Physical_Problem_Micro < Physical_Problem
             for istre=1:obj.dim.nstre
                 obj.computeVariables(vstrain(istre,:));
                 obj.variables.Chomog(:,istre) = obj.variables.stress_homog;
+                obj.variables.tstrain(istre,:,:,:) = obj.variables.strain;
+                obj.variables.tstress(istre,:,:,:) = obj.variables.stress;
             end
         end
     end

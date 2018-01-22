@@ -41,23 +41,19 @@ classdef TopOpt_Problem < handle
             obj.settings=settings;
             obj.TOL=obj.settings.TOL;
             obj.interpolation=Interpolation.create(obj.TOL,settings.material,settings.method);
+            obj.settings.ini_value=1;
+            obj.settings.hole_value=0;
             switch obj.settings.optimizer
                 case 'SLERP'
                     obj.optimizer=Optimizer_AugLag(settings,Optimizer_SLERP(settings));
                     obj.settings.ini_value=-0.7071;
                     obj.settings.hole_value=1;
                 case 'PROJECTED GRADIENT'
-                    obj.optimizer=Optimizer_AugLag(settings,Optimizer_PG(settings));
-                    obj.settings.ini_value=1;
-                    obj.settings.hole_value=0;
+                    obj.optimizer=Optimizer_AugLag(settings,Optimizer_PG(settings));                    
                 case 'MMA'
-                    obj.optimizer=Optimizer_MMA(settings);
-                    obj.settings.ini_value=1;
-                    obj.settings.hole_value=0;
+                    obj.optimizer=Optimizer_MMA(settings);                    
                 case 'IPOPT'
                     obj.optimizer=Optimizer_IPOPT(settings);
-                    obj.settings.ini_value=1;
-                    obj.settings.hole_value=0;
             end
             obj.filter=Filter.create(obj.settings.filter,obj.settings.optimizer);
         end
@@ -75,10 +71,10 @@ classdef TopOpt_Problem < handle
         function computeVariables(obj)
             for t = 1:obj.settings.nsteps
                 incremental_step=t
-                obj.update_target_parameters(t)                          
-                obj.compute_physical_variables;                
+                obj.update_target_parameters(t)
+                obj.compute_physical_variables;
                 obj.cost.computef(obj.x,obj.physicalProblem,obj.interpolation,obj.filter);
-                obj.constraint.computef(obj.x, obj.physicalProblem, obj.interpolation,obj.filter);                
+                obj.constraint.computef(obj.x, obj.physicalProblem, obj.interpolation,obj.filter);
                 obj.optimizer.setPhysicalProblem(obj.physicalProblem);
                 obj.x=obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,obj.interpolation,obj.filter);
             end
@@ -173,7 +169,9 @@ classdef TopOpt_Problem < handle
                 case 'rand'
                     initial_holes = rand(size(obj.physicalProblem.mesh.coord,1),1) > 0.1;
                     obj.x(initial_holes) = obj.settings.hole_value;
-                    %fracc = 1;                    
+                    %fracc = 1;
+                case 'full'
+                    
                 otherwise
                     error('Initialize design variable case not detected.');
             end
@@ -185,7 +183,7 @@ classdef TopOpt_Problem < handle
                     obj.physicalProblem.computeChomog;
                 case 'MACRO'
                     obj.physicalProblem.computeVariables;
-            end            
+            end
         end
-    end    
+    end
 end

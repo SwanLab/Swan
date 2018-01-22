@@ -13,6 +13,8 @@ classdef PhysicalVars_Elastic_2D_Micro < PhysicalVars_Elastic_2D
     
     properties (GetAccess = public, SetAccess = ?Physical_Problem_Micro)
         Chomog
+        tstress
+        tstrain
     end
     
     methods (Access = {?Physical_Problem, ?PhysicalVars_Elastic_2D, ?PhysicalVars_Elastic_2D_Micro})

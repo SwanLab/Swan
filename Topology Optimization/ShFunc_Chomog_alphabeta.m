@@ -11,8 +11,8 @@ classdef ShFunc_Chomog_alphabeta < ShFunc_Chomog
         end
         function computef(obj,x,physicalProblem,interpolation,filter)
             obj.Chomog = physicalProblem.variables.Chomog;
-            obj.tstrain = physicalProblem.variables.strain;
-            obj.tstress = physicalProblem.variables.stress;
+            obj.tstrain = physicalProblem.variables.tstrain;
+            obj.tstress = physicalProblem.variables.tstress;
             
             inv_matCh = inv(obj.Chomog);
             costfunc = obj.projection_Chomog(inv_matCh,obj.alpha,obj.beta);
@@ -23,7 +23,7 @@ classdef ShFunc_Chomog_alphabeta < ShFunc_Chomog
             else
                 costfunc = costfunc/abs(obj.h_C_0);
             end
-            gradient = gradient/abs(obj.h_C_0);
+%             gradient = gradient/abs(obj.h_C_0);
             
             obj.value = costfunc;
             obj.gradient = gradient;
