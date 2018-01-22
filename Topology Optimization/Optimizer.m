@@ -85,6 +85,8 @@ classdef Optimizer < handle
             obj.compute_physical_variables;
         end
         function sp=scalar_product(obj,f,g)
+            f = f(:);
+            g = g(:);
             sp=f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
         end
         function plotX(obj,x)
