@@ -10,17 +10,26 @@ classdef ShFunc_Chomog_alphabeta < ShFunc_Chomog
             obj.beta=settings.micro.beta;
         end
         function computef(obj,x,physicalProblem,interpolation,filter)
-            %[obj.Chomog,obj.tstress,obj.tstrain] = physicalProblem.computeChomog;
+            mass=filter.Msmooth;
+            obj.Chomog = physicalProblem.variables.Chomog;
+            obj.tstrain = physicalProblem.variables.tstrain;
+            obj.tstress = physicalProblem.variables.tstress;
+            
             inv_matCh = inv(obj.Chomog);
             costfunc = obj.projection_Chomog(inv_matCh,obj.alpha,obj.beta);
             obj.compute_Chomog_Derivatives(physicalProblem.dim.nstre,physicalProblem.mesh.nelem,physicalProblem.geometry.ngaus,x,interpolation,filter);
             gradient = obj.derivative_projection_Chomog(inv_matCh,obj.alpha,obj.beta,obj.Chomog_Derivatives,physicalProblem.mesh.nelem,physicalProblem.geometry.ngaus,physicalProblem.dim.nstre);                                   
+           
+            
+            gradient=filter.getP1fromP0(gradient(:));
+            gradient = mass*gradient;
             if isempty(obj.h_C_0)
                 obj.h_C_0 = costfunc;
             else
                 costfunc = costfunc/abs(obj.h_C_0);
+                gradient=gradient/abs(obj.h_C_0);
             end
-            gradient = gradient/abs(obj.h_C_0);
+            
             
             obj.value = costfunc;
             obj.gradient = gradient;

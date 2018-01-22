@@ -10,7 +10,7 @@ addpath(genpath('./Topology Optimization'));
 clear variables;
 %% settings
 settings=struct;
-% settings.filename='TOPOPT_TEST';
+%settings.filename='TOPOPT_TEST';
 settings.filename='TOPOPT_TEST_MICRO';
 
 % settings.method='SIMP_P3';
@@ -19,20 +19,22 @@ settings.method='SIMPALL';
 
 settings.material='ISOTROPIC';
 % settings.initial_case='full';
-% settings.initial_case='circle';
-settings.initial_case='horiz';
+settings.initial_case='circle';
+% settings.initial_case='horizontal';
 % settings.initial_case='square';
+% settings.initial_case='feasible';
+% settings.initial_case='rand';
 
 
-% settings.ptype='Compliance_st_Volume';
+%settings.ptype='Compliance_st_Volume';
 % settings.ptype='ComplianceLamPerimeter_st_Volume';
 % settings.ptype='Compliance_st_VolumePerimeter';
-settings.ptype='Micro_Chomog_alphabeta';
+settings.ptype='Chomog_alphabeta';
 
-settings.optimizer='SLERP';
-%settings.optimizer='PROJECTED GRADIENT';
+settings.optimizer='MMA';
+% settings.optimizer='PROJECTED GRADIENT';
 %settings.optimizer='MMA';
-%settings.optimizer='IPOPT';
+% settings.optimizer='IPOPT';
 
 settings.filter='P1';
 settings.TOL.rho_plus=1;
