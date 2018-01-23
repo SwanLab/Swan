@@ -12,6 +12,12 @@ classdef TopOpt_Problem < handle
         settings
         incropt
     end
+    
+    properties (Access = private)
+        hole_value
+        ini_design_value
+    end
+    
     methods (Static)
         function obj=create(settings)
             switch settings.ptype
@@ -41,17 +47,17 @@ classdef TopOpt_Problem < handle
             obj.settings=settings;
             obj.TOL=obj.settings.TOL;
             obj.interpolation=Interpolation.create(obj.TOL,settings.material,settings.method);
-            obj.settings.ini_value=1;
-            obj.settings.hole_value=0;
+            obj.ini_design_value=1;
+            obj.hole_value=0;
             switch obj.settings.optimizer
                 case 'SLERP'
                     obj.optimizer=Optimizer_AugLag(settings,Optimizer_SLERP(settings));
-                    obj.settings.ini_value=-0.7071;
-                    obj.settings.hole_value=1;
+                    obj.ini_design_value=-1.032930063848122;
+                    obj.hole_value=0.516465031924061;
                 case 'PROJECTED GRADIENT'
-                    obj.optimizer=Optimizer_AugLag(settings,Optimizer_PG(settings));                    
+                    obj.optimizer=Optimizer_AugLag(settings,Optimizer_PG(settings));
                 case 'MMA'
-                    obj.optimizer=Optimizer_MMA(settings);                    
+                    obj.optimizer=Optimizer_MMA(settings);
                 case 'IPOPT'
                     obj.optimizer=Optimizer_IPOPT(settings);
             end
@@ -130,7 +136,7 @@ classdef TopOpt_Problem < handle
     
     methods (Access=private)
         function obj = compute_initial_design(obj)
-            obj.x=obj.settings.ini_value*ones(obj.physicalProblem.mesh.npnod,obj.physicalProblem.geometry.ngaus);
+            obj.x=obj.ini_design_value*ones(obj.physicalProblem.mesh.npnod,obj.physicalProblem.geometry.ngaus);
             switch obj.settings.initial_case
                 case 'circle'
                     width = max(obj.physicalProblem.mesh.coord(:,1)) - min(obj.physicalProblem.mesh.coord(:,1));
@@ -140,12 +146,12 @@ classdef TopOpt_Problem < handle
                     radius = 0.2*min([width,height]);
                     
                     initial_holes = (obj.physicalProblem.mesh.coord(:,1)-center_x).^2 + (obj.physicalProblem.mesh.coord(:,2)-center_y).^2 - radius^2 < 0;
-                    obj.x(initial_holes) = obj.settings.hole_value;
+                    obj.x(initial_holes) = obj.hole_value;
                     %fracc = 1;
                     
                 case 'horizontal'
                     initial_holes = obj.physicalProblem.mesh.coord(:,2) > 0.6 | obj.physicalProblem.mesh.coord(:,2) < 0.4;
-                    obj.x(initial_holes) = obj.settings.hole_value;
+                    obj.x(initial_holes) = obj.hole_value;
                     %                   fracc = 1;
                 case 'square'
                     width = max(obj.physicalProblem.mesh.coord(:,1)) - min(obj.physicalProblem.mesh.coord(:,1));
@@ -159,22 +165,24 @@ classdef TopOpt_Problem < handle
                     xrange = obj.physicalProblem.mesh.coord(:,1) < (center_x+offset_x) & obj.physicalProblem.mesh.coord(:,1) > (center_x-offset_x);
                     yrange = obj.physicalProblem.mesh.coord(:,2) < (center_y+offset_y) & obj.physicalProblem.mesh.coord(:,2) > (center_y-offset_y);
                     initial_holes = and(xrange,yrange);
-                    obj.x(initial_holes) = obj.settings.hole_value;
+                    obj.x(initial_holes) = obj.hole_value;
                     %fracc = 1;
                     
                 case 'feasible'
                     initial_holes = false(size(obj.physicalProblem.mesh.coord,1),1);
-                    obj.x(initial_holes) = obj.settings.hole_value;
+                    obj.x(initial_holes) = obj.hole_value;
                     %fracc = min(1,element.Vfrac);
                 case 'rand'
                     initial_holes = rand(size(obj.physicalProblem.mesh.coord,1),1) > 0.1;
-                    obj.x(initial_holes) = obj.settings.hole_value;
+                    obj.x(initial_holes) = obj.hole_value;
                     %fracc = 1;
                 case 'full'
-                    
                 otherwise
                     error('Initialize design variable case not detected.');
             end
+            rho_elem = obj.filter.getP0fromP1(obj.x);
+            matprop = obj.interpolation.computeMatProp(rho_elem);
+            obj.physicalProblem.setMatProps(matprop);
         end
         
         function obj = compute_physical_variables(obj)

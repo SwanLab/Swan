@@ -9,7 +9,6 @@ addpath(genpath('./Topology Optimization'));
 %run('test.m');
 clear variables;
 %% settings
-settings=struct;
 % settings.filename='TOPOPT_TEST';
 settings.filename='TOPOPT_TEST_MICRO';
 
@@ -26,14 +25,16 @@ settings.initial_case='circle';
 % settings.initial_case='rand';
 
 
-% settings.ptype='Compliance_st_Volume';
+
+%settings.ptype='Compliance_st_Volume';
 % settings.ptype='ComplianceLamPerimeter_st_Volume';
 % settings.ptype='Compliance_st_VolumePerimeter';
 settings.ptype='Chomog_alphabeta';
 
+
 settings.optimizer='SLERP';
 % settings.optimizer='PROJECTED GRADIENT';
-% settings.optimizer='MMA';
+% % settings.optimizer='MMA';
 % settings.optimizer='IPOPT';
 
 settings.filter='P1';
@@ -58,7 +59,7 @@ settings.constr_final=settings.target_parameters.constr_tol;
 settings.Vfrac_initial=1;
 settings.optimality_initial=1e-1;
 settings.constr_initial=1e-1;
-settings.maxiter = 5;
+settings.maxiter = 200;
 
 settings.micro.alpha =sqrt(2)/2*[1 1 0]';
 settings.micro.beta =sqrt(2)/2*[1 1 0]';

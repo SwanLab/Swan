@@ -35,9 +35,15 @@ classdef Physical_Problem_Micro < Physical_Problem
             
             % Assembly
             [obj.LHS,obj.RHS] = obj.Assemble(obj.element,obj.geometry.nnode,obj.dim.nunkn,obj.dof,obj.bc);
+            
+%              comparison1(obj.LHS);
+%              comparison2(obj.RHS);
 
             % Solver
             sol = obj.solver.solve(obj.variables.d_u,obj.LHS,obj.RHS,obj.dof,obj.dim.nunkn,obj.bc.pnodes);            
+            
+%             comparison3(sol);
+            
             obj.variables = obj.variables.computeVars(sol,obj.dim,obj.geometry,obj.mesh.nelem,obj.dof.idx,obj.element,obj.material,vstrain);
             
             obj.StressHomog = obj.variables.stress_homog;
