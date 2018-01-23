@@ -59,7 +59,7 @@ settings.constr_final=settings.target_parameters.constr_tol;
 settings.Vfrac_initial=1;
 settings.optimality_initial=1e-1;
 settings.constr_initial=1e-1;
-settings.maxiter = 200;
+settings.maxiter = 5;
 
 settings.micro.alpha =sqrt(2)/2*[1 1 0]';
 settings.micro.beta =sqrt(2)/2*[1 1 0]';
