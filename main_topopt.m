@@ -33,8 +33,8 @@ if settings.filename=='GrippingNew'
     settings.ptype='Gripping';
 end
 
-settings.optimizer='SLERP';
-%settings.optimizer='PROJECTED GRADIENT';
+%settings.optimizer='SLERP';
+settings.optimizer='PROJECTED GRADIENT';
 %settings.optimizer='MMA';
 %settings.optimizer='IPOPT';
 
