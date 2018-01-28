@@ -7,24 +7,24 @@ classdef VideoMaker_Physical_Problem < VideoMaker
      end
        
       methods (Access = public)
-        function Make_video_stress(obj,output_video_name)
+        function Make_video_stress(obj,output_video_name,component)
             post = Postprocess_PhysicalProblem;
             field2print = post.stress_name;
-            componentfield = post.stress_component;
+            componentfield = [post.stress_component,component];
             obj.Make_video_standard_field(field2print,componentfield,output_video_name)
         end
         
-        function Make_video_strain(obj,output_video_name)
+        function Make_video_strain(obj,output_video_name,component)
             post = Postprocess_PhysicalProblem;
             field2print = post.strain_name;
-            componentfield = post.strain_component;
+            componentfield = [post.strain_component,component];
             obj.Make_video_standard_field(field2print,componentfield,output_video_name)
         end
         
-        function Make_video_displacement(obj,output_video_name)
+        function Make_video_displacement(obj,output_video_name,component)
             post = Postprocess_PhysicalProblem;
             field2print = post.displ_name;
-            componentfield = post.displ_component;
+            componentfield = [post.displ_component,component];
             obj.Make_video_standard_field(field2print,componentfield,output_video_name)
          end
         
@@ -51,6 +51,7 @@ classdef VideoMaker_Physical_Problem < VideoMaker
             fprintf(fid,'%s\n',['set arg4 "',componentfield,'"']);  
                        
             fprintf(fid,'%s\n',['source "',filepath,'"']);
+            fprintf(fid,'%s\n',['Make_Video_stress $arg1 $arg2 $arg3 $arg4']);
             fprintf(fid,'%s\n',['GiD_Process Mescape Quit']);
             fclose(fid);
             obj.execute_tcl_files(obj.gidPath,file_tcl_name_with_path)
