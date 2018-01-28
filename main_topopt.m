@@ -10,8 +10,8 @@ addpath(genpath('./Topology Optimization'));
 clear variables;
 %% settings
 settings=struct;
-settings.filename='TOPOPT_TEST';
-%settings.filename='topopt_quad';
+%settings.filename='TOPOPT_TEST';
+settings.filename='topopt_quad';
 %settings.filename='GrippingNew';
 
 settings.plotting=true;
