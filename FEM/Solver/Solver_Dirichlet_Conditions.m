@@ -5,7 +5,7 @@ classdef Solver_Dirichlet_Conditions < Solver
     properties
     end
     
-    methods (Access = ?Physical_Problem, Static)
+    methods (Static)
         %     methods (Access = public,Static)
         % Analytical Solver (A·X=b)
         function x = solve(LHS,RHS,dof,fixnodes)

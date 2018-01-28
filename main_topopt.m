@@ -10,7 +10,8 @@ addpath(genpath('./Topology Optimization'));
 clear variables;
 %% settings
 settings=struct;
-settings.filename='TOPOPT_TEST';
+% settings.filename='TOPOPT_TEST';
+settings.filename='TOPOPT_TEST_MICRO';
 
 % settings.method='SIMP_P3';
 % settings.method='SIMP_Adaptative';
@@ -19,9 +20,9 @@ settings.method='SIMPALL';
 settings.material='ISOTROPIC';
 settings.initial_case='full';
 
-settings.ptype='Compliance_st_Volume';
-%settings.ptype='ComplianceLamPerimeter_st_Volume';
-%settings.ptype='Compliance_st_VolumePerimeter';
+%settings.ptype='Compliance_st_Volume';
+settings.ptype='ComplianceLamPerimeter_st_Volume';
+% settings.ptype='Compliance_st_VolumePerimeter';
 
 settings.optimizer='SLERP';
 %settings.optimizer='PROJECTED GRADIENT';
@@ -59,23 +60,23 @@ test.preProcess;
 test.computeVariables;
 toc
 %% Video creation
-gidPath = 'C:\Program Files\GiD\GiD 13.0.3';
-files_name = test.settings.filename;
-files_folder = fullfile(pwd,'Output');
-iterations = 1:test.optimizer.niter;
-
-My_VideoMaker = VideoMaker_TopOpt.Create(settings.optimizer);
-My_VideoMaker.Set_up_make_video(gidPath,files_name,files_folder,iterations)
-
-output_video_name_design_variable_reg = fullfile(pwd,'DesignVariable_Reg_Video');
-My_VideoMaker.Make_video_design_variable_reg(output_video_name_design_variable_reg)
-
-output_video_name_design_variable = fullfile(pwd,'DesignVariable_Video');
-My_VideoMaker.Make_video_design_variable(output_video_name_design_variable)
-
-output_video_name_design_variable_reg = fullfile(pwd,'DesignVariable_Reg_Video');
-My_VideoMaker.Make_video_design_variable_reg(output_video_name_design_variable_reg)
-
-output_video_name_stress = fullfile(pwd,'Stress_Video');
-My_VideoMaker.Make_video_stress(output_video_name_stress)
+% gidPath = 'C:\Program Files\GiD\GiD 13.0.3';
+% files_name = test.settings.filename;
+% files_folder = fullfile(pwd,'Output');
+% iterations = 1:test.optimizer.niter;
+% 
+% My_VideoMaker = VideoMaker_TopOpt.Create(settings.optimizer);
+% My_VideoMaker.Set_up_make_video(gidPath,files_name,files_folder,iterations)
+% 
+% output_video_name_design_variable_reg = fullfile(pwd,'DesignVariable_Reg_Video');
+% My_VideoMaker.Make_video_design_variable_reg(output_video_name_design_variable_reg)
+% 
+% output_video_name_design_variable = fullfile(pwd,'DesignVariable_Video');
+% My_VideoMaker.Make_video_design_variable(output_video_name_design_variable)
+% 
+% output_video_name_design_variable_reg = fullfile(pwd,'DesignVariable_Reg_Video');
+% My_VideoMaker.Make_video_design_variable_reg(output_video_name_design_variable_reg)
+% 
+% output_video_name_stress = fullfile(pwd,'Stress_Video');
+% My_VideoMaker.Make_video_stress(output_video_name_stress)
 
