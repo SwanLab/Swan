@@ -22,7 +22,7 @@ classdef Filter_PDE < Filter
             
             nelem=physProblem.mesh.nelem; nnode=physProblem.geometry.nnode;
             A_nodal_2_gauss = sparse(nelem,physProblem.mesh.npnod);
-            fn=ones(1,nelem);
+            fn=ones(1,physProblem.mesh.npnod);
             lnods=obj.connectivities';
             fe=zeros(nnode,nelem);
             for inode=1:nnode

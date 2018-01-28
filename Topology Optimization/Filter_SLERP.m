@@ -14,7 +14,7 @@ classdef Filter_SLERP < Filter
         end
         function x_reg = getP1fromP0(obj,x)
             
-            x_reg = obj.P_operator'*obj.M0*x;
+            x_reg = obj.P_operator'*obj.M0{1}*x;
         end
         function x_reg= getP0fromP1_perimeter(obj,x,epsilon)
             obj.rhs = obj.faireF2(obj.coordinates',obj.connectivities',x);

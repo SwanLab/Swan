@@ -34,7 +34,6 @@ classdef Optimizer_MMA < Optimizer
         function x=updateX(obj,x,cost,constraint, physProblem, interpolation,filter)      
                 obj.checkInitial(x,cost,constraint);
                 obj.outit=obj.outit+1;
-                iter=obj.outit
                 obj.outeriter = obj.outeriter+1;
                 %%%% The MMA subproblem is solved at the point xval:
                 [xmma,ymma,zmma,lam,xsi,eta,mu,zet,s,obj.low,obj.upp] = ...

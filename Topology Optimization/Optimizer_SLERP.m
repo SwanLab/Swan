@@ -32,7 +32,6 @@ classdef Optimizer_SLERP < Optimizer
                 obj.shfunc_volume.computef(x_ls,physProblem,interpolation,filter);
                 
                 obj.objfunc.computeFunction(cost,constraint)
-%                 cost_ls = cost.value + obj.lambda*constraint.value + 0.5*obj.penalty*(constraint.value.*constraint.value);
                 volume_ls =obj.shfunc_volume.value;
                 
                 incr_vol_ls = abs(volume_ls - obj.volume_initial);

@@ -39,8 +39,7 @@ classdef Element_Elastic < Element
             Fext = zeros(nnode*nunkn,1,nelem);
         end
         function Fext = computeVolumetricRHS(obj,nunkn,nelem,nnode,bc,idx)%To be done
-            Fext = zeros(nnode*nunkn,1,nelem);
-            
+            Fext = zeros(nnode*nunkn,1,nelem);            
         end
     end
     

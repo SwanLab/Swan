@@ -3,7 +3,7 @@ classdef BC
     %   Detailed explanation goes here
     
     
-    properties (GetAccess = {?Physical_Problem,?Element,?Filter}, SetAccess = protected)
+    properties (GetAccess = {?Physical_Problem,?Element,?Filter}, SetAccess = public)
         fixnodes
         fixnodes_perimeter
         neunodes
