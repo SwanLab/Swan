@@ -76,6 +76,31 @@ classdef TopOpt_Problem < handle
             end
         end
         function postProcess(obj)
+            % Video creation
+            if obj.settings.printing
+                gidPath = 'C:\Program Files\GiD\GiD 13.0.2';% 'C:\Program Files\GiD\GiD 13.0.3';
+                files_name = [];
+                files_folder = fullfile(pwd,'Output');
+                iterations = 0:obj.optimizer.niter;
+                video_name=strcat('./Videos/Video_',obj.settings.ptype,'_',obj.settings.optimizer,'_',obj.settings.method,'_',int2str(obj.settings.nsteps) ...
+                    ,'_0dot',int2str(10*obj.settings.Vfrac_final),'_',int2str(obj.optimizer.niter),'.gif');
+                My_VideoMaker = VideoMaker_TopOpt.Create(obj.settings.optimizer);
+                My_VideoMaker.Set_up_make_video(gidPath,files_name,files_folder,iterations)
+                %
+                output_video_name_design_variable = fullfile(pwd,video_name);
+                My_VideoMaker.Make_video_design_variable(output_video_name_design_variable)
+                
+                % %
+                % output_video_name_design_variable_reg = fullfile(pwd,'DesignVariable_Reg_Video');
+                % My_VideoMaker.Make_video_design_variable_reg(output_video_name_design_variable_reg)
+                %
+                % output_video_name_design_variable_reg = fullfile(pwd,'DesignVariable_Reg_Video');
+                % My_VideoMaker.Make_video_design_variable_reg(output_video_name_design_variable_reg)
+                %
+                % output_video_name_stress = fullfile(pwd,'Stress_Video');
+                % My_VideoMaker.Make_video_stress(output_video_name_stress)
+            end
+            
         end
     end
 end
