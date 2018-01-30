@@ -3,18 +3,25 @@ classdef Solver_Periodic < Solver
     %   Detailed explanation goes here
     
     properties
+        nunkn
+        pnods
     end
     
-    methods (Access = {?Physical_Problem,?Physical_Problem_Micro})
-        function x = solve(obj,x,LHS,RHS,dof,nunkn,pnods)
+    
+    methods (Access = public)
+        
+        function obj = Solver_Periodic(obj)
+        end
+        
+        function x = solve(obj,x,LHS,RHS,dof)
             n = dof.ndof;
-            nlib = size(pnods(1,:),2);
-            pglib = zeros(nlib*nunkn,1);
-            qglib = zeros(nlib*nunkn,1);
-            for iunkn = 1:nunkn
+            nlib = size(obj.pnods(1,:),2);
+            pglib = zeros(nlib*obj.nunkn,1);
+            qglib = zeros(nlib*obj.nunkn,1);
+            for iunkn = 1:obj.nunkn
                 index_glib = nlib*(iunkn - 1) + [1:nlib];
-                pglib(index_glib,1) = (pnods(1,:)-1)*nunkn + iunkn;
-                qglib(index_glib,1) = (pnods(2,:)-1)*nunkn + iunkn;
+                pglib(index_glib,1) = (obj.pnods(1,:)-1)*obj.nunkn + iunkn;
+                qglib(index_glib,1) = (obj.pnods(2,:)-1)*obj.nunkn + iunkn;
             end
             
             list = [pglib; qglib; dof.vR];
@@ -28,6 +35,11 @@ classdef Solver_Periodic < Solver
             x(free)=usol(1:1:size(free,2));
             x(pglib)=usol(size(free,2)+1:1:size(newLHS,1));
             x(qglib)= x(pglib);
+        end
+        
+        function setSolverVariables(obj,data)
+            obj.pnods = data.pnodes;
+            obj.nunkn =  data.nunkn;
         end
     end
 end

@@ -11,7 +11,7 @@ b=addpath(genpath('./Input/'));
 % 4 - Compute       --> obj.computeVariables;
 % 5 - Postprocess   --> obj.postProcess;
 %% test
- run('test.m')
+% run('test.m')
 clear variables
 %% Main.m
 triangle_linear = Physical_Problem('CantileverBeam_Triangle_Linear');
@@ -33,11 +33,12 @@ fprintf('Ok\n');
 
 Micro_Square_Triangle = Physical_Problem_Micro('RVE_Square_Triangle');
 Micro_Square_Triangle.preProcess;
-%Micro_Square_Triangle.computeVariables([1 0 0]);
+Micro_Square_Triangle.computeVariables([1 0 0]);
 Micro_Square_Triangle.postProcess;
-[Chomog,tstress,tstrain] = Micro_Square_Triangle.computeChomog;
+Micro_Square_Triangle.computeChomog;
 
 fprintf('Ok\n');
+
 
  
 % triangle_quadratic = Physical_Problem('CantileverBeam_Triangle_Quadratic');

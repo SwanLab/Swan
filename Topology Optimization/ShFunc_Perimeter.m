@@ -18,7 +18,7 @@ classdef ShFunc_Perimeter< Shape_Functional
             Perimeter_target=obj.target_parameters.Perimeter_target;
         end
         function computef(obj,x,physProblem,~,~)
-            obj.checkFilterPre(physProblem)
+            obj.checkFilterPre(physProblem);
             Msmooth=obj.filter_pde.Msmooth;
             x_reg=obj.filter_pde.getP0fromP1_per(x,obj.epsilon);
             Perimeter = 0.5/obj.epsilon*((1 - x_reg)'*obj.filter_pde.rhs);

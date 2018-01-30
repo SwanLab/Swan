@@ -7,10 +7,14 @@ classdef PhysicalVars_Elastic_2D_Micro < PhysicalVars_Elastic_2D
     
     properties (Access = {?Physical_Problem_Micro, ?PhysicalVars_Elastic_2D})
         stress_homog
-        %tstress
-        %tstrain
         stress_fluct
         strain_fluct
+    end
+    
+    properties (GetAccess = public, SetAccess = ?Physical_Problem_Micro)
+        Chomog
+        tstress
+        tstrain
     end
     
     methods (Access = {?Physical_Problem, ?PhysicalVars_Elastic_2D, ?PhysicalVars_Elastic_2D_Micro})
@@ -25,23 +29,21 @@ classdef PhysicalVars_Elastic_2D_Micro < PhysicalVars_Elastic_2D
             obj.strain_fluct = obj.strain;
             Cmat = material.C;
             
-            obj.stress = zeros(dim.nstre,nelem,G.ngaus);
-            obj.strain = zeros(dim.nstre,nelem,G.ngaus);
-            
-             obj.stress_homog = zeros(dim.nstre,1);
+            obj.stress = zeros(G.ngaus,dim.nstre,nelem);
+            obj.strain = zeros(G.ngaus,dim.nstre,nelem);           
+            obj.stress_homog = zeros(dim.nstre,1);
+            vol_dom = sum(sum(G.dvolu)); 
             
             for igaus=1:G.ngaus
-                vol_dom = sum(G.dvolu(:,igaus));
-
-                obj.strain(1:dim.nstre,:,igaus) = vstrain'*ones(1,nelem) + obj.strain_fluct(1:dim.nstre,:,igaus);
+                obj.strain(igaus,1:dim.nstre,:) = vstrain.*ones(1,dim.nstre,nelem) + obj.strain_fluct(igaus,1:dim.nstre,:);
                 for istre=1:dim.nstre
                     for jstre=1:dim.nstre
-                        obj.stress(istre,:,igaus) = squeeze(obj.stress(istre,:,igaus)) + 1/vol_dom*squeeze(squeeze(Cmat(istre,jstre,:)))'.* obj.strain(jstre,:,igaus);
+                        obj.stress(igaus,istre,:) = squeeze(obj.stress(igaus,istre,:)) + 1/vol_dom*squeeze(squeeze(Cmat(istre,jstre,:))).* squeeze(obj.strain(igaus,jstre,:));
                     end
                 end
                 % contribucion a la C homogeneizada
                 for istre=1:dim.nstre
-                    obj.stress_homog(istre) = obj.stress_homog(istre) +  1/vol_dom *(obj.stress(istre,:,igaus))*G.dvolu(:,igaus);
+                    obj.stress_homog(istre) = obj.stress_homog(istre) +  1/vol_dom *(squeeze(obj.stress(igaus,istre,:)))'*G.dvolu(:,igaus);
                 end                
             end
         end
