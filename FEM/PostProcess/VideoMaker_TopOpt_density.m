@@ -45,6 +45,7 @@ classdef  VideoMaker_TopOpt_density < VideoMaker_TopOpt
             fprintf(fid,'%s\n',['set arg4 "',componentfield,'"']);  
                        
             fprintf(fid,'%s\n',['source "',filepath,'"']);
+            fprintf(fid,'%s\n',['Make_Video_density $arg1 $arg2 $arg3 $arg4']);
             fprintf(fid,'%s\n',['GiD_Process Mescape Quit']);
             fclose(fid);
             obj.execute_tcl_files(obj.gidPath,file_tcl_name_with_path)
