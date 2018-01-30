@@ -1,23 +1,23 @@
 classdef ShFunc_Chomog < Shape_Functional
     properties (Access = protected)
-        h_C_0;
-        Chomog;
-        tstress;
-        tstrain;
-        Chomog_Derivatives;
+        h_C_0
+        Chomog
+        tstress
+        tstrain
+        Chomog_Derivatives
     end
     methods
         function obj=ShFunc_Chomog(settings)
-            obj@Shape_Functional(settings);
+            obj@Shape_Functional(settings);            
         end
     end
     methods (Access = protected)
         function compute_Chomog_Derivatives(obj,nstre,nelem,ngaus,x,interpolation,filter)
             rho=filter.getP0fromP1(x);
             matProps=interpolation.computeMatProp(rho);
-%           mass=filter.Msmooth;
-%             obj.tstrain = permute(obj.tstrain,[2 3 4]);
-%             obj.tstress = permute(obj.tstrain,);
+            %           mass=filter.Msmooth;
+            %             obj.tstrain = permute(obj.tstrain,[2 3 4]);
+            %             obj.tstress = permute(obj.tstrain,);
             obj.Chomog_Derivatives = zeros(nstre,nstre,ngaus,nelem);
             for istreChomog = 1:nstre
                 for jstreChomog = 1:nstre
@@ -32,8 +32,8 @@ classdef ShFunc_Chomog < Shape_Functional
                             end
                         end
                     end
-%                     C_D = filter.getP1fromP0(squeeze(obj.Chomog_Derivatives(istreChomog,jstreChomog,:,:)));
-%                     obj.Chomog_Derivatives(istreChomog,jstreChomog,:,:) = mass*C_D;
+                    %                     C_D = filter.getP1fromP0(squeeze(obj.Chomog_Derivatives(istreChomog,jstreChomog,:,:)));
+                    %                     obj.Chomog_Derivatives(istreChomog,jstreChomog,:,:) = mass*C_D;
                 end
             end
             
@@ -58,6 +58,12 @@ classdef ShFunc_Chomog < Shape_Functional
                 end
             end
             r = DtC;
+        end
+        
+        function setPhysicalData(obj,variables)
+            obj.Chomog = variables.Chomog;
+            obj.tstrain = variables.tstrain;
+            obj.tstress = variables.tstress;            
         end
     end
 end

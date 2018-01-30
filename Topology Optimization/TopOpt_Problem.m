@@ -33,7 +33,19 @@ classdef TopOpt_Problem < handle
                     settings.nconstr=1;
                     obj=TopOpt_Problem_ComplianceLamPerimeter_st_Volume(settings);
                     obj.physicalProblem=Physical_Problem(obj.settings.filename);
-                case 'Chomog_alphabeta'
+                case 'Chomog_alphabeta_st_Volume'
+                    settings.nconstr=1;
+                    obj=TopOpt_Problem_Chomog(settings);
+                    obj.physicalProblem=Physical_Problem_Micro(obj.settings.filename);
+                case 'ChomogLamPerimeter_alphabeta_st_Volume'
+                    settings.nconstr=1;
+                    obj=TopOpt_Problem_Chomog(settings);
+                    obj.physicalProblem=Physical_Problem_Micro(obj.settings.filename);
+                case 'Chomog_fraction_st_Volume'
+                    settings.nconstr=1;
+                    obj=TopOpt_Problem_Chomog(settings);
+                    obj.physicalProblem=Physical_Problem_Micro(obj.settings.filename);
+                case 'ChomogLamPerimeter_fraction_st_Volume'
                     settings.nconstr=1;
                     obj=TopOpt_Problem_Chomog(settings);
                     obj.physicalProblem=Physical_Problem_Micro(obj.settings.filename);
@@ -52,8 +64,8 @@ classdef TopOpt_Problem < handle
             switch obj.settings.optimizer
                 case 'SLERP'
                     obj.optimizer=Optimizer_AugLag(settings,Optimizer_SLERP(settings));
-                    obj.ini_design_value=-1.032930063848122;
-                    obj.hole_value=0.516465031924061;
+                    obj.ini_design_value=-1.015243959022692;
+                    obj.hole_value=0.507621979511346;
                 case 'PROJECTED GRADIENT'
                     obj.optimizer=Optimizer_AugLag(settings,Optimizer_PG(settings));
                 case 'MMA'
@@ -183,8 +195,7 @@ classdef TopOpt_Problem < handle
             rho_elem = obj.filter.getP0fromP1(obj.x);
             matprop = obj.interpolation.computeMatProp(rho_elem);
             obj.physicalProblem.setMatProps(matprop);
-        end
-        
+        end        
         function obj = compute_physical_variables(obj)
             switch obj.physicalProblem.mesh.scale
                 case 'MICRO'

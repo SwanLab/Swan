@@ -9,7 +9,6 @@ classdef Optimizer < handle
         target_parameters=struct;
         epsilon_scalar_product_P1
         shfunc_volume
-        name
         niter
         optimizer
         maxiter
@@ -65,7 +64,7 @@ classdef Optimizer < handle
             results.physicalVars = obj.physicalProblem.variables;
             results.design_variable = design_variable;
             results.design_variable_reg = design_variable_reg;
-            postprocess.print(obj.physicalProblem,obj.name,iter,results);
+            postprocess.print(obj.physicalProblem,obj.physicalProblem.problemID,iter,results);
         end
         function compute_physical_variables(obj)
             switch obj.physicalProblem.mesh.scale

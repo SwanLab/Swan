@@ -22,11 +22,11 @@ classdef Physical_Problem_Micro < Physical_Problem
             props.kappa = 0.75;
             obj.material = obj.material.setProps(props);
             
-            obj.bc = BC_Micro(obj.dim.nunkn,obj.problemID,obj.mesh.coord);
+            obj.bc = BC_Micro(obj.dim.nunkn,obj.problemID,obj.mesh.coord,obj.mesh.ptype,obj.dim.ndim);
             obj.dof = DOF(obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.bc.fixnodes);
             obj.element = Element_Elastic_Micro;
             obj.variables = PhysicalVars_Elastic_2D_Micro(obj.dof.ndof);
-            obj.solver = Solver_Periodic;
+            obj.solver = Solver.create(obj.mesh.scale);
         end
         
         function computeVariables(obj,vstrain)
@@ -36,13 +36,16 @@ classdef Physical_Problem_Micro < Physical_Problem
             % Assembly
             [obj.LHS,obj.RHS] = obj.Assemble(obj.element,obj.geometry.nnode,obj.dim.nunkn,obj.dof,obj.bc);
             
-%              comparison1(obj.LHS);
-%              comparison2(obj.RHS);
-
-            % Solver
-            sol = obj.solver.solve(obj.variables.d_u,obj.LHS,obj.RHS,obj.dof,obj.dim.nunkn,obj.bc.pnodes);            
+            %              comparison1(obj.LHS);
+            %              comparison2(obj.RHS);
             
-%             comparison3(sol);
+            % Solver            
+            data.pnodes = obj.bc.pnodes;
+            data.nunkn = obj.dim.nunkn;
+            obj.solver.setSolverVariables(data);
+            sol = obj.solver.solve(obj.variables.d_u,obj.LHS,obj.RHS,obj.dof);
+            
+            %             comparison3(sol);
             
             obj.variables = obj.variables.computeVars(sol,obj.dim,obj.geometry,obj.mesh.nelem,obj.dof.idx,obj.element,obj.material,vstrain);
             
