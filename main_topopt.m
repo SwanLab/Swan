@@ -44,7 +44,7 @@ settings.optimizer='SLERP';
 % settings.optimizer='MMA';
 % settings.optimizer='IPOPT';
 
-settings.filter='PDE'; %PDE
+settings.filter='P1'; %PDE
 settings.TOL.rho_plus=1;
 settings.TOL.rho_minus=0;
 settings.TOL.E_plus=1;
