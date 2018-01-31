@@ -5,9 +5,11 @@ classdef Solver_Dirichlet_Conditions < Solver
     properties
     end
     
+
     methods (Access = public, Static)
+
         %     methods (Access = public,Static)
-        % Analytical Solver (A·X=b)
+        % Analytical Solver (AÂ·X=b)
         function x = solve(LHS,RHS,dof,fixnodes)
             x = zeros(dof.ndof,1);
             if ~isempty(dof.vR)

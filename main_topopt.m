@@ -10,6 +10,7 @@ addpath(genpath('./Topology Optimization'));
 clear variables;
 %% settings
 settings=struct;
+
 settings.filename='TOPOPT_TEST';
 %settings.filename='topopt_quad';
 %settings.filename='GrippingNew';
@@ -17,6 +18,8 @@ settings.filename='TOPOPT_TEST';
 settings.plotting=true;
 settings.printing=false;
 settings.maxiter = 5000;
+
+
 
 settings.method='SIMPALL';
 %settings.method='SIMP_P3';
@@ -27,7 +30,9 @@ settings.initial_case='full';
 
 %settings.ptype='Compliance_st_Volume';
 settings.ptype='ComplianceLamPerimeter_st_Volume';
+
 %settings.ptype='Compliance_st_VolumePerimeter';
+
 
 if settings.filename=='GrippingNew'
     settings.ptype='Gripping';
@@ -67,5 +72,6 @@ test=TopOpt_Problem.create(settings);
 test.preProcess;
 test.computeVariables;
 toc
+
 test.postProcess;
 
