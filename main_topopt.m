@@ -33,8 +33,8 @@ if settings.filename=='GrippingNew'
     settings.ptype='Gripping';
 end
 
-settings.optimizer='SLERP';
-%settings.optimizer='PROJECTED GRADIENT';
+%settings.optimizer='SLERP';
+settings.optimizer='PROJECTED GRADIENT';
 %settings.optimizer='MMA';
 %settings.optimizer='IPOPT';
 
@@ -62,8 +62,11 @@ settings.Vfrac_initial=1;
 settings.optimality_initial=1e-3;
 settings.constr_initial=1e-3;
 %% main
+
 tic
 test=TopOpt_Problem.create(settings);
+% test.checkDerivative;
+% toc
 test.preProcess;
 test.computeVariables;
 toc
