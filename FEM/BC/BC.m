@@ -4,6 +4,7 @@ classdef BC < handle
     
     
     properties (GetAccess = {?Physical_Problem,?Element,?Filter, ?BC_Micro}, SetAccess = protected)
+
         fixnodes
         fixnodes_perimeter
         neunodes

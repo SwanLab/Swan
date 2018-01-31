@@ -37,6 +37,10 @@ classdef Preprocess<handle
                 fixnodes_perimeter(:,3)=zeros(length(fixnodes_perimeter(:,1)),1);
             end
         end
+        function forces_adjoint=getBC_adjoint(filename)
+            run(filename)
+            forces_adjoint = pointload_adjoint;
+        end
         
         function [pnods] = getPeriodicBC(coordinates)
             % PERIODIC BOUNDARY COND

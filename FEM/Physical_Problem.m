@@ -3,7 +3,7 @@ classdef Physical_Problem < FEM
     %   Detailed explanation goes here
     
     %% Public GetAccess properties definition =============================
-    properties (GetAccess = public, SetAccess = protected)
+    properties (GetAccess = public, SetAccess = public)
         variables
         mesh
         dim
@@ -28,11 +28,11 @@ classdef Physical_Problem < FEM
             obj.dim = DIM(obj.mesh.ptype,obj.mesh.pdim);
             obj.geometry=Geometry(obj.mesh);
             obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem);
+            obj.bc = BC(obj.dim.nunkn,obj.problemID);
         end
         
         function preProcess(obj)
             % Create Objects
-            obj.bc = BC(obj.dim.nunkn,obj.problemID);
             obj.dof = DOF(obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.bc.fixnodes);
             obj.element = Element.create(obj.mesh.ptype,obj.mesh.pdim);
             obj.physicalVars = PhysicalVariables.create(obj.mesh.ptype,obj.mesh.pdim);
@@ -66,7 +66,12 @@ classdef Physical_Problem < FEM
         end
         function Msmooth=computeMass(obj,job)
             meshMass=obj.mesh;
-            meshMass.geometryType='Triangle_Linear_Mass';
+            switch obj.geometry.type
+                case 'TRIANGLE'
+                    meshMass.geometryType='Triangle_Linear_Mass';
+                case 'QUADRILATERAL'
+                    meshMass.geometryType='Quad_Mass';
+            end
             geom=Geometry(meshMass);
             lnods=obj.mesh.connec';
             emat = zeros(geom.nnode,geom.nnode,obj.mesh.nelem);

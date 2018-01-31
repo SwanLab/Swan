@@ -22,13 +22,15 @@ classdef Filter_PDE < Filter
                     data.nunkn=1;
                     obj.solver.setSolverVariables(data);
             end
+
+
             obj.epsilon=0.03;
             obj.A_nodal_2_gauss=obj.computeA(physicalProblem);
         end
         function A_nodal_2_gauss=computeA(obj,physProblem)
             nelem=physProblem.mesh.nelem; nnode=physProblem.geometry.nnode;
             A_nodal_2_gauss = sparse(nelem,physProblem.mesh.npnod);
-            fn=ones(1,nelem);
+            fn=ones(1,physProblem.mesh.npnod);
             lnods=obj.connectivities';
             fe=zeros(nnode,nelem);
             for inode=1:nnode

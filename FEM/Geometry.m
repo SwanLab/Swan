@@ -11,6 +11,7 @@ classdef Geometry
         nnode
         ngaus
         djacob
+        type
     end
     properties (GetAccess = ?Postprocess, SetAccess = private)
         posgp
@@ -31,6 +32,8 @@ classdef Geometry
                     end
                 case 'Triangle_Linear_Mass'
                     geometryObject=Triangle_Linear_Mass;
+                case 'Quad_Mass'
+                    geometryObject=Quad_Mass;
                 case 'QUAD'
                     switch obj.nnode
                         case 4
@@ -47,7 +50,7 @@ classdef Geometry
                 otherwise
                     error('Invalid mesh type.')
             end
-            
+            obj.type = geometryObject.type;
             obj.posgp = geometryObject.posgp;
             obj.weigp = geometryObject.weigp;
             obj.ndime = geometryObject.ndime;

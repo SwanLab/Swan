@@ -13,7 +13,9 @@ classdef ShFunc_ChomogLamPerimeter_alphabeta< Shape_Functional
         end
     end
     methods
-        function computef(obj,x,physicalProblem,interpolation,filter)            
+        function computef(obj,x,physicalProblem,interpolation,filter)           
+            obj.compliance.target_parameters=obj.target_parameters;
+            obj.perimeter.target_parameters=obj.target_parameters;            
             obj.perimeter.computef(x, physicalProblem, interpolation,filter);
             obj.chomog.computef(x, physicalProblem, interpolation,filter);
             

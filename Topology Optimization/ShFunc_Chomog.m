@@ -8,7 +8,7 @@ classdef ShFunc_Chomog < Shape_Functional
     end
     methods
         function obj=ShFunc_Chomog(settings)
-            obj@Shape_Functional(settings);            
+%            obj@Shape_Functional(settings);            
         end
     end
     methods (Access = protected)
