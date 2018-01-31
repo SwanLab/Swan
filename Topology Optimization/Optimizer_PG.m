@@ -23,12 +23,12 @@ classdef Optimizer_PG < Optimizer
         function constr_tol=get.constr_tol(obj)
             constr_tol(1:obj.nconstr)=obj.target_parameters.constr_tol;
         end
-        function x=updateX(obj,x_ini,cost,constraint,physProblem,interpolation,filter)                 
+        function x=updateX(obj,x_ini,cost,constraint,interpolation,filter)                 
                 x=obj.updateRho(x_ini,obj.objfunc.gradient);
-                physProblem=obj.updateEquilibrium(x,physProblem,interpolation,filter);
-                cost.computef(x,physProblem,interpolation,filter);
-                constraint.computef(x,physProblem,interpolation,filter);
-                obj.shfunc_volume.computef(x,physProblem,interpolation,filter);
+                obj.update_physical_variables(x,interpolation,filter); 
+                cost.computef(x,obj.physicalProblem,interpolation,filter);
+                constraint.computef(x,obj.physicalProblem,interpolation,filter);
+                obj.shfunc_volume.computef(x,obj.physicalProblem,interpolation,filter);
                 
                 obj.objfunc.computeFunction(cost,constraint)
 %                 cost_ls = cost.value + obj.lambda*constraint.value + 0.5*obj.penalty*(constraint.value.*constraint.value);

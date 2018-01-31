@@ -36,7 +36,7 @@ classdef Physical_Problem < FEM
             obj.dof = DOF(obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.bc.fixnodes);
             obj.element = Element.create(obj.mesh.ptype,obj.mesh.pdim);
             obj.physicalVars = PhysicalVariables.create(obj.mesh.ptype,obj.mesh.pdim);
-            obj.solver = Solver_Dirichlet_Conditions;
+            obj.solver = Solver.create(obj.mesh.scale);
         end
         
         function computeVariables(obj)
@@ -44,10 +44,13 @@ classdef Physical_Problem < FEM
             obj.element.computeRHS(obj.dim.nunkn,obj.mesh.nelem,obj.geometry.nnode,obj.bc,obj.dof.idx);
             
             % Assembly
-            [obj.LHS,obj.RHS] = obj.Assemble(obj.element,obj.geometry.nnode,obj.dim.nunkn,obj.dof, obj.bc);
+            [obj.LHS,obj.RHS] = obj.Assemble(obj.element,obj.geometry.nnode,obj.dim.nunkn,obj.dof,obj.bc);
             
             % Solver
-            sol = obj.solver.solve(obj.LHS,obj.RHS,obj.dof,obj.bc.fixnodes);
+            data.fixnodes = obj.bc.fixnodes;
+            obj.solver.setSolverVariables(data);
+            sol = zeros(obj.dof.ndof,1);
+            sol = obj.solver.solve(sol,obj.LHS,obj.RHS,obj.dof);
             obj.variables = obj.physicalVars.computeVars(sol,obj.dim,obj.geometry,obj.mesh.nelem,obj.dof.idx,obj.element,obj.material);
         end
         

@@ -15,42 +15,55 @@ classdef Optimizer < handle
         maxiter
         plotting 
         printing
+        physicalProblem
+
     end
     methods
-        function obj=Optimizer(settings)       
-            obj.shfunc_volume=ShFunc_Volume(settings);  
+        function obj=Optimizer(settings)
+            obj.shfunc_volume=ShFunc_Volume(settings);
             obj.target_parameters=settings.target_parameters;
             obj.optimizer = settings.optimizer;
             obj.maxiter = settings.maxiter;
+            
             obj.plotting = settings.plotting;
             obj.printing = settings.printing;
-        end 
-        
-        function x=solveProblem(obj,x_ini,cost,constraint,physProblem,interpolation,filter) 
-            obj.epsilon_scalar_product_P1=1*obj.estimate_mesh_size(physProblem.mesh.coord,physProblem.mesh.connec);
-            obj.Msmooth=physProblem.computeMass(2);
-            obj.Ksmooth=physProblem.computeKsmooth;
-            cost.computef(x_ini,physProblem,interpolation,filter);
-            constraint.computef(x_ini,physProblem,interpolation,filter);  
-            obj.plotX(x_ini,physProblem)
+        end
             
-            obj.print(x_ini,physProblem,filter.getP0fromP1(x_ini),obj.niter);
+            
+
+        
+        function x=solveProblem(obj,x_ini,cost,constraint,interpolation,filter)
+            obj.epsilon_scalar_product_P1=1*obj.estimate_mesh_size(obj.physicalProblem.mesh.coord,obj.physicalProblem.mesh.connec);
+            obj.Msmooth=obj.physicalProblem.computeMass(2);
+            obj.Ksmooth=obj.physicalProblem.computeKsmooth;
+            cost.computef(x_ini,obj.physicalProblem,interpolation,filter);
+            constraint.computef(x_ini,obj.physicalProblem,interpolation,filter);
+            obj.plotX(x_ini)
+
+            obj.print(x_ini,filter.getP0fromP1(x_ini),obj.niter);
             while(obj.stop_criteria && obj.niter < obj.maxiter)
                 obj.niter=obj.niter+1;
                 disp(strcat('Iter: ', int2str(obj.niter)))  
-                x=obj.updateX(x_ini,cost,constraint,physProblem,interpolation,filter);
-                obj.plotX(x,physProblem)
-                obj.print(x,physProblem,filter.getP0fromP1(x),obj.niter);
-                x_ini=x;                
+                x=obj.updateX(x_ini,cost,constraint,interpolation,filter);
+                obj.plotX(x)
+                obj.print(x,filter.getP0fromP1(x),obj.niter);
+                x_ini=x;
             end
             obj.stop_criteria=1;
-            x=x_ini;
+        end
+        
+        
+        function setPhysicalProblem(obj,pProblem)
+            obj.physicalProblem = pProblem;
         end
         
         function sp=scalar_product(obj,f,g)
+            f = f(:);
+            g = g(:);
             sp=f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
         end
-        function h=estimate_mesh_size(obj,coordinates,conectivities)
+        
+           function h=estimate_mesh_size(obj,coordinates,conectivities)
             x1 = coordinates(conectivities(:,1));
             x2 = coordinates(conectivities(:,2));
             x3 = coordinates(conectivities(:,3));
@@ -61,10 +74,47 @@ classdef Optimizer < handle
             hs = max([x1x2,x2x3,x1x3]');
             h = mean(hs);
         end
-        function plotX(obj,x,physicalProblem)
+        
+    end
+    methods (Access = private)
+     
+
+        function print(obj,design_variable,design_variable_reg,iter)
+            if ~(obj.printing)
+                return
+            end
+            postprocess = Postprocess_TopOpt.Create(obj.optimizer);
+            results.physicalVars = obj.physicalProblem.variables;
+            results.design_variable = design_variable;
+            results.design_variable_reg = design_variable_reg;
+            postprocess.print(obj.physicalProblem,obj.physicalProblem.problemID,iter,results);
+        end
+        
+
+        
+        function compute_physical_variables(obj)
+            switch obj.physicalProblem.mesh.scale
+                case 'MICRO'
+                    obj.physicalProblem.computeChomog;
+                case 'MACRO'
+                    obj.physicalProblem.computeVariables;
+            end
+        end
+    end
+    methods (Access = protected)
+        function update_physical_variables(obj,x,interpolation,filter)
+            rho=filter.getP0fromP1(x);
+            %Update phys problem
+            matProps=interpolation.computeMatProp(rho);
+            obj.physicalProblem.setMatProps(matProps);
+            obj.compute_physical_variables;
+        end
+
+        function plotX(obj,x)
             if ~(obj.plotting)
                 return
             end
+
             if any(x<0)
                 rho_nodal=x<0;
             else
@@ -81,7 +131,7 @@ classdef Optimizer < handle
                 height = mp(1,4);
                 size_screen_offset = round([0.7*width,0.52*height,-0.71*width,-0.611*height],0);
                 set(fh,'Position',mp(select_screen,:) + size_screen_offset);
-                obj.fhtri = trisurf(physicalProblem.mesh.connec,physicalProblem.mesh.coord(:,1),physicalProblem.mesh.coord(:,2),double(rho_nodal), ...
+                obj.fhtri = trisurf(obj.physicalProblem.mesh.connec,obj.physicalProblem.mesh.coord(:,1),obj.physicalProblem.mesh.coord(:,2),double(rho_nodal), ...
                     'EdgeColor','none','LineStyle','none','FaceLighting','phong');
                 view([0,90]);
                 colormap(flipud(gray));
@@ -93,27 +143,7 @@ classdef Optimizer < handle
                 drawnow;
             end
         end
-       
-        function print(obj,design_variable,physicalProblem,design_variable_reg,iter)
-            if ~(obj.printing)
-                return
-            end
-            postprocess = Postprocess_TopOpt.Create(obj.optimizer);
-            results.physicalVars = physicalProblem.variables;
-            results.design_variable = design_variable;
-            results.design_variable_reg = design_variable_reg;
-            postprocess.print(physicalProblem,obj.name,iter,results);
-            
-        end
-        
+
     end
-    methods (Static)
-        function physicalProblem=updateEquilibrium(x,physicalProblem,interpolation,filter)
-            rho=filter.getP0fromP1(x);
-            %Update phys problem
-            matProps=interpolation.computeMatProp(rho);
-            physicalProblem.setMatProps(matProps);
-            physicalProblem.computeVariables;
-        end
-    end
+   
 end
