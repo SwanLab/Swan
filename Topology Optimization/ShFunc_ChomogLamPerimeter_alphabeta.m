@@ -6,15 +6,15 @@ classdef ShFunc_ChomogLamPerimeter_alphabeta< Shape_Functional
     end
     methods
         function obj=ShFunc_ChomogLamPerimeter_alphabeta(settings)
-            obj@Shape_Functional(settings);
+%            obj@Shape_Functional(settings);
             obj.perimeter=ShFunc_Perimeter(settings);
             obj.chomog=ShFunc_Chomog_alphabeta(settings);
             obj.lambda=settings.perimeter.lambda;
         end
     end
     methods
-        function computef(obj,x,physicalProblem,interpolation,filter)           
-            obj.compliance.target_parameters=obj.target_parameters;
+        function computef(obj,x,physicalProblem,interpolation,filter)      
+            obj.chomog.target_parameters=obj.target_parameters;
             obj.perimeter.target_parameters=obj.target_parameters;            
             obj.perimeter.computef(x, physicalProblem, interpolation,filter);
             obj.chomog.computef(x, physicalProblem, interpolation,filter);

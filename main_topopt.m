@@ -39,8 +39,8 @@ settings.initial_case='circle';
 % settings.ptype='Compliance_st_VolumePerimeter';
 % settings.ptype='Chomog_alphabeta_st_Volume';
 % settings.ptype='Chomog_fraction_st_Volume';
-%settings.ptype='ChomogLamPerimeter_alphabeta_st_Volume';
-settings.ptype='ChomogLamPerimeter_fraction_st_Volume';
+settings.ptype='ChomogLamPerimeter_alphabeta_st_Volume';
+%settings.ptype='ChomogLamPerimeter_fraction_st_Volume';
 
 %if settings.filename=='GrippingNew'
 %    settings.ptype='Gripping';
