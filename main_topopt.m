@@ -9,8 +9,8 @@ addpath(genpath('./Topology Optimization'));
 %run('test.m');
 clear variables;
 %% settings
-% settings.filename='TOPOPT_TEST';  %MACRO
-settings.filename='RVE_Square_Triangle';
+settings.filename='TOPOPT_TEST';  %MACRO
+%settings.filename='RVE_Square_Triangle';
 % settings.filename='RVE_Square_Triangle_Fine';
 
 
@@ -20,8 +20,8 @@ settings.filename='RVE_Square_Triangle';
 settings.method='SIMPALL';
 
 settings.material='ISOTROPIC';
-% settings.initial_case='full';
-settings.initial_case='circle';
+settings.initial_case='full';
+%settings.initial_case='circle';
 % settings.initial_case='horizontal';
 % settings.initial_case='square';
 % settings.initial_case='feasible';
@@ -29,12 +29,12 @@ settings.initial_case='circle';
 
 
 
-% settings.ptype='Compliance_st_Volume';
-% settings.ptype='ComplianceLamPerimeter_st_Volume';
+settings.ptype='Compliance_st_Volume';
+%settings.ptype='ComplianceLamPerimeter_st_Volume';
 % settings.ptype='Compliance_st_VolumePerimeter';
 % settings.ptype='Chomog_alphabeta_st_Volume';
 % settings.ptype='Chomog_fraction_st_Volume';
-settings.ptype='ChomogLamPerimeter_alphabeta_st_Volume';
+%settings.ptype='ChomogLamPerimeter_alphabeta_st_Volume';
 % settings.ptype='ChomogLamPerimeter_fraction_st_Volume';
 
 
