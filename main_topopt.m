@@ -33,9 +33,9 @@ if settings.filename=='GrippingNew'
     settings.ptype='Gripping';
 end
 
-settings.optimizer='SLERP';
+%settings.optimizer='SLERP';
 %settings.optimizer='PROJECTED GRADIENT';
-%settings.optimizer='MMA';
+settings.optimizer='MMA';
 %settings.optimizer='IPOPT';
 
 settings.filter='P1';
@@ -43,9 +43,9 @@ settings.filter='P1';
 settings.TOL.rho_plus=1;
 settings.TOL.rho_minus=0;
 settings.TOL.E_plus=1;
-settings.TOL.E_minus=1e-3;
-settings.TOL.nu_plus=1/3;
-settings.TOL.nu_minus=1/3;
+settings.TOL.E_minus=1/3;
+settings.TOL.nu_plus=0.3;
+settings.TOL.nu_minus=0.35;
 
 settings.target_parameters.Vfrac=0.3;
 settings.target_parameters.optimality_tol=1e-3;
