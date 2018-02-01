@@ -46,8 +46,8 @@ settings.ptype='ComplianceLamPerimeter_st_Volume';
 %    settings.ptype='Gripping';
 %end
 
-settings.optimizer='SLERP';
-%settings.optimizer='PROJECTED GRADIENT';
+%settings.optimizer='SLERP';
+settings.optimizer='PROJECTED GRADIENT';
 %settings.optimizer='MMA';
 %settings.optimizer='IPOPT';
 
@@ -68,7 +68,7 @@ settings.target_parameters.Perimeter_target=5;
 settings.perimeter.optimizer=settings.optimizer;
 settings.perimeter.lambda=0.1;%%%%%%%%%%%%
 
-settings.nsteps=5;
+settings.nsteps=1;
 settings.Vfrac_final=settings.target_parameters.Vfrac;
 settings.optimality_final=settings.target_parameters.optimality_tol;
 settings.constr_final=settings.target_parameters.constr_tol;
