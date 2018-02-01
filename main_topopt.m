@@ -34,9 +34,9 @@ if settings.filename=='GrippingNew'
 end
 
 %settings.optimizer='SLERP';
-settings.optimizer='PROJECTED GRADIENT';
+%settings.optimizer='PROJECTED GRADIENT';
 %settings.optimizer='MMA';
-%settings.optimizer='IPOPT';
+settings.optimizer='IPOPT';
 
 settings.filter='P1';
 %settings.filter='PDE';
