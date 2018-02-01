@@ -251,10 +251,10 @@ classdef TopOpt_Problem < handle
             obj.optimizer.Msmooth = obj.filter.Msmooth;
             obj.optimizer.Ksmooth = obj.filter.Ksmooth;
             obj.optimizer.epsilon_scalar_product_P1 = 1*obj.optimizer.estimate_mesh_size(obj.physicalProblem.mesh.coord,obj.physicalProblem.mesh.connec);
-            
+            if strcmp(obj.settings.optimizer,'SLERP')
             sqrt_norma = obj.optimizer.scalar_product(obj.x,obj.x);
             obj.x = obj.x/sqrt(sqrt_norma);
-            
+            end
             rho_elem = obj.filter.getP0fromP1(obj.x);
             matprop = obj.interpolation.computeMatProp(rho_elem);
             obj.physicalProblem.setMatProps(matprop);
