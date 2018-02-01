@@ -13,7 +13,8 @@ addpath(genpath('./Input/'));
 % test
 clear variables
 %% Main.m
-triangle_linear = Physical_Problem('CantileverBeam_Triangle_Linear');
+% triangle_linear = Pshysical_Problem('CantileverToy_Triangular');
+triangle_linear = Physical_Problem('CantileverToy_Nonlinear');
 triangle_linear.preProcess;
 triangle_linear.computeVariables;
 triangle_linear.postProcess;
@@ -34,23 +35,3 @@ fprintf('Ok\n');
 % Micro_Square_Triangle.computeVariables([1 0 0]);
 % Micro_Square_Triangle.postProcess;
 % Micro_Square_Triangle.computeChomog;
-
-fprintf('Ok\n');
-
- 
-% triangle_quadratic = Physical_Problem('CantileverBeam_Triangle_Quadratic');
-% triangle_quadratic.preProcess;
-% triangle_quadratic.computeVariables;
-% triangle_quadratic.postProcess;
-% 
-% 
-% quadrilateral_bilinear = Physical_Problem('Cantileverbeam_Quadrilateral_Bilinear');
-% quadrilateral_bilinear.preProcess;
-% quadrilateral_bilinear.computeVariables;
-% quadrilateral_bilinear.postProcess;
-% 
-% quadrilateral_serendipity = Physical_Problem('Cantileverbeam_Quadrilateral_Serendipity');
-% quadrilateral_serendipity.preProcess
-% quadrilateral_serendipity.computeVariables;
-% quadrilateral_serendipity.postProcess;
-

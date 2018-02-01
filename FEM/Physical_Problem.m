@@ -26,8 +26,8 @@ classdef Physical_Problem < FEM
             obj.problemID = problemID;
             obj.mesh = Mesh(obj.problemID);
             obj.dim = DIM(obj.mesh.ptype,obj.mesh.pdim);
-            obj.geometry=Geometry(obj.mesh);
-            obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem);
+            obj.geometry = Geometry(obj.mesh);
+            obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem,obj.mesh.connec,obj.geometry.cartd,obj.geometry.nnode,obj.mesh.coord);
         end
         
         function preProcess(obj)
@@ -36,10 +36,15 @@ classdef Physical_Problem < FEM
             obj.dof = DOF(obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.bc.fixnodes);
             obj.element = Element.create(obj.mesh.ptype,obj.mesh.pdim);
             obj.physicalVars = PhysicalVariables.create(obj.mesh.ptype,obj.mesh.pdim);
-            obj.solver = Solver_Dirichlet_Conditions;
+            obj.solver = Solver.create(obj.mesh.ptype); %Solver_Dirichlet_Conditions(); %Solver.create(fasfa)
         end
         
         function computeVariables(obj)
+% %             incrm
+%                 while
+
+% % 
+% 
             obj.element.computeLHS(obj.dim.nunkn,obj.dim.nstre,obj.mesh.nelem,obj.geometry,obj.material);
             obj.element.computeRHS(obj.dim.nunkn,obj.mesh.nelem,obj.geometry.nnode,obj.bc,obj.dof.idx);
             
@@ -157,7 +162,7 @@ classdef Physical_Problem < FEM
             %Compute Global Puntual Forces
             if ~isempty(bc.iN)
                 FextPoint = zeros(dof.ndof,1);
-                FextPoint(bc.iN)=bc.neunodes(:,3);
+                FextPoint(bc.iN) = bc.neunodes(:,3);
                 RHS = RHS + FextPoint;
             end
         end

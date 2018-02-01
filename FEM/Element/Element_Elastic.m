@@ -17,7 +17,7 @@ classdef Element_Elastic < Element
             
             for igauss = 1 :geometry.ngaus
                 % Strain-displacement matrix
-                [obj.B, Bmat] = obj.B.computeB(nunkn,nelem,geometry.nnode,geometry.cartDeriv(:,:,:,igauss));
+                [obj.B, Bmat] = obj.B.computeB(nunkn,nelem,geometry.nnode,geometry.cartd(:,:,:,igauss));
                 
                 for iv=1:geometry.nnode*nunkn
                     for jv=1:geometry.nnode*nunkn

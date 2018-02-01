@@ -17,6 +17,8 @@ classdef PhysicalVariables
                     end
                 case 'THERMAL'
                     error('Still not implemented.')
+                case 'ELASTIC_NONLINEAR'
+                    physicalVars = PhysicalVars_Elastic_Nonlinear();
                 otherwise
                     error('Invalid ptype.')
             end

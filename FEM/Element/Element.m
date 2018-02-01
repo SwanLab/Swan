@@ -28,16 +28,19 @@ classdef Element<handle
                 case 'THERMAL'
                     element = Element_Thermal;
                     element.B = B_thermal;
+                case 'ELASTIC_NONLINEAR'
+                    element = Element_Elastic_Nonlinear();
                 otherwise
                     error('Invalid ptype.')
             end
+%             obj.computeFext
         end
     end
     methods (Access = {?Physical_Problem, ?Element})
         function obj = computeRHS(obj,nunkn,nelem,nnode,bc,idx)
-            RHSSuperficial  = obj.computeSuperficialRHS(nunkn,nelem,nnode,bc,idx);
-            RHSVolumetric  = obj.computeVolumetricRHS(nunkn,nelem,nnode,bc,idx);
-            obj.RHS = RHSSuperficial + RHSVolumetric;
+            FextSuperficial = obj.computeSuperficialFext(nunkn,nelem,nnode,bc,idx);
+            FextVolumetric  = obj.computeVolumetricFext(nunkn,nelem,nnode,bc,idx);
+            obj.Fext = FextSuperficial + FextVolumetric;
         end
     end
     

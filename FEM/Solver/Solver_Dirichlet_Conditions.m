@@ -17,6 +17,9 @@ classdef Solver_Dirichlet_Conditions < Solver
                 x(dof.vL,1) = LHS(dof.vL,dof.vL)\RHS(dof.vL);
             end
         end
+        
+        
+        
     end
     
 end

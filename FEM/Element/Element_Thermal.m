@@ -14,7 +14,7 @@ classdef Element_Thermal < Element
             % Elastic matrix
             for igauss = 1 :geometry.ngaus
                 % Strain-displacement matrix
-                [obj.B, Bmat] = obj.B.computeB(nunkn,nelem,geometry.nnode,geometry.cartDeriv(:,:,:,igauss));
+                [obj.B, Bmat] = obj.B.computeB(nunkn,nelem,geometry.nnode,geometry.cartd(:,:,:,igauss));
                 
                 % Compute Ke
                 if nelem < 1000 %Just to reduce test.m compute time TO BE REMOVED
