@@ -22,8 +22,7 @@ classdef Filter < handle
             obj.coordinates=physicalProblem.mesh.coord;
             obj.connectivities=physicalProblem.mesh.connec;  
         end
-        function A_nodal_2_gauss=computeA(obj,physProblem)
-            
+        function A_nodal_2_gauss=computeA(obj,physProblem)            
             nelem=physProblem.mesh.nelem; nnode=physProblem.geometry.nnode;
             A_nodal_2_gauss = sparse(nelem,physProblem.mesh.npnod);
             fn=ones(1,nelem);
