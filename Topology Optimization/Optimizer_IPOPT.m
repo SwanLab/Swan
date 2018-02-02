@@ -73,7 +73,7 @@ classdef Optimizer_IPOPT < Optimizer
             g=constraint.gradient;
         end
         function stop=outputfun_ipopt(iter,fval,data,plotx)
-            iter
+            disp(strcat('Iter:',num2str(iter)));
             stop=true;
             plotx(data.x);
         end
