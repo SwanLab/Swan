@@ -34,8 +34,8 @@ settings.initial_case='full';
 % settings.initial_case='rand';
 
 
-%settings.ptype='Compliance_st_Volume';
-settings.ptype='ComplianceLamPerimeter_st_Volume';
+settings.ptype='Compliance_st_Volume';
+%settings.ptype='ComplianceLamPerimeter_st_Volume';
 % settings.ptype='Compliance_st_VolumePerimeter';
 % settings.ptype='Chomog_alphabeta_st_Volume';
 % settings.ptype='Chomog_fraction_st_Volume';
