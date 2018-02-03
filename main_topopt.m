@@ -52,7 +52,7 @@ settings.optimizer='PROJECTED GRADIENT';
 %settings.optimizer='IPOPT';
 
 
-settings.filter='PDE';%'P1';
+settings.filter='P1';%'P1';
 
 settings.TOL.rho_plus=1;
 settings.TOL.rho_minus=0;
