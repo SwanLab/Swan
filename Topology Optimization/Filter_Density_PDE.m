@@ -8,8 +8,8 @@ classdef Filter_Density_PDE < Filter_PDE
             dof.ndof=obj.dof_per.ndof;
             dof.vL=1:dof.ndof;
             dof.vR=[];
-            %x_reg = zeros(dof.ndof,1);
-            x_reg = obj.solver.solve(x,Rinv,obj.rhs,obj.dof_per);
+            x_reg = zeros(dof.ndof,1);
+            x_reg = obj.solver.solve(x_reg,Rinv,obj.rhs,dof);
             x_gp = obj.A_nodal_2_gauss*x_reg;
 
         end
