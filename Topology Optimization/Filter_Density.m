@@ -1,4 +1,4 @@
-classdef Filter_Density < Filter
+classdef Filter_Density < Filter_P1
     properties
     end
     methods 

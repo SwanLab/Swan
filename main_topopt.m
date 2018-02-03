@@ -10,10 +10,10 @@ addpath(genpath('./Topology Optimization'));
 clear variables;
 %% settings
 
-%settings.filename='TOPOPT_TEST';  %MACRO
+settings.filename='TOPOPT_TEST';  %MACRO
 %settings.filename='RVE_Square_Triangle';
 %settings.filename='RVE_Square_Triangle_Fine';
-settings.filename='topopt_quad';
+%settings.filename='topopt_quad';
 %settings.filename='GrippingNew';
 
 settings.plotting=true;
@@ -34,8 +34,8 @@ settings.initial_case='full';
 % settings.initial_case='rand';
 
 
-%settings.ptype='Compliance_st_Volume';
-settings.ptype='ComplianceLamPerimeter_st_Volume';
+settings.ptype='Compliance_st_Volume';
+%settings.ptype='ComplianceLamPerimeter_st_Volume';
 % settings.ptype='Compliance_st_VolumePerimeter';
 % settings.ptype='Chomog_alphabeta_st_Volume';
 % settings.ptype='Chomog_fraction_st_Volume';
@@ -47,12 +47,12 @@ settings.ptype='ComplianceLamPerimeter_st_Volume';
 %end
 
 %settings.optimizer='SLERP';
-%settings.optimizer='PROJECTED GRADIENT';
+settings.optimizer='PROJECTED GRADIENT';
 %settings.optimizer='MMA';
-settings.optimizer='IPOPT';
+%settings.optimizer='IPOPT';
 
 
-settings.filter='P1'; %PDE
+settings.filter='PDE';%'P1';
 
 settings.TOL.rho_plus=1;
 settings.TOL.rho_minus=0;
@@ -68,7 +68,7 @@ settings.target_parameters.Perimeter_target=5;
 settings.perimeter.optimizer=settings.optimizer;
 settings.perimeter.lambda=0.1;%%%%%%%%%%%%
 
-settings.nsteps=5;
+settings.nsteps=1;
 settings.Vfrac_final=settings.target_parameters.Vfrac;
 settings.optimality_final=settings.target_parameters.optimality_tol;
 settings.constr_final=settings.target_parameters.constr_tol;
