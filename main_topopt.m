@@ -34,11 +34,11 @@ settings.initial_case='full';
 % settings.initial_case='rand';
 
 
-settings.ptype='Compliance_st_Volume';
-%settings.ptype='ComplianceLamPerimeter_st_Volume';
-% settings.ptype='Compliance_st_VolumePerimeter';
-% settings.ptype='Chomog_alphabeta_st_Volume';
-% settings.ptype='Chomog_fraction_st_Volume';
+%settings.ptype='Compliance_st_Volume';
+settings.ptype='ComplianceLamPerimeter_st_Volume';
+%settings.ptype='Compliance_st_VolumePerimeter';
+%settings.ptype='Chomog_alphabeta_st_Volume';
+%settings.ptype='Chomog_fraction_st_Volume';
 %settings.ptype='ChomogLamPerimeter_alphabeta_st_Volume';
 %settings.ptype='ChomogLamPerimeter_fraction_st_Volume';
 
@@ -46,13 +46,13 @@ settings.ptype='Compliance_st_Volume';
 %    settings.ptype='Gripping';
 %end
 
-%settings.optimizer='SLERP';
-settings.optimizer='PROJECTED GRADIENT';
+settings.optimizer='SLERP';
+%settings.optimizer='PROJECTED GRADIENT';
 %settings.optimizer='MMA';
 %settings.optimizer='IPOPT';
 
 
-settings.filter='PDE';%'P1';
+settings.filter='P1';'PDE';%
 
 settings.TOL.rho_plus=1;
 settings.TOL.rho_minus=0;
@@ -61,7 +61,7 @@ settings.TOL.E_minus=1e-3;
 settings.TOL.nu_plus=1/3;
 settings.TOL.nu_minus=1/3;
 
-settings.target_parameters.Vfrac=0.3;
+settings.target_parameters.Vfrac=0.4;
 settings.target_parameters.optimality_tol=1e-3;
 settings.target_parameters.constr_tol=1e-3;
 settings.target_parameters.Perimeter_target=5;
@@ -74,16 +74,12 @@ settings.optimality_final=settings.target_parameters.optimality_tol;
 settings.constr_final=settings.target_parameters.constr_tol;
 settings.Vfrac_initial=1;
 
-settings.optimality_initial=1e-1;
-settings.constr_initial=1e-1;
+settings.optimality_initial=1e-3;
+settings.constr_initial=1e-3;
 
 
 settings.micro.alpha =[1 0 0]';
 settings.micro.beta =[1 0 0]';
-
-
-settings.optimality_initial=1e-3;
-settings.constr_initial=1e-3;
 
 %% main
 

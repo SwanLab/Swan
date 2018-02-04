@@ -255,6 +255,9 @@ classdef TopOpt_Problem < handle
             sqrt_norma = obj.optimizer.scalar_product(obj.x,obj.x);
             obj.x = obj.x/sqrt(sqrt_norma);
             end
+            rho=obj.filter.getP0fromP1(obj.x);
+            matProps=obj.interpolation.computeMatProp(rho);
+            obj.physicalProblem.setMatProps(matProps);
         end        
         function obj = compute_physical_variables(obj)
             switch obj.physicalProblem.mesh.scale
