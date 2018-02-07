@@ -10,6 +10,10 @@ classdef ShFunc_Chomog_alphabeta < ShFunc_Chomog
             obj.beta=settings.micro.beta/norm(settings.micro.beta);
         end
         function computef(obj,x,physicalProblem,interpolation,filter)
+            rho=filter.getP0fromP1(x);
+            matProps=interpolation.computeMatProp(rho);
+            physicalProblem.setMatProps(matProps);
+            physicalProblem.computeChomog;
             obj.setPhysicalData(physicalProblem.variables);
             inv_matCh = inv(obj.Chomog);
             costfunc = obj.projection_Chomog(inv_matCh,obj.alpha,obj.beta);

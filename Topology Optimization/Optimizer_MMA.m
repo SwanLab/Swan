@@ -46,7 +46,6 @@ classdef Optimizer_MMA < Optimizer
                 %%%% The user should now calculate function values and gradients
                 %%%% of the objective- and constraint functions at xval.
                 %%%% The results should be put in f0val, df0dx, fval and dfdx.
-                obj.update_physical_variables(x,interpolation,filter); 
                 cost.computef(x,obj.physicalProblem,interpolation,filter);
                 constraint.computef(x,obj.physicalProblem,interpolation,filter);
 

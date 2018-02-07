@@ -25,8 +25,7 @@ classdef Optimizer_SLERP < Optimizer
             constr_tol(1:obj.nconstr)=obj.target_parameters.constr_tol;
         end
         function x_ls=updateX(obj,x_ini,cost,constraint,interpolation,filter)
-                x_ls=obj.updatePhi(x_ini,obj.objfunc.gradient);
-                obj.update_physical_variables(x_ls,interpolation,filter);                
+                x_ls=obj.updatePhi(x_ini,obj.objfunc.gradient);              
                 cost.computef(x_ls,obj.physicalProblem,interpolation,filter);
                 constraint.computef(x_ls,obj.physicalProblem,interpolation,filter);
                 obj.shfunc_volume.computef(x_ls,obj.physicalProblem,interpolation,filter);

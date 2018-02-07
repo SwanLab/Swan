@@ -75,7 +75,7 @@ classdef TopOpt_Problem < handle
 
                 case 'MMA'
                     obj.optimizer=Optimizer_MMA(settings);
-
+                    
                 case 'IPOPT'
                     obj.optimizer=Optimizer_IPOPT(settings);
             end
@@ -84,25 +84,26 @@ classdef TopOpt_Problem < handle
         
         function preProcess(obj)
             %initialize design variable
-            obj.physicalProblem.preProcess;    
+            obj.physicalProblem.preProcess;
             obj.filter.preProcess(obj.physicalProblem);
             obj.incremental_scheme=Incremental_Scheme(obj.settings,obj.physicalProblem);
             obj.compute_initial_design;
-
+            rho=obj.filter.getP0fromP1(obj.x);
+            matProps=obj.interpolation.computeMatProp(rho);
+            obj.physicalProblem.setMatProps(matProps);
         end
-
+        
         function computeVariables(obj)
             for istep = 1:obj.settings.nsteps
-                disp(strcat('Incremental step: ', int2str(istep)))            
-                obj.incremental_scheme.update_target_parameters(istep, obj.cost, obj.constraint, obj.optimizer);   
-                obj.compute_physical_variables;                
+                disp(strcat('Incremental step: ', int2str(istep)))
+                obj.incremental_scheme.update_target_parameters(istep, obj.cost, obj.constraint, obj.optimizer);
                 obj.cost.computef(obj.x,obj.physicalProblem,obj.interpolation,obj.filter);
                 obj.constraint.computef(obj.x, obj.physicalProblem, obj.interpolation,obj.filter);
                 obj.optimizer.setPhysicalProblem(obj.physicalProblem);
                 obj.x=obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,obj.interpolation,obj.filter);
             end
         end
-
+        
         function postProcess(obj)
             % Video creation
             if obj.settings.printing
@@ -131,20 +132,19 @@ classdef TopOpt_Problem < handle
             
         end
         function checkDerivative(obj)
-            obj.preProcess;
-            obj.optimizer.updateEquilibrium(obj.x,obj.physicalProblem,obj.interpolation,obj.filter);
+            obj.preProcess;           
             Msmooth=obj.filter.Msmooth;
             x0=obj.x;
             % Initialize function
             epsi = 1e-6;
             %initial
             compliance0=ShFunc_Compliance(obj.settings);
-           % compliance0.h_C_0=1;
+            % compliance0.h_C_0=1;
             volume0=ShFunc_Volume(obj.settings);
             perimeter0=ShFunc_Perimeter(obj.settings);
             %new
             compliance=ShFunc_Compliance(obj.settings);
-           % compliance.h_C_0=1;
+            % compliance.h_C_0=1;
             volume=ShFunc_Volume(obj.settings);
             perimeter=ShFunc_Perimeter(obj.settings);
             
@@ -154,24 +154,31 @@ classdef TopOpt_Problem < handle
             compliance0.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
             volume0.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
             perimeter0.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
-     
+            
+            compliance0.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
+            volume0.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
+            perimeter0.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
+            
+            compliance.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
+            volume.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
+            perimeter.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
+            
             nnod = length(compliance0.gradient);
             g=zeros(nnod,1);
             gp=zeros(nnod,1);
             gv=zeros(nnod,1);
-            for inode = 1:nnod 
+            for inode = 1:nnod
                 if mod(inode,100)==0
-                disp(strcat('Node: ',int2str(inode)));
+                    disp(strcat('Node: ',int2str(inode)));
                 end
                 xnew = x0;
                 xnew(inode) = xnew(inode)-epsi;
-                obj.optimizer.updateEquilibrium(xnew,obj.physicalProblem,obj.interpolation,obj.filter);
                 compliance.computef(xnew,obj.physicalProblem,obj.interpolation,obj.filter);
                 volume.computef(xnew,obj.physicalProblem,obj.interpolation,obj.filter);
                 perimeter.computef(xnew,obj.physicalProblem,obj.interpolation,obj.filter);
                 g(inode) = (compliance0.value-compliance.value)/epsi;
-                gp(inode) = (volume0.value-volume.value)/epsi;
-                gv(inode) = (perimeter0.value-perimeter.value)/epsi;
+                gv(inode) = (volume0.value-volume.value)/epsi;
+                gp(inode) = (perimeter0.value-perimeter.value)/epsi;
             end
             fprintf('Relative error Volume: %g\n',obj.error_norm_field(gv,volume0.gradient,Msmooth));
             fprintf('Relative error Perimeter: %g\n',obj.error_norm_field(gp,perimeter0.gradient,Msmooth));
@@ -184,12 +191,10 @@ classdef TopOpt_Problem < handle
             
         end
     end
-
+    
     
     methods (Access=private)
-        function obj = compute_initial_design(obj)
-            
-            
+        function obj = compute_initial_design(obj)         
             switch obj.settings.optimizer
                 case 'SLERP'
                     obj.ini_design_value=-1.015243959022692;
@@ -198,11 +203,7 @@ classdef TopOpt_Problem < handle
                     obj.ini_design_value= 1;
                     obj.hole_value= 0;
                     
-            end
-             
-            
-                    
-            
+            end            
             obj.x=obj.ini_design_value*ones(obj.physicalProblem.mesh.npnod,1);
             switch obj.settings.initial_case
                 case 'circle'
@@ -247,26 +248,14 @@ classdef TopOpt_Problem < handle
                 otherwise
                     error('Initialize design variable case not detected.');
             end
-            
             obj.optimizer.Msmooth = obj.filter.Msmooth;
             obj.optimizer.Ksmooth = obj.filter.Ksmooth;
-            obj.optimizer.epsilon_scalar_product_P1 = 1*obj.optimizer.estimate_mesh_size(obj.physicalProblem.mesh.coord,obj.physicalProblem.mesh.connec);
+            obj.optimizer.epsilon_scalar_product_P1 = obj.incremental_scheme.epsilon;
             if strcmp(obj.settings.optimizer,'SLERP')
-            sqrt_norma = obj.optimizer.scalar_product(obj.x,obj.x);
-            obj.x = obj.x/sqrt(sqrt_norma);
-            end
-            rho=obj.filter.getP0fromP1(obj.x);
-            matProps=obj.interpolation.computeMatProp(rho);
-            obj.physicalProblem.setMatProps(matProps);
-        end        
-        function obj = compute_physical_variables(obj)
-            switch obj.physicalProblem.mesh.scale
-                case 'MICRO'
-                    obj.physicalProblem.computeChomog;
-                case 'MACRO'
-                    obj.physicalProblem.computeVariables;
+                sqrt_norma = obj.optimizer.scalar_product(obj.x,obj.x);
+                obj.x = obj.x/sqrt(sqrt_norma);
             end
         end
     end
-
 end
+

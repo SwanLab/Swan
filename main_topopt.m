@@ -10,10 +10,10 @@ addpath(genpath('./Topology Optimization'));
 clear variables;
 %% settings
 
-settings.filename='TOPOPT_TEST';  %MACRO
+%settings.filename='TOPOPT_TEST';  %MACRO
 %settings.filename='RVE_Square_Triangle';
 %settings.filename='RVE_Square_Triangle_Fine';
-%settings.filename='topopt_quad';
+settings.filename='topopt_quad';
 %settings.filename='GrippingNew';
 
 settings.plotting=true;
@@ -46,8 +46,8 @@ settings.ptype='ComplianceLamPerimeter_st_Volume';
 %    settings.ptype='Gripping';
 %end
 
-settings.optimizer='SLERP';
-%settings.optimizer='PROJECTED GRADIENT';
+%settings.optimizer='SLERP';
+settings.optimizer='PROJECTED GRADIENT';
 %settings.optimizer='MMA';
 %settings.optimizer='IPOPT';
 
@@ -61,10 +61,10 @@ settings.TOL.E_minus=1e-3;
 settings.TOL.nu_plus=1/3;
 settings.TOL.nu_minus=1/3;
 
-settings.target_parameters.Vfrac=0.4;
+settings.target_parameters.Vfrac=0.5;
 settings.target_parameters.optimality_tol=1e-3;
 settings.target_parameters.constr_tol=1e-3;
-settings.target_parameters.Perimeter_target=5;
+settings.target_parameters.Perimeter_target=1;
 settings.perimeter.optimizer=settings.optimizer;
 settings.perimeter.lambda=0.1;%%%%%%%%%%%%
 
