@@ -12,28 +12,28 @@ classdef Element_Elastic_Micro < Element_Elastic
             obj.B = B2;
         end
         
-        function obj = computeRHS(obj,nunkn,nstre,nelem,nnode,material,bc,idx,geometry,vstrain)
-            computeRHS@Element(obj,nunkn,nelem,nnode,bc,idx);
-            RHSStrain = obj.computeStrainRHS(nunkn,nstre,nelem,material,bc,idx,geometry,vstrain);
+        function obj = computeRHS(obj,vstrain)
+            computeRHS@Element(obj);
+            RHSStrain = obj.computeStrainRHS(vstrain);
             obj.RHS = obj.RHS + RHSStrain;             
         end
     end
     
     methods (Access = private)
-        function F = computeStrainRHS(obj,nunkn,nstre,nelem,material,bc,idx,geometry,vstrain)
-            Cmat = material.C;            
-            eforce = zeros(nunkn*geometry.nnode,1,nelem);
-            sigma=zeros(nstre,1,nelem);
-            for igaus=1:geometry.ngaus
-                [obj.B, Bmat] = obj.B.computeB(nunkn,nelem,geometry.nnode,geometry.cartd(:,:,:,igaus));
-                for istre=1:nstre
-                    for jstre=1:nstre
+        function F = computeStrainRHS(obj,vstrain)
+            Cmat = obj.material.C;            
+            eforce = zeros(obj.nunkn*obj.nnode,1,obj.nelem);
+            sigma=zeros(obj.nstre,1,obj.nelem);
+            for igaus=1:obj.geometry.ngaus
+                [obj.B, Bmat] = obj.B.computeB(obj.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
+                for istre=1:obj.nstre
+                    for jstre=1:obj.nstre
                         sigma(istre,:) = sigma(istre,:) + squeeze(Cmat(istre,jstre,:)*vstrain(jstre))';
                     end
                 end                
-                for iv=1:geometry.nnode*nunkn
-                    for istre=1:nstre
-                        eforce(iv,:)=eforce(iv,:)+(squeeze(Bmat(istre,iv,:)).*sigma(istre,:)'.*geometry.dvolu(:,igaus))';
+                for iv=1:obj.nnode*obj.nunkn
+                    for istre=1:obj.nstre
+                        eforce(iv,:)=eforce(iv,:)+(squeeze(Bmat(istre,iv,:)).*sigma(istre,:)'.*obj.geometry.dvolu(:,igaus))';
                     end
                 end
             end

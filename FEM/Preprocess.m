@@ -30,11 +30,19 @@ classdef Preprocess<handle
         function [fixnodes,fixnodes_perimeter, forces] = getBC(filename)
             run(filename)
             fixnodes = lnodes;
-            fixnodes_perimeter=External_border_nodes;
             forces = pointload_complete;
+            fixnodes_perimeter=External_border_nodes;
+            if ~isempty(fixnodes_perimeter)
+                fixnodes_perimeter(:,2)=ones(length(fixnodes_perimeter(:,1)),1);
+                fixnodes_perimeter(:,3)=zeros(length(fixnodes_perimeter(:,1)),1);
+            end
+        end
+        function forces_adjoint=getBC_adjoint(filename)
+            run(filename)
+            forces_adjoint = pointload_adjoint;
         end
         
-        function [fixnodes, pnods] = getPeriodicBC(coordinates)
+        function [pnods] = getPeriodicBC(coordinates)
             % PERIODIC BOUNDARY COND
             % creation of a list containing the couples that define the periodicity
             % 1) list of nodes on each side (two vertical, two horizontal)
@@ -90,41 +98,6 @@ classdef Preprocess<handle
             [X1,I] = sort(X);
             H2 = L(I);
             pnods = [V1 H1; V2 H2]; % lista de nodos
-            
-            nodes = 1:length(coordinates(:,1));
-            %Vertex 1 y 2
-            index_bin_max_y = coordinates(:,2) == max(coordinates(:,2));
-            index_max_y = nodes(index_bin_max_y);
-            
-            [~,index1_local] = min(coordinates(index_max_y,1));
-            index_vertex_1 = index_max_y(index1_local);
-            [~,index2_local] = max(coordinates(index_max_y,1));
-            index_vertex_2 = index_max_y(index2_local);
-            
-            %Vertex 3 y 4
-            index_bin_min_y = coordinates(:,2) == min(coordinates(:,2));
-            index_min_y = nodes(index_bin_min_y);
-            
-            [~,index3_local] = max(coordinates(index_min_y,1));
-            index_vertex_3 = index_min_y(index3_local);
-            [~,index4_local] = min(coordinates(index_min_y,1));
-            index_vertex_4 = index_min_y(index4_local);
-            
-            index_vertex = [index_vertex_1;index_vertex_2;index_vertex_3;index_vertex_4];
-            corners = index_vertex';
-            
-            % prescription of the corners
-            ifix=0;
-            for i=1:size(corners,2)
-                ifix=ifix+1;
-                fixnodes(ifix,1)=corners(i); % node
-                fixnodes(ifix,2)=1; % idim
-                fixnodes(ifix,3)=0; % U_imp
-                ifix=ifix+1;
-                fixnodes(ifix,1)=corners(i); % node
-                fixnodes(ifix,2)=2; % idim
-                fixnodes(ifix,3)=0; % U_imp
-            end
         end
     end
 end

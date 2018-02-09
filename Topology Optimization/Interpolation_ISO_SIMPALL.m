@@ -4,6 +4,7 @@ classdef Interpolation_ISO_SIMPALL < Interpolation
         kappa_func
         dmu_func
         dlam_func
+        
     end
     methods
         function obj=Interpolation_ISO_SIMPALL(HSbounds)

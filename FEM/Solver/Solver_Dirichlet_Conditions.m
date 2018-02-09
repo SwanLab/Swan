@@ -3,23 +3,29 @@ classdef Solver_Dirichlet_Conditions < Solver
     %   Detailed explanation goes here
     
     properties
+        fixnodes
     end
     
-    methods (Access = ?Physical_Problem, Static)
-        %     methods (Access = public,Static)
-        % Analytical Solver (A·X=b)
-        function x = solve(LHS,RHS,dof,fixnodes)
-            x = zeros(dof.ndof,1);
-            if ~isempty(dof.vR)
-                x(dof.vR) = fixnodes(:,3);
-                x(dof.vL,1) = LHS(dof.vL,dof.vL)\(RHS(dof.vL) - LHS(dof.vL,dof.vR)*x(dof.vR));
-            else
-                x(dof.vL,1) = LHS(dof.vL,dof.vL)\RHS(dof.vL);
-            end
+    
+    methods (Access = public)
+        
+        function obj = Solver_Dirichlet_Conditions()
         end
         
         
         
+        
+        function setSolverVariables(obj,data)
+            obj.fixnodes = data.fixnodes;
+        end
+        
+    end
+    
+    methods (Static)
+        % Analytical Solver (Aï¿½X=b)
+        function x = solve(LHS,RHS)
+            x = LHS\RHS;
+        end
     end
     
 end

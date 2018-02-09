@@ -6,18 +6,23 @@ classdef Filter < handle
         P_operator
         coordinates
         connectivities
+        x
+        x_reg
+        dvolu
     end
     methods 
         function preProcess(obj,physicalProblem)
-            obj.M0 = sparse(1:physicalProblem.mesh.nelem,1:physicalProblem.mesh.nelem,physicalProblem.geometry.dvolu);
+            for igauss=1:physicalProblem.geometry.ngaus
+            obj.M0{igauss} = sparse(1:physicalProblem.mesh.nelem,1:physicalProblem.mesh.nelem,physicalProblem.geometry.dvolu(:,igauss));
+            end
+            obj.dvolu = sparse(1:physicalProblem.mesh.nelem,1:physicalProblem.mesh.nelem,sum(physicalProblem.geometry.dvolu,2));
             obj.Msmooth=physicalProblem.computeMass(2);
             obj.Ksmooth=physicalProblem.computeKsmooth;
             obj.P_operator=obj.computePoperator(obj.Msmooth,physicalProblem);
             obj.coordinates=physicalProblem.mesh.coord;
             obj.connectivities=physicalProblem.mesh.connec;  
         end
-        function A_nodal_2_gauss=computeA(obj,physProblem)
-            
+        function A_nodal_2_gauss=computeA(obj,physProblem)            
             nelem=physProblem.mesh.nelem; nnode=physProblem.geometry.nnode;
             A_nodal_2_gauss = sparse(nelem,physProblem.mesh.npnod);
             fn=ones(1,nelem);

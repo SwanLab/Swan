@@ -1,4 +1,4 @@
-classdef Solver
+classdef Solver < handle
     properties
         
     end
@@ -10,12 +10,13 @@ classdef Solver
             switch ptype
                 case {'ELASTIC','THERMAL'}
                     stype = Solver_Dirichlet_Conditions();
-                case 'ELASTIC_NONLINEAR'
-                    stype = Solver_Nonlinear();
+                case 'HYPERELASTIC'
+                    stype = Solver_NewtonRaphson();
                 otherwise
                     error('Invalid stype.')
             end
         end
+
     end
     
 end

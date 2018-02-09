@@ -1,28 +1,36 @@
 classdef Filter_PDE < Filter
-    properties 
-        fixnodes_per
+    properties
         dof_per
         solver
         rhs
         epsilon
         A_nodal_2_gauss
     end
-    methods 
-        function preProcess(obj,physicalProblem)            
+    methods
+        function preProcess(obj,physicalProblem)
             preProcess@Filter(obj,physicalProblem);
-            obj.fixnodes_per=physicalProblem.bc.fixnodes_perimeter;
-            obj.fixnodes_per(:,2)=ones(length(obj.fixnodes_per(:,1)),1);
-            obj.fixnodes_per(:,3)=zeros(length(obj.fixnodes_per(:,1)),1);
-            obj.dof_per=DOF(physicalProblem.geometry.nnode,physicalProblem.mesh.connec,1,physicalProblem.mesh.npnod,obj.fixnodes_per);
-            obj.solver = Solver_Analytical;                    
+            switch physicalProblem.mesh.scale
+                case 'MACRO'
+                    obj.dof_per=DOF(physicalProblem.geometry.nnode,physicalProblem.mesh.connec,1,physicalProblem.mesh.npnod,physicalProblem.bc.fixnodes_perimeter);
+                    obj.solver = Solver_Dirichlet_Conditions;
+                    data.fixnodes=physicalProblem.bc.fixnodes_perimeter;
+                    obj.solver.setSolverVariables(data);
+                case 'MICRO'
+                    obj.dof_per=DOF(physicalProblem.geometry.nnode,physicalProblem.mesh.connec,1,physicalProblem.mesh.npnod,[]);
+                    obj.solver = Solver_Periodic;
+                    data.pnodes = physicalProblem.bc.pnodes;
+                    data.nunkn=1;
+                    obj.solver.setSolverVariables(data);
+            end
+
+
             obj.epsilon=0.03;
             obj.A_nodal_2_gauss=obj.computeA(physicalProblem);
         end
         function A_nodal_2_gauss=computeA(obj,physProblem)
-            
             nelem=physProblem.mesh.nelem; nnode=physProblem.geometry.nnode;
             A_nodal_2_gauss = sparse(nelem,physProblem.mesh.npnod);
-            fn=ones(1,nelem);
+            fn=ones(1,physProblem.mesh.npnod);
             lnods=obj.connectivities';
             fe=zeros(nnode,nelem);
             for inode=1:nnode

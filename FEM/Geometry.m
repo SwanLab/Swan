@@ -11,6 +11,7 @@ classdef Geometry
         nnode
         ngaus
         djacb
+        type
     end
     properties (GetAccess = ?Postprocess, SetAccess = private)
         posgp
@@ -30,7 +31,11 @@ classdef Geometry
                             error('Invalid nnode for element TRIANGLE.');
                     end
                 case 'Triangle_Linear_Mass'
+
                     geometryObject = Triangle_Linear_Mass;
+                case 'Quad_Mass'
+                    geometryObject = Quad_Mass;
+
                 case 'QUAD'
                     switch obj.nnode
                         case 4
@@ -47,7 +52,7 @@ classdef Geometry
                 otherwise
                     error('Invalid mesh type.')
             end
-            
+            obj.type = geometryObject.type;
             obj.posgp = geometryObject.posgp;
             obj.weigp = geometryObject.weigp;
             obj.ndime = geometryObject.ndime;
@@ -82,7 +87,6 @@ classdef Geometry
                 obj.dvolu(:,igauss) = geometryObject.weigp(igauss)*detJ;
                 obj.djacb(:,igauss) = detJ;
             end
-            % dvolu
             
             
         end

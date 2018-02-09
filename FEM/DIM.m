@@ -3,18 +3,18 @@ classdef DIM
     %   Detailed explanation goes here
     properties (GetAccess = public, SetAccess = private)
         nstre
-%         nnode
+        %       nnode
+        nunkn
     end
     properties (GetAccess = {?Physical_Problem,?PhysicalVariables,?Postprocess}, SetAccess = private)
         ndim
-%         ngaus
-        nunkn
+        %       ngaus
     end
     
     methods (Access = ?Physical_Problem)
         function obj = DIM(ptype,pdim)
             switch ptype
-                case {'ELASTIC','ELASTIC_NONLINEAR'}
+                case {'ELASTIC','HYPERELASTIC'}
                     switch pdim
                         case '2D'
                             obj.ndim = 2;

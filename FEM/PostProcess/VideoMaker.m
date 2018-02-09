@@ -48,7 +48,8 @@ classdef VideoMaker < handle
         function [output_string] = replace_special_character(input_string)
             if ispc
                 output_string = replace(input_string,'\','\\\\');                
-            elseif isunix                
+            elseif isunix 
+                output_string = input_string;
             elseif ismac
             end
         end      

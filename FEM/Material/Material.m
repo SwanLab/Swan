@@ -26,10 +26,10 @@ classdef Material
                             material = Material_Elastic_ISO_3D(nelem);
                     end
                     
-                case 'ELASTIC_NONLINEAR'
+                case 'HYPERELASTIC'
                     switch pdim
                         case '2D'
-                            material = Material_Elastic_Nonlinear_2D(nelem,connec,cartd,nnode,coord);
+                            material = Material_Hyperelastic_2D(nelem,connec,cartd,nnode,coord);
                     end
                     
                 case 'THERMAL'
