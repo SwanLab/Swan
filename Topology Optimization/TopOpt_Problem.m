@@ -17,53 +17,17 @@ classdef TopOpt_Problem < handle
         hole_value
         ini_design_value
     end
-    
-    methods (Static)
-        function obj=create(settings)
-            switch settings.ptype
-                case 'Compliance_st_Volume'
-                    settings.nconstr=1;
-                    obj=TopOpt_Problem_Compliance_st_Volume(settings);
-                    obj.physicalProblem=Physical_Problem(obj.settings.filename);
-                case 'Compliance_st_VolumePerimeter'
-                    settings.nconstr=2;
-                    obj=TopOpt_Problem_Compliance_st_VolumePerimeter(settings);
-                    obj.physicalProblem=Physical_Problem(obj.settings.filename);
-                case 'ComplianceLamPerimeter_st_Volume'
-                    settings.nconstr=1;
-                    obj=TopOpt_Problem_ComplianceLamPerimeter_st_Volume(settings);
-                    obj.physicalProblem=Physical_Problem(obj.settings.filename);
-                case 'Gripping'
-                    settings.nconstr=1;
-                    obj=TopOpt_Problem_Gripping(settings);
-                    obj.physicalProblem=Physical_Problem(obj.settings.filename);
-                    
-                case 'Chomog_alphabeta_st_Volume'
-                    settings.nconstr=1;
-                    obj=TopOpt_Problem_Chomog(settings);
-                    obj.physicalProblem=Physical_Problem_Micro(obj.settings.filename);
-                case 'ChomogLamPerimeter_alphabeta_st_Volume'
-                    settings.nconstr=1;
-                    obj=TopOpt_Problem_Chomog(settings);
-                    obj.physicalProblem=Physical_Problem_Micro(obj.settings.filename);
-                case 'Chomog_fraction_st_Volume'
-                    settings.nconstr=1;
-                    obj=TopOpt_Problem_Chomog(settings);
-                    obj.physicalProblem=Physical_Problem_Micro(obj.settings.filename);
-                case 'ChomogLamPerimeter_fraction_st_Volume'
-                    settings.nconstr=1;
-                    obj=TopOpt_Problem_Chomog(settings);
-                    obj.physicalProblem=Physical_Problem_Micro(obj.settings.filename);
-
-
-                otherwise
-                    error('Problem not added');
-            end
-            
-        end
-    end
     methods (Access = public)
         function obj=TopOpt_Problem(settings)
+            settings.nconstr=length(settings.constraint);
+            obj.cost=Cost(settings,settings.multipliers);
+            obj.constraint=Constraint(settings);
+            switch settings.ptype
+                case 'MACRO'
+                    obj.physicalProblem=Physical_Problem(settings.filename);
+                case 'MICRO'
+                    obj.physicalProblem=Physical_Problem_Micro(settings.filename);
+            end
             obj.settings=settings;
             obj.TOL=obj.settings.TOL;
             obj.interpolation=Interpolation.create(obj.TOL,settings.material,settings.method);                       
@@ -108,7 +72,7 @@ classdef TopOpt_Problem < handle
             % Video creation
             if obj.settings.printing
                 gidPath = 'C:\Program Files\GiD\GiD 13.0.2';% 'C:\Program Files\GiD\GiD 13.0.3';
-                files_name = [];
+                files_name = obj.settings.filename;
                 files_folder = fullfile(pwd,'Output');
                 iterations = 0:obj.optimizer.niter;
                 video_name=strcat('./Videos/Video_',obj.settings.ptype,'_',obj.settings.optimizer,'_',obj.settings.method,'_',int2str(obj.settings.nsteps) ...
