@@ -40,18 +40,6 @@ settings.multipliers=[]; %all 1
 %settings.multipliers=[1 0.1]; %compl+lambda*perimeter
 settings.constraint={'volume'};
 
-%settings.ptype='Compliance_st_Volume';
-%settings.ptype='ComplianceLamPerimeter_st_Volume';
-%settings.ptype='Compliance_st_VolumePerimeter';
-%settings.ptype='Chomog_alphabeta_st_Volume';
-%settings.ptype='Chomog_fraction_st_Volume';
-%settings.ptype='ChomogLamPerimeter_alphabeta_st_Volume';
-%settings.ptype='ChomogLamPerimeter_fraction_st_Volume';
-
-% if settings.filename=='GrippingNew'
-%    settings.ptype='Gripping';
-% end
-
 settings.optimizer='SLERP';
 %settings.optimizer='PROJECTED GRADIENT';settings.kappaMultiplier=1;
 %settings.optimizer='MMA';
