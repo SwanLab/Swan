@@ -3,7 +3,7 @@ classdef BC < handle
     %   Detailed explanation goes here
     
     
-    properties (GetAccess = {?Physical_Problem,?Element,?Filter, ?BC_Micro}, SetAccess = protected)
+    properties (GetAccess = public, SetAccess = public)
 
         fixnodes
         fixnodes_perimeter

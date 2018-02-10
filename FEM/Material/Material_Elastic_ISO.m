@@ -2,7 +2,7 @@ classdef Material_Elastic_ISO < Material_Elastic
     %Material_Elastic Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (GetAccess = {?Material_Elastic_ISO_2D, ?Material_Elastic_ISO_3D, ?PhysicalVars_Elastic}, SetAccess = protected)
+    properties (GetAccess = public, SetAccess = protected)
         kappa
         mu
     end

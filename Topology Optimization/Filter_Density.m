@@ -1,9 +1,9 @@
-classdef Filter_Density < Filter
+classdef Filter_Density < Filter_P1
     properties
     end
     methods 
-        function x_gp = getP0fromP1(obj,x)     
-            if norm(x) == norm(obj.x)
+        function x_gp = getP0fromP1(obj,x)
+            if isequal(x,obj.x)
                 x_gp=obj.x_reg;
             else
                 x_gp = obj.P_operator*obj.Msmooth*x;
