@@ -1,0 +1,9 @@
+function [post_info] = update_saved_variables(post_info,cost,theta,volume,lambda,lambda_Perimeter,Perimeter,kappa,incre_gamma)   
+post_info.cost_n = [post_info.cost_n cost];
+post_info.theta_n = [post_info.theta_n theta*180/pi];
+post_info.volume_n = [post_info.volume_n volume];
+post_info.lambda_volume_n = [post_info.lambda_volume_n lambda];
+post_info.Perimeter_n = [post_info.Perimeter_n Perimeter];
+post_info.kappa_n = [post_info.kappa_n kappa];
+post_info.incre_gamma_n = [post_info.incre_gamma_n incre_gamma];
+end

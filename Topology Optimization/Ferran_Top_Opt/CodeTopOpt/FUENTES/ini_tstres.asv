@@ -1,0 +1,19 @@
+function [ tstres ] = ini_tstres(dim,element)
+
+nelem=dim.nelem;
+ndime=dim.ndime;
+switch element.material.subtype
+    case {'PLANESTRAIN'}
+        nstre = 4;
+    case {'PLANESTRES'}
+        nstre = 3;
+    case 'AXI'
+        nstre = 4;
+end
+etype = element.type;
+[posgp,weigp,ngaus] = cal_posgp_weigp(element.type,ndime);
+tstres = zeros(ngaus,nstre,nelem);
+
+
+end
+

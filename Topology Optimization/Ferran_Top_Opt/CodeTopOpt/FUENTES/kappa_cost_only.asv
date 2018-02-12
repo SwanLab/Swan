@@ -1,0 +1,42 @@
+function [kappa_opt] = kappa_cost_only(element,dim,coordinates,problembsc,...
+    phifunct_n,g_nodal_n,norm_g,fixnodes,fext,Msmooth,theta_n,iter,emass,costfunc_n,vol_n)
+
+
+freduc = element.material.kappa_reduction;
+kappa_min = element.material.kappa_min;
+ndata = size(element.material.kappa_end,2);
+if (iter-1<=ndata)
+    kappa_end = element.material.kappa_end(iter-1);
+else
+    kappa_end = element.material.kappa_end(ndata);
+end
+lmax = element.material.kappa_maxiter;
+liter = 1; kappa_l = kappa_end; stop = 0;
+    while (liter <= lmax && stop==0)
+        [phi_l] = update_phifunc(theta_n,kappa_l,phifunct_n,g_nodal_n,norm_g);
+        % solve ku=f,topological derivative, and cost function
+        [dummy1,dummy2,dummy3,dummy4,cost_l,theta_l,d_u,tstres,post,vol_l,ener,vdisp,nbdata] = ...
+            module_M(phi_l,element,fixnodes,problembsc,coordinates,fext,...
+            dim,Msmooth,emass);
+        if (cost_l<costfunc_n)
+            kappa_opt = kappa_l;
+            stop = 1;
+        else
+            kappa_l = freduc*kappa_l;
+            if (kappa_l < kappa_min)
+                kappa_l = kappa_min;
+                liter=lmax;
+            end
+            fprintf(1,'ITER: %3.0d LITER: %3.0d COST_L %25.22f THETA_l %d KAPPA %25.19d VOL %25.19d \n',...
+                iter,liter,cost_l,theta_l*180/pi,kappa_l,vol_l);
+            liter=liter+1;
+        end
+    end
+    if (liter > lmax) % maximo numero de iteraciones
+        kappa_opt = kappa_min;
+    end
+end
+
+
+    
+

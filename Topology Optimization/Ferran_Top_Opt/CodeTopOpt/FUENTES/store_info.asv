@@ -1,0 +1,12 @@
+function [vcost_theta] = store_info(i,cost,theta,kappa,ener,vcost_theta)
+
+
+    vcost_theta(i,1)=i;
+    vcost_theta(i,2)=cost;
+    vcost_theta(i,3)=theta;
+    vcost_theta(i,4)=kappa;
+    vcost_theta(i,5)=ener.estra;
+    vcost_theta(i,6)=ener.vol;
+
+end
+

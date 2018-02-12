@@ -1,0 +1,87 @@
+ENTITIES
+POINT
+Num: 1 HigherEntity: 2 conditions: 0 material: 0
+LAYER: Layer0
+Coord: 0.0 0.0 0.0
+END POINT
+POINT
+Num: 2 HigherEntity: 2 conditions: 0 material: 0
+LAYER: Layer0
+Coord: 1.0 0.0 0.0
+END POINT
+POINT
+Num: 3 HigherEntity: 2 conditions: 0 material: 0
+LAYER: Layer0
+Coord: 1.0 1.0 0.0
+END POINT
+POINT
+Num: 4 HigherEntity: 2 conditions: 0 material: 0
+LAYER: Layer0
+Coord: 0.0 1.0 0.0
+END POINT
+STLINE
+Num: 1 HigherEntity: 1 conditions: 0 material: 0
+LAYER: Layer0
+Meshing Info: (num=11,NOE=1) Elemtype=0 IsStructured=1 Meshing=Default size=240
+Points: 1 2
+END STLINE
+STLINE
+Num: 2 HigherEntity: 1 conditions: 0 material: 0
+LAYER: Layer0
+Meshing Info: (num=12,NOE=1) Elemtype=0 IsStructured=1 Meshing=Default size=240
+Points: 2 3
+END STLINE
+STLINE
+Num: 3 HigherEntity: 1 conditions: 0 material: 0
+LAYER: Layer0
+Meshing Info: (num=13,NOE=1) Elemtype=0 IsStructured=1 Meshing=Default size=240
+Points: 3 4
+END STLINE
+STLINE
+Num: 4 HigherEntity: 1 conditions: 0 material: 0
+LAYER: Layer0
+Meshing Info: (num=10,NOE=1) Elemtype=0 IsStructured=1 Meshing=Default size=240
+Points: 4 1
+END STLINE
+NURBSURFACE
+Num: 1 HigherEntity: 0 conditions: 0 material: 0
+LAYER: Layer0
+Meshing Info: (num=9,NOE=1) Elemtype=2 IsStructured=1 Meshing=Default size=0
+NumLines: 4
+Line: 1 Orientation: SAME1ST
+Line: 2 Orientation: SAME1ST
+Line: 3 Orientation: SAME1ST
+Line: 4 Orientation: SAME1ST
+Number of Control Points= 2 2 Degree= 1 1
+Point 1,1 coords:0.0,0.0,0.0
+Point 1,2 coords:1.0,0.0,0.0
+Point 2,1 coords:0.0,1.0,0.0
+Point 2,2 coords:1.0,1.0,0.0
+Number of knots in U= 4
+knot 1 value=0.0
+knot 2 value=0.0
+knot 3 value=1.0
+knot 4 value=1.0
+Number of knots in V= 4
+knot 1 value=0.0
+knot 2 value=0.0
+knot 3 value=1.0
+knot 4 value=1.0
+Non rational
+IsTrimmed: 0
+Center: 0.5 0.5 0.0
+Normal: 0.0 0.0 1.0
+END NURBSURFACE
+END ENTITIES
+MESH dimension 3 ElemType Triangle Nnode 3
+Coordinates
+
+End Coordinates
+
+Elements
+End Elements
+PROBLEM DATA
+END PROBLEM DATA
+INTERVAL NUMBER: 1
+INTERVAL DATA
+END INTERVAL DATA

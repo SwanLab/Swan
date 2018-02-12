@@ -1,0 +1,2432 @@
+Mescape Data Defaults ProblemType Alex 
+Mescape Geometry create line 
+       00001  3.03796e-17        00000 
+ 9.99887e-01 -1.81091e-05        00000 
+ 9.99550e-01 -7.24129e-05        00000 
+ 9.98987e-01 -1.62842e-04        00000 
+ 9.98200e-01 -2.89280e-04        00000 
+ 9.97189e-01 -4.51565e-04        00000 
+ 9.95954e-01 -6.49490e-04        00000 
+ 9.94495e-01 -8.82804e-04        00000 
+ 9.92815e-01 -1.15121e-03        00000 
+ 9.90913e-01 -1.45438e-03        00000 
+ 9.88790e-01 -1.79193e-03        00000 
+ 9.86448e-01 -2.16344e-03        00000 
+ 9.83887e-01 -2.56845e-03        00000 
+ 9.81110e-01 -3.00649e-03        00000 
+ 9.78116e-01 -3.47701e-03        00000 
+ 9.74909e-01 -3.97947e-03        00000 
+ 9.71489e-01 -4.51327e-03        00000 
+ 9.67858e-01 -5.07779e-03        00000 
+ 9.64018e-01 -5.67240e-03        00000 
+ 9.59970e-01 -6.29642e-03        00000 
+ 9.55717e-01 -6.94916e-03        00000 
+ 9.51262e-01 -7.62991e-03        00000 
+ 9.46605e-01 -8.33793e-03        00000 
+ 9.41749e-01 -9.07249e-03        00000 
+ 9.36697e-01 -9.83281e-03        00000 
+ 9.31452e-01 -1.06181e-02        00000 
+ 9.26015e-01 -1.14277e-02        00000 
+ 9.20389e-01 -1.22606e-02        00000 
+ 9.14577e-01 -1.31161e-02        00000 
+ 9.08582e-01 -1.39935e-02        00000 
+ 9.02406e-01 -1.48918e-02        00000 
+ 8.96053e-01 -1.58103e-02        00000 
+ 8.89526e-01 -1.67481e-02        00000 
+ 8.82828e-01 -1.77044e-02        00000 
+ 8.75961e-01 -1.86784e-02        00000 
+ 8.68930e-01 -1.96693e-02        00000 
+ 8.61737e-01 -2.06761e-02        00000 
+ 8.54386e-01 -2.16982e-02        00000 
+ 8.46880e-01 -2.27346e-02        00000 
+ 8.39223e-01 -2.37845e-02        00000 
+ 8.31418e-01 -2.48470e-02        00000 
+ 8.23469e-01 -2.59214e-02        00000 
+ 8.15380e-01 -2.70067e-02        00000 
+ 8.07155e-01 -2.81022e-02        00000 
+ 7.98796e-01 -2.92069e-02        00000 
+ 7.90309e-01 -3.03200e-02        00000 
+ 7.81696e-01 -3.14405e-02        00000 
+ 7.72963e-01 -3.25677e-02        00000 
+ 7.64112e-01 -3.37005e-02        00000 
+ 7.55149e-01 -3.48381e-02        00000 
+ 7.46076e-01 -3.59796e-02        00000 
+ 7.36899e-01 -3.71239e-02        00000 
+ 7.27620e-01 -3.82701e-02        00000 
+ 7.18246e-01 -3.94172e-02        00000 
+ 7.08779e-01 -4.05642e-02        00000 
+ 6.99223e-01 -4.17100e-02        00000 
+ 6.89585e-01 -4.28535e-02        00000 
+ 6.79866e-01 -4.39937e-02        00000 
+ 6.70073e-01 -4.51293e-02        00000 
+ 6.60208e-01 -4.62593e-02        00000 
+ 6.50278e-01 -4.73824e-02        00000 
+ 6.40285e-01 -4.84973e-02        00000 
+ 6.30234e-01 -4.96029e-02        00000 
+ 6.20131e-01 -5.06977e-02        00000 
+ 6.09979e-01 -5.17804e-02        00000 
+ 5.99782e-01 -5.28497e-02        00000 
+ 5.89546e-01 -5.39041e-02        00000 
+ 5.79275e-01 -5.49421e-02        00000 
+ 5.68972e-01 -5.59622e-02        00000 
+ 5.58644e-01 -5.69630e-02        00000 
+ 5.48293e-01 -5.79428e-02        00000 
+ 5.37925e-01 -5.89000e-02        00000 
+ 5.27544e-01 -5.98330e-02        00000 
+ 5.17155e-01 -6.07400e-02        00000 
+ 5.06761e-01 -6.16195e-02        00000 
+ 4.96368e-01 -6.24697e-02        00000 
+ 4.85980e-01 -6.32888e-02        00000 
+ 4.75602e-01 -6.40751e-02        00000 
+ 4.65237e-01 -6.48267e-02        00000 
+ 4.54890e-01 -6.55419e-02        00000 
+ 4.44565e-01 -6.62190e-02        00000 
+ 4.34268e-01 -6.68560e-02        00000 
+ 4.24001e-01 -6.74511e-02        00000 
+ 4.13771e-01 -6.80026e-02        00000 
+ 4.03580e-01 -6.85087e-02        00000 
+ 3.93433e-01 -6.89675e-02        00000 
+ 3.83334e-01 -6.93774e-02        00000 
+ 3.73288e-01 -6.97365e-02        00000 
+ 3.63298e-01 -7.00431e-02        00000 
+ 3.53370e-01 -7.02956e-02        00000 
+ 3.43506e-01 -7.04923e-02        00000 
+ 3.33711e-01 -7.06317e-02        00000 
+ 3.23990e-01 -7.07121e-02        00000 
+ 3.14345e-01 -7.07321e-02        00000 
+ 3.04782e-01 -7.06902e-02        00000 
+ 2.95303e-01 -7.05851e-02        00000 
+ 2.85913e-01 -7.04155e-02        00000 
+ 2.76616e-01 -7.01800e-02        00000 
+ 2.67416e-01 -6.98776e-02        00000 
+ 2.58315e-01 -6.95073e-02        00000 
+ 2.49319e-01 -6.90679e-02        00000 
+ 2.40431e-01 -6.85586e-02        00000 
+ 2.31654e-01 -6.79785e-02        00000 
+ 2.22992e-01 -6.73271e-02        00000 
+ 2.14448e-01 -6.66035e-02        00000 
+ 2.06027e-01 -6.58074e-02        00000 
+ 1.98183e-01 -6.49420e-02        00000 
+ 1.91625e-01 -6.40773e-02        00000 
+ 1.85138e-01 -6.32360e-02        00000 
+ 1.78723e-01 -6.24141e-02        00000 
+ 1.72376e-01 -6.16075e-02        00000 
+ 1.66099e-01 -6.08123e-02        00000 
+ 1.59890e-01 -6.00248e-02        00000 
+ 1.53749e-01 -5.92411e-02        00000 
+ 1.47677e-01 -5.84577e-02        00000 
+ 1.41675e-01 -5.76709e-02        00000 
+ 1.35744e-01 -5.68771e-02        00000 
+ 1.29886e-01 -5.60725e-02        00000 
+ 1.24101e-01 -5.52538e-02        00000 
+ 1.18393e-01 -5.44172e-02        00000 
+ 1.12764e-01 -5.35590e-02        00000 
+ 1.07217e-01 -5.26758e-02        00000 
+ 1.01754e-01 -5.17638e-02        00000 
+ 9.63794e-02 -5.08193e-02        00000 
+ 9.10963e-02 -4.98386e-02        00000 
+ 8.59085e-02 -4.88181e-02        00000 
+ 8.08200e-02 -4.77540e-02        00000 
+ 7.58347e-02 -4.66425e-02        00000 
+ 7.09569e-02 -4.54799e-02        00000 
+ 6.61909e-02 -4.42625e-02        00000 
+ 6.15411e-02 -4.29866e-02        00000 
+ 5.70121e-02 -4.16485e-02        00000 
+ 5.26085e-02 -4.02445e-02        00000 
+ 4.83348e-02 -3.87710e-02        00000 
+ 4.41958e-02 -3.72245e-02        00000 
+ 4.01960e-02 -3.56014e-02        00000 
+ 3.63402e-02 -3.38983e-02        00000 
+ 3.26329e-02 -3.21119e-02        00000 
+ 2.90790e-02 -3.02389e-02        00000 
+ 2.56828e-02 -2.82762e-02        00000 
+ 2.24491e-02 -2.62208e-02        00000 
+ 1.93822e-02 -2.40697e-02        00000 
+ 1.64867e-02 -2.18203e-02        00000 
+ 1.37669e-02 -1.94697e-02        00000 
+ 1.12270e-02 -1.70157e-02        00000 
+ 8.87147e-03 -1.44558e-02        00000 
+ 6.70429e-03 -1.17879e-02        00000 
+ 4.72960e-03 -9.01011e-03        00000 
+ 2.95138e-03 -6.12055e-03        00000 
+ 1.37356e-03 -3.11764e-03        00000 
+       00000        00000        00000 
+-1.15425e-03  3.20535e-03        00000 
+-2.07421e-03  6.47103e-03        00000 
+-2.75632e-03  9.79747e-03        00000 
+-3.19715e-03  1.31846e-02        00000 
+-3.39336e-03  1.66320e-02        00000 
+-3.34174e-03  2.01387e-02        00000 
+-3.03919e-03  2.37033e-02        00000 
+-2.48272e-03  2.73238e-02        00000 
+-1.66947e-03  3.09980e-02        00000 
+-5.96679e-04  3.47230e-02        00000 
+ 7.38268e-04  3.84956e-02        00000 
+ 2.33787e-03  4.23121e-02        00000 
+ 4.20449e-03  4.61684e-02        00000 
+ 6.34034e-03  5.00597e-02        00000 
+ 8.74750e-03  5.39810e-02        00000 
+ 1.14279e-02  5.79269e-02        00000 
+ 1.43832e-02  6.18914e-02        00000 
+ 1.76150e-02  6.58682e-02        00000 
+ 2.11247e-02  6.98505e-02        00000 
+ 2.49134e-02  7.38312e-02        00000 
+ 2.89821e-02  7.78028e-02        00000 
+ 3.33314e-02  8.17572e-02        00000 
+ 3.79617e-02  8.56862e-02        00000 
+ 4.28733e-02  8.95813e-02        00000 
+ 4.80660e-02  9.34333e-02        00000 
+ 5.35394e-02  9.72332e-02        00000 
+ 5.92927e-02  1.00971e-01        00000 
+ 6.53248e-02  1.04638e-01        00000 
+ 7.16341e-02  1.08222e-01        00000 
+ 7.82190e-02  1.11715e-01        00000 
+ 8.50769e-02  1.15105e-01        00000 
+ 9.22054e-02  1.18382e-01        00000 
+ 9.96011e-02  1.21535e-01        00000 
+ 1.07261e-01  1.24553e-01        00000 
+ 1.15180e-01  1.27426e-01        00000 
+ 1.23354e-01  1.30141e-01        00000 
+ 1.31778e-01  1.32689e-01        00000 
+ 1.40447e-01  1.35058e-01        00000 
+ 1.49354e-01  1.37238e-01        00000 
+ 1.58493e-01  1.39218e-01        00000 
+ 1.67857e-01  1.40987e-01        00000 
+ 1.77438e-01  1.42536e-01        00000 
+ 1.87227e-01  1.43854e-01        00000 
+ 1.97218e-01  1.44931e-01        00000 
+ 2.06188e-01  1.45803e-01        00000 
+ 2.14838e-01  1.46577e-01        00000 
+ 2.23617e-01  1.47259e-01        00000 
+ 2.32519e-01  1.47850e-01        00000 
+ 2.41542e-01  1.48349e-01        00000 
+ 2.50681e-01  1.48755e-01        00000 
+ 2.59931e-01  1.49070e-01        00000 
+ 2.69288e-01  1.49294e-01        00000 
+ 2.78749e-01  1.49426e-01        00000 
+ 2.88307e-01  1.49467e-01        00000 
+ 2.97960e-01  1.49418e-01        00000 
+ 3.07703e-01  1.49279e-01        00000 
+ 3.17530e-01  1.49052e-01        00000 
+ 3.27438e-01  1.48737e-01        00000 
+ 3.37422e-01  1.48334e-01        00000 
+ 3.47477e-01  1.47846e-01        00000 
+ 3.57598e-01  1.47274e-01        00000 
+ 3.67782e-01  1.46618e-01        00000 
+ 3.78022e-01  1.45880e-01        00000 
+ 3.88315e-01  1.45061e-01        00000 
+ 3.98656e-01  1.44163e-01        00000 
+ 4.09039e-01  1.43188e-01        00000 
+ 4.19461e-01  1.42137e-01        00000 
+ 4.29916e-01  1.41012e-01        00000 
+ 4.40399e-01  1.39815e-01        00000 
+ 4.50906e-01  1.38547e-01        00000 
+ 4.61433e-01  1.37211e-01        00000 
+ 4.71973e-01  1.35808e-01        00000 
+ 4.82523e-01  1.34341e-01        00000 
+ 4.93077e-01  1.32810e-01        00000 
+ 5.03632e-01  1.31220e-01        00000 
+ 5.14181e-01  1.29570e-01        00000 
+ 5.24721e-01  1.27865e-01        00000 
+ 5.35246e-01  1.26105e-01        00000 
+ 5.45753e-01  1.24293e-01        00000 
+ 5.56235e-01  1.22432e-01        00000 
+ 5.66690e-01  1.20522e-01        00000 
+ 5.77111e-01  1.18567e-01        00000 
+ 5.87494e-01  1.16569e-01        00000 
+ 5.97835e-01  1.14530e-01        00000 
+ 6.08129e-01  1.12452e-01        00000 
+ 6.18372e-01  1.10338e-01        00000 
+ 6.28559e-01  1.08189e-01        00000 
+ 6.38685e-01  1.06008e-01        00000 
+ 6.48747e-01  1.03798e-01        00000 
+ 6.58739e-01  1.01560e-01        00000 
+ 6.68658e-01  9.92970e-02        00000 
+ 6.78499e-01  9.70109e-02        00000 
+ 6.88258e-01  9.47041e-02        00000 
+ 6.97931e-01  9.23789e-02        00000 
+ 7.07513e-01  9.00375e-02        00000 
+ 7.17001e-01  8.76822e-02        00000 
+ 7.26389e-01  8.53153e-02        00000 
+ 7.35676e-01  8.29389e-02        00000 
+ 7.44855e-01  8.05554e-02        00000 
+ 7.53924e-01  7.81671e-02        00000 
+ 7.62878e-01  7.57761e-02        00000 
+ 7.71714e-01  7.33848e-02        00000 
+ 7.80429e-01  7.09954e-02        00000 
+ 7.89017e-01  6.86102e-02        00000 
+ 7.97476e-01  6.62314e-02        00000 
+ 8.05803e-01  6.38613e-02        00000 
+ 8.13993e-01  6.15021e-02        00000 
+ 8.22044e-01  5.91562e-02        00000 
+ 8.29951e-01  5.68257e-02        00000 
+ 8.37713e-01  5.45129e-02        00000 
+ 8.45325e-01  5.22201e-02        00000 
+ 8.52784e-01  4.99494e-02        00000 
+ 8.60087e-01  4.77032e-02        00000 
+ 8.67232e-01  4.54837e-02        00000 
+ 8.74215e-01  4.32931e-02        00000 
+ 8.81034e-01  4.11335e-02        00000 
+ 8.87686e-01  3.90073e-02        00000 
+ 8.94167e-01  3.69166e-02        00000 
+ 9.00476e-01  3.48635e-02        00000 
+ 9.06611e-01  3.28503e-02        00000 
+ 9.12567e-01  3.08789e-02        00000 
+ 9.18344e-01  2.89516e-02        00000 
+ 9.23939e-01  2.70705e-02        00000 
+ 9.29350e-01  2.52375e-02        00000 
+ 9.34574e-01  2.34547e-02        00000 
+ 9.39609e-01  2.17240e-02        00000 
+ 9.44454e-01  2.00475e-02        00000 
+ 9.49107e-01  1.84269e-02        00000 
+ 9.53565e-01  1.68641e-02        00000 
+ 9.57828e-01  1.53610e-02        00000 
+ 9.61893e-01  1.39193e-02        00000 
+ 9.65759e-01  1.25406e-02        00000 
+ 9.69424e-01  1.12267e-02        00000 
+ 9.72888e-01  9.97894e-03        00000 
+ 9.76148e-01  8.79896e-03        00000 
+ 9.79203e-01  7.68814e-03        00000 
+ 9.82053e-01  6.64782e-03        00000 
+ 9.84696e-01  5.67929e-03        00000 
+ 9.87131e-01  4.78373e-03        00000 
+ 9.89358e-01  3.96224e-03        00000 
+ 9.91375e-01  3.21585e-03        00000 
+ 9.93181e-01  2.54548e-03        00000 
+ 9.94777e-01  1.95197e-03        00000 
+ 9.96161e-01  1.43608e-03        00000 
+ 9.97333e-01  9.98437e-04        00000 
+ 9.98293e-01  6.39609e-04        00000 
+ 9.99039e-01  3.60047e-04        00000 
+ 9.99573e-01  1.60106e-04        00000 
+ 9.99893e-01  4.00392e-05        00000 
+JOIN 1 
+Mescape 
+Mescape Geometry Create NurbsSurface 1:end escape 
+Mescape Meshing Structured Lines 
+1 
+           1 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+           2 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+           3 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+           4 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+           5 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+           6 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+           7 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+           8 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+           9 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          10 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          11 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          12 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          13 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          14 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          15 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          16 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          17 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          18 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          19 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          20 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          21 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          22 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          23 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          24 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          25 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          26 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          27 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          28 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          29 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          30 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          31 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          32 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          33 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          34 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          35 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          36 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          37 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          38 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          39 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          40 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          41 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          42 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          43 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          44 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          45 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          46 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          47 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          48 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          49 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          50 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          51 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          52 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          53 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          54 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          55 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          56 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          57 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          58 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          59 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          60 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          61 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          62 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          63 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          64 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          65 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          66 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          67 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          68 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          69 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          70 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          71 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          72 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          73 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          74 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          75 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          76 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          77 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          78 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          79 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          80 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          81 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          82 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          83 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          84 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          85 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          86 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          87 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          88 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          89 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          90 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          91 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          92 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          93 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          94 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          95 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          96 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          97 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          98 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+          99 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         100 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         101 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         102 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         103 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         104 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         105 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         106 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         107 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         108 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         109 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         110 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         111 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         112 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         113 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         114 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         115 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         116 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         117 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         118 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         119 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         120 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         121 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         122 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         123 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         124 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         125 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         126 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         127 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         128 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         129 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         130 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         131 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         132 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         133 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         134 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         135 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         136 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         137 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         138 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         139 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         140 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         141 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         142 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         143 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         144 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         145 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         146 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         147 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         148 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         149 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         150 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         151 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         152 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         153 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         154 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         155 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         156 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         157 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         158 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         159 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         160 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         161 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         162 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         163 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         164 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         165 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         166 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         167 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         168 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         169 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         170 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         171 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         172 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         173 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         174 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         175 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         176 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         177 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         178 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         179 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         180 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         181 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         182 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         183 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         184 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         185 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         186 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         187 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         188 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         189 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         190 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         191 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         192 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         193 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         194 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         195 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         196 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         197 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         198 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         199 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         200 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         201 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         202 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         203 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         204 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         205 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         206 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         207 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         208 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         209 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         210 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         211 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         212 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         213 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         214 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         215 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         216 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         217 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         218 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         219 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         220 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         221 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         222 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         223 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         224 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         225 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         226 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         227 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         228 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         229 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         230 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         231 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         232 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         233 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         234 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         235 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         236 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         237 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         238 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         239 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         240 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         241 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         242 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         243 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         244 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         245 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         246 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         247 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         248 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         249 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         250 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         251 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         252 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         253 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         254 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         255 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         256 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         257 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         258 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         259 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         260 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         261 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         262 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         263 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         264 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         265 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         266 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         267 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         268 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         269 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         270 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         271 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         272 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         273 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         274 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         275 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         276 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         277 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         278 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         279 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         280 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         281 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         282 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         283 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         284 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         285 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         286 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         287 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         288 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         289 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         290 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         291 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         292 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         293 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         294 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         295 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         296 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         297 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         298 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         299 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         300 
+Mescape 
+Mescape Meshing Structured Lines 
+1 
+         301 
+Mescape 
+Mescape Geometry Edit DivideSurf Point 
+1 
+USense 
+0.25 0 
+Mescape Geometry Edit DivideSurf Point 
+2 
+USense 
+0.6 0 
+Mescape Data Conditions AssignCond Group_value Change 1 
+3
+Mescape 
+Mescape Data Conditions AssignCond Group_value Change 2 
+4
+Mescape 
+Mescape Data Conditions AssignCond Group_value Change 3 
+5
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-5.81598e-02  5.81518e-03        00000            1 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-7.24263e-02  4.50288e-01        00000            2 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.44758e-01  9.00338e-01        00000            3 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.16902e-01  1.34993e+00        00000            4 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.88767e-01  1.79883e+00        00000            5 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.60263e-01  2.24683e+00        00000            6 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.31300e-01  2.69369e+00        00000            7 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-5.01790e-01  3.13920e+00        00000            8 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-5.71649e-01  3.58314e+00        00000            9 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-6.40792e-01  4.02528e+00        00000           10 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-7.09141e-01  4.46540e+00        00000           11 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-7.76617e-01  4.90330e+00        00000           12 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-8.43146e-01  5.33875e+00        00000           13 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-9.08657e-01  5.77154e+00        00000           14 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-9.73085e-01  6.20146e+00        00000           15 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.03636e+00  6.62830e+00        00000           16 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.09844e+00  7.05186e+00        00000           17 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.15925e+00  7.47194e+00        00000           18 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.21874e+00  7.88833e+00        00000           19 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.27688e+00  8.30084e+00        00000           20 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.33361e+00  8.70927e+00        00000           21 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.38890e+00  9.11344e+00        00000           22 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.44271e+00  9.51315e+00        00000           23 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.49501e+00  9.90823e+00        00000           24 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.54577e+00  1.02985e+01        00000           25 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.59497e+00  1.06838e+01        00000           26 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.64259e+00  1.10639e+01        00000           27 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.68861e+00  1.14386e+01        00000           28 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.73301e+00  1.18079e+01        00000           29 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.77579e+00  1.21715e+01        00000           30 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.81693e+00  1.25292e+01        00000           31 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.85643e+00  1.28810e+01        00000           32 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.89428e+00  1.32267e+01        00000           33 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.93047e+00  1.35661e+01        00000           34 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.96500e+00  1.38990e+01        00000           35 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.99786e+00  1.42254e+01        00000           36 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.02906e+00  1.45452e+01        00000           37 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.05858e+00  1.48580e+01        00000           38 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.08643e+00  1.51640e+01        00000           39 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.11260e+00  1.54628e+01        00000           40 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.13708e+00  1.57545e+01        00000           41 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.15986e+00  1.60388e+01        00000           42 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.18093e+00  1.63157e+01        00000           43 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.20029e+00  1.65850e+01        00000           44 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.21790e+00  1.68468e+01        00000           45 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.23377e+00  1.71007e+01        00000           46 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.24785e+00  1.73469e+01        00000           47 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.26014e+00  1.75851e+01        00000           48 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.27060e+00  1.78153e+01        00000           49 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.27920e+00  1.80373e+01        00000           50 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.28590e+00  1.82512e+01        00000           51 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.29066e+00  1.84568e+01        00000           52 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.29345e+00  1.86541e+01        00000           53 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.29421e+00  1.88430e+01        00000           54 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.29290e+00  1.90234e+01        00000           55 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.28946e+00  1.91952e+01        00000           56 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.28383e+00  1.93585e+01        00000           57 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.27594e+00  1.95131e+01        00000           58 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.26575e+00  1.96590e+01        00000           59 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.25318e+00  1.97962e+01        00000           60 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.23816e+00  1.99246e+01        00000           61 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.22062e+00  2.00442e+01        00000           62 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.20048e+00  2.01549e+01        00000           63 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.17768e+00  2.02568e+01        00000           64 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.15213e+00  2.03497e+01        00000           65 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.12377e+00  2.04338e+01        00000           66 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.09252e+00  2.05089e+01        00000           67 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.05829e+00  2.05750e+01        00000           68 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.02103e+00  2.06322e+01        00000           69 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.98065e+00  2.06805e+01        00000           70 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.93709e+00  2.07198e+01        00000           71 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.89028e+00  2.07501e+01        00000           72 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.84016e+00  2.07715e+01        00000           73 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.78667e+00  2.07840e+01        00000           74 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.72975e+00  2.07875e+01        00000           75 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.66936e+00  2.07822e+01        00000           76 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.60546e+00  2.07680e+01        00000           77 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.53801e+00  2.07449e+01        00000           78 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.46698e+00  2.07131e+01        00000           79 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.39234e+00  2.06725e+01        00000           80 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.31409e+00  2.06231e+01        00000           81 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.23222e+00  2.05650e+01        00000           82 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.14673e+00  2.04983e+01        00000           83 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.05764e+00  2.04230e+01        00000           84 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-9.64956e-01  2.03392e+01        00000           85 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-8.68725e-01  2.02468e+01        00000           86 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-7.68984e-01  2.01460e+01        00000           87 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-6.65783e-01  2.00369e+01        00000           88 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-5.59186e-01  1.99194e+01        00000           89 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.49263e-01  1.97937e+01        00000           90 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.36097e-01  1.96597e+01        00000           91 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.19781e-01  1.95177e+01        00000           92 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.00417e-01  1.93676e+01        00000           93 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 2.18815e-02  1.92095e+01        00000           94 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.46994e-01  1.90436e+01        00000           95 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 2.74787e-01  1.88698e+01        00000           96 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 4.05122e-01  1.86882e+01        00000           97 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 5.37850e-01  1.84990e+01        00000           98 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 6.72812e-01  1.83022e+01        00000           99 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 8.09846e-01  1.80979e+01        00000          100 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 9.48778e-01  1.78862e+01        00000          101 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.08943e+00  1.76671e+01        00000          102 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.23162e+00  1.74408e+01        00000          103 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.37516e+00  1.72074e+01        00000          104 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.51985e+00  1.69668e+01        00000          105 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.66165e+00  1.62668e+01        00000          106 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.73025e+00  1.44034e+01        00000          107 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.70620e+00  1.30462e+01        00000          108 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.66343e+00  1.29037e+01        00000          109 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.62877e+00  1.27637e+01        00000          110 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.60199e+00  1.26255e+01        00000          111 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.58292e+00  1.24883e+01        00000          112 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.57138e+00  1.23514e+01        00000          113 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.56725e+00  1.22140e+01        00000          114 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.57045e+00  1.20754e+01        00000          115 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.58092e+00  1.19348e+01        00000          116 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.59861e+00  1.17915e+01        00000          117 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.62352e+00  1.16449e+01        00000          118 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.65564e+00  1.14943e+01        00000          119 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.69500e+00  1.13389e+01        00000          120 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.74163e+00  1.11783e+01        00000          121 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.79556e+00  1.10119e+01        00000          122 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.85683e+00  1.08391e+01        00000          123 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.92548e+00  1.06595e+01        00000          124 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 2.00155e+00  1.04727e+01        00000          125 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 2.08506e+00  1.02782e+01        00000          126 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 2.17604e+00  1.00757e+01        00000          127 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 2.27450e+00  9.86500e+00        00000          128 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 2.38042e+00  9.64571e+00        00000          129 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 2.49379e+00  9.41765e+00        00000          130 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 2.61457e+00  9.18064e+00        00000          131 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 2.74271e+00  8.93453e+00        00000          132 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 2.87812e+00  8.67922e+00        00000          133 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 3.02071e+00  8.41463e+00        00000          134 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 3.17037e+00  8.14071e+00        00000          135 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 3.32696e+00  7.85745e+00        00000          136 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 3.49032e+00  7.56486e+00        00000          137 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 3.66026e+00  7.26297e+00        00000          138 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 3.83660e+00  6.95184e+00        00000          139 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 4.01911e+00  6.63154e+00        00000          140 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 4.20754e+00  6.30218e+00        00000          141 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 4.40164e+00  5.96387e+00        00000          142 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 4.60112e+00  5.61671e+00        00000          143 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 4.80569e+00  5.26086e+00        00000          144 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 5.01502e+00  4.89646e+00        00000          145 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 5.22879e+00  4.52365e+00        00000          146 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 5.44664e+00  4.14260e+00        00000          147 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 5.66820e+00  3.75346e+00        00000          148 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 5.89310e+00  3.35640e+00        00000          149 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 6.12094e+00  2.95158e+00        00000          150 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 6.32309e+00  2.52786e+00        00000          151 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 6.47078e+00  2.07414e+00        00000          152 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 6.59148e+00  1.60193e+00        00000          153 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 6.71253e+00  1.12277e+00        00000          154 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 6.83302e+00  6.36903e-01        00000          155 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 6.95206e+00  1.44556e-01        00000          156 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.06873e+00 -3.54040e-01        00000          157 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.18212e+00 -8.58660e-01        00000          158 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.29131e+00 -1.36908e+00        00000          159 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.39539e+00 -1.88506e+00        00000          160 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.49344e+00 -2.40637e+00        00000          161 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.58455e+00 -2.93277e+00        00000          162 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.66781e+00 -3.46400e+00        00000          163 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.74232e+00 -3.99978e+00        00000          164 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.80719e+00 -4.53983e+00        00000          165 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.86154e+00 -5.08384e+00        00000          166 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.90451e+00 -5.63148e+00        00000          167 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.93524e+00 -6.18241e+00        00000          168 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.95291e+00 -6.73626e+00        00000          169 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.95669e+00 -7.29261e+00        00000          170 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.94580e+00 -7.85104e+00        00000          171 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.91948e+00 -8.41109e+00        00000          172 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.87698e+00 -8.97226e+00        00000          173 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.81759e+00 -9.53404e+00        00000          174 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.74064e+00 -1.00959e+01        00000          175 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.64548e+00 -1.06571e+01        00000          176 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.53151e+00 -1.12172e+01        00000          177 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.39817e+00 -1.17754e+01        00000          178 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.24493e+00 -1.23310e+01        00000          179 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.07135e+00 -1.28832e+01        00000          180 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 6.87699e+00 -1.34314e+01        00000          181 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 6.66150e+00 -1.39746e+01        00000          182 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 6.42458e+00 -1.45120e+01        00000          183 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 6.16601e+00 -1.50426e+01        00000          184 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 5.88563e+00 -1.55656e+01        00000          185 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 5.58334e+00 -1.60801e+01        00000          186 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 5.25915e+00 -1.65849e+01        00000          187 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 4.91312e+00 -1.70792e+01        00000          188 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 4.54543e+00 -1.75619e+01        00000          189 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 4.15632e+00 -1.80320e+01        00000          190 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 3.74615e+00 -1.84885e+01        00000          191 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 3.31533e+00 -1.89304e+01        00000          192 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 2.86442e+00 -1.93567e+01        00000          193 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 2.39405e+00 -1.97666e+01        00000          194 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.94772e+00 -1.89482e+01        00000          195 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.64421e+00 -1.76094e+01        00000          196 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.45558e+00 -1.74179e+01        00000          197 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.27237e+00 -1.76705e+01        00000          198 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.08877e+00 -1.79149e+01        00000          199 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 9.05008e-01 -1.81509e+01        00000          200 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 7.21335e-01 -1.83785e+01        00000          201 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 5.37985e-01 -1.85975e+01        00000          202 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 3.55192e-01 -1.88079e+01        00000          203 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+ 1.73189e-01 -1.90094e+01        00000          204 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-7.79652e-03 -1.92021e+01        00000          205 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.87541e-01 -1.93859e+01        00000          206 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.65828e-01 -1.95606e+01        00000          207 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-5.42443e-01 -1.97262e+01        00000          208 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-7.17182e-01 -1.98826e+01        00000          209 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-8.89845e-01 -2.00298e+01        00000          210 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.06024e+00 -2.01677e+01        00000          211 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.22819e+00 -2.02963e+01        00000          212 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.39350e+00 -2.04154e+01        00000          213 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.55603e+00 -2.05251e+01        00000          214 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.71559e+00 -2.06254e+01        00000          215 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.87206e+00 -2.07161e+01        00000          216 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.02528e+00 -2.07973e+01        00000          217 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.17512e+00 -2.08690e+01        00000          218 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.32145e+00 -2.09311e+01        00000          219 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.46416e+00 -2.09836e+01        00000          220 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.60315e+00 -2.10265e+01        00000          221 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.73831e+00 -2.10599e+01        00000          222 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.86956e+00 -2.10837e+01        00000          223 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.99681e+00 -2.10979e+01        00000          224 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.11998e+00 -2.11026e+01        00000          225 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.23901e+00 -2.10977e+01        00000          226 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.35385e+00 -2.10834e+01        00000          227 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.46443e+00 -2.10596e+01        00000          228 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.57070e+00 -2.10263e+01        00000          229 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.67264e+00 -2.09836e+01        00000          230 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.77019e+00 -2.09316e+01        00000          231 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.86334e+00 -2.08702e+01        00000          232 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.95205e+00 -2.07996e+01        00000          233 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.03631e+00 -2.07197e+01        00000          234 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.11609e+00 -2.06307e+01        00000          235 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.19138e+00 -2.05326e+01        00000          236 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.26218e+00 -2.04254e+01        00000          237 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.32846e+00 -2.03093e+01        00000          238 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.39024e+00 -2.01843e+01        00000          239 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.44749e+00 -2.00504e+01        00000          240 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.50022e+00 -1.99079e+01        00000          241 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.54843e+00 -1.97566e+01        00000          242 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.59211e+00 -1.95968e+01        00000          243 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.63127e+00 -1.94285e+01        00000          244 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.66591e+00 -1.92518e+01        00000          245 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.69602e+00 -1.90668e+01        00000          246 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.72161e+00 -1.88737e+01        00000          247 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.74268e+00 -1.86724e+01        00000          248 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.75922e+00 -1.84632e+01        00000          249 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.77125e+00 -1.82460e+01        00000          250 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.77875e+00 -1.80211e+01        00000          251 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.78174e+00 -1.77886e+01        00000          252 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.78020e+00 -1.75485e+01        00000          253 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.77415e+00 -1.73011e+01        00000          254 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.76358e+00 -1.70463e+01        00000          255 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.74849e+00 -1.67844e+01        00000          256 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.72888e+00 -1.65155e+01        00000          257 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.70476e+00 -1.62397e+01        00000          258 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.67613e+00 -1.59571e+01        00000          259 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.64299e+00 -1.56679e+01        00000          260 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.60535e+00 -1.53722e+01        00000          261 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.56322e+00 -1.50701e+01        00000          262 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.51661e+00 -1.47619e+01        00000          263 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.46553e+00 -1.44476e+01        00000          264 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.40999e+00 -1.41275e+01        00000          265 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.35002e+00 -1.38015e+01        00000          266 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.28563e+00 -1.34700e+01        00000          267 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.21686e+00 -1.31330e+01        00000          268 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.14373e+00 -1.27907e+01        00000          269 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.06629e+00 -1.24433e+01        00000          270 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.98456e+00 -1.20909e+01        00000          271 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.89860e+00 -1.17337e+01        00000          272 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.80846e+00 -1.13718e+01        00000          273 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.71419e+00 -1.10054e+01        00000          274 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.61586e+00 -1.06347e+01        00000          275 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.51354e+00 -1.02597e+01        00000          276 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.40731e+00 -9.88079e+00        00000          277 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.29724e+00 -9.49798e+00        00000          278 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.18342e+00 -9.11147e+00        00000          279 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.06597e+00 -8.72143e+00        00000          280 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.94497e+00 -8.32801e+00        00000          281 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.82054e+00 -7.93137e+00        00000          282 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.69279e+00 -7.53169e+00        00000          283 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.56186e+00 -7.12912e+00        00000          284 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.42788e+00 -6.72383e+00        00000          285 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.29098e+00 -6.31598e+00        00000          286 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.15131e+00 -5.90572e+00        00000          287 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-2.00901e+00 -5.49322e+00        00000          288 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.86426e+00 -5.07865e+00        00000          289 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.71722e+00 -4.66216e+00        00000          290 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.56804e+00 -4.24392e+00        00000          291 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.41692e+00 -3.82408e+00        00000          292 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.26402e+00 -3.40280e+00        00000          293 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.10954e+00 -2.98025e+00        00000          294 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-9.53663e-01 -2.55658e+00        00000          295 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-7.96579e-01 -2.13196e+00        00000          296 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-6.38485e-01 -1.70653e+00        00000          297 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-4.79580e-01 -1.28047e+00        00000          298 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-3.20063e-01 -8.53918e-01        00000          299 
+Mescape 
+Mescape Data Conditions AssignCond Point_Force Change 
+-1.60135e-01 -4.27044e-01        00000          300 
+Mescape 
+Mescape Data Conditions DrawCond Point_Force -draw-
+Mescape Meshing Generate 
+   0.009 MeshingParametersFrom=Preferences 
+Mescape Meshing MeshView 
+Mescape Utilities Calculate 
+Mescape 'Zoom Frame 

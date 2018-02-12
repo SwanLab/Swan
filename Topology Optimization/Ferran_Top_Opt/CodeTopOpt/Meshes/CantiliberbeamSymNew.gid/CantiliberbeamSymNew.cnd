@@ -1,0 +1,167 @@
+NUMBER: 1 CONDITION: Point_Force
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Fx
+VALUE: 0
+QUESTION: Fy
+VALUE: 0
+QUESTION: Fz
+VALUE: 0
+END CONDITION
+NUMBER: 2 CONDITION: x_direction_point_force
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Fx
+VALUE: 0
+END CONDITION
+NUMBER: 3 CONDITION: y_direction_point_force
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Fy
+VALUE: 0
+END CONDITION
+NUMBER: 4 CONDITION: z_direction_point_force
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Fz
+VALUE: 0
+END CONDITION
+NUMBER: 5 CONDITION: Point_Constraint
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Ux
+VALUE: 0
+QUESTION: Uy
+VALUE: 0
+QUESTION: Uz
+VALUE: 0
+END CONDITION
+NUMBER: 6 CONDITION: x_direction_point_constraint
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Ux
+VALUE: 0
+END CONDITION
+NUMBER: 7 CONDITION: y_direction_point_constraint
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Uy
+VALUE: 0
+END CONDITION
+NUMBER: 8 CONDITION: z_direction_point_constraint
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Uz
+VALUE: 0
+END CONDITION
+NUMBER: 9 CONDITION: Micro_gauss
+CONDTYPE: over surfaces
+QUESTION: micro_gauss_point
+VALUE: 0
+END CONDITION
+NUMBER: 10 CONDITION: Micro_Slave
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Slave
+VALUE: 1
+END CONDITION
+NUMBER: 11 CONDITION: Line_Constraint
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Ux
+VALUE: 0
+QUESTION: Uy
+VALUE: 0
+QUESTION: Uz
+VALUE: 0
+END CONDITION
+NUMBER: 12 CONDITION: x_direction_Line_Constraint
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Ux
+VALUE: 0
+END CONDITION
+NUMBER: 13 CONDITION: y_direction_Line_Constraint
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Uy
+VALUE: 0
+END CONDITION
+NUMBER: 14 CONDITION: z_direction_Line_Constraint
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Uz
+VALUE: 0
+END CONDITION
+NUMBER: 15 CONDITION: Group_value
+CONDTYPE: over surfaces
+QUESTION: Group
+VALUE: 0
+END CONDITION
+NUMBER: 16 CONDITION: Vol_force_value
+CONDTYPE: over surfaces
+QUESTION: Vol_forceX
+VALUE: 0
+QUESTION: Vol_forceY
+VALUE: 0
+END CONDITION
+NUMBER: 17 CONDITION: Boundary_elements
+CONDTYPE: over surfaces
+QUESTION: Boundary
+VALUE: 0
+END CONDITION
+NUMBER: 18 CONDITION: Initial_holes
+CONDTYPE: over surfaces
+QUESTION: Holes
+VALUE: 0
+END CONDITION
+NUMBER: 19 CONDITION: Line_Force
+CONDTYPE: over lines
+QUESTION: PressureX
+VALUE: 0
+QUESTION: PressureY
+VALUE: 0
+END CONDITION
+NUMBER: 20 CONDITION: x_direction_Line_Force
+CONDTYPE: over lines
+QUESTION: PressureX
+VALUE: 0
+END CONDITION
+NUMBER: 21 CONDITION: y_direction_Line_Force
+CONDTYPE: over lines
+QUESTION: PressureY
+VALUE: 0
+END CONDITION
+NUMBER: 22 CONDITION: Line_Load
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Fx
+VALUE: 0
+QUESTION: Fy
+VALUE: 0
+QUESTION: Fz
+VALUE: 0
+END CONDITION
+NUMBER: 23 CONDITION: x_direction_Line_Load
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Fx
+VALUE: 0
+END CONDITION
+NUMBER: 24 CONDITION: y_direction_Line_Load
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Fy
+VALUE: 0
+END CONDITION
+NUMBER: 25 CONDITION: z_direction_Line_Load
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Fz
+VALUE: 0
+END CONDITION
+NUMBER: 26 CONDITION: Border_elements
+CONDTYPE: over lines
+QUESTION: Border
+VALUE: 0
+END CONDITION

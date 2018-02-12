@@ -1,0 +1,37 @@
+BeginZE /home/aferrer/Documents/Doctorat/Tesi/CodigoAniostropico/Results/RVE04N3/CantiliberbeamNoSymNoHolesFineLaminate.gid/CantiliberbeamNoSymNoHolesFineLaminate.vv
+   x -0.879264950752258301 2.87926506996154785
+   y 1.66666662693023682 -0.666666626930236816
+   z -3.5 3.5
+   e 1.16666662693023682
+   v -0.0115805706009268761 -0.111182138323783875 -0.00203392910771071911
+   r -0.993730485439300537
+   m 0.975268781185150146 -0.00146724958904087543 0.221017256379127502 0 0.00661745993420481682 0.999723494052886963 -0.0225636586546897888 0 -0.220923051238059998 0.0234682057052850723 0.975008845329284668 0 0 0 0 1
+   c 1 0.5 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 0
+   DrawingType 0
+   LightVector -9.43000984191894531 2.45901989936828613 149.643997192382812 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderFast
+   OGLShadow(ShadowBias) 0
+   OGLShadow(AmbientShadows) 0
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 0
+   OGLShadow(DimmedLightFactor) 0
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/aferrer/Documents/Doctorat/Tesi/CodigoAniostropico/Results/RVE04N3/CantiliberbeamNoSymNoHolesFineLaminate.gid/CantiliberbeamNoSymNoHolesFineLaminate.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+
