@@ -5,8 +5,8 @@ classdef B2<B
     properties
     end
     
-    methods(Access = ?Element_Elastic)
-        function [obj,B] = computeB(obj,nunkn,nelem,nnode,cartd)
+    methods(Static,Access = ?Element_Elastic)
+        function [B] = computeB(nunkn,nelem,nnode,cartd)
             B = zeros(3,nnode*nunkn,nelem);
             for i = 1:nnode
                 j = nunkn*(i-1)+1;
@@ -15,7 +15,6 @@ classdef B2<B
                 B(3,j,:)  = cartd(2,i,:);
                 B(3,j+1,:)= cartd(1,i,:);
             end
-            obj.value = [obj.value {B}];
         end
     end
     

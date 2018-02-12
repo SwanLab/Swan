@@ -25,7 +25,7 @@ classdef Element_Elastic_Micro < Element_Elastic
             eforce = zeros(obj.nunkn*obj.nnode,1,obj.nelem);
             sigma=zeros(obj.nstre,1,obj.nelem);
             for igaus=1:obj.geometry.ngaus
-                [obj.B, Bmat] = obj.B.computeB(obj.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
+                Bmat = obj.B.computeB(obj.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
                 for istre=1:obj.nstre
                     for jstre=1:obj.nstre
                         sigma(istre,:) = sigma(istre,:) + squeeze(Cmat(istre,jstre,:)*vstrain(jstre))';

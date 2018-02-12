@@ -6,7 +6,7 @@ classdef Element_Hyperelastic < Element
     end
     
     methods (Access = ?Physical_Problem)
-        function [r,dr] = computeResidual(obj,u)
+        function [r,dr] = computeResidual(obj,uL)
             % *************************************************************
             % Compute
             % - residual: r = K(u)u - F
@@ -19,14 +19,16 @@ classdef Element_Hyperelastic < Element
             % Assemble
             [K] = obj.AssembleMatrix(K);
             
-            %             if ~isempty(obj.dof.vR)
-            %                 u(obj.dof.vR) = obj.bc.fixnodes(:,3);
-            %                 fext = obj.Fext(obj.dof.vL)-K(obj.dof.vL,obj.dof.vR)*u(obj.dof.vR); % fext + reac
-            %             else
-            %                 fext = obj.Fext(obj.dof.vL);
-            %             end
+            %Assemble u and Fext
+            u = zeros(obj.dof.ndof,1);
+            u(obj.dof.vL) = uL;
             
-            fext  = obj.Fext;
+            if ~isempty(obj.dof.vR)
+                u(obj.dof.vR) = obj.bc.fixnodes(:,3);
+                fext = obj.Fext(obj.dof.vL)-K(obj.dof.vL,obj.dof.vR)*u(obj.dof.vR); % fext + reac
+            else
+                fext = obj.Fext(obj.dof.vL);
+            end
             
             
             % Compute internal forces
