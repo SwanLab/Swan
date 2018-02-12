@@ -16,8 +16,8 @@ b=addpath(genpath('./Input/'));
 % test
 clear variables
 %% Main.m
-triangle_linear = Physical_Problem('CantileverToy_Triangular');
-% triangle_linear = Physical_Problem('CantileverToy_Nonlinear');
+% triangle_linear = Physical_Problem('CantileverToy_Triangular');
+triangle_linear = Physical_Problem('CantileverToy_Nonlinear');
 tic
 triangle_linear.preProcess;
 triangle_linear.computeVariables;

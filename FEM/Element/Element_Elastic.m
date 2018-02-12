@@ -16,6 +16,8 @@ classdef Element_Elastic < Element
             % - residual: r = Ku - F
             % - residual derivative: dr = K
             % *************************************************************
+            
+            % Compute stiffness matrix
             [K,B] = obj.computeStiffnessMatrix();
             
             % Stores strain-displacement matrix
@@ -72,9 +74,11 @@ classdef Element_Elastic < Element
         function FextSuperficial = computeSuperficialFext(obj,bc)
             FextSuperficial = zeros(obj.nnode*obj.nunkn,1,obj.nelem);
         end
+        
         function FextVolumetric = computeVolumetricFext(obj,bc)
             FextVolumetric = zeros(obj.nnode*obj.nunkn,1,obj.nelem);
         end
+        
         function variables = computeDispStressStrain(obj,uL)
             variables.d_u = zeros(obj.dof.ndof,1);
             variables.d_u(obj.dof.vL) = uL;
@@ -95,6 +99,7 @@ classdef Element_Elastic < Element
     end
     
     methods(Static, Access = protected)
+        % Only used in Element_Elastic_2D
         function strain = computeEz(strain,nstre,nelem,material)
             mu = material.mu;
             kappa = material.kappa;
@@ -103,7 +108,7 @@ classdef Element_Elastic < Element
             strain(nstre+1,:,:) = (-epoiss./(1-epoiss)).*(strain(1,:,:)+strain(2,:,:));
         end
         
-        % Compute strains (e=B·u)
+        % Compute strains (e = B·u)
         function strain = computeStrain(d_u,dim,nnode,nelem,ngaus,idx,B)
             strain = zeros(dim.nstre,nelem,ngaus);
             for igaus = 1:ngaus

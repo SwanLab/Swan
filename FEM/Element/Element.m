@@ -4,7 +4,7 @@ classdef Element<handle
     
     %% !! NEEDS REVISION !! -> should B be a class?? Or just be contained in element ??
     
-    properties (GetAccess = {?Physical_Problem, ?Element_Elastic, ?Element_Elastic_2D, ?Element_Elastic_3d, ?Element_Hyperelastic, ?Element_Elastic_Micro}, SetAccess = protected)
+    properties (GetAccess = {?Physical_Problem, ?Element_Elastic, ?Element_Hyperelastic, ?Element_Elastic_2D, ?Element_Elastic_3d, ?Element_Hyperelastic, ?Element_Elastic_Micro}, SetAccess = protected)
         Fext
         nunkn
         nstre
@@ -17,7 +17,7 @@ classdef Element<handle
         dim
     end
     
-    properties (GetAccess = {?Element_Elastic, ?Element_Elastic, ?Element_Thermal,?PhysicalVariables,?Element_Elastic_Micro}, SetAccess = {?Physical_Problem,?Element, ?Element_Elastic_Micro})
+    properties (GetAccess = {?Element_Elastic, ?Element_Elastic,?Element_Thermal,?PhysicalVariables,?Element_Elastic_Micro}, SetAccess = {?Physical_Problem,?Element, ?Element_Elastic_Micro})
         B
     end
     
@@ -62,8 +62,13 @@ classdef Element<handle
             FextVolumetric  = obj.computeVolumetricFext ();
             FextSupVol = FextSuperficial + FextVolumetric;
         end
-        function obj = assembleExternalForces(obj,FextSupVol)
-            % Assemble external forces
+        
+        % *****************************************************************
+        % Assembling Functions
+        %******************************************************************
+        
+        % Assemble external forces
+        function obj = assembleExternalForces(obj,FextSupVol) 
             obj.Fext = zeros(obj.dof.ndof,1);
             for i = 1:obj.nnode*obj.nunkn
                 b = squeeze(FextSupVol(i,1,:));
@@ -79,6 +84,7 @@ classdef Element<handle
             end
         end
         
+        % Vector function
         function b = AssembleVector(obj,b_elem)
             b = zeros(obj.dof.ndof,1);
             for i = 1:obj.nnode*obj.nunkn
@@ -89,9 +95,8 @@ classdef Element<handle
         end
         
         
-        
+        % Matrix function
         function [A] = AssembleMatrix(obj,A_elem)
-            % Assemble stiffness matrix
             A = sparse(obj.dof.ndof,obj.dof.ndof);
             for i = 1:obj.nnode*obj.nunkn
                 for j = 1:obj.nnode*obj.nunkn
@@ -101,10 +106,6 @@ classdef Element<handle
             end
             A = 1/2 * (A + A');
         end
-        
-        
-        
-        
     end
     
     methods (Abstract, Access = protected)

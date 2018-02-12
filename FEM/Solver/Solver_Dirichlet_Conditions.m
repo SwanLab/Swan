@@ -22,7 +22,7 @@ classdef Solver_Dirichlet_Conditions < Solver
     end
     
     methods (Static)
-        % Analytical Solver (A�X=b)
+        % Analytical Solver (AX = b)
         function x = solve(LHS,RHS)
             x = LHS\RHS;
         end

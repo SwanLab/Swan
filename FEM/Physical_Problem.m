@@ -39,7 +39,7 @@ classdef Physical_Problem < FEM
         end
         
         function computeVariables(obj)
-            tol = 1e-6;
+            tol   = 1e-6;
             x0 = zeros(length(obj.dof.vL),1);
             % Compute r & dr
             [r,dr] = obj.element.computeResidual(x0);
