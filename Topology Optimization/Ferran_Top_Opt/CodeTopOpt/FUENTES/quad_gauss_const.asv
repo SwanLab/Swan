@@ -1,0 +1,99 @@
+function [ posgp,weigp ] = quad_gauss_const( ndime,ngaus )
+%**** This routine sets up the integration constants of open
+%**** integration rules for brick elements:
+%
+%        NDIME = 1             NDIME = 2             NDIME = 3
+%
+%    NGAUS  EXACT POL.     NGAUS  EXACT POL.     NGAUS  EXACT POL. 
+%    -----  ----------     -----  ----------     -----  ----------
+%      1      q1           1 x 1     q1          1x1x1     q1	
+%      2      q3           2 x 2     q3          2x2x2     q3   
+%      3      q5           3 x 3     q5          3x3x3     q5
+%      4      q7           4 x 4     q7          4x4x4     q7
+%
+%----------------------------------------------------------------------------
+
+if(ndime==1)
+   nlocs=ngaus;
+elseif(ndime==2)
+    switch  ngaus
+        case 1
+            nlocs = 1;
+        case 4
+            nlocs = 2;
+        case 9
+            nlocs = 3;
+        otherwise
+            error('undifined ngaus')
+    end
+elseif(ndime==3)
+    switch  ngaus
+        case 8
+            nlocs = 4;
+        otherwise
+            error('undifined ngaus')
+    end
+end
+
+if(nlocs.eq.1) then
+    posgl(1)=0.0;
+    weigl(1)=2.0;
+else if(nlocs.eq.2) then
+        posgl(1)=-0.577350269189626
+        posgl(2)= 0.577350269189626
+        weigl(1)= 1.0
+        weigl(2)= 1.0
+    else if(nlocs.eq.3) then
+            posgl(1)=-0.774596669241483
+            posgl(2)= 0.0
+            posgl(3)= 0.774596669241483
+            weigl(1)= 0.555555555555556
+            weigl(2)= 0.888888888888889
+            weigl(3)= 0.555555555555556
+        else if(nlocs.eq.4)  then
+	posgl(1)=-0.861136311594053
+	posgl(2)=-0.339981043584856
+	posgl(3)= 0.339981043584856
+	posgl(4)= 0.861136311594053
+	weigl(1)= 0.347854845137454
+	weigl(2)= 0.652145154862546
+	weigl(3)= 0.652145154862546
+	weigl(4)= 0.347854845137454
+        
+      end if
+
+      if(ndime.eq.1) then
+        igaus=0
+        do ilocs=1,nlocs
+          igaus=igaus+1
+          weigp(  igaus)=weigl(ilocs)
+          posgp(1,igaus)=posgl(ilocs)
+        end do
+      else if(ndime.eq.2) then
+        igaus=0
+        do ilocs=1,nlocs
+          do jlocs=1,nlocs
+            igaus=igaus+1
+            weigp(  igaus)=weigl(ilocs)*weigl(jlocs)
+            posgp(1,igaus)=posgl(ilocs)
+            posgp(2,igaus)=posgl(jlocs)
+          end do
+        end do
+      else if(ndime.eq.3) then
+        igaus=0
+        do ilocs=1,nlocs
+          do jlocs=1,nlocs
+            do klocs=1,nlocs
+              igaus=igaus+1
+              weigp(  igaus)=weigl(ilocs)*weigl(jlocs)*weigl(klocs)
+              posgp(1,igaus)=posgl(ilocs)
+              posgp(2,igaus)=posgl(jlocs)
+              posgp(3,igaus)=posgl(klocs)
+            end do
+          end do
+        end do
+      end if
+
+      end
+end
+

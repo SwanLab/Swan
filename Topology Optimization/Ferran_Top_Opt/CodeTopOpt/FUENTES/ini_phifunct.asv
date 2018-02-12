@@ -1,0 +1,9 @@
+function [ phifunct ] = ini_phifunct(npnod)
+
+D = 2*0.5;
+phifunct = -1/sqrt(D)*ones(npnod,1);
+
+
+
+end
+

@@ -1,0 +1,30 @@
+  function [npnod,nndof,ndime]=data_nod(coordinates,type,problemtype)
+% Esta función entrega información a la rutina principal de MatFEM acerca
+% del numero total de nodos del problema y del numero de grados de libertad
+% dependiendo de si la formulación es estandar o mixta.
+  switch type 
+      case 'LINEAR_TRIANGLE' 
+      npnod  = size(coordinates,1);        % Number of nodes
+      nndof  = 2*npnod;                    % Number of total DOF
+      case 'LINEAR_TRIANGLE_MIX'
+      npnod  = size(coordinates,1);        % Number of nodes
+      nndof  = 3*npnod;                    % Number of total DOF
+      case 'LINEAR_TRIANGLE_MIX_COUPLED'
+      npnod  = size(coordinates,1);        % Number of nodes
+      nndof  = 3*npnod;                    % Number of total DOF
+      case {'QUAD' || 'QUAD8' || 'QUAD9'}
+      npnod  = size(coordinates,1);        % Number of nodes
+      nndof  = 2*npnod;                    % Number of total DOF
+      case 'HEXAHEDRA'
+      npnod  = size(coordinates,1);        % Number of nodes
+      nndof  = 3*npnod;                    % Number of total DOF              
+      otherwise          
+      error('Formulación no ha sido implementada')
+  end
+  
+  switch problemtype
+      case '2D'
+          ndime = 2;
+      case '3D'
+          ndime = 3;
+  end

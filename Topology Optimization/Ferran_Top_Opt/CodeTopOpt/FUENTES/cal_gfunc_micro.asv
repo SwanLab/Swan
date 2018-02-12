@@ -1,0 +1,76 @@
+function [gfunc] = cal_gfunc_micro(phigp,Lagrange,nelem,ngaus,DtC,matCh)
+
+I = [1 3; 3 2];
+L = Lagrange;
+DtJ = zeros(ngaus,nelem);
+DtC1 = zeros(ngaus,nelem);
+n=2;
+inv_C = inv(matCh);
+
+% for i=1:n
+%     for j=1:n
+%         for k=1:n
+%             for l=1:n
+%                 a=I(i,j);
+%                 b=I(k,l);
+%                 DtC1(:,:) = DtC(a,b,:,:);
+%                 DtJ = DtJ - inv_C(1,a)*DtC1*inv_C(b,1);
+%             end
+%         end
+%     end
+% end
+
+% for i=1:n
+%     for j=1:n
+%         for k=1:n
+%             for l=1:n
+%                 a=I(i,j);
+%                 b=I(k,l);
+%                 DtC1(:,:) = DtC(a,b,:,:);
+%                 DtJ = DtJ - (inv_C(1,a)*DtC1*inv_C(b,1)+inv_C(1,a)*DtC1*inv_C(b,2)+...
+%                              inv_C(2,a)*DtC1*inv_C(b,1)+inv_C(2,a)*DtC1*inv_C(b,2));
+%             end
+%         end
+%     end
+% end
+
+g_minus = DtJ - L;
+g_plus  = DtJ + L;
+gfunc = zeros(ngaus,nelem);
+% compute 'g' function
+for igaus=1:ngaus
+    gfunc(igaus,:) = -g_minus(igaus,:);
+    outside= (phigp(igaus,:) > 0);
+    if any(outside)
+        gfunc(igaus,outside)= g_plus(igaus,outside);
+    end
+end
+
+
+%  DtJ = DtJtil + delta*L 
+
+L = Lagrange;
+DtJtil = zeros(npnod,1);
+smoothDtC = 0;
+switch problembsc.costfunct
+    case 'HORIZONTAL'
+        [DtJtil] = cal_DtJtil_hori(smoothDtC,matCh,DtC,DtJtil);
+    case 'BULK_MAX'
+        [DtJtil] = cal_DtJtil_bulk(smoothDtC,matCh,DtC,DtJtil);
+    case 'SHEAR_MAX'
+        [DtJtil] = cal_DtJtil_shear(smoothDtC,matCh,DtC,DtJtil);
+end
+g_minus = DtJtil - L;
+g_plus  = DtJtil + L;
+gfunc = zeros(ngaus,nelem);
+for igaus=1:ngaus
+    gfunc(igaus,:) = -g_minus(igaus,:);
+    outside= (phigp(igaus,:) > 0);
+    if any(outside)
+        gfunc(igaus,outside)= g_plus(igaus,outside);
+    end
+end
+
+
+
+end

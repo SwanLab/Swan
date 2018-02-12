@@ -1,0 +1,24 @@
+function [ kappa_opt ] = cal_kappa_opt( element,iter,dim,coordinates,problembsc,...
+            phifunct_n,g_nodal_n,norm_g,fixnodes,fext,Msmooth,theta_n,emass,costfunc_n,vol_n)
+
+% Different functions to obtain kappa_opt
+switch problembsc.meth_kappa_opt
+    case 'IMPOSED'
+        [kappa_opt] = kappa_imposed(element,iter);
+    case 'BRUTE_FORCE'
+        [kappa_opt] = bruteforce_kappa(element,dim,coordinates,problembsc,...
+            phifunct_n,g_nodal_n,norm_g,fixnodes,fext,Msmooth,theta_n,iter,emass);
+    case 'FREQUENCY'
+        [kappa_opt] = kappa_frequency(dim,phifunct_n,g_nodal_n,norm_g,theta_n,...
+            element,coordinates,coordinates,problembsc);            
+    case 'COST_MASS_THETA'
+        [kappa_opt] = kappa_cost_mass(element,dim,coordinates,problembsc,...
+            phifunct_n,g_nodal_n,norm_g,fixnodes,fext,Msmooth,theta_n,iter,emass,costfunc_n,vol_n);
+        case 'COST_MASS_THETA'
+        [kappa_opt] = kappa_cost_mass(element,dim,coordinates,problembsc,...
+            phifunct_n,g_nodal_n,norm_g,fixnodes,fext,Msmooth,theta_n,iter,emass,costfunc_n,vol_n);
+end
+
+
+end
+

@@ -1,0 +1,20 @@
+function phi = slerp_update(phi_n,gradient,theta,kappa,norm_g,norm_phi,kernel_case)
+sqrt(problem.scalar_product(gradient))
+,sqrt(problem.scalar_product(phi))
+switch kernel_case
+    
+    case 'P1_kernel'
+        %%slerp
+        
+        beta1 = sin((1-kappa)*theta)/sin(theta);
+        beta2 = sin(kappa*theta)/sin(theta);
+        
+        phi = beta1*phi_n + beta2*gradient/norm_g;
+        
+        %%gradient
+    case 'P0_kernel'
+        phi = phi_n + kappa*norm_phi/norm_g*gradient;
+       
+end
+
+end
