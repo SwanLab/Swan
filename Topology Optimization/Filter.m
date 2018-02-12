@@ -18,7 +18,6 @@ classdef Filter < handle
             obj.dvolu = sparse(1:physicalProblem.mesh.nelem,1:physicalProblem.mesh.nelem,sum(physicalProblem.geometry.dvolu,2));
             obj.Msmooth=physicalProblem.computeMass(2);
             obj.Ksmooth=physicalProblem.computeKsmooth;
-            obj.P_operator=obj.computePoperator(obj.Msmooth,physicalProblem);
             obj.coordinates=physicalProblem.mesh.coord;
             obj.connectivities=physicalProblem.mesh.connec;  
         end
@@ -63,26 +62,7 @@ classdef Filter < handle
             end
                            
         end
-        function P_operator=computePoperator(Msmooth,physicalProblem)
-            
-            nelem=physicalProblem.mesh.nelem;
-            nnode=physicalProblem.geometry.nnode;
-            npnod=physicalProblem.mesh.npnod;
-            
-            lnods=zeros(nnode,nelem);
-            for inode=1:nnode
-                lnods(inode,:)=physicalProblem.mesh.connec(:,inode);
-            end
-            
-            T_nodal_2_gauss = sparse(nelem,npnod);
-            
-            for inode=1:nnode
-                T_nodal_2_gauss = T_nodal_2_gauss + sparse([1:nelem],[lnods(inode,:)],ones(nelem,1),nelem,npnod);
-            end
-            
-            m = T_nodal_2_gauss*sum(Msmooth,2);
-            P_operator = diag(m)\T_nodal_2_gauss;
-        end
+
         function [F,aire]=faireF2(p,t,psi)
             np=size(p,2); nt=size(t,2);
             F=zeros(np,1);

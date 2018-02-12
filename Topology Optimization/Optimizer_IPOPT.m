@@ -54,7 +54,6 @@ classdef Optimizer_IPOPT < Optimizer
             [x, obj.info] = ipopt(x_ini,funcs,options);
         end
         function f=objective(obj,x,cost,interpolation,filter)
-            obj.update_physical_variables(x,interpolation,filter); 
             cost.computef(x,obj.physicalProblem,interpolation,filter)
             f=cost.value;
         end
@@ -73,7 +72,7 @@ classdef Optimizer_IPOPT < Optimizer
             g=constraint.gradient;
         end
         function stop=outputfun_ipopt(iter,fval,data,plotx)
-            iter
+            disp(strcat('Iter:',num2str(iter)));
             stop=true;
             plotx(data.x);
         end

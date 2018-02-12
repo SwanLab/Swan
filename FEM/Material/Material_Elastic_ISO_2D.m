@@ -18,7 +18,7 @@ classdef Material_Elastic_ISO_2D < Material_Elastic_ISO
             epoiss = (obj.kappa - obj.mu)./(obj.kappa + obj.mu);
             eyoung = 4*obj.kappa.*obj.mu./(obj.kappa + obj.mu);
             
-            c1 = eyoung./(1-epoiss.^2);
+            c1 = full(eyoung./(1-epoiss.^2));
             C(1,1,:) = c1;
             C(1,2,:) = c1.*epoiss;
             C(2,1,:) = c1.*epoiss;

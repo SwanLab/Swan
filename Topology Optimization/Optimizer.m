@@ -23,23 +23,14 @@ classdef Optimizer < handle
             obj.shfunc_volume=ShFunc_Volume(settings);
             obj.target_parameters=settings.target_parameters;
             obj.optimizer = settings.optimizer;
-            obj.maxiter = settings.maxiter;
-            
+            obj.maxiter = settings.maxiter;            
             obj.plotting = settings.plotting;
             obj.printing = settings.printing;
-        end
-            
-            
-
-        
+        end             
         function x=solveProblem(obj,x_ini,cost,constraint,interpolation,filter)
-            obj.epsilon_scalar_product_P1=1*obj.estimate_mesh_size(obj.physicalProblem.mesh.coord,obj.physicalProblem.mesh.connec);
-            obj.Msmooth=obj.physicalProblem.computeMass(2);
-            obj.Ksmooth=obj.physicalProblem.computeKsmooth;
             cost.computef(x_ini,obj.physicalProblem,interpolation,filter);
             constraint.computef(x_ini,obj.physicalProblem,interpolation,filter);
             obj.plotX(x_ini)
-
             obj.print(x_ini,filter.getP0fromP1(x_ini),obj.niter);
             while(obj.stop_criteria && obj.niter < obj.maxiter)
                 obj.niter=obj.niter+1;
@@ -50,9 +41,7 @@ classdef Optimizer < handle
                 x_ini=x;
             end
             obj.stop_criteria=1;
-        end
-        
-        
+        end        
         function setPhysicalProblem(obj,pProblem)
             obj.physicalProblem = pProblem;
         end
@@ -61,24 +50,9 @@ classdef Optimizer < handle
             f = f(:);
             g = g(:);
             sp=f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
-        end
-        
-           function h=estimate_mesh_size(obj,coordinates,conectivities)
-            x1 = coordinates(conectivities(:,1));
-            x2 = coordinates(conectivities(:,2));
-            x3 = coordinates(conectivities(:,3));
-            
-            x1x2 = abs(x2-x1);
-            x2x3 = abs(x3-x2);
-            x1x3 = abs(x1-x3);
-            hs = max([x1x2,x2x3,x1x3]');
-            h = mean(hs);
-        end
-        
+        end        
     end
     methods (Access = private)
-     
-
         function print(obj,design_variable,design_variable_reg,iter)
             if ~(obj.printing)
                 return
@@ -88,28 +62,9 @@ classdef Optimizer < handle
             results.design_variable = design_variable;
             results.design_variable_reg = design_variable_reg;
             postprocess.print(obj.physicalProblem,obj.physicalProblem.problemID,iter,results);
-        end
-        
-
-        
-        function compute_physical_variables(obj)
-            switch obj.physicalProblem.mesh.scale
-                case 'MICRO'
-                    obj.physicalProblem.computeChomog;
-                case 'MACRO'
-                    obj.physicalProblem.computeVariables;
-            end
-        end
+        end        
     end
     methods (Access = protected)
-        function update_physical_variables(obj,x,interpolation,filter)
-            rho=filter.getP0fromP1(x);
-            %Update phys problem
-            matProps=interpolation.computeMatProp(rho);
-            obj.physicalProblem.setMatProps(matProps);
-            obj.compute_physical_variables;
-        end
-
         function plotX(obj,x)
             if ~(obj.plotting)
                 return
