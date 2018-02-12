@@ -12,12 +12,12 @@ b=addpath(genpath('./Input/'));
 % 4 - Compute       --> obj.computeVariables;
 % 5 - Postprocess   --> obj.postProcess;
 %% test
-% run('test.m')
+ run('test.m')
 % test
 clear variables
 %% Main.m
-% triangle_linear = Physical_Problem('CantileverToy_Triangular');
-triangle_linear = Physical_Problem('CantileverToy_Nonlinear');
+triangle_linear = Physical_Problem('CantileverToy_Triangular');
+%triangle_linear = Physical_Problem('CantileverToy_Nonlinear');
 tic
 triangle_linear.preProcess;
 triangle_linear.computeVariables;
