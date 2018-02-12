@@ -17,6 +17,8 @@ classdef PhysicalVariables
                     end
                 case 'THERMAL'
                     error('Still not implemented.')
+                case 'HYPERELASTIC'
+                    physicalVars = PhysicalVars_Hyperelastic();
                 otherwise
                     error('Invalid ptype.')
             end

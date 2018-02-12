@@ -6,25 +6,25 @@ classdef Solver_Dirichlet_Conditions < Solver
         fixnodes
     end
     
-
+    
     methods (Access = public)
         
-        function obj = Solver_Dirichlet_Conditions(obj)
+        function obj = Solver_Dirichlet_Conditions()
         end
-
-        % Analytical Solver (A�X=b)
-        function x = solve(obj,x,LHS,RHS,dof)
-%             x = zeros(dof.ndof,1);
-            if ~isempty(dof.vR)
-                x(dof.vR) = obj.fixnodes(:,3);
-                x(dof.vL,1) = LHS(dof.vL,dof.vL)\(RHS(dof.vL) - LHS(dof.vL,dof.vR)*x(dof.vR));
-            else
-                x(dof.vL,1) = LHS(dof.vL,dof.vL)\RHS(dof.vL);
-            end
-        end
+        
+        
+        
         
         function setSolverVariables(obj,data)
             obj.fixnodes = data.fixnodes;
+        end
+        
+    end
+    
+    methods (Static)
+        % Analytical Solver (AX = b)
+        function x = solve(LHS,RHS)
+            x = LHS\RHS;
         end
     end
     

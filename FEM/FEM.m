@@ -5,7 +5,7 @@ classdef FEM < handle
     %% Public GetAccess properties definition =============================
     properties (GetAccess = public, SetAccess = protected)
         geometry
-        RHS
+        Fext
         LHS
     end
     

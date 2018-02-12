@@ -1,21 +1,23 @@
 classdef Solver < handle
     properties
+        
     end
     
-    methods (Access = public, Static)
-        function Sol = create(scale)
-            switch scale
-                case 'MACRO'                    
-                    Sol = Solver_Dirichlet_Conditions;
-                case 'MICRO'
-                    Sol = Solver_Periodic;                    
+    methods (Access = ?Physical_Problem, Static)
+        %Implement CREATE function when needed
+        
+        function stype = create(ptype)
+            switch ptype
+                case {'ELASTIC','THERMAL'}
+                    stype = Solver_Dirichlet_Conditions();
+                case 'HYPERELASTIC'
+                    stype = Solver_NewtonRaphson();
+                otherwise
+                    error('Invalid stype.')
             end
         end
+
     end
     
-    methods (Abstract)
-        solve(obj);
-        setSolverVariables(obj);
-    end
 end
-
+    
