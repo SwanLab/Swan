@@ -20,7 +20,7 @@ classdef BC < handle
         end
     end
     
-    methods (Access = protected)
+    methods (Access = public)
         function obj = computeiDiN(obj,nunkn)
             if (~isempty(obj.fixnodes))
                 for i = 1:length(obj.fixnodes(:,1))

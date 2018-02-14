@@ -34,6 +34,7 @@ classdef TopOpt_Problem < handle
             switch obj.settings.optimizer
                 case 'SLERP'
                     obj.optimizer=Optimizer_AugLag(settings,Optimizer_SLERP(settings));
+                    
                 case 'PROJECTED GRADIENT'
                     obj.optimizer=Optimizer_AugLag(settings,Optimizer_PG(settings));
 

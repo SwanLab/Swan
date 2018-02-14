@@ -33,7 +33,7 @@ classdef Physical_Problem < FEM
         
         function preProcess(obj)
             % Create Objects
-            obj.dof = DOF(obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.bc.fixnodes);
+            obj.dof = DOF(obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.bc.fixnodes);            
             obj.element = Element.create(obj.mesh.ptype,obj.mesh.pdim);
             obj.physicalVars = PhysicalVariables.create(obj.mesh.ptype,obj.mesh.pdim);
             obj.solver = Solver.create(obj.mesh.scale);
