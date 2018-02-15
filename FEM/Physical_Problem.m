@@ -10,11 +10,12 @@ classdef Physical_Problem < FEM
         dof
         bc
         problemID
+        
     end
     
     
     %% Restricted properties definition ===================================
-    properties (GetAccess = {?Postprocess,?Physical_Problem_Micro}, SetAccess = protected)
+    properties (GetAccess = {?Postprocess,?Physical_Problem_Micro}, SetAccess = public)
         material
         element
     end
@@ -33,24 +34,42 @@ classdef Physical_Problem < FEM
         function preProcess(obj)
             % Create Objects
             obj.dof = DOF(obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.bc.fixnodes);
-            obj.element = Element.create(obj.mesh.ptype,obj.mesh.pdim,obj.dim,obj.mesh.nelem,obj.geometry,obj.material,obj.bc,obj.dof);
-%             obj.physicalVars = PhysicalVariables.create(obj.mesh.ptype,obj.mesh.pdim);
+            obj.element = Element.create(obj.mesh,obj.dim,obj.geometry,obj.material,obj.bc,obj.dof);
             obj.solver = Solver.create(obj.mesh.ptype);
         end
         
         function computeVariables(obj)
             tol   = 1e-6;
-            x0 = zeros(length(obj.dof.vL),1);
-            % Compute r & dr
-            [r,dr] = obj.element.computeResidual(x0);
-            while dot(r,r) > tol
-                inc_x = obj.solver.solve(dr,-r);
-                x = x0 + inc_x;
-                % Compute r & dr
-                [r,dr] = obj.element.computeResidual(x);
-                x0 = x;
-            end
+            x     = zeros(length(obj.dof.vL),1);
+            r     = 0;
+            resid = 0;
+            cload = 0;
+
+            miter = 1e4;
+            nincr = 100;
             
+            % Compute r & dr
+            fincr = 0.5*obj.element.Fext/nincr;
+            for incrm = 1:nincr
+                niter = 1;
+                cload = cload + fincr;
+                resid = resid - fincr;
+                r = r - fincr(obj.dof.vL);
+                
+                while dot(r,r) > tol && niter <= miter
+                    [~,dr,K] = obj.element.computeResidual(x);
+                    inc_x = obj.solver.solve(dr,-r);
+                    x = x + inc_x; % x = x0 + inc_x
+                    
+                    % Updates
+                    obj.element.updateCoord(x);
+                    obj.element.updateCartd(obj.mesh.pdim);
+                    fint = obj.element.computeInternal();
+                    r = fint - cload;
+
+                    niter = niter + 1;
+                end
+            end
             obj.variables = obj.element.computeVars(x);
         end
         
@@ -143,32 +162,7 @@ classdef Physical_Problem < FEM
     end
     
     %% Private methods definition =========================================
-    methods (Access = protected, Static)
-        %         function [LHS,RHS] = Assemble(element,nnode,nunkn,dof,bc)
-        %             % Compute LHS
-        %             LHS = sparse(dof.ndof,dof.ndof);
-        %             for i = 1:nnode*nunkn
-        %                 for j = 1:nnode*nunkn
-        %                     a = squeeze(element.LHS(i,j,:));
-        %                     LHS = LHS + sparse(dof.idx(i,:),dof.idx(j,:),a,dof.ndof,dof.ndof);
-        %                 end
-        %             end
-        %             LHS = 1/2 * (LHS + LHS');
-        %             % Compute RHS
-        %             RHS = zeros(dof.ndof,1);
-        %             for i = 1:nnode*nunkn
-        %                 b = squeeze(element.Fext(i,1,:));
-        %                 ind = dof.idx(i,:);
-        %                 RHS = RHS + sparse(ind,1,b',dof.ndof,1);
-        %             end
-        %
-        %             %Compute Global Puntual Forces
-        %             if ~isempty(bc.iN)
-        %                 FextPoint = zeros(dof.ndof,1);
-        %                 FextPoint(bc.iN) = bc.neunodes(:,3);
-        %                 RHS = RHS + FextPoint;
-        %             end
-        %         end
-    end
+    %     methods (Access = protected, Static)s
+    %     end
 end
 

@@ -12,12 +12,14 @@ classdef Geometry
         ngaus
         djacb
         type
+        deriv
+        connec
     end
     properties (GetAccess = ?Postprocess, SetAccess = private)
         posgp
     end
     
-    methods (Access = ?Physical_Problem)
+    methods (Access = {?Physical_Problem, ?Element_Hyperelastic})
         function obj = Geometry(mesh)
             obj.nnode = size(mesh.connec,2);
             switch mesh.geometryType
@@ -52,26 +54,37 @@ classdef Geometry
                 otherwise
                     error('Invalid mesh type.')
             end
-            obj.type = geometryObject.type;
+            obj.type  = geometryObject.type;
             obj.posgp = geometryObject.posgp;
             obj.weigp = geometryObject.weigp;
             obj.ndime = geometryObject.ndime;
             obj.ngaus = geometryObject.ngaus;
             obj.shape = geometryObject.shape;
+            obj.deriv = geometryObject.deriv;
+            obj.connec= mesh.connec;
+            
+            [cartd,dvolu,djacb] = obj.computeCartd(mesh.coord,mesh.nelem,mesh.pdim);
+            
+            obj.cartd = cartd;
+            obj.dvolu = dvolu;
+            obj.djacb = djacb;
+        end
+        
+        function [cartd,dvolu,djacb] = computeCartd(obj,coord,nelem,pdim)
             for i = 1:obj.ndime
-                a = mesh.coord(:,i);
-                elcoord(:,i,:) = a(permute(mesh.connec',[1,3,2]));
+                a = coord(:,i);
+                elcoord(:,i,:) = a(permute(obj.connec',[1,3,2]));
             end
             % Gauss loop
             for igauss = 1:obj.ngaus
                 for i = 1:obj.ndime
                     % Jacobian
-                    deriv_perm = permute(geometryObject.deriv(i,:,igauss),[2,1,3]);
-                    deriv_perm_large = repmat(deriv_perm,1,obj.ndime,mesh.nelem);
+                    deriv_perm = permute(obj.deriv(i,:,igauss),[2,1,3]);
+                    deriv_perm_large = repmat(deriv_perm,1,obj.ndime,nelem);
                     jacobian(i,:,:) = sum(deriv_perm_large.*elcoord,1);
                 end                
                 % !! SWITCH EXECPCIÓ? !!
-                switch mesh.pdim
+                switch pdim
                     case '2D'
                         [invJ,detJ] = multinverse2x2(jacobian);
                     case '3D'
@@ -81,16 +94,18 @@ classdef Geometry
                 for i = 1:obj.ndime
                     % Cartesian Derivatives
                     deriv_perm = permute(invJ(i,:,:),[2,1,3]);
-                    deriv_perm_large = repmat(deriv_perm,1,geometryObject.nnode,1) .*repmat(geometryObject.deriv(:,:,igauss),1,1,mesh.nelem);
-                    obj.cartd(i,:,:,igauss) = sum(deriv_perm_large);
+                    deriv_perm_large = repmat(deriv_perm,1,obj.nnode,1) .*repmat(obj.deriv(:,:,igauss),1,1,nelem);
+                    cartd(i,:,:,igauss) = sum(deriv_perm_large);
                 end
-                obj.dvolu(:,igauss) = geometryObject.weigp(igauss)*detJ;
-                obj.djacb(:,igauss) = detJ;
-            end
-            
-            
+                dvolu(:,igauss) = obj.weigp(igauss)*detJ;
+                djacb(:,igauss) = detJ;
+            end 
         end
+        
     end
     
 end
+% cartd
+% dvolu
+% djacb
 

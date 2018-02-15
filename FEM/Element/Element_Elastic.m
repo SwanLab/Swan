@@ -33,7 +33,7 @@ classdef Element_Elastic < Element
             end
             fint = K(obj.dof.vL,obj.dof.vL)*u(obj.dof.vL);
             r = fint - fext;
-            dr = K(obj.dof.vL,obj.dof.vL);
+            dr = K(obj.dof.vL, obj.dof.vL);
         end
                 
         function [K] = computeStiffnessMatrix(obj)

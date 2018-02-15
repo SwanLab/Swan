@@ -11,7 +11,7 @@ classdef Solver < handle
                 case {'ELASTIC','THERMAL'}
                     stype = Solver_Dirichlet_Conditions();
                 case 'HYPERELASTIC'
-                    stype = Solver_NewtonRaphson();
+                    stype = Solver_Dirichlet_Conditions();
                 otherwise
                     error('Invalid stype.')
             end

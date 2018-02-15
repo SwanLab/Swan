@@ -3,20 +3,12 @@ classdef Element_Hyperelastic < Element
     %   Detailed explanation goes here
     
     properties
-        cartd0
         cartd
         dvolu
     end
     
-    methods (Access = {?Physical_Problem, ?Element})
-        % Constructor
-        function obj = Element_Hyperelastic(geometry)
-            obj.cartd0 = geometry.cartd;
-            
-            % These variables will be updated
-            obj.cartd = geometry.cartd;
-            obj.dvolu = geometry.dvolu;
-        end
+    methods (Access = ?Physical_Problem)
+        function obj = Element_HyperElas
         
         function [r,dr,K] = computeResidual(obj,uL)
             % *************************************************************
@@ -60,7 +52,7 @@ classdef Element_Hyperelastic < Element
         function fint = computeInternal(obj)
         % Fdef          --> cartd0 = obj.geometry.cartd
         % fint,ksigma   --> cartd  = obj.cartd
-            sigma = obj.material.updateSigma(obj.coord,obj.cartd0);
+            sigma = obj.material.updateSigma(obj.coord,obj.geometry.cartd);
             for a = 1:obj.nnode
                 for i = 1:obj.geometry.ndime
                     iL = obj.geometry.ndime*(a-1) + i;
@@ -107,7 +99,7 @@ classdef Element_Hyperelastic < Element
                             jL = obj.geometry.ndime*(b-1) + j;
                             for k = 1:obj.geometry.ndime
                                 for l = 1:obj.geometry.ndime
-                                    kconst(iL,jL,:) = squeeze(kconst(iL,jL,:)) + squeeze(obj.cartd(k,a,:).*ctens(i,k,j,l).*obj.cartd(l,b,:)).*squeeze(obj.dvolu);
+                                    kconst(iL,jL,:) = squeeze(kconst(iL,jL,:)) + squeeze(obj.material.cartd(k,a,:).*ctens(i,k,j,l).*obj.material.cartd(l,b,:)).*squeeze(obj.geometry.dvolu);
                                 end
                             end
                         end
@@ -133,7 +125,7 @@ classdef Element_Hyperelastic < Element
                             jL = obj.geometry.ndime*(b-1) + j;
                             for k = 1:obj.geometry.ndime
                                 for l = 1:obj.geometry.ndime
-                                    ksigma(iL,jL,:) = squeeze(ksigma(iL,jL,:)) + squeeze(obj.cartd(k,a,:).*sigma(k,l,:).*obj.cartd(l,b).*dk(i,j,:)).*squeeze(obj.dvolu);
+                                    ksigma(iL,jL,:) = squeeze(ksigma(iL,jL,:)) + squeeze(obj.material.cartd(k,a,:).*sigma(k,l,:).*obj.material.cartd(l,b).*dk(i,j,:)).*squeeze(obj.geometry.dvolu);
                                 end
                             end
                         end

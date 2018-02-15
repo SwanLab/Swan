@@ -1,6 +1,6 @@
 classdef Mesh
     % Class containing the coordinates and connectivities of the mesh
-    properties (GetAccess = public,SetAccess = private)
+    properties (GetAccess = public,SetAccess = ?Physical_Problem)
         % !! More elegant if Physical_Problem & subclasses !!
         nelem
         npnod
@@ -8,7 +8,7 @@ classdef Mesh
         connec
         scale
     end
-    properties (GetAccess = {?Physical_Problem,?Geometry,?Postprocess,?TopOpt_Problem},SetAccess = {?Physical_Problem})
+    properties (GetAccess = {?Physical_Problem, ?Element,?Geometry,?Postprocess,?TopOpt_Problem},SetAccess = {?Physical_Problem})
         % !! More elegant if Physical_Problem & subclasses !!
         geometryType
         ptype

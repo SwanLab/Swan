@@ -4,7 +4,7 @@ classdef Element<handle
     
     %% !! NEEDS REVISION !! -> should B be a class?? Or just be contained in element ??
     
-    properties (GetAccess = {?Physical_Problem, ?Element_Elastic, ?Element_Hyperelastic, ?Element_Elastic_2D, ?Element_Elastic_3d, ?Element_Hyperelastic, ?Element_Elastic_Micro}, SetAccess = protected)
+    properties (GetAccess = {?Physical_Problem, ?Element_Elastic, ?Element_Hyperelastic, ?Element_Elastic_2D, ?Element_Elastic_3d, ?Element_Hyperelastic, ?Element_Elastic_Micro}, SetAccess = ?Element_Hyperelastic)
         Fext
         nunkn
         nstre
@@ -15,6 +15,7 @@ classdef Element<handle
         dof
         bc
         dim
+        coord
     end
     
     properties (GetAccess = {?Element_Elastic, ?Element_Elastic,?Element_Thermal,?PhysicalVariables,?Element_Elastic_Micro}, SetAccess = {?Physical_Problem,?Element, ?Element_Elastic_Micro})
@@ -22,10 +23,10 @@ classdef Element<handle
     end
     
     methods (Access = ?Physical_Problem, Static)
-        function element = create(ptype,pdim,dim,nelem,geometry,material,bc,dof)
-            switch ptype
+        function element = create(mesh,dim,geometry,material,bc,dof)
+            switch mesh.ptype
                 case 'ELASTIC'
-                    switch pdim
+                    switch mesh.pdim
                         case '2D'
                             element = Element_Elastic_2D;
                             element.B = B2;
@@ -37,19 +38,24 @@ classdef Element<handle
                     element = Element_Thermal;
                     element.B = B_thermal;
                 case 'HYPERELASTIC'
-                    element = Element_Hyperelastic();
+                    element = Element_Hyperelastic(geometry);
                 otherwise
                     error('Invalid ptype.')
             end
-            element.dim = dim;
-            element.nunkn = dim.nunkn;
-            element.nstre = dim.nstre;
-            element.nelem = nelem;
-            element.nnode = geometry.nnode;
-            element.geometry = geometry;
-            element.material = material;
-            element.dof = dof;
-            element.bc = bc;
+            
+            % Element attributes
+            element.dim         = dim;
+            element.nunkn       = dim.nunkn;
+            element.nstre       = dim.nstre;
+            element.nelem       = mesh.nelem;
+            element.nnode       = geometry.nnode;
+            element.geometry    = geometry;
+            element.material    = material;
+            element.dof         = dof;
+            element.bc          = bc;
+            element.coord       = mesh.coord;
+            
+            % Compute and assemble external forces
             FextSupVol = element.computeExternalForces();
             element.assembleExternalForces(FextSupVol);
         end
