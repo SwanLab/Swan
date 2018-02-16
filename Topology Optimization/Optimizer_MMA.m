@@ -56,6 +56,7 @@ classdef Optimizer_MMA < Optimizer
    
                 obj.stop_criteria = obj.kktnorm > obj.kkttol && obj.outit < obj.maxoutit;
                 
+                constraint.lambda = lam;
                 obj.stop_vars(1,1) = obj.kktnorm;   obj.stop_vars(1,2) = obj.kkttol;
                 obj.stop_vars(2,1) = obj.outit;     obj.stop_vars(2,2) = obj.maxoutit;
         end

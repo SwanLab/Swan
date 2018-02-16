@@ -3,6 +3,7 @@ classdef Monitoring < handle
     %   Detailed explanation goes here
     
     properties
+        ON
         figures
         monitor
         nfigs
@@ -14,72 +15,79 @@ classdef Monitoring < handle
     
     methods
         function obj = Monitoring(settings)
-            obj.getStopVarsNames(settings.optimizer);
-            
-            obj.figures = {};
-            obj.createFigure('Cost');
-            
-            obj.ncost = length(settings.cost);
-            for i = 1:obj.ncost
-                if isempty(settings.multipliers)
-                    obj.createFigure([obj.setCase(settings.cost{i}) ' (wt. 1.0)']);
-                else
-                    obj.createFigure([obj.setCase(settings.cost{i}) sprintf(' (wt. %.2f)',settings.multipliers(i))]);
+            obj.ON = settings.monitoring;
+            if obj.ON
+                obj.getStopVarsNames(settings.optimizer);
+                
+                obj.figures = {};
+                obj.createFigure('Cost');
+                
+                obj.ncost = length(settings.cost);
+                for i = 1:obj.ncost
+                    if isempty(settings.multipliers)
+                        obj.createFigure([obj.setCase(settings.cost{i}) ' (wt. 1.0)']);
+                    else
+                        obj.createFigure([obj.setCase(settings.cost{i}) sprintf(' (wt. %.2f)',settings.multipliers(i))]);
+                    end
                 end
-            end
-            
-            obj.nconstraint = length(settings.constraint);
-            for i = 1:obj.nconstraint
-                obj.createFigure(['Cstr ' num2str(i) ': ' obj.setCase(settings.constraint{i})]);
-                obj.createFigure(['\lambda' obj.subindex(obj.setCase(settings.constraint{i}))]);
-            end
-            
-            for i = 1:obj.nstop
-                obj.createFigure(['Conv Criteria ' num2str(i) ': ' obj.stop_names{i}]);
-            end
-            
-            obj.nfigs = length(obj.figures);
-            if obj.nfigs <= 4
-                nrows = 1;
-            else
-                nrows = 2;
-            end
-            ncols = round(obj.nfigs/nrows);
-            
-            % Create obj.figures
-            obj.monitor = figure; hold on
-            set(obj.monitor,'units','normalized','outerpos',[0 0 1 1]);
-            for i = 1:obj.nfigs
-                obj.figures{i}.style = subplot(nrows,ncols,i);
-                switch obj.figures{i}.chart_type
-                    case 'plot'
-                        obj.figures{i}.handle = plot(0,0);
-                        title(obj.figures{i}.title);
-                        grid on
-                    case 'bar'
-                        obj.figures{i}.handle = bar(0,0);
-                        title(obj.figures{i}.title);
-                        grid on
+                
+                obj.nconstraint = length(settings.constraint);
+                for i = 1:obj.nconstraint
+                    obj.createFigure(['Cstr ' num2str(i) ': ' obj.setCase(settings.constraint{i})]);
+                    obj.createFigure(['\lambda' obj.subindex(obj.setCase(settings.constraint{i}))]);
+                end
+                
+                for i = 1:obj.nstop
+                    obj.createFigure(['Conv Criteria ' num2str(i) ': ' obj.stop_names{i}]);
+                end
+                
+                obj.nfigs = length(obj.figures);
+                if obj.nfigs <= 4
+                    nrows = 1;
+                else
+                    nrows = 2;
+                end
+                ncols = round(obj.nfigs/nrows);
+                
+                % Create obj.figures
+                obj.monitor = figure; hold on
+                set(obj.monitor,'units','normalized','outerpos',[0 0 1 1]);
+                for i = 1:obj.nfigs
+                    obj.figures{i}.style = subplot(nrows,ncols,i);
+                    switch obj.figures{i}.chart_type
+                        case 'plot'
+                            obj.figures{i}.handle = plot(0,0);
+                            title(obj.figures{i}.title);
+                            grid on
+                        case 'bar'
+                            obj.figures{i}.handle = bar(0,0);
+                            title(obj.figures{i}.title);
+                            grid on
+                    end
                 end
             end
         end
         
-        function display(obj,iteration,cost,constraint,lambda,stop_vars)
-            set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Iteration: %.0f',iteration))
-            obj.figures{1} = obj.updateFigure(obj.figures{1},iteration,cost.value);
-            for i = 1:obj.ncost
-                k = i+1;
-                obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,cost.ShapeFuncs{i}.value);
-            end
-            for i = 1:obj.nconstraint
-                k = i*2+obj.ncost;
-                obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,constraint.ShapeFuncs{i}.value);
-                k = k+1;
-                obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,lambda(i));
-            end
-            for i = 1:obj.nstop
-                k = i+1+obj.ncost+2*obj.nconstraint;
-                obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,stop_vars(i,1));
+        function display(obj,iteration,cost,constraint,stop_vars)
+            if obj.ON
+                set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Iteration: %.0f',iteration))
+                obj.figures{1} = obj.updateFigure(obj.figures{1},iteration,cost.value);
+                for i = 1:obj.ncost
+                    k = i+1;
+                    obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,cost.ShapeFuncs{i}.value);
+                end
+                for i = 1:obj.nconstraint
+                    k = i*2+obj.ncost;
+                    obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,constraint.ShapeFuncs{i}.value);
+                    k = k+1;
+                    obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,constraint.lambda(i));
+                end
+                for i = 1:obj.nstop
+                    k = i+1+obj.ncost+2*obj.nconstraint;
+                    obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,stop_vars(i,1));
+                end
+            else
+                return
             end
         end
     end

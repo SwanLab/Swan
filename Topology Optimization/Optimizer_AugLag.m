@@ -18,6 +18,7 @@ classdef Optimizer_AugLag < Optimizer
             obj.shfunc_volume.computef(x_ini,obj.physicalProblem,interpolation,filter);
             
             obj.objfunc.lambda = obj.objfunc.lambda+obj.objfunc.penalty.*constraint.value';
+            constraint.lambda = obj.objfunc.lambda;
             obj.objfunc.computeFunction(cost,constraint);
             obj.objfunc.computeGradient(cost,constraint);
             

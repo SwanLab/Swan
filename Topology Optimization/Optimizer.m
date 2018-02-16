@@ -40,7 +40,9 @@ classdef Optimizer < handle
                 x = obj.updateX(x_ini,cost,constraint,interpolation,filter);
                 obj.plotX(x)
                 obj.print(x,filter.getP0fromP1(x),obj.niter);
-                obj.monitoring.display(obj.niter,cost,constraint,obj.objfunc.lambda,obj.stop_vars);
+%                 try
+                obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars);
+%                 end
                 x_ini = x;
             end
             obj.stop_criteria = 1;
