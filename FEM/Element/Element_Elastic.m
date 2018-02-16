@@ -6,10 +6,14 @@ classdef Element_Elastic < Element
     % THE PRE-PROCESS !!
     
     properties
-        
     end
     
-    methods (Access = ?Physical_Problem)
+    methods (Access = {?Physical_Problem, ?Element})
+        function obj = Element_Elastic()
+            obj.nincr = 1;
+            obj.cload = 0;
+        end
+        
         function [r,dr] = computeResidual(obj,uL)
             % *************************************************************
             % Compute
@@ -17,19 +21,19 @@ classdef Element_Elastic < Element
             % - residual derivative: dr = K
             % *************************************************************
             % Compute stiffness matrix
-            [K] = obj.computeStiffnessMatrix();
+            K = obj.computeStiffnessMatrix();
                      
             % Assemble
-            [K] = obj.AssembleMatrix(K);
+            K = obj.AssembleMatrix(K);
             
-            %Assemble u and Fext
+            % Assemble u and Fext
             u = zeros(obj.dof.ndof,1);
             u(obj.dof.vL) = uL;
             if ~isempty(obj.dof.vR)
                 u(obj.dof.vR) = obj.bc.fixnodes(:,3);
-                fext = obj.Fext(obj.dof.vL)-K(obj.dof.vL,obj.dof.vR)*u(obj.dof.vR); % fext + reac
+                fext = obj.cload(obj.dof.vL)-K(obj.dof.vL,obj.dof.vR)*u(obj.dof.vR); % fext + reac
             else
-                fext = obj.Fext(obj.dof.vL);
+                fext = obj.cload(obj.dof.vL);
             end
             fint = K(obj.dof.vL,obj.dof.vL)*u(obj.dof.vL);
             r = fint - fext;

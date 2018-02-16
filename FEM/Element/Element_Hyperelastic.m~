@@ -6,6 +6,9 @@ classdef Element_Hyperelastic < Element
         cartd0
         cartd
         dvolu
+        nincr
+%         fincr
+        cload
     end
     
     methods (Access = {?Physical_Problem, ?Element})
@@ -18,7 +21,7 @@ classdef Element_Hyperelastic < Element
             obj.dvolu = geometry.dvolu;
             
             % Nonlinear parameters
-            obj.nincr = 85;
+            obj.nincr = 100;
             obj.cload = 0;
         end
         
@@ -41,19 +44,25 @@ classdef Element_Hyperelastic < Element
             
             if ~isempty(obj.dof.vR)
                 u(obj.dof.vR) = obj.bc.fixnodes(:,3);
-                fext = obj.cload(obj.dof.vL)-K(obj.dof.vL,obj.dof.vR)*u(obj.dof.vR); % fext + reac
+                fext = obj.Fext(obj.dof.vL)-K(obj.dof.vL,obj.dof.vR)*u(obj.dof.vR); % fext + reac
             else
-                fext = obj.cload(obj.dof.vL);
+                fext = obj.Fext(obj.dof.vL);
             end
-
-            fint = obj.computeInternal();
             
-            r = fint - fext;
+            % Define load increment
+            fincr = 0.5*fext/obj.nincr;
+            
+            % Set current load
+            obj.cload = obj.cload + fincr; 
+
+            [fint] = obj.computeInternal();
+            
+            r = fint - obj.cload;
             dr = K(obj.dof.vL, obj.dof.vL);
         end
         
 
-        function fint = computeInternal(obj)
+        function [fint] = computeInternal(obj)
         % Fdef          --> cartd0 = obj.geometry.cartd
         % fint,ksigma   --> cartd  = obj.cartd
             sigma = obj.material.updateSigma(obj.coord,obj.cartd0);
@@ -76,10 +85,14 @@ classdef Element_Hyperelastic < Element
         
         
         function [K,sigma] = computeTangentMatrix(obj)
-            % Compute ctens & sigma
+            % ctens   = obj.material.C;
+            
             [ctens,sigma] = obj.material.computeCtens(obj.coord);
+%             ctens = m.C;
+%             sigma = m.sigma;
+            
+            
 
-            % Compute tangent components
             kconst  = obj.computeConstitutive(ctens);
             ksigma  = obj.computeGeometric(sigma);
             K = kconst + ksigma;

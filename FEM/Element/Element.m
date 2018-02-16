@@ -4,7 +4,7 @@ classdef Element<handle
     
     %% !! NEEDS REVISION !! -> should B be a class?? Or just be contained in element ??
     
-    properties (GetAccess = {?Physical_Problem, ?Element_Elastic, ?Element_Hyperelastic, ?Element_Elastic_2D, ?Element_Elastic_3d, ?Element_Hyperelastic, ?Element_Elastic_Micro}, SetAccess = ?Element_Hyperelastic)
+    properties (GetAccess = {?Physical_Problem, ?Element_Elastic, ?Element_Hyperelastic, ?Element_Elastic_2D, ?Element_Elastic_3d, ?Element_Hyperelastic, ?Element_Elastic_Micro}, SetAccess = {?Element_Hyperelastic, ?Element_Elastic, ?Element_Elastic_Micro, ?Element_Thermal, ?Physical_Problem})
         Fext
         nunkn
         nstre
@@ -16,6 +16,9 @@ classdef Element<handle
         bc
         dim
         coord
+        fincr
+        nincr
+        cload
     end
     
     properties (GetAccess = {?Element_Elastic, ?Element_Elastic,?Element_Thermal,?PhysicalVariables,?Element_Elastic_Micro}, SetAccess = {?Physical_Problem,?Element, ?Element_Elastic_Micro})
@@ -58,6 +61,9 @@ classdef Element<handle
             % Compute and assemble external forces
             FextSupVol = element.computeExternalForces();
             element.assembleExternalForces(FextSupVol);
+            
+            % Create force increment.
+            element.fincr = 0.5*element.Fext/element.nincr;
         end
     end
     
