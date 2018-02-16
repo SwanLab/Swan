@@ -6,7 +6,6 @@ classdef ShFunc_Perimeter< Shape_Functional
     end
     methods
         function obj=ShFunc_Perimeter(settings)
-%            obj@Shape_Functional(settings);
             obj.Perimeter_target=settings.target_parameters.Perimeter_target;
             switch settings.perimeter.optimizer
                 case 'SLERP'

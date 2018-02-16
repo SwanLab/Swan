@@ -19,7 +19,7 @@ classdef Optimizer_IPOPT < Optimizer
             constraint_tolerance=obj.target_parameters.constr_tol*1e-1;
         end
         
-        function x=solveProblem(obj,x_ini,cost,constraint,interpolation,filter) 
+        function x = solveProblem(obj,x_ini,cost,constraint,interpolation,filter) 
             cost.computef(x_ini,obj.physicalProblem,interpolation,filter)
             funcs.objective = @(x) obj.objective(x,cost,interpolation,filter);
             funcs.gradient = @(x) obj.gradient(x,cost,obj.physicalProblem,interpolation,filter);

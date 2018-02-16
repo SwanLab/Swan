@@ -11,37 +11,41 @@ classdef Optimizer_PG < Optimizer
         kappaMultiplier
     end 
     methods
-        function obj=Optimizer_PG(settings)
+        function obj = Optimizer_PG(settings)
             obj@Optimizer(settings);
-            obj.kfrac=2;
-            obj.kappaMultiplier=settings.kappaMultiplier;
-            obj.kappa_min=1e-15;
-            obj.max_constr_change=+Inf;
-            obj.nconstr=settings.nconstr;
+            obj.kfrac = 2;
+            obj.kappaMultiplier = settings.kappaMultiplier;
+            obj.kappa_min = 1e-15;
+            obj.max_constr_change = +Inf;
+            obj.nconstr = settings.nconstr;
         end
-        function optimality_tol=get.optimality_tol(obj)
-            optimality_tol=obj.target_parameters.optimality_tol;
+        function optimality_tol = get.optimality_tol(obj)
+            optimality_tol = obj.target_parameters.optimality_tol;
         end
-        function constr_tol=get.constr_tol(obj)
-            constr_tol(1:obj.nconstr)=obj.target_parameters.constr_tol;
+        function constr_tol = get.constr_tol(obj)
+            constr_tol(1:obj.nconstr) = obj.target_parameters.constr_tol;
         end
-        function x=updateX(obj,x_ini,cost,constraint,interpolation,filter)                 
-                x=obj.updateRho(x_ini,obj.objfunc.gradient);
+        function x = updateX(obj,x_ini,cost,constraint,interpolation,filter)                 
+                x = obj.updateRho(x_ini,obj.objfunc.gradient);
                 cost.computef(x,obj.physicalProblem,interpolation,filter);
                 constraint.computef(x,obj.physicalProblem,interpolation,filter);
                 obj.shfunc_volume.computef(x,obj.physicalProblem,interpolation,filter);
                 
                 obj.objfunc.computeFunction(cost,constraint)
 %                 cost_ls = cost.value + obj.lambda*constraint.value + 0.5*obj.penalty*(constraint.value.*constraint.value);
-                volume_ls =obj.shfunc_volume.value;
+                volume_ls  = obj.shfunc_volume.value;
                 
                 incr_vol_ls = abs(volume_ls - obj.volume_initial);
                 incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
                 
                 obj.kappa = obj.kappa/obj.kfrac;
-                obj.stop_criteria= ~((incr_cost < 0 && incr_vol_ls < obj.max_constr_change) || obj.kappa <= obj.kappa_min);  
+                obj.stop_criteria =  ~((incr_cost < 0 && incr_vol_ls < obj.max_constr_change) || obj.kappa <=  obj.kappa_min);
+                
+                obj.stop_vars(1,1) = incr_cost;     obj.stop_vars(1,2) = 0;
+                obj.stop_vars(2,1) = incr_vol_ls;   obj.stop_vars(2,2) = obj.max_constr_change;
+                obj.stop_vars(3,1) = obj.kappa;     obj.stop_vars(3,2) = obj.kappa_min;
         end
-        function rho=updateRho(obj, design_variable,gradient)  
+        function rho = updateRho(obj, design_variable,gradient)  
             rho_n = design_variable;
             rho_step = rho_n-obj.kappa*gradient;
             ub = ones(length(rho_n(:,1)),1);

@@ -1,5 +1,4 @@
-clc
-clear variables;close all;
+clc; clear variables;close all;
 
 addpath(genpath('./FEM'));
 addpath(genpath('./Topology Optimization'));
@@ -9,14 +8,14 @@ addpath(genpath('./Topology Optimization'));
 %run('test.m');
 clear variables;
 %% settings
-% settings.ptype='MACRO';
-% settings.filename='TOPOPT_TEST';
-% % settings.filename='topopt_quad';
-% % settings.filename='GrippingNew';
+settings.ptype='MACRO';
+settings.filename='TOPOPT_TEST';
+% settings.filename='topopt_quad';
+% settings.filename='GrippingNew';
 
-settings.ptype='MICRO';
-%settings.filename='RVE_Square_Triangle';
-settings.filename='RVE_Square_Triangle_Fine';
+% settings.ptype='MICRO';
+% settings.filename='RVE_Square_Triangle';
+% settings.filename='RVE_Square_Triangle_Fine';
 
 settings.plotting=true;
 settings.printing=false;
@@ -28,22 +27,22 @@ settings.method='SIMPALL';
 % settings.method='SIMP_Adaptative';
 
 settings.material='ISOTROPIC';
-%settings.initial_case='full';
-settings.initial_case='circle';
+settings.initial_case='full';
+% settings.initial_case='circle';
 % settings.initial_case='horizontal';
  %settings.initial_case='square';
 % settings.initial_case='feasible';
 % settings.initial_case='rand';
 
-settings.cost={'chomog_alphabeta';'perimeter'};'chomog_fraction';'compliance';'perimeter';
+settings.cost={'compliance';'perimeter'};'chomog_fraction';'chomog_alphabeta';
 settings.multipliers=[]; %all 1
 %settings.multipliers=[1 0.1]; %compl+lambda*perimeter
-settings.constraint={'volume'};
+settings.constraint={'volume';'perimeter'};
 
-settings.optimizer='SLERP';
-%settings.optimizer='PROJECTED GRADIENT';settings.kappaMultiplier=1;
-%settings.optimizer='MMA';
-%settings.optimizer='IPOPT';
+% settings.optimizer='SLERP';
+settings.optimizer='PROJECTED GRADIENT';settings.kappaMultiplier=1;
+% settings.optimizer='MMA';
+% settings.optimizer='IPOPT';
 
 
 settings.filter='P1';'PDE';%
