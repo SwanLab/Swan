@@ -6,11 +6,11 @@ classdef Element_Elastic < Element
     % THE PRE-PROCESS !!
     
     properties
-        
+          fext
     end
     
-    methods (Access = ?Physical_Problem)
-        function [r,dr] = computeResidual(obj,uL)
+    methods %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
+        function [r,dr] = computeResidual(obj,x)
             % *************************************************************
             % Compute
             % - residual: r = Ku - F
@@ -18,24 +18,29 @@ classdef Element_Elastic < Element
             % *************************************************************
             % Compute stiffness matrix
             [K] = obj.computeStiffnessMatrix();
-                     
+            
             % Assemble
             [K] = obj.AssembleMatrix(K);
             
-            %Assemble u and Fext
-            u = zeros(obj.dof.ndof,1);
-            u(obj.dof.vL) = uL;
-            if ~isempty(obj.dof.vR)
-                u(obj.dof.vR) = obj.bc.fixnodes(:,3);
-                fext = obj.Fext(obj.dof.vL)-K(obj.dof.vL,obj.dof.vR)*u(obj.dof.vR); % fext + reac
-            else
-                fext = obj.Fext(obj.dof.vL);
-            end
-            fint = K(obj.dof.vL,obj.dof.vL)*u(obj.dof.vL);
-            r = fint - fext;
-            dr = K(obj.dof.vL,obj.dof.vL);
+            %Set fext
+            Fext = obj.computeExternalForces();            
+            R = obj.compute_imposed_displacemet_force(K);
+            obj.fext = Fext + R;
+            
+            %Compute internal force
+            Kred = K(obj.dof.vF,obj.dof.vF);
+            fint_red = Kred*x;
+            
+            fext_red = obj.fext(obj.dof.vF);
+            
+            r = fint_red - (fext_red);
+            dr = Kred;
         end
-                
+        
+ 
+        
+
+        
         function [K] = computeStiffnessMatrix(obj)
             
             % Stiffness matrix
@@ -43,11 +48,9 @@ classdef Element_Elastic < Element
             
             % Elastic matrix
             Cmat = obj.material.C;
-            
-            obj.B.value = cell(obj.geometry.ngaus);
             for igaus = 1 :obj.geometry.ngaus
                 % Strain-displacement matrix
-                Bmat = obj.B.computeB(obj.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
+                Bmat = obj.computeB(obj.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
                 
                 for iv = 1:obj.nnode*obj.nunkn
                     for jv = 1:obj.nnode*obj.nunkn
@@ -60,10 +63,10 @@ classdef Element_Elastic < Element
                         
                     end
                 end
-                obj.B.value{igaus} = Bmat;
+                
             end
             K = Ke;
-        end        
+        end
         
     end
     
@@ -78,17 +81,23 @@ classdef Element_Elastic < Element
         end
         
         function variables = computeDispStressStrain(obj,uL)
-            variables.d_u = zeros(obj.dof.ndof,1);
-            variables.d_u(obj.dof.vL) = uL;
-            variables.d_u(obj.dof.vR) = obj.bc.fixnodes(:,3);
+            variables.d_u = obj.compute_displacements(uL);
+            variables.fext = obj.fext;
             variables.strain = obj.computeStrain(variables.d_u,obj.dim,obj.nnode,obj.nelem,obj.geometry.ngaus,obj.dof.idx);
             variables.stress = obj.computeStress(variables.strain,obj.material.C,obj.geometry.ngaus,obj.nstre);
         end
         
-          function strain = computeStrain(obj,d_u,dim,nnode,nelem,ngaus,idx)
+       
+        function u = compute_displacements(obj,uL)
+            u = zeros(obj.dof.ndof,1);
+            u(obj.dof.vF) = uL;
+            u(obj.dof.vD) = obj.uD;
+        end
+        
+        function strain = computeStrain(obj,d_u,dim,nnode,nelem,ngaus,idx)
             strain = zeros(dim.nstre,nelem,ngaus);
             for igaus = 1:ngaus
-                Bmat = obj.B.value{igaus};
+                Bmat = obj.computeB(obj.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
                 %Bmat = Bmat{1,1};
                 for istre=1:dim.nstre
                     for inode=1:nnode
@@ -100,7 +109,7 @@ classdef Element_Elastic < Element
                 end
             end
         end
-
+        
     end
     
     methods(Static)
@@ -121,7 +130,7 @@ classdef Element_Elastic < Element
         end
         
         % Compute strains (e = B�u)
-      
+        
         
         % Compute stresses
         function stres = computeStress(strain,C,ngaus,nstre)

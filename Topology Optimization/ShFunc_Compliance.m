@@ -17,10 +17,12 @@ classdef ShFunc_Compliance < Shape_Functional
             rho=filter.getP0fromP1(x);
             matProps=interpolation.computeMatProp(rho);
             %compute compliance
-            compliance=physicalProblem.variables.d_u'*physicalProblem.RHS;
+            compliance=physicalProblem.variables.d_u'*physicalProblem.variables.fext;
             
             %compute gradient
             strain = physicalProblem.variables.strain;
+            stress = physicalProblem.variables.stress;
+            fobj = 0;
             gradient_compliance = zeros(physicalProblem.mesh.nelem,physicalProblem.geometry.ngaus);
             for igaus=1:physicalProblem.geometry.ngaus
                 for istre=1:physicalProblem.dim.nstre
@@ -28,6 +30,7 @@ classdef ShFunc_Compliance < Shape_Functional
 %                        gradient_compliance(:,igaus) = gradient_compliance(:,igaus) + (squeeze(-strain(igaus,istre,:)).*squeeze(matProps.dC(istre,jstre,:,igaus)).*squeeze(strain(igaus,jstre,:)));
                         gradient_compliance(:,igaus) = gradient_compliance(:,igaus) + (squeeze(-strain(igaus,istre,:)).*squeeze(matProps.dC(istre,jstre,:)).*squeeze(strain(igaus,jstre,:)));
                     end
+                    fobj = fobj + (squeeze(strain(igaus,istre,:)).*squeeze(stress(igaus,istre,:)))'*physicalProblem.geometry.dvolu(:,igaus);
                 end
             end
             

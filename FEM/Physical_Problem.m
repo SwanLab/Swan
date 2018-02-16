@@ -10,13 +10,14 @@ classdef Physical_Problem < FEM
         dof
         bc
         problemID
+        element
     end
     
     
     %% Restricted properties definition ===================================
     properties (GetAccess = {?Postprocess,?Physical_Problem_Micro}, SetAccess = protected)
         material
-        element
+        
     end
     
     %% Public methods definition ==========================================
@@ -32,15 +33,15 @@ classdef Physical_Problem < FEM
         
         function preProcess(obj)
             % Create Objects
-            obj.dof = DOF(obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.bc.fixnodes);
-            obj.element = Element.create(obj.mesh.ptype,obj.mesh.pdim,obj.dim,obj.mesh.nelem,obj.geometry,obj.material,obj.bc,obj.dof);
+            obj.dof = DOF.create(obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.bc,obj.mesh.scale);
+            obj.element = Element.create(obj.mesh,obj.geometry,obj.material,obj.bc,obj.dof,obj.dim);
 %             obj.physicalVars = PhysicalVariables.create(obj.mesh.ptype,obj.mesh.pdim);
             obj.solver = Solver.create(obj.mesh.ptype);
         end
         
         function computeVariables(obj)
             tol   = 1e-6;
-            x0 = zeros(length(obj.dof.vL),1);
+            x0 = zeros(length(obj.dof.vF),1);
             % Compute r & dr
             [r,dr] = obj.element.computeResidual(x0);
             while dot(r,r) > tol
@@ -79,7 +80,7 @@ classdef Physical_Problem < FEM
             for igaus=1:geom.ngaus
                 for inode=1:geom.nnode
                     for jnode=1:geom.nnode
-                        emat(inode,jnode,:)=squeeze(emat(inode,jnode,:)) + geom.weigp(igaus)*geom.shape(inode,igaus)*geom.shape(jnode,igaus)*geom.djacob(:,igaus);
+                        emat(inode,jnode,:)=squeeze(emat(inode,jnode,:)) + geom.weigp(igaus)*geom.shape(inode,igaus)*geom.shape(jnode,igaus)*geom.djacb(:,igaus);
                     end
                 end
             end
@@ -119,26 +120,25 @@ classdef Physical_Problem < FEM
             end
         end
         
-        function StifMat = computeKsmooth(obj)
-            StifMat=sparse(obj.mesh.npnod,obj.mesh.npnod);
-            nnode=obj.geometry.nnode;
-            nunkn=1;
-            nstre=2;
-            element_smooth=Element.create('THERMAL',obj.mesh.pdim);
-            element_smooth.computeLHS(nunkn,nstre,obj.mesh.nelem,obj.geometry,obj.material);
-            estiff=element_smooth.LHS;
-            lnods=obj.mesh.connec';
-            for a=1:nnode
-                for i=1:nunkn
-                    idx(nunkn*a-nunkn+i,:) = nunkn.*lnods(a,:)-nunkn+i;
-                end
-            end
-            for k=1:nnode*nunkn
-                for l=1:nnode*nunkn
-                    vestiff = squeeze(estiff(k,l,:));
-                    StifMat = StifMat + sparse(idx(k,:),idx(l,:),vestiff,obj.mesh.npnod,obj.mesh.npnod);
-                end
-            end
+        function K = computeKsmooth(obj)
+            
+            dim_smooth.nnode=obj.geometry.nnode;
+            dim_smooth.nunkn=1;
+            dim_smooth.nstre=2;
+            
+            mesh_smooth = obj.mesh;
+            mesh_smooth.ptype = 'THERMAL';
+            mesh_smooth.scale = 'MACRO';
+            
+            bc_smooth = obj.bc;
+            bc_smooth.fixnodes = [];
+            
+            dof_smooth = DOF.create(obj.geometry.nnode,obj.mesh.connec,dim_smooth.nunkn,obj.mesh.npnod,bc_smooth,mesh_smooth.scale);
+            
+            element_smooth = Element.create(mesh_smooth,obj.geometry,obj.material,obj.bc,dof_smooth,dim_smooth);
+
+            [~,K] = element_smooth.computeResidual(zeros(dof_smooth.ndof,1));
+
         end
     end
     

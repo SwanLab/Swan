@@ -10,9 +10,9 @@ addpath(genpath('./Topology Optimization'));
 clear variables;
 %% settings
 
-% settings.filename='TOPOPT_TEST';  %MACRO
+ settings.filename='TOPOPT_TEST';  %MACRO
 %settings.filename='RVE_Square_Triangle';
-settings.filename='RVE_Square_Triangle_Fine';
+%settings.filename='RVE_Square_Triangle_Fine';
 %settings.filename='topopt_quad';
 %settings.filename='GrippingNew';
 
@@ -26,20 +26,20 @@ settings.method='SIMPALL';
 % settings.method='SIMP_Adaptative';
 
 settings.material='ISOTROPIC';
-%settings.initial_case='full';
-settings.initial_case='circle';
+settings.initial_case='full';
+%settings.initial_case='circle';
 % settings.initial_case='horizontal';
 % settings.initial_case='square';
 % settings.initial_case='feasible';
 % settings.initial_case='rand';
 
 
-%settings.ptype='Compliance_st_Volume';
+settings.ptype='Compliance_st_Volume';
 %settings.ptype='ComplianceLamPerimeter_st_Volume';
-% settings.ptype='Compliance_st_VolumePerimeter';
-% settings.ptype='Chomog_alphabeta_st_Volume';
-% settings.ptype='Chomog_fraction_st_Volume';
-settings.ptype='ChomogLamPerimeter_alphabeta_st_Volume';
+%settings.ptype='Compliance_st_VolumePerimeter';
+%settings.ptype='Chomog_alphabeta_st_Volume';
+%settings.ptype='Chomog_fraction_st_Volume';
+%settings.ptype='ChomogLamPerimeter_alphabeta_st_Volume';
 %settings.ptype='ChomogLamPerimeter_fraction_st_Volume';
 
 %if settings.filename=='GrippingNew'
@@ -48,8 +48,8 @@ settings.ptype='ChomogLamPerimeter_alphabeta_st_Volume';
 
 %settings.optimizer='SLERP';
 %settings.optimizer='PROJECTED GRADIENT';
-settings.optimizer='MMA';
-%settings.optimizer='IPOPT';
+%settings.optimizer='MMA';
+settings.optimizer='IPOPT';
 
 settings.filter='P1'; %PDE
 
@@ -60,7 +60,7 @@ settings.TOL.E_minus=1e-3;
 settings.TOL.nu_plus=1/3;
 settings.TOL.nu_minus=1/3;
 
-settings.target_parameters.Vfrac=0.3;
+settings.target_parameters.Vfrac=0.2;
 settings.target_parameters.optimality_tol=1e-3;
 settings.target_parameters.constr_tol=1e-3;
 settings.target_parameters.Perimeter_target=5;
@@ -73,12 +73,9 @@ settings.optimality_final=settings.target_parameters.optimality_tol;
 settings.constr_final=settings.target_parameters.constr_tol;
 settings.Vfrac_initial=1;
 
-settings.optimality_initial=1e-1;
-settings.constr_initial=1e-1;
 
-
-settings.micro.alpha =[1 0 0]';
-settings.micro.beta =[1 0 0]';
+settings.micro.alpha =[1 1 0]';
+settings.micro.beta =[1 1 0]';
 
 
 settings.optimality_initial=1e-3;

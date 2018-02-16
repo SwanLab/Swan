@@ -2,11 +2,11 @@ classdef BC_Micro < BC
     %BC Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (GetAccess = {?Physical_Problem,?Element,?Filter}, SetAccess = private)
+    properties %(GetAccess = {?Physical_Problem,?Element,?Filter,?DOF,?BC_Micro}, SetAccess = private)
         pnodes
     end
     
-    methods (Access = ?Physical_Problem)
+    methods (Access = {?Physical_Problem,?DOF})
         % Constructor
         function obj = BC_Micro(nunkn,filename,coords,ptype,ndim)
             obj@BC(nunkn,filename);
