@@ -137,7 +137,7 @@ classdef Physical_Problem < FEM
             
             element_smooth = Element.create(mesh_smooth,obj.geometry,obj.material,obj.bc,dof_smooth,dim_smooth);
 
-            [~,K] = element_smooth.computeResidual(zeros(dof_smooth.ndof,1));
+            [K] = element_smooth.computeStiffnessMatrix;
 
         end
     end

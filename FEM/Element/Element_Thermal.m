@@ -16,20 +16,7 @@ classdef Element_Thermal < Element
             % - residual derivative: dr = K
             % *************************************************************
             [K] = obj.computeStiffnessMatrix();
-                      
-            % Assemble
-            [K] = obj.AssembleMatrix(K);
-            
-            %Assemble u and Fext
-%             u = zeros(obj.dof.ndof,1);
-%             u(obj.dof.vF) = uL;
-%             if ~isempty(obj.dof.vC)
-%                 u(obj.dof.vR) = obj.bc.fixnodes(:,3);
-%                 fext = obj.Fext(obj.dof.vF)-K(obj.dof.vF,obj.dof.vC)*u(obj.dof.vC);
-%             else
-%                 fext = obj.Fext(obj.dof.vF);
-%             end
-            
+           
             Fext = obj.computeExternalForces();            
             R = obj.compute_imposed_displacemet_force(K);
             fext = Fext + R;
@@ -39,7 +26,13 @@ classdef Element_Thermal < Element
             dr = K(obj.dof.vF,obj.dof.vF);
         end
         
+        
         function [K] = computeStiffnessMatrix(obj)
+            [K] = compute_elem_StiffnessMatrix(obj);
+            [K] = obj.AssembleMatrix(K);
+        end
+        
+        function [K] = compute_elem_StiffnessMatrix(obj)
             
             % Stiffness matrix
             Ke = zeros(obj.nunkn*obj.nnode,obj.nunkn*obj.nnode,obj.nelem);

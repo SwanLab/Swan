@@ -19,9 +19,6 @@ classdef Element_Elastic < Element
             % Compute stiffness matrix
             [K] = obj.computeStiffnessMatrix();
             
-            % Assemble
-            [K] = obj.AssembleMatrix(K);
-            
             %Set fext
             Fext = obj.computeExternalForces();            
             R = obj.compute_imposed_displacemet_force(K);
@@ -37,11 +34,13 @@ classdef Element_Elastic < Element
             dr = Kred;
         end
         
- 
-        
-
-        
         function [K] = computeStiffnessMatrix(obj)
+            [K] = compute_elem_StiffnessMatrix(obj);                        
+            [K] = obj.AssembleMatrix(K);
+        end
+        
+        
+        function [K] = compute_elem_StiffnessMatrix(obj)
             
             % Stiffness matrix
             Ke = zeros(obj.nunkn*obj.nnode,obj.nunkn*obj.nnode,obj.nelem);

@@ -11,12 +11,12 @@ classdef Filter_PDE < Filter
             preProcess@Filter(obj,physicalProblem);
             switch physicalProblem.mesh.scale
                 case 'MACRO'
-                    obj.dof_per=DOF(physicalProblem.geometry.nnode,physicalProblem.mesh.connec,1,physicalProblem.mesh.npnod,physicalProblem.bc.fixnodes_perimeter);
+                    obj.dof_per=DOF.create(physicalProblem.geometry.nnode,physicalProblem.mesh.connec,1,physicalProblem.mesh.npnod,physicalProblem.bc,physicalProblem.mesh.scale);
                     obj.solver = Solver_Dirichlet_Conditions;
                     data.fixnodes=physicalProblem.bc.fixnodes_perimeter;
                     obj.solver.setSolverVariables(data);
                 case 'MICRO'
-                    obj.dof_per=DOF(physicalProblem.geometry.nnode,physicalProblem.mesh.connec,1,physicalProblem.mesh.npnod,[]);
+                    obj.dof_per=DOF.create(physicalProblem.geometry.nnode,physicalProblem.mesh.connec,1,physicalProblem.mesh.npnod,physicalProblem.bc,physicalProblem.mesh.scale);
                     obj.solver = Solver_Periodic;
                     data.pnodes = physicalProblem.bc.pnodes;
                     data.nunkn=1;

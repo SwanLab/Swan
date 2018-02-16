@@ -10,7 +10,7 @@ addpath(genpath('./Topology Optimization'));
 clear variables;
 %% settings
 settings.ptype='MACRO';
-settings.filename='TOPOPT_TEST';
+settings.filename='CantileverBeam_Triangle_Linear_Fine';
 % % settings.filename='topopt_quad';
 % % settings.filename='GrippingNew';
 
@@ -21,7 +21,7 @@ settings.filename='TOPOPT_TEST';
 
 
 settings.plotting=true;
-settings.printing=false;
+settings.printing=true;
 settings.maxiter = 5000;
 
 
@@ -30,14 +30,14 @@ settings.method='SIMPALL';
 % settings.method='SIMP_Adaptative';
 
 settings.material='ISOTROPIC';
-settings.initial_case='full';
+%settings.initial_case='full';
 %settings.initial_case='circle';
 % settings.initial_case='horizontal';
- %settings.initial_case='square';
+settings.initial_case='square';
 % settings.initial_case='feasible';
 % settings.initial_case='rand';
 
-settings.cost={'compliance'};%'chomog_fraction';'compliance';'perimeter';'chomog_alphabeta';'perimeter';
+settings.cost={'compliance'};%'chomog_fraction';'compliance';'perimeter';'chomog_alphabeta';'compliance';
 settings.multipliers=[]; %all 1
 %settings.multipliers=[1 0.1]; %compl+lambda*perimeter
 settings.constraint={'volume'};

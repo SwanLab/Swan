@@ -5,8 +5,6 @@ classdef BC < handle
     
 
     properties (GetAccess = public, SetAccess = public)
-
-
         fixnodes
         fixnodes_perimeter
         neunodes
@@ -20,21 +18,30 @@ classdef BC < handle
             [obj.fixnodes,obj.fixnodes_perimeter,obj.neunodes] = Preprocess.getBC(filename);
             obj.computeiDiN(nunkn);
         end
+        
+        function  obj = create(nunkn,filename)
+            
+            
+        end
     end
     
     methods (Access = protected)
         function obj = computeiDiN(obj,nunkn)
-            if (~isempty(obj.fixnodes))
-                for i = 1:length(obj.fixnodes(:,1))
-                    obj.iD(i) = obj.fixnodes(i,1)*nunkn - nunkn + obj.fixnodes(i,2);
-                end
-            end
-            if (~isempty(obj.neunodes))
-                for i = 1:length(obj.neunodes(:,1))
-                    obj.iN(i)= obj.neunodes(i,1)*nunkn - nunkn + obj.neunodes(i,2);
-                end
-            end
+            obj.iD = obj.comupute_global_id_nodes_from_local(obj.fixnodes,nunkn);
+            obj.iN = obj.comupute_global_id_nodes_from_local(obj.neunodes,nunkn);
         end        
+    end
+    
+    methods (Static)
+        function iG = comupute_global_id_nodes_from_local(iL,nunkn)
+            
+            if (~isempty(iL))
+                iG = zeros(size(iL,1),1);
+                for i = 1:length(iL(:,1))
+                    iG(i,1)= nunkn*(iL(i,1) - 1) + iL(i,2);
+                end
+            end
+        end
     end
 end
     

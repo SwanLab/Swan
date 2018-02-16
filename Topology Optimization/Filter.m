@@ -48,9 +48,9 @@ classdef Filter < handle
                 case 'P1'
                     switch optimizer
                         case {'MMA','PROJECTED GRADIENT','IPOPT'} 
-                            obj=Filter_Density;
+                            obj=Filter_P1_Density;
                         case 'SLERP'
-                            obj=Filter_SLERP;
+                            obj=Filter_P1_SLERP;
                     end
                 case 'PDE'
                     switch optimizer

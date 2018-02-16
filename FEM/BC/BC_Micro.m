@@ -11,7 +11,6 @@ classdef BC_Micro < BC
         function obj = BC_Micro(nunkn,filename,coords,ptype,ndim)
             obj@BC(nunkn,filename);
             obj.computeFixedNodesValues(ptype,ndim);
-            obj.computeiDiN(nunkn);
             obj.pnodes = Preprocess.getPeriodicBC(coords);
         end
     end
@@ -29,14 +28,6 @@ classdef BC_Micro < BC
                             ifix=ifix+1;
                         end
                     end
-%                 case 'THERMAL'          %HAS TO BE REVISED FOR THERMAL
-%                     ifix=1;
-%                     for i=1:size(obj.fixnodes_perimeter,1)
-%                         obj.fixnodes(ifix,1)=obj.fixnodes_perimeter(i); % node
-%                         obj.fixnodes(ifix,2)=1; % idim
-%                         obj.fixnodes(ifix,3)=0; % U_imp
-%                         ifix=ifix+1;
-%                     end
             end
         end
     end

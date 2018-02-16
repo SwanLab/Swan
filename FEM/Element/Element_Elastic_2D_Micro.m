@@ -64,10 +64,7 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
             
             % Compute stiffness matrix
             [K] = obj.computeStiffnessMatrix();
-            
-            % Assemble
-            [K] = obj.AssembleMatrix(K);
-           
+          
             %Set fext
             Fext = obj.computeExternalForces();
             R = obj.compute_imposed_displacemet_force(K); 
