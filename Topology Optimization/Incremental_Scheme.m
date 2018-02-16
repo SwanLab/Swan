@@ -5,6 +5,7 @@ classdef Incremental_Scheme < handle
         coord
         connec
         settings
+        epsilon
     end
     methods
         function obj=Incremental_Scheme(settings, physicalProblem)
@@ -12,13 +13,14 @@ classdef Incremental_Scheme < handle
             nsteps=settings.nsteps;
             obj.coord=physicalProblem.mesh.coord;
             obj.connec=physicalProblem.mesh.connec;
+            obj.epsilon=1*obj.estimate_mesh_size(physicalProblem.mesh.coord,physicalProblem.mesh.connec);
             obj.incropt.alpha_vol = obj.generate_incr_sequence(1/nsteps,1,nsteps,'linear');
             obj.incropt.alpha_constr = obj.generate_incr_sequence(0,1,nsteps,'linear');
             obj.incropt.alpha_optimality= obj.generate_incr_sequence(0,1,nsteps,'linear');
             obj.incropt.alpha_epsilon = obj.generate_incr_sequence(0,1,nsteps,'custom',8);
             obj.create_epsilon_perimeter;        
         end
-        function target_parameters=update_target_parameters(obj,t,cost, constraint, optimizer)            
+        function update_target_parameters(obj,t,cost, constraint, optimizer)            
             target_parameters.Vfrac = (1-obj.incropt.alpha_vol(t))*obj.settings.Vfrac_initial+obj.incropt.alpha_vol(t)*obj.settings.Vfrac_final;
             target_parameters.epsilon = (1-obj.incropt.alpha_epsilon(t))*obj.settings.epsilon_initial+obj.incropt.alpha_epsilon(t)*obj.settings.epsilon_final;
             %target_parameters.epsilon_isotropy = update_parameter(target_parameters.epsilon_isotropy_ini,target_parameters.epsilon_isotropy_final,target_parameters.alpha_isotropy2d(t));
@@ -27,6 +29,7 @@ classdef Incremental_Scheme < handle
             cost.target_parameters=target_parameters;
             constraint.target_parameters=target_parameters;
             optimizer.target_parameters=target_parameters;
+           % optimizer.epsilon_scalar_product_P1=obj.epsilon;
         end
         function create_epsilon_perimeter(obj)
             xmin = min(obj.coord);
@@ -83,6 +86,17 @@ classdef Incremental_Scheme < handle
                     error('Incremental sequence type not detected.')
             end
             
+        end
+        function h=estimate_mesh_size(coordinates,conectivities)
+            x1 = coordinates(conectivities(:,1));
+            x2 = coordinates(conectivities(:,2));
+            x3 = coordinates(conectivities(:,3));
+            
+            x1x2 = abs(x2-x1);
+            x2x3 = abs(x3-x2);
+            x1x3 = abs(x1-x3);
+            hs = max([x1x2,x2x3,x1x3]');
+            h = mean(hs);
         end
     end
 

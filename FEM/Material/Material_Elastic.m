@@ -7,17 +7,11 @@ classdef Material_Elastic < Material
     
     properties (GetAccess = {?Element,?Material_Elastic_ISO,?Material_Hyperelastic_2D,?PhysicalVars_Elastic}, SetAccess = protected) 
         C
-        kappa
-        mu
-        lambda
     end
     
     methods (Access = protected)
         function obj = Material_Elastic(nelem)
             obj@Material(nelem);
-            obj.kappa  = .9107;
-            obj.mu     = .3446;
-            obj.lambda = obj.kappa-obj.mu;
         end
     end
 end
