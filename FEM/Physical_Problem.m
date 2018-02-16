@@ -39,7 +39,7 @@ classdef Physical_Problem < FEM
         end
         
         function computeVariables(obj)
-            tol   = 1e-6;
+            tol   = 1e-12;
             x     = zeros(length(obj.dof.vL),1);
             r     = 0;
             resid = 0;
@@ -52,6 +52,8 @@ classdef Physical_Problem < FEM
             fincr = 0.5*obj.element.Fext/nincr;
             for incrm = 1:nincr
                 niter = 1;
+                
+                % Set current load & residual
                 cload = cload + fincr;
                 resid = resid - fincr;
                 r = r - fincr(obj.dof.vL);
@@ -59,14 +61,19 @@ classdef Physical_Problem < FEM
                 while dot(r,r) > tol && niter <= miter
                     [~,dr,K] = obj.element.computeResidual(x);
                     inc_x = obj.solver.solve(dr,-r);
-                    x = x + inc_x; % x = x0 + inc_x
+                    
+                    x = x + inc_x;
                     
                     % Updates
-                    obj.element.updateCoord(x);
+                    obj.element.updateCoord(inc_x);
                     obj.element.updateCartd(obj.mesh.pdim);
+                    
+                    % Compute fint
                     fint = obj.element.computeInternal();
+                    
+                    % Compute residual
                     r = fint - cload;
-
+                    r = r(obj.dof.vL);
                     niter = niter + 1;
                 end
             end

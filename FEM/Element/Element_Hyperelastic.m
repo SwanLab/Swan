@@ -82,9 +82,9 @@ classdef Element_Hyperelastic < Element
         function [K,sigma] = computeTangentMatrix(obj)
             % ctens   = obj.material.C;
             
-            m = obj.material.computeCtens(obj.coord);
-            ctens = m.C;
-            sigma = m.sigma;
+            [ctens,sigma] = obj.material.computeCtens(obj.coord);
+%             ctens = m.C;
+%             sigma = m.sigma;
             
             
 
@@ -107,7 +107,7 @@ classdef Element_Hyperelastic < Element
                             jL = obj.geometry.ndime*(b-1) + j;
                             for k = 1:obj.geometry.ndime
                                 for l = 1:obj.geometry.ndime
-                                    kconst(iL,jL,:) = squeeze(kconst(iL,jL,:)) + squeeze(obj.cartd(k,a,:).*ctens(i,k,j,l).*obj.cartd(l,b,:)).*squeeze(obj.dvolu);
+                                    kconst(iL,jL,:) = kconst(iL,jL,:) + permute(squeeze(obj.cartd(k,a,:)).*squeeze(ctens(i,k,j,l,:)).*squeeze(obj.cartd(l,b,:)).*squeeze(obj.dvolu),[2 3 1]);
                                 end
                             end
                         end
@@ -133,7 +133,7 @@ classdef Element_Hyperelastic < Element
                             jL = obj.geometry.ndime*(b-1) + j;
                             for k = 1:obj.geometry.ndime
                                 for l = 1:obj.geometry.ndime
-                                    ksigma(iL,jL,:) = squeeze(ksigma(iL,jL,:)) + squeeze(obj.cartd(k,a,:).*sigma(k,l,:).*obj.cartd(l,b).*dk(i,j,:)).*squeeze(obj.dvolu);
+                                    ksigma(iL,jL,:) = ksigma(iL,jL,:) + permute(squeeze(obj.cartd(k,a,:).*sigma(k,l,:).*obj.cartd(l,b,:).*dk(i,j,:)).*squeeze(obj.dvolu),[2 3 1]);
                                 end
                             end
                         end
