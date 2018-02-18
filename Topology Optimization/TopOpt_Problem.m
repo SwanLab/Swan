@@ -34,6 +34,7 @@ classdef TopOpt_Problem < handle
             switch obj.settings.optimizer
                 case 'SLERP'
                     obj.optimizer=Optimizer_AugLag(settings,Optimizer_SLERP(settings));
+                    
                 case 'PROJECTED GRADIENT'
                     obj.optimizer=Optimizer_AugLag(settings,Optimizer_PG(settings));
 
@@ -161,7 +162,7 @@ classdef TopOpt_Problem < handle
         function obj = compute_initial_design(obj)         
             switch obj.settings.optimizer
                 case 'SLERP'
-                    obj.ini_design_value=-1.015243959022692;
+                    obj.ini_design_value=-2;
                     obj.hole_value=0.507621979511346;
                 otherwise
                     obj.ini_design_value= 1;
