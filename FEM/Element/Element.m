@@ -76,9 +76,9 @@ classdef Element<handle
         %******************************************************************
          function FextPoint = computePunctualFext(obj)    
             %Compute Global Puntual Forces (Not well-posed in FEM)
-            if ~isempty(obj.bc.iN)
+            if ~isempty(obj.dof.neumann)
                 FextPoint = zeros(obj.dof.ndof,1);
-                FextPoint(obj.bc.iN) = obj.bc.neunodes(:,3);
+                FextPoint(obj.dof.neumann) = obj.dof.neumann_nodes(:,3);
             end
         end
         
@@ -87,8 +87,8 @@ classdef Element<handle
             b = zeros(obj.dof.ndof,1);
             for i = 1:obj.nnode*obj.nunkn
                 c = squeeze(b_elem(i,1,:));
-                ind = obj.dof.idx(i,:);
-                b = b + sparse(ind,1,c',obj.dof.ndof,1);
+                idof_elem = obj.dof.in_elem(i,:);
+                b = b + sparse(idof_elem,1,c',obj.dof.ndof,1);
             end
         end
         
@@ -99,7 +99,7 @@ classdef Element<handle
             for i = 1:obj.nnode*obj.nunkn
                 for j = 1:obj.nnode*obj.nunkn
                     a = squeeze(A_elem(i,j,:));
-                    A = A + sparse(obj.dof.idx(i,:),obj.dof.idx(j,:),a,obj.dof.ndof,obj.dof.ndof);
+                    A = A + sparse(obj.dof.in_elem(i,:),obj.dof.in_elem(j,:),a,obj.dof.ndof,obj.dof.ndof);
                 end
             end
             A = 1/2 * (A + A');
@@ -107,8 +107,8 @@ classdef Element<handle
         
                 
         function assign_dirichlet_values(obj)
-            if ~isempty(obj.dof.vD)
-                obj.uD = obj.bc.fixnodes(:,3);
+            if ~isempty(obj.dof.dirichlet)
+                obj.uD = obj.dof.dirichlet_nodes(:,3);
             else
                 obj.uD = [];
             end
@@ -117,8 +117,8 @@ classdef Element<handle
         
         function R = compute_imposed_displacemet_force(obj,K)
             % Forces coming from imposed displacement
-            if ~isempty(obj.dof.vD)
-                R = -K(:,obj.dof.vD)*obj.uD;
+            if ~isempty(obj.dof.dirichlet)
+                R = -K(:,obj.dof.dirichlet)*obj.uD;
             else
                 R = zeros(obj.dof.ndof,1);
             end

@@ -6,18 +6,23 @@ classdef Solver < handle
     methods (Access = ?Physical_Problem, Static)
         %Implement CREATE function when needed
         
-        function stype = create(ptype)
-            switch ptype
-                case {'ELASTIC','THERMAL'}
-                    stype = Solver_Dirichlet_Conditions();
-                case 'HYPERELASTIC'
-                    stype = Solver_NewtonRaphson();
+        function stype = create()
+            solver_type = 'DIRECT';
+            switch solver_type
+                case {'DIRECT'}
+                    stype = Direct_solver();
+                case {'ITERATIVE'}
+                    error('Not implemented yet')
                 otherwise
                     error('Invalid stype.')
             end
         end
 
     end
+    
+    
+
+
     
 end
     

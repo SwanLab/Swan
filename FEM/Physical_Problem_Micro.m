@@ -16,17 +16,6 @@ classdef Physical_Problem_Micro < Physical_Problem
             obj@Physical_Problem(problemID);
         end
         
-        function preProcess(obj)
-            %props.mu=0.375;
-            %props.kappa = 0.75;
-            %obj.material = obj.material.setProps(props);            
-            obj.bc = BC_Micro(obj.dim.nunkn,obj.problemID,obj.mesh.coord,obj.mesh.ptype,obj.dim.ndim);
-            
-            obj.dof = DOF.create(obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.bc,obj.mesh.scale);
-            obj.element = Element.create(obj.mesh,obj.geometry,obj.material,obj.bc,obj.dof,obj.dim);%Element_Elastic_Micro;
-           % obj.variables = PhysicalVars_Elastic_2D_Micro(obj.dof.ndof);
-            obj.solver = Solver.create(obj.mesh.ptype);
-        end
         
         
         function [Chomog,tstrain,tstress] = computeChomog(obj)

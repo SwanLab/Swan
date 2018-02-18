@@ -1,8 +1,4 @@
 classdef Element_Elastic_2D_Micro < Element_Elastic_2D
-    %Element_Elastic Summary of this class goes here
-    %   Detailed explanation goes here
-    % !! CONSIDER TO IMPLEMENT A CONSTRUCTOR THAT DEFINES B & C DIMENS AT
-    % THE PRE-PROCESS !!
     
     properties
         vstrain
@@ -39,64 +35,31 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
         
         end
     
-   
-    
-    methods (Access = {?Physical_Problem, ?Element})
-%         function obj = Element_Elastic_Micro
-%             obj.B = B2;
-%         end
-%         
-%         function obj = computeRHS(obj,vstrain)
-%             computeRHS@Element(obj);
-%             RHSStrain = obj.computeStrainRHS(vstrain);
-%             obj.RHS = obj.RHS + RHSStrain;             
-%         end
-    end
+
     
     methods   %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
-        function [r,dr] = computeResidual(obj,x)
-            % *************************************************************
-            % Compute
-            % - residual: r = Ku - F
-            % - residual derivative: dr = K
-            % *************************************************************
-
-            
-            % Compute stiffness matrix
-            [K] = obj.computeStiffnessMatrix();
-          
-            %Set fext
-            Fext = obj.computeExternalForces();
-            R = obj.compute_imposed_displacemet_force(K); 
-            obj.fext = Fext+R;
-            
-            
+           
+        function Kred = compute_Kred(obj,K)
             vF = obj.dof.vF;
             vP = obj.dof.vP;
             vQ = obj.dof.vQ;
             vI = setdiff(vF,vP);
-                  
+            
             K_II = K(vI,vI);
             K_IP = K(vI,vP) + K(vI,vQ); %Grouping P and Q nodal values
-            K_PI = K(vP,vI) + K(vQ,vI); % Adding P  and Q equation 
+            K_PI = K(vP,vI) + K(vQ,vI); % Adding P  and Q equation
             K_PP = K(vP,vP) + K(vP,vQ) + K(vQ,vP) + K(vQ,vQ); % Adding and grouping
             
             Kred = [K_II K_IP; K_PI K_PP];
-            
+        end
+        
+        function fext_red = compute_Fext_red(obj)
             fext_I = obj.fext(vI);
             fext_P = obj.fext(vP)+obj.fext(vQ);
-            
             fext_red = [fext_I; fext_P];
-            
-            fint_red = Kred*x;
-            
-            r = fint_red - fext_red;
-            dr = Kred;
-
-            
- 
         end
-           
+        
+        
         
     end
     

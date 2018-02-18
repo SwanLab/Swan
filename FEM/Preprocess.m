@@ -27,14 +27,14 @@ classdef Preprocess<handle
             data.scale = strjoin(Data_prb(6));
         end
         
-        function [fixnodes,fixnodes_perimeter, forces] = getBC(filename)
+        function [fixnodes,boundary_nodes, forces] = getBC(filename)
             run(filename)
             fixnodes = lnodes;
             forces = pointload_complete;
-            fixnodes_perimeter=External_border_nodes;
-            if ~isempty(fixnodes_perimeter)
-                fixnodes_perimeter(:,2)=ones(length(fixnodes_perimeter(:,1)),1);
-                fixnodes_perimeter(:,3)=zeros(length(fixnodes_perimeter(:,1)),1);
+            boundary_nodes=External_border_nodes;
+            if ~isempty(boundary_nodes)
+                boundary_nodes(:,2)=ones(length(boundary_nodes(:,1)),1);
+                boundary_nodes(:,3)=zeros(length(boundary_nodes(:,1)),1);
             end
         end
         function forces_adjoint=getBC_adjoint(filename)

@@ -1,9 +1,7 @@
 classdef Element_Elastic < Element
     %Element_Elastic Summary of this class goes here
     %   Detailed explanation goes here
-    
-    % !! CONSIDER TO IMPLEMENT A CONSTRUCTOR THAT DEFINES B & C DIMENS AT
-    % THE PRE-PROCESS !!
+
     
     properties
           fext
@@ -25,11 +23,11 @@ classdef Element_Elastic < Element
             obj.fext = Fext + R;
             
             %Compute internal force
-            Kred = K(obj.dof.vF,obj.dof.vF);
+            Kred = obj.compute_Kred(K);            
+            fext_red = compute_Fext_red(obj);
+
             fint_red = Kred*x;
-            
-            fext_red = obj.fext(obj.dof.vF);
-            
+
             r = fint_red - (fext_red);
             dr = Kred;
         end
@@ -39,6 +37,13 @@ classdef Element_Elastic < Element
             [K] = obj.AssembleMatrix(K);
         end
         
+        function Kred = compute_Kred(obj,K)
+            Kred = K(obj.dof.free,obj.dof.free);
+        end
+        
+        function fext_red = compute_Fext_red(obj)
+           fext_red = obj.fext(obj.dof.free);   
+        end
         
         function [K] = compute_elem_StiffnessMatrix(obj)
             
@@ -82,15 +87,15 @@ classdef Element_Elastic < Element
         function variables = computeDispStressStrain(obj,uL)
             variables.d_u = obj.compute_displacements(uL);
             variables.fext = obj.fext;
-            variables.strain = obj.computeStrain(variables.d_u,obj.dim,obj.nnode,obj.nelem,obj.geometry.ngaus,obj.dof.idx);
+            variables.strain = obj.computeStrain(variables.d_u,obj.dim,obj.nnode,obj.nelem,obj.geometry.ngaus,obj.dof.in_elem);
             variables.stress = obj.computeStress(variables.strain,obj.material.C,obj.geometry.ngaus,obj.nstre);
         end
         
        
         function u = compute_displacements(obj,uL)
             u = zeros(obj.dof.ndof,1);
-            u(obj.dof.vF) = uL;
-            u(obj.dof.vD) = obj.uD;
+            u(obj.dof.free) = uL;
+            u(obj.dof.dirichlet) = obj.uD;
         end
         
         function strain = computeStrain(obj,d_u,dim,nnode,nelem,ngaus,idx)
