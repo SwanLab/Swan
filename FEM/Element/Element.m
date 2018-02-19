@@ -78,7 +78,7 @@ classdef Element<handle
             %Compute Global Puntual Forces (Not well-posed in FEM)
             if ~isempty(obj.dof.neumann)
                 FextPoint = zeros(obj.dof.ndof,1);
-                FextPoint(obj.dof.neumann) = obj.dof.neumann_nodes(:,3);
+                FextPoint(obj.dof.neumann) = obj.dof.neumann_values;
             end
         end
         
@@ -108,7 +108,7 @@ classdef Element<handle
                 
         function assign_dirichlet_values(obj)
             if ~isempty(obj.dof.dirichlet)
-                obj.uD = obj.dof.dirichlet_nodes(:,3);
+                obj.uD = obj.dof.dirichlet_values;
             else
                 obj.uD = [];
             end

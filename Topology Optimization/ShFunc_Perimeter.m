@@ -14,6 +14,8 @@ classdef ShFunc_Perimeter< Shape_Functional
                 otherwise
                     obj.filter_pde=Filter_Density_PDE;
             end
+            
+            
         end
 %         function Perimeter_target=get.Perimeter_target(obj)
 %             Perimeter_target=obj.target_parameters.Perimeter_target;
@@ -24,7 +26,7 @@ classdef ShFunc_Perimeter< Shape_Functional
         function computef(obj,x,physProblem,~,~)
             obj.checkFilterPre(physProblem);
             Msmooth=obj.filter_pde.Msmooth;
-            x_reg=obj.filter_pde.getP0fromP1_per(x,obj.epsilon);
+            x_reg=obj.filter_pde.getP1fromP1(x,obj.epsilon);
             Perimeter = 0.5/obj.epsilon*((1 - x_reg)'*obj.filter_pde.rhs);
             Perimeter_gradient = 0.5/obj.epsilon*(1 - 2*x_reg);
             
@@ -35,9 +37,20 @@ classdef ShFunc_Perimeter< Shape_Functional
             obj.value=constraint;
             obj.gradient=constraint_gradient;
         end
-        function checkFilterPre(obj, physProblem)
+        function checkFilterPre(obj, physicalProblem)
             if isempty(obj.filter_pde.Msmooth)
-                obj.filter_pde.preProcess(physProblem);
+                
+                obj.dof_per=DOF(physicalProblem.problemID,physicalProblem.geometry.nnode,physicalProblem.mesh.connec,1,physicalProblem.mesh.npnod,physicalProblem.mesh.scale);
+                
+                switch physicalProblem.mesh.scale
+                    case 'MACRO'
+                        obj.dof_per.dirichlet = obj.dof_per.full_dirichlet;
+                        obj.dof_per.dirichlet_values = obj.dof_per.full_dirichlet_values;
+                    case 'MICRO'
+                        % Filter dofs coincides with physical_problem dofs
+                end
+
+                obj.filter_pde.preProcess(physicalProblem,obj.dof_per);
             end
         end
         

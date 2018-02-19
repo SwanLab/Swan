@@ -7,8 +7,8 @@ function rhs = compute_rhs_gradient_in_border(gradient,phi,element,dim,problembs
         norm_grad_phi = compute_norm_gradient_phi(phi,element,dim,problembsc,coordinates,index_border);
         rhs = zeros(dim.npnod,1);
         for inode = 1:dim.nnode
-            lnodes = element.conectivities(index_border,inode);
-            rhs(lnodes,1) = rhs(lnodes,1) + 1./norm_grad_phi.*gradient(index_border).*(perimeter.*shape(inode,:))';
+            dirichlet_data = element.conectivities(index_border,inode);
+            rhs(dirichlet_data,1) = rhs(dirichlet_data,1) + 1./norm_grad_phi.*gradient(index_border).*(perimeter.*shape(inode,:))';
         end
 
 end

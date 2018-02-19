@@ -9,22 +9,15 @@ classdef Element_Elastic < Element
     
     methods %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
         function [r,dr] = computeResidual(obj,x)
-            % *************************************************************
-            % Compute
-            % - residual: r = Ku - F
-            % - residual derivative: dr = K
-            % *************************************************************
-            % Compute stiffness matrix
+
             [K] = obj.computeStiffnessMatrix();
             
-            %Set fext
             Fext = obj.computeExternalForces();            
             R = obj.compute_imposed_displacemet_force(K);
             obj.fext = Fext + R;
             
-            %Compute internal force
-            Kred = obj.compute_Kred(K);            
-            fext_red = compute_Fext_red(obj);
+            Kred = obj.full_matrix_2_reduced_matrix(K,obj.dof);            
+            fext_red = obj.full_vector_2_reduced_vector(obj.fext,obj.dof);
 
             fint_red = Kred*x;
 
@@ -37,13 +30,9 @@ classdef Element_Elastic < Element
             [K] = obj.AssembleMatrix(K);
         end
         
-        function Kred = compute_Kred(obj,K)
-            Kred = K(obj.dof.free,obj.dof.free);
-        end
+
         
-        function fext_red = compute_Fext_red(obj)
-           fext_red = obj.fext(obj.dof.free);   
-        end
+
         
         function [K] = compute_elem_StiffnessMatrix(obj)
             
@@ -92,11 +81,10 @@ classdef Element_Elastic < Element
         end
         
        
-        function u = compute_displacements(obj,uL)
-            u = zeros(obj.dof.ndof,1);
-            u(obj.dof.free) = uL;
-            u(obj.dof.dirichlet) = obj.uD;
+        function u = compute_displacements(obj,usol)
+            u = obj.reduced_vector_2_full_vector(usol,obj.dof);
         end
+        
         
         function strain = computeStrain(obj,d_u,dim,nnode,nelem,ngaus,idx)
             strain = zeros(dim.nstre,nelem,ngaus);
@@ -121,6 +109,21 @@ classdef Element_Elastic < Element
             variables.strain = permute(variables.strain, [3 1 2]);
             variables.stress = permute(variables.stress, [3 1 2]);
         end
+        
+        function Ared = full_matrix_2_reduced_matrix(A,dof)
+            Ared = A(dof.free,dof.free);
+        end
+        
+        function b_red = full_vector_2_reduced_vector(b,dof)
+            b_red = b(dof.free);
+        end
+        
+        function b = reduced_vector_2_full_vector(bfree,dof)
+            b = zeros(dof.ndof,1);
+            b(dof.free) = bfree;
+            b(dof.dirichlet) = dof.dirichlet_values;
+        end
+        
     end
     
     methods(Static, Access = protected)

@@ -9,17 +9,16 @@ classdef DOF < handle
         
     end
     properties (GetAccess = public)
-        dirichlet_nodes
-        boundary_nodes
-        neumann_nodes
-        periodic_nodes
+        dirichlet_values
+        neumann_values
+        full_dirichlet_values
         ndof
         in_elem
         constrained  % Constrainted dofs index
         free  % Free dof index
         dirichlet % Diriclet dof index
-        boundary % Boundary dof inex
         neumann % Explicit (from input) Neumann dof
+        full_dirichlet % Everywhere dirichlet dof inex
         periodic_free % Perioic
         periodic_constrained
     end
@@ -29,28 +28,26 @@ classdef DOF < handle
         function obj = DOF(filename,nnode,connec,nunkn,npnod,scale)
             
             obj.in_elem = obj.compute_idx(connec,nunkn,nnode);
-            [obj.dirichlet_nodes,obj.boundary_nodes,obj.neumann_nodes] = Preprocess.getBC(filename);
+            [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = Preprocess.getBC(filename);
             
             obj.ndof = nunkn*npnod;
             
-            % Dirichlet
-            inode_dirichlet = obj.dirichlet_nodes(:,1);
-            iunkn_dirichlet = obj.dirichlet_nodes(:,2);
-            obj.dirichlet = obj.unknown_and_node_id_to_dof_id(inode_dirichlet,iunkn_dirichlet,nunkn);
-            
-            % Neumann
-            inode_neumann = obj.neumann_nodes(:,1);
-            iunkn_neumann = obj.neumann_nodes(:,2);
-            obj.neumann = obj.unknown_and_node_id_to_dof_id(inode_neumann,iunkn_neumann,nunkn);
+            [obj.dirichlet,obj.dirichlet_values] = obj.get_dof_conditions(dirichlet_data,nunkn);
+            [obj.neumann,obj.neumann_values] = obj.get_dof_conditions(neumann_data,nunkn);
+            [obj.full_dirichlet,obj.full_dirichlet_values] = obj.get_dof_conditions(full_dirichlet_data,nunkn);
+ 
+            if ~isempty(master_slave)
+            obj.periodic_free = obj.compute_periodic_nodes(master_slave(:,1),nunkn);
+            obj.periodic_constrained = obj.compute_periodic_nodes(master_slave(:,2),nunkn);
+            end
             
             switch scale
                 case 'MICRO'
-                    [obj.periodic_free,obj.periodic_constrained] = obj.compute_periodic_nodes(nunkn);
-                    obj.periodic_nodes = Preprocess.getPeriodicBC(coords);
                     obj.constrained = [obj.periodic_constrained;obj.dirichlet];
                 case 'MACRO'
                     obj.constrained = obj.dirichlet;
             end
+            
             obj.free = setdiff(1:obj.ndof,obj.constrained);
         end
         
@@ -77,17 +74,15 @@ classdef DOF < handle
         %         end
         
         
-        function [periodic_free,periodic_constrained] = compute_periodic_nodes(obj,nunkn)
-            nlib = size(obj.periodic_nodes(1,:),2);
-            periodic_free = zeros(nlib*nunkn,1);
-            periodic_constrained = zeros(nlib*nunkn,1);
+        function periodic_dof = compute_periodic_nodes(obj,periodic_nodes,nunkn)
+            nlib = size(periodic_nodes,1);
+            periodic_dof = zeros(nlib*nunkn,1);
             for iunkn = 1:nunkn
                 index_glib = nlib*(iunkn - 1) + [1:nlib];
-                periodic_free(index_glib,1) = obj.unknown_and_node_id_to_dof_id(obj.periodic_nodes(1,:),iunkn,nunkn);
-                periodic_constrained(index_glib,1) = obj.unknown_and_node_id_to_dof_id(obj.periodic_nodes(2,:),iunkn,nunkn);
-
-            end
+                periodic_dof(index_glib,1) = obj.unknown_and_node_id_to_dof_id(periodic_nodes,iunkn,nunkn);
+             end
         end
+        
         
         function dof_elem = compute_idx(obj,connec,nunkn,nnode)
             dof_elem  = zeros(nnode*nunkn,size(connec,1));
@@ -102,6 +97,17 @@ classdef DOF < handle
             
         end
         
+        function  [dof_condition_id,dof_condition_value] = get_dof_conditions(obj,conditions_unkn_and_dim,nunkn)
+            dof_condition_id = [];
+            dof_condition_value = [];
+            if ~isempty(conditions_unkn_and_dim)
+                inode_condition = conditions_unkn_and_dim(:,1);
+                iunkn_condition = conditions_unkn_and_dim(:,2);
+                dof_condition_id = obj.unknown_and_node_id_to_dof_id(inode_condition,iunkn_condition,nunkn);
+                dof_condition_value = conditions_unkn_and_dim(:,3);
+            end
+        end
+        
         
     end
     
@@ -110,7 +116,60 @@ classdef DOF < handle
         function idof = unknown_and_node_id_to_dof_id(inode,iunkn,nunkn)
             idof(:,1)= nunkn*(inode - 1) + iunkn;
         end
+        
+        
+        function [Master_slave_nodes] = get_master_slave_in_square(coordinates)
+            % Square muest be [0,1]x[0,1]
+            % nodes in the left-vertical side, without the corners
+            href = 0.025;
+            h=href; L=[];Y=[];
+            for i=1:size(coordinates,1)
+                if (coordinates(i,1)<h/5 && coordinates(i,2)>h/5 && coordinates(i,2)<1-h/5 )
+                    L = [L i];
+                    Y = [Y coordinates(i,2)];
+                end
+            end
+            [Y1,I] = sort(Y);
+            V1 = L(I);
+            
+            % nodes in the right-vertical side, without the corners
+            h=href; L=[];Y=[];
+            for i=1:size(coordinates,1)
+                if (coordinates(i,1)>1-h/5 && coordinates(i,2)>h/5 && coordinates(i,2)<1-h/5)
+                    L = [L i];
+                    Y = [Y coordinates(i,2)];
+                end
+            end
+            [Y1,I] = sort(Y);
+            V2 = L(I);
+            
+            % nodes in the bottom-horizontal side, without the corners
+            h=href; L=[];X=[];
+            for i=1:size(coordinates,1)
+                if (coordinates(i,2)<h/5 && coordinates(i,1)>h/5 && coordinates(i,1)<1-h/5 )
+                    L = [L i];
+                    X = [X coordinates(i,1)];
+                end
+            end
+            [X1,I] = sort(X);
+            H1 = L(I);
+            
+            % nodes in the top-horizontal side, without the corners
+            h=href; L=[];X=[];
+            for i=1:size(coordinates,1)
+                if (coordinates(i,2)>1-h/5 && coordinates(i,1)>h/5 && coordinates(i,1)<1-h/5)
+                    L = [L i];
+                    X = [X coordinates(i,1)];
+                end
+            end
+            [X1,I] = sort(X);
+            H2 = L(I);
+            Master_slave_nodes = [V1 H1; V2 H2]; % lista de nodos
+        end
+        
+        
     end
+    
     
 end
 

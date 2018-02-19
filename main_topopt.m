@@ -16,8 +16,8 @@ clear variables;
 
 
 settings.ptype='MICRO';
-settings.filename='RVE_Square_Triangle';
-%settings.filename='RVE_Square_Triangle_Fine';
+%settings.filename='RVE_Square_Triangle';
+settings.filename='RVE_Square_Triangle_Fine';
 
 
 settings.plotting=true;
@@ -38,7 +38,7 @@ settings.initial_case='square';
 % settings.initial_case='rand';
 
 settings.cost={'perimeter'};%'chomog_fraction';'compliance';'perimeter';'chomog_alphabeta';'compliance';
-settings.multipliers=[]; %all 1
+settings.weights=[]; %all 1
 %settings.multipliers=[1 0.1]; %compl+lambda*perimeter
 settings.constraint={'volume'};
 

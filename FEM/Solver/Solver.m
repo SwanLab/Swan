@@ -3,14 +3,14 @@ classdef Solver < handle
         
     end
     
-    methods (Access = ?Physical_Problem, Static)
+    methods (Static)
         %Implement CREATE function when needed
         
         function stype = create()
             solver_type = 'DIRECT';
             switch solver_type
                 case {'DIRECT'}
-                    stype = Direct_solver();
+                    stype = Direct_Solver();
                 case {'ITERATIVE'}
                     error('Not implemented yet')
                 otherwise

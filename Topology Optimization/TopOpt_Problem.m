@@ -20,7 +20,7 @@ classdef TopOpt_Problem < handle
     methods (Access = public)
         function obj=TopOpt_Problem(settings)
             settings.nconstr=length(settings.constraint);
-            obj.cost=Cost(settings,settings.multipliers);
+            obj.cost=Cost(settings,settings.weights);
             obj.constraint=Constraint(settings);
             switch settings.ptype
                 case 'MACRO'

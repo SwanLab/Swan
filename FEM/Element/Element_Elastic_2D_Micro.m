@@ -39,37 +39,15 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
     
     methods   %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
            
-        function Kred = compute_Kred(obj,K)
-            vF = obj.dof.vF;
-            vP = obj.dof.vP;
-            vQ = obj.dof.vQ;
-            vI = setdiff(vF,vP);
-            
-            K_II = K(vI,vI);
-            K_IP = K(vI,vP) + K(vI,vQ); %Grouping P and Q nodal values
-            K_PI = K(vP,vI) + K(vQ,vI); % Adding P  and Q equation
-            K_PP = K(vP,vP) + K(vP,vQ) + K(vQ,vP) + K(vQ,vQ); % Adding and grouping
-            
-            Kred = [K_II K_IP; K_PI K_PP];
-        end
         
-        function fext_red = compute_Fext_red(obj)
-            fext_I = obj.fext(vI);
-            fext_P = obj.fext(vP)+obj.fext(vQ);
-            fext_red = [fext_I; fext_P];
-        end
+
         
         
         
     end
     
     methods (Access = protected)
-        function u = compute_displacements(obj,usol)
-            u = zeros(obj.dof.ndof,1);
-            u(obj.dof.vF) = usol;
-            u(obj.dof.vQ) = u(obj.dof.vP);
-            u(obj.dof.vD) = obj.uD;
-        end
+
         
         function FextVolumetric = computeVolumetricFext(obj,bc)
             FextVolumetric = computeVolumetricFext@Element_Elastic(obj,bc);
@@ -101,4 +79,40 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
             F = -eforce;
         end
     end
+    
+    methods (Static)
+       function Ared = full_matrix_2_reduced_matrix(A,dof)
+            vF = dof.free;
+            vP = dof.periodic_free;
+            vQ = dof.periodic_constrained;
+            vI = setdiff(vF,vP);
+            
+            A_II = A(vI,vI);
+            A_IP = A(vI,vP) + A(vI,vQ); %Grouping P and Q nodal values
+            A_PI = A(vP,vI) + A(vQ,vI); % Adding P  and Q equation
+            A_PP = A(vP,vP) + A(vP,vQ) + A(vQ,vP) + A(vQ,vQ); % Adding and grouping
+            
+            Ared = [A_II A_IP; A_PI A_PP];
+       end
+        
+       function b_red = full_vector_2_reduced_vector(b,dof)
+           vF = dof.free;
+           vP = dof.periodic_free;
+           vQ = dof.periodic_constrained;
+           vI = setdiff(vF,vP);
+           
+           b_I = b(vI);
+           b_P = b(vP)+obj.fext(vQ);
+           b_red = [b_I; b_P];
+       end
+       
+       function b = reduced_vector_2_full_vector(bfree,dof)
+            b = zeros(dof.ndof,1);
+            b(dof.free) = bfree;
+            b(dof.dirichlet) = dof.dirichlet_values;
+            b(dof.periodic_constrained) = u(dof.periodic_free);
+       end
+        
+    end
+    
 end

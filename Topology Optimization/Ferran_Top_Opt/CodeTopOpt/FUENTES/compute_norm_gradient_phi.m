@@ -14,9 +14,9 @@ function norm_grad_phi = compute_norm_gradient_phi(phi,element,dim,problembsc,co
 
         grad_phi = zeros(sum(index_border),ndime);
         for inode = 1:dim.nnode
-            lnodes = element.conectivities(index_border,inode);
+            dirichlet_data = element.conectivities(index_border,inode);
             for idime = 1:dim.ndime*nunkn
-                grad_phi(:,idime) = grad_phi(:,idime) + squeeze(Bmat(idime,inode,index_border)).*phi(lnodes);
+                grad_phi(:,idime) = grad_phi(:,idime) + squeeze(Bmat(idime,inode,index_border)).*phi(dirichlet_data);
             end
         end
         norm_grad_phi(:,1) = sqrt(grad_phi(:,1).^2 + grad_phi(:,2).^2);

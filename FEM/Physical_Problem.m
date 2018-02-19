@@ -33,10 +33,8 @@ classdef Physical_Problem < FEM
         end
         
         function preProcess(obj)
-           % Create Objects
             obj.element = Element.create(obj.mesh,obj.geometry,obj.material,obj.bc,obj.dof,obj.dim);
-%             obj.physicalVars = PhysicalVariables.create(obj.mesh.ptype,obj.mesh.pdim);
-            obj.solver = Solver.create(obj.mesh.ptype);
+            obj.solver = Solver.create();
         end
         
         function computeVariables(obj)
@@ -83,7 +81,7 @@ classdef Physical_Problem < FEM
                     meshMass.geometryType='Quad_Mass';
             end
             geom=Geometry(meshMass);
-            lnods=obj.mesh.connec';
+            dirichlet_data=obj.mesh.connec';
             emat = zeros(geom.nnode,geom.nnode,obj.mesh.nelem);
             for igaus=1:geom.ngaus
                 for inode=1:geom.nnode
@@ -113,7 +111,7 @@ classdef Physical_Problem < FEM
                     end
                 end
                 for inode=1:nnode
-                    Msmooth = Msmooth + sparse(lnods(inode,:),1,elumped(inode,:),npnod,1);
+                    Msmooth = Msmooth + sparse(dirichlet_data(inode,:),1,elumped(inode,:),npnod,1);
                 end
             elseif (job==2)
                 
@@ -121,7 +119,7 @@ classdef Physical_Problem < FEM
                 for k=1:geom.nnode
                     for l=1:geom.nnode
                         vmass = squeeze(emat(k,l,:));
-                        Msmooth = Msmooth + sparse(lnods(k,:),lnods(l,:),vmass,obj.mesh.npnod,obj.mesh.npnod);
+                        Msmooth = Msmooth + sparse(dirichlet_data(k,:),dirichlet_data(l,:),vmass,obj.mesh.npnod,obj.mesh.npnod);
                     end
                 end
                 
@@ -129,6 +127,8 @@ classdef Physical_Problem < FEM
         end
         
         function K = computeKsmooth(obj)
+            
+            % Hyper-mega-ultra provisional
             
             dim_smooth.nnode=obj.geometry.nnode;
             dim_smooth.nunkn=1;
@@ -141,7 +141,18 @@ classdef Physical_Problem < FEM
             bc_smooth = obj.bc;
             bc_smooth.fixnodes = [];
             
-            dof_smooth = DOF.create(obj.geometry.nnode,obj.mesh.connec,dim_smooth.nunkn,obj.mesh.npnod,bc_smooth,mesh_smooth.scale);
+            dof_smooth = DOF(obj.problemID,obj.geometry.nnode,obj.mesh.connec,...
+                             dim_smooth.nunkn,obj.mesh.npnod,mesh_smooth.scale);
+           
+            dof_smooth.neumann = [];
+            dof_smooth.dirichlet = [];
+            dof_smooth.neumann_values = [];
+            dof_smooth.dirichlet_values = [];
+            dof_smooth.periodic_free = [];
+            dof_smooth.periodic_constrained = [];
+            dof_smooth.constrained = [];
+            dof_smooth.free = setdiff(1:dof_smooth.ndof,dof_smooth.constrained);
+            
             
             element_smooth = Element.create(mesh_smooth,obj.geometry,obj.material,obj.bc,dof_smooth,dim_smooth);
 

@@ -1,4 +1,4 @@
-function [fixnodes,pnods] = compute_fix_nodes(BC,coordinates,lnodes,corners,ftype,file_name)
+function [fixnodes,pnods] = compute_fix_nodes(BC,coordinates,dirichlet_data,corners,ftype,file_name)
 pnods = [];fixnodes = [];
 
 switch ftype
@@ -29,14 +29,14 @@ switch ftype
                 
             case 'NORMAL_DIRICLET'
                 ifix=0;
-                nfix = size(lnodes,1);
+                nfix = size(dirichlet_data,1);
                 for i=1:nfix
                     ifix=i;
-                    fixnodes(ifix,1)=lnodes(i,1); % node
-                    fixnodes(ifix,2)=lnodes(i,2); % idim
+                    fixnodes(ifix,1)=dirichlet_data(i,1); % node
+                    fixnodes(ifix,2)=dirichlet_data(i,2); % idim
                     fixnodes(ifix,3)=0; % U_imp
                     %             ifix=ifix+1;
-                    %             fixnodes(ifix,1)=lnodes(i); % node
+                    %             fixnodes(ifix,1)=dirichlet_data(i); % node
                     %             fixnodes(ifix,2)=2; % idim
                     %             fixnodes(ifix,3)=0;
                 end
@@ -128,12 +128,12 @@ switch ftype
         switch BC
             case 'NORMAL_DIRICLET'
                 ifix=1;
-                nfix = size(lnodes,1);
+                nfix = size(dirichlet_data,1);
                 for i=1:nfix
-                    if lnodes(i,2) == 1
-                        fixnodes(ifix,1)=lnodes(i,1); % node
-                        fixnodes(ifix,2)=lnodes(i,2); % idim
-                        fixnodes(ifix,3)=lnodes(i,3); % U_imp
+                    if dirichlet_data(i,2) == 1
+                        fixnodes(ifix,1)=dirichlet_data(i,1); % node
+                        fixnodes(ifix,2)=dirichlet_data(i,2); % idim
+                        fixnodes(ifix,3)=dirichlet_data(i,3); % U_imp
                         ifix=ifix+1;
                     end
                 end

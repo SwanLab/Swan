@@ -3,20 +3,20 @@ function [ StifMat] = stiff_unitary_triang( dim,...
 
 nelem=dim.nelem;  nnode=dim.nnode;
 npnod=dim.npnod; ndime = dim.ndime; 
-lnods = zeros(nnode,nelem);
+dirichlet_data = zeros(nnode,nelem);
 idx   = zeros(nnode*nunkn,nelem);
 ptype = problembsc.problemtype;
 ftype = 'THERMAL';
 StifMat = sparse(nndof,nndof);
 
 for i=1:nnode
-    lnods(i,:)= element.conectivities(:,i);
+    dirichlet_data(i,:)= element.conectivities(:,i);
 end
 
 etype = element.type;
 for a=1:nnode
     for i=1:nunkn
-        idx(nunkn*a-nunkn+i,:) = nunkn.*lnods(a,:)-nunkn+i;
+        idx(nunkn*a-nunkn+i,:) = nunkn.*dirichlet_data(a,:)-nunkn+i;
     end
 end
 [posgp,weigp,ngaus] = cal_posgp_weigp(element.type,ndime,nnode,element.ngaus);

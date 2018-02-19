@@ -4,11 +4,11 @@ classdef Cost < Shape_Functional
         multipliers
     end
     methods 
-        function obj=Cost(settings,multipliers)
-            if isempty(multipliers)
-                multipliers=ones(1,length(settings.cost));
+        function obj=Cost(settings,weights)
+            if isempty(weights)
+                weights=ones(1,length(settings.cost));
             end
-            obj.multipliers=multipliers;
+            obj.multipliers=weights;
             for ifunc=1:length(settings.cost)
                 switch settings.cost{ifunc}
                     case 'compliance'

@@ -2,13 +2,13 @@ function [fg,A_nodal_2_gauss,B_nodal_2_gauss,dvolu] = interpol(fn,element,dim,pr
 %
 ndime=dim.ndime; nelem=dim.nelem; nnode=dim.nnode; 
 
-lnods=zeros(nnode,nelem);
+dirichlet_data=zeros(nnode,nelem);
 for inode=1:nnode
-    lnods(inode,:)=element.conectivities(:,inode);
+    dirichlet_data(inode,:)=element.conectivities(:,inode);
 end
 fe=zeros(nnode,nelem);
 for inode=1:nnode
-    fe(inode,:)=fn(lnods(inode,:));
+    fe(inode,:)=fn(dirichlet_data(inode,:));
 end
 neres=0;
 ptype=problembsc.problemtype;
@@ -25,8 +25,8 @@ for igaus=1:ngaus
     for inode=1:nnode
        fg(igaus,:) = fg(igaus,:) + shape(inode)*fe(inode,:);
       
-       A_nodal_2_gauss = A_nodal_2_gauss + sparse([1:nelem],[lnods(inode,:)],ones(nelem,1)*shape(inode),nelem,dim.npnod);
-      % B_nodal_2_gauss = B_nodal_2_gauss + sparse([1:nelem],[lnods(inode,:)],dvolu*shape(inode),nelem,dim.npnod); 
+       A_nodal_2_gauss = A_nodal_2_gauss + sparse([1:nelem],[dirichlet_data(inode,:)],ones(nelem,1)*shape(inode),nelem,dim.npnod);
+      % B_nodal_2_gauss = B_nodal_2_gauss + sparse([1:nelem],[dirichlet_data(inode,:)],dvolu*shape(inode),nelem,dim.npnod); 
     end
 end
 % B_nodal_2_gauss = diag(dvolu)*A_nodal_2_gauss;       

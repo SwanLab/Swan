@@ -6,7 +6,7 @@ Data_prb = {
 'ELASTIC';
 'MACRO';
 };
-gidcoord=[
+coord=[
  1              12               0               0
     2              12             0.2               0
     3              12             0.4               0
@@ -128,7 +128,7 @@ gidcoord=[
   119               0             1.6               0
   120               0             1.8               0
   121               0               2               0];
-gidlnods=[
+connec=[
 1 100 101 112 111
 2 89 90 101 100
 3 78 79 90 89
@@ -230,7 +230,7 @@ gidlnods=[
 99 21 22 33 32
 100 17 19 22 21];
 pointload_complete=[6 2 -1];
-lnodes=[121 1 0
+dirichlet_data=[121 1 0
            121 2 0
            120 1 0
             120 2 0 

@@ -10,11 +10,11 @@ nnode=dim.nnode;
 
 % calculo del volumen, omega
 neres = 0;
-lnods=zeros(nnode,nelem);
+dirichlet_data=zeros(nnode,nelem);
 ephi=zeros(nnode,nelem);
 for i=1:nnode
-    lnods(i,:)= element.conectivities(:,i);
-    ephi(i,:)= phifunct(lnods(i,:));
+    dirichlet_data(i,:)= element.conectivities(:,i);
+    ephi(i,:)= phifunct(dirichlet_data(i,:));
 end
 etype = element.type;
 [posgp,weigp,ngaus] = cal_posgp_weigp(etype,ndime,nnode,element.ngaus);
@@ -36,7 +36,7 @@ for igaus=1:ngaus
     geometric_volum(igaus,:) = weigp(igaus)*djacb';
 end
 % for inode=1:nnode
-%     vol = vol + sparse(lnods(inode,:),1,evol(inode,:),npnod,1);
+%     vol = vol + sparse(dirichlet_data(inode,:),1,evol(inode,:),npnod,1);
 % end
 % volume=sum(vol);
 

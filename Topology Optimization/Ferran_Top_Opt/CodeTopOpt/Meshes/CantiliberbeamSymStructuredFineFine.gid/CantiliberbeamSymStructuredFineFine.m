@@ -1,4 +1,4 @@
-gidcoord = [
+coord = [
 1            2            1            0
 2       1.9857            1            0
 3            2      0.98571            0
@@ -10018,7 +10018,7 @@ pointload = [
 ];
 
 
-lnodes = [
+dirichlet_data = [
 9537 1 0 
 9537 2 0 
 9538 1 0 
@@ -10163,7 +10163,7 @@ lnodes = [
 10011 2 0 
 ];
 
-gidlnods = [
+connec = [
 1 2 4 1 
 2 4 3 1 
 3 5 8 2 

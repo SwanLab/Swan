@@ -1,5 +1,5 @@
 classdef Filter < handle
-    properties 
+    properties
         M0
         Msmooth
         Ksmooth
@@ -10,37 +10,41 @@ classdef Filter < handle
         x_reg
         dvolu
     end
-    methods 
+    methods
         function preProcess(obj,physicalProblem)
             for igauss=1:physicalProblem.geometry.ngaus
-            obj.M0{igauss} = sparse(1:physicalProblem.mesh.nelem,1:physicalProblem.mesh.nelem,physicalProblem.geometry.dvolu(:,igauss));
+                obj.M0{igauss} = sparse(1:physicalProblem.mesh.nelem,1:physicalProblem.mesh.nelem,physicalProblem.geometry.dvolu(:,igauss));
             end
             obj.dvolu = sparse(1:physicalProblem.mesh.nelem,1:physicalProblem.mesh.nelem,sum(physicalProblem.geometry.dvolu,2));
             obj.Msmooth=physicalProblem.computeMass(2);
             obj.Ksmooth=physicalProblem.computeKsmooth;
             obj.coordinates=physicalProblem.mesh.coord;
-            obj.connectivities=physicalProblem.mesh.connec;  
+            obj.connectivities=physicalProblem.mesh.connec;
         end
-        function A_nodal_2_gauss=computeA(obj,physProblem)            
-            nelem=physProblem.mesh.nelem; nnode=physProblem.geometry.nnode;
+        function A_nodal_2_gauss=computeA(obj,physProblem)
+            nelem=physProblem.mesh.nelem; 
+            nnode=physProblem.geometry.nnode;
             A_nodal_2_gauss = sparse(nelem,physProblem.mesh.npnod);
-            fn=ones(1,nelem);
-            lnods=obj.connectivities';
+            %fn=ones(1,nelem);
+            fn=ones(1,physProblem.mesh.npnod);
+            
+            dirichlet_data=obj.connectivities';
             fe=zeros(nnode,nelem);
-            for inode=1:nnode
-                fe(inode,:)=fn(lnods(inode,:));
-            end
+            
             fg=zeros(physProblem.geometry.ngaus,nelem);
             shape=physProblem.geometry.shape;
+                        
             for igaus=1:physProblem.geometry.ngaus
                 for inode=1:nnode
+                    fe(inode,:)=fn(dirichlet_data(inode,:));
                     fg(igaus,:) = fg(igaus,:) + shape(inode)*fe(inode,:);
-                    
-                    A_nodal_2_gauss = A_nodal_2_gauss + sparse([1:nelem],[lnods(inode,:)],ones(nelem,1)*shape(inode),nelem,physProblem.mesh.npnod);
-                    % B_nodal_2_gauss = B_nodal_2_gauss + sparse([1:nelem],[lnods(inode,:)],dvolu*shape(inode),nelem,dim.npnod);
+                    A_nodal_2_gauss = A_nodal_2_gauss + sparse([1:nelem],[dirichlet_data(inode,:)],ones(nelem,1)*shape(inode),nelem,physProblem.mesh.npnod);
                 end
             end
+            
         end
+        
+        
     end
     methods (Static)
         function obj=create(type, optimizer)
