@@ -12,7 +12,7 @@ b=addpath(genpath('./Input/'));
 % 4 - Compute       --> obj.computeVariables;
 % 5 - Postprocess   --> obj.postProcess;
 %% test
-run('test.m')
+run('test_fem.m')
 % test
 clear variables
 %% Main.m
