@@ -12,7 +12,7 @@ end
 pointload = [];
 sideload = [];
 nodesolid = [];
-lnodes = [];
+dirichlet_data = [];
 corners = [];
 Group = [];
 Initial_holes = [];
@@ -22,8 +22,8 @@ External_border_nodes = [];
 imesh = 1;
 fname = [case_name,'_MESH_',num2str(imesh)];
 eval(fname); 
-[npt,ncol] = size(gidcoord);
-coordinates = gidcoord(1:npt,2:ncol-1);
+[npt,ncol] = size(coord);
+coordinates = coord(1:npt,2:ncol-1);
 
 %% Number of symmetries
 if ~isempty(strfind(case_name,'CantiliberbeamSym'))

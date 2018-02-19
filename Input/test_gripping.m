@@ -21,7 +21,7 @@ settings.material='ISOTROPIC';
 settings.initial_case='full';
 addpath(genpath('./Input'))
 settings.cost={'nonadjoint_compliance'};
-settings.multipliers=[1];
+settings.weights=[1];
 settings.constraint={'volume'};
 
 settings.optimizer='SLERP';
@@ -64,7 +64,7 @@ Data_prb = {
 %% Coordinates
 % Node                X                Y                Z
 
-gidcoord = [
+coord = [
 1.0000         0         0         0
     2.0000         0   -0.4000         0
     3.0000    0.1000   -0.4000         0
@@ -541,7 +541,7 @@ gidcoord = [
 %% Conectivities
 % Element        Node(1)                Node(2)                Node(3)                Material
 
-gidlnods = [
+connec = [
   1     1     9    84     0
      2    35    36    85     0
      3     8    66    65     0
@@ -1403,7 +1403,7 @@ gidlnods = [
 %% Variable Prescribed
 % Node            Dimension                Value
 
-lnodes = [
+dirichlet_data = [
 56 1 0 
 56 2 0 
 18 2 0 

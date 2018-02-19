@@ -3,14 +3,14 @@ classdef Geometry
     %   Detailed explanation goes here
     
     properties (GetAccess = public, SetAccess = private)
-        cartDeriv
+        cartd
         shape
         dvolu
         weigp
         ndime
         nnode
         ngaus
-        djacob
+        djacb
         type
     end
     properties (GetAccess = ?Postprocess, SetAccess = private)
@@ -31,9 +31,11 @@ classdef Geometry
                             error('Invalid nnode for element TRIANGLE.');
                     end
                 case 'Triangle_Linear_Mass'
-                    geometryObject=Triangle_Linear_Mass;
+
+                    geometryObject = Triangle_Linear_Mass;
                 case 'Quad_Mass'
-                    geometryObject=Quad_Mass;
+                    geometryObject = Quad_Mass;
+
                 case 'QUAD'
                     switch obj.nnode
                         case 4
@@ -80,12 +82,11 @@ classdef Geometry
                     % Cartesian Derivatives
                     deriv_perm = permute(invJ(i,:,:),[2,1,3]);
                     deriv_perm_large = repmat(deriv_perm,1,geometryObject.nnode,1) .*repmat(geometryObject.deriv(:,:,igauss),1,1,mesh.nelem);
-                    obj.cartDeriv(i,:,:,igauss) = sum(deriv_perm_large);
+                    obj.cartd(i,:,:,igauss) = sum(deriv_perm_large);
                 end
                 obj.dvolu(:,igauss) = geometryObject.weigp(igauss)*detJ;
-                obj.djacob(:,igauss)=detJ;
+                obj.djacb(:,igauss) = detJ;
             end
-            % dvolu
             
             
         end

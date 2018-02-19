@@ -1,4 +1,4 @@
-gidcoord = [
+coord = [
 1         -0.5      0.86603            0
 2       -0.475      0.86603            0
 3      -0.5125      0.84437            0
@@ -4926,10 +4926,10 @@ pointload = [
 ];
 
 
-lnodes = [
+dirichlet_data = [
 ];
 
-gidlnods = [
+connec = [
 1 1 3 4 
 2 4 6 9 
 3 4 3 6 

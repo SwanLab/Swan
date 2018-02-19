@@ -8,11 +8,12 @@ classdef ShFunc_NonSelfAdjoint_Compliance < Shape_Functional
         function obj=ShFunc_NonSelfAdjoint_Compliance(settings)
             obj.forces_adjoint=Preprocess.getBC_adjoint(settings.filename);
             obj.adjointProblem=Physical_Problem(settings.filename);
-            obj.adjointProblem.bc.neunodes=obj.forces_adjoint;
-            obj.adjointProblem.bc.neunodes(:,3)=-obj.adjointProblem.bc.neunodes(:,3);
-            obj.adjointProblem.bc.computeiDiN(2);
+            
+            [neumann_adj_dof,nuemann_adj_values] = obj.adjointProblem.dof.get_dof_conditions(obj.forces_adjoint,obj.adjointProblem.dim.nunkn);
+            obj.adjointProblem.dof.neumann = neumann_adj_dof;
+            obj.adjointProblem.dof.neumann_values =  -nuemann_adj_values;
+            
             obj.adjointProblem.preProcess;
-%            obj@Shape_Functional(settings);
         end
         function computef(obj,x,physicalProblem,interpolation,filter)  
             rho=filter.getP0fromP1(x);
@@ -27,7 +28,8 @@ classdef ShFunc_NonSelfAdjoint_Compliance < Shape_Functional
             obj.adjointProblem.computeVariables;
             strain_adjoint=obj.adjointProblem.variables.strain;
             
-            compliance=d_u'*(-obj.adjointProblem.RHS);
+            %compliance=d_u'*(-obj.adjointProblem.RHS);
+            compliance=d_u'*(-obj.adjointProblem.variables.fext); 
            
             %compute gradient            
             gradient_compliance = zeros(physicalProblem.mesh.nelem,physicalProblem.geometry.ngaus); 

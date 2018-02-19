@@ -3,9 +3,9 @@ close all;clc;
 if nargin == 0
     mesh = 'TrencalosSupportFine';
 end
-gidcoord = [];
+coord = [];
 External_border_nodes = [];
-lnodes = [];
+dirichlet_data = [];
 pointload = [];
 eval(mesh);
 if exist('pointload_complete','var')
@@ -13,27 +13,27 @@ if exist('pointload_complete','var')
 end
 
 % Plot all nodes
-% x = gidcoord(:,2);
-% y = gidcoord(:,3);
+% x = coord(:,2);
+% y = coord(:,3);
 % plot(x,y,'.k')
 % hold on
 
 % Plot external border nodes
-x = gidcoord(External_border_nodes,2);
-y = gidcoord(External_border_nodes,3);
+x = coord(External_border_nodes,2);
+y = coord(External_border_nodes,3);
 plot(x,y,'.b')
 hold on
 
 % Plot fixed nodes
-x = gidcoord(unique(lnodes(:,1)),2);
-y = gidcoord(unique(lnodes(:,1)),3);
+x = coord(unique(dirichlet_data(:,1)),2);
+y = coord(unique(dirichlet_data(:,1)),3);
 plot(x,y,'+r')
 hold on
 
 % Plot loads
 nodesolid = unique(pointload(:,1));
-x = gidcoord(nodesolid,2);
-y = gidcoord(nodesolid,3);
+x = coord(nodesolid,2);
+y = coord(nodesolid,3);
 plot(x,y,'*g')
 hold on
 

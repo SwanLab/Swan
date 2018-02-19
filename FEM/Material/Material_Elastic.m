@@ -5,13 +5,13 @@ classdef Material_Elastic < Material
     % !! This has to be revised. !!
     % !! The best structure depends on how this is wanted to be initialized !!
     
-    properties (GetAccess = {?Element_Elastic,?PhysicalVars_Elastic}, SetAccess = protected)        
+    properties (GetAccess = {?Element,?Material_Elastic_ISO,?Material_Hyperelastic_2D,?PhysicalVars_Elastic}, SetAccess = protected) 
         C
     end
     
     methods (Access = protected)
         function obj = Material_Elastic(nelem)
-            obj@Material(nelem);            
+            obj@Material(nelem);
         end
-    end    
+    end
 end

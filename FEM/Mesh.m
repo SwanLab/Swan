@@ -6,13 +6,20 @@ classdef Mesh
         npnod
         coord
         connec
+        pdim
+    end
+    
+    properties (GetAccess = public,SetAccess = public)
+        % !! More elegant if Physical_Problem & subclasses !!
+        ptype
         scale
     end
+    
+    
     properties (GetAccess = {?Physical_Problem,?Geometry,?Postprocess,?TopOpt_Problem},SetAccess = {?Physical_Problem})
         % !! More elegant if Physical_Problem & subclasses !!
         geometryType
-        ptype
-        pdim
+
     end
     
     

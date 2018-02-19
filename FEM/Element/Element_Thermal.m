@@ -8,57 +8,82 @@ classdef Element_Thermal < Element
     properties
     end
     
-    methods (Access = ?Physical_Problem)
-        function obj = computeLHS(obj,nunkn,nstre,nelem,geometry,material)
-            Ke = zeros(nunkn*geometry.nnode,nunkn*geometry.nnode,nelem);
-            % Elastic matrix
-            for igauss = 1 :geometry.ngaus
+    methods %(Access = ?Physical_Problem)
+        function [r,dr] = computeResidual(obj,uL)
+            % *************************************************************
+            % Compute
+            % - residual: r = Ku - F
+            % - residual derivative: dr = K
+            % *************************************************************
+            [K] = obj.computeStiffnessMatrix();
+           
+            Fext = obj.computeExternalForces();            
+            R = obj.compute_imposed_displacemet_force(K);
+            fext = Fext + R;
+            
+            fint = K(obj.dof.vF,obj.dof.vF)*uL;
+            r = fint - fext;
+            dr = K(obj.dof.vF,obj.dof.vF);
+        end
+        
+        
+        function [K] = computeStiffnessMatrix(obj)
+            [K] = compute_elem_StiffnessMatrix(obj);
+            [K] = obj.AssembleMatrix(K);
+        end
+        
+        function [K] = compute_elem_StiffnessMatrix(obj)
+            
+            % Stiffness matrix
+            Ke = zeros(obj.nunkn*obj.nnode,obj.nunkn*obj.nnode,obj.nelem);
+            
+            
+            for igaus = 1 :obj.geometry.ngaus
                 % Strain-displacement matrix
-                [obj.B, Bmat] = obj.B.computeB(nunkn,nelem,geometry.nnode,geometry.cartDeriv(:,:,:,igauss));
+                Bmat = obj.computeB(obj.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
                 
                 % Compute Ke
-                if nelem < 1000 %Just to reduce test.m compute time TO BE REMOVED
-                    for i = 1:nelem
-                        Ke(:,:,i) = Ke(:,:,i)+Bmat(:,:,i)'*...
-                            Bmat(:,:,i)*geometry.dvolu(i,igauss);
+                if obj.nelem < 1000 %Just to reduce test.m compute time TO BE REMOVED
+                    for i = 1:obj.nelem
+                        Ke(:,:,i) = Ke(:,:,i)+Bmat(:,:,i)'*Bmat(:,:,i)*obj.geometry.dvolu(i,igaus);
                     end
                 else
-                    for iv=1:geometry.nnode*nunkn
-                        for jv=1:geometry.nnode*nunkn
-                            for istre=1:nstre
+                    for iv = 1:obj.nnode*obj.nunkn
+                        for jv = 1:obj.nnode*obj.nunkn
+                            for istre = 1:obj.nstre
                                 % for jstre=1:nstre
                                 v = squeeze(Bmat(istre,iv,:).*Bmat(istre,jv,:));
-                                Ke(iv,jv,:) = squeeze(Ke(iv,jv,:)) + v(:).*geometry.dvolu(:,igauss);
+                                Ke(iv,jv,:) = squeeze(Ke(iv,jv,:)) + v(:).*obj.geometry.dvolu(:,igaus);
                                 %end
                             end
                         end
                     end
                 end
             end
-            obj.LHS = Ke;
+            K = Ke;
         end
+        
+        function [B] = computeB(obj,nunkn,nelem,nnode,cartd)
+            B = zeros(2,nnode*nunkn,nelem);
+            for inode=1:nnode
+                j = nunkn*(inode-1)+1;
+                B(1,j,:)=cartd(1,inode,:);
+                B(2,j,:)=cartd(2,inode,:);
+            end
+            
+            
+        end
+    
     end
+
     
     methods (Access = protected)
-        function Fext = computePuntualRHS(obj,nunkn,nelem,nnode,bc,idx)
-            Fext = zeros(nnode*nunkn,1,nelem);
-            for i = 1:length(bc.iN)
-                for j = 1:nelem
-                    ind = find(idx(:,j) == bc.iN(i));
-                    if ~isempty(ind)
-                        Fext(ind,:,j) = bc.neunodes(i,3);
-                    end
-                    % clear ind
-                    ind = [];
-                end
-            end
+        function FextSuperficial = computeSuperficialFext(obj,bc)
+            FextSuperficial = zeros(obj.nnode*obj.nunkn,1,obj.nelem);
         end
-        function Fext = computeSuperficialRHS(obj,nunkn,nelem,nnode,bc,idx) %To be donne
-            Fext = zeros(nnode*nunkn,1,nelem);
-        end
-        function Fext = computeVolumetricRHS(obj,nunkn,nelem,nnode,bc,idx)%To be done
-            Fext = zeros(nnode*nunkn,1,nelem);
-            
+        
+        function FextVolumetric = computeVolumetricFext(obj,bc)
+            FextVolumetric = zeros(obj.nnode*obj.nunkn,1,obj.nelem);
         end
     end
     

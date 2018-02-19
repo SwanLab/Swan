@@ -15,7 +15,7 @@ for i=1:length(tests_fem)
     
     load_file = strcat('./tests/',file_name);
     load(load_file)
-    obj = Physical_Problem(file_name_in);
+    obj = Physical_Problem(file_name);
     obj.preProcess;
     obj.computeVariables;
     if sum(abs(obj.variables.d_u - d_u)) < 1e-6

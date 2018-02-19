@@ -77,14 +77,14 @@ element.material.hkappa = hkappa;
 fname = 'RVE04N3_25600_MALLA'; 
 eval(fname); 
 
-nel=size(gidlnods,1);
-ncol=size(gidlnods,2);
-element.conectivities = gidlnods(1:nel,2:ncol);
-npt=size(gidcoord,1);
-ncol=size(gidcoord,2);
-coordinates = gidcoord(1:npt,2:ncol-1); 
-clear gidcoord;
-clear gidlnods;
+nel=size(connec,1);
+ncol=size(connec,2);
+element.conectivities = connec(1:nel,2:ncol);
+npt=size(coord,1);
+ncol=size(coord,2);
+coordinates = coord(1:npt,2:ncol-1); 
+clear coord;
+clear connec;
 
 % Fixed Nodes
 global fixnodes

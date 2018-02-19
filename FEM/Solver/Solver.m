@@ -1,21 +1,28 @@
 classdef Solver < handle
     properties
+        
     end
     
-    methods (Access = public, Static)
-        function Sol = create(scale)
-            switch scale
-                case 'MACRO'                    
-                    Sol = Solver_Dirichlet_Conditions;
-                case 'MICRO'
-                    Sol = Solver_Periodic;                    
+    methods (Static)
+        %Implement CREATE function when needed
+        
+        function stype = create()
+            solver_type = 'DIRECT';
+            switch solver_type
+                case {'DIRECT'}
+                    stype = Direct_Solver();
+                case {'ITERATIVE'}
+                    error('Not implemented yet')
+                otherwise
+                    error('Invalid stype.')
             end
         end
+
     end
     
-    methods (Abstract)
-        solve(obj);
-        setSolverVariables(obj);
-    end
-end
+    
 
+
+    
+end
+    

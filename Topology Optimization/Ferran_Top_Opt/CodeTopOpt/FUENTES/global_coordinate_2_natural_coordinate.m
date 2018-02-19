@@ -8,8 +8,8 @@ ptype = problembsc.problemtype;
 pos_nat = zeros(sum(index_element),ndime);
 for idime = 1:ndime
         for jdime = 1:ndime
-            lnodes_1 = element.conectivities(index_element,1);
-            pos_nat(:,idime) = pos_nat(:,idime)+squeeze(injacb(jdime,idime,index_element)).*(global_coord(:,jdime) - coordinates(lnodes_1,jdime));
+            dirichlet_data_1 = element.conectivities(index_element,1);
+            pos_nat(:,idime) = pos_nat(:,idime)+squeeze(injacb(jdime,idime,index_element)).*(global_coord(:,jdime) - coordinates(dirichlet_data_1,jdime));
         end
 end
 
