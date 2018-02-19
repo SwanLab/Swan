@@ -34,16 +34,16 @@ settings.initial_case='full';
 % settings.initial_case='rand';
 
 
-settings.cost={'compliance'};'chomog_fraction';'compliance';'perimeter';'chomog_alphabeta';'nonadjoint_compliance';
+settings.cost={'compliance';'perimeter'};'chomog_fraction';'compliance';'perimeter';'chomog_alphabeta';'nonadjoint_compliance';
 %settings.multipliers=[]; %all 1
 settings.weights=[1 0.1]; %compl+lambda*perimeter
 settings.constraint={'volume'};
 
 
 %settings.optimizer='SLERP';
-%settings.optimizer='PROJECTED GRADIENT';settings.kappaMultiplier=1;
+settings.optimizer='PROJECTED GRADIENT';settings.kappaMultiplier=1;
 %settings.optimizer='MMA';
-settings.optimizer='SLERP';
+%settings.optimizer='IPOPT';
 
 
 

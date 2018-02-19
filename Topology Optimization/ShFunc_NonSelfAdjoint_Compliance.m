@@ -11,7 +11,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < Shape_Functional
             
             [neumann_adj_dof,nuemann_adj_values] = obj.adjointProblem.dof.get_dof_conditions(obj.forces_adjoint,obj.adjointProblem.dim.nunkn);
             obj.adjointProblem.dof.neumann = neumann_adj_dof;
-            obj.adjointProblem.dof.neumann_values =  nuemann_adj_values;
+            obj.adjointProblem.dof.neumann_values =  -nuemann_adj_values;
             
             obj.adjointProblem.preProcess;
         end
