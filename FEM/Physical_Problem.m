@@ -73,7 +73,7 @@ classdef Physical_Problem < FEM
             
         
         function setMatProps(obj,props)
-            obj.material = obj.material.setProps(props);
+            obj.element.material = obj.material.setProps(props);
         end
         
         function Msmooth = computeMass(obj,job)

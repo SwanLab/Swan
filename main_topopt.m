@@ -4,7 +4,7 @@ clear variables;close all;
 addpath(genpath(fileparts(mfilename('fullpath'))));
 %% test
 %run('test_fem.m');
-%run('test_topopt.m');
+run('test_topopt.m');
 clear variables;
 %% settings
 settings.ptype='MACRO';
