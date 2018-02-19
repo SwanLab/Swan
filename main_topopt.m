@@ -1,20 +1,16 @@
 clc
 clear variables;close all;
 
-addpath(genpath('./FEM'));
-addpath(genpath('./Topology Optimization'));
-% addpath(genpath(fullfile('.','FEM')));
-% addpath(genpath(fullfile('.','Topology Optimization')));
+addpath(genpath(fileparts(mfilename('fullpath'))));
 %% test
-%run('test.m');
+%run('test_fem.m');
+%run('test_topopt.m');
 clear variables;
 %% settings
 settings.ptype='MACRO';
 settings.filename='CantileverBeam_Triangle_Linear_Fine';
 % % settings.filename='topopt_quad';
 % % settings.filename='GrippingNew';
-
-
 %settings.ptype='MICRO';
 %settings.filename='RVE_Square_Triangle';
 %settings.filename='RVE_Square_Triangle_Fine';
@@ -37,9 +33,10 @@ settings.initial_case='full';
 % settings.initial_case='feasible';
 % settings.initial_case='rand';
 
-settings.cost={'compliance'};%'chomog_fraction';'compliance';'perimeter';'chomog_alphabeta';'compliance';
-settings.weights=[]; %all 1
-%settings.multipliers=[1 0.1]; %compl+lambda*perimeter
+
+settings.cost={'compliance';'perimeter'};'chomog_fraction';'compliance';'perimeter';'chomog_alphabeta';'nonadjoint_compliance';
+%settings.multipliers=[]; %all 1
+settings.weights=[1 0.1]; %compl+lambda*perimeter
 settings.constraint={'volume'};
 
 

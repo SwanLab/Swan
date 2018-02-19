@@ -40,28 +40,32 @@ classdef ShFunc_Perimeter< Shape_Functional
         end
         function checkFilterPre(obj, physicalProblem)
             if isempty(obj.filter_pde.Msmooth)
+                dof_phy = physicalProblem.dof;
                 nukn = 1;
-                dof_per = DOF(physicalProblem.problemID,physicalProblem.geometry.nnode,physicalProblem.mesh.connec,nukn,physicalProblem.mesh.npnod,physicalProblem.mesh.scale);
-                physicalProblem.dof = dof_per;
+                dof_filter = DOF(physicalProblem.problemID,physicalProblem.geometry.nnode,physicalProblem.mesh.connec,nukn,physicalProblem.mesh.npnod,physicalProblem.mesh.scale);
+                physicalProblem.dof = dof_filter;
                 switch physicalProblem.mesh.scale
                     case 'MACRO'
-                        physicalProblem.dof.dirichlet = physicalProblem.dof.full_dirichlet;
-                        physicalProblem.dof.dirichlet_values = physicalProblem.dof.full_dirichlet_values;
-                        physicalProblem.dof.neumann = [];
-                        physicalProblem.dof.neumann_values  = [];
-                        physicalProblem.dof.constrained = physicalProblem.dof.compute_constrained_dof(physicalProblem.mesh.scale);
-                        physicalProblem.dof.free = physicalProblem.dof.compute_free_dof();
+                        dof_filter.dirichlet = physicalProblem.dof.full_dirichlet;
+                        dof_filter.dirichlet_values = physicalProblem.dof.full_dirichlet_values;
+                        dof_filter.neumann = [];
+                        dof_filter.neumann_values  = [];
+                        dof_filter.constrained = physicalProblem.dof.compute_constrained_dof(physicalProblem.mesh.scale);
+                        dof_filter.free = physicalProblem.dof.compute_free_dof();
                     case 'MICRO'
-                        physicalProblem.dof.dirichlet = [];
-                        physicalProblem.dof.dirichlet_values = [];
-                        physicalProblem.dof.neumann = [];
-                        physicalProblem.dof.neumann_values  = [];
-                        physicalProblem.dof.constrained = physicalProblem.dof.compute_constrained_dof(physicalProblem.mesh.scale);
-                        physicalProblem.dof.free = physicalProblem.dof.compute_free_dof();
+                        dof_filter.dirichlet = [];
+                        dof_filter.dirichlet_values = [];
+                        dof_filter.neumann = [];
+                        dof_filter.neumann_values  = [];
+                        dof_filter.constrained = physicalProblem.dof.compute_constrained_dof(physicalProblem.mesh.scale);
+                        dof_filter.free = physicalProblem.dof.compute_free_dof();
                         
                         % Filter dofs coincides with physical_problem dofs
                 end
+                physicalProblem.setDof(dof_filter)
                 obj.filter_pde.preProcess(physicalProblem);
+                physicalProblem.setDof(dof_phy)
+
             end
         end
         

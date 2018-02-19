@@ -19,6 +19,8 @@ classdef Cost < Shape_Functional
                         obj.ShapeFuncs{ifunc}=ShFunc_Chomog_alphabeta(settings);
                     case 'chomog_fraction'
                         obj.ShapeFuncs{ifunc}=ShFunc_Chomog_fraction(settings);
+                    case 'nonadjoint_compliance'
+                        obj.ShapeFuncs{ifunc}=ShFunc_NonSelfAdjoint_Compliance(settings);
                     otherwise
                         error('Wrong cost name or not added to Cost Object')
                 end
