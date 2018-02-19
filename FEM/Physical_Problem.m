@@ -57,8 +57,8 @@ classdef Physical_Problem < FEM
                     x = x + inc_x;
                     
                     % Only Element_Hyperelastic
-                    obj.element.updateCoord(inc_x);
-                    obj.element.updateCartd(obj.mesh.pdim);
+%                     obj.element.updateCoord(inc_x);
+%                     obj.element.updateCartd(obj.mesh.pdim);
                     
                     % Compute new r & dr
                     [r,dr] = obj.element.computeResidual(x);
@@ -70,11 +70,11 @@ classdef Physical_Problem < FEM
                 nn(incrm) = niter;
             end
             
-            % Convergence
-            Xcoord = log(errcont(end,1:niter-2));
-            Ycoord = log(errcont(end,2:niter-1));
-            [a,~] = polyfit(Xcoord,Ycoord,1);
-            fprintf('Convergence order, p: %d\nRatio, mu: %d\n\n',a(1),a(2));
+%             % Convergence
+%             Xcoord = log(errcont(end,1:niter-2));
+%             Ycoord = log(errcont(end,2:niter-1));
+%             [a,~] = polyfit(Xcoord,Ycoord,1);
+%             fprintf('Convergence order, p: %d\nRatio, mu: %d\n\n',a(1),a(2));
             
             obj.variables = obj.element.computeVars(x);
         end

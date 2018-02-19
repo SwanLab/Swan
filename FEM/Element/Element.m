@@ -63,7 +63,7 @@ classdef Element<handle
             element.assembleExternalForces(FextSupVol);
             
             % Create force increment.
-            element.fincr = 0.5*element.Fext/element.nincr;
+            element.fincr = element.Fext/element.nincr;
         end
     end
     

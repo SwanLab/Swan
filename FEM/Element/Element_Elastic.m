@@ -116,11 +116,11 @@ classdef Element_Elastic < Element
     
     methods(Static, Access = protected)
         % Only used in Element_Elastic_2D
-        function strain = computeEz(strain,nstre,nelem,material)
+        function strain = computeEz(strain,nstre,nelem,material,ngaus)
             mu = material.mu;
             kappa = material.kappa;
             epoiss = (kappa(1,1) - mu(1,1))./(kappa(1,1) + mu(1,1));
-            epoiss = ones(1,nelem)*epoiss;
+            epoiss = ones(1,nelem,ngaus)*epoiss;
             strain(nstre+1,:,:) = (-epoiss./(1-epoiss)).*(strain(1,:,:)+strain(2,:,:));
         end
         

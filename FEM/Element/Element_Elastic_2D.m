@@ -8,7 +8,7 @@ classdef Element_Elastic_2D<Element_Elastic
     methods
         function variables = computeVars(obj,uL)
             variables = obj.computeDispStressStrain(uL);
-            variables.strain = obj.computeEz(variables.strain,obj.nstre,obj.nelem,obj.material);
+            variables.strain = obj.computeEz(variables.strain,obj.nstre,obj.nelem,obj.material,obj.geometry.ngaus);
             variables = obj.permuteStressStrain(variables);
         end
     end
