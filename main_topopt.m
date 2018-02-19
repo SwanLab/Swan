@@ -4,7 +4,7 @@ clear variables;close all;
 addpath(genpath(fileparts(mfilename('fullpath'))));
 %% test
 %run('test_fem.m');
-run('test_topopt.m');
+%run('test_topopt.m');
 clear variables;
 %% settings
 settings.ptype='MACRO';
@@ -34,7 +34,7 @@ settings.initial_case='full';
 % settings.initial_case='rand';
 
 
-settings.cost={'compliance';'perimeter'};'chomog_fraction';'compliance';'perimeter';'chomog_alphabeta';'nonadjoint_compliance';
+settings.cost={'compliance'};'chomog_fraction';'compliance';'perimeter';'chomog_alphabeta';'nonadjoint_compliance';
 %settings.multipliers=[]; %all 1
 settings.weights=[1 0.1]; %compl+lambda*perimeter
 settings.constraint={'volume'};

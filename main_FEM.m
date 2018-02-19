@@ -1,9 +1,7 @@
 clc
 clear variables
 
-a=addpath(genpath('./FEM/'));
-b=addpath(genpath('./Input/'));
-
+addpath(genpath(fileparts(mfilename('fullpath'))))
 
 %% Steps
 % 1 - Run 'Main.m'
