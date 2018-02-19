@@ -66,6 +66,10 @@ classdef Physical_Problem < FEM
         % Inspire in TopOpt
         
         end
+        
+        function setDof(obj,dof)
+            obj.dof = dof;
+        end
             
         
         function setMatProps(obj,props)

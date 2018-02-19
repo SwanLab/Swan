@@ -8,6 +8,7 @@ classdef ShFunc_Perimeter< Shape_Functional
         function obj=ShFunc_Perimeter(settings)
 %            obj@Shape_Functional(settings);
             obj.Perimeter_target=settings.target_parameters.Perimeter_target;
+            obj.epsilon = 0.02;
             switch settings.perimeter.optimizer
                 case 'SLERP'
                     obj.filter_pde=Filter_SLERP_PDE;
@@ -20,14 +21,14 @@ classdef ShFunc_Perimeter< Shape_Functional
 %         function Perimeter_target=get.Perimeter_target(obj)
 %             Perimeter_target=obj.target_parameters.Perimeter_target;
 %         end
-        function epsilon=get.epsilon(obj)
-            epsilon=obj.target_parameters.epsilon;
-        end
+
         function computef(obj,x,physProblem,~,~)
             obj.checkFilterPre(physProblem);
             Msmooth=obj.filter_pde.Msmooth;
-            x_reg=obj.filter_pde.getP1fromP1(x,obj.epsilon);
-            Perimeter = 0.5/obj.epsilon*((1 - x_reg)'*obj.filter_pde.rhs);
+            obj.filter_pde.epsilon = obj.epsilon;
+            x_reg=obj.filter_pde.getP1fromP1(x);
+            rhs = obj.filter_pde.integrate_L2_function_with_shape_function(x);
+            Perimeter = 0.5/obj.epsilon*((1 - x_reg)'*rhs);
             Perimeter_gradient = 0.5/obj.epsilon*(1 - 2*x_reg);
             
             constraint = Perimeter/obj.Perimeter_target - 1;
@@ -39,18 +40,28 @@ classdef ShFunc_Perimeter< Shape_Functional
         end
         function checkFilterPre(obj, physicalProblem)
             if isempty(obj.filter_pde.Msmooth)
-                
-                obj.dof_per=DOF(physicalProblem.problemID,physicalProblem.geometry.nnode,physicalProblem.mesh.connec,1,physicalProblem.mesh.npnod,physicalProblem.mesh.scale);
-                
+                nukn = 1;
+                dof_per = DOF(physicalProblem.problemID,physicalProblem.geometry.nnode,physicalProblem.mesh.connec,nukn,physicalProblem.mesh.npnod,physicalProblem.mesh.scale);
+                physicalProblem.dof = dof_per;
                 switch physicalProblem.mesh.scale
                     case 'MACRO'
-                        obj.dof_per.dirichlet = obj.dof_per.full_dirichlet;
-                        obj.dof_per.dirichlet_values = obj.dof_per.full_dirichlet_values;
+                        physicalProblem.dof.dirichlet = physicalProblem.dof.full_dirichlet;
+                        physicalProblem.dof.dirichlet_values = physicalProblem.dof.full_dirichlet_values;
+                        physicalProblem.dof.neumann = [];
+                        physicalProblem.dof.neumann_values  = [];
+                        physicalProblem.dof.constrained = physicalProblem.dof.compute_constrained_dof(physicalProblem.mesh.scale);
+                        physicalProblem.dof.free = physicalProblem.dof.compute_free_dof();
                     case 'MICRO'
+                        physicalProblem.dof.dirichlet = [];
+                        physicalProblem.dof.dirichlet_values = [];
+                        physicalProblem.dof.neumann = [];
+                        physicalProblem.dof.neumann_values  = [];
+                        physicalProblem.dof.constrained = physicalProblem.dof.compute_constrained_dof(physicalProblem.mesh.scale);
+                        physicalProblem.dof.free = physicalProblem.dof.compute_free_dof();
+                        
                         % Filter dofs coincides with physical_problem dofs
                 end
-
-                obj.filter_pde.preProcess(physicalProblem,obj.dof_per);
+                obj.filter_pde.preProcess(physicalProblem);
             end
         end
         

@@ -41,19 +41,27 @@ classdef DOF < handle
             obj.periodic_constrained = obj.compute_periodic_nodes(master_slave(:,2),nunkn);
             end
             
-            switch scale
-                case 'MICRO'
-                    obj.constrained = [obj.periodic_constrained;obj.dirichlet];
-                case 'MACRO'
-                    obj.constrained = obj.dirichlet;
-            end
-            
-            obj.free = setdiff(1:obj.ndof,obj.constrained);
+            obj.constrained = obj.compute_constrained_dof(scale);
+            obj.free = obj.compute_free_dof();
+
         end
         
     end
     
     methods
+        
+        function constrained = compute_constrained_dof(obj,scale)
+            switch scale
+                case 'MICRO'
+                    constrained = [obj.periodic_constrained;obj.dirichlet];
+                case 'MACRO'
+                    constrained = obj.dirichlet;
+            end
+        end
+        
+        function free = compute_free_dof(obj)
+            free = setdiff(1:obj.ndof,obj.constrained);
+        end
         
         % Constructor
         

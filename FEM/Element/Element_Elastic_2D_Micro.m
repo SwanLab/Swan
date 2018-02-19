@@ -102,7 +102,7 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
            vI = setdiff(vF,vP);
            
            b_I = b(vI);
-           b_P = b(vP)+obj.fext(vQ);
+           b_P = b(vP)+b(vQ);
            b_red = [b_I; b_P];
        end
        
@@ -110,7 +110,7 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
             b = zeros(dof.ndof,1);
             b(dof.free) = bfree;
             b(dof.dirichlet) = dof.dirichlet_values;
-            b(dof.periodic_constrained) = u(dof.periodic_free);
+            b(dof.periodic_constrained) = b(dof.periodic_free);
        end
         
     end
