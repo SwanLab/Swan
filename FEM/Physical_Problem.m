@@ -42,13 +42,13 @@ classdef Physical_Problem < FEM
             x0 = zeros(length(obj.dof.free),1);
             % Compute r & dr
             [r,dr] = obj.element.computeResidual(x0);
-            while dot(r,r) > tol
+%             while dot(r,r) > tol
                 inc_x = obj.solver.solve(dr,-r);
                 x = x0 + inc_x;
-                % Compute r & dr
-                [r,dr] = obj.element.computeResidual(x);
-                x0 = x;
-            end
+%                 % Compute r & dr
+%                 [r,dr] = obj.element.computeResidual(x);
+%                 x0 = x;
+%             end
             
             obj.variables = obj.element.computeVars(x);
         end

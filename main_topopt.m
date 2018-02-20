@@ -4,7 +4,7 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 
 %% Test
 %run('test_fem.m');
-run('test_topopt.m');
+%run('test_topopt.m');
 clear variables;
 
 %% Settings
@@ -56,10 +56,10 @@ settings.TOL.E_minus = 1e-3;
 settings.TOL.nu_plus = 1/3;
 settings.TOL.nu_minus = 1/3;
 
-settings.target_parameters.Vfrac=0.4;
+settings.target_parameters.Vfrac=0.5;
 settings.target_parameters.optimality_tol=1e-3;
 settings.target_parameters.constr_tol=1e-3;
-settings.target_parameters.Perimeter_target=5;
+settings.target_parameters.Perimeter_target=3.5;
 settings.perimeter.optimizer=settings.optimizer;
 
 settings.nsteps = 1;

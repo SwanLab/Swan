@@ -37,6 +37,7 @@ classdef Optimizer < handle
             obj.print(x_ini,filter.getP0fromP1(x_ini),obj.niter);
             while(obj.stop_criteria && obj.niter < obj.maxiter)
                 obj.niter = obj.niter+1;
+                disp(strcat('Iter: ',num2str(obj.niter)));
                 x = obj.updateX(x_ini,cost,constraint,interpolation,filter);
                 obj.plotX(x)
                 obj.print(x,filter.getP0fromP1(x),obj.niter);
