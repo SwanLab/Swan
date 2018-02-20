@@ -7,7 +7,7 @@ function [nf] = smooth(nelem,npnod,ndime,nnode,gf,Msmooth,element,coordinatesn,c
 job = problembsc.smoothing_proc;
 ptype = problembsc.problemtype;
 for i=1:nnode
-    lnods(i,:)= element.conectivities(:,i);
+    dirichlet_data(i,:)= element.conectivities(:,i);
 end
 etype = element.type;
 neres = 0;
@@ -24,7 +24,7 @@ for igaus=1:ngaus
     end
 end
 for inode=1:nnode
-    rhs = rhs + sparse(lnods(inode,:),1,erhs(inode,:),npnod,1);
+    rhs = rhs + sparse(dirichlet_data(inode,:),1,erhs(inode,:),npnod,1);
 end
 
 %compute nodal function

@@ -6,7 +6,7 @@ classdef Optimizer_AugLag < Optimizer
     end
     methods
         function obj = Optimizer_AugLag(settings,optimizer_unconstr)
-            obj@Optimizer(settings);
+            obj@Optimizer(settings,settings.monitoring);
             obj.objfunc = Objective_Function_AugLag(settings);
             obj.optimizer_unconstr = optimizer_unconstr;
         end

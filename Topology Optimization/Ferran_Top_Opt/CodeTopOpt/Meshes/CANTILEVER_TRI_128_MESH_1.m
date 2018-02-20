@@ -1,5 +1,5 @@
 % FICHERO CON LAS COORDENADAS Y CONECTIVIDADES
-gidcoord =[
+coord =[
     1               0             0.5               0
     2           0.125             0.5               0
     3               0           0.375               0
@@ -87,7 +87,7 @@ gidcoord =[
    85               2               0               0
   ];
 
-gidlnods=[
+connec=[
 1 18 12 16
 2 12 11 16
 3 21 14 18
@@ -226,7 +226,7 @@ pointload = [85 2 -1/2] ;
 %
 sideload = [ ];
 
-lnodes =[1 3 6 11 16];
+dirichlet_data =[1 3 6 11 16];
 
 nodesolid = [85]; 
 

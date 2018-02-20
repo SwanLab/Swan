@@ -11,7 +11,7 @@ classdef Optimizer_SLERP < Optimizer
     end
     methods
         function obj = Optimizer_SLERP(settings)
-            obj@Optimizer(settings);
+            obj@Optimizer(settings,false);
             obj.kappa = 1;
             obj.kappa_min = 1e-15;
             obj.max_constr_change = +Inf;

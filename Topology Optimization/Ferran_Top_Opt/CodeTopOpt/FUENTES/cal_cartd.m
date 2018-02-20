@@ -4,7 +4,7 @@ function [cartd,djacb,injacb] = cal_cartd(igaus,posgp,element,ndime,nnode,nelem,
 etype = element.type;
 
 neres = 0; %hessian
-lnods = zeros(nnode,nelem);
+dirichlet_data = zeros(nnode,nelem);
 coordn = zeros(nnode,ndime,nelem);
 %coorda = zeros(nnode,ndime,nelem);
 jacob = zeros(ndime,ndime,nelem);
@@ -15,10 +15,10 @@ cartd = zeros(ndime,nnode,nelem);
 
 [shape,deriv,heslo] = shape_deriv_functions(igaus,posgp,ptype,etype,nnode,neres);
 % for i=1:nnode
-%     lnods(i,:)= element.conectivities(:,i);
+%     dirichlet_data(i,:)= element.conectivities(:,i);
 %     for idime=1:ndime
-%         coordn(i,idime,:)= coordinatesn(lnods(i,:),idime);
-%         %coorda(i,idime,:)= coordinatesa(lnods(i,:),idime);
+%         coordn(i,idime,:)= coordinatesn(dirichlet_data(i,:),idime);
+%         %coorda(i,idime,:)= coordinatesa(dirichlet_data(i,:),idime);
 %     end
 % end
 

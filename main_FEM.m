@@ -1,8 +1,7 @@
 clc
 clear variables
-a=addpath(genpath('./FEM/'));
-b=addpath(genpath('./Input/'));
 
+addpath(genpath(fileparts(mfilename('fullpath'))))
 
 %% Steps
 % 1 - Run 'Main.m'
@@ -11,14 +10,16 @@ b=addpath(genpath('./Input/'));
 % 4 - Compute       --> obj.computeVariables;
 % 5 - Postprocess   --> obj.postProcess;
 %% test
-% run('test.m')
+run('test_fem.m')
+% test
 clear variables
 %% Main.m
+triangle_linear = Physical_Problem('CantileverToy_Triangular');
+%triangle_linear = Physical_Problem('CantileverToy_Nonlinear');
 tic
-triangle_linear = Physical_Problem('topopt_quad');
 triangle_linear.preProcess;
 triangle_linear.computeVariables;
-triangle_linear.postProcess;
+triangle_linear.print;
 toc
 
 % post = Postprocess_PhysicalProblem;
@@ -31,13 +32,14 @@ toc
 % post.Print_make_video_stress(gidPath,files_name,files_folder,iterations,output_video_name)
 
 
-Micro_Square_Triangle = Physical_Problem_Micro('RVE_Square_Triangle');
-Micro_Square_Triangle.preProcess;
-Micro_Square_Triangle.computeVariables([1 0 0]);
-Micro_Square_Triangle.postProcess;
-Micro_Square_Triangle.computeChomog;
 
-fprintf('Ok\n');
+% Micro_Square_Triangle = Physical_Problem_Micro('RVE_Square_Triangle');
+% Micro_Square_Triangle.preProcess;
+% Micro_Square_Triangle.computeVariables([1 0 0]);
+% Micro_Square_Triangle.postProcess;
+% Micro_Square_Triangle.computeChomog;
+% 
+% fprintf('Ok\n');
 
 
  

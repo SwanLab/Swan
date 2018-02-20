@@ -14,7 +14,7 @@ classdef DIM
     methods (Access = ?Physical_Problem)
         function obj = DIM(ptype,pdim)
             switch ptype
-                case 'ELASTIC'
+                case {'ELASTIC','HYPERELASTIC'}
                     switch pdim
                         case '2D'
                             obj.ndim = 2;

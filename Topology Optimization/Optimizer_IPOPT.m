@@ -8,7 +8,7 @@ classdef Optimizer_IPOPT < Optimizer
     end 
     methods
         function obj=Optimizer_IPOPT(settings)
-            obj@Optimizer(settings);
+            obj@Optimizer(settings,false);
             obj.m=settings.nconstr;
             obj.max_iter=5e3;
         end

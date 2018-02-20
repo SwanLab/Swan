@@ -5,15 +5,8 @@ classdef B_thermal<B
     properties
     end
     
-    methods(Access = ?Element_Thermal)
-        function [obj,B] = computeB(obj,nunkn,nelem,nnode,cartd)
-            B = zeros(2,nnode*nunkn,nelem);
-            for inode=1:nnode
-                j = nunkn*(inode-1)+1;
-                B(1,j,:)=cartd(1,inode,:);
-                B(2,j,:)=cartd(2,inode,:);
-            end
-            obj.value = [obj.value {B}];
+    methods(Static,Access = ?Element_Thermal)
+
         end
     end
     

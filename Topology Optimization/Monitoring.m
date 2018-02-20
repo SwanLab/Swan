@@ -14,8 +14,8 @@ classdef Monitoring < handle
     end
     
     methods
-        function obj = Monitoring(settings)
-            obj.ON = settings.monitoring;
+        function obj = Monitoring(settings,ON)
+            obj.ON = ON;
             if obj.ON
                 obj.getStopVarsNames(settings.optimizer);
                 
@@ -24,10 +24,10 @@ classdef Monitoring < handle
                 
                 obj.ncost = length(settings.cost);
                 for i = 1:obj.ncost
-                    if isempty(settings.multipliers)
+                    if isempty(settings.weights)
                         obj.createFigure([obj.setCase(settings.cost{i}) ' (wt. 1.0)']);
                     else
-                        obj.createFigure([obj.setCase(settings.cost{i}) sprintf(' (wt. %.2f)',settings.multipliers(i))]);
+                        obj.createFigure([obj.setCase(settings.cost{i}) sprintf(' (wt. %.2f)',settings.weights(i))]);
                     end
                 end
                 

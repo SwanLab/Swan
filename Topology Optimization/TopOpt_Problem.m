@@ -20,7 +20,7 @@ classdef TopOpt_Problem < handle
     methods (Access = public)
         function obj=TopOpt_Problem(settings)
             settings.nconstr=length(settings.constraint);
-            obj.cost=Cost(settings,settings.multipliers);
+            obj.cost=Cost(settings,settings.weights);
             obj.constraint=Constraint(settings);
             switch settings.ptype
                 case 'MACRO'
@@ -34,6 +34,7 @@ classdef TopOpt_Problem < handle
             switch obj.settings.optimizer
                 case 'SLERP'
                     obj.optimizer=Optimizer_AugLag(settings,Optimizer_SLERP(settings));
+                    
                 case 'PROJECTED GRADIENT'
                     obj.optimizer=Optimizer_AugLag(settings,Optimizer_PG(settings));
                 case 'MMA'
@@ -48,7 +49,32 @@ classdef TopOpt_Problem < handle
         function preProcess(obj)
             %initialize design variable
             obj.physicalProblem.preProcess;
+            
+            dof_phy = obj.physicalProblem.dof;
+            nukn = 1;
+            dof_filter = DOF(obj.physicalProblem.problemID,obj.physicalProblem.geometry.nnode,obj.physicalProblem.mesh.connec,nukn,obj.physicalProblem.mesh.npnod,obj.physicalProblem.mesh.scale);
+            switch obj.physicalProblem.mesh.scale
+                case 'MACRO'
+                    dof_filter.dirichlet = [];
+                    dof_filter.dirichlet_values = [];
+                    dof_filter.neumann = [];
+                    dof_filter.neumann_values  = [];
+                    dof_filter.constrained = dof_filter.compute_constrained_dof(obj.physicalProblem.mesh.scale);
+                    dof_filter.free = dof_filter.compute_free_dof();
+                case 'MICRO'
+                    dof_filter.dirichlet = [];
+                    dof_filter.dirichlet_values = [];
+                    dof_filter.neumann = [];
+                    dof_filter.neumann_values  = [];
+                    dof_filter.constrained = dof_filter.compute_constrained_dof(obj.physicalProblem.mesh.scale);
+                    dof_filter.free = dof_filter.compute_free_dof();
+            end
+            
+            
+            obj.physicalProblem.setDof(dof_filter)
             obj.filter.preProcess(obj.physicalProblem);
+            obj.physicalProblem.setDof(dof_phy)
+            
             obj.incremental_scheme=Incremental_Scheme(obj.settings,obj.physicalProblem);
             obj.compute_initial_design;
             rho=obj.filter.getP0fromP1(obj.x);
@@ -160,7 +186,7 @@ classdef TopOpt_Problem < handle
         function obj = compute_initial_design(obj)         
             switch obj.settings.optimizer
                 case 'SLERP'
-                    obj.ini_design_value=-1.015243959022692;
+                    obj.ini_design_value=-2;
                     obj.hole_value=0.507621979511346;
                 otherwise
                     obj.ini_design_value= 1;

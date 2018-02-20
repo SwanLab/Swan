@@ -8,15 +8,15 @@ ptype=problembsc.problemtype;
 
 neres=0; nnode=dim.nnode; 
 
-lnods=zeros(nnode,nelem);
+dirichlet_data=zeros(nnode,nelem);
 for inode=1:nnode
-    lnods(inode,:)=element.conectivities(:,inode);
+    dirichlet_data(inode,:)=element.conectivities(:,inode);
 end
 
 idx   = zeros(nnode*nunkn,nelem);
 for inode=1:nnode
     for idime=1:nunkn
-        idx(nunkn*inode-nunkn+idime,:) = nunkn.*lnods(inode,:)-nunkn+idime;
+        idx(nunkn*inode-nunkn+idime,:) = nunkn.*dirichlet_data(inode,:)-nunkn+idime;
     end
 end
 

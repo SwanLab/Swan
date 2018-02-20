@@ -12,7 +12,7 @@ classdef Optimizer_PG < Optimizer
     end 
     methods
         function obj = Optimizer_PG(settings)
-            obj@Optimizer(settings);
+            obj@Optimizer(settings,false);
             obj.kfrac = 2;
             obj.kappaMultiplier = settings.kappaMultiplier;
             obj.kappa_min = 1e-15;

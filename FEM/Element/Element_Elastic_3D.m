@@ -1,12 +1,17 @@
-classdef B3<B
-    %B3 Summary of this class goes here
+classdef Element_Elastic_3D<Element_Elastic
+    %UNTITLED Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
     end
     
-    methods(Access = ?Element_Elastic)
-        function [obj,B] = computeB(obj,nunkn,nelem,nnode,cartd)
+    methods
+        function variables = computeVars(obj,uL)
+            variables = obj.computeDispStressStrain(uL);
+            variables = obj.permuteStressStrain(variables);
+        end
+        
+        function [B] = computeB(obj,nunkn,nelem,nnode,cartd)
             B = zeros(6,nnode*nunkn,nelem);
             for inode=1:nnode
                 j = nunkn*(inode-1)+1;
@@ -24,8 +29,12 @@ classdef B3<B
                 B(6,j+1,:) = cartd(3,inode,:);
                 B(6,j+2,:) = cartd(2,inode,:);
             end
-            obj.value = [obj.value {B}];
         end
+        
+        
     end
+    
 end
+
+
 

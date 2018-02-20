@@ -37,12 +37,12 @@ elseif (problembsc.smoothChi==2)
     %chi(:,element.boundary_elements) = 1;
     
 elseif (problembsc.smoothChi==3)
-    lnods=zeros(nnode,nelem);
+    dirichlet_data=zeros(nnode,nelem);
     ephi=zeros(nnode,nelem);
     chi = ones(1,nelem);
     for i=1:nnode
-        lnods(i,:)= element.conectivities(:,i);
-        ephi(i,:)= phifunct(lnods(i,:));
+        dirichlet_data(i,:)= element.conectivities(:,i);
+        ephi(i,:)= phifunct(dirichlet_data(i,:));
     end
     avgphi = mean(ephi);
     outside= (avgphi > 0);

@@ -25,7 +25,7 @@ classdef Optimizer_MMA < Optimizer
     end 
     methods
         function obj=Optimizer_MMA(settings)
-            obj@Optimizer(settings);           
+            obj@Optimizer(settings,settings.monitoring);           
             obj.maxoutit=1e4;
         end
         function kkttol=get.kkttol(obj)

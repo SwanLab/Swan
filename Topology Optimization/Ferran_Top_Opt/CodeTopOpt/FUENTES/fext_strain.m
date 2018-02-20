@@ -5,20 +5,20 @@ function [ fextstra] = fext_strain(dim,element,problembsc,...
 nelem=dim.nelem; nndof=dim.nndof; nnode=dim.nnode;
 ndime=dim.ndime; npnod=dim.npnod; nunkn = dim.nunkn; nstre = dim.nstre;
 
-lnods = zeros(nnode,nelem);
+dirichlet_data = zeros(nnode,nelem);
 idx   = zeros(nnode*nunkn,nelem);
 ptype = problembsc.problemtype;
 ftype = problembsc.phisical_type;
 fextstra = zeros(nndof,1);
 
 for i=1:nnode
-    lnods(i,:)= element.conectivities(:,i);
+    dirichlet_data(i,:)= element.conectivities(:,i);
 end
 
 etype = element.type;
 for inode=1:nnode
     for idime=1:nunkn
-        idx(nunkn*inode-nunkn+idime,:) = nunkn.*lnods(inode,:)-nunkn+idime;
+        idx(nunkn*inode-nunkn+idime,:) = nunkn.*dirichlet_data(inode,:)-nunkn+idime;
     end
 end
 [posgp,weigp,ngaus] = cal_posgp_weigp(element.type,ndime,nnode,element.ngaus);
