@@ -41,12 +41,13 @@ classdef Physical_Problem < FEM
         function computeVariables(obj)
             tol   = 1e-12;
             x     = zeros(length(obj.dof.vL),1);
+            inc_x = zeros(length(obj.dof.vL),1);
             miter = 1e5;
             
             for incrm = 1:obj.element.nincr
                 niter = 1;
                 obj.element.cload = obj.element.cload + obj.element.fincr;
-                [r,dr] = obj.element.computeResidual(x);
+                [r,dr] = obj.element.computeResidual(inc_x);
                 error = 1;
                 while error > tol && niter <= miter
 
@@ -56,18 +57,19 @@ classdef Physical_Problem < FEM
                     % Updates
                     x = x + inc_x;
                     
-                    % Only Element_Hyperelastic
-%                     obj.element.updateCoord(inc_x);
-%                     obj.element.updateCartd(obj.mesh.pdim);
-                    
                     % Compute new r & dr
-                    [r,dr] = obj.element.computeResidual(x);
+                    [r,dr] = obj.element.computeResidual(inc_x);
                     
                     error = norm(r)/norm(obj.element.cload);
                     errcont(incrm,niter) = error;
                     niter = niter + 1;
                 end
-                nn(incrm) = niter;
+                nn(incrm) = niter-1;
+                u = reshape(inc_x,2,[])';
+                un(incrm) = u(1,1);
+                
+                xn(incrm) = obj.element.coord(4,1);
+                fn(incrm) = obj.element.cload(obj.dof.vL(1));
             end
             
 %             % Convergence
@@ -75,6 +77,18 @@ classdef Physical_Problem < FEM
 %             Ycoord = log(errcont(end,2:niter-1));
 %             [a,~] = polyfit(Xcoord,Ycoord,1);
 %             fprintf('Convergence order, p: %d\nRatio, mu: %d\n\n',a(1),a(2));
+%             
+%             % Figures
+%             figure;
+%             [hAx,hLine1,hLine2] = plotyy(xn,fn,xn,nn,'plot','stairs');
+%             hLine1.LineStyle = '-';
+%             hLine1.Marker = '+';
+%             xlabel('X displacement [m]')
+%             ylabel(hAx(1),'Force [N]')
+%             ylabel(hAx(2),'Iterations')
+%             set(gcf,'Color','w')
+%             set(hAx(1),'FontSize',15)
+%             set(hAx(2),'FontSize',15)
             
             obj.variables = obj.element.computeVars(x);
         end

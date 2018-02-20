@@ -6,7 +6,8 @@ clear all; close all; clc
 tests={'test2d_triangle';
     'test2d_quad';
     'test3d_hexahedra';
-    'test3d_tetrahedra'};
+    'test3d_tetrahedra';
+    'test2d_triangle_hyperelastic'};
 % Parent directory
 [parentdir,~,~] = fileparts(mfilename('fullpath'));
 
@@ -20,7 +21,7 @@ for i=1:length(tests)
     obj = Physical_Problem(file_name_in);
     obj.preProcess;
     obj.computeVariables;
-    if sum(abs(obj.variables.d_u - d_u)) < 1e-6
+    if sum(abs(norm(obj.variables.d_u - d_u)/norm(d_u))) < 1e-6
         disp(strcat(file_name,' PASSED'));
     else
         disp(strcat(file_name,' FAILED'));

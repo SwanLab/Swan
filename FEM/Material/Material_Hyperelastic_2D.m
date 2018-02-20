@@ -118,19 +118,17 @@ classdef Material_Hyperelastic_2D < Material_Elastic
             [~,Fjacb] = multinverse3x3(F);
             
             % Left-Cauchy deformation tensor
-%             blcg = F.*permute(F,[2 1 3]);
             blcg = zeros(3,3,obj.nelem);
-            for i = 1:2
-               blcg(:,:,i) = F(:,:,i)*F(:,:,i)'; 
+
+            for i = 1:3
+                for j = 1:3
+                    for k = 1:3
+                        blcg(i,j,:) = squeeze(blcg(i,j,:)) + (squeeze(F(i,k,:))).*(squeeze(F(j,k,:)));
+                    end
+                end
             end
-%             for i = 1:3
-%                 for j = 1:3
-%                     for k = 1:3
-%                         blcg(i,j,:) = blcg(i,j,:) + permute(squeeze(F(i,j,:)).*(squeeze(F(k,i,:))),[2 3 1]);
-%                     end
-%                 end
-%             end
         end
+          
     end
     
 end

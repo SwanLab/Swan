@@ -15,6 +15,7 @@ classdef Element<handle
         dof
         bc
         dim
+        pdim
         coord
         fincr
         nincr
@@ -57,6 +58,7 @@ classdef Element<handle
             element.dof         = dof;
             element.bc          = bc;
             element.coord       = mesh.coord;
+            element.pdim        = mesh.pdim;
             
             % Compute and assemble external forces
             FextSupVol = element.computeExternalForces();

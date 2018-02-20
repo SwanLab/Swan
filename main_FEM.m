@@ -1,4 +1,5 @@
 clc
+close all
 clear variables
 
 a=addpath(genpath('./FEM/'));
@@ -12,8 +13,7 @@ b=addpath(genpath('./Input/'));
 % 4 - Compute       --> obj.computeVariables;
 % 5 - Postprocess   --> obj.postProcess;
 %% test
-% run('test.m')
-% test
+run('test.m')
 clear variables
 %% Main.m
 % triangle_linear = Physical_Problem('CantileverToy_Triangular');

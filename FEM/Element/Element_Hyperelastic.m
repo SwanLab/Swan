@@ -29,6 +29,10 @@ classdef Element_Hyperelastic < Element
             % - residual derivative: dr = Ktan
             % *************************************************************
             
+            % Only for Element_Hyperelastic
+            obj.updateCoord(uL);
+            obj.updateCartd();
+            
             % Compute tangent matrix
             K = obj.computeTangentMatrix();
             
@@ -134,25 +138,36 @@ classdef Element_Hyperelastic < Element
             end
         end
         
+        % 2D
         function obj = updateCoord(obj,u)
             % Update coordinates
             coord0 = obj.coord;
             coord  = reshape(coord0(:,1:2)',[],1);
             coord(obj.dof.vL) = coord(obj.dof.vL) + u;
             coord0(:,1:2) = reshape(coord,2,[])';
-            obj.coord = coord0;
-            
-            
+            obj.coord = coord0;            
         end
         
-        function obj = updateCartd(obj,pdim)
-            [obj.cartd,obj.dvolu] = obj.geometry.computeCartd(obj.coord,obj.nelem,pdim);
+        function obj = updateCartd(obj)
+            [obj.cartd,obj.dvolu] = obj.geometry.computeCartd(obj.coord,obj.nelem,obj.pdim);
+        end
+        
+        function variables = computeVars(obj,uL)
+            variables = obj.computeDispStressStrain(uL);
         end
         
     end
     
     
-    methods(Access = protected)
+    methods(Access = protected)  % Only the child sees the function
+        function variables = computeDispStressStrain(obj,uL)
+            variables.d_u = zeros(obj.dof.ndof,1);
+            variables.d_u(obj.dof.vL) = uL;
+            variables.d_u(obj.dof.vR) = obj.bc.fixnodes(:,3);
+%             variables.strain = obj.computeStrain(variables.d_u,obj.dim,obj.nnode,obj.nelem,obj.geometry.ngaus,obj.dof.idx);
+%             variables.stress = obj.computeStress(variables.strain,obj.material.C,obj.geometry.ngaus,obj.nstre);
+        end
+        
         function FextSuperficial = computeSuperficialFext(obj,bc)
             FextSuperficial = zeros(obj.nnode*obj.nunkn,1,obj.nelem);
         end
