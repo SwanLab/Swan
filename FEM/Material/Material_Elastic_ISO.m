@@ -3,8 +3,6 @@ classdef Material_Elastic_ISO < Material_Elastic
     %   Detailed explanation goes here
     
     properties (GetAccess = {?Material_Elastic_ISO_2D, ?Material_Elastic_ISO_3D, ?PhysicalVars_Elastic}, SetAccess = protected)
-%     properties
-%         nelem
     end
     
     % !! Property attributes will have to be changed when OPT_problem is implemented !!

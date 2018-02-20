@@ -10,6 +10,10 @@ classdef ShFunc_Chomog_fraction < ShFunc_Chomog
             obj.beta=settings.micro.beta/norm(settings.micro.beta);
         end
         function computef(obj,x,physicalProblem,interpolation,filter)
+            rho=filter.getP0fromP1(x);
+            matProps=interpolation.computeMatProp(rho);
+            physicalProblem.setMatProps(matProps);
+            physicalProblem.computeChomog;
             obj.setPhysicalData(physicalProblem.variables);
             %Cost
             inv_matCh = inv(obj.Chomog);

@@ -9,17 +9,17 @@ classdef ShFunc_NonSelfAdjoint_Compliance < Shape_Functional
 %            obj@Shape_Functional(settings);
         end
         function computef(obj,x,physicalProblem,interpolation,filter)  
-            mass=filter.Msmooth;
             rho=filter.getP0fromP1(x);
             matProps=interpolation.computeMatProp(rho);
-            %compute compliance
             physicalProblem.setMatProps(matProps);
             physicalProblem.computeVariables;
+            
             RHS=physicalProblem.RHS;
             strain = physicalProblem.variables.strain;
             
             adjointProblem=physicalProblem;
             adjointProblem.bc.neunodes=obj.forces_adjoint;
+            adjointProblem.bc.neunodes(:,3)=-adjointProblem.bc.neunodes(:,3);
             adjointProblem.preProcess;
             adjointProblem.computeVariables;
             strain_adjoint=adjointProblem.variables.strain;
@@ -31,13 +31,13 @@ classdef ShFunc_NonSelfAdjoint_Compliance < Shape_Functional
             for igaus=1:physicalProblem.geometry.ngaus
                 for istre=1:physicalProblem.dim.nstre
                     for jstre = 1:physicalProblem.dim.nstre
-                    gradient_compliance(:,igaus) = gradient_compliance(:,igaus) + (squeeze(-strain_adjoint(igaus,istre,:)).*squeeze(matProps.dC(istre,jstre,:)).*squeeze(strain(igaus,jstre,:)));
+                    gradient_compliance(:,igaus) = gradient_compliance(:,igaus) + (squeeze(strain(igaus,istre,:)).*squeeze(matProps.dC(istre,jstre,:)).*squeeze(strain_adjoint(igaus,jstre,:)));
                     end
                 end
             end 
             
             gradient_compliance=filter.getP1fromP0(gradient_compliance);
-            gradient_compliance = mass*gradient_compliance;
+            gradient_compliance = filter.Msmooth*gradient_compliance;
             if isempty(obj.h_C_0)
                 obj.h_C_0=compliance;
             else

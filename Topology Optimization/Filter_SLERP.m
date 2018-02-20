@@ -1,4 +1,4 @@
-classdef Filter_SLERP < Filter
+classdef Filter_SLERP < Filter_P1
     properties
     end
     methods 
@@ -15,12 +15,6 @@ classdef Filter_SLERP < Filter
 
         function x_reg = getP1fromP0(obj,x)
             x_reg = obj.P_operator'*obj.M0{1}*x;
-        end
-        function x_reg= getP0fromP1_perimeter(obj,x,epsilon)
-            obj.rhs = obj.faireF2(obj.coordinates',obj.connectivities',x);
-            Rinv  = (epsilon^2*obj.Ksmooth + obj.Msmooth);          
-            x_reg = zeros(obj.dof_per.ndof,1);
-            x_reg = obj.solver.solve(x_reg,Rinv,obj.rhs,obj.dof_per);
         end
     end
 end

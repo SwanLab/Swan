@@ -8,11 +8,13 @@ classdef Optimizer_PG < Optimizer
         optimality_tol
         constr_tol
         nconstr
+        kappaMultiplier
     end 
     methods
         function obj=Optimizer_PG(settings)
             obj@Optimizer(settings);
             obj.kfrac=2;
+            obj.kappaMultiplier=settings.kappaMultiplier;
             obj.kappa_min=1e-15;
             obj.max_constr_change=+Inf;
             obj.nconstr=settings.nconstr;
@@ -25,7 +27,6 @@ classdef Optimizer_PG < Optimizer
         end
         function x=updateX(obj,x_ini,cost,constraint,interpolation,filter)                 
                 x=obj.updateRho(x_ini,obj.objfunc.gradient);
-                obj.update_physical_variables(x,interpolation,filter); 
                 cost.computef(x,obj.physicalProblem,interpolation,filter);
                 constraint.computef(x,obj.physicalProblem,interpolation,filter);
                 obj.shfunc_volume.computef(x,obj.physicalProblem,interpolation,filter);
@@ -54,7 +55,7 @@ classdef Optimizer_PG < Optimizer
                 norm_g = sqrt(obj.scalar_product(gradient,gradient));
                 obj.kappa = norm_gamma/norm_g;
             else
-                obj.kappa = 1*obj.kappa*obj.kfrac;
+                obj.kappa = obj.kappaMultiplier*obj.kappa*obj.kfrac;
             end
         end
     end
