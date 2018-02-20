@@ -40,9 +40,7 @@ classdef Optimizer < handle
                 x = obj.updateX(x_ini,cost,constraint,interpolation,filter);
                 obj.plotX(x)
                 obj.print(x,filter.getP0fromP1(x),obj.niter);
-%                 try
                 obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars);
-%                 end
                 x_ini = x;
             end
             obj.stop_criteria = 1;
@@ -102,6 +100,13 @@ classdef Optimizer < handle
                 set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
                 drawnow;
             end
+        end
+    end
+    
+    methods (Access = protected, Static)
+        function N_L2 = norm_L2(x,x_ini,M)
+            inc_x = x-x_ini;
+            N_L2 = (inc_x'*M*inc_x)/(x_ini'*M*x_ini);
         end
 
     end

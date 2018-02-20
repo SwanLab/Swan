@@ -1,4 +1,4 @@
-clc; clear variables;close all;
+clc; clear variables; close all;
 
 addpath(genpath('./FEM'));
 addpath(genpath('./Topology Optimization'));
@@ -27,21 +27,21 @@ settings.method = 'SIMPALL';
 % settings.method = 'SIMP_Adaptative';
 
 settings.material = 'ISOTROPIC';
-% settings.initial_case = 'full';
-% settings.initial_case = 'circle';
+settings.initial_case = 'full';
+settings.initial_case = 'circle';
 % settings.initial_case = 'horizontal';
  %settings.initial_case = 'square';
-settings.initial_case = 'feasible';
+% settings.initial_case = 'feasible';
 % settings.initial_case = 'rand';
 
 settings.cost = {'compliance';'perimeter'};'chomog_fraction';'chomog_alphabeta';
 settings.multipliers = []; %all 1
 %settings.multipliers = [1 0.1]; %compl+lambda*perimeter
-settings.constraint = {'volume','perimeter'};
+settings.constraint = {'volume'};
 
-% settings.optimizer = 'SLERP';
+settings.optimizer = 'SLERP';
 % settings.optimizer = 'PROJECTED GRADIENT';settings.kappaMultiplier = 1;
-settings.optimizer = 'MMA';
+% settings.optimizer = 'MMA';
 % settings.optimizer = 'IPOPT';
 
 
