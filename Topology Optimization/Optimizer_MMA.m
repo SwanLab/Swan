@@ -25,13 +25,13 @@ classdef Optimizer_MMA < Optimizer
     end 
     methods
         function obj=Optimizer_MMA(settings)
-            obj@Optimizer(settings);           
+            obj@Optimizer(settings,settings.monitoring);           
             obj.maxoutit=1e4;
         end
         function kkttol=get.kkttol(obj)
             kkttol=obj.target_parameters.optimality_tol;
         end          
-        function x=updateX(obj,x,cost,constraint,interpolation,filter)      
+        function x = updateX(obj,x,cost,constraint,interpolation,filter)      
                 obj.checkInitial(x,cost,constraint);
                 obj.outit=obj.outit+1;
                 obj.outeriter = obj.outeriter+1;
@@ -55,6 +55,10 @@ classdef Optimizer_MMA < Optimizer
                     obj.xmin,obj.xmax,obj.df0dx,obj.fval,obj.dfdx,obj.a0,obj.a,obj.c,obj.d);
    
                 obj.stop_criteria = obj.kktnorm > obj.kkttol && obj.outit < obj.maxoutit;
+                
+                constraint.lambda = lam;
+                obj.stop_vars(1,1) = obj.kktnorm;   obj.stop_vars(1,2) = obj.kkttol;
+                obj.stop_vars(2,1) = obj.outit;     obj.stop_vars(2,2) = obj.maxoutit;
         end
         function checkInitial(obj,x_ini,cost,constraint)
             if isempty(obj.x)

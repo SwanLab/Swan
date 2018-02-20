@@ -37,7 +37,6 @@ classdef TopOpt_Problem < handle
                     
                 case 'PROJECTED GRADIENT'
                     obj.optimizer=Optimizer_AugLag(settings,Optimizer_PG(settings));
-
                 case 'MMA'
                     obj.optimizer=Optimizer_MMA(settings);
                     

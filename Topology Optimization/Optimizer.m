@@ -3,54 +3,57 @@ classdef Optimizer < handle
         fhtri
         kappa
         objfunc
-        stop_criteria=1;
+        stop_criteria = 1;
         Msmooth
         Ksmooth
-        target_parameters=struct;
+        target_parameters = struct;
         epsilon_scalar_product_P1
         shfunc_volume
         name
-        niter=0
+        niter = 0
         optimizer
         maxiter
-        plotting 
+        plotting
         printing
+        monitoring
+        stop_vars
         physicalProblem
-
+        
     end
     methods
-        function obj=Optimizer(settings)
-            obj.shfunc_volume=ShFunc_Volume(settings);
-            obj.target_parameters=settings.target_parameters;
+        function obj = Optimizer(settings,monitoring)
+            obj.shfunc_volume = ShFunc_Volume(settings);
+            obj.target_parameters = settings.target_parameters;
             obj.optimizer = settings.optimizer;
-            obj.maxiter = settings.maxiter;            
+            obj.maxiter = settings.maxiter;
             obj.plotting = settings.plotting;
             obj.printing = settings.printing;
-        end             
-        function x=solveProblem(obj,x_ini,cost,constraint,interpolation,filter)
+            obj.monitoring = Monitoring(settings,monitoring);
+        end
+        function x = solveProblem(obj,x_ini,cost,constraint,interpolation,filter)
             cost.computef(x_ini,obj.physicalProblem,interpolation,filter);
             constraint.computef(x_ini,obj.physicalProblem,interpolation,filter);
             obj.plotX(x_ini)
             obj.print(x_ini,filter.getP0fromP1(x_ini),obj.niter);
             while(obj.stop_criteria && obj.niter < obj.maxiter)
-                obj.niter=obj.niter+1;
-                disp(strcat('Iter: ', int2str(obj.niter)))  
-                x=obj.updateX(x_ini,cost,constraint,interpolation,filter);
+                obj.niter = obj.niter+1;
+                x = obj.updateX(x_ini,cost,constraint,interpolation,filter);
                 obj.plotX(x)
                 obj.print(x,filter.getP0fromP1(x),obj.niter);
-                x_ini=x;
+                obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars);
+                x_ini = x;
             end
-            obj.stop_criteria=1;
-        end        
+            obj.stop_criteria = 1;
+        end
         function setPhysicalProblem(obj,pProblem)
             obj.physicalProblem = pProblem;
         end
         
-        function sp=scalar_product(obj,f,g)
+        function sp = scalar_product(obj,f,g)
             f = f(:);
             g = g(:);
-            sp=f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
-        end        
+            sp = f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
+        end
     end
     methods (Access = private)
         function print(obj,design_variable,design_variable_reg,iter)
@@ -62,23 +65,23 @@ classdef Optimizer < handle
             results.design_variable = design_variable;
             results.design_variable_reg = design_variable_reg;
             postprocess.print(obj.physicalProblem,obj.physicalProblem.problemID,iter,results);
-        end        
+        end
     end
     methods (Access = protected)
         function plotX(obj,x)
             if ~(obj.plotting)
                 return
             end
-
+            
             if any(x<0)
-                rho_nodal=x<0;
+                rho_nodal = x<0;
             else
-                rho_nodal=x;
+                rho_nodal = x;
             end
             if isempty(obj.fhtri)
                 fh = figure;
                 mp = get(0, 'MonitorPositions');
-                select_screen=1;
+                select_screen = 1;
                 if size(mp,1) < select_screen
                     select_screen = size(mp,1);
                 end
@@ -98,7 +101,14 @@ classdef Optimizer < handle
                 drawnow;
             end
         end
-
     end
-   
+    
+    methods (Access = protected, Static)
+        function N_L2 = norm_L2(x,x_ini,M)
+            inc_x = x-x_ini;
+            N_L2 = (inc_x'*M*inc_x)/(x_ini'*M*x_ini);
+        end
+        
+    end
+    
 end

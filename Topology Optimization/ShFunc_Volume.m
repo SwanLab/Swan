@@ -11,12 +11,14 @@ classdef ShFunc_Volume< Shape_Functional
         end
         function computef(obj, x, ~, ~,filter)
             mass=filter.Msmooth;
-            rho=filter.getP0fromP1(x);           
+            rho=filter.getP0fromP1(x);     
+            
             %compute volume
             geometric_volume = sum(mass(:));
            
             volume = sum(filter.dvolu*rho);
             volume = volume/(geometric_volume*obj.Vfrac) - 1;
+            
             %compute gradient
             gradient_volume = 1/(geometric_volume*obj.Vfrac);
             gradient_volume = gradient_volume*ones(size(filter.connectivities,1),1);
