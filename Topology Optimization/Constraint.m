@@ -2,6 +2,7 @@
 classdef Constraint < Shape_Functional
     properties 
         ShapeFuncs
+        lambda
     end
     methods 
         function obj=Constraint(settings)

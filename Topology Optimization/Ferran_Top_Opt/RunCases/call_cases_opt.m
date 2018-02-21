@@ -16,6 +16,9 @@ switch Runner
     case 'GOKU'
         working_path = '/home/aferrer/Dropbox/Ferran/CodeTopOpt';
         results_path = '/home/aferrer/Desktop/ResultsMicro/Results';
+    case 'TRUJILOR3'
+        working_path = 'C:\Users\trujilor\Dropbox\Òriol-Àlex\MyBranch';
+        results_path = 'C:\Users\trujilor\Dropbox\Òriol-Àlex\MyBranch\Results_Ferran';
     otherwise
         error('Runner not detected.');
 end

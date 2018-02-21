@@ -10,11 +10,11 @@ for istre=1:nstre
     for inode=1:nnode
         for idime=1:nunkn
             ievab = nunkn*(inode-1)+idime;
-            dirichlet_data = element.conectivities(:,inode);
+            lnods = element.conectivities(:,inode);
 %             strain1(1,istre,:)=strain1(1,istre,:)+Bmat(istre,ievab,:).*...
 %                 (coorda(inode,idime,:)-coordn(inode,idime,:));
             
-                 strain(istre,:)=strain(istre,:) +(squeeze(Bmat(istre,ievab,:)).*d_u(dirichlet_data))';
+                 strain(istre,:)=strain(istre,:) +(squeeze(Bmat(istre,ievab,:)).*d_u(lnods))';
         end
     end
 end
