@@ -14,6 +14,7 @@ classdef Element_Thermal < Element
             obj.cload = 0;
         end
         
+
         function [r,dr] = computeResidual(obj,uL)
             % *************************************************************
             % Compute
@@ -21,33 +22,31 @@ classdef Element_Thermal < Element
             % - residual derivative: dr = K
             % *************************************************************
             [K] = obj.computeStiffnessMatrix();
-                      
-            % Assemble
-            [K] = obj.AssembleMatrix(K);
+                     
+            R = obj.compute_imposed_displacemet_force(K);
+            fext = obj.cload + R;
             
-            %Assemble u and Fext
-            u = zeros(obj.dof.ndof,1);
-            u(obj.dof.vL) = uL;
-            if ~isempty(obj.dof.vR)
-                u(obj.dof.vR) = obj.bc.fixnodes(:,3);
-                fext = obj.cload(obj.dof.vL)-K(obj.dof.vL,obj.dof.vR)*u(obj.dof.vR);
-            else
-                fext = obj.cload(obj.dof.vL);
-            end
-            fint = K(obj.dof.vL,obj.dof.vL)*u(obj.dof.vL);
+            fint = K(obj.dof.vF,obj.dof.vF)*uL;
+
             r = fint - fext;
-            dr = K(obj.dof.vL,obj.dof.vL);
+            dr = K(obj.dof.vF,obj.dof.vF);
         end
         
-        function [K] = computeStiffnessMatrix(obj)
+        
+        function K = computeStiffnessMatrix(obj)
+            K = compute_elem_StiffnessMatrix(obj);
+            K = obj.AssembleMatrix(K);
+        end
+        
+        function K = compute_elem_StiffnessMatrix(obj)
             
             % Stiffness matrix
             Ke = zeros(obj.nunkn*obj.nnode,obj.nunkn*obj.nnode,obj.nelem);
             
-            obj.B.value = cell(obj.geometry.ngaus);
+            
             for igaus = 1 :obj.geometry.ngaus
                 % Strain-displacement matrix
-                Bmat = obj.B.computeB(obj.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
+                Bmat = obj.computeB(obj.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
                 
                 % Compute Ke
                 if obj.nelem < 1000 %Just to reduce test.m compute time TO BE REMOVED
@@ -66,11 +65,23 @@ classdef Element_Thermal < Element
                         end
                     end
                 end
-                obj.B.value{igaus} = Bmat;
             end
             K = Ke;
         end
+        
+        function [B] = computeB(obj,nunkn,nelem,nnode,cartd)
+            B = zeros(2,nnode*nunkn,nelem);
+            for inode=1:nnode
+                j = nunkn*(inode-1)+1;
+                B(1,j,:)=cartd(1,inode,:);
+                B(2,j,:)=cartd(2,inode,:);
+            end
+            
+            
+        end
+    
     end
+
     
     methods (Access = protected)
         function FextSuperficial = computeSuperficialFext(obj,bc)

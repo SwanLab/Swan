@@ -4,17 +4,17 @@ if nargin == 0
     mesh = 'BicycleNew';
     walls = [1,2,3,4,5,6]; % 1 -> left // 2 -> right // 3 -> top // 4 -> bottom // 5 -> extra_hole // 6 -> Extra line between circle
 end
-gidcoord = [];
+coord = [];
 eval(mesh);
 
 % Plot all nodes
-x = gidcoord(:,2);
-y = gidcoord(:,3);
+x = coord(:,2);
+y = coord(:,3);
 plot(x,y,'.k')
 hold on
 
 % Compute external border nodes
-nnod = size(gidcoord,1);
+nnod = size(coord,1);
 if any(walls == 1) % left wall in this case is a circle
     Center = [0.5,0.5];
     Radius = 0.5;
@@ -67,11 +67,11 @@ end
 
 
 idx = left_wall | right_wall | top_wall | bottom_wall | extra_hole | line;
-External_border_nodes = gidcoord(idx,1);
+External_border_nodes = coord(idx,1);
 
 % Plot external border nodes
-x = gidcoord(External_border_nodes,2);
-y = gidcoord(External_border_nodes,3);
+x = coord(External_border_nodes,2);
+y = coord(External_border_nodes,3);
 plot(x,y,'xb')
 
 % Generate code to add to the mesh

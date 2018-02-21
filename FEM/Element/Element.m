@@ -20,49 +20,53 @@ classdef Element<handle
         fincr
         nincr
         cload
+        uD
     end
     
-    properties (GetAccess = {?Element_Elastic, ?Element_Elastic,?Element_Thermal,?PhysicalVariables,?Element_Elastic_Micro}, SetAccess = {?Physical_Problem,?Element, ?Element_Elastic_Micro})
-        B
-    end
     
     methods (Access = ?Physical_Problem, Static)
-        function element = create(mesh,dim,geometry,material,bc,dof)
-            switch mesh.ptype
-                case 'ELASTIC'
-                    switch mesh.pdim
-                        case '2D'
-                            element = Element_Elastic_2D;
-                            element.B = B2;
-                        case '3D'
-                            element = Element_Elastic_3D;
-                            element.B = B3;
-                    end
-                case 'THERMAL'
-                    element = Element_Thermal;
-                    element.B = B_thermal;
-                case 'HYPERELASTIC'
-                    element = Element_Hyperelastic(geometry);
-                otherwise
-                    error('Invalid ptype.')
+        function element = create(mesh,geometry,material,bc,dof,dim)
+            
+            nelem = mesh.nelem;
+            ptype = mesh.ptype;
+            pdim = mesh.pdim;
+            
+            switch mesh.scale
+                
+                case 'MICRO'
+                    element = Element_Elastic_2D_Micro;
+                case 'MACRO'
+                    switch ptype
+                        case 'ELASTIC'
+                            switch pdim
+                                case '2D'
+                                    element = Element_Elastic_2D;
+                                case '3D'
+                                    element = Element_Elastic_3D;
+                            end
+                        case 'THERMAL'
+                            element = Element_Thermal;
+                        case 'HYPERELASTIC'
+                            element = Element_Hyperelastic(geometry);
+                        otherwise
+                            error('Invalid ptype.')
+                    end 
             end
             
-            % Element attributes
             element.dim         = dim;
             element.nunkn       = dim.nunkn;
             element.nstre       = dim.nstre;
-            element.nelem       = mesh.nelem;
+            element.nelem       = nelem;
             element.nnode       = geometry.nnode;
             element.geometry    = geometry;
             element.material    = material;
             element.dof         = dof;
             element.bc          = bc;
             element.coord       = mesh.coord;
-            element.pdim        = mesh.pdim;
+            element.pdim        = pdim;
+            element.assign_dirichlet_values()
             
-            % Compute and assemble external forces
-            FextSupVol = element.computeExternalForces();
-            element.assembleExternalForces(FextSupVol);
+            element.computeExternalForces();
             
             % Create force increment.
             element.fincr = element.Fext/element.nincr;
@@ -71,30 +75,23 @@ classdef Element<handle
     
     
     methods (Access = {?Physical_Problem, ?Element})
-        function FextSupVol = computeExternalForces(obj)
+        function obj = computeExternalForces(obj)
             FextSuperficial = obj.computeSuperficialFext();
             FextVolumetric  = obj.computeVolumetricFext ();
             FextSupVol = FextSuperficial + FextVolumetric;
+            FextSupVol = obj.AssembleVector(FextSupVol);
+            FextPoint = obj.computePunctualFext();
+            obj.Fext = FextSupVol +  FextPoint;
         end
         
         % *****************************************************************
         % Assembling Functions
         %******************************************************************
-        
-        % Assemble external forces
-        function obj = assembleExternalForces(obj,FextSupVol) 
-            obj.Fext = zeros(obj.dof.ndof,1);
-            for i = 1:obj.nnode*obj.nunkn
-                b = squeeze(FextSupVol(i,1,:));
-                ind = obj.dof.idx(i,:);
-                obj.Fext = obj.Fext + sparse(ind,1,b',obj.dof.ndof,1);
-            end
-            
+         function FextPoint = computePunctualFext(obj)    
             %Compute Global Puntual Forces (Not well-posed in FEM)
-            if ~isempty(obj.bc.iN)
+            if ~isempty(obj.dof.neumann)
                 FextPoint = zeros(obj.dof.ndof,1);
-                FextPoint(obj.bc.iN) = obj.bc.neunodes(:,3);
-                obj.Fext = obj.Fext + FextPoint;
+                FextPoint(obj.dof.neumann) = obj.dof.neumann_values;
             end
         end
         
@@ -103,8 +100,8 @@ classdef Element<handle
             b = zeros(obj.dof.ndof,1);
             for i = 1:obj.nnode*obj.nunkn
                 c = squeeze(b_elem(i,1,:));
-                ind = obj.dof.idx(i,:);
-                b = b + sparse(ind,1,c',obj.dof.ndof,1);
+                idof_elem = obj.dof.in_elem(i,:);
+                b = b + sparse(idof_elem,1,c',obj.dof.ndof,1);
             end
         end
         
@@ -115,11 +112,33 @@ classdef Element<handle
             for i = 1:obj.nnode*obj.nunkn
                 for j = 1:obj.nnode*obj.nunkn
                     a = squeeze(A_elem(i,j,:));
-                    A = A + sparse(obj.dof.idx(i,:),obj.dof.idx(j,:),a,obj.dof.ndof,obj.dof.ndof);
+                    A = A + sparse(obj.dof.in_elem(i,:),obj.dof.in_elem(j,:),a,obj.dof.ndof,obj.dof.ndof);
                 end
             end
             A = 1/2 * (A + A');
         end
+        
+                
+        function assign_dirichlet_values(obj)
+            if ~isempty(obj.dof.dirichlet)
+                obj.uD = obj.dof.dirichlet_values;
+            else
+                obj.uD = [];
+            end
+            
+        end
+        
+        function R = compute_imposed_displacemet_force(obj,K)
+            % Forces coming from imposed displacement
+            if ~isempty(obj.dof.dirichlet)
+                R = -K(:,obj.dof.dirichlet)*obj.uD;
+            else
+                R = zeros(obj.dof.ndof,1);
+            end
+        end
+
+        
+        
     end
     
     methods (Abstract, Access = protected)

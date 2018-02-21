@@ -3,14 +3,14 @@ nelem=dim.nelem; nndof=dim.nndof; nnode=dim.nnode;
 ndime=dim.ndime; npnod=dim.npnod; nunkn = dim.nunkn; nstre = dim.nstre;
 
 
-lnods = zeros(3,nelem);
+dirichlet_data = zeros(3,nelem);
 coordn = zeros(3,2,nelem);
 coorda = zeros(3,2,nelem);
 for i=1:nnode
-    lnods(i,:)= element.conectivities(:,i);
+    dirichlet_data(i,:)= element.conectivities(:,i);
     for idime=1:ndime
-        coordn(i,idime,:)= coordinatesn(lnods(i,:),idime);       
-        coorda(i,idime,:)= coordinatesa(lnods(i,:),idime);
+        coordn(i,idime,:)= coordinatesn(dirichlet_data(i,:),idime);       
+        coorda(i,idime,:)= coordinatesa(dirichlet_data(i,:),idime);
     end
 end
 

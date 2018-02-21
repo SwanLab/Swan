@@ -13,15 +13,15 @@ classdef Filter_P1 < Filter
             nnode=physicalProblem.geometry.nnode;
             npnod=physicalProblem.mesh.npnod;
             
-            lnods=zeros(nnode,nelem);
+            dirichlet_data=zeros(nnode,nelem);
             for inode=1:nnode
-                lnods(inode,:)=physicalProblem.mesh.connec(:,inode);
+                dirichlet_data(inode,:)=physicalProblem.mesh.connec(:,inode);
             end
             
             T_nodal_2_gauss = sparse(nelem,npnod);
             
             for inode=1:nnode
-                T_nodal_2_gauss = T_nodal_2_gauss + sparse([1:nelem],[lnods(inode,:)],ones(nelem,1),nelem,npnod);
+                T_nodal_2_gauss = T_nodal_2_gauss + sparse([1:nelem],[dirichlet_data(inode,:)],ones(nelem,1),nelem,npnod);
             end
             
             m = T_nodal_2_gauss*sum(Msmooth,2);

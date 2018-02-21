@@ -3,20 +3,13 @@ classdef Material_Elastic_ISO < Material_Elastic
     %   Detailed explanation goes here
     
     properties (GetAccess = {?Material_Elastic_ISO_2D, ?Material_Elastic_ISO_3D, ?PhysicalVars_Elastic}, SetAccess = protected)
+
     end
     
     % !! Property attributes will have to be changed when OPT_problem is implemented !!
     methods (Access = protected)
         function obj = Material_Elastic_ISO(nelem)
             obj@Material_Elastic(nelem);
-%             obj.nelem = nelem;
-            %             epoiss = 0.3;
-            %             eyoung = 1.0;
-            %             obj.mu = eyoung/(3*(1-2*epoiss));
-            %             obj.kappa = eyoung/(2*(1+epoiss));
-            %             obj.kappa  = .9107;
-            %             obj.mu     = .3446;
-            %             obj.lambda = obj.kappa-obj.mu;
             obj = obj.computeC;
         end
     end

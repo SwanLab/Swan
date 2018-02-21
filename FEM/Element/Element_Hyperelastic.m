@@ -3,6 +3,7 @@ classdef Element_Hyperelastic < Element
     %   Detailed explanation goes here
     
     properties
+        fext
         cartd0
         cartd
         dvolu
@@ -39,21 +40,24 @@ classdef Element_Hyperelastic < Element
             % Assemble
             K = obj.AssembleMatrix(K);
             
-            % Assemble u and Fext
-            u = zeros(obj.dof.ndof,1);
-            u(obj.dof.vL) = uL;
-            
-            if ~isempty(obj.dof.vR)
-                u(obj.dof.vR) = obj.bc.fixnodes(:,3);
-                fext = obj.cload(obj.dof.vL)-K(obj.dof.vL,obj.dof.vR)*u(obj.dof.vR); % fext + reac
-            else
-                fext = obj.cload(obj.dof.vL);
-            end
+%             % Assemble u and Fext
+%             u = zeros(obj.dof.ndof,1);
+%             u(obj.dof.free) = uL;
+%             
+%             if ~isempty(obj.dof.vR)
+%                 u(obj.dof.vR) = obj.bc.fixnodes(:,3);
+%                 fext = obj.cload(obj.dof.vL)-K(obj.dof.vL,obj.dof.vR)*u(obj.dof.vR); % fext + reac
+%             else
+%                 fext = obj.cload(obj.dof.free);
+%             end
 
-            fint = obj.computeInternal();
+            R = obj.compute_imposed_displacemet_force(K);
+            obj.fext = obj.cload + R;
+
+            fint_red = obj.computeInternal();
             
-            r = fint - fext;
-            dr = K(obj.dof.vL, obj.dof.vL);
+            r = fint_red - obj.fext(obj.dof.free);
+            dr = K(obj.dof.free, obj.dof.free);
         end
         
 
@@ -75,7 +79,7 @@ classdef Element_Hyperelastic < Element
             end
             fint = T;
             fint = obj.AssembleVector(fint);
-            fint = fint(obj.dof.vL);
+            fint = fint(obj.dof.free);
         end
         
         
@@ -143,7 +147,7 @@ classdef Element_Hyperelastic < Element
             % Update coordinates
             coord0 = obj.coord;
             coord  = reshape(coord0(:,1:2)',[],1);
-            coord(obj.dof.vL) = coord(obj.dof.vL) + u;
+            coord(obj.dof.free) = coord(obj.dof.free) + u;
             coord0(:,1:2) = reshape(coord,2,[])';
             obj.coord = coord0;            
         end
@@ -161,11 +165,12 @@ classdef Element_Hyperelastic < Element
     
     methods(Access = protected)  % Only the child sees the function
         function variables = computeDispStressStrain(obj,uL)
-            variables.d_u = zeros(obj.dof.ndof,1);
-            variables.d_u(obj.dof.vL) = uL;
-            variables.d_u(obj.dof.vR) = obj.bc.fixnodes(:,3);
-%             variables.strain = obj.computeStrain(variables.d_u,obj.dim,obj.nnode,obj.nelem,obj.geometry.ngaus,obj.dof.idx);
-%             variables.stress = obj.computeStress(variables.strain,obj.material.C,obj.geometry.ngaus,obj.nstre);
+            variables.d_u = obj.compute_displacements(uL);
+            variables.fext= obj.fext;
+        end
+        
+        function u = compute_displacements(obj,usol)
+            u = obj.reduced_vector_2_full_vector(usol,obj.dof);
         end
         
         function FextSuperficial = computeSuperficialFext(obj,bc)
@@ -175,6 +180,22 @@ classdef Element_Hyperelastic < Element
         function FextVolumetric = computeVolumetricFext(obj,bc)
             FextVolumetric = zeros(obj.nnode*obj.nunkn,1,obj.nelem);
         end
+    end
+    
+    methods(Static)
+        function Ared = full_matrix_2_reduced_matrix(A,dof)
+            Ared = A(dof.free,dof.free);
+        end
+        
+        function b_red = full_vector_2_reduced_vector(b,dof)
+            b_red = b(dof.free);
+        end
+        
+        function b = reduced_vector_2_full_vector(bfree,dof)
+            b = zeros(dof.ndof,1);
+            b(dof.free) = bfree;
+            b(dof.dirichlet) = dof.dirichlet_values;
+        end 
     end
     
 end

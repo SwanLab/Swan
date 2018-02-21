@@ -8,7 +8,7 @@ Data_prb = {
     'MICRO';
     };
 
-gidcoord = [
+coord = [
 1            1            0            0
 2       0.9875       0.0125            0
 3            1        0.025            0
@@ -3296,10 +3296,9 @@ pointload = [
 ];
 
 
-lnodes = [
-];
 
-gidlnods = [
+
+connec = [
 1 2430 2485 2550 
 2 2434 2485 2430 
 3 2555 2485 2434 
@@ -9705,8 +9704,14 @@ gidlnods = [
 %% Variable Prescribed
 % Node            Dimension                Value
 
-lnodes = [
-    ];
+dirichlet_data = [3281 1 0
+                  3281 2 0
+                  2551 1 0          
+                  2551 2 0            
+                  1    1 0
+                  1    2 0 
+                  2550 1 0
+                  2550 2 0];
 
 %% Force Prescribed
 % Node                Dimension                Value
@@ -9749,12 +9754,89 @@ Micro_gauss_post = [
     ];
 
 
-%% Micro Slave-Master
-% Nodes that are Slaves
-% Nodes             Value (1-Slave,0-Master)
+%% Master-Slave
+% Nodes that are master and slaves
+Master_slave = [
+          2555           3
+        2563           8
+        2569          19
+        2577          30
+        2591          46
+        2608          62
+        2628          83
+        2642         110
+        2664         137
+        2691         169
+        2711         202
+        2736         234
+        2762         279
+        2784         322
+        2815         370
+        2837         419
+        2870         468
+        2893         526
+        2921         583
+        2950         649
+        2972         714
+        3003         784
+        3028         853
+        3048         924
+        3075        1007
+        3100        1089
+        3123        1173
+        3142        1260
+        3160        1346
+        3181        1441
+        3200        1538
+        3217        1642
+        3232        1745
+        3245        1849
+        3256        1960
+        3265        2065
+        3272        2185
+        3277        2304
+        3280        2431
+        2430        3279
+        2303        3276
+        2184        3271
+        2064        3264
+        1959        3255
+        1848        3244
+        1744        3231
+        1641        3216
+        1537        3199
+        1440        3180
+        1345        3159
+        1259        3141
+        1172        3122
+        1088        3099
+        1006        3074
+         923        3047
+         852        3027
+         783        3002
+         713        2971
+         648        2949
+         582        2920
+         525        2892
+         471        2869
+         418        2836
+         369        2814
+         321        2783
+         278        2761
+         235        2735
+         201        2710
+         168        2690
+         136        2663
+         109        2641
+          84        2627
+          63        2607
+          45        2590
+          29        2576
+          18        2568
+           9        2562
+           4        2554  
+];
 
-Micro_slave = [
-    ];
 
 %% Nodes solid
 % Nodes that must remain
@@ -9773,10 +9855,7 @@ External_border_elements = [
 % Detect the nodes that define the edge of the domain
 % Node
 
-External_border_nodes = [3281 
-        2551       
-           1   
-        2550];
+External_border_nodes = [];
 %% Materials
 % Materials that have been used
 % Material_Num              Mat_density        Young_Modulus        Poisson

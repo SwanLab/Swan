@@ -16,3 +16,4 @@
 \contentsline {subsection}{\numberline {4.1}Problem Definition}{8}{subsection.4.1}
 \contentsline {subsection}{\numberline {4.2}Differential definition}{8}{subsection.4.2}
 \contentsline {subsection}{\numberline {4.3}Gradient Computation}{8}{subsection.4.3}
+\contentsline {section}{\numberline {5}Session 7: Homogenization - Multiscale}{10}{section.5}

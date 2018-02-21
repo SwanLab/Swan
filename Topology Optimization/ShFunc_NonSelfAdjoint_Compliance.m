@@ -2,11 +2,18 @@ classdef ShFunc_NonSelfAdjoint_Compliance < Shape_Functional
     properties
         h_C_0; %compliance incial
         forces_adjoint
+        adjointProblem
     end
     methods
         function obj=ShFunc_NonSelfAdjoint_Compliance(settings)
             obj.forces_adjoint=Preprocess.getBC_adjoint(settings.filename);
-%            obj@Shape_Functional(settings);
+            obj.adjointProblem=Physical_Problem(settings.filename);
+            
+            [neumann_adj_dof,nuemann_adj_values] = obj.adjointProblem.dof.get_dof_conditions(obj.forces_adjoint,obj.adjointProblem.dim.nunkn);
+            obj.adjointProblem.dof.neumann = neumann_adj_dof;
+            obj.adjointProblem.dof.neumann_values =  -nuemann_adj_values;
+            
+            obj.adjointProblem.preProcess;
         end
         function computef(obj,x,physicalProblem,interpolation,filter)  
             rho=filter.getP0fromP1(x);
@@ -14,18 +21,16 @@ classdef ShFunc_NonSelfAdjoint_Compliance < Shape_Functional
             physicalProblem.setMatProps(matProps);
             physicalProblem.computeVariables;
             
-            RHS=physicalProblem.RHS;
+            d_u=physicalProblem.variables.d_u;
             strain = physicalProblem.variables.strain;
             
-            adjointProblem=physicalProblem;
-            adjointProblem.bc.neunodes=obj.forces_adjoint;
-            adjointProblem.bc.neunodes(:,3)=-adjointProblem.bc.neunodes(:,3);
-            adjointProblem.preProcess;
-            adjointProblem.computeVariables;
-            strain_adjoint=adjointProblem.variables.strain;
+            obj.adjointProblem.setMatProps(matProps);            
+            obj.adjointProblem.computeVariables;
+            strain_adjoint=obj.adjointProblem.variables.strain;
             
-            compliance=adjointProblem.variables.d_u'*RHS;
-            
+            %compliance=d_u'*(-obj.adjointProblem.RHS);
+            compliance=d_u'*(-obj.adjointProblem.variables.fext); 
+           
             %compute gradient            
             gradient_compliance = zeros(physicalProblem.mesh.nelem,physicalProblem.geometry.ngaus); 
             for igaus=1:physicalProblem.geometry.ngaus
@@ -35,15 +40,15 @@ classdef ShFunc_NonSelfAdjoint_Compliance < Shape_Functional
                     end
                 end
             end 
-            
-            gradient_compliance=filter.getP1fromP0(gradient_compliance);
-            gradient_compliance = filter.Msmooth*gradient_compliance;
             if isempty(obj.h_C_0)
                 obj.h_C_0=compliance;
             else
                 compliance=compliance/abs(obj.h_C_0);
                 gradient_compliance=gradient_compliance/abs(obj.h_C_0);
-            end            
+            end  
+            gradient_compliance=filter.getP1fromP0(gradient_compliance);
+            gradient_compliance = filter.Msmooth*gradient_compliance;
+                  
             obj.value=compliance;
             obj.gradient=gradient_compliance;
         end

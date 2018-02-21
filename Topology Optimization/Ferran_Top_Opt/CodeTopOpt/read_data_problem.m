@@ -121,7 +121,7 @@ element.material.hkappa = hkappa;
 pointload = [];
 sideload = [];
 nodesolid = [];
-lnodes = [];
+dirichlet_data = [];
 corners = [];
 Group = [];
 Initial_holes = [];
@@ -136,21 +136,21 @@ if exist('Micro_slave','var')
     element.Micro_slave = Micro_slave;
 end
     
-nel=size(gidlnods,1);
-if size(gidlnods,2) == 5   
-       if gidlnods(1,5) == 0 ;
-        ncol = size(gidlnods,2)-1;
-        gidlnods = gidlnods(:,1:ncol);
+nel=size(connec,1);
+if size(connec,2) == 5   
+       if connec(1,5) == 0 ;
+        ncol = size(connec,2)-1;
+        connec = connec(:,1:ncol);
        end
 else
-ncol=size(gidlnods,2);
+ncol=size(connec,2);
 end
-element.conectivities = gidlnods(1:nel,2:ncol);
-npt=size(gidcoord,1);
-ncol=size(gidcoord,2);
-coordinates = gidcoord(1:npt,2:ncol-1); 
-clear gidcoord;
-clear gidlnods;
+element.conectivities = connec(1:nel,2:ncol);
+npt=size(coord,1);
+ncol=size(coord,2);
+coordinates = coord(1:npt,2:ncol-1); 
+clear coord;
+clear connec;
 
 % Pointload
 if exist('pointload_complete','var')
@@ -199,7 +199,7 @@ element.material.young = element.material.young;%*ones(1,dim.nelem);%rand(1,dim.
 if isempty(pointload)
     boundary_nodes = [];
 else
-boundary_nodes = unique([pointload(:,1);lnodes(:,1)]);
+boundary_nodes = unique([pointload(:,1);dirichlet_data(:,1)]);
 end
 
 element.boundary_elements = [];
@@ -223,7 +223,7 @@ switch problembsc.TYPE
     case 'MACRO'
         BC = 'NORMAL_DIRICLET';
         BC_perimeter = 'NULL_DIRICLET';
-        [fixnodes,pnods] = compute_fix_nodes(BC,coordinates,lnodes,problembsc.phisical_type,file_name);
+        [fixnodes,pnods] = compute_fix_nodes(BC,coordinates,dirichlet_data,problembsc.phisical_type,file_name);
         [fixnodes_perimeter,pnods_perimeter] = compute_fix_nodes(BC_perimeter,coordinates,element.External_border_nodes,'THERMAL',file_name);
         nunkn_per = 1;
         [fix_df_per,free_df_per] = fix_free_degree_freedom(element.type,dim.npnod*nunkn_per,nunkn_per,fixnodes_perimeter,problembsc);
@@ -233,7 +233,7 @@ switch problembsc.TYPE
     case 'MICRO'
         BC = 'PERIODIC';
         BC_perimeter = 'PERIODIC';
-        [fixnodes,pnods] = compute_fix_nodes(BC,coordinates,lnodes,problembsc.phisical_type,file_name);
+        [fixnodes,pnods] = compute_fix_nodes(BC,coordinates,dirichlet_data,problembsc.phisical_type,file_name);
         [fixnodes_perimeter,pnods_perimeter] = compute_fix_nodes(BC_perimeter,coordinates,element.External_border_nodes,'THERMAL',file_name);
         element.fix_df_per = [];
         element.free_df_per = [];

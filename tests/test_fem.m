@@ -3,7 +3,7 @@ clear all; close all; clc
 % -
 
 % Load the results for 2-d and 3-d tests
-tests={'test2d_triangle';
+tests_fem={'test2d_triangle';
     'test2d_quad';
     'test3d_hexahedra';
     'test3d_tetrahedra';
@@ -11,14 +11,15 @@ tests={'test2d_triangle';
 % Parent directory
 [parentdir,~,~] = fileparts(mfilename('fullpath'));
 
-% Run Main.m
-for i=1:length(tests)
-    file_name = tests{i};
-    file_name_in = strcat('./Input/',tests{i});
+
+%% FEM TESTS
+for i=1:length(tests_fem)
+    file_name = tests_fem{i};
+    file_name_in = strcat('./Input/',tests_fem{i});
     
     load_file = strcat('./tests/',file_name);
     load(load_file)
-    obj = Physical_Problem(file_name_in);
+    obj = Physical_Problem(file_name);
     obj.preProcess;
     obj.computeVariables;
     if sum(abs(norm(obj.variables.d_u - d_u)/norm(d_u))) < 1e-6

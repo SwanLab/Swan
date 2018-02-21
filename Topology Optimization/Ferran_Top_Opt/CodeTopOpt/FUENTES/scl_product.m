@@ -1,4 +1,4 @@
-function [f_g] = scl_product(nelem,nnode,lnods,emass,f,g)    
+function [f_g] = scl_product(nelem,nnode,dirichlet_data,emass,f,g)    
 % compute intgral_omega(f*g)
 % f,g are suposed to be nodal functions
 
@@ -7,8 +7,8 @@ ef = zeros(nnode,nelem);
 eg = zeros(nnode,nelem);
 
 for i=1:nnode
-    ef(i,:)= f(lnods(i,:));
-    eg(i,:)= g(lnods(i,:));
+    ef(i,:)= f(dirichlet_data(i,:));
+    eg(i,:)= g(dirichlet_data(i,:));
 end
 
 for i=1:nnode

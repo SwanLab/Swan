@@ -11,11 +11,11 @@ function [ Msmooth,emat ] = mass_matrix(dim,problembsc,element,coordinatesn,coor
 job = problembsc.smoothing_proc;
 
 nnode=dim.nnode; nelem=dim.nelem; npnod=dim.npnod; ndime=dim.ndime; nnode=dim.nnode;
-lnods = zeros(nnode,nelem);
+dirichlet_data = zeros(nnode,nelem);
 ptype = problembsc.problemtype;
 etype = element.type;
 for i=1:nnode
-    lnods(i,:)= element.conectivities(:,i);
+    dirichlet_data(i,:)= element.conectivities(:,i);
 end
 switch etype
     case {'TRIANGLE'} % SIMPLICIAL, TRIANG, 3 NODES
@@ -67,7 +67,7 @@ if (job==1)
         end        
     end
     for inode=1:nnode
-        Msmooth = Msmooth + sparse(lnods(inode,:),1,elumped(inode,:),npnod,1);
+        Msmooth = Msmooth + sparse(dirichlet_data(inode,:),1,elumped(inode,:),npnod,1);
     end
 elseif (job==2)
     % full mass matrix
@@ -76,7 +76,7 @@ elseif (job==2)
         for k=1:nnode
             for l=1:nnode
                 vmass = squeeze(emat(k,l,:));
-                Msmooth = Msmooth + sparse(lnods(k,:),lnods(l,:),vmass,npnod,npnod);
+                Msmooth = Msmooth + sparse(dirichlet_data(k,:),dirichlet_data(l,:),vmass,npnod,npnod);
             end
         end
 % t1 = toc(tstart)
@@ -85,7 +85,7 @@ elseif (job==2)
 %         for l=1:nnode
 %             for e=1:nelem
 %                 
-%                 Msmooth2(lnods(k,e),lnods(l,e))= Msmooth(lnods(k,e),lnods(l,e))+emat(k,l,e);
+%                 Msmooth2(dirichlet_data(k,e),dirichlet_data(l,e))= Msmooth(dirichlet_data(k,e),dirichlet_data(l,e))+emat(k,l,e);
 %             end
 %         end
 %     end

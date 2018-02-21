@@ -23,7 +23,7 @@ Data_prb = {
 %% Coordinates
 % Node                X                Y                Z
 
-gidcoord = [
+coord = [
 1            1            0            0
 2            1        0.025            0
 3        0.975            0            0
@@ -1710,7 +1710,7 @@ gidcoord = [
 %% Conectivities
 % Element        Node(1)                Node(2)                Node(3)                Material
 
-gidlnods = [
+connec = [
 162 1232 1235 1296 0
 163 1235 1298 1296 0
 164 1167 1172 1232 0
@@ -4916,7 +4916,7 @@ gidlnods = [
 %% Variable Prescribed
 % Node            Dimension                Value
 
-lnodes = [
+dirichlet_data = [
 1296 1 0 
 1298 1 0 
 1303 1 0 

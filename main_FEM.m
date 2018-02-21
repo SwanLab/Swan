@@ -2,9 +2,7 @@ clc
 close all
 clear variables
 
-a=addpath(genpath('./FEM/'));
-b=addpath(genpath('./Input/'));
-
+addpath(genpath(fileparts(mfilename('fullpath'))))
 
 %% Steps
 % 1 - Run 'Main.m'
@@ -13,7 +11,9 @@ b=addpath(genpath('./Input/'));
 % 4 - Compute       --> obj.computeVariables;
 % 5 - Postprocess   --> obj.postProcess;
 %% test
-run('test.m')
+
+% run('test_fem.m')
+% test
 clear variables
 %% Main.m
 % triangle_linear = Physical_Problem('CantileverToy_Triangular');
@@ -21,7 +21,7 @@ triangle_linear = Physical_Problem('CantileverToy_Nonlinear');
 tic
 triangle_linear.preProcess;
 triangle_linear.computeVariables;
-triangle_linear.postProcess;
+triangle_linear.print;
 toc
 
 % post = Postprocess_PhysicalProblem;

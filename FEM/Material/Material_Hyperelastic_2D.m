@@ -3,8 +3,6 @@ classdef Material_Hyperelastic_2D < Material_Elastic
     %   Detailed explanation goes here
     
     properties (GetAccess = {?Element_Hyperelastic,?PhysicalVars_Elastic, ?Physical_Problem}, SetAccess = ?Physical_Problem)
-%         mup
-%         lambdap
         connec
         cartd
         nnode
@@ -30,10 +28,6 @@ classdef Material_Hyperelastic_2D < Material_Elastic
             % Effective Lame moduli
             mup     = (obj.mu-obj.lambda*log(Fjacb))./Fjacb;
             lambdap = obj.lambda./Fjacb;
-            
-%             % Vectorize
-%             obj.mu      = repmat(obj.mu,[1 1 nelem]);
-%             obj.lambda  = repmat(obj.lambda,[1 1 nelem]);
             
             % Rearrange the dimensions
             mup     = permute(mup,[2 3 1]);

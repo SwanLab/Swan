@@ -5,7 +5,7 @@ function [force_ext_vol] = fext_vol(dim,...
 nelem=dim.nelem; nndof=dim.nndof; nnode=dim.nnode;
 ndime=dim.ndime; npnod=dim.npnod; nunkn = dim.nunkn; nstre = dim.nstre;
 
-lnods = zeros(nnode,nelem);
+dirichlet_data = zeros(nnode,nelem);
 idx   = zeros(nnode*nunkn,nelem);
 dvolu = zeros(1,nelem);
 force_ext_vol  = zeros(nndof,1);
@@ -15,7 +15,7 @@ etype = element.type;
 neres = 0; 
 
 for idime=1:nnode
-    lnods(idime,:)= element.conectivities(:,idime);
+    dirichlet_data(idime,:)= element.conectivities(:,idime);
 end
 
 
@@ -24,7 +24,7 @@ coord_pg = zeros(ndime,ngaus,nelem);
 
 for inode=1:nnode
     for idime=1:nunkn
-        idx(nunkn*inode-nunkn+idime,:) = nunkn.*lnods(inode,:)-nunkn+idime;
+        idx(nunkn*inode-nunkn+idime,:) = nunkn.*dirichlet_data(inode,:)-nunkn+idime;
     end
 end
 
