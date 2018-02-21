@@ -124,5 +124,4 @@ classdef Material_Hyperelastic_2D < Material_Elastic
         end
           
     end
-    
 end

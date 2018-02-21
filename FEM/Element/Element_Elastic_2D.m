@@ -26,4 +26,3 @@ classdef Element_Elastic_2D<Element_Elastic
     end
     
 end
-
