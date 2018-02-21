@@ -35,12 +35,12 @@ classdef Optimizer < handle
             constraint.computef(x_ini,obj.physicalProblem,interpolation,filter);
             obj.plotX(x_ini)
             obj.print(x_ini,filter.getP0fromP1(x_ini),obj.niter);
-            while(obj.stop_criteria && obj.niter < obj.maxiter)
+            while obj.stop_criteria && obj.niter < obj.maxiter
                 obj.niter = obj.niter+1;
                 x = obj.updateX(x_ini,cost,constraint,interpolation,filter);
                 obj.plotX(x)
                 obj.print(x,filter.getP0fromP1(x),obj.niter);
-                obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars);
+                obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars,obj.stop_criteria && obj.niter < obj.maxiter);
                 x_ini = x;
             end
             obj.stop_criteria = 1;

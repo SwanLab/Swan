@@ -34,12 +34,10 @@ classdef TopOpt_Problem < handle
             switch obj.settings.optimizer
                 case 'SLERP'
                     obj.optimizer = Optimizer_AugLag(settings,Optimizer_SLERP(settings));
-                    
                 case 'PROJECTED GRADIENT'
                     obj.optimizer = Optimizer_AugLag(settings,Optimizer_PG(settings));
                 case 'MMA'
                     obj.optimizer = Optimizer_MMA(settings);
-                    
                 case 'IPOPT'
                     obj.optimizer = Optimizer_IPOPT(settings);
             end
@@ -69,7 +67,6 @@ classdef TopOpt_Problem < handle
                     dof_filter.constrained = dof_filter.compute_constrained_dof(obj.physicalProblem.mesh.scale);
                     dof_filter.free = dof_filter.compute_free_dof();
             end
-            
             
             obj.physicalProblem.setDof(dof_filter)
             obj.filter.preProcess(obj.physicalProblem);
