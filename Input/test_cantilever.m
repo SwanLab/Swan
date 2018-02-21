@@ -16,17 +16,18 @@ settings.plotting = false;
 settings.printing = false;
 settings.monitoring = false;
 settings.maxiter = 3;
-settings.method = 'SIMPALL';
+settings.method = 'SIMP_Adaptative';
 settings.material = 'ISOTROPIC';
-settings.initial_case = 'full';
+settings.initial_case = 'square';
 addpath(genpath('./Input'))
-settings.cost = {'nonadjoint_compliance'};
-settings.weights = [1];
+settings.cost = {'compliance';'perimeter'};
+settings.weights = [1 0.1];
 settings.constraint = {'volume'};
 
-settings.optimizer = 'SLERP';
+settings.optimizer = 'PROJECTED GRADIENT';
+settings.kappaMultiplier = 1;
 
-settings.filter = 'P1';
+settings.filter = 'PDE';
 
 settings.TOL.rho_plus = 1;
 settings.TOL.rho_minus = 0;
