@@ -1,9 +1,13 @@
-clear all; close all;
-%% TEST
-tests_topopt={'test_gripping'};
+%% TOP OPT TEST ===========================================================
 
-%% TOP OPT TESTS
+clear; close all;
+
+% Test Declaration --------------------------------------------------------
+tests_topopt={'test_cantilever','test_gripping'};
+
+% Run Top Opt Tests -------------------------------------------------------
 for i=1:length(tests_topopt)
+    tic
     file_name = tests_topopt{i};
     file_name_in = strcat('./Input/',tests_topopt{i});
     load_file = strcat('./tests/',file_name);
@@ -16,6 +20,7 @@ for i=1:length(tests_topopt)
     if sum(abs(obj.x - x)) < 1e-6
         disp(strcat(file_name,' PASSED'));
     else
-        disp(strcat(file_name,' FAILED'));
+        warning(strcat(file_name,' FAILED'));
     end
+    toc
 end

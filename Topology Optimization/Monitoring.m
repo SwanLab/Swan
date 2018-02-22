@@ -4,6 +4,7 @@ classdef Monitoring < handle
     
     properties
         ON
+        interval
         figures
         monitor
         nfigs
@@ -17,6 +18,7 @@ classdef Monitoring < handle
         function obj = Monitoring(settings,ON)
             obj.ON = ON;
             if obj.ON
+                obj.interval = settings.monitoring_interval;
                 obj.getStopVarsNames(settings.optimizer);
                 
                 obj.figures = {};
@@ -69,29 +71,41 @@ classdef Monitoring < handle
                             grid on
                     end
                 end
+            else
+                obj.interval = 0;
             end
         end
         
-        function display(obj,iteration,cost,constraint,stop_vars)
+        function display(obj,iteration,cost,constraint,stop_vars,stop_criteria)
             if obj.ON
-                set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Iteration: %.0f',iteration))
-                obj.figures{1} = obj.updateFigure(obj.figures{1},iteration,cost.value);
+                draw = (mod(iteration,obj.interval) == 0 || ~stop_criteria);
+                if draw
+                    if stop_criteria
+                        set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Iteration: %.0f',iteration))
+                    else
+                        set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Iteration: %.0f - FINISHED.',iteration))
+                    end
+                end
+                
+                obj.figures{1} = obj.updateFigure(obj.figures{1},iteration,cost.value,draw);
                 for i = 1:obj.ncost
                     k = i+1;
-                    obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,cost.ShapeFuncs{i}.value);
+                    obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,cost.ShapeFuncs{i}.value,draw);
                 end
                 for i = 1:obj.nconstraint
                     k = i*2+obj.ncost;
-                    obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,constraint.ShapeFuncs{i}.value);
+                    obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,constraint.ShapeFuncs{i}.value,draw);
                     k = k+1;
-                    obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,constraint.lambda(i));
+                    obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,constraint.lambda(i),draw);
                 end
                 for i = 1:obj.nstop
                     k = i+1+obj.ncost+2*obj.nconstraint;
                     if contains(obj.figures{k}.title,'outit')
-                        obj.updateFigureIT(obj.figures{k},iteration,stop_vars(i,:));
+                        if draw
+                            obj.updateFigureIT(obj.figures{k},iteration,stop_vars(i,:));
+                        end
                     else
-                        obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,stop_vars(i,1));
+                        obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,stop_vars(i,1),draw);
                     end
                 end
             else
@@ -126,12 +140,14 @@ classdef Monitoring < handle
         end
     end
     methods (Access = private, Static)
-        function figures = updateFigure(figures,iteration,variable)
+        function figures = updateFigure(figures,iteration,variable,draw)
             figures.iteration(end+1) = iteration;
             figures.variable(end+1) = variable;
-            set(figures.handle,'XData',figures.iteration,'YData',figures.variable);
-            set(figures.style,'XLim',[0 figures.iteration(end)])
-            drawnow
+            if draw
+                set(figures.handle,'XData',figures.iteration,'YData',figures.variable);
+                set(figures.style,'XLim',[0 figures.iteration(end)])
+                drawnow
+            end
         end
         
         function updateFigureIT(figures,iteration,variable)

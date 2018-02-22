@@ -30,7 +30,7 @@ classdef Filter_PDE < Filter
         end
         
         function x_gp = getP0fromP1(obj,x)
-            x_reg= obj.getP1fromP1(obj,x);
+            x_reg= obj.getP1fromP1(x);
             x_gp = obj.A_nodal_2_gauss*x_reg;
         end
         
