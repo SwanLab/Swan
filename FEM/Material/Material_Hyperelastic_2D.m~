@@ -24,6 +24,9 @@ classdef Material_Hyperelastic_2D < Material_Elastic
             % Jacobian
             [F,Fjacb,blcg,Crcg] = obj.computeDefGradient(coord,obj.cartd);
             
+%             mu      = repmat(obj.mu,[1 1 obj.nelem]);
+%             lambda  = repmat(obj.lambda,[1 1 obj.nelem]);
+            
             % Effective Lame moduli
             mup     = (obj.mu-obj.lambda*log(Fjacb))./Fjacb;
             lambdap = obj.lambda./Fjacb;
@@ -37,6 +40,7 @@ classdef Material_Hyperelastic_2D < Material_Elastic
             
             % Define constitutive tensor
             ctens = zeros(3,3,3,3,obj.nelem); % material
+%             ctens2 = zeros(3,3,3,3,obj.nelem); % spatial 
             
             % Define delta kronecker
             dk = eye(3);
@@ -54,6 +58,17 @@ classdef Material_Hyperelastic_2D < Material_Elastic
                 end
             end
             
+%             % Compute c = invF*C
+%             for i = 1:3
+%                 for j = 1:3
+%                     for k = 1:3
+%                         for l = 1:3
+%                             inc = (1./Fjacb).*(squeeze(lambda.*dk(i,j,:).*dk(k,l,:) + mu.*(dk(i,k,:).*dk(j,l,:) + dk(i,l,:).*dk(j,k,:))))*(1);
+%                             ctens2(i,j,k,l,:) = squeeze(ctens2(i,j,k,l,:)) + inc;
+%                         end
+%                     end
+%                 end
+%             end
         end
         
         %% Compute Cauchy stress tensor
@@ -65,22 +80,32 @@ classdef Material_Hyperelastic_2D < Material_Elastic
             lambda  = repmat(obj.lambda,[1 1 obj.nelem]);
 
             % Define delta kronecker
-            dk = eye(3); dk = repmat(dk,[1 1 obj.nelem]);
+            dk = eye(3);
+            dk = repmat(dk,[1 1 obj.nelem]);
             
-            % Strain
+            % Define Cauchy stress
+            sigma = zeros(3,3,obj.nelem);
+            
+%             % Neo-hookean Model
+%             for i = 1:3
+%                 for j = 1:3
+%                     sigma(i,j,:) = permute(squeeze(mu)./squeeze(Fjacb).*squeeze(blcg(i,j,:) - I(i,j,:)) + squeeze(lambda)./squeeze(Fjacb).*squeeze(log(Fjacb)).*squeeze(I(i,j,:)),[2 3 1]);
+%                 end
+%             end
+            
+            
+
             E = 1/2*(Crcg-I);
-            
-            % Deformation tensor inverse
             Cinv = multinverse3x3(Crcg);
-            
-            % Second Piola-Kirchhoff stress tensor
             S = zeros(3,3,obj.nelem);
             
             for i = 1:3
                 for j = 1:3
-                    S(i,j,:) = squeeze(mu).*squeeze(I(i,j,:)-Cinv(i,j,:)) + squeeze(lambda).*squeeze(log(Fjacb)).*squeeze(Cinv(i,j,:));
+                    S = squeeze(mu).*squeeze(I(i,j,:)-Cinv(i,j,:)) + ;
                 end
             end
+            
+            
             
 %            St. Venant-Kirchhoff
 %             for i = 1:3
@@ -91,6 +116,7 @@ classdef Material_Hyperelastic_2D < Material_Elastic
 %                     S(i,j,:) = S(i,j,:) + 2*obj.mu*E(i,j,:);
 %                 end
 %             end
+
 
             
             sigma = zeros(3,3,obj.nelem);
@@ -103,14 +129,15 @@ classdef Material_Hyperelastic_2D < Material_Elastic
                     end
                 end
             end
+%             norm(sigma2(:)-sigma(:))
         end
         
         
-%         %% Update material properties
-%         function sigma = updateSigma(obj,coord,cartd0)
-%             [F,Fjacb,blcg,Crcg] = obj.computeDefGradient(coord,cartd0);
-%             sigma = obj.computeCauchyStress(F,Fjacb,blcg,Crcg);
-%         end
+        %% Update material properties
+        function sigma = updateSigma(obj,coord,cartd0)
+            [F,Fjacb,blcg,Crcg] = obj.computeDefGradient(coord,cartd0);
+            sigma = obj.computeCauchyStress(F,Fjacb,blcg,Crcg);
+        end
         
         %% Compute deformation gradient tensor
         % Compute F, b & sigma

@@ -7,6 +7,7 @@ classdef Element_Hyperelastic < Element
         cartd0
         cartd
         dvolu
+        stress
     end
     
     methods (Access = {?Physical_Problem, ?Element})
@@ -64,13 +65,14 @@ classdef Element_Hyperelastic < Element
         function fint = computeInternal(obj)
         % Fdef          --> cartd0 = obj.geometry.cartd
         % fint,ksigma   --> cartd  = obj.cartd
-            sigma = obj.material.updateSigma(obj.coord,obj.cartd0);
+%             sigma = obj.material.updateSigma(obj.coord,obj.cartd0);
+%             obj.stress = sigma;
             for a = 1:obj.nnode
                 for i = 1:obj.geometry.ndime
                     iL = obj.geometry.ndime*(a-1) + i;
                     t = zeros(length(obj.dof.ndof),1,obj.nelem);
                     for j = 1:obj.geometry.ndime
-                        t(j,:) = sigma(i,j,:).*obj.cartd(j,a,:);
+                        t(j,:) = obj.stress(i,j,:).*obj.cartd(j,a,:);
                     end
                     t = squeeze(sum(t)).*squeeze(obj.dvolu);
                     t = permute(t,[3 2 1]);
@@ -87,6 +89,8 @@ classdef Element_Hyperelastic < Element
             % Compute ctens & sigma
             [ctens,sigma] = obj.material.computeCtens(obj.coord);
 
+            obj.stress = sigma;
+            
             % Compute tangent components
             kconst  = obj.computeConstitutive(ctens);
             ksigma  = obj.computeGeometric(sigma);
@@ -166,7 +170,9 @@ classdef Element_Hyperelastic < Element
     methods(Access = protected)  % Only the child sees the function
         function variables = computeDispStressStrain(obj,uL)
             variables.d_u = obj.compute_displacements(uL);
+            % variables.strain
             variables.fext= obj.fext;
+            variables.stress = obj.stress;
         end
         
         function u = compute_displacements(obj,usol)

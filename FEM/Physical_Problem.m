@@ -60,7 +60,8 @@ classdef Physical_Problem < FEM
                     
                     error = norm(r)/norm(obj.element.cload);
                     errcont(incrm,niter) = error;
-                    niter = niter + 1;
+                    niter = niter + 1
+%                     fprintf('Increment: %d',incrm);
                 end
                 nn(incrm) = niter-1;
                 u = reshape(inc_x,2,[])';
@@ -71,23 +72,23 @@ classdef Physical_Problem < FEM
 
             end
             
-%             % Convergence
-%             Xcoord = log(errcont(end,1:niter-2));
-%             Ycoord = log(errcont(end,2:niter-1));
-%             [a,~] = polyfit(Xcoord,Ycoord,1);
-%             fprintf('Convergence order, p: %d\nRatio, mu: %d\n\n',a(1),a(2));
-%             
-%             % Figures
-%             figure;
-%             [hAx,hLine1,hLine2] = plotyy(xn,fn,xn,nn,'plot','stairs');
-%             hLine1.LineStyle = '-';
-%             hLine1.Marker = '+';
-%             xlabel('X displacement [m]')
-%             ylabel(hAx(1),'Force [N]')
-%             ylabel(hAx(2),'Iterations')
-%             set(gcf,'Color','w')
-%             set(hAx(1),'FontSize',15)
-%             set(hAx(2),'FontSize',15)
+            % Convergence
+            Xcoord = log(errcont(end,1:niter-2));
+            Ycoord = log(errcont(end,2:niter-1));
+            [a,~] = polyfit(Xcoord,Ycoord,1);
+            fprintf('Convergence order, p: %d\nRatio, mu: %d\n\n',a(1),a(2));
+            
+            % Figures
+            figure;
+            [hAx,hLine1,hLine2] = plotyy(xn,fn,xn,nn,'plot','stairs');
+            hLine1.LineStyle = '-';
+            hLine1.Marker = '+';
+            xlabel('X displacement [m]')
+            ylabel(hAx(1),'Force [N]')
+            ylabel(hAx(2),'Iterations')
+            set(gcf,'Color','w')
+            set(hAx(1),'FontSize',15)
+            set(hAx(2),'FontSize',15)
             
             obj.variables = obj.element.computeVars(x);
         end
