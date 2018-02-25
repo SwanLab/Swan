@@ -8,7 +8,6 @@ classdef Optimizer < handle
         Ksmooth
         target_parameters = struct;
         epsilon_scalar_product_P1
-        shfunc_volume
         name
         niter = 0
         optimizer
@@ -22,7 +21,6 @@ classdef Optimizer < handle
     end
     methods
         function obj = Optimizer(settings,monitoring)
-            obj.shfunc_volume = ShFunc_Volume(settings);
             obj.target_parameters = settings.target_parameters;
             obj.optimizer = settings.optimizer;
             obj.maxiter = settings.maxiter;

@@ -13,16 +13,11 @@ classdef Optimizer_AugLag < Optimizer
         function x = updateX(obj,x_ini,cost,constraint,interpolation,filter)
             obj.checkInitial;
             obj.optimizer_unconstr.target_parameters = obj.target_parameters;
-            obj.shfunc_volume.target_parameters = obj.target_parameters;
-            obj.optimizer_unconstr.shfunc_volume.target_parameters = obj.target_parameters;
-            obj.shfunc_volume.computef(x_ini,obj.physicalProblem,interpolation,filter);
-            
             obj.objfunc.lambda = obj.objfunc.lambda+obj.objfunc.penalty.*constraint.value';
             constraint.lambda = obj.objfunc.lambda;
             obj.objfunc.computeFunction(cost,constraint);
             obj.objfunc.computeGradient(cost,constraint);
-            
-            obj.optimizer_unconstr.volume_initial = obj.shfunc_volume.value;
+                       
             obj.optimizer_unconstr.objfunc = obj.objfunc;
             obj.optimizer_unconstr.objfunc.value_initial = obj.objfunc.value;
             obj.optimizer_unconstr.computeKappa(x_ini,obj.objfunc.gradient);

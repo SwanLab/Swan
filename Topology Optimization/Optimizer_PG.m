@@ -1,8 +1,7 @@
 classdef Optimizer_PG < Optimizer
     properties
         kfrac
-        opt_cond  
-        volume_initial
+        opt_cond          
         kappa_min
         max_constr_change
         optimality_tol
@@ -29,7 +28,6 @@ classdef Optimizer_PG < Optimizer
                 x = obj.updateRho(x_ini,obj.objfunc.gradient);
                 cost.computef(x,obj.physicalProblem,interpolation,filter);
                 constraint.computef(x,obj.physicalProblem,interpolation,filter);
-                obj.shfunc_volume.computef(x,obj.physicalProblem,interpolation,filter);
                 
                 obj.objfunc.computeFunction(cost,constraint)
 %                 cost_ls = cost.value + obj.lambda*constraint.value + 0.5*obj.penalty*(constraint.value.*constraint.value);
