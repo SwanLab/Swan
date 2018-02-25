@@ -8,18 +8,18 @@ classdef Filter_PDE < Filter
         element
     end
     methods
-        function preProcess(obj,physicalProblem)
-            preProcess@Filter(obj,physicalProblem);
-            obj.element = physicalProblem.element;
-            obj.dof_per=physicalProblem.dof;
+        function preProcess(obj,params)
+            preProcess@Filter(obj,params);
+            obj.element = params.element;
+            obj.dof_per = params.dof;
             %obj.dof = physicalProblem.dof;
             obj.solver = Solver.create();
-            obj.epsilon=0.03;
-            obj.A_nodal_2_gauss=obj.computeA(physicalProblem);
+            obj.epsilon = 0.03;
+            obj.A_nodal_2_gauss = obj.computeA;
         end
 
         
-        function x_reg=getP1fromP1(obj,x)
+        function x_reg = getP1fromP1(obj,x)
             rhs_x = obj.integrate_L2_function_with_shape_function(x);
             x_reg = obj.solve_filter(rhs_x);
         end
@@ -30,7 +30,7 @@ classdef Filter_PDE < Filter
         end
         
         function x_gp = getP0fromP1(obj,x)
-            x_reg= obj.getP1fromP1(x);
+            x_reg =  obj.getP1fromP1(x);
             x_gp = obj.A_nodal_2_gauss*x_reg;
         end
         

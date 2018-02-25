@@ -13,6 +13,7 @@ classdef Incremental_Scheme < handle
             nsteps=settings.nsteps;
             obj.coord=physicalProblem.mesh.coord;
             obj.connec=physicalProblem.mesh.connec;
+            %% !! EPSILON SHOULD BE SET ON MAIN !!
             obj.epsilon=1*obj.estimate_mesh_size(physicalProblem.mesh.coord,physicalProblem.mesh.connec);
             obj.incropt.alpha_vol = obj.generate_incr_sequence(1/nsteps,1,nsteps,'linear');
             obj.incropt.alpha_constr = obj.generate_incr_sequence(0,1,nsteps,'linear');

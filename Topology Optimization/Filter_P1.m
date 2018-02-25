@@ -4,24 +4,20 @@ classdef Filter_P1 < Filter
     methods
         function preProcess(obj,physicalProblem)
             preProcess@Filter(obj,physicalProblem)
-            obj.P_operator=obj.computePoperator(obj.Msmooth,physicalProblem);
+            obj.P_operator=obj.computePoperator(obj.Msmooth);
         end
-    end
-    methods (Static)
-        function P_operator=computePoperator(Msmooth,physicalProblem)
-            nelem=physicalProblem.mesh.nelem;
-            nnode=physicalProblem.geometry.nnode;
-            npnod=physicalProblem.mesh.npnod;
+        
+        function P_operator=computePoperator(obj,Msmooth)
             
-            dirichlet_data=zeros(nnode,nelem);
-            for inode=1:nnode
-                dirichlet_data(inode,:)=physicalProblem.mesh.connec(:,inode);
+            dirichlet_data=zeros(obj.nnode,obj.nelem);
+            for inode=1:obj.nnode
+                dirichlet_data(inode,:)=obj.connectivities(:,inode);
             end
             
-            T_nodal_2_gauss = sparse(nelem,npnod);
+            T_nodal_2_gauss = sparse(obj.nelem,obj.npnod);
             
-            for inode=1:nnode
-                T_nodal_2_gauss = T_nodal_2_gauss + sparse([1:nelem],[dirichlet_data(inode,:)],ones(nelem,1),nelem,npnod);
+            for inode=1:obj.nnode
+                T_nodal_2_gauss = T_nodal_2_gauss + sparse(1:obj.nelem,dirichlet_data(inode,:),ones(obj.nelem,1),obj.nelem,obj.npnod);
             end
             
             m = T_nodal_2_gauss*sum(Msmooth,2);

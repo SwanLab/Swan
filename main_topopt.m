@@ -3,7 +3,7 @@ clc; clear variables; close all;
 addpath(genpath(fileparts(mfilename('fullpath'))));
 
 %% Test
-%run('test_fem.m');
+% run('test_fem.m');
 run('test_topopt.m');
 clear variables;
 
@@ -19,36 +19,37 @@ settings.filename = 'CantileverBeam_Triangle_Linear_Fine';
 
 settings.plotting = true;
 settings.printing = false;
-settings.monitoring = false;
+settings.monitoring = true;
 settings.monitoring_interval = 10;
 settings.maxiter = 5000;
 
-settings.method = 'SIMPALL';
-%settings.method = 'SIMP_P3';
-% settings.method = 'SIMP_Adaptative';
+% settings.method = 'SIMPALL';
+% settings.method = 'SIMP_P3';
+settings.method = 'SIMP_Adaptative';
 
 settings.material = 'ISOTROPIC';
-settings.initial_case = 'full';
-%settings.initial_case = 'circle';
+% settings.initial_case = 'full';
+% settings.initial_case = 'circle';
 % settings.initial_case = 'horizontal';
-%settings.initial_case = 'square';
+settings.initial_case = 'square';
 % settings.initial_case = 'feasible';
 % settings.initial_case = 'rand';
 
 
-settings.cost = {'compliance'}; %'chomog_fraction';'compliance';'perimeter';'chomog_alphabeta';'nonadjoint_compliance';
+settings.cost = {'compliance','perimeter'}; %'chomog_fraction';'compliance';'perimeter';'chomog_alphabeta';'nonadjoint_compliance';
 % settings.weights = []; %all 1
 settings.weights = [1 0.1]; %compl+lambda*perimeter
 settings.constraint = {'volume'};
 
 
-settings.optimizer = 'SLERP';
-% settings.optimizer = 'PROJECTED GRADIENT';settings.kappaMultiplier = 1;
+% settings.optimizer = 'SLERP';
+settings.optimizer = 'PROJECTED GRADIENT';settings.kappaMultiplier = 1;
 % settings.optimizer = 'MMA';
 % settings.optimizer = 'IPOPT';
 
 
-settings.filter = 'P1';%'PDE';%
+% settings.filter = 'P1';
+settings.filter = 'PDE';
 
 settings.TOL.rho_plus = 1;
 settings.TOL.rho_minus = 0;

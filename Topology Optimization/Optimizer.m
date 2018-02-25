@@ -28,16 +28,16 @@ classdef Optimizer < handle
             obj.printing = settings.printing;
             obj.monitoring = Monitoring(settings,monitoring);
         end
-        function x = solveProblem(obj,x_ini,cost,constraint,interpolation,filter)
-            cost.computef(x_ini,obj.physicalProblem,interpolation,filter);
-            constraint.computef(x_ini,obj.physicalProblem,interpolation,filter);
+        function x = solveProblem(obj,x_ini,cost,constraint,interpolation)
+            cost.computef(x_ini,obj.physicalProblem,interpolation);
+            constraint.computef(x_ini,obj.physicalProblem,interpolation);
             obj.plotX(x_ini)
-            obj.print(x_ini,filter.getP0fromP1(x_ini),obj.niter);
+%             obj.print(x_ini,filter.getP0fromP1(x_ini),obj.niter);
             while obj.stop_criteria && obj.niter < obj.maxiter
                 obj.niter = obj.niter+1;
-                x = obj.updateX(x_ini,cost,constraint,interpolation,filter);
+                x = obj.updateX(x_ini,cost,constraint,interpolation);
                 obj.plotX(x)
-                obj.print(x,filter.getP0fromP1(x),obj.niter);
+%                 obj.print(x,filter.getP0fromP1(x),obj.niter);
                 obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars,obj.stop_criteria && obj.niter < obj.maxiter);
                 x_ini = x;
             end
@@ -47,10 +47,15 @@ classdef Optimizer < handle
             obj.physicalProblem = pProblem;
         end
         
+        %% HAS TO BE REMOVED FROM OPTIMIZER CLASS
         function sp = scalar_product(obj,f,g)
             f = f(:);
             g = g(:);
+            try
             sp = f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
+            catch
+                disp('error')
+            end
         end
     end
     methods (Access = private)

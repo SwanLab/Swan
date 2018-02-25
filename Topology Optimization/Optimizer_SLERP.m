@@ -23,10 +23,10 @@ classdef Optimizer_SLERP < Optimizer
         function constr_tol = get.constr_tol(obj)
             constr_tol(1:obj.nconstr) = obj.target_parameters.constr_tol;
         end
-        function x = updateX(obj,x_ini,cost,constraint,interpolation,filter)
+        function x = updateX(obj,x_ini,cost,constraint,interpolation)
             x = obj.updatePhi(x_ini,obj.objfunc.gradient);
-            cost.computef(x,obj.physicalProblem,interpolation,filter);
-            constraint.computef(x,obj.physicalProblem,interpolation,filter);
+            cost.computef(x,obj.physicalProblem,interpolation);
+            constraint.computef(x,obj.physicalProblem,interpolation);
             
             obj.objfunc.computeFunction(cost,constraint)
             

@@ -19,6 +19,7 @@ classdef TopOpt_Problem < handle
     end
     methods (Access = public)
         function obj = TopOpt_Problem(settings)
+            %% !! This should be done in settings class !!
             settings.nconstr = length(settings.constraint);
             obj.cost = Cost(settings,settings.weights);
             obj.constraint = Constraint(settings);
@@ -49,6 +50,7 @@ classdef TopOpt_Problem < handle
             obj.physicalProblem.preProcess;
             
             dof_phy = obj.physicalProblem.dof;
+            %% FILTER ---
             nukn = 1;
             dof_filter = DOF(obj.physicalProblem.problemID,obj.physicalProblem.geometry.nnode,obj.physicalProblem.mesh.connec,nukn,obj.physicalProblem.mesh.npnod,obj.physicalProblem.mesh.scale);
             switch obj.physicalProblem.mesh.scale
@@ -69,8 +71,14 @@ classdef TopOpt_Problem < handle
             end
             
             obj.physicalProblem.setDof(dof_filter)
-            obj.filter.preProcess(obj.physicalProblem);
+            filter_params = obj.getFilterParams(obj.physicalProblem);
+            obj.filter.preProcess(filter_params);
+            obj.cost.preProcess(filter_params);
+            obj.constraint.preProcess(filter_params);
+            
             obj.physicalProblem.setDof(dof_phy)
+            % ---
+            %% ---
             
             obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.physicalProblem);
             obj.compute_initial_design;
@@ -83,10 +91,10 @@ classdef TopOpt_Problem < handle
             for istep = 1:obj.settings.nsteps
                 disp(strcat('Incremental step: ', int2str(istep)))
                 obj.incremental_scheme.update_target_parameters(istep, obj.cost, obj.constraint, obj.optimizer);
-                obj.cost.computef(obj.x,obj.physicalProblem,obj.interpolation,obj.filter);
-                obj.constraint.computef(obj.x, obj.physicalProblem, obj.interpolation,obj.filter);
+                obj.cost.computef(obj.x,obj.physicalProblem,obj.interpolation);
+                obj.constraint.computef(obj.x, obj.physicalProblem, obj.interpolation);
                 obj.optimizer.setPhysicalProblem(obj.physicalProblem);
-                obj.x = obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,obj.interpolation,obj.filter);
+                obj.x = obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,obj.interpolation);
             end
         end
         
@@ -241,6 +249,25 @@ classdef TopOpt_Problem < handle
                 sqrt_norma = obj.optimizer.scalar_product(obj.x,obj.x);
                 obj.x = obj.x/sqrt(sqrt_norma);
             end
+        end
+    end
+    methods (Access = private, Static)
+        function filter_params = getFilterParams(physicalProblem)
+            for igauss = 1:physicalProblem.geometry.ngaus
+                filter_params.M0{igauss} = sparse(1:physicalProblem.mesh.nelem,1:physicalProblem.mesh.nelem,physicalProblem.geometry.dvolu(:,igauss));
+            end
+            filter_params.dof = physicalProblem.dof;
+            filter_params.element = physicalProblem.element;
+            filter_params.dvolu = sparse(1:physicalProblem.mesh.nelem,1:physicalProblem.mesh.nelem,sum(physicalProblem.geometry.dvolu,2));
+            filter_params.Msmooth = physicalProblem.computeMass(2);
+            filter_params.Ksmooth = physicalProblem.computeKsmooth;
+            filter_params.coordinates = physicalProblem.mesh.coord;
+            filter_params.connectivities = physicalProblem.mesh.connec;
+            filter_params.nelem = physicalProblem.mesh.nelem;
+            filter_params.nnode = physicalProblem.geometry.nnode;
+            filter_params.npnod = physicalProblem.mesh.npnod;
+            filter_params.ngaus = physicalProblem.geometry.ngaus;
+            filter_params.shape = physicalProblem.geometry.shape;
         end
     end
 end
