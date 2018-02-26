@@ -18,32 +18,30 @@ classdef TopOpt_Problem < handle
         ini_design_value
     end
     methods (Access = public)
-        function obj=TopOpt_Problem(settings)
-            settings.nconstr=length(settings.constraint);
-            obj.cost=Cost(settings,settings.weights);
-            obj.constraint=Constraint(settings);
+        function obj = TopOpt_Problem(settings)
+            settings.nconstr = length(settings.constraint);
+            obj.cost = Cost(settings,settings.weights);
+            obj.constraint = Constraint(settings);
             switch settings.ptype
                 case 'MACRO'
-                    obj.physicalProblem=Physical_Problem(settings.filename);
+                    obj.physicalProblem = Physical_Problem(settings.filename);
                 case 'MICRO'
-                    obj.physicalProblem=Physical_Problem_Micro(settings.filename);
+                    obj.physicalProblem = Physical_Problem_Micro(settings.filename);
             end
-            obj.settings=settings;
-            obj.TOL=obj.settings.TOL;
-            obj.interpolation=Interpolation.create(obj.TOL,settings.material,settings.method);                       
+            obj.settings = settings;
+            obj.TOL = obj.settings.TOL;
+            obj.interpolation = Interpolation.create(obj.TOL,settings.material,settings.method);                       
             switch obj.settings.optimizer
                 case 'SLERP'
-                    obj.optimizer=Optimizer_AugLag(settings,Optimizer_SLERP(settings));
-                    
+                    obj.optimizer = Optimizer_AugLag(settings,Optimizer_SLERP(settings));
                 case 'PROJECTED GRADIENT'
-                    obj.optimizer=Optimizer_AugLag(settings,Optimizer_PG(settings));
+                    obj.optimizer = Optimizer_AugLag(settings,Optimizer_PG(settings));
                 case 'MMA'
-                    obj.optimizer=Optimizer_MMA(settings);
-                    
+                    obj.optimizer = Optimizer_MMA(settings);
                 case 'IPOPT'
-                    obj.optimizer=Optimizer_IPOPT(settings);
+                    obj.optimizer = Optimizer_IPOPT(settings);
             end
-            obj.filter=Filter.create(obj.settings.filter,obj.settings.optimizer);
+            obj.filter = Filter.create(obj.settings.filter,obj.settings.optimizer);
         end
         
         function preProcess(obj)
@@ -70,15 +68,14 @@ classdef TopOpt_Problem < handle
                     dof_filter.free = dof_filter.compute_free_dof();
             end
             
-            
             obj.physicalProblem.setDof(dof_filter)
             obj.filter.preProcess(obj.physicalProblem);
             obj.physicalProblem.setDof(dof_phy)
             
-            obj.incremental_scheme=Incremental_Scheme(obj.settings,obj.physicalProblem);
+            obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.physicalProblem);
             obj.compute_initial_design;
-            rho=obj.filter.getP0fromP1(obj.x);
-            matProps=obj.interpolation.computeMatProp(rho);
+            rho = obj.filter.getP0fromP1(obj.x);
+            matProps = obj.interpolation.computeMatProp(rho);
             obj.physicalProblem.setMatProps(matProps);
         end
         
@@ -89,7 +86,7 @@ classdef TopOpt_Problem < handle
                 obj.cost.computef(obj.x,obj.physicalProblem,obj.interpolation,obj.filter);
                 obj.constraint.computef(obj.x, obj.physicalProblem, obj.interpolation,obj.filter);
                 obj.optimizer.setPhysicalProblem(obj.physicalProblem);
-                obj.x=obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,obj.interpolation,obj.filter);
+                obj.x = obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,obj.interpolation,obj.filter);
             end
         end
         
@@ -100,7 +97,7 @@ classdef TopOpt_Problem < handle
                 files_name = obj.settings.filename;
                 files_folder = fullfile(pwd,'Output');
                 iterations = 0:obj.optimizer.niter;
-                video_name=strcat('./Videos/Video_',obj.settings.ptype,'_',obj.settings.optimizer,'_',obj.settings.method,'_',int2str(obj.settings.nsteps) ...
+                video_name = strcat('./Videos/Video_',obj.settings.ptype,'_',obj.settings.optimizer,'_',obj.settings.method,'_',int2str(obj.settings.nsteps) ...
                     ,'_0dot',int2str(10*obj.settings.Vfrac_final),'_',int2str(obj.optimizer.niter),'.gif');
                 My_VideoMaker = VideoMaker_TopOpt.Create(obj.settings.optimizer);
                 My_VideoMaker.Set_up_make_video(gidPath,files_name,files_folder,iterations)
@@ -122,20 +119,20 @@ classdef TopOpt_Problem < handle
         end
         function checkDerivative(obj)
             obj.preProcess;           
-            Msmooth=obj.filter.Msmooth;
-            x0=obj.x;
+            Msmooth = obj.filter.Msmooth;
+            x0 = obj.x;
             % Initialize function
             epsi = 1e-6;
             %initial
-            compliance0=ShFunc_Compliance(obj.settings);
-            % compliance0.h_C_0=1;
-            volume0=ShFunc_Volume(obj.settings);
-            perimeter0=ShFunc_Perimeter(obj.settings);
+            compliance0 = ShFunc_Compliance(obj.settings);
+            % compliance0.h_C_0 = 1;
+            volume0 = ShFunc_Volume(obj.settings);
+            perimeter0 = ShFunc_Perimeter(obj.settings);
             %new
-            compliance=ShFunc_Compliance(obj.settings);
-            % compliance.h_C_0=1;
-            volume=ShFunc_Volume(obj.settings);
-            perimeter=ShFunc_Perimeter(obj.settings);
+            compliance = ShFunc_Compliance(obj.settings);
+            % compliance.h_C_0 = 1;
+            volume = ShFunc_Volume(obj.settings);
+            perimeter = ShFunc_Perimeter(obj.settings);
             
             obj.incremental_scheme.update_target_parameters(1, compliance0, volume0, perimeter0);
             obj.incremental_scheme.update_target_parameters(1, compliance, volume, perimeter);
@@ -153,11 +150,11 @@ classdef TopOpt_Problem < handle
             perimeter.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
             
             nnod = length(compliance0.gradient);
-            g=zeros(nnod,1);
-            gp=zeros(nnod,1);
-            gv=zeros(nnod,1);
+            g = zeros(nnod,1);
+            gp = zeros(nnod,1);
+            gv = zeros(nnod,1);
             for inode = 1:nnod
-                if mod(inode,100)==0
+                if mod(inode,100) == 0
                     disp(strcat('Node: ',int2str(inode)));
                 end
                 xnew = x0;
@@ -182,18 +179,18 @@ classdef TopOpt_Problem < handle
     end
     
     
-    methods (Access=private)
+    methods (Access = private)
         function obj = compute_initial_design(obj)         
             switch obj.settings.optimizer
                 case 'SLERP'
-                    obj.ini_design_value=-2;
-                    obj.hole_value=0.507621979511346;
+                    obj.ini_design_value = -2;
+                    obj.hole_value = 0.507621979511346;
                 otherwise
-                    obj.ini_design_value= 1;
-                    obj.hole_value= 0;
+                    obj.ini_design_value = 1;
+                    obj.hole_value = 0;
                     
             end            
-            obj.x=obj.ini_design_value*ones(obj.physicalProblem.mesh.npnod,1);
+            obj.x = obj.ini_design_value*ones(obj.physicalProblem.mesh.npnod,1);
             switch obj.settings.initial_case
                 case 'circle'
                     width = max(obj.physicalProblem.mesh.coord(:,1)) - min(obj.physicalProblem.mesh.coord(:,1));
