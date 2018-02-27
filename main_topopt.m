@@ -1,3 +1,5 @@
+restoredefaultpath
+
 clc; clear variables; close all;
 
 addpath(genpath(fileparts(mfilename('fullpath'))));
@@ -19,7 +21,7 @@ settings.filename = 'CantileverBeam_Triangle_Linear_Fine';
 
 settings.plotting = true;
 settings.printing = false;
-settings.monitoring = true;
+settings.monitoring = false;
 settings.monitoring_interval = 10;
 settings.maxiter = 5000;
 

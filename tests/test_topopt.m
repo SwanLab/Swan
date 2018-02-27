@@ -17,10 +17,11 @@ for i=1:length(tests_topopt)
     obj = TopOpt_Problem(settings);
     obj.preProcess;
     obj.computeVariables;
-    if sum(abs(obj.x - x)) < 1e-6
+    error = norm(obj.x - x)/norm(x);
+    if error < 1e-6
         disp(strcat(file_name,' PASSED'));
     else
-        warning(strcat(file_name,' FAILED'));
+        warning('%s FAILED. Error: %.2e',file_name,error);
     end
     toc
 end

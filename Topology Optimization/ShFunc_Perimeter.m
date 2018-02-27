@@ -11,9 +11,6 @@ classdef ShFunc_Perimeter < Shape_Functional
             end
             obj@Shape_Functional(settings);
             obj.Perimeter_target = settings.target_parameters.Perimeter_target;
-            
-            %% !! EPSILON CANNOT BE DEFINED INSIDE SF & MUST BE A FILTER PARAMETER!!
-            obj.epsilon = 0.02;
             obj.filter.epsilon = obj.epsilon;
         end
         %         function Perimeter_target = get.Perimeter_target(obj)
@@ -24,8 +21,8 @@ classdef ShFunc_Perimeter < Shape_Functional
             obj.checkFilterPre(physProblem);
             x_reg = obj.filter.getP1fromP1(x);
             rhs = obj.filter.integrate_L2_function_with_shape_function(x);
-            Perimeter = 0.5/obj.epsilon*((1 - x_reg)'*rhs);
-            Perimeter_gradient = 0.5/obj.epsilon*(1 - 2*x_reg);
+            Perimeter = 0.5/obj.filter.epsilon*((1 - x_reg)'*rhs);
+            Perimeter_gradient = 0.5/obj.filter.epsilon*(1 - 2*x_reg);
             
             constraint = Perimeter/obj.Perimeter_target - 1;
             constraint_gradient = Perimeter_gradient/obj.Perimeter_target;

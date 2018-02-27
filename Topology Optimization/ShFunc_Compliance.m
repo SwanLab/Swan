@@ -18,7 +18,6 @@ classdef ShFunc_Compliance < Shape_Functional
             %compliance = physicalProblem.variables.d_u'*physicalProblem.RHS;
             compliance = physicalProblem.variables.d_u'*physicalProblem.variables.fext;
             
-            
             %gradient
             strain = physicalProblem.variables.strain;
             stress = physicalProblem.variables.stress;

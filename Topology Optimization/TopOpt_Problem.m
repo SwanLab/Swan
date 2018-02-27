@@ -31,7 +31,7 @@ classdef TopOpt_Problem < handle
             end
             obj.settings = settings;
             obj.TOL = obj.settings.TOL;
-            obj.interpolation = Interpolation.create(obj.TOL,settings.material,settings.method);                       
+            obj.interpolation = Interpolation.create(obj.TOL,settings.material,settings.method);
             switch obj.settings.optimizer
                 case 'SLERP'
                     obj.optimizer = Optimizer_AugLag(settings,Optimizer_SLERP(settings));
@@ -50,35 +50,8 @@ classdef TopOpt_Problem < handle
             obj.physicalProblem.preProcess;
             
             dof_phy = obj.physicalProblem.dof;
-            %% FILTER ---
-            nukn = 1;
-            dof_filter = DOF(obj.physicalProblem.problemID,obj.physicalProblem.geometry.nnode,obj.physicalProblem.mesh.connec,nukn,obj.physicalProblem.mesh.npnod,obj.physicalProblem.mesh.scale);
-            switch obj.physicalProblem.mesh.scale
-                case 'MACRO'
-                    dof_filter.dirichlet = [];
-                    dof_filter.dirichlet_values = [];
-                    dof_filter.neumann = [];
-                    dof_filter.neumann_values  = [];
-                    dof_filter.constrained = dof_filter.compute_constrained_dof(obj.physicalProblem.mesh.scale);
-                    dof_filter.free = dof_filter.compute_free_dof();
-                case 'MICRO'
-                    dof_filter.dirichlet = [];
-                    dof_filter.dirichlet_values = [];
-                    dof_filter.neumann = [];
-                    dof_filter.neumann_values  = [];
-                    dof_filter.constrained = dof_filter.compute_constrained_dof(obj.physicalProblem.mesh.scale);
-                    dof_filter.free = dof_filter.compute_free_dof();
-            end
-            
-            obj.physicalProblem.setDof(dof_filter)
-            filter_params = obj.getFilterParams(obj.physicalProblem);
-            obj.filter.preProcess(filter_params);
-            obj.cost.preProcess(filter_params);
-            obj.constraint.preProcess(filter_params);
-            
-            obj.physicalProblem.setDof(dof_phy)
-            % ---
-            %% ---
+            obj.filters_preProcess;
+            obj.physicalProblem.setDof(dof_phy);
             
             obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.physicalProblem);
             obj.compute_initial_design;
@@ -126,7 +99,7 @@ classdef TopOpt_Problem < handle
             
         end
         function checkDerivative(obj)
-            obj.preProcess;           
+            obj.preProcess;
             Msmooth = obj.filter.Msmooth;
             x0 = obj.x;
             % Initialize function
@@ -186,9 +159,8 @@ classdef TopOpt_Problem < handle
         end
     end
     
-    
     methods (Access = private)
-        function obj = compute_initial_design(obj)         
+        function obj = compute_initial_design(obj)
             switch obj.settings.optimizer
                 case 'SLERP'
                     obj.ini_design_value = -2;
@@ -197,7 +169,7 @@ classdef TopOpt_Problem < handle
                     obj.ini_design_value = 1;
                     obj.hole_value = 0;
                     
-            end            
+            end
             obj.x = obj.ini_design_value*ones(obj.physicalProblem.mesh.npnod,1);
             switch obj.settings.initial_case
                 case 'circle'
@@ -249,6 +221,34 @@ classdef TopOpt_Problem < handle
                 sqrt_norma = obj.optimizer.scalar_product(obj.x,obj.x);
                 obj.x = obj.x/sqrt(sqrt_norma);
             end
+        end
+        
+        function obj = filters_preProcess(obj)
+            physProb = obj.physicalProblem;
+            nukn = 1;
+            dof_filter = DOF(physProb.problemID,physProb.geometry.nnode,physProb.mesh.connec,nukn,physProb.mesh.npnod,physProb.mesh.scale);
+            switch physProb.mesh.scale
+                case 'MACRO'
+                    dof_filter.dirichlet = [];
+                    dof_filter.dirichlet_values = [];
+                    dof_filter.neumann = [];
+                    dof_filter.neumann_values  = [];
+                    dof_filter.constrained = dof_filter.compute_constrained_dof(physProb.mesh.scale);
+                    dof_filter.free = dof_filter.compute_free_dof();
+                case 'MICRO'
+                    dof_filter.dirichlet = [];
+                    dof_filter.dirichlet_values = [];
+                    dof_filter.neumann = [];
+                    dof_filter.neumann_values  = [];
+                    dof_filter.constrained = dof_filter.compute_constrained_dof(physProb.mesh.scale);
+                    dof_filter.free = dof_filter.compute_free_dof();
+            end
+            physProb.setDof(dof_filter)
+            
+            filter_params = obj.getFilterParams(physProb);
+            obj.filter.preProcess(filter_params);
+            obj.cost.preProcess(filter_params);
+            obj.constraint.preProcess(filter_params);
         end
     end
     methods (Access = private, Static)

@@ -14,7 +14,7 @@ classdef Filter_PDE < Filter
             obj.dof_per = params.dof;
             %obj.dof = physicalProblem.dof;
             obj.solver = Solver.create();
-            obj.epsilon = 0.03;
+            obj.epsilon = 0.03; %% SHOULD NOT BE DEFINED IN HERE
             obj.A_nodal_2_gauss = obj.computeA;
         end
 
