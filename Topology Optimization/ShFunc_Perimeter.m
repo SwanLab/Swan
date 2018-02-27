@@ -7,7 +7,6 @@ classdef ShFunc_Perimeter< Shape_Functional
     methods
         function obj=ShFunc_Perimeter(settings)
             obj.Perimeter_target=settings.target_parameters.Perimeter_target;
-            obj.epsilon = 0.02;
             switch settings.perimeter.optimizer
                 case 'SLERP'
                     obj.filter_pde=Filter_SLERP_PDE;
@@ -17,9 +16,9 @@ classdef ShFunc_Perimeter< Shape_Functional
             
             
         end
-%         function Perimeter_target=get.Perimeter_target(obj)
-%             Perimeter_target=obj.target_parameters.Perimeter_target;
-%         end
+        function epsilon=get.epsilon(obj)
+            epsilon=obj.target_parameters.epsilon;
+        end
 
         function computef(obj,x,physProblem,~,~)
             obj.checkFilterPre(physProblem);
