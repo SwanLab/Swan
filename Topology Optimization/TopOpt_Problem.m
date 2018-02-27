@@ -5,10 +5,10 @@ classdef TopOpt_Problem < handle
         TOL
         x
         interpolation
-        filter
+        filter %% !! Remove when scalar product not done in Optimizer
         algorithm
         optimizer
-        physicalProblem
+        physicalProblem %% !! Only used for Ksmooth, Msmooth and geom/mesh/dofs (for filters & incremental)
         settings
         incremental_scheme
     end
@@ -23,12 +23,10 @@ classdef TopOpt_Problem < handle
             settings.nconstr = length(settings.constraint);
             obj.cost = Cost(settings,settings.weights);
             obj.constraint = Constraint(settings);
-            switch settings.ptype
-                case 'MACRO'
-                    obj.physicalProblem = Physical_Problem(settings.filename);
-                case 'MICRO'
-                    obj.physicalProblem = Physical_Problem_Micro(settings.filename);
-            end
+            
+            % This PhysProb is only gonna be used by filters & incremental -> no need of specifying MICRO or MACRO
+            % Consider turning it into a more generic class like FEM
+            obj.physicalProblem = Physical_Problem(settings.filename);
             obj.settings = settings;
             obj.TOL = obj.settings.TOL;
             obj.interpolation = Interpolation.create(obj.TOL,settings.material,settings.method);
@@ -48,25 +46,19 @@ classdef TopOpt_Problem < handle
         function preProcess(obj)
             %initialize design variable
             obj.physicalProblem.preProcess;
-            
-            dof_phy = obj.physicalProblem.dof;
             obj.filters_preProcess;
-            obj.physicalProblem.setDof(dof_phy);
             
             obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.physicalProblem);
             obj.compute_initial_design;
-            rho = obj.filter.getP0fromP1(obj.x);
-            matProps = obj.interpolation.computeMatProp(rho);
-            obj.physicalProblem.setMatProps(matProps);
+            obj.physicalProblem = []; % To check that only it is used once (Debugging)
         end
         
         function computeVariables(obj)
             for istep = 1:obj.settings.nsteps
-                disp(strcat('Incremental step: ', int2str(istep)))
-                obj.incremental_scheme.update_target_parameters(istep, obj.cost, obj.constraint, obj.optimizer);
-                obj.cost.computef(obj.x,obj.physicalProblem,obj.interpolation);
-                obj.constraint.computef(obj.x, obj.physicalProblem, obj.interpolation);
-                obj.optimizer.setPhysicalProblem(obj.physicalProblem);
+                disp(strcat('Incremental step: ',int2str(istep)))
+                obj.incremental_scheme.update_target_parameters(istep,obj.cost,obj.constraint,obj.optimizer);
+                obj.cost.computef(obj.x,obj.interpolation);
+                obj.constraint.computef(obj.x,obj.interpolation);
                 obj.x = obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,obj.interpolation);
             end
         end
@@ -115,8 +107,8 @@ classdef TopOpt_Problem < handle
             volume = ShFunc_Volume(obj.settings);
             perimeter = ShFunc_Perimeter(obj.settings);
             
-            obj.incremental_scheme.update_target_parameters(1, compliance0, volume0, perimeter0);
-            obj.incremental_scheme.update_target_parameters(1, compliance, volume, perimeter);
+            obj.incremental_scheme.update_target_parameters(1,compliance0,volume0,perimeter0);
+            obj.incremental_scheme.update_target_parameters(1,compliance,volume,perimeter);
             %evaluate initial
             compliance0.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
             volume0.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);

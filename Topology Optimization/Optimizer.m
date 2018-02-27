@@ -15,9 +15,7 @@ classdef Optimizer < handle
         plotting
         printing
         monitoring
-        stop_vars
-        physicalProblem
-        
+        stop_vars        
     end
     methods
         function obj = Optimizer(settings,monitoring)
@@ -29,25 +27,22 @@ classdef Optimizer < handle
             obj.monitoring = Monitoring(settings,monitoring);
         end
         function x = solveProblem(obj,x_ini,cost,constraint,interpolation)
-            cost.computef(x_ini,obj.physicalProblem,interpolation);
-            constraint.computef(x_ini,obj.physicalProblem,interpolation);
-            obj.plotX(x_ini)
+            cost.computef(x_ini,interpolation);
+            constraint.computef(x_ini,interpolation);
+%             obj.plotX(x_ini)
 %             obj.print(x_ini,filter.getP0fromP1(x_ini),obj.niter);
             while obj.stop_criteria && obj.niter < obj.maxiter
                 obj.niter = obj.niter+1;
                 x = obj.updateX(x_ini,cost,constraint,interpolation);
-                obj.plotX(x)
+%                 obj.plotX(x)
 %                 obj.print(x,filter.getP0fromP1(x),obj.niter);
                 obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars,obj.stop_criteria && obj.niter < obj.maxiter);
                 x_ini = x;
             end
             obj.stop_criteria = 1;
         end
-        function setPhysicalProblem(obj,pProblem)
-            obj.physicalProblem = pProblem;
-        end
         
-        %% HAS TO BE REMOVED FROM OPTIMIZER CLASS
+        %% HAS TO BE REMOVED FROM OPTIMIZER CLASS --> Physical Problem with Element_Dif_React
         function sp = scalar_product(obj,f,g)
             f = f(:);
             g = g(:);

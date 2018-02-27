@@ -27,8 +27,8 @@ classdef Optimizer_PG < Optimizer
         end
         function x = updateX(obj,x_ini,cost,constraint,interpolation)                 
                 x = obj.updateRho(x_ini,obj.objfunc.gradient);
-                cost.computef(x,obj.physicalProblem,interpolation);
-                constraint.computef(x,obj.physicalProblem,interpolation);
+                cost.computef(x,interpolation);
+                constraint.computef(x,interpolation);
                 
                 obj.objfunc.computeFunction(cost,constraint)
 %                 cost_ls = cost.value + obj.lambda*constraint.value + 0.5*obj.penalty*(constraint.value.*constraint.value);

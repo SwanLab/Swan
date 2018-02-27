@@ -23,7 +23,6 @@ classdef Optimizer_AugLag < Optimizer
             obj.optimizer_unconstr.computeKappa(x_ini,obj.objfunc.gradient);
             obj.optimizer_unconstr.stop_criteria = 1;
             
-            obj.optimizer_unconstr.setPhysicalProblem(obj.physicalProblem);
             while (obj.optimizer_unconstr.stop_criteria)
                 x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint,interpolation); %x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint,obj.physicalProblem,interpolation,filter);
                 obj.stop_vars = obj.optimizer_unconstr.stop_vars;

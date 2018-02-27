@@ -25,8 +25,8 @@ classdef Optimizer_SLERP < Optimizer
         end
         function x = updateX(obj,x_ini,cost,constraint,interpolation)
             x = obj.updatePhi(x_ini,obj.objfunc.gradient);
-            cost.computef(x,obj.physicalProblem,interpolation);
-            constraint.computef(x,obj.physicalProblem,interpolation);
+            cost.computef(x,interpolation);
+            constraint.computef(x,interpolation);
             
             obj.objfunc.computeFunction(cost,constraint)
             
