@@ -5,7 +5,7 @@ classdef Material_Elastic < Material
     % !! This has to be revised. !!
     % !! The best structure depends on how this is wanted to be initialized !!
     
-    properties (GetAccess = {?Element,?Material_Elastic_ISO,?Material_Hyperelastic_2D,?Physical_Problem}, SetAccess = public) 
+    properties (GetAccess = {?Element,?Material_Elastic_ISO,?Material_Hyperelastic,?Physical_Problem}, SetAccess = public) 
         C
         kappa
         mu

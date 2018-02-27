@@ -2,7 +2,7 @@ classdef Material
     %Material Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (GetAccess = {?Material_Elastic, ?Physical_Problem}, SetAccess = public)
+    properties (GetAccess = {?Material_Elastic, ?Material_Hyperelastic, ?Physical_Problem}, SetAccess = public)
         nelem
     end
     
@@ -30,6 +30,8 @@ classdef Material
                     switch pdim
                         case '2D'
                             material = Material_Hyperelastic_2D(nelem,connec,cartd,nnode,coord);
+                        case '3D'
+                            material = Material_Hyperelastic_3D(nelem,connec,cartd,nnode,coord);
                     end
                     
                 case 'THERMAL'

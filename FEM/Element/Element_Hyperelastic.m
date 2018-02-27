@@ -41,19 +41,8 @@ classdef Element_Hyperelastic < Element
             % Assemble
             K = obj.AssembleMatrix(K);
             
-%             % Assemble u and Fext
-%             u = zeros(obj.dof.ndof,1);
-%             u(obj.dof.free) = uL;
-%             
-%             if ~isempty(obj.dof.vR)
-%                 u(obj.dof.vR) = obj.bc.fixnodes(:,3);
-%                 fext = obj.cload(obj.dof.vL)-K(obj.dof.vL,obj.dof.vR)*u(obj.dof.vR); % fext + reac
-%             else
-%                 fext = obj.cload(obj.dof.free);
-%             end
-
             R = obj.compute_imposed_displacemet_force(K);
-            obj.fext = obj.cload + R;
+            obj.fext = obj.cload + R; % fext + reac
 
             fint_red = obj.computeInternal();
             
@@ -65,8 +54,7 @@ classdef Element_Hyperelastic < Element
         function fint = computeInternal(obj)
         % Fdef          --> cartd0 = obj.geometry.cartd
         % fint,ksigma   --> cartd  = obj.cartd
-%             sigma = obj.material.updateSigma(obj.coord,obj.cartd0);
-%             obj.stress = sigma;
+
             for a = 1:obj.nnode
                 for i = 1:obj.geometry.ndime
                     iL = obj.geometry.ndime*(a-1) + i;
@@ -88,7 +76,6 @@ classdef Element_Hyperelastic < Element
         function [K,sigma] = computeTangentMatrix(obj)
             % Compute ctens & sigma
             [ctens,sigma] = obj.material.computeCtens(obj.coord);
-
             obj.stress = sigma;
             
             % Compute tangent components
@@ -146,15 +133,15 @@ classdef Element_Hyperelastic < Element
             end
         end
         
-        % 2D
-        function obj = updateCoord(obj,u)
-            % Update coordinates
-            coord0 = obj.coord;
-            coord  = reshape(coord0(:,1:2)',[],1);
-            coord(obj.dof.free) = coord(obj.dof.free) + u;
-            coord0(:,1:2) = reshape(coord,2,[])';
-            obj.coord = coord0;            
-        end
+%         % 2D
+%         function obj = updateCoord(obj,u)
+%             % Update coordinates
+%             coord0 = obj.coord;
+%             coord  = reshape(coord0(:,1:2)',[],1);
+%             coord(obj.dof.free) = coord(obj.dof.free) + u;
+%             coord0(:,1:2) = reshape(coord,2,[])';
+%             obj.coord = coord0;            
+%         end
         
         function obj = updateCartd(obj)
             [obj.cartd,obj.dvolu] = obj.geometry.computeCartd(obj.coord,obj.nelem,obj.pdim);

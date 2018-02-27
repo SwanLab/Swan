@@ -47,7 +47,12 @@ classdef Element<handle
                         case 'THERMAL'
                             element = Element_Thermal;
                         case 'HYPERELASTIC'
-                            element = Element_Hyperelastic(geometry);
+                            switch pdim
+                                case '2D'
+                                    element = Element_Hyperelastic_2D(geometry);
+                                case '3D'
+                                    element = Element_Hyperelastic_3D(geometry);
+                            end
                         otherwise
                             error('Invalid ptype.')
                     end 
