@@ -6,6 +6,8 @@ classdef ShFunc_NonSelfAdjoint_Compliance < Shape_Functional
     end
     methods
         function obj=ShFunc_NonSelfAdjoint_Compliance(settings)
+            obj@Shape_Functional(settings);
+            
             obj.forces_adjoint=Preprocess.getBC_adjoint(settings.filename);
             obj.adjointProblem=Physical_Problem(settings.filename);
             
@@ -15,8 +17,8 @@ classdef ShFunc_NonSelfAdjoint_Compliance < Shape_Functional
             
             obj.adjointProblem.preProcess;
         end
-        function computef(obj,x,physicalProblem,interpolation,filter)  
-            rho=filter.getP0fromP1(x);
+        function computef(obj,x,physicalProblem,interpolation)  
+            rho=obj.filter.getP0fromP1(x);
             matProps=interpolation.computeMatProp(rho);
             physicalProblem.setMatProps(matProps);
             physicalProblem.computeVariables;
@@ -46,8 +48,8 @@ classdef ShFunc_NonSelfAdjoint_Compliance < Shape_Functional
                 compliance=compliance/abs(obj.h_C_0);
                 gradient_compliance=gradient_compliance/abs(obj.h_C_0);
             end  
-            gradient_compliance=filter.getP1fromP0(gradient_compliance);
-            gradient_compliance = filter.Msmooth*gradient_compliance;
+            gradient_compliance=obj.filter.getP1fromP0(gradient_compliance);
+            gradient_compliance = obj.filter.Msmooth*gradient_compliance;
                   
             obj.value=compliance;
             obj.gradient=gradient_compliance;

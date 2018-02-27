@@ -2,7 +2,6 @@ classdef Optimizer_SLERP < Optimizer
     properties
         kfrac
         max_constr_change
-        volume_initial
         opt_cond
         kappa_min
         optimality_tol
@@ -24,11 +23,10 @@ classdef Optimizer_SLERP < Optimizer
         function constr_tol = get.constr_tol(obj)
             constr_tol(1:obj.nconstr) = obj.target_parameters.constr_tol;
         end
-        function x = updateX(obj,x_ini,cost,constraint,interpolation,filter)
+        function x = updateX(obj,x_ini,cost,constraint,interpolation)
             x = obj.updatePhi(x_ini,obj.objfunc.gradient);
-            cost.computef(x,obj.physicalProblem,interpolation,filter);
-            constraint.computef(x,obj.physicalProblem,interpolation,filter);
-            obj.shfunc_volume.computef(x,obj.physicalProblem,interpolation,filter);
+            cost.computef(x,obj.physicalProblem,interpolation);
+            constraint.computef(x,obj.physicalProblem,interpolation);
             
             obj.objfunc.computeFunction(cost,constraint)
             

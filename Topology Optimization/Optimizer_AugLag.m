@@ -10,19 +10,14 @@ classdef Optimizer_AugLag < Optimizer
             obj.objfunc = Objective_Function_AugLag(settings);
             obj.optimizer_unconstr = optimizer_unconstr;
         end
-        function x = updateX(obj,x_ini,cost,constraint,interpolation,filter)
+        function x = updateX(obj,x_ini,cost,constraint,interpolation)
             obj.checkInitial;
             obj.optimizer_unconstr.target_parameters = obj.target_parameters;
-            obj.shfunc_volume.target_parameters = obj.target_parameters;
-            obj.optimizer_unconstr.shfunc_volume.target_parameters = obj.target_parameters;
-            obj.shfunc_volume.computef(x_ini,obj.physicalProblem,interpolation,filter);
-            
             obj.objfunc.lambda = obj.objfunc.lambda+obj.objfunc.penalty.*constraint.value';
             constraint.lambda = obj.objfunc.lambda;
             obj.objfunc.computeFunction(cost,constraint);
             obj.objfunc.computeGradient(cost,constraint);
-            
-            obj.optimizer_unconstr.volume_initial = obj.shfunc_volume.value;
+                       
             obj.optimizer_unconstr.objfunc = obj.objfunc;
             obj.optimizer_unconstr.objfunc.value_initial = obj.objfunc.value;
             obj.optimizer_unconstr.computeKappa(x_ini,obj.objfunc.gradient);
@@ -30,7 +25,7 @@ classdef Optimizer_AugLag < Optimizer
             
             obj.optimizer_unconstr.setPhysicalProblem(obj.physicalProblem);
             while (obj.optimizer_unconstr.stop_criteria)
-                x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint,interpolation,filter); %x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint,obj.physicalProblem,interpolation,filter);
+                x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint,interpolation); %x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint,obj.physicalProblem,interpolation,filter);
                 obj.stop_vars = obj.optimizer_unconstr.stop_vars;
             end
             
