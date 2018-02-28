@@ -43,12 +43,12 @@ classdef CC < handle
             end
         end
         
-        function computef(obj, x, interpolation)
+        function computef(obj, x)
             obj.value = 0;
             obj.gradient = zeros(length(x),1);
             for iSF = 1:length(obj.ShapeFuncs)
                 obj.ShapeFuncs{iSF}.target_parameters = obj.target_parameters;
-                obj.ShapeFuncs{iSF}.computef(x,interpolation);
+                obj.ShapeFuncs{iSF}.computef(x);
                 obj.updateFields(iSF);
             end
         end

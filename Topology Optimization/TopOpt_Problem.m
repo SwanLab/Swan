@@ -2,9 +2,7 @@ classdef TopOpt_Problem < handle
     properties (GetAccess = public,SetAccess = public)
         cost
         constraint
-        TOL
         x
-        interpolation
         filter %% !! Remove when scalar product not done in Optimizer
         algorithm
         optimizer
@@ -28,8 +26,6 @@ classdef TopOpt_Problem < handle
             % Consider turning it into a more generic class like FEM
             obj.physicalProblem = Physical_Problem(settings.filename);
             obj.settings = settings;
-            obj.TOL = obj.settings.TOL;
-            obj.interpolation = Interpolation.create(obj.TOL,settings.material,settings.method);
             switch obj.settings.optimizer
                 case 'SLERP'
                     obj.optimizer = Optimizer_AugLag(settings,Optimizer_SLERP(settings));
@@ -50,16 +46,16 @@ classdef TopOpt_Problem < handle
             
             obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.physicalProblem);
             obj.compute_initial_design;
-            obj.physicalProblem = []; % To check that only it is used once (Debugging)
+            obj.physicalProblem = []; % !! To check that only it is used once (Debugging) !!
         end
         
         function computeVariables(obj)
             for istep = 1:obj.settings.nsteps
                 disp(strcat('Incremental step: ',int2str(istep)))
                 obj.incremental_scheme.update_target_parameters(istep,obj.cost,obj.constraint,obj.optimizer);
-                obj.cost.computef(obj.x,obj.interpolation);
-                obj.constraint.computef(obj.x,obj.interpolation);
-                obj.x = obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,obj.interpolation);
+                obj.cost.computef(obj.x);
+                obj.constraint.computef(obj.x);
+                obj.x = obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint);
             end
         end
         

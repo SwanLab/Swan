@@ -17,8 +17,8 @@ classdef ShFunc_Perimeter < Shape_Functional
         %             Perimeter_target = obj.target_parameters.Perimeter_target;
         %         end
         
-        function computef(obj,x,physProblem,~,~)
-            obj.checkFilterPre(physProblem);
+        function computef(obj,x)
+            obj.checkFilterPre(obj.filter);
             x_reg = obj.filter.getP1fromP1(x);
             rhs = obj.filter.integrate_L2_function_with_shape_function(x);
             Perimeter = 0.5/obj.filter.epsilon*((1 - x_reg)'*rhs);
@@ -31,6 +31,7 @@ classdef ShFunc_Perimeter < Shape_Functional
             obj.value = constraint;
             obj.gradient = constraint_gradient;
         end
+        %% !! DEBUGGING FUNCTION !! REMOVE WHEN DONE
         function checkFilterPre(obj, physicalProblem)
             if isempty(obj.filter.Msmooth)
                 dof_phy = physicalProblem.dof;

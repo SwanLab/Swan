@@ -2,6 +2,7 @@ classdef ShFunc_Compliance < Shape_Functional
     properties
         h_C_0; %compliance incial
         physicalProblem
+        interpolation
     end
     methods
         function obj = ShFunc_Compliance(settings)
@@ -13,6 +14,7 @@ classdef ShFunc_Compliance < Shape_Functional
                     obj.physicalProblem = Physical_Problem_Micro(settings.filename);
             end
             obj.physicalProblem.preProcess;
+            obj.interpolation = Interpolation.create(settings.TOL,settings.material,settings.method);
         end
         
 %         function obj = preProcess(obj)
@@ -21,9 +23,9 @@ classdef ShFunc_Compliance < Shape_Functional
 %             obj.physicalProblem.setMatProps(matProps);
 %         end
         
-        function computef(obj,x,interpolation)
+        function computef(obj,x)
             rho = obj.filter.getP0fromP1(x);
-            matProps = interpolation.computeMatProp(rho);
+            matProps = obj.interpolation.computeMatProp(rho);
             
             %compute compliance
             obj.physicalProblem.setMatProps(matProps);

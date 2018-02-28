@@ -2,6 +2,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < Shape_Functional
     properties
         h_C_0; %compliance incial
         physicalProblem
+        interpolation
         forces_adjoint
         adjointProblem
     end
@@ -15,6 +16,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < Shape_Functional
                     obj.physicalProblem = Physical_Problem_Micro(settings.filename);
             end
             obj.physicalProblem.preProcess;
+            obj.interpolation = Interpolation.create(settings.TOL,settings.material,settings.method);
             
             obj.forces_adjoint = Preprocess.getBC_adjoint(settings.filename);
             obj.adjointProblem = Physical_Problem(settings.filename);
@@ -25,9 +27,9 @@ classdef ShFunc_NonSelfAdjoint_Compliance < Shape_Functional
             
             obj.adjointProblem.preProcess;
         end
-        function computef(obj,x,interpolation)
+        function computef(obj,x)
             rho = obj.filter.getP0fromP1(x);
-            matProps = interpolation.computeMatProp(rho);
+            matProps = obj.interpolation.computeMatProp(rho);
             
             %compute compliance
             obj.physicalProblem.setMatProps(matProps);

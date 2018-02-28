@@ -10,7 +10,7 @@ classdef Optimizer_AugLag < Optimizer
             obj.objfunc = Objective_Function_AugLag(settings);
             obj.optimizer_unconstr = optimizer_unconstr;
         end
-        function x = updateX(obj,x_ini,cost,constraint,interpolation)
+        function x = updateX(obj,x_ini,cost,constraint)
             obj.checkInitial;
             obj.optimizer_unconstr.target_parameters = obj.target_parameters;
             obj.objfunc.lambda = obj.objfunc.lambda+obj.objfunc.penalty.*constraint.value';
@@ -24,7 +24,7 @@ classdef Optimizer_AugLag < Optimizer
             obj.optimizer_unconstr.stop_criteria = 1;
             
             while (obj.optimizer_unconstr.stop_criteria)
-                x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint,interpolation); %x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint,obj.physicalProblem,interpolation,filter);
+                x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint); %x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint,obj.physicalProblem,interpolation,filter);
                 obj.stop_vars = obj.optimizer_unconstr.stop_vars;
             end
             

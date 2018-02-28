@@ -10,6 +10,6 @@ classdef Shape_Functional < handle
             obj.filter = Filter.create(settings.filter,settings.optimizer);
         end
             
-        computef(obj)
+        computef(obj, x)
     end
 end
