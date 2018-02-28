@@ -3,6 +3,8 @@ classdef ShFunc_Compliance < Shape_Functional
         h_C_0; %compliance incial
         physicalProblem
         interpolation
+        rho
+        matProps
     end
     methods
         function obj = ShFunc_Compliance(settings)
@@ -24,31 +26,27 @@ classdef ShFunc_Compliance < Shape_Functional
 %         end
         
         function computef(obj,x)
-            rho = obj.filter.getP0fromP1(x);
-            matProps = obj.interpolation.computeMatProp(rho);
-            
-            %compute compliance
-            obj.physicalProblem.setMatProps(matProps);
+            obj.rho = obj.filter.getP0fromP1(x);
+            obj.matProps = obj.interpolation.computeMatProp(obj.rho);
+            obj.computef_CORE;
+        end
+        
+        function computef_CORE(obj)
+            % Compute compliance
+            obj.physicalProblem.setMatProps(obj.matProps);
             obj.physicalProblem.computeVariables;
             
-            %compliance = obj.physicalProblem.variables.d_u'*obj.physicalProblem.RHS;
-            compliance = obj.physicalProblem.variables.d_u'*obj.physicalProblem.variables.fext;
+            compliance = obj.computeCompliance;
             
-            %compute gradient
-            strain = obj.physicalProblem.variables.strain;
-            stress = obj.physicalProblem.variables.stress;
-            fobj = 0;
+            % Compute gradient
             gradient_compliance = zeros(obj.physicalProblem.mesh.nelem,obj.physicalProblem.geometry.ngaus);
             for igaus = 1:obj.physicalProblem.geometry.ngaus
                 for istre = 1:obj.physicalProblem.dim.nstre
                     for jstre = 1:obj.physicalProblem.dim.nstre
-                        gradient_compliance(:,igaus) = gradient_compliance(:,igaus) + (squeeze(-strain(igaus,istre,:)).*squeeze(matProps.dC(istre,jstre,:)).*squeeze(strain(igaus,jstre,:)));
+                        gradient_compliance(:,igaus) = gradient_compliance(:,igaus) + obj.updateGradient(igaus,istre,jstre);
                     end
-                    fobj = fobj + (squeeze(strain(igaus,istre,:)).*squeeze(stress(igaus,istre,:)))'*obj.physicalProblem.geometry.dvolu(:,igaus);
                 end
             end
-            
-            %% !! NOTE: INVERSE ORDER THAN NON-SELF-ADJOINT COMPLIANCE, MISTAKE? !!
             
             gradient_compliance = obj.filter.getP1fromP0(gradient_compliance);
             gradient_compliance = obj.filter.Msmooth*gradient_compliance;
@@ -62,6 +60,14 @@ classdef ShFunc_Compliance < Shape_Functional
             
             obj.value = compliance;
             obj.gradient = gradient_compliance;
+        end
+        
+        function compliance = computeCompliance(obj)
+            compliance = obj.physicalProblem.variables.d_u'*obj.physicalProblem.variables.fext;
+        end
+        
+        function gradient_compliance = updateGradient(obj,igaus,istre,jstre)
+            gradient_compliance = (squeeze(-obj.physicalProblem.variables.strain(igaus,istre,:)).*squeeze(obj.matProps.dC(istre,jstre,:)).*squeeze(obj.physicalProblem.variables.strain(igaus,jstre,:)));
         end
     end
 end

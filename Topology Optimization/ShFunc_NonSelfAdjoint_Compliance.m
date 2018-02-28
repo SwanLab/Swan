@@ -1,22 +1,11 @@
-classdef ShFunc_NonSelfAdjoint_Compliance < Shape_Functional
+classdef ShFunc_NonSelfAdjoint_Compliance < ShFunc_Compliance
     properties
-        h_C_0; %compliance incial
-        physicalProblem
-        interpolation
         forces_adjoint
         adjointProblem
     end
     methods
         function obj = ShFunc_NonSelfAdjoint_Compliance(settings)
-            obj@Shape_Functional(settings);
-            switch settings.ptype
-                case 'MACRO'
-                    obj.physicalProblem = Physical_Problem(settings.filename);
-                case 'MICRO'
-                    obj.physicalProblem = Physical_Problem_Micro(settings.filename);
-            end
-            obj.physicalProblem.preProcess;
-            obj.interpolation = Interpolation.create(settings.TOL,settings.material,settings.method);
+            obj@ShFunc_Compliance(settings);
             
             obj.forces_adjoint = Preprocess.getBC_adjoint(settings.filename);
             obj.adjointProblem = Physical_Problem(settings.filename);
@@ -28,47 +17,20 @@ classdef ShFunc_NonSelfAdjoint_Compliance < Shape_Functional
             obj.adjointProblem.preProcess;
         end
         function computef(obj,x)
-            rho = obj.filter.getP0fromP1(x);
-            matProps = obj.interpolation.computeMatProp(rho);
-            
-            %compute compliance
-            obj.physicalProblem.setMatProps(matProps);
-            obj.physicalProblem.computeVariables;
-            
-            strain = obj.physicalProblem.variables.strain;
-            
-            obj.adjointProblem.setMatProps(matProps);
+            obj.rho = obj.filter.getP0fromP1(x);
+            obj.matProps = obj.interpolation.computeMatProp(obj.rho);
+            obj.adjointProblem.setMatProps(obj.matProps);
             obj.adjointProblem.computeVariables;
             
-            strain_adjoint = obj.adjointProblem.variables.strain;
-            
-            %compliance = d_u'*(-obj.adjointProblem.RHS);
+            computef_CORE(obj);
+        end
+        
+        function compliance = computeCompliance(obj)
             compliance = obj.physicalProblem.variables.d_u'*(-obj.adjointProblem.variables.fext);
-            
-            %compute gradient
-            gradient_compliance = zeros(obj.physicalProblem.mesh.nelem,obj.physicalProblem.geometry.ngaus);
-            for igaus = 1:obj.physicalProblem.geometry.ngaus
-                for istre = 1:obj.physicalProblem.dim.nstre
-                    for jstre = 1:obj.physicalProblem.dim.nstre
-                        gradient_compliance(:,igaus) = gradient_compliance(:,igaus)+(squeeze(strain(igaus,istre,:)).*squeeze(matProps.dC(istre,jstre,:)).*squeeze(strain_adjoint(igaus,jstre,:)));
-                    end
-                end
-            end
-            
-            %% !! NOTE: INVERSE ORDER THAN NORMAL COMPLIANCE, MISTAKE? !!
-            
-            if isempty(obj.h_C_0)
-                obj.h_C_0 = compliance;
-            else
-                compliance = compliance/abs(obj.h_C_0);
-                gradient_compliance = gradient_compliance/abs(obj.h_C_0);
-            end
-            
-            gradient_compliance = obj.filter.getP1fromP0(gradient_compliance);
-            gradient_compliance = obj.filter.Msmooth*gradient_compliance;
-            
-            obj.value = compliance;
-            obj.gradient = gradient_compliance;
+        end
+        
+        function gradient_compliance = updateGradient(obj,igaus,istre,jstre)
+            gradient_compliance = (squeeze(obj.physicalProblem.variables.strain(igaus,istre,:)).*squeeze(obj.matProps.dC(istre,jstre,:)).*squeeze(obj.adjointProblem.variables.strain(igaus,jstre,:)));
         end
     end
 end
