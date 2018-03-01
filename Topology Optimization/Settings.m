@@ -69,10 +69,12 @@ classdef Settings < handle
                 obj.optimality_final = optimality_final;
                 obj.constr_final = constr_final;
                 obj.Perimeter_target=Perimeter_target;
-
+                
                 
                 obj.micro.alpha = micro.alpha;
                 obj.micro.beta = micro.beta;
+                fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: %s \n -Constraint: %s \n -Vtarget: %f \n -Ptarget: %f \n\n',...
+                    case_file,obj.optimizer,char(obj.cost),char(obj.constraint),obj.Vfrac_final,obj.Perimeter_target)
         end
     end
 end

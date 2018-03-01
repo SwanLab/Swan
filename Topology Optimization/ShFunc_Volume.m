@@ -9,7 +9,7 @@ classdef ShFunc_Volume< Shape_Functional
         function Vfrac = get.Vfrac(obj)
             Vfrac = obj.target_parameters.Vfrac;
         end
-        function computef(obj, x, ~, ~)
+        function computef(obj, x)
             mass = obj.filter.Msmooth;
             rho = obj.filter.getP0fromP1(x);     
             
