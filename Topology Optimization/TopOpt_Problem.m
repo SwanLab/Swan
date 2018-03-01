@@ -205,6 +205,8 @@ classdef TopOpt_Problem < handle
             obj.optimizer.Msmooth = obj.filter.Msmooth;
             obj.optimizer.Ksmooth = obj.filter.Ksmooth;
             obj.optimizer.epsilon_scalar_product_P1 = obj.incremental_scheme.epsilon;
+            
+            %% !! COULD BE CLEANER, NOT IN IF --> O.O.P.  !!
             if strcmp(obj.settings.optimizer,'SLERP')
                 sqrt_norma = obj.optimizer.scalar_product(obj.x,obj.x);
                 obj.x = obj.x/sqrt(sqrt_norma);
@@ -247,8 +249,7 @@ classdef TopOpt_Problem < handle
             filter_params.dof = physicalProblem.dof;
             filter_params.element = physicalProblem.element;
             filter_params.dvolu = sparse(1:physicalProblem.mesh.nelem,1:physicalProblem.mesh.nelem,sum(physicalProblem.geometry.dvolu,2));
-            filter_params.Msmooth = physicalProblem.computeMass(2);
-            filter_params.Ksmooth = physicalProblem.computeKsmooth;
+            [filter_params.Ksmooth, filter_params.Msmooth] = physicalProblem.computeKM(2);
             filter_params.coordinates = physicalProblem.mesh.coord;
             filter_params.connectivities = physicalProblem.mesh.connec;
             filter_params.nelem = physicalProblem.mesh.nelem;

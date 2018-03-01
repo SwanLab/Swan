@@ -20,7 +20,7 @@ settings.filename = 'CantileverBeam_Triangle_Linear_Fine';
 
 
 settings.plotting = true;
-settings.printing = false;
+settings.printing = true;
 settings.monitoring = true;
 settings.monitoring_interval = 10;
 settings.maxiter = 5000;

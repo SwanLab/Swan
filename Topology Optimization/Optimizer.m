@@ -15,7 +15,7 @@ classdef Optimizer < handle
         plotting
         printing
         monitoring
-        stop_vars        
+        stop_vars
     end
     methods
         function obj = Optimizer(settings,monitoring)
@@ -29,13 +29,13 @@ classdef Optimizer < handle
         function x = solveProblem(obj,x_ini,cost,constraint)
             cost.computef(x_ini);
             constraint.computef(x_ini);
-%             obj.plotX(x_ini)
-%             obj.print(x_ini,filter.getP0fromP1(x_ini),obj.niter);
+            % obj.plotX(x_ini)
+            % obj.print(x_ini,filter.getP0fromP1(x_ini),obj.niter);
             while obj.stop_criteria && obj.niter < obj.maxiter
                 obj.niter = obj.niter+1;
                 x = obj.updateX(x_ini,cost,constraint);
-%                 obj.plotX(x)
-%                 obj.print(x,filter.getP0fromP1(x),obj.niter);
+                % obj.plotX(x)
+                % obj.print(x,filter.getP0fromP1(x),obj.niter);
                 obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars,obj.stop_criteria && obj.niter < obj.maxiter);
                 x_ini = x;
             end
@@ -47,7 +47,7 @@ classdef Optimizer < handle
             f = f(:);
             g = g(:);
             try
-            sp = f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
+                sp = f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
             catch
                 disp('error')
             end

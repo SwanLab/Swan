@@ -17,7 +17,7 @@ classdef Geometry
         posgp
     end
     
-    methods (Access = ?Physical_Problem)
+    methods (Access = {?Physical_Problem,?Element_DiffReact}) % !! Element_DiffReact -> Chapusilla !!
         function obj = Geometry(mesh)
             obj.nnode = size(mesh.connec,2);
             switch mesh.geometryType
@@ -31,7 +31,6 @@ classdef Geometry
                             error('Invalid nnode for element TRIANGLE.');
                     end
                 case 'Triangle_Linear_Mass'
-
                     geometryObject = Triangle_Linear_Mass;
                 case 'Quad_Mass'
                     geometryObject = Quad_Mass;

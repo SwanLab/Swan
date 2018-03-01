@@ -19,12 +19,6 @@ classdef ShFunc_Compliance < Shape_Functional
             obj.interpolation = Interpolation.create(settings.TOL,settings.material,settings.method);
         end
         
-%         function obj = preProcess(obj)
-%             rho = obj.filter.getP0fromP1(obj.x);
-%             matProps = obj.interpolation.computeMatProp(rho);
-%             obj.physicalProblem.setMatProps(matProps);
-%         end
-        
         function computef(obj,x)
             obj.rho = obj.filter.getP0fromP1(x);
             obj.matProps = obj.interpolation.computeMatProp(obj.rho);

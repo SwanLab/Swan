@@ -1,8 +1,6 @@
-classdef Element<handle
+classdef Element < handle
     %Element Summary of this class goes here
     %   Detailed explanation goes here TEST
-    
-    %% !! NEEDS REVISION !! -> should B be a class?? Or just be contained in element ??
     
     properties %(GetAccess = {?Physical_Problem, ?Element_Elastic, ?Element_Thermal, ?Element_Hyperelastic, ?Element_Elastic_2D, ?Element_Elastic_3d, ?Element_Hyperelastic, ?Element_Elastic_Micro}, SetAccess = protected)
         nunkn
@@ -40,6 +38,8 @@ classdef Element<handle
                             end
                         case 'THERMAL'
                             element = Element_Thermal;
+                        case 'DIFF-REACT'
+                            element = Element_DiffReact(mesh);
                         case 'HYPERELASTIC'
                             element = Element_Hyperelastic();
                         otherwise
