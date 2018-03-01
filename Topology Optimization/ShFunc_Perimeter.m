@@ -10,7 +10,7 @@ classdef ShFunc_Perimeter < Shape_Functional
                 warning('Perimeter filter changed to PDE')
             end
             obj@Shape_Functional(settings);
-            obj.Perimeter_target = settings.target_parameters.Perimeter_target;
+            obj.Perimeter_target = settings.Perimeter_target;
             obj.target_parameters=settings.target_parameters;            
         end
         function epsilon=get.epsilon(obj)
