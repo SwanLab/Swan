@@ -15,7 +15,8 @@ classdef Optimizer < handle
         plotting
         printing
         monitoring
-        stop_vars        
+        stop_vars      
+        mesh
     end
     methods
         function obj = Optimizer(settings,monitoring)
@@ -29,14 +30,13 @@ classdef Optimizer < handle
         function x = solveProblem(obj,x_ini,cost,constraint)
             cost.computef(x_ini);
             constraint.computef(x_ini);
-%             obj.plotX(x_ini)
-%             obj.print(x_ini,filter.getP0fromP1(x_ini),obj.niter);
+            obj.plotX(x_ini)
+            %             obj.print(x_ini,filter.getP0fromP1(x_ini),obj.niter);
             while obj.stop_criteria && obj.niter < obj.maxiter
                 obj.niter = obj.niter+1;
-                disp(strcat('Iter: ',num2str(obj.niter)));
                 x = obj.updateX(x_ini,cost,constraint);
-%                 obj.plotX(x)
-%                 obj.print(x,filter.getP0fromP1(x),obj.niter);
+                obj.plotX(x)
+                %                 obj.print(x,filter.getP0fromP1(x),obj.niter);
                 obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars,obj.stop_criteria && obj.niter < obj.maxiter);
                 x_ini = x;
             end
@@ -88,7 +88,7 @@ classdef Optimizer < handle
                 height = mp(1,4);
                 size_screen_offset = round([0.7*width,0.52*height,-0.71*width,-0.611*height],0);
                 set(fh,'Position',mp(select_screen,:) + size_screen_offset);
-                obj.fhtri = trisurf(obj.physicalProblem.mesh.connec,obj.physicalProblem.mesh.coord(:,1),obj.physicalProblem.mesh.coord(:,2),double(rho_nodal), ...
+                obj.fhtri = trisurf(obj.mesh.connec,obj.mesh.coord(:,1),obj.mesh.coord(:,2),double(rho_nodal), ...
                     'EdgeColor','none','LineStyle','none','FaceLighting','phong');
                 view([0,90]);
                 colormap(flipud(gray));

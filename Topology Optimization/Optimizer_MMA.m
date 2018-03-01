@@ -31,7 +31,7 @@ classdef Optimizer_MMA < Optimizer
         function kkttol=get.kkttol(obj)
             kkttol=obj.target_parameters.optimality_tol;
         end          
-        function x = updateX(obj,x,cost,constraint,interpolation)      
+        function x = updateX(obj,x,cost,constraint)      
                 obj.checkInitial(x,cost,constraint);
                 obj.outit=obj.outit+1;
                 obj.outeriter = obj.outeriter+1;
@@ -46,8 +46,8 @@ classdef Optimizer_MMA < Optimizer
                 %%%% The user should now calculate function values and gradients
                 %%%% of the objective- and constraint functions at xval.
                 %%%% The results should be put in f0val, df0dx, fval and dfdx.
-                cost.computef(x,obj.physicalProblem,interpolation);
-                constraint.computef(x,obj.physicalProblem,interpolation);
+                cost.computef(x);
+                constraint.computef(x);
 
                 [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma(cost,constraint);
                 %%%% The residual vector of the KKT conditions is calculated:
