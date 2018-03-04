@@ -36,8 +36,10 @@ classdef Physical_Problem < FEM
             obj.nfields = 1;
             if strcmp(obj.mesh.ptype,'Stokes') == 1 
                 order= {'QUADRATIC','LINEAR'};
+                obj.nfields = 2;
             else
                 order= {obj.interpolation_geometry.order};
+                obj.nfields = 1;
             end
 
             obj.quadrature = Quadrature (obj.mesh.geometryType,strjoin(order(1)));
