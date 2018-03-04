@@ -26,7 +26,6 @@ classdef DOF < handle
     methods
         
         function obj = DOF(filename,nnode,connec,nunkn,npnod,scale)
-            
             obj.in_elem = obj.compute_idx(connec,nunkn,nnode);
             [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = Preprocess.getBC(filename);
             
@@ -45,8 +44,9 @@ classdef DOF < handle
             obj.free = obj.compute_free_dof();
 
         end
+     end
         
-    end
+   
     
     methods
         

@@ -42,10 +42,13 @@ classdef Element<handle
                             element = Element_Thermal;
                         case 'HYPERELASTIC'
                             element = Element_Hyperelastic();
+                        case 'Stokes'
+                            element = Element_Stokes;
                         otherwise
                             error('Invalid ptype.')
                     end 
             end
+            
             
             element.dim = dim;
             element.nunkn = dim.nunkn;

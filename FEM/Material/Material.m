@@ -34,6 +34,8 @@ classdef Material
                     
                 case 'THERMAL'
                     error('Still not implemented.')
+                case 'Stokes'
+                    material = Material_Stokes(nelem);
                 otherwise
                     error('Invalid ptype.')
             end

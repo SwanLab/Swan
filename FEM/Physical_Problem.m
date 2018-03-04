@@ -11,13 +11,18 @@ classdef Physical_Problem < FEM
         bc
         problemID
         element
+        interpolation_geometry
+        interpolation_variable
+        quadrature
+        geometry_variable
+        nfields
     end
     
     
     %% Restricted properties definition ===================================
     properties (GetAccess = {?Postprocess,?Physical_Problem_Micro}, SetAccess = protected)
         material
-        
+
     end
     
     %% Public methods definition ==========================================
@@ -25,15 +30,45 @@ classdef Physical_Problem < FEM
         function obj = Physical_Problem(problemID)
             obj.problemID = problemID;
             obj.mesh = Mesh(obj.problemID);
+            obj.interpolation_geometry = Interpolation.create('mesh');
+            obj.interpolation_geometry.compute(obj.mesh);
+            
+            obj.nfields = 1;
+            if strcmp(obj.mesh.ptype,'Stokes') == 1 
+                order= {'QUADRATIC','LINEAR'};
+            else
+                order= {obj.interpolation_geometry.order};
+            end
+
+            obj.quadrature = Quadrature (obj.mesh.geometryType,strjoin(order(1)));
             obj.dim = DIM(obj.mesh.ptype,obj.mesh.pdim);
-            obj.geometry = Geometry(obj.mesh);
-            obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem,obj.mesh.connec,obj.geometry.cartd,obj.geometry.nnode,obj.mesh.coord);
-            obj.dof = DOF(problemID,obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.mesh.scale);
+                
+                for i=1:obj.nfields
+                interpolation_variable(i) = Interpolation.create ('variable');
+                interpolation_variable(i).compute(obj.interpolation_geometry,strjoin(order(i)));
+                geometry_variable(i) = Geometry(interpolation_variable(i),obj.quadrature,obj.mesh.nelem); 
+                dof(i) = DOF(problemID,geometry_variable(i).nnode,interpolation_variable(i).T,obj.dim.nunkn(i),interpolation_variable(i).npnod,obj.mesh.scale);
+                end
+            obj.interpolation_variable = interpolation_variable;
+            obj.geometry_variable = geometry_variable;
+            obj.dof=dof;
+
+%             obj.quadrature = Quadrature (obj.mesh.geometryType,strjoin(order(1)));
+%             obj.interpolation_variable=Interpolation.create ('variable');
+%             obj.interpolation_variable.compute(obj.interpolation_geometry,order,obj.nfields);
+%             obj.geometry = Geometry(obj.interpolation_variable,obj.quadrature,obj.mesh.nelem,obj.nfields); 
+
+            
+%             obj.interpolation_variable = interpolation_variable; 
+            
+%             obj.geometry = geometry;
+            obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem,obj.mesh.connec,obj.geometry_variable.cartd,obj.geometry_variable.nnode,obj.mesh.coord);
+%             obj.dof = DOF(problemID,obj.geometry_variable.nnode,obj.interpolation_variable.T,obj.dim.nunkn,obj.interpolation_variable.npnod,obj.mesh.scale,obj.nfields);
             
         end
         
         function preProcess(obj)
-            obj.element = Element.create(obj.mesh,obj.geometry,obj.material,obj.bc,obj.dof,obj.dim);
+            obj.element = Element.create(obj.mesh,obj.geometry_variable,obj.material,obj.bc,obj.dof,obj.dim);
             obj.solver = Solver.create();
         end
         

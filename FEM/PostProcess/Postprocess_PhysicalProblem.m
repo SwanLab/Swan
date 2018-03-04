@@ -1,4 +1,4 @@
-classdef Postprocess_PhysicalProblem < Postprocess
+classdef Postprocess_PhysicalProblem_mechanics < Postprocess
     
     properties
         stress_name = 'Stress';
@@ -12,7 +12,7 @@ classdef Postprocess_PhysicalProblem < Postprocess
     methods (Access = public)
         % Export Results
         
-        function obj = Postprocess_PhysicalProblem()
+        function obj = Postprocess_PhysicalProblem_mechanics()
             
         end
         
