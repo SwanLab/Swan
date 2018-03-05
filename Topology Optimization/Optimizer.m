@@ -6,6 +6,7 @@ classdef Optimizer < handle
         stop_criteria = 1;
         Msmooth
         Ksmooth
+%         P
         target_parameters = struct;
         epsilon_scalar_product_P1
         name
@@ -45,13 +46,7 @@ classdef Optimizer < handle
         
         %% HAS TO BE REMOVED FROM OPTIMIZER CLASS --> Physical Problem with Element_Dif_React
         function sp = scalar_product(obj,f,g)
-            f = f(:);
-            g = g(:);
-            try
             sp = f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
-            catch
-                disp('error')
-            end
         end
     end
     methods (Access = private)
@@ -103,6 +98,7 @@ classdef Optimizer < handle
     end
     
     methods (Access = protected, Static)
+        %% !! FER AMB SCALAR PRODUCT !!
         function N_L2 = norm_L2(x,x_ini,M)
             inc_x = x-x_ini;
             N_L2 = (inc_x'*M*inc_x)/(x_ini'*M*x_ini);
