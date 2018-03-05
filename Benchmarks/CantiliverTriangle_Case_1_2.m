@@ -1,3 +1,4 @@
+filename='CantileverBeam_Triangle_Linear_Fine';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -5,12 +6,11 @@ initial_case = 'full';
 cost = {'compliance'};
 weights = [1];
 constraint = {'volume'};
-optimizer = 'PROJECTED GRADIENT'; kappaMultiplier = 1;
+optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 
 nsteps = 1;
 Vfrac_final = 0.4;
-Perimeter_target=3.5;
 optimality_final =1e-3;
 constr_final =1e-3;
 
@@ -24,6 +24,3 @@ TOL.E_plus = 1;
 TOL.E_minus = 1e-3;
 TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
-
-micro.alpha = [1 1 0]';
-micro.beta = [1 1 0]';

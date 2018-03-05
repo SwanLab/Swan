@@ -205,7 +205,7 @@ classdef TopOpt_Problem < handle
             end
             obj.optimizer.Msmooth = obj.filter.Msmooth;
             obj.optimizer.Ksmooth = obj.filter.Ksmooth;
-            obj.optimizer.epsilon_scalar_product_P1 = obj.incremental_scheme.epsilon;
+            obj.optimizer.epsilon_scalar_product_P1 = obj.incremental_scheme.epsilon_isotropy;
             if strcmp(obj.settings.optimizer,'SLERP')
                 sqrt_norma = obj.optimizer.scalar_product(obj.x,obj.x);
                 obj.x = obj.x/sqrt(sqrt_norma);

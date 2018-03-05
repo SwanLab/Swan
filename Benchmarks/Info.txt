@@ -1,22 +1,13 @@
 
 
-Case 1.x.x ------> SLERP
-Case 2.x.x ------> PG
-Case 3.x.x ------> MMA
-Case 4.x.x ------> IPOPT
-
-Case x.1.x ------> compliance st volume
-Case x.2.x ------> compliance st volumePerimeter
-Case x.3.x ------> compliance+lam*perimeter st volume
-Case x.4.x ------> gripping
-...
-...
-
-Case x.x.1 ------> vfrac 0.3 perimeter 3
-Case x.x.2 ------> vfrac 0.4 perimeter 3
-Case x.x.3 ------> vfrac 0.5 perimeter 3
-Case x.x.4 ------> vfrac 0.3 perimeter 1
-Case x.x.5 ------> vfrac 0.4 perimeter 1
-Case x.x.6 ------> vfrac 0.5 perimeter 1
-...
-...
+Case 1_x ------> SLERP
+Case 2_x ------> PG
+Case 3_x ------> MMA
+Case 4_x ------> IPOPT
++-------------------------------------------------------------------------------------------------+
+Case x_1 ------> Compliance st Volume || SIMPALL || vfrac=0.3 || nsteps=1  
+Case x_2 ------> Compliance st Volume || SIMPALL || vfrac=0.4 || nsteps=1
+Case x_3 ------> Compliance st Volume || SIMPALL || vfrac=0.5 || nsteps=1 
+Case x_4 ------> Compliance+Lam*Perimeter st Volume || SIMPALL || vfrac=0.3 || perimeter=3.5 || lambda=0.1 || nsteps=1  
+Case x_5 ------> Compliance+Lam*Perimeter st Volume || SIMPALL || vfrac=0.4 || perimeter=3.5 || lambda=0.1 || nsteps=1
+Case x_6 ------> Compliance+Lam*Perimeter st Volume || SIMPALL || vfrac=0.5 || perimeter=3.5 || lambda=0.1 || nsteps=1 

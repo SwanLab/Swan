@@ -1,9 +1,10 @@
+filename='CantileverBeam_Triangle_Linear_Fine';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'compliance'};
-weights = [1];
+cost = {'compliance';'perimeter'};
+weights = [1 0.1];
 constraint = {'volume'};
 optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
@@ -24,6 +25,3 @@ TOL.E_plus = 1;
 TOL.E_minus = 1e-3;
 TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
-
-micro.alpha = [1 1 0]';
-micro.beta = [1 1 0]';

@@ -5,7 +5,7 @@ classdef Incremental_Scheme < handle
         coord
         connec
         settings
-        epsilon
+        epsilon_isotropy
     end
     methods
         function obj=Incremental_Scheme(settings, physicalProblem)
@@ -14,7 +14,7 @@ classdef Incremental_Scheme < handle
             obj.coord=physicalProblem.mesh.coord;
             obj.connec=physicalProblem.mesh.connec;
             %% !! EPSILON SHOULD BE SET ON MAIN !!
-            obj.epsilon=1*obj.estimate_mesh_size(physicalProblem.mesh.coord,physicalProblem.mesh.connec);
+            obj.epsilon_isotropy=1*obj.estimate_mesh_size(physicalProblem.mesh.coord,physicalProblem.mesh.connec);
             obj.incropt.alpha_vol = obj.generate_incr_sequence(1/nsteps,1,nsteps,'linear');
             obj.incropt.alpha_constr = obj.generate_incr_sequence(0,1,nsteps,'linear');
             obj.incropt.alpha_optimality= obj.generate_incr_sequence(0,1,nsteps,'linear');

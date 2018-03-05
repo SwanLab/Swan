@@ -5,14 +5,11 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 %run('test_topopt.m');
 clear variables;
 %% Settings
-settings=Settings('Case4','CantileverBeam_Triangle_Linear_Fine');
+settings=Settings('CantiliverTriangle_Case_1_6');
 %% main
-
 tic
 test = TopOpt_Problem(settings);
 test.preProcess;
 test.computeVariables;
 toc
 test.postProcess;
-
-
