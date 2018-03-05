@@ -25,42 +25,53 @@ classdef DOF < handle
     
     methods
         
-        function obj = DOF(filename,nnode,connec,nunkn,npnod,scale)
-            obj.in_elem = obj.compute_idx(connec,nunkn,nnode);
-            [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = Preprocess.getBC(filename);
-            
-            obj.ndof = nunkn*npnod;
-            
-            [obj.dirichlet,obj.dirichlet_values] = obj.get_dof_conditions(dirichlet_data,nunkn);
-            [obj.neumann,obj.neumann_values] = obj.get_dof_conditions(neumann_data,nunkn);
-            [obj.full_dirichlet,obj.full_dirichlet_values] = obj.get_dof_conditions(full_dirichlet_data,nunkn);
- 
-            if ~isempty(master_slave)
-            obj.periodic_free = obj.compute_periodic_nodes(master_slave(:,1),nunkn);
-            obj.periodic_constrained = obj.compute_periodic_nodes(master_slave(:,2),nunkn);
-            end
-            
-            obj.constrained = obj.compute_constrained_dof(scale);
-            obj.free = obj.compute_free_dof();
+        function obj = DOF(filename,geometry,interpolation,dim,scale,nfields)
+           [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = Preprocess.getBC(filename);
+           [obj.neumann,obj.neumann_values] = obj.get_dof_conditions(neumann_data,dim.nunkn(1));
+           [obj.full_dirichlet,obj.full_dirichlet_values] = obj.get_dof_conditions(full_dirichlet_data,dim.nunkn(1));
+            for ifield = 1:nfields
+                nunkn = dim.nunkn(ifield);
+                nnode = geometry(ifield).nnode;
+                npnod = interpolation(ifield).npnod;
+                obj.in_elem{ifield} = obj.compute_idx(interpolation(ifield).T,nunkn,nnode);
 
+
+                obj.ndof(ifield) = nunkn*npnod;
+
+                [obj.dirichlet{ifield},obj.dirichlet_values{ifield}] = obj.get_dof_conditions(dirichlet_data,nunkn);
+                
+                
+
+                if ~isempty(master_slave)
+                obj.periodic_free = obj.compute_periodic_nodes(master_slave(:,1),nunkn);
+                obj.periodic_constrained = obj.compute_periodic_nodes(master_slave(:,2),nunkn);
+                end
+
+                obj.constrained{ifield} = obj.compute_constrained_dof(scale,ifield);
+                obj.free{ifield} = obj.compute_free_dof(ifield);
+            end
+%                 if nfields == 1
+%                     obj.dirichlet = cell2mat(obj.dirichlet{ifield});
+%                     obj.dirichlet_values = cell2mat(obj.dirichlet_values{ifield});
+%                     
+%                 end
         end
-     end
         
-   
+    end
     
     methods
         
-        function constrained = compute_constrained_dof(obj,scale)
+        function constrained = compute_constrained_dof(obj,scale,ifield)
             switch scale
                 case 'MICRO'
-                    constrained = [obj.periodic_constrained;obj.dirichlet];
+                    constrained = [obj.periodic_constrained;obj.dirichlet{ifield}];
                 case 'MACRO'
-                    constrained = obj.dirichlet;
+                    constrained = obj.dirichlet{ifield};
             end
         end
         
-        function free = compute_free_dof(obj)
-            free = setdiff(1:obj.ndof,obj.constrained);
+        function free = compute_free_dof(obj,ifield)
+            free = setdiff(1:obj.ndof(ifield),obj.constrained{ifield});
         end
         
         % Constructor

@@ -29,8 +29,8 @@ classdef Postprocess < handle
             obj.nnode = length(obj.conectivities(1,:));
             obj.ndim = physical_problem.dim.ndim;
             obj.pdim = physical_problem.mesh.pdim;
-            obj.ngaus = physical_problem.geometry.ngaus;
-            obj.posgp = physical_problem.geometry.posgp';
+            obj.ngaus = physical_problem.geometry_variable.ngaus;
+            obj.posgp = physical_problem.geometry_variable.posgp';
             
             switch  obj.gtype %gid type
                 case 'TRIANGLE'

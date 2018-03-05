@@ -1,4 +1,4 @@
-classdef Postprocess_PhysicalProblem_mechanics < Postprocess
+classdef Postprocess_PhysicalProblem < Postprocess
     
     properties
         stress_name = 'Stress';

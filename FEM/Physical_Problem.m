@@ -49,11 +49,11 @@ classdef Physical_Problem < FEM
                 interpolation_variable(i) = Interpolation.create ('variable');
                 interpolation_variable(i).compute(obj.interpolation_geometry,strjoin(order(i)));
                 geometry_variable(i) = Geometry(interpolation_variable(i),obj.quadrature,obj.mesh.nelem); 
-                dof(i) = DOF(problemID,geometry_variable(i).nnode,interpolation_variable(i).T,obj.dim.nunkn(i),interpolation_variable(i).npnod,obj.mesh.scale);
+%                 dof(i) = DOF(problemID,geometry_variable(i).nnode,interpolation_variable(i).T,obj.dim.nunkn(i),interpolation_variable(i).npnod,obj.mesh.scale);
                 end
             obj.interpolation_variable = interpolation_variable;
             obj.geometry_variable = geometry_variable;
-            obj.dof=dof;
+%             obj.dof=dof;
 
 %             obj.quadrature = Quadrature (obj.mesh.geometryType,strjoin(order(1)));
 %             obj.interpolation_variable=Interpolation.create ('variable');
@@ -65,18 +65,23 @@ classdef Physical_Problem < FEM
             
 %             obj.geometry = geometry;
             obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem,obj.mesh.connec,obj.geometry_variable.cartd,obj.geometry_variable.nnode,obj.mesh.coord);
-%             obj.dof = DOF(problemID,obj.geometry_variable.nnode,obj.interpolation_variable.T,obj.dim.nunkn,obj.interpolation_variable.npnod,obj.mesh.scale,obj.nfields);
+            obj.dof = DOF(problemID,obj.geometry_variable,obj.interpolation_variable,obj.dim,obj.mesh.scale,obj.nfields);
             
         end
         
         function preProcess(obj)
-            obj.element = Element.create(obj.mesh,obj.geometry_variable,obj.material,obj.bc,obj.dof,obj.dim);
+            obj.element = Element.create(obj.mesh,obj.geometry_variable,obj.material,obj.bc,obj.dof,obj.dim,obj.nfields);
             obj.solver = Solver.create();
         end
         
         function computeVariables(obj)
             tol   = 1e-6;
-            x0 = zeros(length(obj.dof.free),1);
+            total_free_dof=0;
+            for ifield = 1:obj.nfields
+                total_free_dof = total_free_dof + length(obj.dof.free{ifield});   
+            end
+            
+            x0 = zeros(total_free_dof,1);
             % Compute r & dr
             [r,dr] = obj.element.computeResidual(x0);
             while dot(r,r) > tol

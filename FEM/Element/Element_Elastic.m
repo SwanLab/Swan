@@ -76,7 +76,7 @@ classdef Element_Elastic < Element
         function variables = computeDispStressStrain(obj,uL)
             variables.d_u = obj.compute_displacements(uL);
             variables.fext = obj.fext;
-            variables.strain = obj.computeStrain(variables.d_u,obj.dim,obj.nnode,obj.nelem,obj.geometry.ngaus,obj.dof.in_elem);
+            variables.strain = obj.computeStrain(variables.d_u,obj.dim,obj.nnode,obj.nelem,obj.geometry.ngaus,obj.dof.in_elem{1});
             variables.stress = obj.computeStress(variables.strain,obj.material.C,obj.geometry.ngaus,obj.nstre);
         end
         
@@ -111,17 +111,17 @@ classdef Element_Elastic < Element
         end
         
         function Ared = full_matrix_2_reduced_matrix(A,dof)
-            Ared = A(dof.free,dof.free);
+            Ared = A(dof.free{1},dof.free{1});
         end
         
         function b_red = full_vector_2_reduced_vector(b,dof)
-            b_red = b(dof.free);
+            b_red = b(dof.free{1});
         end
         
         function b = reduced_vector_2_full_vector(bfree,dof)
             b = zeros(dof.ndof,1);
-            b(dof.free) = bfree;
-            b(dof.dirichlet) = dof.dirichlet_values;
+            b(dof.free{1}) = bfree;
+            b(dof.dirichlet{1}) = dof.dirichlet_values{1};
         end
         
     end
