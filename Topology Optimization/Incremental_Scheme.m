@@ -5,7 +5,7 @@ classdef Incremental_Scheme < handle
         coord
         connec
         settings
-        epsilon_isotropy
+        epsilon
     end
     methods
         function obj=Incremental_Scheme(settings, physicalProblem)

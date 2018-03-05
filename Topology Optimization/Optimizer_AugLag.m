@@ -12,9 +12,9 @@ classdef Optimizer_AugLag < Optimizer
         end
         function x = updateX(obj,x_ini,cost,constraint)
             obj.checkInitial;
-            obj.updateObjFunc;
+            obj.updateObjFunc(cost,constraint);
             
-            obj.initUnconstrOpt;
+            obj.initUnconstrOpt(x_ini);
             
             while (obj.optimizer_unconstr.stop_criteria)
                 x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint); %x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint,obj.physicalProblem,interpolation,filter);
@@ -29,7 +29,7 @@ classdef Optimizer_AugLag < Optimizer
             % stop_vars{2,1} = abs(constraint.value(active_constr)); stop_vars{2,2} = obj.optimizer_unconstr.constr_tol(active_constr);
         end
         
-        function updateObjFunc(obj)
+        function updateObjFunc(obj,cost,constraint)
             obj.optimizer_unconstr.target_parameters = obj.target_parameters;
             obj.objfunc.lambda = obj.objfunc.lambda+obj.objfunc.penalty.*constraint.value';
             constraint.lambda = obj.objfunc.lambda;
@@ -37,7 +37,7 @@ classdef Optimizer_AugLag < Optimizer
             obj.objfunc.computeGradient(cost,constraint);
         end
         
-        function initUnconstrOpt(obj)
+        function initUnconstrOpt(obj,x_ini)
             obj.optimizer_unconstr.objfunc = obj.objfunc;
             obj.optimizer_unconstr.objfunc.value_initial = obj.objfunc.value;
             obj.optimizer_unconstr.computeKappa(x_ini,obj.objfunc.gradient);

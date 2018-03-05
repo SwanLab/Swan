@@ -5,7 +5,7 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 %run('test_topopt.m');
 clear variables;
 %% Settings
-settings=Settings('CantiliverTriangle_Case_1_6');
+settings=Settings('CantiliverTriangle_Case_1_3');
 %% main
 tic
 test = TopOpt_Problem(settings);
