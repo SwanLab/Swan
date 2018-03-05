@@ -7,11 +7,15 @@ classdef Element_DiffReact < Element
     
     properties
         mesh
+        epsilon
     end
     
     methods %(Access = ?Physical_Problem)
         function obj = Element_DiffReact(mesh)
             obj.mesh = mesh;
+        end
+        function obj = setEpsilon(obj,epsilon)
+            obj.epsilon = epsilon;
         end
         
         function [r,dr] = computeResidual(obj,uL)
@@ -29,13 +33,18 @@ classdef Element_DiffReact < Element
             
             fint = K(obj.dof.vF,obj.dof.vF)*uL;
             r = fint - fext;
-            dr = epsilon^2*K(obj.dof.vF,obj.dof.vF) + M(obj.dof.vF,obj.dof.vF);
+            dr = obj.epsilon^2*K(obj.dof.vF,obj.dof.vF) + M(obj.dof.vF,obj.dof.vF);
         end
         
         
         function [K] = computeStiffnessMatrix(obj)
             [K] = compute_elem_StiffnessMatrix(obj);
             [K] = obj.AssembleMatrix(K);
+        end
+        
+        function [M] = computeMassMatrix(obj,job)
+            [M] = compute_elem_MassMatrix(obj,job);
+%             [M] = obj.AssembleMatrix(M); !! UNCOMMENT WHEN INTEGRATION IMPLEMENTED !!
         end
         
         function [K] = compute_elem_StiffnessMatrix(obj)
@@ -68,7 +77,12 @@ classdef Element_DiffReact < Element
             K = Ke;
         end
         
-        function [M] = computeMassMatrix(obj,job)
+%         function compute_elem_MassMatrix(obj)
+%             
+%         end
+        
+        %% !! PENDING OF INTEGRATION / ELEMENT DEGREE FOR IMPLEMENTING LIKE STIFFNESS MATRIX !! 
+        function [M] = compute_elem_MassMatrix(obj,job)
             switch obj.geometry.type
                 case 'TRIANGLE'
                     obj.mesh.geometryType = 'Triangle_Linear_Mass';
@@ -77,12 +91,12 @@ classdef Element_DiffReact < Element
             end
             geom = Geometry(obj.mesh);
             dirichlet_data = obj.mesh.connec';
-            emat = zeros(geom.nnode,geom.nnode,obj.mesh.nelem);
+            Me = zeros(geom.nnode,geom.nnode,obj.mesh.nelem);
             
             for igaus=1:geom.ngaus
                 for inode=1:geom.nnode
                     for jnode=1:geom.nnode
-                        emat(inode,jnode,:)=squeeze(emat(inode,jnode,:)) + geom.weigp(igaus)*geom.shape(inode,igaus)*geom.shape(jnode,igaus)*geom.djacb(:,igaus);
+                        Me(inode,jnode,:)=squeeze(Me(inode,jnode,:)) + geom.weigp(igaus)*geom.shape(inode,igaus)*geom.shape(jnode,igaus)*geom.djacb(:,igaus);
                     end
                 end
             end
@@ -95,13 +109,13 @@ classdef Element_DiffReact < Element
                 if (nproc==1)
                     for inode=1:nnode
                         for jnode=1:nnode
-                            elumped(inode,:)=elumped(inode,:)+squeeze(emat(inode,jnode,:))';
+                            elumped(inode,:)=elumped(inode,:)+squeeze(Me(inode,jnode,:))';
                         end
                     end
                 elseif (nproc==2)
                     for inode=1:nnode
                         for jnode=1:nnode
-                            elumped(inode,:)=elumped(inode,:)+squeeze(emat(inode,jnode,:))';
+                            elumped(inode,:)=elumped(inode,:)+squeeze(Me(inode,jnode,:))';
                         end
                         elumped(inode,:)=elumped(inode,:)*coeff(inode);
                     end
@@ -113,13 +127,12 @@ classdef Element_DiffReact < Element
                 M = sparse(obj.mesh.npnod,obj.mesh.npnod);
                 for k=1:geom.nnode
                     for l=1:geom.nnode
-                        vmass = squeeze(emat(k,l,:));
+                        vmass = squeeze(Me(k,l,:));
                         M = M + sparse(dirichlet_data(k,:),dirichlet_data(l,:),vmass,obj.mesh.npnod,obj.mesh.npnod);
                     end
                 end
             end
-        end
-        
+        end        
     end
     
     methods (Static)

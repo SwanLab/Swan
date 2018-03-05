@@ -28,8 +28,7 @@ classdef Physical_Problem < FEM
             obj.dim = DIM(obj.mesh.ptype,obj.mesh.pdim);
             obj.geometry = Geometry(obj.mesh);
             obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem,obj.mesh.connec,obj.geometry.cartd,obj.geometry.nnode,obj.mesh.coord);
-            obj.dof = DOF(problemID,obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.mesh.scale);
-            
+            obj.dof = DOF(problemID,obj.geometry.nnode,obj.mesh.connec,obj.dim.nunkn,obj.mesh.npnod,obj.mesh.scale);    
         end
         
         function preProcess(obj)
@@ -60,7 +59,6 @@ classdef Physical_Problem < FEM
             postprocess.print(obj,obj.problemID,iter,results);
         end
         
-        
         function postProcess(obj)
             %    ToDo
             % Inspire in TopOpt
@@ -70,7 +68,6 @@ classdef Physical_Problem < FEM
         function setDof(obj,dof)
             obj.dof = dof;
         end
-        
         
         function setMatProps(obj,props)
             obj.element.material = obj.material.setProps(props);

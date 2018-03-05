@@ -51,7 +51,6 @@ classdef Filter < handle
             
         end
         
-        
     end
     methods (Static)
         function obj = create(type, optimizer)
