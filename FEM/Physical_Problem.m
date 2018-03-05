@@ -91,7 +91,7 @@ classdef Physical_Problem < FEM
                 [r,dr] = obj.element.computeResidual(x);
                 x0 = x;
             end
-            
+            [u,p] = analytical_sol(obj.interpolation_variable(1).xpoints,obj.interpolation_variable(2).xpoints);
             obj.variables = obj.element.computeVars(x);
         end
         

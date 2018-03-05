@@ -9,8 +9,19 @@ classdef Element_Stokes < Element
     
     methods (Access = ?Physical_Problem)
         function [r,dr] = computeResidual(obj,x)
-            LHS = compute_LHS(obj);
+            K = compute_LHS(obj);
             Fext = compute_RHS(obj);
+            
+            R = obj.compute_imposed_displacemet_force(K);
+            Fext = Fext + R;
+            
+            Kred = obj.full_matrix_2_reduced_matrix(K);            
+            Fext_red = obj.full_vector_2_reduced_vector(Fext);
+            
+            fint_red = Kred*x;
+
+            r = fint_red - (Fext_red);
+            dr = Kred;
             
         end
         
@@ -25,10 +36,17 @@ classdef Element_Stokes < Element
 %             LHS = cell2mat(LHS);
         end
         
-        function obj = compute_RHS(obj)
+        function RHS = compute_RHS(obj)
             Fext = obj.computeVolumetricFext(obj.dim,obj.nelem,obj.geometry,obj.dof);
+            g = obj.compute_velocity_divergence;
+            RHS_elem{1,1} = Fext;
+            RHS_elem{2,1} = g;
+            
+            RHS = AssembleVector(obj,RHS_elem);
         end
 
+     
+        
         function K = compute_K(obj,dim,nelem,geometry_test,geometry_variable,material)
              nunkn = dim.nunkn(1);
             K = zeros(nunkn*geometry_test.nnode,nunkn*geometry_variable.nnode,nelem);
@@ -133,6 +151,10 @@ classdef Element_Stokes < Element
                     end
                 end
        end
+       
+       function g = compute_velocity_divergence(obj)
+           g = zeros(obj.geometry(2).nnode*obj.dim.nunkn(2),1,obj.nelem);
+       end
         
     end
     methods (Access=protected)
@@ -188,12 +210,12 @@ classdef Element_Stokes < Element
 
 
             if  ~isempty(dof.neumann_values)
-%                 if isa(dof.neumann_values,'function_handle') == 1 
+                if ~ismatrix(dof.neumann_values) 
                     f=dof.neumann_values;
                     Fext = obj.compute_vol_force_on_gauss_points(geometry_variable,nnode,nunkn,f);
-%                 else
-%                     Fext = obj.compute_vol_force_on_nodes(geometry_variable,idx,nnode,nunkn);
-%                 end
+                else
+                    Fext = obj.compute_vol_force_on_nodes(geometry_variable,idx,nnode,nunkn);
+                end
             else
                  Fext = zeros(nnode*nunkn,1,nelem);
             end

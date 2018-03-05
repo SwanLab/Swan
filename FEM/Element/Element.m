@@ -51,11 +51,13 @@ classdef Element<handle
             end
             
             element.nfields = nfields;
+            for ifield=1:nfields
+                element.nunkn(ifield) = dim.nunkn(ifield);
+                element.nnode(ifield) = geometry(ifield).nnode;
+            end
             element.dim = dim;
-            element.nunkn = dim.nunkn;
             element.nstre = dim.nstre;
             element.nelem = nelem;
-            element.nnode = geometry.nnode;
             element.geometry = geometry;
             element.material = material;
             element.dof = dof;
@@ -69,7 +71,7 @@ classdef Element<handle
         function Fext = computeExternalForces(obj)
             FextSuperficial = obj.computeSuperficialFext();
             FextVolumetric  = obj.computeVolumetricFext ();
-            FextSupVol = FextSuperficial + FextVolumetric;
+            FextSupVol = {FextSuperficial + FextVolumetric};
             FextSupVol = obj.AssembleVector(FextSupVol);
             FextPoint = obj.computePunctualFext();
             Fext = FextSupVol +  FextPoint;
@@ -87,15 +89,18 @@ classdef Element<handle
         end
         
         % Vector function
-        function b = AssembleVector(obj,b_elem)
-           
-            b = zeros(obj.dof.ndof,1);
-            for i = 1:obj.nnode*obj.nunkn
-                c = squeeze(b_elem(i,1,:));
-                idof_elem = obj.dof.in_elem{1}(i,:);
-                b = b + sparse(idof_elem,1,c',obj.dof.ndof(1),1);
-            end
-        
+        function b = AssembleVector(obj,b_elem_cell)
+           for ifield = 1:obj.nfields
+                b_elem = b_elem_cell{ifield,1};
+                b = zeros(obj.dof.ndof(ifield),1);
+                for i = 1:obj.nnode(ifield)*obj.nunkn(ifield)
+                    c = squeeze(b_elem(i,1,:));
+                    idof_elem = obj.dof.in_elem{ifield}(i,:);
+                    b = b + sparse(idof_elem,1,c',obj.dof.ndof(ifield),1);
+                end
+                b_global{ifield,1} = b; 
+           end
+           b=cell2mat(b_global);
         end
         
         
@@ -147,17 +152,50 @@ classdef Element<handle
         
         function R = compute_imposed_displacemet_force(obj,K)
             % Forces coming from imposed displacement
-            for ifield = 1:obj.nfields
-                if ~isempty(obj.dof.dirichlet{ifield})
-                    R{ifield} = -K(:,obj.dof.dirichlet{ifield})*obj.uD{ifield};
+             [dirichlet,uD,~] = obj.compute_global_dirichlet_free_uD;
+                if ~isempty(dirichlet)
+                    R = -K(:,dirichlet)*uD;
                 else
-                    R = zeros(obj.dof.ndof,1);
+                    R = zeros(sum(obj.dof.ndof(:)),1);
                 end
+            
+
+        end
+        
+        function [dirichlet,uD,free] = compute_global_dirichlet_free_uD(obj)
+            global_ndof=0;
+            for ifield=1:obj.nfields
+                dirichlet{ifield,1} = obj.dof.dirichlet{ifield}+global_ndof;
+                uD{ifield,1} = obj.uD{ifield};
+                free{ifield,1} = obj.dof.free{ifield}' + global_ndof;
+                global_ndof=global_ndof+obj.dof.ndof(ifield);
             end
-            R = cell2mat(R);
+            uD = cell2mat(uD);
+            dirichlet = cell2mat(dirichlet);
+            free = cell2mat(free);
         end
 
+         function Ared = full_matrix_2_reduced_matrix(obj,A)
+             [~,~,free] = obj.compute_global_dirichlet_free_uD;
+ 
+                Ared = A(free,free);
+
+        end
         
+        function b_red = full_vector_2_reduced_vector(obj,b)
+            [~,~,free] = obj.compute_global_dirichlet_free_uD;
+           
+                b_red = b(free);
+        
+        end
+        
+        function b = reduced_vector_2_full_vector(obj,bfree)
+            for ifield=1:obj.nfields
+                b = zeros(obj.dof.ndof,1);
+                b(obj.dof.free{1}) = bfree;
+                b(obj.dof.dirichlet{1}) = obj.dof.dirichlet_values{1};
+            end
+        end
         
     end
     

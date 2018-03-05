@@ -16,8 +16,8 @@ classdef Element_Elastic < Element
             R = obj.compute_imposed_displacemet_force(K);
             obj.fext = Fext + R;
             
-            Kred = obj.full_matrix_2_reduced_matrix(K,obj.dof);            
-            fext_red = obj.full_vector_2_reduced_vector(obj.fext,obj.dof);
+            Kred = obj.full_matrix_2_reduced_matrix(K);            
+            fext_red = obj.full_vector_2_reduced_vector(obj.fext);
 
             fint_red = Kred*x;
 
@@ -82,7 +82,7 @@ classdef Element_Elastic < Element
         
        
         function u = compute_displacements(obj,usol)
-            u = obj.reduced_vector_2_full_vector(usol,obj.dof);
+            u = obj.reduced_vector_2_full_vector(usol);
         end
         
         
@@ -108,22 +108,7 @@ classdef Element_Elastic < Element
         function variables = permuteStressStrain(variables)
             variables.strain = permute(variables.strain, [3 1 2]);
             variables.stress = permute(variables.stress, [3 1 2]);
-        end
-        
-        function Ared = full_matrix_2_reduced_matrix(A,dof)
-            Ared = A(dof.free{1},dof.free{1});
-        end
-        
-        function b_red = full_vector_2_reduced_vector(b,dof)
-            b_red = b(dof.free{1});
-        end
-        
-        function b = reduced_vector_2_full_vector(bfree,dof)
-            b = zeros(dof.ndof,1);
-            b(dof.free{1}) = bfree;
-            b(dof.dirichlet{1}) = dof.dirichlet_values{1};
-        end
-        
+        end        
     end
     
     methods(Static, Access = protected)
