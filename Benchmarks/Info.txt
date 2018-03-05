@@ -1,0 +1,22 @@
+
+
+Case 1.x.x ------> SLERP
+Case 2.x.x ------> PG
+Case 3.x.x ------> MMA
+Case 4.x.x ------> IPOPT
+
+Case x.1.x ------> compliance st volume
+Case x.2.x ------> compliance st volumePerimeter
+Case x.3.x ------> compliance+lam*perimeter st volume
+Case x.4.x ------> gripping
+...
+...
+
+Case x.x.1 ------> vfrac 0.3 perimeter 3
+Case x.x.2 ------> vfrac 0.4 perimeter 3
+Case x.x.3 ------> vfrac 0.5 perimeter 3
+Case x.x.4 ------> vfrac 0.3 perimeter 1
+Case x.x.5 ------> vfrac 0.4 perimeter 1
+Case x.x.6 ------> vfrac 0.5 perimeter 1
+...
+...

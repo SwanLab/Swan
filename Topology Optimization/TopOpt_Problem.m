@@ -37,6 +37,7 @@ classdef TopOpt_Problem < handle
                     obj.optimizer = Optimizer_IPOPT(settings);
             end
             obj.filter = Filter.create(obj.settings.filter,obj.settings.optimizer);
+            obj.optimizer.mesh=obj.topOpt_params.mesh; %% !!JUST TO MAKE PLOTTING WORK
         end
         
         function preProcess(obj)

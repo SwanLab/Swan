@@ -11,7 +11,7 @@ classdef Objective_Function_AugLag < Objective_Function
             obj.penalty=ones(1,settings.nconstr);
         end
         function computeFunction(obj,cost,constraint)
-            obj.inactive_constr=-obj.lambda>constraint.value;
+            obj.inactive_constr=-obj.lambda'>constraint.value;
             constraint.value(obj.inactive_constr)=obj.lambda(obj.inactive_constr);
             obj.value=cost.value + obj.lambda*constraint.value + 0.5*obj.penalty*(constraint.value.*constraint.value);
         end

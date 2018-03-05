@@ -10,15 +10,15 @@ classdef ShFunc_Perimeter < Shape_Functional
                 warning('Perimeter filter changed to PDE')
             end
             obj@Shape_Functional(settings);
-            obj.Perimeter_target = settings.target_parameters.Perimeter_target;
-            obj.filter.epsilon = obj.epsilon;
+            obj.Perimeter_target = settings.Perimeter_target;
+            obj.target_parameters=settings.target_parameters;            
         end
-        %         function Perimeter_target = get.Perimeter_target(obj)
-        %             Perimeter_target = obj.target_parameters.Perimeter_target;
-        %         end
-        
+        function epsilon=get.epsilon(obj)
+            epsilon=obj.target_parameters.epsilon;
+        end
         function computef(obj,x)
             obj.checkFilterPre(obj.filter);
+            obj.filter.epsilon = obj.epsilon;
             x_reg = obj.filter.getP1fromP1(x);
             rhs = obj.filter.integrate_L2_function_with_shape_function(x);
             Perimeter = 0.5/obj.filter.epsilon*((1 - x_reg)'*rhs);
@@ -59,7 +59,6 @@ classdef ShFunc_Perimeter < Shape_Functional
                 physicalProblem.setDof(dof_filter)
                 obj.filter.preProcess(physicalProblem);
                 physicalProblem.setDof(dof_phy)
-                
             end
         end
         
