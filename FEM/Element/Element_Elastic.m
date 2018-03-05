@@ -26,7 +26,7 @@ classdef Element_Elastic < Element
         end
         
         function [K] = computeStiffnessMatrix(obj)
-            [K] = compute_elem_StiffnessMatrix(obj);                        
+            K = compute_elem_StiffnessMatrix(obj);                        
             [K] = obj.AssembleMatrix(K);
         end
         
@@ -34,7 +34,7 @@ classdef Element_Elastic < Element
         
 
         
-        function [K] = compute_elem_StiffnessMatrix(obj)
+        function K = compute_elem_StiffnessMatrix(obj)
             
             % Stiffness matrix
             Ke = zeros(obj.nunkn*obj.nnode,obj.nunkn*obj.nnode,obj.nelem);
@@ -58,7 +58,7 @@ classdef Element_Elastic < Element
                 end
                 
             end
-            K = Ke;
+            K = {Ke};
         end
         
     end

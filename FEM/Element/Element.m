@@ -100,17 +100,11 @@ classdef Element<handle
         
         
         % Matrix function
-        function [A] = AssembleMatrix(obj,A_elem)
+        function [A] = AssembleMatrix(obj,A_elem_cell)
             for ifield = 1:obj.nfields
                 for jfield = 1:obj.nfields
-                    idx1 = obj.dof.in_elem{ifield};
-                    idx2 = obj.dof.in_elem{jfield};
-                    nunkn1 = obj.dim.nunkn(ifield);
-                    nnode1 = obj.geometry(ifield).nnode;
-                    nunkn2 = obj.dim.nunkn(jfield);
-                    nnode2 = obj.geometry(jfield).nnode;
-                    col = obj.dof.ndof(jfield);
-                    row = obj.dof.ndof(ifield);
+                    A_elem = A_elem_cell{ifield,jfield};
+                    [idx1,idx2,nunkn1,nunkn2,nnode1,nnode2,col,row] = obj.get_assemble_parameters(ifield,jfield);
                     
                     A = sparse(row,col);
                     for i = 1:nnode1*nunkn1
@@ -129,6 +123,16 @@ classdef Element<handle
             A = cell2mat(A_global);
         end
         
+        function [idx1,idx2,nunkn1,nunkn2,nnode1,nnode2,col,row] = get_assemble_parameters(obj,ifield,jfield)
+                    idx1 = obj.dof.in_elem{ifield};
+                    idx2 = obj.dof.in_elem{jfield};
+                    nunkn1 = obj.dim.nunkn(ifield);
+                    nnode1 = obj.geometry(ifield).nnode;
+                    nunkn2 = obj.dim.nunkn(jfield);
+                    nnode2 = obj.geometry(jfield).nnode;
+                    col = obj.dof.ndof(jfield);
+                    row = obj.dof.ndof(ifield);
+        end
                 
         function assign_dirichlet_values(obj)
             for ifield = 1:obj.nfields

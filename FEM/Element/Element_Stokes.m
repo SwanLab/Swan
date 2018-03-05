@@ -3,22 +3,30 @@ classdef Element_Stokes < Element
     %   Detailed explanation goes here
     
     properties
-        LHS
+        LHS_elem
         RHS
     end
     
     methods (Access = ?Physical_Problem)
-        
-        function obj = compute_LHS(obj,dim,nelem,geometry_variable,material,nfields)
-            for ifield = 1:nfields
-                for jfields = 1:nfields
-                    obj.LHS{ifield,jfield} = obj.computeMatrix(dim,nelem,geometry_variable(ifield),geometry_variable(jfield),material,ifield,jfield);
-                end
-            end
+        function [r,dr] = computeResidual(obj,x)
+            LHS = compute_LHS(obj);
+            Fext = compute_RHS(obj);
+            
         end
         
-        function obj = compute_RHS(obj,dim,nelem,geometry_variable,dof)
-            
+        function LHS = compute_LHS(obj)
+            for ifield = 1:obj.nfields
+                for jfield = 1:obj.nfields
+                    obj.LHS_elem{ifield,jfield} = obj.computeMatrix(obj.dim,obj.nelem,obj.geometry(ifield),obj.geometry(jfield),obj.material,ifield,jfield);
+%                         mat = obj.computeMatrix(obj.dim,obj.nelem,obj.geometry(ifield),obj.geometry(jfield),obj.material,ifield,jfield);     
+                end
+            end
+            LHS= AssembleMatrix(obj,obj.LHS_elem);
+%             LHS = cell2mat(LHS);
+        end
+        
+        function obj = compute_RHS(obj)
+            Fext = obj.computeVolumetricFext(obj.dim,obj.nelem,obj.geometry,obj.dof);
         end
 
         function K = compute_K(obj,dim,nelem,geometry_test,geometry_variable,material)
@@ -29,7 +37,7 @@ classdef Element_Stokes < Element
             
             for igauss = 1 :geometry_variable.ngaus
                 
-                Bmat = obj.computeB(nunkn,nelem,geometry_variable.nnode,geometry_variable.cartDeriv(:,:,:,igauss));
+                Bmat = obj.computeB(nunkn,nelem,geometry_variable.nnode,geometry_variable.cartd(:,:,:,igauss));
                 
 %                 B_p=reshape(Bmat,[geometry.nnode*nunkn,1,nelem]);
                 
@@ -62,7 +70,7 @@ classdef Element_Stokes < Element
                     for inode_test = 1:geometry_test.nnode
                         for idime = 1:geometry_test.ndime
                             dof_test = inode_test*nunkn_u - nunkn_u + idime;
-                            v= squeeze (geometry_test.cartDeriv(idime,inode_test,:,igauss));
+                            v= squeeze (geometry_test.cartd(idime,inode_test,:,igauss));
                             D(dof_test,inode_var,:)= squeeze(D(dof_test,inode_var,:)) - v(:).*geometry_variable.shape(inode_var,igauss)...
                                 .*geometry_test.dvolu(:,igauss);
                             
@@ -81,60 +89,9 @@ classdef Element_Stokes < Element
                 B(3,j,:)  = cartd(2,i,:);
                 B(4,j+1,:)= cartd(2,i,:);
             end
-        end
+       end
         
-        
-    end
-    methods (Access=protected)
-        function mat = computeMatrix(obj,dim,nelem,geometry_test,geometry_variable,material,ifield,jfield)
-
-           if ifield == 1 && jfield==1
-               mat = obj.compute_K(dim,nelem,geometry_test,geometry_variable,material);
-           elseif ifield == 1 && jfield==2
-               mat = obj.compute_D(dim,nelem,geometry_test,geometry_variable);
-           elseif ifield == 2 && jfield==1
-               mat = permute(obj.LHS{1,2},[2,1,3]);
-           else
-%                D = obj.LHS{2,1};
-%                D_traspose= obj.LHS{1,2};
-%                row = length(D(:,1,1));
-%                col = length (D_traspose(1,:,1));
-               D = obj.LHS{1,1};
-               D_traspose= obj.LHS{1,1};
-               row = length(D(:,1,1));
-               col = length (D_traspose(1,:,1));
-
-               mat = zeros(row,col,nelem);
-           end         
-
-%             obj.LHS= [[K D]; [permute(D,[2,1,3]) zeros(1,1,nelem)]];
-        end
-        
-        function Fext = computePuntualRHS(obj,nunkn,nelem,nnode,bc,idx)
-            Fext = zeros(nnode*nunkn,1,nelem);
-            for i = 1:length(bc.iN)
-                for j = 1:nelem
-                    ind = find(idx(:,j) == bc.iN(i));
-                    if ~isempty(ind)
-                        Fext(ind,:,j) = bc.neunodes(i,3);
-                    end
-                    % clear ind
-                    ind = [];
-                end
-            end
-        end
-        function Fext = computeSuperficialRHS(obj,nunkn,nelem,nnode,bc,idx) %To be donne
-%             Fext = zeros(nnode*nunkn,1,nelem);
-              Fext=0;
-        end
-        function Fext = computeVolumetricRHS(obj,dim,nelem,geometry_variable,bc,dof)%To be done
-            idx = dof(1).idx;
-             geometry_variable = geometry_variable(1);
-            nnode = geometry_variable.nnode;
-            nunkn= dim.nunkn(1);
-%             f = zeros(nnode*nunkn,1,nelem);
-            Fext = zeros(nnode*nunkn,1,nelem);
-            obj.RHS = zeros(nnode*nunkn,1,nelem);
+       function Fext = compute_vol_force_on_nodes(obj,geometry_variable,idx,nnode,nunkn)
 %             for i = 1:length(bc.iN)
 %                 for j = 1:nnode*nunkn
 %                     ind = find(idx(j,:) == bc.iN(i));
@@ -160,11 +117,11 @@ classdef Element_Stokes < Element
 %                     end
 %                 end
 %             end
-
-            if  ~isempty(bc.force)
-                f=bc.force;
-
-                for igaus=1:geometry_variable.ngaus
+       end
+        
+       function Fext = compute_vol_force_on_gauss_points(obj,geometry_variable,nnode,nunkn,f)
+           Fext = zeros(nnode*nunkn,1,obj.nelem);
+                 for igaus=1:geometry_variable.ngaus
                     for inode=1:nnode
                         for iunkn=1:nunkn
                             elemental_dof = inode*nunkn-nunkn+iunkn; %% dof per guardar el valor de la integral
@@ -175,6 +132,70 @@ classdef Element_Stokes < Element
                         end
                     end
                 end
+       end
+        
+    end
+    methods (Access=protected)
+        function mat = computeMatrix(obj,dim,nelem,geometry_test,geometry_variable,material,ifield,jfield)
+
+           if ifield == 1 && jfield==1
+               mat = obj.compute_K(dim,nelem,geometry_test,geometry_variable,material);
+           elseif ifield == 1 && jfield==2
+               mat = obj.compute_D(dim,nelem,geometry_test,geometry_variable);
+           elseif ifield == 2 && jfield==1
+               mat = permute(obj.LHS_elem{1,2},[2,1,3]);
+           else
+               D = obj.LHS_elem{2,1};
+               D_traspose= obj.LHS_elem{1,2};
+               row = length(D(:,1,1));
+               col = length (D_traspose(1,:,1));
+%                D = obj.LHS_elem{1,1};
+%                D_traspose= obj.LHS_elem{1,1};
+%                row = length(D(:,1,1));
+%                col = length (D_traspose(1,:,1));
+
+               mat = zeros(row,col,nelem);
+           end         
+
+%             obj.LHS= [[K D]; [permute(D,[2,1,3]) zeros(1,1,nelem)]];
+        end
+        
+        function Fext = computePuntualRHS(obj,nunkn,nelem,nnode,bc,idx)
+            Fext = zeros(nnode*nunkn,1,nelem);
+            for i = 1:length(bc.iN)
+                for j = 1:nelem
+                    ind = find(idx(:,j) == bc.iN(i));
+                    if ~isempty(ind)
+                        Fext(ind,:,j) = bc.neunodes(i,3);
+                    end
+                    % clear ind
+                    ind = [];
+                end
+            end
+        end
+        function Fext = computeSuperficialFext(obj,nunkn,nelem,nnode,bc,idx) %To be donne
+%             Fext = zeros(nnode*nunkn,1,nelem);
+              Fext=0;
+        end
+        function Fext = computeVolumetricFext(obj,dim,nelem,geometry_variable,dof)
+            idx = obj.dof.in_elem{1};
+            geometry_variable = geometry_variable(1);
+            nnode = geometry_variable.nnode;
+            nunkn= dim.nunkn(1);
+%             f = zeros(nnode*nunkn,1,nelem);
+           
+%             obj.RHS = zeros(nnode*nunkn,1,nelem);
+
+
+            if  ~isempty(dof.neumann_values)
+%                 if isa(dof.neumann_values,'function_handle') == 1 
+                    f=dof.neumann_values;
+                    Fext = obj.compute_vol_force_on_gauss_points(geometry_variable,nnode,nunkn,f);
+%                 else
+%                     Fext = obj.compute_vol_force_on_nodes(geometry_variable,idx,nnode,nunkn);
+%                 end
+            else
+                 Fext = zeros(nnode*nunkn,1,nelem);
             end
 
         end

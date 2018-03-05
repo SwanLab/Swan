@@ -25,20 +25,29 @@ classdef DOF < handle
     
     methods
         
-        function obj = DOF(filename,geometry,interpolation,dim,scale,nfields)
-           [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = Preprocess.getBC(filename);
+        function obj = DOF(filename,geometry_variable,interpolation_variable,dim,scale,nfields,ptype,interpolation_geometry,nelem)
+            switch ptype
+                case 'Stokes'
+                        [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = ...
+                            Preprocess.getBC_fluids(filename,interpolation_variable,geometry_variable,interpolation_geometry,nelem);
+                otherwise 
+                        [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = Preprocess.getBC_mechanics(filename);
+            end
+           
+
            [obj.neumann,obj.neumann_values] = obj.get_dof_conditions(neumann_data,dim.nunkn(1));
            [obj.full_dirichlet,obj.full_dirichlet_values] = obj.get_dof_conditions(full_dirichlet_data,dim.nunkn(1));
-            for ifield = 1:nfields
+            
+           for ifield = 1:nfields
                 nunkn = dim.nunkn(ifield);
-                nnode = geometry(ifield).nnode;
-                npnod = interpolation(ifield).npnod;
-                obj.in_elem{ifield} = obj.compute_idx(interpolation(ifield).T,nunkn,nnode);
+                nnode = geometry_variable(ifield).nnode;
+                npnod = interpolation_variable(ifield).npnod;
+                obj.in_elem{ifield} = obj.compute_idx(interpolation_variable(ifield).T,nunkn,nnode);
 
 
                 obj.ndof(ifield) = nunkn*npnod;
 
-                [obj.dirichlet{ifield},obj.dirichlet_values{ifield}] = obj.get_dof_conditions(dirichlet_data,nunkn);
+                [obj.dirichlet{ifield},obj.dirichlet_values{ifield}] = obj.get_dof_conditions(dirichlet_data{ifield},nunkn);
                 
                 
 
@@ -117,13 +126,20 @@ classdef DOF < handle
         end
         
         function  [dof_condition_id,dof_condition_value] = get_dof_conditions(obj,conditions_unkn_and_dim,nunkn)
-            dof_condition_id = [];
-            dof_condition_value = [];
-            if ~isempty(conditions_unkn_and_dim)
-                inode_condition = conditions_unkn_and_dim(:,1);
-                iunkn_condition = conditions_unkn_and_dim(:,2);
-                dof_condition_id = obj.unknown_and_node_id_to_dof_id(inode_condition,iunkn_condition,nunkn);
-                dof_condition_value = conditions_unkn_and_dim(:,3);
+            if isempty(conditions_unkn_and_dim)
+                dof_condition_id = [];
+                dof_condition_value = [];
+            else
+          
+                if ismatrix(conditions_unkn_and_dim)
+                    inode_condition = conditions_unkn_and_dim(:,1);
+                    iunkn_condition = conditions_unkn_and_dim(:,2);
+                    dof_condition_id = obj.unknown_and_node_id_to_dof_id(inode_condition,iunkn_condition,nunkn);
+                    dof_condition_value = conditions_unkn_and_dim(:,3);
+                else
+                    dof_condition_id = [];
+                    dof_condition_value = conditions_unkn_and_dim;
+                end
             end
         end
         

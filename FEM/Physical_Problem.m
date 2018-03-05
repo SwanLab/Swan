@@ -33,7 +33,7 @@ classdef Physical_Problem < FEM
             obj.interpolation_geometry = Interpolation.create('mesh');
             obj.interpolation_geometry.compute(obj.mesh);
             
-            obj.nfields = 1;
+            
             if strcmp(obj.mesh.ptype,'Stokes') == 1 
                 order= {'QUADRATIC','LINEAR'};
                 obj.nfields = 2;
@@ -64,8 +64,8 @@ classdef Physical_Problem < FEM
 %             obj.interpolation_variable = interpolation_variable; 
             
 %             obj.geometry = geometry;
-            obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem,obj.mesh.connec,obj.geometry_variable.cartd,obj.geometry_variable.nnode,obj.mesh.coord);
-            obj.dof = DOF(problemID,obj.geometry_variable,obj.interpolation_variable,obj.dim,obj.mesh.scale,obj.nfields);
+            obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem,obj.mesh.connec,obj.geometry_variable(1).cartd,obj.geometry_variable(1).nnode,obj.mesh.coord);
+            obj.dof = DOF(problemID,obj.geometry_variable,obj.interpolation_variable,obj.dim,obj.mesh.scale,obj.nfields,obj.mesh.ptype,obj.interpolation_geometry,obj.mesh.nelem);
             
         end
         
