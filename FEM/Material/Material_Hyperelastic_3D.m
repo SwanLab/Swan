@@ -20,7 +20,7 @@ classdef Material_Hyperelastic_3D < Material_Hyperelastic
             F = repmat(eye(3),[1 1 obj.nelem]);
             
             for i = 1:3 % 3D
-                f = zeros(2,obj.nnode,obj.nelem);
+                f = zeros(3,obj.nnode,obj.nelem);
                 for j = 1:3
                     for a = 1:obj.nnode
                         inc = x(i,a,:).*cartd0(j,a,:);

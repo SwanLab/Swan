@@ -61,14 +61,14 @@ classdef Physical_Problem < FEM
                     error = norm(r)/norm(obj.element.cload);
                     errcont(incrm,niter) = error;
                     niter = niter + 1;
-%                     fprintf('Increment: %d\n',incrm);
+                    
                 end
-                nn(incrm) = niter-1;
-                u = reshape(inc_x,2,[])';
-                un(incrm) = u(1,1);
-                
-                xn(incrm) = obj.element.coord(4,1);
-                fn(incrm) = obj.element.cload(obj.dof.free(1));
+%                 nn(incrm) = niter-1;
+%                 fprintf('Increment: %d Iters: %d\n',incrm,niter);
+%                 u = reshape(inc_x,2,[])';
+%                 un(incrm) = u(1,1);
+%                 xn(incrm) = obj.element.coord(4,1);
+%                 fn(incrm) = obj.element.cload(obj.dof.free(1));
 
             end
             

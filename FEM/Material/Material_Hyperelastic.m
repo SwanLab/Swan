@@ -4,7 +4,7 @@ classdef Material_Hyperelastic < Material_Elastic
     
     properties (GetAccess = {?Element_Hyperelastic, ?Material_Hyperelastic_2D, ?Material_Hyperelastic_3D, ?PhysicalVars_Elastic, ?Physical_Problem}, SetAccess = ?Physical_Problem)
         connec
-        cartd
+        cartd0
         nnode
         coord
     end
@@ -13,15 +13,15 @@ classdef Material_Hyperelastic < Material_Elastic
         function obj = Material_Hyperelastic(nelem,connec,cartd,nnode,coord)
             obj@Material_Elastic(nelem);
             obj.connec= connec;
-            obj.cartd = cartd;
+            obj.cartd0 = cartd;
             obj.nnode = nnode;
             obj.coord = coord;
         end
         
         %% Compute Eulerian elasticity tensor
-        function [ctens,sigma] = computeCtens(obj,coord)
+        function [ctens,sigma] = computeCtens(obj,coord,igaus)
             % Jacobian
-            [F,Fjacb,Crcg] = obj.computeDefGradient(coord,obj.cartd);
+            [F,Fjacb,Crcg] = obj.computeDefGradient(coord,obj.cartd0(:,:,:,igaus));
             
             % Neo-hookean -> 'neo'
             % St. Venant  -> 'stv'
@@ -126,56 +126,7 @@ classdef Material_Hyperelastic < Material_Elastic
                         end
                     end
                 end
-            end
-            
+            end 
         end
-        
-        %% Compute deformation gradient tensor
-%         function [F,Fjacb,Crcg] = computeDefGradient(obj,coord,cartd0)
-%             % 2D
-%             coord = coord(:,1:2);
-%             
-%             % Coordinate's vectorization
-%             x = coord(obj.connec(:,:)',:)';
-%             x = reshape(x,[2,obj.nnode,obj.nelem]);
-%             
-%             % Deformation gradient tensor
-%             F = repmat(eye(3),[1 1 obj.nelem]);
-%             
-%             for i = 1:2 % 2D
-%                 f = zeros(2,obj.nnode,obj.nelem);
-%                 for j = 1:2
-%                     for a = 1:obj.nnode
-%                         inc = x(i,a,:).*cartd0(j,a,:);
-%                         f(j,a,:) = f(j,a,:) + inc;
-%                     end
-%                     F(i,j,:) = sum(f(j,:,:));
-%                 end
-%             end
-%             
-%             % Determinant vectorization (Jacobian)
-%             [~,Fjacb] = multinverse3x3(F);
-%             
-%             % Left-Cauchy deformation tensor
-% %             blcg = zeros(3,3,obj.nelem);
-% %             for i = 1:3
-% %                 for j = 1:3
-% %                     for k = 1:3
-% %                         blcg(i,j,:) = squeeze(blcg(i,j,:)) + (squeeze(F(i,k,:))).*(squeeze(F(j,k,:)));
-% %                     end
-% %                 end
-% %             end
-%             
-%             % Right-Cauchy deformation tensor
-%             Crcg = zeros(3,3,obj.nelem);
-%             for i = 1:3
-%                 for j = 1:3
-%                     for k = 1:3
-%                         Crcg(i,j,:) = squeeze(Crcg(i,j,:)) + (squeeze(F(k,i,:))).*(squeeze(F(k,j,:)));
-%                     end
-%                 end
-%             end
-%         end
-        
     end
 end

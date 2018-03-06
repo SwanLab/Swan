@@ -12,13 +12,16 @@ addpath(genpath(fileparts(mfilename('fullpath'))))
 % 5 - Postprocess   --> obj.postProcess;
 %% test
 
-run('test_fem.m')
+% run('test_fem.m')
 % test
 clear variables
 %% Main.m
-% triangle_linear = Physical_Problem('CantileverToy_Triangular');
-triangle_linear = Physical_Problem('CantileverToy_Nonlinear');
+triangle_linear = Physical_Problem('CantileverToy_Triangular');
+% triangle_linear = Physical_Problem('CantileverToy_Nonlinear');
 % triangle_linear = Physical_Problem('strip_hole');
+% triangle_linear = Physical_Problem('tetra2_hyperelastic');
+% triangle_linear = Physical_Problem('quad_hyperelastic');
+
 tic
 triangle_linear.preProcess;
 triangle_linear.computeVariables;

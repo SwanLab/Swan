@@ -5,8 +5,8 @@ classdef Element_Hyperelastic < Element
     properties
         fext
         cartd0
-        cartd
-        dvolu
+%         cartd
+%         dvolu
         stress
     end
     
@@ -15,9 +15,9 @@ classdef Element_Hyperelastic < Element
         function obj = Element_Hyperelastic(geometry)
             obj.cartd0 = geometry.cartd;
             
-            % These variables will be updated
-            obj.cartd = geometry.cartd;
-            obj.dvolu = geometry.dvolu;
+%             % These variables will be updated
+%             obj.cartd = geometry.cartd;
+%             obj.dvolu = geometry.dvolu;
             
             % Nonlinear parameters
             obj.nincr = 85;
@@ -44,25 +44,24 @@ classdef Element_Hyperelastic < Element
             R = obj.compute_imposed_displacemet_force(K);
             obj.fext = obj.cload + R; % fext + reac
 
-            fint_red = obj.computeInternal();
+            for igaus = 1:obj.geometry.ngaus
+                fint_red = obj.computeInternal(obj.geometry.cartd(:,:,:,igaus),obj.geometry.dvolu(:,igaus));
+            end
             
             r = fint_red - obj.fext(obj.dof.free);
             dr = K(obj.dof.free, obj.dof.free);
         end
         
 
-        function fint = computeInternal(obj)
-        % Fdef          --> cartd0 = obj.geometry.cartd
-        % fint,ksigma   --> cartd  = obj.cartd
-
+        function fint = computeInternal(obj,cartd,dvolu)
             for a = 1:obj.nnode
                 for i = 1:obj.geometry.ndime
                     iL = obj.geometry.ndime*(a-1) + i;
                     t = zeros(length(obj.dof.ndof),1,obj.nelem);
                     for j = 1:obj.geometry.ndime
-                        t(j,:) = obj.stress(i,j,:).*obj.cartd(j,a,:);
+                        t(j,:) = obj.stress(i,j,:).*cartd(j,a,:);
                     end
-                    t = squeeze(sum(t)).*squeeze(obj.dvolu);
+                    t = squeeze(sum(t)).*squeeze(dvolu);
                     t = permute(t,[3 2 1]);
                     T(iL,1,:) = t;
                 end
@@ -74,18 +73,20 @@ classdef Element_Hyperelastic < Element
         
         
         function [K,sigma] = computeTangentMatrix(obj)
-            % Compute ctens & sigma
-            [ctens,sigma] = obj.material.computeCtens(obj.coord);
-            obj.stress = sigma;
-            
-            % Compute tangent components
-            kconst  = obj.computeConstitutive(ctens);
-            ksigma  = obj.computeGeometric(sigma);
-            K = kconst + ksigma;
+            % Gauss-point loop
+            for igaus = 1:obj.geometry.ngaus
+                % Compute ctens & sigma
+                [ctens,sigma] = obj.material.computeCtens(obj.coord,igaus);
+                obj.stress = sigma;
+
+                % Compute tangent components
+                kconst  = obj.computeConstitutive(ctens,obj.geometry.cartd(:,:,:,igaus),obj.geometry.dvolu(:,igaus));
+                ksigma  = obj.computeGeometric(sigma,obj.geometry.cartd(:,:,:,igaus),obj.geometry.dvolu(:,igaus));
+                K = kconst + ksigma;
+            end
         end
         
-        
-        function kconst = computeConstitutive(obj,ctens)
+        function kconst = computeConstitutive(obj,ctens,cartd,dvolu)
             % Initialization
             kconst = zeros(obj.nnode*obj.nunkn,obj.nnode*obj.nunkn,obj.nelem);
             
@@ -98,7 +99,7 @@ classdef Element_Hyperelastic < Element
                             jL = obj.geometry.ndime*(b-1) + j;
                             for k = 1:obj.geometry.ndime
                                 for l = 1:obj.geometry.ndime
-                                    kconst(iL,jL,:) = kconst(iL,jL,:) + permute(squeeze(obj.cartd(k,a,:)).*squeeze(ctens(i,k,j,l,:)).*squeeze(obj.cartd(l,b,:)).*squeeze(obj.dvolu),[2 3 1]);
+                                    kconst(iL,jL,:) = kconst(iL,jL,:) + permute(squeeze(cartd(k,a,:)).*squeeze(ctens(i,k,j,l,:)).*squeeze(cartd(l,b,:)).*squeeze(dvolu),[2 3 1]);
                                 end
                             end
                         end
@@ -107,13 +108,12 @@ classdef Element_Hyperelastic < Element
             end
         end
         
-        function ksigma = computeGeometric(obj,sigma)
+        function ksigma = computeGeometric(obj,sigma,cartd,dvolu)
             % Initialization
             ksigma = zeros(obj.nnode*obj.nunkn,obj.nnode*obj.nunkn,obj.nelem);
             
             % Vectorization identity matrix
-            dk = eye(3);
-            dk = repmat(dk,[1 1 obj.nelem]);
+            dk = eye(3); dk = repmat(dk,[1 1 obj.nelem]);
             
             % Initial stress component (geometric)
             for a = 1:obj.nnode
@@ -124,7 +124,7 @@ classdef Element_Hyperelastic < Element
                             jL = obj.geometry.ndime*(b-1) + j;
                             for k = 1:obj.geometry.ndime
                                 for l = 1:obj.geometry.ndime
-                                    ksigma(iL,jL,:) = ksigma(iL,jL,:) + permute(squeeze(obj.cartd(k,a,:).*sigma(k,l,:).*obj.cartd(l,b,:).*dk(i,j,:)).*squeeze(obj.dvolu),[2 3 1]);
+                                    ksigma(iL,jL,:) = ksigma(iL,jL,:) + permute(squeeze(cartd(k,a,:).*sigma(k,l,:).*cartd(l,b,:).*dk(i,j,:)).*squeeze(dvolu),[2 3 1]);
                                 end
                             end
                         end
@@ -133,18 +133,8 @@ classdef Element_Hyperelastic < Element
             end
         end
         
-%         % 2D
-%         function obj = updateCoord(obj,u)
-%             % Update coordinates
-%             coord0 = obj.coord;
-%             coord  = reshape(coord0(:,1:2)',[],1);
-%             coord(obj.dof.free) = coord(obj.dof.free) + u;
-%             coord0(:,1:2) = reshape(coord,2,[])';
-%             obj.coord = coord0;            
-%         end
-        
         function obj = updateCartd(obj)
-            [obj.cartd,obj.dvolu] = obj.geometry.computeCartd(obj.coord,obj.nelem,obj.pdim);
+            [obj.geometry.cartd,obj.geometry.dvolu] = obj.geometry.computeCartd(obj.coord,obj.nelem,obj.pdim);
         end
         
         function variables = computeVars(obj,uL)

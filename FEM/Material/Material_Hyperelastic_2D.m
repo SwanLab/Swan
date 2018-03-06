@@ -20,8 +20,8 @@ classdef Material_Hyperelastic_2D < Material_Hyperelastic
             
             % Deformation gradient tensor
             F = repmat(eye(3),[1 1 obj.nelem]);
-            
-            for i = 1:2 % 2D
+
+            for i = 1:2 % ndim = 2
                 f = zeros(2,obj.nnode,obj.nelem);
                 for j = 1:2
                     for a = 1:obj.nnode
@@ -45,6 +45,5 @@ classdef Material_Hyperelastic_2D < Material_Hyperelastic
                 end
             end
         end
-        
     end
 end

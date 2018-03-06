@@ -2,7 +2,7 @@ classdef Geometry
     %Geometry Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (GetAccess = public, SetAccess = private)
+    properties (GetAccess = public, SetAccess = ?Element_Hyperelastic)
         cartd
         shape
         dvolu
