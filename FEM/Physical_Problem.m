@@ -76,23 +76,36 @@ classdef Physical_Problem < FEM
         
         function computeVariables(obj)
             tol   = 1e-6;
-            total_free_dof=0;
+          
             for ifield = 1:obj.nfields
-                total_free_dof = total_free_dof + length(obj.dof.free{ifield});   
+                free_dof(ifield) = length(obj.dof.free{ifield});
             end
-            
+              total_free_dof= sum(free_dof);
+            dt=0.1;
+            dr = obj.element.computedr(dt);
+            x_n(:,1) = zeros(total_free_dof,1);
+%             obj.variables = obj.element.computeVars(x_0);
+
+            final_time = 10;
             x0 = zeros(total_free_dof,1);
-            % Compute r & dr
-            [r,dr] = obj.element.computeResidual(x0);
-            while dot(r,r) > tol
-                inc_x = obj.solver.solve(dr,-r);
-                x = x0 + inc_x;
-                % Compute r & dr
-                [r,dr] = obj.element.computeResidual(x);
-                x0 = x;
+            
+            for istep = 2: final_time/dt
+                u_previous_step = x_n(1:free_dof(1),istep-1);
+
+                r = obj.element.computeResidual(x0,dr,u_previous_step);
+                while dot(r,r) > tol
+                    inc_x = obj.solver.solve(dr,-r);
+                    x = x0 + inc_x;
+                    % Compute r & dr
+                    r = obj.element.computeResidual(x,dr,u_previous_step);
+                    x0 = x;
+                end
+                x_n(:,istep)=x;
+                
+    %             [u,p] = analytical_sol(obj.interpolation_variable(1).xpoints,obj.interpolation_variable(2).xpoints);
+               
             end
-            [u,p] = analytical_sol(obj.interpolation_variable(1).xpoints,obj.interpolation_variable(2).xpoints);
-            obj.variables = obj.element.computeVars(x);
+             obj.variables = obj.element.computeVars(x);
         end
         
         function print(obj)

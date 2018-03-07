@@ -4,36 +4,52 @@ classdef Element_Stokes < Element
     
     properties
         LHS_elem
+        LHS
         RHS
+        M_elem
+        K_elem
     end
     
     methods (Access = ?Physical_Problem)
-        function [r,dr] = computeResidual(obj,x)
-            K = compute_LHS(obj);
+        function [r,dr] = computeResidual(obj,x,dr,x_n)
+%             K = compute_LHS(obj);
             Fext = compute_RHS(obj);
             
-            R = obj.compute_imposed_displacemet_force(K);
-            Fext = Fext + R;
+%             K = obj.AssembleMatrix(obj.K_elem,1,1);
+            M = obj.AssembleMatrix(obj.M_elem,1,1);
+            R = obj.compute_imposed_displacemet_force(obj.LHS);
+            Fext = Fext + R ;
             
-            Kred = obj.full_matrix_2_reduced_matrix(K);            
+%             Kred = obj.full_matrix_2_reduced_matrix(K);
+            Mred = M(obj.dof.free{1},obj.dof.free{1});
+            
             Fext_red = obj.full_vector_2_reduced_vector(Fext);
+            Fext_red(1:length(obj.dof.free{1}),1) = Fext_red(1:length(obj.dof.free{1}),1) + Mred*x_n;
             
-            fint_red = Kred*x;
+            fint_red = dr*x;
 
             r = fint_red - (Fext_red);
-            dr = Kred;
+%             dr = Kred;
             
         end
         
-        function LHS = compute_LHS(obj)
+        function dr = computedr(obj,dt)
+             obj.LHS = compute_LHS(obj,dt);
+             LHSred = obj.full_matrix_2_reduced_matrix(obj.LHS);
+             dr = LHSred;
+        end
+        
+        function LHS = compute_LHS(obj,dt)
             for ifield = 1:obj.nfields
                 for jfield = 1:obj.nfields
-                    obj.LHS_elem{ifield,jfield} = obj.computeMatrix(obj.dim,obj.nelem,obj.geometry(ifield),obj.geometry(jfield),obj.material,ifield,jfield);
-%                         mat = obj.computeMatrix(obj.dim,obj.nelem,obj.geometry(ifield),obj.geometry(jfield),obj.material,ifield,jfield);     
+                    obj.LHS_elem{ifield,jfield} = obj.computeMatrix(obj.dim,obj.nelem,obj.geometry(ifield),obj.geometry(jfield),obj.material,dt,ifield,jfield);
+%                         mat = obj.computeMatrix(obj.dim,obj.nelem,obj.geometry(ifield),obj.geometry(jfield),obj.material,ifield,jfield); 
+                    LHS{ifield,jfield} = obj.AssembleMatrix(obj.LHS_elem{ifield,jfield},ifield,jfield);
+                        
                 end
             end
-            LHS= AssembleMatrix(obj,obj.LHS_elem);
-%             LHS = cell2mat(LHS);
+%             LHS= AssembleMatrix(obj,obj.LHS_elem);
+            LHS = cell2mat(LHS);
         end
         
         function RHS = compute_RHS(obj)
@@ -45,7 +61,26 @@ classdef Element_Stokes < Element
             RHS = AssembleVector(obj,RHS_elem);
         end
 
-     
+        function M = compute_M(obj,dim,nelem,geometry_test,geometry_variable,dt)
+            nunkn = dim.nunkn(1);
+            M = zeros(nunkn*geometry_test.nnode,nunkn*geometry_variable.nnode,nelem);
+            
+             for igauss = 1 :geometry_variable.ngaus       
+                for inode= 1:geometry_test.nnode
+                    for jnode= 1:geometry_variable.nnode
+                        for iunkn= 1:nunkn
+                            for junkn= 1:nunkn
+                                v = squeeze(geometry_test.shape(inode,igauss,:).*geometry_variable.shape(jnode,igauss,:));
+                                M(nunkn*(inode-1)+iunkn,nunkn*(jnode-1)+junkn,:)= squeeze(M(nunkn*(inode-1)+iunkn,nunkn*(jnode-1)+junkn,:)) ...
+                                    + v(:)/dt.*geometry_variable.dvolu(:,igauss);
+%                                 obj.LHS(iv,jv,:) = squeeze(obj.LHS(iv,jv,:)) + v(:).*geometry.dvolu(:,igauss);
+                            end
+                        end
+                    end
+                end
+             end
+            obj.M_elem = M;
+        end
         
         function K = compute_K(obj,dim,nelem,geometry_test,geometry_variable,material)
              nunkn = dim.nunkn(1);
@@ -72,9 +107,7 @@ classdef Element_Stokes < Element
                 end
                 
             end
-            
-          
-            
+            obj.K_elem = K;           
             end
         
         function D = compute_D(obj,dim,nelem,geometry_test,geometry_variable)
@@ -155,13 +188,22 @@ classdef Element_Stokes < Element
        function g = compute_velocity_divergence(obj)
            g = zeros(obj.geometry(2).nnode*obj.dim.nunkn(2),1,obj.nelem);
        end
+       
+       function variable = computeVars(obj,x_free)
+           x = obj.reduced_vector_2_full_vector(x_free);
+           variable.u = x(1:obj.dof.ndof(1));
+           variable.p = x(obj.dof.ndof(1)+1:end);
+           
+       end
         
     end
     methods (Access=protected)
-        function mat = computeMatrix(obj,dim,nelem,geometry_test,geometry_variable,material,ifield,jfield)
+        function mat = computeMatrix(obj,dim,nelem,geometry_test,geometry_variable,material,dt,ifield,jfield)
 
            if ifield == 1 && jfield==1
-               mat = obj.compute_K(dim,nelem,geometry_test,geometry_variable,material);
+               K = obj.compute_K(dim,nelem,geometry_test,geometry_variable,material);
+               M = obj.compute_M(dim,nelem,geometry_test,geometry_variable,dt);
+               mat = M + K;
            elseif ifield == 1 && jfield==2
                mat = obj.compute_D(dim,nelem,geometry_test,geometry_variable);
            elseif ifield == 2 && jfield==1

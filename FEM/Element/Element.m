@@ -105,11 +105,9 @@ classdef Element<handle
         
         
         % Matrix function
-        function [A] = AssembleMatrix(obj,A_elem_cell)
-            for ifield = 1:obj.nfields
-                for jfield = 1:obj.nfields
-                    A_elem = A_elem_cell{ifield,jfield};
-                    [idx1,idx2,nunkn1,nunkn2,nnode1,nnode2,col,row] = obj.get_assemble_parameters(ifield,jfield);
+        function [A] = AssembleMatrix(obj,A_elem,ifield,jfield)
+            
+              [idx1,idx2,nunkn1,nunkn2,nnode1,nnode2,col,row] = obj.get_assemble_parameters(ifield,jfield);
                     
                     A = sparse(row,col);
                     for i = 1:nnode1*nunkn1
@@ -122,10 +120,6 @@ classdef Element<handle
                     if ifield == 1 && jfield == 1
                          A = 1/2 * (A + A');
                     end
-                    A_global{ifield,jfield}=A;
-                end
-            end
-            A = cell2mat(A_global);
         end
         
         function [idx1,idx2,nunkn1,nunkn2,nnode1,nnode2,col,row] = get_assemble_parameters(obj,ifield,jfield)
@@ -190,11 +184,13 @@ classdef Element<handle
         end
         
         function b = reduced_vector_2_full_vector(obj,bfree)
-            for ifield=1:obj.nfields
-                b = zeros(obj.dof.ndof,1);
-                b(obj.dof.free{1}) = bfree;
-                b(obj.dof.dirichlet{1}) = obj.dof.dirichlet_values{1};
-            end
+           [dirichlet,uD,free] = obj.compute_global_dirichlet_free_uD; 
+           ndof = sum(obj.dof.ndof);
+            
+                b = zeros(ndof,1);
+                b(free) = bfree;
+                b(dirichlet) = uD;
+       
         end
         
     end

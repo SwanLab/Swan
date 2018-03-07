@@ -18,9 +18,17 @@ for i=1:length(tests_fem)
     obj = Physical_Problem(file_name);
     obj.preProcess;
     obj.computeVariables;
-    if sum(abs(obj.variables.d_u - d_u)) < 1e-6
-        disp(strcat(file_name,' PASSED'));
+    if strcmp(obj.mesh.ptype)
+        if sum(abs(obj.variables.d_u - d_u)) < 1e-6
+            disp(strcat(file_name,' PASSED'));
+        else
+            disp(strcat(file_name,' FAILED'));
+        end
     else
-        disp(strcat(file_name,' FAILED'));
+        if sum(abs(obj.variables.u - d_u) + abs(obj.variables.u - p)) < 1e-6
+            disp(strcat(file_name,' PASSED'));
+        else
+            disp(strcat(file_name,' FAILED'));
+        end
     end
 end
