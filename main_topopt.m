@@ -5,9 +5,7 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 run('test_topopt.m');
 clear variables;
 %% Settings
-settings=Settings('CantileverTriangle_Case_1_2_1');
-settings.filename='Bridge';
-settings.target_parameters.Vfrac=0.2;
+settings=Settings('CantileverTriangle_Case_1_1_3');
 %% main
 tic
 test = TopOpt_Problem(settings);
