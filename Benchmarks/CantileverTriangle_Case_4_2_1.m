@@ -9,7 +9,7 @@ constraint = {'volume'};
 optimizer = 'IPOPT'; kappaMultiplier = 1;
 filterType = 'P1';
 
-nsteps = 1;
+nsteps = 5;
 Vfrac_final = 0.3;
 Perimeter_target=3.5;
 optimality_final =1e-3;

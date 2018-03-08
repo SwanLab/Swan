@@ -1,40 +1,44 @@
 classdef Incremental_Scheme < handle
-    properties
-        nsteps
+    properties   
+        settings
         incropt
         coord
         connec
-        settings
         epsilon
+        epsilon_initial
+        epsilon0
     end
     methods
-        function obj=Incremental_Scheme(settings, physicalProblem)
+        function obj=Incremental_Scheme(settings, mesh)
             obj.settings=settings;
             nsteps=settings.nsteps;
-            obj.coord=physicalProblem.mesh.coord;
-            obj.connec=physicalProblem.mesh.connec;
-            obj.epsilon=1*obj.estimate_mesh_size(physicalProblem.mesh.coord,physicalProblem.mesh.connec);
+            obj.coord=mesh.coord;
+            obj.connec=mesh.connec;
+            obj.epsilon=obj.estimate_mesh_size;
+            if isempty(settings.epsilon_initial)
+                obj.epsilon_initial=obj.epsilon;
+            end
             obj.incropt.alpha_vol = obj.generate_incr_sequence(1/nsteps,1,nsteps,'linear');
             obj.incropt.alpha_constr = obj.generate_incr_sequence(0,1,nsteps,'linear');
             obj.incropt.alpha_optimality= obj.generate_incr_sequence(0,1,nsteps,'linear');
-            obj.incropt.alpha_epsilon = obj.generate_incr_sequence(0,1,nsteps,'custom',8);
-            obj.create_epsilon_perimeter;        
+            obj.incropt.alpha_epsilon=obj.generate_incr_sequence(0,1,nsteps,'linear');
+            obj.incropt.alpha_epsilon_per = obj.generate_incr_sequence(-1,0,nsteps,'logarithmic');     
         end
         function update_target_parameters(obj,t,cost, constraint, optimizer)            
             target_parameters.Vfrac = (1-obj.incropt.alpha_vol(t))*obj.settings.Vfrac_initial+obj.incropt.alpha_vol(t)*obj.settings.Vfrac_final;
-            target_parameters.epsilon = (1-obj.incropt.alpha_epsilon(t))*obj.settings.epsilon_initial+obj.incropt.alpha_epsilon(t)*obj.settings.epsilon_final;
-            %target_parameters.epsilon_isotropy = update_parameter(target_parameters.epsilon_isotropy_ini,target_parameters.epsilon_isotropy_final,target_parameters.alpha_isotropy2d(t));
+            target_parameters.epsilon_perimeter = (1-obj.incropt.alpha_epsilon_per(t))*obj.epsilon0+obj.incropt.alpha_epsilon_per(t)*obj.epsilon;
+            target_parameters.epsilon = (1-obj.incropt.alpha_epsilon(t))*obj.epsilon_initial+obj.incropt.alpha_epsilon(t)*obj.epsilon;
             target_parameters.constr_tol = (1-obj.incropt.alpha_constr(t))*obj.settings.constr_initial+obj.incropt.alpha_constr(t)*obj.settings.constr_final;
             target_parameters.optimality_tol = (1-obj.incropt.alpha_optimality(t))*obj.settings.optimality_initial+obj.incropt.alpha_optimality(t)*obj.settings.optimality_final;
             cost.target_parameters=target_parameters;
             constraint.target_parameters=target_parameters;
             optimizer.target_parameters=target_parameters;
-           % optimizer.epsilon_scalar_product_P1=obj.epsilon;
+            optimizer.epsilon_scalar_product_P1=obj.epsilon; %pending to be changed along with scalarrpoduct
         end
-        function create_epsilon_perimeter(obj)
+        function h=estimate_mesh_size(obj)
             xmin = min(obj.coord);
             xmax = max(obj.coord);
-            epsilon0 = norm(xmax-xmin)/2;
+            obj.epsilon0 = norm(xmax-xmin)/2;
             
             x1 = obj.coord(obj.connec(:,1));
             x2 = obj.coord(obj.connec(:,2));
@@ -45,17 +49,8 @@ classdef Incremental_Scheme < handle
             x1x3 = abs(x1-x3);
             hs = max([x1x2,x2x3,x1x3]');
             h = mean(hs);
-            
-            epsilon_end =h;
-            frac = 2;
-            kmax = ceil(log10(epsilon0/epsilon_end)/log10(frac));
-            epsilon_iter = epsilon0./frac.^(1:kmax);
-            obj.settings.epsilon_initial=epsilon_iter(1);
-            obj.settings.epsilon_final=epsilon_iter(end);
         end
-    end
-    methods (Static)
-        function x = generate_incr_sequence (x1,x2,nsteps,type,factor)
+        function x = generate_incr_sequence (obj,x1,x2,nsteps,type,factor)
             
             switch type
                 case 'linear'
@@ -64,10 +59,10 @@ classdef Incremental_Scheme < handle
                 case 'epsilon_sequence'
                     frac = 2;
                     kmax = ceil(log10(x1/x2)/log10(frac));
-                    x = epsilon0./frac.^(1:kmax);
+                    x = obj.epsilon0./frac.^(1:kmax);
                     
                 case 'logarithmic'
-                    x = logspace(log10(x1),log10(x2),nsteps);
+                    x = logspace(x1,x2,nsteps);
                     
                 case 'custom'
                     if nsteps < 2
@@ -86,17 +81,6 @@ classdef Incremental_Scheme < handle
                     error('Incremental sequence type not detected.')
             end
             
-        end
-        function h=estimate_mesh_size(coordinates,conectivities)
-            x1 = coordinates(conectivities(:,1));
-            x2 = coordinates(conectivities(:,2));
-            x3 = coordinates(conectivities(:,3));
-            
-            x1x2 = abs(x2-x1);
-            x2x3 = abs(x3-x2);
-            x1x3 = abs(x1-x3);
-            hs = max([x1x2,x2x3,x1x3]');
-            h = mean(hs);
         end
     end
 

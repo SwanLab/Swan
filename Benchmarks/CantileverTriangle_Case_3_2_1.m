@@ -4,13 +4,13 @@ method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
 cost = {'compliance';'perimeter'};
-weights = [1 0.1];
+weights = [1, 0.1];
 constraint = {'volume'};
-optimizer = 'PROJECTED GRADIENT'; kappaMultiplier = 1;
+optimizer = 'MMA'; kappaMultiplier = 1;
 filterType = 'P1';
 
-nsteps = 1;
-Vfrac_final = 0.4;
+nsteps = 5;
+Vfrac_final = 0.3;
 Perimeter_target=3.5;
 optimality_final =1e-3;
 constr_final =1e-3;

@@ -45,7 +45,7 @@ classdef TopOpt_Problem < handle
             obj.topOpt_params.preProcess;
             obj.filters_preProcess;
             
-            obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.topOpt_params);
+            obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.topOpt_params.mesh);
             obj.compute_initial_design;
             obj.topOpt_params = []; % !! To check that only it is used once (Debugging) !!
         end

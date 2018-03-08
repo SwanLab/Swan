@@ -1,17 +1,16 @@
-filename='CantileverBeam_Triangle_Linear_Fine';
+filename='topopt_quad';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'compliance';'perimeter'};
-weights = [1 0.1];
+cost = {'compliance'};
+weights = [1];
 constraint = {'volume'};
-optimizer = 'PROJECTED GRADIENT'; kappaMultiplier = 1;
+optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 
 nsteps = 1;
 Vfrac_final = 0.5;
-Perimeter_target=3.5;
 optimality_final =1e-3;
 constr_final =1e-3;
 

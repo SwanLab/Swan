@@ -47,9 +47,15 @@ classdef CC < handle
             obj.value = 0;
             obj.gradient = zeros(length(x),1);
             for iSF = 1:length(obj.ShapeFuncs)
-                obj.ShapeFuncs{iSF}.target_parameters = obj.target_parameters;
+                obj.updateTargetParameters(iSF);
                 obj.ShapeFuncs{iSF}.computef(x);
                 obj.updateFields(iSF);
+            end
+        end
+        function updateTargetParameters(obj,iSF)
+            obj.ShapeFuncs{iSF}.target_parameters = obj.target_parameters;
+            if isprop(obj.ShapeFuncs{iSF}.filter,'epsilon')
+                obj.ShapeFuncs{iSF}.filter.epsilon=obj.target_parameters.epsilon;
             end
         end
     end

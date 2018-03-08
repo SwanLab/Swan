@@ -14,7 +14,7 @@ classdef ShFunc_Perimeter < Shape_Functional
             obj.target_parameters=settings.target_parameters;            
         end
         function epsilon=get.epsilon(obj)
-            epsilon=obj.target_parameters.epsilon;
+            epsilon=obj.target_parameters.epsilon_perimeter;
         end
         function computef(obj,x)
             obj.checkFilterPre(obj.filter);
