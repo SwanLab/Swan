@@ -5,33 +5,38 @@ classdef Element_Elastic < Element
     
     properties
           fext
+          K
     end
     
     methods %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
-        function [r,dr] = computeResidual(obj,x)
+        function r = computeResidual(obj,x,Kred)
 
-            [K] = obj.computeStiffnessMatrix();
+%             [K] = obj.computeStiffnessMatrix();
             
             Fext = obj.computeExternalForces();            
-            R = obj.compute_imposed_displacemet_force(K);
+            R = obj.compute_imposed_displacemet_force(obj.K);
             obj.fext = Fext + R;
             
-            Kred = obj.full_matrix_2_reduced_matrix(K);            
+%             Kred = obj.full_matrix_2_reduced_matrix(K);            
             fext_red = obj.full_vector_2_reduced_vector(obj.fext);
 
             fint_red = Kred*x;
 
             r = fint_red - (fext_red);
-            dr = Kred;
+%             dr = Kred;
         end
         
         function [K] = computeStiffnessMatrix(obj)
             K = compute_elem_StiffnessMatrix(obj);                        
-            [K] = obj.AssembleMatrix(K,1,1);
+           [K] = obj.AssembleMatrix(K,1,1);
         end
         
 
-        
+        function dr = computedr(obj)
+            obj.K = obj.computeStiffnessMatrix;
+            Kred = obj.full_matrix_2_reduced_matrix(obj.K); 
+            dr = Kred;
+        end
 
         
         function K = compute_elem_StiffnessMatrix(obj)

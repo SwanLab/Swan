@@ -12,9 +12,9 @@ classdef Triangle_Linear<Isoparametric
             obj.type = 'TRIANGLE';
             obj.ndime = 2;
             obj.nnode = 3;
-            obj.ngaus = 1;
-            obj.weigp = 1/2;
-            obj.posgp = [1/3;1/3];
+%             obj.ngaus = 1;
+%             obj.weigp = 1/2;
+%             obj.posgp = [1/3;1/3];
             obj.pos_nodes = [0 0; 1 0; 0 1];
             
             % s : xi coordinate

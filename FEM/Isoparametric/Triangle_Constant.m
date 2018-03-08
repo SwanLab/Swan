@@ -11,9 +11,9 @@ classdef Triangle_Constant < Isoparametric
             obj.type = 'TRIANGLE';
             obj.ndime = 2;
             obj.nnode = 1;
-            obj.ngaus = 1;
-            obj.weigp = 1/2;
-            obj.posgp = [1/3;1/3];
+%             obj.ngaus = 1;
+%             obj.weigp = 1/2;
+%             obj.posgp = [1/3;1/3];
             obj.pos_nodes = [1/3 1/3]; %[0 0; 1 0; 0 1];
             
             obj.shape = @(s,t) {1};

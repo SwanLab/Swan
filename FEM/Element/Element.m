@@ -185,11 +185,13 @@ classdef Element<handle
         
         function b = reduced_vector_2_full_vector(obj,bfree)
            [dirichlet,uD,free] = obj.compute_global_dirichlet_free_uD; 
+           nsteps = length(bfree(1,:));
            ndof = sum(obj.dof.ndof);
-            
-                b = zeros(ndof,1);
-                b(free) = bfree;
-                b(dirichlet) = uD;
+           uD = repmat(uD,1,nsteps);
+        
+           b = zeros(ndof,nsteps);
+           b(free,:) = bfree;
+           b(dirichlet,:) = uD;
        
         end
         

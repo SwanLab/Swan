@@ -146,6 +146,8 @@ classdef Preprocess<handle
                 end
                 
                 forces = F;
+            else
+                forces = [];
             end
             clear fixnodes;
             fixnodes{1} = fixnodes_u;

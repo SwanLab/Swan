@@ -12,9 +12,9 @@ classdef Triangle_Quadratic<Isoparametric
             obj.type = 'TRIANGLE_QUADRATIC';
             obj.ndime = 2;          % 1D/2D/3D
             obj.nnode = 6;
-            obj.ngaus = 3;          % Linear triangle
-            obj.weigp = [1/3;1/3;1/3];
-            obj.posgp = [0,0.5;0.5,0;0.5,0.5]';
+%             obj.ngaus = 3;          % Linear triangle
+%             obj.weigp = [1/3;1/3;1/3];
+%             obj.posgp = [0,0.5;0.5,0;0.5,0.5]';
             obj.pos_nodes = [0,0 ; 1 0; 0,1 ; 0.5,0 ; 0.5,0.5 ; 0,0.5];
 %             [0,0;0.5 0;1,0; 0.5 0.5; 0,1; 0 0.5]
 %             obj.posgp = [1/6,1/6;2/3,1/6;1/6,2/3]';
@@ -22,8 +22,8 @@ classdef Triangle_Quadratic<Isoparametric
             % s : xi coordinate
             % t : eta coordinate
             % u : zeta coordinate (for 3D)
-            s = obj.posgp(1,1:obj.ngaus);
-            t = obj.posgp(2,1:obj.ngaus);
+%             s = obj.posgp(1,1:obj.ngaus);
+%             t = obj.posgp(2,1:obj.ngaus);
             obj.deriv = zeros(obj.ndime,obj.nnode);
             
             % !! Originally: obj.shape = zeros(1,obj.nnode);

@@ -80,41 +80,65 @@ classdef Physical_Problem < FEM
             for ifield = 1:obj.nfields
                 free_dof(ifield) = length(obj.dof.free{ifield});
             end
-              total_free_dof= sum(free_dof);
-            dt=0.1;
-            dr = obj.element.computedr(dt);
-            x_n(:,1) = zeros(total_free_dof,1);
-%             obj.variables = obj.element.computeVars(x_0);
 
-            final_time = 10;
+            transient = true;
+              
+             if transient
+                  dt=0.01;
+                  final_time = 1;
+                  x = obj.solve_transient_problem(free_dof,tol,dt,final_time);  
+              else
+                  x = obj.solve_steady_problem(free_dof,tol);
+              end
+                       
+             obj.variables = obj.element.computeVars(x);
+        end
+        
+        function print(obj)
+            postprocess = Postprocess_PhysicalProblem();
+            results.physicalVars = obj.variables;
+            postprocess.print(obj,obj.problemID,results);
+        end
+        
+        function sol = solve_steady_problem(obj,free_dof,tol)
+
+            total_free_dof = sum(free_dof);
+            dr = obj.element.computedr;
             x0 = zeros(total_free_dof,1);
             
-            for istep = 2: final_time/dt
+            r = obj.element.computeResidual(x0,dr);
+                while dot(r,r) > tol
+                    inc_x = obj.solver.solve(dr,-r);
+                    x = x0 + inc_x;
+                    % Compute r 
+                    r = obj.element.computeResidual(x,dr);
+                    x0 = x;
+                end
+            sol=x;
+        end
+        
+        function sol = solve_transient_problem(obj,free_dof,tol,dt,final_time)
+            total_free_dof= sum(free_dof);      
+            x_n(:,1) = zeros(total_free_dof,1);
+            x0 = zeros(total_free_dof,1);
+            
+            dr = obj.element.computedr(dt);
+            
+            for istep = 2: final_time/dt   
                 u_previous_step = x_n(1:free_dof(1),istep-1);
 
                 r = obj.element.computeResidual(x0,dr,u_previous_step);
                 while dot(r,r) > tol
                     inc_x = obj.solver.solve(dr,-r);
                     x = x0 + inc_x;
-                    % Compute r & dr
+                            % Compute r
                     r = obj.element.computeResidual(x,dr,u_previous_step);
                     x0 = x;
                 end
-                x_n(:,istep)=x;
-                
-    %             [u,p] = analytical_sol(obj.interpolation_variable(1).xpoints,obj.interpolation_variable(2).xpoints);
-               
+             x_n(:,istep)=x;
             end
-             obj.variables = obj.element.computeVars(x);
+            sol = x_n;
         end
-        
-        function print(obj)
-            iter = 1; % static
-            postprocess = Postprocess_PhysicalProblem();
-            results.physicalVars = obj.variables;
-            postprocess.print(obj,obj.problemID,iter,results);
-        end
-        
         
         function postProcess(obj)
         %    ToDo

@@ -13,18 +13,25 @@ classdef Element_Stokes < Element
     methods (Access = ?Physical_Problem)
         function [r,dr] = computeResidual(obj,x,dr,x_n)
 %             K = compute_LHS(obj);
+            if (nargin ==3)
+                Mred_x_n = zeros(length(obj.dof.free{1}),1);
+            else
+               M = obj.AssembleMatrix(obj.M_elem,1,1);
+               Mred = M(obj.dof.free{1},obj.dof.free{1});
+               Mred_x_n = Mred*x_n;
+            end
+            
             Fext = compute_RHS(obj);
             
 %             K = obj.AssembleMatrix(obj.K_elem,1,1);
-            M = obj.AssembleMatrix(obj.M_elem,1,1);
+
             R = obj.compute_imposed_displacemet_force(obj.LHS);
             Fext = Fext + R ;
             
 %             Kred = obj.full_matrix_2_reduced_matrix(K);
-            Mred = M(obj.dof.free{1},obj.dof.free{1});
-            
+
             Fext_red = obj.full_vector_2_reduced_vector(Fext);
-            Fext_red(1:length(obj.dof.free{1}),1) = Fext_red(1:length(obj.dof.free{1}),1) + Mred*x_n;
+            Fext_red(1:length(obj.dof.free{1}),1) = Fext_red(1:length(obj.dof.free{1}),1) + Mred_x_n;
             
             fint_red = dr*x;
 
@@ -34,6 +41,9 @@ classdef Element_Stokes < Element
         end
         
         function dr = computedr(obj,dt)
+            if nargin < 2
+                dt=inf;
+            end
              obj.LHS = compute_LHS(obj,dt);
              LHSred = obj.full_matrix_2_reduced_matrix(obj.LHS);
              dr = LHSred;
@@ -190,10 +200,9 @@ classdef Element_Stokes < Element
        end
        
        function variable = computeVars(obj,x_free)
-           x = obj.reduced_vector_2_full_vector(x_free);
-           variable.u = x(1:obj.dof.ndof(1));
-           variable.p = x(obj.dof.ndof(1)+1:end);
-           
+            x = obj.reduced_vector_2_full_vector(x_free);
+            variable.u = x(1:obj.dof.ndof(1),:);
+            variable.p = x(obj.dof.ndof(1)+1:end,:);
        end
         
     end

@@ -5,6 +5,7 @@ clear all; close all; clc
 % Load the results for 2-d and 3-d tests
 tests_fem={'test2d_triangle';
     'test2d_quad';
+    'test2d_stokes_triangle';
     'test3d_hexahedra';
     'test3d_tetrahedra'};
 
@@ -18,14 +19,14 @@ for i=1:length(tests_fem)
     obj = Physical_Problem(file_name);
     obj.preProcess;
     obj.computeVariables;
-    if strcmp(obj.mesh.ptype)
+    if strcmp(obj.mesh.ptype,'ELASTIC')
         if sum(abs(obj.variables.d_u - d_u)) < 1e-6
             disp(strcat(file_name,' PASSED'));
         else
             disp(strcat(file_name,' FAILED'));
         end
     else
-        if sum(abs(obj.variables.u - d_u) + abs(obj.variables.u - p)) < 1e-6
+        if sum(abs(obj.variables.u - variable.u)) < 1e-6 && sum(abs(obj.variables.p - variable.p)) < 1e-6
             disp(strcat(file_name,' PASSED'));
         else
             disp(strcat(file_name,' FAILED'));

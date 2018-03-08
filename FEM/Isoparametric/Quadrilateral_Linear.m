@@ -8,10 +8,10 @@ classdef Quadrilateral_Linear < Isoparametric
             obj.type = 'QUAD';
             obj.ndime = 2;
             obj.nnode = 4;
-            obj.ngaus = 1;
+%             obj.ngaus = 1;
             obj.pos_nodes = [-1 -1; 1 -1; 1 1; -1 1];
             % Compute WEIGP and POSGP
-            obj.posgp = [0,0];
+% %             obj.posgp = [0,0];
             obj.weigp = 1;
             
             shape = @(s,t) {(1.-t-s+s*t)*0.25;

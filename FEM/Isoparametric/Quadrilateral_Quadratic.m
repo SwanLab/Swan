@@ -8,7 +8,7 @@ classdef Quadrilateral_Quadratic < Isoparametric
             obj.type = 'QUAD';
             obj.ndime = 2;
             obj.nnode = 8;
-            obj.ngaus = 4;
+%             obj.ngaus = 4;
             obj.pos_nodes = [-1 -1; 1 -1; 1 1; -1 1];
             
             shape = @(s,t) {(1.-t-s+s*t)*0.25;
@@ -19,7 +19,7 @@ classdef Quadrilateral_Quadratic < Isoparametric
             
             deriv = @(s,t) {(-1.+t)*0.25 (+1.-t)*0.25 (+1.+t)*0.25 (-1.-t)*0.25;
                             (-1.+s)*0.25 (-1.-s)*0.25 (+1.+s)*0.25 (+1.-s)*0.25};
-            obj.deriv = deriv
+            obj.deriv = deriv;
             % Compute WEIGP and POSGP
 %             a =  0.577350269189626;
 %             obj.posgp(1,:) = [-a,-a];

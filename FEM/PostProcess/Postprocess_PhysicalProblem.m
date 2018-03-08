@@ -19,12 +19,12 @@ classdef Postprocess_PhysicalProblem < Postprocess
 
         
         
-        function Print_results(obj,results)
+        function Print_results(obj,results,ifield,istep)
             switch obj.ptype
                 case 'ELASTIC'
                     obj.Print_results_mechanics(results);
                 case 'Stokes'
-                    obj.Print_results_fluids(results);
+                    obj.Print_results_fluids(results,ifield,istep);
             end
             
   
@@ -38,13 +38,12 @@ classdef Postprocess_PhysicalProblem < Postprocess
             obj.PrintTensor(obj.strain_name,obj.strain_component,'Elastic Problem','Vector','OnGaussPoints',obj.gauss_points_name,results.physicalVars.strain);
         end
         
-        function Print_results_fluids(obj,results)
-            fprintf(obj.fid_res,'OnGroup "u" \n');
-            obj.PrintVector(obj.velocity_name,obj.velocity_component,'Stokes problem','Vector','OnNodes','',results.physicalVars.u);
-            fprintf(obj.fid_res,'end ongroup\n\n');
-            fprintf(obj.fid_res,'OnGroup "p" \n');
-            obj.PrintScalar(obj.pressure_name,obj.pressure_component,'Stokes problem','Scalar','OnNodes','',results.physicalVars.p);
-            fprintf(obj.fid_res,'end ongroup\n');
+        function Print_results_fluids(obj,results,ifield,istep)
+            if ifield == 1
+                    obj.PrintVector(obj.velocity_name,obj.velocity_component,'Stokes problem','Vector','OnNodes','',results.physicalVars.u(:,istep),istep);
+            else            
+                    obj.PrintScalar(obj.pressure_name,obj.pressure_component,'Stokes problem','Scalar','OnNodes','',results.physicalVars.p(:,istep),istep);                
+            end            
         end
 
     end

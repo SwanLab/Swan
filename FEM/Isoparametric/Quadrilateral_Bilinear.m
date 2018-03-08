@@ -8,7 +8,7 @@ classdef Quadrilateral_Bilinear < Isoparametric
             obj.type = 'QUADRILATERAL';
             obj.ndime = 2;
             obj.nnode = 4;
-            obj.ngaus = 4;
+%             obj.ngaus = 4;
             obj.pos_nodes = [-1 -1; 1 -1; 1 1; -1 1];
             
             shape =@(s,t) {(1.-t-s+s*t)*0.25;

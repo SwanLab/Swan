@@ -16,14 +16,14 @@ classdef Postprocess < handle
             fid_mesh
             fid_res
             file_name
-            istep
+            nsteps
             nfields
 
     end
             
     
     methods (Access = protected)
-        function setBasicParams(obj,physical_problem,file_name,istep)
+        function setBasicParams(obj,physical_problem,file_name,results)
             obj.nfields = physical_problem.nfields;
             for ifield = 1:obj.nfields
             obj.coordinates{ifield} = physical_problem.interpolation_variable(ifield).xpoints;
@@ -56,7 +56,13 @@ classdef Postprocess < handle
             
             
             obj.file_name = file_name;
-            obj.istep = istep; 
+            switch obj.ptype
+                case 'ELASTIC'
+                    obj.nsteps = 1;
+                case 'Stokes'
+                    obj.nsteps = length(results.physicalVars.u(1,:));
+            end
+             
            
         end
         function printTitle(obj,fid)
@@ -65,9 +71,9 @@ classdef Postprocess < handle
             fprintf(fid,'####################################################\n');
             fprintf(fid,'\n');
         end
-        function PrintVector(obj,nameres,indexName,problemType,result_type,result_location,location_name,results)
+        function PrintVector(obj,nameres,indexName,problemType,result_type,result_location,location_name,results,istep)
             % Print Header ------------------------------------------------
-            fprintf(obj.fid_res,'\nResult "%s" "%s" %.0f %s %s "%s"\n',nameres,problemType,obj.istep,result_type,result_location,location_name);
+            fprintf(obj.fid_res,'\nResult "%s" "%s" %.0f %s %s "%s"\n',nameres,problemType,istep,result_type,result_location,location_name);
             switch obj.ndim
                 case 2
                     fprintf(obj.fid_res,'ComponentNames  "%sx", "%sy"\n',indexName,indexName);
@@ -113,9 +119,10 @@ classdef Postprocess < handle
             end
             fprintf(obj.fid_res,'End Values\n');
         end
-        function PrintScalar(obj,nameres,indexName,problemType,result_type,result_location,location_name,results)
+        function PrintScalar(obj,nameres,indexName,problemType,result_type,result_location,location_name,results,istep)
             % Print Header ------------------------------------------------
-            fprintf(obj.fid_res,'\nResult "%s" "%s" %.0f %s %s "%s"\n',nameres,problemType,obj.istep,result_type,result_location,location_name);
+        
+            fprintf(obj.fid_res,'\nResult "%s" "%s" %.0f %s %s "%s"\n',nameres,problemType,istep,result_type,result_location,location_name);
             fprintf(obj.fid_res,'ComponentNames  "%s"\n',indexName);
             
             % Print Variables ---------------------------------------------
@@ -152,80 +159,88 @@ classdef Postprocess < handle
         
         
         function PrintMeshFile(obj)
-            
-            msh_file = fullfile('Output',strcat(obj.file_name,'_',num2str(obj.istep),'.flavia.msh'));
-            obj.fid_mesh = fopen(msh_file,'w');
-            
-            obj.printTitle(obj.fid_mesh);
-            mesh_group = ['u' 'p'];
-            for ifield = 1:obj.nfields
-                fprintf(obj.fid_mesh,'Group "%c" \n',mesh_group(ifield));
-                fprintf(obj.fid_mesh,'MESH "WORKPIECE" dimension %3.0f   Elemtype %s   Nnode %2.0f \n \n',obj.ndim,obj.etype,obj.nnode(ifield));
-                fprintf(obj.fid_mesh,'coordinates \n');
-                switch obj.pdim
-                    case '2D'
-                        for i = 1:obj.npnod(ifield)
-                            fprintf(obj.fid_mesh,'%6.0f %12.5d %12.5d \n',i,obj.coordinates{ifield}(i,1:obj.ndim));
-                        end
-                    case '3D'
-                        for i = 1:obj.npnod(ifield)
-                            fprintf(obj.fid_mesh,'%6.0f %12.5d %12.5d %12.5d \n',i,obj.coordinates{ifield}(i,:));
-                        end
-                end
-                fprintf(obj.fid_mesh,'end coordinates \n \n');
+            for istep = 1:obj.nsteps
+                mesh_group = ['u' 'p'];
+                for ifield = 1:obj.nfields
+                    msh_file = fullfile('Output',obj.file_name,strcat(obj.file_name,'_',mesh_group(ifield),'_',num2str(istep),'.flavia.msh'));
+                    obj.fid_mesh = fopen(msh_file,'w');
 
-                fprintf(obj.fid_mesh,'elements \n');
-                switch  obj.gtype
-                    case 'TRIANGLE'
-                        switch obj.nnode(ifield)
-                            case 3
-                                fprintf(obj.fid_mesh,'%6.0f %6.0f %6.0f %6.0f  1 \n',[1:obj.nelem;obj.conectivities{ifield}']);
-                            case 6
-                                fprintf(obj.fid_mesh,'%6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f 1 \n',[1:obj.nelem;obj.conectivities{ifield}']);
-                            otherwise
-                                error('Element type %s with %.0f nodes has not being implemented.',gytpe,obj.nnode(ifield));
-                        end
-                    case 'QUAD'
-                        switch obj.nnode(ifield)
-                            case 4
-                                fprintf(obj.fid_mesh,'%6.0f %6.0f %6.0f %6.0f %6.0f  1 \n',[1:obj.nelem;obj.conectivities{ifield}']);
-                            case 8
-                                fprintf(obj.fid_mesh,'%6.0f %6.0f %6.0f %6.0f %6.0f  %6.0f %6.0f %6.0f %6.0f 1 \n',[1:obj.nelem;obj.conectivities{ifield}']);
-                            case 9
-                                fprintf(obj.fid_mesh,'%6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f 1 \n',[1:obj.nelem;obj.conectivities{ifield}']);
-                            otherwise
-                                error('Element type %s with %.0f nodes has not being implemented.',gytpe,obj.nnode(ifield));
-                        end
-                    case 'TETRAHEDRA'
-                        switch obj.nnode(ifield)
-                            case 4
-                                fprintf(obj.fid_mesh,'%6.0f %6.0f %6.0f %6.0f %6.0f  1 \n',[1:obj.nelem;obj.conectivities{ifield}']);
-                            otherwise
-                                error('Element type %s with %.0f nodes has not being implemented.',gytpe,obj.nnode(ifield));
-                        end
-                    case 'HEXAHEDRA'
-                        switch obj.nnode(ifield)
-                            case 8
-                                fprintf(obj.fid_mesh,'%6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f  1 \n',[1:obj.nelem;obj.conectivities{ifield}']);
-                            otherwise
-                                error('Element type %s with %.0f nodes has not being implemented.',gytpe,obj.nnode(ifield));
-                        end
-                    otherwise
-                        error('Element type %s has not being implemented.',gytpe,obj.nnode(ifield));
-                end
+                    obj.printTitle(obj.fid_mesh);
 
-                fprintf(obj.fid_mesh,'end elements\n\n');
-                fprintf(obj.fid_mesh,'end group \n');
+
+%                         fprintf(obj.fid_mesh,'Group "%c" \n',mesh_group(ifield));
+                        fprintf(obj.fid_mesh,'MESH "WORKPIECE" dimension %3.0f   Elemtype %s   Nnode %2.0f \n \n',obj.ndim,obj.etype,obj.nnode(ifield));
+                        fprintf(obj.fid_mesh,'coordinates \n');
+                        switch obj.pdim
+                            case '2D'
+                                for i = 1:obj.npnod(ifield)
+                                    fprintf(obj.fid_mesh,'%6.0f %12.5d %12.5d \n',i,obj.coordinates{ifield}(i,1:obj.ndim));
+                                end
+                            case '3D'
+                                for i = 1:obj.npnod(ifield)
+                                    fprintf(obj.fid_mesh,'%6.0f %12.5d %12.5d %12.5d \n',i,obj.coordinates{ifield}(i,:));
+                                end
+                        end
+                        fprintf(obj.fid_mesh,'end coordinates \n \n');
+
+                        fprintf(obj.fid_mesh,'elements \n');
+                        switch  obj.gtype
+                            case 'TRIANGLE'
+                                switch obj.nnode(ifield)
+                                    case 3
+                                        fprintf(obj.fid_mesh,'%6.0f %6.0f %6.0f %6.0f  1 \n',[1:obj.nelem;obj.conectivities{ifield}']);
+                                    case 6
+                                        fprintf(obj.fid_mesh,'%6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f 1 \n',[1:obj.nelem;obj.conectivities{ifield}']);
+                                    otherwise
+                                        error('Element type %s with %.0f nodes has not being implemented.',gytpe,obj.nnode(ifield));
+                                end
+                            case 'QUAD'
+                                switch obj.nnode(ifield)
+                                    case 4
+                                        fprintf(obj.fid_mesh,'%6.0f %6.0f %6.0f %6.0f %6.0f  1 \n',[1:obj.nelem;obj.conectivities{ifield}']);
+                                    case 8
+                                        fprintf(obj.fid_mesh,'%6.0f %6.0f %6.0f %6.0f %6.0f  %6.0f %6.0f %6.0f %6.0f 1 \n',[1:obj.nelem;obj.conectivities{ifield}']);
+                                    case 9
+                                        fprintf(obj.fid_mesh,'%6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f 1 \n',[1:obj.nelem;obj.conectivities{ifield}']);
+                                    otherwise
+                                        error('Element type %s with %.0f nodes has not being implemented.',gytpe,obj.nnode(ifield));
+                                end
+                            case 'TETRAHEDRA'
+                                switch obj.nnode(ifield)
+                                    case 4
+                                        fprintf(obj.fid_mesh,'%6.0f %6.0f %6.0f %6.0f %6.0f  1 \n',[1:obj.nelem;obj.conectivities{ifield}']);
+                                    otherwise
+                                        error('Element type %s with %.0f nodes has not being implemented.',gytpe,obj.nnode(ifield));
+                                end
+                            case 'HEXAHEDRA'
+                                switch obj.nnode(ifield)
+                                    case 8
+                                        fprintf(obj.fid_mesh,'%6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f %6.0f  1 \n',[1:obj.nelem;obj.conectivities{ifield}']);
+                                    otherwise
+                                        error('Element type %s with %.0f nodes has not being implemented.',gytpe,obj.nnode(ifield));
+                                end
+                            otherwise
+                                error('Element type %s has not being implemented.',gytpe,obj.nnode(ifield));
+                        end
+
+                        fprintf(obj.fid_mesh,'end elements\n\n');
+%                         fprintf(obj.fid_mesh,'end group \n');
+                        fclose(obj.fid_mesh);
+                end
             end
-            fclose(obj.fid_mesh);
         end
         
         function PrintResFile(obj,results)
-            res_file = fullfile('Output',strcat(obj.file_name,'_',num2str(obj.istep),'.flavia.res'));
-            obj.fid_res = fopen(res_file,'w');
-            obj.Write_header_res_file()
-            obj.Print_results(results)
-            fclose(obj.fid_res);
+            for istep = 1:obj.nsteps
+                mesh_group = ['u' 'p'];
+                for ifield = 1:obj.nfields
+                    res_file = fullfile('Output',obj.file_name,strcat(obj.file_name,'_',mesh_group(ifield),'_',num2str(istep),'.flavia.res'));
+                    obj.fid_res = fopen(res_file,'w');
+                    obj.Write_header_res_file()
+                    obj.Print_results(results,ifield,istep)
+                    fclose(obj.fid_res);
+                end
+            end
         end
         
  
@@ -239,8 +254,11 @@ classdef Postprocess < handle
     
     methods (Access = public)
                 
-        function  print(obj,physical_problem,file_name,iter,results)
-            obj.setBasicParams(physical_problem,file_name,iter)
+        function  print(obj,physical_problem,file_name,results)
+            path = pwd;
+            dir = fullfile(path,'Output',file_name);
+            mkdir(dir)
+            obj.setBasicParams(physical_problem,file_name,results)
             obj.PrintMeshFile()
             obj.PrintResFile(results)
         end
