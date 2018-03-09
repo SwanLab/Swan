@@ -90,22 +90,23 @@ classdef TopOpt_Problem < handle
         
         function obj = filters_preProcess(obj)
             nukn = 1;
-            dof_filter = DOF(obj.topOpt_params.problemID,obj.topOpt_params.geometry.nnode,obj.topOpt_params.mesh.connec,nukn,obj.topOpt_params.mesh.npnod,obj.topOpt_params.mesh.scale);
+            dof_filter =DOF(obj.topOpt_params.problemID,obj.topOpt_params.geometry,obj.topOpt_params.interpolation_variable,obj.topOpt_params.dim,...
+                obj.topOpt_params.mesh.scale,obj.topOpt_params.nfields,obj.topOpt_params.mesh.ptype,obj.topOpt_params.interpolation_geometry,obj.topOpt_params.mesh.nelem);
             switch obj.topOpt_params.mesh.scale
                 case 'MACRO'
-                    dof_filter.dirichlet = [];
-                    dof_filter.dirichlet_values = [];
+                    dof_filter.dirichlet{1} = [];
+                    dof_filter.dirichlet_values{1} = [];
                     dof_filter.neumann = [];
                     dof_filter.neumann_values  = [];
-                    dof_filter.constrained = dof_filter.compute_constrained_dof(obj.topOpt_params.mesh.scale);
-                    dof_filter.free = dof_filter.compute_free_dof();
+                    dof_filter.constrained{1} = [];
+                    dof_filter.free{1} = dof_filter.compute_free_dof(1);
                 case 'MICRO'
                     dof_filter.dirichlet = [];
                     dof_filter.dirichlet_values = [];
                     dof_filter.neumann = [];
                     dof_filter.neumann_values  = [];
-                    dof_filter.constrained = dof_filter.compute_constrained_dof(obj.topOpt_params.mesh.scale);
-                    dof_filter.free = dof_filter.compute_free_dof();
+                    dof_filter.constrained{1} = [];
+                    dof_filter.free = dof_filter.compute_free_dof(1);
             end
             obj.topOpt_params.setDof(dof_filter)
             

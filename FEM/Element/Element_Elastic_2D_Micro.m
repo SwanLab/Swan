@@ -82,7 +82,7 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
     
     methods (Static)
        function Ared = full_matrix_2_reduced_matrix(A,dof)
-            vF = dof.free;
+            vF = dof.free{1};
             vP = dof.periodic_free;
             vQ = dof.periodic_constrained;
             vI = setdiff(vF,vP);
@@ -96,7 +96,7 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
        end
         
        function b_red = full_vector_2_reduced_vector(b,dof)
-           vF = dof.free;
+           vF = dof.free{1};
            vP = dof.periodic_free;
            vQ = dof.periodic_constrained;
            vI = setdiff(vF,vP);
@@ -108,8 +108,8 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
        
        function b = reduced_vector_2_full_vector(bfree,dof)
             b = zeros(dof.ndof,1);
-            b(dof.free) = bfree;
-            b(dof.dirichlet) = dof.dirichlet_values;
+            b(dof.free{1}) = bfree;
+            b(dof.dirichlet{1}) = dof.dirichlet_values{1};
             b(dof.periodic_constrained) = b(dof.periodic_free);
        end
         

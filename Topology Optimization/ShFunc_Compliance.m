@@ -16,7 +16,7 @@ classdef ShFunc_Compliance < Shape_Functional
                     obj.physicalProblem = Physical_Problem_Micro(settings.filename);
             end
             obj.physicalProblem.preProcess;
-            obj.interpolation = Interpolation.create(settings.TOL,settings.material,settings.method);
+            obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method);
         end
         
         function computef(obj,x)

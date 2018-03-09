@@ -2,7 +2,7 @@ classdef Material
     %Material Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (GetAccess = {?Material_Elastic}, SetAccess = private)
+    properties (GetAccess = {?Material_Elastic,?Material_Stokes}, SetAccess = private)
         nelem
     end
     
@@ -34,6 +34,8 @@ classdef Material
                     
                 case 'THERMAL'
                     error('Still not implemented.')
+                case 'Stokes'
+                    material = Material_Stokes(nelem);
                 otherwise
                     error('Invalid ptype.')
             end

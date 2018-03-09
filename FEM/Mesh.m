@@ -13,16 +13,8 @@ classdef Mesh
         % !! More elegant if Physical_Problem & subclasses !!
         ptype
         scale
-    end
-    
-    
-    properties (GetAccess = {?Physical_Problem,?Geometry,?Postprocess,?TopOpt_Problem},SetAccess = {?Physical_Problem, ?Element_DiffReact}) % !! Element_DiffReact -> Chapusilla !!
-        % !! More elegant if Physical_Problem & subclasses !!
         geometryType
-
-    end
-    
-    
+    end   
     methods (Access = ?Physical_Problem)
         function obj = Mesh(filename)
             data = Preprocess.readFromGiD(filename);

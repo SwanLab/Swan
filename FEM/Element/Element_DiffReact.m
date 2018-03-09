@@ -39,7 +39,7 @@ classdef Element_DiffReact < Element
         
         function [K] = computeStiffnessMatrix(obj)
             [K] = compute_elem_StiffnessMatrix(obj);
-            [K] = obj.AssembleMatrix(K);
+            [K] = obj.AssembleMatrix(K,1,1);
         end
         
         function [M] = computeMassMatrix(obj,job)
@@ -83,20 +83,19 @@ classdef Element_DiffReact < Element
         
         %% !! PENDING OF INTEGRATION / ELEMENT DEGREE FOR IMPLEMENTING LIKE STIFFNESS MATRIX !! 
         function [M] = compute_elem_MassMatrix(obj,job)
-            switch obj.geometry.type
-                case 'TRIANGLE'
-                    obj.mesh.geometryType = 'Triangle_Linear_Mass';
-                case 'QUADRILATERAL'
-                    obj.mesh.geometryType = 'Quad_Mass';
-            end
-            geom = Geometry(obj.mesh);
+            interpolation_geometry = Interpolation.create('mesh');
+            interpolation_geometry.compute(obj.mesh);
+            interpolation_variable = Interpolation.create ('variable');
+            interpolation_variable.compute(interpolation_geometry,'LINEAR');
+            quadrature = Quadrature (obj.mesh.geometryType,'QUADRATIC');
+            geom =  Geometry(interpolation_variable,quadrature,obj.mesh.nelem);
             dirichlet_data = obj.mesh.connec';
             Me = zeros(geom.nnode,geom.nnode,obj.mesh.nelem);
             
             for igaus=1:geom.ngaus
                 for inode=1:geom.nnode
                     for jnode=1:geom.nnode
-                        Me(inode,jnode,:)=squeeze(Me(inode,jnode,:)) + geom.weigp(igaus)*geom.shape(inode,igaus)*geom.shape(jnode,igaus)*geom.djacb(:,igaus);
+                        Me(inode,jnode,:)=squeeze(Me(inode,jnode,:)) + geom.weigp(igaus)*geom.shape(inode,igaus)*geom.shape(jnode,igaus)*geom.djacob(:,igaus);
                     end
                 end
             end

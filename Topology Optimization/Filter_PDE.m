@@ -1,6 +1,5 @@
 classdef Filter_PDE < Filter
     properties
-        dof_per
         solver
         rhs
         epsilon
@@ -11,7 +10,7 @@ classdef Filter_PDE < Filter
         function preProcess(obj,params)
             preProcess@Filter(obj,params);
             obj.element = params.element;
-            obj.dof_per = params.dof;
+            obj.element.dof = params.dof;
             %obj.dof = physicalProblem.dof;
             obj.solver = Solver.create();
             obj.A_nodal_2_gauss = obj.computeA;
@@ -39,10 +38,10 @@ classdef Filter_PDE < Filter
         
         function x_reg = solve_filter(obj,rhs_x)
             Rinv = (obj.epsilon^2*obj.Ksmooth + obj.Msmooth);
-            Rinv_red = obj.element.full_matrix_2_reduced_matrix(Rinv,obj.dof_per);
-            rhs_red  = obj.element.full_vector_2_reduced_vector(rhs_x,obj.dof_per);
+            Rinv_red = obj.element.full_matrix_2_reduced_matrix(Rinv);
+            rhs_red  = obj.element.full_vector_2_reduced_vector(rhs_x);
             x_reg = obj.solver.solve(Rinv_red,rhs_red);
-            x_reg = obj.element.reduced_vector_2_full_vector(x_reg,obj.dof_per);
+            x_reg = obj.element.reduced_vector_2_full_vector(x_reg,obj.element.dof);
         end        
     end
 end
