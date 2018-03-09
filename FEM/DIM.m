@@ -1,7 +1,7 @@
 classdef DIM
     %DIM Summary of this class goes here
     %   Detailed explanation goes here
-    properties (GetAccess = public, SetAccess = private)
+    properties (GetAccess = public, SetAccess = public)
         nstre
         %       nnode
         nunkn

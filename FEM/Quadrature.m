@@ -75,8 +75,8 @@ classdef Quadrature
                     end
                 case 'TETRAHEDRA'
                     obj.ngaus = 1;          % tetrahedra
-                    obj.weigp = 1/6;
-                    obj.posgp = [1/4 1/4 1/4];
+                    obj.weigp = @(igauss){1/6};
+                    obj.posgp = [1/4;1/4; 1/4];
                 case 'HEXAHEDRA'
                     obj.ngaus = 8;
                     %COMPUTE WEIGP AND POSGP

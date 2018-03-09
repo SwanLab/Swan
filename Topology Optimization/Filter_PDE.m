@@ -41,7 +41,7 @@ classdef Filter_PDE < Filter
             Rinv_red = obj.element.full_matrix_2_reduced_matrix(Rinv);
             rhs_red  = obj.element.full_vector_2_reduced_vector(rhs_x);
             x_reg = obj.solver.solve(Rinv_red,rhs_red);
-            x_reg = obj.element.reduced_vector_2_full_vector(x_reg,obj.element.dof);
+            x_reg = obj.element.reduced_vector_2_full_vector(x_reg);
         end        
     end
 end

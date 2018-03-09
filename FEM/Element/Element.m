@@ -191,8 +191,9 @@ classdef Element < handle
         
            b = zeros(ndof,nsteps);
            b(free,:) = bfree;
-           b(dirichlet,:) = uD;
-       
+           if ~isempty(dirichlet)
+               b(dirichlet,:) = uD;
+           end
         end
         
     end

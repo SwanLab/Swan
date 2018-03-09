@@ -89,7 +89,7 @@ classdef TopOpt_Problem < handle
         end
         
         function obj = filters_preProcess(obj)
-            nukn = 1;
+            obj.topOpt_params.dim.nunkn = 1;
             dof_filter =DOF(obj.topOpt_params.problemID,obj.topOpt_params.geometry,obj.topOpt_params.interpolation_variable,obj.topOpt_params.dim,...
                 obj.topOpt_params.mesh.scale,obj.topOpt_params.nfields,obj.topOpt_params.mesh.ptype,obj.topOpt_params.interpolation_geometry,obj.topOpt_params.mesh.nelem);
             switch obj.topOpt_params.mesh.scale

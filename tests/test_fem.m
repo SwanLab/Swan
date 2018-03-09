@@ -6,7 +6,7 @@ clear all; close all; clc
 tests_fem={'test2d_triangle';
     'test2d_quad';
     'test2d_stokes_triangle';
-    'test3d_hexahedra';
+    %'test3d_hexahedra';
     'test3d_tetrahedra'};
 
 %% FEM TESTS
@@ -32,4 +32,6 @@ for i=1:length(tests_fem)
             disp(strcat(file_name,' FAILED'));
         end
     end
+    
 end
+fprintf('\nHEXHEDRA test disabled, pending to be adapted\n')
