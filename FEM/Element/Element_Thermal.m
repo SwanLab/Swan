@@ -1,5 +1,5 @@
 classdef Element_Thermal < Element
-    %Element_Elastic Summary of this class goes here
+    %Element_Thermal Summary of this class goes here
     %   Detailed explanation goes here
     
     % !! CONSIDER TO IMPLEMENT A CONSTRUCTOR THAT DEFINES B & C DIMENS AT
@@ -16,8 +16,8 @@ classdef Element_Thermal < Element
             % - residual derivative: dr = K
             % *************************************************************
             [K] = obj.computeStiffnessMatrix();
-           
-            Fext = obj.computeExternalForces();            
+            
+            Fext = obj.computeExternalForces();
             R = obj.compute_imposed_displacemet_force(K);
             fext = Fext + R;
             
@@ -62,27 +62,25 @@ classdef Element_Thermal < Element
             end
             K = Ke;
         end
-        
-        function [B] = computeB(obj,nunkn,nelem,nnode,cartd)
+    end
+    
+    methods (Static)
+        function [B] = computeB(nunkn,nelem,nnode,cartd)
             B = zeros(2,nnode*nunkn,nelem);
             for inode=1:nnode
                 j = nunkn*(inode-1)+1;
                 B(1,j,:)=cartd(1,inode,:);
                 B(2,j,:)=cartd(2,inode,:);
             end
-            
-            
         end
-    
     end
-
     
     methods (Access = protected)
-        function FextSuperficial = computeSuperficialFext(obj,bc)
+        function FextSuperficial = computeSuperficialFext(obj)
             FextSuperficial = zeros(obj.nnode*obj.nunkn,1,obj.nelem);
         end
         
-        function FextVolumetric = computeVolumetricFext(obj,bc)
+        function FextVolumetric = computeVolumetricFext(obj)
             FextVolumetric = zeros(obj.nnode*obj.nunkn,1,obj.nelem);
         end
     end

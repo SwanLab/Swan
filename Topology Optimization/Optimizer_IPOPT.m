@@ -19,12 +19,12 @@ classdef Optimizer_IPOPT < Optimizer
             constraint_tolerance=obj.target_parameters.constr_tol*1e-1;
         end
         
-        function x = solveProblem(obj,x_ini,cost,constraint,interpolation,filter) 
-            cost.computef(x_ini,obj.physicalProblem,interpolation,filter)
-            funcs.objective = @(x) obj.objective(x,cost,interpolation,filter);
-            funcs.gradient = @(x) obj.gradient(x,cost,obj.physicalProblem,interpolation,filter);
-            funcs.constraints = @(x) obj.constraint(x,constraint,obj.physicalProblem,interpolation,filter);
-            funcs.jacobian = @(x) sparse(obj.constraint_gradient(x,constraint,obj.physicalProblem,interpolation,filter)');
+        function x = solveProblem(obj,x_ini,cost,constraint) 
+            cost.computef(x_ini)
+            funcs.objective = @(x) obj.objective(x,cost);
+            funcs.gradient = @(x) obj.gradient(x,cost);
+            funcs.constraints = @(x) obj.constraint(x,constraint);
+            funcs.jacobian = @(x) sparse(obj.constraint_gradient(x,constraint)');
             n = length(x_ini);
             funcs.jacobianstructure = @() sparse(ones(obj.m,n));
             plotx=@(x) obj.plotX(x);
@@ -53,22 +53,23 @@ classdef Optimizer_IPOPT < Optimizer
             
             [x, obj.info] = ipopt(x_ini,funcs,options);
         end
-        function f=objective(obj,x,cost,interpolation,filter)
-            cost.computef(x,obj.physicalProblem,interpolation,filter)
-            f=cost.value;
-        end
+        
     end
     methods (Static)
-        function f=constraint(x,constraint,physProblem,interpolation,filter)
-            constraint.computef(x,physProblem,interpolation,filter)
+        function f=objective(x,cost)
+            cost.computef(x)
+            f=cost.value;
+        end
+        function f=constraint(x,constraint)
+            constraint.computef(x)
             f=constraint.value;
         end
-        function g=gradient(x,cost,physProblem,interpolation,filter)
-            cost.computef(x,physProblem,interpolation,filter)
+        function g=gradient(x,cost)
+            cost.computef(x)
             g=cost.gradient;
         end
-        function g=constraint_gradient(x,constraint,physProblem,interpolation,filter)
-            constraint.computef(x,physProblem,interpolation,filter)
+        function g=constraint_gradient(x,constraint)
+            constraint.computef(x)
             g=constraint.gradient;
         end
         function stop=outputfun_ipopt(iter,fval,data,plotx)

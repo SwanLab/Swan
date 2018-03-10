@@ -2,13 +2,11 @@ classdef TopOpt_Problem < handle
     properties (GetAccess = public,SetAccess = public)
         cost
         constraint
-        TOL
         x
-        interpolation
-        filter
+        filter %% !! Remove when scalar product not done in Optimizer
         algorithm
         optimizer
-        physicalProblem
+        topOpt_params %% !! Only used for Ksmooth, Msmooth and geom/mesh/dofs (for filters & incremental)
         settings
         incremental_scheme
     end
@@ -19,18 +17,15 @@ classdef TopOpt_Problem < handle
     end
     methods (Access = public)
         function obj = TopOpt_Problem(settings)
+            %% !! This should be done in settings class !!
             settings.nconstr = length(settings.constraint);
             obj.cost = Cost(settings,settings.weights);
             obj.constraint = Constraint(settings);
-            switch settings.ptype
-                case 'MACRO'
-                    obj.physicalProblem = Physical_Problem(settings.filename);
-                case 'MICRO'
-                    obj.physicalProblem = Physical_Problem_Micro(settings.filename);
-            end
+            
+            % This PhysProb is only gonna be used by filters & incremental -> no need of specifying MICRO or MACRO
+            % Consider turning it into a more generic class like FEM
+            obj.topOpt_params = Physical_Problem(settings.filename);
             obj.settings = settings;
-            obj.TOL = obj.settings.TOL;
-            obj.interpolation = Interpolation.create(obj.TOL,settings.material,settings.method);                       
             switch obj.settings.optimizer
                 case 'SLERP'
                     obj.optimizer = Optimizer_AugLag(settings,Optimizer_SLERP(settings));
@@ -42,51 +37,26 @@ classdef TopOpt_Problem < handle
                     obj.optimizer = Optimizer_IPOPT(settings);
             end
             obj.filter = Filter.create(obj.settings.filter,obj.settings.optimizer);
+            obj.optimizer.mesh=obj.topOpt_params.mesh; %% !!JUST TO MAKE PLOTTING WORK
         end
         
         function preProcess(obj)
-            %initialize design variable
-            obj.physicalProblem.preProcess;
+            % Initialize design variable
+            obj.topOpt_params.preProcess;
+            obj.filters_preProcess;
             
-            dof_phy = obj.physicalProblem.dof;
-            nukn = 1;
-            dof_filter = DOF(obj.physicalProblem.problemID,obj.physicalProblem.geometry.nnode,obj.physicalProblem.mesh.connec,nukn,obj.physicalProblem.mesh.npnod,obj.physicalProblem.mesh.scale);
-            switch obj.physicalProblem.mesh.scale
-                case 'MACRO'
-                    dof_filter.dirichlet = [];
-                    dof_filter.dirichlet_values = [];
-                    dof_filter.neumann = [];
-                    dof_filter.neumann_values  = [];
-                    dof_filter.constrained = dof_filter.compute_constrained_dof(obj.physicalProblem.mesh.scale);
-                    dof_filter.free = dof_filter.compute_free_dof();
-                case 'MICRO'
-                    dof_filter.dirichlet = [];
-                    dof_filter.dirichlet_values = [];
-                    dof_filter.neumann = [];
-                    dof_filter.neumann_values  = [];
-                    dof_filter.constrained = dof_filter.compute_constrained_dof(obj.physicalProblem.mesh.scale);
-                    dof_filter.free = dof_filter.compute_free_dof();
-            end
-            
-            obj.physicalProblem.setDof(dof_filter)
-            obj.filter.preProcess(obj.physicalProblem);
-            obj.physicalProblem.setDof(dof_phy)
-            
-            obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.physicalProblem);
+            obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.topOpt_params.mesh);
             obj.compute_initial_design;
-            rho = obj.filter.getP0fromP1(obj.x);
-            matProps = obj.interpolation.computeMatProp(rho);
-            obj.physicalProblem.setMatProps(matProps);
+            obj.topOpt_params = []; % !! To check that only it is used once (Debugging) !!
         end
         
         function computeVariables(obj)
             for istep = 1:obj.settings.nsteps
-                disp(strcat('Incremental step: ', int2str(istep)))
-                obj.incremental_scheme.update_target_parameters(istep, obj.cost, obj.constraint, obj.optimizer);
-                obj.cost.computef(obj.x,obj.physicalProblem,obj.interpolation,obj.filter);
-                obj.constraint.computef(obj.x, obj.physicalProblem, obj.interpolation,obj.filter);
-                obj.optimizer.setPhysicalProblem(obj.physicalProblem);
-                obj.x = obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,obj.interpolation,obj.filter);
+                disp(strcat('Incremental step: ',int2str(istep)))
+                obj.incremental_scheme.update_target_parameters(istep,obj.cost,obj.constraint,obj.optimizer);
+                obj.cost.computef(obj.x);
+                obj.constraint.computef(obj.x);
+                obj.x = obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint);
             end
         end
         
@@ -117,8 +87,36 @@ classdef TopOpt_Problem < handle
             end
             
         end
+        
+        function obj = filters_preProcess(obj)
+            nukn = 1;
+            dof_filter = DOF(obj.topOpt_params.problemID,obj.topOpt_params.geometry.nnode,obj.topOpt_params.mesh.connec,nukn,obj.topOpt_params.mesh.npnod,obj.topOpt_params.mesh.scale);
+            switch obj.topOpt_params.mesh.scale
+                case 'MACRO'
+                    dof_filter.dirichlet = [];
+                    dof_filter.dirichlet_values = [];
+                    dof_filter.neumann = [];
+                    dof_filter.neumann_values  = [];
+                    dof_filter.constrained = dof_filter.compute_constrained_dof(obj.topOpt_params.mesh.scale);
+                    dof_filter.free = dof_filter.compute_free_dof();
+                case 'MICRO'
+                    dof_filter.dirichlet = [];
+                    dof_filter.dirichlet_values = [];
+                    dof_filter.neumann = [];
+                    dof_filter.neumann_values  = [];
+                    dof_filter.constrained = dof_filter.compute_constrained_dof(obj.topOpt_params.mesh.scale);
+                    dof_filter.free = dof_filter.compute_free_dof();
+            end
+            obj.topOpt_params.setDof(dof_filter)
+            
+            filter_params = obj.getFilterParams(obj.topOpt_params);
+            obj.filter.preProcess(filter_params); % !! REMOVE WHEN SCALAR PRODUCT NOT IN OPTIMIZER !!
+            obj.cost.preProcess(filter_params);
+            obj.constraint.preProcess(filter_params);
+        end
+        
         function checkDerivative(obj)
-            obj.preProcess;           
+            obj.preProcess;
             Msmooth = obj.filter.Msmooth;
             x0 = obj.x;
             % Initialize function
@@ -134,20 +132,20 @@ classdef TopOpt_Problem < handle
             volume = ShFunc_Volume(obj.settings);
             perimeter = ShFunc_Perimeter(obj.settings);
             
-            obj.incremental_scheme.update_target_parameters(1, compliance0, volume0, perimeter0);
-            obj.incremental_scheme.update_target_parameters(1, compliance, volume, perimeter);
+            obj.incremental_scheme.update_target_parameters(1,compliance0,volume0,perimeter0);
+            obj.incremental_scheme.update_target_parameters(1,compliance,volume,perimeter);
             %evaluate initial
-            compliance0.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
-            volume0.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
-            perimeter0.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
+            compliance0.computef(x0,obj.topOpt_params,obj.interpolation,obj.filter);
+            volume0.computef(x0,obj.topOpt_params,obj.interpolation,obj.filter);
+            perimeter0.computef(x0,obj.topOpt_params,obj.interpolation,obj.filter);
             
-            compliance0.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
-            volume0.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
-            perimeter0.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
+            compliance0.computef(x0,obj.topOpt_params,obj.interpolation,obj.filter);
+            volume0.computef(x0,obj.topOpt_params,obj.interpolation,obj.filter);
+            perimeter0.computef(x0,obj.topOpt_params,obj.interpolation,obj.filter);
             
-            compliance.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
-            volume.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
-            perimeter.computef(x0,obj.physicalProblem,obj.interpolation,obj.filter);
+            compliance.computef(x0,obj.topOpt_params,obj.interpolation,obj.filter);
+            volume.computef(x0,obj.topOpt_params,obj.interpolation,obj.filter);
+            perimeter.computef(x0,obj.topOpt_params,obj.interpolation,obj.filter);
             
             nnod = length(compliance0.gradient);
             g = zeros(nnod,1);
@@ -159,9 +157,9 @@ classdef TopOpt_Problem < handle
                 end
                 xnew = x0;
                 xnew(inode) = xnew(inode)-epsi;
-                compliance.computef(xnew,obj.physicalProblem,obj.interpolation,obj.filter);
-                volume.computef(xnew,obj.physicalProblem,obj.interpolation,obj.filter);
-                perimeter.computef(xnew,obj.physicalProblem,obj.interpolation,obj.filter);
+                compliance.computef(xnew,obj.topOpt_params,obj.interpolation,obj.filter);
+                volume.computef(xnew,obj.topOpt_params,obj.interpolation,obj.filter);
+                perimeter.computef(xnew,obj.topOpt_params,obj.interpolation,obj.filter);
                 g(inode) = (compliance0.value-compliance.value)/epsi;
                 gv(inode) = (volume0.value-volume.value)/epsi;
                 gp(inode) = (perimeter0.value-perimeter.value)/epsi;
@@ -178,9 +176,9 @@ classdef TopOpt_Problem < handle
         end
     end
     
-    
     methods (Access = private)
-        function obj = compute_initial_design(obj)         
+        function obj = compute_initial_design(obj)
+            %% !! INCLUDE THIS INSIDE CLASS PHYSICAL_PROBLEM OR PARENT/CHILD!!
             switch obj.settings.optimizer
                 case 'SLERP'
                     obj.ini_design_value = -2;
@@ -189,45 +187,45 @@ classdef TopOpt_Problem < handle
                     obj.ini_design_value = 1;
                     obj.hole_value = 0;
                     
-            end            
-            obj.x = obj.ini_design_value*ones(obj.physicalProblem.mesh.npnod,1);
+            end
+            obj.x = obj.ini_design_value*ones(obj.topOpt_params.mesh.npnod,1);
             switch obj.settings.initial_case
                 case 'circle'
-                    width = max(obj.physicalProblem.mesh.coord(:,1)) - min(obj.physicalProblem.mesh.coord(:,1));
-                    height = max(obj.physicalProblem.mesh.coord(:,2)) - min(obj.physicalProblem.mesh.coord(:,2));
-                    center_x = 0.5*(max(obj.physicalProblem.mesh.coord(:,1)) + min(obj.physicalProblem.mesh.coord(:,1)));
-                    center_y = 0.5*(max(obj.physicalProblem.mesh.coord(:,2)) + min(obj.physicalProblem.mesh.coord(:,2)));
+                    width = max(obj.topOpt_params.mesh.coord(:,1)) - min(obj.topOpt_params.mesh.coord(:,1));
+                    height = max(obj.topOpt_params.mesh.coord(:,2)) - min(obj.topOpt_params.mesh.coord(:,2));
+                    center_x = 0.5*(max(obj.topOpt_params.mesh.coord(:,1)) + min(obj.topOpt_params.mesh.coord(:,1)));
+                    center_y = 0.5*(max(obj.topOpt_params.mesh.coord(:,2)) + min(obj.topOpt_params.mesh.coord(:,2)));
                     radius = 0.2*min([width,height]);
                     
-                    initial_holes = (obj.physicalProblem.mesh.coord(:,1)-center_x).^2 + (obj.physicalProblem.mesh.coord(:,2)-center_y).^2 - radius^2 < 0;
+                    initial_holes = (obj.topOpt_params.mesh.coord(:,1)-center_x).^2 + (obj.topOpt_params.mesh.coord(:,2)-center_y).^2 - radius^2 < 0;
                     obj.x(initial_holes) = obj.hole_value;
                     %fracc = 1;
                     
                 case 'horizontal'
-                    initial_holes = obj.physicalProblem.mesh.coord(:,2) > 0.6 | obj.physicalProblem.mesh.coord(:,2) < 0.4;
+                    initial_holes = obj.topOpt_params.mesh.coord(:,2) > 0.6 | obj.topOpt_params.mesh.coord(:,2) < 0.4;
                     obj.x(initial_holes) = obj.hole_value;
                     %                   fracc = 1;
                 case 'square'
-                    width = max(obj.physicalProblem.mesh.coord(:,1)) - min(obj.physicalProblem.mesh.coord(:,1));
-                    height = max(obj.physicalProblem.mesh.coord(:,2)) - min(obj.physicalProblem.mesh.coord(:,2));
-                    center_x = 0.5*(max(obj.physicalProblem.mesh.coord(:,1)) + min(obj.physicalProblem.mesh.coord(:,1)));
-                    center_y = 0.5*(max(obj.physicalProblem.mesh.coord(:,2)) + min(obj.physicalProblem.mesh.coord(:,2)));
+                    width = max(obj.topOpt_params.mesh.coord(:,1)) - min(obj.topOpt_params.mesh.coord(:,1));
+                    height = max(obj.topOpt_params.mesh.coord(:,2)) - min(obj.topOpt_params.mesh.coord(:,2));
+                    center_x = 0.5*(max(obj.topOpt_params.mesh.coord(:,1)) + min(obj.topOpt_params.mesh.coord(:,1)));
+                    center_y = 0.5*(max(obj.topOpt_params.mesh.coord(:,2)) + min(obj.topOpt_params.mesh.coord(:,2)));
                     
                     offset_x = 0.2*width;
                     offset_y = 0.2*height;
                     
-                    xrange = obj.physicalProblem.mesh.coord(:,1) < (center_x+offset_x) & obj.physicalProblem.mesh.coord(:,1) > (center_x-offset_x);
-                    yrange = obj.physicalProblem.mesh.coord(:,2) < (center_y+offset_y) & obj.physicalProblem.mesh.coord(:,2) > (center_y-offset_y);
+                    xrange = obj.topOpt_params.mesh.coord(:,1) < (center_x+offset_x) & obj.topOpt_params.mesh.coord(:,1) > (center_x-offset_x);
+                    yrange = obj.topOpt_params.mesh.coord(:,2) < (center_y+offset_y) & obj.topOpt_params.mesh.coord(:,2) > (center_y-offset_y);
                     initial_holes = and(xrange,yrange);
                     obj.x(initial_holes) = obj.hole_value;
                     %fracc = 1;
                     
                 case 'feasible'
-                    initial_holes = false(size(obj.physicalProblem.mesh.coord,1),1);
+                    initial_holes = false(size(obj.topOpt_params.mesh.coord,1),1);
                     obj.x(initial_holes) = obj.hole_value;
                     %fracc = min(1,element.Vfrac);
                 case 'rand'
-                    initial_holes = rand(size(obj.physicalProblem.mesh.coord,1),1) > 0.1;
+                    initial_holes = rand(size(obj.topOpt_params.mesh.coord,1),1) > 0.1;
                     obj.x(initial_holes) = obj.hole_value;
                     %fracc = 1;
                 case 'full'
@@ -236,11 +234,30 @@ classdef TopOpt_Problem < handle
             end
             obj.optimizer.Msmooth = obj.filter.Msmooth;
             obj.optimizer.Ksmooth = obj.filter.Ksmooth;
-            obj.optimizer.epsilon_scalar_product_P1 = obj.incremental_scheme.epsilon;
+            obj.optimizer.epsilon_scalar_product_P1 = obj.incremental_scheme.epsilon;            
+            %% !! COULD BE CLEANER, NOT IN IF --> O.O.P.  !!
             if strcmp(obj.settings.optimizer,'SLERP')
                 sqrt_norma = obj.optimizer.scalar_product(obj.x,obj.x);
                 obj.x = obj.x/sqrt(sqrt_norma);
             end
+        end
+    end
+    methods (Access = private, Static)
+        function filter_params = getFilterParams(topOpt_params)
+            for igauss = 1:topOpt_params.geometry.ngaus
+                filter_params.M0{igauss} = sparse(1:topOpt_params.mesh.nelem,1:topOpt_params.mesh.nelem,topOpt_params.geometry.dvolu(:,igauss));
+            end
+            filter_params.dof = topOpt_params.dof;
+            filter_params.element = topOpt_params.element;
+            filter_params.dvolu = sparse(1:topOpt_params.mesh.nelem,1:topOpt_params.mesh.nelem,sum(topOpt_params.geometry.dvolu,2));
+            [filter_params.Ksmooth, filter_params.Msmooth] = topOpt_params.computeKM(2);
+            filter_params.coordinates = topOpt_params.mesh.coord;
+            filter_params.connectivities = topOpt_params.mesh.connec;
+            filter_params.nelem = topOpt_params.mesh.nelem;
+            filter_params.nnode = topOpt_params.geometry.nnode;
+            filter_params.npnod = topOpt_params.mesh.npnod;
+            filter_params.ngaus = topOpt_params.geometry.ngaus;
+            filter_params.shape = topOpt_params.geometry.shape;
         end
     end
 end

@@ -1,0 +1,31 @@
+
+
+Case 1_x_x ------> SLERP
+Case 2_x_x ------> PG
+Case 3_x_x ------> MMA
+Case 4_x_x ------> IPOPT
++-------------------------------------------------------------------------------------------------+
+Case x_1_x ------> Compliance st Volume
+Case x_2_x ------> Compliance+Lam*Perimeter st Volume
+Case x_3_x ------> Compliance st VolumePerimeter
+...
++-------------------------------------------------------------------------------------------------+
+
+CantileverTriangle
+
+	Case x_1_1 ------> SIMPALL || vfrac=0.3 || nsteps=1  
+	Case x_1_2 ------> SIMPALL || vfrac=0.4 || nsteps=1
+	Case x_1_3 ------> SIMPALL || vfrac=0.5 || nsteps=1 
+	Case x_2_1 ------> SIMPALL || vfrac=0.3 || perimeter=3.5 || lambda=0.1 || nsteps=5  
+	Case x_2_2 ------> SIMPALL || vfrac=0.4 || perimeter=3.5 || lambda=0.1 || nsteps=5
+	Case x_2_3 ------> SIMPALL || vfrac=0.5 || perimeter=3.5 || lambda=0.1 || nsteps=5 
+
+CantileverQuadrilateral
+
+	Case 2_1_1 ------> SIMPALL || vfrac=0.5 || nsteps=1  
+
+Bridge
+	Case 1_2_1 ------> SIMPALL || vfrac=0.2 || perimeter=3.5 || lambda=0.1 || nsteps=5
+
+
+ 

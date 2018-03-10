@@ -6,9 +6,9 @@ classdef Optimizer < handle
         stop_criteria = 1;
         Msmooth
         Ksmooth
+%         P
         target_parameters = struct;
         epsilon_scalar_product_P1
-        shfunc_volume
         name
         niter = 0
         optimizer
@@ -16,13 +16,11 @@ classdef Optimizer < handle
         plotting
         printing
         monitoring
-        stop_vars
-        physicalProblem
-        
+        stop_vars      
+        mesh
     end
     methods
         function obj = Optimizer(settings,monitoring)
-            obj.shfunc_volume = ShFunc_Volume(settings);
             obj.target_parameters = settings.target_parameters;
             obj.optimizer = settings.optimizer;
             obj.maxiter = settings.maxiter;
@@ -30,28 +28,24 @@ classdef Optimizer < handle
             obj.printing = settings.printing;
             obj.monitoring = Monitoring(settings,monitoring);
         end
-        function x = solveProblem(obj,x_ini,cost,constraint,interpolation,filter)
-            cost.computef(x_ini,obj.physicalProblem,interpolation,filter);
-            constraint.computef(x_ini,obj.physicalProblem,interpolation,filter);
+        function x = solveProblem(obj,x_ini,cost,constraint)
+            cost.computef(x_ini);
+            constraint.computef(x_ini);
             obj.plotX(x_ini)
-            obj.print(x_ini,filter.getP0fromP1(x_ini),obj.niter);
+            %             obj.print(x_ini,filter.getP0fromP1(x_ini),obj.niter);
             while obj.stop_criteria && obj.niter < obj.maxiter
                 obj.niter = obj.niter+1;
-                x = obj.updateX(x_ini,cost,constraint,interpolation,filter);
+                x = obj.updateX(x_ini,cost,constraint);
                 obj.plotX(x)
-                obj.print(x,filter.getP0fromP1(x),obj.niter);
+                %                 obj.print(x,filter.getP0fromP1(x),obj.niter);
                 obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars,obj.stop_criteria && obj.niter < obj.maxiter);
                 x_ini = x;
             end
             obj.stop_criteria = 1;
         end
-        function setPhysicalProblem(obj,pProblem)
-            obj.physicalProblem = pProblem;
-        end
         
+        %% HAS TO BE REMOVED FROM OPTIMIZER CLASS --> Physical Problem with Element_Dif_React
         function sp = scalar_product(obj,f,g)
-            f = f(:);
-            g = g(:);
             sp = f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
         end
     end
@@ -89,7 +83,7 @@ classdef Optimizer < handle
                 height = mp(1,4);
                 size_screen_offset = round([0.7*width,0.52*height,-0.71*width,-0.611*height],0);
                 set(fh,'Position',mp(select_screen,:) + size_screen_offset);
-                obj.fhtri = trisurf(obj.physicalProblem.mesh.connec,obj.physicalProblem.mesh.coord(:,1),obj.physicalProblem.mesh.coord(:,2),double(rho_nodal), ...
+                obj.fhtri = trisurf(obj.mesh.connec,obj.mesh.coord(:,1),obj.mesh.coord(:,2),double(rho_nodal), ...
                     'EdgeColor','none','LineStyle','none','FaceLighting','phong');
                 view([0,90]);
                 colormap(flipud(gray));
@@ -104,6 +98,7 @@ classdef Optimizer < handle
     end
     
     methods (Access = protected, Static)
+        %% !! FER AMB SCALAR PRODUCT !!
         function N_L2 = norm_L2(x,x_ini,M)
             inc_x = x-x_ini;
             N_L2 = (inc_x'*M*inc_x)/(x_ini'*M*x_ini);

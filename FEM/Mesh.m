@@ -16,7 +16,7 @@ classdef Mesh
     end
     
     
-    properties (GetAccess = {?Physical_Problem,?Geometry,?Postprocess,?TopOpt_Problem},SetAccess = {?Physical_Problem})
+    properties (GetAccess = {?Physical_Problem,?Geometry,?Postprocess,?TopOpt_Problem},SetAccess = {?Physical_Problem, ?Element_DiffReact}) % !! Element_DiffReact -> Chapusilla !!
         % !! More elegant if Physical_Problem & subclasses !!
         geometryType
 
