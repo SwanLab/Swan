@@ -27,6 +27,10 @@ classdef Quadrature
                             obj.ngaus = 3;          % Linear triangle
                             obj.weigp = @(igauss){1/3;1/3;1/3};
                             obj.posgp = [0,0.5;0.5,0;0.5,0.5]';
+                        case 'QUADRATICMASS'
+                            obj.ngaus = 3;          % Linear triangle
+                            obj.weigp = @(igauss){1/6;1/6;1/6};
+                            obj.posgp = [2/6,1/6,1/6;1/6,2/6,1/6];
                         otherwise
                             error('Invalid interpolation order for element TRIANGLE.');
                     end

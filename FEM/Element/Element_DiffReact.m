@@ -87,7 +87,7 @@ classdef Element_DiffReact < Element
             interpolation_geometry.compute(obj.mesh);
             interpolation_variable = Interpolation.create ('variable');
             interpolation_variable.compute(interpolation_geometry,'LINEAR');
-            quadrature = Quadrature (obj.mesh.geometryType,'QUADRATIC');
+            quadrature = Quadrature (obj.mesh.geometryType,'QUADRATICMASS');
             geom =  Geometry(interpolation_variable,quadrature,obj.mesh.nelem);
             dirichlet_data = obj.mesh.connec';
             Me = zeros(geom.nnode,geom.nnode,obj.mesh.nelem);
