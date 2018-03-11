@@ -13,8 +13,15 @@ classdef Material
     end
     
     methods (Access = ?Physical_Problem, Static)
-        function material = create(ptype,pdim,nelem,connec,cartd,nnode,coord)
+        function material = create(geometry,mesh)
 %             obj.nelem = nelem;
+            ptype=mesh.ptype;
+            pdim=mesh.pdim;
+            nelem=mesh.nelem;
+            connec=mesh.connec;
+            cartd=geometry.cartd;
+            nnode=geometry.interpolation.isoparametric.nnode;
+            coord=mesh.coord;
             switch ptype
                 case 'ELASTIC'
                     % !! IT HAS BEEN ASSUMED THAT THERE'S ONLY ISOTROPIC MATERIALS.

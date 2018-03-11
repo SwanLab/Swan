@@ -11,10 +11,6 @@ classdef Physical_Problem < FEM
         bc
         problemID
         element
-        interpolation_geometry
-        interpolation_variable
-        quadrature
-        nfields
     end
     
     
@@ -28,53 +24,22 @@ classdef Physical_Problem < FEM
     methods (Access = public)
         function obj = Physical_Problem(problemID)
             obj.problemID = problemID;
-            obj.mesh = Mesh(obj.problemID);
-            obj.interpolation_geometry = Interpolation.create('mesh');
-            obj.interpolation_geometry.compute(obj.mesh);
-            
-            
-            if strcmp(obj.mesh.ptype,'Stokes') == 1 
-                order= {'QUADRATIC','LINEAR'};
-                obj.nfields = 2;
-            else
-                order= {obj.interpolation_geometry.order};
-                obj.nfields = 1;
-            end
-
-            obj.quadrature = Quadrature (obj.mesh.geometryType,strjoin(order(1)));
+            obj.mesh = Mesh(obj.problemID); 
+            obj.createGeometry(obj.mesh);
             obj.dim = DIM(obj.mesh.ptype,obj.mesh.pdim);
-                for i=1:obj.nfields
-                interpolation_variable(i) = Interpolation.create ('variable');
-                interpolation_variable(i).compute(obj.interpolation_geometry,strjoin(order(i)));
-                geometry_variable(i) = Geometry(interpolation_variable(i),obj.quadrature,obj.mesh.nelem); 
-%                 dof(i) = DOF(problemID,geometry_variable(i).nnode,interpolation_variable(i).T,obj.dim.nunkn(i),interpolation_variable(i).npnod,obj.mesh.scale);
-                end
-            obj.interpolation_variable = interpolation_variable;
-            obj.geometry = geometry_variable;
-%             obj.dof=dof;
-
-%             obj.quadrature = Quadrature (obj.mesh.geometryType,strjoin(order(1)));
-%             obj.interpolation_variable=Interpolation.create ('variable');
-%             obj.interpolation_variable.compute(obj.interpolation_geometry,order,obj.nfields);
-%             obj.geometry = Geometry(obj.interpolation_variable,obj.quadrature,obj.mesh.nelem,obj.nfields); 
-
-            
-%             obj.interpolation_variable = interpolation_variable; 
-            
-%             obj.geometry = geometry;
-            obj.material = Material.create(obj.mesh.ptype,obj.mesh.pdim,obj.mesh.nelem,obj.mesh.connec,obj.geometry(1).cartd,obj.geometry(1).nnode,obj.mesh.coord);
-            obj.dof = DOF(problemID,obj.geometry,obj.interpolation_variable,obj.dim,obj.mesh.scale,obj.nfields,obj.mesh.ptype,obj.interpolation_geometry,...
-                obj.mesh.nelem);        
+            obj.material = Material.create(obj.geometry,obj.mesh);
+            obj.dof = DOF(problemID,obj.geometry,obj.dim,obj.mesh);%.scale,obj.nfields,obj.mesh.ptype,obj.interpolation_geometry,...
+               % obj.mesh.nelem);
         end
         
         function preProcess(obj)
-            obj.element = Element.create(obj.mesh,obj.geometry,obj.material,obj.bc,obj.dof,obj.dim,obj.nfields);
+            obj.element = Element.create(obj.mesh,obj.geometry,obj.material,obj.bc,obj.dof,obj.dim);
             obj.solver = Solver.create();
         end
         
         function computeVariables(obj)
             tol   = 1e-6;          
-            for ifield = 1:obj.nfields
+            for ifield = 1:obj.geometry.nfields
                 free_dof(ifield) = length(obj.dof.free{ifield});
             end
 
@@ -181,35 +146,16 @@ classdef Physical_Problem < FEM
             [K] = element_smooth.computeStiffnessMatrix;
             [M] = element_smooth.computeMassMatrix(job);
         end
-    end
-    
-    %% Private methods definition =========================================
-    methods (Access = protected, Static)
-        %         function [LHS,RHS] = Assemble(element,nnode,nunkn,dof,bc)
-        %             % Compute LHS
-        %             LHS = sparse(dof.ndof,dof.ndof);
-        %             for i = 1:nnode*nunkn
-        %                 for j = 1:nnode*nunkn
-        %                     a = squeeze(element.LHS(i,j,:));
-        %                     LHS = LHS + sparse(dof.idx(i,:),dof.idx(j,:),a,dof.ndof,dof.ndof);
-        %                 end
-        %             end
-        %             LHS = 1/2 * (LHS + LHS');
-        %             % Compute RHS
-        %             RHS = zeros(dof.ndof,1);
-        %             for i = 1:nnode*nunkn
-        %                 b = squeeze(element.Fext(i,1,:));
-        %                 ind = dof.idx(i,:);
-        %                 RHS = RHS + sparse(ind,1,b',dof.ndof,1);
-        %             end
-        %
-        %             %Compute Global Puntual Forces
-        %             if ~isempty(bc.iN)
-        %                 FextPoint = zeros(dof.ndof,1);
-        %                 FextPoint(bc.iN) = bc.neunodes(:,3);
-        %                 RHS = RHS + FextPoint;
-        %             end
-        %         end
-    end
+        function createGeometry(obj,mesh)
+            obj.geometry=Geometry(mesh);
+            if strcmp(mesh.ptype,'Stokes')
+                obj.geometry(2)=Geometry(mesh);
+                obj.geometry(1).interpolation.quadrature.computeQuadrature('QUADRATIC');
+                obj.geometry(1).interpolation.isoparametric=obj.geometry(1).interpolation.set_isoparametric(mesh.geometryType,'QUADRATIC');
+                obj.geometry(1).interpolation.compute_xpoints_T;
+                obj.geometry(:).nfields = 2;
+            end
+        end
+    end   
 end
 

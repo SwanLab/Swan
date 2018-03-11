@@ -25,11 +25,11 @@ classdef DOF < handle
     
     methods
         
-        function obj = DOF(filename,geometry_variable,interpolation_variable,dim,scale,nfields,ptype,interpolation_geometry,nelem)
-            switch ptype
+        function obj = DOF(filename,geometry,dim,mesh)
+            switch mesh.ptype
                 case 'Stokes'
                         [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = ...
-                            Preprocess.getBC_fluids(filename,interpolation_variable,geometry_variable,interpolation_geometry,nelem);
+                            Preprocess.getBC_fluids(filename,geometry,mesh.nelem);
                 otherwise 
                         [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = Preprocess.getBC_mechanics(filename);
             end
@@ -38,11 +38,11 @@ classdef DOF < handle
            [obj.neumann,obj.neumann_values] = obj.get_dof_conditions(neumann_data,dim.nunkn(1));
            [obj.full_dirichlet,obj.full_dirichlet_values] = obj.get_dof_conditions(full_dirichlet_data,dim.nunkn(1));
             
-           for ifield = 1:nfields
+           for ifield = 1:1
                 nunkn = dim.nunkn(ifield);
-                nnode = geometry_variable(ifield).nnode;
-                npnod = interpolation_variable(ifield).npnod;
-                obj.in_elem{ifield} = obj.compute_idx(interpolation_variable(ifield).T,nunkn,nnode);
+                nnode = geometry(ifield).interpolation.isoparametric.nnode;
+                npnod = geometry(ifield).interpolation.npnod;
+                obj.in_elem{ifield} = obj.compute_idx(geometry(ifield).interpolation.T,nunkn,nnode);
 
 
                 obj.ndof(ifield) = nunkn*npnod;
@@ -56,7 +56,7 @@ classdef DOF < handle
                 obj.periodic_constrained = obj.compute_periodic_nodes(master_slave(:,2),nunkn);
                 end
 
-                obj.constrained{ifield} = obj.compute_constrained_dof(scale,ifield);
+                obj.constrained{ifield} = obj.compute_constrained_dof(mesh.scale,ifield);
                 obj.free{ifield} = obj.compute_free_dof(ifield);
             end
 %                 if nfields == 1

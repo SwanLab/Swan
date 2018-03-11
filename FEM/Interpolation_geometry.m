@@ -10,8 +10,7 @@ classdef Interpolation_geometry < Interpolation
     methods
         function obj = compute(obj,mesh)
             [obj.isoparametric,obj.order] = Interpolation_geometry.get_isoparametric(mesh);
-            obj.xpoints = mesh.coord;
-            obj.T = mesh.connec;
+            
             obj.geometry_type = mesh.geometryType;
         end
         
@@ -20,13 +19,11 @@ classdef Interpolation_geometry < Interpolation
     methods (Static)
         function [isoparametric,order] = get_isoparametric(mesh)
             nnode = size(mesh.connec,2);  
-            switch mesh.geometryType
-                
+            switch mesh.geometryType                
                     case 'TRIANGLE'
-
                         switch nnode
                             case 3
-                                order = 'LINEAR';
+                                quadrature = Quadrature('LINEAR');
                                 isoparametric = Triangle_Linear;
                             case 6
                                 order = 'QUADRATIC';
@@ -34,15 +31,13 @@ classdef Interpolation_geometry < Interpolation
                             otherwise
                                 error('Invalid nnode for element TRIANGLE.');
                         end
-                    case 'Triangle_Linear_Mass'
-                        isoparametric=Triangle_Linear_Mass;
                     case 'QUAD'
                         switch nnode
                             case 4
                                 order = 'LINEAR';
                                 isoparametric = Quadrilateral_Bilinear;
                             case 8
-                                order = 'QUADRATIC'
+                                order = 'QUADRATIC';
                                 isoparametric = Quadrilateral_Serendipity;
                             otherwise
                                 error('Invalid nnode for element QUADRILATERAL.');

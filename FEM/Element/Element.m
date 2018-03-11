@@ -18,7 +18,7 @@ classdef Element < handle
     
     
     methods (Static)
-        function element = create(mesh,geometry,material,bc,dof,dim,nfields)
+        function element = create(mesh,geometry,material,bc,dof,dim)
             
             nelem = mesh.nelem;
             ptype = mesh.ptype;
@@ -50,10 +50,10 @@ classdef Element < handle
                     end 
             end
             
-            element.nfields = nfields;
-            for ifield=1:nfields
+            element.nfields = geometry.nfields;
+            for ifield=1:element.nfields
                 element.nunkn(ifield) = dim.nunkn(ifield);
-                element.nnode(ifield) = geometry(ifield).nnode;
+                element.nnode(ifield) = geometry(ifield).interpolation.isoparametric.nnode;
             end
             element.dim = dim;
             element.nstre = dim.nstre;
@@ -126,9 +126,9 @@ classdef Element < handle
                     idx1 = obj.dof.in_elem{ifield};
                     idx2 = obj.dof.in_elem{jfield};
                     nunkn1 = obj.dim.nunkn(ifield);
-                    nnode1 = obj.geometry(ifield).nnode;
+                    nnode1 = obj.geometry(ifield).interpolation.isoparametric.nnode;
                     nunkn2 = obj.dim.nunkn(jfield);
-                    nnode2 = obj.geometry(jfield).nnode;
+                    nnode2 = obj.geometry(jfield).interpolation.isoparametric.nnode;
                     col = obj.dof.ndof(jfield);
                     row = obj.dof.ndof(ifield);
         end

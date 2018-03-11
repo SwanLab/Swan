@@ -15,8 +15,7 @@ classdef Interpolation_variable < Interpolation
             else
                 obj.compute_xpoints_T(interpolation_geometry,order);
             end
-            obj.npnod = length(obj.xpoints(:,1));
-        end
+         end
         
             function compute_xpoints_T(obj,interp_x,order)
                 obj.xpoints = inf*ones(1,3);
@@ -63,43 +62,5 @@ classdef Interpolation_variable < Interpolation
         end
     
     
-    methods (Static)
-        function isoparametric = set_isoparametric(interp_x,order)
-            switch interp_x.geometry_type
-                
-                case 'TRIANGLE'
-                    
-                    switch order
-                        case 'CONSTANT'
-                            isoparametric = Triangle_Constant;
-                        case 'LINEAR'
-                            isoparametric = Triangle_Linear;
-                        case 'QUADRATIC'
-                            isoparametric = Triangle_Quadratic;
-                        otherwise
-                            error('Invalid nnode for element TRIANGLE.');
-                    end
-                case 'Triangle_Linear_Mass'
-                    isoparametric=Triangle_Linear_Mass;
-                case 'QUAD'
-                    switch order
-                        case 'CONSTANT'
-                            
-                        case 'LINEAR'
-                            isoparametric = Quadrilateral_Bilinear;
-                        case 'QUADRATIC'
-                            isoparametric = Quadrilateral_Serendipity;
-                        otherwise
-                            error('Invalid nnode for element QUADRILATERAL.');
-                    end
-                case 'TETRAHEDRA'
-                    isoparametric = Tetrahedra;
-                case 'HEXAHEDRA'
-                    isoparametric = Hexahedra;
-                otherwise
-                    error('Invalid mesh type.')
-            end
-            
-        end
-    end
+    
 end
