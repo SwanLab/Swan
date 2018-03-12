@@ -2,30 +2,38 @@ classdef Geometry<handle
     %Geometry Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (GetAccess = public, SetAccess = private)
+    properties (GetAccess = public, SetAccess = public)
+        type
         cartd
         cart_pos_gp
         shape
         dvolu
         djacob
         interpolation
+        quadrature
         nfields=1;
     end
     methods (Access = {?Physical_Problem,?Element_DiffReact}) % !! Element_DiffReact -> Chapusilla !!
-        function obj = Geometry(mesh)
-            
-            obj.interpolation=Interpolation(mesh);
-            obj.computeGeometry           
+        function obj = Geometry(mesh,interp_order,order)
+            if nargin==2
+                order=interp_order;
+            end    
+            obj.type=mesh.geometryType;
+            obj.interpolation=Interpolation(mesh,interp_order);            
+            obj.computeGeometry(order);
         end
-        function computeGeometry(obj)
+        function computeGeometry(obj,order)
+            obj.createQuadrature(order);
             ndime=obj.interpolation.isoparametric.ndime;
             nnode=obj.interpolation.isoparametric.nnode;
-            ngaus=obj.interpolation.quadrature.ngaus;
+            ngaus=obj.quadrature.ngaus;
             nelem=obj.interpolation.nelem;
-            gp_position = zeros(ndime,obj.interpolation.quadrature.ngaus,nelem);
+            gp_position = zeros(ndime,obj.quadrature.ngaus,nelem);
             
+            obj.shape=zeros(nnode,ngaus);
+            obj.cartd=zeros(ndime,nnode,nelem,ngaus);
             for igauss=1:ngaus
-                pos_gp = num2cell(obj.interpolation.quadrature.posgp(:,igauss));
+                pos_gp = num2cell(obj.quadrature.posgp(:,igauss));
                 obj.shape(:,igauss) = cell2mat(obj.interpolation.isoparametric.shape(pos_gp{:}));
                 
                 for inode = 1:nnode
@@ -46,7 +54,7 @@ classdef Geometry<handle
             end
             % Gauss loop
             for igauss = 1:ngaus
-                pos_gp = num2cell(obj.interpolation.quadrature.posgp(1:ndime,igauss));
+                pos_gp = num2cell(obj.quadrature.posgp(1:ndime,igauss));
                 % shape(:,igauss) = cell2mat(interpolation.isoparametric.shape(pos_gp{:}));
                 deriv(:,:,igauss) = cell2mat (obj.interpolation.isoparametric.deriv(pos_gp{:}));
                 for i = 1:ndime
@@ -66,12 +74,41 @@ classdef Geometry<handle
                 end
                 %                 w= num2cell(weigp(igauss));
                 %                 obj.weigp(igauss) =  cell2mat(w{igauss});
-                obj.dvolu(:,igauss) = obj.interpolation.quadrature.weigp(igauss)*detJ;
+                obj.dvolu(:,igauss) = obj.quadrature.weigp(igauss)*detJ;
                 obj.djacob(:,igauss)= detJ;
             end
-            % dvolu
+            % dvolu         
             
-            
+        end
+        function createQuadrature(obj,order)            
+            switch obj.type             
+                case 'TRIANGLE'
+                    switch order
+                        case 'LINEAR'
+                            obj.quadrature = Quadrature_Triangle(order);
+                        case 'QUADRATIC'
+                            obj.quadrature = Quadrature_Triangle(order);
+                        otherwise
+                            error('Invalid order for quadrature TRIANGLE.');
+                    end
+                case 'QUAD'
+                    switch order
+                        case 'CONSTANT'
+                            
+                        case 'LINEAR'
+                            obj.quadrature = Quadrature_Quadrilateral(order);
+                        case 'QUADRATIC'
+                            obj.quadrature = Quadrature_Quadrilateral(order);
+                        otherwise
+                            error('Invalid order for quadrature QUADRILATERAL.');
+                    end
+                case 'TETRAHEDRA'
+                    obj.quadrature = Quadrature_Tetrahedra(order);
+                case 'HEXAHEDRA'
+                    obj.quadrature = Quadrature_Hexahedra(order);
+                otherwise
+                    error('Invalid mesh type.')
+            end
         end
     end
     methods (Static)

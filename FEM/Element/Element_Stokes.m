@@ -71,18 +71,18 @@ classdef Element_Stokes < Element
             RHS = AssembleVector(obj,RHS_elem);
         end
 
-        function M = compute_M(obj,dim,nelem,geometry_test,geometry_variable,dt)
+        function M = compute_M(obj,dim,nelem,geometry_test,geometry,dt)
             nunkn = dim.nunkn(1);
-            M = zeros(nunkn*geometry_test.nnode,nunkn*geometry_variable.nnode,nelem);
+            M = zeros(nunkn*geometry_test.interpolation.isoparametric.nnode,nunkn*geometry.interpolation.isoparametric.nnode,nelem);
             
-             for igauss = 1 :geometry_variable.ngaus       
-                for inode= 1:geometry_test.nnode
-                    for jnode= 1:geometry_variable.nnode
+             for igauss = 1 :geometry.quadrature.ngaus       
+                for inode= 1:geometry_test.interpolation.isoparametric.nnode
+                    for jnode= 1:geometry.interpolation.isoparametric.nnode
                         for iunkn= 1:nunkn
                             for junkn= 1:nunkn
-                                v = squeeze(geometry_test.shape(inode,igauss,:).*geometry_variable.shape(jnode,igauss,:));
+                                v = squeeze(geometry_test.shape(inode,igauss,:).*geometry.shape(jnode,igauss,:));
                                 M(nunkn*(inode-1)+iunkn,nunkn*(jnode-1)+junkn,:)= squeeze(M(nunkn*(inode-1)+iunkn,nunkn*(jnode-1)+junkn,:)) ...
-                                    + v(:)/dt.*geometry_variable.dvolu(:,igauss);
+                                    + v(:)/dt.*geometry.dvolu(:,igauss);
 %                                 obj.LHS(iv,jv,:) = squeeze(obj.LHS(iv,jv,:)) + v(:).*geometry.dvolu(:,igauss);
                             end
                         end
@@ -92,24 +92,24 @@ classdef Element_Stokes < Element
             obj.M_elem = M;
         end
         
-        function K = compute_K(obj,dim,nelem,geometry_test,geometry_variable,material)
+        function K = compute_K(obj,dim,nelem,geometry_test,geometry,material)
              nunkn = dim.nunkn(1);
-            K = zeros(nunkn*geometry_test.nnode,nunkn*geometry_variable.nnode,nelem);
+            K = zeros(nunkn*geometry_test.interpolation.isoparametric.nnode,nunkn*geometry.interpolation.isoparametric.nnode,nelem);
            
             Cmat = material.mu;
             
-            for igauss = 1 :geometry_variable.ngaus
+            for igauss = 1 :geometry.quadrature.ngaus
                 
-                Bmat = obj.computeB(nunkn,nelem,geometry_variable.nnode,geometry_variable.cartd(:,:,:,igauss));
+                Bmat = obj.computeB(nunkn,nelem,geometry.interpolation.isoparametric.nnode,geometry.cartd(:,:,:,igauss));
                 
 %                 B_p=reshape(Bmat,[geometry.nnode*nunkn,1,nelem]);
                 
-                for iv=1:geometry_test.nnode*nunkn  
-                    for jv=1:geometry_variable.nnode*nunkn
-                        for istre=1:nunkn*geometry_test.ndime
-                            for jstre=1:nunkn*geometry_variable.ndime
+                for iv=1:geometry_test.interpolation.isoparametric.nnode*nunkn  
+                    for jv=1:geometry.interpolation.isoparametric.nnode*nunkn
+                        for istre=1:nunkn*geometry_test.interpolation.isoparametric.ndime
+                            for jstre=1:nunkn*geometry.interpolation.isoparametric.ndime
                                 v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:).*Bmat(jstre,jv,:));
-                                K(iv,jv,:)= squeeze(K(iv,jv,:)) + v(:).*geometry_variable.dvolu(:,igauss);
+                                K(iv,jv,:)= squeeze(K(iv,jv,:)) + v(:).*geometry.dvolu(:,igauss);
 %                                 obj.LHS(iv,jv,:) = squeeze(obj.LHS(iv,jv,:)) + v(:).*geometry.dvolu(:,igauss);
                             end
                         end
@@ -120,19 +120,19 @@ classdef Element_Stokes < Element
             obj.K_elem = K;           
             end
         
-        function D = compute_D(obj,dim,nelem,geometry_test,geometry_variable)
+        function D = compute_D(obj,dim,nelem,geometry_test,geometry)
             nunkn_u=dim.nunkn(1);
  
             
-            D = zeros(nunkn_u*geometry_test.nnode,geometry_variable.nnode,nelem);
+            D = zeros(nunkn_u*geometry_test.interpolation.isoparametric.nnode,geometry.interpolation.isoparametric.nnode,nelem);
 
-            for igauss=1:geometry_test.ngaus
-                for inode_var = 1:geometry_variable.nnode
-                    for inode_test = 1:geometry_test.nnode
-                        for idime = 1:geometry_test.ndime
+            for igauss=1:geometry_test.quadrature.ngaus
+                for inode_var = 1:geometry.interpolation.isoparametric.nnode
+                    for inode_test = 1:geometry_test.interpolation.isoparametric.nnode
+                        for idime = 1:geometry_test.interpolation.isoparametric.ndime
                             dof_test = inode_test*nunkn_u - nunkn_u + idime;
                             v= squeeze (geometry_test.cartd(idime,inode_test,:,igauss));
-                            D(dof_test,inode_var,:)= squeeze(D(dof_test,inode_var,:)) - v(:).*geometry_variable.shape(inode_var,igauss)...
+                            D(dof_test,inode_var,:)= squeeze(D(dof_test,inode_var,:)) - v(:).*geometry.shape(inode_var,igauss)...
                                 .*geometry_test.dvolu(:,igauss);
                             
                         end
@@ -152,7 +152,7 @@ classdef Element_Stokes < Element
             end
        end
         
-       function Fext = compute_vol_force_on_nodes(obj,geometry_variable,idx,nnode,nunkn)
+       function Fext = compute_vol_force_on_nodes(obj,geometry,idx,nnode,nunkn)
 %             for i = 1:length(bc.iN)
 %                 for j = 1:nnode*nunkn
 %                     ind = find(idx(j,:) == bc.iN(i));
@@ -165,14 +165,14 @@ classdef Element_Stokes < Element
 %             end
 
              
-%              for igaus=1:geometry_variable.ngaus
+%              for igaus=1:geometry.ngaus
 %                 for inode=1:nnode
 %                     for jnode=1:nnode
 %                         for iunkn=1:nunkn
 %                             elemental_dof = jnode*nunkn-nunkn+iunkn; %% dof per guardar el valor de la integral
 % 
-%                                 v= squeeze(geometry_variable.shape(inode,igaus).*geometry_variable.shape(jnode,igaus).*f(elemental_dof,1,:));
-%                                 Fext(elemental_dof,1,:)= squeeze(Fext(elemental_dof,1,:)) + v(:).*geometry_variable.dvolu(:,igaus);
+%                                 v= squeeze(geometry.shape(inode,igaus).*geometry.shape(jnode,igaus).*f(elemental_dof,1,:));
+%                                 Fext(elemental_dof,1,:)= squeeze(Fext(elemental_dof,1,:)) + v(:).*geometry.dvolu(:,igaus);
 %                             
 %                         end
 %                     end
@@ -180,15 +180,15 @@ classdef Element_Stokes < Element
 %             end
        end
         
-       function Fext = compute_vol_force_on_gauss_points(obj,geometry_variable,nnode,nunkn,f)
+       function Fext = compute_vol_force_on_gauss_points(obj,geometry,nnode,nunkn,f)
            Fext = zeros(nnode*nunkn,1,obj.nelem);
-                 for igaus=1:geometry_variable.ngaus
+                 for igaus=1:geometry.quadrature.ngaus
                     for inode=1:nnode
                         for iunkn=1:nunkn
                             elemental_dof = inode*nunkn-nunkn+iunkn; %% dof per guardar el valor de la integral
 
-                            v= squeeze(geometry_variable.shape(inode,igaus).*f(iunkn,igaus,:));
-                            Fext(elemental_dof,1,:)= squeeze(Fext(elemental_dof,1,:)) + v(:).*geometry_variable.dvolu(:,igaus);
+                            v= squeeze(geometry.shape(inode,igaus).*f(iunkn,igaus,:));
+                            Fext(elemental_dof,1,:)= squeeze(Fext(elemental_dof,1,:)) + v(:).*geometry.dvolu(:,igaus);
 
                         end
                     end
@@ -196,7 +196,7 @@ classdef Element_Stokes < Element
        end
        
        function g = compute_velocity_divergence(obj)
-           g = zeros(obj.geometry(2).nnode*obj.dim.nunkn(2),1,obj.nelem);
+           g = zeros(obj.geometry(2).interpolation.isoparametric.nnode*obj.dim.nunkn(2),1,obj.nelem);
        end
        
        function variable = computeVars(obj,x_free)
@@ -207,14 +207,14 @@ classdef Element_Stokes < Element
         
     end
     methods (Access=protected)
-        function mat = computeMatrix(obj,dim,nelem,geometry_test,geometry_variable,material,dt,ifield,jfield)
+        function mat = computeMatrix(obj,dim,nelem,geometry_test,geometry,material,dt,ifield,jfield)
 
            if ifield == 1 && jfield==1
-               K = obj.compute_K(dim,nelem,geometry_test,geometry_variable,material);
-               M = obj.compute_M(dim,nelem,geometry_test,geometry_variable,dt);
+               K = obj.compute_K(dim,nelem,geometry_test,geometry,material);
+               M = obj.compute_M(dim,nelem,geometry_test,geometry,dt);
                mat = M + K;
            elseif ifield == 1 && jfield==2
-               mat = obj.compute_D(dim,nelem,geometry_test,geometry_variable);
+               mat = obj.compute_D(dim,nelem,geometry_test,geometry);
            elseif ifield == 2 && jfield==1
                mat = permute(obj.LHS_elem{1,2},[2,1,3]);
            else
@@ -250,10 +250,10 @@ classdef Element_Stokes < Element
 %             Fext = zeros(nnode*nunkn,1,nelem);
               Fext=0;
         end
-        function Fext = computeVolumetricFext(obj,dim,nelem,geometry_variable,dof)
+        function Fext = computeVolumetricFext(obj,dim,nelem,geometry,dof)
             idx = obj.dof.in_elem{1};
-            geometry_variable = geometry_variable(1);
-            nnode = geometry_variable.nnode;
+            geometry = geometry(1);
+            nnode = geometry.interpolation.isoparametric.nnode;
             nunkn= dim.nunkn(1);
 %             f = zeros(nnode*nunkn,1,nelem);
            
@@ -263,9 +263,9 @@ classdef Element_Stokes < Element
             if  ~isempty(dof.neumann_values)
                 if ~ismatrix(dof.neumann_values) 
                     f=dof.neumann_values;
-                    Fext = obj.compute_vol_force_on_gauss_points(geometry_variable,nnode,nunkn,f);
+                    Fext = obj.compute_vol_force_on_gauss_points(geometry,nnode,nunkn,f);
                 else
-                    Fext = obj.compute_vol_force_on_nodes(geometry_variable,idx,nnode,nunkn);
+                    Fext = obj.compute_vol_force_on_nodes(geometry,idx,nnode,nunkn);
                 end
             else
                  Fext = zeros(nnode*nunkn,1,nelem);

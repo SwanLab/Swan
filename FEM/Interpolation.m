@@ -6,65 +6,37 @@ classdef Interpolation < handle
         T
         xpoints
         isoparametric
-        quadrature
         order
         npnod
         nelem
     end    
     methods
-        function obj=Interpolation(mesh)
+        function obj=Interpolation(mesh,order)
             nnode = size(mesh.connec,2);
             obj.xpoints = mesh.coord;
             obj.T = mesh.connec;
             obj.npnod = length(obj.xpoints(:,1));
             obj.nelem = length(obj.T(:,1));
-            switch mesh.geometryType
-                case 'TRIANGLE'
-                    switch nnode
-                        case 3
-                            obj.quadrature = Quadrature_Triangle('LINEAR');
-                            obj.isoparametric = Triangle_Linear;
-                        case 6
-                           obj.quadrature = Quadrature_Triangle('QUADRATIC');
-                           obj.isoparametric = Triangle_Quadratic;
-                        otherwise
-                            error('Invalid nnode for element TRIANGLE.');
-                    end
-                case 'QUAD'
-                    switch nnode
-                        case 4
-                           obj.quadrature = Quadrature_Quadrilateral('LINEAR');
-                           obj.isoparametric = Quadrilateral_Bilinear;
-                        case 8
-                           obj.quadrature = Quadrature_Quadrilateral('QUADRATIC');
-                           obj.isoparametric = Quadrilateral_Serendipity;
-                        otherwise
-                            error('Invalid nnode for element QUADRILATERAL.');
-                    end
-                case 'TETRAHEDRA'
-                   obj.isoparametric = Tetrahedra;
-                   obj.quadrature = Quadrature_Tetrahedra('LINEAR');
-                case 'HEXAHEDRA'
-                   obj.isoparametric = Hexahedra;
-                   obj.quadrature = Quadrature_Hexahedra('LINEAR');
-                otherwise
-                    error('Invalid mesh type.')
+            obj.isoparametric=obj.createIsoparametric(mesh.geometryType,order);            
+            if nnode ~= obj.isoparametric.nnode
+                mesh_isoparametric=obj.createIsoparametric(mesh.geometryType,'LINEAR');
+                obj.compute_xpoints_T(nnode,obj.xpoints,obj.T,mesh_isoparametric.shape)
             end
         end
-        function compute_xpoints_T(obj)
+         function compute_xpoints_T(obj,nnode,xpoints,connec,shape_ini)
             obj.xpoints = inf*ones(1,3);           
             inode=1;                       
             for inode_variable=1:obj.isoparametric.nnode
                 pos_nodes = num2cell(obj.isoparametric.pos_nodes(inode_variable,1:obj.isoparametric.ndime));
-                shape(inode_variable,:) = cell2mat(obj.isoparametric.shape(pos_nodes{:}));
+                shape(inode_variable,:) = cell2mat(shape_ini(pos_nodes{:}));
             end            
             for ielem=1:obj.nelem
-                T_elem=obj.T(ielem,:);
+                T_elem=connec(ielem,:);
                 node_position=1;                
                 for inode_variable=1:obj.isoparametric.nnode
                     node=zeros(1,3);
-                    for inode_mesh=1:obj.isoparametric.nnode
-                        node= node + shape(inode_variable,inode_mesh)*obj.xpoints(T_elem(inode_mesh),:);                        
+                    for inode_mesh=1:nnode
+                        node= node + shape(inode_variable,inode_mesh)*xpoints(T_elem(inode_mesh),:);
                     end
                     
                     ind= find(obj.xpoints(:,1)== node(1) & obj.xpoints(:,2)== node(2) & obj.xpoints(:,3)== node(3)); % search if the point is already in the list
@@ -75,20 +47,18 @@ classdef Interpolation < handle
                         inode=inode+1;
                     else
                         obj.T(ielem,node_position)= ind;
-                    end                    
+                    end
                     node_position=node_position+1;
                 end
             end
-        end
+            obj.npnod=length(obj.xpoints(:,1));
+         end
     end
     methods (Static)
-        function isoparametric = set_isoparametric(geometry_type,order)
-            switch geometry_type
-                
+        function isoparametric=createIsoparametric(type,order)
+            switch type
                 case 'TRIANGLE'
                     switch order
-                        case 'CONSTANT'
-                            isoparametric = Triangle_Constant;
                         case 'LINEAR'
                             isoparametric = Triangle_Linear;
                         case 'QUADRATIC'
@@ -98,8 +68,6 @@ classdef Interpolation < handle
                     end
                 case 'QUAD'
                     switch order
-                        case 'CONSTANT'
-                            
                         case 'LINEAR'
                             isoparametric = Quadrilateral_Bilinear;
                         case 'QUADRATIC'
@@ -114,7 +82,6 @@ classdef Interpolation < handle
                 otherwise
                     error('Invalid mesh type.')
             end
-            
         end
     end
 end

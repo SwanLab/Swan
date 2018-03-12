@@ -46,7 +46,7 @@ classdef Element_Elastic < Element
             
             % Elastic matrix
             Cmat = obj.material.C;
-            for igaus = 1 :obj.geometry.interpolation.quadrature.ngaus
+            for igaus = 1 :obj.geometry.quadrature.ngaus
                 % Strain-displacement matrix
                 Bmat = obj.computeB(obj.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
                 
@@ -81,8 +81,8 @@ classdef Element_Elastic < Element
         function variables = computeDispStressStrain(obj,uL)
             variables.d_u = obj.compute_displacements(uL);
             variables.fext = obj.fext;
-            variables.strain = obj.computeStrain(variables.d_u,obj.dim,obj.nnode,obj.nelem,obj.geometry.interpolation.quadrature.ngaus,obj.dof.in_elem{1});
-            variables.stress = obj.computeStress(variables.strain,obj.material.C,obj.geometry.interpolation.quadrature.ngaus,obj.nstre);
+            variables.strain = obj.computeStrain(variables.d_u,obj.dim,obj.nnode,obj.nelem,obj.geometry.quadrature.ngaus,obj.dof.in_elem{1});
+            variables.stress = obj.computeStress(variables.strain,obj.material.C,obj.geometry.quadrature.ngaus,obj.nstre);
         end
         
        

@@ -90,8 +90,7 @@ classdef TopOpt_Problem < handle
         
         function obj = filters_preProcess(obj)
             obj.topOpt_params.dim.nunkn = 1;
-            dof_filter =DOF(obj.topOpt_params.problemID,obj.topOpt_params.geometry,obj.topOpt_params.interpolation_variable,obj.topOpt_params.dim,...
-                obj.topOpt_params.mesh.scale,obj.topOpt_params.nfields,obj.topOpt_params.mesh.ptype,obj.topOpt_params.interpolation_geometry,obj.topOpt_params.mesh.nelem);
+            dof_filter =DOF(obj.topOpt_params.problemID,obj.topOpt_params.geometry,obj.topOpt_params.dim,obj.topOpt_params.mesh);
             switch obj.topOpt_params.mesh.scale
                 case 'MACRO'
                     dof_filter.dirichlet{1} = [];
@@ -245,7 +244,7 @@ classdef TopOpt_Problem < handle
     end
     methods (Access = private, Static)
         function filter_params = getFilterParams(topOpt_params)
-            for igauss = 1:topOpt_params.geometry.ngaus
+            for igauss = 1:topOpt_params.geometry.quadrature.ngaus
                 filter_params.M0{igauss} = sparse(1:topOpt_params.mesh.nelem,1:topOpt_params.mesh.nelem,topOpt_params.geometry.dvolu(:,igauss));
             end
             filter_params.dof = topOpt_params.dof;
@@ -255,9 +254,9 @@ classdef TopOpt_Problem < handle
             filter_params.coordinates = topOpt_params.mesh.coord;
             filter_params.connectivities = topOpt_params.mesh.connec;
             filter_params.nelem = topOpt_params.mesh.nelem;
-            filter_params.nnode = topOpt_params.geometry.nnode;
-            filter_params.npnod = topOpt_params.mesh.npnod;
-            filter_params.ngaus = topOpt_params.geometry.ngaus;
+            filter_params.nnode = topOpt_params.geometry.interpolation.isoparametric.nnode;
+            filter_params.npnod = topOpt_params.geometry.interpolation.npnod;
+            filter_params.ngaus = topOpt_params.geometry.quadrature.ngaus;
             filter_params.shape = topOpt_params.geometry.shape;
         end
     end

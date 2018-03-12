@@ -6,7 +6,6 @@ classdef Quadrature < handle
         posgp
         weigp
         ngaus
-        order
     end    
     methods
         function obj=Quadrature(order)

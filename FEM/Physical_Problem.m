@@ -28,8 +28,7 @@ classdef Physical_Problem < FEM
             obj.createGeometry(obj.mesh);
             obj.dim = DIM(obj.mesh.ptype,obj.mesh.pdim);
             obj.material = Material.create(obj.geometry,obj.mesh);
-            obj.dof = DOF(problemID,obj.geometry,obj.dim,obj.mesh);%.scale,obj.nfields,obj.mesh.ptype,obj.interpolation_geometry,...
-               % obj.mesh.nelem);
+            obj.dof = DOF(problemID,obj.geometry,obj.dim,obj.mesh);
         end
         
         function preProcess(obj)
@@ -39,7 +38,7 @@ classdef Physical_Problem < FEM
         
         function computeVariables(obj)
             tol   = 1e-6;          
-            for ifield = 1:obj.geometry.nfields
+            for ifield = 1:obj.geometry(1).nfields
                 free_dof(ifield) = length(obj.dof.free{ifield});
             end
 
@@ -119,7 +118,7 @@ classdef Physical_Problem < FEM
                         
             % !! Hyper-mega-ultra provisional !!
             
-            dim_smooth.nnode = obj.geometry.nnode;
+            dim_smooth.nnode = obj.geometry.interpolation.isoparametric.nnode;
             dim_smooth.nunkn = 1;
             dim_smooth.nstre = 2;
             
@@ -130,8 +129,7 @@ classdef Physical_Problem < FEM
             bc_smooth = obj.bc;
             bc_smooth.fixnodes = [];
             
-            dof_smooth = DOF(obj.problemID,obj.geometry,obj.interpolation_variable,dim_smooth,mesh_smooth.scale,1,mesh_smooth.ptype,...
-                obj.interpolation_geometry,obj.mesh.nelem);   
+            dof_smooth = DOF(obj.problemID,obj.geometry,obj.dim,obj.mesh);
             dof_smooth.neumann = [];
             dof_smooth.dirichlet{1} = [];
             dof_smooth.neumann_values = [];
@@ -141,19 +139,19 @@ classdef Physical_Problem < FEM
             dof_smooth.constrained = [];
             dof_smooth.free = setdiff(1:dof_smooth.ndof,dof_smooth.constrained);
             
-            element_smooth = Element.create(mesh_smooth,obj.geometry,obj.material,obj.bc,dof_smooth,dim_smooth,1);
+            element_smooth =Element.create(mesh_smooth,obj.geometry,obj.material,obj.bc,dof_smooth,dim_smooth);
             
             [K] = element_smooth.computeStiffnessMatrix;
             [M] = element_smooth.computeMassMatrix(job);
         end
         function createGeometry(obj,mesh)
-            obj.geometry=Geometry(mesh);
+            
             if strcmp(mesh.ptype,'Stokes')
-                obj.geometry(2)=Geometry(mesh);
-                obj.geometry(1).interpolation.quadrature.computeQuadrature('QUADRATIC');
-                obj.geometry(1).interpolation.isoparametric=obj.geometry(1).interpolation.set_isoparametric(mesh.geometryType,'QUADRATIC');
-                obj.geometry(1).interpolation.compute_xpoints_T;
-                obj.geometry(:).nfields = 2;
+                obj.geometry=Geometry(mesh,'QUADRATIC');
+                obj.geometry(2)=Geometry(mesh,'LINEAR','QUADRATIC');
+                obj.geometry(1).nfields = 2;
+            else
+                obj.geometry=Geometry(mesh,'LINEAR');
             end
         end
     end   

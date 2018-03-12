@@ -44,7 +44,7 @@ classdef Element_DiffReact < Element
         
         function [M] = computeMassMatrix(obj,job)
             [M] = compute_elem_MassMatrix(obj,job);
-%             [M] = obj.AssembleMatrix(M); !! UNCOMMENT WHEN INTEGRATION IMPLEMENTED !!
+             %[M] = obj.AssembleMatrix(M); !! UNCOMMENT WHEN INTEGRATION IMPLEMENTED !!
         end
         
         function [K] = compute_elem_StiffnessMatrix(obj)
@@ -52,28 +52,24 @@ classdef Element_DiffReact < Element
             % Stiffness matrix
             Ke = zeros(obj.nunkn*obj.nnode,obj.nunkn*obj.nnode,obj.nelem);
             
-            for igaus = 1 :obj.geometry.ngaus
+            for igaus = 1 :obj.geometry.quadrature.ngaus
                 % Strain-displacement matrix
                 Bmat = obj.computeB(obj.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
                 
                 % Compute Ke
-                if obj.nelem < 1000 %Just to reduce test.m compute time TO BE REMOVED
-                    for i = 1:obj.nelem
-                        Ke(:,:,i) = Ke(:,:,i)+Bmat(:,:,i)'*Bmat(:,:,i)*obj.geometry.dvolu(i,igaus);
-                    end
-                else
-                    for iv = 1:obj.nnode*obj.nunkn
-                        for jv = 1:obj.nnode*obj.nunkn
-                            for istre = 1:obj.nstre
-                                % for jstre=1:nstre
-                                v = squeeze(Bmat(istre,iv,:).*Bmat(istre,jv,:));
-                                Ke(iv,jv,:) = squeeze(Ke(iv,jv,:)) + v(:).*obj.geometry.dvolu(:,igaus);
-                                %end
-                            end
+                
+                for iv = 1:obj.nnode*obj.nunkn
+                    for jv = 1:obj.nnode*obj.nunkn
+                        for istre = 1:obj.nstre
+                            % for jstre=1:nstre
+                            v = squeeze(Bmat(istre,iv,:).*Bmat(istre,jv,:));
+                            Ke(iv,jv,:) = squeeze(Ke(iv,jv,:)) + v(:).*obj.geometry.dvolu(:,igaus);
+                            %end
                         end
                     end
                 end
             end
+            
             K = Ke;
         end
         
@@ -82,27 +78,22 @@ classdef Element_DiffReact < Element
 %         end
         
         %% !! PENDING OF INTEGRATION / ELEMENT DEGREE FOR IMPLEMENTING LIKE STIFFNESS MATRIX !! 
-        function [M] = compute_elem_MassMatrix(obj,job)
-            interpolation_geometry = Interpolation.create('mesh');
-            interpolation_geometry.compute(obj.mesh);
-            interpolation_variable = Interpolation.create ('variable');
-            interpolation_variable.compute(interpolation_geometry,'LINEAR');
-            quadrature = Quadrature (obj.mesh.geometryType,'QUADRATICMASS');
-            geom =  Geometry(interpolation_variable,quadrature,obj.mesh.nelem);
+        function [M] = compute_elem_MassMatrix(obj,job)            
+            obj.geometry.computeGeometry('QUADRATIC');
             dirichlet_data = obj.mesh.connec';
-            Me = zeros(geom.nnode,geom.nnode,obj.mesh.nelem);
+            Me = zeros(obj.geometry.interpolation.isoparametric.nnode,obj.geometry.interpolation.isoparametric.nnode,obj.mesh.nelem);
             
-            for igaus=1:geom.ngaus
-                for inode=1:geom.nnode
-                    for jnode=1:geom.nnode
-                        Me(inode,jnode,:)=squeeze(Me(inode,jnode,:)) + geom.weigp(igaus)*geom.shape(inode,igaus)*geom.shape(jnode,igaus)*geom.djacob(:,igaus);
+            for igaus=1:obj.geometry.quadrature.ngaus
+                for inode=1:obj.geometry.interpolation.isoparametric.nnode
+                    for jnode=1:obj.geometry.interpolation.isoparametric.nnode
+                        Me(inode,jnode,:)=squeeze(Me(inode,jnode,:)) + 0.5*obj.geometry.quadrature.weigp(igaus)*obj.geometry.shape(inode,igaus)*obj.geometry.shape(jnode,igaus)*obj.geometry.djacob(:,igaus);
                     end
                 end
             end
             
             if (job==1)
                 % lumped mass matrix
-                elumped = zeros(obj.geom.nnode,obj.mesh.nelem);
+                elumped = zeros(obj.geometry.nnode,obj.mesh.nelem);
                 M = zeros(obj.geom.nnode,1);
                 [nproc,coeff] = nprocedure(etype,nnode);
                 if (nproc==1)
@@ -124,13 +115,14 @@ classdef Element_DiffReact < Element
                 end
             elseif (job==2)
                 M = sparse(obj.mesh.npnod,obj.mesh.npnod);
-                for k=1:geom.nnode
-                    for l=1:geom.nnode
+                for k=1:obj.geometry.quadrature.ngaus
+                    for l=1:obj.geometry.quadrature.ngaus
                         vmass = squeeze(Me(k,l,:));
                         M = M + sparse(dirichlet_data(k,:),dirichlet_data(l,:),vmass,obj.mesh.npnod,obj.mesh.npnod);
                     end
                 end
             end
+            obj.geometry.computeGeometry('LINEAR');
         end        
     end
     

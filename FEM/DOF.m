@@ -38,7 +38,7 @@ classdef DOF < handle
            [obj.neumann,obj.neumann_values] = obj.get_dof_conditions(neumann_data,dim.nunkn(1));
            [obj.full_dirichlet,obj.full_dirichlet_values] = obj.get_dof_conditions(full_dirichlet_data,dim.nunkn(1));
             
-           for ifield = 1:1
+           for ifield = 1:geometry(1).nfields
                 nunkn = dim.nunkn(ifield);
                 nnode = geometry(ifield).interpolation.isoparametric.nnode;
                 npnod = geometry(ifield).interpolation.npnod;

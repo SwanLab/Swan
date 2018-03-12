@@ -33,8 +33,8 @@ classdef ShFunc_Compliance < Shape_Functional
             compliance = obj.computeCompliance;
             
             % Compute gradient
-            gradient_compliance = zeros(obj.physicalProblem.mesh.nelem,obj.physicalProblem.geometry.ngaus);
-            for igaus = 1:obj.physicalProblem.geometry.ngaus
+            gradient_compliance = zeros(obj.physicalProblem.mesh.nelem,obj.physicalProblem.geometry.quadrature.ngaus);
+            for igaus = 1:obj.physicalProblem.geometry.quadrature.ngaus
                 for istre = 1:obj.physicalProblem.dim.nstre
                     for jstre = 1:obj.physicalProblem.dim.nstre
                         gradient_compliance(:,igaus) = gradient_compliance(:,igaus) + obj.updateGradient(igaus,istre,jstre);
