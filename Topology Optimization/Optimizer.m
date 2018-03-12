@@ -4,11 +4,8 @@ classdef Optimizer < handle
         kappa
         objfunc
         stop_criteria = 1;
-        Msmooth
-        Ksmooth
-%         P
+        scalar_product
         target_parameters = struct;
-        epsilon_scalar_product_P1
         name
         niter = 0
         optimizer
@@ -27,27 +24,28 @@ classdef Optimizer < handle
             obj.plotting = settings.plotting;
             obj.printing = settings.printing;
             obj.monitoring = Monitoring(settings,monitoring);
+            obj.scalar_product = ScalarProduct(settings.filename);
         end
         function x = solveProblem(obj,x_ini,cost,constraint)
             cost.computef(x_ini);
             constraint.computef(x_ini);
             obj.plotX(x_ini)
-            %             obj.print(x_ini,filter.getP0fromP1(x_ini),obj.niter);
+            % obj.print(x_ini,filter.getP0fromP1(x_ini),obj.niter);
             while obj.stop_criteria && obj.niter < obj.maxiter
                 obj.niter = obj.niter+1;
                 x = obj.updateX(x_ini,cost,constraint);
                 obj.plotX(x)
-                %                 obj.print(x,filter.getP0fromP1(x),obj.niter);
+                % obj.print(x,filter.getP0fromP1(x),obj.niter);
                 obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars,obj.stop_criteria && obj.niter < obj.maxiter);
                 x_ini = x;
             end
             obj.stop_criteria = 1;
         end
         
-        %% HAS TO BE REMOVED FROM OPTIMIZER CLASS --> Physical Problem with Element_Dif_React
-        function sp = scalar_product(obj,f,g)
-            sp = f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
+        function obj = setEpsilon(obj,epsilon)
+            obj.scalar_product.setEpsilon(epsilon);
         end
+        
     end
     methods (Access = private)
         function print(obj,design_variable,design_variable_reg,iter)
@@ -97,13 +95,12 @@ classdef Optimizer < handle
         end
     end
     
-    methods (Access = protected, Static)
-        %% !! FER AMB SCALAR PRODUCT !!
-        function N_L2 = norm_L2(x,x_ini,M)
+    methods (Access = protected)
+        %% !! MOVE TO OPT_UNCONSTR !!
+        function N_L2 = norm_L2(obj,x,x_ini)
             inc_x = x-x_ini;
-            N_L2 = (inc_x'*M*inc_x)/(x_ini'*M*x_ini);
-        end
-        
+            N_L2 = obj.scalar_product.computeSP_M(inc_x,inc_x)/obj.scalar_product.computeSP_M(x_ini,x_ini);
+        end        
     end
     
 end

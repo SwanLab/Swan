@@ -33,7 +33,7 @@ classdef Optimizer_PG < Optimizer
                 obj.objfunc.computeFunction(cost,constraint)
 %                 cost_ls = cost.value + obj.lambda*constraint.value + 0.5*obj.penalty*(constraint.value.*constraint.value);
                 
-                incr_norm_L2  = obj.norm_L2(x,x_ini,obj.Msmooth);
+                incr_norm_L2  = obj.norm_L2(x,x_ini);
                 incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
                 
                 obj.kappa = obj.kappa/obj.kfrac;
@@ -49,12 +49,12 @@ classdef Optimizer_PG < Optimizer
             ub = ones(length(rho_n(:,1)),1);
             lb = zeros(length(rho_n(:,1)),1);
             rho = max(min(rho_step,ub),lb);    
-            obj.opt_cond = sqrt(obj.scalar_product(rho - rho_n,rho - rho_n))/sqrt(obj.scalar_product(rho_n,rho_n));
+            obj.opt_cond = sqrt(obj.scalar_product.computeSP(rho - rho_n,rho - rho_n))/sqrt(obj.scalar_product.computeSP(rho_n,rho_n));
         end
         function computeKappa(obj,x,gradient)
             if isempty(obj.kappa)
-                norm_gamma = sqrt(obj.scalar_product(x,x));
-                norm_g = sqrt(obj.scalar_product(gradient,gradient));
+                norm_gamma = sqrt(obj.scalar_product.computeSP(x,x));
+                norm_g = sqrt(obj.scalar_product.computeSP(gradient,gradient));
                 obj.kappa = norm_gamma/norm_g;
             else
                 obj.kappa = obj.kappaMultiplier*obj.kappa*obj.kfrac;

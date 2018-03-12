@@ -46,8 +46,13 @@ classdef TopOpt_Problem < handle
             obj.filters_preProcess;
             
             obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.topOpt_params.mesh);
+            obj.optimizer.setEpsilon(obj.incremental_scheme.epsilon);
+            %% !! PROVISIONAL !! --> REMOVE WHEN OPT UNCONSTRAINED CLASS
+            try
+                obj.optimizer.optimizer_unconstr.setEpsilon(obj.incremental_scheme.epsilon);
+            end
             obj.compute_initial_design;
-            obj.topOpt_params = []; % !! To check that only it is used once (Debugging) !!
+            obj.topOpt_params = []; % !! To check that only it is used once (DEBUGGING) !!
         end
         
         function computeVariables(obj)
@@ -232,12 +237,10 @@ classdef TopOpt_Problem < handle
                 otherwise
                     error('Initialize design variable case not detected.');
             end
-            obj.optimizer.Msmooth = obj.filter.Msmooth;
-            obj.optimizer.Ksmooth = obj.filter.Ksmooth;
-            obj.optimizer.epsilon_scalar_product_P1 = obj.incremental_scheme.epsilon;            
-            %% !! COULD BE CLEANER, NOT IN IF --> O.O.P.  !!
+
+            %% !! COULD BE CLEANER, NOT IN IF --> But like O.O.P.  !!
             if strcmp(obj.settings.optimizer,'SLERP')
-                sqrt_norma = obj.optimizer.scalar_product(obj.x,obj.x);
+                sqrt_norma = obj.optimizer.scalar_product.computeSP(obj.x,obj.x);
                 obj.x = obj.x/sqrt(sqrt_norma);
             end
         end

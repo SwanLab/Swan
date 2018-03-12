@@ -45,11 +45,9 @@ classdef Optimizer_AugLag < Optimizer
         end
         
         function checkInitial(obj)
-            if isempty(obj.optimizer_unconstr.Ksmooth)
-                obj.optimizer_unconstr.Msmooth = obj.Msmooth;
-                obj.optimizer_unconstr.Ksmooth = obj.Ksmooth;
-                obj.optimizer_unconstr.epsilon_scalar_product_P1 = obj.epsilon_scalar_product_P1;
-            end
+%             if isempty(obj.optimizer_unconstr.scalar_product)
+%                 %% !! FILL !!
+%             end
         end
         
     end
