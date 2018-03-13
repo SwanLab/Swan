@@ -1,18 +1,13 @@
-classdef Optimizer_SLERP < Optimizer
+classdef Optimizer_SLERP < Optimizer_Unconstrained
     
     properties
-        kfrac
-        max_constr_change
-        opt_cond
-        kappa_min
         optimality_tol
         constr_tol
-        nconstr
     end
     
     methods
-        function obj = Optimizer_SLERP(settings)
-            obj@Optimizer(settings,false);
+        function obj = Optimizer_SLERP(settings,epsilon)
+            obj@Optimizer_Unconstrained(settings,epsilon);
             obj.kappa = 1;
             obj.kappa_min = 1e-15;
             obj.max_constr_change = +Inf;
@@ -21,7 +16,7 @@ classdef Optimizer_SLERP < Optimizer
         end
         
         function optimality_tol = get.optimality_tol(obj)
-            optimality_tol = 0.0175*obj.target_parameters.optimality_tol/1e-3;
+            optimality_tol = (0.0175/1e-3)*obj.target_parameters.optimality_tol;
         end
         
         function constr_tol = get.constr_tol(obj)

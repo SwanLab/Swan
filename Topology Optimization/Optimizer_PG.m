@@ -1,18 +1,12 @@
-classdef Optimizer_PG < Optimizer
+classdef Optimizer_PG < Optimizer_Unconstrained
     properties
-        kfrac
-        opt_cond  
-        
-        kappa_min
-        max_constr_change
+        kappaMultiplier
         optimality_tol
         constr_tol
-        nconstr
-        kappaMultiplier
     end 
     methods
-        function obj = Optimizer_PG(settings)
-            obj@Optimizer(settings,false);
+        function obj = Optimizer_PG(settings,epsilon)
+            obj@Optimizer_Unconstrained(settings,epsilon);
             obj.kfrac = 2;
             obj.kappaMultiplier = settings.kappaMultiplier;
             obj.kappa_min = 1e-15;

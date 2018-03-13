@@ -17,8 +17,9 @@ classdef TopOpt_Problem < handle
     end
     methods (Access = public)
         function obj = TopOpt_Problem(settings)
-            %% !! This should be done in settings class !!
+            %% !! This should be done in settings class !! --> When tests as benchmark cases
             settings.nconstr = length(settings.constraint);
+            
             obj.cost = Cost(settings,settings.weights);
             obj.constraint = Constraint(settings);
             
@@ -26,11 +27,14 @@ classdef TopOpt_Problem < handle
             % Consider turning it into a more generic class like FEM
             obj.topOpt_params = Physical_Problem(settings.filename);
             obj.settings = settings;
+            %% !! INCREMENTAL MOVED TO CONSTRUCTOR !! --> ASK OTHERS
+            %  !! Plan B is define setEpsilon in Optimizer, empty for MMA & IPOPT. !!
+            obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.topOpt_params.mesh);
             switch obj.settings.optimizer
                 case 'SLERP'
-                    obj.optimizer = Optimizer_AugLag(settings,Optimizer_SLERP(settings));
+                    obj.optimizer = Optimizer_AugLag(settings,Optimizer_SLERP(settings,obj.incremental_scheme.epsilon));
                 case 'PROJECTED GRADIENT'
-                    obj.optimizer = Optimizer_AugLag(settings,Optimizer_PG(settings));
+                    obj.optimizer = Optimizer_AugLag(settings,Optimizer_PG(settings,obj.incremental_scheme.epsilon));
                 case 'MMA'
                     obj.optimizer = Optimizer_MMA(settings);
                 case 'IPOPT'
@@ -44,15 +48,8 @@ classdef TopOpt_Problem < handle
             % Initialize design variable
             obj.topOpt_params.preProcess;
             obj.filters_preProcess;
-            
-            obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.topOpt_params.mesh);
-            obj.optimizer.setEpsilon(obj.incremental_scheme.epsilon);
-            %% !! PROVISIONAL !! --> REMOVE WHEN OPT UNCONSTRAINED CLASS
-            try
-                obj.optimizer.optimizer_unconstr.setEpsilon(obj.incremental_scheme.epsilon);
-            end
             obj.compute_initial_design;
-            obj.topOpt_params = []; % !! To check that only it is used once (DEBUGGING) !!
+            obj.topOpt_params = []; %% !! To check that only it is used once (DEBUGGING) !!
         end
         
         function computeVariables(obj)
@@ -236,12 +233,6 @@ classdef TopOpt_Problem < handle
                 case 'full'
                 otherwise
                     error('Initialize design variable case not detected.');
-            end
-
-            %% !! COULD BE CLEANER, NOT IN IF --> But like O.O.P.  !!
-            if strcmp(obj.settings.optimizer,'SLERP')
-                sqrt_norma = obj.optimizer.scalar_product.computeSP(obj.x,obj.x);
-                obj.x = obj.x/sqrt(sqrt_norma);
             end
         end
     end

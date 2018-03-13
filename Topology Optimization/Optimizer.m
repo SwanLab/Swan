@@ -1,10 +1,7 @@
 classdef Optimizer < handle
     properties
         fhtri
-        kappa
-        objfunc
         stop_criteria = 1;
-        scalar_product
         target_parameters = struct;
         name
         niter = 0
@@ -24,7 +21,6 @@ classdef Optimizer < handle
             obj.plotting = settings.plotting;
             obj.printing = settings.printing;
             obj.monitoring = Monitoring(settings,monitoring);
-            obj.scalar_product = ScalarProduct(settings.filename);
         end
         function x = solveProblem(obj,x_ini,cost,constraint)
             cost.computef(x_ini);
@@ -40,12 +36,7 @@ classdef Optimizer < handle
                 x_ini = x;
             end
             obj.stop_criteria = 1;
-        end
-        
-        function obj = setEpsilon(obj,epsilon)
-            obj.scalar_product.setEpsilon(epsilon);
-        end
-        
+        end        
     end
     methods (Access = private)
         function print(obj,design_variable,design_variable_reg,iter)
@@ -93,14 +84,5 @@ classdef Optimizer < handle
                 drawnow;
             end
         end
-    end
-    
-    methods (Access = protected)
-        %% !! MOVE TO OPT_UNCONSTR !!
-        function N_L2 = norm_L2(obj,x,x_ini)
-            inc_x = x-x_ini;
-            N_L2 = obj.scalar_product.computeSP_M(inc_x,inc_x)/obj.scalar_product.computeSP_M(x_ini,x_ini);
-        end        
-    end
-    
+    end    
 end

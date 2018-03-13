@@ -13,7 +13,7 @@ for i=1:length(tests_topopt)
     load_file = strcat('./tests/',file_name);
     run(tests_topopt{i})
     load(load_file)
-    settings.filename=file_name_in;
+    settings.filename = file_name_in;
     obj = TopOpt_Problem(settings);
     obj.preProcess;
     obj.computeVariables;

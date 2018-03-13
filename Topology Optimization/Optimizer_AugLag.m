@@ -1,6 +1,7 @@
 classdef Optimizer_AugLag < Optimizer
     properties
         optimizer_unconstr
+        objfunc
         penalty
         iter = 0;
     end
