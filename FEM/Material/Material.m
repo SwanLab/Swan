@@ -2,7 +2,7 @@ classdef Material
     %Material Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (GetAccess = {?Material_Elastic}, SetAccess = private)
+    properties (GetAccess = {?Material_Elastic,?Material_Stokes}, SetAccess = private)
         nelem
     end
     
@@ -13,8 +13,15 @@ classdef Material
     end
     
     methods (Access = ?Physical_Problem, Static)
-        function material = create(ptype,pdim,nelem,connec,cartd,nnode,coord)
+        function material = create(geometry,mesh)
 %             obj.nelem = nelem;
+            ptype=mesh.ptype;
+            pdim=mesh.pdim;
+            nelem=mesh.nelem;
+            connec=mesh.connec;
+            cartd=geometry(1).cartd;
+            nnode=geometry(1).interpolation.isoparametric.nnode;
+            coord=mesh.coord;
             switch ptype
                 case 'ELASTIC'
                     % !! IT HAS BEEN ASSUMED THAT THERE'S ONLY ISOTROPIC MATERIALS.
@@ -34,6 +41,8 @@ classdef Material
                     
                 case 'THERMAL'
                     error('Still not implemented.')
+                case 'Stokes'
+                    material = Material_Stokes(nelem);
                 otherwise
                     error('Invalid ptype.')
             end

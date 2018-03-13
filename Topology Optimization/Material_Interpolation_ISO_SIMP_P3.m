@@ -1,4 +1,4 @@
-classdef Interpolation_ISO_SIMP_P3 < Interpolation
+classdef Material_Interpolation_ISO_SIMP_P3 < Material_Interpolation
     properties
         mu_func
         kappa_func
@@ -7,7 +7,7 @@ classdef Interpolation_ISO_SIMP_P3 < Interpolation
         p
     end
     methods
-        function obj=Interpolation_ISO_SIMP_P3(Bounds)
+        function obj=Material_Interpolation_ISO_SIMP_P3(Bounds)
             obj.rho_plus=Bounds.rho_plus;
             obj.rho_minus=Bounds.rho_minus;
             obj.E_plus=Bounds.E_plus;

@@ -11,7 +11,7 @@ classdef ScalarProduct < handle
     methods 
         function obj = ScalarProduct(problemID,epsilon)
             obj.epsilon = epsilon;
-            physProb = Physical_Problem(problemID);
+            physProb = Physical_Problem(problemID,'DIFF-REACT');
             physProb.mesh.ptype = 'DIFF-REACT';
             physProb.preProcess;
             %% !! Change how Ksmooth & Msmooth are computed !!
@@ -21,7 +21,11 @@ classdef ScalarProduct < handle
     
     methods
         function sp = computeSP(obj,f,g)
+            try
             sp = f'*(((obj.epsilon)^2)*obj.Ksmooth + obj.Msmooth)*g;
+            catch
+                disp('error')
+            end
         end
         
         %% !! USE APPROPIATE TERMINOLOGY -- SP WITH ONLY M IS CALLED... !!

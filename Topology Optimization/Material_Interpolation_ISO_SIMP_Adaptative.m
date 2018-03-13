@@ -1,4 +1,4 @@
-classdef Interpolation_ISO_SIMP_Adaptative < Interpolation
+classdef Material_Interpolation_ISO_SIMP_Adaptative < Material_Interpolation
     properties
         mu_func
         kappa_func
@@ -7,7 +7,7 @@ classdef Interpolation_ISO_SIMP_Adaptative < Interpolation
         p
     end
     methods
-        function obj=Interpolation_ISO_SIMP_Adaptative(Bounds)
+        function obj=Material_Interpolation_ISO_SIMP_Adaptative(Bounds)
             obj.rho_plus=Bounds.rho_plus;
             obj.rho_minus=Bounds.rho_minus;
             obj.E_plus=Bounds.E_plus;

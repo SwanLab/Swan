@@ -1,4 +1,4 @@
-classdef Interpolation < handle
+classdef Material_Interpolation < handle
     properties
         E_plus
         E_minus
@@ -14,11 +14,11 @@ classdef Interpolation < handle
                 case 'ISOTROPIC'
                     switch method
                         case 'SIMPALL'
-                            obj=Interpolation_ISO_SIMPALL(TOL);
+                            obj=Material_Interpolation_ISO_SIMPALL(TOL);
                         case 'SIMP_Adaptative'
-                            obj=Interpolation_ISO_SIMP_Adaptative(TOL);
+                            obj=Material_Interpolation_ISO_SIMP_Adaptative(TOL);
                         case 'SIMP_P3'
-                            obj=Interpolation_ISO_SIMP_P3(TOL);
+                            obj=Material_Interpolation_ISO_SIMP_P3(TOL);
                         otherwise
                             disp('Method not added')
                     end
