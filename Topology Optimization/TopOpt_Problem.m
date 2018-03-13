@@ -27,6 +27,7 @@ classdef TopOpt_Problem < handle
             % Consider turning it into a more generic class like FEM
             obj.topOpt_params = Physical_Problem(settings.filename);
             obj.settings = settings;
+            
             %% !! INCREMENTAL MOVED TO CONSTRUCTOR !! --> ASK OTHERS
             %  !! Plan B is define setEpsilon in Optimizer, empty for MMA & IPOPT. !!
             obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.topOpt_params.mesh);

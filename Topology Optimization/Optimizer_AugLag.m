@@ -24,10 +24,6 @@ classdef Optimizer_AugLag < Optimizer
             
             active_constr = obj.penalty > 0;
             obj.stop_criteria = obj.optimizer_unconstr.opt_cond >=  obj.optimizer_unconstr.optimality_tol || any(any(abs(constraint.value(active_constr)) > obj.optimizer_unconstr.constr_tol(active_constr)));
-            
-            %% !! For monitoring (NOT DECIDED IF MONITOR AugLag) !!
-            % stop_vars{1,1} = obj.optimizer_unconstr.optimality_tol; stop_vars{1,2} = obj.optimizer_unconstr.opt_cond;
-            % stop_vars{2,1} = abs(constraint.value(active_constr)); stop_vars{2,2} = obj.optimizer_unconstr.constr_tol(active_constr);
         end
         
         function updateObjFunc(obj,cost,constraint)
