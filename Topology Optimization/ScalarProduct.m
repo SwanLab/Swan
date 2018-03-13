@@ -12,10 +12,9 @@ classdef ScalarProduct < handle
         function obj = ScalarProduct(problemID,epsilon)
             obj.epsilon = epsilon;
             physProb = Physical_Problem(problemID,'DIFF-REACT');
-%             physProb.mesh.ptype = 'DIFF-REACT';
             physProb.preProcess;
-            %% !! Change how Ksmooth & Msmooth are computed !!
-            [obj.Ksmooth, obj.Msmooth] = physProb.computeKM(2);
+            obj.Ksmooth = physProb.element.computeStiffnessMatrix;
+            obj.Msmooth = physProb.element.computeMassMatrix(2);
         end
     end
     

@@ -2,10 +2,12 @@
 
 clear; close all;
 
-% Test Declaration --------------------------------------------------------
+fprintf('Running TopOpt tests...\n')
+
+%% Test Declaration -------------------------------------------------------
 tests_topopt={'test_cantilever','test_gripping'};
 
-% Run Top Opt Tests -------------------------------------------------------
+%% Run Top Opt Tests ------------------------------------------------------
 for i=1:length(tests_topopt)
     tic
     file_name = tests_topopt{i};
@@ -25,3 +27,6 @@ for i=1:length(tests_topopt)
     end
     toc
 end
+
+fprintf('\nTopOpt tests completed.\n')
+fprintf('\n-------------------------------------------\n\n')

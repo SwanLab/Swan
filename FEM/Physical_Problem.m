@@ -118,36 +118,6 @@ classdef Physical_Problem < FEM
             obj.element.material = obj.material.setProps(props);
         end
         
-        function [K, M] = computeKM(obj,job)
-                        
-            % !! Hyper-mega-ultra provisional !!
-            
-            dim_smooth.nnode = obj.geometry.interpolation.isoparametric.nnode;
-            dim_smooth.nunkn = 1;
-            dim_smooth.nstre = 2;
-            
-            mesh_smooth = obj.mesh;
-            mesh_smooth.ptype = 'DIFF-REACT';
-            mesh_smooth.scale = 'MACRO';
-            
-            bc_smooth = obj.bc;
-            bc_smooth.fixnodes = [];
-            
-            dof_smooth = DOF(obj.problemID,obj.geometry,obj.dim,obj.mesh);
-            dof_smooth.neumann = [];
-            dof_smooth.dirichlet{1} = [];
-            dof_smooth.neumann_values = [];
-            dof_smooth.dirichlet_values{1} = [];
-            dof_smooth.periodic_free = [];
-            dof_smooth.periodic_constrained = [];
-            dof_smooth.constrained = [];
-            dof_smooth.free = setdiff(1:dof_smooth.ndof,dof_smooth.constrained);
-            
-            element_smooth =Element.create(mesh_smooth,obj.geometry,obj.material,obj.bc,dof_smooth,dim_smooth);
-            
-            [K] = element_smooth.computeStiffnessMatrix;
-            [M] = element_smooth.computeMassMatrix(job);
-        end
         function createGeometry(obj,mesh)
             
             if strcmp(mesh.ptype,'Stokes')

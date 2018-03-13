@@ -1,15 +1,18 @@
-clear all; close all; clc
-%% TEST
-% -
+%% FEM TEST ===============================================================
 
+clear; close all;
+
+fprintf('Running FEM tests...\n')
+
+%% Test Declaration -------------------------------------------------------
 % Load the results for 2-d and 3-d tests
-tests_fem={'test2d_triangle';
+tests_fem = {'test2d_triangle';
     'test2d_quad';
     'test2d_stokes_triangle';
     %'test3d_hexahedra';
     'test3d_tetrahedra'};
 
-%% FEM TESTS
+%% Run FEM Tests ----------------------------------------------------------
 for i=1:length(tests_fem)
     file_name = tests_fem{i};
     file_name_in = strcat('./Input/',tests_fem{i});
@@ -34,4 +37,6 @@ for i=1:length(tests_fem)
     end
     
 end
-fprintf('\nHEXHEDRA test disabled, pending to be adapted\n')
+fprintf('HEXHEDRA test disabled, pending to be adapted\n')
+fprintf('\nFEM tests completed.\n')
+fprintf('\n-------------------------------------------\n\n')

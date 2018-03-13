@@ -11,10 +11,9 @@ classdef Optimizer_AugLag < Optimizer
             obj.objfunc = Objective_Function_AugLag(settings);
             obj.optimizer_unconstr = optimizer_unconstr;
         end
+        
         function x = updateX(obj,x_ini,cost,constraint)
-            obj.checkInitial;
-            obj.updateObjFunc(cost,constraint);
-            
+            obj.updateObjFunc(cost,constraint);            
             obj.initUnconstrOpt(x_ini);
             
             while (obj.optimizer_unconstr.stop_criteria)
@@ -39,14 +38,7 @@ classdef Optimizer_AugLag < Optimizer
             obj.optimizer_unconstr.objfunc.value_initial = obj.objfunc.value;
             obj.optimizer_unconstr.computeKappa(x_ini,obj.objfunc.gradient);
             obj.optimizer_unconstr.stop_criteria = 1;
-        end
-        
-        function checkInitial(obj)
-%             if isempty(obj.optimizer_unconstr.scalar_product)
-%                 %% !! FILL !!
-%             end
-        end
-        
+        end        
     end
     
 end

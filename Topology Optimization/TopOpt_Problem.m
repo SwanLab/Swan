@@ -25,7 +25,7 @@ classdef TopOpt_Problem < handle
             
             % This PhysProb is only gonna be used by filters & incremental -> no need of specifying MICRO or MACRO
             % Consider turning it into a more generic class like FEM
-            obj.topOpt_params = Physical_Problem(settings.filename);
+            obj.topOpt_params = Physical_Problem(settings.filename,'DIFF-REACT');
             obj.settings = settings;
             
             %% !! INCREMENTAL MOVED TO CONSTRUCTOR !! --> ASK OTHERS
@@ -238,6 +238,7 @@ classdef TopOpt_Problem < handle
         end
     end
     methods (Access = private, Static)
+        %% !! CONSIDER PASS THE WHOLE TOP_OPT_PARAMS (Not Physical but FEM) TO THE FILTERS !!
         function filter_params = getFilterParams(topOpt_params)
             for igauss = 1:topOpt_params.geometry.quadrature.ngaus
                 filter_params.M0{igauss} = sparse(1:topOpt_params.mesh.nelem,1:topOpt_params.mesh.nelem,topOpt_params.geometry.dvolu(:,igauss));
@@ -245,7 +246,8 @@ classdef TopOpt_Problem < handle
             filter_params.dof = topOpt_params.dof;
             filter_params.element = topOpt_params.element;
             filter_params.dvolu = sparse(1:topOpt_params.mesh.nelem,1:topOpt_params.mesh.nelem,sum(topOpt_params.geometry.dvolu,2));
-            [filter_params.Ksmooth, filter_params.Msmooth] = topOpt_params.computeKM(2);
+            filter_params.Ksmooth = topOpt_params.element.computeStiffnessMatrix;
+            filter_params.Msmooth = topOpt_params.element.computeMassMatrix(2);
             filter_params.coordinates = topOpt_params.mesh.coord;
             filter_params.connectivities = topOpt_params.mesh.connec;
             filter_params.nelem = topOpt_params.mesh.nelem;

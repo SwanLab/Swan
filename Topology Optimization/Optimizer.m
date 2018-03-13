@@ -22,6 +22,7 @@ classdef Optimizer < handle
             obj.printing = settings.printing;
             obj.monitoring = Monitoring(settings,monitoring);
         end
+        
         function x = solveProblem(obj,x_ini,cost,constraint)
             cost.computef(x_ini);
             constraint.computef(x_ini);
@@ -36,7 +37,8 @@ classdef Optimizer < handle
                 x_ini = x;
             end
             obj.stop_criteria = 1;
-        end        
+        end       
+        
     end
     methods (Access = private)
         function print(obj,design_variable,design_variable_reg,iter)
