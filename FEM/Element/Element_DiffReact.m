@@ -11,9 +11,6 @@ classdef Element_DiffReact < Element
     end
     
     methods %(Access = ?Physical_Problem)
-        function obj = Element_DiffReact(mesh)
-            obj.mesh = mesh;
-        end
         function obj = setEpsilon(obj,epsilon)
             obj.epsilon = epsilon;
         end
@@ -50,16 +47,16 @@ classdef Element_DiffReact < Element
         function [K] = compute_elem_StiffnessMatrix(obj)
             
             % Stiffness matrix
-            Ke = zeros(obj.nunkn*obj.nnode,obj.nunkn*obj.nnode,obj.nelem);
+            Ke = zeros(obj.dof.nunkn*obj.nnode,obj.dof.nunkn*obj.nnode,obj.nelem);
             
             for igaus = 1 :obj.geometry.quadrature.ngaus
                 % Strain-displacement matrix
-                Bmat = obj.computeB(obj.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
+                Bmat = obj.computeB(obj.dof.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
                 
                 % Compute Ke
                 
-                for iv = 1:obj.nnode*obj.nunkn
-                    for jv = 1:obj.nnode*obj.nunkn
+                for iv = 1:obj.nnode*obj.dof.nunkn
+                    for jv = 1:obj.nnode*obj.dof.nunkn
                         for istre = 1:obj.nstre
                             % for jstre=1:nstre
                             v = squeeze(Bmat(istre,iv,:).*Bmat(istre,jv,:));
@@ -80,8 +77,8 @@ classdef Element_DiffReact < Element
         %% !! PENDING OF INTEGRATION / ELEMENT DEGREE FOR IMPLEMENTING LIKE STIFFNESS MATRIX !! 
         function [M] = compute_elem_MassMatrix(obj,job)            
             obj.geometry.computeGeometry('QUADRATIC');
-            dirichlet_data = obj.mesh.connec';
-            Me = zeros(obj.geometry.interpolation.isoparametric.nnode,obj.geometry.interpolation.isoparametric.nnode,obj.mesh.nelem);
+            dirichlet_data = obj.geometry.interpolation.T';
+            Me = zeros(obj.geometry.interpolation.isoparametric.nnode,obj.geometry.interpolation.isoparametric.nnode,obj.nelem);
             
             for igaus=1:obj.geometry.quadrature.ngaus
                 for inode=1:obj.geometry.interpolation.isoparametric.nnode
@@ -93,7 +90,7 @@ classdef Element_DiffReact < Element
             
             if (job==1)
                 % lumped mass matrix
-                elumped = zeros(obj.geometry.nnode,obj.mesh.nelem);
+                elumped = zeros(obj.geometry.nnode,obj.nelem);
                 M = zeros(obj.geom.nnode,1);
                 [nproc,coeff] = nprocedure(etype,nnode);
                 if (nproc==1)
@@ -114,11 +111,11 @@ classdef Element_DiffReact < Element
                     M = M + sparse(dirichlet_data(inode,:),1,elumped(inode,:),npnod,1);
                 end
             elseif (job==2)
-                M = sparse(obj.mesh.npnod,obj.mesh.npnod);
+                M = sparse(obj.geometry.interpolation.npnod,obj.geometry.interpolation.npnod);
                 for k=1:obj.geometry.quadrature.ngaus
                     for l=1:obj.geometry.quadrature.ngaus
                         vmass = squeeze(Me(k,l,:));
-                        M = M + sparse(dirichlet_data(k,:),dirichlet_data(l,:),vmass,obj.mesh.npnod,obj.mesh.npnod);
+                        M = M + sparse(dirichlet_data(k,:),dirichlet_data(l,:),vmass,obj.geometry.interpolation.npnod,obj.geometry.interpolation.npnod);
                     end
                 end
             end
@@ -140,11 +137,11 @@ classdef Element_DiffReact < Element
     
     methods (Access = protected)
         function FextSuperficial = computeSuperficialFext(obj,bc)
-            FextSuperficial = zeros(obj.nnode*obj.nunkn,1,obj.nelem);
+            FextSuperficial = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);
         end
         
         function FextVolumetric = computeVolumetricFext(obj,bc)
-            FextVolumetric = zeros(obj.nnode*obj.nunkn,1,obj.nelem);
+            FextVolumetric = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);
         end
     end
     

@@ -6,9 +6,7 @@ classdef Physical_Problem < FEM
     properties (GetAccess = public, SetAccess = public)
         variables
         mesh
-        dim
         dof
-        bc
         problemID
         element
     end
@@ -26,13 +24,12 @@ classdef Physical_Problem < FEM
             obj.problemID = problemID;
             obj.mesh = Mesh(obj.problemID); 
             obj.createGeometry(obj.mesh);
-            obj.dim = DIM(obj.mesh.ptype,obj.mesh.pdim);
             obj.material = Material.create(obj.geometry,obj.mesh);
-            obj.dof = DOF(problemID,obj.geometry,obj.dim,obj.mesh);
+            obj.dof = DOF(problemID,obj.geometry,obj.mesh);
         end
         
         function preProcess(obj)
-            obj.element = Element.create(obj.mesh,obj.geometry,obj.material,obj.bc,obj.dof,obj.dim);
+            obj.element = Element.create(obj.mesh,obj.geometry,obj.material,obj.dof);
             obj.solver = Solver.create();
         end
         
@@ -116,20 +113,12 @@ classdef Physical_Problem < FEM
         
         function [K, M] = computeKM(obj,job)
                         
-            % !! Hyper-mega-ultra provisional !!
-            
-            dim_smooth.nnode = obj.geometry.interpolation.isoparametric.nnode;
-            dim_smooth.nunkn = 1;
-            dim_smooth.nstre = 2;
-            
+            % !! Hyper-mega-ultra provisional !!        
             mesh_smooth = obj.mesh;
             mesh_smooth.ptype = 'DIFF-REACT';
             mesh_smooth.scale = 'MACRO';
-            
-            bc_smooth = obj.bc;
-            bc_smooth.fixnodes = [];
-            
-            dof_smooth = DOF(obj.problemID,obj.geometry,obj.dim,obj.mesh);
+                        
+            dof_smooth = DOF(obj.problemID,obj.geometry,mesh_smooth);
             dof_smooth.neumann = [];
             dof_smooth.dirichlet{1} = [];
             dof_smooth.neumann_values = [];
@@ -139,7 +128,7 @@ classdef Physical_Problem < FEM
             dof_smooth.constrained = [];
             dof_smooth.free = setdiff(1:dof_smooth.ndof,dof_smooth.constrained);
             
-            element_smooth =Element.create(mesh_smooth,obj.geometry,obj.material,obj.bc,dof_smooth,dim_smooth);
+            element_smooth =Element.create(mesh_smooth,obj.geometry,obj.material,dof_smooth);
             
             [K] = element_smooth.computeStiffnessMatrix;
             [M] = element_smooth.computeMassMatrix(job);

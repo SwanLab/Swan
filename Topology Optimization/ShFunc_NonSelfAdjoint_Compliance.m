@@ -10,7 +10,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunc_Compliance
             obj.forces_adjoint = Preprocess.getBC_adjoint(settings.filename);
             obj.adjointProblem = Physical_Problem(settings.filename);
             
-            [neumann_adj_dof,nuemann_adj_values] = obj.adjointProblem.dof.get_dof_conditions(obj.forces_adjoint,obj.adjointProblem.dim.nunkn);
+            [neumann_adj_dof,nuemann_adj_values] = obj.adjointProblem.dof.get_dof_conditions(obj.forces_adjoint,obj.adjointProblem.dof.nunkn);
             obj.adjointProblem.dof.neumann = neumann_adj_dof;
             obj.adjointProblem.dof.neumann_values = -nuemann_adj_values;
             

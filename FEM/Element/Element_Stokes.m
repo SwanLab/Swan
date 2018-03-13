@@ -52,8 +52,8 @@ classdef Element_Stokes < Element
         function LHS = compute_LHS(obj,dt)
             for ifield = 1:obj.nfields
                 for jfield = 1:obj.nfields
-                    obj.LHS_elem{ifield,jfield} = obj.computeMatrix(obj.dim,obj.nelem,obj.geometry(ifield),obj.geometry(jfield),obj.material,dt,ifield,jfield);
-%                         mat = obj.computeMatrix(obj.dim,obj.nelem,obj.geometry(ifield),obj.geometry(jfield),obj.material,ifield,jfield); 
+                    obj.LHS_elem{ifield,jfield} = obj.computeMatrix(obj.nelem,obj.geometry(ifield),obj.geometry(jfield),obj.material,dt,ifield,jfield);
+%                         mat = obj.computeMatrix(obj.nelem,obj.geometry(ifield),obj.geometry(jfield),obj.material,ifield,jfield); 
                     LHS{ifield,jfield} = obj.AssembleMatrix(obj.LHS_elem{ifield,jfield},ifield,jfield);
                         
                 end
@@ -63,7 +63,7 @@ classdef Element_Stokes < Element
         end
         
         function RHS = compute_RHS(obj)
-            Fext = obj.computeVolumetricFext(obj.dim,obj.nelem,obj.geometry,obj.dof);
+            Fext = obj.computeVolumetricFext(obj.nelem,obj.geometry,obj.dof);
             g = obj.compute_velocity_divergence;
             RHS_elem{1,1} = Fext;
             RHS_elem{2,1} = g;
@@ -71,8 +71,8 @@ classdef Element_Stokes < Element
             RHS = AssembleVector(obj,RHS_elem);
         end
 
-        function M = compute_M(obj,dim,nelem,geometry_test,geometry,dt)
-            nunkn = dim.nunkn(1);
+        function M = compute_M(obj,nelem,geometry_test,geometry,dt)
+            nunkn = obj.dof.nunkn(1);
             M = zeros(nunkn*geometry_test.interpolation.isoparametric.nnode,nunkn*geometry.interpolation.isoparametric.nnode,nelem);
             
              for igauss = 1 :geometry.quadrature.ngaus       
@@ -92,8 +92,8 @@ classdef Element_Stokes < Element
             obj.M_elem = M;
         end
         
-        function K = compute_K(obj,dim,nelem,geometry_test,geometry,material)
-             nunkn = dim.nunkn(1);
+        function K = compute_K(obj,nelem,geometry_test,geometry,material)
+             nunkn = obj.dof.nunkn(1);
             K = zeros(nunkn*geometry_test.interpolation.isoparametric.nnode,nunkn*geometry.interpolation.isoparametric.nnode,nelem);
            
             Cmat = material.mu;
@@ -120,8 +120,8 @@ classdef Element_Stokes < Element
             obj.K_elem = K;           
             end
         
-        function D = compute_D(obj,dim,nelem,geometry_test,geometry)
-            nunkn_u=dim.nunkn(1);
+        function D = compute_D(obj,nelem,geometry_test,geometry)
+            nunkn_u=obj.dof.nunkn(1);
  
             
             D = zeros(nunkn_u*geometry_test.interpolation.isoparametric.nnode,geometry.interpolation.isoparametric.nnode,nelem);
@@ -196,7 +196,7 @@ classdef Element_Stokes < Element
        end
        
        function g = compute_velocity_divergence(obj)
-           g = zeros(obj.geometry(2).interpolation.isoparametric.nnode*obj.dim.nunkn(2),1,obj.nelem);
+           g = zeros(obj.geometry(2).interpolation.isoparametric.nnode*obj.dof.nunkn(2),1,obj.nelem);
        end
        
        function variable = computeVars(obj,x_free)
@@ -207,14 +207,14 @@ classdef Element_Stokes < Element
         
     end
     methods (Access=protected)
-        function mat = computeMatrix(obj,dim,nelem,geometry_test,geometry,material,dt,ifield,jfield)
+        function mat = computeMatrix(obj,nelem,geometry_test,geometry,material,dt,ifield,jfield)
 
            if ifield == 1 && jfield==1
-               K = obj.compute_K(dim,nelem,geometry_test,geometry,material);
-               M = obj.compute_M(dim,nelem,geometry_test,geometry,dt);
+               K = obj.compute_K(nelem,geometry_test,geometry,material);
+               M = obj.compute_M(nelem,geometry_test,geometry,dt);
                mat = M + K;
            elseif ifield == 1 && jfield==2
-               mat = obj.compute_D(dim,nelem,geometry_test,geometry);
+               mat = obj.compute_D(nelem,geometry_test,geometry);
            elseif ifield == 2 && jfield==1
                mat = permute(obj.LHS_elem{1,2},[2,1,3]);
            else
@@ -250,11 +250,11 @@ classdef Element_Stokes < Element
 %             Fext = zeros(nnode*nunkn,1,nelem);
               Fext=0;
         end
-        function Fext = computeVolumetricFext(obj,dim,nelem,geometry,dof)
+        function Fext = computeVolumetricFext(obj,nelem,geometry,dof)
             idx = obj.dof.in_elem{1};
             geometry = geometry(1);
             nnode = geometry.interpolation.isoparametric.nnode;
-            nunkn= dim.nunkn(1);
+            nunkn= obj.dof.nunkn(1);
 %             f = zeros(nnode*nunkn,1,nelem);
            
 %             obj.RHS = zeros(nnode*nunkn,1,nelem);

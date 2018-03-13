@@ -13,6 +13,7 @@ classdef DOF < handle
         neumann_values
         full_dirichlet_values
         ndof
+        nunkn
         in_elem
         constrained  % Constrainted dofs index
         free  % Free dof index
@@ -24,22 +25,39 @@ classdef DOF < handle
     end
     
     methods
-        
-        function obj = DOF(filename,geometry,dim,mesh)
+        function obj = DOF(filename,geometry,mesh)
+            switch mesh.ptype                
+                case 'ELASTIC'
+                    switch mesh.pdim
+                        case '2D'
+                            obj.nunkn = 2;
+                        case '3D'                            
+                            obj.nunkn = 3;
+                    end
+                case 'THERMAL'
+                    obj.nunkn=1;
+                case 'DIFF-REACT'
+                    obj.nunkn=1;                    
+                case 'HYPERELASTIC'
+                    obj.nunkn=2;                 
+            end    
             switch mesh.ptype
                 case 'Stokes'
-                        [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = ...
-                            Preprocess.getBC_fluids(filename,geometry,mesh.nelem);
-                otherwise 
-                        [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = Preprocess.getBC_mechanics(filename);
+                    nunkn_u = 2;
+                    nunkn_p = 1;
+                    obj.nunkn = [nunkn_u nunkn_p];
+                    [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = ...
+                        Preprocess.getBC_fluids(filename,geometry);
+                otherwise
+                    [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = Preprocess.getBC_mechanics(filename);
             end
-           
-
-           [obj.neumann,obj.neumann_values] = obj.get_dof_conditions(neumann_data,dim.nunkn(1));
-           [obj.full_dirichlet,obj.full_dirichlet_values] = obj.get_dof_conditions(full_dirichlet_data,dim.nunkn(1));
+            
+            
+            [obj.neumann,obj.neumann_values] = obj.get_dof_conditions(neumann_data,obj.nunkn(1));
+            [obj.full_dirichlet,obj.full_dirichlet_values] = obj.get_dof_conditions(full_dirichlet_data,obj.nunkn(1));
             
            for ifield = 1:geometry(1).nfields
-                nunkn = dim.nunkn(ifield);
+                nunkn = obj.nunkn(ifield);
                 nnode = geometry(ifield).interpolation.isoparametric.nnode;
                 npnod = geometry(ifield).interpolation.npnod;
                 obj.in_elem{ifield} = obj.compute_idx(geometry(ifield).interpolation.T,nunkn,nnode);

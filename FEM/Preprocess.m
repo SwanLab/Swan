@@ -44,9 +44,9 @@ classdef Preprocess<handle
             
         end
         
-        function [fixnodes,forces,full_dirichlet_data,Master_slave] = getBC_fluids(filename,geometry,nelem)
+        function [fixnodes,forces,full_dirichlet_data,Master_slave] = getBC_fluids(filename,geometry)
             run(filename)
-            
+            nelem=geometry(1).interpolation.nelem;
             full_dirichlet_data=External_border_nodes;
             if ~isempty(full_dirichlet_data)
                 full_dirichlet_data(:,2)=ones(length(full_dirichlet_data(:,1)),1);

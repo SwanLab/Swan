@@ -89,8 +89,9 @@ classdef TopOpt_Problem < handle
         end
         
         function obj = filters_preProcess(obj)
-            obj.topOpt_params.dim.nunkn = 1;
-            dof_filter =DOF(obj.topOpt_params.problemID,obj.topOpt_params.geometry,obj.topOpt_params.dim,obj.topOpt_params.mesh);
+            obj.topOpt_params.dof.nunkn = 1;
+            obj.topOpt_params.mesh.ptype='DIFF-REACT';
+            dof_filter =DOF(obj.topOpt_params.problemID,obj.topOpt_params.geometry,obj.topOpt_params.mesh);
             switch obj.topOpt_params.mesh.scale
                 case 'MACRO'
                     dof_filter.dirichlet{1} = [];
@@ -188,7 +189,7 @@ classdef TopOpt_Problem < handle
                     obj.hole_value = 0;
                     
             end
-            obj.x = obj.ini_design_value*ones(obj.topOpt_params.mesh.npnod,1);
+            obj.x = obj.ini_design_value*ones(obj.topOpt_params.geometry.interpolation.npnod,1);
             switch obj.settings.initial_case
                 case 'circle'
                     width = max(obj.topOpt_params.mesh.coord(:,1)) - min(obj.topOpt_params.mesh.coord(:,1));
@@ -245,15 +246,17 @@ classdef TopOpt_Problem < handle
     methods (Access = private, Static)
         function filter_params = getFilterParams(topOpt_params)
             for igauss = 1:topOpt_params.geometry.quadrature.ngaus
-                filter_params.M0{igauss} = sparse(1:topOpt_params.mesh.nelem,1:topOpt_params.mesh.nelem,topOpt_params.geometry.dvolu(:,igauss));
+                filter_params.M0{igauss} = sparse(1:topOpt_params.geometry.interpolation.nelem,1:topOpt_params.geometry.interpolation.nelem,...
+                    topOpt_params.geometry.dvolu(:,igauss));
             end
             filter_params.dof = topOpt_params.dof;
             filter_params.element = topOpt_params.element;
-            filter_params.dvolu = sparse(1:topOpt_params.mesh.nelem,1:topOpt_params.mesh.nelem,sum(topOpt_params.geometry.dvolu,2));
+            filter_params.dvolu = sparse(1:topOpt_params.geometry.interpolation.nelem,1:topOpt_params.geometry.interpolation.nelem,...
+                sum(topOpt_params.geometry.dvolu,2));
             [filter_params.Ksmooth, filter_params.Msmooth] = topOpt_params.computeKM(2);
             filter_params.coordinates = topOpt_params.mesh.coord;
             filter_params.connectivities = topOpt_params.mesh.connec;
-            filter_params.nelem = topOpt_params.mesh.nelem;
+            filter_params.nelem = topOpt_params.geometry.interpolation.nelem;
             filter_params.nnode = topOpt_params.geometry.interpolation.isoparametric.nnode;
             filter_params.npnod = topOpt_params.geometry.interpolation.npnod;
             filter_params.ngaus = topOpt_params.geometry.quadrature.ngaus;
