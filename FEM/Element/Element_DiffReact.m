@@ -14,8 +14,10 @@ classdef Element_DiffReact < Element
     
     methods %(Access = ?Physical_Problem)
         function obj = Element_DiffReact(mesh)
+            %% !! CONSIDER DELETING !! --> ONLY USED FOR ELUMPED (RESOLVE THIS CASE)
             obj.mesh = mesh;
         end
+        
         function obj = setEpsilon(obj,epsilon)
             obj.epsilon = epsilon;
         end
@@ -50,7 +52,7 @@ classdef Element_DiffReact < Element
         
         function [M] = computeMassMatrix(obj,job)
             [M] = compute_elem_MassMatrix(obj,job);
-            [M] = obj.AssembleMatrix(M,1,1); % !! UNCOMMENT WHEN INTEGRATION IMPLEMENTED !!
+            [M] = obj.AssembleMatrix(M,1,1);
         end
         
         function [K] = compute_elem_StiffnessMatrix(obj)
@@ -77,12 +79,7 @@ classdef Element_DiffReact < Element
             
             K = Ke;
         end
-        
-%         function compute_elem_MassMatrix(obj)
-%             
-%         end
-        
-        %% !! PENDING OF INTEGRATION / ELEMENT DEGREE FOR IMPLEMENTING LIKE STIFFNESS MATRIX !! 
+
         function [M] = compute_elem_MassMatrix(obj,job)            
             obj.geometry.computeGeometry('QUADRATIC');
 %             dirichlet_data = obj.mesh.connec';

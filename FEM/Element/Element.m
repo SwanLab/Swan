@@ -40,6 +40,7 @@ classdef Element < handle
                         case 'THERMAL'
                             element = Element_Thermal;
                         case 'DIFF-REACT'
+                            %% !! CONSIDER REMOVING MESH !! --> ONLY USED FOR ELUMPED (RESOLVE THIS CASUISTRY)
                             element = Element_DiffReact(mesh);
                         case 'HYPERELASTIC'
                             element = Element_Hyperelastic();

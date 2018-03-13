@@ -29,11 +29,10 @@ classdef Physical_Problem < FEM
             if nargin == 2
                 obj.mesh.ptype = ptype;
             end
-            
             obj.createGeometry(obj.mesh);
             obj.dim = DIM(obj.mesh.ptype,obj.mesh.pdim);
-            obj.material = Material.create(obj.geometry,obj.mesh);
             obj.dof = DOF(problemID,obj.geometry,obj.dim,obj.mesh);
+            obj.material = Material.create(obj.geometry,obj.mesh);
         end
         
         function preProcess(obj)

@@ -39,8 +39,10 @@ classdef Material
                             material = Material_Hyperelastic_2D(nelem,connec,cartd,nnode,coord);
                     end
                     
-                case 'THERMAL'
-                    error('Still not implemented.')
+                case {'THERMAL', 'DIFF-REACT'}
+%                     error('Still not implemented.')
+                    %% !! MOLT PROVISIONAL !!
+                    material = Material_Elastic_ISO_2D(nelem);
                 case 'Stokes'
                     material = Material_Stokes(nelem);
                 otherwise
