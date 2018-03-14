@@ -4,7 +4,7 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
         vstrain
     end
     
-    methods 
+    methods
         
         
         function variables = computeVars(obj,uL)
@@ -33,34 +33,34 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
             end
         end
         
-        end
+    end
     
-
+    
     
     methods   %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
-           
         
-
+        
+        
         
         
         
     end
     
     methods (Access = protected)
-
         
-        function FextVolumetric = computeVolumetricFext(obj,bc)
-            FextVolumetric = computeVolumetricFext@Element_Elastic(obj,bc);
+        
+        function FextVolumetric = computeVolumetricFext(obj)
+            FextVolumetric = computeVolumetricFext@Element_Elastic(obj);
             F_def = obj.computeStrainRHS(obj.vstrain);
             FextVolumetric = FextVolumetric + F_def;
         end
-
+        
     end
     
     
     methods (Access = private)
         function F = computeStrainRHS(obj,vstrain)
-            Cmat = obj.material.C;            
+            Cmat = obj.material.C;
             eforce = zeros(obj.nunkn*obj.nnode,1,obj.nelem);
             sigma=zeros(obj.nstre,1,obj.nelem);
             for igaus=1:obj.geometry.ngaus
@@ -69,7 +69,7 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
                     for jstre=1:obj.nstre
                         sigma(istre,:) = sigma(istre,:) + squeeze(Cmat(istre,jstre,:)*vstrain(jstre))';
                     end
-                end                
+                end
                 for iv=1:obj.nnode*obj.nunkn
                     for istre=1:obj.nstre
                         eforce(iv,:)=eforce(iv,:)+(squeeze(Bmat(istre,iv,:)).*sigma(istre,:)'.*obj.geometry.dvolu(:,igaus))';
@@ -81,7 +81,7 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
     end
     
     methods (Static)
-       function Ared = full_matrix_2_reduced_matrix(A,dof)
+        function Ared = full_matrix_2_reduced_matrix(A,dof)
             vF = dof.free;
             vP = dof.periodic_free;
             vQ = dof.periodic_constrained;
@@ -92,26 +92,34 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
             A_PI = A(vP,vI) + A(vQ,vI); % Adding P  and Q equation
             A_PP = A(vP,vP) + A(vP,vQ) + A(vQ,vP) + A(vQ,vQ); % Adding and grouping
             
-            Ared = [A_II A_IP; A_PI A_PP];
-       end
+            Ared = [A_II, A_IP; A_PI, A_PP];
+        end
         
-       function b_red = full_vector_2_reduced_vector(b,dof)
-           vF = dof.free;
-           vP = dof.periodic_free;
-           vQ = dof.periodic_constrained;
-           vI = setdiff(vF,vP);
-           
-           b_I = b(vI);
-           b_P = b(vP)+b(vQ);
-           b_red = [b_I; b_P];
-       end
-       
-       function b = reduced_vector_2_full_vector(bfree,dof)
+        function b_red = full_vector_2_reduced_vector(b,dof)
+            vF = dof.free;
+            vP = dof.periodic_free;
+            vQ = dof.periodic_constrained;
+            vI = setdiff(vF,vP);
+            
+            b_I = b(vI);
+            b_P = b(vP)+b(vQ);
+            b_red = [b_I; b_P];
+        end
+        
+        function b = reduced_vector_2_full_vector(bfree,dof)
+            vF = dof.free;
+            vP = dof.periodic_free;
+            vI = setdiff(vF,vP);
+            
             b = zeros(dof.ndof,1);
-            b(dof.free) = bfree;
-            b(dof.dirichlet) = dof.dirichlet_values;
+            b(vI) = bfree(1:1:size(vI,2));
+            b(dof.periodic_free) = bfree(size(vI,2)+1:1:size(bfree,1));
             b(dof.periodic_constrained) = b(dof.periodic_free);
-       end
+            
+            %             b(dof.free) = bfree;
+            %             b(dof.dirichlet) = dof.dirichlet_values;
+            %             b(dof.periodic_constrained) = b(dof.periodic_free);
+        end
         
     end
     

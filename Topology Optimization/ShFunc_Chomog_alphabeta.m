@@ -9,19 +9,21 @@ classdef ShFunc_Chomog_alphabeta < ShFunc_Chomog
             obj.alpha=settings.micro.alpha/norm(settings.micro.alpha);
             obj.beta=settings.micro.beta/norm(settings.micro.beta);
         end
-        function computef(obj,x,physicalProblem,interpolation,filter)
-            rho=filter.getP0fromP1(x);
-            matProps=interpolation.computeMatProp(rho);
-            physicalProblem.setMatProps(matProps);
-            physicalProblem.computeChomog;
-            obj.setPhysicalData(physicalProblem.variables);
+        function computef(obj,x)
+            obj.rho=obj.filter.getP0fromP1(x);
+            obj.matProps=obj.interpolation.computeMatProp(obj.rho);
+            obj.physicalProblem.setMatProps(obj.matProps);
+            obj.physicalProblem.computeChomog;
+            obj.setPhysicalData(obj.physicalProblem.variables);
+            
+            
             inv_matCh = inv(obj.Chomog);
             costfunc = obj.projection_Chomog(inv_matCh,obj.alpha,obj.beta);
-            obj.compute_Chomog_Derivatives(physicalProblem.dim.nstre,physicalProblem.mesh.nelem,physicalProblem.geometry.ngaus,x,interpolation,filter);
-            gradient = obj.derivative_projection_Chomog(inv_matCh,obj.alpha,obj.beta,obj.Chomog_Derivatives,physicalProblem.mesh.nelem,physicalProblem.geometry.ngaus,physicalProblem.dim.nstre);
+            obj.compute_Chomog_Derivatives(x);
+            gradient = obj.derivative_projection_Chomog(inv_matCh,obj.alpha,obj.beta);
             
-            mass=filter.Msmooth;
-            gradient=filter.getP1fromP0(gradient(:));
+            mass=obj.filter.Msmooth;
+            gradient=obj.filter.getP1fromP0(gradient(:));
             gradient = mass*gradient;
             if isempty(obj.h_C_0)
                 obj.h_C_0 = costfunc;

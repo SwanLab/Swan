@@ -14,13 +14,13 @@ run('test_fem.m')
 % test
 clear variables
 %% Main.m
-triangle_linear = Physical_Problem('CantileverToy_Triangular');
-%triangle_linear = Physical_Problem('CantileverToy_Nonlinear');
-tic
-triangle_linear.preProcess;
-triangle_linear.computeVariables;
-triangle_linear.print;
-toc
+% triangle_linear = Physical_Problem('CantileverToy_Triangular');
+% %triangle_linear = Physical_Problem('CantileverToy_Nonlinear');
+% tic
+% triangle_linear.preProcess;
+% triangle_linear.computeVariables;
+% triangle_linear.print;
+% toc
 
 % post = Postprocess_PhysicalProblem;
 % gidPath = 'C:\Program Files\GiD\GiD 13.0.3\'; %write your GiD path
@@ -33,13 +33,13 @@ toc
 
 
 
-% Micro_Square_Triangle = Physical_Problem_Micro('RVE_Square_Triangle');
-% Micro_Square_Triangle.preProcess;
-% Micro_Square_Triangle.computeVariables([1 0 0]);
+Micro_Square_Triangle = Physical_Problem_Micro('RVE_Square_Triangle');
+Micro_Square_Triangle.preProcess;
+% Micro_Square_Triangle.computeVariables;
 % Micro_Square_Triangle.postProcess;
-% Micro_Square_Triangle.computeChomog;
-% 
-% fprintf('Ok\n');
+Micro_Square_Triangle.computeChomog;
+fprintf('Ok\n');
+
 
 
  

@@ -14,11 +14,17 @@ classdef Physical_Problem_Micro < Physical_Problem
     methods (Access = public)
         function obj = Physical_Problem_Micro(problemID)
             obj@Physical_Problem(problemID);
-        end
+            
+            % Just to match Ferran's code%%%%%%%%%%%%%%%%%%%
+            props.mu=0.375;
+            props.kappa = 0.75;
+            obj.material = obj.material.setProps(props);
+%             obj.element.material = obj.element.material.setProps(props);
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        end       
         
-        
-        
-        function [Chomog,tstrain,tstress] = computeChomog(obj)
+        function [Chomog,tstrain,tstress] = computeChomog(obj)      
+            
            % obj.variables = PhysicalVars_Elastic_2D_Micro(obj.dof.ndof);
             vstrain=diag(ones(obj.dim.nstre,1));
             Chomog =  zeros(obj.dim.nstre,obj.dim.nstre);
