@@ -8,6 +8,10 @@ Case 4_x_x ------> IPOPT
 Case x_1_x ------> Compliance st Volume
 Case x_2_x ------> Compliance+Lam*Perimeter st Volume
 Case x_3_x ------> Compliance st VolumePerimeter
+Case x_4_x ------> Chomog_alphabeta+Lam*Perimeter st Volume
+Case x_5_x ------> Chomog_fraction+Lam*Perimeter st Volume
+Case x_6_x ------> Chomog_CC+Lam*Perimeter st VolumeEnforceCh_CCstar
+
 ...
 +-------------------------------------------------------------------------------------------------+
 
@@ -27,5 +31,8 @@ CantileverQuadrilateral
 Bridge
 	Case 1_2_1 ------> SIMPALL || vfrac=0.2 || perimeter=3.5 || lambda=0.1 || nsteps=5
 
-
+Micro
+    Case 1_4_1 ------> SIMPALL || vfrac=0.5 || perimeter=3.5 || lambda=0.1 || nsteps=1
+    Case 1_6_1 ------> SIMPALL || vfrac=0.5 || perimeter=3.5 || lambda=0.1 || nsteps=1
+    Case 3_5_1 ------> SIMP_P3 || vfrac=0.5 || perimeter=3.5 || lambda=0.1 || nsteps=1
  

@@ -25,6 +25,7 @@ classdef TopOpt_Problem < handle
             % This PhysProb is only gonna be used by filters & incremental -> no need of specifying MICRO or MACRO
             % Consider turning it into a more generic class like FEM
             obj.topOpt_params = Physical_Problem(settings.filename);
+            settings.nconstr=length(obj.constraint.ShapeFuncs);
             obj.settings = settings;
             switch obj.settings.optimizer
                 case 'SLERP'
@@ -181,7 +182,7 @@ classdef TopOpt_Problem < handle
             %% !! INCLUDE THIS INSIDE CLASS PHYSICAL_PROBLEM OR PARENT/CHILD!!
             switch obj.settings.optimizer
                 case 'SLERP'
-                    obj.ini_design_value = -2;
+                    obj.ini_design_value = -1.015243959022692;
                     obj.hole_value = 0.507621979511346;
                 otherwise
                     obj.ini_design_value = 1;
