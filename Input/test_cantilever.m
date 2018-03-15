@@ -51,6 +51,7 @@ settings.Vfrac_initial = 1;
 settings.optimality_initial = 1e-3;
 settings.constr_initial = 1e-3;
 settings.epsilon_initial=[];
+% settings.epsilon_isotropy_initial=[];
 
 
 Data_prb = {

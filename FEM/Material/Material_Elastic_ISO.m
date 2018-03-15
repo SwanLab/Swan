@@ -33,6 +33,7 @@ classdef Material_Elastic_ISO < Material_Elastic
         function obj = setProps(obj,props)
             obj.kappa = props.kappa;
             obj.mu = props.mu;
+            obj.lambda = obj.kappa-obj.mu;
             obj = obj.computeC;
         end
     end

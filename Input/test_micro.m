@@ -1,13 +1,62 @@
-%==================================================================
+%==========================================================================
 %                        General Data File
-% Title: TETRAHEDRA
+% Title: TRIANGLE
 % Units: SI
 % Dimensions: 2D
 % Type of problem: Plane_Stress
 % Type of Phisics: ELASTIC
 % Micro/Macro: MICRO
 %
-%==================================================================
+%==========================================================================
+
+%% Data
+
+settings.ptype = 'MICRO';
+settings.plotting = false;
+settings.printing = false;
+settings.monitoring = false;
+settings.maxiter = 3;
+settings.method = 'SIMP_P3';
+settings.material = 'ISOTROPIC';
+settings.initial_case = 'circle';
+addpath(genpath('./Input'))
+settings.cost = {'chomog_fraction';'perimeter'};
+settings.weights = [1 0.1];
+settings.constraint = {'volume'};
+
+settings.optimizer = 'MMA';
+settings.kappaMultiplier = 1;
+
+settings.filter = 'P1';
+
+settings.TOL.rho_plus = 1;
+settings.TOL.rho_minus = 0;
+settings.TOL.E_plus = 1;
+settings.TOL.E_minus = 1e-3;
+settings.TOL.nu_plus = 1/3;
+settings.TOL.nu_minus = 1/3;
+
+settings.target_parameters.Vfrac = 0.5;
+settings.target_parameters.optimality_tol = 1e-3;
+settings.target_parameters.constr_tol = 1e-3;
+settings.target_parameters.Perimeter_target = 3.5;
+settings.perimeter.optimizer = settings.optimizer;
+
+settings.nsteps = 1;
+settings.Vfrac_final = settings.target_parameters.Vfrac;
+settings.optimality_final = settings.target_parameters.optimality_tol;
+settings.constr_final = settings.target_parameters.constr_tol;
+settings.Vfrac_initial = 1;
+
+settings.optimality_initial = 1e-3;
+settings.constr_initial = 1e-3;
+
+ %Micro
+settings.target_parameters.epsilon_isotropy = 1e-3;%%%%%%
+settings.epsilon_isotropy_final=settings.target_parameters.epsilon_isotropy;
+settings.epsilon_isotropy_initial=1e-1;
+settings.micro.alpha =[1 0 0]';%[1 0 0]'
+settings.micro.beta =[0 -1 0]';%[0 -1 0]'
 
 Data_prb = {
     'TRIANGLE';
@@ -17,7 +66,6 @@ Data_prb = {
     'ELASTIC';
     'MICRO';
     };
-
 
 
 coord = [
@@ -3304,8 +3352,10 @@ coord = [
     3281            0            1            0
     ];
 
-%% Conectivities
-% Element        Node(1)                Node(2)                Node(3)    
+pointload = [
+    ];
+
+
       
 connec = [
     1 2430 2485 2550
@@ -9726,7 +9776,8 @@ dirichlet_data = [3281 1 0
 %% Force Prescribed
 % Node                Dimension                Value
 
-pointload_complete = [    
+pointload_complete = [
+    
 ];
 
 %% Volumetric Force

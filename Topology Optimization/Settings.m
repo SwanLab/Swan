@@ -8,7 +8,7 @@ classdef Settings < handle
     end
     properties %target parameters
         Vfrac_initial
-        optimality_initial 
+        optimality_initial
         constr_initial
         Vfrac_final
         optimality_final
@@ -16,69 +16,79 @@ classdef Settings < handle
         epsilon_initial
         epsilon_final
         Perimeter_target
+        epsilon_isotropy_initial
+        epsilon_isotropy_final
     end
-    properties 
+    properties
         perimeter=struct;
     end
     properties    %topopt access
         ptype
-        filename 
+        filename
         method
-        material 
-        initial_case 
-        cost 
+        material
+        initial_case
+        cost
         weights
         constraint
-        optimizer 
+        optimizer
         kappaMultiplier
-        filter 
+        filter
         TOL=struct;
-        target_parameters=struct;        
+        target_parameters=struct;
         nsteps
-        micro=struct;  
+        micro=struct;
+        selectiveC_Cstar
         nconstr
     end
     methods
-        function obj=Settings(case_file)       
-                run(case_file)
-                obj.filename=filename;
-                obj.ptype = ptype;                
-                obj.method = method;
-                obj.material=materialType;
-                obj.initial_case = initial_case;
-                obj.cost = cost;
-                obj.weights=weights;
-                obj.constraint = constraint;
-                obj.optimizer = optimizer;
-                obj.kappaMultiplier=kappaMultiplier;
-                obj.filter = filterType;
-                obj.nsteps = nsteps;                
-                obj.TOL.rho_plus = TOL.rho_plus;
-                obj.TOL.rho_minus = TOL.rho_minus;
-                obj.TOL.E_plus = TOL.E_plus;
-                obj.TOL.E_minus = TOL.E_minus;
-                obj.TOL.nu_plus = TOL.nu_plus;
-                obj.TOL.nu_minus = TOL.nu_minus;                
-                obj.Vfrac_initial = Vfrac_initial;
-                obj.optimality_initial =optimality_initial;
-                obj.constr_initial = constr_initial;
-                obj.optimality_final = optimality_final;
-                obj.constr_final = constr_final;
-                fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: %s \n -Constraint: %s \n -Incremental Steps: %f \n ',...
-                    case_file,obj.optimizer,char(obj.cost),char(obj.constraint),obj.nsteps)
-                if exist('Vfrac_final','var')
-                    obj.Vfrac_final = Vfrac_final;
-                    fprintf('-Volume target: %f \n ',obj.Vfrac_final)
-                end
-                if exist('Perimeter_target','var')
-                    obj.Perimeter_target=Perimeter_target;
-                    fprintf('-Perimeter target: %f \n',obj.Perimeter_target)
-                end
-                if exist('micro','var')
-                    obj.micro.alpha = micro.alpha;
-                    obj.micro.beta = micro.beta;
-                end
-                fprintf('\n')
+        function obj=Settings(case_file)
+            run(case_file)
+            obj.filename=filename;
+            obj.ptype = ptype;
+            obj.method = method;
+            obj.material=materialType;
+            obj.initial_case = initial_case;
+            obj.cost = cost;
+            obj.weights=weights;
+            obj.constraint = constraint;
+            obj.optimizer = optimizer;
+            obj.kappaMultiplier=kappaMultiplier;
+            obj.filter = filterType;
+            obj.nsteps = nsteps;
+            obj.TOL.rho_plus = TOL.rho_plus;
+            obj.TOL.rho_minus = TOL.rho_minus;
+            obj.TOL.E_plus = TOL.E_plus;
+            obj.TOL.E_minus = TOL.E_minus;
+            obj.TOL.nu_plus = TOL.nu_plus;
+            obj.TOL.nu_minus = TOL.nu_minus;
+            obj.Vfrac_initial = Vfrac_initial;
+            obj.optimality_initial =optimality_initial;
+            obj.constr_initial = constr_initial;
+            obj.optimality_final = optimality_final;
+            obj.constr_final = constr_final;
+            fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: %s \n -Constraint: %s \n -Incremental Steps: %f \n ',...
+                case_file,obj.optimizer,char(obj.cost),char(obj.constraint),obj.nsteps)
+            if exist('Vfrac_final','var')
+                obj.Vfrac_final = Vfrac_final;
+                fprintf('-Volume target: %f \n ',obj.Vfrac_final)
+            end
+            if exist('Perimeter_target','var')
+                obj.Perimeter_target=Perimeter_target;
+                fprintf('-Perimeter target: %f \n',obj.Perimeter_target)
+            end
+            if exist('micro','var')
+                obj.micro.alpha = micro.alpha;
+                obj.micro.beta = micro.beta;
+            end
+            if exist('epsilon_isotropy_initial','var')
+                obj.epsilon_isotropy_initial = epsilon_isotropy_initial;
+                obj.epsilon_isotropy_final = epsilon_isotropy_final;
+            end
+             if exist('selectiveC_Cstar','var')
+                obj.selectiveC_Cstar = selectiveC_Cstar;
+            end
+            fprintf('\n')
         end
     end
 end
