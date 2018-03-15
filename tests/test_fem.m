@@ -22,18 +22,18 @@ for i=1:length(tests_fem)
         obj.preProcess;
         obj.computeVariables;
         if sum(abs(obj.variables.d_u - d_u)) < 1e-6
-            disp(strcat(file_name,' PASSED'));
+            cprintf('green',strcat(file_name,' PASSED\n'));
         else
-            disp(strcat(file_name,' FAILED'));
+             cprintf('err',strcat(file_name,' FAILED\n'));
         end
     else
         obj = Physical_Problem_Micro(file_name);
         obj.preProcess;
         obj.computeChomog;
         if sum(abs(obj.variables.Chomog- Chomog)) < 1e-6
-            disp(strcat(file_name,' PASSED'));
+             cprintf('green',strcat(file_name,' PASSED\n'));
         else
-            disp(strcat(file_name,' FAILED'));
+             cprintf('err',strcat(file_name,' FAILED\n'));
         end
     end
     

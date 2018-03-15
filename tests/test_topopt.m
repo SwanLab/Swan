@@ -19,9 +19,9 @@ for i=1:length(tests_topopt)
     obj.computeVariables;
     error = norm(obj.x - x)/norm(x);
     if error < 1e-6
-        disp(strcat(file_name,' PASSED'));
+        cprintf('green',strcat(file_name,' PASSED\n'));
     else
-        warning('%s FAILED. Error: %.2e',file_name,error);
+        cprintf('err',strcat(file_name,' FAILED\n'));
     end
     toc
 end
