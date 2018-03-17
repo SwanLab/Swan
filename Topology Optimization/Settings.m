@@ -1,10 +1,10 @@
 classdef Settings < handle
     properties %optmizer access
-        plotting=true
-        printing=false
-        monitoring=true
-        monitoring_interval=10
-        maxiter=5000
+        plotting = true
+        printing = false
+        monitoring = true
+        monitoring_interval = 10
+        maxiter = 5000
     end
     properties %target parameters
         Vfrac_initial
@@ -19,9 +19,11 @@ classdef Settings < handle
         epsilon_isotropy_initial
         epsilon_isotropy_final
     end
+    
     properties
-        perimeter=struct;
+        perimeter = struct;
     end
+    
     properties    %topopt access
         ptype
         filename
@@ -34,26 +36,28 @@ classdef Settings < handle
         optimizer
         kappaMultiplier
         filter
-        TOL=struct;
-        target_parameters=struct;
+        TOL = struct;
+        target_parameters = struct;
         nsteps
-        micro=struct;
+        micro = struct;
         selectiveC_Cstar
         nconstr
     end
     methods
-        function obj=Settings(case_file)
+        function obj = Settings(case_file)
             run(case_file)
-            obj.filename=filename;
+            obj.filename = filename;
             obj.ptype = ptype;
             obj.method = method;
-            obj.material=materialType;
+            obj.material = materialType;
             obj.initial_case = initial_case;
             obj.cost = cost;
-            obj.weights=weights;
+            obj.weights = weights;
             obj.constraint = constraint;
+            %% RELEASE WHEN TEST --> AS BENCHMARK CASES
+            %                 obj.nconstr = length(constraint);
             obj.optimizer = optimizer;
-            obj.kappaMultiplier=kappaMultiplier;
+            obj.kappaMultiplier = kappaMultiplier;
             obj.filter = filterType;
             obj.nsteps = nsteps;
             obj.TOL.rho_plus = TOL.rho_plus;
@@ -63,7 +67,7 @@ classdef Settings < handle
             obj.TOL.nu_plus = TOL.nu_plus;
             obj.TOL.nu_minus = TOL.nu_minus;
             obj.Vfrac_initial = Vfrac_initial;
-            obj.optimality_initial =optimality_initial;
+            obj.optimality_initial  = optimality_initial;
             obj.constr_initial = constr_initial;
             obj.optimality_final = optimality_final;
             obj.constr_final = constr_final;
@@ -74,18 +78,19 @@ classdef Settings < handle
                 fprintf('-Volume target: %f \n ',obj.Vfrac_final)
             end
             if exist('Perimeter_target','var')
-                obj.Perimeter_target=Perimeter_target;
+                obj.Perimeter_target = Perimeter_target;
                 fprintf('-Perimeter target: %f \n',obj.Perimeter_target)
             end
             if exist('micro','var')
                 obj.micro.alpha = micro.alpha;
                 obj.micro.beta = micro.beta;
             end
+            
             if exist('epsilon_isotropy_initial','var')
                 obj.epsilon_isotropy_initial = epsilon_isotropy_initial;
                 obj.epsilon_isotropy_final = epsilon_isotropy_final;
             end
-             if exist('selectiveC_Cstar','var')
+            if exist('selectiveC_Cstar','var')
                 obj.selectiveC_Cstar = selectiveC_Cstar;
             end
             fprintf('\n')

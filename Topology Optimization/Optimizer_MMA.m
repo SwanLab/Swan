@@ -1,4 +1,4 @@
-classdef Optimizer_MMA < Optimizer
+classdef Optimizer_MMA < Optimizer_Constrained
     properties
         kkttol
         kktnorm
@@ -9,8 +9,8 @@ classdef Optimizer_MMA < Optimizer
         xmin
         xmax
         low
-        outit=0;
-        outeriter=0;
+        outit = 0;
+        outeriter = 0;
         upp
         m
         c
@@ -24,16 +24,16 @@ classdef Optimizer_MMA < Optimizer
         dfdx
     end 
     methods
-        function obj=Optimizer_MMA(settings)
-            obj@Optimizer(settings,settings.monitoring);           
-            obj.maxoutit=1e4;
+        function obj = Optimizer_MMA(settings,mesh)
+            obj@Optimizer_Constrained(settings,mesh,settings.monitoring);           
+            obj.maxoutit = 1e4;
         end
-        function kkttol=get.kkttol(obj)
-            kkttol=obj.target_parameters.optimality_tol;
+        function kkttol = get.kkttol(obj)
+            kkttol = obj.target_parameters.optimality_tol;
         end          
         function x = updateX(obj,x,cost,constraint)      
                 obj.checkInitial(x,cost,constraint);
-                obj.outit=obj.outit+1;
+                obj.outit = obj.outit+1;
                 obj.outeriter = obj.outeriter+1;
                 %%%% The MMA subproblem is solved at the point xval:
                 [xmma,ymma,zmma,lam,xsi,eta,mu,zet,s,obj.low,obj.upp] = ...
@@ -63,15 +63,15 @@ classdef Optimizer_MMA < Optimizer
         function checkInitial(obj,x_ini,cost,constraint)
             if isempty(obj.x)
             obj.x = x_ini;
-            obj.xold1=obj.x;
+            obj.xold1 = obj.x;
             obj.xold2 = obj.xold1;
-            obj.xmin=zeros(length(x_ini),1);
-            obj.xmax=ones(length(x_ini),1);
+            obj.xmin = zeros(length(x_ini),1);
+            obj.xmax = ones(length(x_ini),1);
             obj.low = obj.xmin;
             obj.upp = obj.xmax;           
-            [obj.f0val,obj.df0dx,obj.fval,obj.dfdx]=obj.funmma(cost, constraint);
+            [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma(cost, constraint);
             obj.m = length(obj.fval);
-            obj.c= 1e3*ones(obj.m,1);
+            obj.c =  1e3*ones(obj.m,1);
             obj.d = 0*ones(obj.m,1);
             obj.a0 = 1;
             obj.a = 0*ones(obj.m,1);
@@ -170,10 +170,10 @@ classdef Optimizer_MMA < Optimizer
     end
     methods (Static)
         function [f,df,c,dc] = funmma(cost,constraint)
-            f=cost.value;
-            df=cost.gradient;
-            c=constraint.value;
-            dc=constraint.gradient;
+            f = cost.value;
+            df = cost.gradient;
+            c = constraint.value;
+            dc = constraint.gradient;
             dc = dc';
             
             %% Check constraint case
@@ -183,8 +183,8 @@ classdef Optimizer_MMA < Optimizer
             %             end
             
             %% Re-scale constraints
-            % In many applications, the constraints are on the form yi(x) <= ymaxi
-            % The user should then preferably scale the constraints in such a way that 1 <= ymaxi <= 100 for each i
+            % In many applications, the constraints are on the form yi(x) < =  ymaxi
+            % The user should then preferably scale the constraints in such a way that 1 < =  ymaxi < =  100 for each i
             % (and not ymaxi = 10^10 for example).
             kconstr = 1;
             cconstr = 0;
@@ -195,7 +195,7 @@ classdef Optimizer_MMA < Optimizer
             
             %% Re-scale objective function
             % The objective function f(x) should preferably be scaled such that
-            % 1 <= f0(x) <= 100 for reasonable values on the variables.
+            % 1 < =  f0(x) < =  100 for reasonable values on the variables.
             kfun = 1;
             cfun = 0;
             f = kfun*f + cfun;
@@ -210,8 +210,8 @@ classdef Optimizer_MMA < Optimizer
             % minimize   SUM[ p0j/(uppj-xj) + q0j/(xj-lowj) ] + a0*z +
             %          + SUM[ ci*yi + 0.5*di*(yi)^2 ],
             %
-            % subject to SUM[ pij/(uppj-xj) + qij/(xj-lowj) ] - ai*z - yi <= bi,
-            %            alfaj <=  xj <=  betaj,  yi >= 0,  z >= 0.
+            % subject to SUM[ pij/(uppj-xj) + qij/(xj-lowj) ] - ai*z - yi < =  bi,
+            %            alfaj < =   xj < =   betaj,  yi > =  0,  z > =  0.
             %
             % Input:  m, n, low, upp, alfa, beta, p0, q0, P, Q, a0, a, b, c, d.
             % Output: xmma,ymma,zmma, slack variables and Lagrange multiplers.
@@ -262,8 +262,8 @@ classdef Optimizer_MMA < Optimizer
                 residumax = max(abs(residu));
                 ittt = 0;
                 while residumax > 0.9*epsi & ittt < 200
-                    ittt=ittt + 1;
-                    itera=itera + 1;
+                    ittt = ittt + 1;
+                    itera = itera + 1;
                     ux1 = upp-x;
                     xl1 = x-low;
                     ux2 = ux1.*ux1;
@@ -385,7 +385,7 @@ classdef Optimizer_MMA < Optimizer
                         resinew = sqrt(residu'*residu);
                         steg = steg/2;
                     end
-                    residunorm=resinew;
+                    residunorm = resinew;
                     residumax = max(abs(residu));
                     steg = 2*steg;
                 end

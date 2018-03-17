@@ -1,26 +1,27 @@
 clc
 clear variables
-
+% 
 addpath(genpath(fileparts(mfilename('fullpath'))))
-
-%% Steps
-% 1 - Run 'Main.m'
-% 2 - Create object --> obj = Physical_Problem(filename);
-% 3 - Preprocess    --> obj.preProcess;
-% 4 - Compute       --> obj.computeVariables;
-% 5 - Postprocess   --> obj.postProcess;
-%% test
-run('test_fem.m')
-% test
-clear variables
+% 
+% %% Steps
+% % 1 - Run 'Main.m'
+% % 2 - Create object --> obj = Physical_Problem(filename);
+% % 3 - Preprocess    --> obj.preProcess;
+% % 4 - Compute       --> obj.computeVariables;
+% % 5 - Postprocess   --> obj.postProcess;
+% %% test
+% run('test_fem.m')
+% % test
+% clear variables
 %% Main.m
 % triangle_linear = Physical_Problem('CantileverToy_Triangular');
-% %triangle_linear = Physical_Problem('CantileverToy_Nonlinear');
-% tic
-% triangle_linear.preProcess;
-% triangle_linear.computeVariables;
-% triangle_linear.print;
-% toc
+triangle_linear = Physical_Problem('Stokes8');
+%triangle_linear = Physical_Problem('CantileverToy_Nonlinear');
+tic
+triangle_linear.preProcess;
+triangle_linear.computeVariables;
+triangle_linear.print;
+toc
 
 % post = Postprocess_PhysicalProblem;
 % gidPath = 'C:\Program Files\GiD\GiD 13.0.3\'; %write your GiD path

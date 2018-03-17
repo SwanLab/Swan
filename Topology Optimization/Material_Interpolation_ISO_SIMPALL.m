@@ -1,4 +1,4 @@
-classdef Interpolation_ISO_SIMPALL < Interpolation
+classdef Material_Interpolation_ISO_SIMPALL < Material_Interpolation
     properties
         mu_func
         kappa_func
@@ -7,7 +7,7 @@ classdef Interpolation_ISO_SIMPALL < Interpolation
         
     end
     methods
-        function obj=Interpolation_ISO_SIMPALL(HSbounds)
+        function obj=Material_Interpolation_ISO_SIMPALL(HSbounds)
             obj.rho_plus=HSbounds.rho_plus;
             obj.rho_minus=HSbounds.rho_minus;
             obj.E_plus=HSbounds.E_plus;

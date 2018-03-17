@@ -16,7 +16,7 @@ classdef ShFunc_Compliance < Shape_Functional
                     obj.physicalProblem = Physical_Problem_Micro(settings.filename);
             end
             obj.physicalProblem.preProcess;
-            obj.interpolation = Interpolation.create(settings.TOL,settings.material,settings.method);
+            obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method);
         end
         
         function computef(obj,x)
@@ -33,10 +33,10 @@ classdef ShFunc_Compliance < Shape_Functional
             compliance = obj.computeCompliance;
             
             % Compute gradient
-            gradient_compliance = zeros(obj.physicalProblem.mesh.nelem,obj.physicalProblem.geometry.ngaus);
-            for igaus = 1:obj.physicalProblem.geometry.ngaus
-                for istre = 1:obj.physicalProblem.dim.nstre
-                    for jstre = 1:obj.physicalProblem.dim.nstre
+            gradient_compliance = zeros(obj.physicalProblem.geometry.interpolation.nelem,obj.physicalProblem.geometry.quadrature.ngaus);
+            for igaus = 1:obj.physicalProblem.geometry.quadrature.ngaus
+                for istre = 1:obj.physicalProblem.element.nstre
+                    for jstre = 1:obj.physicalProblem.element.nstre
                         gradient_compliance(:,igaus) = gradient_compliance(:,igaus) + obj.updateGradient(igaus,istre,jstre);
                     end
                 end

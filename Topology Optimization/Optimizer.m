@@ -1,55 +1,34 @@
 classdef Optimizer < handle
+    %Optimizer Summary of this class goes here
+    %   Detailed explanation goes here
+    
     properties
-        fhtri
-        kappa
-        objfunc
         stop_criteria = 1;
-        Msmooth
-        Ksmooth
-%         P
+        stop_vars
         target_parameters = struct;
-        epsilon_scalar_product_P1
-        name
-        niter = 0
-        optimizer
-        maxiter
+        nconstr
+    end
+    
+    properties (Access = ?Optimizer_Constrained)
         plotting
         printing
         monitoring
-        stop_vars      
         mesh
     end
+    
     methods
-        function obj = Optimizer(settings,monitoring)
+        function obj = Optimizer(settings)
+            obj.nconstr = settings.nconstr;
             obj.target_parameters = settings.target_parameters;
-            obj.optimizer = settings.optimizer;
-            obj.maxiter = settings.maxiter;
-            obj.plotting = settings.plotting;
-            obj.printing = settings.printing;
-            obj.monitoring = Monitoring(settings,monitoring);
-        end
-        function x = solveProblem(obj,x_ini,cost,constraint)
-            cost.computef(x_ini);
-            constraint.computef(x_ini);
-            obj.plotX(x_ini)
-            %             obj.print(x_ini,filter.getP0fromP1(x_ini),obj.niter);
-            while obj.stop_criteria && obj.niter < obj.maxiter
-                obj.niter = obj.niter+1;
-                x = obj.updateX(x_ini,cost,constraint);
-                obj.plotX(x)
-                %                 obj.print(x,filter.getP0fromP1(x),obj.niter);
-                obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars,obj.stop_criteria && obj.niter < obj.maxiter);
-                x_ini = x;
-            end
-            obj.stop_criteria = 1;
         end
         
-        %% HAS TO BE REMOVED FROM OPTIMIZER CLASS --> Physical Problem with Element_Dif_React
-        function sp = scalar_product(obj,f,g)
-            sp = f'*(((obj.epsilon_scalar_product_P1)^2)*obj.Ksmooth+obj.Msmooth)*g;
-        end
     end
-    methods (Access = private)
+    
+    methods (Abstract)
+        % x = updateX(obj,x_ini,cost,constraint); %% !! IPOPT doesn't use it (black box) !!
+    end
+    
+    methods (Access = protected)
         function print(obj,design_variable,design_variable_reg,iter)
             if ~(obj.printing)
                 return
@@ -60,8 +39,7 @@ classdef Optimizer < handle
             results.design_variable_reg = design_variable_reg;
             postprocess.print(obj.physicalProblem,obj.physicalProblem.problemID,iter,results);
         end
-    end
-    methods (Access = protected)
+        
         function plotX(obj,x)
             if ~(obj.plotting)
                 return
@@ -96,14 +74,5 @@ classdef Optimizer < handle
             end
         end
     end
-    
-    methods (Access = protected, Static)
-        %% !! FER AMB SCALAR PRODUCT !!
-        function N_L2 = norm_L2(x,x_ini,M)
-            inc_x = x-x_ini;
-            N_L2 = (inc_x'*M*inc_x)/(x_ini'*M*x_ini);
-        end
-        
-    end
-    
 end
+

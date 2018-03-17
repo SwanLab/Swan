@@ -3,7 +3,6 @@ classdef TopOpt_Problem < handle
         cost
         constraint
         x
-        filter %% !! Remove when scalar product not done in Optimizer
         algorithm
         optimizer
         topOpt_params %% !! Only used for Ksmooth, Msmooth and geom/mesh/dofs (for filters & incremental)
@@ -17,38 +16,37 @@ classdef TopOpt_Problem < handle
     end
     methods (Access = public)
         function obj = TopOpt_Problem(settings)
-            %% !! This should be done in settings class !!
+            %% !! This should be done in settings class !! --> When tests as benchmark cases
             settings.nconstr = length(settings.constraint);
-            obj.cost = Cost(settings,settings.weights);
+            
+            obj.cost = Cost(settings,settings.weights); % Change to just enter settings
             obj.constraint = Constraint(settings);
             
             % This PhysProb is only gonna be used by filters & incremental -> no need of specifying MICRO or MACRO
             % Consider turning it into a more generic class like FEM
-            obj.topOpt_params = Physical_Problem(settings.filename);
-            settings.nconstr=length(obj.constraint.ShapeFuncs);
+            obj.topOpt_params = Physical_Problem(settings.filename,'DIFF-REACT');
+            obj.topOpt_params.mesh.scale = 'MACRO'; % Hyper-provisional
             obj.settings = settings;
+
+            obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.topOpt_params.mesh);
             switch obj.settings.optimizer
                 case 'SLERP'
-                    obj.optimizer = Optimizer_AugLag(settings,Optimizer_SLERP(settings));
+                    obj.optimizer = Optimizer_AugLag(settings,obj.topOpt_params.mesh,Optimizer_SLERP(settings,obj.incremental_scheme.epsilon));
                 case 'PROJECTED GRADIENT'
-                    obj.optimizer = Optimizer_AugLag(settings,Optimizer_PG(settings));
+                    obj.optimizer = Optimizer_AugLag(settings,obj.topOpt_params.mesh,Optimizer_PG(settings,obj.incremental_scheme.epsilon));
                 case 'MMA'
-                    obj.optimizer = Optimizer_MMA(settings);
+                    obj.optimizer = Optimizer_MMA(settings,obj.topOpt_params.mesh);
                 case 'IPOPT'
-                    obj.optimizer = Optimizer_IPOPT(settings);
+                    obj.optimizer = Optimizer_IPOPT(settings,obj.topOpt_params.mesh);
             end
-            obj.filter = Filter.create(obj.settings.filter,obj.settings.optimizer);
-            obj.optimizer.mesh=obj.topOpt_params.mesh; %% !!JUST TO MAKE PLOTTING WORK
         end
         
         function preProcess(obj)
             % Initialize design variable
             obj.topOpt_params.preProcess;
             obj.filters_preProcess;
-            
-            obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.topOpt_params.mesh);
             obj.compute_initial_design;
-            obj.topOpt_params = []; % !! To check that only it is used once (Debugging) !!
+            obj.topOpt_params = []; %% !! To check that only it is used once (DEBUGGING) !!
         end
         
         function computeVariables(obj)
@@ -90,28 +88,28 @@ classdef TopOpt_Problem < handle
         end
         
         function obj = filters_preProcess(obj)
-            nukn = 1;
-            dof_filter = DOF(obj.topOpt_params.problemID,obj.topOpt_params.geometry.nnode,obj.topOpt_params.mesh.connec,nukn,obj.topOpt_params.mesh.npnod,obj.topOpt_params.mesh.scale);
+            obj.topOpt_params.dof.nunkn = 1;
+            obj.topOpt_params.mesh.ptype='DIFF-REACT';
+            dof_filter =DOF(obj.topOpt_params.problemID,obj.topOpt_params.geometry,obj.topOpt_params.mesh);
             switch obj.topOpt_params.mesh.scale
                 case 'MACRO'
-                    dof_filter.dirichlet = [];
-                    dof_filter.dirichlet_values = [];
+                    dof_filter.dirichlet{1} = [];
+                    dof_filter.dirichlet_values{1} = [];
                     dof_filter.neumann = [];
                     dof_filter.neumann_values  = [];
-                    dof_filter.constrained = dof_filter.compute_constrained_dof(obj.topOpt_params.mesh.scale);
-                    dof_filter.free = dof_filter.compute_free_dof();
+                    dof_filter.constrained{1} = [];
+                    dof_filter.free{1} = dof_filter.compute_free_dof(1);
                 case 'MICRO'
                     dof_filter.dirichlet = [];
                     dof_filter.dirichlet_values = [];
                     dof_filter.neumann = [];
                     dof_filter.neumann_values  = [];
-                    dof_filter.constrained = dof_filter.compute_constrained_dof(obj.topOpt_params.mesh.scale);
-                    dof_filter.free = dof_filter.compute_free_dof();
+                    dof_filter.constrained{1} = [];
+                    dof_filter.free = dof_filter.compute_free_dof(1);
             end
             obj.topOpt_params.setDof(dof_filter)
             
             filter_params = obj.getFilterParams(obj.topOpt_params);
-            obj.filter.preProcess(filter_params); % !! REMOVE WHEN SCALAR PRODUCT NOT IN OPTIMIZER !!
             obj.cost.preProcess(filter_params);
             obj.constraint.preProcess(filter_params);
         end
@@ -189,7 +187,7 @@ classdef TopOpt_Problem < handle
                     obj.hole_value = 0;
                     
             end
-            obj.x = obj.ini_design_value*ones(obj.topOpt_params.mesh.npnod,1);
+            obj.x = obj.ini_design_value*ones(obj.topOpt_params.geometry.interpolation.npnod,1);
             switch obj.settings.initial_case
                 case 'circle'
                     width = max(obj.topOpt_params.mesh.coord(:,1)) - min(obj.topOpt_params.mesh.coord(:,1));
@@ -233,31 +231,27 @@ classdef TopOpt_Problem < handle
                 otherwise
                     error('Initialize design variable case not detected.');
             end
-            obj.optimizer.Msmooth = obj.filter.Msmooth;
-            obj.optimizer.Ksmooth = obj.filter.Ksmooth;
-            obj.optimizer.epsilon_scalar_product_P1 = obj.incremental_scheme.epsilon;            
-            %% !! COULD BE CLEANER, NOT IN IF --> O.O.P.  !!
-            if strcmp(obj.settings.optimizer,'SLERP')
-                sqrt_norma = obj.optimizer.scalar_product(obj.x,obj.x);
-                obj.x = obj.x/sqrt(sqrt_norma);
-            end
         end
     end
     methods (Access = private, Static)
+        %% !! CONSIDER PASS THE WHOLE TOP_OPT_PARAMS (Not Physical but FEM) TO THE FILTERS !!
         function filter_params = getFilterParams(topOpt_params)
-            for igauss = 1:topOpt_params.geometry.ngaus
-                filter_params.M0{igauss} = sparse(1:topOpt_params.mesh.nelem,1:topOpt_params.mesh.nelem,topOpt_params.geometry.dvolu(:,igauss));
+            for igauss = 1:topOpt_params.geometry.quadrature.ngaus
+                filter_params.M0{igauss} = sparse(1:topOpt_params.geometry.interpolation.nelem,1:topOpt_params.geometry.interpolation.nelem,...
+                    topOpt_params.geometry.dvolu(:,igauss));
             end
             filter_params.dof = topOpt_params.dof;
             filter_params.element = topOpt_params.element;
-            filter_params.dvolu = sparse(1:topOpt_params.mesh.nelem,1:topOpt_params.mesh.nelem,sum(topOpt_params.geometry.dvolu,2));
-            [filter_params.Ksmooth, filter_params.Msmooth] = topOpt_params.computeKM(2);
+            filter_params.dvolu = sparse(1:topOpt_params.geometry.interpolation.nelem,1:topOpt_params.geometry.interpolation.nelem,...
+                sum(topOpt_params.geometry.dvolu,2));
+            filter_params.Ksmooth = topOpt_params.element.computeStiffnessMatrix;
+            filter_params.Msmooth = topOpt_params.element.computeMassMatrix(2);
             filter_params.coordinates = topOpt_params.mesh.coord;
             filter_params.connectivities = topOpt_params.mesh.connec;
-            filter_params.nelem = topOpt_params.mesh.nelem;
-            filter_params.nnode = topOpt_params.geometry.nnode;
-            filter_params.npnod = topOpt_params.mesh.npnod;
-            filter_params.ngaus = topOpt_params.geometry.ngaus;
+            filter_params.nelem = topOpt_params.geometry.interpolation.nelem;
+            filter_params.nnode = topOpt_params.geometry.interpolation.isoparametric.nnode;
+            filter_params.npnod = topOpt_params.geometry.interpolation.npnod;
+            filter_params.ngaus = topOpt_params.geometry.quadrature.ngaus;
             filter_params.shape = topOpt_params.geometry.shape;
         end
     end

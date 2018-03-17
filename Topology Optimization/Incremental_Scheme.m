@@ -44,7 +44,6 @@ classdef Incremental_Scheme < handle
             cost.target_parameters=target_parameters;
             constraint.target_parameters=target_parameters;
             optimizer.target_parameters=target_parameters;
-            optimizer.epsilon_scalar_product_P1=obj.epsilon; %pending to be changed along with scalarrpoduct
         end
         function h=estimate_mesh_size(obj)
             xmin = min(obj.coord);

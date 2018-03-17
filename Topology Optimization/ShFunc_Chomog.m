@@ -11,11 +11,11 @@ classdef ShFunc_Chomog < Shape_Functional
         matProps
     end
     methods
-        function obj=ShFunc_Chomog(settings)
+        function obj = ShFunc_Chomog(settings)
             obj@Shape_Functional(settings);
             obj.physicalProblem = Physical_Problem_Micro(settings.filename);
             obj.physicalProblem.preProcess;
-            obj.interpolation = Interpolation.create(settings.TOL,settings.material,settings.method);
+            obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method);
         end
     end
     methods (Access = protected)
@@ -25,12 +25,12 @@ classdef ShFunc_Chomog < Shape_Functional
             %           mass=filter.Msmooth;
             %             obj.tstrain = permute(obj.tstrain,[2 3 4]);
             %             obj.tstress = permute(obj.tstrain,);
-            obj.Chomog_Derivatives = zeros(obj.physicalProblem.dim.nstre,obj.physicalProblem.dim.nstre,obj.physicalProblem.geometry.ngaus,obj.physicalProblem.mesh.nelem);
-            for istreChomog = 1:obj.physicalProblem.dim.nstre
-                for jstreChomog = 1:obj.physicalProblem.dim.nstre
-                    for igaus=1:obj.physicalProblem.geometry.ngaus
-                        for istre=1:obj.physicalProblem.dim.nstre
-                            for jstre = 1:obj.physicalProblem.dim.nstre
+            obj.Chomog_Derivatives = zeros(obj.physicalProblem.element.nstre,obj.physicalProblem.element.nstre,obj.physicalProblem.geometry.quadrature.ngaus,obj.physicalProblem.element.nelem);
+            for istreChomog = 1:obj.physicalProblem.element.nstre
+                for jstreChomog = 1:obj.physicalProblem.element.nstre
+                    for igaus=1:obj.physicalProblem.geometry.quadrature.ngaus
+                        for istre=1:obj.physicalProblem.element.nstre
+                            for jstre = 1:obj.physicalProblem.element.nstre
                                 obj.Chomog_Derivatives(istreChomog,jstreChomog,igaus,:) = ...
                                     squeeze(obj.Chomog_Derivatives(istreChomog,jstreChomog,igaus,:)) + ...
                                     (squeeze(obj.tstrain(istreChomog,igaus,istre,:))...
@@ -54,11 +54,11 @@ classdef ShFunc_Chomog < Shape_Functional
         function r = derivative_projection_Chomog(obj,inv_matCh,alpha,beta)
             weights = alpha*beta';
             weights_inv = inv_matCh*weights*inv_matCh;
-            DtC1 = zeros(obj.physicalProblem.geometry.ngaus,obj.physicalProblem.mesh.nelem);
-            DtC = zeros(obj.physicalProblem.geometry.ngaus,obj.physicalProblem.mesh.nelem);
-            for igaus=1:obj.physicalProblem.geometry.ngaus
-                for i=1:obj.physicalProblem.dim.nstre
-                    for j=1:obj.physicalProblem.dim.nstre
+            DtC1 = zeros(obj.physicalProblem.geometry.quadrature.ngaus,obj.physicalProblem.element.nelem);
+            DtC = zeros(obj.physicalProblem.geometry.quadrature.ngaus,obj.physicalProblem.element.nelem);
+            for igaus=1:obj.physicalProblem.geometry.quadrature.ngaus
+                for i=1:obj.physicalProblem.element.nstre
+                    for j=1:obj.physicalProblem.element.nstre
                         DtC1(igaus,:) = squeeze(obj.Chomog_Derivatives(i,j,igaus,:));
                         DtC(igaus,:) = DtC(igaus,:)- weights_inv(i,j)*DtC1(igaus,:);
                     end

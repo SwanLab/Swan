@@ -11,9 +11,9 @@ classdef Isoparametric
         posgp
         shape
         deriv
+        pos_nodes
     end
     
     methods
     end
-    
 end

@@ -1,4 +1,4 @@
-classdef Optimizer_IPOPT < Optimizer
+classdef Optimizer_IPOPT < Optimizer_Constrained
     properties
         m
         info
@@ -7,16 +7,16 @@ classdef Optimizer_IPOPT < Optimizer
         optimality_tolerance
     end 
     methods
-        function obj=Optimizer_IPOPT(settings)
-            obj@Optimizer(settings,false);
-            obj.m=settings.nconstr;
-            obj.max_iter=5e3;
+        function obj = Optimizer_IPOPT(settings,mesh)
+            obj@Optimizer_Constrained(settings,mesh,false);
+            obj.m = settings.nconstr;
+            obj.max_iter = 5e3;
         end
-        function optimality_tolerance=get.optimality_tolerance(obj)
-            optimality_tolerance=obj.target_parameters.optimality_tol;
+        function optimality_tolerance = get.optimality_tolerance(obj)
+            optimality_tolerance = obj.target_parameters.optimality_tol;
         end
-        function constraint_tolerance=get.constraint_tolerance(obj)
-            constraint_tolerance=obj.target_parameters.constr_tol*1e-1;
+        function constraint_tolerance = get.constraint_tolerance(obj)
+            constraint_tolerance = obj.target_parameters.constr_tol*1e-1;
         end
         
         function x = solveProblem(obj,x_ini,cost,constraint) 
@@ -27,7 +27,7 @@ classdef Optimizer_IPOPT < Optimizer
             funcs.jacobian = @(x) sparse(obj.constraint_gradient(x,constraint)');
             n = length(x_ini);
             funcs.jacobianstructure = @() sparse(ones(obj.m,n));
-            plotx=@(x) obj.plotX(x);
+            plotx = @(x) obj.plotX(x);
             funcs.iterfunc = @(iter,fval,data) obj.outputfun_ipopt(iter,fval,data,plotx);
             
             options.ipopt.print_level           = 0;
@@ -56,25 +56,25 @@ classdef Optimizer_IPOPT < Optimizer
         
     end
     methods (Static)
-        function f=objective(x,cost)
+        function f = objective(x,cost)
             cost.computef(x)
-            f=cost.value;
+            f = cost.value;
         end
-        function f=constraint(x,constraint)
+        function f = constraint(x,constraint)
             constraint.computef(x)
-            f=constraint.value;
+            f = constraint.value;
         end
-        function g=gradient(x,cost)
+        function g = gradient(x,cost)
             cost.computef(x)
-            g=cost.gradient;
+            g = cost.gradient;
         end
-        function g=constraint_gradient(x,constraint)
+        function g = constraint_gradient(x,constraint)
             constraint.computef(x)
-            g=constraint.gradient;
+            g = constraint.gradient;
         end
-        function stop=outputfun_ipopt(iter,fval,data,plotx)
+        function stop = outputfun_ipopt(iter,fval,data,plotx)
             disp(strcat('Iter:',num2str(iter)));
-            stop=true;
+            stop = true;
             plotx(data.x);
         end
     end

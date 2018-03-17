@@ -2,10 +2,12 @@
 
 clear; close all;
 
-% Test Declaration --------------------------------------------------------
+fprintf('Running TopOpt tests...\n')
+
+%% Test Declaration -------------------------------------------------------
 tests_topopt={'test_cantilever','test_gripping','test_micro'};
 
-% Run Top Opt Tests -------------------------------------------------------
+%% Run Top Opt Tests ------------------------------------------------------
 for i=1:length(tests_topopt)
     tic
     file_name = tests_topopt{i};
@@ -13,7 +15,7 @@ for i=1:length(tests_topopt)
     load_file = strcat('./tests/',file_name);
     run(tests_topopt{i})
     load(load_file)
-    settings.filename=file_name_in;
+    settings.filename = file_name_in;
     obj = TopOpt_Problem(settings);
     obj.preProcess;
     obj.computeVariables;
@@ -25,3 +27,6 @@ for i=1:length(tests_topopt)
     end
     toc
 end
+
+fprintf('\nTopOpt tests completed.\n')
+fprintf('\n-------------------------------------------\n\n')
