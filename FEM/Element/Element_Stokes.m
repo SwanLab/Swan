@@ -1,5 +1,5 @@
 classdef Element_Stokes < Element
-    %UNTITLED Summary of this class goes here
+    %Element_Stokes Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
@@ -10,7 +10,11 @@ classdef Element_Stokes < Element
         K_elem
     end
     
-    methods (Access = ?Physical_Problem)
+    methods (Access = ?Stokes_Problem)
+        function obj = Element_Stokes(geometry,material,dof)
+            obj = obj@Element(geometry,material,dof);
+        end
+        
         function [r,dr] = computeResidual(obj,x,dr,x_n)
 %             K = compute_LHS(obj);
             if (nargin ==3)

@@ -13,7 +13,7 @@ classdef Mesh
         scale
         geometryType
     end   
-    methods (Access = ?Physical_Problem)
+    methods % (Access = ?Physical_Problem)
         function obj = Mesh(filename)
             data = Preprocess.readFromGiD(filename);
             obj.coord = data.xpoints(:,2:4);

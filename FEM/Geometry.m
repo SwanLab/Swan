@@ -13,10 +13,10 @@ classdef Geometry<handle
         quadrature
         nfields=1;
     end
-    methods (Access = {?Physical_Problem,?Element_DiffReact}) % !! Element_DiffReact -> Chapusilla !!
+    methods %(Access = {?Physical_Problem,?Element_DiffReact}) % !! Element_DiffReact -> Chapusilla !!
         function obj = Geometry(mesh,interp_order,order)
-            if nargin==2
-                order=interp_order;
+            if nargin == 2
+                order = interp_order;
             end    
             obj.type=mesh.geometryType;
             obj.interpolation=Interpolation(mesh,interp_order);            
@@ -45,13 +45,12 @@ classdef Geometry<handle
                 end
             end
             
-            %             end
-            
             obj.cart_pos_gp = gp_position;
             for i = 1:ndime
                 a = obj.interpolation.xpoints(:,i);
                 elcoord(:,i,:) = a(permute(obj.interpolation.T',[1,3,2]));
             end
+            
             % Gauss loop
             for igauss = 1:ngaus
                 pos_gp = num2cell(obj.quadrature.posgp(1:ndime,igauss));
@@ -78,8 +77,8 @@ classdef Geometry<handle
                 obj.djacob(:,igauss)= detJ;
             end
             % dvolu         
-            
         end
+        
         function createQuadrature(obj,order)            
             switch obj.type             
                 case 'TRIANGLE'
@@ -111,6 +110,7 @@ classdef Geometry<handle
             end
         end
     end
+    
     methods (Static)
         function [inverse,determinant]=inverseElementalMatrix(ndime,A)
             switch ndime
@@ -120,7 +120,5 @@ classdef Geometry<handle
                     [inverse,determinant] = multinverse3x3(A);
             end
         end
-        
     end
-    
 end

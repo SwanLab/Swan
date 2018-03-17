@@ -5,7 +5,9 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
     end
     
     methods
-        
+        function obj = Element_Elastic_2D_Micro(geometry,material,dof)
+            obj = obj@Element_Elastic_2D(geometry,material,dof);
+        end
         
         function variables = computeVars(obj,uL)
             variables = computeVars@Element_Elastic_2D(obj,uL);

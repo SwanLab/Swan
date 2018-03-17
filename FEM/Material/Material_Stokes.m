@@ -1,5 +1,5 @@
 classdef Material_Stokes < Material
-    %UNTITLED3 Summary of this class goes here
+    %Material_Stokes Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
@@ -16,7 +16,5 @@ classdef Material_Stokes < Material
             mu(4,4,:) = 1;
             obj.mu = mu;
         end
-        
-
     end
 end

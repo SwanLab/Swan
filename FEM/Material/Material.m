@@ -12,9 +12,8 @@ classdef Material
         end
     end
     
-    methods (Access = ?Physical_Problem, Static)
+    methods (Static) %(Access = ?Physical_Problem, Static)
         function material = create(geometry,mesh)
-%             obj.nelem = nelem;
             ptype=mesh.ptype;
             pdim=mesh.pdim;
             nelem=geometry(1).interpolation.nelem;
@@ -40,9 +39,7 @@ classdef Material
                     end
                     
                 case {'THERMAL', 'DIFF-REACT'}
-%                     error('Still not implemented.')
-                    %% !! MOLT PROVISIONAL !!
-                    material = Material_Elastic_ISO_2D(nelem);
+                    error('Still not implemented.')
                 case 'Stokes'
                     material = Material_Stokes(nelem);
                 otherwise

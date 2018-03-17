@@ -15,62 +15,59 @@ classdef Element < handle
     
     
     methods (Static)
-        function element = create(mesh,geometry,material,dof)
-            
+        function obj = Element(geometry,material,dof)
             nelem = geometry(1).interpolation.nelem;
-            ptype = mesh.ptype;
-            pdim = mesh.pdim;
-            
-            switch mesh.scale
-                
-                case 'MICRO'
-                    element = Element_Elastic_2D_Micro;
-                    element.nstre = 3;
-                case 'MACRO'
-                    switch ptype
-                        case 'ELASTIC'
-                            switch pdim
-                                case '2D'
-                                    element = Element_Elastic_2D;
-                                    element.nstre = 3;
-                                case '3D'
-                                    element = Element_Elastic_3D;
-                                    element.nstre = 6;
-                            end
-                        case 'THERMAL'
-                            element = Element_Thermal;
-                            element.nstre=2;
-                        case 'DIFF-REACT'
-                            element = Element_DiffReact;
-                            element.nstre=2;
-                        case 'HYPERELASTIC'
-                            element = Element_Hyperelastic();
-                            warning('Please add hyperelastic nstre')
-                        case 'Stokes'
-                            switch pdim
-                                case '2D'
-                                    element = Element_Stokes;
-                                    element.nstre = 0;
-                                case '3D'
-                                    warning('Stokes 3D element not added')
-                                    %                             obj.dof.nunkn = 3;
-                                    %                             obj.nstre = 6;
-                            end
-                        otherwise
-                            error('Invalid ptype.')
-                    end
+            obj.nfields = geometry.nfields;
+            for ifield=1:obj.nfields
+                obj.nnode(ifield) = geometry(ifield).interpolation.isoparametric.nnode;
             end
+            obj.nelem = nelem;
+            obj.geometry = geometry;
+            obj.material = material;
+            obj.dof = dof;
+            obj.assign_dirichlet_values;
+        end
+        
+        function obj = create(geometry,material,dof)
+            nelem = geometry(1).interpolation.nelem;
             
-            element.nfields = geometry.nfields;
-            for ifield=1:element.nfields
-                element.nnode(ifield) = geometry(ifield).interpolation.isoparametric.nnode;
+%             switch mesh.scale
+%                
+%                 case 'MACRO'
+%                     switch ptype
+%                         case 'THERMAL'
+%                             obj = Element_Thermal;
+%                             obj.nstre=2;
+%                         case 'DIFF-REACT'
+%                             obj = Element_DiffReact;
+%                             obj.nstre=2;
+%                         case 'HYPERELASTIC'
+%                             obj = Element_Hyperelastic();
+%                             warning('Please add hyperelastic nstre')
+%                         case 'Stokes'
+%                             switch pdim
+%                                 case '2D'
+%                                     obj = Element_Stokes;
+%                                     obj.nstre = 0;
+%                                 case '3D'
+%                                     error('Stokes 3D obj not added')
+%                                     %                             obj.dof.nunkn = 3;
+%                                     %                             obj.nstre = 6;
+%                             end
+%                         otherwise
+%                             error('Invalid ptype.')
+%                     end
+%             end
+            
+            obj.nfields = geometry.nfields;
+            for ifield=1:obj.nfields
+                obj.nnode(ifield) = geometry(ifield).interpolation.isoparametric.nnode;
             end
-            element.nelem = nelem;
-            element.geometry = geometry;
-            element.material = material;
-            element.dof = dof;
-            %element.bc = bc;
-            element.assign_dirichlet_values()
+            obj.nelem = nelem;
+            obj.geometry = geometry;
+            obj.material = material;
+            obj.dof = dof;
+            obj.assign_dirichlet_values;
         end
     end
     

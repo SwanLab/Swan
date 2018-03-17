@@ -22,7 +22,7 @@ for i=1:length(tests_fem)
     load_file = strcat('./tests/',file_name);
     load(load_file);
     
-    obj = Physical_Problem(file_name);
+    obj = FEM.create(file_name);
     if obj.mesh.scale == 'MACRO'
         obj.preProcess;
         obj.computeVariables;
@@ -40,7 +40,7 @@ for i=1:length(tests_fem)
             end
         end
     else
-        obj = Physical_Problem_Micro(file_name);
+        obj = Elastic_Problem_Micro(file_name);
         obj.preProcess;
         obj.computeChomog;
         if sum(abs(obj.variables.Chomog- Chomog)) < 1e-6
