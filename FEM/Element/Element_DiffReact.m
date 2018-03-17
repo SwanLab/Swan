@@ -13,11 +13,6 @@ classdef Element_DiffReact < Element
     end
     
     methods %(Access = ?Physical_Problem)
-        function obj = Element_DiffReact(mesh)
-            %% !! CONSIDER DELETING !! --> ONLY USED FOR ELUMPED (RESOLVE THIS CASE)
-            obj.mesh = mesh;
-        end
-        
         function obj = setEpsilon(obj,epsilon)
             obj.epsilon = epsilon;
         end
@@ -58,15 +53,16 @@ classdef Element_DiffReact < Element
         function [K] = compute_elem_StiffnessMatrix(obj)
             
             % Stiffness matrix
-            Ke = zeros(obj.nnode,obj.nnode,obj.nelem);
+            Ke = zeros(obj.dof.nunkn*obj.nnode,obj.dof.nunkn*obj.nnode,obj.nelem);
             
             for igaus = 1 :obj.geometry.quadrature.ngaus
                 % Strain-displacement matrix
-                Bmat = obj.computeB(obj.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
+                Bmat = obj.computeB(obj.dof.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
                 
                 % Compute Ke
-                for iv = 1:obj.nnode
-                    for jv = 1:obj.nnode
+                
+                for iv = 1:obj.nnode*obj.dof.nunkn
+                    for jv = 1:obj.nnode*obj.dof.nunkn
                         for istre = 1:obj.nstre
                             % for jstre=1:nstre
                             v = squeeze(Bmat(istre,iv,:).*Bmat(istre,jv,:));
@@ -82,8 +78,7 @@ classdef Element_DiffReact < Element
 
         function [M] = compute_elem_MassMatrix(obj,job)            
             obj.geometry.computeGeometry('QUADRATIC');
-%             dirichlet_data = obj.mesh.connec';
-            Me = zeros(obj.geometry.interpolation.isoparametric.nnode,obj.geometry.interpolation.isoparametric.nnode,obj.mesh.nelem);
+            Me = zeros(obj.geometry.interpolation.isoparametric.nnode,obj.geometry.interpolation.isoparametric.nnode,obj.nelem);
             
             for igaus=1:obj.geometry.quadrature.ngaus
                 for inode=1:obj.geometry.interpolation.isoparametric.nnode
@@ -146,11 +141,11 @@ classdef Element_DiffReact < Element
     
     methods (Access = protected)
         function FextSuperficial = computeSuperficialFext(obj,bc)
-            FextSuperficial = zeros(obj.nnode*obj.nunkn,1,obj.nelem);
+            FextSuperficial = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);
         end
         
         function FextVolumetric = computeVolumetricFext(obj,bc)
-            FextVolumetric = zeros(obj.nnode*obj.nunkn,1,obj.nelem);
+            FextVolumetric = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);
         end
     end
     

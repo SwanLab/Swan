@@ -1,9 +1,7 @@
 classdef Mesh
     % Class containing the coordinates and connectivities of the mesh
     properties (GetAccess = public,SetAccess = private)
-        % !! More elegant if Physical_Problem & subclasses !!
-        nelem
-        npnod
+        % !! More elegant if Physical_Problem & subclasses !!         
         coord
         connec
         pdim
@@ -23,8 +21,8 @@ classdef Mesh
             obj.geometryType = data.geometry;
             obj.pdim = data.problem_dim;
             obj.ptype = data.problem_type;
-            obj.nelem = length(obj.connec(:,1));
-            obj.npnod = length(obj.coord(:,1));
+            %obj.nelem = length(obj.connec(:,1));
+         %   obj.npnod = length(obj.coord(:,1));
             obj.scale = data.scale;
         end
     end

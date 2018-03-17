@@ -6,9 +6,7 @@ classdef Physical_Problem < FEM
     properties (GetAccess = public, SetAccess = public)
         variables
         mesh
-        dim
         dof
-        bc
         problemID
         element
     end
@@ -29,13 +27,12 @@ classdef Physical_Problem < FEM
                 obj.mesh.ptype = ptype;
             end
             obj.createGeometry(obj.mesh);
-            obj.dim = DIM(obj.mesh.ptype,obj.mesh.pdim);
-            obj.dof = DOF(problemID,obj.geometry,obj.dim,obj.mesh);
             obj.material = Material.create(obj.geometry,obj.mesh);
+            obj.dof = DOF(problemID,obj.geometry,obj.mesh);
         end
         
         function preProcess(obj)
-            obj.element = Element.create(obj.mesh,obj.geometry,obj.material,obj.bc,obj.dof,obj.dim);
+            obj.element = Element.create(obj.mesh,obj.geometry,obj.material,obj.dof);
             obj.solver = Solver.create();
         end
         

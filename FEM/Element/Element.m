@@ -3,24 +3,21 @@ classdef Element < handle
     %   Detailed explanation goes here TEST
     
     properties %(GetAccess = {?Physical_Problem, ?Element_Elastic, ?Element_Thermal, ?Element_Hyperelastic, ?Element_Elastic_2D, ?Element_Elastic_3d, ?Element_Hyperelastic, ?Element_Elastic_Micro}, SetAccess = protected)
-        nunkn
         nstre
         nelem
         nnode
         geometry
         material
         dof
-        bc
-        dim
         uD
         nfields
     end
     
     
     methods (Static)
-        function element = create(mesh,geometry,material,bc,dof,dim)
+        function element = create(mesh,geometry,material,dof)
             
-            nelem = mesh.nelem;
+            nelem = geometry(1).interpolation.nelem;
             ptype = mesh.ptype;
             pdim = mesh.pdim;
             
@@ -34,18 +31,30 @@ classdef Element < handle
                             switch pdim
                                 case '2D'
                                     element = Element_Elastic_2D;
+                                    element.nstre = 3;
                                 case '3D'
                                     element = Element_Elastic_3D;
+                                    element.nstre = 6;
                             end
                         case 'THERMAL'
                             element = Element_Thermal;
+                            element.nstre=2;
                         case 'DIFF-REACT'
-                            %% !! CONSIDER REMOVING MESH !! --> ONLY USED FOR ELUMPED (RESOLVE THIS CASUISTRY)
-                            element = Element_DiffReact(mesh);
+                            element = Element_DiffReact;
+                            element.nstre=2;
                         case 'HYPERELASTIC'
                             element = Element_Hyperelastic();
+                            warning('Please add hyperelastic nstre')
                         case 'Stokes'
-                            element = Element_Stokes;
+                            switch pdim
+                                case '2D'
+                                    element = Element_Stokes;
+                                    element.nstre = 0;
+                                case '3D'
+                                    warning('Stokes 3D element not added')
+                                    %                             obj.dof.nunkn = 3;
+                                    %                             obj.nstre = 6;
+                            end
                         otherwise
                             error('Invalid ptype.')
                     end
@@ -53,16 +62,13 @@ classdef Element < handle
             
             element.nfields = geometry.nfields;
             for ifield=1:element.nfields
-                element.nunkn(ifield) = dim.nunkn(ifield);
                 element.nnode(ifield) = geometry(ifield).interpolation.isoparametric.nnode;
             end
-            element.dim = dim;
-            element.nstre = dim.nstre;
             element.nelem = nelem;
             element.geometry = geometry;
             element.material = material;
             element.dof = dof;
-            element.bc = bc;
+            %element.bc = bc;
             element.assign_dirichlet_values()
         end
     end
@@ -94,7 +100,7 @@ classdef Element < handle
             for ifield = 1:obj.nfields
                 b_elem = b_elem_cell{ifield,1};
                 b = zeros(obj.dof.ndof(ifield),1);
-                for i = 1:obj.nnode(ifield)*obj.nunkn(ifield)
+                for i = 1:obj.nnode(ifield)*obj.dof.nunkn(ifield)
                     c = squeeze(b_elem(i,1,:));
                     idof_elem = obj.dof.in_elem{ifield}(i,:);
                     b = b + sparse(idof_elem,1,c',obj.dof.ndof(ifield),1);
@@ -126,9 +132,9 @@ classdef Element < handle
         function [idx1,idx2,nunkn1,nunkn2,nnode1,nnode2,col,row] = get_assemble_parameters(obj,ifield,jfield)
             idx1 = obj.dof.in_elem{ifield};
             idx2 = obj.dof.in_elem{jfield};
-            nunkn1 = obj.dim.nunkn(ifield);
+            nunkn1 = obj.dof.nunkn(ifield);
             nnode1 = obj.geometry(ifield).interpolation.isoparametric.nnode;
-            nunkn2 = obj.dim.nunkn(jfield);
+            nunkn2 = obj.dof.nunkn(jfield);
             nnode2 = obj.geometry(jfield).interpolation.isoparametric.nnode;
             col = obj.dof.ndof(jfield);
             row = obj.dof.ndof(ifield);

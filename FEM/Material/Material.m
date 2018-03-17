@@ -17,7 +17,7 @@ classdef Material
 %             obj.nelem = nelem;
             ptype=mesh.ptype;
             pdim=mesh.pdim;
-            nelem=mesh.nelem;
+            nelem=geometry(1).interpolation.nelem;
             connec=mesh.connec;
             cartd=geometry(1).cartd;
             nnode=geometry(1).interpolation.isoparametric.nnode;
