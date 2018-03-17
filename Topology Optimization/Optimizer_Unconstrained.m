@@ -1,25 +1,23 @@
-classdef Optimizer_Unconstrained < handle
+classdef Optimizer_Unconstrained < Optimizer
     %Optimizer_Unconstrained Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
         scalar_product
         objfunc
-        target_parameters
         kfrac
         max_constr_change
         opt_cond
         kappa
         kappa_min
-        %         optimality_tol
-        %         constr_tol
-        nconstr
-        stop_vars
-        stop_criteria = 1;
     end
     
     methods
         function obj = Optimizer_Unconstrained(settings,epsilon)
+            obj@Optimizer(settings);
+            
+            %  !! Currently only used for Unconstrained_Optimizers !!
+            % (Move to Optimizer when having not black-box Constrained_Optimizer(s))
             obj.scalar_product = ScalarProduct(settings.filename,epsilon);
         end
     end

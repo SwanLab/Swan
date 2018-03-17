@@ -50,7 +50,7 @@ classdef Settings < handle
                 obj.weights = weights;
                 obj.constraint = constraint;
                 %% RELEASE WHEN TEST --> AS BENCHMARK CASES
-                % obj.nconstr = length(constraint);
+%                 obj.nconstr = length(constraint);
                 obj.optimizer = optimizer;
                 obj.kappaMultiplier = kappaMultiplier;
                 obj.filter = filterType;

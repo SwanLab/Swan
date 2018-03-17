@@ -1,4 +1,4 @@
-classdef Optimizer_IPOPT < Optimizer
+classdef Optimizer_IPOPT < Optimizer_Constrained
     properties
         m
         info
@@ -7,8 +7,8 @@ classdef Optimizer_IPOPT < Optimizer
         optimality_tolerance
     end 
     methods
-        function obj = Optimizer_IPOPT(settings)
-            obj@Optimizer(settings,false);
+        function obj = Optimizer_IPOPT(settings,mesh)
+            obj@Optimizer_Constrained(settings,mesh,false);
             obj.m = settings.nconstr;
             obj.max_iter = 5e3;
         end

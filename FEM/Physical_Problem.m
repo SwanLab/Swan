@@ -17,7 +17,6 @@ classdef Physical_Problem < FEM
     %% Restricted properties definition ===================================
     properties (GetAccess = {?Postprocess,?Physical_Problem_Micro}, SetAccess = protected)
         material
-
     end
     
     %% Public methods definition ==========================================

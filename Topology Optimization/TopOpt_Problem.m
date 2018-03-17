@@ -3,7 +3,6 @@ classdef TopOpt_Problem < handle
         cost
         constraint
         x
-        filter %% !! Remove when scalar product not done in Optimizer
         algorithm
         optimizer
         topOpt_params %% !! Only used for Ksmooth, Msmooth and geom/mesh/dofs (for filters & incremental)
@@ -20,29 +19,25 @@ classdef TopOpt_Problem < handle
             %% !! This should be done in settings class !! --> When tests as benchmark cases
             settings.nconstr = length(settings.constraint);
             
-            obj.cost = Cost(settings,settings.weights);
+            obj.cost = Cost(settings,settings.weights); % Change to just enter settings
             obj.constraint = Constraint(settings);
             
             % This PhysProb is only gonna be used by filters & incremental -> no need of specifying MICRO or MACRO
             % Consider turning it into a more generic class like FEM
             obj.topOpt_params = Physical_Problem(settings.filename,'DIFF-REACT');
             obj.settings = settings;
-            
-            %% !! INCREMENTAL MOVED TO CONSTRUCTOR !! --> ASK OTHERS
-            %  !! Plan B is define setEpsilon in Optimizer, empty for MMA & IPOPT. !!
+
             obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.topOpt_params.mesh);
             switch obj.settings.optimizer
                 case 'SLERP'
-                    obj.optimizer = Optimizer_AugLag(settings,Optimizer_SLERP(settings,obj.incremental_scheme.epsilon));
+                    obj.optimizer = Optimizer_AugLag(settings,obj.topOpt_params.mesh,Optimizer_SLERP(settings,obj.incremental_scheme.epsilon));
                 case 'PROJECTED GRADIENT'
-                    obj.optimizer = Optimizer_AugLag(settings,Optimizer_PG(settings,obj.incremental_scheme.epsilon));
+                    obj.optimizer = Optimizer_AugLag(settings,obj.topOpt_params.mesh,Optimizer_PG(settings,obj.incremental_scheme.epsilon));
                 case 'MMA'
-                    obj.optimizer = Optimizer_MMA(settings);
+                    obj.optimizer = Optimizer_MMA(settings,obj.topOpt_params.mesh);
                 case 'IPOPT'
-                    obj.optimizer = Optimizer_IPOPT(settings);
+                    obj.optimizer = Optimizer_IPOPT(settings,obj.topOpt_params.mesh);
             end
-            obj.filter = Filter.create(obj.settings.filter,obj.settings.optimizer);
-            obj.optimizer.mesh=obj.topOpt_params.mesh; %% !!JUST TO MAKE PLOTTING WORK
         end
         
         function preProcess(obj)
@@ -113,7 +108,6 @@ classdef TopOpt_Problem < handle
             obj.topOpt_params.setDof(dof_filter)
             
             filter_params = obj.getFilterParams(obj.topOpt_params);
-            obj.filter.preProcess(filter_params); % !! REMOVE WHEN SCALAR PRODUCT NOT IN OPTIMIZER !!
             obj.cost.preProcess(filter_params);
             obj.constraint.preProcess(filter_params);
         end

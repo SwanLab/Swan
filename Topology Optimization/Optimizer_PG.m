@@ -11,7 +11,6 @@ classdef Optimizer_PG < Optimizer_Unconstrained
             obj.kappaMultiplier = settings.kappaMultiplier;
             obj.kappa_min = 1e-15;
             obj.max_constr_change = +Inf;
-            obj.nconstr = settings.nconstr;
         end
         
         function optimality_tol = get.optimality_tol(obj)

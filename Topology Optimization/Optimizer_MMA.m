@@ -1,4 +1,4 @@
-classdef Optimizer_MMA < Optimizer
+classdef Optimizer_MMA < Optimizer_Constrained
     properties
         kkttol
         kktnorm
@@ -24,8 +24,8 @@ classdef Optimizer_MMA < Optimizer
         dfdx
     end 
     methods
-        function obj = Optimizer_MMA(settings)
-            obj@Optimizer(settings,settings.monitoring);           
+        function obj = Optimizer_MMA(settings,mesh)
+            obj@Optimizer_Constrained(settings,mesh,settings.monitoring);           
             obj.maxoutit = 1e4;
         end
         function kkttol = get.kkttol(obj)

@@ -11,6 +11,7 @@ classdef ScalarProduct < handle
     methods 
         function obj = ScalarProduct(problemID,epsilon)
             obj.epsilon = epsilon;
+            % Implement DiffReact_Problem instead of Physical with diff-react element
             physProb = Physical_Problem(problemID,'DIFF-REACT');
             physProb.preProcess;
             obj.Ksmooth = physProb.element.computeStiffnessMatrix;
