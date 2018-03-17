@@ -118,7 +118,7 @@ classdef Physical_Problem < FEM
             
             if strcmp(mesh.ptype,'Stokes')
                 obj.geometry=Geometry(mesh,'QUADRATIC');
-                obj.geometry(2)=Geometry(mesh,'LINEAR','QUADRATIC');
+                obj.geometry(2)=Geometry(mesh,'LINEAR');
                 obj.geometry(1).nfields = 2;
             else
                 obj.geometry=Geometry(mesh,'LINEAR');

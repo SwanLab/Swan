@@ -6,6 +6,10 @@ classdef Element_Elastic_2D<Element_Elastic
     end
     
     methods
+        function obj=Element_Elastic_2D(mesh,geometry,material,dof)
+            obj@Element_Elastic(mesh,geometry,material,dof);
+            obj.nstre=3;            
+        end
         function variables = computeVars(obj,uL)
             variables = obj.computeDispStressStrain(uL);
             variables.strain = obj.computeEz(variables.strain,obj.nstre,obj.nelem,obj.material);

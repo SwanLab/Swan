@@ -58,7 +58,7 @@ classdef DOF < handle
             
            for ifield = 1:geometry(1).nfields
                 nunkn = obj.nunkn(ifield);
-                nnode = geometry(ifield).interpolation.isoparametric.nnode;
+                nnode = geometry(ifield).interpolation.nnode;
                 npnod = geometry(ifield).interpolation.npnod;
                 obj.in_elem{ifield} = obj.compute_idx(geometry(ifield).interpolation.T,nunkn,nnode);
 

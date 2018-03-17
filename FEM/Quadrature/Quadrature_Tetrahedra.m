@@ -2,9 +2,6 @@ classdef Quadrature_Tetrahedra<Quadrature
     properties
     end
     methods
-        function obj=Quadrature_Tetrahedra(order)            
-            obj@Quadrature(order);
-        end
         function computeQuadrature(obj,order)
             switch order
                 case 'LINEAR'

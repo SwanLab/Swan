@@ -6,60 +6,42 @@ classdef Geometry<handle
         type
         cartd
         cart_pos_gp
-        shape
         dvolu
         djacob
         interpolation
-        quadrature
         nfields=1;
     end
-    methods (Access = {?Physical_Problem,?Element_DiffReact}) % !! Element_DiffReact -> Chapusilla !!
-        function obj = Geometry(mesh,interp_order,order)
-            if nargin==2
-                order=interp_order;
-            end    
+    methods (Access = {?Physical_Problem,?Element,?Preprocess,?TopOpt_Problem}) % !! Element_DiffReact -> Chapusilla !!
+        function obj = Geometry(mesh,order)          
             obj.type=mesh.geometryType;
-            obj.interpolation=Interpolation(mesh,interp_order);            
-            obj.computeGeometry(order);
+            obj.interpolation=Interpolation.create(mesh,order);
         end
-        function computeGeometry(obj,order)
-            obj.createQuadrature(order);
-            ndime=obj.interpolation.isoparametric.ndime;
-            nnode=obj.interpolation.isoparametric.nnode;
-            ngaus=obj.quadrature.ngaus;
-            nelem=obj.interpolation.nelem;
-            gp_position = zeros(ndime,obj.quadrature.ngaus,nelem);
+        function computeGeometry(obj,quadrature,interp_variable)
+            ndime=interp_variable.ndime;
+            nnode=interp_variable.nnode;
+            ngaus=quadrature.ngaus;
+            nelem=interp_variable.nelem;
+            gp_position = zeros(ndime,ngaus,nelem);
             
-            obj.shape=zeros(nnode,ngaus);
             obj.cartd=zeros(ndime,nnode,nelem,ngaus);
-            for igauss=1:ngaus
-                pos_gp = num2cell(obj.quadrature.posgp(:,igauss));
-                obj.shape(:,igauss) = cell2mat(obj.interpolation.isoparametric.shape(pos_gp{:}));
-                
+            for igauss=1:ngaus                
                 for inode = 1:nnode
                     for idime=1:ndime
-                        x = obj.shape(inode,igauss).*squeeze(obj.interpolation.xpoints(obj.interpolation.T(:,inode),idime));
-                        %                         y = shape(2,igauss).*squeeze(interpolation.xpoints(interpolation.T(inode),2));
+                        x = interp_variable.shape(inode,igauss).*squeeze(interp_variable.xpoints(interp_variable.T(:,inode),idime));
                         gp_position(idime,igauss,:) = squeeze(gp_position(idime,igauss,:))+x;
                     end
                 end
             end
-            
-            %             end
-            
             obj.cart_pos_gp = gp_position;
             for i = 1:ndime
-                a = obj.interpolation.xpoints(:,i);
-                elcoord(:,i,:) = a(permute(obj.interpolation.T',[1,3,2]));
+                a = interp_variable.xpoints(:,i);
+                elcoord(:,i,:) = a(permute(interp_variable.T',[1,3,2]));
             end
             % Gauss loop
             for igauss = 1:ngaus
-                pos_gp = num2cell(obj.quadrature.posgp(1:ndime,igauss));
-                % shape(:,igauss) = cell2mat(interpolation.isoparametric.shape(pos_gp{:}));
-                deriv(:,:,igauss) = cell2mat (obj.interpolation.isoparametric.deriv(pos_gp{:}));
                 for i = 1:ndime
                     % Jacobian
-                    deriv_perm = permute(deriv(i,:,igauss),[2,1,3]);
+                    deriv_perm = permute(interp_variable.deriv(i,:,igauss),[2,1,3]);
                     deriv_perm_large = repmat(deriv_perm,1,ndime,nelem);
                     jacobian(i,:,:) = sum(deriv_perm_large.*elcoord,1);
                 end
@@ -69,45 +51,11 @@ classdef Geometry<handle
                 for i = 1:ndime
                     % Cartesian Derivatives
                     deriv_perm = permute(invJ(i,:,:),[2,1,3]);
-                    deriv_perm_large = repmat(deriv_perm,1,obj.interpolation.isoparametric.nnode,1) .*repmat(deriv(:,:,igauss),1,1,nelem);
+                    deriv_perm_large = repmat(deriv_perm,1,interp_variable.nnode,1) .*repmat(interp_variable.deriv(:,:,igauss),1,1,nelem);
                     obj.cartd(i,:,:,igauss) = sum(deriv_perm_large);
                 end
-                %                 w= num2cell(weigp(igauss));
-                %                 obj.weigp(igauss) =  cell2mat(w{igauss});
-                obj.dvolu(:,igauss) = obj.quadrature.weigp(igauss)*detJ;
+                obj.dvolu(:,igauss) = quadrature.weigp(igauss)*detJ;
                 obj.djacob(:,igauss)= detJ;
-            end
-            % dvolu         
-            
-        end
-        function createQuadrature(obj,order)            
-            switch obj.type             
-                case 'TRIANGLE'
-                    switch order
-                        case 'LINEAR'
-                            obj.quadrature = Quadrature_Triangle(order);
-                        case 'QUADRATIC'
-                            obj.quadrature = Quadrature_Triangle(order);
-                        otherwise
-                            error('Invalid order for quadrature TRIANGLE.');
-                    end
-                case 'QUAD'
-                    switch order
-                        case 'CONSTANT'
-                            
-                        case 'LINEAR'
-                            obj.quadrature = Quadrature_Quadrilateral(order);
-                        case 'QUADRATIC'
-                            obj.quadrature = Quadrature_Quadrilateral(order);
-                        otherwise
-                            error('Invalid order for quadrature QUADRILATERAL.');
-                    end
-                case 'TETRAHEDRA'
-                    obj.quadrature = Quadrature_Tetrahedra(order);
-                case 'HEXAHEDRA'
-                    obj.quadrature = Quadrature_Hexahedra(order);
-                otherwise
-                    error('Invalid mesh type.')
             end
         end
     end

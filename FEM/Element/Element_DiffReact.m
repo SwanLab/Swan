@@ -10,13 +10,19 @@ classdef Element_DiffReact < Element
         K
         M
         epsilon
+        interpolation_u
     end
     
     methods %(Access = ?Physical_Problem)
         function obj = setEpsilon(obj,epsilon)
             obj.epsilon = epsilon;
         end
-        
+        function obj=Element_DiffReact(mesh,geometry,material,dof)
+            obj@Element(geometry,material,dof);
+            obj.nstre=2;
+            obj.nfields=1;
+            obj.interpolation_u=Interpolation.create(mesh,'LINEAR');
+        end
         function [r,dr] = computeResidual(obj,uL)
             % *************************************************************
             % Compute
@@ -51,11 +57,13 @@ classdef Element_DiffReact < Element
         end
         
         function [K] = compute_elem_StiffnessMatrix(obj)
-            
+            obj.quadrature.computeQuadrature('LINEAR');
+            obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
+            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
             % Stiffness matrix
             Ke = zeros(obj.dof.nunkn*obj.nnode,obj.dof.nunkn*obj.nnode,obj.nelem);
             
-            for igaus = 1 :obj.geometry.quadrature.ngaus
+            for igaus = 1 :obj.quadrature.ngaus
                 % Strain-displacement matrix
                 Bmat = obj.computeB(obj.dof.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
                 
@@ -77,17 +85,21 @@ classdef Element_DiffReact < Element
         end
 
         function [M] = compute_elem_MassMatrix(obj,job)            
-            obj.geometry.computeGeometry('QUADRATIC');
-            Me = zeros(obj.geometry.interpolation.isoparametric.nnode,obj.geometry.interpolation.isoparametric.nnode,obj.nelem);
+            obj.quadrature.computeQuadrature('QUADRATIC');
+            obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
+            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
+            Me = zeros(obj.interpolation_u.nnode,obj.interpolation_u.nnode,obj.nelem);
             
-            for igaus=1:obj.geometry.quadrature.ngaus
-                for inode=1:obj.geometry.interpolation.isoparametric.nnode
-                    for jnode=1:obj.geometry.interpolation.isoparametric.nnode
-                        Me(inode,jnode,:)=squeeze(Me(inode,jnode,:)) + 0.5*obj.geometry.quadrature.weigp(igaus)*obj.geometry.shape(inode,igaus)*obj.geometry.shape(jnode,igaus)*obj.geometry.djacob(:,igaus);
+            for igaus=1:obj.quadrature.ngaus
+                for inode=1:obj.interpolation_u.nnode
+                    for jnode=1:obj.interpolation_u.nnode
+                        Me(inode,jnode,:)=squeeze(Me(inode,jnode,:)) + 0.5*obj.quadrature.weigp(igaus)*obj.interpolation_u.shape(inode,igaus)...
+                            *obj.interpolation_u.shape(jnode,igaus)*obj.geometry.djacob(:,igaus);
                     end
                 end
             end
-            
+            obj.quadrature.computeQuadrature('LINEAR');
+            obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
             M = Me;
             
             %% !! ERROR IN QUADRATURE: NGAUS = 1, WHEN THE
@@ -123,7 +135,6 @@ classdef Element_DiffReact < Element
 %                     end
 %                 end
 %             end
-            obj.geometry.computeGeometry('LINEAR');
         end        
     end
     

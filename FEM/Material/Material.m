@@ -20,7 +20,7 @@ classdef Material
             nelem=geometry(1).interpolation.nelem;
             connec=mesh.connec;
             cartd=geometry(1).cartd;
-            nnode=geometry(1).interpolation.isoparametric.nnode;
+            nnode=geometry(1).interpolation.nnode;
             coord=mesh.coord;
             switch ptype
                 case 'ELASTIC'

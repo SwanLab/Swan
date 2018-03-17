@@ -2,9 +2,6 @@ classdef Quadrature_Triangle<Quadrature
     properties
     end
     methods
-        function obj=Quadrature_Triangle(order)            
-            obj@Quadrature(order);
-        end
         function computeQuadrature(obj,order)
             switch order
                 case 'CONSTANT'
