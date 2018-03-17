@@ -13,6 +13,11 @@ classdef Element_DiffReact < Element
     end
     
     methods %(Access = ?Physical_Problem)
+        function obj = Element_DiffReact(geometry,material,dof)
+            obj = obj@Element(geometry,material,dof);
+            obj.nstre = 2;
+        end
+        
         function obj = setEpsilon(obj,epsilon)
             obj.epsilon = epsilon;
         end

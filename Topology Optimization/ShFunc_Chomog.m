@@ -13,7 +13,7 @@ classdef ShFunc_Chomog < Shape_Functional
     methods
         function obj = ShFunc_Chomog(settings)
             obj@Shape_Functional(settings);
-            obj.physicalProblem = Physical_Problem_Micro(settings.filename);
+            obj.physicalProblem = Elastic_Problem_Micro(settings.filename);
             obj.physicalProblem.preProcess;
             obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method);
         end

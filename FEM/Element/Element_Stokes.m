@@ -13,6 +13,7 @@ classdef Element_Stokes < Element
     methods (Access = ?Stokes_Problem)
         function obj = Element_Stokes(geometry,material,dof)
             obj = obj@Element(geometry,material,dof);
+            % obj.nstre = '¿0?';
         end
         
         function [r,dr] = computeResidual(obj,x,dr,x_n)

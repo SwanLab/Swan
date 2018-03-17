@@ -1,5 +1,5 @@
-classdef Physical_Problem_Micro < Physical_Problem
-    %Physical_Problem Summary of this class goes here
+classdef Elastic_Problem_Micro < Elastic_Problem
+    %Elastic_Problem Summary of this class goes here
     %   Detailed explanation goes here
     
     %% Public GetAccess properties definition =============================
@@ -12,8 +12,8 @@ classdef Physical_Problem_Micro < Physical_Problem
     
     %% Public methods definition ==========================================
     methods (Access = public)
-        function obj = Physical_Problem_Micro(problemID)
-            obj@Physical_Problem(problemID);
+        function obj = Elastic_Problem_Micro(problemID)
+            obj@Elastic_Problem(problemID);
             
             % Just to match Ferran's code%%%%%%%%%%%%%%%%%%%
             props.mu=0.375;

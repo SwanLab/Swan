@@ -4,14 +4,14 @@ classdef FEM < handle
     
     %% Public GetAccess properties definition =============================
     properties (GetAccess = public, SetAccess = public)
+        problemID
         geometry
+        mesh
+        dof
+        element
         Fext
         LHS
         variables
-        mesh
-        dof
-        problemID
-        element
     end
     
     %% Restricted properties definition ===================================

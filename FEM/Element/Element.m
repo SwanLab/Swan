@@ -28,8 +28,8 @@ classdef Element < handle
             obj.assign_dirichlet_values;
         end
         
-        function obj = create(geometry,material,dof)
-            nelem = geometry(1).interpolation.nelem;
+%         function obj = create(geometry,material,dof)
+%             nelem = geometry(1).interpolation.nelem;
             
 %             switch mesh.scale
 %                
@@ -58,17 +58,17 @@ classdef Element < handle
 %                             error('Invalid ptype.')
 %                     end
 %             end
-            
-            obj.nfields = geometry.nfields;
-            for ifield=1:obj.nfields
-                obj.nnode(ifield) = geometry(ifield).interpolation.isoparametric.nnode;
-            end
-            obj.nelem = nelem;
-            obj.geometry = geometry;
-            obj.material = material;
-            obj.dof = dof;
-            obj.assign_dirichlet_values;
-        end
+%             
+%             obj.nfields = geometry.nfields;
+%             for ifield=1:obj.nfields
+%                 obj.nnode(ifield) = geometry(ifield).interpolation.isoparametric.nnode;
+%             end
+%             obj.nelem = nelem;
+%             obj.geometry = geometry;
+%             obj.material = material;
+%             obj.dof = dof;
+%             obj.assign_dirichlet_values;
+%         end
     end
     
     

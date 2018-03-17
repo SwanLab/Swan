@@ -9,12 +9,8 @@ classdef ShFunc_Compliance < Shape_Functional
     methods
         function obj = ShFunc_Compliance(settings)
             obj@Shape_Functional(settings);
-            switch settings.ptype
-                case 'MACRO'
-                    obj.physicalProblem = Physical_Problem(settings.filename);
-                case 'MICRO'
-                    obj.physicalProblem = Physical_Problem_Micro(settings.filename);
-            end
+            obj.physicalProblem = FEM.create(settings.filename);
+            
             obj.physicalProblem.preProcess;
             obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method);
         end

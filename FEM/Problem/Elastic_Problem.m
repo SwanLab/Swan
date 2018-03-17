@@ -1,39 +1,29 @@
-classdef Physical_Problem < FEM
-    %Physical_Problem Summary of this class goes here
+classdef Elastic_Problem < FEM
+    %Elastic_Problem Summary of this class goes here
     % Detailed explanation goes here
     
     %% Public GetAccess properties definition =============================
     properties (GetAccess = public, SetAccess = public)
-        variables
-        mesh
-        dof
-        problemID
-        element
     end
     
-    
     %% Restricted properties definition ===================================
-    properties (GetAccess = {?Postprocess,?Physical_Problem_Micro}, SetAccess = protected)
+    properties %(GetAccess = {?Postprocess,?Physical_Problem_Micro}, SetAccess = protected)
         material
     end
     
     %% Public methods definition ==========================================
     methods (Access = public)
-        function obj = Physical_Problem(problemID,ptype)
+        function obj = Elastic_Problem(problemID)
             obj.problemID = problemID;
-            obj.mesh = Mesh(obj.problemID);
-            %% !! REMOVE WHEN FEM FAMILY RE-DEFINED !!
-            if nargin == 2
-                obj.mesh.ptype = ptype;
-            end
+            obj.mesh = Mesh(problemID); % Mesh defined twice, but almost free
             obj.createGeometry(obj.mesh);
-            obj.material = Material.create(obj.geometry,obj.mesh);
             obj.dof = DOF(problemID,obj.geometry,obj.mesh);
+            obj.material = Material.create(obj.geometry,obj.mesh);
         end
         
         function preProcess(obj)
-            obj.element = Element.create(obj.mesh,obj.geometry,obj.material,obj.dof);
-            obj.solver = Solver.create();
+            obj.element = Element_Elastic.create(obj.mesh,obj.geometry,obj.material,obj.dof);
+            obj.solver = Solver.create;
         end
         
         function computeVariables(obj)
@@ -115,15 +105,9 @@ classdef Physical_Problem < FEM
             obj.element.material = obj.material.setProps(props);
         end
         
+        % !! THIS SHOULD BE DEFINED BY THE USER !!
         function createGeometry(obj,mesh)
-            
-            if strcmp(mesh.ptype,'Stokes')
-                obj.geometry = Geometry(mesh,'QUADRATIC');
-                obj.geometry(2) = Geometry(mesh,'LINEAR','QUADRATIC');
-                obj.geometry(1).nfields = 2;
-            else
-                obj.geometry = Geometry(mesh,'LINEAR');
-            end
+            obj.geometry = Geometry(mesh,'LINEAR');
         end
     end
 end

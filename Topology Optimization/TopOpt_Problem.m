@@ -24,7 +24,7 @@ classdef TopOpt_Problem < handle
             
             % This PhysProb is only gonna be used by filters & incremental -> no need of specifying MICRO or MACRO
             % Consider turning it into a more generic class like FEM
-            obj.topOpt_params = Physical_Problem(settings.filename,'DIFF-REACT');
+            obj.topOpt_params = DiffReact_Problem(settings.filename);
             obj.topOpt_params.mesh.scale = 'MACRO'; % Hyper-provisional
             obj.settings = settings;
 
@@ -90,7 +90,7 @@ classdef TopOpt_Problem < handle
         function obj = filters_preProcess(obj)
             obj.topOpt_params.dof.nunkn = 1;
             obj.topOpt_params.mesh.ptype='DIFF-REACT';
-            dof_filter =DOF(obj.topOpt_params.problemID,obj.topOpt_params.geometry,obj.topOpt_params.mesh);
+            dof_filter = DOF(obj.topOpt_params.problemID,obj.topOpt_params.geometry,obj.topOpt_params.mesh);
             switch obj.topOpt_params.mesh.scale
                 case 'MACRO'
                     dof_filter.dirichlet{1} = [];
