@@ -1,5 +1,5 @@
 classdef Incremental_Scheme < handle
-    properties   
+    properties
         settings
         incropt
         coord
@@ -7,6 +7,7 @@ classdef Incremental_Scheme < handle
         epsilon
         epsilon_initial
         epsilon0
+        epsilon_isotropy
     end
     methods
         function obj=Incremental_Scheme(settings, mesh)
@@ -22,14 +23,24 @@ classdef Incremental_Scheme < handle
             obj.incropt.alpha_constr = obj.generate_incr_sequence(0,1,nsteps,'linear');
             obj.incropt.alpha_optimality= obj.generate_incr_sequence(0,1,nsteps,'linear');
             obj.incropt.alpha_epsilon=obj.generate_incr_sequence(0,1,nsteps,'linear');
-            obj.incropt.alpha_epsilon_per = obj.generate_incr_sequence(-1,0,nsteps,'logarithmic');     
+            obj.incropt.alpha_epsilon_per = obj.generate_incr_sequence(-1,0,nsteps,'logarithmic');
+            if strcmp(obj.settings.ptype,'MICRO')
+                obj.incropt.alpha_epsilon_isotropy=obj.generate_incr_sequence(0,1,nsteps,'linear');
+            end
         end
-        function update_target_parameters(obj,t,cost, constraint, optimizer)            
+        function update_target_parameters(obj,t,cost, constraint, optimizer)
             target_parameters.Vfrac = (1-obj.incropt.alpha_vol(t))*obj.settings.Vfrac_initial+obj.incropt.alpha_vol(t)*obj.settings.Vfrac_final;
             target_parameters.epsilon_perimeter = (1-obj.incropt.alpha_epsilon_per(t))*obj.epsilon0+obj.incropt.alpha_epsilon_per(t)*obj.epsilon;
             target_parameters.epsilon = (1-obj.incropt.alpha_epsilon(t))*obj.epsilon_initial+obj.incropt.alpha_epsilon(t)*obj.epsilon;
             target_parameters.constr_tol = (1-obj.incropt.alpha_constr(t))*obj.settings.constr_initial+obj.incropt.alpha_constr(t)*obj.settings.constr_final;
             target_parameters.optimality_tol = (1-obj.incropt.alpha_optimality(t))*obj.settings.optimality_initial+obj.incropt.alpha_optimality(t)*obj.settings.optimality_final;
+           
+            % TO BE DISCUSSED IN MEETING %%%%%%%%
+            if strcmp(obj.settings.ptype,'MICRO')
+                target_parameters.epsilon_isotropy = (1-obj.incropt.alpha_epsilon_isotropy(t))*obj.settings.epsilon_isotropy_initial+obj.incropt.alpha_epsilon_isotropy(t)*obj.settings.epsilon_isotropy_final;
+            end
+            %%%%%%%%%%%%%%%%%%%%%%%%%%
+            
             cost.target_parameters=target_parameters;
             constraint.target_parameters=target_parameters;
             optimizer.target_parameters=target_parameters;
@@ -82,5 +93,5 @@ classdef Incremental_Scheme < handle
             
         end
     end
-
+    
 end

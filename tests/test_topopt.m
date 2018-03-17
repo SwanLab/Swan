@@ -5,7 +5,7 @@ clear; close all;
 fprintf('Running TopOpt tests...\n')
 
 %% Test Declaration -------------------------------------------------------
-tests_topopt={'test_cantilever','test_gripping'};
+tests_topopt={'test_cantilever','test_gripping','test_micro'};
 
 %% Run Top Opt Tests ------------------------------------------------------
 for i=1:length(tests_topopt)
@@ -21,9 +21,9 @@ for i=1:length(tests_topopt)
     obj.computeVariables;
     error = norm(obj.x - x)/norm(x);
     if error < 1e-6
-        disp(strcat(file_name,' PASSED'));
+        cprintf('green',strcat(file_name,' PASSED\n'));
     else
-        warning('%s FAILED. Error: %.2e',file_name,error);
+        cprintf('err',strcat(file_name,' FAILED\n'));
     end
     toc
 end

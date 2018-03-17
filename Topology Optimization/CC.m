@@ -27,6 +27,17 @@ classdef CC < handle
                         obj.ShapeFuncs{iSF} = ShFunc_Chomog_alphabeta(settings_this);
                     case 'chomog_fraction'
                         obj.ShapeFuncs{iSF} = ShFunc_Chomog_fraction(settings_this);
+                    case 'chomog_CC'
+                        obj.ShapeFuncs{iSF} = ShFunc_Chomog_CC(settings_this);
+                    case 'enforceCh_CCstar'
+                        for i=1:6
+                            EnforceCh=ShFunc_Chomog_EnforceCh_CCstar(settings_this,i);
+                            if isequal(i,5) || isequal(i,4)
+                                EnforceCh.setEpsilon(0);
+                            end
+                            obj.ShapeFuncs{iSF}=EnforceCh;
+                            iSF = iSF+1;
+                        end
                     case 'nonadjoint_compliance'
                         obj.ShapeFuncs{iSF} = ShFunc_NonSelfAdjoint_Compliance(settings_this);
                     case 'volume'
@@ -35,6 +46,7 @@ classdef CC < handle
                         error('Wrong cost name or not added to Cost Object')
                 end
             end
+            obj.nSF = length(obj.ShapeFuncs);
         end
         
         function preProcess(obj,params)

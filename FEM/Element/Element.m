@@ -25,6 +25,7 @@ classdef Element < handle
                 
                 case 'MICRO'
                     element = Element_Elastic_2D_Micro;
+                    element.nstre = 3;
                 case 'MACRO'
                     switch ptype
                         case 'ELASTIC'
@@ -76,11 +77,11 @@ classdef Element < handle
     
     methods
         function Fext = computeExternalForces(obj)
-            FextSuperficial = obj.computeSuperficialFext();
-            FextVolumetric  = obj.computeVolumetricFext ();
+            FextSuperficial = obj.computeSuperficialFext;
+            FextVolumetric  = obj.computeVolumetricFext;
             FextSupVol = {FextSuperficial + FextVolumetric};
             FextSupVol = obj.AssembleVector(FextSupVol);
-            FextPoint = obj.computePunctualFext();
+            FextPoint = obj.computePunctualFext;
             Fext = FextSupVol +  FextPoint;
         end
         
@@ -89,8 +90,8 @@ classdef Element < handle
         %******************************************************************
         function FextPoint = computePunctualFext(obj)
             %Compute Global Puntual Forces (Not well-posed in FEM)
-            if ~isempty(obj.dof.neumann)
-                FextPoint = zeros(obj.dof.ndof,1);
+            FextPoint = zeros(obj.dof.ndof,1);
+            if ~isempty(obj.dof.neumann)                
                 FextPoint(obj.dof.neumann) = obj.dof.neumann_values;
             end
         end

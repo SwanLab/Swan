@@ -68,6 +68,7 @@ classdef Physical_Problem < FEM
             x0 = zeros(total_free_dof,1);
             
             r = obj.element.computeResidual(x0,dr);
+            x = x0;
                 while dot(r,r) > tol
                     inc_x = obj.solver.solve(dr,-r);
                     x = x0 + inc_x;
@@ -75,7 +76,11 @@ classdef Physical_Problem < FEM
                     r = obj.element.computeResidual(x,dr);
                     x0 = x;
                 end
-            sol=x;
+                try
+            sol = x;
+                catch
+                    disp('eis')
+                end
         end
 
         function sol = solve_transient_problem(obj,free_dof,tol,dt,final_time)

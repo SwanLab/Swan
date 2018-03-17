@@ -15,4 +15,4 @@ test = TopOpt_Problem(settings);
 test.preProcess;
 test.computeVariables;
 toc
-test.postProcess;
+% test.postProcess;

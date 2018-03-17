@@ -1,13 +1,15 @@
-%==================================================================
+%==========================================================================
 %                        General Data File
-% Title: TETRAHEDRA
+% Title: TRIANGLE
 % Units: SI
 % Dimensions: 2D
 % Type of problem: Plane_Stress
 % Type of Phisics: ELASTIC
 % Micro/Macro: MICRO
 %
-%==================================================================
+%==========================================================================
+
+%% Data
 
 Data_prb = {
     'TRIANGLE';
@@ -17,7 +19,6 @@ Data_prb = {
     'ELASTIC';
     'MICRO';
     };
-
 
 
 coord = [
@@ -3304,8 +3305,10 @@ coord = [
     3281            0            1            0
     ];
 
-%% Conectivities
-% Element        Node(1)                Node(2)                Node(3)    
+pointload = [
+    ];
+
+
       
 connec = [
     1 2430 2485 2550
@@ -9726,7 +9729,8 @@ dirichlet_data = [3281 1 0
 %% Force Prescribed
 % Node                Dimension                Value
 
-pointload_complete = [    
+pointload_complete = [
+    
 ];
 
 %% Volumetric Force
