@@ -25,7 +25,7 @@ classdef Optimizer < handle
     end
     
     methods (Abstract)
-        x = updateX(obj,x_ini,cost,constraint);
+        % x = updateX(obj,x_ini,cost,constraint); %% !! IPOPT doesn't use it (black box) !!
     end
     
     methods (Access = protected)

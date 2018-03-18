@@ -7,7 +7,7 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 clear variables;
 
 %% Settings
-settings = Settings('CantileverQuadrilateral_Case_2_1_1');
+settings = Settings('CantileverTriangle_Case_2_1_3');
 
 %% Main
 tic
@@ -15,4 +15,4 @@ test = TopOpt_Problem(settings);
 test.preProcess;
 test.computeVariables;
 toc
-test.postProcess;
+% test.postProcess;
