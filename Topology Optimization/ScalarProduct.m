@@ -13,6 +13,7 @@ classdef ScalarProduct < handle
             obj.epsilon = epsilon;
             % Implement DiffReact_Problem instead of Physical with diff-react element
             physProb = Physical_Problem(problemID,'DIFF-REACT');
+            physProb.mesh.scale='MACRO';
             physProb.preProcess;
             obj.Ksmooth = physProb.element.computeStiffnessMatrix;
             obj.Msmooth = physProb.element.computeMassMatrix(2);

@@ -25,7 +25,7 @@ classdef TopOpt_Problem < handle
             % This PhysProb is only gonna be used by filters & incremental -> no need of specifying MICRO or MACRO
             % Consider turning it into a more generic class like FEM
             obj.topOpt_params = Physical_Problem(settings.filename,'DIFF-REACT');
-            obj.topOpt_params.mesh.scale = 'MACRO'; % Hyper-provisional
+            obj.topOpt_params.mesh.scale= 'MACRO'; % Hyper-provisional
             obj.settings = settings;
 
             obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.topOpt_params.mesh);
@@ -63,11 +63,10 @@ classdef TopOpt_Problem < handle
             % Video creation
             if obj.settings.printing
                 gidPath = 'C:\Program Files\GiD\GiD 13.0.2';% 'C:\Program Files\GiD\GiD 13.0.3';
-                files_name = obj.settings.filename;
-                files_folder = fullfile(pwd,'Output');
+                files_name = obj.settings.case_file;
+                files_folder = fullfile(pwd,'Output',obj.settings.case_file);
                 iterations = 0:obj.optimizer.niter;
-                video_name = strcat('./Videos/Video_',obj.settings.ptype,'_',obj.settings.optimizer,'_',obj.settings.method,'_',int2str(obj.settings.nsteps) ...
-                    ,'_0dot',int2str(10*obj.settings.Vfrac_final),'_',int2str(obj.optimizer.niter),'.gif');
+                video_name = strcat('./Videos/Video_',obj.settings.case_file,'_',int2str(obj.optimizer.niter),'.gif');
                 My_VideoMaker = VideoMaker_TopOpt.Create(obj.settings.optimizer);
                 My_VideoMaker.Set_up_make_video(gidPath,files_name,files_folder,iterations)
                 %
@@ -89,7 +88,7 @@ classdef TopOpt_Problem < handle
         
         function obj = filters_preProcess(obj)
             dof_filter =DOF(obj.topOpt_params.problemID,obj.topOpt_params.geometry,obj.topOpt_params.mesh);
-            switch obj.topOpt_params.mesh.scale
+            switch obj.settings.ptype
                 case 'MACRO'
                     dof_filter.dirichlet{1} = [];
                     dof_filter.dirichlet_values{1} = [];
@@ -102,8 +101,8 @@ classdef TopOpt_Problem < handle
                     dof_filter.dirichlet_values = [];
                     dof_filter.neumann = [];
                     dof_filter.neumann_values  = [];
-                    dof_filter.constrained{1} = [];
-                    dof_filter.free = dof_filter.compute_free_dof(1);
+                    dof_filter.constrained{1} = dof_filter.compute_constrained_dof(obj.settings.ptype,1);
+                    dof_filter.free{1} = dof_filter.compute_free_dof(1);
             end
             obj.topOpt_params.setDof(dof_filter)
             
@@ -169,6 +168,12 @@ classdef TopOpt_Problem < handle
                 case 'full'
                 otherwise
                     error('Initialize design variable case not detected.');
+                    
+            end
+            %% PROVISIONAL 
+            if strcmp(obj.settings.optimizer,'SLERP')
+               sqrt_norma = obj.optimizer.optimizer_unconstr.scalar_product.computeSP(obj.x,obj.x);
+               obj.x = obj.x/sqrt(sqrt_norma);
             end
         end
     end

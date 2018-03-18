@@ -14,11 +14,13 @@ classdef Optimizer < handle
         printing
         monitoring
         mesh
+        case_file
     end
     
     methods
         function obj = Optimizer(settings)
             obj.nconstr = settings.nconstr;
+            obj.case_file=settings.case_file;
             obj.target_parameters = settings.target_parameters;
         end
         
@@ -29,15 +31,17 @@ classdef Optimizer < handle
     end
     
     methods (Access = protected)
-        function print(obj,design_variable,design_variable_reg,iter)
+        function print(obj,design_variable,iter)
             if ~(obj.printing)
                 return
             end
             postprocess = Postprocess_TopOpt.Create(obj.optimizer);
-            results.physicalVars = obj.physicalProblem.variables;
+            %results.physicalVars = obj.physicalProblem.variables;
             results.design_variable = design_variable;
-            results.design_variable_reg = design_variable_reg;
-            postprocess.print(obj.physicalProblem,obj.physicalProblem.problemID,iter,results);
+            results.iter=iter;
+            results.case_file=obj.case_file;
+            %results.design_variable_reg = design_variable_reg;
+            postprocess.print(obj.mesh,results);
         end
         
         function plotX(obj,x)

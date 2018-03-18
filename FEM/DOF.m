@@ -89,6 +89,9 @@ classdef DOF < handle
     methods
         
         function constrained = compute_constrained_dof(obj,scale,ifield)
+            if isempty(obj.dirichlet)
+                obj.dirichlet{ifield}=[];
+            end
             switch scale
                 case 'MICRO'
                     constrained = [obj.periodic_constrained;obj.dirichlet{ifield}];

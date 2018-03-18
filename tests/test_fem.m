@@ -9,8 +9,8 @@ fprintf('Running FEM tests...\n')
 tests_fem = {'test2d_triangle';
     'test2d_quad';
     'test2d_stokes_triangle';
-    'test3d_tetrahedra';
     'test2d_micro';
+    'test3d_tetrahedra';
     'test3d_hexahedra'
     };
 

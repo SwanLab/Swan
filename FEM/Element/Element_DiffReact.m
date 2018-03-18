@@ -85,7 +85,7 @@ classdef Element_DiffReact < Element
         end
 
         function [M] = compute_elem_MassMatrix(obj,job)            
-            obj.quadrature.computeQuadrature('QUADRATIC');
+            obj.quadrature.computeQuadrature('QUADRATICMASS');
             obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
             Me = zeros(obj.interpolation_u.nnode,obj.interpolation_u.nnode,obj.nelem);
@@ -93,13 +93,16 @@ classdef Element_DiffReact < Element
             for igaus=1:obj.quadrature.ngaus
                 for inode=1:obj.interpolation_u.nnode
                     for jnode=1:obj.interpolation_u.nnode
-                        Me(inode,jnode,:)=squeeze(Me(inode,jnode,:)) + 0.5*obj.quadrature.weigp(igaus)*obj.interpolation_u.shape(inode,igaus)...
+                        Me(inode,jnode,:)=squeeze(Me(inode,jnode,:)) + obj.quadrature.weigp(igaus)*obj.interpolation_u.shape(inode,igaus)...
                             *obj.interpolation_u.shape(jnode,igaus)*obj.geometry.djacob(:,igaus);
                     end
                 end
             end
+            %% PENDING TO BE REMOVED AS SOON AS PHYSPROBLEM FAMILIY IS IMPLEMENTED
             obj.quadrature.computeQuadrature('LINEAR');
             obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
+            %% !!!!!!!!!!!!!!!!!!!!
+            
             M = Me;
             
             %% !! ERROR IN QUADRATURE: NGAUS = 1, WHEN THE

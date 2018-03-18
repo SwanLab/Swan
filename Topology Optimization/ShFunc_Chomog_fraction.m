@@ -1,5 +1,5 @@
 classdef ShFunc_Chomog_fraction < ShFunc_Chomog
-    properties (Access = private)
+    properties (Access = public)
         alpha
         beta
     end
