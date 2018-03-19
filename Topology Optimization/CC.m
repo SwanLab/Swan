@@ -30,7 +30,7 @@ classdef CC < handle
                     case 'chomog_CC'
                         obj.ShapeFuncs{iSF} = ShFunc_Chomog_CC(settings_this);
                     case 'enforceCh_CCstar'
-                        for i=1:6
+                        for i = 1:6
                             EnforceCh=ShFunc_Chomog_EnforceCh_CCstar(settings_this,i);
                             if isequal(i,5) || isequal(i,4)
                                 EnforceCh.setEpsilon(0);
@@ -64,6 +64,7 @@ classdef CC < handle
                 obj.updateFields(iSF);
             end
         end
+        
         function updateTargetParameters(obj,iSF)
             obj.ShapeFuncs{iSF}.target_parameters = obj.target_parameters;
             if isprop(obj.ShapeFuncs{iSF}.filter,'epsilon')
