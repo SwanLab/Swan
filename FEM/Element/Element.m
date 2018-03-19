@@ -21,12 +21,12 @@ classdef Element<handle
         nincr
         cload
         uD
+%         lambda_i
     end
     
     
     methods (Access = ?Physical_Problem, Static)
         function element = create(mesh,geometry,material,bc,dof,dim)
-            
             nelem = mesh.nelem;
             ptype = mesh.ptype;
             pdim = mesh.pdim;
@@ -48,10 +48,9 @@ classdef Element<handle
                             element = Element_Thermal;
                         case 'HYPERELASTIC'
                             switch pdim
-                                case '2D'
-                                    element = Element_Hyperelastic_2D(geometry);
-                                case '3D'
-                                    element = Element_Hyperelastic_3D(geometry);
+                                case {'2D','3D'}
+%                                     element = Element_NeoHookean(geometry);
+                                    element = Element_SaintVenant(geometry);
                             end
                         otherwise
                             error('Invalid ptype.')
@@ -74,7 +73,13 @@ classdef Element<handle
             element.computeExternalForces();
             
             % Create force increment.
-            element.fincr = element.Fext/element.nincr;
+%             element.lambda_i = 0;
+%             element.cload = element.lambda_i*element.Fext;
+
+            global test
+            if exist('test','var') == 1
+%                 fprintf('FEM-MAT-OO\n\nGeneral\n- force\t%f\n- incrm\t%d\n- model\t%s\n- elements\t%d\n\nMaterial\n- \x03bc\t%f\n- \x03bb\t%f\n\n',element.fincr(element.dof.neumann(1))*element.nincr,element.nincr,class(element),element.nelem,element.material.mu,element.material.lambda);
+            end
         end
     end
     

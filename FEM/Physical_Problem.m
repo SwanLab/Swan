@@ -38,58 +38,120 @@ classdef Physical_Problem < FEM
         
         function computeVariables(obj)
             tol   = 1e-12;
-            x     = zeros(length(obj.dof.free),1);
-            inc_x = zeros(length(obj.dof.free),1);
+            x     = zeros(length(obj.dof.free),1); % acumulada
+            x_i   = zeros(length(obj.dof.free),1);
             miter = 1e5;
+            lambda_i = 0;
             
-            for incrm = 1:obj.element.nincr
-                niter = 1;
-                obj.element.cload = obj.element.cload + obj.element.fincr;
-                [r,dr] = obj.element.computeResidual(inc_x);
-                error = 1;
-                while error > tol && niter <= miter
+            
+            for incrm = 1:obj.element.nincr     % i
+                niter = 1;                      % k
 
+                lambda_i = lambda_i + 1/obj.element.nincr;
+                
+                [r,dr,K,fint] = obj.element.computeResidual(x_i,lambda_i);
+                error = 1;
+                lambda_k = lambda_i;
+                x_k = x_i;
+                while error > tol && niter <= miter
+                    % *****************************************************
+                    
+                    R = fint(obj.dof.constrained) - lambda_k*obj.element.fext(obj.dof.constrained);
+                    uR = K(obj.dof.constrained,obj.dof.constrained)\R;
+                    uF = -K(obj.dof.free,obj.dof.free)\obj.element.fext(obj.dof.free);
+                    
+                    inc_lambda_k = lambda_k - lambda_i; % inc_lambda_k=0 en primera iter de k
+                    inc_xk = x_k - x_i;
+                    
+                    Psi = 1;
+                    
+                    s_k = [inc_xk;inc_lambda_k*Psi*obj.element.fext];
+                    s = norm(s_k);
+
+                    a1 = uF'*uF + Psi^2*obj.element.fext'*obj.element.fext;
+                    a2 = 2*uF'*(inc_xk+uR) + 2*inc_lambda_k*Psi^2*obj.element.fext'*obj.element.fext;
+                    a3 = uR'*(2*inc_xk+uR) + inc_xk'*inc_xk - s^2;
+
+                    poly2 = [a1 a2 a3];
+                    gamma = roots(poly2);
+                    
+                    u_1 = uR + gamma(1)*uF;
+                    u_2 = uR + gamma(2)*uF;
+                    
+                    s_k1_1 = [inc_xk+u_1; (inc_lambda_k+gamma(1))*Psi*obj.element.fext];
+                    s_k1_2 = [inc_xk+u_2; (inc_lambda_k+gamma(2))*Psi*obj.element.fext];
+                    
+                    theta_1= acosd(dot(s_k,s_k1_1)/s^2);
+                    theta_2= acosd(dot(s_k,s_k1_2)/s^2);
+                    theta = [theta_1 theta_2];
+                    
+                    [~,j] = min(theta);
+                    gamma = gamma(j);
+                    
+                    u_k = uR + gamma*uF;
+                    lambda_k = lambda_k + gamma;
+                    inc_lambda_k = inc_lambda_k + gamma;
+                    inc_xk = inc_xk + u_k;
+                    x_k = x_k + u_k;
+                    
+                    % *****************************************************
                     % Solve
-                    inc_x = obj.solver.solve(dr,-r);
+%                     x_k = obj.solver.solve(dr,-r);
                     
                     % Updates
-                    x = x + inc_x;
+                    x = x + x_k;
                     
                     % Compute new r & dr
-                    [r,dr] = obj.element.computeResidual(inc_x);
+                    [r,dr,K,fint] = obj.element.computeResidual(x_k,lambda_k);
                     
-                    error = norm(r)/norm(obj.element.cload);
+                    error = norm(r)/norm(obj.element.fext);
                     errcont(incrm,niter) = error;
                     niter = niter + 1;
-                    
                 end
-%                 nn(incrm) = niter-1;
-%                 fprintf('Increment: %d Iters: %d\n',incrm,niter);
-%                 u = reshape(inc_x,2,[])';
-%                 un(incrm) = u(1,1);
-%                 xn(incrm) = obj.element.coord(4,1);
-%                 fn(incrm) = obj.element.cload(obj.dof.free(1));
+%                 x_i = x_k;
+%                 lambda_i = lambda_k;
+                
+                
+                global test
+                if exist('test','var') == 1
+                    nn(incrm) = niter-1;
 
+                    gid_elem_pos = 4; %6
+                    gid_dime_pos = 1; % X Y Z 2
+
+                    xn(incrm) = obj.element.coord(gid_elem_pos,gid_dime_pos);
+                    gid_id = gid_elem_pos*obj.geometry.ndime-obj.geometry.ndime+gid_dime_pos;
+                    fn(incrm) = obj.element.fext(gid_id);
+
+                    %% Plot
+                    xlabel('X displacement [m]')
+                    set(gcf,'Color','w')
+
+                    % Left
+                    yyaxis left
+                    plot(xn,fn,'*')
+                    ylabel('Force [N]')
+                    set(gca,'FontSize',15)
+
+                    % Right
+                    yyaxis right
+                    plot(xn,nn,'o-')
+                    ylabel('Iterations')
+                    set(gca,'FontSize',15)
+
+                    % Update
+                    drawnow;
+                end
             end
             
-%             % Convergence
-%             Xcoord = log(errcont(end,1:niter-2));
-%             Ycoord = log(errcont(end,2:niter-1));
-%             [a,~] = polyfit(Xcoord,Ycoord,1);
-%             fprintf('Convergence order, p: %d\nRatio, mu: %d\n\n',a(1),a(2));
-%             
-%             % Figures
-%             figure;
-%             [hAx,hLine1,hLine2] = plotyy(xn,fn,xn,nn,'plot','stairs');
-%             hLine1.LineStyle = '-';
-%             hLine1.Marker = '+';
-%             xlabel('X displacement [m]')
-%             ylabel(hAx(1),'Force [N]')
-%             ylabel(hAx(2),'Iterations')
-%             set(gcf,'Color','w')
-%             set(hAx(1),'FontSize',15)
-%             set(hAx(2),'FontSize',15)
-            
+            % Convergence
+            if exist('test','var') == 1
+            Xcoord = log(errcont(end,1:niter-2));
+            Ycoord = log(errcont(end,2:niter-1));
+            [a,~] = polyfit(Xcoord,Ycoord,1);
+            fprintf('Convergence order, p: %d\nRatio, mu: %d\n\n',a(1),a(2));
+            end
+                        
             obj.variables = obj.element.computeVars(x);
         end
         
@@ -103,15 +165,15 @@ classdef Physical_Problem < FEM
         
         
         function postProcess(obj)
-        %    ToDo
-        % Inspire in TopOpt
-        
+            %    ToDo
+            % Inspire in TopOpt
+            
         end
         
         function setDof(obj,dof)
             obj.dof = dof;
         end
-            
+        
         
         function setMatProps(obj,props)
             obj.element.material = obj.material.setProps(props);
@@ -187,8 +249,8 @@ classdef Physical_Problem < FEM
             bc_smooth.fixnodes = [];
             
             dof_smooth = DOF(obj.problemID,obj.geometry.nnode,obj.mesh.connec,...
-                             dim_smooth.nunkn,obj.mesh.npnod,mesh_smooth.scale);
-           
+                dim_smooth.nunkn,obj.mesh.npnod,mesh_smooth.scale);
+            
             dof_smooth.neumann = [];
             dof_smooth.dirichlet = [];
             dof_smooth.neumann_values = [];
@@ -200,9 +262,9 @@ classdef Physical_Problem < FEM
             
             
             element_smooth = Element.create(mesh_smooth,obj.geometry,obj.material,obj.bc,dof_smooth,dim_smooth);
-
+            
             [K] = element_smooth.computeStiffnessMatrix;
-
+            
         end
     end
     

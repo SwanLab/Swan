@@ -15,8 +15,8 @@ classdef Material_Elastic < Material
     methods (Access = protected)
         function obj = Material_Elastic(nelem)
             obj@Material(nelem);
-            obj.kappa  = .9107;
-            obj.mu     = .3446;
+            obj.kappa  = .9107; %7.73992e10
+            obj.mu     = .3446; %2.6315e10;
             obj.lambda = obj.kappa-obj.mu;
         end
     end

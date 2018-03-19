@@ -28,10 +28,8 @@ classdef Material
                     
                 case 'HYPERELASTIC'
                     switch pdim
-                        case '2D'
-                            material = Material_Hyperelastic_2D(nelem,connec,cartd,nnode,coord);
-                        case '3D'
-                            material = Material_Hyperelastic_3D(nelem,connec,cartd,nnode,coord);
+                        case {'2D','3D'}
+                            material = Material_Hyperelastic(nelem);
                     end
                     
                 case 'THERMAL'

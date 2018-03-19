@@ -10,7 +10,7 @@ classdef Element_Elastic < Element
     methods %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
         function obj = Element_Elastic()
             obj.nincr = 1;
-            obj.cload = 0;
+%             obj.cload = 0;
         end
         
         function [r,dr] = computeResidual(obj,x)

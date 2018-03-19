@@ -1,13 +1,17 @@
 clear all; close all; clc
 %% TEST
-% -
+%
+% Material Lame Parameters
+% kappa = .9107
+% mu = .3446
+%
 
 % Load the results for 2-d and 3-d tests
 tests_fem={'test2d_triangle';
     'test2d_quad';
     'test3d_hexahedra';
     'test3d_tetrahedra';
-    'test2d_triangle_hyperelastic'};
+    'test2d_triangle_neo'};
 % Parent directory
 [parentdir,~,~] = fileparts(mfilename('fullpath'));
 

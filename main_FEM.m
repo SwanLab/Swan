@@ -13,14 +13,18 @@ addpath(genpath(fileparts(mfilename('fullpath'))))
 %% test
 
 % run('test_fem.m')
-% test
 clear variables
+global test
+test = 1;
 %% Main.m
-triangle_linear = Physical_Problem('CantileverToy_Triangular');
-% triangle_linear = Physical_Problem('CantileverToy_Nonlinear');
+% triangle_linear = Physical_Problem('CantileverToy_Triangular');
+triangle_linear = Physical_Problem('CantileverToy_Nonlinear');
 % triangle_linear = Physical_Problem('strip_hole');
-% triangle_linear = Physical_Problem('tetra2_hyperelastic');
-% triangle_linear = Physical_Problem('quad_hyperelastic');
+% triangle_linear = Physical_Problem('tetra3_hyperelastic');
+
+% triangle_linear = Physical_Problem('quad_f');
+
+% triangle_linear = Physical_Problem('tetra_f_beam');
 
 tic
 triangle_linear.preProcess;
