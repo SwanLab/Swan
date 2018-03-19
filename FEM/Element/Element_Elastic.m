@@ -12,15 +12,12 @@ classdef Element_Elastic < Element
             switch mesh.scale
                 case 'MICRO'
                     obj = Element_Elastic_2D_Micro(geometry,material,dof);
-                    obj.nstre = 3;
                 case 'MACRO'
                     switch mesh.pdim
                         case '2D'
-                            obj = Element_Elastic_2D(geometry,material,dof);
-                            obj.nstre = 3;
+                            obj = Element_Elastic_2D(geometry,material,dof);                            
                         case '3D'
                             obj = Element_Elastic_3D(geometry,material,dof);
-                            obj.nstre = 6;
                     end
             end
         end

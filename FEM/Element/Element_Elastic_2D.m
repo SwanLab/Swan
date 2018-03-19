@@ -8,6 +8,7 @@ classdef Element_Elastic_2D<Element_Elastic
     methods
         function obj = Element_Elastic_2D(geometry,material,dof)
             obj = obj@Element_Elastic(geometry,material,dof);
+            obj.nstre = 3;
         end
         
         function variables = computeVars(obj,uL)

@@ -18,9 +18,11 @@ classdef Element < handle
         function obj = Element(geometry,material,dof)
             nelem = geometry(1).interpolation.nelem;
             obj.nfields = geometry.nfields;
+            
             for ifield=1:obj.nfields
                 obj.nnode(ifield) = geometry(ifield).interpolation.isoparametric.nnode;
             end
+            
             obj.nelem = nelem;
             obj.geometry = geometry;
             obj.material = material;
