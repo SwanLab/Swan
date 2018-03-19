@@ -3,7 +3,7 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 
 %% Test
 run('test_fem.m');
-run('test_topopt.m');
+% run('test_topopt.m');
 clear variables;
 
 %% Settings
@@ -15,4 +15,4 @@ test = TopOpt_Problem(settings);
 test.preProcess;
 test.computeVariables;
 toc
-% test.postProcess;
+test.postProcess;

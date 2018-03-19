@@ -2,12 +2,14 @@ classdef DOF < handle
     %DOF Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (GetAccess = {?Physical_Problem, ?Element, ?Solver}, SetAccess = private)
-        
-    end
-    properties (GetAccess = {?Physical_Problem, ?Element}, SetAccess = private)
-        
-    end
+%     properties (GetAccess = {?Physical_Problem, ?Element, ?Solver}, SetAccess = private)
+%         
+%     end
+%     
+%     properties (GetAccess = {?Physical_Problem, ?Element}, SetAccess = private)
+%         
+%     end
+    
     properties (GetAccess = public)
         dirichlet_values
         neumann_values
@@ -29,7 +31,7 @@ classdef DOF < handle
             
             for ifield = 1:geometry(1).nfields
                 nunkn = obj.nunkn(ifield);
-                nnode = geometry(ifield).interpolation.isoparametric.nnode;
+                nnode = geometry(ifield).interpolation.nnode;
                 npnod = geometry(ifield).interpolation.npnod;
                 obj.in_elem{ifield} = obj.compute_idx(geometry(ifield).interpolation.T,nunkn,nnode);
                 
@@ -51,7 +53,6 @@ classdef DOF < handle
     end
     
     methods
-        
         function constrained = compute_constrained_dof(obj,ifield)
             % MACRO scale assumed by default. In MICRO re-defined.
             constrained = obj.dirichlet{ifield};
@@ -177,10 +178,6 @@ classdef DOF < handle
             H2 = L(I);
             Master_slave_nodes = [V1 H1; V2 H2]; % lista de nodos
         end
-        
-        
     end
-    
-    
 end
 

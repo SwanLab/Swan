@@ -9,10 +9,11 @@ fprintf('Running FEM tests...\n')
 tests_fem = {'test2d_triangle';
     'test2d_quad';
     'test2d_stokes_triangle';
+    'test2d_micro';
     'test3d_tetrahedra';
-%     'test3d_hexahedra';
-    'test3d_tetrahedra';
-    'test2d_micro'};
+    'test3d_hexahedra'
+    };
+
 
 %% Run FEM Tests ----------------------------------------------------------
 for i=1:length(tests_fem)
@@ -51,5 +52,3 @@ for i=1:length(tests_fem)
     end
     
 end
-fprintf('\nFEM tests completed.\n')
-fprintf('\n-------------------------------------------\n\n')

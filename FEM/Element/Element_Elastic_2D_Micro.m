@@ -5,11 +5,11 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
     end
     
     methods
-        function obj = Element_Elastic_2D_Micro(geometry,material,dof)
-            obj = obj@Element_Elastic_2D(geometry,material,dof);
+        function obj = Element_Elastic_2D_Micro(mesh,geometry,material,dof)
+            obj = obj@Element_Elastic_2D(mesh,geometry,material,dof);
             obj.nstre = 3;
         end
-        
+
         function variables = computeVars(obj,uL)
             variables = computeVars@Element_Elastic_2D(obj,uL);
             
@@ -17,12 +17,12 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
             variables.strain_fluct = variables.strain;
             Cmat = obj.material.C;
             
-            variables.stress = zeros(obj.geometry.quadrature.ngaus,obj.nstre,obj.nelem);
-            variables.strain = zeros(obj.geometry.quadrature.ngaus,obj.nstre,obj.nelem);
+            variables.stress = zeros(obj.quadrature.ngaus,obj.nstre,obj.nelem);
+            variables.strain = zeros(obj.quadrature.ngaus,obj.nstre,obj.nelem);
             variables.stress_homog = zeros(obj.nstre,1);
             vol_dom = sum(sum(obj.geometry.dvolu));
             
-            for igaus = 1:obj.geometry.quadrature.ngaus
+            for igaus = 1:obj.quadrature.ngaus
                 variables.strain(igaus,1:obj.nstre,:) = obj.vstrain.*ones(1,obj.nstre,obj.nelem) + variables.strain_fluct(igaus,1:obj.nstre,:);
                 for istre = 1:obj.nstre
                     for jstre = 1:obj.nstre
@@ -36,7 +36,7 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
             end
         end
         
-        function Ared = full_matrix_2_reduced_matrix(obj,A)
+        function Ared = full_matrix_2_reduced_matrix(obj,A)                
             vF = obj.dof.free;
             vP = obj.dof.periodic_free;
             vQ = obj.dof.periodic_constrained;
@@ -97,11 +97,11 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D
     end 
     
     methods (Access = private)
-        function F = computeStrainRHS(obj,vstrain)
+        function F = computeStrainRHS(obj,vstrain)            
             Cmat = obj.material.C;
             eforce = zeros(obj.dof.nunkn*obj.nnode,1,obj.nelem);
             sigma = zeros(obj.nstre,1,obj.nelem);
-            for igaus = 1:obj.geometry.quadrature.ngaus
+            for igaus = 1:obj.quadrature.ngaus
 %                 Bmat = obj.computeB(obj.dof.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
                 Bmat = obj.computeB(igaus);
                 for istre = 1:obj.nstre

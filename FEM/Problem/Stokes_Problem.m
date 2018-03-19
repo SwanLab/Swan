@@ -22,7 +22,7 @@ classdef Stokes_Problem < FEM
         
         function preProcess(obj)
             obj.material = Material_Stokes(obj.geometry(1).interpolation.nelem);
-            obj.element = Element_Stokes(obj.geometry,obj.material,obj.dof);
+            obj.element = Element_Stokes(obj.mesh,obj.geometry,obj.material,obj.dof);
             obj.solver = Solver.create;
         end
         
@@ -80,7 +80,7 @@ classdef Stokes_Problem < FEM
         
         function createGeometry(obj,mesh)
                 obj.geometry = Geometry(mesh,'QUADRATIC');
-                obj.geometry(2) = Geometry(mesh,'LINEAR','QUADRATIC');
+                obj.geometry(2) = Geometry(mesh,'LINEAR');
                 obj.geometry(1).nfields = 2;
         end
     end

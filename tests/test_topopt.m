@@ -23,11 +23,12 @@ for i = 1:length(tests_topopt)
     obj.computeVariables;
     error = norm(obj.x - x)/norm(x);
     if error < 1e-6
-        cprintf('green',strcat(file_name,' PASSED\n'));
+        cprintf('green',strcat(file_name,' PASSED.  Error: ',num2str(error),'\n'));
     else
-        cprintf('err',strcat(file_name,' FAILED\n'));
+        cprintf('err',strcat(file_name,' FAILED. Error: ',num2str(error),'\n'));
     end
     toc
+    clear settings
 end
 
 fprintf('\nTopOpt tests completed.\n')

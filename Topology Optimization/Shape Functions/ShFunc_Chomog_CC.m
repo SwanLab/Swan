@@ -18,11 +18,11 @@ classdef ShFunc_Chomog_CC < ShFunc_Chomog
             
             %Gradient
             obj.compute_Chomog_Derivatives(x);
-            DtC1 = zeros(obj.physicalProblem.geometry.ngaus,obj.physicalProblem.mesh.nelem);
-            gradient = zeros(obj.physicalProblem.geometry.ngaus,obj.physicalProblem.mesh.nelem);
-            for igaus=1:obj.physicalProblem.geometry.ngaus
-                for a=1:obj.physicalProblem.dim.nstre
-                    for b=1:obj.physicalProblem.dim.nstre
+            DtC1 = zeros(obj.physicalProblem.element.quadrature.ngaus,obj.physicalProblem.element.nelem);
+            gradient = zeros(obj.physicalProblem.element.quadrature.ngaus,obj.physicalProblem.element.nelem);
+            for igaus=1:obj.physicalProblem.element.quadrature.ngaus
+                for a=1:obj.physicalProblem.element.nstre
+                    for b=1:obj.physicalProblem.element.nstre
                         DtC1(igaus,:) = squeeze(obj.Chomog_Derivatives(a,b,igaus,:));
                         gradient(igaus,:) = gradient(igaus,:) + 2*costfunc(a,b)*DtC1(igaus,:);
                     end

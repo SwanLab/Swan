@@ -39,7 +39,10 @@ settings.TOL.nu_minus = 1/3;
 settings.target_parameters.Vfrac = 0.5;
 settings.target_parameters.optimality_tol = 1e-3;
 settings.target_parameters.constr_tol = 1e-3;
+
 settings.Perimeter_target = 3.5;
+settings.Perimeter_target = 5;
+settings.epsilon_initial=[];
 settings.perimeter.optimizer = settings.optimizer;
 
 settings.nsteps = 1;

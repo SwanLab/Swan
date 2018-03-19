@@ -1,5 +1,5 @@
 classdef ShFunc_Chomog < Shape_Functional
-    properties (Access = protected)
+    properties 
         h_C_0
         Chomog
         tstress
@@ -25,10 +25,10 @@ classdef ShFunc_Chomog < Shape_Functional
             %           mass=filter.Msmooth;
             %             obj.tstrain = permute(obj.tstrain,[2 3 4]);
             %             obj.tstress = permute(obj.tstrain,);
-            obj.Chomog_Derivatives = zeros(obj.physicalProblem.element.nstre,obj.physicalProblem.element.nstre,obj.physicalProblem.geometry.quadrature.ngaus,obj.physicalProblem.element.nelem);
+            obj.Chomog_Derivatives = zeros(obj.physicalProblem.element.nstre,obj.physicalProblem.element.nstre,obj.physicalProblem.element.quadrature.ngaus,obj.physicalProblem.element.nelem);
             for istreChomog = 1:obj.physicalProblem.element.nstre
                 for jstreChomog = 1:obj.physicalProblem.element.nstre
-                    for igaus=1:obj.physicalProblem.geometry.quadrature.ngaus
+                    for igaus=1:obj.physicalProblem.element.quadrature.ngaus
                         for istre=1:obj.physicalProblem.element.nstre
                             for jstre = 1:obj.physicalProblem.element.nstre
                                 obj.Chomog_Derivatives(istreChomog,jstreChomog,igaus,:) = ...
@@ -54,9 +54,9 @@ classdef ShFunc_Chomog < Shape_Functional
         function r = derivative_projection_Chomog(obj,inv_matCh,alpha,beta)
             weights = alpha*beta';
             weights_inv = inv_matCh*weights*inv_matCh;
-            DtC1 = zeros(obj.physicalProblem.geometry.quadrature.ngaus,obj.physicalProblem.element.nelem);
-            DtC = zeros(obj.physicalProblem.geometry.quadrature.ngaus,obj.physicalProblem.element.nelem);
-            for igaus=1:obj.physicalProblem.geometry.quadrature.ngaus
+            DtC1 = zeros(obj.physicalProblem.element.quadrature.ngaus,obj.physicalProblem.element.nelem);
+            DtC = zeros(obj.physicalProblem.element.quadrature.ngaus,obj.physicalProblem.element.nelem);
+            for igaus=1:obj.physicalProblem.element.quadrature.ngaus
                 for i=1:obj.physicalProblem.element.nstre
                     for j=1:obj.physicalProblem.element.nstre
                         DtC1(igaus,:) = squeeze(obj.Chomog_Derivatives(i,j,igaus,:));

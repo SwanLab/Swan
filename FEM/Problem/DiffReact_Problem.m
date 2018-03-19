@@ -22,7 +22,7 @@ classdef DiffReact_Problem < FEM
         end
         
         function preProcess(obj)
-            obj.element = Element_DiffReact(obj.geometry,obj.material,obj.dof);
+            obj.element = Element_DiffReact(obj.mesh,obj.geometry,obj.material,obj.dof);
             obj.solver = Solver.create;
         end
         

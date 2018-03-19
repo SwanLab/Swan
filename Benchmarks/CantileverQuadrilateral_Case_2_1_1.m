@@ -6,7 +6,7 @@ initial_case = 'full';
 cost = {'compliance'};
 weights = [1];
 constraint = {'volume'};
-optimizer = 'SLERP'; kappaMultiplier = 1;
+optimizer = 'PROJECTED GRADIENT'; kappaMultiplier = 1;
 filterType = 'P1';
 
 nsteps = 1;

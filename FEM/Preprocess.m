@@ -106,7 +106,11 @@ classdef Preprocess<handle
 %                 end
                 for ielem = 1:nelem
                     ind=1;
-                    for igaus = 1:geometry(1).quadrature.ngaus
+                    quadrature=Quadrature.set(geometry(1).type);
+                    quadrature.computeQuadrature(geometry(1).interpolation.order);
+                    geometry(1).interpolation.computeShapeDeriv(quadrature.posgp)
+                    geometry(1).computeGeometry(quadrature,geometry(1).interpolation)
+                    for igaus = 1:quadrature.ngaus
                         pos_node= num2cell(geometry(1).cart_pos_gp(:,igaus,ielem));
                         f = cell2mat(Vol_force(pos_node{:}));
                         F(:,igaus,ielem) = f;

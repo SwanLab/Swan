@@ -7,72 +7,89 @@ classdef Element < handle
         nelem
         nnode
         geometry
+        quadrature
         material
         dof
         uD
         nfields
     end
-    
+    methods
+        %        function obj=Element(geometry,material,dof)
+        %             obj.nelem = geometry(1).interpolation.nelem;
+        %             obj.nnode=geometry(1).interpolation.nnode;
+        %             obj.geometry = geometry;
+        %             obj.quadrature=Quadrature.set(geometry(1).type);
+        %             obj.material = material;
+        %             obj.dof = dof;
+        %        end
+    end
     
     methods (Static)
-        function obj = Element(geometry,material,dof)
-            nelem = geometry(1).interpolation.nelem;
-            obj.nfields = geometry.nfields;
-            
-            for ifield=1:obj.nfields
-                obj.nnode(ifield) = geometry(ifield).interpolation.isoparametric.nnode;
-            end
-            
-            obj.nelem = nelem;
-            obj.geometry = geometry;
-            obj.material = material;
-            obj.dof = dof;
-            obj.assign_dirichlet_values;
-        end
-        
-%         function obj = create(geometry,material,dof)
-%             nelem = geometry(1).interpolation.nelem;
-            
-%             switch mesh.scale
-%                
-%                 case 'MACRO'
-%                     switch ptype
-%                         case 'THERMAL'
-%                             obj = Element_Thermal;
-%                             obj.nstre=2;
-%                         case 'DIFF-REACT'
-%                             obj = Element_DiffReact;
-%                             obj.nstre=2;
-%                         case 'HYPERELASTIC'
-%                             obj = Element_Hyperelastic();
-%                             warning('Please add hyperelastic nstre')
-%                         case 'Stokes'
-%                             switch pdim
-%                                 case '2D'
-%                                     obj = Element_Stokes;
-%                                     obj.nstre = 0;
-%                                 case '3D'
-%                                     error('Stokes 3D obj not added')
-%                                     %                             obj.dof.nunkn = 3;
-%                                     %                             obj.nstre = 6;
-%                             end
-%                         otherwise
-%                             error('Invalid ptype.')
-%                     end
-%             end
-%             
+%         function obj = Element(geometry,material,dof)
+%             obj.nelem = geometry(1).interpolation.nelem;
 %             obj.nfields = geometry.nfields;
 %             for ifield=1:obj.nfields
 %                 obj.nnode(ifield) = geometry(ifield).interpolation.isoparametric.nnode;
 %             end
-%             obj.nelem = nelem;
 %             obj.geometry = geometry;
 %             obj.material = material;
 %             obj.dof = dof;
 %             obj.assign_dirichlet_values;
 %         end
+        
+function obj=Element(geometry,material,dof)
+    obj.nelem = geometry(1).interpolation.nelem;
+    obj.nfields = geometry.nfields;
+    obj.nnode=geometry(1).interpolation.nnode;
+    obj.geometry = geometry;
+    obj.quadrature = Quadrature.set(geometry(1).type);
+    obj.material = material;
+    obj.dof = dof;
+    obj.assign_dirichlet_values;
+end
+        
+        %         function obj = create(geometry,material,dof)
+        %             nelem = geometry(1).interpolation.nelem;
+        
+        %             switch mesh.scale
+        %
+        %                 case 'MACRO'
+        %                     switch ptype
+        %                         case 'THERMAL'
+        %                             obj = Element_Thermal;
+        %                             obj.nstre=2;
+        %                         case 'DIFF-REACT'
+        %                             obj = Element_DiffReact;
+        %                             obj.nstre=2;
+        %                         case 'HYPERELASTIC'
+        %                             obj = Element_Hyperelastic();
+        %                             warning('Please add hyperelastic nstre')
+        %                         case 'Stokes'
+        %                             switch pdim
+        %                                 case '2D'
+        %                                     obj = Element_Stokes;
+        %                                     obj.nstre = 0;
+        %                                 case '3D'
+        %                                     error('Stokes 3D obj not added')
+        %                                     %                             obj.dof.nunkn = 3;
+        %                                     %                             obj.nstre = 6;
+        %                             end
+        %                         otherwise
+        %                             error('Invalid ptype.')
+        %                     end
+        %             end
+        %
+        %             obj.nfields = geometry.nfields;
+        %             for ifield=1:obj.nfields
+        %                 obj.nnode(ifield) = geometry(ifield).interpolation.isoparametric.nnode;
+        %             end
+        %             obj.nelem = nelem;
+        %             obj.geometry = geometry;
+        %             obj.material = material;
+        %             obj.dof = dof;
+        %             obj.assign_dirichlet_values;
+        %         end
     end
-    
     
     methods
         function Fext = computeExternalForces(obj)
@@ -90,7 +107,7 @@ classdef Element < handle
         function FextPoint = computePunctualFext(obj)
             %Compute Global Puntual Forces (Not well-posed in FEM)
             FextPoint = zeros(obj.dof.ndof,1);
-            if ~isempty(obj.dof.neumann)                
+            if ~isempty(obj.dof.neumann)
                 FextPoint(obj.dof.neumann) = obj.dof.neumann_values;
             end
         end
@@ -100,7 +117,7 @@ classdef Element < handle
             for ifield = 1:obj.nfields
                 b_elem = b_elem_cell{ifield,1};
                 b = zeros(obj.dof.ndof(ifield),1);
-                for i = 1:obj.nnode(ifield)*obj.dof.nunkn(ifield)
+                for i = 1:obj.geometry(ifield).interpolation.nnode*obj.dof.nunkn(ifield)
                     c = squeeze(b_elem(i,1,:));
                     idof_elem = obj.dof.in_elem{ifield}(i,:);
                     b = b + sparse(idof_elem,1,c',obj.dof.ndof(ifield),1);
@@ -133,9 +150,9 @@ classdef Element < handle
             idx1 = obj.dof.in_elem{ifield};
             idx2 = obj.dof.in_elem{jfield};
             nunkn1 = obj.dof.nunkn(ifield);
-            nnode1 = obj.geometry(ifield).interpolation.isoparametric.nnode;
+            nnode1 = obj.geometry(ifield).interpolation.nnode;
             nunkn2 = obj.dof.nunkn(jfield);
-            nnode2 = obj.geometry(jfield).interpolation.isoparametric.nnode;
+            nnode2 = obj.geometry(jfield).interpolation.nnode;
             col = obj.dof.ndof(jfield);
             row = obj.dof.ndof(ifield);
         end
@@ -174,9 +191,8 @@ classdef Element < handle
         end
         
         function Ared = full_matrix_2_reduced_matrix(obj,A)
-            [~,~,free] = obj.compute_global_dirichlet_free_uD;
-            
-            Ared = A(free,free);
+                [~,~,free] = obj.compute_global_dirichlet_free_uD;
+                Ared = A(free,free);
         end
         
         function b_red = full_vector_2_reduced_vector(obj,b)
@@ -197,7 +213,6 @@ classdef Element < handle
                 b(dirichlet,:) = uD;
             end
         end
-        
     end
     
     methods (Abstract, Access = protected)

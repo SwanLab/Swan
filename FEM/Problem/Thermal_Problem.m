@@ -21,7 +21,7 @@ classdef Thermal_Problem < FEM
         end
         
         function preProcess(obj)
-            obj.element = Element_Thermal(obj.geometry,obj.material,obj.dof);
+            obj.element = Element_Thermal(obj.mesh,obj.geometry,obj.material,obj.dof);
             obj.solver = Solver.create;
         end
         

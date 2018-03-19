@@ -26,6 +26,7 @@ classdef Settings < handle
     
     properties    %topopt access
         ptype
+        case_file
         filename
         method
         material
@@ -46,6 +47,7 @@ classdef Settings < handle
     methods
         function obj = Settings(case_file)
             run(case_file)
+            obj.case_file=case_file;
             obj.filename = filename;
             obj.ptype = ptype;
             obj.method = method;
