@@ -36,6 +36,7 @@ classdef Filter_PDE < Filter
             rhs = (obj.A_nodal_2_gauss'*obj.M0{1}*x);
         end
         
+        % !! Can be done as a DiffReact_Problem !!
         function x_reg = solve_filter(obj,rhs_x)
             Rinv = (obj.epsilon^2*obj.Ksmooth + obj.Msmooth);
             Rinv_red = obj.element.full_matrix_2_reduced_matrix(Rinv);

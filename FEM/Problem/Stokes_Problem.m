@@ -31,9 +31,7 @@ classdef Stokes_Problem < FEM
             for ifield = 1:obj.geometry(1).nfields
                 free_dof(ifield) = length(obj.dof.free{ifield});
             end
-            
-            transient = false;
-            
+            transient = false;      
             if transient
                 dt = 0.01;
                 final_time = 1;
@@ -43,30 +41,6 @@ classdef Stokes_Problem < FEM
             end
             
             obj.variables = obj.element.computeVars(x);
-        end
-        
-        function print(obj)
-            postprocess = Postprocess_PhysicalProblem();
-            results.physicalVars = obj.variables;
-            postprocess.print(obj,obj.problemID,results);
-        end
-        
-        function sol = solve_steady_problem(obj,free_dof,tol)
-            
-            total_free_dof = sum(free_dof);
-            dr = obj.element.computedr;
-            x0 = zeros(total_free_dof,1);
-            
-            r = obj.element.computeResidual(x0,dr);
-            x = x0;
-            while dot(r,r) > tol
-                inc_x = obj.solver.solve(dr,-r);
-                x = x0 + inc_x;
-                % Compute r
-                r = obj.element.computeResidual(x,dr);
-                x0 = x;
-            end
-            sol = x;
         end
         
         function sol = solve_transient_problem(obj,free_dof,tol,dt,final_time)
@@ -91,18 +65,17 @@ classdef Stokes_Problem < FEM
             end
             sol = x_n;
         end
+        
+        function print(obj)
+            postprocess = Postprocess_PhysicalProblem();
+            results.physicalVars = obj.variables;
+            postprocess.print(obj,obj.problemID,results);
+        end
+        
         function postProcess(obj)
             % ToDo
             % Inspire in TopOpt
             
-        end
-        
-        function setDof(obj,dof)
-            obj.dof = dof;
-        end
-        
-        function setMatProps(obj,props)
-            obj.element.material = obj.material.setProps(props);
         end
         
         function createGeometry(obj,mesh)

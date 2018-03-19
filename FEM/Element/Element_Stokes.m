@@ -10,7 +10,7 @@ classdef Element_Stokes < Element
         K_elem
     end
     
-    methods (Access = ?Stokes_Problem)
+    methods %(Access = ?Stokes_Problem)
         function obj = Element_Stokes(geometry,material,dof)
             obj = obj@Element(geometry,material,dof);
             % obj.nstre = '¿0?';
