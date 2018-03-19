@@ -5,10 +5,12 @@ clear; close all;
 fprintf('Running TopOpt tests...\n')
 
 %% Test Declaration -------------------------------------------------------
-tests_topopt={'test_cantilever','test_gripping','test_micro'};
+% tests_topopt = {'test_cantilever','test_gripping','test_micro'};
+tests_topopt = {'test_micro'};
 
 %% Run Top Opt Tests ------------------------------------------------------
-for i=1:length(tests_topopt)
+for i = 1:length(tests_topopt)
+    clearvars -except tests_topopt i
     tic
     file_name = tests_topopt{i};
     file_name_in = strcat('./Input/',tests_topopt{i});

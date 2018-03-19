@@ -39,7 +39,7 @@ settings.TOL.nu_minus = 1/3;
 settings.target_parameters.Vfrac = 0.5;
 settings.target_parameters.optimality_tol = 1e-3;
 settings.target_parameters.constr_tol = 1e-3;
-settings.target_parameters.Perimeter_target = 3.5;
+settings.Perimeter_target = 3.5;
 settings.perimeter.optimizer = settings.optimizer;
 
 settings.nsteps = 1;
@@ -50,6 +50,7 @@ settings.Vfrac_initial = 1;
 
 settings.optimality_initial = 1e-3;
 settings.constr_initial = 1e-3;
+settings.epsilon_initial=[];
 
  %Micro
 settings.target_parameters.epsilon_isotropy = 1e-3;%%%%%%
