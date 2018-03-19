@@ -14,7 +14,6 @@ tests_fem = {'test2d_triangle';
     'test3d_hexahedra'
     };
 
-
 %% Run FEM Tests ----------------------------------------------------------
 for i=1:length(tests_fem)
     file_name = tests_fem{i};
@@ -50,5 +49,7 @@ for i=1:length(tests_fem)
             cprintf('err',strcat(file_name,' FAILED\n'));
         end
     end
-    
 end
+
+fprintf('\nFEM tests completed.\n')
+fprintf('\n-------------------------------------------\n\n')
