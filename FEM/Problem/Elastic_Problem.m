@@ -17,7 +17,7 @@ classdef Elastic_Problem < FEM
             obj.problemID = problemID;
             obj.mesh = Mesh(problemID); % Mesh defined twice, but almost free
             obj.createGeometry(obj.mesh);
-            obj.dof = DOF(problemID,obj.geometry,obj.mesh);
+            obj.dof = DOF_Elastic(problemID,obj.geometry,obj.mesh);
             obj.material = Material.create(obj.geometry,obj.mesh);
         end
         

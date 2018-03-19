@@ -18,7 +18,7 @@ classdef DiffReact_Problem < FEM
             obj.mesh = Mesh(problemID); % Mesh defined twice, but almost free
             obj.createGeometry(obj.mesh);
             obj.mesh.ptype = 'DIFF-REACT';
-            obj.dof = DOF(problemID,obj.geometry,obj.mesh);
+            obj.dof = DOF_DiffReact(problemID,obj.geometry);
         end
         
         function preProcess(obj)

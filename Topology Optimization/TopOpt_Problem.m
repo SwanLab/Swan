@@ -88,7 +88,7 @@ classdef TopOpt_Problem < handle
         end
         
         function obj = filters_preProcess(obj)
-            dof_filter = DOF(obj.topOpt_params.problemID,obj.topOpt_params.geometry,obj.topOpt_params.mesh);
+            dof_filter = DOF_DiffReact(obj.topOpt_params.problemID,obj.topOpt_params.geometry);
             switch obj.topOpt_params.mesh.scale
                 case 'MACRO'
                     dof_filter.dirichlet{1} = [];

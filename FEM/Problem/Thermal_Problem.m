@@ -1,5 +1,5 @@
-classdef Stokes_Problem < FEM
-    %Stokes_Problem Summary of this class goes here
+classdef Thermal_Problem < FEM
+    %Thermal_Problem Summary of this class goes here
     % Detailed explanation goes here
     
     %% Public GetAccess properties definition =============================
@@ -8,21 +8,20 @@ classdef Stokes_Problem < FEM
     
     %% Restricted properties definition ===================================
     properties %(GetAccess = {?Postprocess,?Physical_Problem_Micro}, SetAccess = protected)
-        material
+        material % !! Preguntar si necessita material
     end
     
     %% Public methods definition ==========================================
     methods (Access = public)
-        function obj = Stokes_Problem(problemID)
+        function obj = Thermal_Problem(problemID)
             obj.problemID = problemID;
             obj.mesh = Mesh(problemID); % Mesh defined twice, but almost free
             obj.createGeometry(obj.mesh);
-            obj.dof = DOF_Stokes(problemID,obj.geometry);
+            obj.dof = DOF(problemID,obj.geometry);
         end
         
         function preProcess(obj)
-            obj.material = Material_Stokes(obj.geometry(1).interpolation.nelem);
-            obj.element = Element_Stokes(obj.geometry,obj.material,obj.dof);
+            obj.element = Element_Thermal(obj.geometry,obj.material,obj.dof);
             obj.solver = Solver.create;
         end
         
@@ -105,10 +104,9 @@ classdef Stokes_Problem < FEM
             obj.element.material = obj.material.setProps(props);
         end
         
+        % !! THIS SHOULD BE DEFINED BY THE USER !!
         function createGeometry(obj,mesh)
-                obj.geometry = Geometry(mesh,'QUADRATIC');
-                obj.geometry(2) = Geometry(mesh,'LINEAR','QUADRATIC');
-                obj.geometry(1).nfields = 2;
+            obj.geometry = Geometry(mesh,'LINEAR');
         end
     end
 end

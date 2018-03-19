@@ -20,81 +20,74 @@ classdef DOF < handle
         dirichlet % Diriclet dof index
         neumann % Explicit (from input) Neumann dof
         full_dirichlet % Everywhere dirichlet dof inex
+        
+        % !! Consider moving periodic to MICRO case !!
         periodic_free % Perioic
         periodic_constrained
     end
     
     methods
-        function obj = DOF(filename,geometry,mesh)
-            switch mesh.ptype                
-                case 'ELASTIC'
-                    switch mesh.pdim
-                        case '2D'
-                            obj.nunkn = 2;
-                        case '3D'                            
-                            obj.nunkn = 3;
-                    end
-                case 'THERMAL'
-                    obj.nunkn=1;
-                case 'DIFF-REACT'
-                    obj.nunkn=1;                    
-                case 'HYPERELASTIC'
-                    obj.nunkn=2;                 
-            end    
-            switch mesh.ptype
-                case 'Stokes'
-                    nunkn_u = 2;
-                    nunkn_p = 1;
-                    obj.nunkn = [nunkn_u nunkn_p];
-                    [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = ...
-                        Preprocess.getBC_fluids(filename,geometry);
-                otherwise
-                    [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = Preprocess.getBC_mechanics(filename);
-            end
-            
-            
+        %         function obj = DOF(filename,geometry,mesh)
+        %             switch mesh.ptype
+        %                 case 'THERMAL'
+        %                     obj.nunkn=1;
+        %                 case 'DIFF-REACT'
+        %                     obj.nunkn=1;
+        %                 case 'HYPERELASTIC'
+        %                     obj.nunkn=2;
+        %             end
+        %             switch mesh.ptype
+        %                 case 'Stokes'
+        %                     nunkn_u = 2;
+        %                     nunkn_p = 1;
+        %                     obj.nunkn = [nunkn_u nunkn_p];
+        %                     [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = ...
+        %                         Preprocess.getBC_fluids(filename,geometry);
+        %                 otherwise
+        %                     [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = Preprocess.getBC_mechanics(filename);
+        %             end
+        
+        function obj = computeDOF(obj,geometry,dirichlet_data,neumann_data,full_dirichlet_data,master_slave)
             [obj.neumann,obj.neumann_values] = obj.get_dof_conditions(neumann_data,obj.nunkn(1));
             [obj.full_dirichlet,obj.full_dirichlet_values] = obj.get_dof_conditions(full_dirichlet_data,obj.nunkn(1));
             
-           for ifield = 1:geometry(1).nfields
+            for ifield = 1:geometry(1).nfields
                 nunkn = obj.nunkn(ifield);
                 nnode = geometry(ifield).interpolation.isoparametric.nnode;
                 npnod = geometry(ifield).interpolation.npnod;
                 obj.in_elem{ifield} = obj.compute_idx(geometry(ifield).interpolation.T,nunkn,nnode);
-
-
+                
+                
                 obj.ndof(ifield) = nunkn*npnod;
-
+                
                 [obj.dirichlet{ifield},obj.dirichlet_values{ifield}] = obj.get_dof_conditions(dirichlet_data{ifield},nunkn);
                 
                 
-
+                
                 if ~isempty(master_slave)
-                obj.periodic_free = obj.compute_periodic_nodes(master_slave(:,1),nunkn);
-                obj.periodic_constrained = obj.compute_periodic_nodes(master_slave(:,2),nunkn);
+                    obj.periodic_free = obj.compute_periodic_nodes(master_slave(:,1),nunkn);
+                    obj.periodic_constrained = obj.compute_periodic_nodes(master_slave(:,2),nunkn);
                 end
-
-                obj.constrained{ifield} = obj.compute_constrained_dof(mesh.scale,ifield);
+                
+                obj.constrained{ifield} = obj.compute_constrained_dof(ifield);
                 obj.free{ifield} = obj.compute_free_dof(ifield);
             end
-%                 if nfields == 1
-%                     obj.dirichlet = cell2mat(obj.dirichlet{ifield});
-%                     obj.dirichlet_values = cell2mat(obj.dirichlet_values{ifield});
-%                     
-%                 end
+            %                 if nfields == 1
+            %                     obj.dirichlet = cell2mat(obj.dirichlet{ifield});
+            %                     obj.dirichlet_values = cell2mat(obj.dirichlet_values{ifield});
+            %
+            %                 end
         end
         
     end
     
     methods
         
-        function constrained = compute_constrained_dof(obj,scale,ifield)
-            switch scale
-                case 'MICRO'
-                    constrained = [obj.periodic_constrained;obj.dirichlet{ifield}];
-                case 'MACRO'
-                    constrained = obj.dirichlet{ifield};
-            end
+        function constrained = compute_constrained_dof(obj,ifield)
+            % MACRO scale assumed by default
+            constrained = obj.dirichlet{ifield};
+            % !! MICRO !!
+            % constrained = [obj.periodic_constrained;obj.dirichlet{ifield}];
         end
         
         function free = compute_free_dof(obj,ifield)
@@ -126,7 +119,7 @@ classdef DOF < handle
             for iunkn = 1:nunkn
                 index_glib = nlib*(iunkn - 1) + [1:nlib];
                 periodic_dof(index_glib,1) = obj.unknown_and_node_id_to_dof_id(periodic_nodes,iunkn,nunkn);
-             end
+            end
         end
         
         
@@ -148,7 +141,7 @@ classdef DOF < handle
                 dof_condition_id = [];
                 dof_condition_value = [];
             else
-          
+                
                 if ismatrix(conditions_unkn_and_dim)
                     inode_condition = conditions_unkn_and_dim(:,1);
                     iunkn_condition = conditions_unkn_and_dim(:,2);
