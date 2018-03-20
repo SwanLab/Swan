@@ -13,82 +13,20 @@ classdef Element < handle
         uD
         nfields
     end
-    methods
-        %        function obj=Element(geometry,material,dof)
-        %             obj.nelem = geometry(1).interpolation.nelem;
-        %             obj.nnode=geometry(1).interpolation.nnode;
-        %             obj.geometry = geometry;
-        %             obj.quadrature=Quadrature.set(geometry(1).type);
-        %             obj.material = material;
-        %             obj.dof = dof;
-        %        end
-    end
-    
-    methods (Static)
-%         function obj = Element(geometry,material,dof)
-%             obj.nelem = geometry(1).interpolation.nelem;
-%             obj.nfields = geometry.nfields;
-%             for ifield=1:obj.nfields
-%                 obj.nnode(ifield) = geometry(ifield).interpolation.isoparametric.nnode;
-%             end
-%             obj.geometry = geometry;
-%             obj.material = material;
-%             obj.dof = dof;
-%             obj.assign_dirichlet_values;
-%         end
-        
-function obj=Element(geometry,material,dof)
-    obj.nelem = geometry(1).interpolation.nelem;
-    obj.nfields = geometry.nfields;
-    obj.nnode=geometry(1).interpolation.nnode;
-    obj.geometry = geometry;
-    obj.quadrature = Quadrature.set(geometry(1).type);
-    obj.material = material;
-    obj.dof = dof;
-    obj.assign_dirichlet_values;
-end
-        
-        %         function obj = create(geometry,material,dof)
-        %             nelem = geometry(1).interpolation.nelem;
-        
-        %             switch mesh.scale
-        %
-        %                 case 'MACRO'
-        %                     switch ptype
-        %                         case 'THERMAL'
-        %                             obj = Element_Thermal;
-        %                             obj.nstre=2;
-        %                         case 'DIFF-REACT'
-        %                             obj = Element_DiffReact;
-        %                             obj.nstre=2;
-        %                         case 'HYPERELASTIC'
-        %                             obj = Element_Hyperelastic();
-        %                             warning('Please add hyperelastic nstre')
-        %                         case 'Stokes'
-        %                             switch pdim
-        %                                 case '2D'
-        %                                     obj = Element_Stokes;
-        %                                     obj.nstre = 0;
-        %                                 case '3D'
-        %                                     error('Stokes 3D obj not added')
-        %                                     %                             obj.dof.nunkn = 3;
-        %                                     %                             obj.nstre = 6;
-        %                             end
-        %                         otherwise
-        %                             error('Invalid ptype.')
-        %                     end
-        %             end
-        %
-        %             obj.nfields = geometry.nfields;
-        %             for ifield=1:obj.nfields
-        %                 obj.nnode(ifield) = geometry(ifield).interpolation.isoparametric.nnode;
-        %             end
-        %             obj.nelem = nelem;
-        %             obj.geometry = geometry;
-        %             obj.material = material;
-        %             obj.dof = dof;
-        %             obj.assign_dirichlet_values;
-        %         end
+
+    methods (Static)        
+        function obj=Element(geometry,material,dof)
+            obj.nelem = geometry(1).interpolation.nelem;
+            obj.nfields = geometry.nfields;
+            for ifield=1:obj.nfields
+                obj.nnode(ifield) = geometry(ifield).interpolation.nnode;
+            end
+            obj.geometry = geometry;
+            obj.quadrature = Quadrature.set(geometry(1).type);
+            obj.material = material;
+            obj.dof = dof;
+            obj.assign_dirichlet_values;
+        end
     end
     
     methods
@@ -191,8 +129,8 @@ end
         end
         
         function Ared = full_matrix_2_reduced_matrix(obj,A)
-                [~,~,free] = obj.compute_global_dirichlet_free_uD;
-                Ared = A(free,free);
+            [~,~,free] = obj.compute_global_dirichlet_free_uD;
+            Ared = A(free,free);
         end
         
         function b_red = full_vector_2_reduced_vector(obj,b)

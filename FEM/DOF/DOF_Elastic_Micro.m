@@ -1,5 +1,5 @@
-classdef DOF_ElasticMicro < DOF_Elastic
-    %DOF_Elastic Summary of this class goes here
+classdef DOF_Elastic_Micro < DOF_Elastic
+    %DOF_Elastic_Micro Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
@@ -9,7 +9,7 @@ classdef DOF_ElasticMicro < DOF_Elastic
     end
     
     methods
-        function obj = DOF_ElasticMicro(problemID,geometry,mesh)
+        function obj = DOF_Elastic_Micro(problemID,geometry,mesh)
             obj@DOF_Elastic(problemID,geometry,mesh);
             obj.periodic_free = obj.compute_periodic_nodes(obj.master_slave(:,1),obj.nunkn);
             obj.periodic_constrained = obj.compute_periodic_nodes(obj.master_slave(:,2),obj.nunkn);

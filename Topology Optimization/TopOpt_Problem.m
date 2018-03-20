@@ -24,8 +24,16 @@ classdef TopOpt_Problem < handle
             
             % This PhysProb is only gonna be used by filters & incremental -> no need of specifying MICRO or MACRO
             % Consider turning it into a more generic class like FEM
-            obj.topOpt_params = DiffReact_Problem(settings.filename);
-            obj.topOpt_params.mesh.scale = 'MACRO'; % Hyper-provisional
+            switch settings.ptype
+                case 'MACRO'
+                    obj.topOpt_params = DiffReact_Problem(settings.filename);
+                    obj.topOpt_params.mesh.scale = 'MACRO'; % !! Hyper-provisional !!
+                case 'MICRO'
+                    obj.topOpt_params = DiffReact_Problem_Micro(settings.filename);
+                    obj.topOpt_params.mesh.scale = 'MICRO'; % !! Hyper-provisional !!
+                otherwise
+                    error('Invalid ptype. Must be MACRO or MICRO.')
+            end
             obj.settings = settings;
 
             obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.topOpt_params.mesh);
@@ -87,10 +95,10 @@ classdef TopOpt_Problem < handle
         end
         
         function obj = filters_preProcess(obj)
-            % !! This could be more sophisticated !! 
-            dof_filter = DOF_DiffReact(obj.topOpt_params.problemID,obj.topOpt_params.geometry);
             switch obj.topOpt_params.mesh.scale
                 case 'MACRO'
+                    % !! This could be more sophisticated !! 
+                    dof_filter = DOF_DiffReact(obj.topOpt_params.problemID,obj.topOpt_params.geometry);
                     dof_filter.dirichlet{1} = [];
                     dof_filter.dirichlet_values{1} = [];
                     dof_filter.neumann = [];
@@ -98,11 +106,13 @@ classdef TopOpt_Problem < handle
                     dof_filter.constrained{1} = [];
                     dof_filter.free{1} = dof_filter.compute_free_dof(1);
                 case 'MICRO'
+                    % !! This could be more sophisticated !! 
+                    dof_filter = DOF_DiffReact_Micro(obj.topOpt_params.problemID,obj.topOpt_params.geometry);
                     dof_filter.dirichlet = [];
                     dof_filter.dirichlet_values = [];
                     dof_filter.neumann = [];
                     dof_filter.neumann_values  = [];
-                    dof_filter.constrained{1} = dof_filter.compute_constrained_dof(obj.settings.ptype,1);
+                    dof_filter.constrained{1} = dof_filter.compute_constrained_dof(1);
                     dof_filter.free{1} = dof_filter.compute_free_dof(1);
             end
             obj.topOpt_params.setDof(dof_filter)

@@ -14,7 +14,7 @@ classdef Elastic_Problem_Micro < Elastic_Problem
     methods (Access = public)
         function obj = Elastic_Problem_Micro(problemID)
             obj@Elastic_Problem(problemID);
-            obj.dof = DOF_ElasticMicro(problemID,obj.geometry,obj.mesh);
+            obj.dof = DOF_Elastic_Micro(problemID,obj.geometry,obj.mesh);
             
             % Just to match Ferran's code%%%%%%%%%%%%%%%%%%%
             props.mu=0.375;
