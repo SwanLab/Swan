@@ -13,6 +13,8 @@ classdef DOF_Elastic_Micro < DOF_Elastic
             obj@DOF_Elastic(problemID,geometry,mesh);
             obj.periodic_free = obj.compute_periodic_nodes(obj.master_slave(:,1),obj.nunkn);
             obj.periodic_constrained = obj.compute_periodic_nodes(obj.master_slave(:,2),obj.nunkn);
+            obj.constrained{1}=obj.compute_constrained_dof(1);
+            obj.free{1}=obj.compute_free_dof(1);
         end
         
         function constrained = compute_constrained_dof(obj,ifield)

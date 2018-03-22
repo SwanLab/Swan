@@ -1,4 +1,4 @@
-classdef Settings < handle
+classdef Settings 
     properties %optmizer access
         plotting = true
         printing = false
