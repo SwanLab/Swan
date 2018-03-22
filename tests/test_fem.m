@@ -9,10 +9,10 @@ fprintf('Running FEM tests...\n')
 tests_fem = {'test2d_triangle';
     'test2d_quad';
     'test2d_stokes_triangle';
+    'test2d_micro';
     'test3d_tetrahedra';
-%     'test3d_hexahedra';
-    'test3d_tetrahedra';
-    'test2d_micro'};
+    'test3d_hexahedra'
+    };
 
 %% Run FEM Tests ----------------------------------------------------------
 for i=1:length(tests_fem)
@@ -22,7 +22,7 @@ for i=1:length(tests_fem)
     load_file = strcat('./tests/',file_name);
     load(load_file);
     
-    obj = Physical_Problem(file_name);
+    obj = FEM.create(file_name);
     if obj.mesh.scale == 'MACRO'
         obj.preProcess;
         obj.computeVariables;
@@ -40,7 +40,7 @@ for i=1:length(tests_fem)
             end
         end
     else
-        obj = Physical_Problem_Micro(file_name);
+        obj = Elastic_Problem_Micro(file_name);
         obj.preProcess;
         obj.computeChomog;
         if sum(abs(obj.variables.Chomog- Chomog)) < 1e-6
@@ -49,7 +49,7 @@ for i=1:length(tests_fem)
             cprintf('err',strcat(file_name,' FAILED\n'));
         end
     end
-    
 end
+
 fprintf('\nFEM tests completed.\n')
 fprintf('\n-------------------------------------------\n\n')

@@ -1,4 +1,4 @@
-classdef Settings < handle
+classdef Settings 
     properties %optmizer access
         plotting = true
         printing = false
@@ -6,6 +6,7 @@ classdef Settings < handle
         monitoring_interval = 10
         maxiter = 5000
     end
+    
     properties %target parameters
         Vfrac_initial
         optimality_initial
@@ -26,6 +27,7 @@ classdef Settings < handle
     
     properties    %topopt access
         ptype
+        case_file
         filename
         method
         material
@@ -46,6 +48,7 @@ classdef Settings < handle
     methods
         function obj = Settings(case_file)
             run(case_file)
+            obj.case_file=case_file;
             obj.filename = filename;
             obj.ptype = ptype;
             obj.method = method;
@@ -71,15 +74,40 @@ classdef Settings < handle
             obj.constr_initial = constr_initial;
             obj.optimality_final = optimality_final;
             obj.constr_final = constr_final;
-            fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: %s \n -Constraint: %s \n -Incremental Steps: %f \n ',...
+            
+            if exist('plotting','var')
+                obj.plotting = plotting;
+            end
+            if exist('printing','var')
+                obj.printing = printing;
+            end
+            if exist('monitoring','var')
+                obj.monitoring = monitoring;
+            end
+            if exist('monitoring_interval','var')
+                obj.monitoring_interval = monitoring_interval;
+            end
+            if exist('maxiter','var')
+                obj.maxiter = maxiter;
+            end
+            
+            
+            if ~contains(filename,'test','IgnoreCase',true)
+                fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: %s \n -Constraint: %s \n -Incremental Steps: %f \n ',...
                 case_file,obj.optimizer,char(obj.cost),char(obj.constraint),obj.nsteps)
+            end
+            
             if exist('Vfrac_final','var')
                 obj.Vfrac_final = Vfrac_final;
-                fprintf('-Volume target: %f \n ',obj.Vfrac_final)
+                if ~contains(filename,'test','IgnoreCase',true)
+                    fprintf('-Volume target: %f \n ',obj.Vfrac_final)
+                end
             end
             if exist('Perimeter_target','var')
                 obj.Perimeter_target = Perimeter_target;
-                fprintf('-Perimeter target: %f \n',obj.Perimeter_target)
+                if ~contains(filename,'test','IgnoreCase',true)
+                    fprintf('-Perimeter target: %f \n',obj.Perimeter_target)
+                end
             end
             if exist('micro','var')
                 obj.micro.alpha = micro.alpha;
@@ -93,7 +121,9 @@ classdef Settings < handle
             if exist('selectiveC_Cstar','var')
                 obj.selectiveC_Cstar = selectiveC_Cstar;
             end
-            fprintf('\n')
+            if ~contains(filename,'test','IgnoreCase',true)
+                fprintf('\n')
+            end
         end
     end
 end

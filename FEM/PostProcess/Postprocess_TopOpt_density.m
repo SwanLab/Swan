@@ -17,24 +17,12 @@ classdef Postprocess_TopOpt_density < Postprocess_TopOpt
              
          end
         
-        function Print_results(obj,results)
-            %Print Results
-            obj.Print_results@Postprocess_PhysicalProblem(results)
-            obj.Print_design_variable(results.design_variable)
-            obj.Print_density_reg(results.design_variable_reg)
-            
+        function Print_design_variable(obj,results)
+            obj.Print_density(results);
         end
         
-    end
-    
-    methods (Access = protected)
-        
-        function Print_design_variable(obj,design_variable)
-            obj.Print_density(design_variable);
-        end
-        
-        function Print_density(obj,density)
-            obj.PrintScalar(obj.density_name,obj.density_name_component,'Elastic Problem','Scalar','OnNodes','',density);
+        function Print_density(obj,results)
+            obj.PrintScalar(obj.density_name,obj.density_name_component,'Elastic Problem','Scalar','OnNodes','',results.design_variable,results.iter);
         end
         
         

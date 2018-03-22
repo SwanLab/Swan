@@ -12,8 +12,9 @@ classdef Mesh
         ptype
         scale
         geometryType
+        problemID
     end   
-    methods (Access = ?Physical_Problem)
+    methods % (Access = ?Physical_Problem)
         function obj = Mesh(filename)
             data = Preprocess.readFromGiD(filename);
             obj.coord = data.xpoints(:,2:4);
@@ -24,6 +25,7 @@ classdef Mesh
             %obj.nelem = length(obj.connec(:,1));
          %   obj.npnod = length(obj.coord(:,1));
             obj.scale = data.scale;
+            obj.problemID=filename;
         end
     end
     

@@ -7,73 +7,27 @@ classdef Element < handle
         nelem
         nnode
         geometry
+        quadrature
         material
         dof
         uD
         nfields
     end
-    
-    
-    methods (Static)
-        function element = create(mesh,geometry,material,dof)
-            
-            nelem = geometry(1).interpolation.nelem;
-            ptype = mesh.ptype;
-            pdim = mesh.pdim;
-            
-            switch mesh.scale
-                
-                case 'MICRO'
-                    element = Element_Elastic_2D_Micro;
-                    element.nstre = 3;
-                case 'MACRO'
-                    switch ptype
-                        case 'ELASTIC'
-                            switch pdim
-                                case '2D'
-                                    element = Element_Elastic_2D;
-                                    element.nstre = 3;
-                                case '3D'
-                                    element = Element_Elastic_3D;
-                                    element.nstre = 6;
-                            end
-                        case 'THERMAL'
-                            element = Element_Thermal;
-                            element.nstre=2;
-                        case 'DIFF-REACT'
-                            element = Element_DiffReact;
-                            element.nstre=2;
-                        case 'HYPERELASTIC'
-                            element = Element_Hyperelastic();
-                            warning('Please add hyperelastic nstre')
-                        case 'Stokes'
-                            switch pdim
-                                case '2D'
-                                    element = Element_Stokes;
-                                    element.nstre = 0;
-                                case '3D'
-                                    warning('Stokes 3D element not added')
-                                    %                             obj.dof.nunkn = 3;
-                                    %                             obj.nstre = 6;
-                            end
-                        otherwise
-                            error('Invalid ptype.')
-                    end
+
+    methods (Static)        
+        function obj=Element(geometry,material,dof)
+            obj.nelem = geometry(1).interpolation.nelem;
+            obj.nfields = geometry.nfields;
+            for ifield=1:obj.nfields
+                obj.nnode(ifield) = geometry(ifield).interpolation.nnode;
             end
-            
-            element.nfields = geometry.nfields;
-            for ifield=1:element.nfields
-                element.nnode(ifield) = geometry(ifield).interpolation.isoparametric.nnode;
-            end
-            element.nelem = nelem;
-            element.geometry = geometry;
-            element.material = material;
-            element.dof = dof;
-            %element.bc = bc;
-            element.assign_dirichlet_values()
+            obj.geometry = geometry;
+            obj.quadrature = Quadrature.set(geometry(1).type);
+            obj.material = material;
+            obj.dof = dof;
+            obj.assign_dirichlet_values;
         end
     end
-    
     
     methods
         function Fext = computeExternalForces(obj)
@@ -91,7 +45,7 @@ classdef Element < handle
         function FextPoint = computePunctualFext(obj)
             %Compute Global Puntual Forces (Not well-posed in FEM)
             FextPoint = zeros(obj.dof.ndof,1);
-            if ~isempty(obj.dof.neumann)                
+            if ~isempty(obj.dof.neumann)
                 FextPoint(obj.dof.neumann) = obj.dof.neumann_values;
             end
         end
@@ -101,7 +55,7 @@ classdef Element < handle
             for ifield = 1:obj.nfields
                 b_elem = b_elem_cell{ifield,1};
                 b = zeros(obj.dof.ndof(ifield),1);
-                for i = 1:obj.nnode(ifield)*obj.dof.nunkn(ifield)
+                for i = 1:obj.geometry(ifield).interpolation.nnode*obj.dof.nunkn(ifield)
                     c = squeeze(b_elem(i,1,:));
                     idof_elem = obj.dof.in_elem{ifield}(i,:);
                     b = b + sparse(idof_elem,1,c',obj.dof.ndof(ifield),1);
@@ -134,9 +88,9 @@ classdef Element < handle
             idx1 = obj.dof.in_elem{ifield};
             idx2 = obj.dof.in_elem{jfield};
             nunkn1 = obj.dof.nunkn(ifield);
-            nnode1 = obj.geometry(ifield).interpolation.isoparametric.nnode;
+            nnode1 = obj.geometry(ifield).interpolation.nnode;
             nunkn2 = obj.dof.nunkn(jfield);
-            nnode2 = obj.geometry(jfield).interpolation.isoparametric.nnode;
+            nnode2 = obj.geometry(jfield).interpolation.nnode;
             col = obj.dof.ndof(jfield);
             row = obj.dof.ndof(ifield);
         end
@@ -176,7 +130,6 @@ classdef Element < handle
         
         function Ared = full_matrix_2_reduced_matrix(obj,A)
             [~,~,free] = obj.compute_global_dirichlet_free_uD;
-            
             Ared = A(free,free);
         end
         
@@ -198,7 +151,6 @@ classdef Element < handle
                 b(dirichlet,:) = uD;
             end
         end
-        
     end
     
     methods (Abstract, Access = protected)
