@@ -14,6 +14,7 @@ classdef TopOpt_Problem < handle
         hole_value
         ini_design_value
     end
+    
     methods (Access = public)
         function obj = TopOpt_Problem(settings)
             %% !! This should be done in settings class !! --> When tests as benchmark cases
@@ -27,10 +28,8 @@ classdef TopOpt_Problem < handle
             switch settings.ptype
                 case 'MACRO'
                     obj.topOpt_params = DiffReact_Problem(settings.filename);
-                    obj.topOpt_params.mesh.scale = 'MACRO'; % !! Hyper-provisional !!
                 case 'MICRO'
                     obj.topOpt_params = DiffReact_Problem_Micro(settings.filename);
-                    obj.topOpt_params.mesh.scale = 'MICRO'; % !! Hyper-provisional !!
                 otherwise
                     error('Invalid ptype. Must be MACRO or MICRO.')
             end
@@ -94,34 +93,11 @@ classdef TopOpt_Problem < handle
             
         end
         
-        function obj = filters_preProcess(obj)
-            switch obj.topOpt_params.mesh.scale
-                case 'MACRO'
-                    % !! This could be more sophisticated !! 
-                    dof_filter = DOF_DiffReact(obj.topOpt_params.problemID,obj.topOpt_params.geometry);
-                    dof_filter.dirichlet{1} = [];
-                    dof_filter.dirichlet_values{1} = [];
-                    dof_filter.neumann = [];
-                    dof_filter.neumann_values  = [];
-                    dof_filter.constrained{1} = [];
-                    dof_filter.free{1} = dof_filter.compute_free_dof(1);
-                case 'MICRO'
-                    % !! This could be more sophisticated !! 
-                    dof_filter = DOF_DiffReact_Micro(obj.topOpt_params.problemID,obj.topOpt_params.geometry);
-                    dof_filter.dirichlet = [];
-                    dof_filter.dirichlet_values = [];
-                    dof_filter.neumann = [];
-                    dof_filter.neumann_values  = [];
-                    dof_filter.constrained{1} = dof_filter.compute_constrained_dof(1);
-                    dof_filter.free{1} = dof_filter.compute_free_dof(1);
-            end
-            obj.topOpt_params.setDof(dof_filter)
-            
+        function obj = filters_preProcess(obj)            
             filter_params = obj.getFilterParams(obj.topOpt_params);
             obj.cost.preProcess(filter_params);
             obj.constraint.preProcess(filter_params);
         end       
-
     end
     
     methods (Access = private)

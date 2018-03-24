@@ -100,12 +100,12 @@ classdef Element < handle
                 if ~isempty(obj.dof.dirichlet{ifield})
                     obj.uD{ifield} = obj.dof.dirichlet_values{ifield};
                 else
-                    obj.uD = [];
+                    obj.uD = {[]};
                 end
             end
         end
         
-        function R = compute_imposed_displacemet_force(obj,K)
+        function R = compute_imposed_displacement_force(obj,K)
             % Forces coming from imposed displacement
             [dirichlet,uD,~] = obj.compute_global_dirichlet_free_uD;
             if ~isempty(dirichlet)

@@ -35,7 +35,7 @@ classdef Element_Elastic < Element
             %             [K] = obj.computeStiffnessMatrix();
             
             Fext = obj.computeExternalForces();
-            R = obj.compute_imposed_displacemet_force(obj.K);
+            R = obj.compute_imposed_displacement_force(obj.K);
             obj.fext = Fext + R;
             
             %             Kred = obj.full_matrix_2_reduced_matrix(K);

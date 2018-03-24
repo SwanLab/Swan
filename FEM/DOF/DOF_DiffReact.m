@@ -1,16 +1,14 @@
 classdef DOF_DiffReact < DOF
     %DOF_DiffReact Summary of this class goes here
-    %   Detailed explanation goes here
-    properties
-        master_slave
-    end
-    
+    %   Detailed explanation goes here    
     methods
-        function obj = DOF_DiffReact(filename,geometry) % Replace mesh for pdim
+        function obj = DOF_DiffReact(geometry) % Replace mesh for pdim
             obj.nunkn = 1;
-            [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = Preprocess.getBC_mechanics(filename);
-            obj.computeDOF(geometry,dirichlet_data,neumann_data,full_dirichlet_data);
-            obj.master_slave = master_slave;
+            obj.dirichlet{1} = [];
+            obj.dirichlet_values{1} = [];
+            obj.neumann = [];
+            obj.neumann_values  = [];
+            obj.computeDOF(geometry);
         end
     end
 end
