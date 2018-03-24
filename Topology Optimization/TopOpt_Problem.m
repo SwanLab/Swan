@@ -70,7 +70,7 @@ classdef TopOpt_Problem < handle
         function postProcess(obj)
             % Video creation
             if obj.settings.printing
-                gidPath = 'C:\Program Files\GiD\GiD 13.0.2';% 'C:\Program Files\GiD\GiD 13.0.3';
+                gidPath = 'C:\Program Files\GiD\GiD 13.0.3';% 'C:\Program Files\GiD\GiD 13.0.2';
                 files_name = obj.settings.case_file;
                 files_folder = fullfile(pwd,'Output',obj.settings.case_file);
                 iterations = 0:obj.optimizer.niter;

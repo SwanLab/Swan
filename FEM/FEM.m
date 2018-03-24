@@ -29,7 +29,12 @@ classdef FEM < handle
             mesh = Mesh(problemID); % Mesh defined twice, but almost free
             switch mesh.ptype
                 case 'ELASTIC'
-                    obj = Elastic_Problem(problemID);
+                    switch mesh.scale                        
+                        case 'MACRO'
+                            obj = Elastic_Problem(problemID);
+                        case 'MICRO'
+                            obj = Elastic_Problem_Micro(problemID);
+                    end                    
                 case 'THERMAL'
                     obj = Thermal_Problem(problemID);
                 case 'DIFF-REACT'
@@ -49,7 +54,7 @@ classdef FEM < handle
             postprocess.print(obj,obj.problemID,results);
         end
         
-        % !! Ask others !!        
+        % !! Ask others !!
         function sol = solve_steady_problem(obj,free_dof,tol)
             total_free_dof = sum(free_dof);
             dr = obj.element.computedr;
@@ -81,5 +86,5 @@ classdef FEM < handle
         preProcess(obj)
         computeVariables(obj)
         postProcess(obj)
-    end 
+    end
 end
