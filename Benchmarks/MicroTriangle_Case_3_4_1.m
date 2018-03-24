@@ -32,4 +32,7 @@ epsilon_isotropy_final = 1e-3;
 micro.alpha =[1 0 0]';%[1 0 0]'
 micro.beta =[0 -1 0]';%[0 -1 0]'
 
+% printing = true;
+% maxiter = 15;
+
 

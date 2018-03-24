@@ -70,15 +70,19 @@ classdef ShFunc_Chomog_EnforceCh< ShFunc_Chomog
             selective_Ch_star_div(6) = Ch_star_div(1,2);
             
             %Gradient
-            obj.gradient = zeros(obj.physicalProblem.mesh.nelem,neq);
+            nelem = obj.physicalProblem.element.nelem;
+            ngaus = size(obj.tstrain,2);
+            nstre = obj.physicalProblem.element.nstre;
+            
+            obj.gradient = zeros(nelem,neq);
             obj.compute_Chomog_Derivatives(x);
             for i = 1:neq
                 C_C = selectiveC_Cstar(:,:,i)./selective_Ch_star_div(i);
-                DtC1 = zeros(obj.physicalProblem.geometry.ngaus,obj.physicalProblem.mesh.nelem);
-                DtC = zeros(obj.physicalProblem.geometry.ngaus,obj.physicalProblem.mesh.nelem);
-                for igaus=1:obj.physicalProblem.geometry.ngaus
-                    for a=1:obj.physicalProblem.dim.nstre
-                        for b=1:obj.physicalProblem.dim.nstre
+                DtC1 = zeros(ngaus,nelem);
+                DtC = zeros(ngaus,nelem);
+                for igaus=1:ngaus
+                    for a=1:nstre
+                        for b=1:nstre
                             DtC1(igaus,:) = squeeze(obj.Chomog_Derivatives(a,b,igaus,:));
                             DtC(igaus,:) = DtC(igaus,:) + C_C(a,b)*DtC1(igaus,:);
                         end
