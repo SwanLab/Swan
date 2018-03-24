@@ -29,15 +29,22 @@ classdef CC < handle
                         obj.ShapeFuncs{iSF} = ShFunc_Chomog_fraction(settings_this);
                     case 'chomog_CC'
                         obj.ShapeFuncs{iSF} = ShFunc_Chomog_CC(settings_this);
-                    case 'enforceCh_CCstar'
-                        for i = 1:6
-                            EnforceCh=ShFunc_Chomog_EnforceCh_CCstar(settings_this,i);
+                    case 'enforceCh_CCstar_inf'
+                        for i=1:6
+                            EnforceCh=ShFunc_Chomog_EnforceCh_CCstar_inf(settings_this,i);
                             if isequal(i,5) || isequal(i,4)
                                 EnforceCh.setEpsilon(0);
                             end
                             obj.ShapeFuncs{iSF}=EnforceCh;
                             iSF = iSF+1;
                         end
+                    case 'enforceCh_CCstar_eq'
+                        for i=1:6
+                            obj.ShapeFuncs{iSF}=ShFunc_Chomog_EnforceCh_CCstar_eq(settings_this,i);
+                            iSF = iSF+1;
+                        end
+                    case 'enforceCh_CCstar_L2'
+                        obj.ShapeFuncs{iSF}=ShFunc_Chomog_EnforceCh_CCstar_L2(settings_this);
                     case 'nonadjoint_compliance'
                         obj.ShapeFuncs{iSF} = ShFunc_NonSelfAdjoint_Compliance(settings_this);
                     case 'volume'
