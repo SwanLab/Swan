@@ -17,14 +17,11 @@ classdef TopOpt_Problem < handle
     
     methods (Access = public)
         function obj = TopOpt_Problem(settings)
-            %% !! This should be done in settings class !! --> When tests as benchmark cases
-            settings.nconstr = length(settings.constraint);
-            
             obj.cost = Cost(settings,settings.weights); % Change to just enter settings
             obj.constraint = Constraint(settings);
             
-            % This PhysProb is only gonna be used by filters & incremental -> no need of specifying MICRO or MACRO
-            % Consider turning it into a more generic class like FEM
+            % !! This PhysProb is only gonna be used by filters & incremental -> no need of specifying MICRO or MACRO
+            % Consider turning it into a more generic class like FEM !!
             switch settings.ptype
                 case 'MACRO'
                     obj.topOpt_params = DiffReact_Problem(settings.filename);
@@ -190,5 +187,4 @@ classdef TopOpt_Problem < handle
             filter_params.shape = topOpt_params.element.interpolation_u.shape;
         end
     end
-end
-
+e

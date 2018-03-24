@@ -1,4 +1,4 @@
-classdef Settings 
+classdef Settings
     properties %optmizer access
         plotting = true
         printing = false
@@ -45,6 +45,7 @@ classdef Settings
         selectiveC_Cstar
         nconstr
     end
+    
     methods
         function obj = Settings(case_file)
             run(case_file)
@@ -57,8 +58,7 @@ classdef Settings
             obj.cost = cost;
             obj.weights = weights;
             obj.constraint = constraint;
-            %% RELEASE WHEN TEST --> AS BENCHMARK CASES
-            %                 obj.nconstr = length(constraint);
+            obj.nconstr = length(constraint);
             obj.optimizer = optimizer;
             obj.kappaMultiplier = kappaMultiplier;
             obj.filter = filterType;
@@ -94,7 +94,7 @@ classdef Settings
             
             if ~contains(filename,'test','IgnoreCase',true)
                 fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: %s \n -Constraint: %s \n -Incremental Steps: %f \n ',...
-                case_file,obj.optimizer,char(obj.cost),char(obj.constraint),obj.nsteps)
+                    case_file,obj.optimizer,char(obj.cost),char(obj.constraint),obj.nsteps)
             end
             
             if exist('Vfrac_final','var')
