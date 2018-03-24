@@ -2,8 +2,12 @@ classdef Filter_P1 < Filter
     properties
     end
     methods
-        function preProcess(obj,physicalProblem)
-            preProcess@Filter(obj,physicalProblem)
+        function obj = Filter_P1(problemID,scale)
+            obj@Filter(problemID,scale);
+        end
+            
+        function preProcess(obj)
+            preProcess@Filter(obj)
             obj.P_operator=obj.computePoperator(obj.Msmooth);
         end
         

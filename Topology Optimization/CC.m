@@ -49,9 +49,9 @@ classdef CC < handle
             obj.nSF = length(obj.ShapeFuncs);
         end
         
-        function preProcess(obj,params)
+        function preProcess(obj)
             for iSF = 1:obj.nSF
-                obj.ShapeFuncs{iSF}.filter.preProcess(params);
+                obj.ShapeFuncs{iSF}.filter.preProcess;
             end
         end
         

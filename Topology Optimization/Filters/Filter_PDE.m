@@ -7,10 +7,14 @@ classdef Filter_PDE < Filter
         element
     end
     methods
-        function preProcess(obj,params)
-            preProcess@Filter(obj,params);
-            obj.element = params.element;
-            obj.element.dof = params.dof;
+        function obj = Filter_PDE(problemID,scale)
+            obj@Filter(problemID,scale);
+        end
+        
+        function preProcess(obj)
+            preProcess@Filter(obj);
+%             obj.element = params.element;
+%             obj.element.dof = params.dof;
             %obj.dof = physicalProblem.dof;
             obj.solver = Solver.create();
             obj.A_nodal_2_gauss = obj.computeA;
@@ -39,10 +43,10 @@ classdef Filter_PDE < Filter
         % !! Can be done as a DiffReact_Problem !!
         function x_reg = solve_filter(obj,rhs_x)
             Rinv = (obj.epsilon^2*obj.Ksmooth + obj.Msmooth);
-            Rinv_red = obj.element.full_matrix_2_reduced_matrix(Rinv);
-            rhs_red  = obj.element.full_vector_2_reduced_vector(rhs_x);
+            Rinv_red = obj.diffReacProb.element.full_matrix_2_reduced_matrix(Rinv);
+            rhs_red  = obj.diffReacProb.element.full_vector_2_reduced_vector(rhs_x);
             x_reg = obj.solver.solve(Rinv_red,rhs_red);
-            x_reg = obj.element.reduced_vector_2_full_vector(x_reg);
+            x_reg = obj.diffReacProb.element.reduced_vector_2_full_vector(x_reg);
         end        
     end
 end

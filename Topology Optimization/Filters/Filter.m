@@ -1,5 +1,6 @@
 classdef Filter < handle
     properties
+        diffReacProb
         M0
         Msmooth
         Ksmooth
@@ -16,19 +17,38 @@ classdef Filter < handle
         shape
     end
     methods
-        function preProcess(obj,params)
-            obj.M0 = params.M0;
-            obj.dvolu = params.dvolu;
-            obj.Msmooth = params.Msmooth;
-            obj.Ksmooth = params.Ksmooth;
-            obj.coordinates = params.coordinates;
-            obj.connectivities = params.connectivities;
-            obj.nnode = params.nnode;
-            obj.nelem = params.nelem;
-            obj.npnod = params.npnod;
-            obj.ngaus = params.ngaus;
-            obj.nnode = params.nnode;
-            obj.shape = params.shape;
+        function obj = Filter(problemID,scale)
+            switch scale
+                case 'MACRO'
+                    obj.diffReacProb = DiffReact_Problem(problemID);
+                case 'MICRO'
+                    obj.diffReacProb = DiffReact_Problem_Micro(problemID);
+            end
+        end
+        
+        function preProcess(obj)
+            obj.diffReacProb.preProcess;
+            quadrature = Quadrature.set(obj.diffReacProb.geometry.type);
+            quadrature.computeQuadrature('LINEAR');
+            obj.diffReacProb.element.interpolation_u.computeShapeDeriv(quadrature.posgp)
+            obj.diffReacProb.geometry.computeGeometry(quadrature,obj.diffReacProb.element.interpolation_u);
+            
+            for igauss = 1:size(obj.diffReacProb.geometry.dvolu,2)
+                obj.M0{igauss} = sparse(1:obj.diffReacProb.geometry.interpolation.nelem,1:obj.diffReacProb.geometry.interpolation.nelem,...
+                    obj.diffReacProb.geometry.dvolu(:,igauss));
+            end
+            
+            obj.dvolu = sparse(1:obj.diffReacProb.geometry.interpolation.nelem,1:obj.diffReacProb.geometry.interpolation.nelem,...
+                sum(obj.diffReacProb.geometry.dvolu,2));
+            obj.Ksmooth = obj.diffReacProb.element.computeStiffnessMatrix;
+            obj.Msmooth = obj.diffReacProb.element.computeMassMatrix(2);
+            obj.coordinates = obj.diffReacProb.mesh.coord;
+            obj.connectivities = obj.diffReacProb.mesh.connec;
+            obj.nelem = obj.diffReacProb.geometry.interpolation.nelem;
+            obj.nnode = obj.diffReacProb.geometry.interpolation.nnode;
+            obj.npnod = obj.diffReacProb.geometry.interpolation.npnod;
+            obj.ngaus = quadrature.ngaus;
+            obj.shape = obj.diffReacProb.element.interpolation_u.shape;
         end
         
         function A_nodal_2_gauss = computeA(obj)
@@ -53,21 +73,21 @@ classdef Filter < handle
         
     end
     methods (Static)
-        function obj = create(type, optimizer)
-            switch type
+        function obj = create(settings)
+            switch settings.filter
                 case 'P1'
-                    switch optimizer
+                    switch settings.optimizer
                         case {'MMA','PROJECTED GRADIENT','IPOPT'}
-                            obj = Filter_P1_Density;
+                            obj = Filter_P1_Density(settings.filename,settings.ptype);
                         case 'SLERP'
-                            obj = Filter_P1_SLERP;
+                            obj = Filter_P1_SLERP(settings.filename,settings.ptype);
                     end
                 case 'PDE'
-                    switch optimizer
+                    switch settings.optimizer
                         case {'MMA','PROJECTED GRADIENT','IPOPT'}
-                            obj = Filter_Density_PDE;
+                            obj = Filter_Density_PDE(settings.filename,settings.ptype);
                         case 'SLERP'
-                            obj = Filter_SLERP_PDE;
+                            obj = Filter_SLERP_PDE(settings.filename,settings.ptype);
                     end
             end
             

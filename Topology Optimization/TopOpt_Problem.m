@@ -20,16 +20,8 @@ classdef TopOpt_Problem < handle
             obj.cost = Cost(settings,settings.weights); % Change to just enter settings
             obj.constraint = Constraint(settings);
             
-            % !! This PhysProb is only gonna be used by filters & incremental -> no need of specifying MICRO or MACRO
             % Consider turning it into a more generic class like FEM !!
-            switch settings.ptype
-                case 'MACRO'
                     obj.topOpt_params = DiffReact_Problem(settings.filename);
-                case 'MICRO'
-                    obj.topOpt_params = DiffReact_Problem_Micro(settings.filename);
-                otherwise
-                    error('Invalid ptype. Must be MACRO or MICRO.')
-            end
             obj.settings = settings;
 
             obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.topOpt_params.mesh);
@@ -90,10 +82,9 @@ classdef TopOpt_Problem < handle
             
         end
         
-        function obj = filters_preProcess(obj)            
-            filter_params = obj.getFilterParams(obj.topOpt_params);
-            obj.cost.preProcess(filter_params);
-            obj.constraint.preProcess(filter_params);
+        function obj = filters_preProcess(obj)
+            obj.cost.preProcess;
+            obj.constraint.preProcess;
         end       
     end
     
@@ -161,30 +152,5 @@ classdef TopOpt_Problem < handle
             end
         end
     end
-    methods (Access = private, Static)
-        %% !! CONSIDER PASS THE WHOLE TOP_OPT_PARAMS (Not Physical but FEM) TO THE FILTERS !!
-        function filter_params = getFilterParams(topOpt_params)
-            quadrature=Quadrature.set(topOpt_params.geometry.type);
-            quadrature.computeQuadrature('LINEAR');
-            topOpt_params.element.interpolation_u.computeShapeDeriv(quadrature.posgp)
-            topOpt_params.geometry.computeGeometry(quadrature,topOpt_params.element.interpolation_u);
-            for igauss = 1:size(topOpt_params.geometry.dvolu,2)
-                filter_params.M0{igauss} = sparse(1:topOpt_params.geometry.interpolation.nelem,1:topOpt_params.geometry.interpolation.nelem,...
-                    topOpt_params.geometry.dvolu(:,igauss));
-            end
-            filter_params.dof = topOpt_params.dof;
-            filter_params.element = topOpt_params.element;
-            filter_params.dvolu = sparse(1:topOpt_params.geometry.interpolation.nelem,1:topOpt_params.geometry.interpolation.nelem,...
-                sum(topOpt_params.geometry.dvolu,2));
-            filter_params.Ksmooth = topOpt_params.element.computeStiffnessMatrix;
-            filter_params.Msmooth = topOpt_params.element.computeMassMatrix(2);
-            filter_params.coordinates = topOpt_params.mesh.coord;
-            filter_params.connectivities = topOpt_params.mesh.connec;
-            filter_params.nelem = topOpt_params.geometry.interpolation.nelem;
-            filter_params.nnode = topOpt_params.geometry.interpolation.nnode;
-            filter_params.npnod = topOpt_params.geometry.interpolation.npnod;
-            filter_params.ngaus = quadrature.ngaus;
-            filter_params.shape = topOpt_params.element.interpolation_u.shape;
-        end
-    end
-e
+end
+

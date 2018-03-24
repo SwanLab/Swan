@@ -1,7 +1,12 @@
 classdef Filter_P1_Density < Filter_P1
     properties
     end
-    methods 
+    
+    methods
+        function obj = Filter_P1_Density(problemID,scale)
+            obj@Filter_P1(problemID,scale);
+        end
+        
         function x_gp = getP0fromP1(obj,x)
             if isequal(x,obj.x)
                 x_gp=obj.x_reg;
@@ -11,6 +16,7 @@ classdef Filter_P1_Density < Filter_P1
                 obj.x_reg=x_gp;
             end
         end
+        
         function x_reg = getP1fromP0(obj,x)
             gauss_sum=0;
             for igauss=1:length(x(1,:))
