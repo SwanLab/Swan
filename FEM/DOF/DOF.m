@@ -5,10 +5,6 @@ classdef DOF < handle
     %     properties (GetAccess = {?Physical_Problem, ?Element, ?Solver}, SetAccess = private)
     %
     %     end
-    %
-    %     properties (GetAccess = {?Physical_Problem, ?Element}, SetAccess = private)
-    %
-    %     end
     
     properties (GetAccess = public)
         dirichlet_values
@@ -43,13 +39,7 @@ classdef DOF < handle
                 obj.constrained{ifield} = obj.compute_constrained_dof(ifield);
                 obj.free{ifield} = obj.compute_free_dof(ifield);
             end
-            %                 if nfields == 1
-            %                     obj.dirichlet = cell2mat(obj.dirichlet{ifield});
-            %                     obj.dirichlet_values = cell2mat(obj.dirichlet_values{ifield});
-            %
-            %                 end
         end
-        
     end
     
     methods
@@ -62,23 +52,6 @@ classdef DOF < handle
             free = setdiff(1:obj.ndof(ifield),obj.constrained{ifield});
         end
         
-        % Constructor
-        %         function obj=computeFixedNodesValues(obj,ptype,ndim)
-        %             switch ptype
-        %                 case 'ELASTIC'
-        %                     ifix=1;
-        %                     for i=1:size(obj.fixnodes_perimeter,1)
-        %                         for j=1:ndim
-        %                             obj.fixnodes(ifix,1)=obj.fixnodes_perimeter(i,1); % node
-        %                             obj.fixnodes(ifix,2)=j; % idim
-        %                             obj.fixnodes(ifix,3)=0; % U_imp
-        %                             ifix=ifix+1;
-        %                         end
-        %                     end
-        %             end
-        %         end
-        
-        
         function periodic_dof = compute_periodic_nodes(obj,periodic_nodes,nunkn)
             nlib = size(periodic_nodes,1);
             periodic_dof = zeros(nlib*nunkn,1);
@@ -87,7 +60,6 @@ classdef DOF < handle
                 periodic_dof(index_glib,1) = obj.unknown_and_node_id_to_dof_id(periodic_nodes,iunkn,nunkn);
             end
         end
-        
         
         function dof_elem = compute_idx(obj,connec,nunkn,nnode)
             dof_elem  = zeros(nnode*nunkn,size(connec,1));
@@ -119,16 +91,12 @@ classdef DOF < handle
                 end
             end
         end
-        
-        
     end
     
     methods (Static)
-        
         function idof = unknown_and_node_id_to_dof_id(inode,iunkn,nunkn)
             idof(:,1)= nunkn*(inode - 1) + iunkn;
         end
-        
         
         function [Master_slave_nodes] = get_master_slave_in_square(coordinates)
             % Square muest be [0,1]x[0,1]

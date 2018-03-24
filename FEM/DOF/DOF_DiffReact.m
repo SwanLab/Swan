@@ -1,6 +1,7 @@
 classdef DOF_DiffReact < DOF
     %DOF_DiffReact Summary of this class goes here
     %   Detailed explanation goes here    
+    
     methods
         function obj = DOF_DiffReact(geometry) % Replace mesh for pdim
             obj.nunkn = 1;
