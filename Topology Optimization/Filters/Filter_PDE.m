@@ -1,11 +1,14 @@
 classdef Filter_PDE < Filter
     properties
-        solver
-        rhs
+        dvolu
         epsilon
+        Ksmooth %Try to remove
+        Msmooth %Try to remove
+        solver  %Try to remove
+        rhs
         A_nodal_2_gauss
-        element
     end
+    
     methods
         function obj = Filter_PDE(problemID,scale)
             obj@Filter(problemID,scale);
@@ -16,6 +19,10 @@ classdef Filter_PDE < Filter
 %             obj.element = params.element;
 %             obj.element.dof = params.dof;
             %obj.dof = physicalProblem.dof;
+            obj.dvolu = sparse(1:obj.diffReacProb.geometry.interpolation.nelem,1:obj.diffReacProb.geometry.interpolation.nelem,...
+                sum(obj.diffReacProb.geometry.dvolu,2));
+            obj.Ksmooth = obj.diffReacProb.element.K;
+            obj.Msmooth = obj.diffReacProb.element.M;
             obj.solver = Solver.create();
             obj.A_nodal_2_gauss = obj.computeA;
         end

@@ -22,6 +22,7 @@ classdef DiffReact_Problem < FEM
         end
         
         function preProcess(obj)
+            % !! Material required?? !!
             obj.element = Element_DiffReact(obj.mesh,obj.geometry,obj.material,obj.dof);
             obj.solver = Solver.create;
         end

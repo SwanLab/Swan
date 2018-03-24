@@ -1,18 +1,19 @@
 classdef Filter_P1 < Filter
     properties
+        P_operator
     end
+    
     methods
         function obj = Filter_P1(problemID,scale)
             obj@Filter(problemID,scale);
         end
-            
+        
         function preProcess(obj)
             preProcess@Filter(obj)
-            obj.P_operator=obj.computePoperator(obj.Msmooth);
+            obj.P_operator = obj.computePoperator(obj.diffReacProb.element.M);
         end
         
         function P_operator=computePoperator(obj,Msmooth)
-            
             dirichlet_data=zeros(obj.nnode,obj.nelem);
             for inode=1:obj.nnode
                 dirichlet_data(inode,:)=obj.connectivities(:,inode);

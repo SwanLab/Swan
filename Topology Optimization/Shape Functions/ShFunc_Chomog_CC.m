@@ -32,7 +32,7 @@ classdef ShFunc_Chomog_CC < ShFunc_Chomog
             %Cost
             costfunc = sum(bsxfun(@times,costfunc(:),costfunc(:)));
             
-            mass=obj.filter.Msmooth;
+            mass=obj.Msmooth;
             gradient=obj.filter.getP1fromP0(gradient(:));
             gradient = mass*gradient;
             if isempty(obj.h_C_0)

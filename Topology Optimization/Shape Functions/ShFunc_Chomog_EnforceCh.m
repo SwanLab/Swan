@@ -8,7 +8,7 @@ classdef ShFunc_Chomog_EnforceCh< ShFunc_Chomog
             obj@ShFunc_Chomog(settings);
         end
         function obj = passFilter(obj)            
-            mass=obj.filter.Msmooth;
+            mass=obj.Msmooth;
             gradient=obj.filter.getP1fromP0(obj.gradient(:));
             gradient = mass*gradient;
             if isempty(obj.h_C_0)

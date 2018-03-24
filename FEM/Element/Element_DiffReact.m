@@ -19,6 +19,8 @@ classdef Element_DiffReact < Element
             obj.nstre=2;
             obj.nfields=1;
             obj.interpolation_u=Interpolation.create(mesh,'LINEAR');
+            obj.K = obj.computeStiffnessMatrix;
+            obj.M = obj.computeMassMatrix(2);
         end
         
         function obj = setEpsilon(obj,epsilon)
@@ -31,20 +33,14 @@ classdef Element_DiffReact < Element
             % - residual: r = Ku - F
             % - residual derivative: dr = K
             % *************************************************************
-            [K] = obj.computeStiffnessMatrix;
-            [M] = obj.computeMassMatrix(2);
-            obj.K = K; obj.M = M;
             
             Fext = obj.computeExternalForces();
-            R = obj.compute_imposed_displacemet_force(K);
+            R = obj.compute_imposed_displacemet_force(obj.K);
             fext = Fext + R;
             
-            Kred = K(obj.dof.free,obj.dof.free);
-            Mred = M(obj.dof.free,obj.dof.free);
-            
-            fint = Kred*uL;
+            fint = obj.K*uL;
             r = fint - fext;
-            dr = obj.epsilon^2*Kred + Mred;
+            dr = obj.epsilon^2*obj.K + obj.M;
         end
         
         

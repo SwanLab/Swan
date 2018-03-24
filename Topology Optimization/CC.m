@@ -15,7 +15,7 @@ classdef CC < handle
             obj.nSF = length(SF_list);
             for iSF = 1:obj.nSF
                 
-                %% !! PENDING TO BE DEFINED A FILTER FOR EACH SF
+                %% !! PENDING TO BE DEFINED A FILTER FOR EACH SF !!
                 % settings_this.filter = settings.filter{iSF};
                 
                 switch SF_list{iSF}

@@ -2,20 +2,17 @@ classdef Filter < handle
     properties
         diffReacProb
         M0
-        Msmooth
-        Ksmooth
-        P_operator
         coordinates
         connectivities
-        x
-        x_reg
-        dvolu
         nnode
         nelem
         npnod
         ngaus
         shape
+        x
+        x_reg
     end
+    
     methods
         function obj = Filter(problemID,scale)
             switch scale
@@ -38,10 +35,6 @@ classdef Filter < handle
                     obj.diffReacProb.geometry.dvolu(:,igauss));
             end
             
-            obj.dvolu = sparse(1:obj.diffReacProb.geometry.interpolation.nelem,1:obj.diffReacProb.geometry.interpolation.nelem,...
-                sum(obj.diffReacProb.geometry.dvolu,2));
-            obj.Ksmooth = obj.diffReacProb.element.computeStiffnessMatrix;
-            obj.Msmooth = obj.diffReacProb.element.computeMassMatrix(2);
             obj.coordinates = obj.diffReacProb.mesh.coord;
             obj.connectivities = obj.diffReacProb.mesh.connec;
             obj.nelem = obj.diffReacProb.geometry.interpolation.nelem;
@@ -53,7 +46,6 @@ classdef Filter < handle
         
         function A_nodal_2_gauss = computeA(obj)
             A_nodal_2_gauss = sparse(obj.nelem,obj.npnod);
-            %fn = ones(1,nelem);
             fn = ones(1,obj.npnod);
             
             dirichlet_data = obj.connectivities';

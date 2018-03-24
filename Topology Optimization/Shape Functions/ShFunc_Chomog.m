@@ -2,6 +2,7 @@ classdef ShFunc_Chomog < Shape_Functional
     properties 
         h_C_0
         Chomog
+        Msmooth
         tstress
         tstrain
         Chomog_Derivatives
@@ -15,6 +16,9 @@ classdef ShFunc_Chomog < Shape_Functional
             obj@Shape_Functional(settings);
             obj.physicalProblem = Elastic_Problem_Micro(settings.filename);
             obj.physicalProblem.preProcess;
+            diffReacProb = DiffReact_Problem(settings.filename);
+            diffReacProb.preProcess;
+            obj.Msmooth = diffReacProb.element.M;
             obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method);
         end
     end
@@ -22,9 +26,6 @@ classdef ShFunc_Chomog < Shape_Functional
         function compute_Chomog_Derivatives(obj,x)
             obj.rho=obj.filter.getP0fromP1(x);
             obj.matProps=obj.interpolation.computeMatProp(obj.rho);
-            %           mass=filter.Msmooth;
-            %             obj.tstrain = permute(obj.tstrain,[2 3 4]);
-            %             obj.tstress = permute(obj.tstrain,);
             obj.Chomog_Derivatives = zeros(obj.physicalProblem.element.nstre,obj.physicalProblem.element.nstre,obj.physicalProblem.element.quadrature.ngaus,obj.physicalProblem.element.nelem);
             for istreChomog = 1:obj.physicalProblem.element.nstre
                 for jstreChomog = 1:obj.physicalProblem.element.nstre

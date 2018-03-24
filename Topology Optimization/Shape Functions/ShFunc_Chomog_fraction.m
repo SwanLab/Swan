@@ -33,7 +33,9 @@ classdef ShFunc_Chomog_fraction < ShFunc_Chomog
             g2 = obj.derivative_projection_Chomog(inv_matCh,obj.beta,beta2);
             gradient = g1/(alpha_alpha)^2 + g2/(beta_beta)^2;
             
-            mass=obj.filter.Msmooth;
+            % !! NOT FROM FILTER !!
+            mass=obj.filter.diffReacProb.element.M;
+            
             gradient=obj.filter.getP1fromP0(gradient(:));
             gradient = mass*gradient;
             if isempty(obj.h_C_0)
