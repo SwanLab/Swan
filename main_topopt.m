@@ -7,7 +7,7 @@ run('test_topopt.m');
 clear variables;
 
 %% Settings
-settings = Settings('CantileverTriangle_Case_1_1_3');
+settings = Settings('CantileverTriangle_Case_3_2_2');
 
 %% Main
 tic

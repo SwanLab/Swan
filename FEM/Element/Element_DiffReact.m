@@ -41,7 +41,7 @@ classdef Element_DiffReact < Element
 %             fext = obj.computeExternalForces();
             fext = obj.full_vector_2_reduced_vector(fext);
             % !!
-            load('C:\Users\trujilor\Dropbox\OriolBranch\FEM-MAT-OO\master'); fext = rhs_red;
+%             load('C:\Users\trujilor\Dropbox\OriolBranch\FEM-MAT-OO\master'); fext = rhs_red;
             
             fint = dr*x;
             r = fint - fext;

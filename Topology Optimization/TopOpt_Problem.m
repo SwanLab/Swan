@@ -37,7 +37,7 @@ classdef TopOpt_Problem < handle
         function preProcess(obj)
             obj.cost.preProcess;
             obj.constraint.preProcess;
-            obj.compute_initial_design;
+            obj.x = obj.optimizer.compute_initial_design(obj.settings.initial_case,obj.settings.optimizer);
         end
         
         function computeVariables(obj)
@@ -74,74 +74,7 @@ classdef TopOpt_Problem < handle
                 % output_video_name_stress = fullfile(pwd,'Stress_Video');
                 % My_VideoMaker.Make_video_stress(output_video_name_stress)
             end
-            
         end    
-    end
-    
-    methods (Access = private)
-        function obj = compute_initial_design(obj)            
-            % !! INCLUDE THIS INSIDE CLASS PHYSICAL_PROBLEM OR PARENT/CHILD !!
-            switch obj.settings.optimizer
-                case 'SLERP'
-                    obj.ini_design_value = -1.015243959022692;
-                    obj.hole_value = 0.507621979511346;
-                otherwise
-                    obj.ini_design_value = 1;
-                    obj.hole_value = 0;
-            end
-            
-            geometry = Geometry(obj.mesh,'LINEAR');
-            obj.x = obj.ini_design_value*ones(geometry.interpolation.npnod,1);
-            switch obj.settings.initial_case
-                case 'circle'
-                    width = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
-                    height = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
-                    center_x = 0.5*(max(obj.mesh.coord(:,1)) + min(obj.mesh.coord(:,1)));
-                    center_y = 0.5*(max(obj.mesh.coord(:,2)) + min(obj.mesh.coord(:,2)));
-                    radius = 0.2*min([width,height]);
-                    
-                    initial_holes = (obj.mesh.coord(:,1)-center_x).^2 + (obj.mesh.coord(:,2)-center_y).^2 - radius^2 < 0;
-                    obj.x(initial_holes) = obj.hole_value;
-                    %fracc = 1;
-                    
-                case 'horizontal'
-                    initial_holes = obj.mesh.coord(:,2) > 0.6 | obj.mesh.coord(:,2) < 0.4;
-                    obj.x(initial_holes) = obj.hole_value;
-                    %                   fracc = 1;
-                case 'square'
-                    width = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
-                    height = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
-                    center_x = 0.5*(max(obj.mesh.coord(:,1)) + min(obj.mesh.coord(:,1)));
-                    center_y = 0.5*(max(obj.mesh.coord(:,2)) + min(obj.mesh.coord(:,2)));
-                    
-                    offset_x = 0.2*width;
-                    offset_y = 0.2*height;
-                    
-                    xrange = obj.mesh.coord(:,1) < (center_x+offset_x) & obj.mesh.coord(:,1) > (center_x-offset_x);
-                    yrange = obj.mesh.coord(:,2) < (center_y+offset_y) & obj.mesh.coord(:,2) > (center_y-offset_y);
-                    initial_holes = and(xrange,yrange);
-                    obj.x(initial_holes) = obj.hole_value;
-                    %fracc = 1;
-                    
-                case 'feasible'
-                    initial_holes = false(size(obj.mesh.coord,1),1);
-                    obj.x(initial_holes) = obj.hole_value;
-                    %fracc = min(1,element.Vfrac);
-                case 'rand'
-                    initial_holes = rand(size(obj.mesh.coord,1),1) > 0.1;
-                    obj.x(initial_holes) = obj.hole_value;
-                    %fracc = 1;
-                case 'full'
-                otherwise
-                    error('Initialize design variable case not detected.');
-                    
-            end
-            %% !! PROVISIONAL !!
-            if strcmp(obj.settings.optimizer,'SLERP')
-               sqrt_norma = obj.optimizer.optimizer_unconstr.scalar_product.computeSP(obj.x,obj.x);
-               obj.x = obj.x/sqrt(sqrt_norma);
-            end
-        end
     end
 end
 
