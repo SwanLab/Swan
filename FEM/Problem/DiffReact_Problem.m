@@ -27,18 +27,26 @@ classdef DiffReact_Problem < FEM
             obj.solver = Solver.create;
         end
         
-        function computeVariables(obj)
+        function computeVariables(obj,x)
+            x_red  = obj.element.full_vector_2_reduced_vector(x);
+
             tol = 1e-6;
             for ifield = 1:obj.geometry(1).nfields
                 free_dof(ifield) = length(obj.dof.free{ifield});
+                obj.dof.neumann = obj.dof.free{ifield};
             end
-            x = obj.solve_steady_problem(free_dof,tol);
-            obj.variables = obj.element.computeVars(x);
+            obj.dof.neumann_values = x_red;
+            x_red = obj.solve_steady_problem(free_dof,tol);
+            obj.variables.x = obj.element.reduced_vector_2_full_vector(x_red);
         end
         
         function postProcess(obj)
             % ToDo
             % Inspire in TopOpt
+        end
+        
+        function obj = setEpsilon(obj,epsilon)
+            obj.element.setEpsilon(epsilon);
         end
         
         % !! THIS SHOULD BE DEFINED BY THE USER !!

@@ -7,6 +7,7 @@ classdef DOF_DiffReact < DOF
             obj.nunkn = 1;
             obj.dirichlet{1} = [];
             obj.dirichlet_values{1} = [];
+            %% !! INITIALZE NEUMANN AS ALL NODES !!
             obj.neumann = [];
             obj.neumann_values  = [];
             obj.computeDOF(geometry);

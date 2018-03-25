@@ -9,6 +9,13 @@ classdef Element_DiffReact_Micro < Element_DiffReact
             obj = obj@Element_DiffReact(mesh,geometry,material,dof);
         end
         
+        function FextPoint = computePunctualFext(obj)
+            %Compute Global Puntual Forces (Not well-posed in FEM)
+            if ~isempty(obj.dof.neumann)
+                FextPoint = obj.reduced_vector_2_full_vector(obj.dof.neumann_values);
+            end
+        end
+        
         function Ared = full_matrix_2_reduced_matrix(obj,A)                
             vF = obj.dof.free;
             vP = obj.dof.periodic_free;

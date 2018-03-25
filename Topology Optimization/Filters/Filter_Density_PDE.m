@@ -8,7 +8,7 @@ classdef Filter_Density_PDE < Filter_PDE
         end
         
         function rhs = integrate_L2_function_with_shape_function(obj,x)
-            rhs = obj.Msmooth*x;
+            rhs = obj.diffReacProb.element.M*x;
         end
     end
 end

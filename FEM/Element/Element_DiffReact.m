@@ -27,20 +27,30 @@ classdef Element_DiffReact < Element
             obj.epsilon = epsilon;
         end
         
-        function [r,dr] = computeResidual(obj,uL)
+        function r = computeResidual(obj,x,dr)
             % *************************************************************
             % Compute
-            % - residual: r = Ku - F
-            % - residual derivative: dr = K
+            % - residual: r = (e^2*K + M)*u - F
+            % - residual derivative: dr = (e^2*K + M)
             % *************************************************************
             
             Fext = obj.computeExternalForces();
-            R = obj.compute_imposed_displacemet_force(obj.K);
+            R = obj.compute_imposed_displacement_force(obj.epsilon^2*obj.K + obj.M);
             fext = Fext + R;
             
-            fint = obj.K*uL;
+%             fext = obj.computeExternalForces();
+            fext = obj.full_vector_2_reduced_vector(fext);
+            % !!
+            load('C:\Users\trujilor\Dropbox\OriolBranch\FEM-MAT-OO\master'); fext = rhs_red;
+            
+            fint = dr*x;
             r = fint - fext;
+        end
+        
+        function dr = computedr(obj)
             dr = obj.epsilon^2*obj.K + obj.M;
+            % !! !!
+            dr = obj.full_matrix_2_reduced_matrix(dr);
         end
         
         
@@ -81,8 +91,8 @@ classdef Element_DiffReact < Element
             
             K = Ke;
         end
-
-        function [M] = compute_elem_MassMatrix(obj,job)            
+        
+        function [M] = compute_elem_MassMatrix(obj,job)
             obj.quadrature.computeQuadrature('QUADRATICMASS');
             obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
@@ -104,39 +114,49 @@ classdef Element_DiffReact < Element
             M = Me;
             
             %% !! ERROR IN QUADRATURE: NGAUS = 1, WHEN THE
-%             
-%             if (job==1)
-%                 % lumped mass matrix
-%                 elumped = zeros(obj.geometry.nnode,obj.mesh.nelem);
-%                 M = zeros(obj.geom.nnode,1);
-%                 [nproc,coeff] = nprocedure(etype,nnode);
-%                 if (nproc==1)
-%                     for inode=1:nnode
-%                         for jnode=1:nnode
-%                             elumped(inode,:)=elumped(inode,:)+squeeze(Me(inode,jnode,:))';
-%                         end
-%                     end
-%                 elseif (nproc==2)
-%                     for inode=1:nnode
-%                         for jnode=1:nnode
-%                             elumped(inode,:)=elumped(inode,:)+squeeze(Me(inode,jnode,:))';
-%                         end
-%                         elumped(inode,:)=elumped(inode,:)*coeff(inode);
-%                     end
-%                 end
-%                 for inode=1:nnode
-%                     M = M + sparse(dirichlet_data(inode,:),1,elumped(inode,:),npnod,1);
-%                 end
-%             elseif (job==2)
-%                 M = sparse(obj.mesh.npnod*obj.geometry.quadrature.ngauss,obj.mesh.npnod*obj.geometry.quadrature.ngaus);
-%                 for k=1:obj.geometry.quadrature.ngaus
-%                     for l=1:obj.geometry.quadrature.ngaus
-%                         vmass = squeeze(Me(k,l,:));
-%                         M = M + sparse(dirichlet_data(k,:),dirichlet_data(l,:),vmass,obj.mesh.npnod,obj.mesh.npnod);
-%                     end
-%                 end
-%             end
-        end        
+            %
+            %             if (job==1)
+            %                 % lumped mass matrix
+            %                 elumped = zeros(obj.geometry.nnode,obj.mesh.nelem);
+            %                 M = zeros(obj.geom.nnode,1);
+            %                 [nproc,coeff] = nprocedure(etype,nnode);
+            %                 if (nproc==1)
+            %                     for inode=1:nnode
+            %                         for jnode=1:nnode
+            %                             elumped(inode,:)=elumped(inode,:)+squeeze(Me(inode,jnode,:))';
+            %                         end
+            %                     end
+            %                 elseif (nproc==2)
+            %                     for inode=1:nnode
+            %                         for jnode=1:nnode
+            %                             elumped(inode,:)=elumped(inode,:)+squeeze(Me(inode,jnode,:))';
+            %                         end
+            %                         elumped(inode,:)=elumped(inode,:)*coeff(inode);
+            %                     end
+            %                 end
+            %                 for inode=1:nnode
+            %                     M = M + sparse(dirichlet_data(inode,:),1,elumped(inode,:),npnod,1);
+            %                 end
+            %             elseif (job==2)
+            %                 M = sparse(obj.mesh.npnod*obj.geometry.quadrature.ngauss,obj.mesh.npnod*obj.geometry.quadrature.ngaus);
+            %                 for k=1:obj.geometry.quadrature.ngaus
+            %                     for l=1:obj.geometry.quadrature.ngaus
+            %                         vmass = squeeze(Me(k,l,:));
+            %                         M = M + sparse(dirichlet_data(k,:),dirichlet_data(l,:),vmass,obj.mesh.npnod,obj.mesh.npnod);
+            %                     end
+            %                 end
+            %             end
+        end
+    end
+    
+    methods(Access = protected) % Only the child sees the function
+        function FextSuperficial = computeSuperficialFext(obj)
+            FextSuperficial = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);
+        end
+        
+        function FextVolumetric = computeVolumetricFext(obj)
+            FextVolumetric = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);
+        end
     end
     
     methods (Static)
@@ -149,18 +169,6 @@ classdef Element_DiffReact < Element
             end
         end
     end
-    
-    
-    methods (Access = protected)
-        function FextSuperficial = computeSuperficialFext(obj,bc)
-            FextSuperficial = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);
-        end
-        
-        function FextVolumetric = computeVolumetricFext(obj,bc)
-            FextVolumetric = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);
-        end
-    end
-    
 end
 
 
