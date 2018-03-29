@@ -7,7 +7,7 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 clear variables;
 
 %% Settings
-settings = Settings('CantileverTriangle_Case_1_2_2');
+settings = Settings('CantileverTriangle_Case_3_2_2');
 settings.printing = 1;
 settings.plotting = 0;
 settings.monitoring = 0;

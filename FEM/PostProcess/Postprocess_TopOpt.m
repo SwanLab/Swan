@@ -1,11 +1,9 @@
-classdef Postprocess_TopOpt < Postprocess_PhysicalProblem
-    properties
+classdef Postprocess_TopOpt < Postprocess
+    properties (SetObservable,AbortSet)
+        res_file
     end
     
-    methods (Access = public)
-        function obj = Postprocess_TopOpt()
-        end
-        
+    methods (Access = public)        
         function Print_results(obj,results)
             %Print Results
             %obj.Print_results@Postprocess_PhysicalProblem(results)
@@ -14,7 +12,7 @@ classdef Postprocess_TopOpt < Postprocess_PhysicalProblem
         end
         
         function  print(obj,mesh,results)
-            if results.iter==0
+            if results.iter == 0
                 path = pwd;
                 dir = fullfile(path,'Output',results.case_file);
                 mkdir(dir)
@@ -35,7 +33,6 @@ classdef Postprocess_TopOpt < Postprocess_PhysicalProblem
                 obj.npnod(ifield) = size(mesh.coord,1);  % Number of nodes
             end
             obj.gtype = mesh.geometryType;
-            
             obj.pdim = mesh.pdim;
             switch obj.pdim
                 case '2D'
@@ -43,8 +40,6 @@ classdef Postprocess_TopOpt < Postprocess_PhysicalProblem
                 case '3D'
                     obj.ndim=3;
             end
-            %obj.ngaus = geometry_variable(1).ngaus;
-            %obj.posgp = geometry_variable(1).posgp';
             obj.ptype = mesh.ptype;
             
             switch  obj.gtype %gid type
@@ -130,9 +125,10 @@ classdef Postprocess_TopOpt < Postprocess_PhysicalProblem
         function PrintResFile(obj,results)
             res_file = fullfile('Output',obj.file_name,strcat(obj.file_name,'_',num2str(results.iter),'.flavia.res'));
             obj.fid_res = fopen(res_file,'w');
-            obj.Write_header_res_file()
+            obj.Write_header_res_file
             obj.Print_results(results)
             fclose(obj.fid_res);
+            obj.res_file = res_file;
         end
     end
     
@@ -140,11 +136,9 @@ classdef Postprocess_TopOpt < Postprocess_PhysicalProblem
         function obj = Create(optimizer)
             switch optimizer
                 case 'SLERP'
-                    obj = Postprocess_TopOpt_levelSet();
-                case 'PROJECTED GRADIENT'
-                    obj = Postprocess_TopOpt_density();
-                case 'MMA'
-                    obj = Postprocess_TopOpt_density();
+                    obj = Postprocess_TopOpt_levelSet;
+                case {'PROJECTED GRADIENT', 'MMA'}
+                    obj = Postprocess_TopOpt_density;
             end
         end
     end

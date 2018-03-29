@@ -10,7 +10,7 @@ classdef CC < handle
     end
     
     methods
-        function obj = CC(settings_this,SF_list)
+        function obj = CC(settings_this,SF_list,postprocess_TopOpt)
             obj.target_parameters = settings_this.target_parameters;
             obj.nSF = length(SF_list);
             for iSF = 1:obj.nSF
@@ -20,7 +20,7 @@ classdef CC < handle
                 
                 switch SF_list{iSF}
                     case 'compliance'
-                        obj.ShapeFuncs{iSF} = ShFunc_Compliance(settings_this);
+                        obj.ShapeFuncs{iSF} = ShFunc_Compliance(settings_this,postprocess_TopOpt);
                     case 'perimeter'
                         obj.ShapeFuncs{iSF} = ShFunc_Perimeter(settings_this);
                     case 'chomog_alphabeta'
@@ -62,9 +62,9 @@ classdef CC < handle
                 obj.updateTargetParameters(iSF);
                 obj.ShapeFuncs{iSF}.computef(x);
                 % !! REMOVE !!
-                try
-                    obj.ShapeFuncs{iSF}.physProb.print;
-                end
+%                 try
+%                     obj.ShapeFuncs{iSF}.physProb.print;
+%                 end
                 obj.updateFields(iSF);
             end
         end

@@ -30,15 +30,13 @@ classdef Postprocess < handle
                 obj.npnod(ifield) = physical_problem.element.interpolation_u(ifield).npnod;  % Number of nodes
             end
             obj.gtype = physical_problem.mesh.geometryType;
-            
             obj.ndim = physical_problem.element.interpolation_u.ndime;
             obj.pdim = physical_problem.mesh.pdim;
             obj.ngaus = physical_problem.element(1).quadrature.ngaus;
             obj.posgp = physical_problem.element(1).quadrature.posgp';
             obj.ptype = physical_problem.mesh.ptype;
             
-            
-            switch  obj.gtype %gid type
+            switch  obj.gtype % GiD type
                 case 'TRIANGLE'
                     obj.etype = 'Triangle';
                 case 'QUAD'
@@ -109,6 +107,7 @@ classdef Postprocess < handle
             end
             fprintf(obj.fid_res,'End Values\n');
         end
+        
         function PrintScalar(obj,nameres,indexName,problemType,result_type,result_location,location_name,results,istep)
             % Print Header ------------------------------------------------
             
@@ -125,9 +124,7 @@ classdef Postprocess < handle
             fprintf(obj.fid_res,'End Values\n');
         end
         
-        function Write_header_res_file(obj)
-            
-            
+        function Write_header_res_file(obj)            
             %% File Header
             fprintf(obj.fid_res,'GiD Post Results File 1.0\n\n');
             obj.printTitle(obj.fid_res);
@@ -146,21 +143,18 @@ classdef Postprocess < handle
             %             fprintf(obj.fid_res,'End GaussPoints\n');
             
         end
-        
-        
+         
         function PrintMeshFile(obj)
             for istep = 1:obj.nsteps
                 mesh_group = ['u' 'p'];
                 for ifield = 1:obj.nfields
                     msh_file = fullfile('Output',obj.file_name,strcat(obj.file_name,'_',mesh_group(ifield),'_',num2str(istep),'.flavia.msh'));
                     obj.fid_mesh = fopen(msh_file,'w');
-                    
                     obj.printTitle(obj.fid_mesh);
-                    
-                    
                     %                         fprintf(obj.fid_mesh,'Group "%c" \n',mesh_group(ifield));
                     fprintf(obj.fid_mesh,'MESH "WORKPIECE" dimension %3.0f   Elemtype %s   Nnode %2.0f \n \n',obj.ndim,obj.etype,obj.nnode(ifield));
                     fprintf(obj.fid_mesh,'coordinates \n');
+                   
                     switch obj.pdim
                         case '2D'
                             for i = 1:obj.npnod(ifield)
@@ -172,8 +166,8 @@ classdef Postprocess < handle
                             end
                     end
                     fprintf(obj.fid_mesh,'end coordinates \n \n');
-                    
                     fprintf(obj.fid_mesh,'elements \n');
+                    
                     switch  obj.gtype
                         case 'TRIANGLE'
                             switch obj.nnode(ifield)
@@ -226,21 +220,17 @@ classdef Postprocess < handle
                 for ifield = 1:obj.nfields
                     res_file = fullfile('Output',obj.file_name,strcat(obj.file_name,'_',mesh_group(ifield),'_',num2str(istep),'.flavia.res'));
                     obj.fid_res = fopen(res_file,'w');
-                    obj.Write_header_res_file()
+                    obj.Write_header_res_file
                     obj.Print_results(results,ifield,istep)
                     fclose(obj.fid_res);
                 end
             end
         end
-        
-        
     end
     
-    %     methods (Abstract, Access = public)
-    %
-    %         Print_results(obj);
-    %
-    %     end
+    % methods (Abstract, Access = public)
+    %      Print_results(obj);
+    % end
     
     methods (Access = protected, Static)
         function printTitle(fid)
@@ -249,16 +239,27 @@ classdef Postprocess < handle
             fprintf(fid,'####################################################\n');
             fprintf(fid,'\n');
         end
-    end    
+    end
     
     methods (Access = public)
-        function  print(obj,physical_problem,file_name,results)
+        function  print(obj,physical_problem,file_name,physicalVars)
+            results.physicalVars = physicalVars;
             path = pwd;
             dir = fullfile(path,'Output',file_name);
-            mkdir(dir)
+            if ~exist(dir,'dir')
+                mkdir(dir)
+            end
             obj.setBasicParams(physical_problem,file_name,results)
-            obj.PrintMeshFile()
+            obj.PrintMeshFile
             obj.PrintResFile(results)
+        end
+        
+        function print_slave(obj,physical_problem,res_file,physicalVars)
+            results.physicalVars = physicalVars;
+            obj.setBasicParams(physical_problem,'',results)
+            obj.fid_res = fopen(res_file,'a');
+            obj.Print_results(results,1,1)
+            fclose(obj.fid_res);
         end
     end
 end

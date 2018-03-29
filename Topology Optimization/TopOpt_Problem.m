@@ -18,9 +18,7 @@ classdef TopOpt_Problem < handle
     methods (Access = public)
         function obj = TopOpt_Problem(settings)
             obj.settings = settings;
-            obj.mesh = Mesh(settings.filename);
-            obj.cost = Cost(settings,settings.weights); % Change to just enter settings
-            obj.constraint = Constraint(settings);           
+            obj.mesh = Mesh(settings.filename);           
             obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.mesh);
             switch obj.settings.optimizer
                 case 'SLERP'
@@ -32,6 +30,8 @@ classdef TopOpt_Problem < handle
                 case 'IPOPT'
                     obj.optimizer = Optimizer_IPOPT(settings,obj.mesh);
             end
+            obj.cost = Cost(settings,settings.weights,obj.optimizer.postprocess); % Change to just enter settings
+            obj.constraint = Constraint(settings);
         end
         
         function preProcess(obj)

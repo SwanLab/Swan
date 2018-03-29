@@ -9,6 +9,7 @@ classdef Optimizer < handle
         nconstr
         ini_design_value = 1;
         hole_value = 0;
+        postprocess
     end
     
     properties (Access = ?Optimizer_Constrained)
@@ -24,6 +25,7 @@ classdef Optimizer < handle
             obj.nconstr = settings.nconstr;
             obj.case_file=settings.case_file;
             obj.target_parameters = settings.target_parameters;
+            obj.postprocess = Postprocess_TopOpt.Create(settings.optimizer);
         end
         
         function x = compute_initial_design(obj,initial_case,optimizer)            
@@ -84,13 +86,12 @@ classdef Optimizer < handle
             if ~(obj.printing)
                 return
             end
-            postprocess = Postprocess_TopOpt.Create(obj.optimizer);
             %results.physicalVars = obj.physicalProblem.variables;
             results.design_variable = design_variable;
-            results.iter=iter;
-            results.case_file=obj.case_file;
+            results.iter = iter;
+            results.case_file = obj.case_file;
             %results.design_variable_reg = design_variable_reg;
-            postprocess.print(obj.mesh,results);
+            obj.postprocess.print(obj.mesh,results);
         end
         
         function plotX(obj,x)

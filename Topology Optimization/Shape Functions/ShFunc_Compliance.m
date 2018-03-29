@@ -9,7 +9,7 @@ classdef ShFunc_Compliance < Shape_Functional
     end
     
     methods
-        function obj = ShFunc_Compliance(settings)
+        function obj = ShFunc_Compliance(settings,postprocess_TopOpt)
             obj@Shape_Functional(settings);
             obj.physProb = FEM.create(settings.filename);
             obj.physProb.preProcess;
@@ -17,6 +17,7 @@ classdef ShFunc_Compliance < Shape_Functional
             diffReacProb.preProcess;
             obj.Msmooth = diffReacProb.element.M;
             obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method);
+            obj.physProb.syncPostProcess(postprocess_TopOpt);
         end
         
         function computef(obj,x)

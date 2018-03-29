@@ -4,11 +4,7 @@ classdef Postprocess_TopOpt_levelSet < Postprocess_TopOpt_density
         levelSet_name_component = 'LS';
     end
     
-    methods (Access = public)
-        function obj = Postprocess_TopOpt_levelSet()
-            
-        end
-        
+    methods (Access = public)        
         function Print_design_variable(obj,design_variable)
             obj.Print_LevelSet(design_variable);
         end

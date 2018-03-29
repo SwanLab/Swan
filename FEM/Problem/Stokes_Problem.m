@@ -65,11 +65,11 @@ classdef Stokes_Problem < FEM
             sol = x_n;
         end
         
-        function print(obj)
-            postprocess = Postprocess_PhysicalProblem();
-            results.physicalVars = obj.variables;
-            postprocess.print(obj,obj.problemID,results);
-        end
+%         function print(obj)
+%             postprocess = Postprocess_PhysicalProblem();
+%             results.physicalVars = obj.variables;
+%             postprocess.print(obj,obj.problemID,results);
+%         end
         
         function postProcess(obj)
             % ToDo

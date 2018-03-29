@@ -43,11 +43,6 @@ classdef FEM < handle
     end
     
     methods
-        function print(obj)
-            postprocess = Postprocess_PhysicalProblem();
-            results.physicalVars = obj.variables;
-            postprocess.print(obj,obj.problemID,results);
-        end
         
         % !! Remove residual & change to more straight-forward sol?? !!
         function sol = solve_steady_problem(obj,free_dof)
@@ -65,11 +60,30 @@ classdef FEM < handle
         function setMatProps(obj,props)
             obj.element.material = obj.material.setProps(props);
         end
+        
+        function print(obj,file_name)
+            postprocess = Postprocess_PhysicalProblem;
+            if nargin > 1
+                postprocess.print(obj,file_name,obj.variables);
+            else
+                postprocess.print(obj,obj.problemID,obj.variables);
+            end
+        end
+        
+        function syncPostProcess(obj,evtobj)
+            addlistener(evtobj,'res_file','PostSet',@obj.print_slave);
+        end
+        
+        function print_slave(obj,~,evnt)
+            postprocess = Postprocess_PhysicalProblem;
+            res_file = evnt.AffectedObject.res_file;
+            postprocess.print_slave(obj,res_file,obj.variables);
+        end
     end
     
     methods (Abstract)
         preProcess(obj)
         computeVariables(obj)
         postProcess(obj)
-    end 
+    end
 end

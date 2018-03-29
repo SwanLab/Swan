@@ -34,11 +34,11 @@ classdef Elastic_Problem < FEM
             obj.variables = obj.element.computeVars(x);
         end
         
-        function print(obj)
-            postprocess = Postprocess_PhysicalProblem();
-            results.physicalVars = obj.variables;
-            postprocess.print(obj,obj.problemID,results);
-        end
+%         function print(obj)
+%             postprocess = Postprocess_PhysicalProblem;
+%             results.physicalVars = obj.variables;
+%             postprocess.print(obj,obj.problemID,results);
+%         end
         
         function postProcess(obj)
             % ToDo

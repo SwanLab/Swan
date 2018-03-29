@@ -7,10 +7,7 @@ classdef Postprocess_TopOpt_density < Postprocess_TopOpt
         density_name_component_reg = 'Dens_reg'
     end
     
-    methods  (Access = public)
-        function obj = Postprocess_TopOpt_density
-        end
-        
+    methods  (Access = public)        
         function Print_design_variable(obj,results)
             obj.Print_density(results);
         end
