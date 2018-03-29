@@ -93,8 +93,11 @@ classdef Settings
             
             
             if ~contains(filename,'test','IgnoreCase',true)
-                fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: %s \n -Constraint: %s \n -Incremental Steps: %f \n ',...
-                    case_file,obj.optimizer,char(obj.cost),char(obj.constraint),obj.nsteps)
+                fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: ',case_file,obj.optimizer)
+                fprintf('%s, ',obj.cost{:})
+                fprintf('\n -Constraint: ')
+                fprintf('%s, ', obj.constraint{:})
+                fprintf('\n -Incremental Steps: %f \n ',obj.nsteps)
             end
             
             if exist('Vfrac_final','var')
