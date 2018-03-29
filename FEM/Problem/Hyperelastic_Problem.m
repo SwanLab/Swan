@@ -1,5 +1,5 @@
-classdef Elastic_Problem < FEM
-    %Elastic_Problem Summary of this class goes here
+classdef Hyperelastic_Problem < FEM
+    %Hyperelastic_Problem Summary of this class goes here
     % Detailed explanation goes here
     
     %% Public GetAccess properties definition =============================
@@ -13,7 +13,7 @@ classdef Elastic_Problem < FEM
     
     %% Public methods definition ==========================================
     methods (Access = public)
-        function obj = Elastic_Problem(problemID)
+        function obj = Hyperelastic_Problem(problemID)
             obj.problemID = problemID;
             obj.mesh = Mesh(problemID); % Mesh defined twice, but almost free
             obj.createGeometry(obj.mesh);
@@ -22,15 +22,16 @@ classdef Elastic_Problem < FEM
         end
         
         function preProcess(obj)
-            obj.element = Element_Elastic.create(obj.mesh,obj.geometry,obj.material,obj.dof);
+            obj.element = Element_Hyperelastic(obj.mesh,obj.geometry,obj.material,obj.dof);
             obj.solver = Solver.create;
         end
         
         function computeVariables(obj)
+            tol = 1e-6; % !! This should not be defined in here !!
             for ifield = 1:obj.geometry(1).nfields
                 free_dof(ifield) = length(obj.dof.free{ifield});
             end
-            x = obj.solve_steady_problem(free_dof);
+            x = obj.solve_steady_problem(free_dof,tol);
             obj.variables = obj.element.computeVars(x);
         end
         
@@ -44,6 +45,23 @@ classdef Elastic_Problem < FEM
             % ToDo
             % Inspire in TopOpt
             
+        end
+        
+        function sol = solve_steady_problem(obj,free_dof,tol)
+            total_free_dof = sum(free_dof);
+            dr = obj.element.computedr;
+            x0 = zeros(total_free_dof,1);
+            
+            r = obj.element.computeResidual(x0,dr);
+            x = x0;
+            while dot(r,r) > tol
+                inc_x = obj.solver.solve(dr,-r);
+                x = x0 + inc_x;
+                % Compute r
+                r = obj.element.computeResidual(x,dr);
+                x0 = x;
+            end
+            sol = x;
         end
         
         % !! THIS SHOULD BE DEFINED BY THE USER !!

@@ -13,9 +13,6 @@ classdef Filter_PDE < Filter
         
         function preProcess(obj)
             preProcess@Filter(obj);
-%             obj.element = params.element;
-%             obj.element.dof = params.dof;
-            %obj.dof = physicalProblem.dof;
             obj.dvolu = sparse(1:obj.diffReacProb.geometry.interpolation.nelem,1:obj.diffReacProb.geometry.interpolation.nelem,...
                 sum(obj.diffReacProb.geometry.dvolu,2));
             obj.A_nodal_2_gauss = obj.computeA;
@@ -42,9 +39,9 @@ classdef Filter_PDE < Filter
         
         % !! Can be done as a DiffReact_Problem !!
         function x_reg = solve_filter(obj,rhs_x)
-           obj.diffReacProb.computeVariables(rhs_x);
+            obj.diffReacProb.computeVariables(rhs_x);
             x_reg = obj.diffReacProb.variables.x;
-        end       
+        end
         
         function obj = updateEpsilon(obj,epsilon)
             obj.diffReacProb.setEpsilon(epsilon);

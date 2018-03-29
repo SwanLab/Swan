@@ -27,19 +27,18 @@ classdef Stokes_Problem < FEM
         end
         
         function computeVariables(obj)
-            tol = 1e-6;
             for ifield = 1:obj.geometry(1).nfields
                 free_dof(ifield) = length(obj.dof.free{ifield});
             end
-            transient = false;      
+            transient = false;  % !! This should not be defined in here !!
             if transient
-                dt = 0.01;
-                final_time = 1;
+                tol = 1e-6;     % !! This should not be defined in here !! 
+                dt = 0.01;      % !! This should not be defined in here !!
+                final_time = 1; % !! This should not be defined in here !!
                 x = obj.solve_transient_problem(free_dof,tol,dt,final_time);
             else
-                x = obj.solve_steady_problem(free_dof,tol);
+                x = obj.solve_steady_problem(free_dof);
             end
-            
             obj.variables = obj.element.computeVars(x);
         end
         

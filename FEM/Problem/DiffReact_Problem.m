@@ -29,14 +29,12 @@ classdef DiffReact_Problem < FEM
         
         function computeVariables(obj,x)
             x_red  = obj.element.full_vector_2_reduced_vector(x);
-
-            tol = 1e-6;
             for ifield = 1:obj.geometry(1).nfields
                 free_dof(ifield) = length(obj.dof.free{ifield});
                 obj.dof.neumann = obj.dof.free{ifield};
             end
             obj.dof.neumann_values = x_red;
-            x_red = obj.solve_steady_problem(free_dof,tol);
+            x_red = obj.solve_steady_problem(free_dof);
             obj.variables.x = obj.element.reduced_vector_2_full_vector(x_red);
         end
         

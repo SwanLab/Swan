@@ -1,5 +1,5 @@
 classdef Element_Hyperelastic < Element
-    %UNTITLED3 Summary of this class goes here
+    %Element_Hyperelastic Summary of this class goes here
     %   Detailed explanation goes here
     
     properties

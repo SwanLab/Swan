@@ -15,7 +15,7 @@ classdef Element < handle
     end
 
     methods (Static)        
-        function obj=Element(geometry,material,dof)
+        function obj = Element(geometry,material,dof)
             obj.nelem = geometry(1).interpolation.nelem;
             obj.nfields = geometry.nfields;
             for ifield=1:obj.nfields
