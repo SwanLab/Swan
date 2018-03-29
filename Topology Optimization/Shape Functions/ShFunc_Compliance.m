@@ -7,6 +7,7 @@ classdef ShFunc_Compliance < Shape_Functional
         rho
         matProps
     end
+    
     methods
         function obj = ShFunc_Compliance(settings)
             obj@Shape_Functional(settings);
@@ -15,7 +16,6 @@ classdef ShFunc_Compliance < Shape_Functional
             diffReacProb = DiffReact_Problem(settings.filename);
             diffReacProb.preProcess;
             obj.Msmooth = diffReacProb.element.M;
-            % !! S'està fent inclús per LevelSet !!
             obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method);
         end
         

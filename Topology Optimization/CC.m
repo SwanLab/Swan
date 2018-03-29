@@ -61,6 +61,10 @@ classdef CC < handle
             for iSF = 1:length(obj.ShapeFuncs)
                 obj.updateTargetParameters(iSF);
                 obj.ShapeFuncs{iSF}.computef(x);
+                % !! REMOVE !!
+                try
+                    obj.ShapeFuncs{iSF}.physProb.print;
+                end
                 obj.updateFields(iSF);
             end
         end

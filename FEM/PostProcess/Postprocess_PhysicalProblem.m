@@ -1,6 +1,6 @@
 classdef Postprocess_PhysicalProblem < Postprocess
     
-    properties
+    properties %(GetAccess = protected, SetAccess = private)
         stress_name = 'Stress';
         stress_component = 'S';
         strain_name = 'Strain';
@@ -15,10 +15,6 @@ classdef Postprocess_PhysicalProblem < Postprocess
     
     methods (Access = public)
         % Export Results
-        
-
-        
-        
         function Print_results(obj,results,ifield,istep)
             switch obj.ptype
                 case 'ELASTIC'
@@ -26,16 +22,12 @@ classdef Postprocess_PhysicalProblem < Postprocess
                 case 'Stokes'
                     obj.Print_results_fluids(results,ifield,istep);
             end
-            
-  
-            
-            
         end
         
         function Print_results_mechanics(obj,results)
-            obj.PrintVector(obj.displ_name,obj.displ_component,'Elastic Problem','Vector','OnNodes','',results.physicalVars.d_u);
-            obj.PrintTensor(obj.stress_name,obj.stress_component,'Elastic Problem','Vector','OnGaussPoints',obj.gauss_points_name,results.physicalVars.stress);
-            obj.PrintTensor(obj.strain_name,obj.strain_component,'Elastic Problem','Vector','OnGaussPoints',obj.gauss_points_name,results.physicalVars.strain);
+            obj.PrintVector(obj.displ_name,obj.displ_component,'Elastic Problem','Vector','OnNodes','',results.physicalVars.d_u,1);
+            obj.PrintTensor(obj.stress_name,obj.stress_component,'Elastic Problem','Vector','OnGaussPoints',obj.gauss_points_name,results.physicalVars.stress,1);
+            obj.PrintTensor(obj.strain_name,obj.strain_component,'Elastic Problem','Vector','OnGaussPoints',obj.gauss_points_name,results.physicalVars.strain,1);
         end
         
         function Print_results_fluids(obj,results,ifield,istep)
@@ -45,8 +37,6 @@ classdef Postprocess_PhysicalProblem < Postprocess
                     obj.PrintScalar(obj.pressure_name,obj.pressure_component,'Stokes problem','Scalar','OnNodes','',results.physicalVars.p(:,istep),istep);                
             end            
         end
-
-    end
-    
+    end 
 end
 
