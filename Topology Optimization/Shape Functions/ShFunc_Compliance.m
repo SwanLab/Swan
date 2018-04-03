@@ -17,7 +17,9 @@ classdef ShFunc_Compliance < Shape_Functional
             diffReacProb.preProcess;
             obj.Msmooth = diffReacProb.element.M;
             obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method);
-            obj.physProb.syncPostProcess(postprocess_TopOpt);
+            if settings.printing && settings.printing_physics
+                obj.physProb.syncPostProcess(postprocess_TopOpt);
+            end
         end
         
         function computef(obj,x)
