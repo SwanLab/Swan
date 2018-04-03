@@ -12,6 +12,7 @@ classdef Monitoring < handle
         nconstraint
         nstop
         stop_names
+        case_file
     end
     
     methods
@@ -20,6 +21,7 @@ classdef Monitoring < handle
             if obj.ON
                 obj.interval = settings.monitoring_interval;
                 obj.getStopVarsNames(settings.optimizer);
+                obj.case_file = settings.case_file;
                 
                 obj.figures = {};
                 obj.createFigure('Cost');
@@ -76,17 +78,9 @@ classdef Monitoring < handle
             end
         end
         
-        function display(obj,iteration,cost,constraint,stop_vars,stop_criteria)
+        function display(obj,iteration,cost,constraint,stop_vars,stop_criteria,istep,nstep)
             if obj.ON
                 draw = (mod(iteration,obj.interval) == 0 || ~stop_criteria);
-                if draw
-                    if stop_criteria
-                        set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Iteration: %.0f',iteration))
-                    else
-                        set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Iteration: %.0f - FINISHED.',iteration))
-                    end
-                end
-                
                 obj.figures{1} = obj.updateFigure(obj.figures{1},iteration,cost.value,draw);
                 for i = 1:obj.ncost
                     k = i+1;
@@ -106,6 +100,14 @@ classdef Monitoring < handle
                         end
                     else
                         obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,stop_vars(i,1),draw);
+                    end
+                end
+                if draw
+                    if ~stop_criteria && istep == nstep
+                        set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Inc. Step: %.0f/%.0f Iteration: %.0f - FINISHED',istep,nstep,iteration))
+                        saveas(obj.monitor,fullfile(pwd,'Output',obj.case_file,[sprintf('monitoring_%.0f of %.0f_%.0fit',istep,nstep,iteration) '.png']))
+                    else 
+                        set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Inc. Step: %.0f/%.0f Iteration: %.0f',istep,nstep,iteration))
                     end
                 end
             else

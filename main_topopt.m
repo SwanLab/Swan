@@ -8,8 +8,6 @@ clear variables;
 
 %% Settings
 settings = Settings('CantileverTriangle_Case_1_2_2');
-settings.plotting = 0;
-settings.monitoring = 0;
 
 %% Main
 tic
