@@ -31,7 +31,7 @@ classdef Hyperelastic_Problem < FEM
             for ifield = 1:obj.geometry(1).nfields
                 free_dof(ifield) = length(obj.dof.free{ifield});
             end
-            x = obj.solve_steady_problem(free_dof,tol);
+            x = obj.solve_steady_nonlinear_problem(free_dof,tol);
             obj.variables = obj.element.computeVars(x);
         end
         
@@ -44,24 +44,6 @@ classdef Hyperelastic_Problem < FEM
         function postProcess(obj)
             % ToDo
             % Inspire in TopOpt
-            
-        end
-        
-        function sol = solve_steady_problem(obj,free_dof,tol)
-            total_free_dof = sum(free_dof);
-            dr = obj.element.computedr;
-            x0 = zeros(total_free_dof,1);
-            
-            r = obj.element.computeResidual(x0,dr);
-            x = x0;
-            while dot(r,r) > tol
-                inc_x = obj.solver.solve(dr,-r);
-                x = x0 + inc_x;
-                % Compute r
-                r = obj.element.computeResidual(x,dr);
-                x0 = x;
-            end
-            sol = x;
         end
         
         % !! THIS SHOULD BE DEFINED BY THE USER !!

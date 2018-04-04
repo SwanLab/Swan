@@ -30,6 +30,21 @@ classdef Element < handle
     end
     
     methods
+        function [r,dr] = computeResidual(obj,x)
+            % !! Currently unused !!
+            % *************************************************************
+            % Compute
+            % - residual: r = LHS*x - RHS
+            % - residual derivative: dr = LHS
+            % *************************************************************
+            
+            RHS = obj.computeRHS;
+            LHS = obj.computeLHS*x;
+            
+            r = LHS*x - RHS;
+            dr = LHS;
+        end
+        
         function Fext = computeExternalForces(obj)
             FextSuperficial = obj.computeSuperficialFext;
             FextVolumetric  = obj.computeVolumetricFext;

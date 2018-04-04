@@ -27,12 +27,11 @@ classdef DiffReact_Problem < FEM
             obj.solver = Solver.create;
         end
         
-        function computeVariables(obj,rhs)
-            rhs_red  = obj.element.full_vector_2_reduced_vector(rhs);
-            RHS = rhs_red;
-            obj.LHS = obj.element.computedr;
-            x = obj.solver.solve(obj.LHS,RHS);
-            obj.variables.x = obj.element.reduced_vector_2_full_vector(x);
+        function computeVariables(obj,x)
+            x_red  = obj.element.full_vector_2_reduced_vector(x);
+            LHS = obj.element.computeLHS;
+            x_reg = obj.solver.solve(LHS,x_red);
+            obj.variables.x = obj.element.reduced_vector_2_full_vector(x_reg);
         end
         
         function postProcess(obj)

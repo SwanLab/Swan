@@ -35,34 +35,11 @@ classdef Stokes_Problem < FEM
                 tol = 1e-6;     % !! This should not be defined in here !! 
                 dt = 0.01;      % !! This should not be defined in here !!
                 final_time = 1; % !! This should not be defined in here !!
-                x = obj.solve_transient_problem(free_dof,tol,dt,final_time);
+                x = obj.solve_transient_nonlinear_problem(free_dof,tol,dt,final_time);
             else
-                x = obj.solve_steady_problem(free_dof);
+                x = obj.solve_steady_nonlinear_problem(free_dof);
             end
             obj.variables = obj.element.computeVars(x);
-        end
-        
-        function sol = solve_transient_problem(obj,free_dof,tol,dt,final_time)
-            total_free_dof = sum(free_dof);
-            x_n(:,1) = zeros(total_free_dof,1);
-            x0 = zeros(total_free_dof,1);
-            
-            dr = obj.element.computedr(dt);
-            
-            for istep = 2: final_time/dt
-                u_previous_step = x_n(1:free_dof(1),istep-1);
-                
-                r = obj.element.computeResidual(x0,dr,u_previous_step);
-                while dot(r,r) > tol
-                    inc_x = obj.solver.solve(dr,-r);
-                    x = x0 + inc_x;
-                    % Compute r
-                    r = obj.element.computeResidual(x,dr,u_previous_step);
-                    x0 = x;
-                end
-                x_n(:,istep) = x;
-            end
-            sol = x_n;
         end
         
 %         function print(obj)

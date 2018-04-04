@@ -16,14 +16,14 @@ classdef Element_Elastic < Element
                 case 'MACRO'
                     switch mesh.pdim
                         case '2D'
-                            obj = Element_Elastic_2D(mesh,geometry,material,dof);                            
+                            obj = Element_Elastic_2D(mesh,geometry,material,dof);
                         case '3D'
                             obj = Element_Elastic_3D(mesh,geometry,material,dof);
                     end
             end
         end
     end
-
+    
     methods %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
         function obj = Element_Elastic(mesh,geometry,material,dof)
             obj@Element(geometry,material,dof)
@@ -31,20 +31,30 @@ classdef Element_Elastic < Element
             obj.interpolation_u = Interpolation.create(mesh,'LINEAR');
         end
         
-        function r = computeResidual(obj,x,Kred)
-            %             [K] = obj.computeStiffnessMatrix();
-            
-            Fext = obj.computeExternalForces();
+        %         function r = computeResidual(obj,x,Kred)
+        %             fext_red = obj.computeRHS;
+        %             fint_red = Kred*x;
+        %
+        %             r = fint_red - (fext_red);
+        %         end
+        %
+        %         function dr = computedr(obj)
+        %             Kred = obj.computeLHS;
+        %             dr = Kred;
+        %         end
+        
+        function Kred = computeLHS(obj)
+            % !! Ha d'estar reduit o no?? !! Entenc que si.
+            obj.K = obj.computeStiffnessMatrix;
+            Kred = obj.full_matrix_2_reduced_matrix(obj.K);
+        end
+        
+        function fext_red = computeRHS(obj)
+            % !! Ha d'estar reduit o no?? !! Entenc que si.
+            Fext = obj.computeExternalForces;
             R = obj.compute_imposed_displacement_force(obj.K);
             obj.fext = Fext + R;
-            
-            %             Kred = obj.full_matrix_2_reduced_matrix(K);
             fext_red = obj.full_vector_2_reduced_vector(obj.fext);
-            
-            fint_red = Kred*x;
-            
-            r = fint_red - (fext_red);
-            %             dr = Kred;
         end
         
         function [K] = computeStiffnessMatrix(obj)
@@ -52,12 +62,6 @@ classdef Element_Elastic < Element
             [K] = obj.AssembleMatrix(K,1,1);
         end
         
-        function dr = computedr(obj)
-            obj.K = obj.computeStiffnessMatrix;
-            Kred = obj.full_matrix_2_reduced_matrix(obj.K);
-            dr = Kred;
-        end
-
         function [idx1,idx2,nunkn1,nunkn2,nnode1,nnode2,col,row] = get_assemble_parameters(obj,~,~)
             idx1 = cell2mat(obj.dof.in_elem);
             idx2 = idx1;
@@ -67,7 +71,7 @@ classdef Element_Elastic < Element
             nnode2 = nnode1;
             col = obj.dof.ndof;
             row = col;
-        end     
+        end
         
         function K = compute_elem_StiffnessMatrix(obj)
             obj.quadrature.computeQuadrature('LINEAR');

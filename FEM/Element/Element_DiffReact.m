@@ -16,8 +16,8 @@ classdef Element_DiffReact < Element
     methods %(Access = ?Physical_Problem)
         function obj=Element_DiffReact(mesh,geometry,material,dof)
             obj@Element(geometry,material,dof);
-            obj.nstre=2;
-            obj.nfields=1;
+            obj.nstre = 2;
+            obj.nfields = 1;
             obj.interpolation_u=Interpolation.create(mesh,'LINEAR');
             obj.K = obj.computeStiffnessMatrix;
             obj.M = obj.computeMassMatrix(2);
@@ -27,40 +27,36 @@ classdef Element_DiffReact < Element
             obj.epsilon = epsilon;
         end
         
-        function r = computeResidual(obj,x,dr)
-            % *************************************************************
-            % Compute
-            % - residual: r = (e^2*K + M)*u - F
-            % - residual derivative: dr = (e^2*K + M)
-            % *************************************************************
-            
-            Fext = obj.computeExternalForces();
-            R = obj.compute_imposed_displacement_force(obj.epsilon^2*obj.K + obj.M);
-            fext = Fext + R;
-            
-%             fext = obj.computeExternalForces();
-            fext = obj.full_vector_2_reduced_vector(fext);
-            % !!
-%             load('C:\Users\trujilor\Dropbox\OriolBranch\FEM-MAT-OO\master'); fext = rhs_red;
-            
-            fint = dr*x;
-            r = fint - fext;
-        end
+%         function r = computeResidual(obj,x)
+%             % *************************************************************
+%             % Compute
+%             % - residual: r = (e^2*K + M)*u - F
+%             % - residual derivative: dr = (e^2*K + M)
+%             % *************************************************************
+%             
+%             Fext = obj.computeExternalForces();
+%             R = obj.compute_imposed_displacement_force(obj.epsilon^2*obj.K + obj.M);
+%             fext = Fext + R;
+% 
+%             fext = obj.full_vector_2_reduced_vector(fext);
+%             
+%             fint = dr*x;
+%             r = fint - fext;
+%         end
         
-        function dr = computedr(obj)
-            dr = obj.epsilon^2*obj.K + obj.M;
-            dr = obj.full_matrix_2_reduced_matrix(dr);
+        function LHS = computeLHS(obj)
+            LHS = obj.epsilon^2*obj.K + obj.M;
+            LHS = obj.full_matrix_2_reduced_matrix(LHS);
         end
-        
         
         function [K] = computeStiffnessMatrix(obj)
             [K] = compute_elem_StiffnessMatrix(obj);
-            [K] = obj.AssembleMatrix(K,1,1);
+            [K] = obj.AssembleMatrix(K,1,1); % !!
         end
         
         function [M] = computeMassMatrix(obj,job)
             [M] = compute_elem_MassMatrix(obj,job);
-            [M] = obj.AssembleMatrix(M,1,1);
+            [M] = obj.AssembleMatrix(M,1,1); % !!
         end
         
         function [K] = compute_elem_StiffnessMatrix(obj)

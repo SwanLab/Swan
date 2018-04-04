@@ -30,14 +30,11 @@ classdef Element_Hyperelastic < Element
                 fext = obj.Fext(obj.dof.vL);
             end
             
-            
             % Compute internal forces
             fint = obj.computeInternal();
             fint = obj.AssembleVector(fint);
             
-            
-            dr = K;
-            
+            dr = K;            
             nincr = 100;
             fincr = fext/nincr;
             for incrm = 1:nincr
