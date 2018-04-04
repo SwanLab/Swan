@@ -60,10 +60,9 @@ classdef Filter < handle
                     A_nodal_2_gauss = A_nodal_2_gauss + sparse(1:obj.nelem,dirichlet_data(inode,:),ones(obj.nelem,1)*obj.shape(inode),obj.nelem,obj.npnod);
                 end
             end
-            
         end
-        
     end
+    
     methods (Static)
         function obj = create(settings)
             switch settings.filter
@@ -82,7 +81,6 @@ classdef Filter < handle
                             obj = Filter_SLERP_PDE(settings.filename,settings.ptype);
                     end
             end
-            
         end
         
         function [F,aire] = faireF2(p,t,psi)
