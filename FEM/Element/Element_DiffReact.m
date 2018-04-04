@@ -49,7 +49,6 @@ classdef Element_DiffReact < Element
         
         function dr = computedr(obj)
             dr = obj.epsilon^2*obj.K + obj.M;
-            % !! !!
             dr = obj.full_matrix_2_reduced_matrix(dr);
         end
         

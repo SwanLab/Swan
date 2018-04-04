@@ -1,7 +1,6 @@
 classdef Filter_PDE < Filter
     properties
         dvolu
-        epsilon %Try to remove
         rhs
         A_nodal_2_gauss
     end
@@ -37,7 +36,6 @@ classdef Filter_PDE < Filter
             rhs = (obj.A_nodal_2_gauss'*obj.M0{1}*x);
         end
         
-        % !! Can be done as a DiffReact_Problem !!
         function x_reg = solve_filter(obj,rhs_x)
             obj.diffReacProb.computeVariables(rhs_x);
             x_reg = obj.diffReacProb.variables.x;

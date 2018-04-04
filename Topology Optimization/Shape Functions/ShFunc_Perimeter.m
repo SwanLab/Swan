@@ -25,11 +25,11 @@ classdef ShFunc_Perimeter < Shape_Functional
         
         function computef(obj,x)
 %             obj.checkFilterPre(obj.filter);
-            obj.filter.epsilon = obj.epsilon;
+            obj.filter.updateEpsilon(obj.epsilon);
             x_reg = obj.filter.getP1fromP1(x);
             rhs = obj.filter.integrate_L2_function_with_shape_function(x);
-            Perimeter = 0.5/obj.filter.epsilon*((1 - x_reg)'*rhs);
-            Perimeter_gradient = 0.5/obj.filter.epsilon*(1 - 2*x_reg);
+            Perimeter = 0.5/obj.epsilon*((1 - x_reg)'*rhs);
+            Perimeter_gradient = 0.5/obj.epsilon*(1 - 2*x_reg);
             
             constraint = Perimeter/obj.Perimeter_target - 1;
             constraint_gradient = Perimeter_gradient/obj.Perimeter_target;

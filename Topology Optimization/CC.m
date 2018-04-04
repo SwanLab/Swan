@@ -71,8 +71,7 @@ classdef CC < handle
         
         function updateTargetParameters(obj,iSF)
             obj.ShapeFuncs{iSF}.target_parameters = obj.target_parameters;
-            % !! Not the fanciest solution !!
-            if isprop(obj.ShapeFuncs{iSF}.filter,'epsilon')
+            if contains(class(obj.ShapeFuncs{iSF}.filter),'PDE')
                 obj.ShapeFuncs{iSF}.filter.updateEpsilon(obj.target_parameters.epsilon);
             end
         end
