@@ -39,120 +39,133 @@ classdef Physical_Problem < FEM
         function computeVariables(obj)
             tol   = 1e-12;
             x     = zeros(length(obj.dof.free),1); % acumulada
-            x_i   = zeros(length(obj.dof.free),1);
+            xi    = zeros(length(obj.dof.free),1);
+            uk   = zeros(length(obj.dof.free),1);
             miter = 1e5;
             lambda_i = 0;
             
             
-            for incrm = 1:obj.element.nincr     % i
+%             for incrm = 1:obj.element.nincr     % i
+            incrm = 1; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            while (lambda_i<=1) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 niter = 1;                      % k
-
-                lambda_i = lambda_i + 1/obj.element.nincr;
-                
-                [r,dr,K,fint] = obj.element.computeResidual(x_i,lambda_i);
                 error = 1;
-                lambda_k = lambda_i;
-                x_k = x_i;
+                
+                lambda_k     = lambda_i + 1/obj.element.nincr;
+                inc_lambda_k = lambda_k - lambda_i;
+                
+                xk    = xi;
+                inc_xk = xk - xi;
+%                 if incrm == 1
+%                     inc_xk = zeros(length(obj.dof.free),1);
+%                 end
+                
+                [r,dr,K,fint] = obj.element.computeResidual(uk,lambda_k);
                 while error > tol && niter <= miter
-                    % *****************************************************
+                    uR = obj.solver.solve(dr,-r); % Residual
+                    uF = obj.solver.solve(dr,obj.element.fext(obj.dof.free)); % Force
                     
-                    R = fint(obj.dof.constrained) - lambda_k*obj.element.fext(obj.dof.constrained);
-                    uR = K(obj.dof.constrained,obj.dof.constrained)\R;
-                    uF = -K(obj.dof.free,obj.dof.free)\obj.element.fext(obj.dof.free);
+                    gamma = obj.computeGamma(inc_xk,inc_lambda_k,uF,uR,obj.element.fext);
                     
-                    inc_lambda_k = lambda_k - lambda_i; % inc_lambda_k=0 en primera iter de k
-                    inc_xk = x_k - x_i;
+                    uk = uR + gamma*uF;
                     
-                    Psi = 1;
-                    
-                    s_k = [inc_xk;inc_lambda_k*Psi*obj.element.fext];
-                    s = norm(s_k);
-
-                    a1 = uF'*uF + Psi^2*obj.element.fext'*obj.element.fext;
-                    a2 = 2*uF'*(inc_xk+uR) + 2*inc_lambda_k*Psi^2*obj.element.fext'*obj.element.fext;
-                    a3 = uR'*(2*inc_xk+uR) + inc_xk'*inc_xk - s^2;
-
-                    poly2 = [a1 a2 a3];
-                    gamma = roots(poly2);
-                    
-                    u_1 = uR + gamma(1)*uF;
-                    u_2 = uR + gamma(2)*uF;
-                    
-                    s_k1_1 = [inc_xk+u_1; (inc_lambda_k+gamma(1))*Psi*obj.element.fext];
-                    s_k1_2 = [inc_xk+u_2; (inc_lambda_k+gamma(2))*Psi*obj.element.fext];
-                    
-                    theta_1= acosd(dot(s_k,s_k1_1)/s^2);
-                    theta_2= acosd(dot(s_k,s_k1_2)/s^2);
-                    theta = [theta_1 theta_2];
-                    
-                    [~,j] = min(theta);
-                    gamma = gamma(j);
-                    
-                    u_k = uR + gamma*uF;
-                    lambda_k = lambda_k + gamma;
                     inc_lambda_k = inc_lambda_k + gamma;
-                    inc_xk = inc_xk + u_k;
-                    x_k = x_k + u_k;
                     
-                    % *****************************************************
-                    % Solve
-%                     x_k = obj.solver.solve(dr,-r);
+                    lambda_k = lambda_k + gamma;
                     
-                    % Updates
-                    x = x + x_k;
+                    inc_xk = inc_xk + uk;
+                    xk = xk + uk;
+                    
+                    x = x + xk;
                     
                     % Compute new r & dr
-                    [r,dr,K,fint] = obj.element.computeResidual(x_k,lambda_k);
+                    [r,dr,K,fint] = obj.element.computeResidual(uk,lambda_k);
                     
                     error = norm(r)/norm(obj.element.fext);
                     errcont(incrm,niter) = error;
                     niter = niter + 1;
                 end
-%                 x_i = x_k;
-%                 lambda_i = lambda_k;
-                
+                xi = xk;
+                lambda_i = lambda_k;
+                         
                 
                 global test
                 if exist('test','var') == 1
                     nn(incrm) = niter-1;
-
-                    gid_elem_pos = 4; %6
-                    gid_dime_pos = 1; % X Y Z 2
-
+                    
+                    gid_elem_pos = 6; %6
+                    gid_dime_pos = 2; % X Y Z 2
+                    
                     xn(incrm) = obj.element.coord(gid_elem_pos,gid_dime_pos);
                     gid_id = gid_elem_pos*obj.geometry.ndime-obj.geometry.ndime+gid_dime_pos;
-                    fn(incrm) = obj.element.fext(gid_id);
-
+                    fn(incrm) = lambda_i*obj.element.fext(gid_id);
+                    xkn(incrm) = xk(gid_id);
+                    incx(incrm) = inc_xk(gid_id);
+                    gamman(incrm) = gamma;
+                    lambdan(incrm) = lambda_i;
+                    inc_lambdan(incrm) = inc_lambda_k;
+                    
                     %% Plot
                     xlabel('X displacement [m]')
                     set(gcf,'Color','w')
-
+                    
                     % Left
                     yyaxis left
-                    plot(xn,fn,'*')
+                    plot(incx,fn,'*')
                     ylabel('Force [N]')
                     set(gca,'FontSize',15)
-
+                    
                     % Right
                     yyaxis right
-                    plot(xn,nn,'o-')
+                    plot(incx,nn,'o-')
                     ylabel('Iterations')
                     set(gca,'FontSize',15)
-
+                    
                     % Update
                     drawnow;
                 end
+                incrm = incrm+1; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             end
             
             % Convergence
             if exist('test','var') == 1
-            Xcoord = log(errcont(end,1:niter-2));
-            Ycoord = log(errcont(end,2:niter-1));
-            [a,~] = polyfit(Xcoord,Ycoord,1);
-            fprintf('Convergence order, p: %d\nRatio, mu: %d\n\n',a(1),a(2));
+                Xcoord = log(errcont(end,1:niter-2));
+                Ycoord = log(errcont(end,2:niter-1));
+                [a,~] = polyfit(Xcoord,Ycoord,1);
+                fprintf('Convergence order, p: %d\nRatio, mu: %d\n\n',a(1),a(2));
             end
-                        
+            
             obj.variables = obj.element.computeVars(x);
+        end
+        
+        function gamma = computeGamma(obj,inc_xk,inc_lambda_k,uF,uR,fext)
+            Psi = 1;
+            
+            s_k = [inc_xk;inc_lambda_k*Psi*fext];
+            s = norm(s_k);
+            
+            a1 = dot(uF,uF) + Psi^2*dot(fext,fext);
+            a2 = 2*uF'*(inc_xk+uR) + 2*inc_lambda_k*Psi^2*dot(fext,fext);
+            a3 = uR'*(2*inc_xk+uR) + inc_xk'*inc_xk - s^2;
+%             a3 = dot((inc_xk+uR),(inc_xk+uR)) - s^2 + inc_lambda_k^2*Psi^2*dot(fext,fext);
+
+            
+            poly2 = [a1 a2 a3];
+            gamma = roots(poly2);
+            
+            u_1 = uR + gamma(1)*uF;
+            u_2 = uR + gamma(2)*uF;
+            
+            s_k1_1 = [inc_xk+u_1; (inc_lambda_k+gamma(1))*Psi*fext];
+            s_k1_2 = [inc_xk+u_2; (inc_lambda_k+gamma(2))*Psi*fext];
+            
+            theta_1= acos(dot(s_k,s_k1_1)/s^2);
+            theta_2= acos(dot(s_k,s_k1_2)/s^2);
+            theta = [theta_1 theta_2];
+            
+            [~,j] = min(theta);
+            gamma = gamma(j);
+%             gamma = 0;
         end
         
         function print(obj)

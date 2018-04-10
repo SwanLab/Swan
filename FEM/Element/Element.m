@@ -19,7 +19,7 @@ classdef Element<handle
         coord
         fincr
         nincr
-        cload
+%         cload
         uD
 %         lambda_i
     end
@@ -79,6 +79,7 @@ classdef Element<handle
             global test
             if exist('test','var') == 1
 %                 fprintf('FEM-MAT-OO\n\nGeneral\n- force\t%f\n- incrm\t%d\n- model\t%s\n- elements\t%d\n\nMaterial\n- \x03bc\t%f\n- \x03bb\t%f\n\n',element.fincr(element.dof.neumann(1))*element.nincr,element.nincr,class(element),element.nelem,element.material.mu,element.material.lambda);
+                fprintf('FEM-MAT-OO\n\nGeneral\n- force\t%f\n- incrm\t%d\n- model\t%s\n- elements\t%d\n\nMaterial\n- \x03bc\t%f\n- \x03bb\t%f\n\n',element.Fext(element.dof.neumann(1)),element.nincr,class(element),element.nelem,element.material.mu,element.material.lambda);
             end
         end
     end

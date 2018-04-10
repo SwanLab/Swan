@@ -20,7 +20,7 @@ classdef Element_Hyperelastic < Element
             obj.dvolu = geometry.dvolu;
             
             % Nonlinear parameters
-            obj.nincr = 85;
+            obj.nincr = 80;
         end
         
         function [r,dr,K,fint] = computeResidual(obj,uL,lambda_i)
@@ -41,13 +41,12 @@ classdef Element_Hyperelastic < Element
             K = obj.AssembleMatrix(K);
             
             R = obj.compute_imposed_displacemet_force(K);
-            obj.cload = lambda_i*obj.Fext;
-            obj.fext = obj.cload + R; % fext + reac
+            obj.fext = obj.Fext + R; % fext + reac
 
             % Compute internal forces
             [fint_red, fint] = obj.computeInternal();
 
-            r = fint_red - obj.fext(obj.dof.free);
+            r = fint_red - lambda_i*obj.fext(obj.dof.free);
             dr = K(obj.dof.free, obj.dof.free);
         end
         
