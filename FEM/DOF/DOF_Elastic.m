@@ -15,8 +15,9 @@ classdef DOF_Elastic < DOF
                     obj.nunkn = 3;
             end
             [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = Preprocess.getBC_mechanics(filename);
-            obj.computeDOF(geometry,dirichlet_data,neumann_data,full_dirichlet_data);
+            obj.getDOFconditions(geometry,dirichlet_data,neumann_data,full_dirichlet_data);
             obj.master_slave = master_slave;
+            obj.computeDOF(geometry);
         end
     end
 end

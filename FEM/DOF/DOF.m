@@ -2,13 +2,9 @@ classdef DOF < handle
     %DOF Summary of this class goes here
     %   Detailed explanation goes here
     
-%     properties (GetAccess = {?Physical_Problem, ?Element, ?Solver}, SetAccess = private)
-%         
-%     end
-%     
-%     properties (GetAccess = {?Physical_Problem, ?Element}, SetAccess = private)
-%         
-%     end
+    %     properties (GetAccess = {?Physical_Problem, ?Element, ?Solver}, SetAccess = private)
+    %
+    %     end
     
     properties (GetAccess = public)
         dirichlet_values
@@ -24,32 +20,26 @@ classdef DOF < handle
         full_dirichlet % Everywhere dirichlet dof inex
     end
     
-    methods        
-        function obj = computeDOF(obj,geometry,dirichlet_data,neumann_data,full_dirichlet_data)
+    methods
+        function obj = getDOFconditions(obj,geometry,dirichlet_data,neumann_data,full_dirichlet_data)
             [obj.neumann,obj.neumann_values] = obj.get_dof_conditions(neumann_data,obj.nunkn(1));
             [obj.full_dirichlet,obj.full_dirichlet_values] = obj.get_dof_conditions(full_dirichlet_data,obj.nunkn(1));
-            
+            for ifield = 1:geometry(1).nfields
+                [obj.dirichlet{ifield},obj.dirichlet_values{ifield}] = obj.get_dof_conditions(dirichlet_data{ifield},obj.nunkn(ifield));
+            end
+        end
+        
+        function obj = computeDOF(obj,geometry)
             for ifield = 1:geometry(1).nfields
                 nunkn = obj.nunkn(ifield);
                 nnode = geometry(ifield).interpolation.nnode;
                 npnod = geometry(ifield).interpolation.npnod;
                 obj.in_elem{ifield} = obj.compute_idx(geometry(ifield).interpolation.T,nunkn,nnode);
-                
-                
                 obj.ndof(ifield) = nunkn*npnod;
-                
-                [obj.dirichlet{ifield},obj.dirichlet_values{ifield}] = obj.get_dof_conditions(dirichlet_data{ifield},nunkn);
-                
                 obj.constrained{ifield} = obj.compute_constrained_dof(ifield);
                 obj.free{ifield} = obj.compute_free_dof(ifield);
             end
-            %                 if nfields == 1
-            %                     obj.dirichlet = cell2mat(obj.dirichlet{ifield});
-            %                     obj.dirichlet_values = cell2mat(obj.dirichlet_values{ifield});
-            %
-            %                 end
         end
-        
     end
     
     methods
@@ -62,23 +52,6 @@ classdef DOF < handle
             free = setdiff(1:obj.ndof(ifield),obj.constrained{ifield});
         end
         
-        % Constructor
-        %         function obj=computeFixedNodesValues(obj,ptype,ndim)
-        %             switch ptype
-        %                 case 'ELASTIC'
-        %                     ifix=1;
-        %                     for i=1:size(obj.fixnodes_perimeter,1)
-        %                         for j=1:ndim
-        %                             obj.fixnodes(ifix,1)=obj.fixnodes_perimeter(i,1); % node
-        %                             obj.fixnodes(ifix,2)=j; % idim
-        %                             obj.fixnodes(ifix,3)=0; % U_imp
-        %                             ifix=ifix+1;
-        %                         end
-        %                     end
-        %             end
-        %         end
-        
-        
         function periodic_dof = compute_periodic_nodes(obj,periodic_nodes,nunkn)
             nlib = size(periodic_nodes,1);
             periodic_dof = zeros(nlib*nunkn,1);
@@ -87,7 +60,6 @@ classdef DOF < handle
                 periodic_dof(index_glib,1) = obj.unknown_and_node_id_to_dof_id(periodic_nodes,iunkn,nunkn);
             end
         end
-        
         
         function dof_elem = compute_idx(obj,connec,nunkn,nnode)
             dof_elem  = zeros(nnode*nunkn,size(connec,1));
@@ -103,11 +75,11 @@ classdef DOF < handle
         end
         
         function  [dof_condition_id,dof_condition_value] = get_dof_conditions(obj,conditions_unkn_and_dim,nunkn)
+            % !! Revisar, no molt elegant !!
             if isempty(conditions_unkn_and_dim)
                 dof_condition_id = [];
                 dof_condition_value = [];
             else
-                
                 if ismatrix(conditions_unkn_and_dim)
                     inode_condition = conditions_unkn_and_dim(:,1);
                     iunkn_condition = conditions_unkn_and_dim(:,2);
@@ -119,16 +91,12 @@ classdef DOF < handle
                 end
             end
         end
-        
-        
     end
     
     methods (Static)
-        
         function idof = unknown_and_node_id_to_dof_id(inode,iunkn,nunkn)
             idof(:,1)= nunkn*(inode - 1) + iunkn;
         end
-        
         
         function [Master_slave_nodes] = get_master_slave_in_square(coordinates)
             % Square muest be [0,1]x[0,1]

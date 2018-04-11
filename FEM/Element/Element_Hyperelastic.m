@@ -1,5 +1,5 @@
 classdef Element_Hyperelastic < Element
-    %UNTITLED3 Summary of this class goes here
+    %Element_Hyperelastic Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
@@ -30,14 +30,11 @@ classdef Element_Hyperelastic < Element
                 fext = obj.Fext(obj.dof.vL);
             end
             
-            
             % Compute internal forces
             fint = obj.computeInternal();
             fint = obj.AssembleVector(fint);
             
-            
-            dr = K;
-            
+            dr = K;            
             nincr = 100;
             fincr = fext/nincr;
             for incrm = 1:nincr

@@ -2,6 +2,7 @@ classdef ShFunc_Chomog < Shape_Functional
     properties (Access = public)
         h_C_0
         Chomog
+        Msmooth
         tstress
         tstrain
         Chomog_Derivatives
@@ -16,6 +17,9 @@ classdef ShFunc_Chomog < Shape_Functional
             obj.physicalProblem = FEM.create(settings.filename);
             
             obj.physicalProblem.preProcess;
+            diffReacProb = DiffReact_Problem(settings.filename);
+            diffReacProb.preProcess;
+            obj.Msmooth = diffReacProb.element.M;
             obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method);
         end
     end
@@ -49,11 +53,6 @@ classdef ShFunc_Chomog < Shape_Functional
             
         end
         
-        function r = projection_Chomog(obj,inv_matCh,alpha,beta)
-            weights = alpha*beta';
-            r = sum(sum(weights.*inv_matCh));
-        end
-        
         function r = derivative_projection_Chomog(obj,inv_matCh,alpha,beta)
             nstre = obj.physicalProblem.element.nstre;
             ngaus = size(obj.tstrain,2);
@@ -82,6 +81,13 @@ classdef ShFunc_Chomog < Shape_Functional
             obj.Chomog = obj.physicalProblem.variables.Chomog;
             obj.tstrain = obj.physicalProblem.variables.tstrain;
             obj.tstress = obj.physicalProblem.variables.tstress;
+        end
+    end
+    
+    methods (Access = protected, Static)
+        function r = projection_Chomog(inv_matCh,alpha,beta)
+            weights = alpha*beta';
+            r = sum(sum(weights.*inv_matCh));
         end
     end
 end

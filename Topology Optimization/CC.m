@@ -10,17 +10,17 @@ classdef CC < handle
     end
     
     methods
-        function obj = CC(settings_this,SF_list)
+        function obj = CC(settings_this,SF_list,postprocess_TopOpt)
             obj.target_parameters = settings_this.target_parameters;
             obj.nSF = length(SF_list);
             for iSF = 1:obj.nSF
                 
-                %% !! PENDING TO BE DEFINED A FILTER FOR EACH SF
+                %% !! PENDING TO BE DEFINED A FILTER FOR EACH SF !!
                 % settings_this.filter = settings.filter{iSF};
                 
                 switch SF_list{iSF}
                     case 'compliance'
-                        obj.ShapeFuncs{iSF} = ShFunc_Compliance(settings_this);
+                        obj.ShapeFuncs{iSF} = ShFunc_Compliance(settings_this,postprocess_TopOpt);
                     case 'perimeter'
                         obj.ShapeFuncs{iSF} = ShFunc_Perimeter(settings_this);
                     case 'chomog_alphabeta'
@@ -56,9 +56,9 @@ classdef CC < handle
             obj.nSF = length(obj.ShapeFuncs);
         end
         
-        function preProcess(obj,params)
+        function preProcess(obj)
             for iSF = 1:obj.nSF
-                obj.ShapeFuncs{iSF}.filter.preProcess(params);
+                obj.ShapeFuncs{iSF}.filter.preProcess;
             end
         end
         
@@ -68,14 +68,18 @@ classdef CC < handle
             for iSF = 1:length(obj.ShapeFuncs)
                 obj.updateTargetParameters(iSF);
                 obj.ShapeFuncs{iSF}.computef(x);
+                % !! REMOVE !!
+%                 try
+%                     obj.ShapeFuncs{iSF}.physProb.print;
+%                 end
                 obj.updateFields(iSF);
             end
         end
         
         function updateTargetParameters(obj,iSF)
             obj.ShapeFuncs{iSF}.target_parameters = obj.target_parameters;
-            if isprop(obj.ShapeFuncs{iSF}.filter,'epsilon')
-                obj.ShapeFuncs{iSF}.filter.epsilon=obj.target_parameters.epsilon;
+            if contains(class(obj.ShapeFuncs{iSF}.filter),'PDE')
+                obj.ShapeFuncs{iSF}.filter.updateEpsilon(obj.target_parameters.epsilon);
             end
         end
     end
