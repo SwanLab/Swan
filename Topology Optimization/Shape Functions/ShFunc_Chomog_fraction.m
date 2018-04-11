@@ -1,5 +1,5 @@
 classdef ShFunc_Chomog_fraction < ShFunc_Chomog
-    properties (Access = public)
+    properties (Access = private)
         alpha
         beta
     end
@@ -10,11 +10,7 @@ classdef ShFunc_Chomog_fraction < ShFunc_Chomog
             obj.beta=settings.micro.beta/norm(settings.micro.beta);
         end
         function computef(obj,x)
-            obj.rho=obj.filter.getP0fromP1(x);
-            obj.matProps=obj.interpolation.computeMatProp(obj.rho);
-            obj.physicalProblem.setMatProps(obj.matProps);
-            obj.physicalProblem.computeChomog;
-            obj.setPhysicalData(obj.physicalProblem.variables);
+            obj.computePhysicalData(x);
             
             %Cost
             inv_matCh = inv(obj.Chomog);

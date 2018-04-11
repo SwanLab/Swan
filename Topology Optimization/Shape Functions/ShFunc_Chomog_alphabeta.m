@@ -10,13 +10,9 @@ classdef ShFunc_Chomog_alphabeta < ShFunc_Chomog
             obj.beta=settings.micro.beta/norm(settings.micro.beta);
         end
         function computef(obj,x)
-            obj.rho=obj.filter.getP0fromP1(x);
-            obj.matProps=obj.interpolation.computeMatProp(obj.rho);
-            obj.physicalProblem.setMatProps(obj.matProps);
-            obj.physicalProblem.computeChomog;
-            obj.setPhysicalData(obj.physicalProblem.variables);
+            obj.computePhysicalData(x); 
             
-            
+            %Cost
             inv_matCh = inv(obj.Chomog);
             costfunc = obj.projection_Chomog(inv_matCh,obj.alpha,obj.beta);
             obj.compute_Chomog_Derivatives(x);
@@ -33,9 +29,7 @@ classdef ShFunc_Chomog_alphabeta < ShFunc_Chomog
 %             obj.h_C_0 = costfunc;
             
             obj.value = costfunc;
-            obj.gradient = gradient;
-            
-            
+            obj.gradient = gradient;      
         end
     end
 end

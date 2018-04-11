@@ -105,7 +105,7 @@ classdef Monitoring < handle
                 if draw
                     if ~stop_criteria && istep == nstep
                         set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Inc. Step: %.0f/%.0f Iteration: %.0f - FINISHED',istep,nstep,iteration))
-                        saveas(obj.monitor,fullfile(pwd,'Output',obj.case_file,[sprintf('monitoring_%.0f of %.0f_%.0fit',istep,nstep,iteration) '.png']))
+                        saveas(obj.monitor,fullfile(pwd,'Output',obj.case_file,[sprintf('monitoring_%.0f_of_%.0f_%.0fit',istep,nstep,iteration) '.png']))
                     else 
                         set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Inc. Step: %.0f/%.0f Iteration: %.0f',istep,nstep,iteration))
                     end

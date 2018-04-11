@@ -31,13 +31,13 @@ classdef Stokes_Problem < FEM
                 free_dof(ifield) = length(obj.dof.free{ifield});
             end
             transient = false;  % !! This should not be defined in here !!
+            tol = 1e-6;         % !! This should not be defined in here !! 
             if transient
-                tol = 1e-6;     % !! This should not be defined in here !! 
                 dt = 0.01;      % !! This should not be defined in here !!
                 final_time = 1; % !! This should not be defined in here !!
                 x = obj.solve_transient_nonlinear_problem(free_dof,tol,dt,final_time);
             else
-                x = obj.solve_steady_nonlinear_problem(free_dof);
+                x = obj.solve_steady_nonlinear_problem(free_dof,tol);
             end
             obj.variables = obj.element.computeVars(x);
         end
