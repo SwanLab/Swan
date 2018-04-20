@@ -1,13 +1,14 @@
 classdef ShFunc_Chomog_CC < ShFunc_Chomog %%NOT WORKING%%
     properties (Access = private)
-        Ch_star
-        selectiveC_Cstar
+        selectiveC_Cstar = [1, 1,1
+                            1, 1,1
+                            1,1,1];
     end
     methods
         function obj=ShFunc_Chomog_CC(settings)
             obj@ShFunc_Chomog(settings);
-            obj.Ch_star=obj.compute_Ch_star(settings.TOL);
-            obj.selectiveC_Cstar=settings.selectiveC_Cstar;
+            obj.compute_Ch_star(settings.TOL, settings.selectiveC_Cstar);
+%             obj.selectiveC_Cstar=settings.selectiveC_Cstar;
         end
         function computef(obj,x)
             obj.computePhysicalData(x);
@@ -17,12 +18,16 @@ classdef ShFunc_Chomog_CC < ShFunc_Chomog %%NOT WORKING%%
             costfunc = obj.selectiveC_Cstar.*costfunc;
             
             %Gradient
+            nelem = obj.physicalProblem.element.nelem;
+            ngaus = size(obj.tstrain,2);
+            nstre = obj.physicalProblem.element.nstre;
+            
             obj.compute_Chomog_Derivatives(x);
-            DtC1 = zeros(obj.physicalProblem.geometry.ngaus,obj.physicalProblem.mesh.nelem);
-            gradient = zeros(obj.physicalProblem.geometry.ngaus,obj.physicalProblem.mesh.nelem);
-            for igaus=1:obj.physicalProblem.geometry.ngaus
-                for a=1:obj.physicalProblem.dim.nstre
-                    for b=1:obj.physicalProblem.dim.nstre
+            DtC1 = zeros(ngaus,nelem);
+            gradient = zeros(ngaus,nelem);
+            for igaus=1:ngaus
+                for a=1:nstre
+                    for b=1:nstre
                         DtC1(igaus,:) = squeeze(obj.Chomog_Derivatives(a,b,igaus,:));
                         gradient(igaus,:) = gradient(igaus,:) + 2*costfunc(a,b)*DtC1(igaus,:);
                     end

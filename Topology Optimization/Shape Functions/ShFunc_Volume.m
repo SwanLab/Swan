@@ -16,7 +16,7 @@ classdef ShFunc_Volume< Shape_Functional
             %compute volume
             geometric_volume = sum(mass(:));
            
-            volume = sum(obj.filter.dvolu*rho);
+            volume = sum(obj.filter.dvolu*rho)
             volume = volume/(geometric_volume*obj.Vfrac) - 1;
             
             %compute gradient
