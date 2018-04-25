@@ -8,7 +8,7 @@ clear variables;
 %% Settings
 
 % settings = Settings('CantileverTriangle_Case_2_2_3');
-settings=Settings('Vfrac07n5');%PruebaVfrac07P03   Vfrac05n5
+settings=Settings('HoneyComb');%PruebaVfrac07P03   Vfrac05n5
 
 %% Main
 tic

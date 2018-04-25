@@ -140,28 +140,49 @@ classdef ShFunc_Chomog < Shape_Functional
                         0         0    0.1419];
                     
                 case 'Vfrac06'
-                    obj.Ch_star =[                        
-                    0.2909    0.1940         0
-                    0.1940    0.2909         0
-                    0         0    0.0970];
-                
+                    obj.Ch_star =[
+                        0.2909    0.1940         0
+                        0.1940    0.2909         0
+                        0         0    0.0970];
+                    
                 case 'Vfrac05'
-                    obj.Ch_star =[                        
-                    0.1892    0.1261         0
-                    0.1261    0.1892         0
-                    0         0    0.0631];
-                
+                    obj.Ch_star =[
+                        0.1892    0.1261         0
+                        0.1261    0.1892         0
+                        0         0    0.0631];
+                    
                 case 'Vfrac04'
-                    obj.Ch_star =[                        
-                    0.1141    0.0761         0
-                    0.0761    0.1141         0
-                    0         0    0.0380];
-                
+                    obj.Ch_star =[
+                        0.1141    0.0761         0
+                        0.0761    0.1141         0
+                        0         0    0.0380];
+                    
                 case 'Vfrac03'
-                    obj.Ch_star =[                        
-                    0.0611    0.0407         0
-                    0.0407    0.0611         0
-                    0         0    0.0204];       
+                    obj.Ch_star =[
+                        0.0611    0.0407         0
+                        0.0407    0.0611         0
+                        0         0    0.0204];
+                    
+                case 'Composite'
+                    obj.Ch_star =[1 0.15 0;
+                        0.15 0.5 0;
+                        0 0 0.2];
+                case 'HoneyComb'
+                    obj.Ch_star =0.094*[1 0.75 0
+                        0.75 1 0
+                        0 0 0.125];
+                case 'InvertedHoneyComb'
+                    obj.Ch_star =0.08*[1 -0.5 0
+                        -0.5 1 0
+                        0 0 0.06];
+                case 'AcousticZeroShearA'
+                    obj.Ch_star =[1 1 0;
+                        1 1 0;
+                        0 0 0];
+                case 'NegativePoiss06'
+                    obj.Ch_star =0.04*[1 -0.6 0;
+                        -0.6 1 0;
+                        0 0 0.8];
             end
         end
     end
