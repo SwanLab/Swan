@@ -5,7 +5,7 @@ clear; close all;
 fprintf('Running TopOpt tests...\n')
 
 %% Test Declaration -------------------------------------------------------
-tests_topopt = {'test_cantilever','test_gripping','test_micro'};
+tests_topopt = {'test_cantilever','test_gripping','test_micro','test_micro2'};
 %tests_topopt = {'test_micro'};
 
 %% Run Top Opt Tests ------------------------------------------------------
