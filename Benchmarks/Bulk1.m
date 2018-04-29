@@ -3,15 +3,15 @@ ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'circle';
-cost={'volume','perimeter'};
+cost={'chomog_alphabeta','perimeter'};
 weights=[1 0.1];
-constraint = {'enforceCh_CCstar_inf'};%inferior
-constraint_case = 'EQUALITY';
-optimizer = 'MMA'; kappaMultiplier = 1;
+constraint = {'volume'};
+constraint_case = 'INEQUALITY';
+optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 
 nsteps = 1;
-Vfrac_final = 1;
+Vfrac_final = 0.5;
 Perimeter_target=1;
 optimality_final =1e-3;
 constr_final =1e-3;
@@ -30,7 +30,5 @@ TOL.nu_minus = 1/3;
 %Micro
 epsilon_isotropy_initial=1e-1;
 epsilon_isotropy_final = 1e-3;
-selectiveC_Cstar = 'Seba';
-
-
-
+micro.alpha =[1 1 0]';
+micro.beta =[1 1 0]';

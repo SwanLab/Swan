@@ -1,10 +1,11 @@
-classdef Settings 
+classdef Settings
     properties %optmizer access
         plotting = true
         printing = true
         monitoring = true
         monitoring_interval = 10
         maxiter = 5000
+        constraint_case = 'INEQUALITY';
     end
     
     properties %target parameters
@@ -74,6 +75,10 @@ classdef Settings
             obj.constr_initial = constr_initial;
             obj.optimality_final = optimality_final;
             obj.constr_final = constr_final;
+                        
+            if exist('constraint_case','var')
+                obj.constraint_case = constraint_case;
+            end
             
             if exist('plotting','var')
                 obj.plotting = plotting;
@@ -94,7 +99,7 @@ classdef Settings
             
             if ~contains(filename,'test','IgnoreCase',true)
                 fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: %s \n -Constraint: %s \n -Incremental Steps: %f \n ',...
-                case_file,obj.optimizer,char(obj.cost),char(obj.constraint),obj.nsteps)
+                    case_file,obj.optimizer,char(obj.cost),char(obj.constraint),obj.nsteps)
             end
             
             if exist('Vfrac_final','var')

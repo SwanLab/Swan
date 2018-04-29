@@ -12,7 +12,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
         end
         
         function x = updateX(obj,x_ini,cost,constraint)
-            obj.updateObjFunc(cost,constraint);            
+            obj.updateObjFunc(cost,constraint);
             obj.initUnconstrOpt(x_ini);
             
             x = obj.solveUnconstrainedProblem(x_ini,cost,constraint);
@@ -43,7 +43,6 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             obj.optimizer_unconstr.objfunc.value_initial = obj.objfunc.value;
             obj.optimizer_unconstr.computeKappa(x_ini,obj.objfunc.gradient);
             obj.optimizer_unconstr.stop_criteria = 1;
-        end        
+        end
     end
-    
 end

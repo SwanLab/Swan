@@ -3,17 +3,16 @@ ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'circle';
-cost={'volume','perimeter'};
-weights=[1 0.1];
-constraint = {'enforceCh_CCstar_inf'};%inferior
-constraint_case = 'EQUALITY';
-optimizer = 'MMA'; kappaMultiplier = 1;
+cost={'enforceCh_CCstar_L2','perimeter'};%enforceCh_CCstar_L2
+weights=[1, 0.1];
+constraint = {'volume'};
+optimizer = 'MMA'; kappaMultiplier = 1;%mma CON 1E-4
 filterType = 'P1';
 
-nsteps = 1;
-Vfrac_final = 1;
-Perimeter_target=1;
-optimality_final =1e-3;
+nsteps = 5;
+Vfrac_final = 0.4;
+Perimeter_target=3;
+optimality_final =1e-4;
 constr_final =1e-3;
 
 Vfrac_initial = 1;
@@ -30,7 +29,4 @@ TOL.nu_minus = 1/3;
 %Micro
 epsilon_isotropy_initial=1e-1;
 epsilon_isotropy_final = 1e-3;
-selectiveC_Cstar = 'Seba';
-
-
-
+selectiveC_Cstar = 'Vfrac04';

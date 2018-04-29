@@ -27,6 +27,19 @@ classdef Optimizer_Unconstrained < Optimizer
             inc_x = x-x_ini;
             N_L2 = obj.scalar_product.computeSP_M(inc_x,inc_x)/obj.scalar_product.computeSP_M(x_ini,x_ini);
         end
+        function cons = setConstraint_case(obj,constraint)
+            cons = constraint;
+            switch obj.constraint_case    
+                case 'EQUALITY'
+                case 'INEQUALITY'
+                    contr_inactive_value = -obj.objfunc.lambda(:)./obj.objfunc.penalty(:);
+                    inactive_constr = contr_inactive_value > constraint.value;
+                    cons.value(inactive_constr) = contr_inactive_value(inactive_constr);                    
+                    cons.gradient(:,inactive_constr) = 0;                    
+                otherwise
+                    error('Constraint case not valid.');
+            end
+        end
     end
 end
 

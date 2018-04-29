@@ -7,6 +7,7 @@ classdef Optimizer < handle
         stop_vars
         target_parameters = struct;
         nconstr
+        constraint_case
     end
     
     properties (Access = ?Optimizer_Constrained)
@@ -22,6 +23,7 @@ classdef Optimizer < handle
             obj.nconstr = settings.nconstr;
             obj.case_file=settings.case_file;
             obj.target_parameters = settings.target_parameters;
+            obj.constraint_case=settings.constraint_case;
         end
         
     end
