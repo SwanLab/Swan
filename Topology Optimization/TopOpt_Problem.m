@@ -64,10 +64,11 @@ classdef TopOpt_Problem < handle
                 obj.cost.computef(obj.x);
                 obj.constraint.computef(obj.x);
                 obj.x = obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint);
-            end
-%             disp(obj.cost.value);
+             end
+%              disp(obj.cost.value);
 %             disp(obj.constraint.value);
-%             disp(obj.cost.ShapeFuncs{1}.physicalProblem.variables.Chomog);
+%              disp(obj.cost.ShapeFuncs{1}.physicalProblem.variables.Chomog);
+%              disp(obj.cost.ShapeFuncs{1}.Ch_star);
         end
         
         function postProcess(obj)

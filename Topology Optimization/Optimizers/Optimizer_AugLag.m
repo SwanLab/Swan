@@ -34,6 +34,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             obj.optimizer_unconstr.target_parameters = obj.target_parameters;
             obj.objfunc.lambda = obj.objfunc.lambda + obj.objfunc.penalty.*constraint.value';
             constraint.lambda = obj.objfunc.lambda;
+            constraint =obj.setConstraint_case(constraint); 
             obj.objfunc.computeFunction(cost,constraint);
             obj.objfunc.computeGradient(cost,constraint);
         end

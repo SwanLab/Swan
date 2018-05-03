@@ -27,7 +27,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             x = obj.updatePhi(x_ini,obj.objfunc.gradient);
             cost.computef(x);
             constraint.computef(x);
-            constraint =obj.setConstraint_case(constraint);                        
+            constraint =obj.setConstraint_case(constraint); 
             obj.objfunc.computeFunction(cost,constraint)
             
             incr_norm_L2  = obj.norm_L2(x,x_ini);
