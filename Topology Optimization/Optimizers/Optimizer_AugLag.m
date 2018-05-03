@@ -9,6 +9,8 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             obj@Optimizer_Constrained(settings,mesh,settings.monitoring);
             obj.objfunc = Objective_Function_AugLag(settings);
             obj.optimizer_unconstr = optimizer_unconstr;
+            obj.ini_design_value = obj.optimizer_unconstr.ini_design_value;
+            obj.hole_value = obj.optimizer_unconstr.hole_value;
         end
         
         function x = updateX(obj,x_ini,cost,constraint)
