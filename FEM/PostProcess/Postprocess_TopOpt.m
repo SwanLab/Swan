@@ -137,7 +137,7 @@ classdef Postprocess_TopOpt < Postprocess
             switch optimizer
                 case 'SLERP'
                     obj = Postprocess_TopOpt_levelSet;
-                case {'PROJECTED GRADIENT', 'MMA'}
+                case {'PROJECTED GRADIENT', 'MMA', 'IPOPT'}
                     obj = Postprocess_TopOpt_density;
             end
         end
