@@ -1,7 +1,8 @@
-classdef Settings 
+classdef Settings
     properties %optmizer access
         plotting = true
-        printing = false
+        printing = true
+        printing_physics = true
         monitoring = true
         monitoring_interval = 10
         maxiter = 5000
@@ -45,6 +46,7 @@ classdef Settings
         selectiveC_Cstar
         nconstr
     end
+    
     methods
         function obj = Settings(case_file)
             run(case_file)
@@ -57,8 +59,7 @@ classdef Settings
             obj.cost = cost;
             obj.weights = weights;
             obj.constraint = constraint;
-            %% RELEASE WHEN TEST --> AS BENCHMARK CASES
-            %                 obj.nconstr = length(constraint);
+            obj.nconstr = length(constraint);
             obj.optimizer = optimizer;
             obj.kappaMultiplier = kappaMultiplier;
             obj.filter = filterType;
@@ -81,6 +82,12 @@ classdef Settings
             if exist('printing','var')
                 obj.printing = printing;
             end
+            if exist('printing_physics','var')
+                obj.printing_physics = printing_physics;
+            end
+            if ~obj.printing && obj.printing_physics
+                warning('Physical variables will not be printed.')
+            end
             if exist('monitoring','var')
                 obj.monitoring = monitoring;
             end
@@ -91,10 +98,12 @@ classdef Settings
                 obj.maxiter = maxiter;
             end
             
-            
             if ~contains(filename,'test','IgnoreCase',true)
-                fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: %s \n -Constraint: %s \n -Incremental Steps: %f \n ',...
-                case_file,obj.optimizer,char(obj.cost),char(obj.constraint),obj.nsteps)
+                fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: ',case_file,obj.optimizer)
+                fprintf('%s, ',obj.cost{:})
+                fprintf('\n -Constraint: ')
+                fprintf('%s, ', obj.constraint{:})
+                fprintf('\n -Incremental Steps: %f \n ',obj.nsteps)
             end
             
             if exist('Vfrac_final','var')
@@ -113,7 +122,6 @@ classdef Settings
                 obj.micro.alpha = micro.alpha;
                 obj.micro.beta = micro.beta;
             end
-            
             if exist('epsilon_isotropy_initial','var')
                 obj.epsilon_isotropy_initial = epsilon_isotropy_initial;
                 obj.epsilon_isotropy_final = epsilon_isotropy_final;

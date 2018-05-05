@@ -27,24 +27,21 @@ classdef Elastic_Problem < FEM
         end
         
         function computeVariables(obj)
-            tol = 1e-6;
-            for ifield = 1:obj.geometry(1).nfields
-                free_dof(ifield) = length(obj.dof.free{ifield});
-            end
-            x = obj.solve_steady_problem(free_dof,tol);
-            obj.variables = obj.element.computeVars(x);
+            Kred = obj.element.computeLHS;
+            fext_red = obj.element.computeRHS;
+            u = obj.solver.solve(Kred,fext_red);
+            obj.variables = obj.element.computeVars(u);
         end
         
-        function print(obj)
-            postprocess = Postprocess_PhysicalProblem();
-            results.physicalVars = obj.variables;
-            postprocess.print(obj,obj.problemID,results);
-        end
+%         function print(obj)
+%             postprocess = Postprocess_PhysicalProblem;
+%             results.physicalVars = obj.variables;
+%             postprocess.print(obj,obj.problemID,results);
+%         end
         
         function postProcess(obj)
             % ToDo
             % Inspire in TopOpt
-            
         end
         
         % !! THIS SHOULD BE DEFINED BY THE USER !!

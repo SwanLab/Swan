@@ -1,10 +1,16 @@
 classdef Filter_P1 < Filter
     properties
+        P_operator
     end
+    
     methods
-        function preProcess(obj,physicalProblem)
-            preProcess@Filter(obj,physicalProblem)
-            obj.P_operator=obj.computePoperator(obj.Msmooth);
+        function obj = Filter_P1(problemID,scale)
+            obj@Filter(problemID,scale);
+        end
+        
+        function preProcess(obj)
+            preProcess@Filter(obj)
+            obj.P_operator = obj.computePoperator(obj.diffReacProb.element.M);
         end
         function x_reg = getP1fromP0(obj,x)
             gauss_sum=0;

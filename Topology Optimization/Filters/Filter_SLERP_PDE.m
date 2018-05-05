@@ -1,14 +1,14 @@
-classdef Filter_PDE_Density < Filter_PDE
+classdef Filter_SLERP_PDE < Filter_PDE
     properties
     end
-    
+
     methods
-        function obj = Filter_Density_PDE(problemID,scale)
+        function obj = Filter_SLERP_PDE(problemID,scale)
             obj@Filter_PDE(problemID,scale);
         end
         
         function rhs = integrate_L2_function_with_shape_function(obj,x)
-            rhs = obj.diffReacProb.element.M*x;
+            rhs = obj.faireF2(obj.coordinates',obj.connectivities',x);
         end
     end
 end

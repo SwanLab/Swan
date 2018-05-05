@@ -4,10 +4,11 @@ classdef Shape_Functional < handle
         gradient
         target_parameters=struct;
         filter
-    end    
+    end 
+    
     methods
         function obj = Shape_Functional(settings)
-            obj.filter = Filter.create(settings.filter,settings.optimizer);
+            obj.filter = Filter.create(settings);
         end
             
         computef(obj, x)

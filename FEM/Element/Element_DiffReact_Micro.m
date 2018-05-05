@@ -1,12 +1,15 @@
 classdef Element_DiffReact_Micro < Element_DiffReact
     
-    properties
-        vstrain
-    end
-    
     methods
         function obj = Element_DiffReact_Micro(mesh,geometry,material,dof)
             obj = obj@Element_DiffReact(mesh,geometry,material,dof);
+        end
+        
+        function FextPoint = computePunctualFext(obj)
+            %Compute Global Puntual Forces (Not well-fashioned in FEM)
+            if ~isempty(obj.dof.neumann)
+                FextPoint = obj.reduced_vector_2_full_vector(obj.dof.neumann_values);
+            end
         end
         
         function Ared = full_matrix_2_reduced_matrix(obj,A)                
@@ -54,6 +57,28 @@ classdef Element_DiffReact_Micro < Element_DiffReact
             %             b(obj.dof.free) = bfree;
             %             b(obj.dof.dirichlet) = obj.dof.dirichlet_values;
             %             b(obj.dof.periodic_constrained) = b(obj.dof.periodic_free);
+        end
+    end
+    
+    methods (Access = private)
+        function F = computeStrainRHS(obj,vstrain)            
+            Cmat = obj.material.C;
+            eforce = zeros(obj.dof.nunkn*obj.nnode,1,obj.nelem);
+            sigma = zeros(obj.nstre,1,obj.nelem);
+            for igaus = 1:obj.quadrature.ngaus
+                Bmat = obj.computeB(obj.dof.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
+                for istre = 1:obj.nstre
+                    for jstre = 1:obj.nstre
+                        sigma(istre,:) = sigma(istre,:) + squeeze(Cmat(istre,jstre)*vstrain(jstre))';
+                    end
+                end
+                for iv = 1:obj.nnode*obj.dof.nunkn
+                    for istre = 1:obj.nstre
+                        eforce(iv,:) = eforce(iv,:)+(squeeze(Bmat(istre,iv,:)).*sigma(istre,:)'.*obj.geometry.dvolu(:,igaus))';
+                    end
+                end
+            end
+            F = -eforce;
         end
     end
 end

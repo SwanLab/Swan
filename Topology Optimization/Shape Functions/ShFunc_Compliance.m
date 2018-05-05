@@ -1,45 +1,50 @@
 classdef ShFunc_Compliance < Shape_Functional
     properties
         h_C_0; %compliance incial
-        physicalProblem
+        physProb
+        Msmooth
         interpolation
         rho
         matProps
     end
+    
     methods
-        function obj = ShFunc_Compliance(settings)
+        function obj = ShFunc_Compliance(settings,postprocess_TopOpt)
             obj@Shape_Functional(settings);
-            obj.physicalProblem = FEM.create(settings.filename);
-            
-            obj.physicalProblem.preProcess;
-            obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method,obj.physicalProblem.mesh.pdim);
-        end
-        
+            obj.physProb = FEM.create(settings.filename);
+            obj.physProb.preProcess;
+            diffReacProb = DiffReact_Problem(settings.filename);
+            diffReacProb.preProcess;
+            obj.Msmooth = diffReacProb.element.M;
+            obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method,obj.physProb.mesh.pdim);
+            if settings.printing && settings.printing_physics
+                obj.physProb.syncPostProcess(postprocess_TopOpt);
+            end
+        end        
         function computef(obj,x)
             obj.rho = obj.filter.getP0fromP1(x);
             obj.matProps = obj.interpolation.computeMatProp(obj.rho);
             obj.computef_CORE;
-        end
-        
+        end        
         function computef_CORE(obj)
             % Compute compliance
-            obj.physicalProblem.setMatProps(obj.matProps);
-            obj.physicalProblem.computeVariables;
+            obj.physProb.setMatProps(obj.matProps);
+            obj.physProb.computeVariables;
             
             compliance = obj.computeCompliance;
             
             % Compute gradient
-            gradient_compliance = zeros(obj.physicalProblem.geometry.interpolation.nelem,obj.physicalProblem.element.quadrature.ngaus);
-            for igaus = 1:obj.physicalProblem.element.quadrature.ngaus
-                for istre = 1:obj.physicalProblem.element.nstre
-                    for jstre = 1:obj.physicalProblem.element.nstre
+            gradient_compliance = zeros(obj.physProb.geometry.interpolation.nelem,obj.physProb.element.quadrature.ngaus);
+            for igaus = 1:obj.physProb.element.quadrature.ngaus
+                for istre = 1:obj.physProb.element.nstre
+                    for jstre = 1:obj.physProb.element.nstre
                         gradient_compliance(:,igaus) = gradient_compliance(:,igaus) + obj.updateGradient(igaus,istre,jstre);
                     end
                 end
             end
             
             gradient_compliance = obj.filter.getP1fromP0(gradient_compliance);
-            gradient_compliance = obj.filter.Msmooth*gradient_compliance;
+            gradient_compliance = obj.Msmooth*gradient_compliance;
             
             if isempty(obj.h_C_0)
                 obj.h_C_0 = compliance;
@@ -53,11 +58,11 @@ classdef ShFunc_Compliance < Shape_Functional
         end
         
         function compliance = computeCompliance(obj)
-            compliance = obj.physicalProblem.variables.d_u'*obj.physicalProblem.variables.fext;
+            compliance = obj.physProb.variables.d_u'*obj.physProb.variables.fext;
         end
         
         function gradient_compliance = updateGradient(obj,igaus,istre,jstre)
-            gradient_compliance = (squeeze(-obj.physicalProblem.variables.strain(igaus,istre,:)).*squeeze(obj.matProps.dC(istre,jstre,:)).*squeeze(obj.physicalProblem.variables.strain(igaus,jstre,:)));
+            gradient_compliance = (squeeze(-obj.physProb.variables.strain(igaus,istre,:)).*squeeze(obj.matProps.dC(istre,jstre,:)).*squeeze(obj.physProb.variables.strain(igaus,jstre,:)));
         end
     end
 end

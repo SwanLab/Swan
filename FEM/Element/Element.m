@@ -15,7 +15,7 @@ classdef Element < handle
     end
 
     methods (Static)        
-        function obj=Element(geometry,material,dof)
+        function obj = Element(geometry,material,dof)
             obj.nelem = geometry(1).interpolation.nelem;
             obj.nfields = geometry.nfields;
             for ifield=1:obj.nfields
@@ -30,6 +30,21 @@ classdef Element < handle
     end
     
     methods
+        function [r,dr] = computeResidual(obj,x)
+            % !! Currently unused !!
+            % *************************************************************
+            % Compute
+            % - residual: r = LHS*x - RHS
+            % - residual derivative: dr = LHS
+            % *************************************************************
+            
+            RHS = obj.computeRHS;
+            LHS = obj.computeLHS*x;
+            
+            r = LHS*x - RHS;
+            dr = LHS;
+        end
+        
         function Fext = computeExternalForces(obj)
             FextSuperficial = obj.computeSuperficialFext;
             FextVolumetric  = obj.computeVolumetricFext;
@@ -100,12 +115,12 @@ classdef Element < handle
                 if ~isempty(obj.dof.dirichlet{ifield})
                     obj.uD{ifield} = obj.dof.dirichlet_values{ifield};
                 else
-                    obj.uD = [];
+                    obj.uD = {[]};
                 end
             end
         end
         
-        function R = compute_imposed_displacemet_force(obj,K)
+        function R = compute_imposed_displacement_force(obj,K)
             % Forces coming from imposed displacement
             [dirichlet,uD,~] = obj.compute_global_dirichlet_free_uD;
             if ~isempty(dirichlet)
