@@ -1,8 +1,6 @@
 classdef Filter_P1 < Filter
     properties
-        P_operator
-    end
-    
+    end    
     methods
         function obj = Filter_P1(problemID,scale)
             obj@Filter(problemID,scale);

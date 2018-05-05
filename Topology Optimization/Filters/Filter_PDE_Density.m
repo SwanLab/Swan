@@ -3,7 +3,7 @@ classdef Filter_PDE_Density < Filter_PDE
     end
     
     methods
-        function obj = Filter_Density_PDE(problemID,scale)
+        function obj = Filter_PDE_Density(problemID,scale)
             obj@Filter_PDE(problemID,scale);
         end
         

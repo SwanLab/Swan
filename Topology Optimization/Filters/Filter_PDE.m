@@ -12,7 +12,7 @@ classdef Filter_PDE < Filter
         
         function preProcess(obj)
             preProcess@Filter(obj);
-            obj.P_operator=obj.computePoperator(obj.Msmooth);
+            obj.P_operator=obj.computePoperator(obj.diffReacProb.element.M);
             obj.dvolu = sparse(1:obj.diffReacProb.geometry.interpolation.nelem,1:obj.diffReacProb.geometry.interpolation.nelem,...
                 sum(obj.diffReacProb.geometry.dvolu,2));
             obj.A_nodal_2_gauss = obj.computeA;

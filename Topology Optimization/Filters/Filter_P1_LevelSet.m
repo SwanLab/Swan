@@ -4,11 +4,14 @@ classdef Filter_P1_LevelSet < Filter_P1
         geometry        
         quadrature_del
     end
-    methods        
-        function preProcess(obj,physicalProblem)
-            preProcess@Filter_P1(obj,physicalProblem)
-            obj.quadrature = Quadrature.set(physicalProblem.element.geometry.type);
-            mesh=physicalProblem.mesh;
+    methods    
+        function obj = Filter_P1_LevelSet(problemID,scale)
+            obj@Filter_P1(problemID,scale);
+        end
+        function preProcess(obj)
+            preProcess@Filter_P1(obj)
+            obj.quadrature = Quadrature.set(obj.diffReacProb.geometry.type);
+            mesh=obj.diffReacProb.mesh;
             obj.geometry= Geometry(mesh,'LINEAR');
             obj.quadrature_del=Quadrature_Triangle;
         end

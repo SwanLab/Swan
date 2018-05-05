@@ -20,7 +20,7 @@ classdef ShFunc_Chomog < Shape_Functional
             diffReacProb = DiffReact_Problem(settings.filename);
             diffReacProb.preProcess;
             obj.Msmooth = diffReacProb.element.M;
-            obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method);
+            obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method,diffReacProb.mesh.pdim);
         end
     end
     methods (Access = protected)

@@ -6,10 +6,13 @@ classdef Filter_PDE_LevelSet < Filter_PDE
     end
     
     methods
-       function preProcess(obj,physicalProblem)
-            preProcess@Filter_PDE(obj,physicalProblem)
-            obj.quadrature = Quadrature.set(physicalProblem.element.geometry.type);
-            mesh=physicalProblem.mesh;
+        function obj = Filter_PDE_LevelSet(problemID,scale)
+            obj@Filter_PDE(problemID,scale);
+        end
+       function preProcess(obj)
+            preProcess@Filter_PDE(obj)
+            obj.quadrature = Quadrature.set(obj.diffReacProb.element.geometry.type);
+            mesh=obj.diffReacProb.mesh;
             obj.geometry= Geometry(mesh,'LINEAR');
             obj.quadrature_del=Quadrature_Triangle;
         end

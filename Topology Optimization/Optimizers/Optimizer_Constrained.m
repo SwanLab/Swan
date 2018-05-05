@@ -34,12 +34,14 @@ classdef Optimizer_Constrained < Optimizer
             obj.stop_criteria = 1;
         end
         function printFinal(obj,x)
-            if obj.printing==1
-                obj.print(x,obj.niter);
-            else
-                obj.printing=1;
-                obj.print(x,obj.niter);
-                obj.printing=0;
+            if obj.plotting==1
+                if obj.printing==1
+                    obj.print(x,obj.niter);
+                else
+                    obj.printing=1;
+                    obj.print(x,obj.niter);
+                    obj.printing=0;
+                end
             end
         end      
     end

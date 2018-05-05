@@ -11,6 +11,7 @@ classdef Filter < handle
         shape
         x
         x_reg
+        P_operator
     end
     
     methods
@@ -29,7 +30,7 @@ classdef Filter < handle
             obj.diffReacProb.element.interpolation_u.computeShapeDeriv(quadrature.posgp)
             obj.diffReacProb.geometry.computeGeometry(quadrature,obj.diffReacProb.element.interpolation_u);
             
-            for igauss = 1:size(obj.diffReacProb.geometry.dvolu,2)
+            for igauss = 1:quadrature.ngaus
                 obj.M0{igauss} = sparse(1:obj.diffReacProb.geometry.interpolation.nelem,1:obj.diffReacProb.geometry.interpolation.nelem,...
                     obj.diffReacProb.geometry.dvolu(:,igauss));
             end
@@ -85,14 +86,14 @@ classdef Filter < handle
                         case {'MMA','PROJECTED GRADIENT','IPOPT'}
                             obj = Filter_P1_Density(settings.filename,settings.ptype);
                         case 'SLERP'
-                            obj = Filter_P1_LevelSet;
+                            obj = Filter_P1_LevelSet(settings.filename,settings.ptype);
                     end
                 case 'PDE'
                     switch settings.optimizer
                         case {'MMA','PROJECTED GRADIENT','IPOPT'}
-                            obj = Filter_PDE_Density;
+                            obj = Filter_PDE_Density(settings.filename,settings.ptype);
                         case 'SLERP'
-                            obj = Filter_PDE_LevelSet;
+                            obj = Filter_PDE_LevelSet(settings.filename,settings.ptype);
                     end
             end
         end        

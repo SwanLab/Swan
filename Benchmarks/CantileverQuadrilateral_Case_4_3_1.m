@@ -3,10 +3,10 @@ ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'compliance';'perimeter'};
-weights = [1 0.1];
-constraint = {'volume'};
-optimizer = 'SLERP'; kappaMultiplier = 1;
+cost = {'compliance'};
+weights = [1];
+constraint = {'volume';'perimeter'};
+optimizer = 'IPOPT'; kappaMultiplier = 1;
 filterType = 'P1';
 
 nsteps = 5;
