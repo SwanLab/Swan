@@ -6,22 +6,17 @@ classdef Filter_P1 < Filter
             preProcess@Filter(obj,physicalProblem)
             obj.P_operator=obj.computePoperator(obj.Msmooth);
         end
-        
-        function P_operator=computePoperator(obj,Msmooth)
-            
-            dirichlet_data=zeros(obj.nnode,obj.nelem);
-            for inode=1:obj.nnode
-                dirichlet_data(inode,:)=obj.connectivities(:,inode);
+        function x_reg = getP1fromP0(obj,x)
+            gauss_sum=0;
+            for igauss=1:size(obj.M0,2)
+                if size(x,2)==1
+                    gauss_sum=gauss_sum+obj.M0{igauss}*x;
+                else
+                    gauss_sum=gauss_sum+obj.M0{igauss}*x(:,igauss);
+                end
             end
-            
-            T_nodal_2_gauss = sparse(obj.nelem,obj.npnod);
-            
-            for inode=1:obj.nnode
-                T_nodal_2_gauss = T_nodal_2_gauss + sparse(1:obj.nelem,dirichlet_data(inode,:),ones(obj.nelem,1),obj.nelem,obj.npnod);
-            end
-            
-            m = T_nodal_2_gauss*sum(Msmooth,2);
-            P_operator = diag(m)\T_nodal_2_gauss;
+            x_reg = obj.P_operator'*gauss_sum;
         end
+        
     end
 end

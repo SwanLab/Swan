@@ -11,12 +11,5 @@ classdef Filter_P1_Density < Filter_P1
                 obj.x_reg=x_gp;
             end
         end
-        function x_reg = getP1fromP0(obj,x)
-            gauss_sum=0;
-            for igauss=1:length(x(1,:))
-                gauss_sum=gauss_sum+obj.M0{igauss}*x(:,igauss);
-            end
-            x_reg = obj.P_operator'*gauss_sum;
-        end
     end
 end

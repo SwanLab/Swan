@@ -44,13 +44,28 @@ classdef Filter < handle
             for igaus = 1:obj.ngaus
                 for inode = 1:obj.nnode
                     fe(inode,:) = fn(dirichlet_data(inode,:));
-                    fg(igaus,:) = fg(igaus,:) + obj.shape(inode)*fe(inode,:);
-                    A_nodal_2_gauss = A_nodal_2_gauss + sparse(1:obj.nelem,dirichlet_data(inode,:),ones(obj.nelem,1)*obj.shape(inode),obj.nelem,obj.npnod);
+                    fg(igaus,:) = fg(igaus,:) + obj.shape(inode,igaus)*fe(inode,:);
+                    A_nodal_2_gauss = A_nodal_2_gauss + sparse(1:obj.nelem,dirichlet_data(inode,:),ones(obj.nelem,1)*obj.shape(inode,igaus),obj.nelem,obj.npnod);
                 end
             end
             
         end
-        
+        function P_operator=computePoperator(obj,Msmooth)
+            
+            dirichlet_data=zeros(obj.nnode,obj.nelem);
+            for inode=1:obj.nnode
+                dirichlet_data(inode,:)=obj.connectivities(:,inode);
+            end
+            
+            T_nodal_2_gauss = sparse(obj.nelem,obj.npnod);
+            
+            for inode=1:obj.nnode
+                T_nodal_2_gauss = T_nodal_2_gauss + sparse(1:obj.nelem,dirichlet_data(inode,:),ones(obj.nelem,1),obj.nelem,obj.npnod);
+            end
+            
+            m = T_nodal_2_gauss*sum(Msmooth,2);
+            P_operator = diag(m)\T_nodal_2_gauss;
+        end
     end
     methods (Static)
         function obj = create(type, optimizer)
@@ -60,14 +75,14 @@ classdef Filter < handle
                         case {'MMA','PROJECTED GRADIENT','IPOPT'}
                             obj = Filter_P1_Density;
                         case 'SLERP'
-                            obj = Filter_P1_SLERP;
+                            obj = Filter_P1_LevelSet;
                     end
                 case 'PDE'
                     switch optimizer
                         case {'MMA','PROJECTED GRADIENT','IPOPT'}
-                            obj = Filter_Density_PDE;
+                            obj = Filter_PDE_Density;
                         case 'SLERP'
-                            obj = Filter_SLERP_PDE;
+                            obj = Filter_PDE_LevelSet;
                     end
             end
             
@@ -80,7 +95,8 @@ classdef Filter < handle
             x1 = p(1,p1); y1 = p(2,p1); x2 = p(1,p2); y2 = p(2,p2); x3 = p(1,p3); y3 = p(2,p3);
             A = 0.5*abs((x2-x1).*(y3-y1)-(x3-x1).*(y2-y1));
             
-            beta = (psi<0); beta = pdeintrp(p,t,beta);
+            beta = (psi<0); 
+            beta = pdeintrp(p,t,beta);
             k = find(beta>0.5);
             F = F+accumarray(p1(k)',A(k)/3',[np,1],@sum,0);
             F = F+accumarray(p2(k)',A(k)/3',[np,1],@sum,0);

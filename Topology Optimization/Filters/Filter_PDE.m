@@ -9,6 +9,7 @@ classdef Filter_PDE < Filter
     methods
         function preProcess(obj,params)
             preProcess@Filter(obj,params);
+            obj.P_operator=obj.computePoperator(obj.Msmooth);
             obj.element = params.element;
             obj.element.dof = params.dof;
             %obj.dof = physicalProblem.dof;
@@ -33,7 +34,15 @@ classdef Filter_PDE < Filter
         end
         
         function rhs = integrate_P1_function_with_shape_function(obj,x)
-            rhs = (obj.A_nodal_2_gauss'*obj.M0{1}*x);
+            gauss_sum=0;
+            for igauss=1:size(obj.M0,2)
+                if size(x,2)==1
+                    gauss_sum=gauss_sum+obj.A_nodal_2_gauss'*obj.M0{igauss}*x;
+                else
+                    gauss_sum=gauss_sum+obj.A_nodal_2_gauss'*obj.M0{igauss}*x(:,igauss);
+                end
+            end       
+            rhs = gauss_sum;
         end
         
         % !! Can be done as a DiffReact_Problem !!

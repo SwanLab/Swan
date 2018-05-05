@@ -70,7 +70,7 @@ classdef TopOpt_Problem < handle
         function postProcess(obj)
             % Video creation
             if obj.settings.printing
-                gidPath = 'C:\Program Files\GiD\GiD 13.0.3';% 'C:\Program Files\GiD\GiD 13.0.2';
+                gidPath = 'C:\Program Files\GiD\GiD 13.0.2';% 'C:\Program Files\GiD\GiD 13.0.3';
                 files_name = obj.settings.case_file;
                 files_folder = fullfile(pwd,'Output',obj.settings.case_file);
                 iterations = 0:obj.optimizer.niter;
@@ -129,7 +129,7 @@ classdef TopOpt_Problem < handle
             %% !! INCLUDE THIS INSIDE CLASS PHYSICAL_PROBLEM OR PARENT/CHILD!!
             switch obj.settings.optimizer
                 case 'SLERP'
-                    obj.ini_design_value = -1.015243959022692;
+                    obj.ini_design_value = -2;
                     obj.hole_value = 0.507621979511346;
                 otherwise
                     obj.ini_design_value = 1;
@@ -212,6 +212,7 @@ classdef TopOpt_Problem < handle
             filter_params.npnod = topOpt_params.geometry.interpolation.npnod;
             filter_params.ngaus = quadrature.ngaus;
             filter_params.shape = topOpt_params.element.interpolation_u.shape;
+            filter_params.mesh = topOpt_params.mesh;
         end
     end
 end
