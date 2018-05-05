@@ -30,7 +30,17 @@ classdef Optimizer_Constrained < Optimizer
                 obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars,obj.stop_criteria && obj.niter < obj.maxiter);
                 x_ini = x;
             end
+            obj.printFinal(x);
             obj.stop_criteria = 1;
         end
+        function printFinal(obj,x)
+            if obj.printing==1
+                obj.print(x,obj.niter);
+            else
+                obj.printing=1;
+                obj.print(x,obj.niter);
+                obj.printing=0;
+            end
+        end      
     end
 end

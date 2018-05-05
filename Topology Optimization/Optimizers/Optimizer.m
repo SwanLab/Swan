@@ -65,15 +65,22 @@ classdef Optimizer < handle
                 height = mp(1,4);
                 size_screen_offset = round([0.7*width,0.52*height,-0.71*width,-0.611*height],0);
                 set(fh,'Position',mp(select_screen,:) + size_screen_offset);
-                obj.fhtri = trisurf(obj.mesh.connec,obj.mesh.coord(:,1),obj.mesh.coord(:,2),double(rho_nodal), ...
-                    'EdgeColor','none','LineStyle','none','FaceLighting','phong');
-                view([0,90]);
+%                 obj.fhtri = trisurf(obj.mesh.connec,obj.mesh.coord(:,1),obj.mesh.coord(:,2),obj.mesh.coord(:,3),double(rho_nodal), ...
+% %                     'EdgeColor','none','LineStyle','none','FaceLighting','phong');
+                obj.fhtri=patch('Faces',obj.mesh.connec,'Vertices',obj.mesh.coord,'FaceVertexCData',double(rho_nodal),'FaceColor','flat',...
+                   'EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);                
+                if strcmp(obj.mesh.pdim,'3D')
+                    obj.fhtri.FaceAlpha = 0.5;
+                    view(30,30);
+                end
                 colormap(flipud(gray));
                 set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
+                axis equal
                 drawnow;
             else
                 set(obj.fhtri,'FaceVertexCData',double(rho_nodal));
                 set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
+                axis equal
                 drawnow;
             end
         end

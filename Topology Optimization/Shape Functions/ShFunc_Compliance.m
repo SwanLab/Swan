@@ -12,7 +12,7 @@ classdef ShFunc_Compliance < Shape_Functional
             obj.physicalProblem = FEM.create(settings.filename);
             
             obj.physicalProblem.preProcess;
-            obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method);
+            obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method,obj.physicalProblem.mesh.pdim);
         end
         
         function computef(obj,x)
