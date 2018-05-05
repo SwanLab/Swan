@@ -30,7 +30,7 @@ classdef ShFunc_Volume < Shape_Functional
             
             %compute gradient
             gradient_volume = 1/(geometric_volume*obj.Vfrac);
-            gradient_volume = gradient_volume*ones(size(obj.filter.connectivities,1),1);
+            gradient_volume = gradient_volume*ones(size(obj.filter.connectivities,1),size(obj.dvolu,2));
             gradient_volume = obj.filter.getP1fromP0(gradient_volume);
             gradient_volume = mass*gradient_volume;
             
