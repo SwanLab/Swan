@@ -18,14 +18,22 @@ classdef Postprocess_TopOpt < Postprocess_PhysicalProblem
             %obj.Print_density_reg(results.design_variable_reg)
         end
         function  print(obj,mesh,results)
-            if results.iter==0
+            %if results.iter==0
             path = pwd;
             dir = fullfile(path,'Output',results.case_file);
-            mkdir(dir)
+            if 7~=exist(dir,'dir')
+                mkdir(dir)
             end
+%            mesh=obj.setNewMesh(mesh,results); 
+           % end
             obj.setBasicParams(mesh,results)
             obj.PrintMeshFile(results.iter)
             obj.PrintResFile(results)
+        end
+        function mesh=setNewMesh(obj,mesh,results)
+            null_nodes=find(results.design_variable<0.2);            
+            null_elements=any(ismember(mesh.connec,null_nodes)');
+            mesh.connec(null_elements,:)=[];
         end
     end
     methods (Access = protected)

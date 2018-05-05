@@ -6,7 +6,7 @@ fprintf('Running TopOpt tests...\n')
 
 %% Test Declaration -------------------------------------------------------
 tests_topopt = {'test_cantilever','test_gripping','test_micro'};
-%tests_topopt = {'test_micro'};
+%tests_topopt = {'test_gripping'};
 
 %% Run Top Opt Tests ------------------------------------------------------
 for i = 1:length(tests_topopt)
