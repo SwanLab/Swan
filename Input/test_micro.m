@@ -6,6 +6,7 @@ initial_case = 'circle';
 cost = {'chomog_fraction';'perimeter'};
 weights = [1 0.1];
 constraint = {'volume'};
+constraint_case = 'INEQUALITY';
 optimizer = 'MMA'; kappaMultiplier = 1;
 filterType = 'P1';
 

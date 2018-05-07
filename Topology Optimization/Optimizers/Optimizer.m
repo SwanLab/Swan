@@ -7,6 +7,7 @@ classdef Optimizer < handle
         stop_vars
         target_parameters = struct;
         nconstr
+        constraint_case
         ini_design_value = 1;
         hole_value = 0;
         postprocess
@@ -25,6 +26,7 @@ classdef Optimizer < handle
             obj.nconstr = settings.nconstr;
             obj.case_file=settings.case_file;
             obj.target_parameters = settings.target_parameters;
+            obj.constraint_case=settings.constraint_case;
             obj.postprocess = Postprocess_TopOpt.Create(settings.optimizer);
         end
         
@@ -81,7 +83,20 @@ classdef Optimizer < handle
         % x = updateX(obj,x_ini,cost,constraint); %% !! IPOPT doesn't use it (black box) !!
     end
     
-    methods (Access = protected)
+    methods (Access = protected)        
+        function cons = setConstraint_case(obj,constraint)
+            cons = constraint;
+            switch obj.constraint_case    
+                case 'EQUALITY'
+                case 'INEQUALITY'
+                    contr_inactive_value = -obj.objfunc.lambda(:)./obj.objfunc.penalty(:);
+                    inactive_constr = contr_inactive_value' > constraint.value;
+                    cons.value(inactive_constr) = contr_inactive_value(inactive_constr);                    
+                    cons.gradient(:,inactive_constr) = 0;                    
+                otherwise
+                    error('Constraint case not valid.');
+            end
+        end
         function print(obj,design_variable,iter)
             if ~(obj.printing)
                 return

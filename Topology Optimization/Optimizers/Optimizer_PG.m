@@ -25,6 +25,7 @@ classdef Optimizer_PG < Optimizer_Unconstrained
                 x = obj.updateRho(x_ini,obj.objfunc.gradient);
                 cost.computef(x);
                 constraint.computef(x);
+                constraint =obj.setConstraint_case(constraint);
                 
                 obj.objfunc.computeFunction(cost,constraint)
 %                 cost_ls = cost.value + obj.lambda*constraint.value + 0.5*obj.penalty*(constraint.value.*constraint.value);

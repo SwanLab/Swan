@@ -22,60 +22,60 @@ classdef Optimizer_MMA < Optimizer_Constrained
         df0dx
         fval
         dfdx
-    end 
+    end
     methods
         function obj = Optimizer_MMA(settings,mesh)
-            obj@Optimizer_Constrained(settings,mesh,settings.monitoring);           
+            obj@Optimizer_Constrained(settings,mesh,settings.monitoring);
             obj.maxoutit = 1e4;
         end
         function kkttol = get.kkttol(obj)
             kkttol = obj.target_parameters.optimality_tol;
-        end          
-        function x = updateX(obj,x,cost,constraint)      
-                obj.checkInitial(x,cost,constraint);
-                obj.outit = obj.outit+1;
-                obj.outeriter = obj.outeriter+1;
-                %%%% The MMA subproblem is solved at the point xval:
-                [xmma,ymma,zmma,lam,xsi,eta,mu,zet,s,obj.low,obj.upp] = ...
-                    obj.mmasub(obj.m,obj.n,obj.outeriter,x,obj.xmin,obj.xmax,obj.xold1,obj.xold2, ...
-                    obj.f0val,obj.df0dx,obj.fval,obj.dfdx,obj.low,obj.upp,obj.a0,obj.a,obj.c,obj.d);
-                %%%% Some vectors are updated:
-                obj.xold2 = obj.xold1;
-                obj.xold1 = x;
-                x = xmma;
-                %%%% The user should now calculate function values and gradients
-                %%%% of the objective- and constraint functions at xval.
-                %%%% The results should be put in f0val, df0dx, fval and dfdx.
-                cost.computef(x);
-                constraint.computef(x);
-
-                [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma(cost,constraint);
-                %%%% The residual vector of the KKT conditions is calculated:
-                [~,obj.kktnorm] = obj.kktcheck(obj.m,obj.n,xmma,ymma,zmma,lam,xsi,eta,mu,zet,s, ...
-                    obj.xmin,obj.xmax,obj.df0dx,obj.fval,obj.dfdx,obj.a0,obj.a,obj.c,obj.d);
-   
-                obj.stop_criteria = obj.kktnorm > obj.kkttol && obj.outit < obj.maxoutit;
-                
-                constraint.lambda = lam;
-                obj.stop_vars(1,1) = obj.kktnorm;   obj.stop_vars(1,2) = obj.kkttol;
-                obj.stop_vars(2,1) = obj.outit;     obj.stop_vars(2,2) = obj.maxoutit;
+        end
+        function x = updateX(obj,x,cost,constraint)
+            obj.checkInitial(x,cost,constraint);
+            obj.outit = obj.outit+1;
+            obj.outeriter = obj.outeriter+1;
+            %%%% The MMA subproblem is solved at the point xval:
+            [xmma,ymma,zmma,lam,xsi,eta,mu,zet,s,obj.low,obj.upp] = ...
+                obj.mmasub(obj.m,obj.n,obj.outeriter,x,obj.xmin,obj.xmax,obj.xold1,obj.xold2, ...
+                obj.f0val,obj.df0dx,obj.fval,obj.dfdx,obj.low,obj.upp,obj.a0,obj.a,obj.c,obj.d);
+            %%%% Some vectors are updated:
+            obj.xold2 = obj.xold1;
+            obj.xold1 = x;
+            x = xmma;
+            %%%% The user should now calculate function values and gradients
+            %%%% of the objective- and constraint functions at xval.
+            %%%% The results should be put in f0val, df0dx, fval and dfdx.
+            cost.computef(x);
+            constraint.computef(x);
+            
+            [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma(obj.constraint_case,cost,constraint);
+            %%%% The residual vector of the KKT conditions is calculated:
+            [~,obj.kktnorm] = obj.kktcheck(obj.m,obj.n,xmma,ymma,zmma,lam,xsi,eta,mu,zet,s, ...
+                obj.xmin,obj.xmax,obj.df0dx,obj.fval,obj.dfdx,obj.a0,obj.a,obj.c,obj.d);
+            
+            obj.stop_criteria = obj.kktnorm > obj.kkttol && obj.outit < obj.maxoutit;
+            
+            constraint.lambda = lam;
+            obj.stop_vars(1,1) = obj.kktnorm;   obj.stop_vars(1,2) = obj.kkttol;
+            obj.stop_vars(2,1) = obj.outit;     obj.stop_vars(2,2) = obj.maxoutit;
         end
         function checkInitial(obj,x_ini,cost,constraint)
             if isempty(obj.x)
-            obj.x = x_ini;
-            obj.xold1 = obj.x;
-            obj.xold2 = obj.xold1;
-            obj.xmin = zeros(length(x_ini),1);
-            obj.xmax = ones(length(x_ini),1);
-            obj.low = obj.xmin;
-            obj.upp = obj.xmax;           
-            [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma(cost, constraint);
-            obj.m = length(obj.fval);
-            obj.c =  1e3*ones(obj.m,1);
-            obj.d = 0*ones(obj.m,1);
-            obj.a0 = 1;
-            obj.a = 0*ones(obj.m,1);
-            obj.n = length(obj.x);
+                obj.x = x_ini;
+                obj.xold1 = obj.x;
+                obj.xold2 = obj.xold1;
+                obj.xmin = zeros(length(x_ini),1);
+                obj.xmax = ones(length(x_ini),1);
+                obj.low = obj.xmin;
+                obj.upp = obj.xmax;
+                [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma(obj.constraint_case,cost, constraint);
+                obj.m = length(obj.fval);
+                obj.c =  1e3*ones(obj.m,1);
+                obj.d = 0*ones(obj.m,1);
+                obj.a0 = 1;
+                obj.a = 0*ones(obj.m,1);
+                obj.n = length(obj.x);
             end
         end
         function [xmma,ymma,zmma,lam,xsi,eta,mu,zet,s,low,upp] = ...
@@ -169,18 +169,18 @@ classdef Optimizer_MMA < Optimizer_Constrained
         end
     end
     methods (Static)
-        function [f,df,c,dc] = funmma(cost,constraint)
+        function [f,df,c,dc] = funmma(CC,cost,constraint)
             f = cost.value;
             df = cost.gradient;
             c = constraint.value;
             dc = constraint.gradient;
             dc = dc';
             
-            %% Check constraint case
-            %             if strcmp(constraint_type,'equality')
-            %                 c = [c;-c];
-            %                 dc = [dc;-dc];
-            %             end
+            %Check constraint case
+            if strcmp(CC,'EQUALITY')
+                c = [c;-c];
+                dc = [dc;-dc];
+            end
             
             %% Re-scale constraints
             % In many applications, the constraints are on the form yi(x) < =  ymaxi

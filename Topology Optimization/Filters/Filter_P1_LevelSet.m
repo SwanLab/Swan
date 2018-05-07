@@ -48,12 +48,12 @@ classdef Filter_P1_LevelSet < Filter_P1
                 shape_all(full_elem,:)=shape_all(full_elem,:)+obj.geometry.interpolation.shape(:,igauss)'.*obj.geometry.dvolu(full_elem,igauss);
             end
         end
-        function P=findCrossPoints(x,cut_elem)
-            gamma_1=x(obj.connectivities(cut_elem(ielem),:));
-            gamma_2=x(obj.connectivities(cut_elem(ielem),2:end));
+        function P=findCrossPoints(obj,x,cut_elem)
+            gamma_1=x(obj.connectivities(cut_elem,:));
+            gamma_2=x(obj.connectivities(cut_elem,2:end));
             P1=obj.geometry.interpolation.pos_nodes;
             P2=obj.geometry.interpolation.pos_nodes(2:end,:);
-            gamma_2=[gamma_2;x(obj.connectivities(cut_elem(ielem),1))];
+            gamma_2=[gamma_2;x(obj.connectivities(cut_elem,1))];
             P2=[P2;obj.geometry.interpolation.pos_nodes(1,:)];
             P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
             unactive_node = sign(gamma_1) == sign(gamma_2);

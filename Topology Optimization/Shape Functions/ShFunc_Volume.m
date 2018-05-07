@@ -23,8 +23,7 @@ classdef ShFunc_Volume < Shape_Functional
             rho = obj.filter.getP0fromP1(x);
             
             %compute volume
-            geometric_volume = sum(mass(:));
-           
+            geometric_volume = sum(mass(:));           
             volume = sum(sum(obj.dvolu,2)'*rho);
             volume = volume/(geometric_volume*obj.Vfrac) - 1;
             

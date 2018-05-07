@@ -1,17 +1,18 @@
-filename='GrippingNew';
-ptype = 'MACRO';
+filename='RVE_Square_Triangle';
+ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'full';
-cost = {'nonadjoint_compliance'};
-weights = [1, 0.1];
+initial_case = 'circle';
+cost={'chomog_alphabeta','perimeter'};
+weights=[1 0.1];
 constraint = {'volume'};
-constraint_case = 'INEQUALITY';
+constraint_case = 'EQUALITY';
 optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 
 nsteps = 1;
-Vfrac_final = 1;
+Vfrac_final = 0.5;
+Perimeter_target=1;
 optimality_final =1e-3;
 constr_final =1e-3;
 
@@ -25,3 +26,9 @@ TOL.E_plus = 1;
 TOL.E_minus = 1e-3;
 TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
+
+%Micro
+epsilon_isotropy_initial=1e-1;
+epsilon_isotropy_final = 1e-3;
+micro.alpha =[1 1 0]';
+micro.beta =[1 1 0]';
