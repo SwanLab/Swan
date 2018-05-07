@@ -1,18 +1,17 @@
-filename='CantileverBeam_Triangle_Linear_Fine';
+filename='GrippingNew';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'compliance';'perimeter'};
-weights = [1 0.1];
+cost = {'nonadjoint_compliance'};
+weights = [1, 0.1];
 constraint = {'volume'};
 constraint_case = 'INEQUALITY';
-optimizer = 'PROJECTED GRADIENT'; kappaMultiplier = 1;
+optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 
-nsteps = 5;
-Vfrac_final = 0.4;
-Perimeter_target=3.5;
+nsteps = 1;
+Vfrac_final = 1;
 optimality_final =1e-3;
 constr_final =1e-3;
 

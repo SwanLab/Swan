@@ -26,7 +26,7 @@ classdef Optimizer_Unconstrained < Optimizer
         function N_L2 = norm_L2(obj,x,x_ini)
             inc_x = x-x_ini;
             N_L2 = obj.scalar_product.computeSP_M(inc_x,inc_x)/obj.scalar_product.computeSP_M(x_ini,x_ini);
-        end
+        end        
     end
 end
 

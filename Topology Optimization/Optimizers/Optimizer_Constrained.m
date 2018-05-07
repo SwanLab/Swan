@@ -3,7 +3,7 @@ classdef Optimizer_Constrained < Optimizer
         fhtri
         niter = 0
         optimizer
-        maxiter
+        maxiter        
     end
     
     methods
@@ -14,7 +14,7 @@ classdef Optimizer_Constrained < Optimizer
             obj.printing = settings.printing;
             obj.monitoring = Monitoring(settings,monitoring);
             obj.optimizer = settings.optimizer;
-            obj.mesh = mesh;
+            obj.mesh = mesh;            
         end
         
         function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
@@ -33,4 +33,8 @@ classdef Optimizer_Constrained < Optimizer
             obj.stop_criteria = 1;
         end
     end
+    
+%     methods (Abstract)
+%         setContraintsCase(obj);
+%     end
 end

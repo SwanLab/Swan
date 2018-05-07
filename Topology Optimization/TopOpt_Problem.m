@@ -18,7 +18,7 @@ classdef TopOpt_Problem < handle
     methods (Access = public)
         function obj = TopOpt_Problem(settings)
             obj.settings = settings;
-            obj.mesh = Mesh(settings.filename);           
+            obj.mesh = Mesh(settings.filename);
             obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.mesh);
             switch obj.settings.optimizer
                 case 'SLERP'
@@ -48,6 +48,10 @@ classdef TopOpt_Problem < handle
                 obj.constraint.computef(obj.x);
                 obj.x = obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,istep,obj.settings.nsteps);
             end
+            %              disp(obj.cost.value);
+            %             disp(obj.constraint.value);
+            %              disp(obj.cost.ShapeFuncs{1}.physicalProblem.variables.Chomog);
+            %              disp(obj.cost.ShapeFuncs{1}.Ch_star);            
         end
         
         function postProcess(obj)
@@ -74,7 +78,7 @@ classdef TopOpt_Problem < handle
                 % output_video_name_stress = fullfile(pwd,'Stress_Video');
                 % My_VideoMaker.Make_video_stress(output_video_name_stress)
             end
-        end    
+        end
     end
 end
 

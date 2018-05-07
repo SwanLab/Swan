@@ -1,7 +1,5 @@
 classdef ShFunc_Chomog_EnforceCh< ShFunc_Chomog
     properties (Access = protected)
-        Ch_star
-        %selectiveC_Cstar
     end
     
     methods
@@ -12,7 +10,7 @@ classdef ShFunc_Chomog_EnforceCh< ShFunc_Chomog
     
     methods (Access = protected)
         function obj = passFilter(obj)
-            mass=obj.filter.Msmooth;
+            mass=obj.Msmooth;
             g = obj.gradient;
             obj.gradient = zeros(size(mass,1),size(g,2));
             for t=1:size(obj.gradient,2)
@@ -92,62 +90,6 @@ classdef ShFunc_Chomog_EnforceCh< ShFunc_Chomog
                     end
                 end
                 obj.gradient(:,i) = weights(i)*DtC;
-            end
-        end
-        
-        function compute_Ch_star(obj,TOL)
-            E_plus = TOL.E_plus;
-            E_minus = TOL.E_minus;
-            nu_plus = TOL.nu_plus;
-            nu_minus = TOL.nu_minus;
-            
-            C_Cstar_case = 'Vfrac03';
-            
-            switch C_Cstar_case
-                case 'negative_poisson'
-                    kappa_f = @(E,nu) E/2*(1-nu);
-                    mu_f = @(E,nu) E/2*(1-nu);
-                    
-                    k_plus = kappa_f(E_plus,nu_plus);
-                    mu_plus = mu_f(E_plus,nu_plus);
-                    
-                    k_minus = kappa_f(E_minus,nu_minus);
-                    mu_minus = mu_f(E_minus,nu_minus);
-                    
-                    
-                    nu = @(k,mu) (k-mu)/(k+mu);
-                    E = @(k,mu) (4*k*mu)/(k+mu);
-                    C = @(E,nu) (E/(1-nu*nu)*[1 nu 0; nu 1 0; 0 0 (1-nu)/2]);
-                    
-                    kappa_nu_min = k_minus;
-                    mu_nu_min = mu_plus;
-                    
-                    nu_min = nu(kappa_nu_min,mu_nu_min);
-                    E_nu_min = E(kappa_nu_min,mu_nu_min);
-                    C_nu_min = C(E_nu_min,nu_min);
-                    obj.Ch_star = C_nu_min;
-                    
-                case 'nu_0_6' %From Sigmund Thesis% rho = 0.38
-                    C = @(E,nu) (E/(1-nu*nu)*[1 nu 0; nu 1 0; 0 0 (1-nu)/2]);
-                    nu = -0.6;
-                    E = (1-nu*nu)*0.04;
-                    obj.Ch_star = C(E,nu);
-                    
-                case 'Seba' % Es=0.08; nus=-0.25                    
-                    obj.Ch_star = [0.0853    -0.0213       0;
-                        -0.0213    0.0853       0;
-                        0         0    0.0533];
-                    
-                case 'nu_0_8' %From Sigmund Thesis% rho = 0.25
-                    C = @(E,nu) (E/(1-nu*nu)*[1 nu 0; nu 1 0; 0 0 (1-nu)/2]);
-                    nu = -0.8;
-                    E = (1-nu*nu)*0.02;
-                    obj.Ch_star = C(E,nu);
-                    
-                case 'Vfrac03'
-                    obj.Ch_star = [0.0611    0.0407         0
-                                0.0407    0.0611         0
-                                    0         0    0.0204];
             end
         end
     end
