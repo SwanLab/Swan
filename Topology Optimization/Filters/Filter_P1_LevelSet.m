@@ -12,7 +12,7 @@ classdef Filter_P1_LevelSet < Filter_P1
             preProcess@Filter_P1(obj)
             obj.quadrature = Quadrature.set(obj.diffReacProb.geometry.type);
             mesh=obj.diffReacProb.mesh;
-            obj.geometry= Geometry(mesh,'LINEAR');
+            obj.geometry= Geometry(mesh,'LINEAR');         
             obj.quadrature_del=Quadrature_Triangle;
         end
         function x_gp = getP0fromP1(obj,x)
@@ -28,48 +28,59 @@ classdef Filter_P1_LevelSet < Filter_P1
                 obj.x_reg=x_gp;
             end
         end
-        function M2=computeDelaunay(obj,x)
-            coord=obj.coordinates;
-            connec=obj.connectivities;
+        function initGeometry(obj)
             obj.quadrature.computeQuadrature('LINEAR');
             obj.geometry.interpolation.computeShapeDeriv(obj.quadrature.posgp)
             obj.geometry.computeGeometry(obj.quadrature,obj.geometry.interpolation);
-         
-            phi_nodes=x(connec);
-            phi_case=sum((sign(phi_nodes)<0),2);
+        end
+        function [full_elem,cut_elem]=findCases(obj,x)
+            phi_nodes=x(obj.connectivities);
+            phi_case=sum((sign(phi_nodes)<0),2);     
             
-            shape_all=zeros(size(connec,1),size(connec,2));
-            full_elem = phi_case==size(connec,2);
+            full_elem = phi_case==size(obj.connectivities,2);
             null_elem = phi_case==0;
-            indexes = (1:size(connec,1))';
-            delaunay_elem = indexes(~(full_elem+null_elem));
-            
-            %shape_all(full_elem,:)=geometry.dvolu(full_elem,:);
+            indexes = (1:size(obj.connectivities,1))';
+            cut_elem = indexes(~(full_elem+null_elem));
+        end
+        function shape_all=integrateFull(obj,full_elem)
+            shape_all=zeros(size(obj.connectivities,1),size(obj.connectivities,2));
             for igauss=1:size(obj.geometry.interpolation.shape,2)
                 shape_all(full_elem,:)=shape_all(full_elem,:)+obj.geometry.interpolation.shape(:,igauss)'.*obj.geometry.dvolu(full_elem,igauss);
             end
-            if ~isempty(delaunay_elem)
-                for ielem=1:length(delaunay_elem)
-                    %interpolacion y puntos de corte
-                    gamma_1=x(connec(delaunay_elem(ielem),:));
-                    gamma_2=x(connec(delaunay_elem(ielem),2:end));
-                    P1=obj.geometry.interpolation.pos_nodes;
-                    P2=obj.geometry.interpolation.pos_nodes(2:end,:);
-                    gamma_2=[gamma_2;x(connec(delaunay_elem(ielem),1))];
-                    P2=[P2;obj.geometry.interpolation.pos_nodes(1,:)];
-                    P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
-                    unactive_node = sign(gamma_1) == sign(gamma_2);
-                    P(unactive_node,:)=[];
+        end
+        function P=findCrossPoints(x,cut_elem)
+            gamma_1=x(obj.connectivities(cut_elem(ielem),:));
+            gamma_2=x(obj.connectivities(cut_elem(ielem),2:end));
+            P1=obj.geometry.interpolation.pos_nodes;
+            P2=obj.geometry.interpolation.pos_nodes(2:end,:);
+            gamma_2=[gamma_2;x(obj.connectivities(cut_elem(ielem),1))];
+            P2=[P2;obj.geometry.interpolation.pos_nodes(1,:)];
+            P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
+            unactive_node = sign(gamma_1) == sign(gamma_2);
+            P(unactive_node,:)=[];
+        end
+        function M2=computeDelaunay(obj,x)
+            obj.initGeometry
+            [full_elem,cut_elem]=obj.findCases(x);
+            shape_all=obj.integrateFull(full_elem);
+           
+            
+            %shape_all(full_elem,:)=geometry.dvolu(full_elem,:);
+            
+            if ~isempty(cut_elem)
+                for ielem=1:length(cut_elem)
+                    %puntos de corte
+                    P=obj.findCrossPoints(x,cut_elem(ielem));
                     %calculo nuevos coord y connec
                     delaunay_coord = [obj.geometry.interpolation.pos_nodes;P];
-                    delaunay_x=[x(connec(delaunay_elem(ielem),:));zeros(size(P,1),1)];
+                    delaunay_x=[x(obj.connectivities(cut_elem(ielem),:));zeros(size(P,1),1)];
                     delaunay_connec=delaunay(delaunay_coord(:,1),delaunay_coord(:,2));
                     notcompute = delaunay_x(:,:)>0;
                     isnegative=~any((notcompute(delaunay_connec))');
                     
                     obj.geometry.interpolation.computeShapeDeriv(delaunay_coord')
                     
-                    mesh_del.coord=obj.geometry.interpolation.shape'*coord(connec(delaunay_elem(ielem),:)',:);
+                    mesh_del.coord=obj.geometry.interpolation.shape'*obj.coordinates(obj.connectivities(cut_elem(ielem),:)',:);
                     
                     mesh_del.connec=delaunay_connec;
                     mesh_del.geometryType='TRIANGLE';
@@ -85,13 +96,26 @@ classdef Filter_P1_LevelSet < Filter_P1
                         pos_gp_del_natural=interp_del.shape'*delaunay_coord(delaunay_connec(idelaunay,:)',:);
                         obj.geometry.interpolation.computeShapeDeriv(pos_gp_del_natural');
                         v=isnegative(idelaunay)*obj.geometry.interpolation.shape(:,1)'.*geometry_del.dvolu(idelaunay);
-                        shape_all(delaunay_elem(ielem),:)=shape_all(delaunay_elem(ielem),:)+v;
+                        shape_all(cut_elem(ielem),:)=shape_all(cut_elem(ielem),:)+v;
                     end
                     
+
+                end
+            end
+            
+            M2=zeros(obj.npnod,1);
+            for inode=1:obj.nnode
+                p = obj.connectivities(:,inode);
+                M2 = M2+accumarray(p,shape_all(:,inode),[obj.npnod,1],@sum,0);
+            end
+        end
+    end
+end
+
 %                                         figure(3)
 %                                         hold on
-%                                         x_global=coord(connec(delaunay_elem(ielem),:)',1);
-%                                         y_global=coord(connec(delaunay_elem(ielem),:)',2);
+%                                         x_global=coord(connec(cut_elem(ielem),:)',1);
+%                                         y_global=coord(connec(cut_elem(ielem),:)',2);
 %                                         for i=1:size(x_global,1)
 %                                             vec=[i;i+1];
 %                                             if i+1 > size(x_global,1)
@@ -114,17 +138,6 @@ classdef Filter_P1_LevelSet < Filter_P1
 %                                                 drawnow
 %                                             end
 %                                         end
-%                                         text(x_global,y_global,num2str(x(connec(delaunay_elem(ielem),:)')))
-%                                         %title(num2str(phi(delaunay_elem(ielem))))
+%                                         text(x_global,y_global,num2str(x(connec(cut_elem(ielem),:)')))
+%                                         %title(num2str(phi(cut_elem(ielem))))
 %                                         close (3)
-                end
-            end
-            
-            M2=zeros(obj.npnod,1);
-            for inode=1:obj.nnode
-                p = connec(:,inode);
-                M2 = M2+accumarray(p,shape_all(:,inode),[obj.npnod,1],@sum,0);
-            end
-        end
-    end
-end
