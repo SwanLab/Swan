@@ -1,14 +1,16 @@
 classdef ShFunc_Chomog_EnforceCh< ShFunc_Chomog
     properties (Access = protected)
     end
+    
     methods
         function obj=ShFunc_Chomog_EnforceCh(settings)
             obj@ShFunc_Chomog(settings);
         end
     end
+    
     methods (Access = protected)
         function obj = passFilter(obj)
-            mass=obj.filter.Msmooth;
+            mass=obj.Msmooth;
             g = obj.gradient;
             obj.gradient = zeros(size(mass,1),size(g,2));
             for t=1:size(obj.gradient,2)
@@ -22,6 +24,7 @@ classdef ShFunc_Chomog_EnforceCh< ShFunc_Chomog
             %             gradient=gradient/abs(obj.h_C_0);
             %             obj.h_C_0 = costfunc;
         end
+        
         function computeCCstar(obj,x)
             %Cost
             Ch_star_div = obj.Ch_star;

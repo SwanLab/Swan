@@ -10,7 +10,7 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
         function obj = Optimizer_IPOPT(settings,mesh)
             obj@Optimizer_Constrained(settings,mesh,false);
             obj.m = settings.nconstr;
-            obj.max_iter = 5e3;
+            obj.max_iter = settings.maxiter;
         end
         function optimality_tolerance = get.optimality_tolerance(obj)
             optimality_tolerance = obj.target_parameters.optimality_tol;
@@ -19,7 +19,7 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             constraint_tolerance = obj.target_parameters.constr_tol*1e-1;
         end
         
-        function x = solveProblem(obj,x_ini,cost,constraint)
+        function x = solveProblem(obj,x_ini,cost,constraint,~,~)
             cost.computef(x_ini)
             funcs.objective = @(x) obj.objective(x,cost);
             funcs.gradient = @(x) obj.gradient(x,cost);
@@ -30,7 +30,7 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             plotx = @(x) obj.plotX(x);
             funcs.iterfunc = @(iter,fval,data) obj.outputfun_ipopt(iter,fval,data,plotx);
             
-            options.ipopt.print_level           = 0;
+            options.ipopt.print_level= 0;
             options.ipopt.hessian_approximation = 'limited-memory';
             options.ipopt.limited_memory_update_type = 'bfgs';
             options.ub = ones(length(x_ini),1);

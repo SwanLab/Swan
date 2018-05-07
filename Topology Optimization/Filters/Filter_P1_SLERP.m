@@ -1,7 +1,12 @@
 classdef Filter_P1_SLERP < Filter_P1
     properties
     end
-    methods 
+    
+    methods
+        function obj = Filter_P1_SLERP(problemID,scale)
+            obj@Filter_P1(problemID,scale);
+        end
+        
         function x_gp = getP0fromP1(obj,x)
             if norm(x) == norm(obj.x)
                 x_gp=obj.x_reg;
@@ -12,7 +17,7 @@ classdef Filter_P1_SLERP < Filter_P1
                 obj.x_reg=x_gp;
             end
         end
-
+        
         function x_reg = getP1fromP0(obj,x)
             x_reg = obj.P_operator'*obj.M0{1}*x;
         end

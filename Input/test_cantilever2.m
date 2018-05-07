@@ -1,16 +1,16 @@
-filename = 'Tests_Triangle_Linear';
+filename = 'Cantileverbeam_Quadrilateral_Bilinear';
 ptype = 'MACRO';
-method = 'SIMPALL';
+method = 'SIMP_P3';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'nonadjoint_compliance'};
+cost = {'compliance'};
 weights = [1];
-constraint = {'volume'}; kappaMultiplier = [];
-optimizer = 'SLERP';
+constraint = {'volume'; 'perimeter'};
+optimizer = 'IPOPT'; kappaMultiplier = 1;
 filterType = 'P1';
 
 nsteps = 1;
-Vfrac_final = 1;
+Vfrac_final = 0.6;
 optimality_final =1e-3;
 constr_final =1e-3;
 

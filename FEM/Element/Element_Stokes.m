@@ -13,6 +13,7 @@ classdef Element_Stokes < Element
         dof_v
         dof_p
     end
+    
     methods
         function obj=Element_Stokes(mesh,geometry,material,dof)
             obj@Element(geometry,material,dof);
@@ -36,7 +37,7 @@ classdef Element_Stokes < Element
             
             %             K = obj.AssembleMatrix(obj.K_elem,1,1);
             
-            R = obj.compute_imposed_displacemet_force(obj.LHS);
+            R = obj.compute_imposed_displacement_force(obj.LHS);
             Fext = Fext + R ;
             
             %             Kred = obj.full_matrix_2_reduced_matrix(K);

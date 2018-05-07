@@ -8,6 +8,8 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
     methods
         function obj = Optimizer_SLERP(settings,epsilon)
             obj@Optimizer_Unconstrained(settings,epsilon);
+            obj.ini_design_value = -1.015243959022692;
+            obj.hole_value = 0.507621979511346;
             obj.kappa = 1;
             obj.kappa_min = 1e-15;
             obj.max_constr_change = +Inf;
@@ -65,5 +67,4 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             obj.kappa = 1;
         end
     end
-    
 end

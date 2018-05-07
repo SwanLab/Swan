@@ -8,6 +8,9 @@ classdef Optimizer < handle
         target_parameters = struct;
         nconstr
         constraint_case
+        ini_design_value = 1;
+        hole_value = 0;
+        postprocess
     end
     
     properties (Access = ?Optimizer_Constrained)
@@ -24,8 +27,56 @@ classdef Optimizer < handle
             obj.case_file=settings.case_file;
             obj.target_parameters = settings.target_parameters;
             obj.constraint_case=settings.constraint_case;
+            obj.postprocess = Postprocess_TopOpt.Create(settings.optimizer);
         end
         
+        function x = compute_initial_design(obj,initial_case,optimizer)            
+            geometry = Geometry(obj.mesh,'LINEAR');
+            x = obj.ini_design_value*ones(geometry.interpolation.npnod,1);
+            switch initial_case
+                case 'circle'
+                    width = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
+                    height = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
+                    center_x = 0.5*(max(obj.mesh.coord(:,1)) + min(obj.mesh.coord(:,1)));
+                    center_y = 0.5*(max(obj.mesh.coord(:,2)) + min(obj.mesh.coord(:,2)));
+                    radius = 0.2*min([width,height]);
+                    initial_holes = (obj.mesh.coord(:,1)-center_x).^2 + (obj.mesh.coord(:,2)-center_y).^2 - radius^2 < 0;
+                    x(initial_holes) = obj.hole_value;
+                    
+                case 'horizontal'
+                    initial_holes = obj.mesh.coord(:,2) > 0.6 | obj.mesh.coord(:,2) < 0.4;
+                    x(initial_holes) = obj.hole_value;
+                    
+                case 'square'
+                    width = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
+                    height = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
+                    center_x = 0.5*(max(obj.mesh.coord(:,1)) + min(obj.mesh.coord(:,1)));
+                    center_y = 0.5*(max(obj.mesh.coord(:,2)) + min(obj.mesh.coord(:,2)));
+                    offset_x = 0.2*width;
+                    offset_y = 0.2*height;
+                    xrange = obj.mesh.coord(:,1) < (center_x+offset_x) & obj.mesh.coord(:,1) > (center_x-offset_x);
+                    yrange = obj.mesh.coord(:,2) < (center_y+offset_y) & obj.mesh.coord(:,2) > (center_y-offset_y);
+                    initial_holes = and(xrange,yrange);
+                    x(initial_holes) = obj.hole_value;
+                    
+                case 'feasible'
+                    initial_holes = false(size(obj.mesh.coord,1),1);
+                    x(initial_holes) = obj.hole_value;
+                    
+                case 'rand'
+                    initial_holes = rand(size(obj.mesh.coord,1),1) > 0.1;
+                    x(initial_holes) = obj.hole_value;
+                    
+                case 'full'
+                otherwise
+                    error('Invalid initial value of design variable.');
+            end
+            %% !! PROVISIONAL !!
+            if strcmp(optimizer,'SLERP')
+               sqrt_norma = obj.optimizer_unconstr.scalar_product.computeSP(x,x);
+               x = x/sqrt(sqrt_norma);
+            end
+        end
     end
     
     methods (Abstract)
@@ -50,13 +101,12 @@ classdef Optimizer < handle
             if ~(obj.printing)
                 return
             end
-            postprocess = Postprocess_TopOpt.Create(obj.optimizer);
             %results.physicalVars = obj.physicalProblem.variables;
             results.design_variable = design_variable;
-            results.iter=iter;
-            results.case_file=obj.case_file;
+            results.iter = iter;
+            results.case_file = obj.case_file;
             %results.design_variable_reg = design_variable_reg;
-            postprocess.print(obj.mesh,results);
+            obj.postprocess.print(obj.mesh,results);
         end
         
         function plotX(obj,x)

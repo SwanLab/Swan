@@ -17,7 +17,7 @@ classdef Optimizer_Constrained < Optimizer
             obj.mesh = mesh;            
         end
         
-        function x = solveProblem(obj,x_ini,cost,constraint)
+        function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
             cost.computef(x_ini);
             constraint.computef(x_ini);
             obj.plotX(x_ini)
@@ -27,7 +27,7 @@ classdef Optimizer_Constrained < Optimizer
                 x = obj.updateX(x_ini,cost,constraint);
                 obj.plotX(x)
                 obj.print(x,obj.niter);
-                obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars,obj.stop_criteria && obj.niter < obj.maxiter);
+                obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars,obj.stop_criteria && obj.niter < obj.maxiter,istep,nstep);
                 x_ini = x;
             end
             obj.stop_criteria = 1;

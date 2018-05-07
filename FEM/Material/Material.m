@@ -22,7 +22,7 @@ classdef Material
             nnode=geometry(1).interpolation.nnode;
             coord=mesh.coord;
             switch ptype
-                case 'ELASTIC'
+                case {'ELASTIC','DIFF-REACT'} % !! Check this out !!
                     % !! IT HAS BEEN ASSUMED THAT THERE'S ONLY ISOTROPIC MATERIALS.
                     %    THIS HAS TO BE CHANGED FOR THE OPT TOP PROBLEM !!
                     switch pdim
@@ -38,7 +38,7 @@ classdef Material
                             material = Material_Hyperelastic_2D(nelem,connec,cartd,nnode,coord);
                     end
                     
-                case {'THERMAL', 'DIFF-REACT'}
+                case 'THERMAL'
                     error('Still not implemented.')
                 case 'Stokes'
                     material = Material_Stokes(nelem);

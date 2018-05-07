@@ -26,11 +26,10 @@ classdef Thermal_Problem < FEM
         end
         
         function computeVariables(obj)
-            tol = 1e-6;
             for ifield = 1:obj.geometry(1).nfields
                 free_dof(ifield) = length(obj.dof.free{ifield});
             end
-            x = obj.solve_steady_problem(free_dof,tol);
+            x = obj.solve_steady_problem(free_dof);
             obj.variables = obj.element.computeVars(x);
         end
         

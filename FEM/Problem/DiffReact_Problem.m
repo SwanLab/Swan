@@ -18,26 +18,29 @@ classdef DiffReact_Problem < FEM
             obj.mesh = Mesh(problemID); % Mesh defined twice, but almost free
             obj.createGeometry(obj.mesh);
             obj.mesh.ptype = 'DIFF-REACT';
-            obj.dof = DOF_DiffReact(problemID,obj.geometry);
+            obj.dof = DOF_DiffReact(obj.geometry);
         end
         
         function preProcess(obj)
+            % !! Material required?? !!
             obj.element = Element_DiffReact(obj.mesh,obj.geometry,obj.material,obj.dof);
             obj.solver = Solver.create;
         end
         
-        function computeVariables(obj)
-            tol = 1e-6;
-            for ifield = 1:obj.geometry(1).nfields
-                free_dof(ifield) = length(obj.dof.free{ifield});
-            end
-            x = obj.solve_steady_problem(free_dof,tol);
-            obj.variables = obj.element.computeVars(x);
+        function computeVariables(obj,x)
+            x_red  = obj.element.full_vector_2_reduced_vector(x);
+            LHS = obj.element.computeLHS;
+            x_reg = obj.solver.solve(LHS,x_red);
+            obj.variables.x = obj.element.reduced_vector_2_full_vector(x_reg);
         end
         
         function postProcess(obj)
             % ToDo
             % Inspire in TopOpt
+        end
+        
+        function obj = setEpsilon(obj,epsilon)
+            obj.element.setEpsilon(epsilon);
         end
         
         % !! THIS SHOULD BE DEFINED BY THE USER !!
