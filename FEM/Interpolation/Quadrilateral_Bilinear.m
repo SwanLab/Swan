@@ -10,6 +10,7 @@ classdef Quadrilateral_Bilinear < Interpolation
             obj.ndime = 2;
             obj.nnode = 4;
             obj.pos_nodes = [-1 -1; 1 -1; 1 1; -1 1];
+            obj.dvolu = 4;
         end
         function computeShapeDeriv(obj,posgp)  
             obj.shape=[];
