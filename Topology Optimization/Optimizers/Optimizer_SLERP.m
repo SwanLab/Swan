@@ -11,7 +11,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             obj.ini_design_value = -1.015243959022692;
             obj.hole_value = 0.507621979511346;
             obj.kappa = 1;
-            obj.kappa_min = 1e-15;
+            obj.kappa_min = 1e-5;
             obj.max_constr_change = +Inf;
             obj.kfrac = 2;
             obj.nconstr = settings.nconstr;

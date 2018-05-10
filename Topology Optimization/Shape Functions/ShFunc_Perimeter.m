@@ -9,7 +9,7 @@ classdef ShFunc_Perimeter < Shape_Functional
         function obj = ShFunc_Perimeter(settings)
             if ~strcmp(settings.filter,'PDE')
                 settings.filter = 'PDE';
-                warning('Perimeter filter changed to PDE')
+                disp('Perimeter filter changed to PDE')
             end
             obj@Shape_Functional(settings);
             obj.Perimeter_target = settings.Perimeter_target;

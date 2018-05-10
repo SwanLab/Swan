@@ -104,6 +104,7 @@ classdef Element_DiffReact < Element
             %% PENDING TO BE REMOVED AS SOON AS PHYSPROBLEM FAMILIY IS IMPLEMENTED
             obj.quadrature.computeQuadrature('LINEAR');
             obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
+            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
             %% !!!!!!!!!!!!!!!!!!!!
             
             M = Me;

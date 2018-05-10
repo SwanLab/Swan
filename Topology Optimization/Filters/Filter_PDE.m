@@ -12,6 +12,7 @@ classdef Filter_PDE < Filter
         
         function preProcess(obj)
             preProcess@Filter(obj);
+            obj.P_operator=obj.computePoperator(obj.diffReacProb.element.M);
             obj.dvolu = sparse(1:obj.diffReacProb.geometry.interpolation.nelem,1:obj.diffReacProb.geometry.interpolation.nelem,...
                 sum(obj.diffReacProb.geometry.dvolu,2));
             obj.A_nodal_2_gauss = obj.computeA;
@@ -33,7 +34,11 @@ classdef Filter_PDE < Filter
         end
         
         function rhs = integrate_P1_function_with_shape_function(obj,x)
-            rhs = (obj.A_nodal_2_gauss'*obj.M0{1}*x);
+            gauss_sum=0;
+            for igauss=1:size(obj.M0,2)                
+                gauss_sum=gauss_sum+obj.A_nodal_2_gauss'*obj.M0{igauss}*x(:,igauss);                
+            end
+            rhs = gauss_sum;
         end
         
         function x_reg = solve_filter(obj,rhs_x)

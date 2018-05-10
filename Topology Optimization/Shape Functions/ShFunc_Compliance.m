@@ -16,18 +16,16 @@ classdef ShFunc_Compliance < Shape_Functional
             diffReacProb = DiffReact_Problem(settings.filename);
             diffReacProb.preProcess;
             obj.Msmooth = diffReacProb.element.M;
-            obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method);
+            obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method,obj.physProb.mesh.pdim);
             if settings.printing && settings.printing_physics
                 obj.physProb.syncPostProcess(postprocess_TopOpt);
             end
-        end
-        
+        end        
         function computef(obj,x)
             obj.rho = obj.filter.getP0fromP1(x);
             obj.matProps = obj.interpolation.computeMatProp(obj.rho);
             obj.computef_CORE;
-        end
-        
+        end        
         function computef_CORE(obj)
             % Compute compliance
             obj.physProb.setMatProps(obj.matProps);

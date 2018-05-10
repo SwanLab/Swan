@@ -10,8 +10,10 @@ classdef Triangle_Linear<Interpolation
             obj.ndime = 2;
             obj.nnode = 3;
             obj.pos_nodes = [0 0; 1 0; 0 1];
+            obj.dvolu = 0.5;
         end
         function computeShapeDeriv(obj,posgp)
+            obj.shape=[];
             for igaus=1:size(posgp,2)
                 s = posgp(1,igaus);
                 t = posgp(2,igaus);

@@ -2,7 +2,7 @@ classdef Settings
     properties %optmizer access
         plotting = true
         printing = true
-        printing_physics = true
+        printing_physics = false
         monitoring = true
         monitoring_interval = 10
         maxiter = 5000

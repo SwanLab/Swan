@@ -1,6 +1,6 @@
 classdef Mesh
     % Class containing the coordinates and connectivities of the mesh
-    properties (GetAccess = public,SetAccess = private)
+    properties (GetAccess = public,SetAccess = public)
         % !! More elegant if Physical_Problem & subclasses !!         
         coord
         connec

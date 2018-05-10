@@ -11,7 +11,7 @@ filterType = 'P1';
 
 nsteps = 5;
 Vfrac_final = 0.3;
-Perimeter_target=3.5;
+Perimeter_target=1;
 optimality_final =1e-3;
 constr_final =1e-3;
 

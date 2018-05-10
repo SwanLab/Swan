@@ -14,6 +14,7 @@ classdef Interpolation < handle
         pos_nodes
         shape
         deriv
+        dvolu
     end    
     methods
         function obj=Interpolation(mesh)

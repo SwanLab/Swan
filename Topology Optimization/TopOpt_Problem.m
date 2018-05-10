@@ -57,7 +57,7 @@ classdef TopOpt_Problem < handle
         function postProcess(obj)
             % Video creation
             if obj.settings.printing
-                gidPath = 'C:\Program Files\GiD\GiD 13.0.3';% 'C:\Program Files\GiD\GiD 13.0.2';
+                gidPath = 'C:\Program Files\GiD\GiD 13.0.2';% 'C:\Program Files\GiD\GiD 13.0.3';
                 files_name = obj.settings.case_file;
                 files_folder = fullfile(pwd,'Output',obj.settings.case_file);
                 iterations = 0:obj.optimizer.niter;
@@ -77,8 +77,8 @@ classdef TopOpt_Problem < handle
                 %
                 % output_video_name_stress = fullfile(pwd,'Stress_Video');
                 % My_VideoMaker.Make_video_stress(output_video_name_stress)
-            end
-        end
+            end            
+        end        
     end
 end
 

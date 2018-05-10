@@ -18,12 +18,14 @@ classdef Geometry<handle
         end
         
         function computeGeometry(obj,quadrature,interp_variable)
+            
             ndime=interp_variable.ndime;
             nnode=interp_variable.nnode;
             ngaus=quadrature.ngaus;
             nelem=interp_variable.nelem;
             gp_position = zeros(ndime,ngaus,nelem);
-            
+            obj.dvolu = zeros(nelem,ngaus);
+            obj.djacob = zeros(nelem,ngaus);
             obj.cartd=zeros(ndime,nnode,nelem,ngaus);
             for igauss=1:ngaus                
                 for inode = 1:nnode

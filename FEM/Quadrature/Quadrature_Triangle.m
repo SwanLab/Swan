@@ -3,6 +3,8 @@ classdef Quadrature_Triangle<Quadrature
     end
     methods
         function computeQuadrature(obj,order)
+            obj.posgp=[];
+            obj.weigp=[];
             switch order
                 case 'CONSTANT'
                     obj.ngaus = 1;
