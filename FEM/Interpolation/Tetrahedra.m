@@ -11,8 +11,14 @@ classdef Tetrahedra<Interpolation
             obj.order= 'LINEAR';
             obj.ndime = 3;
             obj.nnode = 4;
+            obj.pos_nodes=[0 0 0;
+                           1 0 0;
+                           0 1 0;
+                           0 0 1];
+            obj.dvolu=1/6;
         end
         function computeShapeDeriv(obj,posgp)
+            obj.shape=[];
             for igaus=1:size(posgp,2)
                 s = posgp(1,igaus);
                 t = posgp(2,igaus);

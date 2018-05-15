@@ -3,6 +3,8 @@ classdef Quadrature_Tetrahedra<Quadrature
     end
     methods
         function computeQuadrature(obj,order)
+            obj.posgp=[];
+            obj.weigp=[];
             switch order
                 case 'LINEAR'
                     obj.ngaus = 1;          % tetrahedra
