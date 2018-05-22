@@ -41,7 +41,7 @@ classdef Filter_P1_LevelSet < Filter_P1
                 % x_gp = obj.P_operator*M2;
                 obj.x=x;
                 
-                M2=obj.computeDelaunay(x);
+                M2=obj.computeRHS(x);
                 x_gp = obj.P_operator*M2;
                 obj.x_reg=x_gp;
             end
@@ -51,7 +51,7 @@ classdef Filter_P1_LevelSet < Filter_P1
             obj.geometry.interpolation.computeShapeDeriv(obj.quadrature.posgp)
             obj.geometry.computeGeometry(obj.quadrature,obj.geometry.interpolation);
         end
-        function [full_elem,cut_elem]=findCases(obj,x)
+        function [full_elem,cut_elem]=findCutElements(obj,x)
             phi_nodes=x(obj.connectivities);
             phi_case=sum((sign(phi_nodes)<0),2);
             
@@ -66,7 +66,7 @@ classdef Filter_P1_LevelSet < Filter_P1
                 shape=shape+obj.geometry.interpolation.shape(:,igauss)'.*obj.geometry.dvolu(:,igauss);
             end
         end
-        function [P,active_nodes]=findCrossPoints(obj,x,cut_elem)
+        function [P,active_nodes]=findCutPoints(obj,x,cut_elem)
             switch obj.diffReacProb.mesh.pdim
                 case '2D'
                     gamma_1=permute(x(obj.connectivities(cut_elem,:)),[2 3 1]);
@@ -74,7 +74,7 @@ classdef Filter_P1_LevelSet < Filter_P1
                     P1=repmat(obj.geometry.interpolation.pos_nodes,[1 1 size(cut_elem)]);
                     P2=repmat([obj.geometry.interpolation.pos_nodes(2:end,:);obj.geometry.interpolation.pos_nodes(1,:)],[1 1 size(cut_elem)]);
                     P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
-                    active_nodes = sign(gamma_1) ~= sign(gamma_2);
+                    active_nodes = sign(gamma_1.*gamma_2)<0;
                 case '3D'
                     iteration_1=[1 1 1 2 2 3];
                     iteration_2=[2 3 4 3 4 4];
@@ -83,7 +83,7 @@ classdef Filter_P1_LevelSet < Filter_P1
                     P1=repmat(obj.geometry.interpolation.pos_nodes(iteration_1,:),[1 1 size(cut_elem)]);
                     P2=repmat(obj.geometry.interpolation.pos_nodes(iteration_2,:),[1 1 size(cut_elem)]);
                     P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
-                    active_nodes = sign(gamma_1) ~= sign(gamma_2);
+                    active_nodes = sign(gamma_1.*gamma_2)<0;
             end
         end
         function A=computeDvoluCut(obj,elcrd)
@@ -111,20 +111,18 @@ classdef Filter_P1_LevelSet < Filter_P1
                 shape_all(:,idelaunay)=shape_all(:,idelaunay)+accumarray(global_connec,v(:,idelaunay),[obj.nelem,1],@sum,0);
             end
         end
-        function pos_gp_del_natural=computeDelGaussNatural(obj,elcrd)
-            switch obj.diffReacProb.mesh.pdim
-                case '2D'
-                    pos_gp_del_natural=[elcrd(:,:,1)*obj.interp_del.shape,elcrd(:,:,2)*obj.interp_del.shape];
-                case '3D'
-                    pos_gp_del_natural=[elcrd(:,:,1)*obj.interp_del.shape,elcrd(:,:,2)*obj.interp_del.shape,elcrd(:,:,3)*obj.interp_del.shape];     
+        function pos_gp_del_natural=computePosGpDelaunayNatural(obj,elcrd)
+            pos_gp_del_natural=zeros(size(elcrd,1),size(elcrd,3));
+            for idime=1:size(elcrd,3)
+                pos_gp_del_natural(:,idime)=elcrd(:,:,idime)*obj.interp_del.shape;
             end
-        end        
-        function M2=computeDelaunay(obj,x)            
-            [full_elem,cut_elem]=obj.findCases(x);
+        end
+        function shape_all=computeFullElements(obj,full_elem)
             shape_all=zeros(size(obj.connectivities,1),size(obj.connectivities,2));
             shape_all(full_elem,:)=obj.shape_full(full_elem,:);
-            if ~isempty(cut_elem)
-                [P,active_nodes]=obj.findCrossPoints(x,cut_elem);
+        end
+        function [elecoord,global_connec,phi_cut]=computeDelaunay(obj,x,cut_elem)
+                [P,active_nodes]=obj.findCutPoints(x,cut_elem);
                 elecoord=[];phi_cut=[];global_connec=[];
                 for ielem=1:length(cut_elem)
                     del_coord = [obj.geometry.interpolation.pos_nodes;P(active_nodes(:,:,ielem),:,ielem)];
@@ -137,16 +135,25 @@ classdef Filter_P1_LevelSet < Filter_P1
                     end
                     global_connec=[global_connec;repmat(cut_elem(ielem),[size(del_connec,1) 1])];
                 end
-                dvolu_cut=obj.computeDvoluCut(elecoord);
-                pos_gp_del_natural=obj.computeDelGaussNatural(elecoord);                
-                obj.geometry.interpolation.computeShapeDeriv(pos_gp_del_natural');                
-                shape_all=obj.integrateCut(phi_cut, global_connec, dvolu_cut, shape_all);
-            end
-            M2=zeros(obj.npnod,1);
+        end
+        function M2=rearrangeOutputRHS(obj,shape_all)
+              M2=zeros(obj.npnod,1);
             for inode=1:obj.nnode
                 p = obj.connectivities(:,inode);
                 M2 = M2+accumarray(p,shape_all(:,inode),[obj.npnod,1],@sum,0);
             end
+        end
+        function M2=computeRHS(obj,x)
+            [full_elem,cut_elem]=obj.findCutElements(x);
+            shape_all=obj.computeFullElements(full_elem);          
+            if ~isempty(cut_elem)                
+                [delaunaycoord,global_connec,phi_cut]=obj.computeDelaunay(x,cut_elem);
+                dvolu_cut=obj.computeDvoluCut(delaunaycoord);
+                pos_gp_del_natural=obj.computePosGpDelaunayNatural(delaunaycoord);                
+                obj.geometry.interpolation.computeShapeDeriv(pos_gp_del_natural');                
+                shape_all=obj.integrateCut(phi_cut, global_connec, dvolu_cut, shape_all);
+            end
+            M2=obj.rearrangeOutputRHS(shape_all);          
         end
     end
 end
