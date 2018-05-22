@@ -12,6 +12,10 @@ classdef Preprocess<handle
             addpath(fullfile('.','Input'))
             run(filename)
             data = struct;
+            if exist('gidcoord','var')
+                coord=gidcoord;
+                connec=gidlnods;                
+            end
             data.xpoints=coord;
             if length(data.xpoints(1,:))==3
                 data.xpoints(:,4)=0;
@@ -29,6 +33,9 @@ classdef Preprocess<handle
         
         function [fixnodes,forces,full_dirichlet_data,Master_slave] = getBC_mechanics(filename)
             run(filename)
+            if exist('lnodes','var')
+                dirichlet_data=lnodes;
+            end
             fixnodes{1,1} = dirichlet_data;
             forces = pointload_complete;
             

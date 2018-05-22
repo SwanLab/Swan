@@ -28,7 +28,7 @@ classdef  VideoMaker_TopOpt_levelSet < VideoMaker_TopOpt_density
             min_value = -1e-32;
             
             file_tcl_name_with_path = fullfile(obj.files_folder,file_tcl_name);
-            file_path_in = fullfile(pwd,'FEM','PostProcess','Make_Video_characteristic.tcl');
+            file_path_in = fullfile(pwd,'FEM','PostProcess','Make_Video_characteristic3D.tcl');
             filepath = obj.replace_special_character(file_path_in);
             
             fid = fopen(file_tcl_name_with_path,'w+');            
