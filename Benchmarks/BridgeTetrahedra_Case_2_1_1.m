@@ -1,4 +1,4 @@
-filename='Cantilever_tetrahedra_coarse';
+filename='Bridge_Tetrahedra';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -6,11 +6,11 @@ initial_case = 'full';
 cost = {'compliance'};
 weights = [1, 0.1];
 constraint = {'volume'};
-optimizer = 'SLERP'; kappaMultiplier = 1;
+optimizer = 'PROJECTED GRADIENT'; kappaMultiplier = 1;
 filterType = 'P1';
 
 nsteps = 1;
-Vfrac_final = 0.15;
+Vfrac_final = 0.2;
 optimality_final =1e-3;
 constr_final =1e-3;
 

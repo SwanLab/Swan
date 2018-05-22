@@ -1,4 +1,4 @@
-filename='Cantilever_tetrahedra_coarse';
+filename='Cantilever_tetrahedra';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -9,13 +9,13 @@ constraint = {'volume'};
 optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 
-nsteps = 1;
-Vfrac_final = 0.15;
+nsteps = 7;
+Vfrac_final = 0.1;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 1;
-optimality_initial = 1e-3;
+Vfrac_initial = 0.9;
+optimality_initial = 1e-2;
 constr_initial = 1e-3;
 
 TOL.rho_plus = 1;
