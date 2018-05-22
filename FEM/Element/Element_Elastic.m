@@ -12,7 +12,12 @@ classdef Element_Elastic < Element
         function obj = create(mesh,geometry,material,dof)
             switch mesh.scale
                 case 'MICRO'
-                    obj = Element_Elastic_2D_Micro(mesh,geometry,material,dof);
+                    switch mesh.pdim
+                        case '2D'
+                            obj = Element_Elastic_2D_Micro(mesh,geometry,material,dof);
+                        case '3D'
+                            obj = Element_Elastic_3D_Micro(mesh,geometry,material,dof);
+                    end
                 case 'MACRO'
                     switch mesh.pdim
                         case '2D'
