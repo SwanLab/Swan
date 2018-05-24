@@ -1,17 +1,17 @@
-filename='Micro_Tetrahedra_Test';
+filename='Micro_Tetrahedra';
 ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost={'chomog_alphabeta','perimeter'};
+cost={'chomog_alphabeta'};
 weights=[1 0.1];
 constraint = {'volume'};
 constraint_case = 'INEQUALITY';
-optimizer = 'SLERP'; kappaMultiplier = 1;
+optimizer = 'MMA'; kappaMultiplier = 1;
 filterType = 'P1';
 
 nsteps = 1;
-Vfrac_final = 0.2;
+Vfrac_final = 0.4;
 Perimeter_target=1;
 optimality_final =1e-3;
 constr_final =1e-3;

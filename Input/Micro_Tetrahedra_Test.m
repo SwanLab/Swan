@@ -181,19 +181,20 @@ Micro_gauss_post = [
 % Nodes that are Slaves
 % Nodes             Value (1-Slave,0-Master)
 Master_slave=[
-    13     2
-    13     16   
-    13    24
-    14     4
-    14     17
-    14    25
-    3    12
-    3    15
-    3    26
-    6 20
-    7 18
-    19 5
+   5    19
+    20     6
+    18     7
+    26    15
+    26     3
+    26    12
+    17     4
+    17    14
+    17    25
+    16     2
+    16    13
+    16    24
 ];
+
 
 %% Nodes solid
 % Nodes that must remain 
