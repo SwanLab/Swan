@@ -63,11 +63,9 @@ classdef Element_Elastic < Element
         end
         
         function [K] = computeStiffnessMatrix(obj)
-            tic
-            K = obj.compute_elem_StiffnessMatrix;
-            [K] = obj.AssembleMatrix(K,1,1);
-            %[K] = obj.computeStiffnessMatrixSYM;
-            toc
+           % K = obj.compute_elem_StiffnessMatrix;
+           % [K] = obj.AssembleMatrix(K,1,1);
+            [K] = obj.computeStiffnessMatrixSYM;            
         end
         
         function [idx1,idx2,nunkn1,nunkn2,nnode1,nnode2,col,row] = get_assemble_parameters(obj,~,~)

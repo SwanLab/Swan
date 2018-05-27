@@ -3,8 +3,7 @@ classdef Quadrature_Quadrilateral<Quadrature
     end
     methods
         function computeQuadrature(obj,order)
-            obj.posgp=[];
-            obj.weigp=[];
+            computeQuadrature@Quadrature(obj,order);
             switch order
                 case 'CONSTANT'
                     obj.ngaus=1;

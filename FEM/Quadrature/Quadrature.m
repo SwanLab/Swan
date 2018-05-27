@@ -6,9 +6,14 @@ classdef Quadrature < handle
         posgp
         weigp
         ngaus
-    end    
-    methods (Abstract)
-       computeQuadrature(order)
+        order
+    end
+    methods
+        function computeQuadrature(obj,order)
+            obj.posgp=[];
+            obj.weigp=[];
+            obj.order=order;
+        end
     end
     methods (Static)        
         function quadrature=set(type)

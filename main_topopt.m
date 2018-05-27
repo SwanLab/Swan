@@ -7,8 +7,8 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 clear variables;
 %% Settings
 %settings = Settings('CantileverTriangle_Case_2_2_1');
-%settings = Settings('CantileverQuadrilateral_Case_1_1_1');
-settings = Settings('CantileverTetrahedraFine_Case_1_2_1');
+settings = Settings('CantileverQuadrilateral_Case_1_1_1');
+%settings = Settings('CantileverTetrahedraFine_Case_1_2_1');
 %settings = Settings('CantileverTetrahedra_Case_1_1_1');
 
 %settings = Settings('Bulk1_3D');

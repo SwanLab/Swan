@@ -3,6 +3,7 @@ classdef Quadrature_Hexahedra<Quadrature
     end
     methods
         function computeQuadrature(obj,order)
+            computeQuadrature@Quadrature(obj,order);
             switch order
                 case 'LINEAR'
                     obj.ngaus = 8;
