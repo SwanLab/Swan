@@ -1,4 +1,4 @@
-filename='Gripping_triangle_fine';
+filename='Gripping_tetrahedra_coarse';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -11,7 +11,7 @@ optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 
 nsteps = 1;
-Vfrac_final = 1;
+Vfrac_final = 0.05;
 optimality_final =1e-3;
 constr_final =1e-3;
 

@@ -9,7 +9,7 @@ constraint = {'volume'};
 optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 
-nsteps = 1;
+nsteps = 7;
 Vfrac_final = 0.1;
 Perimeter_target=1;
 optimality_final =1e-3;

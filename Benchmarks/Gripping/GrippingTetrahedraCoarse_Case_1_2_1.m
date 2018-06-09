@@ -1,22 +1,23 @@
-filename='Gripping_triangle_fine';
+filename='Gripping_tetrahedra_coarse';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'nonadjoint_compliance'};
+cost = {'nonadjoint_compliance','perimeter'};
 weights = [1, 0.1];
 constraint = {'volume'};
 constraint_case = 'INEQUALITY';
 optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 
-nsteps = 1;
-Vfrac_final = 1;
+nsteps = 4;
+Vfrac_final = 0.05;
 optimality_final =1e-3;
 constr_final =1e-3;
 
 Vfrac_initial = 1;
-optimality_initial = 1e-3;
+Perimeter_target=1;
+optimality_initial = 1e-2;
 constr_initial = 1e-3;
 
 TOL.rho_plus = 1;

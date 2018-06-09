@@ -1,4 +1,4 @@
-filename='Gripping_triangle_fine';
+filename='Gripping_quad_coarse';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
