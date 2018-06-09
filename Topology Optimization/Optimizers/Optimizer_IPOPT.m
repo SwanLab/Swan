@@ -5,12 +5,16 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
         max_iter
         constraint_tolerance
         optimality_tolerance
+        cost_copy
+        constraint_copy
+        data        
     end
     methods
         function obj = Optimizer_IPOPT(settings,mesh)
-            obj@Optimizer_Constrained(settings,mesh,false);
+            obj@Optimizer_Constrained(settings,mesh,true);
             obj.m = settings.nconstr;
             obj.max_iter = settings.maxiter;
+            obj.niter=-1;
         end
         function optimality_tolerance = get.optimality_tolerance(obj)
             optimality_tolerance = obj.target_parameters.optimality_tol;
@@ -19,7 +23,7 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             constraint_tolerance = obj.target_parameters.constr_tol*1e-1;
         end
         
-        function x = solveProblem(obj,x_ini,cost,constraint,~,~)
+        function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
             cost.computef(x_ini)
             funcs.objective = @(x) obj.objective(x,cost);
             funcs.gradient = @(x) obj.gradient(x,cost);
@@ -28,7 +32,7 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             n = length(x_ini);
             funcs.jacobianstructure = @() sparse(ones(obj.m,n));
             plotx = @(x) obj.plotX(x);
-            funcs.iterfunc = @(iter,fval,data) obj.outputfun_ipopt(iter,fval,data,plotx);
+            funcs.iterfunc = @(iter,fval,data) obj.outputfun_ipopt(iter,data,plotx,istep,nstep);
             
             options.ipopt.print_level= 0;
             options.ipopt.hessian_approximation = 'limited-memory';
@@ -53,27 +57,36 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
         end
         
     end
-    methods (Static)
-        function f = objective(x,cost)
+    methods 
+        function f = objective(obj,x,cost)
             cost.computef(x)
+            obj.cost_copy=cost;
             f = cost.value;
         end
-        function f = constraint(x,constraint)
+        function f = constraint(obj,x,constraint)
             constraint.computef(x)
+            obj.constraint_copy=constraint;
             f = constraint.value;
         end
-        function g = gradient(x,cost)
-            cost.computef(x)
+        function g = gradient(obj,x,cost)
+            cost.computef(x)   
+            obj.cost_copy=cost;
             g = cost.gradient;
         end
-        function g = constraint_gradient(x,constraint)
-            constraint.computef(x)
+        function g = constraint_gradient(obj,x,constraint)
+            constraint.computef(x)    
+            obj.constraint_copy=constraint;
             g = constraint.gradient;
         end
-        function stop = outputfun_ipopt(iter,fval,data,plotx)
-            disp(strcat('Iter:',num2str(iter)));
+        function stop = outputfun_ipopt(obj,iter,data,plotx,istep,nstep)            
             stop = true;
-            plotx(data.x);
+            obj.data=data;
+            obj.niter=obj.niter+1;
+            obj.print(data.x,obj.niter);            
+            obj.constraint_copy.lambda=0;
+            obj.monitoring.display(obj.niter+1,obj.cost_copy,obj.constraint_copy,data.inf_du,obj.stop_criteria && obj.niter < obj.maxiter,istep,nstep);           
+            plotx(data.x);            
+            obj.writeToFile(istep,obj.cost_copy,obj.constraint_copy)
         end
     end
 end

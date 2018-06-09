@@ -37,11 +37,13 @@ classdef Filter_P1_LevelSet < Filter_P1
             if norm(x) == norm(obj.x)
                 x_gp=obj.x_reg;
             else
-                %M2=obj.faireF2(obj.coordinates',obj.connectivities',x);
-                % x_gp = obj.P_operator*M2;
-                obj.x=x;
+                switch obj.geometry.type
+                    case 'TRIANGLE'
+                        M2=obj.faireF2(obj.coordinates',obj.connectivities',x);
+                    otherwise
+                        M2=obj.computeRHS(x);
+                end
                 
-                M2=obj.computeRHS(x);
                 x_gp = obj.P_operator*M2;
                 obj.x_reg=x_gp;
             end
@@ -76,8 +78,10 @@ classdef Filter_P1_LevelSet < Filter_P1
                     P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
                     active_nodes = sign(gamma_1.*gamma_2)<0;
                 case '3D'
-                    iteration_1=[1 1 1 2 2 3];
-                    iteration_2=[2 3 4 3 4 4];
+                   % iteration_1=[1 1 1 2 2 3];
+                   % iteration_2=[2 3 4 3 4 4];
+                   iteration_1=obj.geometry.interpolation.iteration(1,:);
+                   iteration_2=obj.geometry.interpolation.iteration(2,:);
                     gamma_1=permute(x(obj.connectivities(cut_elem,iteration_1)),[2 3 1]);
                     gamma_2=permute(x(obj.connectivities(cut_elem,iteration_2)),[2 3 1]);
                     P1=repmat(obj.geometry.interpolation.pos_nodes(iteration_1,:),[1 1 size(cut_elem)]);

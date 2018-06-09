@@ -136,7 +136,7 @@ classdef Monitoring < handle
                 case 'MMA'
                     obj.stop_names = {'kktnorm';'outit'};
                 case 'IPOPT'
-                    obj.stop_names = {};
+                    obj.stop_names = {'inf_{du}'};
             end
             obj.nstop = length(obj.stop_names);
         end
