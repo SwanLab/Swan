@@ -1,4 +1,4 @@
-proc Make_Video_characteristic {arg1 arg2 arg3 arg4 arg5} {
+proc Make_Video_characteristic {arg1 arg2 arg3 arg4 arg5 arg6} {
     set postFileList $arg1
     set output_file_name $arg2
     set Field_2_print $arg3 
@@ -10,15 +10,15 @@ proc Make_Video_characteristic {arg1 arg2 arg3 arg4 arg5} {
     GiD_Process Mescape Files ReadMultiple -rebuildIndex:0 $postFileList
 
     GiD_Process 'Zoom Frame Mescape
-    GiD_Process Results ContOptions NumberOfColor 1  Mescape
-    GiD_Process Results ContOptions SetMaxOptions OutMaxColor Transparent Mescape
-    GiD_Process Results ContOptions SetMinOptions OutMinColor Material Mescape
+
     GiD_Process 'Render Smooth
     GiD_Process Results IsoSurfaces DisplayStyle Body Mescape 
     GiD_Process Results IsoSurfaces DisplayStyle Monochrome Mescape
     GiD_Process Results IsoSurfaces DisplayStyle ChangeMonoCol #666666 Mescape 
     GiD_Process Results IsoSurfaces ShowIsolines No Mescape
-
+    GiD_Process Results ContOptions NumberOfColor 1  Mescape
+    GiD_Process Results ContOptions SetMaxOptions OutMaxColor Transparent Mescape
+    GiD_Process Results ContOptions SetMinOptions OutMinColor Material Mescape
     GiD_Process 'AnimationFile Format GIF 
     GiD_Process 'AnimationFile FramesPerStep 5 Mescape 
     GiD_Process 'AnimationFile Start $arg2 Yes Mescape
@@ -40,6 +40,11 @@ proc Make_Video_characteristic {arg1 arg2 arg3 arg4 arg5} {
     }
 
     GiD_Process 'AnimationFile End
+    GiD_Process 'Hardcopy Options ShowLegends No Mescape
+    GiD_Process 'Hardcopy Options ShowAxes No Mescape
+    GiD_Process 'Hardcopy Options PrintLogo No Mescape
+    GiD_Process 'Rotate Angle 30 30 
+    GiD_Process 'Hardcopy PNG $arg6 Mescape
     GiD_Process Utilities Variables PostUpdateWindows Yes Mescape
     GiD_Process Results ContOptions SetMinOptions MinColor Standard Mescape
     GiD_Process Results ContOptions SetMaxOptions MaxColor Standard Mescape

@@ -26,7 +26,7 @@ classdef VideoMaker_TopOpt < VideoMaker_Physical_Problem
                            obj = VideoMaker_TopOpt_density();
                        case 'MMA'
                            obj = VideoMaker_TopOpt_density();
-                       case 'IPOPOT'
+                       case 'IPOPT'
                            obj = VideoMaker_TopOpt_density();
                    end
                case '3D'
@@ -37,7 +37,7 @@ classdef VideoMaker_TopOpt < VideoMaker_Physical_Problem
                            obj = VideoMaker_TopOpt_density3D();
                        case 'MMA'
                            obj = VideoMaker_TopOpt_density3D();
-                       case 'IPOPOT'
+                       case 'IPOPT'
                            obj = VideoMaker_TopOpt_density3D();
                     end
            end            

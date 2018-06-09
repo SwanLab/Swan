@@ -23,6 +23,7 @@ classdef  VideoMaker_TopOpt_levelSet3D < VideoMaker_TopOpt_levelSet
             file_list = obj.create_file_list(obj.iterations_to_print,obj.file_name,obj.files_folder);
             
             [output_video_name] = obj.replace_special_character(output_video_name_in);
+            [output_photo]=obj.replace_special_character(strcat(obj.files_folder,'\',obj.file_name,'.png'));
             [file_list] = obj.replace_special_character(file_list);            
             
             min_value = -1e-32;
@@ -39,10 +40,11 @@ classdef  VideoMaker_TopOpt_levelSet3D < VideoMaker_TopOpt_levelSet
             fprintf(fid,'%s\n',['set arg3 "',field2print,'"']);
             fprintf(fid,'%s\n',['set arg4 "',componentfield,'"']);
             fprintf(fid,'%s\n',['set arg5 "',num2str(min_value),'"']);
+            fprintf(fid,'%s\n',['set arg6 "',output_photo,'"']);
             
             
             fprintf(fid,'%s\n',['source "',filepath,'"']);
-            fprintf(fid,'%s\n',['Make_Video_characteristic $arg1 $arg2 $arg3 $arg4 $arg5']);
+            fprintf(fid,'%s\n',['Make_Video_characteristic $arg1 $arg2 $arg3 $arg4 $arg5 $arg6']);
             fprintf(fid,'%s\n',['GiD_Process Mescape Quit']);
             fclose(fid);
             obj.execute_tcl_files(obj.gidPath,file_tcl_name_with_path)
