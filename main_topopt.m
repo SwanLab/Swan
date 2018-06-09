@@ -3,7 +3,7 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 
 %% Test
 %run('test_fem.m');
-run('test_topopt.m');
+%run('test_topopt.m');
 clear variables;
 %% Settings
 %settings = Settings('CantileverTriangle_Case_3_2_1');
@@ -31,14 +31,14 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
 %     'GrippingTriangleFine_Case_3_1_1';
 %     'GrippingTriangleFine_Case_4_1_1';
 %     'GrippingQuadCoarse_Case_1_1_1';
-%     'GrippingQuadCoarse_Case_2_1_1';
+     'GrippingQuadCoarse_Case_2_1_1';
 %    'GrippingQuadCoarse_Case_1_1_1';
 %     'GrippingQuadCoarse_Case_4_1_1';
  %   'GrippingQuadFine_Case_1_1_1';
 %     'GrippingQuadFine_Case_2_1_1';
 %     'GrippingQuadFine_Case_3_1_1';
 %     'GrippingQuadFine_Case_4_1_1';
-    'GrippingTetrahedraCoarse_Case_1_1_1';
+%    'GrippingTetrahedraCoarse_Case_1_1_1';
 %     'GrippingTetrahedraCoarse_Case_2_1_1';
 %     'GrippingTetrahedraCoarse_Case_3_1_1';
 %     'GrippingTetrahedraCoarse_Case_4_1_1';

@@ -4,8 +4,8 @@ classdef Settings
         printing = true
         printing_physics = false
         monitoring = true
-        monitoring_interval = 50
-        maxiter = 200
+        monitoring_interval = 10
+        maxiter = 2000
         constraint_case = 'EQUALITY';
     end
     
