@@ -11,7 +11,7 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
     end
     methods
         function obj = Optimizer_IPOPT(settings,mesh)
-            obj@Optimizer_Constrained(settings,mesh,true);
+            obj@Optimizer_Constrained(settings,mesh,settings.monitoring);
             obj.m = settings.nconstr;
             obj.max_iter = settings.maxiter;
             obj.niter=-1;
@@ -83,7 +83,7 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             obj.data=data;
             obj.niter=obj.niter+1;
             obj.print(data.x,obj.niter);            
-            obj.constraint_copy.lambda=0;
+            obj.constraint_copy.lambda=zeros(obj.constraint_copy.nSF,1);
             obj.monitoring.display(obj.niter+1,obj.cost_copy,obj.constraint_copy,data.inf_du,obj.stop_criteria && obj.niter < obj.maxiter,istep,nstep);           
             plotx(data.x);            
             obj.writeToFile(istep,obj.cost_copy,obj.constraint_copy)
