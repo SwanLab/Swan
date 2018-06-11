@@ -17,13 +17,14 @@ classdef Postprocess_TopOpt < Postprocess
             if 7~=exist(dir,'dir')
                 mkdir(dir)
             end
-%            mesh=obj.setNewMesh(mesh,results); 
+         %   mesh=obj.setNewMesh(mesh,results); 
             obj.setBasicParams(mesh,results)
             obj.PrintMeshFile(results.iter)
             obj.PrintResFile(results)
         end
         function mesh=setNewMesh(obj,mesh,results)
-            null_nodes=find(results.design_variable<0.2);            
+           % null_nodes=find(results.design_variable<0.2);  
+            null_nodes=find(results.design_variable>0);  
             null_elements=any(ismember(mesh.connec,null_nodes)');
             mesh.connec(null_elements,:)=[];
         end

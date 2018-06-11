@@ -27,6 +27,7 @@ classdef Optimizer_Constrained < Optimizer
                 x = obj.updateX(x_ini,cost,constraint);
                 obj.plotX(x)
                 obj.print(x,obj.niter);
+                obj.writeToFile(istep,cost,constraint)
                 obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars,obj.stop_criteria && obj.niter < obj.maxiter,istep,nstep);
                 x_ini = x;
             end

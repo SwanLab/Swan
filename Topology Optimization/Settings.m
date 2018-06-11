@@ -5,8 +5,8 @@ classdef Settings
         printing_physics = false
         monitoring = true
         monitoring_interval = 10
-        maxiter = 5000
-        constraint_case = 'INEQUALITY';
+        maxiter = 2000
+        constraint_case = 'EQUALITY';
     end
     
     properties %target parameters
@@ -103,7 +103,7 @@ classdef Settings
                 obj.maxiter = maxiter;
             end
             
-            if ~contains(filename,'test','IgnoreCase',true)
+            if ~contains(case_file,'test','IgnoreCase',true)
                 fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: ',case_file,obj.optimizer)
                 fprintf('%s, ',obj.cost{:})
                 fprintf('\n -Constraint: ')
@@ -113,13 +113,13 @@ classdef Settings
             
             if exist('Vfrac_final','var')
                 obj.Vfrac_final = Vfrac_final;
-                if ~contains(filename,'test','IgnoreCase',true)
+                if ~contains(case_file,'test','IgnoreCase',true)
                     fprintf('-Volume target: %f \n ',obj.Vfrac_final)
                 end
             end
             if exist('Perimeter_target','var')
                 obj.Perimeter_target = Perimeter_target;
-                if ~contains(filename,'test','IgnoreCase',true)
+                if ~contains(case_file,'test','IgnoreCase',true)
                     fprintf('-Perimeter target: %f \n',obj.Perimeter_target)
                 end
             end

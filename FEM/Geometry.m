@@ -9,6 +9,7 @@ classdef Geometry<handle
         dvolu
         djacob
         interpolation
+        quadrature_order
         nfields=1;
     end
     methods %(Access = {?Physical_Problem,?Element_DiffReact}) % !! Element_DiffReact -> Chapusilla !!
@@ -16,9 +17,13 @@ classdef Geometry<handle
             obj.type = mesh.geometryType;
             obj.interpolation=Interpolation.create(mesh,order);
         end
-        
-        function computeGeometry(obj,quadrature,interp_variable)
-            
+        function computeGeometry(obj,quadrature,interp_variable)                
+            if ~strcmp(obj.quadrature_order,quadrature.order)
+                obj.compute(quadrature,interp_variable)
+                obj.quadrature_order=quadrature.order;
+            end
+        end        
+        function compute(obj,quadrature,interp_variable)
             ndime=interp_variable.ndime;
             nnode=interp_variable.nnode;
             ngaus=quadrature.ngaus;
@@ -63,6 +68,7 @@ classdef Geometry<handle
                 obj.djacob(:,igauss)= detJ;
             end
         end
+
     end
     
     methods (Static)

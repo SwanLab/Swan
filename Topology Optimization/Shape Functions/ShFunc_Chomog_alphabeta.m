@@ -19,7 +19,7 @@ classdef ShFunc_Chomog_alphabeta < ShFunc_Chomog
             gradient = obj.derivative_projection_Chomog(inv_matCh,obj.alpha,obj.beta);
             
             mass=obj.Msmooth;
-            gradient=obj.filter.getP1fromP0(gradient(:));
+            gradient=obj.filter.getP1fromP0(gradient');
             gradient = mass*gradient;
             if isempty(obj.h_C_0)
                 obj.h_C_0 = costfunc;
