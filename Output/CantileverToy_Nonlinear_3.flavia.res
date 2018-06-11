@@ -15,7 +15,21 @@ Result "Displacements" "Elastic Problem" 3 Vector OnNodes ""
 ComponentNames  "Ux", "Uy"
 Values
      1        00000        00000 
-     2  6.91942e-01  1.27813e-01 
+     2  4.35775e-02  6.43764e-03 
      3        00000        00000 
-     4  7.41064e-01 -1.62774e-01 
+     4  5.55414e-02 -1.76551e-02 
+End Values
+
+Result "Stress" "Elastic Problem" 3 Vector OnGaussPoints "Guass up?"
+ComponentNames  "Sx", "Sy", "Sxy", "Sz"
+Values
+     1  5.83575e-02  2.41949e-02  2.57875e-03  2.41653e-02 
+     2  6.31322e-02  2.48675e-03 -2.61193e-03  1.84104e-02 
+End Values
+
+Result "Strain" "Elastic Problem" 3 Vector OnGaussPoints "Guass up?"
+ComponentNames  "Ex", "Ey", "Exy", "Ez"
+Values
+     1  4.08668e-02        00000  3.08482e-03        00000 
+     2  5.12702e-02 -2.48437e-02 -3.27814e-03        00000 
 End Values

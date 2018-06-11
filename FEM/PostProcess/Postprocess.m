@@ -87,7 +87,7 @@ classdef Postprocess < handle
                 case 2
                     fprintf(obj.fid_res,'ComponentNames  "%sx", "%sy", "%sxy", "%sz"\n',indexName,indexName,indexName,indexName);
                 case 3
-                    fprintf(obj.fid_res,'ComponentNames "%sx", "%sy", "%sz", "%sxy", "%syz", "%sxz"\n',indexName,indexName,indexName,indexName);
+                    fprintf(obj.fid_res,'ComponentNames "%sx", "%sy", "%sz", "%sxy", "%syz", "%sxz"\n',indexName,indexName,indexName,indexName,indexName,indexName);
                 otherwise
                     error('Invalid value of parametre ndime.')
             end
@@ -208,11 +208,11 @@ classdef Postprocess < handle
             fclose(obj.fid_mesh);
         end
         
-        function PrintResFile(obj,results)
+        function PrintResFile(obj,results,iter)
             res_file = fullfile('Output',strcat(obj.file_name,'_',num2str(obj.istep),'.flavia.res'));
             obj.fid_res = fopen(res_file,'w');
             obj.Write_header_res_file()
-            obj.Print_results(results)
+            obj.Print_results(results,iter)
             fclose(obj.fid_res);
         end
         
@@ -230,7 +230,7 @@ classdef Postprocess < handle
         function  print(obj,physical_problem,file_name,iter,results)
             obj.setBasicParams(physical_problem,file_name,iter)
             obj.PrintMeshFile()
-            obj.PrintResFile(results)
+            obj.PrintResFile(results,iter)
         end
         
         

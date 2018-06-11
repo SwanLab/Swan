@@ -8,6 +8,9 @@ classdef Element_Hyperelastic < Element
         cartd
         dvolu
         stress
+        spks
+        fpks
+        strain
     end
     
     methods (Access = {?Physical_Problem, ?Element})
@@ -20,32 +23,34 @@ classdef Element_Hyperelastic < Element
             obj.dvolu = geometry.dvolu;
             
             % Nonlinear parameters
-            obj.nincr = 80;
+            obj.nincr = 10; %500
         end
         
-        function [r,dr,K,fint] = computeResidual(obj,uL,lambda_i)
+        function [r,dr,J] = computeResidual(obj,uL,lambda_i)
             % *************************************************************
             % Compute
-            % - residual: r = K(u)u - F
+            % - residual: r = T - F
             % - residual derivative: dr = Ktan
             % *************************************************************
             
-            % Only for Element_Hyperelastic
+            % Update
             obj.updateCoord(uL);
             obj.updateCartd();
             
             % Compute tangent matrix
-            K = obj.computeTangentMatrix();
+            [K,~,J] = obj.computeTangentMatrix();
             
             % Assemble
             K = obj.AssembleMatrix(K);
             
+            % External Forces
             R = obj.compute_imposed_displacemet_force(K);
             obj.fext = obj.Fext + R; % fext + reac
 
             % Compute internal forces
             [fint_red, fint] = obj.computeInternal();
 
+            % Compute Residual and Tangent Matrix
             r = fint_red - lambda_i*obj.fext(obj.dof.free);
             dr = K(obj.dof.free, obj.dof.free);
         end
@@ -74,10 +79,13 @@ classdef Element_Hyperelastic < Element
         end
         
         
-        function [K,sigma] = computeTangentMatrix(obj)
+        function [K,sigma,Fjacb] = computeTangentMatrix(obj)
                 % Compute ctens & sigma
-                [ctens,sigma] = obj.compute_Hyperelasticity(obj.coord);
+                [ctens,sigma,Fjacb,e,S,P] = obj.compute_Hyperelasticity(obj.coord);
                 obj.stress = sigma;
+                obj.spks = S;
+                obj.fpks = P;
+                obj.strain = e;
 
                 % Compute tangent components
                 kconst  = obj.computeConstitutive(ctens);
@@ -173,12 +181,12 @@ classdef Element_Hyperelastic < Element
         %% Hyperelasticity ************************************************
         
         % Compute Eulerian Elasticity and main tensors
-        function [ctens,sigma] = compute_Hyperelasticity(obj,coord)
+        function [ctens,sigma,Fjacb,e,S,P] = compute_Hyperelasticity(obj,coord)
             % Deformation Gradient tensor
             [F,Fjacb] = obj.compute_Deformation_Gradient(coord,obj.cartd0);
             
             % Right Cauchy Deformation tensor
-            Crcg = obj.compute_Right_Cauchy_Deformation(F);
+            [Crcg,E] = obj.compute_Right_Cauchy_Deformation(F);
             
             % Lagrangian Elasticity tensor
             Ctens = obj.compute_Lagrangian_Elasticity(Crcg,Fjacb);
@@ -187,7 +195,7 @@ classdef Element_Hyperelastic < Element
             S = obj.compute_Second_PK_Stress(Crcg,Fjacb);
             
             % Eulerian Elasticity & Cauchy Stress tensors
-            [ctens,sigma] = obj.pushForward(Ctens,S,F,Fjacb);
+            [ctens,sigma,e,P] = obj.pushForward(Ctens,S,F,Fjacb,E);
         end
         
         % Compute deformation gradient tensor
@@ -222,9 +230,11 @@ classdef Element_Hyperelastic < Element
         end
         
         % Compute Right-Cauchy Deformation Gradient
-        function Crcg = compute_Right_Cauchy_Deformation(obj,F)
+        function [Crcg,E] = compute_Right_Cauchy_Deformation(obj,F)
             Crcg = zeros(3,3,obj.nelem,obj.geometry.ngaus);
+            Imat = repmat(eye(3),[1 1 obj.nelem]);
             for igaus = 1:obj.geometry.ngaus
+               
                 for i = 1:3
                     for j = 1:3
                         for k = 1:3
@@ -232,20 +242,36 @@ classdef Element_Hyperelastic < Element
                         end
                     end
                 end
+                 E = 1/2*(Crcg(:,:,:,igaus) - Imat); % Lagrangian Strain
             end
         end
         
         % Push forward
-        function [ctens,sigma] = pushForward(obj,Ctens,S,F,Fjacb)
+        function [ctens,sigma,e,P] = pushForward(obj,Ctens,S,F,Fjacb,E)
             ctens = zeros(3,3,3,3,obj.nelem,obj.geometry.ngaus);
             sigma = zeros(3,3,obj.nelem,obj.geometry.ngaus);
+            e = zeros(3,3,obj.nelem,obj.geometry.ngaus); %
+            P = zeros(3,3,obj.nelem,obj.geometry.ngaus); % 1st PK stress
+            Finv = multinverse3x3(F);
             
             for igaus = 1:obj.geometry.ngaus
                 for i = 1:3
                     for j = 1:3
+                        for k = 1:3 % index needed to multiply 2 tensors
+                            for l = 1:3 % index needed to multiply 3 tensors
+                                sigma(i,l,:,igaus) = permute(sigma(i,l,:,igaus),[3 2 1]) + 1./Fjacb(:,igaus).*permute(F(i,k,:,igaus).*S(k,j,:,igaus).*F(l,j,:,igaus),[3 2 1]);
+                            end
+                                P(i,j,:,igaus) = permute(P(i,j,:,igaus),[3 2 1]) + Fjacb(:,igaus).*permute(sigma(i,k,:,igaus).*Finv(j,k,:,igaus),[3 2 1]);
+                        end
+                    end
+                end
+                
+                
+                for i = 1:3
+                    for j = 1:3
                         for k = 1:3
                             for l = 1:3
-                                sigma(i,l,:,igaus) = permute(sigma(i,l,:,igaus),[3 2 1]) + 1./Fjacb(:,igaus).*permute(F(i,k,:,igaus).*S(k,j,:,igaus).*F(l,j,:,igaus),[3 2 1]);
+                                e(i,l,:,igaus) = permute(e(i,l,:,igaus),[3 2 1]) + permute(Finv(k,i,:,igaus).*E(k,j,:,igaus).*Finv(j,l,:,igaus),[3 2 1]);
                             end
                         end
                     end
@@ -271,7 +297,7 @@ classdef Element_Hyperelastic < Element
                             end
                         end
                     end
-                end
+                end 
             end
         end
         
@@ -281,9 +307,19 @@ classdef Element_Hyperelastic < Element
     methods(Access = protected)  % Only the child sees the function
         function variables = computeDispStressStrain(obj,uL)
             variables.d_u = obj.compute_displacements(uL);
-            % variables.strain
-            variables.fext= obj.fext;
-            variables.stress = obj.stress;
+            variables.fext = obj.fext;
+
+            % Voigt
+            switch obj.geometry.ndime
+                case 2
+                    variables.stress = [obj.stress(1,1,:),obj.stress(2,2,:),obj.stress(1,2,:),obj.stress(3,3,:)];
+                    variables.strain = [obj.strain(1,1,:),obj.strain(2,2,:),obj.strain(1,2,:),obj.strain(3,3,:)];
+                case 3
+                    variables.stress = [obj.stress(1,1,:),obj.stress(2,2,:),obj.stress(3,3,:),obj.stress(1,2,:),obj.stress(2,3,:),obj.stress(1,3,:)];
+%                     variables.stress = [obj.fpks(1,1,:),obj.fpks(2,2,:),obj.fpks(3,3,:),obj.fpks(1,2,:),obj.fpks(2,3,:),obj.fpks(1,3,:)];
+%                     variables.stress = [obj.spks(1,1,:),obj.spks(2,2,:),obj.spks(3,3,:),obj.spks(1,2,:),obj.spks(2,3,:),obj.spks(1,3,:)];
+                    variables.strain = [obj.strain(1,1,:),obj.strain(2,2,:),obj.strain(3,3,:),obj.strain(1,2,:),obj.strain(2,3,:),obj.strain(1,3,:)];
+            end
         end
         
         function u = compute_displacements(obj,usol)

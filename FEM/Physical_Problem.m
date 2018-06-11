@@ -37,17 +37,13 @@ classdef Physical_Problem < FEM
         end
         
         function computeVariables(obj)
-            tol   = 1e-12;
-            x     = zeros(length(obj.dof.free),1); % acumulada
+            tol   = 1e-6;
             xi    = zeros(length(obj.dof.free),1);
             uk   = zeros(length(obj.dof.free),1);
             miter = 1e5;
             lambda_i = 0;
             
-            
-%             for incrm = 1:obj.element.nincr     % i
-            incrm = 1; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            while (lambda_i<=1) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            for incrm = 1:obj.element.nincr     % i
                 niter = 1;                      % k
                 error = 1;
                 
@@ -56,76 +52,70 @@ classdef Physical_Problem < FEM
                 
                 xk    = xi;
                 inc_xk = xk - xi;
-%                 if incrm == 1
-%                     inc_xk = zeros(length(obj.dof.free),1);
-%                 end
                 
-                [r,dr,K,fint] = obj.element.computeResidual(uk,lambda_k);
+                [r,dr] = obj.element.computeResidual(uk,lambda_k);
                 while error > tol && niter <= miter
                     uR = obj.solver.solve(dr,-r); % Residual
                     uF = obj.solver.solve(dr,obj.element.fext(obj.dof.free)); % Force
                     
                     gamma = obj.computeGamma(inc_xk,inc_lambda_k,uF,uR,obj.element.fext);
-                    
                     uk = uR + gamma*uF;
-                    
                     inc_lambda_k = inc_lambda_k + gamma;
-                    
                     lambda_k = lambda_k + gamma;
                     
                     inc_xk = inc_xk + uk;
-                    xk = xk + uk;
-                    
-                    x = x + xk;
+                    xk = xk + uk; 
                     
                     % Compute new r & dr
-                    [r,dr,K,fint] = obj.element.computeResidual(uk,lambda_k);
+                    [r,dr] = obj.element.computeResidual(uk,lambda_k);
                     
                     error = norm(r)/norm(obj.element.fext);
+                    fprintf('error: %d   norm(r): %d   norm(fext): %d\n',error,norm(r),norm(obj.element.fext));
                     errcont(incrm,niter) = error;
                     niter = niter + 1;
                 end
                 xi = xk;
                 lambda_i = lambda_k;
                          
-                
                 global test
                 if exist('test','var') == 1
                     nn(incrm) = niter-1;
                     
-                    gid_elem_pos = 6; %6
-                    gid_dime_pos = 2; % X Y Z 2
+                    % Node & Dimension
+                    gid_elem_pos = 2;
+                    gid_dime_pos = 1; % X Y Z 
                     
                     xn(incrm) = obj.element.coord(gid_elem_pos,gid_dime_pos);
                     gid_id = gid_elem_pos*obj.geometry.ndime-obj.geometry.ndime+gid_dime_pos;
                     fn(incrm) = lambda_i*obj.element.fext(gid_id);
-                    xkn(incrm) = xk(gid_id);
-                    incx(incrm) = inc_xk(gid_id);
-                    gamman(incrm) = gamma;
-                    lambdan(incrm) = lambda_i;
-                    inc_lambdan(incrm) = inc_lambda_k;
-                    
+                 
                     %% Plot
-                    xlabel('X displacement [m]')
+                    xlabel('Y displacement [m]')
                     set(gcf,'Color','w')
                     
                     % Left
                     yyaxis left
-                    plot(incx,fn,'*')
+                    plot(xn,fn,'*')
                     ylabel('Force [N]')
                     set(gca,'FontSize',15)
                     
                     % Right
                     yyaxis right
-                    plot(incx,nn,'o-')
+                    plot(xn,nn,'o-')
                     ylabel('Iterations')
                     set(gca,'FontSize',15)
                     
                     % Update
                     drawnow;
                 end
-                incrm = incrm+1; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                  obj.variables = obj.element.computeVars(xk);
+                  var.d_u(:,incrm) = obj.variables.d_u;
+                  var.stress(incrm,:,:) = obj.variables.stress;   
+                  var.strain(incrm,:,:) = obj.variables.strain;  
             end
+            
+            % Load the objectives
+            obj.variables = var;
             
             % Convergence
             if exist('test','var') == 1
@@ -135,7 +125,8 @@ classdef Physical_Problem < FEM
                 fprintf('Convergence order, p: %d\nRatio, mu: %d\n\n',a(1),a(2));
             end
             
-            obj.variables = obj.element.computeVars(x);
+            
+            
         end
         
         function gamma = computeGamma(obj,inc_xk,inc_lambda_k,uF,uR,fext)
@@ -165,7 +156,7 @@ classdef Physical_Problem < FEM
             
             [~,j] = min(theta);
             gamma = gamma(j);
-%             gamma = 0;
+            gamma = 0;
         end
         
         function print(obj)

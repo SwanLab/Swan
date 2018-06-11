@@ -15,7 +15,7 @@ Result "Displacements" "Elastic Problem" 69 Vector OnNodes ""
 ComponentNames  "Ux", "Uy"
 Values
      1        00000        00000 
-     2  6.91942e-01  1.27813e-01 
+     2  6.08860e-01  1.16113e-01 
      3        00000        00000 
-     4  7.41064e-01 -1.62774e-01 
+     4  6.58601e-01 -1.52121e-01 
 End Values

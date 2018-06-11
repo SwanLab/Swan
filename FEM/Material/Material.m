@@ -13,6 +13,7 @@ classdef Material
     end
     
     methods (Access = ?Physical_Problem, Static)
+%         function material = create(ptype,pdim,nelem)
         function material = create(ptype,pdim,nelem,connec,cartd,nnode,coord)
 %             obj.nelem = nelem;
             switch ptype

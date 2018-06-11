@@ -18,15 +18,17 @@ global test
 test = 1;
 %% Main.m
 % triangle_linear = Physical_Problem('CantileverToy_Triangular');
-% triangle_linear = Physical_Problem('CantileverToy_Nonlinear');
+
+triangle_linear = Physical_Problem('CantileverToy_Nonlinear');
+
 % triangle_linear = Physical_Problem('strip_hole');
 % triangle_linear = Physical_Problem('tetra3_hyperelastic');
-
+% triangle_linear = Physical_Problem('tetra_f');
 % triangle_linear = Physical_Problem('quad_f');
+% triangle_linear = Physical_Problem('slender');
+% triangle_linear = Physical_Problem('wing4');
 
-triangle_linear = Physical_Problem('tetra_f_beam');
 
-% triangle_linear = Physical_Problem('wing');
 tic
 triangle_linear.preProcess;
 triangle_linear.computeVariables;

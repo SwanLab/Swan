@@ -19,9 +19,8 @@ classdef Element<handle
         coord
         fincr
         nincr
-%         cload
+        cload
         uD
-%         lambda_i
     end
     
     
@@ -73,8 +72,8 @@ classdef Element<handle
             element.computeExternalForces();
             
             % Create force increment.
-%             element.lambda_i = 0;
-%             element.cload = element.lambda_i*element.Fext;
+            element.Fext = 0.1*element.Fext;
+%             element.cload = element.Fext;
 
             global test
             if exist('test','var') == 1
