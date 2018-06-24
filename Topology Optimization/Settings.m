@@ -4,9 +4,9 @@ classdef Settings
         printing = true
         printing_physics = false
         monitoring = true
-        monitoring_interval = 10
-        maxiter = 2000
-        constraint_case = 'EQUALITY';
+        monitoring_interval = 50
+        maxiter = 1000;
+        constraint_case = 'INEQUALITY';
     end
     
     properties %target parameters
