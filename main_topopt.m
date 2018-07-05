@@ -2,8 +2,8 @@ clc; clear variables; close all;
 addpath(genpath(fileparts(mfilename('fullpath'))));
 
 %% Test
-%run('test_fem.m');
-%run('test_topopt.m');
+% run('test_fem.m');
+% run('test_topopt.m');
 clear variables;
 %% Settings
 %settings = Settings('CantileverTriangle_Case_3_2_1');
@@ -23,36 +23,38 @@ clear variables;
 %settings.printing=false;
 %% Main
 filenames={%'GrippingTriangleCoarse_Case_1_1_1';
-  %  'GrippingTriangleCoarse_Case_2_1_1';
-  %  'GrippingTriangleCoarse_Case_3_1_1';
-%    'GrippingTriangleCoarse_Case_4_1_1';
-  %  'GrippingTriangleFine_Case_1_1_1';
-%     'GrippingTriangleFine_Case_2_1_1';
-%     'GrippingTriangleFine_Case_3_1_1';
-%     'GrippingTriangleFine_Case_4_1_1';
-%     'GrippingQuadCoarse_Case_1_1_1';
-     'GrippingQuadCoarse_Case_2_1_1';
-%    'GrippingQuadCoarse_Case_1_1_1';
-%     'GrippingQuadCoarse_Case_4_1_1';
- %   'GrippingQuadFine_Case_1_1_1';
-%     'GrippingQuadFine_Case_2_1_1';
-%     'GrippingQuadFine_Case_3_1_1';
-%     'GrippingQuadFine_Case_4_1_1';
-%    'GrippingTetrahedraCoarse_Case_1_1_1';
-%     'GrippingTetrahedraCoarse_Case_2_1_1';
-%     'GrippingTetrahedraCoarse_Case_3_1_1';
-%     'GrippingTetrahedraCoarse_Case_4_1_1';
-%     'GrippingTetrahedraCoarse_Case_1_2_1';
-%     'GrippingTetrahedraCoarse_Case_2_2_1';
-%     'GrippingTetrahedraCoarse_Case_3_2_1';
-%     'GrippingTetrahedraCoarse_Case_4_2_1'
+    %  'GrippingTriangleCoarse_Case_2_1_1';
+    %  'GrippingTriangleCoarse_Case_3_1_1';
+    %    'GrippingTriangleCoarse_Case_4_1_1';
+    %  'GrippingTriangleFine_Case_1_1_1';
+    %     'GrippingTriangleFine_Case_2_1_1';
+    %     'GrippingTriangleFine_Case_3_1_1';
+    %     'GrippingTriangleFine_Case_4_1_1';
+    %     'GrippingQuadCoarse_Case_1_1_1';
+    %     'GrippingQuadCoarse_Case_2_1_1';
+    %    'GrippingQuadCoarse_Case_1_1_1';
+    %     'GrippingQuadCoarse_Case_4_1_1';
+    %   'GrippingQuadFine_Case_1_1_1';
+    %     'GrippingQuadFine_Case_2_1_1';
+    %     'GrippingQuadFine_Case_3_1_1';
+    %     'GrippingQuadFine_Case_4_1_1';
+    %    'GrippingTetrahedraCoarse_Case_1_1_1';
+    %     'GrippingTetrahedraCoarse_Case_2_1_1';
+    %     'GrippingTetrahedraCoarse_Case_3_1_1';
+    %     'GrippingTetrahedraCoarse_Case_4_1_1';
+    %     'GrippingTetrahedraCoarse_Case_1_2_1';
+    %     'GrippingTetrahedraCoarse_Case_2_2_1';
+    %     'GrippingTetrahedraCoarse_Case_3_2_1';
+    %     'GrippingTetrahedraCoarse_Case_4_2_1'
+%     'CantileverQuadrilateral_Case_1_3_1';
+    'Bridge_Case_5_3_1'
     };
 for icases=1:size(filenames,1)
-clearvars -except filenames icases;
-close all;
-settings=Settings(filenames{icases});
-test = TopOpt_Problem(settings);
-test.preProcess;
-test.computeVariables;
-test.postProcess;
+    clearvars -except filenames icases;
+    close all;
+    settings=Settings(filenames{icases});
+    test = TopOpt_Problem(settings);
+    test.preProcess;
+    test.computeVariables;
+    test.postProcess;
 end
