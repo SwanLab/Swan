@@ -5,7 +5,6 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         constr_tol
         HJiter
         HJiter_min
-        e3
     end
     
     methods
@@ -20,7 +19,6 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             obj.hole_value = 0.1;
             obj.HJiter = HJiter0;
             obj.HJiter_min = 1;
-            obj.e3 = 1;
             obj.max_constr_change = +Inf;
             obj.kfrac = 2;
             obj.nconstr = settings.nconstr;
@@ -38,12 +36,10 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             % !! PATCH !! 
             load(fullfile(pwd,'Allaire_ShapeOpt','meshSize')); 
             load(fullfile(pwd,'Allaire_ShapeOpt','constraints_weights')); 
-            V = (-obj.objfunc.gradient/(dx*dy)) - lagV; 
-%             V = -obj.objfunc.gradient / (dx*dy); 
+            V = obj.objfunc.gradient/(dx*dy); 
             V = obj.regularize(x_ini,V);
-            V = -V;
             
-            dt = 0.5*obj.e3*min(dx,dy)/max(abs(V(:))) ;
+            dt = 0.5*obj.kappa*min(dx,dy)/max(abs(V(:))) ;
             
             x = obj.updatePhi(x_ini,V,dt);
             cost.computef(x);
@@ -51,24 +47,22 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             constraint = obj.setConstraint_case(constraint); 
             obj.objfunc.computeFunction(cost,constraint)
             
-            % !! PATCH !!
-            allow = 0.02;
-%                         objective = lagV*constraint.value(1)+lagP*perimeter(phi,dx,dy)+cost.value;
-            incr_cost = (obj.objfunc.value - obj.objfunc.value_initial*(1+allow))/abs(obj.objfunc.value_initial);
+            incr_norm_L2  = obj.norm_L2(x,x_ini);
+            incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
             
             if obj.HJiter > obj.HJiter_min 
                 obj.HJiter = round(obj.HJiter/obj.kfrac);
             else
-                obj.e3 = obj.e3/obj.kfrac;
+                obj.kappa = obj.kappa/obj.kfrac;
             end
-            obj.stop_criteria = ~(incr_cost < 0);
+            obj.stop_criteria = ~((incr_cost < 0 && incr_norm_L2 < obj.max_constr_change) || obj.kappa <= obj.kappa_min);
             
             obj.stop_vars(1,1) = incr_cost;     obj.stop_vars(1,2) = 0;
             if ~obj.stop_criteria
                 % !! PATCH !!
                 HJiter0 = 30;
                 obj.HJiter = HJiter0;
-                obj.e3 = 1;
+                obj.kappa = 1;
             end
         end
         
