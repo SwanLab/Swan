@@ -71,7 +71,6 @@ function solvedphi = solvelvlset(phi,V,dt,HJiter,lagP,RIiter,RIfreq,dx,dy)
     
     % We update our old level set:
     phi = phi - dt*(delp2.*Vp + delm2.*Vm)+dt*lagP*curv(phi,dx,dy).*mag ;
-% phi = phi - dt*(delp2.*Vp + delm2.*Vm);
     
 %     surf(phi), view([0 0 1])
   end 

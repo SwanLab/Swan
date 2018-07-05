@@ -3,9 +3,9 @@ ptype = 'MACRO';
 method = 'SIMPALL'; % !! Instead of proportional to material density !!
 materialType = 'ISOTROPIC';
 initial_case = 'holes';
-cost = {'compliance'};
-weights = [1];
-constraint = {'volume','perimeter'};
+cost = {'compliance','perimeter'};
+weights = [1 0.1];
+constraint = {'volume'};
 optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
 filterType = 'P1';
 

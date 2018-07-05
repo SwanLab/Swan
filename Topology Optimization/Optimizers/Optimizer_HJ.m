@@ -36,8 +36,8 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         function x = updateX(obj,x_ini,cost,constraint)
             % !! PATCH !!
             load(fullfile(pwd,'Allaire_ShapeOpt','meshSize'));
-            load(fullfile(pwd,'Allaire_ShapeOpt','constraints_weights'));
-            V = obj.objfunc.gradient/(dx*dy);
+
+            V = obj.objfunc.gradient;
             V = obj.regularize(x_ini,V);
             
             dt = 0.5*obj.kappa*min(dx,dy)/max(abs(V(:))) ;
@@ -67,7 +67,6 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             % !! PATCH !!
             load(fullfile(pwd,'Allaire_ShapeOpt','conversion'));
             load(fullfile(pwd,'Allaire_ShapeOpt','meshSize'));
-            load(fullfile(pwd,'Allaire_ShapeOpt','constraints_weights'));
             load(fullfile(pwd,'Allaire_ShapeOpt','RI'));
             
             for n = 1:length(design_variable)
@@ -76,8 +75,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             end
             
             % !! Using Allaire's curvature instead of perimeter !!
-            %             figure, surf(V);
-            phi = solvelvlset(phi,V,dt,obj.HJiter,lagP,RIiter,RIfreq,dx,dy);
+            phi = solvelvlset(phi,V,dt,obj.HJiter,0,RIiter,RIfreq,dx,dy);
             phi_vect(A1(:,:)) = phi(:,:);
             phi_vect = phi_vect';
             
@@ -104,7 +102,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             for n = 1:length(V_vect)
                 V(b1(n,1),b1(n,2)) = V_vect(n);
             end
-            figure, surf(-V);
+%             figure, surf(-V);
             
             % Now we calculate the surface Dirac function.
             epsperim = min(dx,dy)/20 ;
@@ -134,7 +132,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             for n = 1:length(v)
                 V(b1(n,1),b1(n,2)) = v(n);
             end
-            figure, surf(V);
+%             figure, surf(V);
             
         end
     end
