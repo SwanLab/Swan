@@ -46,12 +46,12 @@ classdef ShFunc_Compliance < Shape_Functional
             gradient_compliance = obj.filter.getP1fromP0(gradient_compliance);
             gradient_compliance = obj.Msmooth*gradient_compliance;
             
-%             if isempty(obj.h_C_0)
-%                 obj.h_C_0 = compliance;
-%             else
-%                 compliance = compliance/abs(obj.h_C_0);
-%                 gradient_compliance = gradient_compliance/abs(obj.h_C_0);
-%             end
+            if isempty(obj.h_C_0)
+                obj.h_C_0 = compliance;
+            else
+                compliance = compliance/abs(obj.h_C_0);
+                gradient_compliance = gradient_compliance/abs(obj.h_C_0);
+            end
             
             obj.value = compliance;
             obj.gradient = gradient_compliance;

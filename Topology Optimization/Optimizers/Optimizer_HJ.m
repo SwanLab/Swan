@@ -76,6 +76,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             end
             
             % !! Using Allaire's curvature instead of perimeter !!
+            %             figure, surf(V);
             phi = solvelvlset(phi,V,dt,obj.HJiter,lagP,RIiter,RIfreq,dx,dy);
             phi_vect(A1(:,:)) = phi(:,:);
             phi_vect = phi_vect';
@@ -103,6 +104,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             for n = 1:length(V_vect)
                 V(b1(n,1),b1(n,2)) = V_vect(n);
             end
+            figure, surf(-V);
             
             % Now we calculate the surface Dirac function.
             epsperim = min(dx,dy)/20 ;
@@ -129,6 +131,11 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             filter.updateEpsilon(0.03);
             
             v = filter.getP1fromP1(b_vect);
+            for n = 1:length(v)
+                V(b1(n,1),b1(n,2)) = v(n);
+            end
+            figure, surf(V);
+            
         end
     end
 end
