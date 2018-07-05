@@ -19,10 +19,8 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             
             x = obj.solveUnconstrainedProblem(x_ini,cost,constraint);
             
-            % !! CONFLICT !!
             active_constr = obj.penalty > 0;
-            % obj.stop_criteria = obj.optimizer_unconstr.opt_cond >=  obj.optimizer_unconstr.optimality_tol || any(any(abs(constraint.value(active_constr)) > obj.optimizer_unconstr.constr_tol(active_constr)));
-            obj.stop_criteria = obj.niter < 30;
+            obj.stop_criteria = obj.optimizer_unconstr.opt_cond >=  obj.optimizer_unconstr.optimality_tol || any(any(abs(constraint.value(active_constr)) > obj.optimizer_unconstr.constr_tol(active_constr)));
         end
     end
     

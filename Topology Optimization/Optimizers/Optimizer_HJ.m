@@ -4,7 +4,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         optimality_tol
         constr_tol
         HJiter
-        HJiter_min
+        HJiter_min = 1;
     end
     
     methods
@@ -12,13 +12,14 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             % !! PACHT !!
             HJiter0 = 30;
             obj@Optimizer_Unconstrained(settings,epsilon);
-%             obj.ini_design_value = -1.015243959022692;
-%             obj.hole_value = 0.507621979511346;
+            %             obj.ini_design_value = -1.015243959022692;
+            %             obj.hole_value = 0.507621979511346;
             % !! Currently NOT USED because init_design is loaded !!
             obj.ini_design_value = -0.1;
             obj.hole_value = 0.1;
             obj.HJiter = HJiter0;
-            obj.HJiter_min = 1;
+            obj.kappa = 1;
+            obj.kappa_min = 1e-5;
             obj.max_constr_change = +Inf;
             obj.kfrac = 2;
             obj.nconstr = settings.nconstr;
@@ -33,10 +34,10 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         end
         
         function x = updateX(obj,x_ini,cost,constraint)
-            % !! PATCH !! 
-            load(fullfile(pwd,'Allaire_ShapeOpt','meshSize')); 
-            load(fullfile(pwd,'Allaire_ShapeOpt','constraints_weights')); 
-            V = obj.objfunc.gradient/(dx*dy); 
+            % !! PATCH !!
+            load(fullfile(pwd,'Allaire_ShapeOpt','meshSize'));
+            load(fullfile(pwd,'Allaire_ShapeOpt','constraints_weights'));
+            V = obj.objfunc.gradient/(dx*dy);
             V = obj.regularize(x_ini,V);
             
             dt = 0.5*obj.kappa*min(dx,dy)/max(abs(V(:))) ;
@@ -44,13 +45,13 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             x = obj.updatePhi(x_ini,V,dt);
             cost.computef(x);
             constraint.computef(x);
-            constraint = obj.setConstraint_case(constraint); 
+            constraint = obj.setConstraint_case(constraint);
             obj.objfunc.computeFunction(cost,constraint)
             
             incr_norm_L2  = obj.norm_L2(x,x_ini);
             incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
             
-            if obj.HJiter > obj.HJiter_min 
+            if obj.HJiter > obj.HJiter_min
                 obj.HJiter = round(obj.HJiter/obj.kfrac);
             else
                 obj.kappa = obj.kappa/obj.kfrac;
@@ -58,12 +59,8 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             obj.stop_criteria = ~((incr_cost < 0 && incr_norm_L2 < obj.max_constr_change) || obj.kappa <= obj.kappa_min);
             
             obj.stop_vars(1,1) = incr_cost;     obj.stop_vars(1,2) = 0;
-            if ~obj.stop_criteria
-                % !! PATCH !!
-                HJiter0 = 30;
-                obj.HJiter = HJiter0;
-                obj.kappa = 1;
-            end
+            obj.stop_vars(2,1) = incr_norm_L2;   obj.stop_vars(2,2) = obj.max_constr_change;
+            obj.stop_vars(3,1) = obj.kappa;     obj.stop_vars(3,2) = obj.kappa_min;
         end
         
         function phi_vect = updatePhi(obj,design_variable,gradient,dt)
@@ -72,7 +69,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             load(fullfile(pwd,'Allaire_ShapeOpt','meshSize'));
             load(fullfile(pwd,'Allaire_ShapeOpt','constraints_weights'));
             load(fullfile(pwd,'Allaire_ShapeOpt','RI'));
-
+            
             for n = 1:length(design_variable)
                 phi(b1(n,1),b1(n,2)) = design_variable(n);
                 V(b1(n,1),b1(n,2)) = gradient(n);
@@ -82,10 +79,16 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             phi = solvelvlset(phi,V,dt,obj.HJiter,lagP,RIiter,RIfreq,dx,dy);
             phi_vect(A1(:,:)) = phi(:,:);
             phi_vect = phi_vect';
+            
+            % !! CHECK !!
+            obj.opt_cond = obj.kappa;
         end
         
         function computeKappa(obj,~,~,~)
             obj.kappa = 1;
+            % !! PATCH !!
+            HJiter0 = 30;
+            obj.HJiter = HJiter0;
         end
         
         function v = regularize(~,x,V_vect)
