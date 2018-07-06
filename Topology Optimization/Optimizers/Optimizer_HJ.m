@@ -40,6 +40,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             V = obj.objfunc.gradient;
             V = obj.regularize(x_ini,V);
             
+            
             dt = 0.5*obj.kappa*min(dx,dy)/max(abs(V(:))) ;
             
             x = obj.updatePhi(x_ini,V,dt);
