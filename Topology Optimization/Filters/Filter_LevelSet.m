@@ -54,7 +54,7 @@ classdef Filter_LevelSet < handle
             end
         end
         
-        function [P,active_nodes]=findCutPoints(obj,x,cut_elem)
+        function [P,active_nodes]=findCutPoints_Iso(obj,x,cut_elem)
             switch obj.diffReacProb.mesh.pdim
                 case '2D'
                     gamma_1=permute(x(obj.connectivities(cut_elem,:)),[2 3 1]);
@@ -72,6 +72,25 @@ classdef Filter_LevelSet < handle
                     P2=repmat(obj.geometry.interpolation.pos_nodes(iteration_2,:),[1 1 size(cut_elem)]);
                     P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
                     active_nodes = sign(gamma_1.*gamma_2)<0;
+            end
+        end
+        
+        function [P,active_nodes]=findCutPoints_Global(obj,x,cut_elem)
+            switch obj.diffReacProb.mesh.pdim
+                case '2D'
+                    index1 = permute(obj.connectivities(cut_elem,:),[2 3 1]);
+                    index2 = [permute(obj.connectivities(cut_elem,2:end),[2 3 1]);...
+                        permute(obj.connectivities(cut_elem,1),[2 3 1])];
+                    gamma_1=x(index1);
+                    gamma_2=x(index2);
+                    % !! CHAPUSILLA !! --> Fer més elegant !!
+                    coord1 = obj.coordinates(:,1); coord2 = obj.coordinates(:,2);
+                    P1=[coord1(index1) coord2(index1)];
+                    P2=[coord1(index2) coord2(index2)];
+                    P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
+                    active_nodes = sign(gamma_1.*gamma_2)<0;
+                case '3D'
+                    error('Global cut points for 3D still not implemented.')
             end
         end
         
@@ -115,7 +134,7 @@ classdef Filter_LevelSet < handle
         end
         
         function [elecoord,global_connec,phi_cut]=computeDelaunay(obj,x,cut_elem)
-            [P,active_nodes]=obj.findCutPoints(x,cut_elem);
+            [P,active_nodes]=obj.findCutPoints_Iso(x,cut_elem);
             elecoord=[];phi_cut=[];global_connec=[];
             for ielem=1:length(cut_elem)
                 del_coord = [obj.geometry.interpolation.pos_nodes;P(active_nodes(:,:,ielem),:,ielem)];
@@ -149,6 +168,62 @@ classdef Filter_LevelSet < handle
                 shape_all=obj.integrateCut(phi_cut, global_connec, dvolu_cut, shape_all);
             end
             M2=obj.rearrangeOutputRHS(shape_all);
+        end
+        
+        function M2=computeRHS_contour(obj,x,V)
+            switch obj.diffReacProb.mesh.pdim
+                case '2D'
+                    quadrature_contour = Quadrature.set('LINE');
+                    interpolation_contour = Line_Linear;
+                case '3D'
+                    error('Contours still NOT implemented for 3D meshes');
+            end
+            quadrature_contour.computeQuadrature(obj.quadrature.order);
+            interpolation_contour.computeShapeDeriv(quadrature_contour.posgp);
+            
+            shape_all = zeros(obj.nelem,obj.nnode);
+            [~,cut_elem]=obj.findCutElements(x);
+            
+            [P_iso,active_nodes_iso]=obj.findCutPoints_Iso(x,cut_elem);
+            [P_global,active_nodes_global]=obj.findCutPoints_Global(x,cut_elem);
+            
+            geometry = obj.geometry;
+            save('geom','geometry');
+            interpolation = obj.geometry.interpolation;
+            
+            % !! VECTORITZAR: LOOPS PETITS, ELEMENTS DIRECTES !!
+%             figure, hold on
+            for i = 1:length(cut_elem)
+                ielem = cut_elem(i);
+                cutPoints_iso = P_iso(active_nodes_iso(:,:,i),:,i);
+                cutPoints_global = P_global(active_nodes_global(:,:,i),:,i);
+                
+                try
+                    for igaus = 1:2
+                        for idime = 1:2
+                            contour_posgp(igaus,idime) = interpolation_contour.shape(igaus,:).*quadrature_contour.weigp*interpolation_contour.dvolu*cutPoints_iso(:,idime);
+                        end
+                    end
+                end
+                
+                dsurf = norm(cutPoints_global(1,:)-cutPoints_global(2,:));
+                
+                interpolation.computeShapeDeriv(contour_posgp'); % !! Need be trasposed?? !!
+                shape = interpolation.shape;
+                shape_i = shape*quadrature_contour.weigp';
+                
+                inode_global = obj.connectivities(ielem,:);
+                v = (shape_i'*V(inode_global))';
+                shape_all(ielem,:) = shape_i'*(v*dsurf);
+%                 
+%                 plot(obj.coordinates(obj.connectivities(ielem,:),1),obj.coordinates(obj.connectivities(ielem,:),2),'.-b'); plot(obj.coordinates(obj.connectivities(ielem,[1 4]),1),obj.coordinates(obj.connectivities(ielem,[1 4]),2),'.-b');
+%                 plot(cutPoints_global(:,1),cutPoints_global(:,2),'-xr');
+%                 title('Cut Elements & Cut points in GLOBAL coordinates')
+            end
+            M2=obj.rearrangeOutputRHS(shape_all);
+            % !! Maybe geometry interpolation (shape) is affected !!
+%             load('geom');
+%             obj.geometry = geometry;
         end
     end
 end

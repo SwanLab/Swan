@@ -12,5 +12,9 @@ classdef Filter_PDE_LevelSet < Filter_PDE & Filter_LevelSet
         function rhs = integrate_L2_function_with_shape_function(obj,x)
             rhs = obj.computeRHS(x);
         end
+        
+        function rhs = integrate_contour_with_shape_function(obj,x,V)
+            rhs = obj.computeRHS_contour(x,V);
+        end
     end
 end

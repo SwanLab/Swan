@@ -22,8 +22,6 @@ classdef Mesh
             obj.geometryType = data.geometry;
             obj.pdim = data.problem_dim;
             obj.ptype = data.problem_type;
-            %obj.nelem = length(obj.connec(:,1));
-         %   obj.npnod = length(obj.coord(:,1));
             obj.scale = data.scale;
             obj.problemID=filename;
         end

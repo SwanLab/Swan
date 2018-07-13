@@ -5,6 +5,8 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         constr_tol
         HJiter
         HJiter_min = 1;
+        % !! Move to ShFunc_Velocity (?) eventually !!
+        filter
     end
     
     methods
@@ -23,6 +25,14 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             obj.max_constr_change = +Inf;
             obj.kfrac = 2;
             obj.nconstr = settings.nconstr;
+            % !! Move to ShFunc_Velocity (?) eventually !!
+            if strcmp(settings.filter,'P1')
+                settings.filter = 'PDE';
+                disp('Filter P1 changed to PDE for HJ velocity regularization');
+            end
+            obj.filter =  Filter.create(settings);
+            obj.filter.preProcess;
+            obj.filter.updateEpsilon(0.03);
         end
         
         function optimality_tol = get.optimality_tol(obj)
@@ -38,8 +48,14 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             load(fullfile(pwd,'Allaire_ShapeOpt','meshSize'));
 
             V = obj.objfunc.gradient;
-            V = obj.regularize(x_ini,V);
-            
+            V = -obj.filter.regularize(x_ini,V);
+
+%             load(fullfile(pwd,'Allaire_ShapeOpt','conversion'));                        
+%             for n = 1:length(V)
+%                 V_mat(b1(n,1),b1(n,2)) = V(n);
+%             end
+%             figure, surf(V_mat);
+%             V = obj.regularize(x_ini,V);
             
             dt = 0.5*obj.kappa*min(dx,dy)/max(abs(V(:))) ;
             
