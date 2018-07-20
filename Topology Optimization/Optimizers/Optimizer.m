@@ -69,22 +69,26 @@ classdef Optimizer < handle
                     
                 case 'holes'
                     % !! PATCH !!
-                    load(fullfile(pwd,'Allaire_ShapeOpt','init_x'));
+                    if contains(obj.case_file,'Bridge')
+                        load(fullfile(pwd,'Allaire_ShapeOpt','init_x_bridge'));
+                    elseif contains(obj.case_file,'Cantilever')
+                        load(fullfile(pwd,'Allaire_ShapeOpt','init_x_cantilever'));
+                    end
                     x = phi;
-%                     x = xi;
-
-%                     width = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
-%                     height = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
-%                     N = 6; M = 3;
-%                     for i = 1:N
-%                         center_x = (i/(N+1))*(max(obj.mesh.coord(:,1)) + min(obj.mesh.coord(:,1)));
-%                         for j = 1:M
-%                             center_y = (j/(M+1))*(max(obj.mesh.coord(:,2)) + min(obj.mesh.coord(:,2)));
-%                             radius = (2/(N*M))*min([width,height]);
-%                             initial_holes = (obj.mesh.coord(:,1)-center_x).^2 + (obj.mesh.coord(:,2)-center_y).^2 - radius^2 < 0;
-%                             x(initial_holes) = obj.hole_value;
-%                         end
-%                     end
+                    %                     x = xi;
+                    
+                    %                     width = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
+                    %                     height = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
+                    %                     N = 6; M = 3;
+                    %                     for i = 1:N
+                    %                         center_x = (i/(N+1))*(max(obj.mesh.coord(:,1)) + min(obj.mesh.coord(:,1)));
+                    %                         for j = 1:M
+                    %                             center_y = (j/(M+1))*(max(obj.mesh.coord(:,2)) + min(obj.mesh.coord(:,2)));
+                    %                             radius = (2/(N*M))*min([width,height]);
+                    %                             initial_holes = (obj.mesh.coord(:,1)-center_x).^2 + (obj.mesh.coord(:,2)-center_y).^2 - radius^2 < 0;
+                    %                             x(initial_holes) = obj.hole_value;
+                    %                         end
+                    %                     end
                 case 'full'
                 otherwise
                     error('Invalid initial value of design variable.');
@@ -95,7 +99,12 @@ classdef Optimizer < handle
                 x = x/sqrt(sqrt_norma);
             end
             
-            % !! CONFLICT !! --> x in Allaire's code: [-0.1, 0.1]
+%             % !! CONFLICT !! --> x in Allaire's code: [-0.1, 0.1]
+%             load(fullfile(pwd,'Allaire_ShapeOpt','conversion'));
+%             for n = 1:length(x)
+%                 x_mat(b1(n,1),b1(n,2)) = x(n);
+%             end
+%             figure, surf(x_mat);
         end
     end
     
@@ -187,8 +196,8 @@ classdef Optimizer < handle
                 height = mp(1,4);
                 size_screen_offset = round([0.7*width,0.52*height,-0.71*width,-0.611*height],0);
                 set(fh,'Position',mp(select_screen,:) + size_screen_offset);
-%                 obj.fhtri = trisurf(obj.mesh.connec,obj.mesh.coord(:,1),obj.mesh.coord(:,2),obj.mesh.coord(:,3),double(rho_nodal), ...
-%                     'EdgeColor','none','LineStyle','none','FaceLighting','phong');
+                %                 obj.fhtri = trisurf(obj.mesh.connec,obj.mesh.coord(:,1),obj.mesh.coord(:,2),obj.mesh.coord(:,3),double(rho_nodal), ...
+                %                     'EdgeColor','none','LineStyle','none','FaceLighting','phong');
                 obj.fhtri=patch('Faces',obj.mesh.connec,'Vertices',obj.mesh.coord,'FaceVertexCData',double(rho_nodal),'FaceColor','flat',...
                     'EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
                 if strcmp(obj.mesh.pdim,'3D')
