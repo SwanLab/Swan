@@ -1,4 +1,4 @@
-filename='Bridge_Quadrilateral';
+filename='Bridge_Quadrilateral_Bilinear_Structured';
 ptype = 'MACRO';
 method = 'SIMPALL'; % !! Instead of proportional to material density !!
 materialType = 'ISOTROPIC';

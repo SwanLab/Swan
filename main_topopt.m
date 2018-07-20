@@ -47,8 +47,9 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
     %     'GrippingTetrahedraCoarse_Case_3_2_1';
     %     'GrippingTetrahedraCoarse_Case_4_2_1'
 %     'CantileverQuadrilateral_Case_1_2_1';
-    'Bridge_Case_5_2_1'
-    'Bridge_Case_5_3_1'
+% 'CantileverQuadrilateral_Case_5_2_1'
+    'BridgeQuadrilateral_Case_5_2_1'
+    'BridgeQuadrilateral_Case_5_3_1'
     };
 for icases=1:size(filenames,1)
     clearvars -except filenames icases;
