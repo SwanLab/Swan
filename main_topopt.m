@@ -10,14 +10,23 @@ clear variables;
 
 %% Main
 filenames ={ %Write several cases here to compute all
-   
-%     'BridgeTriangleCoarse_Case_1_1_1';
+    'CantileverTetrahedraCoarse_Case_1_1_1';
+ %   'BridgeTetrahedraCoarse_Case_1_1_1';
+ %   'ChairTetrahedraCoarse_Case_1_1_1';
+       
+  %  'ImpBridgeHexahedra_Case_1_1_2';
+ %'ImpCantileverHexahedra_Case_1_1_1';
+ %'ImpCantileverHexahedra_Case_1_1_2';
+ %'ImpCantileverHexahedra_Case_1_1_3';
 };
 
 for icases=1:size(filenames,1)
-clearvars -except filenames icases;
+clearvars -except filenames icases iter;
 close all;
 settings=Settings(filenames{icases});
+%settings.filename='test_quad_marching';
+%settings.printing=false;
+settings.nsteps=1;
 test = TopOpt_Problem(settings);
 test.preProcess;
 test.computeVariables;

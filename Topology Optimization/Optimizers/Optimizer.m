@@ -98,7 +98,7 @@ classdef Optimizer < handle
             end
         end
         function print(obj,design_variable,iter)
-            if ~(obj.printing)
+            if ~(obj.printing || ~obj.stop_criteria)
                 return
             end
             

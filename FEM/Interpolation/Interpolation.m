@@ -16,6 +16,10 @@ classdef Interpolation < handle
         deriv
         dvolu
         iteration
+        cases
+        selectcases
+        main_loop
+        extra_cases
     end    
     methods
         function obj=Interpolation(mesh)
