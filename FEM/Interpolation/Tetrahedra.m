@@ -38,7 +38,7 @@ classdef Tetrahedra<Interpolation
                 zeros(2,4)];
             obj.cases(:,:,2)=[5 6 7 2
                 7 6 5 3
-                5 3 7 1
+                5 7 3 1
                 7 3 1 4;
                 zeros(2,4)];
             obj.cases(:,:,3)=[7 6 5 3
