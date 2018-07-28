@@ -1,5 +1,5 @@
 filename='Gripping_tetrahedra_coarse';
-ptype = 'MACRO';
+ ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
@@ -11,14 +11,13 @@ optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 
 nsteps = 1;
-Vfrac_final = 0.05;
-optimality_final =1e-3;
+Vfrac_final = 0.2;
+optimality_final = 1e-3;
 constr_final =1e-3;
 
 Vfrac_initial = 1;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
-
 TOL.rho_plus = 1;
 TOL.rho_minus = 0;
 TOL.E_plus = 1;

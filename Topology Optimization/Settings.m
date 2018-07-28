@@ -5,7 +5,7 @@ classdef Settings
         printing_physics = false
         monitoring = true
         monitoring_interval = 10
-        maxiter = 2000
+        maxiter = 3000;
         constraint_case = 'EQUALITY';
     end
     
