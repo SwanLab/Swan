@@ -174,12 +174,12 @@ classdef Filter_LevelSet < handle
             switch obj.diffReacProb.mesh.pdim
                 case '2D'
                     quadrature_facet = Quadrature.set('LINE');
-                    interpolation_facet = Line_Linear;
+                    interp_facet = Line_Linear;
                 case '3D'
                     error('facets still NOT implemented for 3D meshes');
             end
             quadrature_facet.computeQuadrature(obj.quadrature.order);
-            interpolation_facet.computeShapeDeriv(quadrature_facet.posgp);
+            interp_facet.computeShapeDeriv(quadrature_facet.posgp);
             
             shape_all = zeros(obj.nelem,obj.nnode);
             [~,cut_elem]=obj.findCutElements(x);
@@ -213,19 +213,22 @@ classdef Filter_LevelSet < handle
                 for i = 1:size(indexes,1)
                     for igaus = 1:2
                         for idime = 1:2
-                            facet_posgp(igaus,idime) = interpolation_facet.shape(igaus,:)*cutPoints_iso(indexes(i,:),idime);
+                            facet_posgp(igaus,idime) = interp_facet.shape(igaus,:)*cutPoints_iso(indexes(i,:),idime);
                         end
                     end
-                    
-                    % !! Fer més general amb ShapeDerivatives !!
-                    dsurf = norm(cutPoints_global(indexes(i,1),:)-cutPoints_global(indexes(i,2),:));
-                    dsurf = dsurf/2;
-                    
                     interpolation.computeShapeDeriv(facet_posgp');
-                    shape_i = interpolation.shape*quadrature_facet.weigp';
+
+                    % !! For 3D must be det| | !!
+%                     dt_dxi = norm(interp_facet.deriv(indexes(i,:))*cutPoints_global(indexes(i,:),:))/interp_facet.dvolu;       
                     
-                    v = (shape_i'*F(inode_global))';
-                    shape_all(ielem,:) = shape_all(ielem,:) + shape_i'*(v*dsurf);
+                    shape_deriv(:,:) = interp_facet.deriv(1,:,:); shape_deriv = shape_deriv';
+                     
+                    % !! How mapping is done for 3D cases??? !!
+                    t = [0; norm(diff(cutPoints_global(indexes(i,:),:)))];
+                    dt_dxi = (shape_deriv*t)/interp_facet.dvolu;
+                    
+                    f = (interpolation.shape*quadrature_facet.weigp')'*F(inode_global)/interp_facet.dvolu;
+                    shape_all(ielem,:) = shape_all(ielem,:) + (interpolation.shape*(dt_dxi.*quadrature_facet.weigp')*f)';
 %                     
 %                     plot(obj.coordinates(obj.connectivities(ielem,:),1),obj.coordinates(obj.connectivities(ielem,:),2),'.-b'); plot(obj.coordinates(obj.connectivities(ielem,[1 4]),1),obj.coordinates(obj.connectivities(ielem,[1 4]),2),'.-b');
 %                     plot(cutPoints_global(indexes(i,:),1),cutPoints_global(indexes(i,:),2),'-xr');

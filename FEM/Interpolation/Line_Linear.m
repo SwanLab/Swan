@@ -28,7 +28,7 @@ classdef Line_Linear < handle
             s = posgp;
             
             obj.shape = [ones(length(posgp),1)-s,s+1]/2;
-            obj.deriv=repmat([-1.0;1.0],1,1,length(posgp));
+            obj.deriv=repmat([-1.0,1.0],1,1,length(posgp));
         end
     end
 end
