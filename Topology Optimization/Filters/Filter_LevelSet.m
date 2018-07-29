@@ -170,16 +170,16 @@ classdef Filter_LevelSet < handle
             M2=obj.rearrangeOutputRHS(shape_all);
         end
         
-        function M2=computeRHS_contour(obj,x,V)
+        function M2=computeRHS_facet(obj,x,F)
             switch obj.diffReacProb.mesh.pdim
                 case '2D'
-                    quadrature_contour = Quadrature.set('LINE');
-                    interpolation_contour = Line_Linear;
+                    quadrature_facet = Quadrature.set('LINE');
+                    interpolation_facet = Line_Linear;
                 case '3D'
-                    error('Contours still NOT implemented for 3D meshes');
+                    error('facets still NOT implemented for 3D meshes');
             end
-            quadrature_contour.computeQuadrature(obj.quadrature.order);
-            interpolation_contour.computeShapeDeriv(quadrature_contour.posgp);
+            quadrature_facet.computeQuadrature(obj.quadrature.order);
+            interpolation_facet.computeShapeDeriv(quadrature_facet.posgp);
             
             shape_all = zeros(obj.nelem,obj.nnode);
             [~,cut_elem]=obj.findCutElements(x);
@@ -213,7 +213,7 @@ classdef Filter_LevelSet < handle
                 for i = 1:size(indexes,1)
                     for igaus = 1:2
                         for idime = 1:2
-                            contour_posgp(igaus,idime) = interpolation_contour.shape(igaus,:)*cutPoints_iso(indexes(i,:),idime);
+                            facet_posgp(igaus,idime) = interpolation_facet.shape(igaus,:)*cutPoints_iso(indexes(i,:),idime);
                         end
                     end
                     
@@ -221,10 +221,10 @@ classdef Filter_LevelSet < handle
                     dsurf = norm(cutPoints_global(indexes(i,1),:)-cutPoints_global(indexes(i,2),:));
                     dsurf = dsurf/2;
                     
-                    interpolation.computeShapeDeriv(contour_posgp');
-                    shape_i = interpolation.shape*quadrature_contour.weigp';
+                    interpolation.computeShapeDeriv(facet_posgp');
+                    shape_i = interpolation.shape*quadrature_facet.weigp';
                     
-                    v = (shape_i'*V(inode_global))';
+                    v = (shape_i'*F(inode_global))';
                     shape_all(ielem,:) = shape_all(ielem,:) + shape_i'*(v*dsurf);
 %                     
 %                     plot(obj.coordinates(obj.connectivities(ielem,:),1),obj.coordinates(obj.connectivities(ielem,:),2),'.-b'); plot(obj.coordinates(obj.connectivities(ielem,[1 4]),1),obj.coordinates(obj.connectivities(ielem,[1 4]),2),'.-b');

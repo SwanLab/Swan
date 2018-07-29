@@ -34,8 +34,8 @@ classdef Filter_PDE < Filter
         end
         
         % !! For SHAPE OPTIMIZATION (regularize) !!
-        function x_reg = regularize(obj,x,V)
-            rhs_x = obj.integrate_contour_with_shape_function(x,V);
+        function x_reg = regularize(obj,x,F)
+            rhs_x = obj.integrate_facet_with_shape_function(x,F);
             x_reg = obj.solve_filter(rhs_x);
         end
         
