@@ -43,23 +43,8 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             constr_tol(1:obj.nconstr) = obj.target_parameters.constr_tol;
         end
         
-        function x = updateX(obj,x_ini,cost,constraint)
-            % !! PATCH !!
-            load(fullfile(pwd,'Allaire_ShapeOpt','meshSize'));
-
-            V = obj.objfunc.gradient;
-            V = -obj.filter.regularize(x_ini,V);
-
-%             load(fullfile(pwd,'Allaire_ShapeOpt','conversion'));                        
-%             for n = 1:length(V)
-%                 V_mat(b1(n,1),b1(n,2)) = V(n);
-%             end
-%             figure, surf(V_mat);
-%             V = obj.regularize(x_ini,V);
-            
-            dt = 0.5*obj.kappa*min(dx,dy)/max(abs(V(:))) ;
-            
-            x = obj.updatePhi(x_ini,V,dt);
+        function x = updateX(obj,x_ini,cost,constraint)            
+            x = obj.updatePhi(x_ini,obj.objfunc.gradient);
             cost.computef(x);
             constraint.computef(x);
             constraint = obj.setConstraint_case(constraint);
@@ -83,7 +68,21 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             end
         end
         
-        function phi_vect = updatePhi(obj,design_variable,gradient,dt)
+        function phi_vect = updatePhi(obj,design_variable,gradient)
+                        % !! PATCH !!
+            load(fullfile(pwd,'Allaire_ShapeOpt','meshSize'));
+
+ 
+            gradient = -obj.filter.regularize(design_variable,gradient);
+
+%             load(fullfile(pwd,'Allaire_ShapeOpt','conversion'));                        
+%             for n = 1:length(V)
+%                 V_mat(b1(n,1),b1(n,2)) = V(n);
+%             end
+%             figure, surf(V_mat);
+%             V = obj.regularize(x_ini,V);
+            
+            dt = 0.5*obj.kappa*min(dx,dy)/max(abs(gradient(:))) ;
             % !! PATCH !!
             load(fullfile(pwd,'Allaire_ShapeOpt','conversion'));
             load(fullfile(pwd,'Allaire_ShapeOpt','meshSize'));

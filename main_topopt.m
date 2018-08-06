@@ -50,7 +50,7 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
     %     'CantileverQuadrilateral_Case_1_2_2'
     %     'CantileverQuadrilateral_Case_5_2_1'
 %     'CantileverTriangle_Case_1_2_4'
-%     'BridgeQuadrilateral_Case_5_1_1'
+    'BridgeQuadrilateral_Case_5_1_1'
 %     'BridgeQuadrilateral_Case_5_2_1'
 %     'BridgeQuadrilateral_Case_5_3_1'
     };
