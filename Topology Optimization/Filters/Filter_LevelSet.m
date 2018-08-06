@@ -181,7 +181,7 @@ classdef Filter_LevelSet < handle
             [P_global,active_nodes_global]=obj.findCutPoints_Global(x,cut_elem);            
             
             % !! VECTORITZAR: LOOPS PETITS, ELEMENTS DIRECTES !!
-            %             figure, hold on
+%             figure, hold on
             for icut = 1:length(cut_elem)
                 ielem = cut_elem(icut); inode_global = obj.connectivities(ielem,:);
                 cutPoints_iso = P_iso(active_nodes_iso(:,:,icut),:,icut);
@@ -205,9 +205,9 @@ classdef Filter_LevelSet < handle
                     f = (interp_element.shape*quadrature_facet.weigp')'*F(inode_global)/interp_facet.dvolu;
                     shape_all(ielem,:) = shape_all(ielem,:) + (interp_element.shape*(dt_dxi.*quadrature_facet.weigp')*f)';
                     
-                    %                     plot(obj.coordinates(obj.connectivities(ielem,:),1),obj.coordinates(obj.connectivities(ielem,:),2),'.-b'); plot(obj.coordinates(obj.connectivities(ielem,[1 4]),1),obj.coordinates(obj.connectivities(ielem,[1 4]),2),'.-b');
-                    %                     plot(cutPoints_global(connec_facets(i,:),1),cutPoints_global(connec_facets(i,:),2),'-xr');
-                    %                     title('Cut Elements & Cut points in GLOBAL coordinates'), axis('equal')
+%                     plot(obj.coordinates(obj.connectivities(ielem,:),1),obj.coordinates(obj.connectivities(ielem,:),2),'.-b'); plot(obj.coordinates(obj.connectivities(ielem,[1 4]),1),obj.coordinates(obj.connectivities(ielem,[1 4]),2),'.-b');
+%                     plot(cutPoints_global(connec_facets(i,:),1),cutPoints_global(connec_facets(i,:),2),'-xr');
+%                     title('Cut Elements & Cut points in GLOBAL coordinates'), axis('equal')
                 end
             end
             M2=obj.rearrangeOutputRHS(shape_all);
@@ -239,7 +239,7 @@ classdef Filter_LevelSet < handle
                 
                 for idel = 1:length(node_positive_iso)
                     [a, ~] = find(del_connec==node_positive_iso(idel));
-                    connec_facets(idel,:) = del_connec(a,del_connec(a,:)~=node_positive_iso(idel))-interpolation.nnode;
+                    connec_facets(idel,:) = del_connec(a(end),del_connec(a(end),:)~=node_positive_iso(idel))-interpolation.nnode;
                 end
             else
                 error('Case still not implemented.')

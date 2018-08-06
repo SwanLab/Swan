@@ -31,8 +31,6 @@ classdef TopOpt_Problem < handle
                     obj.optimizer = Optimizer_MMA(settings,obj.mesh);
                 case 'IPOPT'
                     obj.optimizer = Optimizer_IPOPT(settings,obj.mesh);
-%                 case 'HAMILTON-JACOBI' % !! Provisional !! --> It is unconstrained !!
-%                     obj.optimizer = Optimizer_HJ(settings,obj.mesh);
                 otherwise
                     error('Invalid optimizer.')
             end

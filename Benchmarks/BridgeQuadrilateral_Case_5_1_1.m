@@ -1,13 +1,13 @@
 filename='Bridge_Quadrilateral_Bilinear_Structured';
 ptype = 'MACRO';
-method = 'SIMPALL'; % !! Instead of proportional to material density !!
+method = 'SIMP_P3'; % !! Instead of proportional to material density !!
 materialType = 'ISOTROPIC';
 initial_case = 'holes';
 cost = {'compliance'};
 weights = [1];
-constraint = {'volume','perimeter'};
+constraint = {'volume'};
 optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
-filterType = 'P1';
+filterType = 'PDE';
 
 nsteps = 1;
 Vfrac_final = 0.5;

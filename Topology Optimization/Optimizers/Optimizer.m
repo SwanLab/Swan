@@ -69,7 +69,7 @@ classdef Optimizer < handle
                     
                 case 'holes'
                     % !! PATCH !!
-                    if contains(obj.case_file,'Bridge')
+                    if contains(lower(obj.case_file),'bridge')
                         load(fullfile(pwd,'Allaire_ShapeOpt','init_x_bridge'));
                     elseif contains(obj.case_file,'Cantilever')
                         load(fullfile(pwd,'Allaire_ShapeOpt','init_x_cantilever'));

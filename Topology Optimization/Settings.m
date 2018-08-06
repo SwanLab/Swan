@@ -21,6 +21,7 @@ classdef Settings
         Perimeter_target
         epsilon_isotropy_initial
         epsilon_isotropy_final
+        HJiter0
     end
     
     properties
@@ -122,6 +123,13 @@ classdef Settings
                 if ~contains(case_file,'test','IgnoreCase',true)
                     fprintf('-Perimeter target: %f \n',obj.Perimeter_target)
                 end
+            end
+            if exist('epsilon_initial','var')
+                obj.epsilon_initial = epsilon_initial;
+                obj.epsilon_final = epsilon_final;
+            end
+            if exist('HJiter0','var')
+                obj.HJiter0 = HJiter0;
             end
             if exist('micro','var')
                 obj.micro.alpha = micro.alpha;

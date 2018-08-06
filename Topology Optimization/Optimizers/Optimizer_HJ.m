@@ -4,6 +4,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         optimality_tol
         constr_tol
         HJiter
+        HJiter0; % !! Could be set in settings !!
         HJiter_min = 1;
         % !! Move to ShFunc_Velocity (?) eventually !!
         filter
@@ -11,15 +12,14 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
     
     methods
         function obj = Optimizer_HJ(settings,epsilon)
-            % !! PACHT !!
-            HJiter0 = 30;
             obj@Optimizer_Unconstrained(settings,epsilon);
             %             obj.ini_design_value = -1.015243959022692;
             %             obj.hole_value = 0.507621979511346;
             % !! Currently NOT USED because init_design is loaded !!
             obj.ini_design_value = -0.1;
             obj.hole_value = 0.1;
-            obj.HJiter = HJiter0;
+            obj.HJiter0 = settings.HJiter0;
+            obj.HJiter = obj.HJiter0;
             obj.kappa = 1;
             obj.kappa_min = 1e-5;
             obj.max_constr_change = +Inf;
@@ -32,7 +32,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             end
             obj.filter =  Filter.create(settings);
             obj.filter.preProcess;
-            obj.filter.updateEpsilon(0.03);
+            obj.filter.updateEpsilon(epsilon);
         end
         
         function optimality_tol = get.optimality_tol(obj)
@@ -68,16 +68,19 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             incr_norm_L2  = obj.norm_L2(x,x_ini);
             incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
             
-            if obj.HJiter > obj.HJiter_min
-                obj.HJiter = round(obj.HJiter/obj.kfrac);
-            else
-                obj.kappa = obj.kappa/obj.kfrac;
-            end
             obj.stop_criteria = ~((incr_cost < 0 && incr_norm_L2 < obj.max_constr_change) || obj.kappa <= obj.kappa_min);
             
             obj.stop_vars(1,1) = incr_cost;     obj.stop_vars(1,2) = 0;
             obj.stop_vars(2,1) = incr_norm_L2;   obj.stop_vars(2,2) = obj.max_constr_change;
             obj.stop_vars(3,1) = obj.kappa;     obj.stop_vars(3,2) = obj.kappa_min;
+            
+            if obj.stop_criteria
+                if obj.HJiter > obj.HJiter_min
+                    obj.HJiter = round(obj.HJiter/obj.kfrac);
+                else
+                    obj.kappa = obj.kappa/obj.kfrac;
+                end
+            end
         end
         
         function phi_vect = updatePhi(obj,design_variable,gradient,dt)
@@ -102,9 +105,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         
         function computeKappa(obj,~,~,~)
             obj.kappa = 1;
-            % !! PATCH !!
-            HJiter0 = 30;
-            obj.HJiter = HJiter0;
+            obj.HJiter = obj.HJiter0;
         end
         
         function v = regularize(~,x,V_vect)
