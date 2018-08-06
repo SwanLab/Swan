@@ -10,7 +10,7 @@ clear variables;
 
 %% Main
 filenames ={ %Write several cases here to compute all
-    'CantileverHexahedraCoarse_Case_1_1_1';
+    'test_cantilever_projected_slerp';
    %'BridgeTetrahedraCoarse_Case_1_1_1';
  %   'ChairTetrahedraCoarse_Case_1_1_1';
        

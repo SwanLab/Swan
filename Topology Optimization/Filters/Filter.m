@@ -85,7 +85,7 @@ classdef Filter < handle
                     switch settings.optimizer
                         case {'MMA','PROJECTED GRADIENT','IPOPT'}
                             obj = Filter_P1_Density(settings.filename,settings.ptype);
-                        case 'SLERP'
+                        case {'SLERP','PROJECTED SLERP'}
                             obj = Filter_P1_LevelSetMarching(settings.filename,settings.ptype);
                     end
                 case 'PDE'

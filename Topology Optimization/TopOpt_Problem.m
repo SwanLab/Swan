@@ -29,6 +29,8 @@ classdef TopOpt_Problem < handle
                     obj.optimizer = Optimizer_MMA(settings,obj.mesh);
                 case 'IPOPT'
                     obj.optimizer = Optimizer_IPOPT(settings,obj.mesh);
+                case 'PROJECTED SLERP'
+                     obj.optimizer = Optimizer_Projected_Slerp(settings,obj.mesh,obj.incremental_scheme.epsilon);
             end
             obj.cost = Cost(settings,settings.weights,obj.optimizer.postprocess); % Change to just enter settings
             obj.constraint = Constraint(settings);

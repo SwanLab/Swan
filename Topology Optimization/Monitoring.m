@@ -129,7 +129,7 @@ classdef Monitoring < handle
         
         function obj = getStopVarsNames(obj,optimizer)
             switch optimizer
-                case 'SLERP'
+                case {'SLERP','PROJECTED SLERP'}
                     obj.stop_names = {'\Deltacost';'Norm L2';'\kappa'};
                 case 'PROJECTED GRADIENT'
                     obj.stop_names = {'\Deltacost';'Norm L2';'\kappa'};

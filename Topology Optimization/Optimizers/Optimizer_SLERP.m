@@ -26,7 +26,8 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         end
         
         function x = updateX(obj,x_ini,cost,constraint)
-            x = obj.updatePhi(x_ini,obj.objfunc.gradient);
+            theta = obj.computeTheta(design_variable,obj.objfunc.gradient);
+            x = obj.updatePhi(x_ini,obj.objfunc.gradient,theta);
             cost.computef(x);
             constraint.computef(x);
             constraint =obj.setConstraint_case(constraint); 
@@ -39,7 +40,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             obj.stop_criteria = ~((incr_cost < 0 && incr_norm_L2 < obj.max_constr_change) || obj.kappa <= obj.kappa_min);
             
             obj.stop_vars(1,1) = incr_cost;     obj.stop_vars(1,2) = 0;
-            obj.stop_vars(2,1) = incr_norm_L2;   obj.stop_vars(2,2) = obj.max_constr_change;
+            obj.stop_vars(2,1) = incr_norm_L2;  obj.stop_vars(2,2) = obj.max_constr_change;
             obj.stop_vars(3,1) = obj.kappa;     obj.stop_vars(3,2) = obj.kappa_min;
         end
         
@@ -53,8 +54,8 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             %norm_dif_rel = norm_g_f;
         end
         
-        function phi = updatePhi(obj,design_variable,gradient)
-            theta = obj.computeTheta(design_variable,gradient);
+        function phi = updatePhi(obj,design_variable,gradient,theta)
+
             phi_n = design_variable;
             norm_g = sqrt(obj.scalar_product.computeSP(gradient,gradient));
             

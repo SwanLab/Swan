@@ -20,8 +20,12 @@ classdef Optimizer_Constrained < Optimizer
         function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
             cost.computef(x_ini);
             constraint.computef(x_ini);
+            x_ini = obj.compute_initial_value(x_ini,cost,constraint);
+            cost.computef(x_ini);
+            constraint.computef(x_ini);
             obj.plotX(x_ini)
             obj.print(x_ini,obj.niter);
+            x = x_ini;
             while obj.stop_criteria && obj.niter < obj.maxiter
                 obj.niter = obj.niter+1;
                 x = obj.updateX(x_ini,cost,constraint);
@@ -33,6 +37,13 @@ classdef Optimizer_Constrained < Optimizer
             end
             obj.stop_criteria = 1;
         end 
+        
+
+        function x_ini = obj.compute_initial_value(x_ini,cost,constraint)
+            
+        end
+        
+        
     end
     
 %     methods (Abstract)
