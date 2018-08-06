@@ -18,6 +18,7 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
+            x = x_ini;
             cost.computef(x_ini);
             constraint.computef(x_ini);
             obj.plotX(x_ini)

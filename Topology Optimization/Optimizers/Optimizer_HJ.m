@@ -71,8 +71,6 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         function phi_vect = updatePhi(obj,design_variable,gradient)
                         % !! PATCH !!
             load(fullfile(pwd,'Allaire_ShapeOpt','meshSize'));
-
- 
             gradient = -obj.filter.regularize(design_variable,gradient);
 
 %             load(fullfile(pwd,'Allaire_ShapeOpt','conversion'));                        
