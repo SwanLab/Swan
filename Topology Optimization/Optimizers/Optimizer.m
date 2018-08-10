@@ -15,6 +15,7 @@ classdef Optimizer < handle
     
     properties (Access = ?Optimizer_Constrained)
         plotting
+        showBC
         printing
         monitoring
         mesh
@@ -99,12 +100,12 @@ classdef Optimizer < handle
                 x = x/sqrt(sqrt_norma);
             end
             
-%             % !! CONFLICT !! --> x in Allaire's code: [-0.1, 0.1]
-%             load(fullfile(pwd,'Allaire_ShapeOpt','conversion'));
-%             for n = 1:length(x)
-%                 x_mat(b1(n,1),b1(n,2)) = x(n);
-%             end
-%             figure, surf(x_mat);
+            %             % !! CONFLICT !! --> x in Allaire's code: [-0.1, 0.1]
+            %             load(fullfile(pwd,'Allaire_ShapeOpt','conversion'));
+            %             for n = 1:length(x)
+            %                 x_mat(b1(n,1),b1(n,2)) = x(n);
+            %             end
+            %             figure, surf(x_mat);
         end
     end
     
@@ -200,12 +201,37 @@ classdef Optimizer < handle
                 %                     'EdgeColor','none','LineStyle','none','FaceLighting','phong');
                 obj.fhtri=patch('Faces',obj.mesh.connec,'Vertices',obj.mesh.coord,'FaceVertexCData',double(rho_nodal),'FaceColor','flat',...
                     'EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
-                if strcmp(obj.mesh.pdim,'3D')
-                    obj.fhtri.FaceAlpha = 0.5;
-                    view(30,30);
-                end
                 colormap(flipud(gray));
                 set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
+                
+                switch obj.mesh.pdim
+                    case '2D'
+                        ndim = 2;
+                    case '3D'
+                        ndim = 3;
+                        obj.fhtri.FaceAlpha = 0.5;
+                        view(30,30);
+                end
+                
+                if obj.showBC
+                    [inodef,iforce]  = unique(obj.mesh.pointload(:,1));
+                    [inodec,iconst]  = unique(obj.mesh.dirichlet(:,1));
+                    force = zeros(length(iforce),3);
+                    const = zeros(length(iconst),3);
+                    
+                    for idim = 1:ndim
+                        force(:,idim) = obj.mesh.pointload(obj.mesh.pointload(:,2)==idim,3);
+                        const(:,idim) = obj.mesh.dirichlet(obj.mesh.dirichlet(:,2)==idim,3);
+                    end
+                    
+                    hold on
+                    plot3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),'ro')
+                    quiver3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),force(:,1),force(:,2),force(:,3),'r');
+                    plot3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),'bx')
+                    quiver3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),const(:,1),const(:,2),const(:,3),'b');
+                    hold off
+                end
+
                 axis equal
                 drawnow;
             else

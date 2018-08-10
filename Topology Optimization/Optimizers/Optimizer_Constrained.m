@@ -11,6 +11,7 @@ classdef Optimizer_Constrained < Optimizer
             obj@Optimizer(settings);
             obj.maxiter = settings.maxiter;
             obj.plotting = settings.plotting;
+            obj.showBC = settings.showBC;
             obj.printing = settings.printing;
             obj.monitoring = Monitoring(settings,monitoring);
             obj.optimizer = settings.optimizer;

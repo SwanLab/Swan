@@ -29,6 +29,14 @@ classdef Preprocess<handle
             data.problem_dim = strjoin(Data_prb(3));
             data.problem_type = strjoin(Data_prb(5));
             data.scale = strjoin(Data_prb(6));
+            
+            if exist('dirichlet_data','var')
+                data.dirichlet_data = dirichlet_data;
+            else
+                data.dirichlet_data = lnodes;
+            end
+            
+            data.pointload = pointload_complete;
         end
         
         function [fixnodes,forces,full_dirichlet_data,Master_slave] = getBC_mechanics(filename)

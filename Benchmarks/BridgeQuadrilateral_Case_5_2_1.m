@@ -14,7 +14,7 @@ Vfrac_final = 0.5;
 Perimeter_target=3.5;
 optimality_final =1e-3;
 constr_final =1e-3;
-HJiter0 = 1;
+HJiter0 = 30;
 
 Vfrac_initial = 1;
 optimality_initial = 1e-3;

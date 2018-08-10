@@ -5,6 +5,8 @@ classdef Mesh
         coord
         connec
         pdim
+        dirichlet
+        pointload
     end
     
     properties (GetAccess = public,SetAccess = public)
@@ -19,6 +21,8 @@ classdef Mesh
             data = Preprocess.readFromGiD(filename);
             obj.coord = data.xpoints(:,2:4);
             obj.connec = data.connectivities(:,2:length(data.connectivities(1,:)));
+            obj.dirichlet = data.dirichlet_data;
+            obj.pointload = data.pointload;
             obj.geometryType = data.geometry;
             obj.pdim = data.problem_dim;
             obj.ptype = data.problem_type;
