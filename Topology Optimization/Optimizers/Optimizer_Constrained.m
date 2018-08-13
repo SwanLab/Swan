@@ -12,6 +12,7 @@ classdef Optimizer_Constrained < Optimizer
             obj.maxiter = settings.maxiter;
             obj.plotting = settings.plotting;
             obj.showBC = settings.showBC;
+            obj.BCsize_factor = settings.BCsize_factor;
             obj.printing = settings.printing;
             obj.monitoring = Monitoring(settings,monitoring);
             obj.optimizer = settings.optimizer;

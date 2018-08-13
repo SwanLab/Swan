@@ -17,6 +17,7 @@ classdef Optimizer < handle
     properties (Access = ?Optimizer_Constrained)
         plotting
         showBC
+        BCsize_factor
         printing
         monitoring
         mesh
@@ -215,6 +216,8 @@ classdef Optimizer < handle
                         force(:,idim) = obj.mesh.pointload(obj.mesh.pointload(:,2)==idim,3);
                         const(:,idim) = obj.mesh.dirichlet(obj.mesh.dirichlet(:,2)==idim,3);
                     end
+                    force = force*(obj.BCsize_factor*max(obj.mesh.coord(:))/max(abs(force(:))));
+                    const = const*(obj.BCsize_factor*max(obj.mesh.coord(:))/max(abs(const(:))));
                     
                     hold on
                     plot3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),'ro')
@@ -225,6 +228,7 @@ classdef Optimizer < handle
                 end
                 
                 axis equal
+                axis off
                 drawnow;
             else
                 set(obj.fhtri,'FaceVertexCData',double(rho_nodal));
