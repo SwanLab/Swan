@@ -9,7 +9,8 @@ constraint = {'volume'};
 optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
 filterType = 'P1';
 
-HJiter0 = 30;
+HJiter0 = 1;
+e2 = 30;
 N_holes = [5 6];
 R_holes = 0.7;
 phase_holes = [0 pi/2];

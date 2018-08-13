@@ -6,6 +6,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         HJiter
         HJiter0; % !! Could be set in settings !!
         HJiter_min = 1;
+        e2
         % !! Move to ShFunc_Velocity (?) eventually !!
         filter
     end
@@ -21,6 +22,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             
             obj.HJiter0 = settings.HJiter0;
             obj.HJiter = obj.HJiter0;
+            obj.e2 = settings.e2;
             obj.kappa = 1;
             obj.kappa_min = 1e-5;
             obj.max_constr_change = +Inf;
@@ -81,7 +83,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
 %             figure, surf(V_mat);
 %             V = obj.regularize(x_ini,V);
             
-            dt = 0.5*obj.kappa*min(dx,dy)/max(abs(gradient(:))) ;
+            dt = 0.5*obj.e2*obj.kappa*min(dx,dy)/max(abs(gradient(:))) ;
             % !! PATCH !!
             load(fullfile(pwd,'Allaire_ShapeOpt','conversion'));
             load(fullfile(pwd,'Allaire_ShapeOpt','meshSize'));

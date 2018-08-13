@@ -11,6 +11,8 @@ classdef Settings
         N_holes = [5 6 4];
         R_holes = 0.7;
         phase_holes = [0 pi/2 0];
+        HJiter0 = 1
+        e2 = 30
     end
     
     properties %target parameters
@@ -25,7 +27,6 @@ classdef Settings
         Perimeter_target
         epsilon_isotropy_initial
         epsilon_isotropy_final
-        HJiter0 = 1
     end
     
     properties
@@ -137,6 +138,9 @@ classdef Settings
             end
             if exist('HJiter0','var')
                 obj.HJiter0 = HJiter0;
+            end
+             if exist('e2','var')
+                obj.e2 = e2;
             end
             if exist('N_holes','var')
                 obj.N_holes = N_holes;

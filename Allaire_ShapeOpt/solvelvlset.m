@@ -14,7 +14,7 @@ function solvedphi = solvelvlset(phi,V,dt,HJiter,lagP,RIiter,RIfreq,dx,dy)
     
     % We reinitialize the level set function for every RIfreq
     % time steps while solving the transport level set equation:
-    if mod(i,RIfreq) == 0 
+    if mod(i,RIfreq) == 0 || i == 1
       phi = mesh00(phi,RIiter,dx,dy) ;
     end     
     
