@@ -52,9 +52,9 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
 %         'CantileverTriangle_Case_1_2_1'
 %     'CantileverTriangle_Case_1_2_4'
 %     'BridgeQuadrilateral_Case_5_1_1'
-    'BridgeQuadrilateral_Case_5_2_1'
+%     'BridgeQuadrilateral_Case_5_2_1'
 %     'BridgeQuadrilateral_Case_5_3_1'
-% 'CantileverTetrahedraCoarse_Case_1_2_1'
+'CantileverTetrahedraCoarse_Case_1_2_1'
 % 'CantileverHexahedra_Case_5_2_1'
     };
 for icases=1:size(filenames,1)

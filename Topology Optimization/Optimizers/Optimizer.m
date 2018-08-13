@@ -17,7 +17,7 @@ classdef Optimizer < handle
     properties (Access = ?Optimizer_Constrained)
         plotting
         showBC
-        BCsize_factor
+        BCscale_factor
         printing
         monitoring
         mesh
@@ -216,14 +216,12 @@ classdef Optimizer < handle
                         force(:,idim) = obj.mesh.pointload(obj.mesh.pointload(:,2)==idim,3);
                         const(:,idim) = obj.mesh.dirichlet(obj.mesh.dirichlet(:,2)==idim,3);
                     end
-                    force = force*(obj.BCsize_factor*max(obj.mesh.coord(:))/max(abs(force(:))));
-                    const = const*(obj.BCsize_factor*max(obj.mesh.coord(:))/max(abs(const(:))));
                     
                     hold on
                     plot3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),'ro')
-                    quiver3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),force(:,1),force(:,2),force(:,3),'r');
+                    quiver3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),force(:,1),force(:,2),force(:,3),'r','AutoScaleFactor',obj.BCscale_factor*max(obj.mesh.coord(:))/max(abs(force(:))));
                     plot3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),'bx')
-                    quiver3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),const(:,1),const(:,2),const(:,3),'b');
+                    quiver3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),const(:,1),const(:,2),const(:,3),'b','AutoScaleFactor',obj.BCscale_factor*max(obj.mesh.coord(:))/max(abs(const(:))));
                     hold off
                 end
                 

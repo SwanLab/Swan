@@ -2,7 +2,7 @@ classdef Settings
     properties %optmizer access
         plotting = true
         showBC = true
-        BCsize_factor = 0.10
+        BCscale_factor = 0.10
         printing = true
         printing_physics = false
         monitoring = true
@@ -94,8 +94,8 @@ classdef Settings
             if exist('showBC','var')
                 obj.showBC = showBC;
             end
-            if exist('BCsize_factor','var')
-                obj.BCsize_factor = BCsize_factor;
+            if exist('BCscale_factor','var')
+                obj.BCscale_factor = BCscale_factor;
             end
             if exist('printing','var')
                 obj.printing = printing;
