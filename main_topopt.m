@@ -52,17 +52,18 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
 %         'CantileverTriangle_Case_1_2_1'
 %     'CantileverTriangle_Case_1_2_4'
 %     'BridgeQuadrilateral_Case_5_1_1'
-%     'BridgeQuadritlateral_Case_5_2_1'
+%     'BridgeQuadrilateral_Case_5_2_1'
 %     'BridgeQuadrilateral_Case_5_3_1'
-'CantileverTetrahedraCoarse_Case_1_2_1'
+% 'CantileverTetrahedraCoarse_Case_1_2_1'
+'CantileverHexahedra_Case_5_2_1'
     };
 for icases=1:size(filenames,1)
     clearvars -except filenames icases;
     close all;
     settings=Settings(filenames{icases});
     % --------------------------- !! DELETE !! ----------------------------
-%     [A1,b1,A0,b0] = conversionTensors(settings.filename,2,1,120,60);
-%     save(fullfile(pwd,'Allaire_ShapeOpt','conversion'),'A0','A1','b0','b1');
+    [A1,b1,A0,b0] = conversionTensors(settings.filename,2,1,120,60);
+    save(fullfile(pwd,'Allaire_ShapeOpt','conversion'),'A0','A1','b0','b1');
     % ---------------------------------------------------------------------
     test = TopOpt_Problem(settings);
     test.preProcess;

@@ -13,11 +13,12 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
     methods
         function obj = Optimizer_HJ(settings,epsilon)
             obj@Optimizer_Unconstrained(settings,epsilon);
+            % !! Check wheter it affects the problem! !!
             %             obj.ini_design_value = -1.015243959022692;
             %             obj.hole_value = 0.507621979511346;
-            % !! Currently NOT USED because init_design is loaded !!
             obj.ini_design_value = -0.1;
             obj.hole_value = 0.1;
+            
             obj.HJiter0 = settings.HJiter0;
             obj.HJiter = obj.HJiter0;
             obj.kappa = 1;

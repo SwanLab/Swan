@@ -8,6 +8,9 @@ classdef Settings
         monitoring_interval = 10
         maxiter = 2000
         constraint_case = 'EQUALITY';
+        N_holes = [5 6 4];
+        R_holes = 0.7;
+        phase_holes = [0 pi/2 0];
     end
     
     properties %target parameters
@@ -22,7 +25,7 @@ classdef Settings
         Perimeter_target
         epsilon_isotropy_initial
         epsilon_isotropy_final
-        HJiter0
+        HJiter0 = 1
     end
     
     properties
@@ -134,6 +137,15 @@ classdef Settings
             end
             if exist('HJiter0','var')
                 obj.HJiter0 = HJiter0;
+            end
+            if exist('N_holes','var')
+                obj.N_holes = N_holes;
+            end
+            if exist('R_holes','var')
+                obj.R_holes = R_holes;
+            end
+            if exist('phase_holes','var')
+                obj.phase_holes = phase_holes;
             end
             if exist('micro','var')
                 obj.micro.alpha = micro.alpha;
