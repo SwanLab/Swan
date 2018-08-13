@@ -62,12 +62,12 @@ for icases=1:size(filenames,1)
     close all;
     settings=Settings(filenames{icases});
     % --------------------------- !! DELETE !! ----------------------------
-    if ~contains(lower(filenames{icases}),'hexa')
-        [A1,b1,A0,b0] = conversionTensors(settings.filename,2,1,120,60);
-    else
-        [A1,b1,A0,b0] = conversionTensors3D(settings.filename,60,20,20,24,8,8);
-    end
-    save(fullfile(pwd,'Allaire_ShapeOpt','conversion'),'A0','A1','b0','b1');
+%     if ~contains(lower(filenames{icases}),'hexa')
+%         [A1,b1,A0,b0] = conversionTensors(settings.filename,2,1,120,60);
+%     else
+%         [A1,b1,A0,b0] = conversionTensors3D(settings.filename,60,20,20,24,8,8);
+%     end
+%     save(fullfile(pwd,'Allaire_ShapeOpt','conversion'),'A0','A1','b0','b1');
     % ---------------------------------------------------------------------
     test = TopOpt_Problem(settings);
     test.preProcess;
