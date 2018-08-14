@@ -1,4 +1,4 @@
-filename='Cantileverbeam_Hexahedra_Bilinear_Structured_Coarse';
+filename='Cantileverbeam_Hexahedra_Linear_Structured_Coarse';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';

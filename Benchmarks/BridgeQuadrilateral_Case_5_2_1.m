@@ -9,13 +9,17 @@ constraint = {'volume'};
 optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
 filterType = 'P1';
 
+HJiter0 = 1;
+e2 = 30;
+N_holes = [5 6];
+R_holes = 0.7;
+phase_holes = [0 pi/2];
+
 nsteps = 1;
 Vfrac_final = 0.5;
 Perimeter_target=3.5;
 optimality_final =1e-3;
 constr_final =1e-3;
-HJiter0 = 1;
-maxiter = 50;
 
 Vfrac_initial = 1;
 optimality_initial = 1e-3;

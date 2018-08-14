@@ -9,20 +9,25 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         % !! REMOVE?? !!
         allow = 0.5;
         niter = 0;
+        e2
         % !! Move to ShFunc_Velocity (?) eventually !!
         filter
+        case_file %% !! PROVISIONAL: Just for 3D Shape Opt debugging !! Delete when done
     end
     
     methods
         function obj = Optimizer_HJ(settings,epsilon)
             obj@Optimizer_Unconstrained(settings,epsilon);
+            % !! Check wheter it affects the problem! !!
             %             obj.ini_design_value = -1.015243959022692;
             %             obj.hole_value = 0.507621979511346;
-            % !! Currently NOT USED because init_design is loaded !!
             obj.ini_design_value = -0.1;
             obj.hole_value = 0.1;
+            
+            obj.case_file = settings.case_file;
             obj.HJiter0 = settings.HJiter0;
             obj.HJiter = obj.HJiter0;
+            obj.e2 = settings.e2;
             obj.kappa = 1;
             obj.kappa_min = 1e-5;
             obj.max_constr_change = +Inf;
@@ -58,6 +63,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             obj.objfunc.computeFunction(cost,constraint)
             
             incr_norm_L2  = obj.norm_L2(x,x_ini);
+
 %             incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
             incr_cost = (obj.objfunc.value - obj.objfunc.value_initial*(1+obj.allow))/abs(obj.objfunc.value_initial);
             

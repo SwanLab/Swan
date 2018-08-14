@@ -1,12 +1,19 @@
 classdef Settings
     properties %optmizer access
         plotting = true
+        showBC = true
+        BCscale_factor = 0.10
         printing = true
         printing_physics = false
         monitoring = true
         monitoring_interval = 10
         maxiter = 2000
         constraint_case = 'EQUALITY';
+        N_holes = [5 6 4];
+        R_holes = 0.7;
+        phase_holes = [0 pi/2 0];
+        HJiter0 = 1
+        e2 = 30
     end
     
     properties %target parameters
@@ -21,7 +28,6 @@ classdef Settings
         Perimeter_target
         epsilon_isotropy_initial
         epsilon_isotropy_final
-        HJiter0
     end
     
     properties
@@ -85,6 +91,12 @@ classdef Settings
             if exist('plotting','var')
                 obj.plotting = plotting;
             end
+            if exist('showBC','var')
+                obj.showBC = showBC;
+            end
+            if exist('BCscale_factor','var')
+                obj.BCscale_factor = BCscale_factor;
+            end
             if exist('printing','var')
                 obj.printing = printing;
             end
@@ -130,6 +142,19 @@ classdef Settings
             end
             if exist('HJiter0','var')
                 obj.HJiter0 = HJiter0;
+            end
+
+             if exist('e2','var')
+                obj.e2 = e2;
+            end
+            if exist('N_holes','var')
+                obj.N_holes = N_holes;
+            end
+            if exist('R_holes','var')
+                obj.R_holes = R_holes;
+            end
+            if exist('phase_holes','var')
+                obj.phase_holes = phase_holes;
             end
             if exist('micro','var')
                 obj.micro.alpha = micro.alpha;
