@@ -41,9 +41,8 @@ classdef ShFunc_Compliance < Shape_Functional
                         gradient_compliance(:,igaus) = gradient_compliance(:,igaus) + obj.updateGradient(igaus,istre,jstre);
                     end
                 end
-            end
-            
-            gradient_compliance = obj.filter.getP1fromP0(gradient_compliance);
+            end           
+            gradient_compliance = obj.filter.getP1fromP0(gradient_compliance);            
             gradient_compliance = obj.Msmooth*gradient_compliance;
             
             if isempty(obj.h_C_0)

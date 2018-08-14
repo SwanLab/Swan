@@ -23,12 +23,16 @@ classdef TopOpt_Problem < handle
             switch obj.settings.optimizer
                 case 'SLERP'
                     obj.optimizer = Optimizer_AugLag(settings,obj.mesh,Optimizer_SLERP(settings,obj.incremental_scheme.epsilon));
+                case 'HAMILTON-JACOBI'
+                    obj.optimizer = Optimizer_AugLag(settings,obj.mesh,Optimizer_HJ(settings,obj.incremental_scheme.epsilon));
                 case 'PROJECTED GRADIENT'
                     obj.optimizer = Optimizer_AugLag(settings,obj.mesh,Optimizer_PG(settings,obj.incremental_scheme.epsilon));
                 case 'MMA'
                     obj.optimizer = Optimizer_MMA(settings,obj.mesh);
                 case 'IPOPT'
                     obj.optimizer = Optimizer_IPOPT(settings,obj.mesh);
+                otherwise
+                    error('Invalid optimizer.')
             end
             obj.cost = Cost(settings,settings.weights,obj.optimizer.postprocess); % Change to just enter settings
             obj.constraint = Constraint(settings);

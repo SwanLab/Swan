@@ -33,6 +33,12 @@ classdef Filter_PDE < Filter
             x_gp = obj.A_nodal_2_gauss*x_reg;
         end
         
+        % !! For SHAPE OPTIMIZATION (regularize) !!
+        function x_reg = regularize(obj,x,F)
+            rhs_x = obj.integrate_facet_with_shape_function(x,F);
+            x_reg = obj.solve_filter(rhs_x);
+        end
+        
         function rhs = integrate_P1_function_with_shape_function(obj,x)
             gauss_sum=0;
             for igauss=1:size(obj.M0,2)                

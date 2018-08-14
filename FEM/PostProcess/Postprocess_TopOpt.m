@@ -67,7 +67,7 @@ classdef Postprocess_TopOpt < Postprocess
         
         function PrintMeshFile(obj,iter)
             ifield=1;
-            msh_file = fullfile('Output',obj.file_name,strcat(obj.file_name,'_',num2str(iter),'.flavia.msh'));
+            msh_file = fullfile('Output',obj.file_name,strcat(obj.file_name,'_it_',num2str(iter),'.flavia.msh'));
             obj.fid_mesh = fopen(msh_file,'w');
             obj.printTitle(obj.fid_mesh);
             %                         fprintf(obj.fid_mesh,'Group "%c" \n',mesh_group(ifield));
@@ -130,7 +130,7 @@ classdef Postprocess_TopOpt < Postprocess
         end
         
         function PrintResFile(obj,results)
-            res_file = fullfile('Output',obj.file_name,strcat(obj.file_name,'_',num2str(results.iter),'.flavia.res'));
+            res_file = fullfile('Output',obj.file_name,strcat(obj.file_name,'_it_',num2str(results.iter),'.flavia.res'));
             obj.fid_res = fopen(res_file,'w');
             obj.Write_header_res_file
             obj.Print_results(results)
@@ -142,7 +142,7 @@ classdef Postprocess_TopOpt < Postprocess
     methods (Static)
         function obj = Create(optimizer)
             switch optimizer
-                case 'SLERP'
+                case {'SLERP', 'HAMILTON-JACOBI'}
                     obj = Postprocess_TopOpt_levelSet;
                 case {'PROJECTED GRADIENT', 'MMA', 'IPOPT'}
                     obj = Postprocess_TopOpt_density;
