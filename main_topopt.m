@@ -55,8 +55,8 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
 %         'BridgeQuadrilateral_Case_5_2_1'
     %     'BridgeQuadrilateral_Case_5_3_1'
 %     'CantileverHexahedra_Case_1_1_1'
-    'CantileverHexahedra_Case_5_1_1'
-%     'CantileverHexahedra_Case_5_2_1'
+%     'CantileverHexahedra_Case_5_1_1'
+    'CantileverHexahedra_Case_5_2_1'
     };
 for icases=1:size(filenames,1)
     clearvars -except filenames icases;
@@ -66,7 +66,7 @@ for icases=1:size(filenames,1)
     if ~contains(lower(filenames{icases}),'hexa')
         [A1,b1,A0,b0] = conversionTensors(settings.filename,2,1,120,60);
     else
-        [A1,b1,A0,b0] = conversionTensors3D(settings.filename,60,20,20,24,8,8);
+        [A1,b1,A0,b0] = conversionTensors3D(settings.filename,60,20,20,48,16,16);
     end
     save(fullfile(pwd,'Allaire_ShapeOpt','conversion'),'A0','A1','b0','b1');
     % ---------------------------------------------------------------------

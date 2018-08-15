@@ -16,14 +16,13 @@ run(problemID);
 A1 = zeros(nelz+1,nely+1,nelx+1);
 for n = 1:length(coord)
     inode = coord(n,1); x = coord(n,2); y = coord(n,3); z = coord(n,4);
-    %         i = 1 + round((y/H)*nely);
+    %         i = 1 + nelz - round((z/H)*nelz);
+    %         j = 1 + nely - round((y/W)*nely);
+    %     k = 1 + nelx - round((x/L)*nelx);
     
-%     i = 1 + nelz - round((z/H)*nelz);
-    j = 1 + nely - round((y/W)*nely);
-    k = 1 + nelx - round((x/L)*nelx);
-            i = 1 + round((z/H)*nelz);
-%             j = 1 + round((y/W)*nely);
-    %     k = 1 + round((x/L)*nelx);
+    i = 1 + round((z/H)*nelz);
+    j = 1 + round((y/W)*nely);
+    k = 1 + round((x/L)*nelx);
     
     A1(i,j,k) = inode;
     b1(inode,1) = i;
@@ -45,13 +44,13 @@ for n = 1:length(connec)
     elem_coord(n,2) = y;
     elem_coord(n,3) = z;
     
-%     i = nelz - round((z/H)*(nelz-1));
-    j = nely - round((y/W)*(nely-1));
-    k = nelx - round((x/L)*(nelx-1));
+    %     i = nelz - round((z/H)*(nelz-1));
+    %     j = nely - round((y/W)*(nely-1));
+    %     k = nelx - round((x/L)*(nelx-1));
     
     i = 1 + round((z/H)*(nelz-1));
-%     j = 1 + round((y/W)*(nely-1));
-%     k = 1 + round((x/L)*(nelx-1));
+    j = 1 + round((y/W)*(nely-1));
+    k = 1 + round((x/L)*(nelx-1));
     
     A0(i,j,k) = ielem;
     b0(ielem,1) = i;

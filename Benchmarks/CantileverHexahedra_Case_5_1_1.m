@@ -1,4 +1,4 @@
-filename='Cantileverbeam_Hexahedra_Linear_Structured_Coarse';
+filename='Cantileverbeam_Hexahedra_Linear_Structured';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -14,7 +14,13 @@ Vfrac_final = 0.5;
 Perimeter_target=3.5;
 optimality_final =1e-3;
 constr_final =1e-3;
+
+BCscale_factor = 0.3;
 HJiter0 = 1;
+e2 = 10;
+N_holes = [12 5 5];
+R_holes = 0.9;
+phase_holes = [0 0 0];
 
 Vfrac_initial = 0.8;
 optimality_initial = 1e-3;

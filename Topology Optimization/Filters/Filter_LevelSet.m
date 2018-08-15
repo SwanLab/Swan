@@ -135,15 +135,19 @@ classdef Filter_LevelSet < handle
         
         function [elecoord,global_connec,phi_cut]=computeDelaunay(obj,x,cut_elem)
             [P,active_nodes]=obj.findCutPoints_Iso(x,cut_elem);
-            elecoord=[];phi_cut=[];global_connec=[];
+            elecoord=[];phi_cut=[];global_connec=[]; k = 0;
             for ielem=1:length(cut_elem)
                 del_coord = [obj.geometry.interpolation.pos_nodes;P(active_nodes(:,:,ielem),:,ielem)];
-                del_x=[x(obj.connectivities(cut_elem(ielem),:));zeros(size(P(active_nodes(:,:,ielem)),1),1)];
+                del_x=[x(obj.connectivities(cut_elem(ielem),:));zeros(size(P(active_nodes(:,:,ielem)),1),1)]';
                 DT=delaunayTriangulation(del_coord);
                 del_connec=DT.ConnectivityList;
+                new_elecoord = permute(del_coord,[3 1 2]);
+                elecoord = [elecoord;zeros([size(del_connec),size(new_elecoord,3)])];
+                phi_cut = [phi_cut;zeros(size(del_connec))];
                 for idelaunay=1:size(del_connec,1)
-                    elecoord=[elecoord;permute(del_coord(del_connec(idelaunay,:),:)',[3 2 1])];
-                    phi_cut =[phi_cut;del_x(del_connec(idelaunay,:))'];
+                    k = k+1;
+                    elecoord(k,:,:) = new_elecoord(:,del_connec(idelaunay,:),:);
+                    phi_cut(k,:) = del_x(del_connec(idelaunay,:));
                 end
                 global_connec=[global_connec;repmat(cut_elem(ielem),[size(del_connec,1) 1])];
             end

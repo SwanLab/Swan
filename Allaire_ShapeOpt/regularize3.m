@@ -16,8 +16,12 @@ end
 for n = 1:length(V_vect)
     V(b1(n,1),b1(n,2),b1(n,3)) = V_vect(n);
 end
-figure, surf(-permute(V(:,5,:),[1 3 2]));
-
+% figure, surf(-permute(V(:,ceil(size(V,2)/2),:),[1 3 2])), title('Raw V')
+% figure('NumberTitle', 'off', 'Name', 'FEM-MAT-OO - Raw V')
+% subplot(2,2,1), surf(-V(:,:,2)), title('V - Root')
+% subplot(2,2,2), surf(-V(:,:,end-1)), title('V - Tip')
+% subplot(2,2,3), surf(permute(-V(ceil(size(V,1)/2),:,:),[2 3 1])), title('V - XY')
+% subplot(2,2,4), surf(permute(-V(:,ceil(size(V,2)/2),:),[1 3 2])), title('V - XZ')
 
 % Now we calculate the surface Dirac function.
 epsperim =min( min(dx,dy),dz)/20 ;
@@ -42,7 +46,8 @@ b = -V.*delta; % The right hand side is defined on the boundary so we use the de
 b_vect(A1(:,:,:)) = b(:,:,:);
 b_vect = b_vect';
 
-filter = Filter_PDE_Density('Cantileverbeam_Hexahedra_Bilinear_Structured_Coarse','MACRO');
+
+filter = Filter_PDE_Density('Cantileverbeam_Hexahedra_Bilinear_Structured','MACRO');
 filter.preProcess;
 filter.updateEpsilon(0.03);
 
@@ -50,6 +55,13 @@ v = filter.getP1fromP1(b_vect);
 for n = 1:length(v)
     V(b1(n,1),b1(n,2)) = v(n);
 end
-figure, surf(-permute(V(:,5,:),[1 3 2]));
+
+% figure, surf(-permute(V(:,ceil(size(V,2)/2),:),[1 3 2])), title('Regularized V')
+
+% figure('NumberTitle', 'off', 'Name', 'FEM-MAT-OO - Regularized V')
+% subplot(2,2,1), surf(-V(:,:,2)), title('V - Root')
+% subplot(2,2,2), surf(-V(:,:,end-1)), title('V - Tip')
+% subplot(2,2,3), surf(permute(-V(ceil(size(V,1)/2),:,:),[2 3 1])), title('V - XY')
+% subplot(2,2,4), surf(permute(-V(:,ceil(size(V,2)/2),:),[1 3 2])), title('V - XZ')
 
 end

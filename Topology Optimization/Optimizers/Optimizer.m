@@ -16,7 +16,7 @@ classdef Optimizer < handle
     
     properties (Access = ?Optimizer_Constrained)
         plotting
-%         case_file
+        %         case_file
         showBC
         BCscale_factor
         printing
@@ -27,7 +27,7 @@ classdef Optimizer < handle
     methods
         function obj = Optimizer(settings)
             obj.nconstr = settings.nconstr;
-%             obj.case_file=settings.case_file;
+            %             obj.case_file=settings.case_file;
             obj.holes.N_holes = settings.N_holes;
             obj.holes.R_holes = settings.R_holes;
             obj.holes.phase_holes = settings.phase_holes;
@@ -207,7 +207,6 @@ classdef Optimizer < handle
                         
                         axis equal
                         axis off
-                        drawnow;
                     else
                         switch obj.optimizer
                             %                     case {'SLERP','HAMILTON-JACOBI'}
@@ -219,7 +218,6 @@ classdef Optimizer < handle
                         
                         set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
                         axis equal
-                        drawnow;
                     end
                 case '3D'
                     ndim = 3;
@@ -234,7 +232,7 @@ classdef Optimizer < handle
                     cc=(iso+1000)*ones(size(c)+2);
                     cc(2:end-1,2:end-1,2:end-1)=c;
                     
-                    dim = [60 20 20]; div = [24 8 8];
+                    dim = [60 20 20]; div = [48 16 16];
                     [Y,X,Z]=meshgrid(-dim(1,2)/div(1,2):dim(1,2)/div(1,2):dim(1,2)+dim(1,2)/div(1,2),...
                         -dim(1,1)/div(1,1):dim(1,1)/div(1,1):dim(1,1)+dim(1,1)/div(1,1),...
                         -dim(1,3)/div(1,3):dim(1,3)/div(1,3):dim(1,3)+dim(1,3)/div(1,3));
@@ -262,7 +260,6 @@ classdef Optimizer < handle
                     rotate3d(gca);
                     set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
                     axis equal off
-                    
             end
             
             if obj.showBC
@@ -283,6 +280,7 @@ classdef Optimizer < handle
                 quiver3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),const(:,1),const(:,2),const(:,3),'b','AutoScaleFactor',obj.BCscale_factor*max(obj.mesh.coord(:))/max(abs(const(:))));
                 hold off
             end
+            drawnow;
         end
     end
 end

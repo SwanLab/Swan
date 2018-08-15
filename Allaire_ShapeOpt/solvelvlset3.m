@@ -9,6 +9,13 @@ function solvedphi = solvelvlset3(phi,V,dt,HJiter,lagP,RIiter,RIfreq,dx,dy,dz)
 % The scheme is second order in space and explicit
 % first order in time. The time step is dt and the
 % number of time steps (or iterations) is HJiter.
+
+% figure('NumberTitle', 'off', 'Name', 'FEM-MAT-OO - Phi_n')
+% subplot(2,2,1), surf(phi(:,:,1)), title('\phi_n - Root')
+% subplot(2,2,2), surf(phi(:,:,end)), title('\phi_n - Tip')
+% subplot(2,2,3), surf(permute(phi(ceil(size(phi,1)/2),:,:),[2 3 1])), title('\phi_n - XY')
+% subplot(2,2,4), surf(permute(phi(:,ceil(size(phi,2)/2),:),[1 3 2])), title('\phi_n - XZ')
+
 for i = 1 : HJiter
     
     % We reinitialize the level set function for every RIfreq
@@ -101,5 +108,11 @@ end
 solvedphi = phi ;
 %   phi(obj.FEM.row2mat( obj.unrem_nodes_index,'nodes')==1)=-0.1;
 
-figure, surf(-permute(phi(:,5,:),[1 3 2]));
+% figure, surf(-permute(phi(:,ceil(size(phi,2)/2),:),[1 3 2])), title('phi')
+
+% figure('NumberTitle', 'off', 'Name', 'Jesus - Phi_n_+_1')
+% subplot(2,2,1), surf(phi(:,:,1)), title('\phi_n_+_1 - Root')
+% subplot(2,2,2), surf(phi(:,:,end)), title('\phi_n_+_1 - Tip')
+% subplot(2,2,3), surf(permute(phi(ceil(size(phi,1)/2),:,:),[2 3 1])), title('\phi_n_+_1 - XY')
+% subplot(2,2,4), surf(permute(phi(:,ceil(size(phi,2)/2),:),[1 3 2])), title('\phi_n_+_1 - XZ')
 end

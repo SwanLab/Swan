@@ -7,7 +7,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         HJiter0; % !! Could be set in settings !!
         HJiter_min = 1;
         % !! REMOVE?? !!
-        allow = 0.5;
+        allow = 0.2;
         niter = 0;
         e2
         % !! Move to ShFunc_Velocity (?) eventually !!
@@ -53,7 +53,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         
         function x = updateX(obj,x_ini,cost,constraint)
             obj.niter = obj.niter+1;
-            if obj.niter > 10
+            if obj.niter > 20
                 obj.allow = 0;
             end
             x = obj.updatePhi(x_ini,obj.objfunc.gradient);
@@ -96,7 +96,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
                     V(b1(n,1),b1(n,2)) = gradient(n);
                 end
                 
-                dt = 0.5*obj.kappa*min(dx,dy)/max(abs(gradient(:))) ;
+                dt = 0.5*obj.e2*obj.kappa*min(dx,dy)/max(abs(gradient(:))) ;
                 
                 % !! Using Allaire's curvature instead of perimeter !!
                 phi = solvelvlset(phi,V,dt,obj.HJiter,0,RIiter,RIfreq,dx,dy);
@@ -108,30 +108,20 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
                 %             end
                 %             figure, surf(V_mat);
             else
-                dx = 2.5; dy = 2.5; dz = 2.5; 
-%                 gradient = regularize3(design_variable,gradient);
+                dx = 1.25; dy = 1.25; dz = 1.25; 
                 gradient = regularize3(design_variable,gradient,dx,dy,dz);
-                gradient = -gradient;
+%                 gradient = -gradient;
                 
                 for n = 1:length(design_variable)
                     phi(b1(n,1),b1(n,2),b1(n,3)) = design_variable(n);
                     V(b1(n,1),b1(n,2),b1(n,3)) = gradient(n);
                 end
                 
-                
-                
-                dt = 0.5*obj.kappa*min(dx,dy)/max(abs(gradient(:))) ;
-                
-                % !! Using Allaire's curvature instead of perimeter !!
+                dt = 0.5*obj.e2*obj.kappa*min(dx,dy)/max(abs(gradient(:))) ;
                 phi = solvelvlset3(phi,V,dt,obj.HJiter,0,30,5,dx,dy,dz);
 
                 phi_vect(A1(:,:,:)) = phi(:,:,:);
                 phi_vect = phi_vect';
-                
-                %             for n = 1:length(V)
-                %                 V_mat(b1(n,1),b1(n,2),b1(n,3)) = V(n);
-                %             end
-                %             figure, surf(V_mat);
             end
             
             % !! CHECK !!
