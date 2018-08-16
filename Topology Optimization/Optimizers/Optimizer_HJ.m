@@ -90,7 +90,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             % !! PATCH !!
             load(fullfile(pwd,'Allaire_ShapeOpt','conversion'));
             
-            if contains(lower(obj.case_file),'tri') || contains(lower(obj.case_file),'quad')
+            if contains(lower(obj.case_file),'tri') || contains(lower(obj.case_file),'quad') || contains(lower(obj.case_file),'test')
                 load(fullfile(pwd,'Allaire_ShapeOpt','meshSize'));
                 load(fullfile(pwd,'Allaire_ShapeOpt','RI'));
                 gradient = -obj.filter.regularize(design_variable,gradient);
