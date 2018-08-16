@@ -10,19 +10,21 @@ optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
 filterType = 'P1';
 
 nsteps = 1;
-Vfrac_final = 0.5;
+Vfrac_final = 0.4;
 Perimeter_target=3.5;
 optimality_final =1e-3;
 constr_final =1e-3;
 
 BCscale_factor = 0.3;
 HJiter0 = 1;
+allow = 0;
+niter_allow = 0;
 e2 = 10;
-N_holes = [12 5 5];
+N_holes = [24 10 10];
 R_holes = 0.9;
 phase_holes = [0 0 0];
 
-Vfrac_initial = 0.8;
+Vfrac_initial = 0.4;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 
@@ -37,3 +39,5 @@ plotting = 1;
 printing = 0;
 monitoring = 1;
 monitoring_interval = 1;
+
+maxiter = 10;

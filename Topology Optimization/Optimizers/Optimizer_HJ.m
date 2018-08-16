@@ -7,8 +7,9 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         HJiter0; % !! Could be set in settings !!
         HJiter_min = 1;
         % !! REMOVE?? !!
-        allow = 0.2;
-        niter = 0;
+        allow
+        niter_allow
+        niter = 1;
         e2
         % !! Move to ShFunc_Velocity (?) eventually !!
         filter
@@ -27,6 +28,8 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             obj.case_file = settings.case_file;
             obj.HJiter0 = settings.HJiter0;
             obj.HJiter = obj.HJiter0;
+            obj.allow = settings.allow;
+            obj.niter_allow = settings.niter_allow;
             obj.e2 = settings.e2;
             obj.kappa = 1;
             obj.kappa_min = 1e-5;
@@ -52,8 +55,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         end
         
         function x = updateX(obj,x_ini,cost,constraint)
-            obj.niter = obj.niter+1;
-            if obj.niter > 20
+            if obj.niter > obj.niter_allow
                 obj.allow = 0;
             end
             x = obj.updatePhi(x_ini,obj.objfunc.gradient);
@@ -63,8 +65,8 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             obj.objfunc.computeFunction(cost,constraint)
             
             incr_norm_L2  = obj.norm_L2(x,x_ini);
-
-%             incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
+            
+            %             incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
             incr_cost = (obj.objfunc.value - obj.objfunc.value_initial*(1+obj.allow))/abs(obj.objfunc.value_initial);
             
             obj.stop_criteria = ~((incr_cost < 0 && incr_norm_L2 < obj.max_constr_change) || obj.kappa <= obj.kappa_min);
@@ -79,6 +81,8 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
                 else
                     obj.kappa = obj.kappa/obj.kfrac;
                 end
+            else
+                obj.niter = obj.niter+1;
             end
         end
         
@@ -108,9 +112,9 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
                 %             end
                 %             figure, surf(V_mat);
             else
-                dx = 1.25; dy = 1.25; dz = 1.25; 
+                dx = 1.25; dy = 1.25; dz = 1.25;
                 gradient = regularize3(design_variable,gradient,dx,dy,dz);
-%                 gradient = -gradient;
+                %                 gradient = -gradient;
                 
                 for n = 1:length(design_variable)
                     phi(b1(n,1),b1(n,2),b1(n,3)) = design_variable(n);
@@ -119,7 +123,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
                 
                 dt = 0.5*obj.e2*obj.kappa*min(dx,dy)/max(abs(gradient(:))) ;
                 phi = solvelvlset3(phi,V,dt,obj.HJiter,0,30,5,dx,dy,dz);
-
+                
                 phi_vect(A1(:,:,:)) = phi(:,:,:);
                 phi_vect = phi_vect';
             end

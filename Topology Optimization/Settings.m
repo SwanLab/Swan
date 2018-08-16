@@ -8,11 +8,13 @@ classdef Settings
         monitoring = true
         monitoring_interval = 10
         maxiter = 2000
-        constraint_case = 'EQUALITY';
-        N_holes = [5 6 4];
-        R_holes = 0.7;
-        phase_holes = [0 pi/2 0];
+        constraint_case = 'EQUALITY'
+        N_holes = [5 6 4]
+        R_holes = 0.7
+        phase_holes = [0 pi/2 0]
         HJiter0 = 1
+        allow = 0
+        niter_allow = 0
         e2 = 30
     end
     
@@ -112,16 +114,18 @@ classdef Settings
             if exist('monitoring_interval','var')
                 obj.monitoring_interval = monitoring_interval;
             end
-            if exist('maxiter','var')
-                obj.maxiter = maxiter;
-            end
-            
+
             if ~contains(case_file,'test','IgnoreCase',true)
                 fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: ',case_file,obj.optimizer)
                 fprintf('%s, ',obj.cost{:})
                 fprintf('\n -Constraint: ')
                 fprintf('%s, ', obj.constraint{:})
                 fprintf('\n -Incremental Steps: %f \n ',obj.nsteps)
+            end
+            
+            if exist('maxiter','var')
+                obj.maxiter = maxiter;
+                fprintf('-Max iters: %f \n ',obj.maxiter)
             end
             
             if exist('Vfrac_final','var')
@@ -143,7 +147,12 @@ classdef Settings
             if exist('HJiter0','var')
                 obj.HJiter0 = HJiter0;
             end
-
+            if exist('allow','var')
+                obj.allow = allow;
+            end
+            if exist('niter_allow','var')
+                obj.niter_allow = niter_allow;
+            end
              if exist('e2','var')
                 obj.e2 = e2;
             end
