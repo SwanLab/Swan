@@ -13,8 +13,6 @@ classdef Settings
         R_holes = 0.7
         phase_holes = [0 pi/2 0]
         HJiter0 = 1
-        allow = 0
-        niter_allow = 0
         e2 = 30
     end
     
@@ -146,12 +144,6 @@ classdef Settings
             end
             if exist('HJiter0','var')
                 obj.HJiter0 = HJiter0;
-            end
-            if exist('allow','var')
-                obj.allow = allow;
-            end
-            if exist('niter_allow','var')
-                obj.niter_allow = niter_allow;
             end
              if exist('e2','var')
                 obj.e2 = e2;

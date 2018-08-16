@@ -4,11 +4,8 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         optimality_tol
         constr_tol
         HJiter
-        HJiter0; % !! Could be set in settings !!
+        HJiter0;
         HJiter_min = 1;
-        % !! REMOVE?? !!
-        allow
-        niter_allow
         niter = 1;
         e2
         % !! Move to ShFunc_Velocity (?) eventually !!
@@ -28,8 +25,6 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             obj.case_file = settings.case_file;
             obj.HJiter0 = settings.HJiter0;
             obj.HJiter = obj.HJiter0;
-            obj.allow = settings.allow;
-            obj.niter_allow = settings.niter_allow;
             obj.e2 = settings.e2;
             obj.kappa = 1;
             obj.kappa_min = 1e-5;
@@ -55,9 +50,6 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         end
         
         function x = updateX(obj,x_ini,cost,constraint)
-            if obj.niter > obj.niter_allow
-                obj.allow = 0;
-            end
             x = obj.updatePhi(x_ini,obj.objfunc.gradient);
             cost.computef(x);
             constraint.computef(x);
@@ -66,8 +58,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             
             incr_norm_L2  = obj.norm_L2(x,x_ini);
             
-            %             incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
-            incr_cost = (obj.objfunc.value - obj.objfunc.value_initial*(1+obj.allow))/abs(obj.objfunc.value_initial);
+            incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
             
             obj.stop_criteria = ~((incr_cost < 0 && incr_norm_L2 < obj.max_constr_change) || obj.kappa <= obj.kappa_min);
             
