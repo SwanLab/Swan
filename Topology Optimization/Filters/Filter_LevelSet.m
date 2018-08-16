@@ -83,14 +83,24 @@ classdef Filter_LevelSet < handle
                         permute(obj.connectivities(cut_elem,1),[2 3 1])];
                     gamma_1=x(index1);
                     gamma_2=x(index2);
-                    % !! CHAPUSILLA !! --> Fer més elegant !!
                     coord1 = obj.coordinates(:,1); coord2 = obj.coordinates(:,2);
                     P1=[coord1(index1) coord2(index1)];
                     P2=[coord1(index2) coord2(index2)];
                     P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
                     active_nodes = sign(gamma_1.*gamma_2)<0;
                 case '3D'
-                    error('Global cut points for 3D still not implemented.')
+                    iteration_1=obj.geometry.interpolation.iteration(1,:);
+                    iteration_2=obj.geometry.interpolation.iteration(2,:);
+                    
+                    index1 = permute(obj.connectivities(cut_elem,iteration_1),[2 3 1]);
+                    index2 = permute(obj.connectivities(cut_elem,iteration_2),[2 3 1]);
+                    gamma_1=x(index1);
+                    gamma_2=x(index2);
+                    coord1 = obj.coordinates(:,1); coord2 = obj.coordinates(:,2); coord3 = obj.coordinates(:,3);
+                    P1=[coord1(index1) coord2(index1) coord3(index1)];
+                    P2=[coord1(index2) coord2(index2) coord3(index2)];
+                    P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
+                    active_nodes = sign(gamma_1.*gamma_2)<0;
             end
         end
         
@@ -165,16 +175,22 @@ classdef Filter_LevelSet < handle
             [full_elem,cut_elem]=obj.findCutElements(x);
             shape_all=obj.computeFullElements(full_elem);
             % !!!!!!!!!!!!!!!!!!!!!!!!!! DELETE !!!!!!!!!!!!!!!!!!!!!!!!!!!
-            shape_all(cut_elem,:)=0.5*obj.shape_full(cut_elem,:);
-            % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! %
+            %             shape_all(cut_elem,:)=0.5*obj.shape_full(cut_elem,:);
             
-%             if ~isempty(cut_elem)
-%                 [delaunaycoord,global_connec,phi_cut]=obj.computeDelaunay(x,cut_elem);
-%                 dvolu_cut=obj.computeDvoluCut(delaunaycoord);
-%                 pos_gp_del_natural=obj.computePosGpDelaunayNatural(delaunaycoord);
-%                 obj.geometry.interpolation.computeShapeDeriv(pos_gp_del_natural');
-%                 shape_all=obj.integrateCut(phi_cut, global_connec, dvolu_cut, shape_all);
-%             end
+%             [P,active_nodes]=obj.findCutPoints_Global(x,cut_elem);
+%             P = permute(P,[1 3 2]);
+%             active_nodes = permute(active_nodes,[1 3 2]);
+            
+%             X = P(:,:,1); Y = P(:,:,2); Z = P(:,:,3);
+%             figure, plot3(X(active_nodes), Y(active_nodes), Z(active_nodes),'.')
+            
+            if ~isempty(cut_elem)
+                [delaunaycoord,global_connec,phi_cut]=obj.computeDelaunay(x,cut_elem);
+                dvolu_cut=obj.computeDvoluCut(delaunaycoord);
+                pos_gp_del_natural=obj.computePosGpDelaunayNatural(delaunaycoord);
+                obj.geometry.interpolation.computeShapeDeriv(pos_gp_del_natural');
+                shape_all=obj.integrateCut(phi_cut, global_connec, dvolu_cut, shape_all);
+            end
             M2=obj.rearrangeOutputRHS(shape_all);
         end
         
@@ -186,10 +202,10 @@ classdef Filter_LevelSet < handle
             [~,cut_elem]=obj.findCutElements(x);
             
             [P_iso,active_nodes_iso]=obj.findCutPoints_Iso(x,cut_elem);
-            [P_global,active_nodes_global]=obj.findCutPoints_Global(x,cut_elem);            
+            [P_global,active_nodes_global]=obj.findCutPoints_Global(x,cut_elem);
             
             % !! VECTORITZAR: LOOPS PETITS, ELEMENTS DIRECTES !!
-%             figure, hold on
+            %             figure, hold on
             for icut = 1:length(cut_elem)
                 ielem = cut_elem(icut); inode_global = obj.connectivities(ielem,:);
                 cutPoints_iso = P_iso(active_nodes_iso(:,:,icut),:,icut);
@@ -213,9 +229,9 @@ classdef Filter_LevelSet < handle
                     f = (interp_element.shape*quadrature_facet.weigp')'*F(inode_global)/interp_facet.dvolu;
                     shape_all(ielem,:) = shape_all(ielem,:) + (interp_element.shape*(dt_dxi.*quadrature_facet.weigp')*f)';
                     
-%                     plot(obj.coordinates(obj.connectivities(ielem,:),1),obj.coordinates(obj.connectivities(ielem,:),2),'.-b'); plot(obj.coordinates(obj.connectivities(ielem,[1 4]),1),obj.coordinates(obj.connectivities(ielem,[1 4]),2),'.-b');
-%                     plot(cutPoints_global(connec_facets(i,:),1),cutPoints_global(connec_facets(i,:),2),'-xr');
-%                     title('Cut Elements & Cut points in GLOBAL coordinates'), axis('equal')
+                    %                     plot(obj.coordinates(obj.connectivities(ielem,:),1),obj.coordinates(obj.connectivities(ielem,:),2),'.-b'); plot(obj.coordinates(obj.connectivities(ielem,[1 4]),1),obj.coordinates(obj.connectivities(ielem,[1 4]),2),'.-b');
+                    %                     plot(cutPoints_global(connec_facets(i,:),1),cutPoints_global(connec_facets(i,:),2),'-xr');
+                    %                     title('Cut Elements & Cut points in GLOBAL coordinates'), axis('equal')
                 end
             end
             M2=obj.rearrangeOutputRHS(shape_all);

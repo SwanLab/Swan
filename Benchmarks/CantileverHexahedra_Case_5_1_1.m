@@ -20,8 +20,9 @@ HJiter0 = 1;
 allow = 0;
 niter_allow = 0;
 e2 = 10;
-N_holes = [24 10 10];
-R_holes = 0.9;
+% N_holes = [24 10 10];
+N_holes = [3 1 1];
+R_holes = 0.4;
 phase_holes = [0 0 0];
 
 Vfrac_initial = 0.4;

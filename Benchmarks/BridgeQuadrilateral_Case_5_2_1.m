@@ -8,6 +8,7 @@ weights = [1 0.01];
 constraint = {'volume'};
 optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
 filterType = 'P1';
+constraint_case = 'INEQUALITY';
 
 HJiter0 = 1;
 e2 = 30;
