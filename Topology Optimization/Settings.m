@@ -83,7 +83,7 @@ classdef Settings
             obj.constr_initial = constr_initial;
             obj.optimality_final = optimality_final;
             obj.constr_final = constr_final;
-                        
+            
             if exist('constraint_case','var')
                 obj.constraint_case = constraint_case;
             end
@@ -112,7 +112,7 @@ classdef Settings
             if exist('monitoring_interval','var')
                 obj.monitoring_interval = monitoring_interval;
             end
-
+            
             if ~contains(case_file,'test','IgnoreCase',true)
                 fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: ',case_file,obj.optimizer)
                 fprintf('%s, ',obj.cost{:})
@@ -123,7 +123,9 @@ classdef Settings
             
             if exist('maxiter','var')
                 obj.maxiter = maxiter;
-                fprintf('-Max iters: %f \n ',obj.maxiter)
+                if ~contains(case_file,'test','IgnoreCase',true)
+                    fprintf('-Max iters: %f \n ',obj.maxiter)
+                end
             end
             
             if exist('Vfrac_final','var')
@@ -145,7 +147,7 @@ classdef Settings
             if exist('HJiter0','var')
                 obj.HJiter0 = HJiter0;
             end
-             if exist('e2','var')
+            if exist('e2','var')
                 obj.e2 = e2;
             end
             if exist('N_holes','var')
