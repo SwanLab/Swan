@@ -17,6 +17,13 @@ for i = 1:length(tests_topopt)
     settings = Settings(file_name_in);
     load_file = strcat('./tests/',file_name);
     load(load_file)
+    
+    % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DELETE !!!!!!!!!!!!!!!!!!!!!!!!!!!!! %
+    if contains(file_name,'bridge')
+        [A1,b1,A0,b0] = conversionTensors(settings.filename,2,1,120,60);
+        save(fullfile(pwd,'Allaire_ShapeOpt','conversion'),'A0','A1','b0','b1');
+    end
+    % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! %
     obj = TopOpt_Problem(settings);
     obj.preProcess;
     obj.computeVariables;

@@ -7,22 +7,20 @@ cost = {'compliance'};
 weights = [1];
 constraint = {'volume'};
 optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
-filterType = 'PDE';
-
+filterType = 'P1';
 constraint_case = 'INEQUALITY';
 
+HJiter0 = 1;
+e2 = 30;
+N_holes = [5 6];
+R_holes = 0.7;
+phase_holes = [0 pi/2];
+
 nsteps = 1;
-Vfrac_final = 0.8;
+Vfrac_final = 0.5;
 Perimeter_target=3.5;
 optimality_final =1e-3;
 constr_final =1e-3;
-
-HJiter0 = 1;
-e2 = 10;
-N_holes = [6 6];
-phase_holes = [pi/2 0];
-R_holes = 0.7;
-
 
 Vfrac_initial = 1;
 optimality_initial = 1e-3;
@@ -39,3 +37,5 @@ plotting = 1;
 printing = 0;
 monitoring = 1;
 monitoring_interval = 1;
+
+maxiter = 50;

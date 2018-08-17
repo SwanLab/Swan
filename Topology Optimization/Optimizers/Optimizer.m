@@ -16,7 +16,7 @@ classdef Optimizer < handle
     
     properties (Access = ?Optimizer_Constrained)
         plotting
-        %         case_file
+%         case_file
         showBC
         BCscale_factor
         printing
@@ -27,7 +27,7 @@ classdef Optimizer < handle
     methods
         function obj = Optimizer(settings)
             obj.nconstr = settings.nconstr;
-            %             obj.case_file=settings.case_file;
+%             obj.case_file=settings.case_file;
             obj.holes.N_holes = settings.N_holes;
             obj.holes.R_holes = settings.R_holes;
             obj.holes.phase_holes = settings.phase_holes;

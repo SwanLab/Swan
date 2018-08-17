@@ -29,6 +29,9 @@ classdef Filter_LevelSet < handle
             end
             obj.initGeometry
             obj.shape_full=obj.integrateFull;
+           
+            MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';
+            warning('off', MSGID)
         end
         
         function initGeometry(obj)
@@ -143,23 +146,38 @@ classdef Filter_LevelSet < handle
             shape_all(full_elem,:)=obj.shape_full(full_elem,:);
         end
         
-        function [elecoord,global_connec,phi_cut]=computeDelaunay(obj,x,cut_elem)
+        function [subcells_coord,global_connec,phi_cut]=computeDelaunay(obj,x,cut_elem)
             [P,active_nodes]=obj.findCutPoints_Iso(x,cut_elem);
-            elecoord=[];phi_cut=[];global_connec=[]; k = 0;
+            switch obj.diffReacProb.mesh.pdim
+                case '2D'
+                    max_subcells = 6; nnodes_subelem = 3; ndim = 2;
+                case '3D'
+                    max_subcells = 20; nnodes_subelem = 4; ndim = 3;
+            end
+            subcells_coord=zeros(length(cut_elem)*max_subcells,nnodes_subelem,ndim);
+            phi_cut=zeros(length(cut_elem)*max_subcells,nnodes_subelem);
+            global_connec=zeros(length(cut_elem)*max_subcells,1);
+            k = 0; m0 = 0;
             for ielem=1:length(cut_elem)
                 del_coord = [obj.geometry.interpolation.pos_nodes;P(active_nodes(:,:,ielem),:,ielem)];
                 del_x=[x(obj.connectivities(cut_elem(ielem),:));zeros(size(P(active_nodes(:,:,ielem)),1),1)]';
                 DT=delaunayTriangulation(del_coord);
                 del_connec=DT.ConnectivityList;
-                new_elecoord = permute(del_coord,[3 1 2]);
-                elecoord = [elecoord;zeros([size(del_connec),size(new_elecoord,3)])];
-                phi_cut = [phi_cut;zeros(size(del_connec))];
+                new_subcells_coord = permute(del_coord,[3 1 2]);
                 for idelaunay=1:size(del_connec,1)
                     k = k+1;
-                    elecoord(k,:,:) = new_elecoord(:,del_connec(idelaunay,:),:);
+                    subcells_coord(k,:,:) = new_subcells_coord(:,del_connec(idelaunay,:),:);
                     phi_cut(k,:) = del_x(del_connec(idelaunay,:));
                 end
-                global_connec=[global_connec;repmat(cut_elem(ielem),[size(del_connec,1) 1])];
+                new_global_connec = repmat(cut_elem(ielem),[size(del_connec,1) 1]);
+                m1 = m0+length(new_global_connec);
+                global_connec(1+m0:m1,:)=repmat(cut_elem(ielem),[size(del_connec,1) 1]);
+                m0 = m1;
+            end
+            if length(subcells_coord) > k
+                subcells_coord(k+1:end,:,:) = [];
+                phi_cut(k+1:end,:) = [];
+                global_connec(m1+1:end) = [];
             end
         end
         
@@ -177,17 +195,17 @@ classdef Filter_LevelSet < handle
             % !!!!!!!!!!!!!!!!!!!!!!!!!! DELETE !!!!!!!!!!!!!!!!!!!!!!!!!!!
             %             shape_all(cut_elem,:)=0.5*obj.shape_full(cut_elem,:);
             
-%             [P,active_nodes]=obj.findCutPoints_Global(x,cut_elem);
-%             P = permute(P,[1 3 2]);
-%             active_nodes = permute(active_nodes,[1 3 2]);
+            %             [P,active_nodes]=obj.findCutPoints_Global(x,cut_elem);
+            %             P = permute(P,[1 3 2]);
+            %             active_nodes = permute(active_nodes,[1 3 2]);
             
-%             X = P(:,:,1); Y = P(:,:,2); Z = P(:,:,3);
-%             figure, plot3(X(active_nodes), Y(active_nodes), Z(active_nodes),'.')
+            %             X = P(:,:,1); Y = P(:,:,2); Z = P(:,:,3);
+            %             figure, plot3(X(active_nodes), Y(active_nodes), Z(active_nodes),'.')
             
             if ~isempty(cut_elem)
-                [delaunaycoord,global_connec,phi_cut]=obj.computeDelaunay(x,cut_elem);
-                dvolu_cut=obj.computeDvoluCut(delaunaycoord);
-                pos_gp_del_natural=obj.computePosGpDelaunayNatural(delaunaycoord);
+                [subcells_coord,global_connec,phi_cut]=obj.computeDelaunay(x,cut_elem);
+                dvolu_cut=obj.computeDvoluCut(subcells_coord);
+                pos_gp_del_natural=obj.computePosGpDelaunayNatural(subcells_coord);
                 obj.geometry.interpolation.computeShapeDeriv(pos_gp_del_natural');
                 shape_all=obj.integrateCut(phi_cut, global_connec, dvolu_cut, shape_all);
             end
