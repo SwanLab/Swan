@@ -1,5 +1,5 @@
 %% ********** CONVERSION FROM STRUCTURED TO UNSTRUCTURED MESH *************
-function [A1,b1,A0,b0] = conversionTensors3D(problemID,L,W,H,nelx,nely,nelz)
+function [A1,b1,A0,b0] = conversionTensors3D(problemID,dim,div)
 run(problemID);
 
 %     % Display
@@ -13,16 +13,16 @@ run(problemID);
 %     axis('equal')
 
 % Create index matrix and vector - P1
-A1 = zeros(nelz+1,nely+1,nelx+1);
+A1 = zeros(div(3)+1,div(2)+1,div(1)+1);
 for n = 1:length(coord)
     inode = coord(n,1); x = coord(n,2); y = coord(n,3); z = coord(n,4);
-    %         i = 1 + nelz - round((z/H)*nelz);
-    %         j = 1 + nely - round((y/W)*nely);
-    %     k = 1 + nelx - round((x/L)*nelx);
+    %         i = 1 + div(3) - round((z/dim(3))*div(3));
+    %         j = 1 + div(2) - round((y/dim(2))*div(2));
+    %     k = 1 + div(1) - round((x/dim(1))*div(1));
     
-    i = 1 + round((z/H)*nelz);
-    j = 1 + round((y/W)*nely);
-    k = 1 + round((x/L)*nelx);
+    i = 1 + round((z/dim(3))*div(3));
+    j = 1 + round((y/dim(2))*div(2));
+    k = 1 + round((x/dim(1))*div(1));
     
     A1(i,j,k) = inode;
     b1(inode,1) = i;
@@ -31,7 +31,7 @@ for n = 1:length(coord)
 end
 
 % Create index matrix and vector - P0
-A0 = zeros(nelz,nely,nelx);
+A0 = zeros(div(3),div(2),div(1));
 for n = 1:length(connec)
     ielem = connec(n,1);
     for m = 1:4
@@ -44,13 +44,13 @@ for n = 1:length(connec)
     elem_coord(n,2) = y;
     elem_coord(n,3) = z;
     
-    %     i = nelz - round((z/H)*(nelz-1));
-    %     j = nely - round((y/W)*(nely-1));
-    %     k = nelx - round((x/L)*(nelx-1));
+    %     i = div(3) - round((z/dim(3))*(div(3)-1));
+    %     j = div(2) - round((y/dim(2))*(div(2)-1));
+    %     k = div(1) - round((x/dim(1))*(div(1)-1));
     
-    i = 1 + round((z/H)*(nelz-1));
-    j = 1 + round((y/W)*(nely-1));
-    k = 1 + round((x/L)*(nelx-1));
+    i = 1 + round((z/dim(3))*(div(3)-1));
+    j = 1 + round((y/dim(2))*(div(2)-1));
+    k = 1 + round((x/dim(1))*(div(1)-1));
     
     A0(i,j,k) = ielem;
     b0(ielem,1) = i;

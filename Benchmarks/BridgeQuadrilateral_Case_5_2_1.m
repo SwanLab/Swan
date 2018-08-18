@@ -4,27 +4,27 @@ method = 'SIMP_P3'; % !! Instead of proportional to material density !!
 materialType = 'ISOTROPIC';
 initial_case = 'holes';
 cost = {'compliance','perimeter'};
-weights = [1 0.01];
+weights = [1 0.02];
 constraint = {'volume'};
 optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
 
 HJiter0 = 1;
-e2 = 30;
+e2 = 50;
 N_holes = [5 6];
-R_holes = 0.7;
+R_holes = 0.4;
 phase_holes = [0 pi/2];
 
-nsteps = 1;
-Vfrac_final = 0.5;
+nsteps = 10;
+Vfrac_final = 0.1;
 Perimeter_target=3.5;
-optimality_final =1e-3;
-constr_final =1e-3;
+optimality_final =5e-4;
+constr_final =5e-4;
 
-Vfrac_initial = 1;
-optimality_initial = 1e-3;
-constr_initial = 1e-3;
+Vfrac_initial = 0.6;
+optimality_initial = 5e-2;
+constr_initial = 5e-2;
 
 TOL.rho_plus = 1;
 TOL.rho_minus = 0;
@@ -37,5 +37,3 @@ plotting = 1;
 printing = 0;
 monitoring = 1;
 monitoring_interval = 1;
-
-maxiter = 50;

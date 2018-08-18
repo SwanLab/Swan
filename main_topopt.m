@@ -3,7 +3,7 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 
 %% Test
 % run('test_fem.m');
-run('test_topopt.m');
+% run('test_topopt.m');
 clear variables;
 %% Settings
 %settings = Settings('CantileverTriangle_Case_3_2_1');
@@ -53,11 +53,17 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
     %     'CantileverTriangle_Case_1_2_4'
 %         'BridgeQuadrilateral_Case_5_1_1'
 %         'BridgeQuadrilateral_Case_5_2_1'
+% 'BridgeQuadrilateral_Case_5_2_2'
     %     'BridgeQuadrilateral_Case_5_3_1'
 %     'CantileverHexahedra_Case_1_1_1'
 %     'CantileverHexahedra_Case_5_1_1'
 %     'CantileverHexahedra_Case_5_2_1'
-'CantileverHexahedra_Case_5_2_2'
+% 'CantileverHexahedra_Case_5_2_2'
+% 'CantileverHexahedra_Case_5_2_3'
+% 'CantileverHexahedra_Case_5_1_2'
+% 'CantileverHexahedra_Case_5_1_3'
+% 'CantileverHexahedra_Case_5_1_4'
+'CantileverHexahedra_Case_5_1_5'
     };
 for icases=1:size(filenames,1)
     clearvars -except filenames icases;
@@ -65,11 +71,13 @@ for icases=1:size(filenames,1)
     settings=Settings(filenames{icases});
     % --------------------------- !! DELETE !! ----------------------------
     if ~contains(lower(filenames{icases}),'hexa')
-        [A1,b1,A0,b0] = conversionTensors(settings.filename,2,1,120,60);
+        dim = [2 1]; div = [120 60];
+        [A1,b1,A0,b0] = conversionTensors(settings.filename,dim,div);
     else
-        [A1,b1,A0,b0] = conversionTensors3D(settings.filename,60,20,20,48,16,16);
+        dim = [60 20 20]; div = [48 16 16];
+        [A1,b1,A0,b0] = conversionTensors3D(settings.filename,dim,div);
     end
-    save(fullfile(pwd,'Allaire_ShapeOpt','conversion'),'A0','A1','b0','b1');
+    save(fullfile(pwd,'Allaire_ShapeOpt','conversion'),'A0','A1','b0','b1','dim','div');
     % ---------------------------------------------------------------------
     test = TopOpt_Problem(settings);
     test.preProcess;

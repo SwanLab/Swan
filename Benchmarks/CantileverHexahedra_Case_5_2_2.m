@@ -8,6 +8,7 @@ weights = [1 0.001];
 constraint = {'volume'};
 optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
 filterType = 'P1';
+constraint_case = 'INEQUALITY';
 
 nsteps = 3;
 Vfrac_final = 0.3;
@@ -17,7 +18,7 @@ constr_final =1e-3;
 
 BCscale_factor = 0.3;
 HJiter0 = 1;
-e2 = 10;
+e2 = 50;
 N_holes = [12 5 5];
 R_holes = 0.9;
 phase_holes = [0 0 0];

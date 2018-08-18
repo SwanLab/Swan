@@ -20,8 +20,9 @@ for i = 1:length(tests_topopt)
     
     % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DELETE !!!!!!!!!!!!!!!!!!!!!!!!!!!!! %
     if contains(file_name,'bridge')
-        [A1,b1,A0,b0] = conversionTensors(settings.filename,2,1,120,60);
-        save(fullfile(pwd,'Allaire_ShapeOpt','conversion'),'A0','A1','b0','b1');
+        dim = [2 1]; div = [120 60];
+        [A1,b1,A0,b0] = conversionTensors(settings.filename,dim,div);
+        save(fullfile(pwd,'Allaire_ShapeOpt','conversion'),'A0','A1','b0','b1','dim','div');
     end
     % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! %
     obj = TopOpt_Problem(settings);
