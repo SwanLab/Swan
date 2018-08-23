@@ -61,9 +61,11 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
 % 'CantileverHexahedra_Case_5_2_2'
 % 'CantileverHexahedra_Case_5_2_3'
 % 'CantileverHexahedra_Case_5_1_2'
-% 'CantileverHexahedra_Case_5_1_3'
+'CantileverHexahedra_Case_5_1_3'
 % 'CantileverHexahedra_Case_5_1_4'
-'CantileverHexahedra_Case_5_1_5'
+% 'CantileverHexahedra_Case_5_1_5'
+% 'CantileverHexahedra_Case_5_1_6'
+% 'CantileverHexahedra_Case_5_1_7'
     };
 for icases=1:size(filenames,1)
     clearvars -except filenames icases;

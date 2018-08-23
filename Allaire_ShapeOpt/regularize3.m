@@ -49,7 +49,7 @@ b_vect = b_vect';
 
 filter = Filter_PDE_Density('Cantileverbeam_Hexahedra_Linear_Structured_fixedcorners','MACRO');
 filter.preProcess;
-filter.updateEpsilon(0.03);
+filter.updateEpsilon(min([dx dy dz]));
 
 v = filter.getP1fromP1(b_vect);
 for n = 1:length(v)

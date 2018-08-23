@@ -16,7 +16,7 @@ classdef Optimizer < handle
     
     properties (Access = ?Optimizer_Constrained)
         plotting
-%         case_file
+        case_file
         showBC
         BCscale_factor
         printing
@@ -232,7 +232,6 @@ classdef Optimizer < handle
                     cc=(iso+1000)*ones(size(c)+2);
                     cc(2:end-1,2:end-1,2:end-1)=c;
                     
-                    dim = [60 20 20]; div = [48 16 16];
                     [Y,X,Z]=meshgrid(-dim(1,2)/div(1,2):dim(1,2)/div(1,2):dim(1,2)+dim(1,2)/div(1,2),...
                         -dim(1,1)/div(1,1):dim(1,1)/div(1,1):dim(1,1)+dim(1,1)/div(1,1),...
                         -dim(1,3)/div(1,3):dim(1,3)/div(1,3):dim(1,3)+dim(1,3)/div(1,3));
@@ -242,15 +241,16 @@ classdef Optimizer < handle
                     if isempty(obj.fhtri)
                         obj.fhtri = figure;
                     end
+                    set(0, 'CurrentFigure', obj.fhtri)
                     clf
                     hold on
                     set(obj.fhtri,'Pointer','arrow','Color',[1 1 1],'Name','Finite Element Model','NumberTitle','off');
-                    axis equal; axis off; view(3); hold on; view(30,30);
+                    axis equal; axis off; view(3); hold on;
                     fac = [1 2 3 4; 2 6 7 3; 4 3 7 8; 1 5 8 4; 1 2 6 5; 5 6 7 8];
                     lx=max(obj.mesh.coord(:,1));
                     ly=max(obj.mesh.coord(:,2));
                     lz=max(obj.mesh.coord(:,3));
-                    patch('Faces',fac,'Vertices',[0 0 0; 0 ly 0; lx ly 0; lx 0 0; 0 0 lz; 0 ly lz; lx ly lz; lx 0 lz],'FaceColor','w','FaceAlpha',0.0);
+                    patch(axes(obj.fhtri),'Faces',fac,'Vertices',[0 0 0; 0 ly 0; lx ly 0; lx 0 0; 0 0 lz; 0 ly lz; lx ly lz; lx 0 lz],'FaceColor','w','FaceAlpha',0.0);
                     
                     patch('vertices',V,'faces',F,'edgecolor','none',...
                         'facecolor',[1 0 0],'facelighting','phong')
@@ -259,6 +259,7 @@ classdef Optimizer < handle
                     
                     rotate3d(gca);
                     set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
+                    view(30,30);
                     axis equal off
             end
             
