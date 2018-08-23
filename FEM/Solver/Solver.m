@@ -10,7 +10,8 @@ classdef Solver < handle
                 case {'DIRECT'}
                     stype = Direct_Solver();
                 case {'CHOLEVSKY'}
-                    stype = Cholevsky_Direct_Solver();
+                    % At least up to ndof ~5e4, Direct is still faster
+                    stype = Cholesky_Direct_Solver();
                 case {'ITERATIVE'}
                     error('Not implemented yet')
                 otherwise

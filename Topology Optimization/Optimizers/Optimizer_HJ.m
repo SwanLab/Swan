@@ -67,11 +67,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             % cost increases.
             
             if obj.stop_criteria
-                if obj.HJiter > obj.HJiter_min
-                    obj.HJiter = round(obj.HJiter/obj.kfrac);
-                else
-                    obj.kappa = obj.kappa/obj.kfrac;
-                end
+                obj.computeKappa;
             else
                 obj.niter = obj.niter+1;
             end
@@ -143,9 +139,17 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             obj.opt_cond = obj.kappa;
         end
         
-        function computeKappa(obj,~,~,~)
+        function initKappa(obj,~,~,~)
             obj.kappa = 1;
             obj.HJiter = obj.HJiter0;
+        end
+        
+        function computeKappa(obj)
+            if obj.HJiter > obj.HJiter_min
+                obj.HJiter = round(obj.HJiter/obj.kfrac);
+            else
+                obj.kappa = obj.kappa/obj.kfrac;
+            end
         end
     end
 end

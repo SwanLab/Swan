@@ -63,7 +63,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             phi = beta1*phi_n + beta2*gradient/norm_g;
         end
         
-        function computeKappa(obj,~,~,~)
+        function initKappa(obj,~,~,~)
             obj.kappa = 1;
         end
     end

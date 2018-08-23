@@ -48,7 +48,7 @@ classdef Optimizer_PG < Optimizer_Unconstrained
             rho = max(min(rho_step,ub),lb);    
             obj.opt_cond = sqrt(obj.scalar_product.computeSP(rho - rho_n,rho - rho_n))/sqrt(obj.scalar_product.computeSP(rho_n,rho_n));
         end
-        function computeKappa(obj,x,gradient)
+        function initKappa(obj,x,gradient)
             if isempty(obj.kappa)
                 norm_gamma = sqrt(obj.scalar_product.computeSP(x,x));
                 norm_g = sqrt(obj.scalar_product.computeSP(gradient,gradient));
