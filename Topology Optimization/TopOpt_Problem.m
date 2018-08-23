@@ -17,9 +17,10 @@ classdef TopOpt_Problem < handle
     
     methods (Access = public)
         function obj = TopOpt_Problem(settings)
-            obj.settings = settings;
             obj.mesh = Mesh(settings.filename);
-            obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.mesh);
+            settings.pdim = obj.mesh.pdim;
+            obj.settings = settings;
+            obj.incremental_scheme = Incremental_Scheme(settings,obj.mesh);
             switch obj.settings.optimizer
                 case 'SLERP'
                     obj.optimizer = Optimizer_AugLag(settings,obj.mesh,Optimizer_SLERP(settings,obj.incremental_scheme.epsilon));

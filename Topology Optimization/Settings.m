@@ -36,6 +36,7 @@ classdef Settings
     
     properties    %topopt access
         ptype
+        pdim
         case_file
         filename
         method

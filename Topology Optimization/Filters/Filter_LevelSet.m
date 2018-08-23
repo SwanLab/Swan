@@ -7,26 +7,23 @@ classdef Filter_LevelSet < handle
         shape_full
     end
     
+    properties (Access = protected)
+        max_subcells
+        nnodes_subelem
+        ndim
+    end
+    
     methods
         function preProcess(obj)
             obj.quadrature = Quadrature.set(obj.diffReacProb.geometry.type);
-            mesh=obj.diffReacProb.mesh;
-            obj.geometry= Geometry(mesh,'LINEAR');
-            mesh_del=mesh;
-            switch mesh.pdim
-                case '2D'
-                    mesh_del.geometryType='TRIANGLE';
-                    obj.quadrature_del=Quadrature_Triangle;
-                    obj.quadrature_del.computeQuadrature('LINEAR');
-                    obj.interp_del=Triangle_Linear(mesh_del);
-                    obj.interp_del.computeShapeDeriv(obj.quadrature_del.posgp)
-                case '3D'
-                    mesh_del.geometryType='TETRAHEDRA';
-                    obj.quadrature_del=Quadrature_Tetrahedra;
-                    obj.quadrature_del.computeQuadrature('LINEAR');
-                    obj.interp_del=Tetrahedra(mesh_del);
-                    obj.interp_del.computeShapeDeriv(obj.quadrature_del.posgp)
-            end
+            obj.geometry= Geometry(obj.diffReacProb.mesh,'LINEAR');
+            
+            obj.getQuadratureDel;
+            obj.quadrature_del.computeQuadrature('LINEAR');
+            mesh_del = obj.getMeshDel;
+            obj.getInterpolationDel(mesh_del);
+            obj.interp_del.computeShapeDeriv(obj.quadrature_del.posgp)
+            
             obj.initGeometry
             obj.shape_full=obj.integrateFull;
             
@@ -57,73 +54,6 @@ classdef Filter_LevelSet < handle
             end
         end
         
-        function [P,active_nodes]=findCutPoints_Iso(obj,x,cut_elem)
-            switch obj.diffReacProb.mesh.pdim
-                case '2D'
-                    gamma_1=permute(x(obj.connectivities(cut_elem,:)),[2 3 1]);
-                    gamma_2=permute([x(obj.connectivities(cut_elem,2:end)),x(obj.connectivities(cut_elem,1))],[2 3 1]);
-                    P1=repmat(obj.geometry.interpolation.pos_nodes,[1 1 size(cut_elem)]);
-                    P2=repmat([obj.geometry.interpolation.pos_nodes(2:end,:);obj.geometry.interpolation.pos_nodes(1,:)],[1 1 size(cut_elem)]);
-                    P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
-                    active_nodes = sign(gamma_1.*gamma_2)<0;
-                case '3D'
-                    iteration_1=obj.geometry.interpolation.iteration(1,:);
-                    iteration_2=obj.geometry.interpolation.iteration(2,:);
-                    gamma_1=permute(x(obj.connectivities(cut_elem,iteration_1)),[2 3 1]);
-                    gamma_2=permute(x(obj.connectivities(cut_elem,iteration_2)),[2 3 1]);
-                    P1=repmat(obj.geometry.interpolation.pos_nodes(iteration_1,:),[1 1 size(cut_elem)]);
-                    P2=repmat(obj.geometry.interpolation.pos_nodes(iteration_2,:),[1 1 size(cut_elem)]);
-                    P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
-                    active_nodes = sign(gamma_1.*gamma_2)<0;
-            end
-        end
-        
-        function [P,active_nodes]=findCutPoints_Global(obj,x,cut_elem)
-            switch obj.diffReacProb.mesh.pdim
-                case '2D'
-                    index1 = permute(obj.connectivities(cut_elem,:),[2 3 1]);
-                    index2 = [permute(obj.connectivities(cut_elem,2:end),[2 3 1]);...
-                        permute(obj.connectivities(cut_elem,1),[2 3 1])];
-                    gamma_1=x(index1);
-                    gamma_2=x(index2);
-                    coord1 = obj.coordinates(:,1); coord2 = obj.coordinates(:,2);
-                    P1=[coord1(index1) coord2(index1)];
-                    P2=[coord1(index2) coord2(index2)];
-                    P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
-                    active_nodes = sign(gamma_1.*gamma_2)<0;
-                case '3D'
-                    iteration_1=obj.geometry.interpolation.iteration(1,:);
-                    iteration_2=obj.geometry.interpolation.iteration(2,:);
-                    
-                    index1 = permute(obj.connectivities(cut_elem,iteration_1),[2 3 1]);
-                    index2 = permute(obj.connectivities(cut_elem,iteration_2),[2 3 1]);
-                    gamma_1=x(index1);
-                    gamma_2=x(index2);
-                    coord1 = obj.coordinates(:,1); coord2 = obj.coordinates(:,2); coord3 = obj.coordinates(:,3);
-                    P1=[coord1(index1) coord2(index1) coord3(index1)];
-                    P2=[coord1(index2) coord2(index2) coord3(index2)];
-                    P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
-                    active_nodes = sign(gamma_1.*gamma_2)<0;
-            end
-        end
-        
-        function A=computeDvoluCut(obj,elcrd)
-            switch obj.diffReacProb.mesh.pdim
-                case '2D'
-                    x1 = elcrd(:,1,1); y1 = elcrd(:,1,2); x2 = elcrd(:,2,1); y2 = elcrd(:,2,2); x3 = elcrd(:,3,1); y3 = elcrd(:,3,2);
-                    A = 0.5*abs((x2-x1).*(y3-y1)-(x3-x1).*(y2-y1));
-                case '3D'
-                    x1 = elcrd(:,1,1); y1 = elcrd(:,1,2); z1=elcrd(:,1,3);
-                    x2 = elcrd(:,2,1); y2 = elcrd(:,2,2); z2=elcrd(:,2,3);
-                    x3 = elcrd(:,3,1); y3 = elcrd(:,3,2); z3=elcrd(:,3,3);
-                    x4 = elcrd(:,4,1); y4 = elcrd(:,4,2); z4=elcrd(:,4,3);
-                    J=x1.*y3.*z2-x1.*y2.*z3+x2.*y1.*z3-x2.*y3.*z1-x3.*y1.*z2+x3.*y2.*z1+x1.*y2.*z4-x1.*y4.*z2-x2.*y1.*z4+x2.*y4.*z1+...
-                        x4.*y1.*z2-x4.*y2.*z1-x1.*y3.*z4+x1.*y4.*z3+x3.*y1.*z4-x3.*y4.*z1-x4.*y1.*z3+x4.*y3.*z1+x2.*y3.*z4-x2.*y4.*z3...
-                        -x3.*y2.*z4+x3.*y4.*z2+x4.*y2.*z3-x4.*y3.*z2;
-                    A=J/6;
-            end
-        end
-        
         function shape_all=integrateCut(obj,phi_cut, global_connec, A, shape_all)
             notcompute = phi_cut > 0;
             isnegative = ~any(notcompute');
@@ -148,15 +78,11 @@ classdef Filter_LevelSet < handle
         
         function [subcells_coord,global_connec,phi_cut]=computeDelaunay(obj,x,cut_elem)
             [P,active_nodes]=obj.findCutPoints_Iso(x,cut_elem);
-            switch obj.diffReacProb.mesh.pdim
-                case '2D'
-                    max_subcells = 6; nnodes_subelem = 3; ndim = 2;
-                case '3D'
-                    max_subcells = 20; nnodes_subelem = 4; ndim = 3;
-            end
-            subcells_coord=zeros(length(cut_elem)*max_subcells,nnodes_subelem,ndim);
-            phi_cut=zeros(length(cut_elem)*max_subcells,nnodes_subelem);
-            global_connec=zeros(length(cut_elem)*max_subcells,1);
+
+            subcells_coord=zeros(length(cut_elem)*obj.max_subcells,obj.nnodes_subelem,obj.ndim);
+            phi_cut=zeros(length(cut_elem)*obj.max_subcells,obj.nnodes_subelem);
+            global_connec=zeros(length(cut_elem)*obj.max_subcells,1);
+            
             k = 0; m0 = 0;
             for ielem=1:length(cut_elem)
                 del_coord = [obj.geometry.interpolation.pos_nodes;P(active_nodes(:,:,ielem),:,ielem)];
@@ -191,17 +117,7 @@ classdef Filter_LevelSet < handle
         
         function M2=computeRHS(obj,x)
             [full_elem,cut_elem]=obj.findCutElements(x);
-            shape_all=obj.computeFullElements(full_elem);
-            % !!!!!!!!!!!!!!!!!!!!!!!!!! DELETE !!!!!!!!!!!!!!!!!!!!!!!!!!!
-            %             shape_all(cut_elem,:)=0.5*obj.shape_full(cut_elem,:);
-            
-            %             [P,active_nodes]=obj.findCutPoints_Global(x,cut_elem);
-            %             P = permute(P,[1 3 2]);
-            %             active_nodes = permute(active_nodes,[1 3 2]);
-            
-            %             X = P(:,:,1); Y = P(:,:,2); Z = P(:,:,3);
-            %             figure, plot3(X(active_nodes), Y(active_nodes), Z(active_nodes),'.')
-            
+            shape_all=obj.computeFullElements(full_elem);            
             if ~isempty(cut_elem)
                 [subcells_coord,global_connec,phi_cut]=obj.computeDelaunay(x,cut_elem);
                 dvolu_cut=obj.computeDvoluCut(subcells_coord);
@@ -212,198 +128,18 @@ classdef Filter_LevelSet < handle
             M2=obj.rearrangeOutputRHS(shape_all);
         end
         
-        function M2=computeRHS_facet(obj,x,F)
-            [interp_facet,quadrature_facet] = obj.createFacet;
-            interp_element = Interpolation.create(obj.diffReacProb.mesh,obj.quadrature.order);
-            
-            shape_all = zeros(obj.nelem,obj.nnode);
-            [~,cut_elem]=obj.findCutElements(x);
-            
-            [P_iso,active_nodes_iso]=obj.findCutPoints_Iso(x,cut_elem);
-            [P_global,active_nodes_global]=obj.findCutPoints_Global(x,cut_elem);
-            
-            facets_coordinates_global = obj.findActiveCutPoints(P_global,active_nodes_global);        
-
-            % !! VECTORITZAR: LOOPS PETITS, ELEMENTS DIRECTES !!
-            %                         figure, hold on
-            facets_connectivities_global = zeros(10*length(cut_elem),3);
-            k = 0;
-            for icut = 1:length(cut_elem)
-                ielem = cut_elem(icut); inode_global = obj.connectivities(ielem,:);
-                elem_cutPoints_iso = P_iso(active_nodes_iso(:,:,icut),:,icut);
-                elem_cutPoints_global = P_global(active_nodes_global(:,:,icut),:,icut);
-
-                facets_connectivities_local = obj.findFacetsLocalConnectivities3D_eis(elem_cutPoints_iso,interp_element.pos_nodes,x(inode_global));
- 
-                for ifacet = 1:size(facets_connectivities_local,1)
-                    k = k+1;
-                    facets_connectivities_global(k,:) = obj.findFacetsGlobalConnectivities3D(elem_cutPoints_global,facets_coordinates_global,facets_connectivities_local(ifacet,:));
-                    
-%                     patch('vertices',facets_coordinates_global,'faces',facets_connectivities_global(k,:),'edgecolor',[0 1 0],...
-%                         'facecolor','none','facelighting','phong')
-%                     
-                    for igaus = 1:quadrature_facet.ngaus
-                        for idime = 1:interp_element.ndime
-                            facet_posgp(igaus,idime) = interp_facet.shape(:,igaus)'*elem_cutPoints_iso(facets_connectivities_local(ifacet,:),idime);
-                        end
-                    end
-                    
-%                     plot3(facet_posgp(:,1),facet_posgp(:,2),facet_posgp(:,3),'xr')
-                    
-                    interp_element.computeShapeDeriv(facet_posgp');
-                    facet_deriv(:,:) = interp_facet.deriv(:,:,:);
-                    
-                    switch obj.diffReacProb.mesh.pdim
-                        case '2D'
-                            djacob = obj.mapping2D(all_cutPoints_global,facets_connectivities_local(ifacet,:),facet_deriv,interp_facet.dvolu);
-                        case '3D'
-                            djacob = obj.mapping3D(elem_cutPoints_global,facets_connectivities_local(ifacet,:),facet_deriv,interp_facet.dvolu);
-                    end
-                    
-                    f = (interp_element.shape*quadrature_facet.weigp')'*F(inode_global)/interp_facet.dvolu;
-                    shape_all(ielem,:) = shape_all(ielem,:) + (interp_element.shape*(djacob.*quadrature_facet.weigp')*f)';
-                    
-                    %                     plot(obj.coordinates(obj.connectivities(ielem,:),1),obj.coordinates(obj.connectivities(ielem,:),2),'.-b'); plot(obj.coordinates(obj.connectivities(ielem,[1 4]),1),obj.coordinates(obj.connectivities(ielem,[1 4]),2),'.-b');
-                    %                     plot(elem_cutPoints_global(facets_connectivities(i,:),1),elem_cutPoints_global(facets_connectivities(i,:),2),'-xr');
-                    %                     title('Cut Elements & Cut points in GLOBAL coordinates'), axis('equal')
-                end
-            end
-            facets_connectivities_global(k+1:end,:) = [];
-%             
-%             hold on
-%             patch('vertices',facets_coordinates_global,'faces',facets_connectivities_global,'edgecolor','none',...
-%                         'facecolor',[0 0 1],'facelighting','phong')
-            M2=obj.rearrangeOutputRHS(shape_all);
-        end
-        
-        function [interp_facet,quadrature_facet] = createFacet(obj)
-            switch obj.diffReacProb.mesh.pdim
-                case '2D'
-                    quadrature_facet = Quadrature.set('LINE');
-                    interp_facet = Line_Linear;
-                case '3D'
-                    quadrature_facet = Quadrature.set('TRIANGLE');
-                    interp_facet = Triangle_Linear(obj.diffReacProb.mesh);
-            end
-            quadrature_facet.computeQuadrature(obj.quadrature.order);
-            interp_facet.computeShapeDeriv(quadrature_facet.posgp);
-        end
-        
-        function exterior_boundary_nodes_coord = findExteriorBoundaryNodeCoord(obj,x,cut_elem)
-            boundary_nodes = false(size(obj.connectivities));
-            boundary_nodes(cut_elem,:) = true(length(cut_elem),size(obj.connectivities,2));
-            exterior_nodes = find(x>0);
-            connec = obj.connectivities; connec(~boundary_nodes) = 0;
-            exterior_boundary_nodes = ismember(connec,exterior_nodes);
-            exterior_boundary_nodes_coord = unique(obj.coordinates(obj.connectivities(exterior_boundary_nodes),:),'rows');
-        end
-        
-        function boundary_subfacets_connectivities = findFacetsLocalConnectivities3D_eis(obj,cutPoints_iso,pos_nodes, phi)
-            del_coord = [pos_nodes; cutPoints_iso];
-            DT=delaunayTriangulation(del_coord);
-            subcells_connectivities=DT.ConnectivityList;
-            
-            interior_nodes = find(phi<0); exterior_nodes = find(phi>0);
-            
-            % Find subcells formed by 1 interior node & 3 cutPoints
-            counter_interior_nodes = obj.CountGivenNodesPerCell(subcells_connectivities,interior_nodes); %#ok<FNDSB>
-            counter_exterior_nodes = obj.CountGivenNodesPerCell(subcells_connectivities,exterior_nodes); %#ok<FNDSB>
-            boundary_subcells_connectivities = subcells_connectivities(counter_interior_nodes == 1 & counter_exterior_nodes == 0,:);
-            
-            boundary_subfacets_connectivities = zeros([size(boundary_subcells_connectivities,1),3]);
-            for i = 1:size(boundary_subcells_connectivities,1)
-                boundary_subfacets_connectivities(i,:) = boundary_subcells_connectivities(i,boundary_subcells_connectivities(i,:)>length(pos_nodes));
-            end
-            
-            % !!!!!!!!!!!!!!!!!!!!!!! PLOTTING !!!!!!!!!!!!!!!!!!!!!!!!
-%             figure, hold on
-%             fac = [1 2 3 4; 2 6 7 3; 4 3 7 8; 1 5 8 4; 1 2 6 5; 5 6 7 8];
-%             patch('Faces',fac,'Vertices',[-1 -1 -1; -1 1 -1; 1 1 -1; 1 -1 -1; -1 -1 1; -1 1 1; 1 1 1; 1 -1 1],'FaceColor','w','FaceAlpha',0.0);
-% %             for iconnec = 1:size(boundary_subfacets_connectivities,1)
-% %                 plot3(del_coord(boundary_subfacets_connectivities(iconnec,:),1),del_coord(boundary_subfacets_connectivities(iconnec,:),2),del_coord(boundary_subfacets_connectivities(iconnec,:),3),'.-g')
-% %                 plot3(del_coord(boundary_subfacets_connectivities(iconnec,[1 3]),1),del_coord(boundary_subfacets_connectivities(iconnec,[1 3]),2),del_coord(boundary_subfacets_connectivities(iconnec,[1 3]),3),'.-g')
-% %             end
-%             patch('vertices',del_coord,'faces',boundary_subfacets_connectivities,'edgecolor',[0 1 0],...
-%                         'facecolor',[0 1 0],'facelighting','phong')
-%             
-%             plot3(cutPoints_iso(:,1),cutPoints_iso(:,2),cutPoints_iso(:,3),'og')
-%             
-%             plot3(pos_nodes(phi>0,1),pos_nodes(phi>0,2),pos_nodes(phi>0,3),'+b')
-%             plot3(pos_nodes(phi<0,1),pos_nodes(phi<0,2),pos_nodes(phi<0,3),'<b')
-%             
-%             axis equal
-%             view([115 20])
-%             
-%             close
-            boundary_subfacets_connectivities = boundary_subfacets_connectivities - length(pos_nodes);
-        end
-        
-        function facets_connectivities_global = findFacetsGlobalConnectivities3D(obj,elem_cutPoints_global,facets_coordinates_global,facets_connectivities_local)
-            coord_id_global = obj.findCoordinatesLocationInCoordinatesMatrix(elem_cutPoints_global,facets_coordinates_global);
-            facets_connectivities_global = coord_id_global(facets_connectivities_local);
-        end
+        % !!!!!!!!!!!!!!!!!! REMOVED M2=computeRHS_facet !!!!!!!!!!!!!!!!!!
     end
     
-    methods (Static)
-        function facets_connectivities = findFacetsConnectivities2D(elem_cutPoints_iso,interpolation,x,inode_global)
-            if size(elem_cutPoints_iso,1) == 2
-                facets_connectivities = [1 2];
-            elseif size(elem_cutPoints_iso,1) == 4
-                del_coord = [interpolation.pos_nodes;elem_cutPoints_iso];
-                DT=delaunayTriangulation(del_coord);
-                del_connec=DT.ConnectivityList;
-                
-                node_positive_iso = find(x(inode_global)>0);
-                
-                for idel = 1:length(node_positive_iso)
-                    [a, ~] = find(del_connec==node_positive_iso(idel));
-                    facets_connectivities(idel,:) = del_connec(a(end),del_connec(a(end),:)~=node_positive_iso(idel))-interpolation.nnode;
-                end
-            else
-                error('Case still not implemented.')
-            end
-        end  
-        
-        function all_cutPoints_global = findActiveCutPoints(P_global,active_nodes_global)
-            P_global_x = P_global(:,1,:); P_global_y = P_global(:,2,:); P_global_z = P_global(:,3,:);
-            all_cutPoints_global(:,1) = P_global_x(active_nodes_global); all_cutPoints_global(:,2) = P_global_y(active_nodes_global); all_cutPoints_global(:,3) = P_global_z(active_nodes_global);
-            
-            all_cutPoints_global = unique(all_cutPoints_global,'rows','stable');
-        end
-        
-        function djacob = mapping2D(elem_cutPoints_global,facets_connectivities,facet_deriv,dvolu)
-            
-            % !! How mapping is done for 3D cases??? !!
-            t = [0; norm(diff(elem_cutPoints_global(facets_connectivities,:)))];
-            djacob = (facet_deriv'*t)/dvolu;
-        end
-        
-        function djacob = mapping3D(elem_cutPoints_global,facets_connectivities,facet_deriv,dvolu)
-            t(:,1) = [0; norm(diff(elem_cutPoints_global(facets_connectivities([1 2]),:))); 0];
-            t(:,2) = [0; 0; norm(diff(elem_cutPoints_global(facets_connectivities([1 3]),:)))];
-            djacob = det((facet_deriv*t))/dvolu;
-        end
-        
-        function coord_id = findCoordinatesLocationInCoordinatesMatrix(coordinates_local,coordinates_global)
-            coord_id = zeros(1,size(coordinates_local,1));
-            for inode = 1:size(coordinates_local,1)
-                match = true(size(coordinates_global,1),1);
-                for idime = 1:size(coordinates_local,2)
-                    match = match & coordinates_global(:,idime) == coordinates_local(inode,idime);
-                end
-                coord_id(inode) = find(match);
-            end
-        end
-        
-        function counter = CountGivenNodesPerCell(connectivities,nodes)
-            counter = zeros(size(connectivities,1),1); 
-            for iconnec = 1:size(nodes,1)
-                match = false(size(connectivities,1),1);
-                for inode = 1:size(connectivities,2)
-                    match = match | connectivities(:,inode) == nodes(iconnec);
-                end
-                counter = counter + match ;
-            end
-        end
+    methods (Abstract)
+        getQuadratureDel(obj)
+        getMeshDel(obj)
+        getInterpolationDel(obj,mesh_del)
+        computeRHS_facet(obj,x,F)
+        findCutPoints_Iso(obj,x,cut_elem)
+%         findCutPoints_Global(obj,x,cut_elem)
+%         createFacet(obj)
+        computeDvoluCut(elcrd)
+%         mapping(elem_cutPoints_global,facets_connectivities,facet_deriv,dvolu)
     end
 end

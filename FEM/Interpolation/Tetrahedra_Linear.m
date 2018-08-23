@@ -1,11 +1,11 @@
-classdef Tetrahedra<Interpolation
+classdef Tetrahedra_Linear<Interpolation
     
     properties
     end
     
     methods
         % Constructor
-        function obj = Tetrahedra(mesh)
+        function obj = Tetrahedra_Linear(mesh)
             obj = obj@Interpolation(mesh);
             obj.type = 'TETRAHEDRA';
             obj.order= 'LINEAR';

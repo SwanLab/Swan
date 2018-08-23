@@ -86,9 +86,9 @@ classdef Interpolation < handle
                                 error('Invalid order for element QUADRILATERAL.');
                         end
                     case 'TETRAHEDRA'
-                        interpolation = Tetrahedra(mesh);
+                        interpolation = Tetrahedra_Linear(mesh);
                     case 'HEXAHEDRA'
-                        interpolation = Hexahedra(mesh);
+                        interpolation = Hexahedra_Linear(mesh);
                     otherwise
                         error('Invalid mesh type.')
                 end

@@ -80,11 +80,11 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         function phi_vect = updatePhi(obj,design_variable,gradient)
             % !! PATCH !!
             load(fullfile(pwd,'Allaire_ShapeOpt','conversion'));
+            gradient = -obj.filter.regularize(design_variable,gradient);
             
             if length(dim) == 2
                 load(fullfile(pwd,'Allaire_ShapeOpt','meshSize'));
                 load(fullfile(pwd,'Allaire_ShapeOpt','RI'));
-                gradient = -obj.filter.regularize(design_variable,gradient);
                 
                 for n = 1:length(design_variable)
                     phi(b1(n,1),b1(n,2)) = design_variable(n);
@@ -105,7 +105,6 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             else
                 dx = 1.25; dy = 1.25; dz = 1.25;
 %                 gradient_ALLAIRE = regularize3(design_variable,gradient,dx,dy,dz);
-                gradient = -obj.filter.regularize(design_variable,gradient);
                 
                 for n = 1:length(design_variable)
                     phi(b1(n,1),b1(n,2),b1(n,3)) = design_variable(n);

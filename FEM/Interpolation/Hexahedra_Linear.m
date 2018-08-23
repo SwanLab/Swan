@@ -1,9 +1,9 @@
-classdef Hexahedra < Interpolation
+classdef Hexahedra_Linear < Interpolation
     properties
     end
     methods
         %constructor
-        function obj=Hexahedra(mesh)
+        function obj=Hexahedra_Linear(mesh)
             obj = obj@Interpolation(mesh);
             obj.type = 'HEXAHEDRA';
             obj.order = 'LINEAR';
