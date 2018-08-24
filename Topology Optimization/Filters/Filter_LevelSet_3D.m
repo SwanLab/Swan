@@ -169,10 +169,11 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
             A=J/6;
         end
         
-        function djacob = mapping(elem_cutPoints_global,facets_connectivities,facet_deriv,dvolu)
-            t(:,1) = [0; norm(diff(elem_cutPoints_global(facets_connectivities([1 2]),:))); 0];
-            t(:,2) = [0; 0; norm(diff(elem_cutPoints_global(facets_connectivities([1 3]),:)))];
-            djacob = det((facet_deriv*t))/dvolu;
+        function djacob = mapping(elem_cutPoints_global,facets_connectivities,facet_deriv,dvolu)      
+            v1 = diff(elem_cutPoints_global(facets_connectivities([1 2]),:));
+            v2 = diff(elem_cutPoints_global(facets_connectivities([1 3]),:));
+            A = 0.5*norm(cross(v1,v2));
+            djacob = A/dvolu;
         end
         
         function all_cutPoints_global = findActiveCutPoints(P_global,active_nodes_global)

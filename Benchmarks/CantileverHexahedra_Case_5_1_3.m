@@ -32,7 +32,7 @@ TOL.rho_minus = 0;
 TOL.E_plus = 1;
 TOL.E_minus = 1e-3;
 
-maxiter = 10;
+% maxiter = 10;
 TOL.nu_plus = 0.3;
 TOL.nu_minus = 0.3;
 

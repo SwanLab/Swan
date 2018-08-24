@@ -1,4 +1,4 @@
-function v = regularize3(x,V_vect,dx,dy,dz)
+function [v, b] = regularize3(x,V_vect,dx,dy,dz)
 % REGULARIZATION OF THE ADVECTION VELOCITY
 % Here we regularize the velocity field by considering the H1 product instead of the L2 one.
 
