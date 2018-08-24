@@ -156,11 +156,8 @@ classdef Element_Elastic < Element
                     Kij(k:k+length(it)-1,1) =  obj.geometry.dvolu(:,igaus).*k_ij ;
                     k = k + length(it) ;
                 end
-%                 StifMat_aux = accumarray(I_index,J_index,Kij,obj.dof.ndof,obj.dof.ndof);
                 StifMat_aux = sparse(I_index,J_index,Kij,obj.dof.ndof,obj.dof.ndof);
                 StifMat = StifMat + StifMat_aux;
-                % !! FER ACCUMARRAY !!
-%                 M2 = M2+accumarray(p,shape_all(:,inode),[obj.npnod,1],@sum,0);
             end
             K = 1/2 * (StifMat + StifMat');            
         end

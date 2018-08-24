@@ -15,10 +15,7 @@ classdef Optimizer < handle
     end
     
     properties (Access = ?Optimizer_Constrained)
-        plotting
         case_file
-        showBC
-        BCscale_factor
         printing
         monitoring
         mesh
@@ -27,7 +24,7 @@ classdef Optimizer < handle
     methods
         function obj = Optimizer(settings)
             obj.nconstr = settings.nconstr;
-%             obj.case_file=settings.case_file;
+            obj.case_file=settings.case_file;
             obj.holes.N_holes = settings.N_holes;
             obj.holes.R_holes = settings.R_holes;
             obj.holes.phase_holes = settings.phase_holes;
@@ -166,122 +163,6 @@ classdef Optimizer < handle
             end
             fprintf(fid_mesh,'\n');
             fclose(fid_mesh);
-        end
-        
-        function plotX(obj,x)
-            if ~(obj.plotting)
-                return
-            end
-            
-            if any(x<0)
-                rho_nodal = x<0;
-            else
-                rho_nodal = x;
-            end
-            
-            switch obj.mesh.pdim
-                case '2D'
-                    ndim = 2;
-                    if isempty(obj.fhtri)
-                        fh = figure;
-                        mp = get(0, 'MonitorPositions');
-                        select_screen = 1;
-                        if size(mp,1) < select_screen
-                            select_screen = size(mp,1);
-                        end
-                        width = mp(1,3);
-                        height = mp(1,4);
-                        size_screen_offset = round([0.7*width,0.52*height,-0.71*width,-0.611*height],0);
-                        set(fh,'Position',mp(select_screen,:) + size_screen_offset);
-                        %                 obj.fhtri = trisurf(obj.mesh.connec,obj.mesh.coord(:,1),obj.mesh.coord(:,2),obj.mesh.coord(:,3),double(rho_nodal), ...
-                        %                     'EdgeColor','none','LineStyle','none','FaceLighting','phong');
-                        switch obj.optimizer
-                            %                     case {'SLERP','HAMILTON-JACOBI'}
-                            otherwise
-                                obj.fhtri=patch('Faces',obj.mesh.connec,'Vertices',obj.mesh.coord,'FaceVertexCData',double(rho_nodal),'FaceColor','flat',...
-                                    'EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
-                                %                                 obj.fhtri = plot3(obj.mesh.coord(rho_nodal,1),obj.mesh.coord(rho_nodal,2),obj.mesh.coord(rho_nodal,3),'k.','MarkerSize',10); view([0 0 1])
-                        end
-                        colormap(flipud(gray));
-                        set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
-                        
-                        axis equal
-                        axis off
-                    else
-                        switch obj.optimizer
-                            %                     case {'SLERP','HAMILTON-JACOBI'}
-                            
-                            otherwise
-                                %                                 plot3(obj.mesh.coord(rho_nodal,1),obj.mesh.coord(rho_nodal,2),obj.mesh.coord(rho_nodal,3),'k.','MarkerSize',10), view([0 0 1])
-                                set(obj.fhtri,'FaceVertexCData',double(rho_nodal));
-                        end
-                        
-                        set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
-                        axis equal
-                    end
-                case '3D'
-                    ndim = 3;
-                    iso = 0;
-                    load(fullfile(pwd,'Allaire_ShapeOpt','conversion'));
-                    for n = 1:length(x)
-                        c(b1(n,1),b1(n,2),b1(n,3)) = x(n);
-                    end
-                    c=permute(c,[3 2 1]);
-                    c(c==0)=-eps;
-                    
-                    cc=(iso+1000)*ones(size(c)+2);
-                    cc(2:end-1,2:end-1,2:end-1)=c;
-                    
-                    [Y,X,Z]=meshgrid(-dim(1,2)/div(1,2):dim(1,2)/div(1,2):dim(1,2)+dim(1,2)/div(1,2),...
-                        -dim(1,1)/div(1,1):dim(1,1)/div(1,1):dim(1,1)+dim(1,1)/div(1,1),...
-                        -dim(1,3)/div(1,3):dim(1,3)/div(1,3):dim(1,3)+dim(1,3)/div(1,3));
-                    
-                    [F,V,col] = MarchingCubes(X,Y,Z,cc,iso);
-                    
-                    if isempty(obj.fhtri)
-                        obj.fhtri = figure;
-                    end
-                    set(0, 'CurrentFigure', obj.fhtri)
-                    clf
-                    hold on
-                    set(obj.fhtri,'Pointer','arrow','Color',[1 1 1],'Name','Finite Element Model','NumberTitle','off');
-                    axis equal; axis off; view(3); hold on;
-                    fac = [1 2 3 4; 2 6 7 3; 4 3 7 8; 1 5 8 4; 1 2 6 5; 5 6 7 8];
-                    lx=max(obj.mesh.coord(:,1));
-                    ly=max(obj.mesh.coord(:,2));
-                    lz=max(obj.mesh.coord(:,3));
-                    patch(axes(obj.fhtri),'Faces',fac,'Vertices',[0 0 0; 0 ly 0; lx ly 0; lx 0 0; 0 0 lz; 0 ly lz; lx ly lz; lx 0 lz],'FaceColor','w','FaceAlpha',0.0);
-                    
-                    patch('vertices',V,'faces',F,'edgecolor','none',...
-                        'facecolor',[1 0 0],'facelighting','phong')
-                    light
-                    axis equal off
-                    
-                    rotate3d(gca);
-                    set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
-                    view(30,30);
-                    axis equal off
-            end
-            
-            if obj.showBC
-                [inodef,iforce]  = unique(obj.mesh.pointload(:,1));
-                [inodec,iconst]  = unique(obj.mesh.dirichlet(:,1));
-                force = zeros(length(iforce),3);
-                const = zeros(length(iconst),3);
-                
-                for idim = 1:ndim
-                    force(:,idim) = obj.mesh.pointload(obj.mesh.pointload(:,2)==idim,3);
-                    const(:,idim) = obj.mesh.dirichlet(obj.mesh.dirichlet(:,2)==idim,3);
-                end
-                
-                hold on
-                plot3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),'ro')
-                quiver3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),force(:,1),force(:,2),force(:,3),'r','AutoScaleFactor',obj.BCscale_factor*max(obj.mesh.coord(:))/max(abs(force(:))));
-                plot3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),'bx')
-                quiver3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),const(:,1),const(:,2),const(:,3),'b','AutoScaleFactor',obj.BCscale_factor*max(obj.mesh.coord(:))/max(abs(const(:))));
-                hold off
-            end
-            drawnow;
         end
     end
 end

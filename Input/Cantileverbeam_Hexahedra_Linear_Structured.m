@@ -27358,9 +27358,9 @@ dirichlet_data = [
 % Node                Dimension                Value
 
 pointload_complete = [
-13574 1  0
-13574 2  0
-13574 3 -1
+13838 1  0
+13838 2  0
+13838 3 -1
 ];
 
 %% Volumetric Force

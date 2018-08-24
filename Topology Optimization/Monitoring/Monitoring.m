@@ -1,9 +1,6 @@
 classdef Monitoring < handle
-    %Monitoring Summary of this class goes here
-    %   Detailed explanation goes here
-    
     properties
-        ON
+        monitoring_ON
         interval
         figures
         monitor
@@ -15,110 +12,152 @@ classdef Monitoring < handle
         case_file
     end
     
-    methods
-        function obj = Monitoring(settings,ON)
-            obj.ON = ON;
-            if obj.ON
-                obj.interval = settings.monitoring_interval;
-                obj.getStopVarsNames(settings.optimizer);
-                obj.case_file = settings.case_file;
-                
-                obj.figures = {};
-                obj.createFigure('Cost');
-                
-                obj.ncost = length(settings.cost);
-                for i = 1:obj.ncost
-                    if isempty(settings.weights)
-                        obj.createFigure([obj.setCase(settings.cost{i}) ' (wt. 1.0)']);
-                    else
-                        obj.createFigure([obj.setCase(settings.cost{i}) sprintf(' (wt. %.2f)',settings.weights(i))]);
-                    end
-                end
-                
-                obj.nconstraint = length(settings.constraint);
-                for i = 1:obj.nconstraint
-                    obj.createFigure(['Cstr ' num2str(i) ': ' obj.setCase(settings.constraint{i})]);
-                    obj.createFigure(['\lambda' obj.subindex(obj.setCase(settings.constraint{i}))]);
-                end
-                
-                for i = 1:obj.nstop
-                    obj.createFigure(['Conv Criteria ' num2str(i) ': ' obj.stop_names{i}]);
-                end
-                
-                obj.nfigs = length(obj.figures);
-                if obj.nfigs <= 4
-                    nrows = 1;
-                else
-                    nrows = 2;
-                end
-                ncols = round(obj.nfigs/nrows);
-                
-                % Create obj.figures
-                obj.monitor = figure;
-                
-                % WARNING!! JavaFrame will be obsolete in future Matlab releases
-                warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame')
-                drawnow; set(get(obj.monitor,'JavaFrame'),'Maximized',1);
-                
-                for i = 1:obj.nfigs
-                    obj.figures{i}.style = obj.subplot_tight(nrows,ncols,i,[0.06 0.03]);
-                    switch obj.figures{i}.chart_type
-                        case 'plot'
-                            obj.figures{i}.handle = plot(0,0);
-                            title(obj.figures{i}.title);
-                            grid on
-                        case 'bar'
-                            obj.figures{i}.handle = bar(0,0);
-                            title(obj.figures{i}.title);
-                            grid on
-                    end
-                end
-            else
-                obj.interval = 0;
-            end
-        end
-        
-        function display(obj,iteration,cost,constraint,stop_vars,stop_criteria,istep,nstep)
-            if obj.ON
-                draw = (mod(iteration,obj.interval) == 0 || ~stop_criteria);
-                obj.figures{1} = obj.updateFigure(obj.figures{1},iteration,cost.value,draw);
-                for i = 1:obj.ncost
-                    k = i+1;
-                    obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,cost.ShapeFuncs{i}.value,draw);
-                end
-                for i = 1:obj.nconstraint
-                    k = i*2+obj.ncost;
-                    obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,constraint.ShapeFuncs{i}.value,draw);
-                    k = k+1;
-                    obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,constraint.lambda(i),draw);
-                end
-                for i = 1:obj.nstop
-                    k = i+1+obj.ncost+2*obj.nconstraint;
-                    if contains(obj.figures{k}.title,'outit')
-                        if draw
-                            obj.updateFigureIT(obj.figures{k},iteration,stop_vars(i,:));
-                        end
-                    else
-                        obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,stop_vars(i,1),draw);
-                    end
-                end
-                if draw
-                    if ~stop_criteria && istep == nstep
-                        set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Inc. Step: %.0f/%.0f Iteration: %.0f - FINISHED',istep,nstep,iteration))
-                        out_folder = fullfile(pwd,'Output',obj.case_file);
-                        if ~exist(out_folder,'dir')
-                            mkdir(out_folder)
-                        end
-                        saveas(obj.monitor,fullfile(out_folder,[sprintf('monitoring_step_%.0f_of_%.0f_it_%.0f',istep,nstep,iteration),'.png']))
-                    else 
-                        set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Inc. Step: %.0f/%.0f Iteration: %.0f',istep,nstep,iteration))
-                    end
-                end
-            else
-                return
+    properties
+        plotting_ON
+        plotting_figure
+        ndim
+        mesh
+        showBC
+        BCscale_factor
+    end
+    
+    methods (Abstract)
+        setPlottingFigure(obj)
+    end
+    
+    methods (Static)
+        function obj = create(settings,mesh,monitoring_ON, plotting_ON)
+            switch mesh.pdim
+                case '2D'
+                    obj = Monitoring_2D(settings,mesh,monitoring_ON, plotting_ON);
+                case '3D'
+                    obj = Monitoring_3D(settings,mesh,monitoring_ON, plotting_ON);
             end
         end
     end
+    
+    methods
+        function obj = Monitoring(settings,mesh,monitoring_ON, plotting_ON)
+            obj.mesh = mesh;
+            obj.monitoring_ON = monitoring_ON;
+            if obj.monitoring_ON
+                obj.createMonitor(settings);
+            else
+                obj.interval = 0;
+            end
+            
+            obj.plotting_ON = plotting_ON;
+            if obj.plotting_ON
+                obj.plotting_figure = figure;
+                obj.setPlottingFigure;
+            end
+        end
+        
+        function createMonitor(obj,settings)
+            obj.interval = settings.monitoring_interval;
+            obj.getStopVarsNames(settings.optimizer);
+            obj.case_file = settings.case_file;
+            
+            obj.figures = {};
+            obj.createFigure('Cost');
+            
+            obj.ncost = length(settings.cost);
+            for i = 1:obj.ncost
+                if isempty(settings.weights)
+                    obj.createFigure([obj.setCase(settings.cost{i}) ' (wt. 1.0)']);
+                else
+                    obj.createFigure([obj.setCase(settings.cost{i}) sprintf(' (wt. %.2f)',settings.weights(i))]);
+                end
+            end
+            
+            obj.nconstraint = length(settings.constraint);
+            for i = 1:obj.nconstraint
+                obj.createFigure(['Cstr ' num2str(i) ': ' obj.setCase(settings.constraint{i})]);
+                obj.createFigure(['\lambda' obj.subindex(obj.setCase(settings.constraint{i}))]);
+            end
+            
+            for i = 1:obj.nstop
+                obj.createFigure(['Conv Criteria ' num2str(i) ': ' obj.stop_names{i}]);
+            end
+            
+            obj.nfigs = length(obj.figures);
+            if obj.nfigs <= 4
+                nrows = 1;
+            else
+                nrows = 2;
+            end
+            ncols = round(obj.nfigs/nrows);
+            
+            % Create obj.figures
+            obj.monitor = figure;
+            
+            % WARNING!! JavaFrame will be obsolete in future Matlab releases
+            warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame')
+            drawnow; set(get(obj.monitor,'JavaFrame'),'Maximized',1);
+            
+            for i = 1:obj.nfigs
+                obj.figures{i}.style = obj.subplot_tight(nrows,ncols,i,[0.06 0.03]);
+                switch obj.figures{i}.chart_type
+                    case 'plot'
+                        obj.figures{i}.handle = plot(0,0);
+                        title(obj.figures{i}.title);
+                        grid on
+                    case 'bar'
+                        obj.figures{i}.handle = bar(0,0);
+                        title(obj.figures{i}.title);
+                        grid on
+                end
+            end
+        end
+        
+        function refresh(obj,x,iteration,cost,constraint,stop_vars,stop_criteria,istep,nstep)
+            if obj.plotting_ON
+                obj.plotX(x);
+            end
+            
+            if obj.monitoring_ON
+                obj.display_parameters(iteration,cost,constraint,stop_vars,stop_criteria,istep,nstep)
+            end
+        end
+        
+        function display_parameters(obj,iteration,cost,constraint,stop_vars,stop_criteria,istep,nstep)
+            draw = (mod(iteration,obj.interval) == 0 || ~stop_criteria);
+            obj.figures{1} = obj.updateFigure(obj.figures{1},iteration,cost.value,draw);
+            for i = 1:obj.ncost
+                k = i+1;
+                obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,cost.ShapeFuncs{i}.value,draw);
+            end
+            for i = 1:obj.nconstraint
+                k = i*2+obj.ncost;
+                obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,constraint.ShapeFuncs{i}.value,draw);
+                k = k+1;
+                obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,constraint.lambda(i),draw);
+            end
+            for i = 1:obj.nstop
+                k = i+1+obj.ncost+2*obj.nconstraint;
+                if contains(obj.figures{k}.title,'outit')
+                    if draw
+                        obj.updateFigureIT(obj.figures{k},iteration,stop_vars(i,:));
+                    end
+                else
+                    obj.figures{k} = obj.updateFigure(obj.figures{k},iteration,stop_vars(i,1),draw);
+                end
+            end
+            if draw
+                if ~stop_criteria && istep == nstep
+                    set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Inc. Step: %.0f/%.0f Iteration: %.0f - FINISHED',istep,nstep,iteration))
+                    out_folder = fullfile(pwd,'Output',obj.case_file);
+                    if ~exist(out_folder,'dir')
+                        mkdir(out_folder)
+                    end
+                    saveas(obj.monitor,fullfile(out_folder,[sprintf('monitoring_step_%.0f_of_%.0f_it_%.0f',istep,nstep,iteration),'.png']))
+                else
+                    set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Inc. Step: %.0f/%.0f Iteration: %.0f',istep,nstep,iteration))
+                end
+            end
+        end
+    end
+    
     methods (Access = private)
         function obj = createFigure(obj,TITLE)
             obj.figures{end+1}.title = TITLE;
@@ -273,5 +312,25 @@ classdef Monitoring < handle
         end
     end
     
+    methods (Access = protected)
+        function plotBoundaryConditions(obj)
+            [inodef,iforce]  = unique(obj.mesh.pointload(:,1));
+            [inodec,iconst]  = unique(obj.mesh.dirichlet(:,1));
+            force = zeros(length(iforce),3);
+            const = zeros(length(iconst),3);
+            
+            for idim = 1:obj.ndim
+                force(:,idim) = obj.mesh.pointload(obj.mesh.pointload(:,2)==idim,3);
+                const(:,idim) = obj.mesh.dirichlet(obj.mesh.dirichlet(:,2)==idim,3);
+            end
+            
+            hold on
+            plot3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),'ro')
+            quiver3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),force(:,1),force(:,2),force(:,3),'r','AutoScaleFactor',obj.BCscale_factor*max(obj.mesh.coord(:))/max(abs(force(:))));
+            plot3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),'bx')
+            quiver3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),const(:,1),const(:,2),const(:,3),'b','AutoScaleFactor',obj.BCscale_factor*max(obj.mesh.coord(:))/max(abs(const(:))));
+            hold off
+        end
+    end
 end
 

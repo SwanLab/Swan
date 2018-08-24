@@ -32,11 +32,12 @@ TOL.rho_minus = 0;
 TOL.E_plus = 1;
 TOL.E_minus = 1e-3;
 
-% maxiter = 10;
+maxiter = 10;
+% maxiter = 1;
 TOL.nu_plus = 0.3;
 TOL.nu_minus = 0.3;
 
 plotting = 1;
-printing = 0;
+printing = 1;
 monitoring = 1;
 monitoring_interval = 1;

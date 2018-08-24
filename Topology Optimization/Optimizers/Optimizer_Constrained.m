@@ -10,11 +10,8 @@ classdef Optimizer_Constrained < Optimizer
         function obj = Optimizer_Constrained(settings,mesh,monitoring)
             obj@Optimizer(settings);
             obj.maxiter = settings.maxiter;
-            obj.plotting = settings.plotting;
-            obj.showBC = settings.showBC;
-            obj.BCscale_factor = settings.BCscale_factor;
             obj.printing = settings.printing;
-            obj.monitoring = Monitoring(settings,monitoring);
+            obj.monitoring = Monitoring.create(settings,mesh,monitoring,settings.plotting);
             obj.optimizer = settings.optimizer;
             obj.mesh = mesh;            
         end
@@ -23,23 +20,22 @@ classdef Optimizer_Constrained < Optimizer
             x = x_ini;
             cost.computef(x_ini);
             constraint.computef(x_ini);
-            obj.plotX(x_ini)
+            obj.monitoring.plotX(x_ini)
             obj.print(x_ini,obj.niter);
             while obj.stop_criteria && obj.niter < obj.maxiter
                 obj.niter = obj.niter+1;
                 x = obj.updateX(x_ini,cost,constraint);
-                obj.plotX(x)
+                obj.monitoring.refresh(x,obj.niter,cost,constraint,obj.stop_vars,obj.stop_criteria && obj.niter < obj.maxiter,istep,nstep);
                 obj.print(x,obj.niter);
                 obj.writeToFile(istep,cost,constraint)
-                obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars,obj.stop_criteria && obj.niter < obj.maxiter,istep,nstep);
                 x_ini = x;
             end
             obj.printFinal(x);
             obj.stop_criteria = 1;
         end
         function printFinal(obj,x)
-            if obj.plotting==1
-                if obj.printing==1
+            if obj.monitoring.plotting_ON
+                if obj.printing
                     obj.print(x,obj.niter);
                 else
                     obj.printing=1;

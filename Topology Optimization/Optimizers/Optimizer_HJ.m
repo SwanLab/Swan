@@ -76,6 +76,17 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         function phi_vect = updatePhi(obj,design_variable,gradient)
             % !! PATCH !!
             load(fullfile(pwd,'Allaire_ShapeOpt','conversion'));
+            
+%             for n = 1:length(design_variable)
+%                     V(b1(n,1),b1(n,2),b1(n,3)) = -gradient(n);
+%             end
+%                 
+%             figure('NumberTitle', 'off', 'Name', 'Raw Gradient')
+%             subplot(2,2,1), surf(V(:,:,2)), title('Gradient - Root')
+%             subplot(2,2,2), surf(V(:,:,end-1)), title('Gradient - Tip')
+%             subplot(2,2,3), surf(permute(V(ceil(size(V,1)/2),:,:),[2 3 1])), title('Gradient - XY')
+%             subplot(2,2,4), surf(permute(V(:,ceil(size(V,2)/2),:),[1 3 2])), title('Gradient - XZ')
+
             gradient = -obj.filter.regularize(design_variable,gradient);
             
             if length(dim) == 2
@@ -100,18 +111,18 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
                 %             figure, surf(V_mat);
             else
                 dx = 1.25; dy = 1.25; dz = 1.25;
-                [gradient_ALLAIRE, b_ALLAIRE] = regularize3(design_variable,gradient,dx,dy,dz);
+%                 [gradient_ALLAIRE, b_ALLAIRE] = regularize3(design_variable,gradient,dx,dy,dz);
                 
-                figure('NumberTitle', 'off', 'Name', 'ALLAIRE- b')
-                subplot(2,2,1), surf(-b_ALLAIRE(:,:,2)), title('b_A - Root')
-                subplot(2,2,2), surf(-b_ALLAIRE(:,:,end-1)), title('b_A - Tip')
-                subplot(2,2,3), surf(permute(-b_ALLAIRE(ceil(size(b_ALLAIRE,1)/2),:,:),[2 3 1])), title('b_A - XY')
-                subplot(2,2,4), surf(permute(-b_ALLAIRE(:,ceil(size(b_ALLAIRE,2)/2),:),[1 3 2])), title('b_A - XZ')
+%                 figure('NumberTitle', 'off', 'Name', 'ALLAIRE- b')
+%                 subplot(2,2,1), surf(-b_ALLAIRE(:,:,2)), title('b_A - Root')
+%                 subplot(2,2,2), surf(-b_ALLAIRE(:,:,end-1)), title('b_A - Tip')
+%                 subplot(2,2,3), surf(permute(-b_ALLAIRE(ceil(size(b_ALLAIRE,1)/2),:,:),[2 3 1])), title('b_A - XY')
+%                 subplot(2,2,4), surf(permute(-b_ALLAIRE(:,ceil(size(b_ALLAIRE,2)/2),:),[1 3 2])), title('b_A - XZ')
                 
                 for n = 1:length(design_variable)
                     phi(b1(n,1),b1(n,2),b1(n,3)) = design_variable(n);
                     V(b1(n,1),b1(n,2),b1(n,3)) = gradient(n);
-                    V_ALLAIRE(b1(n,1),b1(n,2),b1(n,3)) = gradient_ALLAIRE(n);
+%                     V_ALLAIRE(b1(n,1),b1(n,2),b1(n,3)) = gradient_ALLAIRE(n);
                 end
                 
 %                 figure('NumberTitle', 'off', 'Name', 'ALLAIRE- Regularized V')
