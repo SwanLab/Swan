@@ -1,6 +1,6 @@
-classdef Monitoring_3D < Monitoring
+classdef Monitoring_LevelSet_3D < Monitoring
     methods
-        function obj = Monitoring_3D(settings,mesh,monitoring_ON,plotting_ON)
+        function obj = Monitoring_LevelSet_3D(settings,mesh,monitoring_ON,plotting_ON)
             obj@Monitoring(settings,mesh,monitoring_ON,plotting_ON);
             obj.ndim = 3;
         end

@@ -42,18 +42,18 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
     %     'GrippingTetrahedraCoarse_Case_2_1_1';
     %     'GrippingTetrahedraCoarse_Case_3_1_1';
     %     'GrippingTetrahedraCoarse_Case_4_1_1';
-    %     'GrippingTetrahedraCoarse_Case_1_2_1';
-    %     'GrippingTetrahedraCoarse_Case_2_2_1';
-    %     'GrippingTetrahedraCoarse_Case_3_2_1';
-    %     'GrippingTetrahedraCoarse_Case_4_2_1'
+%         'GrippingTetrahedraCoarse_Case_1_2_1';
+%         'GrippingTetrahedraCoarse_Case_2_2_1';
+%         'GrippingTetrahedraCoarse_Case_3_2_1';
+%     'GrippingTetrahedraCoarse_Case_4_2_1'
     %     'CantileverQuadrilateral_Case_1_2_1';
     %     'CantileverQuadrilateral_Case_1_2_2'
     %     'CantileverQuadrilateral_Case_5_2_1'
     %             'CantileverTriangle_Case_1_2_1'
     %     'CantileverTriangle_Case_1_2_4'
     %         'BridgeQuadrilateral_Case_5_1_1'
-%     'CantileverTriangle_Case_4_1_2'
-%     'BridgeQuadrilateral_Case_5_2_1'
+    %     'CantileverTriangle_Case_4_1_2'
+    %     'BridgeQuadrilateral_Case_5_2_1'
     % 'BridgeQuadrilateral_Case_5_2_2'
     %     'BridgeQuadrilateral_Case_5_3_1'
     %     'CantileverHexahedra_Case_1_1_1'
@@ -73,14 +73,16 @@ for icases=1:size(filenames,1)
     close all;
     settings=Settings(filenames{icases});
     % --------------------------- !! DELETE !! ----------------------------
-    if ~contains(lower(filenames{icases}),'hexa')
-        dim = [2 1]; div = [120 60];
-        [A1,b1,A0,b0] = conversionTensors(settings.filename,dim,div);
-    else
-        dim = [60 20 20]; div = [48 16 16];
-        [A1,b1,A0,b0] = conversionTensors3D(settings.filename,dim,div);
+    if contains(lower(filenames{icases}),'case_5')
+        if ~contains(lower(filenames{icases}),'hexa')
+            dim = [2 1]; div = [120 60];
+            [A1,b1,A0,b0] = conversionTensors(settings.filename,dim,div);
+        else
+            dim = [60 20 20]; div = [48 16 16];
+            [A1,b1,A0,b0] = conversionTensors3D(settings.filename,dim,div);
+        end
+        save(fullfile(pwd,'Allaire_ShapeOpt','conversion'),'A0','A1','b0','b1','dim','div');
     end
-    save(fullfile(pwd,'Allaire_ShapeOpt','conversion'),'A0','A1','b0','b1','dim','div');
     % ---------------------------------------------------------------------
     test = TopOpt_Problem(settings);
     test.preProcess;

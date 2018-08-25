@@ -31,7 +31,12 @@ classdef Monitoring < handle
                 case '2D'
                     obj = Monitoring_2D(settings,mesh,monitoring_ON, plotting_ON);
                 case '3D'
-                    obj = Monitoring_3D(settings,mesh,monitoring_ON, plotting_ON);
+                    switch settings.optimizer
+                        case 'HAMILTON-JACOBI'
+                            obj = Monitoring_LevelSet_3D(settings,mesh,monitoring_ON, plotting_ON);
+                        otherwise
+                            obj = Monitoring_2D(settings,mesh,monitoring_ON, plotting_ON);
+                    end
             end
         end
     end

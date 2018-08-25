@@ -13,12 +13,12 @@ constraint_case = 'INEQUALITY';
 nsteps = 10;
 Vfrac_final = 0.1;
 Perimeter_target=3.5;
-optimality_final =1e-4;
-constr_final =1e-4;
+optimality_final =1e-5;
+constr_final =1e-5;
 
 BCscale_factor = 0.3;
 HJiter0 = 1;
-e2 = 100;
+e2 = 10;
 N_holes = [12 5 5];
 R_holes = 0.9;
 phase_holes = [0 0 0];
@@ -32,7 +32,7 @@ TOL.rho_minus = 0;
 TOL.E_plus = 1;
 TOL.E_minus = 1e-3;
 
-maxiter = 10;
+% maxiter = 10;
 % maxiter = 1;
 TOL.nu_plus = 0.3;
 TOL.nu_minus = 0.3;
