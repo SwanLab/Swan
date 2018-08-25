@@ -29,7 +29,7 @@ classdef Monitoring < handle
         function obj = create(settings,mesh,monitoring_ON, plotting_ON)
             switch mesh.pdim
                 case '2D'
-                    obj = Monitoring_2D(settings,mesh,monitoring_ON, plotting_ON);
+                    obj = Monitoring_Else(settings,mesh,monitoring_ON, plotting_ON);
                 case '3D'
                     switch settings.optimizer
                         case 'HAMILTON-JACOBI'

@@ -1,6 +1,6 @@
-classdef Monitoring_2D < Monitoring
+classdef Monitoring_Else < Monitoring
     methods
-        function obj = Monitoring_2D(settings,mesh,monitoring_ON,plotting_ON)
+        function obj = Monitoring_Else(settings,mesh,monitoring_ON,plotting_ON)
             obj@Monitoring(settings,mesh,monitoring_ON,plotting_ON);
             obj.ndim = 2;
         end
