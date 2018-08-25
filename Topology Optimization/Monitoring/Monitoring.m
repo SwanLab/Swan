@@ -118,6 +118,13 @@ classdef Monitoring < handle
         function refresh(obj,x,iteration,cost,constraint,stop_vars,stop_criteria,istep,nstep)
             if obj.plotting_ON
                 obj.plotX(x);
+                if ~stop_criteria && istep == nstep
+                    out_folder = fullfile(pwd,'Output',obj.case_file);
+                    if ~exist(out_folder,'dir')
+                        mkdir(out_folder)
+                    end
+                    saveas(obj.plotting_figure,fullfile(out_folder,sprintf('%s_FINAL_step_%.0f_of_%.0f_it_%.0f',obj.case_file,istep,nstep,iteration)))
+                end
             end
             
             if obj.monitoring_ON
@@ -155,7 +162,7 @@ classdef Monitoring < handle
                     if ~exist(out_folder,'dir')
                         mkdir(out_folder)
                     end
-                    saveas(obj.monitor,fullfile(out_folder,[sprintf('monitoring_step_%.0f_of_%.0f_it_%.0f',istep,nstep,iteration),'.png']))
+                    saveas(obj.monitor,fullfile(out_folder,sprintf('monitoring_step_%.0f_of_%.0f_it_%.0f.png',istep,nstep,iteration)))
                 else
                     set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Inc. Step: %.0f/%.0f Iteration: %.0f',istep,nstep,iteration))
                 end
