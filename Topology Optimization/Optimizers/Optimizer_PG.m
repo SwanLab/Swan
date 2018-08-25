@@ -22,23 +22,25 @@ classdef Optimizer_PG < Optimizer_Unconstrained
         end
         
         function x = updateX(obj,x_ini,cost,constraint)                 
-                x = obj.updateRho(x_ini,obj.objfunc.gradient);
-                cost.computef(x);
-                constraint.computef(x);
-                constraint =obj.setConstraint_case(constraint);
-                
-                obj.objfunc.computeFunction(cost,constraint)
-%                 cost_ls = cost.value + obj.lambda*constraint.value + 0.5*obj.penalty*(constraint.value.*constraint.value);
-                
-                incr_norm_L2  = obj.norm_L2(x,x_ini);
-                incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
-                
-                obj.kappa = obj.kappa/obj.kfrac;
-                obj.stop_criteria =  ~((incr_cost < 0 && incr_norm_L2 < obj.max_constr_change) || obj.kappa <=  obj.kappa_min);
-                
-                obj.stop_vars(1,1) = incr_cost;     obj.stop_vars(1,2) = 0;
-                obj.stop_vars(2,1) = incr_norm_L2;   obj.stop_vars(2,2) = obj.max_constr_change;
-                obj.stop_vars(3,1) = obj.kappa;     obj.stop_vars(3,2) = obj.kappa_min;
+            x = obj.updateRho(x_ini,obj.objfunc.gradient);
+            cost.computef(x);
+            constraint.computef(x);
+            constraint =obj.setConstraint_case(constraint); 
+            obj.objfunc.computeFunction(cost,constraint)
+            
+            incr_norm_L2  = obj.norm_L2(x,x_ini);
+            incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);            
+            
+            obj.good_design = incr_cost < 0 && incr_norm_L2 < obj.max_constr_change;
+            obj.stop_updating = obj.good_design || obj.kappa <= obj.kappa_min;
+            
+            obj.stop_vars(1,1) = incr_cost;     obj.stop_vars(1,2) = 0;
+            obj.stop_vars(2,1) = incr_norm_L2;   obj.stop_vars(2,2) = obj.max_constr_change;
+            obj.stop_vars(3,1) = obj.kappa;     obj.stop_vars(3,2) = obj.kappa_min;
+            
+            if ~obj.stop_updating
+                obj.computeKappa;
+            end
         end
         function rho = updateRho(obj, design_variable,gradient)  
             rho_n = design_variable;
@@ -56,6 +58,10 @@ classdef Optimizer_PG < Optimizer_Unconstrained
             else
                 obj.kappa = obj.kappaMultiplier*obj.kappa*obj.kfrac;
             end
+        end
+        
+        function computeKappa(obj)
+            obj.kappa = obj.kappa/obj.kfrac;
         end
     end
     

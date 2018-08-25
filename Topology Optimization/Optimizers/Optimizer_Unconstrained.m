@@ -8,6 +8,7 @@ classdef Optimizer_Unconstrained < Optimizer
         kfrac
         max_constr_change
         opt_cond
+        good_design
         kappa
         kappa_min
     end

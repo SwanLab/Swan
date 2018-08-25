@@ -29,18 +29,22 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             x = obj.updatePhi(x_ini,obj.objfunc.gradient);
             cost.computef(x);
             constraint.computef(x);
-            constraint =obj.setConstraint_case(constraint); 
+            constraint =obj.setConstraint_case(constraint);
             obj.objfunc.computeFunction(cost,constraint)
             
             incr_norm_L2  = obj.norm_L2(x,x_ini);
             incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
             
-            obj.kappa = obj.kappa/obj.kfrac;
-            obj.stop_criteria = ~((incr_cost < 0 && incr_norm_L2 < obj.max_constr_change) || obj.kappa <= obj.kappa_min);
+            obj.good_design = incr_cost < 0 && incr_norm_L2 < obj.max_constr_change;
+            obj.stop_updating = obj.good_design || obj.kappa <= obj.kappa_min;
             
             obj.stop_vars(1,1) = incr_cost;     obj.stop_vars(1,2) = 0;
             obj.stop_vars(2,1) = incr_norm_L2;   obj.stop_vars(2,2) = obj.max_constr_change;
             obj.stop_vars(3,1) = obj.kappa;     obj.stop_vars(3,2) = obj.kappa_min;
+            
+            if ~obj.stop_updating
+                obj.computeKappa;
+            end
         end
         
         function theta = computeTheta(obj,phi,g)
@@ -65,6 +69,10 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         
         function initKappa(obj,~,~,~)
             obj.kappa = 1;
+        end
+        
+        function computeKappa(obj)
+            obj.kappa = obj.kappa/obj.kfrac;
         end
     end
 end

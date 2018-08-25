@@ -83,7 +83,7 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             obj.niter=obj.niter+1;
             obj.print(data.x,obj.niter);            
             obj.constraint_copy.lambda=zeros(obj.constraint_copy.nSF,1);
-            obj.monitoring.refresh(data.x,obj.niter+1,obj.cost_copy,obj.constraint_copy,data.inf_du,obj.stop_criteria && obj.niter < obj.maxiter,istep,nstep);                     
+            obj.monitoring.refresh(data.x,obj.niter+1,obj.cost_copy,obj.constraint_copy,data.inf_du,obj.stop_updating && obj.niter < obj.maxiter,istep,nstep);                     
             obj.writeToFile(istep,obj.cost_copy,obj.constraint_copy)
         end
     end

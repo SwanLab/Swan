@@ -115,10 +115,10 @@ classdef Monitoring < handle
             end
         end
         
-        function refresh(obj,x,iteration,cost,constraint,stop_vars,stop_criteria,istep,nstep)
+        function refresh(obj,x,iteration,cost,constraint,stop_vars,stop_updating,istep,nstep)
             if obj.plotting_ON
                 obj.plotX(x);
-                if ~stop_criteria && istep == nstep
+                if stop_updating && istep == nstep
                     out_folder = fullfile(pwd,'Output',obj.case_file);
                     if ~exist(out_folder,'dir')
                         mkdir(out_folder)
@@ -128,12 +128,12 @@ classdef Monitoring < handle
             end
             
             if obj.monitoring_ON
-                obj.display_parameters(iteration,cost,constraint,stop_vars,stop_criteria,istep,nstep)
+                obj.display_parameters(iteration,cost,constraint,stop_vars,stop_updating,istep,nstep)
             end
         end
         
-        function display_parameters(obj,iteration,cost,constraint,stop_vars,stop_criteria,istep,nstep)
-            draw = (mod(iteration,obj.interval) == 0 || ~stop_criteria);
+        function display_parameters(obj,iteration,cost,constraint,stop_vars,stop_updating,istep,nstep)
+            draw = (mod(iteration,obj.interval) == 0 || stop_updating);
             obj.figures{1} = obj.updateFigure(obj.figures{1},iteration,cost.value,draw);
             for i = 1:obj.ncost
                 k = i+1;
@@ -156,7 +156,7 @@ classdef Monitoring < handle
                 end
             end
             if draw
-                if ~stop_criteria && istep == nstep
+                if stop_updating && istep == nstep
                     set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Inc. Step: %.0f/%.0f Iteration: %.0f - FINISHED',istep,nstep,iteration))
                     out_folder = fullfile(pwd,'Output',obj.case_file);
                     if ~exist(out_folder,'dir')

@@ -54,7 +54,7 @@ classdef Optimizer_MMA < Optimizer_Constrained
             [~,obj.kktnorm] = obj.kktcheck(obj.m,obj.n,xmma,ymma,zmma,lam,xsi,eta,mu,zet,s, ...
                 obj.xmin,obj.xmax,obj.df0dx,obj.fval,obj.dfdx,obj.a0,obj.a,obj.c,obj.d);
             
-            obj.stop_criteria = obj.kktnorm > obj.kkttol && obj.outit < obj.maxoutit;
+            obj.stop_updating = ~(obj.kktnorm > obj.kkttol && obj.outit < obj.maxoutit);
             
             constraint.lambda = lam;
             obj.stop_vars(1,1) = obj.kktnorm;   obj.stop_vars(1,2) = obj.kkttol;
