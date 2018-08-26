@@ -26,7 +26,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         end
         
         function x = updateX(obj,x_ini,cost,constraint)
-            theta = obj.computeTheta(design_variable,obj.objfunc.gradient);
+            theta = obj.computeTheta(x_ini,obj.objfunc.gradient);
             x = obj.updatePhi(x_ini,obj.objfunc.gradient,theta);
             cost.computef(x);
             constraint.computef(x);

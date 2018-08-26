@@ -22,6 +22,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             active_constr = obj.penalty > 0;
             obj.stop_criteria = obj.optimizer_unconstr.opt_cond >=  obj.optimizer_unconstr.optimality_tol || any(any(abs(constraint.value(active_constr)) > obj.optimizer_unconstr.constr_tol(active_constr)));
         end
+        
     end
     
     methods (Access = private)
@@ -31,6 +32,8 @@ classdef Optimizer_AugLag < Optimizer_Constrained
                 obj.stop_vars = obj.optimizer_unconstr.stop_vars;
             end
         end
+        
+        
         
         function updateObjFunc(obj,cost,constraint)
             obj.optimizer_unconstr.target_parameters = obj.target_parameters;

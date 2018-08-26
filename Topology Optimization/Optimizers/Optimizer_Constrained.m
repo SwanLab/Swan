@@ -38,11 +38,9 @@ classdef Optimizer_Constrained < Optimizer
             obj.stop_criteria = 1;
         end 
         
-
-        function x_ini = obj.compute_initial_value(x_ini,cost,constraint)
+        function x_ini = compute_initial_value(obj,x_ini,cost,constraint)
             
         end
-        
         
     end
     
