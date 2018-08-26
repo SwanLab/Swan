@@ -78,9 +78,9 @@ classdef Monitoring < handle
             end
         end
         
-        function display(obj,iteration,cost,constraint,stop_vars,stop_criteria,istep,nstep)
+        function display(obj,iteration,cost,constraint,stop_vars,has_finished,istep,nstep)
             if obj.ON
-                draw = (mod(iteration,obj.interval) == 0 || ~stop_criteria);
+                draw = (mod(iteration,obj.interval) == 0 || has_finished);
                 obj.figures{1} = obj.updateFigure(obj.figures{1},iteration,cost.value,draw);
                 for i = 1:obj.ncost
                     k = i+1;
@@ -103,7 +103,7 @@ classdef Monitoring < handle
                     end
                 end
                 if draw
-                    if ~stop_criteria && istep == nstep
+                    if has_finished && istep == nstep
                         set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Inc. Step: %.0f/%.0f Iteration: %.0f - FINISHED',istep,nstep,iteration))
                         saveas(obj.monitor,fullfile(pwd,'Output',obj.case_file,[sprintf('monitoring_%.0f_of_%.0f_%.0fit',istep,nstep,iteration) '.png']))
                     else 

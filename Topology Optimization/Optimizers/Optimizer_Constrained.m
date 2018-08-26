@@ -26,16 +26,16 @@ classdef Optimizer_Constrained < Optimizer
             obj.plotX(x_ini)
             obj.print(x_ini,obj.niter);
             x = x_ini;
-            while obj.stop_criteria && obj.niter < obj.maxiter
+            while ~obj.has_converged && obj.niter < obj.maxiter
                 obj.niter = obj.niter+1;
                 x = obj.updateX(x_ini,cost,constraint);
                 obj.plotX(x)
                 obj.print(x,obj.niter);
                 obj.writeToFile(istep,cost,constraint)
-                obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars,obj.stop_criteria && obj.niter < obj.maxiter,istep,nstep);
+                obj.monitoring.display(obj.niter,cost,constraint,obj.stop_vars,obj.has_converged && obj.niter < obj.maxiter,istep,nstep);
                 x_ini = x;
             end
-            obj.stop_criteria = 1;
+            obj.has_converged = false;
         end 
         
         function x_ini = compute_initial_value(obj,x_ini,cost,constraint)

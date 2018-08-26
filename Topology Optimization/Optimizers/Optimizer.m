@@ -3,7 +3,7 @@ classdef Optimizer < handle
     %   Detailed explanation goes here
     
     properties
-        stop_criteria = 1;
+        has_converged = false;
         stop_vars
         target_parameters = struct;
         nconstr
@@ -98,7 +98,7 @@ classdef Optimizer < handle
             end
         end
         function print(obj,design_variable,iter)
-            if ~(obj.printing || ~obj.stop_criteria)
+            if ~(obj.printing || obj.has_converged)
                 return
             end
             

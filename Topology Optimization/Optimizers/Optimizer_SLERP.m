@@ -37,7 +37,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
             
             obj.kappa = obj.kappa/obj.kfrac;
-            obj.stop_criteria = ~((incr_cost < 0 && incr_norm_L2 < obj.max_constr_change) || obj.kappa <= obj.kappa_min);
+            obj.has_converged = ((incr_cost < 0 && incr_norm_L2 < obj.max_constr_change) || obj.kappa <= obj.kappa_min);
             
             obj.stop_vars(1,1) = incr_cost;     obj.stop_vars(1,2) = 0;
             obj.stop_vars(2,1) = incr_norm_L2;  obj.stop_vars(2,2) = obj.max_constr_change;

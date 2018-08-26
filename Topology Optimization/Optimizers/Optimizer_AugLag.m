@@ -20,14 +20,15 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             x = obj.solveUnconstrainedProblem(x_ini,cost,constraint);
             
             active_constr = obj.penalty > 0;
-            obj.stop_criteria = obj.optimizer_unconstr.opt_cond >=  obj.optimizer_unconstr.optimality_tol || any(any(abs(constraint.value(active_constr)) > obj.optimizer_unconstr.constr_tol(active_constr)));
+            has_not_converged = obj.optimizer_unconstr.opt_cond >=  obj.optimizer_unconstr.optimality_tol || any(any(abs(constraint.value(active_constr)) > obj.optimizer_unconstr.constr_tol(active_constr)));
+            obj.has_converged = ~has_not_converged;
         end
         
     end
     
     methods (Access = private)
         function x = solveUnconstrainedProblem(obj,x_ini,cost,constraint)
-            while obj.optimizer_unconstr.stop_criteria
+            while ~obj.optimizer_unconstr.has_converged
                 x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint); %x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint,obj.physicalProblem,interpolation,filter);
                 obj.stop_vars = obj.optimizer_unconstr.stop_vars;
             end
@@ -48,7 +49,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             obj.optimizer_unconstr.objfunc = obj.objfunc;
             obj.optimizer_unconstr.objfunc.value_initial = obj.objfunc.value;
             obj.optimizer_unconstr.computeKappa(x_ini,obj.objfunc.gradient);
-            obj.optimizer_unconstr.stop_criteria = 1;
+            obj.optimizer_unconstr.has_converged = false;
         end
     end
 end
