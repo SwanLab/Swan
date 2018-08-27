@@ -49,16 +49,8 @@ classdef TopOpt_Problem < handle
             for istep = 1:obj.settings.nsteps
                 disp(strcat('Incremental step: ',int2str(istep)))
                 obj.incremental_scheme.update_target_parameters(istep,obj.cost,obj.constraint,obj.optimizer);
-                % !!! SOBREN ?? !! --> Sí.
-                obj.cost.computef(obj.x);
-                obj.constraint.computef(obj.x);
-                % !!!!!!!!!!!!!!!!
                 obj.x = obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,istep,obj.settings.nsteps);
-            end
-            %              disp(obj.cost.value);
-            %             disp(obj.constraint.value);
-            %              disp(obj.cost.ShapeFuncs{1}.physicalProblem.variables.Chomog);
-            %              disp(obj.cost.ShapeFuncs{1}.Ch_star);            
+            end        
         end
         
         function postProcess(obj)
