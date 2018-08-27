@@ -38,13 +38,23 @@ classdef Optimizer < handle
             x = obj.ini_design_value*ones(geometry.interpolation.npnod,1);
             switch initial_case
                 case 'circle'
-                    W = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
-                    H = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
-                    center_x = 0.5*(max(obj.mesh.coord(:,1)) + min(obj.mesh.coord(:,1)));
-                    center_y = 0.5*(max(obj.mesh.coord(:,2)) + min(obj.mesh.coord(:,2)));
-                    radius = 0.2*min([W,H]);
-                    initial_holes = (obj.mesh.coord(:,1)-center_x).^2 + (obj.mesh.coord(:,2)-center_y).^2 - radius^2 < 0;
+                    dim(1) = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
+                    dim(2) = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
+                    center(1) = 0.5*(max(obj.mesh.coord(:,1)) + min(obj.mesh.coord(:,1)));
+                    center(2) = 0.5*(max(obj.mesh.coord(:,2)) + min(obj.mesh.coord(:,2)));
+                    radius = 0.4*min(dim)/2;
+                    initial_holes = (obj.mesh.coord(:,1)-center(1)).^2 + (obj.mesh.coord(:,2)-center(2)).^2 - radius^2 < 0;
                     x(initial_holes) = obj.hole_value;
+                    
+                case 'sphere'
+                    dim(1) = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
+                    dim(2) = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
+                    dim(3) = max(obj.mesh.coord(:,3)) - min(obj.mesh.coord(:,3));
+                    center(1) = 0.5*(max(obj.mesh.coord(:,1)) + min(obj.mesh.coord(:,1)));
+                    center(2) = 0.5*(max(obj.mesh.coord(:,2)) + min(obj.mesh.coord(:,2)));
+                    center(3) = 0.5*(max(obj.mesh.coord(:,3)) + min(obj.mesh.coord(:,3)));
+                    radius = 0.7*min(dim)/2;
+                    x = (obj.mesh.coord(:,1)-center(1)).^2 + (obj.mesh.coord(:,2)-center(2)).^2 + (obj.mesh.coord(:,3)-center(3)).^2 - radius^2;
                     
                 case 'horizontal'
                     initial_holes = obj.mesh.coord(:,2) > 0.6 | obj.mesh.coord(:,2) < 0.4;

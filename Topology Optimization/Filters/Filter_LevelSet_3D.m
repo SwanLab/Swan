@@ -29,8 +29,8 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
             [P_iso,active_nodes_iso]=obj.findCutPoints_Iso(x,cut_elem);
             [P_global,active_nodes_global]=obj.findCutPoints_Global(x,cut_elem);
             
-            facets_coordinates_global = obj.findActiveCutPoints(P_global,active_nodes_global);        
-
+            facets_coordinates_global = obj.findActiveCutPoints(P_global,active_nodes_global);
+            
             % !! VECTORITZAR: LOOPS PETITS, ELEMENTS DIRECTES !!
             %                         figure, hold on
             facets_connectivities_global = zeros(10*length(cut_elem),3);
@@ -39,30 +39,30 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
                 ielem = cut_elem(icut); inode_global = obj.connectivities(ielem,:);
                 elem_cutPoints_iso = P_iso(active_nodes_iso(:,:,icut),:,icut);
                 elem_cutPoints_global = P_global(active_nodes_global(:,:,icut),:,icut);
-
+                
                 facets_connectivities_local = obj.findFacetsLocalConnectivities(elem_cutPoints_iso,interp_element.pos_nodes,x(inode_global));
- 
+                
                 for ifacet = 1:size(facets_connectivities_local,1)
                     k = k+1;
                     facets_connectivities_global(k,:) = obj.findFacetsGlobalConnectivities(elem_cutPoints_global,facets_coordinates_global,facets_connectivities_local(ifacet,:));
                     
-%                     patch('vertices',facets_coordinates_global,'faces',facets_connectivities_global(k,:),'edgecolor',[0 1 0],...
-%                         'facecolor','none','facelighting','phong')
-%                     
+                    %                     patch('vertices',facets_coordinates_global,'faces',facets_connectivities_global(k,:),'edgecolor',[0 1 0],...
+                    %                         'facecolor','none','facelighting','phong')
+                    %
                     for igaus = 1:quadrature_facet.ngaus
                         for idime = 1:interp_element.ndime
                             facet_posgp(igaus,idime) = interp_facet.shape(:,igaus)'*elem_cutPoints_iso(facets_connectivities_local(ifacet,:),idime);
                         end
                     end
                     
-%                     plot3(facet_posgp(:,1),facet_posgp(:,2),facet_posgp(:,3),'xr')
+                    %                     plot3(facet_posgp(:,1),facet_posgp(:,2),facet_posgp(:,3),'xr')
                     
                     interp_element.computeShapeDeriv(facet_posgp');
                     facet_deriv(:,:) = interp_facet.deriv(:,:,:);
                     
                     djacob = obj.mapping(elem_cutPoints_global,facets_connectivities_local(ifacet,:),facet_deriv,interp_facet.dvolu);
                     
-                    f = (interp_element.shape*quadrature_facet.weigp')'*F(inode_global)/interp_facet.dvolu;
+                    f = (interp_element.shape*quadrature_facet.weigp')'*F(inode_global)/interp_facet.dvolu;                    
                     shape_all(ielem,:) = shape_all(ielem,:) + (interp_element.shape*(djacob.*quadrature_facet.weigp')*f)';
                     
                     %                     plot(obj.coordinates(obj.connectivities(ielem,:),1),obj.coordinates(obj.connectivities(ielem,:),2),'.-b'); plot(obj.coordinates(obj.connectivities(ielem,[1 4]),1),obj.coordinates(obj.connectivities(ielem,[1 4]),2),'.-b');
@@ -71,10 +71,10 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
                 end
             end
             facets_connectivities_global(k+1:end,:) = [];
-%             
-%             hold on
-%             patch('vertices',facets_coordinates_global,'faces',facets_connectivities_global,'edgecolor','none',...
-%                         'facecolor',[0 0 1],'facelighting','phong')
+            %
+            %             hold on
+            %             patch('vertices',facets_coordinates_global,'faces',facets_connectivities_global,'edgecolor','none',...
+            %                         'facecolor',[0 0 1],'facelighting','phong')
             M2=obj.rearrangeOutputRHS(shape_all);
         end
         
@@ -102,7 +102,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
             P2=[coord1(index2) coord2(index2) coord3(index2)];
             P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
             active_nodes = sign(gamma_1.*gamma_2)<0;
-        end        
+        end
         
         function [interp_facet,quadrature_facet] = createFacet(obj)
             quadrature_facet = Quadrature.set('TRIANGLE');
@@ -129,25 +129,25 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
             end
             
             % !!!!!!!!!!!!!!!!!!!!!!! PLOTTING !!!!!!!!!!!!!!!!!!!!!!!!
-%             figure, hold on
-%             fac = [1 2 3 4; 2 6 7 3; 4 3 7 8; 1 5 8 4; 1 2 6 5; 5 6 7 8];
-%             patch('Faces',fac,'Vertices',[-1 -1 -1; -1 1 -1; 1 1 -1; 1 -1 -1; -1 -1 1; -1 1 1; 1 1 1; 1 -1 1],'FaceColor','w','FaceAlpha',0.0);
-% %             for iconnec = 1:size(boundary_subfacets_connectivities,1)
-% %                 plot3(del_coord(boundary_subfacets_connectivities(iconnec,:),1),del_coord(boundary_subfacets_connectivities(iconnec,:),2),del_coord(boundary_subfacets_connectivities(iconnec,:),3),'.-g')
-% %                 plot3(del_coord(boundary_subfacets_connectivities(iconnec,[1 3]),1),del_coord(boundary_subfacets_connectivities(iconnec,[1 3]),2),del_coord(boundary_subfacets_connectivities(iconnec,[1 3]),3),'.-g')
-% %             end
-%             patch('vertices',del_coord,'faces',boundary_subfacets_connectivities,'edgecolor',[0 1 0],...
-%                         'facecolor',[0 1 0],'facelighting','phong')
-%             
-%             plot3(cutPoints_iso(:,1),cutPoints_iso(:,2),cutPoints_iso(:,3),'og')
-%             
-%             plot3(pos_nodes(phi>0,1),pos_nodes(phi>0,2),pos_nodes(phi>0,3),'+b')
-%             plot3(pos_nodes(phi<0,1),pos_nodes(phi<0,2),pos_nodes(phi<0,3),'<b')
-%             
-%             axis equal
-%             view([115 20])
-%             
-%             close
+            %             figure, hold on
+            %             fac = [1 2 3 4; 2 6 7 3; 4 3 7 8; 1 5 8 4; 1 2 6 5; 5 6 7 8];
+            %             patch('Faces',fac,'Vertices',[-1 -1 -1; -1 1 -1; 1 1 -1; 1 -1 -1; -1 -1 1; -1 1 1; 1 1 1; 1 -1 1],'FaceColor','w','FaceAlpha',0.0);
+            % %             for iconnec = 1:size(boundary_subfacets_connectivities,1)
+            % %                 plot3(del_coord(boundary_subfacets_connectivities(iconnec,:),1),del_coord(boundary_subfacets_connectivities(iconnec,:),2),del_coord(boundary_subfacets_connectivities(iconnec,:),3),'.-g')
+            % %                 plot3(del_coord(boundary_subfacets_connectivities(iconnec,[1 3]),1),del_coord(boundary_subfacets_connectivities(iconnec,[1 3]),2),del_coord(boundary_subfacets_connectivities(iconnec,[1 3]),3),'.-g')
+            % %             end
+            %             patch('vertices',del_coord,'faces',boundary_subfacets_connectivities,'edgecolor',[0 1 0],...
+            %                         'facecolor',[0 1 0],'facelighting','phong')
+            %
+            %             plot3(cutPoints_iso(:,1),cutPoints_iso(:,2),cutPoints_iso(:,3),'og')
+            %
+            %             plot3(pos_nodes(phi>0,1),pos_nodes(phi>0,2),pos_nodes(phi>0,3),'+b')
+            %             plot3(pos_nodes(phi<0,1),pos_nodes(phi<0,2),pos_nodes(phi<0,3),'<b')
+            %
+            %             axis equal
+            %             view([115 20])
+            %
+            %             close
             boundary_subfacets_connectivities = boundary_subfacets_connectivities - length(pos_nodes);
         end
         
@@ -169,7 +169,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
             A=J/6;
         end
         
-        function djacob = mapping(elem_cutPoints_global,facets_connectivities,facet_deriv,dvolu)      
+        function djacob = mapping(elem_cutPoints_global,facets_connectivities,facet_deriv,dvolu)
             v1 = diff(elem_cutPoints_global(facets_connectivities([1 2]),:));
             v2 = diff(elem_cutPoints_global(facets_connectivities([1 3]),:));
             A = 0.5*norm(cross(v1,v2));
@@ -195,7 +195,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         end
         
         function counter = CountGivenNodesPerCell(connectivities,nodes)
-            counter = zeros(size(connectivities,1),1); 
+            counter = zeros(size(connectivities,1),1);
             for iconnec = 1:size(nodes,1)
                 match = false(size(connectivities,1),1);
                 for inode = 1:size(connectivities,2)
