@@ -35,7 +35,9 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
     %     'CantileverQuadrilateral_Case_5_2_1'
     %             'CantileverTriangle_Case_1_2_1'
     %     'CantileverTriangle_Case_1_2_4'
-    %         'BridgeQuadrilateral_Case_5_1_1'
+    %     'BridgeQuadrilateral_Case_5_1_1'
+    %     'BridgeQuadrilateral_Case_5_1_2'
+    %     'BridgeQuadrilateral_Case_5_1_3'
     %     'CantileverTriangle_Case_4_1_2'
     %     'BridgeQuadrilateral_Case_5_2_1'
     % 'BridgeQuadrilateral_Case_5_2_2'
@@ -46,7 +48,7 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
     % 'CantileverHexahedra_Case_5_2_2'
     % 'CantileverHexahedra_Case_5_2_3'
     % 'CantileverHexahedra_Case_5_1_2'
-%     'CantileverHexahedra_Case_5_1_3'
+    'CantileverHexahedra_Case_5_1_3'
     % 'CantileverHexahedra_Case_5_1_4'
     % 'CantileverHexahedra_Case_5_1_5'
     % 'CantileverHexahedra_Case_5_1_6'
@@ -54,7 +56,7 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
     %             'CantileverHexahedra_Case_5_1_8'
     %     'CantileverHexahedra_Case_5_1_9'
     %     'CantileverHexahedra_Case_5_1_10'
-        'SphereHexahedra_Test_Case_5'
+    %         'SphereHexahedra_Test_Case_5'
     };
 for icases=1:size(filenames,1)
     clearvars -except filenames icases;

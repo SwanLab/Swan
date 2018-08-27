@@ -126,10 +126,11 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         end
         
         function initKappa(obj,~,~,~)
-            if obj.kappa < obj.kappa_min
-                obj.kappa = obj.kappa_min*obj.kfrac;
-            end
-            obj.kappa = obj.kappa*obj.kfrac;
+%             if obj.kappa < obj.kappa_min
+%                 obj.kappa = obj.kappa_min*obj.kfrac;
+%             end
+%             obj.kappa = obj.kappa*obj.kfrac;
+obj.kappa = 1;
             obj.HJiter = obj.HJiter0;
         end
         
