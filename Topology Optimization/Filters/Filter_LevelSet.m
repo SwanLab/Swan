@@ -131,7 +131,7 @@ classdef Filter_LevelSet < handle
         % !!!!!!!!!!!!!!!!!! REMOVED M2=computeRHS_facet !!!!!!!!!!!!!!!!!!
         
         function S = computeFacetSurface(obj,x)
-            M2 = obj.computeRHS_facet(obj,x,ones(size(x)));
+            M2 = obj.computeRHS_facet(x,ones(size(x)));
             S = sum(M2);
         end
     end

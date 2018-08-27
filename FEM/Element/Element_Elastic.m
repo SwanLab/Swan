@@ -116,7 +116,6 @@ classdef Element_Elastic < Element
             % Elastic matrix
             Cmat = obj.material.C;
             for igaus=1:obj.quadrature.ngaus
-
                 Bmat = obj.computeB(igaus);
                 E=zeros(obj.nstre,obj.nnode*obj.dof.nunkn,obj.nelem);                
                 for i=1:obj.nstre
