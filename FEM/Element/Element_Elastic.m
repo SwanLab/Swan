@@ -159,6 +159,8 @@ classdef Element_Elastic < Element
                 StifMat = StifMat + StifMat_aux;
             end
             K = 1/2 * (StifMat + StifMat');            
+% dK = K(changed_nodes) - K0(changed_nodes);
+% K = K0 + dK;
         end
     end
     methods(Access = protected) % Only the child sees the function
