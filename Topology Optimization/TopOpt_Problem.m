@@ -17,7 +17,7 @@ classdef TopOpt_Problem < handle
     
     methods (Access = public)
         function obj = TopOpt_Problem(settings)
-            obj.mesh = Mesh(settings.filename);
+            obj.mesh = Mesh_GiD(settings.filename);
             settings.pdim = obj.mesh.pdim;
             obj.settings = settings;
             obj.incremental_scheme = Incremental_Scheme(settings,obj.mesh);
