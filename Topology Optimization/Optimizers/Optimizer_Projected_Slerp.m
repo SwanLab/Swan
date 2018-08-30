@@ -127,6 +127,8 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
         function fval = compute_feasible_design_variable(obj,lambda,x_ini,cost,constraint,theta)
             obj.objfunc.lambda = lambda;
             constraint.lambda = obj.objfunc.lambda;
+            cost.computef(x_ini)
+            constraint.computef(x_ini)
             obj.objfunc.computeGradient(cost,constraint);
             x = obj.optimizer_unconstr.computeX(x_ini,obj.objfunc.gradient);
             constraint.computef(x);

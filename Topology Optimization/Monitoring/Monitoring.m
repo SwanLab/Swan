@@ -55,6 +55,8 @@ classdef Monitoring < handle
             if obj.plotting_ON
                 obj.plotting_figure = figure;
                 obj.setPlottingFigure;
+                obj.showBC = settings.showBC;
+                obj.BCscale_factor = settings.BCscale_factor;
             end
         end
         
@@ -127,7 +129,7 @@ classdef Monitoring < handle
                 end
             end
             
-            if obj.monitoring_ON
+            if obj.monitoring_ON && iteration>0
                 obj.display_parameters(iteration,cost,constraint,stop_vars,has_finished,istep,nstep)
             end
         end
@@ -194,6 +196,21 @@ classdef Monitoring < handle
             obj.nstop = length(obj.stop_names);
         end
     end
+    
+    methods (Access = protected, Static)
+        function figure_position = getPlotFigurePosition;
+                    mp = get(0, 'MonitorPositions');
+            select_screen = 1;
+            if size(mp,1) < select_screen
+                select_screen = size(mp,1);
+            end
+            width = mp(1,3);
+            height = mp(1,4);
+            size_screen_offset = round([0.7*width,0.52*height,-0.71*width,-0.611*height],0);
+            figure_position = mp(select_screen,:) + size_screen_offset;
+        end
+    end
+    
     methods (Access = private, Static)
         function figures = updateFigure(figures,iteration,variable,draw)
             figures.iteration(end+1) = iteration;

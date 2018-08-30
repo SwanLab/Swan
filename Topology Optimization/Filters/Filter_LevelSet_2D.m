@@ -24,9 +24,9 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
             interp_element = Interpolation.create(obj.diffReacProb.mesh,obj.quadrature.order);
             
             shape_all = zeros(obj.nelem,obj.nnode);
-            [~,cut_elem]=obj.findCutElements(x);
+            [~,cut_elem]=obj.findCutElements(x,obj.connectivities);
             
-            [P_iso,active_nodes_iso]=obj.findCutPoints_Iso(x,cut_elem);
+            [P_iso,active_nodes_iso]=obj.findCutPoints_Iso(x,cut_elem,obj.geometry.interpolation);
             [P_global,active_nodes_global]=obj.findCutPoints_Global(x,cut_elem);            
             
             % !! VECTORITZAR: LOOPS PETITS, ELEMENTS DIRECTES !!
@@ -62,16 +62,16 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
             M2=obj.rearrangeOutputRHS(shape_all);
         end
         
-        function [P,active_nodes]=findCutPoints_Iso(obj,x,cut_elem)
+        function [P,active_nodes]=findCutPoints_Iso(obj,x,cut_elem,interpolation)
             gamma_1=permute(x(obj.connectivities(cut_elem,:)),[2 3 1]);
             gamma_2=permute([x(obj.connectivities(cut_elem,2:end)),x(obj.connectivities(cut_elem,1))],[2 3 1]);
-            P1=repmat(obj.geometry.interpolation.pos_nodes,[1 1 size(cut_elem)]);
-            P2=repmat([obj.geometry.interpolation.pos_nodes(2:end,:);obj.geometry.interpolation.pos_nodes(1,:)],[1 1 size(cut_elem)]);
+            P1=repmat(interpolation.pos_nodes,[1 1 size(cut_elem)]);
+            P2=repmat([interpolation.pos_nodes(2:end,:);interpolation.pos_nodes(1,:)],[1 1 size(cut_elem)]);
             P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
             active_nodes = sign(gamma_1.*gamma_2)<0;
         end
         
-        function [P,active_nodes]=findCutPoints_Global(obj,x,cut_elem)
+        function [P,active_nodes]=findCutPoints_Global(obj,x,cut_elem,interpolation)
             index1 = permute(obj.connectivities(cut_elem,:),[2 3 1]);
             index2 = [permute(obj.connectivities(cut_elem,2:end),[2 3 1]);...
                 permute(obj.connectivities(cut_elem,1),[2 3 1])];

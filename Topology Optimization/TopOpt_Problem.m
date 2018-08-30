@@ -17,7 +17,7 @@ classdef TopOpt_Problem < handle
     
     methods (Access = public)
         function obj = TopOpt_Problem(settings)
-            obj.mesh = Mesh(settings.filename);
+            obj.mesh = Mesh_GiD(settings.filename);
             settings.pdim = obj.mesh.pdim;
             obj.settings = settings;
             obj.incremental_scheme = Incremental_Scheme(settings,obj.mesh);
@@ -52,16 +52,8 @@ classdef TopOpt_Problem < handle
             for istep = 1:obj.settings.nsteps
                 disp(strcat('Incremental step: ',int2str(istep)))
                 obj.incremental_scheme.update_target_parameters(istep,obj.cost,obj.constraint,obj.optimizer);
-                % !!! SOBREN ?? !!
-                obj.cost.computef(obj.x);
-                obj.constraint.computef(obj.x);
-                % !!!!!!!!!!!!!!!!
                 obj.x = obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,istep,obj.settings.nsteps);
-            end
-            %              disp(obj.cost.value);
-            %             disp(obj.constraint.value);
-            %              disp(obj.cost.ShapeFuncs{1}.physicalProblem.variables.Chomog);
-            %              disp(obj.cost.ShapeFuncs{1}.Ch_star);            
+            end        
         end
         
         function postProcess(obj)

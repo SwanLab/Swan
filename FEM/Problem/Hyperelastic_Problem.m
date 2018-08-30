@@ -15,7 +15,7 @@ classdef Hyperelastic_Problem < FEM
     methods (Access = public)
         function obj = Hyperelastic_Problem(problemID)
             obj.problemID = problemID;
-            obj.mesh = Mesh(problemID); % Mesh defined twice, but almost free
+            obj.mesh = Mesh_GiD(problemID); % Mesh defined twice, but almost free
             obj.createGeometry(obj.mesh);
             obj.dof = DOF_Elastic(problemID,obj.geometry,obj.mesh);
             obj.material = Material.create(obj.geometry,obj.mesh);

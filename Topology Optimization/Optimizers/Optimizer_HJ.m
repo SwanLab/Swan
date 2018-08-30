@@ -23,7 +23,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             obj.HJiter = obj.HJiter0;
             obj.e2 = settings.e2;
             obj.kappa = 1;
-            obj.kappa_min = 1e-5;
+            obj.kappa_min = 1e-6;
             obj.max_constr_change = +Inf;
             obj.kfrac = 2;
             obj.nconstr = settings.nconstr;
@@ -126,7 +126,11 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         end
         
         function initKappa(obj,~,~,~)
-            obj.kappa = 1;
+%             if obj.kappa < obj.kappa_min
+%                 obj.kappa = obj.kappa_min*obj.kfrac;
+%             end
+%             obj.kappa = obj.kappa*obj.kfrac;
+obj.kappa = 1;
             obj.HJiter = obj.HJiter0;
         end
         
