@@ -20,7 +20,8 @@ classdef Optimizer_Constrained < Optimizer
             x = x_ini;
             cost.computef(x_ini);
             constraint.computef(x_ini);
-            obj.monitoring.plotX(x_ini)
+%             obj.monitoring.plotX(x_ini);
+            obj.monitoring.refresh(x,obj.niter,cost,constraint,obj.stop_vars,obj.stop_updating || obj.niter > obj.maxiter*(istep/nstep),istep,nstep);
             obj.print(x_ini,obj.niter);
             while ~obj.stop_updating && obj.niter < obj.maxiter*(istep/nstep)
                 obj.niter = obj.niter+1;

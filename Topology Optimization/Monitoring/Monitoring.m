@@ -129,7 +129,7 @@ classdef Monitoring < handle
                 end
             end
             
-            if obj.monitoring_ON
+            if obj.monitoring_ON && iteration>0
                 obj.display_parameters(iteration,cost,constraint,stop_vars,stop_updating,istep,nstep)
             end
         end
