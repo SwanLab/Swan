@@ -2,7 +2,6 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
     properties
         optimizer_unconstr
         objfunc
-        theta
         problem
     end
     methods
@@ -21,8 +20,8 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.objfunc.computeGradient(cost,constraint);
             obj.objfunc.computeFunction(cost,constraint);
             obj.initUnconstrOpt(x_ini);
-            obj.theta = obj.optimizer_unconstr.computeTheta(x_ini,obj.objfunc.gradient);
-            obj.optimizer_unconstr.opt_cond = obj.theta;
+            obj.optimizer_unconstr.computeTheta(x_ini,obj.objfunc.gradient);
+            obj.optimizer_unconstr.opt_cond = obj.optimizer_unconstr.theta;
             
             obj.has_converged = ~(obj.optimizer_unconstr.opt_cond >=  obj.optimizer_unconstr.optimality_tol);
             if ~obj.has_converged
@@ -30,7 +29,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
                 obj.has_converged = ~(obj.optimizer_unconstr.opt_cond >=  obj.optimizer_unconstr.optimality_tol);
             else
                 x = x_ini;
-                obj.optimizer_unconstr.stop_vars(1,1) = 0;     obj.optimizer_unconstr.stop_vars(1,2) = obj.theta;
+                obj.optimizer_unconstr.stop_vars(1,1) = 0;     obj.optimizer_unconstr.stop_vars(1,2) = obj.optimizer_unconstr.theta;
                 obj.optimizer_unconstr.stop_vars(2,1) = 0;     obj.optimizer_unconstr.stop_vars(2,2) = obj.optimizer_unconstr.max_constr_change;
                 obj.optimizer_unconstr.stop_vars(3,1) = 1;     obj.optimizer_unconstr.stop_vars(3,2) = obj.optimizer_unconstr.kappa_min;
                 obj.stop_vars = obj.optimizer_unconstr.stop_vars;
@@ -42,15 +41,16 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.problem.solver = 'fzero';
             obj.problem.options = optimset(@fzero);
             obj.problem.objective = @(lambda) obj.compute_feasible_design_variable(lambda,x_ini,cost,constraint,0.1);
-            obj.problem.x0 = [0 5];
+            obj.problem.x0 = [0 50];
             obj.problem.options = optimset(obj.problem.options,'TolX',1e-3);
             
+            obj.optimizer_unconstr.theta = 0.1;
             lambda = fzero(obj.problem);
             obj.objfunc.lambda = lambda;
             constraint.lambda = obj.objfunc.lambda;
             obj.objfunc.computeGradient(cost,constraint);
             obj.optimizer_unconstr.kappa = 1;
-            x_ini = obj.optimizer_unconstr.updatePhi(x_ini,obj.objfunc.gradient,0.1);
+            x_ini = obj.optimizer_unconstr.computeX(x_ini,obj.objfunc.gradient);
             
             obj.fhtri= [];
             obj.plotX(x_ini);
@@ -93,14 +93,14 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
                 obj.objfunc.computeFunction(cost,constraint);
                 
                 
-                obj.problem.objective = @(lambda) obj.compute_feasible_design_variable(lambda,x_ini,cost,constraint,obj.theta);
+                obj.problem.objective = @(lambda) obj.compute_feasible_design_variable(lambda,x_ini,cost,constraint,obj.optimizer_unconstr.theta);
                 obj.problem.x0 = [0 100];
                 lambda = fzero(obj.problem);
                 
                 obj.objfunc.lambda = lambda;
                 constraint.lambda = obj.objfunc.lambda;
                 obj.objfunc.computeGradient(cost,constraint);
-                x = obj.optimizer_unconstr.updatePhi(x_ini,obj.objfunc.gradient,obj.theta);
+                x = obj.optimizer_unconstr.computeX(x_ini,obj.objfunc.gradient);
                 
                 cost.computef(x);
                 obj.objfunc.computeFunction(cost,constraint);
@@ -111,7 +111,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
                 obj.optimizer_unconstr.kappa = obj.optimizer_unconstr.kappa/obj.optimizer_unconstr.kfrac;
                 obj.optimizer_unconstr.has_converged = ((incr_cost < 0 && incr_norm_L2 < obj.optimizer_unconstr.max_constr_change) || obj.optimizer_unconstr.kappa <= obj.optimizer_unconstr.kappa_min);
                 
-                obj.optimizer_unconstr.stop_vars(1,1) = incr_cost;                        obj.optimizer_unconstr.stop_vars(1,2) = obj.theta;
+                obj.optimizer_unconstr.stop_vars(1,1) = incr_cost;                        obj.optimizer_unconstr.stop_vars(1,2) = obj.optimizer_unconstr.theta;
                 obj.optimizer_unconstr.stop_vars(2,1) = incr_norm_L2;                     obj.optimizer_unconstr.stop_vars(2,2) = obj.optimizer_unconstr.max_constr_change;
                 obj.optimizer_unconstr.stop_vars(3,1) = obj.optimizer_unconstr.kappa;     obj.optimizer_unconstr.stop_vars(3,2) = obj.optimizer_unconstr.kappa_min;
                 
@@ -128,7 +128,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.objfunc.lambda = lambda;
             constraint.lambda = obj.objfunc.lambda;
             obj.objfunc.computeGradient(cost,constraint);
-            x = obj.optimizer_unconstr.updatePhi(x_ini,obj.objfunc.gradient,theta);
+            x = obj.optimizer_unconstr.computeX(x_ini,obj.objfunc.gradient);
             constraint.computef(x);
             constraint = obj.setConstraint_case(constraint);
             fval = constraint.value;
@@ -146,7 +146,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
         function initUnconstrOpt(obj,x_ini)
             obj.optimizer_unconstr.objfunc = obj.objfunc;
             obj.optimizer_unconstr.objfunc.value_initial = obj.objfunc.value;
-            obj.optimizer_unconstr.computeKappa(x_ini,obj.objfunc.gradient);
+            obj.optimizer_unconstr.initKappa(x_ini,obj.objfunc.gradient);
             obj.optimizer_unconstr.has_converged = false;
         end
         

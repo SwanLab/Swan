@@ -3,7 +3,9 @@ classdef Quadrilateral_Bilinear < Interpolation
     end
     
     methods
-        function obj = Quadrilateral_Bilinear(mesh)
+
+
+     function obj = Quadrilateral_Bilinear(mesh)
             obj = obj@Interpolation(mesh);
             obj.type = 'QUADRILATERAL';
             obj.order = 'LINEAR';
@@ -117,6 +119,7 @@ classdef Quadrilateral_Bilinear < Interpolation
             obj.deriv(2,3,:) =(+ones(1,size(posgp,2))+s)*0.25;
             obj.deriv(2,4,:) =(+ones(1,size(posgp,2))-s)*0.25;            
         end
-    end
+
+	end
 end
 

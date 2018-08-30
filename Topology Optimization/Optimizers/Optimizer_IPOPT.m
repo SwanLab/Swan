@@ -32,7 +32,7 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             n = length(x_ini);
             funcs.jacobianstructure = @() sparse(ones(obj.m,n));
             plotx = @(x) obj.plotX(x);
-            funcs.iterfunc = @(iter,fval,data) obj.outputfun_ipopt(iter,data,plotx,istep,nstep);
+            funcs.iterfunc = @(iter,fval,data) obj.outputfun_ipopt(data,plotx,istep,nstep);
             
             options.ipopt.print_level= 0;
             options.ipopt.hessian_approximation = 'limited-memory';
@@ -78,13 +78,13 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             obj.constraint_copy=constraint;
             g = constraint.gradient;
         end
-        function stop = outputfun_ipopt(obj,iter,data,plotx,istep,nstep)            
+        function stop = outputfun_ipopt(obj,data,plotx,istep,nstep)            
             stop = true;
             obj.data=data;
             obj.niter=obj.niter+1;
             obj.print(data.x,obj.niter);            
             obj.constraint_copy.lambda=zeros(obj.constraint_copy.nSF,1);
-            obj.monitoring.display(obj.niter+1,obj.cost_copy,obj.constraint_copy,data.inf_du,obj.has_converged && obj.niter < obj.maxiter,istep,nstep);           
+            obj.monitoring.refresh(data.x,obj.niter,obj.cost_copy,obj.constraint_copy,data.inf_du,obj.has_converged || obj.niter > obj.maxiter*(istep/nstep),istep,nstep);
             plotx(data.x);            
             obj.writeToFile(istep,obj.cost_copy,obj.constraint_copy)
         end

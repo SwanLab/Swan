@@ -156,8 +156,8 @@ classdef Element_Elastic < Element
                     Kij(k:k+length(it)-1,1) =  obj.geometry.dvolu(:,igaus).*k_ij ;
                     k = k + length(it) ;
                 end
-                StifMat = StifMat + sparse(I_index,J_index,Kij,obj.dof.ndof,obj.dof.ndof);
-          
+                StifMat_aux = sparse(I_index,J_index,Kij,obj.dof.ndof,obj.dof.ndof);
+                StifMat = StifMat + StifMat_aux;
             end
             K = 1/2 * (StifMat + StifMat');            
         end

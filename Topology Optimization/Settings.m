@@ -1,12 +1,19 @@
 classdef Settings
     properties %optmizer access
         plotting = true
+        showBC = true
+        BCscale_factor = 0.10
         printing = true
         printing_physics = false
         monitoring = true
         monitoring_interval = 10
-        maxiter = 3000;
-        constraint_case = 'EQUALITY';
+        maxiter = 2000
+        constraint_case = 'EQUALITY'
+        N_holes = [5 6 4]
+        R_holes = 0.7
+        phase_holes = [0 pi/2 0]
+        HJiter0 = 1
+        e2 = 30
     end
     
     properties %target parameters
@@ -29,6 +36,7 @@ classdef Settings
     
     properties    %topopt access
         ptype
+        pdim
         case_file
         filename
         method
@@ -76,13 +84,19 @@ classdef Settings
             obj.constr_initial = constr_initial;
             obj.optimality_final = optimality_final;
             obj.constr_final = constr_final;
-                        
+            
             if exist('constraint_case','var')
                 obj.constraint_case = constraint_case;
             end
             
             if exist('plotting','var')
                 obj.plotting = plotting;
+            end
+            if exist('showBC','var')
+                obj.showBC = showBC;
+            end
+            if exist('BCscale_factor','var')
+                obj.BCscale_factor = BCscale_factor;
             end
             if exist('printing','var')
                 obj.printing = printing;
@@ -99,9 +113,6 @@ classdef Settings
             if exist('monitoring_interval','var')
                 obj.monitoring_interval = monitoring_interval;
             end
-            if exist('maxiter','var')
-                obj.maxiter = maxiter;
-            end
             
             if ~contains(case_file,'test','IgnoreCase',true)
                 fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: ',case_file,obj.optimizer)
@@ -109,6 +120,13 @@ classdef Settings
                 fprintf('\n -Constraint: ')
                 fprintf('%s, ', obj.constraint{:})
                 fprintf('\n -Incremental Steps: %f \n ',obj.nsteps)
+            end
+            
+            if exist('maxiter','var')
+                obj.maxiter = maxiter;
+                if ~contains(case_file,'test','IgnoreCase',true)
+                    fprintf('-Max iters: %f \n ',obj.maxiter)
+                end
             end
             
             if exist('Vfrac_final','var')
@@ -122,6 +140,25 @@ classdef Settings
                 if ~contains(case_file,'test','IgnoreCase',true)
                     fprintf('-Perimeter target: %f \n',obj.Perimeter_target)
                 end
+            end
+            if exist('epsilon_initial','var')
+                obj.epsilon_initial = epsilon_initial;
+                obj.epsilon_final = epsilon_final;
+            end
+            if exist('HJiter0','var')
+                obj.HJiter0 = HJiter0;
+            end
+            if exist('e2','var')
+                obj.e2 = e2;
+            end
+            if exist('N_holes','var')
+                obj.N_holes = N_holes;
+            end
+            if exist('R_holes','var')
+                obj.R_holes = R_holes;
+            end
+            if exist('phase_holes','var')
+                obj.phase_holes = phase_holes;
             end
             if exist('micro','var')
                 obj.micro.alpha = micro.alpha;

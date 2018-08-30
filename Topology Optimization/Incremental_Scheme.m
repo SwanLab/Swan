@@ -15,14 +15,18 @@ classdef Incremental_Scheme < handle
             nsteps=settings.nsteps;
             obj.coord=mesh.coord;
             obj.connec=mesh.connec;
-            obj.epsilon=obj.estimate_mesh_size;
             if isempty(settings.epsilon_initial)
-                obj.epsilon_initial=obj.epsilon;
+                obj.epsilon_initial=obj.estimate_mesh_size;
+            else
+                obj.epsilon_initial=settings.epsilon_initial;
             end
+            obj.epsilon=obj.epsilon_initial;
+            obj.epsilon0=obj.epsilon_initial;
             obj.incropt.alpha_vol = obj.generate_incr_sequence(1/nsteps,1,nsteps,'linear');
             obj.incropt.alpha_constr = obj.generate_incr_sequence(0,1,nsteps,'linear');
             obj.incropt.alpha_optimality= obj.generate_incr_sequence(0,1,nsteps,'linear');
             obj.incropt.alpha_epsilon=obj.generate_incr_sequence(0,1,nsteps,'linear');
+            obj.incropt.alpha_epsilon_vel = obj.generate_incr_sequence(0,1,nsteps,'linear');
             obj.incropt.alpha_epsilon_per = obj.generate_incr_sequence(-1,0,nsteps,'logarithmic');
             if strcmp(obj.settings.ptype,'MICRO')
                 obj.incropt.alpha_epsilon_isotropy=obj.generate_incr_sequence(0,1,nsteps,'linear');
@@ -32,6 +36,7 @@ classdef Incremental_Scheme < handle
             target_parameters.Vfrac = (1-obj.incropt.alpha_vol(t))*obj.settings.Vfrac_initial+obj.incropt.alpha_vol(t)*obj.settings.Vfrac_final;
             target_parameters.epsilon_perimeter = (1-obj.incropt.alpha_epsilon_per(t))*obj.epsilon0+obj.incropt.alpha_epsilon_per(t)*obj.epsilon;
             target_parameters.epsilon = (1-obj.incropt.alpha_epsilon(t))*obj.epsilon_initial+obj.incropt.alpha_epsilon(t)*obj.epsilon;
+            target_parameters.epsilon_velocity = (1-obj.incropt.alpha_epsilon_vel(t))*obj.epsilon0+obj.incropt.alpha_epsilon_vel(t)*obj.epsilon;
             target_parameters.constr_tol = (1-obj.incropt.alpha_constr(t))*obj.settings.constr_initial+obj.incropt.alpha_constr(t)*obj.settings.constr_final;
             target_parameters.optimality_tol = (1-obj.incropt.alpha_optimality(t))*obj.settings.optimality_initial+obj.incropt.alpha_optimality(t)*obj.settings.optimality_final;
            

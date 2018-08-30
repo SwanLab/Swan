@@ -21,7 +21,7 @@ classdef VideoMaker_TopOpt < VideoMaker_Physical_Problem
                switch pdim
                    case '2D'
                        switch optimizer
-                           case 'SLERP'
+                           case {'SLERP', 'HAMILTON JACOBI'}
                                obj = VideoMaker_TopOpt_levelSetBridge();
                            case 'PROJECTED GRADIENT'
                                obj = VideoMaker_TopOpt_densityBridge();
@@ -32,7 +32,7 @@ classdef VideoMaker_TopOpt < VideoMaker_Physical_Problem
                        end
                    case '3D'
                        switch optimizer
-                           case 'SLERP'
+                           case {'SLERP', 'HAMILTON JACOBI'}
                                obj = VideoMaker_TopOpt_levelSet3DBridge();
                            case 'PROJECTED GRADIENT'
                                obj = VideoMaker_TopOpt_density3DBridge();

@@ -1,10 +1,12 @@
 classdef Mesh
     % Class containing the coordinates and connectivities of the mesh
     properties (GetAccess = public,SetAccess = public)
-        % !! More elegant if Physical_Problem & subclasses !!         
+        % !! More elegant if Physical_Problem & subclasses !!
         coord
         connec
         pdim
+        dirichlet
+        pointload
     end
     
     properties (GetAccess = public,SetAccess = public)
@@ -13,7 +15,7 @@ classdef Mesh
         scale
         geometryType
         problemID
-    end   
+    end
     methods % (Access = ?Physical_Problem)
         function obj = Mesh(filename)
             data = Preprocess.readFromGiD(filename);
@@ -22,10 +24,12 @@ classdef Mesh
             obj.geometryType = data.geometry;
             obj.pdim = data.problem_dim;
             obj.ptype = data.problem_type;
-            %obj.nelem = length(obj.connec(:,1));
-         %   obj.npnod = length(obj.coord(:,1));
             obj.scale = data.scale;
             obj.problemID=filename;
+            if strcmpi(data.problem_type,'elastic')
+                obj.dirichlet = data.dirichlet_data;
+                obj.pointload = data.pointload;
+            end
         end
     end
     

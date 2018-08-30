@@ -85,18 +85,30 @@ classdef Filter < handle
                     switch settings.optimizer
                         case {'MMA','PROJECTED GRADIENT','IPOPT'}
                             obj = Filter_P1_Density(settings.filename,settings.ptype);
-                        case {'SLERP','PROJECTED SLERP'}
-                            obj = Filter_P1_LevelSetMarching(settings.filename,settings.ptype);
+                        case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
+                            switch settings.pdim
+                                case '2D'
+                                    obj = Filter_P1_LevelSet_2D(settings.filename,settings.ptype);
+                                case '3D'
+                                    obj = Filter_P1_LevelSet_3D(settings.filename,settings.ptype);
+                            end
                     end
                 case 'PDE'
                     switch settings.optimizer
                         case {'MMA','PROJECTED GRADIENT','IPOPT'}
                             obj = Filter_PDE_Density(settings.filename,settings.ptype);
-                        case 'SLERP'
-                            obj = Filter_PDE_LevelSet(settings.filename,settings.ptype);
+                        case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
+                            switch settings.pdim
+                                case '2D'
+                                    obj = Filter_PDE_LevelSet_2D(settings.filename,settings.ptype);
+                                case '3D'
+                                    obj = Filter_PDE_LevelSet_3D(settings.filename,settings.ptype);
+                            end
                     end
             end
-        end        
+        end
+        
+        % !! ONLY USED FOR LEVEL-SET !!
         function [F,aire] = faireF2(p,t,psi)
             np = size(p,2); nt = size(t,2);
             F = zeros(np,1);

@@ -29,12 +29,14 @@ classdef Optimizer_AugLag < Optimizer_Constrained
     methods (Access = private)
         function x = solveUnconstrainedProblem(obj,x_ini,cost,constraint)
             while ~obj.optimizer_unconstr.has_converged
-                x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint); %x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint,obj.physicalProblem,interpolation,filter);
+                x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint); 
                 obj.stop_vars = obj.optimizer_unconstr.stop_vars;
             end
+            
+            if ~obj.optimizer_unconstr.good_design
+                x = x_ini;
+            end
         end
-        
-        
         
         function updateObjFunc(obj,cost,constraint)
             obj.optimizer_unconstr.target_parameters = obj.target_parameters;
@@ -48,7 +50,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
         function initUnconstrOpt(obj,x_ini)
             obj.optimizer_unconstr.objfunc = obj.objfunc;
             obj.optimizer_unconstr.objfunc.value_initial = obj.objfunc.value;
-            obj.optimizer_unconstr.computeKappa(x_ini,obj.objfunc.gradient);
+            obj.optimizer_unconstr.initKappa(x_ini,obj.objfunc.gradient);
             obj.optimizer_unconstr.has_converged = false;
         end
     end

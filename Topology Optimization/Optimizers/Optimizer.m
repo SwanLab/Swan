@@ -10,6 +10,7 @@ classdef Optimizer < handle
         constraint_case
         ini_design_value = 1;
         hole_value = 0;
+        holes        
         postprocess
     end
     
@@ -25,6 +26,9 @@ classdef Optimizer < handle
         function obj = Optimizer(settings)
             obj.nconstr = settings.nconstr;
             obj.case_file=settings.case_file;
+            obj.holes.N_holes = settings.N_holes;
+            obj.holes.R_holes = settings.R_holes;
+            obj.holes.phase_holes = settings.phase_holes;            
             obj.target_parameters = settings.target_parameters;
             obj.constraint_case=settings.constraint_case;
             obj.postprocess = Postprocess_TopOpt.Create(settings.optimizer);
@@ -67,12 +71,28 @@ classdef Optimizer < handle
                     initial_holes = rand(size(obj.mesh.coord,1),1) > 0.1;
                     x(initial_holes) = obj.hole_value;
                     
+                 case 'holes'
+                    L(1) = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
+                    L(2) = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
+                    switch obj.mesh.pdim
+                        case '2D'
+                            initial_holes = ceil(max(cos((obj.holes.N_holes(2)+1)*(obj.mesh.coord(:,2)*pi)/L(2)+obj.holes.phase_holes(2)).*cos((obj.holes.N_holes(1)+1)*(obj.mesh.coord(:,1)*pi)/L(1)+obj.holes.phase_holes(1)) + obj.holes.R_holes-1 ,0))>0;
+                        case '3D'
+                            L(3) = max(obj.mesh.coord(:,3)) - min(obj.mesh.coord(:,3));
+                            initial_holes = ceil(max(cos((obj.holes.N_holes(3)+1)*(obj.mesh.coord(:,3)*pi)/L(3)+obj.holes.phase_holes(3)).*cos((obj.holes.N_holes(2)+1)*(obj.mesh.coord(:,2)*pi)/L(2)+obj.holes.phase_holes(2)).*cos((obj.holes.N_holes(1)+1)*(obj.mesh.coord(:,1)*pi)/L(1)+obj.holes.phase_holes(1)) + obj.holes.R_holes-1 ,0))>0;
+                    end
+                    x(initial_holes) = obj.hole_value;
+                    
+                    bc = unique([obj.mesh.dirichlet(:,1); obj.mesh.pointload(:,1)]);
+                    if any(x(bc)>0)
+                        warning('At least one BC is set on a hole')
+                    end
                 case 'full'
                 otherwise
                     error('Invalid initial value of design variable.');
             end
             %% !! PROVISIONAL !!
-            if strcmp(optimizer,'SLERP')
+            if strcmp(optimizer,'SLERP') %|| strcmp(optimizer,'HAMILTON-JACOBI')
                sqrt_norma = obj.optimizer_unconstr.scalar_product.computeSP(x,x);
                x = x/sqrt(sqrt_norma);
             end
@@ -188,4 +208,3 @@ classdef Optimizer < handle
         end
     end
 end
-
