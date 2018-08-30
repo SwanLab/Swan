@@ -17,6 +17,7 @@ optimality_final =1e-4;
 constr_final =1e-4;
 
 BCscale_factor = 0.3;
+rotation_per_it = 20;
 HJiter0 = 1;
 e2 = 100;
 N_holes = [12 5 5];
