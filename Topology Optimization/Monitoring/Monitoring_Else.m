@@ -6,15 +6,8 @@ classdef Monitoring_Else < Monitoring
         end
         
         function setPlottingFigure(obj)
-            mp = get(0, 'MonitorPositions');
-            select_screen = 1;
-            if size(mp,1) < select_screen
-                select_screen = size(mp,1);
-            end
-            width = mp(1,3);
-            height = mp(1,4);
-            size_screen_offset = round([0.7*width,0.52*height,-0.71*width,-0.611*height],0);
-            set(obj.plotting_figure,'Position',mp(select_screen,:) + size_screen_offset);
+            figure_position = obj.getPlotFigurePosition;
+            set(obj.plotting_figure,'Pointer','arrow','Color',[1 1 1],'Name','Finite Element Model','NumberTitle','off','Position',figure_position);
             %                 obj.plotting_figure = trisurf(obj.mesh.connec,obj.mesh.coord(:,1),obj.mesh.coord(:,2),obj.mesh.coord(:,3),double(rho_nodal), ...
             %                     'EdgeColor','none','LineStyle','none','FaceLighting','phong');
             

@@ -13,7 +13,8 @@ classdef Monitoring_LevelSet_3D < Monitoring
         end
         
         function setPlottingFigure(obj)
-            set(obj.plotting_figure,'Pointer','arrow','Color',[1 1 1],'Name','Finite Element Model','NumberTitle','off');
+            figure_position = obj.getPlotFigurePosition;
+            set(obj.plotting_figure,'Pointer','arrow','Color',[1 1 1],'Name','Finite Element Model','NumberTitle','off','Position',figure_position);
             axis equal; axis off; view(3); hold on;
             fac = [1 2 3 4; 2 6 7 3; 4 3 7 8; 1 5 8 4; 1 2 6 5; 5 6 7 8];
             lx=max(obj.mesh.coord(:,1));
