@@ -29,12 +29,26 @@ classdef Monitoring_Else < Monitoring
             end
             
             set(obj.plotting_figure,'FaceVertexCData',double(rho_nodal));
-%             set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
+            %             set(gca,'CLim',[0, 1],'XTick',[],'YTick',[]);
             
             if obj.showBC
                 obj.plotBoundaryConditions;
             end
             drawnow;
+        end
+    end
+    
+    methods (Static)
+        function figure_position = getPlotFigurePosition
+            mp = get(0, 'MonitorPositions');
+            select_screen = 1;
+            if size(mp,1) < select_screen
+                select_screen = size(mp,1);
+            end
+            width = mp(1,3);
+            height = mp(1,4);
+            size_screen_offset = round([0.7*width,0.52*height,-0.71*width,-0.611*height],0);
+            figure_position = mp(select_screen,:) + size_screen_offset;
         end
     end
 end

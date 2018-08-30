@@ -3,6 +3,7 @@ classdef Settings
         plotting = true
         showBC = true
         BCscale_factor = 0.10
+        rotation_per_it = 0
         printing = true
         printing_physics = false
         monitoring = true
@@ -97,6 +98,9 @@ classdef Settings
             end
             if exist('BCscale_factor','var')
                 obj.BCscale_factor = BCscale_factor;
+            end
+            if exist('rotation_per_it','var')
+                obj.rotation_per_it = rotation_per_it;
             end
             if exist('printing','var')
                 obj.printing = printing;
