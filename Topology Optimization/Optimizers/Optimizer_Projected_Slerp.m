@@ -53,7 +53,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             x_ini = obj.optimizer_unconstr.computeX(x_ini,obj.objfunc.gradient);
             
             obj.fhtri= [];
-            obj.plotX(x_ini);
+            %obj.plotX(x_ini);
         end
     end
     
