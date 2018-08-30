@@ -17,18 +17,26 @@ classdef TopOpt_Problem < handle
     
     methods (Access = public)
         function obj = TopOpt_Problem(settings)
+            obj.mesh = Mesh_GiD(settings.filename);
+            settings.pdim = obj.mesh.pdim;
             obj.settings = settings;
-            obj.mesh = Mesh(settings.filename);
-            obj.incremental_scheme = Incremental_Scheme(obj.settings,obj.mesh);
+            obj.incremental_scheme = Incremental_Scheme(settings,obj.mesh);
             switch obj.settings.optimizer
                 case 'SLERP'
                     obj.optimizer = Optimizer_AugLag(settings,obj.mesh,Optimizer_SLERP(settings,obj.incremental_scheme.epsilon));
+                case 'HAMILTON-JACOBI'
+                    obj.optimizer = Optimizer_AugLag(settings,obj.mesh,Optimizer_HJ(settings,obj.incremental_scheme.epsilon));
                 case 'PROJECTED GRADIENT'
                     obj.optimizer = Optimizer_AugLag(settings,obj.mesh,Optimizer_PG(settings,obj.incremental_scheme.epsilon));
                 case 'MMA'
                     obj.optimizer = Optimizer_MMA(settings,obj.mesh);
                 case 'IPOPT'
                     obj.optimizer = Optimizer_IPOPT(settings,obj.mesh);
+                case 'PROJECTED SLERP'
+                     obj.optimizer = Optimizer_Projected_Slerp(settings,obj.mesh,obj.incremental_scheme.epsilon);
+                    
+                otherwise
+                    error('Invalid optimizer.')
             end
             obj.cost = Cost(settings,settings.weights,obj.optimizer.postprocess); % Change to just enter settings
             obj.constraint = Constraint(settings);
@@ -44,20 +52,14 @@ classdef TopOpt_Problem < handle
             for istep = 1:obj.settings.nsteps
                 disp(strcat('Incremental step: ',int2str(istep)))
                 obj.incremental_scheme.update_target_parameters(istep,obj.cost,obj.constraint,obj.optimizer);
-                obj.cost.computef(obj.x);
-                obj.constraint.computef(obj.x);
                 obj.x = obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,istep,obj.settings.nsteps);
-            end
-            %              disp(obj.cost.value);
-            %             disp(obj.constraint.value);
-            %              disp(obj.cost.ShapeFuncs{1}.physicalProblem.variables.Chomog);
-            %              disp(obj.cost.ShapeFuncs{1}.Ch_star);            
+            end        
         end
         
         function postProcess(obj)
             % Video creation
             if obj.settings.printing
-                gidPath = 'C:\Program Files\GiD\GiD 13.0.2';% 'C:\Program Files\GiD\GiD 13.0.3';
+                gidPath = 'C:\Program Files\GiD\GiD 13.0.4';% 'C:\Program Files\GiD\GiD 13.0.3';
                 files_name = obj.settings.case_file;
                 files_folder = fullfile(pwd,'Output',obj.settings.case_file);
                 iterations = 0:obj.optimizer.niter;
@@ -81,4 +83,3 @@ classdef TopOpt_Problem < handle
         end        
     end
 end
-

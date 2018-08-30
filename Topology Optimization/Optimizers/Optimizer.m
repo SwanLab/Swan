@@ -3,13 +3,14 @@ classdef Optimizer < handle
     %   Detailed explanation goes here
     
     properties
-        stop_criteria = 1;
+        has_converged = false;
         stop_vars
         target_parameters = struct;
         nconstr
         constraint_case
         ini_design_value = 1;
         hole_value = 0;
+        holes        
         postprocess
     end
     
@@ -25,6 +26,9 @@ classdef Optimizer < handle
         function obj = Optimizer(settings)
             obj.nconstr = settings.nconstr;
             obj.case_file=settings.case_file;
+            obj.holes.N_holes = settings.N_holes;
+            obj.holes.R_holes = settings.R_holes;
+            obj.holes.phase_holes = settings.phase_holes;            
             obj.target_parameters = settings.target_parameters;
             obj.constraint_case=settings.constraint_case;
             obj.postprocess = Postprocess_TopOpt.Create(settings.optimizer);
@@ -35,13 +39,23 @@ classdef Optimizer < handle
             x = obj.ini_design_value*ones(geometry.interpolation.npnod,1);
             switch initial_case
                 case 'circle'
-                    width = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
-                    height = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
-                    center_x = 0.5*(max(obj.mesh.coord(:,1)) + min(obj.mesh.coord(:,1)));
-                    center_y = 0.5*(max(obj.mesh.coord(:,2)) + min(obj.mesh.coord(:,2)));
-                    radius = 0.2*min([width,height]);
-                    initial_holes = (obj.mesh.coord(:,1)-center_x).^2 + (obj.mesh.coord(:,2)-center_y).^2 - radius^2 < 0;
+                    dim(1) = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
+                    dim(2) = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
+                    center(1) = 0.5*(max(obj.mesh.coord(:,1)) + min(obj.mesh.coord(:,1)));
+                    center(2) = 0.5*(max(obj.mesh.coord(:,2)) + min(obj.mesh.coord(:,2)));
+                    radius = 0.4*min(dim)/2;
+                    initial_holes = (obj.mesh.coord(:,1)-center(1)).^2 + (obj.mesh.coord(:,2)-center(2)).^2 - radius^2 < 0;
                     x(initial_holes) = obj.hole_value;
+                    
+                 case 'sphere'
+                    dim(1) = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
+                    dim(2) = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
+                    dim(3) = max(obj.mesh.coord(:,3)) - min(obj.mesh.coord(:,3));
+                    center(1) = 0.5*(max(obj.mesh.coord(:,1)) + min(obj.mesh.coord(:,1)));
+                    center(2) = 0.5*(max(obj.mesh.coord(:,2)) + min(obj.mesh.coord(:,2)));
+                    center(3) = 0.5*(max(obj.mesh.coord(:,3)) + min(obj.mesh.coord(:,3)));
+                    radius = 1.0*min(dim)/2;
+                    x = (obj.mesh.coord(:,1)-center(1)).^2 + (obj.mesh.coord(:,2)-center(2)).^2 + (obj.mesh.coord(:,3)-center(3)).^2 - radius^2;    
                     
                 case 'horizontal'
                     initial_holes = obj.mesh.coord(:,2) > 0.6 | obj.mesh.coord(:,2) < 0.4;
@@ -67,12 +81,28 @@ classdef Optimizer < handle
                     initial_holes = rand(size(obj.mesh.coord,1),1) > 0.1;
                     x(initial_holes) = obj.hole_value;
                     
+                 case 'holes'
+                    L(1) = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
+                    L(2) = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
+                    switch obj.mesh.pdim
+                        case '2D'
+                            initial_holes = ceil(max(cos((obj.holes.N_holes(2)+1)*(obj.mesh.coord(:,2)*pi)/L(2)+obj.holes.phase_holes(2)).*cos((obj.holes.N_holes(1)+1)*(obj.mesh.coord(:,1)*pi)/L(1)+obj.holes.phase_holes(1)) + obj.holes.R_holes-1 ,0))>0;
+                        case '3D'
+                            L(3) = max(obj.mesh.coord(:,3)) - min(obj.mesh.coord(:,3));
+                            initial_holes = ceil(max(cos((obj.holes.N_holes(3)+1)*(obj.mesh.coord(:,3)*pi)/L(3)+obj.holes.phase_holes(3)).*cos((obj.holes.N_holes(2)+1)*(obj.mesh.coord(:,2)*pi)/L(2)+obj.holes.phase_holes(2)).*cos((obj.holes.N_holes(1)+1)*(obj.mesh.coord(:,1)*pi)/L(1)+obj.holes.phase_holes(1)) + obj.holes.R_holes-1 ,0))>0;
+                    end
+                    x(initial_holes) = obj.hole_value;
+                    
+                    bc = unique([obj.mesh.dirichlet(:,1); obj.mesh.pointload(:,1)]);
+                    if any(x(bc)>0)
+                        warning('At least one BC is set on a hole')
+                    end
                 case 'full'
                 otherwise
                     error('Invalid initial value of design variable.');
             end
             %% !! PROVISIONAL !!
-            if strcmp(optimizer,'SLERP')
+            if strcmp(optimizer,'SLERP') %|| strcmp(optimizer,'HAMILTON-JACOBI')
                sqrt_norma = obj.optimizer_unconstr.scalar_product.computeSP(x,x);
                x = x/sqrt(sqrt_norma);
             end
@@ -98,7 +128,7 @@ classdef Optimizer < handle
             end
         end
         function print(obj,design_variable,iter)
-            if ~(obj.printing)
+            if ~(obj.printing || obj.has_converged)
                 return
             end
             
@@ -134,7 +164,7 @@ classdef Optimizer < handle
             end
             
             switch obj.optimizer
-                case {'SLERP','PROJECTED GRADIENT'}
+                case {'SLERP','PROJECTED GRADIENT','HAMILTON-JACOBI'}
                     fprintf(fid_mesh,'Optimality tolerance: %f \n',obj.optimizer_unconstr.opt_cond);
                     fprintf(fid_mesh,'Kappa: %f \n',obj.optimizer_unconstr.kappa);
                 case 'MMA'
@@ -188,4 +218,3 @@ classdef Optimizer < handle
         end
     end
 end
-

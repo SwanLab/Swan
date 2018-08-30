@@ -116,7 +116,6 @@ classdef Element_Elastic < Element
             % Elastic matrix
             Cmat = obj.material.C;
             for igaus=1:obj.quadrature.ngaus
-
                 Bmat = obj.computeB(igaus);
                 E=zeros(obj.nstre,obj.nnode*obj.dof.nunkn,obj.nelem);                
                 for i=1:obj.nstre
@@ -156,10 +155,12 @@ classdef Element_Elastic < Element
                     Kij(k:k+length(it)-1,1) =  obj.geometry.dvolu(:,igaus).*k_ij ;
                     k = k + length(it) ;
                 end
-                StifMat = StifMat + sparse(I_index,J_index,Kij,obj.dof.ndof,obj.dof.ndof);
-          
+                StifMat_aux = sparse(I_index,J_index,Kij,obj.dof.ndof,obj.dof.ndof);
+                StifMat = StifMat + StifMat_aux;
             end
             K = 1/2 * (StifMat + StifMat');            
+% dK = K(changed_nodes) - K0(changed_nodes);
+% K = K0 + dK;
         end
     end
     methods(Access = protected) % Only the child sees the function

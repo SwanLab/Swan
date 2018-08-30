@@ -16,6 +16,10 @@ classdef Interpolation < handle
         deriv
         dvolu
         iteration
+        cases
+        selectcases
+        main_loop
+        extra_cases
     end    
     methods
         function obj=Interpolation(mesh)
@@ -79,9 +83,9 @@ classdef Interpolation < handle
                                 error('Invalid nnode for element QUADRILATERAL.');
                         end
                     case 'TETRAHEDRA'
-                        interpolation = Tetrahedra(mesh);
+                        interpolation = Tetrahedra_Linear(mesh);
                     case 'HEXAHEDRA'
-                        interpolation = Hexahedra(mesh);
+                        interpolation = Hexahedra_Linear(mesh);
                     otherwise
                         error('Invalid mesh type.')
                 end
@@ -93,4 +97,5 @@ classdef Interpolation < handle
                 
         end
     end
+
 end
