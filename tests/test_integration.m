@@ -25,15 +25,24 @@ for i = 1:length(tests_integration)
     filter =  Filter.create(obj.settings);
     filter.preProcess;
     A = filter.computeFacetSurface(x);
-    A0 = 4*pi;
-    A_A0 = A/A0;
+    A0 = 4*pi; A_star = A/A0;
     
-    error = (A_A0 - A_A0_ref)/A_A0_ref;
-    if error < 1e-9
-        cprintf('green',strcat(file_name,' PASSED.  Error: ',num2str(error),'\n'));
+    errorSurf = (A_star - A_star_ref)/A_star_ref;
+    if errorSurf < 1e-9
+        cprintf('green',strcat(file_name,' PASSED.  Surface Error: ',num2str(errorSurf),'\n'));
     else
-        cprintf('err',strcat(file_name,' FAILED. Error: ',num2str(error),'\n'));
+        cprintf('err',strcat(file_name,' FAILED. Surface Error: ',num2str(errorSurf),'\n'));
     end
+    
+    V = filter.computeInteriorVolume(x);
+    V0 = (4/3)*pi; V_star = V/V0;
+    errorVol= (V_star - V_star_ref)/V_star_ref;
+    if errorVol < 1e-9
+        cprintf('green',strcat(file_name,' PASSED.  Volume Error: ',num2str(errorVol),'\n'));
+    else
+        cprintf('err',strcat(file_name,' FAILED. Volume Error: ',num2str(errorVol),'\n'));
+    end
+    
     toc
     clear settings
 end
