@@ -3,7 +3,8 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 
 %% Test
 % run('test_fem.m');
-run('test_topopt.m');
+% run('test_topopt.m');
+run('test_integration.m')
 clear variables;
 %% Main
 filenames={%'GrippingTriangleCoarse_Case_1_1_1';
@@ -34,12 +35,12 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
 %         'CantileverQuadrilateral_Case_1_2_2'
 %         'CantileverQuadrilateral_Case_5_2_1'
 %         'CantileverTriangle_Case_1_2_1'
-        'CantileverTriangle_Case_2_2_1'
+%         'CantileverTriangle_Case_2_2_1'
 %         'CantileverTriangle_Case_3_2_1'
 %         'CantileverTriangle_Case_1_2_4'
 %         'CantileverTriangle_Case_4_1_2'
 %         'BridgeQuadrilateral_Case_5_1_1'
-%         'BridgeQuadrilateral_Case_5_2_1'
+        'BridgeQuadrilateral_Case_5_2_1'
     %     'BridgeQuadrilateral_Case_5_3_1'
     %     'CantileverHexahedra_Case_1_1_1'
     %     'CantileverHexahedra_Case_5_1_1'
@@ -55,11 +56,13 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
 %         'CantileverHexahedra_Case_5_1_8'
 %         'CantileverHexahedra_Case_5_1_9'
 %         'CantileverHexahedra_Case_5_1_10'
-    %     'SphereHexahedra_Test_Case_5_2'
-    %     'SphereHexahedra_Test_Case_5_4'
-    %     'SphereHexahedra_Test_Case_5_8'
-    %     'SphereHexahedra_Test_Case_5_16'
-    %     'SphereHexahedra_Test_Case_5_32'
+%         'SphereHexahedra_Test_2'
+%         'SphereHexahedra_Test_4'
+%         'SphereHexahedra_Test_8'
+%         'SphereHexahedra_Test_16'
+%         'SphereHexahedra_Test_32'
+%     'SphereTetrahedra_Test_8'
+    'test_sphere_tetrahedra_surf'
 %     'test_bridge2'
     };
 for icases=1:size(filenames,1)
@@ -71,7 +74,7 @@ for icases=1:size(filenames,1)
         if contains(lower(filenames{icases}),'test_bridge2')
             dim = [60 20 20]; div = [24 8 8];
             [A1,b1,A0,b0] = conversionTensors3D(settings.filename,dim,div);
-        elseif ~contains(lower(filenames{icases}),'hexa')
+        elseif ~contains(lower(filenames{icases}),'hexa')&& ~contains(lower(filenames{icases}),'tetra')
             dim = [2 1]; div = [120 60];
             [A1,b1,A0,b0] = conversionTensors(settings.filename,dim,div);
         else

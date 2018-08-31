@@ -53,7 +53,7 @@ classdef Optimizer < handle
                     center(1) = 0.5*(max(obj.mesh.coord(:,1)) + min(obj.mesh.coord(:,1)));
                     center(2) = 0.5*(max(obj.mesh.coord(:,2)) + min(obj.mesh.coord(:,2)));
                     center(3) = 0.5*(max(obj.mesh.coord(:,3)) + min(obj.mesh.coord(:,3)));
-                    radius = 1.0*min(dim)/2;
+                    radius = (1.0-1e-6)*min(dim)/2;
                     x = (obj.mesh.coord(:,1)-center(1)).^2 + (obj.mesh.coord(:,2)-center(2)).^2 + (obj.mesh.coord(:,3)-center(3)).^2 - radius^2;
                     
                 case 'horizontal'

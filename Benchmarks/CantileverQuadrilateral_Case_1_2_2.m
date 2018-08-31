@@ -8,14 +8,16 @@ weights = [1 0.1];
 constraint = {'volume'};
 optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
+constraints_case = 'INEQUALITY';
+line_search = 'DOUBLING LAST STEP';
 
-nsteps = 5;
-Vfrac_final = 0.5;
+nsteps = 10;
+Vfrac_final = 0.2;
 Perimeter_target=1;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 1;
+Vfrac_initial = 0.5;
 optimality_initial = 1e-2;
 constr_initial = 1e-3;
 

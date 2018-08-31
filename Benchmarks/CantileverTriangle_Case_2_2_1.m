@@ -3,13 +3,14 @@ ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'compliance';'perimeter'};
-weights = [1, 0.1];
+cost = {'compliance'};
+weights = [1];
 constraint = {'volume'};
 optimizer = 'PROJECTED GRADIENT'; kappaMultiplier = 1;
 filterType = 'P1';
+% line_search = 'DOUBLING LAST STEP';
 
-nsteps = 5;
+nsteps = 10;
 Vfrac_final = 0.3;
 Perimeter_target=1;
 optimality_final =1e-3;

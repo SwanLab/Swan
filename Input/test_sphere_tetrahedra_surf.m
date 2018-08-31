@@ -1,4 +1,4 @@
-filename='Sphere_Hexahedra_Linear_Structured';
+filename='Sphere_Tetrahedra_Linear_Unstructured';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -8,10 +8,9 @@ weights = [1];
 constraint = {'volume'};
 optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
 filterType = 'P1';
-constraint_case = 'INEQUALITY';
 
 nsteps = 1;
-Vfrac_final = 0.1;
+Vfrac_final = 1;
 Perimeter_target=3.5;
 optimality_final =1e-5;
 constr_final =1e-5;
@@ -19,11 +18,8 @@ constr_final =1e-5;
 BCscale_factor = 0.3;
 HJiter0 = 1;
 e2 = 5;
-N_holes = [1 1 1];
-R_holes = 0.9;
-phase_holes = [0 0 0];
 
-Vfrac_initial = 0.3;
+Vfrac_initial = 1;
 optimality_initial = 5e-2;
 constr_initial = 5e-2;
 
@@ -37,7 +33,7 @@ TOL.E_minus = 1e-3;
 TOL.nu_plus = 0.3;
 TOL.nu_minus = 0.3;
 
-plotting = 1;
-printing = 1;
-monitoring = 1;
-monitoring_interval = 1;
+plotting = 0;
+printing = 0;
+monitoring = 0;
+monitoring_interval = 0;

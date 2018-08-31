@@ -8,14 +8,16 @@ weights = [1 0.1];
 constraint = {'volume'};
 optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
 filterType = 'P1';
+constraint_case = 'INEQUALITY';
+line_search = 'DOUBLING LAST STEP';
 
-nsteps = 1;
-Vfrac_final = 0.5;
+nsteps = 10;
+Vfrac_final = 0.1;
 Perimeter_target=3.5;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 1;
+Vfrac_initial = 0.4;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 
