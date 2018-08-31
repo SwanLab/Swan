@@ -32,6 +32,9 @@ classdef TopOpt_Problem < handle
                     obj.optimizer = Optimizer_MMA(settings,obj.mesh);
                 case 'IPOPT'
                     obj.optimizer = Optimizer_IPOPT(settings,obj.mesh);
+                case 'PROJECTED SLERP'
+                     obj.optimizer = Optimizer_Projected_Slerp(settings,obj.mesh,obj.incremental_scheme.epsilon);
+                    
                 otherwise
                     error('Invalid optimizer.')
             end
@@ -80,4 +83,3 @@ classdef TopOpt_Problem < handle
         end        
     end
 end
-

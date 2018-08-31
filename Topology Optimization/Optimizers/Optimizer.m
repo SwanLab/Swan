@@ -3,7 +3,7 @@ classdef Optimizer < handle
     %   Detailed explanation goes here
     
     properties
-        stop_updating = 0;
+        has_converged = false;
         stop_vars
         target_parameters = struct;
         nconstr
@@ -176,4 +176,3 @@ classdef Optimizer < handle
         end
     end
 end
-

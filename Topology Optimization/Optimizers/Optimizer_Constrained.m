@@ -17,23 +17,24 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
+            x_ini = obj.compute_initial_value(x_ini,cost,constraint);
             x = x_ini;
             cost.computef(x_ini);
             constraint.computef(x_ini);
 %             obj.monitoring.plotX(x_ini);
-            obj.monitoring.refresh(x,obj.niter,cost,constraint,obj.stop_vars,obj.stop_updating || obj.niter > obj.maxiter*(istep/nstep),istep,nstep);
+            obj.monitoring.refresh(x,obj.niter,cost,constraint,obj.stop_vars,obj.has_converged || obj.niter > obj.maxiter*(istep/nstep),istep,nstep);
             obj.print(x_ini,obj.niter);
-            while ~obj.stop_updating && obj.niter < obj.maxiter*(istep/nstep)
+            while ~obj.has_converged && obj.niter < obj.maxiter*(istep/nstep)
                 obj.niter = obj.niter+1;
                 x = obj.updateX(x_ini,cost,constraint);
-                obj.monitoring.refresh(x,obj.niter,cost,constraint,obj.stop_vars,obj.stop_updating || obj.niter > obj.maxiter*(istep/nstep),istep,nstep);
+                obj.monitoring.refresh(x,obj.niter,cost,constraint,obj.stop_vars,obj.has_converged || obj.niter > obj.maxiter*(istep/nstep),istep,nstep);
                 obj.print(x,obj.niter);
                 obj.writeToFile(istep,cost,constraint)
                 x_ini = x;
             end
             obj.printFinal(x);
             % !!????? NEEDED ??????
-            obj.stop_updating = 0;
+            obj.has_converged = 0;
         end
         function printFinal(obj,x)
             if obj.monitoring.plotting_ON
@@ -46,6 +47,12 @@ classdef Optimizer_Constrained < Optimizer
                 end
             end
         end
+        
+        function x_ini = compute_initial_value(obj,x_ini,cost,constraint)
+            
+        end
+        
+        
     end
     
 %     methods (Abstract)

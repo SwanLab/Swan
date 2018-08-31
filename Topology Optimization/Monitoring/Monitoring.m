@@ -117,10 +117,10 @@ classdef Monitoring < handle
             end
         end
         
-        function refresh(obj,x,iteration,cost,constraint,stop_vars,stop_updating,istep,nstep)
+        function refresh(obj,x,iteration,cost,constraint,stop_vars,has_finished,istep,nstep)
             if obj.plotting_ON
                 obj.plotX(x);
-                if stop_updating && istep == nstep
+                if has_finished && istep == nstep
                     out_folder = fullfile(pwd,'Output',obj.case_file);
                     if ~exist(out_folder,'dir')
                         mkdir(out_folder)
@@ -130,12 +130,12 @@ classdef Monitoring < handle
             end
             
             if obj.monitoring_ON && iteration>0
-                obj.display_parameters(iteration,cost,constraint,stop_vars,stop_updating,istep,nstep)
+                obj.display_parameters(iteration,cost,constraint,stop_vars,has_finished,istep,nstep)
             end
         end
         
-        function display_parameters(obj,iteration,cost,constraint,stop_vars,stop_updating,istep,nstep)
-            draw = (mod(iteration,obj.interval) == 0 || stop_updating);
+        function display_parameters(obj,iteration,cost,constraint,stop_vars,has_finished,istep,nstep)
+            draw = (mod(iteration,obj.interval) == 0 || has_finished);
             obj.figures{1} = obj.updateFigure(obj.figures{1},iteration,cost.value,draw);
             for i = 1:obj.ncost
                 k = i+1;
@@ -158,7 +158,7 @@ classdef Monitoring < handle
                 end
             end
             if draw
-                if stop_updating && istep == nstep
+                if has_finished && istep == nstep
                     set(obj.monitor,'NumberTitle','off','Name',sprintf('Monitoring - Inc. Step: %.0f/%.0f Iteration: %.0f - FINISHED',istep,nstep,iteration))
                     out_folder = fullfile(pwd,'Output',obj.case_file);
                     if ~exist(out_folder,'dir')
@@ -186,7 +186,7 @@ classdef Monitoring < handle
         
         function obj = getStopVarsNames(obj,optimizer)
             switch optimizer
-                case {'SLERP','PROJECTED GRADIENT','HAMILTON-JACOBI'}
+                case {'SLERP','PROJECTED GRADIENT','HAMILTON-JACOBI','PROJECTED SLERP'}
                     obj.stop_names = {'\Deltacost';'Norm L2';'\kappa'};
                 case 'MMA'
                     obj.stop_names = {'kktnorm';'outit'};
@@ -348,4 +348,3 @@ classdef Monitoring < handle
         end
     end
 end
-

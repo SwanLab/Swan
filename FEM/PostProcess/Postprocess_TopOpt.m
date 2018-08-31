@@ -142,7 +142,7 @@ classdef Postprocess_TopOpt < Postprocess
     methods (Static)
         function obj = Create(optimizer)
             switch optimizer
-                case {'SLERP', 'HAMILTON-JACOBI'}
+                case {'SLERP','PROJECTED SLERP', 'HAMILTON-JACOBI'}
                     obj = Postprocess_TopOpt_levelSet;
                 case {'PROJECTED GRADIENT', 'MMA', 'IPOPT'}
                     obj = Postprocess_TopOpt_density;
@@ -150,3 +150,4 @@ classdef Postprocess_TopOpt < Postprocess
         end
     end
 end
+

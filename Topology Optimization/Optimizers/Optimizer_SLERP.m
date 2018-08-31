@@ -2,6 +2,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
     
     properties
         optimality_tol
+        theta = 0.1
     end
     
     methods
@@ -18,13 +19,13 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         end
         
         function phi = computeX(obj,design_variable,gradient)
-            theta = obj.computeTheta(design_variable,gradient);
             phi_n = design_variable;
             norm_g = sqrt(obj.scalar_product.computeSP(gradient,gradient));
             
-            beta1 = sin((1-obj.line_search.kappa)*theta)/sin(theta);
-            beta2 = sin(obj.line_search.kappa*theta)/sin(theta);
+            beta1 = sin((1-obj.line_search.kappa)*obj.theta)/sin(obj.theta);
+            beta2 = sin(obj.line_search.kappa*obj.theta)/sin(obj.theta);
             phi = beta1*phi_n + beta2*gradient/norm_g;
+            obj.theta = obj.computeTheta(design_variable,gradient);            
         end
         
         function theta = computeTheta(obj,phi,g)
@@ -34,6 +35,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             scl_phi_g = obj.scalar_product.computeSP(phi,g);
             theta = real(acos(scl_phi_g/(norm_phi*norm_g)));
             obj.opt_cond = theta;
+            obj.theta = theta;
             %norm_dif_rel = norm_g_f;
         end
         

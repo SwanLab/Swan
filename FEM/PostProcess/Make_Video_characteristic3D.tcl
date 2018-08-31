@@ -26,6 +26,7 @@ proc Make_Video_characteristic {arg1 arg2 arg3 arg4 arg5 arg6} {
 
     foreach iStep [GiD_Info post get all_steps {Elastic Problem}] {
     GiD_Process Results AnalysisSel {Elastic Problem} $iStep Mescape  
+    GiD_Process 'Zoom Frame Mescape
     GiD_Process 'Rotate Angle $iStep 30 
     GiD_Process Results IsoSurfaces Exact $Field_2_print 1 0 Mescape 
     GiD_Process escape Results ContourFill $Field_2_print $component Mescape 

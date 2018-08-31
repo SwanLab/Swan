@@ -30,13 +30,14 @@ classdef Optimizer_Unconstrained < Optimizer
             incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
             
             obj.good_design = incr_cost < 0 && incr_norm_L2 < obj.max_constr_change;
-            obj.stop_updating = obj.good_design || obj.line_search.kappa <= obj.line_search.kappa_min;
+
+            obj.has_converged = obj.good_design || obj.line_search.kappa <= obj.line_search.kappa_min;
             
             obj.stop_vars(1,1) = incr_cost;                 obj.stop_vars(1,2) = 0;
             obj.stop_vars(2,1) = incr_norm_L2;              obj.stop_vars(2,2) = obj.max_constr_change;
             obj.stop_vars(3,1) = obj.line_search.kappa;     obj.stop_vars(3,2) = obj.line_search.kappa_min;
             
-            if ~obj.stop_updating
+            if ~obj.has_converged
                 obj.line_search.computeKappa;
             end
         end
@@ -46,11 +47,10 @@ classdef Optimizer_Unconstrained < Optimizer
         end
     end
     
-    methods (Access = protected)
+    methods (Access = public)
         function N_L2 = norm_L2(obj,x,x_ini)
             inc_x = x-x_ini;
             N_L2 = obj.scalar_product.computeSP_M(inc_x,inc_x)/obj.scalar_product.computeSP_M(x_ini,x_ini);
         end
     end
 end
-

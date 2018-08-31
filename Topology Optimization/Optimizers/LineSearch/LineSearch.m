@@ -12,7 +12,7 @@ classdef LineSearch < handle
                     switch settings.optimizer
                         case 'PROJECTED GRADIENT'
                             obj = LS_BackTracking_DimensionallyConsistent_PG(settings,epsilon);
-                        case 'SLERP'
+                        case {'SLERP','PROJECTED SLERP'} % !! PROJECTED SLERP?? IS IT OK SAME LINE SEARCH?? !!
                             obj = LS_BackTracking_DimensionallyConsistent_SLERP;
                         case 'HAMILTON-JACOBI'
                             obj = LS_BackTracking_DimensionallyConsistent_HJ(settings);

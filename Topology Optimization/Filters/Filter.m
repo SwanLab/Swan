@@ -85,7 +85,7 @@ classdef Filter < handle
                     switch settings.optimizer
                         case {'MMA','PROJECTED GRADIENT','IPOPT'}
                             obj = Filter_P1_Density(settings.filename,settings.ptype);
-                        case {'SLERP','HAMILTON-JACOBI'}
+                        case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
                             switch settings.pdim
                                 case '2D'
                                     obj = Filter_P1_LevelSet_2D(settings.filename,settings.ptype);
@@ -97,7 +97,7 @@ classdef Filter < handle
                     switch settings.optimizer
                         case {'MMA','PROJECTED GRADIENT','IPOPT'}
                             obj = Filter_PDE_Density(settings.filename,settings.ptype);
-                        case {'SLERP','HAMILTON-JACOBI'}
+                        case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
                             switch settings.pdim
                                 case '2D'
                                     obj = Filter_PDE_LevelSet_2D(settings.filename,settings.ptype);

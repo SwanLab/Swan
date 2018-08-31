@@ -2,10 +2,11 @@ clc; clear variables; close all;
 addpath(genpath(fileparts(mfilename('fullpath'))));
 
 %% Test
-% run('test_fem.m');
-% run('test_topopt.m');
+run('test_fem.m');
+run('test_topopt.m');
 run('test_integration.m')
 clear variables;
+
 %% Main
 filenames={%'GrippingTriangleCoarse_Case_1_1_1';
     %     'GrippingTriangleCoarse_Case_2_1_1';
@@ -62,8 +63,6 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
 %         'SphereHexahedra_Test_16'
 %         'SphereHexahedra_Test_32'
 %     'SphereTetrahedra_Test_8'
-    'test_sphere_tetrahedra_surf'
-%     'test_bridge2'
     };
 for icases=1:size(filenames,1)
     clearvars -except filenames icases;
@@ -103,6 +102,7 @@ for icases=1:size(filenames,1)
         save(fullfile(pwd,'Allaire_ShapeOpt','conversion'),'A0','A1','b0','b1','dim','div');
     end
     % ---------------------------------------------------------------------
+    
     test = TopOpt_Problem(settings);
     test.preProcess;
     test.computeVariables;

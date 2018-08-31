@@ -16,6 +16,10 @@ classdef Interpolation < handle
         deriv
         dvolu
         iteration
+        cases
+        selectcases
+        main_loop
+        extra_cases
     end    
     methods
         function obj=Interpolation(mesh)
@@ -59,13 +63,6 @@ classdef Interpolation < handle
     methods (Static)
         function interpolation=create(mesh,order)                            
                 switch mesh.geometryType
-                    case 'LINE'
-                        switch order
-                            case 'LINEAR'
-                                interpolation = Line_Linear(mesh);
-                            otherwise
-                                error('Invalid order for element LINE.');
-                        end
                     case 'TRIANGLE'
                         switch order
                             case 'LINEAR'
@@ -73,7 +70,7 @@ classdef Interpolation < handle
                             case 'QUADRATIC'
                                 interpolation = Triangle_Quadratic(mesh);
                             otherwise
-                                error('Invalid order for element TRIANGLE.');
+                                error('Invalid nnode for element TRIANGLE.');
                         end
                     case 'QUAD'
                         switch order
@@ -83,7 +80,7 @@ classdef Interpolation < handle
                                 warning('PENDING TO BE TRASFORMED TO INTERPOLATION. SEE TRIANGLE_QUADRATIC AS EXAMPLE')
                                 interpolation = Quadrilateral_Serendipity(mesh);
                             otherwise
-                                error('Invalid order for element QUADRILATERAL.');
+                                error('Invalid nnode for element QUADRILATERAL.');
                         end
                     case 'TETRAHEDRA'
                         interpolation = Tetrahedra_Linear(mesh);
@@ -100,4 +97,5 @@ classdef Interpolation < handle
                 
         end
     end
+
 end

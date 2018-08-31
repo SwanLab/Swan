@@ -1,5 +1,5 @@
 filename='Gripping_triangle_coarse';
-ptype = 'MACRO';
+ ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
@@ -12,13 +12,12 @@ filterType = 'P1';
 
 nsteps = 1;
 Vfrac_final = 1;
-optimality_final =1e-3;
+optimality_final = 1e-3;
 constr_final =1e-3;
 
 Vfrac_initial = 1;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
-
 TOL.rho_plus = 1;
 TOL.rho_minus = 0;
 TOL.E_plus = 1;

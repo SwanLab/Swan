@@ -4,6 +4,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
         objfunc
         penalty
     end
+    
     methods
         function obj = Optimizer_AugLag(settings,mesh,optimizer_unconstr)
             obj@Optimizer_Constrained(settings,mesh,settings.monitoring);
@@ -20,14 +21,16 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             x = obj.solveUnconstrainedProblem(x_ini,cost,constraint);
             
             active_constr = obj.penalty > 0;
-            obj.stop_updating = ~(obj.optimizer_unconstr.opt_cond >=  obj.optimizer_unconstr.optimality_tol || any(any(abs(constraint.value(active_constr)) > obj.optimizer_unconstr.constr_tol(active_constr))));
+            has_not_converged = obj.optimizer_unconstr.opt_cond >=  obj.optimizer_unconstr.optimality_tol || any(any(abs(constraint.value(active_constr)) > obj.optimizer_unconstr.constr_tol(active_constr)));
+            obj.has_converged = ~has_not_converged;
         end
+        
     end
     
     methods (Access = private)
         function x = solveUnconstrainedProblem(obj,x_ini,cost,constraint)
-            while ~obj.optimizer_unconstr.stop_updating
-                x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint);
+            while ~obj.optimizer_unconstr.has_converged
+                x = obj.optimizer_unconstr.updateX(x_ini,cost,constraint); 
                 obj.stop_vars = obj.optimizer_unconstr.stop_vars;
             end
             
@@ -49,7 +52,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             obj.optimizer_unconstr.objfunc = obj.objfunc;
             obj.optimizer_unconstr.objfunc.value_initial = obj.objfunc.value;
             obj.optimizer_unconstr.line_search.initKappa(x_ini,obj.objfunc.gradient);
-            obj.optimizer_unconstr.stop_updating = 0;
+            obj.optimizer_unconstr.has_converged = false;
         end
     end
 end
