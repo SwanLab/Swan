@@ -3,19 +3,21 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
     properties
         optimality_tol
         e2
+        mean_cell_size
         % !! Move to ShFunc_Velocity (?) eventually !!
         filter
     end
     
     methods
-        function obj = Optimizer_HJ(settings,epsilon)
+        function obj = Optimizer_HJ(settings,epsilon,mean_cell_size)
             obj@Optimizer_Unconstrained(settings,epsilon);
             % !! Check wheter it affects the problem! !!
             %             obj.ini_design_value = -1.015243959022692;
             %             obj.hole_value = 0.507621979511346;
             obj.ini_design_value = -0.1;
             obj.hole_value = 0.1;
-            obj.e2 = settings.e2;            
+            obj.e2 = settings.e2;         
+            obj.mean_cell_size = mean_cell_size;
             obj.max_constr_change = +Inf;
             obj.nconstr = settings.nconstr;
             % !! Move to ShFunc_Velocity (?) eventually !!
