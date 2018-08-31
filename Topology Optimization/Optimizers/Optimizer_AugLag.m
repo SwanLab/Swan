@@ -48,7 +48,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
         function initUnconstrOpt(obj,x_ini)
             obj.optimizer_unconstr.objfunc = obj.objfunc;
             obj.optimizer_unconstr.objfunc.value_initial = obj.objfunc.value;
-            obj.optimizer_unconstr.initKappa(x_ini,obj.objfunc.gradient);
+            obj.optimizer_unconstr.line_search.initKappa(x_ini,obj.objfunc.gradient);
             obj.optimizer_unconstr.stop_updating = 0;
         end
     end

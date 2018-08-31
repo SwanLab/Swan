@@ -165,7 +165,7 @@ classdef Optimizer < handle
             switch obj.optimizer
                 case {'SLERP','PROJECTED GRADIENT','HAMILTON-JACOBI'}
                     fprintf(fid_mesh,'Optimality tolerance: %f \n',obj.optimizer_unconstr.opt_cond);
-                    fprintf(fid_mesh,'Kappa: %f \n',obj.optimizer_unconstr.kappa);
+                    fprintf(fid_mesh,'Kappa: %f \n',obj.optimizer_unconstr.line_search.kappa);
                 case 'MMA'
                     fprintf(fid_mesh,'Optimality tolerance: %f \n',obj.kktnorm);
                 case 'IPOPT'

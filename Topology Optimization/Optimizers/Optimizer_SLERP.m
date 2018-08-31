@@ -9,10 +9,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             obj@Optimizer_Unconstrained(settings,epsilon);
             obj.ini_design_value = -1.015243959022692;
             obj.hole_value = 0.507621979511346;
-            obj.kappa = 1;
-            obj.kappa_min = 1e-5;
             obj.max_constr_change = +Inf;
-            obj.kfrac = 2;
             obj.nconstr = settings.nconstr;
         end
         
@@ -25,8 +22,8 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             phi_n = design_variable;
             norm_g = sqrt(obj.scalar_product.computeSP(gradient,gradient));
             
-            beta1 = sin((1-obj.kappa)*theta)/sin(theta);
-            beta2 = sin(obj.kappa*theta)/sin(theta);
+            beta1 = sin((1-obj.line_search.kappa)*theta)/sin(theta);
+            beta2 = sin(obj.line_search.kappa*theta)/sin(theta);
             phi = beta1*phi_n + beta2*gradient/norm_g;
         end
         
@@ -40,12 +37,12 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             %norm_dif_rel = norm_g_f;
         end
         
-        function initKappa(obj,~,~,~)
-            obj.kappa = 1;
-        end
-        
-        function computeKappa(obj)
-            obj.kappa = obj.kappa/obj.kfrac;
-        end
+%         function initKappa(obj,~,~,~)
+%             obj.kappa = 1;
+%         end
+%         
+%         function computeKappa(obj)
+%             obj.kappa = obj.kappa/obj.kfrac;
+%         end
     end
 end

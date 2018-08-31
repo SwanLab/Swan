@@ -6,20 +6,16 @@ classdef Optimizer_Unconstrained < Optimizer
         constr_tol
         scalar_product
         objfunc
-        kfrac
         max_constr_change
         opt_cond
         good_design
-        kappa
-        kappa_min
+        line_search
     end
     
     methods
         function obj = Optimizer_Unconstrained(settings,epsilon)
             obj@Optimizer(settings);
-            
-            %  !! Currently only used for Unconstrained_Optimizers !!
-            % (Move to Optimizer when having not black-box Constrained_Optimizer(s))
+            obj.line_search = LineSearch.create(settings,epsilon);
             obj.scalar_product = ScalarProduct(settings.filename,epsilon);
         end
         
@@ -34,14 +30,14 @@ classdef Optimizer_Unconstrained < Optimizer
             incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
             
             obj.good_design = incr_cost < 0 && incr_norm_L2 < obj.max_constr_change;
-            obj.stop_updating = obj.good_design || obj.kappa <= obj.kappa_min;
+            obj.stop_updating = obj.good_design || obj.line_search.kappa <= obj.line_search.kappa_min;
             
-            obj.stop_vars(1,1) = incr_cost;     obj.stop_vars(1,2) = 0;
-            obj.stop_vars(2,1) = incr_norm_L2;  obj.stop_vars(2,2) = obj.max_constr_change;
-            obj.stop_vars(3,1) = obj.kappa;     obj.stop_vars(3,2) = obj.kappa_min;
+            obj.stop_vars(1,1) = incr_cost;                 obj.stop_vars(1,2) = 0;
+            obj.stop_vars(2,1) = incr_norm_L2;              obj.stop_vars(2,2) = obj.max_constr_change;
+            obj.stop_vars(3,1) = obj.line_search.kappa;     obj.stop_vars(3,2) = obj.line_search.kappa_min;
             
             if ~obj.stop_updating
-                obj.computeKappa;
+                obj.line_search.computeKappa;
             end
         end
         

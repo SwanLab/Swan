@@ -47,6 +47,7 @@ classdef Settings
         weights
         constraint
         optimizer
+        line_search
         kappaMultiplier
         filter
         TOL = struct;
@@ -85,6 +86,16 @@ classdef Settings
             obj.constr_initial = constr_initial;
             obj.optimality_final = optimality_final;
             obj.constr_final = constr_final;
+            
+            if exist('line_search','var')
+                obj.line_search = line_search;
+            else
+                if strcmp(obj.optimizer,'PROJECTED GRADIENT')
+                    obj.line_search = 'DOUBLING LAST STEP';
+                else
+                    obj.line_search = 'DIMENSIONALLY CONSISTENT';
+                end
+            end
             
             if exist('constraint_case','var')
                 obj.constraint_case = constraint_case;
