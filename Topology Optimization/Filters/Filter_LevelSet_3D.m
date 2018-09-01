@@ -15,7 +15,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         end
         
         function mesh_del = getMeshDel(obj)
-            mesh_del = obj.diffReacProb.mesh;
+            mesh_del = obj.diffReacProb.mesh.duplicate;
             mesh_del.geometryType='TETRAHEDRA';
         end
         

@@ -31,7 +31,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
                 x = x_ini;
                 obj.optimizer_unconstr.stop_vars(1,1) = 0;     obj.optimizer_unconstr.stop_vars(1,2) = obj.optimizer_unconstr.theta;
                 obj.optimizer_unconstr.stop_vars(2,1) = 0;     obj.optimizer_unconstr.stop_vars(2,2) = obj.optimizer_unconstr.max_constr_change;
-                obj.optimizer_unconstr.stop_vars(3,1) = 1;     obj.optimizer_unconstr.stop_vars(3,2) = obj.optimizer_unconstr.kappa_min;
+                obj.optimizer_unconstr.stop_vars(3,1) = 1;     obj.optimizer_unconstr.stop_vars(3,2) = obj.optimizer_unconstr.line_search.kappa_min;
                 obj.stop_vars = obj.optimizer_unconstr.stop_vars;
             end
         end
@@ -49,7 +49,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.objfunc.lambda = lambda;
             constraint.lambda = obj.objfunc.lambda;
             obj.objfunc.computeGradient(cost,constraint);
-            obj.optimizer_unconstr.kappa = 1;
+            obj.optimizer_unconstr.line_search.initKappa;
             x_ini = obj.optimizer_unconstr.computeX(x_ini,obj.objfunc.gradient);
             
             obj.fhtri= [];
@@ -74,8 +74,8 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             
             
             
-            obj.optimizer_unconstr.kfrac = 1.1;
-  
+            obj.optimizer_unconstr.line_search.kfrac = 1.1;
+            
             while ~obj.optimizer_unconstr.has_converged
                 
                 cost.value = cost_copy_value;
@@ -108,17 +108,18 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
                 incr_norm_L2  = obj.optimizer_unconstr.norm_L2(x,x_ini);
                 incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
                 
-                obj.optimizer_unconstr.kappa = obj.optimizer_unconstr.kappa/obj.optimizer_unconstr.kfrac;
-                obj.optimizer_unconstr.has_converged = ((incr_cost < 0 && incr_norm_L2 < obj.optimizer_unconstr.max_constr_change) || obj.optimizer_unconstr.kappa <= obj.optimizer_unconstr.kappa_min);
+                obj.optimizer_unconstr.has_converged = ((incr_cost < 0 && incr_norm_L2 < obj.optimizer_unconstr.max_constr_change) || obj.optimizer_unconstr.line_search.kappa <= obj.optimizer_unconstr.line_search.kappa_min);
                 
-                obj.optimizer_unconstr.stop_vars(1,1) = incr_cost;                        obj.optimizer_unconstr.stop_vars(1,2) = obj.optimizer_unconstr.theta;
-                obj.optimizer_unconstr.stop_vars(2,1) = incr_norm_L2;                     obj.optimizer_unconstr.stop_vars(2,2) = obj.optimizer_unconstr.max_constr_change;
-                obj.optimizer_unconstr.stop_vars(3,1) = obj.optimizer_unconstr.kappa;     obj.optimizer_unconstr.stop_vars(3,2) = obj.optimizer_unconstr.kappa_min;
+                obj.optimizer_unconstr.stop_vars(1,1) = incr_cost;                                      obj.optimizer_unconstr.stop_vars(1,2) = obj.optimizer_unconstr.theta;
+                obj.optimizer_unconstr.stop_vars(2,1) = incr_norm_L2;                                   obj.optimizer_unconstr.stop_vars(2,2) = obj.optimizer_unconstr.max_constr_change;
+                obj.optimizer_unconstr.stop_vars(3,1) = obj.optimizer_unconstr.line_search.kappa;       obj.optimizer_unconstr.stop_vars(3,2) = obj.optimizer_unconstr.line_search.kappa_min;
+                
+                if ~obj.has_converged
+                    obj.optimizer_unconstr.line_search.computeKappa;
+                end
                 
                 obj.stop_vars = obj.optimizer_unconstr.stop_vars;
             end
-
-            
             
             thet = obj.optimizer_unconstr.computeTheta(x_ini,obj.objfunc.gradient);
             obj.optimizer_unconstr.opt_cond = thet;
@@ -148,12 +149,8 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
         function initUnconstrOpt(obj,x_ini)
             obj.optimizer_unconstr.objfunc = obj.objfunc;
             obj.optimizer_unconstr.objfunc.value_initial = obj.objfunc.value;
-            obj.optimizer_unconstr.initKappa(x_ini,obj.objfunc.gradient);
+            obj.optimizer_unconstr.line_search.initKappa(x_ini,obj.objfunc.gradient);
             obj.optimizer_unconstr.has_converged = false;
         end
-        
-        
-        
-        
     end
 end

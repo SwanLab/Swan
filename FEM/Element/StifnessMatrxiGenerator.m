@@ -71,7 +71,7 @@ classdef StifnessMatrxiGenerator < handle
                 obj.computeNonDiagonalEntries(igaus);            
                 obj.computeDiagonalEntries(igaus);
                 
-                StifMat_of_iguass = compute_assembled_matrix();
+                StifMat_of_iguass = obj.compute_assembled_matrix();
                 StifMat = StifMat + StifMat_of_iguass;
             end
             K = 1/2 * (StifMat + StifMat');           

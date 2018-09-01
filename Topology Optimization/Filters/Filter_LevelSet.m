@@ -125,6 +125,11 @@ classdef Filter_LevelSet < handle
             M2 = obj.computeRHS_facet(x,ones(size(x)));
             S = sum(M2);
         end
+        
+        function V = computeInteriorVolume(obj,x)
+            M2 = obj.computeRHS(x);
+            V = sum(M2);
+        end
     end
     
     methods (Static)

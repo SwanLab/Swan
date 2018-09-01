@@ -16,7 +16,8 @@ classdef Incremental_Scheme < handle
             obj.coord=mesh.coord;
             obj.connec=mesh.connec;
             if isempty(settings.epsilon_initial)
-                obj.epsilon_initial=obj.estimate_mesh_size;
+                obj.epsilon_initial = mesh.mean_cell_size;
+                obj.epsilon0 = mesh.problem_characterisitc_length;
             else
                 obj.epsilon_initial=settings.epsilon_initial;
             end
@@ -50,21 +51,7 @@ classdef Incremental_Scheme < handle
             constraint.target_parameters=target_parameters;
             optimizer.target_parameters=target_parameters;
         end
-        function h=estimate_mesh_size(obj)
-            xmin = min(obj.coord);
-            xmax = max(obj.coord);
-            obj.epsilon0 = norm(xmax-xmin)/2;
-            
-            x1 = obj.coord(obj.connec(:,1));
-            x2 = obj.coord(obj.connec(:,2));
-            x3 = obj.coord(obj.connec(:,3));
-            
-            x1x2 = abs(x2-x1);
-            x2x3 = abs(x3-x2);
-            x1x3 = abs(x1-x3);
-            hs = max([x1x2,x2x3,x1x3]');
-            h = mean(hs);
-        end
+        
         function x = generate_incr_sequence (obj,x1,x2,nsteps,type,factor)
             
             switch type
