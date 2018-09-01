@@ -35,7 +35,7 @@ classdef Monitoring < handle
                         case {'SLERP','HAMILTON-JACOBI'}
                             obj = Monitoring_LevelSet_3D(settings,mesh,monitoring_ON, plotting_ON);
                         otherwise
-                            obj = Monitoring_ElseD(settings,mesh,monitoring_ON, plotting_ON);
+                            obj = Monitoring_Else(settings,mesh,monitoring_ON, plotting_ON);
                     end
             end
         end
@@ -335,15 +335,11 @@ classdef Monitoring < handle
     
     methods (Access = protected)
         function plotBoundaryConditions(obj)
-            [inodef,iforce]  = unique(obj.mesh.pointload(:,1));
-            [inodec,iconst]  = unique(obj.mesh.dirichlet(:,1));
-            force = zeros(length(iforce),3);
-            const = zeros(length(iconst),3);
+            inodef  = unique(obj.mesh.pointload(:,1));
+            inodec = unique(obj.mesh.dirichlet(:,1));
             
-            for idim = 1:obj.ndim
-                force(:,idim) = obj.mesh.pointload(obj.mesh.pointload(:,2)==idim,3);
-                const(:,idim) = obj.mesh.dirichlet(obj.mesh.dirichlet(:,2)==idim,3);
-            end
+            force = obj.classifyBC(obj.mesh.pointload);
+            const = obj.classifyBC(obj.mesh.dirichlet);
             
             hold on
             plot3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),'ro')
@@ -351,6 +347,26 @@ classdef Monitoring < handle
             plot3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),'bx')
             quiver3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),const(:,1),const(:,2),const(:,3),'b','AutoScaleFactor',obj.BCscale_factor*max(obj.mesh.coord(:))/max(abs(const(:))));
             hold off
+        end
+    end
+    
+    methods (Static)
+        function classifiedBC = classifyBC(BC)
+            classifiedBC = zeros(size(BC));
+            indexes = [];
+            for i = 1:size(BC,1)
+                if ~isempty(indexes)
+                    is_new = ~any(BC(i,1) == indexes);
+                else
+                    is_new = true;
+                end
+                if is_new
+                    indexes(end+1) = BC(i,1);
+                end
+                index = find(indexes,BC(i,1));
+                classifiedBC(index,BC(i,2)) = BC(i,3);
+            end
+            classifiedBC(length(indexes)+1:end,:) = [];
         end
     end
 end

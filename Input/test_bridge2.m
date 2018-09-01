@@ -1,4 +1,4 @@
-filename='Cantileverbeam_Hexahedra_Linear_Structured_Coarse';
+filename='Bridge_Tetrahedra_Coarse';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -6,20 +6,20 @@ initial_case = 'holes';
 cost = {'compliance'};
 weights = 1;
 constraint = {'volume'};
-optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
+optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
 
 nsteps = 1;
-Vfrac_final = 0.3;
+Vfrac_final = 0.1;
 Perimeter_target=3.5;
 optimality_final =1e-5;
 constr_final =1e-5;
 
 BCscale_factor = 0.3;
 HJiter0 = 1;
-e2 = 10;
-N_holes = [12 5 5];
+e2 = 1;
+N_holes = [6 3 3];
 R_holes = 0.9;
 phase_holes = [0 0 0];
 
@@ -38,5 +38,5 @@ TOL.nu_minus = 0.3;
 
 plotting = 0;
 printing = 0;
-monitoring = 0;
-monitoring_interval = 1e3;
+monitoring = true;
+monitoring_interval = 1;

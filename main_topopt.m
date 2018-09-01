@@ -2,9 +2,9 @@ clc; clear variables; close all;
 addpath(genpath(fileparts(mfilename('fullpath'))));
 
 % %% Test
-% run('test_fem.m');
-% run('test_topopt.m');
-% run('test_integration.m')
+run('test_fem.m');
+run('test_topopt.m');
+run('test_integration.m')
 clear variables;
 
 %% Main
@@ -25,7 +25,7 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
     %     'GrippingQuadFine_Case_3_1_1';
     %     'GrippingQuadFine_Case_4_1_1';
 %         'GrippingTetrahedraCoarse_Case_1_1_1';
-    %     'GrippingTetrahedraCoarse_Case_2_1_1';
+%         'GrippingTetrahedraCoarse_Case_2_1_1';
     %     'GrippingTetrahedraCoarse_Case_3_1_1';
     %     'GrippingTetrahedraCoarse_Case_4_1_1';
     %     'GrippingTetrahedraCoarse_Case_1_2_1';
@@ -40,9 +40,10 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
 %         'CantileverTriangle_Case_3_2_1'
 %         'CantileverTriangle_Case_1_2_4'
 %         'CantileverTriangle_Case_4_1_2'
+%  'CantileverTriangle_Case_1_2_1'
 %         'BridgeQuadrilateral_Case_5_1_1'
 %         'BridgeQuadrilateral_Case_5_2_1'
-        'BridgeQuadrilateral_Allaire'
+%         'BridgeQuadrilateral_Allaire'
     %     'BridgeQuadrilateral_Case_5_3_1'
     %     'CantileverHexahedra_Case_1_1_1'
     %     'CantileverHexahedra_Case_5_1_1'
@@ -66,6 +67,9 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
 %     'SphereTetrahedra_Test_8'
 % 'BridgeTetrahedraCoarse_Case_1_1_1'
 % 'CantileverTetrahedra_Case_5_1_1'
+% 'CantileverTetrahedraCoarse_Case_1_1_1'
+'CantileverTetrahedra_Case_5_1_2'
+% 'test_bridge2'
     };
 for icases=1:size(filenames,1)
     clearvars -except filenames icases;

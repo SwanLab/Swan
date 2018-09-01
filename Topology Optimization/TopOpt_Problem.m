@@ -64,7 +64,7 @@ classdef TopOpt_Problem < handle
                 files_folder = fullfile(pwd,'Output',obj.settings.case_file);
                 iterations = 0:obj.optimizer.niter;
                 video_name = strcat('./Videos/Video_',obj.settings.case_file,'_',int2str(obj.optimizer.niter),'.gif');
-                My_VideoMaker = VideoMaker_TopOpt.Create(obj.settings.optimizer,obj.mesh.pdim);
+                My_VideoMaker = VideoMaker_TopOpt.Create(obj.settings.optimizer,obj.mesh.pdim,obj.settings.case_file);
                 My_VideoMaker.Set_up_make_video(gidPath,files_name,files_folder,iterations)
                 %
                 output_video_name_design_variable = fullfile(pwd,video_name);
