@@ -32,10 +32,10 @@ classdef Monitoring < handle
                     obj = Monitoring_Else(settings,mesh,monitoring_ON, plotting_ON);
                 case '3D'
                     switch settings.optimizer
-                        case 'HAMILTON-JACOBI'
+                        case {'SLERP','HAMILTON-JACOBI'}
                             obj = Monitoring_LevelSet_3D(settings,mesh,monitoring_ON, plotting_ON);
                         otherwise
-                            obj = Monitoring_2D(settings,mesh,monitoring_ON, plotting_ON);
+                            obj = Monitoring_ElseD(settings,mesh,monitoring_ON, plotting_ON);
                     end
             end
         end
@@ -109,6 +109,10 @@ classdef Monitoring < handle
                         obj.figures{i}.handle = plot(0,0);
                         title(obj.figures{i}.title);
                         grid on
+                    case 'log'
+                        obj.figures{i}.handle = semilogy(0,0);
+                        title(obj.figures{i}.title);
+                        grid on
                     case 'bar'
                         obj.figures{i}.handle = bar(0,0);
                         title(obj.figures{i}.title);
@@ -179,6 +183,8 @@ classdef Monitoring < handle
             obj.figures{end}.variable = [];
             if contains(TITLE,'kappa') || contains(TITLE,'outit')
                 obj.figures{end}.chart_type = 'bar';
+            elseif contains(TITLE,'L2')
+                obj.figures{end}.chart_type = 'log';
             else
                 obj.figures{end}.chart_type = 'plot';
             end

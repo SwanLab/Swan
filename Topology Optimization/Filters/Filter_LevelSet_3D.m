@@ -277,7 +277,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
                 for idime = 1:size(coordinates_local,2)
                     match = match & coordinates_global(:,idime) == coordinates_local(inode,idime);
                 end
-                indexes_in_global_matrix(inode) = find(match);
+                indexes_in_global_matrix(inode) = find(match,1);
             end
         end
         
