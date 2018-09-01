@@ -1,4 +1,4 @@
-filename='Sphere_Hexahedra_Linear_Structured';
+filename='Sphere_Tetrahedra_Linear_Structured_8';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';

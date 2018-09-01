@@ -1,5 +1,5 @@
 filename='Bridge_hexahedra_coarse';
- ptype = 'MACRO';
+ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
@@ -23,4 +23,3 @@ TOL.rho_minus = 0;
 TOL.E_plus = 1;
 TOL.E_minus = 1e-3;
 TOL.nu_plus = 1/3;
-TOL.nu_minus = 1/3;

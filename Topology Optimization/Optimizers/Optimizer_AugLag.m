@@ -4,6 +4,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
         objfunc
         penalty
     end
+    
     methods
         function obj = Optimizer_AugLag(settings,mesh,optimizer_unconstr)
             obj@Optimizer_Constrained(settings,mesh,settings.monitoring);
@@ -50,7 +51,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
         function initUnconstrOpt(obj,x_ini)
             obj.optimizer_unconstr.objfunc = obj.objfunc;
             obj.optimizer_unconstr.objfunc.value_initial = obj.objfunc.value;
-            obj.optimizer_unconstr.initKappa(x_ini,obj.objfunc.gradient);
+            obj.optimizer_unconstr.line_search.initKappa(x_ini,obj.objfunc.gradient);
             obj.optimizer_unconstr.has_converged = false;
         end
     end

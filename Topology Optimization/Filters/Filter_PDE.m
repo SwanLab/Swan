@@ -36,9 +36,6 @@ classdef Filter_PDE < Filter
         % !! For SHAPE OPTIMIZATION (regularize) !!
         function x_reg = regularize(obj,x,F)
             rhs_x = obj.integrate_facet_with_shape_function(x,F);
-%             x(x==0) = -1e-15;
-%             S = integrate_facet_to_compute_surface(obj,x);
-%             A_A0 = S/(4*pi)
 %             
 %             load(fullfile(pwd,'Allaire_ShapeOpt','conversion'));
 %             for n = 1:length(rhs_x)

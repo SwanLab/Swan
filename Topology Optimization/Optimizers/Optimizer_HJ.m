@@ -2,30 +2,23 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
     
     properties
         optimality_tol
-        HJiter
-        HJiter0;
-        HJiter_min = 1;
         e2
+        mean_cell_size
         % !! Move to ShFunc_Velocity (?) eventually !!
         filter
     end
     
     methods
-        function obj = Optimizer_HJ(settings,epsilon)
+        function obj = Optimizer_HJ(settings,epsilon,mean_cell_size)
             obj@Optimizer_Unconstrained(settings,epsilon);
             % !! Check wheter it affects the problem! !!
             %             obj.ini_design_value = -1.015243959022692;
             %             obj.hole_value = 0.507621979511346;
             obj.ini_design_value = -0.1;
             obj.hole_value = 0.1;
-            
-            obj.HJiter0 = settings.HJiter0;
-            obj.HJiter = obj.HJiter0;
-            obj.e2 = settings.e2;
-            obj.kappa = 1;
-            obj.kappa_min = 1e-6;
+            obj.e2 = settings.e2;         
+            obj.mean_cell_size = mean_cell_size;
             obj.max_constr_change = +Inf;
-            obj.kfrac = 2;
             obj.nconstr = settings.nconstr;
             % !! Move to ShFunc_Velocity (?) eventually !!
             if strcmp(settings.filter,'P1')
@@ -66,10 +59,10 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
                     V(b1(n,1),b1(n,2)) = gradient(n);
                 end
                 
-                dt = 0.5*obj.e2*obj.kappa*min(dx,dy)/max(abs(gradient(:))) ;
+                dt = 0.5*obj.e2*obj.line_search.kappa*min(dx,dy)/max(abs(gradient(:))) ;
                 
                 % !! Using Allaire's curvature instead of perimeter !!
-                phi = solvelvlset(phi,V,dt,obj.HJiter,0,RIiter,RIfreq,dx,dy);
+                phi = solvelvlset(phi,V,dt,obj.line_search.HJiter,0,RIiter,RIfreq,dx,dy);
                 phi_vect(A1(:,:)) = phi(:,:);
                 phi_vect = phi_vect';
                 
@@ -114,32 +107,32 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
                 %                 close; close; close;
                 %                 close;
                 
-                dt = 0.5*obj.e2*obj.kappa*min(dx,dy)/max(abs(gradient(:))) ;
-                phi = solvelvlset3(phi,V,dt,obj.HJiter,0,30,5,dx,dy,dz);
+                dt = 0.5*obj.e2*obj.line_search.kappa*min(dx,dy)/max(abs(gradient(:))) ;
+                phi = solvelvlset3(phi,V,dt,obj.line_search.HJiter,0,30,5,dx,dy,dz);
                 
                 phi_vect(A1(:,:,:)) = phi(:,:,:);
                 phi_vect = phi_vect';
             end
             
             % !! CHECK !!
-            obj.opt_cond = obj.kappa;
+            obj.opt_cond = obj.line_search.kappa;
         end
         
-        function initKappa(obj,~,~,~)
-%             if obj.kappa < obj.kappa_min
-%                 obj.kappa = obj.kappa_min*obj.kfrac;
+%         function initKappa(obj,~,~,~)
+%             %             if obj.kappa < obj.kappa_min
+%             %                 obj.kappa = obj.kappa_min*obj.kfrac;
+%             %             end
+%             %             obj.kappa = obj.kappa*obj.kfrac;
+%             obj.kappa = 1;
+%             obj.HJiter = obj.HJiter0;
+%         end
+%         
+%         function computeKappa(obj)
+%             if obj.HJiter > obj.HJiter_min
+%                 obj.HJiter = round(obj.HJiter/obj.kfrac);
+%             else
+%                 obj.kappa = obj.kappa/obj.kfrac;
 %             end
-%             obj.kappa = obj.kappa*obj.kfrac;
-obj.kappa = 1;
-            obj.HJiter = obj.HJiter0;
-        end
-        
-        function computeKappa(obj)
-            if obj.HJiter > obj.HJiter_min
-                obj.HJiter = round(obj.HJiter/obj.kfrac);
-            else
-                obj.kappa = obj.kappa/obj.kfrac;
-            end
-        end
+%         end
     end
 end
