@@ -16,7 +16,6 @@ classdef StifnessMatrxiGenerator < handle
         number_of_global_dofs
         number_of_elemental_dofs
         nelem
-        material
         elem_obj
         row_index
         column_index 
@@ -25,9 +24,17 @@ classdef StifnessMatrxiGenerator < handle
         CtimesB
         inodes
         icomps
-        someindex
+        InitialNonAssembledIndex
+        FinalNonAssembledIndex
         Ke
         connectivities
+        Subintegrated_StifMat
+        StifMat
+        dvolum
+        ngaus
+        numberOfGlobalDofs
+        rowGlobalDofs
+        columnGlobalDofs
     end
     
     methods
@@ -45,54 +52,67 @@ classdef StifnessMatrxiGenerator < handle
             obj.interpolation_u = elem_obj.interpolation_u;
             obj.geometry = elem_obj.geometry;
             obj.connectivities = elem_obj.geometry.interpolation.T;
-            obj.material = elem_obj.material;
+            obj.Cmat = elem_obj.material.C;
             obj.elem_obj = elem_obj;
-        end
-        
-        function K = generate(obj)
-            
-            obj.quadrature.computeQuadrature('LINEAR');
-            obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
-            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
-            % Stiffness matrix
-            StifMat = sparse(obj.number_of_global_dofs,obj.number_of_global_dofs);
             obj.inodes=reshape(repmat(1:obj.nnode,obj.nunkn,1),1,[]); 
             obj.icomps=repmat(1:obj.nunkn,1,obj.nnode);
-                
-                
-            % Elastic matrix
-            obj.Cmat = obj.material.C;
-            for igaus=1:obj.quadrature.ngaus
-                
-                obj.Bmat = obj.elem_obj.computeB(igaus);
+        end
+        
+        function generate(obj)
+            
+            obj.initilize_StifMat()
+            obj.compute_dvolum() 
+                           
+            for igaus=1:obj.ngaus
+                obj.initialize_row_and_column_index();
+                obj.computeBmatrix(igaus);
                 obj.compute_CtimesBmatrix();
-                obj.initialize_row_and_column_index_to_zero();
-                
                 obj.computeNonDiagonalEntries(igaus);            
                 obj.computeDiagonalEntries(igaus);
-                
-                StifMat_of_iguass = obj.compute_assembled_matrix();
-                StifMat = StifMat + StifMat_of_iguass;
+                obj.assemble_matrix()
+                obj.add_matrix()
             end
-            K = 1/2 * (StifMat + StifMat');           
-            
+            obj.symmetrizeStiffMat()
         end
+        
+        function K = getStiffMatrix(obj)
+            K = obj.StifMat;
+        end
+        
     end
     
     methods (Access = private)
         
-            function compute_CtimesBmatrix(obj)
-            CB =zeros(obj.nstre,obj.number_of_elemental_dofs,obj.nelem);
+        function initilize_StifMat(obj)
+            obj.StifMat = sparse(obj.number_of_global_dofs,obj.number_of_global_dofs);
+        end
+        
+        
+        function compute_dvolum(obj)
+            obj.quadrature.computeQuadrature('LINEAR');
+            obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
+            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
+            obj.ngaus = obj.quadrature.ngaus;
+            obj.dvolum = obj.geometry.dvolu;
+        end
+        
+        function computeBmatrix(obj,igaus)
+            obj.Bmat = obj.elem_obj.computeB(igaus);
+        end
+        
+        function compute_CtimesBmatrix(obj)
+            CB = zeros(obj.nstre,obj.number_of_elemental_dofs,obj.nelem);
             for i=1:obj.nstre
                 CB(i,:,:) = sum(repmat(permute(obj.Cmat(i,:,:),[2,1,3]),1,obj.number_of_elemental_dofs,1) .* obj.Bmat,1);
             end
             obj.CtimesB = CB;
         end
         
-        function initialize_row_and_column_index_to_zero(obj)
+        function initialize_row_and_column_index(obj)
             obj.row_index = obj.initialize_index();
             obj.column_index = obj.initialize_index();
         end
+        
         
         function index = initialize_index(obj)
             index = zeros(obj.number_of_elemental_dofs*obj.number_of_elemental_dofs*obj.nelem,1);
@@ -100,56 +120,94 @@ classdef StifnessMatrxiGenerator < handle
         
         function  computeDiagonalEntries(obj,igaus)
                 for idof=1:obj.number_of_elemental_dofs
-                    it = obj.compute_global_dofs(idof);
+                    obj.obtainGlobalDofsForSpecificRowEntry(idof);
+                    obj.obtainNumberOfGlobalDofs();
+                    obj.FinalNonAssembledIndex = obj.InitialNonAssembledIndex + obj.numberOfGlobalDofs -1;
+                        
+                    k_ij = obj.computeStiffEntry(idof,idof,igaus);
                     
-                    k_ij=squeeze(sum(obj.Bmat(:,idof,:) .* obj.CtimesB(:,idof,:),1));
+                    index3 = obj.compute_index3();
                     
-                    index3 = obj.compute_index3(it);
-                    
-                    obj.row_index(index3,1) =  it ;
-                    obj.column_index(index3,1) =  it ;
-                    obj.Ke(index3,1) =  obj.geometry.dvolu(:,igaus).*k_ij ;
-                    obj.someindex = obj.someindex + length(it) ;
+                    obj.row_index(index3,1)    =  obj.rowGlobalDofs ;
+                    obj.column_index(index3,1) =  obj.rowGlobalDofs ;
+                    obj.Ke(index3,1) =  k_ij;
+                    obj.InitialNonAssembledIndex = obj.FinalNonAssembledIndex + 1;
                 end
         end
         
         
         function computeNonDiagonalEntries(obj,igaus)
-            obj.someindex=1;   
-            obj.Ke = zeros(obj.number_of_elemental_dofs*obj.number_of_elemental_dofs*obj.nelem,1);
+            obj.InitialNonAssembledIndex=1;   
+            obj.initialize_Ke()
             for idof=1:obj.number_of_elemental_dofs
-                    it= obj.compute_global_dofs(idof);
+                    obj.obtainGlobalDofsForSpecificRowEntry(idof);
+                    obj.obtainNumberOfGlobalDofs();
+                    
                     for jdof=1:idof-1
-                        jt = obj.compute_global_dofs(jdof);
+                        obj.FinalNonAssembledIndex = obj.InitialNonAssembledIndex + 2*obj.numberOfGlobalDofs -1;
+                        obj.obtainGlobalDofsForSpecificColumnEntry(jdof)                        
+                        k_ij = obj.computeStiffEntry(idof,jdof,igaus);
                         
-                        k_ij=squeeze(sum(obj.Bmat(:,idof,:) .* obj.CtimesB(:,jdof,:),1));
+                        index2 = obj.compute_index2();
                         
-                        index2 = obj.compute_index2(it);
+                        obj.row_index(index2,1) =    [ obj.rowGlobalDofs    ; obj.columnGlobalDofs];
+                        obj.column_index(index2,1) = [ obj.columnGlobalDofs ; obj.rowGlobalDofs];
+                       
+                        obj.Ke(index2,1) = [k_ij ; k_ij ];
                         
-                        obj.row_index(index2,1) = [ it ; jt];
-                        obj.column_index(index2,1) = [ jt ; it];
-                        obj.Ke(index2,1) = [obj.geometry.dvolu(:,igaus).*k_ij ; obj.geometry.dvolu(:,igaus).*k_ij ];
-                        obj.someindex = obj.someindex + 2*length(it);
+                        obj.InitialNonAssembledIndex = obj.FinalNonAssembledIndex + 1;
                     end
             end    
         end
         
+        function initialize_Ke(obj)
+            obj.Ke = zeros(obj.number_of_elemental_dofs*obj.number_of_elemental_dofs*obj.nelem,1);
+        end
+        
+        
+        function K = computeStiffEntry(obj,idof,jdof,igaus)
+            BCB = squeeze(sum(obj.Bmat(:,idof,:) .* obj.CtimesB(:,jdof,:),1));
+            K = obj.dvolum(:,igaus).*BCB;
+        end
+        
+        function obtainGlobalDofsForSpecificRowEntry(obj,idof)
+            obj.rowGlobalDofs = obj.compute_global_dofs(idof);
+        end
+        
+        function obtainGlobalDofsForSpecificColumnEntry(obj,idof)
+            obj.columnGlobalDofs = obj.compute_global_dofs(idof);
+        end
+        
+        function obtainNumberOfGlobalDofs(obj)
+            obj.numberOfGlobalDofs = length(obj.rowGlobalDofs);
+
+        end
         
         function  global_dofs = compute_global_dofs(obj,idof)
             global_dofs = obj.nunkn*(obj.connectivities(:,obj.inodes(idof))-1)+obj.icomps(idof);
         end
         
-        function index2 = compute_index2(obj,it)
-            index2 = obj.someindex:obj.someindex+2*length(it)-1;
+        function index2 = compute_index2(obj)
+            index2 = obj.InitialNonAssembledIndex:obj.FinalNonAssembledIndex;
         end
 
-        function index3 = compute_index3(obj,it)
-             index3 = obj.someindex:obj.someindex+length(it)-1;
+        function index3 = compute_index3(obj)
+             index3 = obj.InitialNonAssembledIndex:obj.FinalNonAssembledIndex;
         end
         
-        function Assembled_matrix = compute_assembled_matrix(obj)
-            Assembled_matrix = sparse(obj.row_index,obj.column_index,obj.Ke,obj.number_of_global_dofs,obj.number_of_global_dofs);
+        function assemble_matrix(obj)
+             obj.Subintegrated_StifMat = sparse(obj.row_index,obj.column_index,obj.Ke,obj.number_of_global_dofs,obj.number_of_global_dofs);
         end
+        
+        function add_matrix(obj)
+            obj.StifMat = obj.StifMat + obj.Subintegrated_StifMat;
+        end
+        
+        function symmetrizeStiffMat(obj)
+            obj.StifMat = 1/2 * (obj.StifMat + obj.StifMat');
+        end
+        
+
     end
     
 end
