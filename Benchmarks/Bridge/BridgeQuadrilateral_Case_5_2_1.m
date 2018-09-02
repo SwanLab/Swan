@@ -33,7 +33,7 @@ TOL.E_minus = 1e-3;
 TOL.nu_plus = 0.3;
 TOL.nu_minus = 0.3;
 
-plotting = 1;
-printing = 0;
-monitoring = 1;
+plotting = false;
+printing = false;
+monitoring = false;
 monitoring_interval = 1;

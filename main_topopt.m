@@ -2,9 +2,9 @@ clc; clear variables; close all;
 addpath(genpath(fileparts(mfilename('fullpath'))));
 
 % %% Test
-run('test_fem.m');
+% run('test_fem.m');
 run('test_topopt.m');
-run('test_integration.m')
+% run('test_integration.m')
 clear variables;
 
 %% Main
@@ -42,9 +42,9 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
 %         'CantileverTriangle_Case_4_1_2'
 %  'CantileverTriangle_Case_1_2_1'
 %         'BridgeQuadrilateral_Case_5_1_1'
-%         'BridgeQuadrilateral_Case_5_2_1'
+        'BridgeQuadrilateral_Case_5_2_1'
 %         'BridgeQuadrilateral_Allaire'
-    %     'BridgeQuadrilateral_Case_5_3_1'
+%         'BridgeQuadrilateral_Case_5_3_1'
     %     'CantileverHexahedra_Case_1_1_1'
     %     'CantileverHexahedra_Case_5_1_1'
 %         'CantileverHexahedra_Case_5_2_1'
