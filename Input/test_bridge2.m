@@ -36,7 +36,7 @@ maxiter = 3;
 TOL.nu_plus = 0.3;
 TOL.nu_minus = 0.3;
 
-plotting = 0;
-printing = 0;
-monitoring = true;
+plotting = false;
+printing = false;
+monitoring = false;
 monitoring_interval = 1;

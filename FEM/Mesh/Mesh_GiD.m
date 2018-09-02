@@ -2,6 +2,7 @@ classdef Mesh_GiD < Mesh
     % Class containing the coordinates and connectivities of the mesh
     properties (GetAccess = public,SetAccess = public)
         pdim
+        ndim
         dirichlet
         pointload
     end
@@ -20,6 +21,7 @@ classdef Mesh_GiD < Mesh
                 obj.create(data.xpoints(:,2:4),data.connectivities(:,2:length(data.connectivities(1,:))));
                 obj.geometryType = data.geometry;
                 obj.pdim = data.problem_dim;
+                obj.getNdim;
                 obj.ptype = data.problem_type;
                 obj.scale = data.scale;
                 obj.problemID=filename;
@@ -32,6 +34,17 @@ classdef Mesh_GiD < Mesh
         
         function copy = duplicate(obj)
             copy = Mesh_GiD(obj.problemID);
+        end
+    end
+    
+    methods (Access = private)
+        function getNdim(obj)
+            switch obj.pdim
+                case '2D'
+                    obj.ndim = 2;
+                case '3D'
+                    obj.ndim = 3;
+            end
         end
     end
 end

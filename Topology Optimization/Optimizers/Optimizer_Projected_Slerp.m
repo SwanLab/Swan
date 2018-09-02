@@ -9,8 +9,6 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj@Optimizer_Constrained(settings,mesh,settings.monitoring);
             obj.objfunc = Lagrangian(settings);
             obj.optimizer_unconstr = Optimizer_SLERP(settings,epsilon);
-            obj.ini_design_value = obj.optimizer_unconstr.ini_design_value;
-            obj.hole_value = obj.optimizer_unconstr.hole_value;
         end
         
         function x = updateX(obj,x_ini,cost,constraint)

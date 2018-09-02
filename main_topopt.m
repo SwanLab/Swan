@@ -68,8 +68,7 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
 % 'BridgeTetrahedraCoarse_Case_1_1_1'
 % 'CantileverTetrahedra_Case_5_1_1'
 % 'CantileverTetrahedraCoarse_Case_1_1_1'
-'CantileverTetrahedra_Case_5_1_2'
-% 'test_bridge2'
+% 'CantileverTetrahedra_Case_5_1_2'
     };
 for icases=1:size(filenames,1)
     clearvars -except filenames icases;
