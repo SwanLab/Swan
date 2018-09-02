@@ -15,7 +15,6 @@ classdef Monitoring < handle
     properties
         plotting_ON
         plotting_figure
-        ndim
         mesh
         showBC
         BCscale_factor
@@ -29,7 +28,12 @@ classdef Monitoring < handle
         function obj = create(settings,mesh,monitoring_ON, plotting_ON)
             switch mesh.pdim
                 case '2D'
-                    obj = Monitoring_Else(settings,mesh,monitoring_ON, plotting_ON);
+                    switch settings.optimizer
+                        case {'SLERP','HAMILTON-JACOBI'}
+                            obj = Monitoring_LevelSet_2D(settings,mesh,monitoring_ON, plotting_ON);
+                        otherwise
+                            obj = Monitoring_Else(settings,mesh,monitoring_ON, plotting_ON);
+                    end
                 case '3D'
                     switch settings.optimizer
                         case {'SLERP','HAMILTON-JACOBI'}

@@ -1,4 +1,4 @@
-classdef Monitoring_LevelSet_3D < Monitoring
+classdef Monitoring_LevelSet_3D < Monitoring_LevelSet
     properties
         filter
         rotation_per_it
@@ -6,9 +6,8 @@ classdef Monitoring_LevelSet_3D < Monitoring
     
     methods
         function obj = Monitoring_LevelSet_3D(settings,mesh,monitoring_ON,plotting_ON)
-            obj@Monitoring(settings,mesh,monitoring_ON,plotting_ON);
+            obj@Monitoring_LevelSet(settings,mesh,monitoring_ON,plotting_ON);
             obj.rotation_per_it = settings.rotation_per_it;
-            obj.ndim = 3;
             obj.filter =  Filter.create(settings);
             obj.filter.preProcess;
             obj.filter.computeSurroundingFacets;
