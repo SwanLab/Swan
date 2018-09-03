@@ -45,17 +45,20 @@ classdef Filter_LevelSet < handle
             end
         end
         
-        function shape_cut = integrateCut(obj,x_unfitted_cut,container_cell,dvolu_cut)
-            not_compute = x_unfitted_cut > 0;
-            is_negative = ~any(not_compute');
-            dvolu = sum(obj.geometry.dvolu,2)/obj.geometry.interpolation.dvolu;
-            shape_cut = is_negative'.*(obj.geometry.interpolation.shape'.*dvolu_cut.*dvolu(container_cell));
+        function shape_cut = integrateCut(obj,x_unfitted_cut,containing_cell,dvolu_cut)
+%             not_compute = x_unfitted_cut > 0;
+%             is_negative = ~any(not_compute');
+%             dvolu = sum(obj.geometry.dvolu,2)/obj.geometry.interpolation.dvolu;
+%             shape_cut = is_negative'.*(obj.geometry.interpolation.shape'.*dvolu_cut.*dvolu(containing_cell));
+            
+            dvolu_frac = sum(obj.geometry.dvolu,2)/obj.geometry.interpolation.dvolu;
+            shape_cut = obj.geometry.interpolation.shape'.*dvolu_cut.*dvolu_frac(containing_cell);
         end
         
-        function pos_gp_del_natural = computePosGpDelaunayNatural(obj,elcrd)
-            pos_gp_del_natural=zeros(size(elcrd,1),size(elcrd,3));
-            for idime=1:size(elcrd,3)
-                pos_gp_del_natural(:,idime)=elcrd(:,:,idime)*obj.interp_del.shape;
+        function pos_gp_del_natural = computePosGpDelaunayNatural(obj,subcell_coord)
+            pos_gp_del_natural = zeros(size(subcell_coord,1),size(subcell_coord,3));
+            for idime = 1:size(subcell_coord,3)
+                pos_gp_del_natural(:,idime) = subcell_coord(:,:,idime)*obj.interp_del.shape;
             end
         end
         
@@ -116,10 +119,10 @@ classdef Filter_LevelSet < handle
             obj.setupUnfittedMesh(x);
             obj.unfitted_mesh.computeDvoluCut;
             
-            pos_gp_del_natural = obj.computePosGpDelaunayNatural(obj.unfitted_mesh.coord_cut);
+            pos_gp_del_natural = obj.computePosGpDelaunayNatural(obj.unfitted_mesh.unfitted_cut_coord_iso_per_cell);
             obj.geometry.interpolation.computeShapeDeriv(pos_gp_del_natural');
             
-            shape_cut = obj.integrateCut(obj.unfitted_mesh.x_unfitted_cut,obj.unfitted_mesh.container_cell,obj.unfitted_mesh.dvolu_cut);
+            shape_cut = obj.integrateCut(obj.unfitted_mesh.x_unfitted_cut,obj.unfitted_mesh.subcell_containing_cell,obj.unfitted_mesh.dvolu_cut);
             shape_all = obj.assembleShapeValues(shape_cut);
             
             M2=obj.rearrangeOutputRHS(shape_all);
@@ -130,7 +133,7 @@ classdef Filter_LevelSet < handle
             shape_all(obj.unfitted_mesh.full_cells,:) = obj.shape_full(obj.unfitted_mesh.full_cells,:);
             
             for idelaunay=1:size(shape_cut,2)
-                shape_all(:,idelaunay)=shape_all(:,idelaunay)+accumarray(obj.unfitted_mesh.container_cell,shape_cut(:,idelaunay),[obj.nelem,1],@sum,0);
+                shape_all(:,idelaunay)=shape_all(:,idelaunay)+accumarray(obj.unfitted_mesh.subcell_containing_cell,shape_cut(:,idelaunay),[obj.nelem,1],@sum,0);
             end
         end
         
@@ -151,17 +154,17 @@ classdef Filter_LevelSet < handle
         end
     end
     
-%     methods (Static)
-%         function [full_elem,cut_elem]=findCutElements(x,connectivities)
-%             phi_nodes=x(connectivities);
-%             phi_case=sum((sign(phi_nodes)<0),2);
-%             
-%             full_elem = phi_case==size(connectivities,2);
-%             null_elem = phi_case==0;
-%             indexes = (1:size(connectivities,1))';
-%             cut_elem = indexes(~(full_elem+null_elem));
-%         end
-%     end
+    methods (Static)
+        function [full_elem,cut_elem]=findCutElements(x,connectivities)
+            phi_nodes=x(connectivities);
+            phi_case=sum((sign(phi_nodes)<0),2);
+            
+            full_elem = phi_case==size(connectivities,2);
+            null_elem = phi_case==0;
+            indexes = (1:size(connectivities,1))';
+            cut_elem = indexes(~(full_elem+null_elem));
+        end
+    end
     
     methods (Abstract)
         getQuadratureDel(obj)

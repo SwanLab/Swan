@@ -9,7 +9,7 @@ classdef Mesh < handle
     
     methods
         function obj = create(obj,coordinates,connectivities)
-            obj.coord = coordinates;
+            obj.coord = coordinates(:,1:obj.ndim);
             obj.connec = connectivities;
             obj.estimate_mesh_size;
             obj.estimate_mesh_characteristic_length;

@@ -30,7 +30,8 @@ classdef Monitoring < handle
                 case '2D'
                     switch settings.optimizer
                         case {'SLERP','HAMILTON-JACOBI'}
-                            obj = Monitoring_LevelSet_2D(settings,mesh,monitoring_ON, plotting_ON);
+%                             obj = Monitoring_LevelSet_2D(settings,mesh,monitoring_ON, plotting_ON);
+                            obj = Monitoring_Else(settings,mesh,monitoring_ON, plotting_ON);
                         otherwise
                             obj = Monitoring_Else(settings,mesh,monitoring_ON, plotting_ON);
                     end
@@ -345,12 +346,12 @@ classdef Monitoring < handle
             force = obj.classifyBC(obj.mesh.pointload);
             const = obj.classifyBC(obj.mesh.dirichlet);
             
-            hold on
-            plot3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),'ro')
-            quiver3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),force(:,1),force(:,2),force(:,3),'r','AutoScaleFactor',obj.BCscale_factor*max(obj.mesh.coord(:))/max(abs(force(:))));
-            plot3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),'bx')
-            quiver3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),const(:,1),const(:,2),const(:,3),'b','AutoScaleFactor',obj.BCscale_factor*max(obj.mesh.coord(:))/max(abs(const(:))));
-            hold off
+%             hold on
+%             plot3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),'ro')
+%             quiver3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),force(:,1),force(:,2),force(:,3),'r','AutoScaleFactor',obj.BCscale_factor*max(obj.mesh.coord(:))/max(abs(force(:))));
+%             plot3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),'bx')
+%             quiver3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),const(:,1),const(:,2),const(:,3),'b','AutoScaleFactor',obj.BCscale_factor*max(obj.mesh.coord(:))/max(abs(const(:))));
+%             hold off
         end
     end
     
