@@ -45,12 +45,7 @@ classdef Filter_LevelSet < handle
             end
         end
         
-        function shape_cut = integrateCut(obj,x_unfitted_cut,containing_cell,dvolu_cut)
-%             not_compute = x_unfitted_cut > 0;
-%             is_negative = ~any(not_compute');
-%             dvolu = sum(obj.geometry.dvolu,2)/obj.geometry.interpolation.dvolu;
-%             shape_cut = is_negative'.*(obj.geometry.interpolation.shape'.*dvolu_cut.*dvolu(containing_cell));
-            
+        function shape_cut = integrateCut(obj,containing_cell,dvolu_cut)
             dvolu_frac = sum(obj.geometry.dvolu,2)/obj.geometry.interpolation.dvolu;
             shape_cut = obj.geometry.interpolation.shape'.*dvolu_cut.*dvolu_frac(containing_cell);
         end
@@ -122,7 +117,7 @@ classdef Filter_LevelSet < handle
             pos_gp_del_natural = obj.computePosGpDelaunayNatural(obj.unfitted_mesh.unfitted_cut_coord_iso_per_cell);
             obj.geometry.interpolation.computeShapeDeriv(pos_gp_del_natural');
             
-            shape_cut = obj.integrateCut(obj.unfitted_mesh.x_unfitted_cut,obj.unfitted_mesh.subcell_containing_cell,obj.unfitted_mesh.dvolu_cut);
+            shape_cut = obj.integrateCut(obj.unfitted_mesh.subcell_containing_cell,obj.unfitted_mesh.dvolu_cut);
             shape_all = obj.assembleShapeValues(shape_cut);
             
             M2=obj.rearrangeOutputRHS(shape_all);
@@ -136,11 +131,7 @@ classdef Filter_LevelSet < handle
                 shape_all(:,idelaunay)=shape_all(:,idelaunay)+accumarray(obj.unfitted_mesh.subcell_containing_cell,shape_cut(:,idelaunay),[obj.nelem,1],@sum,0);
             end
         end
-        
-        function setupUnfittedMesh(obj,x)
-            obj.unfitted_mesh = Mesh_Unfitted_2D(obj.diffReacProb.mesh.duplicate,obj.diffReacProb.geometry.interpolation,x);
-            obj.unfitted_mesh.computeCutMesh;
-        end
+
         % !!!!!!!!!!!!!!!!!! REMOVED M2=computeRHS_facet !!!!!!!!!!!!!!!!!!
         
         function S = computeFacetSurface(obj,x)
@@ -166,15 +157,15 @@ classdef Filter_LevelSet < handle
         end
     end
     
-    methods (Abstract)
-        getQuadratureDel(obj)
-        getMeshDel(obj)
-        getInterpolationDel(obj,mesh_del)
-        computeRHS_facet(obj,x,F)
-        findCutPoints_Iso(obj,x,cut_elem,interpolation)
-        %         findCutPoints_Global(obj,x,cut_elem)
-        %         createFacet(obj)
-        computeDvoluCut(elcrd)
-        %         mapping(elem_cutPoints_global,facets_connectivities,facet_deriv,dvolu)
-    end
+%     methods (Abstract)
+%         getQuadratureDel(obj)
+%         getMeshDel(obj)
+%         getInterpolationDel(obj,mesh_del)
+%         computeRHS_facet(obj,x,F)
+%         findCutPoints_Iso(obj,x,cut_elem,interpolation)
+%         %         findCutPoints_Global(obj,x,cut_elem)
+%         %         createFacet(obj)
+%         computeDvoluCut(elcrd)
+%         %         mapping(elem_cutPoints_global,facets_connectivities,facet_deriv,dvolu)
+%     end
 end

@@ -19,6 +19,11 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
             obj.interp_del=Triangle_Linear(mesh_del);
         end
         
+        function setupUnfittedMesh(obj,x)
+            obj.unfitted_mesh = Mesh_Unfitted_2D(obj.diffReacProb.mesh.duplicate,x,obj.diffReacProb.geometry.interpolation);
+            obj.unfitted_mesh.computeCutMesh;
+        end
+        
         function M2=computeRHS_facet(obj,x,F)
             [interp_facet,quadrature_facet] = obj.createFacet;
             interp_element = Interpolation.create(obj.diffReacProb.mesh,obj.quadrature.order);
