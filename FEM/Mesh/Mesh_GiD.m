@@ -24,7 +24,7 @@ classdef Mesh_GiD < Mesh
                 obj.ptype = data.problem_type;
                 obj.scale = data.scale;
                 obj.problemID=filename;
-                obj.create(data.xpoints(:,2:4),data.connectivities(:,2:length(data.connectivities(1,:))));
+                obj.create(data.xpoints(:,2:4),data.connectivities(:,2:end));
                 
                 if strcmpi(data.problem_type,'elastic')
                     obj.dirichlet = data.dirichlet_data;
