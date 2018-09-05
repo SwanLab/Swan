@@ -6,10 +6,10 @@ classdef Mesh < handle
         mean_cell_size
         problem_characterisitc_length % !! Rename?? !!
     end
-
+    
     methods
         function obj = create(obj,coordinates,connectivities)
-            obj.coord = coordinates;
+            obj.coord = coordinates(:,1:obj.ndim);
             obj.connec = connectivities;
             obj.estimate_mesh_size;
             obj.estimate_mesh_characteristic_length;
@@ -21,7 +21,7 @@ classdef Mesh < handle
     end
     
     methods (Access = private)
-        function estimate_mesh_size(obj)            
+        function estimate_mesh_size(obj)
             x1 = obj.coord(obj.connec(:,1));
             x2 = obj.coord(obj.connec(:,2));
             x3 = obj.coord(obj.connec(:,3));

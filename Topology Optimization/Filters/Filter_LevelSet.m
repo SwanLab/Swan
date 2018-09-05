@@ -5,6 +5,7 @@ classdef Filter_LevelSet < handle
         quadrature_del
         interp_del
         shape_full
+        unfitted_mesh
     end
     
     properties (Access = protected)
@@ -37,66 +38,56 @@ classdef Filter_LevelSet < handle
             obj.geometry.computeGeometry(obj.quadrature,obj.geometry.interpolation);
         end
         
-        function shape=integrateFull(obj)
-            shape=zeros(size(obj.connectivities,1),size(obj.connectivities,2));
-            for igauss=1:size(obj.geometry.interpolation.shape,2)
-                shape=shape+obj.geometry.interpolation.shape(:,igauss)'.*obj.geometry.dvolu(:,igauss);
+        function shape = integrateFull(obj)
+            shape = zeros(size(obj.connectivities,1),size(obj.connectivities,2));
+            for igauss = 1:size(obj.geometry.interpolation.shape,2)
+                shape = shape+obj.geometry.interpolation.shape(:,igauss)'.*obj.geometry.dvolu(:,igauss);
             end
         end
         
-        function shape_all=integrateCut(obj,phi_cut, global_connec, A, shape_all)
-            notcompute = phi_cut > 0;
-            isnegative = ~any(notcompute');
-            dvolu=sum(obj.geometry.dvolu,2)/obj.geometry.interpolation.dvolu;
-            v=isnegative'.*(obj.geometry.interpolation.shape'.*A.*dvolu(global_connec));
-            for idelaunay=1:size(v,2)
-                shape_all(:,idelaunay)=shape_all(:,idelaunay)+accumarray(global_connec,v(:,idelaunay),[obj.nelem,1],@sum,0);
+        function shape_cut = integrateCut(obj,containing_cell,dvolu_cut)
+            dvolu_frac = sum(obj.geometry.dvolu,2)/obj.geometry.interpolation.dvolu;
+            shape_cut = obj.geometry.interpolation.shape'.*dvolu_cut.*dvolu_frac(containing_cell);
+        end
+        
+        function pos_gp_del_natural = computePosGpDelaunayNatural(obj,subcell_coord)
+            pos_gp_del_natural = zeros(size(subcell_coord,1),size(subcell_coord,3));
+            for idime = 1:size(subcell_coord,3)
+                pos_gp_del_natural(:,idime) = subcell_coord(:,:,idime)*obj.interp_del.shape;
             end
         end
         
-        function pos_gp_del_natural=computePosGpDelaunayNatural(obj,elcrd)
-            pos_gp_del_natural=zeros(size(elcrd,1),size(elcrd,3));
-            for idime=1:size(elcrd,3)
-                pos_gp_del_natural(:,idime)=elcrd(:,:,idime)*obj.interp_del.shape;
-            end
-        end
-        
-        function shape_all=computeFullElements(obj,full_elem)
-            shape_all=zeros(size(obj.connectivities,1),size(obj.connectivities,2));
-            shape_all(full_elem,:)=obj.shape_full(full_elem,:);
-        end
-        
-        function [cut_subcells_coordinates,global_elem_index_of_each_cut_elem,phi_cut] = computeDelaunay(obj,x,cut_elem,connectivities,interpolation)
-            [P,active_nodes] = obj.findCutPoints_Iso(x,cut_elem,interpolation);
-            
-            cut_subcells_coordinates = zeros(length(cut_elem)*obj.max_subcells,obj.nnodes_subelem,obj.ndim);
-            phi_cut = zeros(length(cut_elem)*obj.max_subcells,obj.nnodes_subelem);
-            global_elem_index_of_each_cut_elem = zeros(length(cut_elem)*obj.max_subcells,1);
-            
-            k = 0; m0 = 0;
-            for icut = 1:length(cut_elem)
-                ielem = cut_elem(icut);
-                del_coord = [interpolation.pos_nodes;P(active_nodes(:,:,icut),:,icut)];
-                del_x = [x(connectivities(ielem,:));zeros(size(P(active_nodes(:,:,icut)),1),1)]';
-                DT = delaunayTriangulation(del_coord);
-                del_connec = DT.ConnectivityList;
-                new_cut_subcells_coordinates = permute(del_coord,[3 1 2]);
-                for idelaunay = 1:size(del_connec,1)
-                    k = k+1;
-                    cut_subcells_coordinates(k,:,:) = new_cut_subcells_coordinates(:,del_connec(idelaunay,:),:);
-                    phi_cut(k,:) = del_x(del_connec(idelaunay,:));
-                end
-                new_global_elem_index_of_each_cut_elem = repmat(ielem,[size(del_connec,1) 1]);
-                m1 = m0+length(new_global_elem_index_of_each_cut_elem);
-                global_elem_index_of_each_cut_elem(1+m0:m1,:)=repmat(ielem,[size(del_connec,1) 1]);
-                m0 = m1;
-            end
-            if length(cut_subcells_coordinates) > k
-                cut_subcells_coordinates(k+1:end,:,:) = [];
-                phi_cut(k+1:end,:) = [];
-                global_elem_index_of_each_cut_elem(m1+1:end) = [];
-            end
-        end
+        %         function [cut_subcells_coordinates,global_elem_index_of_each_cut_elem,phi_cut] = computeDelaunay(obj,x,cut_elem,connectivities,interpolation)
+        %             [P,active_nodes] = obj.findCutPoints_Iso(x,cut_elem,interpolation);
+        %
+        %             cut_subcells_coordinates = zeros(length(cut_elem)*obj.max_subcells,obj.nnodes_subelem,obj.ndim);
+        %             phi_cut = zeros(length(cut_elem)*obj.max_subcells,obj.nnodes_subelem);
+        %             global_elem_index_of_each_cut_elem = zeros(length(cut_elem)*obj.max_subcells,1);
+        %
+        %             k = 0; m0 = 0;
+        %             for icut = 1:length(cut_elem)
+        %                 ielem = cut_elem(icut);
+        %                 del_coord = [interpolation.pos_nodes;P(active_nodes(:,:,icut),:,icut)];
+        %                 del_x = [x(connectivities(ielem,:));zeros(size(P(active_nodes(:,:,icut)),1),1)]';
+        %                 DT = delaunayTriangulation(del_coord);
+        %                 del_connec = DT.ConnectivityList;
+        %                 new_cut_subcells_coordinates = permute(del_coord,[3 1 2]);
+        %                 for idelaunay = 1:size(del_connec,1)
+        %                     k = k+1;
+        %                     cut_subcells_coordinates(k,:,:) = new_cut_subcells_coordinates(:,del_connec(idelaunay,:),:);
+        %                     phi_cut(k,:) = del_x(del_connec(idelaunay,:));
+        %                 end
+        %                 new_global_elem_index_of_each_cut_elem = repmat(ielem,[size(del_connec,1) 1]);
+        %                 m1 = m0+length(new_global_elem_index_of_each_cut_elem);
+        %                 global_elem_index_of_each_cut_elem(1+m0:m1,:)=repmat(ielem,[size(del_connec,1) 1]);
+        %                 m0 = m1;
+        %             end
+        %             if length(cut_subcells_coordinates) > k
+        %                 cut_subcells_coordinates(k+1:end,:,:) = [];
+        %                 phi_cut(k+1:end,:) = [];
+        %                 global_elem_index_of_each_cut_elem(m1+1:end) = [];
+        %             end
+        %         end
         
         function M2=rearrangeOutputRHS(obj,shape_all)
             M2=zeros(obj.npnod,1);
@@ -106,19 +97,41 @@ classdef Filter_LevelSet < handle
             end
         end
         
-        function M2=computeRHS(obj,x)
-            [full_elem,cut_elem]=obj.findCutElements(x,obj.connectivities);
-            shape_all=obj.computeFullElements(full_elem);
-            if ~isempty(cut_elem)
-                [subcells_coord,global_connec,phi_cut]=obj.computeDelaunay(x,cut_elem,obj.connectivities,obj.geometry.interpolation);
-                dvolu_cut=obj.computeDvoluCut(subcells_coord);
-                pos_gp_del_natural=obj.computePosGpDelaunayNatural(subcells_coord);
-                obj.geometry.interpolation.computeShapeDeriv(pos_gp_del_natural');
-                shape_all=obj.integrateCut(phi_cut, global_connec, dvolu_cut, shape_all);
-            end
+        %         function M2=computeRHS_OLD(obj,x)
+        %             [full_elem,cut_elem]=obj.findCutElements(x,obj.connectivities);
+        %             shape_all=obj.computeFullElements(full_elem);
+        %             if ~isempty(cut_elem)
+        %                 [cut_subcells_coord,global_elem_index_of_each_cut_elem,phi_values]=obj.computeDelaunay(x,cut_elem,obj.connectivities,obj.geometry.interpolation);
+        %                 dvolu_cut=obj.computeDvoluCut(cut_subcells_coord);
+        %                 pos_gp_del_natural=obj.computePosGpDelaunayNatural(cut_subcells_coord);
+        %                 obj.geometry.interpolation.computeShapeDeriv(pos_gp_del_natural');
+        %                 shape_all=obj.integrateCut(phi_values, global_elem_index_of_each_cut_elem, dvolu_cut, shape_all);
+        %             end
+        %             M2=obj.rearrangeOutputRHS(shape_all);
+        %         end
+        
+        function M2 = computeRHS(obj,x)
+            obj.setupUnfittedMesh(x);
+            obj.unfitted_mesh.computeDvoluCut;
+            
+            pos_gp_del_natural = obj.computePosGpDelaunayNatural(obj.unfitted_mesh.unfitted_cut_coord_iso_per_cell);
+            obj.geometry.interpolation.computeShapeDeriv(pos_gp_del_natural');
+            
+            shape_cut = obj.integrateCut(obj.unfitted_mesh.subcell_containing_cell,obj.unfitted_mesh.dvolu_cut);
+            shape_all = obj.assembleShapeValues(shape_cut);
+            
             M2=obj.rearrangeOutputRHS(shape_all);
         end
         
+        function shape_all = assembleShapeValues(obj,shape_cut)
+            shape_all = zeros(size(obj.connectivities,1),size(obj.connectivities,2));
+            shape_all(obj.unfitted_mesh.full_cells,:) = obj.shape_full(obj.unfitted_mesh.full_cells,:);
+            
+            for idelaunay=1:size(shape_cut,2)
+                shape_all(:,idelaunay)=shape_all(:,idelaunay)+accumarray(obj.unfitted_mesh.subcell_containing_cell,shape_cut(:,idelaunay),[obj.nelem,1],@sum,0);
+            end
+        end
+
         % !!!!!!!!!!!!!!!!!! REMOVED M2=computeRHS_facet !!!!!!!!!!!!!!!!!!
         
         function S = computeFacetSurface(obj,x)
@@ -144,15 +157,15 @@ classdef Filter_LevelSet < handle
         end
     end
     
-    methods (Abstract)
-        getQuadratureDel(obj)
-        getMeshDel(obj)
-        getInterpolationDel(obj,mesh_del)
-        computeRHS_facet(obj,x,F)
-        findCutPoints_Iso(obj,x,cut_elem,interpolation)
-        %         findCutPoints_Global(obj,x,cut_elem)
-        %         createFacet(obj)
-        computeDvoluCut(elcrd)
-        %         mapping(elem_cutPoints_global,facets_connectivities,facet_deriv,dvolu)
-    end
+%     methods (Abstract)
+%         getQuadratureDel(obj)
+%         getMeshDel(obj)
+%         getInterpolationDel(obj,mesh_del)
+%         computeRHS_facet(obj,x,F)
+%         findCutPoints_Iso(obj,x,cut_elem,interpolation)
+%         %         findCutPoints_Global(obj,x,cut_elem)
+%         %         createFacet(obj)
+%         computeDvoluCut(elcrd)
+%         %         mapping(elem_cutPoints_global,facets_connectivities,facet_deriv,dvolu)
+%     end
 end

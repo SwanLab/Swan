@@ -23,6 +23,11 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
             obj.interp_del=Tetrahedra_Linear(mesh_del);
         end
         
+        function setupUnfittedMesh(obj,x)
+            obj.unfitted_mesh = Mesh_Unfitted_3D(obj.diffReacProb.mesh.duplicate,x,obj.diffReacProb.geometry.interpolation);
+            obj.unfitted_mesh.computeCutMesh;
+        end
+        
         function M2 = computeRHS_facet(obj,x,F)
             [interp_facet,quadrature_facet] = obj.createFacet;
             interp_element = Interpolation.create(obj.diffReacProb.mesh,obj.quadrature.order);
@@ -277,7 +282,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
                 for idime = 1:size(coordinates_local,2)
                     match = match & coordinates_global(:,idime) == coordinates_local(inode,idime);
                 end
-                indexes_in_global_matrix(inode) = find(match);
+                indexes_in_global_matrix(inode) = find(match,1);
             end
         end
         
