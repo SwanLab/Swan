@@ -107,7 +107,7 @@ classdef Element_Elastic < Element
             K = Ke;
         end
         function K = computeStiffnessMatrixSYM(obj)
-             K_generator = StifnessMatrxiGenerator(obj);
+             K_generator = StiffnessMatrixGenerator(obj);
              K = K_generator.generate();
         end
     end
@@ -115,10 +115,7 @@ classdef Element_Elastic < Element
     
    
     
-    methods(Access = protected) % Only the child sees the function
-        
-  
-                
+    methods(Access = protected) 
         function FextSuperficial = computeSuperficialFext(obj)
             FextSuperficial = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);
         end

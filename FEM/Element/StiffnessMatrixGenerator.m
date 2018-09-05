@@ -1,10 +1,4 @@
-classdef StifnessMatrxiGenerator < handle
-    %UNTITLED2 Summary of this class goes here
-    %   Detailed explanation goes here
-    
-    properties
-
-    end
+classdef StiffnessMatrixGenerator < handle
     
     properties (Access = private)
         nnode
@@ -19,7 +13,7 @@ classdef StifnessMatrxiGenerator < handle
         material
         elem_obj
         row_index
-        column_index 
+        column_index
         Cmat
         Bmat
         CtimesB
@@ -32,7 +26,7 @@ classdef StifnessMatrxiGenerator < handle
     
     methods
         
-        function obj= StifnessMatrxiGenerator(elem_obj)
+        function obj= StiffnessMatrixGenerator(elem_obj)
             obj.nnode = elem_obj.nnode;
             obj.nunkn = elem_obj.dof.nunkn;
             obj.nstre = elem_obj.nstre;
@@ -56,10 +50,10 @@ classdef StifnessMatrxiGenerator < handle
             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
             % Stiffness matrix
             StifMat = sparse(obj.number_of_global_dofs,obj.number_of_global_dofs);
-            obj.inodes=reshape(repmat(1:obj.nnode,obj.nunkn,1),1,[]); 
+            obj.inodes=reshape(repmat(1:obj.nnode,obj.nunkn,1),1,[]);
             obj.icomps=repmat(1:obj.nunkn,1,obj.nnode);
-                
-                
+            
+            
             % Elastic matrix
             obj.Cmat = obj.material.C;
             for igaus=1:obj.quadrature.ngaus
@@ -68,20 +62,20 @@ classdef StifnessMatrxiGenerator < handle
                 obj.compute_CtimesBmatrix();
                 obj.initialize_row_and_column_index_to_zero();
                 
-                obj.computeNonDiagonalEntries(igaus);            
+                obj.computeNonDiagonalEntries(igaus);
                 obj.computeDiagonalEntries(igaus);
                 
                 StifMat_of_iguass = obj.compute_assembled_matrix();
                 StifMat = StifMat + StifMat_of_iguass;
             end
-            K = 1/2 * (StifMat + StifMat');           
+            K = 1/2 * (StifMat + StifMat');
             
         end
     end
     
     methods (Access = private)
         
-            function compute_CtimesBmatrix(obj)
+        function compute_CtimesBmatrix(obj)
             CB =zeros(obj.nstre,obj.number_of_elemental_dofs,obj.nelem);
             for i=1:obj.nstre
                 CB(i,:,:) = sum(repmat(permute(obj.Cmat(i,:,:),[2,1,3]),1,obj.number_of_elemental_dofs,1) .* obj.Bmat,1);
@@ -99,39 +93,39 @@ classdef StifnessMatrxiGenerator < handle
         end
         
         function  computeDiagonalEntries(obj,igaus)
-                for idof=1:obj.number_of_elemental_dofs
-                    it = obj.compute_global_dofs(idof);
-                    
-                    k_ij=squeeze(sum(obj.Bmat(:,idof,:) .* obj.CtimesB(:,idof,:),1));
-                    
-                    index3 = obj.compute_index3(it);
-                    
-                    obj.row_index(index3,1) =  it ;
-                    obj.column_index(index3,1) =  it ;
-                    obj.Ke(index3,1) =  obj.geometry.dvolu(:,igaus).*k_ij ;
-                    obj.someindex = obj.someindex + length(it) ;
-                end
+            for idof=1:obj.number_of_elemental_dofs
+                it = obj.compute_global_dofs(idof);
+                
+                k_ij=squeeze(sum(obj.Bmat(:,idof,:) .* obj.CtimesB(:,idof,:),1));
+                
+                index3 = obj.compute_index3(it);
+                
+                obj.row_index(index3,1) =  it ;
+                obj.column_index(index3,1) =  it ;
+                obj.Ke(index3,1) =  obj.geometry.dvolu(:,igaus).*k_ij ;
+                obj.someindex = obj.someindex + length(it) ;
+            end
         end
         
         
         function computeNonDiagonalEntries(obj,igaus)
-            obj.someindex=1;   
+            obj.someindex=1;
             obj.Ke = zeros(obj.number_of_elemental_dofs*obj.number_of_elemental_dofs*obj.nelem,1);
             for idof=1:obj.number_of_elemental_dofs
-                    it= obj.compute_global_dofs(idof);
-                    for jdof=1:idof-1
-                        jt = obj.compute_global_dofs(jdof);
-                        
-                        k_ij=squeeze(sum(obj.Bmat(:,idof,:) .* obj.CtimesB(:,jdof,:),1));
-                        
-                        index2 = obj.compute_index2(it);
-                        
-                        obj.row_index(index2,1) = [ it ; jt];
-                        obj.column_index(index2,1) = [ jt ; it];
-                        obj.Ke(index2,1) = [obj.geometry.dvolu(:,igaus).*k_ij ; obj.geometry.dvolu(:,igaus).*k_ij ];
-                        obj.someindex = obj.someindex + 2*length(it);
-                    end
-            end    
+                it= obj.compute_global_dofs(idof);
+                for jdof=1:idof-1
+                    jt = obj.compute_global_dofs(jdof);
+                    
+                    k_ij=squeeze(sum(obj.Bmat(:,idof,:) .* obj.CtimesB(:,jdof,:),1));
+                    
+                    index2 = obj.compute_index2(it);
+                    
+                    obj.row_index(index2,1) = [ it ; jt];
+                    obj.column_index(index2,1) = [ jt ; it];
+                    obj.Ke(index2,1) = [obj.geometry.dvolu(:,igaus).*k_ij ; obj.geometry.dvolu(:,igaus).*k_ij ];
+                    obj.someindex = obj.someindex + 2*length(it);
+                end
+            end
         end
         
         
@@ -142,9 +136,9 @@ classdef StifnessMatrxiGenerator < handle
         function index2 = compute_index2(obj,it)
             index2 = obj.someindex:obj.someindex+2*length(it)-1;
         end
-
+        
         function index3 = compute_index3(obj,it)
-             index3 = obj.someindex:obj.someindex+length(it)-1;
+            index3 = obj.someindex:obj.someindex+length(it)-1;
         end
         
         function Assembled_matrix = compute_assembled_matrix(obj)
