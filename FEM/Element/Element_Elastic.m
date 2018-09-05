@@ -108,12 +108,10 @@ classdef Element_Elastic < Element
         end
         function K = computeStiffnessMatrixSYM(obj)
              K_generator = StiffnessMatrixGenerator(obj);
-             K = K_generator.generate();
+             K_generator.generate();
+             K = K_generator.getStiffMatrix();
         end
     end
-    
-    
-   
     
     methods(Access = protected) 
         function FextSuperficial = computeSuperficialFext(obj)
