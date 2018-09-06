@@ -5,7 +5,7 @@ materialType = 'ISOTROPIC';
 initial_case = 'circle';
 cost={'chomog_CC';'perimeter'};
 weights=[1 0.1];
-constraint = {'volume_constraint','enforceCh_CCstar_inf'}; %inf
+constraint = {'volumeConstraint','enforceCh_CCstar_inf'}; %inf
 optimizer = 'MMA'; kappaMultiplier = 1;
 filterType = 'P1';
 

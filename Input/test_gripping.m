@@ -5,7 +5,7 @@ materialType = 'ISOTROPIC';
 initial_case = 'full';
 cost = {'nonadjoint_compliance'};
 weights = [1];
-constraint = {'volume_constraint'}; kappaMultiplier = [];
+constraint = {'volumeConstraint'}; kappaMultiplier = [];
 optimizer = 'SLERP';
 filterType = 'P1';
 constraint_case = 'INEQUALITY';

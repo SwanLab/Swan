@@ -5,7 +5,7 @@ materialType = 'ISOTROPIC';
 initial_case = 'holes';
 cost = {'compliance';'perimeter'};
 weights = [1 0.1];
-constraint = {'volume_constraint'};
+constraint = {'volumeConstraint'};
 optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 constraints_case = 'INEQUALITY';
