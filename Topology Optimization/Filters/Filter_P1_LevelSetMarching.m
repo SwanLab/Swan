@@ -172,7 +172,7 @@ classdef Filter_P1_LevelSetMarching < Filter_P1
             shape_all=zeros(size(obj.connectivities,1),size(obj.connectivities,2));
             shape_all(full_elem,:)=obj.shape_full(full_elem,:);
         end
-        function   [cases_connec,main_cases,cases_extra]=findCases(obj,x,cut_elem)
+        function   [cases_connec]=findCases(obj,x,cut_elem)
             num=repmat([1:obj.geometry.interpolation.nnode],[size(cut_elem) 1]);
             cutcases=x(obj.connectivities(cut_elem,:))<0;
             negative_nodes_id=num.*cutcases;
@@ -180,10 +180,10 @@ classdef Filter_P1_LevelSetMarching < Filter_P1
             sum_negative_nodes=sum(cutcases,2);
             switch obj.geometry.type
                 case 'HEXAHEDRA'
-                    num2=repmat([1 2 4 7 11 16 23 30],[size(cut_elem) 1]);
+                    num2=repmat([1 2 4 16 32 64 128 256],[size(cut_elem) 1]);
                     negative_nodes_hex=num2.*cutcases;
                     sum_negative_nodes_hex=sum(negative_nodes_hex,2);
-                    ind_cases=sub2ind(size(obj.geometry.interpolation.selectcases),sum_negative_nodes_id,sum_negative_nodes_hex,sum_negative_nodes);
+                    ind_cases=sub2ind(size(obj.geometry.interpolation.selectcases),sum_negative_nodes_id,sum_negative_nodes_hex);
                     cases_list=obj.geometry.interpolation.selectcases(ind_cases);
                 otherwise
                     ind_cases=sub2ind(size(obj.geometry.interpolation.selectcases),sum_negative_nodes_id,sum_negative_nodes);
@@ -191,12 +191,6 @@ classdef Filter_P1_LevelSetMarching < Filter_P1
             end
             cases_connec=obj.geometry.interpolation.cases(:,:,cases_list);
             
-            cases_extra=zeros(length(cases_list),1);
-            for iextra=1:length(obj.geometry.interpolation.extra_cases)
-                v = cases_list == obj.geometry.interpolation.extra_cases(iextra);
-                cases_extra = cases_extra + v;
-            end
-            main_cases=~cases_extra;
         end
         function [sub_elem_coord,phi_cut]=findSubElemCoord(obj,x,cut_elem,cases_connec,cut_to_elem_connec,cut_points,loop,is_main_case)
             x_elem=[x(obj.connectivities(cut_elem,:)),zeros(length(cut_elem),size(cut_to_elem_connec,2)-obj.geometry.interpolation.nnode)];
@@ -209,11 +203,17 @@ classdef Filter_P1_LevelSetMarching < Filter_P1
                 for j=1:loop(2)
                     
                     connectivities=squeeze(cases_connec(i,j,is_main_case));
+                    if ~any(connectivities)
+                        break
+                    end
                     ind=sub2ind(size(cut_to_elem_connec),elem_list(is_main_case),connectivities');
                     phi_local=[phi_local,x_elem(ind)'];
                     for idime=1:obj.geometry.interpolation.ndime
                         coord_local{idime}=[coord_local{idime}(:,:),cut_points(cut_to_elem_connec(ind),idime)];
                     end
+                end
+                if ~any(connectivities)
+                        break
                 end
                 for idime=1:obj.geometry.interpolation.ndime
                     sub_elem_coord{idime}=[sub_elem_coord{idime}(:,:);coord_local{idime}(:,:)];
@@ -221,34 +221,77 @@ classdef Filter_P1_LevelSetMarching < Filter_P1
                 phi_cut=[phi_cut;phi_local];
             end
         end
-        function [elecoord,global_connec,phi_cut]=MarchingCubes(obj,x,cut_elem)
-            [cut_points,cut_to_elem_connec]=obj.findCutPointsMarching(x,cut_elem);
-            
-            [cases_connec,main_cases,cases_extra]=obj.findCases(x,cut_elem);
-            
-            
-            
-            [elecoord_main,phi_cut_main]=obj.findSubElemCoord(x,cut_elem,cases_connec,cut_to_elem_connec,cut_points,...
-                obj.geometry.interpolation.main_loop,main_cases);
-            global_connec=repmat(cut_elem(main_cases),[obj.geometry.interpolation.main_loop(1) 1]);
-            
-            if any(cases_extra)
-                cases_extra=logical(cases_extra);
-                [elecoord_extra,phi_cut_extra]=obj.findSubElemCoord(x,cut_elem,cases_connec,cut_to_elem_connec,cut_points,...
-                    size(obj.geometry.interpolation.cases(:,:,1)),cases_extra);
-                global_connec=[global_connec;repmat(cut_elem(cases_extra),size(obj.geometry.interpolation.cases(:,:,1),1),1)];
-                
-                phi_cut=[phi_cut_main;phi_cut_extra];
-                for idime=1:obj.geometry.interpolation.ndime
-                    elecoord(:,:,idime)=[elecoord_main{idime}(:,:);elecoord_extra{idime}(:,:)];
+        function [sub_elem_coord,phi_cut,global_connec]=findSubElemCoord2(obj,x,cut_elem,cases_connec,cut_to_elem_connec,cut_points)
+            x_elem=[x(obj.connectivities(cut_elem,:)),zeros(length(cut_elem),size(cut_to_elem_connec,2)-obj.geometry.interpolation.nnode)];
+            elem_list=1:length(cut_elem);
+            phi_cut=[];global_connec=[];
+            sub_elem_coord=cell(obj.geometry.interpolation.ndime,1);
+            for i=1:size(cases_connec(:,:,1),1)
+                coord_local=cell(obj.geometry.interpolation.ndime,1);
+                phi_local=[];
+                for j=1:size(cases_connec(:,:,1),2)                    
+                    connectivities=squeeze(cases_connec(i,j,:));
+                    is_main_case = connectivities~=0;
+                    if any(connectivities)
+                        ind=sub2ind(size(cut_to_elem_connec),elem_list(is_main_case),connectivities(is_main_case)');
+                        phi_local=[phi_local,x_elem(ind)'];
+                        for idime=1:obj.geometry.interpolation.ndime
+                            coord_local{idime}=[coord_local{idime}(:,:),cut_points(cut_to_elem_connec(ind),idime)];
+                        end
+                    end
                 end
-            else
-                phi_cut=phi_cut_main;
                 for idime=1:obj.geometry.interpolation.ndime
-                    elecoord(:,:,idime)=elecoord_main{idime}(:,:);
+                    sub_elem_coord{idime}=[sub_elem_coord{idime}(:,:);coord_local{idime}(:,:)];
                 end
+                phi_cut=[phi_cut;phi_local];
+                global_connec=[global_connec;cut_elem(is_main_case)];
             end
-            
+        end
+        function [elecoord,global_connec,phi_cut]=MarchingCubes(obj,x,cut_elem)
+            switch obj.geometry.type
+                case 'HEXAHEDRA'                   
+                    
+                    T_hexa_tetra=[1 2 3 5;
+                        1 3 4 5;
+                        2 6 3 5;    
+                        5 6 7 3;
+                        5 7 8 3;
+                        5 4 3 8];
+                    a=x(obj.connectivities(cut_elem,:));
+                    x_tetra=[];
+                    cut_tetra=[];
+                    tetra_num=[];
+                    for i=1:size(T_hexa_tetra,1)
+                        x_tetra=[x_tetra;a(:,T_hexa_tetra(i,:))];
+                        cut_tetra=[cut_tetra;cut_elem];
+                        tetra_num=[tetra_num;repmat(i,[length(cut_elem) 1])];
+                    end
+                    null_elem= sum(x_tetra<0,2) == 0;
+                    x_tetra(null_elem,:)=[];
+                    cut_tetra(null_elem)=[];
+                    tetra_num(null_elem)=[];
+                    
+                    [cut_points,cut_to_elem_connec]=obj.findCutPointsMarching(x,cut_elem);
+                    
+                    
+                    cases_connec=obj.findCases(x,cut_elem);
+                    
+                    [elecoord_main,phi_cut,global_connec]=obj.findSubElemCoord2(x,cut_elem,cases_connec,cut_to_elem_connec,cut_points);
+                    
+                    for idime=1:obj.geometry.interpolation.ndime
+                        elecoord(:,:,idime)=elecoord_main{idime}(:,:);
+                    end
+                otherwise
+                    [cut_points,cut_to_elem_connec]=obj.findCutPointsMarching(x,cut_elem);
+                    
+                    cases_connec=obj.findCases(x,cut_elem);
+                    
+                    [elecoord_main,phi_cut,global_connec]=obj.findSubElemCoord2(x,cut_elem,cases_connec,cut_to_elem_connec,cut_points);
+                    
+                    for idime=1:obj.geometry.interpolation.ndime
+                        elecoord(:,:,idime)=elecoord_main{idime}(:,:);
+                    end
+            end
         end
         function [elecoord,global_connec,phi_cut]=computeDelaunay(obj,x,cut_elem)
             [P,active_nodes]=obj.findCutPoints(x,cut_elem);
@@ -275,30 +318,26 @@ classdef Filter_P1_LevelSetMarching < Filter_P1
         function M2=computeRHS(obj,x)
             [full_elem,cut_elem]=obj.findCutElements(x);
             shape_all=obj.computeFullElements(full_elem);
-           % shape_all2=shape_all;
+            %shape_all2=shape_all;
             if ~isempty(cut_elem) && length(cut_elem)>1
-              % tic
+                %tic
                 [delaunaycoord,global_connec,phi_cut]=obj.MarchingCubes(x,cut_elem);
-%                 time1=toc;
-%                tic
-   %             [delaunaycoord2,global_connec2,phi_cut2]=obj.computeDelaunay(x,cut_elem);
-%               time2=toc;
-%                fprintf('Marching is %f times faster than delaunay, solved in %f seconds \n',time2/time1,time1);
+                %time1=toc;
+                %tic
+                %[delaunaycoord2,global_connec2,phi_cut2]=obj.computeDelaunay(x,cut_elem);
+                %time2=toc;
+                %fprintf('Marching is %f times faster than delaunay, solved in %f seconds \n',time2/time1,time1);
                 dvolu_cut=obj.computeDvoluCut(delaunaycoord);
                 pos_gp_del_natural=obj.computePosGpDelaunayNatural(delaunaycoord);
                 shape_all=obj.integrateCut(phi_cut, global_connec, dvolu_cut, shape_all,pos_gp_del_natural);
-% %                 for i=1:length(cut_elem)
-% %                 ind=find(global_connec==cut_elem(i));
-% %                 a(i)=sum(dvolu_cut(ind))-obj.geometry.interpolation.dvolu;
-% %                 end
-%                dvolu_cut2=obj.computeDvoluCut(delaunaycoord2);
-%               pos_gp_del_natural2=obj.computePosGpDelaunayNatural(delaunaycoord2);
-%               shape_all2=obj.integrateCut(phi_cut2, global_connec2, dvolu_cut2, shape_all2,pos_gp_del_natural2);
+                %dvolu_cut2=obj.computeDvoluCut(delaunaycoord2);
+                %pos_gp_del_natural2=obj.computePosGpDelaunayNatural(delaunaycoord2);
+                %shape_all2=obj.integrateCut(phi_cut2, global_connec2, dvolu_cut2, shape_all2,pos_gp_del_natural2);
             end
-             M2=obj.rearrangeOutputRHS(shape_all);
-%           M22=obj.rearrangeOutputRHS(shape_all2);
-%            error=abs(norm(M2)-norm(M22))/norm(M2);
-%           fprintf('Error Marching vs Delaunay = %f \n',error);
+            M2=obj.rearrangeOutputRHS(shape_all);
+            %M22=obj.rearrangeOutputRHS(shape_all2);
+            %error=abs(norm(M2)-norm(M22))/norm(M2);
+            %fprintf('Error Marching vs Delaunay = %f \n',error);
         end
     end
 end

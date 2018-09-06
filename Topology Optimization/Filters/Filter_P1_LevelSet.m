@@ -38,7 +38,7 @@ classdef Filter_P1_LevelSet < Filter_P1
                 x_gp=obj.x_reg;
             else
                 switch obj.geometry.type
-                    case 'TRIANGLE'
+                    case 'TRIANGLEd'
                         M2=obj.faireF2(obj.coordinates',obj.connectivities',x);
                     otherwise
                         M2=obj.computeRHS(x);
