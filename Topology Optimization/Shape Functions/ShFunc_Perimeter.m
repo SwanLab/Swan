@@ -1,74 +1,72 @@
 classdef ShFunc_Perimeter < Shape_Functional
-    properties
+    
+    properties (Access = protected)
         epsilon
-        Perimeter_target
-        Msmooth
+        designVariable
+        regularizedDensity
+        regularizedDensityProjection
     end
     
     methods
         function obj = ShFunc_Perimeter(settings)
-            if ~strcmp(settings.filter,'PDE')
-                settings.filter = 'PDE';
-                disp('Perimeter filter changed to PDE')
-            end
+            settings.filter = 'PDE';
             obj@Shape_Functional(settings);
-            obj.Perimeter_target = settings.Perimeter_target;
-            obj.target_parameters=settings.target_parameters;  
-            diffReacProb = DiffReact_Problem(settings.filename);
-            diffReacProb.preProcess;
-            obj.Msmooth = diffReacProb.element.M;
+            obj.target_parameters=settings.target_parameters;
         end
         
-        function epsilon=get.epsilon(obj)
-            %epsilon=obj.target_parameters.epsilon_perimeter;
-            epsilon = obj.epsilon;
+        function computeCostAndGradient(obj,designVariable)
+            obj.updateProtectedVariables(designVariable)
+            obj.computeRegularizedDensity()
+            obj.computeRegularizedDensityProjection()
+            obj.computePerimeterValue()
+            obj.computePerimeterGradient()
+        end
+                
+    end
+    
+    methods (Access = protected)
+        
+        function updateProtectedVariables(obj,designVariable)
+            obj.updateDesignVariable(designVariable)
+            obj.updateEpsilonValue()
+            obj.updateEpsilonInFilter()
         end
         
-        function computef(obj,x)
-%             obj.checkFilterPre(obj.filter);
+        function updateDesignVariable(obj,designVariable)
+            obj.designVariable = designVariable;
+        end
+       
+        function updateEpsilonValue(obj)
             obj.epsilon=obj.target_parameters.epsilon_perimeter;
-            obj.filter.updateEpsilon(obj.epsilon);
-            x_reg = obj.filter.getP1fromP1(x);
-            rhs = obj.filter.integrate_L2_function_with_shape_function(x);
-            Perimeter = 0.5/obj.epsilon*((1 - x_reg)'*rhs);
-            Perimeter_gradient = 0.5/obj.epsilon*(1 - 2*x_reg);
-            
-            constraint = Perimeter;%/obj.Perimeter_target - 1;
-            constraint_gradient = Perimeter_gradient;%/obj.Perimeter_target;
-            constraint_gradient = obj.Msmooth*constraint_gradient;
-            
-            obj.value = constraint;
-            obj.gradient = constraint_gradient;
         end
-        %% !! DEBUGGING FUNCTION !! REMOVE WHEN DONE
-        function checkFilterPre(obj, physicalProblem)
-            if isempty(obj.Msmooth)
-                dof_phy = physicalProblem.dof;
-                nukn = 1;
-                dof_filter = DOF(physicalProblem.problemID,physicalProblem.geometry.nnode,physicalProblem.mesh.connec,nukn,physicalProblem.mesh.npnod,physicalProblem.mesh.scale);
-                physicalProblem.dof = dof_filter;
-                switch physicalProblem.mesh.scale
-                    case 'MACRO'
-                        dof_filter.dirichlet = physicalProblem.dof.full_dirichlet;
-                        dof_filter.dirichlet_values = physicalProblem.dof.full_dirichlet_values;
-                        dof_filter.neumann = [];
-                        dof_filter.neumann_values  = [];
-                        dof_filter.constrained = physicalProblem.dof.compute_constrained_dof(physicalProblem.mesh.scale);
-                        dof_filter.free = physicalProblem.dof.compute_free_dof();
-                    case 'MICRO'
-                        dof_filter.dirichlet = [];
-                        dof_filter.dirichlet_values = [];
-                        dof_filter.neumann = [];
-                        dof_filter.neumann_values  = [];
-                        dof_filter.constrained = physicalProblem.dof.compute_constrained_dof(physicalProblem.mesh.scale);
-                        dof_filter.free = physicalProblem.dof.compute_free_dof();
-                        
-                        % Filter dofs coincides with physical_problem dofs
-                end
-                physicalProblem.setDof(dof_filter)
-                obj.filter.preProcess(physicalProblem);
-                physicalProblem.setDof(dof_phy)
-            end
+        
+        function updateEpsilonInFilter(obj)
+            obj.filter.updateEpsilon(obj.epsilon);
+        end
+        
+        function computeRegularizedDensity(obj)
+            obj.regularizedDensity = obj.filter.getP1fromP1(obj.designVariable);
+        end
+        
+        function computeRegularizedDensityProjection(obj)
+            obj.regularizedDensityProjection = obj.filter.integrate_L2_function_with_shape_function(obj.designVariable);
+        end
+        
+        function computePerimeterValue(obj)
+            obj.value = 0.5/obj.epsilon*((1 - obj.regularizedDensity)'*obj.regularizedDensityProjection);
+        end
+        
+        function computePerimeterGradient(obj)
+            obj.computeContinousGradient();
+            obj.computeDiscreteGradient();
+        end
+        
+        function computeContinousGradient(obj)
+            obj.gradient = 0.5/obj.epsilon*(1 - 2*obj.regularizedDensity);
+        end
+        
+        function computeDiscreteGradient(obj)
+            obj.gradient = obj.Msmooth*obj.gradient;
         end
         
     end

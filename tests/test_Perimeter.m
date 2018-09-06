@@ -18,7 +18,7 @@ Monitoring.plotX(x);
 Perimeter = ShFunc_Perimeter(settings);
 Perimeter.filter.preProcess();
 Perimeter.filter.diffReacProb.preProcess();
-Perimeter.computef(x);
+Perimeter.computeCostAndGradient(x);
 NumericalPerimeter = Perimeter.value ;
 AnalyticalCirclePerimeter = 2*pi*design_variable_initializer.radius;
 

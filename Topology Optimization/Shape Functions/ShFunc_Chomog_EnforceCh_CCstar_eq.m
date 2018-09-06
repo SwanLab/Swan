@@ -10,7 +10,7 @@ classdef ShFunc_Chomog_EnforceCh_CCstar_eq < ShFunc_Chomog_EnforceCh
             obj.component = n;
         end
         
-        function computef(obj,x)
+        function computeCostAndGradient(obj,x)
             obj.computePhysicalData(x);
             obj.computeCCstar(x);  
             

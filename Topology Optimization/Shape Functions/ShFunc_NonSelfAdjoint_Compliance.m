@@ -16,13 +16,13 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunc_Compliance
             
             obj.adjointProb.preProcess;
         end
-        function computef(obj,x)
+        function computeCostAndGradient(obj,x)
             obj.rho = obj.filter.getP0fromP1(x);
             obj.matProps = obj.interpolation.computeMatProp(obj.rho);
             obj.adjointProb.setMatProps(obj.matProps);
             obj.adjointProb.computeVariables;
             
-            computef_CORE(obj);
+            computeCostAndGradient_CORE(obj);
         end
         
         function compliance = computeCompliance(obj)

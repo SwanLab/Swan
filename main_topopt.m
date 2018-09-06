@@ -9,7 +9,7 @@ clear variables;
 
 %% Main
 filenames={
-    'CantileverTriangleFine_Case_1_1_1'
+   % 'CantileverTriangleFine_Case_1_1_1'
     %'GrippingTriangleCoarse_Case_1_1_1';
     %     'GrippingTriangleCoarse_Case_2_1_1';
     %     'GrippingTriangleCoarse_Case_3_1_1';
@@ -74,7 +74,9 @@ filenames={
 % 'CantileverTetrahedra_Case_5_1_2'
 % 'test_cantilever3'
 % 'BridgeQuadrilateral_Case_5_2_1'
-    };
+    %'test_cantilever3'
+    'CantileverTriangle_Case_1_2_2'};
+
 for icases=1:size(filenames,1)
     clearvars -except filenames icases;
     close all;

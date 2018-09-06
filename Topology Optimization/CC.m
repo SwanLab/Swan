@@ -66,12 +66,12 @@ classdef CC < handle
             end
         end
         
-        function computef(obj, x)
+        function computeCostAndGradient(obj, x)
             obj.value = 0;
             obj.gradient = zeros(length(x),1);
             for iSF = 1:length(obj.ShapeFuncs)
                 obj.updateTargetParameters(iSF);
-                obj.ShapeFuncs{iSF}.computef(x);
+                obj.ShapeFuncs{iSF}.computeCostAndGradient(x);
                 obj.updateFields(iSF);
             end
         end

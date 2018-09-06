@@ -46,8 +46,8 @@ classdef Optimizer_MMA < Optimizer_Constrained
             %%%% The user should now calculate function values and gradients
             %%%% of the objective- and constraint functions at xval.
             %%%% The results should be put in f0val, df0dx, fval and dfdx.
-            cost.computef(x);
-            constraint.computef(x);
+            cost.computeCostAndGradient(x);
+            constraint.computeCostAndGradient(x);
             
             [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma(obj.constraint_case,cost,constraint);
             %%%% The residual vector of the KKT conditions is calculated:
