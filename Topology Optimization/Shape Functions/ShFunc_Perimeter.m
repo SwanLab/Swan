@@ -20,11 +20,13 @@ classdef ShFunc_Perimeter < Shape_Functional
         end
         
         function epsilon=get.epsilon(obj)
-            epsilon=obj.target_parameters.epsilon_perimeter;
+            %epsilon=obj.target_parameters.epsilon_perimeter;
+            epsilon = obj.epsilon;
         end
         
         function computef(obj,x)
 %             obj.checkFilterPre(obj.filter);
+            obj.epsilon=obj.target_parameters.epsilon_perimeter;
             obj.filter.updateEpsilon(obj.epsilon);
             x_reg = obj.filter.getP1fromP1(x);
             rhs = obj.filter.integrate_L2_function_with_shape_function(x);
