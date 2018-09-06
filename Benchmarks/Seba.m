@@ -5,7 +5,7 @@ materialType = 'ISOTROPIC';
 initial_case = 'circle';
 cost={'enforceCh_CCstar_L2','perimeter'};%enforceCh_CCstar_L2
 weights=[1 0.05];
-constraint = {'volume'};
+constraint = {'volume_constraint'};
 optimizer = 'MMA'; kappaMultiplier = 1;
 filterType = 'P1';
 

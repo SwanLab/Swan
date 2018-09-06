@@ -3,9 +3,9 @@ ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'circle';
-cost={'chomog_alphabeta','perimeter'};
+cost={'chomog_alphabeta','perimeter_constraint'};
 weights=[1 0.1];
-constraint = {'volume'};
+constraint = {'volume_constraint'};
 optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 

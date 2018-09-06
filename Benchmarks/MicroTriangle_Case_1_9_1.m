@@ -5,7 +5,7 @@ materialType = 'ISOTROPIC';
 initial_case = 'circle';
 cost={'enforceCh_CCstar_L2'};%enforceCh_CCstar_L2
 weights=[1];
-constraint = {'volume'};
+constraint = {'volume_constraint'};
 optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 

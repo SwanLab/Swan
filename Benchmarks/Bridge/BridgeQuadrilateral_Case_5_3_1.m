@@ -5,7 +5,7 @@ materialType = 'ISOTROPIC';
 initial_case = 'holes';
 cost = {'compliance'};
 weights = [1];
-constraint = {'volume','perimeter'};
+constraint = {'volume_constraint','perimeter_constraint'};
 optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
 filterType = 'P1';
 

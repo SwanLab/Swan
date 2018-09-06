@@ -19,7 +19,7 @@ Perimeter = ShFunc_Perimeter(settings);
 Perimeter.filter.preProcess();
 Perimeter.filter.diffReacProb.preProcess();
 Perimeter.computef(x);
-NumericalPerimeter = Perimeter.value + 1;
+NumericalPerimeter = Perimeter.value ;
 AnalyticalCirclePerimeter = 2*pi*design_variable_initializer.radius;
 
 TestPassed = ((NumericalPerimeter - 0.3270) < 1e-4) & ((AnalyticalCirclePerimeter - 1.2566) < 1e-4);

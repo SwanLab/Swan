@@ -33,8 +33,8 @@ classdef ShFunc_Perimeter < Shape_Functional
             Perimeter = 0.5/obj.epsilon*((1 - x_reg)'*rhs);
             Perimeter_gradient = 0.5/obj.epsilon*(1 - 2*x_reg);
             
-            constraint = Perimeter/obj.Perimeter_target - 1;
-            constraint_gradient = Perimeter_gradient/obj.Perimeter_target;
+            constraint = Perimeter;%/obj.Perimeter_target - 1;
+            constraint_gradient = Perimeter_gradient;%/obj.Perimeter_target;
             constraint_gradient = obj.Msmooth*constraint_gradient;
             
             obj.value = constraint;

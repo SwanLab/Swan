@@ -5,7 +5,7 @@ materialType = 'ISOTROPIC';
 initial_case = 'sphere';
 cost = {'compliance'};
 weights = [1];
-constraint = {'volume'};
+constraint = {'volume_constraint'};
 optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
 filterType = 'P1';
 constraint_case = 'INEQUALITY';

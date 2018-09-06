@@ -23,6 +23,8 @@ classdef CC < handle
                         obj.ShapeFuncs{iSF} = ShFunc_Compliance(settings_this,postprocess_TopOpt);
                     case 'perimeter'
                         obj.ShapeFuncs{iSF} = ShFunc_Perimeter(settings_this);
+                    case 'perimeter_constraint'
+                        obj.ShapeFuncs{iSF} = Perimeter_constraint(settings_this);
                     case 'chomog_alphabeta'
                         obj.ShapeFuncs{iSF} = ShFunc_Chomog_alphabeta(settings_this);
                     case 'chomog_fraction'
@@ -49,6 +51,8 @@ classdef CC < handle
                         obj.ShapeFuncs{iSF} = ShFunc_NonSelfAdjoint_Compliance(settings_this);
                     case 'volume'
                         obj.ShapeFuncs{iSF} = ShFunc_Volume(settings_this);
+                    case 'volume_constraint'
+                        obj.ShapeFuncs{iSF} = Volume_constraint(settings_this);                        
                     otherwise
                         error('Wrong cost name or not added to Cost Object')
                 end
