@@ -39,12 +39,12 @@ classdef Material_Interpolation_ISO_SIMPALL < Material_Interpolation
                 (c2 + 2*rho_plus*c1)/(c4 + rho_plus*c3) - (c3*(c1*rho_plus^2 + c2*rho_plus + 1))/(c4 + rho_plus*c3)^2 + (E_plus*(E_minus - E_plus - E_minus*nu_plus + E_plus*nu_minus))/((rho_plus - rho_minus)*(nu_plus - 1)^2*(E_minus + E_plus + E_minus*nu_plus - E_plus*nu_minus));
                 (c2 + 2*rho_minus*c1)/(c4 + rho_minus*c3) - (c3*(c1*rho_minus^2 + c2*rho_minus + 1))/(c4 + rho_minus*c3)^2 + (E_minus*(E_minus - E_plus - E_minus*nu_plus + E_plus*nu_minus))/((rho_plus - rho_minus)*(nu_minus - 1)^2*(E_minus + E_plus - E_minus*nu_plus + E_plus*nu_minus))];
             
-            coef_kappa = (struct2array(solve(eq_kappa,[c1,c2,c3,c4])));
-            coef_mu = (struct2array(solve(eq_mu,[c1,c2,c3,c4])));
+            coef_kappa = (struct2cell(solve(eq_kappa,[c1,c2,c3,c4])));
+            coef_mu = (struct2cell(solve(eq_mu,[c1,c2,c3,c4])));
             
             
-            obj.mu_sym=simplify((coef_mu(1)*gamm^2 + coef_mu(2)*gamm + 1)/(coef_mu(3)*gamm + coef_mu(4)));
-            obj.kappa_sym=simplify((coef_kappa(1)*gamm^2 + coef_kappa(2)*gamm + 1)/(coef_kappa(3)*gamm + coef_kappa(4)));
+            obj.mu_sym=simplify((coef_mu{1}*gamm^2 + coef_mu{2}*gamm + 1)/(coef_mu{3}*gamm + coef_mu{4}));
+            obj.kappa_sym=simplify((coef_kappa{1}*gamm^2 + coef_kappa{2}*gamm + 1)/(coef_kappa{3}*gamm + coef_kappa{4}));
             
         end
         
