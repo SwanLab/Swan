@@ -15,7 +15,7 @@ classdef Quadrature_Triangle<Quadrature
                     obj.posgp = [1/3;1/3];
                 case 'QUADRATIC'
                     obj.ngaus = 3;         
-                    obj.weigp = [1/3;1/3;1/3];
+                    obj.weigp = [1/6;1/6;1/6];
                     obj.posgp = [0,0.5;0.5,0;0.5,0.5]';
                 case 'QUADRATICMASS'
                     obj.ngaus = 3;          

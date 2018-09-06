@@ -25,7 +25,7 @@ classdef FEM < handle
     %% Public methods definition ==========================================
     methods (Static, Access = public)
         function obj = create(problemID)
-            mesh = Mesh(problemID); % Mesh defined twice, but almost free
+            mesh = Mesh_GiD(problemID); % Mesh defined twice, but almost free
             switch mesh.ptype
                 case 'ELASTIC'
                     switch mesh.scale                        

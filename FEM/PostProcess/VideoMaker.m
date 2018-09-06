@@ -35,7 +35,7 @@ classdef VideoMaker < handle
         function execute_tcl_files(gidPath,file_tcl_name_with_path)
             %system([fullfile(gidPath,'gid_offscreen'),' -t "source ',file_tcl_name_with_path,'"'])
             file_tcl_name_tcl= replace(file_tcl_name_with_path,'\','\\');
-            system(['"',fullfile(gidPath,'gid_offscreen'),'"', ' -t ' ,'"source ',file_tcl_name_tcl,'"'])
+            system(['"',fullfile(gidPath,'gid_offscreen'),'"', ' -t ' ,'"source ',file_tcl_name_tcl,'"']);
             if ispc
                 system(['DEL ',file_tcl_name_with_path]);
             elseif isunix

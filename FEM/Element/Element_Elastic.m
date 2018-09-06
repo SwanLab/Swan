@@ -107,62 +107,13 @@ classdef Element_Elastic < Element
             K = Ke;
         end
         function K = computeStiffnessMatrixSYM(obj)
-            obj.quadrature.computeQuadrature('LINEAR');
-            obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
-            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
-            % Stiffness matrix
-            StifMat = sparse(obj.dof.ndof,obj.dof.ndof);
-            
-            % Elastic matrix
-            Cmat = obj.material.C;
-            for igaus=1:obj.quadrature.ngaus
-
-                Bmat = obj.computeB(igaus);
-                E=zeros(obj.nstre,obj.nnode*obj.dof.nunkn,obj.nelem);                
-                for i=1:obj.nstre
-                    E(i,:,:) = sum(repmat(permute(Cmat(i,:,:),[2,1,3]),1,obj.nnode*obj.dof.nunkn,1) .* Bmat,1);
-                end
-                
-                inodes=reshape(repmat(1:obj.nnode,obj.dof.nunkn,1),1,[]); icomps=repmat(1:obj.dof.nunkn,1,obj.nnode);
-                
-                I_index = zeros(obj.nnode*obj.dof.nunkn*obj.nnode*obj.dof.nunkn*obj.nelem,1);
-                J_index = zeros(obj.nnode*obj.dof.nunkn*obj.nnode*obj.dof.nunkn*obj.nelem,1);
-                Kij = zeros(obj.nnode*obj.dof.nunkn*obj.nnode*obj.dof.nunkn*obj.nelem,1);
-                k=1;
-                % under-diagonal entries & transpose
-                for i=1:obj.nnode*obj.dof.nunkn
-                    ik=obj.dof.nunkn*(inodes(i)-1)+icomps(i);
-                    it=obj.dof.nunkn*(obj.geometry.interpolation.T(:,inodes(i))-1)+icomps(i);
-                    for j=1:i-1
-                        jl=obj.dof.nunkn*(inodes(j)-1)+icomps(j);
-                        jt=obj.dof.nunkn*(obj.geometry.interpolation.T(:,inodes(j))-1)+icomps(j);
-                        k_ij=squeeze(sum(Bmat(:,ik,:) .* E(:,jl,:),1));
-                        
-                        I_index(k:k+2*length(it)-1,1) = [ it ; jt];
-                        J_index(k:k+2*length(it)-1,1) = [ jt ; it];
-                        Kij(k:k+2*length(it)-1,1) = [obj.geometry.dvolu(:,igaus).*k_ij ; obj.geometry.dvolu(:,igaus).*k_ij ];
-                        k = k + 2*length(it);
-                    end
-                end                
-                % diagonal entries
-                for i=1:obj.nnode*obj.dof.nunkn
-                    ik=obj.dof.nunkn*(inodes(i)-1)+icomps(i);
-                    it=obj.dof.nunkn*(obj.geometry.interpolation.T(:,inodes(i))-1)+icomps(i);
-                    
-                    k_ij=squeeze(sum(Bmat(:,ik,:) .* E(:,ik,:),1));
-                    
-                    I_index(k:k+length(it)-1,1) =  it ;
-                    J_index(k:k+length(it)-1,1) =  it ;
-                    Kij(k:k+length(it)-1,1) =  obj.geometry.dvolu(:,igaus).*k_ij ;
-                    k = k + length(it) ;
-                end
-                StifMat = StifMat + sparse(I_index,J_index,Kij,obj.dof.ndof,obj.dof.ndof);
-          
-            end
-            K = 1/2 * (StifMat + StifMat');            
+             K_generator = StiffnessMatrixGenerator(obj);
+             K_generator.generate();
+             K = K_generator.getStiffMatrix();
         end
     end
-    methods(Access = protected) % Only the child sees the function
+    
+    methods(Access = protected) 
         function FextSuperficial = computeSuperficialFext(obj)
             FextSuperficial = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);
         end

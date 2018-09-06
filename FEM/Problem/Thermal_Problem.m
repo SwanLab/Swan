@@ -15,7 +15,7 @@ classdef Thermal_Problem < FEM
     methods (Access = public)
         function obj = Thermal_Problem(problemID)
             obj.problemID = problemID;
-            obj.mesh = Mesh(problemID); % Mesh defined twice, but almost free
+            obj.mesh = Mesh_GiD(problemID); % Mesh defined twice, but almost free
             obj.createGeometry(obj.mesh);
             obj.dof = DOF(problemID,obj.geometry);
         end

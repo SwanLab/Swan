@@ -13,9 +13,9 @@ classdef Filter_P1_LevelSetMarching < Filter_P1
         function preProcess(obj)
             preProcess@Filter_P1(obj)
             obj.quadrature = Quadrature.set(obj.diffReacProb.geometry.type);
-            mesh=obj.diffReacProb.mesh;
+            mesh=obj.diffReacProb.mesh.duplicate;
             obj.geometry= Geometry(mesh,'LINEAR');    
-            mesh_del=mesh; 
+            mesh_del=mesh.duplicate; 
             switch mesh.pdim
                 case '2D'
                     mesh_del.geometryType='TRIANGLE';

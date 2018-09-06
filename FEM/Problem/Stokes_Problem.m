@@ -15,7 +15,7 @@ classdef Stokes_Problem < FEM
     methods (Access = public)
         function obj = Stokes_Problem(problemID)
             obj.problemID = problemID;
-            obj.mesh = Mesh(problemID); % Mesh defined twice, but almost free
+            obj.mesh = Mesh_GiD(problemID); % Mesh defined twice, but almost free
             obj.createGeometry(obj.mesh);
             obj.dof = DOF_Stokes(problemID,obj.geometry);
         end

@@ -18,6 +18,8 @@ classdef Quadrature < handle
     methods (Static)        
         function quadrature=set(type)
             switch type
+                case 'LINE'
+                    quadrature = Quadrature_Line;
                 case 'TRIANGLE'
                     quadrature = Quadrature_Triangle;                    
                 case 'QUAD'                    

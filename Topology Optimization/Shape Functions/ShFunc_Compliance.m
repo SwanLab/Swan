@@ -20,12 +20,12 @@ classdef ShFunc_Compliance < Shape_Functional
             if settings.printing && settings.printing_physics
                 obj.physProb.syncPostProcess(postprocess_TopOpt);
             end
-        end        
+        end
         function computef(obj,x)
             obj.rho = obj.filter.getP0fromP1(x);
             obj.matProps = obj.interpolation.computeMatProp(obj.rho);
             obj.computef_CORE;
-        end        
+        end
         function computef_CORE(obj)
             % Compute compliance
             obj.physProb.setMatProps(obj.matProps);
@@ -42,16 +42,14 @@ classdef ShFunc_Compliance < Shape_Functional
                     end
                 end
             end
-            
             gradient_compliance = obj.filter.getP1fromP0(gradient_compliance);
             gradient_compliance = obj.Msmooth*gradient_compliance;
             
             if isempty(obj.h_C_0)
                 obj.h_C_0 = compliance;
-            else
-                compliance = compliance/abs(obj.h_C_0);
-                gradient_compliance = gradient_compliance/abs(obj.h_C_0);
             end
+            compliance = compliance/abs(obj.h_C_0);
+            gradient_compliance = gradient_compliance/abs(obj.h_C_0);
             
             obj.value = compliance;
             obj.gradient = gradient_compliance;

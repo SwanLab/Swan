@@ -5,9 +5,7 @@ clear; close all;
 fprintf('Running TopOpt tests...\n')
 
 %% Test Declaration -------------------------------------------------------
-
-tests_topopt = {'test_cantilever','test_cantilever2','test_cantilever3','test_gripping','test_micro','test_micro2'};
-
+tests_topopt = {'test_cantilever','test_cantilever2','test_cantilever3','test_gripping','test_bridge','test_micro','test_micro2','test_projected_slerp','test_bridge2'};
 
 %% Run Top Opt Tests ------------------------------------------------------
 for i = 1:length(tests_topopt)
@@ -18,6 +16,7 @@ for i = 1:length(tests_topopt)
     settings = Settings(file_name_in);
     load_file = strcat('./tests/',file_name);
     load(load_file)
+    
     obj = TopOpt_Problem(settings);
     obj.preProcess;
     obj.computeVariables;

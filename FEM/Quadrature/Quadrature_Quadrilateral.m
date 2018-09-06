@@ -8,7 +8,7 @@ classdef Quadrature_Quadrilateral<Quadrature
                 case 'CONSTANT'
                     obj.ngaus=1;
                     obj.posgp=[0,0];
-                    obj.weigp=2;
+                    obj.weigp=4;
                 case 'LINEAR'
                     obj.ngaus = 4;
                     % Compute WEIGP and POSGP
@@ -34,7 +34,7 @@ classdef Quadrature_Quadrilateral<Quadrature
                     obj.posgp(:,8) = [-a,+a];
                     obj.posgp(:,9) = [ 0,-a];
                     
-                    obj.weigp =ones(1,obj.ngaus);
+                    obj.weigp =(4/9)*ones(1,obj.ngaus);
                 case 'QUADRATICMASS'
                     posgl(1)=-0.774596669241483;
                     posgl(2)= 0.0;
