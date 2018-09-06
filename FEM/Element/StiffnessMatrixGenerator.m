@@ -1,13 +1,5 @@
-classdef StifnessMatrxiGenerator < handle
-    %UNTITLED2 Summary of this class goes here
-    %   Detailed explanation goes here
-    
-    properties
-        
-    end
-    
+classdef StiffnessMatrixGenerator < handle 
     properties (Access = private)
-
         nnode
         nunkn
         nstre
@@ -38,14 +30,10 @@ classdef StifnessMatrxiGenerator < handle
         StiffnesEntries        
         Subintegrated_StifMat
         StifMat
-        
-
-        
     end
     
     methods
-        
-        function obj= StifnessMatrxiGenerator(ElementElastic)
+        function obj= StiffnessMatrixGenerator(ElementElastic)
             obj.storeDimensionalVariables(ElementElastic)
             obj.connectivities = ElementElastic.geometry.interpolation.T;
             obj.Cmat = ElementElastic.material.C;
@@ -54,7 +42,6 @@ classdef StifnessMatrxiGenerator < handle
         end
         
         function generate(obj)
-            
             obj.initializeStifMat()
             
             for igaus=1:obj.ngaus
@@ -75,7 +62,6 @@ classdef StifnessMatrxiGenerator < handle
     end
     
     methods (Access = private)
-        
         function initializeStifMat(obj)
             obj.StifMat = sparse(obj.ndof,obj.ndof);
         end
@@ -110,7 +96,6 @@ classdef StifnessMatrxiGenerator < handle
             obj.Global_Idofs = obj.initializeGlobalDofs();
             obj.Global_Jdofs = obj.initializeGlobalDofs();
         end
-        
         
         function GlobalDofs = initializeGlobalDofs(obj)
             GlobalDofs = zeros(obj.ndofPerElement*obj.ndofPerElement*obj.nelem,1);
@@ -229,9 +214,7 @@ classdef StifnessMatrxiGenerator < handle
         
         function symmetrizeStiffMat(obj)
             obj.StifMat = 1/2 * (obj.StifMat + obj.StifMat');
-        end
-        
+        end  
     end
-    
 end
 

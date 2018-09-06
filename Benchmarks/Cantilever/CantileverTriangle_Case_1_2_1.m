@@ -2,11 +2,11 @@ filename='CantileverBeam_Triangle_Linear_Fine';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'full';
+initial_case = 'holes';
 cost = {'compliance';'perimeter'};
 weights = [1, 0.1];
 constraint = {'volume'};
-optimizer = 'SLERP'; kappaMultiplier = 1;
+optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
 filterType = 'P1';
 
 nsteps = 1;

@@ -13,8 +13,8 @@ constraint_case = 'INEQUALITY';
 HJiter0 = 1;
 e2 = 50;
 N_holes = [5 6];
-R_holes = 0.4;
-phase_holes = [0 pi/2];
+R_holes = 0.7;
+phase_holes = [pi pi];
 
 nsteps = 10;
 Vfrac_final = 0.1;
@@ -34,6 +34,7 @@ TOL.nu_plus = 0.3;
 TOL.nu_minus = 0.3;
 
 plotting = true;
+showBC = false;
 printing = false;
 monitoring = true;
 monitoring_interval = 1;

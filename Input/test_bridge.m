@@ -1,6 +1,6 @@
 filename='Bridge_Quadrilateral_Bilinear_Structured';
 ptype = 'MACRO';
-method = 'SIMP_P3'; % !! Instead of proportional to material density !!
+method = 'SIMP_P3';
 materialType = 'ISOTROPIC';
 initial_case = 'holes';
 cost = {'compliance','perimeter'};
@@ -27,8 +27,8 @@ TOL.E_minus = 1e-3;
 TOL.nu_plus = 0.3;
 TOL.nu_minus = 0.3;
 
-plotting = 0;
-printing = 0;
-monitoring = 0;
+plotting = false;
+printing = false;
+monitoring = false;
 monitoring_interval = 1;
 maxiter = 2;

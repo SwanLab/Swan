@@ -15,7 +15,6 @@ classdef Monitoring < handle
     properties
         plotting_ON
         plotting_figure
-        ndim
         mesh
         showBC
         BCscale_factor
@@ -29,13 +28,19 @@ classdef Monitoring < handle
         function obj = create(settings,mesh,monitoring_ON, plotting_ON)
             switch mesh.pdim
                 case '2D'
-                    obj = Monitoring_Else(settings,mesh,monitoring_ON, plotting_ON);
+                    switch settings.optimizer
+                        case {'SLERP','HAMILTON-JACOBI'}
+%                             obj = Monitoring_LevelSet_2D(settings,mesh,monitoring_ON, plotting_ON);
+                            obj = Monitoring_Else(settings,mesh,monitoring_ON, plotting_ON);
+                        otherwise
+                            obj = Monitoring_Else(settings,mesh,monitoring_ON, plotting_ON);
+                    end
                 case '3D'
                     switch settings.optimizer
-                        case 'HAMILTON-JACOBI'
+                        case {'SLERP','HAMILTON-JACOBI'}
                             obj = Monitoring_LevelSet_3D(settings,mesh,monitoring_ON, plotting_ON);
                         otherwise
-                            obj = Monitoring_2D(settings,mesh,monitoring_ON, plotting_ON);
+                            obj = Monitoring_Else(settings,mesh,monitoring_ON, plotting_ON);
                     end
             end
         end
@@ -109,6 +114,10 @@ classdef Monitoring < handle
                         obj.figures{i}.handle = plot(0,0);
                         title(obj.figures{i}.title);
                         grid on
+                    case 'log'
+                        obj.figures{i}.handle = semilogy(0,0);
+                        title(obj.figures{i}.title);
+                        grid on
                     case 'bar'
                         obj.figures{i}.handle = bar(0,0);
                         title(obj.figures{i}.title);
@@ -179,6 +188,8 @@ classdef Monitoring < handle
             obj.figures{end}.variable = [];
             if contains(TITLE,'kappa') || contains(TITLE,'outit')
                 obj.figures{end}.chart_type = 'bar';
+            elseif contains(TITLE,'L2')
+                obj.figures{end}.chart_type = 'log';
             else
                 obj.figures{end}.chart_type = 'plot';
             end
@@ -329,22 +340,38 @@ classdef Monitoring < handle
     
     methods (Access = protected)
         function plotBoundaryConditions(obj)
-            [inodef,iforce]  = unique(obj.mesh.pointload(:,1));
-            [inodec,iconst]  = unique(obj.mesh.dirichlet(:,1));
-            force = zeros(length(iforce),3);
-            const = zeros(length(iconst),3);
+            inodef  = unique(obj.mesh.pointload(:,1));
+            inodec = unique(obj.mesh.dirichlet(:,1));
             
-            for idim = 1:obj.ndim
-                force(:,idim) = obj.mesh.pointload(obj.mesh.pointload(:,2)==idim,3);
-                const(:,idim) = obj.mesh.dirichlet(obj.mesh.dirichlet(:,2)==idim,3);
+            force = obj.classifyBC(obj.mesh.pointload);
+            const = obj.classifyBC(obj.mesh.dirichlet);
+            
+%             hold on
+%             plot3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),'ro')
+%             quiver3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),force(:,1),force(:,2),force(:,3),'r','AutoScaleFactor',obj.BCscale_factor*max(obj.mesh.coord(:))/max(abs(force(:))));
+%             plot3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),'bx')
+%             quiver3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),const(:,1),const(:,2),const(:,3),'b','AutoScaleFactor',obj.BCscale_factor*max(obj.mesh.coord(:))/max(abs(const(:))));
+%             hold off
+        end
+    end
+    
+    methods (Static)
+        function classifiedBC = classifyBC(BC)
+            classifiedBC = zeros(size(BC));
+            indexes = [];
+            for i = 1:size(BC,1)
+                if ~isempty(indexes)
+                    is_new = ~any(BC(i,1) == indexes);
+                else
+                    is_new = true;
+                end
+                if is_new
+                    indexes(end+1) = BC(i,1);
+                end
+                index = find(indexes,BC(i,1));
+                classifiedBC(index,BC(i,2)) = BC(i,3);
             end
-            
-            hold on
-            plot3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),'ro')
-            quiver3(obj.mesh.coord(inodef,1),obj.mesh.coord(inodef,2),obj.mesh.coord(inodef,3),force(:,1),force(:,2),force(:,3),'r','AutoScaleFactor',obj.BCscale_factor*max(obj.mesh.coord(:))/max(abs(force(:))));
-            plot3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),'bx')
-            quiver3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),const(:,1),const(:,2),const(:,3),'b','AutoScaleFactor',obj.BCscale_factor*max(obj.mesh.coord(:))/max(abs(const(:))));
-            hold off
+            classifiedBC(length(indexes)+1:end,:) = [];
         end
     end
 end
