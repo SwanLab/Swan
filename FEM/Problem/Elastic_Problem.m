@@ -6,10 +6,6 @@ classdef Elastic_Problem < FEM
     properties (GetAccess = public, SetAccess = public)
     end
     
-    %% Restricted properties definition ===================================
-    properties %(GetAccess = {?Postprocess,?Physical_Problem_Micro}, SetAccess = protected)
-        material
-    end
     
     %% Public methods definition ==========================================
     methods (Access = public)
@@ -18,11 +14,11 @@ classdef Elastic_Problem < FEM
             obj.mesh = Mesh_GiD(problemID); % Mesh defined twice, but almost free
             obj.createGeometry(obj.mesh);
             obj.dof = DOF_Elastic(problemID,obj.geometry,obj.mesh);
-            obj.material = Material.create(obj.geometry,obj.mesh);
         end
         
         function preProcess(obj)
-            obj.element = Element_Elastic.create(obj.mesh,obj.geometry,obj.material,obj.dof);
+            material = Material.create(obj.geometry,obj.mesh);
+            obj.element = Element_Elastic.create(obj.mesh,obj.geometry,material,obj.dof);
             obj.solver = Solver.create;
         end
         

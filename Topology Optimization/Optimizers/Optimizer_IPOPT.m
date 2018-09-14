@@ -24,7 +24,7 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
         end
         
         function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
-            cost.computef(x_ini)
+            cost.computeCostAndGradient(x_ini)
             funcs.objective = @(x) obj.objective(x,cost);
             funcs.gradient = @(x) obj.gradient(x,cost);
             funcs.constraints = @(x) obj.constraint(x,constraint);
@@ -58,22 +58,22 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
     end
     methods 
         function f = objective(obj,x,cost)
-            cost.computef(x)
+            cost.computeCostAndGradient(x)
             obj.cost_copy=cost;
             f = cost.value;
         end
         function f = constraint(obj,x,constraint)
-            constraint.computef(x)
+            constraint.computeCostAndGradient(x)
             obj.constraint_copy=constraint;
             f = constraint.value;
         end
         function g = gradient(obj,x,cost)
-            cost.computef(x)   
+            cost.computeCostAndGradient(x)   
             obj.cost_copy=cost;
             g = cost.gradient;
         end
         function g = constraint_gradient(obj,x,constraint)
-            constraint.computef(x)    
+            constraint.computeCostAndGradient(x)    
             obj.constraint_copy=constraint;
             g = constraint.gradient;
         end

@@ -5,12 +5,13 @@ clear; close all;
 fprintf('Running TopOpt tests...\n')
 
 %% Test Declaration -------------------------------------------------------
-tests_topopt = {'test_cantilever','test_cantilever2','test_cantilever3','test_gripping','test_bridge','test_micro','test_micro2','test_projected_slerp','test_bridge2'};
+tests_topopt = {'test_cantilever','test_cantilever2','test_projected_slerp','test_cantilever3','test_gripping','test_bridge','test_micro','test_micro2','test_bridge2'};
+
 
 %% Run Top Opt Tests ------------------------------------------------------
 for i = 1:length(tests_topopt)
     clearvars -except tests_topopt i
-    tic
+    %tic
     file_name = tests_topopt{i};
     file_name_in = strcat('./Input/',tests_topopt{i});
     settings = Settings(file_name_in);
@@ -26,9 +27,12 @@ for i = 1:length(tests_topopt)
     else
         cprintf('err',strcat(file_name,' FAILED. Error: ',num2str(error),'\n'));
     end
-    toc
+    %toc
     clear settings
 end
 
 fprintf('\nTopOpt tests completed.\n')
 fprintf('\n-------------------------------------------\n\n')
+
+test2dFourquad
+testStiffnessMatrixGenerator

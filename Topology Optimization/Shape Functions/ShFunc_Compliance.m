@@ -2,7 +2,6 @@ classdef ShFunc_Compliance < Shape_Functional
     properties
         h_C_0; %compliance incial
         physProb
-        Msmooth
         interpolation
         rho
         matProps
@@ -13,20 +12,17 @@ classdef ShFunc_Compliance < Shape_Functional
             obj@Shape_Functional(settings);
             obj.physProb = FEM.create(settings.filename);
             obj.physProb.preProcess;
-            diffReacProb = DiffReact_Problem(settings.filename);
-            diffReacProb.preProcess;
-            obj.Msmooth = diffReacProb.element.M;
-            obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method,obj.physProb.mesh.pdim);
+            obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method,settings.pdim);
             if settings.printing && settings.printing_physics
                 obj.physProb.syncPostProcess(postprocess_TopOpt);
             end
         end
-        function computef(obj,x)
+        function computeCostAndGradient(obj,x)
             obj.rho = obj.filter.getP0fromP1(x);
             obj.matProps = obj.interpolation.computeMatProp(obj.rho);
-            obj.computef_CORE;
+            obj.computeCostAndGradient_CORE;
         end
-        function computef_CORE(obj)
+        function computeCostAndGradient_CORE(obj)
             % Compute compliance
             obj.physProb.setMatProps(obj.matProps);
             obj.physProb.computeVariables;

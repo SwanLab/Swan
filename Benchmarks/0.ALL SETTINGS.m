@@ -23,7 +23,7 @@ settings.initial_case = 'full';
 settings.cost = {'compliance';'perimeter'}; %'chomog_fraction';'compliance';'perimeter';'chomog_alphabeta';'nonadjoint_compliance';
 % settings.weights = []; %all 1
 settings.weights = [1 0.1]; %compl+lambda*perimeter
-settings.constraint = {'volume'};
+settings.constraint = {'volumeConstraint'};
 
 
 settings.optimizer = 'SLERP';

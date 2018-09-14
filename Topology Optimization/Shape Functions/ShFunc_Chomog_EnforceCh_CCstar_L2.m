@@ -10,7 +10,7 @@ classdef ShFunc_Chomog_EnforceCh_CCstar_L2 < ShFunc_Chomog_EnforceCh
             obj.epsilon = settings.epsilon_isotropy_final;
         end
         
-        function computef(obj,x)
+        function computeCostAndGradient(obj,x)
             obj.computePhysicalData(x);
             obj.computeCCstar(x);
             ct=1;

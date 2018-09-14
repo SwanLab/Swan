@@ -5,7 +5,7 @@ materialType = 'ISOTROPIC';
 initial_case = 'square';
 cost = {'compliance';'perimeter'};
 weights = [1 0.1];
-constraint = {'volume'};
+constraint = {'volumeConstraint'};
 constraint_case = 'INEQUALITY';
 optimizer = 'PROJECTED GRADIENT'; kappaMultiplier = 1;
 filterType = 'PDE';

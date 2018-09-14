@@ -6,6 +6,7 @@ classdef Element_Elastic < Element
         fext
         interpolation_u
         K
+        K_generator
     end
     
     methods (Static) %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?obj})
@@ -30,10 +31,12 @@ classdef Element_Elastic < Element
     end
     
     methods %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
-        function obj = Element_Elastic(mesh,geometry,material,dof)
+        function obj = Element_Elastic(mesh,geometry,material,dof,nstre)
             obj@Element(geometry,material,dof)
+            obj.nstre = nstre;
             obj.nfields=1;
             obj.interpolation_u = Interpolation.create(mesh,'LINEAR');
+            obj.K_generator = StiffnessMatrixGenerator(obj);
         end
         
         %         function r = computeResidual(obj,x,Kred)
@@ -107,9 +110,8 @@ classdef Element_Elastic < Element
             K = Ke;
         end
         function K = computeStiffnessMatrixSYM(obj)
-             K_generator = StiffnessMatrixGenerator(obj);
-             K_generator.generate();
-             K = K_generator.getStiffMatrix();
+             obj.K_generator.generate(obj.material.C);
+             K = obj.K_generator.getStiffMatrix();
         end
     end
     

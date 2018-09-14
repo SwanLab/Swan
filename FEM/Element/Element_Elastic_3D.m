@@ -7,8 +7,8 @@ classdef Element_Elastic_3D<Element_Elastic
     
     methods
         function obj = Element_Elastic_3D(mesh,geometry,material,dof)
-            obj = obj@Element_Elastic(mesh,geometry,material,dof);
-            obj.nstre = 6;
+            nstre = 6;
+            obj = obj@Element_Elastic(mesh,geometry,material,dof,nstre);
         end
         
         function variables = computeVars(obj,uL)
@@ -17,7 +17,7 @@ classdef Element_Elastic_3D<Element_Elastic
         end
         
         function [B] = computeB(obj,igaus)
-            B = zeros(6,obj.nnode*obj.dof.nunkn,obj.nelem);
+            B = zeros(obj.nstre,obj.nnode*obj.dof.nunkn,obj.nelem);
             for inode=1:obj.nnode
                 j = obj.dof.nunkn*(inode-1)+1;
                 % associated to normal strains
