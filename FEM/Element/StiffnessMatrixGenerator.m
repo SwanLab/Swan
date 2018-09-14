@@ -1,80 +1,137 @@
-classdef StiffnessMatrixGenerator < handle 
+classdef StiffnessMatrixGenerator < handle
     properties (Access = private)
-        nnode
-        nunkn
-        nstre
-        ndof
-        nelem
-        ndofPerElement
+
+
+        dimensionVariables
         inodes
         icomps
-        ngaus
         
         connectivities
         dvolum
-
+        
         ElementElastic
         Cmat
-        Bmat
-        CtimesB
-        
+
         Global_Idof
         Global_Jdof
         Global_Idofs
         Global_Jdofs
-        NumberOfGlobalDofs
-        InitialEntryIndex
-        FinalEntryIndex
+        
+        EntryIndex
         
         StiffnesEntry
-        StiffnesEntries        
-        Subintegrated_StifMat
-        StifMat
+        StiffnesEntries
+        IncrementalStifness
+        Stifness
+        
+        changedElements
+        ChangedEntriesIndices 
+        StifnesEntriesChangedValues
+        changedElementsRatio
+        
+        Bmat_all
+        KeVector
+        IncrementalStiffnessVector
     end
     
     methods
         function obj= StiffnessMatrixGenerator(ElementElastic)
+            obj.dimensionVariables = DimensionVariables();
             obj.storeDimensionalVariables(ElementElastic)
             obj.connectivities = ElementElastic.geometry.interpolation.T;
-            obj.Cmat = ElementElastic.material.C;
             obj.ElementElastic = ElementElastic;
             obj.initialize_dvolum(ElementElastic)
+
+            obj.EntryIndex = EntryIndex(obj.dimensionVariables.nelem);            
+            obj.computeGlobal_IJdofs()
+            obj.initializeStifMat()
+            obj.initializeStiffnesEntries()
+            obj.storeBmat();
+            obj.KeVector = StiffnessEntries(obj.dimensionVariables,obj.Bmat_all,obj.dvolum);
+
         end
         
-        function generate(obj)
-            obj.initializeStifMat()
+        function generate(obj,Cmat)
+             obj.obtainChangedElements(Cmat);
+          
+            if obj.changedElementsRatio ~= 0
+
+            obj.EntryIndex.initializeInitialEntryIndex()
             
-            for igaus=1:obj.ngaus
-                obj.initializeGlobal_IJdofs();
-                obj.computeBmatrix(igaus);
-                obj.compute_CtimesBmatrix();
-                obj.computeMatrixEntries(igaus);
-                obj.assemble_matrix()
-                obj.add_matrix()
-            end
+            StiffnessIncrementEntries = obj.KeVector.compute(obj.Cmat,obj.changedElements);
+            
+            obj.computeIncrementalStiffnessVector(StiffnessIncrementEntries)
+            obj.StiffnesEntries(obj.ChangedEntriesIndices) = StiffnessIncrementEntries;
+            obj.assemble_matrix()
+            
+            obj.add_matrix()
             obj.symmetrizeStiffMat()
+           end
         end
         
         function K = getStiffMatrix(obj)
-            K = obj.StifMat;
+            K = obj.Stifness;
         end
         
     end
     
+    
     methods (Access = private)
-        function initializeStifMat(obj)
-            obj.StifMat = sparse(obj.ndof,obj.ndof);
+    
+        
+        function computeIncrementalStiffnessVector(obj,StiffnesEntriesYY)
+            obj.IncrementalStiffnessVector = StiffnesEntriesYY - obj.StiffnesEntries(obj.ChangedEntriesIndices);
         end
         
+        function storeBmat(obj)
+            obj.Bmat_all = zeros(obj.dimensionVariables.ngaus,obj.dimensionVariables.nstre,obj.dimensionVariables.nnode*obj.dimensionVariables.nunkn,obj.dimensionVariables.nelem);
+            for igaus = 1:obj.dimensionVariables.ngaus
+                obj.Bmat_all(igaus,:,:,:) = obj.computeBmatrix(igaus);
+            end
+        end
+        
+        
+        function  obtainChangedElements(obj,Cmat)
+            if ~isempty(obj.Cmat)
+               
+               dif = squeeze(Cmat(1,1,:) - obj.Cmat(1,1,:));
+               for i= 1:size(Cmat,1)
+                   for j = 1:size(Cmat,2)
+                       dCmat = squeeze((Cmat(i,j,:) - obj.Cmat(i,j,:)));
+                       dif = dif + dCmat.^2;
+                   end
+               end
+               
+               obj.changedElements = abs(dif)/norm(Cmat(:)) > 1e-15;
+               obj.changedElementsRatio = sum(obj.changedElements)/size(obj.changedElements,1);
+               obj.ChangedEntriesIndices = repmat(obj.changedElements,obj.dimensionVariables.ndofPerElement*obj.dimensionVariables.ndofPerElement,1);
+              
+            
+            else
+               obj.changedElements = true(obj.dimensionVariables.nelem,1);
+               obj.ChangedEntriesIndices = repmat(obj.changedElements,obj.dimensionVariables.ndofPerElement*obj.dimensionVariables.ndofPerElement,1);
+               obj.changedElementsRatio = 1;
+               
+            end
+            obj.Cmat = Cmat;
+               
+        end
+        
+        function initializeStifMat(obj)
+            obj.Stifness = sparse(obj.dimensionVariables.ndof,obj.dimensionVariables.ndof);
+        end
+        
+        
+        
         function storeDimensionalVariables(obj,ElementElastic)
-            obj.nnode = ElementElastic.nnode;
-            obj.nunkn = ElementElastic.dof.nunkn;
-            obj.nstre = ElementElastic.nstre;
-            obj.ndof  = ElementElastic.dof.ndof;
-            obj.nelem = ElementElastic.nelem;
-            obj.ndofPerElement = obj.nnode*obj.nunkn;
-            obj.inodes=reshape(repmat(1:obj.nnode,obj.nunkn,1),1,[]);
-            obj.icomps=repmat(1:obj.nunkn,1,obj.nnode);
+            obj.dimensionVariables.nnode = ElementElastic.nnode;
+            obj.dimensionVariables.nunkn = ElementElastic.dof.nunkn;
+            obj.dimensionVariables.nstre = ElementElastic.nstre;
+            obj.dimensionVariables.ndof  = ElementElastic.dof.ndof;
+            obj.dimensionVariables.nelem = ElementElastic.nelem;
+            obj.dimensionVariables.ndofPerElement = obj.dimensionVariables.nnode*obj.dimensionVariables.nunkn;
+            obj.inodes=reshape(repmat(1:obj.dimensionVariables.nnode,obj.dimensionVariables.nunkn,1),1,[]);
+            obj.icomps=repmat(1:obj.dimensionVariables.nunkn,1,obj.dimensionVariables.nnode);
         end
         
         
@@ -82,93 +139,87 @@ classdef StiffnessMatrixGenerator < handle
             ElementElastic.quadrature.computeQuadrature('LINEAR');
             ElementElastic.interpolation_u.computeShapeDeriv(ElementElastic.quadrature.posgp)
             ElementElastic.geometry.computeGeometry(ElementElastic.quadrature,ElementElastic.interpolation_u);
-            obj.ngaus = ElementElastic.quadrature.ngaus;
+            obj.dimensionVariables.ngaus = ElementElastic.quadrature.ngaus;
             obj.dvolum = ElementElastic.geometry.dvolu;
         end
         
-        function computeBmatrix(obj,igaus)
-            obj.Bmat = obj.ElementElastic.computeB(igaus);
+        function Bmat = computeBmatrix(obj,igaus)
+            Bmat = obj.ElementElastic.computeB(igaus);
+        end        
+ 
+        
+        function initializeStiffnesEntries(obj)
+            ndofT = obj.dimensionVariables.ndofPerElement;
+            nelem = obj.dimensionVariables.nelem;
+            obj.StiffnesEntries = zeros(ndofT*ndofT*nelem,1);
         end
         
 
+        function assemble_matrix(obj)
+            deltaK = obj.IncrementalStiffnessVector;
+            IG = obj.Global_Idofs(obj.ChangedEntriesIndices);
+            JG = obj.Global_Jdofs(obj.ChangedEntriesIndices);
+            ndof = obj.dimensionVariables.ndof;
+            obj.IncrementalStifness = sparse(IG,JG,deltaK,ndof,ndof);
+        end
         
+        function add_matrix(obj)
+            deltaK = obj.IncrementalStifness ;
+            obj.Stifness = obj.Stifness + deltaK ;
+        end
+       
+
+        function symmetrizeStiffMat(obj)
+            obj.Stifness = 1/2 * (obj.Stifness + obj.Stifness');
+        end
+        
+        
+        %%%%%%%%%%%%%%  Global_IJ_dofs
         function initializeGlobal_IJdofs(obj)
             obj.Global_Idofs = obj.initializeGlobalDofs();
             obj.Global_Jdofs = obj.initializeGlobalDofs();
         end
         
         function GlobalDofs = initializeGlobalDofs(obj)
-            GlobalDofs = zeros(obj.ndofPerElement*obj.ndofPerElement*obj.nelem,1);
+            GlobalDofs = zeros(obj.dimensionVariables.ndofPerElement*obj.dimensionVariables.ndofPerElement*obj.dimensionVariables.nelem,1);
         end
         
-        function computeMatrixEntries(obj,igaus)
-
-            obj.initializeGaussLoopVariables()
-            for idof=1:obj.ndofPerElement
+        function computeGlobal_IJdofs(obj)
+            obj.EntryIndex.initializeInitialEntryIndex()
+            obj.initializeGlobal_IJdofs()
+            for idof=1:obj.dimensionVariables.ndofPerElement
                 obj.obtainGlobal_Idof(idof);
-                obj.obtainNumberOfGlobalDofs();
-                obj.computeDiagonalEntries(idof,igaus)
+                obj.storeDiagonalPositionEntries()
                 for jdof=1:idof-1
                     obj.obtainGlobal_Jdof(jdof);
-                    obj.computeUpperAndLowerEntries(idof,jdof,igaus);
+                    obj.storeUpperDiagonalPositionEntries()
+                    obj.storeLowerDiagonalPositionEntries()
                 end
             end
-        end
-        
-        function initializeGaussLoopVariables(obj)
-            obj.initializeInitialEntryIndex()
-            obj.initializeStiffnesEntries()
-        end
-        
-        function computeDiagonalEntries(obj,idof,igaus)
-            obj.computeStiffEntries(idof,idof,igaus);
-            obj.storeDiagonalValues()
-        end
-        
-        function computeUpperAndLowerEntries(obj,idof,jdof,igaus)
-            obj.computeStiffEntries(idof,jdof,igaus);
-            obj.storeUpperDiagonalValues()
-            obj.storeLowerDiagonalValues()
+            
         end
         
         
-        function storeDiagonalValues(obj)
-            obj.storePositionAndValueEntries(obj.Global_Idof,obj.Global_Idof)
+        function storeDiagonalPositionEntries(obj)
+            obj.storePositionEntries(obj.Global_Idof,obj.Global_Idof)
         end
         
-        function storeUpperDiagonalValues(obj)
-            obj.storePositionAndValueEntries(obj.Global_Idof,obj.Global_Jdof)
+        function storeUpperDiagonalPositionEntries(obj)
+            obj.storePositionEntries(obj.Global_Idof,obj.Global_Jdof)
         end
         
-        function storeLowerDiagonalValues(obj)
-            obj.storePositionAndValueEntries(obj.Global_Jdof,obj.Global_Idof)
+        function storeLowerDiagonalPositionEntries(obj)
+            obj.storePositionEntries(obj.Global_Jdof,obj.Global_Idof)
         end
         
-        function storePositionAndValueEntries(obj,Global_Idof,Global_Jdof)
-            obj.updateFinalEntryIndex()
-            EntriesIndex = obj.obtainEntriesIndex();
-            obj.Global_Idofs(EntriesIndex,1)    =  Global_Idof;
-            obj.Global_Jdofs(EntriesIndex,1)    =  Global_Jdof;
-            obj.StiffnesEntries(EntriesIndex,1) =  obj.StiffnesEntry;
-            obj.updateInitialEntryIndex()
+        function storePositionEntries(obj,Global_Idof,Global_Jdof)
+            obj.EntryIndex.updateFinalEntryIndex()
+            EntriesIndex = obj.EntryIndex.obtainEntriesIndex();
+            obj.Global_Idofs(EntriesIndex,1) =  Global_Idof;
+            obj.Global_Jdofs(EntriesIndex,1) =  Global_Jdof;
+            obj.EntryIndex.updateInitialEntryIndex()
         end
         
-        function initializeInitialEntryIndex(obj)
-            obj.InitialEntryIndex=1;
-        end
-        
-        function updateFinalEntryIndex(obj)
-            obj.FinalEntryIndex = obj.InitialEntryIndex + obj.NumberOfGlobalDofs -1;
-        end
-        
-        function updateInitialEntryIndex(obj)
-            obj.InitialEntryIndex = obj.FinalEntryIndex + 1;
-        end
-        
-        function EntriesIndex = obtainEntriesIndex(obj)
-            EntriesIndex = obj.InitialEntryIndex:obj.FinalEntryIndex;
-        end
-                
         function obtainGlobal_Idof(obj,idof)
             obj.Global_Idof = obj.transformLocal2Global(idof);
         end
@@ -176,45 +227,13 @@ classdef StiffnessMatrixGenerator < handle
         function obtainGlobal_Jdof(obj,jdof)
             obj.Global_Jdof = obj.transformLocal2Global(jdof);
         end
-                
+        
         function GlobalDofs = transformLocal2Global(obj,LocalDof)
-            GlobalDofs = obj.nunkn*(obj.connectivities(:,obj.inodes(LocalDof))-1)+obj.icomps(LocalDof);
-        end
-      
-        function obtainNumberOfGlobalDofs(obj)
-            obj.NumberOfGlobalDofs = length(obj.Global_Idof);
+            GlobalDofs = obj.dimensionVariables.nunkn*(obj.connectivities(:,obj.inodes(LocalDof))-1)+obj.icomps(LocalDof);
         end
         
-        function compute_CtimesBmatrix(obj)
-            CB = zeros(obj.nstre,obj.ndofPerElement,obj.nelem);
-            for i=1:obj.nstre
-                PermutedCmat = permute(obj.Cmat(i,:,:),[2,1,3]);
-                ReplicatedCmat = repmat(PermutedCmat,1,obj.ndofPerElement,1);
-                CB(i,:,:) = sum(ReplicatedCmat.* obj.Bmat,1);
-            end
-            obj.CtimesB = CB;
-        end
-
-        function initializeStiffnesEntries(obj)
-            obj.StiffnesEntries = zeros(obj.ndofPerElement*obj.ndofPerElement*obj.nelem,1);
-        end       
-        
-        function computeStiffEntries(obj,idof,jdof,igaus)
-            BCB = squeeze(sum(obj.Bmat(:,idof,:) .* obj.CtimesB(:,jdof,:),1));
-            obj.StiffnesEntry = obj.dvolum(:,igaus).*BCB;
-        end
-        
-        function assemble_matrix(obj)
-            obj.Subintegrated_StifMat = sparse(obj.Global_Idofs,obj.Global_Jdofs,obj.StiffnesEntries,obj.ndof,obj.ndof);
-        end
-        
-        function add_matrix(obj)
-            obj.StifMat = obj.StifMat + obj.Subintegrated_StifMat;
-        end
-        
-        function symmetrizeStiffMat(obj)
-            obj.StifMat = 1/2 * (obj.StifMat + obj.StifMat');
-        end  
     end
+    
+
 end
 
