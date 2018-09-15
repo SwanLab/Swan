@@ -21,8 +21,8 @@ classdef Optimizer_Unconstrained < Optimizer
         
         function x = updateX(obj,x_ini,cost,constraint)
             x = obj.computeX(x_ini,obj.objfunc.gradient);
-            cost.computef(x);
-            constraint.computef(x);
+            cost.computeCostAndGradient(x);
+            constraint.computeCostAndGradient(x);
             constraint = obj.setConstraint_case(constraint);
             obj.objfunc.computeFunction(cost,constraint)
             

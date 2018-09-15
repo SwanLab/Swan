@@ -19,8 +19,8 @@ classdef Optimizer_Constrained < Optimizer
         function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
             x_ini = obj.compute_initial_value(x_ini,cost,constraint);
             x = x_ini;
-            cost.computef(x_ini);
-            constraint.computef(x_ini);
+            cost.computeCostAndGradient(x_ini);
+            constraint.computeCostAndGradient(x_ini);
 %             obj.monitoring.plotX(x_ini);
             obj.monitoring.refresh(x,obj.niter,cost,constraint,obj.stop_vars,obj.has_converged || obj.niter > obj.maxiter*(istep/nstep),istep,nstep);
             obj.print(x_ini,obj.niter);

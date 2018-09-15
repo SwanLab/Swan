@@ -92,7 +92,7 @@ classdef FEM < handle
         end
         
         function setMatProps(obj,props)
-            obj.element.material = obj.material.setProps(props);
+            obj.element.material = obj.element.material.setProps(props);
         end
         
         function print(obj,file_name)

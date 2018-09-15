@@ -5,7 +5,7 @@ materialType = 'ISOTROPIC';
 initial_case = 'full';
 cost={'chomog_alphabeta'};
 weights=[1 0.1];
-constraint = {'volume'};
+constraint = {'volumeConstraint'};
 constraint_case = 'INEQUALITY';
 optimizer = 'MMA'; kappaMultiplier = 1;
 filterType = 'P1';

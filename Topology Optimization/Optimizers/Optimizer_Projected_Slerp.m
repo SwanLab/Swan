@@ -13,8 +13,8 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
         
         function x = updateX(obj,x_ini,cost,constraint)
             obj.updateObjFunc(cost,constraint);
-            cost.computef(x_ini);
-            constraint.computef(x_ini);
+            cost.computeCostAndGradient(x_ini);
+            constraint.computeCostAndGradient(x_ini);
             obj.objfunc.computeGradient(cost,constraint);
             obj.objfunc.computeFunction(cost,constraint);
             obj.initUnconstrOpt(x_ini);
@@ -100,7 +100,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
                 obj.objfunc.computeGradient(cost,constraint);
                 x = obj.optimizer_unconstr.computeX(x_ini,obj.objfunc.gradient);
                 
-                cost.computef(x);
+                cost.computeCostAndGradient(x);
                 obj.objfunc.computeFunction(cost,constraint);
                 
                 incr_norm_L2  = obj.optimizer_unconstr.norm_L2(x,x_ini);
@@ -126,11 +126,11 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
         function fval = compute_feasible_design_variable(obj,lambda,x_ini,cost,constraint,theta)
             obj.objfunc.lambda = lambda;
             constraint.lambda = obj.objfunc.lambda;
-            cost.computef(x_ini)
-            constraint.computef(x_ini)
+            cost.computeCostAndGradient(x_ini)
+            constraint.computeCostAndGradient(x_ini)
             obj.objfunc.computeGradient(cost,constraint);
             x = obj.optimizer_unconstr.computeX(x_ini,obj.objfunc.gradient);
-            constraint.computef(x);
+            constraint.computeCostAndGradient(x);
             constraint = obj.setConstraint_case(constraint);
             fval = constraint.value;
         end

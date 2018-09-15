@@ -9,7 +9,7 @@ classdef ShFunc_Chomog_fraction < ShFunc_Chomog
             obj.alpha=settings.micro.alpha/norm(settings.micro.alpha);
             obj.beta=settings.micro.beta/norm(settings.micro.beta);
         end
-        function computef(obj,x)
+        function computeCostAndGradient(obj,x)
             obj.computePhysicalData(x);
             
             %Cost

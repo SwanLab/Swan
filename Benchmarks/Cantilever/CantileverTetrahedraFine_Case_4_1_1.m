@@ -5,7 +5,7 @@ materialType = 'ISOTROPIC';
 initial_case = 'full';
 cost = {'compliance'};
 weights = [1, 0.1];
-constraint = {'volume'};
+constraint = {'volumeConstraint'};
 optimizer = 'IPOPT'; kappaMultiplier = 1;
 filterType = 'P1';
 

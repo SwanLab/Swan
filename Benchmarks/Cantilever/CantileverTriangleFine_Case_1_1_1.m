@@ -1,15 +1,16 @@
-filename='Cantilever_triangle_fine';
- ptype = 'MACRO';
+%filename='Cantilever_triangle_fine';
+filename='CantileverBeam_Triangle_FineFine';
+ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
 cost = {'compliance'};
 weights = [1, 0.1];
-constraint = {'volume'};
+constraint = {'volumeConstraint'};
 optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 
-nsteps = 1;
+nsteps = 10;
 Vfrac_final = 0.4;
 Perimeter_target = 1;
 optimality_final = 1e-3;
@@ -24,3 +25,8 @@ TOL.E_plus = 1;
 TOL.E_minus = 1e-3;
 TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
+
+plotting = 0;
+printing = 0;
+monitoring = 0;
+monitoring_interval = 1;

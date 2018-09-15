@@ -2,7 +2,6 @@ classdef ShFunc_Chomog < Shape_Functional
     properties (Access = public)
         h_C_0
         Chomog
-        Msmooth
         tstress
         tstrain
         Chomog_Derivatives
@@ -16,12 +15,8 @@ classdef ShFunc_Chomog < Shape_Functional
         function obj=ShFunc_Chomog(settings)
             obj@Shape_Functional(settings);
             obj.physicalProblem = FEM.create(settings.filename);
-            
             obj.physicalProblem.preProcess;
-            diffReacProb = DiffReact_Problem(settings.filename);
-            diffReacProb.preProcess;
-            obj.Msmooth = diffReacProb.element.M;
-            obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method,diffReacProb.mesh.pdim);
+            obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method,settings.pdim);
         end
     end
     methods (Access = protected)

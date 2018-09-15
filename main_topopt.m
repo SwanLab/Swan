@@ -1,15 +1,16 @@
-
 clc; clear variables; close all;
 addpath(genpath(fileparts(mfilename('fullpath'))));
 
 % %% Test
-run('test_fem.m');
-run('test_topopt.m');
-run('test_integration.m')
+%run('test_fem.m');
+%run('test_topopt.m');
+%run('test_integration.m')
 clear variables;
 
 %% Main
-filenames={%'GrippingTriangleCoarse_Case_1_1_1';
+filenames={
+    'CantileverTriangleFine_Case_1_1_1'
+    %'GrippingTriangleCoarse_Case_1_1_1';
     %     'GrippingTriangleCoarse_Case_2_1_1';
     %     'GrippingTriangleCoarse_Case_3_1_1';
     %     'GrippingTriangleCoarse_Case_4_1_1';
@@ -36,7 +37,7 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
 %         'CantileverQuadrilateral_Case_1_2_1';
 %         'CantileverQuadrilateral_Case_1_2_2'
 %         'CantileverQuadrilateral_Case_5_2_1'
-%         'CantileverTriangle_Case_1_2_1'
+%        'CantileverTriangle_Case_1_2_1'
 %         'CantileverTriangle_Case_2_2_1'
 %         'CantileverTriangle_Case_3_2_1'
 %         'CantileverTriangle_Case_1_2_4'
@@ -44,7 +45,7 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
 %  'CantileverTriangle_Case_1_2_1'
 %         'BridgeQuadrilateral_Case_5_1_1'
 %         'BridgeQuadrilateral_Case_5_2_1'
- %        'BridgeQuadrilateral_Allaire'
+%         'BridgeQuadrilateral_Allaire'
 %         'BridgeQuadrilateral_Case_5_3_1'
 %         'CantileverHexahedra_Case_1_1_1'
 % 'CantileverHexahedra_Case_1_1_2'
@@ -73,7 +74,10 @@ filenames={%'GrippingTriangleCoarse_Case_1_1_1';
 % 'CantileverTetrahedra_Case_5_1_2'
 % 'test_cantilever3'
 % 'BridgeQuadrilateral_Case_5_2_1'
+    %'test_cantilever3'
+%    'CantileverTriangle_Case_1_2_2'
     };
+
 for icases=1:size(filenames,1)
     clearvars -except filenames icases;
     close all;
@@ -82,5 +86,5 @@ for icases=1:size(filenames,1)
     test = TopOpt_Problem(settings);
     test.preProcess;
     test.computeVariables;
-    test.postProcess;    
+    test.postProcess;
 end

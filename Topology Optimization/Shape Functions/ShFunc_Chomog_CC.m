@@ -8,9 +8,8 @@ classdef ShFunc_Chomog_CC < ShFunc_Chomog %%NOT WORKING%%
         function obj=ShFunc_Chomog_CC(settings)
             obj@ShFunc_Chomog(settings);
             obj.compute_Ch_star(settings.TOL, settings.selectiveC_Cstar);
-%             obj.selectiveC_Cstar=settings.selectiveC_Cstar;
         end
-        function computef(obj,x)
+        function computeCostAndGradient(obj,x)
             obj.computePhysicalData(x);
             
             %Cost
