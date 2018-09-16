@@ -9,7 +9,7 @@ clear variables;
 
 %% Main
 filenames={
-    'CantileverTriangleFine_Case_1_1_1'
+   % 'CantileverTriangleFine_Case_1_1_1'
     %'GrippingTriangleCoarse_Case_1_1_1';
     %     'GrippingTriangleCoarse_Case_2_1_1';
     %     'GrippingTriangleCoarse_Case_3_1_1';
@@ -69,7 +69,7 @@ filenames={
 %         'SphereHexahedra_Test_32'
 %     'SphereTetrahedra_Test_8'
 % 'BridgeTetrahedraCoarse_Case_1_1_1'
-% 'CantileverTetrahedra_Case_5_1_1'
+ 'CantileverTetrahedra_Case_1_1_1'
 % 'CantileverTetrahedraCoarse_Case_1_1_1'
 % 'CantileverTetrahedra_Case_5_1_2'
 % 'test_cantilever3'

@@ -1,6 +1,11 @@
-classdef StiffnessEntries < handle
+classdef StiffnessVectorGenerator < handle
    
     properties
+       values 
+    end
+    
+    
+    properties (Access = private)
         Entries
         changedElem
         nChangedElements
@@ -23,27 +28,27 @@ classdef StiffnessEntries < handle
     
     methods
         
-        function obj = StiffnessEntries(dim,TotalB,TotalDvolum)
+        function obj = StiffnessVectorGenerator(dim,TotalB,TotalDvolum)
             obj.dim         = dim;
             obj.TotalB      = TotalB;
             obj.Dvolum      = TotalDvolum;
         end
         
-        function Stiffness = compute(obj,Cmat,changedElements)
-            obj.init(Cmat,changedElements)
+        function compute(obj,DeltaC)
+            obj.init(DeltaC)
             for igaus=1:obj.dim.ngaus
                 obj.computeDvolum(igaus)
                 obj.computePartialB(igaus)
                 obj.computeCtimesBmatrix();
                 obj.computeStiffnessEntries();
             end
-            Stiffness = obj.Kvalues;
+            obj.values = obj.Kvalues;
         end
         
-        function init(obj,Cmat,changedElements)
-            obj.changedElem      = changedElements;
-            obj.nChangedElements = sum(obj.changedElem);
-            obj.Cmat             = Cmat(:,:,obj.changedElem);
+        function init(obj,DeltaC)
+            obj.changedElem      = DeltaC.changedElements.values;
+            obj.nChangedElements = DeltaC.changedElements.number;
+            obj.Cmat             = DeltaC.Cmat(:,:,obj.changedElem);
             obj.Entries          = EntryIndex(obj.nChangedElements);
             
             obj.compute_nKvalues()

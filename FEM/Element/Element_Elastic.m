@@ -7,6 +7,7 @@ classdef Element_Elastic < Element
         interpolation_u
         K
         K_generator
+        DeltaC
     end
     
     methods (Static) %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?obj})
@@ -36,29 +37,67 @@ classdef Element_Elastic < Element
             obj.nstre = nstre;
             obj.nfields=1;
             obj.interpolation_u = Interpolation.create(mesh,'LINEAR');
-            obj.K_generator = StiffnessMatrixGenerator(obj);
+            
+            obj.initialize_dvolum()
+            Bmat   = obj.computeBmat();
+            dvolum = obj.geometry.dvolu;
+            ngaus  = obj.quadrature.ngaus;
+            
+            dim                = DimensionVariables();
+            dim.nnode          = obj.nnode;
+            dim.nunkn          = obj.dof.nunkn;
+            dim.nstre          = obj.nstre;
+            dim.ndof           = obj.dof.ndof;
+            dim.nelem          = obj.nelem;
+            dim.ndofPerElement = dim.nnode*dim.nunkn;
+            dim.ngaus          = ngaus;
+            dim.nentries       = dim.nelem*(dim.ndofPerElement)^2;
+            
+            connec = obj.geometry.interpolation.T;
+            
+%            obj.DeltaC = ContitutiveTensorIncrement();
+            
+            obj.K_generator = StiffnessMatrixGenerator(connec,Bmat,dvolum,dim);
         end
         
-        %         function r = computeResidual(obj,x,Kred)
-        %             fext_red = obj.computeRHS;
-        %             fint_red = Kred*x;
-        %
-        %             r = fint_red - (fext_red);
-        %         end
-        %
-        %         function dr = computedr(obj)
-        %             Kred = obj.computeLHS;
-        %             dr = Kred;
-        %         end
+        function Bmat = computeBmat(obj)
+            ngaus = obj.quadrature.ngaus;
+            nnode = obj.interpolation_u.nnode;
+            nunkn = obj.dof.nunkn;
+            nstre = obj.nstre;
+            nelem = obj.nelem;
+            
+            Bmat = zeros(ngaus,nstre,nnode*nunkn,nelem);
+            for igaus = 1:ngaus
+                Bmat(igaus,:,:,:) = obj.computeB(igaus);
+            end
+        end
+        
+        
+        function initialize_dvolum(obj)
+            obj.computeQuadrature()
+            obj.computeInterpolation()
+            obj.computeGeometry() 
+        end
+        
+        function computeQuadrature(obj)
+            obj.quadrature.computeQuadrature('LINEAR');
+        end
+        
+        function computeInterpolation(obj)
+            obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
+        end
+        
+        function computeGeometry(obj)
+            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
+        end
         
         function Kred = computeLHS(obj)
-            % !! Ha d'estar reduit o no?? !! Entenc que si.
             obj.K = obj.computeStiffnessMatrix;
             Kred = obj.full_matrix_2_reduced_matrix(obj.K);
         end
         
         function fext_red = computeRHS(obj)
-            % !! Ha d'estar reduit o no?? !! Entenc que si.
             Fext = obj.computeExternalForces;
             R = obj.compute_imposed_displacement_force(obj.K);
             obj.fext = Fext + R;
@@ -66,8 +105,6 @@ classdef Element_Elastic < Element
         end
         
         function [K] = computeStiffnessMatrix(obj)
-           % K = obj.compute_elem_StiffnessMatrix;
-           % [K] = obj.AssembleMatrix(K,1,1);
             [K] = obj.computeStiffnessMatrixSYM;            
         end
         
@@ -110,9 +147,41 @@ classdef Element_Elastic < Element
             K = Ke;
         end
         function K = computeStiffnessMatrixSYM(obj)
+           %  obj.DeltaC.obtainChangedElements(obj.material.C)
              obj.K_generator.generate(obj.material.C);
              K = obj.K_generator.getStiffMatrix();
+             
+             
+%              ndofPerElement = obj.nnode*obj.dof.nunkn;
+%              Bfull = zeros(obj.quadrature.ngaus,obj.nstre,ndofPerElement,obj.nelem);
+%              Bfull2 = zeros(obj.quadrature.ngaus*obj.nelem*obj.nstre,ndofPerElement);
+%              for igaus = 1:obj.quadrature.ngaus
+%                  unitaryIndex = false(obj.quadrature.ngaus*obj.nstre,1);
+%                  pos = obj.nstre*(igaus-1) + 1 : obj.nstre*(igaus) ;
+%                  unitaryIndex(pos) = true;
+%                  
+%                 Index = repmat(unitaryIndex,obj.nelem,1); 
+%                 Bfull(igaus,:,:,:) = obj.computeB(igaus);
+%                 Bshif = reshape(permute(obj.computeB(igaus),[1 3 2]),obj.nelem*obj.nstre,ndofPerElement);
+%                 Bfull2(Index,:) = Bshif;
+%              end
+%              
+%             dim                = DimensionVariables();
+%             dim.nnode          = obj.nnode;
+%             dim.nunkn          = obj.dof.nunkn;
+%             dim.nstre          = obj.nstre;
+%             dim.ndof           = obj.dof.ndof;
+%             dim.nelem          = obj.nelem;
+%             dim.ndofPerElement = dim.nnode*dim.nunkn;
+%             dim.ngaus          = obj.quadrature.ngaus;
+%             dim.nentries       = dim.nelem*(dim.ndofPerElement)^2;
+%              
+%              conec = obj.geometry.interpolation.T;
+%              K2 = KGeneratorWithfullStoredB(Bfull2,dim,conec,obj.material.C,obj.geometry.dvolu);
+%              K = K2.K; 
         end
+        
+        
     end
     
     methods(Access = protected) 

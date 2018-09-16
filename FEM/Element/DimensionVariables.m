@@ -8,7 +8,7 @@ classdef DimensionVariables
         nelem
         ndofPerElement 
         ngaus
-        nStiffnesEntries
+        nentries
     end
     
     methods
