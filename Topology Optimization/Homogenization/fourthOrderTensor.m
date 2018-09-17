@@ -103,7 +103,12 @@ classdef fourthOrderTensor < handle
                         for l = 1:size(A,4)
                             iv = obj.transformTensorIndex2VoigtIndex(i,j);
                             jv = obj.transformTensorIndex2VoigtIndex(k,l);
-                            Cv(iv,jv) = A(i,j,k,l);
+                            
+                            
+                            factor = obj.computeVoigtFactor(iv,jv);
+                            
+                            
+                            Cv(iv,jv) = factor*A(i,j,k,l);
                         end
                     end
                 end
@@ -121,14 +126,28 @@ classdef fourthOrderTensor < handle
             end
         end
         
-        
+        function factor = computeVoigtFactor(obj,iv,jv)
+            if iv <= 3 && jv <= 3
+                factor = 1;
+            elseif iv > 3 && jv <= 3
+                factor = 1;
+            elseif iv <= 3 && jv > 3
+                factor = sqrt(2);
+            elseif iv > 3 && jv > 3
+                factor = 0.5;
+            end
+        end
 
     
         
     end
     
+    
+    
      methods (Static, Access = protected)
         
+  
+         
         function  [istre,jstre] = transformVoigt2Tensor(ind)
             
             Voight2Tensor =    [1 1;

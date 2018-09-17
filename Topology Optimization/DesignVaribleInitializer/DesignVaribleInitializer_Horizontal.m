@@ -9,7 +9,9 @@ classdef DesignVaribleInitializer_Horizontal < DesignVaribleInitializer
         end
         
         function x = compute_initial_x(obj)
-            initial_holes = obj.mesh.coord(:,2) > 0.6 | obj.mesh.coord(:,2) < 0.4;
+%            initial_holes = obj.mesh.coord(:,2) > 0.6 | obj.mesh.coord(:,2) < 0.4;
+            initial_holes = obj.mesh.coord(:,2) < 0.6 & obj.mesh.coord(:,2) > 0.4;
+
             obj.x(initial_holes) = obj.hole_value;
             x = obj.x;
         end

@@ -5,7 +5,7 @@ classdef Material_Elastic_ISO_2D < Material_Elastic_ISO
     properties
     end
     
-    methods (Access = ?Material)
+    methods 
         function obj = Material_Elastic_ISO_2D(nelem)
             obj@Material_Elastic_ISO(nelem);
         end

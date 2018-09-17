@@ -9,12 +9,21 @@ classdef SequentialLaminateHomogenizer < handle
     
     methods
         
-        function obj = SequentialLaminateHomogenizer()
+        function obj = SequentialLaminateHomogenizer(MuStiff,KappaStiff,MuWeak,KappaWeak,direction)
             
-            E_Fiber   = 1;
-            E_Matrix  = 1e-3;
-            nu_Fiber  = 1/3;
-            nu_Matrix = 1/3;
+            KappaFiber = KappaStiff;
+            KappaMatrix = KappaWeak;
+            MuFiber = MuStiff;
+            MuMatrix = MuWeak;
+            
+            E = @(mu,kappa)  4*kappa*mu./(kappa + mu);
+            nu = @(mu,kappa) (kappa - mu)./(kappa + mu);
+            
+            
+            EyoungFiber   = E(MuFiber,KappaFiber);
+            EyoungMatrix  = E(MuMatrix,KappaMatrix);
+            NuFiber  = nu(MuFiber,KappaFiber);
+            NuMatrix = nu(MuMatrix,KappaMatrix);
             
             %E_Fiber = sym('E','positive');
             %nu_Fiber = sym('nu','positive');
@@ -25,13 +34,12 @@ classdef SequentialLaminateHomogenizer < handle
             %E_Fiber = mu*(3*lambda+2*mu)/(lambda + mu);
             %nu_Fiber = lambda/(2*(lambda+mu));
             
-            obj.FiberConstitutiveTensor  = IsotropicConstitutiveTensor3D(E_Fiber,nu_Fiber);
-            obj.MatrixConstitutiveTensor = IsotropicConstitutiveTensor3D(E_Matrix,nu_Matrix);
+            obj.FiberConstitutiveTensor  = IsotropicConstitutiveTensor3D(EyoungFiber,NuFiber);
+            obj.MatrixConstitutiveTensor = IsotropicConstitutiveTensor3D(EyoungMatrix,NuMatrix);
             
             %d1 = sym('d1','real');
             %d2 = sym('d2','real');
-            d1 = 1; d2 = 0; d3 = 1;
-            direction = [d1 d2 d3];            
+           
             direction = direction/norm(direction);
             
             obj.ComplementaryTensor = ComplementaryTensor(obj.FiberConstitutiveTensor,direction);

@@ -29,7 +29,7 @@ classdef IsotropicConstitutiveTensor < fourthOrderTensor
         end
         
         function computeShearModulus(obj)
-            obj.mu = (obj.E/(2*(1-obj.nu)));
+            obj.mu = (obj.E/(2*(1+obj.nu)));
             
             if isUnit(obj.mu)
                obj.mu = simplify(obj.mu);

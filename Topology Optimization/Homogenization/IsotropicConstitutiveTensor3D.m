@@ -19,6 +19,7 @@ classdef IsotropicConstitutiveTensor3D < IsotropicConstitutiveTensor
            dim = 3;
            %obj.tensor = zeros(dim,dim,dim,dim);
            I = eye(dim,dim); 
+          % I(3,3) = 1/sqrt(2);
                for i = 1:dim
                     for j = 1:dim
                         for k = 1:dim
