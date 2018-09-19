@@ -20,6 +20,47 @@ classdef fourthOrderTensor < handle
             obj.tensorVoigtInPlaneStress = obj.transform3D_2_PlaneStressInVoigt(obj.tensorVoigt);
         end
         
+        function MakeMajorAndMinorSymmetrization(obj)
+            A = zeros(3,3,3,3);
+             for i = 1:size(A,1)
+                for j = 1:size(A,2)
+                    for k = 1:size(A,3)
+                        for l = 1:size(A,4)
+                           A(i,j,k,l) = 1/16*(obj.tensor(i,j,k,l) + ...
+                                              obj.tensor(j,i,k,l) + ...
+                                              obj.tensor(i,j,l,k) + ...
+                                              obj.tensor(j,i,l,k) + ... 
+                                              ...
+                                              obj.tensor(k,l,i,j) + ...
+                                              obj.tensor(l,k,i,j) + ...
+                                              obj.tensor(k,l,j,i) + ...
+                                              obj.tensor(l,k,j,i) );
+                                            %                                               ...
+%                                               obj.tensor(i,k,j,l) + ...
+%                                               obj.tensor(k,i,j,l) + ...
+%                                               obj.tensor(i,k,l,j) + ...
+%                                               obj.tensor(k,i,l,j) + ...
+%                                               ...
+%                                               obj.tensor(j,l,i,k) + ...                                              
+%                                               obj.tensor(l,j,i,k) + ...
+%                                               obj.tensor(j,l,k,i) + ...
+%                                               obj.tensor(l,j,k,i) ...
+                                       %   );
+                        end
+                    end
+                end
+             end
+            
+            obj.tensor = A;
+            
+        end
+        
+        function createRandomTensor(obj)
+            obj.tensor = rand(3,3,3,3);           
+        end
+        
+        
+        
         function  Gt = transform3D_2_PlaneStressInVoigt(obj,tensorVoigt)
             
             %epsilon = sym('eps',[3 3],'real');
@@ -60,6 +101,7 @@ classdef fourthOrderTensor < handle
 
             sigmaVoigt = tensorVoigt *epsilonVoigt(:);
             sigmaVoigt = simplify(sigmaVoigt);
+            Gt = sym(zeros(3,3));
             for i = 1:length(is)
             [R,T] = coeffs(sigmaVoigt(is(i)),epsilonVoigt(is));
               if ~isempty(R)
@@ -88,12 +130,6 @@ classdef fourthOrderTensor < handle
 
         end
         
-      
-        
-    end
-    
-    methods (Access = protected)
-        
         function  Cv = RespresentTensorinVoigt(obj,A)
             %Cv = zeros(9,9);
             Cv = sym('Cv',[6 6]);
@@ -115,6 +151,13 @@ classdef fourthOrderTensor < handle
             end
         end
         
+      
+        
+    end
+    
+    methods (Access = protected)
+        
+   
         function vect = RepresentSymm2ndOrderTensorInVoigt(obj,A)
             
             vect = sym(zeros(6,1));
@@ -130,12 +173,13 @@ classdef fourthOrderTensor < handle
             if iv <= 3 && jv <= 3
                 factor = 1;
             elseif iv > 3 && jv <= 3
-                factor = 1;
+                factor = sqrt(2);
             elseif iv <= 3 && jv > 3
                 factor = sqrt(2);
             elseif iv > 3 && jv > 3
                 factor = 0.5;
             end
+            factor = 1;
         end
 
     

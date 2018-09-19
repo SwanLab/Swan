@@ -45,7 +45,7 @@ classdef testHomogenization < handle
             
             SeqLam = SequentialLaminateHomogenizer(matPropsStiff.mu,matPropsStiff.kappa, ...
                                                   matPropsWeak.mu,matPropsWeak.kappa,direction);
-
+           % obj.ChToCheck = SeqLam.Chomog;
             obj.ChToCheck = Chomog;
         end
         

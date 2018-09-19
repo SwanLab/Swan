@@ -24,7 +24,7 @@ classdef IsotropicConstitutiveTensor3D < IsotropicConstitutiveTensor
                     for j = 1:dim
                         for k = 1:dim
                             for l = 1:dim
-                                T(i,j,k,l) =  2*obj.mu*I(i,k)*I(j,l) + obj.lambda*I(i,j)*I(k,l);
+                                T(i,j,k,l) =  obj.mu*(I(i,k)*I(j,l) + I(i,l)*I(j,k)) + obj.lambda*I(i,j)*I(k,l);
                             end
                         end
                     end

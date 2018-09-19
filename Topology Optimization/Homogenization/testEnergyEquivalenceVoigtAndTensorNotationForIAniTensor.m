@@ -1,4 +1,4 @@
-classdef testEnergyEquivalenceVoigtAndTensorNotationForIsoTensor < handle
+classdef testEnergyEquivalenceVoigtAndTensorNotationForIAniTensor < handle
     
     properties
         fileName = 'testEnergyEquivalenceVoigtAndTensorNotationForIsoTensor';
@@ -12,7 +12,7 @@ classdef testEnergyEquivalenceVoigtAndTensorNotationForIsoTensor < handle
     
     methods
         
-        function obj = testEnergyEquivalenceVoigtAndTensorNotationForIsoTensor()
+        function obj = testEnergyEquivalenceVoigtAndTensorNotationForIAniTensor()
             obj.printHeader()
             obj.init()
             obj.computeVoigtEnergy();
@@ -23,7 +23,10 @@ classdef testEnergyEquivalenceVoigtAndTensorNotationForIsoTensor < handle
         
         function init(obj)
             obj.strain = StrainTensor();
-            obj.Ch = IsotropicConstitutiveTensor3D(1,1/3);
+            obj.Ch = fourthOrderTensor();
+            obj.Ch.createRandomTensor();
+            obj.Ch.MakeMajorAndMinorSymmetrization()
+            obj.Ch.tensorVoigt = obj.Ch.RespresentTensorinVoigt(obj.Ch.tensor);
             obj.stress = StressTensor();
             obj.stress.tensor      = obj.compute4and2orderTensorProduct(obj.Ch.tensor,obj.strain.tensor);
             obj.stress.tensorVoigt = obj.compute4and2orderVoigtProduct(obj.Ch.tensorVoigt,obj.strain.tensorVoigt);
