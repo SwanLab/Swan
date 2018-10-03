@@ -8,13 +8,13 @@ classdef Material_Interpolation_ISO_SIMPALL < Material_Interpolation
         kappa_sym        
     end
     methods
-        function obj=Material_Interpolation_ISO_SIMPALL(HSbounds)
-            obj.rho_plus=HSbounds.rho_plus;
-            obj.rho_minus=HSbounds.rho_minus;
-            obj.E_plus=HSbounds.E_plus;
-            obj.E_minus=HSbounds.E_minus;
-            obj.nu_plus=HSbounds.nu_plus;
-            obj.nu_minus=HSbounds.nu_minus;
+        function obj=Material_Interpolation_ISO_SIMPALL(MaterialParameters)
+            obj.rho_plus=MaterialParameters.rho_plus;
+            obj.rho_minus=MaterialParameters.rho_minus;
+            obj.E_plus=MaterialParameters.E_plus;
+            obj.E_minus=MaterialParameters.E_minus;
+            obj.nu_plus=MaterialParameters.nu_plus;
+            obj.nu_minus=MaterialParameters.nu_minus;
         end
         function computeSymProps(obj, rho)
             ngauss=length(rho(1,:));

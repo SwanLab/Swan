@@ -4,12 +4,12 @@ method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
 cost = {'compliance';'perimeter'};
-weights = [1 0.1];
-constraint = {'volume'};
+weights = [1 0.01];
+constraint = {'volumeConstraint'};
 optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 
-nsteps = 5;
+nsteps = 3;
 Vfrac_final = 0.4;
 Perimeter_target=1;
 optimality_final =1e-3;

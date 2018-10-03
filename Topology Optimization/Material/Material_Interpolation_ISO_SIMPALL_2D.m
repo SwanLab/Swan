@@ -2,8 +2,8 @@ classdef Material_Interpolation_ISO_SIMPALL_2D < Material_Interpolation_ISO_SIMP
     properties        
     end
     methods
-        function obj=Material_Interpolation_ISO_SIMPALL_2D(HSbounds)
-            obj@Material_Interpolation_ISO_SIMPALL(HSbounds);
+        function obj=Material_Interpolation_ISO_SIMPALL_2D(MaterialParameters)
+            obj@Material_Interpolation_ISO_SIMPALL(MaterialParameters);
         end
         function matProps=computeMatProp(obj, rho)
             dC=zeros(3,3,size(rho,1));

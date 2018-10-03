@@ -12,7 +12,7 @@
 %% Data
 
 Data_prb = {
-'Default_title';
+'TRIANGLE';
 'SI';
 '2D';
 'Plane_Stress';

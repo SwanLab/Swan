@@ -15,14 +15,9 @@ classdef Elastic_Problem_Micro < Elastic_Problem
         function obj = Elastic_Problem_Micro(problemID)
             obj@Elastic_Problem(problemID);
             obj.dof = DOF_Elastic_Micro(problemID,obj.geometry,obj.mesh);
-            
-            % Just to match Ferran's code%%%%%%%%%%%%%%%%%%%
-            props.mu=0.375;
-            props.kappa = 0.75;
-            obj.material = obj.material.setProps(props);
-%             obj.element.material = obj.element.material.setProps(props);
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
         end       
+
         
         function [Chomog,tstrain,tstress] = computeChomog(obj)      
             obj.element.quadrature.computeQuadrature('LINEAR');
@@ -46,4 +41,3 @@ classdef Elastic_Problem_Micro < Elastic_Problem
         end
     end
 end
-

@@ -23,6 +23,8 @@ classdef CC < handle
                         obj.ShapeFuncs{iSF} = ShFunc_Compliance(settings_this,postprocess_TopOpt);
                     case 'perimeter'
                         obj.ShapeFuncs{iSF} = ShFunc_Perimeter(settings_this);
+                    case 'perimeterConstraint'
+                        obj.ShapeFuncs{iSF} = Perimeter_constraint(settings_this);
                     case 'chomog_alphabeta'
                         obj.ShapeFuncs{iSF} = ShFunc_Chomog_alphabeta(settings_this);
                     case 'chomog_fraction'
@@ -49,6 +51,8 @@ classdef CC < handle
                         obj.ShapeFuncs{iSF} = ShFunc_NonSelfAdjoint_Compliance(settings_this);
                     case 'volume'
                         obj.ShapeFuncs{iSF} = ShFunc_Volume(settings_this);
+                    case 'volumeConstraint'
+                        obj.ShapeFuncs{iSF} = Volume_constraint(settings_this);                        
                     otherwise
                         error('Wrong cost name or not added to Cost Object')
                 end
@@ -62,12 +66,12 @@ classdef CC < handle
             end
         end
         
-        function computef(obj, x)
+        function computeCostAndGradient(obj, x)
             obj.value = 0;
             obj.gradient = zeros(length(x),1);
             for iSF = 1:length(obj.ShapeFuncs)
                 obj.updateTargetParameters(iSF);
-                obj.ShapeFuncs{iSF}.computef(x);
+                obj.ShapeFuncs{iSF}.computeCostAndGradient(x);
                 obj.updateFields(iSF);
             end
         end

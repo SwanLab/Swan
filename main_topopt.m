@@ -2,14 +2,13 @@ clc; clear variables; close all;
 addpath(genpath(fileparts(mfilename('fullpath'))));
 
 %% Test
-run('test_fem.m');
+% run('test_fem.m');
 run('test_topopt.m');
 run('test_integration.m')
 clear variables;
 
 %% Main
 filenames={
-    
 'CantileverbeamHexahedraSYM_Case_5_1_6'
     
 % 'CantileverTetrahedraSYM_Case_1_1_1'
@@ -28,9 +27,8 @@ filenames={
 
 %     'ThroneTetrahedraSYM_Case_1_1_5'
 %     'ThroneTetrahedraSYM_Case_5_1_2'
-
-
 };
+
 for icases=1:size(filenames,1)
     tic
     clearvars -except filenames icases;

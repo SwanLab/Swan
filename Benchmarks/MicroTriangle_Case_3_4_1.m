@@ -5,7 +5,7 @@ materialType = 'ISOTROPIC';
 initial_case = 'circle';
 cost={'chomog_fraction';'perimeter'};
 weights=[1 0.1];
-constraint = {'volume'};
+constraint = {'volumeConstraint'};
 optimizer = 'MMA'; kappaMultiplier = 1;
 filterType = 'P1';
 
