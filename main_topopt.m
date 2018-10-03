@@ -40,15 +40,6 @@ for icases=1:size(filenames,1)
         test.preProcess;
         test.computeVariables;
         test.postProcess;
-        
-        time = toc;
-        for iSF = 1:test.cost.nSF
-            cost(1,iSF) = test.cost.ShapeFuncs{iSF}.value;
-        end
-        for iSF = 1:test.constraint.nSF
-            constraint(1,iSF) = test.constraint.ShapeFuncs{iSF}.value;
-        end
-        save(filenames{icases})
 %     end
 end
 close all
