@@ -1,0 +1,80 @@
+BeginZE C:\Users\Oriol\Desktop\ShapeOp_Plot\Output\ORIOL_CantileverTetrahedraSYM_Case_1_1_1\ORIOL_CantileverTetrahedraSYM_Case_1_1_1_147.flavia.vv
+   x -2.1727042198181152 5.1625304222106934
+   y 1.663399338722229 -1.6532255411148071
+   z -2.1605889797210693 1.1637954711914062
+   e 1.6583124399185181
+   v 0.24999999369080386 0.43301272010529845 0.75000000630919517
+   r 0.43301267639390845
+   m -0.50000005960464478 -0.43301266431808472 0.75 0 0.86602538824081421 -0.25 0.43301275372505188 0 0 0.86602544784545898 0.49999997019767761 0 0 0 0 1
+   c 1.4964669942855835 0 0.49839678406715393
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector 90 90 150 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE C:\Users\Oriol\Desktop\ShapeOp_Plot\Output\ORIOL_CantileverTetrahedraSYM_Case_1_1_1\ORIOL_CantileverTetrahedraSYM_Case_1_1_1_147.flavia.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+
+
+BeginPostState
+BeginSingleMesh
+  Num meshes: 2
+  Num sets: 0
+  Num cuts: 0
+  Mesh: 0
+  State: On
+    Name: "WORKPIECE 1"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 1
+    Property Transparent: 0
+    Property Style: 3932221
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndMesh: 0
+  Mesh: 1
+  State: On
+    Name: "Mirrored 2"
+    IdSet: 2
+    Color Type: 0
+    Color Ambient: 0 0 0.3 0.5
+    Color Diffuse: 0 0 1 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 1
+    Property Transparent: 0
+    Property Style: 3932221
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndMesh: 1
+EndSingleMesh
+  Post_Prefs_Vector_Size: 0 32 32 32
+  ResultView: {Id 447} {Contour Fill} {Elastic Problem} 147.0 LevelSet LS 0.0 4 4
+EndPostState
+
