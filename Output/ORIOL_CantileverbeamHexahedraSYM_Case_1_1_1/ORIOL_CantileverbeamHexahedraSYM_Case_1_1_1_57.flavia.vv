@@ -1,0 +1,64 @@
+BeginZE C:/Users/Oriol/Desktop/ShapeOp_Plot/Output/ORIOL_CantileverbeamHexahedraSYM_Case_1_1_1/ORIOL_CantileverbeamHexahedraSYM_Case_1_1_1_57.flavia.vv
+   x -1.9983961582183838 4.5829677581787109
+   y 1.7935315370559692 -1.1822308301925659
+   z -2.1583123207092285 1.1583124399185181
+   e 1.6583124399185181
+   v 0.28335968885262036 0.49567962422386386 0.7084887133165958
+   r 0.41479238964144327
+   m -0.49530908465385437 -0.3068402111530304 0.81272256374359131 0 0.86866271495819092 -0.16449794173240662 0.46729594469070435 0 -0.009693988598883152 0.93743771314620972 0.34801799058914185 0 0 0 0 1
+   c 1.5 0.25 0.5
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector 90 90 150 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE C:/Users/Oriol/Desktop/ShapeOp_Plot/Output/ORIOL_CantileverbeamHexahedraSYM_Case_1_1_1/ORIOL_CantileverbeamHexahedraSYM_Case_1_1_1_57.flavia.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+
+
+BeginPostState
+BeginSingleMesh
+  Num meshes: 1
+  Num sets: 0
+  Num cuts: 0
+  Mesh: 0
+  State: On
+    Name: "WORKPIECE 1"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 1
+    Property Transparent: 0
+    Property Style: 3932221
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndMesh: 0
+EndSingleMesh
+  Post_Prefs_Vector_Size: 0 32 32 32
+  ResultView: {Id 11} {Contour Fill} {Elastic Problem} 57.0 LevelSet LS 0.0 4 4
+EndPostState
+
