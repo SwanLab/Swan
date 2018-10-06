@@ -1,3 +1,15 @@
+%==========================================================================
+%                        General Data File
+% Title: TRIANGLE
+% Units: SI
+% Dimensions: 2D
+% Type of problem: Plane_Stress
+% Type of Phisics: ELASTIC
+% Micro/Macro: MICRO
+%
+%==========================================================================
+
+%% Data
 
 Data_prb = {
     'TRIANGLE';

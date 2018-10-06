@@ -1,7 +1,0 @@
-run('testHomogenization')
-run('testFourthOrderTensor')
-run('testSymmetrizeIsotropicFourthOrderTensor')
-run('testSymmetrizeFourthOrderTensor')
-run('testEnergyEquivalenceVoigtAndTensorNotationForIsoTensor')
-run('testSymmetryForIAniTensorInVoigt')
-run('testEnergyEquivalenceVoigtAndTensorNotationForIAniTensor')

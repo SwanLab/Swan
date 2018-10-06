@@ -36,4 +36,5 @@ fprintf('\n-------------------------------------------\n\n')
 
 test2dFourquad
 testStiffnessMatrixGenerator
+HomogenizationTests
 toc
