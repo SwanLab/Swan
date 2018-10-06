@@ -5,9 +5,9 @@ clear; close all;
 fprintf('Running TopOpt tests...\n')
 
 %% Test Declaration -------------------------------------------------------
-tests_topopt = {'test_cantilever','test_cantilever2','test_projected_slerp','test_cantilever3','test_gripping','test_bridge','test_micro','test_micro2','test_bridge2'};
+tests_topopt = {'test_micro','test_cantilever','test_cantilever2','test_projected_slerp','test_cantilever3','test_gripping','test_bridge','test_micro2','test_bridge2'};
 
-
+tic
 %% Run Top Opt Tests ------------------------------------------------------
 for i = 1:length(tests_topopt)
     clearvars -except tests_topopt i
@@ -36,3 +36,5 @@ fprintf('\n-------------------------------------------\n\n')
 
 test2dFourquad
 testStiffnessMatrixGenerator
+HomogenizationTests
+toc

@@ -1,5 +1,5 @@
 filename='Cantilever_tetrahedra';
- ptype = 'MACRO';
+ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';

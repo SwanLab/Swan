@@ -27,6 +27,10 @@ classdef DesignVaribleInitializer < handle
                     obj = DesignVaribleInitializer_Holes(settings,mesh,epsilon);
                 case 'full'
                     obj = DesignVaribleInitializer_Full(settings,mesh,epsilon);
+                case 'orientedFiber'
+                    %To be changed! Not appropiate way of creating
+                    %sublcasses
+                    %obj = DesignVaribleInitializer_orientedFiber(settings,mesh,epsilon,direction);
                 otherwise
                     error('Invalid initial value of design variable.');
             end
