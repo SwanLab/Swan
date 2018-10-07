@@ -2,9 +2,9 @@ clc; clear variables; close all;
 addpath(genpath(fileparts(mfilename('fullpath'))));
 
 % %% Test
-%run('test_fem.m');
-%run('test_topopt.m');
-%run('test_integration.m')
+% run('test_fem.m');
+run('test_topopt.m');
+run('test_integration.m')
 clear variables;
 
 %% Main
@@ -82,7 +82,9 @@ for icases=1:size(filenames,1)
     clearvars -except filenames icases;
     close all;
     settings=Settings(filenames{icases});
-    
+    settings.plotting=true;
+    settings.monitoring=false;
+    settings.initial_case="circle";
     test = TopOpt_Problem(settings);
     test.preProcess;
     test.computeVariables;

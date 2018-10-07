@@ -45,15 +45,21 @@ classdef Filter_LevelSet < handle
             end
         end
         
-        function shape_cut = integrateCut(obj,containing_cell,dvolu_cut)
-            dvolu_frac = sum(obj.geometry.dvolu,2)/obj.geometry.interpolation.dvolu;
-            shape_cut = obj.geometry.interpolation.shape'.*dvolu_cut.*dvolu_frac(containing_cell);
+        function shape_cut = integrateCut(obj,containing_cell,dvolu_cut,pos_gp_del_natural)
+            dvolu_frac = sum(obj.geometry.dvolu,2)/obj.geometry.interpolation.dvolu;            
+            shape_cut=zeros(size(containing_cell,1),obj.geometry.interpolation.nnode);
+            for igauss=1:obj.quadrature_del.ngaus
+                obj.geometry.interpolation.computeShapeDeriv(pos_gp_del_natural(:,:,igauss)');
+                shape_cut = shape_cut+obj.geometry.interpolation.shape'.*dvolu_cut.*dvolu_frac(containing_cell)*obj.quadrature_del.weigp(igauss);
+            end
         end
         
         function pos_gp_del_natural = computePosGpDelaunayNatural(obj,subcell_coord)
-            pos_gp_del_natural = zeros(size(subcell_coord,1),size(subcell_coord,3));
-            for idime = 1:size(subcell_coord,3)
-                pos_gp_del_natural(:,idime) = subcell_coord(:,:,idime)*obj.interp_del.shape;
+            pos_gp_del_natural = zeros(size(subcell_coord,1),size(subcell_coord,3),size(obj.interp_del.shape,2));
+            for igauss=1:size(obj.interp_del.shape,2)
+                for idime = 1:size(subcell_coord,3)
+                    pos_gp_del_natural(:,idime,igauss) = subcell_coord(:,:,idime)*obj.interp_del.shape(:,igauss);
+                end
             end
         end
         
@@ -115,9 +121,9 @@ classdef Filter_LevelSet < handle
             obj.unfitted_mesh.computeDvoluCut;
             
             pos_gp_del_natural = obj.computePosGpDelaunayNatural(obj.unfitted_mesh.unfitted_cut_coord_iso_per_cell);
-            obj.geometry.interpolation.computeShapeDeriv(pos_gp_del_natural');
+%             obj.geometry.interpolation.computeShapeDeriv(pos_gp_del_natural');
             
-            shape_cut = obj.integrateCut(obj.unfitted_mesh.subcell_containing_cell,obj.unfitted_mesh.dvolu_cut);
+            shape_cut = obj.integrateCut(obj.unfitted_mesh.subcell_containing_cell,obj.unfitted_mesh.dvolu_cut,pos_gp_del_natural);
             shape_all = obj.assembleShapeValues(shape_cut);
             
             M2=obj.rearrangeOutputRHS(shape_all);
