@@ -14,7 +14,7 @@ classdef Filter_LevelSet < handle
     end
     
     properties (Access = private)
-        shapeValues_FullCells
+        shapeValues_FullCells % !! ONLY USED WHEN INTEGRATING INTERIOR CELLS !!
     end
     
     methods
@@ -47,7 +47,7 @@ classdef Filter_LevelSet < handle
             obj.unfitted_mesh.computeCutMesh(x);
             obj.unfitted_mesh.computeDvoluCut;
             
-            posgp_iso = obj.computePosGP(obj.unfitted_mesh.unfitted_cut_coord_iso_per_cell,obj.interpolation_unfitted,obj.quadrature_unfitted);
+            posgp_iso = obj.computePosGP(obj.unfitted_mesh.unfitted_coord_iso_per_cell,obj.interpolation_unfitted,obj.quadrature_unfitted);
             obj.geometry.interpolation.computeShapeDeriv(posgp_iso');
             
             shapeValues_CutCells = obj.integrateCutCells(obj.unfitted_mesh.cell_containing_subcell,obj.unfitted_mesh.dvolu_cut);

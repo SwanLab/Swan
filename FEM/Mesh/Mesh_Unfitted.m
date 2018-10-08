@@ -2,17 +2,18 @@ classdef Mesh_Unfitted < Mesh
     properties
         x_fitted
         x_unfitted
-        x_unfitted_cut
         
         full_cells
         empty_cells
         cut_cells
         
-        unfitted_cut_coord_iso
-        unfitted_cut_coord_iso_per_cell
-        unfitted_cut_coord_global
-        unfitted_cut_connec_iso
-        unfitted_cut_connec_global
+        % !! WEIRD THAT IT HAS TO MENTION ITSELF TO AVOID CONFUSION !!
+        % (This must be solved in future refactoring. NOT JUST REMOVE THE "unfitted" PREFIX)
+        unfitted_coord_iso
+        unfitted_coord_iso_per_cell
+        unfitted_coord_global
+        unfitted_connec_iso
+        unfitted_connec_global
         nodes_containing_cell
         cell_containing_subcell
         dvolu_cut
@@ -24,7 +25,7 @@ classdef Mesh_Unfitted < Mesh
     properties (Access = protected)
         fitted_geom_interpolation
         
-        unfitted_cut_coord_global_raw
+        unfitted_coord_global_raw
         
         max_subcells
         nnodes_subcell
@@ -59,30 +60,30 @@ classdef Mesh_Unfitted < Mesh
                 subcell_cutPoints_iso = Nodes_n_CutPoints_iso(active_nodes(:,:,icut),:,icut);
                 subcell_cutPoints_global = Nodes_n_CutPoints_global(active_nodes(:,:,icut),:,icut);
                 
-                [new_unfitted_cut_coord_iso,new_unfitted_cut_coord_global,new_x_unfitted_cut,new_interior_subcell_connec]...
+                [new_unfitted_coord_iso,new_unfitted_coord_global,new_x_unfitted,new_interior_subcell_connec]...
                     = obj.computeInteriorSubcells(obj.fitted_mesh.connec(icell,:),subcell_cutPoints_iso,subcell_cutPoints_global);
                 number_new_subcells = size(new_interior_subcell_connec,1);
-                number_new_coordinates = size(new_unfitted_cut_coord_iso,1);
+                number_new_coordinates = size(new_unfitted_coord_iso,1);
                 
                 new_nodes_containing_cell = repmat(icell,[number_new_coordinates 1]);
                 
                 upperBound_A = lowerBound_A + number_new_coordinates;
                 
-                obj.unfitted_cut_coord_iso(1+lowerBound_A:upperBound_A,:) = new_unfitted_cut_coord_iso;
-                obj.unfitted_cut_coord_global_raw(1+lowerBound_A:upperBound_A,:) = new_unfitted_cut_coord_global;
+                obj.unfitted_coord_iso(1+lowerBound_A:upperBound_A,:) = new_unfitted_coord_iso;
+                obj.unfitted_coord_global_raw(1+lowerBound_A:upperBound_A,:) = new_unfitted_coord_global;
                 obj.nodes_containing_cell(1+lowerBound_A:upperBound_A,:) = new_nodes_containing_cell;
-                obj.x_unfitted_cut(1+lowerBound_A:upperBound_A) = new_x_unfitted_cut;
+                obj.x_unfitted(1+lowerBound_A:upperBound_A) = new_x_unfitted;
                 
                 lowerBound_A = upperBound_A;
                 
                 new_cell_containing_subcell = repmat(icell,[number_new_subcells 1]);
                 upperBound_B = lowerBound_B + number_new_subcells;
-                obj.unfitted_cut_connec_iso(1+lowerBound_B:upperBound_B,:) = new_interior_subcell_connec;
+                obj.unfitted_connec_iso(1+lowerBound_B:upperBound_B,:) = new_interior_subcell_connec;
                 obj.cell_containing_subcell(1+lowerBound_B:upperBound_B,:) = new_cell_containing_subcell;
                 lowerBound_B = upperBound_B;
                 
                 upperBound_C = lowerBound_C + number_new_subcells;
-                obj.assignUnfittedCutCoordIsoPerCell(new_unfitted_cut_coord_iso,new_interior_subcell_connec,lowerBound_C,upperBound_C);
+                obj.assignUnfittedCutCoordIsoPerCell(new_unfitted_coord_iso,new_interior_subcell_connec,lowerBound_C,upperBound_C);
                 lowerBound_C = upperBound_C;
             end
             
@@ -90,8 +91,8 @@ classdef Mesh_Unfitted < Mesh
         end
         
         function computeGlobalConnectivities(obj)
-            obj.unfitted_cut_coord_global =  unique(obj.unfitted_cut_coord_global_raw,'rows','stable');
-            obj.unfitted_cut_connec_global = obj.computeFromLocalToGlobalConnectivities(obj.unfitted_cut_connec_global,obj.unfitted_cut_coord_global_raw,obj.unfitted_cut_coord_global,obj.unfitted_cut_connec_iso,obj.nodes_containing_cell,obj.cell_containing_subcell);
+            obj.unfitted_coord_global =  unique(obj.unfitted_coord_global_raw,'rows','stable');
+            obj.unfitted_connec_global = obj.computeFromLocalToGlobalConnectivities(obj.unfitted_connec_global,obj.unfitted_coord_global_raw,obj.unfitted_coord_global,obj.unfitted_connec_iso,obj.nodes_containing_cell,obj.cell_containing_subcell);
         end
         
         function [subcell_coord_iso,subcell_coord_global,subcell_x_value,interior_subcell_connec] = computeInteriorSubcells(obj,fitted_cell_connec,subcell_cutPoints_iso,subcell_cutPoints_global)
@@ -111,29 +112,30 @@ classdef Mesh_Unfitted < Mesh
         end
         
         function allocateMemory_Delaunay(obj)
-            obj.unfitted_cut_coord_iso = zeros(length(obj.cut_cells)*obj.max_subcells*obj.nnodes_subcell,obj.fitted_mesh.ndim);
-            obj.unfitted_cut_coord_global_raw = zeros(length(obj.cut_cells)*obj.max_subcells*obj.nnodes_subcell,obj.fitted_mesh.ndim);
-            obj.x_unfitted_cut = zeros(length(obj.cut_cells)*obj.max_subcells*obj.nnodes_subcell,1);
-            obj.unfitted_cut_connec_iso = zeros(length(obj.cut_cells)*obj.max_subcells,obj.nnodes_subcell);
-            obj.unfitted_cut_coord_iso_per_cell = zeros(length(obj.cut_cells)*obj.max_subcells,obj.nnodes_subcell,obj.fitted_mesh.ndim);
-            obj.unfitted_cut_connec_global = zeros(length(obj.cut_cells)*obj.max_subcells,obj.nnodes_subcell);
-            obj.cell_containing_subcell = zeros(length(obj.cut_cells)*obj.max_subcells*obj.nnodes_subcell,1);
+            number_cut_cells = length(obj.cut_cells);
+            obj.unfitted_coord_iso = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,obj.fitted_mesh.ndim);
+            obj.unfitted_coord_global_raw = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,obj.fitted_mesh.ndim);
+            obj.x_unfitted = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,1);
+            obj.unfitted_connec_iso = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell);
+            obj.unfitted_coord_iso_per_cell = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell,obj.fitted_mesh.ndim);
+            obj.unfitted_connec_global = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell);
+            obj.cell_containing_subcell = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,1);
         end
         
-        function cleanExtraAllocatedMemory(obj,k,m,c)
-            if length(obj.unfitted_cut_coord_iso) > k
-                obj.unfitted_cut_coord_iso(k+1:end,:) = [];
-                obj.unfitted_cut_coord_global_raw(k+1:end,:) = [];
-                obj.x_unfitted_cut(k+1:end) = [];
+        function cleanExtraAllocatedMemory(obj,upperBound_A,upperBound_B,upperBound_C)
+            if length(obj.unfitted_coord_iso) > upperBound_A
+                obj.unfitted_coord_iso(upperBound_A+1:end,:) = [];
+                obj.unfitted_coord_global_raw(upperBound_A+1:end,:) = [];
+                obj.x_unfitted(upperBound_A+1:end) = [];
             end
-            if length(obj.unfitted_cut_connec_iso) > m
-                obj.unfitted_cut_connec_iso(m+1:end,:) = [];
-                obj.unfitted_cut_connec_global(m+1:end,:) = [];
-                obj.cell_containing_subcell(m+1:end) = [];
+            if length(obj.unfitted_connec_iso) > upperBound_B
+                obj.unfitted_connec_iso(upperBound_B+1:end,:) = [];
+                obj.unfitted_connec_global(upperBound_B+1:end,:) = [];
+                obj.cell_containing_subcell(upperBound_B+1:end) = [];
             end
             
-            if length(obj.unfitted_cut_coord_iso_per_cell) > c
-                obj.unfitted_cut_coord_iso_per_cell(c+1:end,:,:) = [];
+            if length(obj.unfitted_coord_iso_per_cell) > upperBound_C
+                obj.unfitted_coord_iso_per_cell(upperBound_C+1:end,:,:) = [];
             end
         end
         
