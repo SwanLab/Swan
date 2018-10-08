@@ -134,14 +134,14 @@ classdef Filter_LevelSet < handle
 
         % !!!!!!!!!!!!!!!!!! REMOVED M2=computeRHS_facet !!!!!!!!!!!!!!!!!!
         
-        function S = computeFacetSurface(obj,x)
+        function S = IntegrateFacet(obj,x)
             M2 = obj.computeRHS_facet(x,ones(size(x)));
             S = sum(M2);
         end
         
-        function V = computeInteriorVolume(obj,x)
+        function S = IntegrateInteriorCells(obj,x)
             M2 = obj.computeRHS(x);
-            V = sum(M2);
+            S = sum(M2);
         end
     end
     

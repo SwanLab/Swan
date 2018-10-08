@@ -6,7 +6,7 @@ fprintf('Running TopOpt tests...\n')
 
 %% Test Declaration -------------------------------------------------------
 
-tests_integration = {'test_sphere_tetrahedra','test_sphere_hexahedra'};
+tests_integration = {'test_circle_triangle','test_circle_quadrilateral','test_sphere_tetrahedra','test_sphere_hexahedra'};
 
 %% Run Integration Opt Tests ----------------------------------------------
 for i = 1:length(tests_integration)
@@ -22,11 +22,10 @@ for i = 1:length(tests_integration)
     obj.preProcess;
     x = obj.x;
     
-    filter =  Filter.create(obj.settings);
+    filter = Filter.create(obj.settings);
     filter.preProcess;
-    A = filter.computeFacetSurface(x);
-    A0 = 4*pi; A_star = A/A0;
-    
+    A = filter.IntegrateFacet(x);
+    A_star = A/A0;
     errorSurf = (A_star - A_star_ref)/A_star_ref;
     if errorSurf < 1e-9
         cprintf('green',strcat(file_name,' PASSED.  Surface Error: ',num2str(errorSurf),'\n'));
@@ -34,15 +33,15 @@ for i = 1:length(tests_integration)
         cprintf('err',strcat(file_name,' FAILED. Surface Error: ',num2str(errorSurf),'\n'));
     end
     
-    V = filter.computeInteriorVolume(x);
-    V0 = (4/3)*pi; V_star = V/V0;
+    V = filter.IntegrateInteriorCells(x);
+    V_star = V/V0;
     errorVol= (V_star - V_star_ref)/V_star_ref;
     if errorVol < 1e-9
         cprintf('green',strcat(file_name,' PASSED.  Volume Error: ',num2str(errorVol),'\n'));
     else
         cprintf('err',strcat(file_name,' FAILED. Volume Error: ',num2str(errorVol),'\n'));
     end
-    
+
     toc
     clear settings
 end
