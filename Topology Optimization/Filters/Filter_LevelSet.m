@@ -1,11 +1,11 @@
 classdef Filter_LevelSet < handle
     properties
+        geometry % !! NEEDED??? !!
         quadrature
-        geometry
-        quadrature_del
-        interp_del
-        shape_full
+        quadrature_unfitted
+        interpolation_unfitted
         unfitted_mesh
+        shape_full
     end
     
     properties (Access = protected)
@@ -19,12 +19,11 @@ classdef Filter_LevelSet < handle
             obj.quadrature = Quadrature.set(obj.diffReacProb.geometry.type);
             obj.geometry= Geometry(obj.diffReacProb.mesh,'LINEAR');
             
-            % !! REPLACE "DEL" BY "UNFITTED"
-            obj.getQuadratureDel;
-            obj.quadrature_del.computeQuadrature('LINEAR');
+            obj.getQuadrature_Unfitted;
+            obj.quadrature_unfitted.computeQuadrature('LINEAR');
             obj.createUnfittedMesh;
-            obj.getInterpolationDel(obj.unfitted_mesh);
-            obj.interp_del.computeShapeDeriv(obj.quadrature_del.posgp)
+            obj.getInterpolation_Unfitted;
+            obj.interpolation_unfitted.computeShapeDeriv(obj.quadrature_unfitted.posgp)
             
             obj.initGeometry
             obj.shape_full=obj.integrateFull;
@@ -51,44 +50,10 @@ classdef Filter_LevelSet < handle
             shape_cut = obj.geometry.interpolation.shape'.*dvolu_cut.*dvolu_frac(containing_cell);
         end
         
-
-        %         function [cut_subcells_coordinates,global_elem_index_of_each_cut_elem,phi_cut] = computeDelaunay(obj,x,cut_elem,connectivities,interpolation)
-        %             [P,active_nodes] = obj.findCutPoints_Iso(x,cut_elem,interpolation);
-        %
-        %             cut_subcells_coordinates = zeros(length(cut_elem)*obj.max_subcells,obj.nnodes_subelem,obj.ndim);
-        %             phi_cut = zeros(length(cut_elem)*obj.max_subcells,obj.nnodes_subelem);
-        %             global_elem_index_of_each_cut_elem = zeros(length(cut_elem)*obj.max_subcells,1);
-        %
-        %             k = 0; m0 = 0;
-        %             for icut = 1:length(cut_elem)
-        %                 ielem = cut_elem(icut);
-        %                 del_coord = [interpolation.pos_nodes;P(active_nodes(:,:,icut),:,icut)];
-        %                 del_x = [x(connectivities(ielem,:));zeros(size(P(active_nodes(:,:,icut)),1),1)]';
-        %                 DT = delaunayTriangulation(del_coord);
-        %                 del_connec = DT.ConnectivityList;
-        %                 new_cut_subcells_coordinates = permute(del_coord,[3 1 2]);
-        %                 for idelaunay = 1:size(del_connec,1)
-        %                     k = k+1;
-        %                     cut_subcells_coordinates(k,:,:) = new_cut_subcells_coordinates(:,del_connec(idelaunay,:),:);
-        %                     phi_cut(k,:) = del_x(del_connec(idelaunay,:));
-        %                 end
-        %                 new_global_elem_index_of_each_cut_elem = repmat(ielem,[size(del_connec,1) 1]);
-        %                 m1 = m0+length(new_global_elem_index_of_each_cut_elem);
-        %                 global_elem_index_of_each_cut_elem(1+m0:m1,:)=repmat(ielem,[size(del_connec,1) 1]);
-        %                 m0 = m1;
-        %             end
-        %             if length(cut_subcells_coordinates) > k
-        %                 cut_subcells_coordinates(k+1:end,:,:) = [];
-        %                 phi_cut(k+1:end,:) = [];
-        %                 global_elem_index_of_each_cut_elem(m1+1:end) = [];
-        %             end
-        %         end
-        
-        function M2=rearrangeOutputRHS(obj,shape_all)
-            M2=zeros(obj.npnod,1);
-            for inode=1:obj.nnode
-                p = obj.connectivities(:,inode);
-                M2 = M2+accumarray(p,shape_all(:,inode),[obj.npnod,1],@sum,0);
+        function M2 = rearrangeOutputRHS(obj,shape_all)
+            M2 = zeros(obj.npnod,1);
+            for inode = 1:obj.nnode
+                M2 = M2+accumarray(obj.connectivities(:,inode),shape_all(:,inode),[obj.npnod,1],@sum,0);
             end
         end
         
@@ -109,7 +74,7 @@ classdef Filter_LevelSet < handle
             obj.unfitted_mesh.computeCutMesh(x);
             obj.unfitted_mesh.computeDvoluCut;
             
-            posgp_iso = obj.computePosGpDelaunayIsoparametric(obj.unfitted_mesh.unfitted_cut_coord_iso_per_cell,obj.interp_del);
+            posgp_iso = obj.computePosGP(obj.unfitted_mesh.unfitted_cut_coord_iso_per_cell,obj.interpolation_unfitted);
             obj.geometry.interpolation.computeShapeDeriv(posgp_iso');
             
             shape_cut = obj.integrateCut(obj.unfitted_mesh.subcell_containing_cell,obj.unfitted_mesh.dvolu_cut);
@@ -122,11 +87,11 @@ classdef Filter_LevelSet < handle
             shape_all = zeros(size(obj.connectivities,1),size(obj.connectivities,2));
             shape_all(obj.unfitted_mesh.full_cells,:) = obj.shape_full(obj.unfitted_mesh.full_cells,:);
             
-            for idelaunay=1:size(shape_cut,2)
-                shape_all(:,idelaunay)=shape_all(:,idelaunay)+accumarray(obj.unfitted_mesh.subcell_containing_cell,shape_cut(:,idelaunay),[obj.nelem,1],@sum,0);
+            for i_subcell=1:size(shape_cut,2)
+                shape_all(:,i_subcell)=shape_all(:,i_subcell)+accumarray(obj.unfitted_mesh.subcell_containing_cell,shape_cut(:,i_subcell),[obj.nelem,1],@sum,0);
             end
         end
-
+        
         % !!!!!!!!!!!!!!!!!! REMOVED M2=computeRHS_facet !!!!!!!!!!!!!!!!!!
         
         function S = IntegrateFacet(obj,x)
@@ -151,7 +116,7 @@ classdef Filter_LevelSet < handle
             cut_elem = indexes(~(full_elem+null_elem));
         end
         
-        function posgp = computePosGpDelaunayIsoparametric(subcell_coord,interpolation)
+        function posgp = computePosGP(subcell_coord,interpolation)
             posgp = zeros(size(subcell_coord,1),size(subcell_coord,3));
             for idime = 1:size(subcell_coord,3)
                 posgp(:,idime) = subcell_coord(:,:,idime)*interpolation.shape;
@@ -159,15 +124,15 @@ classdef Filter_LevelSet < handle
         end
     end
     
-%     methods (Abstract)
-%         getQuadratureDel(obj)
-%         getMeshDel(obj)
-%         getInterpolationDel(obj,mesh_del)
-%         computeRHS_facet(obj,x,F)
-%         findCutPoints_Iso(obj,x,cut_elem,interpolation)
-%         %         findCutPoints_Global(obj,x,cut_elem)
-%         %         createFacet(obj)
-%         computeDvoluCut(elcrd)
-%         %         mapping(elem_cutPoints_global,facets_connectivities,facet_deriv,dvolu)
-%     end
+    %     methods (Abstract)
+    %         getQuadratureDel(obj)
+    %         getMeshDel(obj)
+    %         getInterpolationDel(obj,mesh_del)
+    %         computeRHS_facet(obj,x,F)
+    %         findCutPoints_Iso(obj,x,cut_elem,interpolation)
+    %         %         findCutPoints_Global(obj,x,cut_elem)
+    %         %         createFacet(obj)
+    %         computeDvoluCut(elcrd)
+    %         %         mapping(elem_cutPoints_global,facets_connectivities,facet_deriv,dvolu)
+    %     end
 end

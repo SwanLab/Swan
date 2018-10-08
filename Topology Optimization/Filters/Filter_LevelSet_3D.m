@@ -10,12 +10,12 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
             obj.ndim = 3;
         end
         
-        function getQuadratureDel(obj)
-            obj.quadrature_del=Quadrature_Tetrahedra;
+        function getQuadrature_Unfitted(obj)
+            obj.quadrature_unfitted = Quadrature_Tetrahedra;
         end
         
-        function getInterpolationDel(obj,mesh_del)
-            obj.interp_del=Tetrahedra_Linear(mesh_del);
+        function getInterpolation_Unfitted(obj)
+            obj.interpolation_unfitted = Tetrahedra_Linear(obj.unfitted_mesh);
         end
         
         function createUnfittedMesh(obj)

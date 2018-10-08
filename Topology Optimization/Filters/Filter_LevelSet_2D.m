@@ -6,12 +6,12 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
             obj.ndim = 2;
         end
         
-        function getQuadratureDel(obj)
-            obj.quadrature_del=Quadrature_Triangle;
+        function getQuadrature_Unfitted(obj)
+            obj.quadrature_unfitted = Quadrature_Triangle;
         end
         
-        function getInterpolationDel(obj,mesh_del)
-            obj.interp_del = Triangle_Linear(mesh_del);
+        function getInterpolation_Unfitted(obj)
+            obj.interpolation_unfitted = Triangle_Linear(obj.unfitted_mesh);
         end
         
         function createUnfittedMesh(obj)
