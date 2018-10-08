@@ -30,11 +30,12 @@ classdef Mesh_Unfitted < Mesh
     end
     
     methods
-        function obj = Mesh_Unfitted(fitted_mesh,x_fitted,fitted_geom_interpolation)
-            obj.storeFittedMesh(fitted_mesh,x_fitted,fitted_geom_interpolation);
+        function obj = Mesh_Unfitted(fitted_mesh,fitted_geom_interpolation)
+            obj.storeFittedMesh(fitted_mesh,fitted_geom_interpolation);
         end
         
-        function computeCutMesh(obj)
+        function computeCutMesh(obj,x_fitted)
+            obj.x_fitted = x_fitted;
             obj.findCutCells;
             obj.computeCutMesh_Delaunay;
         end
@@ -138,10 +139,9 @@ classdef Mesh_Unfitted < Mesh
     end
     
     methods (Access = private)
-        function storeFittedMesh(obj,fitted_mesh,x_fitted,fitted_geom_interpolation)
+        function storeFittedMesh(obj,fitted_mesh,fitted_geom_interpolation)
             obj.fitted_mesh = fitted_mesh;
             obj.fitted_geom_interpolation = fitted_geom_interpolation;
-            obj.x_fitted = x_fitted;
         end
     end
     

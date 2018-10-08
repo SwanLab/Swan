@@ -1,7 +1,7 @@
 classdef Mesh_Unfitted_3D < Mesh_Unfitted
     methods
-        function obj = Mesh_Unfitted_3D(fitted_mesh,x_fitted,fitted_geom_interpolation)
-            obj@Mesh_Unfitted(fitted_mesh,x_fitted,fitted_geom_interpolation);
+        function obj = Mesh_Unfitted_3D(fitted_mesh,fitted_geom_interpolation)
+            obj@Mesh_Unfitted(fitted_mesh,fitted_geom_interpolation);
             obj.max_subcells = 20;
             obj.nnodes_subcell = 4;
         end
