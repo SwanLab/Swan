@@ -25,8 +25,8 @@ classdef Interpolation < handle
         function obj=Interpolation(mesh)
             obj.xpoints = mesh.coord;
             obj.T = mesh.connec;
-            obj.npnod = length(obj.xpoints(:,1));
-            obj.nelem = length(obj.T(:,1));
+            obj.npnod = size(obj.xpoints,1);
+            obj.nelem = size(obj.T,1);
         end
         function compute_xpoints_T(obj,mesh_interpolation)
             obj.xpoints = inf*ones(1,size(obj.xpoints,2));
@@ -57,7 +57,7 @@ classdef Interpolation < handle
                     node_position=node_position+1;
                 end
             end
-            obj.npnod=length(obj.xpoints(:,1));
+            obj.npnod=size(obj.xpoints,1);
         end
         
         function ind = findPointInList(obj,node)
