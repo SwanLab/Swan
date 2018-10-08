@@ -18,7 +18,7 @@ classdef Monitoring_LevelSet_2D < Monitoring_LevelSet
         end
         
         function plotX(obj,x)
-            obj.unfitted_mesh = Mesh_Unfitted_2D(obj.mesh.duplicate,obj.geometry.interpolation,x);
+            obj.unfitted_mesh = Mesh_Unfitted_2D(obj.mesh.duplicate,x,obj.geometry.interpolation);
             obj.unfitted_mesh.computeCutMesh;
             
             [boundary_facets_coordinates,boundary_facets_connectivities] = obj.unfitted_mesh.computeBoundaryFacets(x);

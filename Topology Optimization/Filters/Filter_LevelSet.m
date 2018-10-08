@@ -17,7 +17,7 @@ classdef Filter_LevelSet < handle
     methods
         function preProcess(obj)
             obj.quadrature = Quadrature.set(obj.diffReacProb.geometry.type);
-            obj.geometry= Geometry(obj.diffReacProb.mesh,'LINEAR');
+            obj.geometry= Geometry(obj.mesh,'LINEAR');
             
             obj.getQuadrature_Unfitted;
             obj.quadrature_unfitted.computeQuadrature('LINEAR');
@@ -39,7 +39,7 @@ classdef Filter_LevelSet < handle
         end
         
         function shape = integrateFull(obj)
-            shape = zeros(size(obj.connectivities,1),size(obj.connectivities,2));
+            shape = zeros(size(obj.mesh.connec,1),size(obj.mesh.connec,2));
             for igauss = 1:size(obj.geometry.interpolation.shape,2)
                 shape = shape+obj.geometry.interpolation.shape(:,igauss)'.*obj.geometry.dvolu(:,igauss);
             end
@@ -53,7 +53,7 @@ classdef Filter_LevelSet < handle
         function M2 = rearrangeOutputRHS(obj,shape_all)
             M2 = zeros(obj.npnod,1);
             for inode = 1:obj.nnode
-                M2 = M2+accumarray(obj.connectivities(:,inode),shape_all(:,inode),[obj.npnod,1],@sum,0);
+                M2 = M2+accumarray(obj.mesh.connec(:,inode),shape_all(:,inode),[obj.npnod,1],@sum,0);
             end
         end
         
@@ -84,7 +84,7 @@ classdef Filter_LevelSet < handle
         end
         
         function shape_all = assembleShapeValues(obj,shape_cut)
-            shape_all = zeros(size(obj.connectivities,1),size(obj.connectivities,2));
+            shape_all = zeros(size(obj.mesh.connec,1),size(obj.mesh.connec,2));
             shape_all(obj.unfitted_mesh.full_cells,:) = obj.shape_full(obj.unfitted_mesh.full_cells,:);
             
             for i_subcell=1:size(shape_cut,2)

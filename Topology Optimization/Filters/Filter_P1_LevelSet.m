@@ -14,7 +14,7 @@ classdef Filter_P1_LevelSet < Filter_P1
             else
                 switch obj.geometry.type
                     case 'TRIANGLE'
-                        M2=obj.faireF2(obj.coordinates',obj.connectivities',x);
+                        M2=obj.faireF2(obj.mesh.coord',obj.mesh.connec',x);
                     otherwise
                         M2=obj.computeRHS(x);
                 end

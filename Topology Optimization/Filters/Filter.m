@@ -2,8 +2,7 @@ classdef Filter < handle
     properties
         diffReacProb
         M0
-        coordinates
-        connectivities
+        mesh
         nnode
         nelem
         npnod
@@ -35,8 +34,7 @@ classdef Filter < handle
                     obj.diffReacProb.geometry.dvolu(:,igauss));
             end
             
-            obj.coordinates = obj.diffReacProb.mesh.coord;
-            obj.connectivities = obj.diffReacProb.mesh.connec;
+            obj.mesh = obj.diffReacProb.mesh;
             obj.nelem = obj.diffReacProb.geometry.interpolation.nelem;
             obj.nnode = obj.diffReacProb.geometry.interpolation.nnode;
             obj.npnod = obj.diffReacProb.geometry.interpolation.npnod;
@@ -48,7 +46,7 @@ classdef Filter < handle
             A_nodal_2_gauss = sparse(obj.nelem,obj.npnod);
             fn = ones(1,obj.npnod);
             
-            dirichlet_data = obj.connectivities';
+            dirichlet_data = obj.mesh.connec';
             fe = zeros(obj.nnode,obj.nelem);
             
             fg = zeros(obj.ngaus,obj.nelem);
@@ -65,7 +63,7 @@ classdef Filter < handle
             
             dirichlet_data=zeros(obj.nnode,obj.nelem);
             for inode=1:obj.nnode
-                dirichlet_data(inode,:)=obj.connectivities(:,inode);
+                dirichlet_data(inode,:)=obj.mesh.connec(:,inode);
             end
             
             T_nodal_2_gauss = sparse(obj.nelem,obj.npnod);

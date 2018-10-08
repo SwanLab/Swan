@@ -15,7 +15,7 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
         end
         
         function createUnfittedMesh(obj)
-            obj.unfitted_mesh = Mesh_Unfitted_2D(obj.diffReacProb.mesh.duplicate,obj.diffReacProb.geometry.interpolation);
+            obj.unfitted_mesh = Mesh_Unfitted_2D(obj.mesh.duplicate,obj.diffReacProb.geometry.interpolation);
         end
         
         function M2=computeRHS_facet(obj,x,F)
@@ -23,10 +23,10 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
 %             obj.unfitted_mesh.computeDvoluCut;
             
             [interp_facet,quadrature_facet] = obj.createFacet;
-            interp_element = Interpolation.create(obj.diffReacProb.mesh,obj.quadrature.order);
+            interp_element = Interpolation.create(obj.mesh,obj.quadrature.order);
             
             shape_all = zeros(obj.nelem,obj.nnode);
-            [~,cut_elem]=obj.findCutElements(x,obj.connectivities);
+            [~,cut_elem]=obj.findCutElements(x,obj.mesh.connec);
             
             [P_iso,active_nodes_iso]=obj.findCutPoints_Iso(x,cut_elem,obj.geometry.interpolation);
             [P_global,active_nodes_global]=obj.findCutPoints_Global(x,cut_elem);            
@@ -34,7 +34,7 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
             % !! VECTORITZAR: LOOPS PETITS, ELEMENTS DIRECTES !!
 %             figure, hold on
             for icut = 1:length(cut_elem)
-                ielem = cut_elem(icut); inode_global = obj.connectivities(ielem,:);
+                ielem = cut_elem(icut); inode_global = obj.mesh.connec(ielem,:);
                 cutPoints_iso = P_iso(active_nodes_iso(:,:,icut),:,icut);
                 cutPoints_global = P_global(active_nodes_global(:,:,icut),:,icut);
                 
@@ -56,7 +56,7 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
                     f = (interp_element.shape*quadrature_facet.weigp')'*F(inode_global)/interp_facet.dvolu;
                     shape_all(ielem,:) = shape_all(ielem,:) + (interp_element.shape*(dt_dxi.*quadrature_facet.weigp')*f)';
                     
-%                     plot(obj.coordinates(obj.connectivities(ielem,:),1),obj.coordinates(obj.connectivities(ielem,:),2),'.-b'); plot(obj.coordinates(obj.connectivities(ielem,[1 3]),1),obj.coordinates(obj.connectivities(ielem,[1 3]),2),'.-b');
+%                     plot(obj.coordinates(obj.mesh.connec(ielem,:),1),obj.mesh.coord(obj.mesh.connec(ielem,:),2),'.-b'); plot(obj.mesh.coord(obj.mesh.connec(ielem,[1 3]),1),obj.mesh.coord(obj.mesh.connec(ielem,[1 3]),2),'.-b');
 %                     plot(cutPoints_global(connec_facets(i,:),1),cutPoints_global(connec_facets(i,:),2),'-xr');
 %                     title('Cut Elements & Cut points in GLOBAL coordinates'), axis('equal')
                 end
@@ -65,8 +65,8 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
         end
         
         function [P,active_nodes]=findCutPoints_Iso(obj,x,cut_elem,interpolation)
-            gamma_1=permute(x(obj.connectivities(cut_elem,:)),[2 3 1]);
-            gamma_2=permute([x(obj.connectivities(cut_elem,2:end)),x(obj.connectivities(cut_elem,1))],[2 3 1]);
+            gamma_1=permute(x(obj.mesh.connec(cut_elem,:)),[2 3 1]);
+            gamma_2=permute([x(obj.mesh.connec(cut_elem,2:end)),x(obj.mesh.connec(cut_elem,1))],[2 3 1]);
             P1=repmat(interpolation.pos_nodes,[1 1 size(cut_elem)]);
             P2=repmat([interpolation.pos_nodes(2:end,:);interpolation.pos_nodes(1,:)],[1 1 size(cut_elem)]);
             P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
@@ -74,12 +74,12 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
         end
         
         function [P,active_nodes]=findCutPoints_Global(obj,x,cut_elem,interpolation)
-            index1 = permute(obj.connectivities(cut_elem,:),[2 3 1]);
-            index2 = [permute(obj.connectivities(cut_elem,2:end),[2 3 1]);...
-                permute(obj.connectivities(cut_elem,1),[2 3 1])];
+            index1 = permute(obj.mesh.connec(cut_elem,:),[2 3 1]);
+            index2 = [permute(obj.mesh.connec(cut_elem,2:end),[2 3 1]);...
+                permute(obj.mesh.connec(cut_elem,1),[2 3 1])];
             gamma_1=x(index1);
             gamma_2=x(index2);
-            coord1 = obj.coordinates(:,1); coord2 = obj.coordinates(:,2);
+            coord1 = obj.mesh.coord(:,1); coord2 = obj.mesh.coord(:,2);
             P1=[coord1(index1) coord2(index1)];
             P2=[coord1(index2) coord2(index2)];
             P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);

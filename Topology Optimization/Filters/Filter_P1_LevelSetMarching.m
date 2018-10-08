@@ -13,7 +13,7 @@ classdef Filter_P1_LevelSetMarching < Filter_P1
         function preProcess(obj)
             preProcess@Filter_P1(obj)
             obj.quadrature = Quadrature.set(obj.diffReacProb.geometry.type);
-            mesh=obj.diffReacProb.mesh.duplicate;
+            mesh=obj.mesh.duplicate;
             obj.geometry= Geometry(mesh,'LINEAR');    
             mesh_del=mesh.duplicate; 
             switch mesh.pdim
@@ -75,7 +75,7 @@ classdef Filter_P1_LevelSetMarching < Filter_P1
             end
         end
         function [P,active_nodes]=findCutPoints(obj,x,cut_elem)
-            switch obj.diffReacProb.mesh.pdim
+            switch obj.mesh.pdim
                 case '2D'
                     gamma_1=permute(x(obj.connectivities(cut_elem,:)),[2 3 1]);
                     gamma_2=permute([x(obj.connectivities(cut_elem,2:end)),x(obj.connectivities(cut_elem,1))],[2 3 1]);
@@ -95,7 +95,7 @@ classdef Filter_P1_LevelSetMarching < Filter_P1
             end
         end
         function [P,global_connec]=findCutPointsMarching(obj,x,cut_elem)
-            switch obj.diffReacProb.mesh.pdim
+            switch obj.mesh.pdim
                 case '2D'
                     iteration_1=1:size(obj.connectivities,2);
                     iteration_2=[2:size(obj.connectivities,2),1];
@@ -131,7 +131,7 @@ classdef Filter_P1_LevelSetMarching < Filter_P1
             P=[obj.geometry.interpolation.pos_nodes;P];
         end
         function A=computeDvoluCut(obj,elcrd)
-            switch obj.diffReacProb.mesh.pdim
+            switch obj.mesh.pdim
                 case '2D'
                     x1 = elcrd(:,1,1); y1 = elcrd(:,1,2); x2 = elcrd(:,2,1); y2 = elcrd(:,2,2); x3 = elcrd(:,3,1); y3 = elcrd(:,3,2);
                     A = 0.5*abs((x2-x1).*(y3-y1)-(x3-x1).*(y2-y1));

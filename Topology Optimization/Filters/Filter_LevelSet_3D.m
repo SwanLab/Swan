@@ -19,15 +19,15 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         end
         
         function createUnfittedMesh(obj)
-            obj.unfitted_mesh = Mesh_Unfitted_3D(obj.diffReacProb.mesh.duplicate,obj.diffReacProb.geometry.interpolation);
+            obj.unfitted_mesh = Mesh_Unfitted_3D(obj.mesh.duplicate,obj.diffReacProb.geometry.interpolation);
         end
         
         function M2 = computeRHS_facet(obj,x,F)
             [interp_facet,quadrature_facet] = obj.createFacet;
-            interp_element = Interpolation.create(obj.diffReacProb.mesh,obj.quadrature.order);
+            interp_element = Interpolation.create(obj.mesh,obj.quadrature.order);
             
             shape_all = zeros(obj.nelem,obj.nnode);
-            [~,cut_elem]=obj.findCutElements(x,obj.connectivities);
+            [~,cut_elem]=obj.findCutElements(x,obj.mesh.connec);
             
             [P_iso,active_nodes_iso]=obj.findCutPoints_Iso(x,cut_elem,obj.geometry.interpolation);
             [P_global,active_nodes_global]=obj.findCutPoints_Global(x,cut_elem,obj.geometry.interpolation);
@@ -35,7 +35,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
             %                         figure, hold on
             k = 0;
             for icut = 1:length(cut_elem)
-                ielem = cut_elem(icut); inode_global = obj.connectivities(ielem,:);
+                ielem = cut_elem(icut); inode_global = obj.mesh.connec(ielem,:);
                 elem_cutPoints_iso = P_iso(active_nodes_iso(:,:,icut),:,icut);
                 elem_cutPoints_global = P_global(active_nodes_global(:,:,icut),:,icut);
                 
@@ -62,7 +62,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
                     f = (interp_element.shape*quadrature_facet.weigp')'*F(inode_global)/interp_facet.dvolu;
                     shape_all(ielem,:) = shape_all(ielem,:) + (interp_element.shape*(djacob.*quadrature_facet.weigp')*f)';
                     
-                    %                     plot(obj.coordinates(obj.connectivities(ielem,:),1),obj.coordinates(obj.connectivities(ielem,:),2),'.-b'); plot(obj.coordinates(obj.connectivities(ielem,[1 4]),1),obj.coordinates(obj.connectivities(ielem,[1 4]),2),'.-b');
+                    %                     plot(obj.mesh.coord(obj.connectivities(ielem,:),1),obj.mesh.coord(obj.connectivities(ielem,:),2),'.-b'); plot(obj.mesh.coord(obj.connectivities(ielem,[1 4]),1),obj.mesh.coord(obj.connectivities(ielem,[1 4]),2),'.-b');
                     %                     plot(elem_cutPoints_global(facets_connectivities(i,:),1),elem_cutPoints_global(facets_connectivities(i,:),2),'-xr');
                     %                     title('Cut Elements & Cut points in GLOBAL coordinates'), axis('equal')
                 end
@@ -76,9 +76,9 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         
         
         function [interior_facets_global_coordinates, interior_facets_global_connectivities] = computeInteriorFacets(obj,x)
-            interp_element = Interpolation.create(obj.diffReacProb.mesh,obj.quadrature.order);
+            interp_element = Interpolation.create(obj.mesh,obj.quadrature.order);
             
-            [~,cut_elem]=obj.findCutElements(x,obj.connectivities);
+            [~,cut_elem]=obj.findCutElements(x,obj.mesh.connec);
             
             [P_iso,active_nodes_iso]=obj.findCutPoints_Iso(x,cut_elem,obj.geometry.interpolation);
             [P_global,active_nodes_global]=obj.findCutPoints_Global(x,cut_elem,obj.geometry.interpolation);
@@ -88,7 +88,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
             interior_facets_global_connectivities = zeros(10*length(cut_elem),3);
             k = 0;
             for icut = 1:length(cut_elem)
-                ielem = cut_elem(icut); inode_global = obj.connectivities(ielem,:);
+                ielem = cut_elem(icut); inode_global = obj.mesh.connec(ielem,:);
                 elem_cutPoints_iso = P_iso(active_nodes_iso(:,:,icut),:,icut);
                 elem_cutPoints_global = P_global(active_nodes_global(:,:,icut),:,icut);
                 
@@ -105,8 +105,8 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         function [P,active_nodes]=findCutPoints_Iso(obj,x,cut_elem,interpolation)
             iteration_1=interpolation.iteration(1,:);
             iteration_2=interpolation.iteration(2,:);
-            gamma_1=permute(x(obj.connectivities(cut_elem,iteration_1)),[2 3 1]);
-            gamma_2=permute(x(obj.connectivities(cut_elem,iteration_2)),[2 3 1]);
+            gamma_1=permute(x(obj.mesh.connec(cut_elem,iteration_1)),[2 3 1]);
+            gamma_2=permute(x(obj.mesh.connec(cut_elem,iteration_2)),[2 3 1]);
             P1=repmat(interpolation.pos_nodes(iteration_1,:),[1 1 size(cut_elem)]);
             P2=repmat(interpolation.pos_nodes(iteration_2,:),[1 1 size(cut_elem)]);
             P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
@@ -117,11 +117,11 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
             iteration_1=interpolation.iteration(1,:);
             iteration_2=interpolation.iteration(2,:);
             
-            index1 = permute(obj.connectivities(cut_elem,iteration_1),[2 3 1]);
-            index2 = permute(obj.connectivities(cut_elem,iteration_2),[2 3 1]);
+            index1 = permute(obj.mesh.connec(cut_elem,iteration_1),[2 3 1]);
+            index2 = permute(obj.mesh.connec(cut_elem,iteration_2),[2 3 1]);
             gamma_1=x(index1);
             gamma_2=x(index2);
-            coord1 = obj.coordinates(:,1); coord2 = obj.coordinates(:,2); coord3 = obj.coordinates(:,3);
+            coord1 = obj.mesh.coord(:,1); coord2 = obj.mesh.coord(:,2); coord3 = obj.mesh.coord(:,3);
             P1=[coord1(index1) coord2(index1) coord3(index1)];
             P2=[coord1(index2) coord2(index2) coord3(index2)];
             P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
@@ -130,7 +130,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         
         function [interp_facet,quadrature_facet] = createFacet(obj)
             quadrature_facet = Quadrature.set('TRIANGLE');
-            interp_facet = Triangle_Linear(obj.diffReacProb.mesh);
+            interp_facet = Triangle_Linear(obj.mesh);
             quadrature_facet.computeQuadrature(obj.quadrature.order);
             interp_facet.computeShapeDeriv(quadrature_facet.posgp);
         end
@@ -189,19 +189,19 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         end
         
         function computeSurroundingFacets(obj)
-            surrounding_facets_coordinates_raw = zeros(size(obj.coordinates)); surrounding_facets_connectivities_raw = zeros(size(obj.connectivities,1),obj.ndim);
+            surrounding_facets_coordinates_raw = zeros(size(obj.mesh.coord)); surrounding_facets_connectivities_raw = zeros(size(obj.mesh.connec,1),obj.ndim);
             k_coordinates = 0; k_connectivities = 0;
             for idime = 1:obj.ndim
-                [surrounding_facets_coordinates_raw, surrounding_facets_connectivities_raw,k_coordinates,k_connectivities] = obj.computeBoxFaceCoordNConnec(surrounding_facets_coordinates_raw,surrounding_facets_connectivities_raw,idime,max(obj.coordinates(:,idime)),k_coordinates,k_connectivities);
-                [surrounding_facets_coordinates_raw, surrounding_facets_connectivities_raw,k_coordinates,k_connectivities] = obj.computeBoxFaceCoordNConnec(surrounding_facets_coordinates_raw,surrounding_facets_connectivities_raw,idime,min(obj.coordinates(:,idime)),k_coordinates,k_connectivities);
+                [surrounding_facets_coordinates_raw, surrounding_facets_connectivities_raw,k_coordinates,k_connectivities] = obj.computeBoxFaceCoordNConnec(surrounding_facets_coordinates_raw,surrounding_facets_connectivities_raw,idime,max(obj.mesh.coord(:,idime)),k_coordinates,k_connectivities);
+                [surrounding_facets_coordinates_raw, surrounding_facets_connectivities_raw,k_coordinates,k_connectivities] = obj.computeBoxFaceCoordNConnec(surrounding_facets_coordinates_raw,surrounding_facets_connectivities_raw,idime,min(obj.mesh.coord(:,idime)),k_coordinates,k_connectivities);
             end
             surrounding_facets_coordinates_raw(k_coordinates+1:end,:) = [];
             surrounding_facets_connectivities_raw(k_connectivities+1:end,:) = [];
             
-            obj.surrounding_facets_connectivities = obj.computeFromLocalToGlobalConnectivities(surrounding_facets_coordinates_raw,obj.coordinates,surrounding_facets_connectivities_raw);
+            obj.surrounding_facets_connectivities = obj.computeFromLocalToGlobalConnectivities(surrounding_facets_coordinates_raw,obj.mesh.coord,surrounding_facets_connectivities_raw);
             
             %             figure
-            %             patch('vertices',obj.coordinates,'faces',obj.surrounding_facets_connectivities,...
+            %             patch('vertices',obj.mesh.coord,'faces',obj.surrounding_facets_connectivities,...
             %                 'edgecolor',[0.5 0 0], 'edgealpha',0.5,'edgelighting','flat',...
             %                 'facecolor','none','facelighting','flat')
             %             light
@@ -210,7 +210,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         
         function [surrounding_facets_coordinates, surrounding_facets_connectivities,k_coordinates,k_connectivities] = computeBoxFaceCoordNConnec(obj,surrounding_facets_coordinates,surrounding_facets_connectivities,idime,current_face_characteristic_coordinate,k_coordinates,k_connectivities)
             dimens = 1:obj.ndim;
-            new_coordinates = obj.coordinates(obj.coordinates(:,idime) == current_face_characteristic_coordinate,:);
+            new_coordinates = obj.mesh.coord(obj.mesh.coord(:,idime) == current_face_characteristic_coordinate,:);
             DT = delaunayTriangulation(new_coordinates(:,dimens(dimens ~= idime)));
             new_connectivities = DT.ConnectivityList + k_coordinates;
             surrounding_facets_coordinates(k_coordinates+1:k_coordinates+size(new_coordinates,1),:) = new_coordinates;
@@ -222,7 +222,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         function [surrounding_active_facets_coordinates,surrounding_active_facets_connectivities] = computeSurroundingActiveFacets(obj,x)
             [full_elem,cut_elem]=obj.findCutElements(x,obj.surrounding_facets_connectivities);
             surrounding_active_full_facets_connectivities = obj.surrounding_facets_connectivities(full_elem,:);
-            surrounding_active_full_facets_coordinates = obj.coordinates;
+            surrounding_active_full_facets_coordinates = obj.mesh.coord;
             
             
             
