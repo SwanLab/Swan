@@ -44,12 +44,12 @@ classdef Mesh_Unfitted_2D < Mesh_Unfitted
             obj.dvolu_cut = 0.5*abs((x2-x1).*(y3-y1)-(x3-x1).*(y2-y1));
         end
         
-        function assignUnfittedCutCoordIsoPerCell(obj,new_unfitted_cut_coord_iso,new_subcell_cut_interior_connec_iso,c0,c1)
+        function assignUnfittedCutCoordIsoPerCell(obj,new_unfitted_cut_coord_iso,new_interior_subcell_connec,lowerBound,upperBound)
             new_unfitted_cut_coord_iso_x = new_unfitted_cut_coord_iso(:,1);
             new_unfitted_cut_coord_iso_y = new_unfitted_cut_coord_iso(:,2);
             
-            obj.unfitted_cut_coord_iso_per_cell(c0+1:c1,:,1) = new_unfitted_cut_coord_iso_x(new_subcell_cut_interior_connec_iso);
-            obj.unfitted_cut_coord_iso_per_cell(c0+1:c1,:,2) = new_unfitted_cut_coord_iso_y(new_subcell_cut_interior_connec_iso);
+            obj.unfitted_cut_coord_iso_per_cell(lowerBound+1:upperBound,:,1) = new_unfitted_cut_coord_iso_x(new_interior_subcell_connec);
+            obj.unfitted_cut_coord_iso_per_cell(lowerBound+1:upperBound,:,2) = new_unfitted_cut_coord_iso_y(new_interior_subcell_connec);
         end
     end
 end

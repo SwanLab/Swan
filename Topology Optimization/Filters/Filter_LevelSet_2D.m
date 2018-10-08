@@ -65,11 +65,11 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
         end
         
         function [P,active_nodes]=findCutPoints_Iso(obj,x,cut_elem,interpolation)
-            gamma_1=permute(x(obj.mesh.connec(cut_elem,:)),[2 3 1]);
-            gamma_2=permute([x(obj.mesh.connec(cut_elem,2:end)),x(obj.mesh.connec(cut_elem,1))],[2 3 1]);
-            P1=repmat(interpolation.pos_nodes,[1 1 size(cut_elem)]);
-            P2=repmat([interpolation.pos_nodes(2:end,:);interpolation.pos_nodes(1,:)],[1 1 size(cut_elem)]);
-            P=P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
+            gamma_1 = permute(x(obj.mesh.connec(cut_elem,:)),[2 3 1]);
+            gamma_2 = permute([x(obj.mesh.connec(cut_elem,2:end)),x(obj.mesh.connec(cut_elem,1))],[2 3 1]);
+            P1 = repmat(interpolation.pos_nodes,[1 1 size(cut_elem)]);
+            P2 = repmat([interpolation.pos_nodes(2:end,:);interpolation.pos_nodes(1,:)],[1 1 size(cut_elem)]);
+            P = P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
             active_nodes = sign(gamma_1.*gamma_2)<0;
         end
         

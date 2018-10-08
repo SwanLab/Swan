@@ -13,6 +13,10 @@ classdef Filter_LevelSet < handle
         ndim
     end
     
+    properties (Access = private)
+        shapeValues_FullCells
+    end
+    
     methods
         function preProcess(obj)
             obj.quadrature_fitted = Quadrature.set(obj.diffReacProb.geometry.type);
@@ -27,13 +31,15 @@ classdef Filter_LevelSet < handle
             
             obj.computeGeometry;
             
+            obj.shapeValues_FullCells = obj.integrateFullCells;
+            
             MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';
             warning('off', MSGID)
         end
         
         function computeGeometry(obj)
             obj.geometry = Geometry(obj.mesh,'LINEAR');
-            obj.geometry.interpolation.computeShapeDeriv(obj.quadrature_fitted.posgp)
+            obj.geometry.interpolation.computeShapeDeriv(obj.quadrature_fitted.posgp);
             obj.geometry.computeGeometry(obj.quadrature_fitted,obj.geometry.interpolation);
         end
         
@@ -44,9 +50,8 @@ classdef Filter_LevelSet < handle
             posgp_iso = obj.computePosGP(obj.unfitted_mesh.unfitted_cut_coord_iso_per_cell,obj.interpolation_unfitted,obj.quadrature_unfitted);
             obj.geometry.interpolation.computeShapeDeriv(posgp_iso');
             
-            shapeValues_FullCells = obj.integrateFullCells;
-            shapeValues_CutCells = obj.integrateCutCells(obj.unfitted_mesh.subcell_containing_cell,obj.unfitted_mesh.dvolu_cut);
-            shapeValues_All = obj.assembleShapeValues(shapeValues_FullCells,shapeValues_CutCells);
+            shapeValues_CutCells = obj.integrateCutCells(obj.unfitted_mesh.cell_containing_subcell,obj.unfitted_mesh.dvolu_cut);
+            shapeValues_All = obj.assembleShapeValues(obj.shapeValues_FullCells,shapeValues_CutCells);
             
             M2 = obj.rearrangeOutputRHS(shapeValues_All);
         end
@@ -54,13 +59,13 @@ classdef Filter_LevelSet < handle
         function shapeValues_FullCells = integrateFullCells(obj)
             shapeValues_FullCells = zeros(size(obj.mesh.connec,1),size(obj.mesh.connec,2));
             for igauss = 1:size(obj.geometry.interpolation.shape,2)
-                shapeValues_FullCells = shapeValues_FullCells+obj.geometry.interpolation.shape(:,igauss)'.*obj.geometry.dvolu(:,igauss);
+                shapeValues_FullCells = shapeValues_FullCells + obj.geometry.interpolation.shape(:,igauss)'.*obj.geometry.dvolu(:,igauss);
             end
         end
         
-        function shape_cut = integrateCutCells(obj,containing_cell,dvolu_cut)
+        function shapeValued_CutCells = integrateCutCells(obj,containing_cell,dvolu_cut)
             dvolu_frac = sum(obj.geometry.dvolu,2)/obj.geometry.interpolation.dvolu;
-            shape_cut = obj.geometry.interpolation.shape'.*dvolu_cut.*dvolu_frac(containing_cell);
+            shapeValued_CutCells = obj.geometry.interpolation.shape'.*dvolu_cut.*dvolu_frac(containing_cell);
         end
         
         function shapeValues_AllCells = assembleShapeValues(obj,shapeValues_FullCells,shapeValues_CutCells)
@@ -68,7 +73,7 @@ classdef Filter_LevelSet < handle
             shapeValues_AllCells(obj.unfitted_mesh.full_cells,:) = shapeValues_FullCells(obj.unfitted_mesh.full_cells,:);
             
             for i_subcell=1:size(shapeValues_CutCells,2)
-                shapeValues_AllCells(:,i_subcell) = shapeValues_AllCells(:,i_subcell)+accumarray(obj.unfitted_mesh.subcell_containing_cell,shapeValues_CutCells(:,i_subcell),[obj.nelem,1],@sum,0);
+                shapeValues_AllCells(:,i_subcell) = shapeValues_AllCells(:,i_subcell)+accumarray(obj.unfitted_mesh.cell_containing_subcell,shapeValues_CutCells(:,i_subcell),[obj.nelem,1],@sum,0);
             end
         end
         

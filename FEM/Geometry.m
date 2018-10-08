@@ -20,7 +20,7 @@ classdef Geometry<handle
         function computeGeometry(obj,quadrature,interp_variable)                
             if ~strcmp(obj.quadrature_order,quadrature.order)
                 obj.compute(quadrature,interp_variable)
-                obj.quadrature_order=quadrature.order;
+                obj.quadrature_order = quadrature.order;
             end
         end        
         function compute(obj,quadrature,interp_variable)
