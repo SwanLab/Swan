@@ -23,7 +23,7 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
 %             obj.unfitted_mesh.computeDvoluCut;
             
             [interp_facet,quadrature_facet] = obj.createFacet;
-            interp_element = Interpolation.create(obj.mesh,obj.quadrature.order);
+            interp_element = Interpolation.create(obj.mesh,obj.quadrature_fitted.order);
             
             shape_all = zeros(obj.nelem,obj.nnode);
             [~,cut_elem]=obj.findCutElements(x,obj.mesh.connec);
@@ -89,7 +89,7 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
         function [interp_facet,quadrature_facet] = createFacet(obj)
             quadrature_facet = Quadrature.set('LINE');
             interp_facet = Line_Linear;
-            quadrature_facet.computeQuadrature(obj.quadrature.order);
+            quadrature_facet.computeQuadrature(obj.quadrature_fitted.order);
             interp_facet.computeShapeDeriv(quadrature_facet.posgp);
         end
     end
