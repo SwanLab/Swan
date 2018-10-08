@@ -1,6 +1,6 @@
 classdef DesignVaribleInitializer_Circle < DesignVaribleInitializer
     properties
-        radius = 0.4;
+        radius = 1-1e-6;
     end
     
     methods
@@ -13,9 +13,17 @@ classdef DesignVaribleInitializer_Circle < DesignVaribleInitializer
             dim(2) = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
             center(1) = 0.5*(max(obj.mesh.coord(:,1)) + min(obj.mesh.coord(:,1)));
             center(2) = 0.5*(max(obj.mesh.coord(:,2)) + min(obj.mesh.coord(:,2)));
-            obj.radius = obj.radius*min(dim)/2;
-            initial_holes = (obj.mesh.coord(:,1)-center(1)).^2 + (obj.mesh.coord(:,2)-center(2)).^2 - obj.radius^2 < 0;
-            obj.x(initial_holes) = obj.hole_value;
+            radius = obj.radius*min(dim)/2;
+            phi = (obj.mesh.coord(:,1)-center(1)).^2 + (obj.mesh.coord(:,2)-center(2)).^2 - radius^2;
+            
+            switch obj.optimizer
+                case {'SLERP','HAMILTON-JACOBI'}
+                    obj.x = phi;
+                otherwise
+                    initial_holes = ceil(max(phi,0))>0;
+                    obj.x(initial_holes) = obj.hole_value;
+            end
+            
             x = obj.x;
         end
     end
