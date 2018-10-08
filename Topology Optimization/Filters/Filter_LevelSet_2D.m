@@ -15,7 +15,7 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
             mesh_del.geometryType='TRIANGLE';
         end
         
-        function mesh_del = getInterpolationDel(obj,mesh_del)
+        function getInterpolationDel(obj,mesh_del)
             obj.interp_del=Triangle_Linear(mesh_del);
         end
         
@@ -25,6 +25,9 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
         end
         
         function M2=computeRHS_facet(obj,x,F)
+%             obj.setupUnfittedMesh(x);
+%             obj.unfitted_mesh.computeDvoluCut;
+            
             [interp_facet,quadrature_facet] = obj.createFacet;
             interp_element = Interpolation.create(obj.diffReacProb.mesh,obj.quadrature.order);
             
@@ -59,7 +62,7 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
                     f = (interp_element.shape*quadrature_facet.weigp')'*F(inode_global)/interp_facet.dvolu;
                     shape_all(ielem,:) = shape_all(ielem,:) + (interp_element.shape*(dt_dxi.*quadrature_facet.weigp')*f)';
                     
-%                     plot(obj.coordinates(obj.connectivities(ielem,:),1),obj.coordinates(obj.connectivities(ielem,:),2),'.-b'); plot(obj.coordinates(obj.connectivities(ielem,[1 4]),1),obj.coordinates(obj.connectivities(ielem,[1 4]),2),'.-b');
+%                     plot(obj.coordinates(obj.connectivities(ielem,:),1),obj.coordinates(obj.connectivities(ielem,:),2),'.-b'); plot(obj.coordinates(obj.connectivities(ielem,[1 3]),1),obj.coordinates(obj.connectivities(ielem,[1 3]),2),'.-b');
 %                     plot(cutPoints_global(connec_facets(i,:),1),cutPoints_global(connec_facets(i,:),2),'-xr');
 %                     title('Cut Elements & Cut points in GLOBAL coordinates'), axis('equal')
                 end

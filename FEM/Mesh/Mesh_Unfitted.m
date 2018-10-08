@@ -31,9 +31,7 @@ classdef Mesh_Unfitted < Mesh
     
     methods
         function obj = Mesh_Unfitted(fitted_mesh,x_fitted,fitted_geom_interpolation)
-            obj.fitted_mesh = fitted_mesh;
-            obj.fitted_geom_interpolation = fitted_geom_interpolation;
-            obj.x_fitted = x_fitted;
+            obj.storeFittedMesh(fitted_mesh,x_fitted,fitted_geom_interpolation);
         end
         
         function computeCutMesh(obj)
@@ -136,6 +134,14 @@ classdef Mesh_Unfitted < Mesh
             obj.empty_cells = phi_case == 0;
             indexes = (1:size(obj.fitted_mesh.connec,1))';
             obj.cut_cells = indexes(~(obj.full_cells | obj.empty_cells));
+        end
+    end
+    
+    methods (Access = private)
+        function storeFittedMesh(obj,fitted_mesh,x_fitted,fitted_geom_interpolation)
+            obj.fitted_mesh = fitted_mesh;
+            obj.fitted_geom_interpolation = fitted_geom_interpolation;
+            obj.x_fitted = x_fitted;
         end
     end
     
