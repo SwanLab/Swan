@@ -44,7 +44,7 @@ classdef Filter_LevelSet < handle
         end
         
         function M2 = computeRHS(obj,x)
-            obj.unfitted_mesh.computeCutMesh(x);
+            obj.unfitted_mesh.computeMesh(x);
             obj.unfitted_mesh.computeDvoluCut;
             
             posgp_iso = obj.computePosGP(obj.unfitted_mesh.unfitted_coord_iso_per_cell,obj.interpolation_unfitted,obj.quadrature_unfitted);

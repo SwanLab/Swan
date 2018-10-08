@@ -32,21 +32,19 @@ classdef Mesh_Unfitted < Mesh
     end
     
     methods
-        function obj = Mesh_Unfitted(fitted_mesh,fitted_geom_interpolation)
-            obj.storeFittedMesh(fitted_mesh,fitted_geom_interpolation);
-        end
-        
-%         function obj = create()
-%             
+%         function obj = Mesh_Unfitted
 %         end
         
-        function computeCutMesh(obj,x_fitted)
+%         function obj = create()
+%         end
+        
+        function computeMesh(obj,x_fitted)
             obj.x_fitted = x_fitted;
             obj.findCutCells;
-            obj.computeCutMesh_Delaunay;
+            obj.computeMesh_Delaunay;
         end
         
-        function obj = computeCutMesh_Delaunay(obj)
+        function obj = computeMesh_Delaunay(obj)
             [Nodes_n_CutPoints_iso,active_nodes] = obj.findCutPoints_Iso;
             Nodes_n_CutPoints_global = obj.findCutPoints_Global;
             
@@ -61,7 +59,7 @@ classdef Mesh_Unfitted < Mesh
                 subcell_cutPoints_global = Nodes_n_CutPoints_global(active_nodes(:,:,icut),:,icut);
                 
                 [new_unfitted_coord_iso,new_unfitted_coord_global,new_x_unfitted,new_interior_subcell_connec]...
-                    = obj.computeInteriorSubcells(obj.fitted_mesh.connec(icell,:),subcell_cutPoints_iso,subcell_cutPoints_global);
+                    = obj.computeSubcells(obj.fitted_mesh.connec(icell,:),subcell_cutPoints_iso,subcell_cutPoints_global);
                 number_new_subcells = size(new_interior_subcell_connec,1);
                 number_new_coordinates = size(new_unfitted_coord_iso,1);
                 
@@ -87,20 +85,12 @@ classdef Mesh_Unfitted < Mesh
                 lowerBound_C = upperBound_C;
             end
             
-            obj.cleanExtraAllocatedMemory(upperBound_A,upperBound_B,upperBound_C);
+            obj.cleanExtraAllocatedMemory_Delaunay(upperBound_A,upperBound_B,upperBound_C);
         end
         
         function computeGlobalConnectivities(obj)
             obj.unfitted_coord_global =  unique(obj.unfitted_coord_global_raw,'rows','stable');
             obj.unfitted_connec_global = obj.computeFromLocalToGlobalConnectivities(obj.unfitted_connec_global,obj.unfitted_coord_global_raw,obj.unfitted_coord_global,obj.unfitted_connec_iso,obj.nodes_containing_cell,obj.cell_containing_subcell);
-        end
-        
-        function [subcell_coord_iso,subcell_coord_global,subcell_x_value,interior_subcell_connec] = computeInteriorSubcells(obj,fitted_cell_connec,subcell_cutPoints_iso,subcell_cutPoints_global)
-            subcell_coord_iso = [obj.fitted_geom_interpolation.pos_nodes; subcell_cutPoints_iso];
-            subcell_coord_global = [obj.fitted_mesh.coord(fitted_cell_connec,:); subcell_cutPoints_global];
-            subcell_x_value = [obj.x_fitted(fitted_cell_connec); zeros(size(subcell_cutPoints_iso,1),1)]';
-            
-            interior_subcell_connec = obj.computeInteriorSubcellsConnectivities(subcell_coord_iso,subcell_x_value);
         end
         
         function global_connectivities = computeFromLocalToGlobalConnectivities(obj,global_connectivities,local_matrix_coord,global_matrix_coord,local_connec,nodes_containing_cell,cell_containing_subcell)
@@ -122,7 +112,7 @@ classdef Mesh_Unfitted < Mesh
             obj.cell_containing_subcell = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,1);
         end
         
-        function cleanExtraAllocatedMemory(obj,upperBound_A,upperBound_B,upperBound_C)
+        function cleanExtraAllocatedMemory_Delaunay(obj,upperBound_A,upperBound_B,upperBound_C)
             if length(obj.unfitted_coord_iso) > upperBound_A
                 obj.unfitted_coord_iso(upperBound_A+1:end,:) = [];
                 obj.unfitted_coord_global_raw(upperBound_A+1:end,:) = [];
@@ -150,7 +140,7 @@ classdef Mesh_Unfitted < Mesh
         end
     end
     
-    methods (Access = private)
+    methods %(Access = private)
         function storeFittedMesh(obj,fitted_mesh,fitted_geom_interpolation)
             obj.fitted_mesh = fitted_mesh;
             obj.fitted_geom_interpolation = fitted_geom_interpolation;

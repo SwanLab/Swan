@@ -1,8 +1,7 @@
 classdef Mesh_Unfitted_2D < Mesh_Unfitted
     
     methods
-        function obj = Mesh_Unfitted_2D(fitted_mesh,fitted_geom_interpolation)
-            obj@Mesh_Unfitted(fitted_mesh,fitted_geom_interpolation);
+        function obj = Mesh_Unfitted_2D
             obj.geometryType = 'TRIANGLE';
             obj.max_subcells = 6;
             obj.nnodes_subcell = 3;

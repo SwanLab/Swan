@@ -19,7 +19,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         end
         
         function createUnfittedMesh(obj)
-            obj.unfitted_mesh = Mesh_Unfitted_3D(obj.mesh.duplicate,obj.diffReacProb.geometry.interpolation);
+            obj.unfitted_mesh = Mesh_Unfitted_3D_Interior(obj.mesh.duplicate,obj.diffReacProb.geometry.interpolation);
         end
         
         function M2 = computeRHS_facet(obj,x,F)
