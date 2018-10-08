@@ -18,6 +18,7 @@ classdef Mesh_Unfitted < Mesh
         dvolu_cut
         
         fitted_mesh
+        geometryType
     end
     
     properties (Access = protected)
@@ -33,6 +34,10 @@ classdef Mesh_Unfitted < Mesh
         function obj = Mesh_Unfitted(fitted_mesh,fitted_geom_interpolation)
             obj.storeFittedMesh(fitted_mesh,fitted_geom_interpolation);
         end
+        
+%         function obj = create()
+%             
+%         end
         
         function computeCutMesh(obj,x_fitted)
             obj.x_fitted = x_fitted;

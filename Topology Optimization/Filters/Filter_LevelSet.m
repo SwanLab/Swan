@@ -22,8 +22,8 @@ classdef Filter_LevelSet < handle
             % !! REPLACE "DEL" BY "UNFITTED"
             obj.getQuadratureDel;
             obj.quadrature_del.computeQuadrature('LINEAR');
-            mesh_del = obj.getMeshDel;
-            obj.getInterpolationDel(mesh_del);
+            obj.createUnfittedMesh;
+            obj.getInterpolationDel(obj.unfitted_mesh);
             obj.interp_del.computeShapeDeriv(obj.quadrature_del.posgp)
             
             obj.initGeometry
@@ -106,7 +106,7 @@ classdef Filter_LevelSet < handle
         %         end
         
         function M2 = computeRHS(obj,x)
-            obj.setupUnfittedMesh(x);
+            obj.unfitted_mesh.computeCutMesh(x);
             obj.unfitted_mesh.computeDvoluCut;
             
             posgp_iso = obj.computePosGpDelaunayIsoparametric(obj.unfitted_mesh.unfitted_cut_coord_iso_per_cell,obj.interp_del);

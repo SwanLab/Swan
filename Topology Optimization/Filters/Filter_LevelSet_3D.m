@@ -14,18 +14,12 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
             obj.quadrature_del=Quadrature_Tetrahedra;
         end
         
-        function mesh_del = getMeshDel(obj)
-            mesh_del = obj.diffReacProb.mesh.duplicate;
-            mesh_del.geometryType='TETRAHEDRA';
-        end
-        
         function getInterpolationDel(obj,mesh_del)
             obj.interp_del=Tetrahedra_Linear(mesh_del);
         end
         
-        function setupUnfittedMesh(obj,x)
+        function createUnfittedMesh(obj)
             obj.unfitted_mesh = Mesh_Unfitted_3D(obj.diffReacProb.mesh.duplicate,obj.diffReacProb.geometry.interpolation);
-            obj.unfitted_mesh.computeCutMesh(x);
         end
         
         function M2 = computeRHS_facet(obj,x,F)

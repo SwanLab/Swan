@@ -10,18 +10,12 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
             obj.quadrature_del=Quadrature_Triangle;
         end
         
-        function mesh_del = getMeshDel(obj)
-            mesh_del = obj.diffReacProb.mesh.duplicate;
-            mesh_del.geometryType='TRIANGLE';
-        end
-        
         function getInterpolationDel(obj,mesh_del)
-            obj.interp_del=Triangle_Linear(mesh_del);
+            obj.interp_del = Triangle_Linear(mesh_del);
         end
         
-        function setupUnfittedMesh(obj,x)
+        function createUnfittedMesh(obj)
             obj.unfitted_mesh = Mesh_Unfitted_2D(obj.diffReacProb.mesh.duplicate,obj.diffReacProb.geometry.interpolation);
-            obj.unfitted_mesh.computeCutMesh(x);
         end
         
         function M2=computeRHS_facet(obj,x,F)
