@@ -7,6 +7,7 @@ fprintf('Running TopOpt tests...\n')
 %% Test Declaration -------------------------------------------------------
 
 tests_integration = {'test_circle_triangle','test_circle_quadrilateral','test_sphere_tetrahedra','test_sphere_hexahedra'};
+% tests_integration = {'test_sphere_tetrahedra','test_sphere_hexahedra'};
 
 %% Run Integration Opt Tests ----------------------------------------------
 for i = 1:length(tests_integration)
@@ -24,7 +25,7 @@ for i = 1:length(tests_integration)
     
     filter = Filter.create(obj.settings);
     filter.preProcess;
-    A = filter.IntegrateFacet(x);
+    A = filter.IntegrateFacets(x);
     A_star = A/A0;
     errorSurf = (A_star - A_star_ref)/A_star_ref;
     if abs(errorSurf) < 1e-9

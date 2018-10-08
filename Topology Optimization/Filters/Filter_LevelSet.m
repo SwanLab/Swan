@@ -1,6 +1,6 @@
 classdef Filter_LevelSet < handle
     properties
-        geometry % !! NEEDED??? !!
+        geometry
         quadrature_fitted
         quadrature_unfitted
         interpolation_unfitted
@@ -25,49 +25,17 @@ classdef Filter_LevelSet < handle
             
             obj.getInterpolation_Unfitted;
             
-            obj.initGeometry;
+            obj.computeGeometry;
             
             MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';
             warning('off', MSGID)
         end
         
-        function initGeometry(obj)
+        function computeGeometry(obj)
             obj.geometry = Geometry(obj.mesh,'LINEAR');
             obj.geometry.interpolation.computeShapeDeriv(obj.quadrature_fitted.posgp)
             obj.geometry.computeGeometry(obj.quadrature_fitted,obj.geometry.interpolation);
         end
-        
-        function shapeValues_FullCells = integrateFullCells(obj)
-            shapeValues_FullCells = zeros(size(obj.mesh.connec,1),size(obj.mesh.connec,2));
-            for igauss = 1:size(obj.geometry.interpolation.shape,2)
-                shapeValues_FullCells = shapeValues_FullCells+obj.geometry.interpolation.shape(:,igauss)'.*obj.geometry.dvolu(:,igauss);
-            end
-        end
-        
-        function shape_cut = integrateCut(obj,containing_cell,dvolu_cut)
-            dvolu_frac = sum(obj.geometry.dvolu,2)/obj.geometry.interpolation.dvolu;
-            shape_cut = obj.geometry.interpolation.shape'.*dvolu_cut.*dvolu_frac(containing_cell);
-        end
-        
-        function M2 = rearrangeOutputRHS(obj,shape_all)
-            M2 = zeros(obj.npnod,1);
-            for inode = 1:obj.nnode
-                M2 = M2+accumarray(obj.mesh.connec(:,inode),shape_all(:,inode),[obj.npnod,1],@sum,0);
-            end
-        end
-        
-        %         function M2=computeRHS_OLD(obj,x)
-        %             [full_elem,cut_elem]=obj.findCutElements(x,obj.connectivities);
-        %             shape_all=obj.computeFullElements(full_elem);
-        %             if ~isempty(cut_elem)
-        %                 [cut_subcells_coord,global_elem_index_of_each_cut_elem,phi_values]=obj.computeDelaunay(x,cut_elem,obj.connectivities,obj.geometry.interpolation);
-        %                 dvolu_cut=obj.computeDvoluCut(cut_subcells_coord);
-        %                 posgp_iso=obj.computePosGpDelaunayIsoparametric(cut_subcells_coord);
-        %                 obj.geometry.interpolation.computeShapeDeriv(posgp_iso');
-        %                 shape_all=obj.integrateCut(phi_values, global_elem_index_of_each_cut_elem, dvolu_cut, shape_all);
-        %             end
-        %             M2=obj.rearrangeOutputRHS(shape_all);
-        %         end
         
         function M2 = computeRHS(obj,x)
             obj.unfitted_mesh.computeCutMesh(x);
@@ -77,10 +45,22 @@ classdef Filter_LevelSet < handle
             obj.geometry.interpolation.computeShapeDeriv(posgp_iso');
             
             shapeValues_FullCells = obj.integrateFullCells;
-            shapeValues_CutCells = obj.integrateCut(obj.unfitted_mesh.subcell_containing_cell,obj.unfitted_mesh.dvolu_cut);
+            shapeValues_CutCells = obj.integrateCutCells(obj.unfitted_mesh.subcell_containing_cell,obj.unfitted_mesh.dvolu_cut);
             shapeValues_All = obj.assembleShapeValues(shapeValues_FullCells,shapeValues_CutCells);
             
             M2 = obj.rearrangeOutputRHS(shapeValues_All);
+        end
+        
+        function shapeValues_FullCells = integrateFullCells(obj)
+            shapeValues_FullCells = zeros(size(obj.mesh.connec,1),size(obj.mesh.connec,2));
+            for igauss = 1:size(obj.geometry.interpolation.shape,2)
+                shapeValues_FullCells = shapeValues_FullCells+obj.geometry.interpolation.shape(:,igauss)'.*obj.geometry.dvolu(:,igauss);
+            end
+        end
+        
+        function shape_cut = integrateCutCells(obj,containing_cell,dvolu_cut)
+            dvolu_frac = sum(obj.geometry.dvolu,2)/obj.geometry.interpolation.dvolu;
+            shape_cut = obj.geometry.interpolation.shape'.*dvolu_cut.*dvolu_frac(containing_cell);
         end
         
         function shapeValues_AllCells = assembleShapeValues(obj,shapeValues_FullCells,shapeValues_CutCells)
@@ -92,9 +72,16 @@ classdef Filter_LevelSet < handle
             end
         end
         
+        function M2 = rearrangeOutputRHS(obj,shape_all)
+            M2 = zeros(obj.npnod,1);
+            for inode = 1:obj.nnode
+                M2 = M2 + accumarray(obj.mesh.connec(:,inode),shape_all(:,inode),[obj.npnod,1],@sum,0);
+            end
+        end
+        
         % !!!!!!!!!!!!!!!!!! REMOVED M2=computeRHS_facet !!!!!!!!!!!!!!!!!!
         
-        function S = IntegrateFacet(obj,x)
+        function S = IntegrateFacets(obj,x)
             M2 = obj.computeRHS_facet(x,ones(size(x)));
             S = sum(M2);
         end
@@ -106,9 +93,9 @@ classdef Filter_LevelSet < handle
     end
     
     methods (Static)
-        function [full_elem,cut_elem]=findCutElements(x,connectivities)
-            phi_nodes=x(connectivities);
-            phi_case=sum((sign(phi_nodes)<0),2);
+        function [full_elem,cut_elem] = findCutElements(x,connectivities)
+            phi_nodes = x(connectivities);
+            phi_case = sum((sign(phi_nodes)<0),2);
             
             full_elem = phi_case==size(connectivities,2);
             null_elem = phi_case==0;
