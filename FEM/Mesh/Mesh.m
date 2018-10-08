@@ -9,14 +9,15 @@ classdef Mesh < handle
     
     methods
         function obj = create(obj,coordinates,connectivities)
-            obj.coord = coordinates(:,1:obj.ndim);
+            obj.coord = coordinates;
             obj.connec = connectivities;
             obj.estimate_mesh_size;
             obj.estimate_mesh_characteristic_length;
         end
         
         function copy = duplicate(obj)
-            copy = Mesh.create(obj.coord,obj.connec);
+            copy = Mesh;
+            copy.create(obj.coord,obj.connec);
         end
     end
     

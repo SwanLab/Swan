@@ -24,7 +24,7 @@ classdef Mesh_GiD < Mesh
                 obj.ptype = data.problem_type;
                 obj.scale = data.scale;
                 obj.problemID=filename;
-                obj.create(data.xpoints(:,2:4),data.connectivities(:,2:end));
+                obj.create(data.xpoints(:,2:obj.ndim+1),data.connectivities(:,2:end));
                 
                 if strcmpi(data.problem_type,'elastic')
                     obj.dirichlet = data.dirichlet_data;
@@ -35,6 +35,11 @@ classdef Mesh_GiD < Mesh
         
         function copy = duplicate(obj)
             copy = Mesh_GiD(obj.problemID);
+        end
+        
+        function simplified_copy = getSimplifiedMesh(obj)
+            simplified_copy = Mesh;
+            simplified_copy.create(obj.coord,obj.connec);
         end
     end
     
