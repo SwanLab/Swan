@@ -19,6 +19,7 @@ classdef Filter_LevelSet < handle
             obj.quadrature = Quadrature.set(obj.diffReacProb.geometry.type);
             obj.geometry= Geometry(obj.diffReacProb.mesh,'LINEAR');
             
+            % !! REPLACE "DEL" BY "UNFITTED"
             obj.getQuadratureDel;
             obj.quadrature_del.computeQuadrature('LINEAR');
             mesh_del = obj.getMeshDel;
@@ -50,13 +51,7 @@ classdef Filter_LevelSet < handle
             shape_cut = obj.geometry.interpolation.shape'.*dvolu_cut.*dvolu_frac(containing_cell);
         end
         
-        function pos_gp_del_natural = computePosGpDelaunayNatural(obj,subcell_coord)
-            pos_gp_del_natural = zeros(size(subcell_coord,1),size(subcell_coord,3));
-            for idime = 1:size(subcell_coord,3)
-                pos_gp_del_natural(:,idime) = subcell_coord(:,:,idime)*obj.interp_del.shape;
-            end
-        end
-        
+
         %         function [cut_subcells_coordinates,global_elem_index_of_each_cut_elem,phi_cut] = computeDelaunay(obj,x,cut_elem,connectivities,interpolation)
         %             [P,active_nodes] = obj.findCutPoints_Iso(x,cut_elem,interpolation);
         %
@@ -103,8 +98,8 @@ classdef Filter_LevelSet < handle
         %             if ~isempty(cut_elem)
         %                 [cut_subcells_coord,global_elem_index_of_each_cut_elem,phi_values]=obj.computeDelaunay(x,cut_elem,obj.connectivities,obj.geometry.interpolation);
         %                 dvolu_cut=obj.computeDvoluCut(cut_subcells_coord);
-        %                 pos_gp_del_natural=obj.computePosGpDelaunayNatural(cut_subcells_coord);
-        %                 obj.geometry.interpolation.computeShapeDeriv(pos_gp_del_natural');
+        %                 posgp_iso=obj.computePosGpDelaunayIsoparametric(cut_subcells_coord);
+        %                 obj.geometry.interpolation.computeShapeDeriv(posgp_iso');
         %                 shape_all=obj.integrateCut(phi_values, global_elem_index_of_each_cut_elem, dvolu_cut, shape_all);
         %             end
         %             M2=obj.rearrangeOutputRHS(shape_all);
@@ -114,8 +109,8 @@ classdef Filter_LevelSet < handle
             obj.setupUnfittedMesh(x);
             obj.unfitted_mesh.computeDvoluCut;
             
-            pos_gp_del_natural = obj.computePosGpDelaunayNatural(obj.unfitted_mesh.unfitted_cut_coord_iso_per_cell);
-            obj.geometry.interpolation.computeShapeDeriv(pos_gp_del_natural');
+            posgp_iso = obj.computePosGpDelaunayIsoparametric(obj.unfitted_mesh.unfitted_cut_coord_iso_per_cell,obj.interp_del);
+            obj.geometry.interpolation.computeShapeDeriv(posgp_iso');
             
             shape_cut = obj.integrateCut(obj.unfitted_mesh.subcell_containing_cell,obj.unfitted_mesh.dvolu_cut);
             shape_all = obj.assembleShapeValues(shape_cut);
@@ -154,6 +149,13 @@ classdef Filter_LevelSet < handle
             null_elem = phi_case==0;
             indexes = (1:size(connectivities,1))';
             cut_elem = indexes(~(full_elem+null_elem));
+        end
+        
+        function posgp = computePosGpDelaunayIsoparametric(subcell_coord,interpolation)
+            posgp = zeros(size(subcell_coord,1),size(subcell_coord,3));
+            for idime = 1:size(subcell_coord,3)
+                posgp(:,idime) = subcell_coord(:,:,idime)*interpolation.shape;
+            end
         end
     end
     
