@@ -25,7 +25,7 @@ classdef Quadrature_Hexahedra<Quadrature
                             end
                         end
                     end
-                case 'QUADRATICMASS'
+                case 'QUADRATIC'
                     posgl(1)=-0.774596669241483;
                     posgl(2)= 0.0;
                     posgl(3)= 0.774596669241483;

@@ -88,7 +88,7 @@ classdef Element_DiffReact < Element
         end
         
         function [M] = compute_elem_MassMatrix(obj,job)
-            obj.quadrature.computeQuadrature('QUADRATICMASS');
+            obj.quadrature.computeQuadrature('QUADRATIC');
             obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
             Me = zeros(obj.interpolation_u.nnode,obj.interpolation_u.nnode,obj.nelem);
