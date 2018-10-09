@@ -1,11 +1,5 @@
 classdef Mesh_Unfitted_3D < Mesh_Unfitted
-    methods
-        function obj = Mesh_Unfitted_3D
-            obj.geometryType = 'TETRAHEDRA';
-            obj.max_subcells = 20;
-            obj.nnodes_subcell = 4;
-        end
-        
+    methods        
         function [P,active_nodes]=findCutPoints_Iso(obj)
             pos_nodes = obj.fitted_geom_interpolation.pos_nodes;
             

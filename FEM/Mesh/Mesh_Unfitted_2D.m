@@ -1,12 +1,6 @@
 classdef Mesh_Unfitted_2D < Mesh_Unfitted
     
-    methods
-        function obj = Mesh_Unfitted_2D
-            obj.geometryType = 'TRIANGLE';
-            obj.max_subcells = 6;
-            obj.nnodes_subcell = 3;
-        end
-        
+    methods        
         function [P,active_nodes] = findCutPoints_Iso(obj)
             pos_nodes = obj.fitted_geom_interpolation.pos_nodes;
             

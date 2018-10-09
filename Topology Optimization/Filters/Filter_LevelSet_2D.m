@@ -19,8 +19,11 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
         end
         
         function M2=computeRHS_facet(obj,x,F)
-%             obj.setupUnfittedMesh(x);
-%             obj.unfitted_mesh.computeDvoluCut;
+            obj.unfitted_mesh = Mesh_Unfitted_2D_Boundary(obj.mesh.duplicate,obj.diffReacProb.geometry.interpolation);
+            obj.unfitted_mesh.computeMesh(x);
+            obj.unfitted_mesh.computeGlobalConnectivities;
+            obj.unfitted_mesh.plot;
+            %             obj.unfitted_mesh.computeDvoluCut;
             
             [interp_facet,quadrature_facet] = obj.createFacet;
             interp_element = Interpolation.create(obj.mesh,obj.quadrature_fitted.order);
@@ -29,10 +32,10 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
             [~,cut_elem]=obj.findCutElements(x,obj.mesh.connec);
             
             [P_iso,active_nodes_iso]=obj.findCutPoints_Iso(x,cut_elem,obj.geometry.interpolation);
-            [P_global,active_nodes_global]=obj.findCutPoints_Global(x,cut_elem);            
+            [P_global,active_nodes_global]=obj.findCutPoints_Global(x,cut_elem);
             
             % !! VECTORITZAR: LOOPS PETITS, ELEMENTS DIRECTES !!
-%             figure, hold on
+            %             figure, hold on
             for icut = 1:length(cut_elem)
                 ielem = cut_elem(icut); inode_global = obj.mesh.connec(ielem,:);
                 cutPoints_iso = P_iso(active_nodes_iso(:,:,icut),:,icut);
@@ -56,9 +59,9 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
                     f = (interp_element.shape*quadrature_facet.weigp')'*F(inode_global)/interp_facet.dvolu;
                     shape_all(ielem,:) = shape_all(ielem,:) + (interp_element.shape*(dt_dxi.*quadrature_facet.weigp')*f)';
                     
-%                     plot(obj.coordinates(obj.mesh.connec(ielem,:),1),obj.mesh.coord(obj.mesh.connec(ielem,:),2),'.-b'); plot(obj.mesh.coord(obj.mesh.connec(ielem,[1 3]),1),obj.mesh.coord(obj.mesh.connec(ielem,[1 3]),2),'.-b');
-%                     plot(cutPoints_global(connec_facets(i,:),1),cutPoints_global(connec_facets(i,:),2),'-xr');
-%                     title('Cut Elements & Cut points in GLOBAL coordinates'), axis('equal')
+                    %                     plot(obj.coordinates(obj.mesh.connec(ielem,:),1),obj.mesh.coord(obj.mesh.connec(ielem,:),2),'.-b'); plot(obj.mesh.coord(obj.mesh.connec(ielem,[1 3]),1),obj.mesh.coord(obj.mesh.connec(ielem,[1 3]),2),'.-b');
+                    %                     plot(cutPoints_global(connec_facets(i,:),1),cutPoints_global(connec_facets(i,:),2),'-xr');
+                    %                     title('Cut Elements & Cut points in GLOBAL coordinates'), axis('equal')
                 end
             end
             M2=obj.rearrangeOutputRHS(shape_all);
