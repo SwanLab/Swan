@@ -44,6 +44,7 @@ classdef Filter_LevelSet < handle
         end
         
         function M2 = computeRHS(obj,x)
+            obj.createUnfittedMesh; % !! DUPLICATED, BUT FOR NOW THIS IS OVERWRITTEN WHEN INTEGRATING FACETS !!
             obj.unfitted_mesh.computeMesh(x);
             obj.unfitted_mesh.computeDvoluCut;
             

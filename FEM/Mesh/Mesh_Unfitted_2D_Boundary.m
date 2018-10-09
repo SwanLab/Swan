@@ -7,12 +7,13 @@ classdef Mesh_Unfitted_2D_Boundary < Mesh_Unfitted_2D & Mesh_Unfitted_Boundary
             obj.nnodes_subcell = 2;
         end
         
-        function [subcell_coord_iso,subcell_coord_global,subcell_x_value,interior_subcell_connec] = computeSubcells(obj,~,subcell_cutPoints_iso,subcell_cutPoints_global)
-            subcell_coord_iso = subcell_cutPoints_iso;
-            subcell_coord_global = subcell_cutPoints_global;
-            subcell_x_value = zeros(1,size(subcell_cutPoints_iso,1));
+        function [facets_coord_iso,facets_coord_global,facets_x_value,facets_connec] = computeSubcells(obj,~,subcell_cutPoints_iso,subcell_cutPoints_global)
+            % !! MOVE THIS TO THE BOUNDARY SUPERCLASS !!
+            facets_coord_iso = subcell_cutPoints_iso;
+            facets_coord_global = subcell_cutPoints_global;
+            facets_x_value = zeros(1,size(subcell_cutPoints_iso,1)); % !! RENAME !!
             
-            interior_subcell_connec = obj.computeBoundarySubcellsConnectivities(subcell_coord_iso);
+            facets_connec = obj.computeFacetsConnectivities(facets_coord_iso);
         end
         
         function plot(obj)
@@ -26,18 +27,19 @@ classdef Mesh_Unfitted_2D_Boundary < Mesh_Unfitted_2D & Mesh_Unfitted_Boundary
     end
     
     methods (Static, Access = private)
-        function subcell_connec = computeBoundarySubcellsConnectivities(subcell_coord_iso)
+        function facets_connec = computeFacetsConnectivities(subcell_coord_iso)
             if size(subcell_coord_iso,1) == 2
-                subcell_connec = [1 2];
+                facets_connec = [1 2];
             elseif size(subcell_coord_iso,1) == 4
                 DT = delaunayTriangulation(subcell_coord_iso);
-                del_connec = DT.ConnectivityList;
+                delaunay_connec = DT.ConnectivityList;
                 
                 node_positive_iso = find(obj.x_fitted(inode_global)>0);
-                %                 subcell_connec = zeros(length(node_positive_iso),size(del_connec,2));
+                % !! CHECK IF NEXT LINE WORKS !!
+                % facets_connec = zeros(length(node_positive_iso),size(delaunay_connec,2));
                 for idel = 1:length(node_positive_iso)
-                    [connec_positive_nodes, ~] = find(del_connec==node_positive_iso(idel));
-                    subcell_connec(idel,:) = del_connec(connec_positive_nodes(end),del_connec(connec_positive_nodes(end),:)~=node_positive_iso(idel))-interpolation.nnode;
+                    [connec_positive_nodes, ~] = find(delaunay_connec==node_positive_iso(idel));
+                    facets_connec(idel,:) = delaunay_connec(connec_positive_nodes(end),delaunay_connec(connec_positive_nodes(end),:)~=node_positive_iso(idel))-interpolation.nnode;
                 end
             else
                 error('Case not considered.')

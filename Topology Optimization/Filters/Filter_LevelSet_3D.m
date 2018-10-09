@@ -23,6 +23,12 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         end
         
         function M2 = computeRHS_facet(obj,x,F)
+            obj.unfitted_mesh = Mesh_Unfitted_3D_Boundary(obj.mesh.duplicate,obj.diffReacProb.geometry.interpolation);
+            obj.unfitted_mesh.computeMesh(x);
+            obj.unfitted_mesh.computeGlobalConnectivities;
+%             obj.unfitted_mesh.plot;
+            %             obj.unfitted_mesh.computeDvoluCut;
+            
             [interp_facet,quadrature_facet] = obj.createFacet;
             interp_element = Interpolation.create(obj.mesh,obj.quadrature_fitted.order);
             
