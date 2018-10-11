@@ -26,7 +26,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
             obj.unfitted_mesh = Mesh_Unfitted_3D_Boundary(obj.mesh.duplicate,obj.diffReacProb.geometry.interpolation);
             obj.unfitted_mesh.computeMesh(x);
             obj.unfitted_mesh.computeGlobalConnectivities;
-%             obj.unfitted_mesh.plot;
+            obj.unfitted_mesh.plot;
             %             obj.unfitted_mesh.computeDvoluCut;
             
             [interp_facet,quadrature_facet] = obj.createFacet;
