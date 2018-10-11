@@ -6,7 +6,7 @@ initial_case = 'holes';
 cost = {'compliance'};
 weights = 1;
 constraint = {'volumeConstraint'};
-optimizer = 'SLERP'; kappaMultiplier = 1;
+optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
 
