@@ -11,9 +11,9 @@ classdef Mesh_Unfitted < Mesh
         % (This must be solved in future refactoring. NOT JUST REMOVE THE "unfitted" PREFIX)
         unfitted_coord_iso
         unfitted_coord_iso_per_cell
-        unfitted_coord_global
+%         unfitted_coord_global
         unfitted_connec_iso
-        unfitted_connec_global
+%         unfitted_connec_global
         cell_containing_nodes
         cell_containing_subcell
         dvolu_cut
@@ -50,12 +50,22 @@ classdef Mesh_Unfitted < Mesh
         end
         
         function computeGlobalConnectivities(obj)
-            obj.unfitted_coord_global =  unique(obj.unfitted_coord_global_raw,'rows','stable');
-            obj.unfitted_connec_global = obj.computeFromLocalToGlobalConnectivities(obj.unfitted_connec_global,obj.unfitted_coord_global_raw,obj.unfitted_coord_global,obj.unfitted_connec_iso,obj.cell_containing_nodes,obj.cell_containing_subcell);
+            obj.coord =  unique(obj.unfitted_coord_global_raw,'rows','stable');
+            obj.computeFromLocalToGlobalConnectivities;
         end
     end
     
     methods (Access = private)
+        function findCutCells(obj)
+            phi_nodes = obj.x_fitted(obj.fitted_mesh.connec);
+            phi_case = sum((sign(phi_nodes)<0),2);
+            
+            obj.full_cells = phi_case == size(obj.fitted_mesh.connec,2);
+            obj.empty_cells = phi_case == 0;
+            indexes = (1:size(obj.fitted_mesh.connec,1))';
+            obj.cut_cells = indexes(~(obj.full_cells | obj.empty_cells));
+        end
+        
         function obj = computeMesh_Delaunay(obj)
             [Nodes_n_CutPoints_iso,real_cutPoints] = obj.findCutPoints_Iso;
             Nodes_n_CutPoints_global = obj.findCutPoints_Global;
@@ -86,12 +96,10 @@ classdef Mesh_Unfitted < Mesh
             obj.cleanExtraAllocatedMemory_Delaunay(lowerBound_A,lowerBound_B,lowerBound_C);
         end
         
-        function global_connec = computeFromLocalToGlobalConnectivities(obj,global_connec,local_coord,global_coord,local_connec,cell_containing_nodes,cell_containing_subcell)
-            for i = 1:size(local_connec,1) % !! VECTORIZE THIS LOOP !!
-                icell = cell_containing_subcell(i);
-                indexes_in_global_matrix = obj.findCoordinatesIndexesInGlobalCoordinatesMatrix(local_coord(cell_containing_nodes == icell,:),global_coord);
-                global_connec(i,:) = indexes_in_global_matrix(local_connec(i,:));
-            end
+        function computeFromLocalToGlobalConnectivities(obj)
+                indexes_in_global_matrix = obj.findIndexesOfCoordinatesAinCoordinateMatrixB(obj.unfitted_coord_global_raw,obj.coord);
+                unfitted_connec_global_raw = obj.unfitted_connec_iso + repmat(colon(0,2,2*(size(obj.unfitted_connec_iso,1)-1))',[1 size(obj.unfitted_connec_iso,2)]);
+                obj.connec = indexes_in_global_matrix(unfitted_connec_global_raw);
         end
         
         function [lowerBound_A,lowerBound_B,lowerBound_C] = saveNewSubcells...
@@ -125,7 +133,7 @@ classdef Mesh_Unfitted < Mesh
             obj.x_unfitted = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,1);
             obj.unfitted_connec_iso = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell);
             obj.unfitted_coord_iso_per_cell = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell,obj.fitted_mesh.ndim);
-            obj.unfitted_connec_global = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell);
+            obj.connec = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell);
             obj.cell_containing_subcell = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,1);
         end
         
@@ -137,23 +145,13 @@ classdef Mesh_Unfitted < Mesh
             end
             if length(obj.unfitted_connec_iso) > upperBound_B
                 obj.unfitted_connec_iso(upperBound_B+1:end,:) = [];
-                obj.unfitted_connec_global(upperBound_B+1:end,:) = [];
+                obj.connec(upperBound_B+1:end,:) = [];
                 obj.cell_containing_subcell(upperBound_B+1:end) = [];
             end
             
             if length(obj.unfitted_coord_iso_per_cell) > upperBound_C
                 obj.unfitted_coord_iso_per_cell(upperBound_C+1:end,:,:) = [];
             end
-        end
-        
-        function findCutCells(obj)
-            phi_nodes = obj.x_fitted(obj.fitted_mesh.connec);
-            phi_case = sum((sign(phi_nodes)<0),2);
-            
-            obj.full_cells = phi_case == size(obj.fitted_mesh.connec,2);
-            obj.empty_cells = phi_case == 0;
-            indexes = (1:size(obj.fitted_mesh.connec,1))';
-            obj.cut_cells = indexes(~(obj.full_cells | obj.empty_cells));
         end
     end
     
@@ -162,14 +160,14 @@ classdef Mesh_Unfitted < Mesh
             cutPoints = Nodes_n_CutPoints(real_cutPoints(:,:,icut),:,icut);
         end
         
-        function indexes_in_global_matrix = findCoordinatesIndexesInGlobalCoordinatesMatrix(coordinates_local,coordinates_global)
-            indexes_in_global_matrix = zeros(1,size(coordinates_local,1));
-            for inode = 1:size(coordinates_local,1)
-                match = true(size(coordinates_global,1),1);
-                for idime = 1:size(coordinates_local,2)
-                    match = match & coordinates_global(:,idime) == coordinates_local(inode,idime);
+        function indexes = findIndexesOfCoordinatesAinCoordinateMatrixB(A,B)
+            indexes = zeros(1,size(A,1));
+            for inode = 1:size(A,1)
+                match = true(size(B,1),1);
+                for idime = 1:size(A,2)
+                    match = match & B(:,idime) == A(inode,idime);
                 end
-                indexes_in_global_matrix(inode) = find(match,1);
+                indexes(inode) = find(match,1);
             end
         end
     end
