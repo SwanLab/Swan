@@ -4,6 +4,8 @@ classdef Mesh_Unfitted < Mesh
         empty_cells
         cut_cells
         
+        coord_iso
+        connec_local
         coord_iso_per_cell
         cell_containing_subcell
         
@@ -15,8 +17,6 @@ classdef Mesh_Unfitted < Mesh
     end
     
     properties (Access = protected)
-        coord_iso
-        connec_iso
         coord_global_raw
         
         cell_containing_nodes
@@ -87,7 +87,7 @@ classdef Mesh_Unfitted < Mesh
         
         function computeFromLocalToGlobalConnectivities(obj)
             indexes_in_global_matrix = obj.findIndexesOfCoordinatesAinCoordinateMatrixB(obj.coord_global_raw,obj.coord);
-            connec_global_raw = obj.connec_iso + repmat(colon(0,2,2*(size(obj.connec_iso,1)-1))',[1 size(obj.connec_iso,2)]);
+            connec_global_raw = obj.connec_local + repmat(colon(0,2,2*(size(obj.connec_local,1)-1))',[1 size(obj.connec_local,2)]);
             obj.connec = indexes_in_global_matrix(connec_global_raw);
         end
         
@@ -114,7 +114,7 @@ classdef Mesh_Unfitted < Mesh
             obj.coord_iso = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,obj.fitted_mesh.ndim);
             obj.coord_global_raw = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,obj.fitted_mesh.ndim);
             obj.coord_iso_per_cell = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell,obj.fitted_mesh.ndim);
-            obj.connec_iso = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell);
+            obj.connec_local = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell);
             obj.connec = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell);
             obj.x_unfitted = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,1);
             obj.cell_containing_nodes = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,1);
@@ -128,8 +128,8 @@ classdef Mesh_Unfitted < Mesh
                 obj.cell_containing_nodes(upperBound_A+1:end) = [];
                 obj.x_unfitted(upperBound_A+1:end) = [];
             end
-            if length(obj.connec_iso) > upperBound_B
-                obj.connec_iso(upperBound_B+1:end,:) = [];
+            if length(obj.connec_local) > upperBound_B
+                obj.connec_local(upperBound_B+1:end,:) = [];
                 obj.connec(upperBound_B+1:end,:) = [];
                 obj.cell_containing_subcell(upperBound_B+1:end) = [];
             end
@@ -146,7 +146,7 @@ classdef Mesh_Unfitted < Mesh
         end
         
         function assignUnfittedSubcellProps(obj,lowerBound_B,upperBound_B,new_subcell_connec,new_cell_containing_subcell)
-            obj.connec_iso(1+lowerBound_B:upperBound_B,:) = new_subcell_connec;
+            obj.connec_local(1+lowerBound_B:upperBound_B,:) = new_subcell_connec;
             obj.cell_containing_subcell(1+lowerBound_B:upperBound_B,:) = new_cell_containing_subcell;
         end
     end
