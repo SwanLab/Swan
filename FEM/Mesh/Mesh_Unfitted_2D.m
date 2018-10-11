@@ -1,6 +1,5 @@
 classdef Mesh_Unfitted_2D < Mesh_Unfitted
-    
-    methods        
+    methods (Access = public)    
         function [P,active_nodes] = findCutPoints_Iso(obj)
             pos_nodes = obj.fitted_geom_interpolation.pos_nodes;
             
@@ -30,19 +29,12 @@ classdef Mesh_Unfitted_2D < Mesh_Unfitted
             active_nodes = sign(gamma_1.*gamma_2)<=0;
         end
         
-        function computeDvoluCut(obj)
-            x1 = obj.unfitted_coord_iso_per_cell(:,1,1);   y1 = obj.unfitted_coord_iso_per_cell(:,1,2);
-            x2 = obj.unfitted_coord_iso_per_cell(:,2,1);   y2 = obj.unfitted_coord_iso_per_cell(:,2,2);
-            x3 = obj.unfitted_coord_iso_per_cell(:,3,1);   y3 = obj.unfitted_coord_iso_per_cell(:,3,2);
-            obj.dvolu_cut = 0.5*abs((x2-x1).*(y3-y1)-(x3-x1).*(y2-y1));
-        end
-        
-        function assignUnfittedCutCoordIsoPerCell(obj,new_unfitted_coord_iso,new_interior_subcell_connec,lowerBound,upperBound)
-            new_unfitted_coord_iso_x = new_unfitted_coord_iso(:,1);
-            new_unfitted_coord_iso_y = new_unfitted_coord_iso(:,2);
+        function assignUnfittedCutCoordIsoPerCell(obj,new_coord_iso,new_interior_subcell_connec,lowerBound,upperBound)
+            new_coord_iso_x = new_coord_iso(:,1);
+            new_coord_iso_y = new_coord_iso(:,2);
             
-            obj.unfitted_coord_iso_per_cell(lowerBound+1:upperBound,:,1) = new_unfitted_coord_iso_x(new_interior_subcell_connec);
-            obj.unfitted_coord_iso_per_cell(lowerBound+1:upperBound,:,2) = new_unfitted_coord_iso_y(new_interior_subcell_connec);
+            obj.coord_iso_per_cell(lowerBound+1:upperBound,:,1) = new_coord_iso_x(new_interior_subcell_connec);
+            obj.coord_iso_per_cell(lowerBound+1:upperBound,:,2) = new_coord_iso_y(new_interior_subcell_connec);
         end
     end
 end

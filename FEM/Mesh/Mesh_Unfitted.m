@@ -1,43 +1,33 @@
 classdef Mesh_Unfitted < Mesh
     properties
-        x_fitted
-        x_unfitted
-        
         full_cells
         empty_cells
         cut_cells
         
-        % !! WEIRD THAT IT HAS TO MENTION ITSELF TO AVOID CONFUSION !!
-        % (This must be solved in future refactoring. NOT JUST REMOVE THE "unfitted" PREFIX)
-        unfitted_coord_iso
-        unfitted_coord_iso_per_cell
-%         unfitted_coord_global
-        unfitted_connec_iso
-%         unfitted_connec_global
-        cell_containing_nodes
+        coord_iso_per_cell
         cell_containing_subcell
-        dvolu_cut
+        
+        x_fitted
+        x_unfitted
         
         fitted_mesh
         geometryType
     end
     
     properties (Access = protected)
-        fitted_geom_interpolation
+        coord_iso
+        connec_iso
+        coord_global_raw
         
-        unfitted_coord_global_raw
+        cell_containing_nodes
         
         max_subcells
         nnodes_subcell
+        
+        fitted_geom_interpolation
     end
     
     methods (Access = public)
-        %         function obj = Mesh_Unfitted
-        %         end
-        
-        %         function obj = create()
-        %         end
-        
         function storeFittedMesh(obj,fitted_mesh,fitted_geom_interpolation)
             obj.fitted_mesh = fitted_mesh;
             obj.fitted_geom_interpolation = fitted_geom_interpolation;
@@ -50,7 +40,7 @@ classdef Mesh_Unfitted < Mesh
         end
         
         function computeGlobalConnectivities(obj)
-            obj.coord =  unique(obj.unfitted_coord_global_raw,'rows','stable');
+            obj.coord =  unique(obj.coord_global_raw,'rows','stable');
             obj.computeFromLocalToGlobalConnectivities;
         end
     end
@@ -73,23 +63,22 @@ classdef Mesh_Unfitted < Mesh
             obj.allocateMemory_Delaunay;
             
             lowerBound_A = 0; lowerBound_B = 0; lowerBound_C = 0;
-            
             for icut = 1:length(obj.cut_cells)
                 icell = obj.cut_cells(icut);
                 currentCell_cutPoints_iso = obj.getCurrentCutPoints(Nodes_n_CutPoints_iso,real_cutPoints,icut);
                 currentCell_cutPoints_global = obj.getCurrentCutPoints(Nodes_n_CutPoints_global,real_cutPoints,icut);
                 
-                [new_unfitted_coord_iso,new_unfitted_coord_global,new_x_unfitted,new_subcell_connec]...
+                [new_coord_iso,new_coord_global,new_x_unfitted,new_subcell_connec]...
                     = obj.computeSubcells(obj.fitted_mesh.connec(icell,:),currentCell_cutPoints_iso,currentCell_cutPoints_global);
                 
                 number_new_subcells = size(new_subcell_connec,1);
-                number_new_coordinates = size(new_unfitted_coord_iso,1);
+                number_new_coordinates = size(new_coord_iso,1);
                 
                 new_cell_containing_nodes = repmat(icell,[number_new_coordinates 1]);
                 new_cell_containing_subcell = repmat(icell,[number_new_subcells 1]);
                 
                 [lowerBound_A,lowerBound_B,lowerBound_C] = obj.saveNewSubcells... % !! add / save / store / assign !! (?)
-                    (new_unfitted_coord_iso,new_unfitted_coord_global,new_x_unfitted,new_subcell_connec,...
+                    (new_coord_iso,new_coord_global,new_x_unfitted,new_subcell_connec,...
                     new_cell_containing_nodes,new_cell_containing_subcell,number_new_subcells,number_new_coordinates,...
                     lowerBound_A,lowerBound_B,lowerBound_C);
             end
@@ -97,61 +86,68 @@ classdef Mesh_Unfitted < Mesh
         end
         
         function computeFromLocalToGlobalConnectivities(obj)
-                indexes_in_global_matrix = obj.findIndexesOfCoordinatesAinCoordinateMatrixB(obj.unfitted_coord_global_raw,obj.coord);
-                unfitted_connec_global_raw = obj.unfitted_connec_iso + repmat(colon(0,2,2*(size(obj.unfitted_connec_iso,1)-1))',[1 size(obj.unfitted_connec_iso,2)]);
-                obj.connec = indexes_in_global_matrix(unfitted_connec_global_raw);
+            indexes_in_global_matrix = obj.findIndexesOfCoordinatesAinCoordinateMatrixB(obj.coord_global_raw,obj.coord);
+            connec_global_raw = obj.connec_iso + repmat(colon(0,2,2*(size(obj.connec_iso,1)-1))',[1 size(obj.connec_iso,2)]);
+            obj.connec = indexes_in_global_matrix(connec_global_raw);
         end
         
         function [lowerBound_A,lowerBound_B,lowerBound_C] = saveNewSubcells...
-                (obj,new_unfitted_coord_iso,new_unfitted_coord_global,new_x_unfitted,new_subcell_connec,...
+                (obj,new_coord_iso,new_coord_global,new_x_unfitted,new_subcell_connec,...
                 new_cell_containing_nodes,new_cell_containing_subcell,number_new_subcells,number_new_coordinates,...
                 lowerBound_A,lowerBound_B,lowerBound_C)
             
             upperBound_A = lowerBound_A + number_new_coordinates;
-            
-            obj.unfitted_coord_iso(1+lowerBound_A:upperBound_A,:) = new_unfitted_coord_iso;
-            obj.unfitted_coord_global_raw(1+lowerBound_A:upperBound_A,:) = new_unfitted_coord_global;
-            obj.cell_containing_nodes(1+lowerBound_A:upperBound_A,:) = new_cell_containing_nodes;
-            obj.x_unfitted(1+lowerBound_A:upperBound_A) = new_x_unfitted;
-            
+            obj.assignUnfittedNodalProps(lowerBound_A,upperBound_A,new_coord_iso,new_coord_global,new_x_unfitted,new_cell_containing_nodes);
             lowerBound_A = upperBound_A;
             
             upperBound_B = lowerBound_B + number_new_subcells;
-            obj.unfitted_connec_iso(1+lowerBound_B:upperBound_B,:) = new_subcell_connec;
-            obj.cell_containing_subcell(1+lowerBound_B:upperBound_B,:) = new_cell_containing_subcell;
+            obj.assignUnfittedSubcellProps(lowerBound_B,upperBound_B,new_subcell_connec,new_cell_containing_subcell);
             lowerBound_B = upperBound_B;
             
             upperBound_C = lowerBound_C + number_new_subcells;
-            obj.assignUnfittedCutCoordIsoPerCell(new_unfitted_coord_iso,new_subcell_connec,lowerBound_C,upperBound_C);
+            obj.assignUnfittedCutCoordIsoPerCell(new_coord_iso,new_subcell_connec,lowerBound_C,upperBound_C);
             lowerBound_C = upperBound_C;
         end
         
         function allocateMemory_Delaunay(obj)
             number_cut_cells = length(obj.cut_cells);
-            obj.unfitted_coord_iso = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,obj.fitted_mesh.ndim);
-            obj.unfitted_coord_global_raw = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,obj.fitted_mesh.ndim);
-            obj.x_unfitted = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,1);
-            obj.unfitted_connec_iso = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell);
-            obj.unfitted_coord_iso_per_cell = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell,obj.fitted_mesh.ndim);
+            obj.coord_iso = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,obj.fitted_mesh.ndim);
+            obj.coord_global_raw = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,obj.fitted_mesh.ndim);
+            obj.coord_iso_per_cell = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell,obj.fitted_mesh.ndim);
+            obj.connec_iso = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell);
             obj.connec = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell);
+            obj.x_unfitted = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,1);
+            obj.cell_containing_nodes = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,1);
             obj.cell_containing_subcell = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,1);
         end
         
         function cleanExtraAllocatedMemory_Delaunay(obj,upperBound_A,upperBound_B,upperBound_C)
-            if length(obj.unfitted_coord_iso) > upperBound_A
-                obj.unfitted_coord_iso(upperBound_A+1:end,:) = [];
-                obj.unfitted_coord_global_raw(upperBound_A+1:end,:) = [];
+            if length(obj.coord_iso) > upperBound_A
+                obj.coord_iso(upperBound_A+1:end,:) = [];
+                obj.coord_global_raw(upperBound_A+1:end,:) = [];
+                obj.cell_containing_nodes(upperBound_A+1:end) = [];
                 obj.x_unfitted(upperBound_A+1:end) = [];
             end
-            if length(obj.unfitted_connec_iso) > upperBound_B
-                obj.unfitted_connec_iso(upperBound_B+1:end,:) = [];
+            if length(obj.connec_iso) > upperBound_B
+                obj.connec_iso(upperBound_B+1:end,:) = [];
                 obj.connec(upperBound_B+1:end,:) = [];
                 obj.cell_containing_subcell(upperBound_B+1:end) = [];
             end
-            
-            if length(obj.unfitted_coord_iso_per_cell) > upperBound_C
-                obj.unfitted_coord_iso_per_cell(upperBound_C+1:end,:,:) = [];
+            if length(obj.coord_iso_per_cell) > upperBound_C
+                obj.coord_iso_per_cell(upperBound_C+1:end,:,:) = [];
             end
+        end
+        
+        function assignUnfittedNodalProps(obj,lowerBound_A,upperBound_A,new_coord_iso,new_coord_global,new_x_unfitted,new_cell_containing_nodes)
+            obj.coord_iso(1+lowerBound_A:upperBound_A,:) = new_coord_iso;
+            obj.coord_global_raw(1+lowerBound_A:upperBound_A,:) = new_coord_global;
+            obj.cell_containing_nodes(1+lowerBound_A:upperBound_A,:) = new_cell_containing_nodes;
+            obj.x_unfitted(1+lowerBound_A:upperBound_A) = new_x_unfitted;
+        end
+        
+        function assignUnfittedSubcellProps(obj,lowerBound_B,upperBound_B,new_subcell_connec,new_cell_containing_subcell)
+            obj.connec_iso(1+lowerBound_B:upperBound_B,:) = new_subcell_connec;
+            obj.cell_containing_subcell(1+lowerBound_B:upperBound_B,:) = new_cell_containing_subcell;
         end
     end
     

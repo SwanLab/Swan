@@ -1,5 +1,9 @@
 classdef Mesh_Unfitted_Interior < Mesh_Unfitted
-    methods
+    properties %(GetAccess = public, SetAccess = protected)
+        dvolu_cut
+    end
+    
+    methods (Access = public)
         function [interior_subcell_coord_iso,interior_subcell_coord_global,interior_subcell_x_value,interior_subcell_connec] = computeSubcells(obj,fitted_cell_connec,cutPoints_iso,cutPoints_global)
             interior_subcell_coord_iso = [obj.fitted_geom_interpolation.pos_nodes; cutPoints_iso];
             interior_subcell_coord_global = [obj.fitted_mesh.coord(fitted_cell_connec,:); cutPoints_global];
