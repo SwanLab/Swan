@@ -7,17 +7,6 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
             obj.nnodes_subcell = 3;
         end
         
-%         function [facets_coord_iso,facets_coord_global,facets_x_value,facets_connec] = computeSubcells(obj,fitted_cell_connec,subcell_cutPoints_iso,subcell_cutPoints_global)            
-% %             facets_coord_iso = subcell_cutPoints_iso;
-% %             facets_coord_global = subcell_cutPoints_global;
-% %             facets_x_value = zeros(1,size(subcell_cutPoints_iso,1));
-% %             
-%                         subcell_coord_iso = [obj.fitted_geom_interpolation.pos_nodes; subcell_cutPoints_iso];
-%             %             subcell_coord_global = [obj.fitted_mesh.coord(fitted_cell_connec,:); subcell_cutPoints_global];
-%             cell_x_value = obj.x_fitted(fitted_cell_connec)';
-%             facets_connec = obj.computeFacetsConnectivities(subcell_coord_iso,cell_x_value);
-%         end
-        
         function plot(obj)
             figure, hold on
             patch('vertices',obj.unfitted_coord_global,'faces',obj.unfitted_connec_global,...
@@ -30,9 +19,9 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
     end
     
     methods (Access = ?Mesh_Unfitted_Boundary)
-        function facets_connec = computeFacetsConnectivities(obj,~,subcell_coord_iso,subcell_x_value)
-            subcells_connec = obj.computeSubcellsConnectivities_Delaunay(subcell_coord_iso);
-            boundary_subcells_connec = obj.findBoundarySubcells(subcells_connec,subcell_x_value);
+        function facets_connec = computeFacetsConnectivities(obj,~,interior_subcell_coord_iso,cell_x_value)
+            subcells_connec = obj.computeSubcellsConnectivities_Delaunay(interior_subcell_coord_iso);
+            boundary_subcells_connec = obj.findBoundarySubcells(subcells_connec,cell_x_value);
             
             number_nodes = size(obj.fitted_geom_interpolation.pos_nodes,1);
             facets_connec = zeros([size(boundary_subcells_connec,1),3]);
@@ -43,14 +32,15 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
         end
     end
     
-    methods (Access = private)        
-        function boundary_subcells_connec = findBoundarySubcells(obj,subcells_connec,phi)
+    methods (Access = private)
+        function boundary_subcells_connec = findBoundarySubcells(obj,interior_subcells_connec,phi)
             % Find subcells formed by 1 interior node & 3 cutPoints (0 exterior nodes)
-            interior_nodes = find(phi<=0); exterior_nodes = find(phi>0);
+            interior_nodes = find(phi<=0);
+            exterior_nodes = find(phi>0);
             
-            number_interior_nodes = obj.countInputNodesPerCell(subcells_connec,interior_nodes); %#ok<FNDSB>
-            number_exterior_nodes = obj.countInputNodesPerCell(subcells_connec,exterior_nodes); %#ok<FNDSB>
-            boundary_subcells_connec = subcells_connec(number_interior_nodes == 1 & number_exterior_nodes == 0,:);
+            number_interior_nodes = obj.countInputNodesPerCell(interior_subcells_connec,interior_nodes); %#ok<FNDSB>
+            number_exterior_nodes = obj.countInputNodesPerCell(interior_subcells_connec,exterior_nodes); %#ok<FNDSB>
+            boundary_subcells_connec = interior_subcells_connec(number_interior_nodes == 1 & number_exterior_nodes == 0,:);
         end
     end
     

@@ -55,11 +55,12 @@ classdef Mesh_Unfitted < Mesh
             
             for icut = 1:length(obj.cut_cells)
                 icell = obj.cut_cells(icut);
-                subcell_cutPoints_iso = Nodes_n_CutPoints_iso(active_nodes(:,:,icut),:,icut);
-                subcell_cutPoints_global = Nodes_n_CutPoints_global(active_nodes(:,:,icut),:,icut);
+                cutPoints_iso = Nodes_n_CutPoints_iso(active_nodes(:,:,icut),:,icut);
+                cutPoints_global = Nodes_n_CutPoints_global(active_nodes(:,:,icut),:,icut);
                 
                 [new_unfitted_coord_iso,new_unfitted_coord_global,new_x_unfitted,new_subcell_connec]...
-                    = obj.computeSubcells(obj.fitted_mesh.connec(icell,:),subcell_cutPoints_iso,subcell_cutPoints_global);
+                    = obj.computeSubcells(obj.fitted_mesh.connec(icell,:),cutPoints_iso,cutPoints_global);
+                
                 number_new_subcells = size(new_subcell_connec,1);
                 number_new_coordinates = size(new_unfitted_coord_iso,1);
                 

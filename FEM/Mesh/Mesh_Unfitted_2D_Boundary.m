@@ -7,15 +7,6 @@ classdef Mesh_Unfitted_2D_Boundary < Mesh_Unfitted_2D & Mesh_Unfitted_Boundary
             obj.nnodes_subcell = 2;
         end
         
-        %         function [facets_coord_iso,facets_coord_global,facets_x_value,facets_connec] = computeSubcells(obj,~,subcell_cutPoints_iso,subcell_cutPoints_global)
-        %             % !! MOVE THIS TO THE BOUNDARY SUPERCLASS !!
-        %             facets_coord_iso = subcell_cutPoints_iso;
-        %             facets_coord_global = subcell_cutPoints_global;
-        %             facets_x_value = zeros(1,size(subcell_cutPoints_iso,1));
-        %
-        %             facets_connec = obj.computeFacetsConnectivities(facets_coord_iso);
-        %         end
-        
         function plot(obj)
             figure, hold on
             for icell = 1:size(obj.unfitted_connec_global,1)
