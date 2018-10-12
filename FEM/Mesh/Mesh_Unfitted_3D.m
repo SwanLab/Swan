@@ -47,7 +47,7 @@ classdef Mesh_Unfitted_3D < Mesh_Unfitted
             J = x1.*y3.*z2-x1.*y2.*z3+x2.*y1.*z3-x2.*y3.*z1-x3.*y1.*z2+x3.*y2.*z1+x1.*y2.*z4-x1.*y4.*z2-x2.*y1.*z4+x2.*y4.*z1+...
                 x4.*y1.*z2-x4.*y2.*z1-x1.*y3.*z4+x1.*y4.*z3+x3.*y1.*z4-x3.*y4.*z1-x4.*y1.*z3+x4.*y3.*z1+x2.*y3.*z4-x2.*y4.*z3...
                 -x3.*y2.*z4+x3.*y4.*z2+x4.*y2.*z3-x4.*y3.*z2;
-            obj.dvolu_cut = J/6;
+            obj.dvolu_cut = J;
         end
         
         function assignUnfittedCutCoordIsoPerCell(obj,new_unfitted_cut_coord_iso,new_subcell_cut_interior_connec_iso,c0,c1)
