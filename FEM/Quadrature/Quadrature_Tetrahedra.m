@@ -26,7 +26,15 @@ classdef Quadrature_Tetrahedra<Quadrature
                     obj.posgp=[a,b,c,c,c;
                                 a,c,c,c,b;
                                 a,c,c,b,c];
-                    obj.weigp=1/6*[-0.8,0.45,0.45,0.45,0.45];                            
+                    obj.weigp=1/6*[-0.8,0.45,0.45,0.45,0.45];  
+                case 'QUADRATICMASS'
+                    obj.ngaus=4;
+                    a=0.58541020;
+                    b=0.13819660;
+                    obj.posgp=[a,b,b,b;
+                                b,a,b,b;
+                                a,a,b,b];
+                    obj.weigp=[0.041666667,0.041666667,0.041666667,0.041666667];                          
 
 
                 otherwise

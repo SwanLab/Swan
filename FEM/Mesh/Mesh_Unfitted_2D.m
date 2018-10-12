@@ -39,7 +39,7 @@ classdef Mesh_Unfitted_2D < Mesh_Unfitted
         function computeDvoluCut(obj)
             x1 = obj.unfitted_cut_coord_iso_per_cell(:,1,1); y1 = obj.unfitted_cut_coord_iso_per_cell(:,1,2); x2 = obj.unfitted_cut_coord_iso_per_cell(:,2,1);
             y2 = obj.unfitted_cut_coord_iso_per_cell(:,2,2); x3 = obj.unfitted_cut_coord_iso_per_cell(:,3,1); y3 = obj.unfitted_cut_coord_iso_per_cell(:,3,2);
-            obj.dvolu_cut = abs((x2-x1).*(y3-y1)-(x3-x1).*(y2-y1)); %Computing the full square, quadrature weights contain the 1/2 factor.
+            obj.dvolu_cut = 0.5*abs((x2-x1).*(y3-y1)-(x3-x1).*(y2-y1));
         end
         
         function assignUnfittedCutCoordIsoPerCell(obj,new_unfitted_cut_coord_iso,new_subcell_cut_interior_connec_iso,c0,c1)

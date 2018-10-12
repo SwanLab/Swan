@@ -20,7 +20,7 @@ classdef Filter_LevelSet < handle
             obj.geometry= Geometry(obj.diffReacProb.mesh,'LINEAR');
             
             obj.getQuadratureDel;
-            obj.quadrature_del.computeQuadrature('QUADRATIC');
+            obj.quadrature_del.computeQuadrature('LINEAR');
             mesh_del = obj.getMeshDel;
             obj.getInterpolationDel(mesh_del);
             obj.interp_del.computeShapeDeriv(obj.quadrature_del.posgp)
