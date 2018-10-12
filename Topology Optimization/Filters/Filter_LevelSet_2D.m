@@ -31,41 +31,20 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
             facet_posgp_iso = obj.computePosGP(obj.unfitted_mesh.coord_iso_per_cell,interpolation_facet,quadrature_facet);
             
             shape_all = zeros(obj.nelem,obj.nnode);
-            [~,cut_elem]=obj.findCutElements(x,obj.mesh.connec);
             
-            [P_iso,active_nodes_iso]=obj.findCutPoints_Iso(x,cut_elem,obj.geometry.interpolation);
-            [P_global,active_nodes_global]=obj.findCutPoints_Global(x,cut_elem);
-            
-            % !! VECTORITZAR: LOOPS PETITS, ELEMENTS DIRECTES !!
-            %             figure, hold on
-            for icut = 1:length(cut_elem)
-                ielem = cut_elem(icut); inode_global = obj.mesh.connec(ielem,:);
-                cutPoints_iso = P_iso(active_nodes_iso(:,:,icut),:,icut);
-                cutPoints_global = P_global(active_nodes_global(:,:,icut),:,icut);
+            for ifacet = 1:size(obj.unfitted_mesh.connec,1)
+                icell = obj.unfitted_mesh.cell_containing_subcell(ifacet);
+                inode = obj.mesh.connec(icell,:);
+                facet_posgp = facet_posgp_iso(:,:,ifacet);
+                interp_element.computeShapeDeriv(facet_posgp');
+                facet_deriv(:,:) = interpolation_facet.deriv(:,:,:);
                 
-                connec_facets = obj.findFacetsConnectivities(cutPoints_iso,interp_element,x,inode_global);
+                % !! How mapping is done for 2D cases??? !!
+                t = [0; norm(diff(obj.unfitted_mesh.coord(obj.unfitted_mesh.connec(ifacet,:),:)))];
+                dt_dxi = (facet_deriv'*t)/interpolation_facet.dvolu;
                 
-                for i = 1:size(connec_facets,1)
-%                     for igaus = 1:quadrature_facet.ngaus
-%                         for idime = 1:interp_element.ndime
-%                             facet_posgp(igaus,idime) = interpolation_facet.shape(igaus,:)*cutPoints_iso(connec_facets(i,:),idime);
-%                         end
-%                     end
-                    facet_posgp = facet_posgp_iso(:,:,icut);
-                    interp_element.computeShapeDeriv(facet_posgp');
-                    facet_deriv(:,:) = interpolation_facet.deriv(:,:,:);
-                    
-                    % !! How mapping is done for 2D cases??? !!
-                    t = [0; norm(diff(cutPoints_global(connec_facets(i,:),:)))];
-                    dt_dxi = (facet_deriv'*t)/interpolation_facet.dvolu;
-                    
-                    f = (interp_element.shape*quadrature_facet.weigp')'*F(inode_global)/interpolation_facet.dvolu;
-                    shape_all(ielem,:) = shape_all(ielem,:) + (interp_element.shape*(dt_dxi.*quadrature_facet.weigp')*f)';
-                    
-                    %                     plot(obj.coordinates(obj.mesh.connec(ielem,:),1),obj.mesh.coord(obj.mesh.connec(ielem,:),2),'.-b'); plot(obj.mesh.coord(obj.mesh.connec(ielem,[1 3]),1),obj.mesh.coord(obj.mesh.connec(ielem,[1 3]),2),'.-b');
-                    %                     plot(cutPoints_global(connec_facets(i,:),1),cutPoints_global(connec_facets(i,:),2),'-xr');
-                    %                     title('Cut Elements & Cut points in GLOBAL coordinates'), axis('equal')
-                end
+                f = (interp_element.shape*quadrature_facet.weigp')'*F(inode)/interpolation_facet.dvolu;
+                shape_all(icell,:) = shape_all(icell,:) + (interp_element.shape*(dt_dxi.*quadrature_facet.weigp')*f)';
             end
             M2=obj.rearrangeOutputRHS(shape_all);
         end

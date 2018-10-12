@@ -1,6 +1,6 @@
 classdef Mesh_Unfitted < Mesh
     properties
-        full_cells
+        full_cells % !! ADD PREFIX: FITTED_ !!
         empty_cells
         cut_cells
         
