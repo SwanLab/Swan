@@ -9,8 +9,8 @@ classdef Mesh_Unfitted_2D_Boundary < Mesh_Unfitted_2D & Mesh_Unfitted_Boundary
         
         function plot(obj)
             figure, hold on
-            for icell = 1:size(obj.connec_global,1)
-                plot(obj.coord_global(obj.connec_global(icell,:),1),obj.coord_global(obj.connec_global(icell,:),2),'k-');
+            for icell = 1:size(obj.connec,1)
+                plot(obj.coord(obj.connec(icell,:),1),obj.coord(obj.connec(icell,:),2),'k-');
             end
             axis equal off
             hold off

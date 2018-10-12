@@ -6,8 +6,8 @@ fprintf('Running TopOpt tests...\n')
 
 %% Test Declaration -------------------------------------------------------
 
-% tests_integration = {'test_circle_triangle','test_circle_quadrilateral','test_sphere_tetrahedra','test_sphere_hexahedra'};
-tests_integration = {'test_sphere_tetrahedra','test_sphere_hexahedra'};
+tests_integration = {'test_circle_triangle','test_circle_quadrilateral','test_sphere_tetrahedra','test_sphere_hexahedra'};
+% tests_integration = {'test_sphere_tetrahedra','test_sphere_hexahedra'};
 
 %% Run Integration Opt Tests ----------------------------------------------
 for i = 1:length(tests_integration)

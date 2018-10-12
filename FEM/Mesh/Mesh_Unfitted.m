@@ -86,9 +86,16 @@ classdef Mesh_Unfitted < Mesh
         end
         
         function computeFromLocalToGlobalConnectivities(obj)
-            indexes_in_global_matrix = obj.findIndexesOfCoordinatesAinCoordinateMatrixB(obj.coord_global_raw,obj.coord);
-            connec_global_raw = obj.connec_local + repmat(colon(0,2,2*(size(obj.connec_local,1)-1))',[1 size(obj.connec_local,2)]);
-            obj.connec = indexes_in_global_matrix(connec_global_raw);
+            %             nnode = size(obj.connec_local,2);
+            %             indexes_in_global_matrix = obj.findIndexesOfCoordinatesAinCoordinateMatrixB(obj.coord_global_raw,obj.coord);
+            %             connec_global_raw = obj.connec_local + repmat(colon(0,nnode,nnode*(size(obj.connec_local,1)-1))',[1 nnode]);
+            %             obj.connec = indexes_in_global_matrix(connec_global_raw);
+            
+            for i = 1:size(obj.connec_local,1) % !! VECTORIZE THIS LOOP !!
+                icell = obj.cell_containing_subcell(i);
+                indexes_in_global_matrix = obj.findIndexesOfCoordinatesAinCoordinateMatrixB(obj.coord_global_raw(obj.cell_containing_nodes == icell,:),obj.coord);
+                obj.connec(i,:) = indexes_in_global_matrix(obj.connec_local(i,:));
+            end
         end
         
         function [lowerBound_A,lowerBound_B,lowerBound_C] = saveNewSubcells...
