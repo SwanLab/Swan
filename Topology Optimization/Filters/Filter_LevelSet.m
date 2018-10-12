@@ -48,8 +48,8 @@ classdef Filter_LevelSet < handle
             obj.unfitted_mesh.computeMesh(x);
             obj.unfitted_mesh.computeDvoluCut;
             
-            posgp_iso = obj.computePosGP(obj.unfitted_mesh.unfitted_coord_iso_per_cell,obj.interpolation_unfitted,obj.quadrature_unfitted);
-            obj.geometry.interpolation.computeShapeDeriv(posgp_iso');
+            posgp_iso = obj.computePosGP(obj.unfitted_mesh.coord_iso_per_cell,obj.interpolation_unfitted,obj.quadrature_unfitted);
+            obj.geometry.interpolation.computeShapeDeriv(squeeze(posgp_iso));
             
             shapeValues_CutCells = obj.integrateCutCells(obj.unfitted_mesh.cell_containing_subcell,obj.unfitted_mesh.dvolu_cut);
             shapeValues_All = obj.assembleShapeValues(obj.shapeValues_FullCells,shapeValues_CutCells);
@@ -111,9 +111,11 @@ classdef Filter_LevelSet < handle
         
         function posgp = computePosGP(subcell_coord,interpolation,quadrature)
             interpolation.computeShapeDeriv(quadrature.posgp);
-            posgp = zeros(size(subcell_coord,1),size(subcell_coord,3));
-            for idime = 1:size(subcell_coord,3)
-                posgp(:,idime) = subcell_coord(:,:,idime)*interpolation.shape;
+            posgp = zeros(quadrature.ngaus,size(subcell_coord,3),size(subcell_coord,1));
+            for igaus = 1:quadrature.ngaus
+                for idime = 1:size(subcell_coord,3)
+                    posgp(igaus,idime,:) = subcell_coord(:,:,idime)*interpolation.shape(:,igaus);
+                end
             end
         end
     end

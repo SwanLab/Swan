@@ -25,8 +25,10 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
 %             obj.unfitted_mesh.plot;
             %             obj.unfitted_mesh.computeDvoluCut;
             
-            [interp_facet,quadrature_facet] = obj.createFacet;
+            [interpolation_facet,quadrature_facet] = obj.createFacet;
             interp_element = Interpolation.create(obj.mesh,obj.quadrature_fitted.order);
+            
+            facet_posgp_iso = obj.computePosGP(obj.unfitted_mesh.coord_iso_per_cell,interpolation_facet,quadrature_facet);
             
             shape_all = zeros(obj.nelem,obj.nnode);
             [~,cut_elem]=obj.findCutElements(x,obj.mesh.connec);
@@ -44,19 +46,20 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
                 connec_facets = obj.findFacetsConnectivities(cutPoints_iso,interp_element,x,inode_global);
                 
                 for i = 1:size(connec_facets,1)
-                    for igaus = 1:quadrature_facet.ngaus
-                        for idime = 1:interp_element.ndime
-                            facet_posgp(igaus,idime) = interp_facet.shape(igaus,:)*cutPoints_iso(connec_facets(i,:),idime);
-                        end
-                    end
+%                     for igaus = 1:quadrature_facet.ngaus
+%                         for idime = 1:interp_element.ndime
+%                             facet_posgp(igaus,idime) = interpolation_facet.shape(igaus,:)*cutPoints_iso(connec_facets(i,:),idime);
+%                         end
+%                     end
+                    facet_posgp = facet_posgp_iso(:,:,icut);
                     interp_element.computeShapeDeriv(facet_posgp');
-                    facet_deriv(:,:) = interp_facet.deriv(:,:,:);
+                    facet_deriv(:,:) = interpolation_facet.deriv(:,:,:);
                     
                     % !! How mapping is done for 2D cases??? !!
                     t = [0; norm(diff(cutPoints_global(connec_facets(i,:),:)))];
-                    dt_dxi = (facet_deriv'*t)/interp_facet.dvolu;
+                    dt_dxi = (facet_deriv'*t)/interpolation_facet.dvolu;
                     
-                    f = (interp_element.shape*quadrature_facet.weigp')'*F(inode_global)/interp_facet.dvolu;
+                    f = (interp_element.shape*quadrature_facet.weigp')'*F(inode_global)/interpolation_facet.dvolu;
                     shape_all(ielem,:) = shape_all(ielem,:) + (interp_element.shape*(dt_dxi.*quadrature_facet.weigp')*f)';
                     
                     %                     plot(obj.coordinates(obj.mesh.connec(ielem,:),1),obj.mesh.coord(obj.mesh.connec(ielem,:),2),'.-b'); plot(obj.mesh.coord(obj.mesh.connec(ielem,[1 3]),1),obj.mesh.coord(obj.mesh.connec(ielem,[1 3]),2),'.-b');
