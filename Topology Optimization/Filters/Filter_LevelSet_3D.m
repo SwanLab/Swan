@@ -63,7 +63,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
                     interp_element.computeShapeDeriv(facet_posgp');
                     facet_deriv(:,:) = interp_facet.deriv(:,:,:);
                     
-                    djacob = obj.mapping(elem_cutPoints_global,interior_facets_local_connectivities(ifacet,:),facet_deriv,interp_facet.dvolu);
+                    djacob = obj.mapping(elem_cutPoints_global(interior_facets_local_connectivities(ifacet,:),:),interp_facet.dvolu);
                     
                     f = (interp_element.shape*quadrature_facet.weigp')'*F(inode_global)/interp_facet.dvolu;
                     shape_all(ielem,:) = shape_all(ielem,:) + (interp_element.shape*(djacob.*quadrature_facet.weigp')*f)';
@@ -260,10 +260,10 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
             A=J/6;
         end
         
-        function djacob = mapping(elem_cutPoints_global,facets_connectivities,facet_deriv,dvolu)
+        function djacob = mapping(points,dvolu)
             % !! Remove facet_deriv --> no longer used !!
-            v1 = diff(elem_cutPoints_global(facets_connectivities([1 2]),:));
-            v2 = diff(elem_cutPoints_global(facets_connectivities([1 3]),:));
+            v1 = diff(points([1 2],:));
+            v2 = diff(points([1 3],:));
             A = 0.5*norm(cross(v1,v2));
             djacob = A/dvolu;
         end

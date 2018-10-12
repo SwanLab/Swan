@@ -22,7 +22,7 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
             obj.unfitted_mesh = Mesh_Unfitted_2D_Boundary(obj.mesh.duplicate,obj.diffReacProb.geometry.interpolation);
             obj.unfitted_mesh.computeMesh(x);
             obj.unfitted_mesh.computeGlobalConnectivities;
-%             obj.unfitted_mesh.plot;
+            %             obj.unfitted_mesh.plot;
             %             obj.unfitted_mesh.computeDvoluCut;
             
             [interpolation_facet,quadrature_facet] = obj.createFacet;
@@ -37,16 +37,13 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
                 inode = obj.mesh.connec(icell,:);
                 facet_posgp = facet_posgp_iso(:,:,ifacet);
                 interp_element.computeShapeDeriv(facet_posgp');
-                facet_deriv(:,:) = interpolation_facet.deriv(:,:,:);
-                
-                % !! How mapping is done for 2D cases??? !!
-                t = [0; norm(diff(obj.unfitted_mesh.coord(obj.unfitted_mesh.connec(ifacet,:),:)))];
-                dt_dxi = (facet_deriv'*t)/interpolation_facet.dvolu;
+                               
+                djacob = obj.mapping(obj.unfitted_mesh.coord(obj.unfitted_mesh.connec(ifacet,:),:),interpolation_facet.dvolu);
                 
                 f = (interp_element.shape*quadrature_facet.weigp')'*F(inode)/interpolation_facet.dvolu;
-                shape_all(icell,:) = shape_all(icell,:) + (interp_element.shape*(dt_dxi.*quadrature_facet.weigp')*f)';
+                shape_all(icell,:) = shape_all(icell,:) + (interp_element.shape*(djacob.*quadrature_facet.weigp')*f)';
             end
-            M2=obj.rearrangeOutputRHS(shape_all);
+            M2 = obj.rearrangeOutputRHS(shape_all);
         end
         
         function [P,active_nodes]=findCutPoints_Iso(obj,x,cut_elem,interpolation)
@@ -104,9 +101,10 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
             end
         end
         
-        function djacob = mapping(elem_cutPoints_global,facets_connectivities,facet_deriv,dvolu)
-            t = [0; norm(diff(elem_cutPoints_global(facets_connectivities,:)))];
-            djacob = (facet_deriv'*t)/dvolu;
+        function djacob = mapping(points,dvolu)
+            v = diff(points);
+            L = norm(v);
+            djacob = L/dvolu;
         end
     end
 end
