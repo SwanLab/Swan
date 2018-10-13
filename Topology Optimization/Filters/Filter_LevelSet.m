@@ -61,7 +61,7 @@ classdef Filter_LevelSet < handle
             obj.createUnfittedMesh_Boundary; % !! DUPLICATED, BUT FOR NOW THIS IS OVERWRITTEN WHEN INTEGRATING FACETS !!
             obj.unfitted_mesh.computeMesh(x);
             obj.unfitted_mesh.computeGlobalConnectivities;
-                        obj.unfitted_mesh.plot;
+%                         obj.unfitted_mesh.plot;
             %             obj.unfitted_mesh.computeDvoluCut;
             
             [interpolation_facet,quadrature_facet] = obj.createFacet;

@@ -24,7 +24,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         
         function createUnfittedMesh_Boundary(obj)
             obj.unfitted_mesh = Mesh_Unfitted_3D_Boundary(obj.mesh.duplicate,obj.diffReacProb.geometry.interpolation);
-        end        
+        end
         
         function [interp_facet,quadrature_facet] = createFacet(obj)
             quadrature_facet = Quadrature.set('TRIANGLE');
@@ -85,8 +85,8 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
             
             
             %             hold on
-
-%             [interior_nodes_of_surrounding_active_cut_facets_coordinates,interior_nodes_of_surrounding_active_cut_facets_connectivities] = obj.computeSurfaceBoundaryInteriorSubcells(interp_element,obj.surrounding_facets_connectivities,x,cut_elem);
+            
+            %             [interior_nodes_of_surrounding_active_cut_facets_coordinates,interior_nodes_of_surrounding_active_cut_facets_connectivities] = obj.computeSurfaceBoundaryInteriorSubcells(interp_element,obj.surrounding_facets_connectivities,x,cut_elem);
             
             %             plot3(interior_nodes_of_surrounding_active_cut_facets_coordinates(:,1),interior_nodes_of_surrounding_active_cut_facets_coordinates(:,2),interior_nodes_of_surrounding_active_cut_facets_coordinates(:,3),'.b')
             %
@@ -97,6 +97,15 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
             
             surrounding_active_facets_coordinates = [surrounding_active_full_facets_coordinates;interior_nodes_of_surrounding_active_cut_facets_coordinates];
             surrounding_active_facets_connectivities = [surrounding_active_full_facets_connectivities;interior_nodes_of_surrounding_active_cut_facets_connectivities+size(surrounding_active_full_facets_coordinates,1)];
+        end
+        
+        function [interior_facets_global_coordinates, interior_facets_global_connectivities] = computeInteriorFacets(obj,x)
+            obj.createUnfittedMesh_Boundary;
+            obj.unfitted_mesh.computeMesh(x);
+            obj.unfitted_mesh.computeGlobalConnectivities;
+            
+            interior_facets_global_coordinates = obj.unfitted_mesh.coord;
+            interior_facets_global_connectivities = obj.unfitted_mesh.connec;
         end
     end
     
