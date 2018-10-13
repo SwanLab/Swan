@@ -26,18 +26,16 @@ for i = 1:length(tests_integration)
     filter = Filter.create(obj.settings);
     filter.preProcess;
     A = filter.IntegrateFacets(x);
-    A_star = A/A0;
-    errorSurf = (A_star - A_star_ref)/A_star_ref;
-    if abs(errorSurf) < 1e-9
+    errorSurf = A/A0 - 1;
+    if abs(errorSurf) < 4e-2
         cprintf('green',strcat(file_name,' PASSED.  Surface Error: ',num2str(errorSurf),'\n'));
     else
         cprintf('err',strcat(file_name,' FAILED. Surface Error: ',num2str(errorSurf),'\n'));
     end
     
     V = filter.IntegrateInteriorCells(x);
-    V_star = V/V0;
-    errorVol= (V_star - V_star_ref)/V_star_ref;
-    if abs(errorVol) < 1e-9
+    errorVol= V/V0 - 1;
+    if abs(errorVol) < 6e-2
         cprintf('green',strcat(file_name,' PASSED.  Volume Error: ',num2str(errorVol),'\n'));
     else
         cprintf('err',strcat(file_name,' FAILED. Volume Error: ',num2str(errorVol),'\n'));
