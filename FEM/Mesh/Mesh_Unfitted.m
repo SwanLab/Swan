@@ -1,8 +1,8 @@
 classdef Mesh_Unfitted < Mesh
     properties
-        full_cells % !! ADD PREFIX: FITTED_ !!
-        empty_cells
-        cut_cells
+        fitted_full_cells % !! ADD PREFIX: FITTED_ !!
+        fitted_empty_cells
+        fitted_cut_cells
         
         coord_iso
         connec_local
@@ -50,10 +50,10 @@ classdef Mesh_Unfitted < Mesh
             phi_nodes = obj.x_fitted(obj.fitted_mesh.connec);
             phi_case = sum((sign(phi_nodes)<0),2);
             
-            obj.full_cells = phi_case == size(obj.fitted_mesh.connec,2);
-            obj.empty_cells = phi_case == 0;
+            obj.fitted_full_cells = phi_case == size(obj.fitted_mesh.connec,2);
+            obj.fitted_empty_cells = phi_case == 0;
             indexes = (1:size(obj.fitted_mesh.connec,1))';
-            obj.cut_cells = indexes(~(obj.full_cells | obj.empty_cells));
+            obj.fitted_cut_cells = indexes(~(obj.fitted_full_cells | obj.fitted_empty_cells));
         end
         
         function obj = computeMesh_Delaunay(obj)
@@ -63,8 +63,8 @@ classdef Mesh_Unfitted < Mesh
             obj.allocateMemory_Delaunay;
             
             lowerBound_A = 0; lowerBound_B = 0; lowerBound_C = 0;
-            for icut = 1:length(obj.cut_cells)
-                icell = obj.cut_cells(icut);
+            for icut = 1:length(obj.fitted_cut_cells)
+                icell = obj.fitted_cut_cells(icut);
                 currentCell_cutPoints_iso = obj.getCurrentCutPoints(Nodes_n_CutPoints_iso,real_cutPoints,icut);
                 currentCell_cutPoints_global = obj.getCurrentCutPoints(Nodes_n_CutPoints_global,real_cutPoints,icut);
                 
@@ -117,7 +117,7 @@ classdef Mesh_Unfitted < Mesh
         end
         
         function allocateMemory_Delaunay(obj)
-            number_cut_cells = length(obj.cut_cells);
+            number_cut_cells = length(obj.fitted_cut_cells);
             obj.coord_iso = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,obj.fitted_mesh.ndim);
             obj.coord_global_raw = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,obj.fitted_mesh.ndim);
             obj.coord_iso_per_cell = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell,obj.fitted_mesh.ndim);
