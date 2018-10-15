@@ -26,7 +26,6 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         
         function [boundary_facets_coordinates,boundary_facets_connectivities] = computeBoundaryFacets(obj,x)
             [interior_facets_coordinates, interior_facets_connectivities] = obj.computeInteriorFacets(x);
-            obj.computeSurroundingFacets;
             [surrounding_active_facets_coordinates,surrounding_active_facets_connectivities] = obj.computeSurroundingActiveFacets(x);
             
             boundary_facets_coordinates = [surrounding_active_facets_coordinates;interior_facets_coordinates];
@@ -34,9 +33,9 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         end
         
         function computeSurroundingFacets(obj)
-            surrounding_facets_coordinates_raw = zeros(size(obj.mesh.coord)); surrounding_facets_connectivities_raw = zeros(size(obj.mesh.connec,1),obj.unfitted_mesh.fitted_mesh.ndim);
+            surrounding_facets_coordinates_raw = zeros(size(obj.mesh.coord)); surrounding_facets_connectivities_raw = zeros(size(obj.mesh.connec,1),obj.unfitted_mesh.ndim);
             k_coordinates = 0; k_connectivities = 0;
-            for idime = 1:obj.unfitted_mesh.fitted_mesh.ndim
+            for idime = 1:obj.unfitted_mesh.ndim
                 [surrounding_facets_coordinates_raw, surrounding_facets_connectivities_raw,k_coordinates,k_connectivities] = obj.computeBoxFaceCoordNConnec(surrounding_facets_coordinates_raw,surrounding_facets_connectivities_raw,idime,max(obj.mesh.coord(:,idime)),k_coordinates,k_connectivities);
                 [surrounding_facets_coordinates_raw, surrounding_facets_connectivities_raw,k_coordinates,k_connectivities] = obj.computeBoxFaceCoordNConnec(surrounding_facets_coordinates_raw,surrounding_facets_connectivities_raw,idime,min(obj.mesh.coord(:,idime)),k_coordinates,k_connectivities);
             end
@@ -54,7 +53,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         end
         
         function [surrounding_facets_coordinates, surrounding_facets_connectivities,k_coordinates,k_connectivities] = computeBoxFaceCoordNConnec(obj,surrounding_facets_coordinates,surrounding_facets_connectivities,idime,current_face_characteristic_coordinate,k_coordinates,k_connectivities)
-            dimens = 1:obj.unfitted_mesh.fitted_mesh.ndim;
+            dimens = 1:obj.unfitted_mesh.ndim;
             new_coordinates = obj.mesh.coord(obj.mesh.coord(:,idime) == current_face_characteristic_coordinate,:);
             DT = delaunayTriangulation(new_coordinates(:,dimens(dimens ~= idime)));
             new_connectivities = DT.ConnectivityList + k_coordinates;

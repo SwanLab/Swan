@@ -12,7 +12,6 @@ classdef Mesh_Unfitted < Mesh
         x_fitted
         x_unfitted
         
-        fitted_mesh
         geometryType
     end
     
@@ -24,6 +23,7 @@ classdef Mesh_Unfitted < Mesh
         max_subcells
         nnodes_subcell
         
+        fitted_mesh
         fitted_geom_interpolation
     end
     
