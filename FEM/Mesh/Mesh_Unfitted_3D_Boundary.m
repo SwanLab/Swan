@@ -19,6 +19,7 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
     end
     
     methods (Access = ?Mesh_Unfitted_Boundary)
+        %     methods
         function facets_connec = computeFacetsConnectivities(obj,~,interior_subcell_coord_iso,cell_x_value)
             subcells_connec = obj.computeSubcellsConnectivities_Delaunay(interior_subcell_coord_iso);
             boundary_subcells_connec = obj.findBoundarySubcells(subcells_connec,cell_x_value);

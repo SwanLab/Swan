@@ -1,4 +1,4 @@
-classdef Filter_P1_LevelSetMarching < Filter_P1
+classdef Filter_P1_LevelSetMarchingElem < Filter_P1
     properties
         quadrature
         geometry        
@@ -7,7 +7,7 @@ classdef Filter_P1_LevelSetMarching < Filter_P1
         shape_full
     end
     methods    
-        function obj = Filter_P1_LevelSetMarching(problemID,scale)
+        function obj = Filter_P1_LevelSetMarchingElem(problemID,scale)
             obj@Filter_P1(problemID,scale);
         end
         function preProcess(obj)

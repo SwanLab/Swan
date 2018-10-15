@@ -6,8 +6,8 @@ fprintf('Running TopOpt tests...\n')
 
 %% Test Declaration -------------------------------------------------------
 
-tests_integration = {'test_circle_triangle','test_circle_quadrilateral','test_sphere_tetrahedra','test_sphere_hexahedra'};
-% tests_integration = {'test_sphere_tetrahedra','test_sphere_hexahedra'};
+tests_integration = {'test_circle_triangle','test_circle_quadrilateral','test_sphere_tetrahedra','test_sphere_hexahedra','test_cylinder_tetrahedra','test_cylinder_hexahedra'};
+tests_integration = {'test_cylinder_tetrahedra','test_cylinder_hexahedra'};
 
 %% Run Integration Opt Tests ----------------------------------------------
 for i = 1:length(tests_integration)
@@ -25,7 +25,7 @@ for i = 1:length(tests_integration)
     
     filter_boundary = Filter_Boundary.create(obj.settings);
     filter_boundary.preProcess;
-    A = filter_boundary.IntegrateFacets(x);
+    A = filter_boundary.computeSurface(x);
     errorSurf = A/A0 - 1;
     if abs(errorSurf) < 4e-2
         cprintf('green',strcat(file_name,' PASSED.  Surface Error: ',num2str(errorSurf),'\n'));
@@ -35,7 +35,7 @@ for i = 1:length(tests_integration)
     
     filter = Filter.create(obj.settings);
     filter.preProcess;
-    V = filter.IntegrateInteriorCells(x);
+    V = filter.computeVolume(x);
     errorVol= V/V0 - 1;
     if abs(errorVol) < 6e-2
         cprintf('green',strcat(file_name,' PASSED.  Volume Error: ',num2str(errorVol),'\n'));

@@ -15,6 +15,8 @@ classdef DesignVaribleInitializer < handle
                     obj = DesignVaribleInitializer_Circle(settings,mesh,epsilon);
                 case 'sphere'
                     obj = DesignVaribleInitializer_Sphere(settings,mesh,epsilon);
+                case 'cylinder'
+                    obj = DesignVaribleInitializer_Cylinder(settings,mesh,epsilon);
                 case 'horizontal'
                     obj = DesignVaribleInitializer_Horizontal(settings,mesh,epsilon);
                 case 'square'
@@ -76,7 +78,7 @@ classdef DesignVaribleInitializer < handle
                     obj.ini_design_value = 1;
                     obj.hole_value = 0;
             end
-        end     
+        end
     end
 end
 
