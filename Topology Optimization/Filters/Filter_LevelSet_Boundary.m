@@ -1,30 +1,26 @@
 classdef Filter_LevelSet_Boundary < Filter_LevelSet
-    methods
-        %         function preProcess(obj)
-        %             preProcess@Filter_LevelSet(obj);
-        %         end
+    methods (Access = public)
+        function preProcess(obj)
+            preProcess@Filter_LevelSet(obj);
+        end
         
         function M2 = computeRHS(obj,x,F)
             obj.unfitted_mesh.computeMesh(x);
             obj.unfitted_mesh.computeGlobalConnectivities;
             
-            [interpolation_facet,quadrature_facet] = obj.createFacet;
-            interp_element = Interpolation.create(obj.mesh,obj.quadrature_fitted.order);
-            
-            facet_posgp_iso = obj.computePosGP(obj.unfitted_mesh.coord_iso_per_cell,interpolation_facet,quadrature_facet);
-            
+            facet_posgp_iso = obj.computePosGP(obj.unfitted_mesh.coord_iso_per_cell,obj.interpolation_unfitted,obj.quadrature_unfitted);
+                            
             shape_all = zeros(obj.nelem,obj.nnode);
             
-            for ifacet = 1:size(obj.unfitted_mesh.connec,1)
+            for ifacet = 1:size(obj.unfitted_mesh.connec,1) % !! VECTORIZE THIS LOOP !!
                 icell = obj.unfitted_mesh.cell_containing_subcell(ifacet);
                 inode = obj.mesh.connec(icell,:);
-                facet_posgp = facet_posgp_iso(:,:,ifacet);
-                interp_element.computeShapeDeriv(facet_posgp');
+                obj.interpolation_fitted.computeShapeDeriv(facet_posgp_iso(:,:,ifacet)');
                 
-                djacob = obj.mapping(obj.unfitted_mesh.coord(obj.unfitted_mesh.connec(ifacet,:),:),interpolation_facet.dvolu);
+                djacob = obj.mapping(obj.unfitted_mesh.coord(obj.unfitted_mesh.connec(ifacet,:),:),obj.interpolation_unfitted.dvolu); % !! Could be done through Geometry class?? !!
                 
-                f = (interp_element.shape*quadrature_facet.weigp')'*F(inode)/interpolation_facet.dvolu;
-                shape_all(icell,:) = shape_all(icell,:) + (interp_element.shape*(djacob.*quadrature_facet.weigp')*f)';
+                f = (obj.interpolation_fitted.shape*obj.quadrature_unfitted.weigp')'*F(inode)/obj.interpolation_unfitted.dvolu;
+                shape_all(icell,:) = shape_all(icell,:) + (obj.interpolation_fitted.shape*(djacob.*obj.quadrature_unfitted.weigp')*f)';
             end
             M2 = obj.rearrangeOutputRHS(shape_all);
         end

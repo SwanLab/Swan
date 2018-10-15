@@ -12,7 +12,7 @@ classdef Filter_P1_LevelSet < Filter_P1
             if norm(x) == norm(obj.x)
                 x_gp = obj.x_reg;
             else
-                switch obj.geometry.type
+                switch obj.diffReacProb.geometry.type
                     case 'TRIANGLE'
                         M2 = obj.faireF2(obj.mesh.coord',obj.mesh.connec',x);
                     otherwise

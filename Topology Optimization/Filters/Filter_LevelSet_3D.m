@@ -4,19 +4,8 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
     end
     
     methods
-        function getQuadrature_Unfitted(obj)
-            obj.quadrature_unfitted = Quadrature_Tetrahedra;
-        end
-        
-        function getInterpolation_Unfitted(obj)
+        function setInterpolation_Unfitted(obj)
             obj.interpolation_unfitted = Tetrahedra_Linear(obj.unfitted_mesh);
-        end
-        
-        function [interp_facet,quadrature_facet] = createFacet(obj)
-            quadrature_facet = Quadrature.set('TRIANGLE');
-            interp_facet = Triangle_Linear(obj.mesh);
-            quadrature_facet.computeQuadrature(obj.quadrature_fitted.order);
-            interp_facet.computeShapeDeriv(quadrature_facet.posgp);
         end
         
         function global_connectivities = computeFromLocalToGlobalConnectivities(obj,local_matrix_coordinates,global_matrix_coordinates,local_connectivities)
@@ -95,7 +84,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         end
     end
     
-    methods (Static)       
+    methods (Static, Access = public)        
         function djacob = mapping(points,dvolu)
             v1 = diff(points([1 2],:));
             v2 = diff(points([1 3],:));

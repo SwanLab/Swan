@@ -1,8 +1,8 @@
 classdef Filter_LevelSet < handle
-    properties
-        geometry
+    properties (Access = protected)
         quadrature_fitted
         quadrature_unfitted
+        interpolation_fitted
         interpolation_unfitted
         unfitted_mesh
     end
@@ -13,30 +13,26 @@ classdef Filter_LevelSet < handle
         ndim
     end
     
-    methods
+    methods (Abstract)
+        createUnfittedMesh(obj)
+        setInterpolation_Unfitted(obj)
+    end
+    
+    methods (Access = public)
         function preProcess(obj)
-            obj.quadrature_fitted = Quadrature.set(obj.diffReacProb.geometry.type);
-            obj.quadrature_fitted.computeQuadrature('LINEAR');
+            obj.setQuadrature_Fitted;
+            obj.setInterpolation_Fitted;
             
-            obj.getQuadrature_Unfitted;
-            obj.quadrature_unfitted.computeQuadrature('LINEAR');
-            
+            obj.setQuadrature_Unfitted;
             obj.createUnfittedMesh;
-            
-            obj.getInterpolation_Unfitted;
-            
-            obj.computeGeometry;            
+            obj.setInterpolation_Unfitted;
             
             MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';
             warning('off', MSGID)
         end
-        
-        function computeGeometry(obj)
-            obj.geometry = Geometry(obj.mesh,'LINEAR');
-            obj.geometry.interpolation.computeShapeDeriv(obj.quadrature_fitted.posgp);
-            obj.geometry.computeGeometry(obj.quadrature_fitted,obj.geometry.interpolation);
-        end        
-        
+    end
+    
+    methods (Access = protected)
         function M2 = rearrangeOutputRHS(obj,shape_all)
             M2 = zeros(obj.npnod,1);
             for inode = 1:obj.nnode
@@ -45,8 +41,24 @@ classdef Filter_LevelSet < handle
         end
     end
     
-    methods (Static)
-        function [full_elem,cut_elem] = findCutElements(x,connectivities)
+    methods (Access = private)        
+        function setInterpolation_Fitted(obj)
+            obj.interpolation_fitted = Interpolation.create(obj.mesh,obj.quadrature_fitted.order);
+        end
+        
+        function setQuadrature_Fitted(obj)
+            obj.quadrature_fitted = Quadrature.set(obj.diffReacProb.geometry.type);
+            obj.quadrature_fitted.computeQuadrature('LINEAR');
+        end
+        
+        function setQuadrature_Unfitted(obj)
+            obj.quadrature_unfitted = obj.getQuadrature_Unfitted;
+            obj.quadrature_unfitted.computeQuadrature('LINEAR');
+        end
+    end
+    
+    methods (Static, Access = protected)
+        function [full_elem,cut_elem] = findCutElements(x,connectivities) % !! TO REMOVE !!
             phi_nodes = x(connectivities);
             phi_case = sum((sign(phi_nodes)<0),2);
             
@@ -66,16 +78,4 @@ classdef Filter_LevelSet < handle
             end
         end
     end
-    
-    %     methods (Abstract)
-    %         getQuadratureDel(obj)
-    %         getMeshDel(obj)
-    %         getInterpolationDel(obj,mesh_del)
-    %         computeRHS_facet(obj,x,F)
-    %         findCutPoints_Iso(obj,x,cut_elem,interpolation)
-    %         %         findCutPoints_Global(obj,x,cut_elem)
-    %         %         createFacet(obj)
-    %         computeDvoluCut(elcrd)
-    %         %         mapping(elem_cutPoints_global,facets_connectivities,facet_deriv,dvolu)
-    %     end
 end
