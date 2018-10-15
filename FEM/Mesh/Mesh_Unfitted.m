@@ -57,8 +57,8 @@ classdef Mesh_Unfitted < Mesh
         end
         
         function obj = computeMesh_Delaunay(obj)
-            [Nodes_n_CutPoints_iso,real_cutPoints] = obj.findCutPoints_Iso;
-            Nodes_n_CutPoints_global = obj.findCutPoints_Global;
+            [Nodes_n_CutPoints_iso,real_cutPoints] = obj.computeCutPoints_Iso;
+            Nodes_n_CutPoints_global = obj.computeCutPoints_Global;
             
             obj.allocateMemory_Delaunay;
             

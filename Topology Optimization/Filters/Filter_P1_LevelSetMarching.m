@@ -74,7 +74,7 @@ classdef Filter_P1_LevelSetMarching < Filter_P1
                 shape=shape+obj.geometry.interpolation.shape(:,igauss)'.*obj.geometry.dvolu(:,igauss);
             end
         end
-        function [P,active_nodes]=findCutPoints(obj,x,cut_elem)
+        function [P,active_nodes]=computeCutPoints(obj,x,cut_elem)
             switch obj.mesh.pdim
                 case '2D'
                     gamma_1=permute(x(obj.connectivities(cut_elem,:)),[2 3 1]);
@@ -94,7 +94,7 @@ classdef Filter_P1_LevelSetMarching < Filter_P1
                     active_nodes = sign(gamma_1.*gamma_2)<0;
             end
         end
-        function [P,global_connec]=findCutPointsMarching(obj,x,cut_elem)
+        function [P,global_connec]=computeCutPointsMarching(obj,x,cut_elem)
             switch obj.mesh.pdim
                 case '2D'
                     iteration_1=1:size(obj.connectivities,2);
@@ -222,7 +222,7 @@ classdef Filter_P1_LevelSetMarching < Filter_P1
             end
         end
         function [elecoord,global_connec,phi_cut]=MarchingCubes(obj,x,cut_elem)
-            [cut_points,cut_to_elem_connec]=obj.findCutPointsMarching(x,cut_elem);
+            [cut_points,cut_to_elem_connec]=obj.computeCutPointsMarching(x,cut_elem);
             
             [cases_connec,main_cases,cases_extra]=obj.findCases(x,cut_elem);
             
@@ -251,7 +251,7 @@ classdef Filter_P1_LevelSetMarching < Filter_P1
             
         end
         function [elecoord,global_connec,phi_cut]=computeDelaunay(obj,x,cut_elem)
-            [P,active_nodes]=obj.findCutPoints(x,cut_elem);
+            [P,active_nodes]=obj.computeCutPoints(x,cut_elem);
             elecoord=[];phi_cut=[];global_connec=[];
             for ielem=1:length(cut_elem)
                 del_coord = [obj.geometry.interpolation.pos_nodes;P(active_nodes(:,:,ielem),:,ielem)];
