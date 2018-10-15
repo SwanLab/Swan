@@ -11,7 +11,6 @@ classdef Filter_LevelSet_Interior < Filter_LevelSet
         end
         
         function M2 = computeRHS(obj,x)
-            obj.createUnfittedMesh; % !! DUPLICATED, BUT FOR NOW THIS IS OVERWRITTEN WHEN INTEGRATING FACETS !!
             obj.unfitted_mesh.computeMesh(x);
             obj.unfitted_mesh.computeDvoluCut;
             
@@ -24,7 +23,7 @@ classdef Filter_LevelSet_Interior < Filter_LevelSet
             M2 = obj.rearrangeOutputRHS(shapeValues_All);
         end
         
-        function S = IntegrateInteriorCells(obj,x)
+        function S = computeVolume(obj,x)
             M2 = obj.computeRHS(x);
             S = sum(M2);
         end

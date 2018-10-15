@@ -4,12 +4,9 @@ classdef Filter_LevelSet_Boundary < Filter_LevelSet
         %             preProcess@Filter_LevelSet(obj);
         %         end
         
-        function M2 = computeRHS_facet(obj,x,F)
-            obj.createUnfittedMesh; % !! DUPLICATED, BUT FOR NOW THIS IS OVERWRITTEN WHEN INTEGRATING FACETS !!
+        function M2 = computeRHS(obj,x,F)
             obj.unfitted_mesh.computeMesh(x);
             obj.unfitted_mesh.computeGlobalConnectivities;
-            %                         obj.unfitted_mesh.plot;
-            %             obj.unfitted_mesh.computeDvoluCut;
             
             [interpolation_facet,quadrature_facet] = obj.createFacet;
             interp_element = Interpolation.create(obj.mesh,obj.quadrature_fitted.order);
@@ -32,8 +29,8 @@ classdef Filter_LevelSet_Boundary < Filter_LevelSet
             M2 = obj.rearrangeOutputRHS(shape_all);
         end
         
-        function S = IntegrateFacets(obj,x)
-            M2 = obj.computeRHS_facet(x,ones(size(x)));
+        function S = computeSurface(obj,x)
+            M2 = obj.computeRHS(x,ones(size(x)));
             S = sum(M2);
         end
     end

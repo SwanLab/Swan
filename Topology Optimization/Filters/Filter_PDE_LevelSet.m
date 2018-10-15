@@ -12,8 +12,8 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             rhs = obj.computeRHS(x);
         end
         
-        function rhs = integrate_facet_with_shape_function(obj,x,F)
-            rhs = obj.computeRHS_facet(x,F);
+        function rhs = integrate_function_along_facets(obj,x,F)
+            rhs = obj.computeRHS(x,F);
         end
     end
 end

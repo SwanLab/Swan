@@ -10,16 +10,16 @@ classdef Filter_P1_LevelSet < Filter_P1
         
         function x_gp = getP0fromP1(obj,x)
             if norm(x) == norm(obj.x)
-                x_gp=obj.x_reg;
+                x_gp = obj.x_reg;
             else
                 switch obj.geometry.type
                     case 'TRIANGLE'
-                        M2=obj.faireF2(obj.mesh.coord',obj.mesh.connec',x);
+                        M2 = obj.faireF2(obj.mesh.coord',obj.mesh.connec',x);
                     otherwise
-                        M2=obj.computeRHS(x);
+                        M2 = obj.computeRHS(x);
                 end
                 x_gp = obj.P_operator*M2;
-                obj.x_reg=x_gp;
+                obj.x_reg = x_gp;
             end
         end
     end

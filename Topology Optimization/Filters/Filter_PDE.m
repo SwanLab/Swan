@@ -33,28 +33,15 @@ classdef Filter_PDE < Filter
             x_gp = obj.A_nodal_2_gauss*x_reg;
         end
         
-        % !! For SHAPE OPTIMIZATION (regularize) !!
         function x_reg = regularize(obj,x,F)
-            rhs_x = obj.integrate_facet_with_shape_function(x,F);
-%             
-%             load(fullfile(pwd,'Allaire_ShapeOpt','conversion'));
-%             for n = 1:length(rhs_x)
-%                 b(b1(n,1),b1(n,2),b1(n,3)) = rhs_x(n);
-%             end
-%             
-%             figure('NumberTitle', 'off', 'Name', 'FEM-MAT-OO- b')
-%             subplot(2,2,1), surf(-b(:,:,2)), title('b - Root')
-%             subplot(2,2,2), surf(-b(:,:,end-1)), title('b - Tip')
-%             subplot(2,2,3), surf(permute(-b(ceil(size(b,1)/2),:,:),[2 3 1])), title('b - XY')
-%             subplot(2,2,4), surf(permute(-b(:,ceil(size(b,2)/2),:),[1 3 2])), title('b - XZ')
-            
+            rhs_x = obj.integrate_function_along_facets(x,F);            
             x_reg = obj.solve_filter(rhs_x);
         end
         
         function rhs = integrate_P1_function_with_shape_function(obj,x)
-            gauss_sum=0;
-            for igauss=1:size(obj.M0,2)
-                gauss_sum=gauss_sum+obj.A_nodal_2_gauss'*obj.M0{igauss}*x(:,igauss);
+            gauss_sum = 0;
+            for igauss = 1:size(obj.M0,2)
+                gauss_sum = gauss_sum+obj.A_nodal_2_gauss'*obj.M0{igauss}*x(:,igauss);
             end
             rhs = gauss_sum;
         end
