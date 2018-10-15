@@ -86,9 +86,9 @@ classdef Filter < handle
                         case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
                             switch settings.pdim
                                 case '2D'
-                                    obj = Filter_P1_LevelSet_2D(settings.filename,settings.ptype);
+                                    obj = Filter_P1_LevelSet_2D_Interior(settings.filename,settings.ptype);
                                 case '3D'
-                                    obj = Filter_P1_LevelSet_3D(settings.filename,settings.ptype);
+                                    obj = Filter_P1_LevelSet_3D_Interior(settings.filename,settings.ptype);
                             end
                     end
                 case 'PDE'
@@ -98,9 +98,9 @@ classdef Filter < handle
                         case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
                             switch settings.pdim
                                 case '2D'
-                                    obj = Filter_PDE_LevelSet_2D(settings.filename,settings.ptype);
+                                    obj = Filter_PDE_LevelSet_2D_Interior(settings.filename,settings.ptype);
                                 case '3D'
-                                    obj = Filter_PDE_LevelSet_3D(settings.filename,settings.ptype);
+                                    obj = Filter_PDE_LevelSet_3D_Interior(settings.filename,settings.ptype);
                             end
                     end
             end

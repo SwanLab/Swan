@@ -12,7 +12,7 @@ tests_integration = {'test_circle_triangle','test_circle_quadrilateral','test_sp
 %% Run Integration Opt Tests ----------------------------------------------
 for i = 1:length(tests_integration)
     clearvars -except tests_integration i
-%     tic
+    %     tic
     file_name = tests_integration{i};
     file_name_in = strcat('./Input/',tests_integration{i});
     settings = Settings(file_name_in);
@@ -23,9 +23,9 @@ for i = 1:length(tests_integration)
     obj.preProcess;
     x = obj.x;
     
-    filter = Filter.create(obj.settings);
-    filter.preProcess;
-    A = filter.IntegrateFacets(x);
+    filter_boundary = Filter_Boundary.create(obj.settings);
+    filter_boundary.preProcess;
+    A = filter_boundary.IntegrateFacets(x);
     errorSurf = A/A0 - 1;
     if abs(errorSurf) < 4e-2
         cprintf('green',strcat(file_name,' PASSED.  Surface Error: ',num2str(errorSurf),'\n'));
@@ -33,6 +33,8 @@ for i = 1:length(tests_integration)
         cprintf('err',strcat(file_name,' FAILED. Surface Error: ',num2str(errorSurf),'\n'));
     end
     
+    filter = Filter.create(obj.settings);
+    filter.preProcess;
     V = filter.IntegrateInteriorCells(x);
     errorVol= V/V0 - 1;
     if abs(errorVol) < 6e-2
@@ -40,8 +42,8 @@ for i = 1:length(tests_integration)
     else
         cprintf('err',strcat(file_name,' FAILED. Volume Error: ',num2str(errorVol),'\n'));
     end
-
-%     toc
+    
+    %     toc
     clear settings
 end
 

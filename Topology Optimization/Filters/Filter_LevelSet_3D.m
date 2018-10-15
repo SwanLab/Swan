@@ -4,26 +4,12 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
     end
     
     methods
-        function obj = Filter_LevelSet_3D
-            obj.max_subcells = 20;
-            obj.nnodes_subelem = 4;
-            obj.ndim = 3;
-        end
-        
         function getQuadrature_Unfitted(obj)
             obj.quadrature_unfitted = Quadrature_Tetrahedra;
         end
         
         function getInterpolation_Unfitted(obj)
             obj.interpolation_unfitted = Tetrahedra_Linear(obj.unfitted_mesh);
-        end
-        
-        function createUnfittedMesh_Interior(obj)
-            obj.unfitted_mesh = Mesh_Unfitted_3D_Interior(obj.mesh.duplicate,obj.diffReacProb.geometry.interpolation);
-        end
-        
-        function createUnfittedMesh_Boundary(obj)
-            obj.unfitted_mesh = Mesh_Unfitted_3D_Boundary(obj.mesh.duplicate,obj.diffReacProb.geometry.interpolation);
         end
         
         function [interp_facet,quadrature_facet] = createFacet(obj)
@@ -40,6 +26,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         
         function [boundary_facets_coordinates,boundary_facets_connectivities] = computeBoundaryFacets(obj,x)
             [interior_facets_coordinates, interior_facets_connectivities] = obj.computeInteriorFacets(x);
+            obj.computeSurroundingFacets;
             [surrounding_active_facets_coordinates,surrounding_active_facets_connectivities] = obj.computeSurroundingActiveFacets(x);
             
             boundary_facets_coordinates = [surrounding_active_facets_coordinates;interior_facets_coordinates];
@@ -47,9 +34,9 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         end
         
         function computeSurroundingFacets(obj)
-            surrounding_facets_coordinates_raw = zeros(size(obj.mesh.coord)); surrounding_facets_connectivities_raw = zeros(size(obj.mesh.connec,1),obj.ndim);
+            surrounding_facets_coordinates_raw = zeros(size(obj.mesh.coord)); surrounding_facets_connectivities_raw = zeros(size(obj.mesh.connec,1),obj.unfitted_mesh.fitted_mesh.ndim);
             k_coordinates = 0; k_connectivities = 0;
-            for idime = 1:obj.ndim
+            for idime = 1:obj.unfitted_mesh.fitted_mesh.ndim
                 [surrounding_facets_coordinates_raw, surrounding_facets_connectivities_raw,k_coordinates,k_connectivities] = obj.computeBoxFaceCoordNConnec(surrounding_facets_coordinates_raw,surrounding_facets_connectivities_raw,idime,max(obj.mesh.coord(:,idime)),k_coordinates,k_connectivities);
                 [surrounding_facets_coordinates_raw, surrounding_facets_connectivities_raw,k_coordinates,k_connectivities] = obj.computeBoxFaceCoordNConnec(surrounding_facets_coordinates_raw,surrounding_facets_connectivities_raw,idime,min(obj.mesh.coord(:,idime)),k_coordinates,k_connectivities);
             end
@@ -67,7 +54,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         end
         
         function [surrounding_facets_coordinates, surrounding_facets_connectivities,k_coordinates,k_connectivities] = computeBoxFaceCoordNConnec(obj,surrounding_facets_coordinates,surrounding_facets_connectivities,idime,current_face_characteristic_coordinate,k_coordinates,k_connectivities)
-            dimens = 1:obj.ndim;
+            dimens = 1:obj.unfitted_mesh.fitted_mesh.ndim;
             new_coordinates = obj.mesh.coord(obj.mesh.coord(:,idime) == current_face_characteristic_coordinate,:);
             DT = delaunayTriangulation(new_coordinates(:,dimens(dimens ~= idime)));
             new_connectivities = DT.ConnectivityList + k_coordinates;
@@ -100,7 +87,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         end
         
         function [interior_facets_global_coordinates, interior_facets_global_connectivities] = computeInteriorFacets(obj,x)
-            obj.createUnfittedMesh_Boundary;
+            obj.createUnfittedMesh;
             obj.unfitted_mesh.computeMesh(x);
             obj.unfitted_mesh.computeGlobalConnectivities;
             

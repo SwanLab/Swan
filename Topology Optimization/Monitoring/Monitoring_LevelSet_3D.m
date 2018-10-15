@@ -8,7 +8,7 @@ classdef Monitoring_LevelSet_3D < Monitoring_LevelSet
         function obj = Monitoring_LevelSet_3D(settings,mesh,monitoring_ON,plotting_ON)
             obj@Monitoring_LevelSet(settings,mesh,monitoring_ON,plotting_ON);
             obj.rotation_per_it = settings.rotation_per_it;
-            obj.filter =  Filter.create(settings);
+            obj.filter = Filter_Boundary.create(settings);
             obj.filter.preProcess;
             obj.filter.computeSurroundingFacets;
         end
