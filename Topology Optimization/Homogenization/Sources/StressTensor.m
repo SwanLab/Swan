@@ -1,7 +1,7 @@
 classdef StressTensor < SecondOrderTensor
    
-    properties
-
+    properties 
+        VoigtFactor
     end
     
     methods 

@@ -3,7 +3,7 @@ classdef NumericalFiberHomogenizer < handle
     properties
         Ch        
         MaterialValues
-        VolumeValue
+        Volume
     end
     
     properties (Access = private)
@@ -16,14 +16,23 @@ classdef NumericalFiberHomogenizer < handle
         Filter
         LevelSet
         Density 
-        Volume
         direction
+        LevelSetPostProcess
+        DensityPostProcess
+        Mesh
+        OutPutName
+        LevelOfNumFibers
+        hasToBePrinted
     end
     
     methods
         
-        function obj = NumericalFiberHomogenizer(direction )
+        function obj = NumericalFiberHomogenizer(...
+                      direction, LevelOfFibers,OutPutName, hasToBePrinted )
             obj.direction = direction;
+            obj.OutPutName = OutPutName;
+            obj.hasToBePrinted = hasToBePrinted;
+            obj.LevelOfNumFibers = LevelOfFibers;
             obj.loadFileName();
             obj.loadTestData();
             obj.loadDimension();
@@ -33,8 +42,10 @@ classdef NumericalFiberHomogenizer < handle
             obj.createFilter()
             obj.createDensity()
             obj.createMaterialProperties()
+            obj.createPostProcess()
+            obj.printLevelSet()
+            obj.printDensity()
             obj.setMaterialPropertiesInMicroProblem()
-            obj.createVolumeFunctional()
             obj.computeVolumeValue()
             obj.computeHomogenizedTensor()
         end
@@ -43,14 +54,12 @@ classdef NumericalFiberHomogenizer < handle
     methods (Access = private)
         
         function loadFileName(obj)
-            obj.FileName = 'test_microHorizontalFine';
+            obj.FileName = 'test_microFineFine';
         end
         
         function loadTestData(obj)
             obj.FileNameWithPath = strcat('./Input/',obj.FileName);            
             obj.Setting = Settings(obj.FileNameWithPath);
-           % obj.Setting.initial_case = 'orientedFiber';
-           % obj.Setting.initial_case = 'horizontal';
         end
         
         function loadDimension(obj)
@@ -58,7 +67,7 @@ classdef NumericalFiberHomogenizer < handle
         end
         
         function createInterpolation(obj)
-            MatValues  = obj.Setting.TOL;
+            MatValues       = obj.Setting.TOL;
             Material        = obj.Setting.material;
             InterpFunction  = obj.Setting.method;
             Dim             = obj.Setting.pdim;
@@ -73,9 +82,11 @@ classdef NumericalFiberHomogenizer < handle
         end
         
         function createLevelSet(obj)
-            Mesh = obj.MicroProblem.mesh;
+            obj.Mesh = obj.MicroProblem.mesh;
             epsilon = obj.MicroProblem.mesh.mean_cell_size;
-            LS_initializer = DesignVaribleInitializer_orientedFiber(obj.Setting,Mesh,epsilon,obj.direction);            
+            LS_initializer = DesignVaribleInitializer_orientedFiber(...
+                             obj.Setting,obj.Mesh,epsilon,...
+                             obj.direction,obj.LevelOfNumFibers);            
             LS_initializer.compute_initial_design();
             obj.LevelSet = LS_initializer.x;
         end
@@ -95,18 +106,45 @@ classdef NumericalFiberHomogenizer < handle
             obj.MatProps= obj.Interpolation.computeMatProp(obj.Density);
         end
         
+        function createPostProcess(obj)
+            obj.createLevelSetPostProcess();
+            obj.createDensityPostProcess();
+        end
+        
+        function createLevelSetPostProcess(obj)
+            SetOpt = 'SLERP';
+            obj.LevelSetPostProcess = Postprocess_TopOpt.Create(SetOpt);
+        end
+        
+        function createDensityPostProcess(obj)
+            Quadrature = obj.MicroProblem.element.quadrature; 
+            obj.DensityPostProcess = PostprocessDensityInGaussPoints(Quadrature);   
+        end
+        
+        function printLevelSet(obj)
+            if obj.hasToBePrinted
+                results.iter = 0;
+                results.case_file = obj.OutPutName;
+                results.design_variable = obj.LevelSet;
+                obj.LevelSetPostProcess.print(obj.Mesh,results);
+            end
+        end
+        
+        function printDensity(obj)
+          if obj.hasToBePrinted
+             results.iter = 0;             
+             results.case_file = strcat(obj.OutPutName,'Density');
+             results.density = obj.Density;
+             obj.DensityPostProcess.print(obj.Mesh,results)          
+          end
+        end
+        
         function setMaterialPropertiesInMicroProblem(obj)
             obj.MicroProblem.setMatProps(obj.MatProps);
         end
         
-        function createVolumeFunctional(obj)
-            obj.Volume = ShFunc_Volume(obj.Setting);
-            obj.Volume.filter.preProcess();
-        end
-        
         function computeVolumeValue(obj)
-            obj.Volume.computeCostAndGradient(obj.LevelSet)            
-            obj.VolumeValue = obj.Volume.value;
+            obj.Volume = obj.Filter.computeInteriorVolume(obj.LevelSet);
         end
         
         function computeHomogenizedTensor(obj)

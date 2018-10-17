@@ -15,8 +15,8 @@ classdef testDiagonalLaminate < TestSequentialLaminateTestedWithNumerics
     methods (Access = protected)
         
         function loadLaminateDirection(obj)
-            LamDirection = [0 1 0];
-            obj.LaminateDirection = LamDirection/norm(LamDirection);
+            Direction = [0 1 0];
+            obj.LaminateDirection = Direction/norm(Direction);
         end
         
         function loadFiberDirection(obj)

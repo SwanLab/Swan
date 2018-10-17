@@ -7,42 +7,53 @@ classdef DesignVaribleInitializer_orientedFiber < DesignVaribleInitializer
 
             width
             v
+            LevelOfFibers
         end
         
         methods
         
-        function obj = DesignVaribleInitializer_orientedFiber(settings,mesh,epsilon,directions)
+        function obj = DesignVaribleInitializer_orientedFiber(settings,mesh,epsilon,directions,LevelOfFibers)
             obj@DesignVaribleInitializer(settings,mesh,epsilon);
             obj.dir = directions;
+            obj.LevelOfFibers = LevelOfFibers;
         end
         
         function x = compute_initial_x(obj)            
-            obj.alpha = atan(obj.dir(2)/obj.dir(1));
-            obj.RotMatrix = [cos(obj.alpha) sin(obj.alpha); -sin(obj.alpha) cos(obj.alpha)];
+%             obj.alpha = atan(obj.dir(2)/obj.dir(1));
+%             obj.RotMatrix = [cos(obj.alpha) sin(obj.alpha); -sin(obj.alpha) cos(obj.alpha)];
+%             
+%             
+%             LevelofFibers = obj.LevelOfFibers; 
+%             s = linspace(-1,1,1+LevelofFibers*4);
+%             
+%             volumen = 0.5;
+%             nFibers = length(s);
+%             obj.width = (1-volumen)/nFibers;
+%             
+%             center  = [0.5;0.5];            
+%             n = [-obj.dir(2),obj.dir(1)]';
+%             smax = min(abs(0.5./n));
+%             
+%             obj.v = @(s) center + s*smax*n;
+% 
+%             
+%             
+%             isReallyVoid = false(size(obj.mesh.coord(:,2)));
+%             for iFibers = 1:nFibers
+%                 isVoid = obj.isVoid(s(iFibers));
+%                 isReallyVoid = isReallyVoid | isVoid;
+%             end
+%             
+%             obj.x(isReallyVoid) = obj.hole_value;
+%             x = obj.x;
             
-            %s = [-1 -0.5 0 0.5 1];
-            ad = 1; %ad = 0,1,2,3,4
-            s = linspace(-1,1,1+ad*4);
-            
-            volumen = 0.6;
-            nFibers = length(s);
-            obj.width = (1-volumen)/nFibers;
-            
-            center  = [0.5;0.5];            
-            n = [-obj.dir(2),obj.dir(1)]';
-            smax = min(0.5./n);
-            
-            obj.v = @(s) center + s*smax*n;
-
-            
-            
-            isReallyVoid = false(size(obj.mesh.coord(:,2)));
-            for iFibers = 1:nFibers
-                isVoid = obj.isVoid(s(iFibers));
-                isReallyVoid = isReallyVoid | isVoid;
-            end
-            
-            obj.x(isReallyVoid) = obj.hole_value;
+            m = obj.LevelOfFibers;
+            period = 1/(2^m);
+            phase = period/4;
+            x = obj.mesh.coord(:,2);
+            phi = -sin(2*pi/period*(x-phase))+1e-15;
+            obj.x = phi;
+            %obj.x(phi>0) = obj.hole_value ;
             x = obj.x;
         end                
         
@@ -63,8 +74,7 @@ classdef DesignVaribleInitializer_orientedFiber < DesignVaribleInitializer
             vect = obj.v(s);
             xc = vect(1);
             yc = vect(2);
-            
-            
+
             UB = obj.computeLaminateUpperBound(xc,yc);
             LB = obj.computeLaminateLowerBound(xc,yc);
             isVoid = UB < 0 & LB > 0;                 

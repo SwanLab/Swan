@@ -3,17 +3,19 @@ classdef Postprocess_TopOpt < Postprocess
         res_file
     end
     
+    properties (Access = protected)
+        Field
+        Iter
+    end
+    
     methods (Access = public)        
-        function Print_results(obj,results)
-            %Print Results
-            %obj.Print_results@Postprocess_PhysicalProblem(results)
-            obj.Print_design_variable(results)
-            %obj.Print_density_reg(results.design_variable_reg)
-        end
+
         
         function  print(obj,mesh,results)
             path = pwd;
             dir = fullfile(path,'Output',results.case_file);
+            obj.obtainIter(results);
+            obj.getField(results);
             if 7~=exist(dir,'dir')
                 mkdir(dir)
             end
@@ -43,7 +45,7 @@ classdef Postprocess_TopOpt < Postprocess
             obj.pdim = mesh.pdim;
             switch obj.pdim
                 case '2D'
-                    obj.ndim=3;
+                    obj.ndim=2;
                 case '3D'
                     obj.ndim=3;
             end
@@ -61,6 +63,7 @@ classdef Postprocess_TopOpt < Postprocess
             end
             obj.nelem = size(mesh.connec,1); % Number of elements
             obj.gauss_points_name = 'Guass up?';
+            
             obj.file_name = results.case_file;
             obj.nsteps = 1;
         end
@@ -130,13 +133,20 @@ classdef Postprocess_TopOpt < Postprocess
         end
         
         function PrintResFile(obj,results)
-            res_file = fullfile('Output',obj.file_name,strcat(obj.file_name,'_',num2str(results.iter),'.flavia.res'));
-            obj.fid_res = fopen(res_file,'w');
-            obj.Write_header_res_file
-            obj.Print_results(results)
+            FileName = fullfile('Output',obj.file_name,strcat(obj.file_name,'_',num2str(results.iter),'.flavia.res'));
+            obj.fid_res = fopen(FileName,'w');
+            obj.Write_header_res_file()
+            obj.PrintResults()
             fclose(obj.fid_res);
-            obj.res_file = res_file;
+            obj.res_file = FileName;
         end
+    end
+    
+    
+    methods (Access = private)        
+        function obtainIter(obj,results)
+            obj.Iter = results.iter;
+        end        
     end
     
     methods (Static)

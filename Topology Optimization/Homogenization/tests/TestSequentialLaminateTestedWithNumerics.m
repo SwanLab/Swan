@@ -37,10 +37,15 @@ classdef TestSequentialLaminateTestedWithNumerics < test
         end
         
         function computeNumericallyChForLaminate(obj)   
-            NumHomogenizer     = NumericalFiberHomogenizer(obj.FiberDirection);
+            OutPutNameFile     = 'SeqLaminate';
+            LevelOfFibers      = 3;
+            PrintTopology      = true;
+            NumHomogenizer     = NumericalFiberHomogenizer(...
+                                 obj.FiberDirection,LevelOfFibers,...
+                                 OutPutNameFile,PrintTopology);
             obj.NumericalCh    = NumHomogenizer.Ch;
             obj.MaterialValues = NumHomogenizer.MaterialValues;
-            obj.FractionVolume = NumHomogenizer.VolumeValue;
+            obj.FractionVolume = NumHomogenizer.Volume;
         end
 
         function loadFractionVolume(obj)

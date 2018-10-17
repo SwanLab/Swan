@@ -1,4 +1,4 @@
-classdef testMakeAnisotrpicTensorPlaneSressSymbollicaly < test
+classdef testMakeAnisotorpicTensorPlaneStressSymbolically < test
     
     properties (Access = protected)
         ToCheckTensor
@@ -7,7 +7,7 @@ classdef testMakeAnisotrpicTensorPlaneSressSymbollicaly < test
     
     methods
         
-        function obj = testMakeAnisotrpicTensorPlaneSressSymbollicaly()
+        function obj = testMakeAnisotorpicTensorPlaneStressSymbolically()
            Tensor = fourthOrderTensor();
            Tensor.createRandomTensor();
            Tensor.computeTensorVoigt();

@@ -1,9 +1,12 @@
 classdef SecondOrderTensor < handle
     
-    properties
+    properties (Access = public)
         tensor
         tensorVoigt
         tensorVoigtInPlaneStress
+    end
+    
+    properties (Abstract)
         VoigtFactor
     end
     

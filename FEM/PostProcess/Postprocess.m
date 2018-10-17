@@ -128,20 +128,20 @@ classdef Postprocess < handle
             %% File Header
             fprintf(obj.fid_res,'GiD Post Results File 1.0\n\n');
             obj.printTitle(obj.fid_res);
-            
-            %% Print Gauss Points Header
-            %             fprintf(obj.fid_res,'GaussPoints "%s" Elemtype %s\n',obj.gauss_points_name,obj.etype);
-            %             fprintf(obj.fid_res,'Number of Gauss Points: %.0f\n',obj.ngaus);
-            %             fprintf(obj.fid_res,'Nodes not included\n');
-            %             fprintf(obj.fid_res,'Natural Coordinates: given\n');
-            %             for igaus = 1:obj.ngaus
-            %                 for idime = 1:obj.ndim
-            %                     fprintf(obj.fid_res,'%12.5d ',obj.posgp(igaus,idime));
-            %                 end
-            %                 fprintf(obj.fid_res,'\n');
-            %             end
-            %             fprintf(obj.fid_res,'End GaussPoints\n');
-            
+        end
+        
+        function PrintGaussPointsHeader(obj)
+            fprintf(obj.fid_res,'GaussPoints "%s" Elemtype %s\n',obj.gauss_points_name,obj.etype);
+            fprintf(obj.fid_res,'Number of Gauss Points: %.0f\n',obj.ngaus);
+            fprintf(obj.fid_res,'Nodes not included\n');
+            fprintf(obj.fid_res,'Natural Coordinates: given\n');
+            for igaus = 1:obj.ngaus
+                for idime = 1:obj.ndim
+                    fprintf(obj.fid_res,'%12.5d ',obj.posgp(igaus,idime));
+                end
+                fprintf(obj.fid_res,'\n');
+            end
+            fprintf(obj.fid_res,'End GaussPoints\n');
         end
          
         function PrintMeshFile(obj)

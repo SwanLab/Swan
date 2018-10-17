@@ -1,4 +1,4 @@
-classdef testFourthOrderTensor < test
+classdef testIsotropicFourthOrderTensor < test
     
     properties (Access = protected)
         E = 1;
@@ -9,7 +9,7 @@ classdef testFourthOrderTensor < test
     
     methods
         
-        function obj = testFourthOrderTensor()
+        function obj = testIsotropicFourthOrderTensor()
             obj.computeCheckedTensor();
             obj.computeToCheckTensor()
         end
@@ -42,7 +42,6 @@ classdef testFourthOrderTensor < test
         
         function computeToCheckTensor(obj)
             Tensor = IsotropicConstitutiveTensor3D(obj.E,obj.nu);
-            %Tensor.tensorVoigt = zeros(6,6);
             obj.ToCheckTensor = Tensor.tensorVoigt;
         end
 

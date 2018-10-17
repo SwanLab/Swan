@@ -1,7 +1,7 @@
 classdef StrainTensor < SecondOrderTensor
    
-    properties
-
+    properties 
+        VoigtFactor
     end
     
     methods 
@@ -23,9 +23,7 @@ classdef StrainTensor < SecondOrderTensor
             
         end
         
-
-        
-        
+       
         function makeItPlaneStress(obj)
             obj.transformTensor2Voigt();
             obj.computePlaneStressTensor();

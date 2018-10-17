@@ -53,7 +53,7 @@ classdef SecondComplementaryTensor < fourthOrderTensor
             end
             
         end
-
+        
     end
     
 end
