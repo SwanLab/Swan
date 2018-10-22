@@ -11,6 +11,7 @@ classdef Shape_Functional < handle
     methods
         function obj = Shape_Functional(settings)
            obj.filter = Filter.create(settings);
+           obj.filter.loadProblem(settings.filename,settings.ptype);
            diffReacProb = DiffReact_Problem(settings.filename);
            diffReacProb.preProcess;
            obj.Msmooth = diffReacProb.element.M;

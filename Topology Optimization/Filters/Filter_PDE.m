@@ -5,11 +5,7 @@ classdef Filter_PDE < Filter
         A_nodal_2_gauss
     end
     
-    methods
-        function obj = Filter_PDE(problemID,scale)
-            obj@Filter(problemID,scale);
-        end
-        
+    methods       
         function preProcess(obj)
             preProcess@Filter(obj);
             obj.P_operator=obj.computePoperator(obj.diffReacProb.element.M);

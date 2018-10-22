@@ -52,7 +52,7 @@ classdef CC < handle
                     case 'volume'
                         obj.ShapeFuncs{iSF} = ShFunc_Volume(settings_this);
                     case 'volumeConstraint'
-                        obj.ShapeFuncs{iSF} = Volume_constraint(settings_this);                        
+                        obj.ShapeFuncs{iSF} = Volume_constraint(settings_this);
                     otherwise
                         error('Wrong cost name or not added to Cost Object')
                 end

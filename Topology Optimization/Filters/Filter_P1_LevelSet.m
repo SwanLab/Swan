@@ -4,10 +4,6 @@ classdef Filter_P1_LevelSet < Filter_P1
     end
     
     methods
-        function obj = Filter_P1_LevelSet(problemID,scale)
-            obj@Filter_P1(problemID,scale);
-        end        
-        
         function x_gp = getP0fromP1(obj,x)
             if norm(x) == norm(obj.x)
                 x_gp = obj.x_reg;

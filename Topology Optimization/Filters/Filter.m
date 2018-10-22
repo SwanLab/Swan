@@ -14,14 +14,18 @@ classdef Filter < handle
     end
     
     methods
-        function obj = Filter(problemID,scale)
+        function obj = Filter
+        end
+        
+        function obj = loadProblem(obj,problemID,scale)
             switch scale
                 case 'MACRO'
                     obj.diffReacProb = DiffReact_Problem(problemID);
                 case 'MICRO'
                     obj.diffReacProb = DiffReact_Problem_Micro(problemID);
             end
-        end        
+        end     
+        
         function preProcess(obj)
             obj.diffReacProb.preProcess;
             quadrature = Quadrature.set(obj.diffReacProb.geometry.type);
@@ -82,25 +86,25 @@ classdef Filter < handle
                 case 'P1'
                     switch settings.optimizer
                         case {'MMA','PROJECTED GRADIENT','IPOPT'}
-                            obj = Filter_P1_Density(settings.filename,settings.ptype);
+                            obj = Filter_P1_Density;
                         case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
                             switch settings.pdim
                                 case '2D'
-                                    obj = Filter_P1_LevelSet_2D_Interior(settings.filename,settings.ptype);
+                                    obj = Filter_P1_LevelSet_2D_Interior;
                                 case '3D'
-                                    obj = Filter_P1_LevelSet_3D_Interior(settings.filename,settings.ptype);
+                                    obj = Filter_P1_LevelSet_3D_Interior;
                             end
                     end
                 case 'PDE'
                     switch settings.optimizer
                         case {'MMA','PROJECTED GRADIENT','IPOPT'}
-                            obj = Filter_PDE_Density(settings.filename,settings.ptype);
+                            obj = Filter_PDE_Density;
                         case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
                             switch settings.pdim
                                 case '2D'
-                                    obj = Filter_PDE_LevelSet_2D_Interior(settings.filename,settings.ptype);
+                                    obj = Filter_PDE_LevelSet_2D_Interior;
                                 case '3D'
-                                    obj = Filter_PDE_LevelSet_3D_Interior(settings.filename,settings.ptype);
+                                    obj = Filter_PDE_LevelSet_3D_Interior;
                             end
                     end
             end

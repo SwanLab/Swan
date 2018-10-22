@@ -24,6 +24,7 @@ for i = 1:length(tests_integration)
     x = obj.x;
     
     filter_boundary = Filter_Boundary.create(obj.settings);
+    filter_boundary.loadProblem(obj.settings.filename,obj.settings.ptype);
     filter_boundary.preProcess;
     A = filter_boundary.computeSurface(x);
     errorSurf = A/A0 - 1;
@@ -34,6 +35,7 @@ for i = 1:length(tests_integration)
     end
     
     filter = Filter.create(obj.settings);
+    filter.loadProblem(obj.settings.filename,obj.settings.ptype);
     filter.preProcess;
     V = filter.computeVolume(x);
     errorVol= V/V0 - 1;

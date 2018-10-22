@@ -13,7 +13,8 @@ classdef Filter_LevelSet_3D_Boundary < Filter_LevelSet_3D & Filter_LevelSet_Boun
             M2 = obj.computeRHS(x,ones(size(x)));
             S = sum(M2);
             
-            filter2D = Filter_P1_LevelSet_2D_Interior(obj.diffReacProb.problemID,'MACRO');
+            filter2D = Filter_P1_LevelSet_2D_Interior;
+            filter2D.loadProblem(obj.diffReacProb.problemID,'MACRO');
             
             for idime = 1:obj.mesh.ndim
                 for iside = 1:2

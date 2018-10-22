@@ -3,11 +3,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
         preProcess(obj)
     end
     
-    methods
-        function obj = Filter_PDE_LevelSet(problemID,scale)
-            obj@Filter_PDE(problemID,scale);
-        end
-        
+    methods        
         function rhs = integrate_L2_function_with_shape_function(obj,x)
             rhs = obj.computeRHS(x);
         end

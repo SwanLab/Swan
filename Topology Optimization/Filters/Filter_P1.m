@@ -1,11 +1,5 @@
 classdef Filter_P1 < Filter
-    properties
-    end    
-    methods
-        function obj = Filter_P1(problemID,scale)
-            obj@Filter(problemID,scale);
-        end
-        
+    methods       
         function preProcess(obj)
             preProcess@Filter(obj)
             obj.P_operator = obj.computePoperator(obj.diffReacProb.element.M);

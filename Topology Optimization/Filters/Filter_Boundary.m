@@ -5,16 +5,16 @@ classdef Filter_Boundary < Filter
                 case 'P1'
                     switch settings.pdim
                         case '2D'
-                            obj = Filter_P1_LevelSet_2D_Boundary(settings.filename,settings.ptype);
+                            obj = Filter_P1_LevelSet_2D_Boundary;
                         case '3D'
-                            obj = Filter_P1_LevelSet_3D_Boundary(settings.filename,settings.ptype);
+                            obj = Filter_P1_LevelSet_3D_Boundary;
                     end
                 case 'PDE'
                     switch settings.pdim
                         case '2D'
-                            obj = Filter_PDE_LevelSet_2D_Boundary(settings.filename,settings.ptype);
+                            obj = Filter_PDE_LevelSet_2D_Boundary;
                         case '3D'
-                            obj = Filter_PDE_LevelSet_3D_Boundary(settings.filename,settings.ptype);
+                            obj = Filter_PDE_LevelSet_3D_Boundary;
                     end
             end
         end
