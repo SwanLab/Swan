@@ -50,6 +50,9 @@ classdef Filter < handle
     
     methods (Access = public)
         function preProcess(obj)
+            obj.diffReacProb.preProcess;
+            obj.mesh = obj.diffReacProb.mesh;
+            
             obj.setQuadrature;
             obj.setInterpolation;
             
@@ -63,20 +66,14 @@ classdef Filter < handle
             end
         end
         
-        function obj = setupFromMesh(obj,mesh)
-            obj.mesh = mesh;
-            
+        function obj = setupFromMesh(obj,mesh,scale)
+            obj.setDiffusionReactionProblem(scale);
+            obj.diffReacProb.setupFromMesh(mesh);
         end
         
         function obj = setupFromGiDFile(obj,problemID,scale)
-            switch scale
-                case 'MACRO'
-                    obj.diffReacProb = DiffReact_Problem(problemID);
-                case 'MICRO'
-                    obj.diffReacProb = DiffReact_Problem_Micro(problemID);
-            end
-            obj.diffReacProb.preProcess;
-            obj.mesh = obj.diffReacProb.mesh;
+            obj.setDiffusionReactionProblem(scale);
+            obj.diffReacProb.setupFromGiDFile(problemID);
         end
         
         function A_nodal_2_gauss = computeA(obj)
@@ -114,6 +111,15 @@ classdef Filter < handle
     end
     
     methods (Access = private)
+        function setDiffusionReactionProblem(obj,scale)
+            switch scale
+                case 'MACRO'
+                    obj.diffReacProb = DiffReact_Problem;
+                case 'MICRO'
+                    obj.diffReacProb = DiffReact_Problem_Micro;
+            end
+        end
+        
         function computeGeometry(obj)
             obj.geometry = Geometry(obj.mesh,'LINEAR');
             obj.geometry.interpolation.computeShapeDeriv(obj.quadrature.posgp);

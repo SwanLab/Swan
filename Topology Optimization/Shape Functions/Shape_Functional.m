@@ -12,7 +12,8 @@ classdef Shape_Functional < handle
         function obj = Shape_Functional(settings)
            obj.filter = Filter.create(settings);
            obj.filter.setupFromGiDFile(settings.filename,settings.ptype);
-           diffReacProb = DiffReact_Problem(settings.filename);
+           diffReacProb = DiffReact_Problem;
+           diffReacProb.setupFromGiDFile(settings.filename);
            diffReacProb.preProcess;
            obj.Msmooth = diffReacProb.element.M;
            obj.dvolu = diffReacProb.geometry.dvolu;

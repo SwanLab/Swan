@@ -17,21 +17,21 @@ classdef Filter_LevelSet_3D_Boundary < Filter_LevelSet_3D & Filter_LevelSet_Boun
             filter2D = Filter_P1_LevelSet_2D_Interior;
 %             filter2D.loadProblem(obj.diffReacProb.problemID,'MACRO');
             
-%             for idime = 1:obj.mesh.ndim
-%                 for iside = 1:2
-%                     face_mesh = obj.createFaceMesh(idime,iside);
-%                     obj.unfitted_mesh = Mesh_Unfitted_2D_Interior(face_mesh,obj.interpolation_unfitted);
-%                     obj.unfitted_mesh.computeMesh(x);
-%                     obj.unfitted_mesh.computeGlobalConnectivities;
-%                     
-%                     if ~isempty(obj.unfitted_mesh.connec)
-%                         filter2D.setupFromMesh(obj.unfitted_mesh);
-%                         filter2D.preProcess;
-%                         M2 = filter2D.computeRHS(x);
-%                         S = S + M2;
-%                     end
-%                 end
-%             end
+            for idime = 1:obj.mesh.ndim
+                for iside = 1:2
+                    face_mesh = obj.createFaceMesh(idime,iside);
+                    unfitted_mesh2D = Mesh_Unfitted_2D_Interior(face_mesh,obj.interpolation_unfitted);
+                    unfitted_mesh2D.computeMesh(x);
+                    unfitted_mesh2D.computeGlobalConnectivities;
+                    
+                    if ~isempty(unfitted_mesh2D.connec)
+                        filter2D.setupFromMesh(face_mesh,'MACRO');
+                        filter2D.preProcess;
+                        M2 = filter2D.computeRHS;
+                        S = S + M2;
+                    end
+                end
+            end
         end
     end
     
