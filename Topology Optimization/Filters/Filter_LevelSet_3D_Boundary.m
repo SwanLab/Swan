@@ -10,19 +10,24 @@ classdef Filter_LevelSet_3D_Boundary < Filter_LevelSet_3D & Filter_LevelSet_Boun
         
         function S = computeSurface(obj,x)
             obj.unfitted_mesh.computeMesh(x);
-            M2 = obj.computeRHS(x,ones(size(x)));
+            obj.unfitted_mesh.computeGlobalConnectivities;
+            M2 = obj.computeRHS(ones(size(x)));
             S = sum(M2);
             
             filter2D = Filter_P1_LevelSet_2D_Interior;
-            filter2D.loadProblem(obj.diffReacProb.problemID,'MACRO');
+%             filter2D.loadProblem(obj.diffReacProb.problemID,'MACRO');
             
             for idime = 1:obj.mesh.ndim
                 for iside = 1:2
                     face_mesh = obj.createFaceMesh(idime,iside);
                     obj.unfitted_mesh = Mesh_Unfitted_2D_Interior(face_mesh,obj.interpolation_unfitted);
                     obj.unfitted_mesh.computeMesh(x);
-                    if ~isempty(obj.unfitted_mesh.fitted_cut_cells)
-                        M2 = obj.computeRHS(x,ones(size(x)));
+                    obj.unfitted_mesh.computeGlobalConnectivities;
+                    
+                    if ~isempty(obj.unfitted_mesh.connec)
+                        filter2D.setMesh(obj.unfitted_mesh);
+                        filter2D.preProcess;
+                        M2 = filter2D.computeRHS(x);
                         S = S + M2;
                     end
                 end

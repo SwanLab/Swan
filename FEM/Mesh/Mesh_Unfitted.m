@@ -37,9 +37,15 @@ classdef Mesh_Unfitted < Mesh
             obj.x_fitted = x_fitted;
             obj.findCutCells;
             if ~isempty(obj.fitted_cut_cells)
-            obj.computeMesh_Delaunay;
+                obj.computeMesh_Delaunay;
             else
-%                 warning('No cut cells found, can`t compute unfitted mesh.')
+                obj.coord = obj.fitted_mesh.coord;
+                phi_nodes = obj.x_fitted(obj.fitted_mesh.connec);
+                phi_case = sum((sign(phi_nodes)<0),2);
+                if (any(phi_case))
+                    obj.connec = obj.computeDelaunay(obj.coord);
+                end
+                %                 warning('No cut cells found, can`t compute unfitted mesh.')
             end
         end
         
@@ -159,6 +165,13 @@ classdef Mesh_Unfitted < Mesh
         function assignUnfittedSubcellProps(obj,lowerBound_B,upperBound_B,new_subcell_connec,new_cell_containing_subcell)
             obj.connec_local(1+lowerBound_B:upperBound_B,:) = new_subcell_connec;
             obj.cell_containing_subcell(1+lowerBound_B:upperBound_B,:) = new_cell_containing_subcell;
+        end
+    end
+    
+    methods (Access = protected, Static)
+        function connectivities = computeDelaunay(coordinates)
+            DT = delaunayTriangulation(coordinates);
+            connectivities = DT.ConnectivityList;
         end
     end
     
