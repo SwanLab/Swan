@@ -26,7 +26,7 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
     
     methods (Access = ?Mesh_Unfitted_Boundary)
         function facets_connec = computeFacetsConnectivities(obj,~,interior_subcell_coord_iso,cell_x_value)
-            subcells_connec = obj.computeSubcellsConnectivities_Delaunay(interior_subcell_coord_iso);
+            subcells_connec = obj.computeDelaunay(interior_subcell_coord_iso);
             boundary_subcells_connec = obj.findBoundarySubcells(subcells_connec,cell_x_value);
             
             number_nodes = size(obj.fitted_geom_interpolation.pos_nodes,1);
@@ -64,12 +64,7 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
         %         end
     end
     
-    methods (Access = private, Static)
-        function connectivities = computeSubcellsConnectivities_Delaunay(coordinates)
-            DT = delaunayTriangulation(coordinates);
-            connectivities = DT.ConnectivityList;
-        end
-        
+    methods (Access = private, Static)       
         function counter = countInputNodesPerCell(connectivities,nodes)
             counter = zeros(size(connectivities,1),1);
             for inode = 1:length(nodes)

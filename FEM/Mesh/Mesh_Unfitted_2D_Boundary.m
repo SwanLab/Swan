@@ -22,9 +22,8 @@ classdef Mesh_Unfitted_2D_Boundary < Mesh_Unfitted_2D & Mesh_Unfitted_Boundary
             nnode =  size(facets_coord_iso,1);
             if nnode == 2
                 facets_connec = [1 2];
-            elseif nnode == 4
-                DT = delaunayTriangulation(interior_subcell_coord_iso);
-                delaunay_connec = DT.ConnectivityList;
+            elseif nnode == 4              
+                delaunay_connec = obj.computeDelaunay(interior_subcell_coord_iso);
                 
                 node_positive_iso = find(cell_x_value>0);
                 % !! CHECK IF NEXT LINE WORKS !!
