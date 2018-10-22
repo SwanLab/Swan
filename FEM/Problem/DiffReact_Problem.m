@@ -13,17 +13,21 @@ classdef DiffReact_Problem < FEM
     
     %% Public methods definition ==========================================
     methods (Access = public)
-        function obj = DiffReact_Problem(problemID)
+        function setupFromGiDFile(obj,problemID)
             obj.problemID = problemID;
             obj.mesh = Mesh_GiD(problemID); % Mesh defined twice, but almost free
-            obj.createGeometry(obj.mesh);
             obj.mesh.ptype = 'DIFF-REACT';
-            obj.dof = DOF_DiffReact(obj.geometry);
+        end
+        
+        function setupFromMesh(obj,mesh)
+            obj.mesh = mesh; % Mesh defined twice, but almost free
         end
         
         function preProcess(obj)
+            obj.createGeometry(obj.mesh);
+            obj.setDOFs;
             % !! Material required?? !!
-            obj.element = Element_DiffReact(obj.mesh,obj.geometry,obj.material,obj.dof);
+            obj.setElement;
             obj.solver = Solver.create;
         end
         
@@ -46,6 +50,16 @@ classdef DiffReact_Problem < FEM
         % !! THIS SHOULD BE DEFINED BY THE USER !!
         function createGeometry(obj,mesh)
             obj.geometry = Geometry(mesh,'LINEAR');
+        end
+    end
+    
+    methods (Access = private)
+        function setElement(obj)
+            obj.element = Element_DiffReact(obj.mesh,obj.geometry,obj.material,obj.dof);
+        end
+        
+        function setDOFs(obj)
+            obj.dof = DOF_DiffReact(obj.geometry);
         end
     end
 end
