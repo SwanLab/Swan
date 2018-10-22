@@ -2,7 +2,6 @@ classdef Mesh_Unfitted_2D_Boundary < Mesh_Unfitted_2D & Mesh_Unfitted_Boundary
     methods
         function obj = Mesh_Unfitted_2D_Boundary(fitted_mesh,fitted_geom_interpolation)
             obj.storeFittedMesh(fitted_mesh,fitted_geom_interpolation);
-            obj.geometryType = 'LINE';
             obj.max_subcells = 2;
             obj.nnodes_subcell = 2;
         end

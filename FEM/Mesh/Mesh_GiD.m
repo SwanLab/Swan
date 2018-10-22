@@ -9,7 +9,6 @@ classdef Mesh_GiD < Mesh
     properties (GetAccess = public,SetAccess = public)
         ptype
         scale
-        geometryType
         problemID
     end
     

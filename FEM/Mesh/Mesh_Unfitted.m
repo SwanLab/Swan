@@ -11,8 +11,6 @@ classdef Mesh_Unfitted < Mesh
         
         x_fitted
         x_unfitted
-        
-        geometryType
     end
     
     properties (Access = protected)
