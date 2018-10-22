@@ -7,6 +7,12 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
             obj.nnodes_subcell = 3;
         end
         
+        %         function obj = computeMesh_withExtBounds(obj,x)
+        %             interior_boundary_mesh = Mesh_Unfitted_3D_Boundary(obj.fitted_mesh.duplicate,obj.fitted_geom_interpolation);
+        %             interior_boundary_mesh.computeMesh(x);
+        %             surrounding_boundary_meshes = obj.computeSurrondingBoundaryMeshes;
+        %         end
+        
         function plot(obj)
             figure, hold on
             patch('vertices',obj.coord,'faces',obj.connec,...
@@ -19,7 +25,6 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
     end
     
     methods (Access = ?Mesh_Unfitted_Boundary)
-        %     methods
         function facets_connec = computeFacetsConnectivities(obj,~,interior_subcell_coord_iso,cell_x_value)
             subcells_connec = obj.computeSubcellsConnectivities_Delaunay(interior_subcell_coord_iso);
             boundary_subcells_connec = obj.findBoundarySubcells(subcells_connec,cell_x_value);
@@ -43,6 +48,20 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
             number_exterior_nodes = obj.countInputNodesPerCell(interior_subcells_connec,exterior_nodes); %#ok<FNDSB>
             boundary_subcells_connec = interior_subcells_connec(number_interior_nodes == 1 & number_exterior_nodes == 0,:);
         end
+        
+        %         function surrounding_boundary_meshes = computeSurrondingBoundaryMeshes(obj)
+        % %             geom_interpolation = Geometry(..);
+        %             nfaces = 2*obj.ndim;
+        %             surrounding_boundary_meshes = cell([1 nfaces]);
+        %             domain_limits = obj.getDomainLimits;
+        %             for idime = 1:obj.ndim
+        %                 for iside = 1:2
+        %                     iface = 2*(idime-1) + iside;
+        %                     face_coord = obj.getFaceCoordinates(domain_limits(idime,iside),idime);
+        %                     surrounding_boundary_meshes{iface} =  Mesh_Unfitted_2D_Interior(obj.fitted_mesh.duplicate,geom_interpolation);
+        %                 end
+        %             end
+        %         end
     end
     
     methods (Access = private, Static)

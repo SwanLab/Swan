@@ -1,9 +1,9 @@
 classdef Mesh_Unfitted_2D < Mesh_Unfitted
-    properties (GetAccess = public, SetAccess = protected)
-        ndim = 2;
-    end
-    
     methods (Access = public)
+        function obj = Mesh_Unfitted_2D
+            obj.ndim = 2;
+        end
+        
         function [P,active_nodes] = computeCutPoints_Iso(obj)
             pos_nodes = obj.fitted_geom_interpolation.pos_nodes;
             
@@ -23,7 +23,7 @@ classdef Mesh_Unfitted_2D < Mesh_Unfitted
             
             gamma_1 = obj.x_fitted(index1);
             gamma_2 = obj.x_fitted(index2);
-           
+            
             coord1 = obj.fitted_mesh.coord(:,1);
             coord2 = obj.fitted_mesh.coord(:,2);
             

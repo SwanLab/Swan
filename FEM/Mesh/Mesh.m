@@ -3,6 +3,7 @@ classdef Mesh < handle
     properties (GetAccess = public, SetAccess = protected)
         coord
         connec
+        ndim
         mean_cell_size
         problem_characterisitc_length % !! Rename?? !!
     end
@@ -11,6 +12,7 @@ classdef Mesh < handle
         function obj = create(obj,coordinates,connectivities)
             obj.coord = coordinates;
             obj.connec = connectivities;
+            obj.ndim = size(coordinates,2);
             obj.estimate_mesh_size;
             obj.estimate_mesh_characteristic_length;
         end

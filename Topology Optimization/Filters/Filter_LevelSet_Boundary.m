@@ -26,6 +26,7 @@ classdef Filter_LevelSet_Boundary < Filter_LevelSet
         end
         
         function S = computeSurface(obj,x)
+            obj.unfitted_mesh.computeMesh(x);
             M2 = obj.computeRHS(x,ones(size(x)));
             S = sum(M2);
         end

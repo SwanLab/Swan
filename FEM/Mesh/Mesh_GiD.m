@@ -2,7 +2,6 @@ classdef Mesh_GiD < Mesh
     % Class containing the coordinates and connectivities of the mesh
     properties (GetAccess = public,SetAccess = public)
         pdim
-        ndim
         dirichlet
         pointload
     end

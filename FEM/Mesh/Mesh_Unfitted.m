@@ -36,7 +36,11 @@ classdef Mesh_Unfitted < Mesh
         function computeMesh(obj,x_fitted)
             obj.x_fitted = x_fitted;
             obj.findCutCells;
+            if ~isempty(obj.fitted_cut_cells)
             obj.computeMesh_Delaunay;
+            else
+%                 warning('No cut cells found, can`t compute unfitted mesh.')
+            end
         end
         
         function computeGlobalConnectivities(obj)

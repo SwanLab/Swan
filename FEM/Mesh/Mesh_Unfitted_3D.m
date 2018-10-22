@@ -1,9 +1,9 @@
 classdef Mesh_Unfitted_3D < Mesh_Unfitted
-    properties (GetAccess = public, SetAccess = protected)
-        ndim = 3;
-    end
-    
     methods (Access = public)
+        function obj = Mesh_Unfitted_3D
+            obj.ndim = 3;
+        end
+        
         function [P,active_nodes]=computeCutPoints_Iso(obj)
             pos_nodes = obj.fitted_geom_interpolation.pos_nodes;
             
