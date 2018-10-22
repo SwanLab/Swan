@@ -7,7 +7,7 @@ classdef Mesh_Unfitted_Boundary < Mesh_Unfitted
             cell_x_value = obj.x_fitted(fitted_cell_connec)';
             
             interior_subcell_coord_iso = [obj.fitted_geom_interpolation.pos_nodes; cutPoints_iso];
-
+            
             facets_connec = obj.computeFacetsConnectivities(facets_coord_iso,interior_subcell_coord_iso,cell_x_value);
         end
     end

@@ -21,7 +21,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
                 disp('Filter P1 changed to PDE for HJ velocity regularization');
             end
             obj.filter = Filter_Boundary.create(settings);
-            obj.filter.loadProblem(settings.filename,settings.ptype);
+            obj.filter.setupFromGiDFile(settings.filename,settings.ptype);
             obj.filter.preProcess;
             obj.filter.updateEpsilon(epsilon);
         end

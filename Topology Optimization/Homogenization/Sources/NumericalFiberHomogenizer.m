@@ -84,7 +84,7 @@ classdef NumericalFiberHomogenizer < handle
              dim = obj.Setting.ptype;
              fileName = obj.Setting.filename;
              obj.Filter = Filter_P1_LevelSet_2D_Interior;
-             obj.Filter.loadProblem(fileName,dim);
+             obj.Filter.setupFromGiDFile(fileName,dim);
              obj.Filter.preProcess();            
         end
         

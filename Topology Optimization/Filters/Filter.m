@@ -63,11 +63,12 @@ classdef Filter < handle
             end
         end
         
-        function obj = setMesh(obj,mesh)
+        function obj = setupFromMesh(obj,mesh)
             obj.mesh = mesh;
+            
         end
         
-        function obj = loadProblem(obj,problemID,scale)
+        function obj = setupFromGiDFile(obj,problemID,scale)
             switch scale
                 case 'MACRO'
                     obj.diffReacProb = DiffReact_Problem(problemID);

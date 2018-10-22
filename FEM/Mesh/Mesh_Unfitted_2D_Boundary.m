@@ -17,8 +17,8 @@ classdef Mesh_Unfitted_2D_Boundary < Mesh_Unfitted_2D & Mesh_Unfitted_Boundary
         end
     end
     
-    methods (Static, Access = ?Mesh_Unfitted_Boundary)
-        function facets_connec = computeFacetsConnectivities(facets_coord_iso,interior_subcell_coord_iso,cell_x_value)
+    methods (Access = ?Mesh_Unfitted_Boundary)
+        function facets_connec = computeFacetsConnectivities(obj,facets_coord_iso,interior_subcell_coord_iso,cell_x_value)
             nnode =  size(facets_coord_iso,1);
             if nnode == 2
                 facets_connec = [1 2];

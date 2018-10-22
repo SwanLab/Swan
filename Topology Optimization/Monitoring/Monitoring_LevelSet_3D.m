@@ -9,7 +9,7 @@ classdef Monitoring_LevelSet_3D < Monitoring_LevelSet
             obj@Monitoring_LevelSet(settings,mesh,monitoring_ON,plotting_ON);
             obj.rotation_per_it = settings.rotation_per_it;
             obj.filter = Filter_Boundary.create(settings);
-            obj.filter.loadProblem(settings.filename,settings.ptype);
+            obj.filter.setupFromGiDFile(settings.filename,settings.ptype);
             obj.filter.preProcess;
             obj.filter.computeSurroundingFacets;
         end
