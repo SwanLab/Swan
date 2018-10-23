@@ -6,6 +6,16 @@ classdef Mesh_Unfitted_2D_Interior < Mesh_Unfitted_2D & Mesh_Unfitted_Interior
             obj.nnodes_subcell = 3;
         end
         
+        function plot(obj)
+            figure, hold on
+            patch('vertices',obj.coord,'faces',obj.connec,...
+                'edgecolor',[0.5 0 0], 'edgealpha',0.5,'edgelighting','flat',...
+                'facecolor',[1 0 0],'facelighting','flat')
+            light
+            axis equal off
+            hold off
+        end
+        
         function computeDvoluCut(obj)
             x1 = obj.coord_iso_per_cell(:,1,1);   y1 = obj.coord_iso_per_cell(:,1,2);
             x2 = obj.coord_iso_per_cell(:,2,1);   y2 = obj.coord_iso_per_cell(:,2,2);

@@ -15,20 +15,21 @@ classdef Filter_LevelSet_3D_Boundary < Filter_LevelSet_3D & Filter_LevelSet_Boun
             S = sum(M2);
             
             filter2D = Filter_P1_LevelSet_2D_Interior;
-%             filter2D.loadProblem(obj.diffReacProb.problemID,'MACRO');
+            %             filter2D.loadProblem(obj.diffReacProb.problemID,'MACRO');
             
             for idime = 1:obj.mesh.ndim
                 for iside = 1:2
-                    face_mesh = obj.createFaceMesh(idime,iside);
+                    [face_mesh,valid_nodes] = obj.createFaceMesh(idime,iside);
                     unfitted_mesh2D = Mesh_Unfitted_2D_Interior(face_mesh,obj.interpolation_unfitted);
-                    unfitted_mesh2D.computeMesh(x);
+                    unfitted_mesh2D.computeMesh(x(valid_nodes));
                     unfitted_mesh2D.computeGlobalConnectivities;
                     
                     if ~isempty(unfitted_mesh2D.connec)
                         filter2D.setupFromMesh(face_mesh,'MACRO');
                         filter2D.preProcess;
+                        filter2D.unfitted_mesh = unfitted_mesh2D;
                         M2 = filter2D.computeRHS;
-                        S = S + M2;
+                        S = S + sum(M2);
                     end
                 end
             end
@@ -36,15 +37,15 @@ classdef Filter_LevelSet_3D_Boundary < Filter_LevelSet_3D & Filter_LevelSet_Boun
     end
     
     methods ( Access = private)
-        function face_mesh = createFaceMesh(obj,idime,iside)
-            dimen = [1 2 3];
-            face_connec = obj.getFaceConnectivities(idime,iside);
+        function [face_mesh, valid_nodes] = createFaceMesh(obj,idime,iside)
+            [face_coord,valid_nodes] = obj.getFaceCoordinates(idime,iside);
+            %             face_connec = obj.getFaceConnectivities(face_coord,idime,iside);
+            face_connec = obj.computeDelaunay(face_coord);
             face_mesh = Mesh;
-            
-            face_mesh = face_mesh.create(obj.mesh.coord(:,dimen(dimen ~= idime)),face_connec);
+            face_mesh = face_mesh.create(face_coord,face_connec);
         end
         
-        function face_connec = getFaceConnectivities(obj,idime,iside)
+        function [face_coord, valid_coord] = getFaceCoordinates(obj,idime,iside)
             if iside == 1
                 L = min(obj.mesh.coord(:,idime));
             else
@@ -52,18 +53,18 @@ classdef Filter_LevelSet_3D_Boundary < Filter_LevelSet_3D & Filter_LevelSet_Boun
             end
             
             valid_coord = obj.mesh.coord(:,idime) == L;
-            coord_indexes = find(valid_coord);
-            switch obj.nnode
-                case 4
-                    new_nnode = 3;
-                case 8
-                    new_nnode = 4;
-            end
-            
-            valid_connec = obj.findConnecIndexes(coord_indexes,new_nnode);
-            face_connec_raw = obj.mesh.connec(valid_connec,:);
-            face_connec = obj.removeExtraNodes(face_connec_raw,coord_indexes,new_nnode);
+            face_coord = obj.mesh.coord(valid_coord,:);
+            face_coord = obj.removeExtraDimension(face_coord,idime);
+            %             face_coord = unique(face_coord,'row');
         end
+        
+        %         function face_connec = getFaceConnectivities(obj,face_coord,idime,iside)
+        %             indexes_in_global_matrix = obj.findIndexesOfCoordinatesAinCoordinateMatrixB(face_coord,obj.mesh.coord);
+        %             nnode = 3;
+        %             valid_cells = sum(ismember(obj.mesh.connec,indexes_in_global_matrix),2)==nnode;
+        %             face_connec = obj.mesh.connec(valid_cells,:);
+        %             %!! NOT WORKING !!
+        %         end
         
         function indexes = findConnecIndexes(obj,coord_indexes,nnode)
             number_of_valid_nodes_per_element = sum(ismember(obj.mesh.connec,coord_indexes),2);
@@ -85,6 +86,16 @@ classdef Filter_LevelSet_3D_Boundary < Filter_LevelSet_3D & Filter_LevelSet_Boun
             for i = 1:size(face_connec,1)
                 face_connec(i,:) = face_connec_raw(i,valid_nodes(i,:));
             end
+        end
+        
+        function face_coord = removeExtraDimension(face_coord,idime)
+            dimen = [1 2 3];
+            face_coord = face_coord(:,dimen(dimen~=idime));
+        end
+        
+        function connectivities = computeDelaunay(coordinates)
+            DT = delaunayTriangulation(coordinates);
+            connectivities = DT.ConnectivityList;
         end
     end
 end

@@ -9,7 +9,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         end
         
         function global_connectivities = computeFromLocalToGlobalConnectivities(obj,local_matrix_coordinates,global_matrix_coordinates,local_connectivities)
-            indexes_in_global_matrix = obj.findCoordinatesIndexesInGlobalCoordinatesMatrix(local_matrix_coordinates,global_matrix_coordinates);
+            indexes_in_global_matrix = obj.findIndexesOfCoordinatesAinCoordinateMatrixB(local_matrix_coordinates,global_matrix_coordinates);
             global_connectivities = indexes_in_global_matrix(local_connectivities);
         end
         
@@ -92,14 +92,14 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
             djacob = A/dvolu;
         end
         
-        function indexes_in_global_matrix = findCoordinatesIndexesInGlobalCoordinatesMatrix(coordinates_local,coordinates_global)
-            indexes_in_global_matrix = zeros(1,size(coordinates_local,1));
-            for inode = 1:size(coordinates_local,1)
-                match = true(size(coordinates_global,1),1);
-                for idime = 1:size(coordinates_local,2)
-                    match = match & coordinates_global(:,idime) == coordinates_local(inode,idime);
+        function indexes = findIndexesOfCoordinatesAinCoordinateMatrixB(A,B)
+            indexes = zeros(1,size(A,1));
+            for inode = 1:size(A,1)
+                match = true(size(B,1),1);
+                for idime = 1:size(A,2)
+                    match = match & B(:,idime) == A(inode,idime);
                 end
-                indexes_in_global_matrix(inode) = find(match,1);
+                indexes(inode) = find(match,1);
             end
         end
     end
