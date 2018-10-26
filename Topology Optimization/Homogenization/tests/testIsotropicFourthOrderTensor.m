@@ -1,43 +1,35 @@
 classdef testIsotropicFourthOrderTensor < test
     
-    properties (Access = protected)
+    properties (Access = private)
         E = 1;
         nu = 1/3;
         ToCheckTensor
         CheckedTensor
     end
     
-    methods
+    methods (Access = public)
         
         function obj = testIsotropicFourthOrderTensor()
             obj.computeCheckedTensor();
             obj.computeToCheckTensor()
         end
+    end
+    
+    methods (Access = private)
         
-        function computeCheckedTensor(obj)
-          Tensor = zeros(6,6);          
+        function computeCheckedTensor(obj)        
           coef = obj.E/((obj.nu + 1)*(1 - 2*obj.nu));
-          coef1 = 1 - obj.nu;
-          coef2 = (1 - 2*obj.nu)/2;
-          
-          Tensor(1,1) = coef1;
-          Tensor(2,2) = coef1;
-          Tensor(3,3) = coef1;
-          
-          Tensor(4,4) = coef2;
-          Tensor(5,5) = coef2;
-          Tensor(6,6) = coef2;
-          
-          Tensor(1,2) = obj.nu;
-          Tensor(2,1) = obj.nu;
-          Tensor(1,3) = obj.nu;
-          Tensor(3,1) = obj.nu;
-          Tensor(3,2) = obj.nu;
-          Tensor(2,3) = obj.nu;
-          
+          c1 = 1 - obj.nu;
+          c2 = (1 - 2*obj.nu)/2;
+          c3 = obj.nu;          
+          Tensor = [ c1  c3  c3   0   0   0;
+                     c3  c1  c3   0   0   0;
+                     c3  c3  c1   0   0   0;
+                      0   0   0  c2   0   0;
+                      0   0   0   0  c2   0;
+                      0   0   0   0   0  c2];          
           Tensor = coef*Tensor;
-          obj.CheckedTensor = Tensor;
-          
+          obj.CheckedTensor = Tensor;          
         end
         
         function computeToCheckTensor(obj)

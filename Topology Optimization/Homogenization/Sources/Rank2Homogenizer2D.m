@@ -79,20 +79,20 @@ classdef Rank2Homogenizer2D < handle
            
             C1 = Tens1.tensorVoigtInPlaneStress();
             C0 = Tens0.tensorVoigtInPlaneStress();
-            S0 = inv(C0);
-            S1 = inv(C1);
+            S0 = Inverter.invert(C0);
+            S1 = Inverter.invert(C1);
            
             Cm = Cm1*m1v + Cm2*m2v;
             
             S01 = S0 - S1;
-            C01 = inv(S01);
+            C01 = Inverter.invert(S01);
             
             Ctheta = C01 + thet*Cm;   
             
-            Stheta = inv(Ctheta);
+            Stheta = Inverter.invert(Ctheta);
             
             Sh = S1 +(1-thet)*Stheta;            
-            obj.Ch = inv(Sh);
+            obj.Ch = Inverter.invert(Sh);
             
             
         end

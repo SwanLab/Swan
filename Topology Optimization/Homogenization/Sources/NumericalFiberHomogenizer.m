@@ -14,7 +14,6 @@ classdef NumericalFiberHomogenizer < handle
         Interpolation
         MatProps
         Filter
-        LevelSet
         Density 
         direction
         LevelSetPostProcess
@@ -23,6 +22,9 @@ classdef NumericalFiberHomogenizer < handle
         OutPutName
         LevelOfNumFibers
         hasToBePrinted
+        RotationMatrix
+        DensityCreator
+        densityPrinter
     end
     
     methods
@@ -38,16 +40,14 @@ classdef NumericalFiberHomogenizer < handle
             obj.loadDimension();
             obj.createInterpolation();
             obj.createMicroProblem();
-            obj.createLevelSet();
-            obj.createFilter()
             obj.createDensity()
+            obj.createDensityPrinter()
             obj.createMaterialProperties()
-            obj.createPostProcess()
-            obj.printLevelSet()
-            obj.printDensity()
+            obj.createRotationMatrix()
             obj.setMaterialPropertiesInMicroProblem()
             obj.computeVolumeValue()
             obj.computeHomogenizedTensor()
+            obj.print()
         end
     end
     
@@ -81,62 +81,35 @@ classdef NumericalFiberHomogenizer < handle
             obj.MicroProblem.preProcess();
         end
         
-        function createLevelSet(obj)
-            obj.Mesh = obj.MicroProblem.mesh;
-            epsilon = obj.MicroProblem.mesh.mean_cell_size;
-            LS_initializer = DesignVaribleInitializer_orientedFiber(...
-                             obj.Setting,obj.Mesh,epsilon,...
-                             obj.direction,obj.LevelOfNumFibers);            
-            LS_initializer.compute_initial_design();
-            obj.LevelSet = LS_initializer.x;
-        end
-        
-        function createFilter(obj)
-             dim = obj.Setting.ptype;
-             fileName = obj.Setting.filename;
-             obj.Filter = Filter_P1_LevelSet_2D(fileName,dim);
-             obj.Filter.preProcess();            
-        end
+ 
         
         function createDensity(obj)
-            obj.Density = obj.Filter.getP0fromP1(obj.LevelSet);
+            mesh = obj.MicroProblem.mesh;
+            setting = obj.Setting;
+            dir  =  obj.direction;
+            levFib = obj.LevelOfNumFibers;
+            %obj.DensityCreator = DensityCreatorByLevelSet(mesh,setting,dir,levFib);
+            obj.DensityCreator = DensityCreatorByInitializer(levFib,obj.MicroProblem);
+            obj.Density = obj.DensityCreator.getDensity();            
+        end
+        
+        function createDensityPrinter(obj)
+            quad = obj.MicroProblem.element.quadrature;
+            mesh = obj.MicroProblem.mesh;
+            obj.densityPrinter = DensityPrinter(quad,mesh);            
         end
         
         function createMaterialProperties(obj)
             obj.MatProps= obj.Interpolation.computeMatProp(obj.Density);
         end
+               
         
-        function createPostProcess(obj)
-            obj.createLevelSetPostProcess();
-            obj.createDensityPostProcess();
-        end
-        
-        function createLevelSetPostProcess(obj)
-            SetOpt = 'SLERP';
-            obj.LevelSetPostProcess = Postprocess_TopOpt.Create(SetOpt);
-        end
-        
-        function createDensityPostProcess(obj)
-            Quadrature = obj.MicroProblem.element.quadrature; 
-            obj.DensityPostProcess = PostprocessDensityInGaussPoints(Quadrature);   
-        end
-        
-        function printLevelSet(obj)
-            if obj.hasToBePrinted
-                results.iter = 0;
-                results.case_file = obj.OutPutName;
-                results.design_variable = obj.LevelSet;
-                obj.LevelSetPostProcess.print(obj.Mesh,results);
-            end
-        end
-        
-        function printDensity(obj)
-          if obj.hasToBePrinted
-             results.iter = 0;             
-             results.case_file = strcat(obj.OutPutName,'Density');
-             results.density = obj.Density;
-             obj.DensityPostProcess.print(obj.Mesh,results)          
-          end
+        function createRotationMatrix(obj)
+            Dir = [ 0 0 1];
+            FiberDirection = obj.direction;
+            Angle = -acos(dot(FiberDirection,[1 0 0])); 
+            MatrixGenerator = VoigtRotationMatrixGenerator(Angle,Dir);
+            obj.RotationMatrix = MatrixGenerator.VoigtMatrixPlaneStress;
         end
         
         function setMaterialPropertiesInMicroProblem(obj)
@@ -144,14 +117,29 @@ classdef NumericalFiberHomogenizer < handle
         end
         
         function computeVolumeValue(obj)
-            obj.Volume = obj.Filter.computeInteriorVolume(obj.LevelSet);
+            volumeComputer = ShFunc_Volume(obj.Setting);
+            vol = volumeComputer.computeCost(obj.Density);
+            obj.Volume = vol;            
         end
         
         function computeHomogenizedTensor(obj)
            obj.MicroProblem.computeChomog();
-           obj.Ch = obj.MicroProblem.variables.Chomog;
+           obj.rotateCh();
         end
         
+        function rotateCh(obj)
+            C = obj.MicroProblem.variables.Chomog;
+            R = obj.RotationMatrix;
+            obj.Ch = R*C*R';            
+        end
+        
+        function print(obj)
+            if obj.hasToBePrinted
+                d = obj.Density;
+                outn = obj.OutPutName;
+                obj.densityPrinter.print(d,outn)
+            end
+        end
     end
     
 end

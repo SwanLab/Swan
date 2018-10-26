@@ -8,14 +8,14 @@ classdef testMakeAnisotorpicTensorPlaneStressSymbolically < test
     methods
         
         function obj = testMakeAnisotorpicTensorPlaneStressSymbolically()
-           Tensor = fourthOrderTensor();
+           Tensor = FourthOrderTensor();
            Tensor.createRandomTensor();
            Tensor.computeTensorVoigt();
            
            TensorTransformer = PlaneStressVoigtTensorSymbolicallyTransformer(Tensor.tensorVoigt);
            
-           obj.ToCheckTensor = TensorTransformer.tensorVoigtInPlaneStress;           
-           obj.CheckedTensor = Tensor.transform3D_2_PlaneStressInVoigt(Tensor.tensorVoigt);
+           obj.ToCheckTensor = TensorTransformer.getValue();           
+           obj.CheckedTensor = PlaneStressTransformer.transform(Tensor.tensorVoigt);
         end
         
     end

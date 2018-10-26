@@ -49,18 +49,20 @@ classdef EnergyComputer
     
     methods (Static, Access = public)
         
-        function En = computeTensorEnergy(Strain,ConsTensor)
-            dim = size(Strain.tensor,1);
-            En = 0;
+        function en = computeTensorEnergy(strain,consTensor)
+            strain = strain.getValue();
+            ctens  = consTensor.getValue();
+            dim = size(strain,1);
+            en = 0;
             for i = 1:dim
                 for j = 1:dim
                     for k = 1:dim
                         for l = 1:dim
-                            StrainA = Strain.tensor(i,j);
-                            CH      = ConsTensor.tensor(i,j,k,l);
-                            StrainB = Strain.tensor(k,l);
-                            Energy  = StrainA*CH*StrainB;
-                            En = En + Energy;
+                            eij   = strain(i,j);
+                            cijkl = ctens(i,j,k,l);
+                            ekl   = strain(k,l);
+                            energy = eij*cijkl*ekl;
+                            en = en + energy;
                         end
                     end
                 end

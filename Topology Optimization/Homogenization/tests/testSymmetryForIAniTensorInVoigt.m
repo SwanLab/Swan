@@ -14,7 +14,7 @@ classdef testSymmetryForIAniTensorInVoigt < test
         end
         
         function computeFourthOrderTensor(obj)
-            obj.Ch = fourthOrderTensor();
+            obj.Ch = FourthOrderTensor();
             obj.Ch.createRandomTensor();
         end
         

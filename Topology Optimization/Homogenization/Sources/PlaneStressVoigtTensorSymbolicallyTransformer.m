@@ -1,7 +1,7 @@
-classdef PlaneStressVoigtTensorSymbolicallyTransformer < handle
+classdef PlaneStressVoigtTensorSymbolicallyTransformer < PlaneStressTransformer
     
-    properties (Access = public)
-        tensorVoigtInPlaneStress
+    properties (Access = protected)
+        TensorInPlaneStress
     end
     
     properties (Access = private)
@@ -34,6 +34,10 @@ classdef PlaneStressVoigtTensorSymbolicallyTransformer < handle
             obj.updateVariables()
             obj.computeTensorVoigtInPlaneStress()
         end
+        
+        function t = getValue(obj)
+            t = obj.TensorInPlaneStress;            
+        end
     end
     
     methods (Access = private)
@@ -53,19 +57,19 @@ classdef PlaneStressVoigtTensorSymbolicallyTransformer < handle
         end
         
         function createTensorVoigtInPlaneStress(obj)
-            obj.tensorVoigtInPlaneStress = sym(zeros(obj.Dim,obj.Dim));
+            obj.TensorInPlaneStress = sym(zeros(obj.Dim,obj.Dim));
         end
         
         function createOutOfPlaneIndex(obj)
-            obj.OutOfPlaneIndex(1) = obj.IndexTransformer.transformTensor2Voigt(3,3);
-            obj.OutOfPlaneIndex(2) = obj.IndexTransformer.transformTensor2Voigt(2,3);
-            obj.OutOfPlaneIndex(3) = obj.IndexTransformer.transformTensor2Voigt(1,3);
+            obj.OutOfPlaneIndex(1) = obj.IndexTransformer.tensor2Voigt(3,3);
+            obj.OutOfPlaneIndex(2) = obj.IndexTransformer.tensor2Voigt(2,3);
+            obj.OutOfPlaneIndex(3) = obj.IndexTransformer.tensor2Voigt(1,3);
         end
         
         function createInPlaneIndex(obj)
-            obj.InPlaneIndex(1) = obj.IndexTransformer.transformTensor2Voigt(1,1);
-            obj.InPlaneIndex(2) = obj.IndexTransformer.transformTensor2Voigt(2,2);
-            obj.InPlaneIndex(3) = obj.IndexTransformer.transformTensor2Voigt(1,2);
+            obj.InPlaneIndex(1) = obj.IndexTransformer.tensor2Voigt(1,1);
+            obj.InPlaneIndex(2) = obj.IndexTransformer.tensor2Voigt(2,2);
+            obj.InPlaneIndex(3) = obj.IndexTransformer.tensor2Voigt(1,2);
         end
         
         function  createStrains(obj)
@@ -118,18 +122,23 @@ classdef PlaneStressVoigtTensorSymbolicallyTransformer < handle
                 for iStrain = 1:length(obj.InPlaneIndex)
                     Stress = obj.InPlaneStresses(iStress);
                     Strain = obj.InPlaneSymbolicStrains(iStrain);
-                    [TensorValue,~] = coeffs(Stress,Strain);
-                    obj.fillTensorComponent(iStress,iStrain,TensorValue(1))
+                    [TensorValue,StrainValue] = coeffs(Stress,Strain);
+                    obj.fillTensorComponent(iStress,iStrain,TensorValue,StrainValue,Strain)
                 end
             end
         end
         
-        function fillTensorComponent(obj,i,j,TensorValue)
-            if ~isempty(TensorValue)
-                if obj.isThirdComponent(j)
-                    obj.tensorVoigtInPlaneStress(i,j) = 0.5*TensorValue;
-                else
-                    obj.tensorVoigtInPlaneStress(i,j) = TensorValue;
+        function fillTensorComponent(obj,i,j,TensorValue,StrainValue,Strain)
+            
+            for icoef = 1:length(StrainValue)                
+                if StrainValue(icoef) == Strain
+                    if ~isempty(TensorValue(1))
+                        if obj.isThirdComponent(j)
+                            obj.TensorInPlaneStress(i,j) = 0.5*TensorValue(icoef);
+                        else
+                            obj.TensorInPlaneStress(i,j) = TensorValue(icoef);
+                        end
+                    end
                 end
             end
         end

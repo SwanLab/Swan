@@ -1,4 +1,4 @@
-classdef RankTwoLaminateHomogenizer
+classdef RankTwoLaminateHomogenizer < handle
     
     properties (Access = private)
         FirstDirection
@@ -38,32 +38,21 @@ classdef RankTwoLaminateHomogenizer
             C0 = obj.WeakTensor.tensorVoigtInPlaneStress;
            
            
-            S1 = obj.InvertSymmMatrix(C1);
-            
-            
-            S0 = obj.InvertSymmMatrix(C0);
+
             
             obj.mu = StiffTensor.mu;
             
             
             lambda2D = obj.StiffTensor.E*obj.StiffTensor.nu/(1+obj.StiffTensor.nu)/(1-obj.StiffTensor.nu);
             obj.lambda2D = lambda2D;
-            %obj.lambda =  StiffTensor.lambda;    
+            %obj.lambda2D =  StiffTensor.lambda;    
             
             
             obj.Kparameter = (obj.mu+obj.lambda2D)/(obj.mu*(2*obj.mu+obj.lambda2D));
-            Cm1 = obj.computeChCorrector(d1);
-            Cm2 = obj.computeChCorrector(d2);
-            
-            obj.AnisotropicTensor{1} = fourthOrderTensor();
-            obj.AnisotropicTensor{2} = fourthOrderTensor();
-            
-            
-            obj.AnisotropicTensor{1}.tensorVoigtInPlaneStress = Cm1;
-            obj.AnisotropicTensor{2}.tensorVoigtInPlaneStress = Cm2;
-            
-            Cm = Cm1*m1 + Cm2*m2;
-            
+            Cm = obj.computeAnisotropicContribution(d1,d2,m1,m2);
+
+            S1 = obj.InvertSymmMatrix(C1);
+            S0 = obj.InvertSymmMatrix(C0);
             S01 = S0 - S1;
             C01 = obj.InvertSymmMatrix(S01);
             
@@ -74,8 +63,22 @@ classdef RankTwoLaminateHomogenizer
             Sh = S1 +(1-theta)*Stheta;            
             obj.Ch = obj.InvertSymmMatrix(Sh);
             
-         end 
+       end 
         
+       function Cm = computeAnisotropicContribution(obj,d1,d2,m1,m2)
+            Cm1 = obj.computeChCorrector(d1);
+            Cm2 = obj.computeChCorrector(d2);
+            
+            obj.AnisotropicTensor{1} = FourthOrderTensor();
+            obj.AnisotropicTensor{2} = FourthOrderTensor();            
+            
+            obj.AnisotropicTensor{1}.tensorVoigtInPlaneStress = Cm1;
+            obj.AnisotropicTensor{2}.tensorVoigtInPlaneStress = Cm2;
+            
+            Cm = Cm1*m1 + Cm2*m2;            
+       end
+       
+       
         
         function val = computeOneOfTheTwoFirstDiagonalTerms(obj,ex,ey)
             lam = obj.lambda2D;

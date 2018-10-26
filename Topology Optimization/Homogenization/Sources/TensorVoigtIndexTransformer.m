@@ -17,7 +17,12 @@ classdef TensorVoigtIndexTransformer < handle
             jstre = obj.Voigt2Tensor(ind,2);
         end
         
-        function ind = transformTensor2Voigt(obj,istre,jstre)
+        function  [istre,jstre] = voigt2tensor(obj,ind)
+            [istre,jstre] = transformVoigt2Tensor(obj,ind);
+        end
+        
+        
+        function ind = tensor2Voigt(obj,istre,jstre)
             ind = obj.Tensor2Voigt(istre,jstre);
         end
         

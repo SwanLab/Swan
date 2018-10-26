@@ -1,4 +1,4 @@
-classdef IsotropicConstitutiveTensor < fourthOrderTensor
+classdef IsotropicConstitutiveTensor < FourthOrderTensor
     
     properties
         E
@@ -44,6 +44,13 @@ classdef IsotropicConstitutiveTensor < fourthOrderTensor
             end
         end
         
+        function Mu = getMu(obj)
+            Mu = obj.mu;
+        end
+        
+        function Lambda = getLambda(obj)
+            Lambda = obj.lambda;
+        end
 
     end
     

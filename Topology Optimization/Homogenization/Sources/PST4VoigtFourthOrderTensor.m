@@ -1,7 +1,8 @@
-classdef PlaneStressVoigtTensorTransformer < handle
+classdef PST4VoigtFourthOrderTensor < PlaneStressTransformer
     
-    properties (Access = public)
-        tensorVoigtInPlaneStress
+    
+    properties (Access = protected)
+       TensorInPlaneStress
     end
     
     properties (Access = private)
@@ -15,21 +16,28 @@ classdef PlaneStressVoigtTensorTransformer < handle
     
     
     methods (Access = public)
-        function obj = PlaneStressVoigtTensorTransformer(C)
-            obj.init(C)
+         
+        function obj = PST4VoigtFourthOrderTensor(Tensor)
+            obj.init(Tensor)
             obj.computeOutPlaneDeterminant()
             obj.computeDeterminants()
             obj.computeComponents()
         end
+        
+        function Index = getInPlaneIndex(obj)
+            Index = obj.InPlane;
+        end
     end
+    
     
     methods (Access = private)
         
-        function init(obj,C)
-            obj.C = C;
-            obj.InPlane  = [1 2 6];
-            obj.OutPlane = [3 4 5];
+         function init(obj,Tensor)
+            PSIndex = PlaneStressIndex();
+            obj.InPlane  = PSIndex.getInPlaneIndex();
+            obj.OutPlane = PSIndex.getOutPlaneIndex();
             obj.nstre    = 3;
+            obj.C = Tensor;
         end
         
         function computeOutPlaneDeterminant(obj)
@@ -94,7 +102,7 @@ classdef PlaneStressVoigtTensorTransformer < handle
                 end
             end
             A = A/(obj.detOutPlane);
-            obj.tensorVoigtInPlaneStress = A;
+            obj.TensorInPlaneStress = A;
         end
         
     end
@@ -115,7 +123,9 @@ classdef PlaneStressVoigtTensorTransformer < handle
         function isFirst = isFirst(index)
             isFirst = index == 1;
         end
+        
     end
+    
     
 end
 

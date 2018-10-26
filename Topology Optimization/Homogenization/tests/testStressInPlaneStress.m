@@ -7,13 +7,13 @@ classdef testStressInPlaneStress < test
         
         strain
         Ch
-        ProductComputer
+        productComputer
     end
     
     methods (Access = public)
         
         function obj = testStressInPlaneStress()
-            obj.ProductComputer = FourthWithSecondOrderProductComputer;
+            obj.productComputer = FourthWithSecondOrderProductComputer();
             obj.computeConstitutiveTensor()
             obj.computeStrain()
             obj.computeStressFromTensorProduct()
@@ -25,7 +25,7 @@ classdef testStressInPlaneStress < test
     methods (Access = private)
         
         function computeConstitutiveTensor(obj)
-            obj.Ch = fourthOrderTensor();
+            obj.Ch = FourthOrderTensor();
             obj.Ch.createRandomTensor();
             obj.Ch.computeTensorVoigt();
             obj.Ch.computeTensorVoigtInPlaneStress();
@@ -40,7 +40,7 @@ classdef testStressInPlaneStress < test
             Ctensor = obj.Ch.tensor;
             Strain  = obj.strain.tensor;
             obj.StressFromTensorProduct = StressTensor();
-            Stress = obj.ProductComputer.computeInTensor(Ctensor,Strain);
+            Stress = obj.productComputer.computeInTensor(Ctensor,Strain);
             obj.StressFromTensorProduct.tensor = Stress;
             obj.StressFromTensorProduct.makeItPlaneStress();
         end
@@ -49,7 +49,7 @@ classdef testStressInPlaneStress < test
             Ctensor = obj.Ch.tensorVoigtInPlaneStress;
             Strain = obj.strain.tensorVoigtInPlaneStress;
             obj.StressFromVoigtProduct = StressTensor();
-            Stress = obj.ProductComputer.computeInVoigt(Ctensor,Strain);
+            Stress = obj.productComputer.computeInVoigt(Ctensor,Strain);
             obj.StressFromVoigtProduct.tensorVoigtInPlaneStress = Stress;
         end
         

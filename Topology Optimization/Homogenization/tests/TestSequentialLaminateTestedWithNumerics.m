@@ -67,28 +67,31 @@ classdef TestSequentialLaminateTestedWithNumerics < test
         end
         
         function computeSequentialLaminateTensor(obj)
-            C1 = obj.StiffTensor;
             C0 = obj.WeakTensor;
+            C1 = obj.StiffTensor;
             dir = obj.LaminateDirection;
             m1 = 1;
-            SeqHomogenizer = SequentialLaminateHomogenizer(C1,C0,dir,m1,obj.Theta);                                              
-            Ch  = SeqHomogenizer.HomogenizedTensor;
-            obj.SeqLamCh = double(Ch.tensorVoigtInPlaneStress);          
-       end
+            SeqHomog = VoigtHomogPlaneStressHomogenizer(C0,C1,dir,m1,obj.Theta);  
+            obj.SeqLamCh  = SeqHomog.getPlaneStressHomogenizedTensor();
+      end
         
         function computeRank2HomogenizerTensor(obj)
-            Params = [1 0];
-            Dir = [obj.LaminateDirection;obj.LaminateDirection];
-            C1 = obj.StiffTensor;
+            
             C0 = obj.WeakTensor;
-            Rank2 = RankTwoLaminateHomogenizer(C1,C0,Dir,Params,obj.Theta);
-            obj.Rank2Ch = double(Rank2.Ch);
+            C1 = obj.StiffTensor;
+            dir = obj.LaminateDirection;
+            m1 = 1;
+            SeqHomog = VoigtPlaneStressHomogHomogenizer(C0,C1,dir,m1,obj.Theta);  
+            obj.Rank2Ch  = SeqHomog.getPlaneStressHomogenizedTensor();                        
         end
                  
         function computeMixtureTheoryTensor(obj)
            C1 = obj.StiffTensor;
            C0 = obj.WeakTensor; 
-           Homogenizer = MixtureTheoryHomogenizer(C1,C0,obj.Theta);
+           Dir = [0 0 1];
+           Angle = -acos(dot(obj.FiberDirection,[1 0 0]));
+           Vfrac = obj.Theta;
+           Homogenizer = MixtureTheoryHomogenizer(C1,C0,Dir,Angle,Vfrac);
            obj.MixtureCh = Homogenizer.Ch;            
         end
   
@@ -97,10 +100,11 @@ classdef TestSequentialLaminateTestedWithNumerics < test
             ChSL    = double(obj.SeqLamCh);
             ChNum   = double(obj.NumericalCh); 
             ChMix   = double(obj.MixtureCh); 
-            ChRank2 = double(obj.Rank2Ch);            
-            firstCondition  = obj.relativeNorm(ChNum,ChSL)   < 1e-2;
-            secondCondition = obj.relativeNorm(ChMix,ChSL)   < 1e-2;
-            thirdCondition  = obj.relativeNorm(ChRank2,ChSL) < 3*1e-2;
+            ChRank  = double(obj.Rank2Ch);  
+            
+            firstCondition  = obj.relativeNorm(ChSL,ChNum)   < 1e-2;
+            secondCondition = obj.relativeNorm(ChMix,ChNum)  < 1e-3;
+            thirdCondition  = obj.relativeNorm(ChRank,ChNum) < 1e-10;
             hasPassed = firstCondition & secondCondition & thirdCondition;
         end
         

@@ -12,10 +12,11 @@ classdef DesignVaribleInitializer_orientedFiber < DesignVaribleInitializer
         
         methods
         
-        function obj = DesignVaribleInitializer_orientedFiber(settings,mesh,epsilon,directions,LevelOfFibers)
+        function obj = DesignVaribleInitializer_orientedFiber(settings,mesh,...
+                        epsilon,dir,levFib)
             obj@DesignVaribleInitializer(settings,mesh,epsilon);
-            obj.dir = directions;
-            obj.LevelOfFibers = LevelOfFibers;
+            obj.dir = dir;
+            obj.LevelOfFibers = levFib;
         end
         
         function x = compute_initial_x(obj)            
@@ -47,11 +48,9 @@ classdef DesignVaribleInitializer_orientedFiber < DesignVaribleInitializer
 %             obj.x(isReallyVoid) = obj.hole_value;
 %             x = obj.x;
             
-            m = obj.LevelOfFibers;
-            period = 1/(2^m);
-            phase = period/4;
-            x = obj.mesh.coord(:,2);
-            phi = -sin(2*pi/period*(x-phase))+1e-15;
+            yn = obj.mesh.coord(:,2);
+            lev = obj.LevelOfFibers;
+            phi = obj.computeHorizontalFibersLevelSet(lev,yn);
             obj.x = phi;
             %obj.x(phi>0) = obj.hole_value ;
             x = obj.x;
@@ -79,6 +78,18 @@ classdef DesignVaribleInitializer_orientedFiber < DesignVaribleInitializer
             LB = obj.computeLaminateLowerBound(xc,yc);
             isVoid = UB < 0 & LB > 0;                 
                 
+            end
+            
+        end
+        
+        
+        methods (Access = public,Static)
+            
+            function phi = computeHorizontalFibersLevelSet(levelOfFibers,y)
+                m = levelOfFibers;
+                period = 1/(2^m);
+                phase = period/4 - mod(period/4,0.00625);
+                phi = -sin(2*pi/period*(y-phase));
             end
             
         end

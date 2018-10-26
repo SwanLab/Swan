@@ -21,7 +21,8 @@ classdef StressTensor < SecondOrderTensor
         function makeItPlaneStress(obj)
             obj.makeTensorPlaneStress();
             obj.transformTensor2Voigt();
-            obj.computePlaneStressTensor();
+            TensorPS = PlaneStressTransformer.transform(obj.tensorVoigt);
+            obj.tensorVoigtInPlaneStress = TensorPS;
         end
 
 

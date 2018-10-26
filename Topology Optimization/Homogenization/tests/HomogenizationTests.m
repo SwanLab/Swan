@@ -16,22 +16,34 @@ classdef HomogenizationTests < testRunner
     
     methods (Access = protected)
         function loadTests(obj)
-            obj.tests = {...
+            obj.tests = {...                
                 %'test2DSeqLaminateInVoigtWithFormuleOfAllaireWebPAgeExercise'
-                'testNumericalConvergenceOfNumberOfLaminates'
+                'testHorizontalLaminate';
+                'testNumericalConvergenceOfNumberOfLaminates';
                 'testDiagonalLaminate';
                 'TestGeneralTwoRankSequentialLaminate';
-                'testHorizontalLaminate';
-                'TestTwoRankSequentialLaminate';
-                'testMakeAnisotorpicTensorPlaneStressSymbolically';
-                'testIsotropicFourthOrderTensor';
+                'testHorizontalTensorRotatedVsRank2';
+                'testHorizontalTensorRotatedVsVHP';
+                'testHorizontalTensorRotatedVsHVP';
+                'testHorizontalTensorRotatedVsVPH';
+                'testCommutingVoigtHomogPlaneStress';
+                'testInverseOfInverseForStiffTensor';
+                'testComplianceTensorThrougtVoigtComparingEnergy';
+                'testIsotropicFourthOrderTensor'
+                'testInverseSymmetricFourthOrderTensor';
+                'testStressRotationInVoigtNotationInPlaneStress';
                 'testSymmetrizeIsotropicFourthOrderTensor';
                 'testSymmetryForIAniTensorInVoigt'
+                'testInverseFourthOrderTensor';
+                'testStressRotationInVoigtNotationIn3D';
+                'testMakeAnisotorpicTensorPlaneStressSymbolically';
                 'testStressInPlaneStress'
                 'testEnergyEquivalenceVoigtAndTensorNotationForIsoTensor';
                 'testEnergyEquivalenceVoigtAndTensorNotationForIAniTensor';
                 'testAnisotropicPlaneStressbyEnergyEquivalence'
-                'testSymmetrizeFourthOrderTensor'};
+                'testSymmetrizeFourthOrderTensor';
+                'TestTwoRankSequentialLaminate';
+};
 
         end
     end

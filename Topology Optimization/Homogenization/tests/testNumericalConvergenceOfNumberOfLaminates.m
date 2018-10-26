@@ -68,13 +68,13 @@ classdef testNumericalConvergenceOfNumberOfLaminates < test
         function AreChSimilar = ComputeChSimilarity(obj)
             NormCh = obj.ChNorm;
             meanChNorm = mean(NormCh); 
-            AreChSimilar = norm(NormCh - meanChNorm) < 1e-3;
+            AreChSimilar = norm(NormCh - meanChNorm) < 1e-12;
         end
         
         function AreVolumesSimilar = ComputeVolumeSimilarity(obj)
             Volumes = obj.AllVolume;
             meanVolumes = mean(Volumes);
-            AreVolumesSimilar = norm(Volumes - meanVolumes) < 1e-3;
+            AreVolumesSimilar = norm(Volumes - meanVolumes) < 1e-12;
         end
         
     end

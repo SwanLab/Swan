@@ -31,7 +31,7 @@ classdef testAnisotropicPlaneStressbyEnergyEquivalence < test
         end
         
         function computeConstitutiveTensor(obj)
-            obj.Ch = fourthOrderTensor();
+            obj.Ch = FourthOrderTensor();
             obj.Ch.createRandomTensor();
             obj.Ch.computeTensorVoigt();
             obj.Ch.computeTensorVoigtInPlaneStress();

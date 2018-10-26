@@ -31,7 +31,7 @@ classdef TestGeneralTwoRankSequentialLaminate < test
         function hasPassed = hasPassed(obj)
             RankTwoCh  = double(obj.Rank2Ch);
             SqCh = double(obj.SeqLamCh);
-            hasPassed = norm(RankTwoCh - SqCh)/norm(SqCh) < 1e-2;
+            hasPassed = norm(RankTwoCh - SqCh)/norm(SqCh) < 1e-12;
         end
     end
     
@@ -45,7 +45,8 @@ classdef TestGeneralTwoRankSequentialLaminate < test
         end
               
         function loadLaminateDirections(obj)
-            obj.Directions(1,:) = [1     0     0];
+%            obj.Directions(1,:) = [1     0     0];
+            obj.Directions(1,:) = [rand(1) rand(1)  0];
             obj.Directions(2,:) = [1     3     0];
             obj.Directions = obj.normalizeDirections(obj.Directions);
         end       
@@ -77,16 +78,13 @@ classdef TestGeneralTwoRankSequentialLaminate < test
         end
         
         function computeGeneralTwoRankSequentialLaminate(obj)            
-            C1       = obj.StiffTensor;
             C0       = obj.WeakTensor;
+            C1       = obj.StiffTensor;
             Param    = obj.LamParams;
             Dir      = obj.Directions;
-            Theta    = obj.FractionVolume;            
-                
-            SeqHomog     = SequentialLaminateHomogenizer(C1,C0,Dir,Param,Theta);
-            HomogTensor  = SeqHomog.HomogenizedTensor;
-            obj.SeqLamCh = HomogTensor.tensorVoigtInPlaneStress;
-  
+            Theta    = obj.FractionVolume;                            
+            SeqHomog      = VoigtPlaneStressHomogHomogenizer(C0,C1,Dir,Param,Theta);
+            obj.SeqLamCh  = SeqHomog.getPlaneStressHomogenizedTensor();
         end
 
     end

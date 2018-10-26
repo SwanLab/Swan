@@ -1,4 +1,4 @@
-classdef SecondComplementaryTensor < fourthOrderTensor
+classdef SecondComplementaryTensor < FourthOrderTensor
     
     properties
         direction
@@ -9,18 +9,17 @@ classdef SecondComplementaryTensor < fourthOrderTensor
         function obj = SecondComplementaryTensor(A,direction)
             obj.direction = direction;
             obj.generate(A)
-            obj.computeTensorVoigt();
         end
         
         function  generate(obj,A)
             obj.tensor = obj.compute(A);
         end
         
-        function F1ten = compute(obj,A)
-            IsoTensor = A.tensor;
-            mu = A.mu;
+        function F1ten = compute(obj,Tensor)
+            IsoTensor = Tensor.getValue;
+            mu = Tensor.getMu;
             
-            dim = 3;
+            dim = size(IsoTensor,1);
             F1ten =  sym(zeros([dim dim dim dim]));
             
             for i = 1:dim
