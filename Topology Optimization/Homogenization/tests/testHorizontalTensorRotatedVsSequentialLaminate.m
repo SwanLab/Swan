@@ -57,13 +57,11 @@ classdef testHorizontalTensorRotatedVsSequentialLaminate < test
         end
         
         function createLaminateDirection(obj)
-            dir = obj.rotDir;
-            alpha  = obj.angle;
-            rotMatGen = RotationMatrixGenerator(alpha,dir);
-            R = rotMatGen.getValue();
-            d1 = obj.horLamDir;
-            d2 = R*d1;
-            obj.lamDir = d2;
+            d = obj.rotDir;
+            a  = obj.angle;
+            dir2Rotate = obj.horLamDir;
+            rotatedDir = Rotator.rotate(dir2Rotate,a,d);            
+            obj.lamDir = rotatedDir;
         end
         
         function createMaterialTensors(obj)
@@ -86,13 +84,12 @@ classdef testHorizontalTensorRotatedVsSequentialLaminate < test
         end
         
         function rotateHorizontalLaminate(obj)
-            dir   = obj.rotDir;
+            dir = obj.rotDir;
             alpha = (pi - obj.angle);    
-            rotator = VoigtRotationMatrixGenerator(alpha,dir);
-            R = rotator.getPsValue();
-            C = obj.horTensor;
-            Crot = R*C*R';
-            obj.rotHorTensor = Crot;
+            Chor = obj.horTensor;
+            C = FourthOrderVoigtTensor();
+            C.setValue(Chor);
+            obj.rotHorTensor = Rotator.rotate(C,alpha,dir);
         end
         
     end

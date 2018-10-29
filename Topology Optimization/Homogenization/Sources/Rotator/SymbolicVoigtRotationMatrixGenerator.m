@@ -25,10 +25,10 @@ classdef SymbolicVoigtRotationMatrixGenerator < handle
     methods (Access = private)
         
         function obj = createRotationMatrix(obj)
-            Theta    = obj.createRotationAngle();
-            Vect     = obj.createNormalVector();
-            Rotation = RotationMatrixGenerator(Theta,Vect);
-            obj.RotationMatrix = Rotation.Matrix;
+            theta    = obj.createRotationAngle();
+            vect     = obj.createNormalVector();            
+            rotator = VectorRotator(theta,vect);
+            obj.RotationMatrix = rotator.getRotationMatrix();
         end
         
         function u = createNormalVector(obj)

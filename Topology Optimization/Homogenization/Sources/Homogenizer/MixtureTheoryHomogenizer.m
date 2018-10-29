@@ -14,7 +14,6 @@ classdef MixtureTheoryHomogenizer < handle
         nu_yx
         mu        
         Direction
-        RotationMatrix
         ChHorizontal
         FractionVolume
     end
@@ -24,7 +23,6 @@ classdef MixtureTheoryHomogenizer < handle
         function obj = MixtureTheoryHomogenizer(StiffTensor,WeakTensor,Dir,Angle,Vfrac)
             obj.init(StiffTensor,WeakTensor,Dir,Angle,Vfrac)
             obj.computeOrthotropicProperties() 
-            obj.computeRotatedMatrix()
             obj.computeHorizontalHomogenizedTensor()
             obj.rotateHorizontalHomogenizedTensor()
         end
@@ -57,14 +55,7 @@ classdef MixtureTheoryHomogenizer < handle
             obj.nu_yx = obj.nu_xy*obj.Ey/obj.Ex;
             obj.mu = obj.parelalize(mu1,mu0,Vfrac);
         end
-        
-        function computeRotatedMatrix(obj)
-            Dir = obj.Direction;
-            angle = obj.Angle;
-            MatrixGenerator = VoigtRotationMatrixGenerator(angle,Dir);
-            obj.RotationMatrix = MatrixGenerator.VoigtMatrixPlaneStress;
-        end
-        
+
         function computeHorizontalHomogenizedTensor(obj)
             E1    = obj.Ex; 
             E2    = obj.Ey;
@@ -90,9 +81,16 @@ classdef MixtureTheoryHomogenizer < handle
         end
         
         function rotateHorizontalHomogenizedTensor(obj)
-            R = obj.RotationMatrix;
+            d = obj.Direction;
+            a = obj.Angle;
             ChHor = obj.ChHorizontal;
-            obj.Ch = R*ChHor*(R');               
+%             rotator = StressVoigtPlaneStressRotator(a,d);
+%             R = rotator.getRotationMatrix();            
+%             obj.Ch = R*ChHor*(R');     
+            
+            C = FourthOrderVoigtTensor();
+            C.setValue(ChHor);            
+            obj.Ch = Rotator.rotate(C,a,d);
         end
         
     end

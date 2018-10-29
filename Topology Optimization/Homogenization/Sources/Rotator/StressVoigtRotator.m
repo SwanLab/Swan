@@ -1,48 +1,28 @@
-classdef VoigtRotationMatrixGenerator < handle
+classdef StressVoigtRotator < Rotator
     
-    properties (Access = public)
-        VoigtMatrix
-        VoigtMatrixPlaneStress
+    properties (Access = protected)
+        rotatedTensor
+        rotationMatrix
     end
-
     
-    properties (Access = private)
-        Angle
-        Direction
-    end
     
     
     methods (Access = public)
         
-        function obj = VoigtRotationMatrixGenerator(Angle,Direction)
-            obj.init(Angle,Direction)
-            obj.createVoigtMatrix()
-            obj.createVoigtMatrixPlaneStress()
+        function obj = StressVoigtRotator(angle,dir)
+            obj.init(angle,dir)
+            obj.generateRotator()
         end
-        
-        function r = getValue(obj)
-            r = double(obj.VoigtMatrix);
-        end
-        
-        function r = getPsValue(obj)
-            r = double(obj.VoigtMatrixPlaneStress);
-        end
-        
     end
     
     methods (Access = private)
         
-        function init(obj,Angle,Direction)
-            obj.Angle = Angle;
-            obj.Direction = Direction;
-        end
         
-        
-        function createVoigtMatrix(obj)
-            theta = obj.Angle;
-            u1 = obj.Direction(1);
-            u2 = obj.Direction(2);
-            u3 = obj.Direction(3);
+        function generateRotator(obj)
+            theta = obj.angle;
+            u1 = obj.dir(1);
+            u2 = obj.dir(2);
+            u3 = obj.dir(3);
             
             A(1,1) = ((1 - cos(theta))*u1^2 + cos(theta))^2;
             A(2,2) = ((1 - cos(theta))*u2^2 + cos(theta))^2;
@@ -77,7 +57,7 @@ classdef VoigtRotationMatrixGenerator < handle
             A(5,2) = -(u1*sin(theta) + u2*u3*(cos(theta) - 1))*(u3*sin(theta) - u1*u2*(cos(theta) - 1));
             
             A(2,6) = -2*(u3*sin(theta) + u1*u2*(cos(theta) - 1))*((1 - cos(theta))*u2^2 + cos(theta));...
-            A(6,2) = (u3*sin(theta) - u1*u2*(cos(theta) - 1))*((1 - cos(theta))*u2^2 + cos(theta));
+                A(6,2) = (u3*sin(theta) - u1*u2*(cos(theta) - 1))*((1 - cos(theta))*u2^2 + cos(theta));
             
             A(3,4) = -2*(u1*sin(theta) + u2*u3*(cos(theta) - 1))*((1 - cos(theta))*u3^2 + cos(theta));
             A(4,3) = (u1*sin(theta) - u2*u3*(cos(theta) - 1))*((1 - cos(theta))*u3^2 + cos(theta));
@@ -87,7 +67,7 @@ classdef VoigtRotationMatrixGenerator < handle
             
             A(3,6) = -2*(u1*sin(theta) + u2*u3*(cos(theta) - 1))*(u2*sin(theta) - u1*u3*(cos(theta) - 1));
             A(6,3) = -(u2*sin(theta) + u1*u3*(cos(theta) - 1))*(u1*sin(theta) - u2*u3*(cos(theta) - 1));
-                        
+            
             A(4,5) = (u1*sin(theta) - u2*u3*(cos(theta) - 1))*(u2*sin(theta) - u1*u3*(cos(theta) - 1)) - (u3*sin(theta) + u1*u2*(cos(theta) - 1))*((1 - cos(theta))*u3^2 + cos(theta));
             A(5,4) = (u1*sin(theta) + u2*u3*(cos(theta) - 1))*(u2*sin(theta) + u1*u3*(cos(theta) - 1)) + (u3*sin(theta) - u1*u2*(cos(theta) - 1))*((1 - cos(theta))*u3^2 + cos(theta));
             
@@ -97,19 +77,19 @@ classdef VoigtRotationMatrixGenerator < handle
             A(5,6) = (u2*sin(theta) - u1*u3*(cos(theta) - 1))*(u3*sin(theta) - u1*u2*(cos(theta) - 1)) - (u1*sin(theta) + u2*u3*(cos(theta) - 1))*((1 - cos(theta))*u1^2 + cos(theta));
             A(6,5) = (u2*sin(theta) + u1*u3*(cos(theta) - 1))*(u3*sin(theta) + u1*u2*(cos(theta) - 1)) + (u1*sin(theta) - u2*u3*(cos(theta) - 1))*((1 - cos(theta))*u1^2 + cos(theta));
             
-            obj.VoigtMatrix = A;
-                
+            obj.rotationMatrix = A;
+            
         end
-        
-        function createVoigtMatrixPlaneStress(obj)
-            PSIndex = PlaneStressIndex();
-            InPlaneIndex(:,1) = PSIndex.getInPlaneIndex();
-            obj.VoigtMatrixPlaneStress = obj.VoigtMatrix(InPlaneIndex,InPlaneIndex);
-        end
-        
-        
     end
-      
+    
+    methods (Access = protected)
+        function computeRotation(obj,tensor)
+            R = obj.rotationMatrix;
+            s = tensor.getValue();
+            obj.rotatedTensor = R*s;
+        end
+    end
+    
     
 end
 

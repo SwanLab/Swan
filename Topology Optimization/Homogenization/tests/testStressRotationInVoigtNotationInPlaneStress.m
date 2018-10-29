@@ -1,14 +1,12 @@
 classdef testStressRotationInVoigtNotationInPlaneStress < testStressRotationInVoigtNotation
     
-    properties (Access = private)
-
-       
+    properties (Access = private) 
     end
     
     methods (Access = public)
         
         function obj = testStressRotationInVoigtNotationInPlaneStress()
-            obj@testStressRotationInVoigtNotation()
+            obj.compute()
         end
         
     end
@@ -19,36 +17,18 @@ classdef testStressRotationInVoigtNotationInPlaneStress < testStressRotationInVo
             obj.Direction = [0 0 1];
         end    
         
-        function setVoigtMatrix(obj,MatrixGenerator)
-            obj.VoigtRotation = MatrixGenerator.VoigtMatrixPlaneStress;
-        end
-        
         function createStress(obj)
             obj.createStress@testStressRotationInVoigtNotation()
-            TensorPS = PlaneStressTransformer.transform(obj.Stress.tensorVoigt);
-            obj.Stress.tensorVoigtInPlaneStress = TensorPS;
+            sv = obj.StressVoigt.getValue();
+            tensPS = PlaneStressTransformer.transform(sv);
+            obj.StressVoigt.setValue(tensPS)
         end
         
         function createRotatedStress(obj)
             obj.createRotatedStress@testStressRotationInVoigtNotation()
-            TensorPS = PlaneStressTransformer.transform(obj.RotatedStress.tensorVoigt);
-            obj.RotatedStress.tensorVoigtInPlaneStress = TensorPS;
-        end
-            
-        function Tensor = obtainRotatedTensor(obj)
-           Tensor = obj.RotatedStress.tensorVoigtInPlaneStress; 
-        end
-        
-        function Tensor = obtainRotatedTensorByVoigt(obj)
-            Tensor = obj.RotatedStressByVoigt.tensorVoigtInPlaneStress;            
-        end
-        
-        function Stre = obtainStress(obj)
-            Stre = obj.Stress.tensorVoigtInPlaneStress;
-        end            
-        
-        function setRotatedStressByVoigt(obj,Tensor)
-           obj.RotatedStressByVoigt.tensorVoigtInPlaneStress = Tensor;
+            tens = obj.rotatedStress.getValue();
+            tensorPS = PlaneStressTransformer.transform(tens);
+            obj.rotatedStress.setValue(tensorPS)
         end
             
     end

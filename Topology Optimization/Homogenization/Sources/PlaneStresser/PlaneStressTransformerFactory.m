@@ -48,7 +48,7 @@ classdef PlaneStressTransformerFactory < handle
             switch obj.TensorCase
                 case 'fourthOrderTensor'
                     obj.PSTransformer = PlaneStressTransformerForFourthOrderTensor(obj.Tensor);
-                case 'secondOrderTensor'
+                case {'secondOrderTensor'}
                     obj.PSTransformer = PlaneStressTransformerForSecondOrderTensor(obj.Tensor);
                 case {'VoigtFourtOrder'}
                     %obj.PSTransformer = PST4VoigtFourthOrderTensor(obj.Tensor);

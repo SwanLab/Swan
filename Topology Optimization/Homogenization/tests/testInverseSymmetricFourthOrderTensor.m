@@ -87,7 +87,7 @@ classdef testInverseSymmetricFourthOrderTensor < test
         function hasPassed = hasPassed(obj)
             I = obj.Identity;
             Ie = obj.ExpectedIdentity;            
-            hasPassed = norm(I(:)-Ie(:))/norm(I(:)) < 1e-13;
+            hasPassed = norm(I(:)-Ie(:))/norm(I(:)) < 1e-12;
         end
     end
     

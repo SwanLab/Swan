@@ -6,8 +6,6 @@ classdef HomogenizationTests < testRunner
         tests
     end
     
-    
-    
     methods (Access = public)
         function obj = HomogenizationTests()
             obj@testRunner();
@@ -17,33 +15,34 @@ classdef HomogenizationTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {...                
-                %'test2DSeqLaminateInVoigtWithFormuleOfAllaireWebPAgeExercise'
+               %'test2DSeqLaminateInVoigtWithFormuleOfAllaireWebPAgeExercise'
+               'testStressRotationInVoigtNotationIn3D';
+                'testStressRotationInVoigtNotationInPlaneStress';               
+                'testInverseSymmetricFourthOrderTensor' ;
                 'testHorizontalLaminate';
-                'testNumericalConvergenceOfNumberOfLaminates';
-                'testDiagonalLaminate';
-                'TestGeneralTwoRankSequentialLaminate';
-                'testHorizontalTensorRotatedVsRank2';
-                'testHorizontalTensorRotatedVsVHP';
-                'testHorizontalTensorRotatedVsHVP';
-                'testHorizontalTensorRotatedVsVPH';
+                'testAnisotropicPlaneStressbyEnergyEquivalence';
                 'testCommutingVoigtHomogPlaneStress';
                 'testInverseOfInverseForStiffTensor';
                 'testComplianceTensorThrougtVoigtComparingEnergy';
                 'testIsotropicFourthOrderTensor'
                 'testInverseSymmetricFourthOrderTensor';
-                'testStressRotationInVoigtNotationInPlaneStress';
                 'testSymmetrizeIsotropicFourthOrderTensor';
                 'testSymmetryForIAniTensorInVoigt'
                 'testInverseFourthOrderTensor';
-                'testStressRotationInVoigtNotationIn3D';
                 'testMakeAnisotorpicTensorPlaneStressSymbolically';
                 'testStressInPlaneStress'
                 'testEnergyEquivalenceVoigtAndTensorNotationForIsoTensor';
                 'testEnergyEquivalenceVoigtAndTensorNotationForIAniTensor';
-                'testAnisotropicPlaneStressbyEnergyEquivalence'
                 'testSymmetrizeFourthOrderTensor';
                 'TestTwoRankSequentialLaminate';
-};
+                'testNumericalConvergenceOfNumberOfLaminates';
+                'testDiagonalLaminate';
+                'TestGeneralTwoRankSequentialLaminate';
+                'testHorizontalTensorRotatedVsVHP';
+                'testHorizontalTensorRotatedVsVPH';                
+                'testHorizontalTensorRotatedVsRank2';
+                'testHorizontalTensorRotatedVsHVP';                
+                };
 
         end
     end

@@ -1,29 +1,57 @@
 classdef testStressRotationInVoigtNotation < test
     
     properties (Access = protected)
-       Direction
-       Rotation
-       VoigtRotation
-       Stress
-       RotatedStressByVoigt
-       RotatedStress
+        Direction
+        Stress
+        StressVoigt
+        rotatedStressByVoigt
+        rotatedStress
     end
     
     properties (Access = private)
-       Angle
+        Angle
     end
     
-    
-    methods (Access = public)
+    methods (Access = protected)
         
-        function obj = testStressRotationInVoigtNotation()
+        function compute(obj)
             obj.createAngle()
             obj.createDirection()
-            obj.createRotationMatrix()
-            obj.createVoigtRotationMatrix() 
             obj.createStress()
-            obj.createRotatedStress()  
+            obj.createRotatedStress()
             obj.createRotatedStressWithVoigtNotation()
+        end
+        
+        function createStress(obj)
+            obj.Stress = StressTensor();
+            sv = Tensor2VoigtConverter.convert(obj.Stress);
+            obj.StressVoigt = StressVoigtTensor;
+            obj.StressVoigt.setValue(sv)
+        end
+        
+        function createRotatedStress(obj)
+            rotS = obj.rotateStress();
+            obj.rotatedStress = obj.convertInVoigt(rotS);            
+        end
+        
+        function rotS = rotateStress(obj)
+            a  = obj.Angle;
+            d  = obj.Direction;
+            sR = Rotator.rotate(obj.Stress,a,d);
+            rotS = StressTensor();
+            rotS.setValue(sR);
+        end
+        
+        function tensVoigt = convertInVoigt(obj,tens)
+            tensVoigt = StressVoigtTensor();
+            t = Tensor2VoigtConverter.convert(tens);
+            tensVoigt.setValue(t)            
+        end
+        
+        function hasPassed = hasPassed(obj)
+            rotStre        = obj.rotatedStress.getValue();
+            rotStreByVoigt = obj.rotatedStressByVoigt();
+            hasPassed = norm(double(rotStre) - double(rotStreByVoigt)) < 1e-14;
         end
         
     end
@@ -31,64 +59,25 @@ classdef testStressRotationInVoigtNotation < test
     methods (Access = private)
         
         function createAngle(obj)
-             obj.Angle = 2*pi*rand(1);
-        end
-        
-        function createRotationMatrix(obj)
-           theta = obj.Angle;
-           Dir   = obj.Direction;
-           MatrixGenerator = RotationMatrixGenerator(theta,Dir);
-           obj.Rotation = MatrixGenerator.Matrix();
-        end
-        
-        function createVoigtRotationMatrix(obj)
-           theta = obj.Angle;
-           Dir   = obj.Direction;
-           MatrixGenerator = VoigtRotationMatrixGenerator(theta,Dir);
-           obj.setVoigtMatrix(MatrixGenerator)           
+            obj.Angle = 2*pi*rand(1);
         end
         
         function createRotatedStressWithVoigtNotation(obj)
-            Rot  = obj.VoigtRotation;
-            Stre = obj.obtainStress();
-            RotTensor = Rot*Stre;
-            obj.RotatedStressByVoigt = StressTensor();            
-            obj.setRotatedStressByVoigt(RotTensor)           
+            theta = obj.Angle;
+            dir   = obj.Direction;
+            stre = obj.StressVoigt.getValue();
+            
+            stress = StressVoigtTensor();
+            stress.setValue(stre);
+            
+            rotStre = Rotator.rotate(stress,theta,dir);
+            obj.rotatedStressByVoigt = rotStre;            
         end
         
     end
     
     methods (Abstract,Access = protected)
-        createDirection(obj) 
-        setVoigtMatrix(obj)
-        obtainRotatedTensor(obj)
-        obtainRotatedTensorByVoigt(obj)
-        obtainStress(obj)
-        setRotatedStressByVoigt(obj)
-    end
-     
-    methods (Access = protected)
-        
-        function createStress(obj)
-            obj.Stress = StressTensor();
-            obj.Stress.transformTensor2Voigt();
-        end
-        
-        function createRotatedStress(obj)
-            Rot  = obj.Rotation;
-            Stre = obj.Stress.tensor();
-            obj.RotatedStress = StressTensor();
-            obj.RotatedStress.tensor = Rot'*Stre*Rot;
-            obj.RotatedStress.transformTensor2Voigt()
-        end
-
-        
-        function hasPassed = hasPassed(obj)   
-            RotStre        = obj.obtainRotatedTensor();
-            RotStreByVoigt = obj.obtainRotatedTensorByVoigt();
-            hasPassed = norm(double(RotStre) - double(RotStreByVoigt)) < 1e-14;
-        end
-        
+        createDirection(obj)
     end
 end
 

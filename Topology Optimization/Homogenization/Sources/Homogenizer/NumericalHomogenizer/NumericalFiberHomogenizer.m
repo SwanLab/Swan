@@ -25,6 +25,7 @@ classdef NumericalFiberHomogenizer < handle
         RotationMatrix
         DensityCreator
         densityPrinter
+        angle
     end
     
     methods
@@ -43,7 +44,7 @@ classdef NumericalFiberHomogenizer < handle
             obj.createDensity()
             obj.createDensityPrinter()
             obj.createMaterialProperties()
-            obj.createRotationMatrix()
+            obj.createRotationAngle()
             obj.setMaterialPropertiesInMicroProblem()
             obj.computeVolumeValue()
             obj.computeHomogenizedTensor()
@@ -104,12 +105,9 @@ classdef NumericalFiberHomogenizer < handle
         end
                
         
-        function createRotationMatrix(obj)
-            Dir = [ 0 0 1];
-            FiberDirection = obj.direction;
-            Angle = -acos(dot(FiberDirection,[1 0 0])); 
-            MatrixGenerator = VoigtRotationMatrixGenerator(Angle,Dir);
-            obj.RotationMatrix = MatrixGenerator.VoigtMatrixPlaneStress;
+        function createRotationAngle(obj)
+            fiberDirection = obj.direction;
+            obj.angle = -acos(dot(fiberDirection,[1 0 0]));
         end
         
         function setMaterialPropertiesInMicroProblem(obj)
@@ -128,9 +126,12 @@ classdef NumericalFiberHomogenizer < handle
         end
         
         function rotateCh(obj)
-            C = obj.MicroProblem.variables.Chomog;
-            R = obj.RotationMatrix;
-            obj.Ch = R*C*R';            
+            d = [ 0 0 1];
+            a = obj.angle;
+            Cv = obj.MicroProblem.variables.Chomog;
+            C = FourthOrderVoigtTensor();
+            C.setValue(Cv);            
+            obj.Ch = Rotator.rotate(C,a,d);
         end
         
         function print(obj)

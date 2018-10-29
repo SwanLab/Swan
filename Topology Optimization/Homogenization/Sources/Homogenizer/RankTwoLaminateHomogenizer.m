@@ -32,13 +32,8 @@ classdef RankTwoLaminateHomogenizer < handle
             obj.WeakTensor = WeakTensor;
             
             
-            
             C1 = obj.StiffTensor.tensorVoigtInPlaneStress; 
-
             C0 = obj.WeakTensor.tensorVoigtInPlaneStress;
-           
-           
-
             
             obj.mu = StiffTensor.mu;
             
