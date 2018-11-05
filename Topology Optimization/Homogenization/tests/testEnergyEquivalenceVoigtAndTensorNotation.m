@@ -28,7 +28,6 @@ classdef testEnergyEquivalenceVoigtAndTensorNotation < test
         function init(obj)
             obj.createStrains()
             obj.createConstitutiveTensors()
-            obj.generateFourthOrderTensor();
         end
         
         function createStrains(obj)

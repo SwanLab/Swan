@@ -23,8 +23,8 @@ classdef EnergyComputerFactory < handle
         end
         
         function createEnergyComputer(obj)
-             C = obj.fourthOrder();
-             s = obj.secondOrder();
+             C = obj.fourthOrder;
+             s = obj.secondOrder;
              if obj.isVoigt()
                  e = EnergyComputerForVoigt(C,s);
              elseif obj.isTensor()

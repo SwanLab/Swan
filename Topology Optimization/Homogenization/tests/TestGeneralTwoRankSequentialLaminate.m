@@ -54,7 +54,7 @@ classdef TestGeneralTwoRankSequentialLaminate < test
             E0  = epsilon*E1;
             nu0 = 1/3;           
             obj.stiffTensor = IsotropicConstitutiveTensor(E1,nu1);
-            obj.weakTensor  =IsotropicConstitutiveTensor(E0,nu0);
+            obj.weakTensor  = IsotropicConstitutiveTensor(E0,nu0);
         end
                     
         function computeTwoRankSequentialLaminate(obj)           
