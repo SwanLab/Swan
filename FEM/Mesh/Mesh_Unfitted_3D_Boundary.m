@@ -1,13 +1,13 @@
 classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
     methods
-        function obj = Mesh_Unfitted_3D_Boundary(fitted_mesh,fitted_geom_interpolation)
-            obj.storeFittedMesh(fitted_mesh,fitted_geom_interpolation);
+        function obj = Mesh_Unfitted_3D_Boundary(background_mesh,background_geom_interpolation)
+            obj.storeBackgroundMesh(background_mesh,background_geom_interpolation);
             obj.max_subcells = 6; % !! ?? !!
             obj.nnodes_subcell = 3;
         end
         
         %         function obj = computeMesh_withExtBounds(obj,x)
-        %             interior_boundary_mesh = Mesh_Unfitted_3D_Boundary(obj.fitted_mesh.duplicate,obj.fitted_geom_interpolation);
+        %             interior_boundary_mesh = Mesh_Unfitted_3D_Boundary(obj.background_mesh.duplicate,obj.background_geom_interpolation);
         %             interior_boundary_mesh.computeMesh(x);
         %             surrounding_boundary_meshes = obj.computeSurrondingBoundaryMeshes;
         %         end
@@ -28,7 +28,7 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
             subcells_connec = obj.computeDelaunay(interior_subcell_coord_iso);
             boundary_subcells_connec = obj.findBoundarySubcells(subcells_connec,cell_x_value);
             
-            number_nodes = size(obj.fitted_geom_interpolation.pos_nodes,1);
+            number_nodes = size(obj.background_geom_interpolation.pos_nodes,1);
             facets_connec = zeros([size(boundary_subcells_connec,1),3]);
             for i = 1:size(boundary_subcells_connec,1)
                 facets_connec(i,:) = boundary_subcells_connec(i,boundary_subcells_connec(i,:)>number_nodes);
@@ -57,7 +57,7 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
         %                 for iside = 1:2
         %                     iface = 2*(idime-1) + iside;
         %                     face_coord = obj.getFaceCoordinates(domain_limits(idime,iside),idime);
-        %                     surrounding_boundary_meshes{iface} =  Mesh_Unfitted_2D_Interior(obj.fitted_mesh.duplicate,geom_interpolation);
+        %                     surrounding_boundary_meshes{iface} =  Mesh_Unfitted_2D_Interior(obj.background_mesh.duplicate,geom_interpolation);
         %                 end
         %             end
         %         end

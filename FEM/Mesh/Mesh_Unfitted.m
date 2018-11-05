@@ -1,15 +1,15 @@
 classdef Mesh_Unfitted < Mesh
     properties
-        fitted_full_cells % !! ADD PREFIX: FITTED_ !!
-        fitted_empty_cells
-        fitted_cut_cells
+        background_full_cells
+        background_empty_cells
+        background_cut_cells
         
         coord_iso
         connec_local
         coord_iso_per_cell
         cell_containing_subcell
         
-        x_fitted
+        x_background
         x_unfitted
     end
     
@@ -21,24 +21,24 @@ classdef Mesh_Unfitted < Mesh
         max_subcells
         nnodes_subcell
         
-        fitted_mesh
-        fitted_geom_interpolation
+        background_mesh
+        background_geom_interpolation
     end
     
     methods (Access = public)
-        function storeFittedMesh(obj,fitted_mesh,fitted_geom_interpolation)
-            obj.fitted_mesh = fitted_mesh;
-            obj.fitted_geom_interpolation = fitted_geom_interpolation;
+        function storeBackgroundMesh(obj,background_mesh,background_geom_interpolation)
+            obj.background_mesh = background_mesh;
+            obj.background_geom_interpolation = background_geom_interpolation;
         end
         
-        function computeMesh(obj,x_fitted)
-            obj.x_fitted = x_fitted;
+        function computeMesh(obj,x_background)
+            obj.x_background = x_background;
             obj.findCutCells;
-            if ~isempty(obj.fitted_cut_cells)
+            if ~isempty(obj.background_cut_cells)
                 obj.computeMesh_Delaunay;
             else
-                obj.coord = obj.fitted_mesh.coord;
-                phi_nodes = obj.x_fitted(obj.fitted_mesh.connec);
+                obj.coord = obj.background_mesh.coord;
+                phi_nodes = obj.x_background(obj.background_mesh.connec);
                 phi_case = sum((sign(phi_nodes)<0),2);
                 if (any(phi_case))
                     obj.connec = obj.computeDelaunay(obj.coord);
@@ -56,13 +56,13 @@ classdef Mesh_Unfitted < Mesh
         end
         
         function findCutCells(obj)
-            phi_nodes = obj.x_fitted(obj.fitted_mesh.connec);
+            phi_nodes = obj.x_background(obj.background_mesh.connec);
             phi_case = sum((sign(phi_nodes)<0),2);
             
-            obj.fitted_full_cells = phi_case == size(obj.fitted_mesh.connec,2);
-            obj.fitted_empty_cells = phi_case == 0;
-            indexes = (1:size(obj.fitted_mesh.connec,1))';
-            obj.fitted_cut_cells = indexes(~(obj.fitted_full_cells | obj.fitted_empty_cells));
+            obj.background_full_cells = phi_case == size(obj.background_mesh.connec,2);
+            obj.background_empty_cells = phi_case == 0;
+            indexes = (1:size(obj.background_mesh.connec,1))';
+            obj.background_cut_cells = indexes(~(obj.background_full_cells | obj.background_empty_cells));
         end
         
         function obj = computeMesh_Delaunay(obj)
@@ -72,13 +72,13 @@ classdef Mesh_Unfitted < Mesh
             obj.allocateMemory_Delaunay;
             
             lowerBound_A = 0; lowerBound_B = 0; lowerBound_C = 0;
-            for icut = 1:length(obj.fitted_cut_cells)
-                icell = obj.fitted_cut_cells(icut);
+            for icut = 1:length(obj.background_cut_cells)
+                icell = obj.background_cut_cells(icut);
                 currentCell_cutPoints_iso = obj.getCurrentCutPoints(Nodes_n_CutPoints_iso,real_cutPoints,icut);
                 currentCell_cutPoints_global = obj.getCurrentCutPoints(Nodes_n_CutPoints_global,real_cutPoints,icut);
                 
                 [new_coord_iso,new_coord_global,new_x_unfitted,new_subcell_connec]...
-                    = obj.computeSubcells(obj.fitted_mesh.connec(icell,:),currentCell_cutPoints_iso,currentCell_cutPoints_global);
+                    = obj.computeSubcells(obj.background_mesh.connec(icell,:),currentCell_cutPoints_iso,currentCell_cutPoints_global);
                 
                 number_new_subcells = size(new_subcell_connec,1);
                 number_new_coordinates = size(new_coord_iso,1);
@@ -126,10 +126,10 @@ classdef Mesh_Unfitted < Mesh
         end
         
         function allocateMemory_Delaunay(obj)
-            number_cut_cells = length(obj.fitted_cut_cells);
-            obj.coord_iso = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,obj.fitted_mesh.ndim);
-            obj.coord_global_raw = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,obj.fitted_mesh.ndim);
-            obj.coord_iso_per_cell = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell,obj.fitted_mesh.ndim);
+            number_cut_cells = length(obj.background_cut_cells);
+            obj.coord_iso = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,obj.background_mesh.ndim);
+            obj.coord_global_raw = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,obj.background_mesh.ndim);
+            obj.coord_iso_per_cell = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell,obj.background_mesh.ndim);
             obj.connec_local = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell);
             obj.connec = zeros(number_cut_cells*obj.max_subcells,obj.nnodes_subcell);
             obj.x_unfitted = zeros(number_cut_cells*obj.max_subcells*obj.nnodes_subcell,1);

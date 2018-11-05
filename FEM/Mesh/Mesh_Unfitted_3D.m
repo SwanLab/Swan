@@ -5,34 +5,34 @@ classdef Mesh_Unfitted_3D < Mesh_Unfitted
         end
         
         function [P,active_nodes]=computeCutPoints_Iso(obj)
-            pos_nodes = obj.fitted_geom_interpolation.pos_nodes;
+            pos_nodes = obj.background_geom_interpolation.pos_nodes;
             
-            iteration_1 = obj.fitted_geom_interpolation.iteration(1,:);
-            iteration_2 = obj.fitted_geom_interpolation.iteration(2,:);
+            iteration_1 = obj.background_geom_interpolation.iteration(1,:);
+            iteration_2 = obj.background_geom_interpolation.iteration(2,:);
             
-            gamma_1 = permute(obj.x_fitted(obj.fitted_mesh.connec(obj.fitted_cut_cells,iteration_1)),[2 3 1]);
-            gamma_2 = permute(obj.x_fitted(obj.fitted_mesh.connec(obj.fitted_cut_cells,iteration_2)),[2 3 1]);
+            gamma_1 = permute(obj.x_background(obj.background_mesh.connec(obj.background_cut_cells,iteration_1)),[2 3 1]);
+            gamma_2 = permute(obj.x_background(obj.background_mesh.connec(obj.background_cut_cells,iteration_2)),[2 3 1]);
             
-            P1 = repmat(pos_nodes(iteration_1,:),[1 1 size(obj.fitted_cut_cells)]);
-            P2 = repmat(pos_nodes(iteration_2,:),[1 1 size(obj.fitted_cut_cells)]);
+            P1 = repmat(pos_nodes(iteration_1,:),[1 1 size(obj.background_cut_cells)]);
+            P2 = repmat(pos_nodes(iteration_2,:),[1 1 size(obj.background_cut_cells)]);
             P = P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
             
             active_nodes = sign(gamma_1.*gamma_2)<=0;
         end
         
         function [P,active_nodes]=computeCutPoints_Global(obj)
-            iteration_1 = obj.fitted_geom_interpolation.iteration(1,:);
-            iteration_2 = obj.fitted_geom_interpolation.iteration(2,:);
+            iteration_1 = obj.background_geom_interpolation.iteration(1,:);
+            iteration_2 = obj.background_geom_interpolation.iteration(2,:);
             
-            index1 = permute(obj.fitted_mesh.connec(obj.fitted_cut_cells,iteration_1),[2 3 1]);
-            index2 = permute(obj.fitted_mesh.connec(obj.fitted_cut_cells,iteration_2),[2 3 1]);
+            index1 = permute(obj.background_mesh.connec(obj.background_cut_cells,iteration_1),[2 3 1]);
+            index2 = permute(obj.background_mesh.connec(obj.background_cut_cells,iteration_2),[2 3 1]);
            
-            gamma_1 = obj.x_fitted(index1);
-            gamma_2 = obj.x_fitted(index2);
+            gamma_1 = obj.x_background(index1);
+            gamma_2 = obj.x_background(index2);
             
-            coord1 = obj.fitted_mesh.coord(:,1);
-            coord2 = obj.fitted_mesh.coord(:,2);
-            coord3 = obj.fitted_mesh.coord(:,3);
+            coord1 = obj.background_mesh.coord(:,1);
+            coord2 = obj.background_mesh.coord(:,2);
+            coord3 = obj.background_mesh.coord(:,3);
             
             P1 = [coord1(index1) coord2(index1) coord3(index1)];
             P2 = [coord1(index2) coord2(index2) coord3(index2)];
