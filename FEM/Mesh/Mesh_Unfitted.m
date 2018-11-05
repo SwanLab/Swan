@@ -45,15 +45,16 @@ classdef Mesh_Unfitted < Mesh
                 end
                 %                 warning('No cut cells found, can`t compute unfitted mesh.')
             end
-        end
-        
-        function computeGlobalConnectivities(obj)
-            obj.coord =  unique(obj.coord_global_raw,'rows','stable');
-            obj.computeFromLocalToGlobalConnectivities;
+            obj.computeGlobalConnectivities;
         end
     end
     
     methods (Access = private)
+        function computeGlobalConnectivities(obj)
+            obj.coord =  unique(obj.coord_global_raw,'rows','stable');
+            obj.computeFromLocalToGlobalConnectivities;
+        end
+        
         function findCutCells(obj)
             phi_nodes = obj.x_fitted(obj.fitted_mesh.connec);
             phi_case = sum((sign(phi_nodes)<0),2);

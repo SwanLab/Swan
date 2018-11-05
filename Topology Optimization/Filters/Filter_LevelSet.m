@@ -30,6 +30,23 @@ classdef Filter_LevelSet < Filter
             MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';
             warning('off', MSGID)
         end
+        
+        function shapeValues = integrateFoverMesh(obj,F1)
+            subcells_posgp_iso = obj.computePosGP(obj.unfitted_mesh.coord_iso_per_cell,obj.interpolation_unfitted,obj.quadrature_unfitted);
+            
+            shapeValues = zeros(size(obj.unfitted_mesh.connec,1),obj.nnode);
+            for isubcell = 1:size(obj.unfitted_mesh.connec,1) % !! VECTORIZE THIS LOOP !!
+                icell = obj.unfitted_mesh.cell_containing_subcell(isubcell);
+                inode = obj.mesh.connec(icell,:);
+                
+                obj.interpolation.computeShapeDeriv(subcells_posgp_iso(:,:,isubcell)');
+                
+                djacob = obj.mapping(obj.unfitted_mesh.coord(obj.unfitted_mesh.connec(isubcell,:),:),obj.interpolation_unfitted.dvolu); % !! Could be done through Geometry class?? !!
+                
+                F0 = (obj.interpolation.shape*obj.quadrature_unfitted.weigp')'*F1(inode)/obj.interpolation_unfitted.dvolu;
+                shapeValues(isubcell,:) = shapeValues(isubcell,:) + (obj.interpolation.shape*(djacob.*obj.quadrature_unfitted.weigp')*F0)';
+            end
+        end
     end
     
     methods (Access = protected)
@@ -41,7 +58,7 @@ classdef Filter_LevelSet < Filter
         end
     end
     
-    methods (Access = private)        
+    methods (Access = private)
         function setQuadrature_Unfitted(obj)
             obj.quadrature_unfitted = obj.getQuadrature_Unfitted;
             obj.quadrature_unfitted.computeQuadrature('LINEAR');

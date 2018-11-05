@@ -1,7 +1,7 @@
 classdef Filter < handle
     properties
         diffReacProb
-        M0
+        M0 % !! Computation done by integrator ?? !!
         mesh
         nnode
         nelem

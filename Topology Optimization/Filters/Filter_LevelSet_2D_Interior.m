@@ -10,6 +10,13 @@ classdef Filter_LevelSet_2D_Interior < Filter_LevelSet_2D & Filter_LevelSet_Inte
     end
     
     methods (Static, Access = public)
+        function djacob = mapping(points,dvolu)
+            v1 = [diff(points([1 2],:)) 0];
+            v2 = [diff(points([1 3],:)) 0];
+            A = 0.5*norm(cross(v1,v2));
+            djacob = A/dvolu;
+        end
+        
         function quadrature = getQuadrature_Unfitted
             quadrature = Quadrature_Triangle;
         end

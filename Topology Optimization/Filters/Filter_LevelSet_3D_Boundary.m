@@ -10,7 +10,6 @@ classdef Filter_LevelSet_3D_Boundary < Filter_LevelSet_3D & Filter_LevelSet_Boun
         
         function S = computeSurface(obj,x)
             obj.unfitted_mesh.computeMesh(x);
-            obj.unfitted_mesh.computeGlobalConnectivities;
             M2 = obj.computeRHS(ones(size(x)));
             S = sum(M2);
             
@@ -22,13 +21,12 @@ classdef Filter_LevelSet_3D_Boundary < Filter_LevelSet_3D & Filter_LevelSet_Boun
                     [face_mesh,valid_nodes] = obj.createFaceMesh(idime,iside);
                     unfitted_mesh2D = Mesh_Unfitted_2D_Interior(face_mesh,obj.interpolation_unfitted);
                     unfitted_mesh2D.computeMesh(x(valid_nodes));
-                    unfitted_mesh2D.computeGlobalConnectivities;
                     
                     if ~isempty(unfitted_mesh2D.connec)
                         filter2D.setupFromMesh(face_mesh,'MACRO');
                         filter2D.preProcess;
                         filter2D.unfitted_mesh = unfitted_mesh2D;
-                        M2 = filter2D.computeRHS;
+                        M2 = filter2D.computeRHS(ones(size(x(valid_nodes))));
                         S = S + sum(M2);
                     end
                 end
@@ -72,7 +70,14 @@ classdef Filter_LevelSet_3D_Boundary < Filter_LevelSet_3D & Filter_LevelSet_Boun
         end
     end
     
-    methods (Static, Access = public)
+    methods (Static, Access = public)     
+        function djacob = mapping(points,dvolu)
+            v1 = diff(points([1 2],:));
+            v2 = diff(points([1 3],:));
+            A = 0.5*norm(cross(v1,v2));
+            djacob = A/dvolu;
+        end
+        
         function quadrature = getQuadrature_Unfitted
             quadrature = Quadrature_Triangle;
         end

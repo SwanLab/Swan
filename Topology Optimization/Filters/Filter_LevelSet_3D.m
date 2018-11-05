@@ -77,21 +77,13 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         function [interior_facets_global_coordinates, interior_facets_global_connectivities] = computeInteriorFacets(obj,x)
             obj.createUnfittedMesh;
             obj.unfitted_mesh.computeMesh(x);
-            obj.unfitted_mesh.computeGlobalConnectivities;
-            
+
             interior_facets_global_coordinates = obj.unfitted_mesh.coord;
             interior_facets_global_connectivities = obj.unfitted_mesh.connec;
         end
     end
     
-    methods (Static, Access = public)        
-        function djacob = mapping(points,dvolu)
-            v1 = diff(points([1 2],:));
-            v2 = diff(points([1 3],:));
-            A = 0.5*norm(cross(v1,v2));
-            djacob = A/dvolu;
-        end
-        
+    methods (Static, Access = public)                        
         function indexes = findIndexesOfCoordinatesAinCoordinateMatrixB(A,B)
             indexes = zeros(1,size(A,1));
             for inode = 1:size(A,1)

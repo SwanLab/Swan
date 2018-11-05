@@ -1,6 +1,6 @@
 classdef Filter_LevelSet_Interior < Filter_LevelSet
     properties (Access = private)
-%         geometry
+        %         geometry
         shapeValues_FullCells
     end
     
@@ -11,26 +11,32 @@ classdef Filter_LevelSet_Interior < Filter_LevelSet
             obj.shapeValues_FullCells = obj.integrateFullCells;
         end
         
-        function M2 = computeRHS(obj)
-            obj.unfitted_mesh.computeDvoluCut;
-            
-            posgp_iso = obj.computePosGP(obj.unfitted_mesh.coord_iso_per_cell,obj.interpolation_unfitted,obj.quadrature_unfitted);
-            obj.interpolation.computeShapeDeriv(squeeze(posgp_iso));
-            
-            shapeValues_CutCells = obj.integrateCutCells(obj.unfitted_mesh.cell_containing_subcell,obj.unfitted_mesh.dvolu_cut);
-            shapeValues_All = obj.assembleShapeValues(obj.shapeValues_FullCells,shapeValues_CutCells);
-            
+        %                 function M2 = computeRHS(obj,F1)
+        %                     obj.unfitted_mesh.computeDvoluCut;
+        %
+        %                     posgp_iso = obj.computePosGP(obj.unfitted_mesh.coord_iso_per_cell,obj.interpolation_unfitted,obj.quadrature_unfitted);
+        %                     obj.interpolation.computeShapeDeriv(squeeze(posgp_iso));
+        %
+        %                     shapeValues_CutCells = obj.integrateCutCells(obj.unfitted_mesh.cell_containing_subcell,obj.unfitted_mesh.dvolu_cut);
+        %                     shapeValues_All = obj.assembleShapeValues(shapeValues_CutCells,obj.shapeValues_FullCells);
+        %
+        %                     M2 = obj.rearrangeOutputRHS(shapeValues_All);
+        %                 end
+        
+        function M2 = computeRHS(obj,F1)           
+            shapeValues_CutCells = obj.integrateFoverMesh(F1);
+            shapeValues_All = obj.assembleShapeValues(shapeValues_CutCells,obj.shapeValues_FullCells);
             M2 = obj.rearrangeOutputRHS(shapeValues_All);
         end
         
         function S = computeVolume(obj,x)
             obj.unfitted_mesh.computeMesh(x);
-            M2 = obj.computeRHS;
+            M2 = obj.computeRHS(ones(size(x)));
             S = sum(M2);
         end
     end
     
-    methods (Access = private)        
+    methods (Access = private)
         function shapeValues_FullCells = integrateFullCells(obj)
             shapeValues_FullCells = zeros(size(obj.mesh.connec,1),size(obj.mesh.connec,2));
             for igauss = 1:obj.quadrature.ngaus
@@ -43,7 +49,7 @@ classdef Filter_LevelSet_Interior < Filter_LevelSet
             shapeValued_CutCells = obj.interpolation.shape'.*dvolu_cut.*dvolu_frac(containing_cell);
         end
         
-        function shapeValues_AllCells = assembleShapeValues(obj,shapeValues_FullCells,shapeValues_CutCells)
+        function shapeValues_AllCells = assembleShapeValues(obj,shapeValues_CutCells,shapeValues_FullCells)
             shapeValues_AllCells = zeros(size(obj.mesh.connec,1),size(obj.mesh.connec,2));
             shapeValues_AllCells(obj.unfitted_mesh.fitted_full_cells,:) = shapeValues_FullCells(obj.unfitted_mesh.fitted_full_cells,:);
             

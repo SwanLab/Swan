@@ -10,6 +10,12 @@ classdef Filter_LevelSet_2D_Boundary < Filter_LevelSet_2D & Filter_LevelSet_Boun
     end
     
     methods (Static, Access = public)
+        function djacob = mapping(points,dvolu)
+            v = diff(points);
+            L = norm(v);
+            djacob = L/dvolu;
+        end
+        
         function quadrature = getQuadrature_Unfitted
             quadrature = Quadrature_Line;
         end
