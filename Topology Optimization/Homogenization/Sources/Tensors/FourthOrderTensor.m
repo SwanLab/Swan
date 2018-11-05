@@ -1,24 +1,16 @@
 classdef FourthOrderTensor < Tensor
     
     properties (Access = public)
-        tensor
-    end
-    
-    properties            
             tensorVoigt 
             tensorVoigtInPlaneStress
             InverseTensorVoigt
             InverseTensorVoigtInPlaneStress
     end
-    
-    properties (Access = private)
-        IndexTransformer
-    end
-    
+        
     methods
         
         function obj = FourthOrderTensor()
-            obj.IndexTransformer = TensorVoigtIndexTransformer();
+
         end
         
         function computeTensorVoigt(obj)

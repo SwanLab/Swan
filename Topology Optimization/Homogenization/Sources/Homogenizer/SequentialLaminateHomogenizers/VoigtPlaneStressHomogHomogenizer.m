@@ -25,28 +25,18 @@ classdef VoigtPlaneStressHomogHomogenizer < SequentialLaminateHomogenizer
          end
          
          function makeFiberAndMatrixTensorsPlaneStress(obj)
-             obj.matTen = obj.makeTensorPlaneStress(obj.matTen.getValue());
-             obj.fibTen = obj.makeTensorPlaneStress(obj.fibTen.getValue());
+             obj.matTen = PlaneStressTransformer.transform(obj.matTen);
+             obj.fibTen = PlaneStressTransformer.transform(obj.fibTen);
          end
          
         function makeAnisotropicTensorsPlaneStress(obj)
             for irank = 1:obj.rank
                 ani = obj.anisotropicTensors{irank};
-                aniPS = obj.makeTensorPlaneStress(ani.getValue());
+                aniPS = PlaneStressTransformer.transform(ani);
                 obj.anisotropicTensors{irank} = aniPS;
             end
         end
          
-    end
-    
-    methods (Access = private, Static)
-
-        function psTensor = makeTensorPlaneStress(tensor)
-             psTensValue = PlaneStressTransformer.transform(tensor);
-             psTensor = VoigtTensor();
-             psTensor.setValue(psTensValue);             
-         end
-       
     end
     
     

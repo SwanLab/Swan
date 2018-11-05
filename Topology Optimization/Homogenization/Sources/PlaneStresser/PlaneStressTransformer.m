@@ -1,26 +1,32 @@
 classdef PlaneStressTransformer < handle
     
     
-    properties (Abstract, Access = protected)
-        TensorInPlaneStress
+    properties (Access = protected)
+        psTensor
     end
+    
+   
     
     methods (Access = public,Static)
         
-        function PlaneStressTensor = transform(Tensor)
-            Factory           = PlaneStressTransformerFactory();
-            PlaneStresser     = Factory.create(Tensor);
-            PlaneStressTensor = PlaneStresser.getTensor();
+        function psTensor = transform(Tensor)
+            factory       = PlaneStressTransformerFactory();
+            planeStresser = factory.create(Tensor);
+            psTensor      = planeStresser.getTensor();
         end
         
     end
     
     methods (Access = private)
         
-        function TPS = getTensor(obj)
-            TPS = double(obj.TensorInPlaneStress);
+        function t = getTensor(obj)
+            t = obj.psTensor;
         end
         
+    end
+    
+    methods (Access = protected,Abstract)
+        createPlaneStressTensor(obj)
     end
     
 end

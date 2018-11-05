@@ -1,20 +1,19 @@
 classdef VoigtTensorInverter < Inverter
     
-    properties (Access = protected)
-        invertedTensor
-    end
     
     methods (Access = public)
         
-        function obj = VoigtTensorInverter(Tensor)
-            obj.computeInverse(Tensor)
+        function obj = VoigtTensorInverter(tensor)
+            obj.compute(tensor);
         end
     end
     
-    methods (Access = private)
-       
-        function computeInverse(obj,Tensor)
-            obj.invertedTensor = inv(Tensor);
+    methods (Access = protected)
+        
+        function computeInverse(obj)
+            A = obj.tensor.getValue();
+            invA = inv(A);
+            obj.invertedTensor.setValue(invA);
         end
         
     end

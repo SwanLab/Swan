@@ -3,18 +3,18 @@ classdef Homogenizer < handle
     properties (Access = private)
         anisotropicTensors
         laminateParams
-        Theta
-        Rank
+        theta
+        rank
         
-        MatTensor
-        FibTensor
-        HomogTensor
-        AniTensor
-        IncremTensor
+        matTensor
+        fibTensor
+        homogTensor
+        aniTensor
+        incremTensor
         
-        InvMatTensor
-        InvFibTensor
-        InvThetaTensor
+        invMatTensor
+        invFibTensor
+        invThetaTensor
     end
     
     methods (Access = public)
@@ -27,8 +27,8 @@ classdef Homogenizer < handle
             obj.computeHomogenizedTensor();
         end
         
-        function T = getHomogenizedTensor(obj)
-            T = obj.HomogTensor;
+        function t = getHomogenizedTensor(obj)
+            t = obj.homogTensor;
         end
          
     end
@@ -36,64 +36,68 @@ classdef Homogenizer < handle
     methods (Access = private)
         
         function init(obj,C0,C1,Ani,mi,theta)
-            obj.MatTensor = C0;
-            obj.FibTensor = C1;
+            obj.matTensor = C0;
+            obj.fibTensor = C1;
             obj.anisotropicTensors = Ani;
             obj.laminateParams     = mi;
-            obj.Theta              = theta;
-            obj.Rank               = length(obj.laminateParams);
+            obj.theta              = theta;
+            obj.rank               = length(obj.laminateParams);
             obj.computeMatrixAndFiberComplianceTensors();
         end
         
-        function computeIncrementalTensor(obj)
-            S0  = obj.InvMatTensor;
-            S1  = obj.InvFibTensor;
-            S01 = S0 - S1;
-            C01 = obj.invertTensor(S01);
-            obj.IncremTensor = C01;
-        end
-            
         function computeMatrixAndFiberComplianceTensors(obj)
-            obj.InvMatTensor = obj.invertTensor(obj.MatTensor.getValue());
-            obj.InvFibTensor = obj.invertTensor(obj.FibTensor.getValue());
-        end
+            obj.invMatTensor = Inverter.invert(obj.matTensor);
+            obj.invFibTensor = Inverter.invert(obj.fibTensor);
+        end        
+        
+        function computeIncrementalTensor(obj)
+            S0  = obj.invMatTensor;
+            S1  = obj.invFibTensor;
+            S01 = S0.clone();
+            s0 = S0.getValue();
+            s1 = S1.getValue();
+            s01 = s0 - s1;
+            S01.setValue(s01);            
+            C01 = Inverter.invert(S01);
+            obj.incremTensor = C01;
+        end            
         
         function computeAnisotropicContributionTensor(obj)
-            TensorSize = size(obj.anisotropicTensors{1}.getValue());
-            Ca = zeros(TensorSize);
-            for irank = 1:obj.Rank
+            tensorSize = obj.anisotropicTensors{1}.getTensorSize();
+            Ca = zeros(tensorSize);
+            for irank = 1:obj.rank
                 Cai = obj.anisotropicTensors{irank}.getValue();
                 mi  = obj.laminateParams(irank);
                 Ca  = Ca + mi*Cai;
             end
-            obj.AniTensor = Ca;
+            obj.aniTensor = obj.anisotropicTensors{1}.clone();
+            obj.aniTensor.setValue(Ca);
         end
         
         function computeThetaTensor(obj)
-            C01 = obj.IncremTensor;
-            Ca  = obj.AniTensor;
-            Ctheta = C01 + obj.Theta*Ca;
-            Stheta = obj.invertTensor(Ctheta);
-            obj.InvThetaTensor = Stheta;
+            C01 = obj.incremTensor;
+            Ca  = obj.aniTensor;
+            Ctheta = C01.clone();
+            c01 = C01.getValue();
+            ca  = Ca.getValue();
+            ctheta = c01 + obj.theta*ca;
+            Ctheta.setValue(ctheta);
+            Stheta = Inverter.invert(Ctheta);
+            obj.invThetaTensor = Stheta;
         end
         
         function computeHomogenizedTensor(obj)
-            S1     = obj.InvFibTensor;
-            Stheta = obj.InvThetaTensor;
-            Sh = S1 + (1-obj.Theta)*Stheta;
-            Ch = obj.invertTensor(Sh);
-            obj.HomogTensor = Ch;
+            S1     = obj.invFibTensor;
+            Stheta = obj.invThetaTensor;
+            Sh = S1.clone();
+            s1 = S1.getValue();
+            stheta = Stheta.getValue();
+            sh = s1 + (1-obj.theta)*stheta;
+            Sh.setValue(sh);
+            Ch = Inverter.invert(Sh);
+            obj.homogTensor = Ch;
         end
     end
     
-    methods (Access = private, Static)
-        
-        function invT = invertTensor(TensorValue)
-            T = FourthOrderTensor();
-            T.setValue(TensorValue);
-            invT = Inverter.invert(T);
-        end
-        
-    end
 end
 

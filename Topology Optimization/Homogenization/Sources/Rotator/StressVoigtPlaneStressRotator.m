@@ -1,37 +1,25 @@
-classdef StressVoigtPlaneStressRotator < Rotator
+classdef StressVoigtPlaneStressRotator < StressVoigtRotator
     
-    properties (Access = protected)
-        rotatedTensor
-        rotationMatrix
-    end
     
     methods (Access = public)
         
         function obj = StressVoigtPlaneStressRotator(angle,dir)
-            obj.init(angle,dir)
-            obj.generateRotator()
+            obj.compute(angle,dir)
         end
         
     end
     
-    methods (Access = private)
+    methods (Access = protected)
         function generateRotator(obj)
             a = obj.angle;
             d = obj.dir;
-            rotatorVoigt3D = StressVoigtRotator(a,d);
+            rotatorVoigt3D = StressVoigt3DRotator(a,d);
             rot = rotatorVoigt3D.getRotationMatrix();
             obj.rotationMatrix = obj.makeItPlaneStress(rot);
         end
         
     end
     
-    methods (Access = protected)        
-        function computeRotation(obj,tensor)
-            R = obj.rotationMatrix;
-            s = tensor.getValue();
-            obj.rotatedTensor = R*s;
-        end        
-    end
     
     methods (Access = private,Static)
         function r = makeItPlaneStress(rotation3D)

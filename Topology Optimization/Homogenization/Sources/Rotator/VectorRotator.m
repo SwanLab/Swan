@@ -1,10 +1,5 @@
 classdef VectorRotator < Rotator
     
-    properties (Access = protected)
-        rotatedTensor
-        rotationMatrix
-    end
-    
     properties (Access = private)
         dim
         FirstTerm
@@ -15,31 +10,34 @@ classdef VectorRotator < Rotator
     methods (Access = public)
         
         function obj = VectorRotator(angle,dir)
-            obj.init(angle,dir)
-            obj.generateRotator()
+            obj.compute(angle,dir)
         end
         
     end
     
     methods (Access = protected)
         function computeRotation(obj,vector)
+            obj.createRotatedTensor(vector);
             R = obj.rotationMatrix;
-            s = vector;
-            obj.rotatedTensor = R*s;
+            s = vector.getValue;
+            sR = R*s;
+            obj.rotatedTensor.setValue(sR);
         end
         
         function init(obj,angle,vect)
             obj.init@Rotator(angle,vect)
             obj.dim = 3;
         end
-    end
-    
-    methods (Access = private)
         
         function generateRotator(obj)
             obj.computeTerms()
             obj.addTerms()
         end
+
+        
+    end
+    
+    methods (Access = private)
         
         function computeTerms(obj)
             obj.computeFirstTerm()
@@ -54,9 +52,9 @@ classdef VectorRotator < Rotator
         end
         
         function computeSecondTerm(obj)
-            u(:,1) = obj.dir;
+            u(:,1) = obj.dir.getValue();
             alpha = obj.angle;
-            A = sym(zeros(obj.dim,obj.dim));
+            A = obj.createSecondTermMatrix();
             A(1,2) = -u(3,1);
             A(1,3) = u(2,1);
             A(2,1) = u(3,1);
@@ -67,7 +65,7 @@ classdef VectorRotator < Rotator
         end
         
         function computeThirdTerm(obj)
-            u(:,1) = obj.dir;
+            u(:,1) = obj.dir.getValue();
             alpha = obj.angle;
             obj.ThirdTerm = (1-cos(alpha))*(u*u');
         end
@@ -77,6 +75,20 @@ classdef VectorRotator < Rotator
             R2 = obj.SecondTerm;
             R3 = obj.ThirdTerm;
             obj.rotationMatrix = R1 + R2 + R3;
+        end
+        
+        function A = createSecondTermMatrix(obj)            
+            if obj.isSymbolic()
+              A = sym(zeros(obj.dim,obj.dim));
+            else
+              A = zeros(obj.dim,obj.dim);
+            end                         
+        end
+        
+        function itIs = isSymbolic(obj)
+            isDirSym = isa(obj.dir.getValue(),'sym');
+            isAngleSym = isa(obj.angle,'sym');
+            itIs = isDirSym || isAngleSym;
         end
         
     end

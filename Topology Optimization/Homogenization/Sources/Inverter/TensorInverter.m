@@ -1,12 +1,6 @@
 classdef TensorInverter < Inverter
     
-    properties (Access = protected)
-        invertedTensor
-    end
-    
     properties (Access = private)
-       dim 
-       tensor            
        matrix
        invMatrix
     end
@@ -14,23 +8,25 @@ classdef TensorInverter < Inverter
     methods (Access = public)
         
         function obj = TensorInverter(tensor)
-            obj.init(tensor)
-            obj.transformTensor2Matrix()
-            obj.makeInverseOfMatrix()
-            obj.transformMatrix2Tensor()
+            obj.compute(tensor);
         end        
     end
     
+    methods (Access = protected)
+        
+        function computeInverse(obj)
+            obj.transformTensor2Matrix()
+            obj.makeInverseOfMatrix()
+            obj.transformMatrix2Tensor()
+        end
+    end
+    
+    
     methods (Access = private)
         
-        function init(obj,tensor)
-           obj.tensor = tensor;             
-           obj.dim = size(obj.tensor,1);
-        end
-        
         function transformTensor2Matrix(obj)
-            d = obj.dim;
-            a = obj.tensor;
+            d = obj.tensor.getDimension();
+            a = obj.tensor.getValue();
             am = zeros(d*d,d*d);
             for i = 1:d
                 for j = 1:d
@@ -51,7 +47,7 @@ classdef TensorInverter < Inverter
         end
            
         function transformMatrix2Tensor(obj)
-           d = obj.dim; 
+           d = obj.tensor.getDimension();
            am = obj.invMatrix;
            a = zeros(d,d,d,d);           
            for i = 1:d
@@ -65,7 +61,7 @@ classdef TensorInverter < Inverter
                    end
                end
            end           
-           obj.invertedTensor = a;
+           obj.invertedTensor.setValue(a);
         end
         
     end

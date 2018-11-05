@@ -10,13 +10,9 @@ classdef StressTensor < SecondOrderTensor
           obj = obj@SecondOrderTensor();
         end
         
-        
-        
         function computeVoigtFactor(obj,iv)
             obj.VoigtFactor = 1;
         end
-        
-        
         
         function makeItPlaneStress(obj)
             obj.makeTensorPlaneStress();

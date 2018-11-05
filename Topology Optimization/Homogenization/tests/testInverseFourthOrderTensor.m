@@ -1,18 +1,19 @@
 classdef testInverseFourthOrderTensor < test
     
+    properties (Access = protected)
+        tensor
+    end
+    
     properties (Access = private)
-        Dim
-        Tensor
-        InvTensor
-        Identity
-        ExpectedIdentity
+        invTensor
+        identity
+        expectedIdentity
     end
        
     
     methods (Access = public)
         
         function obj = testInverseFourthOrderTensor() 
-            obj.init()
             obj.createRandomFourthOrderTensor()
             obj.invertFourthOrderTensor()
             obj.createIdentityFourthOrderTensor()
@@ -23,44 +24,34 @@ classdef testInverseFourthOrderTensor < test
     end
     
     methods (Access = private)
-        
-        function init(obj)
-            obj.Dim = 3;
-        end
-        
-        function createRandomFourthOrderTensor(obj)
-            d = obj.Dim;
-            obj.Tensor = rand(d,d,d,d);
-        end
-        
+                
         function invertFourthOrderTensor(obj)
-            A = FourthOrderTensor();
-            A.setValue(obj.Tensor);
+            A = obj.tensor;
             Ainv = Inverter.invert(A);
-            obj.InvTensor = Ainv;
+            obj.invTensor = Ainv;
         end
         
         function createIdentityFourthOrderTensor(obj)
-            d = obj.Dim;
+            d = obj.tensor.getDimension();
             Id = zeros(d,d,d,d);
             I = eye(d);
             for i = 1:d
                 for j = 1:d
                     for k = 1:d
                         for l = 1:d
-                            Id(i,j,k,l) = I(i,k)*I(j,l);
+                            Id(i,j,k,l) = obj.computeIdentityTensor(I,i,j,k,l);
                         end
                     end
                 end
             end
-            obj.Identity = Id;
+            obj.identity = Id;
         end
         
         function obtainExpectedIdentityFourthOrderTensor(obj)
-            d = obj.Dim;
+            d = obj.tensor.getDimension();
             Id = zeros(d,d,d,d);
-            A = obj.Tensor;
-            Ainv = obj.InvTensor;
+            A = obj.tensor.getValue();
+            Ainv = obj.invTensor.getValue();
             for i = 1:d
                 for j = 1:d
                     for k = 1:d
@@ -75,7 +66,7 @@ classdef testInverseFourthOrderTensor < test
                     end
                 end
             end
-            obj.ExpectedIdentity = Id;
+            obj.expectedIdentity = Id;
         end
         
     end
@@ -84,10 +75,15 @@ classdef testInverseFourthOrderTensor < test
     methods (Access = protected)
                 
         function hasPassed = hasPassed(obj)
-            I = obj.Identity;
-            Ie = obj.ExpectedIdentity;            
+            I = obj.identity;
+            Ie = obj.expectedIdentity;            
             hasPassed = norm(I(:)-Ie(:))/norm(I(:)) < 1e-12;
         end
+    end
+    
+    methods (Abstract, Access = protected, Static)
+        computeIdentityTensor(obj)
+        createRandomFourthOrderTensor(obj)
     end
     
 end

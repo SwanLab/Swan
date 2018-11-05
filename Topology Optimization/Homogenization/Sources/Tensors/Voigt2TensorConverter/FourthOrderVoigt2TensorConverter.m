@@ -10,22 +10,24 @@ classdef FourthOrderVoigt2TensorConverter < Voigt2TensorConverterFor3DTensors
     
     methods (Access = protected)
         
-        function  representVoigtInTensor(obj,a)
-            c = obj.tensor;
+        function selectTensorClass(obj)
+            if obj.voigtTensor.getElasticityCase == '3D'
+                obj.tensor = SymmetricFourthOrder3DTensor();
+            elseif obj.voigtTensor.getElasticityCase == 'PlaneStress'
+                obj.tensor = SymmetricFourthOrderPlaneStressTensor();
+            end
+        end
+        
+        function  representVoigtInTensor(obj)
+            a = obj.voigtTensor.getValue();
+            c = obj.tensor.getValue();
             converter = obj.indexTransformer;
-            for iv = 1:obj.dimVoigt
-                for jv = 1:obj.dimVoigt
+            d  = obj.voigtTensor.getVoigtDimension();
+            for iv = 1:d
+                for jv = 1:d
                     [i,j] = converter.voigt2tensor(iv);
                     [k,l] = converter.voigt2tensor(jv);
-                    
-                    if ((iv > 3 && jv <= 3) )  || ((iv <= 3 && jv > 3) )
-                        %factor =1/sqrt(2);
-                        factor =1/2;
-                    elseif (iv>3 && jv>3) 
-                        factor = 1/4;
-                    else
-                        factor = 1;
-                    end
+                    factor = obj.getVoigtFactor(iv,jv);
                     aij = factor*a(iv,jv);
                     
                     c(i,j,k,l) = aij;
@@ -36,17 +38,26 @@ classdef FourthOrderVoigt2TensorConverter < Voigt2TensorConverterFor3DTensors
                     c(k,l,i,j) = aij;
                     c(l,k,i,j) = aij;
                     c(k,l,j,i) = aij;
-                    c(l,k,j,i) = aij;                    
+                    c(l,k,j,i) = aij;
                 end
             end
-            obj.tensor = c;
-        end
-        
-        
-        function obtainTensorSize(obj)
-            obj.tensorSize = [obj.dim,obj.dim,obj.dim,obj.dim];
+            obj.tensor.setValue(c);
         end
         
     end
+
     
+    methods (Access = private,Static)
+       
+        function f = getVoigtFactor(iv,jv)
+            if ((iv > 3 && jv <= 3) )  || ((iv <= 3 && jv > 3) )
+                f = 1/2;
+            elseif (iv>3 && jv>3)
+                f = 1/4;
+            else
+                f = 1;
+            end
+        end
+
+    end
 end

@@ -15,33 +15,33 @@ classdef HomogenizationTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {...                
-               %'test2DSeqLaminateInVoigtWithFormuleOfAllaireWebPAgeExercise'
+               %'test2DSeqLaminateInVoigtWithFormuleOfAllaireWebPAgeExercise'    
+                'testAnisotropicPlaneStressbyEnergyEquivalence';
+               'testStressInPlaneStress';
                'testStressRotationInVoigtNotationIn3D';
                 'testStressRotationInVoigtNotationInPlaneStress';               
                 'testInverseSymmetricFourthOrderTensor' ;
-                'testHorizontalLaminate';
-                'testAnisotropicPlaneStressbyEnergyEquivalence';
-                'testCommutingVoigtHomogPlaneStress';
+                'testInverseNonSymmetricFourthOrderTensor';
                 'testInverseOfInverseForStiffTensor';
-                'testComplianceTensorThrougtVoigtComparingEnergy';
                 'testIsotropicFourthOrderTensor'
                 'testInverseSymmetricFourthOrderTensor';
                 'testSymmetrizeIsotropicFourthOrderTensor';
                 'testSymmetryForIAniTensorInVoigt'
-                'testInverseFourthOrderTensor';
                 'testMakeAnisotorpicTensorPlaneStressSymbolically';
-                'testStressInPlaneStress'
                 'testEnergyEquivalenceVoigtAndTensorNotationForIsoTensor';
                 'testEnergyEquivalenceVoigtAndTensorNotationForIAniTensor';
                 'testSymmetrizeFourthOrderTensor';
+                'testComplianceTensorThrougtVoigtComparingEnergy';
                 'TestTwoRankSequentialLaminate';
-                'testNumericalConvergenceOfNumberOfLaminates';
-                'testDiagonalLaminate';
-                'TestGeneralTwoRankSequentialLaminate';
                 'testHorizontalTensorRotatedVsVHP';
                 'testHorizontalTensorRotatedVsVPH';                
                 'testHorizontalTensorRotatedVsRank2';
-                'testHorizontalTensorRotatedVsHVP';                
+                'testHorizontalTensorRotatedVsHVP';                  
+                'TestGeneralTwoRankSequentialLaminate';               
+                'testCommutingVoigtHomogPlaneStress';
+                'testDiagonalLaminate';
+                'testHorizontalLaminate';
+                'testNumericalConvergenceOfNumberOfLaminates';
                 };
 
         end

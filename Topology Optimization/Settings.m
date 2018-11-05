@@ -186,7 +186,7 @@ classdef Settings
             if exist('selectiveC_Cstar','var')
                 obj.selectiveC_Cstar = selectiveC_Cstar;
             end
-            if ~contains(filename,'test','IgnoreCase',true)
+            if ~(contains(filename,'test','IgnoreCase',true) || contains(filename,'RVE'))
                 fprintf('\n')
             end
         end

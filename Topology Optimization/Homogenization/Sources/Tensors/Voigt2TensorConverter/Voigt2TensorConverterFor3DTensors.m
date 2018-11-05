@@ -2,8 +2,6 @@ classdef Voigt2TensorConverterFor3DTensors < Voigt2TensorConverter
     
     properties (Access = protected)
         voigtTensor
-        dim
-        dimVoigt
         tensor
         indexTransformer
         tensorSize
@@ -14,32 +12,42 @@ classdef Voigt2TensorConverterFor3DTensors < Voigt2TensorConverter
         function computeConversion(obj,tensor)
             obj.init(tensor)
             obj.createTensor();
-            obj.representVoigtInTensor(obj.voigtTensor)
+            obj.representVoigtInTensor()
         end
         
         function init(obj,tensor)
             obj.voigtTensor = tensor;
             obj.indexTransformer = TensorVoigtIndexTransformer();
-            obj.dim = 3;
-            obj.dimVoigt = 6;
         end
         
-        function t = createTensor(obj)
-            obj.obtainTensorSize()
-            isNotSymbolic = isUnit(obj.voigtTensor);
-            if isNotSymbolic
-                t = zeros(obj.tensorSize);
-            else
-                t = sym(zeros(obj.tensorSize));
+        function createTensor(obj)
+            obj.selectTensorClass();
+            obj.initializeTensor(); 
+        end
+        
+        function initializeTensor(obj)
+            vt = obj.voigtTensor.getValue();
+            s = obj.tensor.getTensorSize();
+            t = zeros(s);
+            if obj.isSymbolic(vt)
+                t = sym(t);
             end
-            obj.tensor = t;
+            obj.tensor.setValue(t);
+        end
+        
+    end
+    
+    methods (Access = private, Static)
+        
+        function itIs = isSymbolic(v)
+            itIs = isa(v,'sym');
         end
         
     end
     
     methods (Abstract, Access = protected)
-       obtainTensorSize(obj) 
        representVoigtInTensor(obj)
+       selectTensorClass(obj)
     end
     
 end

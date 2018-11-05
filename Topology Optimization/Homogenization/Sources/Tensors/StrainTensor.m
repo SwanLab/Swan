@@ -35,7 +35,10 @@ classdef StrainTensor < SecondOrderTensor
           stress = StressTensor();
           stress.makeItPlaneStress();
           obj.tensorVoigt = (Ch.tensorVoigt)\stress.tensorVoigt;
-          obj.transformVoigt2Tensor();
+          
+          e = StrainVoigtTensor();
+          e.setValue(obj.tensorVoigt);
+          obj.tensor = Voigt2TensorConverter.convert(e);
           TensorPS = PlaneStressTransformer.transform(obj.tensorVoigt);
           obj.tensorVoigtInPlaneStress = TensorPS;
         end

@@ -48,18 +48,21 @@ classdef testHorizontalTensorRotatedVsSequentialLaminate < test
         end
                        
         function createRotationParams(obj)
-            obj.rotDir = [0 0 1];
+            obj.rotDir = Vector3D();
+            obj.rotDir.setValue([0; 0 ;1]);
             obj.angle = pi/2*rand(1);
         end
         
         function createHorizontalDirection(obj)
-            obj.horLamDir(:,1) = [0 1 0];
+            obj.horLamDir = Vector3D();
+            obj.horLamDir.setValue([0 ;1 ;0]);
         end
         
         function createLaminateDirection(obj)
             d = obj.rotDir;
             a  = obj.angle;
-            dir2Rotate = obj.horLamDir;
+            dir2Rotate = Vector3D();
+            dir2Rotate.setValue(obj.horLamDir.getValue());
             rotatedDir = Rotator.rotate(dir2Rotate,a,d);            
             obj.lamDir = rotatedDir;
         end
@@ -69,14 +72,14 @@ classdef testHorizontalTensorRotatedVsSequentialLaminate < test
             E0 = 1e-3*E1;
             nu1 = 1/3;
             nu0 = 1/3;
-            obj.C1 = IsotropicConstitutiveTensor3D(E1,nu1);
-            obj.C0 = IsotropicConstitutiveTensor3D(E0,nu0);
+            obj.C1 = IsotropicConstitutiveTensor(E1,nu1);
+            obj.C0 = IsotropicConstitutiveTensor(E0,nu0);
         end
         
         function computeHorizontalLaminate(obj)
             c0        = obj.C0;
             c1        = obj.C1;
-            dir(1,:)  = obj.horLamDir;
+            dir{1}    = obj.horLamDir;
             m1        = obj.lamPar;
             frac      = obj.theta;
             lam = VoigtPlaneStressHomogHomogenizer(c0,c1,dir,m1,frac);
@@ -87,9 +90,7 @@ classdef testHorizontalTensorRotatedVsSequentialLaminate < test
             dir = obj.rotDir;
             alpha = (pi - obj.angle);    
             Chor = obj.horTensor;
-            C = FourthOrderVoigtTensor();
-            C.setValue(Chor);
-            obj.rotHorTensor = Rotator.rotate(C,alpha,dir);
+            obj.rotHorTensor = Rotator.rotate(Chor,alpha,dir);
         end
         
     end
@@ -97,8 +98,8 @@ classdef testHorizontalTensorRotatedVsSequentialLaminate < test
     methods (Access = protected)
         
         function hasPassed = hasPassed(obj)
-            rotHor = obj.rotHorTensor;
-            lTens  = obj.lamTensor;
+            rotHor = obj.rotHorTensor.getValue();
+            lTens  = obj.lamTensor.getValue();
             tolerance = obj.tol;
             hasPassed = norm(rotHor - lTens) < tolerance;
         end

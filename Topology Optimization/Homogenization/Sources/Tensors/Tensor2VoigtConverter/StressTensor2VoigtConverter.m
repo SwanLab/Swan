@@ -16,7 +16,17 @@ classdef StressTensor2VoigtConverter < SecondOrderTensor2VoigtConverter
         function factor = computeVoigtFactor(obj)
             factor = 1;
         end
-    end
+        
+        function selectVoigtTensorClass(obj)
+            if obj.isPlaneStress()
+                obj.voigtTensor = StressPlaneStressVoigtTensor;
+            elseif obj.is3D()
+                obj.voigtTensor = Stress3DVoigtTensor;
+            end
+        end
+        end
+        
+
     
 end
 

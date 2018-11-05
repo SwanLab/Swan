@@ -2,7 +2,7 @@ classdef testNumericalConvergenceOfNumberOfLaminates < test
     
     properties (Access = private)
         
-        FiberDirection
+        fiberDirection
         NumberOfLevelsOfFibers
         Ch
         Name
@@ -27,7 +27,10 @@ classdef testNumericalConvergenceOfNumberOfLaminates < test
     
     methods (Access = private)
         function createFiberDirection(obj)
-           obj.FiberDirection        = [1 0 0];
+           dir  = [1 0 0];
+           obj.fiberDirection = Vector3D;
+           obj.fiberDirection.setValue(dir);
+           obj.fiberDirection.normalize();
         end
         
         function createNumberOfLevelsOfFibers(obj)
@@ -51,7 +54,7 @@ classdef testNumericalConvergenceOfNumberOfLaminates < test
         end
         
         function computeHomogenization(obj,LoF)
-            Dir            = obj.FiberDirection;
+            Dir            = obj.fiberDirection;
             PrintTopology  = true;
             Homogenizer    = NumericalFiberHomogenizer(Dir,LoF,obj.Name,...
                              PrintTopology);
@@ -61,7 +64,7 @@ classdef testNumericalConvergenceOfNumberOfLaminates < test
 
         function computeChNorm(obj)
             for iCh = 1:size(obj.Ch,2)
-                obj.ChNorm(iCh) = norm(obj.AllCh{iCh});
+                obj.ChNorm(iCh) = norm(obj.AllCh{iCh}.getValue());
             end
         end
         

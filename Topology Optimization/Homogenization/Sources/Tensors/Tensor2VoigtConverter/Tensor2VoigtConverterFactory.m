@@ -22,14 +22,14 @@ classdef Tensor2VoigtConverterFactory < handle
         end
           
         function createTensor2VoigtConverter(obj)
-            tensorValue = obj.tensor.tensor;
+            tensorValue = obj.tensor.getValue();
             
             if obj.isFourthOrder()
                
                 if obj.isPlaneStress()
                     obj.t2vConverter = PlaneStressFourthOrderTensor2VoigtConverter(tensorValue);
                 elseif obj.is3D()
-                    obj.t2vConverter = FourthOrderTensor2VoigtConverter(tensorValue);
+                    obj.t2vConverter = FourthOrderTensor2VoigtConverter(obj.tensor);
                 else
                     obj.showError();
                 end
@@ -37,18 +37,18 @@ classdef Tensor2VoigtConverterFactory < handle
             elseif obj.isStrainTensor()
                
                 if obj.isPlaneStress()
-                    obj.t2vConverter = StrainTensor2VoigtConverterPS(tensorValue);
+                    obj.t2vConverter = StrainTensor2VoigtConverterPS(obj.tensor);
                 elseif obj.is3D()
-                    obj.t2vConverter = StrainTensor2VoigtConverter(tensorValue);
+                    obj.t2vConverter = StrainTensor2VoigtConverter(obj.tensor);
                 else
                     obj.showError();
                 end
                 
             elseif obj.isStressTensor()
                 if obj.isPlaneStress()
-                    obj.t2vConverter = StressTensor2VoigtConverterPS(tensorValue);
+                    obj.t2vConverter = StressTensor2VoigtConverterPS(obj.tensor);
                 elseif obj.is3D()
-                    obj.t2vConverter = StressTensor2VoigtConverter(tensorValue);
+                    obj.t2vConverter = StressTensor2VoigtConverter(obj.tensor);
                 else
                     obj.showError();
                 end
@@ -59,27 +59,23 @@ classdef Tensor2VoigtConverterFactory < handle
         end
         
         function itIs = isStrainTensor(obj)
-            itIs = isa(obj.tensor,'StrainTensor');
+            itIs = strcmp(obj.tensor.getFieldName(),'strain');
         end
         
         function itIs = isStressTensor(obj)
-            itIs = isa(obj.tensor,'StressTensor');
+            itIs = strcmp(obj.tensor.getFieldName(),'stress');
         end
                
         function itIs = isFourthOrder(obj)
-            first  = isa(obj.tensor,'FourthOrderTensor');
-            second = isa(obj.tensor,'IsotropicConstitutiveTensor3D');
-            itIs = first || second;
+            itIs = strcmp(obj.tensor.getOrder,'fourth');
         end
         
         function itIs = is3D(obj)
-            dim = size(obj.tensor.tensor,1);
-            itIs = dim == 3;
+            itIs = strcmp(obj.tensor.getElasticityCase,'3D');
         end
         
-        function itIs = isPlaneStress(obj)
-            dim = size(obj.tensor.tensor,1);
-            itIs = dim == 2;
+        function itIs = isPlaneStress(obj)            
+            itIs = strcmp(obj.tensor.getElasticityCase,'planeStress');
         end
         
         

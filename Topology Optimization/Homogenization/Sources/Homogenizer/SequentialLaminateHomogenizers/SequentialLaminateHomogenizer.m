@@ -21,7 +21,7 @@ classdef SequentialLaminateHomogenizer < handle
     methods (Access = public)
 
         function PS = getPlaneStressHomogenizedTensor(obj)
-            PS = double(obj.planeStressHomogenizedTensor);
+            PS = obj.planeStressHomogenizedTensor;
         end 
         
     end
@@ -39,8 +39,9 @@ classdef SequentialLaminateHomogenizer < handle
         
         function storeDirections(obj,dir)
             for irank = 1:obj.rank
-                d =  dir(irank,:);
-                obj.directions(irank,:) = obj.normalizeDirection(d);
+                d = dir{irank};
+                d.normalize();
+                obj.directions(irank,:) = d.getValue();
             end            
         end
                
@@ -84,34 +85,21 @@ classdef SequentialLaminateHomogenizer < handle
     methods (Access = private)
         
         function transforMatrixAndFiberTensorInVoigt(obj)
-            obj.matTen = obj.transformTensorToVoigt(obj.matTen);
-            obj.fibTen = obj.transformTensorToVoigt(obj.fibTen);
+            obj.matTen = Tensor2VoigtConverter.convert(obj.matTen);
+            obj.fibTen = Tensor2VoigtConverter.convert(obj.fibTen);
         end
         
         function transformAnisotropicTensorsInVoigtNotation(obj)
             for irank = 1:obj.rank
                 ani  = obj.anisotropicTensors{irank};
-                vAni = obj.transformTensorToVoigt(ani);                
+                vAni = Tensor2VoigtConverter.convert(ani);                
                 obj.anisotropicTensors{irank} = vAni;
             end
 
         end
     end
     
-    methods (Access = private, Static)
-        
-        function d = normalizeDirection(d)
-            d = d/norm(d);
-        end
 
-        function voigtTens = transformTensorToVoigt(tens)
-            vtensValue = Tensor2VoigtConverter.convert(tens);
-            voigtTens = VoigtTensor();
-            voigtTens.setValue(vtensValue);            
-        end
-       
-    end
-    
       
 end
 

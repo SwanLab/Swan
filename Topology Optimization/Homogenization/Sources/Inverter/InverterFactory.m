@@ -2,7 +2,6 @@ classdef InverterFactory < handle
     
     properties (Access = private)
         tensor
-        className
         inverter
     end
     
@@ -18,12 +17,7 @@ classdef InverterFactory < handle
     methods (Access = private)
     
         function init(obj,tensor)
-            obj.tensor = tensor.getValue();
-            obj.obtainClassName()
-        end
-        
-        function obtainClassName(obj)
-            obj.className = class(obj.tensor);
+            obj.tensor = tensor;
         end
 
         function createInverter(obj)
@@ -42,26 +36,17 @@ classdef InverterFactory < handle
             inv = obj.inverter;
         end
         
-    
         function isVoigt = isVoigt(obj)
-            isDouble  = strcmp(obj.className,'double');
-            isSym     = strcmp(obj.className,'sym');
-            isTwoDim  = ismatrix(obj.tensor);
-            isVoigt   = (isDouble || isSym ) && isTwoDim;
+            isVoigt   = strcmp(obj.tensor.getRepresentation(),'voigt');
         end
         
         function itIs = isFourthOrderTensor(obj)
-            %first  = isa(obj.ClassName,'fourthOrderTensor');
-            %second = isa(obj.ClassName,'IsotropicConstitutiveTensor3D');
-            isDouble   = strcmp(obj.className,'double');
-            isSym      = strcmp(obj.className,'sym');
-            isFourDim  = ndims(obj.tensor) == 4;
-            itIs  = (isDouble || isSym ) && isFourDim;
+            itIs   = strcmp(obj.tensor.getOrder(),'fourth');
         end
         
         function isSymmetric = isSymmetric(obj)
             symmetrizer = FourthOrderSymmetrizer();
-            isSymmetric = symmetrizer.isSymmetric(obj.tensor);            
+            isSymmetric = symmetrizer.isSymmetric(obj.tensor.getValue());            
         end
 
     end

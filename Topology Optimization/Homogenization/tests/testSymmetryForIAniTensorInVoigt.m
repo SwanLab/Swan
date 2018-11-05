@@ -1,8 +1,9 @@
 classdef testSymmetryForIAniTensorInVoigt < test
     
     properties (Access = protected)
-        SymVoigthTensor
+        ChVoigtSym
         Ch
+        ChVoigt
     end
     
     methods
@@ -14,17 +15,18 @@ classdef testSymmetryForIAniTensorInVoigt < test
         end
         
         function computeFourthOrderTensor(obj)
-            obj.Ch = FourthOrderTensor();
+            obj.Ch = SymmetricFourthOrder3DTensor();
             obj.Ch.createRandomTensor();
         end
         
         function computeVoigtRepresentation(obj)
-            obj.Ch.computeTensorVoigt();
+            obj.ChVoigt = Tensor2VoigtConverter.convert(obj.Ch);
         end
         
         
         function computeSymetricVoigthTensor(obj)
-            obj.SymVoigthTensor = 0.5*(obj.Ch.tensorVoigt + obj.Ch.tensorVoigt');
+            t = obj.ChVoigt.getValue();
+            obj.ChVoigtSym = 0.5*(t + t');
         end
         
     end
@@ -32,7 +34,9 @@ classdef testSymmetryForIAniTensorInVoigt < test
     methods (Access = protected)
         
         function hasPassed = hasPassed(obj)
-            hasPassed = norm(double(obj.SymVoigthTensor(:)) - obj.Ch.tensorVoigt(:)) < 1e-6;
+            c    = obj.ChVoigt.getValue();
+            cSym = obj.ChVoigtSym;            
+            hasPassed = norm(c(:) - cSym(:)) < 1e-12;
         end
         
     end

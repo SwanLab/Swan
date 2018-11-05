@@ -1,37 +1,28 @@
 classdef FourthOrderVoigtRotator < Rotator
     
-    properties (Access = protected)
-        rotatedTensor
-        rotationMatrix
+    properties
     end
     
-    methods (Access = public)
-        
-        function obj = FourthOrderVoigtRotator(angle,dir)
-            obj.init(angle,dir)
-            obj.generateRotator()
-        end
-        
-    end
-    
-    methods (Access = private)
+    methods (Access = protected)
         
         function generateRotator(obj)
             a = obj.angle;
             d = obj.dir;
-            rotator = StressVoigtRotator(a,d);
-            obj.rotatorMatrix = rotator.getRotatorMatrix();
+            rotator = obj.createStressRotator(a,d);
+            obj.rotationMatrix = rotator.getRotationMatrix();
         end
         
-    end
-    
-    methods (Access = protected)
         function computeRotation(obj,tensor)
+            obj.createRotatedTensor(tensor);
             R = obj.rotationMatrix;
             C = tensor.getValue();
-            obj.rotatedTensor = R*C*R';
+            Cr = R*C*R';
+            obj.rotatedTensor.setValue(Cr);
         end
-        
+    end
+    
+    methods (Access = protected, Abstract,Static)
+        createStressRotator(obj)
     end
     
 end

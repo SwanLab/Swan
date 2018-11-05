@@ -17,7 +17,7 @@ classdef Tensor2VoigtConverter < handle
     methods (Access = private)
         
         function vt = getTensor(obj)
-            vt = double(obj.voigtTensor);
+            vt = obj.voigtTensor;
         end
         
     end

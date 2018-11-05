@@ -1,10 +1,9 @@
 classdef VoigtTensor < Tensor
     
-    properties (Access = public)
-        tensor
-    end
     
-    methods
+    methods (Access = public)
+        
+
     end
     
 end

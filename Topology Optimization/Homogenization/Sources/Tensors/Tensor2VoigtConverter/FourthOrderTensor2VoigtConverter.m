@@ -9,41 +9,35 @@ classdef FourthOrderTensor2VoigtConverter < Tensor2VoigtConverterFor3DTensors
     end
     
     methods (Access = protected)
-                
-       function  representTensorInVoigt(obj,A)
-            c = obj.voigtTensor;
+        
+        
+        function selectVoigtTensorClass(obj)
+            if obj.tensor.getElasticityCase == '3D'
+                obj.voigtTensor = SymmetricFourthOrder3DVoigtTensor();
+            elseif obj.tensor.getElasticityCase == 'PlaneStress'
+                obj.voigtTensor = SymmetricFourthOrderPlaneStressVoigtTensor();
+            end
+        end
+        
+       function  representTensorInVoigt(obj)
+            a = obj.tensor.getValue();
+            c = obj.voigtTensor.getValue();
             converter = obj.indexTransformer; 
-            for i = 1:obj.dim
-                for j = 1:obj.dim
-                    for k = 1:obj.dim
-                        for l = 1:obj.dim
+            d  = obj.tensor.getDimension();
+            for i = 1:d
+                for j = 1:d
+                    for k = 1:d
+                        for l = 1:d
                             iv = converter.tensor2Voigt(i,j);
                             jv = converter.tensor2Voigt(k,l);
-                            
-                            
-                            if ((iv > 3 && jv <= 3) )  || ((iv <= 3 && jv > 3) )
-                                %factor =sqrt(2);
-                                factor =1;
-                            elseif (iv>3 && jv>3)
-                                %factor = 2;
-                                factor = 1;
-                            else
-                                factor = 1;
-                            end
-                            
-                            
-                            c(iv,jv) = factor*A(i,j,k,l);
+                            c(iv,jv) = a(i,j,k,l);
                         end
                     end
                 end
             end
-            obj.voigtTensor = c;
+            obj.voigtTensor.setValue(c);
        end
         
-       
-       function obtainVoigtTensorSize(obj)
-            obj.voigtTensorSize = [obj.dimVoigt,obj.dimVoigt]; 
-       end
        
     end
     

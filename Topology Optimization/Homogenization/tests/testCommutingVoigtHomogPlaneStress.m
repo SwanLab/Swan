@@ -25,12 +25,11 @@ classdef testCommutingVoigtHomogPlaneStress < test
     methods (Access = private)
         
         function init(obj)
-            obj.theta = 0.5;
-            obj.direction = [0 1 0];
-            
             obj.theta = rand(1);
             angle = rand(1)*pi/2;
-            obj.direction = [cos(angle) sin(angle) 0];           
+            dir = [cos(angle) sin(angle) 0];           
+            obj.direction = Vector3D;
+            obj.direction.setValue(dir);
         end
         
         function computeWeakStiffTensor(obj)
@@ -38,38 +37,34 @@ classdef testCommutingVoigtHomogPlaneStress < test
             nu1 = 1/3;
             E0  = 1e-1*E1;
             nu0 = 0.1;                
-            obj.stiffTensor = obj.createIsotropicTensor(E1,nu1);
-            obj.weakTensor  = obj.createIsotropicTensor(E0,nu0);
+            obj.stiffTensor = IsotropicConstitutiveTensor(E1,nu1);
+            obj.weakTensor  = IsotropicConstitutiveTensor(E0,nu0);
         end
-        
-        function tensor = createIsotropicTensor(obj,E,nu)
-            tensor = IsotropicConstitutiveTensor3D(E,nu);
-        end
-        
+                
         function computeHomogVoigtPlaneStressTensor(obj)
-            c0 = obj.weakTensor;
-            c1 = obj.stiffTensor;
-            dir = obj.direction;
-            m1 = 1;
+            c0     = obj.weakTensor;
+            c1     = obj.stiffTensor;
+            dir{1} = obj.direction;
+            m1     = 1;
             seqHomog = HomogVoigtPlaneStressHomogenizer(c0,c1,dir,m1,obj.theta);
             obj.hvpTensor  = seqHomog.getPlaneStressHomogenizedTensor();
         end
         
         
         function computeVoigtHomogPlaneStressTensor(obj)
-            c0 = obj.weakTensor;
-            c1 = obj.stiffTensor;
-            dir = obj.direction;
-            m1 = 1;
+            c0     = obj.weakTensor;
+            c1     = obj.stiffTensor;
+            dir{1} = obj.direction;
+            m1     = 1;
             seqHomog = VoigtHomogPlaneStressHomogenizer(c0,c1,dir,m1,obj.theta);  
             obj.vhpTensor  = seqHomog.getPlaneStressHomogenizedTensor();
         end
         
         function computeVoigtPlaneStressHomog(obj)
-            c0 = obj.weakTensor;
-            c1 = obj.stiffTensor;
-            dir = obj.direction;
-            m1 = 1;
+            c0     = obj.weakTensor;
+            c1     = obj.stiffTensor;
+            dir{1} = obj.direction;
+            m1     = 1;
             seqHomog = VoigtPlaneStressHomogHomogenizer(c0,c1,dir,m1,obj.theta);  
             obj.vphTensor  = seqHomog.getPlaneStressHomogenizedTensor();            
         end
@@ -107,9 +102,9 @@ classdef testCommutingVoigtHomogPlaneStress < test
     methods (Access = protected)
        
          function hasPassed = hasPassed(obj)
-            Tensors{1} = obj.vhpTensor;
-            Tensors{2} = obj.hvpTensor;
-            Tensors{3} = obj.vphTensor;            
+            Tensors{1} = obj.vhpTensor.getValue();
+            Tensors{2} = obj.hvpTensor.getValue();
+            Tensors{3} = obj.vphTensor.getValue();            
             error = obj.computeTensorDifference(Tensors);
             hasPassed = error < 1e-2;
         end

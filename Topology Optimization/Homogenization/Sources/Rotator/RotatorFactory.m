@@ -5,7 +5,6 @@ classdef RotatorFactory < handle
         angle
         dir
         rotator
-        className
     end
     
     methods (Access = public)
@@ -13,8 +12,8 @@ classdef RotatorFactory < handle
         function rotator = create(obj,tensor,angle,direction)
             obj.init(tensor,angle,direction)
             obj.createRotator()
-            rotator = obj.getRotator();            
-        end                
+            rotator = obj.getRotator();
+        end
         
     end
     
@@ -23,70 +22,82 @@ classdef RotatorFactory < handle
         function init(obj,tensor,angle,normalDirection)
             obj.tensor = tensor;
             obj.angle = angle;
-            obj.dir = normalDirection;            
-            obj.obtainClassName()
-        end                
+            obj.dir = normalDirection;
+        end
         
         function createRotator(obj)
             a = obj.angle;
             d = obj.dir;
-            if obj.isStressVoigtTensor()
-                if obj.isVoigtTensor3D()
-                    obj.rotator = StressVoigtRotator(a,d);
-                elseif obj.isVoigtTensorPlaneStress()
-                    obj.rotator = StressVoigtPlaneStressRotator(a,d);
-                else
-                    error('Not admitted object to be Rotated')
+            rot = [];
+            
+            if obj.isFourthOrder()
+                if obj.isVoigt()
+                    if obj.is3D()
+                        rot = FourthOrderVoigt3DRotator(a,d);
+                    elseif obj.isPlaneStress()
+                        rot = FourthOrderVoigtPlaneStressRotator(a,d);
+                    end
                 end
-            elseif obj.isFourthOrderVoigtTensor()
-                if obj.isVoigtTensor3D()
-                    obj.rotator = FourthOrderVoigtRotator(a,d);
-                elseif obj.isVoigtTensorPlaneStress()
-                    obj.rotator = FourthOrderVoigtPlaneStressRotator(a,d);
-                else
-                    error('Not admitted object to be Rotated')
+            elseif obj.isSecondOrder()
+                if obj.isStress()
+                    if obj.isVoigt()
+                        if obj.is3D()
+                            rot = StressVoigt3DRotator(a,d);
+                        elseif obj.isPlaneStress()
+                            rot = StressVoigtPlaneStressRotator(a,d);
+                        end
+                    elseif obj.isTensor()
+                        if obj.is3D()
+                            rot = StressRotator(a,d);
+                        end
+                    end
                 end
-            elseif obj.isStressTensor() 
-                obj.rotator = StressRotator(a,d);
+                
             elseif obj.isVector()
-                obj.rotator = VectorRotator(a,d);
-            else
-                error('Not admitted object to be Rotated')
+                rot = VectorRotator(a,d);
             end
             
+            if isempty(rot)
+                error('Not admitted object to be Rotated')
+            else
+                obj.rotator = rot;
+            end
         end
         
-        function itIs = isVector(obj)            
-            [m,n] = size(obj.tensor);
-            itIs = m == 3 && n == 1 || n == 3 && m==1;
+        function itIs = isVector(obj)
+           itIs = strcmp(obj.tensor.getOrder(),'first');
         end
         
-        function obtainClassName(obj)            
-            obj.className = class(obj.tensor);
+        function itIs = isStress(obj)
+            itIs = strcmp(obj.tensor.getFieldName(),'stress');
         end
         
-        function itIs = isStressVoigtTensor(obj)
-            itIs = strcmp(obj.className,'StressVoigtTensor');            
+        function itIs = isFourthOrder(obj)
+            itIs = strcmp(obj.tensor.getOrder(),'fourth');
         end
         
-        function itIs = isFourthOrderVoigtTensor(obj)
-            itIs = strcmp(obj.className,'FourthOrderVoigtTensor');            
+        function itIs = isSecondOrder(obj)
+            itIs = strcmp(obj.tensor.getOrder(),'second');
         end
         
-        function itIs = isStressTensor(obj)
-            itIs = strcmp(obj.className,'StressTensor');            
+        function itIs = isTensor(obj)
+            itIs = strcmp(obj.tensor.getRepresentation(), 'tensor');
         end
         
-        function itIs = isVoigtTensorPlaneStress(obj)
-            itIs = size(obj.tensor.getValue(),1) == 3;
+        function itIs = isVoigt(obj)
+            itIs = strcmp(obj.tensor.getRepresentation(), 'voigt');
         end
         
-        function itIs = isVoigtTensor3D(obj)
-            itIs = size(obj.tensor.getValue(),1) == 6;
+        function itIs = is3D(obj)
+            itIs = strcmp(obj.tensor.getElasticityCase(), '3D');
+        end
+        
+        function itIs = isPlaneStress(obj)
+            itIs = strcmp(obj.tensor.getElasticityCase(), 'planeStress');
         end
         
         function r = getRotator(obj)
-            r = obj.rotator;                        
+            r = obj.rotator;
         end
         
     end

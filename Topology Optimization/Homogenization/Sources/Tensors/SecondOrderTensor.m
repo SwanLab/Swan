@@ -1,8 +1,6 @@
 classdef SecondOrderTensor < Tensor
     
-    
     properties (Access = public)
-        tensor   
         tensorVoigt
         tensorVoigtInPlaneStress
     end

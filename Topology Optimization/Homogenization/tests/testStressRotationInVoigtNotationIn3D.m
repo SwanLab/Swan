@@ -16,8 +16,10 @@ classdef testStressRotationInVoigtNotationIn3D < testStressRotationInVoigtNotati
     methods (Access = protected)
         
         function createDirection(obj)
-            obj.Direction = rand(3,1);
-            obj.Direction = obj.Direction/norm(obj.Direction);
+            obj.direction = Vector3D;
+            dim = obj.direction.getTensorSize();
+            obj.direction.setValue(rand(dim));
+            obj.direction.normalize();
         end        
 
     end    

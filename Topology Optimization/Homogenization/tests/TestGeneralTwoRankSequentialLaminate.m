@@ -1,20 +1,16 @@
 classdef TestGeneralTwoRankSequentialLaminate < test
     
-    
-    
     properties (Access = private)
-
-      FractionVolume      
+      fractionVolume      
       
-      Directions      
-      LamParams
+      directions      
+      lamParams
       
-      StiffTensor
-      WeakTensor
+      stiffTensor
+      weakTensor
       
       Rank2Ch
       SeqLamCh
-      
     end
     
     methods (Access = public) 
@@ -29,8 +25,8 @@ classdef TestGeneralTwoRankSequentialLaminate < test
     
     methods (Access = protected)
         function hasPassed = hasPassed(obj)
-            RankTwoCh  = double(obj.Rank2Ch);
-            SqCh = double(obj.SeqLamCh);
+            RankTwoCh  = obj.Rank2Ch;
+            SqCh = obj.SeqLamCh.getValue();
             hasPassed = norm(RankTwoCh - SqCh)/norm(SqCh) < 1e-12;
         end
     end
@@ -38,66 +34,59 @@ classdef TestGeneralTwoRankSequentialLaminate < test
     methods (Access = private)
         
         function init(obj)            
-            obj.FractionVolume = 0.8000;
-            obj.LamParams = [1 0];
+            obj.fractionVolume = 0.8000;
+            obj.lamParams = [1 0];
             obj.loadLaminateDirections()
             obj.createStiffAndWeakTensors()
         end
               
         function loadLaminateDirections(obj)
-%            obj.Directions(1,:) = [1     0     0];
-            obj.Directions(1,:) = [rand(1) rand(1)  0];
-            obj.Directions(2,:) = [1     3     0];
-            obj.Directions = obj.normalizeDirections(obj.Directions);
-        end       
-        
+            d1 = [rand(1) rand(1)  0];
+            d2 = [1     3     0];
+            obj.directions{1} = obj.createDirection(d1);
+            obj.directions{2} = obj.createDirection(d2);
+        end     
+                
         function createStiffAndWeakTensors(obj)
             epsilon = 1.0000e-03;
             E1  = 1;
             nu1 = 1/3;
             E0  = epsilon*E1;
             nu0 = 1/3;           
-            obj.StiffTensor = obj.createIsotropicTensor(E1,nu1);
-            obj.WeakTensor  = obj.createIsotropicTensor(E0,nu0);
+            obj.stiffTensor = IsotropicConstitutiveTensor(E1,nu1);
+            obj.weakTensor  =IsotropicConstitutiveTensor(E0,nu0);
         end
-        
-        function Tensor = createIsotropicTensor(obj,E,nu)
-            Tensor = IsotropicConstitutiveTensor3D(E,nu);
-            Tensor.computeTensorVoigtInPlaneStress()
-        end
-            
+                    
         function computeTwoRankSequentialLaminate(obj)           
-            Param    = obj.LamParams;
-            Dir      = obj.Directions;
-            Theta = obj.FractionVolume;
-            C1    = obj.StiffTensor;
-            C0    = obj.WeakTensor;
-            
-            Homogenizer = RankTwoLaminateHomogenizer(C1,C0,Dir,Param,Theta);
-            obj.Rank2Ch = Homogenizer.Ch;
+            mi    = obj.lamParams;
+            dir   = obj.directions;
+            theta = obj.fractionVolume;
+            C1    = obj.stiffTensor.getValue();
+            C0    = obj.weakTensor.getValue();
+            mu    = obj.stiffTensor.getMu();
+            lambda2D = obj.stiffTensor.getLambda2D();
+            homogenizer = RankTwoLaminateHomogenizer(C1,C0,dir,mi,theta,lambda2D,mu);
+            obj.Rank2Ch = homogenizer.getTensor;
         end
         
         function computeGeneralTwoRankSequentialLaminate(obj)            
-            C0       = obj.WeakTensor;
-            C1       = obj.StiffTensor;
-            Param    = obj.LamParams;
-            Dir      = obj.Directions;
-            Theta    = obj.FractionVolume;                            
-            SeqHomog      = VoigtPlaneStressHomogHomogenizer(C0,C1,Dir,Param,Theta);
+            C0       = obj.weakTensor;
+            C1       = obj.stiffTensor;
+            mi       = obj.lamParams;
+            dir      = obj.directions;
+            Theta    = obj.fractionVolume;                            
+            SeqHomog      = VoigtPlaneStressHomogHomogenizer(C0,C1,dir,mi,Theta);
             obj.SeqLamCh  = SeqHomog.getPlaneStressHomogenizedTensor();
         end
 
     end
     
     methods (Access = private, Static)
-       
-        function NormalizedDir = normalizeDirections(directions)
-            NormalizedDir = zeros(size(directions));
-            rank = size(directions,1);
-            for irank = 1:rank
-                DirectionNorm =  norm(directions(irank,:));
-                NormalizedDir(irank,:) = directions(irank,:)/DirectionNorm;
-            end
+        
+        function dir = createDirection(d)
+            dir = Vector3D;
+            dir.setValue(d);
+            dir.normalize();
         end
         
     end

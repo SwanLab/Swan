@@ -2,18 +2,19 @@ classdef testStressInPlaneStress < test
     
     properties (Access = private)
         
-        StressFromTensorProduct
-        StressFromVoigtProduct
+        stressFromTensorProduct
+        stressFromVoigtProduct
         
         strain
+        strainVoigtPS
         Ch
-        productComputer
+        ChVoigt
+        ChVoigtPS
     end
     
     methods (Access = public)
         
         function obj = testStressInPlaneStress()
-            obj.productComputer = FourthWithSecondOrderProductComputer();
             obj.computeConstitutiveTensor()
             obj.computeStrain()
             obj.computeStressFromTensorProduct()
@@ -25,32 +26,29 @@ classdef testStressInPlaneStress < test
     methods (Access = private)
         
         function computeConstitutiveTensor(obj)
-            obj.Ch = FourthOrderTensor();
+            obj.Ch = SymmetricFourthOrder3DTensor();
             obj.Ch.createRandomTensor();
-            obj.Ch.computeTensorVoigt();
-            obj.Ch.computeTensorVoigtInPlaneStress();
+            obj.ChVoigt   = Tensor2VoigtConverter.convert(obj.Ch);
+            obj.ChVoigtPS = PlaneStressTransformer.transform(obj.ChVoigt);
         end
         
         function computeStrain(obj)
-            obj.strain = StrainTensor();
-            obj.strain.createWithPlaneStressCompatibility(obj.Ch)
+            obj.strain = Strain3DTensor();
+            obj.strain.makeItPlaneStressCompatible(obj.Ch);
+            strainVoigt = Tensor2VoigtConverter.convert(obj.strain);
+            obj.strainVoigtPS = PlaneStressTransformer.transform(strainVoigt);
         end
         
         function computeStressFromTensorProduct(obj)
-            Ctensor = obj.Ch.tensor;
-            Strain  = obj.strain.tensor;
-            obj.StressFromTensorProduct = StressTensor();
-            Stress = obj.productComputer.computeInTensor(Ctensor,Strain);
-            obj.StressFromTensorProduct.tensor = Stress;
-            obj.StressFromTensorProduct.makeItPlaneStress();
+            stress = ProductComputer.compute(obj.Ch,obj.strain);
+            stressVoigt = Tensor2VoigtConverter.convert(stress);
+            stressPS = PlaneStressTransformer.transform(stressVoigt);
+            obj.stressFromTensorProduct = stressPS.getValue();
         end
         
         function computeStressFromVoigtProduct(obj)
-            Ctensor = obj.Ch.tensorVoigtInPlaneStress;
-            Strain = obj.strain.tensorVoigtInPlaneStress;
-            obj.StressFromVoigtProduct = StressTensor();
-            Stress = obj.productComputer.computeInVoigt(Ctensor,Strain);
-            obj.StressFromVoigtProduct.tensorVoigtInPlaneStress = Stress;
+            stressPS = ProductComputer.compute(obj.ChVoigtPS,obj.strainVoigtPS);
+            obj.stressFromVoigtProduct = stressPS.getValue();
         end
         
     end
@@ -58,9 +56,9 @@ classdef testStressInPlaneStress < test
     methods (Access = protected)
         
         function hasPassed = hasPassed(obj)
-            StFromVoigt  = obj.StressFromVoigtProduct.tensorVoigtInPlaneStress;
-            StFromTensor = double(obj.StressFromTensorProduct.tensorVoigtInPlaneStress);
-            hasPassed = norm(StFromVoigt - StFromTensor) < 1e-12;
+            sV  = obj.stressFromVoigtProduct;
+            sT = obj.stressFromTensorProduct;
+            hasPassed = norm(sV - sT) < 1e-12;
         end
         
         

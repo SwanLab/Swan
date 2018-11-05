@@ -1,4 +1,4 @@
-classdef PlaneStressVoigtTensorSymbolicallyTransformer < PlaneStressTransformer
+classdef PST4VoigtFourthOrderTensorSymbolically < PST4VoigtFourthOrderTensor
     
     properties (Access = protected)
         TensorInPlaneStress
@@ -28,11 +28,13 @@ classdef PlaneStressVoigtTensorSymbolicallyTransformer < PlaneStressTransformer
     
     methods (Access = public)
         
-        function obj = PlaneStressVoigtTensorSymbolicallyTransformer(tensorVoigt)
+        function obj = PST4VoigtFourthOrderTensorSymbolically(tensorVoigt)
+            obj.createPlaneStressTensor();
             obj.createVariables(tensorVoigt)
             obj.computeOutOfPlaneStrains()
             obj.updateVariables()
             obj.computeTensorVoigtInPlaneStress()
+            obj.storePsTensor()
         end
         
         function t = getValue(obj)
@@ -143,6 +145,17 @@ classdef PlaneStressVoigtTensorSymbolicallyTransformer < PlaneStressTransformer
             end
         end
         
+        function storePsTensor(obj)
+            t = obj.TensorInPlaneStress;
+            if ~obj.isInputNotSymbollic()
+               t = double(t);
+            end
+            obj.psTensor.setValue(t);            
+        end
+        
+        function itIsNotSym = isInputNotSymbollic(obj)
+            itIsNotSym = isa(obj.tensorVoigt,'sym');
+        end
     end
     
     methods (Access = private, Static)
@@ -152,6 +165,8 @@ classdef PlaneStressVoigtTensorSymbolicallyTransformer < PlaneStressTransformer
         end
         
     end
+    
+
     
 end
 

@@ -19,36 +19,27 @@ classdef testInverseOfInverseForStiffTensor < test
     methods (Access = private)
         
         function createStiffTensor(obj)
-            obj.ctens = FourthOrderTensor();
+            obj.ctens = SymmetricFourthOrder3DTensor();
             obj.ctens.createRandomTensor();            
         end
         
         function createInvStiffTensor(obj)
             c = obj.ctens;
-            obj.invCtens = obj.invertTensor(c);
+            obj.invCtens = Inverter.invert(c);
         end
         
         function createInvInvStiffTensor(obj)            
             invC = obj.invCtens;
-            obj.invInvCtens = obj.invertTensor(invC);
+            obj.invInvCtens = Inverter.invert(invC);
         end
 
     end
-    
-    methods (Access = private, Static)
-
-        function invCtensor = invertTensor(c)
-            invC = Inverter.invert(c);            
-            invCtensor = FourthOrderTensor();
-            invCtensor.setValue(invC);
-        end        
-    end
-    
+       
     methods (Access = protected)
         function hasPassed = hasPassed(obj)
             c = obj.ctens.getValue();
             invInvC = obj.invInvCtens.getValue();
-            hasPassed = norm(c(:) - invInvC(:)) < 1e-12;
+            hasPassed = norm(c(:) - invInvC(:)) < 1e-10;
         end
     end
 end

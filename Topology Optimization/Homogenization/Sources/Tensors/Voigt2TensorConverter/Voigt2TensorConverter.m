@@ -17,7 +17,7 @@ classdef Voigt2TensorConverter < handle
     methods (Access = private)
         
         function t = getTensor(obj)
-            t = double(obj.tensor);
+            t = obj.tensor;
         end
         
     end

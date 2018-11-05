@@ -1,90 +1,92 @@
 classdef PlaneStressTransformerFactory < handle
 
     properties (Access = private)
-        ClassName
-        TensorCase
         PSTransformer
-        Tensor
+        tensor
     end
     
     
     methods (Access = public)
         
-        function PSTransformer = create(obj,Tensor)
+        function psTransformer = create(obj,Tensor)
             obj.init(Tensor)
             obj.createPlaneStressTransformer()
-            PSTransformer = obj.getPlaneStressTransformer();
+            psTransformer = obj.getPlaneStressTransformer();
       end
     end
     
     methods (Access = private)
         
-        function init(obj,Tensor)
-            obj.Tensor = Tensor;
-            obj.obtainClassName()
-            obj.obtainTensorCase()
-        end
-        
-        function obtainClassName(obj)
-           obj.ClassName = class(obj.Tensor);
-        end
-        
-        function obtainTensorCase(obj)
-            if obj.isVoigt(obj.ClassName)
-               [m,n] = size(obj.Tensor);
-               if obj.isVoigtFourthOrderTensor(m,n)
-                   obj.TensorCase = 'VoigtFourtOrder';
-               elseif obj.isVoigtSecondOrderTensor(m,n)
-                   obj.TensorCase = 'VoigtSecondOrder';                   
-               else
-                  error('Not admitted object to make it Plane Stress')
-               end
-            else
-                obj.TensorCase = obj.ClassName;
-            end  
+        function init(obj,tensor)
+            obj.tensor = tensor;
         end
         
         function createPlaneStressTransformer(obj)
-            switch obj.TensorCase
-                case 'fourthOrderTensor'
-                    obj.PSTransformer = PlaneStressTransformerForFourthOrderTensor(obj.Tensor);
-                case {'secondOrderTensor'}
-                    obj.PSTransformer = PlaneStressTransformerForSecondOrderTensor(obj.Tensor);
-                case {'VoigtFourtOrder'}
-                    %obj.PSTransformer = PST4VoigtFourthOrderTensor(obj.Tensor);
-                    obj.PSTransformer = PlaneStressVoigtTensorSymbolicallyTransformer(obj.Tensor);
-                case {'VoigtSecondOrder'}
-                    obj.PSTransformer = PST4VoigtSecondOrderTensor(obj.Tensor);
-                otherwise
-                    error('Not admitted object to make it Plane Stress')
-            end            
+            t = obj.tensor;
+            ps = [];
+            if obj.isVoigt()
+                if obj.isFourthOrder()
+                    if obj.isInvertible()
+                        ps = PST4VoigtFourthOrderTensorNumerically(t.getValue());
+                    else
+                        ps = PST4VoigtFourthOrderTensorSymbolically(t.getValue());
+                    end
+
+                elseif obj.isSecondOrder()
+                    ps = PST4VoigtSecondOrderTensor(t);
+                end
+                
+            elseif obj.isTensor()
+                if obj.isSecondOrder()
+                    ps =  PlaneStressTransformerForSecondOrderTensor(t);
+                end
+                
+            end
+            
+            if isempty(ps)
+                error('Not admitted object to make it Plane Stress')
+            else
+                obj.PSTransformer = ps;                
+            end
+
         end
         
         function PS = getPlaneStressTransformer(obj)
             PS = obj.PSTransformer;
         end
-
-    end
-
-    methods (Static,Access = private)
         
-        function ItIs = isVoigtFourthOrderTensor(m,n) 
-           ItIs = m == 6 && n==6;
+        function itIs = isVoigt(obj)
+            itIs = strcmp(obj.tensor.getRepresentation(),'voigt');
         end
         
-        function ItIs = isVoigtSecondOrderTensor(m,n)
-            ItIs = m == 1 && n == 6 || m ==6 && n == 1;
+        function itIs = isTensor(obj)
+            itIs = strcmp(obj.tensor.getRepresentation(),'tensor');
         end
         
-        function isVoigt = isVoigt(ClassName)
-            isDouble = strcmp(ClassName,'double');
-            isSym    = strcmp(ClassName,'sym');
-            isVoigt = isDouble || isSym;
+        function ItIs = isFourthOrder(obj)
+            ItIs = strcmp(obj.tensor.getOrder(),'fourth');
+        end
+        
+        function ItIs = isSecondOrder(obj)
+            ItIs = strcmp(obj.tensor.getOrder(),'second');
+        end
+        
+        function itIs = isInvertible(obj)
+            t = obj.tensor.getValue();
+            if obj.isSymbolic(t)
+                itIs = isAlways(det(t) == 0);
+            else
+                itIs = min(abs(eig(t))) > 1e-13;
+            end
         end
         
     end
     
-    
+    methods (Access = private, Static)
+        function itIs = isSymbolic(a)
+            itIs = isa(a,'sym');
+        end
+    end
     
     
     

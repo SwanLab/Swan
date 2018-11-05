@@ -1,6 +1,6 @@
 classdef Tensor < handle
     
-    properties (Abstract)
+    properties (Access = protected)
         tensor
     end
     
@@ -13,6 +13,20 @@ classdef Tensor < handle
         function setValue(obj,T)
             obj.tensor = T;
         end
+    end
+    
+    methods (Access = protected)
+        
+        function loadTensorVariables(obj)
+
+        end
+        
+    end
+    
+    methods (Access = protected, Abstract)
+%         loadOrderVariable(obj)
+%         loadRepresentationVariable(obj)
+%         loadElasticityCaseVariable(obj)        
     end
     
 end

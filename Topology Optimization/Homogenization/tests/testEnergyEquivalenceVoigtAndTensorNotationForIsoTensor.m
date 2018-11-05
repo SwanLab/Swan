@@ -14,7 +14,7 @@ classdef testEnergyEquivalenceVoigtAndTensorNotationForIsoTensor  ...
     
     methods 
         function generateFourthOrderTensor(obj)
-             obj.Ch = IsotropicConstitutiveTensor3D(1,1/3);
+             obj.Ch = IsotropicConstitutiveTensor(1,1/3);
         end
     end
 

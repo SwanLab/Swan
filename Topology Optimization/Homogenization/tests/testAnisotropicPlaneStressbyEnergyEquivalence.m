@@ -1,11 +1,16 @@
 classdef testAnisotropicPlaneStressbyEnergyEquivalence < test
     
     properties (Access = private)
-        VoigtEnergyInPlaneStress
-        TensorEnergy
+        energyFromPS
+        energyFromTensor
         
         strain
+        strainVoigt
+        strainVoigtPS
+        
         Ch
+        ChVoigt
+        ChVoigtPS
     end
     
     methods (Access = public)
@@ -24,27 +29,42 @@ classdef testAnisotropicPlaneStressbyEnergyEquivalence < test
             obj.computeConstitutiveTensor()            
             obj.computeStrainTensor()
         end
-       
-        function computeStrainTensor(obj)
-            obj.strain = StrainTensor();
-            obj.strain.createWithPlaneStressCompatibility(obj.Ch)
-        end
+        
         
         function computeConstitutiveTensor(obj)
-            obj.Ch = FourthOrderTensor();
+            obj.createChTensor()
+            obj.createChVoigtTensor()
+            obj.createChPlaneStressVoigtTensor()
+        end
+        
+        function createChTensor(obj)
+            obj.Ch = SymmetricFourthOrder3DTensor();
             obj.Ch.createRandomTensor();
-            obj.Ch.computeTensorVoigt();
-            obj.Ch.computeTensorVoigtInPlaneStress();
+        end
+        
+        function createChVoigtTensor(obj)
+            c = Tensor2VoigtConverter.convert(obj.Ch);
+            obj.ChVoigt = c;
+        end
+        
+        function createChPlaneStressVoigtTensor(obj)
+            c = PlaneStressTransformer.transform(obj.ChVoigt);
+            obj.ChVoigtPS = c;
+        end
+        
+        function computeStrainTensor(obj)
+            obj.strain        = Strain3DTensor();
+            obj.strain.makeItPlaneStressCompatible(obj.Ch);                                    
+            obj.strainVoigt   = Tensor2VoigtConverter.convert(obj.strain);
+            obj.strainVoigtPS = PlaneStressTransformer.transform(obj.strainVoigt);
         end
         
         function computeVoigtEnergyInPlaneStress(obj)
-            EnComputer =  EnergyComputer(obj.strain,obj.Ch);
-            obj.VoigtEnergyInPlaneStress = EnComputer.EnergyVoigtPlaneStress;
+            obj.energyFromPS = EnergyComputer.compute(obj.ChVoigtPS,obj.strainVoigtPS);
         end
                 
         function computeTensorEnergyInPlaneStress(obj)
-            En  = EnergyComputer.computeTensorEnergy(obj.strain,obj.Ch);
-            obj.TensorEnergy = En;
+            obj.energyFromTensor = EnergyComputer.compute(obj.Ch,obj.strain);
         end
         
     end
@@ -52,11 +72,10 @@ classdef testAnisotropicPlaneStressbyEnergyEquivalence < test
     methods (Access = protected)
         
         function hasPassed = hasPassed(obj)
-            EnVoigt = double(obj.VoigtEnergyInPlaneStress);
-            EnTens  = obj.TensorEnergy;
-            hasPassed = norm(EnVoigt - EnTens) < 1e-12;
+            enPS = double(obj.energyFromPS);
+            enTens  = obj.energyFromTensor;
+            hasPassed = norm(enPS - enTens) < 1e-11;
         end
-        
 
     end
 end

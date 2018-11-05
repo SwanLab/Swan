@@ -1,43 +1,55 @@
 classdef testEnergyEquivalenceVoigtAndTensorNotation < test
     
     properties (Access = protected)
-        VoigtEnergy
-        TensorEnergy
+        voigtEnergy
+        tensorEnergy
         
-        stress
         strain
+        strainVoigt
         Ch
+        ChVoigt
     end
     
     methods (Access = protected)
         
         function obj = testEnergyEquivalenceVoigtAndTensorNotation()
             obj.init()
-            obj.computeVoigtEnergy();
             obj.computeTensorEnergy()
+            obj.computeVoigtEnergy();
         end
         
         function hasPassed = hasPassed(obj)
-            hasPassed = norm( double(obj.VoigtEnergy) - double(obj.TensorEnergy)) < 1e-6;
+            hasPassed = abs(obj.voigtEnergy - obj.tensorEnergy) < 1e-10;
         end
     end
     
     methods (Access = private)
         
         function init(obj)
-            obj.strain = StrainTensor();
+            obj.createStrains()
+            obj.createConstitutiveTensors()
             obj.generateFourthOrderTensor();
         end
         
+        function createStrains(obj)
+            obj.strain = Strain3DTensor();
+            obj.strain.createRandomTensor();
+            obj.strainVoigt = Tensor2VoigtConverter.convert(obj.strain);
+        end
+        
+        function createConstitutiveTensors(obj)
+            obj.generateFourthOrderTensor()
+            obj.ChVoigt = Tensor2VoigtConverter.convert(obj.Ch);
+        end
+        
         function computeVoigtEnergy(obj)
-            EnComputer =  EnergyComputer(obj.strain,obj.Ch);
-            obj.VoigtEnergy = EnComputer.EnergyVoigt;
+            e = EnergyComputer.compute(obj.ChVoigt,obj.strainVoigt);
+            obj.voigtEnergy = e;
         end
         
         function computeTensorEnergy(obj)
-
-            obj.TensorEnergy = EnergyComputer.computeTensorEnergy(obj.strain, ...
-                                                                  obj.Ch);
+            e = EnergyComputer.compute(obj.Ch,obj.strain);
+            obj.tensorEnergy = e;
         end
         
     end

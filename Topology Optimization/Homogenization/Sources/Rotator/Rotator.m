@@ -1,25 +1,24 @@
 classdef Rotator < handle
     
-    properties (Abstract, Access = protected)
+    properties (Access = protected)
         rotatedTensor
         rotationMatrix
     end
     
     properties (Access = protected)
-       tensor
        angle
        dir
     end
     
     methods (Access = public,Static)
-        
+               
         function rotatedTensor = rotate(tensor,angle,direction)
             factory = RotatorFactory();
-            rotator = factory.create(tensor,angle,direction);
+            rotator = factory.create(tensor,angle,direction);            
             rotator.computeRotation(tensor)
             rotatedTensor = rotator.getRotatedTensor();
         end  
-        
+
     end
     
     methods (Access = public)
@@ -30,6 +29,11 @@ classdef Rotator < handle
     
     methods (Access = protected)
         
+        function compute(obj,angle,dir)
+            obj.init(angle,dir)
+            obj.generateRotator()
+        end
+        
         function init(obj,angle,direction)
              obj.angle = angle;
              obj.dir = direction;
@@ -39,10 +43,15 @@ classdef Rotator < handle
             t = obj.rotatedTensor;
         end                
         
+        function createRotatedTensor(obj,tensor)
+            obj.rotatedTensor = tensor.clone();
+        end
+        
     end
     
     methods (Abstract, Access = protected)
         computeRotation(obj,tensor)
+        generateRotator(obj)
     end
     
 end

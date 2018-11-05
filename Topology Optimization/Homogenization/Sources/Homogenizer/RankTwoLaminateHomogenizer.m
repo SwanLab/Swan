@@ -1,153 +1,116 @@
 classdef RankTwoLaminateHomogenizer < handle
     
     properties (Access = private)
-        FirstDirection
-        SecondDirection
-        Fraction
-        StiffTensor
-        WeakTensor
-        Kparameter
-        AnisotropicTensor
-        
+        ani1
+        ani2
+        mi
+        theta
+        dir
+
         mu
         lambda2D
-    end
-    
-    properties (Access = public)
-        Ch
-    end
-    
-    methods 
         
-       function obj = RankTwoLaminateHomogenizer(StiffTensor,WeakTensor,Directions,LamParams,theta)
-            
-            d1 = Directions(1,:);
-            d2 = Directions(2,:);
-            
-            m1 = LamParams(1);
-            m2 = LamParams(2);
-            
-            obj.Fraction = theta;
-            obj.StiffTensor = StiffTensor;
-            obj.WeakTensor = WeakTensor;
-            
-            
-            C1 = obj.StiffTensor.tensorVoigtInPlaneStress; 
-            C0 = obj.WeakTensor.tensorVoigtInPlaneStress;
-            
-            obj.mu = StiffTensor.mu;
-            
-            
-            lambda2D = obj.StiffTensor.E*obj.StiffTensor.nu/(1+obj.StiffTensor.nu)/(1-obj.StiffTensor.nu);
-            obj.lambda2D = lambda2D;
-            %obj.lambda2D =  StiffTensor.lambda;    
-            
-            
-            obj.Kparameter = (obj.mu+obj.lambda2D)/(obj.mu*(2*obj.mu+obj.lambda2D));
-            Cm = obj.computeAnisotropicContribution(d1,d2,m1,m2);
+        C1
+        C0
+        homogTensor
+        aniTensor
+        incremTensor
+        
+        invMatTensor
+        invFibTensor
+        invThetaTensor
+    end
+    
 
-            S1 = obj.InvertSymmMatrix(C1);
-            S0 = obj.InvertSymmMatrix(C0);
-            S01 = S0 - S1;
-            C01 = obj.InvertSymmMatrix(S01);
-            
-            Ctheta = C01 + theta*Cm;   
-            
-            Stheta = obj.InvertSymmMatrix(Ctheta);
-            
-            Sh = S1 +(1-theta)*Stheta;            
-            obj.Ch = obj.InvertSymmMatrix(Sh);
-            
-       end 
+    
+    methods (Access = public)
         
-       function Cm = computeAnisotropicContribution(obj,d1,d2,m1,m2)
-            Cm1 = obj.computeChCorrector(d1);
-            Cm2 = obj.computeChCorrector(d2);
-            
-            obj.AnisotropicTensor{1} = FourthOrderTensor();
-            obj.AnisotropicTensor{2} = FourthOrderTensor();            
-            
-            obj.AnisotropicTensor{1}.tensorVoigtInPlaneStress = Cm1;
-            obj.AnisotropicTensor{2}.tensorVoigtInPlaneStress = Cm2;
-            
-            Cm = Cm1*m1 + Cm2*m2;            
+       function obj = RankTwoLaminateHomogenizer(C1,C0,dir,mi,theta,lambda2D,mu)
+            obj.init(C1,C0,dir,mi,theta,lambda2D,mu)
+            obj.computeMatrixAndFiberComplianceTensors()
+            obj.computeAnisotropicTensors()            
+            obj.computeIncrementalTensor()
+            obj.computeAnisotropicContributionTensor();
+            obj.computeThetaTensor()
+            obj.computeHomogenizedTensor()
+       end 
+       
+       function C = getTensor(obj)
+           C = obj.homogTensor;
        end
        
+    end
+    
+    methods (Access = private)
+        
+       function init(obj,C1,C0,dir,mi,theta,lambda2D,mu)
+           obj.C1 = C1;
+           obj.C0 = C0;
+           obj.dir = dir;
+           obj.mi = mi;
+           obj.theta = theta;
+           obj.lambda2D = lambda2D;
+           obj.mu = mu;
+       end
        
-        
-        function val = computeOneOfTheTwoFirstDiagonalTerms(obj,ex,ey)
-            lam = obj.lambda2D;
-            muT = obj.mu;
-            K = obj.Kparameter;
-            val = ( (lam+2*muT) - 1/muT*(lam^2*ey^2+(lam+2*muT)^2*ex^2) + K*((lam+2*muT)*ex^2+lam*ey^2)^2 );            
+        function computeMatrixAndFiberComplianceTensors(obj)
+            obj.invMatTensor = obj.invertTensor(obj.C0);
+            obj.invFibTensor = obj.invertTensor(obj.C1);
         end
+       
+       function computeIncrementalTensor(obj)
+            S0  = obj.invMatTensor;
+            S1  = obj.invFibTensor;
+            S01 = S0 - S1;
+            C01 = obj.invertTensor(S01);
+            obj.incremTensor = C01;
+       end
         
-        function val = computeCrossThirdTerms(obj,ex,ey)
-            lam = obj.lambda2D;
-            muT = obj.StiffTensor.mu;
-            K = obj.Kparameter;
-            val = ( -1/muT*(4*muT*(2*lam+2*muT)*ex*ey) + K*2*(4*muT*ex*ey*((lam+2*muT)*ey^2+lam*ex^2)) )/(2*sqrt(2));
-        end
-        
-        function C11 = computeC11(obj,direction)
-            ex = direction(1);
-            ey = direction(2);
-            C11 = obj.computeOneOfTheTwoFirstDiagonalTerms(ex,ey);
-        end
+      function computeAnisotropicTensors(obj)            
+            d1 = obj.dir{1};           
+            d2 = obj.dir{2};           
+            obj.ani1 = obj.computeAnisotropicTensor(d1);
+            obj.ani2 = obj.computeAnisotropicTensor(d2);            
+      end
+         
+      function computeAnisotropicContributionTensor(obj)
+            m1 = obj.mi(1);
+            m2 = obj.mi(2);
+            Cm1 = obj.ani1;
+            Cm2 = obj.ani2;
+            Cm = Cm1*m1 + Cm2*m2;  
+            obj.aniTensor = Cm;
+      end
+       
+      function Cm = computeAnisotropicTensor(obj,dir)
+          muV   = obj.mu;
+          lam2D = obj.lambda2D;
+          d = dir.getValue();
+          aCont = AnisotropicContributionTensorForRank2(d,muV,lam2D);
+          Cm = aCont.getTensor();
+      end
+      
+      function computeThetaTensor(obj)
+         C01 = obj.incremTensor;
+         Ca  = obj.aniTensor;
+         Ctheta = C01 + obj.theta*Ca;   
+         Stheta = obj.invertTensor(Ctheta);
+         obj.invThetaTensor = Stheta;
+      end
+      
+      function computeHomogenizedTensor(obj)
+          S1     = obj.invFibTensor;
+          Stheta = obj.invThetaTensor;
+          Sh = S1 + (1-obj.theta)*Stheta;
+          Ch = obj.invertTensor(Sh);
+          obj.homogTensor = Ch;
+      end
 
-        function C22 = computeC22(obj,direction)
-            ex = direction(1);
-            ey = direction(2);
-            C22 = obj.computeOneOfTheTwoFirstDiagonalTerms(ey,ex);
-        end
-        
-        function C33 = computeC33(obj,direction)
-            ex = direction(1);
-            ey = direction(2);
-            muT = obj.mu;
-            K = obj.Kparameter;
-            C33 = ( 4*muT - 1/muT*(2*muT)^2 + K*(4*muT*ex*ey)^2 )/2;            
-        end
-        
-
-        function C21 = computeC21(obj,direction) 
-            ex = direction(1);
-            ey = direction(2);
-            lam = obj.lambda2D;
-            muT = obj.mu;
-            K = obj.Kparameter;
-            C21 = ( 2*lam - 1/muT*(2*lam*(lam+2*muT)) + K*2*((lam+2*muT)*ey^2+lam*ex^2)*((lam+2*muT)*ex^2+lam*ey^2) )/2;
-        end
-        
-        function C23 = computeC23(obj,direction) 
-            ex = direction(1);
-            ey = direction(2);
-            C23 = obj.computeCrossThirdTerms(ex,ey);
-        end
-        
-        function C13 = computeC13(obj,direction) 
-            ex = direction(1);
-            ey = direction(2);
-            C13 = obj.computeCrossThirdTerms(ey,ex);
-        end
-        
-        function Chomog = computeChCorrector(obj,direction)
-            C11 = obj.computeC11(direction);
-            C22 = obj.computeC22(direction);
-            C33 = obj.computeC33(direction);
-            C21 = obj.computeC21(direction);
-            C23 = obj.computeC23(direction);
-            C13 = obj.computeC13(direction);
-            
-             Chomog = [ C11  C21 C13; 
-                        C21  C22 C23;
-                        C13  C23 C33];
-        end
     end
     
     methods (Static)
          
-        function InvCh = InvertSymmMatrix(Ch)
+        function InvCh = invertTensor(Ch)
             C11 = Ch(1,1);
             C22 = Ch(2,2);
             C33 = Ch(3,3);
@@ -165,8 +128,7 @@ classdef RankTwoLaminateHomogenizer < handle
             
             InvCh = [InvC11   InvC21  InvC13;
                      InvC21   InvC22  InvC23;
-                     InvC13   InvC23  InvC33];
-            
+                     InvC13   InvC23  InvC33];            
         end
          
           

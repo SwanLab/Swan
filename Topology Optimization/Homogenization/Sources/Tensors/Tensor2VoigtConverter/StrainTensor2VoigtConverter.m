@@ -13,6 +13,14 @@ classdef StrainTensor2VoigtConverter < SecondOrderTensor2VoigtConverter
     
     methods (Access = protected)
         
+        function selectVoigtTensorClass(obj)
+            if obj.tensor.getElasticityCase == '3D'
+                obj.voigtTensor = Strain3DVoigtTensor();
+            elseif obj.tensor.getElasticityCase == 'PlaneStress'
+                obj.voigtTensor = StrainPlaneStressVoigtTensor();
+            end
+        end
+        
         function factor = computeVoigtFactor(obj)
             iv = obj.voigtIndex;
             if iv >= 1 && iv <= 3

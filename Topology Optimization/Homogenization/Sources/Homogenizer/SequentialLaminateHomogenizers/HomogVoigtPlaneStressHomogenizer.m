@@ -17,20 +17,13 @@ classdef HomogVoigtPlaneStressHomogenizer < SequentialLaminateHomogenizer
     methods (Access = protected)
         
          function transformToVoigt(obj)
-            obj.transformHomogTensorInVoigt();
+            t = obj.homogTensor;
+            t = Tensor2VoigtConverter.convert(t);            
+            obj.homogTensor = t;
          end        
          
     end
     
-    methods (Access = private)
-        
-        function transformHomogTensorInVoigt(obj)
-            tens = FourthOrderTensor();
-            tens.setValue(obj.homogTensor);
-            obj.homogTensor = Tensor2VoigtConverter.convert(tens);            
-        end
-        
-    end
-    
+   
 end
 

@@ -5,23 +5,23 @@ classdef MixtureTheoryHomogenizer < handle
     end
     
     properties (Access = private)
-        StiffTensor
-        WeakTensor
-        Angle
+        C1
+        C0
+        angle
         Ex
         Ey
         nu_xy
         nu_yx
         mu        
-        Direction
+        dir
         ChHorizontal
-        FractionVolume
+        Vfrac
     end
     
     methods (Access = public)
         
-        function obj = MixtureTheoryHomogenizer(StiffTensor,WeakTensor,Dir,Angle,Vfrac)
-            obj.init(StiffTensor,WeakTensor,Dir,Angle,Vfrac)
+        function obj = MixtureTheoryHomogenizer(C1,C0,Dir,angle,Vfrac)
+            obj.init(C1,C0,Dir,angle,Vfrac)
             obj.computeOrthotropicProperties() 
             obj.computeHorizontalHomogenizedTensor()
             obj.rotateHorizontalHomogenizedTensor()
@@ -31,29 +31,29 @@ classdef MixtureTheoryHomogenizer < handle
     
     methods (Access = private)
         
-        function init(obj,StiffTensor,WeakTensor,Dir,Angle,Vfrac)
-            obj.StiffTensor = StiffTensor;
-            obj.WeakTensor = WeakTensor;
-            obj.Angle = Angle;            
-            obj.Direction = Dir;
-            obj.FractionVolume = Vfrac;
+        function init(obj,C1,C0,Dir,angle,Vfrac)
+            obj.C1 = C1;
+            obj.C0 = C0;
+            obj.angle = angle;            
+            obj.dir = Dir;
+            obj.Vfrac = Vfrac;
         end
         
         function computeOrthotropicProperties(obj)
-            E1 = obj.StiffTensor.E;
-            E0 = obj.WeakTensor.E;
-            nu1 = obj.StiffTensor.nu; 
-            nu0 = obj.WeakTensor.nu; 
-            mu1 = obj.StiffTensor.mu;
-            mu0 = obj.WeakTensor.mu;
-            Vfrac = obj.FractionVolume;
+            E1 = obj.C1.getYoung();
+            E0 = obj.C0.getYoung();
+            nu1 = obj.C1.getPoisson(); 
+            nu0 = obj.C0.getPoisson(); 
+            mu1 = obj.C1.getMu();
+            mu0 = obj.C0.getMu();
+            Vol = obj.Vfrac;
             
             
-            obj.Ex = obj.serialize(E1,E0,Vfrac);
-            obj.Ey = obj.parelalize(E1,E0,Vfrac);
-            obj.nu_xy = obj.serialize(nu1,nu0,Vfrac);           
+            obj.Ex = obj.serialize(E1,E0,Vol);
+            obj.Ey = obj.parelalize(E1,E0,Vol);
+            obj.nu_xy = obj.serialize(nu1,nu0,Vol);           
             obj.nu_yx = obj.nu_xy*obj.Ey/obj.Ex;
-            obj.mu = obj.parelalize(mu1,mu0,Vfrac);
+            obj.mu = obj.parelalize(mu1,mu0,Vol);
         end
 
         function computeHorizontalHomogenizedTensor(obj)
@@ -72,29 +72,31 @@ classdef MixtureTheoryHomogenizer < handle
             obj.ChHorizontal  = C;
         end
         
-        function fSerial = serialize(obj,f1,f0,rho)
-            fSerial = rho*f1 + (1-rho)*f0;
-        end
-        
-        function fParalel = parelalize(obj,f1,f0,rho)
-            fParalel = 1/(rho/f1 + (1-rho)/f0);
-        end
+
         
         function rotateHorizontalHomogenizedTensor(obj)
-            d = obj.Direction;
-            a = obj.Angle;
+            d = obj.dir;
+            a = obj.angle;
             ChHor = obj.ChHorizontal;
-%             rotator = StressVoigtPlaneStressRotator(a,d);
-%             R = rotator.getRotationMatrix();            
-%             obj.Ch = R*ChHor*(R');     
-            
-            C = FourthOrderVoigtTensor();
+            C = SymmetricFourthOrderPlaneStressVoigtTensor();
             C.setValue(ChHor);            
             obj.Ch = Rotator.rotate(C,a,d);
         end
+
+    end
+        
+    methods (Access = private, Static)
+        function fSerial = serialize(f1,f0,rho)
+            fSerial = rho*f1 + (1-rho)*f0;
+        end
+        
+        function fParalel = parelalize(f1,f0,rho)
+            fParalel = 1/(rho/f1 + (1-rho)/f0);
+        end
         
     end
-    
+
+
     
 end
 

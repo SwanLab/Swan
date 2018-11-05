@@ -12,16 +12,14 @@ classdef testSymmetrizeIsotropicFourthOrderTensor < test
             obj.createSymmetricFourthOrderTensor()
         end
         
-       
-        
         function computeIsotropicFourthOrderTensor(obj)
             E = 1; nu = 1/3;
-            obj.Ciso = IsotropicConstitutiveTensor3D(E,nu);
+            obj.Ciso = IsotropicConstitutiveTensor(E,nu);
         end
         
         function createSymmetricFourthOrderTensor(obj)
             obj.Csym = FourthOrderTensor();
-            obj.Csym.tensor = obj.Ciso.tensor;
+            obj.Csym.setValue(obj.Ciso.getValue());
             obj.Csym.MakeMajorAndMinorSymmetrization();            
         end
         
@@ -29,7 +27,9 @@ classdef testSymmetrizeIsotropicFourthOrderTensor < test
     
     methods (Access = protected)      
         function hasPassed = hasPassed(obj)
-            hasPassed = norm(obj.Csym.tensor(:) - obj.Ciso.tensor(:)) < 1e-6;
+            Cs = obj.Csym.getValue();
+            Ci = obj.Ciso.getValue();
+            hasPassed = norm(Cs(:) - Ci(:)) < 1e-6;
         end
         
     end

@@ -21,14 +21,14 @@ classdef Voigt2TensorConverterFactory < handle
         end
         
         function createVoigt2TensorConverter(obj)
-            tensorValue = obj.voigtTensor.tensor;
+            tensorValue = obj.voigtTensor.getValue();
             
             if obj.isFourthOrder()
                 
                 if obj.isPlaneStress()
                     obj.v2tConverter = PlaneStressFourthOrderVoigt2TensorConverter(tensorValue);
                 elseif obj.is3D()
-                    obj.v2tConverter = FourthOrderVoigt2TensorConverter(tensorValue);
+                    obj.v2tConverter = FourthOrderVoigt2TensorConverter(obj.voigtTensor);
                 else
                     obj.showError();
                 end
@@ -44,6 +44,7 @@ classdef Voigt2TensorConverterFactory < handle
                 end
                 
             elseif obj.isStressTensor()
+                
                 if obj.isPlaneStress()
                     obj.v2tConverter = StressVoigt2TensorConverterPS(tensorValue);
                 elseif obj.is3D()
@@ -59,32 +60,28 @@ classdef Voigt2TensorConverterFactory < handle
         
         
         function itIs = isStrainTensor(obj)
-            itIs = isa(obj.voigtTensor,'StrainVoigtTensor');
+            itIs = isa(obj.voigtTensor.getField(),'strain');
         end
         
         function itIs = isStressTensor(obj)
-            itIs = isa(obj.voigtTensor,'StressVoigtTensor');
+            itIs = isa(obj.voigtTensor.getField(),'stress');
         end
         
         function itIs = isFourthOrder(obj)
-            isVoigt = isa(obj.voigtTensor,'VoigtTensor');
-            is3D    = obj.is3D; 
-            itIs    = isVoigt || is3D;
+            itIs = strcmp(obj.voigtTensor.getOrder,'fourth');
         end
         
-        function itIs = is3D(obj)            
-            itIs = size(obj.voigtTensor.getValue(),1) == 6;
+        function itIs = is3D(obj)
+            itIs = strcmp(obj.voigtTensor.getElasticityCase(),'3D'); 
         end
         
-        function itIs = isPlaneStress(obj)
-            dim = size(obj.voigtTensor.tensor,1);
-            itIs = dim == 2;
+        function itIs = isPlaneStress(obj)            
+            itIs = strcmp(obj.voigtTensor.getElasticityCase,'planeStress');
         end
                 
         function t2vc = getVoigt2TensorConverter(obj)
             t2vc = obj.v2tConverter;
         end
-        
         
     end
     

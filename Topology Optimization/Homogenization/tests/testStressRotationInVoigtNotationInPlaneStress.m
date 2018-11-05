@@ -14,21 +14,21 @@ classdef testStressRotationInVoigtNotationInPlaneStress < testStressRotationInVo
     methods (Access = protected)
         
         function createDirection(obj)
-            obj.Direction = [0 0 1];
+            dir = [ 0 0 1];
+            obj.direction = Vector3D;
+            obj.direction.setValue(dir);
         end    
         
         function createStress(obj)
             obj.createStress@testStressRotationInVoigtNotation()
-            sv = obj.StressVoigt.getValue();
-            tensPS = PlaneStressTransformer.transform(sv);
-            obj.StressVoigt.setValue(tensPS)
+            sv = obj.stressVoigt;
+            obj.stressVoigt = PlaneStressTransformer.transform(sv);
         end
         
         function createRotatedStress(obj)
             obj.createRotatedStress@testStressRotationInVoigtNotation()
-            tens = obj.rotatedStress.getValue();
-            tensorPS = PlaneStressTransformer.transform(tens);
-            obj.rotatedStress.setValue(tensorPS)
+            sR = obj.rotatedStress;
+            obj.rotatedStress = PlaneStressTransformer.transform(sR);
         end
             
     end

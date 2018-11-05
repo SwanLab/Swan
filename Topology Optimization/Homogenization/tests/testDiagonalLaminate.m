@@ -15,13 +15,19 @@ classdef testDiagonalLaminate < TestSequentialLaminateTestedWithNumerics
     methods (Access = protected)
         
         function loadLaminateDirection(obj)
-            Direction = [-1 1 0];
-            obj.LaminateDirection = Direction/norm(Direction);
+            d = [-1 1 0];
+            dir = Vector3D;
+            dir.setValue(d);
+            dir.normalize();
+            obj.LaminateDirection = dir;
         end
         
         function loadFiberDirection(obj)
-            Direction = [1 1 0];   
-            obj.FiberDirection = Direction/norm(Direction);
+            d = [1 1 0];               
+            dir = Vector3D;
+            dir.setValue(d);
+            dir.normalize();
+            obj.FiberDirection = dir;
         end
         
     end
