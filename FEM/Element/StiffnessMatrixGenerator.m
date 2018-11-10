@@ -47,19 +47,19 @@ classdef StiffnessMatrixGenerator < handle
         end
         
         function generate(obj,Cmat)
-             obj.obtainChangedElements(Cmat);
-          
+            obj.obtainChangedElements(Cmat);
+            
             if obj.changedElementsRatio ~= 0
-
-            StiffnessIncrementEntries = obj.KeVector.compute(obj.Cmat,obj.changedElements);
-            
-            obj.computeIncrementalStiffnessVector(StiffnessIncrementEntries)
-            obj.StiffnesEntries(obj.ChangedEntriesIndices) = StiffnessIncrementEntries;
-            obj.assemble_matrix()
-            
-            obj.add_matrix()
-            obj.symmetrizeStiffMat()
-           end
+                
+                StiffnessIncrementEntries = obj.KeVector.compute(obj.Cmat,obj.changedElements);
+                
+                obj.computeIncrementalStiffnessVector(StiffnessIncrementEntries)
+                obj.StiffnesEntries(obj.ChangedEntriesIndices) = StiffnessIncrementEntries;
+                obj.assemble_matrix()
+                
+                obj.add_matrix()
+                obj.symmetrizeStiffMat()
+            end
         end
         
         function K = getStiffMatrix(obj)
