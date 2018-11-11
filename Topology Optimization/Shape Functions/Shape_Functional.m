@@ -21,3 +21,4 @@ classdef Shape_Functional < handle
         computeCostAndGradient(obj, x)
     end
 end
+

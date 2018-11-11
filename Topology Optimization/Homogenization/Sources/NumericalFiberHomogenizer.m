@@ -117,4 +117,3 @@ classdef NumericalFiberHomogenizer < handle
     end
     
 end
-
