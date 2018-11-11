@@ -4,7 +4,7 @@ classdef Filter_P1_LevelSet < Filter_P1
     end
     
     methods
-        function obj = Filter_P1_LevelSet(problemID,scale)
+        function obj = Filter_P1_LevelSet(problemID,scale)            
             obj@Filter_P1(problemID,scale);
         end        
         
@@ -13,7 +13,7 @@ classdef Filter_P1_LevelSet < Filter_P1
                 x_gp=obj.x_reg;
             else
                 switch obj.geometry.type
-                    case 'TRIANGLEd'
+                    case 'TRIANGLE'
                         M2=obj.faireF2(obj.coordinates',obj.connectivities',x);
                     otherwise
                         M2=obj.computeRHS(x);

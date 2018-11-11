@@ -1,6 +1,7 @@
 classdef Filter_LevelSet_2D < Filter_LevelSet
     methods
-        function obj = Filter_LevelSet_2D
+        function obj = Filter_LevelSet_2D(unfitted_algorithm)
+            obj@Filter_LevelSet(unfitted_algorithm);
             obj.max_subcells = 6;
             obj.nnodes_subelem = 3;
             obj.ndim = 2;
@@ -20,8 +21,13 @@ classdef Filter_LevelSet_2D < Filter_LevelSet
         end
         
         function setupUnfittedMesh(obj,x)
-            obj.unfitted_mesh = Mesh_Unfitted_2D(obj.diffReacProb.mesh.duplicate,x,obj.diffReacProb.geometry.interpolation);
-            obj.unfitted_mesh.computeCutMesh;
+            switch obj.unfitted_mesh_algorithm
+                case 'DELAUNAY'
+                    obj.unfitted_mesh = Mesh_Unfitted_2D_Delaunay(obj.diffReacProb.mesh.duplicate,x,obj.diffReacProb.geometry.interpolation);
+                case 'MARCHING_CUBES'
+                    obj.unfitted_mesh = Mesh_Unfitted_2D_MarchingCubes(obj.diffReacProb.mesh.duplicate,x,obj.diffReacProb.geometry.interpolation);
+            end
+            obj.unfitted_mesh.findCutCells;
         end
         
         function M2=computeRHS_facet(obj,x,F)
