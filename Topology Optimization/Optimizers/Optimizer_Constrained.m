@@ -17,7 +17,7 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
-            x_ini = obj.compute_initial_value(x_ini,cost,constraint);
+            x_ini = obj.compute_initial_value(x_ini,cost,constraint); % !! REMOVE WHEN DesginVariableInitializer CONSIDERS Projected_Slerp INITIAL GUESS !!
             x = x_ini;
             cost.computeCostAndGradient(x_ini);
             constraint.computeCostAndGradient(x_ini);
@@ -49,7 +49,8 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function x_ini = compute_initial_value(obj,x_ini,cost,constraint)
-            
+            % !! REMOVE WHEN DesginVariableInitializer CONSIDERS
+            % Projected_Slerp INITIAL GUESS !!
         end
         
         

@@ -37,7 +37,7 @@ fprintf('\n-------------------------------------------\n\n')
 
 test2dFourquad
 testStiffnessMatrixGenerator
- 
+HomogenizationTests
 function [passed,error]=checkError(x,error,tolerance,file_name)
    if error < tolerance
         passed=true;
