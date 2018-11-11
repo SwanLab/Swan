@@ -2,15 +2,14 @@ clc; clear variables; close all;
 addpath(genpath(fileparts(mfilename('fullpath'))));
 
 % %% Test
-% run('test_fem.m');
+run('test_fem.m');
 run('test_topopt.m');
 run('test_integration.m')
 clear variables;
 
 %% Main
 filenames={
-    'CantileverTriangleFine_Case_1_1_1'
-    %'GrippingTriangleCoarse_Case_1_1_1';
+   'CantileverTetrahedraCoarse_Case_1_1_1';
     %     'GrippingTriangleCoarse_Case_2_1_1';
     %     'GrippingTriangleCoarse_Case_3_1_1';
     %     'GrippingTriangleCoarse_Case_4_1_1';
@@ -82,9 +81,6 @@ for icases=1:size(filenames,1)
     clearvars -except filenames icases;
     close all;
     settings=Settings(filenames{icases});
-    settings.plotting=true;
-    settings.monitoring=false;
-    settings.initial_case="circle";
     test = TopOpt_Problem(settings);
     test.preProcess;
     test.computeVariables;
