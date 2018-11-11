@@ -83,7 +83,7 @@ classdef NumericalFiberHomogenizer < handle
         function createFilter(obj)
              dim = obj.Setting.ptype;
              fileName = obj.Setting.filename;
-             obj.Filter = Filter_P1_LevelSet_2D(fileName,dim);
+             obj.Filter = Filter_P1_LevelSet_2D(fileName,dim,'MARCHING_CUBES');
              obj.Filter.preProcess();            
         end
         
