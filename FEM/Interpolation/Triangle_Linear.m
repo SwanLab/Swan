@@ -25,8 +25,6 @@ classdef Triangle_Linear<Interpolation
                 3     3;
                 0     2;
                 0     1];
-            obj.main_loop=[3 3];
-            obj.extra_cases=[];
         end
         function computeShapeDeriv(obj,posgp)
             obj.shape=[];

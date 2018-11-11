@@ -17,22 +17,7 @@ classdef Tetrahedra_Linear<Interpolation
                            0 0 1];
             obj.dvolu=1/6;
             obj.iteration=[1 1 1 2 2 3;
-                   2 3 4 3 4 4];
-        end
-
-
-        function computeShapeDeriv(obj,posgp)
-            obj.shape=[];
-            s = posgp(1,:);
-            t = posgp(2,:);
-            u = posgp(3,:);
-            obj.shape =[(ones(1,size(posgp,2))-t-s-u);
-                s;
-                t;
-                u];
-            obj.deriv=repmat([-1 1 0 0
-                -1 0 1 0
-                -1 0 0 1],1,1,size(posgp,2)); 
+                           2 3 4 3 4 4];
             obj.cases(:,:,1)=[7 6 5 1 
                 5 6 7 4 
                 5 6 4 2 
@@ -71,8 +56,6 @@ classdef Tetrahedra_Linear<Interpolation
                 6 3 5 1
                 8 7 5 3
                 6 8 5 3];            
-            obj.main_loop=[4 4];
-            obj.extra_cases=[5,6,7];
             obj.selectcases =[1 0 0;
                 2 0 0;
                 3 6 0;
@@ -82,6 +65,19 @@ classdef Tetrahedra_Linear<Interpolation
                 0 6 3
                 0 0 2
                 0 0 1];
+        end
+        function computeShapeDeriv(obj,posgp)
+            obj.shape=[];
+            s = posgp(1,:);
+            t = posgp(2,:);
+            u = posgp(3,:);
+            obj.shape =[(ones(1,size(posgp,2))-t-s-u);
+                s;
+                t;
+                u];
+            obj.deriv=repmat([-1 1 0 0
+                -1 0 1 0
+                -1 0 0 1],1,1,size(posgp,2)); 
         end
     end
     
