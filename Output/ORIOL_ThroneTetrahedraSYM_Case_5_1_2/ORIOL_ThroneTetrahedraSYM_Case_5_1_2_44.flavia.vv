@@ -1,0 +1,64 @@
+BeginZE C:/Users/Oriol/Desktop/ShapeOp_Plot/Output/ORIOL_ThroneTetrahedraSYM_Case_5_1_2/ORIOL_ThroneTetrahedraSYM_Case_5_1_2_44.flavia.vv
+   x -0.52154707908630371 7.3949747085571289
+   y 1.2635461091995239 -2.3159048557281494
+   z -3.3158574104309082 0.88316571712493896
+   e 1.7897276878356934
+   v 0.4999999999999995 0.50000002185569503 0.4999999999999995
+   r 0.49999997814430497
+   m -4.3711388286737929e-008 4.3711388286737929e-008 1 0 1 1.9984014443252818e-015 4.3711388286737929e-008 0 -5.5511151231257827e-017 1 -4.3711388286737929e-008 0 0 0 0 1
+   c 0.4003603458404541 -0.74691504240036011 1.2163459062576294
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector 90 90 150 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE C:/Users/Oriol/Desktop/ShapeOp_Plot/Output/ORIOL_ThroneTetrahedraSYM_Case_5_1_2/ORIOL_ThroneTetrahedraSYM_Case_5_1_2_44.flavia.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+
+
+BeginPostState
+BeginSingleMesh
+  Num meshes: 1
+  Num sets: 0
+  Num cuts: 0
+  Mesh: 0
+  State: On
+    Name: "WORKPIECE 1"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 1
+    Property Transparent: 0
+    Property Style: 3932221
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndMesh: 0
+EndSingleMesh
+  Post_Prefs_Vector_Size: 0 32 32 32
+  ResultView: {Id 19} {Contour Fill} {Elastic Problem} 44.0 LevelSet LS 0.0 4 4
+EndPostState
+

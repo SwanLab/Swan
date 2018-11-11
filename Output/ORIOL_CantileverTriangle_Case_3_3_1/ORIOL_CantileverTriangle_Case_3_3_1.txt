@@ -1,0 +1,5796 @@
+-----------------------------------------------------------------------------------------------
+
+Iteration: 1 
+Nstep: 1 
+Cost  1.065111 
+-Cost1: 1.065111 
+Constraint: 0.018739 
+Constraint: -0.071026 
+-Constraint1: 0.018739 
+-Constraint2: -0.071026 
+Optimality tolerance: 2.593211 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 2 
+Nstep: 1 
+Cost  1.070370 
+-Cost1: 1.070370 
+Constraint: 0.016543 
+Constraint: -0.005505 
+-Constraint1: 0.016543 
+-Constraint2: -0.005505 
+Optimality tolerance: 0.756681 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 3 
+Nstep: 1 
+Cost  1.070040 
+-Cost1: 1.070040 
+Constraint: 0.016369 
+Constraint: -0.000186 
+-Constraint1: 0.016369 
+-Constraint2: -0.000186 
+Optimality tolerance: 0.144763 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 4 
+Nstep: 1 
+Cost  1.069643 
+-Cost1: 1.069643 
+Constraint: 0.016354 
+Constraint: -0.000158 
+-Constraint1: 0.016354 
+-Constraint2: -0.000158 
+Optimality tolerance: 0.131720 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 5 
+Nstep: 1 
+Cost  1.068997 
+-Cost1: 1.068997 
+Constraint: 0.016335 
+Constraint: -0.000245 
+-Constraint1: 0.016335 
+-Constraint2: -0.000245 
+Optimality tolerance: 0.152138 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 6 
+Nstep: 1 
+Cost  1.068124 
+-Cost1: 1.068124 
+Constraint: 0.016304 
+Constraint: -0.000409 
+-Constraint1: 0.016304 
+-Constraint2: -0.000409 
+Optimality tolerance: 0.180176 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 7 
+Nstep: 1 
+Cost  1.066904 
+-Cost1: 1.066904 
+Constraint: 0.016252 
+Constraint: -0.000737 
+-Constraint1: 0.016252 
+-Constraint2: -0.000737 
+Optimality tolerance: 0.221950 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 8 
+Nstep: 1 
+Cost  1.065028 
+-Cost1: 1.065028 
+Constraint: 0.016157 
+Constraint: -0.001455 
+-Constraint1: 0.016157 
+-Constraint2: -0.001455 
+Optimality tolerance: 0.286638 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 9 
+Nstep: 1 
+Cost  1.062834 
+-Cost1: 1.062834 
+Constraint: 0.015967 
+Constraint: -0.003121 
+-Constraint1: 0.015967 
+-Constraint2: -0.003121 
+Optimality tolerance: 0.385408 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 10 
+Nstep: 1 
+Cost  1.062626 
+-Cost1: 1.062626 
+Constraint: 0.015557 
+Constraint: -0.007403 
+-Constraint1: 0.015557 
+-Constraint2: -0.007403 
+Optimality tolerance: 0.545992 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 11 
+Nstep: 1 
+Cost  1.066897 
+-Cost1: 1.066897 
+Constraint: 0.014539 
+Constraint: -0.021007 
+-Constraint1: 0.014539 
+-Constraint2: -0.021007 
+Optimality tolerance: 0.855177 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 12 
+Nstep: 1 
+Cost  1.073906 
+-Cost1: 1.073906 
+Constraint: 0.011697 
+Constraint: -0.058481 
+-Constraint1: 0.011697 
+-Constraint2: -0.058481 
+Optimality tolerance: 1.366627 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 13 
+Nstep: 1 
+Cost  1.047489 
+-Cost1: 1.047489 
+Constraint: 0.006351 
+Constraint: -0.077555 
+-Constraint1: 0.006351 
+-Constraint2: -0.077555 
+Optimality tolerance: 1.755130 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 14 
+Nstep: 1 
+Cost  1.023014 
+-Cost1: 1.023014 
+Constraint: -0.002981 
+Constraint: -0.184204 
+-Constraint1: -0.002981 
+-Constraint2: -0.184204 
+Optimality tolerance: 0.184704 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 15 
+Nstep: 1 
+Cost  1.008121 
+-Cost1: 1.008121 
+Constraint: -0.004637 
+Constraint: -0.334210 
+-Constraint1: -0.004637 
+-Constraint2: -0.334210 
+Optimality tolerance: 0.334072 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 16 
+Nstep: 1 
+Cost  1.004802 
+-Cost1: 1.004802 
+Constraint: -0.001527 
+Constraint: -0.525239 
+-Constraint1: -0.001527 
+-Constraint2: -0.525239 
+Optimality tolerance: 0.084266 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 17 
+Nstep: 1 
+Cost  1.003879 
+-Cost1: 1.003879 
+Constraint: -0.000486 
+Constraint: -0.613767 
+-Constraint1: -0.000486 
+-Constraint2: -0.613767 
+Optimality tolerance: 0.023439 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 18 
+Nstep: 1 
+Cost  1.003579 
+-Cost1: 1.003579 
+Constraint: -0.000205 
+Constraint: -0.656936 
+-Constraint1: -0.000205 
+-Constraint2: -0.656936 
+Optimality tolerance: 0.006980 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 19 
+Nstep: 1 
+Cost  1.003416 
+-Cost1: 1.003416 
+Constraint: -0.000156 
+Constraint: -0.687849 
+-Constraint1: -0.000156 
+-Constraint2: -0.687849 
+Optimality tolerance: 0.004734 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 20 
+Nstep: 1 
+Cost  1.003282 
+-Cost1: 1.003282 
+Constraint: -0.000122 
+Constraint: -0.716054 
+-Constraint1: -0.000122 
+-Constraint2: -0.716054 
+Optimality tolerance: 0.004062 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 21 
+Nstep: 1 
+Cost  1.003197 
+-Cost1: 1.003197 
+Constraint: -0.000062 
+Constraint: -0.733770 
+-Constraint1: -0.000062 
+-Constraint2: -0.733770 
+Optimality tolerance: 0.002026 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 22 
+Nstep: 1 
+Cost  1.003162 
+-Cost1: 1.003162 
+Constraint: -0.000024 
+Constraint: -0.740795 
+-Constraint1: -0.000024 
+-Constraint2: -0.740795 
+Optimality tolerance: 0.000623 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 23 
+Nstep: 2 
+Cost  1.003151 
+-Cost1: 1.003151 
+Constraint: 0.043466 
+Constraint: -0.743581 
+-Constraint1: 0.043466 
+-Constraint2: -0.743581 
+Optimality tolerance: 0.043468 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 24 
+Nstep: 2 
+Cost  1.052064 
+-Cost1: 1.052064 
+Constraint: 0.018605 
+Constraint: -0.159738 
+-Constraint1: 0.018605 
+-Constraint2: -0.159738 
+Optimality tolerance: 1.731564 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 25 
+Nstep: 2 
+Cost  1.066801 
+-Cost1: 1.066801 
+Constraint: 0.007674 
+Constraint: -0.150133 
+-Constraint1: 0.007674 
+-Constraint2: -0.150133 
+Optimality tolerance: 1.846846 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 26 
+Nstep: 2 
+Cost  1.026289 
+-Cost1: 1.026289 
+Constraint: -0.002539 
+Constraint: -0.201558 
+-Constraint1: -0.002539 
+-Constraint2: -0.201558 
+Optimality tolerance: 0.201926 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 27 
+Nstep: 2 
+Cost  1.018128 
+-Cost1: 1.018128 
+Constraint: -0.001590 
+Constraint: -0.397163 
+-Constraint1: -0.001590 
+-Constraint2: -0.397163 
+Optimality tolerance: 0.122009 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 28 
+Nstep: 2 
+Cost  1.016058 
+-Cost1: 1.016058 
+Constraint: -0.000550 
+Constraint: -0.507858 
+-Constraint1: -0.000550 
+-Constraint2: -0.507858 
+Optimality tolerance: 0.021947 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 29 
+Nstep: 2 
+Cost  1.015309 
+-Cost1: 1.015309 
+Constraint: -0.000277 
+Constraint: -0.558654 
+-Constraint1: -0.000277 
+-Constraint2: -0.558654 
+Optimality tolerance: 0.008375 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 30 
+Nstep: 2 
+Cost  1.014916 
+-Cost1: 1.014916 
+Constraint: -0.000170 
+Constraint: -0.587802 
+-Constraint1: -0.000170 
+-Constraint2: -0.587802 
+Optimality tolerance: 0.004573 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 31 
+Nstep: 2 
+Cost  1.014641 
+-Cost1: 1.014641 
+Constraint: -0.000138 
+Constraint: -0.607753 
+-Constraint1: -0.000138 
+-Constraint2: -0.607753 
+Optimality tolerance: 0.003199 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 32 
+Nstep: 2 
+Cost  1.014468 
+-Cost1: 1.014468 
+Constraint: -0.000071 
+Constraint: -0.617468 
+-Constraint1: -0.000071 
+-Constraint2: -0.617468 
+Optimality tolerance: 0.001487 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 33 
+Nstep: 2 
+Cost  1.014375 
+-Cost1: 1.014375 
+Constraint: -0.000047 
+Constraint: -0.621294 
+-Constraint1: -0.000047 
+-Constraint2: -0.621294 
+Optimality tolerance: 0.000996 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 34 
+Nstep: 3 
+Cost  1.014309 
+-Cost1: 1.014309 
+Constraint: 0.045419 
+Constraint: -0.623766 
+-Constraint1: 0.045419 
+-Constraint2: -0.623766 
+Optimality tolerance: 0.045427 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 35 
+Nstep: 3 
+Cost  1.048555 
+-Cost1: 1.048555 
+Constraint: 0.020104 
+Constraint: -0.219739 
+-Constraint1: 0.020104 
+-Constraint2: -0.219739 
+Optimality tolerance: 2.075394 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 36 
+Nstep: 3 
+Cost  1.061380 
+-Cost1: 1.061380 
+Constraint: 0.005848 
+Constraint: -0.144588 
+-Constraint1: 0.005848 
+-Constraint2: -0.144588 
+Optimality tolerance: 2.088590 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 37 
+Nstep: 3 
+Cost  1.043022 
+-Cost1: 1.043022 
+Constraint: -0.001707 
+Constraint: -0.099147 
+-Constraint1: -0.001707 
+-Constraint2: -0.099147 
+Optimality tolerance: 0.099234 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 38 
+Nstep: 3 
+Cost  1.039518 
+-Cost1: 1.039518 
+Constraint: -0.000648 
+Constraint: -0.185761 
+-Constraint1: -0.000648 
+-Constraint2: -0.185761 
+Optimality tolerance: 0.028040 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 39 
+Nstep: 3 
+Cost  1.038285 
+-Cost1: 1.038285 
+Constraint: -0.000295 
+Constraint: -0.238119 
+-Constraint1: -0.000295 
+-Constraint2: -0.238119 
+Optimality tolerance: 0.008875 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 40 
+Nstep: 3 
+Cost  1.037604 
+-Cost1: 1.037604 
+Constraint: -0.000200 
+Constraint: -0.272949 
+-Constraint1: -0.000200 
+-Constraint2: -0.272949 
+Optimality tolerance: 0.005550 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 41 
+Nstep: 3 
+Cost  1.037170 
+-Cost1: 1.037170 
+Constraint: -0.000124 
+Constraint: -0.295840 
+-Constraint1: -0.000124 
+-Constraint2: -0.295840 
+Optimality tolerance: 0.002956 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 42 
+Nstep: 3 
+Cost  1.036864 
+-Cost1: 1.036864 
+Constraint: -0.000109 
+Constraint: -0.311970 
+-Constraint1: -0.000109 
+-Constraint2: -0.311970 
+Optimality tolerance: 0.002470 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 43 
+Nstep: 3 
+Cost  1.036614 
+-Cost1: 1.036614 
+Constraint: -0.000077 
+Constraint: -0.322874 
+-Constraint1: -0.000077 
+-Constraint2: -0.322874 
+Optimality tolerance: 0.001970 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 44 
+Nstep: 3 
+Cost  1.036437 
+-Cost1: 1.036437 
+Constraint: -0.000060 
+Constraint: -0.327411 
+-Constraint1: -0.000060 
+-Constraint2: -0.327411 
+Optimality tolerance: 0.001611 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 45 
+Nstep: 3 
+Cost  1.036305 
+-Cost1: 1.036305 
+Constraint: -0.000045 
+Constraint: -0.327236 
+-Constraint1: -0.000045 
+-Constraint2: -0.327236 
+Optimality tolerance: 0.001392 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 46 
+Nstep: 3 
+Cost  1.036197 
+-Cost1: 1.036197 
+Constraint: -0.000038 
+Constraint: -0.325540 
+-Constraint1: -0.000038 
+-Constraint2: -0.325540 
+Optimality tolerance: 0.001437 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 47 
+Nstep: 3 
+Cost  1.036102 
+-Cost1: 1.036102 
+Constraint: -0.000034 
+Constraint: -0.324355 
+-Constraint1: -0.000034 
+-Constraint2: -0.324355 
+Optimality tolerance: 0.001369 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 48 
+Nstep: 3 
+Cost  1.036010 
+-Cost1: 1.036010 
+Constraint: -0.000029 
+Constraint: -0.325109 
+-Constraint1: -0.000029 
+-Constraint2: -0.325109 
+Optimality tolerance: 0.001266 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 49 
+Nstep: 3 
+Cost  1.035930 
+-Cost1: 1.035930 
+Constraint: -0.000027 
+Constraint: -0.327330 
+-Constraint1: -0.000027 
+-Constraint2: -0.327330 
+Optimality tolerance: 0.001151 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 50 
+Nstep: 3 
+Cost  1.035852 
+-Cost1: 1.035852 
+Constraint: -0.000025 
+Constraint: -0.333183 
+-Constraint1: -0.000025 
+-Constraint2: -0.333183 
+Optimality tolerance: 0.001142 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 51 
+Nstep: 3 
+Cost  1.035776 
+-Cost1: 1.035776 
+Constraint: -0.000020 
+Constraint: -0.340319 
+-Constraint1: -0.000020 
+-Constraint2: -0.340319 
+Optimality tolerance: 0.000979 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 52 
+Nstep: 4 
+Cost  1.035718 
+-Cost1: 1.035718 
+Constraint: 0.047602 
+Constraint: -0.346085 
+-Constraint1: 0.047602 
+-Constraint2: -0.346085 
+Optimality tolerance: 0.047610 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 53 
+Nstep: 4 
+Cost  1.051608 
+-Cost1: 1.051608 
+Constraint: 0.023987 
+Constraint: -0.325898 
+-Constraint1: 0.023987 
+-Constraint2: -0.325898 
+Optimality tolerance: 2.923766 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 54 
+Nstep: 4 
+Cost  1.074512 
+-Cost1: 1.074512 
+Constraint: -0.003130 
+Constraint: -0.327805 
+-Constraint1: -0.003130 
+-Constraint2: -0.327805 
+Optimality tolerance: 3.116532 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 55 
+Nstep: 4 
+Cost  1.067761 
+-Cost1: 1.067761 
+Constraint: -0.002267 
+Constraint: -0.285344 
+-Constraint1: -0.002267 
+-Constraint2: -0.285344 
+Optimality tolerance: 0.239048 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 56 
+Nstep: 4 
+Cost  1.065030 
+-Cost1: 1.065030 
+Constraint: -0.000803 
+Constraint: -0.296105 
+-Constraint1: -0.000803 
+-Constraint2: -0.296105 
+Optimality tolerance: 0.046691 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 57 
+Nstep: 4 
+Cost  1.064012 
+-Cost1: 1.064012 
+Constraint: -0.000245 
+Constraint: -0.294857 
+-Constraint1: -0.000245 
+-Constraint2: -0.294857 
+Optimality tolerance: 0.008714 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 58 
+Nstep: 4 
+Cost  1.063571 
+-Cost1: 1.063571 
+Constraint: -0.000127 
+Constraint: -0.281790 
+-Constraint1: -0.000127 
+-Constraint2: -0.281790 
+Optimality tolerance: 0.005114 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 59 
+Nstep: 4 
+Cost  1.063323 
+-Cost1: 1.063323 
+Constraint: -0.000077 
+Constraint: -0.270779 
+-Constraint1: -0.000077 
+-Constraint2: -0.270779 
+Optimality tolerance: 0.002910 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 60 
+Nstep: 4 
+Cost  1.063155 
+-Cost1: 1.063155 
+Constraint: -0.000054 
+Constraint: -0.266176 
+-Constraint1: -0.000054 
+-Constraint2: -0.266176 
+Optimality tolerance: 0.001806 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 61 
+Nstep: 4 
+Cost  1.063016 
+-Cost1: 1.063016 
+Constraint: -0.000045 
+Constraint: -0.262907 
+-Constraint1: -0.000045 
+-Constraint2: -0.262907 
+Optimality tolerance: 0.001737 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 62 
+Nstep: 4 
+Cost  1.062904 
+-Cost1: 1.062904 
+Constraint: -0.000033 
+Constraint: -0.260476 
+-Constraint1: -0.000033 
+-Constraint2: -0.260476 
+Optimality tolerance: 0.001811 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 63 
+Nstep: 4 
+Cost  1.062811 
+-Cost1: 1.062811 
+Constraint: -0.000027 
+Constraint: -0.259962 
+-Constraint1: -0.000027 
+-Constraint2: -0.259962 
+Optimality tolerance: 0.001611 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 64 
+Nstep: 4 
+Cost  1.062733 
+-Cost1: 1.062733 
+Constraint: -0.000021 
+Constraint: -0.262060 
+-Constraint1: -0.000021 
+-Constraint2: -0.262060 
+Optimality tolerance: 0.000969 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 65 
+Nstep: 5 
+Cost  1.062654 
+-Cost1: 1.062654 
+Constraint: 0.049980 
+Constraint: -0.264694 
+-Constraint1: 0.049980 
+-Constraint2: -0.264694 
+Optimality tolerance: 0.049987 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 66 
+Nstep: 5 
+Cost  1.079568 
+-Cost1: 1.079568 
+Constraint: 0.025860 
+Constraint: -0.248532 
+-Constraint1: 0.025860 
+-Constraint2: -0.248532 
+Optimality tolerance: 2.829044 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 67 
+Nstep: 5 
+Cost  1.102689 
+-Cost1: 1.102689 
+Constraint: 0.003912 
+Constraint: -0.191148 
+-Constraint1: 0.003912 
+-Constraint2: -0.191148 
+Optimality tolerance: 2.779853 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 68 
+Nstep: 5 
+Cost  1.102348 
+-Cost1: 1.102348 
+Constraint: -0.001134 
+Constraint: -0.069268 
+-Constraint1: -0.001134 
+-Constraint2: -0.069268 
+Optimality tolerance: 0.069301 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 69 
+Nstep: 5 
+Cost  1.100609 
+-Cost1: 1.100609 
+Constraint: -0.000615 
+Constraint: -0.036959 
+-Constraint1: -0.000615 
+-Constraint2: -0.036959 
+Optimality tolerance: 0.036893 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 70 
+Nstep: 5 
+Cost  1.099598 
+-Cost1: 1.099598 
+Constraint: -0.000408 
+Constraint: -0.039752 
+-Constraint1: -0.000408 
+-Constraint2: -0.039752 
+Optimality tolerance: 0.020635 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 71 
+Nstep: 5 
+Cost  1.098715 
+-Cost1: 1.098715 
+Constraint: -0.000256 
+Constraint: -0.054838 
+-Constraint1: -0.000256 
+-Constraint2: -0.054838 
+Optimality tolerance: 0.010165 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 72 
+Nstep: 5 
+Cost  1.098138 
+-Cost1: 1.098138 
+Constraint: -0.000153 
+Constraint: -0.066623 
+-Constraint1: -0.000153 
+-Constraint2: -0.066623 
+Optimality tolerance: 0.004400 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 73 
+Nstep: 5 
+Cost  1.097722 
+-Cost1: 1.097722 
+Constraint: -0.000120 
+Constraint: -0.073435 
+-Constraint1: -0.000120 
+-Constraint2: -0.073435 
+Optimality tolerance: 0.002848 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 74 
+Nstep: 5 
+Cost  1.097409 
+-Cost1: 1.097409 
+Constraint: -0.000084 
+Constraint: -0.077180 
+-Constraint1: -0.000084 
+-Constraint2: -0.077180 
+Optimality tolerance: 0.001958 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 75 
+Nstep: 5 
+Cost  1.097196 
+-Cost1: 1.097196 
+Constraint: -0.000056 
+Constraint: -0.077810 
+-Constraint1: -0.000056 
+-Constraint2: -0.077810 
+Optimality tolerance: 0.001409 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 76 
+Nstep: 5 
+Cost  1.097058 
+-Cost1: 1.097058 
+Constraint: -0.000033 
+Constraint: -0.077155 
+-Constraint1: -0.000033 
+-Constraint2: -0.077155 
+Optimality tolerance: 0.000896 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 77 
+Nstep: 6 
+Cost  1.096975 
+-Cost1: 1.096975 
+Constraint: 0.052606 
+Constraint: -0.075504 
+-Constraint1: 0.052606 
+-Constraint2: -0.075504 
+Optimality tolerance: 0.052612 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 78 
+Nstep: 6 
+Cost  1.110036 
+-Cost1: 1.110036 
+Constraint: 0.037274 
+Constraint: -0.116631 
+-Constraint1: 0.037274 
+-Constraint2: -0.116631 
+Optimality tolerance: 2.708999 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 79 
+Nstep: 6 
+Cost  1.128295 
+-Cost1: 1.128295 
+Constraint: 0.020781 
+Constraint: -0.100935 
+-Constraint1: 0.020781 
+-Constraint2: -0.100935 
+Optimality tolerance: 2.718042 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 80 
+Nstep: 6 
+Cost  1.167250 
+-Cost1: 1.167250 
+Constraint: 0.005534 
+Constraint: -0.095136 
+-Constraint1: 0.005534 
+-Constraint2: -0.095136 
+Optimality tolerance: 2.843920 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 81 
+Nstep: 6 
+Cost  1.155148 
+-Cost1: 1.155148 
+Constraint: -0.001953 
+Constraint: -0.073121 
+-Constraint1: -0.001953 
+-Constraint2: -0.073121 
+Optimality tolerance: 0.073966 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 82 
+Nstep: 6 
+Cost  1.147008 
+-Cost1: 1.147008 
+Constraint: -0.001075 
+Constraint: -0.039553 
+-Constraint1: -0.001075 
+-Constraint2: -0.039553 
+Optimality tolerance: 0.039636 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 83 
+Nstep: 6 
+Cost  1.144075 
+-Cost1: 1.144075 
+Constraint: -0.000450 
+Constraint: -0.015948 
+-Constraint1: -0.000450 
+-Constraint2: -0.015948 
+Optimality tolerance: 0.015987 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 84 
+Nstep: 6 
+Cost  1.142665 
+-Cost1: 1.142665 
+Constraint: -0.000239 
+Constraint: -0.007643 
+-Constraint1: -0.000239 
+-Constraint2: -0.007643 
+Optimality tolerance: 0.007675 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 85 
+Nstep: 6 
+Cost  1.141756 
+-Cost1: 1.141756 
+Constraint: -0.000180 
+Constraint: -0.005571 
+-Constraint1: -0.000180 
+-Constraint2: -0.005571 
+Optimality tolerance: 0.005603 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 86 
+Nstep: 6 
+Cost  1.141011 
+-Cost1: 1.141011 
+Constraint: -0.000163 
+Constraint: -0.005078 
+-Constraint1: -0.000163 
+-Constraint2: -0.005078 
+Optimality tolerance: 0.005108 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 87 
+Nstep: 6 
+Cost  1.140378 
+-Cost1: 1.140378 
+Constraint: -0.000122 
+Constraint: -0.004392 
+-Constraint1: -0.000122 
+-Constraint2: -0.004392 
+Optimality tolerance: 0.004420 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 88 
+Nstep: 6 
+Cost  1.139799 
+-Cost1: 1.139799 
+Constraint: -0.000112 
+Constraint: -0.003940 
+-Constraint1: -0.000112 
+-Constraint2: -0.003940 
+Optimality tolerance: 0.003974 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 89 
+Nstep: 6 
+Cost  1.139400 
+-Cost1: 1.139400 
+Constraint: -0.000076 
+Constraint: -0.002540 
+-Constraint1: -0.000076 
+-Constraint2: -0.002540 
+Optimality tolerance: 0.002568 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 90 
+Nstep: 6 
+Cost  1.139160 
+-Cost1: 1.139160 
+Constraint: -0.000037 
+Constraint: -0.001042 
+-Constraint1: -0.000037 
+-Constraint2: -0.001042 
+Optimality tolerance: 0.001081 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 91 
+Nstep: 6 
+Cost  1.139016 
+-Cost1: 1.139016 
+Constraint: -0.000029 
+Constraint: -0.000763 
+-Constraint1: -0.000029 
+-Constraint2: -0.000763 
+Optimality tolerance: 0.000816 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 92 
+Nstep: 7 
+Cost  1.138877 
+-Cost1: 1.138877 
+Constraint: 0.055519 
+Constraint: -0.000921 
+-Constraint1: 0.055519 
+-Constraint2: -0.000921 
+Optimality tolerance: 0.055533 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 93 
+Nstep: 7 
+Cost  1.146779 
+-Cost1: 1.146779 
+Constraint: 0.047329 
+Constraint: -0.046068 
+-Constraint1: 0.047329 
+-Constraint2: -0.046068 
+Optimality tolerance: 2.753357 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 94 
+Nstep: 7 
+Cost  1.159797 
+-Cost1: 1.159797 
+Constraint: 0.037889 
+Constraint: -0.044254 
+-Constraint1: 0.037889 
+-Constraint2: -0.044254 
+Optimality tolerance: 2.566889 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 95 
+Nstep: 7 
+Cost  1.191837 
+-Cost1: 1.191837 
+Constraint: 0.026393 
+Constraint: -0.065347 
+-Constraint1: 0.026393 
+-Constraint2: -0.065347 
+Optimality tolerance: 3.108016 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 96 
+Nstep: 7 
+Cost  1.210271 
+-Cost1: 1.210271 
+Constraint: 0.012861 
+Constraint: -0.070827 
+-Constraint1: 0.012861 
+-Constraint2: -0.070827 
+Optimality tolerance: 2.862580 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 97 
+Nstep: 7 
+Cost  1.228860 
+-Cost1: 1.228860 
+Constraint: -0.001701 
+Constraint: -0.072812 
+-Constraint1: -0.001701 
+-Constraint2: -0.072812 
+Optimality tolerance: 2.852570 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 98 
+Nstep: 7 
+Cost  1.214005 
+-Cost1: 1.214005 
+Constraint: -0.001509 
+Constraint: -0.081513 
+-Constraint1: -0.001509 
+-Constraint2: -0.081513 
+Optimality tolerance: 0.081627 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 99 
+Nstep: 7 
+Cost  1.204225 
+-Cost1: 1.204225 
+Constraint: -0.001728 
+Constraint: -0.126306 
+-Constraint1: -0.001728 
+-Constraint2: -0.126306 
+Optimality tolerance: 0.126341 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 100 
+Nstep: 7 
+Cost  1.197644 
+-Cost1: 1.197644 
+Constraint: -0.001223 
+Constraint: -0.062246 
+-Constraint1: -0.001223 
+-Constraint2: -0.062246 
+Optimality tolerance: 0.062278 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 101 
+Nstep: 7 
+Cost  1.193945 
+-Cost1: 1.193945 
+Constraint: -0.000637 
+Constraint: -0.033336 
+-Constraint1: -0.000637 
+-Constraint2: -0.033336 
+Optimality tolerance: 0.033358 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 102 
+Nstep: 7 
+Cost  1.191842 
+-Cost1: 1.191842 
+Constraint: -0.000317 
+Constraint: -0.020289 
+-Constraint1: -0.000317 
+-Constraint2: -0.020289 
+Optimality tolerance: 0.020307 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 103 
+Nstep: 7 
+Cost  1.190309 
+-Cost1: 1.190309 
+Constraint: -0.000239 
+Constraint: -0.014286 
+-Constraint1: -0.000239 
+-Constraint2: -0.014286 
+Optimality tolerance: 0.014303 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 104 
+Nstep: 7 
+Cost  1.189238 
+-Cost1: 1.189238 
+Constraint: -0.000166 
+Constraint: -0.008594 
+-Constraint1: -0.000166 
+-Constraint2: -0.008594 
+Optimality tolerance: 0.008607 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 105 
+Nstep: 7 
+Cost  1.188472 
+-Cost1: 1.188472 
+Constraint: -0.000131 
+Constraint: -0.006534 
+-Constraint1: -0.000131 
+-Constraint2: -0.006534 
+Optimality tolerance: 0.006547 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 106 
+Nstep: 7 
+Cost  1.187962 
+-Cost1: 1.187962 
+Constraint: -0.000078 
+Constraint: -0.003934 
+-Constraint1: -0.000078 
+-Constraint2: -0.003934 
+Optimality tolerance: 0.003947 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 107 
+Nstep: 7 
+Cost  1.187565 
+-Cost1: 1.187565 
+Constraint: -0.000065 
+Constraint: -0.003160 
+-Constraint1: -0.000065 
+-Constraint2: -0.003160 
+Optimality tolerance: 0.003180 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 108 
+Nstep: 7 
+Cost  1.187213 
+-Cost1: 1.187213 
+Constraint: -0.000073 
+Constraint: -0.003569 
+-Constraint1: -0.000073 
+-Constraint2: -0.003569 
+Optimality tolerance: 0.003593 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 109 
+Nstep: 7 
+Cost  1.186938 
+-Cost1: 1.186938 
+Constraint: -0.000058 
+Constraint: -0.002481 
+-Constraint1: -0.000058 
+-Constraint2: -0.002481 
+Optimality tolerance: 0.002499 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 110 
+Nstep: 7 
+Cost  1.186725 
+-Cost1: 1.186725 
+Constraint: -0.000046 
+Constraint: -0.001912 
+-Constraint1: -0.000046 
+-Constraint2: -0.001912 
+Optimality tolerance: 0.001933 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 111 
+Nstep: 7 
+Cost  1.186495 
+-Cost1: 1.186495 
+Constraint: -0.000047 
+Constraint: -0.001965 
+-Constraint1: -0.000047 
+-Constraint2: -0.001965 
+Optimality tolerance: 0.001989 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 112 
+Nstep: 7 
+Cost  1.186227 
+-Cost1: 1.186227 
+Constraint: -0.000061 
+Constraint: -0.002535 
+-Constraint1: -0.000061 
+-Constraint2: -0.002535 
+Optimality tolerance: 0.002559 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 113 
+Nstep: 7 
+Cost  1.185983 
+-Cost1: 1.185983 
+Constraint: -0.000045 
+Constraint: -0.001577 
+-Constraint1: -0.000045 
+-Constraint2: -0.001577 
+Optimality tolerance: 0.001605 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 114 
+Nstep: 7 
+Cost  1.185778 
+-Cost1: 1.185778 
+Constraint: -0.000049 
+Constraint: -0.001549 
+-Constraint1: -0.000049 
+-Constraint2: -0.001549 
+Optimality tolerance: 0.001578 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 115 
+Nstep: 7 
+Cost  1.185552 
+-Cost1: 1.185552 
+Constraint: -0.000051 
+Constraint: -0.001641 
+-Constraint1: -0.000051 
+-Constraint2: -0.001641 
+Optimality tolerance: 0.001671 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 116 
+Nstep: 7 
+Cost  1.185343 
+-Cost1: 1.185343 
+Constraint: -0.000035 
+Constraint: -0.001444 
+-Constraint1: -0.000035 
+-Constraint2: -0.001444 
+Optimality tolerance: 0.001464 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 117 
+Nstep: 7 
+Cost  1.185191 
+-Cost1: 1.185191 
+Constraint: -0.000031 
+Constraint: -0.001376 
+-Constraint1: -0.000031 
+-Constraint2: -0.001376 
+Optimality tolerance: 0.001392 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 118 
+Nstep: 7 
+Cost  1.185078 
+-Cost1: 1.185078 
+Constraint: -0.000021 
+Constraint: -0.000876 
+-Constraint1: -0.000021 
+-Constraint2: -0.000876 
+Optimality tolerance: 0.000886 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 119 
+Nstep: 8 
+Cost  1.184999 
+-Cost1: 1.184999 
+Constraint: 0.058805 
+Constraint: -0.000753 
+-Constraint1: 0.058805 
+-Constraint2: -0.000753 
+Optimality tolerance: 0.058816 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 120 
+Nstep: 8 
+Cost  1.193827 
+-Cost1: 1.193827 
+Constraint: 0.049308 
+Constraint: -0.065506 
+-Constraint1: 0.049308 
+-Constraint2: -0.065506 
+Optimality tolerance: 3.440973 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 121 
+Nstep: 8 
+Cost  1.208785 
+-Cost1: 1.208785 
+Constraint: 0.035284 
+Constraint: -0.060098 
+-Constraint1: 0.035284 
+-Constraint2: -0.060098 
+Optimality tolerance: 2.862537 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 122 
+Nstep: 8 
+Cost  1.223288 
+-Cost1: 1.223288 
+Constraint: 0.022643 
+Constraint: -0.048112 
+-Constraint1: 0.022643 
+-Constraint2: -0.048112 
+Optimality tolerance: 2.516954 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 123 
+Nstep: 8 
+Cost  1.238081 
+-Cost1: 1.238081 
+Constraint: 0.010775 
+Constraint: -0.044423 
+-Constraint1: 0.010775 
+-Constraint2: -0.044423 
+Optimality tolerance: 2.715171 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 124 
+Nstep: 8 
+Cost  1.253374 
+-Cost1: 1.253374 
+Constraint: -0.000569 
+Constraint: -0.040931 
+-Constraint1: -0.000569 
+-Constraint2: -0.040931 
+Optimality tolerance: 2.540159 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 125 
+Nstep: 8 
+Cost  1.250215 
+-Cost1: 1.250215 
+Constraint: -0.000432 
+Constraint: -0.014992 
+-Constraint1: -0.000432 
+-Constraint2: -0.014992 
+Optimality tolerance: 0.015055 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 126 
+Nstep: 8 
+Cost  1.248120 
+-Cost1: 1.248120 
+Constraint: -0.000280 
+Constraint: -0.007404 
+-Constraint1: -0.000280 
+-Constraint2: -0.007404 
+Optimality tolerance: 0.007467 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 127 
+Nstep: 8 
+Cost  1.246543 
+-Cost1: 1.246543 
+Constraint: -0.000195 
+Constraint: -0.005388 
+-Constraint1: -0.000195 
+-Constraint2: -0.005388 
+Optimality tolerance: 0.005462 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 128 
+Nstep: 8 
+Cost  1.245522 
+-Cost1: 1.245522 
+Constraint: -0.000151 
+Constraint: -0.003956 
+-Constraint1: -0.000151 
+-Constraint2: -0.003956 
+Optimality tolerance: 0.004017 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 129 
+Nstep: 8 
+Cost  1.244736 
+-Cost1: 1.244736 
+Constraint: -0.000106 
+Constraint: -0.003252 
+-Constraint1: -0.000106 
+-Constraint2: -0.003252 
+Optimality tolerance: 0.003309 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 130 
+Nstep: 8 
+Cost  1.244116 
+-Cost1: 1.244116 
+Constraint: -0.000088 
+Constraint: -0.002440 
+-Constraint1: -0.000088 
+-Constraint2: -0.002440 
+Optimality tolerance: 0.002495 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 131 
+Nstep: 8 
+Cost  1.243666 
+-Cost1: 1.243666 
+Constraint: -0.000062 
+Constraint: -0.001371 
+-Constraint1: -0.000062 
+-Constraint2: -0.001371 
+Optimality tolerance: 0.001434 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 132 
+Nstep: 8 
+Cost  1.243359 
+-Cost1: 1.243359 
+Constraint: -0.000041 
+Constraint: -0.001129 
+-Constraint1: -0.000041 
+-Constraint2: -0.001129 
+Optimality tolerance: 0.001177 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 133 
+Nstep: 8 
+Cost  1.243132 
+-Cost1: 1.243132 
+Constraint: -0.000035 
+Constraint: -0.001088 
+-Constraint1: -0.000035 
+-Constraint2: -0.001088 
+Optimality tolerance: 0.001128 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 134 
+Nstep: 8 
+Cost  1.242915 
+-Cost1: 1.242915 
+Constraint: -0.000022 
+Constraint: -0.000709 
+-Constraint1: -0.000022 
+-Constraint2: -0.000709 
+Optimality tolerance: 0.000753 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 135 
+Nstep: 9 
+Cost  1.242744 
+-Cost1: 1.242744 
+Constraint: 0.062479 
+Constraint: -0.000564 
+-Constraint1: 0.062479 
+-Constraint2: -0.000564 
+Optimality tolerance: 0.062493 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 136 
+Nstep: 9 
+Cost  1.247479 
+-Cost1: 1.247479 
+Constraint: 0.058220 
+Constraint: -0.012086 
+-Constraint1: 0.058220 
+-Constraint2: -0.012086 
+Optimality tolerance: 2.189589 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 137 
+Nstep: 9 
+Cost  1.253322 
+-Cost1: 1.253322 
+Constraint: 0.053777 
+Constraint: -0.010140 
+-Constraint1: 0.053777 
+-Constraint2: -0.010140 
+Optimality tolerance: 2.204470 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 138 
+Nstep: 9 
+Cost  1.259911 
+-Cost1: 1.259911 
+Constraint: 0.048833 
+Constraint: -0.012484 
+-Constraint1: 0.048833 
+-Constraint2: -0.012484 
+Optimality tolerance: 2.551276 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 139 
+Nstep: 9 
+Cost  1.266489 
+-Cost1: 1.266489 
+Constraint: 0.044171 
+Constraint: -0.011887 
+-Constraint1: 0.044171 
+-Constraint2: -0.011887 
+Optimality tolerance: 2.138852 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 140 
+Nstep: 9 
+Cost  1.272445 
+-Cost1: 1.272445 
+Constraint: 0.040292 
+Constraint: -0.007758 
+-Constraint1: 0.040292 
+-Constraint2: -0.007758 
+Optimality tolerance: 1.931453 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 141 
+Nstep: 9 
+Cost  1.280101 
+-Cost1: 1.280101 
+Constraint: 0.035710 
+Constraint: -0.011639 
+-Constraint1: 0.035710 
+-Constraint2: -0.011639 
+Optimality tolerance: 2.660283 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 142 
+Nstep: 9 
+Cost  1.286270 
+-Cost1: 1.286270 
+Constraint: 0.031862 
+Constraint: -0.009013 
+-Constraint1: 0.031862 
+-Constraint2: -0.009013 
+Optimality tolerance: 1.890149 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 143 
+Nstep: 9 
+Cost  1.292197 
+-Cost1: 1.292197 
+Constraint: 0.028040 
+Constraint: -0.008442 
+-Constraint1: 0.028040 
+-Constraint2: -0.008442 
+Optimality tolerance: 1.981198 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 144 
+Nstep: 9 
+Cost  1.298991 
+-Cost1: 1.298991 
+Constraint: 0.024340 
+Constraint: -0.009004 
+-Constraint1: 0.024340 
+-Constraint2: -0.009004 
+Optimality tolerance: 2.129397 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 145 
+Nstep: 9 
+Cost  1.305948 
+-Cost1: 1.305948 
+Constraint: 0.020831 
+Constraint: -0.008022 
+-Constraint1: 0.020831 
+-Constraint2: -0.008022 
+Optimality tolerance: 1.780751 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 146 
+Nstep: 9 
+Cost  1.312417 
+-Cost1: 1.312417 
+Constraint: 0.017765 
+Constraint: -0.007225 
+-Constraint1: 0.017765 
+-Constraint2: -0.007225 
+Optimality tolerance: 1.892558 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 147 
+Nstep: 9 
+Cost  1.318870 
+-Cost1: 1.318870 
+Constraint: 0.014786 
+Constraint: -0.007269 
+-Constraint1: 0.014786 
+-Constraint2: -0.007269 
+Optimality tolerance: 2.018846 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 148 
+Nstep: 9 
+Cost  1.325241 
+-Cost1: 1.325241 
+Constraint: 0.011911 
+Constraint: -0.005132 
+-Constraint1: 0.011911 
+-Constraint2: -0.005132 
+Optimality tolerance: 1.471103 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 149 
+Nstep: 9 
+Cost  1.332126 
+-Cost1: 1.332126 
+Constraint: 0.008937 
+Constraint: -0.006193 
+-Constraint1: 0.008937 
+-Constraint2: -0.006193 
+Optimality tolerance: 1.820150 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 150 
+Nstep: 9 
+Cost  1.338435 
+-Cost1: 1.338435 
+Constraint: 0.006707 
+Constraint: -0.004263 
+-Constraint1: 0.006707 
+-Constraint2: -0.004263 
+Optimality tolerance: 1.496160 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 151 
+Nstep: 9 
+Cost  1.345444 
+-Cost1: 1.345444 
+Constraint: 0.004081 
+Constraint: -0.005048 
+-Constraint1: 0.004081 
+-Constraint2: -0.005048 
+Optimality tolerance: 1.755336 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 152 
+Nstep: 9 
+Cost  1.352567 
+-Cost1: 1.352567 
+Constraint: 0.001524 
+Constraint: -0.005128 
+-Constraint1: 0.001524 
+-Constraint2: -0.005128 
+Optimality tolerance: 1.398368 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 153 
+Nstep: 9 
+Cost  1.357500 
+-Cost1: 1.357500 
+Constraint: -0.000227 
+Constraint: -0.002685 
+-Constraint1: -0.000227 
+-Constraint2: -0.002685 
+Optimality tolerance: 0.015014 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 154 
+Nstep: 9 
+Cost  1.355788 
+-Cost1: 1.355788 
+Constraint: -0.000055 
+Constraint: -0.000781 
+-Constraint1: -0.000055 
+-Constraint2: -0.000781 
+Optimality tolerance: 0.001693 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 155 
+Nstep: 9 
+Cost  1.354673 
+-Cost1: 1.354673 
+Constraint: -0.000072 
+Constraint: -0.000771 
+-Constraint1: -0.000072 
+-Constraint2: -0.000771 
+Optimality tolerance: 0.001588 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 156 
+Nstep: 9 
+Cost  1.353604 
+-Cost1: 1.353604 
+Constraint: -0.000074 
+Constraint: -0.000734 
+-Constraint1: -0.000074 
+-Constraint2: -0.000734 
+Optimality tolerance: 0.001387 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 157 
+Nstep: 9 
+Cost  1.352781 
+-Cost1: 1.352781 
+Constraint: -0.000075 
+Constraint: -0.000649 
+-Constraint1: -0.000075 
+-Constraint2: -0.000649 
+Optimality tolerance: 0.001271 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 158 
+Nstep: 9 
+Cost  1.351905 
+-Cost1: 1.351905 
+Constraint: -0.000065 
+Constraint: -0.000638 
+-Constraint1: -0.000065 
+-Constraint2: -0.000638 
+Optimality tolerance: 0.001339 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 159 
+Nstep: 9 
+Cost  1.351059 
+-Cost1: 1.351059 
+Constraint: -0.000064 
+Constraint: -0.001032 
+-Constraint1: -0.000064 
+-Constraint2: -0.001032 
+Optimality tolerance: 0.001781 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 160 
+Nstep: 9 
+Cost  1.350450 
+-Cost1: 1.350450 
+Constraint: -0.000030 
+Constraint: -0.000320 
+-Constraint1: -0.000030 
+-Constraint2: -0.000320 
+Optimality tolerance: 0.000965 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 161 
+Nstep: 10 
+Cost  1.349975 
+-Cost1: 1.349975 
+Constraint: 0.066617 
+Constraint: -0.000329 
+-Constraint1: 0.066617 
+-Constraint2: -0.000329 
+Optimality tolerance: 0.066676 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 162 
+Nstep: 10 
+Cost  1.355109 
+-Cost1: 1.355109 
+Constraint: 0.064662 
+Constraint: -0.003343 
+-Constraint1: 0.064662 
+-Constraint2: -0.003343 
+Optimality tolerance: 1.599704 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 163 
+Nstep: 10 
+Cost  1.360614 
+-Cost1: 1.360614 
+Constraint: 0.062830 
+Constraint: -0.002933 
+-Constraint1: 0.062830 
+-Constraint2: -0.002933 
+Optimality tolerance: 1.106958 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 164 
+Nstep: 10 
+Cost  1.364936 
+-Cost1: 1.364936 
+Constraint: 0.061433 
+Constraint: -0.002117 
+-Constraint1: 0.061433 
+-Constraint2: -0.002117 
+Optimality tolerance: 1.042347 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 165 
+Nstep: 10 
+Cost  1.368073 
+-Cost1: 1.368073 
+Constraint: 0.060358 
+Constraint: -0.001610 
+-Constraint1: 0.060358 
+-Constraint2: -0.001610 
+Optimality tolerance: 1.154415 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 166 
+Nstep: 10 
+Cost  1.371991 
+-Cost1: 1.371991 
+Constraint: 0.059214 
+Constraint: -0.001488 
+-Constraint1: 0.059214 
+-Constraint2: -0.001488 
+Optimality tolerance: 1.180818 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 167 
+Nstep: 10 
+Cost  1.376911 
+-Cost1: 1.376911 
+Constraint: 0.057895 
+Constraint: -0.002278 
+-Constraint1: 0.057895 
+-Constraint2: -0.002278 
+Optimality tolerance: 1.581415 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 168 
+Nstep: 10 
+Cost  1.382103 
+-Cost1: 1.382103 
+Constraint: 0.056359 
+Constraint: -0.002649 
+-Constraint1: 0.056359 
+-Constraint2: -0.002649 
+Optimality tolerance: 1.088907 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 169 
+Nstep: 10 
+Cost  1.384806 
+-Cost1: 1.384806 
+Constraint: 0.055480 
+Constraint: -0.001106 
+-Constraint1: 0.055480 
+-Constraint2: -0.001106 
+Optimality tolerance: 0.923115 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 170 
+Nstep: 10 
+Cost  1.387204 
+-Cost1: 1.387204 
+Constraint: 0.054810 
+Constraint: -0.001037 
+-Constraint1: 0.054810 
+-Constraint2: -0.001037 
+Optimality tolerance: 0.881949 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 171 
+Nstep: 10 
+Cost  1.389839 
+-Cost1: 1.389839 
+Constraint: 0.054128 
+Constraint: -0.000805 
+-Constraint1: 0.054128 
+-Constraint2: -0.000805 
+Optimality tolerance: 0.865220 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 172 
+Nstep: 10 
+Cost  1.392593 
+-Cost1: 1.392593 
+Constraint: 0.053327 
+Constraint: -0.001024 
+-Constraint1: 0.053327 
+-Constraint2: -0.001024 
+Optimality tolerance: 0.914117 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 173 
+Nstep: 10 
+Cost  1.394097 
+-Cost1: 1.394097 
+Constraint: 0.052765 
+Constraint: -0.000541 
+-Constraint1: 0.052765 
+-Constraint2: -0.000541 
+Optimality tolerance: 0.720558 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 174 
+Nstep: 10 
+Cost  1.395332 
+-Cost1: 1.395332 
+Constraint: 0.052374 
+Constraint: -0.000281 
+-Constraint1: 0.052374 
+-Constraint2: -0.000281 
+Optimality tolerance: 0.582631 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 175 
+Nstep: 10 
+Cost  1.396140 
+-Cost1: 1.396140 
+Constraint: 0.052102 
+Constraint: -0.000195 
+-Constraint1: 0.052102 
+-Constraint2: -0.000195 
+Optimality tolerance: 0.586464 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 176 
+Nstep: 10 
+Cost  1.396993 
+-Cost1: 1.396993 
+Constraint: 0.051795 
+Constraint: -0.000277 
+-Constraint1: 0.051795 
+-Constraint2: -0.000277 
+Optimality tolerance: 0.764463 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 177 
+Nstep: 10 
+Cost  1.398399 
+-Cost1: 1.398399 
+Constraint: 0.051328 
+Constraint: -0.000456 
+-Constraint1: 0.051328 
+-Constraint2: -0.000456 
+Optimality tolerance: 0.896172 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 178 
+Nstep: 10 
+Cost  1.400467 
+-Cost1: 1.400467 
+Constraint: 0.050634 
+Constraint: -0.001002 
+-Constraint1: 0.050634 
+-Constraint2: -0.001002 
+Optimality tolerance: 1.078895 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 179 
+Nstep: 10 
+Cost  1.402957 
+-Cost1: 1.402957 
+Constraint: 0.049829 
+Constraint: -0.001022 
+-Constraint1: 0.049829 
+-Constraint2: -0.001022 
+Optimality tolerance: 0.955186 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 180 
+Nstep: 10 
+Cost  1.403890 
+-Cost1: 1.403890 
+Constraint: 0.049534 
+Constraint: -0.000224 
+-Constraint1: 0.049534 
+-Constraint2: -0.000224 
+Optimality tolerance: 0.713516 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 181 
+Nstep: 10 
+Cost  1.404270 
+-Cost1: 1.404270 
+Constraint: 0.049388 
+Constraint: -0.000093 
+-Constraint1: 0.049388 
+-Constraint2: -0.000093 
+Optimality tolerance: 0.430660 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 182 
+Nstep: 10 
+Cost  1.404539 
+-Cost1: 1.404539 
+Constraint: 0.049274 
+Constraint: -0.000080 
+-Constraint1: 0.049274 
+-Constraint2: -0.000080 
+Optimality tolerance: 0.430559 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 183 
+Nstep: 10 
+Cost  1.404865 
+-Cost1: 1.404865 
+Constraint: 0.049156 
+Constraint: -0.000118 
+-Constraint1: 0.049156 
+-Constraint2: -0.000118 
+Optimality tolerance: 0.524632 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 184 
+Nstep: 10 
+Cost  1.405774 
+-Cost1: 1.405774 
+Constraint: 0.048874 
+Constraint: -0.000384 
+-Constraint1: 0.048874 
+-Constraint2: -0.000384 
+Optimality tolerance: 0.693019 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 185 
+Nstep: 10 
+Cost  1.406165 
+-Cost1: 1.406165 
+Constraint: 0.048748 
+Constraint: -0.000057 
+-Constraint1: 0.048748 
+-Constraint2: -0.000057 
+Optimality tolerance: 0.391529 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 186 
+Nstep: 10 
+Cost  1.406229 
+-Cost1: 1.406229 
+Constraint: 0.048703 
+Constraint: -0.000033 
+-Constraint1: 0.048703 
+-Constraint2: -0.000033 
+Optimality tolerance: 0.327249 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 187 
+Nstep: 10 
+Cost  1.406292 
+-Cost1: 1.406292 
+Constraint: 0.048643 
+Constraint: -0.000061 
+-Constraint1: 0.048643 
+-Constraint2: -0.000061 
+Optimality tolerance: 0.467311 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 188 
+Nstep: 10 
+Cost  1.406586 
+-Cost1: 1.406586 
+Constraint: 0.048478 
+Constraint: -0.000203 
+-Constraint1: 0.048478 
+-Constraint2: -0.000203 
+Optimality tolerance: 0.640833 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 189 
+Nstep: 10 
+Cost  1.407561 
+-Cost1: 1.407561 
+Constraint: 0.048168 
+Constraint: -0.000333 
+-Constraint1: 0.048168 
+-Constraint2: -0.000333 
+Optimality tolerance: 0.629740 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 190 
+Nstep: 10 
+Cost  1.408083 
+-Cost1: 1.408083 
+Constraint: 0.048010 
+Constraint: -0.000108 
+-Constraint1: 0.048010 
+-Constraint2: -0.000108 
+Optimality tolerance: 0.433475 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 191 
+Nstep: 10 
+Cost  1.408564 
+-Cost1: 1.408564 
+Constraint: 0.047849 
+Constraint: -0.000143 
+-Constraint1: 0.047849 
+-Constraint2: -0.000143 
+Optimality tolerance: 0.474830 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 192 
+Nstep: 10 
+Cost  1.409300 
+-Cost1: 1.409300 
+Constraint: 0.047615 
+Constraint: -0.000271 
+-Constraint1: 0.047615 
+-Constraint2: -0.000271 
+Optimality tolerance: 0.670055 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 193 
+Nstep: 10 
+Cost  1.410270 
+-Cost1: 1.410270 
+Constraint: 0.047371 
+Constraint: -0.000194 
+-Constraint1: 0.047371 
+-Constraint2: -0.000194 
+Optimality tolerance: 0.553594 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 194 
+Nstep: 10 
+Cost  1.410980 
+-Cost1: 1.410980 
+Constraint: 0.047211 
+Constraint: -0.000127 
+-Constraint1: 0.047211 
+-Constraint2: -0.000127 
+Optimality tolerance: 0.395848 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 195 
+Nstep: 10 
+Cost  1.411360 
+-Cost1: 1.411360 
+Constraint: 0.047106 
+Constraint: -0.000073 
+-Constraint1: 0.047106 
+-Constraint2: -0.000073 
+Optimality tolerance: 0.323785 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 196 
+Nstep: 10 
+Cost  1.411693 
+-Cost1: 1.411693 
+Constraint: 0.047025 
+Constraint: -0.000037 
+-Constraint1: 0.047025 
+-Constraint2: -0.000037 
+Optimality tolerance: 0.265266 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 197 
+Nstep: 10 
+Cost  1.411854 
+-Cost1: 1.411854 
+Constraint: 0.046994 
+Constraint: -0.000021 
+-Constraint1: 0.046994 
+-Constraint2: -0.000021 
+Optimality tolerance: 0.280750 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 198 
+Nstep: 10 
+Cost  1.412109 
+-Cost1: 1.412109 
+Constraint: 0.046941 
+Constraint: -0.000053 
+-Constraint1: 0.046941 
+-Constraint2: -0.000053 
+Optimality tolerance: 0.377668 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 199 
+Nstep: 10 
+Cost  1.412622 
+-Cost1: 1.412622 
+Constraint: 0.046844 
+Constraint: -0.000068 
+-Constraint1: 0.046844 
+-Constraint2: -0.000068 
+Optimality tolerance: 0.355171 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 200 
+Nstep: 10 
+Cost  1.413024 
+-Cost1: 1.413024 
+Constraint: 0.046791 
+Constraint: -0.000044 
+-Constraint1: 0.046791 
+-Constraint2: -0.000044 
+Optimality tolerance: 0.391252 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 201 
+Nstep: 10 
+Cost  1.413790 
+-Cost1: 1.413790 
+Constraint: 0.046697 
+Constraint: -0.000139 
+-Constraint1: 0.046697 
+-Constraint2: -0.000139 
+Optimality tolerance: 0.663658 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 202 
+Nstep: 10 
+Cost  1.416749 
+-Cost1: 1.416749 
+Constraint: 0.046278 
+Constraint: -0.000724 
+-Constraint1: 0.046278 
+-Constraint2: -0.000724 
+Optimality tolerance: 1.278618 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 203 
+Nstep: 10 
+Cost  1.420312 
+-Cost1: 1.420312 
+Constraint: 0.045597 
+Constraint: -0.001254 
+-Constraint1: 0.045597 
+-Constraint2: -0.001254 
+Optimality tolerance: 0.926683 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 204 
+Nstep: 10 
+Cost  1.421670 
+-Cost1: 1.421670 
+Constraint: 0.045207 
+Constraint: -0.000423 
+-Constraint1: 0.045207 
+-Constraint2: -0.000423 
+Optimality tolerance: 0.937902 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 205 
+Nstep: 10 
+Cost  1.422716 
+-Cost1: 1.422716 
+Constraint: 0.045005 
+Constraint: -0.000256 
+-Constraint1: 0.045005 
+-Constraint2: -0.000256 
+Optimality tolerance: 0.688774 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 206 
+Nstep: 10 
+Cost  1.424502 
+-Cost1: 1.424502 
+Constraint: 0.044702 
+Constraint: -0.000448 
+-Constraint1: 0.044702 
+-Constraint2: -0.000448 
+Optimality tolerance: 0.730932 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 207 
+Nstep: 10 
+Cost  1.425674 
+-Cost1: 1.425674 
+Constraint: 0.044424 
+Constraint: -0.000228 
+-Constraint1: 0.044424 
+-Constraint2: -0.000228 
+Optimality tolerance: 0.614964 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 208 
+Nstep: 10 
+Cost  1.426047 
+-Cost1: 1.426047 
+Constraint: 0.044312 
+Constraint: -0.000073 
+-Constraint1: 0.044312 
+-Constraint2: -0.000073 
+Optimality tolerance: 0.430117 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 209 
+Nstep: 10 
+Cost  1.426416 
+-Cost1: 1.426416 
+Constraint: 0.044201 
+Constraint: -0.000129 
+-Constraint1: 0.044201 
+-Constraint2: -0.000129 
+Optimality tolerance: 1.014638 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 210 
+Nstep: 10 
+Cost  1.427282 
+-Cost1: 1.427282 
+Constraint: 0.043974 
+Constraint: -0.000260 
+-Constraint1: 0.043974 
+-Constraint2: -0.000260 
+Optimality tolerance: 0.739892 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 211 
+Nstep: 10 
+Cost  1.428944 
+-Cost1: 1.428944 
+Constraint: 0.043635 
+Constraint: -0.000439 
+-Constraint1: 0.043635 
+-Constraint2: -0.000439 
+Optimality tolerance: 0.803148 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 212 
+Nstep: 10 
+Cost  1.429223 
+-Cost1: 1.429223 
+Constraint: 0.043538 
+Constraint: -0.000086 
+-Constraint1: 0.043538 
+-Constraint2: -0.000086 
+Optimality tolerance: 0.807421 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 213 
+Nstep: 10 
+Cost  1.429365 
+-Cost1: 1.429365 
+Constraint: 0.043494 
+Constraint: -0.000034 
+-Constraint1: 0.043494 
+-Constraint2: -0.000034 
+Optimality tolerance: 0.501276 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 214 
+Nstep: 10 
+Cost  1.429433 
+-Cost1: 1.429433 
+Constraint: 0.043472 
+Constraint: -0.000014 
+-Constraint1: 0.043472 
+-Constraint2: -0.000014 
+Optimality tolerance: 0.434446 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 215 
+Nstep: 10 
+Cost  1.429487 
+-Cost1: 1.429487 
+Constraint: 0.043453 
+Constraint: -0.000016 
+-Constraint1: 0.043453 
+-Constraint2: -0.000016 
+Optimality tolerance: 0.602774 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 216 
+Nstep: 10 
+Cost  1.429565 
+-Cost1: 1.429565 
+Constraint: 0.043424 
+Constraint: -0.000028 
+-Constraint1: 0.043424 
+-Constraint2: -0.000028 
+Optimality tolerance: 0.618339 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 217 
+Nstep: 10 
+Cost  1.429719 
+-Cost1: 1.429719 
+Constraint: 0.043364 
+Constraint: -0.000067 
+-Constraint1: 0.043364 
+-Constraint2: -0.000067 
+Optimality tolerance: 0.685318 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 218 
+Nstep: 10 
+Cost  1.430298 
+-Cost1: 1.430298 
+Constraint: 0.043153 
+Constraint: -0.000270 
+-Constraint1: 0.043153 
+-Constraint2: -0.000270 
+Optimality tolerance: 0.629596 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 219 
+Nstep: 10 
+Cost  1.430628 
+-Cost1: 1.430628 
+Constraint: 0.043058 
+Constraint: -0.000063 
+-Constraint1: 0.043058 
+-Constraint2: -0.000063 
+Optimality tolerance: 0.455120 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 220 
+Nstep: 10 
+Cost  1.430810 
+-Cost1: 1.430810 
+Constraint: 0.043008 
+Constraint: -0.000034 
+-Constraint1: 0.043008 
+-Constraint2: -0.000034 
+Optimality tolerance: 0.425449 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 221 
+Nstep: 10 
+Cost  1.431009 
+-Cost1: 1.431009 
+Constraint: 0.042945 
+Constraint: -0.000056 
+-Constraint1: 0.042945 
+-Constraint2: -0.000056 
+Optimality tolerance: 0.741377 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 222 
+Nstep: 10 
+Cost  1.431816 
+-Cost1: 1.431816 
+Constraint: 0.042695 
+Constraint: -0.000366 
+-Constraint1: 0.042695 
+-Constraint2: -0.000366 
+Optimality tolerance: 0.785716 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 223 
+Nstep: 10 
+Cost  1.432590 
+-Cost1: 1.432590 
+Constraint: 0.042509 
+Constraint: -0.000157 
+-Constraint1: 0.042509 
+-Constraint2: -0.000157 
+Optimality tolerance: 0.804269 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 224 
+Nstep: 10 
+Cost  1.433113 
+-Cost1: 1.433113 
+Constraint: 0.042414 
+Constraint: -0.000076 
+-Constraint1: 0.042414 
+-Constraint2: -0.000076 
+Optimality tolerance: 0.613120 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 225 
+Nstep: 10 
+Cost  1.433495 
+-Cost1: 1.433495 
+Constraint: 0.042355 
+Constraint: -0.000040 
+-Constraint1: 0.042355 
+-Constraint2: -0.000040 
+Optimality tolerance: 0.395507 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 226 
+Nstep: 10 
+Cost  1.434015 
+-Cost1: 1.434015 
+Constraint: 0.042285 
+Constraint: -0.000055 
+-Constraint1: 0.042285 
+-Constraint2: -0.000055 
+Optimality tolerance: 0.577864 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 227 
+Nstep: 10 
+Cost  1.435094 
+-Cost1: 1.435094 
+Constraint: 0.042125 
+Constraint: -0.000140 
+-Constraint1: 0.042125 
+-Constraint2: -0.000140 
+Optimality tolerance: 0.438412 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 228 
+Nstep: 10 
+Cost  1.435960 
+-Cost1: 1.435960 
+Constraint: 0.041959 
+Constraint: -0.000126 
+-Constraint1: 0.041959 
+-Constraint2: -0.000126 
+Optimality tolerance: 0.706406 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 229 
+Nstep: 10 
+Cost  1.436384 
+-Cost1: 1.436384 
+Constraint: 0.041861 
+Constraint: -0.000080 
+-Constraint1: 0.041861 
+-Constraint2: -0.000080 
+Optimality tolerance: 0.602263 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 230 
+Nstep: 10 
+Cost  1.436651 
+-Cost1: 1.436651 
+Constraint: 0.041815 
+Constraint: -0.000026 
+-Constraint1: 0.041815 
+-Constraint2: -0.000026 
+Optimality tolerance: 0.325851 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 231 
+Nstep: 10 
+Cost  1.437020 
+-Cost1: 1.437020 
+Constraint: 0.041761 
+Constraint: -0.000034 
+-Constraint1: 0.041761 
+-Constraint2: -0.000034 
+Optimality tolerance: 0.346045 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 232 
+Nstep: 10 
+Cost  1.437517 
+-Cost1: 1.437517 
+Constraint: 0.041686 
+Constraint: -0.000068 
+-Constraint1: 0.041686 
+-Constraint2: -0.000068 
+Optimality tolerance: 0.356010 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 233 
+Nstep: 10 
+Cost  1.437608 
+-Cost1: 1.437608 
+Constraint: 0.041656 
+Constraint: -0.000017 
+-Constraint1: 0.041656 
+-Constraint2: -0.000017 
+Optimality tolerance: 0.285111 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 234 
+Nstep: 10 
+Cost  1.437668 
+-Cost1: 1.437668 
+Constraint: 0.041635 
+Constraint: -0.000018 
+-Constraint1: 0.041635 
+-Constraint2: -0.000018 
+Optimality tolerance: 0.467053 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 235 
+Nstep: 10 
+Cost  1.437764 
+-Cost1: 1.437764 
+Constraint: 0.041601 
+Constraint: -0.000033 
+-Constraint1: 0.041601 
+-Constraint2: -0.000033 
+Optimality tolerance: 0.569833 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 236 
+Nstep: 10 
+Cost  1.438038 
+-Cost1: 1.438038 
+Constraint: 0.041513 
+Constraint: -0.000102 
+-Constraint1: 0.041513 
+-Constraint2: -0.000102 
+Optimality tolerance: 0.638480 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 237 
+Nstep: 10 
+Cost  1.438725 
+-Cost1: 1.438725 
+Constraint: 0.041304 
+Constraint: -0.000279 
+-Constraint1: 0.041304 
+-Constraint2: -0.000279 
+Optimality tolerance: 0.680624 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 238 
+Nstep: 10 
+Cost  1.438963 
+-Cost1: 1.438963 
+Constraint: 0.041238 
+Constraint: -0.000052 
+-Constraint1: 0.041238 
+-Constraint2: -0.000052 
+Optimality tolerance: 0.753706 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 239 
+Nstep: 10 
+Cost  1.439074 
+-Cost1: 1.439074 
+Constraint: 0.041213 
+Constraint: -0.000013 
+-Constraint1: 0.041213 
+-Constraint2: -0.000013 
+Optimality tolerance: 0.336573 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 240 
+Nstep: 10 
+Cost  1.439142 
+-Cost1: 1.439142 
+Constraint: 0.041200 
+Constraint: -0.000010 
+-Constraint1: 0.041200 
+-Constraint2: -0.000010 
+Optimality tolerance: 0.324303 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 241 
+Nstep: 10 
+Cost  1.439227 
+-Cost1: 1.439227 
+Constraint: 0.041185 
+Constraint: -0.000012 
+-Constraint1: 0.041185 
+-Constraint2: -0.000012 
+Optimality tolerance: 0.402513 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 242 
+Nstep: 10 
+Cost  1.439342 
+-Cost1: 1.439342 
+Constraint: 0.041165 
+Constraint: -0.000016 
+-Constraint1: 0.041165 
+-Constraint2: -0.000016 
+Optimality tolerance: 0.374082 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 243 
+Nstep: 10 
+Cost  1.439514 
+-Cost1: 1.439514 
+Constraint: 0.041135 
+Constraint: -0.000024 
+-Constraint1: 0.041135 
+-Constraint2: -0.000024 
+Optimality tolerance: 0.397697 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 244 
+Nstep: 10 
+Cost  1.439821 
+-Cost1: 1.439821 
+Constraint: 0.041082 
+Constraint: -0.000042 
+-Constraint1: 0.041082 
+-Constraint2: -0.000042 
+Optimality tolerance: 0.458375 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 245 
+Nstep: 10 
+Cost  1.440564 
+-Cost1: 1.440564 
+Constraint: 0.040944 
+Constraint: -0.000118 
+-Constraint1: 0.040944 
+-Constraint2: -0.000118 
+Optimality tolerance: 0.406141 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 246 
+Nstep: 10 
+Cost  1.441009 
+-Cost1: 1.441009 
+Constraint: 0.040831 
+Constraint: -0.000066 
+-Constraint1: 0.040831 
+-Constraint2: -0.000066 
+Optimality tolerance: 0.414737 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 247 
+Nstep: 10 
+Cost  1.441077 
+-Cost1: 1.441077 
+Constraint: 0.040792 
+Constraint: -0.000028 
+-Constraint1: 0.040792 
+-Constraint2: -0.000028 
+Optimality tolerance: 0.294189 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 248 
+Nstep: 10 
+Cost  1.441141 
+-Cost1: 1.441141 
+Constraint: 0.040752 
+Constraint: -0.000035 
+-Constraint1: 0.040752 
+-Constraint2: -0.000035 
+Optimality tolerance: 0.582738 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 249 
+Nstep: 10 
+Cost  1.441384 
+-Cost1: 1.441384 
+Constraint: 0.040637 
+Constraint: -0.000139 
+-Constraint1: 0.040637 
+-Constraint2: -0.000139 
+Optimality tolerance: 0.709856 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 250 
+Nstep: 10 
+Cost  1.441861 
+-Cost1: 1.441861 
+Constraint: 0.040439 
+Constraint: -0.000232 
+-Constraint1: 0.040439 
+-Constraint2: -0.000232 
+Optimality tolerance: 0.705224 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 251 
+Nstep: 10 
+Cost  1.442024 
+-Cost1: 1.442024 
+Constraint: 0.040364 
+Constraint: -0.000063 
+-Constraint1: 0.040364 
+-Constraint2: -0.000063 
+Optimality tolerance: 0.584699 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 252 
+Nstep: 10 
+Cost  1.442107 
+-Cost1: 1.442107 
+Constraint: 0.040297 
+Constraint: -0.000067 
+-Constraint1: 0.040297 
+-Constraint2: -0.000067 
+Optimality tolerance: 0.288517 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 253 
+Nstep: 10 
+Cost  1.442228 
+-Cost1: 1.442228 
+Constraint: 0.040241 
+Constraint: -0.000026 
+-Constraint1: 0.040241 
+-Constraint2: -0.000026 
+Optimality tolerance: 0.332271 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 254 
+Nstep: 10 
+Cost  1.442267 
+-Cost1: 1.442267 
+Constraint: 0.040230 
+Constraint: -0.000005 
+-Constraint1: 0.040230 
+-Constraint2: -0.000005 
+Optimality tolerance: 0.201512 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 255 
+Nstep: 10 
+Cost  1.442283 
+-Cost1: 1.442283 
+Constraint: 0.040224 
+Constraint: -0.000005 
+-Constraint1: 0.040224 
+-Constraint2: -0.000005 
+Optimality tolerance: 0.240452 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 256 
+Nstep: 10 
+Cost  1.442305 
+-Cost1: 1.442305 
+Constraint: 0.040217 
+Constraint: -0.000007 
+-Constraint1: 0.040217 
+-Constraint2: -0.000007 
+Optimality tolerance: 0.267188 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 257 
+Nstep: 10 
+Cost  1.442341 
+-Cost1: 1.442341 
+Constraint: 0.040206 
+Constraint: -0.000010 
+-Constraint1: 0.040206 
+-Constraint2: -0.000010 
+Optimality tolerance: 0.250715 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 258 
+Nstep: 10 
+Cost  1.442398 
+-Cost1: 1.442398 
+Constraint: 0.040188 
+Constraint: -0.000016 
+-Constraint1: 0.040188 
+-Constraint2: -0.000016 
+Optimality tolerance: 0.242191 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 259 
+Nstep: 10 
+Cost  1.442502 
+-Cost1: 1.442502 
+Constraint: 0.040156 
+Constraint: -0.000030 
+-Constraint1: 0.040156 
+-Constraint2: -0.000030 
+Optimality tolerance: 0.274777 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 260 
+Nstep: 10 
+Cost  1.442773 
+-Cost1: 1.442773 
+Constraint: 0.040077 
+Constraint: -0.000073 
+-Constraint1: 0.040077 
+-Constraint2: -0.000073 
+Optimality tolerance: 0.303501 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 261 
+Nstep: 10 
+Cost  1.442930 
+-Cost1: 1.442930 
+Constraint: 0.040034 
+Constraint: -0.000014 
+-Constraint1: 0.040034 
+-Constraint2: -0.000014 
+Optimality tolerance: 0.214068 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 262 
+Nstep: 10 
+Cost  1.442950 
+-Cost1: 1.442950 
+Constraint: 0.040025 
+Constraint: -0.000005 
+-Constraint1: 0.040025 
+-Constraint2: -0.000005 
+Optimality tolerance: 0.222218 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 263 
+Nstep: 10 
+Cost  1.442963 
+-Cost1: 1.442963 
+Constraint: 0.040020 
+Constraint: -0.000004 
+-Constraint1: 0.040020 
+-Constraint2: -0.000004 
+Optimality tolerance: 0.304300 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 264 
+Nstep: 10 
+Cost  1.442990 
+-Cost1: 1.442990 
+Constraint: 0.040015 
+Constraint: -0.000003 
+-Constraint1: 0.040015 
+-Constraint2: -0.000003 
+Optimality tolerance: 0.263436 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 265 
+Nstep: 10 
+Cost  1.443024 
+-Cost1: 1.443024 
+Constraint: 0.040010 
+Constraint: -0.000004 
+-Constraint1: 0.040010 
+-Constraint2: -0.000004 
+Optimality tolerance: 0.252405 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 266 
+Nstep: 10 
+Cost  1.443059 
+-Cost1: 1.443059 
+Constraint: 0.040005 
+Constraint: -0.000004 
+-Constraint1: 0.040005 
+-Constraint2: -0.000004 
+Optimality tolerance: 0.166729 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 267 
+Nstep: 10 
+Cost  1.443108 
+-Cost1: 1.443108 
+Constraint: 0.039998 
+Constraint: -0.000006 
+-Constraint1: 0.039998 
+-Constraint2: -0.000006 
+Optimality tolerance: 0.196850 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 268 
+Nstep: 10 
+Cost  1.443163 
+-Cost1: 1.443163 
+Constraint: 0.039991 
+Constraint: -0.000004 
+-Constraint1: 0.039991 
+-Constraint2: -0.000004 
+Optimality tolerance: 0.227659 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 269 
+Nstep: 10 
+Cost  1.443247 
+-Cost1: 1.443247 
+Constraint: 0.039982 
+Constraint: -0.000008 
+-Constraint1: 0.039982 
+-Constraint2: -0.000008 
+Optimality tolerance: 0.284035 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 270 
+Nstep: 10 
+Cost  1.443423 
+-Cost1: 1.443423 
+Constraint: 0.039961 
+Constraint: -0.000024 
+-Constraint1: 0.039961 
+-Constraint2: -0.000024 
+Optimality tolerance: 0.404554 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 271 
+Nstep: 10 
+Cost  1.444024 
+-Cost1: 1.444024 
+Constraint: 0.039871 
+Constraint: -0.000153 
+-Constraint1: 0.039871 
+-Constraint2: -0.000153 
+Optimality tolerance: 0.832069 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 272 
+Nstep: 10 
+Cost  1.445202 
+-Cost1: 1.445202 
+Constraint: 0.039622 
+Constraint: -0.000271 
+-Constraint1: 0.039622 
+-Constraint2: -0.000271 
+Optimality tolerance: 0.470239 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 273 
+Nstep: 10 
+Cost  1.445485 
+-Cost1: 1.445485 
+Constraint: 0.039525 
+Constraint: -0.000068 
+-Constraint1: 0.039525 
+-Constraint2: -0.000068 
+Optimality tolerance: 0.323822 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 274 
+Nstep: 10 
+Cost  1.445699 
+-Cost1: 1.445699 
+Constraint: 0.039429 
+Constraint: -0.000147 
+-Constraint1: 0.039429 
+-Constraint2: -0.000147 
+Optimality tolerance: 0.480700 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 275 
+Nstep: 10 
+Cost  1.446459 
+-Cost1: 1.446459 
+Constraint: 0.039177 
+Constraint: -0.000329 
+-Constraint1: 0.039177 
+-Constraint2: -0.000329 
+Optimality tolerance: 0.550418 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 276 
+Nstep: 10 
+Cost  1.446784 
+-Cost1: 1.446784 
+Constraint: 0.039084 
+Constraint: -0.000053 
+-Constraint1: 0.039084 
+-Constraint2: -0.000053 
+Optimality tolerance: 0.411274 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 277 
+Nstep: 10 
+Cost  1.446920 
+-Cost1: 1.446920 
+Constraint: 0.039038 
+Constraint: -0.000046 
+-Constraint1: 0.039038 
+-Constraint2: -0.000046 
+Optimality tolerance: 0.234734 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 278 
+Nstep: 10 
+Cost  1.447198 
+-Cost1: 1.447198 
+Constraint: 0.038949 
+Constraint: -0.000080 
+-Constraint1: 0.038949 
+-Constraint2: -0.000080 
+Optimality tolerance: 0.263094 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 279 
+Nstep: 10 
+Cost  1.447295 
+-Cost1: 1.447295 
+Constraint: 0.038924 
+Constraint: -0.000006 
+-Constraint1: 0.038924 
+-Constraint2: -0.000006 
+Optimality tolerance: 0.156718 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 280 
+Nstep: 10 
+Cost  1.447323 
+-Cost1: 1.447323 
+Constraint: 0.038919 
+Constraint: -0.000005 
+-Constraint1: 0.038919 
+-Constraint2: -0.000005 
+Optimality tolerance: 0.153846 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 281 
+Nstep: 10 
+Cost  1.447356 
+-Cost1: 1.447356 
+Constraint: 0.038913 
+Constraint: -0.000005 
+-Constraint1: 0.038913 
+-Constraint2: -0.000005 
+Optimality tolerance: 0.203620 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 282 
+Nstep: 10 
+Cost  1.447398 
+-Cost1: 1.447398 
+Constraint: 0.038905 
+Constraint: -0.000008 
+-Constraint1: 0.038905 
+-Constraint2: -0.000008 
+Optimality tolerance: 0.231195 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 283 
+Nstep: 10 
+Cost  1.447457 
+-Cost1: 1.447457 
+Constraint: 0.038892 
+Constraint: -0.000013 
+-Constraint1: 0.038892 
+-Constraint2: -0.000013 
+Optimality tolerance: 0.267051 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 284 
+Nstep: 10 
+Cost  1.447520 
+-Cost1: 1.447520 
+Constraint: 0.038876 
+Constraint: -0.000013 
+-Constraint1: 0.038876 
+-Constraint2: -0.000013 
+Optimality tolerance: 0.326121 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 285 
+Nstep: 10 
+Cost  1.447612 
+-Cost1: 1.447612 
+Constraint: 0.038859 
+Constraint: -0.000014 
+-Constraint1: 0.038859 
+-Constraint2: -0.000014 
+Optimality tolerance: 0.274876 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 286 
+Nstep: 10 
+Cost  1.447765 
+-Cost1: 1.447765 
+Constraint: 0.038829 
+Constraint: -0.000037 
+-Constraint1: 0.038829 
+-Constraint2: -0.000037 
+Optimality tolerance: 0.374420 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 287 
+Nstep: 10 
+Cost  1.448147 
+-Cost1: 1.448147 
+Constraint: 0.038749 
+Constraint: -0.000066 
+-Constraint1: 0.038749 
+-Constraint2: -0.000066 
+Optimality tolerance: 0.319912 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 288 
+Nstep: 10 
+Cost  1.448734 
+-Cost1: 1.448734 
+Constraint: 0.038668 
+Constraint: -0.000078 
+-Constraint1: 0.038668 
+-Constraint2: -0.000078 
+Optimality tolerance: 0.293304 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 289 
+Nstep: 10 
+Cost  1.449204 
+-Cost1: 1.449204 
+Constraint: 0.038589 
+Constraint: -0.000048 
+-Constraint1: 0.038589 
+-Constraint2: -0.000048 
+Optimality tolerance: 0.259475 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 290 
+Nstep: 10 
+Cost  1.449385 
+-Cost1: 1.449385 
+Constraint: 0.038554 
+Constraint: -0.000034 
+-Constraint1: 0.038554 
+-Constraint2: -0.000034 
+Optimality tolerance: 0.264775 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 291 
+Nstep: 10 
+Cost  1.449741 
+-Cost1: 1.449741 
+Constraint: 0.038492 
+Constraint: -0.000085 
+-Constraint1: 0.038492 
+-Constraint2: -0.000085 
+Optimality tolerance: 0.424345 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 292 
+Nstep: 10 
+Cost  1.451010 
+-Cost1: 1.451010 
+Constraint: 0.038236 
+Constraint: -0.000431 
+-Constraint1: 0.038236 
+-Constraint2: -0.000431 
+Optimality tolerance: 0.665453 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 293 
+Nstep: 10 
+Cost  1.451390 
+-Cost1: 1.451390 
+Constraint: 0.038135 
+Constraint: -0.000050 
+-Constraint1: 0.038135 
+-Constraint2: -0.000050 
+Optimality tolerance: 0.520726 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 294 
+Nstep: 10 
+Cost  1.451507 
+-Cost1: 1.451507 
+Constraint: 0.038113 
+Constraint: -0.000013 
+-Constraint1: 0.038113 
+-Constraint2: -0.000013 
+Optimality tolerance: 0.232622 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 295 
+Nstep: 10 
+Cost  1.451582 
+-Cost1: 1.451582 
+Constraint: 0.038099 
+Constraint: -0.000014 
+-Constraint1: 0.038099 
+-Constraint2: -0.000014 
+Optimality tolerance: 0.222330 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 296 
+Nstep: 10 
+Cost  1.451689 
+-Cost1: 1.451689 
+Constraint: 0.038078 
+Constraint: -0.000022 
+-Constraint1: 0.038078 
+-Constraint2: -0.000022 
+Optimality tolerance: 0.221449 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 297 
+Nstep: 10 
+Cost  1.451867 
+-Cost1: 1.451867 
+Constraint: 0.038041 
+Constraint: -0.000039 
+-Constraint1: 0.038041 
+-Constraint2: -0.000039 
+Optimality tolerance: 0.263584 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 298 
+Nstep: 10 
+Cost  1.452227 
+-Cost1: 1.452227 
+Constraint: 0.037961 
+Constraint: -0.000075 
+-Constraint1: 0.037961 
+-Constraint2: -0.000075 
+Optimality tolerance: 0.341676 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 299 
+Nstep: 10 
+Cost  1.452663 
+-Cost1: 1.452663 
+Constraint: 0.037875 
+Constraint: -0.000074 
+-Constraint1: 0.037875 
+-Constraint2: -0.000074 
+Optimality tolerance: 0.350351 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 300 
+Nstep: 10 
+Cost  1.453063 
+-Cost1: 1.453063 
+Constraint: 0.037816 
+Constraint: -0.000087 
+-Constraint1: 0.037816 
+-Constraint2: -0.000087 
+Optimality tolerance: 0.388980 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 301 
+Nstep: 10 
+Cost  1.453705 
+-Cost1: 1.453705 
+Constraint: 0.037715 
+Constraint: -0.000176 
+-Constraint1: 0.037715 
+-Constraint2: -0.000176 
+Optimality tolerance: 0.503662 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 302 
+Nstep: 10 
+Cost  1.454228 
+-Cost1: 1.454228 
+Constraint: 0.037589 
+Constraint: -0.000127 
+-Constraint1: 0.037589 
+-Constraint2: -0.000127 
+Optimality tolerance: 0.464631 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 303 
+Nstep: 10 
+Cost  1.455418 
+-Cost1: 1.455418 
+Constraint: 0.037321 
+Constraint: -0.000365 
+-Constraint1: 0.037321 
+-Constraint2: -0.000365 
+Optimality tolerance: 0.684380 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 304 
+Nstep: 10 
+Cost  1.456104 
+-Cost1: 1.456104 
+Constraint: 0.037181 
+Constraint: -0.000077 
+-Constraint1: 0.037181 
+-Constraint2: -0.000077 
+Optimality tolerance: 0.360695 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 305 
+Nstep: 10 
+Cost  1.456602 
+-Cost1: 1.456602 
+Constraint: 0.037102 
+Constraint: -0.000077 
+-Constraint1: 0.037102 
+-Constraint2: -0.000077 
+Optimality tolerance: 0.494070 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 306 
+Nstep: 10 
+Cost  1.457792 
+-Cost1: 1.457792 
+Constraint: 0.036959 
+Constraint: -0.000185 
+-Constraint1: 0.036959 
+-Constraint2: -0.000185 
+Optimality tolerance: 0.852315 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 307 
+Nstep: 10 
+Cost  1.460254 
+-Cost1: 1.460254 
+Constraint: 0.036483 
+Constraint: -0.000711 
+-Constraint1: 0.036483 
+-Constraint2: -0.000711 
+Optimality tolerance: 1.046161 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 308 
+Nstep: 10 
+Cost  1.461861 
+-Cost1: 1.461861 
+Constraint: 0.036039 
+Constraint: -0.000575 
+-Constraint1: 0.036039 
+-Constraint2: -0.000575 
+Optimality tolerance: 0.794392 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 309 
+Nstep: 10 
+Cost  1.462636 
+-Cost1: 1.462636 
+Constraint: 0.035841 
+Constraint: -0.000170 
+-Constraint1: 0.035841 
+-Constraint2: -0.000170 
+Optimality tolerance: 0.604471 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 310 
+Nstep: 10 
+Cost  1.463376 
+-Cost1: 1.463376 
+Constraint: 0.035635 
+Constraint: -0.000209 
+-Constraint1: 0.035635 
+-Constraint2: -0.000209 
+Optimality tolerance: 0.586603 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 311 
+Nstep: 10 
+Cost  1.464437 
+-Cost1: 1.464437 
+Constraint: 0.035350 
+Constraint: -0.000300 
+-Constraint1: 0.035350 
+-Constraint2: -0.000300 
+Optimality tolerance: 0.601201 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 312 
+Nstep: 10 
+Cost  1.464840 
+-Cost1: 1.464840 
+Constraint: 0.035248 
+Constraint: -0.000049 
+-Constraint1: 0.035248 
+-Constraint2: -0.000049 
+Optimality tolerance: 0.307712 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 313 
+Nstep: 10 
+Cost  1.464948 
+-Cost1: 1.464948 
+Constraint: 0.035198 
+Constraint: -0.000050 
+-Constraint1: 0.035198 
+-Constraint2: -0.000050 
+Optimality tolerance: 0.448229 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 314 
+Nstep: 10 
+Cost  1.465208 
+-Cost1: 1.465208 
+Constraint: 0.035098 
+Constraint: -0.000085 
+-Constraint1: 0.035098 
+-Constraint2: -0.000085 
+Optimality tolerance: 0.370273 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 315 
+Nstep: 10 
+Cost  1.465372 
+-Cost1: 1.465372 
+Constraint: 0.035062 
+Constraint: -0.000014 
+-Constraint1: 0.035062 
+-Constraint2: -0.000014 
+Optimality tolerance: 0.230566 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 316 
+Nstep: 10 
+Cost  1.465449 
+-Cost1: 1.465449 
+Constraint: 0.035041 
+Constraint: -0.000019 
+-Constraint1: 0.035041 
+-Constraint2: -0.000019 
+Optimality tolerance: 0.307540 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 317 
+Nstep: 10 
+Cost  1.465547 
+-Cost1: 1.465547 
+Constraint: 0.035011 
+Constraint: -0.000023 
+-Constraint1: 0.035011 
+-Constraint2: -0.000023 
+Optimality tolerance: 0.258586 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 318 
+Nstep: 10 
+Cost  1.465608 
+-Cost1: 1.465608 
+Constraint: 0.034971 
+Constraint: -0.000031 
+-Constraint1: 0.034971 
+-Constraint2: -0.000031 
+Optimality tolerance: 0.293263 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 319 
+Nstep: 10 
+Cost  1.465876 
+-Cost1: 1.465876 
+Constraint: 0.034870 
+Constraint: -0.000106 
+-Constraint1: 0.034870 
+-Constraint2: -0.000106 
+Optimality tolerance: 0.492018 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 320 
+Nstep: 10 
+Cost  1.466739 
+-Cost1: 1.466739 
+Constraint: 0.034683 
+Constraint: -0.000289 
+-Constraint1: 0.034683 
+-Constraint2: -0.000289 
+Optimality tolerance: 0.819490 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 321 
+Nstep: 10 
+Cost  1.468151 
+-Cost1: 1.468151 
+Constraint: 0.034427 
+Constraint: -0.000168 
+-Constraint1: 0.034427 
+-Constraint2: -0.000168 
+Optimality tolerance: 0.409733 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 322 
+Nstep: 10 
+Cost  1.468460 
+-Cost1: 1.468460 
+Constraint: 0.034366 
+Constraint: -0.000027 
+-Constraint1: 0.034366 
+-Constraint2: -0.000027 
+Optimality tolerance: 0.274782 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 323 
+Nstep: 10 
+Cost  1.468624 
+-Cost1: 1.468624 
+Constraint: 0.034333 
+Constraint: -0.000035 
+-Constraint1: 0.034333 
+-Constraint2: -0.000035 
+Optimality tolerance: 0.318136 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 324 
+Nstep: 10 
+Cost  1.468805 
+-Cost1: 1.468805 
+Constraint: 0.034272 
+Constraint: -0.000066 
+-Constraint1: 0.034272 
+-Constraint2: -0.000066 
+Optimality tolerance: 0.418758 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 325 
+Nstep: 10 
+Cost  1.469763 
+-Cost1: 1.469763 
+Constraint: 0.034047 
+Constraint: -0.000329 
+-Constraint1: 0.034047 
+-Constraint2: -0.000329 
+Optimality tolerance: 0.727542 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 326 
+Nstep: 10 
+Cost  1.470650 
+-Cost1: 1.470650 
+Constraint: 0.033905 
+Constraint: -0.000093 
+-Constraint1: 0.033905 
+-Constraint2: -0.000093 
+Optimality tolerance: 0.407495 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 327 
+Nstep: 10 
+Cost  1.471408 
+-Cost1: 1.471408 
+Constraint: 0.033822 
+Constraint: -0.000105 
+-Constraint1: 0.033822 
+-Constraint2: -0.000105 
+Optimality tolerance: 0.430282 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 328 
+Nstep: 10 
+Cost  1.473630 
+-Cost1: 1.473630 
+Constraint: 0.033562 
+Constraint: -0.000395 
+-Constraint1: 0.033562 
+-Constraint2: -0.000395 
+Optimality tolerance: 0.608129 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 329 
+Nstep: 10 
+Cost  1.474262 
+-Cost1: 1.474262 
+Constraint: 0.033452 
+Constraint: -0.000086 
+-Constraint1: 0.033452 
+-Constraint2: -0.000086 
+Optimality tolerance: 0.563249 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 330 
+Nstep: 10 
+Cost  1.474617 
+-Cost1: 1.474617 
+Constraint: 0.033405 
+Constraint: -0.000029 
+-Constraint1: 0.033405 
+-Constraint2: -0.000029 
+Optimality tolerance: 0.335285 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 331 
+Nstep: 10 
+Cost  1.474993 
+-Cost1: 1.474993 
+Constraint: 0.033364 
+Constraint: -0.000038 
+-Constraint1: 0.033364 
+-Constraint2: -0.000038 
+Optimality tolerance: 0.457254 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 332 
+Nstep: 10 
+Cost  1.475637 
+-Cost1: 1.475637 
+Constraint: 0.033290 
+Constraint: -0.000070 
+-Constraint1: 0.033290 
+-Constraint2: -0.000070 
+Optimality tolerance: 0.601677 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 333 
+Nstep: 10 
+Cost  1.477982 
+-Cost1: 1.477982 
+Constraint: 0.033005 
+Constraint: -0.000417 
+-Constraint1: 0.033005 
+-Constraint2: -0.000417 
+Optimality tolerance: 0.646363 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 334 
+Nstep: 10 
+Cost  1.478737 
+-Cost1: 1.478737 
+Constraint: 0.032841 
+Constraint: -0.000174 
+-Constraint1: 0.032841 
+-Constraint2: -0.000174 
+Optimality tolerance: 0.861024 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 335 
+Nstep: 10 
+Cost  1.479028 
+-Cost1: 1.479028 
+Constraint: 0.032773 
+Constraint: -0.000054 
+-Constraint1: 0.032773 
+-Constraint2: -0.000054 
+Optimality tolerance: 0.574612 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 336 
+Nstep: 10 
+Cost  1.479240 
+-Cost1: 1.479240 
+Constraint: 0.032722 
+Constraint: -0.000038 
+-Constraint1: 0.032722 
+-Constraint2: -0.000038 
+Optimality tolerance: 0.333351 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 337 
+Nstep: 10 
+Cost  1.479610 
+-Cost1: 1.479610 
+Constraint: 0.032634 
+Constraint: -0.000085 
+-Constraint1: 0.032634 
+-Constraint2: -0.000085 
+Optimality tolerance: 0.357492 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 338 
+Nstep: 10 
+Cost  1.479756 
+-Cost1: 1.479756 
+Constraint: 0.032603 
+Constraint: -0.000011 
+-Constraint1: 0.032603 
+-Constraint2: -0.000011 
+Optimality tolerance: 0.237366 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 339 
+Nstep: 10 
+Cost  1.479830 
+-Cost1: 1.479830 
+Constraint: 0.032592 
+Constraint: -0.000010 
+-Constraint1: 0.032592 
+-Constraint2: -0.000010 
+Optimality tolerance: 0.324800 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 340 
+Nstep: 10 
+Cost  1.479935 
+-Cost1: 1.479935 
+Constraint: 0.032575 
+Constraint: -0.000017 
+-Constraint1: 0.032575 
+-Constraint2: -0.000017 
+Optimality tolerance: 0.362928 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 341 
+Nstep: 10 
+Cost  1.480130 
+-Cost1: 1.480130 
+Constraint: 0.032545 
+Constraint: -0.000033 
+-Constraint1: 0.032545 
+-Constraint2: -0.000033 
+Optimality tolerance: 0.349446 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 342 
+Nstep: 10 
+Cost  1.480640 
+-Cost1: 1.480640 
+Constraint: 0.032461 
+Constraint: -0.000107 
+-Constraint1: 0.032461 
+-Constraint2: -0.000107 
+Optimality tolerance: 0.491085 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 343 
+Nstep: 10 
+Cost  1.481791 
+-Cost1: 1.481791 
+Constraint: 0.032249 
+Constraint: -0.000271 
+-Constraint1: 0.032249 
+-Constraint2: -0.000271 
+Optimality tolerance: 0.573777 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 344 
+Nstep: 10 
+Cost  1.482081 
+-Cost1: 1.482081 
+Constraint: 0.032180 
+Constraint: -0.000041 
+-Constraint1: 0.032180 
+-Constraint2: -0.000041 
+Optimality tolerance: 0.460076 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 345 
+Nstep: 10 
+Cost  1.482150 
+-Cost1: 1.482150 
+Constraint: 0.032163 
+Constraint: -0.000007 
+-Constraint1: 0.032163 
+-Constraint2: -0.000007 
+Optimality tolerance: 0.231429 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 346 
+Nstep: 10 
+Cost  1.482162 
+-Cost1: 1.482162 
+Constraint: 0.032156 
+Constraint: -0.000005 
+-Constraint1: 0.032156 
+-Constraint2: -0.000005 
+Optimality tolerance: 0.322496 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 347 
+Nstep: 10 
+Cost  1.482171 
+-Cost1: 1.482171 
+Constraint: 0.032151 
+Constraint: -0.000003 
+-Constraint1: 0.032151 
+-Constraint2: -0.000003 
+Optimality tolerance: 0.261109 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 348 
+Nstep: 10 
+Cost  1.482172 
+-Cost1: 1.482172 
+Constraint: 0.032148 
+Constraint: -0.000003 
+-Constraint1: 0.032148 
+-Constraint2: -0.000003 
+Optimality tolerance: 0.181238 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 349 
+Nstep: 10 
+Cost  1.482188 
+-Cost1: 1.482188 
+Constraint: 0.032144 
+Constraint: -0.000001 
+-Constraint1: 0.032144 
+-Constraint2: -0.000001 
+Optimality tolerance: 0.130536 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 350 
+Nstep: 10 
+Cost  1.482210 
+-Cost1: 1.482210 
+Constraint: 0.032142 
+Constraint: -0.000002 
+-Constraint1: 0.032142 
+-Constraint2: -0.000002 
+Optimality tolerance: 0.128076 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 351 
+Nstep: 10 
+Cost  1.482242 
+-Cost1: 1.482242 
+Constraint: 0.032138 
+Constraint: -0.000003 
+-Constraint1: 0.032138 
+-Constraint2: -0.000003 
+Optimality tolerance: 0.140559 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 352 
+Nstep: 10 
+Cost  1.482290 
+-Cost1: 1.482290 
+Constraint: 0.032132 
+Constraint: -0.000005 
+-Constraint1: 0.032132 
+-Constraint2: -0.000005 
+Optimality tolerance: 0.157533 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 353 
+Nstep: 10 
+Cost  1.482363 
+-Cost1: 1.482363 
+Constraint: 0.032122 
+Constraint: -0.000008 
+-Constraint1: 0.032122 
+-Constraint2: -0.000008 
+Optimality tolerance: 0.149740 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 354 
+Nstep: 10 
+Cost  1.482500 
+-Cost1: 1.482500 
+Constraint: 0.032103 
+Constraint: -0.000019 
+-Constraint1: 0.032103 
+-Constraint2: -0.000019 
+Optimality tolerance: 0.194563 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 355 
+Nstep: 10 
+Cost  1.482877 
+-Cost1: 1.482877 
+Constraint: 0.032040 
+Constraint: -0.000066 
+-Constraint1: 0.032040 
+-Constraint2: -0.000066 
+Optimality tolerance: 0.316322 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 356 
+Nstep: 10 
+Cost  1.483399 
+-Cost1: 1.483399 
+Constraint: 0.031957 
+Constraint: -0.000044 
+-Constraint1: 0.031957 
+-Constraint2: -0.000044 
+Optimality tolerance: 0.239268 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 357 
+Nstep: 10 
+Cost  1.483853 
+-Cost1: 1.483853 
+Constraint: 0.031922 
+Constraint: -0.000039 
+-Constraint1: 0.031922 
+-Constraint2: -0.000039 
+Optimality tolerance: 0.297844 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 358 
+Nstep: 10 
+Cost  1.485227 
+-Cost1: 1.485227 
+Constraint: 0.031808 
+Constraint: -0.000281 
+-Constraint1: 0.031808 
+-Constraint2: -0.000281 
+Optimality tolerance: 0.800710 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 359 
+Nstep: 10 
+Cost  1.487054 
+-Cost1: 1.487054 
+Constraint: 0.031550 
+Constraint: -0.000226 
+-Constraint1: 0.031550 
+-Constraint2: -0.000226 
+Optimality tolerance: 0.422983 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 360 
+Nstep: 10 
+Cost  1.487683 
+-Cost1: 1.487683 
+Constraint: 0.031452 
+Constraint: -0.000080 
+-Constraint1: 0.031452 
+-Constraint2: -0.000080 
+Optimality tolerance: 0.277472 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 361 
+Nstep: 10 
+Cost  1.488746 
+-Cost1: 1.488746 
+Constraint: 0.031319 
+Constraint: -0.000172 
+-Constraint1: 0.031319 
+-Constraint2: -0.000172 
+Optimality tolerance: 0.517745 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 362 
+Nstep: 10 
+Cost  1.488899 
+-Cost1: 1.488899 
+Constraint: 0.031184 
+Constraint: -0.000212 
+-Constraint1: 0.031184 
+-Constraint2: -0.000212 
+Optimality tolerance: 0.560456 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 363 
+Nstep: 10 
+Cost  1.489475 
+-Cost1: 1.489475 
+Constraint: 0.030985 
+Constraint: -0.000173 
+-Constraint1: 0.030985 
+-Constraint2: -0.000173 
+Optimality tolerance: 0.540557 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 364 
+Nstep: 10 
+Cost  1.489789 
+-Cost1: 1.489789 
+Constraint: 0.030937 
+Constraint: -0.000023 
+-Constraint1: 0.030937 
+-Constraint2: -0.000023 
+Optimality tolerance: 0.384962 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 365 
+Nstep: 10 
+Cost  1.489973 
+-Cost1: 1.489973 
+Constraint: 0.030920 
+Constraint: -0.000011 
+-Constraint1: 0.030920 
+-Constraint2: -0.000011 
+Optimality tolerance: 0.201156 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 366 
+Nstep: 10 
+Cost  1.490193 
+-Cost1: 1.490193 
+Constraint: 0.030902 
+Constraint: -0.000016 
+-Constraint1: 0.030902 
+-Constraint2: -0.000016 
+Optimality tolerance: 0.254188 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 367 
+Nstep: 10 
+Cost  1.490556 
+-Cost1: 1.490556 
+Constraint: 0.030870 
+Constraint: -0.000028 
+-Constraint1: 0.030870 
+-Constraint2: -0.000028 
+Optimality tolerance: 0.265377 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 368 
+Nstep: 10 
+Cost  1.491252 
+-Cost1: 1.491252 
+Constraint: 0.030802 
+Constraint: -0.000057 
+-Constraint1: 0.030802 
+-Constraint2: -0.000057 
+Optimality tolerance: 0.281517 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 369 
+Nstep: 10 
+Cost  1.491865 
+-Cost1: 1.491865 
+Constraint: 0.030734 
+Constraint: -0.000043 
+-Constraint1: 0.030734 
+-Constraint2: -0.000043 
+Optimality tolerance: 0.238461 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 370 
+Nstep: 10 
+Cost  1.492122 
+-Cost1: 1.492122 
+Constraint: 0.030709 
+Constraint: -0.000023 
+-Constraint1: 0.030709 
+-Constraint2: -0.000023 
+Optimality tolerance: 0.220434 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 371 
+Nstep: 10 
+Cost  1.492509 
+-Cost1: 1.492509 
+Constraint: 0.030675 
+Constraint: -0.000048 
+-Constraint1: 0.030675 
+-Constraint2: -0.000048 
+Optimality tolerance: 0.338677 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 372 
+Nstep: 10 
+Cost  1.493260 
+-Cost1: 1.493260 
+Constraint: 0.030596 
+Constraint: -0.000098 
+-Constraint1: 0.030596 
+-Constraint2: -0.000098 
+Optimality tolerance: 0.319807 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 373 
+Nstep: 10 
+Cost  1.493564 
+-Cost1: 1.493564 
+Constraint: 0.030549 
+Constraint: -0.000042 
+-Constraint1: 0.030549 
+-Constraint2: -0.000042 
+Optimality tolerance: 0.329933 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 374 
+Nstep: 10 
+Cost  1.493927 
+-Cost1: 1.493927 
+Constraint: 0.030497 
+Constraint: -0.000071 
+-Constraint1: 0.030497 
+-Constraint2: -0.000071 
+Optimality tolerance: 0.357816 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 375 
+Nstep: 10 
+Cost  1.494550 
+-Cost1: 1.494550 
+Constraint: 0.030395 
+Constraint: -0.000156 
+-Constraint1: 0.030395 
+-Constraint2: -0.000156 
+Optimality tolerance: 0.477688 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 376 
+Nstep: 10 
+Cost  1.496008 
+-Cost1: 1.496008 
+Constraint: 0.030102 
+Constraint: -0.000459 
+-Constraint1: 0.030102 
+-Constraint2: -0.000459 
+Optimality tolerance: 0.784773 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 377 
+Nstep: 10 
+Cost  1.497346 
+-Cost1: 1.497346 
+Constraint: 0.029919 
+Constraint: -0.000168 
+-Constraint1: 0.029919 
+-Constraint2: -0.000168 
+Optimality tolerance: 0.844650 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 378 
+Nstep: 10 
+Cost  1.498838 
+-Cost1: 1.498838 
+Constraint: 0.029747 
+Constraint: -0.000168 
+-Constraint1: 0.029747 
+-Constraint2: -0.000168 
+Optimality tolerance: 0.712004 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 379 
+Nstep: 10 
+Cost  1.499304 
+-Cost1: 1.499304 
+Constraint: 0.029679 
+Constraint: -0.000058 
+-Constraint1: 0.029679 
+-Constraint2: -0.000058 
+Optimality tolerance: 0.644529 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 380 
+Nstep: 10 
+Cost  1.499650 
+-Cost1: 1.499650 
+Constraint: 0.029637 
+Constraint: -0.000062 
+-Constraint1: 0.029637 
+-Constraint2: -0.000062 
+Optimality tolerance: 0.521049 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 381 
+Nstep: 10 
+Cost  1.499975 
+-Cost1: 1.499975 
+Constraint: 0.029593 
+Constraint: -0.000040 
+-Constraint1: 0.029593 
+-Constraint2: -0.000040 
+Optimality tolerance: 0.396736 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 382 
+Nstep: 10 
+Cost  1.500094 
+-Cost1: 1.500094 
+Constraint: 0.029573 
+Constraint: -0.000011 
+-Constraint1: 0.029573 
+-Constraint2: -0.000011 
+Optimality tolerance: 0.294069 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 383 
+Nstep: 10 
+Cost  1.500177 
+-Cost1: 1.500177 
+Constraint: 0.029559 
+Constraint: -0.000013 
+-Constraint1: 0.029559 
+-Constraint2: -0.000013 
+Optimality tolerance: 0.399325 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 384 
+Nstep: 10 
+Cost  1.500310 
+-Cost1: 1.500310 
+Constraint: 0.029537 
+Constraint: -0.000025 
+-Constraint1: 0.029537 
+-Constraint2: -0.000025 
+Optimality tolerance: 0.427676 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 385 
+Nstep: 10 
+Cost  1.500590 
+-Cost1: 1.500590 
+Constraint: 0.029488 
+Constraint: -0.000065 
+-Constraint1: 0.029488 
+-Constraint2: -0.000065 
+Optimality tolerance: 0.433696 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 386 
+Nstep: 10 
+Cost  1.500863 
+-Cost1: 1.500863 
+Constraint: 0.029442 
+Constraint: -0.000021 
+-Constraint1: 0.029442 
+-Constraint2: -0.000021 
+Optimality tolerance: 0.259630 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 387 
+Nstep: 10 
+Cost  1.501050 
+-Cost1: 1.501050 
+Constraint: 0.029415 
+Constraint: -0.000029 
+-Constraint1: 0.029415 
+-Constraint2: -0.000029 
+Optimality tolerance: 0.355081 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 388 
+Nstep: 10 
+Cost  1.501332 
+-Cost1: 1.501332 
+Constraint: 0.029367 
+Constraint: -0.000051 
+-Constraint1: 0.029367 
+-Constraint2: -0.000051 
+Optimality tolerance: 0.459592 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 389 
+Nstep: 10 
+Cost  1.501912 
+-Cost1: 1.501912 
+Constraint: 0.029266 
+Constraint: -0.000107 
+-Constraint1: 0.029266 
+-Constraint2: -0.000107 
+Optimality tolerance: 0.690253 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 390 
+Nstep: 10 
+Cost  1.504164 
+-Cost1: 1.504164 
+Constraint: 0.028922 
+Constraint: -0.000497 
+-Constraint1: 0.028922 
+-Constraint2: -0.000497 
+Optimality tolerance: 0.736131 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 391 
+Nstep: 10 
+Cost  1.505874 
+-Cost1: 1.505874 
+Constraint: 0.028669 
+Constraint: -0.000272 
+-Constraint1: 0.028669 
+-Constraint2: -0.000272 
+Optimality tolerance: 0.796625 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 392 
+Nstep: 10 
+Cost  1.506290 
+-Cost1: 1.506290 
+Constraint: 0.028597 
+Constraint: -0.000035 
+-Constraint1: 0.028597 
+-Constraint2: -0.000035 
+Optimality tolerance: 0.473633 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 393 
+Nstep: 10 
+Cost  1.506380 
+-Cost1: 1.506380 
+Constraint: 0.028583 
+Constraint: -0.000005 
+-Constraint1: 0.028583 
+-Constraint2: -0.000005 
+Optimality tolerance: 0.245189 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 394 
+Nstep: 10 
+Cost  1.506432 
+-Cost1: 1.506432 
+Constraint: 0.028579 
+Constraint: -0.000004 
+-Constraint1: 0.028579 
+-Constraint2: -0.000004 
+Optimality tolerance: 0.242382 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 395 
+Nstep: 10 
+Cost  1.506490 
+-Cost1: 1.506490 
+Constraint: 0.028573 
+Constraint: -0.000005 
+-Constraint1: 0.028573 
+-Constraint2: -0.000005 
+Optimality tolerance: 0.243060 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 396 
+Nstep: 10 
+Cost  1.506568 
+-Cost1: 1.506568 
+Constraint: 0.028567 
+Constraint: -0.000005 
+-Constraint1: 0.028567 
+-Constraint2: -0.000005 
+Optimality tolerance: 0.188032 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 397 
+Nstep: 10 
+Cost  1.506655 
+-Cost1: 1.506655 
+Constraint: 0.028560 
+Constraint: -0.000006 
+-Constraint1: 0.028560 
+-Constraint2: -0.000006 
+Optimality tolerance: 0.173267 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 398 
+Nstep: 10 
+Cost  1.506770 
+-Cost1: 1.506770 
+Constraint: 0.028551 
+Constraint: -0.000010 
+-Constraint1: 0.028551 
+-Constraint2: -0.000010 
+Optimality tolerance: 0.193268 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 399 
+Nstep: 10 
+Cost  1.506909 
+-Cost1: 1.506909 
+Constraint: 0.028537 
+Constraint: -0.000013 
+-Constraint1: 0.028537 
+-Constraint2: -0.000013 
+Optimality tolerance: 0.210862 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 400 
+Nstep: 10 
+Cost  1.507053 
+-Cost1: 1.507053 
+Constraint: 0.028520 
+Constraint: -0.000016 
+-Constraint1: 0.028520 
+-Constraint2: -0.000016 
+Optimality tolerance: 0.222006 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 401 
+Nstep: 10 
+Cost  1.507229 
+-Cost1: 1.507229 
+Constraint: 0.028498 
+Constraint: -0.000018 
+-Constraint1: 0.028498 
+-Constraint2: -0.000018 
+Optimality tolerance: 0.224180 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 402 
+Nstep: 10 
+Cost  1.507370 
+-Cost1: 1.507370 
+Constraint: 0.028475 
+Constraint: -0.000019 
+-Constraint1: 0.028475 
+-Constraint2: -0.000019 
+Optimality tolerance: 0.236156 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 403 
+Nstep: 10 
+Cost  1.507612 
+-Cost1: 1.507612 
+Constraint: 0.028437 
+Constraint: -0.000032 
+-Constraint1: 0.028437 
+-Constraint2: -0.000032 
+Optimality tolerance: 0.317976 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 404 
+Nstep: 10 
+Cost  1.508148 
+-Cost1: 1.508148 
+Constraint: 0.028364 
+Constraint: -0.000065 
+-Constraint1: 0.028364 
+-Constraint2: -0.000065 
+Optimality tolerance: 0.481495 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 405 
+Nstep: 10 
+Cost  1.509719 
+-Cost1: 1.509719 
+Constraint: 0.028153 
+Constraint: -0.000221 
+-Constraint1: 0.028153 
+-Constraint2: -0.000221 
+Optimality tolerance: 0.915842 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 406 
+Nstep: 10 
+Cost  1.513509 
+-Cost1: 1.513509 
+Constraint: 0.027678 
+Constraint: -0.000850 
+-Constraint1: 0.027678 
+-Constraint2: -0.000850 
+Optimality tolerance: 0.859852 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 407 
+Nstep: 10 
+Cost  1.514851 
+-Cost1: 1.514851 
+Constraint: 0.027454 
+Constraint: -0.000108 
+-Constraint1: 0.027454 
+-Constraint2: -0.000108 
+Optimality tolerance: 0.344949 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 408 
+Nstep: 10 
+Cost  1.515700 
+-Cost1: 1.515700 
+Constraint: 0.027370 
+Constraint: -0.000098 
+-Constraint1: 0.027370 
+-Constraint2: -0.000098 
+Optimality tolerance: 0.281458 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 409 
+Nstep: 10 
+Cost  1.516772 
+-Cost1: 1.516772 
+Constraint: 0.027251 
+Constraint: -0.000095 
+-Constraint1: 0.027251 
+-Constraint2: -0.000095 
+Optimality tolerance: 0.291537 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 410 
+Nstep: 10 
+Cost  1.517103 
+-Cost1: 1.517103 
+Constraint: 0.027197 
+Constraint: -0.000056 
+-Constraint1: 0.027197 
+-Constraint2: -0.000056 
+Optimality tolerance: 0.283895 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 411 
+Nstep: 10 
+Cost  1.517604 
+-Cost1: 1.517604 
+Constraint: 0.027111 
+Constraint: -0.000142 
+-Constraint1: 0.027111 
+-Constraint2: -0.000142 
+Optimality tolerance: 0.480003 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 412 
+Nstep: 10 
+Cost  1.519421 
+-Cost1: 1.519421 
+Constraint: 0.026826 
+Constraint: -0.000380 
+-Constraint1: 0.026826 
+-Constraint2: -0.000380 
+Optimality tolerance: 0.627233 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 413 
+Nstep: 10 
+Cost  1.520851 
+-Cost1: 1.520851 
+Constraint: 0.026632 
+Constraint: -0.000270 
+-Constraint1: 0.026632 
+-Constraint2: -0.000270 
+Optimality tolerance: 0.497590 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 414 
+Nstep: 10 
+Cost  1.522400 
+-Cost1: 1.522400 
+Constraint: 0.026377 
+Constraint: -0.000500 
+-Constraint1: 0.026377 
+-Constraint2: -0.000500 
+Optimality tolerance: 0.728735 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 415 
+Nstep: 10 
+Cost  1.524081 
+-Cost1: 1.524081 
+Constraint: 0.026116 
+Constraint: -0.000156 
+-Constraint1: 0.026116 
+-Constraint2: -0.000156 
+Optimality tolerance: 0.436012 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 416 
+Nstep: 10 
+Cost  1.525052 
+-Cost1: 1.525052 
+Constraint: 0.026013 
+Constraint: -0.000062 
+-Constraint1: 0.026013 
+-Constraint2: -0.000062 
+Optimality tolerance: 0.294260 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 417 
+Nstep: 10 
+Cost  1.525901 
+-Cost1: 1.525901 
+Constraint: 0.025931 
+Constraint: -0.000058 
+-Constraint1: 0.025931 
+-Constraint2: -0.000058 
+Optimality tolerance: 0.259215 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 418 
+Nstep: 10 
+Cost  1.526350 
+-Cost1: 1.526350 
+Constraint: 0.025898 
+Constraint: -0.000030 
+-Constraint1: 0.025898 
+-Constraint2: -0.000030 
+Optimality tolerance: 0.228687 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 419 
+Nstep: 10 
+Cost  1.526893 
+-Cost1: 1.526893 
+Constraint: 0.025862 
+Constraint: -0.000042 
+-Constraint1: 0.025862 
+-Constraint2: -0.000042 
+Optimality tolerance: 0.294638 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 420 
+Nstep: 10 
+Cost  1.527702 
+-Cost1: 1.527702 
+Constraint: 0.025814 
+Constraint: -0.000055 
+-Constraint1: 0.025814 
+-Constraint2: -0.000055 
+Optimality tolerance: 0.374117 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 421 
+Nstep: 10 
+Cost  1.530130 
+-Cost1: 1.530130 
+Constraint: 0.025673 
+Constraint: -0.000308 
+-Constraint1: 0.025673 
+-Constraint2: -0.000308 
+Optimality tolerance: 1.394313 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 422 
+Nstep: 10 
+Cost  1.531618 
+-Cost1: 1.531618 
+Constraint: 0.025491 
+Constraint: -0.000082 
+-Constraint1: 0.025491 
+-Constraint2: -0.000082 
+Optimality tolerance: 0.314992 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 423 
+Nstep: 10 
+Cost  1.531920 
+-Cost1: 1.531920 
+Constraint: 0.025444 
+Constraint: -0.000033 
+-Constraint1: 0.025444 
+-Constraint2: -0.000033 
+Optimality tolerance: 0.271812 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 424 
+Nstep: 10 
+Cost  1.532205 
+-Cost1: 1.532205 
+Constraint: 0.025392 
+Constraint: -0.000053 
+-Constraint1: 0.025392 
+-Constraint2: -0.000053 
+Optimality tolerance: 0.343336 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 425 
+Nstep: 10 
+Cost  1.532791 
+-Cost1: 1.532791 
+Constraint: 0.025270 
+Constraint: -0.000141 
+-Constraint1: 0.025270 
+-Constraint2: -0.000141 
+Optimality tolerance: 0.523866 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 426 
+Nstep: 10 
+Cost  1.534183 
+-Cost1: 1.534183 
+Constraint: 0.025002 
+Constraint: -0.000298 
+-Constraint1: 0.025002 
+-Constraint2: -0.000298 
+Optimality tolerance: 0.559627 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 427 
+Nstep: 10 
+Cost  1.534979 
+-Cost1: 1.534979 
+Constraint: 0.024881 
+Constraint: -0.000060 
+-Constraint1: 0.024881 
+-Constraint2: -0.000060 
+Optimality tolerance: 0.322483 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 428 
+Nstep: 10 
+Cost  1.535143 
+-Cost1: 1.535143 
+Constraint: 0.024859 
+Constraint: -0.000008 
+-Constraint1: 0.024859 
+-Constraint2: -0.000008 
+Optimality tolerance: 0.157231 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 429 
+Nstep: 10 
+Cost  1.535250 
+-Cost1: 1.535250 
+Constraint: 0.024850 
+Constraint: -0.000009 
+-Constraint1: 0.024850 
+-Constraint2: -0.000009 
+Optimality tolerance: 0.149408 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 430 
+Nstep: 10 
+Cost  1.535387 
+-Cost1: 1.535387 
+Constraint: 0.024837 
+Constraint: -0.000015 
+-Constraint1: 0.024837 
+-Constraint2: -0.000015 
+Optimality tolerance: 0.162977 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 431 
+Nstep: 10 
+Cost  1.535537 
+-Cost1: 1.535537 
+Constraint: 0.024815 
+Constraint: -0.000028 
+-Constraint1: 0.024815 
+-Constraint2: -0.000028 
+Optimality tolerance: 0.192881 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 432 
+Nstep: 10 
+Cost  1.535623 
+-Cost1: 1.535623 
+Constraint: 0.024775 
+Constraint: -0.000054 
+-Constraint1: 0.024775 
+-Constraint2: -0.000054 
+Optimality tolerance: 0.292352 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 433 
+Nstep: 10 
+Cost  1.535992 
+-Cost1: 1.535992 
+Constraint: 0.024708 
+Constraint: -0.000033 
+-Constraint1: 0.024708 
+-Constraint2: -0.000033 
+Optimality tolerance: 0.181996 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 434 
+Nstep: 10 
+Cost  1.536251 
+-Cost1: 1.536251 
+Constraint: 0.024677 
+Constraint: -0.000021 
+-Constraint1: 0.024677 
+-Constraint2: -0.000021 
+Optimality tolerance: 0.170333 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 435 
+Nstep: 10 
+Cost  1.536843 
+-Cost1: 1.536843 
+Constraint: 0.024610 
+Constraint: -0.000063 
+-Constraint1: 0.024610 
+-Constraint2: -0.000063 
+Optimality tolerance: 0.281175 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 436 
+Nstep: 10 
+Cost  1.537363 
+-Cost1: 1.537363 
+Constraint: 0.024545 
+Constraint: -0.000031 
+-Constraint1: 0.024545 
+-Constraint2: -0.000031 
+Optimality tolerance: 0.215938 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 437 
+Nstep: 10 
+Cost  1.537483 
+-Cost1: 1.537483 
+Constraint: 0.024532 
+Constraint: -0.000004 
+-Constraint1: 0.024532 
+-Constraint2: -0.000004 
+Optimality tolerance: 0.110515 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 438 
+Nstep: 10 
+Cost  1.537527 
+-Cost1: 1.537527 
+Constraint: 0.024527 
+Constraint: -0.000003 
+-Constraint1: 0.024527 
+-Constraint2: -0.000003 
+Optimality tolerance: 0.100115 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 439 
+Nstep: 10 
+Cost  1.537538 
+-Cost1: 1.537538 
+Constraint: 0.024523 
+Constraint: -0.000003 
+-Constraint1: 0.024523 
+-Constraint2: -0.000003 
+Optimality tolerance: 0.135298 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 440 
+Nstep: 10 
+Cost  1.537519 
+-Cost1: 1.537519 
+Constraint: 0.024518 
+Constraint: -0.000004 
+-Constraint1: 0.024518 
+-Constraint2: -0.000004 
+Optimality tolerance: 0.115041 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 441 
+Nstep: 10 
+Cost  1.537500 
+-Cost1: 1.537500 
+Constraint: 0.024509 
+Constraint: -0.000008 
+-Constraint1: 0.024509 
+-Constraint2: -0.000008 
+Optimality tolerance: 0.156663 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 442 
+Nstep: 10 
+Cost  1.537520 
+-Cost1: 1.537520 
+Constraint: 0.024487 
+Constraint: -0.000024 
+-Constraint1: 0.024487 
+-Constraint2: -0.000024 
+Optimality tolerance: 0.220642 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 443 
+Nstep: 10 
+Cost  1.537928 
+-Cost1: 1.537928 
+Constraint: 0.024393 
+Constraint: -0.000123 
+-Constraint1: 0.024393 
+-Constraint2: -0.000123 
+Optimality tolerance: 0.378556 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 444 
+Nstep: 10 
+Cost  1.538266 
+-Cost1: 1.538266 
+Constraint: 0.024353 
+Constraint: -0.000012 
+-Constraint1: 0.024353 
+-Constraint2: -0.000012 
+Optimality tolerance: 0.181892 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 445 
+Nstep: 10 
+Cost  1.538421 
+-Cost1: 1.538421 
+Constraint: 0.024344 
+Constraint: -0.000006 
+-Constraint1: 0.024344 
+-Constraint2: -0.000006 
+Optimality tolerance: 0.124384 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 446 
+Nstep: 10 
+Cost  1.538518 
+-Cost1: 1.538518 
+Constraint: 0.024338 
+Constraint: -0.000004 
+-Constraint1: 0.024338 
+-Constraint2: -0.000004 
+Optimality tolerance: 0.138257 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 447 
+Nstep: 10 
+Cost  1.538581 
+-Cost1: 1.538581 
+Constraint: 0.024333 
+Constraint: -0.000003 
+-Constraint1: 0.024333 
+-Constraint2: -0.000003 
+Optimality tolerance: 0.173809 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 448 
+Nstep: 10 
+Cost  1.538674 
+-Cost1: 1.538674 
+Constraint: 0.024326 
+Constraint: -0.000007 
+-Constraint1: 0.024326 
+-Constraint2: -0.000007 
+Optimality tolerance: 0.231281 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 449 
+Nstep: 10 
+Cost  1.538836 
+-Cost1: 1.538836 
+Constraint: 0.024313 
+Constraint: -0.000008 
+-Constraint1: 0.024313 
+-Constraint2: -0.000008 
+Optimality tolerance: 0.240291 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 450 
+Nstep: 10 
+Cost  1.538922 
+-Cost1: 1.538922 
+Constraint: 0.024305 
+Constraint: -0.000001 
+-Constraint1: 0.024305 
+-Constraint2: -0.000001 
+Optimality tolerance: 0.058815 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 451 
+Nstep: 10 
+Cost  1.538930 
+-Cost1: 1.538930 
+Constraint: 0.024305 
+Constraint: -0.000000 
+-Constraint1: 0.024305 
+-Constraint2: -0.000000 
+Optimality tolerance: 0.005803 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 452 
+Nstep: 10 
+Cost  1.538930 
+-Cost1: 1.538930 
+Constraint: 0.024305 
+Constraint: 0.000000 
+-Constraint1: 0.024305 
+-Constraint2: 0.000000 
+Optimality tolerance: 0.000180 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 453 
+Nstep: 11 
+Cost  1.538930 
+-Cost1: 1.538930 
+Constraint: 0.097469 
+Constraint: 0.000000 
+-Constraint1: 0.097469 
+-Constraint2: 0.000000 
+Optimality tolerance: 1.277946 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 454 
+Nstep: 11 
+Cost  1.538969 
+-Cost1: 1.538969 
+Constraint: 0.097466 
+Constraint: 0.000003 
+-Constraint1: 0.097466 
+-Constraint2: 0.000003 
+Optimality tolerance: 0.028307 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 455 
+Nstep: 11 
+Cost  1.539209 
+-Cost1: 1.539209 
+Constraint: 0.097444 
+Constraint: 0.000021 
+-Constraint1: 0.097444 
+-Constraint2: 0.000021 
+Optimality tolerance: 0.171414 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 456 
+Nstep: 11 
+Cost  1.541318 
+-Cost1: 1.541318 
+Constraint: 0.097261 
+Constraint: -0.000075 
+-Constraint1: 0.097261 
+-Constraint2: -0.000075 
+Optimality tolerance: 1.392078 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 457 
+Nstep: 11 
+Cost  1.543090 
+-Cost1: 1.543090 
+Constraint: 0.097068 
+Constraint: -0.000122 
+-Constraint1: 0.097068 
+-Constraint2: -0.000122 
+Optimality tolerance: 0.306953 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 458 
+Nstep: 11 
+Cost  1.543225 
+-Cost1: 1.543225 
+Constraint: 0.097024 
+Constraint: -0.000015 
+-Constraint1: 0.097024 
+-Constraint2: -0.000015 
+Optimality tolerance: 0.136666 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 459 
+Nstep: 11 
+Cost  1.543143 
+-Cost1: 1.543143 
+Constraint: 0.097011 
+Constraint: -0.000016 
+-Constraint1: 0.097011 
+-Constraint2: -0.000016 
+Optimality tolerance: 0.173436 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 460 
+Nstep: 11 
+Cost  1.543156 
+-Cost1: 1.543156 
+Constraint: 0.096996 
+Constraint: -0.000007 
+-Constraint1: 0.096996 
+-Constraint2: -0.000007 
+Optimality tolerance: 0.150311 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 461 
+Nstep: 11 
+Cost  1.543169 
+-Cost1: 1.543169 
+Constraint: 0.096991 
+Constraint: -0.000000 
+-Constraint1: 0.096991 
+-Constraint2: -0.000000 
+Optimality tolerance: 0.028063 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 462 
+Nstep: 11 
+Cost  1.543170 
+-Cost1: 1.543170 
+Constraint: 0.096990 
+Constraint: -0.000000 
+-Constraint1: 0.096990 
+-Constraint2: -0.000000 
+Optimality tolerance: 0.001153 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 463 
+Nstep: 11 
+Cost  1.543170 
+-Cost1: 1.543170 
+Constraint: 0.096990 
+Constraint: 0.000000 
+-Constraint1: 0.096990 
+-Constraint2: 0.000000 
+Optimality tolerance: 0.000040 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 464 
+Nstep: 12 
+Cost  1.543170 
+-Cost1: 1.543170 
+Constraint: 0.181374 
+Constraint: 0.000000 
+-Constraint1: 0.181374 
+-Constraint2: 0.000000 
+Optimality tolerance: 1.474551 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 465 
+Nstep: 12 
+Cost  1.543170 
+-Cost1: 1.543170 
+Constraint: 0.181374 
+Constraint: 0.000000 
+-Constraint1: 0.181374 
+-Constraint2: 0.000000 
+Optimality tolerance: 0.000440 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 466 
+Nstep: 13 
+Cost  1.543170 
+-Cost1: 1.543170 
+Constraint: 0.279822 
+Constraint: 0.000000 
+-Constraint1: 0.279822 
+-Constraint2: 0.000000 
+Optimality tolerance: 1.720310 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 467 
+Nstep: 13 
+Cost  1.543170 
+-Cost1: 1.543170 
+Constraint: 0.279822 
+Constraint: 0.000000 
+-Constraint1: 0.279822 
+-Constraint2: 0.000000 
+Optimality tolerance: 0.000472 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 468 
+Nstep: 14 
+Cost  1.543170 
+-Cost1: 1.543170 
+Constraint: 0.396170 
+Constraint: 0.000000 
+-Constraint1: 0.396170 
+-Constraint2: 0.000000 
+Optimality tolerance: 2.033094 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 469 
+Nstep: 14 
+Cost  1.543170 
+-Cost1: 1.543170 
+Constraint: 0.396169 
+Constraint: 0.000000 
+-Constraint1: 0.396169 
+-Constraint2: 0.000000 
+Optimality tolerance: 0.000881 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 470 
+Nstep: 15 
+Cost  1.543170 
+-Cost1: 1.543170 
+Constraint: 0.535786 
+Constraint: -0.000000 
+-Constraint1: 0.535786 
+-Constraint2: -0.000000 
+Optimality tolerance: 2.439725 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 471 
+Nstep: 15 
+Cost  1.543250 
+-Cost1: 1.543250 
+Constraint: 0.535745 
+Constraint: 0.000033 
+-Constraint1: 0.535745 
+-Constraint2: 0.000033 
+Optimality tolerance: 0.246090 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 472 
+Nstep: 15 
+Cost  1.543877 
+-Cost1: 1.543877 
+Constraint: 0.535433 
+Constraint: -0.000123 
+-Constraint1: 0.535433 
+-Constraint2: -0.000123 
+Optimality tolerance: 1.754421 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 473 
+Nstep: 15 
+Cost  1.544509 
+-Cost1: 1.544509 
+Constraint: 0.535212 
+Constraint: -0.000152 
+-Constraint1: 0.535212 
+-Constraint2: -0.000152 
+Optimality tolerance: 0.502561 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 474 
+Nstep: 15 
+Cost  1.544857 
+-Cost1: 1.544857 
+Constraint: 0.535074 
+Constraint: -0.000142 
+-Constraint1: 0.535074 
+-Constraint2: -0.000142 
+Optimality tolerance: 0.502034 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 475 
+Nstep: 15 
+Cost  1.545280 
+-Cost1: 1.545280 
+Constraint: 0.534946 
+Constraint: -0.000135 
+-Constraint1: 0.534946 
+-Constraint2: -0.000135 
+Optimality tolerance: 0.505962 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 476 
+Nstep: 15 
+Cost  1.546097 
+-Cost1: 1.546097 
+Constraint: 0.534863 
+Constraint: -0.000041 
+-Constraint1: 0.534863 
+-Constraint2: -0.000041 
+Optimality tolerance: 0.237828 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 477 
+Nstep: 15 
+Cost  1.547273 
+-Cost1: 1.547273 
+Constraint: 0.534771 
+Constraint: -0.000071 
+-Constraint1: 0.534771 
+-Constraint2: -0.000071 
+Optimality tolerance: 0.613242 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 478 
+Nstep: 15 
+Cost  1.548303 
+-Cost1: 1.548303 
+Constraint: 0.534656 
+Constraint: -0.000034 
+-Constraint1: 0.534656 
+-Constraint2: -0.000034 
+Optimality tolerance: 0.222186 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 479 
+Nstep: 15 
+Cost  1.548348 
+-Cost1: 1.548348 
+Constraint: 0.534640 
+Constraint: -0.000001 
+-Constraint1: 0.534640 
+-Constraint2: -0.000001 
+Optimality tolerance: 0.066973 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 480 
+Nstep: 15 
+Cost  1.548292 
+-Cost1: 1.548292 
+Constraint: 0.534638 
+Constraint: -0.000003 
+-Constraint1: 0.534638 
+-Constraint2: -0.000003 
+Optimality tolerance: 0.093981 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 481 
+Nstep: 15 
+Cost  1.548278 
+-Cost1: 1.548278 
+Constraint: 0.534635 
+Constraint: -0.000000 
+-Constraint1: 0.534635 
+-Constraint2: -0.000000 
+Optimality tolerance: 0.049617 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 482 
+Nstep: 15 
+Cost  1.548279 
+-Cost1: 1.548279 
+Constraint: 0.534635 
+Constraint: -0.000000 
+-Constraint1: 0.534635 
+-Constraint2: -0.000000 
+Optimality tolerance: 0.001286 
+
+-----------------------------------------------------------------------------------------------
+
+Iteration: 483 
+Nstep: 15 
+Cost  1.548279 
+-Cost1: 1.548279 
+Constraint: 0.534635 
+Constraint: 0.000000 
+-Constraint1: 0.534635 
+-Constraint2: 0.000000 
+Optimality tolerance: 0.000034 
+

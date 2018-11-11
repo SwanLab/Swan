@@ -20,11 +20,11 @@ classdef GlobalDofs < handle
     
     methods (Access = public)
         
-        function obj = GlobalDofs(dim,connectivities)
+        function obj = GlobalDofs(connectivities,dim)
+            obj.connectivities   = connectivities;
             obj.EntryIndex       = EntryIndex(dim.nelem);
             obj.nunkn            = dim.nunkn;
             obj.dofsPerElement   = dim.ndofPerElement;
-            obj.connectivities   = connectivities;
             obj.nodesInElement   = reshape(repmat(1:dim.nnode,dim.nunkn,1),1,[]);
             obj.VectorDimensions = repmat(1:dim.nunkn,1,dim.nnode);
         end
