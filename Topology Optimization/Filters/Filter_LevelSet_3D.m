@@ -75,7 +75,7 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         end
         
         function [interior_facets_global_coordinates, interior_facets_global_connectivities] = computeInteriorFacets(obj,x)
-            obj.createUnfittedMesh;
+            obj.unfitted_mesh = Mesh_Unfitted.create(obj.mesh,obj.interpolation,obj.domainType);
             obj.unfitted_mesh.computeMesh(x);
 
             interior_facets_global_coordinates = obj.unfitted_mesh.coord;

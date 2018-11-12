@@ -1,55 +1,31 @@
 classdef Filter_LevelSet < Filter
-    properties (Access = public)
+    properties (Access = protected)
         unfitted_mesh
     end
     
-%     properties (Access = protected)
-%         quadrature_unfitted
-%         interpolation_unfitted
-%     end
-    
-%     properties (Access = protected) % !! TO REMOVE !!
-%         max_subcells
-%         nnodes_subelem
-%         ndim
-%     end
-    
-%     methods (Abstract)
-%         createUnfittedMesh(obj)
-%         setInterpolation_Unfitted(obj)
-%     end
+    properties(Access = private)
+        integrator
+    end
     
     methods (Access = public)
         function preProcess(obj)
             preProcess@Filter(obj);
             
-%             obj.setQuadrature_Unfitted;
             obj.unfitted_mesh = Mesh_Unfitted.create(obj.mesh,obj.interpolation,obj.domainType);
-%             obj.setInterpolation_Unfitted;
+            obj.integrator = Integrator;
             
             MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';
             warning('off', MSGID)
         end
-    end
-    
-    methods (Access = protected)
-        function M2 = rearrangeOutputRHS(obj,shape_all)
-            M2 = zeros(obj.npnod,1);
-            for inode = 1:obj.nnode
-                M2 = M2 + accumarray(obj.mesh.connec(:,inode),shape_all(:,inode),[obj.npnod,1],@sum,0);
-            end
+        
+        function M2 = computeRHS(obj,x,F1)
+            obj.unfitted_mesh.computeMesh(x);
+            M2 = obj.integrator.integrateUnfittedMesh(obj.unfitted_mesh,obj.mesh,F1);
         end
     end
     
-    methods (Access = private)
-%         function setQuadrature_Unfitted(obj)
-%             obj.quadrature_unfitted = obj.getQuadrature_Unfitted;
-%             obj.quadrature_unfitted.computeQuadrature('LINEAR');
-%         end
-    end
-    
     methods (Static, Access = protected)
-        function [full_elem,cut_elem] = findCutElements(x,connectivities) % !! TO REMOVE !!
+        function [full_elem,cut_elem] = findCutElements(x,connectivities) % !! REMOVE WHEN REFACTORING PLOT 3D!!
             phi_nodes = x(connectivities);
             phi_case = sum((sign(phi_nodes)<0),2);
             
@@ -58,16 +34,6 @@ classdef Filter_LevelSet < Filter
             indexes = (1:size(connectivities,1))';
             cut_elem = indexes(~(full_elem+null_elem));
         end
-        
-%         function posgp = computePosGP(subcell_coord,interpolation,quadrature)
-%             interpolation.computeShapeDeriv(quadrature.posgp);
-%             posgp = zeros(quadrature.ngaus,size(subcell_coord,3),size(subcell_coord,1));
-%             for igaus = 1:quadrature.ngaus
-%                 for idime = 1:size(subcell_coord,3)
-%                     posgp(igaus,idime,:) = subcell_coord(:,:,idime)*interpolation.shape(:,igaus);
-%                 end
-%             end
-%         end
     end
     
     methods (Static, Access = public)
