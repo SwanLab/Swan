@@ -13,12 +13,6 @@ classdef Filter_LevelSet_Boundary < Filter_LevelSet
             shapeValues = obj.assembleShapeValues(shapeValues);
             M2 = obj.rearrangeOutputRHS(shapeValues);
         end
-        
-        function S = computeSurface(obj,x)
-            obj.unfitted_mesh.computeMesh(x);
-            M2 = obj.computeRHS(ones(size(x)));
-            S = sum(M2);
-        end
     end
     
     methods (Access = private)
