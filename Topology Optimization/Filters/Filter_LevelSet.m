@@ -3,29 +3,29 @@ classdef Filter_LevelSet < Filter
         unfitted_mesh
     end
     
-    properties (Access = protected)
-        quadrature_unfitted
-        interpolation_unfitted
-    end
+%     properties (Access = protected)
+%         quadrature_unfitted
+%         interpolation_unfitted
+%     end
     
-    properties (Access = protected) % !! TO REMOVE !!
-        max_subcells
-        nnodes_subelem
-        ndim
-    end
+%     properties (Access = protected) % !! TO REMOVE !!
+%         max_subcells
+%         nnodes_subelem
+%         ndim
+%     end
     
-    methods (Abstract)
-        createUnfittedMesh(obj)
-        setInterpolation_Unfitted(obj)
-    end
+%     methods (Abstract)
+%         createUnfittedMesh(obj)
+%         setInterpolation_Unfitted(obj)
+%     end
     
     methods (Access = public)
         function preProcess(obj)
             preProcess@Filter(obj);
             
-            obj.setQuadrature_Unfitted;
-            obj.createUnfittedMesh;
-            obj.setInterpolation_Unfitted;
+%             obj.setQuadrature_Unfitted;
+            obj.unfitted_mesh = Mesh_Unfitted.create(obj.mesh,obj.interpolation,obj.domainType);
+%             obj.setInterpolation_Unfitted;
             
             MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';
             warning('off', MSGID)
@@ -47,10 +47,10 @@ classdef Filter_LevelSet < Filter
     end
     
     methods (Access = private)
-        function setQuadrature_Unfitted(obj)
-            obj.quadrature_unfitted = obj.getQuadrature_Unfitted;
-            obj.quadrature_unfitted.computeQuadrature('LINEAR');
-        end
+%         function setQuadrature_Unfitted(obj)
+%             obj.quadrature_unfitted = obj.getQuadrature_Unfitted;
+%             obj.quadrature_unfitted.computeQuadrature('LINEAR');
+%         end
     end
     
     methods (Static, Access = protected)
@@ -64,15 +64,15 @@ classdef Filter_LevelSet < Filter
             cut_elem = indexes(~(full_elem+null_elem));
         end
         
-        function posgp = computePosGP(subcell_coord,interpolation,quadrature)
-            interpolation.computeShapeDeriv(quadrature.posgp);
-            posgp = zeros(quadrature.ngaus,size(subcell_coord,3),size(subcell_coord,1));
-            for igaus = 1:quadrature.ngaus
-                for idime = 1:size(subcell_coord,3)
-                    posgp(igaus,idime,:) = subcell_coord(:,:,idime)*interpolation.shape(:,igaus);
-                end
-            end
-        end
+%         function posgp = computePosGP(subcell_coord,interpolation,quadrature)
+%             interpolation.computeShapeDeriv(quadrature.posgp);
+%             posgp = zeros(quadrature.ngaus,size(subcell_coord,3),size(subcell_coord,1));
+%             for igaus = 1:quadrature.ngaus
+%                 for idime = 1:size(subcell_coord,3)
+%                     posgp(igaus,idime,:) = subcell_coord(:,:,idime)*interpolation.shape(:,igaus);
+%                 end
+%             end
+%         end
     end
     
     methods (Static, Access = public)

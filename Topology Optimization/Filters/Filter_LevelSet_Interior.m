@@ -1,4 +1,8 @@
 classdef Filter_LevelSet_Interior < Filter_LevelSet
+    properties (Access = public)
+        domainType = 'INTERIOR';
+    end
+    
     properties (Access = private)
         %         geometry
         shapeValues_FullCells
@@ -23,7 +27,7 @@ classdef Filter_LevelSet_Interior < Filter_LevelSet
         %                     M2 = obj.rearrangeOutputRHS(shapeValues_All);
         %                 end
         
-        function M2 = computeRHS(obj,F1)           
+        function M2 = computeRHS(obj,F1)
             shapeValues_CutCells = obj.integrateFoverMesh(F1);
             shapeValues_All = obj.assembleShapeValues(shapeValues_CutCells,obj.shapeValues_FullCells);
             M2 = obj.rearrangeOutputRHS(shapeValues_All);

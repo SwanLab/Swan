@@ -25,12 +25,28 @@ classdef Mesh_Unfitted < Mesh
         background_geom_interpolation
     end
     
-    methods (Access = public)
-        function storeBackgroundMesh(obj,background_mesh,background_geom_interpolation)
-            obj.background_mesh = background_mesh;
-            obj.background_geom_interpolation = background_geom_interpolation;
+    methods (Static, Access = public)
+        function unfitted_mesh = create(mesh,interpolation,type)
+            switch type
+                case 'INTERIOR'
+                    switch mesh.ndim
+                        case 2
+                            unfitted_mesh = Mesh_Unfitted_2D_Interior(mesh.duplicate,interpolation);
+                        case 3
+                            unfitted_mesh = Mesh_Unfitted_3D_Interior(mesh.duplicate,interpolation);
+                    end
+                case 'BOUNDARY'
+                    switch mesh.ndim
+                        case 2
+                            unfitted_mesh = Mesh_Unfitted_2D_Boundary(mesh.duplicate,interpolation);
+                        case 3
+                            unfitted_mesh = Mesh_Unfitted_3D_Boundary(mesh.duplicate,interpolation);
+                    end
+            end
         end
-        
+    end
+    
+    methods (Access = public)
         function computeMesh(obj,x_background)
             obj.x_background = x_background;
             obj.findCutCells;
@@ -47,6 +63,11 @@ classdef Mesh_Unfitted < Mesh
             end
             obj.computeGlobalConnectivities;
             obj.computeGeometryType;
+        end
+        
+        function storeBackgroundMesh(obj,background_mesh,background_geom_interpolation)
+            obj.background_mesh = background_mesh;
+            obj.background_geom_interpolation = background_geom_interpolation;
         end
     end
     

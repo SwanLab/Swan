@@ -4,9 +4,9 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
     end
     
     methods
-        function setInterpolation_Unfitted(obj)
-            obj.interpolation_unfitted = Tetrahedra_Linear(obj.unfitted_mesh);
-        end
+%         function setInterpolation_Unfitted(obj)
+%             obj.interpolation_unfitted = Tetrahedra_Linear(obj.unfitted_mesh);
+%         end
         
         function global_connectivities = computeFromLocalToGlobalConnectivities(obj,local_matrix_coordinates,global_matrix_coordinates,local_connectivities)
             indexes_in_global_matrix = obj.findIndexesOfCoordinatesAinCoordinateMatrixB(local_matrix_coordinates,global_matrix_coordinates);
