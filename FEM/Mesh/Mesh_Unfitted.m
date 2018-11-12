@@ -26,21 +26,21 @@ classdef Mesh_Unfitted < Mesh
     end
     
     methods (Static, Access = public)
-        function unfitted_mesh = create(mesh,interpolation,type)
+        function unfitted_mesh = create(mesh_background,interpolation_background,type)
             switch type
                 case 'INTERIOR'
-                    switch mesh.ndim
+                    switch mesh_background.ndim
                         case 2
-                            unfitted_mesh = Mesh_Unfitted_2D_Interior(mesh.duplicate,interpolation);
+                            unfitted_mesh = Mesh_Unfitted_2D_Interior(mesh_background.duplicate,interpolation_background);
                         case 3
-                            unfitted_mesh = Mesh_Unfitted_3D_Interior(mesh.duplicate,interpolation);
+                            unfitted_mesh = Mesh_Unfitted_3D_Interior(mesh_background.duplicate,interpolation_background);
                     end
                 case 'BOUNDARY'
-                    switch mesh.ndim
+                    switch mesh_background.ndim
                         case 2
-                            unfitted_mesh = Mesh_Unfitted_2D_Boundary(mesh.duplicate,interpolation);
+                            unfitted_mesh = Mesh_Unfitted_2D_Boundary(mesh_background.duplicate,interpolation_background);
                         case 3
-                            unfitted_mesh = Mesh_Unfitted_3D_Boundary(mesh.duplicate,interpolation);
+                            unfitted_mesh = Mesh_Unfitted_3D_Boundary(mesh_background.duplicate,interpolation_background);
                     end
             end
         end
