@@ -1,25 +1,25 @@
 classdef FourthOrderSymmetrizer < handle
-    
+
     properties
     end
-    
+
     methods
-        
+
         function obj = FourthOrderSymmetrizer()
         end
     end
-    
+
     methods (Access = public)
-        
+
         function isSymmetric = isSymmetric(obj,Tensor)
             Tsym = obj.symmetrize(Tensor);
             isSymmetric = norm(Tsym(:) - Tensor(:)) < 1e-12;
         end
-        
+
     end
-    
+
     methods (Access = public, Static)
-        
+
         function A = symmetrize(Tensor)
             T = Tensor;
             A = zeros(3,3,3,3);
@@ -41,12 +41,12 @@ classdef FourthOrderSymmetrizer < handle
                     end
                 end
             end
-            
+
         end
-        
+
     end
-    
-    
-    
+
+
+
 end
 

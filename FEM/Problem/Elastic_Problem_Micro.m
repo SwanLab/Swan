@@ -29,7 +29,7 @@ classdef Elastic_Problem_Micro < Elastic_Problem
             tstrain = zeros(obj.element.nstre,obj.element.quadrature.ngaus,obj.element.nstre,obj.element.nelem);
             tstress = zeros(obj.element.nstre,obj.element.quadrature.ngaus,obj.element.nstre,obj.element.nelem);
             for istre=1:obj.element.nstre
-                obj.element.vstrain = vstrain(istre,:);
+                obj.element.setVstrain(vstrain(istre,:));
                 obj.computeVariables;
                 Chomog(:,istre) = obj.variables.stress_homog;
                 tstrain(istre,:,:,:) = obj.variables.strain;

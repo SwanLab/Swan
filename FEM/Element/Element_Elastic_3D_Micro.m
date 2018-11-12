@@ -1,8 +1,5 @@
-classdef Element_Elastic_3D_Micro < Element_Elastic_3D
+classdef Element_Elastic_3D_Micro < Element_Elastic_3D & Element_Elastic_Micro
     
-    properties
-        vstrain
-    end
     
     methods
         function obj = Element_Elastic_3D_Micro(mesh,geometry,material,dof)
@@ -11,28 +8,7 @@ classdef Element_Elastic_3D_Micro < Element_Elastic_3D
 
         function variables = computeVars(obj,uL)
             variables = computeVars@Element_Elastic_3D(obj,uL);
-            
-            variables.stress_fluct = variables.stress;
-            variables.strain_fluct = variables.strain;
-            Cmat = obj.material.C;
-            
-            variables.stress = zeros(obj.quadrature.ngaus,obj.nstre,obj.nelem);
-            variables.strain = zeros(obj.quadrature.ngaus,obj.nstre,obj.nelem);
-            variables.stress_homog = zeros(obj.nstre,1);
-            vol_dom = sum(sum(obj.geometry.dvolu));
-            
-            for igaus = 1:obj.quadrature.ngaus
-                variables.strain(igaus,1:obj.nstre,:) = obj.vstrain.*ones(1,obj.nstre,obj.nelem) + variables.strain_fluct(igaus,1:obj.nstre,:);
-                for istre = 1:obj.nstre
-                    for jstre = 1:obj.nstre
-                        variables.stress(igaus,istre,:) = squeeze(variables.stress(igaus,istre,:)) + 1/vol_dom*squeeze(squeeze(Cmat(istre,jstre,:))).* squeeze(variables.strain(igaus,jstre,:));
-                    end
-                end
-                % contribucion a la C homogeneizada
-                for istre = 1:obj.nstre
-                    variables.stress_homog(istre) = variables.stress_homog(istre) +  1/vol_dom *(squeeze(variables.stress(igaus,istre,:)))'*obj.geometry.dvolu(:,igaus);
-                end
-            end
+            variables = obj.computeStressStrainAndCh(variables);        
         end
         
         function Ared = full_matrix_2_reduced_matrix(obj,A)                

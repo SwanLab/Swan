@@ -17,7 +17,7 @@ classdef testSymmetrizeFourthOrderTensor < test
        
         
         function computeAnisotropicFourthOrderTensor(obj)
-            obj.Cani = FourthOrderTensor();
+            obj.Cani = SymmetricFourthOrder3DTensor();
             obj.Cani.createRandomTensor();
         end
         
