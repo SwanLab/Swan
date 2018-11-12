@@ -15,7 +15,7 @@ classdef Geometry<handle
     methods %(Access = {?Physical_Problem,?Element_DiffReact}) % !! Element_DiffReact -> Chapusilla !!
         function obj = Geometry(mesh,order)
             obj.type = mesh.geometryType;
-            obj.interpolation=Interpolation.create(mesh,order);
+            obj.interpolation = Interpolation.create(mesh,order);
         end
         function computeGeometry(obj,quadrature,interp_variable)                
             if ~strcmp(obj.quadrature_order,quadrature.order)

@@ -1,22 +1,21 @@
 classdef Quadrature < handle
-    %UNTITLED Summary of this class goes here
-    %   Detailed explanation goes here
-    
-    properties
+    properties (GetAccess = public, SetAccess = protected)
         posgp
         weigp
         ngaus
         order
     end
-    methods
+    
+    methods (Access = public)
         function computeQuadrature(obj,order)
-            obj.posgp=[];
-            obj.weigp=[];
-            obj.order=order;
+            obj.posgp = [];
+            obj.weigp = [];
+            obj.order = order;
         end
     end
-    methods (Static)        
-        function quadrature=set(type)
+    
+    methods (Static, Access = public)        
+        function quadrature = set(type)
             switch type
                 case 'LINE'
                     quadrature = Quadrature_Line;

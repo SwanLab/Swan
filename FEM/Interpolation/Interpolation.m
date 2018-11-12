@@ -1,5 +1,5 @@
 classdef Interpolation < handle
-    properties (GetAccess = public, SetAccess = private)
+    properties (GetAccess = public, SetAccess = protected)
         T
         xpoints
         ndime
@@ -79,17 +79,17 @@ classdef Interpolation < handle
                 for inode_variable = 1:obj.nnode
                     node = zeros(1,size(obj.xpoints,2));
                     for inode_mesh = 1:mesh_interpolation.nnode
-                        node =  node + shape_new(inode_variable,inode_mesh)*mesh_interpolation.xpoints(T_elem(inode_mesh),:);
+                        node = node + shape_new(inode_variable,inode_mesh)*mesh_interpolation.xpoints(T_elem(inode_mesh),:);
                     end
                     
                     ind = obj.findPointInList(node);
                     
                     if isempty(ind)
-                        obj.xpoints(inode,:) =  node;
-                        obj.T(ielem,node_position) =  inode;
+                        obj.xpoints(inode,:) = node;
+                        obj.T(ielem,node_position) = inode;
                         inode = inode+1;
                     else
-                        obj.T(ielem,node_position) =  ind;
+                        obj.T(ielem,node_position) = ind;
                     end
                     node_position = node_position+1;
                 end
@@ -102,7 +102,7 @@ classdef Interpolation < handle
         function ind = findPointInList(obj,node)
             match = true(size(obj.xpoints,1),1);
             for idime = 1:size(node,2)
-                match = match & obj.xpoints(:,idime) =  =  node(idime);
+                match = match & obj.xpoints(:,idime) == node(idime);
             end
             ind = find(match);
         end
