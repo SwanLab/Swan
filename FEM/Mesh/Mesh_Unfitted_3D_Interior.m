@@ -6,6 +6,10 @@ classdef Mesh_Unfitted_3D_Interior < Mesh_Unfitted_3D & Mesh_Unfitted_Interior
             obj.nnodes_subcell = 4;
         end
         
+        function V = computeVolume(obj)
+            V = obj.computeMass;
+        end
+        
         function computeDvoluCut(obj)
             x1 = obj.coord_iso_per_cell(:,1,1);   y1 = obj.coord_iso_per_cell(:,1,2);   z1= obj.coord_iso_per_cell(:,1,3);
             x2 = obj.coord_iso_per_cell(:,2,1);   y2 = obj.coord_iso_per_cell(:,2,2);   z2= obj.coord_iso_per_cell(:,2,3);

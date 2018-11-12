@@ -11,13 +11,6 @@ classdef Mesh_Unfitted_Interior < Mesh_Unfitted
             
             interior_subcell_connec = obj.computeInteriorSubcellsConnectivities(interior_subcell_coord_iso,interior_subcell_x_value);
         end
-        
-        function S = computeVolume(obj,x) % !! REMOVE x !!
-            integrator = Integrator;
-            obj.computeMesh(x);
-            M2 = integrator.integrateUnfittedMesh(obj,obj.background_mesh,ones(size(x)));
-            S = sum(M2);
-        end
     end
     
     methods (Static, Access = private)

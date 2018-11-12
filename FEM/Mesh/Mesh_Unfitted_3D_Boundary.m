@@ -22,23 +22,19 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
             hold off
         end
         
-        function S = computeSurface(obj,x)
-            integrator = Integrator;
-            obj.computeMesh(x);
-            
-            shapeValues = integrator.integrateUnfittedMesh(obj,obj.background_mesh,ones(size(x)));
-            S = sum(shapeValues);
+        function S = computeSurface(obj)
+            S = obj.computeMass;
             
             interpolation_unfitted = Interpolation.create(obj,'LINEAR');
             for idime = 1:obj.ndim
                 for iside = 1:2
                     [face_mesh,valid_nodes] = obj.createFaceMesh(idime,iside);
                     unfitted_mesh2D = Mesh_Unfitted_2D_Interior(face_mesh,interpolation_unfitted);
-                    unfitted_mesh2D.computeMesh(x(valid_nodes));
+                    unfitted_mesh2D.computeMesh(obj.x_background(valid_nodes));
                     
                     if ~isempty(unfitted_mesh2D.connec)
-                        shapeValues = integrator.integrateUnfittedMesh(unfitted_mesh2D,unfitted_mesh2D.background_mesh,ones(size(unfitted_mesh2D.x_background)));
-                        S = S + sum(shapeValues);
+                        S_2D = unfitted_mesh2D.computeSurface;
+                        S = S + S_2D;
                     end
                 end
             end

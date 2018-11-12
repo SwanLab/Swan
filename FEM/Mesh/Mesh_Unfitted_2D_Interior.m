@@ -1,5 +1,5 @@
 classdef Mesh_Unfitted_2D_Interior < Mesh_Unfitted_2D & Mesh_Unfitted_Interior
-    methods
+    methods (Access = public)
         function obj = Mesh_Unfitted_2D_Interior(background_mesh,background_geom_interpolation)
             obj.storeBackgroundMesh(background_mesh,background_geom_interpolation);
             obj.max_subcells = 6;
@@ -14,6 +14,10 @@ classdef Mesh_Unfitted_2D_Interior < Mesh_Unfitted_2D & Mesh_Unfitted_Interior
             light
             axis equal off
             hold off
+        end
+        
+        function S = computeSurface(obj)
+            S = obj.computeMass;
         end
         
         function computeDvoluCut(obj)

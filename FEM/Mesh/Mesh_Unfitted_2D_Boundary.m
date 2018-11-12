@@ -15,10 +15,8 @@ classdef Mesh_Unfitted_2D_Boundary < Mesh_Unfitted_2D & Mesh_Unfitted_Boundary
             hold off
         end
         
-        function S = computeSurface(obj)
-            integrator = Integrator;
-            M2 = integrator.integrateUnfittedMesh(obj,obj.background_mesh,ones(size(obj.x_background)));
-            S = sum(M2);
+        function P = computePerimeter(obj)
+            P = obj.computeMass;
         end
     end
     

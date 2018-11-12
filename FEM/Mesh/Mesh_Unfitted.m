@@ -189,6 +189,14 @@ classdef Mesh_Unfitted < Mesh
         end
     end
     
+    methods (Access = protected)
+        function mass = computeMass(obj)
+            integrator = Integrator;
+            M2 = integrator.integrateUnfittedMesh(obj,obj.background_mesh,ones(size(obj.x_background)));
+            mass = sum(M2);
+        end
+    end
+    
     methods (Access = protected, Static)
         function connectivities = computeDelaunay(coordinates)
             DT = delaunayTriangulation(coordinates);
