@@ -31,5 +31,5 @@ classdef testHorizontalLaminate < TestSequentialLaminateTestedWithNumerics
         end
         
     end
-   
+
 end

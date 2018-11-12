@@ -41,4 +41,3 @@ classdef testSymmetryForIAniTensorInVoigt < test
         
     end
 end
-

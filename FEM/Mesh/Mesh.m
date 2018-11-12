@@ -1,6 +1,6 @@
 classdef Mesh < handle
     % Class containing the coordinates and connectivities of the mesh
-    properties (GetAccess = public, SetAccess = protected)
+    properties (GetAccess = public, SetAccess = public)
         coord
         connec
         mean_cell_size

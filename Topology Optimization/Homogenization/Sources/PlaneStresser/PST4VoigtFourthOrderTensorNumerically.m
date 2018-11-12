@@ -147,4 +147,3 @@ classdef PST4VoigtFourthOrderTensorNumerically < PST4VoigtFourthOrderTensor
     
 end
 
-

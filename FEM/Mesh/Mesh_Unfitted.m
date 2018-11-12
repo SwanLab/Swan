@@ -18,6 +18,10 @@ classdef Mesh_Unfitted < Mesh
         dvolu_cut
         
         fitted_mesh
+        
+        i_debug
+        flag_debug=false
+        debug_elems
     end
     
     properties (Access = protected)
@@ -31,55 +35,12 @@ classdef Mesh_Unfitted < Mesh
     
     methods
         function obj = Mesh_Unfitted(fitted_mesh,x_fitted,fitted_geom_interpolation)
-            obj.fitted_mesh = fitted_mesh;
-            obj.fitted_geom_interpolation = fitted_geom_interpolation;
-            obj.x_fitted = x_fitted;
-        end
-        
-        function computeCutMesh(obj)
-            obj.findCutCells;
-            obj.computeCutMesh_Delaunay;
-        end
-        
-        function obj = computeCutMesh_Delaunay(obj)
-            [nodes_n_cutpoints_iso,active_nodes] = obj.findCutPoints_Iso;
-            nodes_n_cutpoints_global = obj.findCutPoints_Global;
-            
-            obj.computeDelaunay_allocateMemory;
-            
-            k0 = 0; m0 = 0; c0 = 0;
-            k1 = 0; m1 = 0; c1 = 0;
-            for icut = 1:length(obj.cut_cells)
-                icell = obj.cut_cells(icut);
-                subcell_cutPoints_iso = nodes_n_cutpoints_iso(active_nodes(:,:,icut),:,icut);
-                subcell_cutPoints_global = nodes_n_cutpoints_global(active_nodes(:,:,icut),:,icut);
-                
-                [new_unfitted_cut_coord_iso,new_unfitted_cut_coord_global,new_x_unfitted_cut,new_subcell_cut_interior_connec_iso]...
-                    = obj.computeInteriorSubcells(obj.fitted_mesh.connec(icell,:),subcell_cutPoints_iso,subcell_cutPoints_global);
-                
-                new_nodes_containing_cell = repmat(icell,[size(new_unfitted_cut_coord_iso,1) 1]);
-                
-                k1 = k0 + size(new_unfitted_cut_coord_iso,1);
-                obj.unfitted_cut_coord_iso(1+k0:k1,:) = new_unfitted_cut_coord_iso;
-                obj.unfitted_cut_coord_global_raw(1+k0:k1,:) = new_unfitted_cut_coord_global;
-                obj.nodes_containing_cell(1+k0:k1,:) = new_nodes_containing_cell;
-                obj.x_unfitted_cut(1+k0:k1) = new_x_unfitted_cut;
-                k0 = k1;
-                
-                new_subcell_containing_cell = repmat(icell,[size(new_subcell_cut_interior_connec_iso,1) 1]);
-                m1 = m0+size(new_subcell_cut_interior_connec_iso,1);
-                obj.unfitted_cut_connec_iso(1+m0:m1,:) = new_subcell_cut_interior_connec_iso;
-                obj.subcell_containing_cell(1+m0:m1,:) = new_subcell_containing_cell;
-                m0 = m1;
-                
-                c1 = c0 + size(new_subcell_cut_interior_connec_iso,1);
-                obj.assignUnfittedCutCoordIsoPerCell(new_unfitted_cut_coord_iso,new_subcell_cut_interior_connec_iso,c0,c1);
-                c0 = c1;
+            if nargin > 0
+                obj.fitted_mesh = fitted_mesh;
+                obj.fitted_geom_interpolation = fitted_geom_interpolation;
+                obj.x_fitted = x_fitted;
             end
-            
-            obj.cleanExtraAllocatedMemory(k1,m1,c1);
         end
-        
         function computeGlobalConnectivities(obj)
             obj.unfitted_cut_coord_global =  unique(obj.unfitted_cut_coord_global_raw,'rows','stable');
             obj.unfitted_cut_connec_global = obj.computeFromLocalToGlobalConnectivities(obj.unfitted_cut_connec_global,obj.unfitted_cut_coord_global_raw,obj.unfitted_cut_coord_global,obj.unfitted_cut_connec_iso,obj.nodes_containing_cell,obj.subcell_containing_cell);
@@ -100,17 +61,6 @@ classdef Mesh_Unfitted < Mesh
                 global_connectivities(i,:) = indexes_in_global_matrix(local_connec(i,:));
             end
         end
-        
-        function computeDelaunay_allocateMemory(obj)
-            obj.unfitted_cut_coord_iso = zeros(length(obj.cut_cells)*obj.max_subcells*obj.nnodes_subcell,obj.fitted_mesh.ndim);
-            obj.unfitted_cut_coord_global_raw = zeros(length(obj.cut_cells)*obj.max_subcells*obj.nnodes_subcell,obj.fitted_mesh.ndim);
-            obj.x_unfitted_cut = zeros(length(obj.cut_cells)*obj.max_subcells*obj.nnodes_subcell,1);
-            obj.unfitted_cut_connec_iso = zeros(length(obj.cut_cells)*obj.max_subcells,obj.nnodes_subcell);
-            obj.unfitted_cut_coord_iso_per_cell = zeros(length(obj.cut_cells)*obj.max_subcells,obj.nnodes_subcell,obj.fitted_mesh.ndim);
-            obj.unfitted_cut_connec_global = zeros(length(obj.cut_cells)*obj.max_subcells,obj.nnodes_subcell);
-            obj.subcell_containing_cell = zeros(length(obj.cut_cells)*obj.max_subcells*obj.nnodes_subcell,1);
-        end
-        
         function cleanExtraAllocatedMemory(obj,k,m,c)
             if length(obj.unfitted_cut_coord_iso) > k
                 obj.unfitted_cut_coord_iso(k+1:end,:) = [];
@@ -137,6 +87,7 @@ classdef Mesh_Unfitted < Mesh
             indexes = (1:size(obj.fitted_mesh.connec,1))';
             obj.cut_cells = indexes(~(obj.full_cells | obj.empty_cells));
         end
+
     end
     
     methods (Static)
@@ -149,14 +100,6 @@ classdef Mesh_Unfitted < Mesh
                 end
                 indexes_in_global_matrix(inode) = find(match,1);
             end
-        end
-        
-        function subcell_connec = computeInteriorSubcellsConnectivities(subcell_coord_iso,subcell_x_value)
-            DT = delaunayTriangulation(subcell_coord_iso);
-            subcell_connec = DT.ConnectivityList;
-            is_interior = all(subcell_x_value(subcell_connec) <= 0,2);
-            
-            subcell_connec = subcell_connec(is_interior,:);
         end
     end
 end

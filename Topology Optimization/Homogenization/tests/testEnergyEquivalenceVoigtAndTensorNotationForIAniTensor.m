@@ -20,4 +20,3 @@ classdef testEnergyEquivalenceVoigtAndTensorNotationForIAniTensor ...
     end
     
 end
-

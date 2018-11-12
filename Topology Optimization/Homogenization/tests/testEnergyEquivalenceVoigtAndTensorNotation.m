@@ -59,4 +59,3 @@ classdef testEnergyEquivalenceVoigtAndTensorNotation < test
     
 
 end
-

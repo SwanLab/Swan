@@ -17,6 +17,4 @@ classdef Postprocess_TopOpt_levelSet < Postprocess_TopOpt
            obj.Field = results.design_variable; 
         end
     end
-    
-    
 end

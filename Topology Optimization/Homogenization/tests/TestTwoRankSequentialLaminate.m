@@ -1,7 +1,5 @@
 classdef TestTwoRankSequentialLaminate < test
     
-    
-    
     properties (Access = private)
       C0
       C1  
@@ -155,7 +153,5 @@ classdef TestTwoRankSequentialLaminate < test
             hasPassed = firstCheck && secondCheck;
         end
     end
-    
-    
     
 end

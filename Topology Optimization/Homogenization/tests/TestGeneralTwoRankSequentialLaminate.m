@@ -90,7 +90,5 @@ classdef TestGeneralTwoRankSequentialLaminate < test
         end
         
     end
-    
-    
-    
+ 
 end

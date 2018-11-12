@@ -34,4 +34,3 @@ classdef testSymmetrizeIsotropicFourthOrderTensor < test
         
     end
 end
-

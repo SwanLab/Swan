@@ -4,7 +4,7 @@ classdef Filter_P1_LevelSet < Filter_P1
     end
     
     methods
-        function obj = Filter_P1_LevelSet(problemID,scale)
+        function obj = Filter_P1_LevelSet(problemID,scale)            
             obj@Filter_P1(problemID,scale);
         end        
         
@@ -24,3 +24,4 @@ classdef Filter_P1_LevelSet < Filter_P1
         end
     end
 end
+

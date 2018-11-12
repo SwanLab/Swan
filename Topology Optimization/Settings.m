@@ -50,6 +50,7 @@ classdef Settings
         line_search
         kappaMultiplier
         filter
+        unfitted_mesh_algorithm='MARCHING_CUBES'
         TOL = struct;
         target_parameters = struct;
         nsteps
@@ -186,7 +187,7 @@ classdef Settings
             if exist('selectiveC_Cstar','var')
                 obj.selectiveC_Cstar = selectiveC_Cstar;
             end
-            if ~(contains(filename,'test','IgnoreCase',true) || contains(filename,'RVE'))
+            if  ~(contains(filename,'test','IgnoreCase',true) || contains(filename,'RVE'))
                 fprintf('\n')
             end
         end
