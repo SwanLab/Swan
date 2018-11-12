@@ -50,6 +50,8 @@ classdef Mesh < handle
         
         function computeGeomType3D(obj)
             switch size(obj.connec,2)
+                case 3
+                    obj.geometryType = 'TRIANGLE';
                 case 4
                     obj.geometryType = 'TETRAHEDRA';
                 case 8
