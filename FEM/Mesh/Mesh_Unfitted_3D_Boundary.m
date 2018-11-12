@@ -1,5 +1,5 @@
 classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
-    methods
+    methods (Access = public)
         function obj = Mesh_Unfitted_3D_Boundary(background_mesh,background_geom_interpolation)
             obj.storeBackgroundMesh(background_mesh,background_geom_interpolation);
             obj.max_subcells = 6; % !! ?? !!
@@ -20,6 +20,28 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
             light
             axis equal off
             hold off
+        end
+        
+        function S = computeSurface(obj,x)
+            integrator = Integrator;
+            obj.computeMesh(x);
+            
+            shapeValues = integrator.integrateUnfittedMesh(obj,obj.background_mesh,ones(size(x)));
+            S = sum(shapeValues);
+            
+            interpolation_unfitted = Interpolation.create(obj,'LINEAR');
+            for idime = 1:obj.ndim
+                for iside = 1:2
+                    [face_mesh,valid_nodes] = obj.createFaceMesh(idime,iside);
+                    unfitted_mesh2D = Mesh_Unfitted_2D_Interior(face_mesh,interpolation_unfitted);
+                    unfitted_mesh2D.computeMesh(x(valid_nodes));
+                    
+                    if ~isempty(unfitted_mesh2D.connec)
+                        shapeValues = integrator.integrateUnfittedMesh(unfitted_mesh2D,unfitted_mesh2D.background_mesh,ones(size(unfitted_mesh2D.x_background)));
+                        S = S + sum(shapeValues);
+                    end
+                end
+            end
         end
     end
     
@@ -63,7 +85,7 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
         %         end
     end
     
-    methods (Access = private, Static)       
+    methods (Access = private, Static)
         function counter = countInputNodesPerCell(connectivities,nodes)
             counter = zeros(size(connectivities,1),1);
             for inode = 1:length(nodes)
@@ -73,6 +95,59 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
                 end
                 counter = counter + match ;
             end
+        end
+    end
+    
+    %% !! DIRECTLY MOVED FROM FILTER_LEVELSET_3D_Boundary !!
+    methods ( Access = private)
+        function [face_mesh, valid_nodes] = createFaceMesh(obj,idime,iside)
+            [face_coord,valid_nodes] = obj.getFaceCoordinates(idime,iside);
+            %             face_connec = obj.getFaceConnectivities(face_coord,idime,iside);
+            face_connec = obj.computeDelaunay(face_coord);
+            face_mesh = Mesh;
+            face_mesh = face_mesh.create(face_coord,face_connec);
+        end
+        
+        function [face_coord, valid_coord] = getFaceCoordinates(obj,idime,iside)
+            if iside == 1
+                L = min(obj.background_mesh.coord(:,idime));
+            else
+                L = max(obj.background_mesh.coord(:,idime));
+            end
+            
+            valid_coord = obj.background_mesh.coord(:,idime) == L;
+            face_coord = obj.background_mesh.coord(valid_coord,:);
+            face_coord = obj.removeExtraDimension(face_coord,idime);
+            %             face_coord = unique(face_coord,'row');
+        end
+        
+        %         function face_connec = getFaceConnectivities(obj,face_coord,idime,iside)
+        %             indexes_in_global_matrix = obj.findIndexesOfCoordinatesAinCoordinateMatrixB(face_coord,obj.background_mesh.coord);
+        %             nnode = 3;
+        %             valid_cells = sum(ismember(obj.background_mesh.connec,indexes_in_global_matrix),2)==nnode;
+        %             face_connec = obj.background_mesh.connec(valid_cells,:);
+        %             %!! NOT WORKING !!
+        %         end
+        
+        function indexes = findConnecIndexes(obj,coord_indexes,nnode)
+            number_of_valid_nodes_per_element = sum(ismember(obj.background_mesh.connec,coord_indexes),2);
+            indexes = number_of_valid_nodes_per_element == nnode;
+        end
+    end
+    
+    methods (Static, Access = private)
+        function face_connec = removeExtraNodes(face_connec_raw,coord_indexes,nnode)
+            valid_nodes = ismember(face_connec_raw,coord_indexes);
+            
+            face_connec = zeros(size(face_connec_raw,1),nnode);
+            for i = 1:size(face_connec,1)
+                face_connec(i,:) = face_connec_raw(i,valid_nodes(i,:));
+            end
+        end
+        
+        function face_coord = removeExtraDimension(face_coord,idime)
+            dimen = [1 2 3];
+            face_coord = face_coord(:,dimen(dimen~=idime));
         end
     end
 end

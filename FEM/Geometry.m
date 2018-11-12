@@ -1,6 +1,4 @@
 classdef Geometry<handle
-    %Geometry Summary of this class goes here
-    %   Detailed explanation goes here
     
     properties (GetAccess = public, SetAccess = public)
         type
@@ -12,17 +10,20 @@ classdef Geometry<handle
         quadrature_order
         nfields=1;
     end
+    
     methods %(Access = {?Physical_Problem,?Element_DiffReact}) % !! Element_DiffReact -> Chapusilla !!
         function obj = Geometry(mesh,order)
             obj.type = mesh.geometryType;
             obj.interpolation = Interpolation.create(mesh,order);
         end
+        
         function computeGeometry(obj,quadrature,interp_variable)                
             if ~strcmp(obj.quadrature_order,quadrature.order)
                 obj.compute(quadrature,interp_variable)
                 obj.quadrature_order = quadrature.order;
             end
-        end        
+        end 
+        
         function compute(obj,quadrature,interp_variable)
             ndime=interp_variable.ndime;
             nnode=interp_variable.nnode;

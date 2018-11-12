@@ -3,8 +3,10 @@ classdef Mesh_Unfitted_3D < Mesh_Unfitted
         function obj = Mesh_Unfitted_3D
             obj.ndim = 3;
         end
-        
-        function [P,active_nodes]=computeCutPoints_Iso(obj)
+
+%     end
+%     methods (Access = private)
+        function [P,active_nodes] = computeCutPoints_Iso(obj)
             pos_nodes = obj.background_geom_interpolation.pos_nodes;
             
             iteration_1 = obj.background_geom_interpolation.iteration(1,:);
@@ -20,7 +22,7 @@ classdef Mesh_Unfitted_3D < Mesh_Unfitted
             active_nodes = sign(gamma_1.*gamma_2)<=0;
         end
         
-        function [P,active_nodes]=computeCutPoints_Global(obj)
+        function [P,active_nodes] = computeCutPoints_Global(obj)
             iteration_1 = obj.background_geom_interpolation.iteration(1,:);
             iteration_2 = obj.background_geom_interpolation.iteration(2,:);
             

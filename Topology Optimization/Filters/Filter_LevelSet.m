@@ -30,11 +30,6 @@ classdef Filter_LevelSet < Filter
             MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';
             warning('off', MSGID)
         end
-        
-        function shapeValues = integrateFoverMesh(obj,F1)
-            integrator = Integrator;
-            shapeValues = integrator.integrateUnfittedMesh(obj.unfitted_mesh,obj.mesh,F1);
-        end
     end
     
     methods (Access = protected)

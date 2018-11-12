@@ -28,9 +28,8 @@ classdef Filter_LevelSet_Interior < Filter_LevelSet
         %                 end
         
         function M2 = computeRHS(obj,F1)
-            shapeValues_CutCells = obj.integrateFoverMesh(F1);
-            shapeValues_All = obj.assembleShapeValues(shapeValues_CutCells,obj.shapeValues_FullCells);
-            M2 = obj.rearrangeOutputRHS(shapeValues_All);
+            integrator = Integrator;
+            M2 = integrator.integrateUnfittedMesh(obj.unfitted_mesh,obj.mesh,F1);
         end
         
         function S = computeVolume(obj,x)

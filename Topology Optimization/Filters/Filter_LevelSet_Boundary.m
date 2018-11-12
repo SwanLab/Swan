@@ -9,9 +9,8 @@ classdef Filter_LevelSet_Boundary < Filter_LevelSet
         end
         
         function M2 = computeRHS(obj,F1)           
-            shapeValues = obj.integrateFoverMesh(F1);
-            shapeValues = obj.assembleShapeValues(shapeValues);
-            M2 = obj.rearrangeOutputRHS(shapeValues);
+            integrator = Integrator;
+            M2 = integrator.integrateUnfittedMesh(obj.unfitted_mesh,obj.mesh,F1);
         end
     end
     

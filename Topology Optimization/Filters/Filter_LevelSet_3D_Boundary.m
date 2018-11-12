@@ -1,30 +1,30 @@
 classdef Filter_LevelSet_3D_Boundary < Filter_LevelSet_3D & Filter_LevelSet_Boundary
     methods (Access = public)        
-        function S = computeSurface(obj,x)
-            obj.unfitted_mesh.computeMesh(x);
-            M2 = obj.computeRHS(ones(size(x)));
-            S = sum(M2);
-            
-            filter2D = Filter_P1_LevelSet_2D_Interior;
-            %             filter2D.loadProblem(obj.diffReacProb.problemID,'MACRO');
-            
-            interpolation_unfitted = Interpolation.create(obj.unfitted_mesh,'LINEAR');
-            for idime = 1:obj.mesh.ndim
-                for iside = 1:2
-                    [face_mesh,valid_nodes] = obj.createFaceMesh(idime,iside);
-                    unfitted_mesh2D = Mesh_Unfitted_2D_Interior(face_mesh,interpolation_unfitted);
-                    unfitted_mesh2D.computeMesh(x(valid_nodes));
-                    
-                    if ~isempty(unfitted_mesh2D.connec)
-                        filter2D.setupFromMesh(face_mesh,'MACRO');
-                        filter2D.preProcess;
-                        filter2D.unfitted_mesh = unfitted_mesh2D;
-                        M2 = filter2D.computeRHS(ones(size(x(valid_nodes))));
-                        S = S + sum(M2);
-                    end
-                end
-            end
-        end
+%         function S = computeSurface(obj,x)
+%             obj.unfitted_mesh.computeMesh(x);
+%             M2 = obj.computeRHS(ones(size(x)));
+%             S = sum(M2);
+%             
+%             filter2D = Filter_P1_LevelSet_2D_Interior;
+%             %             filter2D.loadProblem(obj.diffReacProb.problemID,'MACRO');
+%             
+%             interpolation_unfitted = Interpolation.create(obj.unfitted_mesh,'LINEAR');
+%             for idime = 1:obj.mesh.ndim
+%                 for iside = 1:2
+%                     [face_mesh,valid_nodes] = obj.createFaceMesh(idime,iside);
+%                     unfitted_mesh2D = Mesh_Unfitted_2D_Interior(face_mesh,interpolation_unfitted);
+%                     unfitted_mesh2D.computeMesh(x(valid_nodes));
+%                     
+%                     if ~isempty(unfitted_mesh2D.connec)
+%                         filter2D.setupFromMesh(face_mesh,'MACRO');
+%                         filter2D.preProcess;
+%                         filter2D.unfitted_mesh = unfitted_mesh2D;
+%                         M2 = filter2D.computeRHS(ones(size(x(valid_nodes))));
+%                         S = S + sum(M2);
+%                     end
+%                 end
+%             end
+%         end
     end
     
     methods ( Access = private)
