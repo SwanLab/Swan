@@ -1,14 +1,14 @@
-classdef Quadrature_Quadrilateral<Quadrature
-    properties
-    end
-    methods
+classdef Quadrature_Quadrilateral < Quadrature
+
+    methods (Access = public)
         function computeQuadrature(obj,order)
             computeQuadrature@Quadrature(obj,order);
             switch order
                 case 'CONSTANT'
-                    obj.ngaus=1;
-                    obj.posgp=[0,0];
-                    obj.weigp=4;
+                    obj.ngaus = 1;
+                    obj.posgp = [0,0];
+                    obj.weigp = 4;
+                    
                 case 'LINEAR'
                     obj.ngaus = 4;
                     % Compute WEIGP and POSGP
@@ -35,22 +35,23 @@ classdef Quadrature_Quadrilateral<Quadrature
                     obj.posgp(:,9) = [ 0,-a];
                     
                     obj.weigp =(4/9)*ones(1,obj.ngaus);
+                    
                 case 'QUADRATICMASS'
-                    posgl(1)=-0.774596669241483;
-                    posgl(2)= 0.0;
-                    posgl(3)= 0.774596669241483;
-                    weigl(1)= 0.555555555555556;
-                    weigl(2)= 0.888888888888889;
-                    weigl(3)= 0.555555555555556;
-                    obj.ngaus=9;
-                    igaus=0;
-                    nlocs=3;
-                    for ilocs=1:nlocs
-                        for jlocs=1:nlocs
-                            igaus=igaus+1;
-                            obj.weigp(  igaus)=weigl(ilocs)*weigl(jlocs);
-                            obj.posgp(1,igaus)=posgl(ilocs);
-                            obj.posgp(2,igaus)=posgl(jlocs);
+                    posgl(1) =-0.774596669241483;
+                    posgl(2) = 0.0;
+                    posgl(3) = 0.774596669241483;
+                    weigl(1) = 0.555555555555556;
+                    weigl(2) = 0.888888888888889;
+                    weigl(3) = 0.555555555555556;
+                    obj.ngaus = 9;
+                    igaus = 0;
+                    nlocs = 3;
+                    for ilocs = 1:nlocs
+                        for jlocs = 1:nlocs
+                            igaus = igaus+1;
+                            obj.weigp(  igaus) = weigl(ilocs)*weigl(jlocs);
+                            obj.posgp(1,igaus) = posgl(ilocs);
+                            obj.posgp(2,igaus) = posgl(jlocs);
                         end
                     end
                         
