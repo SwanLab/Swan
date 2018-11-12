@@ -46,6 +46,7 @@ classdef Mesh_Unfitted < Mesh
                 %                 warning('No cut cells found, can`t compute unfitted mesh.')
             end
             obj.computeGlobalConnectivities;
+            obj.computeGeometryType;
         end
     end
     

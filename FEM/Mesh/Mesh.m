@@ -14,7 +14,7 @@ classdef Mesh < handle
             obj.coord = coordinates;
             obj.connec = connectivities;
             obj.ndim = size(coordinates,2);
-            obj.setGeometryType;
+            obj.computeGeometryType;
             obj.estimate_mesh_size;
             obj.estimate_mesh_characteristic_length;
         end
@@ -25,17 +25,19 @@ classdef Mesh < handle
         end
     end
     
-    methods (Access = private)
-        function setGeometryType(obj)
+    methods (Access = protected)
+        function computeGeometryType(obj)
             switch obj.ndim
                 case 2
-                    obj.setGeomType2D;
+                    obj.computeGeomType2D;
                 case 3
-                    obj.setGeomType3D;
+                    obj.computeGeomType3D;
             end
         end
-        
-        function setGeomType2D(obj)
+    end
+    
+    methods (Access = private)
+        function computeGeomType2D(obj)
             switch size(obj.connec,2)
                 case 2
                     obj.geometryType = 'LINE';
@@ -46,7 +48,7 @@ classdef Mesh < handle
             end
         end
         
-        function setGeomType3D(obj)
+        function computeGeomType3D(obj)
             switch size(obj.connec,2)
                 case 4
                     obj.geometryType = 'TETRAHEDRA';
