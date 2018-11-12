@@ -1,10 +1,6 @@
 classdef Quadrilateral_Bilinear < Interpolation
-    properties
-    end
-    
-    methods
 
-
+    methods (Access = public)
      function obj = Quadrilateral_Bilinear(mesh)
             obj = obj@Interpolation(mesh);
             obj.type = 'QUADRILATERAL';
@@ -90,34 +86,35 @@ classdef Quadrilateral_Bilinear < Interpolation
 %                 4 6 7
 %                 6 3 7];
 
-            obj.selectcases =[1 0 0;
-                2 0 0;
-                3 6 0;
-                4 7 0;
-                0 5 0;
-                0 7 4;
-                0 6 3
-                0 0 2
-                0 0 1];
-        end
+            obj.selectcases = [1 0 0;
+                               2 0 0;
+                               3 6 0;
+                               4 7 0;
+                               0 5 0;
+                               0 7 4;
+                               0 6 3
+                               0 0 2
+                               0 0 1];
+     end
+        
         function computeShapeDeriv(obj,posgp)
-            obj.shape=[];
-            obj.deriv=[];
+            obj.shape = [];
+            obj.deriv = [];
             s = posgp(1,:);
             t = posgp(2,:);
-            obj.shape =[(ones(1,size(posgp,2))-t-s+s.*t)*0.25;
-                (ones(1,size(posgp,2))-t+s-s.*t)*0.25;
-                (ones(1,size(posgp,2))+t+s+s.*t)*0.25;
-                (ones(1,size(posgp,2))+t-s-s.*t)*0.25];
+            obj.shape = [(ones(1,size(posgp,2))-t-s+s.*t)*0.25;
+                        (ones(1,size(posgp,2))-t+s-s.*t)*0.25;
+                        (ones(1,size(posgp,2))+t+s+s.*t)*0.25;
+                        (ones(1,size(posgp,2))+t-s-s.*t)*0.25];
 
-            obj.deriv(1,1,:) =(-ones(1,size(posgp,2))+t)*0.25;
-            obj.deriv(1,2,:) =(+ones(1,size(posgp,2))-t)*0.25;
-            obj.deriv(1,3,:) =(+ones(1,size(posgp,2))+t)*0.25;
-            obj.deriv(1,4,:) =(-ones(1,size(posgp,2))-t)*0.25;
-            obj.deriv(2,1,:) =(-ones(1,size(posgp,2))+s)*0.25;
-            obj.deriv(2,2,:) =(-ones(1,size(posgp,2))-s)*0.25;
-            obj.deriv(2,3,:) =(+ones(1,size(posgp,2))+s)*0.25;
-            obj.deriv(2,4,:) =(+ones(1,size(posgp,2))-s)*0.25;            
+            obj.deriv(1,1,:) = (-ones(1,size(posgp,2))+t)*0.25;
+            obj.deriv(1,2,:) = (+ones(1,size(posgp,2))-t)*0.25;
+            obj.deriv(1,3,:) = (+ones(1,size(posgp,2))+t)*0.25;
+            obj.deriv(1,4,:) = (-ones(1,size(posgp,2))-t)*0.25;
+            obj.deriv(2,1,:) = (-ones(1,size(posgp,2))+s)*0.25;
+            obj.deriv(2,2,:) = (-ones(1,size(posgp,2))-s)*0.25;
+            obj.deriv(2,3,:) = (+ones(1,size(posgp,2))+s)*0.25;
+            obj.deriv(2,4,:) = (+ones(1,size(posgp,2))-s)*0.25;            
         end
 
 	end
