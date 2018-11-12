@@ -4,7 +4,8 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
     end
     
     methods
-        function obj = Filter_LevelSet_3D
+        function obj = Filter_LevelSet_3D(unfitted_algorithm)
+            obj@Filter_LevelSet(unfitted_algorithm);
             obj.max_subcells = 20;
             obj.nnodes_subelem = 4;
             obj.ndim = 3;
@@ -24,8 +25,17 @@ classdef Filter_LevelSet_3D < Filter_LevelSet
         end
         
         function setupUnfittedMesh(obj,x)
-            obj.unfitted_mesh = Mesh_Unfitted_3D(obj.diffReacProb.mesh.duplicate,x,obj.diffReacProb.geometry.interpolation);
-            obj.unfitted_mesh.computeCutMesh;
+            switch obj.unfitted_mesh_algorithm
+                case 'DELAUNAY'
+                    obj.unfitted_mesh = Mesh_Unfitted_3D_Delaunay(obj.diffReacProb.mesh.duplicate,x,obj.diffReacProb.geometry.interpolation);
+                case 'MARCHING_CUBES'
+                    if strcmp(obj.geometry.type,'TETRAHEDRA')
+                        obj.unfitted_mesh = Mesh_Unfitted_3D_MarchingCubes(obj.diffReacProb.mesh.duplicate,x,obj.diffReacProb.geometry.interpolation);
+                    else
+                        obj.unfitted_mesh = Mesh_Unfitted_3D_Delaunay(obj.diffReacProb.mesh.duplicate,x,obj.diffReacProb.geometry.interpolation);
+                    end
+            end
+            obj.unfitted_mesh.findCutCells;
         end
         
         function M2 = computeRHS_facet(obj,x,F)
