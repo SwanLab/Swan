@@ -1,4 +1,4 @@
-filename='Cylinder_Tetrahedra_Linear_Unstructured';
+filename='Cylinder_Hexahedra_Linear_Unstructured';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
