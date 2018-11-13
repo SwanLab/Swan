@@ -12,7 +12,7 @@ classdef Filter_LevelSet < Filter
             preProcess@Filter(obj);
             
             obj.unfitted_mesh = Mesh_Unfitted.create(obj.mesh,obj.interpolation,obj.domainType);
-            obj.integrator = Integrator;
+            obj.integrator = Integrator.create(obj.unfitted_mesh);
             
             MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';
             warning('off', MSGID)
@@ -20,7 +20,7 @@ classdef Filter_LevelSet < Filter
         
         function M2 = computeRHS(obj,x,F1)
             obj.unfitted_mesh.computeMesh(x);
-            M2 = obj.integrator.integrateUnfittedMesh(obj.unfitted_mesh,obj.mesh,F1);
+            M2 = obj.integrator.integrateUnfittedMesh(F1,obj.unfitted_mesh);
         end
     end
     

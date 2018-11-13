@@ -1,16 +1,18 @@
 classdef Mesh_Unfitted < Mesh
     properties
-        background_full_cells
-        background_empty_cells
-        background_cut_cells
-        
         coord_iso
         connec_local
         coord_iso_per_cell
         cell_containing_subcell
         
+        background_full_cells
+        background_empty_cells
+        background_cut_cells
+        
         x_background
         x_unfitted
+        
+        background_mesh
     end
     
     properties (Access = protected)
@@ -21,7 +23,6 @@ classdef Mesh_Unfitted < Mesh
         max_subcells
         nnodes_subcell
         
-        background_mesh
         background_geom_interpolation
     end
     
@@ -191,8 +192,8 @@ classdef Mesh_Unfitted < Mesh
     
     methods (Access = protected)
         function mass = computeMass(obj)
-            integrator = Integrator;
-            M2 = integrator.integrateUnfittedMesh(obj,obj.background_mesh,ones(size(obj.x_background)));
+            integrator = Integrator.create(obj);
+            M2 = integrator.integrateUnfittedMesh(ones(size(obj.x_background)),obj);
             mass = sum(M2);
         end
     end
