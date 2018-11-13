@@ -1,4 +1,4 @@
-classdef test2dTriangle < testCheckStoredAndFemComputedVariable
+classdef test2dTriangle < testCheckStoredWithFemComputedVariable
     
     
     properties (Access = protected)

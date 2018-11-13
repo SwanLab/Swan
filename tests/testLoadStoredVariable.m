@@ -18,8 +18,8 @@ classdef testLoadStoredVariable < handle
     
     methods (Access = protected)
         function loadStoredVariable(obj)
-            load_file = strcat('./tests/',obj.testName);
-            load(load_file);
+            file2load = strcat('./tests/',obj.testName);
+            load(file2load);
             for icell = 1:numel(obj.variablesToStore)
               obj.storedVar{icell} = eval(obj.variablesToStore{icell});
             end

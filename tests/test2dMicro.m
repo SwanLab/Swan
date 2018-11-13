@@ -1,4 +1,4 @@
-classdef test2dMicro < testCheckStoredAndFemComputedVariable
+classdef test2dMicro < testCheckStoredWithFemComputedVariable
     
     
     properties (Access = protected)

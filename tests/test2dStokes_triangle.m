@@ -1,4 +1,4 @@
-classdef test2dStokes_triangle < testCheckStoredAndFemComputedVariable
+classdef test2dStokes_triangle < testCheckStoredWithFemComputedVariable
     
     
     properties (Access = protected)

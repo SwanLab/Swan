@@ -1,23 +1,26 @@
 classdef test < handle
-
-    properties
+    
+    properties (Access = protected)
+       FileName 
     end
-
-    methods
+    
+    methods (Access = public)
   
         function checkTestPassed(obj,FileName)
-            if obj.hasPassed()
-                cprintf('green',strcat(FileName,' PASSED\n'));
+            obj.FileName = FileName;
+            if obj.hasPassed()                
+                obj.printTestPassed()
             else
-                cprintf('err',strcat(FileName,' FAILED\n'));
+                obj.printTestNotPassed()
             end
         end
         
-
     end
     
     methods (Abstract, Access = protected)
-        hasPassed(obj)        
+        hasPassed(obj)
+        printTestPassed(obj)
+        printTestNotPassed(obj)
     end
 
 

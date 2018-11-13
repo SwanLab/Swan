@@ -1,4 +1,8 @@
-classdef TestTwoRankSequentialLaminate < test
+classdef TestTwoRankSequentialLaminate < testShowingError
+    
+    properties (Access = protected)
+        tol = 1e-12; 
+    end
     
     properties (Access = private)
       C0
@@ -143,14 +147,14 @@ classdef TestTwoRankSequentialLaminate < test
     end
     
     methods (Access = protected)
-        function hasPassed = hasPassed(obj)
+        function computeError(obj)
             InitCh  = double(obj.FirstCheckedRank2Ch);
             R2Ch    = double(obj.Rank2Ch);
             R2ChWeb = double(obj.WebRank2Ch);
             
-            firstCheck  = norm(InitCh - R2Ch )/norm(R2Ch) < 1e-12;
-            secondCheck = norm(R2ChWeb- R2Ch)/norm(R2Ch) < 1e-12;
-            hasPassed = firstCheck && secondCheck;
+            err1  = norm(InitCh - R2Ch)/norm(R2Ch);
+            err2  = norm(R2ChWeb- R2Ch)/norm(R2Ch);;
+            obj.error = max(err1,err2);
         end
     end
     

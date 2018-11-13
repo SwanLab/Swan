@@ -1,4 +1,8 @@
-classdef TestGeneralTwoRankSequentialLaminate < test
+classdef TestGeneralTwoRankSequentialLaminate < testShowingError
+    
+    properties (Access = protected)
+        tol = 1e-12;
+    end
     
     properties (Access = private)
       fractionVolume      
@@ -24,10 +28,10 @@ classdef TestGeneralTwoRankSequentialLaminate < test
     end
     
     methods (Access = protected)
-        function hasPassed = hasPassed(obj)
+        function computeError(obj)
             RankTwoCh  = obj.Rank2Ch;
             SqCh = obj.SeqLamCh.getValue();
-            hasPassed = norm(RankTwoCh - SqCh)/norm(SqCh) < 1e-12;
+            obj.error = norm(RankTwoCh - SqCh)/norm(SqCh);
         end
     end
     

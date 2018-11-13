@@ -1,9 +1,11 @@
-classdef testSymmetryForIAniTensorInVoigt < test
+classdef testSymmetryForIAniTensorInVoigt < testShowingError
     
     properties (Access = protected)
         ChVoigtSym
         Ch
         ChVoigt
+        
+        tol = 1e-12;
     end
     
     methods
@@ -33,10 +35,10 @@ classdef testSymmetryForIAniTensorInVoigt < test
     
     methods (Access = protected)
         
-        function hasPassed = hasPassed(obj)
+        function computeError(obj)
             c    = obj.ChVoigt.getValue();
             cSym = obj.ChVoigtSym;            
-            hasPassed = norm(c(:) - cSym(:)) < 1e-12;
+            obj.error = norm(c(:) - cSym(:));
         end
         
     end

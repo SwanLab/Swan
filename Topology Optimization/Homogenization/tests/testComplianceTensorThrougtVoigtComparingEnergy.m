@@ -1,4 +1,8 @@
-classdef testComplianceTensorThrougtVoigtComparingEnergy < test
+classdef testComplianceTensorThrougtVoigtComparingEnergy < testShowingError
+    
+    properties (Access = protected)
+         tol = 1e-12;
+    end
     
     properties (Access = private)
         strain
@@ -68,10 +72,10 @@ classdef testComplianceTensorThrougtVoigtComparingEnergy < test
     end
        
     methods (Access = protected)
-       function hasPassed = hasPassed(obj)
+       function computeError(obj)
            es = obj.energyStiffTensProd; 
            ec = obj.energyCompTensProd; 
-           hasPassed = norm(es - ec) < 1e-12;
+           obj.error = norm(es - ec);
         end 
         
     end

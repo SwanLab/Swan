@@ -1,4 +1,4 @@
-classdef testEnergyEquivalenceVoigtAndTensorNotation < test
+classdef testEnergyEquivalenceVoigtAndTensorNotation < testShowingError
     
     properties (Access = protected)
         voigtEnergy
@@ -8,6 +8,8 @@ classdef testEnergyEquivalenceVoigtAndTensorNotation < test
         strainVoigt
         Ch
         ChVoigt
+        
+        tol = 1e-10;
     end
     
     methods (Access = protected)
@@ -18,8 +20,8 @@ classdef testEnergyEquivalenceVoigtAndTensorNotation < test
             obj.computeVoigtEnergy();
         end
         
-        function hasPassed = hasPassed(obj)
-            hasPassed = abs(obj.voigtEnergy - obj.tensorEnergy) < 1e-10;
+        function computeError(obj)
+            obj.error = abs(obj.voigtEnergy - obj.tensorEnergy);
         end
     end
     

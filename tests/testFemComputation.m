@@ -2,7 +2,6 @@ classdef testFemComputation < handle
     
     properties (Abstract, Access = protected)
         testName
-        computedVar
     end
     
     properties (Access = protected)

@@ -1,4 +1,8 @@
-classdef testInverseOfInverseForStiffTensor < test
+classdef testInverseOfInverseForStiffTensor < testShowingError
+    
+    properties (Access = protected)
+        tol = 1e-10;
+    end
     
     properties (Access = private)
         ctens
@@ -36,10 +40,10 @@ classdef testInverseOfInverseForStiffTensor < test
     end
        
     methods (Access = protected)
-        function hasPassed = hasPassed(obj)
+        function computeError(obj)
             c = obj.ctens.getValue();
             invInvC = obj.invInvCtens.getValue();
-            hasPassed = norm(c(:) - invInvC(:)) < 1e-10;
+            obj.error = norm(c(:) - invInvC(:));
         end
     end
 end

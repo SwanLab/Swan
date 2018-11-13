@@ -14,7 +14,8 @@ classdef FemTests < testRunner
     
     methods (Access = protected)
         function loadTests(obj)
-            obj.tests = {...                
+            obj.tests = {...   
+                'testStiffnessMatrixGenerator';
                 'test2dQuad';
                 'test2dTriangle';
                 'test2dStokes_triangle';

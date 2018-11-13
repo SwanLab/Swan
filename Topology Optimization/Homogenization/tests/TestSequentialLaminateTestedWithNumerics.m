@@ -1,4 +1,4 @@
-classdef TestSequentialLaminateTestedWithNumerics < test
+classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
 
   
     properties (Access = protected)

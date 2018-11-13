@@ -1,4 +1,4 @@
-classdef testSymmetrizeFourthOrderTensor < test
+classdef testSymmetrizeFourthOrderTensor < testNotShowingError
     
     properties (Access = protected)
            Cani

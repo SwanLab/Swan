@@ -1,8 +1,9 @@
-classdef testSymmetrizeIsotropicFourthOrderTensor < test
+classdef testSymmetrizeIsotropicFourthOrderTensor < testShowingError
     
     properties (Access = protected)
           Ciso
           Csym
+          tol = 1e-6;
     end
     
     methods
@@ -26,10 +27,10 @@ classdef testSymmetrizeIsotropicFourthOrderTensor < test
       end
     
     methods (Access = protected)      
-        function hasPassed = hasPassed(obj)
+        function computeError(obj)
             Cs = obj.Csym.getValue();
             Ci = obj.Ciso.getValue();
-            hasPassed = norm(Cs(:) - Ci(:)) < 1e-6;
+            obj.error = norm(Cs(:) - Ci(:));;
         end
         
     end

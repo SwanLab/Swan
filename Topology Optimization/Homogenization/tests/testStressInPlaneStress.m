@@ -1,4 +1,8 @@
-classdef testStressInPlaneStress < test
+classdef testStressInPlaneStress < testShowingError
+    
+    properties (Access = protected)
+        tol = 1e-12;
+    end
     
     properties (Access = private)
         
@@ -55,10 +59,10 @@ classdef testStressInPlaneStress < test
     
     methods (Access = protected)
         
-        function hasPassed = hasPassed(obj)
+        function computeError(obj)
             sV  = obj.stressFromVoigtProduct;
             sT = obj.stressFromTensorProduct;
-            hasPassed = norm(sV - sT) < 1e-12;
+            obj.error = norm(sV - sT);
         end
         
         

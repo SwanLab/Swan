@@ -1,4 +1,8 @@
-classdef testAnisotropicPlaneStressbyEnergyEquivalence < test
+classdef testAnisotropicPlaneStressbyEnergyEquivalence < testShowingError
+    
+    properties (Access = protected)
+        tol = 1e-11;
+    end
     
     properties (Access = private)
         energyFromPS
@@ -71,10 +75,10 @@ classdef testAnisotropicPlaneStressbyEnergyEquivalence < test
     
     methods (Access = protected)
         
-        function hasPassed = hasPassed(obj)
+        function computeError(obj)
             enPS = double(obj.energyFromPS);
             enTens  = obj.energyFromTensor;
-            hasPassed = norm(enPS - enTens) < 1e-11;
+            obj.error =  norm(enPS - enTens);
         end
 
     end

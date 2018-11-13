@@ -1,9 +1,10 @@
-classdef testMakeAnisotorpicTensorPlaneStressSymbolically < test
+classdef testMakeAnisotorpicTensorPlaneStressSymbolically < testShowingError
     
     properties (Access = protected)
         ChVoigt
         ChSym
         ChNum
+        tol = 1e-13;
     end
     
     methods (Access = public)
@@ -38,10 +39,10 @@ classdef testMakeAnisotorpicTensorPlaneStressSymbolically < test
     
     
     methods (Access = protected)
-        function hasPassed = hasPassed(obj)
-            cSym = obj.ChSym.getValue;
+        function computeError(obj)
+            cSym = double(obj.ChSym.getValue);
             cNum = obj.ChNum.getValue;
-            hasPassed = norm(cSym(:) - cNum(:)) < 1e-13;
+            obj.error = norm(cSym(:) - cNum(:));
         end
     end
 end

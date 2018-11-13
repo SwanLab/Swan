@@ -1,4 +1,4 @@
-classdef test3dTetrahedra < testCheckStoredAndFemComputedVariable
+classdef test3dTetrahedra < testCheckStoredWithFemComputedVariable
     
     
     properties (Access = protected)

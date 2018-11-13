@@ -1,4 +1,4 @@
-classdef test2dQuad < testCheckStoredAndFemComputedVariable
+classdef test2dQuad < testCheckStoredWithFemComputedVariable
     
     
     properties (Access = protected)

@@ -1,7 +1,8 @@
-classdef testInverseFourthOrderTensor < test
+classdef testInverseFourthOrderTensor < testShowingError
     
     properties (Access = protected)
         tensor
+        tol = 1e-12;
     end
     
     properties (Access = private)
@@ -74,10 +75,10 @@ classdef testInverseFourthOrderTensor < test
     
     methods (Access = protected)
                 
-        function hasPassed = hasPassed(obj)
+        function computeError(obj)
             I = obj.identity;
             Ie = obj.expectedIdentity;            
-            hasPassed = norm(I(:)-Ie(:))/norm(I(:)) < 1e-12;
+            obj.error = norm(I(:)-Ie(:))/norm(I(:));
         end
     end
     

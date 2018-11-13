@@ -1,6 +1,9 @@
-classdef testCommutingHomogPlaneStressWithZeroPoisson < testCommutingHomogPlaneStress
+classdef testCommutingHomogPlaneStressWithZeroPoisson < ...
+             testCommutingHomogPlaneStress &...
+             testShowingError
     
-    properties
+    properties (Access = protected)
+        tol = 1e-12;
     end
     
     methods (Access = protected, Static)
@@ -12,11 +15,10 @@ classdef testCommutingHomogPlaneStressWithZeroPoisson < testCommutingHomogPlaneS
     
     methods (Access = protected)
         
-        function hasPassed = hasPassed(obj)
+        function computeError(obj)
             c1 = obj.vhpTensor.getValue();
             c2 = obj.vphTensor.getValue();
-            error = norm(c2-c1)/norm(c1);
-            hasPassed = error < 1e-12;
+            obj.error = norm(c2-c1)/norm(c1);
         end
         
     end

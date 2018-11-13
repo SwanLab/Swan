@@ -2,7 +2,7 @@ classdef testHorizontalTensorRotatedVsHVP < ...
         testHorizontalTensorRotatedVsSequentialLaminate
     
     properties (Access = protected)
-        tol
+        tol = 1e-3;
     end
     
     methods (Access = public)
@@ -23,10 +23,7 @@ classdef testHorizontalTensorRotatedVsHVP < ...
             lam      = HomogVoigtPlaneStressHomogenizer(c0,c1,dir,m1,frac);
             obj.lamTensor = lam.getPlaneStressHomogenizedTensor();
         end
-        
-        function createTolerance(obj)
-           obj.tol = 1e-3; 
-        end
+
     end
     
 end

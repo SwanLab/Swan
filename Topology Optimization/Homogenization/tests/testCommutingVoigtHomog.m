@@ -1,4 +1,4 @@
-classdef testCommutingVoigtHomog < test
+classdef testCommutingVoigtHomog < testShowingError
     
     properties (Access = private)
         theta
@@ -7,6 +7,10 @@ classdef testCommutingVoigtHomog < test
         weakTensor
         vhpTensor        
         hvpTensor
+    end
+    
+    properties (Access = protected)
+        tol = 1e-12;
     end
     
     methods (Access = public)
@@ -61,11 +65,10 @@ classdef testCommutingVoigtHomog < test
     
      methods (Access = protected)
        
-         function hasPassed = hasPassed(obj)
+         function computeError(obj)
             c1 = obj.vhpTensor.getValue();
             c2 = obj.hvpTensor.getValue();
-            error = norm(c2-c1)/norm(c1);
-            hasPassed = error < 1e-12;
+            obj.error = norm(c2-c1)/norm(c1);
          end        
         
     end

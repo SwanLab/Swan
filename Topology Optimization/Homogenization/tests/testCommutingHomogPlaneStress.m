@@ -1,4 +1,4 @@
-classdef testCommutingHomogPlaneStress < test
+classdef testCommutingHomogPlaneStress < handle
     
     properties (Access = private)        
         theta

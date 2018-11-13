@@ -1,4 +1,8 @@
-classdef testIsotropicFourthOrderTensor < test
+classdef testIsotropicFourthOrderTensor < testShowingError
+    
+    properties (Access = protected)
+         tol = 1e-12;
+    end
     
     properties (Access = private)
         E = 1;
@@ -40,10 +44,10 @@ classdef testIsotropicFourthOrderTensor < test
     end
     
     methods (Access = protected)
-        function hasPassed = hasPassed(obj)
+        function computeError(obj)
             cV = obj.cVoigt.getValue();
             cVe = obj.cVoigtExplicit;
-            hasPassed = norm(cV(:) - cVe(:)) < 1e-12;
+            obj.error = norm(cV(:) - cVe(:));
         end
     end
 end

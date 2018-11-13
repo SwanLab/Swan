@@ -1,4 +1,8 @@
-classdef testNumericalConvergenceOfNumberOfLaminates < test
+classdef testNumericalConvergenceOfNumberOfLaminates < testShowingError
+    
+    properties (Access = protected)
+       tol = 1e-12 
+    end
     
     properties (Access = private)
         
@@ -68,26 +72,26 @@ classdef testNumericalConvergenceOfNumberOfLaminates < test
             end
         end
         
-        function AreChSimilar = ComputeChSimilarity(obj)
+        function ChError = ComputeChSimilarity(obj)
             NormCh = obj.ChNorm;
             meanChNorm = mean(NormCh); 
-            AreChSimilar = norm(NormCh - meanChNorm) < 1e-12;
+            ChError = norm(NormCh - meanChNorm);
         end
         
-        function AreVolumesSimilar = ComputeVolumeSimilarity(obj)
+        function volError = ComputeVolumeSimilarity(obj)
             Volumes = obj.AllVolume;
             meanVolumes = mean(Volumes);
-            AreVolumesSimilar = norm(Volumes - meanVolumes) < 1e-12;
+            volError = norm(Volumes - meanVolumes);
         end
         
     end
     
     methods (Access = protected)
         
-        function TestHasPassed = hasPassed(obj)
-            AreChSimiliar    = obj.ComputeChSimilarity();
-            AreVolumeSimilar = obj.ComputeVolumeSimilarity();
-            TestHasPassed = AreChSimiliar && AreVolumeSimilar;
+        function computeError(obj)
+            errorCh = obj.ComputeChSimilarity();
+            errorVol = obj.ComputeVolumeSimilarity();
+            obj.error = max(errorCh,errorVol);
         end
         
     end

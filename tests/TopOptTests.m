@@ -15,15 +15,15 @@ classdef TopOptTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {...                
-               'test_cantilever';
-               'test_cantilever2';
-               'test_cantilever3';
-               'test_projected_slerp';
-               'test_gripping';
-               'test_bridge';
-               'test_micro';
-               'test_micro2';
-               'test_bridge2'
+               'testMicro';
+               'testMicro2';
+               'testBridge2'
+               'testCantilever';
+               'testCantilever2';
+               'testCantilever3';
+               'testProjectedSlerp';
+               'testGripping';
+               'testBridge';
                 };
 
         end

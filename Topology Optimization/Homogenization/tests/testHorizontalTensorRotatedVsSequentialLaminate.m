@@ -1,4 +1,4 @@
-classdef testHorizontalTensorRotatedVsSequentialLaminate < test
+classdef testHorizontalTensorRotatedVsSequentialLaminate < testShowingError
     
     properties (Access = protected)
         C0
@@ -39,7 +39,6 @@ classdef testHorizontalTensorRotatedVsSequentialLaminate < test
             obj.createHorizontalDirection()
             obj.createLaminateDirection()
             obj.createMaterialTensors()
-            obj.createTolerance()
         end
         
         function createLaminateParameters(obj)
@@ -97,17 +96,15 @@ classdef testHorizontalTensorRotatedVsSequentialLaminate < test
     
     methods (Access = protected)
         
-        function hasPassed = hasPassed(obj)
+        function computeError(obj)
             rotHor = obj.rotHorTensor.getValue();
             lTens  = obj.lamTensor.getValue();
-            tolerance = obj.tol;
-            hasPassed = norm(rotHor - lTens) < tolerance;
+            obj.error = norm(rotHor - lTens);
         end
     end
     
     methods (Abstract, Access = protected)
         computeLaminateDirectly(obj)  
-        createTolerance(obj)
     end
     
 end

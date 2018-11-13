@@ -1,4 +1,4 @@
-classdef testStressRotationInVoigtNotation < test
+classdef testStressRotationInVoigtNotation < testShowingError
     
     properties (Access = protected)
         direction
@@ -6,6 +6,7 @@ classdef testStressRotationInVoigtNotation < test
         stressVoigt
         rotatedStressByVoigt
         rotatedStress
+        tol =  1e-14;
     end
     
     properties (Access = private)
@@ -45,10 +46,10 @@ classdef testStressRotationInVoigtNotation < test
             tensVoigt.setValue(t)            
         end
         
-        function hasPassed = hasPassed(obj)
+        function computeError(obj)
             rotStre        = obj.rotatedStress.getValue();
             rotStreByVoigt = obj.rotatedStressByVoigt.getValue();
-            hasPassed = norm(double(rotStre) - double(rotStreByVoigt)) < 1e-14;
+            obj.error = norm(double(rotStre) - double(rotStreByVoigt));
         end
         
     end

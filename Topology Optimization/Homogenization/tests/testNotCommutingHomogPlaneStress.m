@@ -1,4 +1,6 @@
-classdef testNotCommutingHomogPlaneStress < testCommutingHomogPlaneStress
+classdef testNotCommutingHomogPlaneStress < ...
+            testCommutingHomogPlaneStress & ...
+            testNotShowingError
     
     properties
     end
