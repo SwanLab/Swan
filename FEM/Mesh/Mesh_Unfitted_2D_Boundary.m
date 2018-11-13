@@ -1,7 +1,7 @@
 classdef Mesh_Unfitted_2D_Boundary < Mesh_Unfitted_2D & Mesh_Unfitted_Boundary
     methods
-        function obj = Mesh_Unfitted_2D_Boundary(background_mesh,background_geom_interpolation)
-            obj.storeBackgroundMesh(background_mesh,background_geom_interpolation);
+        function obj = Mesh_Unfitted_2D_Boundary(mesh_background,background_geom_interpolation)
+            obj.storeBackgroundMesh(mesh_background,background_geom_interpolation);
             obj.max_subcells = 2;
             obj.nnodes_subcell = 2;
         end

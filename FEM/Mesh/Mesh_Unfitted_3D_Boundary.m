@@ -1,13 +1,13 @@
 classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
     methods (Access = public)
-        function obj = Mesh_Unfitted_3D_Boundary(background_mesh,background_geom_interpolation)
-            obj.storeBackgroundMesh(background_mesh,background_geom_interpolation);
+        function obj = Mesh_Unfitted_3D_Boundary(mesh_background,background_geom_interpolation)
+            obj.storeBackgroundMesh(mesh_background,background_geom_interpolation);
             obj.max_subcells = 6; % !! ?? !!
             obj.nnodes_subcell = 3;
         end
         
         %         function obj = computeMesh_withExtBounds(obj,x)
-        %             interior_boundary_mesh = Mesh_Unfitted_3D_Boundary(obj.background_mesh.duplicate,obj.background_geom_interpolation);
+        %             interior_boundary_mesh = Mesh_Unfitted_3D_Boundary(obj.mesh_background.duplicate,obj.background_geom_interpolation);
         %             interior_boundary_mesh.computeMesh(x);
         %             surrounding_boundary_meshes = obj.computeSurrondingBoundaryMeshes;
         %         end
@@ -75,7 +75,7 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
         %                 for iside = 1:2
         %                     iface = 2*(idime-1) + iside;
         %                     face_coord = obj.getFaceCoordinates(domain_limits(idime,iside),idime);
-        %                     surrounding_boundary_meshes{iface} =  Mesh_Unfitted_2D_Interior(obj.background_mesh.duplicate,geom_interpolation);
+        %                     surrounding_boundary_meshes{iface} =  Mesh_Unfitted_2D_Interior(obj.mesh_background.duplicate,geom_interpolation);
         %                 end
         %             end
         %         end
@@ -106,27 +106,27 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
         
         function [face_coord, valid_coord] = getFaceCoordinates(obj,idime,iside)
             if iside == 1
-                L = min(obj.background_mesh.coord(:,idime));
+                L = min(obj.mesh_background.coord(:,idime));
             else
-                L = max(obj.background_mesh.coord(:,idime));
+                L = max(obj.mesh_background.coord(:,idime));
             end
             
-            valid_coord = obj.background_mesh.coord(:,idime) == L;
-            face_coord = obj.background_mesh.coord(valid_coord,:);
+            valid_coord = obj.mesh_background.coord(:,idime) == L;
+            face_coord = obj.mesh_background.coord(valid_coord,:);
             face_coord = obj.removeExtraDimension(face_coord,idime);
             %             face_coord = unique(face_coord,'row');
         end
         
         %         function face_connec = getFaceConnectivities(obj,face_coord,idime,iside)
-        %             indexes_in_global_matrix = obj.findIndexesOfCoordinatesAinCoordinateMatrixB(face_coord,obj.background_mesh.coord);
+        %             indexes_in_global_matrix = obj.findIndexesOfCoordinatesAinCoordinateMatrixB(face_coord,obj.mesh_background.coord);
         %             nnode = 3;
-        %             valid_cells = sum(ismember(obj.background_mesh.connec,indexes_in_global_matrix),2)==nnode;
-        %             face_connec = obj.background_mesh.connec(valid_cells,:);
+        %             valid_cells = sum(ismember(obj.mesh_background.connec,indexes_in_global_matrix),2)==nnode;
+        %             face_connec = obj.mesh_background.connec(valid_cells,:);
         %             %!! NOT WORKING !!
         %         end
         
         function indexes = findConnecIndexes(obj,coord_indexes,nnode)
-            number_of_valid_nodes_per_element = sum(ismember(obj.background_mesh.connec,coord_indexes),2);
+            number_of_valid_nodes_per_element = sum(ismember(obj.mesh_background.connec,coord_indexes),2);
             indexes = number_of_valid_nodes_per_element == nnode;
         end
     end

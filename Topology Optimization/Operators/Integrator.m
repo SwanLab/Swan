@@ -65,8 +65,7 @@ classdef Integrator < handle
         end
         
         function saveMeshes(obj,unfitted)
-            background = unfitted.background_mesh;
-%             background = unfitted.mesh_background;
+            background = unfitted.mesh_background;
             obj.mesh_unfitted = unfitted;
             obj.mesh_background = background;
         end

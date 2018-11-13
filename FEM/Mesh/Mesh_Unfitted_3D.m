@@ -12,8 +12,8 @@ classdef Mesh_Unfitted_3D < Mesh_Unfitted
             iteration_1 = obj.background_geom_interpolation.iteration(1,:);
             iteration_2 = obj.background_geom_interpolation.iteration(2,:);
             
-            gamma_1 = permute(obj.x_background(obj.background_mesh.connec(obj.background_cut_cells,iteration_1)),[2 3 1]);
-            gamma_2 = permute(obj.x_background(obj.background_mesh.connec(obj.background_cut_cells,iteration_2)),[2 3 1]);
+            gamma_1 = permute(obj.x_background(obj.mesh_background.connec(obj.background_cut_cells,iteration_1)),[2 3 1]);
+            gamma_2 = permute(obj.x_background(obj.mesh_background.connec(obj.background_cut_cells,iteration_2)),[2 3 1]);
             
             P1 = repmat(pos_nodes(iteration_1,:),[1 1 size(obj.background_cut_cells)]);
             P2 = repmat(pos_nodes(iteration_2,:),[1 1 size(obj.background_cut_cells)]);
@@ -26,15 +26,15 @@ classdef Mesh_Unfitted_3D < Mesh_Unfitted
             iteration_1 = obj.background_geom_interpolation.iteration(1,:);
             iteration_2 = obj.background_geom_interpolation.iteration(2,:);
             
-            index1 = permute(obj.background_mesh.connec(obj.background_cut_cells,iteration_1),[2 3 1]);
-            index2 = permute(obj.background_mesh.connec(obj.background_cut_cells,iteration_2),[2 3 1]);
+            index1 = permute(obj.mesh_background.connec(obj.background_cut_cells,iteration_1),[2 3 1]);
+            index2 = permute(obj.mesh_background.connec(obj.background_cut_cells,iteration_2),[2 3 1]);
            
             gamma_1 = obj.x_background(index1);
             gamma_2 = obj.x_background(index2);
             
-            coord1 = obj.background_mesh.coord(:,1);
-            coord2 = obj.background_mesh.coord(:,2);
-            coord3 = obj.background_mesh.coord(:,3);
+            coord1 = obj.mesh_background.coord(:,1);
+            coord2 = obj.mesh_background.coord(:,2);
+            coord3 = obj.mesh_background.coord(:,3);
             
             P1 = [coord1(index1) coord2(index1) coord3(index1)];
             P2 = [coord1(index2) coord2(index2) coord3(index2)];
