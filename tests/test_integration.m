@@ -23,10 +23,16 @@ for i = 1:length(tests_integration)
     obj.preProcess;
     x = obj.x;
     
-    filter_boundary = Filter_Boundary.create(obj.settings);
-    filter_boundary.setupFromGiDFile(obj.settings.filename,obj.settings.ptype);
-    filter_boundary.preProcess;
-    A = filter_boundary.computeSurface(x);
+    mesh_boundary = Mesh_Unfitted.create(obj.mesh,Interpolation.create(obj.mesh,'LINEAR'),'BOUNDARY');
+    mesh_boundary.computeMesh(x);
+    
+    switch obj.mesh.pdim
+        case '2D'
+            A = mesh_boundary.computePerimeter;
+        case '3D'
+            A = mesh_boundary.computeSurface;
+    end
+    
     errorSurf = A/A0 - 1;
     if abs(errorSurf) < 4e-2
         cprintf('green',strcat(file_name,' PASSED.  Surface Error: ',num2str(errorSurf),'\n'));
@@ -34,10 +40,16 @@ for i = 1:length(tests_integration)
         cprintf('err',strcat(file_name,' FAILED. Surface Error: ',num2str(errorSurf),'\n'));
     end
     
-    filter = Filter.create(obj.settings);
-    filter.setupFromGiDFile(obj.settings.filename,obj.settings.ptype);
-    filter.preProcess;
-    V = filter.computeVolume(x);
+    mesh_interior = Mesh_Unfitted.create(obj.mesh,Interpolation.create(obj.mesh,'LINEAR'),'INTERIOR');
+    mesh_interior.computeMesh(x);
+    
+    switch obj.mesh.pdim
+        case '2D'
+            V = mesh_interior.computeSurface;
+        case '3D'
+            V = mesh_interior.computeVolume;
+    end
+    
     errorVol= V/V0 - 1;
     if abs(errorVol) < 6e-2
         cprintf('green',strcat(file_name,' PASSED.  Volume Error: ',num2str(errorVol),'\n'));
