@@ -1,4 +1,4 @@
-classdef Element_Elastic_Micro < handle
+classdef Element_Elastic_Micro < Element_Elastic
     
     properties (Access = protected)
         vstrain
@@ -10,9 +10,24 @@ classdef Element_Elastic_Micro < handle
             obj.vstrain = s;
         end
         
+        function variables = computeVars(obj,uL)
+            variables = obj.computeVars@Element_Elastic(uL);
+            variables = obj.computeStressStrainAndCh(variables);
+        end
+        
     end
     
     methods (Access = protected)
+            
+        function FextVolumetric = computeVolumetricFext(obj)
+            FextVolumetric = obj.computeVolumetricFext@Element_Elastic();
+            F_def = obj.computeStrainRHS(obj.vstrain);
+            FextVolumetric = FextVolumetric + F_def;
+        end
+        
+    end
+    
+    methods (Access = private)
         
         function variables = computeStressStrainAndCh(obj,variables)
             

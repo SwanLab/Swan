@@ -23,11 +23,12 @@ classdef Elastic_Problem_Micro < Elastic_Problem
             obj.element.interpolation_u.computeShapeDeriv(obj.element.quadrature.posgp)
             obj.element.geometry.computeGeometry(obj.element.quadrature,obj.element.interpolation_u);
            % obj.variables = PhysicalVars_Elastic_2D_Micro(obj.dof.ndof);
-            vstrain = diag(ones(obj.element.nstre,1));
-            Chomog =  zeros(obj.element.nstre,obj.element.nstre);
-            tstrain = zeros(obj.element.nstre,obj.element.quadrature.ngaus,obj.element.nstre,obj.element.nelem);
-            tstress = zeros(obj.element.nstre,obj.element.quadrature.ngaus,obj.element.nstre,obj.element.nelem);
-            for istre=1:obj.element.nstre
+            nstre = obj.element.getNstre();
+            vstrain = diag(ones(nstre,1));
+            Chomog =  zeros(nstre,nstre);
+            tstrain = zeros(nstre,obj.element.quadrature.ngaus,nstre,obj.element.nelem);
+            tstress = zeros(nstre,obj.element.quadrature.ngaus,nstre,obj.element.nelem);
+            for istre=1:nstre
                 obj.element.setVstrain(vstrain(istre,:));
                 obj.computeVariables;
                 Chomog(:,istre) = obj.variables.stress_homog;

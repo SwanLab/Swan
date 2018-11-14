@@ -2,7 +2,6 @@ classdef Element < handle
     %Element Summary of this class goes here
     
     properties %(GetAccess = {?Physical_Problem, ?Element_Elastic, ?Element_Thermal, ?Element_Hyperelastic, ?Element_Elastic_2D, ?Element_Elastic_3d, ?Element_Hyperelastic, ?Element_Elastic_Micro}, SetAccess = protected)
-        nstre
         nelem
         nnode
         geometry
@@ -11,18 +10,14 @@ classdef Element < handle
         dof
         uD
         nfields
-    end
-    
-%     properties (Abstract, Access = protected)
-%         scale
-%     end
+    end   
     
     properties (Access = protected)
         bcApplier        
     end
 
-    methods (Static)        
-        function obj = Element(geometry,material,dof,scale)            
+    methods (Access = protected)        
+        function initElement(obj,geometry,material,dof,scale)            
             obj.nelem = geometry(1).interpolation.nelem;
             obj.nfields = geometry.nfields;
             for ifield=1:obj.nfields

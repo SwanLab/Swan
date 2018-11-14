@@ -14,6 +14,9 @@ classdef Element_Elastic < Element
         Bmatrix
     end
     
+    properties (Access = protected, Abstract)
+        nstre
+    end
     methods (Static) %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?obj})
         function obj = create(mesh,geometry,material,dof)
             switch mesh.scale
@@ -36,9 +39,8 @@ classdef Element_Elastic < Element
     end
     
     methods %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
-        function obj = Element_Elastic(mesh,geometry,material,dof,nstre)
-            obj@Element(geometry,material,dof,mesh.scale)
-            obj.nstre = nstre;
+        function compute(obj,mesh,geometry,material,dof,nstre)
+            obj.initElement(geometry,material,dof,mesh.scale)
             obj.nfields=1;
             obj.interpolation_u = Interpolation.create(mesh,'LINEAR');
             
@@ -47,15 +49,15 @@ classdef Element_Elastic < Element
             dvolum = obj.geometry.dvolu;
             
             ngaus  = obj.quadrature.ngaus;
-            dim = obj.computeDim(ngaus);
-            connec = obj.geometry.interpolation.T;
+            dimen = obj.computeDim(ngaus);
+            connect = obj.geometry.interpolation.T;
             
             
-            obj.dim = dim;
-            obj.connec = connec;
+            obj.dim = dimen;
+            obj.connec = connect;
 %            obj.DeltaC = ContitutiveTensorIncrement();
             
-            obj.K_generator = StiffnessMatrixGenerator(connec,Bmat,dvolum,dim);
+            obj.K_generator = StiffnessMatrixGenerator(connect,Bmat,dvolum,dimen);
             
             obj.Bmatrix = obj.computeB_InMatrixForm(); 
             
@@ -76,21 +78,6 @@ classdef Element_Elastic < Element
             dim.ngaus          = ngaus;
             dim.nentries       = dim.nelem*(dim.ndofPerElement)^2;
         end
-        
-        
-        function Bmat = computeBmat(obj)
-            ngaus = obj.quadrature.ngaus;
-            nnode = obj.interpolation_u.nnode;
-            nunkn = obj.dof.nunkn;
-            nstre = obj.nstre;
-            nelem = obj.nelem;
-            
-            Bmat = zeros(ngaus,nstre,nnode*nunkn,nelem);
-            for igaus = 1:ngaus
-                Bmat(igaus,:,:,:) = obj.computeB(igaus);
-            end
-        end
-        
         
         function initialize_dvolum(obj)
             obj.computeQuadrature()
@@ -217,23 +204,7 @@ classdef Element_Elastic < Element
         function u = compute_displacements(obj,usol)
             u = obj.bcApplier.reduced_vector_2_full_vector(usol);
         end
-        
-        function strain = computeStrain(obj,d_u,idx)
-            strain = zeros(obj.nstre,obj.nelem,obj.quadrature.ngaus);
-            for igaus = 1:obj.quadrature.ngaus
-                Bmat = obj.computeB(igaus);
-                for istre=1:obj.nstre
-                    for inode=1:obj.nnode
-                        for idime=1:obj.dof.nunkn
-                            ievab = obj.dof.nunkn*(inode-1)+idime;
-                            B = squeeze(Bmat(istre,ievab,:));
-                            u = d_u(idx(ievab,:));
-                            strain(istre,:,igaus)=strain(istre,:,igaus)+(B.*u)';
-                        end
-                    end
-                end
-            end
-        end
+
     end
     
     methods(Static)
@@ -241,6 +212,12 @@ classdef Element_Elastic < Element
             variables.strain = permute(variables.strain, [3 1 2]);
             variables.stress = permute(variables.stress, [3 1 2]);
         end
+    end
+    
+    methods (Abstract, Access = protected)
+        computeStrain(obj)     
+        computeBmat(obj)
+        computeB(obj)
     end
     
     methods(Static, Access = protected)
