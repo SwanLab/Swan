@@ -51,11 +51,12 @@ classdef TopOpt_Problem < handle
         
         function computeVariables(obj)
             for istep = 1:obj.settings.nsteps
-                disp(strcat('Incremental step: ',int2str(istep)))
+                obj.displayIncrementalIteration(istep)
                 obj.incremental_scheme.update_target_parameters(istep,obj.cost,obj.constraint,obj.optimizer);
                 obj.x = obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,istep,obj.settings.nsteps);
             end
         end
+        
         
         function postProcess(obj)
             % Video creation
@@ -83,4 +84,23 @@ classdef TopOpt_Problem < handle
             end
         end
     end
+    
+    methods (Access = private)
+       
+        function hasTo = hasToPrintIncrIter(obj)
+            hasTo = obj.settings.printIncrementalIter;
+            if isempty(obj.settings.printIncrementalIter)
+                hasTo = true;
+            end                            
+        end
+        
+        function displayIncrementalIteration(obj,istep)
+            if obj.hasToPrintIncrIter()
+               disp(strcat('Incremental step: ',int2str(istep)))
+            end                        
+        end
+        
+    end
+    
+    
 end

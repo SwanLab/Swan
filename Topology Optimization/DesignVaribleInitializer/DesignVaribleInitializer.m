@@ -49,7 +49,7 @@ classdef DesignVaribleInitializer < handle
         end
         
         function x = compute_initial_design(obj)
-            x = obj.compute_initial_x;
+            x = obj.compute_initial_x();
             
             % !! PROVISIONAL !!
             if strcmp(obj.optimizer,'SLERP') %|| strcmp(optimizer,'HAMILTON-JACOBI')

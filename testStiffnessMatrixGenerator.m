@@ -5,8 +5,8 @@ classdef testStiffnessMatrixGenerator < ...
     
     properties (Access = protected)
         testName = 'test2dFourquad';
-        computedVar
         variablesToStore = {'K','KwithVoidMaterial'};
+        tol = 1e-6;
     end
     
     properties (Access = private)

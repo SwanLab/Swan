@@ -5,10 +5,23 @@ classdef DesignVaribleInitializer_Holes < DesignVaribleInitializer
         phase_holes
     end
     
+    properties (Access = private)
+       hasToShowHoleInBCWarning
+    end
+    
     methods
         function obj = DesignVaribleInitializer_Holes(settings,mesh,epsilon)
             obj@DesignVaribleInitializer(settings,mesh,epsilon);
             obj.load_holes_settings(settings);
+            obj.loadWarningOption(settings)
+        end
+        
+        function loadWarningOption(obj,settings)
+            if isempty(settings.warningHoleBC)
+                obj.hasToShowHoleInBCWarning = true;
+            else
+                obj.hasToShowHoleInBCWarning = settings.warningHoleBC;                
+            end            
         end
         
         function x = compute_initial_x(obj)
@@ -28,7 +41,7 @@ classdef DesignVaribleInitializer_Holes < DesignVaribleInitializer
             end
             
             bc = unique([obj.mesh.dirichlet(:,1); obj.mesh.pointload(:,1)]);
-            if any(obj.x(bc)>0)
+            if any(obj.x(bc)>0) && obj.hasToShowHoleInBCWarning
                 warning('At least one BC is set on a hole')
             end
             x = obj.x;

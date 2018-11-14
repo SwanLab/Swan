@@ -57,6 +57,9 @@ classdef Settings
         micro = struct;
         selectiveC_Cstar
         nconstr
+        warningHoleBC
+        printIncrementalIter
+        printChangingFilter
     end
     
     methods
@@ -187,9 +190,22 @@ classdef Settings
             if exist('selectiveC_Cstar','var')
                 obj.selectiveC_Cstar = selectiveC_Cstar;
             end
-            if  ~(contains(filename,'test','IgnoreCase',true) || contains(filename,'RVE'))
+                        
+            if  ~(contains(filename,'test','IgnoreCase',true) || contains(filename,'RVE') || obj.hasToAddSpaceBecauseOfIncremental())
                 fprintf('\n')
             end
         end
+    end
+    
+    
+    methods (Access = private)
+        
+        function itHas = hasToAddSpaceBecauseOfIncremental(obj)
+            itHas = true;
+            if ~isempty(obj.printIncrementalIter)
+                itHas = obj.printIncrementalIter;
+            end
+        end
+        
     end
 end

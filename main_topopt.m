@@ -3,8 +3,9 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 
 %% Test
 %run('FemTests.m');
-%run('test_topopt.m');
-%run('test_integration.m')
+%run('TopOptTests.m');
+%run('UnfittedIntegrationTests.m')
+%run('AllTests.m')
 clear variables;
 
 %% Main
