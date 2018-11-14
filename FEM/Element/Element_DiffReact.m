@@ -46,7 +46,7 @@ classdef Element_DiffReact < Element
         
         function LHS = computeLHS(obj)
             LHS = obj.epsilon^2*obj.K + obj.M;
-            LHS = obj.full_matrix_2_reduced_matrix(LHS);
+            LHS = obj.bcApplier.full_matrix_2_reduced_matrix(LHS);
         end
         
         function [K] = computeStiffnessMatrix(obj)

@@ -6,9 +6,6 @@ classdef Element_Elastic_Micro < handle
     
     methods (Access = public)
         
-        
-       
-        
         function setVstrain(obj,s)
             obj.vstrain = s;
         end
@@ -41,19 +38,30 @@ classdef Element_Elastic_Micro < handle
                 end
             end
             
-            
         end
         
-   
+        function F = computeStrainRHS(obj,vstrain)
+            Cmat = obj.material.C;
+            eforce = zeros(obj.dof.nunkn*obj.nnode,1,obj.nelem);
+            sigma = zeros(obj.nstre,1,obj.nelem);
+            for igaus = 1:obj.quadrature.ngaus
+                %                 Bmat = obj.computeB(obj.dof.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
+                Bmat = obj.computeB(igaus);
+                for istre = 1:obj.nstre
+                    for jstre = 1:obj.nstre
+                        sigma(istre,:) = sigma(istre,:) + squeeze(Cmat(istre,jstre,:)*vstrain(jstre))';
+                    end
+                end
+                for iv = 1:obj.nnode*obj.dof.nunkn
+                    for istre = 1:obj.nstre
+                        eforce(iv,:) = eforce(iv,:)+(squeeze(Bmat(istre,iv,:)).*sigma(istre,:)'.*obj.geometry.dvolu(:,igaus))';
+                    end
+                end
+            end
+            F = -eforce;
+        end
         
-        
-        
+
+ 
     end
-    
-    
-    
-    
-    
-    
-    
 end

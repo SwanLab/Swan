@@ -38,6 +38,11 @@ classdef Element < handle
     end
     
     methods
+        
+        function bc = getBcApplier(obj)
+            bc = obj.bcApplier;            
+        end
+        
         function [r,dr] = computeResidual(obj,x)
             % !! Currently unused !!
             % *************************************************************
@@ -130,7 +135,8 @@ classdef Element < handle
         
         function R = compute_imposed_displacement_force(obj,K)
             % Forces coming from imposed displacement
-            [dirichlet,uD,~] = obj.bcApplier.compute_global_dirichlet_free_uD();
+            dirApplier = DirichletConditionsApplier(obj.nfields,obj.dof);
+            [dirichlet,uD,~] = dirApplier.compute_global_dirichlet_free_uD();
             if ~isempty(dirichlet)
                 R = -K(:,dirichlet)*uD;
             else
@@ -139,6 +145,15 @@ classdef Element < handle
         end
         
  
+    end
+    
+    methods (Access = protected)
+       
+        function init(obj,geo)
+            
+        end
+        
+        
     end
     
     methods (Abstract, Access = protected)

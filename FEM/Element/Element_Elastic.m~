@@ -37,7 +37,7 @@ classdef Element_Elastic < Element
     
     methods %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
         function obj = Element_Elastic(mesh,geometry,material,dof,nstre)
-            obj@Element(geometry,material,dof,mesh)
+            obj@Element(geometry,material,dof,mesh.scale)
             obj.nstre = nstre;
             obj.nfields=1;
             obj.interpolation_u = Interpolation.create(mesh,'LINEAR');
@@ -192,6 +192,10 @@ classdef Element_Elastic < Element
             end
         end
         
+        function variables = computeVars(obj,uL)
+            variables = obj.computeDispStressStrain(uL);
+        end
+        
         
     end
     
@@ -211,6 +215,7 @@ classdef Element_Elastic < Element
             variables.fext = obj.fext;
             variables.strain = obj.computeStrain(variables.d_u,obj.dof.in_elem{1});
             variables.stress = obj.computeStress(variables.strain,obj.material.C,obj.quadrature.ngaus,obj.nstre);
+            variables = obj.permuteStressStrain(variables);
         end
         
         function u = compute_displacements(obj,usol)
@@ -242,15 +247,6 @@ classdef Element_Elastic < Element
     end
     
     methods(Static, Access = protected)
-        % Only used in Element_Elastic_2D
-        function strain = computeEz(strain,nstre,nelem,material)
-            mu = material.mu;
-            kappa = material.kappa;
-            epoiss = (kappa(1,1) - mu(1,1))./(kappa(1,1) + mu(1,1));
-            epoiss = full(ones(1,nelem)*epoiss);
-            strain(nstre+1,:,:) = (-epoiss./(1-epoiss)).*(strain(1,:,:)+strain(2,:,:));
-        end
-        
         % Compute strains (e = B�u)
         
         % Compute stresses

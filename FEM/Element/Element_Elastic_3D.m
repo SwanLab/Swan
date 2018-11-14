@@ -9,12 +9,7 @@ classdef Element_Elastic_3D < Element_Elastic
             nstre = 6;
             obj = obj@Element_Elastic(mesh,geometry,material,dof,nstre);
         end
-        
-        function variables = computeVars(obj,uL)
-            variables = obj.computeDispStressStrain(uL);
-            variables = obj.permuteStressStrain(variables);
-        end
-        
+                
         function [B] = computeB(obj,igaus)
             B = zeros(obj.nstre,obj.nnode*obj.dof.nunkn,obj.nelem);
             for inode=1:obj.nnode

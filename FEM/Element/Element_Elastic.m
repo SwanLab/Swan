@@ -192,6 +192,14 @@ classdef Element_Elastic < Element
             end
         end
         
+       function variables = computeVars(obj,uL)
+            variables.d_u = obj.compute_displacements(uL);
+            variables.fext = obj.fext;
+            variables.strain = obj.computeStrain(variables.d_u,obj.dof.in_elem{1});
+            variables.stress = obj.computeStress(variables.strain,obj.material.C,obj.quadrature.ngaus,obj.nstre);
+            variables = obj.permuteStressStrain(variables);
+        end
+        
         
     end
     
@@ -206,13 +214,6 @@ classdef Element_Elastic < Element
             FextVolumetric = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);
         end
         
-        function variables = computeDispStressStrain(obj,uL)
-            variables.d_u = obj.compute_displacements(uL);
-            variables.fext = obj.fext;
-            variables.strain = obj.computeStrain(variables.d_u,obj.dof.in_elem{1});
-            variables.stress = obj.computeStress(variables.strain,obj.material.C,obj.quadrature.ngaus,obj.nstre);
-        end
-        
         function u = compute_displacements(obj,usol)
             u = obj.bcApplier.reduced_vector_2_full_vector(usol);
         end
@@ -221,12 +222,13 @@ classdef Element_Elastic < Element
             strain = zeros(obj.nstre,obj.nelem,obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
                 Bmat = obj.computeB(igaus);
-                %Bmat = Bmat{1,1};
                 for istre=1:obj.nstre
                     for inode=1:obj.nnode
                         for idime=1:obj.dof.nunkn
                             ievab = obj.dof.nunkn*(inode-1)+idime;
-                            strain(istre,:,igaus)=strain(istre,:,igaus)+(squeeze(Bmat(istre,ievab,:)).*d_u(idx(ievab,:)))';
+                            B = squeeze(Bmat(istre,ievab,:));
+                            u = d_u(idx(ievab,:));
+                            strain(istre,:,igaus)=strain(istre,:,igaus)+(B.*u)';
                         end
                     end
                 end
@@ -242,15 +244,6 @@ classdef Element_Elastic < Element
     end
     
     methods(Static, Access = protected)
-        % Only used in Element_Elastic_2D
-        function strain = computeEz(strain,nstre,nelem,material)
-            mu = material.mu;
-            kappa = material.kappa;
-            epoiss = (kappa(1,1) - mu(1,1))./(kappa(1,1) + mu(1,1));
-            epoiss = full(ones(1,nelem)*epoiss);
-            strain(nstre+1,:,:) = (-epoiss./(1-epoiss)).*(strain(1,:,:)+strain(2,:,:));
-        end
-        
         % Compute strains (e = B�u)
         
         % Compute stresses

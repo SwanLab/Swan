@@ -1,6 +1,4 @@
 classdef Element_Elastic_2D < Element_Elastic
-    %Element_Elastic_2D Summary of this class goes here
-    %   Detailed explanation goes here
     
     properties
     end
@@ -10,13 +8,8 @@ classdef Element_Elastic_2D < Element_Elastic
             nstre = 3;
             obj = obj@Element_Elastic(mesh,geometry,material,dof,nstre);
         end
-
-        function variables = computeVars(obj,uL)
-            variables = obj.computeDispStressStrain(uL);
-            variables.strain = obj.computeEz(variables.strain,obj.nstre,obj.nelem,obj.material);
-            variables = obj.permuteStressStrain(variables);
-        end
-        
+       
+                
         function [B] = computeB(obj,igaus)
             B = zeros(obj.nstre,obj.nnode*obj.dof.nunkn,obj.nelem);
             for i = 1:obj.nnode
@@ -27,6 +20,27 @@ classdef Element_Elastic_2D < Element_Elastic
                 B(3,j+1,:)= obj.geometry.cartd(1,i,:,igaus);
             end
         end
-    end 
+        
+    end
+    methods (Access = protected)
+        
+        function strain = computeStrain(obj,u,idx)
+            strain = obj.computeStrain@Element_Elastic(u,idx);
+            strain = obj.computeEz(strain,obj.nstre,obj.nelem,obj.material);
+        end
+        
+    end        
+    
+    methods (Access = private, Static)
+        
+        function strain = computeEz(strain,nstre,nelem,material)
+            mu = material.mu;
+            kappa = material.kappa;
+            epoiss = (kappa(1,1) - mu(1,1))./(kappa(1,1) + mu(1,1));
+            epoiss = full(ones(1,nelem)*epoiss);
+            strain(nstre+1,:,:) = (-epoiss./(1-epoiss)).*(strain(1,:,:)+strain(2,:,:));
+        end
+        
+    end
 end
 
