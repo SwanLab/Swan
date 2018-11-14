@@ -58,12 +58,12 @@ classdef testNumericalConvergenceOfNumberOfLaminates < testShowingError
         end
         
         function computeHomogenization(obj,LoF)
-            Dir            = obj.fiberDirection;
-            PrintTopology  = true;
-            Homogenizer    = NumericalFiberHomogenizer(Dir,LoF,obj.Name,...
-                             PrintTopology);
-            obj.Ch         = Homogenizer.Ch;  
-            obj.Volume     = Homogenizer.Volume;
+            dir            = obj.fiberDirection;
+            printTopology  = false;
+            homogenizer    = NumericalFiberHomogenizer(dir,LoF,obj.Name,...
+                             printTopology);
+            obj.Ch         = homogenizer.Ch;  
+            obj.Volume     = homogenizer.Volume;
         end
 
         function computeChNorm(obj)

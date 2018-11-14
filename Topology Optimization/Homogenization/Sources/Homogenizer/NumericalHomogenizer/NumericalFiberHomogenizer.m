@@ -1,10 +1,11 @@
 classdef NumericalFiberHomogenizer < handle
     
-    properties
+    properties (Access = public)
         Ch        
         MaterialValues
         Volume
     end
+      
     
     properties (Access = private)
         FileName
@@ -26,9 +27,10 @@ classdef NumericalFiberHomogenizer < handle
         DensityCreator
         densityPrinter
         angle
+        Ptensor
     end
     
-    methods
+    methods (Access = public)
         
         function obj = NumericalFiberHomogenizer(...
                       direction, LevelOfFibers,OutPutName, hasToBePrinted )
@@ -48,7 +50,12 @@ classdef NumericalFiberHomogenizer < handle
             obj.setMaterialPropertiesInMicroProblem()
             obj.computeVolumeValue()
             obj.computeHomogenizedTensor()
+            obj.computeAmplificator()
             obj.print()
+        end
+        
+        function p = getAmplificatorTensor(obj)
+            p = obj.Ptensor;
         end
     end
     
@@ -127,6 +134,14 @@ classdef NumericalFiberHomogenizer < handle
             C = SymmetricFourthOrderPlaneStressVoigtTensor();
             C.setValue(Cv);            
             obj.Ch = Rotator.rotate(C,a,dir);
+        end
+        
+        function computeAmplificator(obj)
+             obj.MicroProblem.computeAmplificator()
+             Pv = obj.MicroProblem.variables.Ptensor;
+             P = SymmetricFourthOrderPlaneStressVoigtTensor();
+             P.setValue(Pv);
+             obj.Ptensor = P;
         end
         
         function print(obj)

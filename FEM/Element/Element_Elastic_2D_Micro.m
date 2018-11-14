@@ -1,5 +1,8 @@
 classdef Element_Elastic_2D_Micro < Element_Elastic_2D & Element_Elastic_Micro
     
+    properties (Access = protected)
+        scale = 'MICRO';
+    end
 
     methods
         function obj = Element_Elastic_2D_Micro(mesh,geometry,material,dof)
@@ -10,8 +13,44 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D & Element_Elastic_Micro
             variables = computeVars@Element_Elastic_2D(obj,uL);
             variables = obj.computeStressStrainAndCh(variables);        
         end
+  
+    end
+    
+    methods   %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
+
+    end
+    
+    methods (Access = protected)
+        function FextVolumetric = computeVolumetricFext(obj)
+            FextVolumetric = computeVolumetricFext@Element_Elastic(obj);
+            F_def = obj.computeStrainRHS(obj.vstrain);
+            FextVolumetric = FextVolumetric + F_def;
+        end
+    end 
+    
+    methods (Access = public)
+        function F = computeStrainRHS(obj,vstrain)            
+            Cmat = obj.material.C;
+            eforce = zeros(obj.dof.nunkn*obj.nnode,1,obj.nelem);
+            sigma = zeros(obj.nstre,1,obj.nelem);
+            for igaus = 1:obj.quadrature.ngaus
+%                 Bmat = obj.computeB(obj.dof.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
+                Bmat = obj.computeB(igaus);
+                for istre = 1:obj.nstre
+                    for jstre = 1:obj.nstre
+                        sigma(istre,:) = sigma(istre,:) + squeeze(Cmat(istre,jstre,:)*vstrain(jstre))';
+                    end
+                end
+                for iv = 1:obj.nnode*obj.dof.nunkn
+                    for istre = 1:obj.nstre
+                        eforce(iv,:) = eforce(iv,:)+(squeeze(Bmat(istre,iv,:)).*sigma(istre,:)'.*obj.geometry.dvolu(:,igaus))';
+                    end
+                end
+            end
+            F = -eforce;
+        end
         
-        function Ared = full_matrix_2_reduced_matrix(obj,A)                
+           function Ared = full_matrix_2_reduced_matrix(obj,A)                
             vF = obj.dof.free;
             vP = obj.dof.periodic_free;
             vQ = obj.dof.periodic_constrained;
@@ -56,41 +95,6 @@ classdef Element_Elastic_2D_Micro < Element_Elastic_2D & Element_Elastic_Micro
             %             b(obj.dof.free) = bfree;
             %             b(obj.dof.dirichlet) = obj.dof.dirichlet_values;
             %             b(obj.dof.periodic_constrained) = b(obj.dof.periodic_free);
-        end
-    end
-    
-    methods   %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
-
-    end
-    
-    methods (Access = protected)
-        function FextVolumetric = computeVolumetricFext(obj)
-            FextVolumetric = computeVolumetricFext@Element_Elastic(obj);
-            F_def = obj.computeStrainRHS(obj.vstrain);
-            FextVolumetric = FextVolumetric + F_def;
-        end
-    end 
-    
-    methods (Access = private)
-        function F = computeStrainRHS(obj,vstrain)            
-            Cmat = obj.material.C;
-            eforce = zeros(obj.dof.nunkn*obj.nnode,1,obj.nelem);
-            sigma = zeros(obj.nstre,1,obj.nelem);
-            for igaus = 1:obj.quadrature.ngaus
-%                 Bmat = obj.computeB(obj.dof.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
-                Bmat = obj.computeB(igaus);
-                for istre = 1:obj.nstre
-                    for jstre = 1:obj.nstre
-                        sigma(istre,:) = sigma(istre,:) + squeeze(Cmat(istre,jstre,:)*vstrain(jstre))';
-                    end
-                end
-                for iv = 1:obj.nnode*obj.dof.nunkn
-                    for istre = 1:obj.nstre
-                        eforce(iv,:) = eforce(iv,:)+(squeeze(Bmat(istre,iv,:)).*sigma(istre,:)'.*obj.geometry.dvolu(:,igaus))';
-                    end
-                end
-            end
-            F = -eforce;
         end
     end    
 end

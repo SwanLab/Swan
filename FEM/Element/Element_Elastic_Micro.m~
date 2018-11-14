@@ -4,10 +4,17 @@ classdef Element_Elastic_Micro < handle
         vstrain
     end
     
+    properties (Access = protected)
+        bcApplier
+    end
+    
     methods (Access = public)
         
         
-       
+        function obj = Element_Elastic_Micro()
+           obj.bcApplier = BoundaryConditionsApplier.create(obj.nfields,obj.dof);
+        end
+        
         
         function setVstrain(obj,s)
             obj.vstrain = s;

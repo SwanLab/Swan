@@ -1,4 +1,4 @@
-classdef test_all_micro < testRunner
+classdef MicroTests < testRunner
     
     
     properties (Access = protected)
@@ -7,7 +7,7 @@ classdef test_all_micro < testRunner
     end
     
     methods (Access = public)
-        function obj = test_all_micro()
+        function obj = MicroTests()
             obj@testRunner();
         end
     end
@@ -15,9 +15,9 @@ classdef test_all_micro < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {...                
-                  'test2d_micro';
-                  'test_micro';
-                  'test_micro2';
+                  'test2dMicro';
+                  'testMicro';
+                  'testMicro2';
                 };
 
         end

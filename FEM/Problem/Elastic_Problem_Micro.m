@@ -15,7 +15,6 @@ classdef Elastic_Problem_Micro < Elastic_Problem
         function obj = Elastic_Problem_Micro(problemID)
             obj@Elastic_Problem(problemID);
             obj.dof = DOF_Elastic_Micro(problemID,obj.geometry,obj.mesh);
-
         end       
 
         
@@ -39,5 +38,10 @@ classdef Elastic_Problem_Micro < Elastic_Problem
             obj.variables.tstrain = tstrain;
             obj.variables.tstress = tstress;
         end
+        
+        function computeAmplificator(obj)
+            obj.variables.Ptensor = rand(3,3);
+        end
+        
     end
 end

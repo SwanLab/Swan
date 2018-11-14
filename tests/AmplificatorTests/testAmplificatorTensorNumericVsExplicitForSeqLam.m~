@@ -1,0 +1,60 @@
+classdef testAmplificatorTensorNumericVsExplicitForSeqLam < testShowingError
+    
+    
+    properties (Access = private)
+        ampTensorNum
+        ampTensorExp
+    end
+    
+    properties (Access = protected)
+       tol = 1e-12;
+    end
+       
+    
+    methods (Access = public)
+        
+        function obj = testAmplificatorTensorNumericVsExplicitForSeqLam() 
+            obj.createNumericalAmplificationTensor()
+            obj.createExplicitAmplificationTensor()
+        end
+      
+        
+    end
+    
+    methods (Access = private)
+                                
+        function createNumericalAmplificationTensor(obj)
+            Dir            = obj.fiberDirection;
+            PrintTopology  = false;
+            Homogenizer    = NumericalFiberHomogenizer(Dir,LoF,obj.Name,...
+                PrintTopology);
+            obj.Ch         = Homogenizer.Ch;
+            obj.Volume     = Homogenizer.Volume;
+            
+            
+            
+            
+            obj.ampTensorNum = SymmetricFourthOrderPlaneStressVoigtTensor();
+            obj.ampTensorNum.createRandomTensor();
+        end
+        
+        function createExplicitAmplificationTensor(obj)
+            obj.ampTensorExp = SymmetricFourthOrderPlaneStressVoigtTensor();
+            obj.ampTensorExp.createRandomTensor();
+        end
+
+    end    
+    
+    methods (Access = protected)
+        
+        function computeError(obj)
+            va = obj.ampTensorNum.getValue();
+            ta = obj.ampTensorExp.getValue();
+            obj.error = norm(ta(:) - va(:))/norm(ta(:));
+        end
+        
+    end
+    
+
+end
+

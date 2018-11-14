@@ -1,6 +1,5 @@
-classdef Element_Elastic_3D<Element_Elastic
-    %UNTITLED Summary of this class goes here
-    %   Detailed explanation goes here
+classdef Element_Elastic_3D < Element_Elastic
+
     
     properties
     end

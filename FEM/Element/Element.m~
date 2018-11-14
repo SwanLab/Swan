@@ -13,16 +13,14 @@ classdef Element < handle
         nfields
     end
     
-%     properties (Abstract, Access = protected)
-%         scale
-%     end
+    properties 8
     
     properties (Access = protected)
         bcApplier        
     end
 
     methods (Static)        
-        function obj = Element(geometry,material,dof,scale)            
+        function obj = Element(geometry,material,dof)            
             obj.nelem = geometry(1).interpolation.nelem;
             obj.nfields = geometry.nfields;
             for ifield=1:obj.nfields
@@ -32,7 +30,7 @@ classdef Element < handle
             obj.quadrature = Quadrature.set(geometry(1).type);
             obj.material = material;
             obj.dof = dof;
-            obj.bcApplier = BoundaryConditionsApplier.create(obj.nfields,obj.dof,scale);
+            obj.bcApplier = BoundaryConditionsApplier.create(obj.nfields,obj.dof);
             obj.assign_dirichlet_values();
         end
     end

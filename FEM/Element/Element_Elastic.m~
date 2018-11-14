@@ -37,7 +37,7 @@ classdef Element_Elastic < Element
     
     methods %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
         function obj = Element_Elastic(mesh,geometry,material,dof,nstre)
-            obj@Element(geometry,material,dof,mesh.scale)
+            obj@Element(geometry,material,dof,mesh)
             obj.nstre = nstre;
             obj.nfields=1;
             obj.interpolation_u = Interpolation.create(mesh,'LINEAR');

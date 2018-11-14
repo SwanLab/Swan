@@ -1,6 +1,6 @@
 classdef Element_Elastic_3D_Micro < Element_Elastic_3D & Element_Elastic_Micro
     
-    
+
     methods
         function obj = Element_Elastic_3D_Micro(mesh,geometry,material,dof)
             obj = obj@Element_Elastic_3D(mesh,geometry,material,dof);
