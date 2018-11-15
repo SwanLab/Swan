@@ -103,7 +103,7 @@ classdef Element_Elastic < Element
         end
         
         function fext_red = computeRHS(obj)
-            Fext = obj.computeExternalForces;
+            Fext = obj.computeExternalForces();
             R = obj.compute_imposed_displacement_force(obj.K);
             obj.fext = Fext + R;
             fext_red = obj.bcApplier.full_vector_2_reduced_vector(obj.fext);

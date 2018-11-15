@@ -70,7 +70,7 @@ filenames={
 %         'SphereHexahedra_Test_32'
 %     'SphereTetrahedra_Test_8'
 % 'BridgeTetrahedraCoarse_Case_1_1_1'
- 'CantileverTetrahedra_Case_1_1_1'
+ %'CantileverTetrahedra_Case_1_1_1'
 % 'CantileverTetrahedraCoarse_Case_1_1_1'
 % 'CantileverTetrahedra_Case_5_1_2'
 % 'test_cantilever3'
@@ -95,6 +95,7 @@ filenames={
 
 %     'ThroneTetrahedraSYM_Case_1_1_5'
 %     'ThroneTetrahedraSYM_Case_5_1_2'
+     'BikeTriangle_1_1_1'
 };
 
 for icases=1:size(filenames,1)
