@@ -40,12 +40,12 @@ classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
             OutPutNameFile     = 'SeqLaminate';
             LevelOfFibers      = 3;
             PrintTopology      = true;
-            NumHomogenizer     = NumericalFiberHomogenizer(...
+            numHomogenizer     = NumericalFiberHomogenizer(...
                                  obj.FiberDirection,LevelOfFibers,...
                                  OutPutNameFile,PrintTopology);
-            obj.NumericalCh    = NumHomogenizer.Ch;
-            obj.MaterialValues = NumHomogenizer.MaterialValues;
-            obj.FractionVolume = NumHomogenizer.Volume;
+            obj.NumericalCh    = numHomogenizer.getCh();
+            obj.MaterialValues = numHomogenizer.getMaterialValues();
+            obj.FractionVolume = numHomogenizer.getVolume();
         end
 
         function loadFractionVolume(obj)

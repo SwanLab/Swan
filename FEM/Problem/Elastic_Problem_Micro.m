@@ -40,8 +40,45 @@ classdef Elastic_Problem_Micro < Elastic_Problem
             obj.variables.tstress = tstress;
         end
         
-        function computeAmplificator(obj)
+        function P2 = computeAmplificator(obj)
             obj.variables.Ptensor = rand(3,3);
+            [Chomog,tstrain,~] = obj.computeChomog();
+             Ct = SymmetricFourthOrderPlaneStressVoigtTensor();
+             Ct.setValue(Chomog);
+             St = Inverter.invert(Ct);
+             Shomog = St.getValue();
+
+            identStrain = ones(size(tstrain));
+            corrTens = identStrain + tstrain;
+            W = corrTens;
+            
+            V = sum(sum(obj.geometry.dvolu));
+            ngaus = obj.element.quadrature.ngaus;
+            dV    = obj.element.geometry.dvolu;
+            C     = obj.element.material.C;
+            nstre = obj.element.getNstre();
+            
+            P2 = zeros(size(Chomog));
+
+            for igaus = 1:ngaus
+                for istre = 1:nstre
+                    for jstre = 1:nstre
+                        for mstre = 1:nstre
+                            for kstre = 1:nstre
+                                for lstre = 1:nstre
+                                    pim = C(istre,kstre,igaus,:).*W(kstre,igaus,lstre,:)*Shomog(lstre,mstre);
+                                    Pim = 1/V*squeeze(pim)'*dV(:,igaus);
+                                    pmj = C(mstre,kstre,igaus,:).*W(kstre,igaus,lstre,:)*Shomog(lstre,jstre);
+                                    Pmj = 1/V*squeeze(pmj)'*dV(:,igaus);
+                                    P2(istre,jstre) = P2(istre,jstre) + Pim*Pmj;
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+            
+            
         end
         
     end

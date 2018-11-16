@@ -16,6 +16,7 @@ classdef HomogenizationTests < testRunner
         function loadTests(obj)
             obj.tests = {...                
                %'test2DSeqLaminateInVoigtWithFormuleOfAllaireWebPAgeExercise'    
+               'testDiagonalLaminate';
                'testCommutingHomogPlaneStressWithZeroPoisson'
                'testNotCommutingHomogPlaneStress'; 
                'testCommutingVoigtHomog';

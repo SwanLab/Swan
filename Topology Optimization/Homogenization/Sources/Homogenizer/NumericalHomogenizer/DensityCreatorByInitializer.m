@@ -6,15 +6,15 @@ classdef DensityCreatorByInitializer < DensityCreator
     
     methods 
         
-        function obj = DensityCreatorByInitializer(levFib,MicroProblem)
+        function obj = DensityCreatorByInitializer(levFib,microProblem)
             
-            shape   = MicroProblem.element.interpolation_u.shape; 
-            conec   =  MicroProblem.geometry.interpolation.T;
-            xpoints = MicroProblem.geometry.interpolation.xpoints;
+            shape   = microProblem.element.interpolation_u.shape; 
+            conec   = microProblem.geometry.interpolation.T;
+            xpoints = microProblem.geometry.interpolation.xpoints;
             
             nelem = size(conec,1);
             nnode = size(shape,1);
-            quadr = MicroProblem.element.quadrature;
+            quadr = microProblem.element.quadrature;
             ngaus = quadr.ngaus;
             
             yn = zeros(ngaus,nelem);

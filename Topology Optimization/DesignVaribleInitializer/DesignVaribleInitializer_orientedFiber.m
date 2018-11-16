@@ -20,39 +20,10 @@ classdef DesignVaribleInitializer_orientedFiber < DesignVaribleInitializer
         end
         
         function x = compute_initial_x(obj)            
-%             obj.alpha = atan(obj.dir(2)/obj.dir(1));
-%             obj.RotMatrix = [cos(obj.alpha) sin(obj.alpha); -sin(obj.alpha) cos(obj.alpha)];
-%             
-%             
-%             LevelofFibers = obj.LevelOfFibers; 
-%             s = linspace(-1,1,1+LevelofFibers*4);
-%             
-%             volumen = 0.5;
-%             nFibers = length(s);
-%             obj.width = (1-volumen)/nFibers;
-%             
-%             center  = [0.5;0.5];            
-%             n = [-obj.dir(2),obj.dir(1)]';
-%             smax = min(abs(0.5./n));
-%             
-%             obj.v = @(s) center + s*smax*n;
-% 
-%             
-%             
-%             isReallyVoid = false(size(obj.mesh.coord(:,2)));
-%             for iFibers = 1:nFibers
-%                 isVoid = obj.isVoid(s(iFibers));
-%                 isReallyVoid = isReallyVoid | isVoid;
-%             end
-%             
-%             obj.x(isReallyVoid) = obj.hole_value;
-%             x = obj.x;
-            
             yn = obj.mesh.coord(:,2);
             lev = obj.LevelOfFibers;
             phi = obj.computeHorizontalFibersLevelSet(lev,yn);
             obj.x = phi;
-            %obj.x(phi>0) = obj.hole_value ;
             x = obj.x;
         end                
         
