@@ -1,14 +1,18 @@
-classdef DesignVaribleInitializer_Sphere < DesignVaribleInitializer
+classdef DesignVaribleInitializer_Sphere < LevelSetCreator
     properties
         radius = 1-1e-6;
     end
     
     methods
-        function obj = DesignVaribleInitializer_Sphere(settings,mesh,epsilon)
-            obj@DesignVaribleInitializer(settings,mesh,epsilon);
+        function obj = DesignVaribleInitializer_Sphere(input)
+            obj.compute(input);
         end
         
-        function x = compute_initial_x(obj)
+    end
+    
+    methods (Access = protected)
+        
+        function x = computeInitialLevelSet(obj)
             dim(1) = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
             dim(2) = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
             dim(3) = max(obj.mesh.coord(:,3)) - min(obj.mesh.coord(:,3));
@@ -18,7 +22,7 @@ classdef DesignVaribleInitializer_Sphere < DesignVaribleInitializer
             radius = obj.radius*min(dim)/2;
             phi = (obj.mesh.coord(:,1)-center(1)).^2 + (obj.mesh.coord(:,2)-center(2)).^2 + (obj.mesh.coord(:,3)-center(3)).^2 - radius^2;
             
-            switch obj.optimizer
+            switch obj.optimizerName
                 case {'SLERP','HAMILTON-JACOBI'}
                     obj.x = phi;
                 otherwise

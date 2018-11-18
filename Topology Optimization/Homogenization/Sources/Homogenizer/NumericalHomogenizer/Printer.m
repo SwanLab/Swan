@@ -8,12 +8,13 @@ classdef Printer < handle
     properties (Access = protected)
        quadrature        
        PostProcess
+       iter
     end
     
     methods (Access = public)
         
-        function print(obj,variable,outname)
-            res = obj.createResultsInputStructure(variable,outname);
+        function print(obj,variable,outname,iter)
+            res = obj.createResultsInputStructure(variable,outname,iter);
             m = obj.mesh;
             obj.PostProcess.print(m,res)
         end
@@ -32,7 +33,7 @@ classdef Printer < handle
     
     methods (Abstract,Access =  protected, Static)
      createPostProcess(obj)        
-     createResultsInputStructure(obj,dens,outname)
+     createResultsInputStructure(obj,dens,outname,iter)
     end
     
 end

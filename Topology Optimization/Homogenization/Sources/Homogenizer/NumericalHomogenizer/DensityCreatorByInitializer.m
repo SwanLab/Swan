@@ -6,7 +6,7 @@ classdef DensityCreatorByInitializer < DensityCreator
     
     methods 
         
-        function obj = DensityCreatorByInitializer(levFib,microProblem)
+        function obj = DensityCreatorByInitializer(levFib,microProblem,setting)
             
             shape   = microProblem.element.interpolation_u.shape; 
             conec   = microProblem.geometry.interpolation.T;
@@ -27,7 +27,13 @@ classdef DensityCreatorByInitializer < DensityCreator
                 end
             end
                             
-            ls = DesignVaribleInitializer_orientedFiber.computeHorizontalFibersLevelSet(levFib,yn);
+            input.settings = setting;
+            input.mesh     = microProblem.mesh;
+            input.epsilon  = microProblem.mesh.mean_cell_size;
+            input.levFib   = levFib;
+            input.yn       = yn;
+            lsCreator      = DesignVaribleInitializer_orientedFiber(input);
+            ls = lsCreator.x;
             
             dens  = zeros(nelem,ngaus);
             dens(ls > 0,:) = 0;

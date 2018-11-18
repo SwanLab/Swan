@@ -1,11 +1,17 @@
-classdef DesignVaribleInitializer_Full < DesignVaribleInitializer
-    methods
-        function obj = DesignVaribleInitializer_Full(settings,mesh,epsilon)
-            obj@DesignVaribleInitializer(settings,mesh,epsilon);
+classdef DesignVaribleInitializer_Full < LevelSetCreator
+    
+    methods (Access = public)
+        
+        function obj = DesignVaribleInitializer_Full(input)
+            obj.compute(input)
         end
         
-        function x = compute_initial_x(obj)
-            x = obj.x;
+    end
+    
+    methods (Access = protected)
+        
+        function computeInitialLevelSet(obj)
+
         end
     end
 end

@@ -4,7 +4,6 @@ classdef NumericalHomogenizer < handle
     properties (Access = private)
         fileName
         fileNameWithPath
-        setting
         hasToBePrinted
         outputName  
         matProp
@@ -16,12 +15,15 @@ classdef NumericalHomogenizer < handle
         
         interpolation
         densityPostProcess
+        
+        iter
     end
     
     properties (Access = protected)
         microProblem
-        densityCreator
+        density
         Ch
+        setting
     end
     
     methods (Access = public)
@@ -47,9 +49,10 @@ classdef NumericalHomogenizer < handle
     
     methods (Access = protected)
 
-        function init(obj,outputName,print)
+        function init(obj,outputName,print,iter)
             obj.outputName = outputName;
             obj.hasToBePrinted = print;
+            obj.iter = iter;
             obj.loadFileName();
             obj.loadTestData();
             obj.loadDimension();
@@ -71,9 +74,10 @@ classdef NumericalHomogenizer < handle
         
         function print(obj)
             if obj.hasToBePrinted
-                d = obj.densityCreator.getDensity();            
+                d = obj.density;            
                 outn = obj.outputName;
-                obj.densityPrinter.print(d,outn)
+                it   = obj.iter;                
+                obj.densityPrinter.print(d,outn,it)
             end
         end         
         
@@ -117,7 +121,7 @@ classdef NumericalHomogenizer < handle
         end
         
         function createMaterialProperties(obj)
-            d = obj.densityCreator.getDensity();
+            d = obj.density;
             obj.matProp= obj.interpolation.computeMatProp(d);
         end
         
@@ -139,7 +143,7 @@ classdef NumericalHomogenizer < handle
         
         function computeVolumeValue(obj)
             vComputer = ShFunc_Volume(obj.setting);
-            dens = obj.densityCreator.getDensity();
+            dens = obj.density;
             vol = vComputer.computeCost(dens);
             obj.volume = vol;
         end        
@@ -147,7 +151,7 @@ classdef NumericalHomogenizer < handle
     end
     
     methods (Access = protected, Abstract)
-        obj.createDensity(obj)
+        createDensity(obj)
     end
     
 end

@@ -42,8 +42,8 @@ classdef testAmplificatorTensorNumericVsExplicitForSeqLam < testShowingError
             homogenizer    = NumericalFiberHomogenizer(dir,...
                              LevelOfFibers,name,...
                              printTopology);
-            Ch             = homogenizer.Ch;
-            Volume         = homogenizer.Volume;
+            Ch             = homogenizer.getCh();
+            Volume         = homogenizer.getVolume();
             P              = homogenizer.getAmplificatorTensor();
             obj.ampTensorNum = SymmetricFourthOrderPlaneStressVoigtTensor();
             obj.ampTensorNum.createRandomTensor();

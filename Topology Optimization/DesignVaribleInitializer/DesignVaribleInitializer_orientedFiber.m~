@@ -7,24 +7,24 @@ classdef DesignVaribleInitializer_orientedFiber < LevelSetCreator
 
             width
             v
-            levelOfFibers
-            fiberPosition
+            LevelOfFibers
         end
         
         methods
         
         function obj = DesignVaribleInitializer_orientedFiber(input)
             obj.compute(input);
-            obj.fiberPosition = input.yn;
-            obj.levelOfFibers = input.levFib;
-            obj.computeInitialLevelSet()
+            obj.dir = input.dir;
+            obj.LevelOfFibers = input.levFib;
         end
         end
         
         methods (Access = protected)
         
         function computeInitialLevelSet(obj)   
-            phi = obj.computeHorizontalFibersLevelSet();
+            yn = obj.mesh.coor(:,2);
+            lev = obj.LevelOfFibers;
+            phi = obj.computeHorizontalFibersLevelSet(lev,yn);
             obj.x = phi;           
         end                
         
@@ -51,9 +51,13 @@ classdef DesignVaribleInitializer_orientedFiber < LevelSetCreator
             isVoid = UB < 0 & LB > 0;                 
                 
             end
-           
-                    
-            function phi = computeHorizontalFibersLevelSet(obj)
+            
+        end
+        
+        
+        methods (Access = protected)
+            
+            function phi = computeInitialLevelSet(levelOfFibers,y)
                 m = obj.levelOfFibers;
                 y = obj.fiberPosition;
                 period = 1/(2^m);

@@ -1,4 +1,4 @@
-classdef DesignVaribleInitializer_Holes < DesignVaribleInitializer
+classdef DesignVaribleInitializer_Holes < LevelSetCreator
     properties
         N_holes
         R_holes
@@ -6,25 +6,29 @@ classdef DesignVaribleInitializer_Holes < DesignVaribleInitializer
     end
     
     properties (Access = private)
-       hasToShowHoleInBCWarning
+        hasToShowHoleInBCWarning
     end
     
     methods
-        function obj = DesignVaribleInitializer_Holes(settings,mesh,epsilon)
-            obj@DesignVaribleInitializer(settings,mesh,epsilon);
-            obj.load_holes_settings(settings);
-            obj.loadWarningOption(settings)
+        function obj = DesignVaribleInitializer_Holes(input)
+            obj.compute(input);
+            obj.load_holes_settings(input.settings);
+            obj.loadWarningOption(input.settings)
         end
         
         function loadWarningOption(obj,settings)
             if isempty(settings.warningHoleBC)
                 obj.hasToShowHoleInBCWarning = true;
             else
-                obj.hasToShowHoleInBCWarning = settings.warningHoleBC;                
-            end            
+                obj.hasToShowHoleInBCWarning = settings.warningHoleBC;
+            end
         end
         
-        function x = compute_initial_x(obj)
+    end
+    
+    methods (Access = protected)
+        
+        function x = computeInitialLevelSet(obj)
             phi = ones(size(obj.x));
             for i = 1:obj.mesh.ndim
                 L(i) = max(obj.mesh.coord(:,i)) - min(obj.mesh.coord(:,i));
@@ -32,7 +36,7 @@ classdef DesignVaribleInitializer_Holes < DesignVaribleInitializer
             end
             phi = phi + obj.R_holes-1;
             
-            switch obj.optimizer
+            switch obj.optimizerName
                 case {'SLERP','HAMILTON-JACOBI'}
                     obj.x = phi;
                 otherwise
@@ -46,6 +50,7 @@ classdef DesignVaribleInitializer_Holes < DesignVaribleInitializer
             end
             x = obj.x;
         end
+        
     end
     
     methods (Access = private)

@@ -39,10 +39,11 @@ classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
         function computeNumericallyChForLaminate(obj)   
             OutPutNameFile     = 'SeqLaminate';
             LevelOfFibers      = 3;
+            iter               = 0;
             PrintTopology      = true;
             numHomogenizer     = NumericalFiberHomogenizer(...
                                  obj.FiberDirection,LevelOfFibers,...
-                                 OutPutNameFile,PrintTopology);
+                                 OutPutNameFile,PrintTopology,iter);
             obj.NumericalCh    = numHomogenizer.getCh();
             obj.MaterialValues = numHomogenizer.getMaterialValues();
             obj.FractionVolume = numHomogenizer.getVolume();

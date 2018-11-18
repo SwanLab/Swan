@@ -8,8 +8,8 @@ classdef NumericalFiberHomogenizer < NumericalHomogenizer
     
     methods (Access = public)
         
-        function obj = NumericalFiberHomogenizer(dir,level,fileName,print)
-            obj.init(fileName,print);            
+        function obj = NumericalFiberHomogenizer(dir,level,fileName,print,iter)
+            obj.init(fileName,print,iter);            
             obj.saveInputValues(dir,level);
             obj.generateMicroProblem();
             obj.computeHomogenizedVariables();
@@ -24,8 +24,9 @@ classdef NumericalFiberHomogenizer < NumericalHomogenizer
         
         function createDensity(obj)
             levFib = obj.levelOfNumFibers;
-            obj.densityCreator = DensityCreatorByInitializer(levFib,obj.microProblem);
-        end
+            densityCreator = DensityCreatorByInitializer(levFib,obj.microProblem,obj.setting);
+            obj.density = densityCreator.getDensity();
+        end       
         
     end
     

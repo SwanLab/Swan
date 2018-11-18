@@ -1,10 +1,14 @@
-classdef DesignVaribleInitializer_Feasible < DesignVaribleInitializer
+classdef DesignVaribleInitializer_Feasible < LevelSetCreator
     methods
-        function obj = DesignVaribleInitializer_Feasible(settings,mesh,epsilon)
-            obj@DesignVaribleInitializer(settings,mesh,epsilon);
+        function obj = DesignVaribleInitializer_Feasible(input)
+            obj.compute(input);
         end
         
-        function x = compute_initial_x(obj)
+    end
+    
+    methods (Access = protected)
+        
+        function x = computeInitialLevelSet(obj)
             initial_holes = false(size(obj.mesh.coord,1),1);
             obj.x(initial_holes) = obj.hole_value;
             x = obj.x;

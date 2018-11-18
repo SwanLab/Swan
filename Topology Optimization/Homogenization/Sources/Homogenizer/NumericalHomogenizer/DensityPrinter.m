@@ -23,8 +23,8 @@ classdef DensityPrinter < Printer
     
     methods (Access = protected, Static)
         
-        function results = createResultsInputStructure(dens,outname)
-            results.iter = 0;
+        function results = createResultsInputStructure(dens,outname,iter)
+            results.iter = iter;
             results.case_file = strcat(outname,'Density');
             results.density = dens;
         end
