@@ -6,13 +6,11 @@ classdef Mesh_Unfitted_2D_Boundary < Mesh_Unfitted_2D & Mesh_Unfitted_Boundary
             obj.nnodes_subcell = 2;
         end
         
-        function plot(obj)
-            figure, hold on
+        function add2plot(obj,h)
+            hold on
             for icell = 1:size(obj.connec,1)
-                plot(obj.coord(obj.connec(icell,:),1),obj.coord(obj.connec(icell,:),2),'k-');
+                plot(h,obj.coord(obj.connec(icell,:),1),obj.coord(obj.connec(icell,:),2),'k-');
             end
-            axis equal off
-            hold off
         end
         
         function P = computePerimeter(obj)

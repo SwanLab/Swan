@@ -12,14 +12,11 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
         %             surrounding_boundary_meshes = obj.computeSurrondingBoundaryMeshes;
         %         end
         
-        function plot(obj)
-            figure, hold on
-            patch('vertices',obj.coord,'faces',obj.connec,...
+        function add2plot(obj,h)
+            hold on;
+            patch(h,'vertices',obj.coord,'faces',obj.connec,...
                 'edgecolor',[0.5 0 0], 'edgealpha',0.5,'edgelighting','flat',...
                 'facecolor',[1 0 0],'facelighting','flat')
-            light
-            axis equal off
-            hold off
         end
         
         function S = computeSurface(obj)

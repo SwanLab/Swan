@@ -28,7 +28,7 @@ classdef Mesh_Unfitted < Mesh
     
     methods (Static, Access = public)
         function mesh_unfitted = create(type,mesh_background,interpolation_background)
-            mesh_unfitted = MeshUnfitted_Factory.create(type,mesh_background,interpolation_background);            
+            mesh_unfitted = Mesh_Unfitted_Factory.create(type,mesh_background,interpolation_background);            
         end
     end
     
@@ -49,6 +49,14 @@ classdef Mesh_Unfitted < Mesh
             end
             obj.computeGlobalConnectivities;
             obj.computeGeometryType;
+        end
+                
+        function plot(obj)
+            h = figure;
+            obj.add2plot(axes(h));
+            light
+            axis equal off
+            hold off
         end
         
         function storeBackgroundMesh(obj,mesh_background,background_geom_interpolation)
