@@ -13,10 +13,6 @@ classdef Integrator < handle
 %     end       
     
     methods (Access = public)
-        function shapeValues = integrateMesh(F1,mesh)
-            shapeValues = 'eis';
-        end
-        
         function A = integrateUnfittedMesh(obj,F,mesh_unfitted)
             if exist('mesh_unfitted','var')
                 obj.saveMeshes(mesh_unfitted);

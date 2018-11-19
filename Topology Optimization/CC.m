@@ -1,12 +1,13 @@
 classdef CC < handle
-    %CC Common core of Cost and Contraints subclasses
-    
-    properties
-        ShapeFuncs
-        nSF = 0
+    properties (Access = public)
         value
         gradient
         target_parameters
+    end
+    
+    properties (GetAccess = public, SetAccess = private)
+        ShapeFuncs
+        nSF = 0
     end
     
     % !! AN INDIVIDUAL FILTER TYPE COULD BE DEFINED FOR EACH SF !!
@@ -49,7 +50,7 @@ classdef CC < handle
         end
         
         function append(obj,shapeFunction)
-            obj.ShapeFuncs{end+1} = shapeFunction;
+            obj.ShapeFuncs{obj.nSF+1} = shapeFunction;
             obj.nSF = obj.nSF+1;
         end
         

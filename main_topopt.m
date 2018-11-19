@@ -4,7 +4,7 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 %% Test
 % run('test_fem.m');
 run('test_topopt.m');
-run('test_integration.m')
+% run('test_integration.m')
 clear variables;
 
 %% Main
