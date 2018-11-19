@@ -11,7 +11,7 @@ classdef Filter_LevelSet < Filter
         function preProcess(obj)
             preProcess@Filter(obj);
             
-            obj.unfitted_mesh = Mesh_Unfitted.create(obj.mesh,obj.interpolation,obj.domainType);
+            obj.unfitted_mesh = Mesh_Unfitted.create(obj.domainType,obj.mesh,obj.interpolation);
             obj.integrator = Integrator.create(obj.unfitted_mesh);
             
             MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';

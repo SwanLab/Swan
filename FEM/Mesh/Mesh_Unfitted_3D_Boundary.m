@@ -7,7 +7,7 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
         end
         
         %         function obj = computeMesh_withExtBounds(obj,x)
-        %             interior_boundary_mesh = Mesh_Unfitted_3D_Boundary(obj.mesh_background.duplicate,obj.background_geom_interpolation);
+        %             interior_boundary_mesh = Mesh_Unfitted_3D_Boundary(obj.mesh_background.clone,obj.background_geom_interpolation);
         %             interior_boundary_mesh.computeMesh(x);
         %             surrounding_boundary_meshes = obj.computeSurrondingBoundaryMeshes;
         %         end
@@ -75,7 +75,7 @@ classdef Mesh_Unfitted_3D_Boundary < Mesh_Unfitted_3D & Mesh_Unfitted_Boundary
         %                 for iside = 1:2
         %                     iface = 2*(idime-1) + iside;
         %                     face_coord = obj.getFaceCoordinates(domain_limits(idime,iside),idime);
-        %                     surrounding_boundary_meshes{iface} =  Mesh_Unfitted_2D_Interior(obj.mesh_background.duplicate,geom_interpolation);
+        %                     surrounding_boundary_meshes{iface} =  Mesh_Unfitted_2D_Interior(obj.mesh_background.clone,geom_interpolation);
         %                 end
         %             end
         %         end

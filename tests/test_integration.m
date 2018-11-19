@@ -23,7 +23,7 @@ for i = 1:length(tests_integration)
     obj.preProcess;
     x = obj.x;
     
-    mesh_boundary = Mesh_Unfitted.create(obj.mesh,Interpolation.create(obj.mesh,'LINEAR'),'BOUNDARY');
+    mesh_boundary = Mesh_Unfitted.create('BOUNDARY',obj.mesh,Interpolation.create(obj.mesh,'LINEAR'));
     mesh_boundary.computeMesh(x);
     
     switch obj.mesh.pdim
@@ -40,7 +40,7 @@ for i = 1:length(tests_integration)
         cprintf('err',strcat(file_name,' FAILED. Surface Error: ',num2str(errorSurf),'\n'));
     end
     
-    mesh_interior = Mesh_Unfitted.create(obj.mesh,Interpolation.create(obj.mesh,'LINEAR'),'INTERIOR');
+    mesh_interior = Mesh_Unfitted.create('INTERIOR',obj.mesh,Interpolation.create(obj.mesh,'LINEAR'));
     mesh_interior.computeMesh(x);
     
     switch obj.mesh.pdim

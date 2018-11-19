@@ -31,7 +31,7 @@ classdef Mesh_GiD < Mesh
             end
         end
         
-        function copy = duplicate(obj)
+        function copy = clone(obj)
             copy = Mesh_GiD(obj.problemID);
         end
         

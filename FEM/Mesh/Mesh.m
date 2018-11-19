@@ -19,7 +19,7 @@ classdef Mesh < handle
             obj.estimate_mesh_characteristic_length;
         end
         
-        function copy = duplicate(obj)
+        function copy = clone(obj)
             copy = Mesh;
             copy.create(obj.coord,obj.connec);
         end
