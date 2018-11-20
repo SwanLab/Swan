@@ -13,7 +13,7 @@ classdef DesignVaribleInitializer_Holes < LevelSetCreator
         function obj = DesignVaribleInitializer_Holes(input)
             obj.compute(input);
             obj.load_holes_settings(input.settings);
-            obj.loadWarningOption(input.settings)
+            obj.loadWarningOption(input.settings);
         end
         
         function loadWarningOption(obj,settings)

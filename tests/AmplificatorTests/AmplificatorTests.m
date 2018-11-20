@@ -15,9 +15,9 @@ classdef AmplificatorTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {...   
-                  'testAmplificatorTensorForRoundedRectangleInclusion';
                    'testAmplificatorTensorForRectangleInclusion';
-                  'testAmplificatorTensorNumericVsExplicitForSeqLam';
+                   'testAmplificatorTensorForRoundedRectangleInclusion';
+                   'testAmplificatorTensorNumericVsExplicitForSeqLam';
                 };
 
         end

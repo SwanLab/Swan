@@ -2,7 +2,7 @@ classdef LevelSetFull < LevelSetCreator
     
     methods (Access = public)
         
-        function obj = DesignVaribleInitializer_Full(input)
+        function obj = LevelSetFull(input)
             obj.compute(input);
         end
         

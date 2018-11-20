@@ -1,0 +1,37 @@
+classdef LevelSetHorizontalInclusion < LevelSetCreator
+    
+    properties (Access = private)
+    end
+    
+    methods (Access = public)
+        
+        function obj = LevelSetHorizontalInclusion(input)
+            obj.compute(input)
+        end
+    end
+    
+    methods (Access = protected)
+        
+        function computeInitialLevelSet(obj)
+            obj.computeLevelSet()
+            obj.computeDesignVariable()
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function computeLevelSet()
+            yUB = 0.6;
+            yLB = 0.4;
+            y = obj.nodeCoord.y;
+            max((yUB - y))
+            initial_holes = obj.mesh.coord(:,2) < 0.6 & obj.mesh.coord(:,2) > 0.4;
+            obj.levelSet = min(y-) 
+        end
+        
+    end
+    
+    
+end
+

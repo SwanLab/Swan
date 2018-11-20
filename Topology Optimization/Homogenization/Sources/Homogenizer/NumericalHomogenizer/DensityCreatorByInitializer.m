@@ -32,6 +32,8 @@ classdef DensityCreatorByInitializer < DensityCreator
             input.epsilon  = microProblem.mesh.mean_cell_size;
             input.levFib   = levFib;
             input.yn       = yn;
+            input.coord    = microProblem.mesh.coord;
+            input.ndim     = microProblem.mesh.ndim;
             lsCreator      = DesignVaribleInitializer_orientedFiber(input);
             ls = lsCreator.x;
             

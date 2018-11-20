@@ -8,23 +8,27 @@ classdef LevelSetFactory < handle
         function obj = create(initialCase,input)
             switch initialCase
                 case 'circle'
+                    obj = LevelSetCircle(input);
+                case 'circleInclusion'
                     obj = LevelSetWithCircleInclusion(input);
                 case 'sphere'
+                    obj = LevelSetSphere(input);
+                case 'sphereInclusion'
                     obj = LevelSetWithSphereInclusion(input);
                 case 'horizontal'
-                    obj = DesignVaribleInitializer_Horizontal(input);
+                    obj = LevelSetHorizontalInclusion(Input);
                 case 'square'
-                    obj = DesignVaribleInitializer_Square(input);
+                    obj = LevelSetSquareInclusion(input);
                 case 'rectangle'
-                    obj = DesignVaribleInitializer_Rectangle(input);
+                    obj = LevelSetRectangleInclusion(input);
                 case 'feasible'
-                    obj = DesignVaribleInitializer_Feasible(input);
+                    obj = LevelSetFeasible(input);
                 case 'rand'
-                    obj = DesignVaribleInitializer_Random(input);
+                    obj = LevelSetRandom(input);
                 case 'holes'
-                    obj = DesignVaribleInitializer_Holes(input);
+                    obj = LevelSetWithSeveralHoles(input);
                 case 'full'
-                    obj = DesignVaribleInitializer_Full(input);
+                    obj = LevelSetFull(input);
                 case 'orientedFiber'
                     obj = DesignVaribleInitializer_orientedFiber(input);
                 case 'smoothRectangle'

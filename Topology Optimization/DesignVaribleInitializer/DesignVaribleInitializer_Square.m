@@ -25,5 +25,7 @@ classdef DesignVaribleInitializer_Square < LevelSetCreator
             x = obj.x;
         end
     end
+    
+
 end
 

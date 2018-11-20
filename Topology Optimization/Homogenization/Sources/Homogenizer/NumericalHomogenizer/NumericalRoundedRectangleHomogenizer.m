@@ -16,9 +16,12 @@ classdef NumericalRoundedRectangleHomogenizer < NumericalRectangleTypeHomogenize
             input.mesh = obj.microProblem.mesh;
             input.settings = obj.setting;
             input.epsilon = 0.1;
-            DesignVar = DesignVaribleInitializerRoundedRectangle(input); 
-            DesignVar.computeInitialLevelSet(m1,m2);
-            obj.nodalLevelSet = DesignVar.x;
+            input.m1 = m1;
+            input.m2 = m2;
+            input.coord = obj.microProblem.mesh.coord;
+            input.ndim  = obj.microProblem.mesh.ndim;
+            designVar = LevelSetRectangleInclusion(input); 
+            obj.nodalLevelSet = designVar.x;
         end
         
     end

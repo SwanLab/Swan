@@ -6,7 +6,7 @@ classdef DesignVaribleInitializer_Rectangle < LevelSetCreator
     methods (Access = public)
        
         function obj = DesignVaribleInitializer_Rectangle(input)
-           obj.compute(input)
+           obj.compute(input);
         end    
         
     end

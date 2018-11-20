@@ -10,10 +10,13 @@ classdef LevelSetCreator < handle
         hole_value
         nodeCoord
         levelSet
+        lsSize
+        ndim
+        ini_design_value
     end
     
     properties (Access = private)
-        ini_design_value
+        
         optimizer
         scalar_product
     end
@@ -40,9 +43,13 @@ classdef LevelSetCreator < handle
             input.settings = settings;
             input.mesh     = mesh;
             input.epsilon  = epsilon;
-            
-            obj = factory.create(settings.initial_case,input);
-            
+            input.nHoles  = settings.N_holes;
+            input.rHoles  = settings.R_holes;
+            input.phaseHoles = settings.phase_holes;  
+            input.warningHoleBC = settings.warningHoleBC;
+            input.ndim = mesh.ndim;
+            input.coord = mesh.coord;
+            obj = factory.create(settings.initial_case,input);            
         end
     end
     
@@ -50,43 +57,50 @@ classdef LevelSetCreator < handle
         
         function obj = compute(obj,input)
             obj.mesh = input.mesh;
-            obj.optimizerName = input.settings.optimizer;
+            obj.lsSize = size(input.coord(:,1));
+            obj.ndim   = input.ndim;
             obj.scalar_product = ScalarProduct(input.settings.filename,input.epsilon);
-            obj.createNodalCoordinates(input.mesh);
+            obj.optimizerName = input.settings.optimizer;
+            obj.createNodalCoordinates(input.coord);
             obj.computeInitialValue()
         end
     end
     
     methods (Access = private)
         
-        function createNodalCoordinates(obj,mesh)
-            coord.x = mesh.coord(:,1);
-            coord.y = mesh.coord(:,2);
-            if strcmp(mesh.pdim,'3D')
-                coord.z = mesh.coord(:,3);
-            end
+        function createNodalCoordinates(obj,coord)
             obj.nodeCoord = coord;
         end
         
         function computeInitialValue(obj)
-            obj.setInitialValues();
+            obj.computeInitDesignValue();
+            obj.computeHoleValue();
             geometry = Geometry(obj.mesh,'LINEAR');
             obj.x = obj.ini_design_value*ones(geometry.interpolation.npnod,1);
         end
         
-        function setInitialValues(obj)
+        function computeInitDesignValue(obj)
             switch obj.optimizerName
                 case {'SLERP', 'PROJECTED SLERP'}
                     obj.ini_design_value = -1.015243959022692;
-                    obj.hole_value = 0.507621979511346;
                 case 'HAMILTON-JACOBI'
                     obj.ini_design_value = -0.1;
-                    obj.hole_value = 0.1;
                 otherwise
                     obj.ini_design_value = 1;
+            end
+        end
+                
+        function computeHoleValue(obj)
+            switch obj.optimizerName
+                case {'SLERP', 'PROJECTED SLERP'}
+                    obj.hole_value = 0.507621979511346;
+                case 'HAMILTON-JACOBI'
+                    obj.hole_value = 0.1;
+                otherwise
                     obj.hole_value = 0;
             end
         end
+        
         
     end
     
