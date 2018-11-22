@@ -1,20 +1,21 @@
-classdef LevelSetSphereNdim < LevelSetCreator
+classdef LevelSetSphereNdim < ...
+        LevelSetCreator & ...
+        LevelSetCenterDescriptor
     
-     properties (Access = protected)
+    properties (Access = protected)
         radius
-        center  
         fracRadius
     end
     
     methods (Access = protected)
         
-    function computeInitialLevelSet(obj)
-        obj.computeRadius()
-        obj.computeCenter()
-        obj.computeLevelSet()
-        obj.computeDesignVariable()
-    end
-    
+        function computeInitialLevelSet(obj)
+            obj.computeRadius()
+            obj.computeCenter()
+            obj.computeLevelSet()
+            obj.computeDesignVariable()
+        end
+        
     end
     
     methods (Access = private)
@@ -25,15 +26,8 @@ classdef LevelSetSphereNdim < LevelSetCreator
                 pos = obj.nodeCoord(:,idim);
                 lengthDim(idim) = 0.5*(max(pos) - min(pos));
             end
-            maxInteriorRadius = min(lengthDim);            
+            maxInteriorRadius = min(lengthDim);
             obj.radius = obj.fracRadius*maxInteriorRadius;
-        end
-        
-        function computeCenter(obj)
-            for idim = 1:obj.ndim
-                pos = obj.nodeCoord(:,idim);
-                obj.center(idim) = 0.5*(max(pos) + min(pos));
-            end
         end
         
         function computeLevelSet(obj)
@@ -49,10 +43,7 @@ classdef LevelSetSphereNdim < LevelSetCreator
         end
         
     end
-    
-    methods (Abstract, Access = protected)
-        computeDesignVariable(obj)
-    end
+
     
 end
 

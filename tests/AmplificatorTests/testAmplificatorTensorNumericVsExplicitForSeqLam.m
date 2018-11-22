@@ -39,9 +39,10 @@ classdef testAmplificatorTensorNumericVsExplicitForSeqLam < testShowingError
             LevelStr   = num2str(LevelOfFibers);
             name = strcat(FamilyName,LevelStr);
             printTopology  = false;
+            iter           = 0;
             homogenizer    = NumericalFiberHomogenizer(dir,...
                              LevelOfFibers,name,...
-                             printTopology);
+                             printTopology,iter);
             Ch             = homogenizer.getCh();
             Volume         = homogenizer.getVolume();
             P              = homogenizer.getAmplificatorTensor();

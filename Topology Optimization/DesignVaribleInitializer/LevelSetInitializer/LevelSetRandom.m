@@ -7,7 +7,7 @@ classdef LevelSetRandom < LevelSetCreator
         
         function computeInitialLevelSet(obj)
             obj.computeLevelSet()
-            obj.computeDesignVariable()            
+            %obj.computeDesignVariable()            
         end
                        
     end
@@ -16,13 +16,13 @@ classdef LevelSetRandom < LevelSetCreator
         
         function computeLevelSet(obj)
             x = obj.nodeCoord.x;
-            obj.levelSet = rand(size(x,1),1) - 1;
+            obj.levelSet = 2*rand(size(x,1),1) - 1;
         end
        
-        function computeDesignVariable(obj)
-            phi = obj.levelSet;
-            obj.x(phi < 0) = obj.hole_value;
-        end        
+%         function computeDesignVariable(obj)
+%             phi = obj.levelSet;
+%             obj.x(phi < 0) = obj.hole_value;
+%         end        
         
     end
     

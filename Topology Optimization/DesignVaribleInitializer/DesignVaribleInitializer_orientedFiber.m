@@ -1,12 +1,6 @@
 classdef DesignVaribleInitializer_orientedFiber < LevelSetCreator
     
     properties (Access = private)
-        dir
-        RotMatrix
-        alpha
-        
-        width
-        v
         levelOfFibers
         fiberPosition
     end
@@ -28,30 +22,10 @@ classdef DesignVaribleInitializer_orientedFiber < LevelSetCreator
             obj.computeDesignVariable();
         end
         
-    end
-    
+    end    
     
     methods (Access = private)
-        function UB = computeLaminateUpperBound(obj,xc,yc)
-            UB = obj.RotMatrix(2,1)*(obj.mesh.coord(:,1)-xc) + obj.RotMatrix(2,2)*(obj.mesh.coord(:,2)-yc) - (obj.width/2 -1e-6);
-        end
-        
-        function LB = computeLaminateLowerBound(obj,xc,yc)
-            LB = obj.RotMatrix(2,1)*(obj.mesh.coord(:,1)-xc) + obj.RotMatrix(2,2)*(obj.mesh.coord(:,2)-yc) + (obj.width/2 -1e-6);
-        end
-        
-        function isVoid = isVoid(obj,s)
-            
-            vect = obj.v(s);
-            xc = vect(1);
-            yc = vect(2);
-            
-            UB = obj.computeLaminateUpperBound(xc,yc);
-            LB = obj.computeLaminateLowerBound(xc,yc);
-            isVoid = UB < 0 & LB > 0;
-            
-        end
-        
+     
         
         function computeLevelSet(obj)
             m = obj.levelOfFibers;

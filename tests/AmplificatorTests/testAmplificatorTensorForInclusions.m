@@ -30,7 +30,7 @@ classdef testAmplificatorTensorForInclusions < ...
     methods (Access = private)
         
         function createNumericalAmplificationTensor(obj)
-            n = 5;
+            n = 15;
             m1vect = linspace(0.001,0.99,n);
             P = zeros(9,n);
             obj.printTopology  = true;

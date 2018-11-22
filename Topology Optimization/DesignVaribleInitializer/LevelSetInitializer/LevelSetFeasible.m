@@ -14,7 +14,7 @@ classdef LevelSetFeasible < LevelSetCreator
         
         function computeInitialLevelSet(obj)
             obj.computeLevelSet();
-            obj.computeDesignVariable()
+            %obj.computeDesignVariable()
         end
         
     end
@@ -26,10 +26,10 @@ classdef LevelSetFeasible < LevelSetCreator
             obj.levelSet = ones(size(x,1),1);
         end
         
-        function computeDesignVariable(obj)
-            phi = obj.levelSet;
-            obj.x(phi < 0) = obj.hole_value;            
-        end        
+%         function computeDesignVariable(obj)
+% %             phi = obj.levelSet;
+% %             obj.x(phi < 0) = obj.hole_value;            
+%         end        
         
     end
     

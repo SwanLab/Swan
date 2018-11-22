@@ -62,17 +62,7 @@ classdef LevelSetWithSeveralHoles < LevelSetCreator
             fase = obj.phaseHoles(dir);
             cosDir = cos((n + 1)*pos*pi/l + fase);
         end
-        
-        function computeDesignVariable(obj)
-             switch obj.optimizerName
-                case {'SLERP','HAMILTON-JACOBI'}
-                    obj.x = obj.levelSet;
-                otherwise
-                    initial_holes = ceil(max(obj.levelSet,0))>0;
-                    obj.x(initial_holes) = obj.hole_value;
-             end                        
-        end
-        
+              
         function showPossibleHoleinBcWarning(obj)
             bc = unique([obj.mesh.dirichlet(:,1); obj.mesh.pointload(:,1)]);
             if any(obj.x(bc)>0) && obj.hasToShowHoleInBCWarning

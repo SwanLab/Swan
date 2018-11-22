@@ -35,6 +35,12 @@ classdef Settings
         perimeter = struct;
     end
     
+    properties %DesignVariable
+        widthSquare = 0.4;
+        widthH = 0.4;
+        widthV = 0.4;
+    end
+    
     properties    %topopt access
         ptype
         pdim
@@ -190,7 +196,19 @@ classdef Settings
             if exist('selectiveC_Cstar','var')
                 obj.selectiveC_Cstar = selectiveC_Cstar;
             end
-                        
+            
+            if exist('widthH','var')
+                obj.widthH = widthH;
+            end
+            
+            if exist('widthV','var')
+                obj.widthV = widthV;
+            end
+            
+            if exist('widthSquare','var')
+                obj.widthSquare = widthSquare;
+            end
+            
             if  ~(contains(filename,'test','IgnoreCase',true) || contains(filename,'RVE') || obj.hasToAddSpaceBecauseOfIncremental())
                 fprintf('\n')
             end

@@ -4,8 +4,7 @@ classdef NumericalRectangleHomogenizer < NumericalRectangleTypeHomogenizer
         
         function obj = NumericalRectangleHomogenizer(fileName,print,m1,m2,iter)
             obj.compute(fileName,print,m1,m2,iter)            
-        end
-        
+        end        
         
     end
  
@@ -18,10 +17,11 @@ classdef NumericalRectangleHomogenizer < NumericalRectangleTypeHomogenizer
             input.epsilon = 0.1;
             input.m1 = m1;
             input.m2 = m2;
-            input.coord = obj.microProblem.mesh;
+            input.coord = obj.microProblem.mesh.coord;
             input.ndim = obj.microProblem.mesh.ndim;
-            DesignVar = DesignVaribleInitializer_Rectangle(input); 
-            obj.nodalLevelSet = DesignVar.x;
+            designVar = LevelSetRectangleInclusion(input); 
+            designVar.compute_initial_design();
+            obj.nodalLevelSet = designVar.getValue();
         end
         
     end

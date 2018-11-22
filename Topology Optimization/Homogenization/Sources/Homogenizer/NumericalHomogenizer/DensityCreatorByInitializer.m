@@ -34,8 +34,8 @@ classdef DensityCreatorByInitializer < DensityCreator
             input.yn       = yn;
             input.coord    = microProblem.mesh.coord;
             input.ndim     = microProblem.mesh.ndim;
-            lsCreator      = DesignVaribleInitializer_orientedFiber(input);
-            ls = lsCreator.x;
+            lsCreator      = LevelSetOrientedFiber(input);
+            ls = lsCreator.getValue();
             
             dens  = zeros(nelem,ngaus);
             dens(ls > 0,:) = 0;

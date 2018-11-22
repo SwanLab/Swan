@@ -1,6 +1,6 @@
 classdef LevelSetCreator < handle
     
-    properties (Access = public)
+    properties (Access = protected)
         x
     end
     
@@ -16,7 +16,6 @@ classdef LevelSetCreator < handle
     end
     
     properties (Access = private)
-        
         optimizer
         scalar_product
     end
@@ -31,7 +30,11 @@ classdef LevelSetCreator < handle
                 sqrt_norma = obj.scalar_product.computeSP(xVal,xVal);
                 xVal = xVal/sqrt(sqrt_norma);
             end
-                       
+            
+        end
+        
+        function x = getValue(obj)
+            x = obj.x;
         end
         
     end
@@ -45,11 +48,14 @@ classdef LevelSetCreator < handle
             input.epsilon  = epsilon;
             input.nHoles  = settings.N_holes;
             input.rHoles  = settings.R_holes;
-            input.phaseHoles = settings.phase_holes;  
+            input.phaseHoles = settings.phase_holes;
             input.warningHoleBC = settings.warningHoleBC;
             input.ndim = mesh.ndim;
             input.coord = mesh.coord;
-            obj = factory.create(settings.initial_case,input);            
+            input.m = settings.widthSquare;
+            input.m1 = settings.widthH;
+            input.m2 = settings.widthV;
+            obj = factory.create(settings.initial_case,input);
         end
     end
     
@@ -64,9 +70,48 @@ classdef LevelSetCreator < handle
             obj.createNodalCoordinates(input.coord);
             obj.computeInitialValue()
         end
+        
+        function computeDesignVariable(obj)
+            classType = class(obj);            
+            switch classType                
+                case {'LevelSetCircle',...
+                        'LevelSetSphere',...
+                        'LevelSetWithSeveralHoles',...
+                        'LevelSetOrientedFiber'}
+                      obj.computeDesignVariableLS()
+                case {'LevelSetFeasible','LevelSetRandom','LevelSetFull'}
+                    phi = obj.levelSet;
+                    obj.x = obj.ini_design_value*ones(obj.lsSize);
+                    obj.x(phi > 0) = obj.hole_value;
+                case {'LevelSetWithCircleInclusion',...
+                        'LevelSetWithSphereInclusion',...
+                        'LevelSetSquareInclusion',...
+                        'LevelSetSmoothSquareInclusion',...
+                        'LevelSetRectangleInclusion',...
+                        'LevelSetSmoothRectangleInclusion',...
+                        'LevelSetHorizontalInclusion'}
+                    phi = obj.levelSet;
+                    phi = -phi;
+                    obj.x = obj.ini_design_value*ones(obj.lsSize);
+                    obj.x( phi > 0 ) = obj.hole_value;
+            end
+            
+        end
     end
     
     methods (Access = private)
+        
+        function computeDesignVariableLS(obj)
+            phi = obj.levelSet;
+            switch obj.optimizerName
+                case {'SLERP','HAMILTON-JACOBI'}
+                    obj.x = phi;
+                otherwise
+                    initial_holes = ceil(max(phi,0))>0;
+                    obj.x = obj.ini_design_value*ones(obj.lsSize);
+                    obj.x(initial_holes) = obj.hole_value;
+            end
+        end
         
         function createNodalCoordinates(obj,coord)
             obj.nodeCoord = coord;
@@ -89,7 +134,7 @@ classdef LevelSetCreator < handle
                     obj.ini_design_value = 1;
             end
         end
-                
+        
         function computeHoleValue(obj)
             switch obj.optimizerName
                 case {'SLERP', 'PROJECTED SLERP'}
@@ -100,7 +145,6 @@ classdef LevelSetCreator < handle
                     obj.hole_value = 0;
             end
         end
-        
         
     end
     

@@ -12,7 +12,7 @@ classdef LevelSetFull < LevelSetCreator
         
         function computeInitialLevelSet(obj)
             obj.createLevelSet()
-            obj.createDesignVariable()
+            obj.computeDesignVariable()
         end
         
     end
@@ -21,13 +21,7 @@ classdef LevelSetFull < LevelSetCreator
         function createLevelSet(obj)
            obj.levelSet = -1*ones(obj.lsSize); 
         end
-        
-        function createDesignVariable(obj)
-            phi = obj.levelSet;
-            obj.x = obj.ini_design_value*ones(obj.lsSize);
-            obj.x(phi > 0) = obj.hole_value;
-        end
-        
+               
     end
     
 end
