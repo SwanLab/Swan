@@ -10,18 +10,10 @@ classdef LevelSetFull < LevelSetCreator
     
     methods (Access = protected)
         
-        function computeInitialLevelSet(obj)
-            obj.createLevelSet()
-            obj.computeDesignVariable()
-        end
-        
-    end
-    
-    methods (Access = private)
-        function createLevelSet(obj)
+        function computeLevelSet(obj)
            obj.levelSet = -1*ones(obj.lsSize); 
         end
-               
+        
     end
     
 end

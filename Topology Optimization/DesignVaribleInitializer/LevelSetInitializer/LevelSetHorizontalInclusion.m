@@ -14,7 +14,6 @@ classdef LevelSetHorizontalInclusion < LevelSetCreator
         
         function computeInitialLevelSet(obj)
             obj.computeLevelSet()
-            obj.computeDesignVariable()
         end
         
     end
@@ -28,13 +27,8 @@ classdef LevelSetHorizontalInclusion < LevelSetCreator
             center_y = 0.5*(max(y0) + min(y0));
             offset_y = 0.5*m*H;            
             y = y0 - center_y;
-            obj.levelSet = max(y/offset_y) - 1;
+            obj.levelSet =  - (max(y/offset_y) - 1);
         end
-        
-%         function computeDesignVariable(obj)
-%             phi = obj.ls;
-%             obj.x( phi < 0) = obj.hole_value;
-%         end
         
     end
     

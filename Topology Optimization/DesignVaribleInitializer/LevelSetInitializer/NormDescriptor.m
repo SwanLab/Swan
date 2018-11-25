@@ -1,7 +1,6 @@
 classdef NormDescriptor < handle
     
-    properties (Access = protected, Abstract)
-        pos
+    properties (Access = protected)
         dist
     end
     

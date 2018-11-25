@@ -1,23 +1,5 @@
 classdef LevelSetWidthDescriptor < handle
-    
-    properties (Access = protected)
-        pos
-        dist
-    end
-    
-    properties (Access = protected, Abstract)
-        levelSet
-    end
-    
-    methods (Access = protected)
-                
-        function computeLevelSet(obj)
-            obj.computeAdimensionalAndCenteredPosition()
-            obj.computeDistance();
-            obj.levelSet = obj.dist;
-        end
-        
-    end
+
     
     methods (Access = protected, Static)
         
@@ -28,10 +10,6 @@ classdef LevelSetWidthDescriptor < handle
         
     end
     
-    methods (Access = protected, Abstract)
-        computeAdimensionalAndCenteredPosition(obj)
-        computeDistance(obj)
-    end
     
 end
 

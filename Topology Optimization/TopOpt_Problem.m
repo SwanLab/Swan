@@ -40,13 +40,13 @@ classdef TopOpt_Problem < handle
             end
             obj.cost = Cost(settings,settings.weights,obj.optimizer.postprocess); % Change to just enter settings
             obj.constraint = Constraint(settings);
-            obj.design_variable_initializer = LevelSetCreator.create(settings,obj.mesh,obj.incremental_scheme.epsilon);
+            obj.design_variable_initializer = DesignVariableCreator(settings,obj.mesh,obj.incremental_scheme.epsilon);
         end
         
         function preProcess(obj)
             obj.cost.preProcess;
             obj.constraint.preProcess;
-            obj.x = obj.design_variable_initializer.compute_initial_design;
+            obj.x = obj.design_variable_initializer.getValue();
         end
         
         function computeVariables(obj)

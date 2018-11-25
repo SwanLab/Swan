@@ -56,7 +56,7 @@ classdef Settings
         line_search
         kappaMultiplier
         filter
-        unfitted_mesh_algorithm='MARCHING_CUBES'
+        unfitted_mesh_algorithm='DELAUNAY'
         TOL = struct;
         target_parameters = struct;
         nsteps

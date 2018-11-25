@@ -8,6 +8,13 @@ classdef LevelSetWithCircleInclusion < LevelSetSphereNdim
         end
     end
     
+    methods (Access = protected)
+        function computeLevelSetValue(obj)
+            ls = 1 - obj.dist;
+            obj.levelSet = ls;
+        end
+    end
+    
    
 end
 

@@ -7,15 +7,21 @@ classdef LevelSetAbstractSquareInclusion < ...
      properties (Access = protected)     
         width
         m
+        pos
+     end
+     
+     properties (Access = protected, Abstract)
+        dist 
      end
     
     methods (Access = protected)
         
-        function computeInitialLevelSet(obj)
+        function computeLevelSet(obj)
             obj.computeCenter();
             obj.computeInclusionWidth();
-            obj.computeLevelSet();
-            obj.computeDesignVariable();
+            obj.computeAdimensionalAndCenteredPosition()
+            obj.computeDistance();            
+            obj.computeLevelSetValue();           
         end        
         
         function computeInclusionWidth(obj)
@@ -36,11 +42,16 @@ classdef LevelSetAbstractSquareInclusion < ...
             w = obj.width;
             obj.pos = [x/w,y/w];
         end
+        
+        function computeLevelSetValue(obj)
+            obj.levelSet = 1 - (obj.dist + 1e-14);
+        end
                
     end
     
-    
-
+    methods (Access = protected, Abstract)
+        computeDistance(obj)
+    end
     
 end
 
