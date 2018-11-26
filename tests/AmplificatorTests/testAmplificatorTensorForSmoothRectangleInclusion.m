@@ -12,7 +12,7 @@ classdef testAmplificatorTensorForSmoothRectangleInclusion < ...
             f     = obj.fileName;
             m2    = 0.2;
             print = obj.printTopology;
-            h     = NumericalRoundedRectangleHomogenizer(f,print,m1,m2,iter);
+            h     = NumericalSmoothRectangleHomogenizer(f,print,m1,m2,iter);
         end
         
     end

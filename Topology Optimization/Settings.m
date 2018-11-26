@@ -39,6 +39,8 @@ classdef Settings
         widthSquare = 0.4;
         widthH = 0.4;
         widthV = 0.4;
+        levFib
+        yn
     end
     
     properties    %topopt access

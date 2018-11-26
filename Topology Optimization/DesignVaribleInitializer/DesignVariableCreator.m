@@ -7,8 +7,8 @@ classdef DesignVariableCreator < handle
     
     methods (Access = public)
         
-        function obj = DesignVariableCreator(settings,mesh,epsilon)
-            obj.createLevelSet(settings,mesh,epsilon);
+        function obj = DesignVariableCreator(settings,mesh)
+            obj.createLevelSet(settings,mesh);
             obj.computeDesignVariable(settings.optimizer);
         end
         
@@ -20,9 +20,8 @@ classdef DesignVariableCreator < handle
     
     methods (Access = private)
        
-        function createLevelSet(obj,settings,mesh,epsilon)
-            lsCreator = LevelSetCreator.create(settings,mesh,epsilon);
-            lsCreator.compute_initial_design();
+        function createLevelSet(obj,settings,mesh)
+            lsCreator    = LevelSetCreator.create(settings,mesh);
             obj.levelSet = lsCreator.getValue();
         end
         
@@ -33,8 +32,7 @@ classdef DesignVariableCreator < handle
                 otherwise
                     phi = obj.levelSet;
                     obj.designVariable = 1 - heaviside(phi);
-            end
-            
+            end            
         end
         
     end

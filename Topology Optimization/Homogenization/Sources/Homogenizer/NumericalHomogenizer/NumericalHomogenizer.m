@@ -42,8 +42,7 @@ classdef NumericalHomogenizer < handle
         
         function v = getVolume(obj)
             v = obj.volume;
-        end
-        
+        end        
         
     end
     

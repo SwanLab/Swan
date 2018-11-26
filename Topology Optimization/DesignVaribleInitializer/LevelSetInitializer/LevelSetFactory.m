@@ -5,8 +5,8 @@ classdef LevelSetFactory < handle
     
     methods (Access = public, Static)
         
-        function obj = create(initialCase,input)
-            switch initialCase
+        function obj = create(input)
+            switch input.initialCase
                 case 'circle'
                     obj = LevelSetCircle(input);
                 case 'circleInclusion'
