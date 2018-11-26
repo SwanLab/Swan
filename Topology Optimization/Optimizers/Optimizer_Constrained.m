@@ -17,13 +17,14 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
+            obj.print(x_ini,obj.niter);
             x_ini = obj.compute_initial_value(x_ini,cost,constraint); % !! REMOVE WHEN DesginVariableInitializer CONSIDERS Projected_Slerp INITIAL GUESS !!
             x = x_ini;
             cost.computeCostAndGradient(x_ini);
             constraint.computeCostAndGradient(x_ini);
 %             obj.monitoring.plotX(x_ini);
             obj.monitoring.refresh(x,obj.niter,cost,constraint,obj.stop_vars,obj.has_converged || obj.niter > obj.maxiter*(istep/nstep),istep,nstep);
-            obj.print(x_ini,obj.niter);
+            
             while ~obj.has_converged && obj.niter < obj.maxiter*(istep/nstep)
                 obj.niter = obj.niter+1;
                 x = obj.updateX(x_ini,cost,constraint);

@@ -1,9 +1,7 @@
 classdef Element < handle
     %Element Summary of this class goes here
-    %   Detailed explanation goes here TEST
     
     properties %(GetAccess = {?Physical_Problem, ?Element_Elastic, ?Element_Thermal, ?Element_Hyperelastic, ?Element_Elastic_2D, ?Element_Elastic_3d, ?Element_Hyperelastic, ?Element_Elastic_Micro}, SetAccess = protected)
-        nstre
         nelem
         nnode
         geometry
@@ -12,10 +10,14 @@ classdef Element < handle
         dof
         uD
         nfields
+    end   
+    
+    properties (Access = protected)
+        bcApplier        
     end
 
-    methods (Static)        
-        function obj = Element(geometry,material,dof)
+    methods (Access = protected)        
+        function initElement(obj,geometry,material,dof,scale)            
             obj.nelem = geometry(1).interpolation.nelem;
             obj.nfields = geometry.nfields;
             for ifield=1:obj.nfields
@@ -25,11 +27,17 @@ classdef Element < handle
             obj.quadrature = Quadrature.set(geometry(1).type);
             obj.material = material;
             obj.dof = dof;
-            obj.assign_dirichlet_values;
+            obj.bcApplier = BoundaryConditionsApplier.create(obj.nfields,obj.dof,scale);
+            obj.assign_dirichlet_values();
         end
     end
     
     methods
+        
+        function bc = getBcApplier(obj)
+            bc = obj.bcApplier;            
+        end
+        
         function [r,dr] = computeResidual(obj,x)
             % !! Currently unused !!
             % *************************************************************
@@ -122,7 +130,8 @@ classdef Element < handle
         
         function R = compute_imposed_displacement_force(obj,K)
             % Forces coming from imposed displacement
-            [dirichlet,uD,~] = obj.compute_global_dirichlet_free_uD;
+            dirApplier = DirichletConditionsApplier(obj.nfields,obj.dof);
+            [dirichlet,uD,~] = dirApplier.compute_global_dirichlet_free_uD();
             if ~isempty(dirichlet)
                 R = -K(:,dirichlet)*uD;
             else
@@ -130,42 +139,16 @@ classdef Element < handle
             end
         end
         
-        function [dirichlet,uD,free] = compute_global_dirichlet_free_uD(obj)
-            global_ndof=0;
-            for ifield=1:obj.nfields
-                dirichlet{ifield,1} = obj.dof.dirichlet{ifield}+global_ndof;
-                uD{ifield,1} = obj.uD{ifield};
-                free{ifield,1} = obj.dof.free{ifield}' + global_ndof;
-                global_ndof=global_ndof+obj.dof.ndof(ifield);
-            end
-            uD = cell2mat(uD);
-            dirichlet = cell2mat(dirichlet);
-            free = cell2mat(free);
-        end
-        
-        function Ared = full_matrix_2_reduced_matrix(obj,A)
-            [~,~,free] = obj.compute_global_dirichlet_free_uD;
-            Ared = A(free,free);
-        end
-        
-        function b_red = full_vector_2_reduced_vector(obj,b)
-            [~,~,free] = obj.compute_global_dirichlet_free_uD;
+ 
+    end
+    
+    methods (Access = protected)
+       
+        function init(obj,geo)
             
-            b_red = b(free);
         end
         
-        function b = reduced_vector_2_full_vector(obj,bfree)
-            [dirichlet,uD,free] = obj.compute_global_dirichlet_free_uD;
-            nsteps = length(bfree(1,:));
-            ndof = sum(obj.dof.ndof);
-            uD = repmat(uD,1,nsteps);
-            
-            b = zeros(ndof,nsteps);
-            b(free,:) = bfree;
-            if ~isempty(dirichlet)
-                b(dirichlet,:) = uD;
-            end
-        end
+        
     end
     
     methods (Abstract, Access = protected)

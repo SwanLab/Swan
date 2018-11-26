@@ -13,9 +13,13 @@ classdef Element_DiffReact < Element
         interpolation_u
     end
     
+    properties (Access = private)
+        nstre
+    end
+    
     methods %(Access = ?Physical_Problem)
         function obj=Element_DiffReact(mesh,geometry,material,dof)
-            obj@Element(geometry,material,dof);
+            obj.initElement(geometry,material,dof,mesh.scale);
             obj.nstre = 2;
             obj.nfields = 1;
             obj.interpolation_u=Interpolation.create(mesh,'LINEAR');
@@ -46,7 +50,7 @@ classdef Element_DiffReact < Element
         
         function LHS = computeLHS(obj)
             LHS = obj.epsilon^2*obj.K + obj.M;
-            LHS = obj.full_matrix_2_reduced_matrix(LHS);
+            LHS = obj.bcApplier.full_matrix_2_reduced_matrix(LHS);
         end
         
         function [K] = computeStiffnessMatrix(obj)

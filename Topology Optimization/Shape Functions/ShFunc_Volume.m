@@ -11,12 +11,16 @@ classdef ShFunc_Volume < Shape_Functional
         end
         
 
+        function v = computeCost(obj,rho)
+            v = sum(sum(obj.dvolu,2)'*rho);
+        end
+        
         
         function computeCostAndGradient(obj,x)
 
             rho = obj.filter.getP0fromP1(x);
             
-            volume = sum(sum(obj.dvolu,2)'*rho);
+            volume = obj.computeCost(rho);
             volume = volume/(obj.geometric_volume);
             
             gradient_volume = 1/(obj.geometric_volume);
@@ -30,3 +34,4 @@ classdef ShFunc_Volume < Shape_Functional
         end
     end
 end
+
