@@ -1,5 +1,5 @@
 classdef Mesh_Unfitted_3D_Interior < Mesh_Unfitted_3D & Mesh_Unfitted_Interior
-    methods
+    methods (Access = public)
         function obj = Mesh_Unfitted_3D_Interior(mesh_background,background_geom_interpolation)
             obj.storeBackgroundMesh(mesh_background,background_geom_interpolation);
             obj.max_subcells = 20;

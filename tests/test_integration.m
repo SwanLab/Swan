@@ -7,7 +7,7 @@ fprintf('Running TopOpt tests...\n')
 %% Test Declaration -------------------------------------------------------
 
 tests_integration = {'test_circle_triangle','test_circle_quadrilateral','test_sphere_tetrahedra','test_sphere_hexahedra','test_cylinder_tetrahedra','test_cylinder_hexahedra'};
-% tests_integration = {'test_cylinder_tetrahedra','test_cylinder_hexahedra'};
+tests_integration = {'test_cylinder_tetrahedra','test_cylinder_hexahedra'};
 
 %% Run Integration Opt Tests ----------------------------------------------
 for i = 1:length(tests_integration)
@@ -32,6 +32,7 @@ for i = 1:length(tests_integration)
         case '3D'
             A = mesh_boundary.computeSurface;
     end
+    mesh_boundary.plot;
     
     errorSurf = A/A0 - 1;
     if abs(errorSurf) < 4e-2
@@ -49,6 +50,7 @@ for i = 1:length(tests_integration)
         case '3D'
             V = mesh_interior.computeVolume;
     end
+%     mesh_interior.plot;
     
     errorVol= V/V0 - 1;
     if abs(errorVol) < 6e-2

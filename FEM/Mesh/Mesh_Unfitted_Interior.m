@@ -1,4 +1,4 @@
-classdef Mesh_Unfitted_Interior < Mesh_Unfitted
+classdef Mesh_Unfitted_Interior < Mesh_Unfitted % !! Change to Interior Contour / Skin !!
     properties %(GetAccess = public, SetAccess = protected)
         dvolu_cut
     end

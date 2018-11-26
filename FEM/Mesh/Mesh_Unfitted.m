@@ -186,7 +186,7 @@ classdef Mesh_Unfitted < Mesh
     methods (Access = protected)
         function mass = computeMass(obj)
             integrator = Integrator.create(obj);
-            M2 = integrator.integrateUnfittedMesh(ones(size(obj.x_background)),obj);
+            M2 = integrator.integrateMesh(ones(size(obj.x_background)),obj);
             mass = sum(M2);
         end
     end
