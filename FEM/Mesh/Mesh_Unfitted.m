@@ -28,7 +28,7 @@ classdef Mesh_Unfitted < Mesh
     
     methods (Static, Access = public)
         function mesh_unfitted = create(type,mesh_background,interpolation_background)
-            mesh_unfitted = Mesh_Unfitted_Factory.create(type,mesh_background,interpolation_background);            
+            mesh_unfitted = MeshUnfitted_Factory.create(type,mesh_background,interpolation_background);            
         end
     end
     
