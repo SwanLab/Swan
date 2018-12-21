@@ -5,10 +5,15 @@ classdef testAmplificatorTensorNumericVsExplicitForSeqLam < testShowingError
         ampTensorNum
         ampTensorExp
         fiberDirection
+        matValues
+        C1
+        C0
+        Ch
+        theta
     end
     
     properties (Access = protected)
-       tol = 1e-12;
+       tol = 1e-10;
     end
        
     
@@ -18,7 +23,6 @@ classdef testAmplificatorTensorNumericVsExplicitForSeqLam < testShowingError
             obj.createNumericalAmplificationTensor()
             obj.createExplicitAmplificationTensor()
         end
-      
         
     end
     
@@ -34,25 +38,46 @@ classdef testAmplificatorTensorNumericVsExplicitForSeqLam < testShowingError
         function createNumericalAmplificationTensor(obj)
             obj.createFiberDirection()
             dir            = obj.fiberDirection;
-            LevelOfFibers  = 3;
+            LevelOfFibers  = 4;
             FamilyName = 'HorizontalLaminate';
             LevelStr   = num2str(LevelOfFibers);
             name = strcat(FamilyName,LevelStr);
-            printTopology  = false;
+            printTopology  = true;
             iter           = 0;
             homogenizer    = NumericalFiberHomogenizer(dir,...
                              LevelOfFibers,name,...
                              printTopology,iter);
-            Ch             = homogenizer.getCh();
-            Volume         = homogenizer.getVolume();
+            obj.Ch         = homogenizer.getCh();
+            obj.theta      = homogenizer.getVolume();
             P              = homogenizer.getAmplificatorTensor();
-            obj.ampTensorNum = SymmetricFourthOrderPlaneStressVoigtTensor();
-            obj.ampTensorNum.createRandomTensor();
+            obj.matValues  = homogenizer.getMaterialValues();
+            obj.ampTensorNum = P;
         end
         
         function createExplicitAmplificationTensor(obj)
-            obj.ampTensorExp = SymmetricFourthOrderPlaneStressVoigtTensor();
-            obj.ampTensorExp.createRandomTensor();
+            obj.createMaterialTensors()
+            c0 = obj.C0;
+            c1 = obj.C1;
+            dir = obj.fiberDirection;
+            dirVal = dir.getValue;
+            dirVal = [-dirVal(2),dirVal(1),0];
+            dir.setValue(dirVal);
+            t = obj.theta;
+            Lam = AnisotropicLaminateHomogenizer(c0,c1,dir,t);
+            P = Lam.getAmplificatorTensor();
+            Ptens = CompliancePlaneStressTensor();
+            Ptens.setValue(P);
+            PtensV = Tensor2VoigtConverter.convert(Ptens);
+            obj.ampTensorExp = PtensV;
+        end
+        
+        function createMaterialTensors(obj)
+            E1  = obj.matValues.E_plus;
+            nu1 = obj.matValues.nu_plus;
+            E0  = obj.matValues.E_minus;
+            nu0 = obj.matValues.nu_minus;
+            obj.C1  = IsotropicConstitutiveTensor(E1,nu1);
+            obj.C0  = IsotropicConstitutiveTensor(E0,nu0);
         end
 
     end    

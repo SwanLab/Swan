@@ -4,6 +4,10 @@ classdef PnormDescriptor < NormDescriptor
         pnorm
     end
     
+    properties (Access = protected, Abstract)
+       pos 
+    end
+    
     methods (Access = protected)
         
         function computeDistance(obj)

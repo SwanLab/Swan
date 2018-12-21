@@ -14,7 +14,7 @@ classdef testEnergyEquivalenceVoigtAndTensorNotationForIAniTensor ...
     
     methods        
         function generateFourthOrderTensor(obj)
-            obj.Ch = SymmetricFourthOrder3DTensor();
+            obj.Ch = Stiffness3DTensor();
             obj.Ch.createRandomTensor();
         end        
     end

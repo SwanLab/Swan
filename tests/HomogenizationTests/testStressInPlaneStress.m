@@ -30,7 +30,7 @@ classdef testStressInPlaneStress < testShowingError
     methods (Access = private)
         
         function computeConstitutiveTensor(obj)
-            obj.Ch = SymmetricFourthOrder3DTensor();
+            obj.Ch = Stiffness3DTensor;
             obj.Ch.createRandomTensor();
             obj.ChVoigt   = Tensor2VoigtConverter.convert(obj.Ch);
             obj.ChVoigtPS = PlaneStressTransformer.transform(obj.ChVoigt);

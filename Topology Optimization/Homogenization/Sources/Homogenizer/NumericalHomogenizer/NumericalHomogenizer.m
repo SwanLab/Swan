@@ -24,6 +24,7 @@ classdef NumericalHomogenizer < handle
         density
         Ch
         setting
+        resFile
     end
     
     methods (Access = public)
@@ -77,6 +78,7 @@ classdef NumericalHomogenizer < handle
                 outn = obj.outputName;
                 it   = obj.iter;                
                 obj.densityPrinter.print(d,outn,it)
+                obj.resFile = obj.densityPrinter.getResFile();
             end
         end         
         

@@ -23,7 +23,7 @@ classdef testInverseOfInverseForStiffTensor < testShowingError
     methods (Access = private)
         
         function createStiffTensor(obj)
-            obj.ctens = SymmetricFourthOrder3DTensor();
+            obj.ctens = Stiffness3DTensor();
             obj.ctens.createRandomTensor();            
         end
         

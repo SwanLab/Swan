@@ -1,4 +1,4 @@
-classdef Tensor2VoigtConverterFactory < handle
+classdef Tensor2VoigtConverterFactory < TensorVoigtConverterFactory
     
     properties (Access = private)
         tensor
@@ -19,36 +19,47 @@ classdef Tensor2VoigtConverterFactory < handle
         
         function init(obj,tensor)
             obj.tensor = tensor;
+            obj.input = tensor;
         end
           
         function createTensor2VoigtConverter(obj)
-            tensorValue = obj.tensor.getValue();
             
-            if obj.isFourthOrder()
-               
+            if obj.isComplianceTensor()
+                
                 if obj.isPlaneStress()
-                    obj.t2vConverter = PlaneStressFourthOrderTensor2VoigtConverter(tensorValue);
+                    conv = ComplianceTensor2VoigtConverterPS(obj.tensor);
                 elseif obj.is3D()
-                    obj.t2vConverter = FourthOrderTensor2VoigtConverter(obj.tensor);
+                    conv = ComplianceTensor2VoigtConverter(obj.tensor);
                 else
                     obj.showError();
                 end
                 
-            elseif obj.isStrainTensor()
-               
+            elseif obj.isStiffnessTensor()
+                
                 if obj.isPlaneStress()
-                    obj.t2vConverter = StrainTensor2VoigtConverterPS(obj.tensor);
+                    conv = StiffnessTensor2VoigtConverterPS(obj.tensor);
                 elseif obj.is3D()
-                    obj.t2vConverter = StrainTensor2VoigtConverter(obj.tensor);
+                    conv = StiffnessTensor2VoigtConverter(obj.tensor);
+                else
+                    obj.showError();
+                end
+                
+                
+            elseif obj.isStrainTensor()
+                
+                if obj.isPlaneStress()
+                    conv = StrainTensor2VoigtConverterPS(obj.tensor);
+                elseif obj.is3D()
+                    conv = StrainTensor2VoigtConverter(obj.tensor);
                 else
                     obj.showError();
                 end
                 
             elseif obj.isStressTensor()
                 if obj.isPlaneStress()
-                    obj.t2vConverter = StressTensor2VoigtConverterPS(obj.tensor);
+                    conv = StressTensor2VoigtConverterPS(obj.tensor);
                 elseif obj.is3D()
-                    obj.t2vConverter = StressTensor2VoigtConverter(obj.tensor);
+                    conv = StressTensor2VoigtConverter(obj.tensor);
                 else
                     obj.showError();
                 end
@@ -56,28 +67,8 @@ classdef Tensor2VoigtConverterFactory < handle
             else
                 obj.showError();
             end
+            obj.t2vConverter = conv;
         end
-        
-        function itIs = isStrainTensor(obj)
-            itIs = strcmp(obj.tensor.getFieldName(),'strain');
-        end
-        
-        function itIs = isStressTensor(obj)
-            itIs = strcmp(obj.tensor.getFieldName(),'stress');
-        end
-               
-        function itIs = isFourthOrder(obj)
-            itIs = strcmp(obj.tensor.getOrder,'fourth');
-        end
-        
-        function itIs = is3D(obj)
-            itIs = strcmp(obj.tensor.getElasticityCase,'3D');
-        end
-        
-        function itIs = isPlaneStress(obj)            
-            itIs = strcmp(obj.tensor.getElasticityCase,'planeStress');
-        end
-        
         
         function t2vc = getTensor2VoigtConverter(obj)
             t2vc = obj.t2vConverter;
@@ -86,10 +77,5 @@ classdef Tensor2VoigtConverterFactory < handle
         
     end
     
-    methods (Access = private, Static)
-        
-        function showError()
-            error('Not admitted object to make it Voigt')
-        end
-    end
+  
 end

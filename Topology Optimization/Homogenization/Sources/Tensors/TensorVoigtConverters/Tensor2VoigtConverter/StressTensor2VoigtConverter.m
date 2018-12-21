@@ -18,13 +18,9 @@ classdef StressTensor2VoigtConverter < SecondOrderTensor2VoigtConverter
         end
         
         function selectVoigtTensorClass(obj)
-            if obj.isPlaneStress()
-                obj.voigtTensor = StressPlaneStressVoigtTensor;
-            elseif obj.is3D()
                 obj.voigtTensor = Stress3DVoigtTensor;
-            end
-        end
-        end
+        end        
+    end
         
 
     

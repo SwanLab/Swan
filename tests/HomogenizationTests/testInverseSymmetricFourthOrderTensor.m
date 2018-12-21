@@ -2,7 +2,7 @@ classdef testInverseSymmetricFourthOrderTensor < testInverseFourthOrderTensor
     
     methods (Access = protected)
         function createRandomFourthOrderTensor(obj)
-            obj.tensor = SymmetricFourthOrder3DTensor;
+            obj.tensor = Stiffness3DTensor;
             obj.tensor.createRandomTensor();
         end
     end

@@ -23,6 +23,10 @@ classdef StrainVoigt2TensorConverter < SecondOrderVoigt2TensorConverter
                 error('VoigtFactor should be between 1 and 6')
             end            
         end
+        
+        function selectTensorClass(obj)
+            obj.tensor = Strain3DTensor();
+        end
     end
     
 end

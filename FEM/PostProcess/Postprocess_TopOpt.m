@@ -30,6 +30,10 @@ classdef Postprocess_TopOpt < Postprocess
             null_elements=any(ismember(mesh.connec,null_nodes)');
             mesh.connec(null_elements,:)=[];
         end
+        
+        function r = getResFile(obj)
+            r = obj.res_file;
+        end
     end
     
     methods (Access = protected)

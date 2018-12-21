@@ -42,7 +42,7 @@ classdef testAnisotropicPlaneStressbyEnergyEquivalence < testShowingError
         end
         
         function createChTensor(obj)
-            obj.Ch = SymmetricFourthOrder3DTensor();
+            obj.Ch = Stiffness3DTensor;
             obj.Ch.createRandomTensor();
         end
         

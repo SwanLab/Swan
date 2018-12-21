@@ -37,7 +37,7 @@ classdef testComplianceTensorThrougtVoigtComparingEnergy < testShowingError
         end
         
         function generateFourthOrderTensor(obj)
-            obj.stiffTensor = SymmetricFourthOrder3DTensor;
+            obj.stiffTensor = Stiffness3DTensor;
             obj.stiffTensor.createRandomTensor();
         end
         

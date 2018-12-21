@@ -25,7 +25,7 @@ classdef PlaneStressTransformerFactory < handle
             t = obj.tensor;
             ps = [];
             if obj.isVoigt()
-                if obj.isFourthOrder()
+                if obj.isStiffnessTensor()
                     if obj.isInvertible()
                         ps = PST4VoigtFourthOrderTensorNumerically(t.getValue());
                     else
@@ -63,12 +63,12 @@ classdef PlaneStressTransformerFactory < handle
             itIs = strcmp(obj.tensor.getRepresentation(),'tensor');
         end
         
-        function ItIs = isFourthOrder(obj)
-            ItIs = strcmp(obj.tensor.getOrder(),'fourth');
-        end
-        
         function ItIs = isSecondOrder(obj)
             ItIs = strcmp(obj.tensor.getOrder(),'second');
+        end
+        
+         function itIs = isStiffnessTensor(obj)
+            itIs = strcmp(obj.tensor.getFieldName,'stiffness');
         end
         
         function itIs = isInvertible(obj)
