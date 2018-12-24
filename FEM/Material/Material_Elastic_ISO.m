@@ -14,8 +14,10 @@ classdef Material_Elastic_ISO < Material_Elastic
         function obj = Material_Elastic_ISO(nelem)
             obj@Material_Elastic(nelem);
             
-            obj.kappa  = .9107;
-            obj.mu     = .3446;
+            
+             obj.kappa  = .9107;
+             obj.mu     = .3446;
+            
             obj.lambda = obj.kappa-obj.mu;
 %             obj.nelem = nelem;
             %             epoiss = 0.3;

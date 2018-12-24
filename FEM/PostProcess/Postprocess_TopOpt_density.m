@@ -5,7 +5,7 @@ classdef Postprocess_TopOpt_density < Postprocess_TopOpt
         ComponentName = 'Density'        
     end
     
-    methods  (Access = protected)        
+    methods  (Access = public)        
         
         function PrintResults(obj)
             obj.PrintScalar(obj.FieldName,obj.ComponentName,'Elastic Problem','Scalar','OnNodes','',obj.Field,obj.Iter);

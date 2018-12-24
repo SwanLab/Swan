@@ -1,42 +1,82 @@
 classdef Postprocess_PhysicalProblem < Postprocess
     
-    properties %(GetAccess = protected, SetAccess = private)
-        stress_name = 'Stress';
-        stress_component = 'S';
-        strain_name = 'Strain';
-        strain_component = 'E';
-        displ_name = 'Displacements';
-        displ_component = 'U';
-        velocity_name = 'Velocity';
-        velocity_component = 'U'
-        pressure_name = 'Pressure';
-        pressure_component = 'p';
-    end
+
     
     methods (Access = public)
-        % Export Results
-        function Print_results(obj,results,ifield,istep)
+      
+        
+        function  print(obj,physical_problem,file_name,physicalVars)
+            results.physicalVars = physicalVars;
+            path = pwd;
+            dir = fullfile(path,'Output',file_name);
+            if ~exist(dir,'dir')
+                mkdir(dir)
+            end
+            obj.setBasicParams(physical_problem,file_name,results)
+            obj.PrintMeshFile();
+            obj.PrintResFile(results)
+        end
+        
+        
+    end
+    
+    methods (Access = protected)
+        function setBasicParams(obj,physical_problem,file_name,results)
+            obj.nfields = physical_problem.element.nfields;
+            for ifield = 1:obj.nfields
+                obj.coordinates{ifield} = physical_problem.element.interpolation_u(ifield).xpoints;
+                obj.connectivities{ifield} = physical_problem.element.interpolation_u(ifield).T;
+                obj.nnode(ifield) = physical_problem.element(ifield).nnode;
+                obj.npnod(ifield) = physical_problem.element.interpolation_u(ifield).npnod;  % Number of nodes
+            end
+            obj.gtype = physical_problem.mesh.geometryType;
+            obj.ndim = physical_problem.element.interpolation_u.ndime;
+            obj.pdim = physical_problem.mesh.pdim;
+            obj.ngaus = physical_problem.element(1).quadrature.ngaus;
+            obj.posgp = physical_problem.element(1).quadrature.posgp';
+            obj.ptype = physical_problem.mesh.ptype;
+            
+            switch  obj.gtype % GiD type
+                case 'TRIANGLE'
+                    obj.etype = 'Triangle';
+                case 'QUAD'
+                    obj.etype = 'Quadrilateral';
+                case 'TETRAHEDRA'
+                    obj.etype = 'Tetrahedra';
+                case 'HEXAHEDRA'
+                    obj.etype = 'Hexahedra';
+            end
+            obj.nelem = physical_problem.element.nelem; % Number of elements
+            
+            obj.gauss_points_name = 'Guass up?';
+            
+            obj.file_name = file_name;
             switch obj.ptype
                 case 'ELASTIC'
-                    obj.Print_results_mechanics(results,1);
+                    obj.nsteps = 1;
                 case 'Stokes'
-                    obj.Print_results_fluids(results,ifield,istep);
+                    obj.nsteps = length(results.physicalVars.u(1,:));
             end
         end
+    end
+    
+    methods (Access = private)
         
-        function Print_results_mechanics(obj,results,istep)
-            obj.PrintVector(obj.displ_name,obj.displ_component,'Elastic Problem','Vector','OnNodes','',results.physicalVars.d_u,istep);
-            obj.PrintTensor(obj.stress_name,obj.stress_component,'Elastic Problem','Vector','OnGaussPoints',obj.gauss_points_name,results.physicalVars.stress,istep);
-            obj.PrintTensor(obj.strain_name,obj.strain_component,'Elastic Problem','Vector','OnGaussPoints',obj.gauss_points_name,results.physicalVars.strain,istep);
+        function PrintResFile(obj,results)
+            iD = obj.fid_res;
+            fN = obj.file_name;
+            nS = obj.nsteps;
+            gD = obj.gauss_points_name;
+            eT = obj.etype;
+            pT = obj.ptype;
+            nG = obj.ngaus;
+            nD = obj.ndim;
+            pG = obj.posgp;
+            rS = results;
+            ElasticityResultsPrinter(iD,fN,nS,gD,eT,pT,nG,nD,pG,rS);
         end
         
-        function Print_results_fluids(obj,results,ifield,istep)
-            if ifield == 1
-                obj.PrintVector(obj.velocity_name,obj.velocity_component,'Stokes problem','Vector','OnNodes','',results.physicalVars.u(:,istep),istep);
-            else
-                obj.PrintScalar(obj.pressure_name,obj.pressure_component,'Stokes problem','Scalar','OnNodes','',results.physicalVars.p(:,istep),istep);
-            end
-        end
+        
     end
 end
 

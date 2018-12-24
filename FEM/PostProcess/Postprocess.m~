@@ -22,13 +22,11 @@ classdef Postprocess < handle
         nsteps
         fid_mesh
         fid_res
-        
-         ngaus
-        posgp
     end
     
     properties (Access = private)
- 
+        ngaus
+        posgp
     end
     
     methods (Access = private)
@@ -37,7 +35,43 @@ classdef Postprocess < handle
     end
     
     methods (Access = protected)
-
+        function setBasicParams(obj,physical_problem,file_name,results)
+            obj.nfields = physical_problem.element.nfields;
+            for ifield = 1:obj.nfields
+                obj.coordinates{ifield} = physical_problem.element.interpolation_u(ifield).xpoints;
+                obj.connectivities{ifield} = physical_problem.element.interpolation_u(ifield).T;
+                obj.nnode(ifield) = physical_problem.element(ifield).nnode;
+                obj.npnod(ifield) = physical_problem.element.interpolation_u(ifield).npnod;  % Number of nodes
+            end
+            obj.gtype = physical_problem.mesh.geometryType;
+            obj.ndim = physical_problem.element.interpolation_u.ndime;
+            obj.pdim = physical_problem.mesh.pdim;
+            obj.ngaus = physical_problem.element(1).quadrature.ngaus;
+            obj.posgp = physical_problem.element(1).quadrature.posgp';
+            obj.ptype = physical_problem.mesh.ptype;
+            
+            switch  obj.gtype % GiD type
+                case 'TRIANGLE'
+                    obj.etype = 'Triangle';
+                case 'QUAD'
+                    obj.etype = 'Quadrilateral';
+                case 'TETRAHEDRA'
+                    obj.etype = 'Tetrahedra';
+                case 'HEXAHEDRA'
+                    obj.etype = 'Hexahedra';
+            end
+            obj.nelem = physical_problem.element.nelem; % Number of elements
+            
+            obj.gauss_points_name = 'Guass up?';
+            
+            obj.file_name = file_name;
+            switch obj.ptype
+                case 'ELASTIC'
+                    obj.nsteps = 1;
+                case 'Stokes'
+                    obj.nsteps = length(results.physicalVars.u(1,:));
+            end
+        end
         
         function PrintVector(obj,nameres,indexName,problemType,result_type,result_location,location_name,results,istep)
             VectorPrinter(obj.fid_res,indexName, results, nameres,istep,result_location);
@@ -77,7 +111,20 @@ classdef Postprocess < handle
                 fprintf(obj.fid_res,'\n');
             end
             fprintf(obj.fid_res,'End GaussPoints\n');
-        end         
+        end
+         
+        function PrintResFile(obj,results)
+            iD = obj.fid_res;
+            fN = obj.fileName;
+            nS = obj.nsteps;
+            gD = obj.gauss_points_name;
+            eT = obj.etype;
+            nG = obj.ngaus;
+            nD = obj.ndim;
+            pG = obj.posgp;
+            rS = obj
+            ResultsPrinter(iD,fN,nS,gD,eT,nG,nD,pG);
+        end
     end
     
      
@@ -91,7 +138,17 @@ classdef Postprocess < handle
     end
     
     methods (Access = public)
- 
+        function  print(obj,physical_problem,file_name,physicalVars)
+            results.physicalVars = physicalVars;
+            path = pwd;
+            dir = fullfile(path,'Output',file_name);
+            if ~exist(dir,'dir')
+                mkdir(dir)
+            end
+            obj.setBasicParams(physical_problem,file_name,results)
+            obj.PrintMeshFile();
+            obj.PrintResFile(results)
+        end
         
         function print_slave(obj,physical_problem,res_file,physicalVars)
             results.physicalVars = physicalVars;
