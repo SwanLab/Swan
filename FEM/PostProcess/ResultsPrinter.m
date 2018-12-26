@@ -12,12 +12,13 @@ classdef ResultsPrinter < handle
         ndim
         posgp
         results
+        istep
     end
     
    
     methods (Access = protected)
         
-        function init(obj,fileID,testName,nsteps,gaussDescriptor,etype,ptype,ngaus,ndim,posgp,resultsValues)
+        function init(obj,fileID,testName,nsteps,gaussDescriptor,etype,ptype,ngaus,ndim,posgp,resultsValues,iter)
             obj.fileID   = fileID;
             obj.testName = testName;
             obj.nsteps   = nsteps;
@@ -28,18 +29,17 @@ classdef ResultsPrinter < handle
             obj.ndim     = ndim;
             obj.posgp    = posgp;
             obj.results  = resultsValues;
+            obj.istep    = iter;
         end
         
         function print(obj)
-            for istep = 1:obj.nsteps
-                obj.createFileName(istep);
-                obj.openFile();
-                obj.printHeader();
-                obj.printFemMatOoHeader();
-                obj.printGaussPointsHeader();
-                obj.printResults(1,istep)
-                obj.closeFile();
-            end
+            obj.createFileName();
+            obj.openFile();
+            obj.printInitialLine();
+            obj.printFemMatOoHeader();
+            obj.printHeader();
+            obj.printResults();
+            obj.closeFile();
         end
         
     end
@@ -50,17 +50,19 @@ classdef ResultsPrinter < handle
             fclose(obj.fileID);
         end
         
-        function createFileName(obj,iS)
-            obj.fileName = fullfile('Output',obj.testName,strcat(obj.fileName,'_','u','_',num2str(iS),'.flavia.msh'));
+        function createFileName(obj)
+            iS = obj.istep;
+            obj.fileName = fullfile('Output',obj.testName,strcat(obj.testName,num2str(iS),'.flavia.res'));
         end
         
         function openFile(obj)
             obj.fileID = fopen(obj.fileName,'w');            
         end
         
-       function printHeader(obj)            
+       function printInitialLine(obj)            
             fprintf(obj.fileID,'GiD Post Results File 1.0\n\n');
        end
+       
         
        function printFemMatOoHeader(obj)
            iD = obj.fileID;
@@ -69,26 +71,12 @@ classdef ResultsPrinter < handle
            fprintf(iD,'####################################################\n');
            fprintf(iD,'\n');
        end
-       
-       function printGaussPointsHeader(obj)
-           iD = obj.fileID;
-           fprintf(iD,'GaussPoints "%s" Elemtype %s\n',obj.gaussDescriptor,obj.etype);
-           fprintf(iD,'Number of Gauss Points: %.0f\n',obj.ngaus);
-           fprintf(iD,'Nodes not included\n');
-           fprintf(iD,'Natural Coordinates: given\n');
-           for igaus = 1:obj.ngaus
-               for idime = 1:obj.ndim
-                   fprintf(iD,'%12.5d ',obj.posgp(igaus,idime));
-               end
-               fprintf(iD,'\n');
-           end
-           fprintf(iD,'End GaussPoints\n');
-       end
-        
+               
     end
     
     methods (Abstract, Access = protected)
-       printResults(obj)        
+       printResults(obj) 
+       printHeader(obj)
     end
     
 end

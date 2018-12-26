@@ -16,6 +16,7 @@ classdef HomogenizationTests < testRunner
         function loadTests(obj)
             obj.tests = {...                
                %'test2DSeqLaminateInVoigtWithFormuleOfAllaireWebPAgeExercise'  
+              'testHorizontalLaminate';
                'testCommutingHomogPlaneStressWithZeroPoisson';
                'testNotCommutingHomogPlaneStress'; 
                'testCommutingVoigtHomog';
@@ -41,7 +42,6 @@ classdef HomogenizationTests < testRunner
                 'testHorizontalTensorRotatedVsRank2';
                 'testHorizontalTensorRotatedVsHVP';                  
                 'TestGeneralTwoRankSequentialLaminate';               
-                'testHorizontalLaminate';
                 'testDiagonalLaminate';
                 'testNumericalConvergenceOfNumberOfLaminates';
                 };

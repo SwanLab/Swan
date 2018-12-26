@@ -13,12 +13,13 @@ classdef MeshPrinter < handle
         ndim
         etype
         fileName
+        iter
     end
     
     methods (Access = public)
         
-        function obj = MeshPrinter(nsteps,testName,npnod,pdim,nnode,coordinates,connectivities,nelem,ndim,etype)
-            obj.init(nsteps,testName,npnod,pdim,nnode,coordinates,connectivities,nelem,ndim,etype)
+        function obj = MeshPrinter(nsteps,testName,npnod,pdim,nnode,coordinates,connectivities,nelem,ndim,etype,iter)
+            obj.init(nsteps,testName,npnod,pdim,nnode,coordinates,connectivities,nelem,ndim,etype,iter)
             obj.print()
         end
     end
@@ -26,7 +27,7 @@ classdef MeshPrinter < handle
     methods (Access = private)
         
         
-        function init(obj,nsteps,testName,npnod,pdim,nnode,coordinates,connectivities,nelem,ndim,etype)
+        function init(obj,nsteps,testName,npnod,pdim,nnode,coordinates,connectivities,nelem,ndim,etype,iter)
             obj.nsteps    = nsteps;
             obj.testName  = testName;
             obj.npnod     = npnod;
@@ -37,22 +38,22 @@ classdef MeshPrinter < handle
             obj.nelem = nelem;
             obj.ndim = ndim;
             obj.etype = etype;
+            obj.iter  = iter;
         end
         
         function print(obj)
-            for istep = 1:obj.nsteps
-                obj.createFileName(istep);
-                obj.openFile();
-                obj.printFemMatOoHeader();
-                obj.printHeader();
-                obj.printCoordinates();
-                obj.printConnectivities();
-                obj.closeFile();
-            end
+            obj.createFileName();
+            obj.openFile();
+            obj.printFemMatOoHeader();
+            obj.printHeader();
+            obj.printCoordinates();
+            obj.printConnectivities();
+            obj.closeFile();
         end
         
-        function createFileName(obj,iS)
-            obj.fileName = fullfile('Output',obj.testName,strcat(obj.fileName,'_','u','_',num2str(iS),'.flavia.msh'));
+        function createFileName(obj)
+            iS = obj.iter;
+            obj.fileName = fullfile('Output',obj.testName,strcat(obj.testName,num2str(iS),'.flavia.msh'));
         end
         
         function openFile(obj)

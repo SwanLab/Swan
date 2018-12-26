@@ -1,5 +1,4 @@
 classdef Postprocess_TopOpt < Postprocess
-    
     properties (SetObservable,AbortSet)
         res_file
     end
@@ -12,19 +11,19 @@ classdef Postprocess_TopOpt < Postprocess
     methods (Access = public)        
 
         
-        function  print(obj,mesh,field,iter,outName)
+        function  print(obj,mesh,results)
             path = pwd;
-            obj.Iter = iter;
-            obj.Field = field;
-            obj.file_name = outName;
+            obj.file_name = results.case_file;
             dir = fullfile(path,'Output',obj.file_name);
-
+            obj.obtainIter(results);
+            obj.getField(results);
             if 7~=exist(dir,'dir')
                 mkdir(dir)
             end
             obj.setBasicParams(mesh)
-            obj.PrintMeshFile(iter)
-            obj.PrintResFile(iter)
+            iter = ;
+            obj.PrintMeshFile()
+            obj.PrintResFile(results)
         end
         function mesh=setNewMesh(obj,mesh,results)
            % null_nodes=find(results.design_variable<0.2);  
@@ -73,9 +72,11 @@ classdef Postprocess_TopOpt < Postprocess
             obj.nsteps = 1;
         end
         
-        function PrintResFile(obj,iter)
-            obj.printResults()
-            FileName = fullfile('Output',obj.file_name,strcat(obj.file_name,'_',num2str(iter),'.flavia.res'));
+
+        
+        function PrintResFile(obj,results)
+            obj.printResults(results)
+            FileName = fullfile('Output',obj.file_name,strcat(obj.file_name,'_',num2str(results.iter),'.flavia.res'));
             obj.res_file = FileName;
         end
     end
@@ -96,8 +97,6 @@ classdef Postprocess_TopOpt < Postprocess
                     obj = Postprocess_TopOpt_density;
             end
         end
-        
-        
     end
     
     methods (Access = protected, Abstract)

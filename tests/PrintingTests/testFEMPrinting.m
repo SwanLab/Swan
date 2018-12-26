@@ -3,6 +3,7 @@ classdef testFEMPrinting < ...
     
     properties (Access = protected)
         testName = 'test2d_quad';  
+        postProcessor = 'Elasticity';
         filesHaveChanged
         fileOutputName
     end
@@ -41,8 +42,8 @@ classdef testFEMPrinting < ...
         
         function hasChanged = compareFile(obj,extension)
             out   = obj.fileOutputName;
-            name1 = ['tests/PrintingTests/PrintedFiles/testFemPrinting_u_1.flavia',extension];
-            name2 = ['Output/',out,'/',out,'_u_1.flavia',extension];
+            name1 = ['tests/PrintingTests/PrintedFiles/',out,'_u_1.flavia',extension];
+            name2 = ['Output/',out,'/',out,'1.flavia',extension];
             command = ['diff ', name1, ' ', name2];
             [hasChanged,~] = system(command);
         end        
@@ -51,7 +52,7 @@ classdef testFEMPrinting < ...
         function print(obj)
             var     = obj.fem.variables;
             outName = obj.fileOutputName;
-            postprocess = Postprocess_PhysicalProblem;
+            postprocess = Postprocess.create(obj.postProcessor);
             postprocess.print(obj.fem,outName,var);
         end
         

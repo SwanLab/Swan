@@ -1,7 +1,5 @@
 classdef Postprocess_PhysicalProblem < Postprocess
     
-
-    
     methods (Access = public)
       
         
@@ -13,8 +11,9 @@ classdef Postprocess_PhysicalProblem < Postprocess
                 mkdir(dir)
             end
             obj.setBasicParams(physical_problem,file_name,results)
-            obj.PrintMeshFile();
-            obj.PrintResFile(results)
+            iter = 0;
+            obj.PrintMeshFile(iter);
+            obj.PrintResFile(results,iter)
         end
         
         
@@ -62,7 +61,7 @@ classdef Postprocess_PhysicalProblem < Postprocess
     
     methods (Access = private)
         
-        function PrintResFile(obj,results)
+        function PrintResFile(obj,results,iter)
             iD = obj.fid_res;
             fN = obj.file_name;
             nS = obj.nsteps;
@@ -73,7 +72,8 @@ classdef Postprocess_PhysicalProblem < Postprocess
             nD = obj.ndim;
             pG = obj.posgp;
             rS = results;
-            ElasticityResultsPrinter(iD,fN,nS,gD,eT,pT,nG,nD,pG,rS);
+            iT = iter;
+            ElasticityResultsPrinter(iD,fN,nS,gD,eT,pT,nG,nD,pG,rS,iT);
         end
         
         

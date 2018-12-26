@@ -1,0 +1,42 @@
+classdef testTopOptDensityPrinting < testNotShowingError ...
+                                  & testTopOptComputation ...
+                                  & testPrintingDescriptor
+    
+    properties (Access = protected)
+        testName = 'test_cantilever';  
+        filesHaveChanged
+        fileOutputName
+        iter
+    end
+    
+    methods (Access = public)
+        
+        function obj = testTopOptDensityPrinting()
+            obj.init()
+            obj.print()
+            obj.compareFiles()
+        end
+    end
+    
+
+    methods (Access = private)
+        
+        function init(obj)
+            obj.fileOutputName = ['testTopOptDensityPrinting'];
+            obj.iter = 0;
+        end
+        
+        
+        function print(obj)
+            Field     = obj.topOpt.x;
+            outName   = obj.fileOutputName;
+            mesh      = obj.topOpt.mesh;
+            it        = obj.iter;
+            postprocess = Postprocess_TopOpt.Create(optimizer);
+            postprocess.print(mesh,Field,it,outName);
+        end
+        
+    end
+    
+end
+

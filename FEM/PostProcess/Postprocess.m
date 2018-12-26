@@ -51,11 +51,11 @@ classdef Postprocess < handle
            ScalarPrinter(obj.fid_res,results,nameres,istep,result_location);
         end
         
-        function PrintMeshFile(obj)
+        function PrintMeshFile(obj,iter)
             coord = obj.coordinates{1};
             connec = obj.connectivities{1};
             MeshPrinter(obj.nsteps,obj.file_name,...
-                obj.npnod,obj.pdim,obj.nnode,coord,connec,obj.nelem,obj.ndim,obj.etype);
+                obj.npnod,obj.pdim,obj.nnode,coord,connec,obj.nelem,obj.ndim,obj.etype,iter);
         end
 
         
@@ -100,5 +100,14 @@ classdef Postprocess < handle
             obj.Print_results(results,1,1)
             fclose(obj.fid_res);
         end
+    end
+    
+    methods (Access = public, Static)
+        
+        function postProcessor = create(Postprocess)
+            factory  = PostprocessFactory();
+            postProcessor = factory.create(Postprocess);
+        end
+        
     end
 end

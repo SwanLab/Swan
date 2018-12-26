@@ -15,39 +15,44 @@ classdef ElasticityResultsPrinter < ResultsPrinter
     
     methods (Access = public)
         
-        function obj = ElasticityResultsPrinter(fileID,fileName,nsteps,gaussDescriptor,etype,ptype,ngaus,ndim,posgp,results)
-            obj.init(fileID,fileName,nsteps,gaussDescriptor,etype,ptype,ngaus,ndim,posgp,results)
+        function obj = ElasticityResultsPrinter(fileID,fileName,nsteps,gaussDescriptor,etype,ptype,ngaus,ndim,posgp,results,iter)
+            obj.init(fileID,fileName,nsteps,gaussDescriptor,etype,ptype,ngaus,ndim,posgp,results,iter)
             obj.print()
         end
     end
     
     methods (Access = protected)
         
-        function printResults(obj,ifield,istep)
-            switch obj.ptype
-                case 'ELASTIC'
-                    obj.Print_results_mechanics(obj.results,1);
-                case 'Stokes'
-                    obj.Print_results_fluids(obj.results,ifield,istep);
-            end
+        function printHeader(obj)
+            obj.printGaussPointsHeader()
         end
         
-        function Print_results_mechanics(obj,results,istep)
+        function printResults(obj)
+            iS = obj.istep;
             gaussDescriptor = 'Guass up?';
-            VectorPrinter(obj.fileID,obj.displ_component, results.physicalVars.d_u, obj.displ_name,istep,'OnNodes');
-            TensorPrinter(obj.fileID,obj.stress_component, results.physicalVars.stress, obj.stress_name,istep,'OnGaussPoints',gaussDescriptor);
-            TensorPrinter(obj.fileID,obj.strain_component, results.physicalVars.strain, obj.strain_name,istep,'OnGaussPoints',gaussDescriptor);
-            %obj.PrintVector(obj.displ_name,obj.displ_component,'Elastic Problem','Vector','OnNodes','',results.physicalVars.d_u,istep);
-           % obj.PrintTensor(obj.stress_name,obj.stress_component,'Elastic Problem','Vector','OnGaussPoints',obj.gauss_points_name,results.physicalVars.stress,istep);
-            %obj.PrintTensor(obj.strain_name,obj.strain_component,'Elastic Problem','Vector','OnGaussPoints',obj.gauss_points_name,results.physicalVars.strain,istep);
+            res = obj.results;
+            VectorPrinter(obj.fileID,obj.displ_component,  res.physicalVars.d_u, obj.displ_name,iS,'OnNodes');
+            TensorPrinter(obj.fileID,obj.stress_component, res.physicalVars.stress, obj.stress_name,iS,'OnGaussPoints',gaussDescriptor);
+            TensorPrinter(obj.fileID,obj.strain_component, res.physicalVars.strain, obj.strain_name,iS,'OnGaussPoints',gaussDescriptor);
         end
         
-        function Print_results_fluids(obj,results,ifield,istep)
-            if ifield == 1
-                obj.PrintVector(obj.velocity_name,obj.velocity_component,'Stokes problem','Vector','OnNodes','',results.physicalVars.u(:,istep),istep);
-            else
-                obj.PrintScalar(obj.pressure_name,obj.pressure_component,'Stokes problem','Scalar','OnNodes','',results.physicalVars.p(:,istep),istep);
+    end
+    
+    methods (Access = private)
+        
+        function printGaussPointsHeader(obj)
+            iD = obj.fileID;
+            fprintf(iD,'GaussPoints "%s" Elemtype %s\n',obj.gaussDescriptor,obj.etype);
+            fprintf(iD,'Number of Gauss Points: %.0f\n',obj.ngaus);
+            fprintf(iD,'Nodes not included\n');
+            fprintf(iD,'Natural Coordinates: given\n');
+            for igaus = 1:obj.ngaus
+                for idime = 1:obj.ndim
+                    fprintf(iD,'%12.5d ',obj.posgp(igaus,idime));
+                end
+                fprintf(iD,'\n');
             end
+            fprintf(iD,'End GaussPoints\n');
         end
         
     end

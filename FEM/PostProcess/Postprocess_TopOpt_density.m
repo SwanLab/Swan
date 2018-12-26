@@ -2,20 +2,24 @@ classdef Postprocess_TopOpt_density < Postprocess_TopOpt
     
     properties (Access = private)
         FieldName = 'Density';
-        ComponentName = 'Density'        
     end
-    
-    methods  (Access = public)        
+            
+   methods (Access = protected)
         
-        function PrintResults(obj)
-            obj.PrintScalar(obj.FieldName,obj.ComponentName,'Elastic Problem','Scalar','OnNodes','',obj.Field,obj.Iter);
+        function printResults(obj)
+            iD = obj.fid_res;
+            fN = obj.file_name;
+            nS = obj.nsteps;
+            gD = obj.gauss_points_name;
+            eT = obj.etype;
+            pT = obj.ptype;
+            nG = obj.ngaus;
+            nD = obj.ndim;
+            pG = obj.posgp;
+            rS = obj.Field;
+            iT = obj.Iter;
+            DensityResultsPrinter(iD,fN,nS,gD,eT,pT,nG,nD,pG,rS,iT);
         end
-        
-    end
+   end
     
-    methods (Access = public)
-        function getField(obj,results)
-           obj.Field = results.density; 
-        end
-    end
 end

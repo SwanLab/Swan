@@ -1,0 +1,24 @@
+classdef PostprocessFactory < handle
+    
+    
+      
+    
+    methods (Access = public)
+        
+        function obj = PostprocessFactory()
+        end        
+
+        function p = create(Postprocess)
+            
+            switch Postprocess
+                case 'NodalDensity'
+                    p = Postprocess_TopOpt_density();                    
+                case 'NodalLevelSet'
+                    p = Postprocess_TopOpt_levelSet();
+                case '
+            end
+            
+        end
+    end
+    
+end

@@ -30,6 +30,8 @@ classdef testTopOptComputation < handle
             obj.topOpt = topOptSolver;
         end
         
+        
+        
     end
     
     methods (Access = private)

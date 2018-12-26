@@ -1,3 +1,4 @@
+PrintingTests;
 UnfittedIntegrationTests;
 FemTests;
 TopOptTests;

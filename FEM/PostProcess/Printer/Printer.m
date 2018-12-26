@@ -15,9 +15,8 @@ classdef Printer < handle
     methods (Access = public)
         
         function print(obj,variable,outname,iter)
-            res = obj.createResultsInputStructure(variable,outname,iter);
             m = obj.mesh;
-            obj.PostProcess.print(m,res)
+            obj.PostProcess.print(m,variable,iter,outname)
             obj.resultsFileName = obj.PostProcess.getResFile();
         end
         
@@ -39,7 +38,6 @@ classdef Printer < handle
     
     methods (Abstract,Access =  protected, Static)
      createPostProcess(obj)        
-     createResultsInputStructure(obj,dens,outname,iter)
     end
     
 end

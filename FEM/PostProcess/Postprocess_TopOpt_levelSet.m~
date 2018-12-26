@@ -4,9 +4,10 @@ classdef Postprocess_TopOpt_levelSet < Postprocess_TopOpt
         levelSet_name_component = 'LS';
     end
     
-    methods (Access = protected)
+    methods (Access = public)        
         
-        function printResults(obj)
+        function PrintResults(obj)
+            obj.PrintScalar(obj.levelSet_name,obj.levelSet_name_component,'Elastic Problem','Scalar','OnNodes','',obj.Field,obj.Iter);
             iD = obj.fid_res;
             fN = obj.file_name;
             nS = obj.nsteps;
@@ -16,10 +17,16 @@ classdef Postprocess_TopOpt_levelSet < Postprocess_TopOpt
             nG = obj.ngaus;
             nD = obj.ndim;
             pG = obj.posgp;
-            rS = obj.Field;
-            iT = obj.Iter;
-            LevelSetResultsPrinter(iD,fN,nS,gD,eT,pT,nG,nD,pG,rS,iT);
+            rS = results;
+            DensityResultsPrinter(iD,fN,nS,gD,eT,pT,nG,nD,pG,rS);
         end
+        
+        
     end
     
+    methods (Access = public)
+        function getField(obj,results)
+           obj.Field = results.design_variable; 
+        end
+    end
 end

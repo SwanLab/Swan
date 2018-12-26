@@ -20,15 +20,6 @@ classdef LevelSetPrinter < Printer
 
     end
     
-    methods (Access = protected, Static)
-        
-        function results = createResultsInputStructure(ls,outname)
-            results.iter = 0;
-            results.case_file = outname;
-            results.design_variable = ls;
-        end
-        
-    end
     
 end
 
