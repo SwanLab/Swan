@@ -1,7 +1,6 @@
 classdef MeshPrinter < handle
     
     properties (Access = private)
-        nsteps
         testName
         fileID
         npnod
@@ -18,30 +17,11 @@ classdef MeshPrinter < handle
     
     methods (Access = public)
         
-        function obj = MeshPrinter(nsteps,testName,npnod,pdim,nnode,coordinates,connectivities,nelem,ndim,etype,iter)
-            obj.init(nsteps,testName,npnod,pdim,nnode,coordinates,connectivities,nelem,ndim,etype,iter)
-            obj.print()
-        end
-    end
-    
-    methods (Access = private)
-        
-        
-        function init(obj,nsteps,testName,npnod,pdim,nnode,coordinates,connectivities,nelem,ndim,etype,iter)
-            obj.nsteps    = nsteps;
-            obj.testName  = testName;
-            obj.npnod     = npnod;
-            obj.pdim      = pdim;
-            obj.nnode     = nnode;
-            obj.coordinates = coordinates;
-            obj.connectivities = connectivities;
-            obj.nelem = nelem;
-            obj.ndim = ndim;
-            obj.etype = etype;
-            obj.iter  = iter;
+        function obj = MeshPrinter()
         end
         
-        function print(obj)
+        function print(obj,d)
+            obj.init(d);
             obj.createFileName();
             obj.openFile();
             obj.printFemMatOoHeader();
@@ -51,6 +31,19 @@ classdef MeshPrinter < handle
             obj.closeFile();
         end
         
+    end
+    
+    methods (Access = private)
+                
+        function init(obj,d)
+            fieldsNames = fieldnames(d);
+            for ifield = 1:length(fieldsNames)
+                fieldName = fieldsNames{ifield};
+                fieldValue = d.(fieldName);
+                obj.(fieldsNames{ifield}) = fieldValue;
+            end
+        end
+              
         function createFileName(obj)
             iS = obj.iter;
             obj.fileName = fullfile('Output',obj.testName,strcat(obj.testName,num2str(iS),'.flavia.msh'));

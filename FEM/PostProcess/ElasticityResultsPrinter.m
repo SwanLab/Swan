@@ -15,9 +15,7 @@ classdef ElasticityResultsPrinter < ResultsPrinter
     
     methods (Access = public)
         
-        function obj = ElasticityResultsPrinter(fileID,fileName,nsteps,gaussDescriptor,etype,ptype,ngaus,ndim,posgp,results,iter)
-            obj.init(fileID,fileName,nsteps,gaussDescriptor,etype,ptype,ngaus,ndim,posgp,results,iter)
-            obj.print()
+        function obj = ElasticityResultsPrinter()
         end
     end
     
@@ -30,10 +28,10 @@ classdef ElasticityResultsPrinter < ResultsPrinter
         function printResults(obj)
             iS = obj.istep;
             gaussDescriptor = 'Guass up?';
-            res = obj.results;
-            VectorPrinter(obj.fileID,obj.displ_component,  res.physicalVars.d_u, obj.displ_name,iS,'OnNodes');
-            TensorPrinter(obj.fileID,obj.stress_component, res.physicalVars.stress, obj.stress_name,iS,'OnGaussPoints',gaussDescriptor);
-            TensorPrinter(obj.fileID,obj.strain_component, res.physicalVars.strain, obj.strain_name,iS,'OnGaussPoints',gaussDescriptor);
+            f = obj.fields;
+            VectorPrinter(obj.fileID,obj.displ_component,  f.d_u, obj.displ_name,iS,'OnNodes');
+            TensorPrinter(obj.fileID,obj.stress_component, f.stress, obj.stress_name,iS,'OnGaussPoints',gaussDescriptor);
+            TensorPrinter(obj.fileID,obj.strain_component, f.strain, obj.strain_name,iS,'OnGaussPoints',gaussDescriptor);
         end
         
     end

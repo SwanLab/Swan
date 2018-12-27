@@ -11,28 +11,14 @@ classdef ResultsPrinter < handle
         ngaus
         ndim
         posgp
-        results
+        fields
         istep
     end
     
-   
-    methods (Access = protected)
-        
-        function init(obj,fileID,testName,nsteps,gaussDescriptor,etype,ptype,ngaus,ndim,posgp,resultsValues,iter)
-            obj.fileID   = fileID;
-            obj.testName = testName;
-            obj.nsteps   = nsteps;
-            obj.gaussDescriptor = gaussDescriptor;
-            obj.etype    = etype;
-            obj.ptype    = ptype;
-            obj.ngaus    = ngaus;
-            obj.ndim     = ndim;
-            obj.posgp    = posgp;
-            obj.results  = resultsValues;
-            obj.istep    = iter;
-        end
-        
-        function print(obj)
+    methods (Access = public)
+
+        function print(obj,d)
+            obj.init(d)
             obj.createFileName();
             obj.openFile();
             obj.printInitialLine();
@@ -40,6 +26,23 @@ classdef ResultsPrinter < handle
             obj.printHeader();
             obj.printResults();
             obj.closeFile();
+        end 
+        
+        function f = getFieldName(obj)
+            f = obj.fileName;
+        end
+        
+    end
+   
+    methods (Access = protected)
+        
+        function init(obj,d)
+            fieldsNames = fieldnames(d);
+            for ifield = 1:length(fieldsNames)
+                fieldName = fieldsNames{ifield};
+                fieldValue = d.(fieldName);
+                obj.(fieldsNames{ifield}) = fieldValue;
+            end
         end
         
     end

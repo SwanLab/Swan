@@ -4,101 +4,100 @@ classdef Postprocess < handle
     properties (Access = public)
     end
     
-    properties (Access = protected)
-               ptype
-               gauss_points_name
-              
-        nfields 
-        coordinates
-        connectivities
-        nnode
-        npnod
-        gtype
-        pdim
-        ndim
-        etype
-        nelem
-        file_name
-        nsteps
-        fid_mesh
-        fid_res
+    properties (Access = protected)                  
+        outFileName
         
-         ngaus
-        posgp
+        resultPrinter
+        meshPrinter
+        
+        mshDataBase
+        resDataBase        
     end
     
-    properties (Access = private)
+    
+     methods (Access = public)
  
+        function obj = Postprocess(Postprocess)
+            factory  = ResultsPrinterFactory();
+            obj.resultPrinter = factory.create(Postprocess);
+            obj.meshPrinter = MeshPrinter();
+        end
+               
+        function  print(obj,dataBase)
+            obj.init(dataBase);          
+            obj.createOutputDirectory();
+            obj.createResFileName();            
+            obj.printMeshFile();            
+            obj.printResFile()
+        end
+        
+        function r = getResFile(obj)
+            r = obj.resultPrinter.getResFile();
+        end
+        
     end
+   
     
     methods (Access = private)
         
-       
-    end
-    
-    methods (Access = protected)
-
-        
-        function PrintVector(obj,nameres,indexName,problemType,result_type,result_location,location_name,results,istep)
-            VectorPrinter(obj.fid_res,indexName, results, nameres,istep,result_location);
+        function init(obj,d)
+            obj.outFileName = d.outFileName;            
+            obj.mshDataBase = obj.computeDataBaseForMeshFile(d);                       
+            obj.resDataBase = obj.computeDataBaseForResFile(d); 
+        end
+                
+        function printResFile(obj)
+            d = obj.resDataBase;            
+            obj.resultPrinter.print(d);            
         end
         
-        function PrintTensor(obj,nameres,indexName,problemType,result_type,result_location,location_name,results,istep)
-           TensorPrinter(obj.fid_res, indexName, results, nameres,istep,result_location,location_name);
+       	function printMeshFile(obj)
+            d = obj.mshDataBase;
+            obj.meshPrinter.print(d);
         end
         
-        function PrintScalar(obj,nameres,indexName,problemType,result_type,result_location,location_name,results,istep)
-           ScalarPrinter(obj.fid_res,results,nameres,istep,result_location);
-        end
-        
-        function PrintMeshFile(obj,iter)
-            coord = obj.coordinates{1};
-            connec = obj.connectivities{1};
-            MeshPrinter(obj.nsteps,obj.file_name,...
-                obj.npnod,obj.pdim,obj.nnode,coord,connec,obj.nelem,obj.ndim,obj.etype);
-        end
-
-        
-        function Write_header_res_file(obj)            
-            %% File Header
-            fprintf(obj.fid_res,'GiD Post Results File 1.0\n\n');
-            obj.printTitle(obj.fid_res);
-        end
-        
-        function PrintGaussPointsHeader(obj)
-            fprintf(obj.fid_res,'GaussPoints "%s" Elemtype %s\n',obj.gauss_points_name,obj.etype);
-            fprintf(obj.fid_res,'Number of Gauss Points: %.0f\n',obj.ngaus);
-            fprintf(obj.fid_res,'Nodes not included\n');
-            fprintf(obj.fid_res,'Natural Coordinates: given\n');
-            for igaus = 1:obj.ngaus
-                for idime = 1:obj.ndim
-                    fprintf(obj.fid_res,'%12.5d ',obj.posgp(igaus,idime));
-                end
-                fprintf(obj.fid_res,'\n');
-            end
-            fprintf(obj.fid_res,'End GaussPoints\n');
-        end         
-    end
-    
-     
-    methods (Access = protected, Static)
-        function printTitle(fid)
-            fprintf(fid,'####################################################\n');
-            fprintf(fid,'################# FEM-MAT-OO v.1.0 #################\n');
-            fprintf(fid,'####################################################\n');
-            fprintf(fid,'\n');
+        function createOutputDirectory(obj)
+            path = pwd;
+            dir = fullfile(path,'Output',obj.outFileName);
+            if ~exist(dir,'dir')
+                mkdir(dir)
+            end            
         end
     end
     
-    methods (Access = public)
+     methods (Access = private, Static)
+        
+        function d = computeDataBaseForResFile(dI)
+            d.fileID = [];%dI.fid_res;
+            d.testName = dI.outFileName;
+            d.nsteps = [];
+            d.etype = dI.etype;
+            d.ptype = dI.ptype;
+            d.ngaus = [];
+            d.ndim = dI.ndim;
+            d.posgp = [];
+            d.fields = dI.fields;
+            d.istep = dI.iter;              
+            d.gaussDescriptor = 'Guass up?';
+        end
+        
+        function d = computeDataBaseForMeshFile(dI)
+            d.coordinates = dI.coordinates;
+            d.connectivities = dI.connectivities;
+            d.testName = dI.outFileName;
+            d.npnod = dI.npnod;
+            d.pdim = dI.pdim;
+            d.nnode = dI.nnode;
+            d.nelem = dI.nelem;
+            d.ndim = dI.ndim;
+            d.etype = dI.etype;
+            d.iter = dI.iter;
+        end
  
-        
-        function print_slave(obj,physical_problem,res_file,physicalVars)
-            results.physicalVars = physicalVars;
-            obj.setBasicParams(physical_problem,'',results)
-            obj.fid_res = fopen(res_file,'a');
-            obj.Print_results(results,1,1)
-            fclose(obj.fid_res);
-        end
     end
+   
+
+   
+    
+    
 end

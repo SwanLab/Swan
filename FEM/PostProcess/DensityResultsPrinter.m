@@ -6,9 +6,7 @@ classdef DensityResultsPrinter < ResultsPrinter
     
     methods (Access = public)
         
-        function obj = DensityResultsPrinter(fileID,fileName,nsteps,gaussDescriptor,etype,ptype,ngaus,ndim,posgp,results,iter)
-            obj.init(fileID,fileName,nsteps,gaussDescriptor,etype,ptype,ngaus,ndim,posgp,results,iter)
-            obj.print()
+        function obj = DensityResultsPrinter()
         end
     end
     
@@ -19,7 +17,7 @@ classdef DensityResultsPrinter < ResultsPrinter
         end
         
         function printResults(obj)
-            dens = obj.results; 
+            dens = obj.fields; 
             iS = obj.istep;
             ScalarPrinter(obj.fileID,dens, obj.fieldName,iS,'OnNodes');            
         end

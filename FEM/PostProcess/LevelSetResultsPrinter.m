@@ -7,9 +7,7 @@ classdef LevelSetResultsPrinter < ResultsPrinter
     
     methods (Access = public)
         
-        function obj = LevelSetResultsPrinter(fileID,fileName,nsteps,gaussDescriptor,etype,ptype,ngaus,ndim,posgp,results,iter)
-            obj.init(fileID,fileName,nsteps,gaussDescriptor,etype,ptype,ngaus,ndim,posgp,results,iter)
-            obj.print()
+        function obj = LevelSetResultsPrinter()
         end
     end
     
@@ -20,7 +18,7 @@ classdef LevelSetResultsPrinter < ResultsPrinter
         end
         
         function printResults(obj)
-            ls = obj.results; 
+            ls = obj.fields; 
             iS = obj.istep;
             ScalarPrinter(obj.fileID,ls,obj.fieldName,iS,'OnNodes');            
         end

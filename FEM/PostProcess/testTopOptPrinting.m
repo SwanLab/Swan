@@ -24,12 +24,39 @@ classdef testTopOptPrinting < testNotShowingError ...
         end
         
         function print(obj)
-            field     = obj.topOpt.x;
-            outName   = obj.fileOutputName;
             mesh      = obj.topOpt.mesh;
-            it        = obj.iter;
-            postprocess = Postprocess.create(obj.postProcessor);
-            postprocess.print(mesh,field,it,outName);
+            d.fields  = obj.topOpt.x;
+            d.outFileName = obj.fileOutputName;
+            d.iter    = obj.iter;
+            
+            d.coordinates = mesh.coord;
+            d.connectivities = mesh.connec;
+            d.nnode = size(mesh.connec,2);
+            d.npnod = size(mesh.coord,1);  % Number of nodes
+
+            d.gtype = mesh.geometryType;
+            d.pdim  = mesh.pdim;
+            switch d.pdim
+                case '2D'
+                    d.ndim=2;
+                case '3D'
+                    d.ndim=3;
+            end
+            d.ptype = mesh.ptype;
+            
+            switch  d.gtype %gid type
+                case 'TRIANGLE'
+                    d.etype = 'Triangle';
+                case 'QUAD'
+                    d.etype = 'Quadrilateral';
+                case 'TETRAHEDRA'
+                    d.etype = 'Tetrahedra';
+                case 'HEXAHEDRA'
+                    d.etype = 'Hexahedra';
+            end
+            d.nelem = size(mesh.connec,1); % Number of elements            
+            postprocess = Postprocess(obj.postProcessor);
+            postprocess.print(d);
         end
         
     end

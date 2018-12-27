@@ -15,6 +15,7 @@ classdef testFEMPrinting < ...
             obj.print()
             obj.compareFiles()
         end
+        
     end
     
     methods (Access = protected)
@@ -52,8 +53,38 @@ classdef testFEMPrinting < ...
         function print(obj)
             var     = obj.fem.variables;
             outName = obj.fileOutputName;
-            postprocess = Postprocess.create(obj.postProcessor);
-            postprocess.print(obj.fem,outName,var);
+            iter    = 0;
+            
+            d.nfields = 1;
+            d.coordinates = obj.fem.element.interpolation_u.xpoints;
+            d.connectivities = obj.fem.element.interpolation_u.T;
+            d.ngaus = obj.fem.element(1).quadrature.ngaus;
+            d.posgp = obj.fem.element(1).quadrature.posgp';            
+            d.nnode = obj.fem.element.nnode;
+            d.npnod = obj.fem.element.interpolation_u.npnod;  % Number of nodes
+            d.gtype = obj.fem.mesh.geometryType;
+            d.ndim  = obj.fem.element.interpolation_u.ndime;
+            d.pdim  = obj.fem.mesh.pdim;
+            d.ngaus = obj.fem.element(1).quadrature.ngaus;
+            d.posgp = obj.fem.element(1).quadrature.posgp';
+            d.ptype = obj.fem.mesh.ptype;            
+            switch  d.gtype % GiD type
+                case 'TRIANGLE'
+                    d.etype = 'Triangle';
+                case 'QUAD'
+                    d.etype = 'Quadrilateral';
+                case 'TETRAHEDRA'
+                    d.etype = 'Tetrahedra';
+                case 'HEXAHEDRA'
+                    d.etype = 'Hexahedra';
+            end
+            d.nelem    = obj.fem.element.nelem; % Number of elements
+            d.fields   = var;
+            d.iter     = iter;
+            d.outFileName  = outName;
+            
+            postprocess = Postprocess(obj.postProcessor);
+            postprocess.print(d);
         end
         
     end

@@ -21,7 +21,7 @@ classdef Optimizer < handle
             obj.case_file=settings.case_file;
             obj.target_parameters = settings.target_parameters;
             obj.constraint_case=settings.constraint_case;
-            obj.postprocess = Postprocess_TopOpt.Create(settings.optimizer);
+            obj.postprocess = Postprocess(settings.optimizer);
         end
     end
     
