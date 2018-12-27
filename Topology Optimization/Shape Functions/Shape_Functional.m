@@ -12,7 +12,7 @@ classdef Shape_Functional < handle
         function obj = Shape_Functional(settings)
             obj.filter = Filter.create(settings);
             obj.filter.setupFromGiDFile(settings.filename,settings.ptype);
-            diffReacProb = DiffReact_Problem;
+            diffReacProb = obj.createDiffReactProb(settings.ptype);
             diffReacProb.setupFromGiDFile(settings.filename);
             diffReacProb.preProcess;
             obj.Msmooth = diffReacProb.element.M;
@@ -22,5 +22,16 @@ classdef Shape_Functional < handle
     
     methods (Abstract, Access = public)
         computeCostAndGradient(obj, x)
+    end
+    
+    methods (Static, Access = private)
+        function diffReacProb = createDiffReactProb(scale)
+            switch scale
+                case 'MACRO'
+                    diffReacProb = DiffReact_Problem;
+                case 'MICRO'
+                    diffReacProb = DiffReact_Problem_Micro;
+            end
+        end
     end
 end

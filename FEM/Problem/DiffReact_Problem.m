@@ -53,7 +53,7 @@ classdef DiffReact_Problem < FEM
         end
     end
     
-    methods (Access = private)
+    methods (Access = protected)
         function setElement(obj)
             obj.element = Element_DiffReact(obj.mesh,obj.geometry,obj.material,obj.dof);
         end

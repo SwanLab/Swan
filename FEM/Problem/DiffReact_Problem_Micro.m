@@ -11,7 +11,7 @@ classdef DiffReact_Problem_Micro < DiffReact_Problem
     end
     
     %% Public methods definition ==========================================
-    methods (Access = private)
+    methods (Access = protected)
         function setElement(obj)
             obj.element = Element_DiffReact_Micro(obj.mesh,obj.geometry,obj.material,obj.dof);
         end
