@@ -3,6 +3,7 @@ ptype = 'MACRO';
 method = 'SIMP_Adaptative';
 materialType = 'ISOTROPIC';
 initial_case = 'square';
+widthSquare = 0.4;
 cost = {'compliance';'perimeter'};
 weights = [1 0.1];
 constraint = {'volumeConstraint'};

@@ -35,6 +35,14 @@ classdef Settings
         perimeter = struct;
     end
     
+    properties %DesignVariable
+        widthSquare = 0.4;
+        widthH = 0.4;
+        widthV = 0.4;
+        levFib
+        yn
+    end
+    
     properties    %topopt access
         ptype
         pdim
@@ -50,12 +58,16 @@ classdef Settings
         line_search
         kappaMultiplier
         filter
+        unfitted_mesh_algorithm='DELAUNAY'
         TOL = struct;
         target_parameters = struct;
         nsteps
         micro = struct;
         selectiveC_Cstar
         nconstr
+        warningHoleBC
+        printIncrementalIter
+        printChangingFilter
     end
     
     methods
@@ -186,9 +198,34 @@ classdef Settings
             if exist('selectiveC_Cstar','var')
                 obj.selectiveC_Cstar = selectiveC_Cstar;
             end
-            if ~contains(filename,'test','IgnoreCase',true)
+            
+            if exist('widthH','var')
+                obj.widthH = widthH;
+            end
+            
+            if exist('widthV','var')
+                obj.widthV = widthV;
+            end
+            
+            if exist('widthSquare','var')
+                obj.widthSquare = widthSquare;
+            end
+            
+            if  ~(contains(filename,'test','IgnoreCase',true) || contains(filename,'RVE') || obj.hasToAddSpaceBecauseOfIncremental())
                 fprintf('\n')
             end
         end
+    end
+    
+    
+    methods (Access = private)
+        
+        function itHas = hasToAddSpaceBecauseOfIncremental(obj)
+            itHas = true;
+            if ~isempty(obj.printIncrementalIter)
+                itHas = obj.printIncrementalIter;
+            end
+        end
+        
     end
 end

@@ -10,7 +10,7 @@ addpath(genpath(fileparts(mfilename('fullpath'))))
 % % 4 - Compute       --> obj.computeVariables;
 % % 5 - Postprocess   --> obj.postProcess;
 % %% test
-% run('test_fem.m')
+% run('FemTests.m')
 % % test
 % clear variables
 %% Main.m

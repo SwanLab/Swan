@@ -22,4 +22,3 @@ classdef DiffReact_Problem_Micro < DiffReact_Problem
         end
     end
 end
-

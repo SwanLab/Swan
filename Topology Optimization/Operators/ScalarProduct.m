@@ -34,4 +34,3 @@ classdef ScalarProduct < handle
         end
     end
 end
-

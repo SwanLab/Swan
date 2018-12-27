@@ -18,7 +18,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             % !! Move to ShFunc_Velocity (?) eventually !!
             if strcmp(settings.filter,'P1')
                 settings.filter = 'PDE';
-                disp('Filter P1 changed to PDE for HJ velocity regularization');
+                obj.displayChangingFilter(settings)
             end
             obj.filter = Filter_Boundary.create(settings);
             obj.filter.setupFromGiDFile(settings.filename,settings.ptype);
@@ -44,6 +44,19 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
                 phi = phi - dt*V;
             end
             solved_phi = phi;
+        end
+    end
+    
+    methods (Static,Access = private)
+        
+        function displayChangingFilter(settings)
+            print = settings.printChangingFilter;
+            if isempty(print)
+                print = true;
+            end            
+            if print
+                disp('Filter P1 changed to PDE for HJ velocity regularization');                
+            end
         end
     end
 end

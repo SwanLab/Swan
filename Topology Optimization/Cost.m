@@ -10,7 +10,7 @@ classdef Cost < CC
         end
     end
     
-    methods (Access = ?CC)        
+    methods (Access = public)
         function updateFields(obj,iSF)
             obj.value = obj.value + obj.weights(iSF)*obj.ShapeFuncs{iSF}.value;
             obj.gradient = obj.gradient + obj.weights(iSF)*obj.ShapeFuncs{iSF}.gradient;
@@ -27,4 +27,3 @@ classdef Cost < CC
         end
     end
 end
-

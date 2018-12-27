@@ -24,7 +24,7 @@ classdef ShFunc_Chomog < Shape_Functional
             obj.rho=obj.filter.getP0fromP1(x);
             obj.matProps=obj.interpolation.computeMatProp(obj.rho);
             
-            nstre = obj.physicalProblem.element.nstre;
+            nstre = obj.physicalProblem.element.getNstre();
             ngaus = size(obj.tstrain,2);
             nelem = obj.physicalProblem.element.nelem;
             
@@ -50,7 +50,7 @@ classdef ShFunc_Chomog < Shape_Functional
         end
         
         function r = derivative_projection_Chomog(obj,inv_matCh,alpha,beta)
-            nstre = obj.physicalProblem.element.nstre;
+            nstre = obj.physicalProblem.element.getNstre();
             ngaus = size(obj.tstrain,2);
             nelem = obj.physicalProblem.element.nelem;
             

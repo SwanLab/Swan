@@ -4,12 +4,10 @@ classdef Constraint < CC
     end
     
     methods (Access = public)
-        function obj = Constraint(settings)
+        function obj=Constraint(settings)
             obj@CC(settings,settings.constraint);
         end
-    end
-    
-    methods (Access = ?CC)
+        
         function updateFields(obj,iSF)
             obj.value(iSF,1) = obj.ShapeFuncs{iSF}.value;
             obj.gradient(:,iSF) = obj.ShapeFuncs{iSF}.gradient;
