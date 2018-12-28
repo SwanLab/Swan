@@ -29,14 +29,39 @@ classdef ElasticityResultsPrinter < ResultsPrinter
             iS = obj.istep;
             gaussDescriptor = 'Guass up?';
             f = obj.fields;
-            VectorPrinter(obj.fileID,obj.displ_component,  f.d_u, obj.displ_name,iS,'OnNodes');
-            TensorPrinter(obj.fileID,obj.stress_component, f.stress, obj.stress_name,iS,'OnGaussPoints',gaussDescriptor);
-            TensorPrinter(obj.fileID,obj.strain_component, f.strain, obj.strain_name,iS,'OnGaussPoints',gaussDescriptor);
+            dV = obj.createVectorDataBase(obj.fileID,obj.displ_component,f.d_u,obj.displ_name,iS,'OnNodes');
+            dSig = obj.createTensorDataBase(obj.fileID,obj.stress_component, f.stress, obj.stress_name,iS,'OnGaussPoints',gaussDescriptor);
+            dStr = obj.createTensorDataBase(obj.fileID,obj.strain_component, f.strain, obj.strain_name,iS,'OnGaussPoints',gaussDescriptor);
+            VectorPrinter(dV);
+            TensorPrinter(dSig);
+            TensorPrinter(dStr);
         end
+        
+        
         
     end
     
     methods (Access = private)
+        
+        function d = createVectorDataBase(obj,fileID,fieldComponentName,fieldValues,fieldName,istep,fieldPosition)
+            d.fileID = fileID;
+            d.fieldComponentName = fieldComponentName;
+            d.fieldValues = fieldValues;
+            d.fieldName = fieldName;
+            d.istep = istep;
+            d.fieldPosition = fieldPosition;
+        end
+        
+        function d = createTensorDataBase(obj,fileID,fieldComponentName,fieldValues,fieldName,istep,fieldPosition,gaussDescriptor)
+            d.fileID = fileID;
+            d.fieldComponentName = fieldComponentName;
+            d.fieldValues = fieldValues;
+            d.fieldName = fieldName;
+            d.istep = istep;
+            d.fieldPosition = fieldPosition;
+            d.gaussDescriptor = gaussDescriptor;
+        end
+
         
         function printGaussPointsHeader(obj)
             iD = obj.fileID;

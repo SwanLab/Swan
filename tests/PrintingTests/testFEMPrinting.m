@@ -50,25 +50,30 @@ classdef testFEMPrinting < ...
         end        
         
         
-        function print(obj)
-            var     = obj.fem.variables;
-            outName = obj.fileOutputName;
-            iter    = 0;
-            
+        function print(obj)            
+            postprocess = Postprocess(obj.postProcessor);
+            d = obj.createPostProcessDataBaseStructre();           
+            postprocess.print(d);
+        end
+        
+        function d = createPostProcessDataBaseStructre(obj)
+            d.fields   = obj.fem.variables;
+            d.iter     = 0;
+            d.outFileName  = obj.fileOutputName;            
             d.nfields = 1;
             d.coordinates = obj.fem.element.interpolation_u.xpoints;
             d.connectivities = obj.fem.element.interpolation_u.T;
             d.ngaus = obj.fem.element(1).quadrature.ngaus;
-            d.posgp = obj.fem.element(1).quadrature.posgp';            
+            d.posgp = obj.fem.element(1).quadrature.posgp';
             d.nnode = obj.fem.element.nnode;
-            d.npnod = obj.fem.element.interpolation_u.npnod;  % Number of nodes
+            d.npnod = obj.fem.element.interpolation_u.npnod;
             d.gtype = obj.fem.mesh.geometryType;
             d.ndim  = obj.fem.element.interpolation_u.ndime;
             d.pdim  = obj.fem.mesh.pdim;
             d.ngaus = obj.fem.element(1).quadrature.ngaus;
             d.posgp = obj.fem.element(1).quadrature.posgp';
-            d.ptype = obj.fem.mesh.ptype;            
-            switch  d.gtype % GiD type
+            d.ptype = obj.fem.mesh.ptype;
+            switch  d.gtype
                 case 'TRIANGLE'
                     d.etype = 'Triangle';
                 case 'QUAD'
@@ -78,15 +83,8 @@ classdef testFEMPrinting < ...
                 case 'HEXAHEDRA'
                     d.etype = 'Hexahedra';
             end
-            d.nelem    = obj.fem.element.nelem; % Number of elements
-            d.fields   = var;
-            d.iter     = iter;
-            d.outFileName  = outName;
-            
-            postprocess = Postprocess(obj.postProcessor);
-            postprocess.print(d);
+            d.nelem    = obj.fem.element.nelem;
         end
-        
     end
     
 end

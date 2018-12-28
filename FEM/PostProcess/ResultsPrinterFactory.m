@@ -15,7 +15,7 @@ classdef ResultsPrinterFactory < handle
                 case 'NodalLevelSet'
                     p = LevelSetResultsPrinter();
                 case 'GaussDensity'
-                    p = PostprocessDensityInGaussPoints();
+                    p = DensityGaussResultsPrinter();
                 case 'Elasticity'
                     p = ElasticityResultsPrinter();
                 case {'SLERP','PROJECTED SLERP', 'HAMILTON-JACOBI'}

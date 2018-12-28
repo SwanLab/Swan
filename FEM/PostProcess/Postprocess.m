@@ -27,7 +27,7 @@ classdef Postprocess < handle
         end
         
         function r = getResFile(obj)
-            r = obj.resultPrinter.getResFile();
+            r = obj.resultPrinter.getFieldName();
         end
         
     end
@@ -67,9 +67,17 @@ classdef Postprocess < handle
             d.nsteps = [];
             d.etype = dI.etype;
             d.ptype = dI.ptype;
-            d.ngaus = [];
+            if isfield(dI,'ngaus')
+                d.ngaus = dI.ngaus;
+            else
+                d.ngaus = [];
+            end
             d.ndim = dI.ndim;
-            d.posgp = [];
+            if isfield(dI,'posgp')
+                d.posgp = dI.posgp;
+            else
+                d.posgp = [];
+            end
             d.fields = dI.fields;
             d.istep = dI.iter;              
             d.gaussDescriptor = 'Guass up?';

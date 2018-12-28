@@ -67,20 +67,55 @@ classdef NumericalHomogenizer < handle
         end             
         
         function createDensityPrinter(obj)
-            quad = obj.microProblem.element.quadrature;
-            mesh = obj.microProblem.mesh;
-            obj.densityPrinter = DensityPrinter(quad,mesh);
+            postCase = 'GaussDensity';
+            obj.densityPrinter = Postprocess(postCase);
         end        
         
         function print(obj)
             if obj.hasToBePrinted
-                d = obj.density;            
-                outn = obj.outputName;
-                it   = obj.iter;                
-                obj.densityPrinter.print(d,outn,it)
+                dI.x = obj.density;            
+                dI.fileOutputName = obj.outputName;
+                dI.iter   = obj.iter;
+                dI.quad = obj.microProblem.element.quadrature;
+                dI.mesh = obj.microProblem.mesh;
+                d = obj.createPostProcessDataBaseStructre(dI);
+                obj.densityPrinter.print(d)
                 obj.resFile = obj.densityPrinter.getResFile();
             end
-        end         
+        end       
+        
+        function d = createPostProcessDataBaseStructre(obj,dI)
+            mesh         = dI.mesh;
+            d.fields      = dI.x;
+            d.outFileName = dI.fileOutputName;
+            d.iter    = dI.iter;            
+            d.coordinates = mesh.coord;
+            d.connectivities = mesh.connec;
+            d.nnode = size(mesh.connec,2);
+            d.npnod = size(mesh.coord,1); 
+            d.gtype = mesh.geometryType;
+            d.pdim  = mesh.pdim;
+            switch d.pdim
+                case '2D'
+                    d.ndim=2;
+                case '3D'
+                    d.ndim=3;
+            end
+            d.ptype = mesh.ptype;            
+            switch  d.gtype 
+                case 'TRIANGLE'
+                    d.etype = 'Triangle';
+                case 'QUAD'
+                    d.etype = 'Quadrilateral';
+                case 'TETRAHEDRA'
+                    d.etype = 'Tetrahedra';
+                case 'HEXAHEDRA'
+                    d.etype = 'Hexahedra';
+            end
+            d.nelem = size(mesh.connec,1);  
+            d.ngaus = dI.quad.ngaus;
+            d.posgp = dI.quad.posgp';            
+        end
         
         function computeHomogenizedVariables(obj)
             obj.computeVolumeValue()

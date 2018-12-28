@@ -6,21 +6,11 @@ classdef DensityPrinter < Printer
     
     methods (Access = public)
         
-        function obj = DensityPrinter(quad,mesh)
-            obj.init(quad,mesh)            
+        function obj = DensityPrinter()
         end
 
     end
-    
-    methods (Access = protected)
-        
-        function createPostProcess(obj)
-            quad = obj.quadrature;
-            obj.PostProcess = PostprocessDensityInGaussPoints(quad);
-        end
-       
-    end
-    
+
    
 end
 

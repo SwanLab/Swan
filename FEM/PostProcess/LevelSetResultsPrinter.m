@@ -1,6 +1,6 @@
 classdef LevelSetResultsPrinter < ResultsPrinter
     
-    properties
+    properties (Access = private)
         fieldName = 'LevelSet';
     end
     
@@ -20,9 +20,22 @@ classdef LevelSetResultsPrinter < ResultsPrinter
         function printResults(obj)
             ls = obj.fields; 
             iS = obj.istep;
-            ScalarPrinter(obj.fileID,ls,obj.fieldName,iS,'OnNodes');            
+            dS = obj.createScalarDataBase(obj.fileID,ls,obj.fieldName,iS,'OnNodes');   
+            ScalarPrinter(dS);
         end
     
+    end
+    
+    methods (Access = private)
+        
+        function d = createScalarDataBase(obj,fileID, fieldValues,fieldName, istep, fieldPosition)
+            d.fileID = fileID;
+            d.fieldValues = fieldValues;
+            d.fieldName = fieldName;
+            d.istep = istep;
+            d.fieldPosition = fieldPosition;
+        end
+        
     end
     
 

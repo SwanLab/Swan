@@ -1,9 +1,8 @@
-classdef PostprocessDensityInGaussPoints < Postprocess_TopOpt
+classdef PostprocessDensityInGaussPoints < ResultsPrinter
     
     
     properties (Access = private)
-        FieldName     = 'Density';
-        ComponentName = 'Density'
+        fieldName     = 'Density';
     end
     
     

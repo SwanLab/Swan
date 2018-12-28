@@ -12,9 +12,9 @@ classdef TensorPrinter < FieldPrinter ...
     
     methods (Access = public)
         
-        function obj = TensorPrinter(fileID,fieldComponentName,fieldValues,fieldName,istep,fieldPosition,gaussDescriptor)
+        function obj = TensorPrinter(d)
             obj.fieldType = 'Vector';
-            obj.init(fileID,fieldComponentName,fieldValues,fieldName,istep,fieldPosition,gaussDescriptor);
+            obj.init(d);
             obj.print();
         end
         
@@ -22,16 +22,15 @@ classdef TensorPrinter < FieldPrinter ...
     
     methods (Access = protected)
         
-        function init(obj,fileID,fieldComponentName,fieldValues,fieldName,istep,fieldPosition,gaussDescriptor)
-            obj.fileID             = fileID;
-            obj.fieldComponentName = fieldComponentName;
-            obj.fieldValues        = fieldValues;
-            obj.fieldName          = fieldName;
-            obj.istep              = istep;
-            obj.fieldPosition      = fieldPosition;
-            obj.gaussDescriptor    = gaussDescriptor;
+         function init(obj,d)
+            fieldsNames = fieldnames(d);
+            for ifield = 1:length(fieldsNames)
+                ifieldName = fieldsNames{ifield};
+                fieldValue = d.(ifieldName);
+                obj.(fieldsNames{ifield}) = fieldValue;
+            end
         end
-        
+                
         function print(obj)
             obj.printResultsLineHeader();
             obj.printComponentNamesLine();

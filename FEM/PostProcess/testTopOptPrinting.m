@@ -24,16 +24,20 @@ classdef testTopOptPrinting < testNotShowingError ...
         end
         
         function print(obj)
+            postprocess = Postprocess(obj.postProcessor);
+            d = obj.createPostProcessDataBaseStructre();                     
+            postprocess.print(d);
+        end
+        
+       function d = createPostProcessDataBaseStructre(obj)
             mesh      = obj.topOpt.mesh;
             d.fields  = obj.topOpt.x;
             d.outFileName = obj.fileOutputName;
-            d.iter    = obj.iter;
-            
+            d.iter    = obj.iter;            
             d.coordinates = mesh.coord;
             d.connectivities = mesh.connec;
             d.nnode = size(mesh.connec,2);
-            d.npnod = size(mesh.coord,1);  % Number of nodes
-
+            d.npnod = size(mesh.coord,1); 
             d.gtype = mesh.geometryType;
             d.pdim  = mesh.pdim;
             switch d.pdim
@@ -42,9 +46,8 @@ classdef testTopOptPrinting < testNotShowingError ...
                 case '3D'
                     d.ndim=3;
             end
-            d.ptype = mesh.ptype;
-            
-            switch  d.gtype %gid type
+            d.ptype = mesh.ptype;            
+            switch  d.gtype 
                 case 'TRIANGLE'
                     d.etype = 'Triangle';
                 case 'QUAD'
@@ -54,9 +57,7 @@ classdef testTopOptPrinting < testNotShowingError ...
                 case 'HEXAHEDRA'
                     d.etype = 'Hexahedra';
             end
-            d.nelem = size(mesh.connec,1); % Number of elements            
-            postprocess = Postprocess(obj.postProcessor);
-            postprocess.print(d);
+            d.nelem = size(mesh.connec,1);  
         end
         
     end

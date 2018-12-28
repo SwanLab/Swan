@@ -6,9 +6,7 @@ classdef DensityGaussResultsPrinter < ResultsPrinter
     
     methods (Access = public)
         
-        function obj = DensityGaussResultsPrinter(fileID,fileName,nsteps,gaussDescriptor,etype,ptype,ngaus,ndim,posgp,results,iter)
-            obj.init(fileID,fileName,nsteps,gaussDescriptor,etype,ptype,ngaus,ndim,posgp,results,iter)
-            obj.print()
+        function obj = DensityGaussResultsPrinter()
         end
     end
     
@@ -20,14 +18,25 @@ classdef DensityGaussResultsPrinter < ResultsPrinter
         end
         
         function printResults(obj)
-            dens = obj.results; 
+            dens = obj.fields; 
             iS = obj.istep;
-            ScalarPrinter(obj.fileID,dens, obj.fieldName,iS,'OnGaussPoints');            
+            gaussDescriptor = 'Guass up?';
+            dS = obj.createScalarDataBase(obj.fileID,dens, obj.fieldName,iS,'OnGaussPoints',gaussDescriptor);
+            ScalarGaussPrinter(dS);            
         end
     
     end
     
     methods (Access = private)
+        
+        function d = createScalarDataBase(obj,fileID,fieldValues,fieldName,istep,fieldPosition,gaussDescriptor)
+            d.fileID = fileID;
+            d.fieldValues = fieldValues;
+            d.fieldName = fieldName;
+            d.istep = istep;
+            d.fieldPosition = fieldPosition;
+            d.gaussDescriptor = gaussDescriptor;
+        end
         
         function printGaussPointsHeader(obj)
             iD = obj.fileID;

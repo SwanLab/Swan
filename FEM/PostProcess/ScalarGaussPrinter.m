@@ -1,10 +1,13 @@
-classdef ScalarPrinter < FieldPrinter ...
-                       & NodalFieldPrinter
+classdef ScalarGaussPrinter < FieldPrinter ...
+                       & GaussFieldPrinter
     
-    
+    properties (Access = protected)
+        gaussDescriptor
+    end
+                   
     methods (Access = public)
         
-        function obj = ScalarPrinter(d)
+        function obj = ScalarGaussPrinter(d)
             obj.fieldType = 'Scalar';
             obj.init(d);
             obj.print();

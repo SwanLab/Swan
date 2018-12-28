@@ -1,6 +1,6 @@
 classdef DensityResultsPrinter < ResultsPrinter
     
-    properties
+    properties (Access = private)
         fieldName = 'Density';
     end
     
@@ -19,10 +19,22 @@ classdef DensityResultsPrinter < ResultsPrinter
         function printResults(obj)
             dens = obj.fields; 
             iS = obj.istep;
-            ScalarPrinter(obj.fileID,dens, obj.fieldName,iS,'OnNodes');            
+            dS = obj.createScalarDataBase(obj.fileID,dens,obj.fieldName,iS,'OnNodes');   
+            ScalarPrinter(dS);
         end
     
     end
     
+    methods (Access = private)
+        
+        function d = createScalarDataBase(obj,fileID,fieldValues,fieldName, istep, fieldPosition)
+            d.fileID = fileID;
+            d.fieldValues = fieldValues;
+            d.fieldName = fieldName;
+            d.istep = istep;
+            d.fieldPosition = fieldPosition;
+        end
+        
+    end
     
 end

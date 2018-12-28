@@ -1,22 +1,25 @@
 classdef Printer < handle
     
     properties (Access = private)
-       mesh 
        resultsFileName
     end
     
     
     properties (Access = protected)
-       quadrature        
-       PostProcess
-       iter
+       postProcess
     end
     
     methods (Access = public)
         
-        function print(obj,variable,outname,iter)
-            m = obj.mesh;
-            obj.PostProcess.print(m,variable,iter,outname)
+        function print(obj,variable,outname,iter,quad,mesh)
+            obj.postProcess = Postprocess(postCase);
+            dI.x = variable;
+            dI.fileOutputName = outname;
+            dI.iter = iter;
+            dI.mesh = mesh;
+            dI.quad = quad;
+            d = obj.createPostProcessDataBaseStructre(dI);
+            obj.postProcess.print(d)
             obj.resultsFileName = obj.PostProcess.getResFile();
         end
         
@@ -25,13 +28,12 @@ classdef Printer < handle
         end
         
     end
+            
     
-    methods (Access = protected)
+    methods (Access = private)
         
-        function init(obj,quad,mesh)
-            obj.quadrature = quad;
-            obj.mesh = mesh;
-            obj.createPostProcess()
+        function d = createPostProcessDataBaseStructre(obj,dI)
+       
         end
         
     end
