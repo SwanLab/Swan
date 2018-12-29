@@ -41,7 +41,7 @@ classdef testUnfittedIntegration < testShowingError
         end
         
         function computeError(obj)
-            obj.error = 1 - obj.areaAdim;
+            obj.error = abs(obj.areaAdim - 1);
         end
     end
     
