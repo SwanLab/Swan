@@ -23,8 +23,7 @@ classdef Integrator < handle
     
     methods (Static, Access = public)
         function obj = create(mesh)
-            factory = IntegratorFactory;
-            obj = factory.create(mesh);
+            obj = IntegratorFactory.create(mesh);
             obj.saveMeshes(mesh);
         end
     end

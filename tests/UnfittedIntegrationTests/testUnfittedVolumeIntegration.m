@@ -1,7 +1,8 @@
-classdef testUnfittedVolumeIntegration < testUnfittedGeometricalIntegration   
+classdef testUnfittedVolumeIntegration < testUnfittedGeometricalIntegration
     methods (Access = protected)
-        function P = computeGeometricalVariable(obj)
-            P = obj.mesh.computeVolume();
+        function V = computeGeometricalVariable(obj)
+            %             V = obj.mesh.computeVolume();
+            V = obj.mesh.computeMass();
         end
     end
 end

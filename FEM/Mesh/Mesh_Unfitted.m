@@ -1,5 +1,19 @@
 classdef Mesh_Unfitted < Mesh
-    properties
+    properties %(GetAccess = public, SetAccess = private)
+        pdim
+        type
+        
+        max_subcells
+        nnodes_subcell
+    end
+    
+    properties %(Access = private) % Strategies
+        subcells_Mesher
+        cutPoints_Calculator
+        dvoluCut_Calculator
+    end
+    
+    properties %(GetAccess = public, SetAccess = protected) % !! Change to private?? !!
         coord_iso
         connec_local
         coord_iso_per_cell
@@ -15,24 +29,41 @@ classdef Mesh_Unfitted < Mesh
         mesh_background
     end
     
+    %    properties (GetAccess = public, SetAccess = protected) % !! Change to private?? !!
+    %         integrationParams = struct(...
+    %             coord_iso...
+    %             connec_local...
+    %             coord_iso_per_cell...
+    %             cell_containing_subcell...
+    %             background_full_cells...
+    %             background_empty_cells...
+    %             background_cut_cells...
+    %             x_background...
+    %             x_unfitted...
+    %             mesh_background...
+    %             );
+    %     end
+    
     properties (Access = protected)
         coord_global_raw
-        
         cell_containing_nodes
-        
-        max_subcells
-        nnodes_subcell
-        
         background_geom_interpolation
     end
     
     methods (Static, Access = public)
         function mesh_unfitted = create(type,mesh_background,interpolation_background)
-            mesh_unfitted = MeshUnfitted_Factory.create(type,mesh_background,interpolation_background);            
+            %             mesh_unfitted = MeshUnfitted_Factory.create(type,mesh_background,interpolation_background);
+            builder = UnfittedMesh_Builder_Factory.create(type,mesh_background,interpolation_background);
+            mesh_unfitted = builder.buildMesh();
         end
     end
     
     methods (Access = public)
+        function obj = Mesh_Unfitted(mesh_background,interpolation_background)
+            obj.storeBackgroundMesh(mesh_background,interpolation_background);
+            obj.ndim = mesh_background.ndim;
+        end
+        
         function computeMesh(obj,x_background)
             obj.x_background = x_background;
             obj.findCutCells;
@@ -50,7 +81,7 @@ classdef Mesh_Unfitted < Mesh
             obj.computeGlobalConnectivities;
             obj.computeGeometryType;
         end
-                
+        
         function plot(obj)
             h = figure;
             obj.add2plot(axes(h));
@@ -59,6 +90,14 @@ classdef Mesh_Unfitted < Mesh
             hold off
         end
         
+        function mass = computeMass(obj)
+            integrator = Integrator.create(obj);
+            M2 = integrator.integrateUnfittedMesh(ones(size(obj.x_background)),obj);
+            mass = sum(M2);
+        end
+    end
+    
+    methods % !! PROVISONALMENT PUBLIC !!
         function storeBackgroundMesh(obj,mesh_background,background_geom_interpolation)
             obj.mesh_background = mesh_background;
             obj.background_geom_interpolation = background_geom_interpolation;
@@ -85,16 +124,13 @@ classdef Mesh_Unfitted < Mesh
             [Nodes_n_CutPoints_iso,real_cutPoints] = obj.computeCutPoints_Iso;
             Nodes_n_CutPoints_global = obj.computeCutPoints_Global;
             
-            obj.allocateMemory_Delaunay;
+            obj.allocateMemory_Delaunay();
             
             lowerBound_A = 0; lowerBound_B = 0; lowerBound_C = 0;
             for icut = 1:length(obj.background_cut_cells)
                 icell = obj.background_cut_cells(icut);
-                currentCell_cutPoints_iso = obj.getCurrentCutPoints(Nodes_n_CutPoints_iso,real_cutPoints,icut);
-                currentCell_cutPoints_global = obj.getCurrentCutPoints(Nodes_n_CutPoints_global,real_cutPoints,icut);
                 
-                [new_coord_iso,new_coord_global,new_x_unfitted,new_subcell_connec]...
-                    = obj.computeSubcells(obj.mesh_background.connec(icell,:),currentCell_cutPoints_iso,currentCell_cutPoints_global);
+                [new_coord_iso,new_coord_global,new_x_unfitted,new_subcell_connec] = obj.computeSubcells(icut,icell,Nodes_n_CutPoints_iso,Nodes_n_CutPoints_global,real_cutPoints);
                 
                 number_new_subcells = size(new_subcell_connec,1);
                 number_new_coordinates = size(new_coord_iso,1);
@@ -137,7 +173,7 @@ classdef Mesh_Unfitted < Mesh
             lowerBound_B = upperBound_B;
             
             upperBound_C = lowerBound_C + number_new_subcells;
-            obj.assignUnfittedCutCoordIsoPerCell(new_coord_iso,new_subcell_connec,lowerBound_C,upperBound_C);
+            obj.assignUnfittedCutCoordIsoPerCell(lowerBound_C,upperBound_C,new_coord_iso,new_subcell_connec);
             lowerBound_C = upperBound_C;
         end
         
@@ -181,21 +217,30 @@ classdef Mesh_Unfitted < Mesh
             obj.connec_local(1+lowerBound_B:upperBound_B,:) = new_subcell_connec;
             obj.cell_containing_subcell(1+lowerBound_B:upperBound_B,:) = new_cell_containing_subcell;
         end
-    end
-    
-    methods (Access = protected)
-        function mass = computeMass(obj)
-            integrator = Integrator.create(obj);
-            M2 = integrator.integrateUnfittedMesh(ones(size(obj.x_background)),obj);
-            mass = sum(M2);
+        
+        function assignUnfittedCutCoordIsoPerCell(obj,lowerBound_C,upperBound_C,new_coord_iso,new_interior_subcell_connec)
+            for idime = 1:obj.ndim
+                new_coord_iso_ = new_coord_iso(:,idime);
+                obj.coord_iso_per_cell(lowerBound_C+1:upperBound_C,:,idime) = new_coord_iso_(new_interior_subcell_connec);
+            end
         end
-    end
-    
-    methods (Access = protected, Static)
-        function connectivities = computeDelaunay(coordinates)
-            DT = delaunayTriangulation(coordinates);
-            connectivities = DT.ConnectivityList;
+        
+        
+        function [new_coord_iso,new_coord_global,new_x_unfitted,new_subcell_connec] = computeSubcells(obj,icut,icell,Nodes_n_CutPoints_iso,Nodes_n_CutPoints_global,real_cutPoints)
+            currentCell_cutPoints_iso = obj.getCurrentCutPoints(Nodes_n_CutPoints_iso,real_cutPoints,icut);
+            currentCell_cutPoints_global = obj.getCurrentCutPoints(Nodes_n_CutPoints_global,real_cutPoints,icut);
+            [new_coord_iso,new_coord_global,new_x_unfitted,new_subcell_connec]...
+                = obj.subcells_Mesher.computeSubcells(obj.mesh_background,obj.background_geom_interpolation,obj.x_background,obj.mesh_background.connec(icell,:),currentCell_cutPoints_iso,currentCell_cutPoints_global);
         end
+        
+        function [Nodes_n_CutPoints_iso,real_cutPoints] = computeCutPoints_Iso(obj)
+            [Nodes_n_CutPoints_iso,real_cutPoints] = obj.cutPoints_Calculator.computeCutPoints_Iso(obj.mesh_background,obj.x_background,obj.background_cut_cells,obj.background_geom_interpolation);
+        end
+        
+        function [Nodes_n_CutPoints_global,real_cutPoints] = computeCutPoints_Global(obj)
+            [Nodes_n_CutPoints_global,real_cutPoints] = obj.cutPoints_Calculator.computeCutPoints_Global(obj.mesh_background,obj.x_background,obj.background_cut_cells,obj.background_geom_interpolation);
+        end
+        
     end
     
     methods (Access = private, Static)

@@ -1,25 +1,6 @@
-classdef Mesh_Unfitted_2D_Boundary < Mesh_Unfitted_2D & Mesh_Unfitted_Boundary
-    methods
-        function obj = Mesh_Unfitted_2D_Boundary(mesh_background,background_geom_interpolation)
-            obj.storeBackgroundMesh(mesh_background,background_geom_interpolation);
-            obj.max_subcells = 2;
-            obj.nnodes_subcell = 2;
-        end
-        
-        function add2plot(obj,h)
-            hold on
-            for icell = 1:size(obj.connec,1)
-                plot(h,obj.coord(obj.connec(icell,:),1),obj.coord(obj.connec(icell,:),2),'k-');
-            end
-        end
-        
-        function P = computePerimeter(obj)
-            P = obj.computeMass;
-        end
-    end
-    
-    methods (Access = ?Mesh_Unfitted_Boundary)
-        function facets_connec = computeFacetsConnectivities(obj,facets_coord_iso,interior_subcell_coord_iso,cell_x_value)
+classdef SubcellsMesher_Boundary_2D < SubcellsMesher_Boundary
+    methods (Access = public) %(Access = ?Mesh_Unfitted)
+        function facets_connec = computeFacetsConnectivities(obj,facets_coord_iso,interior_subcell_coord_iso,cell_x_value,~)
             nnode =  size(facets_coord_iso,1);
             if nnode == 2
                 facets_connec = [1 2];
@@ -39,3 +20,4 @@ classdef Mesh_Unfitted_2D_Boundary < Mesh_Unfitted_2D & Mesh_Unfitted_Boundary
         end
     end
 end
+
