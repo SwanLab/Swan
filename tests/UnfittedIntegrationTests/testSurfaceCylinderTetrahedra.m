@@ -1,5 +1,5 @@
 classdef testSurfaceCylinderTetrahedra < testUnfittedIntegration...
-                                  & testUnfittedSurfaceIntegration
+                                  & testUnfittedSurfaceCylinderIntegration
     
    properties (Access = protected)
         testName = 'test_cylinder_tetrahedra';  

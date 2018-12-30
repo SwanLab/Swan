@@ -10,7 +10,6 @@ classdef Mesh_Unfitted < Mesh
     properties %(Access = private) % Strategies
         subcells_Mesher
         cutPoints_Calculator
-        dvoluCut_Calculator
     end
     
     properties %(GetAccess = public, SetAccess = protected) % !! Change to private?? !!
@@ -52,7 +51,6 @@ classdef Mesh_Unfitted < Mesh
     
     methods (Static, Access = public)
         function mesh_unfitted = create(type,mesh_background,interpolation_background)
-            %             mesh_unfitted = MeshUnfitted_Factory.create(type,mesh_background,interpolation_background);
             builder = UnfittedMesh_Builder_Factory.create(type,mesh_background,interpolation_background);
             mesh_unfitted = builder.buildMesh();
         end
@@ -71,12 +69,8 @@ classdef Mesh_Unfitted < Mesh
                 obj.computeMesh_Delaunay;
             else
                 obj.coord = obj.mesh_background.coord;
-                phi_nodes = obj.x_background(obj.mesh_background.connec);
-                phi_case = sum((sign(phi_nodes)<0),2);
-                if (any(phi_case))
-                    obj.connec = obj.computeDelaunay(obj.coord);
-                end
-                %                 warning('No cut cells found, can`t compute unfitted mesh.')
+                obj.connec = obj.computeDelaunay(obj.coord);
+                
             end
             obj.computeGlobalConnectivities;
             obj.computeGeometryType;

@@ -1,5 +1,5 @@
 classdef testUnfittedGeometricalIntegration < handle
-    properties (GetAccess = protected, SetAccess = private)
+    properties (GetAccess = protected, SetAccess = protected)
         mesh
     end
     
