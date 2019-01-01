@@ -2,6 +2,8 @@ classdef LevelSetResultsPrinter < ResultsPrinter
     
     properties (Access = private)
         fieldName = 'LevelSet';
+        simulationCase = 'LevelSet';
+        headPrinter = NoGaussHeadPrinter;
     end
     
     
@@ -15,6 +17,7 @@ classdef LevelSetResultsPrinter < ResultsPrinter
     methods (Access = protected)
         
         function printHeader(obj)
+            obj.headPrinter.print(obj.fileID);
         end
         
         function printResults(obj)
@@ -34,6 +37,7 @@ classdef LevelSetResultsPrinter < ResultsPrinter
             d.fieldName = fieldName;
             d.istep = istep;
             d.fieldPosition = fieldPosition;
+            d.simulationCase = obj.simulationCase;
         end
         
     end

@@ -5,7 +5,7 @@ GiD Post Results File 1.0
 ####################################################
 
 
-Result "Density" "Density" 0 Scalar OnNodes
+Result "Density" "NodalDensity" 0 Scalar OnNodes
 Values
      1        00001 
      2        00001 

@@ -8,6 +8,11 @@ classdef testFEMPrinting < ...
         fileOutputName
     end
     
+    properties (Access = private)
+       dataBase
+       iter = 0;
+    end
+    
     methods (Access = public)
         
         function obj = testFEMPrinting()
@@ -43,48 +48,30 @@ classdef testFEMPrinting < ...
         
         function hasChanged = compareFile(obj,extension)
             out   = obj.fileOutputName;
-            name1 = ['tests/PrintingTests/PrintedFiles/',out,'_u_1.flavia',extension];
-            name2 = ['Output/',out,'/',out,'1.flavia',extension];
-            command = ['diff ', name1, ' ', name2];
+            fullOutName = [out,num2str(obj.iter),'.flavia',extension];
+            savedPrintedFile = fullfile('tests','PrintingTests','PrintedFiles',fullOutName);
+            outputFile = fullfile('Output',out,fullOutName);
+            command = ['diff ', savedPrintedFile, ' ', outputFile];
             [hasChanged,~] = system(command);
-        end        
-        
-        
+        end       
+                
         function print(obj)            
-            postprocess = Postprocess(obj.postProcessor);
-            d = obj.createPostProcessDataBaseStructre();           
-            postprocess.print(d);
+            obj.createPostProcessDataBase();
+            postprocess = Postprocess(obj.postProcessor);                                            
+            postprocess.print(obj.dataBase);
         end
         
-        function d = createPostProcessDataBaseStructre(obj)
-            d.fields   = obj.fem.variables;
-            d.iter     = 0;
-            d.outFileName  = obj.fileOutputName;            
-            d.nfields = 1;
-            d.coordinates = obj.fem.element.interpolation_u.xpoints;
-            d.connectivities = obj.fem.element.interpolation_u.T;
-            d.ngaus = obj.fem.element(1).quadrature.ngaus;
-            d.posgp = obj.fem.element(1).quadrature.posgp';
-            d.nnode = obj.fem.element.nnode;
-            d.npnod = obj.fem.element.interpolation_u.npnod;
-            d.gtype = obj.fem.mesh.geometryType;
-            d.ndim  = obj.fem.element.interpolation_u.ndime;
-            d.pdim  = obj.fem.mesh.pdim;
-            d.ngaus = obj.fem.element(1).quadrature.ngaus;
-            d.posgp = obj.fem.element(1).quadrature.posgp';
-            d.ptype = obj.fem.mesh.ptype;
-            switch  d.gtype
-                case 'TRIANGLE'
-                    d.etype = 'Triangle';
-                case 'QUAD'
-                    d.etype = 'Quadrilateral';
-                case 'TETRAHEDRA'
-                    d.etype = 'Tetrahedra';
-                case 'HEXAHEDRA'
-                    d.etype = 'Hexahedra';
-            end
-            d.nelem    = obj.fem.element.nelem;
+        function createPostProcessDataBase(obj)
+            d.mesh    = obj.fem.mesh;
+            d.fields  = obj.fem.variables;
+            d.outName = obj.fileOutputName;
+            d.quad    = obj.fem.element.quadrature;
+            d.iter    = 0;
+            hasGaussInfo = true;
+            ps = PostProcessDataBaseCreator.create(hasGaussInfo,d);
+            obj.dataBase = ps.getValue();   
         end
+
     end
     
 end

@@ -5,8 +5,12 @@ classdef FieldPrinter < handle
         fieldValues
         fieldName
         istep
-        fieldType
         fieldPosition
+        simulationCase
+    end
+
+    properties (Access = 
+        
     end
     
     methods (Access = protected)

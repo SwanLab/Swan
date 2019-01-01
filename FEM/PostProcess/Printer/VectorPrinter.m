@@ -1,24 +1,32 @@
 classdef VectorPrinter < FieldPrinter ...
                        & NodalFieldPrinter
     
+   
+    properties (Access = protected)
+        fieldType = 'Vector';
+    end      
+    
     properties (Access = private)
         fieldComponentName
-        ndim
+        ndim = 2;
+        field2print
+        nodes
+        nnode
     end
     
     methods (Access = public)
         
         function obj = VectorPrinter(d)
-            obj.fieldType = 'Vector';
-            obj.ndim      = 2;
             obj.init(d);
+            obj.computeNodes();
+            obj.computeFieldVectorValuesInMatrixForm();
             obj.print();   
         end
     end
     
     methods (Access = protected)
         
-         function init(obj,d)
+        function init(obj,d)
             fieldsNames = fieldnames(d);
             for ifield = 1:length(fieldsNames)
                 ifieldName = fieldsNames{ifield};
@@ -37,16 +45,29 @@ classdef VectorPrinter < FieldPrinter ...
         
         function printFieldLines(obj)
             iD = obj.fileID;
+            pformat = '%6.0f %12.5d %12.5d \n';
+            printV  = [obj.nodes, obj.field2print]';
+            fprintf(iD,pformat,printV);
+        end
+        
+        function computeFieldVectorValuesInMatrixForm(obj)
             fV = obj.fieldValues;
             d = obj.ndim;
-            for inode = 1:round(length(fV)/d)
-                fprintf(iD,'%6.0f ',inode);
-                for idime = 1:d
-                    fprintf(iD,'%12.5d ',fV(d*(inode-1)+idime));
-                end
-                fprintf(iD,'\n');
+            fieldV = zeros(obj.nnode,d);
+            for idim = 1:d
+                dofs = d*(obj.nodes-1)+idim;
+                fieldV(:,idim) = fV(dofs);
             end
+            obj.field2print = fieldV;
         end
+        
+        function computeNodes(obj)
+            fV = obj.fieldValues;
+            d = obj.ndim;
+            obj.nnode = round(length(fV)/d);
+            obj.nodes(:,1) = 1:obj.nnode;
+        end
+        
         
         function printComponentNamesLine(obj)
             iD = obj.fileID;

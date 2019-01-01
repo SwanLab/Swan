@@ -1,7 +1,9 @@
 classdef DensityResultsPrinter < ResultsPrinter
     
     properties (Access = private)
-        fieldName = 'Density';
+        fieldName      = 'Density';
+        simulationCase = 'NodalDensity';
+        headPrinter = NoGaussHeadPrinter;
     end
     
     methods (Access = public)
@@ -14,6 +16,7 @@ classdef DensityResultsPrinter < ResultsPrinter
     methods (Access = protected)
         
         function printHeader(obj)
+            obj.headPrinter.print(obj.fileID);
         end
         
         function printResults(obj)
@@ -33,6 +36,7 @@ classdef DensityResultsPrinter < ResultsPrinter
             d.fieldName = fieldName;
             d.istep = istep;
             d.fieldPosition = fieldPosition;
+            d.simulationCase = obj.simulationCase;
         end
         
     end

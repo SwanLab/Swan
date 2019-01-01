@@ -62,9 +62,7 @@ classdef Postprocess < handle
      methods (Access = private, Static)
         
         function d = computeDataBaseForResFile(dI)
-            d.fileID = [];
             d.testName = dI.outFileName;
-            d.nsteps = [];
             d.etype = dI.etype;
             d.ptype = dI.ptype;
             if isfield(dI,'ngaus')

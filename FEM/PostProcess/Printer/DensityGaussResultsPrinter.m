@@ -1,7 +1,9 @@
-classdef DensityGaussResultsPrinter < ResultsPrinter
+classdef DensityGaussResultsPrinter < ResultsPrinter ...
     
     properties
         fieldName = 'RegularizedDensity';
+        simulationCase = 'DensityGauss';
+        headPrinter = GaussHeadPrinter;
     end
     
     methods (Access = public)
@@ -14,11 +16,17 @@ classdef DensityGaussResultsPrinter < ResultsPrinter
     methods (Access = protected)
         
         function printHeader(obj)
-           obj.printGaussPointsHeader()
+            d.fileID = obj.fileID;
+            d.gaussDescriptor = obj.gaussDescriptor;
+            d.etype = obj.etype;
+            d.ngaus = obj.ngaus;
+            d.ndim  = obj.ndim;
+            d.posgp = obj.posgp;
+            obj.headPrinter.print(d);
         end
         
         function printResults(obj)
-            dens = obj.fields; 
+            dens = obj.fields.density; 
             iS = obj.istep;
             gaussDescriptor = 'Guass up?';
             dS = obj.createScalarDataBase(obj.fileID,dens, obj.fieldName,iS,'OnGaussPoints',gaussDescriptor);
@@ -36,22 +44,9 @@ classdef DensityGaussResultsPrinter < ResultsPrinter
             d.istep = istep;
             d.fieldPosition = fieldPosition;
             d.gaussDescriptor = gaussDescriptor;
-        end
-        
-        function printGaussPointsHeader(obj)
-            iD = obj.fileID;
-            fprintf(iD,'GaussPoints "%s" Elemtype %s\n',obj.gaussDescriptor,obj.etype);
-            fprintf(iD,'Number of Gauss Points: %.0f\n',obj.ngaus);
-            fprintf(iD,'Nodes not included\n');
-            fprintf(iD,'Natural Coordinates: given\n');
-            for igaus = 1:obj.ngaus
-                for idime = 1:obj.ndim
-                    fprintf(iD,'%12.5d ',obj.posgp(igaus,idime));
-                end
-                fprintf(iD,'\n');
-            end
-            fprintf(iD,'End GaussPoints\n');
-        end
+            d.simulationCase = obj.simulationCase;
+
+        end        
         
     end
     

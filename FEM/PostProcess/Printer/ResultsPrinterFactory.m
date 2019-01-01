@@ -16,12 +16,14 @@ classdef ResultsPrinterFactory < handle
                     p = LevelSetResultsPrinter();
                 case 'GaussDensity'
                     p = DensityGaussResultsPrinter();
+                case 'LevelSetGaussDensity'
+                    p = LevelSetDensityGaussResultsPrinter(); 
                 case 'Elasticity'
                     p = ElasticityResultsPrinter();
                 case {'SLERP','PROJECTED SLERP', 'HAMILTON-JACOBI'}
-                    p = LevelSetResultsPrinter;      
+                    p = LevelSetResultsPrinter();      
                 case {'PROJECTED GRADIENT', 'MMA', 'IPOPT'}
-                    p = DensityResultsPrinter;                    
+                    p = DensityResultsPrinter();                    
             end            
             
         end

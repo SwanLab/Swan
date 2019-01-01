@@ -2,18 +2,24 @@ classdef TensorPrinter < FieldPrinter ...
                        & GaussFieldPrinter
   
     
-    properties (Access = private)
-       fieldComponentName
-    end
-    
     properties (Access = protected)
         gaussDescriptor
+        fieldType = 'Vector';
+    end              
+                   
+    properties (Access = private)
+       fieldComponentName
+       nstre
+       ngaus
+       nelem
     end
-    
+        
     methods (Access = public)
         
         function obj = TensorPrinter(d)
-            obj.fieldType = 'Vector';
+            obj.nstre = size(d.fieldValues,1);
+            obj.ngaus = size(d.fieldValues,2);
+            obj.nelem = size(d.fieldValues,3);
             obj.init(d);
             obj.print();
         end
@@ -40,17 +46,37 @@ classdef TensorPrinter < FieldPrinter ...
         end
         
         function printFieldLines(obj)
-            iD = obj.fileID;
+           iD = obj.fileID;
+           pformat = ['%s ',repmat('%12.5d ',1,obj.nstre),'\n'];
+           elemColum = obj.computeElementStringColum();
+           valColums = obj.computeTensorValueColums();
+           str = [elemColum,valColums]';
+           fprintf(iD,pformat,str{:});
+        end
+        
+        function c = computeElementStringColum(obj)
+          allElem(:,1) = 1:obj.nelem;          
+          strSpaces = repmat(' ',obj.nelem,obj.ngaus -1);
+          strInMatrix = [num2str(allElem),strSpaces]';
+          strInCol = strInMatrix(:);
+          c = cellstr(strInCol);
+        end
+        
+        function fM = computeTensorValueColums(obj)
             fV = obj.fieldValues;
-            for ielem = 1:size(fV,3)
-                fprintf(iD,'%6.0f ',ielem);
-                for igaus = 1:size(fV,1)
-                    for istre = 1:size(fV,2)
-                        fprintf(iD,'%12.5d ',fV(igaus,istre,ielem));
-                    end
-                    fprintf(iD,'\n');
+            fM  =[];
+            for istre = 1:obj.nstre
+                for igaus = 1:obj.ngaus
+                   rows = [1:obj.ngaus:obj.nelem*] + igaus; 
+                   fM(rows,istre) = 
                 end
             end
+            
+            
+            for ielem = 1:obj.nelem
+                fM = [fM;fV(:,:,ielem)];
+            end
+            fM = num2cell(fM); 
         end
         
        function printComponentNamesLine(obj)

@@ -73,49 +73,22 @@ classdef NumericalHomogenizer < handle
         
         function print(obj)
             if obj.hasToBePrinted
-                dI.x = obj.density;            
-                dI.fileOutputName = obj.outputName;
-                dI.iter   = obj.iter;
-                dI.quad = obj.microProblem.element.quadrature;
-                dI.mesh = obj.microProblem.mesh;
-                d = obj.createPostProcessDataBaseStructre(dI);
+                d = obj.createPostProcessDataBase();
                 obj.densityPrinter.print(d)
                 obj.resFile = obj.densityPrinter.getResFile();
             end
-        end       
+        end   
         
-        function d = createPostProcessDataBaseStructre(obj,dI)
-            mesh         = dI.mesh;
-            d.fields      = dI.x;
-            d.outFileName = dI.fileOutputName;
-            d.iter    = dI.iter;            
-            d.coordinates = mesh.coord;
-            d.connectivities = mesh.connec;
-            d.nnode = size(mesh.connec,2);
-            d.npnod = size(mesh.coord,1); 
-            d.gtype = mesh.geometryType;
-            d.pdim  = mesh.pdim;
-            switch d.pdim
-                case '2D'
-                    d.ndim=2;
-                case '3D'
-                    d.ndim=3;
-            end
-            d.ptype = mesh.ptype;            
-            switch  d.gtype 
-                case 'TRIANGLE'
-                    d.etype = 'Triangle';
-                case 'QUAD'
-                    d.etype = 'Quadrilateral';
-                case 'TETRAHEDRA'
-                    d.etype = 'Tetrahedra';
-                case 'HEXAHEDRA'
-                    d.etype = 'Hexahedra';
-            end
-            d.nelem = size(mesh.connec,1);  
-            d.ngaus = dI.quad.ngaus;
-            d.posgp = dI.quad.posgp';            
-        end
+        function d = createPostProcessDataBase(obj)
+            dI.mesh    = obj.microProblem.mesh;
+            dI.fields  = obj.density;
+            dI.outName = obj.outputName;
+            dI.quad    = obj.microProblem.element.quadrature;
+            dI.iter    = obj.iter;
+            hasGaussInfo = true;
+            ps = PostProcessDataBaseCreator.create(hasGaussInfo,dI);
+            d = ps.getValue();
+        end               
         
         function computeHomogenizedVariables(obj)
             obj.computeVolumeValue()

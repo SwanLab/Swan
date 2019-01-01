@@ -7,5 +7,15 @@ classdef testTopOptDensityPrinting < testTopOptPrinting
     end
     
     
+    methods (Access = protected)
+        
+        function computeFields(obj)
+            obj.fields = obj.topOpt.x;
+        end
+        
+    end
+
+    
+    
 end
 
