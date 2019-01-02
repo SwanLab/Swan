@@ -1,6 +1,6 @@
 classdef UnfittedMesh_FlatSurface < UnfittedMesh_AbstractBuilder
     properties (GetAccess = public, SetAccess = private)
-        type = 'INTERIOR';
+        meshType = 'INTERIOR';
         max_subcells = 6;
         nnodes_subcell = 3;
         

@@ -1,7 +1,7 @@
 classdef IntegratorFactory
     methods (Access = public, Static)
         function integrator = create(mesh)
-            switch mesh.type
+            switch mesh.meshType
                 case 'INTERIOR'
                     integrator = Integrator_Interior;
                 case 'BOUNDARY'

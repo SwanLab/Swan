@@ -1,7 +1,7 @@
 classdef Integrator < handle
     properties (GetAccess = public, SetAccess = private)
         mesh_unfitted
-        mesh_background
+        meshBackground
     end
     
 %     properties (GetAccess = protected, SetAccess = private)
@@ -30,7 +30,7 @@ classdef Integrator < handle
     
     methods (Access = protected)
         function shapeValues = integrateCutCells(obj,F1)
-            interpolation_background = Interpolation.create(obj.mesh_background,'LINEAR');
+            interpolation_background = Interpolation.create(obj.meshBackground,'LINEAR');
             interpolation_unfitted = Interpolation.create(obj.mesh_unfitted,'LINEAR');
             quadrature_unfitted = obj.computeQuadrature(obj.mesh_unfitted.geometryType);
             
@@ -39,7 +39,7 @@ classdef Integrator < handle
             shapeValues = zeros(size(obj.mesh_unfitted.connec,1),interpolation_background.nnode);
             for isubcell = 1:size(obj.mesh_unfitted.connec,1) % !! VECTORIZE THIS LOOP !!
                 icell = obj.mesh_unfitted.cell_containing_subcell(isubcell);
-                inode = obj.mesh_background.connec(icell,:);
+                inode = obj.meshBackground.connec(icell,:);
                 
                 interpolation_background.computeShapeDeriv(posGP_iso_unfitted(:,:,isubcell)');
                 
@@ -51,18 +51,18 @@ classdef Integrator < handle
         end
         
         function M2 = rearrangeOutputRHS(obj,shapeValues_AllCells)
-            interpolation = Interpolation.create(obj.mesh_background,'LINEAR');
+            interpolation = Interpolation.create(obj.meshBackground,'LINEAR');
             
             M2 = zeros(interpolation.npnod,1);
             for inode = 1:interpolation.nnode
-                M2 = M2 + accumarray(obj.mesh_background.connec(:,inode),shapeValues_AllCells(:,inode),[interpolation.npnod,1],@sum,0);
+                M2 = M2 + accumarray(obj.meshBackground.connec(:,inode),shapeValues_AllCells(:,inode),[interpolation.npnod,1],@sum,0);
             end
         end
         
         function saveMeshes(obj,unfitted)
-            background = unfitted.mesh_background;
+            background = unfitted.meshBackground;
             obj.mesh_unfitted = unfitted;
-            obj.mesh_background = background;
+            obj.meshBackground = background;
         end
     end
     

@@ -16,7 +16,7 @@ classdef Incremental_Scheme < handle
             obj.coord=mesh.coord;
             obj.connec=mesh.connec;
             if isempty(settings.epsilon_initial)
-                obj.epsilon_initial = mesh.mean_cell_size;
+                obj.epsilon_initial = mesh.computeMeanCellSize;
                 obj.epsilon0 = mesh.problem_characterisitc_length;
             else
                 obj.epsilon_initial=settings.epsilon_initial;

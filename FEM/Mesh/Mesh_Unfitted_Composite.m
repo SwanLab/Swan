@@ -1,15 +1,14 @@
-classdef Mesh_Unfitted_Composite < handle
+classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
     properties (Access = private)
-        meshBackground
-        mesh_interior
+        meshBackground;
+        meshInterior
         boxFaceMeshes
         nodesInBoxFaces
         activeBoxFaceMesh
-       
+        
+        ndim
         nsides = 2;
         nboxFaces
-        ndim
-
     end
     
     methods (Access = public)
@@ -32,49 +31,22 @@ classdef Mesh_Unfitted_Composite < handle
     end
     
     methods (Access = private)
-        
         function init(obj,meshBackground)
-            obj.ndim = 3;
-            obj.nboxFaces = obj.ndim*obj.nsides;
+            obj.ndim = meshBackground.ndim;
             obj.meshBackground = meshBackground;
+            obj.nboxFaces = obj.ndim*obj.nsides;
         end
         
         function createInteriorMesh(obj,meshType,meshBackground,interpolation_background)
-            obj.mesh_interior = Mesh_Unfitted.create(meshType,meshBackground,interpolation_background);
-        end
-        
-        function M = computeInteriorMass(obj)
-           M = obj.mesh_interior.computeMass(); 
-        end
-        
-        function M = computeBoxMass(obj)
-            M = 0;
-            for iface = 1:obj.nboxFaces
-                if obj.activeBoxFaceMesh(iface)
-                  M = M + obj.boxFaceMeshes{iface}.computeMass();
-                end
-            end
+            obj.meshInterior = Mesh_Unfitted(meshType,meshBackground,interpolation_background);
         end
         
         function computeInteriorMesh(obj,levelSet)
-           obj.mesh_interior.computeMesh(levelSet);
+            obj.meshInterior.computeMesh(levelSet);
         end
         
-        function computeBoxMeshes(obj,levelSet)
-            iface = 0;
-            obj.activeBoxFaceMesh = false([1 obj.nboxFaces]);
-            for idime = 1:obj.ndim
-                for iside = 1:obj.nsides
-                    iface = iface + 1;
-                    boxFaceMesh = obj.boxFaceMeshes{iface};
-                    mshBack = boxFaceMesh.mesh_background;
-                    lsBoxFace = levelSet(obj.nodesInBoxFaces{iface});
-                    if obj.isBoxMeshActive(lsBoxFace,mshBack)
-                        obj.boxFaceMeshes{iface}.computeMesh(lsBoxFace);
-                        obj.activeBoxFaceMesh(iface) = true;
-                    end
-                end
-            end
+        function M = computeInteriorMass(obj)
+            M = obj.meshInterior.computeMass();
         end
         
         function createBoxMeshes(obj)
@@ -89,36 +61,56 @@ classdef Mesh_Unfitted_Composite < handle
             end
         end
         
-        function itIs = isBoxMeshActive(obj,levelSet,meshBack)
-            phi_nodes = levelSet(meshBack.connec);
-            phi_case = sum((sign(phi_nodes)<0),2);
-            itIs = (any(phi_case));
+        function computeBoxMeshes(obj,levelSet)
+            iface = 0;
+            obj.activeBoxFaceMesh = false([1 obj.nboxFaces]);
+            for idime = 1:obj.ndim
+                for iside = 1:obj.nsides
+                    iface = iface + 1;
+                    boxFaceMesh = obj.boxFaceMeshes{iface};
+                    mshBack = boxFaceMesh.meshBackground;
+                    lsBoxFace = levelSet(obj.nodesInBoxFaces{iface});
+                    if obj.isBoxMeshActive(lsBoxFace,mshBack)
+                        obj.boxFaceMeshes{iface}.computeMesh(lsBoxFace);
+                        obj.activeBoxFaceMesh(iface) = true;
+                    end
+                end
+            end
+        end
+        
+        function M = computeBoxMass(obj)
+            M = 0;
+            for iface = 1:obj.nboxFaces
+                if obj.activeBoxFaceMesh(iface)
+                    M = M + obj.boxFaceMeshes{iface}.computeMass();
+                end
+            end
         end
         
         function [boxFaceMesh,nodesInBoxFace] = createBoxFaceMesh(obj,idime,iside)
             [mb,nodesInBoxFace] = obj.createBoxFaceBackgroundMesh(idime,iside);
             interpolation_unfitted = Interpolation.create(mb,'LINEAR');
-            boxFaceMesh = Mesh_Unfitted.create('INTERIOR',mb,interpolation_unfitted);
+            boxFaceMesh = Mesh_Unfitted('INTERIOR',mb,interpolation_unfitted);
         end
         
         function [mb, nodesInBoxFace] = createBoxFaceBackgroundMesh(obj,idime,iside)
-            [face_coord,nodesInBoxFace] = obj.getFaceCoordinates(idime,iside);
-            DT = delaunayTriangulation(face_coord);
+            [boxFaceCoords,nodesInBoxFace] = obj.getFaceCoordinates(idime,iside);
+            DT = delaunayTriangulation(boxFaceCoords);
             face_connec = DT.ConnectivityList;
             mb = Mesh;
-            mb = mb.create(face_coord,face_connec);
+            mb = mb.create(boxFaceCoords,face_connec);
         end
         
-        function [face_coord, valid_coord] = getFaceCoordinates(obj,idime,iside)
+        function [boxFaceCoords, nodesInBoxFace] = getFaceCoordinates(obj,idime,iside)
             if iside == 1
                 L = min(obj.meshBackground.coord(:,idime));
             else
                 L = max(obj.meshBackground.coord(:,idime));
             end
             
-            valid_coord = obj.meshBackground.coord(:,idime) == L;
-            face_coord = obj.meshBackground.coord(valid_coord,:);
-            face_coord = obj.removeExtraDimension(face_coord,idime);
+            nodesInBoxFace = obj.meshBackground.coord(:,idime) == L;
+            boxFaceCoords = obj.meshBackground.coord(nodesInBoxFace,:);
+            boxFaceCoords = obj.removeExtraDimension(boxFaceCoords,idime);
         end
         
         function indexes = findConnecIndexes(obj,coord_indexes,nnode)
@@ -128,6 +120,12 @@ classdef Mesh_Unfitted_Composite < handle
     end
     
     methods (Static, Access = private)
+        function itIs = isBoxMeshActive(levelSet,meshBack)
+            phi_nodes = levelSet(meshBack.connec);
+            phi_case = sum((sign(phi_nodes)<0),2);
+            itIs = (any(phi_case));
+        end
+        
         function face_connec = removeExtraNodes(face_connec_raw,coord_indexes,nnode)
             valid_nodes = ismember(face_connec_raw,coord_indexes);
             

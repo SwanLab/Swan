@@ -1,6 +1,6 @@
 classdef UnfittedMesh_3DSurface < UnfittedMesh_AbstractBuilder
     properties (GetAccess = public, SetAccess = private)
-        type = 'BOUNDARY';
+        meshType = 'BOUNDARY';
         max_subcells = 6;
         nnodes_subcell = 3;
         

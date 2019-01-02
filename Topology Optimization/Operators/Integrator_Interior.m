@@ -17,13 +17,13 @@ classdef Integrator_Interior < Integrator
             % !! F1 should be evalutated in Integrator and integration at Interior Full
             % Cells should be allowed !!
             
-            interpolation = Interpolation.create(obj.mesh_background,'LINEAR');
-            quadrature = obj.computeQuadrature(obj.mesh_background.geometryType);
+            interpolation = Interpolation.create(obj.meshBackground,'LINEAR');
+            quadrature = obj.computeQuadrature(obj.meshBackground.geometryType);
             interpolation.computeShapeDeriv(quadrature.posgp);
-            geometry = Geometry(obj.mesh_background,'LINEAR');
+            geometry = Geometry(obj.meshBackground,'LINEAR');
             geometry.computeGeometry(quadrature,interpolation);
             
-            shapeValues_FullCells = zeros(size(obj.mesh_background.connec));
+            shapeValues_FullCells = zeros(size(obj.meshBackground.connec));
             for igauss = 1:quadrature.ngaus
                 shapeValues_FullCells = shapeValues_FullCells + interpolation.shape(:,igauss)'.*geometry.dvolu(:,igauss);
                 %                 shapeValues_FullCells = shapeValues_FullCells + interpolation.shape(:,igauss)'.*F1.*geometry.dvolu(:,igauss);
@@ -31,8 +31,8 @@ classdef Integrator_Interior < Integrator
         end
         
         function shapeValues_AllCells = assembleShapeValues(obj,shapeValues_CutCells,shapeValues_FullCells)
-            interpolation = Interpolation.create(obj.mesh_background,'LINEAR');
-            shapeValues_AllCells = zeros(size(obj.mesh_background.connec));
+            interpolation = Interpolation.create(obj.meshBackground,'LINEAR');
+            shapeValues_AllCells = zeros(size(obj.meshBackground.connec));
             shapeValues_AllCells(obj.mesh_unfitted.background_full_cells,:) = shapeValues_FullCells(obj.mesh_unfitted.background_full_cells,:);
             
             for i_subcell = 1:size(shapeValues_CutCells,2)
