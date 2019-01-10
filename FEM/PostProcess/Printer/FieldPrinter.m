@@ -6,7 +6,7 @@ classdef FieldPrinter < handle
         fieldName
         istep
         fieldPosition
-        simulationCase
+        simulationStr
     end
 
     properties (Access = protected, Abstract)

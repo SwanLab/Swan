@@ -3,49 +3,35 @@ classdef testTopOptPrinting < testNotShowingError ...
                                   & testPrintingDescriptor
     
     properties (Access = protected)
-      filesHaveChanged
       iter
       fields
+      dataBase
     end
-    
+       
     properties (Access = protected, Abstract)
-       postProcessor 
+        fileOutputName
+        printMode
     end
     
     methods (Access = protected)
         
         function obj = testTopOptPrinting()
             obj.init();
-            obj.print();
             obj.compareFiles();
         end
         
         function init(obj)
-            obj.iter = 0;
+            obj.iter = obj.topOpt.settings.maxiter;
         end
         
-        function print(obj)
-            obj.computeFields()
-            postprocess = Postprocess(obj.postProcessor);
-            d = obj.createPostProcessDataBaseStructre();                     
-            postprocess.print(d);
-        end
-        
-        function d = createPostProcessDataBaseStructre(obj)
-            dI.mesh    = obj.topOpt.mesh;
-            dI.fields  = obj.fields;
-            dI.outName = obj.fileOutputName;
-            dI.iter    = obj.iter;
-            hasGaussData = false;
-            ps = PostProcessDataBaseCreator.create(hasGaussData,dI);
-            d = ps.getValue();              
+        function createSettings(obj)
+            obj.createSettings@testTopOptComputation();
+            obj.settings.printMode = obj.printMode;            
+            obj.settings.case_file = obj.fileOutputName;
         end
         
     end
     
-    methods (Access = protected, Abstract)
-       computeFields(obj) 
-    end
     
 end
 

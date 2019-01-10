@@ -1,6 +1,5 @@
 classdef ShFunc_Chomog < Shape_Functional
     properties (Access = public)
-        h_C_0
         Chomog
         tstress
         tstrain
@@ -11,14 +10,21 @@ classdef ShFunc_Chomog < Shape_Functional
         matProps
         Ch_star
     end
-    methods
+    
+    methods (Access = public)
+        
         function obj=ShFunc_Chomog(settings)
-            obj@Shape_Functional(settings);
+            obj.init(settings);
             obj.physicalProblem = FEM.create(settings.filename);
             obj.physicalProblem.preProcess;
             obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method,settings.pdim);
         end
+        
+        function f = getPhysicalProblem(obj)
+            f = obj.physicalProblem;
+        end
     end
+    
     methods (Access = protected)
         function compute_Chomog_Derivatives(obj,x)
             obj.rho=obj.filter.getP0fromP1(x);
@@ -42,8 +48,6 @@ classdef ShFunc_Chomog < Shape_Functional
                             end
                         end
                     end
-                    %                     C_D = filter.getP1fromP0(squeeze(obj.Chomog_Derivatives(istreChomog,jstreChomog,:,:)));
-                    %                     obj.Chomog_Derivatives(istreChomog,jstreChomog,:,:) = mass*C_D;
                 end
             end
             

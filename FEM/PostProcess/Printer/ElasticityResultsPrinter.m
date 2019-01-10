@@ -1,22 +1,35 @@
-classdef ElasticityResultsPrinter < ResultsPrinter 
+classdef ElasticityResultsPrinter < ResultsPrinter
+    
+    properties (Access = protected)
+        simulationStr = 'ElasticityResults';
+    end
+    
     properties (Access = private)
-        stress_name = 'Stress';
-        strain_name = 'Strain';
-        displ_name  = 'Displacements';
-        stress_component = 'S';
-        strain_component = 'E';
-        displ_component  = 'U';
-        simulationCase = 'ElasticityResults';
+        stressStr = 'Stress';
+        strainStr = 'Strain';
+        dispStr   = 'Displacements';
+        stressCompStr = 'S';
+        strainCompStr = 'E';
+        displCompStr  = 'U';
+        headPrinter = GaussHeadPrinter;
         dSig
         dStr
         dV
-        headPrinter = GaussHeadPrinter;
     end
     
     methods (Access = public)
         
-        function obj = ElasticityResultsPrinter()
+        function obj = ElasticityResultsPrinter(d)
+            obj.init(d);
+            obj.printHeader();
         end
+        
+        function setStrVariablesNames(obj,s1,s2,s3)
+            obj.stressStr = s1;
+            obj.strainStr = s2;
+            obj.dispStr   = s3;
+        end
+        
     end
     
     methods (Access = protected)
@@ -33,45 +46,24 @@ classdef ElasticityResultsPrinter < ResultsPrinter
         
         function printResults(obj)
             obj.createDataBases();
-            VectorPrinter(obj.dV);
-            TensorPrinter(obj.dSig);
-            TensorPrinter(obj.dStr);
-        end                
+            VectorNodalPrinter(obj.dV);
+            VectorGaussPrinter(obj.dSig);
+            VectorGaussPrinter(obj.dStr);
+        end
         
     end
     
     methods (Access = private)
         
         function createDataBases(obj)
-            iS = obj.istep;
-            gaussDescriptor = 'Guass up?';
-            f = obj.fields;            
-            obj.dV = obj.createVectorDataBase(obj.fileID,obj.displ_component,f.d_u,obj.displ_name,iS,'OnNodes');
-            obj.dSig = obj.createTensorDataBase(obj.fileID,obj.stress_component, f.stress, obj.stress_name,iS,'OnGaussPoints',gaussDescriptor);
-            obj.dStr = obj.createTensorDataBase(obj.fileID,obj.strain_component, f.strain, obj.strain_name,iS,'OnGaussPoints',gaussDescriptor);
+            f = obj.fields;
+            obj.dV   = obj.createVectorDataBase(f.d_u,obj.dispStr,'OnNodes',obj.displCompStr);
+            obj.dSig = obj.createVectorGaussDataBase(f.stress, obj.stressStr,'OnGaussPoints',obj.stressCompStr);
+            obj.dStr = obj.createVectorGaussDataBase(f.strain, obj.strainStr,'OnGaussPoints',obj.strainCompStr);
         end
         
     end
     
-    methods (Access = private)
-        
-        function d = createVectorDataBase(obj,fileID,fieldComponentName,fieldValues,fieldName,istep,fieldPosition)
-            d.fileID = fileID;
-            d.fieldComponentName = fieldComponentName;
-            d.fieldValues = fieldValues;
-            d.fieldName = fieldName;
-            d.istep = istep;
-            d.fieldPosition = fieldPosition;
-            d.simulationCase = obj.simulationCase;
-        end
-        
-        function d = createTensorDataBase(obj,fileID,fieldComponentName,fieldValues,fieldName,istep,fieldPosition,gaussDescriptor)
-           d = obj.createVectorDataBase(fileID,fieldComponentName,fieldValues,fieldName,istep,fieldPosition);
-           d.gaussDescriptor = gaussDescriptor;
-        end     
-
-        
-    end
     
 end
 

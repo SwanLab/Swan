@@ -6,10 +6,7 @@ classdef testTopOptComputation < handle
     
     properties (Access = protected)
        topOpt
-    end
-    
-    properties (Access = private)
-       settings 
+       settings
     end
     
     methods (Access = protected)
@@ -25,23 +22,18 @@ classdef testTopOptComputation < handle
         
         function computeVariableThroughTopOptSolver(obj)
             topOptSolver = TopOpt_Problem(obj.settings);
-            topOptSolver.preProcess;
-            topOptSolver.computeVariables;
+            topOptSolver.preProcess();
+            topOptSolver.computeVariables();
             obj.topOpt = topOptSolver;
         end
-        
-        
-        
-    end
-    
-    methods (Access = private)
-        
+          
         function createSettings(obj)
-            file2load = strcat('./Input/',obj.testName);
+            file2load = obj.testName;
             sett = Settings(file2load);
             sett.warningHoleBC = false;
             sett.printIncrementalIter = false; 
             sett.printChangingFilter = false;
+            sett.printing = true;
             obj.settings = sett;
         end
         

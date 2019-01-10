@@ -13,21 +13,24 @@ classdef Postprocess < handle
     
      methods (Access = public)
  
-        function obj = Postprocess(Postprocess)
-            factory  = ResultsPrinterFactory();
-            obj.resultPrinter = factory.create(Postprocess);
-            obj.meshPrinter = MeshPrinter();
+        function obj = Postprocess(postCase,d)
+            obj.init(d);          
+            obj.createOutputDirectory();
+            obj.createMeshPrinter();
+            obj.createResultPrinter(postCase);
         end
                
-        function  print(obj,dataBase)
-            obj.init(dataBase);          
-            obj.createOutputDirectory();
-            obj.printMeshFile();            
-            obj.printResFile()
+        function  print(obj,iter,results)
+            obj.printMeshFile(iter);            
+            obj.printResFile(iter,results)
         end
         
         function r = getResFile(obj)
             r = obj.resultPrinter.getFieldName();
+        end
+        
+        function setIter(obj,i)
+            obj.resultPrinter.setIter(i);
         end
         
     end
@@ -39,14 +42,23 @@ classdef Postprocess < handle
             obj.mshDataBase = obj.computeDataBaseForMeshFile(d);                       
             obj.resDataBase = obj.computeDataBaseForResFile(d); 
         end
-                
-        function printResFile(obj)
-            d = obj.resDataBase;            
-            obj.resultPrinter.print(d);            
+        
+        function createMeshPrinter(obj)
+            obj.meshPrinter = MeshPrinter();            
         end
         
-       	function printMeshFile(obj)
+        function createResultPrinter(obj,postCase)
+            factory  = ResultsPrinterFactory();
+            obj.resultPrinter = factory.create(postCase,obj.resDataBase);
+        end
+        
+        function printResFile(obj,iter,results)           
+            obj.resultPrinter.print(iter,results);            
+        end
+        
+       	function printMeshFile(obj,iter)
             d = obj.mshDataBase;
+            d.iter = iter;
             obj.meshPrinter.print(d);
         end
         
@@ -76,8 +88,22 @@ classdef Postprocess < handle
             else
                 d.posgp = [];
             end
-            d.fields = dI.fields;
-            d.istep = dI.iter;              
+            
+            if isfield(dI,'ShapeNames')
+                d.ShapeNames = dI.ShapeNames;
+            end
+            
+            if isfield(dI,'optimizer')
+                d.optimizer = dI.optimizer;
+            end
+            
+            if isfield(dI,'printMode')
+                d.printMode = dI.printMode;                
+            end
+            
+            if isfield(dI,'hasGaussData')
+                d.hasGaussData = dI.hasGaussData;                
+            end   
             d.gaussDescriptor = 'Guass up?';
         end
         
@@ -91,7 +117,6 @@ classdef Postprocess < handle
             d.nelem = dI.nelem;
             d.ndim = dI.ndim;
             d.etype = dI.etype;
-            d.iter = dI.iter;
         end
  
     end

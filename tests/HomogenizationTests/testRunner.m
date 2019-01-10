@@ -8,14 +8,10 @@ classdef testRunner < handle
     methods (Access = protected)
         
         function obj = testRunner()
+            obj.addPath()
             obj.printHeader()
             obj.compute()
             obj.printTail()
-        end
-        
-        function compute(obj)
-            obj.loadTests()
-            obj.runTests()
         end
         
         function runTests(obj)
@@ -24,7 +20,16 @@ classdef testRunner < handle
                 test.checkTestPassed(obj.tests{itest});
             end
         end
-       
+        
+    end
+    
+    
+    methods (Abstract, Access = protected)
+        loadTests(obj)
+    end
+    
+    methods (Access = private)
+        
         function printHeader(obj)
             fprintf(['Running, ',obj.FieldOfStudy,' tests...\n'])
         end
@@ -33,13 +38,20 @@ classdef testRunner < handle
             fprintf(['\n',obj.FieldOfStudy,' tests completed.\n'])
             fprintf('\n-------------------------------------------\n\n')
         end
+        
+        function compute(obj)
+            obj.loadTests()
+            obj.runTests()
+        end
+        
     end
     
-    
-    methods (Abstract, Access = protected)
-        loadTests(obj)
+    methods (Access = private, Static)
+        
+        function addPath()
+            addpath(genpath(pwd));
+        end
     end
-    
     
 end
 

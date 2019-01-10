@@ -6,7 +6,7 @@ classdef ShFunc_Volume < Shape_Functional
     
     methods 
         function obj = ShFunc_Volume(settings)
-           obj@Shape_Functional(settings);
+           obj.init(settings);
            obj.geometric_volume = sum(obj.dvolu(:));
         end
         

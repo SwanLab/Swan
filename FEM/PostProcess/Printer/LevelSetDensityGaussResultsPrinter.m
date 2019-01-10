@@ -1,17 +1,19 @@
-classdef LevelSetDensityGaussResultsPrinter < ResultsPrinter    
-    properties
-        fieldNameDensity = 'RegularizedDensity';
+classdef LevelSetDensityGaussResultsPrinter < ResultsPrinter
+    
+    properties (Access = protected)
+        fieldNameDensity  = 'RegularizedDensity';
         fieldNameLevelSet = 'LevelSet';
-        simulationCase = 'LevelSetDensityGauss'
+        simulationCase    = 'LevelSetDensityGauss';
         headPrinter = GaussHeadPrinter;
     end
     
     methods (Access = public)
         
-        function obj = LevelSetDensityGaussResultsPrinter()
+        function obj = LevelSetDensityGaussResultsPrinter(d)
+            obj.init(d);
         end
+        
     end
-    
     
     methods (Access = protected)
         
@@ -26,40 +28,13 @@ classdef LevelSetDensityGaussResultsPrinter < ResultsPrinter
         end
         
         function printResults(obj)
-            dens = obj.fields.density; 
+            dens = obj.fields.density;
             ls   = obj.fields.levelSet;
-            iS = obj.istep;
-            gaussDescriptor = 'Guass up?';
-            dD = obj.createScalarGaussDataBase(obj.fileID,dens, obj.fieldNameDensity,iS,'OnGaussPoints',gaussDescriptor);
-            dL = obj.createScalarDataBase(obj.fileID,ls, obj.fieldNameLevelSet,iS,'OnNodes');
+            dD = obj.createScalarGaussDataBase(dens, obj.fieldNameDensity,'OnGaussPoints');
+            dL = obj.createScalarDataBase(ls, obj.fieldNameLevelSet,'OnNodes');
             ScalarPrinter(dL);
-            ScalarGaussPrinter(dD);  
-            
+            ScalarGaussPrinter(dD);
         end
-    
-    end
-    
-    methods (Access = private)
-        
-        function d = createScalarGaussDataBase(obj,fileID,fieldValues,fieldName,istep,fieldPosition,gaussDescriptor)
-            d.fileID = fileID;
-            d.fieldValues = fieldValues;
-            d.fieldName = fieldName;
-            d.istep = istep;
-            d.fieldPosition = fieldPosition;
-            d.gaussDescriptor = gaussDescriptor;
-            d.simulationCase = obj.simulationCase;
-        end        
-        
-        function d = createScalarDataBase(obj,fileID,fieldValues,fieldName,istep,fieldPosition)
-            d.fileID = fileID;
-            d.fieldValues = fieldValues;
-            d.fieldName = fieldName;
-            d.istep = istep;
-            d.fieldPosition = fieldPosition;
-            d.simulationCase = obj.simulationCase;
-        end
-        
         
     end
     

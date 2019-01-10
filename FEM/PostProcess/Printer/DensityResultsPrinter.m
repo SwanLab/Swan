@@ -1,17 +1,23 @@
 classdef DensityResultsPrinter < ResultsPrinter
     
+    
+    properties (Access = protected)
+        simulationStr = 'NodalDensity';
+    end
+    
     properties (Access = private)
-        fieldName      = 'Density';
-        simulationCase = 'NodalDensity';
+        fieldName   = 'Density';
         headPrinter = NoGaussHeadPrinter;
     end
     
     methods (Access = public)
         
-        function obj = DensityResultsPrinter()
+        function obj = DensityResultsPrinter(d)
+            obj.init(d);
+            obj.printHeader();
         end
+        
     end
-    
     
     methods (Access = protected)
         
@@ -20,25 +26,12 @@ classdef DensityResultsPrinter < ResultsPrinter
         end
         
         function printResults(obj)
-            dens = obj.fields; 
-            iS = obj.istep;
-            dS = obj.createScalarDataBase(obj.fileID,dens,obj.fieldName,iS,'OnNodes');   
+            dens = obj.fields;
+            dS = obj.createScalarDataBase(dens,obj.fieldName,'OnNodes');
             ScalarPrinter(dS);
         end
-    
-    end
-    
-    methods (Access = private)
-        
-        function d = createScalarDataBase(obj,fileID,fieldValues,fieldName, istep, fieldPosition)
-            d.fileID = fileID;
-            d.fieldValues = fieldValues;
-            d.fieldName = fieldName;
-            d.istep = istep;
-            d.fieldPosition = fieldPosition;
-            d.simulationCase = obj.simulationCase;
-        end
         
     end
+    
     
 end

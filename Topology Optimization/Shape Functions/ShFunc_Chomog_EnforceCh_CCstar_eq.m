@@ -5,7 +5,7 @@ classdef ShFunc_Chomog_EnforceCh_CCstar_eq < ShFunc_Chomog_EnforceCh
     end
     methods
         function obj=ShFunc_Chomog_EnforceCh_CCstar_eq(settings,n)
-            obj@ShFunc_Chomog_EnforceCh(settings);
+            obj.init(settings);
             obj.compute_Ch_star(settings.TOL, settings.selectiveC_Cstar);
             obj.component = n;
         end

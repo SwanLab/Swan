@@ -1,6 +1,4 @@
 classdef Optimizer_Unconstrained < Optimizer
-    %Optimizer_Unconstrained Summary of this class goes here
-    %   Detailed explanation goes here
     
     properties
         constr_tol

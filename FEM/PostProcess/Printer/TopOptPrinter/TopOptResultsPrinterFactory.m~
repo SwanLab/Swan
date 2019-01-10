@@ -1,0 +1,33 @@
+classdef TopOptResultsPrinterFactory < handle
+    
+    
+    methods (Access = public, Static)
+        
+        function p = create(d,simulationCase,ndim)
+            
+            switch d.printMode
+                case 'DesignAndShapes'
+                   p = {TopOptShapesPrinter,...
+                        TopOptDesignVariablePrinter}; 
+                case 'DesignVariable'
+                   p = {TopOptDesignVariablePrinter};
+                case 'DesignAndElementalDensity'
+                   p = {TopOptDesignVariablePrinter,...
+                       TopOptElementalDensityPrinter}; 
+                case 'ElementalDensity'
+                   p = {TopOptElementalDensityPrinter};
+                case 'DesignElementalDensityAndShape'
+                   p = {TopOptDesignVariablePrinter,...
+                        TopOptShapesPrinter,...
+                        TopOptElementalDensityPrinter};
+            end  
+            
+            for iprinter = 1:numel(p)
+               p
+               p{iprinter}.create(d,simulationCase,ndim)          
+            end            
+
+        end
+        
+    end
+end

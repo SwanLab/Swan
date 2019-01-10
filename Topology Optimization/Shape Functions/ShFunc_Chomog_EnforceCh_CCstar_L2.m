@@ -5,7 +5,7 @@ classdef ShFunc_Chomog_EnforceCh_CCstar_L2 < ShFunc_Chomog_EnforceCh
     end
     methods
         function obj=ShFunc_Chomog_EnforceCh_CCstar_L2(settings)
-            obj@ShFunc_Chomog_EnforceCh(settings);
+            obj.init(settings);
             obj.compute_Ch_star(settings.TOL, settings.selectiveC_Cstar);
             obj.epsilon = settings.epsilon_isotropy_final;
         end

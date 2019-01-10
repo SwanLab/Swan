@@ -4,7 +4,7 @@ classdef ShFunc_Chomog_EnforceCh< ShFunc_Chomog
     
     methods
         function obj=ShFunc_Chomog_EnforceCh(settings)
-            obj@ShFunc_Chomog(settings);
+            obj.init(settings);
         end
     end
     

@@ -16,7 +16,8 @@ classdef NumericalHomogenizer < handle
         interpolation
         densityPostProcess
         
-        iter
+        iter = 0;
+        dataBase
     end
     
     properties (Access = protected)
@@ -67,27 +68,30 @@ classdef NumericalHomogenizer < handle
         end             
         
         function createDensityPrinter(obj)
-            postCase = 'GaussDensity';
-            obj.densityPrinter = Postprocess(postCase);
+           obj.createPostProcessDataBase();
+           postCase = 'TopOptProblem';
+           obj.densityPrinter = Postprocess(postCase,obj.dataBase);
         end        
         
         function print(obj)
             if obj.hasToBePrinted
-                d = obj.createPostProcessDataBase();
-                obj.densityPrinter.print(d)
+                fields.dens = obj.density;
+                obj.densityPrinter.print(obj.iter,fields);
                 obj.resFile = obj.densityPrinter.getResFile();
             end
         end   
         
-        function d = createPostProcessDataBase(obj)
-            dI.mesh    = obj.microProblem.mesh;
-            dI.fields  = obj.density;
-            dI.outName = obj.outputName;
-            dI.quad    = obj.microProblem.element.quadrature;
-            dI.iter    = obj.iter;
-            hasGaussInfo = true;
-            ps = PostProcessDataBaseCreator.create(hasGaussInfo,dI);
-            d = ps.getValue();
+        function createPostProcessDataBase(obj)
+            dI.mesh            = obj.microProblem.mesh;
+            dI.outName         = obj.outputName;
+            dI.quad            = obj.microProblem.element.quadrature;
+            hasGaussData       = true;
+            ps = PostProcessDataBaseCreator.create(hasGaussData,dI);
+            obj.dataBase = ps.getValue();
+            obj.dataBase.ShapeNames = '';
+            obj.dataBase.optimizer = '';
+            obj.dataBase.printMode = 'ElementalDensity';   
+            obj.dataBase.hasGaussData = hasGaussData;               
         end               
         
         function computeHomogenizedVariables(obj)
@@ -99,8 +103,7 @@ classdef NumericalHomogenizer < handle
     end
     
     methods (Access = private)
-        
-        
+                
         function loadFileName(obj)
             obj.fileName = 'test_microFineFine';
         end

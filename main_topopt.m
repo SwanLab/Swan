@@ -10,7 +10,8 @@ clear variables;
 
 %% Main
 filenames={
-   % 'CantileverTriangleFine_Case_1_1_1'
+   % 'CantileverTriangle_Case_4_1_1'
+    'CantileverTriangleFine_Case_1_1_1'
     %'GrippingTriangleCoarse_Case_1_1_1';
     %     'GrippingTriangleCoarse_Case_2_1_1';
     %     'GrippingTriangleCoarse_Case_3_1_1';
@@ -95,8 +96,8 @@ filenames={
 
 %     'ThroneTetrahedraSYM_Case_1_1_5'
 %     'ThroneTetrahedraSYM_Case_5_1_2'
-     'BikeTriangle_1_1_1'
-
+     %'BikeTriangle_1_1_1'
+    'MicroTriangle_Case_1_5_1'
 };
 
 for icases=1:size(filenames,1)

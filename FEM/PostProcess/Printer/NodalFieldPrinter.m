@@ -6,7 +6,7 @@ classdef NodalFieldPrinter < handle
         istep
         fieldType
         fieldPosition
-        simulationCase
+        simulationStr
     end
     
     methods (Access = protected)
@@ -15,7 +15,7 @@ classdef NodalFieldPrinter < handle
         function printResultsLineHeader(obj)
             iD = obj.fileID;
             fN = obj.fieldName;
-            sC = obj.simulationCase;
+            sC = obj.simulationStr;
             is = obj.istep;
             fT = obj.fieldType;
             rL = obj.fieldPosition;

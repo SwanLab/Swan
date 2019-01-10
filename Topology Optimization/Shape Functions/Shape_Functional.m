@@ -1,4 +1,5 @@
 classdef Shape_Functional < handle
+    
     properties
         value
         gradient
@@ -6,19 +7,50 @@ classdef Shape_Functional < handle
         filter
         Msmooth
         dvolu
-    end 
+        value0
+    end
     
-    methods
-        function obj = Shape_Functional(settings)
-           obj.filter = Filter.create(settings);
-           diffReacProb = DiffReact_Problem(settings.filename);
-           diffReacProb.preProcess;
-           obj.Msmooth = diffReacProb.element.M;
-           obj.dvolu = diffReacProb.geometry.dvolu;
-
+    methods (Access = public)
+        
+        function obj = Shape_Functional()
         end
-            
-        computeCostAndGradient(obj, x)
+        
+    end
+    
+    methods (Access = protected)
+        
+        function init(obj,settings)
+            obj.filter = Filter.create(settings);
+            obj.createMsmoothAndDvolu(settings.filename)
+        end
+        
+        function normalizeFunctionAndGradient(obj)
+            obj.normalizeFunctionValue();
+            obj.normalizeGradient();
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function createMsmoothAndDvolu(obj,fileName)
+            diffReacProb = DiffReact_Problem(fileName);
+            diffReacProb.preProcess;
+            obj.Msmooth = diffReacProb.element.M;
+            obj.dvolu = diffReacProb.geometry.dvolu;
+        end
+        
+        function normalizeFunctionValue(obj)
+            if isempty(obj.value0)
+                obj.value0 = obj.value;
+            end
+            obj.value = obj.value/abs(obj.value0);
+        end
+        
+        function normalizeGradient(obj)
+            obj.gradient = obj.gradient/abs(obj.value0);
+        end
+        
     end
 end
 

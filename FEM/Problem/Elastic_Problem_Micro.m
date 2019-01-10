@@ -28,16 +28,25 @@ classdef Elastic_Problem_Micro < Elastic_Problem
             Chomog =  zeros(nstre,nstre);
             tstrain = zeros(nstre,obj.element.quadrature.ngaus,nstre,obj.element.nelem);
             tstress = zeros(nstre,obj.element.quadrature.ngaus,nstre,obj.element.nelem);
+            var2print = cell(nstre,1);
             for istre=1:nstre
                 obj.element.setVstrain(vstrain(istre,:));
                 obj.computeVariables;
                 Chomog(:,istre) = obj.variables.stress_homog;
                 tstrain(istre,:,:,:) = obj.variables.strain;
                 tstress(istre,:,:,:) = obj.variables.stress;
+                var2print{istre}.stress = obj.variables.stress;
+                var2print{istre}.strain = obj.variables.strain;
+                var2print{istre}.stress_fluct = obj.variables.strain_fluct;
+                var2print{istre}.strain_fluct = obj.variables.strain_fluct;
+                var2print{istre}.d_u = obj.variables.d_u;
+                var2print{istre}.fext = obj.variables.fext;
             end
-            obj.variables.Chomog = Chomog;
+            obj.variables.Chomog  = Chomog;
             obj.variables.tstrain = tstrain;
             obj.variables.tstress = tstress;
+            
+            obj.variables.var2print = var2print;
         end
         
         function P2 = computeAmplificator(obj)

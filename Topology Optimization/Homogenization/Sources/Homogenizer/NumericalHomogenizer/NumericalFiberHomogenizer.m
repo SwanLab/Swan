@@ -14,7 +14,7 @@ classdef NumericalFiberHomogenizer < NumericalHomogenizer
             obj.generateMicroProblem();
             obj.computeHomogenizedVariables();
             obj.rotateCh();
-            obj.createDensityPrinter()            
+            obj.createDensityPrinter();            
             obj.print()
         end        
 

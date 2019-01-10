@@ -1,9 +1,12 @@
 classdef testPrintingDescriptor < handle
     
     properties (Access = protected, Abstract)
-        filesHaveChanged 
         fileOutputName
         iter
+    end
+    
+    properties (Access = protected)
+       filesHaveChanged 
     end
     
     methods (Access = protected)
@@ -16,8 +19,9 @@ classdef testPrintingDescriptor < handle
         
         function hasChanged = compareFile(obj,extension)
             out   = obj.fileOutputName;
+            fullOutSavedName = [out,'.flavia',extension];
             fullOutName = [out,num2str(obj.iter),'.flavia',extension];
-            savedPrintedFile = fullfile('tests','PrintingTests','PrintedFiles',fullOutName);
+            savedPrintedFile = fullfile('tests','PrintingTests','PrintedFiles',fullOutSavedName);
             outputFile = fullfile('Output',out,fullOutName);
             command = ['diff ', savedPrintedFile, ' ', outputFile];
             [hasChanged,~] = system(command);

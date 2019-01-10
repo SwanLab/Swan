@@ -1,20 +1,26 @@
 classdef DensityGaussResultsPrinter < ResultsPrinter ...
-    
-    properties
+        
+
+    properties (Access = protected)
+        simulationStr = 'DensityGauss';
+    end
+
+    properties (Access = private)
         fieldName = 'RegularizedDensity';
-        simulationCase = 'DensityGauss';
         headPrinter = GaussHeadPrinter;
     end
-    
+
     methods (Access = public)
-        
-        function obj = DensityGaussResultsPrinter()
+
+        function obj = DensityGaussResultsPrinter(d)
+            obj.init(d); 
+            obj.printHeader();
         end
+
     end
-    
-    
+
     methods (Access = protected)
-        
+
         function printHeader(obj)
             d.fileID = obj.fileID;
             d.gaussDescriptor = obj.gaussDescriptor;
@@ -24,31 +30,13 @@ classdef DensityGaussResultsPrinter < ResultsPrinter ...
             d.posgp = obj.posgp;
             obj.headPrinter.print(d);
         end
-        
-        function printResults(obj)
-            dens = obj.fields.density; 
-            iS = obj.istep;
-            gaussDescriptor = 'Guass up?';
-            dS = obj.createScalarDataBase(obj.fileID,dens, obj.fieldName,iS,'OnGaussPoints',gaussDescriptor);
-            ScalarGaussPrinter(dS);            
-        end
-    
-    end
-    
-    methods (Access = private)
-        
-        function d = createScalarDataBase(obj,fileID,fieldValues,fieldName,istep,fieldPosition,gaussDescriptor)
-            d.fileID = fileID;
-            d.fieldValues = fieldValues;
-            d.fieldName = fieldName;
-            d.istep = istep;
-            d.fieldPosition = fieldPosition;
-            d.gaussDescriptor = gaussDescriptor;
-            d.simulationCase = obj.simulationCase;
 
-        end        
-        
+        function printResults(obj)
+            dens = obj.fields;
+            dS = obj.createScalarGaussDataBase(dens, obj.fieldName,'OnGaussPoints');
+            ScalarGaussPrinter(dS);
+        end
+
     end
-    
-    
+
 end

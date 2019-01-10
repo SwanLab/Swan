@@ -3304,6 +3304,9 @@ coord = [
     3281            0            1            0
     ];
 
+pointload = [
+];
+
 %% Conectivities
 % Element        Node(1)                Node(2)                Node(3)    
       

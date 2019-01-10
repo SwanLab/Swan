@@ -3,8 +3,8 @@ classdef Cost < CC
         weights
     end
     methods
-        function obj = Cost(settings,weights,postprocess_TopOpt)
-            obj@CC(settings,settings.cost,postprocess_TopOpt);
+        function obj = Cost(settings,weights)
+            obj@CC(settings,settings.cost);
             if isempty(weights)
                 obj.weights = ones(1,length(settings.cost));
             else

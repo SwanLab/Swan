@@ -25,9 +25,7 @@ classdef PostProcessDataBaseCreator < handle
         
         function compute(obj,dI)
             mesh          = dI.mesh;
-            d.fields      = dI.fields;
             d.outFileName = dI.outName;
-            d.iter        = dI.iter;
             d.coordinates = mesh.coord;
             d.connectivities = mesh.connec;
             d.nnode = size(mesh.connec,2);

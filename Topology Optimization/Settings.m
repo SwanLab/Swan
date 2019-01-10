@@ -68,6 +68,7 @@ classdef Settings
         warningHoleBC
         printIncrementalIter
         printChangingFilter
+        printMode = 'DesignAndShapes';
     end
     
     methods

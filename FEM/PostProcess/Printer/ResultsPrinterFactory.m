@@ -1,29 +1,13 @@
 classdef ResultsPrinterFactory < handle
-    
-    methods (Access = public)
         
-        function obj = ResultsPrinterFactory()
-        end
-    end
-    
     methods (Access = public, Static)
-        function p = create(resultCase)
+        function p = create(resultCase,d)
             
-            switch resultCase
-                case 'NodalDensity'
-                    p = DensityResultsPrinter();
-                case 'NodalLevelSet'
-                    p = LevelSetResultsPrinter();
-                case 'GaussDensity'
-                    p = DensityGaussResultsPrinter();
-                case 'LevelSetGaussDensity'
-                    p = LevelSetDensityGaussResultsPrinter(); 
+            switch resultCase 
                 case 'Elasticity'
-                    p = ElasticityResultsPrinter();
-                case {'SLERP','PROJECTED SLERP', 'HAMILTON-JACOBI'}
-                    p = LevelSetResultsPrinter();      
-                case {'PROJECTED GRADIENT', 'MMA', 'IPOPT'}
-                    p = DensityResultsPrinter();                    
+                    p = ElasticityResultsPrinter(d);     
+                case 'TopOptProblem'
+                    p = TopOptResultsPrinter(d);
             end            
             
         end

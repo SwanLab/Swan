@@ -6,7 +6,7 @@ classdef ShFunc_Chomog_CC < ShFunc_Chomog %%NOT WORKING%%
     end
     methods
         function obj=ShFunc_Chomog_CC(settings)
-            obj@ShFunc_Chomog(settings);
+            obj.init(settings);
             obj.compute_Ch_star(settings.TOL, settings.selectiveC_Cstar);
         end
         function computeCostAndGradient(obj,x)
