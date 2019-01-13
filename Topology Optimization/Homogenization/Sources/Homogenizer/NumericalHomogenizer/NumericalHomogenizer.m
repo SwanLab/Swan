@@ -70,7 +70,8 @@ classdef NumericalHomogenizer < handle
         function createDensityPrinter(obj)
            obj.createPostProcessDataBase();
            postCase = 'TopOptProblem';
-           obj.densityPrinter = Postprocess(postCase,obj.dataBase);
+           dT.printMode = 'ElementalDensity';   
+           obj.densityPrinter = Postprocess(postCase,obj.dataBase,dT);
         end        
         
         function print(obj)
@@ -88,9 +89,6 @@ classdef NumericalHomogenizer < handle
             hasGaussData       = true;
             ps = PostProcessDataBaseCreator.create(hasGaussData,dI);
             obj.dataBase = ps.getValue();
-            obj.dataBase.ShapeNames = '';
-            obj.dataBase.optimizer = '';
-            obj.dataBase.printMode = 'ElementalDensity';   
             obj.dataBase.hasGaussData = hasGaussData;               
         end               
         

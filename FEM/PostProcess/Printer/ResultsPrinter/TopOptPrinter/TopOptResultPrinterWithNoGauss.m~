@@ -1,0 +1,26 @@
+classdef TopOptResultPrinterWithNoGauss < TopOptResultsPrinter
+    
+    
+    methods (Access = public)
+        
+        function obj = TopOptResultPrinterWithNoGauss(d,dT)
+            obj.init(d,dT);
+        end
+    end
+    
+    methods (Access = protected)
+        
+        function createHeadPrinter(obj,d)
+            obj.headPrinter = NoGaussHeadPrinter;
+            obj.headerData  = [];
+        end
+        
+        function createDataBaseForResultsPrinter(obj,d,dT)
+            dI.dStandard = d.dStandard;
+            dI.dStandard.ndim           = obj.ndim;
+            dI.dStandard.simulationStr  = obj.simulationStr;
+        end
+    end
+    
+    
+end

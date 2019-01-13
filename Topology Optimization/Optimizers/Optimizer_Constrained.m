@@ -108,7 +108,7 @@ classdef Optimizer_Constrained < Optimizer
             fN = obj.fileName;
             op = obj.optimizer;
             pM = obj.printMode;
-            obj.printer = OptimizerPrinter(m,op,fN,pM,cost,constraint);
+            obj.printer = OptimizerPrinter.create(m,op,fN,pM,cost,constraint);
         end
         
     end

@@ -1,18 +1,16 @@
-classdef MeshPrinter < handle
+classdef MeshPrinter < FilePrinter
+    
+    properties (Access = protected)
+       ext = 'msh' 
+    end
     
     properties (Access = private)
-        testName
-        fileID
         npnod
         pdim
         nnode
         coordinates
         connectivities
         nelem
-        ndim
-        etype
-        fileName
-        iter
     end
     
     methods (Access = public)
@@ -22,7 +20,7 @@ classdef MeshPrinter < handle
         
         function print(obj,d)
             obj.init(d);
-            obj.createFileName();
+            obj.createFileName(obj.iter);
             obj.openFile();
             obj.printFemMatOoHeader();
             obj.printHeader();
@@ -43,22 +41,11 @@ classdef MeshPrinter < handle
                 obj.(fieldsNames{ifield}) = fieldValue;
             end
         end
-              
-        function createFileName(obj)
-            iS = obj.iter;
-            obj.fileName = fullfile('Output',obj.testName,strcat(obj.testName,num2str(iS),'.flavia.msh'));
-        end
-        
-        function openFile(obj)
-            obj.fileID = fopen(obj.fileName,'w');
-        end
-        
+                     
         function printFemMatOoHeader(obj)
             iD = obj.fileID;
-            fprintf(iD,'####################################################\n');
-            fprintf(iD,'################# FEM-MAT-OO v.1.0 #################\n');
-            fprintf(iD,'####################################################\n');
-            fprintf(iD,'\n');
+            h = FemMatOoHeader();
+            h.print(iD);
         end
         
         function printCoordinates(obj)
@@ -90,11 +77,7 @@ classdef MeshPrinter < handle
             nN = obj.nnode;
             printFormat = 'MESH "WORKPIECE" dimension %3.0f   Elemtype %s   Nnode %2.0f \n \n';
             fprintf(iD,printFormat,nD,eT,nN);
-        end
-        
-        function closeFile(obj)
-            fclose(obj.fileID);
-        end
+        end        
         
     end
     

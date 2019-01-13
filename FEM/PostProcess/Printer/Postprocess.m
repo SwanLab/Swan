@@ -2,6 +2,7 @@ classdef Postprocess < handle
        
     properties (Access = protected)                  
         outFileName
+        resultsDir
         
         resultPrinter
         meshPrinter
@@ -13,11 +14,11 @@ classdef Postprocess < handle
     
      methods (Access = public)
  
-        function obj = Postprocess(postCase,d)
+        function obj = Postprocess(postCase,d,dT)            
             obj.init(d);          
             obj.createOutputDirectory();
             obj.createMeshPrinter();
-            obj.createResultPrinter(postCase);
+            obj.createResultPrinter(postCase,dT);
         end
                
         function  print(obj,iter,results)
@@ -27,29 +28,25 @@ classdef Postprocess < handle
         
         function r = getResFile(obj)
             r = obj.resultPrinter.getFieldName();
-        end
-        
-        function setIter(obj,i)
-            obj.resultPrinter.setIter(i);
-        end
+        end        
         
     end
        
     methods (Access = private)
         
         function init(obj,d)
-            obj.outFileName = d.outFileName;            
-            obj.mshDataBase = obj.computeDataBaseForMeshFile(d);                       
-            obj.resDataBase = obj.computeDataBaseForResFile(d); 
+            obj.outFileName = d.outFileName; 
+            obj.createResultsDirName();
+            obj.computeDataBaseForMeshFile(d);                       
+            obj.computeDataBaseForResFile(d); 
         end
         
         function createMeshPrinter(obj)
             obj.meshPrinter = MeshPrinter();            
         end
         
-        function createResultPrinter(obj,postCase)
-            factory  = ResultsPrinterFactory();
-            obj.resultPrinter = factory.create(postCase,obj.resDataBase);
+        function createResultPrinter(obj,postCase,dT)
+            obj.resultPrinter  = ResultsPrinter.create(postCase,obj.resDataBase,dT);
         end
         
         function printResFile(obj,iter,results)           
@@ -63,62 +60,53 @@ classdef Postprocess < handle
         end
         
         function createOutputDirectory(obj)
-            path = pwd;
-            dir = fullfile(path,'Output',obj.outFileName);
+            dir = obj.resultsDir;            
             if ~exist(dir,'dir')
                 mkdir(dir)
             end            
         end
     end
     
-     methods (Access = private, Static)
+     methods (Access = private)
         
-        function d = computeDataBaseForResFile(dI)
-            d.testName = dI.outFileName;
-            d.etype = dI.etype;
-            d.ptype = dI.ptype;
-            if isfield(dI,'ngaus')
-                d.ngaus = dI.ngaus;
-            else
-                d.ngaus = [];
-            end
-            d.ndim = dI.ndim;
-            if isfield(dI,'posgp')
-                d.posgp = dI.posgp;
-            else
-                d.posgp = [];
-            end
-            
-            if isfield(dI,'ShapeNames')
-                d.ShapeNames = dI.ShapeNames;
-            end
-            
-            if isfield(dI,'optimizer')
-                d.optimizer = dI.optimizer;
-            end
-            
-            if isfield(dI,'printMode')
-                d.printMode = dI.printMode;                
-            end
-            
-            if isfield(dI,'hasGaussData')
-                d.hasGaussData = dI.hasGaussData;                
-            end   
-            d.gaussDescriptor = 'Guass up?';
-        end
+        function computeDataBaseForResFile(obj,dI)
+            obj.resDataBase.dStandard = dI;
+            obj.resDataBase.dStandard.resultsDir = obj.resultsDir;
+            obj.createGaussDataBaseForResFile(dI);
+        end       
         
-        function d = computeDataBaseForMeshFile(dI)
-            d.coordinates = dI.coordinates;
+        function computeDataBaseForMeshFile(obj,dI)
+            d.coordinates    = dI.coordinates;
             d.connectivities = dI.connectivities;
-            d.testName = dI.outFileName;
-            d.npnod = dI.npnod;
-            d.pdim = dI.pdim;
-            d.nnode = dI.nnode;
-            d.nelem = dI.nelem;
-            d.ndim = dI.ndim;
-            d.etype = dI.etype;
+            d.outFileName    = dI.outFileName;
+            d.npnod          = dI.npnod;
+            d.pdim           = dI.pdim;
+            d.nnode          = dI.nnode;
+            d.nelem          = dI.nelem;
+            d.ndim           = dI.ndim;
+            d.etype          = dI.etype;
+            d.resultsDir     = obj.resultsDir;
+            obj.mshDataBase = d;
         end
  
-    end
+     end
+    
+     methods (Access = private)
+                  
+         function createResultsDirName(obj)
+            path = pwd;
+            obj.resultsDir = fullfile(path,'Output',obj.outFileName);                          
+         end
+         
+         function createGaussDataBaseForResFile(obj,dI)
+             if dI.hasGaussData
+                 dG.ngaus = dI.ngaus;
+                 dG.posgp = dI.posgp;
+                 dG.gaussDescriptor = 'Guass up?';
+                 obj.resDataBase.dGauss = dG;
+             end
+         end
+         
+     end
 
 end
