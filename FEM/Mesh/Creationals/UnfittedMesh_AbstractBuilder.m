@@ -6,6 +6,7 @@ classdef UnfittedMesh_AbstractBuilder < handle
         
         subcells_Mesher
         cutPoints_Calculator
+        meshPlotter
     end
 end
 

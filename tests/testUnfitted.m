@@ -18,6 +18,7 @@ classdef testUnfitted < test
             settings.printChangingFilter = false;
             obj.topOpt = TopOpt_Problem(settings);
             obj.topOpt.preProcess;
+            obj.levelSet = obj.topOpt.x;
         end
         
         function createMesh(obj)

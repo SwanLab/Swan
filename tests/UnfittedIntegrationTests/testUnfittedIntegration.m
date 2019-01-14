@@ -20,7 +20,6 @@ classdef testUnfittedIntegration < testShowingError...
         end
         
         function integrateSurface(obj)
-            obj.levelSet = obj.topOpt.x;
             obj.createMesh();
             
             area = obj.computeGeometricalVariable();

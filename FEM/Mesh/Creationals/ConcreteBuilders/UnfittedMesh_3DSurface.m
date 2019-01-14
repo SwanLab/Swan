@@ -6,6 +6,7 @@ classdef UnfittedMesh_3DSurface < UnfittedMesh_AbstractBuilder
         
         subcells_Mesher = SubcellsMesher_Boundary_3D;
         cutPoints_Calculator = CutPoints_Calculator_3D;
+        meshPlotter = MeshPlotter_Boundary_3D;
     end
 end
 

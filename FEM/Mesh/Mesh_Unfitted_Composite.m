@@ -5,6 +5,8 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
         boxFaceMeshes
         nodesInBoxFaces
         activeBoxFaceMesh
+        removedDimensions
+        removedDimensionsCoords
         
         ndim
         nsides = 2;
@@ -27,6 +29,24 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
             Mi = obj.computeInteriorMass();
             Mb = obj.computeBoxMass();
             M = Mi + Mb;
+        end
+        
+        function plot(obj)
+            h = figure;
+            obj.add2plot(axes(h));
+            light
+            axis equal off
+            hold off
+        end
+        
+        function add2plot(obj,ax)
+            obj.meshInterior.add2plot(ax);
+            
+            for iface = 1:obj.nboxFaces
+                if obj.activeBoxFaceMesh(iface)
+                    obj.boxFaceMeshes{iface}.add2plot(ax,obj.removedDimensions(iface),obj.removedDimensionsCoords(iface));
+                end
+            end
         end
     end
     
@@ -95,27 +115,38 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
         
         function [mb, nodesInBoxFace] = createBoxFaceBackgroundMesh(obj,idime,iside)
             [boxFaceCoords,nodesInBoxFace] = obj.getFaceCoordinates(idime,iside);
-            DT = delaunayTriangulation(boxFaceCoords);
-            face_connec = DT.ConnectivityList;
+            face_connec = obj.computeDelaunay(boxFaceCoords);
             mb = Mesh;
             mb = mb.create(boxFaceCoords,face_connec);
         end
         
         function [boxFaceCoords, nodesInBoxFace] = getFaceCoordinates(obj,idime,iside)
-            if iside == 1
-                L = min(obj.meshBackground.coord(:,idime));
-            else
-                L = max(obj.meshBackground.coord(:,idime));
-            end
-            
-            nodesInBoxFace = obj.meshBackground.coord(:,idime) == L;
+            D = obj.getFaceCharacteristicDimension(idime,iside);
+            nodesInBoxFace = obj.meshBackground.coord(:,idime) == D;
             boxFaceCoords = obj.meshBackground.coord(nodesInBoxFace,:);
             boxFaceCoords = obj.removeExtraDimension(boxFaceCoords,idime);
+            obj.storeRemovedDimensions(idime,iside,D);
         end
         
         function indexes = findConnecIndexes(obj,coord_indexes,nnode)
             number_of_valid_nodes_per_element = sum(ismember(obj.meshBackground.connec,coord_indexes),2);
             indexes = number_of_valid_nodes_per_element == nnode;
+        end
+        
+        function D = getFaceCharacteristicDimension(obj,idime,iside)
+            if iside == 1
+                D = min(obj.meshBackground.coord(:,idime));
+            elseif iside == 2
+                D = max(obj.meshBackground.coord(:,idime));
+            else
+                error('Invalid iside value. Valid values: 1 and 2.')
+            end
+        end
+        
+        function storeRemovedDimensions(obj,idime,iside,D)
+           iface = (idime-1)*obj.nsides + iside;
+           obj.removedDimensions(iface) = idime;
+           obj.removedDimensionsCoords(iface) = D;
         end
     end
     
@@ -138,6 +169,11 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
         function face_coord = removeExtraDimension(face_coord,idime)
             dimen = [1 2 3];
             face_coord = face_coord(:,dimen(dimen~=idime));
+        end
+        
+        function connec = computeDelaunay(coord)
+            DT = delaunayTriangulation(coord);
+            connec = DT.ConnectivityList;
         end
     end
 end

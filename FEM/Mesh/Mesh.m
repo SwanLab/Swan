@@ -1,4 +1,4 @@
-classdef Mesh < handle
+classdef Mesh < handle & matlab.mixin.Copyable
     properties (GetAccess = public, SetAccess = protected)
         coord
         connec
@@ -13,14 +13,12 @@ classdef Mesh < handle
             obj.coord = coordinates;
             obj.connec = connectivities;
             obj.ndim = size(coordinates,2);
-            obj.computeGeometryType;
-            %             obj.mean_cell_size = obj.computeMeanCellSize;
-            obj.estimate_mesh_characteristic_length;
+            obj.computeGeometryType();
+            obj.estimate_mesh_characteristic_length();
         end
         
-        function copy = clone(obj)
-            copy = Mesh;
-            copy.create(obj.coord,obj.connec);
+        function objClone = clone(obj)
+            objClone = copy(obj);
         end
         
         function meanCellSize = computeMeanCellSize(obj)
@@ -35,6 +33,10 @@ classdef Mesh < handle
             
             meanCellSize = mean(hs);
         end
+        
+        function changeCoordinates(obj,newCoords)
+            obj.coord = newCoords;
+        end
     end
     
     methods (Access = protected)
@@ -45,8 +47,6 @@ classdef Mesh < handle
     end
     
     methods (Access = private)
-        
-        
         function estimate_mesh_characteristic_length(obj)
             xmin = min(obj.coord);
             xmax = max(obj.coord);

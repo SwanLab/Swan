@@ -6,6 +6,7 @@ classdef UnfittedMesh_FlatCurve < UnfittedMesh_AbstractBuilder
         
         subcells_Mesher = SubcellsMesher_Boundary_2D;
         cutPoints_Calculator = CutPoints_Calculator_2D;
+        meshPlotter = MeshPlotter_Boundary_2D;
     end
 end
 

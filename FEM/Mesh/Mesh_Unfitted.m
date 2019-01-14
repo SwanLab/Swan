@@ -1,7 +1,8 @@
 classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
-    properties (Access = public) %(Access = private) Assigned by a Builder
-        subcells_Mesher
+    properties (Access = public) %(Access = private, Abstract)
+        subcells_Mesher % !! Remove underscore !!
         cutPoints_Calculator
+        meshPlotter
     end
     
     properties (GetAccess = public, SetAccess = private)
@@ -61,10 +62,15 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
             else
                 obj.coord = obj.meshBackground.coord;
                 obj.connec = obj.computeDelaunay(obj.coord);
-                
             end
             obj.computeGlobalConnectivities;
             obj.computeGeometryType;
+        end
+        
+        function mass = computeMass(obj)
+            integrator = Integrator.create(obj);
+            M2 = integrator.integrateUnfittedMesh(ones(size(obj.x_background)),obj);
+            mass = sum(M2);
         end
         
         function plot(obj)
@@ -75,10 +81,12 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
             hold off
         end
         
-        function mass = computeMass(obj)
-            integrator = Integrator.create(obj);
-            M2 = integrator.integrateUnfittedMesh(ones(size(obj.x_background)),obj);
-            mass = sum(M2);
+        function add2plot(obj,ax,removedDim,removedDimCoord)
+            meshUnfitted = obj.clone();
+            if nargin == 4
+                meshUnfitted = obj.meshPlotter.patchRemovedDimension(meshUnfitted,removedDim,removedDimCoord);
+            end
+            obj.meshPlotter.plot(meshUnfitted,ax);
         end
     end
     
@@ -96,6 +104,7 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
             obj.nnodes_subcell = builder.nnodes_subcell;
             obj.subcells_Mesher =	builder.subcells_Mesher;
             obj.cutPoints_Calculator = builder.cutPoints_Calculator;
+            obj.meshPlotter = builder.meshPlotter;
         end
         
         function computeGlobalConnectivities(obj)
