@@ -1,4 +1,4 @@
-classdef testUnfittedVolumeIntegration < testUnfittedGeometricalIntegration
+classdef testUnfittedVolumeIntegration < handle
     properties (Access = protected)
         meshIncludeBoxContour = false
     end    

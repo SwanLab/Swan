@@ -1,5 +1,4 @@
 classdef UnfittedIntegrationTests < testRunner
-    
     properties (Access = protected)
         FieldOfStudy = 'Unfitted integration tests'
         tests
@@ -14,23 +13,23 @@ classdef UnfittedIntegrationTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {...
-                'testSurfaceCylinderTetrahedra';
-                'testSurfaceCylinderHexahedra';
+                'testPerimeterCircleTriangle'
+                'testPerimeterCircleQuadrilateral'
                 
-                'testVolumeCylinderTetrahedra';
-                'testVolumeCylinderHexahedra';
-                
-                'testPerimeterCircleTriangle'  
-                'testPerimeterCircleQuadrilateral'  
-                
-                'testAreaCircleTriangle'  
-                'testAreaCircleQuadrilateral'  
+                'testAreaCircleTriangle'
+                'testAreaCircleQuadrilateral'
                 
                 'testSurfaceSphereTetrahedra';
                 'testSurfaceSphereHexahedra';
                 
                 'testVolumeSphereTetrahedra';
-                'testVolumeSphereHexahedra';                 
+                'testVolumeSphereHexahedra';
+                
+                'testSurfaceCylinderTetrahedra';
+                'testSurfaceCylinderHexahedra';
+                
+                'testVolumeCylinderTetrahedra';
+                'testVolumeCylinderHexahedra';
                 };
         end
     end
