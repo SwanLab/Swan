@@ -1,5 +1,5 @@
 classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
-    properties (Access = public) %(Access = private, Abstract)
+    properties (Access = private)
         subcells_Mesher % !! Remove underscore !!
         cutPoints_Calculator
         meshPlotter

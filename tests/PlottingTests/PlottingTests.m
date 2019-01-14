@@ -7,6 +7,7 @@ classdef PlottingTests < testRunner
     methods (Access = public)
         function  obj = PlottingTests()
             obj@testRunner();
+            close all;
         end
     end
     
@@ -24,7 +25,6 @@ classdef PlottingTests < testRunner
                 
                 'testPlotSphereTetrahedra';
                 'testPlotSphereHexahedra';
-                
                 };
         end
     end
