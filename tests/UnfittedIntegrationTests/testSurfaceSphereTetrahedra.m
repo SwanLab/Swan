@@ -6,6 +6,5 @@ classdef testSurfaceSphereTetrahedra < testUnfittedIntegration...
         analiticalArea = 4*pi;
         meshType = 'BOUNDARY';
    end
- 
 end
 

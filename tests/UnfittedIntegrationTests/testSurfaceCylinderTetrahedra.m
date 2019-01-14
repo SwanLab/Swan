@@ -6,6 +6,5 @@ classdef testSurfaceCylinderTetrahedra < testUnfittedIntegration...
         analiticalArea = pi*2 + 2*pi*2;
         meshType = 'BOUNDARY';
    end
- 
 end
 

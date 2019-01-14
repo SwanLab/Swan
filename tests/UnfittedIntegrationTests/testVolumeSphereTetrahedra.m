@@ -6,6 +6,5 @@ classdef testVolumeSphereTetrahedra < testUnfittedIntegration...
         analiticalArea = (4/3)*pi;
         meshType = 'INTERIOR';
    end
- 
 end
 

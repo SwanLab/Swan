@@ -9,7 +9,6 @@ classdef UnfittedIntegrationTests < testRunner
         function  obj = UnfittedIntegrationTests()
             obj@testRunner();
         end
-        
     end
     
     methods (Access = protected)
@@ -31,15 +30,9 @@ classdef UnfittedIntegrationTests < testRunner
                 'testSurfaceSphereHexahedra';
                 
                 'testVolumeSphereTetrahedra';
-                'testVolumeSphereHexahedra';
-                
-                
-                 
+                'testVolumeSphereHexahedra';                 
                 };
-            
-%             'test_circle_triangle','test_circle_quadrilateral','test_sphere_tetrahedra','test_sphere_hexahedra','test_cylinder_tetrahedra','test_cylinder_hexahedra'};
         end
     end
-    
 end
 
