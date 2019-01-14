@@ -1,0 +1,66 @@
+classdef testShapeStressWithAmplificator < testShowingError
+    
+    properties (Access = protected)
+        tol = 1e-6;
+        testName = 'testShapeStressWithAmplificator';
+    end
+    
+    properties (Access = private)
+        Pcomp
+        m1 = 0.2;
+        m2 = 0.8;
+        printing = false;
+        iter = 0;    
+        homog
+    end
+    
+    properties (Access = private)
+        
+    end
+    
+    methods (Access = public)
+        
+        function obj = testShapeStressWithAmplificator()
+            obj.createSmoothRectInclusionHomogenizer()
+            obj.obtainPcomponentWithHomogenizer(1,1);
+            obj.obtainPcomponentWithShapeFunction();
+        end
+        
+    end
+    
+    methods (Access = protected)
+        
+        function computeError(obj)
+            obj.error = abs(obj.Pcomp - 1);
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function createSmoothRectInclusionHomogenizer(obj)
+            f    = strcat(obj.testName);
+            p    = obj.printing;
+            m1v  = obj.m1;
+            m2v  = obj.m2;
+            i    = obj.iter;
+            obj.homog = NumericalSmoothRectangleHomogenizer(f,p,m1v,m2v,i);
+        end
+        
+        function obtainPcomponentWithHomogenizer(obj,i,j)
+            Ch            = obj.homog.getCh();
+            Ptensor       = obj.homog.getAmplificatorTensor();
+            PTensorValues = Ptensor.getValue();
+            obj.Pcomp = PTensorValues(i,j);
+        end
+        
+        function obtainPcomponentWithShapeFunction(obj)
+            ls = [];
+            sF ShFunc_StressNorm(ls)
+        end
+        
+        
+    end
+    
+    
+end

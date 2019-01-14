@@ -14,15 +14,15 @@ classdef PrintingTests < testRunner
     
     methods (Access = protected)
         function loadTests(obj)
-            obj.tests = {...        
-                  'testTopOptDesignAndShapes';                                      
-            'testTopOptLevelSetPrinting';
-            'testTopOptGaussDensityPrinting';                
+            obj.tests = {...                       
                   'testFEMPrinting';
                   'testTopOptNonSelfAdjoint'
                   'testTopOptLevelSetGaussDensityPrinting';                                                     
                   'testTopOptDesignElemDensShapePrinting';                                  
-                  'testTopOptDensityPrinting';                                    
+                  'testTopOptDensityPrinting';   
+                  'testTopOptDesignAndShapes';                                      
+            'testTopOptLevelSetPrinting';
+            'testTopOptGaussDensityPrinting';                   
                 };
 
         end

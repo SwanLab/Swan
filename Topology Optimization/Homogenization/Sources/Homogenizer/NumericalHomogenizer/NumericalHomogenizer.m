@@ -46,6 +46,10 @@ classdef NumericalHomogenizer < handle
             v = obj.volume;
         end        
         
+        function s = getSettings(obj)
+            s = obj.setting;
+        end
+        
     end
     
     methods (Access = protected)

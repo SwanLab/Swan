@@ -1,10 +1,13 @@
 classdef NumericalRectangleHomogenizer < NumericalRectangleTypeHomogenizer
     
+    properties (Access = protected)
+        outPutName = 'RectangularInclusion';
+    end
+    
     methods (Access = public)
         
         function obj = NumericalRectangleHomogenizer(fileName,print,m1,m2,iter)
             obj.compute(fileName,print,m1,m2,iter)  
-            obj.captureImage(iter)
         end        
         
     end
@@ -22,12 +25,6 @@ classdef NumericalRectangleHomogenizer < NumericalRectangleTypeHomogenizer
             input.ndim = obj.microProblem.mesh.ndim;
             designVar = LevelSetRectangleInclusion(input); 
             obj.nodalLevelSet = designVar.getValue();
-        end
-        
-        function captureImage(obj,iter) 
-            f = obj.resFile;
-            outPutName = ['RectangularInclusion',num2str(iter)];
-            GiDImageCapturer(f,outPutName);
         end
         
     end

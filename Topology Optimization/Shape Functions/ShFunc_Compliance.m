@@ -32,8 +32,4 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         
     end
     
-    methods (Access = private)
-        
- 
-    end
 end

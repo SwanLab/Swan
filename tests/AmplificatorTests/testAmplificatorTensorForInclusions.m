@@ -4,16 +4,9 @@ classdef testAmplificatorTensorForInclusions < ...
         testStoredComputedChecker
     
     properties (Access = private)
-        ampTensorNum
-        
-    end
-    
-    properties (Access = protected)
-        variablesToStore = {'P'};
-        tol = 1e-6;
+        ampTensorNum        
         fileName
         printTopology  
-        testName = 'AmplificatorTensorForInclusion';
         m2
         m1
         PinR
@@ -22,6 +15,12 @@ classdef testAmplificatorTensorForInclusions < ...
         PinS
         CS
         volS
+    end
+    
+    properties (Access = protected)
+        variablesToStore = {'P'};
+        tol = 1e-6;
+        testName = 'AmplificatorTensorForInclusion';
     end
     
     methods (Access = public)
@@ -90,10 +89,8 @@ classdef testAmplificatorTensorForInclusions < ...
         function printFigure(obj,figureID,h1,h2,lege)            
             ca = get(figureID,'CurrentAxes');
             xl = get(ca,'xlabel');
-            yl = get(ca,'ylabel');
             set(gca,'fontsize',20)
             set(xl,'string','volume','FontSize',30)
-            %set(yl,'string',lege,'FontSize',30)
             set(h1,'LineWidth',1.5);
             set(h2,'LineWidth',1.5);            
             plot_x0=1920;
