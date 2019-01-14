@@ -5,7 +5,6 @@ classdef testRunner < handle
     end
     
     methods (Access = protected)
-        
         function obj = testRunner()
             obj.printHeader()
             obj.compute()
