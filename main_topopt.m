@@ -2,6 +2,7 @@ clc; clear variables; close all;
 addpath(genpath(fileparts(mfilename('fullpath'))));
 
 %% Test
+run('PlottingTests.m')
 % run('FemTests.m');
 % run('TopOptTests.m');
 % run('UnfittedIntegrationTests.m')

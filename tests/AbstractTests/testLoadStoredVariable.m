@@ -1,5 +1,4 @@
 classdef testLoadStoredVariable < handle
-    
     properties (Abstract, Access = protected)
         testName
         variablesToStore
@@ -10,13 +9,12 @@ classdef testLoadStoredVariable < handle
     end
     
     methods (Access = protected)
-        
         function obj = testLoadStoredVariable()
            obj.loadStoredVariable()
         end
     end
     
-    methods (Access = protected)
+    methods (Access = private)
         function loadStoredVariable(obj)
             file2load = obj.testName;
             load(file2load);
@@ -25,7 +23,5 @@ classdef testLoadStoredVariable < handle
             end
         end
     end
-    
-
 end
 

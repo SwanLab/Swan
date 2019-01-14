@@ -4,3 +4,4 @@ FemTests;
 TopOptTests;
 HomogenizationTests;
 %AmplificatorTests;
+PlottingTests;

@@ -1,18 +1,16 @@
 classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
-    properties %(GetAccess = public, SetAccess = private)
+    properties (Access = public) %(Access = private) Assigned by a Builder
+        subcells_Mesher
+        cutPoints_Calculator
+    end
+    
+    properties (GetAccess = public, SetAccess = private)
         pdim
         meshType
         
         max_subcells
         nnodes_subcell
-    end
-    
-    properties %(Access = private) % Strategies
-        subcells_Mesher
-        cutPoints_Calculator
-    end
-    
-    properties %(GetAccess = public, SetAccess = protected) % !! Change to private?? !!
+        
         coord_iso
         connec_local
         coord_iso_per_cell

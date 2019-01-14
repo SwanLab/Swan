@@ -1,5 +1,4 @@
 classdef testRunner < handle
-    
     properties (Abstract, Access = protected)
         FieldOfStudy
         tests

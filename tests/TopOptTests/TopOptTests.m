@@ -1,7 +1,4 @@
-
 classdef TopOptTests < testRunner
-    
-    
     properties (Access = protected)
         FieldOfStudy = 'TopOpt tests'
         tests
@@ -26,11 +23,8 @@ classdef TopOptTests < testRunner
                'testGripping';              
                'testMicro2';
                'testCantilever';   
-               
                };
-
         end
-    end
-    
+    end  
 end
 
