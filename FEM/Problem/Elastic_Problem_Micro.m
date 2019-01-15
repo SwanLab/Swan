@@ -107,6 +107,17 @@ classdef Elastic_Problem_Micro < Elastic_Problem
             P  = obj.computeAmplificatorTensor(Pt,nstre,V,dV,ngaus);
         end
         
+        function Pt = computePtensor(obj,tstres,Shomog,nstre)
+            Pt = zeros(size(tstres));
+            for istre = 1:nstre
+                for jstre = 1:nstre
+                    for kstre = 1:nstre
+                        Pt(istre,:,jstre,:) = Pt(istre,:,jstre,:) + tstres(istre,:,kstre,:)*Shomog(kstre,jstre);
+                    end
+                end
+            end
+        end
+        
         function P = computeAmplificatorTensor(obj,Pt,nstre,V,dV,ngaus)
             P = zeros(nstre,nstre);
             for istre = 1:nstre
@@ -131,26 +142,13 @@ classdef Elastic_Problem_Micro < Elastic_Problem
                     f = 2;
                 end
             elseif nstre ==6
-                 if k <= 3
+                if k <= 3
                     f = 1;
-                 else
+                else
                     f = 2;
                 end
             end
         end
-        
-        
-        function Pt = computePtensor(obj,tstres,Shomog,nstre)
-            Pt = zeros(size(tstres));
-            for istre = 1:nstre
-                for jstre = 1:nstre
-                    for kstre = 1:nstre
-                        Pt(istre,:,jstre,:) = Pt(istre,:,jstre,:) + tstres(istre,:,kstre,:)*Shomog(kstre,jstre);
-                    end
-                end
-            end
-        end
-        
         
         
         function P = computeAmplificatorsWithStress(obj,tstres,V,dV,Shomog,nstre,ngaus)
@@ -170,6 +168,6 @@ classdef Elastic_Problem_Micro < Elastic_Problem
             end
             P = Shomog'*Ch2*Shomog;
         end
-        
+                
     end
 end

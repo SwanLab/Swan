@@ -26,7 +26,6 @@ classdef ResultsPrinterFactory < handle
                     dG = d.dGauss;
                     p = ElasticityMicroResultsPrinter(dS,dG);
                 case 'TopOptProblem'                    
-                   % dT = obj.createDataBaseForTopOpt(d.dStandard);
                     d.dStandard = dS;
                     p = TopOptResultsPrinter.create(d,dT,dS.hasGaussData);
                 case 'DensityGauss'

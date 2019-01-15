@@ -89,14 +89,10 @@ classdef OptimizerPrinter < handle
             if isequal(obj.printMode,'ElementalDensity') ...
                     || isequal(obj.printMode,'DesignAndElementalDensity')
                 
-                phi0 = obj.computePhiP0(x,cost);
-                dens0  = obj.computeDensityP0(phi0);
-                obj.fields.dens = dens0;
+                obj.fields.dens = obj.computeDensP0(x,cost);
                 
             elseif isequal(obj.printMode,'DesignElementalDensityAndShape')
-                phi0 = obj.computePhiP0(x,cost);
-                dens0  = obj.computeDensityP0(phi0);
-                obj.fields.dens = dens0;
+                obj.fields.dens = obj.computeDensP0(x,cost);
                 
                 shapeFuncs = {cost.ShapeFuncs{:},constraint.ShapeFuncs{:}};
                 iprint = 0;
@@ -109,8 +105,7 @@ classdef OptimizerPrinter < handle
                     end
                 end
                 
-            else
-                
+            else                
                 shapeFuncs = {cost.ShapeFuncs{:},constraint.ShapeFuncs{:}};
                 iprint = 0;
                 for ishape = 1:numel(shapeFuncs)
@@ -152,32 +147,14 @@ classdef OptimizerPrinter < handle
             end
         end
         
-        function phiP0 = computePhiP0(obj,x,cost)
-            conec = obj.mesh.connec;
+        function dens = computeDensP0(obj,x,cost)
+            ls = x;
             phyPr = cost.ShapeFuncs{1}.getPhysicalProblem();
-            shape = phyPr.element.interpolation_u.shape;
-            quadr = phyPr.element.quadrature;
-            ngaus = quadr.ngaus;
-            nelem = size(conec,1);
-            nnode = size(shape,1);
-            
-            phiP0 = zeros(ngaus,nelem);
-            phi   = x;
-            
-            for igaus = 1:ngaus
-                for inode = 1:nnode
-                    nodes = conec(:,inode);
-                    phiN(1,:) = phi(nodes);
-                    phiP0(igaus,:) = phiP0(igaus,:) + shape(inode,igaus)*phiN;
-                end
-            end
-            
+            filter = FilterP0(ls,phyPr);
+            dens = filter.getDens0();            
         end
         
-        function dens = computeDensityP0(obj,phi)
-            dens = 1 - heaviside(phi);
-        end
-        
+
     end
     
     methods (Access = protected, Abstract)
