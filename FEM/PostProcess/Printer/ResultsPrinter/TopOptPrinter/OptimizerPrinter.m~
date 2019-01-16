@@ -11,7 +11,6 @@ classdef OptimizerPrinter < handle
         constraint
         dataBase
         dT
-        dI
         hasGaussData
         fields
     end
@@ -30,9 +29,9 @@ classdef OptimizerPrinter < handle
         function init(obj,mesh,optimizer,fileName,printMode,cost,constraint)
             obj.cost = cost;
             obj.constraint = constraint;
-            obj.obtainHasGaussDataAndQuad();
-            obj.createDataInputForCreateDataBase(mesh,fileName);
-            obj.createDataBase();
+            obj.obtainHasGaussDataAndQuad(); 
+            obj.createData
+            obj.createDataBase(mesh,fileName);
             obj.createDtDataBase(optimizer,printMode);
             obj.postproc = Postprocess('TopOptProblem',obj.dataBase,obj.dT);
             obj.mesh = mesh;
@@ -47,32 +46,31 @@ classdef OptimizerPrinter < handle
     end
     
     methods (Access = protected)
-        
+                
         function createDtDataBase(obj,optimizer,printMode)
             obj.dT.optimizer = optimizer;
             obj.dT.printMode = printMode;
         end
         
         function  createTopOptFields(obj,x,cost,constraint)
-            obj.fields.designVariable = x;
-        end
+            obj.fields.designVariable = x;           
+        end 
         
-        function createDataInputForCreateDataBase(obj,mesh,fileName)
-            obj.dI.iter    = 0;
-            obj.dI.mesh    = mesh;
-            obj.dI.outName = fileName;
-        end       
+        function createDataBase(obj,mesh,fileName)
+            dI.iter    = 0;
+            dI.mesh    = mesh;
+            dI.outName = fileName;            
+            ps = PostProcessDataBaseCreator.create(false,dI);
+            obj.dataBase = ps.getValue();
+            obj.dataBase.hasGaussData = obj.hasGaussData; 
+        end 
         
     end
     
     methods (Access = private)
         
-        function createDataBase(obj)
-            ps = PostProcessDataBaseCreator.create(obj.hasGaussData,obj.dI);
-            obj.dataBase = ps.getValue();
-            obj.dataBase.hasGaussData = obj.hasGaussData;
-        end       
-        
+               
+
     end
     
     methods (Access = protected, Abstract)

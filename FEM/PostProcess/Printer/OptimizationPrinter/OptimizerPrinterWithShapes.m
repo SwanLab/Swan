@@ -1,15 +1,20 @@
 classdef OptimizerPrinterWithShapes <  OptimizerPrinter
     
     properties (Access = private)
-       shapeNames
-       shapeFuncs       
-       quad
+        shapeNames
+        shapeFuncs
+        quad
     end
     
     methods (Access = protected)
         
+        function createDtDataBase(obj,optimizer,printMode)
+            obj.createDtDataBase@OptimizerPrinter(optimizer,printMode)
+            obj.dT.ShapeNames = obj.shapeNames;
+        end
+        
         function obtainHasGaussDataAndQuad(obj)
-            obj.shapeFuncs = {obj.cost.ShapeFuncs{:},obj.constraint.ShapeFuncs{:}};            
+            obj.shapeFuncs = {obj.cost.ShapeFuncs{:},obj.constraint.ShapeFuncs{:}};
             h = false;
             q = [];
             s = [];
@@ -22,19 +27,27 @@ classdef OptimizerPrinterWithShapes <  OptimizerPrinter
             obj.shapeNames = s;
             obj.hasGaussData = h;
             obj.quad = q;
-            
-            if obj.hasGaussData
-                obj.dI.quad = obj.quad;
+        end
+        
+        function createTopOptFields(obj,x,cost,constraint)
+            shFuncs = {cost.ShapeFuncs{:},constraint.ShapeFuncs{:}};
+            iprint = 0;
+            for ishape = 1:numel(shFuncs)
+                shapeFun = shFuncs{ishape};
+                [f,hasToPrint] = obj.obtainFieldToPrint(shapeFun);
+                if hasToPrint
+                    iprint = iprint + 1;
+                    obj.fields.shVar{iprint} = f;
+                end
             end
         end
         
-        function createDataBaseForPostProcess(obj,ps,optimizer,printMode)
-            obj.dataBase = ps.getValue();
-            obj.dataBase.hasGaussData = obj.hasGaussData;            
-            obj.dT.optimizer = optimizer;
-            obj.dT.printMode = printMode;
-            obj.dT.ShapeNames = obj.shapeNames;                   
-        end        
+        function createDataInputForCreateDataBase(obj,mesh,fileName)
+            obj.createDataInputForCreateDataBase@OptimizerPrinter(mesh,fileName);
+            if obj.hasGaussData
+               obj.dI.quad = obj.quad;
+            end
+        end
         
     end
     
@@ -84,7 +97,48 @@ classdef OptimizerPrinterWithShapes <  OptimizerPrinter
             sF = shapeFuncsToPrint;
         end
         
+        function itIs = isShapePrintable(obj,shapeFunc)
+            shapeName = class(shapeFunc);
+            printingShapes = {'ShFunc_NonSelfAdjoint_Compliance',...
+                'ShFunc_Compliance', ...
+                'ShFunc_Chomog_alphabeta',...
+                'ShFunc_Chomog_fraction'};
+            itIs = any(strcmp(printingShapes,shapeName));
+        end
+        
+        function [f,hasToPrint] = obtainFieldToPrint(obj,shapeFun)
+            hasToPrint = false;
+            f = [];
+            shapeFunName = class(shapeFun);
+            switch shapeFunName
+                case 'ShFunc_NonSelfAdjoint_Compliance'
+                    hasToPrint = true;
+                    phyPr = shapeFun.getPhysicalProblem();
+                    f{1} = phyPr.variables;
+                    adjPr = shapeFun.getAdjointProblem();
+                    f{2} = adjPr.variables;
+                case 'ShFunc_Compliance'
+                    hasToPrint = true;
+                    phyPr = shapeFun.getPhysicalProblem();
+                    f{1} = phyPr.variables;
+                case {'ShFunc_Chomog_alphabeta','ShFunc_Chomog_fraction'}
+                    hasToPrint = true;
+                    phyPr = shapeFun.getPhysicalProblem();
+                    var = phyPr.variables.var2print;
+                    f = cell(numel(var),1);
+                    for it = 1:numel(var)
+                        f{it} = var{it};
+                    end
+            end
+        end        
+        
+        function [h,q] = obtainQuadHasGaussData(obj,sh)
+            h = true;
+            phyPr = sh.getPhysicalProblem();
+            q = phyPr.element.quadrature;
+        end
     end
+    
     
     
 end

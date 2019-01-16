@@ -1,4 +1,4 @@
-classdef OptimizerPrinterWithNoGaussData < OptimizerPrinter
+classdef OptimizerPrinterDesignVariable < OptimizerPrinter
     
     
     methods (Access = protected)
@@ -6,6 +6,7 @@ classdef OptimizerPrinterWithNoGaussData < OptimizerPrinter
         function obtainHasGaussDataAndQuad(obj)
             obj.hasGaussData = false;
         end
+        
         
     end
     

@@ -1,0 +1,14 @@
+classdef OptimizerDesignAndShapes < OptimizerPrinterWithShapes
+                            OptimizerPrinter ...
+                                 
+    methods (Access = protected) 
+        
+        function  createTopOptFields(obj,x,cost,constraint)
+            obj.createTopOptFields@OptimizerPrinter(x,cost,constraint);            
+            obj.obtainFieldsToPrintOfShapeFunctions(cost,constraint) 
+        end 
+        
+        
+    end
+                                                           
+end

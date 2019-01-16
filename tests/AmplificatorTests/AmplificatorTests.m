@@ -15,7 +15,7 @@ classdef AmplificatorTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {...   
-                   'testShapeStressWithAmplificator';
+                   %'testShapeStressWithAmplificator';
                    'testAmplificatorsPdependency';
                   % 'testAmplificatorTensorForInclusions';
                   % 'testAmplificatorTensorNumericVsExplicitForSeqLam';

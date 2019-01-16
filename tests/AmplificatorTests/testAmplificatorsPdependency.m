@@ -44,8 +44,12 @@ classdef testAmplificatorsPdependency < ...
         
         function computeFirstAmplicatorComponents(obj)
             obj.firstInvP = ones(obj.nExp,2);
-            obj.firstInvP(2,1) = obj.obtainFirstPinverseFromHomogenizer(obj.hSmooth);
-            obj.firstInvP(2,2) = obj.obtainFirstPinverseFromHomogenizer(obj.hNonSmooth);
+            for ip = 1:obj.nExp
+               p = obj.pExp(ip);
+               obj.firstInvP(ip,1) = obj.obtainFirstPinverseFromHomogenizer(obj.hSmooth,p);
+               obj.firstInvP(ip,2) = obj.obtainFirstPinverseFromHomogenizer(obj.hNonSmooth,p);
+            end
+
         end
         
         function selectComputedVar(obj)
@@ -53,7 +57,14 @@ classdef testAmplificatorsPdependency < ...
         end
         
         function plotFirstAmplificatorComponent(obj)
-            plot(obj.pExp,obj.firstInvP,'-+')
+            figureID = figure(1);
+            h{1} = plot(obj.pExp,obj.firstInvP,'-+');
+            legend({'Smooth','NonSmooth'})
+            figureName = 'InverseFirstPcompwithPnorm';
+            outPutFigName = ['/home/alex/Dropbox/Amplificators/Images/',figureName];
+            xlabelName = 'Pnorm';
+            fp = figurePlotter(figureID,h,xlabelName);
+            fp.print(outPutFigName)
         end
         
         function createSmoothRectInclusionHomogenizer(obj)
@@ -74,11 +85,23 @@ classdef testAmplificatorsPdependency < ...
             obj.hNonSmooth = NumericalRectangleHomogenizer(f,p,m1v,m2v,i);                
         end
         
-        function f = obtainFirstPinverseFromHomogenizer(obj,homog)
-            Ch            = homog.getCh();
-            Ptensor       = homog.getAmplificatorTensor();
-            PTensorValues = Ptensor.getValue();
-            f = 1/PTensorValues(1,1);            
+        function f = obtainFirstPinverseFromHomogenizer(obj,homog,p)
+            strain = obj.computeStrainWithCanonicalStress(homog);
+            settings = homog.getSettings();
+            ls = homog.getLevelSet();
+            sF = ShFunc_StressNorm(settings);
+            sF.filter.preProcess();
+            sF.setVstrain(strain);
+            sF.setPnorm(p);            
+            sF.computeCostAndGradient(ls)
+            Pv = sF.getValue();
+            f = 1/((Pv)^(1/p));
+        end        
+        
+        function strain = computeStrainWithCanonicalStress(obj,homog)
+            stress = [1,0,0]';
+            Ch = homog.getCh();           
+            strain = Ch\stress;
         end
         
     end

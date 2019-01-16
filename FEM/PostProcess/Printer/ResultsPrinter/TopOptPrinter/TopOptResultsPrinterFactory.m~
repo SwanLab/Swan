@@ -38,7 +38,7 @@ classdef TopOptResultsPrinterFactory < handle
                     p = {TopOptElementalDensityPrinter(d,dT)};
                 case {'DesignElementalDensityAndShape'}
                     s = dT.ShapeNames;                    
-                    opt = dT.optimizer; 
+                    opt    = dT.optimizer; 
                     p = {TopOptDesignVariablePrinter(d,dT,opt),...
                         TopOptShapesPrinter(d,dT,s),...
                         TopOptElementalDensityPrinter(d,dT)};

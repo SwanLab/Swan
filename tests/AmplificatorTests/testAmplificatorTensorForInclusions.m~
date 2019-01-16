@@ -87,12 +87,22 @@ classdef testAmplificatorTensorForInclusions < ...
         
         
         function printFigure(obj,figureID,h1,h2,lege)            
+            ca = get(figureID,'CurrentAxes');
+            xl = get(ca,'xlabel');
+            set(gca,'fontsize',20)
+            set(xl,'string','volume','FontSize',30)
+            set(h1,'LineWidth',1.5);
+            set(h2,'LineWidth',1.5);            
+            plot_x0=1920;
+            plot_y0=500;
+            plot_width=600;
+            plot_height=600;  
+            set(figureID,'units','points','position',[plot_x0,plot_y0,plot_width,plot_height])
+            output_figure_format = '-dpng';%'-dpdf'; %'-depsc'
             outPutFile = ['/home/alex/Dropbox/Amplificators/Images/',lege];
-            h{1} = h1;
-            h{2} = h2;
-            xlabelName = 'volume';
-            fp = figurePlotter(figureID,h,xlabelName);
-            fp.print(outPutFile);
+            print(figureID,outPutFile,output_figure_format);      
+            
+            figurePlotter(figureID,)
         end
         
         function computeVariablesForRectangularInclusion(obj,im1)
