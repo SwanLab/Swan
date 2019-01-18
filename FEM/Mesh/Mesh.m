@@ -4,7 +4,6 @@ classdef Mesh < handle & matlab.mixin.Copyable
         connec
         ndim
         geometryType
-        %         mean_cell_size
         problem_characterisitc_length % !! Rename?? !!
     end
     
@@ -14,7 +13,6 @@ classdef Mesh < handle & matlab.mixin.Copyable
             obj.connec = connectivities;
             obj.ndim = size(coordinates,2);
             obj.computeGeometryType();
-            obj.estimate_mesh_characteristic_length();
         end
         
         function objClone = clone(obj)
@@ -34,6 +32,12 @@ classdef Mesh < handle & matlab.mixin.Copyable
             meanCellSize = mean(hs);
         end
         
+        function characterisitcLength = computeCharacteristicLength(obj)
+            xmin = min(obj.coord);
+            xmax = max(obj.coord);
+            characterisitcLength = norm(xmax-xmin)/2;
+        end
+        
         function changeCoordinates(obj,newCoords)
             obj.coord = newCoords;
         end
@@ -43,14 +47,6 @@ classdef Mesh < handle & matlab.mixin.Copyable
         function computeGeometryType(obj)
             nnode = size(obj.connec,2);
             obj.geometryType = MeshGeometryType_Factory.getGeometryType(obj.ndim,nnode);
-        end
-    end
-    
-    methods (Access = private)
-        function estimate_mesh_characteristic_length(obj)
-            xmin = min(obj.coord);
-            xmax = max(obj.coord);
-            obj.problem_characterisitc_length = norm(xmax-xmin)/2;
         end
     end
 end
