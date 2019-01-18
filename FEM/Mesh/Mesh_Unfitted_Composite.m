@@ -2,17 +2,19 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
     properties (GetAccess = public, SetAccess = private)
         meshInterior
         boxFaceMeshes
-        activeBoxFaceMesh
-        nboxFaces
+        activeBoxFaceMeshesList
+        nActiveBoxFaces
     end
     
     properties (Access = private)
         meshBackground;
         nodesInBoxFaces
-
+        isBoxFaceMeshActive
+        
         removedDimensions
         removedDimensionsCoords
         
+        nboxFaces
         ndim
         nsides = 2;
     end
@@ -20,8 +22,8 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
     methods (Access = public)
         function obj = Mesh_Unfitted_Composite(meshType,meshBackground,interpolation_background)
             obj.init(meshBackground);
-            obj.createInteriorMesh(meshType,meshBackground,interpolation_background)
-            obj.createBoxMeshes()
+            obj.createInteriorMesh(meshType,meshBackground,interpolation_background);
+            obj.createBoxMeshes();
         end
         
         function computeMesh(obj,levelSet)
@@ -45,11 +47,9 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
         
         function add2plot(obj,ax)
             obj.meshInterior.add2plot(ax);
-            
-            for iface = 1:obj.nboxFaces
-                if obj.activeBoxFaceMesh(iface)
-                    obj.boxFaceMeshes{iface}.add2plot(ax,obj.removedDimensions(iface),obj.removedDimensionsCoords(iface));
-                end
+            for iactive = 1:obj.nActiveBoxFaces
+                iface = obj.activeBoxFaceMeshesList(iactive);
+                obj.boxFaceMeshes{iface}.add2plot(ax,obj.removedDimensions(iface),obj.removedDimensionsCoords(iface));
             end
         end
     end
@@ -87,7 +87,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
         
         function computeBoxMeshes(obj,levelSet)
             iface = 0;
-            obj.activeBoxFaceMesh = false([1 obj.nboxFaces]);
+            obj.isBoxFaceMeshActive = false([1 obj.nboxFaces]);
             for idime = 1:obj.ndim
                 for iside = 1:obj.nsides
                     iface = iface + 1;
@@ -96,18 +96,18 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
                     lsBoxFace = levelSet(obj.nodesInBoxFaces{iface});
                     if obj.isBoxMeshActive(lsBoxFace,mshBack)
                         obj.boxFaceMeshes{iface}.computeMesh(lsBoxFace);
-                        obj.activeBoxFaceMesh(iface) = true;
+                        obj.isBoxFaceMeshActive(iface) = true;
                     end
                 end
             end
+            obj.updateActiveBoxFaceMeshesList();
         end
         
         function M = computeBoxMass(obj)
             M = 0;
-            for iface = 1:obj.nboxFaces
-                if obj.activeBoxFaceMesh(iface)
-                    M = M + obj.boxFaceMeshes{iface}.computeMass();
-                end
+            for iactive = 1:obj.nActiveBoxFaces
+                iface = obj.activeBoxFaceMeshesList(iactive);
+                M = M + obj.boxFaceMeshes{iface}.computeMass();
             end
         end
         
@@ -151,6 +151,11 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
             iface = (idime-1)*obj.nsides + iside;
             obj.removedDimensions(iface) = idime;
             obj.removedDimensionsCoords(iface) = D;
+        end
+        
+        function updateActiveBoxFaceMeshesList(obj)
+            obj.activeBoxFaceMeshesList = find(obj.isBoxFaceMeshActive);
+            obj.nActiveBoxFaces = length(obj.activeBoxFaceMeshesList);
         end
     end
     
