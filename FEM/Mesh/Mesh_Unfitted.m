@@ -1,7 +1,7 @@
 classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
     properties (Access = private)
-        subcells_Mesher % !! Remove underscore !!
-        cutPoints_Calculator
+        subcellsMesher
+        cutPointsCalculator
         meshPlotter
     end
     
@@ -102,8 +102,8 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
             obj.meshType = builder.meshType;
             obj.max_subcells = builder.max_subcells;
             obj.nnodes_subcell = builder.nnodes_subcell;
-            obj.subcells_Mesher =	builder.subcells_Mesher;
-            obj.cutPoints_Calculator = builder.cutPoints_Calculator;
+            obj.subcellsMesher =	builder.subcellsMesher;
+            obj.cutPointsCalculator = builder.cutPointsCalculator;
             obj.meshPlotter = builder.meshPlotter;
         end
         
@@ -232,15 +232,15 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
             currentCell_cutPoints_iso = obj.getCurrentCutPoints(Nodes_n_CutPoints_iso,real_cutPoints,icut);
             currentCell_cutPoints_global = obj.getCurrentCutPoints(Nodes_n_CutPoints_global,real_cutPoints,icut);
             [new_coord_iso,new_coord_global,new_x_unfitted,new_subcell_connec]...
-                = obj.subcells_Mesher.computeSubcells(obj.meshBackground,obj.background_geom_interpolation,obj.x_background,obj.meshBackground.connec(icell,:),currentCell_cutPoints_iso,currentCell_cutPoints_global);
+                = obj.subcellsMesher.computeSubcells(obj.meshBackground,obj.background_geom_interpolation,obj.x_background,obj.meshBackground.connec(icell,:),currentCell_cutPoints_iso,currentCell_cutPoints_global);
         end
         
         function [Nodes_n_CutPoints_iso,real_cutPoints] = computeCutPoints_Iso(obj)
-            [Nodes_n_CutPoints_iso,real_cutPoints] = obj.cutPoints_Calculator.computeCutPoints_Iso(obj.meshBackground,obj.x_background,obj.background_cut_cells,obj.background_geom_interpolation);
+            [Nodes_n_CutPoints_iso,real_cutPoints] = obj.cutPointsCalculator.computeCutPoints_Iso(obj.meshBackground,obj.x_background,obj.background_cut_cells,obj.background_geom_interpolation);
         end
         
         function [Nodes_n_CutPoints_global,real_cutPoints] = computeCutPoints_Global(obj)
-            [Nodes_n_CutPoints_global,real_cutPoints] = obj.cutPoints_Calculator.computeCutPoints_Global(obj.meshBackground,obj.x_background,obj.background_cut_cells,obj.background_geom_interpolation);
+            [Nodes_n_CutPoints_global,real_cutPoints] = obj.cutPointsCalculator.computeCutPoints_Global(obj.meshBackground,obj.x_background,obj.background_cut_cells,obj.background_geom_interpolation);
         end
         
     end

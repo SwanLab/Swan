@@ -4,8 +4,8 @@ classdef UnfittedMesh_AbstractBuilder < handle
         max_subcells
         nnodes_subcell
         
-        subcells_Mesher
-        cutPoints_Calculator
+        subcellsMesher
+        cutPointsCalculator
         meshPlotter
     end
 end

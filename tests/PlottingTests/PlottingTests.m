@@ -1,6 +1,6 @@
 classdef PlottingTests < testRunner
     properties (Access = protected)
-        FieldOfStudy = 'Plotting tests'
+        FieldOfStudy = 'Plotting'
         tests
     end
     

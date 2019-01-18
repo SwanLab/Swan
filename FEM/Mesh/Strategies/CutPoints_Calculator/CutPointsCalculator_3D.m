@@ -1,4 +1,4 @@
-classdef CutPoints_Calculator_3D < CutPoints_Calculator_Abstract
+classdef CutPointsCalculator_3D < CutPointsCalculator_Abstract
     methods (Access = public, Static)
         function [P,active_nodes] = computeCutPoints_Iso(mesh_background,x_background,background_cut_cells,background_geom_interpolation)
             pos_nodes = background_geom_interpolation.pos_nodes;
