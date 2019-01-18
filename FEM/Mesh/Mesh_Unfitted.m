@@ -122,7 +122,7 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
             obj.backgroundCutCells = indexes(~(obj.backgroundFullCells | obj.backgroundEmptyCells));
         end
         
-        function obj = computeMesh_Delaunay(obj)
+        function obj = computeMesh_Delaunay(obj) % !! Should Delaunay or Marching Cubes strategies should be defined in subcellMesher NOT in the method !!
             [Nodes_n_CutPoints_iso,real_cutPoints] = obj.computeCutPoints_Iso;
             Nodes_n_CutPoints_global = obj.computeCutPoints_Global;
             

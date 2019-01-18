@@ -1,6 +1,7 @@
 classdef Mesh_Unfitted_Factory < handle
     properties (Access = private)
         includeBoxContour
+        shallBeComposite
         nargin
     end
     
@@ -10,8 +11,9 @@ classdef Mesh_Unfitted_Factory < handle
             obj.nargin = nargin;
             
             obj.determineFlagState(PropertyName,PropertyValue);
+            obj.checkFlagStateConsistency(meshType);
             
-            if obj.includeBoxContour
+            if obj.shallBeComposite
                 mesh_unfitted = Mesh_Unfitted_Composite(meshType,meshBackground,interpolation_background);
             else
                 mesh_unfitted = Mesh_Unfitted(meshType,meshBackground,interpolation_background);
@@ -31,6 +33,15 @@ classdef Mesh_Unfitted_Factory < handle
         function assignPropertyValue(obj,PropertyName,PropertyValue)
             obj.checkProperty(PropertyName,PropertyValue);
             obj.includeBoxContour = PropertyValue;
+        end
+        
+        function checkFlagStateConsistency(obj,meshType)
+           if obj.includeBoxContour && strcmp(meshType,"INTERIOR")
+               warning('Contours are always included for INTERIOR mesh type.')
+               obj.shallBeComposite = false;
+           else
+               obj.shallBeComposite = obj.includeBoxContour;
+           end
         end
     end
     
