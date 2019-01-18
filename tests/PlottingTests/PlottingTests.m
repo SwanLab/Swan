@@ -17,14 +17,14 @@ classdef PlottingTests < testRunner
                 %                 'testRectangleTriangle'
                 %                 'testRectangleQuadrilateral'
                 
-                'testPlotCylinderTetrahedra';
-                'testPlotCylinderHexahedra';
-                
                 'testPlotCircleTriangle'
                 'testPlotCircleQuadrilateral'
                 
                 'testPlotSphereTetrahedra';
                 'testPlotSphereHexahedra';
+                
+                'testPlotCylinderTetrahedra';
+                'testPlotCylinderHexahedra';
                 };
         end
     end

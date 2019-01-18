@@ -1,16 +1,20 @@
 classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
-    properties (Access = private)
-        meshBackground;
+    properties (GetAccess = public, SetAccess = private)
         meshInterior
         boxFaceMeshes
-        nodesInBoxFaces
         activeBoxFaceMesh
+        nboxFaces
+    end
+    
+    properties (Access = private)
+        meshBackground;
+        nodesInBoxFaces
+
         removedDimensions
         removedDimensionsCoords
         
         ndim
         nsides = 2;
-        nboxFaces
     end
     
     methods (Access = public)
@@ -144,9 +148,9 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
         end
         
         function storeRemovedDimensions(obj,idime,iside,D)
-           iface = (idime-1)*obj.nsides + iside;
-           obj.removedDimensions(iface) = idime;
-           obj.removedDimensionsCoords(iface) = D;
+            iface = (idime-1)*obj.nsides + iside;
+            obj.removedDimensions(iface) = idime;
+            obj.removedDimensionsCoords(iface) = D;
         end
     end
     

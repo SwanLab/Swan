@@ -1,9 +1,13 @@
 classdef testPlotting < testNotShowingError...
-                        & testUnfitted
-%         & testLoadStoredVariable
+        & testUnfitted...
+        & testLoadStoredVariable
     
     properties (Access = protected, Abstract)
         testName
+    end
+    
+    properties (Access = protected)
+        variablesToStore = {'coord','connec'};
     end
     
     methods (Access = protected)
@@ -18,9 +22,12 @@ classdef testPlotting < testNotShowingError...
         end
         
         function hasPassed = hasPassed(obj)
-           hasPassed = false; 
+            if all(all(obj.mesh.coord == obj.storedVar{1})) && all(all(obj.mesh.connec == obj.storedVar{2}))
+                hasPassed = true;
+            else
+                hasPassed = false;
+            end
         end
-    end
-    
+    end    
 end
 
