@@ -24,7 +24,7 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
         end
         
         function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
-            obj.createOptimizerPrinter(cost,constraint);
+            obj.createPostProcess(cost,constraint);
             cost.computeCostAndGradient(x_ini)
             funcs.objective = @(x) obj.objective(x,cost);
             funcs.gradient = @(x) obj.gradient(x,cost);

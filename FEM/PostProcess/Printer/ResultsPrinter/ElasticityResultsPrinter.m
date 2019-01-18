@@ -1,4 +1,5 @@
-classdef ElasticityResultsPrinter < ResultsPrinter
+classdef ElasticityResultsPrinter < ResultsPrinter ...
+        & GaussResultsPrinter
     
     properties (Access = protected)
         simulationStr = 'ElasticityResults';
@@ -19,9 +20,8 @@ classdef ElasticityResultsPrinter < ResultsPrinter
     
     methods (Access = public)
         
-        function obj = ElasticityResultsPrinter(d,dGauss)
+        function obj = ElasticityResultsPrinter(d)
             obj.init(d);
-            obj.storeDataBase(dGauss);            
         end
         
         function setStrVariablesNames(obj,s1,s2,s3)
@@ -30,22 +30,29 @@ classdef ElasticityResultsPrinter < ResultsPrinter
             obj.dispStr   = s3;
         end
         
+        function storeResultsInfo(obj,d)
+            obj.storeQuadInfo(d);
+            obj.fields = d.variables;
+        end
+        
+        
     end
     
     methods (Access = protected)
         
+        
         function printHeader(obj)
             d.fileID = obj.fileID;
-            d.gaussDescriptor = obj.gaussDescriptor;
             d.etype = obj.etype;
-            d.ngaus = obj.ngaus;
             d.ndim  = obj.ndim;
+            d.gaussDescriptor = obj.gaussDescriptor;
             d.posgp = obj.posgp;
+            d.ngaus = obj.ngaus;
             obj.headPrinter.print(d);
         end
         
         function printResults(obj)
-            obj.createDataBases();
+            obj.createDataBases(obj.fields);
             VectorNodalPrinter(obj.dV);
             VectorGaussPrinter(obj.dSig);
             VectorGaussPrinter(obj.dStr);
@@ -55,8 +62,8 @@ classdef ElasticityResultsPrinter < ResultsPrinter
     
     methods (Access = private)
         
-        function createDataBases(obj)
-            f = obj.fields;
+        function createDataBases(obj,fields)
+            f = fields;
             obj.dV   = obj.createVectorDataBase(f.d_u,obj.dispStr,'OnNodes',obj.displCompStr);
             obj.dSig = obj.createVectorGaussDataBase(f.stress, obj.stressStr,'OnGaussPoints',obj.stressCompStr);
             obj.dStr = obj.createVectorGaussDataBase(f.strain, obj.strainStr,'OnGaussPoints',obj.strainCompStr);

@@ -11,7 +11,7 @@ classdef NumericalHomogenizer < handle
         Ptensor
         volume
         
-        densityPrinter
+        postProcess
         
         interpolation
         densityPostProcess
@@ -73,27 +73,24 @@ classdef NumericalHomogenizer < handle
         
         function createDensityPrinter(obj)
            obj.createPostProcessDataBase();
-           postCase = 'TopOptProblem';
-           dT.printMode = 'ElementalDensity';   
-           obj.densityPrinter = Postprocess(postCase,obj.dataBase,dT);
+           postCase = 'DensityGauss';             
+           obj.postProcess = Postprocess(postCase,obj.dataBase);
         end        
         
         function print(obj)
             if obj.hasToBePrinted
-                fields.dens = obj.density;
-                obj.densityPrinter.print(obj.iter,fields);
-                obj.resFile = obj.densityPrinter.getResFile();
+                d.dens = obj.density;
+                d.quad = obj.microProblem.element.quadrature;
+                obj.postProcess.print(obj.iter,d);
+                obj.resFile = obj.postProcess.getResFile();
             end
         end   
         
         function createPostProcessDataBase(obj)
             dI.mesh            = obj.microProblem.mesh;
             dI.outName         = obj.outputName;
-            dI.quad            = obj.microProblem.element.quadrature;
-            hasGaussData       = true;
-            ps = PostProcessDataBaseCreator.create(hasGaussData,dI);
-            obj.dataBase = ps.getValue();
-            obj.dataBase.hasGaussData = hasGaussData;               
+            ps = PostProcessDataBaseCreatorWithNoGaussData(dI);
+            obj.dataBase = ps.getValue();               
         end               
         
         function computeHomogenizedVariables(obj)

@@ -6,9 +6,8 @@ classdef ResultsPrinterFactory < handle
     end
     
     methods (Access = public)
-        function p = create(obj,resultCase,d,dT)
-            obj.createStandardDataBase(d.dStandard);
-            obj.createPrinter(resultCase,d,dT);
+        function p = create(obj,resultCase,d)
+            obj.createPrinter(resultCase,d);
             p = obj.printer;
         end
         
@@ -16,47 +15,24 @@ classdef ResultsPrinterFactory < handle
     
     methods (Access = private)
         
-        function createPrinter(obj,resultCase,d,dT)
-            dS = obj.dStandard;           
+        function createPrinter(obj,resultCase,d)
             switch resultCase
-                case 'Elasticity'
-                    dG = d.dGauss;
-                    p = ElasticityResultsPrinter(dS,dG);
+                case 'Elasticity'                    
+                    p = ElasticityResultsPrinter(d);
                 case 'ElasticityMicro'
-                    dG = d.dGauss;
-                    p = ElasticityMicroResultsPrinter(dS,dG);
+                    p = ElasticityMicroResultsPrinter(d);
                 case 'TopOptProblem'                    
-                    d.dStandard = dS;
-                    p = TopOptResultsPrinter.create(d,dT,dS.hasGaussData);
+                    p = TopOptResultsPrinter(d);
                 case 'DensityGauss'
-                    dG = d.dGauss;
-                    p = DensityGaussResultsPrinter(dS,dG);
+                    p = DensityGaussResultsPrinter(d);
                 case 'LevelSet'
-                    p = LevelSetResultsPrinter(dS);
+                    p = LevelSetResultsPrinter(d);
                 case 'Density'
-                    p = DensityResultsPrinter(dS);
+                    p = DensityResultsPrinter(d);
             end
             obj.printer = p;
         end
         
-        function createStandardDataBase(obj,d)
-            dS.etype           = d.etype;
-            dS.ndim            = d.ndim;
-            dS.ptype           = d.ptype;
-            dS.outFileName     = d.outFileName;
-            dS.hasGaussData    = d.hasGaussData;
-            dS.resultsDir      = d.resultsDir;
-            obj.dStandard = dS;
-        end
-        
     end
-    
-    methods (Access = private, Static)
-        
-        function dT = createDataBaseForTopOpt(d)
-            dT.optimizer       = d.optimizer;
-            dT.printMode       = d.printMode;
-            dT.ShapeNames      = d.ShapeNames;
-        end
-    end
+
 end

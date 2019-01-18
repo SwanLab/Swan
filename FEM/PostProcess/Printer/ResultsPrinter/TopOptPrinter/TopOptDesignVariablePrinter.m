@@ -1,18 +1,20 @@
 classdef TopOptDesignVariablePrinter < TopOptPrinter
-            
-    methods (Access = public)         
+    
+    methods (Access = public)
         
-        function obj = TopOptDesignVariablePrinter(d,dT,opt)
-            dV = designVariable.obtainName(opt);
-            obj.printers = ResultsPrinter.create(dV,d,dT);
-            obj.printers.setSimulationStr(d.dStandard.simulationStr)
+        function obj = TopOptDesignVariablePrinter(d)
+            dV = designVariable.obtainName(d.optimizer);
+            obj.printers{1} = ResultsPrinter.create(dV,d);
         end
-                
-        function print(obj,istep,fields)
+        
+        function print(obj,istep)
             i = istep;
-            f = fields.designVariable;
-            obj.printers.printOnlyResults(i,f);      
-        end                               
+            obj.printers{1}.printOnlyResults(i);
+        end
+        
+        function itHas =  hasGaussData(obj)
+            itHas = false;
+        end
         
     end
     

@@ -6,9 +6,8 @@ classdef TopOptResultsPrinterFactory < handle
     
     methods (Access = public)
         
-        function obj = TopOptResultsPrinterFactory(d,dT,s)
-            obj.buildPrinters(d,dT);
-            obj.setSimulationStrToPrinters(s);
+        function obj = TopOptResultsPrinterFactory(d)
+             obj.buildPrinters(d);
         end
         
         function p = getPrinters(obj)
@@ -20,37 +19,25 @@ classdef TopOptResultsPrinterFactory < handle
     
      methods (Access = private)
         
-        function buildPrinters(obj,d,dT)
-            switch dT.printMode
-                case {'DesignAndShapes'}
-                    s = dT.ShapeNames;
-                    opt = dT.optimizer;
-                    p = {TopOptShapesPrinter(d,dT,s),...
-                        TopOptDesignVariablePrinter(d,dT,opt)};
-                case {'DesignVariable'}
-                    opt = dT.optimizer;                    
-                    p = {TopOptDesignVariablePrinter(d,dT,opt)};
+        function buildPrinters(obj,d)
+            switch d.printMode
+                case {'DesignVariable'}                  
+                    p = {TopOptDesignVariablePrinter(d)};
                 case {'DesignAndElementalDensity'}
-                    opt = dT.optimizer;                    
-                    p = {TopOptDesignVariablePrinter(d,dT,opt),...
-                        TopOptElementalDensityPrinter(d,dT)};
+                    p = {TopOptDesignVariablePrinter(d),...
+                        TopOptElementalDensityPrinter(d)};
                 case {'ElementalDensity'}
-                    p = {TopOptElementalDensityPrinter(d,dT)};
+                    p = {TopOptElementalDensityPrinter(d)};
+                case {'DesignAndShapes'}
+                    p = {TopOptShapesPrinter(d),...
+                        TopOptDesignVariablePrinter(d)};                    
                 case {'DesignElementalDensityAndShape'}
-                    s = dT.ShapeNames;                    
-                    opt = dT.optimizer; 
-                    p = {TopOptDesignVariablePrinter(d,dT,opt),...
-                        TopOptShapesPrinter(d,dT,s),...
-                        TopOptElementalDensityPrinter(d,dT)};
+                    p = {TopOptDesignVariablePrinter(d),...
+                        TopOptShapesPrinter(d),...
+                        TopOptElementalDensityPrinter(d)};
             end 
             obj.printers = p;
         end
         
-        function setSimulationStrToPrinters(obj,simulationStr)
-            for iprinter = 1:numel(obj.printers)
-                p = obj.printers{iprinter};
-                p.setSimulationStr(simulationStr);
-            end            
-        end
     end
 end

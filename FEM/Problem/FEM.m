@@ -105,10 +105,12 @@ classdef FEM < handle
         end
         
         function print(obj,fileName)
-            d = obj.createPostProcessDataBase(fileName);
-            dT = [];
-            postprocess = Postprocess('Elasticity',d,dT);
-            postprocess.print(obj.iter,obj.variables);
+            dI = obj.createPostProcessDataBase(fileName);
+            postprocess = Postprocess('Elasticity',dI);
+            q = obj.element.quadrature; 
+            d.variables = obj.variables;
+            d.quad = q;
+            postprocess.print(obj.iter,d);
         end
         
         function i = getIter(obj)
@@ -120,13 +122,10 @@ classdef FEM < handle
     methods (Access = private)
         
         function d = createPostProcessDataBase(obj,fileName)
-            d.mesh    = obj.mesh;
-            d.outName = fileName;
-            d.quad    = obj.element.quadrature;
-            hasGaussData = true;
-            ps = PostProcessDataBaseCreator.create(hasGaussData,d);
-            d = ps.getValue();
-            d.hasGaussData = hasGaussData;
+            dI.mesh    = obj.mesh;
+            dI.outName = fileName;
+            ps = PostProcessDataBaseCreatorWithNoGaussData(dI);
+            d = ps.getValue();           
         end
         
     end

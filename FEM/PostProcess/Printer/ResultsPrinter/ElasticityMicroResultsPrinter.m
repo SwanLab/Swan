@@ -1,16 +1,24 @@
-classdef ElasticityMicroResultsPrinter < ResultsPrinter
+classdef ElasticityMicroResultsPrinter < ResultsPrinter ...
+        & GaussResultsPrinter 
     
     properties (Access = protected)
         simulationStr = 'ElasticityMicroResultsPrinter';
     end
     
     properties (Access = private)
-        stressStr = 'Stress';
-        strainStr = 'Strain';
-        stressFlucStr = 'StressFluc';
-        strainFlucStr = 'StrainFluc';
-        dispStr   = 'Displacements';
-        forStr      = 'Forces';
+        stressStrBase = 'Stress';
+        strainStrBase = 'Strain';
+        stressFlucStrBase = 'StressFluc';
+        strainFlucStrBase = 'StrainFluc';
+        dispStrBase = 'Displacements';
+        forStrBase  = 'Forces';
+        stressStr
+        strainStr
+        stressFlucStr
+        strainFlucStr
+        dispStr
+        forStr
+
         stressCompStr = 'S';
         strainCompStr = 'E';
         displCompStr  = 'U';
@@ -26,19 +34,23 @@ classdef ElasticityMicroResultsPrinter < ResultsPrinter
     
     methods (Access = public)
         
-        function obj = ElasticityMicroResultsPrinter(d,dGauss)
+        function obj = ElasticityMicroResultsPrinter(d)
             obj.init(d);
-            obj.storeDataBase(dGauss);                        
         end
         
-        function setStrVariablesCase(obj,n)
+        function setStrVariablesMicroCase(obj,n)
             n = num2str(n);
-            obj.stressStr     = strcat(obj.stressStr,n);
-            obj.strainStr     = strcat(obj.strainStr,n);
-            obj.stressFlucStr = strcat(obj.stressFlucStr,n);
-            obj.strainFlucStr = strcat(obj.strainFlucStr,n);
-            obj.dispStr       = strcat(obj.dispStr,n);
-            obj.forStr        = strcat(obj.forStr,n);
+            obj.stressStr     = strcat(obj.stressStrBase,n);
+            obj.strainStr     = strcat(obj.strainStrBase,n);
+            obj.stressFlucStr = strcat(obj.stressFlucStrBase,n);
+            obj.strainFlucStr = strcat(obj.strainFlucStrBase,n);
+            obj.dispStr       = strcat(obj.dispStrBase,n);
+            obj.forStr        = strcat(obj.forStrBase,n);
+        end
+        
+        function storeResultsInfo(obj,d)
+            obj.storeQuadInfo(d);
+            obj.fields = d.variables;
         end
         
     end

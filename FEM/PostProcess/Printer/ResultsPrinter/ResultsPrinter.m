@@ -2,13 +2,9 @@ classdef ResultsPrinter < FilePrinter
     
     properties (Access = protected)
         ext = 'res'
-        gaussDescriptor
-        ngaus
-        posgp
         ptype
         fields
-        hasGaussData
-    end
+  end
     
     properties (Access = protected, Abstract)
         simulationStr
@@ -16,18 +12,18 @@ classdef ResultsPrinter < FilePrinter
     
     methods (Access = public, Static)
         
-        function rP = create(resultCase,d,dT)
+        function rP = create(resultCase,d)
             f = ResultsPrinterFactory();
-            rP = f.create(resultCase,d,dT);
+            rP = f.create(resultCase,d);
         end
         
     end
     
     methods (Access = public)
         
-        function print(obj,iter,fields)
-            obj.iter  = iter;
-            obj.fields = fields;
+        function print(obj,iter,d)
+            obj.storeResultsInfo(d)
+            obj.iter = iter;
             obj.createFileName(iter);
             obj.openFile();
             obj.printHeader();
@@ -35,18 +31,13 @@ classdef ResultsPrinter < FilePrinter
             obj.closeFile();
         end
         
-        function printOnlyResults(obj,iter,fields)
+        function printOnlyResults(obj,iter)
             obj.openMode = 'a';
             obj.iter  = iter;
-            obj.fields = fields;
             obj.createFileName(iter);
             obj.openFile();
             obj.printResults();
             obj.closeFile();
-        end
-        
-        function f = getFieldName(obj)
-            f = obj.fileName;
         end
         
         function setSimulationStr(obj,s)
@@ -55,26 +46,15 @@ classdef ResultsPrinter < FilePrinter
         
     end
     
+    
     methods (Access = protected)
         
         function init(obj,d)
-            obj.storeDataBase(d)
-            obj.createFileName(obj.iter);
-            obj.openFile();
-        end
-        
-        function storeDataBase(obj,d)
-            fieldsNames = fieldnames(d);
-            for ifield = 1:length(fieldsNames)
-                fieldName = fieldsNames{ifield};
-                fieldValue = d.(fieldName);
-                obj.(fieldsNames{ifield}) = fieldValue;
-            end
-        end
-        
-        function d = createScalarGaussDataBase(obj,varargin)
-            d = obj.createScalarDataBase(varargin{:});
-            d = obj.addGaussDescriptor(d);
+            obj.ptype = d.ptype;
+            obj.etype = d.etype;
+            obj.ndim  = d.ndim;
+            obj.outFileName = d.outFileName;
+            obj.resultsDir = d.resultsDir;            
         end
         
         function d = createScalarDataBase(obj,fieldValues,fieldName, fieldPosition)
@@ -91,23 +71,16 @@ classdef ResultsPrinter < FilePrinter
             d.fieldComponentName = fieldComponentName;
         end
         
-        function d = createVectorGaussDataBase(obj,varargin)
-            d = obj.createVectorDataBase(varargin{:});
-            d = obj.addGaussDescriptor(d);
-        end
-    end
-    
-    methods (Access = private)
-        
-        function d = addGaussDescriptor(obj,d)
-            d.gaussDescriptor = obj.gaussDescriptor;
-        end
-        
+
     end
     
     methods (Abstract, Access = protected)
         printResults(obj)
         printHeader(obj)
+    end
+    
+    methods (Access = public, Abstract)
+       storeResultsInfo(obj)
     end
     
     

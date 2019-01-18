@@ -16,6 +16,10 @@ classdef DensityResultsPrinter < ResultsPrinter
             obj.init(d);
         end
         
+        function storeResultsInfo(obj,d)
+            obj.fields = d.x;
+        end
+        
     end
     
     methods (Access = protected)

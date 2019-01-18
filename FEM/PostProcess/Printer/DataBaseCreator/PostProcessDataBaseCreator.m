@@ -12,15 +12,6 @@ classdef PostProcessDataBaseCreator < handle
         
     end
     
-    methods (Access = public, Static)
-        
-        function ps = create(PostDataBaseCase,dI)
-            factory = PostProcessDataBaseCreatorFactory();
-            ps      = factory.create(PostDataBaseCase,dI);
-        end
-        
-    end
-    
     methods (Access = protected)
         
         function compute(obj,dI)

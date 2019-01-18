@@ -19,6 +19,10 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
             sV(1,:) = s;
             obj.physProb.element.setVstrain(sV);
         end
+        
+        function setPnorm(obj,p)
+            obj.pNorm = p;
+        end
         function computeCostAndGradient(obj,x)
             obj.updateMaterialProperties(x);
             obj.solvePDEs();

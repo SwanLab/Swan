@@ -12,7 +12,7 @@ classdef Optimizer_Constrained < Optimizer
     end
     
     properties (Access = private)
-        printer
+        postProcess
         printing
         fileName
         mesh
@@ -28,7 +28,7 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
-            obj.createOptimizerPrinter(cost,constraint);
+            obj.createPostProcess(cost,constraint);
 
 %            obj.print(x_ini,obj.niter,cost,constraint);
             x_ini = obj.compute_initial_value(x_ini,cost,constraint); % !! REMOVE WHEN DesginVariableInitializer CONSIDERS Projected_Slerp INITIAL GUESS !!
@@ -62,7 +62,10 @@ classdef Optimizer_Constrained < Optimizer
         
         function print(obj,x,iter,cost,constraint)
             if (obj.printing)
-                obj.printer.print(x,iter,cost,constraint);
+                d.x = x;
+                d.cost = cost;
+                d.constraint = constraint;
+                obj.postProcess.print(iter,d);
             end
         end
         
@@ -103,17 +106,25 @@ classdef Optimizer_Constrained < Optimizer
             fclose(fid_mesh);
         end
         
-        function createOptimizerPrinter(obj,cost,constraint)
-            m  = obj.mesh;            
-            fN = obj.fileName;
-            op = obj.optimizer;
-            pM = obj.printMode;
-            obj.printer = OptimizerPrinter.create(m,op,fN,pM,cost,constraint);
+        function createPostProcess(obj,cost,constraint)
+            d = obj.createPostProcessDataBase(obj.fileName);
+            d.printMode = obj.printMode;
+            d.optimizer = obj.optimizer;
+            d.cost = cost;
+            d.constraint = constraint;
+            obj.postProcess = Postprocess('TopOptProblem',d);
         end
         
     end
     
     methods (Access = private)
+        
+        function d = createPostProcessDataBase(obj,fileName)
+            d.mesh    = obj.mesh;
+            d.outName = fileName;
+            ps = PostProcessDataBaseCreatorWithNoGaussData(d);
+            d = ps.getValue();
+        end
         
         function init(obj,settings,mesh)
             obj.fileName    = settings.case_file;

@@ -1,26 +1,29 @@
-classdef DensityGaussResultsPrinter < ResultsPrinter ...
-        
-
+classdef DensityGaussResultsPrinter < ResultsPrinter & GaussResultsPrinter
+    
     properties (Access = protected)
         simulationStr = 'DensityGauss';
     end
-
+    
     properties (Access = private)
         fieldName = 'RegularizedDensity';
         headPrinter = GaussHeadPrinter;
     end
-
+    
     methods (Access = public)
-
-        function obj = DensityGaussResultsPrinter(d,dGauss)
-            obj.init(d); 
-            obj.storeDataBase(dGauss);                        
+        
+        function obj = DensityGaussResultsPrinter(d)
+            obj.init(d);
         end
-
+        
+        function storeResultsInfo(obj,d)
+            obj.storeQuadInfo(d);
+            obj.fields = d.dens;          
+        end
+        
     end
-
+    
     methods (Access = protected)
-
+        
         function printHeader(obj)
             d.fileID = obj.fileID;
             d.gaussDescriptor = obj.gaussDescriptor;
@@ -30,13 +33,14 @@ classdef DensityGaussResultsPrinter < ResultsPrinter ...
             d.posgp = obj.posgp;
             obj.headPrinter.print(d);
         end
-
+        
         function printResults(obj)
             dens = obj.fields;
             dS = obj.createScalarGaussDataBase(dens, obj.fieldName,'OnGaussPoints');
             ScalarGaussPrinter(dS);
         end
-
+        
     end
-
+        
+    
 end
