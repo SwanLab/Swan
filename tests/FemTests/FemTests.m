@@ -2,7 +2,7 @@ classdef FemTests < testRunner
     
     
     properties (Access = protected)
-        FieldOfStudy = 'Fem tests'
+        FieldOfStudy = 'FEM'
         tests
     end
     

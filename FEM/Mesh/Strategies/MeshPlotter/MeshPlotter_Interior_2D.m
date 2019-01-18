@@ -22,7 +22,7 @@ classdef MeshPlotter_Interior_2D < MeshPlotter_Abstract
         function init(obj,meshUnfitted)
             obj.meshUnfitted = meshUnfitted;
             obj.meshBackground = meshUnfitted.meshBackground;
-            obj.fullCells = meshUnfitted.background_full_cells;
+            obj.fullCells = meshUnfitted.backgroundFullCells;
         end
         
         function plotCutCells(obj,ax)

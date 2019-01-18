@@ -1,6 +1,6 @@
 classdef UnfittedIntegrationTests < testRunner
     properties (Access = protected)
-        FieldOfStudy = 'Unfitted integration tests'
+        FieldOfStudy = 'Unfitted integration'
         tests
     end
     

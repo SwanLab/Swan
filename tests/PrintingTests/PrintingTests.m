@@ -2,7 +2,7 @@ classdef PrintingTests < testRunner
     
     
     properties (Access = protected)
-        FieldOfStudy = 'Printing Tests'
+        FieldOfStudy = 'Printing'
         tests
     end
     

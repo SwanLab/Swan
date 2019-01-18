@@ -2,7 +2,7 @@ classdef AmplificatorTests < testRunner
     
     
     properties (Access = protected)
-        FieldOfStudy = 'AmplificatorTest'
+        FieldOfStudy = 'Amplificator'
         tests
     end
     

@@ -33,7 +33,7 @@ classdef Integrator_Interior < Integrator
         function shapeValues_AllCells = assembleShapeValues(obj,shapeValues_CutCells,shapeValues_FullCells)
             interpolation = Interpolation.create(obj.meshBackground,'LINEAR');
             shapeValues_AllCells = zeros(size(obj.meshBackground.connec));
-            shapeValues_AllCells(obj.mesh_unfitted.background_full_cells,:) = shapeValues_FullCells(obj.mesh_unfitted.background_full_cells,:);
+            shapeValues_AllCells(obj.mesh_unfitted.backgroundFullCells,:) = shapeValues_FullCells(obj.mesh_unfitted.backgroundFullCells,:);
             
             for i_subcell = 1:size(shapeValues_CutCells,2)
                 shapeValues_AllCells(:,i_subcell) = shapeValues_AllCells(:,i_subcell)+accumarray(obj.mesh_unfitted.cell_containing_subcell,shapeValues_CutCells(:,i_subcell),[interpolation.nelem,1],@sum,0);

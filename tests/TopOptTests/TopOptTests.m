@@ -1,6 +1,6 @@
 classdef TopOptTests < testRunner
     properties (Access = protected)
-        FieldOfStudy = 'TopOpt tests'
+        FieldOfStudy = 'TopOpt'
         tests
     end
     

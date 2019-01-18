@@ -1,8 +1,8 @@
 classdef UnfittedMesh_AbstractBuilder < handle
     properties (GetAccess = public, SetAccess = private, Abstract)
         meshType
-        max_subcells
-        nnodes_subcell
+        maxSubcells
+        nnodesSubcell
         
         subcellsMesher
         cutPointsCalculator
