@@ -10,13 +10,13 @@ classdef PatchedMeshPlotter_Abstract < handle
     end
     
     methods (Access = public)
-        function plot(obj,meshUnfitted,ax)
-            obj.init(meshUnfitted);
+        function plot(obj,~,ax)
             obj.plotCutCells(ax);
             obj.plotInteriorCells(ax);
         end
         
         function meshUnfitted = patchRemovedDimension(obj,meshUnfitted,removedDim,removedDimCoord)
+            obj.init(meshUnfitted);
             meshUnfitted = obj.patchCutCellsCoords(meshUnfitted,removedDim,removedDimCoord);
             meshUnfitted = obj.patchFullCellsCoords(meshUnfitted,removedDim,removedDimCoord);
         end

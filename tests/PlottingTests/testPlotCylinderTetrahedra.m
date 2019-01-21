@@ -4,5 +4,9 @@ classdef testPlotCylinderTetrahedra < testPlotting_Composite
         meshType = 'BOUNDARY';
         meshIncludeBoxContour = true;
     end
+    
+    properties (GetAccess = public, SetAccess = private)
+        viewAngle = [1 1 1]
+    end
 end
 

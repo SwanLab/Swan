@@ -19,6 +19,7 @@ classdef testPlotting < testNotShowingError...
         
         function plot(obj)
             obj.mesh.plot();
+            view(obj.getViewAngle());
         end
         
         function hasPassed = hasPassed(obj)
@@ -32,6 +33,16 @@ classdef testPlotting < testNotShowingError...
             else
                 hasPassed = false;
                 return
+            end
+        end
+    end
+    
+    methods (Access = private)
+        function angle = getViewAngle(obj)
+            if isprop(obj,'viewAngle')
+                angle = obj.viewAngle;
+            else
+                angle = [0 0 1];
             end
         end
     end
