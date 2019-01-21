@@ -1,19 +1,21 @@
 classdef UnfittedMesh_Builder_Factory < handle
     methods (Access = public, Static)
-        function concreteBuilder = create(type,ndim)
-            switch type
-                case 'INTERIOR'
-                    switch ndim
-                        case 2
+        function concreteBuilder = create(type,ndim)          
+            switch ndim
+                case 1
+                    concreteBuilder = UnfittedMesh_StraightLine;
+                case 2
+                    switch type
+                        case 'INTERIOR'
                             concreteBuilder = UnfittedMesh_FlatSurface;
-                        case 3
-                            concreteBuilder = UnfittedMesh_Volumetric;
-                    end
-                case 'BOUNDARY'
-                    switch ndim
-                        case 2
+                        case 'BOUNDARY'
                             concreteBuilder = UnfittedMesh_FlatCurve;
-                        case 3
+                    end
+                case 3
+                    switch type
+                        case 'INTERIOR'
+                            concreteBuilder = UnfittedMesh_Volumetric;
+                        case 'BOUNDARY'
                             concreteBuilder = UnfittedMesh_3DSurface;
                     end
             end

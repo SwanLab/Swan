@@ -4,13 +4,13 @@ classdef Integrator < handle
         meshBackground
     end
     
-%     properties (GetAccess = protected, SetAccess = private)
-%         interpolation_unfitted
-%         interpolation_background
-%         
-%         quadrature_unfitted
-%         quadrature_background
-%     end       
+    %     properties (GetAccess = protected, SetAccess = private)
+    %         interpolation_unfitted
+    %         interpolation_background
+    %
+    %         quadrature_unfitted
+    %         quadrature_background
+    %     end
     
     methods (Access = public)
         function A = integrateUnfittedMesh(obj,F,mesh_unfitted)
@@ -63,6 +63,10 @@ classdef Integrator < handle
             background = unfitted.meshBackground;
             obj.mesh_unfitted = unfitted;
             obj.meshBackground = background;
+        end
+        
+        function itIs = isLeveSetCuttingMesh(obj)
+            itIs = ~isempty(obj.mesh_unfitted.backgroundCutCells);
         end
     end
     

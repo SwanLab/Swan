@@ -6,8 +6,12 @@ classdef Integrator_Boundary < Integrator
     
     methods (Access = ?Integrator)
         function A = computeIntegral(obj,F1)
-            shapeValues = obj.integrateCutCells(F1);
-            shapeValues = obj.assembleShapeValues(shapeValues);
+            if obj.isLeveSetCuttingMesh()
+                shapeValues = obj.integrateCutCells(F1);
+                shapeValues = obj.assembleShapeValues(shapeValues);
+            else
+                shapeValues = zeros(size(obj.meshBackground.connec));
+            end
             A = obj.rearrangeOutputRHS(shapeValues);
         end
         

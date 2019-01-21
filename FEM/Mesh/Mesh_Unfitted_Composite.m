@@ -12,7 +12,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
         isBoxFaceMeshActive
         
         removedDimensions
-        removedDimensionsCoords
+        removedDimensionCoord
         
         nboxFaces
         ndim
@@ -49,7 +49,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
             obj.meshInterior.add2plot(ax);
             for iactive = 1:obj.nActiveBoxFaces
                 iface = obj.activeBoxFaceMeshesList(iactive);
-                obj.boxFaceMeshes{iface}.add2plot(ax,obj.removedDimensions(iface),obj.removedDimensionsCoords(iface));
+                obj.boxFaceMeshes{iface}.add2plot(ax,obj.removedDimensions(iface),obj.removedDimensionCoord(iface));
             end
         end
     end
@@ -119,9 +119,14 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
         
         function [mb, nodesInBoxFace] = createBoxFaceBackgroundMesh(obj,idime,iside)
             [boxFaceCoords,nodesInBoxFace] = obj.getFaceCoordinates(idime,iside);
-            face_connec = obj.computeDelaunay(boxFaceCoords);
+            switch obj.ndim
+                case 2
+                    boxFaceConnec = obj.computeConnectivities(boxFaceCoords);
+                case 3
+                    boxFaceConnec = obj.computeDelaunay(boxFaceCoords);
+            end
             mb = Mesh;
-            mb = mb.create(boxFaceCoords,face_connec);
+            mb = mb.create(boxFaceCoords,boxFaceConnec);
         end
         
         function [boxFaceCoords, nodesInBoxFace] = getFaceCoordinates(obj,idime,iside)
@@ -147,10 +152,15 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
             end
         end
         
+        function face_coord = removeExtraDimension(obj,face_coord,idime)
+            dimen = 1:obj.ndim;
+            face_coord = face_coord(:,dimen(dimen~=idime));
+        end
+        
         function storeRemovedDimensions(obj,idime,iside,D)
             iface = (idime-1)*obj.nsides + iside;
             obj.removedDimensions(iface) = idime;
-            obj.removedDimensionsCoords(iface) = D;
+            obj.removedDimensionCoord(iface) = D;
         end
         
         function updateActiveBoxFaceMeshesList(obj)
@@ -175,14 +185,15 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
             end
         end
         
-        function face_coord = removeExtraDimension(face_coord,idime)
-            dimen = [1 2 3];
-            face_coord = face_coord(:,dimen(dimen~=idime));
-        end
-        
         function connec = computeDelaunay(coord)
             DT = delaunayTriangulation(coord);
             connec = DT.ConnectivityList;
+        end
+        
+        function connec = computeConnectivities(coord)
+            [~,I] = sort(coord);
+            connec = [I circshift(I,-1)];
+            connec(end,:) = [];
         end
     end
 end

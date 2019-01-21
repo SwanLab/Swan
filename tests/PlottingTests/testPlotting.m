@@ -22,12 +22,18 @@ classdef testPlotting < testNotShowingError...
         end
         
         function hasPassed = hasPassed(obj)
-            if all(all(obj.mesh.coord == obj.storedVar{1})) && all(all(obj.mesh.connec == obj.storedVar{2}))
-                hasPassed = true;
+            if all(size(obj.mesh.coord) == size(obj.storedVar{1})) &&  all(size(obj.mesh.connec) == size(obj.storedVar{2}))
+                if all(all(obj.mesh.coord == obj.storedVar{1})) && all(all(obj.mesh.connec == obj.storedVar{2}))
+                    hasPassed = true;
+                else
+                    hasPassed = false;
+                    return
+                end
             else
                 hasPassed = false;
+                return
             end
         end
-    end    
+    end
 end
 

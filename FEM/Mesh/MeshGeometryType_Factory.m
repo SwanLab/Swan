@@ -2,6 +2,8 @@ classdef MeshGeometryType_Factory < handle
     methods (Access = public, Static)
         function geometryType = getGeometryType(ndim,nnode)
             switch ndim
+                case 1
+                    geometryType = 'LINE';
                 case 2
                     switch nnode
                         case 2
@@ -20,6 +22,10 @@ classdef MeshGeometryType_Factory < handle
                         case 8
                             geometryType = 'HEXAHEDRA';
                     end
+            end
+            
+            if nnode == 0
+                geometryType = 'EMPTY MESH';
             end
         end
     end

@@ -14,7 +14,7 @@ classdef testPlotting_Composite < testPlotting
                 iface = obj.mesh.activeBoxFaceMeshesList(iactive);
                 boxMeshesCoords{iactive} = obj.mesh.boxFaceMeshes{iface}.coord;
             end
-            coordsOk = obj.checkVar(obj.mesh.meshInterior.coord,boxMeshesCoords,storedCoords);
+            coordsOk = obj.checkComposedVar(obj.mesh.meshInterior.coord,boxMeshesCoords,storedCoords);
         end
         
         function connecsOk = checkConnectivities(obj,storedConnecs)
@@ -23,18 +23,32 @@ classdef testPlotting_Composite < testPlotting
                 iface = obj.mesh.activeBoxFaceMeshesList(iactive);
                 boxMeshesConnecs{iactive} = obj.mesh.boxFaceMeshes{iface}.connec;
             end
-            connecsOk = obj.checkVar(obj.mesh.meshInterior.connec,boxMeshesConnecs,storedConnecs);
+            connecsOk = obj.checkComposedVar(obj.mesh.meshInterior.connec,boxMeshesConnecs,storedConnecs);
         end
     end
     
     methods (Access = private)
-        function varOk = checkVar(obj,interiorVar,boxMeshesVar,storedVar)
-            interiorVarOk = all(all(interiorVar == storedVar{1}));
+        function varOk = checkComposedVar(obj,interiorVar,boxMeshesVar,storedVar)
+            interiorVarOk = obj.checkVar(interiorVar,storedVar{1});
             boxMeshesVarOk = true;
             for iactive = 1:obj.mesh.nActiveBoxFaces
-                boxMeshesVarOk = boxMeshesVarOk && all(all(boxMeshesVar{iactive} == storedVar{1+iactive}));
+                boxMeshesVarOk = boxMeshesVarOk && obj.checkVar(boxMeshesVar{iactive},storedVar{1+iactive});
             end
             varOk = interiorVarOk && boxMeshesVarOk;
+        end
+    end
+    
+    methods (Access = private, Static)
+        function varOk = checkVar(var,ref)
+            if all(size(var) == size(ref))
+                if all(all(var == ref))
+                    varOk = true;
+                else
+                    varOk = false;
+                end
+            else
+                varOk = false;
+            end
         end
     end
 end

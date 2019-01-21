@@ -5,9 +5,14 @@ classdef Integrator_Interior < Integrator
     
     methods (Access = public)
         function A = computeIntegral(obj,F1)
-            shapeValues_CutCells = obj.integrateCutCells(F1);
-            shapeValues_FullCells = obj.integrateFullCells(F1); % !! shapeValues_FullCells could saved in a property instead of being re-computed all the time !!
-            shapeValues_All = obj.assembleShapeValues(shapeValues_CutCells,shapeValues_FullCells);
+            if obj.isLeveSetCuttingMesh()
+                shapeValues_CutCells = obj.integrateCutCells(F1);
+                shapeValues_FullCells = obj.integrateFullCells(F1); % !! shapeValues_FullCells could saved in a property instead of being re-computed all the time !!
+                shapeValues_All = obj.assembleShapeValues(shapeValues_CutCells,shapeValues_FullCells);
+            else
+                shapeValues_All = obj.integrateFullCells(F1);
+            end
+            
             A = obj.rearrangeOutputRHS(shapeValues_All);
         end
     end

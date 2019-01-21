@@ -9,7 +9,7 @@ classdef SubcellsMesher_Interior < SubcellsMesher_Abstract
         end
     end
     
-    methods (Access = private)
+    methods (Access = protected)
         function subcells_connec = computeInteriorSubcellsConnectivities(obj,subcell_coord_iso,subcell_x_value)
             subcells_connec = obj.computeDelaunay(subcell_coord_iso);
             is_interior = all(subcell_x_value(subcells_connec) <= 0,2);

@@ -1,40 +1,40 @@
 classdef CutPointsCalculator_3D < CutPointsCalculator_Abstract
-    methods (Access = public, Static)
-        function [P,active_nodes] = computeCutPoints_Iso(mesh_background,x_background,background_cut_cells,background_geom_interpolation)
-            pos_nodes = background_geom_interpolation.pos_nodes;
+    methods (Access = public)
+        function [P,active_nodes] = computeCutPoints_Iso(obj)
+            pos_nodes = obj.backgroundGeomInterpolation.pos_nodes;
             
-            iteration_1 = background_geom_interpolation.iteration(1,:);
-            iteration_2 = background_geom_interpolation.iteration(2,:);
+            iteration1 = obj.backgroundGeomInterpolation.iteration(1,:);
+            iteration2 = obj.backgroundGeomInterpolation.iteration(2,:);
             
-            gamma_1 = permute(x_background(mesh_background.connec(background_cut_cells,iteration_1)),[2 3 1]);
-            gamma_2 = permute(x_background(mesh_background.connec(background_cut_cells,iteration_2)),[2 3 1]);
+            gamma1 = permute(obj.levelSet_background(obj.meshBackground.connec(obj.backgroundCutCells,iteration1)),[2 3 1]);
+            gamma2 = permute(obj.levelSet_background(obj.meshBackground.connec(obj.backgroundCutCells,iteration2)),[2 3 1]);
             
-            P1 = repmat(pos_nodes(iteration_1,:),[1 1 size(background_cut_cells)]);
-            P2 = repmat(pos_nodes(iteration_2,:),[1 1 size(background_cut_cells)]);
-            P = P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
+            P1 = repmat(pos_nodes(iteration1,:),[1 1 size(obj.backgroundCutCells)]);
+            P2 = repmat(pos_nodes(iteration2,:),[1 1 size(obj.backgroundCutCells)]);
+            P = P1 + gamma1.*(P2-P1)./(gamma1-gamma2);
             
-            active_nodes = sign(gamma_1.*gamma_2)<=0;
+            active_nodes = sign(gamma1.*gamma2)<=0;
         end
         
-        function [P,active_nodes] = computeCutPoints_Global(mesh_background,x_background,background_cut_cells,background_geom_interpolation)
-            iteration_1 = background_geom_interpolation.iteration(1,:);
-            iteration_2 = background_geom_interpolation.iteration(2,:);
+        function [P,active_nodes] = computeCutPoints_Global(obj)
+            iteration1 = obj.backgroundGeomInterpolation.iteration(1,:);
+            iteration2 = obj.backgroundGeomInterpolation.iteration(2,:);
             
-            index1 = permute(mesh_background.connec(background_cut_cells,iteration_1),[2 3 1]);
-            index2 = permute(mesh_background.connec(background_cut_cells,iteration_2),[2 3 1]);
+            index1 = permute(obj.meshBackground.connec(obj.backgroundCutCells,iteration1),[2 3 1]);
+            index2 = permute(obj.meshBackground.connec(obj.backgroundCutCells,iteration2),[2 3 1]);
             
-            gamma_1 = x_background(index1);
-            gamma_2 = x_background(index2);
+            gamma1 = obj.levelSet_background(index1);
+            gamma2 = obj.levelSet_background(index2);
             
-            coord1 = mesh_background.coord(:,1);
-            coord2 = mesh_background.coord(:,2);
-            coord3 = mesh_background.coord(:,3);
+            coord1 = obj.meshBackground.coord(:,1);
+            coord2 = obj.meshBackground.coord(:,2);
+            coord3 = obj.meshBackground.coord(:,3);
             
             P1 = [coord1(index1) coord2(index1) coord3(index1)];
             P2 = [coord1(index2) coord2(index2) coord3(index2)];
-            P = P1+gamma_1.*(P2-P1)./(gamma_1-gamma_2);
+            P = P1+gamma1.*(P2-P1)./(gamma1-gamma2);
             
-            active_nodes = sign(gamma_1.*gamma_2)<=0;
+            active_nodes = sign(gamma1.*gamma2)<=0;
         end
     end
 end
