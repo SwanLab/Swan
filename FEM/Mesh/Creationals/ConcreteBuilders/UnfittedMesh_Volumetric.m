@@ -6,7 +6,7 @@ classdef UnfittedMesh_Volumetric < UnfittedMesh_AbstractBuilder
         
         subcellsMesher = SubcellsMesher_Interior;
         cutPointsCalculator = CutPointsCalculator_3D;
-        meshPlotter = MeshPlotter_Interior_3D;
+        meshPlotter = MeshPlotter_Null;
     end
 end
 
