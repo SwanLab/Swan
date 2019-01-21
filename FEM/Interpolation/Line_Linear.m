@@ -1,19 +1,8 @@
-classdef Line_Linear < handle
-    properties (GetAccess = public, SetAccess = private)
-        ndime
-        nnode
-        order
-        npnod
-        nelem
-        type
-        pos_nodes
-        shape
-        deriv
-        dvolu
-    end
-    
+classdef Line_Linear < Interpolation
+
     methods (Access = public)
-        function obj = Line_Linear
+        function obj = Line_Linear(mesh)
+            obj = obj@Interpolation(mesh);
             obj.type = 'LINE';
             obj.order = 'LINEAR';
             obj.ndime = 1;

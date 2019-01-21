@@ -31,7 +31,6 @@ classdef Integrator_Interior < Integrator
             shapeValues_FullCells = zeros(size(obj.meshBackground.connec));
             for igauss = 1:quadrature.ngaus
                 shapeValues_FullCells = shapeValues_FullCells + interpolation.shape(:,igauss)'.*geometry.dvolu(:,igauss);
-                %                 shapeValues_FullCells = shapeValues_FullCells + interpolation.shape(:,igauss)'.*F1.*geometry.dvolu(:,igauss);
             end
         end
         

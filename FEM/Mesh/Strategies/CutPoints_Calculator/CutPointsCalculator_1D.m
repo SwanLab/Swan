@@ -10,8 +10,8 @@ classdef CutPointsCalculator_1D < CutPointsCalculator_Abstract
             P2 = circshift(P1,[-1 0 0]);
             P = P1 + gamma1.*(P2-P1)./(gamma1-gamma2);
             
-%             activeNodes = repmat([true;false],[1 1 size(obj.backgroundCutCells)]);
-            activeNodes = sign(gamma1.*gamma2)<=0;
+            activeNodes = repmat([true;false],[1 1 size(obj.backgroundCutCells)]);
+%             activeNodes = sign(gamma1.*gamma2)<=0;
         end
         
         function [P,activeNodes] = computeCutPoints_Global(obj)

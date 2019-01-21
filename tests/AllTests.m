@@ -2,6 +2,6 @@ PrintingTests;
 UnfittedIntegrationTests;
 FemTests;
 TopOptTests;
-HomogenizationTests;
+% HomogenizationTests;
 %AmplificatorTests;
 PlottingTests;

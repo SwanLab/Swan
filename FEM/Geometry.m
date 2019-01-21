@@ -76,7 +76,7 @@ classdef Geometry<handle
         function [inverse,determinant]=inverseElementalMatrix(ndime,A)
             switch ndime
                 case 1
-                    inverse = 1/A;
+                    inverse = 1./A;
                     determinant = A;
                 case 2
                     [inverse,determinant] = multinverse2x2(A);

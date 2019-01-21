@@ -25,7 +25,7 @@ classdef Interpolation < handle
                 case 'LINE'
                     switch order
                         case 'LINEAR'
-                            interpolation = Line_Linear;
+                            interpolation = Line_Linear(mesh);
                         otherwise
                             error('Invalid order for element LINE.');
                     end
