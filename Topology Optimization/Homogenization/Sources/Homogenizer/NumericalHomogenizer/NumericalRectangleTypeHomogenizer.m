@@ -45,7 +45,8 @@ classdef NumericalRectangleTypeHomogenizer < NumericalHomogenizer
             if print
                 f = obj.resFile;
                 outPutNameWithIter = [obj.outPutName,num2str(iter)];
-                GiDImageCapturer(f,outPutNameWithIter);
+                inputFileName = fullfile('Output',f,[f,num2str(iter),'.flavia.res']);
+                GiDImageCapturer(f,outPutNameWithIter,inputFileName);
             end
         end
         

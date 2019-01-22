@@ -8,34 +8,34 @@ classdef GiDImageCapturer
     
     methods (Access = public)
         
-        function obj = GiDImageCapturer(fileName,outPutName)            
-            obj.init(fileName,outPutName)
+        function obj = GiDImageCapturer(fileName,outPutImageName,inputFileName)            
+            obj.init(fileName,outPutImageName,inputFileName)
         end
     end
     
     methods (Access = private)
         
-        function init(obj,fileName,outPutName)
+        function init(obj,fileName,outPutImageName,inputFileName)
             obj.gidPath = '/opt/GiDx64/13.0.2/';    
             pathTcl = '/home/alex/git-repos/FEM-MAT-OO/FEM/PostProcess/ImageCapturer/';
-            obj.resultsFile = fileName;
-            obj.outputImageName = ['/home/alex/Dropbox/Amplificators/Images/',outPutName];            
-            obj.writeCallGiDTclFile(pathTcl,fileName,obj.outputImageName);
+            obj.resultsFile = fileName;            
+            obj.outputImageName = ['/home/alex/Dropbox/Amplificators/Images/',outPutImageName];            
+            obj.writeCallGiDTclFile(pathTcl,inputFileName,obj.outputImageName);
             command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',pathTcl,'callGiDCapturer.tcl"'];
-            unix(command);
+            system(command);
             obj.cropImage();
         end
         
-        function writeCallGiDTclFile(obj,pathTcl,resultsFile,outputImageName)
+        function writeCallGiDTclFile(obj,pathTcl,inputFile,outputImageName)
                 tclFile = 'callGiDCapturer.tcl';
-                resultsFile = char(resultsFile);
+                inputFile = char(inputFile);
                 stlFileTocall = 'CaptureImage.tcl';
                 fid = fopen([pathTcl,tclFile],'w+');
                 fprintf(fid,['set path "',pathTcl,'"\n']);
                 fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
                 fprintf(fid,['source $path$tclFile \n']);
                 fprintf(fid,['set output ',outputImageName,' \n']);
-                fprintf(fid,['set inputFile ',resultsFile,'\n']);
+                fprintf(fid,['set inputFile ',inputFile,'\n']);
                 fprintf(fid,['CaptureImage $inputFile $output \n']);
                 fclose(fid);
         end
@@ -43,7 +43,7 @@ classdef GiDImageCapturer
         function cropImage(obj)
             name_file = [' ',obj.outputImageName,'.png'];
             command = strcat('convert -crop 500x500+0+0 -gravity Center ',name_file,' ',name_file);
-            unix(command);
+            system(command);
         end
         
             

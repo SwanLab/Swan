@@ -61,22 +61,7 @@ classdef ShapesPrinter < CompositeResultsPrinter
                 end
             end             
         end
-        
-%          function createHeadPrinterDataBase(obj,d,dh)
-%             for iprinter = 1:numel(obj.printers)
-%                 p = obj.printers{iprinter};
-%                 p.createHeadPrinterDataBase(d,dh);
-%                 if p.getHasGaussData()
-%                     h = p.getHeadPrinterDataBase();
-%                     obj.headPrinterDataBase = h;
-%                     return
-%                 else
-%                     h = p.getHeadPrinterDataBase();
-%                     obj.headPrinterDataBase = h;
-%                 end
-%             end
-%         end
-        
+               
     end
     
     

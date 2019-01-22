@@ -16,7 +16,7 @@ classdef testAmplificatorsPdependency < ...
        firstInvP
        m1 = 0.2;
        m2 = 0.8; 
-       printing = false;
+       printing = true;
        iter = 0;
        hSmooth
        hNonSmooth

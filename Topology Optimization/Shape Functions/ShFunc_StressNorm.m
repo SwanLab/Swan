@@ -49,7 +49,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
         function computeFunctionValue(obj)
             stress       = obj.physProb.variables.stress;
             stress_fluct = obj.physProb.variables.stress_fluct;
-            v = obj.integrateStress(obj.physProb);
+            v = obj.integrateStressNorm(obj.physProb);
             obj.value = v;
         end
         
@@ -57,25 +57,46 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
     
     methods (Access = private)
         
-        function v = integrateStress(obj,physProb)
+        function value = integrateStressNorm(obj,physProb)
             nstre = physProb.element.getNstre();
             V = sum(sum(physProb.geometry.dvolu));
             ngaus = physProb.element.quadrature.ngaus;
             dV    = physProb.element.geometry.dvolu;
-            
             stress = obj.physProb.variables.stress;
-            
+            value = obj.integratePNormOfL2Norm(stress,ngaus,nstre,dV,V);
+        end
+        
+        
+        function v = integratePNormOfL2Norm(obj,stress,ngaus,nstre,dV,V)
             p = obj.pNorm;
             v = 0;
-            for istre = 1:nstre
-                for igaus = 1:ngaus
+            for igaus = 1:ngaus
+                s = zeros(size(stress,3),1);
+                for istre = 1:nstre
                     Si = squeeze(stress(igaus,istre,:));
                     factor = obj.computeVoigtFactor(istre,nstre);
-                    vij = 1/V*factor*(Si.^p)'*dV(:,igaus);
-                    v = v + vij;
+                    Sistre = factor*(Si.^2);
+                    s = s + Sistre;
                 end
+                s = sqrt(s);
+                sigmaNorm = s.^p;
+                v = v + 1/V*sigmaNorm'*dV(:,igaus);
             end
-            
+        end
+        
+        function v = integratePNormOfComponents(obj,stress,ngaus,nstre,dV,V)
+            p = obj.pNorm;
+            v = 0;
+            for igaus = 1:ngaus
+                s = zeros(size(stress,1),size(stress,3));
+                for istre = 1:nstre
+                    Si = squeeze(stress(igaus,istre,:));
+                    factor = obj.computeVoigtFactor(istre,nstre);
+                    Sistre = factor*(Si.^p);
+                    s = s + Sistre;
+                end
+                v = v + 1/V*s'*dV(:,igaus);
+            end
         end
         
         function f = computeVoigtFactor(obj,k,nstre)
