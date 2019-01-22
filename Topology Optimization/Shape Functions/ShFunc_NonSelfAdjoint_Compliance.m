@@ -12,8 +12,9 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
             obj.createAdjointProblem(settings.filename)            
         end
         
-        function f = getAdjointProblem(obj)
-            f = obj.adjointProb;
+        function f = getPhysicalProblems(obj)
+            f{1} = obj.physProb;
+            f{2} = obj.adjointProb;
         end
         
     end

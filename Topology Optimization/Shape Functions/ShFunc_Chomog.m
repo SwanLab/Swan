@@ -20,8 +20,8 @@ classdef ShFunc_Chomog < Shape_Functional
             obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method,settings.pdim);
         end
         
-        function f = getPhysicalProblem(obj)
-            f = obj.physicalProblem;
+        function f = getPhysicalProblems(obj)
+            f{1} = obj.physicalProblem;
         end
     end
     

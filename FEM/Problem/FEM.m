@@ -108,7 +108,7 @@ classdef FEM < handle
             dI = obj.createPostProcessDataBase(fileName);
             postprocess = Postprocess('Elasticity',dI);
             q = obj.element.quadrature; 
-            d.variables = obj.variables;
+            d.fields = obj.variables;
             d.quad = q;
             postprocess.print(obj.iter,d);
         end

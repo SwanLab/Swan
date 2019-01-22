@@ -24,7 +24,7 @@ classdef NumericalRectangleHomogenizer < NumericalRectangleTypeHomogenizer
             input.coord = obj.microProblem.mesh.coord;
             input.ndim = obj.microProblem.mesh.ndim;
             designVar = LevelSetRectangleInclusion(input); 
-            obj.nodalLevelSet = designVar.getValue();
+            obj.levelSet = designVar.getValue();
         end
         
     end

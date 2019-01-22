@@ -16,8 +16,8 @@ classdef ShFunWithElasticPdes < Shape_Functional
             obj.normalizeFunctionAndGradient()
         end 
         
-        function f = getPhysicalProblem(obj)
-            f = obj.physProb;
+        function f = getPhysicalProblems(obj)
+            f{1} = obj.physProb;
         end
         
     end

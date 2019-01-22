@@ -26,6 +26,7 @@ classdef NumericalFiberHomogenizer < NumericalHomogenizer
             levFib = obj.levelOfNumFibers;
             densityCreator = DensityCreatorByInitializer(levFib,obj.microProblem,obj.setting);
             obj.density = densityCreator.getDensity();
+            obj.levelSet = densityCreator.getLevelSet();
         end       
         
     end

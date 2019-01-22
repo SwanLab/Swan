@@ -2,6 +2,7 @@ classdef DensityCreatorByInitializer < handle
     
     properties (Access = protected)
         density
+        levelSet
     end
     
     
@@ -16,10 +17,15 @@ classdef DensityCreatorByInitializer < handle
             dvCreator = DesignVariableCreator(setting,microProblem.mesh);
             densP0 = dvCreator.getValue();
             obj.density(:,1) =  densP0;
+            obj.levelSet = dvCreator.getLevelSet();
         end
         
         function d = getDensity(obj)
             d = obj.density;
+        end
+        
+        function ls = getLevelSet(obj)
+            ls = obj.levelSet;            
         end
     end
     

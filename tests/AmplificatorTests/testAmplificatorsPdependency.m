@@ -68,7 +68,7 @@ classdef testAmplificatorsPdependency < ...
         end
         
         function createSmoothRectInclusionHomogenizer(obj)
-            f    = strcat(obj.testName);
+            f    = strcat([obj.testName,'Smooth']);
             p    = obj.printing;
             m1v  = obj.m1;
             m2v  = obj.m2; 
@@ -77,7 +77,7 @@ classdef testAmplificatorsPdependency < ...
         end
         
         function createNonSmoothRectInclusionHomogenizer(obj)
-            f    = strcat(obj.testName);
+            f    = strcat([obj.testName,'NonSmooth']);
             p    = obj.printing;
             m1v  = obj.m1;
             m2v  = obj.m2; 

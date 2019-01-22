@@ -1,9 +1,9 @@
-classdef NumericalSmoothRectangleHomogenizer < NumericalRectangleTypeHomogenizer
+classdef NumericalRoundedRectangleHomogenizer < NumericalRectangleTypeHomogenizer
     
     
     methods (Access = public)
         
-        function obj = NumericalSmoothRectangleHomogenizer(fileName,print,m1,m2,iter)
+        function obj = NumericalRoundedRectangleHomogenizer(fileName,print,m1,m2,iter)
             obj.compute(fileName,print,m1,m2,iter)            
         end        
         
@@ -23,7 +23,7 @@ classdef NumericalSmoothRectangleHomogenizer < NumericalRectangleTypeHomogenizer
             input.ndim  = obj.microProblem.mesh.ndim;
             input.p = 4;
             designVar = LevelSetSmoothRectangleInclusion(input); 
-            obj.nodalLevelSet = designVar.getValue();
+            obj.levelSet = designVar.getValue();
         end
         
     end

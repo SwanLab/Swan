@@ -16,6 +16,10 @@ classdef DesignVariableCreator < handle
             x = obj.designVariable;
         end
         
+        function ls = getLevelSet(obj)
+           ls = obj.levelSet;
+        end
+        
     end
     
     methods (Access = private)

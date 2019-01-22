@@ -23,6 +23,7 @@ classdef NumericalHomogenizer < handle
     properties (Access = protected)
         microProblem
         density
+        levelSet        
         Ch
         setting
         resFile
@@ -73,14 +74,16 @@ classdef NumericalHomogenizer < handle
         
         function createDensityPrinter(obj)
            obj.createPostProcessDataBase();
-           postCase = 'DensityGauss';             
+           postCase = 'NumericalHomogenizer';             
            obj.postProcess = Postprocess(postCase,obj.dataBase);
         end        
         
         function print(obj)
             if obj.hasToBePrinted
                 d.dens = obj.density;
+                d.levelSet = obj.levelSet;
                 d.quad = obj.microProblem.element.quadrature;
+                d.microProblem = obj.microProblem;
                 obj.postProcess.print(obj.iter,d);
                 obj.resFile = obj.postProcess.getResFile();
             end

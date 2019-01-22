@@ -26,7 +26,7 @@ classdef NumericalSmoothRectangleHomogenizer < NumericalRectangleTypeHomogenizer
             input.ndim  = obj.microProblem.mesh.ndim;
             input.p = 4;
             designVar = LevelSetSmoothRectangleInclusion(input); 
-            obj.nodalLevelSet = designVar.getValue();
+            obj.levelSet = designVar.getValue();
         end
         
         

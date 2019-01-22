@@ -1,7 +1,6 @@
 classdef ResultsPrinterFactory < handle
     
     properties (Access = private)
-        dStandard
         printer
     end
     
@@ -21,14 +20,18 @@ classdef ResultsPrinterFactory < handle
                     p = ElasticityResultsPrinter(d);
                 case 'ElasticityMicro'
                     p = ElasticityMicroResultsPrinter(d);
-                case 'TopOptProblem'                    
-                    p = TopOptResultsPrinter(d);
                 case 'DensityGauss'
                     p = DensityGaussResultsPrinter(d);
                 case 'LevelSet'
                     p = LevelSetResultsPrinter(d);
                 case 'Density'
                     p = DensityResultsPrinter(d);
+                case 'NumericalHomogenizer'
+                    p = NumericalHomogenizerPrinter(d);
+                case 'TopOptProblem'                    
+                    p = TopOptResultsPrinter(d);
+                case 'HomogenizedTensor'
+                    p = HomogenizedTensorPrinter(d);
             end
             obj.printer = p;
         end

@@ -3,11 +3,7 @@ classdef NumericalRectangleTypeHomogenizer < NumericalHomogenizer
     properties (Access = protected, Abstract)
         outPutName
     end
-    
-    properties (Access = protected)
-        nodalLevelSet
-    end
-    
+
     properties (Access = private)
         m1
         m2
@@ -16,7 +12,7 @@ classdef NumericalRectangleTypeHomogenizer < NumericalHomogenizer
     methods (Access = public)
        
         function ls = getLevelSet(obj)
-            ls = obj.nodalLevelSet;
+            ls = obj.levelSet;
         end
     end
     
@@ -35,7 +31,7 @@ classdef NumericalRectangleTypeHomogenizer < NumericalHomogenizer
         
         function createDensity(obj)
             obj.createLevelSet(obj.m1,obj.m2)
-            lsNodes = obj.nodalLevelSet;
+            lsNodes = obj.levelSet;
             phyPr   = obj.microProblem;
             filter = FilterP0(lsNodes,phyPr);
             obj.density(:,1) = filter.getDens0();               

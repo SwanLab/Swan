@@ -1,7 +1,7 @@
 classdef GaussHeadPrinter < HeadPrinter
     
     properties (Access = protected)
-        gaussDescriptor
+        gaussDescriptor = 'Guass up?';
         etype
         ngaus
         ndim
@@ -9,27 +9,28 @@ classdef GaussHeadPrinter < HeadPrinter
     end
     
     methods (Access = public)
+        
+        function obj = GaussHeadPrinter(d,dh)
+           obj.init(d,dh); 
+        end
        
-        function print(obj,d)
-            obj.init(d);
+        function print(obj)            
             obj.printInitialLine();
             obj.printFemMatOoHeader();
             obj.printGaussPointsHeader();            
         end
         
     end
-    
+   
     methods (Access = private)
         
-        function init(obj,d)
-            fieldsNames = fieldnames(d);
-            for ifield = 1:length(fieldsNames)
-                ifieldName = fieldsNames{ifield};
-                fieldValue = d.(ifieldName);
-                obj.(fieldsNames{ifield}) = fieldValue;
-            end
-        end
-        
+        function init(obj,d,dh)
+            obj.fileID = dh.fileID;
+            obj.etype  = dh.etype;
+            obj.ndim   = dh.ndim;
+            obj.posgp = d.quad.posgp';
+            obj.ngaus = d.quad.ngaus;
+        end                
         
        function printGaussPointsHeader(obj)
             iD = obj.fileID;
