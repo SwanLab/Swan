@@ -1,0 +1,34 @@
+classdef LevelSetResultsPrinter < ResultsPrinter
+    
+    properties (Access = protected)
+        simulationStr = 'LevelSet';
+        hasGaussData = false;
+    end
+    
+    properties (Access = private)
+        fieldName = 'LevelSet';
+    end
+    
+    methods (Access = public)
+        
+        function obj = LevelSetResultsPrinter(d)
+            obj.init(d);
+        end
+        
+        function printResults(obj,it)
+            ls = obj.fields;
+            dS = obj.createScalarDataBase(ls,obj.fieldName,'OnNodes');
+            ScalarPrinter(dS);
+        end        
+        
+    end
+    
+    methods (Access = protected)
+        
+        function storeFieldsToPrint(obj,d)
+            obj.fields = d.x;
+        end
+        
+    end
+end
+

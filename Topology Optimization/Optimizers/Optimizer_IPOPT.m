@@ -24,6 +24,7 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
         end
         
         function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
+            obj.createPostProcess(cost,constraint);
             cost.computeCostAndGradient(x_ini)
             funcs.objective = @(x) obj.objective(x,cost);
             funcs.gradient = @(x) obj.gradient(x,cost);
@@ -81,10 +82,11 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             stop = true;
             obj.data=data;
             obj.niter=obj.niter+1;
-            obj.print(data.x,obj.niter);            
+            obj.print(data.x,obj.niter,obj.cost_copy,obj.constraint_copy);            
             obj.constraint_copy.lambda=zeros(obj.constraint_copy.nSF,1);
             obj.monitoring.refresh(data.x,obj.niter,obj.cost_copy,obj.constraint_copy,data.inf_du,obj.has_converged || obj.niter > obj.maxiter*(istep/nstep),istep,nstep);            
             obj.writeToFile(istep,obj.cost_copy,obj.constraint_copy)
         end
     end
+
 end

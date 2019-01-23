@@ -2,7 +2,7 @@ classdef HomogenizationTests < testRunner
     
     
     properties (Access = protected)
-        FieldOfStudy = 'Homogenization Tests'
+        FieldOfStudy = 'Homogenization'
         tests
     end
     
@@ -16,7 +16,7 @@ classdef HomogenizationTests < testRunner
         function loadTests(obj)
             obj.tests = {...                
                %'test2DSeqLaminateInVoigtWithFormuleOfAllaireWebPAgeExercise'  
-               'testDiagonalLaminate';
+              'testHorizontalLaminate';
                'testCommutingHomogPlaneStressWithZeroPoisson';
                'testNotCommutingHomogPlaneStress'; 
                'testCommutingVoigtHomog';
@@ -42,7 +42,7 @@ classdef HomogenizationTests < testRunner
                 'testHorizontalTensorRotatedVsRank2';
                 'testHorizontalTensorRotatedVsHVP';                  
                 'TestGeneralTwoRankSequentialLaminate';               
-                'testHorizontalLaminate';
+                'testDiagonalLaminate';
                 'testNumericalConvergenceOfNumberOfLaminates';
                 };
 

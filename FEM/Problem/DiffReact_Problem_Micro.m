@@ -11,16 +11,14 @@ classdef DiffReact_Problem_Micro < DiffReact_Problem
     end
     
     %% Public methods definition ==========================================
-    methods (Access = public)
-        function obj = DiffReact_Problem_Micro(problemID)
-            obj@DiffReact_Problem(problemID);
-            obj.dof = DOF_DiffReact_Micro(problemID,obj.geometry);
+    methods (Access = protected)
+        function setElement(obj)
+            obj.element = Element_DiffReact_Micro(obj.mesh,obj.geometry,obj.material,obj.dof);
         end
         
-        function preProcess(obj)
-            obj.element = Element_DiffReact_Micro(obj.mesh,obj.geometry,obj.material,obj.dof);
-            obj.solver = Solver.create;
+        function setDOFs(obj)
+            % !! Coupled to GiD File, pending to set free !!
+            obj.dof = DOF_DiffReact_Micro(obj.problemID,obj.geometry);
         end
     end
 end
-

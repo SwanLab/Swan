@@ -6,6 +6,5 @@ classdef testCheckStoredWithFemComputedVariable <  testShowingError  ...
      properties (Access = protected)
        tol = 1e-6;        
      end
-
 end
 

@@ -1,7 +1,4 @@
-classdef Quadrilateral_Serendipity < Isoparametric
-    properties
-    end
-    
+classdef Quadrilateral_Serendipity < Isoparametric    
     %% !! SHAPE FUNCTIONS & DERIVATIVES SHOULD BE REVISED !!
     % Source: http://www.ce.memphis.edu/7111/notes/class_notes/chapter_03e_slides.pdf
     

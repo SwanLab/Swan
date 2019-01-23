@@ -11,19 +11,22 @@ classdef NumericalHomogenizer < handle
         Ptensor
         volume
         
-        densityPrinter
+        postProcess
         
         interpolation
         densityPostProcess
         
-        iter
+        iter = 0;
+        dataBase
     end
     
     properties (Access = protected)
         microProblem
         density
+        levelSet        
         Ch
         setting
+        resFile
     end
     
     methods (Access = public)
@@ -43,6 +46,10 @@ classdef NumericalHomogenizer < handle
         function v = getVolume(obj)
             v = obj.volume;
         end        
+        
+        function s = getSettings(obj)
+            s = obj.setting;
+        end
         
     end
     
@@ -66,19 +73,28 @@ classdef NumericalHomogenizer < handle
         end             
         
         function createDensityPrinter(obj)
-            quad = obj.microProblem.element.quadrature;
-            mesh = obj.microProblem.mesh;
-            obj.densityPrinter = DensityPrinter(quad,mesh);
+           obj.createPostProcessDataBase();
+           postCase = 'NumericalHomogenizer';             
+           obj.postProcess = Postprocess(postCase,obj.dataBase);
         end        
         
         function print(obj)
             if obj.hasToBePrinted
-                d = obj.density;            
-                outn = obj.outputName;
-                it   = obj.iter;                
-                obj.densityPrinter.print(d,outn,it)
+                d.dens = obj.density;
+                d.levelSet = obj.levelSet;
+                d.quad = obj.microProblem.element.quadrature;
+                d.microProblem = obj.microProblem;
+                obj.postProcess.print(obj.iter,d);
+                obj.resFile = obj.postProcess.getResFile();
             end
-        end         
+        end   
+        
+        function createPostProcessDataBase(obj)
+            dI.mesh            = obj.microProblem.mesh;
+            dI.outName         = obj.outputName;
+            ps = PostProcessDataBaseCreatorWithNoGaussData(dI);
+            obj.dataBase = ps.getValue();               
+        end               
         
         function computeHomogenizedVariables(obj)
             obj.computeVolumeValue()
@@ -89,8 +105,7 @@ classdef NumericalHomogenizer < handle
     end
     
     methods (Access = private)
-        
-        
+                
         function loadFileName(obj)
             obj.fileName = 'test_microFineFine';
         end

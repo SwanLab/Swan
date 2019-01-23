@@ -1,8 +1,5 @@
 classdef testNotShowingError < test
-    
-    
     methods (Access = protected)
-        
         function printTestPassed(obj)
            cprintf('green',obj.FileName);                        
            cprintf('green',' PASSED\n');
@@ -13,8 +10,5 @@ classdef testNotShowingError < test
             cprintf('red',' FAILED\n');
         end
     end
-    
-
-    
 end
 

@@ -4,7 +4,7 @@ classdef PST4VoigtFourthOrderTensor < PlaneStressTransformer
     methods (Access = protected)        
         
         function createPlaneStressTensor(obj)
-            obj.psTensor = SymmetricFourthOrderPlaneStressVoigtTensor();
+            obj.psTensor = StiffnessPlaneStressVoigtTensor();
         end
         
     end

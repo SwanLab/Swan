@@ -1,4 +1,5 @@
 classdef Shape_Functional < handle
+    
     properties
         value
         gradient
@@ -6,19 +7,66 @@ classdef Shape_Functional < handle
         filter
         Msmooth
         dvolu
-    end 
+        value0
+    end
     
-    methods
-        function obj = Shape_Functional(settings)
-           obj.filter = Filter.create(settings);
-           diffReacProb = DiffReact_Problem(settings.filename);
-           diffReacProb.preProcess;
-           obj.Msmooth = diffReacProb.element.M;
-           obj.dvolu = diffReacProb.geometry.dvolu;
-
+    methods (Access = public)
+        
+        function obj = Shape_Functional()
         end
-            
-        computeCostAndGradient(obj, x)
+        
+    end
+    
+    methods (Access = protected)
+        
+        function init(obj,settings)
+            obj.createFilter(settings);
+            obj.createMsmoothAndDvolu(settings.filename,settings.ptype);
+        end
+        
+        function normalizeFunctionAndGradient(obj)
+            obj.normalizeFunctionValue();
+            obj.normalizeGradient();
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function createFilter(obj,settings)
+            obj.filter = Filter.create(settings);
+            obj.filter.setupFromGiDFile(settings.filename,settings.ptype); 
+        end
+        
+        function createMsmoothAndDvolu(obj,fileName,scale)
+            diffReacProb = obj.createDiffReactProb(scale);
+            diffReacProb.setupFromGiDFile(fileName);
+            diffReacProb.preProcess;
+            obj.Msmooth = diffReacProb.element.M;
+            obj.dvolu = diffReacProb.geometry.dvolu;
+        end
+        
+        function normalizeFunctionValue(obj)
+            if isempty(obj.value0)
+                obj.value0 = obj.value;
+            end
+            obj.value = obj.value/abs(obj.value0);
+        end
+        
+        function normalizeGradient(obj)
+            obj.gradient = obj.gradient/abs(obj.value0);
+        end
+        
+    end
+    
+    methods (Static, Access = private)
+        function diffReacProb = createDiffReactProb(scale)
+            switch scale
+                case 'MACRO'
+                    diffReacProb = DiffReact_Problem;
+                case 'MICRO'
+                    diffReacProb = DiffReact_Problem_Micro;
+            end
+        end
     end
 end
-

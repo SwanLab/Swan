@@ -8,7 +8,6 @@ classdef SymmetricFourthOrderPlaneStressTensor <  AbstractTensor ...
     methods (Access = public)
         
         function obj = SymmetricFourthOrderPlaneStressTensor()
-            obj.loadDimensionValue()
         end
         
         function d = getDimension(obj)

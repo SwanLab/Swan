@@ -10,7 +10,7 @@ classdef Stress3DTensor < SecondOrder3DTensor ...
             t = obj.tensorValue;
             psIndex = PlaneStressIndex();
             outPlane = psIndex.getOutPlaneIndex();
-            conv     = TensorVoigtIndexTransformer();            
+            conv     = TensorVoigtIndexTransformer3D();            
             d = length(outPlane);
             for i = 1:d
                 iv = outPlane(i);

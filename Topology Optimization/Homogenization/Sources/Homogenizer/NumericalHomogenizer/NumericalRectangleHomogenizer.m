@@ -1,9 +1,13 @@
 classdef NumericalRectangleHomogenizer < NumericalRectangleTypeHomogenizer
     
+    properties (Access = protected)
+        outPutName = 'RectangularInclusion';
+    end
+    
     methods (Access = public)
         
         function obj = NumericalRectangleHomogenizer(fileName,print,m1,m2,iter)
-            obj.compute(fileName,print,m1,m2,iter)            
+            obj.compute(fileName,print,m1,m2,iter)  
         end        
         
     end
@@ -20,7 +24,7 @@ classdef NumericalRectangleHomogenizer < NumericalRectangleTypeHomogenizer
             input.coord = obj.microProblem.mesh.coord;
             input.ndim = obj.microProblem.mesh.ndim;
             designVar = LevelSetRectangleInclusion(input); 
-            obj.nodalLevelSet = designVar.getValue();
+            obj.levelSet = designVar.getValue();
         end
         
     end

@@ -16,11 +16,12 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             obj.max_constr_change = +Inf;
             obj.nconstr = settings.nconstr;
             % !! Move to ShFunc_Velocity (?) eventually !!
-            if strcmp(settings.filter,'P1') 
+            if strcmp(settings.filter,'P1')
                 settings.filter = 'PDE';
                 obj.displayChangingFilter(settings)
             end
-            obj.filter =  Filter.create(settings);
+            obj.filter = Filter_Boundary.create(settings);
+            obj.filter.setupFromGiDFile(settings.filename,settings.ptype);
             obj.filter.preProcess;
             obj.filter.updateEpsilon(epsilon);
         end
@@ -44,7 +45,6 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             end
             solved_phi = phi;
         end
-
     end
     
     methods (Static,Access = private)

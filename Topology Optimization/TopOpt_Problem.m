@@ -26,7 +26,7 @@ classdef TopOpt_Problem < handle
                 case 'SLERP'
                     obj.optimizer = Optimizer_AugLag(settings,obj.mesh,Optimizer_SLERP(settings,obj.incremental_scheme.epsilon));
                 case 'HAMILTON-JACOBI'
-                    obj.optimizer = Optimizer_AugLag(settings,obj.mesh,Optimizer_HJ(settings,obj.incremental_scheme.epsilon,obj.mesh.mean_cell_size));
+                    obj.optimizer = Optimizer_AugLag(settings,obj.mesh,Optimizer_HJ(settings,obj.incremental_scheme.epsilon,obj.mesh.computeMeanCellSize));
                 case 'PROJECTED GRADIENT'
                     obj.optimizer = Optimizer_AugLag(settings,obj.mesh,Optimizer_PG(settings,obj.incremental_scheme.epsilon));
                 case 'MMA'
@@ -38,7 +38,7 @@ classdef TopOpt_Problem < handle
                 otherwise
                     error('Invalid optimizer.')
             end
-            obj.cost = Cost(settings,settings.weights,obj.optimizer.postprocess); % Change to just enter settings
+            obj.cost = Cost(settings,settings.weights); % Change to just enter settings
             obj.constraint = Constraint(settings);
             obj.design_variable_initializer = DesignVariableCreator(settings,obj.mesh);
         end
@@ -101,6 +101,5 @@ classdef TopOpt_Problem < handle
         end
         
     end
-    
     
 end

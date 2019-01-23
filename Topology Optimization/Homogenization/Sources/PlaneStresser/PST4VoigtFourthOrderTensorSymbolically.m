@@ -46,7 +46,7 @@ classdef PST4VoigtFourthOrderTensorSymbolically < PST4VoigtFourthOrderTensor
         
         function createVariables(obj,tensorVoigt)
             obj.tensorVoigt = tensorVoigt;
-            obj.IndexTransformer = TensorVoigtIndexTransformer();
+            obj.IndexTransformer = TensorVoigtIndexTransformer3D();
             obj.VoigtDim = 6;
             obj.Dim = 3;
             obj.createTensorVoigtInPlaneStress()

@@ -1,4 +1,4 @@
-classdef AnisotropicContributionTensor < SymmetricFourthOrder3DTensor
+classdef AnisotropicContributionTensor < Stiffness3DTensor
     
     properties (Access = private)
         firstTensor

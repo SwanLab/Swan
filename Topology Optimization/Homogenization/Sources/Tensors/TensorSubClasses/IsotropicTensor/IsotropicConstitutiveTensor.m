@@ -1,4 +1,4 @@
-classdef IsotropicConstitutiveTensor < SymmetricFourthOrder3DTensor
+classdef IsotropicConstitutiveTensor < Stiffness3DTensor
     
     properties (Access = protected)
         E

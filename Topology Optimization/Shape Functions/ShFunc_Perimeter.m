@@ -10,7 +10,7 @@ classdef ShFunc_Perimeter < Shape_Functional
     methods
         function obj = ShFunc_Perimeter(settings)
             settings.filter = 'PDE';
-            obj@Shape_Functional(settings);
+            obj.init(settings);
             obj.target_parameters=settings.target_parameters;
         end
         

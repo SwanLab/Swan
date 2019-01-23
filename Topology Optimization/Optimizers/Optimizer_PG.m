@@ -22,18 +22,5 @@ classdef Optimizer_PG < Optimizer_Unconstrained
             obj.opt_cond = sqrt(obj.scalar_product.computeSP(rho - rho_n,rho - rho_n))/sqrt(obj.scalar_product.computeSP(rho_n,rho_n));
         end
         
-%         function initKappa(obj,x,gradient)
-%             if isempty(obj.kappa)
-%                 norm_gamma = sqrt(obj.scalar_product.computeSP(x,x));
-%                 norm_g = sqrt(obj.scalar_product.computeSP(gradient,gradient));
-%                 obj.kappa = norm_gamma/norm_g;
-%             else
-%                 obj.kappa = obj.kappaMultiplier*obj.kappa*obj.kfrac;
-%             end
-%         end
-%         
-%         function computeKappa(obj)
-%             obj.kappa = obj.kappa/obj.kfrac;
-%         end
     end
 end

@@ -1,36 +1,65 @@
-classdef ShFunc_NonSelfAdjoint_Compliance < ShFunc_Compliance
-    properties
-        forces_adjoint
+classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
+    
+    properties (Access = private)
         adjointProb
     end
-    methods
+    
+    methods (Access = public)
+        
         function obj = ShFunc_NonSelfAdjoint_Compliance(settings)
-            obj@ShFunc_Compliance(settings);
-            
-            obj.forces_adjoint = Preprocess.getBC_adjoint(settings.filename);
-            obj.adjointProb = FEM.create(settings.filename);
-            
-            [neumann_adj_dof,neumann_adj_values] = obj.adjointProb.dof.get_dof_conditions(obj.forces_adjoint,obj.adjointProb.dof.nunkn);
-            obj.adjointProb.dof.neumann = neumann_adj_dof;
-            obj.adjointProb.dof.neumann_values = -neumann_adj_values;
-            
-            obj.adjointProb.preProcess;
+            obj@ShFunWithElasticPdes(settings);
+            obj.createEquilibriumProblem(settings.filename);
+            obj.createAdjointProblem(settings.filename)            
         end
-        function computeCostAndGradient(obj,x)
-            obj.rho = obj.filter.getP0fromP1(x);
-            obj.matProps = obj.interpolation.computeMatProp(obj.rho);
+        
+        function f = getPhysicalProblems(obj)
+            f{1} = obj.physProb;
+            f{2} = obj.adjointProb;
+        end
+        
+    end
+    
+    methods (Access = protected)
+        
+       function createEquilibriumProblem(obj,fileName)
+            obj.physProb = FEM.create(fileName);
+            obj.physProb.preProcess;
+       end        
+        
+        function computeFunctionValue(obj)
+            u = obj.physProb.variables.d_u;
+            f = obj.adjointProb.variables.fext;
+            obj.value = -f'*u;
+        end
+        
+        function g = updateGradient(obj,igaus,istre,jstre)
+            eu   = obj.physProb.variables.strain;
+            ev   = obj.adjointProb.variables.strain;
+            eu_i = squeeze(eu(igaus,istre,:));
+            ev_j = squeeze(ev(igaus,jstre,:)); 
+            dCij = squeeze(obj.matProps.dC(istre,jstre,:));
+            g    = eu_i.*dCij.*ev_j;
+        end
+        
+        function solvePDEs(obj)
             obj.adjointProb.setMatProps(obj.matProps);
             obj.adjointProb.computeVariables;
-            
-            computeCostAndGradient_CORE(obj);
+            obj.physProb.setMatProps(obj.matProps);
+            obj.physProb.computeVariables();
         end
         
-        function compliance = computeCompliance(obj)
-            compliance = obj.physProb.variables.d_u'*(-obj.adjointProb.variables.fext);
+    end
+    
+    methods (Access = private)
+        
+        function createAdjointProblem(obj,fileName)
+            fAdj = Preprocess.getBC_adjoint(fileName);
+            obj.adjointProb = FEM.create(fileName);
+            [dof,dofVal] = obj.adjointProb.dof.get_dof_conditions(fAdj,obj.adjointProb.dof.nunkn);
+            obj.adjointProb.dof.neumann = dof;
+            obj.adjointProb.dof.neumann_values = -dofVal;
+            obj.adjointProb.preProcess;
         end
         
-        function gradient_compliance = updateGradient(obj,igaus,istre,jstre)
-            gradient_compliance = (squeeze(obj.physProb.variables.strain(igaus,istre,:)).*squeeze(obj.matProps.dC(istre,jstre,:)).*squeeze(obj.adjointProb.variables.strain(igaus,jstre,:)));
-        end
     end
 end

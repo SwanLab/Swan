@@ -340,7 +340,9 @@ classdef Monitoring < handle
     
     methods (Access = protected)
         function plotBoundaryConditions(obj)
-            inodef  = unique(obj.mesh.pointload(:,1));
+            if ~isempty(obj.mesh.pointload)
+            inodef = unique(obj.mesh.pointload(:,1));
+            end
             inodec = unique(obj.mesh.dirichlet(:,1));
             
             force = obj.classifyBC(obj.mesh.pointload);
@@ -374,4 +376,5 @@ classdef Monitoring < handle
             classifiedBC(length(indexes)+1:end,:) = [];
         end
     end
+
 end

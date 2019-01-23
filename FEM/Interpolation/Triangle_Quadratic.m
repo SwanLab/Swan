@@ -1,12 +1,6 @@
-classdef Triangle_Quadratic<Interpolation
-    %Triangle_Quadratic Summary of this class goes here
-    %   Detailed explanation goes here
+classdef Triangle_Quadratic < Interpolation
     
-    properties
-    end
-    
-    methods
-        % Constructor
+    methods (Access = public)
         function obj = Triangle_Quadratic(mesh)
             obj = obj@Interpolation(mesh);
             obj.type = 'TRIANGLE_QUADRATIC';
@@ -15,6 +9,7 @@ classdef Triangle_Quadratic<Interpolation
             obj.nnode = 6;
             obj.pos_nodes = [0,0 ; 1 0; 0,1 ; 0.5,0 ; 0.5,0.5 ; 0,0.5];
         end
+        
         function computeShapeDeriv(obj,posgp)
             for igaus=1:size(posgp,2)
                 s = posgp(1,igaus);

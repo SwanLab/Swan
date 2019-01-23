@@ -1,4 +1,5 @@
-classdef SecondOrderTensor2VoigtConverter < Tensor2VoigtConverterFor3DTensors
+classdef SecondOrderTensor2VoigtConverter < Tensor2VoigtConverter...
+                                            & Tensor2Voigt3Drepresentation
     
     properties (Access = protected)
         voigtIndex

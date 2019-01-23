@@ -1,14 +1,11 @@
-classdef Quadrilateral_Quadratic < Isoparametric
-    properties
-    end
+classdef Quadrilateral_Quadratic < Interpolation
     
-    methods
+    methods (Access = public)
         function obj = Quadrilateral_Quadratic
-            obj = obj@Isoparametric;
+            obj = obj@Interpolation;
             obj.type = 'QUAD';
             obj.ndime = 2;
             obj.nnode = 8;
-%             obj.ngaus = 4;
             obj.pos_nodes = [-1 -1; 1 -1; 1 1; -1 1];
             
             shape = @(s,t) {(1.-t-s+s*t)*0.25;

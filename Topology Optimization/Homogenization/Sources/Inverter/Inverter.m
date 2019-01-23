@@ -27,7 +27,42 @@ classdef Inverter < handle
     methods (Access = private)
 
         function createInvertedTensor(obj)
-            obj.invertedTensor = obj.tensor.clone();
+            if isa(obj.tensor,'FourthOrder3DTensor')
+                obj.invertedTensor = obj.tensor.clone();
+            else
+                
+            if strcmp(obj.tensor.getFieldName,'stiffness')
+                if  strcmp(obj.tensor.getElasticityCase,'3D')
+                    if  strcmp(obj.tensor.getRepresentation(),'voigt')
+                        obj.invertedTensor = Compliance3DVoigtTensor();
+                    else                    
+                        obj.invertedTensor = Compliance3DTensor();
+                    end
+                elseif strcmp(obj.tensor.getElasticityCase,'planeStress')
+                    if strcmp(obj.tensor.getRepresentation(),'voigt')
+                        obj.invertedTensor = CompliancePlaneStressVoigtTensor();
+                    else                    
+                        obj.invertedTensor = CompliancePlaneStressTensor();
+                    end                    
+                end
+            elseif strcmp(obj.tensor.getFieldName,'compliance')
+                if  strcmp(obj.tensor.getElasticityCase,'3D')
+                    if strcmp(obj.tensor.getRepresentation(),'voigt')
+                       obj.invertedTensor = Stiffness3DVoigtTensor();
+                    else
+                       obj.invertedTensor = Stiffness3DTensor();
+                    end                    
+                elseif strcmp(obj.tensor.getElasticityCase,'planeStress')
+                    if strcmp(obj.tensor.getRepresentation(),'voigt')
+                       obj.invertedTensor = StiffnessPlaneStressVoigtTensor();
+                    else
+                       obj.invertedTensor = StiffnessPlaneStressTensor();
+                    end                    
+                end
+            else
+                obj.invertedTensor = obj.tensor.clone();
+            end
+            end
         end
         
         function T = getInvertedTensor(obj)

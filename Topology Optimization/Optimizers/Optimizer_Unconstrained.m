@@ -1,6 +1,4 @@
 classdef Optimizer_Unconstrained < Optimizer
-    %Optimizer_Unconstrained Summary of this class goes here
-    %   Detailed explanation goes here
     
     properties
         constr_tol
@@ -53,4 +51,5 @@ classdef Optimizer_Unconstrained < Optimizer
             N_L2 = obj.scalar_product.computeSP_M(inc_x,inc_x)/obj.scalar_product.computeSP_M(x_ini,x_ini);
         end
     end
+
 end

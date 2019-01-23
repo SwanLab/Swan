@@ -20,7 +20,7 @@ classdef testMakeAnisotorpicTensorPlaneStressSymbolically < testShowingError
     methods (Access = private)
         
         function createFourthOrderTensorInVoigt(obj)
-            t = SymmetricFourthOrder3DTensor();
+            t = Stiffness3DTensor();
             t.createRandomTensor();
             obj.ChVoigt = Tensor2VoigtConverter.convert(t);
         end

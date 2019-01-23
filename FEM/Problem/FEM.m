@@ -13,13 +13,14 @@ classdef FEM < handle
         variables
     end
     
-    %% Restricted properties definition ===================================
+    %% Restricted properties definition ===================================    
     properties (GetAccess = ?Postprocess, SetAccess = private)
     end
-    
-    %% Private properties definition ======================================
+
+   %% Private properties definition ======================================
     properties (Access = protected)
         solver
+        iter = 0;        
     end
     
     %% Public methods definition ==========================================
@@ -28,12 +29,12 @@ classdef FEM < handle
             mesh = Mesh_GiD(problemID); % Mesh defined twice, but almost free
             switch mesh.ptype
                 case 'ELASTIC'
-                    switch mesh.scale                        
+                    switch mesh.scale
                         case 'MACRO'
                             obj = Elastic_Problem(problemID);
                         case 'MICRO'
                             obj = Elastic_Problem_Micro(problemID);
-                    end                    
+                    end
                 case 'THERMAL'
                     obj = Thermal_Problem(problemID);
                 case 'DIFF-REACT'
@@ -46,7 +47,7 @@ classdef FEM < handle
         end
     end
     
-    methods
+    methods (Access = public)
         function sol = solve_steady_nonlinear_problem(obj,free_dof,tol)
             total_free_dof = sum(free_dof);
             dr = obj.element.computedr;
@@ -95,24 +96,40 @@ classdef FEM < handle
             obj.element.material = obj.element.material.setProps(props);
         end
         
-        function print(obj,file_name)
-            postprocess = Postprocess_PhysicalProblem;
-            if nargin > 1
-                postprocess.print(obj,file_name,obj.variables);
-            else
-                postprocess.print(obj,obj.problemID,obj.variables);
-            end
-        end
-        
-        function syncPostProcess(obj,evtobj)
-            addlistener(evtobj,'res_file','PostSet',@obj.print_slave);
+        function print(obj,fileName)
+            dI = obj.createPostProcessDataBase(fileName);
+            postprocess = Postprocess('Elasticity',dI);
+            q = obj.element.quadrature; 
+            d.fields = obj.variables;
+            d.quad = q;
+            postprocess.print(obj.iter,d);
         end
         
         function print_slave(obj,~,evnt)
             postprocess = Postprocess_PhysicalProblem;
             res_file = evnt.AffectedObject.res_file;
             postprocess.print_slave(obj,res_file,obj.variables);
+        end        
+        
+       function syncPostProcess(obj,evtobj)
+            addlistener(evtobj,'res_file','PostSet',@obj.print_slave);
+        end        
+        
+        function i = getIter(obj)
+            i = obj.iter;
         end
+        
+    end
+    
+    methods (Access = private)
+        
+        function d = createPostProcessDataBase(obj,fileName)
+            dI.mesh    = obj.mesh;
+            dI.outName = fileName;
+            ps = PostProcessDataBaseCreatorWithNoGaussData(dI);
+            d = ps.getValue();           
+        end
+        
     end
     
     methods (Abstract)
