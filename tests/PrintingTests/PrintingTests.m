@@ -2,7 +2,7 @@ classdef PrintingTests < testRunner
     
     
     properties (Access = protected)
-        FieldOfStudy = 'Printing Tests'
+        FieldOfStudy = 'Printing'
         tests
     end
     
@@ -14,10 +14,10 @@ classdef PrintingTests < testRunner
     
     methods (Access = protected)
         function loadTests(obj)
-            obj.tests = {...              
+            obj.tests = {...  
+                'testTopOptDesignAndShapes';                         
                 'testTopOptNonSelfAdjoint';                                      
                 'testTopOptDesignElemDensShapePrinting';                
-                'testTopOptDesignAndShapes';         
                 'testTopOptLevelSetGaussDensityPrinting';
                 'testTopOptGaussDensityPrinting';
                 'testTopOptDensityPrinting';

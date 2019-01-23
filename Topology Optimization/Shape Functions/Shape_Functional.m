@@ -20,8 +20,8 @@ classdef Shape_Functional < handle
     methods (Access = protected)
         
         function init(obj,settings)
-            obj.filter = Filter.create(settings);
-            obj.createMsmoothAndDvolu(settings.filename)
+            obj.createFilter(settings);
+            obj.createMsmoothAndDvolu(settings.filename,settings.ptype);
         end
         
         function normalizeFunctionAndGradient(obj)
@@ -33,8 +33,14 @@ classdef Shape_Functional < handle
     
     methods (Access = private)
         
-        function createMsmoothAndDvolu(obj,fileName)
-            diffReacProb = DiffReact_Problem(fileName);
+        function createFilter(obj,settings)
+            obj.filter = Filter.create(settings);
+            obj.filter.setupFromGiDFile(settings.filename,settings.ptype); 
+        end
+        
+        function createMsmoothAndDvolu(obj,fileName,scale)
+            diffReacProb = obj.createDiffReactProb(scale);
+            diffReacProb.setupFromGiDFile(fileName);
             diffReacProb.preProcess;
             obj.Msmooth = diffReacProb.element.M;
             obj.dvolu = diffReacProb.geometry.dvolu;
@@ -52,5 +58,15 @@ classdef Shape_Functional < handle
         end
         
     end
+    
+    methods (Static, Access = private)
+        function diffReacProb = createDiffReactProb(scale)
+            switch scale
+                case 'MACRO'
+                    diffReacProb = DiffReact_Problem;
+                case 'MICRO'
+                    diffReacProb = DiffReact_Problem_Micro;
+            end
+        end
+    end
 end
-

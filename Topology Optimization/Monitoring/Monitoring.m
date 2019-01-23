@@ -376,4 +376,5 @@ classdef Monitoring < handle
             classifiedBC(length(indexes)+1:end,:) = [];
         end
     end
+
 end

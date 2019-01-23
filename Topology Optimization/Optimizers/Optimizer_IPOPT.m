@@ -88,4 +88,5 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             obj.writeToFile(istep,obj.cost_copy,obj.constraint_copy)
         end
     end
+
 end

@@ -4,24 +4,21 @@ classdef Filter_P1_LevelSet < Filter_P1
     end
     
     methods
-        function obj = Filter_P1_LevelSet(problemID,scale)            
-            obj@Filter_P1(problemID,scale);
-        end        
-        
         function x_gp = getP0fromP1(obj,x)
-            if norm(x) == norm(obj.x)
-                x_gp=obj.x_reg;
-            else
-                switch obj.geometry.type
+            xHasChanged = ~norm(x) == norm(obj.x);
+            
+            if xHasChanged
+                switch obj.diffReacProb.geometry.type
                     case 'TRIANGLE'
-                        M2=obj.faireF2(obj.coordinates',obj.connectivities',x);
+                        M2 = obj.faireF2(obj.mesh.coord',obj.mesh.connec',x);
                     otherwise
-                        M2=obj.computeRHS(x);
+                        M2 = obj.computeRHS(x,ones(size(x)));
                 end
                 x_gp = obj.P_operator*M2;
-                obj.x_reg=x_gp;
+                obj.x_reg = x_gp;
+            else
+                x_gp = obj.x_reg;
             end
         end
     end
 end
-

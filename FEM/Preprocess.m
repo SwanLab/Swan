@@ -9,7 +9,6 @@ classdef Preprocess<handle
     methods(Static)
         function data = readFromGiD(filename)
             
-          %  addpath(fullfile('.','Input'))
             run(filename)
             data = struct;
             if exist('gidcoord','var')
@@ -150,8 +149,4 @@ classdef Preprocess<handle
         end
     end
 end
-
-
-
-
 

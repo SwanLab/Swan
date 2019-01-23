@@ -30,8 +30,7 @@ classdef testTopOptPrinting < testNotShowingError ...
             obj.settings.case_file = obj.fileOutputName;
         end
         
-    end
-    
+    end    
     
 end
 

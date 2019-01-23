@@ -15,6 +15,8 @@ classdef LevelSetFactory < handle
                     obj = LevelSetSphere(input);
                 case 'sphereInclusion'
                     obj = LevelSetWithSphereInclusion(input);
+                case 'cylinder'
+                    obj = LevelSetCylinder(input);
                 case 'horizontal'
                     obj = LevelSetHorizontalInclusion(Input);
                 case 'square'
@@ -24,7 +26,7 @@ classdef LevelSetFactory < handle
                 case 'rectangle'
                     obj = LevelSetRectangleInclusion(input);
                 case 'smoothRectangle'
-                    obj = LevelSetSmoothRectangleInclusion(input);                    
+                    obj = LevelSetSmoothRectangleInclusion(input);
                 case 'feasible'
                     obj = LevelSetFeasible(input);
                 case 'rand'
@@ -35,7 +37,7 @@ classdef LevelSetFactory < handle
                     obj = LevelSetFull(input);
                 case 'orientedFiber'
                     obj = LevelSetOrientedFiber(input);
-                otherwise 
+                otherwise
                     error('Invalid initial value of design variable.');
             end
             

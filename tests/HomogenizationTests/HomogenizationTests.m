@@ -2,7 +2,7 @@ classdef HomogenizationTests < testRunner
     
     
     properties (Access = protected)
-        FieldOfStudy = 'Homogenization Tests'
+        FieldOfStudy = 'Homogenization'
         tests
     end
     

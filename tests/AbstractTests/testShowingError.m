@@ -1,5 +1,4 @@
 classdef testShowingError < test
-    
     properties (Access = protected)
        error
     end
@@ -9,7 +8,6 @@ classdef testShowingError < test
     end
         
     methods (Access = protected)
-        
         function printTestPassed(obj)
            cprintf('green',obj.FileName);                                    
            cprintf('green',' PASSED.');
@@ -26,12 +24,10 @@ classdef testShowingError < test
             obj.computeError()
             hasPassed = obj.error < obj.tol();
         end
-        
     end
     
     methods (Abstract, Access = protected)
         computeError(obj)        
     end
-    
 end
 

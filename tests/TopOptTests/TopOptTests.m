@@ -1,7 +1,5 @@
-
 classdef TopOptTests < testRunner
-    
-    
+        
     properties (Access = protected)
         FieldOfStudy = 'TopOpt tests'
         tests
@@ -15,20 +13,19 @@ classdef TopOptTests < testRunner
     
     methods (Access = protected)
         function loadTests(obj)
-            obj.tests = {...   
+            obj.tests = {... 
+               'testCantilever3';
+               'testProjectedSlerp';                
+               'testBridge2';                   
+               'testBridge';                  
                'testMicro';               
                'testCantilever2';                
-               'testProjectedSlerp';
                'testCantilever';                
                'testGripping';  
                'testMicro2';
-               'testCantilever3';
-               'testBridge2';   
-               'testBridge';   
                };
 
         end
     end
     
 end
-

@@ -51,4 +51,5 @@ classdef Optimizer_Unconstrained < Optimizer
             N_L2 = obj.scalar_product.computeSP_M(inc_x,inc_x)/obj.scalar_product.computeSP_M(x_ini,x_ini);
         end
     end
+
 end

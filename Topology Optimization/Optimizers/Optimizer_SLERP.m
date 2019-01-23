@@ -5,33 +5,73 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         theta = 0.1
     end
     
+    properties (Access = private)
+       normalizedPhi
+       normalizedGrad
+       coefPhi
+       coefGrad
+    end
+    
     methods
+        
+        function optimality_tol = get.optimality_tol(obj)
+            optimality_tol = (0.0175/1e-3)*obj.target_parameters.optimality_tol;
+        end        
+        
+    end
+    
+    methods (Access = public)
         function obj = Optimizer_SLERP(settings,epsilon)
             obj@Optimizer_Unconstrained(settings,epsilon);
             obj.max_constr_change = +Inf;
             obj.nconstr = settings.nconstr;
         end
-        
-        function optimality_tol = get.optimality_tol(obj)
-            optimality_tol = (0.0175/1e-3)*obj.target_parameters.optimality_tol;
+                
+        function phi = computeX(obj,phi,g)
+            obj.computeNormalizedLevelSet(phi);
+            obj.computeNormalizedGradient(g);
+            obj.computeTheta();             
+            obj.computeCoeficients();
+            phi = obj.updateLevelSet();           
+            obj.updateOptimalityConditionValue();
         end
         
-        function phi = computeX(obj,design_variable,gradient)
-            phi_n = design_variable;
-            norm_g = sqrt(obj.scalar_product.computeSP(gradient,gradient));            
-            beta1 = sin((1-obj.line_search.kappa)*obj.theta)/sin(obj.theta);
-            beta2 = sin(obj.line_search.kappa*obj.theta)/sin(obj.theta);
-            phi = beta1*phi_n + beta2*gradient/norm_g;
-            obj.theta = obj.computeTheta(design_variable,gradient);            
+    end
+    
+    methods (Access = private)
+        
+        function computeNormalizedLevelSet(obj,phi)
+            obj.normalizedPhi = obj.normalizeFunction(phi);
         end
         
-        function theta = computeTheta(obj,phi,g)
-            phi = obj.normalizeFunction(phi);
-            g   = obj.normalizeFunction(g);
-            phiXg = obj.scalar_product.computeSP(phi,g);
-            theta = real(acos(phiXg));
-            obj.opt_cond = theta;
-            obj.theta = theta;
+        function computeNormalizedGradient(obj,g)
+            obj.normalizedGrad = obj.normalizeFunction(g);
+        end        
+        
+        function computeCoeficients(obj)
+            k = obj.line_search.kappa;
+            t = obj.theta;
+            obj.coefPhi  = sin((1-k)*t)/sin(t);
+            obj.coefGrad = sin(k*t)/sin(t); 
+        end
+        
+        function phi = updateLevelSet(obj)
+            cPhi = obj.coefPhi;
+            cGra = obj.coefGrad;
+            phiN = obj.normalizedPhi;            
+            g    = obj.normalizedGrad;
+            phi = cPhi*phiN + cGra*g;
+        end
+        
+        function computeTheta(obj)
+            phiN = obj.normalizedPhi;            
+            g    = obj.normalizedGrad;
+            phiXg = obj.scalar_product.computeSP(phiN,g);
+            obj.theta = real(acos(phiXg));
+        end
+        
+        function updateOptimalityConditionValue(obj)
+            obj.opt_cond = obj.theta;
         end
         
         function x = normalizeFunction(obj,x)

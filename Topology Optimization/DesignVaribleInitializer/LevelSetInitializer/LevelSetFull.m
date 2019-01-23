@@ -9,11 +9,10 @@ classdef LevelSetFull < LevelSetCreator
     end
     
     methods (Access = protected)
-        
+
         function computeLevelSet(obj)
            obj.levelSet = -1*ones(obj.lsSize); 
-        end
-        
+        end    
     end
     
 end

@@ -61,4 +61,5 @@ classdef ShFunc_Chomog_fraction < ShFunc_Chomog
         end
         
     end
+
 end

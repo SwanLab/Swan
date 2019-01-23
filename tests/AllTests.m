@@ -1,6 +1,8 @@
-UnfittedIntegrationTests;
 FemTests;
+UnfittedIntegrationTests;
 TopOptTests;
-HomogenizationTests;
 PrintingTests;
+HomogenizationTests;
+PlottingTests;
 %AmplificatorTests;
+

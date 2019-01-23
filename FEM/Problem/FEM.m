@@ -13,16 +13,14 @@ classdef FEM < handle
         variables
     end
     
-    
+    %% Restricted properties definition ===================================    
     properties (GetAccess = ?Postprocess, SetAccess = private)
     end
-    
+
+   %% Private properties definition ======================================
     properties (Access = protected)
         solver
-    end
-    
-    properties (Access = private)
-        iter = 0;
+        iter = 0;        
     end
     
     %% Public methods definition ==========================================
@@ -98,12 +96,6 @@ classdef FEM < handle
             obj.element.material = obj.element.material.setProps(props);
         end
         
-        function print_slave(obj,~,evnt)
-            postprocess = Postprocess_PhysicalProblem;
-            res_file = evnt.AffectedObject.res_file;
-            postprocess.print_slave(obj,res_file,obj.variables);
-        end
-        
         function print(obj,fileName)
             dI = obj.createPostProcessDataBase(fileName);
             postprocess = Postprocess('Elasticity',dI);
@@ -112,6 +104,16 @@ classdef FEM < handle
             d.quad = q;
             postprocess.print(obj.iter,d);
         end
+        
+        function print_slave(obj,~,evnt)
+            postprocess = Postprocess_PhysicalProblem;
+            res_file = evnt.AffectedObject.res_file;
+            postprocess.print_slave(obj,res_file,obj.variables);
+        end        
+        
+       function syncPostProcess(obj,evtobj)
+            addlistener(evtobj,'res_file','PostSet',@obj.print_slave);
+        end        
         
         function i = getIter(obj)
             i = obj.iter;

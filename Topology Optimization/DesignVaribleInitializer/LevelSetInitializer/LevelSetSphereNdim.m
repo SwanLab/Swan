@@ -1,9 +1,9 @@
 classdef LevelSetSphereNdim < ...
         LevelSetCreator & ...
-        LevelSetCenterDescriptor
+        LevelSetCenterDescriptor & ...
+        LevelSetRadiusDescriptor
     
-    properties (Access = protected)
-        radius
+    properties (Access = protected)  
         fracRadius
         dist
     end
@@ -20,16 +20,6 @@ classdef LevelSetSphereNdim < ...
     end
     
     methods (Access = private)
-        
-        function computeRadius(obj)
-            lengthDim = zeros(obj.ndim,1);
-            for idim = 1:obj.ndim
-                pos = obj.nodeCoord(:,idim);
-                lengthDim(idim) = 0.5*(max(pos) - min(pos));
-            end
-            maxInteriorRadius = min(lengthDim);
-            obj.radius = obj.fracRadius*maxInteriorRadius;
-        end
                 
         function computeDistanceToSphere(obj)            
             r = obj.radius;

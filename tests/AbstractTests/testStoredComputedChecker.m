@@ -1,5 +1,4 @@
 classdef testStoredComputedChecker < handle
-    
     properties (Abstract, Access = protected)
         variablesToStore
         storedVar
@@ -11,7 +10,6 @@ classdef testStoredComputedChecker < handle
     end
     
     methods (Access = protected)
-        
         function computeError(obj)
             d = numel(obj.variablesToStore);
             err = ones(d,1);
@@ -22,9 +20,6 @@ classdef testStoredComputedChecker < handle
             end
             obj.error = norm(err);
         end        
-        
     end
-    
-
 end
 

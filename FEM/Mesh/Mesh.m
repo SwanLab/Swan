@@ -1,27 +1,25 @@
-classdef Mesh < handle
-    % Class containing the coordinates and connectivities of the mesh
-    properties (GetAccess = public, SetAccess = public)
+classdef Mesh < handle & matlab.mixin.Copyable
+    properties (GetAccess = public, SetAccess = protected)
         coord
         connec
-        mean_cell_size
+        ndim
+        geometryType
         problem_characterisitc_length % !! Rename?? !!
     end
     
-    methods
+    methods (Access = public)
         function obj = create(obj,coordinates,connectivities)
-            obj.coord = coordinates(:,1:obj.ndim);
+            obj.coord = coordinates;
             obj.connec = connectivities;
-            obj.estimate_mesh_size;
-            obj.estimate_mesh_characteristic_length;
+            obj.ndim = size(coordinates,2);
+            obj.computeGeometryType();
         end
         
-        function copy = duplicate(obj)
-            copy = Mesh.create(obj.coord,obj.connec);
+        function objClone = clone(obj)
+            objClone = copy(obj);
         end
-    end
-    
-    methods (Access = private)
-        function estimate_mesh_size(obj)
+        
+        function meanCellSize = computeMeanCellSize(obj)
             x1 = obj.coord(obj.connec(:,1));
             x2 = obj.coord(obj.connec(:,2));
             x3 = obj.coord(obj.connec(:,3));
@@ -31,13 +29,24 @@ classdef Mesh < handle
             x1x3 = abs(x1-x3);
             hs = max([x1x2,x2x3,x1x3]');
             
-            obj.mean_cell_size = mean(hs);
+            meanCellSize = mean(hs);
         end
         
-        function estimate_mesh_characteristic_length(obj)
+        function characterisitcLength = computeCharacteristicLength(obj)
             xmin = min(obj.coord);
             xmax = max(obj.coord);
-            obj.problem_characterisitc_length = norm(xmax-xmin)/2;
+            characterisitcLength = norm(xmax-xmin)/2;
+        end
+        
+        function changeCoordinates(obj,newCoords)
+            obj.coord = newCoords;
+        end
+    end
+    
+    methods (Access = protected)
+        function computeGeometryType(obj)
+            nnode = size(obj.connec,2);
+            obj.geometryType = MeshGeometryType_Factory.getGeometryType(obj.ndim,nnode);
         end
     end
 end

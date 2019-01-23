@@ -29,4 +29,5 @@ classdef ShFunc_Chomog_EnforceCh_CCstar_inf < ShFunc_Chomog_EnforceCh
             obj.epsilon = r;
         end
     end
+
 end

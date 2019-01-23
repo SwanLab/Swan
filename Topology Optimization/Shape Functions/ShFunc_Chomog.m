@@ -192,10 +192,3 @@ classdef ShFunc_Chomog < Shape_Functional
         end
     end
 end
-
-
-
-
-
-
-

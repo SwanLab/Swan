@@ -2,11 +2,7 @@ classdef Filter_P1_Density < Filter_P1
     properties
     end
     
-    methods
-        function obj = Filter_P1_Density(problemID,scale)
-            obj@Filter_P1(problemID,scale);
-        end
-        
+    methods (Access = public)        
         function x_gp = getP0fromP1(obj,x)
             if isequal(x,obj.x)
                 x_gp = obj.x_reg;

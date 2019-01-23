@@ -12,14 +12,14 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
         end
         
         function x = updateX(obj,x_ini,cost,constraint)
+            x_ini = obj.compute_initial_value(x_ini,cost,constraint);
             obj.updateObjFunc(cost,constraint);
             cost.computeCostAndGradient(x_ini);
             constraint.computeCostAndGradient(x_ini);
             obj.objfunc.computeGradient(cost,constraint);
             obj.objfunc.computeFunction(cost,constraint);
             obj.initUnconstrOpt(x_ini);
-            obj.optimizer_unconstr.computeTheta(x_ini,obj.objfunc.gradient);
-            obj.optimizer_unconstr.opt_cond = obj.optimizer_unconstr.theta;
+            obj.optimizer_unconstr.computeX(x_ini,obj.objfunc.gradient);
             
             obj.has_converged = ~(obj.optimizer_unconstr.opt_cond >=  obj.optimizer_unconstr.optimality_tol);
             if ~obj.has_converged
@@ -57,20 +57,15 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
     
     methods (Access = private)
         function x = solveUnconstrainedProblem(obj,x_ini,cost,constraint)
-            
-            
             cost_copy_value = cost.value;
             constraint_copy_value = constraint.value;
-            
-            
+
             cost_copy_gradient = cost.gradient;
             constraint_copy_gradient = constraint.gradient;
             
             lambda_copy = constraint.lambda;
             
             obj.objfunc.computeGradient(cost,constraint);
-            
-            
             
             obj.optimizer_unconstr.line_search.kfrac = 1.1;
             
@@ -119,8 +114,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
                 obj.stop_vars = obj.optimizer_unconstr.stop_vars;
             end
             
-            thet = obj.optimizer_unconstr.computeTheta(x_ini,obj.objfunc.gradient);
-            obj.optimizer_unconstr.opt_cond = thet;
+            obj.optimizer_unconstr.computeX(x_ini,obj.objfunc.gradient);
         end
         
         function fval = compute_feasible_design_variable(obj,lambda,x_ini,cost,constraint,theta)

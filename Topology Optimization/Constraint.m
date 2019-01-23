@@ -1,8 +1,9 @@
 classdef Constraint < CC
-    properties
+    properties (Access = public)
         lambda
     end
-    methods
+    
+    methods (Access = public)
         function obj=Constraint(settings)
             obj@CC(settings,settings.constraint);
         end
