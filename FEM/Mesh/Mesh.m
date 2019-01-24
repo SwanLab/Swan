@@ -4,7 +4,6 @@ classdef Mesh < handle & matlab.mixin.Copyable
         connec
         ndim
         geometryType
-        problem_characterisitc_length % !! Rename?? !!
     end
     
     methods (Access = public)
