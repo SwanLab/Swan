@@ -1,8 +1,8 @@
 classdef Mesh_Unfitted_Abstract < handle
     
     properties (GetAccess = public, SetAccess = protected)
-        x_background
-        x_unfitted
+        levelSet_background
+        levelSet_unfitted
         meshBackground
     end
     

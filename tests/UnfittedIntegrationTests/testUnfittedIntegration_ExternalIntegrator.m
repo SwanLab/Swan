@@ -17,7 +17,7 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
         
         function M2 = integrateMesh(obj)
             integrator = Integrator.create(obj.mesh);
-            M2 = integrator.integrateUnfittedMesh(ones(size(obj.mesh.x_background)),obj.mesh);
+            M2 = integrator.integrateUnfittedMesh(ones(size(obj.mesh.levelSet_background)),obj.mesh);
         end
         
     end

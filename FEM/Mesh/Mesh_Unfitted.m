@@ -51,7 +51,7 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
         
         function mass = computeMass(obj)
             integrator = Integrator.create(obj);
-            M2 = integrator.integrateUnfittedMesh(ones(size(obj.x_background)),obj);
+            M2 = integrator.integrateUnfittedMesh(ones(size(obj.levelSet_background)),obj);
             mass = sum(M2);
         end
         
@@ -92,7 +92,7 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
         end
         
         function saveLevelSet(obj,levelSet_background)
-            obj.x_background = levelSet_background;
+            obj.levelSet_background = levelSet_background;
         end
         
         function itIs = isLevelSetCuttingMesh(obj)
@@ -105,7 +105,7 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
         end
         
         function findCutCells(obj)
-            phi_nodes = obj.x_background(obj.meshBackground.connec);
+            phi_nodes = obj.levelSet_background(obj.meshBackground.connec);
             phi_case = sum((sign(phi_nodes)<0),2);
             
             obj.backgroundFullCells = phi_case == size(obj.meshBackground.connec,2);
@@ -117,7 +117,7 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
         function computeUnfittedMesh_AsBackground(obj)
             obj.coord = obj.meshBackground.coord;
             obj.connec = [];
-            obj.x_unfitted = obj.x_background;
+            obj.levelSet_unfitted = obj.levelSet_background;
         end
         
         function obj = computeUnfittedMesh_Delaunay(obj) % !! Should Delaunay or Marching Cubes strategies should be defined in subcellMesher NOT in the method !!
@@ -179,7 +179,7 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
             obj.coord_iso_per_cell = zeros(number_cut_cells*obj.maxSubcells,obj.nnodesSubcell,obj.meshBackground.ndim);
             obj.connec_local = zeros(number_cut_cells*obj.maxSubcells,obj.nnodesSubcell);
             obj.connec = zeros(number_cut_cells*obj.maxSubcells,obj.nnodesSubcell);
-            obj.x_unfitted = zeros(number_cut_cells*obj.maxSubcells*obj.nnodesSubcell,1);
+            obj.levelSet_unfitted = zeros(number_cut_cells*obj.maxSubcells*obj.nnodesSubcell,1);
             obj.cell_containing_nodes = zeros(number_cut_cells*obj.maxSubcells*obj.nnodesSubcell,1);
             obj.cell_containing_subcell = zeros(number_cut_cells*obj.maxSubcells*obj.nnodesSubcell,1);
         end
@@ -189,7 +189,7 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
                 obj.coord_iso(upperBound_A+1:end,:) = [];
                 obj.coord_global_raw(upperBound_A+1:end,:) = [];
                 obj.cell_containing_nodes(upperBound_A+1:end) = [];
-                obj.x_unfitted(upperBound_A+1:end) = [];
+                obj.levelSet_unfitted(upperBound_A+1:end) = [];
             end
             if length(obj.connec_local) > upperBound_B
                 obj.connec_local(upperBound_B+1:end,:) = [];
@@ -205,7 +205,7 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
             obj.coord_iso(1+lowerBound_A:upperBound_A,:) = new_coord_iso;
             obj.coord_global_raw(1+lowerBound_A:upperBound_A,:) = new_coord_global;
             obj.cell_containing_nodes(1+lowerBound_A:upperBound_A,:) = new_cell_containing_nodes;
-            obj.x_unfitted(1+lowerBound_A:upperBound_A) = new_x_unfitted;
+            obj.levelSet_unfitted(1+lowerBound_A:upperBound_A) = new_x_unfitted;
         end
         
         function assignUnfittedSubcellProps(obj,lowerBound_B,upperBound_B,new_subcell_connec,new_cell_containing_subcell)
@@ -224,7 +224,7 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
             currentCell_cutPoints_iso = obj.getCurrentCutPoints(cutPoints_iso,real_cutPoints,icut);
             currentCell_cutPoints_global = obj.getCurrentCutPoints(cutPoints_global,real_cutPoints,icut);
             [new_coord_iso,new_coord_global,new_x_unfitted,new_subcell_connec]...
-                = obj.subcellsMesher.computeSubcells(obj.meshBackground,obj.background_geom_interpolation,obj.x_background,obj.meshBackground.connec(icell,:),currentCell_cutPoints_iso,currentCell_cutPoints_global);
+                = obj.subcellsMesher.computeSubcells(obj.meshBackground,obj.background_geom_interpolation,obj.levelSet_background,obj.meshBackground.connec(icell,:),currentCell_cutPoints_iso,currentCell_cutPoints_global);
         end
         
         function [cutPoints_iso,cutPoints_global,real_cutPoints] = computeCutPoints(obj)

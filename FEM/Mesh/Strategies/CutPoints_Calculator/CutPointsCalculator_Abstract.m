@@ -14,7 +14,7 @@ classdef CutPointsCalculator_Abstract < handle
     methods (Access = public)
         function init(obj,mesh)
             obj.meshBackground = mesh.meshBackground;
-            obj.levelSet_background = mesh.x_background;
+            obj.levelSet_background = mesh.levelSet_background;
             obj.backgroundCutCells = mesh.backgroundCutCells;
             obj.backgroundGeomInterpolation = mesh.background_geom_interpolation;
         end

@@ -29,7 +29,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
         end
         
         function computeMesh(obj,levelSet)
-            obj.x_background = levelSet;
+            obj.levelSet_background = levelSet;
             obj.computeInteriorMesh(levelSet);
             obj.computeBoxMeshes(levelSet);
         end
