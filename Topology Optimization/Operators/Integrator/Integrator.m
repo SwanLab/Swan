@@ -43,7 +43,7 @@ classdef Integrator < handle
             
             shapeValues = zeros(size(obj.meshUnfitted.connec,1),interpolation_background.nnode);
             for isubcell = 1:size(obj.meshUnfitted.connec,1) % !! VECTORIZE THIS LOOP !!
-                icell = obj.meshUnfitted.cell_containing_subcell(isubcell);
+                icell = obj.meshUnfitted.cellContainingSubcell(isubcell);
                 inode = obj.meshBackground.connec(icell,:);
                 
                 interpolation_background.computeShapeDeriv(posGP_iso_unfitted(:,:,isubcell)');

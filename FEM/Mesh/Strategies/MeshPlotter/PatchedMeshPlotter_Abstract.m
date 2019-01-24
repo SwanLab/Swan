@@ -1,4 +1,5 @@
 classdef PatchedMeshPlotter_Abstract < handle
+    
     properties (Access = protected)
         meshUnfitted
         meshBackground
@@ -10,6 +11,7 @@ classdef PatchedMeshPlotter_Abstract < handle
     end
     
     methods (Access = public)
+        
         function plot(obj,meshUnfitted,ax)
             obj.init(meshUnfitted);
             obj.plotCutCells(ax);
@@ -24,6 +26,7 @@ classdef PatchedMeshPlotter_Abstract < handle
     end
     
     methods (Access = private)
+        
         function init(obj,meshUnfitted)
             obj.meshUnfitted = meshUnfitted;
             obj.meshBackground = meshUnfitted.meshBackground;
@@ -65,13 +68,16 @@ classdef PatchedMeshPlotter_Abstract < handle
                 end
             end
         end
+        
     end
     
     methods (Access = private, Static)
+        
         function newCoords = addRemovedDimension(newCoords,removedDim,removedDimCoord,nnode)
             patch = removedDimCoord*ones(1,nnode);
             newCoords(:,removedDim) = patch;
         end
+        
     end
 end
 
