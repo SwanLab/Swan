@@ -1,4 +1,4 @@
-classdef testPerimeterCircleTriangle < testUnfittedIntegration...
+classdef testPerimeterCircleTriangle < testUnfittedIntegration_ExternalIntegrator...
                                   & testUnfittedPerimeterIntegration
     
     properties (Access = protected)
@@ -6,5 +6,6 @@ classdef testPerimeterCircleTriangle < testUnfittedIntegration...
         analiticalArea = 2*pi;
         meshType = 'BOUNDARY';
     end
+    
 end
 

@@ -1,4 +1,4 @@
-classdef testPerimeterRectangleTriangle < testUnfittedIntegration...
+classdef testPerimeterRectangleTriangle < testUnfittedIntegration_ExternalIntegrator_Composite...
                                   & testUnfittedPerimeterRectangleIntegration
     
     properties (Access = protected)
@@ -6,5 +6,6 @@ classdef testPerimeterRectangleTriangle < testUnfittedIntegration...
         analiticalArea = 8;
         meshType = 'BOUNDARY';
     end
+    
 end
 

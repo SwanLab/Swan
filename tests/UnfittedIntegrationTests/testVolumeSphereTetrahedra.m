@@ -1,4 +1,4 @@
-classdef testVolumeSphereTetrahedra < testUnfittedIntegration...
+classdef testVolumeSphereTetrahedra < testUnfittedIntegration_ExternalIntegrator...
                                   & testUnfittedVolumeIntegration
     
    properties (Access = protected)
@@ -6,5 +6,6 @@ classdef testVolumeSphereTetrahedra < testUnfittedIntegration...
         analiticalArea = (4/3)*pi;
         meshType = 'INTERIOR';
    end
+   
 end
 

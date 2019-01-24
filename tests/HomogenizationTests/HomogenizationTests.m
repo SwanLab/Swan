@@ -1,6 +1,5 @@
 classdef HomogenizationTests < testRunner
     
-    
     properties (Access = protected)
         FieldOfStudy = 'Homogenization'
         tests
@@ -45,8 +44,8 @@ classdef HomogenizationTests < testRunner
                 'testDiagonalLaminate';
                 'testNumericalConvergenceOfNumberOfLaminates';
                 };
-
         end
+        
     end
     
 end

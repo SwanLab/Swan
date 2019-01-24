@@ -97,6 +97,7 @@ classdef Homogenizer < handle
             Ch = Inverter.invert(Sh);
             obj.homogTensor = Ch;
         end
+        
     end
     
 end

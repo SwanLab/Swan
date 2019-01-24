@@ -1,5 +1,5 @@
 classdef testUnfittedIntegration < testShowingError...
-                                   & testUnfitted
+        & testUnfitted
     properties (Access = protected)
         tol = 6e-2;
     end
@@ -13,7 +13,14 @@ classdef testUnfittedIntegration < testShowingError...
         areaAdim
     end
     
+    methods (Access = protected, Abstract)
+        
+        computeGeometricalVariable(obj)
+        
+    end
+    
     methods (Access = protected)
+        
         function obj = testUnfittedIntegration()
             obj.createTopOpt()
             obj.integrateSurface()
@@ -26,13 +33,11 @@ classdef testUnfittedIntegration < testShowingError...
             obj.areaAdim = area/obj.analiticalArea;
         end
         
-        function M = computeGeometricalVariable(obj)
-            M = obj.mesh.computeMass();
-        end
-        
         function computeError(obj)
             obj.error = abs(obj.areaAdim - 1);
         end
+        
     end
+    
 end
 

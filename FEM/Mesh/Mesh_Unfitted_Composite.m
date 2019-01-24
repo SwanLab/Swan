@@ -1,13 +1,14 @@
 classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
+    
     properties (GetAccess = public, SetAccess = private)
         meshInterior
         boxFaceMeshes
         activeBoxFaceMeshesList
         nActiveBoxFaces
+        meshType = 'COMPOSITE'
     end
     
     properties (Access = private)
-        meshBackground;
         nodesInBoxFaces
         isBoxFaceMeshActive
         
@@ -20,6 +21,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
     end
     
     methods (Access = public)
+        
         function obj = Mesh_Unfitted_Composite(meshType,meshBackground,interpolation_background)
             obj.init(meshBackground);
             obj.createInteriorMesh(meshType,meshBackground,interpolation_background);
@@ -27,6 +29,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
         end
         
         function computeMesh(obj,levelSet)
+            obj.x_background = levelSet;
             obj.computeInteriorMesh(levelSet);
             obj.computeBoxMeshes(levelSet);
         end
@@ -52,9 +55,11 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
                 obj.boxFaceMeshes{iface}.add2plot(ax,obj.removedDimensions(iface),obj.removedDimensionCoord(iface));
             end
         end
+        
     end
     
     methods (Access = private)
+        
         function init(obj,meshBackground)
             obj.ndim = meshBackground.ndim;
             obj.meshBackground = meshBackground;
@@ -195,6 +200,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
             connec = [I circshift(I,-1)];
             connec(end,:) = [];
         end
+        
     end
 end
 

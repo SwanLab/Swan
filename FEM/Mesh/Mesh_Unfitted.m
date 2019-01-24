@@ -1,4 +1,5 @@
 classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
+    
     properties (Access = private)
         subcellsMesher
         cutPointsCalculator
@@ -21,11 +22,6 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
         backgroundEmptyCells
         backgroundCutCells
         
-        x_background
-        x_unfitted
-        
-        meshBackground
-        
         background_geom_interpolation
     end
     
@@ -35,6 +31,7 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
     end
     
     methods (Access = public)
+        
         function obj = Mesh_Unfitted(meshType,meshBackground,interpolation_background)
             obj.build(meshType,meshBackground.ndim);
             obj.init(meshBackground,interpolation_background);
@@ -73,9 +70,11 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
             end
             obj.meshPlotter.plot(meshUnfitted,ax);
         end
+        
     end
     
     methods (Access = private)
+        
         function init(obj,meshBackground,background_geom_interpolation)
             obj.ndim = meshBackground.ndim;
             obj.meshBackground = meshBackground;
@@ -121,7 +120,7 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
             obj.x_unfitted = obj.x_background;
         end
         
-        function obj = computeUnfittedMesh_Delaunay(obj) % !! Should Delaunay or Marching Cubes strategies should be defined in subcellMesher NOT in the method !!           
+        function obj = computeUnfittedMesh_Delaunay(obj) % !! Should Delaunay or Marching Cubes strategies should be defined in subcellMesher NOT in the method !!
             [cutPoints_iso,cutPoints_global,real_cutPoints] = obj.computeCutPoints();
             
             obj.allocateMemory_Delaunay();
@@ -147,7 +146,7 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
             obj.cleanExtraAllocatedMemory_Delaunay(lowerBound_A,lowerBound_B,lowerBound_C);
         end
         
-        function computeFromLocalToGlobalConnectivities(obj)            
+        function computeFromLocalToGlobalConnectivities(obj)
             for i = 1:size(obj.connec_local,1)
                 icell = obj.cell_containing_subcell(i);
                 indexes_in_global_matrix = obj.findIndexesOfCoordinatesAinCoordinateMatrixB(obj.coord_global_raw(obj.cell_containing_nodes == icell,:),obj.coord);
@@ -232,10 +231,12 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
             obj.cutPointsCalculator.init(obj);
             [cutPoints_iso,real_cutPoints] = obj.cutPointsCalculator.computeCutPoints_Iso();
             cutPoints_global = obj.cutPointsCalculator.computeCutPoints_Global();
-        end       
+        end
+        
     end
     
     methods (Access = private, Static)
+        
         function cutPoints = getCurrentCutPoints(Nodes_n_CutPoints,real_cutPoints,icut)
             cutPoints = Nodes_n_CutPoints(real_cutPoints(:,:,icut),:,icut);
         end
@@ -250,6 +251,8 @@ classdef Mesh_Unfitted < Mesh & Mesh_Unfitted_Abstract
                 indexes(inode) = find(match,1);
             end
         end
+        
     end
+    
 end
 

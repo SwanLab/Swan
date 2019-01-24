@@ -1,4 +1,4 @@
-classdef testAreaCircleTriangle < testUnfittedIntegration...
+classdef testAreaCircleTriangle < testUnfittedIntegration_ExternalIntegrator...
                                   & testUnfittedSurfaceIntegration
     
     properties (Access = protected)
@@ -6,5 +6,6 @@ classdef testAreaCircleTriangle < testUnfittedIntegration...
         analiticalArea = pi;
         meshType = 'INTERIOR';
     end
+    
 end
 

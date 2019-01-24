@@ -1,4 +1,4 @@
-classdef testSurfaceSphereTetrahedra < testUnfittedIntegration...
+classdef testSurfaceSphereTetrahedra < testUnfittedIntegration_ExternalIntegrator...
                                   & testUnfittedSurfaceIntegration
     
    properties (Access = protected)
@@ -6,5 +6,6 @@ classdef testSurfaceSphereTetrahedra < testUnfittedIntegration...
         analiticalArea = 4*pi;
         meshType = 'BOUNDARY';
    end
+   
 end
 
