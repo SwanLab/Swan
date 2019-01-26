@@ -17,12 +17,11 @@ classdef Incremental_Scheme < handle
             obj.connec=mesh.connec;
             if isempty(settings.epsilon_initial)
                 obj.epsilon_initial = mesh.computeMeanCellSize;
-                obj.epsilon0 = mesh.problem_characterisitc_length;
             else
                 obj.epsilon_initial=settings.epsilon_initial;
             end
             obj.epsilon=obj.epsilon_initial;
-            obj.epsilon0=obj.epsilon_initial;
+            obj.epsilon0=mesh.computeCharacteristicLength;
             obj.incropt.alpha_vol = obj.generate_incr_sequence(1/nsteps,1,nsteps,'linear');
             obj.incropt.alpha_constr = obj.generate_incr_sequence(0,1,nsteps,'linear');
             obj.incropt.alpha_optimality= obj.generate_incr_sequence(0,1,nsteps,'linear');
