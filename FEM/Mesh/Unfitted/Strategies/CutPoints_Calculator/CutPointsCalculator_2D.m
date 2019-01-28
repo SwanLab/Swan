@@ -1,6 +1,8 @@
 classdef CutPointsCalculator_2D < CutPointsCalculator_Abstract
-    methods (Access = public)
-        function [P,activeNodes] = computeCutPoints_Iso(obj)
+    
+    methods (Access = protected)
+        
+        function computeCutPoints_Iso(obj)
             pos_nodes = obj.backgroundGeomInterpolation.pos_nodes;
             
             gamma1 = permute(obj.levelSet_background(obj.meshBackground.connec(obj.backgroundCutCells,:)),[2 3 1]);
@@ -10,10 +12,11 @@ classdef CutPointsCalculator_2D < CutPointsCalculator_Abstract
             P2 = circshift(P1,[-1 0 0]);
             P = P1 + gamma1.*(P2-P1)./(gamma1-gamma2);
             
-            activeNodes = sign(gamma1.*gamma2)<=0;
+            obj.cutPointsIso = P;
+            obj.activeCutPoints = sign(gamma1.*gamma2)<=0;
         end
         
-        function [P,activeNodes] = computeCutPoints_Global(obj)
+        function computeCutPoints_Global(obj)
             index1 = permute(obj.meshBackground.connec(obj.backgroundCutCells,:),[2 3 1]);
             index2 = circshift(index1,[-1 0 0]);
             
@@ -27,8 +30,11 @@ classdef CutPointsCalculator_2D < CutPointsCalculator_Abstract
             P2 = [coord1(index2) coord2(index2)];
             P = P1 + gamma1.*(P2-P1)./(gamma1-gamma2);
             
-            activeNodes = sign(gamma1.*gamma2)<=0;
+            obj.cutPointsGlobal = P;
+            obj.activeCutPoints = sign(gamma1.*gamma2)<=0;
         end
+        
     end
+    
 end
 

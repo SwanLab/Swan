@@ -3,6 +3,8 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
     properties (Access = private)
         mesh
         
+        subcells
+        
         connec
         levelSet_unfitted
         coord_iso
@@ -60,13 +62,13 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
             end
         end
         
-        function saveNewSubcells(obj,new_coord_iso,new_coord_global,newLevelSet_unfitted,new_subcell_connec,...
-                newCellContainingNodes,newCellContainingSubcell,nNewSubcells,nNewCoords)
+        function saveNewSubcells(obj,subcells,newCellContainingNodes,newCellContainingSubcell)
+            obj.subcells = subcells;
             
-            obj.updateUpperBounds(nNewCoords,nNewSubcells);
-            obj.assignUnfittedNodalProps(new_coord_iso,new_coord_global,newLevelSet_unfitted,newCellContainingNodes);
-            obj.assignUnfittedSubcellProps(new_subcell_connec,newCellContainingSubcell);
-            obj.assignUnfittedCutCoordIsoPerCell(new_coord_iso,new_subcell_connec);
+            obj.updateUpperBounds();
+            obj.assignUnfittedNodalProps(newCellContainingNodes);
+            obj.assignUnfittedSubcellProps(newCellContainingSubcell);
+            obj.assignUnfittedCutCoordIsoPerCell();
             obj.updateLowerBounds();
         end
         
@@ -91,10 +93,10 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
             obj.lowerBound_C = 0;
         end
         
-        function updateUpperBounds(obj,nNewCoords,nNewSubcells)
-            obj.upperBound_A = obj.lowerBound_A + nNewCoords;
-            obj.upperBound_B = obj.lowerBound_B + nNewSubcells;
-            obj.upperBound_C = obj.lowerBound_C + nNewSubcells;
+        function updateUpperBounds(obj)
+            obj.upperBound_A = obj.lowerBound_A + obj.subcells.nNodes;
+            obj.upperBound_B = obj.lowerBound_B + obj.subcells.nSubcells;
+            obj.upperBound_C = obj.lowerBound_C + obj.subcells.nSubcells;
         end
         
         function updateLowerBounds(obj)
@@ -103,22 +105,22 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
             obj.lowerBound_C = obj.upperBound_C;
         end
         
-        function assignUnfittedNodalProps(obj,new_coord_iso,new_coord_global,new_x_unfitted,newCellContainingNodes)
-            obj.coord_iso(1+obj.lowerBound_A:obj.upperBound_A,:) = new_coord_iso;
-            obj.coord_global_raw(1+obj.lowerBound_A:obj.upperBound_A,:) = new_coord_global;
+        function assignUnfittedNodalProps(obj,newCellContainingNodes)
+            obj.coord_iso(1+obj.lowerBound_A:obj.upperBound_A,:) = obj.subcells.coord_iso;
+            obj.coord_global_raw(1+obj.lowerBound_A:obj.upperBound_A,:) = obj.subcells.coord_global;
             obj.cell_containing_nodes(1+obj.lowerBound_A:obj.upperBound_A,:) = newCellContainingNodes;
-            obj.levelSet_unfitted(1+obj.lowerBound_A:obj.upperBound_A) = new_x_unfitted;
+            obj.levelSet_unfitted(1+obj.lowerBound_A:obj.upperBound_A) = obj.subcells.levelSet;
         end
         
-        function assignUnfittedSubcellProps(obj,new_subcell_connec,newCellContainingSubcell)
-            obj.connec_local(1+obj.lowerBound_B:obj.upperBound_B,:) = new_subcell_connec;
+        function assignUnfittedSubcellProps(obj,newCellContainingSubcell)
+            obj.connec_local(1+obj.lowerBound_B:obj.upperBound_B,:) = obj.subcells.connec;
             obj.cellContainingSubcell(1+obj.lowerBound_B:obj.upperBound_B,:) = newCellContainingSubcell;
         end
         
-        function assignUnfittedCutCoordIsoPerCell(obj,new_coord_iso,new_interior_subcell_connec)
+        function assignUnfittedCutCoordIsoPerCell(obj)
             for idime = 1:obj.mesh.ndim
-                new_coord_iso_ = new_coord_iso(:,idime);
-                obj.coord_iso_per_cell(obj.lowerBound_C+1:obj.upperBound_C,:,idime) = new_coord_iso_(new_interior_subcell_connec);
+                c = obj.subcells.coord_iso(:,idime);
+                obj.coord_iso_per_cell(obj.lowerBound_C+1:obj.upperBound_C,:,idime) = c(obj.subcells.connec);
             end
         end
         

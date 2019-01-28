@@ -1,54 +1,76 @@
 classdef SubcellsMesher_Boundary_3D < SubcellsMesher_Boundary
-    methods (Access = public) %(Access = ?Mesh_Unfitted)
-        function facets_connec = computeFacetsConnectivities(obj,~,interior_subcell_coord_iso,cell_x_value,number_nodes)
-            subcells_connec = obj.computeDelaunay(interior_subcell_coord_iso);
-            boundary_subcells_connec = obj.findBoundarySubcells(subcells_connec,cell_x_value);
-
-            facets_connec = zeros([size(boundary_subcells_connec,1),3]);
-            for i = 1:size(boundary_subcells_connec,1)
-                facets_connec(i,:) = boundary_subcells_connec(i,boundary_subcells_connec(i,:)>number_nodes);
-            end
-            facets_connec = facets_connec - number_nodes;
+    
+    properties (Access = private)
+        subcells_connec
+        boundary_subcells_connec
+        nBoundSubcells
+        nIntNodes
+        nExtNodes
+    end
+    
+    methods (Access = protected)
+        
+        function computeFacetsConnectivities(obj)
+            obj.computeAllPossibleSubcellsInCell();
+            obj.getBoundarySubcells();
+            obj.removeCellNodesFromBoundarySubcells();
         end
+        
     end
     
     methods (Access = private)
-        function boundary_subcells_connec = findBoundarySubcells(obj,interior_subcells_connec,phi)
-            % Find subcells formed by 1 interior node & 3 cutPoints (0 exterior nodes)
-            interior_nodes = find(phi<=0);
-            exterior_nodes = find(phi>0);
-            
-            number_interior_nodes = obj.countInputNodesPerCell(interior_subcells_connec,interior_nodes); %#ok<FNDSB>
-            number_exterior_nodes = obj.countInputNodesPerCell(interior_subcells_connec,exterior_nodes); %#ok<FNDSB>
-            boundary_subcells_connec = interior_subcells_connec(number_interior_nodes == 1 & number_exterior_nodes == 0,:);
+        
+        function computeAllPossibleSubcellsInCell(obj)
+            obj.subcells_connec = obj.computeDelaunay(obj.interior_coord_iso);
         end
         
-        %         function surrounding_boundary_meshes = computeSurrondingBoundaryMeshes(obj)
-        % %             geom_interpolation = Geometry(..);
-        %             nfaces = 2*obj.ndim;
-        %             surrounding_boundary_meshes = cell([1 nfaces]);
-        %             domain_limits = obj.getDomainLimits;
-        %             for idime = 1:obj.ndim
-        %                 for iside = 1:2
-        %                     iface = 2*(idime-1) + iside;
-        %                     face_coord = obj.getFaceCoordinates(domain_limits(idime,iside),idime);
-        %                     surrounding_boundary_meshes{iface} =  Mesh_Unfitted_2D_Interior(obj.mesh_background.clone,geom_interpolation);
-        %                 end
-        %             end
-        %         end
+        function getBoundarySubcells(obj)
+            obj.classifyNodes();
+            intCond = obj.nIntNodes == 1;
+            extCond = obj.nExtNodes == 0;
+            obj.boundary_subcells_connec = obj.subcells_connec(intCond & extCond,:);
+            obj.nBoundSubcells = size(obj.boundary_subcells_connec,1);
+        end
+        
+        function removeCellNodesFromBoundarySubcells(obj)
+            obj.allocateMemoryConnec();
+            for i = 1:obj.nBoundSubcells
+                cutPoints = obj.boundary_subcells_connec(i,:)>obj.nCellNodes;
+                obj.connec(i,:) = obj.boundary_subcells_connec(i,cutPoints);
+            end
+            obj.connec = obj.connec - obj.nCellNodes;
+        end
+        
+        function classifyNodes(obj)
+            phi = obj.cell_levelSet;
+            
+            intNodes = find(phi<=0);
+            extNodes = find(phi>0);
+            
+            obj.nIntNodes = obj.countInputNodesPerCell(obj.subcells_connec,intNodes); %#ok<FNDSB>
+            obj.nExtNodes = obj.countInputNodesPerCell(obj.subcells_connec,extNodes); %#ok<FNDSB>
+        end
+        
+        function allocateMemoryConnec(obj)
+            obj.connec = zeros([obj.nBoundSubcells,3]);
+        end
+        
     end
     
     methods (Access = private, Static)
-        function counter = countInputNodesPerCell(connectivities,nodes)
-            counter = zeros(size(connectivities,1),1);
+        
+        function n = countInputNodesPerCell(connec,nodes)
+            n = zeros(size(connec,1),1);
             for inode = 1:length(nodes)
-                match = false(size(connectivities,1),1);
-                for iconnec = 1:size(connectivities,2)
-                    match = match | connectivities(:,iconnec) == nodes(inode);
+                match = false(size(connec,1),1);
+                for iconnec = 1:size(connec,2)
+                    match = match | connec(:,iconnec) == nodes(inode);
                 end
-                counter = counter + match ;
+                n = n + match ;
             end
         end
+        
     end
+    
 end
 

@@ -1,21 +1,64 @@
-classdef SubcellsMesher_Interior < SubcellsMesher_Abstract 
-    methods (Access = public)
-        function [interior_subcell_coord_iso,interior_subcell_coord_global,interior_subcell_x_value,interior_subcell_connec] = computeSubcells(obj,mesh_background,background_geom_interpolation,x_background,background_cell_connec,cutPoints_iso,cutPoints_global)
-            interior_subcell_coord_iso = [background_geom_interpolation.pos_nodes; cutPoints_iso];
-            interior_subcell_coord_global = [mesh_background.coord(background_cell_connec,:); cutPoints_global];
-            interior_subcell_x_value = [x_background(background_cell_connec); zeros(size(cutPoints_iso,1),1)]';
-            
-            interior_subcell_connec = obj.computeInteriorSubcellsConnectivities(interior_subcell_coord_iso,interior_subcell_x_value);
-        end
+classdef SubcellsMesher_Interior < SubcellsMesher_Abstract
+    
+    properties (Access = protected)
+        interiorSubcells
+    end
+    
+    properties (Access = private)
+        subcells_connec
     end
     
     methods (Access = protected)
-        function subcells_connec = computeInteriorSubcellsConnectivities(obj,subcell_coord_iso,subcell_x_value)
-            subcells_connec = obj.computeDelaunay(subcell_coord_iso);
-            is_interior = all(subcell_x_value(subcells_connec) <= 0,2);
-            
-            subcells_connec = subcells_connec(is_interior,:);
+        
+        function computeCoordinates(obj)
+            obj.computeCoordsIso();
+            obj.computeCoordsGlobal();
         end
+        
+        function computeLevelSet(obj)
+            obj.levelSet = obj.patch(obj.cell_levelSet,obj.boundary_levelSet)';
+        end
+        
+        function computeConnectivities(obj)
+            obj.computeInteriorSubcellsConnectivities();
+        end
+        
+        function computeInteriorSubcellsConnectivities(obj)
+            obj.computeAllPossibleSubcellsInCell();
+            obj.getInteriorSubcells();
+        end
+        
+        function computeAllPossibleSubcellsInCell(obj)
+            obj.subcells_connec = obj.computeDelaunay(obj.coord_iso);
+        end
+        
     end
+    
+    methods (Access = private)
+        
+        function computeCoordsIso(obj)
+            nodes = obj.mesh.backgroundGeomInterpolation.pos_nodes;
+            cutPts = obj.cutPoints.ISO;
+            obj.coord_iso = obj.patch(nodes,cutPts);
+        end
+        
+        function computeCoordsGlobal(obj)
+            nodes = obj.mesh.meshBackground.coord(obj.cell_connec,:);
+            cutPts = obj.cutPoints.GLOBAL;
+            obj.coord_global = obj.patch(nodes,cutPts);
+        end
+        
+        function getInteriorSubcells(obj)
+            obj.findInteriorSubcells();
+            obj.connec = obj.subcells_connec(obj.interiorSubcells,:);
+        end
+        
+        function findInteriorSubcells(obj)
+            isNodeInterior = obj.levelSet(obj.subcells_connec) <= 0;
+            obj.interiorSubcells = all(isNodeInterior,2);
+        end
+        
+    end
+    
 end
 

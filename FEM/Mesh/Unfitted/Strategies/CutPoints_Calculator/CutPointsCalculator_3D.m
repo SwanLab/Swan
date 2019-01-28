@@ -1,6 +1,8 @@
 classdef CutPointsCalculator_3D < CutPointsCalculator_Abstract
-    methods (Access = public)
-        function [P,active_nodes] = computeCutPoints_Iso(obj)
+    
+    methods (Access = protected)
+        
+        function computeCutPoints_Iso(obj)
             pos_nodes = obj.backgroundGeomInterpolation.pos_nodes;
             
             iteration1 = obj.backgroundGeomInterpolation.iteration(1,:);
@@ -13,10 +15,11 @@ classdef CutPointsCalculator_3D < CutPointsCalculator_Abstract
             P2 = repmat(pos_nodes(iteration2,:),[1 1 size(obj.backgroundCutCells)]);
             P = P1 + gamma1.*(P2-P1)./(gamma1-gamma2);
             
-            active_nodes = sign(gamma1.*gamma2)<=0;
+            obj.cutPointsIso = P;
+            obj.activeCutPoints = sign(gamma1.*gamma2)<=0;
         end
         
-        function [P,active_nodes] = computeCutPoints_Global(obj)
+        function computeCutPoints_Global(obj)
             iteration1 = obj.backgroundGeomInterpolation.iteration(1,:);
             iteration2 = obj.backgroundGeomInterpolation.iteration(2,:);
             
@@ -34,8 +37,11 @@ classdef CutPointsCalculator_3D < CutPointsCalculator_Abstract
             P2 = [coord1(index2) coord2(index2) coord3(index2)];
             P = P1+gamma1.*(P2-P1)./(gamma1-gamma2);
             
-            active_nodes = sign(gamma1.*gamma2)<=0;
+            obj.cutPointsGlobal = P;
+            obj.activeCutPoints = sign(gamma1.*gamma2)<=0;
         end
+        
     end
+    
 end
 
