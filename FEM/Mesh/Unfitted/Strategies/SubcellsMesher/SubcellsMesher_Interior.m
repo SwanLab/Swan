@@ -2,10 +2,7 @@ classdef SubcellsMesher_Interior < SubcellsMesher_Abstract
     
     properties (Access = protected)
         interiorSubcells
-    end
-    
-    properties (Access = private)
-        subcells_connec
+         subcells_connec
     end
     
     methods (Access = protected)

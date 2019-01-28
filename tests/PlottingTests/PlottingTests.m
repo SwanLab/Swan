@@ -16,7 +16,7 @@ classdef PlottingTests < testRunner
             obj.tests = {...
                 
             'testSmoothRectangleTriangle'
-%             'testSmoothRectangleQuadrilateral'
+            'testSmoothRectangleQuadrilateral'
 
                 'testRectangleTriangle'
                 'testRectangleQuadrilateral'
