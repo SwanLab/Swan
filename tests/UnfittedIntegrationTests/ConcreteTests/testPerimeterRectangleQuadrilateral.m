@@ -3,7 +3,7 @@ classdef testPerimeterRectangleQuadrilateral < testUnfittedIntegration_InternalI
     
     properties (Access = protected)
         testName = 'test_rectangle_quadrilateral';
-        analiticalArea = 8;
+        analyticalValue = 8;
         meshType = 'BOUNDARY';
     end
     

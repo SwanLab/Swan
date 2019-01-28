@@ -3,7 +3,7 @@ classdef testVolumeCylinderTetrahedra < testUnfittedIntegration_ExternalIntegrat
     
    properties (Access = protected)
         testName = 'test_cylinder_tetrahedra';  
-        analiticalArea = pi*2;
+        analyticalValue = pi*2;
         meshType = 'INTERIOR';
    end
  

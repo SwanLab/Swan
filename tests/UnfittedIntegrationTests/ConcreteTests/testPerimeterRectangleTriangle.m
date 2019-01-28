@@ -3,7 +3,7 @@ classdef testPerimeterRectangleTriangle < testUnfittedIntegration_ExternalIntegr
     
     properties (Access = protected)
         testName = 'test_rectangle_triangle';
-        analiticalArea = 8;
+        analyticalValue = 8;
         meshType = 'BOUNDARY';
     end
     

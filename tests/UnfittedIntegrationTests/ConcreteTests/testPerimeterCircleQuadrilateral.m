@@ -3,7 +3,7 @@ classdef testPerimeterCircleQuadrilateral < testUnfittedIntegration_InternalInte
     
     properties (Access = protected)
         testName = 'test_circle_quadrilateral';
-        analiticalArea = 2*pi;
+        analyticalValue = 2*pi;
         meshType = 'BOUNDARY';
     end
 end

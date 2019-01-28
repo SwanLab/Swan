@@ -3,7 +3,7 @@ classdef testVolumeSphereHexahedra < testUnfittedIntegration_InternalIntegrator.
     
    properties (Access = protected)
         testName = 'test_sphere_hexahedra';  
-        analiticalArea = (4/3)*pi;
+        analyticalValue = (4/3)*pi;
         meshType = 'INTERIOR';
    end
  

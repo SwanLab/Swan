@@ -3,7 +3,7 @@ classdef testVolumeCylinderHexahedra < testUnfittedIntegration_InternalIntegrato
     
    properties (Access = protected)
         testName = 'test_cylinder_hexahedra';  
-        analiticalArea = pi*2;
+        analyticalValue = pi*2;
         meshType = 'INTERIOR';
    end
  

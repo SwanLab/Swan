@@ -6,11 +6,11 @@ classdef testUnfittedIntegration < testShowingError...
     
     properties (Access = protected, Abstract)
         testName
-        analiticalArea
+        analyticalValue
     end
     
     properties (Access = private)
-        areaAdim
+        varAdim
     end
     
     methods (Access = protected, Abstract)
@@ -29,12 +29,12 @@ classdef testUnfittedIntegration < testShowingError...
         function integrateSurface(obj)
             obj.createMesh();
             
-            area = obj.computeGeometricalVariable();
-            obj.areaAdim = area/obj.analiticalArea;
+            geomVar = obj.computeGeometricalVariable();
+            obj.varAdim = geomVar/obj.analyticalValue;
         end
         
         function computeError(obj)
-            obj.error = abs(obj.areaAdim - 1);
+            obj.error = abs(obj.varAdim - 1);
         end
         
     end

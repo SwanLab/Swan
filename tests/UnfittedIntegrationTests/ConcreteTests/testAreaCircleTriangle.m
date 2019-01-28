@@ -3,7 +3,7 @@ classdef testAreaCircleTriangle < testUnfittedIntegration_ExternalIntegrator...
     
     properties (Access = protected)
         testName = 'test_circle_triangle';
-        analiticalArea = pi;
+        analyticalValue = pi;
         meshType = 'INTERIOR';
     end
     

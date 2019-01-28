@@ -3,7 +3,7 @@ classdef testPerimeterCircleTriangle < testUnfittedIntegration_ExternalIntegrato
     
     properties (Access = protected)
         testName = 'test_circle_triangle';
-        analiticalArea = 2*pi;
+        analyticalValue = 2*pi;
         meshType = 'BOUNDARY';
     end
     

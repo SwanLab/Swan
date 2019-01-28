@@ -26,7 +26,7 @@ classdef Mesh_Unfitted_Properties < handle
     
     properties (GetAccess = protected, SetAccess = ?MemoryManager_MeshUnfitted)
         coord_global_raw
-        cell_containing_nodes
+        cellContainingNodes
     end
     
     properties (GetAccess = ?MemoryManager_MeshUnfitted, SetAccess = ?UnfittedMesh_AbstractBuilder)

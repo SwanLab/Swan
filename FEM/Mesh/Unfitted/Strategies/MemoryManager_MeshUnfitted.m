@@ -12,7 +12,7 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
         coord_iso_per_cell
         cellContainingSubcell
         coord_global_raw
-        cell_containing_nodes
+        cellContainingNodes
         
         lowerBound_A
         lowerBound_B
@@ -40,7 +40,7 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
             obj.connec_local = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells,obj.mesh.nnodesSubcell);
             obj.connec = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells,obj.mesh.nnodesSubcell);
             obj.levelSet_unfitted = (zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells*obj.mesh.nnodesSubcell,1));
-            obj.cell_containing_nodes = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells*obj.mesh.nnodesSubcell,1);
+            obj.cellContainingNodes = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells*obj.mesh.nnodesSubcell,1);
             obj.cellContainingSubcell = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells*obj.mesh.nnodesSubcell,1);
         end
         
@@ -48,7 +48,7 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
             if length(obj.coord_iso) > obj.upperBound_A
                 obj.coord_iso(obj.upperBound_A+1:end,:) = [];
                 obj.coord_global_raw(obj.upperBound_A+1:end,:) = [];
-                obj.cell_containing_nodes(obj.upperBound_A+1:end) = [];
+                obj.cellContainingNodes(obj.upperBound_A+1:end) = [];
                 obj.levelSet_unfitted(obj.upperBound_A+1:end) = [];
             end
             
@@ -80,7 +80,7 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
             obj.mesh.connec_local = obj.connec_local;
             obj.mesh.setConnec(obj.connec);
             obj.mesh.setLevelSetUnfitted(obj.levelSet_unfitted);
-            obj.mesh.cell_containing_nodes = obj.cell_containing_nodes;
+            obj.mesh.cellContainingNodes = obj.cellContainingNodes;
             obj.mesh.cellContainingSubcell = obj.cellContainingSubcell;
         end
         
@@ -109,7 +109,7 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
         function assignUnfittedNodalProps(obj,newCellContainingNodes)
             obj.coord_iso(1+obj.lowerBound_A:obj.upperBound_A,:) = obj.subcells.coord_iso;
             obj.coord_global_raw(1+obj.lowerBound_A:obj.upperBound_A,:) = obj.subcells.coord_global;
-            obj.cell_containing_nodes(1+obj.lowerBound_A:obj.upperBound_A,:) = newCellContainingNodes;
+            obj.cellContainingNodes(1+obj.lowerBound_A:obj.upperBound_A,:) = newCellContainingNodes;
             obj.levelSet_unfitted(1+obj.lowerBound_A:obj.upperBound_A) = obj.subcells.levelSet;
         end
         

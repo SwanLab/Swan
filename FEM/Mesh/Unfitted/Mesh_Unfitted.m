@@ -136,7 +136,7 @@ classdef Mesh_Unfitted < Mesh ...
         end
         
         function indexes = findSubcellNodesIndexes(obj,icell)
-            thisSubcellCoords = obj.coord_global_raw(obj.cell_containing_nodes == icell,:);
+            thisSubcellCoords = obj.coord_global_raw(obj.cellContainingNodes == icell,:);
             indexes = obj.findIndexesComparingCoords(thisSubcellCoords,obj.coord);
         end
         
