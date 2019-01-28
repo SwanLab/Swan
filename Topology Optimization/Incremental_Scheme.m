@@ -1,6 +1,6 @@
 classdef Incremental_Scheme < handle
     
-    properties
+    properties (Access = public)
         settings
         incropt
         coord
@@ -14,26 +14,25 @@ classdef Incremental_Scheme < handle
     methods (Access = public)
         
         function obj = Incremental_Scheme(settings,mesh)
-            obj.settings=settings;
-            nsteps=settings.nsteps;
-            obj.coord=mesh.coord;
-            obj.connec=mesh.connec;
+            obj.settings = settings;
+            nsteps = settings.nsteps;
+            obj.coord = mesh.coord;
+            obj.connec = mesh.connec;
             if isempty(settings.epsilon_initial)
                 obj.epsilon_initial = mesh.computeMeanCellSize();
-                obj.epsilon0 = mesh.computeCharacteristicLength();
             else
-                obj.epsilon_initial=settings.epsilon_initial;
+                obj.epsilon_initial = settings.epsilon_initial;
             end
-            obj.epsilon=obj.epsilon_initial;
-            obj.epsilon0=obj.epsilon_initial;
+            obj.epsilon = obj.epsilon_initial;
+            obj.epsilon0 = mesh.computeCharacteristicLength();
             obj.incropt.alpha_vol = obj.generate_incr_sequence(1/nsteps,1,nsteps,'linear');
             obj.incropt.alpha_constr = obj.generate_incr_sequence(0,1,nsteps,'linear');
-            obj.incropt.alpha_optimality= obj.generate_incr_sequence(0,1,nsteps,'linear');
-            obj.incropt.alpha_epsilon=obj.generate_incr_sequence(0,1,nsteps,'linear');
+            obj.incropt.alpha_optimality = obj.generate_incr_sequence(0,1,nsteps,'linear');
+            obj.incropt.alpha_epsilon = obj.generate_incr_sequence(0,1,nsteps,'linear');
             obj.incropt.alpha_epsilon_vel = obj.generate_incr_sequence(0,1,nsteps,'linear');
             obj.incropt.alpha_epsilon_per = obj.generate_incr_sequence(-1,0,nsteps,'logarithmic');
             if strcmp(obj.settings.ptype,'MICRO')
-                obj.incropt.alpha_epsilon_isotropy=obj.generate_incr_sequence(0,1,nsteps,'linear');
+                obj.incropt.alpha_epsilon_isotropy = obj.generate_incr_sequence(0,1,nsteps,'linear');
             end
         end
         
@@ -45,15 +44,13 @@ classdef Incremental_Scheme < handle
             target_parameters.constr_tol = (1-obj.incropt.alpha_constr(t))*obj.settings.constr_initial+obj.incropt.alpha_constr(t)*obj.settings.constr_final;
             target_parameters.optimality_tol = (1-obj.incropt.alpha_optimality(t))*obj.settings.optimality_initial+obj.incropt.alpha_optimality(t)*obj.settings.optimality_final;
             
-            % TO BE DISCUSSED IN MEETING %%%%%%%%
             if strcmp(obj.settings.ptype,'MICRO')
                 target_parameters.epsilon_isotropy = (1-obj.incropt.alpha_epsilon_isotropy(t))*obj.settings.epsilon_isotropy_initial+obj.incropt.alpha_epsilon_isotropy(t)*obj.settings.epsilon_isotropy_final;
             end
-            %%%%%%%%%%%%%%%%%%%%%%%%%%
             
-            cost.target_parameters=target_parameters;
-            constraint.target_parameters=target_parameters;
-            optimizer.target_parameters=target_parameters;
+            cost.target_parameters = target_parameters;
+            constraint.target_parameters = target_parameters;
+            optimizer.target_parameters = target_parameters;
         end
         
     end
