@@ -48,7 +48,7 @@ classdef Mesh < handle & matlab.mixin.Copyable
         end
         
         function setConnec(obj,newConnec)
-            obj.coord = newConnec;
+            obj.connec = newConnec;
         end
         
     end
