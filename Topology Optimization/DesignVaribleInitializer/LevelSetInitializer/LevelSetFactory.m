@@ -9,6 +9,8 @@ classdef LevelSetFactory < handle
             switch input.initialCase
                 case 'circle'
                     obj = LevelSetCircle(input);
+                case 'circle_2'
+                    obj = LevelSetCircle2(input);
                 case 'circleInclusion'
                     obj = LevelSetWithCircleInclusion(input);
                 case 'sphere'

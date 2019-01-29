@@ -1,13 +1,14 @@
 classdef Mesh < handle & matlab.mixin.Copyable
+    
     properties (GetAccess = public, SetAccess = protected)
         coord
         connec
         ndim
         geometryType
-        problem_characterisitc_length % !! Rename?? !!
     end
     
     methods (Access = public)
+        
         function obj = create(obj,coordinates,connectivities)
             obj.coord = coordinates;
             obj.connec = connectivities;
@@ -41,13 +42,25 @@ classdef Mesh < handle & matlab.mixin.Copyable
         function changeCoordinates(obj,newCoords)
             obj.coord = newCoords;
         end
+        
+        function setCoord(obj,newCoord)
+            obj.coord = newCoord;
+        end
+        
+        function setConnec(obj,newConnec)
+            obj.connec = newConnec;
+        end
+        
     end
     
     methods (Access = protected)
+        
         function computeGeometryType(obj)
             nnode = size(obj.connec,2);
             obj.geometryType = MeshGeometryType_Factory.getGeometryType(obj.ndim,nnode);
         end
+        
     end
+    
 end
 

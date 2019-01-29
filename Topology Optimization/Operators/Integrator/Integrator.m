@@ -1,49 +1,54 @@
 classdef Integrator < handle
-    properties (GetAccess = public, SetAccess = private)
-        mesh_unfitted
+    
+    properties (GetAccess = public, SetAccess = protected)
+        meshUnfitted
         meshBackground
     end
     
-    %     properties (GetAccess = protected, SetAccess = private)
-    %         interpolation_unfitted
-    %         interpolation_background
-    %
-    %         quadrature_unfitted
-    %         quadrature_background
-    %     end
+    
+    methods (Access = protected, Abstract)
+        
+        computeIntegral(obj)
+        
+    end
     
     methods (Access = public)
-        function A = integrateUnfittedMesh(obj,F,mesh_unfitted)
-            if exist('mesh_unfitted','var')
-                obj.saveMeshes(mesh_unfitted);
+        
+        function A = integrateUnfittedMesh(obj,F,meshUnfitted)
+            if exist('meshUnfitted','var')
+                obj.updateMeshes(meshUnfitted);
             end
             A = obj.computeIntegral(F);
         end
+        
     end
     
     methods (Static, Access = public)
+        
         function obj = create(mesh)
             obj = IntegratorFactory.create(mesh);
-            obj.saveMeshes(mesh);
+            obj.updateMeshes(mesh);
         end
+        
     end
     
     methods (Access = protected)
+        
         function shapeValues = integrateCutCells(obj,F1)
             interpolation_background = Interpolation.create(obj.meshBackground,'LINEAR');
-            interpolation_unfitted = Interpolation.create(obj.mesh_unfitted,'LINEAR');
-            quadrature_unfitted = obj.computeQuadrature(obj.mesh_unfitted.geometryType);
+            interpolation_unfitted = Interpolation.create(obj.meshUnfitted,'LINEAR');
+            quadrature_unfitted = obj.computeQuadrature(obj.meshUnfitted.geometryType);
             
-            posGP_iso_unfitted = obj.computePosGP(obj.mesh_unfitted.coord_iso_per_cell,interpolation_unfitted,quadrature_unfitted);
+            posGP_iso_unfitted = obj.computePosGP(obj.meshUnfitted.coord_iso_per_cell,interpolation_unfitted,quadrature_unfitted);
             
-            shapeValues = zeros(size(obj.mesh_unfitted.connec,1),interpolation_background.nnode);
-            for isubcell = 1:size(obj.mesh_unfitted.connec,1) % !! VECTORIZE THIS LOOP !!
-                icell = obj.mesh_unfitted.cell_containing_subcell(isubcell);
+            shapeValues = zeros(size(obj.meshUnfitted.connec,1),interpolation_background.nnode);
+            for isubcell = 1:size(obj.meshUnfitted.connec,1) % !! VECTORIZE THIS LOOP !!
+                icell = obj.meshUnfitted.cellContainingSubcell(isubcell);
                 inode = obj.meshBackground.connec(icell,:);
                 
                 interpolation_background.computeShapeDeriv(posGP_iso_unfitted(:,:,isubcell)');
                 
-                djacob = obj.mapping(obj.mesh_unfitted.coord(obj.mesh_unfitted.connec(isubcell,:),:),interpolation_unfitted.dvolu); % !! Could be done through Geometry class?? !!
+                djacob = obj.mapping(obj.meshUnfitted.coord(obj.meshUnfitted.connec(isubcell,:),:),interpolation_unfitted.dvolu); % !! Could be done through Geometry class?? !!
                 
                 F0 = (interpolation_background.shape*quadrature_unfitted.weigp')'*F1(inode)/interpolation_unfitted.dvolu;
                 shapeValues(isubcell,:) = shapeValues(isubcell,:) + (interpolation_background.shape*(djacob.*quadrature_unfitted.weigp')*F0)';
@@ -59,25 +64,40 @@ classdef Integrator < handle
             end
         end
         
-        function saveMeshes(obj,unfitted)
-            background = unfitted.meshBackground;
-            obj.mesh_unfitted = unfitted;
-            obj.meshBackground = background;
+        function itIs = isLeveSetCuttingMesh(obj)
+            itIs = ~isempty(obj.meshUnfitted.backgroundCutCells);
         end
         
-        function itIs = isLeveSetCuttingMesh(obj)
-            itIs = ~isempty(obj.mesh_unfitted.backgroundCutCells);
-        end
     end
     
     methods (Static, Access = protected)
+        
         function quadrature = computeQuadrature(geometryType)
             quadrature = Quadrature.set(geometryType);
             quadrature.computeQuadrature('LINEAR');
         end
+        
+    end
+    
+    methods (Access = private)
+        
+        function updateMeshes(obj,unfitted)
+            obj.updateBackgroundMesh(unfitted);
+            obj.updateUnfittedMesh(unfitted);
+        end
+        
+        function updateUnfittedMesh(obj,unfitted)
+            obj.meshUnfitted = unfitted;
+        end
+        
+        function updateBackgroundMesh(obj,unfitted)
+            obj.meshBackground = unfitted.meshBackground;
+        end
+        
     end
     
     methods (Static, Access = private)
+        
         function posgp = computePosGP(subcell_coord,interpolation,quadrature)
             interpolation.computeShapeDeriv(quadrature.posgp);
             posgp = zeros(quadrature.ngaus,size(subcell_coord,3),size(subcell_coord,1));
@@ -114,6 +134,8 @@ classdef Integrator < handle
                     djacob = V/dvolu;
             end
         end
+        
     end
+    
 end
 
