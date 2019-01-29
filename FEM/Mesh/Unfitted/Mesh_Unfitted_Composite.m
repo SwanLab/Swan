@@ -5,7 +5,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
         boxFaceMeshes
         activeBoxFaceMeshesList
         nActiveBoxFaces
-        meshType = 'COMPOSITE'
+        unfittedType = 'COMPOSITE'
     end
     
     properties (Access = private)
@@ -22,9 +22,9 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
     
     methods (Access = public)
         
-        function obj = Mesh_Unfitted_Composite(meshType,meshBackground,interpolation_background)
+        function obj = Mesh_Unfitted_Composite(unfittedType,meshBackground,interpolation_background)
             obj.init(meshBackground);
-            obj.createInteriorMesh(meshType,meshBackground,interpolation_background);
+            obj.createInteriorMesh(unfittedType,meshBackground,interpolation_background);
             obj.createBoxMeshes();
         end
         
@@ -66,8 +66,8 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
             obj.nboxFaces = obj.ndim*obj.nsides;
         end
         
-        function createInteriorMesh(obj,meshType,meshBackground,interpolation_background)
-            obj.meshInterior = Mesh_Unfitted(meshType,meshBackground,interpolation_background);
+        function createInteriorMesh(obj,unfittedType,meshBackground,interpolation_background)
+            obj.meshInterior = Mesh_Unfitted(unfittedType,meshBackground,interpolation_background);
         end
         
         function computeInteriorMesh(obj,levelSet)

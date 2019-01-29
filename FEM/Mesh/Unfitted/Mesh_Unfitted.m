@@ -4,8 +4,8 @@ classdef Mesh_Unfitted < Mesh ...
     
     methods (Access = public)
         
-        function obj = Mesh_Unfitted(meshType,meshBackground,interpolation_background)
-            obj.build(meshType,meshBackground.ndim);
+        function obj = Mesh_Unfitted(unfittedType,meshBackground,interpolation_background)
+            obj.build(unfittedType,meshBackground.ndim);
             obj.init(meshBackground,interpolation_background);
         end
         
@@ -52,8 +52,8 @@ classdef Mesh_Unfitted < Mesh ...
             obj.backgroundGeomInterpolation = backgroundGeomInterpolation;
         end
         
-        function build(obj,meshType,ndim)
-            builder = UnfittedMesh_Builder_Factory.create(meshType,ndim);
+        function build(obj,unfittedType,ndim)
+            builder = UnfittedMesh_Builder_Factory.create(unfittedType,ndim);
             builder.build(obj);
         end
         
