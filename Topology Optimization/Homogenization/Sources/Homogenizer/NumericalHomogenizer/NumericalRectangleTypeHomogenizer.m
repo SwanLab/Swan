@@ -14,6 +14,15 @@ classdef NumericalRectangleTypeHomogenizer < NumericalHomogenizer
         function ls = getLevelSet(obj)
             ls = obj.levelSet;
         end
+        
+       function d = getDensity(obj)
+            d = obj.density;                       
+       end
+       
+       function f = getFileName(obj)
+           f = obj.fileName;
+       end
+       
     end
     
     methods (Access = protected)

@@ -17,7 +17,6 @@ classdef testTopOptPrinting < testNotShowingError ...
         
         function obj = testTopOptPrinting()
             obj.init();
-            obj.compareFiles();
         end
         
         function init(obj)

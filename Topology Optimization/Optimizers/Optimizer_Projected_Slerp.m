@@ -46,8 +46,8 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.problem.solver = 'fzero';
             obj.problem.options = optimset(@fzero);
             obj.problem.objective = @(lambda) obj.compute_feasible_design_variable(lambda,x_ini,cost,constraint);
-            obj.problem.x0 = [0 50];
-            obj.problem.options = optimset(obj.problem.options,'TolX',1e-3);
+            obj.problem.x0 = [0 100];
+            obj.problem.options = optimset(obj.problem.options,'TolX',1e-2);
             
             obj.optimizer_unconstr.theta = 0.1;
             lambda = fzero(obj.problem);
@@ -94,7 +94,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
                 
                 
                 obj.problem.objective = @(lambda) obj.compute_feasible_design_variable(lambda,x_ini,cost,constraint);
-                obj.problem.x0 = [0 100];
+                obj.problem.x0 = [0 1000];
                 lambda = fzero(obj.problem);
                 
                 obj.objfunc.lambda = lambda;

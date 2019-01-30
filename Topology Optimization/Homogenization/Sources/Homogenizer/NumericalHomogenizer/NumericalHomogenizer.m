@@ -50,7 +50,7 @@ classdef NumericalHomogenizer < handle
         function s = getSettings(obj)
             s = obj.setting;
         end
-        
+
     end
     
     methods (Access = protected)

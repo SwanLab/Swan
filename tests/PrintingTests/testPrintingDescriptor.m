@@ -5,34 +5,39 @@ classdef testPrintingDescriptor < handle
         iter
     end
     
-    properties (Access = protected)
-       filesHaveChanged 
-    end
-    
     methods (Access = protected)
-        
-        function compareFiles(obj)
-            hasMshChanged = obj.compareFile('.msh');
-            hasResChanged = obj.compareFile('.res');
-            obj.filesHaveChanged = hasMshChanged || hasResChanged;
-        end
-        
-        function hasChanged = compareFile(obj,extension)
-            out   = obj.fileOutputName;
-            fullOutSavedName = [out,'.flavia',extension];
-            fullOutName = [out,num2str(obj.iter),'.flavia',extension];
-            savedPrintedFile = fullfile('tests','PrintingTests','PrintedFiles',fullOutSavedName);
-            outputFile = fullfile('Output',out,fullOutName);
-            command = ['diff ', savedPrintedFile, ' ', outputFile];
-            [hasChanged,~] = system(command);
-        end
-        
+       
         function hasPassed = hasPassed(obj)
-            hasPassed = ~obj.filesHaveChanged;
+            hasMshChanged = obj.compareFile('.msh');
+            hasResChanged = obj.compareFile('.res');   
+            filesHaveChanged = hasMshChanged || hasResChanged;            
+            hasPassed = ~filesHaveChanged;
         end
         
         function selectComputedVar(obj)
         end
+        
+    end
+    
+    methods (Access = private)
+        
+       function sF = obtainSavedPrintedFile(obj,ext)
+           out   = obj.fileOutputName;            
+           fullOutSavedName = [out,'.flavia',ext];            
+           sF = fullfile('tests','PrintingTests','PrintedFiles',fullOutSavedName);
+        end
+        
+        function oF = obtainOutPutFile(obj,ext)
+           out   = obj.fileOutputName;            
+           fullOutName = [out,num2str(obj.iter),'.flavia',ext];
+           oF = fullfile('Output',out,fullOutName);              
+        end
+        
+        function hasChanged = compareFile(obj,ext)
+            sF = obj.obtainSavedPrintedFile(ext);
+            oF = obj.obtainOutPutFile(ext);    
+            hasChanged = FileComparetor.areFilesDifferent(sF,oF);
+        end        
         
     end
 

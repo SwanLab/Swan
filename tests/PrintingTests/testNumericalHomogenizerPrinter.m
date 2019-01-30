@@ -14,8 +14,7 @@ classdef testNumericalHomogenizerPrinter < testNotShowingError...
         
         function obj = testNumericalHomogenizerPrinter()
             obj.iter = 0;
-            obj.computeNumericalHomogenizer()
-            obj.compareFiles()
+            obj.computeNumericalHomogenizer();
         end
         
     end

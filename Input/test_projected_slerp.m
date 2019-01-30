@@ -11,7 +11,7 @@ optimizer = 'PROJECTED SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 
 nsteps = 1;
-Vfrac_final = 0.3;
+Vfrac_final = 0.8;
 optimality_final =1e-3;
 constr_final =1e-3;
 
@@ -28,8 +28,8 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 % For all tests
-plotting = true;
+plotting = false;
 printing = false;
 printing_physics = false;
-monitoring = true;
-maxiter = 20;
+monitoring = false;
+maxiter = 2;
