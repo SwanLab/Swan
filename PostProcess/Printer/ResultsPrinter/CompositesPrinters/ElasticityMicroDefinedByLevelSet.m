@@ -1,9 +1,9 @@
-classdef NumericalHomogenizerPrinter < CompositeResultsPrinter
+classdef ElasticityMicroDefinedByLevelSet < CompositeResultsPrinter
       
     methods (Access = public)
         
-        function obj = NumericalHomogenizerPrinter(d)
-            obj.simulationStr = 'NumericalHomogenizer';
+        function obj = ElasticityMicroDefinedByLevelSet(d)
+            obj.simulationStr = 'ElasticityMicroDefinedByLevelSet';
             obj.init(d);
         end
         
@@ -14,7 +14,7 @@ classdef NumericalHomogenizerPrinter < CompositeResultsPrinter
         function createPrinters(obj,d)
             obj.printers{1} = ResultsPrinter.create('DensityGauss',d);
             obj.printers{2} = ResultsPrinter.create('LevelSet',d);
-            obj.printers{3} = ResultsPrinter.create('HomogenizedTensor',d);
+            obj.printers{3} = ResultsPrinter.create('ElasticityMicro',d);
         end
         
         function storeFieldsToPrint(obj,d)
@@ -38,8 +38,9 @@ classdef NumericalHomogenizerPrinter < CompositeResultsPrinter
         end
         
         function storeMicroFields(obj,d)
-            d.phyProblems{1} = d.microProblem;
-            obj.printers{3}.storeFieldsToPrint(d);            
+            d.fields = d.microVar;
+            obj.printers{3}.storeFieldsToPrint(d); 
+            obj.printers{3}.setStrVariablesMicroCase([])                                            
         end        
         
     end

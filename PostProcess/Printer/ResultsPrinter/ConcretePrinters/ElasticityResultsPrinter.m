@@ -1,7 +1,5 @@
 classdef ElasticityResultsPrinter < ResultsPrinter ...
                                     
-    
-    
     properties (Access = protected)
         simulationStr = 'ElasticityResults';
         hasGaussData = true;       
