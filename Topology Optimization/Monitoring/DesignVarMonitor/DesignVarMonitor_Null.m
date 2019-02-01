@@ -1,7 +1,7 @@
 classdef DesignVarMonitor_Null < DesignVarMonitor_Abstract
     
     properties (Access = protected)
-        designVarible = []
+        designVarName = []
     end
     
     methods (Access = public)
@@ -11,7 +11,7 @@ classdef DesignVarMonitor_Null < DesignVarMonitor_Abstract
             close;
         end
         
-        function plot(~)
+        function plot(varargin)
         end
         
     end

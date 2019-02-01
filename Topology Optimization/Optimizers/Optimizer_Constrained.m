@@ -22,11 +22,11 @@ classdef Optimizer_Constrained < Optimizer
     
     methods (Access = public)
         
-        function obj = Optimizer_Constrained(settings,mesh,monitoring)
+        function obj = Optimizer_Constrained(settings,mesh,showOptParams)
             obj@Optimizer(settings);
             obj.init(settings,mesh);
-            obj.monitor = MonitoringDocker(monitoring,settings.plotting,settings,mesh);
-            %                         obj.monitoring = Monitoring.create(settings,mesh,monitoring,settings.plotting);
+            obj.monitor = MonitoringDocker(showOptParams,settings.plotting,settings,mesh);
+            %                         obj.monitoring = Monitoring.create(settings,mesh,showOptParams,settings.plotting);
         end
         
         function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
@@ -119,7 +119,7 @@ classdef Optimizer_Constrained < Optimizer
     methods (Access = protected)
         
         function itHas = hasFinished(obj,istep,nstep)
-            itHas = obj.has_converged && obj.niter < obj.maxiter*(istep/nstep);
+            itHas = obj.has_converged || obj.niter >= obj.maxiter*(istep/nstep);
         end
         
     end
@@ -143,7 +143,7 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function printFinal(obj,x,cost,constraint)
-            if obj.monitoring.plotting_ON
+            if obj.monitor.shallDisplayDesignVar
                 if obj.printing
                     obj.print(x,obj.niter,cost,constraint);
                 else
