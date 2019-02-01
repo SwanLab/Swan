@@ -13,7 +13,8 @@ clear variables;
 %% Main
 filenames={
     %'test_cantilever3'
-    'CantileverTriangleCoarse_Case_1_1_1'
+    'CantileverHexahedraCoarse_Case_4_1_1'
+    'CantileverTriangleCoarse_Case_2_1_1'
     %     'test_cylinder_tetrahedra'
     %         'CantileverQuadrilateral_Case_1_2_1';
     %         'CantileverQuadrilateral_Case_1_2_2'
@@ -32,7 +33,7 @@ filenames={
     % 'CantileverHexahedra_Case_1_1_2'
     %         'CantileverHexahedra_Case_5_1_1'
     %         'CantileverHexahedra_Case_5_2_1'
-     %     'CantileverHexahedra_Case_5_2_2'
+    %     'CantileverHexahedra_Case_5_2_2'
     %     'CantileverHexahedra_Case_5_2_3'
     %         'CantileverHexahedra_Case_5_1_2'
     %         'CantileverHexahedra_Case_5_1_3'
@@ -58,7 +59,7 @@ filenames={
     %'test_cantilever3'
     %    'CantileverTriangle_Case_1_2_2'
     %'CantileverbeamHexahedraSYM_Case_5_1_6'
-
+    
     % 'CantileverTetrahedraSYM_Case_1_1_1'
     % 'CantileverTetrahedraSYM_Case_2_1_1'
     % 'CantileverTetrahedraSYM_Case_3_1_1'
@@ -75,7 +76,7 @@ filenames={
     
     %     'ThroneTetrahedraSYM_Case_1_1_5'
     %     'ThroneTetrahedraSYM_Case_5_1_2'
-%     'BikeTriangle_1_1_1'
+    %     'BikeTriangle_1_1_1'
     };
 
 

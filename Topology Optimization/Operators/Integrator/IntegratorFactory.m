@@ -3,9 +3,9 @@ classdef IntegratorFactory
         function integrator = create(mesh)
             switch mesh.unfittedType
                 case 'INTERIOR'
-                    integrator = Integrator_Interior;
+                    integrator = Integrator_Interior();
                 case 'BOUNDARY'
-                    integrator = Integrator_Boundary;
+                    integrator = Integrator_Boundary();
                 case 'COMPOSITE'
                     integrator = Integrator_Composite(mesh);
                 otherwise
