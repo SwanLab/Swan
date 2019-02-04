@@ -134,11 +134,7 @@ classdef TestTwoRankSequentialLaminate < testShowingError
     end
     
     methods (Access = private, Static)
-        
-        function direction = normalizeDirection(direction)
-            direction = direction/norm(direction);
-        end
-        
+               
         function CVoigtPS = makeTensorVoigtPlaneStress(C)
             CVoigt = Tensor2VoigtConverter.convert(C);
             CVoigtPS = PlaneStressTransformer.transform(CVoigt);

@@ -12,7 +12,8 @@ classdef ShFunc_Volume < Shape_Functional
         
 
         function v = computeCost(obj,rho)
-            v = sum(sum(obj.dvolu,2)'*rho);
+           dens(:,1) = rho;
+           v = sum(sum(obj.dvolu,2)'*dens);
         end
         
         

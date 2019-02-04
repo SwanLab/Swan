@@ -1,36 +1,35 @@
 classdef testNumericalHomogenizerPrinter < testNotShowingError...
-                         & testPrintingDescriptor
+        & testPrintingDescriptor
     
     properties (Access = protected)
         fileOutputName = 'testNumericalHomogenizerPrinter';
-        iter
+        microFile = 'test2d_micro';
+        iter = 0;
     end
     
     properties (Access = private)
-       dataBase
+        dataBase
     end
     
     methods (Access = public)
         
         function obj = testNumericalHomogenizerPrinter()
-            obj.iter = 0;
-            obj.computeNumericalHomogenizer();
+            d = obj.createNumericalHomogenizerDataBase();
+            NumericalHomogenizer(d);
         end
         
     end
     
     methods (Access = private)
-               
-        function computeNumericalHomogenizer(obj)
-           dir = Vector3D;
-           dir.setValue([1 0 0]);
-           lv = 3;
-           f = obj.fileOutputName;
-           print = true;
-           i = obj.iter;
-           NumericalFiberHomogenizer(dir,lv,f,print,i);
-        end        
-
+        
+        function d = createNumericalHomogenizerDataBase(obj)
+            nDB = NumericalHomogenizerDataBase(obj.microFile);
+            d = nDB.dataBase;
+            d.print = true;
+            d.outFileName = obj.fileOutputName;            
+        end
     end
+    
+        
     
 end

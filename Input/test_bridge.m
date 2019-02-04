@@ -14,7 +14,12 @@ Vfrac_final = 0.5;
 Perimeter_target=3.5;
 optimality_final =1e-3;
 constr_final =1e-3;
+
 HJiter0 = 30;
+e2 = 30;
+N_holes = [5 6 4];
+R_holes = 0.7;
+phase_holes = [0 pi/2 0];
 
 Vfrac_initial = 1;
 optimality_initial = 1e-3;

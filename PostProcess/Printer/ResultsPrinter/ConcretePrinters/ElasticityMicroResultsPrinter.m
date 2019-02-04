@@ -1,7 +1,7 @@
 classdef ElasticityMicroResultsPrinter < ResultsPrinter  
     
     properties (Access = protected)
-        simulationStr = 'ElasticityMicroResultsPrinter';
+        simulationStr        
         hasGaussData = true;       
     end
     
@@ -29,15 +29,18 @@ classdef ElasticityMicroResultsPrinter < ResultsPrinter
         dStrFluc
         dDisp
         dFor
+        nCase = 0
     end
     
     methods (Access = public)
         
         function obj = ElasticityMicroResultsPrinter(d)
+            obj.simulationStr = 'ElasticityMicroResultsPrinter';
             obj.init(d);
         end
         
         function printResults(obj,iter,fileID)
+            obj.setStringVariables();
             obj.createDataBases(iter,fileID);
             VectorNodalPrinter(obj.dDisp);
             VectorNodalPrinter(obj.dFor);
@@ -47,14 +50,8 @@ classdef ElasticityMicroResultsPrinter < ResultsPrinter
             VectorGaussPrinter(obj.dStrFluc);            
         end        
         
-        function setStrVariablesMicroCase(obj,n)
-            n = num2str(n);
-            obj.stressStr     = strcat(obj.stressStrBase,n);
-            obj.strainStr     = strcat(obj.strainStrBase,n);
-            obj.stressFlucStr = strcat(obj.stressFlucStrBase,n);
-            obj.strainFlucStr = strcat(obj.strainFlucStrBase,n);
-            obj.dispStr       = strcat(obj.dispStrBase,n);
-            obj.forStr        = strcat(obj.forStrBase,n);
+        function setStrVariablesMicroCase(obj,nCase)
+            obj.nCase = nCase;
         end
     end
         
@@ -67,6 +64,16 @@ classdef ElasticityMicroResultsPrinter < ResultsPrinter
     end
     
     methods (Access = private)
+        
+        function setStringVariables(obj)
+            n = num2str(obj.nCase);
+            obj.stressStr     = strcat(obj.stressStrBase,n);
+            obj.strainStr     = strcat(obj.strainStrBase,n);
+            obj.stressFlucStr = strcat(obj.stressFlucStrBase,n);
+            obj.strainFlucStr = strcat(obj.strainFlucStrBase,n);
+            obj.dispStr       = strcat(obj.dispStrBase,n);
+            obj.forStr        = strcat(obj.forStrBase,n);
+        end
         
         function createDataBases(obj,iter,fileID)
             f = obj.fields;

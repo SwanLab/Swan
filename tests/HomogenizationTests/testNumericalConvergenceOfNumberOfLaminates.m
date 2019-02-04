@@ -4,12 +4,11 @@ classdef testNumericalConvergenceOfNumberOfLaminates < testShowingError
        tol = 1e-12 
     end
     
-    properties (Access = private)
-        
+    properties (Access = private)        
         fiberDirection
-        NumberOfLevelsOfFibers
+        nLevelsOfFibers
         Ch
-        Name
+        outFileName
         
         AllCh
         AllVolume
@@ -38,11 +37,11 @@ classdef testNumericalConvergenceOfNumberOfLaminates < testShowingError
         end
         
         function createNumberOfLevelsOfFibers(obj)
-            obj.NumberOfLevelsOfFibers = 4;
+            obj.nLevelsOfFibers = 3;
         end
         
         function computeAllChAndVolumes(obj)
-            nlevel = obj.NumberOfLevelsOfFibers;
+            nlevel = obj.nLevelsOfFibers;
             for iLevel = 1:nlevel
                 obj.computeName(iLevel);
                 obj.computeHomogenization(iLevel);
@@ -52,23 +51,34 @@ classdef testNumericalConvergenceOfNumberOfLaminates < testShowingError
         end
         
         function computeName(obj,iLevel)
-            FamilyName = 'HorizontalLaminate';
+            familyName = 'HorizontalLaminate';
             LevelStr   = num2str(iLevel);
-            obj.Name = strcat(FamilyName,LevelStr);
+            obj.outFileName = strcat(familyName,LevelStr);
         end
         
         function computeHomogenization(obj,LoF)
-            dir            = obj.fiberDirection;
-            printTopology  = false;
-            iter           = 0;
-            homogenizer    = NumericalFiberHomogenizer(dir,LoF,obj.Name,...
-                             printTopology,iter);
-            obj.Ch         = homogenizer.getCh;  
-            obj.Volume     = homogenizer.getVolume;
+           d = obj.computeNumericalHomogenizerDataBase(LoF);
+           homog = NumericalHomogenizer(d);
+           obj.Ch = obj.rotateCh(homog);
+           obj.Volume = homog.volume();            
+        end
+        
+        function d = computeNumericalHomogenizerDataBase(obj,LoF)
+            microFile = 'RVE_Square_Triangle_FineFine';
+            nDB = NumericalHomogenizerDataBase(microFile);
+            d = nDB.dataBase;
+            d.outFileName = obj.outFileName;
+            d.levelSetDataBase.levFib = LoF;
+        end
+        
+        function C = rotateCh(obj,homog)
+           dir   = obj.fiberDirection;           
+           r = ChRotatorForFiberHomogenizer();
+           C = r.rotate(dir,homog.Ch());                  
         end
 
         function computeChNorm(obj)
-            for iCh = 1:size(obj.Ch,2)
+            for iCh = 1:numel(obj.AllCh)
                 obj.ChNorm(iCh) = norm(obj.AllCh{iCh}.getValue());
             end
         end

@@ -30,6 +30,26 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
             obj.computeGradient();
         end
         
+        function c = computeCostWithFullDomain(obj)
+            nnodes = size(obj.physProb.mesh.coord,1);
+            x = -ones(nnodes,1);
+            obj.computeCostAndGradient(x);
+            c = obj.value;
+        end
+        
+        function s = computeMaxStressWithFullDomain(obj)
+            nnodes = size(obj.physProb.mesh.coord,1);
+            x = -ones(nnodes,1);
+            obj.updateMaterialProperties(x);
+            obj.solvePDEs();
+            stress = obj.physProb.variables.stress;
+            ngaus = obj.physProb.element.quadrature.ngaus;            
+            nstre = obj.physProb.element.getNstre();
+            V = sum(sum(obj.physProb.geometry.dvolu));
+            dV = obj.physProb.element.geometry.dvolu;            
+            s = obj.obtainMaxSigmaNorm(stress,ngaus,nstre,dV,V);
+        end
+        
     end
     
     methods (Access = protected)
@@ -47,7 +67,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
         end
         
         function computeFunctionValue(obj)
-            stress       = obj.physProb.variables.stress;
+            stress = obj.physProb.variables.stress;
             stress_fluct = obj.physProb.variables.stress_fluct;
             v = obj.integrateStressNorm(obj.physProb);
             obj.value = v;
@@ -82,6 +102,21 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
                 sigmaNorm = s.^p;
                 v = v + 1/V*sigmaNorm'*dV(:,igaus);
             end
+        end
+        
+        function v = obtainMaxSigmaNorm(obj,stress,ngaus,nstre,dV,V)
+            v = [];
+            for igaus = 1:ngaus
+                s = zeros(size(stress,3),1);
+                for istre = 1:nstre
+                    Si = squeeze(stress(igaus,istre,:));
+                    factor = obj.computeVoigtFactor(istre,nstre);
+                    Sistre = factor*(Si.^2);
+                    s = s + Sistre;
+                end
+                v = max([sqrt(s);v]);
+            end            
+            
         end
         
         function v = integratePNormOfComponents(obj,stress,ngaus,nstre,dV,V)

@@ -7,7 +7,7 @@ classdef LevelSetSmoothRectangleInclusion < ...
         function obj = LevelSetSmoothRectangleInclusion(input)
             obj.m1 = input.m1;
             obj.m2 = input.m2;
-            obj.pnorm  = input.p;
+            obj.pnorm  = input.pnorm;
             obj.compute(input);
         end
     end

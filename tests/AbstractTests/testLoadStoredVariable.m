@@ -17,7 +17,7 @@ classdef testLoadStoredVariable < handle
     methods (Access = private)
         function loadStoredVariable(obj)
             file2load = obj.testName;
-            load(file2load);
+            load([file2load,'.mat']);
             for icell = 1:numel(obj.variablesToStore)
               obj.storedVar{icell} = eval(obj.variablesToStore{icell});
             end

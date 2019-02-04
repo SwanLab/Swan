@@ -1,146 +1,135 @@
-classdef NumericalHomogenizer < handle 
+classdef NumericalHomogenizer < handle
     
-
+    
+    properties (SetAccess = private, GetAccess = public)
+        Ptensor
+        Ch
+        volume
+        matValues
+        elemDensCr
+    end
+    
     properties (Access = private)
         fileName
-        fileNameWithPath
+        outputName
         hasToBePrinted
-        outputName  
+        iter
+        pdim
+        eDensCreatType
+        hasToCaptureImage = false
+        
+        lsDataBase
+        matDataBase
+        interDataBase
+        volDataBase
+        
         matProp
-        matValues
-        Ptensor
-        volume
         
         postProcess
         
-        interpolation
-        densityPostProcess
-        
-        iter = 0;
-        dataBase
-    end
-    
-    properties (Access = protected)
         microProblem
         density
-        levelSet        
-        Ch
-        setting
+        levelSet
         resFile
+        
+        printers
+        interpolation
     end
     
     methods (Access = public)
         
-        function p = getAmplificatorTensor(obj)
-            p = obj.Ptensor;
-        end
-        
-        function c = getCh(obj)
-            c = obj.Ch;        
-        end
-        
-        function m = getMaterialValues(obj)
-            m = obj.matValues;
-        end
-        
-        function v = getVolume(obj)
-            v = obj.volume;
-        end        
-        
-        function s = getSettings(obj)
-            s = obj.setting;
-        end
-
-    end
-    
-    methods (Access = protected)
-
-        function init(obj,outputName,print,iter)
-            obj.outputName = outputName;
-            obj.hasToBePrinted = print;
-            obj.iter = iter;
-            obj.loadFileName();
-            obj.loadTestData();
-            obj.loadDimension();
-        end
-        
-        function generateMicroProblem(obj)
-            obj.createInterpolation();
+        function obj = NumericalHomogenizer(d)
+            obj.init(d);
             obj.createMicroProblem();
-            obj.createDensity()
-            obj.createMaterialProperties()
-            obj.setMaterialPropertiesInMicroProblem()
-        end             
-        
-        function createDensityPrinter(obj)
-           obj.createPostProcessDataBase();
-           postCase = 'NumericalHomogenizer';             
-           obj.postProcess = Postprocess(postCase,obj.dataBase);
-        end        
-        
-        function print(obj)
-            if obj.hasToBePrinted
-                d.dens = obj.density;
-                d.levelSet = obj.levelSet;
-                d.quad = obj.microProblem.element.quadrature;
-                d.microProblem = obj.microProblem;
-                obj.postProcess.print(obj.iter,d);
-                obj.resFile = obj.postProcess.getResFile();
-            end
-        end   
-        
-        function createPostProcessDataBase(obj)
-            dI.mesh            = obj.microProblem.mesh;
-            dI.outName         = obj.outputName;
-            ps = PostProcessDataBaseCreatorWithNoGaussData(dI);
-            obj.dataBase = ps.getValue();               
-        end               
-        
-        function computeHomogenizedVariables(obj)
-            obj.computeVolumeValue()
-            obj.computeHomogenizedTensor()
-            obj.computeAmplificator()
-        end        
+            obj.computeHomogenizedVariables();
+            obj.print();
+            obj.captureImage();
+        end
         
     end
     
     methods (Access = private)
-                
-        function loadFileName(obj)
-            obj.fileName = 'test_microFineFine';
-        end
         
-        function loadTestData(obj)
-            obj.fileNameWithPath = strcat('./Input/',obj.fileName);
-            obj.setting = Settings(obj.fileNameWithPath);
-        end
-        
-        function loadDimension(obj)
-            obj.setting.pdim = '2D';
-        end
-                
-        function createInterpolation(obj)
-            matVal          = obj.setting.TOL;
-            material        = obj.setting.material;
-            InterpFunction  = obj.setting.method;
-            dim             = obj.setting.pdim;
-            interp          = Material_Interpolation.create(matVal,material,InterpFunction,dim);
-            obj.interpolation = interp;
-            obj.matValues = matVal;
+        function init(obj,d)
+            obj.fileName       = d.testName;
+            obj.outputName     = d.outFileName;
+            obj.hasToBePrinted = d.print;
+            obj.iter           = d.iter;
+            obj.pdim           = d.pdim;
+            obj.eDensCreatType = d.elementDensityCreatorType;
+            obj.lsDataBase     = d.levelSetDataBase;
+            obj.matDataBase    = d.materialDataBase;
+            obj.interDataBase  = d.materialInterpDataBase;
+            obj.volDataBase    = d.volumeShFuncDataBase;
         end
         
         function createMicroProblem(obj)
-            obj.microProblem = Elastic_Problem_Micro(obj.setting.filename);
+            obj.buildMicroProblem();            
+            obj.createInterpolation();
+            obj.createElementalDensityCreator();
+            obj.obtainDensity();
+            obj.createMaterialProperties()
+            obj.setMaterialPropertiesInMicroProblem()
+        end
+        
+        function buildMicroProblem(obj)
+            obj.microProblem = Elastic_Problem_Micro(obj.fileName);
             obj.microProblem.preProcess();
+        end        
+        
+        function createInterpolation(obj)
+            int = obj.interDataBase.method;
+            mV  = obj.matDataBase.matProp;
+            mat = obj.matDataBase.materialType;
+            pd  = obj.pdim;
+            mI  = Material_Interpolation.create(mV,mat,int,pd);
+            obj.interpolation = mI;
+            obj.matValues = mV;
+        end
+        
+        function createElementalDensityCreator(obj)
+            type = obj.eDensCreatType;
+            de   = obj.createElementalDensityCreatorDataBase();
+            edc  = ElementalDensityCreator.create(type,de);
+            obj.elemDensCr = edc;
+        end
+        
+        function d = createElementalDensityCreatorDataBase(obj)
+            dl = obj.createLevelSetCreatorDataBase();
+            df = obj.createFilterDataBase();
+            d.levelSetCreatorDataBase = dl;
+            d.filterDataBase = df;
+        end
+        
+        function d = createLevelSetCreatorDataBase(obj)
+            d = obj.lsDataBase;
+            d.ndim  = obj.microProblem.mesh.ndim;
+            d.coord = obj.microProblem.mesh.coord;
+        end
+        
+        function d = createFilterDataBase(obj)
+            d.shape = obj.microProblem.element.interpolation_u.shape;
+            d.conec = obj.microProblem.geometry.interpolation.T;
+            d.quadr = obj.microProblem.element.quadrature;
+        end        
+        
+        function obtainDensity(obj)
+            obj.density = obj.elemDensCr.getDensity();
         end
         
         function createMaterialProperties(obj)
             d = obj.density;
-            obj.matProp= obj.interpolation.computeMatProp(d);
+            obj.matProp = obj.interpolation.computeMatProp(d);
         end
         
         function setMaterialPropertiesInMicroProblem(obj)
             obj.microProblem.setMatProps(obj.matProp);
+        end
+        
+        function computeHomogenizedVariables(obj)
+            obj.computeVolumeValue();
+            obj.computeHomogenizedTensor();
+            obj.computeAmplificator();
         end
         
         function computeHomogenizedTensor(obj)
@@ -156,16 +145,56 @@ classdef NumericalHomogenizer < handle
         end
         
         function computeVolumeValue(obj)
-            vComputer = ShFunc_Volume(obj.setting);
+            d = obj.volDataBase;
+            vComputer = ShFunc_Volume(d);
             dens = obj.density;
             vol = vComputer.computeCost(dens);
             obj.volume = vol;
-        end        
+        end
         
-    end
-    
-    methods (Access = protected, Abstract)
-        createDensity(obj)
+        function print(obj)
+            if obj.hasToBePrinted
+                obj.createPrintersNames();
+                obj.createPostProcess();
+                d.var2print = obj.elemDensCr.getFieldsToPrint;
+                d.var2print{end+1} = obj.microProblem;
+                d.quad = obj.microProblem.element.quadrature;
+                obj.postProcess.print(obj.iter,d);
+                obj.resFile = obj.postProcess.getResFile();
+            end
+        end
+        
+        function createPrintersNames(obj)
+            type = obj.eDensCreatType;
+            f = ElementalDensityCreatorFactory();
+            obj.printers = f.createPrinters(type);
+            obj.printers{end+1} = 'HomogenizedTensor';
+        end
+        
+        function createPostProcess(obj)
+            dB = obj.createPostProcessDataBase();
+            dB.printers = obj.printers;
+            postCase = 'NumericalHomogenizer';
+            obj.postProcess = Postprocess(postCase,dB);
+        end
+        
+        function dB = createPostProcessDataBase(obj)
+            dI.mesh            = obj.microProblem.mesh;
+            dI.outName         = obj.outputName;
+            ps = PostProcessDataBaseCreator(dI);
+            dB = ps.getValue();
+        end
+        
+        function captureImage(obj)
+            if obj.hasToCaptureImage
+                i = obj.iter;
+                f = obj.resFile;
+                outPutNameWithIter = [obj.outputName,num2str(i)];
+                inputFileName = fullfile('Output',f,[f,num2str(i),'.flavia.res']);
+                GiDImageCapturer(f,outPutNameWithIter,inputFileName);
+            end
+        end
+        
     end
     
 end

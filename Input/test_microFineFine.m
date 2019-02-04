@@ -2,12 +2,15 @@ filename='RVE_Square_Triangle_FineFine';
 ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'horizontal';
+initial_case = 'horizontalFibers';
 cost={'chomog_alphabeta'};
 weights=[1 0.1];
 constraint = {'volumeConstraint'};
 optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
+            
+levelFibers = 3;
+volumeFibers = 0.5;
 
 nsteps = 1;
 Vfrac_final = 0.5;

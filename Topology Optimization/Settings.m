@@ -10,11 +10,8 @@ classdef Settings
         monitoring_interval = 10
         maxiter = 2000
         constraint_case = 'EQUALITY'
-        N_holes = [5 6 4]
-        R_holes = 0.7
-        phase_holes = [0 pi/2 0]
-        HJiter0 = 1
-        e2 = 30
+        HJiter0 
+        e2 
     end
     
     properties %target parameters
@@ -35,12 +32,8 @@ classdef Settings
         perimeter = struct;
     end
     
-    properties %DesignVariable
-        widthSquare = 0.4;
-        widthH = 0.4;
-        widthV = 0.4;
-        levFib
-        yn
+    properties %LevelSetCreator
+        levelSetDataBase
     end
     
     properties    %topopt access
@@ -179,15 +172,8 @@ classdef Settings
             if exist('e2','var')
                 obj.e2 = e2;
             end
-            if exist('N_holes','var')
-                obj.N_holes = N_holes;
-            end
-            if exist('R_holes','var')
-                obj.R_holes = R_holes;
-            end
-            if exist('phase_holes','var')
-                obj.phase_holes = phase_holes;
-            end
+
+            
             if exist('micro','var')
                 obj.micro.alpha = micro.alpha;
                 obj.micro.beta = micro.beta;
@@ -201,15 +187,45 @@ classdef Settings
             end
             
             if exist('widthH','var')
-                obj.widthH = widthH;
+                obj.levelSetDataBase.widthH = widthH;
             end
             
             if exist('widthV','var')
-                obj.widthV = widthV;
+                obj.levelSetDataBase.widthV = widthV;
             end
             
             if exist('widthSquare','var')
-                obj.widthSquare = widthSquare;
+                obj.levelSetDataBase.widthSquare = widthSquare;
+            end
+            
+            if exist('N_holes','var')
+                obj.levelSetDataBase.nHoles = N_holes;
+            end
+            if exist('R_holes','var')
+                obj.levelSetDataBase.rHoles = R_holes;
+            end
+            if exist('phase_holes','var')
+                obj.levelSetDataBase.phaseHoles = phase_holes;
+            end  
+            
+            if exist('warningHoleBC','var')
+                obj.levelSetDataBase.warningHoleBC = warningHoleBC;
+            end             
+            
+            if exist('levFib','var')
+                obj.levelSetDataBase.levFib = levFib;
+            end  
+            
+            if exist('yn','var')
+                obj.levelSetDataBase.yn = yn;
+            end   
+            
+            if exist('levelFibers','var')
+               obj.levelSetDataBase.levelFibers = levelFibers;               
+            end
+            
+            if exist('volumeFibers','var')
+               obj.levelSetDataBase.volumeFibers = volumeFibers;               
             end
             
             if  ~(contains(filename,'test','IgnoreCase',true) || contains(filename,'RVE') || obj.hasToAddSpaceBecauseOfIncremental())

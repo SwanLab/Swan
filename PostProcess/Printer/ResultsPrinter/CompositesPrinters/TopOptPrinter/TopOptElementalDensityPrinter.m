@@ -35,8 +35,13 @@ classdef TopOptElementalDensityPrinter < CompositeResultsPrinter
     methods (Access = private, Static)
         
         function d = computeElementalDensity(x,phyPr)
-            filter = FilterP0(x,phyPr); %Only examples with ls by the moment
-            d = filter.getDens0();
+            type = 'ElementalDensityCreatorByLevelSet'; %Only examples with ls by the moment
+            d.levelSet = x;
+            d.filterDataBase.shape = phyPr.element.interpolation_u.shape;
+            d.filterDataBase.conec = phyPr.geometry.interpolation.T;
+            d.filterDataBase.quadr = phyPr.element.quadrature;
+            edc = ElementalDensityCreator.create(type,d);
+            d = edc.getDensity();
         end
         
     end

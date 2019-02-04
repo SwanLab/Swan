@@ -1,4 +1,4 @@
-classdef LevelSetOrientedFiber < LevelSetCreator
+classdef LevelSetHorizontalFibers < LevelSetCreator
     
     properties (Access = private)
         levelOfFibers

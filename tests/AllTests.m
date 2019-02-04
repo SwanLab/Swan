@@ -3,7 +3,7 @@ UnfittedIntegrationTests;
 TopOptTests;
 PrintingTests;
 ReadingFilesTests;
-HomogenizationTests;
 PlottingTests;
+HomogenizationTests;
 %AmplificatorTests;
 

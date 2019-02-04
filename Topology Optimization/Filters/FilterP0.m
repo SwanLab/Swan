@@ -3,20 +3,18 @@ classdef FilterP0 < handle
    properties (Access = private)
        levelSet
        levelSet0
-       phyProb       
        dens0       
    end
     
    methods (Access = public)
       
-       function obj = FilterP0(ls,phy)
+       function obj = FilterP0(ls,d)
            obj.levelSet = ls;
-           obj.phyProb = phy;           
-           obj.computeElementalLevelSet();
+           obj.computeElementalLevelSet(d);
            obj.computeDensityP0();
        end
        
-       function d = getDens0(obj)
+       function d = getDensity(obj)
            d = obj.dens0;
        end
        
@@ -24,11 +22,10 @@ classdef FilterP0 < handle
    
    methods (Access = private)
        
-       function computeElementalLevelSet(obj)
-            phyPr = obj.phyProb();
-            shape = phyPr.element.interpolation_u.shape;
-            conec = phyPr.geometry.interpolation.T;            
-            quadr = phyPr.element.quadrature;
+       function computeElementalLevelSet(obj,d)
+            shape = d.shape;
+            conec = d.conec;            
+            quadr = d.quadr;
             ngaus = quadr.ngaus;
             nelem = size(conec,1);
             nnode = size(shape,1);
