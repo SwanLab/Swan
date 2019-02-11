@@ -1,0 +1,63 @@
+classdef FreeFemFilePrinter < FilePrinter
+    
+    properties (Access = private)
+        linesToPrint
+        fileName
+        printingDir
+    end
+    
+    methods (Access = public)
+        
+        
+        function obj = FreeFemFilePrinter(inputData)
+            obj.init(inputData);
+        end
+        
+        function print(obj)
+            
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function init(obj,d)
+            obj.linesToPrint    = d.linesToPrint;
+            obj.fileName        = fullfile(obj.printingDir,[d.fileName,'.edp']);            
+        end        
+        
+        function printFile(obj)
+            obj.createOutPutFolder();
+            obj.openFileR();
+            obj.printingLines();
+            obj.closeFile();
+        end
+        
+        function openFileR(obj)
+            obj.fid = fopen(obj.filePath,'w');
+        end
+        
+        function createOutPutFolder(obj)
+            dir = obj.printingDir;
+            if ~exist(dir,'dir')
+                mkdir(dir)
+                addpath(dir)
+            end
+        end
+        
+        function printingLines(obj)
+            nlines = numel(obj.linesToPrint);
+            for iline = 1:nlines
+                line = obj.linesToPrint{iline};
+                fprintf(obj.fid,[line,'\n']);
+            end
+        end
+        
+        function closeFile(obj)
+            fclose(obj.fid);
+        end        
+        
+    end
+    
+    
+end

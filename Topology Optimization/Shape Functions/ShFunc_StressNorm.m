@@ -2,6 +2,9 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
     
     properties (Access = private)
         pNorm = 2;
+        stressHomog
+        strainHomog
+        Chomog
     end
     
     methods (Access = public)
@@ -9,6 +12,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
         function obj = ShFunc_StressNorm(settings)
             obj@ShFunWithElasticPdes(settings);
             obj.createEquilibriumProblem(settings.filename);
+            obj.stressHomog = settings.stressHomog;
         end
         
         function v = getValue(obj)
@@ -41,7 +45,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
             nnodes = size(obj.physProb.mesh.coord,1);
             x = -ones(nnodes,1);
             obj.updateMaterialProperties(x);
-            obj.solvePDEs();
+            obj.solveCellProblem();
             stress = obj.physProb.variables.stress;
             ngaus = obj.physProb.element.quadrature.ngaus;            
             nstre = obj.physProb.element.getNstre();
@@ -62,12 +66,13 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
         end
         
         function solvePDEs(obj)
-            obj.physProb.setMatProps(obj.matProps);
-            obj.physProb.computeVariables();
+           obj.computeHomogenizedTensor();
+           obj.computeHomogenizedStrain();            
+           obj.solveCellProblem(); 
         end
         
         function computeFunctionValue(obj)
-            stress = obj.physProb.variables.stress;
+            stress       = obj.physProb.variables.stress;
             stress_fluct = obj.physProb.variables.stress_fluct;
             v = obj.integrateStressNorm(obj.physProb);
             obj.value = v;
@@ -76,6 +81,27 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
     end
     
     methods (Access = private)
+        
+        function solveCellProblem(obj)
+            cellProblem = obj.physProb;
+            sH(1,:) = obj.strainHomog;
+            cellProblem.element.setVstrain(sH);            
+            cellProblem.setMatProps(obj.matProps);
+            cellProblem.computeVariables();
+        end
+        
+        function computeHomogenizedTensor(obj)
+            cellProblem = obj.physProb;
+            Ch = cellProblem.computeChomog();
+            obj.Chomog = Ch;
+        end
+        
+        function computeHomogenizedStrain(obj)
+             Ch = obj.Chomog;
+             stress = obj.stressHomog;
+             strain = Ch\stress;
+             obj.strainHomog = strain;
+        end
         
         function value = integrateStressNorm(obj,physProb)
             nstre = physProb.element.getNstre();

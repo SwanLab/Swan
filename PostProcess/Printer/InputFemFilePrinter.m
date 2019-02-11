@@ -19,7 +19,17 @@ classdef InputFemFilePrinter < FilePrinter
         function obj = InputFemFilePrinter(inputData)
             obj.init(inputData);
             obj.createOutPutFolder();
-            obj.printFile();
+        end
+        
+        function print(obj)
+            obj.openFile();
+            obj.printDataProblem();
+            obj.printCoordinates();
+            obj.printConnectivities();
+            obj.printDirichletData();
+            obj.printMasterSlave();
+            obj.printMaterialSets();
+            obj.closeFile();
         end
         
     end
@@ -48,17 +58,6 @@ classdef InputFemFilePrinter < FilePrinter
                 mkdir(dir)
                 addpath(dir)
             end
-        end
-        
-        function printFile(obj)
-            obj.openFile();
-            obj.printDataProblem();
-            obj.printCoordinates();
-            obj.printConnectivities();
-            obj.printDirichletData();            
-            obj.printMasterSlave();
-            obj.printMaterialSets();
-            obj.closeFile();
         end
         
         function printDataProblem(obj)

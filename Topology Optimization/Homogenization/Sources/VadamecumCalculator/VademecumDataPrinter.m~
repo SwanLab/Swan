@@ -1,0 +1,68 @@
+classdef VademecumDataPrinter < FilePrinter
+    
+    properties (Access = private)
+        Ctensor
+        Ptensor
+        tensor
+        tensorName
+        outPutPath
+    end
+    
+    
+    methods (Access = public)
+        
+        
+        function obj = VademecumDataPrinter(d)
+            obj.init(d);
+        end
+        
+        function print(obj)
+            obj.openFile();
+            obj.printData()
+            obj.closeFile();
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function init(d,obj)
+            obj.outPutPath = d.outPutPath;
+            obj.Ctensor    = d.Ctensor;
+            obj.Ptensor    = d.Ptensor;
+        end
+        
+        function printData(obj)
+            obj.printCtensor();
+            obj.printPtensor();
+        end
+        
+        function printCtensor(obj)
+            obj.tensor     = obj.Ctensor;
+            obj.tensorName = 'C_' ;
+            obj.printTensor();
+        end
+        
+        function printPtensor(obj)
+            obj.tensor     = obj.Ptensor;
+            obj.tensorName = 'P_' ;
+            obj.printTensor();
+        end
+        
+        function printTensor(obj)
+            
+        end
+        
+        
+    end
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+end

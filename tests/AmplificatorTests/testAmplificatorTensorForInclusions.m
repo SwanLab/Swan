@@ -81,6 +81,7 @@ classdef testAmplificatorTensorForInclusions < ...
                 lege{3} = [legC{i},' smooth rect inclusion '];
                 lege{4} = [legP{i},' smooth rect inclusion '];
                 legend(lege{:},'Location','Best');
+                xlabel('volume');
                 obj.printFigure(figureID,h1,h2,legP{i});
             end
         end
@@ -90,8 +91,7 @@ classdef testAmplificatorTensorForInclusions < ...
             outPutFile = ['/home/alex/Dropbox/Amplificators/Images/',lege];
             h{1} = h1;
             h{2} = h2;
-            xlabelName = 'volume';
-            fp = figurePlotter(figureID,h,xlabelName);
+            fp = plotPrinter(figureID,h);
             fp.print(outPutFile);
         end
         

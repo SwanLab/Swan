@@ -10,7 +10,7 @@ classdef testPrintingInputFileForFem < testNotShowingError
     methods (Access = public)
         
         function obj = testPrintingInputFileForFem()
-            obj.init()
+            obj.init();
             g  = obj.gmsFile;
             oD = obj.resultsDir;
             oF = obj.fullFileName;
@@ -35,7 +35,7 @@ classdef testPrintingInputFileForFem < testNotShowingError
         
         function init(obj)
             obj.fileName = 'InputFileForFem';
-            obj.gmsFile = 'testReadingGmsh.msh';            
+            obj.gmsFile  = 'testReadingGmsh.msh';            
             obj.resultsDir   = fullfile('Output',obj.fileName);
             obj.fullFileName = fullfile(obj.resultsDir,[obj.fileName,'.m']);
         end

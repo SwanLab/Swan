@@ -30,11 +30,13 @@ classdef GmsFile2FemMatOoFileConverter < handle
         
         function readGmsFile(obj)
             reader = GmsReader(obj.gmsFile);
-            rD.connec = reader.connec;
-            rD.coord  = reader.coord;
-            rD.isElemInThisSet = reader.isElemInThisSet;
-            rD.masterSlave = reader.masterSlave;
-            rD.corners = reader.corners;
+            reader.read();
+            rDB = reader.getDataBase();
+            rD.connec = rDB.connec;
+            rD.coord  = rDB.coord;
+            rD.isElemInThisSet = rDB.isElemInThisSet;
+            rD.masterSlave = rDB.masterSlave;
+            rD.corners = rDB.corners;
             obj.readData = rD;
         end
         
@@ -42,7 +44,8 @@ classdef GmsFile2FemMatOoFileConverter < handle
             data = obj.readData;
             data.resultsDir = obj.outPutDir;
             data.fileName   = obj.outPutFileName;
-            InputFemFilePrinter(data);
+            fp = InputFemFilePrinter(data);
+            fp.print();
         end        
         
     end
