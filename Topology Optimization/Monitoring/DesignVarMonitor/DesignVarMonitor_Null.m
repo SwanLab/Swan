@@ -18,7 +18,12 @@ classdef DesignVarMonitor_Null < DesignVarMonitor_Abstract
     
     methods (Access = protected)
         
-        function init(~)
+        function initPlotting(~)
+        end
+        
+        function createCamera(obj)
+            nullAxes = axes;
+            obj.cam = Camera_Null(nullAxes);
         end
         
     end

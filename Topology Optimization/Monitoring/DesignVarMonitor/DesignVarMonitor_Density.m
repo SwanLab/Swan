@@ -12,12 +12,22 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
         
         function plot(obj,rho)
             set(obj.patchHandle,'FaceVertexAlphaData',double(rho));
-            view([1 1 1])
         end
         
     end
     
-    methods (Access = protected,Static)
+    methods (Access = protected)
+        
+        function initPlotting(obj)
+            nnode = size(obj.mesh.coord,1);
+            obj.patchHandle = patch('Faces',obj.mesh.connec,'Vertices',obj.mesh.coord,'FaceVertexAlphaData',zeros(nnode,1),...
+                'FaceAlpha','flat','EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
+            set(gca,'ALim',[0, 1],'XTick',[],'YTick',[]);
+        end
+        
+    end
+    
+    methods (Access = protected, Static)
         
         function color = getColor()
             color = [0 0 0];

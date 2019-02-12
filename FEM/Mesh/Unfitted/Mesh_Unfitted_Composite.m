@@ -91,6 +91,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
         end
         
         function computeBoxMeshes(obj,levelSet)
+            obj.resetBoxMeshes();
             iface = 0;
             obj.isBoxFaceMeshActive = false([1 obj.nboxFaces]);
             for idime = 1:obj.ndim
@@ -106,6 +107,10 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
                 end
             end
             obj.updateActiveBoxFaceMeshesList();
+        end
+        
+        function resetBoxMeshes(obj)
+            obj.createBoxMeshes();
         end
         
         function M = computeBoxMass(obj)

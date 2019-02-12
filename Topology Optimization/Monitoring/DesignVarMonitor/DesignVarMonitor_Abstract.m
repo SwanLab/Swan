@@ -4,10 +4,15 @@ classdef DesignVarMonitor_Abstract < handle
         designVarName
     end
     
-    properties (GetAccess = protected, SetAccess = private)
+    properties (Access = protected)
         figHandle
         patchHandle
         mesh
+        cam
+    end
+    
+    properties (GetAccess = public, SetAccess = private)
+        axes
     end
     
     methods (Access = public, Abstract)
@@ -18,7 +23,7 @@ classdef DesignVarMonitor_Abstract < handle
     
     methods (Access = protected, Abstract)
         
-        init(obj)
+        initPlotting(obj)
         
     end
     
@@ -32,37 +37,50 @@ classdef DesignVarMonitor_Abstract < handle
         
         function obj = DesignVarMonitor_Abstract(mesh)
             obj.mesh = mesh;
-            obj.initFrame();
             obj.init();
         end
         
         function refresh(obj,x)
             obj.plot(x);
+            obj.cam.updateView();
             drawnow
+        end
+        
+        function setCamera(obj,cam)
+            obj.cam = cam;
         end
         
     end
     
     methods (Access = private)
         
+        function init(obj)
+            obj.initFrame();
+            obj.initPlotting();
+            obj.setupTheme();
+            obj.createCamera();
+        end
+        
+        
         function initFrame(obj)
             obj.figHandle = figure;
+            
             set(obj.figHandle,'Pointer','arrow','NumberTitle','off');
             title(obj.designVarName)
             
-            nnode = size(obj.mesh.coord,1);
-            obj.patchHandle = patch('Faces',obj.mesh.connec,'Vertices',obj.mesh.coord,'FaceVertexAlphaData',zeros(nnode,1),...
-                'FaceAlpha','flat','EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
-            set(gca,'ALim',[0, 1],'XTick',[],'YTick',[]);
-            
-            obj.setupTheme();
             axis off
             axis equal
+            
+            obj.axes = obj.figHandle.CurrentAxes;
         end
         
         function setupTheme(obj)
             obj.figHandle.Color = 'white';
             colormap(obj.getColor());
+        end
+        
+        function createCamera(obj)
+            obj.cam = Camera_Null(obj.axes);
         end
         
     end

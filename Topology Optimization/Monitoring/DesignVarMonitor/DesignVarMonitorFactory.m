@@ -1,41 +1,75 @@
 classdef DesignVarMonitorFactory < handle
     
+    properties (Access = private)
+        monitor
+        builder
+        
+        mesh
+        optimizer
+        dim
+    end
+    
+    
     methods (Access = public)
         
         function monitor = create(obj,shallDisplay,settings,mesh)
+            obj.init(settings,mesh);
             if shallDisplay
-                switch obj.designVariable(settings.optimizer)
-                    case 'Density'
-                        switch settings.pdim
-                            case '2D'
-                                monitor = DesignVarMonitor_Density_2D(mesh);
-                            case '3D'
-                                monitor = DesignVarMonitor_Density_3D(mesh);
-                        end
-                        
-                    case 'LevelSet'
-                        
-                    otherwise
-                        error('Invalid Design Variable')
-                end
+                obj.createBuilder();
+                obj.createMonitor();
+                obj.build();
             else
-                monitor = DesignVarMonitor_Null(mesh);
+                obj.returnNullMonitor(mesh);
             end
             
+            monitor = obj.monitor;
         end
         
     end
     
-    methods (Access = private, Static)
+    methods (Access = private)
         
-        function var = designVariable(optimizer)
-            switch optimizer
+        function init(obj,settings,mesh)
+            obj.optimizer = settings.optimizer;
+            obj.dim = settings.pdim;
+            obj.mesh = mesh;
+        end
+        
+        function createMonitor(obj)
+            switch obj.designVariable()
+                case 'Density'
+                    obj.monitor = DesignVarMonitor_Density(obj.mesh);
+                case 'LevelSet'
+                    switch obj.dim
+                        case '2D'
+                            obj.monitor = DesignVarMonitor_LevelSet_2D(obj.mesh);
+                        case '3D'
+                            obj.monitor = DesignVarMonitor_LevelSet_3D(obj.mesh);
+                    end
+                otherwise
+                    error('Invalid Design Variable')
+            end
+        end
+        
+        function createBuilder(obj)
+            obj.builder = Factory_BuilderDesignVarMonitor().create(obj.dim);
+        end
+        
+        function build(obj)
+            obj.builder.build(obj.monitor);
+        end
+        
+        function var = designVariable(obj)
+            switch obj.optimizer
                 case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
                     var = 'LevelSet';
                 case {'PROJECTED GRADIENT','MMA','IPOPT'}
                     var = 'Density';
             end
-            
+        end
+        
+        function returnNullMonitor(obj,mesh)
+            obj.monitor = DesignVarMonitor_Null(mesh);
         end
         
     end
