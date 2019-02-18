@@ -15,7 +15,8 @@ classdef testRunner < handle
         end
         
         function runTests(obj)
-            for itest = 1: size(obj.tests,1)
+            nTests = size(obj.tests,1);
+            for itest = 1: nTests
                 test = eval(obj.tests{itest});
                 test.checkTestPassed(obj.tests{itest});
             end

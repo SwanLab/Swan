@@ -25,7 +25,7 @@ classdef testPrintingInputFileForFem < testNotShowingError
         function hasPassed = hasPassed(obj)
             sF = fullfile('tests','PrintingTests','PrintedFiles',['test',obj.fileName,'.m']);
             oF = obj.fullFileName;
-            hasChanged = FileComparetor.areFilesDifferent(sF,oF);
+            hasChanged = FileComparetor().areFilesDifferent(sF,oF);
             hasPassed = ~hasChanged;
         end        
         
