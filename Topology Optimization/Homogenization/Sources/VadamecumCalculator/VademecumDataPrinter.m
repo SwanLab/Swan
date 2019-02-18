@@ -3,9 +3,10 @@ classdef VademecumDataPrinter < FilePrinter
     properties (Access = private)
         Ctensor
         Ptensor
+        volume
         tensor
-        tensorName
-        tensComp
+        fieldName
+        fieldValue
         outPutPath
     end
     
@@ -18,6 +19,7 @@ classdef VademecumDataPrinter < FilePrinter
         end
         
         function print(obj)
+            obj.printVolume();
             obj.printCtensor();
             obj.printPtensor();
         end
@@ -30,17 +32,25 @@ classdef VademecumDataPrinter < FilePrinter
             obj.outPutPath = d.outPutPath;
             obj.Ctensor    = d.Ctensor;
             obj.Ptensor    = d.Ptensor;
+            obj.volume     = d.volume;
+        end
+        
+        function printVolume(obj)
+            obj.fieldValue = obj.volume;
+            tName = 'Volume' ;
+            path  = obj.outPutPath;
+            obj.fileName = [path,tName,'.txt'];
         end
         
         function printCtensor(obj)
             obj.tensor     = obj.Ctensor;
-            obj.tensorName = 'C_' ;
+            obj.fieldName = 'C_' ;
             obj.printTensor();
         end
         
         function printPtensor(obj)
             obj.tensor     = obj.Ptensor;
-            obj.tensorName = 'P_' ;
+            obj.fieldName = 'P_' ;
             obj.printTensor();
         end
         
@@ -49,7 +59,7 @@ classdef VademecumDataPrinter < FilePrinter
             for i = 1:nx
                 for j = 1:ny
                     obj.obtainTensorComponent(i,j);
-                    obj.obtainFileName(i,j);
+                    obj.obtainTensorFileName(i,j);
                     obj.openFile();
                     obj.printTensorComponent();
                     obj.closeFile();
@@ -58,22 +68,22 @@ classdef VademecumDataPrinter < FilePrinter
         end
         
         function obtainTensorComponent(obj,i,j)
-            T = obj.tensor(i,j,:,:);
-            obj.tensComp = squeeze(T);
+            t = obj.tensor(i,j,:,:);
+            obj.fieldValue = squeeze(t);
         end
         
-        function obtainFileName(obj,i,j)
-            path = obj.outPutPath;
-            tName = obj.tensorName;
+        function obtainTensorFileName(obj,i,j)
+            path  = obj.outPutPath;
+            tName = obj.fieldName;
             istr = num2str(i);
             jstr = num2str(j);
             obj.fileName = [path,tName,istr,jstr,'.txt'];
         end
         
         function printTensorComponent(obj)
-            T  = obj.tensComp;
-            fN = obj.fileName;
-            save(fN,'T','-ascii','-double','-tabs');
+            fV  = obj.fieldValue;
+            fN  = obj.fileName;
+            save(fN,'fV','-ascii','-double','-tabs');
         end
         
         

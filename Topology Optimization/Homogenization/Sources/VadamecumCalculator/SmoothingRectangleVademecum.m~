@@ -93,9 +93,9 @@ classdef SmoothingRectangleVademecum < handle
             Cn   = C1(iN);
             txiN = txi(iN);
             
-            Csp  = griddata(txiS,rhoS,Cs,txiN,rhoN);
+            Cnp  = griddata(txiN,rhoN,Cn,txiS,rhoS);
             
-            dif = Csp - Cn;
+            dif = Cs - Cnp;
             
             x = txiN;
             y = rhoN;
@@ -107,7 +107,7 @@ classdef SmoothingRectangleVademecum < handle
             plot(x,y,'+');
             xlabel('$\frac{m1}{m2}$','Interpreter','latex');
             ylabel('\rho');      
-            plot(txiS,rhoS,'+')
+            plot(txiN,rhoN,'+')
         end
         
         

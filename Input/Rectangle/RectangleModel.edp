@@ -1,8 +1,8 @@
 
 // --- Input ---
 real p = 8;
-real mx = 0.8/2.;
-real my = 0.2/2.;
+real mx = 0.8;
+real my = 0.2;
 real Hmax = 0.02;
 real elByInt = 20;
 real elByBor = 20;

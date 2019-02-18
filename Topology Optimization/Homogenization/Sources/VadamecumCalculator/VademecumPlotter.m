@@ -1,38 +1,31 @@
 classdef VademecumPlotter < handle
     
-    properties (Access = private)
+    properties (Abstract, Access = protected)
+        XYname
+    end
+    
+    properties (Access = protected)
+        index = [1 1; 2 2;3 3; 1 2;2 3;1 3]; 
+        iIndex
+        jIndex
+        value2print   
+        microName
+        outPutPath   
+        hasToPrint     
+        fileName
+        fig    
+        tensor
+        tensorCase   
+        xV
+        yV   
         mxV
         myV
         C
         invP
-        index
-        iIndex
-        jIndex
-        tensor
-        tensorComp
-        tensorName
-        tensorCase
-        microName
-        outPutPath        
-        hasToPrint
-        fig
+        volume 
     end
-    
-    
-    methods (Access = public)
         
-        function obj = VademecumPlotter(d)
-            obj.init(d);
-        end
-        
-        function plot(obj)
-            obj.plotHomogenizedTensor();
-            obj.plotAmplificatorTensor();            
-        end
-    end
-    
-    
-    methods (Access = private)
+    methods (Access = protected)
         
         function init(obj,d)
             obj.index = [1 1; 2 2;3 3; 1 2;2 3;1 3];
@@ -40,12 +33,24 @@ classdef VademecumPlotter < handle
             obj.myV        = d.myV;
             obj.C          = d.C;
             obj.invP       = d.invP;
+            obj.volume     = d.volume;
             obj.hasToPrint = d.hasToPrint;
             obj.outPutPath = d.outPutPath;
             obj.microName  = d.microName;
-        end
+        end        
         
-
+        function addTitle(obj)
+            fN = obj.fileName;
+            title([fN,' for ',obj.microName])
+        end        
+        
+        function printFigure(obj)
+            if obj.hasToPrint
+                outPutFigName = [obj.outPutPath,obj.fileName];
+                fp = contourPrinter(obj.fig);
+                fp.print(outPutFigName)
+            end
+        end   
         
         function plotHomogenizedTensor(obj)
             obj.tensor = obj.C;
@@ -57,7 +62,7 @@ classdef VademecumPlotter < handle
             obj.tensor = obj.invP;
             obj.tensorCase = 'Pinv_';
             obj.plotTensor();
-        end
+        end               
         
         function plotTensor(obj)
             nPlot = length(obj.index);
@@ -68,7 +73,11 @@ classdef VademecumPlotter < handle
                 obj.plotFigure();
                 obj.printFigure();
             end
-        end
+        end        
+        
+    end
+    
+    methods (Access = private)
         
         function obtainIJindex(obj,iplot)
             obj.iIndex = obj.index(iplot,1);
@@ -80,40 +89,19 @@ classdef VademecumPlotter < handle
             j = obj.jIndex;
             Tij = obj.tensor(i,j,:,:);
             Tij = squeeze(Tij);
-            obj.tensorComp = Tij;
+            obj.value2print = Tij;
         end
         
         function createTensorName(obj)
             i = obj.iIndex;
-            j = obj.jIndex;            
-            obj.tensorName = [obj.tensorCase,'{',num2str(i),num2str(j),'}'];
-        end
+            j = obj.jIndex;
+            obj.fileName = [obj.tensorCase,'{',num2str(i),num2str(j),'}',obj.XYname];
+        end               
         
-        function addTitle(obj)
-            tN = obj.tensorName;
-            title([tN,' for ',obj.microName])
-        end
-        
-        function plotFigure(obj)
-            obj.fig = figure();
-            x = obj.mxV;
-            y = obj.myV;
-            z = obj.tensorComp;
-            contour(x,y,z,50);
-            xlabel('mx');
-            ylabel('my');
-            obj.addTitle();
-            colorbar;
-        end
-        
-        function printFigure(obj)
-            if obj.hasToPrint
-                outPutFigName = [obj.outPutPath,obj.tensorName];
-                fp = contourPrinter(obj.fig);
-                fp.print(outPutFigName)                
-            end
-        end
-        
+    end
+    
+    methods (Access = protected, Abstract)
+        plotFigure(obj)
     end
     
 end

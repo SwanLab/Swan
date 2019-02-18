@@ -13,14 +13,14 @@ classdef VademecumCalculator < handle
         
         inputData
         homog
-        Ctensor
-        Ptensor
-        PinvTensor
+        
+        postData
         
         iMxIndex
         iMyIndex
         mxV
         myV
+        
     end
     
     methods (Access = public)
@@ -28,10 +28,16 @@ classdef VademecumCalculator < handle
         function obj = VademecumCalculator(d)
             obj.init(d);
             obj.computeVademecumData();
-            obj.makePlots();
-            obj.printData();
         end
         
+        function d = getData(obj)
+            d.postData     = obj.postData;
+            d.postData.mxV = obj.mxV;
+            d.postData.myV = obj.myV;
+            d.outPutPath   = obj.outPutPath;
+            d.fileName     = obj.fileName;
+        end
+         
     end
     
     
@@ -49,9 +55,13 @@ classdef VademecumCalculator < handle
             nMy = 20;
             obj.mxV = linspace(0.01,0.99,nMx);
             obj.myV = linspace(0.01,0.99,nMy);
+%             nMx = 5;
+%             nMy = 5;
+%             obj.mxV = linspace(0.2,0.8,nMx);
+%             obj.myV = linspace(0.2,0.8,nMy);
         end
         
-        function computeVademecumData(obj)  
+        function computeVademecumData(obj)
             nMx = length(obj.mxV);
             nMy = length(obj.myV);
             for imx = 1:nMx
@@ -59,10 +69,12 @@ classdef VademecumCalculator < handle
                     obj.storeIndex(imx,imy);
                     obj.generateMeshFile();
                     obj.computeNumericalHomogenizer();
+                    obj.obtainVolume();   
+                    obj.obtainChi();
                     obj.obtainTensors();
                     (imy + nMx*(imx -1))/(nMx*nMy)*100
                 end
-            end                        
+            end
         end
         
         function storeIndex(obj,imx,imy)
@@ -85,8 +97,8 @@ classdef VademecumCalculator < handle
             mx = obj.mxV(obj.iMxIndex);
             my = obj.myV(obj.iMyIndex);
             dB{1,:} = {'p',4};
-            dB{2,:} = {'mx',mx/2};
-            dB{3,:} = {'my',my/2};
+            dB{2,:} = {'mx',mx};
+            dB{3,:} = {'my',my};
             dB{4,:} = {'Hmax',0.02};
             dB{5,:} = {'elByInt',20};
             dB{6,:} = {'elByBor',20};
@@ -138,44 +150,37 @@ classdef VademecumCalculator < handle
         function obtainCtensor(obj)
             imx = obj.iMxIndex;
             imy = obj.iMyIndex;
-            obj.Ctensor(:,:,imx,imy) = obj.homog.Ch;
+            obj.postData.Ctensor(:,:,imx,imy) = obj.homog.Ch;
         end
         
         function obtainPtensor(obj)
             P = obj.homog.Ptensor;
             imx = obj.iMxIndex;
             imy = obj.iMyIndex;
-            obj.Ptensor(:,:,imx,imy) = P.getValue();
+            obj.postData.Ptensor(:,:,imx,imy) = P.getValue();
         end
+        
+        function obtainVolume(obj)
+            v = obj.homog.volume;
+            imx = obj.iMxIndex;
+            imy = obj.iMyIndex;
+            obj.postData.volume(imx,imy) = v;
+        end
+        
+        function obtainTxi(obj)
+            v = obj.homog.volume;
+            imx = obj.iMxIndex;
+            imy = obj.iMyIndex;
+            obj.postData.volume(imx,imy) = v;
+        end        
         
         function obtainPinvTensor(obj)
             imx = obj.iMxIndex;
             imy = obj.iMyIndex;
-            P = obj.Ptensor(:,:,imx,imy);
-            obj.PinvTensor(:,:,imx,imy) = inv(P);
-        end
-        
-        function makePlots(obj)
-            d.mxV        = obj.mxV;
-            d.myV        = obj.myV;
-            d.C          = obj.Ctensor;
-            d.invP       = obj.PinvTensor;
-            d.hasToPrint = true; 
-            d.outPutPath = obj.outPutPath;
-            d.microName  = obj.fileName;
-            p = VademecumPlotter(d);
-            p.plot();
-        end  
-        
-        function printData(obj)
-            d.outPutPath = [obj.outPutPath,obj.fileName];            
-            d.Ctensor  = obj.Ctensor;
-            d.Ptensor  = obj.Ptensor;
-            p = VademecumDataPrinter(d);
-            p.print();            
-        end
-                   
-        
+            P = obj.postData.Ptensor(:,:,imx,imy);
+            obj.postData.PinvTensor(:,:,imx,imy) = inv(P);
+        end        
+                
     end
     
 end

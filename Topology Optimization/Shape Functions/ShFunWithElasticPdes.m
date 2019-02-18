@@ -10,7 +10,7 @@ classdef ShFunWithElasticPdes < Shape_Functional
      
         function computeCostAndGradient(obj,x)
             obj.updateMaterialProperties(x);
-            obj.solvePDE();
+            obj.solvePDEs();
             obj.computeFunctionValue();
             obj.computeGradient();
             obj.normalizeFunctionAndGradient()

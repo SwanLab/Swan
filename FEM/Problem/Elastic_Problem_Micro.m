@@ -2,15 +2,15 @@ classdef Elastic_Problem_Micro < Elastic_Problem
     %Elastic_Problem Summary of this class goes here
     %   Detailed explanation goes here
     
-    %% Public GetAccess properties definition =============================
+    % Public GetAccess properties definition =============================
     properties (GetAccess = public, SetAccess = private)
     end
     
-    %% Private properties definition ======================================
+    % Private properties definition ======================================
     properties (Access = private)
     end
     
-    %% Public methods definition ==========================================
+    % Public methods definition ==========================================
     methods (Access = public)
         function obj = Elastic_Problem_Micro(problemID)
             obj@Elastic_Problem(problemID);
@@ -58,14 +58,14 @@ classdef Elastic_Problem_Micro < Elastic_Problem
             Shomog = St.getValue();
             
             nstre = obj.element.getNstre();
-            V = sum(sum(obj.geometry.dvolu));
+            V = 1;%sum(sum(obj.geometry.dvolu));
             ngaus = obj.element.quadrature.ngaus;
             dV    = obj.element.geometry.dvolu;
             C     = obj.element.material.C;
             
             P2  = obj.computeAmplificatorbyPtensors(tstres,V,dV,Shomog,nstre,ngaus);
-            P3  = obj.computeAmplificatorsWithStress(tstres,V,dV,Shomog,nstre,ngaus);
-            P2b = obj.computeAmplificatorWithAllLoops(tstrain,C,V,dV,Shomog,nstre,ngaus);
+           % P3  = obj.computeAmplificatorsWithStress(tstres,V,dV,Shomog,nstre,ngaus);
+           % P2b = obj.computeAmplificatorWithAllLoops(tstrain,C,V,dV,Shomog,nstre,ngaus);
         end
         
         

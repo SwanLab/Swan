@@ -38,7 +38,7 @@ classdef Element_Elastic_Micro < Element_Elastic
             variables.stress = zeros(obj.quadrature.ngaus,obj.nstre,obj.nelem);
             variables.strain = zeros(obj.quadrature.ngaus,obj.nstre,obj.nelem);
             variables.stress_homog = zeros(obj.nstre,1);
-            vol_dom = sum(sum(obj.geometry.dvolu));
+            vol_dom = 1;%sum(sum(obj.geometry.dvolu));
             
             for igaus = 1:obj.quadrature.ngaus
                 variables.strain(igaus,1:obj.nstre,:) = obj.vstrain.*ones(1,obj.nstre,obj.nelem) + variables.strain_fluct(igaus,1:obj.nstre,:);

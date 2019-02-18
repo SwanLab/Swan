@@ -1,18 +1,18 @@
 
 // --- Input ---
 real p = 8;
-real mx = 0.8/2.;
-real my = 0.2/2.;
+real mx = 0.8;
+real my = 0.2;
 real Hmax = 0.02;
 real elByInt = 20;
 real elByBor = 20;
 string OutName = "/home/alex/git-repos/FEM-MAT-OO/Preprocess/FileReaders/FreeFem++/Model";
 // --- End Input ---
 
-border b1 (t=0,1) {x = mx *t^(1./p)  ; y = my*(1-t)^(1./p) ;}
-border b2 (t=0,1) {x = mx *t^(1./p) ; y = -my*(1-t)^(1./p) ;}
-border b3 (t=0,1) {x = -mx *t^(1./p)  ; y = my*(1-t)^(1./p);}
-border b4 (t=0,1) {x = -mx *t^(1./p) ; y = -my*(1-t)^(1./p);}
+border b1 (t=0,1) {x =  0.5*mx *t^(1./p) ; y = 0.5*my*(1-t)^(1./p) ;}
+border b2 (t=0,1) {x =  0.5*mx *t^(1./p) ; y = -0.5*my*(1-t)^(1./p) ;}
+border b3 (t=0,1) {x = -0.5*mx *t^(1./p) ; y = 0.5*my*(1-t)^(1./p);}
+border b4 (t=0,1) {x = -0.5*mx *t^(1./p) ; y = -0.5*my*(1-t)^(1./p);}
 
 border c1 ( t = -0.5, 0.5) {x = t; y = -0.5; label  = 101;}
 border c2 ( t = -0.5, 0.5) {x = 0.5; y = t; label   = 102;}
