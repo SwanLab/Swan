@@ -22,7 +22,7 @@ classdef testPrintingFreeFemFile < testNotShowingError
         function hasPassed = hasPassed(obj)
             rF = fullfile('Preprocess','FileReaders','FreeFem++',obj.readingFilePath);
             pF = fullfile(obj.printingFilePath,[obj.fileName,'.edp']);
-            hasChanged = FileComparetor.areFilesDifferent(rF,pF);
+            hasChanged = FileComparetor().areFilesDifferent(rF,pF);
             hasPassed = ~hasChanged;            
         end        
         

@@ -36,7 +36,7 @@ classdef testPrintingDescriptor < handle
         function hasChanged = compareFile(obj,ext)
             sF = obj.obtainSavedPrintedFile(ext);
             oF = obj.obtainOutPutFile(ext);    
-            hasChanged = FileComparetor.areFilesDifferent(sF,oF);
+            hasChanged = FileComparetor().areFilesDifferent(sF,oF);
         end        
         
     end
