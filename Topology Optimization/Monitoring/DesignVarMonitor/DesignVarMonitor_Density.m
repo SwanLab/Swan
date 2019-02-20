@@ -6,8 +6,8 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
     
     methods (Access = public)
         
-        function obj = DesignVarMonitor_Density(mesh)
-            obj@DesignVarMonitor_Abstract(mesh);
+        function obj = DesignVarMonitor_Density(mesh,showBC)
+            obj@DesignVarMonitor_Abstract(mesh,showBC);
         end
         
         function plot(obj,rho)
@@ -20,9 +20,11 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
         
         function initPlotting(obj)
             nnode = size(obj.mesh.coord,1);
-            obj.patchHandle = patch('Faces',obj.mesh.connec,'Vertices',obj.mesh.coord,'FaceVertexAlphaData',zeros(nnode,1),...
+            obj.patchHandle = patch(obj.axes,'Faces',obj.mesh.connec,'Vertices',obj.mesh.coord,'FaceVertexAlphaData',zeros(nnode,1),...
                 'FaceAlpha','flat','EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
             set(gca,'ALim',[0, 1],'XTick',[],'YTick',[]);
+            
+            obj.BCplotter.plot();
         end
         
     end

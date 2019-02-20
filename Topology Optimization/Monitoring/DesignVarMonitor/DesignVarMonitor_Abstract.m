@@ -9,6 +9,12 @@ classdef DesignVarMonitor_Abstract < handle
         patchHandle
         mesh
         cam
+        BCplotter
+    end
+    
+    properties (Access = private)
+        dim
+        showBC
     end
     
     properties (GetAccess = public, SetAccess = private)
@@ -35,8 +41,10 @@ classdef DesignVarMonitor_Abstract < handle
     
     methods (Access = public)
         
-        function obj = DesignVarMonitor_Abstract(mesh)
+        function obj = DesignVarMonitor_Abstract(mesh,showBC)
             obj.mesh = mesh;
+            obj.dim = mesh.pdim;
+            obj.showBC = showBC;
             obj.init();
         end
         
@@ -56,9 +64,10 @@ classdef DesignVarMonitor_Abstract < handle
         
         function init(obj)
             obj.initFrame();
-            obj.initPlotting();
-            obj.setupTheme();
             obj.createCamera();
+            obj.createBCplotter();
+            obj.setupTheme();
+            obj.initPlotting();
         end
         
         
@@ -68,6 +77,7 @@ classdef DesignVarMonitor_Abstract < handle
             set(obj.figHandle,'Pointer','arrow','NumberTitle','off');
             title(obj.designVarName)
             
+            hold on
             axis off
             axis equal
             
@@ -81,6 +91,10 @@ classdef DesignVarMonitor_Abstract < handle
         
         function createCamera(obj)
             obj.cam = Camera_Null(obj.axes);
+        end
+        
+        function createBCplotter(obj)
+            obj.BCplotter = FactoryBoundayConditions.create(obj.showBC,obj.dim,obj.axes,obj.mesh);
         end
         
     end

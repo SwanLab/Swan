@@ -7,6 +7,7 @@ classdef DesignVarMonitorFactory < handle
         mesh
         optimizer
         dim
+        showBC
     end
     
     
@@ -33,18 +34,19 @@ classdef DesignVarMonitorFactory < handle
             obj.optimizer = settings.optimizer;
             obj.dim = settings.pdim;
             obj.mesh = mesh;
+            obj.showBC = settings.showBC;
         end
         
         function createMonitor(obj)
             switch obj.designVariable()
                 case 'Density'
-                    obj.monitor = DesignVarMonitor_Density(obj.mesh);
+                    obj.monitor = DesignVarMonitor_Density(obj.mesh,obj.showBC);
                 case 'LevelSet'
                     switch obj.dim
                         case '2D'
-                            obj.monitor = DesignVarMonitor_LevelSet_2D(obj.mesh);
+                            obj.monitor = DesignVarMonitor_LevelSet_2D(obj.mesh,obj.showBC);
                         case '3D'
-                            obj.monitor = DesignVarMonitor_LevelSet_3D(obj.mesh);
+                            obj.monitor = DesignVarMonitor_LevelSet_3D(obj.mesh,obj.showBC);
                     end
                 otherwise
                     error('Invalid Design Variable')

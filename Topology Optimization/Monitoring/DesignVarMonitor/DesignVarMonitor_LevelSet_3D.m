@@ -1,5 +1,4 @@
-classdef DesignVarMonitor_LevelSet_3D < DesignVarMonitor_LevelSet ...
-        %                                       & DesignVarMonitor_3D
+classdef DesignVarMonitor_LevelSet_3D < DesignVarMonitor_LevelSet
     
     properties (Access = protected)
         unfittedType = 'BOUNDARY'
@@ -8,8 +7,8 @@ classdef DesignVarMonitor_LevelSet_3D < DesignVarMonitor_LevelSet ...
     
     methods (Access = public)
         
-        function obj = DesignVarMonitor_LevelSet_3D(mesh)
-            obj@DesignVarMonitor_LevelSet(mesh);
+        function obj = DesignVarMonitor_LevelSet_3D(mesh,showBC)
+            obj@DesignVarMonitor_LevelSet(mesh,showBC);
         end
         
     end

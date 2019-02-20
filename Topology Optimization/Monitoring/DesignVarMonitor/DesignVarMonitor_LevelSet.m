@@ -60,6 +60,7 @@ classdef DesignVarMonitor_LevelSet < DesignVarMonitor_Abstract
             cla(obj.axes);
             obj.meshUnfitted.add2plot(obj.axes);
             light(obj.axes)
+            obj.BCplotter.plot();
         end
         
     end

@@ -12,8 +12,8 @@ clear variables;
 
 %% Main
 filenames={
-    'CantileverTriangleCoarse_Case_1_1_1'
-%     'CantileverTriangleCoarse_Case_2_1_1'
+%     'CantileverTriangleCoarse_Case_1_1_1'
+    'CantileverTriangleCoarse_Case_2_1_1'
 %     'CantileverTetrahedraCoarse_Case_4_1_1'
 %     'CantileverbeamHexahedraSYM_Case_5_1_6'
     
