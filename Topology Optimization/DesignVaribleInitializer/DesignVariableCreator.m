@@ -21,9 +21,19 @@ classdef DesignVariableCreator < handle
     end
     
     methods (Access = private)
-        function createLevelSet(obj,settings,mesh)
-            lsCreator    = LevelSetCreator.create(settings,mesh);
-            obj.levelSet = lsCreator.getValue();
+        
+        function createLevelSet(obj,settings,mesh)  
+            d = settings.levelSetDataBase;
+            d.levelSetType = settings.initial_case;          
+            d.ndim         = mesh.ndim;
+            d.coord        = mesh.coord;
+            switch settings.initial_case
+                case 'holes'
+                d.dirichlet = mesh.dirichlet;
+                d.pointload = mesh.pointload;                
+            end            
+            lsCreator      = LevelSetCreator.create(d);
+            obj.levelSet   = lsCreator.getValue();
         end
         
         function computeDesignVariable(obj,optimizer)

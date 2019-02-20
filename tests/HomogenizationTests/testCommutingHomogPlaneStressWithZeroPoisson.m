@@ -14,11 +14,7 @@ classdef testCommutingHomogPlaneStressWithZeroPoisson < ...
     end
     
     methods (Access = protected)
-        
-        function t = getTol(obj)
-            t = obj.tol;
-        end
-        
+               
         function computeError(obj)
             c1 = obj.vhpTensor.getValue();
             c2 = obj.vphTensor.getValue();

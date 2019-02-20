@@ -17,11 +17,9 @@ classdef LevelSetCreator < handle
     
     methods (Access = public, Static)
         
-        function obj = create(settings,mesh)
+        function obj = create(d)
             factory      = LevelSetFactory();
-            inputCreator = LevelSetInputCreator(settings,mesh);
-            input        = inputCreator.getValue();
-            obj          = factory.create(input);
+            obj          = factory.create(d);
         end
     end
     

@@ -1,44 +1,42 @@
 classdef LevelSetFactory < handle
     
-    properties
-    end
-    
     methods (Access = public, Static)
         
-        function obj = create(input)
-            switch input.initialCase
+        function obj = create(d)
+            switch d.levelSetType
                 case 'circle'
-                    obj = LevelSetCircle(input);
+                    obj = LevelSetCircle(d);
                 case 'circle_2'
-                    obj = LevelSetCircle2(input);
+                    obj = LevelSetCircle2(d);
                 case 'circleInclusion'
-                    obj = LevelSetWithCircleInclusion(input);
+                    obj = LevelSetWithCircleInclusion(d);
                 case 'sphere'
-                    obj = LevelSetSphere(input);
+                    obj = LevelSetSphere(d);
                 case 'sphereInclusion'
-                    obj = LevelSetWithSphereInclusion(input);
+                    obj = LevelSetWithSphereInclusion(d);
                 case 'cylinder'
-                    obj = LevelSetCylinder(input);
+                    obj = LevelSetCylinder(d);
                 case 'horizontal'
                     obj = LevelSetHorizontalInclusion(Input);
                 case 'square'
-                    obj = LevelSetSquareInclusion(input);
+                    obj = LevelSetSquareInclusion(d);
                 case 'smoothSquare'
-                    obj = LevelSetSmoothSquareInclusion(input);
+                    d.m = settings.widthSquare;                    
+                    obj = LevelSetSmoothSquareInclusion(d);
                 case 'rectangle'
-                    obj = LevelSetRectangleInclusion(input);
+                    obj = LevelSetRectangleInclusion(d);
                 case 'smoothRectangle'
-                    obj = LevelSetSmoothRectangleInclusion(input);
+                    obj = LevelSetSmoothRectangleInclusion(d);
                 case 'feasible'
-                    obj = LevelSetFeasible(input);
+                    obj = LevelSetFeasible(d);
                 case 'rand'
-                    obj = LevelSetRandom(input);
-                case 'holes'
-                    obj = LevelSetWithSeveralHoles(input);
+                    obj = LevelSetRandom(d);
+                case 'holes'                                       
+                    obj = LevelSetWithSeveralHoles(d);
                 case 'full'
-                    obj = LevelSetFull(input);
-                case 'orientedFiber'
-                    obj = LevelSetOrientedFiber(input);
+                    obj = LevelSetFull(d);
+                case 'horizontalFibers'
+                    obj = LevelSetHorizontalFibers(d);
                 otherwise
                     error('Invalid initial value of design variable.');
             end
@@ -46,5 +44,6 @@ classdef LevelSetFactory < handle
         end
     end
     
+
 end
 

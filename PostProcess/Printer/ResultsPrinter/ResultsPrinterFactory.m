@@ -32,6 +32,8 @@ classdef ResultsPrinterFactory < handle
                     p = TopOptResultsPrinter(d);
                 case 'HomogenizedTensor'
                     p = HomogenizedTensorPrinter(d);
+                case 'ElasticityMicroAndLevelSet'
+                    p = ElasticityMicroDefinedByLevelSet(d);
             end
             obj.printer = p;
         end

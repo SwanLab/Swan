@@ -34,23 +34,19 @@ classdef DensityCreatorByInitializer < handle
         function yP0 = computeGaussVerticalPosition(microProblem)
             shape   = microProblem.element.interpolation_u.shape;
             conec   = microProblem.geometry.interpolation.T;
-            xpoints = microProblem.geometry.interpolation.xpoints;
-            
+            xpoints = microProblem.geometry.interpolation.xpoints;            
             nelem = size(conec,1);
             nnode = size(shape,1);
             quadr = microProblem.element.quadrature;
-            ngaus = quadr.ngaus;
-            
-            yP0 = zeros(ngaus,nelem);
-            
+            ngaus = quadr.ngaus;            
+            yP0 = zeros(ngaus,nelem);            
             for igaus = 1:ngaus
                 for inode =  1:nnode
                     nodes = conec(:,inode);
                     ynode  = xpoints(nodes,2);
                     yP0(igaus,:) = yP0(igaus,:) + shape(inode,igaus)*ynode';
                 end
-            end
-            
+            end            
         end
         
     end

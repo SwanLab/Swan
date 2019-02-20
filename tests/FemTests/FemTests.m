@@ -15,11 +15,11 @@ classdef FemTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {...  
+                'test2dMicro';
                 'test2dQuad';                
                 'testStiffnessMatrixGenerator';
                 'test2dTriangle';
                 'test2dStokes_triangle';
-                'test2dMicro';
                 'test3dTetrahedra';
                 'test3dHexahedra'
                 };

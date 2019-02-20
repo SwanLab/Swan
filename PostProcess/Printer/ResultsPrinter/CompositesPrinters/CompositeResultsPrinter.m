@@ -61,16 +61,7 @@ classdef CompositeResultsPrinter < ResultsPrinter
                 hG = p.getHasGaussData();
                 obj.hasGaussData = hG || obj.hasGaussData;
             end
-        end
-        
-%         function createHeadPrinter(obj)
-%             if obj.hasGaussData
-%                % obj.headPrinter = GaussHeadPrinter;
-%             else
-%                % obj.headPrinter = NoGaussHeadPrinter;
-%             end
-%         end
-        
+        end            
         
         function setSimulationStrToPrinters(obj)
             s = obj.simulationStr;

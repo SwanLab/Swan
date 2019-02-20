@@ -17,7 +17,6 @@ classdef testFEMPrinting < testNotShowingError...
         function obj = testFEMPrinting()
             obj.iter = obj.fem.getIter();
             obj.print()
-            obj.compareFiles()
         end
         
     end

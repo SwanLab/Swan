@@ -17,7 +17,7 @@ classdef Material_Interpolation_ISO_SIMPALL < Material_Interpolation
             obj.nu_minus=MaterialParameters.nu_minus;
         end
         function computeSymProps(obj, rho)
-            ngauss=length(rho(1,:));
+            
             
             rho_plus=obj.rho_plus;
             rho_minus=obj.rho_minus;

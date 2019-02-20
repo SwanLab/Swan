@@ -5,7 +5,7 @@ classdef LevelSetWithSeveralHoles < LevelSetCreator
         bc
         nHoles
         rHoles
-        phaseHoles        
+        phaseHoles
     end
     
     methods (Access = public)
@@ -31,18 +31,23 @@ classdef LevelSetWithSeveralHoles < LevelSetCreator
     methods (Access = private)
         
         function loadBoundaryConditions(obj,input)
-            obj.bc = input.bc;
+            bCond = [];
+            if ~isempty(input.dirichlet) && ~isempty(input.pointload)
+                bCond = unique([input.dirichlet(:,1); input.pointload(:,1)]);
+            end
+            obj.bc = bCond;
         end
         
         function loadWarningOption(obj,input)
-            if isempty(input.warningHoleBC)
-                obj.hasToShowHoleInBCWarning = true;
-            else
-                obj.hasToShowHoleInBCWarning = input.warningHoleBC;
+            obj.hasToShowHoleInBCWarning = false;            
+            if isfield(input,'warningHoleBC')
+                if ~isempty(input.warningHoleBC)
+                    obj.hasToShowHoleInBCWarning = input.warningHoleBC;
+                end
             end
         end
         
-        function computeLevelSetValue(obj)            
+        function computeLevelSetValue(obj)
             ls = ones(obj.lsSize);
             for idim = 1:obj.ndim
                 coordV = obj.nodeCoord(:,idim);
@@ -53,7 +58,7 @@ classdef LevelSetWithSeveralHoles < LevelSetCreator
             obj.levelSet = ls;
         end
         
-        function showPossibleHoleinBcWarning(obj)            
+        function showPossibleHoleinBcWarning(obj)
             if any(obj.levelSet(obj.bc)>0) && obj.hasToShowHoleInBCWarning
                 warning('At least one BC is set on a hole')
             end
@@ -72,7 +77,7 @@ classdef LevelSetWithSeveralHoles < LevelSetCreator
             fase = obj.phaseHoles(dir);
             cosDir = cos((n + 1)*pos*pi/l + fase);
         end
-
+        
     end
     
 end

@@ -10,8 +10,8 @@ classdef CompliancePrinter < CompositeResultsPrinter
     
     methods (Access = protected)
         
-        function storeFieldsToPrint(obj,phyPr)
-            d.fields = phyPr{1}.variables;
+        function storeFieldsToPrint(obj,d)
+            d.fields = d.phyProblems{1}.variables;
             obj.printers{1}.storeFieldsToPrint(d);
         end
         
