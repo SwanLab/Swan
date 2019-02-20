@@ -26,4 +26,5 @@ classdef DesignVariablePrinter < ResultsPrinter
         end
         
     end
+    
 end

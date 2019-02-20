@@ -1,10 +1,13 @@
 classdef ScalarPrinter < FieldPrinter ...
-                       & NodalFieldPrinter
-                   
+        & NodalFieldPrinter
+    
     properties (Access = protected)
         fieldType = 'Scalar';
     end
     
+    properties (Access = private)
+        nDecimalPositions = 12
+    end
     
     methods (Access = public)
         
@@ -35,12 +38,21 @@ classdef ScalarPrinter < FieldPrinter ...
         
         function printFieldLines(obj)
             iD = obj.fileID;
+            obj.roundFieldValues();
             fV = obj.fieldValues;
             for inode = 1:length(fV)
                 fprintf(iD,'%6.0f ',inode);
                 fprintf(iD,'%12.5d ',fV(inode));
                 fprintf(iD,'\n');
             end
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function roundFieldValues(obj)
+            obj.fieldValues = round(obj.fieldValues,obj.nDecimalPositions);
         end
         
     end

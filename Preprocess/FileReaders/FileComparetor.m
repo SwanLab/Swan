@@ -12,9 +12,7 @@ classdef FileComparetor < handle
             theyAre = ~is_equal;
             
             if theyAre
-                diffLines = find(~strcmp(A,B));
-                a = A(diffLines);
-                b = B(diffLines);
+               movefile(fileB,fileA,'f'); 
             end
         end
         
