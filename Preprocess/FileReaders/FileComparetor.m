@@ -10,10 +10,6 @@ classdef FileComparetor < handle
             is_equal = obj.isContentEqual(A,B);
             
             theyAre = ~is_equal;
-            
-            if theyAre
-               movefile(fileB,fileA,'f'); 
-            end
         end
         
     end
