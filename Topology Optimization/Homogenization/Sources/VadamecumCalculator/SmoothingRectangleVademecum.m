@@ -2,18 +2,18 @@ classdef SmoothingRectangleVademecum < handle
     
     properties (Access = private)
         outPutPath
-        smoothDB
-        nonSmoothDB
+        smoothVad
+        nonSmoothVad
         difDB
     end
     
     methods (Access = public)
         
         function obj = SmoothingRectangleVademecum()
-            obj.init();
-            obj.computeNonSmoothRectangle();
-            obj.computeSmoothRectangle();
-            obj.postprocessVademecum()
+            obj.init();           
+            obj.smoothVad    = obj.computeVademecum('SmoothRectangle');
+            obj.nonSmoothVad = obj.computeVademecum('Rectangle');
+            obj.postprocessDifVademecum();
         end
         
     end
@@ -24,30 +24,25 @@ classdef SmoothingRectangleVademecum < handle
             obj.createOutPutPath();
         end
         
-        function computeSmoothRectangle(obj)
-            d.fileName = 'SmoothRectangle';
-            d.outPutPath = fullfile(obj.outPutPath,[d.fileName,'/']);
-            vc = VademecumCalculator(d);
-            obj.smoothDB = vc.getData();
-        end
-        
-        function computeNonSmoothRectangle(obj)
-            d.fileName = 'Rectangle';
-            d.outPutPath = fullfile(obj.outPutPath,[d.fileName,'/']);
-            vc = VademecumCalculator(d);
-            obj.nonSmoothDB  = vc.getData();
-        end
-        
         function createOutPutPath(obj)
             firstPart  = fullfile( '/home','alex','Dropbox');
             secondPart = fullfile('Amplificators','Images','MicroWithHole/');
             obj.outPutPath = fullfile(firstPart,secondPart);
-        end
+        end        
         
-        function postprocessVademecum(obj)
+        function vc = computeVademecum(obj,fileName)
+            d.fileName = fileName;
+            d.outPutPath = fullfile(obj.outPutPath,[d.fileName,'/']);
+            vc = VademecumComputer(d);
+            vc.compute();
+        end
+                
+        function postprocessDifVademecum(obj)
             obj.createDifferenceDataBase();
-            fIs = obj.postprocess(obj.smoothDB);
-            fIn = obj.postprocess(obj.nonSmoothDB);
+            a  = load('fIs');
+            fIs = a.fIs;
+            a  = load('fIn');
+            fIn = a.fIn;
             obj.postprocessDiference(fIs,fIn)
         end
         
@@ -84,30 +79,33 @@ classdef SmoothingRectangleVademecum < handle
             rhoS = obj.smoothDB.postData.volume(iS);
             C1 = obj.smoothDB.postData.Ctensor(1,1,:,:);
             C1 = squeeze(C1);
-            Cs   = C1(iS);
+            Cs(:,1)   = C1(iS);
             txiS = txi(iS);
             
             rhoN = obj.nonSmoothDB.postData.volume(iN);
             C1 = obj.nonSmoothDB.postData.Ctensor(1,1,:,:);
             C1 = squeeze(C1);
-            Cn   = C1(iN);
+            Cn(:,1)   = C1(iN);
             txiN = txi(iN);
             
-            Csp  = griddata(txiS,rhoS,Cs,txiN,rhoN);
+            Csp(:,1)  = griddata(txiS,rhoS,Cs,txiN,rhoN);
+            Cnp(:,1)  = griddata(txiN,rhoN,Cn,txiS,rhoS);
             
-            dif = Csp - Cn;
+            dif = Cs - Cnp;
             
             x = txiN;
             y = rhoN;
             z = dif;            
-            ncolors = 50;
-            tri = delaunay(x,y);
-            tricontour(tri,x,y,z,ncolors)
             hold on
             plot(x,y,'+');
             xlabel('$\frac{m1}{m2}$','Interpreter','latex');
             ylabel('\rho');      
             plot(txiS,rhoS,'+')
+            
+            ind = ~isnan(z);
+            ncolors = 50;
+            tri = delaunay(x(ind),y(ind));
+            tricontour(tri,x(ind),y(ind),z(ind),ncolors)            
         end
         
         

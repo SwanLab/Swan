@@ -51,14 +51,14 @@ classdef VademecumCalculator < handle
             obj.filePath         = fullfile(obj.printingDir,obj.fileName);
             obj.gmsFile          = [obj.filePath,'.msh'];
             obj.freeFemFile      = [obj.filePath,'.edp'];
-            nMx = 20;
-            nMy = 20;
-            obj.mxV = linspace(0.01,0.99,nMx);
-            obj.myV = linspace(0.01,0.99,nMy);
-%             nMx = 5;
-%             nMy = 5;
-%             obj.mxV = linspace(0.2,0.8,nMx);
-%             obj.myV = linspace(0.2,0.8,nMy);
+%            nMx = 20;
+%            nMy = 20;
+%            obj.mxV = linspace(0.01,0.99,nMx);
+%            obj.myV = linspace(0.01,0.99,nMy);
+             nMx = 4;
+             nMy = 4;
+             obj.mxV = linspace(0.2,0.8,nMx);
+             obj.myV = linspace(0.2,0.8,nMy);
         end
         
         function computeVademecumData(obj)
@@ -167,7 +167,7 @@ classdef VademecumCalculator < handle
             obj.postData.volume(imx,imy) = v;
         end
         
-        function obtainTxi(obj)
+        function obtainChi(obj)
             v = obj.homog.volume;
             imx = obj.iMxIndex;
             imy = obj.iMyIndex;

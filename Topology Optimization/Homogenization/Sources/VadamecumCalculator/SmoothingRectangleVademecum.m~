@@ -11,8 +11,12 @@ classdef SmoothingRectangleVademecum < handle
         
         function obj = SmoothingRectangleVademecum()
             obj.init();
-            obj.computeNonSmoothRectangle();
-            obj.computeSmoothRectangle();
+a  = load('nonSmooth');
+obj.nonSmoothDB = a.nonSmooth;
+a  = load('smooth');
+obj.smoothDB = a.smooth;            
+            %obj.computeNonSmoothRectangle();
+            %obj.computeSmoothRectangle();
             obj.postprocessVademecum()
         end
         
@@ -46,8 +50,12 @@ classdef SmoothingRectangleVademecum < handle
         
         function postprocessVademecum(obj)
             obj.createDifferenceDataBase();
-            fIs = obj.postprocess(obj.smoothDB);
-            fIn = obj.postprocess(obj.nonSmoothDB);
+          %  fIs = obj.postprocess(obj.smoothDB);
+           % fIn = obj.postprocess(obj.nonSmoothDB);
+            a  = load('fIs');
+            fIs = a.fIs;
+            a  = load('fIn');
+            fIn = a.fIn;
             obj.postprocessDiference(fIs,fIn)
         end
         
@@ -84,30 +92,34 @@ classdef SmoothingRectangleVademecum < handle
             rhoS = obj.smoothDB.postData.volume(iS);
             C1 = obj.smoothDB.postData.Ctensor(1,1,:,:);
             C1 = squeeze(C1);
-            Cs   = C1(iS);
+            Cs(:,1)   = C1(iS);
             txiS = txi(iS);
             
             rhoN = obj.nonSmoothDB.postData.volume(iN);
             C1 = obj.nonSmoothDB.postData.Ctensor(1,1,:,:);
             C1 = squeeze(C1);
-            Cn   = C1(iN);
+            Cn(:,1)   = C1(iN);
             txiN = txi(iN);
             
-            Cnp  = griddata(txiN,rhoN,Cn,txiS,rhoS);
+            Csp(:,1)  = griddata(txiS,rhoS,Cs,txiN,rhoN);
+            Cnp(:,1)  = griddata(txiN,rhoN,Cn,txiS,rhoS);
             
-            dif = Cs - Cnp;
+            dif = Csp - Cn;
             
             x = txiN;
             y = rhoN;
             z = dif;            
-            ncolors = 50;
-            tri = delaunay(x,y);
-            tricontour(tri,x,y,z,ncolors)
             hold on
             plot(x,y,'+');
             xlabel('$\frac{m1}{m2}$','Interpreter','latex');
             ylabel('\rho');      
-            plot(txiN,rhoN,'+')
+            plot(txiS,rhoS,'+')
+            
+            notPlotting = isnan(z)
+            ncolors = 50;
+            tri = delaunay(x,y);
+            tricontour(tri,x,y,z,ncolors)
+            
         end
         
         
