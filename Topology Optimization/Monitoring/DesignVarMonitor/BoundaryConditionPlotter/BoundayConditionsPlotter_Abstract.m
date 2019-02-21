@@ -11,7 +11,7 @@ classdef BoundayConditionsPlotter_Abstract < handle
         vD
         vN
         
-        colorD = [0 0 .5]
+        colorD = [0 .5 1]
         colorN = [.2 .8 .2]
         lineWidth = 2
         maxHeadSize = .5

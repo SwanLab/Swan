@@ -7,7 +7,7 @@ classdef BoundayConditionsPlotter_2D < BoundayConditionsPlotter_Abstract
         end
         
         function plotDirichlet(obj)
-            plot(obj.axes,obj.mesh.coord(obj.iD,1),obj.mesh.coord(obj.iD,2),'x','Color',obj.colorD)
+            plot(obj.axes,obj.mesh.coord(obj.iD,1),obj.mesh.coord(obj.iD,2),'>','Color',obj.colorD,'MarkerSize',4,'MarkerFaceColor',obj.colorD)
             quiver(obj.axes,obj.mesh.coord(obj.iD,1),obj.mesh.coord(obj.iD,2),obj.vD(:,1),obj.vD(:,2),'Color',obj.colorD,'AutoScaleFactor',obj.scaleD,'LineWidth',obj.lineWidth,'MaxHeadSize',obj.maxHeadSize);
         end
         
