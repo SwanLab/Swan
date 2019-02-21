@@ -2,6 +2,9 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
     
     properties (Access = private)
         pNorm = 2;
+        stressHomog
+        strainHomog
+        Chomog
     end
     
     methods (Access = public)
@@ -9,6 +12,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
         function obj = ShFunc_StressNorm(settings)
             obj@ShFunWithElasticPdes(settings);
             obj.createEquilibriumProblem(settings.filename);
+            obj.stressHomog = settings.stressHomog;
         end
         
         function v = getValue(obj)
@@ -30,6 +34,26 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
             obj.computeGradient();
         end
         
+        function c = computeCostWithFullDomain(obj)
+            nnodes = size(obj.physProb.mesh.coord,1);
+            x = -ones(nnodes,1);
+            obj.computeCostAndGradient(x);
+            c = obj.value;
+        end
+        
+        function s = computeMaxStressWithFullDomain(obj)
+            nnodes = size(obj.physProb.mesh.coord,1);
+            x = -ones(nnodes,1);
+            obj.updateMaterialProperties(x);
+            obj.solveCellProblem();
+            stress = obj.physProb.variables.stress;
+            ngaus = obj.physProb.element.quadrature.ngaus;            
+            nstre = obj.physProb.element.getNstre();
+            V = sum(sum(obj.physProb.geometry.dvolu));
+            dV = obj.physProb.element.geometry.dvolu;            
+            s = obj.obtainMaxSigmaNorm(stress,ngaus,nstre,dV,V);
+        end
+        
     end
     
     methods (Access = protected)
@@ -42,8 +66,9 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
         end
         
         function solvePDEs(obj)
-            obj.physProb.setMatProps(obj.matProps);
-            obj.physProb.computeVariables();
+           obj.computeHomogenizedTensor();
+           obj.computeHomogenizedStrain();            
+           obj.solveCellProblem(); 
         end
         
         function computeFunctionValue(obj)
@@ -56,6 +81,27 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
     end
     
     methods (Access = private)
+        
+        function solveCellProblem(obj)
+            cellProblem = obj.physProb;
+            sH(1,:) = obj.strainHomog;
+            cellProblem.element.setVstrain(sH);            
+            cellProblem.setMatProps(obj.matProps);
+            cellProblem.computeVariables();
+        end
+        
+        function computeHomogenizedTensor(obj)
+            cellProblem = obj.physProb;
+            Ch = cellProblem.computeChomog();
+            obj.Chomog = Ch;
+        end
+        
+        function computeHomogenizedStrain(obj)
+             Ch = obj.Chomog;
+             stress = obj.stressHomog;
+             strain = Ch\stress;
+             obj.strainHomog = strain;
+        end
         
         function value = integrateStressNorm(obj,physProb)
             nstre = physProb.element.getNstre();
@@ -82,6 +128,21 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
                 sigmaNorm = s.^p;
                 v = v + 1/V*sigmaNorm'*dV(:,igaus);
             end
+        end
+        
+        function v = obtainMaxSigmaNorm(obj,stress,ngaus,nstre,dV,V)
+            v = [];
+            for igaus = 1:ngaus
+                s = zeros(size(stress,3),1);
+                for istre = 1:nstre
+                    Si = squeeze(stress(igaus,istre,:));
+                    factor = obj.computeVoigtFactor(istre,nstre);
+                    Sistre = factor*(Si.^2);
+                    s = s + Sistre;
+                end
+                v = max([sqrt(s);v]);
+            end            
+            
         end
         
         function v = integratePNormOfComponents(obj,stress,ngaus,nstre,dV,V)

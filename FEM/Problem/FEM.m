@@ -126,7 +126,7 @@ classdef FEM < handle
         function d = createPostProcessDataBase(obj,fileName)
             dI.mesh    = obj.mesh;
             dI.outName = fileName;
-            ps = PostProcessDataBaseCreatorWithNoGaussData(dI);
+            ps = PostProcessDataBaseCreator(dI);
             d = ps.getValue();           
         end
         

@@ -129,7 +129,7 @@ classdef Optimizer_Constrained < Optimizer
         function d = createPostProcessDataBase(obj,fileName)
             d.mesh    = obj.mesh;
             d.outName = fileName;
-            ps = PostProcessDataBaseCreatorWithNoGaussData(d);
+            ps = PostProcessDataBaseCreator(d);
             d = ps.getValue();
         end
         

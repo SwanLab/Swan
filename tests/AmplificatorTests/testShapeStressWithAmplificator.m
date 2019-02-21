@@ -10,15 +10,12 @@ classdef testShapeStressWithAmplificator < testShowingError
         PcompShape
         m1 = 0.2;
         m2 = 0.8;
-        printing = false;
+        printing = true;
         iter = 0;    
         homog
         strain
     end
     
-    properties (Access = private)
-        
-    end
     
     methods (Access = public)
         
@@ -56,16 +53,24 @@ classdef testShapeStressWithAmplificator < testShowingError
             obj.PcompHomog = PTensorValues(i,j);
         end
         
-        function obtainPcomponentWithShapeFunction(obj)
+        function computeStressShape(obj)
             obj.computeStrainWithCanonicalStress();
             settings = obj.homog.getSettings();
             ls = obj.homog.getLevelSet();
             sF = ShFunc_StressNorm(settings);
             sF.filter.preProcess();
             sF.setVstrain(obj.strain);
-            sF.computeCostAndGradient(ls)
-            obj.PcompShape = sF.getValue();
+            sF.computeCostAndGradient(ls);
+            obj.stressShape = sF;
+        end
+        
+        function obtainPcomponentWithShapeFunction(obj)
+            obj.PcompShape = obj.stressShape.getValue();
         end        
+        
+        function storeMicroProblem(obj)
+            obj.microProblem = obj.stressShape.getPhysicalProblems();
+        end
         
         function computeStrainWithCanonicalStress(obj)
             stress = [1,0,0]';

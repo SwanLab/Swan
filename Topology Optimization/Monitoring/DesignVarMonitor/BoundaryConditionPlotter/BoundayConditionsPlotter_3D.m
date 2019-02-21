@@ -3,7 +3,7 @@ classdef BoundayConditionsPlotter_3D < BoundayConditionsPlotter_Abstract
     methods (Access = public)
         
         function obj = BoundayConditionsPlotter_3D(axes,mesh)
-            obj@BoundayConditionsPlotter_Abstract(axes,mesh);
+            obj.init(axes,mesh);
         end
         
         function plotDirichlet(obj)

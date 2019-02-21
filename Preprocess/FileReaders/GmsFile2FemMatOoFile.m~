@@ -1,0 +1,38 @@
+classdef GmsFile2FemMatOoFile < handle
+    
+    properties (Access = private)
+        readData                
+    end
+    
+    methods (Access = public)
+        
+        function obj = GmsFile2FemMatOoFile(gmsFile,outPutDir,outPutFileName)
+            obj.readGmsFile(gmsFile);
+            obj.printInputFemFile(outPutDir,outPutFileName);
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function readGmsFile(obj,gmsFile)
+            reader = GmsReader(gmsFile);
+            rD.connec = reader.connec;
+            rD.coord  = reader.coord;
+            rD.isElemInThisSet = reader.isElemInThisSet;
+            rD.masterSlave = reader.masterSlave;
+            rD.corners = reader.corners;
+            obj.readData = rD;
+        end
+        
+        function printInputFemFile(obj,outPutDir,outPutFileName)
+            data = obj.readData;
+            data.resultsDir = outPutDir;
+            data.fileName   = outPutFileName;
+            InputFemFilePrinter(data);
+        end        
+        
+    end
+    
+    
+end

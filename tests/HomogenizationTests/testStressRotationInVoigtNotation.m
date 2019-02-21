@@ -40,12 +40,6 @@ classdef testStressRotationInVoigtNotation < testShowingError
             rotS = Rotator.rotate(obj.stress,a,d);
         end
         
-        function tensVoigt = convertInVoigt(obj,tens)
-
-            tensVoigt = Tensor2VoigtConverter.convert(tens);
-            tensVoigt.setValue(t)            
-        end
-        
         function computeError(obj)
             rotStre        = obj.rotatedStress.getValue();
             rotStreByVoigt = obj.rotatedStressByVoigt.getValue();

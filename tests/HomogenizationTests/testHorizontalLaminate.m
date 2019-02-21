@@ -1,5 +1,4 @@
 classdef testHorizontalLaminate < TestSequentialLaminateTestedWithNumerics
-
     
     properties 
     end

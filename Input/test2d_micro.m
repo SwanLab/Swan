@@ -9855,7 +9855,7 @@ Master_slave = [
 % Nodes that must remain
 % Nodes
 
-nodesolid = 1;
+%nodesolid = 1;
 
 %% External border Elements
 % Detect the elements that define the edge of the domain

@@ -2,16 +2,13 @@ classdef BoundayConditionsPlotter_Null < BoundayConditionsPlotter_Abstract
     
     methods (Access = public)
         
-        function obj = BoundayConditionsPlotter_Null(axes,mesh)
-            obj@BoundayConditionsPlotter_Abstract(axes,mesh);
+        function obj = BoundayConditionsPlotter_Null()
         end
         
-        function plotDirichlet(obj)
-            
+        function plotDirichlet(~)
         end
         
-        function plotNeumann(obj)
-            
+        function plotNeumann(~)
         end
         
     end

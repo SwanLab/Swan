@@ -20,7 +20,7 @@ classdef DesignVarMonitorFactory < handle
                 obj.createMonitor();
                 obj.build();
             else
-                obj.returnNullMonitor(mesh);
+                obj.returnNullMonitor();
             end
             
             monitor = obj.monitor;
@@ -70,8 +70,8 @@ classdef DesignVarMonitorFactory < handle
             end
         end
         
-        function returnNullMonitor(obj,mesh)
-            obj.monitor = DesignVarMonitor_Null(mesh);
+        function returnNullMonitor(obj)
+            obj.monitor = DesignVarMonitor_Null(obj.mesh,false);
         end
         
     end

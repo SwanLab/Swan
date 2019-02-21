@@ -15,9 +15,9 @@ classdef ComplianceAndAdjointPrinter < CompositeResultsPrinter
             obj.printers{2} = obj.createAdjointPrinter(d);
         end
         
-        function storeFieldsToPrint(obj,phyPr)
-            obj.storeFieldsToPrintFromPhyPr(obj.printers{1},phyPr{1});
-            obj.storeFieldsToPrintFromPhyPr(obj.printers{2},phyPr{2});
+        function storeFieldsToPrint(obj,d)
+            obj.storeFieldsToPrintFromPhyPr(obj.printers{1},d.phyProblems{1});
+            obj.storeFieldsToPrintFromPhyPr(obj.printers{2},d.phyProblems{2});
         end
         
     end

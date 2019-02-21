@@ -11,7 +11,7 @@ classdef FactoryBoundayConditions < handle
                         plotter = BoundayConditionsPlotter_3D(axes,mesh);
                 end
             else
-                plotter = BoundayConditionsPlotter_Null(axes,mesh);
+                plotter = BoundayConditionsPlotter_Null();
             end
         end
         

@@ -1,6 +1,10 @@
 classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
 
-  
+    properties (Access = private)
+        microFile = 'RVE_Square_Triangle_FineFine';   
+        fileOutputName = 'SeqLaminate';
+    end
+    
     properties (Access = protected)
         LaminateDirection
         Theta
@@ -22,7 +26,7 @@ classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
     methods (Access = protected)
 
         function compute(obj)
-            obj.init()
+            obj.init();
             obj.computeNumericallyChForLaminate();
             obj.loadFractionVolume()
             obj.computeWeakAndStiffTensorsFromNumericalHomogenizerData();
@@ -31,24 +35,40 @@ classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
             obj.computeMixtureTheoryTensor();
         end
         
+        function hasPassed = hasPassed(obj) 
+            ChNum   = obj.NumericalCh.getValue();
+            ChSL    = obj.SeqLamCh.getValue();
+            ChMix   = obj.MixtureCh.getValue();
+            ChRank  = obj.Rank2Ch.getValue();            
+            firstCondition  = obj.relativeNorm(ChSL,ChNum)   < 1e-2;
+            secondCondition = obj.relativeNorm(ChMix,ChNum)  < 1e-3;
+            thirdCondition  = obj.relativeNorm(ChRank,ChNum) < 1e-10;
+            hasPassed = firstCondition & secondCondition & thirdCondition;
+        end        
+        
+    end
+    
+    methods (Access = private)
+                
         function init(obj)
            obj.loadLaminateDirection()
            obj.loadFiberDirection()
         end
         
-        function computeNumericallyChForLaminate(obj)   
-            OutPutNameFile     = 'SeqLaminate';
-            LevelOfFibers      = 3;
-            iter               = 0;
-            PrintTopology      = true;
-            numHomogenizer     = NumericalFiberHomogenizer(...
-                                 obj.FiberDirection,LevelOfFibers,...
-                                 OutPutNameFile,PrintTopology,iter);
-            obj.NumericalCh    = numHomogenizer.getCh();
-            obj.MaterialValues = numHomogenizer.getMaterialValues();
-            obj.FractionVolume = numHomogenizer.getVolume();
+        function computeNumericallyChForLaminate(obj)  
+           d = obj.createNumericalHomogenizerDataBase();
+           homog = NumericalHomogenizer(d);                
+           obj.NumericalCh    = obj.rotateCh(homog);
+           obj.MaterialValues = homog.matValues;
+           obj.FractionVolume = homog.volume;
         end
-
+        
+        function d = createNumericalHomogenizerDataBase(obj)
+            nDB = NumericalHomogenizerDataBase(obj.microFile);
+            d = nDB.dataBase;
+            d.outFileName = obj.fileOutputName;
+        end
+        
         function loadFractionVolume(obj)
            obj.Theta = obj.FractionVolume;
         end
@@ -90,22 +110,15 @@ classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
             angle = -acos(dot(obj.FiberDirection.getValue(),[1 0 0]));
             vFrac = obj.Theta;
             homogenizer = MixtureTheoryHomogenizer(C1,C0,dir,angle,vFrac);
-           obj.MixtureCh = homogenizer.Ch;            
+            obj.MixtureCh = homogenizer.Ch;            
         end
         
-        
-        function hasPassed = hasPassed(obj) 
-            ChNum   = obj.NumericalCh.getValue();
-            ChSL    = obj.SeqLamCh.getValue();
-            ChMix   = obj.MixtureCh.getValue();
-            ChRank  = obj.Rank2Ch.getValue();            
-            firstCondition  = obj.relativeNorm(ChSL,ChNum)   < 1e-2;
-            secondCondition = obj.relativeNorm(ChMix,ChNum)  < 1e-3;
-            thirdCondition  = obj.relativeNorm(ChRank,ChNum) < 1e-10;
-            hasPassed = firstCondition & secondCondition & thirdCondition;
+        function Ch = rotateCh(obj,homog)
+            dir = obj.FiberDirection;
+            r = ChRotatorForFiberHomogenizer();
+            Ch = r.rotate(dir,homog.Ch());
         end
-        
-        
+       
     end
     
     methods (Access = private, Static)
@@ -115,7 +128,7 @@ classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
         end
         
     end
-    
+   
     methods (Abstract,Access = protected)
         loadLaminateDirection(obj)
         loadFiberDirection(obj)

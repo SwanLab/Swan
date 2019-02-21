@@ -11,7 +11,7 @@ optimizer = 'PROJECTED SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 
 nsteps = 1;
-Vfrac_final = 0.3;
+Vfrac_final = 0.8;
 optimality_final =1e-3;
 constr_final =1e-3;
 

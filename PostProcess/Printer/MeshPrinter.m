@@ -1,4 +1,4 @@
-classdef MeshPrinter < FilePrinter
+classdef MeshPrinter < GiDPrinter
     
     properties (Access = protected)
        ext = 'msh' 

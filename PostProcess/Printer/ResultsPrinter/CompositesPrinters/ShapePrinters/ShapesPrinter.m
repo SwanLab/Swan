@@ -37,9 +37,9 @@ classdef ShapesPrinter < CompositeResultsPrinter
             for iprinter = 1:numel(obj.printers)
                 index = obj.printableIndex(iprinter);
                 shape = obj.allShapes{index};   
-                phyProblems = shape.getPhysicalProblems();
+                d.phyProblems = shape.getPhysicalProblems();
                 p = obj.printers{iprinter};
-                p.storeFieldsToPrint(phyProblems);
+                p.storeFieldsToPrint(d);
             end
         end
         

@@ -6,7 +6,8 @@ classdef Material_Interpolation_ISO_SIMPALL_2D < Material_Interpolation_ISO_SIMP
             obj@Material_Interpolation_ISO_SIMPALL(MaterialParameters);
         end
         function matProps=computeMatProp(obj, rho)
-            dC=zeros(3,3,size(rho,1));
+            nelem = max(size(rho));
+            dC=zeros(3,3,nelem);
             if isempty(obj.mu_func)
                 obj.computeSymProps(rho);
                 

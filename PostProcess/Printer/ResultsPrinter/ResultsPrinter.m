@@ -1,4 +1,4 @@
-classdef ResultsPrinter < FilePrinter
+classdef ResultsPrinter < GiDPrinter
     
     properties (Access = protected)
         ext = 'res'

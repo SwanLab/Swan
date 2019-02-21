@@ -12,17 +12,16 @@ clear variables;
 
 %% Main
 filenames={
-%     'CantileverTriangleCoarse_Case_1_1_1'
-%     'CantileverTriangleCoarse_Case_2_1_1'
-'CantileverHexahedraCoarse_Case_4_1_1'
+    %     'CantileverTriangleCoarse_Case_1_1_1'
+    %     'CantileverTriangleCoarse_Case_2_1_1'
+    'CantileverHexahedraCoarse_Case_4_1_1'
     'CantileverTetrahedraCoarse_Case_4_1_1'
-%     'CantileverbeamHexahedraSYM_Case_5_1_6'
+    %     'CantileverbeamHexahedraSYM_Case_5_1_6'
     
     %'test_cantilever3'
-
-%     'CantileverHexahedra_Case_1_1_2'
+    
+    %     'CantileverHexahedra_Case_1_1_2'
     %     'CantileverQuadrilateral_Case_1_2_2'
-
     %     'test_cylinder_tetrahedra'
     %         'CantileverQuadrilateral_Case_1_2_1';
     %         'CantileverQuadrilateral_Case_1_2_2'

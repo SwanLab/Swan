@@ -13,7 +13,7 @@ classdef testUnfitted < test
     
     methods (Access = protected)
         function createTopOpt(obj)
-            file_name_in = strcat('./Input/',obj.testName);
+            file_name_in = fullfile('.','Input',obj.testName);
             settings = Settings(file_name_in);
             settings.printChangingFilter = false;
             obj.topOpt = TopOpt_Problem(settings);

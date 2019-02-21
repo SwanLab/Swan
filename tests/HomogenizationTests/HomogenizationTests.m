@@ -13,16 +13,17 @@ classdef HomogenizationTests < testRunner
     
     methods (Access = protected)
         function loadTests(obj)
-            obj.tests = {...                
-               %'test2DSeqLaminateInVoigtWithFormuleOfAllaireWebPAgeExercise'  
-              'testHorizontalLaminate';
-               'testCommutingHomogPlaneStressWithZeroPoisson';
-               'testNotCommutingHomogPlaneStress'; 
-               'testCommutingVoigtHomog';
-               'testAnisotropicPlaneStressbyEnergyEquivalence';
-               'testStressInPlaneStress';
-               'testStressRotationInVoigtNotationIn3D';
-                'testStressRotationInVoigtNotationInPlaneStress';               
+            obj.tests = {...
+                'testHorizontalLaminate';
+                'testNumericalConvergenceOfNumberOfLaminates';                                
+                'testDiagonalLaminate';
+                'testCommutingHomogPlaneStressWithZeroPoisson';
+                'testNotCommutingHomogPlaneStress';
+                'testCommutingVoigtHomog';
+                'testAnisotropicPlaneStressbyEnergyEquivalence';
+                'testStressInPlaneStress';
+                'testStressRotationInVoigtNotationIn3D';
+                'testStressRotationInVoigtNotationInPlaneStress';
                 'testInverseSymmetricFourthOrderTensor' ;
                 'testInverseNonSymmetricFourthOrderTensor';
                 'testInverseOfInverseForStiffTensor';
@@ -37,12 +38,10 @@ classdef HomogenizationTests < testRunner
                 'testComplianceTensorThrougtVoigtComparingEnergy';
                 'TestTwoRankSequentialLaminate';
                 'testHorizontalTensorRotatedVsVHP';
-                'testHorizontalTensorRotatedVsVPH';                
+                'testHorizontalTensorRotatedVsVPH';
                 'testHorizontalTensorRotatedVsRank2';
-                'testHorizontalTensorRotatedVsHVP';                  
-                'TestGeneralTwoRankSequentialLaminate';               
-                'testDiagonalLaminate';
-                'testNumericalConvergenceOfNumberOfLaminates';
+                'testHorizontalTensorRotatedVsHVP';
+                'TestGeneralTwoRankSequentialLaminate';
                 };
         end
         
