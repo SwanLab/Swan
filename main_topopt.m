@@ -13,8 +13,9 @@ clear variables;
 %% Main
 filenames={
 %     'CantileverTriangleCoarse_Case_1_1_1'
-    'CantileverTriangleCoarse_Case_2_1_1'
-%     'CantileverTetrahedraCoarse_Case_4_1_1'
+%     'CantileverTriangleCoarse_Case_2_1_1'
+'CantileverHexahedraCoarse_Case_4_1_1'
+    'CantileverTetrahedraCoarse_Case_4_1_1'
 %     'CantileverbeamHexahedraSYM_Case_5_1_6'
     
     %'test_cantilever3'
@@ -90,7 +91,7 @@ filenames={
 for icases=1:size(filenames,1)
     clearvars -except filenames icases;
     close all;
-    settings=Settings(filenames{icases});
+    settings = Settings(filenames{icases});
     
     %     try
     test = TopOpt_Problem(settings);
