@@ -5,13 +5,9 @@ classdef VademecumCalculator < handle
         
         fileName
         printingDir
-        filePath
         gmsFile
-        freeFemFile
-        freeFemModelFile
         outPutPath
         
-        inputData
         homog
         
         postData
@@ -20,7 +16,6 @@ classdef VademecumCalculator < handle
         iMyIndex
         mxV
         myV
-        
     end
     
     methods (Access = public)
@@ -46,11 +41,8 @@ classdef VademecumCalculator < handle
         function init(obj,d)
             obj.fileName         = d.fileName;
             obj.outPutPath       = d.outPutPath;
-            obj.freeFemModelFile = fullfile('Input',obj.fileName,[obj.fileName,'Model','.edp']);
-            obj.printingDir      = fullfile(pwd,'Output',obj.fileName);
-            obj.filePath         = fullfile(obj.printingDir,obj.fileName);
-            obj.gmsFile          = [obj.filePath,'.msh'];
-            obj.freeFemFile      = [obj.filePath,'.edp'];
+            obj.printingDir      = fullfile(pwd,'Output',obj.fileName);                        
+            obj.gmsFile          = [fullfile(obj.printingDir,obj.fileName),'.msh'];
             nMx = 20;
             nMy = 20;
             obj.mxV = linspace(0.01,0.99,nMx);
@@ -79,56 +71,15 @@ classdef VademecumCalculator < handle
         end
         
         function generateMeshFile(obj)
-            obj.createInputData();
-            obj.printFreeFemFile();
-            obj.computeMeshWithFreeFem();
+            d.mxV             = obj.mxV(obj.iMxIndex);
+            d.myV             = obj.myV(obj.iMyIndex);
+            d.fileName        = obj.fileName;
+            d.freeFemFileName = obj.fileName;
+            d.printingDir = obj.printingDir;
+            fG = FreeFemMeshGenerator(d);
+            fG.generate();
         end
-        
-        function createInputData(obj)
-            obj.inputData.reals   = obj.createRealInputData();
-            obj.inputData.strings = obj.createStringInputData();
-        end
-        
-        function dB = createRealInputData(obj)
-            mx = obj.mxV(obj.iMxIndex);
-            my = obj.myV(obj.iMyIndex);
-            dB{1,:} = {'p',4};
-            dB{2,:} = {'mx',mx};
-            dB{3,:} = {'my',my};
-            dB{4,:} = {'Hmax',0.02};
-            dB{5,:} = {'elByInt',20};
-            dB{6,:} = {'elByBor',20};
-        end
-        
-        function dB = createStringInputData(obj)
-            dB{1,:} = {'OutName',obj.filePath};
-        end
-        
-        function printFreeFemFile(obj)
-            obj.readFile();
-            obj.printFile();
-        end
-        
-        function readFile(obj)
-            fR = FreeFemFileReader(obj.freeFemModelFile);
-            fR.read();
-            obj.linesRead = fR.getDataBase();
-        end
-        
-        function printFile(obj)
-            d.fileName     = obj.fileName;
-            d.printingDir  = obj.printingDir;
-            d.linesToPrint = obj.linesRead;
-            d.type = 'InputChange';
-            fp = FreeFemFilePrinter.create(d);
-            fp.setInputData(obj.inputData);
-            fp.print();
-        end
-        
-        function computeMeshWithFreeFem(obj)
-            [~,~] = system(['FreeFem++ ',obj.freeFemFile]);
-        end
-        
+             
         function computeNumericalHomogenizer(obj)
             d.gmsFile = obj.gmsFile;
             d.outFile = obj.fileName;

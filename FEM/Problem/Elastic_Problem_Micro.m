@@ -8,6 +8,9 @@ classdef Elastic_Problem_Micro < Elastic_Problem
     
     % Private properties definition ======================================
     properties (Access = private)
+        Chomog
+        tstrain
+        tstress
     end
     
     % Public methods definition ==========================================
@@ -47,27 +50,31 @@ classdef Elastic_Problem_Micro < Elastic_Problem
             obj.variables.tstress = tstress;
             
             obj.variables.var2print = var2print;
+            
+            obj.Chomog = Chomog;
+            obj.tstrain = tstrain;
+            obj.tstress = tstress;
         end
         
         function P2 = computeAmplificator(obj)
-            obj.variables.Ptensor = rand(3,3);
-            [Chomog,tstrain,tstres] = obj.computeChomog();
-            Ct = StiffnessPlaneStressVoigtTensor;
-            Ct.setValue(Chomog);
-            St = Inverter.invert(Ct);
-            Shomog = St.getValue();
-            
-            nstre = obj.element.getNstre();
-            V = 1;%sum(sum(obj.geometry.dvolu));
-            ngaus = obj.element.quadrature.ngaus;
-            dV    = obj.element.geometry.dvolu;
-            C     = obj.element.material.C;
-            
-            P2  = obj.computeAmplificatorbyPtensors(tstres,V,dV,Shomog,nstre,ngaus);
-           % P3  = obj.computeAmplificatorsWithStress(tstres,V,dV,Shomog,nstre,ngaus);
-           % P2b = obj.computeAmplificatorWithAllLoops(tstrain,C,V,dV,Shomog,nstre,ngaus);
+            Ptensor = obj.computePtensor();
+            P2  = obj.computeAmplificatorTensor(Ptensor);            
+           %P2  = obj.computeAmplificatorsWithStress();           
+           %C   = obj.element.material.C;
+           %P2  = obj.computeAmplificatorWithAllLoops();
+            obj.variables.Ptensor = P2;           
         end
         
+        function Shomog = computeShomog(obj)
+            Ct = StiffnessPlaneStressVoigtTensor;
+            Ct.setValue(obj.Chomog);
+            St = Inverter.invert(Ct);
+            Shomog = St.getValue();            
+        end
+        
+        function v = computeGeometricalVolume(obj)
+            v = 1;%sum(sum(obj.geometry.dvolu));
+        end        
         
         function P2b = computeAmplificatorWithAllLoops(obj,tstrain,C,V,dV,Shomog,nstre,ngaus)
             P2b = zeros(size(Shomog));
@@ -101,13 +108,11 @@ classdef Elastic_Problem_Micro < Elastic_Problem
                 end
             end
         end
-        
-        function P = computeAmplificatorbyPtensors(obj,tstres,V,dV,Shomog,nstre,ngaus)
-            Pt = obj.computePtensor(tstres,Shomog,nstre);
-            P  = obj.computeAmplificatorTensor(Pt,nstre,V,dV,ngaus);
-        end
-        
-        function Pt = computePtensor(obj,tstres,Shomog,nstre)
+               
+        function Pt = computePtensor(obj)
+            tstres = obj.tstress;
+            Shomog = obj.computeShomog();
+            nstre  = obj.element.getNstre();
             Pt = zeros(size(tstres));
             for istre = 1:nstre
                 for jstre = 1:nstre
@@ -118,7 +123,12 @@ classdef Elastic_Problem_Micro < Elastic_Problem
             end
         end
         
-        function P = computeAmplificatorTensor(obj,Pt,nstre,V,dV,ngaus)
+        function P = computeAmplificatorTensor(obj,Pt)
+            nstre = obj.element.getNstre();            
+            V     = obj.computeGeometricalVolume();
+            dV    = obj.element.geometry.dvolu;
+            ngaus = obj.element.quadrature.ngaus;
+            
             P = zeros(nstre,nstre);
             for istre = 1:nstre
                 for jstre = 1:nstre
@@ -168,6 +178,21 @@ classdef Elastic_Problem_Micro < Elastic_Problem
             end
             P = Shomog'*Ch2*Shomog;
         end
-                
+        
+        function Pg = computeGeneralizedAmplificator(obj)
+            d = obj.createAmplificatorDataBase();
+            ga = GeneralizedAmplificatorComputer(d);
+            ga.compute();
+            Pg = ga.Phomog();
+        end
+        
+        function d = createAmplificatorDataBase(obj)
+            d.nstre   = obj.element.getNstre();
+            d.V       = obj.computeGeometricalVolume;
+            d.ngaus   = obj.element.quadrature.ngaus;
+            d.dV      = obj.element.geometry.dvolu;
+            d.Ptensor = obj.computePtensor();
+        end        
+        
     end
 end
