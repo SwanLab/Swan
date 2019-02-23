@@ -23,25 +23,25 @@ classdef Filter < handle
                 case 'P1'
                     switch settings.optimizer
                         case {'MMA','PROJECTED GRADIENT','IPOPT'}
-                            obj = Filter_P1_Density;
+                            obj = Filter_P1_Density();
                         case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
                             switch settings.pdim
                                 case '2D'
-                                    obj = Filter_P1_LevelSet_2D_Interior;
+                                    obj = Filter_P1_LevelSet_2D_Interior();
                                 case '3D'
-                                    obj = Filter_P1_LevelSet_3D_Interior;
+                                    obj = Filter_P1_LevelSet_3D_Interior();
                             end
                     end
                 case 'PDE'
                     switch settings.optimizer
                         case {'MMA','PROJECTED GRADIENT','IPOPT'}
-                            obj = Filter_PDE_Density;
+                            obj = Filter_PDE_Density();
                         case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
                             switch settings.pdim
                                 case '2D'
-                                    obj = Filter_PDE_LevelSet_2D_Interior;
+                                    obj = Filter_PDE_LevelSet_2D_Interior();
                                 case '3D'
-                                    obj = Filter_PDE_LevelSet_3D_Interior;
+                                    obj = Filter_PDE_LevelSet_3D_Interior();
                             end
                     end
             end

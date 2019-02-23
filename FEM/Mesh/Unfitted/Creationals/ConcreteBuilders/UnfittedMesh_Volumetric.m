@@ -1,6 +1,6 @@
 classdef UnfittedMesh_Volumetric < UnfittedMesh_AbstractBuilder
     properties (GetAccess = public, SetAccess = private)
-        meshType = 'INTERIOR';
+        unfittedType = 'INTERIOR';
         maxSubcells = 20;
         nnodesSubcell = 4;
         

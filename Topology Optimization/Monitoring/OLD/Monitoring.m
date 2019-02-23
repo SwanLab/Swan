@@ -1,4 +1,5 @@
 classdef Monitoring < handle
+    
     properties
         monitoring_ON
         interval
@@ -21,10 +22,13 @@ classdef Monitoring < handle
     end
     
     methods (Abstract)
+        
         setPlottingFigure(obj)
+        
     end
     
     methods (Static)
+        
         function obj = create(settings,mesh,monitoring_ON, plotting_ON)
             switch mesh.pdim
                 case '2D'
@@ -44,9 +48,11 @@ classdef Monitoring < handle
                     end
             end
         end
+        
     end
     
     methods
+        
         function obj = Monitoring(settings,mesh,monitoring_ON, plotting_ON)
             obj.mesh = mesh;
             obj.monitoring_ON = monitoring_ON;
@@ -182,6 +188,7 @@ classdef Monitoring < handle
     end
     
     methods (Access = private)
+        
         function obj = createFigure(obj,TITLE)
             obj.figures{end+1}.title = TITLE;
             obj.figures{end}.iteration = [];
@@ -209,6 +216,7 @@ classdef Monitoring < handle
     end
     
     methods (Access = private, Static)
+        
         function figures = updateFigure(figures,iteration,variable,draw)
             figures.iteration(end+1) = iteration;
             figures.variable(end+1) = variable;
@@ -339,6 +347,7 @@ classdef Monitoring < handle
     end
     
     methods (Access = protected)
+        
         function plotBoundaryConditions(obj)
             if ~isempty(obj.mesh.pointload)
             inodef = unique(obj.mesh.pointload(:,1));
@@ -355,9 +364,11 @@ classdef Monitoring < handle
 %             quiver3(obj.mesh.coord(inodec,1),obj.mesh.coord(inodec,2),obj.mesh.coord(inodec,3),const(:,1),const(:,2),const(:,3),'b','AutoScaleFactor',obj.BCscale_factor*max(obj.mesh.coord(:))/max(abs(const(:))));
 %             hold off
         end
+        
     end
     
     methods (Static)
+        
         function classifiedBC = classifyBC(BC)
             classifiedBC = zeros(size(BC));
             indexes = [];
@@ -375,6 +386,7 @@ classdef Monitoring < handle
             end
             classifiedBC(length(indexes)+1:end,:) = [];
         end
+        
     end
 
 end
