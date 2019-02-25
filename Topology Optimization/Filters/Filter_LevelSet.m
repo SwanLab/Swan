@@ -1,30 +1,37 @@
 classdef Filter_LevelSet < Filter
+    
     properties (Access = protected)
-        unfitted_mesh
+        unfittedMesh
     end
     
     properties(Access = private)
         integrator
+        domainType = 'INTERIOR'
     end
     
     methods (Access = public)
+        
         function preProcess(obj)
             preProcess@Filter(obj);
+            obj.unfittedMesh = Mesh_Unfitted(obj.domainType,obj.mesh,obj.interpolation);
+            obj.integrator = Integrator.create(obj.unfittedMesh);
             
-            obj.unfitted_mesh = Mesh_Unfitted(obj.domainType,obj.mesh,obj.interpolation);
-            obj.integrator = Integrator.create(obj.unfitted_mesh);
-            
-            MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';
-            warning('off', MSGID)
+            obj.disableDelaunayWarning();
         end
         
         function M2 = computeRHS(obj,x,F1)
-            obj.unfitted_mesh.computeMesh(x);
-            M2 = obj.integrator.integrateUnfittedMesh(F1,obj.unfitted_mesh);
+            obj.unfittedMesh.computeMesh(x);
+            M2 = obj.integrator.integrateUnfittedMesh(F1,obj.unfittedMesh);
         end
+        
+        function setDomainType(obj,domainType)
+            obj.domainType = domainType;
+        end
+        
     end
     
     methods (Static, Access = protected)
+        
         function [full_elem,cut_elem] = findCutElements(x,connectivities) % !! REMOVE WHEN REFACTORING PLOT 3D!!
             phi_nodes = x(connectivities);
             phi_case = sum((sign(phi_nodes)<0),2);
@@ -34,9 +41,11 @@ classdef Filter_LevelSet < Filter
             indexes = (1:size(connectivities,1))';
             cut_elem = indexes(~(full_elem+null_elem));
         end
+        
     end
     
     methods (Static, Access = public)
+        
         function [F,aire] = faireF2(p,t,psi)
             np = size(p,2); nt = size(t,2);
             F = zeros(np,1);
@@ -86,5 +95,16 @@ classdef Filter_LevelSet < Filter
             F = F-accumarray(ps(3,:)',((psis(1,:)./(psis(1,:)-psis(3,:))).*A/3)',[np,1],@sum,0);
             aire = aire-sum(A);
         end
+        
     end
+    
+    methods (Access = private, Static)
+        
+        function disableDelaunayWarning()
+            MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';
+            warning('off', MSGID)
+        end
+        
+    end
+    
 end

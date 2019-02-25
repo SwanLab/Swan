@@ -1,4 +1,5 @@
 classdef Filter < handle
+    
     properties
         diffReacProb
         M0 % !! Computation done by integrator ?? !!
@@ -17,48 +18,18 @@ classdef Filter < handle
         interpolation
     end
     
-    methods (Static, Access = public)
-        function obj = create(settings)
-            switch settings.filter
-                case 'P1'
-                    switch settings.optimizer
-                        case {'MMA','PROJECTED GRADIENT','IPOPT'}
-                            obj = Filter_P1_Density();
-                        case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
-                            switch settings.pdim
-                                case '2D'
-                                    obj = Filter_P1_LevelSet_2D_Interior();
-                                case '3D'
-                                    obj = Filter_P1_LevelSet_3D_Interior();
-                            end
-                    end
-                case 'PDE'
-                    switch settings.optimizer
-                        case {'MMA','PROJECTED GRADIENT','IPOPT'}
-                            obj = Filter_PDE_Density();
-                        case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
-                            switch settings.pdim
-                                case '2D'
-                                    obj = Filter_PDE_LevelSet_2D_Interior();
-                                case '3D'
-                                    obj = Filter_PDE_LevelSet_3D_Interior();
-                            end
-                    end
-            end
-        end
-    end
-    
     methods (Access = public)
+        
         function preProcess(obj)
-            obj.diffReacProb.preProcess;
+            obj.diffReacProb.preProcess();
             obj.mesh = obj.diffReacProb.mesh;
             
-            obj.setQuadrature;
-            obj.setInterpolation;
+            obj.setQuadrature();
+            obj.setInterpolation();
             
             obj.interpolation.computeShapeDeriv(obj.quadrature.posgp)
-            obj.computeGeometry;
-            obj.loadParams;
+            obj.computeGeometry();
+            obj.loadParams();
             
             for igauss = 1:obj.quadrature.ngaus
                 obj.M0{igauss} = sparse(1:obj.geometry.interpolation.nelem,1:obj.geometry.interpolation.nelem,...
@@ -108,9 +79,11 @@ classdef Filter < handle
             m = T_nodal_2_gauss*sum(Msmooth,2);
             P_operator = diag(m)\T_nodal_2_gauss;
         end
+        
     end
     
     methods (Access = private)
+        
         function setDiffusionReactionProblem(obj,scale)
             switch scale
                 case 'MACRO'
@@ -142,5 +115,7 @@ classdef Filter < handle
             obj.ngaus = obj.quadrature.ngaus;
             obj.shape = obj.interpolation.shape;
         end
+        
     end
+    
 end

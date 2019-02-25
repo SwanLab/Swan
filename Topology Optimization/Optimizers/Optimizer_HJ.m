@@ -20,9 +20,10 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
                 settings.filter = 'PDE';
                 obj.displayChangingFilter(settings)
             end
-            obj.filter = Filter_Boundary.create(settings);
+            obj.filter = FilterFactory.create(settings.filter,settings.optimizer);
             obj.filter.setupFromGiDFile(settings.filename,settings.ptype);
-            obj.filter.preProcess;
+            obj.filter.setDomainType('BOUNDARY');
+            obj.filter.preProcess();
             obj.filter.updateEpsilon(epsilon);
         end
         

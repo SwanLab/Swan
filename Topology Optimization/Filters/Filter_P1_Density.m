@@ -1,8 +1,7 @@
 classdef Filter_P1_Density < Filter_P1
-    properties
-    end
     
-    methods (Access = public)        
+    methods (Access = public)
+        
         function x_gp = getP0fromP1(obj,x)
             if isequal(x,obj.x)
                 x_gp = obj.x_reg;
@@ -12,5 +11,7 @@ classdef Filter_P1_Density < Filter_P1
                 obj.x_reg = x_gp;
             end
         end
+        
     end
+    
 end

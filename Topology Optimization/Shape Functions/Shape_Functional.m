@@ -34,7 +34,7 @@ classdef Shape_Functional < handle
     methods (Access = private)
         
         function createFilter(obj,settings)
-            obj.filter = Filter.create(settings);
+            obj.filter = FilterFactory.create(settings.filter,settings.optimizer);
             obj.filter.setupFromGiDFile(settings.filename,settings.ptype); 
         end
         
