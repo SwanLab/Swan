@@ -20,3 +20,14 @@ Constraint: 3.588034
 Optimality tolerance: 1.982392 
 Kappa: 0.500000 
 
+-----------------------------------------------------------------------------------------------
+
+Iteration: 3 
+Nstep: 1 
+Cost  29.879184 
+-Cost1: 29.879184 
+Constraint: 0.018197 
+-Constraint1: 0.018197 
+Optimality tolerance: 1.534749 
+Kappa: 0.500000 
+
