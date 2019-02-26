@@ -1,7 +1,10 @@
 classdef Filter < handle
     
-    properties
+    properties (GetAccess = public, SetAccess = private)
         diffReacProb
+    end
+    
+    properties (Access = protected)
         M0 % !! Computation done by integrator ?? !!
         mesh
         nnode
@@ -46,6 +49,10 @@ classdef Filter < handle
             obj.setDiffusionReactionProblem(scale);
             obj.diffReacProb.setupFromGiDFile(problemID);
         end
+        
+    end
+    
+    methods (Access = protected)
         
         function A_nodal_2_gauss = computeA(obj)
             A_nodal_2_gauss = sparse(obj.nelem,obj.npnod);
