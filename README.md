@@ -1,3 +1,11 @@
+## SWAN LOGO (WIP) ##
+
+## SWAN ## 
+
+_Swan_ is a Topology Optimization software developed in Matlab.
+
+
+
 Master's Thesis: Finite Element Method
 
 Professor:  Àlex Ferrer Ferré
