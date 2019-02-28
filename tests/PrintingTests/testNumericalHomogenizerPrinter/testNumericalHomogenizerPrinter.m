@@ -13,7 +13,7 @@ classdef testNumericalHomogenizerPrinter < testNotShowingError...
     methods (Access = public)
         
         function obj = testNumericalHomogenizerPrinter()
-            d.iter     = 3;
+            d.iter     = 0;
             d.file     = obj.fileOutputName;      
             d.postCase = 'NumericalHomogenizer';
             tp = testPrintingPostProcessComputer(d);
