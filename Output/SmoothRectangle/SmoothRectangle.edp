@@ -1,8 +1,8 @@
 
 // --- Input ---
 real p = 4;
-real mx = 0.01;
-real my = 0.061579;
+real mx = 0.4;
+real my = 0.4;
 real Hmax = 0.02;
 real elByInt = 20;
 real elByBor = 20;
@@ -27,3 +27,4 @@ cout << "--- Smooth mesh ---" << endl;
 Th = adaptmesh(Th, periodic=[[104,y],[102,y],[101,x],[103,x]], hmax = Hmax, hmin = 0.8*Hmax, nbvx=100000);
 Th = splitmesh(Th,2);
 savemesh(Th, OutName+".msh");
+>>>>>>> master
