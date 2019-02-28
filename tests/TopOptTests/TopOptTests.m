@@ -19,8 +19,7 @@ classdef TopOptTests < testRunner
                'testCantilever2';
                'testBridge';                             
                'testCantilever';                
-               'testGripping';  
-                                
+               'testGripping';                                  
                'testProjectedSlerp';                                
                'testMicro2'; 
                'testBridge2';                
