@@ -15,10 +15,10 @@ classdef PrintingTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {...
+               'testPrintingInputFileForFem';
+                'testNumericalHomogenizerPrinter';                                                                                 
                 'testTopOptDesignElemDensShapePrinting';
                 'testPrintingFreeFemFile';                
-                'testPrintingInputFileForFem';
-                'testNumericalHomogenizerPrinter';                                                                 
                 'testFEMPrinting';
                 'testTopOptLevelSetPrinting';
                 'testTopOptDesignAndShapes';                
