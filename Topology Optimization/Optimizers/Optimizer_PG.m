@@ -1,16 +1,14 @@
 classdef Optimizer_PG < Optimizer_Unconstrained
-    properties
+    
+    properties  (GetAccess = public, SetAccess = private)
         optimality_tol
     end
     
-    methods
+    methods (Access = public)
+        
         function obj = Optimizer_PG(settings,epsilon)
             obj@Optimizer_Unconstrained(settings,epsilon);
             obj.max_constr_change = +Inf;
-        end
-        
-        function optimality_tol = get.optimality_tol(obj)
-            optimality_tol = obj.target_parameters.optimality_tol;
         end
         
         function rho = computeX(obj,design_variable,gradient)
@@ -23,4 +21,13 @@ classdef Optimizer_PG < Optimizer_Unconstrained
         end
         
     end
+    
+    methods
+        
+        function optimality_tol = get.optimality_tol(obj)
+            optimality_tol = obj.target_parameters.optimality_tol;
+        end
+        
+    end
+    
 end

@@ -8,7 +8,6 @@ classdef Optimizer_Constrained < Optimizer
     end
     
     properties (Access = protected)
-        monitoring
         monitor
     end
     
@@ -26,7 +25,6 @@ classdef Optimizer_Constrained < Optimizer
             obj@Optimizer(settings);
             obj.init(settings,mesh);
             obj.monitor = MonitoringDocker(showOptParams,settings.plotting,settings,mesh);
-            %                         obj.monitoring = Monitoring.create(settings,mesh,showOptParams,settings.plotting);
         end
         
         function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
@@ -36,22 +34,18 @@ classdef Optimizer_Constrained < Optimizer
             constraint.computeCostAndGradient(x_ini);
             obj.print(x_ini,obj.niter,cost,constraint);
             
-            %             obj.monitoring.plotX(x_ini);
-            %                         obj.monitoring.refresh(x_ini,obj.niter,cost,constraint,obj.stop_vars,obj.hasFinished(istep,nstep),istep,nstep);
-            
             obj.monitor.refresh(x_ini,obj.niter,cost,constraint,obj.stop_vars,obj.hasFinished(istep,nstep),istep,nstep);
             
             while ~obj.hasFinished(istep,nstep)
                 obj.niter = obj.niter+1;
                 x = obj.updateX(x_ini,cost,constraint);
-                %                                 obj.monitoring.refresh(x,obj.niter,cost,constraint,obj.stop_vars,obj.has_converged || obj.niter > obj.maxiter*(istep/nstep),istep,nstep);
                 obj.monitor.refresh(x,obj.niter,cost,constraint,obj.stop_vars,obj.hasFinished(istep,nstep),istep,nstep);
                 obj.print(x,obj.niter,cost,constraint);
                 obj.writeToFile(istep,cost,constraint)
                 x_ini = x;
             end
             obj.printFinal(x,cost,constraint);
-            % !!????? NEEDED ??????
+
             obj.has_converged = 0;
         end
         

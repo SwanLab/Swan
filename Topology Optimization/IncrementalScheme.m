@@ -1,4 +1,4 @@
-classdef Incremental_Scheme < handle
+classdef IncrementalScheme < handle
     
     properties (Access = public)
         settings
@@ -13,7 +13,7 @@ classdef Incremental_Scheme < handle
     
     methods (Access = public)
         
-        function obj = Incremental_Scheme(settings,mesh)
+        function obj = IncrementalScheme(settings,mesh)
             obj.settings = settings;
             nsteps = settings.nsteps;
             obj.coord = mesh.coord;
