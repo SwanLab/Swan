@@ -5,20 +5,24 @@ classdef Filter < handle
     end
     
     properties (Access = protected)
-        M0 % !! Computation done by integrator ?? !!
+        x
+        x_reg
+    end
+    
+    properties (GetAccess = protected, SetAccess = private)
+        P_operator
+        M0
+        
+        geometry
+        quadrature
+        interpolation
+        
         mesh
         nnode
         nelem
         npnod
         ngaus
         shape
-        x
-        x_reg
-        P_operator
-        
-        geometry
-        quadrature
-        interpolation
     end
     
     methods (Access = public)
@@ -32,12 +36,11 @@ classdef Filter < handle
             
             obj.interpolation.computeShapeDeriv(obj.quadrature.posgp)
             obj.computeGeometry();
-            obj.loadParams();
+            obj.storeParams();
             
-            for igauss = 1:obj.quadrature.ngaus
-                obj.M0{igauss} = sparse(1:obj.geometry.interpolation.nelem,1:obj.geometry.interpolation.nelem,...
-                    obj.geometry.dvolu(:,igauss));
-            end
+            obj.computeElementalMassMatrix();
+            
+            obj.P_operator = obj.computePoperator(obj.diffReacProb.element.M);
         end
         
         function obj = setupFromMesh(obj,mesh,scale)
@@ -87,6 +90,15 @@ classdef Filter < handle
             P_operator = diag(m)\T_nodal_2_gauss;
         end
         
+        function itHas = xHasChanged(obj,x)
+            itHas = ~isequal(x,obj.x);
+        end
+        
+        function updateStoredValues(obj,x,x0)
+            obj.x = x;
+            obj.x_reg = x0;
+        end
+        
     end
     
     methods (Access = private)
@@ -115,12 +127,19 @@ classdef Filter < handle
             obj.interpolation = Interpolation.create(obj.mesh,obj.quadrature.order);
         end
         
-        function loadParams(obj)
+        function storeParams(obj)
             obj.nelem = obj.geometry.interpolation.nelem;
             obj.nnode = obj.geometry.interpolation.nnode;
             obj.npnod = obj.geometry.interpolation.npnod;
             obj.ngaus = obj.quadrature.ngaus;
             obj.shape = obj.interpolation.shape;
+        end
+        
+        function computeElementalMassMatrix(obj)
+            for igauss = 1:obj.quadrature.ngaus
+                obj.M0{igauss} = sparse(1:obj.geometry.interpolation.nelem,1:obj.geometry.interpolation.nelem,...
+                    obj.geometry.dvolu(:,igauss));
+            end
         end
         
     end

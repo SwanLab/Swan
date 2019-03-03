@@ -94,9 +94,9 @@ for icases=1:size(filenames,1)
     
     %     try
     test = TopOpt_Problem(settings);
-    test.preProcess;
-    test.computeVariables;
-    test.postProcess;
+    test.preProcess();
+    test.computeVariables();
+    test.postProcess();
     %     end
 end
 close all

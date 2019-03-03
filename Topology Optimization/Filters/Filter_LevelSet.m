@@ -30,20 +30,6 @@ classdef Filter_LevelSet < Filter
         
     end
     
-    methods (Static, Access = protected)
-        
-        function [full_elem,cut_elem] = findCutElements(x,connectivities) % !! REMOVE WHEN REFACTORING PLOT 3D!!
-            phi_nodes = x(connectivities);
-            phi_case = sum((sign(phi_nodes)<0),2);
-            
-            full_elem = phi_case==size(connectivities,2);
-            null_elem = phi_case==0;
-            indexes = (1:size(connectivities,1))';
-            cut_elem = indexes(~(full_elem+null_elem));
-        end
-        
-    end
-    
     methods (Static, Access = public)
         
         function [F,aire] = faireF2(p,t,psi)
