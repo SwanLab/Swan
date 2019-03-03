@@ -27,3 +27,4 @@ cout << "--- Smooth mesh ---" << endl;
 Th = adaptmesh(Th, periodic=[[104,y],[102,y],[101,x],[103,x]], hmax = Hmax, hmin = 0.8*Hmax, nbvx=100000);
 Th = splitmesh(Th,2);
 savemesh(Th, OutName+".msh");
+>>>>>>> master
