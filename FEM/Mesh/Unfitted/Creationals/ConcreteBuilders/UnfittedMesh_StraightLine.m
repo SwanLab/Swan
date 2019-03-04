@@ -1,6 +1,6 @@
 classdef UnfittedMesh_StraightLine < UnfittedMesh_AbstractBuilder
     properties (GetAccess = public, SetAccess = private)
-        meshType = 'INTERIOR';
+        unfittedType = 'INTERIOR';
         maxSubcells = 2;
         nnodesSubcell = 2;
         

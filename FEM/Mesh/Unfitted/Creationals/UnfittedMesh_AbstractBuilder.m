@@ -1,7 +1,7 @@
 classdef UnfittedMesh_AbstractBuilder < handle
     
     properties (GetAccess = public, SetAccess = private, Abstract)
-        meshType
+        unfittedType
         maxSubcells
         nnodesSubcell
         
@@ -27,7 +27,7 @@ classdef UnfittedMesh_AbstractBuilder < handle
     methods (Access = ?Mesh_Unfitted)
         
         function build(obj,mesh)
-            mesh.meshType = obj.meshType;
+            mesh.unfittedType = obj.unfittedType;
             mesh.maxSubcells = obj.maxSubcells;
             mesh.nnodesSubcell = obj.nnodesSubcell;
             mesh.subcellsMesher = obj.subcellsMesher;

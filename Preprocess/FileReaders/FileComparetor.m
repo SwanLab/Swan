@@ -10,12 +10,6 @@ classdef FileComparetor < handle
             is_equal = obj.isContentEqual(A,B);
             
             theyAre = ~is_equal;
-            
-            if theyAre
-                diffLines = find(~strcmp(A,B));
-                a = A(diffLines);
-                b = B(diffLines);
-            end
         end
         
     end

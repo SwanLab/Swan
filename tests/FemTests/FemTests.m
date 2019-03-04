@@ -17,7 +17,6 @@ classdef FemTests < testRunner
             obj.tests = {...  
                 'test2dMicro';
                 'test2dQuad';                
-                'testStiffnessMatrixGenerator';
                 'test2dTriangle';
                 'test2dStokes_triangle';
                 'test3dTetrahedra';

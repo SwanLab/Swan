@@ -7,16 +7,16 @@ classdef Mesh_Unfitted_Factory < handle
     
     methods (Access = public, Static)
         
-        function mesh_unfitted = create(meshType,meshBackground,interpolation_background,PropertyName,PropertyValue)
+        function mesh_unfitted = create(unfittedType,meshBackground,interpolation_background,PropertyName,PropertyValue)
             obj = Mesh_Unfitted_Factory;
             obj.nargin = nargin;
             
             obj.determineFlagState(PropertyName,PropertyValue);
             
-            if obj.shallBeComposite(meshType)
-                mesh_unfitted = Mesh_Unfitted_Composite(meshType,meshBackground,interpolation_background);
+            if obj.shallBeComposite(unfittedType)
+                mesh_unfitted = Mesh_Unfitted_Composite(unfittedType,meshBackground,interpolation_background);
             else
-                mesh_unfitted = Mesh_Unfitted(meshType,meshBackground,interpolation_background);
+                mesh_unfitted = Mesh_Unfitted(unfittedType,meshBackground,interpolation_background);
             end
         end
         
@@ -37,8 +37,8 @@ classdef Mesh_Unfitted_Factory < handle
             obj.includeBoxContour = PropertyValue;
         end
         
-        function shall = shallBeComposite(obj,meshType)
-           if obj.includeBoxContour && strcmp(meshType,"INTERIOR")
+        function shall = shallBeComposite(obj,unfittedType)
+           if obj.includeBoxContour && strcmp(unfittedType,"INTERIOR")
                warning('Contours are always included for INTERIOR mesh type.')
               shall = false;
            else

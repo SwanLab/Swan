@@ -14,7 +14,7 @@ classdef Mesh_Unfitted_Properties < handle
     end
     
     properties (GetAccess = public, SetAccess = ?UnfittedMesh_AbstractBuilder)
-        meshType
+        unfittedType
     end
     
     properties (GetAccess = public, SetAccess = ?MemoryManager_MeshUnfitted)

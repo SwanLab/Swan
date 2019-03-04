@@ -1,6 +1,6 @@
 classdef UnfittedMesh_FlatCurve < UnfittedMesh_AbstractBuilder
     properties (GetAccess = public, SetAccess = private)
-        meshType = 'BOUNDARY';
+        unfittedType = 'BOUNDARY';
         maxSubcells = 2;
         nnodesSubcell = 2;
         
