@@ -73,6 +73,14 @@ classdef VademecumPlotter < handle
                 obj.plotFigure();
                 obj.printFigure();
             end
+        end       
+        
+        function obtainTensorComponent(obj)
+            i = obj.iIndex;
+            j = obj.jIndex;
+            Tij = obj.tensor(i,j,:,:);
+            Tij = squeeze(Tij);
+            obj.value2print = Tij;
         end        
         
     end
@@ -82,14 +90,6 @@ classdef VademecumPlotter < handle
         function obtainIJindex(obj,iplot)
             obj.iIndex = obj.index(iplot,1);
             obj.jIndex = obj.index(iplot,2);
-        end
-        
-        function obtainTensorComponent(obj)
-            i = obj.iIndex;
-            j = obj.jIndex;
-            Tij = obj.tensor(i,j,:,:);
-            Tij = squeeze(Tij);
-            obj.value2print = Tij;
         end
         
         function createTensorName(obj)

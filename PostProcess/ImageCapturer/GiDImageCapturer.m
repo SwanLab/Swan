@@ -2,7 +2,7 @@ classdef GiDImageCapturer
     
     properties (Access = private)
         gidPath = '/opt/GiDx64/13.0.2/'
-        pathTcl = '/home/alex/git-repos/FEM-MAT-OO/FEM/PostProcess/ImageCapturer/'
+        pathTcl = '/home/alex/git-repos/FEM-MAT-OO/PostProcess/ImageCapturer/'
         outPutFolderPath = '/home/alex/Dropbox/Amplificators/Images/'
         resultsFile
         outputImageName
@@ -20,6 +20,7 @@ classdef GiDImageCapturer
         function init(obj,fileName,outPutImageName,inputFileName)
             obj.resultsFile = fileName;
             obj.outputImageName = [obj.outPutFolderPath,outPutImageName];
+            obj.createOutPutImageFolder()
             obj.writeCallGiDTclFile(obj.pathTcl,inputFileName,obj.outputImageName);
             command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.pathTcl,'callGiDCapturer.tcl"'];
             system(command);
@@ -30,6 +31,14 @@ classdef GiDImageCapturer
             name_file = [' ',obj.outputImageName,'.png'];
             command = strcat('convert -crop 500x500+0+0 -gravity Center ',name_file,' ',name_file);
             system(command);
+        end
+        
+        function createOutPutImageFolder(obj)
+            dir = obj.outputImageName;
+            if ~exist(dir,'dir')
+                mkdir(dir)
+                addpath(dir)
+            end
         end
         
     end

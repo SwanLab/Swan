@@ -6,12 +6,15 @@ classdef TopOptTests < testRunner
     end
     
     methods (Access = public)
+        
         function obj = TopOptTests()
             obj@testRunner();
         end
+        
     end
     
     methods (Access = protected)
+        
         function loadTests(obj)
             obj.tests = {...
                 
@@ -27,8 +30,8 @@ classdef TopOptTests < testRunner
             'testMicro2';
             'testBridge2';
             };
-        
         end
+        
     end
     
 end
