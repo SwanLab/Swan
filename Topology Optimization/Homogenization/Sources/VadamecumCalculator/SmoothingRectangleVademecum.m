@@ -38,79 +38,16 @@ classdef SmoothingRectangleVademecum < handle
         end
                 
         function postprocessDifVademecum(obj)
-            obj.createDifferenceDataBase();
-            a  = load('fIs');
-            fIs = a.fIs;
-            a  = load('fIn');
-            fIn = a.fIn;
-            obj.postprocessDiference(fIs,fIn)
-        end
-        
-        function createDifferenceDataBase(obj)
-            dS = obj.smoothDB;
-            dN = obj.nonSmoothDB;
-            dD.volume     = dS.postData.volume     - dN.postData.volume;
-            dD.Ctensor    = dS.postData.Ctensor    - dN.postData.Ctensor;
-            dD.Ptensor    = dS.postData.Ptensor    - dN.postData.Ptensor;
-            dD.PinvTensor = dS.postData.PinvTensor - dN.postData.PinvTensor;
-            dD.mxV        = dS.postData.mxV;
-            dD.myV        = dS.postData.myV;
-            obj.difDB.postData   = dD;
-            obj.difDB.fileName   = 'ReactangleDifference';
-            obj.difDB.outPutPath = fullfile(obj.outPutPath,'/');
-        end
-        
-        function fI = postprocess(obj,d)
-            p  = VademecumPostProcessor(d);
-            p.postprocess();
-            fI = p.feasibleIndex;
-        end
-        
-        function postprocessDiference(obj,iS,iN)
-            mxV = obj.smoothDB.postData.mxV;
-            myV = obj.smoothDB.postData.myV;
-            for i = 1:length(mxV)
-                for j = 1:length(myV)
-                    txi(i,j) = mxV(i)/myV(j);
-                end
-            end
-            
-            
-            rhoS = obj.smoothDB.postData.volume(iS);
-            C1 = obj.smoothDB.postData.Ctensor(1,1,:,:);
-            C1 = squeeze(C1);
-            Cs(:,1)   = C1(iS);
-            txiS = txi(iS);
-            
-            rhoN = obj.nonSmoothDB.postData.volume(iN);
-            C1 = obj.nonSmoothDB.postData.Ctensor(1,1,:,:);
-            C1 = squeeze(C1);
-            Cn(:,1)   = C1(iN);
-            txiN = txi(iN);
-            
-            Csp(:,1)  = griddata(txiS,rhoS,Cs,txiN,rhoN);
-            Cnp(:,1)  = griddata(txiN,rhoN,Cn,txiS,rhoS);
-            
-            dif = Cs - Cnp;
-            
-            x = txiN;
-            y = rhoN;
-            z = dif;            
-            hold on
-            plot(x,y,'+');
-            xlabel('$\frac{m1}{m2}$','Interpreter','latex');
-            ylabel('\rho');      
-            plot(txiS,rhoS,'+')
-            
-            ind = ~isnan(z);
-            ncolors = 50;
-            tri = delaunay(x(ind),y(ind));
-            tricontour(tri,x(ind),y(ind),z(ind),ncolors)            
-        end
-        
-        
-        
-        
+            d.fileName   = 'ReactangleDifference';
+            d.outPutPath = fullfile(obj.outPutPath,'Difference','/');
+            d.smoothVD   = obj.smoothVad.vademecumData;
+            d.smoothVD.feasibleIndex = obj.smoothVad.getFeasibleIndex();            
+            d.nonSmoothVD = obj.nonSmoothVad.vademecumData;
+            d.nonSmoothVD.feasibleIndex = obj.nonSmoothVad.getFeasibleIndex();                                    
+            vc = VademecumDifferenceComputer(d);
+            vc.compute();
+        end             
+
     end
     
 end
