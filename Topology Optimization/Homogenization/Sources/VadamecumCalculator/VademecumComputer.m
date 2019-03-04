@@ -38,10 +38,10 @@ classdef VademecumComputer < handle
         function calculateVademecum(obj)
             d.fileName   = obj.fileName;
             d.outPutPath = fullfile(obj.outPutPath,[d.fileName,'/']);
-            %vc = VademecumCalculator(d);
-            %obj.vademecumData = vc.getData(); 
-            a  = load(obj.fileName);
-            obj.vademecumData = a.d;            
+            vc = VademecumCalculator(d);
+            obj.vademecumData = vc.getData(); 
+            %a  = load(obj.fileName);
+            %obj.vademecumData = a.d;            
         end
         
         function plotVademecum(obj)
