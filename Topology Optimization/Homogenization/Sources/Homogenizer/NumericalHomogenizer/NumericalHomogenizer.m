@@ -130,6 +130,7 @@ classdef NumericalHomogenizer < handle
             obj.computeVolumeValue();
             obj.computeHomogenizedTensor();
             obj.computeAmplificator();
+            obj.computeGeneralizedAmplificatorTensor();
         end
         
         function computeHomogenizedTensor(obj)
@@ -142,6 +143,10 @@ classdef NumericalHomogenizer < handle
             P = SymmetricFourthOrderPlaneStressVoigtTensor();
             P.setValue(Pv);
             obj.Ptensor = P;
+        end
+        
+        function computeGeneralizedAmplificatorTensor(obj)
+            Pg = obj.microProblem.computeGeneralizedAmplificator();
         end
         
         function computeVolumeValue(obj)
