@@ -1,4 +1,4 @@
-classdef FileComparetor < handle
+classdef FileComparator < handle
     
     methods (Access = public)
         
