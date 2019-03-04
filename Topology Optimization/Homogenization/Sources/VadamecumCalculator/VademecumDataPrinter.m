@@ -40,6 +40,9 @@ classdef VademecumDataPrinter < FilePrinter
             tName = 'Volume' ;
             path  = obj.outPutPath;
             obj.fileName = [path,tName,'.txt'];
+            obj.openFile();
+            obj.printVariable();
+            obj.closeFile();            
         end
         
         function printCtensor(obj)
@@ -61,7 +64,7 @@ classdef VademecumDataPrinter < FilePrinter
                     obj.obtainTensorComponent(i,j);
                     obj.obtainTensorFileName(i,j);
                     obj.openFile();
-                    obj.printTensorComponent();
+                    obj.printVariable();
                     obj.closeFile();
                 end
             end
@@ -80,7 +83,7 @@ classdef VademecumDataPrinter < FilePrinter
             obj.fileName = [path,tName,istr,jstr,'.txt'];
         end
         
-        function printTensorComponent(obj)
+        function printVariable(obj)
             fV  = obj.fieldValue;
             fN  = obj.fileName;
             save(fN,'fV','-ascii','-double','-tabs');
