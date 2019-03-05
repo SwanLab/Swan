@@ -13,7 +13,7 @@ classdef Optimizer < handle
         function obj = Optimizer(settings)
             obj.nconstr   = settings.nconstr;
             obj.target_parameters = settings.target_parameters;
-            obj.constraint_case=settings.constraint_case;
+            obj.constraint_case = settings.constraint_case;
         end
     end
     

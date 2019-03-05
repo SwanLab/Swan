@@ -1,69 +1,46 @@
 classdef Filter < handle
-    properties
+    
+    properties (GetAccess = public, SetAccess = private)
         diffReacProb
-        M0 % !! Computation done by integrator ?? !!
+    end
+    
+    properties (Access = protected)
+        x
+        x_reg
+    end
+    
+    properties (GetAccess = protected, SetAccess = private)
+        P_operator
+        M0
+        
+        geometry
+        quadrature
+        interpolation
+        
         mesh
         nnode
         nelem
         npnod
         ngaus
         shape
-        x
-        x_reg
-        P_operator
-        
-        geometry
-        quadrature
-        interpolation
-    end
-    
-    methods (Static, Access = public)
-        function obj = create(settings)
-            switch settings.filter
-                case 'P1'
-                    switch settings.optimizer
-                        case {'MMA','PROJECTED GRADIENT','IPOPT'}
-                            obj = Filter_P1_Density();
-                        case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
-                            switch settings.pdim
-                                case '2D'
-                                    obj = Filter_P1_LevelSet_2D_Interior();
-                                case '3D'
-                                    obj = Filter_P1_LevelSet_3D_Interior();
-                            end
-                    end
-                case 'PDE'
-                    switch settings.optimizer
-                        case {'MMA','PROJECTED GRADIENT','IPOPT'}
-                            obj = Filter_PDE_Density();
-                        case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
-                            switch settings.pdim
-                                case '2D'
-                                    obj = Filter_PDE_LevelSet_2D_Interior();
-                                case '3D'
-                                    obj = Filter_PDE_LevelSet_3D_Interior();
-                            end
-                    end
-            end
-        end
     end
     
     methods (Access = public)
+        
         function preProcess(obj)
-            obj.diffReacProb.preProcess;
+            obj.diffReacProb.preProcess();
             obj.mesh = obj.diffReacProb.mesh;
             
-            obj.setQuadrature;
-            obj.setInterpolation;
+            obj.setQuadrature();
+            obj.setInterpolation();
             
             obj.interpolation.computeShapeDeriv(obj.quadrature.posgp)
-            obj.computeGeometry;
-            obj.loadParams;
+            obj.computeGeometry();
+            obj.storeParams();
             
-            for igauss = 1:obj.quadrature.ngaus
-                obj.M0{igauss} = sparse(1:obj.geometry.interpolation.nelem,1:obj.geometry.interpolation.nelem,...
-                    obj.geometry.dvolu(:,igauss));
-            end
+            obj.computeElementalMassMatrix();
+            
+            obj.P_operator = obj.computePoperator(obj.diffReacProb.element.M);
         end
         
         function obj = setupFromMesh(obj,mesh,scale)
@@ -75,6 +52,10 @@ classdef Filter < handle
             obj.setDiffusionReactionProblem(scale);
             obj.diffReacProb.setupFromGiDFile(problemID);
         end
+        
+    end
+    
+    methods (Access = protected)
         
         function A_nodal_2_gauss = computeA(obj)
             A_nodal_2_gauss = sparse(obj.nelem,obj.npnod);
@@ -108,9 +89,20 @@ classdef Filter < handle
             m = T_nodal_2_gauss*sum(Msmooth,2);
             P_operator = diag(m)\T_nodal_2_gauss;
         end
+        
+        function itHas = xHasChanged(obj,x)
+            itHas = ~isequal(x,obj.x);
+        end
+        
+        function updateStoredValues(obj,x,x0)
+            obj.x = x;
+            obj.x_reg = x0;
+        end
+        
     end
     
     methods (Access = private)
+        
         function setDiffusionReactionProblem(obj,scale)
             switch scale
                 case 'MACRO'
@@ -135,12 +127,21 @@ classdef Filter < handle
             obj.interpolation = Interpolation.create(obj.mesh,obj.quadrature.order);
         end
         
-        function loadParams(obj)
+        function storeParams(obj)
             obj.nelem = obj.geometry.interpolation.nelem;
             obj.nnode = obj.geometry.interpolation.nnode;
             obj.npnod = obj.geometry.interpolation.npnod;
             obj.ngaus = obj.quadrature.ngaus;
             obj.shape = obj.interpolation.shape;
         end
+        
+        function computeElementalMassMatrix(obj)
+            for igauss = 1:obj.quadrature.ngaus
+                obj.M0{igauss} = sparse(1:obj.geometry.interpolation.nelem,1:obj.geometry.interpolation.nelem,...
+                    obj.geometry.dvolu(:,igauss));
+            end
+        end
+        
     end
+    
 end

@@ -1,4 +1,5 @@
 classdef Optimizer_Projected_Slerp < Optimizer_Constrained
+    
     properties
         optimizer_unconstr
         objfunc
@@ -11,6 +12,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
     end
     
     methods (Access = public)
+        
         function obj = Optimizer_Projected_Slerp(settings,mesh,epsilon)
             obj@Optimizer_Constrained(settings,mesh,settings.monitoring);
             obj.objfunc = Lagrangian(settings);
@@ -57,8 +59,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.optimizer_unconstr.line_search.initKappa;
             x_ini = obj.optimizer_unconstr.computeX(x_ini,obj.objfunc.gradient);
             
-            obj.fhtri= [];
-            %obj.plotX(x_ini);
+            obj.fhtri = [];
         end
         
         

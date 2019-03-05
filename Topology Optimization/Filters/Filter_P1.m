@@ -1,22 +1,40 @@
 classdef Filter_P1 < Filter
+    
+    methods (Access = protected, Abstract)
+        computeP0fromP1(obj)
+    end
+    
     methods (Access = public)
+        
         function preProcess(obj)
             preProcess@Filter(obj)
-            obj.P_operator = obj.computePoperator(obj.diffReacProb.element.M);
         end
         
-        function x_reg = getP1fromP0(obj,x)
-            RHS = obj.integrate_P1_function_with_shape_function(x);
+        function x_reg = getP1fromP0(obj,x0)
+            RHS = obj.integrate_P1_function_with_shape_function(x0);
             x_reg = obj.P_operator'*RHS;
         end
+        
+        function x0 = getP0fromP1(obj,x)
+            if obj.xHasChanged(x)
+                x0 = obj.computeP0fromP1(x);
+            else
+                x0 = obj.x_reg;
+            end
+            obj.updateStoredValues(x,x0);
+        end
+        
     end
     
     methods (Access = private)
-        function gauss_sum = integrate_P1_function_with_shape_function(obj,x)
-            gauss_sum=0;
-            for igauss=1:size(obj.M0,2)
-                gauss_sum=gauss_sum+obj.M0{igauss}*x(:,igauss);
+        
+        function A = integrate_P1_function_with_shape_function(obj,x)
+            A = 0;
+            for igauss = 1:size(obj.M0,2)
+                A = A + obj.M0{igauss}*x(:,igauss);
             end
         end
+        
     end
+    
 end
