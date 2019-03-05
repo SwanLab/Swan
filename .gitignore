@@ -1,0 +1,5 @@
+# An example with a wide configuration of a .gitignore file can be found here: https://github.com/KratosMultiphysics/Kratos/blob/master/.gitignore
+
+# Directories
+Output/*
+Videos/*
