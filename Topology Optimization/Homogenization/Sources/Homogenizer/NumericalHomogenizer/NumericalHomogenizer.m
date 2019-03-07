@@ -19,8 +19,7 @@ classdef NumericalHomogenizer < handle
         hasToCaptureImage = false
         
         lsDataBase
-        matDataBase
-        interDataBase
+        interpDataBase
         volDataBase
         
         matProp
@@ -58,8 +57,7 @@ classdef NumericalHomogenizer < handle
             obj.pdim           = d.pdim;
             obj.eDensCreatType = d.elementDensityCreatorType;
             obj.lsDataBase     = d.levelSetDataBase;
-            obj.matDataBase    = d.materialDataBase;
-            obj.interDataBase  = d.materialInterpDataBase;
+            obj.interpDataBase = d.interpDataBase;
             obj.volDataBase    = d.volumeShFuncDataBase;
         end
         
@@ -78,13 +76,8 @@ classdef NumericalHomogenizer < handle
         end        
         
         function createInterpolation(obj)
-            int = obj.interDataBase.method;
-            mV  = obj.matDataBase.matProp;
-            mat = obj.matDataBase.materialType;
-            pd  = obj.pdim;
-            mI  = Material_Interpolation.create(mV,mat,int,pd);
+            mI  = Material_Interpolation.create(obj.interpDataBase);
             obj.interpolation = mI;
-            obj.matValues = mV;
         end
         
         function createElementalDensityCreator(obj)

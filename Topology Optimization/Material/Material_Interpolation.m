@@ -9,21 +9,21 @@ classdef Material_Interpolation < handle
     end
     
     methods (Static)
-        function obj=create(ConstitutiveProperties, TypeOfMaterial, interpolation, pdim)
-            switch TypeOfMaterial
+        function obj=create(settings)
+            switch settings.TypeOfMaterial
                 case 'ISOTROPIC'
-                    switch interpolation
+                    switch settings.Interpolation
                         case 'SIMPALL'
-                            switch pdim
+                            switch settings.Dim
                                 case '2D'
-                                    obj=Material_Interpolation_ISO_SIMPALL_2D(ConstitutiveProperties);
+                                    obj=Material_Interpolation_ISO_SIMPALL_2D(settings.ConstitutiveProperties);
                                 case '3D'
-                                    obj=Material_Interpolation_ISO_SIMPALL_3D(ConstitutiveProperties);
+                                    obj=Material_Interpolation_ISO_SIMPALL_3D(settings.ConstitutiveProperties);
                             end
                         case 'SIMP_Adaptative'
-                            obj=Material_Interpolation_ISO_SIMP_Adaptative(ConstitutiveProperties);
+                            obj=Material_Interpolation_ISO_SIMP_Adaptative(settings.ConstitutiveProperties);
                         case 'SIMP_P3'
-                            obj=Material_Interpolation_ISO_SIMP_P3(ConstitutiveProperties);
+                            obj=Material_Interpolation_ISO_SIMP_P3(settings.ConstitutiveProperties);
                         otherwise
                             disp('Method not added')
                     end

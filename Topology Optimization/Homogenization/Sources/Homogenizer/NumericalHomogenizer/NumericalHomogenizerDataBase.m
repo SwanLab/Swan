@@ -23,8 +23,7 @@ classdef NumericalHomogenizerDataBase < handle
         function createDataBase(obj)
             d = obj.createNumericalHomogenizerDataBase();
             d.levelSetDataBase       = obj.createLevelSetDataBase();
-            d.materialInterpDataBase = obj.createMaterialInterpDataBase();
-            d.materialDataBase       = obj.createMaterialDataBase();
+            d.interpDataBase         = obj.createInterpDataBase();
             d.volumeShFuncDataBase   = obj.createShVolumeDataBase();
             obj.dataBase = d;
         end
@@ -56,19 +55,11 @@ classdef NumericalHomogenizerDataBase < handle
             d.volume = 0.5;
         end
         
-        function d = createMaterialInterpDataBase()
-            d.method = 'SIMPALL';
+        function d = createInterpDataBase()
+            d = SettingsInterpolation();
         end
         
-        function d = createMaterialDataBase()
-            d.materialType = 'ISOTROPIC';
-            d.matProp.rho_plus = 1;
-            d.matProp.rho_minus = 0;
-            d.matProp.E_plus = 1;
-            d.matProp.E_minus = 1e-3;
-            d.matProp.nu_plus = 1/3;
-            d.matProp.nu_minus = 1/3;
-        end        
+ 
         
     end
     
