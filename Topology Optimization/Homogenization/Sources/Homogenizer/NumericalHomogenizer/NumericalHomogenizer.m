@@ -101,6 +101,7 @@ classdef NumericalHomogenizer < handle
         end
         
         function d = createFilterDataBase(obj)
+            d = SettingsFilterP0();
             d.shape = obj.microProblem.element.interpolation_u.shape;
             d.conec = obj.microProblem.geometry.interpolation.T;
             d.quadr = obj.microProblem.element.quadrature;

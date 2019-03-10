@@ -35,7 +35,6 @@ classdef testExploringSettings < testShowingError & ...
             dB = defaultDB.dataBase;
             dB.outFileName                   = obj.fileMicroTestName;
             dB.print                         = true;
-            dB.levelSetDataBase.levelSetType = 'full';
             obj.numHomogDataBase = dB;
         end
         

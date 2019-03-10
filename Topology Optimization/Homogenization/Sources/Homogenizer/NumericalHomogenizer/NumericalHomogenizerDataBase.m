@@ -39,8 +39,8 @@ classdef NumericalHomogenizerDataBase < handle
         end
         
         function d = createShVolumeDataBase(obj)
-            d.filter = 'P1';
-            d.optimizer = 'MMA';
+            d = SettingsShapeFunctional();
+            d.filterParams.optimizer = 'MMA';
             d.filename = obj.femFileName;
             d.ptype = 'MICRO';
         end
@@ -50,9 +50,7 @@ classdef NumericalHomogenizerDataBase < handle
     methods (Access = private, Static)
         
         function d = createLevelSetDataBase()
-            d.levelSetType = 'horizontalFibers';
-            d.levFib = 3;
-            d.volume = 0.5;
+            d = SettingsLevelSetCreator();
         end
         
         function d = createInterpDataBase()
