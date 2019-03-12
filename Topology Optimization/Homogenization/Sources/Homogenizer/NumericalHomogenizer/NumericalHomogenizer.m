@@ -90,8 +90,9 @@ classdef NumericalHomogenizer < handle
         function d = createElementalDensityCreatorDataBase(obj)
             dl = obj.createLevelSetCreatorDataBase();
             df = obj.createFilterDataBase();
-            d.levelSetCreatorDataBase = dl;
-            d.filterDataBase = df;
+            d = SettingsElementalDensity();
+            d.levelSetCreatorParams = dl;
+            d.filterParams = df;
         end
         
         function d = createLevelSetCreatorDataBase(obj)

@@ -7,10 +7,10 @@ classdef ElementalDensityCreator < handle
    
    methods (Access = public, Static)
        
-       function eC = create(type,d)
+       function eC = create(type,cParams)
           f = ElementalDensityCreatorFactory();
           eC = f.create(type); 
-          eC.createDensity(d);
+          eC.createDensity(cParams);
        end
    end
    
