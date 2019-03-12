@@ -10,7 +10,7 @@ classdef testExploringSettings < testShowingError & ...
     
     properties (Access = private)
         homogenizer
-        numHomogDataBase        
+        numHomogParams        
         fileMicroTestName
     end
     
@@ -18,7 +18,6 @@ classdef testExploringSettings < testShowingError & ...
         
         function obj = testExploringSettings()
             obj.init();
-            obj.computeNumericalHomogenizerDataBase();
             obj.computeChomog();
         end
         
@@ -27,19 +26,11 @@ classdef testExploringSettings < testShowingError & ...
     methods (Access = private)
         
         function init(obj)
-            obj.fileMicroTestName = 'test2d_micro';
-        end
-        
-        function computeNumericalHomogenizerDataBase(obj)
-            defaultDB = NumericalHomogenizerDataBase([obj.fileMicroTestName,'.m']);
-            dB = defaultDB.dataBase;
-            dB.outFileName                   = obj.fileMicroTestName;
-            dB.print                         = true;
-            obj.numHomogDataBase = dB;
+            obj.numHomogParams = Settings_TestExploringSettings();
         end
         
         function computeChomog(obj)
-            d = obj.numHomogDataBase;
+            d = obj.numHomogParams;
             obj.homogenizer = NumericalHomogenizer(d);
             obj.computedVar{1} = obj.homogenizer.Ch;            
         end

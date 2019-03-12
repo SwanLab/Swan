@@ -56,9 +56,9 @@ classdef NumericalHomogenizer < handle
             obj.iter           = d.iter;
             obj.pdim           = d.pdim;
             obj.eDensCreatType = d.elementDensityCreatorType;
-            obj.lsDataBase     = d.levelSetDataBase;
-            obj.interpDataBase = d.interpDataBase;
-            obj.volDataBase    = d.volumeShFuncDataBase;
+            obj.lsDataBase     = d.levelSetCreatorParams;
+            obj.interpDataBase = d.interpParams;
+            obj.volDataBase    = d.volumeShFuncParams;
         end
         
         function createMicroProblem(obj)
