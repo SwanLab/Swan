@@ -1,5 +1,6 @@
 classdef SettingsLevelSetCreator < DefaultSettings
-    properties
+ 
+    properties (Access = public)
         levelSetType = 'full'
         ndim = 2
         coord

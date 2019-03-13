@@ -1,8 +1,11 @@
 classdef SettingsFilter < DefaultSettings
-    properties
+  
+    properties (Access = public)
         filter = 'P1'
         optimizer = 'SLERP'
     end
-    methods
+    
+    methods (Access = public)
     end
+    
 end

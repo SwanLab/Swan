@@ -1,5 +1,6 @@
 classdef SettingsNumericalHomogenizer < DefaultSettings
-    properties
+  
+    properties (Access = public)
         interpParams = SettingsInterpolation()
         levelSetCreatorParams = SettingsLevelSetCreator()
         volumeShFuncParams = SettingsShapeFunctional()
@@ -10,6 +11,7 @@ classdef SettingsNumericalHomogenizer < DefaultSettings
         iter = 0
         pdim = '2D'
     end
+    
     methods
     end
 end
