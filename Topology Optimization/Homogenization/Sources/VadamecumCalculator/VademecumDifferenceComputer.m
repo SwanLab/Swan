@@ -32,10 +32,10 @@ classdef VademecumDifferenceComputer < handle
         function calculateVademecum(obj)
             dS = obj.smoothVD.postData;
             dN = obj.nonSmoothVD.postData;
-            dD.volume     = abs(dS.volume     - dN.volume);
-            dD.Ctensor    = abs(dS.Ctensor    - dN.Ctensor);
-            dD.Ptensor    = abs(dS.Ptensor    - dN.Ptensor);
-            dD.PinvTensor = abs(dS.PinvTensor - dN.PinvTensor);
+            dD.volume     = (dS.volume     - dN.volume);
+            dD.Ctensor    = (dS.Ctensor    - dN.Ctensor);
+            dD.Ptensor    = (dS.Ptensor    - dN.Ptensor);
+            dD.PinvTensor = (dS.PinvTensor - dN.PinvTensor);
             dD.mxV        = dS.mxV;
             dD.myV        = dS.myV;
             obj.difVD = dD;          

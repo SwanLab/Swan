@@ -5,6 +5,7 @@ classdef NumericalHomogenizer < handle
         Ptensor
         Ch
         volume
+        generalizedPtensor        
         matValues
         elemDensCr
     end
@@ -147,6 +148,7 @@ classdef NumericalHomogenizer < handle
         
         function computeGeneralizedAmplificatorTensor(obj)
             Pg = obj.microProblem.computeGeneralizedAmplificator();
+            obj.generalizedPtensor = Pg;
         end
         
         function computeVolumeValue(obj)
