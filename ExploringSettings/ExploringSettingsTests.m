@@ -14,8 +14,11 @@ classdef ExploringSettingsTests < testRunner
     
     methods (Access = protected)
         function loadTests(obj)
-            obj.tests = {...       
-                 'testExploringSettings';
+            obj.tests = {...     
+                 'testExplorSettNumHomogCustom';
+                 'testExplorSettNumHomogDefault';
+                 'testExplorSettLevSetDefault';
+                 'testExplorSettLevSetCustom';
                 };
 
         end

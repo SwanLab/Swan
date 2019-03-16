@@ -1,4 +1,4 @@
-classdef DefaultSettings < handle
+classdef DefaultSettings 
   
     properties
     end
