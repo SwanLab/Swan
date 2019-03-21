@@ -1,38 +1,42 @@
 classdef AbstractSettings < handle
     
+    properties (Access = private)
+       customParams 
+    end
+    
     methods (Access = protected)
         
         function loadParams(obj,filename)
-            cP = obj.getCustomParams(filename);
-            obj.assignCustomParams(cP);
+            run(filename);
+            obj.customParams = who;
+            obj.clearCustomParams();
+            
+            for i = 1:length(obj.customParams)
+                param = obj.customParams{i};
+                if isprop(obj,param)
+                    obj.(param) = eval(param);
+                else
+                    obj.warnOfInvalidCustomParams(param);
+                end
+            end
         end
         
     end
     
     methods (Access = private)
         
-        function cP = getCustomParams(obj,filename)
-            run(filename);
-            vars = who;
-            cP = struct;
-            for i = 1:length(vars)
-                propname = vars{i};
-                if isprop(obj,propname)
-                    cP.(propname) = eval(propname);
-                else
-%                     msg = [propname ' is not a property of ' class(obj) ' class.'];
-%                     warning(msg);
-                end
-            end
+        function clearCustomParams(obj)
+            obj.removeVar('filename');
+            obj.removeVar('obj');
         end
         
-        function assignCustomParams(obj,cP)
-            f = fields(cP);
-            n = length(f);
-            for i = 1:n
-                param = f{i};
-                obj.(param) = cP.(param);
-            end
+        function warnOfInvalidCustomParams(obj,param)
+            warning([param ' is not a property of ' class(obj)]);
+        end
+        
+        function removeVar(obj,var)
+            pos = strcmp(obj.customParams,var);
+            obj.customParams(pos) = [];
         end
         
     end
