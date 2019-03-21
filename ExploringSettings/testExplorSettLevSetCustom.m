@@ -10,7 +10,7 @@ classdef testExplorSettLevSetCustom < testShowingError & ...
     
     properties (Access = private)
         levelSet
-        levelSetParams        
+        levelSetParams
     end
     
     methods (Access = public)
@@ -25,7 +25,9 @@ classdef testExplorSettLevSetCustom < testShowingError & ...
     methods (Access = private)
         
         function init(obj)
-            obj.levelSetParams = Settings_TestLevelSetCreatorCustom();
+            obj.levelSetParams = SettingsLevelSetCreator('paramsLevelSetCreator_circle');
+            coord = Mesh_GiD('test2d_quad.m').coord;
+            obj.levelSetParams.coord = coord;
         end
         
         function computeLevelSet(obj)

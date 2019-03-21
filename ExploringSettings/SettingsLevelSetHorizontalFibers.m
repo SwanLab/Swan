@@ -1,8 +1,17 @@
 classdef SettingsLevelSetHorizontalFibers < SettingsLevelSetCreator
+    
     properties
-        levFib = 2
-        volume = 0.5000
+        levFib
+        volume
     end
-    methods
+    
+    methods (Access = public)
+        
+        function obj = SettingsLevelSetHorizontalFibers(varargin)
+            if nargin == 1
+                obj.loadConfigFile(varargin{1})
+            end
+        end
+        
     end
 end

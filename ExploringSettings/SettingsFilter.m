@@ -1,4 +1,4 @@
-classdef SettingsFilter < DefaultSettings
+classdef SettingsFilter < AbstractSettings
   
     properties (Access = public)
         filter = 'P1'

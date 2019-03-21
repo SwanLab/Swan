@@ -1,4 +1,4 @@
-classdef SettingsInterpolation < DefaultSettings
+classdef SettingsInterpolation < AbstractSettings
    
     properties (Access = public)
         constitutiveProperties = struct

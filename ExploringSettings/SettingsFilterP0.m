@@ -1,4 +1,4 @@
-classdef SettingsFilterP0 < DefaultSettings
+classdef SettingsFilterP0 < AbstractSettings
     properties
         shape
         conec 

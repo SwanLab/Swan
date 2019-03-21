@@ -1,5 +1,5 @@
 classdef ExploringSettingsTests < testRunner
-      
+    
     properties (Access = protected)
         FieldOfStudy = 'ExploringSettingsTests'
         tests
@@ -16,13 +16,13 @@ classdef ExploringSettingsTests < testRunner
     methods (Access = protected)
         
         function loadTests(obj)
-            obj.tests = {...     
-                 'testExplorSettNumHomogCustom';
-                 'testExplorSettNumHomogDefault';
-                 'testExplorSettLevSetDefault';
-                 'testExplorSettLevSetCustom';
+            obj.tests = {...
+                'testExplorSettNumHomogDefault';
+                'testExplorSettNumHomogCustom';
+                'testExplorSettLevSetDefault';
+                'testExplorSettLevSetCustom';
                 };
-
+            
         end
         
     end

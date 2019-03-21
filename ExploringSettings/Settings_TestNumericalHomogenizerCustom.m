@@ -18,7 +18,7 @@ classdef Settings_TestNumericalHomogenizerCustom < SettingsNumericalHomogenizer
             obj.outFileName = 'test2d_micro';
             obj.testName = 'test2d_micro.m';
             obj.print = true;
-            obj.levelSetCreatorParams.levelSetType='circle';
+            obj.levelSetCreatorParams = SettingsLevelSetCreator('configLevelSetCreator_circular');
             obj.volumeShFuncParams.filterParams.optimizer = 'MMA';
             obj.volumeShFuncParams.filename = 'test2d_micro.m';
             obj.volumeShFuncParams.ptype = 'MICRO';

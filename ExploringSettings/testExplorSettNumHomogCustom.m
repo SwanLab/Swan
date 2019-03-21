@@ -26,7 +26,7 @@ classdef testExplorSettNumHomogCustom < testShowingError & ...
     methods (Access = private)
         
         function init(obj)
-            obj.numHomogParams = Settings_TestNumericalHomogenizerCustom();
+            obj.numHomogParams = SettingsNumericalHomogenizer('paramsNumericalHomogenizer_example');
         end
         
         function computeChomog(obj)

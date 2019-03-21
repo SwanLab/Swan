@@ -1,21 +1,33 @@
-classdef SettingsNumericalHomogenizer < DefaultSettings
-  
+classdef SettingsNumericalHomogenizer < AbstractSettings
+    
     properties (Access = public)
-        interpParams = SettingsInterpolation()
-        levelSetCreatorParams = SettingsLevelSetCreator()
-        volumeShFuncParams = SettingsShapeFunctional()
-        elementDensityCreatorType = 'ElementalDensityCreatorByLevelSetCreator'
-        outFileName = 'RVE_Square_Triangle_Fine'
-        testName = 'RVE_Square_Triangle_Fine.m'
-        print = false
-        iter = 0
-        pdim = '2D'
+        interpParams
+        levelSetCreatorParams
+        volumeShFuncParams
+        elementDensityCreatorType
+        outFileName
+        testName
+        print
+        iter
+        pdim
     end
     
-    methods
+    methods (Access = public)
         
-        function obj = SettingsNumericalHomogenizer()
-            obj.volumeShFuncParams.filename = 'RVE_Square_Triangle_Fine.m';
+        function obj = SettingsNumericalHomogenizer(varargin)
+            obj.loadParams('paramsNumericalHomogenizer');
+            if nargin == 1
+                obj.loadParams(varargin{1});
+            end
+            obj.setParams();
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function setParams(obj)
+            obj.volumeShFuncParams.filename = obj.testName;
             obj.volumeShFuncParams.ptype = 'MICRO';
         end
         

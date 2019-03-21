@@ -1,10 +1,20 @@
-classdef SettingsLevelSetCreator < DefaultSettings
- 
+classdef SettingsLevelSetCreator < AbstractSettings
+    
     properties (Access = public)
-        levelSetType = 'full'
-        ndim = 2
-        coord = Mesh_GiD('RVE_Square_Triangle_Fine.m').coord;
+        levelSetType
+        ndim
+        coord
     end
-    methods
+    
+    methods (Access = public)
+        
+        function obj = SettingsLevelSetCreator(varargin)
+            obj.loadParams('paramsLevelSet');
+            if nargin == 1
+                obj.loadParams(varargin{1})
+            end
+        end
+        
     end
+    
 end

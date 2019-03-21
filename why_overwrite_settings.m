@@ -3,6 +3,7 @@ clear all
 
 default=SettingsNumericalHomogenizer();
 fprintf('Default type: %s\n',default.levelSetCreatorParams.levelSetType)
+clear
 a=Settings_TestNumericalHomogenizerCustom();
 fprintf('Custom type: %s\n',a.levelSetCreatorParams.levelSetType)
 b=SettingsNumericalHomogenizer();
