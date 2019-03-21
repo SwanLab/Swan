@@ -1,24 +1,25 @@
-classdef GeneralizedAmplificatorComputer < handle
+classdef AmplificatorComponentsCalculator < handle
     
     properties (SetAccess = private, GetAccess = public)
         Phomog
+        monom        
     end
     
     properties (Access = private)
         integrationDB
         Ptensor
-        pNorm
         nQuadStre
-        monom
         monomCoef
         nMonom
         pExp     
-        PcoefHomog        
+        PcoefHomog    
+        tstress
+        Chomog
     end
     
     methods (Access = public)
         
-        function obj = GeneralizedAmplificatorComputer(d)
+        function obj = AmplificatorComponentsCalculator(d)
             obj.init(d)
         end
         
@@ -38,10 +39,11 @@ classdef GeneralizedAmplificatorComputer < handle
             obj.integrationDB.nstre = d.nstre;
             obj.integrationDB.V = d.V;
             obj.integrationDB.dV = d.dV;
-            obj.integrationDB.ngaus  = d.ngaus;
-            obj.Ptensor = d.Ptensor;
-            obj.pNorm = 4;
-            obj.pExp  = obj.pNorm/2;
+            obj.integrationDB.ngaus = d.ngaus;
+            obj.integrationDB.nstre = d.nstre;
+            obj.tstress = d.tstress;
+            obj.Chomog  = d.Ch;
+            obj.pExp  = d.pNorm/2;
         end
         
         function computeMonomials(obj)
@@ -76,7 +78,7 @@ classdef GeneralizedAmplificatorComputer < handle
             V     = obj.integrationDB.V;
             dV    = obj.integrationDB.dV;
             ngaus = obj.integrationDB.ngaus;
-            Pt    = obj.Ptensor;
+            Pt    = obj.computePtensor();
             
             P = zeros(obj.nMonom,1);
             for t = 1:obj.nMonom
@@ -105,6 +107,27 @@ classdef GeneralizedAmplificatorComputer < handle
         function computePtensorWithCoef(obj)
             obj.PcoefHomog = obj.Phomog.*obj.monomCoef;
         end
+        
+        function Pt = computePtensor(obj)
+            tstres = obj.tstress;
+            Shomog = obj.computeShomog();
+            nstre  = obj.integrationDB.nstre;
+            Pt = zeros(size(tstres));
+            for istre = 1:nstre
+                for jstre = 1:nstre
+                    for kstre = 1:nstre
+                        Pt(istre,:,jstre,:) = Pt(istre,:,jstre,:) + tstres(istre,:,kstre,:)*Shomog(kstre,jstre);
+                    end
+                end
+            end
+        end           
+        
+        function Shomog = computeShomog(obj)
+            Ct = StiffnessPlaneStressVoigtTensor;
+            Ct.setValue(obj.Chomog);
+            St = Inverter.invert(Ct);
+            Shomog = St.getValue();            
+        end        
         
     end
     
@@ -136,8 +159,7 @@ classdef GeneralizedAmplificatorComputer < handle
             i = T(k,1);
             j = T(k,2);
         end
-        
-        
+       
     end
     
     

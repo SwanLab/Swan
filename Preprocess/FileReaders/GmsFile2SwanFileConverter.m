@@ -1,4 +1,4 @@
-classdef GmsFile2FemMatOoFileConverter < handle
+classdef GmsFile2SwanFileConverter < handle
     
     properties (Access = private)
         readData         
@@ -9,7 +9,7 @@ classdef GmsFile2FemMatOoFileConverter < handle
     
     methods (Access = public)
         
-        function obj = GmsFile2FemMatOoFileConverter(gF,oD,oF)
+        function obj = GmsFile2SwanFileConverter(gF,oD,oF)
             obj.init(gF,oD,oF)
         end
         

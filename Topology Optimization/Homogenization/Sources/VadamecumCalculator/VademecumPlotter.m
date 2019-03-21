@@ -33,12 +33,12 @@ classdef VademecumPlotter < handle
             obj.myV        = d.myV;
             obj.C          = d.C;
             obj.invP       = d.invP;
-            obj.volume     = d.volume;
+            obj.volume     = d.volume;            
             obj.hasToPrint = d.hasToPrint;
             obj.outPutPath = d.outPutPath;
             obj.microName  = d.microName;
         end        
-        
+               
         function addTitle(obj)
             fN = obj.fileName;
             title([fN,' for ',obj.microName])

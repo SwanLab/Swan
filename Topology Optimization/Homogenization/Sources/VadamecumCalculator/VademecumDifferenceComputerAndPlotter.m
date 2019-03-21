@@ -1,4 +1,4 @@
-classdef VademecumDifferenceComputer < handle
+classdef VademecumDifferenceComputerAndPlotter < handle
     
     properties (Access = private)
        smoothVD 
@@ -10,7 +10,7 @@ classdef VademecumDifferenceComputer < handle
 
     methods (Access = public)
         
-        function obj = VademecumDifferenceComputer(d)
+        function obj = VademecumDifferenceComputerAndPlotter(d)
             obj.init(d)
         end
         
@@ -30,12 +30,11 @@ classdef VademecumDifferenceComputer < handle
         end        
         
         function calculateVademecum(obj)
-            dS = obj.smoothVD.postData;
-            dN = obj.nonSmoothVD.postData;
+            dS = obj.smoothVD;
+            dN = obj.nonSmoothVD;
             dD.volume     = (dS.volume     - dN.volume);
-            dD.Ctensor    = (dS.Ctensor    - dN.Ctensor);
-            dD.Ptensor    = (dS.Ptensor    - dN.Ptensor);
-            dD.PinvTensor = (dS.PinvTensor - dN.PinvTensor);
+            dD.Ctensor    = (dS.C          - dN.C);
+            dD.PinvTensor = (dS.invP       - dN.invP);
             dD.mxV        = dS.mxV;
             dD.myV        = dS.myV;
             obj.difVD = dD;          
@@ -47,13 +46,13 @@ classdef VademecumDifferenceComputer < handle
         end
         
         function makeTxiRhoPlot(obj)
-            d.smoothDB    = obj.smoothVD.postData;
+            d.smoothDB    = obj.smoothVD;
             d.iS          = obj.smoothVD.feasibleIndex;
-            d.nonSmoothDB = obj.nonSmoothVD.postData;
+            d.nonSmoothDB = obj.nonSmoothVD;
             d.iN          = obj.nonSmoothVD.feasibleIndex;
-            d.microName  = obj.fileName;
-            d.outPutPath = obj.outPutPath;
-            d.hasToPrint = true;
+            d.microName   = obj.fileName;
+            d.outPutPath  = obj.outPutPath;
+            d.hasToPrint  = true;
             vp = VademecumTxiRhoPlotterDiff(d);
             vp.plot();
         end

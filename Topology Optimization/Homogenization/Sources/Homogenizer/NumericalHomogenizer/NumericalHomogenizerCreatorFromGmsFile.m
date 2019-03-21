@@ -6,13 +6,14 @@ classdef NumericalHomogenizerCreatorFromGmsFile < handle
         homog 
         homogDataBase     
         print
+        iter
     end
    
     methods (Access = public)
         
         function obj = NumericalHomogenizerCreatorFromGmsFile(d)
             obj.init(d)
-            obj.createFemMatOoInputData();
+            obj.createSwanInputData();
             obj.createNumericalHomogenizerDataBase();
             obj.createNumericalHomogenizer();
         end
@@ -33,12 +34,13 @@ classdef NumericalHomogenizerCreatorFromGmsFile < handle
             obj.gmsFile = d.gmsFile;
             obj.outFile = d.outFile;
             obj.print   = d.print;
+            obj.iter    = d.iter;
         end
                  
-        function createFemMatOoInputData(obj)
+        function createSwanInputData(obj)
             oD = fullfile('Output',obj.outFile);
             fullOutFile = fullfile(oD,[obj.outFile,'.m']);
-            c = GmsFile2FemMatOoFileConverter(obj.gmsFile,oD,fullOutFile);
+            c = GmsFile2SwanFileConverter(obj.gmsFile,oD,fullOutFile);
             c.convert();
         end        
         
@@ -53,7 +55,9 @@ classdef NumericalHomogenizerCreatorFromGmsFile < handle
         
         function createNumericalHomogenizer(obj)
             d = obj.homogDataBase;
-            obj.homog = NumericalHomogenizer(d);                                
+            obj.homog = NumericalHomogenizer(d);
+            obj.homog.iter = obj.iter;
+            obj.homog.compute();                                
         end
         
     end

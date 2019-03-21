@@ -1,20 +1,20 @@
 classdef NumericalHomogenizer < handle
     
-    
+    properties (Access = public)
+       iter 
+    end
+        
     properties (SetAccess = private, GetAccess = public)
-        Ptensor
-        Ch
-        volume
-        generalizedPtensor        
         matValues
         elemDensCr
+        cellVariables
+        integrationVar        
     end
     
     properties (Access = private)
         fileName
         outputName
         hasToBePrinted
-        iter
         pdim
         eDensCreatType
         hasToCaptureImage = false
@@ -41,10 +41,14 @@ classdef NumericalHomogenizer < handle
         
         function obj = NumericalHomogenizer(d)
             obj.init(d);
+        end
+        
+        function compute(obj)
             obj.createMicroProblem();
-            obj.computeHomogenizedVariables();
+            obj.computeCellVariables();
+            obj.obtainIntegrationUsedVariables();
             obj.print();
-            obj.captureImage();
+            obj.captureImage();            
         end
         
     end
@@ -127,28 +131,19 @@ classdef NumericalHomogenizer < handle
             obj.microProblem.setMatProps(obj.matProp);
         end
         
-        function computeHomogenizedVariables(obj)
+        function computeCellVariables(obj)
             obj.computeVolumeValue();
-            obj.computeHomogenizedTensor();
-            obj.computeAmplificator();
-            obj.computeGeneralizedAmplificatorTensor();
+            obj.computeElasticVariables();
         end
         
-        function computeHomogenizedTensor(obj)
+        function computeElasticVariables(obj)
             obj.microProblem.computeChomog();
-            obj.Ch = obj.microProblem.variables.Chomog;
-        end
-        
-        function computeAmplificator(obj)
-            Pv = obj.microProblem.computeAmplificator();
-            P = SymmetricFourthOrderPlaneStressVoigtTensor();
-            P.setValue(Pv);
-            obj.Ptensor = P;
-        end
-        
-        function computeGeneralizedAmplificatorTensor(obj)
-            Pg = obj.microProblem.computeGeneralizedAmplificator();
-            obj.generalizedPtensor = Pg;
+            cV = obj.cellVariables;
+            cV.Ch = obj.microProblem.variables.Chomog;
+            cV.tstress = obj.microProblem.variables.tstress;
+            cV.tstrain = obj.microProblem.variables.tstrain;
+            cV.displ   = obj.microProblem.variables.d_u; 
+            obj.cellVariables = cV;
         end
         
         function computeVolumeValue(obj)
@@ -156,7 +151,15 @@ classdef NumericalHomogenizer < handle
             vComputer = ShFunc_Volume(d);
             dens = obj.density;
             vol = vComputer.computeCost(dens);
-            obj.volume = vol;
+            obj.cellVariables.volume = vol;
+        end
+        
+        function obtainIntegrationUsedVariables(obj)        
+           intVar.nstre  = obj.microProblem.element.getNstre();
+           intVar.geoVol = obj.microProblem.computeGeometricalVolume();
+           intVar.ngaus  = obj.microProblem.element.quadrature.ngaus;
+           intVar.dV     = obj.microProblem.geometry.dvolu;
+           obj.integrationVar = intVar;
         end
         
         function print(obj)

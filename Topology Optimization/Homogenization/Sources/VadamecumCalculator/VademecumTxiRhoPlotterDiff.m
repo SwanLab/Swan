@@ -54,7 +54,7 @@ classdef VademecumTxiRhoPlotterDiff < VademecumPlotter
             zN = varN(obj.iN);            
             zS = varS(obj.iS);
             ZnInt = griddata(obj.txiN,obj.rhoN,zN,obj.txiS,obj.rhoS);            
-            zDif = abs(zS - ZnInt);            
+            zDif = (zS - ZnInt);            
         end                        
         
     end
@@ -74,15 +74,15 @@ classdef VademecumTxiRhoPlotterDiff < VademecumPlotter
         end        
         
         function plotHomogenizedTensor(obj)
-            obj.tensor{1} = obj.smoothDB.Ctensor;
-            obj.tensor{2} = obj.nonSmoothDB.Ctensor;            
+            obj.tensor{1} = obj.smoothDB.C;
+            obj.tensor{2} = obj.nonSmoothDB.C;            
             obj.tensorCase = 'C_';
             obj.plotTensor();
         end
                 
         function plotAmplificatorTensor(obj)
-            obj.tensor{1} = obj.smoothDB.PinvTensor;
-            obj.tensor{2} = obj.nonSmoothDB.PinvTensor;                
+            obj.tensor{1} = obj.smoothDB.invP;
+            obj.tensor{2} = obj.nonSmoothDB.invP;                
             obj.tensorCase = 'Pinv_';
             obj.plotTensor();
         end     
