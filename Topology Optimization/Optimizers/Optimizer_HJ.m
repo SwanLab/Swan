@@ -47,7 +47,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
                 s.filter = 'PDE';
                 obj.displayChangingFilter(s)
             end
-            obj.filter = FilterFactory.create(s.filter,s.optimizer);
+            obj.filter = FilterFactory().create(s.filter,s.optimizer);
             obj.filter.setupFromGiDFile(s.filename,s.ptype);
             obj.filter.setDomainType('BOUNDARY');
             obj.filter.preProcess();
