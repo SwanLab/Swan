@@ -12,8 +12,8 @@ classdef Mesh_Unfitted < Mesh ...
             obj.init(cParams);
         end
         
-        function computeMesh(obj,levelSet_background)
-            obj.updateLevelSet(levelSet_background);
+        function computeMesh(obj,levelSet)
+            obj.updateLevelSet(levelSet);
             obj.classifyCells();
             if obj.isLevelSetCuttingMesh()
                 obj.computeUnfittedMesh();
