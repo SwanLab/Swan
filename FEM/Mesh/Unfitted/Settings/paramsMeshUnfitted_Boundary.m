@@ -1,1 +1,0 @@
-unfittedType = 'BOUNDARY';

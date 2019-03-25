@@ -2,16 +2,13 @@ classdef Mesh_Unfitted_Factory < handle
     
     properties (Access = private)
         includeBoxContour
-        nargin
     end
     
     methods (Access = public, Static)
         
-        function meshUnfitted = create(cParams,PropertyName,PropertyValue)
+        function meshUnfitted = create(cParams)
             obj = Mesh_Unfitted_Factory();
-            obj.nargin = nargin;
-            
-            obj.determineFlagState(PropertyName,PropertyValue);
+            obj.init(cParams);
             
             if obj.shallBeComposite(cParams)
                 meshUnfitted = Mesh_Unfitted_Composite(cParams);
@@ -24,18 +21,8 @@ classdef Mesh_Unfitted_Factory < handle
     
     methods (Access = private)
         
-        function determineFlagState(obj,PropertyName,PropertyValue)
-            switch obj.nargin
-                case 1
-                    obj.includeBoxContour = false;
-                case 3
-                    obj.assignPropertyValue(PropertyName,PropertyValue);
-            end
-        end
-        
-        function assignPropertyValue(obj,PropertyName,PropertyValue)
-            obj.checkProperty(PropertyName,PropertyValue);
-            obj.includeBoxContour = PropertyValue;
+        function init(obj,cParams)
+            obj.includeBoxContour = cParams.includeBoxContour;
         end
         
         function shall = shallBeComposite(obj,cParams)

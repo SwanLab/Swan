@@ -8,6 +8,7 @@ classdef SettingsMeshUnfitted < AbstractSettings
         unfittedType
         meshBackground
         interpolationBackground
+        includeBoxContour
     end
     
     methods (Access = public)
@@ -20,6 +21,11 @@ classdef SettingsMeshUnfitted < AbstractSettings
                     obj.unfittedType = varargin{1};
                     obj.meshBackground = varargin{2};
                     obj.interpolationBackground = varargin{3};
+                case 4
+                    obj.unfittedType = varargin{1};
+                    obj.meshBackground = varargin{2};
+                    obj.interpolationBackground = varargin{3};
+                    obj.includeBoxContour = varargin{4};
             end
         end
         
