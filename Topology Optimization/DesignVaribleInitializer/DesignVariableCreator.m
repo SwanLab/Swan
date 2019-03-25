@@ -1,10 +1,12 @@
 classdef DesignVariableCreator < handle
+    
     properties (Access = private)
         designVariable
         levelSet
     end
     
     methods (Access = public)
+        
         function obj = DesignVariableCreator(settings,mesh)
             obj.createLevelSet(settings,mesh);
             obj.computeDesignVariable(settings.optimizer);
@@ -45,6 +47,8 @@ classdef DesignVariableCreator < handle
                     obj.designVariable = 1 - heaviside(phi);
             end
         end
+        
     end
+    
 end
 

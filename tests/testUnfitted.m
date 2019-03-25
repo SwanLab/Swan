@@ -1,4 +1,5 @@
 classdef testUnfitted < test
+    
     properties (Access = protected, Abstract)
         testName
         meshType
@@ -12,21 +13,25 @@ classdef testUnfitted < test
     end
     
     methods (Access = protected)
+        
         function createTopOpt(obj)
             file_name_in = fullfile('.','Input',obj.testName);
             settings = Settings(file_name_in);
             settings.printChangingFilter = false;
             obj.topOpt = TopOpt_Problem(settings);
-            obj.topOpt.preProcess;
+            obj.topOpt.preProcess();
             obj.levelSet = obj.topOpt.x;
         end
         
         function createMesh(obj)
             meshBackground = obj.topOpt.mesh;
             interpolation = Interpolation.create(meshBackground,'LINEAR');
-            obj.mesh = Mesh_Unfitted_Factory.create(obj.meshType,meshBackground,interpolation,'includeBoxContour',obj.meshIncludeBoxContour);
+            settingsUnfitted = SettingsMeshUnfitted(obj.meshType,meshBackground,interpolation,obj.meshIncludeBoxContour);
+            obj.mesh = Mesh_Unfitted_Factory.create(settingsUnfitted);
             obj.mesh.computeMesh(obj.levelSet);
         end
+        
     end
+    
 end
 

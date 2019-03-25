@@ -4,13 +4,16 @@ classdef Mesh_Unfitted < Mesh ...
     
     methods (Access = public)
         
-        function obj = Mesh_Unfitted(unfittedType,meshBackground,interpolation_background)
-            obj.build(unfittedType,meshBackground.ndim);
-            obj.init(meshBackground,interpolation_background);
+        function obj = Mesh_Unfitted(cParams)
+            if nargin == 0
+                cParams = SettingsMeshUnfitted();
+            end
+            obj.build(cParams);
+            obj.init(cParams);
         end
         
-        function computeMesh(obj,levelSet_background)
-            obj.updateLevelSet(levelSet_background);
+        function computeMesh(obj,levelSet)
+            obj.updateLevelSet(levelSet);
             obj.classifyCells();
             if obj.isLevelSetCuttingMesh()
                 obj.computeUnfittedMesh();
@@ -47,14 +50,16 @@ classdef Mesh_Unfitted < Mesh ...
     
     methods (Access = private)
         
-        function init(obj,meshBackground,backgroundGeomInterpolation)
-            obj.ndim = meshBackground.ndim;
-            obj.meshBackground = meshBackground;
-            obj.backgroundGeomInterpolation = backgroundGeomInterpolation;
+        function init(obj,cParams)
+            mB = cParams.meshBackground;
+            iB = cParams.interpolationBackground;
+            obj.meshBackground = mB;
+            obj.backgroundGeomInterpolation = iB;
         end
         
-        function build(obj,unfittedType,ndim)
-            builder = UnfittedMesh_Builder_Factory.create(unfittedType,ndim);
+        function build(obj,cParams)
+            obj.ndim = cParams.meshBackground.ndim;
+            builder = UnfittedMesh_Builder_Factory.create(cParams.unfittedType,obj.ndim);
             builder.build(obj);
         end
         
