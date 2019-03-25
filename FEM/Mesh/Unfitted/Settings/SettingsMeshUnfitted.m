@@ -20,6 +20,10 @@ classdef SettingsMeshUnfitted < AbstractSettings
                 case 3
                     obj.unfittedType = varargin{1};
                     obj.meshBackground = varargin{2};
+                    obj.interpolationBackground = Interpolation.create(obj.meshBackground,'LINEAR');
+                case 3
+                    obj.unfittedType = varargin{1};
+                    obj.meshBackground = varargin{2};
                     obj.interpolationBackground = varargin{3};
                 case 4
                     obj.unfittedType = varargin{1};

@@ -13,7 +13,7 @@ classdef Filter_LevelSet < Filter
         
         function preProcess(obj)
             preProcess@Filter(obj);
-            unfittedSettings = SettingsMeshUnfitted();
+            unfittedSettings = SettingsMeshUnfitted(obj.domainType,obj.mesh,obj.interpolation);
             obj.unfittedMesh = Mesh_Unfitted(unfittedSettings);
             obj.integrator = Integrator.create(obj.unfittedMesh);
             

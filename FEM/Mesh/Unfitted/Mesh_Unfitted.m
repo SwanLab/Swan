@@ -53,14 +53,13 @@ classdef Mesh_Unfitted < Mesh ...
         function init(obj,cParams)
             mB = cParams.meshBackground;
             iB = cParams.interpolationBackground;
-            obj.ndim = mB.ndim;
             obj.meshBackground = mB;
             obj.backgroundGeomInterpolation = iB;
         end
         
         function build(obj,cParams)
-            ndim = cParams.meshBackground.ndim;
-            builder = UnfittedMesh_Builder_Factory.create(cParams.unfittedType,ndim);
+            obj.ndim = cParams.meshBackground.ndim;
+            builder = UnfittedMesh_Builder_Factory.create(cParams.unfittedType,obj.ndim);
             builder.build(obj);
         end
         
