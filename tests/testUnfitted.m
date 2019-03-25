@@ -24,7 +24,8 @@ classdef testUnfitted < test
         function createMesh(obj)
             meshBackground = obj.topOpt.mesh;
             interpolation = Interpolation.create(meshBackground,'LINEAR');
-            obj.mesh = Mesh_Unfitted_Factory.create(obj.meshType,meshBackground,interpolation,'includeBoxContour',obj.meshIncludeBoxContour);
+            settingsUnfitted = SettingsMeshUnfitted(obj.meshType,meshBackground,interpolation);
+            obj.mesh = Mesh_Unfitted_Factory.create(settingsUnfitted,'includeBoxContour',obj.meshIncludeBoxContour);
             obj.mesh.computeMesh(obj.levelSet);
         end
     end

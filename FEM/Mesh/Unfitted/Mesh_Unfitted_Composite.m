@@ -22,9 +22,9 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
     
     methods (Access = public)
         
-        function obj = Mesh_Unfitted_Composite(unfittedType,meshBackground,interpolation_background)
-            obj.init(meshBackground);
-            obj.createInteriorMesh(unfittedType,meshBackground,interpolation_background);
+        function obj = Mesh_Unfitted_Composite(cParams)
+            obj.init(cParams.meshBackground);
+            obj.createInteriorMesh(cParams);
             obj.createBoxMeshes();
         end
         
@@ -66,8 +66,8 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
             obj.nboxFaces = obj.ndim*obj.nsides;
         end
         
-        function createInteriorMesh(obj,unfittedType,meshBackground,interpolation_background)
-            obj.meshInterior = Mesh_Unfitted(unfittedType,meshBackground,interpolation_background);
+        function createInteriorMesh(obj,cParams)
+            obj.meshInterior = Mesh_Unfitted(cParams);
         end
         
         function computeInteriorMesh(obj,levelSet)
@@ -122,9 +122,10 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
         end
         
         function [boxFaceMesh,nodesInBoxFace] = createBoxFaceMesh(obj,idime,iside)
-            [mb,nodesInBoxFace] = obj.createBoxFaceBackgroundMesh(idime,iside);
-            interpolation_unfitted = Interpolation.create(mb,'LINEAR');
-            boxFaceMesh = Mesh_Unfitted('INTERIOR',mb,interpolation_unfitted);
+            [meshBackground,nodesInBoxFace] = obj.createBoxFaceBackgroundMesh(idime,iside);
+            interpolationUnfitted = Interpolation.create(meshBackground,'LINEAR');
+            settingsUnfitted = SettingsMeshUnfitted('INTERIOR',meshBackground,interpolationUnfitted);
+            boxFaceMesh = Mesh_Unfitted(settingsUnfitted);
         end
         
         function [mb, nodesInBoxFace] = createBoxFaceBackgroundMesh(obj,idime,iside)

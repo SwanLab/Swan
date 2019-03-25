@@ -7,16 +7,16 @@ classdef Mesh_Unfitted_Factory < handle
     
     methods (Access = public, Static)
         
-        function mesh_unfitted = create(unfittedType,meshBackground,interpolation_background,PropertyName,PropertyValue)
-            obj = Mesh_Unfitted_Factory;
+        function meshUnfitted = create(cParams,PropertyName,PropertyValue)
+            obj = Mesh_Unfitted_Factory();
             obj.nargin = nargin;
             
             obj.determineFlagState(PropertyName,PropertyValue);
             
-            if obj.shallBeComposite(unfittedType)
-                mesh_unfitted = Mesh_Unfitted_Composite(unfittedType,meshBackground,interpolation_background);
+            if obj.shallBeComposite(cParams)
+                meshUnfitted = Mesh_Unfitted_Composite(cParams);
             else
-                mesh_unfitted = Mesh_Unfitted(unfittedType,meshBackground,interpolation_background);
+                meshUnfitted = Mesh_Unfitted(cParams);
             end
         end
         
@@ -25,10 +25,11 @@ classdef Mesh_Unfitted_Factory < handle
     methods (Access = private)
         
         function determineFlagState(obj,PropertyName,PropertyValue)
-            if obj.nargin == 3
-                obj.includeBoxContour = false;
-            elseif obj.nargin == 5
-                obj.assignPropertyValue(PropertyName,PropertyValue);
+            switch obj.nargin
+                case 1
+                    obj.includeBoxContour = false;
+                case 3
+                    obj.assignPropertyValue(PropertyName,PropertyValue);
             end
         end
         
@@ -37,13 +38,14 @@ classdef Mesh_Unfitted_Factory < handle
             obj.includeBoxContour = PropertyValue;
         end
         
-        function shall = shallBeComposite(obj,unfittedType)
-           if obj.includeBoxContour && strcmp(unfittedType,"INTERIOR")
-               warning('Contours are always included for INTERIOR mesh type.')
-              shall = false;
-           else
-               shall = obj.includeBoxContour;
-           end
+        function shall = shallBeComposite(obj,cParams)
+            type = cParams.unfittedType;
+            if obj.includeBoxContour && strcmp(type,"INTERIOR")
+                warning('Contours are always included for INTERIOR mesh type.')
+                shall = false;
+            else
+                shall = obj.includeBoxContour;
+            end
         end
         
     end
