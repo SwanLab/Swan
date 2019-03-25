@@ -5,11 +5,15 @@ classdef Filter_LevelSet < Filter
     end
     
     properties(Access = private)
+        domainType
         integrator
-        domainType = 'INTERIOR'
     end
     
     methods (Access = public)
+        
+        function obj = Filter_LevelSet(cParams)
+            obj.domainType = cParams.domainType;
+        end
         
         function preProcess(obj)
             preProcess@Filter(obj);

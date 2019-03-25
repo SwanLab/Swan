@@ -44,12 +44,11 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         
         function setupFilter(obj,s,e)
             if obj.settingsFilterIsNotPDE(s)
-                s.filter = 'PDE';
                 obj.displayChangingFilter(s)
             end
-            obj.filter = FilterFactory().create(s.filter,s.optimizer);
+            filterSettings = SettingsFilterFactory('paramsFilterFactory_PDE_LevelSet_Boundary');
+            obj.filter = FilterFactory().create(filterSettings);
             obj.filter.setupFromGiDFile(s.filename,s.ptype);
-            obj.filter.setDomainType('BOUNDARY');
             obj.filter.preProcess();
             obj.filter.updateEpsilon(e);
         end

@@ -2,36 +2,22 @@ classdef FilterFactory < handle
     
     methods (Access = public)
         
-        function obj = create(obj,type,optimizer)
-            designVar = obj.getDesignVariableType(optimizer);
-            switch type
+        function filter = create(obj,factoryParams)
+            switch factoryParams.type
                 case 'P1'
-                    switch designVar
+                    switch factoryParams.designVar
                         case 'DENSITY'
-                            obj = Filter_P1_Density();
+                            filter = Filter_P1_Density(cParams);
                         case 'LEVELSET'
-                            obj = Filter_P1_LevelSet();
+                            filter = Filter_P1_LevelSet(cParams);
                     end
                 case 'PDE'
-                    switch designVar
+                    switch factoryParams.designVar
                         case 'DENSITY'
-                            obj = Filter_PDE_Density();
+                            filter = Filter_PDE_Density(cParams);
                         case 'LEVELSET'
-                            obj = Filter_PDE_LevelSet();
+                            filter = Filter_PDE_LevelSet(cParams);
                     end
-            end
-        end
-        
-    end
-    
-    methods (Access = private, Static)
-        
-        function designVar = getDesignVariableType(optimizer)
-            switch optimizer
-                case {'MMA','PROJECTED GRADIENT','IPOPT'}
-                    designVar = 'DENSITY';
-                case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
-                    designVar = 'LEVELSET';
             end
         end
         
