@@ -2,13 +2,14 @@ classdef OptimizerFactory < handle
     
     methods (Access = public, Static)
         
-        function optimizer = create(optimizer,settings,mesh,epsilon)
+        function optimizer = create(optimizer,settings,designVar,epsilon)
+            mesh = designVar.mesh;
             switch optimizer
                 case 'SLERP'
                     unconstrainedOptimizer = Optimizer_SLERP(settings,epsilon);
                     optimizer = Optimizer_AugLag(settings,mesh,unconstrainedOptimizer);
                 case 'HAMILTON-JACOBI'
-                    unconstrainedOptimizer = Optimizer_HJ(settings,epsilon,mesh.computeMeanCellSize());
+                    unconstrainedOptimizer = Optimizer_HJ(settings,epsilon,designVar);
                     optimizer = Optimizer_AugLag(settings,mesh,unconstrainedOptimizer);
                 case 'PROJECTED GRADIENT'
                     unconstrainedOptimizer = Optimizer_PG(settings,epsilon);

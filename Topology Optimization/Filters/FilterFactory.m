@@ -2,7 +2,7 @@ classdef FilterFactory < handle
     
     methods (Access = public)
         
-        function filter = create(obj,factoryParams)
+        function filter = create(obj,factoryParams,designVar)
             cParams = factoryParams;
             switch factoryParams.type
                 case 'P1'

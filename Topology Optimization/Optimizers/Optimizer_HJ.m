@@ -12,14 +12,14 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
     
     methods (Access = public)
         
-        function obj = Optimizer_HJ(settings,epsilon,meanCellSize)
+        function obj = Optimizer_HJ(settings,epsilon,phi)
             obj@Optimizer_Unconstrained(settings,epsilon);
             obj.e2 = settings.e2;
-            obj.meanCellSize = meanCellSize;
+            obj.meanCellSize = phi.mesh.computeMeanCellSize();
             obj.max_constr_change = +Inf;
             obj.nconstr = settings.nconstr;
             
-            obj.setupFilter(settings,epsilon);
+            obj.setupFilter(settings,epsilon,phi);
         end
         
         function phi = computeX(obj,phi,gradient)
@@ -42,12 +42,12 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             solvedPhi = phi;
         end
         
-        function setupFilter(obj,s,e)
+        function setupFilter(obj,s,e,phi)
             if obj.settingsFilterIsNotPDE(s)
                 obj.displayChangingFilter(s)
             end
-            filterSettings = SettingsFilterFactory('paramsFilterFactory_PDE_LevelSet_Boundary');
-            obj.filter = FilterFactory().create(filterSettings);
+            filterFactorySettings = SettingsFilterFactory('paramsFilterFactory_PDE_LevelSet_Boundary');
+            obj.filter = FilterFactory().create(filterFactorySettings,phi);
             obj.filter.setupFromGiDFile(s.filename,s.ptype);
             obj.filter.preProcess();
             obj.filter.updateEpsilon(e);
