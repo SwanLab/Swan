@@ -3,8 +3,13 @@ classdef LevelSet < DesignVariable
     methods (Access = public)
         
         function obj = LevelSet(cParams)
+            obj.value = cParams.value;
             obj.createUnfittedMesh(cParams.mesh);
-            obj.updateUnfittedMesh(cParams.value);
+        end
+        
+        function update(obj,value)
+            obj.value = value;
+            obj.updateUnfittedMesh();
         end
         
     end
@@ -14,11 +19,11 @@ classdef LevelSet < DesignVariable
         function createUnfittedMesh(obj,mesh)
             unfittedSettings = SettingsMeshUnfitted('INTERIOR',mesh);
             obj.mesh = Mesh_Unfitted(unfittedSettings);
+            obj.updateUnfittedMesh();
         end
         
-        function updateUnfittedMesh(obj,phi)
-           obj.value = phi;
-           obj.mesh.computeMesh(phi);
+        function updateUnfittedMesh(obj)
+            obj.mesh.computeMesh(obj.value);
         end
         
     end

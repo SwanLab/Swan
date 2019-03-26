@@ -5,7 +5,9 @@ classdef DesignVariable < handle
         value
     end
     
-    methods (Access = public)
+    methods (Access = public, Abstract)
+        
+        update(obj,value)
         
     end
     
