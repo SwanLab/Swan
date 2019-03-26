@@ -1,0 +1,3 @@
+classdef SettingsFilter < AbstractSettings
+    
+end
