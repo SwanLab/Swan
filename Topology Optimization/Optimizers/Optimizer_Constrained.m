@@ -12,19 +12,19 @@ classdef Optimizer_Constrained < Optimizer
     end
     
     properties (Access = private)
+        designVar
         postProcess
         printing
         fileName
-        mesh
         printMode
     end
     
     methods (Access = public)
         
-        function obj = Optimizer_Constrained(settings,mesh,showOptParams)
+        function obj = Optimizer_Constrained(settings,designVar,showOptParams)
             obj@Optimizer(settings);
-            obj.init(settings,mesh);
-            obj.monitor = MonitoringDocker(showOptParams,settings.plotting,settings,mesh);
+            obj.init(settings,designVar);
+            obj.monitor = MonitoringDocker(showOptParams,settings.plotting,settings,designVar);
         end
         
         function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
@@ -45,7 +45,7 @@ classdef Optimizer_Constrained < Optimizer
                 x_ini = x;
             end
             obj.printFinal(x,cost,constraint);
-
+            
             obj.has_converged = 0;
         end
         
@@ -120,20 +120,20 @@ classdef Optimizer_Constrained < Optimizer
     
     methods (Access = private)
         
-        function d = createPostProcessDataBase(obj,fileName)
-            d.mesh    = obj.mesh;
+        function init(obj,settings,designVar)
+            obj.designVar = designVar;
+            obj.fileName  = settings.case_file;
+            obj.optimizer = settings.optimizer;
+            obj.maxiter   = settings.maxiter;
+            obj.printing  = settings.printing;
+            obj.printMode = settings.printMode;
+        end
+        
+                function d = createPostProcessDataBase(obj,fileName)
+            d.mesh    = obj.designVar.meshGiD;
             d.outName = fileName;
             ps = PostProcessDataBaseCreator(d);
             d = ps.getValue();
-        end
-        
-        function init(obj,settings,mesh)
-            obj.fileName    = settings.case_file;
-            obj.maxiter     = settings.maxiter;
-            obj.printing    = settings.printing;
-            obj.optimizer   = settings.optimizer;
-            obj.printMode = settings.printMode;
-            obj.mesh     = mesh;
         end
         
         function printFinal(obj,x,cost,constraint)

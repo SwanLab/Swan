@@ -12,8 +12,8 @@ classdef DesignVarMonitor_LevelSet < DesignVarMonitor_Abstract
     
     methods (Access = public)
         
-        function obj = DesignVarMonitor_LevelSet(mesh,showBC)
-            obj@DesignVarMonitor_Abstract(mesh,showBC);
+        function obj = DesignVarMonitor_LevelSet(designVar,showBC)
+            obj@DesignVarMonitor_Abstract(designVar,showBC);
             obj.createUnfittedMesh();
         end
         
