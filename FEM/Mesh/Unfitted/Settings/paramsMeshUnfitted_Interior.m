@@ -1,0 +1,1 @@
+unfittedType = 'INTERIOR';

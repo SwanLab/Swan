@@ -48,8 +48,8 @@ classdef DesignVarMonitor_LevelSet < DesignVarMonitor_Abstract
         
         function createUnfittedMesh(obj)
             interpolation = Interpolation.create(obj.mesh,'LINEAR');
-            obj.meshUnfitted = Mesh_Unfitted_Factory.create(obj.unfittedType,obj.mesh,interpolation,...
-                'includeBoxContour',obj.meshIncludeBoxContour);
+            unfittedSettings = SettingsMeshUnfitted(obj.unfittedType,obj.mesh,interpolation,obj.meshIncludeBoxContour);
+            obj.meshUnfitted = Mesh_Unfitted_Factory.create(unfittedSettings);
         end
         
         function updateMesh(obj,phi)
