@@ -37,9 +37,8 @@ classdef TopOpt_Problem < handle
         
         function computeVariables(obj)
             for istep = 1:obj.settings.nsteps
-                obj.displayIncrementalIteration(istep)
-                obj.incrementalScheme.update_target_parameters(istep,obj.cost,obj.constraint,obj.optimizer);
-                obj.x = obj.optimizer.solveProblem(obj.x,obj.cost,obj.constraint,istep,obj.settings.nsteps);
+                obj.nextIncrementalStep(istep);
+                obj.solveTopOptProblem(istep);
             end
         end
         
@@ -71,6 +70,16 @@ classdef TopOpt_Problem < handle
             designVarSettings.value = designVarInitializer.getValue();
             designVarSettings.optimizer = settings.optimizer;
             obj.designVariable = DesignVariableFactory().create(designVarSettings);
+        end
+        
+        function nextIncrementalStep(obj,istep)
+            obj.displayIncrementalIteration(istep)
+            obj.incrementalScheme.update_target_parameters(istep,obj.cost,obj.constraint,obj.optimizer);
+        end
+        
+        function solveTopOptProblem(obj,istep)
+            obj.designVariable = obj.optimizer.solveProblem(obj.designVariable,obj.cost,obj.constraint,istep,obj.settings.nsteps);
+            obj.x = obj.designVariable.value;
         end
         
         function hasTo = hasToPrintIncrIter(obj)

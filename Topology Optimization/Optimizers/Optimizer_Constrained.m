@@ -26,9 +26,9 @@ classdef Optimizer_Constrained < Optimizer
             obj.monitor = MonitoringDocker(showOptParams,settings.plotting,settings,designVar);
         end
         
-        function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
+        function designVar = solveProblem(obj,designVar,cost,constraint,istep,nstep)
             obj.createPostProcess(cost,constraint);
-            
+            x_ini = designVar.value;
             cost.computeCostAndGradient(x_ini);
             constraint.computeCostAndGradient(x_ini);
             obj.print(x_ini,obj.niter,cost,constraint);
@@ -44,6 +44,7 @@ classdef Optimizer_Constrained < Optimizer
                 x_ini = x;
             end
             obj.printFinal(x,cost,constraint);
+            designVar.update(x);
             
             obj.has_converged = 0;
         end

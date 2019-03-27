@@ -23,8 +23,9 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             constraint_tolerance = obj.target_parameters.constr_tol*1e-1;
         end
         
-        function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
+        function designVar = solveProblem(obj,designVar,cost,constraint,istep,nstep)
             obj.createPostProcess(cost,constraint);
+            x_ini = designVar.value;
             cost.computeCostAndGradient(x_ini)
             funcs.objective = @(x) obj.objective(x,cost);
             funcs.gradient = @(x) obj.gradient(x,cost);
@@ -54,6 +55,8 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             options.ipopt.tol = obj.optimality_tolerance;
             
             [x, obj.info] = ipopt(x_ini,funcs,options);
+            
+            designVar.update(x);
         end
         
     end
