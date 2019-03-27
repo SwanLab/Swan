@@ -16,6 +16,14 @@ classdef IncrementalScheme < handle
     end
     
     properties (Access = private)
+        targetParams
+        
+        cost
+        constraint
+        optimizer
+        
+        scale
+        
         shallDisplayStep
     end
     
@@ -26,9 +34,16 @@ classdef IncrementalScheme < handle
             obj.generateIncrementalSequences();
         end
         
-        function next(obj,cost,constraint,optimizer)
+        function link(obj,cost,constraint,optimizer)
+            obj.cost = cost;
+            obj.constraint = constraint;
+            obj.optimizer = optimizer;
+        end
+        
+        function next(obj)
             obj.incrementStep();
-            obj.updateTargetParams(cost,constraint,optimizer);
+            obj.updateTargetParams();
+            obj.assignTargetParams();
         end
         
         function display(obj)
@@ -51,6 +66,7 @@ classdef IncrementalScheme < handle
             obj.settings = settings;
             obj.iStep = 0;
             obj.nSteps = settings.nsteps;
+            obj.scale = settings.ptype;
             obj.setupEpsilons(settings.epsilon_initial,mesh);
             obj.setWhetherShallDisplayStep(settings);
         end
@@ -64,7 +80,7 @@ classdef IncrementalScheme < handle
             obj.incropt.alpha_epsilon = obj.generateIncrementalSequence(0,1,nsteps,'linear');
             obj.incropt.alpha_epsilon_vel = obj.generateIncrementalSequence(0,1,nsteps,'linear');
             obj.incropt.alpha_epsilon_per = obj.generateIncrementalSequence(-1,0,nsteps,'logarithmic');
-            if strcmp(obj.settings.ptype,'MICRO')
+            if strcmp(obj.scale,'MICRO')
                 obj.incropt.alpha_epsilon_isotropy = obj.generateIncrementalSequence(0,1,nsteps,'linear');
             end
         end
@@ -76,27 +92,29 @@ classdef IncrementalScheme < handle
             end
         end
         
-        function updateTargetParams(obj,cost,constraint,optimizer)
+        function updateTargetParams(obj)
             t = obj.iStep;
-            target_parameters.Vfrac = (1-obj.incropt.alpha_vol(t))*obj.settings.Vfrac_initial+obj.incropt.alpha_vol(t)*obj.settings.Vfrac_final;
-            target_parameters.epsilon_perimeter = (1-obj.incropt.alpha_epsilon_per(t))*obj.epsilon0+obj.incropt.alpha_epsilon_per(t)*obj.epsilon;
-            target_parameters.epsilon = (1-obj.incropt.alpha_epsilon(t))*obj.epsilon_initial+obj.incropt.alpha_epsilon(t)*obj.epsilon;
-            target_parameters.epsilon_velocity = (1-obj.incropt.alpha_epsilon_vel(t))*obj.epsilon0+obj.incropt.alpha_epsilon_vel(t)*obj.epsilon;
-            target_parameters.constr_tol = (1-obj.incropt.alpha_constr(t))*obj.settings.constr_initial+obj.incropt.alpha_constr(t)*obj.settings.constr_final;
-            target_parameters.optimality_tol = (1-obj.incropt.alpha_optimality(t))*obj.settings.optimality_initial+obj.incropt.alpha_optimality(t)*obj.settings.optimality_final;
+            obj.targetParams.Vfrac = (1-obj.incropt.alpha_vol(t))*obj.settings.Vfrac_initial+obj.incropt.alpha_vol(t)*obj.settings.Vfrac_final;
+            obj.targetParams.epsilon_perimeter = (1-obj.incropt.alpha_epsilon_per(t))*obj.epsilon0+obj.incropt.alpha_epsilon_per(t)*obj.epsilon;
+            obj.targetParams.epsilon = (1-obj.incropt.alpha_epsilon(t))*obj.epsilon_initial+obj.incropt.alpha_epsilon(t)*obj.epsilon;
+            obj.targetParams.epsilon_velocity = (1-obj.incropt.alpha_epsilon_vel(t))*obj.epsilon0+obj.incropt.alpha_epsilon_vel(t)*obj.epsilon;
+            obj.targetParams.constr_tol = (1-obj.incropt.alpha_constr(t))*obj.settings.constr_initial+obj.incropt.alpha_constr(t)*obj.settings.constr_final;
+            obj.targetParams.optimality_tol = (1-obj.incropt.alpha_optimality(t))*obj.settings.optimality_initial+obj.incropt.alpha_optimality(t)*obj.settings.optimality_final;
             
             if strcmp(obj.settings.ptype,'MICRO')
-                target_parameters.epsilon_isotropy = (1-obj.incropt.alpha_epsilon_isotropy(t))*obj.settings.epsilon_isotropy_initial+obj.incropt.alpha_epsilon_isotropy(t)*obj.settings.epsilon_isotropy_final;
+                obj.targetParams.epsilon_isotropy = (1-obj.incropt.alpha_epsilon_isotropy(t))*obj.settings.epsilon_isotropy_initial+obj.incropt.alpha_epsilon_isotropy(t)*obj.settings.epsilon_isotropy_final;
             end
-            
-            cost.target_parameters = target_parameters;
-            constraint.target_parameters = target_parameters;
-            optimizer.target_parameters = target_parameters;
+        end
+        
+        function assignTargetParams(obj)
+            obj.cost.target_parameters = obj.targetParams;
+            obj.constraint.target_parameters = obj.targetParams;
+            obj.optimizer.target_parameters = obj.targetParams;
         end
         
         function itShall = setWhetherShallDisplayStep(obj,settings)
-            itShall = obj.settings.printIncrementalIter;
-            if isempty(obj.settings.printIncrementalIter)
+            itShall = settings.printIncrementalIter;
+            if isempty(settings.printIncrementalIter)
                 itShall = true;
             end
         end

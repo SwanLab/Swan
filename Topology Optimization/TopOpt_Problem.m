@@ -36,9 +36,10 @@ classdef TopOpt_Problem < handle
         end
         
         function computeVariables(obj)
+            obj.incrementalScheme.link(obj.cost,obj.constraint,obj.optimizer);
             while obj.incrementalScheme.hasNext()
-                obj.incrementalScheme.next(obj.cost,obj.constraint,obj.optimizer);
-                obj.solveTopOptProblem();
+                obj.incrementalScheme.next();
+                obj.solveCurrentProblem();
             end
         end
         
@@ -72,7 +73,7 @@ classdef TopOpt_Problem < handle
             obj.designVariable = DesignVariableFactory().create(designVarSettings);
         end
         
-        function solveTopOptProblem(obj)
+        function solveCurrentProblem(obj)
             istep = obj.incrementalScheme.iStep;
             obj.designVariable = obj.optimizer.solveProblem(obj.designVariable,obj.cost,obj.constraint,istep,obj.settings.nsteps);
             obj.x = obj.designVariable.value;
