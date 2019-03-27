@@ -3,7 +3,7 @@ classdef OptimizerFactory < handle
     methods (Access = public, Static)
         
         function optimizer = create(optimizer,settings,designVar,epsilon)
-            mesh = designVar.mesh;
+            mesh = designVar.meshGiD;
             switch optimizer
                 case 'SLERP'
                     unconstrainedOptimizer = Optimizer_SLERP(settings,epsilon);

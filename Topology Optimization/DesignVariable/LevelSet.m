@@ -4,6 +4,7 @@ classdef LevelSet < DesignVariable
         
         function obj = LevelSet(cParams)
             obj.value = cParams.value;
+            obj.meshGiD = cParams.mesh;
             obj.createUnfittedMesh(cParams.mesh);
         end
         

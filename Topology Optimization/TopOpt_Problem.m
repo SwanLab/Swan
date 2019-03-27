@@ -3,13 +3,13 @@ classdef TopOpt_Problem < handle
     properties (GetAccess = public,SetAccess = public)
         cost
         constraint
+        designVariable
         x
         algorithm
         optimizer
         mesh
         settings
         incrementalScheme
-        designVarInitializer
     end
     
     properties (Access = private)
@@ -20,15 +20,11 @@ classdef TopOpt_Problem < handle
     methods (Access = public)
         
         function obj = TopOpt_Problem(settings)
-            obj.settings = settings;
-            obj.mesh = Mesh_GiD(settings.filename);
-            obj.designVarInitializer = DesignVariableCreator(settings,obj.mesh);
-            settingsLevelSet.mesh = obj.mesh;
-            settingsLevelSet.value = obj.designVarInitializer.getValue();
-            designVariable = LevelSet(settingsLevelSet);
+            obj.createDesignVariable(settings);
             settings.pdim = obj.mesh.pdim;
+            obj.settings = settings;
             obj.incrementalScheme = IncrementalScheme(settings,obj.mesh);
-            obj.optimizer = OptimizerFactory().create(obj.settings.optimizer,settings,designVariable,obj.incrementalScheme.epsilon);
+            obj.optimizer = OptimizerFactory().create(obj.settings.optimizer,settings,obj.designVariable,obj.incrementalScheme.epsilon);
             obj.cost = Cost(settings,settings.weights);
             obj.constraint = Constraint(settings);
         end
@@ -36,7 +32,7 @@ classdef TopOpt_Problem < handle
         function preProcess(obj)
             obj.cost.preProcess;
             obj.constraint.preProcess;
-            obj.x = obj.designVarInitializer.getValue();
+            obj.x = obj.designVariable.value;
         end
         
         function computeVariables(obj)
@@ -67,18 +63,27 @@ classdef TopOpt_Problem < handle
     end
     
     methods (Access = private)
-       
+        
+        function createDesignVariable(obj,settings)
+            obj.mesh = Mesh_GiD(settings.filename);
+            designVarSettings.mesh = obj.mesh;
+            designVarInitializer = DesignVariableCreator(settings,obj.mesh);
+            designVarSettings.value = designVarInitializer.getValue();
+            designVarSettings.optimizer = settings.optimizer;
+            obj.designVariable = DesignVariableFactory().create(designVarSettings);
+        end
+        
         function hasTo = hasToPrintIncrIter(obj)
             hasTo = obj.settings.printIncrementalIter;
             if isempty(obj.settings.printIncrementalIter)
                 hasTo = true;
-            end                            
+            end
         end
         
         function displayIncrementalIteration(obj,istep)
             if obj.hasToPrintIncrIter()
-               disp(strcat('Incremental step: ',int2str(istep)))
-            end                        
+                disp(strcat('Incremental step: ',int2str(istep)))
+            end
         end
         
     end

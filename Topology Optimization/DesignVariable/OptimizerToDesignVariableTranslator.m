@@ -1,17 +1,18 @@
-classdef designVariable < handle
-        
+classdef OptimizerToDesignVariableTranslator <  handle
+    
     methods (Access = public, Static)
         
-        function n = obtainName(optimizer)
+        function n = translate(optimizer)
             switch optimizer
-                case {'SLERP','PROJECTED SLERP', 'HAMILTON-JACOBI'}
+                case {'SLERP', 'PROJECTED SLERP', 'HAMILTON-JACOBI'}
                     n = 'LevelSet';
                 case {'PROJECTED GRADIENT', 'MMA', 'IPOPT'}
                     n = 'Density';
             end
             
         end
-
+        
     end
     
 end
+
