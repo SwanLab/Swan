@@ -15,7 +15,6 @@ classdef Optimizer_Constrained < Optimizer
         designVar
         postProcess
         printing
-        fileName
         printMode
     end
     
@@ -66,11 +65,12 @@ classdef Optimizer_Constrained < Optimizer
             if ~(obj.printing)
                 return
             end
-            if obj.niter==1
-                msh_file = fullfile('Output',obj.fileName,strcat(obj.fileName,'.txt'));
+            fileName = obj.designVar.meshGiD.problemID;
+            if obj.niter == 1
+                msh_file = fullfile('Output',fileName,strcat(fileName,'.txt'));
                 fid_mesh = fopen(msh_file,'wt');
             else
-                msh_file = fullfile('Output',obj.fileName,strcat(obj.fileName,'.txt'));
+                msh_file = fullfile('Output',fileName,strcat(fileName,'.txt'));
                 fid_mesh = fopen(msh_file,'at');
             end
             fprintf(fid_mesh,'-----------------------------------------------------------------------------------------------\n');
@@ -100,7 +100,8 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function createPostProcess(obj,cost,constraint)
-            d = obj.createPostProcessDataBase(obj.fileName);
+            fileName = obj.designVar.meshGiD.problemID;
+            d = obj.createPostProcessDataBase(fileName);
             d.printMode = obj.printMode;
             d.optimizer = obj.optimizer;
             d.cost = cost;
@@ -122,14 +123,14 @@ classdef Optimizer_Constrained < Optimizer
         
         function init(obj,settings,designVar)
             obj.designVar = designVar;
-            obj.fileName  = settings.case_file;
+%             fileName  = settings.case_file;
             obj.optimizer = settings.optimizer;
             obj.maxiter   = settings.maxiter;
             obj.printing  = settings.printing;
             obj.printMode = settings.printMode;
         end
         
-                function d = createPostProcessDataBase(obj,fileName)
+        function d = createPostProcessDataBase(obj,fileName)
             d.mesh    = obj.designVar.meshGiD;
             d.outName = fileName;
             ps = PostProcessDataBaseCreator(d);
