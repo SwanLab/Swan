@@ -36,9 +36,9 @@ classdef TopOpt_Problem < handle
         end
         
         function computeVariables(obj)
-            for istep = 1:obj.settings.nsteps
-                obj.nextIncrementalStep(istep);
-                obj.solveTopOptProblem(istep);
+            while obj.incrementalScheme.hasNext()
+                obj.incrementalScheme.next(obj.cost,obj.constraint,obj.optimizer);
+                obj.solveTopOptProblem();
             end
         end
         
@@ -72,27 +72,10 @@ classdef TopOpt_Problem < handle
             obj.designVariable = DesignVariableFactory().create(designVarSettings);
         end
         
-        function nextIncrementalStep(obj,istep)
-            obj.displayIncrementalIteration(istep)
-            obj.incrementalScheme.update_target_parameters(istep,obj.cost,obj.constraint,obj.optimizer);
-        end
-        
-        function solveTopOptProblem(obj,istep)
+        function solveTopOptProblem(obj)
+            istep = obj.incrementalScheme.iStep;
             obj.designVariable = obj.optimizer.solveProblem(obj.designVariable,obj.cost,obj.constraint,istep,obj.settings.nsteps);
             obj.x = obj.designVariable.value;
-        end
-        
-        function hasTo = hasToPrintIncrIter(obj)
-            hasTo = obj.settings.printIncrementalIter;
-            if isempty(obj.settings.printIncrementalIter)
-                hasTo = true;
-            end
-        end
-        
-        function displayIncrementalIteration(obj,istep)
-            if obj.hasToPrintIncrIter()
-                disp(strcat('Incremental step: ',int2str(istep)))
-            end
         end
         
     end
