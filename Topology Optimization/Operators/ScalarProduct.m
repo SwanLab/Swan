@@ -11,7 +11,7 @@ classdef ScalarProduct < handle
     methods 
         function obj = ScalarProduct(problemID,epsilon)
             obj.epsilon = epsilon;
-            physProb = DiffReact_Problem;
+            physProb = DiffReact_Problem();
             physProb.setupFromGiDFile(problemID);
             physProb.preProcess;
             obj.Ksmooth = physProb.element.computeStiffnessMatrix;

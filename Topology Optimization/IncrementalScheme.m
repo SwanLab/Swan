@@ -3,20 +3,23 @@ classdef IncrementalScheme < handle
     properties (Access = public)
         incropt
         
-        epsilon
-        epsilon_initial
-        epsilon0
-        epsilon_isotropy
+        epsilonInitial
+        epsilonFinal
+        epsilonPerInitial
+        epsilonPerFinal
+        epsilonVelInitial
+        epsilonVelFinal
+%         epsilon_isotropy
     end
     
     properties (GetAccess = public, SetAccess = private)
         iStep
         nSteps
+        targetParams
     end
     
     properties (Access = private)
         settings
-        targetParams
         
         cost
         constraint
@@ -32,6 +35,7 @@ classdef IncrementalScheme < handle
         function obj = IncrementalScheme(settings,mesh)
             obj.init(settings,mesh);
             obj.generateIncrementalSequences();
+            obj.initTargetParams();
         end
         
         function link(obj,cost,constraint,optimizer)
@@ -77,9 +81,9 @@ classdef IncrementalScheme < handle
             obj.incropt.volumeFrac = IncrementalSequence(1/nsteps,1,nsteps,'linear',obj.settings.Vfrac_initial,obj.settings.Vfrac_final);
             obj.incropt.constraintTol = IncrementalSequence(0,1,nsteps,'linear',obj.settings.constr_initial,obj.settings.constr_final);
             obj.incropt.optimalityTol = IncrementalSequence(0,1,nsteps,'linear',obj.settings.optimality_initial,obj.settings.optimality_final);
-            obj.incropt.epsilon = IncrementalSequence(0,1,nsteps,'linear',obj.epsilon_initial,obj.epsilon);
-            obj.incropt.epsilonVel = IncrementalSequence(0,1,nsteps,'linear',obj.epsilon0,obj.epsilon);
-            obj.incropt.epsilonPer = IncrementalSequence(-1,0,nsteps,'logarithmic',obj.epsilon0,obj.epsilon);
+            obj.incropt.epsilon = IncrementalSequence(0,1,nsteps,'linear',obj.epsilonInitial,obj.epsilonFinal);
+            obj.incropt.epsilonVel = IncrementalSequence(0,1,nsteps,'linear',obj.epsilonVelInitial,obj.epsilonVelFinal);
+            obj.incropt.epsilonPer = IncrementalSequence(-1,0,nsteps,'logarithmic',obj.epsilonPerInitial,obj.epsilonPerFinal);
             if strcmp(obj.scale,'MICRO')
                 obj.incropt.epsilonIsotropy = IncrementalSequence(0,1,nsteps,'linear',obj.settings.epsilon_isotropy_initial,obj.settings.epsilon_isotropy_final);
             end
@@ -92,13 +96,21 @@ classdef IncrementalScheme < handle
             end
         end
         
+        function initTargetParams(obj)
+            obj.computeTargetParams(1)
+        end
+        
         function updateTargetParams(obj)
-            obj.incropt.volumeFrac.update(obj.iStep);
-            obj.incropt.constraintTol.update(obj.iStep);
-            obj.incropt.optimalityTol.update(obj.iStep);
-            obj.incropt.epsilon.update(obj.iStep);
-            obj.incropt.epsilonVel.update(obj.iStep);
-            obj.incropt.epsilonPer.update(obj.iStep);
+            obj.computeTargetParams(obj.iStep)
+        end
+        
+        function computeTargetParams(obj,iStep)
+                        obj.incropt.volumeFrac.update(iStep);
+            obj.incropt.constraintTol.update(iStep);
+            obj.incropt.optimalityTol.update(iStep);
+            obj.incropt.epsilon.update(iStep);
+            obj.incropt.epsilonVel.update(iStep);
+            obj.incropt.epsilonPer.update(iStep);
             
             obj.targetParams.Vfrac = obj.incropt.volumeFrac.value;
             obj.targetParams.epsilon = obj.incropt.epsilon.value;
@@ -117,51 +129,24 @@ classdef IncrementalScheme < handle
             obj.optimizer.target_parameters = obj.targetParams;
         end
         
+        function setupEpsilons(obj,initialEpsilon,mesh)
+            if ~isempty(initialEpsilon)
+                obj.epsilonInitial = initialEpsilon;
+            else
+                obj.epsilonInitial = mesh.computeMeanCellSize();
+            end
+            obj.epsilonFinal = obj.epsilonInitial;
+            obj.epsilonPerInitial = mesh.computeCharacteristicLength();
+            obj.epsilonVelInitial = mesh.computeCharacteristicLength();
+            obj.epsilonPerFinal = mesh.computeCharacteristicLength();
+            obj.epsilonVelFinal = mesh.computeCharacteristicLength();
+        end
+                
         function itShall = setWhetherShallDisplayStep(obj,settings)
             itShall = settings.printIncrementalIter;
             if isempty(settings.printIncrementalIter)
                 itShall = true;
             end
-        end
-        
-        function setupEpsilons(obj,initialEpsilon,mesh)
-            if ~isempty(initialEpsilon)
-                obj.epsilon_initial = initialEpsilon;
-            else
-                obj.epsilon_initial = mesh.computeMeanCellSize();
-            end
-            obj.epsilon = obj.epsilon_initial;
-            obj.epsilon0 = mesh.computeCharacteristicLength();
-        end
-        
-        function x = generateIncrementalSequence(obj,x1,x2,nsteps,type,factor)
-            switch type
-                case 'linear'
-                    x = linspace(x1,x2,nsteps);
-                    
-                case 'epsilon_sequence'
-                    frac = 2;
-                    kmax = ceil(log10(x1/x2)/log10(frac));
-                    x = obj.epsilon0./frac.^(1:kmax);
-                    
-                case 'logarithmic'
-                    x = logspace(x1,x2,nsteps);
-                    
-                case 'custom'
-                    if nsteps < 2
-                        x = x2;
-                    else
-                        isteps = 0:nsteps-1;
-                        x = 1-(1-isteps/(nsteps-1)).^(factor);
-                        x = (x2-x1)*x + x1;
-                    end
-                case 'free'
-                    x = zeros(1,nsteps);
-                    x(end) = 1;
-                otherwise
-                    error('Incremental sequence type not detected.')
-            end
-            
         end
         
     end

@@ -24,7 +24,7 @@ classdef TopOpt_Problem < handle
             settings.pdim = obj.mesh.pdim;
             obj.settings = settings;
             obj.incrementalScheme = IncrementalScheme(settings,obj.mesh);
-            obj.optimizer = OptimizerFactory().create(obj.settings.optimizer,settings,obj.designVariable,obj.incrementalScheme.epsilon);
+            obj.optimizer = OptimizerFactory().create(obj.settings.optimizer,settings,obj.designVariable,obj.incrementalScheme.targetParams.epsilon);
             obj.cost = Cost(settings,settings.weights);
             obj.constraint = Constraint(settings);
         end
