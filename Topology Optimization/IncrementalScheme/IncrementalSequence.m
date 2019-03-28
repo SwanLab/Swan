@@ -7,14 +7,26 @@ classdef IncrementalSequence < handle
     properties (Access = public)
         alpha
         initialValue
-        finalValue     
+        finalValue
+    end
+    
+    properties (Access = protected)
+        x0
+        x1
+        nSteps
+    end
+    
+    methods (Access = protected, Abstract)
+        
+        generateAlphaSequence(obj)
+        
     end
     
     methods (Access = public)
         
-        function obj = IncrementalSequence(x0,x1,nsteps,type,initialValue,finalValue,factor)
-            obj.init(initialValue,finalValue);
-           obj.generateAlphaSequence(x0,x1,nsteps,type); 
+        function obj = IncrementalSequence(x0,x1,nSteps,initialValue,finalValue)
+            obj.init(x0,x1,nSteps,initialValue,finalValue);
+            obj.generateAlphaSequence();
         end
         
         function update(obj,i)
@@ -25,36 +37,12 @@ classdef IncrementalSequence < handle
     
     methods (Access = private)
         
-        function init(obj,a0,a1)
+        function init(obj,x0,x1,nSteps,a0,a1)
+            obj.x0 = x0;
+            obj.x1 = x1;
+            obj.nSteps = nSteps;
             obj.initialValue = a0;
             obj.finalValue = a1;
-        end
-        
-        function generateAlphaSequence(obj,x0,x1,nsteps,type,factor)
-            switch type
-                case 'linear'
-                    x = linspace(x0,x1,nsteps);
-                case 'epsilon_sequence'
-                    frac = 2;
-                    kmax = ceil(log10(x0/x1)/log10(frac));
-                    x = obj.epsilon0./frac.^(1:kmax);
-                case 'logarithmic'
-                    x = logspace(x0,x1,nsteps);
-                case 'custom'
-                    if nsteps < 2
-                        x = x1;
-                    else
-                        isteps = 0:nsteps-1;
-                        x = 1-(1-isteps/(nsteps-1)).^(factor);
-                        x = (x1-x0)*x + x0;
-                    end
-                case 'free'
-                    x = zeros(1,nsteps);
-                    x(end) = 1;
-                otherwise
-                    error('Incremental sequence type not detected.')
-            end
-            obj.alpha = x;
         end
         
     end

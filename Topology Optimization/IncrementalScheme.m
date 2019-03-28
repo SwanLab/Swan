@@ -81,14 +81,19 @@ classdef IncrementalScheme < handle
         function generateIncrementalSequences(obj)
             nsteps = obj.nSteps;
             
-            obj.incropt.volumeFrac = IncrementalSequence(1/nsteps,1,nsteps,'linear',obj.settings.Vfrac_initial,obj.settings.Vfrac_final);
-            obj.incropt.constraintTol = IncrementalSequence(0,1,nsteps,'linear',obj.settings.constr_initial,obj.settings.constr_final);
-            obj.incropt.optimalityTol = IncrementalSequence(0,1,nsteps,'linear',obj.settings.optimality_initial,obj.settings.optimality_final);
-            obj.incropt.epsilon = IncrementalSequence(0,1,nsteps,'linear',obj.epsilonInitial,obj.epsilonFinal);
-            obj.incropt.epsilonVel = IncrementalSequence(0,1,nsteps,'linear',obj.epsilonVelInitial,obj.epsilonVelFinal);
-            obj.incropt.epsilonPer = IncrementalSequence(-1,0,nsteps,'logarithmic',obj.epsilonPerInitial,obj.epsilonPerFinal);
+            obj.incropt.volumeFrac = LinearSequence(1/nsteps,1,nsteps,obj.settings.Vfrac_initial,obj.settings.Vfrac_final);
+            obj.incropt.constraintTol = LinearSequence(0,1,nsteps,obj.settings.constr_initial,obj.settings.constr_final);
+            obj.incropt.optimalityTol = LinearSequence(0,1,nsteps,obj.settings.optimality_initial,obj.settings.optimality_final);
+            obj.incropt.epsilon = LinearSequence(0,1,nsteps,obj.epsilonInitial,obj.epsilonFinal);
+            obj.incropt.epsilonVel = LinearSequence(0,1,nsteps,obj.epsilonVelInitial,obj.epsilonVelFinal);
+            obj.incropt.epsilonPer = LogarithmicSequence(-1,0,nsteps,obj.epsilonPerInitial,obj.epsilonPerFinal);
+            
+%             obj.incropt.epsilonPer = EpsilonSequence(1/nsteps,1,nsteps,obj.epsilonPerInitial,obj.epsilonPerFinal);
+%             obj.incropt.epsilonPer = CustomSequence(0,1,nsteps,obj.epsilonPerInitial,obj.epsilonPerFinal);
+            obj.incropt.epsilonPer = FreeSequence(0,1,nsteps,obj.epsilonPerInitial,obj.epsilonPerFinal);
+            
             if strcmp(obj.scale,'MICRO')
-                obj.incropt.epsilonIsotropy = IncrementalSequence(0,1,nsteps,'linear',obj.settings.epsilon_isotropy_initial,obj.settings.epsilon_isotropy_final);
+                obj.incropt.epsilonIsotropy = LinearSequence(0,1,nsteps,obj.settings.epsilon_isotropy_initial,obj.settings.epsilon_isotropy_final);
             end
         end
         
