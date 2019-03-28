@@ -20,7 +20,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             
             x = obj.solveUnconstrainedProblem(x_ini,cost,constraint);
             
-            obj.updateConvergenceStatus();
+            obj.updateConvergenceStatus(constraint);
         end
         
     end
@@ -54,7 +54,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             obj.optimizer_unconstr.has_converged = false;
         end
         
-        function updateConvergenceStatus(obj)
+        function updateConvergenceStatus(obj,constraint)
             active_constr = obj.penalty > 0;
             hasNotConverged = obj.optimizer_unconstr.opt_cond >=  obj.optimizer_unconstr.optimality_tol || any(any(abs(constraint.value(active_constr)) > obj.optimizer_unconstr.constr_tol(active_constr)));
             obj.has_converged = ~hasNotConverged;
