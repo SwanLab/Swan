@@ -9,7 +9,7 @@ classdef IncrementalScheme < handle
         epsilonPerFinal
         epsilonVelInitial
         epsilonVelFinal
-%         epsilon_isotropy
+        %         epsilon_isotropy
     end
     
     properties (GetAccess = public, SetAccess = private)
@@ -19,8 +19,8 @@ classdef IncrementalScheme < handle
     end
     
     properties (Access = private)
-                minEpsilon
-                
+        minEpsilon
+        
         settings
         
         cost
@@ -88,8 +88,8 @@ classdef IncrementalScheme < handle
             obj.incropt.epsilonVel = LinearSequence(0,1,nsteps,obj.epsilonVelInitial,obj.epsilonVelFinal);
             obj.incropt.epsilonPer = LogarithmicSequence(-1,0,nsteps,obj.epsilonPerInitial,obj.epsilonPerFinal);
             
-%             obj.incropt.epsilonPer = EpsilonSequence(1/nsteps,1,nsteps,obj.epsilonPerInitial,obj.epsilonPerFinal);
-%             obj.incropt.epsilonPer = CustomSequence(0,1,nsteps,obj.epsilonPerInitial,obj.epsilonPerFinal);
+            %             obj.incropt.epsilonPer = EpsilonSequence(1/nsteps,1,nsteps,obj.epsilonPerInitial,obj.epsilonPerFinal);
+            %             obj.incropt.epsilonPer = CustomSequence(0,1,nsteps,obj.epsilonPerInitial,obj.epsilonPerFinal);
             obj.incropt.epsilonPer = FreeSequence(0,1,nsteps,obj.epsilonPerInitial,obj.epsilonPerFinal);
             
             if strcmp(obj.scale,'MICRO')
@@ -137,7 +137,7 @@ classdef IncrementalScheme < handle
             obj.optimizer.target_parameters = obj.targetParams;
         end
         
-        function setupEpsilons(obj,initialEpsilon,mesh)
+        function setupEpsilons(obj,initialEpsilon)
             if ~isempty(initialEpsilon)
                 obj.epsilonInitial = initialEpsilon;
             else
@@ -146,14 +146,14 @@ classdef IncrementalScheme < handle
             obj.epsilonFinal = obj.epsilonInitial;
             obj.epsilonPerInitial = obj.minEpsilon;
             obj.epsilonVelInitial = obj.minEpsilon;
-            obj.epsilonPerFinal = obj.minEpsilon;
-            obj.epsilonVelFinal = obj.minEpsilon;
+            obj.epsilonPerFinal = obj.epsilonFinal;
+            obj.epsilonVelFinal = obj.epsilonFinal;
         end
         
         function computeMinimumEpsilon(obj,mesh)
             obj.minEpsilon = mesh.computeCharacteristicLength();
         end
-                
+        
         function itShall = setWhetherShallDisplayStep(obj,settings)
             itShall = settings.printIncrementalIter;
             if isempty(settings.printIncrementalIter)
