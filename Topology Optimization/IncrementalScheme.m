@@ -19,6 +19,8 @@ classdef IncrementalScheme < handle
     end
     
     properties (Access = private)
+                minEpsilon
+                
         settings
         
         cost
@@ -71,7 +73,8 @@ classdef IncrementalScheme < handle
             obj.iStep = 0;
             obj.nSteps = settings.nsteps;
             obj.scale = settings.ptype;
-            obj.setupEpsilons(settings.epsilon_initial,mesh);
+            obj.computeMinimumEpsilon(mesh);
+            obj.setupEpsilons(settings.epsilon_initial);
             obj.setWhetherShallDisplayStep(settings);
         end
         
@@ -105,7 +108,7 @@ classdef IncrementalScheme < handle
         end
         
         function computeTargetParams(obj,iStep)
-                        obj.incropt.volumeFrac.update(iStep);
+            obj.incropt.volumeFrac.update(iStep);
             obj.incropt.constraintTol.update(iStep);
             obj.incropt.optimalityTol.update(iStep);
             obj.incropt.epsilon.update(iStep);
@@ -133,13 +136,17 @@ classdef IncrementalScheme < handle
             if ~isempty(initialEpsilon)
                 obj.epsilonInitial = initialEpsilon;
             else
-                obj.epsilonInitial = mesh.computeMeanCellSize();
+                obj.epsilonInitial = obj.minEpsilon;
             end
             obj.epsilonFinal = obj.epsilonInitial;
-            obj.epsilonPerInitial = mesh.computeCharacteristicLength();
-            obj.epsilonVelInitial = mesh.computeCharacteristicLength();
-            obj.epsilonPerFinal = mesh.computeCharacteristicLength();
-            obj.epsilonVelFinal = mesh.computeCharacteristicLength();
+            obj.epsilonPerInitial = obj.minEpsilon;
+            obj.epsilonVelInitial = obj.minEpsilon;
+            obj.epsilonPerFinal = obj.minEpsilon;
+            obj.epsilonVelFinal = obj.minEpsilon;
+        end
+        
+        function computeMinimumEpsilon(obj,mesh)
+            obj.minEpsilon = mesh.computeCharacteristicLength();
         end
                 
         function itShall = setWhetherShallDisplayStep(obj,settings)
