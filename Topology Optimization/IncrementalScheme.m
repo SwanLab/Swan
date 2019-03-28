@@ -1,7 +1,6 @@
 classdef IncrementalScheme < handle
     
     properties (Access = public)
-        settings
         incropt
         
         epsilon
@@ -16,6 +15,7 @@ classdef IncrementalScheme < handle
     end
     
     properties (Access = private)
+        settings
         targetParams
         
         cost
@@ -51,7 +51,7 @@ classdef IncrementalScheme < handle
         end
         
         function itDoes = hasNext(obj)
-            if obj.iStep <= obj.nSteps
+            if obj.iStep < obj.nSteps
                 itDoes = true;
             else
                 itDoes = false;
