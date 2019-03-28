@@ -9,7 +9,7 @@ classdef IncrementalScheme < handle
         epsilonPerFinal
         epsilonVelInitial
         epsilonVelFinal
-        %         epsilon_isotropy
+%         epsilon_isotropy
     end
     
     properties (GetAccess = public, SetAccess = private)
@@ -19,8 +19,6 @@ classdef IncrementalScheme < handle
     end
     
     properties (Access = private)
-        minEpsilon
-        
         settings
         
         cost
@@ -36,7 +34,7 @@ classdef IncrementalScheme < handle
         
         function obj = IncrementalScheme(settings,mesh)
             obj.init(settings,mesh);
-            obj.generateIncrementalSequences();
+            obj.generateLinearSequences();
             obj.initTargetParams();
         end
         
@@ -73,12 +71,11 @@ classdef IncrementalScheme < handle
             obj.iStep = 0;
             obj.nSteps = settings.nsteps;
             obj.scale = settings.ptype;
-            obj.computeMinimumEpsilon(mesh);
-            obj.setupEpsilons(settings.epsilon_initial);
+            obj.setupEpsilons(settings.epsilon_initial,mesh);
             obj.setWhetherShallDisplayStep(settings);
         end
         
-        function generateIncrementalSequences(obj)
+        function generateLinearSequences(obj)
             nsteps = obj.nSteps;
             
             obj.incropt.volumeFrac = LinearSequence(1/nsteps,1,nsteps,obj.settings.Vfrac_initial,obj.settings.Vfrac_final);
@@ -87,11 +84,6 @@ classdef IncrementalScheme < handle
             obj.incropt.epsilon = LinearSequence(0,1,nsteps,obj.epsilonInitial,obj.epsilonFinal);
             obj.incropt.epsilonVel = LinearSequence(0,1,nsteps,obj.epsilonVelInitial,obj.epsilonVelFinal);
             obj.incropt.epsilonPer = LogarithmicSequence(-1,0,nsteps,obj.epsilonPerInitial,obj.epsilonPerFinal);
-            
-            %             obj.incropt.epsilonPer = EpsilonSequence(1/nsteps,1,nsteps,obj.epsilonPerInitial,obj.epsilonPerFinal);
-            %             obj.incropt.epsilonPer = CustomSequence(0,1,nsteps,obj.epsilonPerInitial,obj.epsilonPerFinal);
-            obj.incropt.epsilonPer = FreeSequence(0,1,nsteps,obj.epsilonPerInitial,obj.epsilonPerFinal);
-            
             if strcmp(obj.scale,'MICRO')
                 obj.incropt.epsilonIsotropy = LinearSequence(0,1,nsteps,obj.settings.epsilon_isotropy_initial,obj.settings.epsilon_isotropy_final);
             end
@@ -113,7 +105,7 @@ classdef IncrementalScheme < handle
         end
         
         function computeTargetParams(obj,iStep)
-            obj.incropt.volumeFrac.update(iStep);
+                        obj.incropt.volumeFrac.update(iStep);
             obj.incropt.constraintTol.update(iStep);
             obj.incropt.optimalityTol.update(iStep);
             obj.incropt.epsilon.update(iStep);
@@ -137,23 +129,19 @@ classdef IncrementalScheme < handle
             obj.optimizer.target_parameters = obj.targetParams;
         end
         
-        function setupEpsilons(obj,initialEpsilon)
+        function setupEpsilons(obj,initialEpsilon,mesh)
             if ~isempty(initialEpsilon)
                 obj.epsilonInitial = initialEpsilon;
             else
-                obj.epsilonInitial = obj.minEpsilon;
+                obj.epsilonInitial = mesh.computeMeanCellSize();
             end
             obj.epsilonFinal = obj.epsilonInitial;
-            obj.epsilonPerInitial = obj.minEpsilon;
-            obj.epsilonVelInitial = obj.minEpsilon;
-            obj.epsilonPerFinal = obj.epsilonFinal;
-            obj.epsilonVelFinal = obj.epsilonFinal;
+            obj.epsilonPerInitial = mesh.computeCharacteristicLength();
+            obj.epsilonVelInitial = mesh.computeCharacteristicLength();
+            obj.epsilonPerFinal = obj.epsilonInitial;
+            obj.epsilonVelFinal = obj.epsilonInitial;
         end
-        
-        function computeMinimumEpsilon(obj,mesh)
-            obj.minEpsilon = mesh.computeCharacteristicLength();
-        end
-        
+                
         function itShall = setWhetherShallDisplayStep(obj,settings)
             itShall = settings.printIncrementalIter;
             if isempty(settings.printIncrementalIter)
