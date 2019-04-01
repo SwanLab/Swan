@@ -13,7 +13,7 @@ classdef IncrementalScheme < handle
     properties (GetAccess = public, SetAccess = private)
         iStep
         nSteps
-        targetParams = TargetParameters
+        targetParams
     end
     
     properties (Access = private)
@@ -98,6 +98,7 @@ classdef IncrementalScheme < handle
             
             
             obj.targetParamsManager = TargetParamsManager(settingsTargetParams);
+            obj.targetParams = obj.targetParamsManager.targetParams;
         end
         
         function incrementStep(obj)
@@ -118,15 +119,6 @@ classdef IncrementalScheme < handle
         function computeTargetParams(obj,iStep)
             obj.targetParamsManager.update(iStep);
             
-            obj.targetParams.Vfrac = obj.targetParamsManager.volumeFrac.value;
-            obj.targetParams.epsilon = obj.targetParamsManager.epsilon.value;
-            obj.targetParams.epsilon_velocity = obj.targetParamsManager.epsilonVel.value;
-            obj.targetParams.epsilon_perimeter = obj.targetParamsManager.epsilonPer.value;
-            obj.targetParams.constr_tol = obj.targetParamsManager.constraintTol.value;
-            obj.targetParams.optimality_tol = obj.targetParamsManager.optimalityTol.value;
-            if strcmp(obj.settings.ptype,'MICRO')
-                obj.targetParams.epsilon_isotropy = obj.targetParamsManager.epsilonIsotropy.value;
-            end
         end
         
         function assignTargetParams(obj)
