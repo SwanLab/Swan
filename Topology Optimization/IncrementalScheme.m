@@ -1,15 +1,5 @@
 classdef IncrementalScheme < handle
     
-    properties (Access = public)        
-        epsilonInitial
-        epsilonFinal
-        epsilonPerInitial
-        epsilonPerFinal
-        epsilonVelInitial
-        epsilonVelFinal
-        %         epsilon_isotropy
-    end
-    
     properties (GetAccess = public, SetAccess = private)
         iStep
         nSteps
@@ -19,13 +9,16 @@ classdef IncrementalScheme < handle
     properties (Access = private)
         targetParamsManager
         
-        settings
+        epsilonInitial
+        epsilonFinal
+        epsilonPerInitial
+        epsilonPerFinal
+        epsilonVelInitial
+        epsilonVelFinal
         
         cost
         constraint
         optimizer
-        
-        scale
         
         shallDisplayStep
     end
@@ -35,21 +28,13 @@ classdef IncrementalScheme < handle
         function obj = IncrementalScheme(settings,mesh)
             obj.init(settings,mesh);
             obj.createTargetParams(settings);
-            obj.initTargetParams();
-        end
-        
-        function link(obj,cost,constraint,optimizer)
-            obj.cost = cost;
-            obj.constraint = constraint;
-            obj.optimizer = optimizer;
-            obj.assignTargetParams();
         end
         
         function next(obj)
             obj.incrementStep();
             obj.updateTargetParams();
         end
-
+        
         
         function display(obj)
             disp(['Incremental step: ',int2str(obj.iStep),' of ',int2str(obj.nSteps)]);
@@ -68,10 +53,8 @@ classdef IncrementalScheme < handle
     methods (Access = private)
         
         function init(obj,settings,mesh)
-            obj.settings = settings;
             obj.iStep = 0;
             obj.nSteps = settings.nsteps;
-            obj.scale = settings.ptype;
             obj.setupEpsilons(settings.epsilon_initial,mesh);
             obj.setWhetherShallDisplayStep(settings);
         end
@@ -79,7 +62,7 @@ classdef IncrementalScheme < handle
         function createTargetParams(obj,settings)
             settingsTargetParams = struct;
             settingsTargetParams.nSteps = obj.nSteps;
-            settingsTargetParams.scale = obj.scale;
+            settingsTargetParams.scale = settings.ptype;
             settingsTargetParams.Vfrac_initial = settings.Vfrac_initial;
             settingsTargetParams.Vfrac_final = settings.Vfrac_final;
             settingsTargetParams.constr_initial = settings.constr_initial;
@@ -101,30 +84,15 @@ classdef IncrementalScheme < handle
             obj.targetParams = obj.targetParamsManager.targetParams;
         end
         
+        function updateTargetParams(obj)
+            obj.targetParamsManager.update(obj.iStep);
+        end
+        
         function incrementStep(obj)
             obj.iStep = obj.iStep + 1;
             if obj.shallDisplayStep
                 obj.display();
             end
-        end
-        
-        function initTargetParams(obj)
-            obj.computeTargetParams(1)
-        end
-        
-        function updateTargetParams(obj)
-            obj.computeTargetParams(obj.iStep)
-        end
-        
-        function computeTargetParams(obj,iStep)
-            obj.targetParamsManager.update(iStep);
-            
-        end
-        
-        function assignTargetParams(obj)
-            obj.cost.target_parameters = obj.targetParams;
-            obj.constraint.target_parameters = obj.targetParams;
-            obj.optimizer.target_parameters = obj.targetParams;
         end
         
         function setupEpsilons(obj,initialEpsilon,mesh)

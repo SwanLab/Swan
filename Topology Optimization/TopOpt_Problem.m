@@ -24,19 +24,19 @@ classdef TopOpt_Problem < handle
             settings.pdim = obj.mesh.pdim;
             obj.settings = settings;
             obj.incrementalScheme = IncrementalScheme(settings,obj.mesh);
-            obj.optimizer = OptimizerFactory().create(obj.settings.optimizer,settings,obj.designVariable,obj.incrementalScheme.targetParams.epsilon);
+            obj.optimizer = OptimizerFactory().create(settings.optimizer,settings,obj.designVariable,obj.incrementalScheme.targetParams.epsilon);
             obj.cost = Cost(settings,settings.weights);
             obj.constraint = Constraint(settings);
         end
         
         function preProcess(obj)
-            obj.cost.preProcess;
-            obj.constraint.preProcess;
+            obj.cost.preProcess();
+            obj.constraint.preProcess();
             obj.x = obj.designVariable.value;
         end
         
         function computeVariables(obj)
-            obj.incrementalScheme.link(obj.cost,obj.constraint,obj.optimizer);
+            obj.linkTargetParams();
             while obj.incrementalScheme.hasNext()
                 obj.incrementalScheme.next();
                 obj.solveCurrentProblem();
@@ -77,6 +77,12 @@ classdef TopOpt_Problem < handle
             istep = obj.incrementalScheme.iStep;
             obj.designVariable = obj.optimizer.solveProblem(obj.designVariable,obj.cost,obj.constraint,istep,obj.settings.nsteps);
             obj.x = obj.designVariable.value;
+        end
+        
+        function linkTargetParams(obj)
+            obj.cost.target_parameters = obj.incrementalScheme.targetParams;
+            obj.constraint.target_parameters = obj.incrementalScheme.targetParams;
+            obj.optimizer.target_parameters = obj.incrementalScheme.targetParams;
         end
         
     end
