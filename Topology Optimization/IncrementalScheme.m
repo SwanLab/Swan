@@ -16,10 +16,6 @@ classdef IncrementalScheme < handle
         epsilonVelInitial
         epsilonVelFinal
         
-        cost
-        constraint
-        optimizer
-        
         shallDisplayStep
     end
     
@@ -37,7 +33,7 @@ classdef IncrementalScheme < handle
         
         
         function display(obj)
-            disp(['Incremental step: ',int2str(obj.iStep),' of ',int2str(obj.nSteps)]);
+            disp(['Incremental Scheme - Step: ',int2str(obj.iStep),' of ',int2str(obj.nSteps)]);
         end
         
         function itDoes = hasNext(obj)
@@ -108,10 +104,10 @@ classdef IncrementalScheme < handle
             obj.epsilonVelFinal = obj.epsilonInitial;
         end
         
-        function itShall = setWhetherShallDisplayStep(obj,settings)
-            itShall = settings.printIncrementalIter;
+        function setWhetherShallDisplayStep(obj,settings)
+            obj.shallDisplayStep = settings.printIncrementalIter;
             if isempty(settings.printIncrementalIter)
-                itShall = true;
+                obj.shallDisplayStep = true;
             end
         end
         

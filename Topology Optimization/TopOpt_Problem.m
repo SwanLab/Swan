@@ -1,6 +1,6 @@
 classdef TopOpt_Problem < handle
     
-    properties (GetAccess = public,SetAccess = public)
+    properties (GetAccess = public, SetAccess = public)
         cost
         constraint
         designVariable
