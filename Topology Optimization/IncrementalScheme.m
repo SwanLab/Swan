@@ -1,24 +1,24 @@
 classdef IncrementalScheme < handle
     
-    properties (Access = public)
-        incropt
-        
+    properties (Access = public)        
         epsilonInitial
         epsilonFinal
         epsilonPerInitial
         epsilonPerFinal
         epsilonVelInitial
         epsilonVelFinal
-%         epsilon_isotropy
+        %         epsilon_isotropy
     end
     
     properties (GetAccess = public, SetAccess = private)
         iStep
         nSteps
-        targetParams
+        targetParams = TargetParameters
     end
     
     properties (Access = private)
+        targetParamsManager
+        
         settings
         
         cost
@@ -34,7 +34,7 @@ classdef IncrementalScheme < handle
         
         function obj = IncrementalScheme(settings,mesh)
             obj.init(settings,mesh);
-            obj.generateLinearSequences();
+            obj.createTargetParams(settings);
             obj.initTargetParams();
         end
         
@@ -42,13 +42,14 @@ classdef IncrementalScheme < handle
             obj.cost = cost;
             obj.constraint = constraint;
             obj.optimizer = optimizer;
+            obj.assignTargetParams();
         end
         
         function next(obj)
             obj.incrementStep();
             obj.updateTargetParams();
-            obj.assignTargetParams();
         end
+
         
         function display(obj)
             disp(['Incremental step: ',int2str(obj.iStep),' of ',int2str(obj.nSteps)]);
@@ -75,18 +76,28 @@ classdef IncrementalScheme < handle
             obj.setWhetherShallDisplayStep(settings);
         end
         
-        function generateLinearSequences(obj)
-            nsteps = obj.nSteps;
+        function createTargetParams(obj,settings)
+            settingsTargetParams = struct;
+            settingsTargetParams.nSteps = obj.nSteps;
+            settingsTargetParams.scale = obj.scale;
+            settingsTargetParams.Vfrac_initial = settings.Vfrac_initial;
+            settingsTargetParams.Vfrac_final = settings.Vfrac_final;
+            settingsTargetParams.constr_initial = settings.constr_initial;
+            settingsTargetParams.constr_final = settings.constr_final;
+            settingsTargetParams.optimality_initial = settings.optimality_initial;
+            settingsTargetParams.optimality_final = settings.optimality_final;
             
-            obj.incropt.volumeFrac = LinearSequence(1/nsteps,1,nsteps,obj.settings.Vfrac_initial,obj.settings.Vfrac_final);
-            obj.incropt.constraintTol = LinearSequence(0,1,nsteps,obj.settings.constr_initial,obj.settings.constr_final);
-            obj.incropt.optimalityTol = LinearSequence(0,1,nsteps,obj.settings.optimality_initial,obj.settings.optimality_final);
-            obj.incropt.epsilon = LinearSequence(0,1,nsteps,obj.epsilonInitial,obj.epsilonFinal);
-            obj.incropt.epsilonVel = LinearSequence(0,1,nsteps,obj.epsilonVelInitial,obj.epsilonVelFinal);
-            obj.incropt.epsilonPer = LogarithmicSequence(-1,0,nsteps,obj.epsilonPerInitial,obj.epsilonPerFinal);
-            if strcmp(obj.scale,'MICRO')
-                obj.incropt.epsilonIsotropy = LinearSequence(0,1,nsteps,obj.settings.epsilon_isotropy_initial,obj.settings.epsilon_isotropy_final);
-            end
+            settingsTargetParams.epsilonInitial = obj.epsilonInitial;
+            settingsTargetParams.epsilonFinal = obj.epsilonFinal;
+            settingsTargetParams.epsilonPerInitial = obj.epsilonPerInitial;
+            settingsTargetParams.epsilonPerFinal = obj.epsilonPerFinal;
+            settingsTargetParams.epsilonVelInitial = obj.epsilonVelInitial;
+            settingsTargetParams.epsilonVelFinal = obj.epsilonVelFinal;
+            settingsTargetParams.epsilonIsotropyInitial = settings.epsilon_isotropy_initial;
+            settingsTargetParams.epsilonIsotropyFinal = settings.epsilon_isotropy_final;
+            
+            
+            obj.targetParamsManager = TargetParamsManager(settingsTargetParams);
         end
         
         function incrementStep(obj)
@@ -105,21 +116,16 @@ classdef IncrementalScheme < handle
         end
         
         function computeTargetParams(obj,iStep)
-                        obj.incropt.volumeFrac.update(iStep);
-            obj.incropt.constraintTol.update(iStep);
-            obj.incropt.optimalityTol.update(iStep);
-            obj.incropt.epsilon.update(iStep);
-            obj.incropt.epsilonVel.update(iStep);
-            obj.incropt.epsilonPer.update(iStep);
+            obj.targetParamsManager.update(iStep);
             
-            obj.targetParams.Vfrac = obj.incropt.volumeFrac.value;
-            obj.targetParams.epsilon = obj.incropt.epsilon.value;
-            obj.targetParams.epsilon_velocity = obj.incropt.epsilonVel.value;
-            obj.targetParams.epsilon_perimeter = obj.incropt.epsilonPer.value;
-            obj.targetParams.constr_tol = obj.incropt.constraintTol.value;
-            obj.targetParams.optimality_tol = obj.incropt.optimalityTol.value;
+            obj.targetParams.Vfrac = obj.targetParamsManager.volumeFrac.value;
+            obj.targetParams.epsilon = obj.targetParamsManager.epsilon.value;
+            obj.targetParams.epsilon_velocity = obj.targetParamsManager.epsilonVel.value;
+            obj.targetParams.epsilon_perimeter = obj.targetParamsManager.epsilonPer.value;
+            obj.targetParams.constr_tol = obj.targetParamsManager.constraintTol.value;
+            obj.targetParams.optimality_tol = obj.targetParamsManager.optimalityTol.value;
             if strcmp(obj.settings.ptype,'MICRO')
-                obj.targetParams.epsilon_isotropy = obj.incropt.epsilonIsotropy.value;
+                obj.targetParams.epsilon_isotropy = obj.targetParamsManager.epsilonIsotropy.value;
             end
         end
         
@@ -141,7 +147,7 @@ classdef IncrementalScheme < handle
             obj.epsilonPerFinal = obj.epsilonInitial;
             obj.epsilonVelFinal = obj.epsilonInitial;
         end
-                
+        
         function itShall = setWhetherShallDisplayStep(obj,settings)
             itShall = settings.printIncrementalIter;
             if isempty(settings.printIncrementalIter)
