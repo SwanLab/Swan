@@ -13,6 +13,8 @@ classdef IncrementalScheme < handle
         epsilonFinal
         epsilonPerInitial
         epsilonPerFinal
+        epsilonIsoInitial
+        epsilonIsoFinal
         
         shallDisplayStep
     end
@@ -94,6 +96,9 @@ classdef IncrementalScheme < handle
             obj.assignWithBackup('epsilonFinal',cParams.epsilon_final,obj.epsilonInitial);
             obj.epsilonPerInitial = L;
             obj.epsilonPerFinal = obj.epsilonInitial;
+            obj.assignWithBackup('epsilonIsoInitial',cParams.epsilon_isotropy_initial,nan);
+            obj.assignWithBackup('epsilonIsoFinal',cParams.epsilon_isotropy_final,nan);
+            
         end
         
         function setWhetherShallDisplayStep(obj,settings)
