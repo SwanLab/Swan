@@ -49,7 +49,7 @@ classdef IncrementalScheme < handle
         function init(obj,settings,mesh)
             obj.iStep = 0;
             obj.nSteps = settings.nsteps;
-            obj.setupEpsilons(settings.epsilon_initial,mesh);
+            obj.setupEpsilons(settings,mesh);
             obj.setWhetherShallDisplayStep(settings);
         end
         
@@ -87,14 +87,12 @@ classdef IncrementalScheme < handle
             end
         end
         
-        function setupEpsilons(obj,initialEpsilon,mesh)
-            if ~isempty(initialEpsilon)
-                obj.epsilonInitial = initialEpsilon;
-            else
-                obj.epsilonInitial = mesh.computeMeanCellSize();
-            end
-            obj.epsilonFinal = obj.epsilonInitial;
-            obj.epsilonPerInitial = mesh.computeCharacteristicLength();
+        function setupEpsilons(obj,cParams,mesh)
+            L = mesh.computeCharacteristicLength();
+            D = mesh.computeMeanCellSize();
+            obj.assignWithBackup('epsilonInitial',cParams.epsilon_initial,D);
+            obj.assignWithBackup('epsilonFinal',cParams.epsilon_final,obj.epsilonInitial);
+            obj.epsilonPerInitial = L;
             obj.epsilonPerFinal = obj.epsilonInitial;
         end
         
@@ -102,6 +100,14 @@ classdef IncrementalScheme < handle
             obj.shallDisplayStep = settings.printIncrementalIter;
             if isempty(settings.printIncrementalIter)
                 obj.shallDisplayStep = true;
+            end
+        end
+        
+        function assignWithBackup(obj,prop,a,b)
+            if ~isempty(a)
+                obj.(prop) = a;
+            else
+                obj.(prop) = b;
             end
         end
         
