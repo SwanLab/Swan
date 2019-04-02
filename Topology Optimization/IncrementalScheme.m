@@ -31,7 +31,6 @@ classdef IncrementalScheme < handle
             obj.updateTargetParams();
         end
         
-        
         function display(obj)
             disp(['Incremental Scheme - Step: ',int2str(obj.iStep),' of ',int2str(obj.nSteps)]);
         end
@@ -55,25 +54,8 @@ classdef IncrementalScheme < handle
             obj.setWhetherShallDisplayStep(settings);
         end
         
-        function createTargetParams(obj,settings)
-            settingsTargetParams = struct;
-            settingsTargetParams.nSteps = obj.nSteps;
-            settingsTargetParams.scale = settings.ptype;
-            settingsTargetParams.Vfrac_initial = settings.Vfrac_initial;
-            settingsTargetParams.Vfrac_final = settings.Vfrac_final;
-            settingsTargetParams.constr_initial = settings.constr_initial;
-            settingsTargetParams.constr_final = settings.constr_final;
-            settingsTargetParams.optimality_initial = settings.optimality_initial;
-            settingsTargetParams.optimality_final = settings.optimality_final;
-            
-            settingsTargetParams.epsilonInitial = obj.epsilonInitial;
-            settingsTargetParams.epsilonFinal = obj.epsilonFinal;
-            settingsTargetParams.epsilonPerInitial = obj.epsilonPerInitial;
-            settingsTargetParams.epsilonPerFinal = obj.epsilonPerFinal;
-            settingsTargetParams.epsilonIsotropyInitial = settings.epsilon_isotropy_initial;
-            settingsTargetParams.epsilonIsotropyFinal = settings.epsilon_isotropy_final;
-            
-            
+        function createTargetParams(obj,cParams)
+            settingsTargetParams = obj.createTargetSettings(cParams);            
             obj.targetParamsManager = TargetParamsManager(settingsTargetParams);
             obj.targetParams = obj.targetParamsManager.targetParams;
         end
@@ -99,6 +81,25 @@ classdef IncrementalScheme < handle
             obj.assignWithBackup('epsilonIsoInitial',cParams.epsilon_isotropy_initial,nan);
             obj.assignWithBackup('epsilonIsoFinal',cParams.epsilon_isotropy_final,nan);
             
+        end
+        
+        function settingsTargetParams = createTargetSettings(obj,cParams)
+            settingsTargetParams = SettingsTargetParamsManager();
+            
+            settingsTargetParams.nSteps = obj.nSteps;
+            settingsTargetParams.Vfrac_initial = cParams.Vfrac_initial;
+            settingsTargetParams.Vfrac_final = cParams.Vfrac_final;
+            settingsTargetParams.constr_initial = cParams.constr_initial;
+            settingsTargetParams.constr_final = cParams.constr_final;
+            settingsTargetParams.optimality_initial = cParams.optimality_initial;
+            settingsTargetParams.optimality_final = cParams.optimality_final;
+            
+            settingsTargetParams.epsilonInitial = obj.epsilonInitial;
+            settingsTargetParams.epsilonFinal = obj.epsilonFinal;
+            settingsTargetParams.epsilonPerInitial = obj.epsilonPerInitial;
+            settingsTargetParams.epsilonPerFinal = obj.epsilonPerFinal;
+            settingsTargetParams.epsilonIsotropyInitial = cParams.epsilon_isotropy_initial;
+            settingsTargetParams.epsilonIsotropyFinal = cParams.epsilon_isotropy_final;
         end
         
         function setWhetherShallDisplayStep(obj,settings)

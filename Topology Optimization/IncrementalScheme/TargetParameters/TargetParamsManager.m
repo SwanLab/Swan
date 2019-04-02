@@ -6,7 +6,6 @@ classdef TargetParamsManager < handle
     
     properties (Access = private)
         nSteps
-        scale
         
         volumeFrac
         constraintTol
@@ -35,7 +34,6 @@ classdef TargetParamsManager < handle
         
         function init(obj,cParams)
             obj.nSteps = cParams.nSteps;
-            obj.scale = cParams.scale;
             obj.targetParams = TargetParameters();
         end
         
