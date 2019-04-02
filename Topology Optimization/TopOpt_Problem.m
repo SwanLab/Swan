@@ -23,7 +23,7 @@ classdef TopOpt_Problem < handle
             obj.createDesignVariable(settings);
             settings.pdim = obj.mesh.pdim;
             obj.settings = settings;
-            obj.incrementalScheme = IncrementalScheme(settings,obj.mesh);
+            obj.createIncrementalScheme(settings);
             obj.optimizer = OptimizerFactory().create(settings.optimizer,settings,obj.designVariable,obj.incrementalScheme.targetParams.epsilon);
             obj.cost = Cost(settings,settings.weights);
             obj.constraint = Constraint(settings);
@@ -71,6 +71,25 @@ classdef TopOpt_Problem < handle
             designVarSettings.value = designVarInitializer.getValue();
             designVarSettings.optimizer = settings.optimizer;
             obj.designVariable = DesignVariableFactory().create(designVarSettings);
+        end
+        
+        function createIncrementalScheme(obj,settings)
+            settingsIncrementalScheme = struct;
+            settingsIncrementalScheme.nSteps = settings.nsteps;
+            settingsIncrementalScheme.VfracInitial = settings.Vfrac_initial;
+            settingsIncrementalScheme.VfracFinal = settings.Vfrac_final;
+            settingsIncrementalScheme.constrInitial = settings.constr_initial;
+            settingsIncrementalScheme.constrFinal = settings.constr_final;
+            settingsIncrementalScheme.optimalityInitial = settings.optimality_initial;
+            settingsIncrementalScheme.optimalityFinal = settings.optimality_final;
+            
+            settingsIncrementalScheme.epsilonInitial = settings.epsilon_initial;
+            settingsIncrementalScheme.epsilonFinal = settings.epsilon_final;
+            settingsIncrementalScheme.epsilonIsoInitial = settings.epsilon_isotropy_initial;
+            settingsIncrementalScheme.epsilonIsoFinal = settings.epsilon_isotropy_final;
+            settingsIncrementalScheme.shallPrintIncremental = settings.printIncrementalIter;
+            settingsIncrementalScheme.mesh = obj.mesh;
+            obj.incrementalScheme = IncrementalScheme(settingsIncrementalScheme);
         end
         
         function solveCurrentProblem(obj)

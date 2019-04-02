@@ -38,9 +38,9 @@ classdef TargetParamsManager < handle
         end
         
         function generateSequences(obj,cParams)
-            obj.volumeFrac = LinearSequence(1/obj.nSteps,1,obj.nSteps,cParams.Vfrac_initial,cParams.Vfrac_final);
-            obj.constraintTol = LinearSequence(0,1,obj.nSteps,cParams.constr_initial,cParams.constr_final);
-            obj.optimalityTol = LinearSequence(0,1,obj.nSteps,cParams.optimality_initial,cParams.optimality_final);
+            obj.volumeFrac = LinearSequence(1/obj.nSteps,1,obj.nSteps,cParams.VfracInitial,cParams.VfracFinal);
+            obj.constraintTol = LinearSequence(0,1,obj.nSteps,cParams.constrInitial,cParams.constrFinal);
+            obj.optimalityTol = LinearSequence(0,1,obj.nSteps,cParams.optimalityInitial,cParams.optimalityFinal);
             obj.epsilon = LinearSequence(0,1,obj.nSteps,cParams.epsilonInitial,cParams.epsilonFinal);
             obj.epsilonPer = LogarithmicSequence(-1,0,obj.nSteps,cParams.epsilonPerInitial,cParams.epsilonPerFinal);
             obj.epsilonIsotropy = LinearSequence(0,1,obj.nSteps,cParams.epsilonIsotropyInitial,cParams.epsilonIsotropyFinal);

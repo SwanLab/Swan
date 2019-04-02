@@ -21,9 +21,9 @@ classdef IncrementalScheme < handle
     
     methods (Access = public)
         
-        function obj = IncrementalScheme(settings,mesh)
-            obj.init(settings,mesh);
-            obj.createTargetParams(settings);
+        function obj = IncrementalScheme(cParams)
+            obj.init(cParams);
+            obj.createTargetParams(cParams);
         end
         
         function next(obj)
@@ -47,11 +47,11 @@ classdef IncrementalScheme < handle
     
     methods (Access = private)
         
-        function init(obj,settings,mesh)
+        function init(obj,cParams)
             obj.iStep = 0;
-            obj.nSteps = settings.nsteps;
-            obj.setupEpsilons(settings,mesh);
-            obj.setWhetherShallDisplayStep(settings);
+            obj.nSteps = cParams.nSteps;
+            obj.setupEpsilons(cParams);
+            obj.setWhetherShallDisplayStep(cParams.shallPrintIncremental);
         end
         
         function createTargetParams(obj,cParams)
@@ -71,15 +71,15 @@ classdef IncrementalScheme < handle
             end
         end
         
-        function setupEpsilons(obj,cParams,mesh)
-            L = mesh.computeCharacteristicLength();
-            D = mesh.computeMeanCellSize();
-            obj.assignWithBackup('epsilonInitial',cParams.epsilon_initial,D);
-            obj.assignWithBackup('epsilonFinal',cParams.epsilon_final,obj.epsilonInitial);
+        function setupEpsilons(obj,cParams)
+            L = cParams.mesh.computeCharacteristicLength();
+            D = cParams.mesh.computeMeanCellSize();
+            obj.assignWithBackup('epsilonInitial',cParams.epsilonInitial,D);
+            obj.assignWithBackup('epsilonFinal',cParams.epsilonFinal,obj.epsilonInitial);
             obj.epsilonPerInitial = L;
             obj.epsilonPerFinal = obj.epsilonInitial;
-            obj.assignWithBackup('epsilonIsoInitial',cParams.epsilon_isotropy_initial,nan);
-            obj.assignWithBackup('epsilonIsoFinal',cParams.epsilon_isotropy_final,nan);
+            obj.assignWithBackup('epsilonIsoInitial',cParams.epsilonIsoInitial,nan);
+            obj.assignWithBackup('epsilonIsoFinal',cParams.epsilonIsoFinal,nan);
             
         end
         
@@ -87,24 +87,24 @@ classdef IncrementalScheme < handle
             settingsTargetParams = SettingsTargetParamsManager();
             
             settingsTargetParams.nSteps = obj.nSteps;
-            settingsTargetParams.Vfrac_initial = cParams.Vfrac_initial;
-            settingsTargetParams.Vfrac_final = cParams.Vfrac_final;
-            settingsTargetParams.constr_initial = cParams.constr_initial;
-            settingsTargetParams.constr_final = cParams.constr_final;
-            settingsTargetParams.optimality_initial = cParams.optimality_initial;
-            settingsTargetParams.optimality_final = cParams.optimality_final;
+            settingsTargetParams.VfracInitial = cParams.VfracInitial;
+            settingsTargetParams.VfracFinal = cParams.VfracFinal;
+            settingsTargetParams.constrInitial = cParams.constrInitial;
+            settingsTargetParams.constrFinal = cParams.constrFinal;
+            settingsTargetParams.optimalityInitial = cParams.optimalityInitial;
+            settingsTargetParams.optimalityFinal = cParams.optimalityFinal;
             
             settingsTargetParams.epsilonInitial = obj.epsilonInitial;
             settingsTargetParams.epsilonFinal = obj.epsilonFinal;
             settingsTargetParams.epsilonPerInitial = obj.epsilonPerInitial;
             settingsTargetParams.epsilonPerFinal = obj.epsilonPerFinal;
-            settingsTargetParams.epsilonIsotropyInitial = cParams.epsilon_isotropy_initial;
-            settingsTargetParams.epsilonIsotropyFinal = cParams.epsilon_isotropy_final;
+            settingsTargetParams.epsilonIsotropyInitial = obj.epsilonIsoInitial;
+            settingsTargetParams.epsilonIsotropyFinal = obj.epsilonIsoFinal;
         end
         
-        function setWhetherShallDisplayStep(obj,settings)
-            obj.shallDisplayStep = settings.printIncrementalIter;
-            if isempty(settings.printIncrementalIter)
+        function setWhetherShallDisplayStep(obj,flag)
+            obj.shallDisplayStep = flag;
+            if isempty(flag)
                 obj.shallDisplayStep = true;
             end
         end

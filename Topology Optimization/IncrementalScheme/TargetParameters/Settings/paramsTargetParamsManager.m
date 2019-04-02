@@ -1,10 +1,10 @@
 nSteps = 5;
-Vfrac_initial = 0.4;
-Vfrac_final = 0.2;
-constr_initial = 1e-2;
-constr_final = 1e-3;
-optimality_initial = 1e-2;
-optimality_final = 1e-3;
+VfracInitial = 0.4;
+VfracFinal = 0.2;
+constrInitial = 1e-2;
+constrFinal = 1e-3;
+optimalityInitial = 1e-2;
+optimalityFinal = 1e-3;
 
 epsilonInitial = 0.015;
 epsilonFinal = 0.015;
