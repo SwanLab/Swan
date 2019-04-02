@@ -74,21 +74,24 @@ classdef TopOpt_Problem < handle
         end
         
         function createIncrementalScheme(obj,settings)
-            settingsIncrementalScheme = struct;
-            settingsIncrementalScheme.nSteps = settings.nsteps;
-            settingsIncrementalScheme.VfracInitial = settings.Vfrac_initial;
-            settingsIncrementalScheme.VfracFinal = settings.Vfrac_final;
-            settingsIncrementalScheme.constrInitial = settings.constr_initial;
-            settingsIncrementalScheme.constrFinal = settings.constr_final;
-            settingsIncrementalScheme.optimalityInitial = settings.optimality_initial;
-            settingsIncrementalScheme.optimalityFinal = settings.optimality_final;
+            settingsIncrementalScheme = SettingsIncrementalScheme();
             
-            settingsIncrementalScheme.epsilonInitial = settings.epsilon_initial;
-            settingsIncrementalScheme.epsilonFinal = settings.epsilon_final;
-            settingsIncrementalScheme.epsilonIsoInitial = settings.epsilon_isotropy_initial;
-            settingsIncrementalScheme.epsilonIsoFinal = settings.epsilon_isotropy_final;
+            settingsIncrementalScheme.settingsTargetParams.VfracInitial = settings.Vfrac_initial;
+            settingsIncrementalScheme.settingsTargetParams.VfracFinal = settings.Vfrac_final;
+            settingsIncrementalScheme.settingsTargetParams.constrInitial = settings.constr_initial;
+            settingsIncrementalScheme.settingsTargetParams.constrFinal = settings.constr_final;
+            settingsIncrementalScheme.settingsTargetParams.optimalityInitial = settings.optimality_initial;
+            settingsIncrementalScheme.settingsTargetParams.optimalityFinal = settings.optimality_final;
+            settingsIncrementalScheme.settingsTargetParams.epsilonInitial = settings.epsilon_initial;
+            settingsIncrementalScheme.settingsTargetParams.epsilonFinal = settings.epsilon_final;
+            settingsIncrementalScheme.settingsTargetParams.epsilonIsotropyInitial = settings.epsilon_isotropy_initial;
+            settingsIncrementalScheme.settingsTargetParams.epsilonIsotropyFinal = settings.epsilon_isotropy_final;
+            
+            settingsIncrementalScheme.nSteps = settings.nsteps;
             settingsIncrementalScheme.shallPrintIncremental = settings.printIncrementalIter;
+            
             settingsIncrementalScheme.mesh = obj.mesh;
+            
             obj.incrementalScheme = IncrementalScheme(settingsIncrementalScheme);
         end
         

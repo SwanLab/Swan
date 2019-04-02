@@ -50,12 +50,11 @@ classdef IncrementalScheme < handle
         function init(obj,cParams)
             obj.iStep = 0;
             obj.nSteps = cParams.nSteps;
-            obj.setupEpsilons(cParams);
             obj.setWhetherShallDisplayStep(cParams.shallPrintIncremental);
         end
         
         function createTargetParams(obj,cParams)
-            settingsTargetParams = obj.createTargetSettings(cParams);            
+            settingsTargetParams = obj.editTargetParamsSettings(cParams);
             obj.targetParamsManager = TargetParamsManager(settingsTargetParams);
             obj.targetParams = obj.targetParamsManager.targetParams;
         end
@@ -71,29 +70,23 @@ classdef IncrementalScheme < handle
             end
         end
         
-        function setupEpsilons(obj,cParams)
-            L = cParams.mesh.computeCharacteristicLength();
-            D = cParams.mesh.computeMeanCellSize();
-            obj.assignWithBackup('epsilonInitial',cParams.epsilonInitial,D);
-            obj.assignWithBackup('epsilonFinal',cParams.epsilonFinal,obj.epsilonInitial);
+        function setupEpsilons(obj,mesh,settingsTargetParams)
+            L = mesh.computeCharacteristicLength();
+            D = mesh.computeMeanCellSize();
+            obj.assignWithBackup('epsilonInitial',settingsTargetParams.epsilonInitial,D);
+            obj.assignWithBackup('epsilonFinal',settingsTargetParams.epsilonFinal,obj.epsilonInitial);
             obj.epsilonPerInitial = L;
             obj.epsilonPerFinal = obj.epsilonInitial;
-            obj.assignWithBackup('epsilonIsoInitial',cParams.epsilonIsoInitial,nan);
-            obj.assignWithBackup('epsilonIsoFinal',cParams.epsilonIsoFinal,nan);
+            obj.assignWithBackup('epsilonIsoInitial',settingsTargetParams.epsilonIsotropyInitial,nan);
+            obj.assignWithBackup('epsilonIsoFinal',settingsTargetParams.epsilonIsotropyFinal,nan);
             
         end
         
-        function settingsTargetParams = createTargetSettings(obj,cParams)
-            settingsTargetParams = SettingsTargetParamsManager();
+        function settingsTargetParams = editTargetParamsSettings(obj,cParams)
+            obj.setupEpsilons(cParams.mesh,cParams.settingsTargetParams);
             
+            settingsTargetParams = cParams.settingsTargetParams;
             settingsTargetParams.nSteps = obj.nSteps;
-            settingsTargetParams.VfracInitial = cParams.VfracInitial;
-            settingsTargetParams.VfracFinal = cParams.VfracFinal;
-            settingsTargetParams.constrInitial = cParams.constrInitial;
-            settingsTargetParams.constrFinal = cParams.constrFinal;
-            settingsTargetParams.optimalityInitial = cParams.optimalityInitial;
-            settingsTargetParams.optimalityFinal = cParams.optimalityFinal;
-            
             settingsTargetParams.epsilonInitial = obj.epsilonInitial;
             settingsTargetParams.epsilonFinal = obj.epsilonFinal;
             settingsTargetParams.epsilonPerInitial = obj.epsilonPerInitial;
