@@ -13,8 +13,6 @@ classdef IncrementalScheme < handle
         epsilonFinal
         epsilonPerInitial
         epsilonPerFinal
-        epsilonVelInitial
-        epsilonVelFinal
         
         shallDisplayStep
     end
@@ -70,8 +68,6 @@ classdef IncrementalScheme < handle
             settingsTargetParams.epsilonFinal = obj.epsilonFinal;
             settingsTargetParams.epsilonPerInitial = obj.epsilonPerInitial;
             settingsTargetParams.epsilonPerFinal = obj.epsilonPerFinal;
-            settingsTargetParams.epsilonVelInitial = obj.epsilonVelInitial;
-            settingsTargetParams.epsilonVelFinal = obj.epsilonVelFinal;
             settingsTargetParams.epsilonIsotropyInitial = settings.epsilon_isotropy_initial;
             settingsTargetParams.epsilonIsotropyFinal = settings.epsilon_isotropy_final;
             
@@ -99,9 +95,7 @@ classdef IncrementalScheme < handle
             end
             obj.epsilonFinal = obj.epsilonInitial;
             obj.epsilonPerInitial = mesh.computeCharacteristicLength();
-            obj.epsilonVelInitial = mesh.computeCharacteristicLength();
             obj.epsilonPerFinal = obj.epsilonInitial;
-            obj.epsilonVelFinal = obj.epsilonInitial;
         end
         
         function setWhetherShallDisplayStep(obj,settings)

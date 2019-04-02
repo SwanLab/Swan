@@ -12,7 +12,6 @@ classdef TargetParamsManager < handle
         constraintTol
         optimalityTol
         epsilon
-        epsilonVel
         epsilonPer
         epsilonIsotropy
     end
@@ -45,7 +44,6 @@ classdef TargetParamsManager < handle
             obj.constraintTol = LinearSequence(0,1,obj.nSteps,cParams.constr_initial,cParams.constr_final);
             obj.optimalityTol = LinearSequence(0,1,obj.nSteps,cParams.optimality_initial,cParams.optimality_final);
             obj.epsilon = LinearSequence(0,1,obj.nSteps,cParams.epsilonInitial,cParams.epsilonFinal);
-            obj.epsilonVel = LinearSequence(0,1,obj.nSteps,cParams.epsilonVelInitial,cParams.epsilonVelFinal);
             obj.epsilonPer = LogarithmicSequence(-1,0,obj.nSteps,cParams.epsilonPerInitial,cParams.epsilonPerFinal);
             if strcmp(obj.scale,'MICRO')
                 obj.epsilonIsotropy = LinearSequence(0,1,obj.nSteps,cParams.epsilonIsotropyInitial,cParams.epsilonIsotropyFinal);
@@ -57,14 +55,12 @@ classdef TargetParamsManager < handle
             obj.constraintTol.update(iStep);
             obj.optimalityTol.update(iStep);
             obj.epsilon.update(iStep);
-            obj.epsilonVel.update(iStep);
             obj.epsilonPer.update(iStep);
         end
         
         function assignValues(obj)
             obj.targetParams.Vfrac = obj.volumeFrac.value;
             obj.targetParams.epsilon = obj.epsilon.value;
-            obj.targetParams.epsilon_velocity = obj.epsilonVel.value;
             obj.targetParams.epsilon_perimeter = obj.epsilonPer.value;
             obj.targetParams.constr_tol = obj.constraintTol.value;
             obj.targetParams.optimality_tol = obj.optimalityTol.value;
