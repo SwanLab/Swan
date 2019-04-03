@@ -62,7 +62,11 @@ classdef ShFunWithElasticPdes < Shape_Functional
     methods (Access = private)
         
         function createMaterialInterpolation(obj,matProp,matType,interp,pdim)
-            obj.interpolation = Material_Interpolation.create(matProp,matType,interp,pdim);
+            d.dim=pdim;
+            d.interpolation=interp;
+            d.typeOfMaterial=matType;
+            d.constitutiveProperties=matProp;
+            obj.interpolation = Material_Interpolation.create(d);
         end
         
     end
