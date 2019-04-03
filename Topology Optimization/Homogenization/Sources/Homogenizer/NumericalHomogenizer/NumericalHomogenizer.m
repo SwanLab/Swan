@@ -139,11 +139,15 @@ classdef NumericalHomogenizer < handle
         function computeElasticVariables(obj)
             obj.microProblem.computeChomog();
             cV = obj.cellVariables;
-            cV.Ch = obj.microProblem.variables.Chomog;
+            cV.Ch      = obj.microProblem.variables.Chomog;
             cV.tstress = obj.microProblem.variables.tstress;
             cV.tstrain = obj.microProblem.variables.tstrain;
-            cV.displ   = obj.microProblem.variables.d_u; 
+            cV.displ   = obj.microProblem.variables.tdisp; 
             obj.cellVariables = cV;
+            
+            
+            obj.microProblem.computeStressBasisCellProblem();
+            var = obj.microProblem.variables2printStressBasis();            
         end
         
         function computeVolumeValue(obj)
@@ -168,6 +172,8 @@ classdef NumericalHomogenizer < handle
                 obj.createPostProcess();
                 d.var2print = obj.elemDensCr.getFieldsToPrint;
                 d.var2print{end+1} = obj.microProblem;
+               % obj.microProblem.variables.var2print = obj.microProblem.variablesStressBasis.var2print;
+                d.var2print{end+1} = obj.microProblem;
                 d.quad = obj.microProblem.element.quadrature;
                 obj.postProcess.print(obj.iter,d);
                 obj.resFile = obj.postProcess.getResFile();
@@ -179,6 +185,7 @@ classdef NumericalHomogenizer < handle
             f = ElementalDensityCreatorFactory();
             obj.printers = f.createPrinters(type);
             obj.printers{end+1} = 'HomogenizedTensor';
+            obj.printers{end+1} = 'HomogenizedTensorStressBasis';
         end
         
         function createPostProcess(obj)

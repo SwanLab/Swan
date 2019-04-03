@@ -1,4 +1,4 @@
-classdef NumericalHomogenizerPrinter < CompositeResultsPrinter
+classdef NumericalHomogenizerWithStressPrinter < CompositeResultsPrinter
       
     properties (Access = private)
         printerNames
@@ -6,8 +6,8 @@ classdef NumericalHomogenizerPrinter < CompositeResultsPrinter
     
     methods (Access = public)
         
-        function obj = NumericalHomogenizerPrinter(d)
-            obj.simulationStr = 'NumericalHomogenizer';
+        function obj = NumericalHomogenizerWithStressPrinter(d)
+            obj.simulationStr = 'NumericalHomogenizerWithStress';
             obj.printerNames = d.printers;            
             obj.init(d);
         end
@@ -38,39 +38,25 @@ classdef NumericalHomogenizerPrinter < CompositeResultsPrinter
         
         function storePrinterFields(obj,printer,printerName,d)
             switch printerName
-                case 'LevelSet'
-                    obj.storeLevelSetFields(printer,d)
-                case 'DensityGauss'
-                    obj.storeDensityGaussFields(printer,d);
+                case 'NumericalHomogenizer'
+                    obj.storeNumericalHomogenizerFields(printer,d);
                 case 'HomogenizedTensor'
                     obj.storeMicroFields(printer,d)
-                case 'HomogenizedTensorStressBasis'
-                    obj.storeMicroStressBasisFIeld(printer,d)
             end
         end
     end
     
     methods (Access = private, Static)
         
-        function storeDensityGaussFields(printer,d)
+        function storeNumericalHomogenizerFields(printer,d)
             di.fields = d.fields;
             printer.storeFieldsToPrint(di);
-        end
-        
-        function storeLevelSetFields(printer,d)
-            di.x = d.fields;
-            printer.storeFieldsToPrint(di);
-        end
+        end        
         
         function storeMicroFields(printer,d)
             d.phyProblems{1} = d.fields;
             printer.storeFieldsToPrint(d);            
         end        
-        
-        function storeMicroStressBasisFIeld(printer,d)
-            d.phyProblems{1} = d.fields;
-            printer.storeFieldsToPrint(d);
-        end
         
     end
     

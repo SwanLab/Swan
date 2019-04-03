@@ -1,4 +1,4 @@
-classdef HomogenizedTensorPrinter < CompositeResultsPrinter
+classdef HomogenizedTensorStressBasisPrinter < CompositeResultsPrinter
     
     properties (Access = private)
         nstre
@@ -6,8 +6,8 @@ classdef HomogenizedTensorPrinter < CompositeResultsPrinter
     
     methods (Access = public)
         
-        function obj = HomogenizedTensorPrinter(d)
-            obj.simulationStr = 'HomogenizedTensor';            
+        function obj = HomogenizedTensorStressBasisPrinter(d)
+            obj.simulationStr = 'HomogenizedTensorStressBasis';            
             obj.computeNstre(d.ndim);
             obj.init(d);
         end
@@ -18,11 +18,12 @@ classdef HomogenizedTensorPrinter < CompositeResultsPrinter
         
         function storeFieldsToPrint(obj,d)
             microProblems = d.phyProblems{1};
-            fields = microProblems.variables2print;
+            fields = microProblems.variables2printStressBasis;
             for istre = 1:obj.nstre
                 di.fields = fields{istre};
                 p = obj.printers{istre};
                 p.storeFieldsToPrint(di);
+                p.setStrVariablesNames('StressBasis');
                 p.setStrVariablesMicroCase(istre)                                
             end
         end

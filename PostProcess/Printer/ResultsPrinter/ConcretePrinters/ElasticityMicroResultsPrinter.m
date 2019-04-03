@@ -53,6 +53,15 @@ classdef ElasticityMicroResultsPrinter < ResultsPrinter
         function setStrVariablesMicroCase(obj,nCase)
             obj.nCase = nCase;
         end
+        
+        function setStrVariablesNames(obj,name)
+            obj.stressStrBase = [obj.stressStrBase,name];
+            obj.strainStrBase = [obj.strainStrBase,name];
+            obj.stressFlucStrBase = [obj.stressFlucStrBase,name];
+            obj.strainFlucStrBase = [obj.strainFlucStrBase,name];
+            obj.dispStrBase = [obj.dispStrBase,name];
+            obj.forStrBase  = [obj.forStrBase,name];
+        end
     end
         
     methods (Access = protected)

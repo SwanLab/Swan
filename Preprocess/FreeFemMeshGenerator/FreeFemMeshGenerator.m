@@ -2,7 +2,11 @@ classdef FreeFemMeshGenerator < handle
     
     properties (Access = private)
         mxV
-        myV        
+        myV
+        hMax
+        intElements
+        borderElements
+        qNorm
         fileName        
         printingDir
         filePath        
@@ -30,15 +34,25 @@ classdef FreeFemMeshGenerator < handle
     methods (Access = private)
         
         function init(obj,d)
-            obj.mxV = d.mxV;
-            obj.myV = d.myV;
-            obj.fileName         = d.fileName;
-            obj.printingDir      = d.printingDir;
-            obj.freeFemFileName  = d.freeFemFileName;
+            obj.loadSettignsParams(d);
             obj.filePath         = fullfile(obj.printingDir,obj.fileName);
             obj.freeFemModelFile = fullfile('Input',obj.freeFemFileName,[obj.freeFemFileName,'Model','.edp']);
             obj.freeFemFile      = [obj.filePath,'.edp'];                        
         end
+        
+        function loadSettignsParams(obj,d)
+          fields = fieldnames(d);            
+          for i = 1:length(fields)
+                param = fields(i);
+                param = param{1};
+                if isprop(obj,param)
+                    obj.(param) = d.(param);
+                else
+                    obj.warnOfInvalidCustomParams(param);
+                end
+          end  
+        end
+        
                
         function createInputData(obj)
             obj.inputData.reals   = obj.createRealInputData();
@@ -48,12 +62,12 @@ classdef FreeFemMeshGenerator < handle
         function dB = createRealInputData(obj)
             mx = obj.mxV;
             my = obj.myV;
-            dB{1,:} = {'p',4};
+            dB{1,:} = {'p',obj.qNorm};
             dB{2,:} = {'mx',mx};
             dB{3,:} = {'my',my};
-            dB{4,:} = {'Hmax',0.02};
-            dB{5,:} = {'elByInt',20};
-            dB{6,:} = {'elByBor',20};
+            dB{4,:} = {'Hmax',obj.hMax};
+            dB{5,:} = {'elByInt',obj.intElements};
+            dB{6,:} = {'elByBor',obj.borderElements};
         end
         
         function dB = createStringInputData(obj)
@@ -83,6 +97,10 @@ classdef FreeFemMeshGenerator < handle
         
         function computeMeshWithFreeFem(obj)
             [~,~] = system(['FreeFem++ ',obj.freeFemFile]);
+        end
+        
+         function warnOfInvalidCustomParams(obj,param)
+            warning([param ' is not a property of ' class(obj)]);
         end
         
     end

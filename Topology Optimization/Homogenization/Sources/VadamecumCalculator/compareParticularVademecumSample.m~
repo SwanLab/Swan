@@ -54,9 +54,9 @@ classdef compareParticularVademecumSample < handle
         
         function init(obj)
             obj.pNorms = [2,4,8];
-            obj.qNorms = [2,4,8,16,32];%[4,8,16,32];                        
-            obj.volumes = 0.95;%0.95;%[0.7,0.95];%0.1;
-            obj.inclutionRatio = 0.5;%1;%0.5;
+            obj.qNorms = 2;[2,4,8,16,32];            
+            obj.volumes = 0.9;%0.1;%[0.3,0.7,0.95];%0.1;
+            obj.inclutionRatio = 1;%0.5;
             obj.plottingShearTerms = false;
         end
         
@@ -74,8 +74,7 @@ classdef compareParticularVademecumSample < handle
         function computeSmoothRectangleSample(obj)
             obj.fileName = 'SmoothRectangle';
             volumeStr = strrep(num2str(obj.volume),'.','');
-            txiStr = strrep(num2str(obj.inclutionRatio),'.','');
-            obj.prefixName = ['CaseOfStudy','Rho',volumeStr,'Txi',txiStr,'Q',num2str(obj.qNorm)];
+            obj.prefixName = ['CaseOfStudy','Rho',volumeStr,'Q',num2str(obj.qNorm)];
             incLength = obj.findInclusionLengthForCertainVolume();
             obj.print = true;
             obj.computeCellVariables(incLength);
@@ -84,8 +83,7 @@ classdef compareParticularVademecumSample < handle
         function v = computeSmoothPtensorSample(obj)
             obj.fileName = 'SmoothRectangle';
             volumeStr = strrep(num2str(obj.volume),'.','');
-            txiStr = strrep(num2str(obj.inclutionRatio),'.','');            
-            obj.prefixName = ['CaseOfStudy','Rho',volumeStr,'Txi',txiStr,'Q',num2str(obj.qNorm)];
+            obj.prefixName = ['CaseOfStudy','Rho',volumeStr,'Q',num2str(obj.qNorm)];
             obj.print = true;
             v = obj.computePtensorVariables();
         end
@@ -93,8 +91,7 @@ classdef compareParticularVademecumSample < handle
         function v = computeRectanglePtensorSample(obj)
             obj.fileName = 'Rectangle';
             volumeStr = strrep(num2str(obj.volume),'.','');
-            txiStr = strrep(num2str(obj.inclutionRatio),'.','');                        
-            obj.prefixName = ['CaseOfStudy','Rho',volumeStr,'Txi',txiStr,'QInf'];
+            obj.prefixName = ['CaseOfStudy','Rho',volumeStr,'QInf'];
             obj.print = true;
             v = obj.computePtensorVariables();
         end
@@ -167,10 +164,9 @@ classdef compareParticularVademecumSample < handle
         function makePlot(obj)
             fig = figure();
             y = obj.Pcomp(obj.nonShearIndex,:);
-            ind = y<0;
-            y = (abs(y).^(1/obj.pNorm));
-            y(ind) = -y(ind);
-            h = bar(y);
+            ind = 
+            y(y<0) = -y(y<0);
+            h = bar((y.^(1/obj.pNorm)));
             allMonLegends = obj.computeAlphaLegend();
             monomialsLeg = allMonLegends(obj.nonShearIndex);
             set(gca, 'XTickLabel',monomialsLeg, 'XTick',1:numel(monomialsLeg));
@@ -218,11 +214,10 @@ classdef compareParticularVademecumSample < handle
         end
         
         function createLegend(obj)
-            nQnorms = length(obj.qNorms);
-            for ih = 1:nQnorms
+            for ih = 1:length(obj.qNorms)
                 obj.legends{ih} = ['$q=',num2str(obj.qNorms(ih)),'$'];
             end
-            obj.legends{nQnorms+1} = 'Rectangle';
+            obj.legends{end+1} = 'Rectangle';
         end
         
         function itHasNoShear = hasNoShearComponent(obj,monomial)
@@ -232,8 +227,8 @@ classdef compareParticularVademecumSample < handle
         
         function xroot = findInclusionLengthForCertainVolume(obj)
             obj.print = false;
-            %x0 = [sqrt((1-obj.volume)/obj.inclutionRatio),0.99];            
-            x0 = [0.1,0.99];
+            x0 = [sqrt((1-obj.volume)/obj.inclutionRatio),0.99];            
+            %x0 = [0.01,0.85];
             problem.objective = @(x) obj.fzero(x);
             problem.x0 = x0;
             problem.solver = 'fzero';

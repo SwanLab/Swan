@@ -13,6 +13,8 @@ classdef VademecumCellVariablesCalculator < handle
         mxV
         myV
         iter
+        freeFemSettings
+        print
     end
     
     methods (Access = public)
@@ -28,7 +30,7 @@ classdef VademecumCellVariablesCalculator < handle
                 for imy = 1:nMy
                     obj.storeIndex(imx,imy);
                     obj.iter = (imy + nMx*(imx -1));
-                    obj.iter/(nMx*nMy)*100                    
+                    obj.iter/(nMx*nMy)*100;                    
                     obj.generateMeshFile();
                     obj.computeNumericalHomogenizer();
                     obj.obtainHomogenizerData();
@@ -62,7 +64,9 @@ classdef VademecumCellVariablesCalculator < handle
             nMx = d.nMx;
             nMy = d.nMy;
             obj.mxV = linspace(d.mxMin,d.mxMax,nMx);
-            obj.myV = linspace(d.mxMin,d.mxMax,nMy);
+            obj.myV = linspace(d.myMin,d.myMax,nMy);
+            obj.print = d.print;
+            obj.freeFemSettings = d.freeFemSettings;
         end
         
         function computeFileNames(obj,d)
@@ -84,6 +88,7 @@ classdef VademecumCellVariablesCalculator < handle
         end
         
         function generateMeshFile(obj)
+            d = obj.freeFemSettings;
             d.mxV             = obj.mxV(obj.iMxIndex);
             d.myV             = obj.myV(obj.iMyIndex);
             d.fileName        = obj.fileNames.fileName;
@@ -96,7 +101,7 @@ classdef VademecumCellVariablesCalculator < handle
         function computeNumericalHomogenizer(obj)
             d.gmsFile = obj.fileNames.gmsFile;
             d.outFile = [obj.fileNames.fileName];
-            d.print   = true;
+            d.print   = obj.print;
             d.iter = obj.iter;
             nH = NumericalHomogenizerCreatorFromGmsFile(d);
             obj.homog = nH.getHomogenizer();

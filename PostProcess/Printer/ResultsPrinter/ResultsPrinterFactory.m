@@ -27,11 +27,13 @@ classdef ResultsPrinterFactory < handle
                 case 'Density'
                     p = DensityResultsPrinter(d);
                 case 'NumericalHomogenizer'
-                    p = NumericalHomogenizerPrinter(d);
+                    p = NumericalHomogenizerPrinter(d);                 
                 case 'TopOptProblem'                    
                     p = TopOptResultsPrinter(d);
                 case 'HomogenizedTensor'
                     p = HomogenizedTensorPrinter(d);
+                case 'HomogenizedTensorStressBasis'
+                    p = HomogenizedTensorStressBasisPrinter(d);                    
                 case 'ElasticityMicroAndLevelSet'
                     p = ElasticityMicroDefinedByLevelSet(d);
             end
