@@ -34,7 +34,6 @@ classdef VademecumCellVariablesCalculator < handle
                     obj.generateMeshFile();
                     obj.computeNumericalHomogenizer();
                     obj.obtainHomogenizerData();
-
                 end
             end
         end        
