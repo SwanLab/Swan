@@ -1,11 +1,20 @@
 classdef ShapeFunctional_Factory
     methods (Static, Access = public)
         function shapeFunction = create(type,settings)
+            d=SettingsShapeFunctional();
+            d.filename=settings.filename;
+            d.domainType=settings.ptype;
+            d.filterParams.optimizer=settings.optimizer;
+            d.filterParams.filter=settings.filter;
+            d.materialInteporlationParams.interpolation=settings.method;
+            d.materialInteporlationParams.dim=settings.pdim;
+            d.materialInteporlationParams.typeOfMaterial=settings.material;
+%             d=settings;
             switch type
                 case 'compliance'
-                    shapeFunction = ShFunc_Compliance(settings);
+                    shapeFunction = ShFunc_Compliance(d);
                 case 'perimeter'
-                    shapeFunction = ShFunc_Perimeter(settings);
+                    shapeFunction = ShFunc_Perimeter(d);
                 case 'perimeterConstraint'
                     shapeFunction = Perimeter_constraint(settings);
                 case 'chomog_alphabeta'
@@ -34,8 +43,8 @@ classdef ShapeFunctional_Factory
                     shapeFunction = ShFunc_NonSelfAdjoint_Compliance(settings);
                 case 'volume'
                     shapeFunction = ShFunc_Volume(settings);
-                case 'volumeConstraint'
-                    shapeFunction = Volume_constraint(settings);
+                case 'volumeConstraint';
+                    shapeFunction = Volume_constraint(d);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end

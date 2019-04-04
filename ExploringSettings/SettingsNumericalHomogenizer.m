@@ -12,12 +12,17 @@ classdef SettingsNumericalHomogenizer < AbstractSettings
         pdim
     end
     
+    properties (Access = protected)
+        defaultParamsName = 'paramsNumericalHomogenizer'
+    end
+    
     methods (Access = public)
         
         function obj = SettingsNumericalHomogenizer(varargin)
             obj.loadParams('paramsNumericalHomogenizer');
-            if nargin == 1
-                obj.loadParams(varargin{1});
+            switch nargin
+                case 1
+                    obj.loadParams(varargin{1});
             end
             obj.setParams();
         end
