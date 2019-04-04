@@ -18,17 +18,18 @@ classdef TopOptTests < testRunner
         function loadTests(obj)
             obj.tests = {...
                 
-%             'testBridge';
+            'testBridge';
 % %             'testMicro';
             'testCantilever3';
-%             'testCantilever2';
+%             'testCantilever2'; ipopt peta
             
-%             'testCantilever';
-%             'testGripping';
+            'testCantilever';
+            'testGripping';
             
-%             'testProjectedSlerp';
+            'testProjectedSlerp';
+            'testBridge2';
 %             'testMicro2';
-%             'testBridge2';
+
             };
         end
         
