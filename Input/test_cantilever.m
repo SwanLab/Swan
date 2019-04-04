@@ -11,6 +11,8 @@ constraint_case = 'INEQUALITY';
 optimizer = 'PROJECTED GRADIENT'; kappaMultiplier = 1; 
 filterType = 'PDE';
 
+shFuncParamsName = 'paramsTestCantilever';
+
 nsteps = 1;
 Vfrac_final = 1;
 optimality_final =1e-3;

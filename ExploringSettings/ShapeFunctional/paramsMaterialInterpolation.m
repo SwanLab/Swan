@@ -1,3 +1,9 @@
 typeOfMaterial = 'ISOTROPIC';
 interpolation = 'SIMPALL';
 dim = '2D';
+constitutiveProperties.rho_plus  = 1.0;
+constitutiveProperties.rho_minus = 0.0;
+constitutiveProperties.E_plus    = 1.0;
+constitutiveProperties.E_minus   = 1e-3;
+constitutiveProperties.nu_plus   = 1/3;
+constitutiveProperties.nu_minus  = 1/3;

@@ -1,19 +1,29 @@
 classdef ShapeFunctional_Factory
     methods (Static, Access = public)
         function shapeFunction = create(type,settings)
-            filterParams=SettingsFilter();
-            filterParams.optimizer=settings.optimizer;
-            filterParams.filter=settings.filter;
-            materialInterpolationParams = SettingsInterpolation();
-            materialInterpolationParams.interpolation=settings.method;
-            materialInterpolationParams.dim=settings.pdim;
-            materialInterpolationParams.typeOfMaterial=settings.material;
-            materialInterpolationParams.constitutiveProperties=settings.TOL;
-            d=SettingsShapeFunctional(filterParams,materialInterpolationParams);
-            d.filename=settings.filename;
-            d.domainType=settings.ptype;
+            
+            if ~isempty(settings.shFuncParamsName)
+                new_settings=SettingsShapeFunctional(settings.shFuncParamsName);
+            else
+                filterParams=SettingsFilter();
+                filterParams.optimizer=settings.optimizer;
+                filterParams.filter=settings.filter;
+                
+                materialInterpolationParams = SettingsInterpolation();
+                materialInterpolationParams.interpolation=settings.method;
+                materialInterpolationParams.dim=settings.pdim;
+                materialInterpolationParams.typeOfMaterial=settings.material;
+                materialInterpolationParams.constitutiveProperties=settings.TOL;
+                
+                d=SettingsShapeFunctional(filterParams,materialInterpolationParams);
+                
+                d.filename=settings.filename;
+                d.domainType=settings.ptype;
 
-            new_settings=d;
+                new_settings=d;
+            end
+            
+        
             switch type
                 case 'compliance'
                     shapeFunction = ShFunc_Compliance(new_settings);

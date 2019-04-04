@@ -5,10 +5,10 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 %% Test
 % run('PlottingTests.m')
 % run('FemTests.m');
-run('TopOptTests.m');
+% run('TopOptTests.m');
 % run('UnfittedIntegrationTests.m')
 % run('ExploringSettingsTests.m')
-% run('AllTests.m')
+run('AllTests.m')
 clear variables;
 
 %% Main

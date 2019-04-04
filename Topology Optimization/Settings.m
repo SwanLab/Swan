@@ -64,6 +64,10 @@ classdef Settings
         printMode = 'DesignAndShapes';
     end
     
+    properties %exploring tests
+        shFuncParamsName
+    end
+    
     methods
         function obj = Settings(case_file)
             run(case_file)
@@ -226,6 +230,10 @@ classdef Settings
             
             if exist('volumeFibers','var')
                obj.levelSetDataBase.volumeFibers = volumeFibers;               
+            end
+            
+            if exist('shFuncParamsName','var')
+               obj.shFuncParamsName = shFuncParamsName;               
             end
             
             if  ~(contains(filename,'test','IgnoreCase',true) || contains(filename,'RVE') || obj.hasToAddSpaceBecauseOfIncremental())
