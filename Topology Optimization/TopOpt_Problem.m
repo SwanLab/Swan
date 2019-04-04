@@ -17,16 +17,25 @@ classdef TopOpt_Problem < handle
         ini_design_value
     end
     
+    properties (Access = private)
+        videoMaker
+    end
+        
+    
     methods (Access = public)
         
         function obj = TopOpt_Problem(settings)
             obj.createDesignVariable(settings);
+            
             settings.pdim = obj.mesh.pdim;
             obj.settings = settings;
+            
             obj.createIncrementalScheme(settings);
             obj.optimizer = OptimizerFactory().create(settings.optimizer,settings,obj.designVariable,obj.incrementalScheme.targetParams.epsilon);
             obj.cost = Cost(settings,settings.weights);
             obj.constraint = Constraint(settings);
+            
+%             obj.createVideoMaker(settings);
         end
         
         function preProcess(obj)
@@ -48,15 +57,16 @@ classdef TopOpt_Problem < handle
             % Video creation
             if obj.settings.printing
                 gidPath = 'C:\Program Files\GiD\GiD 13.0.4';% 'C:\Program Files\GiD\GiD 13.0.3';
-                files_name = obj.settings.case_file;
-                files_folder = fullfile(pwd,'Output',obj.settings.case_file);
+                fileName = obj.settings.case_file;
+                filePath = fullfile(pwd,'Output',obj.settings.case_file);
                 iterations = 0:obj.optimizer.niter;
-                video_name = strcat('./Videos/Video_',obj.settings.case_file,'_',int2str(obj.optimizer.niter),'.gif');
-                My_VideoMaker = VideoMaker_TopOpt.Create(obj.settings.optimizer,obj.mesh.pdim,obj.settings.case_file);
-                My_VideoMaker.Set_up_make_video(gidPath,files_name,files_folder,iterations)
+                videoName = strcat('./Videos/Video_',obj.settings.case_file,'_',int2str(obj.optimizer.niter),'.gif');
                 
-                output_video_name_design_variable = fullfile(pwd,video_name);
-                My_VideoMaker.Make_video_design_variable(output_video_name_design_variable)
+                videoMaker = VideoMakerTopOptFactory().create(obj.settings.case_file,obj.designVariable.type,obj.mesh.pdim);
+                videoMaker.Set_up_make_video(gidPath,fileName,filePath,iterations)
+                
+                videoPath = fullfile(pwd,videoName);
+                videoMaker.Make_video_design_variable(videoPath)
             end
         end
         
@@ -106,6 +116,10 @@ classdef TopOpt_Problem < handle
             obj.constraint.target_parameters = obj.incrementalScheme.targetParams;
             obj.optimizer.target_parameters = obj.incrementalScheme.targetParams;
         end
+%         
+%         function createVideoMaker(obj,settings)
+%             obj.videoMaker = VideoMakerFactory(settings.printing);                
+%         end
         
     end
     
