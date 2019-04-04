@@ -1,8 +1,12 @@
 classdef SettingsFilter < AbstractSettings
-  
+    
+    properties (Access = protected)
+        defaultParamsName = 'paramsFilter'
+    end
+    
     properties (Access = public)
-        filter = 'P1'
-        optimizer = 'SLERP'
+        filter 
+        optimizer 
     end
     
     methods (Access = public)

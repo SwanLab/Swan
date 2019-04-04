@@ -1,9 +1,14 @@
 classdef SettingsShapeFunctional < AbstractSettings
     
+    properties (Access = protected)
+        defaultParamsName = 'paramsShapeFunctional'
+    end
+    
     properties
-        filterParams = SettingsFilter()
+        filterParams 
         filename 
-        ptype = 'MACRO'
+        domainType 
+        materialInteporlationParams
     end
     
      methods (Access = public)
