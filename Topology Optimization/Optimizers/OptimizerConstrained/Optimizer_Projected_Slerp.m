@@ -13,10 +13,15 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
     
     methods (Access = public)
         
-        function obj = Optimizer_Projected_Slerp(settings,mesh,epsilon)
-            obj@Optimizer_Constrained(settings,mesh,settings.monitoring);
+        function obj = Optimizer_Projected_Slerp(settings,mesh)
+            
+            ocS.settings        = settings;
+            ocS.designVariable  = settings.designVar;
+            ocS.monitoring      = settings.monitoring;
+            
+            obj@Optimizer_Constrained(ocS);%settings,mesh,settings.monitoring);
             obj.objfunc = Lagrangian(settings);
-            obj.optimizer_unconstr = Optimizer_SLERP(settings,epsilon);
+            obj.optimizer_unconstr = Optimizer_SLERP(settings.uncOptimizerSettings);
         end
         
         function x = updateX(obj,x_ini,cost,constraint)

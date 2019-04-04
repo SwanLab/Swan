@@ -12,14 +12,14 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
     
     methods (Access = public)
         
-        function obj = Optimizer_HJ(settings,epsilon,phi)
-            obj@Optimizer_Unconstrained(settings,epsilon);
+        function obj = Optimizer_HJ(settings,phi)
+            obj@Optimizer_Unconstrained(settings);
             obj.e2 = settings.e2;
             obj.meanCellSize = phi.mesh.computeMeanCellSize();
             obj.max_constr_change = +Inf;
-            obj.nconstr = settings.nconstr;
+            %obj.nconstr = settings.nconstr;
             
-            obj.setupFilter(settings,epsilon,phi);
+            obj.setupFilter(settings,settings.scalarProductSettings.epsilon,phi);
         end
         
         function phi = computeX(obj,phi,gradient)

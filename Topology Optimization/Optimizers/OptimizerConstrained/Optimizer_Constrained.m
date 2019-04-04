@@ -20,10 +20,18 @@ classdef Optimizer_Constrained < Optimizer
     
     methods (Access = public)
         
-        function obj = Optimizer_Constrained(settings,designVar,showOptParams)
-            obj@Optimizer(settings);
-            obj.init(settings,designVar);
-            obj.monitor = MonitoringDocker(showOptParams,settings.plotting,settings,designVar);
+        function obj = Optimizer_Constrained(settings)
+            set = settings.settings;
+            designVar = settings.designVariable;
+            obj@Optimizer(set);
+            obj.init(set,designVar);
+            
+            mS.showOptParams = settings.monitoring;
+            mS.plotting  = set.plotting;
+            mS.settings  = set;
+            mS.designVar = settings.designVariable;
+
+            obj.monitor = MonitoringDocker(mS);
         end
         
         function designVar = solveProblem(obj,designVar,cost,constraint,istep,nstep)

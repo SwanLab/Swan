@@ -6,8 +6,8 @@ classdef Optimizer_PG < Optimizer_Unconstrained
     
     methods (Access = public)
         
-        function obj = Optimizer_PG(settings,epsilon)
-            obj@Optimizer_Unconstrained(settings,epsilon);
+        function obj = Optimizer_PG(settings)
+            obj@Optimizer_Unconstrained(settings);
             obj.max_constr_change = +Inf;
         end
         

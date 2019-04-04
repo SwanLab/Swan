@@ -9,7 +9,8 @@ classdef TopOpt_Problem < handle
         optimizer
         mesh
         settings
-        incrementalScheme
+        incrementalScheme   
+        optimizerSettings
     end
     
     properties (Access = private)
@@ -24,9 +25,58 @@ classdef TopOpt_Problem < handle
             settings.pdim = obj.mesh.pdim;
             obj.settings = settings;
             obj.createIncrementalScheme(settings);
-            obj.optimizer = OptimizerFactory().create(settings.optimizer,settings,obj.designVariable,obj.incrementalScheme.targetParams.epsilon);
+            obj.createOptimizerSettings(settings); 
+            obj.optimizer = OptimizerFactory.create(obj.optimizerSettings);
             obj.cost = Cost(settings,settings.weights);
             obj.constraint = Constraint(settings);
+            
+
+        end
+        
+        function createOptimizerSettings(obj,settings)
+            lsS.line_search     = settings.line_search;
+            lsS.optimizer       = settings.optimizer;
+            lsS.HJiter0         = settings.HJiter0;
+            lsS.filename        = settings.filename;
+            lsS.kappaMultiplier = settings.kappaMultiplier;
+            lsS.epsilon         = obj.incrementalScheme.targetParams.epsilon;
+            
+            
+            scS.filename        = settings.filename;
+            scS.epsilon         = obj.incrementalScheme.targetParams.epsilon;
+            
+            uncOptimizerSettings = SettingsOptimizerUnconstrained;
+            
+            uncOptimizerSettings.nconstr               = settings.nconstr;
+            uncOptimizerSettings.target_parameters     = settings.target_parameters;
+            uncOptimizerSettings.constraint_case       = settings.constraint_case;            
+            uncOptimizerSettings.lineSearchSettings    = lsS;
+            uncOptimizerSettings.scalarProductSettings = scS;
+            
+            uncOptimizerSettings.e2                  = settings.e2;
+            uncOptimizerSettings.filter              = settings.filter;
+            uncOptimizerSettings.printChangingFilter = settings.printChangingFilter;
+            uncOptimizerSettings.filename            = settings.filename;
+            uncOptimizerSettings.ptype               = settings.ptype;
+            
+            optSet.uncOptimizerSettings = uncOptimizerSettings;
+            optSet.monitoring           = settings.monitoring;
+            optSet.nconstr              = settings.nconstr;
+            optSet.target_parameters    = settings.target_parameters;
+            optSet.constraint_case      = settings.constraint_case;   
+            optSet.optimizer            = settings.optimizer;
+            optSet.maxiter              = settings.maxiter;
+            optSet.printing             = settings.printing;
+            optSet.printMode            = settings.printMode;            
+            
+            optSet.plotting             = settings.plotting;
+            optSet.pdim                 = settings.pdim;
+            optSet.showBC               = settings.showBC;   
+            
+            
+            optSet.designVar = obj.designVariable;
+            obj.optimizerSettings = optSet;
+            
         end
         
         function preProcess(obj)
@@ -36,8 +86,10 @@ classdef TopOpt_Problem < handle
         end
         
         function computeVariables(obj)
+
+            
             obj.linkTargetParams();
-            while obj.incrementalScheme.hasNext()
+            while obj.incrementalScheme.hasNext()             
                 obj.incrementalScheme.next();
                 obj.solveCurrentProblem();
             end
@@ -63,6 +115,14 @@ classdef TopOpt_Problem < handle
     end
     
     methods (Access = private)
+        
+        function optSet = obtainOptimizersSettings(obj,settings)
+            epsilon = obj.incrementalScheme.targetParams.epsilon;
+            settings.optimizerSettings.uncOptimizerSettings.lineSearchSettings.epsilon = epsilon;
+            settings.optimizerSettings.uncOptimizerSettings.scalarProductSettings.epsilon = epsilon; 
+            set = settings.clone();
+            optSet = set.optimizerSettings;
+        end
         
         function createDesignVariable(obj,settings)
             obj.mesh = Mesh_GiD(settings.filename);

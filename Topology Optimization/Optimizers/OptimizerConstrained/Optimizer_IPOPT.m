@@ -10,8 +10,11 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
         data        
     end
     methods
-        function obj = Optimizer_IPOPT(settings,mesh)
-            obj@Optimizer_Constrained(settings,mesh,settings.monitoring);
+        function obj = Optimizer_IPOPT(settings)
+            ocS.settings        = settings;
+            ocS.designVariable  = settings.designVar;
+            ocS.monitoring      = settings.monitoring;            
+            obj@Optimizer_Constrained(ocS);
             obj.m = settings.nconstr;
             obj.max_iter = settings.maxiter;
             obj.niter=-1;

@@ -17,8 +17,8 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
     
     methods (Access = public)
         
-        function obj = Optimizer_SLERP(settings,epsilon)
-            obj@Optimizer_Unconstrained(settings,epsilon);
+        function obj = Optimizer_SLERP(settings)
+            obj@Optimizer_Unconstrained(settings);
             obj.max_constr_change = +Inf;
             obj.nconstr = settings.nconstr;
         end

@@ -25,10 +25,15 @@ classdef Optimizer_Unconstrained < Optimizer
     
     methods (Access = public)
         
-        function obj = Optimizer_Unconstrained(settings,epsilon)
-            obj@Optimizer(settings);
-            obj.line_search = LineSearch.create(settings,epsilon);
-            obj.scalar_product = ScalarProduct(settings.filename,epsilon);
+        function obj = Optimizer_Unconstrained(settings)
+            
+            opS.nconstr           = settings.nconstr;
+            opS.target_parameters = settings.target_parameters;
+            opS.constraint_case   = settings.constraint_case;
+                       
+            obj@Optimizer(opS);
+            obj.line_search    = LineSearch.create(settings.lineSearchSettings);
+            obj.scalar_product = ScalarProduct(settings.scalarProductSettings);
         end
         
         function x = updateX(obj,x_ini,cost,constraint)

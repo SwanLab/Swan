@@ -1,5 +1,6 @@
-classdef Settings
+classdef Settings %< handle%& matlab.mixin.Copyable
     properties %optmizer access
+        optimizerSettings
         plotting = true
         showBC = true
         BCscale_factor = 0.10
@@ -64,7 +65,7 @@ classdef Settings
         printMode = 'DesignAndShapes';
     end
     
-    methods
+    methods (Access = public)
         function obj = Settings(case_file)
             run(case_file)
             obj.case_file=case_file;
@@ -231,11 +232,17 @@ classdef Settings
             if  ~(contains(filename,'test','IgnoreCase',true) || contains(filename,'RVE') || obj.hasToAddSpaceBecauseOfIncremental())
                 fprintf('\n')
             end
+            
         end
+        
+       
     end
     
     
     methods (Access = private)
+        
+
+      
         
         function itHas = hasToAddSpaceBecauseOfIncremental(obj)
             itHas = true;
