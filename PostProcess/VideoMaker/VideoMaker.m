@@ -1,7 +1,7 @@
 classdef VideoMaker < handle
     
     
-    properties
+    properties (Access = protected)
         gidPath
         files_folder
         iterations_to_print

@@ -18,7 +18,7 @@ classdef TopOpt_Problem < handle
     end
     
     properties (Access = private)
-        videoMaker
+        videoManager
     end
         
     
@@ -35,7 +35,7 @@ classdef TopOpt_Problem < handle
             obj.cost = Cost(settings,settings.weights);
             obj.constraint = Constraint(settings);
             
-%             obj.createVideoMaker(settings);
+            obj.createVideoManager(settings);
         end
         
         function preProcess(obj)
@@ -56,17 +56,7 @@ classdef TopOpt_Problem < handle
         function postProcess(obj)
             % Video creation
             if obj.settings.printing
-                gidPath = 'C:\Program Files\GiD\GiD 13.0.4';% 'C:\Program Files\GiD\GiD 13.0.3';
-                fileName = obj.settings.case_file;
-                filePath = fullfile(pwd,'Output',obj.settings.case_file);
-                iterations = 0:obj.optimizer.niter;
-                videoName = strcat('./Videos/Video_',obj.settings.case_file,'_',int2str(obj.optimizer.niter),'.gif');
-                
-                videoMaker = VideoMakerTopOptFactory().create(obj.settings.case_file,obj.designVariable.type,obj.mesh.pdim);
-                videoMaker.Set_up_make_video(gidPath,fileName,filePath,iterations)
-                
-                videoPath = fullfile(pwd,videoName);
-                videoMaker.Make_video_design_variable(videoPath)
+                obj.videoManager.makeVideo(obj.optimizer.niter);
             end
         end
         
@@ -116,10 +106,10 @@ classdef TopOpt_Problem < handle
             obj.constraint.target_parameters = obj.incrementalScheme.targetParams;
             obj.optimizer.target_parameters = obj.incrementalScheme.targetParams;
         end
-%         
-%         function createVideoMaker(obj,settings)
-%             obj.videoMaker = VideoMakerFactory(settings.printing);                
-%         end
+       
+        function createVideoManager(obj,settings)
+            obj.videoManager = VideoManager(settings,obj.designVariable.type,obj.mesh.pdim);
+        end
         
     end
     
