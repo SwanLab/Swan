@@ -1,6 +1,10 @@
 classdef Filter_PDE_LevelSet < Filter_PDE & Filter_LevelSet
     
     methods (Access = public)
+        
+        function obj = Filter_PDE_LevelSet(cParams)
+           obj@ Filter_LevelSet(cParams);
+        end
                 
         function preProcess(obj)
             preProcess@Filter_PDE(obj)

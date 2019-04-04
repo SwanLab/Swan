@@ -5,15 +5,20 @@ classdef Filter_LevelSet < Filter
     end
     
     properties(Access = private)
+        domainType
         integrator
-        domainType = 'INTERIOR'
     end
     
     methods (Access = public)
         
+        function obj = Filter_LevelSet(cParams)
+            obj.domainType = cParams.domainType;
+        end
+        
         function preProcess(obj)
             preProcess@Filter(obj);
-            obj.unfittedMesh = Mesh_Unfitted(obj.domainType,obj.mesh,obj.interpolation);
+            unfittedSettings = SettingsMeshUnfitted(obj.domainType,obj.mesh,obj.interpolation);
+            obj.unfittedMesh = Mesh_Unfitted(unfittedSettings);
             obj.integrator = Integrator.create(obj.unfittedMesh);
             
             obj.disableDelaunayWarning();

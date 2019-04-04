@@ -1,92 +1,113 @@
 classdef IncrementalScheme < handle
     
-    properties (Access = public)
-        settings
-        incropt
-        coord
-        connec
-        epsilon
-        epsilon_initial
-        epsilon0
-        epsilon_isotropy
+    properties (GetAccess = public, SetAccess = private)
+        iStep
+        nSteps
+        targetParams
+    end
+    
+    properties (Access = private)
+        targetParamsManager
+        
+        epsilonInitial
+        epsilonFinal
+        epsilonPerInitial
+        epsilonPerFinal
+        epsilonIsoInitial
+        epsilonIsoFinal
+        
+        shallDisplayStep
     end
     
     methods (Access = public)
         
-        function obj = IncrementalScheme(settings,mesh)
-            obj.settings = settings;
-            nsteps = settings.nsteps;
-            obj.coord = mesh.coord;
-            obj.connec = mesh.connec;
-            if isempty(settings.epsilon_initial)
-                obj.epsilon_initial = mesh.computeMeanCellSize();
-            else
-                obj.epsilon_initial = settings.epsilon_initial;
-            end
-            obj.epsilon = obj.epsilon_initial;
-            obj.epsilon0 = mesh.computeCharacteristicLength();
-            obj.incropt.alpha_vol = obj.generate_incr_sequence(1/nsteps,1,nsteps,'linear');
-            obj.incropt.alpha_constr = obj.generate_incr_sequence(0,1,nsteps,'linear');
-            obj.incropt.alpha_optimality = obj.generate_incr_sequence(0,1,nsteps,'linear');
-            obj.incropt.alpha_epsilon = obj.generate_incr_sequence(0,1,nsteps,'linear');
-            obj.incropt.alpha_epsilon_vel = obj.generate_incr_sequence(0,1,nsteps,'linear');
-            obj.incropt.alpha_epsilon_per = obj.generate_incr_sequence(-1,0,nsteps,'logarithmic');
-            if strcmp(obj.settings.ptype,'MICRO')
-                obj.incropt.alpha_epsilon_isotropy = obj.generate_incr_sequence(0,1,nsteps,'linear');
-            end
+        function obj = IncrementalScheme(cParams)
+            obj.init(cParams);
+            obj.createTargetParams(cParams);
         end
         
-        function update_target_parameters(obj,t,cost, constraint, optimizer)
-            target_parameters.Vfrac = (1-obj.incropt.alpha_vol(t))*obj.settings.Vfrac_initial+obj.incropt.alpha_vol(t)*obj.settings.Vfrac_final;
-            target_parameters.epsilon_perimeter = (1-obj.incropt.alpha_epsilon_per(t))*obj.epsilon0+obj.incropt.alpha_epsilon_per(t)*obj.epsilon;
-            target_parameters.epsilon = (1-obj.incropt.alpha_epsilon(t))*obj.epsilon_initial+obj.incropt.alpha_epsilon(t)*obj.epsilon;
-            target_parameters.epsilon_velocity = (1-obj.incropt.alpha_epsilon_vel(t))*obj.epsilon0+obj.incropt.alpha_epsilon_vel(t)*obj.epsilon;
-            target_parameters.constr_tol = (1-obj.incropt.alpha_constr(t))*obj.settings.constr_initial+obj.incropt.alpha_constr(t)*obj.settings.constr_final;
-            target_parameters.optimality_tol = (1-obj.incropt.alpha_optimality(t))*obj.settings.optimality_initial+obj.incropt.alpha_optimality(t)*obj.settings.optimality_final;
-            
-            if strcmp(obj.settings.ptype,'MICRO')
-                target_parameters.epsilon_isotropy = (1-obj.incropt.alpha_epsilon_isotropy(t))*obj.settings.epsilon_isotropy_initial+obj.incropt.alpha_epsilon_isotropy(t)*obj.settings.epsilon_isotropy_final;
+        function next(obj)
+            obj.incrementStep();
+            obj.updateTargetParams();
+        end
+        
+        function display(obj)
+            disp(['Incremental Scheme - Step: ',int2str(obj.iStep),' of ',int2str(obj.nSteps)]);
+        end
+        
+        function itDoes = hasNext(obj)
+            if obj.iStep < obj.nSteps
+                itDoes = true;
+            else
+                itDoes = false;
             end
-            
-            cost.target_parameters = target_parameters;
-            constraint.target_parameters = target_parameters;
-            optimizer.target_parameters = target_parameters;
         end
         
     end
     
     methods (Access = private)
         
-        function x = generate_incr_sequence (obj,x1,x2,nsteps,type,factor)
-            switch type
-                case 'linear'
-                    x = linspace(x1,x2,nsteps);
-                    
-                case 'epsilon_sequence'
-                    frac = 2;
-                    kmax = ceil(log10(x1/x2)/log10(frac));
-                    x = obj.epsilon0./frac.^(1:kmax);
-                    
-                case 'logarithmic'
-                    x = logspace(x1,x2,nsteps);
-                    
-                case 'custom'
-                    if nsteps < 2
-                        x = x2;
-                    else
-                        isteps = 0:nsteps-1;
-                        x = 1-(1-isteps/(nsteps-1)).^(factor);
-                        x = (x2-x1)*x + x1;
-                    end
-                    
-                case 'free'
-                    x = zeros(1,nsteps);
-                    x(end) = 1;
-                    
-                otherwise
-                    error('Incremental sequence type not detected.')
+        function init(obj,cParams)
+            obj.iStep = 0;
+            obj.nSteps = cParams.nSteps;
+            obj.setWhetherShallDisplayStep(cParams.shallPrintIncremental);
+        end
+        
+        function createTargetParams(obj,cParams)
+            settingsTargetParams = obj.editTargetParamsSettings(cParams);
+            obj.targetParamsManager = TargetParamsManager(settingsTargetParams);
+            obj.targetParams = obj.targetParamsManager.targetParams;
+        end
+        
+        function updateTargetParams(obj)
+            obj.targetParamsManager.update(obj.iStep);
+        end
+        
+        function incrementStep(obj)
+            obj.iStep = obj.iStep + 1;
+            if obj.shallDisplayStep
+                obj.display();
             end
+        end
+        
+        function setupEpsilons(obj,mesh,settingsTargetParams)
+            L = mesh.computeCharacteristicLength();
+            D = mesh.computeMeanCellSize();
+            obj.assignWithBackup('epsilonInitial',settingsTargetParams.epsilonInitial,D);
+            obj.assignWithBackup('epsilonFinal',settingsTargetParams.epsilonFinal,obj.epsilonInitial);
+            obj.epsilonPerInitial = L;
+            obj.epsilonPerFinal = obj.epsilonInitial;
+            obj.assignWithBackup('epsilonIsoInitial',settingsTargetParams.epsilonIsotropyInitial,nan);
+            obj.assignWithBackup('epsilonIsoFinal',settingsTargetParams.epsilonIsotropyFinal,nan);
             
+        end
+        
+        function settingsTargetParams = editTargetParamsSettings(obj,cParams)
+            obj.setupEpsilons(cParams.mesh,cParams.settingsTargetParams);
+            
+            settingsTargetParams = cParams.settingsTargetParams;
+            settingsTargetParams.nSteps = obj.nSteps;
+            settingsTargetParams.epsilonInitial = obj.epsilonInitial;
+            settingsTargetParams.epsilonFinal = obj.epsilonFinal;
+            settingsTargetParams.epsilonPerInitial = obj.epsilonPerInitial;
+            settingsTargetParams.epsilonPerFinal = obj.epsilonPerFinal;
+            settingsTargetParams.epsilonIsotropyInitial = obj.epsilonIsoInitial;
+            settingsTargetParams.epsilonIsotropyFinal = obj.epsilonIsoFinal;
+        end
+        
+        function setWhetherShallDisplayStep(obj,flag)
+            obj.shallDisplayStep = flag;
+            if isempty(flag)
+                obj.shallDisplayStep = true;
+            end
+        end
+        
+        function assignWithBackup(obj,prop,a,b)
+            if ~isempty(a)
+                obj.(prop) = a;
+            else
+                obj.(prop) = b;
+            end
         end
         
     end
