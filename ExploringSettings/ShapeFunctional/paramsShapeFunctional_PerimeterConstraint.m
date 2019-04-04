@@ -1,2 +1,1 @@
-run(paramsShapeFunctional);
-Perimeter_target=1;
+Perimeter_target=5;

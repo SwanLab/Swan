@@ -6,8 +6,8 @@ classdef ShFunc_Chomog_alphabeta < ShFunc_Chomog
     methods
         function obj=ShFunc_Chomog_alphabeta(settings)
             obj@ShFunc_Chomog(settings);
-            obj.alpha=settings.micro.alpha/norm(settings.micro.alpha);
-            obj.beta=settings.micro.beta/norm(settings.micro.beta);
+            obj.alpha=settings.alpha/norm(settings.alpha);
+            obj.beta=settings.beta/norm(settings.beta);
         end
         function computeCostAndGradient(obj,x)
             obj.computePhysicalData(x);

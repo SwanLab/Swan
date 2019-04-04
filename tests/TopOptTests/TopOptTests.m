@@ -19,7 +19,7 @@ classdef TopOptTests < testRunner
             obj.tests = {...
                 
             'testBridge';
-% %             'testMicro';
+            'testMicro';
             'testCantilever3';
 %             'testCantilever2'; ipopt peta
             
@@ -28,7 +28,7 @@ classdef TopOptTests < testRunner
             
             'testProjectedSlerp';
             'testBridge2';
-%             'testMicro2';
+            'testMicro2';
 
             };
         end

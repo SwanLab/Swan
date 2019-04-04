@@ -1,3 +1,3 @@
 filterParams = SettingsFilter();
 domainType = 'MACRO';
-materialInteporlationParams = SettingsInterpolation();
+materialInterpolationParams = SettingsInterpolation();

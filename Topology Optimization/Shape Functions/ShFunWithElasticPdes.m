@@ -26,7 +26,7 @@ classdef ShFunWithElasticPdes < Shape_Functional
         
         function obj = ShFunWithElasticPdes(settings)
             obj.init(settings);
-            obj.interpolation = Material_Interpolation.create(settings.materialInteporlationParams);
+            obj.interpolation = Material_Interpolation.create(settings.materialInterpolationParams);
 %             matProp = settings.TOL;
 %             matType = settings.material;
 %             interp  = settings.method; 
