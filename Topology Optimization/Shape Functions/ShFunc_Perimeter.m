@@ -9,9 +9,8 @@ classdef ShFunc_Perimeter < Shape_Functional
     
     methods
         function obj = ShFunc_Perimeter(settings)
-            settings.filter = 'PDE';
+            settings.filterParams.filter = 'PDE';
             obj.init(settings);
-            obj.target_parameters=settings.target_parameters;
         end
         
         function computeCostAndGradient(obj,designVariable)

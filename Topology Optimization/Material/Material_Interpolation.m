@@ -1,5 +1,6 @@
 classdef Material_Interpolation < handle
-    properties
+    
+    properties (SetAccess = protected, GetAccess = public)
         E_plus
         E_minus
         nu_plus
@@ -9,21 +10,22 @@ classdef Material_Interpolation < handle
     end
     
     methods (Static)
-        function obj=create(ConstitutiveProperties, TypeOfMaterial, interpolation, pdim)
-            switch TypeOfMaterial
+        function obj=create(cParams)
+            constParams = cParams.constitutiveProperties;
+            switch cParams.typeOfMaterial
                 case 'ISOTROPIC'
-                    switch interpolation
+                    switch cParams.interpolation
                         case 'SIMPALL'
-                            switch pdim
+                            switch cParams.dim
                                 case '2D'
-                                    obj=Material_Interpolation_ISO_SIMPALL_2D(ConstitutiveProperties);
+                                    obj=Material_Interpolation_ISO_SIMPALL_2D(constParams);
                                 case '3D'
-                                    obj=Material_Interpolation_ISO_SIMPALL_3D(ConstitutiveProperties);
+                                    obj=Material_Interpolation_ISO_SIMPALL_3D(constParams);
                             end
                         case 'SIMP_Adaptative'
-                            obj=Material_Interpolation_ISO_SIMP_Adaptative(ConstitutiveProperties);
+                            obj=Material_Interpolation_ISO_SIMP_Adaptative(constParams);
                         case 'SIMP_P3'
-                            obj=Material_Interpolation_ISO_SIMP_P3(ConstitutiveProperties);
+                            obj=Material_Interpolation_ISO_SIMP_P3(constParams);
                         otherwise
                             disp('Method not added')
                     end

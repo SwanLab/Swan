@@ -8,7 +8,6 @@ classdef Optimizer < handle
         constraint_case
     end
     
-    
     methods
         function obj = Optimizer(settings)
             obj.nconstr   = settings.nconstr;
@@ -16,7 +15,6 @@ classdef Optimizer < handle
             obj.constraint_case = settings.constraint_case;
         end
     end
-    
     
     methods (Access = protected)
         function cons = setConstraint_case(obj,constraint)

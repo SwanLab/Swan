@@ -19,9 +19,10 @@ classdef Shape_Functional < handle
     
     methods (Access = protected)
         
-        function init(obj,settings)
-            obj.createFilter(settings);
-            obj.createMsmoothAndDvolu(settings.filename,settings.ptype);
+        function init(obj,cParams)
+            obj.createFilter(cParams.filterParams);
+            obj.filter.setupFromGiDFile(cParams.filename,cParams.domainType); 
+            obj.createMsmoothAndDvolu(cParams.filename, cParams.domainType);
         end
         
         function normalizeFunctionAndGradient(obj)
@@ -36,7 +37,6 @@ classdef Shape_Functional < handle
         function createFilter(obj,s)
             filterSettings = SettingsFilterFactory(s.filter,s.optimizer);
             obj.filter = FilterFactory().create(filterSettings);
-            obj.filter.setupFromGiDFile(s.filename,s.ptype); 
         end
         
         function createMsmoothAndDvolu(obj,fileName,scale)

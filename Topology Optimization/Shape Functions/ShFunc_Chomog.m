@@ -17,7 +17,7 @@ classdef ShFunc_Chomog < Shape_Functional
             obj.init(settings);
             obj.physicalProblem = FEM.create(settings.filename);
             obj.physicalProblem.preProcess;
-            obj.interpolation = Material_Interpolation.create(settings.TOL,settings.material,settings.method,settings.pdim);
+            obj.interpolation = Material_Interpolation.create(settings.materialInterpolationParams);
         end
         
         function f = getPhysicalProblems(obj)

@@ -11,6 +11,8 @@ constraint = {'volumeConstraint'};
 optimizer = 'SLERP'; kappaMultiplier = 1;
 filterType = 'P1';
 
+shFuncParamsName = 'paramsTestCantilever3';
+
 nsteps = 1;
 Vfrac_final = 0.3;
 optimality_final =1e-3;
