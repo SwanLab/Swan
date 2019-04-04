@@ -19,8 +19,7 @@ classdef NumericalHomogenizer < handle
         hasToCaptureImage = false
         
         lsDataBase
-        matDataBase
-        interDataBase
+        interpDataBase
         volDataBase
         
         matProp
@@ -57,10 +56,9 @@ classdef NumericalHomogenizer < handle
             obj.iter           = d.iter;
             obj.pdim           = d.pdim;
             obj.eDensCreatType = d.elementDensityCreatorType;
-            obj.lsDataBase     = d.levelSetDataBase;
-            obj.matDataBase    = d.materialDataBase;
-            obj.interDataBase  = d.materialInterpDataBase;
-            obj.volDataBase    = d.volumeShFuncDataBase;
+            obj.lsDataBase     = d.levelSetCreatorParams;
+            obj.interpDataBase = d.interpParams;
+            obj.volDataBase    = d.volumeShFuncParams;
         end
         
         function createMicroProblem(obj)
@@ -78,13 +76,8 @@ classdef NumericalHomogenizer < handle
         end        
         
         function createInterpolation(obj)
-            int = obj.interDataBase.method;
-            mV  = obj.matDataBase.matProp;
-            mat = obj.matDataBase.materialType;
-            pd  = obj.pdim;
-            mI  = Material_Interpolation.create(mV,mat,int,pd);
+            mI  = Material_Interpolation.create(obj.interpDataBase);
             obj.interpolation = mI;
-            obj.matValues = mV;
         end
         
         function createElementalDensityCreator(obj)
@@ -97,8 +90,9 @@ classdef NumericalHomogenizer < handle
         function d = createElementalDensityCreatorDataBase(obj)
             dl = obj.createLevelSetCreatorDataBase();
             df = obj.createFilterDataBase();
-            d.levelSetCreatorDataBase = dl;
-            d.filterDataBase = df;
+            d = SettingsElementalDensity();
+            d.levelSetCreatorParams = dl;
+            d.filterParams = df;
         end
         
         function d = createLevelSetCreatorDataBase(obj)
@@ -108,6 +102,7 @@ classdef NumericalHomogenizer < handle
         end
         
         function d = createFilterDataBase(obj)
+            d = SettingsFilterP0();
             d.shape = obj.microProblem.element.interpolation_u.shape;
             d.conec = obj.microProblem.geometry.interpolation.T;
             d.quadr = obj.microProblem.element.quadrature;

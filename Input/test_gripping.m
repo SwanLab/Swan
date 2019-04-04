@@ -10,6 +10,8 @@ optimizer = 'SLERP';
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
 
+shFuncParamsName = 'paramsTestGripping';
+
 nsteps = 1;
 Vfrac_final = 1;
 optimality_final =1e-3;

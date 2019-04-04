@@ -1,5 +1,9 @@
 classdef Density < DesignVariable
     
+    properties (GetAccess = public, SetAccess = protected)
+        type = 'Density';
+    end
+    
     methods (Access = public)
         
         function obj = Density(cParams)

@@ -31,7 +31,6 @@ classdef TopOptTests < testRunner
             'testBridge';
             'testMicro2';
             'testBridge2';
-            
 
             
             };

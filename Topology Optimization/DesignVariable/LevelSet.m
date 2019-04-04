@@ -1,5 +1,9 @@
 classdef LevelSet < DesignVariable
     
+    properties (GetAccess = public, SetAccess = protected)
+        type = 'LevelSet';
+    end
+    
     methods (Access = public)
         
         function obj = LevelSet(cParams)

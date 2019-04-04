@@ -65,7 +65,11 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         printMode = 'DesignAndShapes';
     end
     
-    methods (Access = public)
+    properties %exploring tests
+        shFuncParamsName
+    end
+    
+    methods
         function obj = Settings(case_file)
             run(case_file)
             obj.case_file=case_file;
@@ -227,6 +231,10 @@ classdef Settings %< handle%& matlab.mixin.Copyable
             
             if exist('volumeFibers','var')
                obj.levelSetDataBase.volumeFibers = volumeFibers;               
+            end
+            
+            if exist('shFuncParamsName','var')
+               obj.shFuncParamsName = shFuncParamsName;               
             end
             
             if  ~(contains(filename,'test','IgnoreCase',true) || contains(filename,'RVE') || obj.hasToAddSpaceBecauseOfIncremental())

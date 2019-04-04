@@ -6,6 +6,10 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
         meshGiD
     end
     
+    properties (GetAccess = public, SetAccess = protected, Abstract)
+        type
+    end
+    
     methods (Access = public, Abstract)
         
         update(obj,value)
