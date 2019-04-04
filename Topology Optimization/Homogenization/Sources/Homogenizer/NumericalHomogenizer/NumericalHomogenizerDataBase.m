@@ -23,7 +23,8 @@ classdef NumericalHomogenizerDataBase < handle
         function createDataBase(obj)
             d = obj.createNumericalHomogenizerDataBase();
             d.levelSetDataBase       = obj.createLevelSetDataBase();
-            d.interpDataBase         = obj.createInterpDataBase();
+            d.materialInterpDataBase = obj.createMaterialInterpDataBase();
+            d.materialDataBase       = obj.createMaterialDataBase();
             d.volumeShFuncDataBase   = obj.createShVolumeDataBase();
             obj.dataBase = d;
         end
@@ -40,9 +41,10 @@ classdef NumericalHomogenizerDataBase < handle
         
         function d = createShVolumeDataBase(obj)
             d = SettingsShapeFunctional();
+            d.filterParams.filter = 'P1';
             d.filterParams.optimizer = 'MMA';
             d.filename = obj.femFileName;
-            d.ptype = 'MICRO';
+            d.domainType = 'MICRO';
         end
         
     end
@@ -50,14 +52,24 @@ classdef NumericalHomogenizerDataBase < handle
     methods (Access = private, Static)
         
         function d = createLevelSetDataBase()
-            d = SettingsLevelSetCreator();
+            d.levelSetType = 'horizontalFibers';
+            d.levFib = 3;
+            d.volume = 0.5;
         end
         
-        function d = createInterpDataBase()
-            d = SettingsInterpolation();
+        function d = createMaterialInterpDataBase()
+            d.method = 'SIMPALL';
         end
         
- 
+        function d = createMaterialDataBase()
+            d.materialType = 'ISOTROPIC';
+            d.matProp.rho_plus = 1;
+            d.matProp.rho_minus = 0;
+            d.matProp.E_plus = 1;
+            d.matProp.E_minus = 1e-3;
+            d.matProp.nu_plus = 1/3;
+            d.matProp.nu_minus = 1/3;
+        end        
         
     end
     
