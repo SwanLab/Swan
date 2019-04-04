@@ -41,9 +41,9 @@ classdef DesignVarMonitor_Abstract < handle
     
     methods (Access = public)
         
-        function obj = DesignVarMonitor_Abstract(mesh,showBC)
-            obj.mesh = mesh;
-            obj.dim = mesh.pdim;
+        function obj = DesignVarMonitor_Abstract(designVar,showBC)
+            obj.mesh = designVar.meshGiD;
+            obj.dim = obj.mesh.pdim;
             obj.showBC = showBC;
             obj.init();
         end

@@ -1,6 +1,6 @@
 classdef Optimizer_Unconstrained < Optimizer
     
-    properties
+    properties (Access = public)
         objfunc
         opt_cond
     end
@@ -14,10 +14,6 @@ classdef Optimizer_Unconstrained < Optimizer
         line_search
         scalar_product
         constr_tol
-    end
-    
-    properties (Access = private)
-        
     end
     
     methods (Access = public, Abstract)

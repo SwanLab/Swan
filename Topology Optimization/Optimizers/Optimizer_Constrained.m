@@ -12,24 +12,23 @@ classdef Optimizer_Constrained < Optimizer
     end
     
     properties (Access = private)
+        designVar
         postProcess
         printing
-        fileName
-        mesh
         printMode
     end
     
     methods (Access = public)
         
-        function obj = Optimizer_Constrained(settings,mesh,showOptParams)
+        function obj = Optimizer_Constrained(settings,designVar,showOptParams)
             obj@Optimizer(settings);
-            obj.init(settings,mesh);
-            obj.monitor = MonitoringDocker(showOptParams,settings.plotting,settings,mesh);
+            obj.init(settings,designVar);
+            obj.monitor = MonitoringDocker(showOptParams,settings.plotting,settings,designVar);
         end
         
-        function x = solveProblem(obj,x_ini,cost,constraint,istep,nstep)
+        function designVar = solveProblem(obj,designVar,cost,constraint,istep,nstep)
             obj.createPostProcess(cost,constraint);
-            
+            x_ini = designVar.value;
             cost.computeCostAndGradient(x_ini);
             constraint.computeCostAndGradient(x_ini);
             obj.print(x_ini,obj.niter,cost,constraint);
@@ -45,7 +44,8 @@ classdef Optimizer_Constrained < Optimizer
                 x_ini = x;
             end
             obj.printFinal(x,cost,constraint);
-
+            designVar.update(x);
+            
             obj.has_converged = 0;
         end
         
@@ -66,11 +66,12 @@ classdef Optimizer_Constrained < Optimizer
             if ~(obj.printing)
                 return
             end
-            if obj.niter==1
-                msh_file = fullfile('Output',obj.fileName,strcat(obj.fileName,'.txt'));
+            fileName = obj.designVar.meshGiD.problemID;
+            if obj.niter == 1
+                msh_file = fullfile('Output',fileName,strcat(fileName,'.txt'));
                 fid_mesh = fopen(msh_file,'wt');
             else
-                msh_file = fullfile('Output',obj.fileName,strcat(obj.fileName,'.txt'));
+                msh_file = fullfile('Output',fileName,strcat(fileName,'.txt'));
                 fid_mesh = fopen(msh_file,'at');
             end
             fprintf(fid_mesh,'-----------------------------------------------------------------------------------------------\n');
@@ -100,7 +101,8 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function createPostProcess(obj,cost,constraint)
-            d = obj.createPostProcessDataBase(obj.fileName);
+            fileName = obj.designVar.meshGiD.problemID;
+            d = obj.createPostProcessDataBase(fileName);
             d.printMode = obj.printMode;
             d.optimizer = obj.optimizer;
             d.cost = cost;
@@ -120,20 +122,20 @@ classdef Optimizer_Constrained < Optimizer
     
     methods (Access = private)
         
+        function init(obj,settings,designVar)
+            obj.designVar = designVar;
+%             fileName  = settings.case_file;
+            obj.optimizer = settings.optimizer;
+            obj.maxiter   = settings.maxiter;
+            obj.printing  = settings.printing;
+            obj.printMode = settings.printMode;
+        end
+        
         function d = createPostProcessDataBase(obj,fileName)
-            d.mesh    = obj.mesh;
+            d.mesh    = obj.designVar.meshGiD;
             d.outName = fileName;
             ps = PostProcessDataBaseCreator(d);
             d = ps.getValue();
-        end
-        
-        function init(obj,settings,mesh)
-            obj.fileName    = settings.case_file;
-            obj.maxiter     = settings.maxiter;
-            obj.printing    = settings.printing;
-            obj.optimizer   = settings.optimizer;
-            obj.printMode = settings.printMode;
-            obj.mesh     = mesh;
         end
         
         function printFinal(obj,x,cost,constraint)

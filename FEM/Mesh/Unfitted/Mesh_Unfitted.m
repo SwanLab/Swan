@@ -15,7 +15,7 @@ classdef Mesh_Unfitted < Mesh ...
         function computeMesh(obj,levelSet)
             obj.updateLevelSet(levelSet);
             obj.classifyCells();
-            if obj.isLevelSetCuttingMesh()
+            if obj.isLevelSetCrossingZero()
                 obj.computeUnfittedMesh();
             else
                 obj.returnNullMesh();
@@ -44,6 +44,10 @@ classdef Mesh_Unfitted < Mesh ...
                 meshUnfittedCopy = obj.meshPlotter.patchRemovedDimension(meshUnfittedCopy,removedDim,removedDimCoord);
             end
             obj.meshPlotter.plot(meshUnfittedCopy,ax);
+        end
+        
+        function S = computeMeanCellSize(obj)
+            S = obj.meshBackground.computeMeanCellSize();
         end
         
     end
@@ -137,7 +141,7 @@ classdef Mesh_Unfitted < Mesh ...
             obj.memoryManager.link(obj);
         end
         
-        function itIs = isLevelSetCuttingMesh(obj)
+        function itIs = isLevelSetCrossingZero(obj)
             itIs = ~isempty(obj.backgroundCutCells);
         end
         

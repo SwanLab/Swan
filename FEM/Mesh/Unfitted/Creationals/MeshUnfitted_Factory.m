@@ -1,5 +1,7 @@
 classdef MeshUnfitted_Factory
+    
     methods (Static, Access = public)
+        
         function mesh_unfitted = create(type,mesh_background,interpolation_background)
             switch type
                 case 'INTERIOR'
@@ -18,6 +20,8 @@ classdef MeshUnfitted_Factory
                     end
             end
         end
+        
     end
+    
 end
 

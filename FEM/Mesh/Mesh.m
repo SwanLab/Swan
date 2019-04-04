@@ -20,7 +20,7 @@ classdef Mesh < handle & matlab.mixin.Copyable
             objClone = copy(obj);
         end
         
-        function meanCellSize = computeMeanCellSize(obj)
+        function S = computeMeanCellSize(obj)
             x1 = obj.coord(obj.connec(:,1));
             x2 = obj.coord(obj.connec(:,2));
             x3 = obj.coord(obj.connec(:,3));
@@ -30,13 +30,13 @@ classdef Mesh < handle & matlab.mixin.Copyable
             x1x3 = abs(x1-x3);
             hs = max([x1x2,x2x3,x1x3]');
             
-            meanCellSize = mean(hs);
+            S = mean(hs);
         end
         
-        function characterisitcLength = computeCharacteristicLength(obj)
+        function L = computeCharacteristicLength(obj)
             xmin = min(obj.coord);
             xmax = max(obj.coord);
-            characterisitcLength = norm(xmax-xmin)/2;
+            L = norm(xmax-xmin)/2;
         end
         
         function changeCoordinates(obj,newCoords)
