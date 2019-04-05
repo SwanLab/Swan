@@ -2,23 +2,26 @@ classdef OptimizerFactory < handle
     
     methods (Access = public, Static)
         
-        function optimizer = create(optimizer,settings,mesh,epsilon)
-            switch optimizer
+        function optimizer = create(settings)
+            
+            optimizerName = settings.optimizer;
+            designVar = settings.designVar;
+            switch optimizerName
                 case 'SLERP'
-                    unconstrainedOptimizer = Optimizer_SLERP(settings,epsilon);
-                    optimizer = Optimizer_AugLag(settings,mesh,unconstrainedOptimizer);
+                    settings.optimizer_unconstr = Optimizer_SLERP(settings.uncOptimizerSettings);
+                    optimizer = Optimizer_AugLag(settings);
                 case 'HAMILTON-JACOBI'
-                    unconstrainedOptimizer = Optimizer_HJ(settings,epsilon,mesh.computeMeanCellSize());
-                    optimizer = Optimizer_AugLag(settings,mesh,unconstrainedOptimizer);
+                    settings.optimizer_unconstr = Optimizer_HJ(settings.uncOptimizerSettings,designVar);
+                    optimizer = Optimizer_AugLag(settings);
                 case 'PROJECTED GRADIENT'
-                    unconstrainedOptimizer = Optimizer_PG(settings,epsilon);
-                    optimizer = Optimizer_AugLag(settings,mesh,unconstrainedOptimizer);
+                    settings.optimizer_unconstr = Optimizer_PG(settings.uncOptimizerSettings);
+                    optimizer = Optimizer_AugLag(settings);
                 case 'MMA'
-                    optimizer = Optimizer_MMA(settings,mesh);
+                    optimizer = Optimizer_MMA(settings);
                 case 'IPOPT'
-                    optimizer = Optimizer_IPOPT(settings,mesh);
+                    optimizer = Optimizer_IPOPT(settings);
                 case 'PROJECTED SLERP'
-                    optimizer = Optimizer_Projected_Slerp(settings,mesh,epsilon);
+                    optimizer = Optimizer_Projected_Slerp(settings);
                 otherwise
                     error('Invalid optimizer.')
             end

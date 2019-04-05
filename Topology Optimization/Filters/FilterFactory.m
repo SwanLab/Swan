@@ -1,22 +1,23 @@
 classdef FilterFactory < handle
     
-    methods (Access = public, Static)
+    methods (Access = public)
         
-        function obj = create(type,optimizer)
-            switch type
+        function filter = create(obj,factoryParams,designVar)
+            cParams = factoryParams;
+            switch factoryParams.type
                 case 'P1'
-                    switch optimizer
-                        case {'MMA','PROJECTED GRADIENT','IPOPT'}
-                            obj = Filter_P1_Density();
-                        case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
-                            obj = Filter_P1_LevelSet();
+                    switch factoryParams.designVar
+                        case 'DENSITY'
+                            filter = Filter_P1_Density(cParams);
+                        case 'LEVELSET'
+                            filter = Filter_P1_LevelSet(cParams);
                     end
                 case 'PDE'
-                    switch optimizer
-                        case {'MMA','PROJECTED GRADIENT','IPOPT'}
-                            obj = Filter_PDE_Density();
-                        case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
-                            obj = Filter_PDE_LevelSet();
+                    switch factoryParams.designVar
+                        case 'DENSITY'
+                            filter = Filter_PDE_Density(cParams);
+                        case 'LEVELSET'
+                            filter = Filter_PDE_LevelSet(cParams);
                     end
             end
         end

@@ -1,10 +1,12 @@
 classdef Filter_PDE < Filter
+    
     properties (Access = private)
         dvolu
         A_nodal_2_gauss
     end
     
     methods (Access = public)
+        
         function preProcess(obj)
             preProcess@Filter(obj);
             obj.dvolu = sparse(1:obj.diffReacProb.geometry.interpolation.nelem,1:obj.diffReacProb.geometry.interpolation.nelem,...
@@ -35,9 +37,11 @@ classdef Filter_PDE < Filter
         function obj = updateEpsilon(obj,epsilon)
             obj.diffReacProb.setEpsilon(epsilon);
         end
+        
     end
     
     methods (Access = private)
+        
         function gauss_sum = integrate_P1_function_with_shape_function(obj,x)
             gauss_sum = 0;
             for igauss = 1:size(obj.M0,2)
@@ -49,5 +53,7 @@ classdef Filter_PDE < Filter
             obj.diffReacProb.computeVariables(RHS);
             x_reg = obj.diffReacProb.variables.x;
         end
+        
     end
+    
 end

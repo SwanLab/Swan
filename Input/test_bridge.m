@@ -9,6 +9,8 @@ constraint = {'volumeConstraint'};
 optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
 filterType = 'P1';
 
+shFuncParamsName = 'paramsTestBridge';
+
 nsteps = 1;
 Vfrac_final = 0.5;
 Perimeter_target=3.5;

@@ -1,0 +1,2 @@
+type = 'PDE';
+designVar = 'LEVELSET';

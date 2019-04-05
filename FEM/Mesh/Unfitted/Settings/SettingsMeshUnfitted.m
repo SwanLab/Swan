@@ -17,7 +17,7 @@ classdef SettingsMeshUnfitted < AbstractSettings
             switch nargin
                 case 1
                     obj.loadParams(varargin{1});
-                case 3
+                case 2
                     obj.unfittedType = varargin{1};
                     obj.meshBackground = varargin{2};
                     obj.interpolationBackground = Interpolation.create(obj.meshBackground,'LINEAR');

@@ -9,10 +9,10 @@ classdef ScalarProduct < handle
     end
     
     methods 
-        function obj = ScalarProduct(problemID,epsilon)
-            obj.epsilon = epsilon;
-            physProb = DiffReact_Problem;
-            physProb.setupFromGiDFile(problemID);
+        function obj = ScalarProduct(settings)
+            obj.epsilon = settings.epsilon;
+            physProb = DiffReact_Problem();
+            physProb.setupFromGiDFile(settings.filename);
             physProb.preProcess;
             obj.Ksmooth = physProb.element.computeStiffnessMatrix;
             obj.Msmooth = physProb.element.computeMassMatrix(2);

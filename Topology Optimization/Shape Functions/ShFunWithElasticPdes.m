@@ -26,11 +26,12 @@ classdef ShFunWithElasticPdes < Shape_Functional
         
         function obj = ShFunWithElasticPdes(settings)
             obj.init(settings);
-            matProp = settings.TOL;
-            matType = settings.material;
-            interp  = settings.method; 
-            pdim    = settings.pdim;
-            obj.createMaterialInterpolation(matProp,matType,interp,pdim);
+            obj.interpolation = Material_Interpolation.create(settings.materialInterpolationParams);
+%             matProp = settings.TOL;
+%             matType = settings.material;
+%             interp  = settings.method; 
+%             pdim    = settings.pdim;
+%             obj.createMaterialInterpolation(matProp,matType,interp,pdim);
         end
         
         function createEquilibriumProblem(obj,fileName)
@@ -62,7 +63,11 @@ classdef ShFunWithElasticPdes < Shape_Functional
     methods (Access = private)
         
         function createMaterialInterpolation(obj,matProp,matType,interp,pdim)
-            obj.interpolation = Material_Interpolation.create(matProp,matType,interp,pdim);
+            d.dim=pdim;
+            d.interpolation=interp;
+            d.typeOfMaterial=matType;
+            d.constitutiveProperties=matProp;
+            obj.interpolation = Material_Interpolation.create(paramsMaterialInterpolation);
         end
         
     end

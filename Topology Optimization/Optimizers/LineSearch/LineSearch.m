@@ -6,12 +6,12 @@ classdef LineSearch < handle
     end
     
     methods (Static)
-        function obj = create(settings,epsilon)
+        function obj = create(settings)
             switch settings.line_search
                 case 'DIMENSIONALLY CONSISTENT'
                     switch settings.optimizer
                         case 'PROJECTED GRADIENT'
-                            obj = LS_BackTracking_DimensionallyConsistent_PG(settings,epsilon);
+                            obj = LS_BackTracking_DimensionallyConsistent_PG(settings,settings.epsilon);
                         case {'SLERP','PROJECTED SLERP'} % !! PROJECTED SLERP?? IS IT OK SAME LINE SEARCH?? !!
                             obj = LS_BackTracking_DimensionallyConsistent_SLERP;
                         case 'HAMILTON-JACOBI'
@@ -22,7 +22,7 @@ classdef LineSearch < handle
                 case 'DOUBLING LAST STEP'
                     switch settings.optimizer
                         case 'PROJECTED GRADIENT'
-                            obj = LS_BackTracking_DoublingLastStep_PG(settings,epsilon);
+                            obj = LS_BackTracking_DoublingLastStep_PG(settings,settings.epsilon);
                         case 'SLERP'
                             obj = LS_BackTracking_DoublingLastStep_SLERP;
                         case 'HAMILTON-JACOBI'

@@ -27,6 +27,10 @@ classdef Filter < handle
     
     methods (Access = public)
         
+        function obj = Filter(cParams)
+            
+        end
+        
         function preProcess(obj)
             obj.diffReacProb.preProcess();
             obj.mesh = obj.diffReacProb.mesh;
@@ -106,9 +110,9 @@ classdef Filter < handle
         function setDiffusionReactionProblem(obj,scale)
             switch scale
                 case 'MACRO'
-                    obj.diffReacProb = DiffReact_Problem;
+                    obj.diffReacProb = DiffReact_Problem();
                 case 'MICRO'
-                    obj.diffReacProb = DiffReact_Problem_Micro;
+                    obj.diffReacProb = DiffReact_Problem_Micro();
             end
         end
         

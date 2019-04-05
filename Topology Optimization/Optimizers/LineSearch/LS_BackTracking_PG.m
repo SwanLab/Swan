@@ -6,7 +6,9 @@ classdef LS_BackTracking_PG < LineSearch
     
     methods
         function obj = LS_BackTracking_PG(settings,epsilon)
-            obj.scalar_product = ScalarProduct(settings.filename,epsilon);
+            spS.filename = settings.filename;
+            spS.epsilon  = epsilon;
+            obj.scalar_product = ScalarProduct(spS);
             obj.kappaMultiplier = settings.kappaMultiplier;
             obj.kfrac = 2;
             obj.kappa_min = 1e-15;

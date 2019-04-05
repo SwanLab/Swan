@@ -2,6 +2,10 @@ classdef Filter_P1_LevelSet < Filter_P1 & Filter_LevelSet
     
     methods (Access = public)
         
+        function obj = Filter_P1_LevelSet(cParams)
+            obj@ Filter_LevelSet(cParams);
+        end
+        
         function preProcess(obj)
             preProcess@Filter_P1(obj)
             preProcess@Filter_LevelSet(obj)

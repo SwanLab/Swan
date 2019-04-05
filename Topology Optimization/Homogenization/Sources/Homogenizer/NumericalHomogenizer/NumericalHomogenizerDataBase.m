@@ -40,10 +40,11 @@ classdef NumericalHomogenizerDataBase < handle
         end
         
         function d = createShVolumeDataBase(obj)
-            d.filter = 'P1';
-            d.optimizer = 'MMA';
+            d = SettingsShapeFunctional();
+            d.filterParams.filter = 'P1';
+            d.filterParams.optimizer = 'MMA';
             d.filename = obj.femFileName;
-            d.ptype = 'MICRO';
+            d.domainType = 'MICRO';
         end
         
     end
