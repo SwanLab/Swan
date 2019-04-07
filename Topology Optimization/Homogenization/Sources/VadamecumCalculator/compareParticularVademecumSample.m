@@ -10,6 +10,9 @@ classdef compareParticularVademecumSample < handle
         volumes
         inclutionRatio
         
+        
+        qStrValue
+
         vademecums
         monomials
         prefixName
@@ -26,7 +29,7 @@ classdef compareParticularVademecumSample < handle
         function obj = compareParticularVademecumSample()
             obj.init();
             obj.computeVademecum();
-            obj.computeAndPlotPtensors(); 
+            obj.computeAndPlotPtensors();
         end
         
     end
@@ -35,10 +38,9 @@ classdef compareParticularVademecumSample < handle
         
         function init(obj)
             obj.volumes = 0.95;%0.95;%[0.7,0.95];%0.1;
-            obj.inclutionRatio = 0.5;%1;%0.5;
-            
+            obj.inclutionRatio = 1;%1;%0.5;
             obj.pNorms = [2,4,8];
-            obj.qNorms = 2;%[2,4,8,16,32];%[2,4,8,16,32];%[4,8,16,32];                        
+            obj.qNorms = [2,4,8,16,32];%[2,4,8,16,32];%[4,8,16,32];
             obj.plottingShearTerms = false;
         end
         
@@ -54,7 +56,7 @@ classdef compareParticularVademecumSample < handle
                     obj.computeRectanglePtensorSamples();
                     obj.plotAmplificators();
                 end
-            end            
+            end
         end
         
         function computeVademecum(obj)
@@ -78,52 +80,54 @@ classdef compareParticularVademecumSample < handle
         end
         
         function computeRectangleSample(obj)
-            d.vademecumCase  = 'Rectangle';            
+            d.vademecumCase  = 'Rectangle';
             obj.computeSample(d)
-        end        
+        end
         
         function computeSample(obj,d)
             d.volume         = obj.volume;
             d.inclutionRatio = obj.inclutionRatio;
             d.qNorm          = obj.qNorm;
             v = VademecumComputerForGivenVolume.create(d);
-            v.compute();                        
-        end
+            v.compute();
+        end        
         
-
         function computeSmoothRectanglePtensorSamples(obj,iq)
-            obj.fileName = 'SmoothRectangle';        
+            obj.fileName = 'SmoothRectangle';
             v = obj.computeSmoothPtensorSample();
             obj.vademecums{iq,1} = v;
         end
         
-        function v = computeSmoothPtensorSample(obj)
-            obj.fileName = 'SmoothRectangle';
-            obj.obtainPrefixName();
-            obj.print = true;
-            v = obj.computePtensorVariables();
-        end        
-        
         function computeRectanglePtensorSamples(obj)
-            obj.fileName = 'Rectangle';     
+            obj.fileName = 'Rectangle';
             v = obj.computeRectanglePtensorSample();
             nq = length(obj.qNorms);
             obj.vademecums{nq+1,1} = v;
-        end        
+        end
         
-        function obtainPrefixName(obj)
-            volumeStr = strrep(num2str(obj.volume),'.','');
-            txiStr = strrep(num2str(obj.inclutionRatio),'.','');                                    
-            obj.prefixName = ['CaseOfStudy','Rho',volumeStr,'Txi',txiStr,'QInf'];            
-        end        
+        function v = computeSmoothPtensorSample(obj)
+            obj.fileName  = 'SmoothRectangle';
+            obj.qStrValue = obj.qNorm;
+            v = obj.computePtensorSample();
+        end
         
         function v = computeRectanglePtensorSample(obj)
-            obj.fileName = 'Rectangle';
-            volumeStr = strrep(num2str(obj.volume),'.','');
-            txiStr = strrep(num2str(obj.inclutionRatio),'.','');                        
-            obj.prefixName = ['CaseOfStudy','Rho',volumeStr,'Txi',txiStr,'QInf'];
+            obj.fileName  = 'Rectangle';
+            obj.qStrValue = Inf;
+            v = obj.computePtensorSample();
+        end
+        
+        function v = computePtensorSample(obj)
+            obj.obtainPrefixName();
             obj.print = true;
             v = obj.computePtensorVariables();
+        end
+        
+        function obtainPrefixName(obj)
+            volumeStr = obj.num2strIncludingDots(obj.volume);
+            txiStr    = obj.num2strIncludingDots(obj.inclutionRatio);
+            qStr      = obj.num2strIncludingDots(obj.qStrValue);                          
+            obj.prefixName = ['CaseOfStudy','Rho',volumeStr,'Txi',txiStr,'Q',qStr];
         end
         
         function vd = computePtensorVariables(obj)
@@ -132,8 +136,7 @@ classdef compareParticularVademecumSample < handle
             vc = VademecumPtensorComputer(d);
             vc.compute();
             vd = vc.vademecumData;
-        end
-       
+        end        
         
         function plotAmplificators(obj)
             obj.obtainMonomials();
@@ -203,12 +206,19 @@ classdef compareParticularVademecumSample < handle
             obj.legends{nQnorms+1} = 'Rectangle';
         end
         
-        function itHasNoShear = hasNoShearComponent(obj,monomial)
+    end
+    
+    methods (Access = private, Static)
+        
+        function itHasNoShear = hasNoShearComponent(monomial)
             shearIndeces = [3 4 5];
             itHasNoShear = ~any(monomial(shearIndeces));
-        end
-        
+        end        
 
-    end
+        function str = num2strIncludingDots(num)
+            str = strrep(num2str(num),'.','');  
+        end        
+        
+    end    
     
 end

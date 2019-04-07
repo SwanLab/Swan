@@ -15,6 +15,7 @@ classdef VademecumCellVariablesCalculator < handle
         iter
         freeFemSettings
         print
+        cornerSmoothParams
     end
     
     methods (Access = public)
@@ -30,7 +31,7 @@ classdef VademecumCellVariablesCalculator < handle
                 for imy = 1:nMy
                     obj.storeIndex(imx,imy);
                     obj.iter = (imy + nMx*(imx -1));
-                    obj.iter/(nMx*nMy)*100;                    
+                    disp([num2str(obj.iter/(nMx*nMy)*100),'% done']);                    
                     obj.generateMeshFile();
                     obj.computeNumericalHomogenizer();
                     obj.obtainHomogenizerData();
@@ -66,6 +67,9 @@ classdef VademecumCellVariablesCalculator < handle
             obj.myV = linspace(d.myMin,d.myMax,nMy);
             obj.print = d.print;
             obj.freeFemSettings = d.freeFemSettings;
+            obj.cornerSmoothParams.gamma = 4;
+            obj.cornerSmoothParams.alpha = 6;
+            obj.cornerSmoothParams.beta  = 20;
         end
         
         function computeFileNames(obj,d)
@@ -93,8 +97,19 @@ classdef VademecumCellVariablesCalculator < handle
             d.fileName        = obj.fileNames.fileName;
             d.freeFemFileName = obj.fileNames.freeFemFileName;
             d.printingDir     = obj.fileNames.printingDir;
+            d.qNorm           = obj.computeCornerSmoothingExponent();
             fG = FreeFemMeshGenerator(d);
             fG.generate();
+        end
+        
+        function q = computeCornerSmoothingExponent(obj)
+            a = obj.cornerSmoothParams.alpha;
+            b = obj.cornerSmoothParams.beta;
+            c = obj.cornerSmoothParams.gamma;
+            mx = obj.mxV(obj.iMxIndex);
+            my = obj.myV(obj.iMyIndex);
+            x = max(mx,my);
+            q = min(512,c*(1/(1-x^b))^a);
         end
              
         function computeNumericalHomogenizer(obj)

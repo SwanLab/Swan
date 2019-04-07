@@ -1,11 +1,16 @@
 classdef  RectangleVademecumComputerForGivenVolume < ...
         VademecumComputerForGivenVolume
     
+    properties (Access = protected)
+       qValue 
+    end
+    
     methods (Access = public)
         
         function obj = RectangleVademecumComputerForGivenVolume(d)
             obj.init(d);
             obj.fileName = 'Rectangle';            
+            obj.qValue = Inf;
         end
         
     end

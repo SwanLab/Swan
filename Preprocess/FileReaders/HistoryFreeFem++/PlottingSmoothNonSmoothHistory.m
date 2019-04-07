@@ -1,12 +1,12 @@
 classdef PlottingSmoothNonSmoothHistory < handle
     
     properties (Access = private)
-        costSmooth
-        lambdaSmooth
-        costNonSmooth
-        lambdaNonSmooth
-        costNonSmoothMmax
-        lambdaNonSmoothMmax
+        caseNames
+        caseName
+        iter       
+        color
+        cost
+        lambda
         resultsDir        
     end
     
@@ -14,9 +14,7 @@ classdef PlottingSmoothNonSmoothHistory < handle
         
         function obj = PlottingSmoothNonSmoothHistory()
             obj.init();
-            obj.readSmooth();
-            obj.readNonSmooth();
-            obj.readNonSmoothMmax();            
+            obj.readFiles();
             obj.plotHistory();
         end
         
@@ -25,59 +23,42 @@ classdef PlottingSmoothNonSmoothHistory < handle
     methods (Access = private)
         
         function init(obj)
-            obj.resultsDir = '/home/alex/Desktop/OptimizationFreeFem/';
+            obj.resultsDir = '/home/alex/git-repos/OptimizationFreeFem/';
+            obj.color = {'b','r','g','k'};
+            obj.caseNames = {'SmoothRectangle','Rectangle','RectangleWithMmax','VademecumSmoothCorner'};
         end
         
-        function obj = readSmooth(obj)
-            caseName = 'SmoothRectangleResults';
-            fullPath = [obj.resultsDir,caseName,'/ctl/History.txt'];
+        function obj = readFiles(obj)
+            for icell = 1:numel(obj.caseNames)
+                obj.iter = icell;
+                obj.caseName = obj.caseNames{icell};
+                obj.obtainCostAndLambda();
+            end
+        end        
+        
+        function obtainCostAndLambda(obj)
+            fullPath = [obj.resultsDir,[obj.caseName,'Results'],'/ctl/History.txt'];
             d.filePath = fullPath;
             rH = ReadingHistoryFile(d);
-            obj.costSmooth = rH.cost;
-            obj.lambdaSmooth = rH.lambda;
+            obj.cost{obj.iter} = rH.cost;
+            obj.lambda{obj.iter} = rH.lambda;            
+        end        
+        
+        
+        function plotHistory(obj)            
+            obj.plotVariable(obj.cost,'Cost');
+            obj.plotVariable(obj.lambda,'Lambda');
         end
         
-        function obj = readNonSmooth(obj)
-            caseName = 'RectangleResults';
-            fullPath = [obj.resultsDir,caseName,'/ctl/History.txt'];
-            d.filePath = fullPath;
-            rH = ReadingHistoryFile(d);
-            obj.costNonSmooth = rH.cost;
-            obj.lambdaNonSmooth = rH.lambda;
-        end
-        
-        function obj = readNonSmoothMmax(obj)
-            caseName = 'RectangleWithMmaxResults';
-            fullPath = [obj.resultsDir,caseName,'/ctl/History.txt'];
-            d.filePath = fullPath;
-            rH = ReadingHistoryFile(d);
-            obj.costNonSmoothMmax = rH.cost;
-            obj.lambdaNonSmoothMmax = rH.lambda;
-        end
-        
-        
-        
-        
-        function plotHistory(obj)
+        function plotVariable(obj,var,name)
             f = figure;
             hold on
-            h{1} = plot(obj.costSmooth,'b+-');
-            h{2} = plot(obj.costNonSmooth,'r+-');
-            h{3} = plot(obj.costNonSmoothMmax,'g+-');
-            legend('SmoothCost','NonSmoothCost','NonSmoothCostMmax')
-            
+            for icell = 1:numel(var)
+                h{icell} = plot(var{icell},[obj.color{icell},'+-']);
+            end
+            legend(obj.caseNames)            
             pp = plotPrinter(f,h); 
-            pp.print([obj.resultsDir,'Cost'])
-            
-            f = figure;
-            hold on            
-            h{1} = plot(obj.lambdaSmooth,'b+-');
-            h{2} = plot(obj.lambdaNonSmooth,'r+-');
-            h{3} = plot(obj.lambdaNonSmoothMmax,'g+-');            
-            legend('SmoothLambda','NonSmoothLambda','NonSmoothCostMmax')   
-            
-            pp = plotPrinter(f,h); 
-            pp.print([obj.resultsDir,'Lambda'])            
+            pp.print([obj.resultsDir,name])            
         end
         
     end

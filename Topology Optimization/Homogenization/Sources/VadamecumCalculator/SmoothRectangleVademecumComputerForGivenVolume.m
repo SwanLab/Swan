@@ -1,11 +1,16 @@
 classdef  SmoothRectangleVademecumComputerForGivenVolume < ...
         VademecumComputerForGivenVolume
     
+    properties (Access = protected)
+       qValue 
+    end
+    
     methods (Access = public)
         
         function obj = SmoothRectangleVademecumComputerForGivenVolume(d)
             obj.init(d);
             obj.fileName = 'SmoothRectangle';
+            obj.qValue = obj.qNorm;
         end
         
     end
@@ -14,8 +19,7 @@ classdef  SmoothRectangleVademecumComputerForGivenVolume < ...
         
         function findInclusionLengthForCertainVolume(obj)
             obj.print = false;
-           % x0 = [obj.computeInclusionLengthForRectangle,0.99];
-            x0 = [0.1,0.99];
+            x0 = [obj.computeInclusionLengthForRectangle,0.99];
             problem.objective = @(x) obj.fzero(x);
             problem.x0 = x0;
             problem.solver = 'fzero';

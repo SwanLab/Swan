@@ -1,17 +1,20 @@
 classdef VademecumComputerForGivenVolume < handle
     
+    properties (Access = protected, Abstract)
+      qValue        
+    end
+    
     properties (Access = protected)
       volume  
       print     
       my 
       fileName   
-      prefixName            
+      prefixName         
+      qNorm     
     end
-    
     
     properties (Access = private)      
       inclutionRatio
-      qNorm            
     end
     
     methods (Access = public, Static)
@@ -72,13 +75,20 @@ classdef VademecumComputerForGivenVolume < handle
             d.freeFemSettings.qNorm = obj.qNorm;
         end
         
-
-        
         function obtainPrefixName(obj)
-            volumeStr = strrep(num2str(obj.volume),'.','');
-            txiStr = strrep(num2str(obj.inclutionRatio),'.','');                                    
-            obj.prefixName = ['CaseOfStudy','Rho',volumeStr,'Txi',txiStr,'QInf'];            
+            volumeStr = obj.num2strIncludingDots(obj.volume);
+            txiStr    = obj.num2strIncludingDots(obj.inclutionRatio);
+            qStr      = obj.num2strIncludingDots(obj.qValue);              
+            obj.prefixName = ['CaseOfStudy','Rho',volumeStr,'Txi',txiStr,'Q',qStr];            
         end                        
+        
+    end
+    
+    methods (Access = private, Static)
+
+        function str = num2strIncludingDots(num)
+            str = strrep(num2str(num),'.','');  
+        end        
         
     end
     

@@ -5,7 +5,7 @@ classdef VademecumVariablesComputer < handle
     end
     
     properties (Access = protected)
-       amplificatorInput         
+        amplificatorInput
     end
     
     properties (Access = private)
@@ -23,15 +23,15 @@ classdef VademecumVariablesComputer < handle
     end
     
     methods (Access = protected)
-           
+        
         function init(obj,d)
             obj.fileName   = d.fileName;
-        end 
+        end
         
         function createAmplificatorInput(obj)
             obj.obtainIntegrationVariables();
             obj.obtainCellVariables();
-        end        
+        end
         
     end
     
@@ -58,7 +58,7 @@ classdef VademecumVariablesComputer < handle
         function specifySamplingCase(obj,imx,imy)
             sD = obj.vademecumData.variables{imx,imy};
             obj.samplingData = sD;
-        end        
+        end
         
         function d = obtainIntegrationVariables(obj)
             intData   = obj.samplingData.integrationVar;
@@ -79,7 +79,7 @@ classdef VademecumVariablesComputer < handle
     end
     
     methods (Access = protected, Abstract)
-        computeAmplificators(obj)        
+        computeAmplificators(obj)
     end
     
 end

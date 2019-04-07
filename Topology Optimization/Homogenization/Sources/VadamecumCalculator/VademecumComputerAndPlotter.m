@@ -79,7 +79,7 @@ classdef VademecumComputerAndPlotter < handle
         function printData(obj)
             d.outPutPath = [obj.outPutPath,obj.fileName];
             d.Ctensor  = obj.vademecumData.C;
-            d.Ptensor  = obj.vademecumData.invP;
+            d.Ptensor  = obj.vademecumData.Ptensor;
             d.volume   = obj.vademecumData.volume;
             p = VademecumDataPrinter(d);
             p.print();
