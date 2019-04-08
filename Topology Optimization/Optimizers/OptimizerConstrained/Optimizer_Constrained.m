@@ -21,7 +21,7 @@ classdef Optimizer_Constrained < Optimizer
     methods (Access = public)
         
         function obj = Optimizer_Constrained(settings)
-            set = settings.settings;
+            set = settings.settings.settings;
             designVar = settings.designVariable;
             obj@Optimizer(set);
             obj.init(set,designVar);

@@ -8,12 +8,12 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 % run('TopOptTests.m');
 % run('UnfittedIntegrationTests.m')
 % run('ExploringSettingsTests.m')
-run('AllTests.m')
+% run('AllTests.m')
 clear variables;
 
 %% Main
 filenames={
-%     'CantileverTriangleCoarse_Case_1_1_1'
+    'CantileverTriangleCoarse_Case_1_1_1'
     % 'CantileverTriangle_Case_1_1_1'
 %     'ImprovedBridgeSYM_Case_5_1_4'     
 %     'ThroneTetrahedraSYM_Case_1_1_5'

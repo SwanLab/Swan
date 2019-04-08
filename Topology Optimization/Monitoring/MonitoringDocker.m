@@ -12,10 +12,10 @@ classdef MonitoringDocker < handle
     
     methods (Access = public)
         
-        function obj = MonitoringDocker(settings)
-            obj.shallDisplayParams    = settings.showOptParams;
-            obj.shallDisplayDesignVar = settings.plotting;
-            obj.createMonitors(settings.settings,settings.designVar);
+        function obj = MonitoringDocker(cParams)
+            obj.shallDisplayParams    = cParams.showOptParams;
+            obj.shallDisplayDesignVar = cParams.plotting;
+            obj.createMonitors(cParams.settings,cParams.designVar);
         end
         
         function refresh(obj,x,it,cost,constraint,convVars,hasFinished,istep,nstep)
