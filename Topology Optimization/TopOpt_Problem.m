@@ -4,7 +4,6 @@ classdef TopOpt_Problem < handle
         cost
         constraint
         designVariable
-        x
         algorithm
         optimizer
         mesh
@@ -35,8 +34,6 @@ classdef TopOpt_Problem < handle
             obj.cost = Cost(settings,settings.weights);
             obj.constraint = Constraint(settings);
             obj.createVideoManager(settings);
-
-
         end
         
         function createOptimizerSettings(obj,settings)
@@ -90,7 +87,6 @@ classdef TopOpt_Problem < handle
         function preProcess(obj)
             obj.cost.preProcess();
             obj.constraint.preProcess();
-            obj.x = obj.designVariable.value;
         end
         
         function computeVariables(obj)
@@ -152,7 +148,6 @@ classdef TopOpt_Problem < handle
             iStep = obj.incrementalScheme.iStep;
             nSteps = obj.incrementalScheme.nSteps;
             obj.designVariable = obj.optimizer.solveProblem(obj.designVariable,obj.cost,obj.constraint,iStep,nSteps);
-            obj.x = obj.designVariable.value;
         end
         
         function linkTargetParams(obj)
