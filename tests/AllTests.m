@@ -4,6 +4,6 @@ TopOptTests;
 PrintingTests;
 ReadingFilesTests;
 PlottingTests;
-% HomogenizationTests;
-%AmplificatorTests;
+HomogenizationTests;
+AmplificatorTests;
 

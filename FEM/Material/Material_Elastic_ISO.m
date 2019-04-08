@@ -13,20 +13,10 @@ classdef Material_Elastic_ISO < Material_Elastic
     methods (Access = protected)
         function obj = Material_Elastic_ISO(nelem)
             obj@Material_Elastic(nelem);
-            
-            
-             obj.kappa  = .9107;
-             obj.mu     = .3446;
-            
+
+            obj.kappa  = 1;.9107;
+            obj.mu     = 0.5;.3446;            
             obj.lambda = obj.kappa-obj.mu;
-%             obj.nelem = nelem;
-            %             epoiss = 0.3;
-            %             eyoung = 1.0;
-            %             obj.mu = eyoung/(3*(1-2*epoiss));
-            %             obj.kappa = eyoung/(2*(1+epoiss));
-            %             obj.kappa  = .9107;
-            %             obj.mu     = .3446;
-            %             obj.lambda = obj.kappa-obj.mu;
             obj = obj.computeC;
         end
     end

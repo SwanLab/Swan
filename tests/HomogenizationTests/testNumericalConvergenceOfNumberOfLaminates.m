@@ -59,8 +59,9 @@ classdef testNumericalConvergenceOfNumberOfLaminates < testShowingError
         function computeHomogenization(obj,LoF)
            d = obj.computeNumericalHomogenizerDataBase(LoF);
            homog = NumericalHomogenizer(d);
+           homog.compute();
            obj.Ch = obj.rotateCh(homog);
-           obj.Volume = homog.volume();            
+           obj.Volume = homog.cellVariables.volume;            
         end
         
         function d = computeNumericalHomogenizerDataBase(obj,LoF)
@@ -74,7 +75,7 @@ classdef testNumericalConvergenceOfNumberOfLaminates < testShowingError
         function C = rotateCh(obj,homog)
            dir   = obj.fiberDirection;           
            r = ChRotatorForFiberHomogenizer();
-           C = r.rotate(dir,homog.Ch());                  
+           C = r.rotate(dir,homog.cellVariables.Ch());                  
         end
 
         function computeChNorm(obj)

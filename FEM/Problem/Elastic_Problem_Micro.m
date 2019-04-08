@@ -3,7 +3,7 @@ classdef Elastic_Problem_Micro < Elastic_Problem
     %   Detailed explanation goes here
     
     % Public GetAccess properties definition =============================
-    properties (GetAccess = public, SetAccess = private)
+    properties (GetAccess = public, SetAccess = public)
         variables2printStressBasis
         variables2print
     end
