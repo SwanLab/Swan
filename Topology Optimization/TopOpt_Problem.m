@@ -1,12 +1,11 @@
 classdef TopOpt_Problem < handle
     
     properties (GetAccess = public, SetAccess = public)
+        designVariable
         cost
         constraint
-        designVariable
-        algorithm
         optimizer
-        mesh
+        algorithm
         incrementalScheme   
         optimizerSettings
     end
@@ -26,7 +25,7 @@ classdef TopOpt_Problem < handle
         function obj = TopOpt_Problem(settings)
             obj.createDesignVariable(settings);
             
-            settings.pdim = obj.mesh.pdim;
+            settings.pdim = obj.designVariable.meshGiD.pdim;
             
             obj.createIncrementalScheme(settings);
             obj.createOptimizerSettings(settings); 
@@ -114,9 +113,9 @@ classdef TopOpt_Problem < handle
         end
         
         function createDesignVariable(obj,settings)
-            obj.mesh = Mesh_GiD(settings.filename);
-            designVarSettings.mesh = obj.mesh;
-            designVarInitializer = DesignVariableCreator(settings,obj.mesh);
+            mesh = Mesh_GiD(settings.filename);
+            designVarSettings.mesh = mesh;
+            designVarInitializer = DesignVariableCreator(settings,mesh);
             designVarSettings.value = designVarInitializer.getValue();
             designVarSettings.optimizer = settings.optimizer;
             obj.designVariable = DesignVariableFactory().create(designVarSettings);
@@ -139,7 +138,7 @@ classdef TopOpt_Problem < handle
             settingsIncrementalScheme.nSteps = settings.nsteps;
             settingsIncrementalScheme.shallPrintIncremental = settings.printIncrementalIter;
             
-            settingsIncrementalScheme.mesh = obj.mesh;
+            settingsIncrementalScheme.mesh = obj.designVariable.meshGiD;
             
             obj.incrementalScheme = IncrementalScheme(settingsIncrementalScheme);
         end
@@ -158,9 +157,9 @@ classdef TopOpt_Problem < handle
        
         function createVideoManager(obj,settings)
             if settings.printing
-                obj.videoManager = VideoManager(settings,obj.designVariable.type,obj.mesh.pdim);
+                obj.videoManager = VideoManager(settings,obj.designVariable);
             else
-                obj.videoManager = VideoManager_Null(settings,obj.designVariable.type,obj.mesh.pdim);
+                obj.videoManager = VideoManager_Null(settings,obj.designVariable);
             end
         end
         
