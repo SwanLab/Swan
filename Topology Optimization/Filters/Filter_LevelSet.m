@@ -12,6 +12,7 @@ classdef Filter_LevelSet < Filter
     methods (Access = public)
         
         function obj = Filter_LevelSet(cParams)
+            obj@ Filter(cParams);
             obj.domainType = cParams.domainType;
         end
         

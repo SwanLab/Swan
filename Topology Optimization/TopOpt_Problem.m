@@ -30,8 +30,8 @@ classdef TopOpt_Problem < handle
             obj.createIncrementalScheme(settings);
             obj.createOptimizerSettings(settings); 
             obj.optimizer = OptimizerFactory.create(obj.optimizerSettings);
-            obj.cost = Cost(settings,settings.weights);
-            obj.constraint = Constraint(settings);
+            obj.cost = Cost(settings,settings.weights,obj.designVariable);
+            obj.constraint = Constraint(settings,obj.designVariable);
             obj.createVideoManager(settings);
         end
         

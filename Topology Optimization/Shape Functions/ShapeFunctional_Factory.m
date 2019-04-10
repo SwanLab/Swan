@@ -1,29 +1,33 @@
 classdef ShapeFunctional_Factory
+    
     methods (Static, Access = public)
-        function shapeFunction = create(type,settings)
-            
-            if ~isempty(settings.shFuncParamsName)
-                new_settings=SettingsShapeFunctional(settings.shFuncParamsName);
-            else
-                filterParams=SettingsFilter();
-                filterParams.optimizer=settings.optimizer;
-                filterParams.filter=settings.filter;
-                
-                materialInterpolationParams = SettingsInterpolation();
-                materialInterpolationParams.interpolation=settings.method;
-                materialInterpolationParams.dim=settings.pdim;
-                materialInterpolationParams.typeOfMaterial=settings.material;
-                materialInterpolationParams.constitutiveProperties=settings.TOL;
-                
-                d=SettingsShapeFunctional(filterParams,materialInterpolationParams);
-                
-                d.filename=settings.filename;
-                d.domainType=settings.ptype;
-
-                new_settings=d;
-            end
-            
         
+        function shapeFunction = create(type,settings,designVar)
+            
+            %             if ~isempty(settings.shFuncParamsName)
+            %                 new_settings=SettingsShapeFunctional(settings.shFuncParamsName);
+            %             else
+            filterParams = SettingsFilter();
+            filterParams.filterType = settings.filter;
+            filterParams.designVar = designVar;
+            
+            materialInterpolationParams = SettingsInterpolation();
+            materialInterpolationParams.interpolation=settings.method;
+            materialInterpolationParams.dim=settings.pdim;
+            materialInterpolationParams.typeOfMaterial=settings.material;
+            materialInterpolationParams.constitutiveProperties=settings.TOL;
+            
+            d = SettingsShapeFunctional();
+            
+            d.filterParams = filterParams;
+            d.materialInterpolationParams = materialInterpolationParams;
+            d.filename = settings.filename;
+            d.domainType = settings.ptype;
+            
+            new_settings=d;
+            %             end
+            
+            
             switch type
                 case 'compliance'
                     shapeFunction = ShFunc_Compliance(new_settings);
@@ -33,8 +37,8 @@ classdef ShapeFunctional_Factory
                     d=SettingsShFunc_PerimeterConstraint();
                     d.filename=settings.filename;
                     d.domainType=settings.ptype;
-                    d.filterParams.optimizer=settings.optimizer;
-                    d.filterParams.filter=settings.filter;
+                    d.filterParams.filterType=settings.filter;
+                    d.filterParams.designVar = designVar;
                     d.materialInterpolationParams.interpolation=settings.method;
                     d.materialInterpolationParams.dim=settings.pdim;
                     d.materialInterpolationParams.typeOfMaterial=settings.material;
@@ -45,8 +49,8 @@ classdef ShapeFunctional_Factory
                     d=SettingsShFunc_Chomog();
                     d.filename=settings.filename;
                     d.domainType=settings.ptype;
-                    d.filterParams.optimizer=settings.optimizer;
-                    d.filterParams.filter=settings.filter;
+                    d.filterParams.filterType=settings.filter;
+                    d.filterParams.designVar = designVar;
                     d.materialInterpolationParams.interpolation=settings.method;
                     d.materialInterpolationParams.dim=settings.pdim;
                     d.materialInterpolationParams.typeOfMaterial=settings.material;
@@ -59,8 +63,8 @@ classdef ShapeFunctional_Factory
                     d=SettingsShFunc_Chomog();
                     d.filename=settings.filename;
                     d.domainType=settings.ptype;
-                    d.filterParams.optimizer=settings.optimizer;
-                    d.filterParams.filter=settings.filter;
+                    d.filterParams.filterType=settings.filter;
+                    d.filterParams.designVar = designVar;
                     d.materialInterpolationParams.interpolation=settings.method;
                     d.materialInterpolationParams.dim=settings.pdim;
                     d.materialInterpolationParams.typeOfMaterial=settings.material;
@@ -97,6 +101,8 @@ classdef ShapeFunctional_Factory
                     error('Wrong cost name or not added to Cost Object')
             end
         end
+        
     end
+    
 end
 

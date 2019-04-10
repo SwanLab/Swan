@@ -1,8 +1,7 @@
 classdef DOF_DiffReact < DOF
-    %DOF_DiffReact Summary of this class goes here
-    %   Detailed explanation goes here    
     
-    methods
+    methods (Access = public)
+        
         function obj = DOF_DiffReact(geometry) % Replace mesh for pdim
             obj.nunkn = 1;
             obj.dirichlet{1} = [];
@@ -12,6 +11,8 @@ classdef DOF_DiffReact < DOF
             obj.neumann_values  = [];
             obj.computeDOF(geometry);
         end
+        
     end
+    
 end
 

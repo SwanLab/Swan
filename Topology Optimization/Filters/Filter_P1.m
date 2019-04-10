@@ -6,6 +6,10 @@ classdef Filter_P1 < Filter
     
     methods (Access = public)
         
+        function obj = Filter_P1(cParams)
+            obj@ Filter(cParams);
+        end
+        
         function preProcess(obj)
             preProcess@Filter(obj)
         end

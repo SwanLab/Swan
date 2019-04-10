@@ -3,6 +3,7 @@ classdef Filter_P1_LevelSet < Filter_P1 & Filter_LevelSet
     methods (Access = public)
         
         function obj = Filter_P1_LevelSet(cParams)
+            obj@ Filter_P1(cParams);
             obj@ Filter_LevelSet(cParams);
         end
         
