@@ -12,10 +12,7 @@ classdef Line_Linear < Interpolation
         end
         
         function computeShapeDeriv(obj,posgp)
-            obj.shape = [];
-            obj.deriv = [];
             s = posgp;
-            
             obj.shape = [ones(length(posgp),1)-s,s+1]/2;
             obj.deriv = repmat([-0.5,0.5],1,1,length(posgp));
         end

@@ -26,7 +26,7 @@ classdef Material_Elastic_ISO < Material_Elastic
             obj.kappa = props.kappa;
             obj.mu = props.mu;
             obj.lambda = obj.kappa-obj.mu;
-            obj = obj.computeC;
+            obj.computeC;
         end
     end
     
