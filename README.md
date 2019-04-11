@@ -25,12 +25,22 @@ Swan currently supports the resolution of **macro** and **micro**\* scale proble
 
 <sub>*Note: 3D micro scale problems are not available yet. </sub>
 
-Swan's modular design allows to combine several functions to define different optimization problems. Each function can be used as a cost or a constriant in the optimization problem.  The functions that are currently implemented are:
+Material properties for non-binary topologies can be determined by the following implemented inteporlation schemes:
+- SIMP
+- SIMP-ALL
+
+
+
+Swan's modular design allows to combine several functions to define different optimization problems. Each function can be used as a cost or a constraint in the optimization problem.  The functions that are currently implemented are:
 - Compliance
 - Volume
 - Perimeter
 - Non-self adjoint compliance (used to minimize/maximize displacements)
 - Homogenized elasticity matrix (used in micro scale problems)
+
+In terms of optimization techniques the following optimizers are implemented:
+ - Density: Projected Gradient, MMA and IPOPT. 
+ - Level-set: SLERP, Projected SLERP and Hamilton-Jacobi
 
 
 ## Contact ##
@@ -40,3 +50,15 @@ For any inquiries, please contact us by opening an issue.
 Current active developers are: Àlex Ferrer (@FerrerFerreAlex), Marc Núñez (@marcnunezc) and Oriol Trujillo (@Trujillo94)
 
 Previous developers are acknowledged: Ferran De la Fuente, Nacho Izquierdo Pérez, Raül Rubio Serrano, Albert Torres Rubio
+
+## References 
+PENDING (if needed): reference to MMA, IPOPT, P. SLERP, HJ
+
+Bendsøe, M.P. Structural Optimization (1989) 1: 193. https://doi.org/10.1007/BF0165094
+
+S. Amstutz, C. Dapogny, and A. Ferrer, *SIMP-ALL: a generalized SIMP method based
+on topological and shape derivatives.* WCSMO12, 2017.
+
+S. Amstutz and H. Andra, *A new algorithm for topology optimization using a level-set
+method,* 2066.
+
