@@ -6,7 +6,7 @@
 *"It is not enough for code to work."
 ― Robert C. Martin*
 
-_Swan_ is a Topology Optimization software developed in Matlab. Currently, it supports the resoultion of 2D and 3D topology opitmization problems with density or level-set as design variables.
+_Swan_ is a Topology Optimization software developed in Matlab. Currently, it supports the resolution of 2D and 3D topology optimization problems with density or level-set as design variables.
 Swan aims to offer an adaptable framework that allows to implement new optimization techniques or functionalities fastly, thanks to its modular design.  
 
 
