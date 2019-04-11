@@ -26,7 +26,9 @@ classdef ConstitutiveTensorFromVademecum < handle
             for i = 1:nstre
                 for j = 1:nstre
                     cv = squeeze(obj.CtensorValues(i,j,:,:));
-                    C(i,j,:) = interp2(xG,yG,cv,x(:,1),x(:,2));
+                    c  = interp2(xG,yG,cv,x(:,1),x(:,2));
+                    c2 = obj.interpolate(xG,yG,cv,x(:,1),x(:,2));                    
+                    C(i,j,:) = c;
                 end
             end
         end
@@ -84,6 +86,14 @@ classdef ConstitutiveTensorFromVademecum < handle
                 end
             end
             obj.CtensorValues = C;            
+        end
+        
+        function z = interpolate(obj,xG,yG,zG,x,y)
+            s.xG = xG;
+            s.yG = yG;
+            s.zG = zG;
+            int = Interpolator(s);
+            z = int.interpolate(x,y);
         end
         
     end

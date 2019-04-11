@@ -34,7 +34,10 @@ classdef testMaterialInsertingLpBall < testShowingError
     methods (Access = private)
         
         function computeConstitutiveFromVademecum(obj)
-            designVar = rand(1000,2);
+            a = 0.01;
+            b = 0.99;
+            designVar = (b-a).*rand(5,2) + a;
+
             
             s = SettingsConstitutiveTensorFromVademecum();
             s.fileName = 'VademecumSmoothCorner';
