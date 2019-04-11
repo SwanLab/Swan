@@ -25,7 +25,7 @@ Swan currently supports the resolution of **macro** and **micro**\* scale proble
 
 <sub>*Note: 3D micro scale problems are not available yet. </sub>
 
-Material properties for non-binary topologies can be determined by the following implemented inteporlation schemes:
+Intermediate material properties are determined by the following implemented interpolation schemes:
 - SIMP
 - SIMP-ALL
 
