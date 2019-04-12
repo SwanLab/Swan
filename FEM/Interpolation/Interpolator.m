@@ -55,13 +55,13 @@ classdef Interpolator < handle
         end
                 
         function obtainInterpolationValues(obj)
-            shapesDeriv = obj.interpolation.deriv;            
-            obj.zInterp = obj.sumNodesContribution(shapesDeriv);
+            shapes = obj.interpolation.shape;            
+            obj.zInterp = obj.sumNodesContribution(shapes);
         end
         
         function obtainInterpolationDerivativesValues(obj)
-            shapes = obj.interpolation.shapeDer;            
-            obj.zInterpDer = obj.sumNodesContribution(shapes);
+            shapeDeriv = obj.interpolation.deriv;            
+            obj.zInterpDer = obj.sumNodesContribution(shapeDeriv);
         end
         
         function v = sumNodesContribution(obj,shapes)
