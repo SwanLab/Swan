@@ -27,7 +27,7 @@ classdef Interpolator < handle
         function z = interpolate(obj,z)
             obj.zGrid  = z;                 
             obj.obtainInterpolationValues();
-            obj.obtainInterpolationDerivativesValues();
+            %obj.obtainInterpolationDerivativesValues();
             z = obj.zInterp;
         end
         
