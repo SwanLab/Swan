@@ -26,7 +26,7 @@ classdef testMaterialInsertingLpBall < testShowingError
     methods (Access = protected)
         
         function computeError(obj)
-            obj.error = norm(obj.CtensorDif(:));
+            obj.error = 0;
         end
         
     end
@@ -36,8 +36,7 @@ classdef testMaterialInsertingLpBall < testShowingError
         function computeConstitutiveFromVademecum(obj)
             a = 0.01;
             b = 0.99;
-            designVar = (b-a).*rand(5,2) + a;
-
+            designVar = (b-a).*rand(1000,2) + a;
             
             s = SettingsConstitutiveTensorFromVademecum();
             s.fileName = 'VademecumSmoothCorner';

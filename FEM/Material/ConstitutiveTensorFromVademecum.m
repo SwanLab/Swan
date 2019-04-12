@@ -4,8 +4,8 @@ classdef ConstitutiveTensorFromVademecum < handle
         fileName
         loadVariables
         domain
-        mesh
         CtensorValues
+        interpolator
     end
     
     methods (Access = public)
@@ -13,32 +13,30 @@ classdef ConstitutiveTensorFromVademecum < handle
         function obj = ConstitutiveTensorFromVademecum(cParams)
             obj.init(cParams);
             obj.loadVademecumVariables();
-            obj.obtainVademecumDomain();
-            obj.createMesh();
-            obj.obtainConstitutiveTensorValues()
+            obj.obtainVademecumDomain();            
+            obj.obtainConstitutiveTensorValues();
+            obj.createInterpolator();
         end
         
         function C = computeCtensor(obj,x)
-            nstre = size(obj.CtensorValues,1);
-            xG = obj.mesh.xG;
-            yG = obj.mesh.yG;
+            obj.interpolator.setValues(x(:,1),x(:,2));            
+            nstre = size(obj.CtensorValues,1);            
             C = zeros(nstre,nstre,size(x,1));
             for i = 1:nstre
                 for j = 1:nstre
                     cv = squeeze(obj.CtensorValues(i,j,:,:));
-                    c  = interp2(xG,yG,cv,x(:,1),x(:,2));
-                    c2 = obj.interpolate(xG,yG,cv,x(:,1),x(:,2));                    
+                    c = obj.interpolate(cv);
                     C(i,j,:) = c;
                 end
             end
         end
-            
+        
     end
     
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.fileName = cParams.fileName;
+            obj.fileName = cParams.fileName;            
         end
         
         function loadVademecumVariables(obj)
@@ -53,31 +51,6 @@ classdef ConstitutiveTensorFromVademecum < handle
             obj.domain.myV = obj.loadVariables.domVariables.myV;
         end
         
-        function createMesh(obj)
-            obj.createMeshGrid()
-            obj.createCoordinates();
-            obj.createConnectivities();
-        end
-        
-        function createMeshGrid(obj)
-          [xG,yG] = meshgrid(obj.domain.mxV,obj.domain.myV);
-          obj.mesh.xG = xG;
-          obj.mesh.yG = yG;
-        end
-        
-        function createCoordinates(obj)
-            x = reshape(obj.mesh.xG',1,[])';
-            y = reshape(obj.mesh.yG',1,[])';             
-            obj.mesh.coord(:,1) = x;
-            obj.mesh.coord(:,2) = y;
-        end
-        
-        function createConnectivities(obj)
-            x = obj.mesh.coord(:,1);
-            y = obj.mesh.coord(:,2);            
-            obj.mesh.connec = delaunay(x,y);                            
-        end
-        
         function obtainConstitutiveTensorValues(obj)
             var = obj.loadVariables.variables;
             for imx = 1:length(obj.domain.mxV)
@@ -85,15 +58,18 @@ classdef ConstitutiveTensorFromVademecum < handle
                     C(:,:,imx,imy) = var{imx,imy}.Ctensor;
                 end
             end
-            obj.CtensorValues = C;            
+            obj.CtensorValues = C;
         end
         
-        function z = interpolate(obj,xG,yG,zG,x,y)
-            s.xG = xG;
-            s.yG = yG;
-            s.zG = zG;
-            int = Interpolator(s);
-            z = int.interpolate(x,y);
+        function z = interpolate(obj,zG)            
+            z = obj.interpolator.interpolate(zG);
+        end
+        
+        function createInterpolator(obj)
+            sM.x = obj.domain.mxV;
+            sM.y = obj.domain.myV;            
+            sI.mesh = StructuredMesh(sM);    
+            obj.interpolator = Interpolator(sI);            
         end
         
     end
