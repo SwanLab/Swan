@@ -6,7 +6,7 @@ classdef Interpolator < handle
        cellFinder
        zGrid
        zInterp
-       zInterpDer       
+       zInterpDeriv       
     end    
     
     methods (Access = public)
@@ -24,15 +24,12 @@ classdef Interpolator < handle
             obj.evaluateShapeFunctions();
         end
         
-        function z = interpolate(obj,z)
+        function [z,dz] = interpolate(obj,z)
             obj.zGrid  = z;                 
             obj.obtainInterpolationValues();
-            %obj.obtainInterpolationDerivativesValues();
+            obj.obtainInterpolationDerivativesValues();
             z = obj.zInterp;
-        end
-        
-        function z = interpolateDerivative(obj,z)
-            
+            dz = obj.zInterpDeriv;
         end
         
     end
@@ -55,25 +52,31 @@ classdef Interpolator < handle
         end
                 
         function obtainInterpolationValues(obj)
-            shapes = obj.interpolation.shape;            
-            obj.zInterp = obj.sumNodesContribution(shapes);
-        end
-        
-        function obtainInterpolationDerivativesValues(obj)
-            shapeDeriv = obj.interpolation.deriv;            
-            obj.zInterpDer = obj.sumNodesContribution(shapeDeriv);
-        end
-        
-        function v = sumNodesContribution(obj,shapes)
+            shapes = obj.interpolation.shape;        
             z(:,1) = reshape(obj.zGrid',[],1);
             v      = zeros(size(shapes,2),1);
             for inode = 1:size(shapes,1)
                 nodes = obj.cellFinder.cells(:,inode);
                 znode = z(nodes);
                 v(:,1) = v(:,1) + znode.*shapes(inode,:)';
-            end
+            end            
+            obj.zInterp = v;
         end
         
+        function obtainInterpolationDerivativesValues(obj)
+            shapeDeriv = obj.interpolation.deriv;            
+            z(:,1) = reshape(obj.zGrid',[],1);
+            v      = zeros(size(shapeDeriv,3),size(shapeDeriv,1));
+            for inode = 1:size(shapeDeriv,2)
+                nodes = obj.cellFinder.cells(:,inode);
+                znode = z(nodes);
+                sh = squeeze(shapeDeriv(:,inode,:));
+                v = v + bsxfun(@(x,y) x.*y,znode,sh');
+            end            
+            obj.zInterpDeriv = v;
+        end
+        
+
     end
     
     
