@@ -21,11 +21,12 @@ classdef DiffReact_Problem < FEM
         
         function setupFromMesh(obj,mesh)
             obj.mesh = mesh; % Mesh defined twice, but almost free
+            obj.problemID = mesh.problemID;
         end
         
         function preProcess(obj)
             obj.createGeometry(obj.mesh);
-            obj.setDOFs;
+            obj.setDOFs();
             % !! Material required?? !!
             obj.setElement;
             obj.solver = Solver.create;

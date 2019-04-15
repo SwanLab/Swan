@@ -7,6 +7,10 @@ classdef Filter_PDE < Filter
     
     methods (Access = public)
         
+        function obj = Filter_PDE(cParams)
+            obj@ Filter(cParams);
+        end
+        
         function preProcess(obj)
             preProcess@Filter(obj);
             obj.dvolu = sparse(1:obj.diffReacProb.geometry.interpolation.nelem,1:obj.diffReacProb.geometry.interpolation.nelem,...

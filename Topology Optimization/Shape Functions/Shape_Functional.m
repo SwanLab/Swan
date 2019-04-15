@@ -3,6 +3,7 @@ classdef Shape_Functional < handle
     properties
         value
         gradient
+        designVar
         target_parameters=struct;
         filter
         Msmooth
@@ -21,7 +22,6 @@ classdef Shape_Functional < handle
         
         function init(obj,cParams)
             obj.createFilter(cParams.filterParams);
-            obj.filter.setupFromGiDFile(cParams.filename,cParams.domainType); 
             obj.createMsmoothAndDvolu(cParams.filename, cParams.domainType);
         end
         
@@ -35,8 +35,7 @@ classdef Shape_Functional < handle
     methods (Access = private)
         
         function createFilter(obj,s)
-            filterSettings = SettingsFilterFactory(s.filter,s.optimizer);
-            obj.filter = FilterFactory().create(filterSettings);
+            obj.filter = FilterFactory().create(s);
         end
         
         function createMsmoothAndDvolu(obj,fileName,scale)

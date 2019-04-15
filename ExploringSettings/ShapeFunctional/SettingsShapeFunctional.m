@@ -14,13 +14,8 @@ classdef SettingsShapeFunctional < AbstractSettings
      methods (Access = public)
         
         function obj = SettingsShapeFunctional(varargin)
-            switch nargin
-                case 1
+            if nargin == 1
                     obj.loadParams(varargin{1});
-                case 2
-                    obj.filterParams = varargin{1};
-                    obj.materialInterpolationParams = varargin{2};
-
             end
         end        
      end

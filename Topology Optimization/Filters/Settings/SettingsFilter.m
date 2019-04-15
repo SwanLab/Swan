@@ -5,20 +5,17 @@ classdef SettingsFilter < AbstractSettings
     end
     
     properties (Access = public)
-        filename
-        mesh
-        scale
+        filterType 
+        domainType
+        designVar
     end
     
     methods (Access = public)
-        
         function obj = SettingsFilter(varargin)
-            switch nargin
-                case 1
+            if nargin == 1
                     obj.loadParams(varargin{1});
             end
         end
-        
     end
     
 end

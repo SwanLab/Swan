@@ -5,5 +5,4 @@ PrintingTests;
 ReadingFilesTests;
 PlottingTests;
 HomogenizationTests;
-AmplificatorTests;
-
+%AmplificatorTests;

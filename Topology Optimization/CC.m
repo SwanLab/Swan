@@ -1,4 +1,5 @@
 classdef CC < handle
+    
     properties (Access = public)
         value
         gradient
@@ -10,12 +11,18 @@ classdef CC < handle
         nSF = 0
     end
     
-    % !! AN INDIVIDUAL FILTER TYPE COULD BE DEFINED FOR EACH SF !!
-    % settings_this.filter = settings.filter{iSF};
+    properties (Access = private)
+        designVar
+    end
+    
+    methods (Access = public, Abstract)
+        updateFields(obj)
+    end
     
     methods (Access = public)
-        function obj = CC(settings,SF_list)
-            obj.target_parameters = settings.target_parameters;
+        
+        function obj = CC(settings,SF_list,designVar)
+            obj.designVar = designVar;
             obj.createShapeFunctions(SF_list,settings);
         end
         
@@ -34,13 +41,15 @@ classdef CC < handle
                 obj.updateFields(iSF);
             end
         end
+        
     end
     
     methods (Access = private)
+        
         function createShapeFunctions(obj,SF_list,settings)
-            shFunc_factory = ShapeFunctional_Factory;
+            shapeFactory = ShapeFunctional_Factory();
             for iSF = 1:length(SF_list)
-                newShapeFunction = shFunc_factory.create(SF_list{iSF},settings);
+                newShapeFunction = shapeFactory.create(SF_list{iSF},settings,obj.designVar);
                 obj.append(newShapeFunction);
             end
         end
@@ -56,5 +65,7 @@ classdef CC < handle
                 obj.ShapeFuncs{iSF}.filter.updateEpsilon(obj.target_parameters.epsilon);
             end
         end
+        
     end
+    
 end

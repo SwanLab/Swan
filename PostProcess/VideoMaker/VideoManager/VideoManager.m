@@ -9,8 +9,8 @@ classdef VideoManager < handle
     
     methods (Access = public)
         
-        function obj = VideoManager(settings,designVarType,pdim)
-            obj.createVideoMaker(settings,designVarType,pdim);
+        function obj = VideoManager(settings,designVar)
+            obj.createVideoMaker(settings,designVar);
             obj.gidPath = 'C:\Program Files\GiD\GiD 13.0.4';% 'C:\Program Files\GiD\GiD 13.0.3';
             obj.fileName = settings.case_file;
             obj.filePath = fullfile(pwd,'Output',settings.case_file);
@@ -29,8 +29,10 @@ classdef VideoManager < handle
     
     methods (Access = private)
         
-        function createVideoMaker(obj,settings,designVarType,pdim)
-            obj.videoMaker = VideoMakerTopOptFactory().create(settings.case_file,designVarType,pdim);
+        function createVideoMaker(obj,settings,designVar)
+            type = designVar.type;
+            pdim = designVar.meshGiD.pdim;
+            obj.videoMaker = VideoMakerTopOptFactory().create(settings.case_file,type,pdim);
         end
         
     end

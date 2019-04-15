@@ -1,0 +1,2 @@
+filterType = 'PDE';
+domainType = 'BOUNDARY';

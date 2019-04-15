@@ -1,14 +1,11 @@
 classdef TopOpt_Problem < handle
     
     properties (GetAccess = public, SetAccess = public)
+        designVariable
         cost
         constraint
-        designVariable
-        x
-        algorithm
         optimizer
-        mesh
-        settings
+        algorithm
         incrementalScheme   
         optimizerSettings
     end
@@ -28,17 +25,14 @@ classdef TopOpt_Problem < handle
         function obj = TopOpt_Problem(settings)
             obj.createDesignVariable(settings);
             
-            settings.pdim = obj.mesh.pdim;
-            obj.settings = settings;
+            settings.pdim = obj.designVariable.meshGiD.pdim;
             
             obj.createIncrementalScheme(settings);
             obj.createOptimizerSettings(settings); 
             obj.optimizer = OptimizerFactory.create(obj.optimizerSettings);
-            obj.cost = Cost(settings,settings.weights);
-            obj.constraint = Constraint(settings);
+            obj.cost = Cost(settings,settings.weights,obj.designVariable);
+            obj.constraint = Constraint(settings,obj.designVariable);
             obj.createVideoManager(settings);
-
-
         end
         
         function createOptimizerSettings(obj,settings)
@@ -53,7 +47,7 @@ classdef TopOpt_Problem < handle
             scS.filename        = settings.filename;
             scS.epsilon         = obj.incrementalScheme.targetParams.epsilon;
             
-            uncOptimizerSettings = SettingsOptimizerUnconstrained;
+            uncOptimizerSettings = SettingsOptimizerUnconstrained();
             
             uncOptimizerSettings.nconstr               = settings.nconstr;
             uncOptimizerSettings.target_parameters     = settings.target_parameters;
@@ -81,6 +75,8 @@ classdef TopOpt_Problem < handle
             optSet.pdim                 = settings.pdim;
             optSet.showBC               = settings.showBC;   
             
+            optSet.settings = settings;
+            
             
             optSet.designVar = obj.designVariable;
             obj.optimizerSettings = optSet;
@@ -90,12 +86,9 @@ classdef TopOpt_Problem < handle
         function preProcess(obj)
             obj.cost.preProcess();
             obj.constraint.preProcess();
-            obj.x = obj.designVariable.value;
         end
         
         function computeVariables(obj)
-
-            
             obj.linkTargetParams();
             while obj.incrementalScheme.hasNext()             
                 obj.incrementalScheme.next();
@@ -103,12 +96,8 @@ classdef TopOpt_Problem < handle
             end
         end
         
-        
         function postProcess(obj)
-            % Video creation
-            if obj.settings.printing
-                obj.videoManager.makeVideo(obj.optimizer.niter);
-            end
+            obj.videoManager.makeVideo(obj.optimizer.niter);
         end
         
     end
@@ -124,9 +113,9 @@ classdef TopOpt_Problem < handle
         end
         
         function createDesignVariable(obj,settings)
-            obj.mesh = Mesh_GiD(settings.filename);
-            designVarSettings.mesh = obj.mesh;
-            designVarInitializer = DesignVariableCreator(settings,obj.mesh);
+            mesh = Mesh_GiD(settings.filename);
+            designVarSettings.mesh = mesh;
+            designVarInitializer = DesignVariableCreator(settings,mesh);
             designVarSettings.value = designVarInitializer.getValue();
             designVarSettings.optimizer = settings.optimizer;
             obj.designVariable = DesignVariableFactory().create(designVarSettings);
@@ -149,15 +138,15 @@ classdef TopOpt_Problem < handle
             settingsIncrementalScheme.nSteps = settings.nsteps;
             settingsIncrementalScheme.shallPrintIncremental = settings.printIncrementalIter;
             
-            settingsIncrementalScheme.mesh = obj.mesh;
+            settingsIncrementalScheme.mesh = obj.designVariable.meshGiD;
             
             obj.incrementalScheme = IncrementalScheme(settingsIncrementalScheme);
         end
         
         function solveCurrentProblem(obj)
-            istep = obj.incrementalScheme.iStep;
-            obj.designVariable = obj.optimizer.solveProblem(obj.designVariable,obj.cost,obj.constraint,istep,obj.settings.nsteps);
-            obj.x = obj.designVariable.value;
+            iStep = obj.incrementalScheme.iStep;
+            nSteps = obj.incrementalScheme.nSteps;
+            obj.designVariable = obj.optimizer.solveProblem(obj.designVariable,obj.cost,obj.constraint,iStep,nSteps);
         end
         
         function linkTargetParams(obj)
@@ -167,7 +156,11 @@ classdef TopOpt_Problem < handle
         end
        
         function createVideoManager(obj,settings)
-            obj.videoManager = VideoManager(settings,obj.designVariable.type,obj.mesh.pdim);
+            if settings.printing
+                obj.videoManager = VideoManager(settings,obj.designVariable);
+            else
+                obj.videoManager = VideoManager_Null(settings,obj.designVariable);
+            end
         end
         
     end
