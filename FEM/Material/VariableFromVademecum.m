@@ -9,9 +9,8 @@ classdef VariableFromVademecum < handle
         vadVariables
         interpolator
         values
-        np
-        indexMx
-        indexMy
+        nPoints
+        nParams
     end    
     
     methods (Access = protected)
@@ -37,17 +36,16 @@ classdef VariableFromVademecum < handle
             end
             obj.values = v;
         end
-        
-        function computeParamsInfo(obj,x)
-            obj.np = length(x)/2;
-            obj.indexMx = 1:obj.np;
-            obj.indexMy = obj.np+1:2*obj.np;
-        end
-        
+              
         function setValuesToInterpolator(obj,x)
-            obj.interpolator.setValues(x(obj.indexMx,1),x(obj.indexMy,1));               
+            obj.interpolator.setValues(x(:,1),x(:,2));               
         end        
         
+        function computeParamsInfo(obj,x)
+           [m,n] = size(x);
+           obj.nPoints = m;
+           obj.nParams = n;
+        end
         
     end
     
