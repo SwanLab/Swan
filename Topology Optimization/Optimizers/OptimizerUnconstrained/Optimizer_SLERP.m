@@ -19,7 +19,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         
         function obj = Optimizer_SLERP(settings)
             obj@Optimizer_Unconstrained(settings);
-            obj.max_constr_change = +Inf;
+            obj.maxIncrNormX = +Inf;
             obj.nconstr = settings.nconstr;
         end
         

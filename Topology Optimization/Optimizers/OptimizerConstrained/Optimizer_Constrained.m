@@ -23,7 +23,12 @@ classdef Optimizer_Constrained < Optimizer
         function obj = Optimizer_Constrained(settings)
             set = settings.settings.settings;
             designVar = settings.designVariable;
-            obj@Optimizer(set);
+            
+            obj.nconstr           = set.nconstr;
+            obj.target_parameters = set.target_parameters;
+            obj.constraint_case   = set.constraint_case;
+            obj.has_converged     = false;
+            
             obj.init(set,designVar);
             
             mS.showOptParams = settings.monitoring;
@@ -44,8 +49,8 @@ classdef Optimizer_Constrained < Optimizer
             obj.monitor.refresh(x_ini,obj.niter,cost,constraint,obj.stop_vars,obj.hasFinished(istep,nstep),istep,nstep);
             
             while ~obj.hasFinished(istep,nstep)
-                obj.niter = obj.niter+1;
-                x = obj.updateX(x_ini,cost,constraint);
+                obj.niter = obj.niter+1;             
+                x = obj.update(x_ini,cost,constraint);
                 obj.monitor.refresh(x,obj.niter,cost,constraint,obj.stop_vars,obj.hasFinished(istep,nstep),istep,nstep);
                 obj.print(x,obj.niter,cost,constraint);
                 obj.writeToFile(istep,cost,constraint)

@@ -8,7 +8,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
     
     properties (Access = private)
         desVarChangedValue
-        costIncrease        
+        costIncrease
     end
     
     methods (Access = public)
@@ -24,7 +24,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.optimizer_unconstr = Optimizer_SLERP(settings.uncOptimizerSettings);
         end
         
-        function x = updateX(obj,x_ini,cost,constraint)
+        function x = update(obj,x_ini,cost,constraint)
             x_ini = obj.compute_initial_value(x_ini,cost,constraint);
             obj.updateObjFunc(cost,constraint);
             cost.computeCostAndGradient(x_ini);
@@ -104,7 +104,6 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
                 lambda = fzero(obj.problem);
                 
                 obj.objfunc.lambda = lambda;
-                constraint.lambda = obj.objfunc.lambda;
                 obj.objfunc.computeGradient(cost,constraint);
                 x = obj.optimizer_unconstr.computeX(x_ini,obj.objfunc.gradient);
                 
@@ -112,7 +111,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
                 obj.objfunc.computeFunction(cost,constraint);
                 
                 incr_norm_L2  = obj.optimizer_unconstr.norm_L2(x,x_ini);
-                incr_cost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
+                incr_cost = obj.objfunc.computeIncrement();
                 
                 
                 obj.desVarChangedValue = incr_norm_L2;
@@ -143,7 +142,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
         
         function itIs = isStepAcceptable(obj)
             costHasDecreased = obj.costIncrease < 0;
-            constraintsHavePartiallyChanged = obj.desVarChangedValue < obj.optimizer_unconstr.max_constr_change;
+            constraintsHavePartiallyChanged = obj.desVarChangedValue < obj.optimizer_unconstr.maxIncrNormX;
             itIs = costHasDecreased  && constraintsHavePartiallyChanged;
         end
         
@@ -151,7 +150,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.optimizer_unconstr.stop_vars(1,1) = obj.costIncrease;
             obj.optimizer_unconstr.stop_vars(1,2) = obj.optimizer_unconstr.theta;
             obj.optimizer_unconstr.stop_vars(2,1) = obj.desVarChangedValue;
-            obj.optimizer_unconstr.stop_vars(2,2) = obj.optimizer_unconstr.max_constr_change;
+            obj.optimizer_unconstr.stop_vars(2,2) = obj.optimizer_unconstr.maxIncrNormX;
             obj.optimizer_unconstr.stop_vars(3,1) = obj.optimizer_unconstr.line_search.kappa;
             obj.optimizer_unconstr.stop_vars(3,2) = obj.optimizer_unconstr.line_search.kappa_min;
         end
@@ -164,7 +163,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.objfunc.computeGradient(cost,constraint);
             x = obj.optimizer_unconstr.computeX(x_ini,obj.objfunc.gradient);
             constraint.computeCostAndGradient(x);
-           % constraint = obj.objfunc.setConstraint_case(constraint,obj.constraint_case);
+            % constraint = obj.objfunc.setConstraint_case(constraint,obj.constraint_case);
             fval = constraint.value;
         end
         
@@ -172,21 +171,25 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.optimizer_unconstr.target_parameters = obj.target_parameters;
             obj.objfunc.lambda = obj.objfunc.lambda;
             constraint.lambda = obj.objfunc.lambda;
-           % constraint =obj.setConstraint_case(constraint);
+            % constraint =obj.setConstraint_case(constraint);
             obj.objfunc.computeFunction(cost,constraint);
             obj.objfunc.computeGradient(cost,constraint);
         end
         
         function initUnconstrOpt(obj,x_ini)
-            obj.optimizer_unconstr.objfunc = obj.objfunc;
-            obj.optimizer_unconstr.objfunc.value_initial = obj.objfunc.value;
-            obj.optimizer_unconstr.line_search.initKappa(x_ini,obj.objfunc.gradient);
-            obj.optimizer_unconstr.has_converged = false;
+            obj.optimizer_unconstr.init(x_ini,obj.objfunc);
         end
         
+        %         function initUnconstrOpt(obj,x_ini)
+        %             obj.optimizer_unconstr.objfunc = obj.objfunc;
+        %             obj.optimizer_unconstr.objfunc.value_initial = obj.objfunc.value;
+        %             obj.optimizer_unconstr.line_search.initKappa(x_ini,obj.objfunc.gradient);
+        %             obj.optimizer_unconstr.has_converged = false;
+        %         end
+        %
         function storeConvergedInfo(obj)
             obj.optimizer_unconstr.stop_vars(1,1) = 0;     obj.optimizer_unconstr.stop_vars(1,2) = obj.optimizer_unconstr.theta;
-            obj.optimizer_unconstr.stop_vars(2,1) = 0;     obj.optimizer_unconstr.stop_vars(2,2) = obj.optimizer_unconstr.max_constr_change;
+            obj.optimizer_unconstr.stop_vars(2,1) = 0;     obj.optimizer_unconstr.stop_vars(2,2) = obj.optimizer_unconstr.maxIncrNormX;
             obj.optimizer_unconstr.stop_vars(3,1) = 1;     obj.optimizer_unconstr.stop_vars(3,2) = obj.optimizer_unconstr.line_search.kappa_min;
             obj.stop_vars = obj.optimizer_unconstr.stop_vars;
         end

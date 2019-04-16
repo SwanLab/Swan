@@ -8,7 +8,7 @@ classdef Optimizer_PG < Optimizer_Unconstrained
         
         function obj = Optimizer_PG(settings)
             obj@Optimizer_Unconstrained(settings);
-            obj.max_constr_change = +Inf;
+            obj.maxIncrNormX = +Inf;
         end
         
         function rho = computeX(obj,design_variable,gradient)

@@ -23,19 +23,20 @@ classdef Optimizer_MMA < Optimizer_Constrained
         fval
         dfdx
     end
+    
     methods
         function obj = Optimizer_MMA(settings)
             ocS.settings        = settings;
             ocS.designVariable  = settings.designVar;
-            ocS.monitoring      = settings.monitoring;
+            ocS.monitoring      = settings.monitoring;    
             
-            obj@Optimizer_Constrained(ocS)%,mesh,settings.monitoring);
+            obj@Optimizer_Constrained(ocS);
             obj.maxoutit = 1e4;
         end
         function kkttol = get.kkttol(obj)
             kkttol = obj.target_parameters.optimality_tol;
         end
-        function x = updateX(obj,x,cost,constraint)
+        function x = update(obj,x,cost,constraint)
             obj.checkInitial(x,cost,constraint);
             obj.outit = obj.outit+1;
             obj.outeriter = obj.outeriter+1;

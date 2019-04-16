@@ -16,7 +16,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             obj@Optimizer_Unconstrained(settings);
             obj.e2 = settings.e2;
             obj.meanCellSize = designVar.mesh.computeMeanCellSize();
-            obj.max_constr_change = +Inf;
+            obj.maxIncrNormX = +Inf;
             %obj.nconstr = settings.nconstr;
             
             obj.setupFilter(settings,settings.scalarProductSettings.epsilon,designVar);

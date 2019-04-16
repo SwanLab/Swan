@@ -1,13 +1,13 @@
 classdef Optimizer_Unconstrained < Optimizer
     
     properties (Access = public)
-        objfunc
+        objectiveFunction
         opt_cond
     end
     
     properties (GetAccess = public, SetAccess = protected)
         designImproved
-        max_constr_change
+        maxIncrNormX
     end
     
     properties (GetAccess = public, SetAccess = private)
@@ -25,48 +25,53 @@ classdef Optimizer_Unconstrained < Optimizer
     
     methods (Access = public)
         
-        function obj = Optimizer_Unconstrained(settings)
+        function obj = Optimizer_Unconstrained(settings)            
+            obj.nconstr           = settings.nconstr;
+            obj.target_parameters = settings.target_parameters;
+            obj.has_converged     = false;            
             
-            opS.nconstr           = settings.nconstr;
-            opS.target_parameters = settings.target_parameters;
-            opS.constraint_case   = settings.constraint_case;
-                       
-            obj@Optimizer(opS);
             obj.line_search    = LineSearch.create(settings.lineSearchSettings);
             obj.scalar_product = ScalarProduct(settings.scalarProductSettings);
         end
         
-        function x = updateX(obj,x_ini,cost,constraint)
-            x = obj.computeX(x_ini,obj.objfunc.gradient);            
-            obj.updateObjectiveFunction(x,cost,constraint);            
-            obj.updateConvergenceParams(x,x_ini);
+        function x = update(obj,x0,objfunc)
+            obj.objectiveFunction = objfunc;
+            x = obj.computeX(x0,obj.objectiveFunction.gradient);
+            obj.objectiveFunction.updateBecauseOfPrimal(x);
+            obj.updateConvergenceParams(x,x0);
             
             if ~obj.has_converged
                 obj.line_search.computeKappa();
             end
         end
         
+        function init(obj,x0,objFunc)
+            obj.objectiveFunction = objFunc;
+            obj.objectiveFunction.setInitialValue();
+            obj.initLineSearch(x0);
+            obj.has_converged = false;
+        end
+        
     end
     
     methods (Access = private)
         
-        function updateObjectiveFunction(obj,x,cost,constraint)            
-            obj.objfunc.updatePrimal(x,cost,constraint)
-        end
-        
         function updateConvergenceParams(obj,x,x_ini)
-            incrNormL2  = obj.norm_L2(x,x_ini);
-            incrCost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
+            incrementNormL2  = obj.norm_L2(x,x_ini);
+            incrementObjFunc = obj.objectiveFunction.computeIncrement();
             
-            obj.designImproved = incrCost < 0 && incrNormL2 < obj.max_constr_change;
+            obj.designImproved = incrementObjFunc < 0 && incrementNormL2 < obj.maxIncrNormX;
             
             obj.has_converged = obj.designImproved || obj.line_search.kappa <= obj.line_search.kappa_min;
             
-            obj.stop_vars(1,1) = incrCost;                 obj.stop_vars(1,2) = 0;
-            obj.stop_vars(2,1) = incrNormL2;              obj.stop_vars(2,2) = obj.max_constr_change;
+            obj.stop_vars(1,1) = incrementObjFunc;                 obj.stop_vars(1,2) = 0;
+            obj.stop_vars(2,1) = incrementNormL2;              obj.stop_vars(2,2) = obj.maxIncrNormX;
             obj.stop_vars(3,1) = obj.line_search.kappa;     obj.stop_vars(3,2) = obj.line_search.kappa_min;
         end
-          
+        
+        function initLineSearch(obj,x0)
+            obj.line_search.initKappa(x0,obj.objectiveFunction.gradient);
+        end
         
     end
     
