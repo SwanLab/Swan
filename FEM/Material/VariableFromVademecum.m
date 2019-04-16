@@ -11,14 +11,28 @@ classdef VariableFromVademecum < handle
         values
         nPoints
         nParams
-    end    
+    end
     
     methods (Access = protected)
         
         function obj = VariableFromVademecum(cParams)
-            obj.init(cParams);                      
+            obj.init(cParams);
             obj.obtainValues();
-        end        
+        end
+        
+        function setValuesToInterpolator(obj,x)
+            obj.interpolator.setValues(x(:,1),x(:,2));
+        end
+        
+        function computeParamsInfo(obj,x)
+            [m,n] = size(x);
+            obj.nPoints = m;
+            obj.nParams = n;
+        end
+        
+    end
+    
+    methods (Access = private)
         
         function init(obj,cParams)
             obj.vadVariables = cParams.vadVariables;
@@ -35,16 +49,6 @@ classdef VariableFromVademecum < handle
                 end
             end
             obj.values = v;
-        end
-              
-        function setValuesToInterpolator(obj,x)
-            obj.interpolator.setValues(x(:,1),x(:,2));               
-        end        
-        
-        function computeParamsInfo(obj,x)
-           [m,n] = size(x);
-           obj.nPoints = m;
-           obj.nParams = n;
         end
         
     end

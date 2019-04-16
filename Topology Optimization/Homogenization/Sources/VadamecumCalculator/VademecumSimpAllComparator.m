@@ -8,8 +8,6 @@ classdef VademecumSimpAllComparator < handle
     
     properties (Access = private)
         fileName
-        vadVariables
-        interpolator
         designVar
     end
     
@@ -21,10 +19,7 @@ classdef VademecumSimpAllComparator < handle
         
         function calculate(obj)
             obj.createDesignVariableFromRandMxMy();
-            obj.loadVademecumVariables();
-            obj.createInterpolator();
-            obj.computeConstitutiveFromVademecum();
-            obj.computeDensityFromVademecum();
+            obj.computeConstitutiveAndDensityFromVademecum();            
             obj.computeConstitutiveFromDensity();
         end
         
@@ -36,39 +31,20 @@ classdef VademecumSimpAllComparator < handle
             obj.fileName = cParams.fileName;
         end
         
+        function computeConstitutiveAndDensityFromVademecum(obj)
+            s.fileName = obj.fileName;
+            v = VademecumVariablesLoader(s);
+            v.load();
+            obj.CtensorVademecum = v.Ctensor.compute(obj.designVar);
+            obj.density = v.density.compute(obj.designVar);
+        end
+        
         function createDesignVariableFromRandMxMy(obj)
             a = 0.01;
             b = 0.99;
             obj.designVar = (b-a).*rand(1000,2) + a;
         end
         
-        function loadVademecumVariables(obj)
-            matFile   = [obj.fileName,'.mat'];
-            file2load = fullfile('Output',obj.fileName,matFile);
-            v = load(file2load);
-            obj.vadVariables = v.d;
-        end
-        
-        function createInterpolator(obj)
-            sM.x = obj.vadVariables.domVariables.mxV;
-            sM.y = obj.vadVariables.domVariables.myV;
-            sI.mesh = StructuredMesh(sM);
-            obj.interpolator = Interpolator(sI);
-        end
-        
-        function computeConstitutiveFromVademecum(obj)
-            s.vadVariables = obj.vadVariables;
-            s.interpolator = obj.interpolator;
-            ct = ConstitutiveTensorFromVademecum(s);
-            obj.CtensorVademecum = ct.computeCtensor(obj.designVar);
-        end
-        
-        function computeDensityFromVademecum(obj)
-            s.vadVariables = obj.vadVariables;
-            s.interpolator = obj.interpolator;
-            dt = DensityFromVademecum(s);
-            obj.density = dt.computeDensity(obj.designVar);
-        end
         
         function computeConstitutiveFromDensity(obj)
             matProp.rho_plus = 1;

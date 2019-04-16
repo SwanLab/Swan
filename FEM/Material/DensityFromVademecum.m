@@ -6,7 +6,7 @@ classdef DensityFromVademecum < VariableFromVademecum
     
     methods (Access = public)
                 
-        function [rho,drho] = computeDensity(obj,x)
+        function [rho,drho] = compute(obj,x)
             obj.computeParamsInfo(x);    
             obj.setValuesToInterpolator(x);
             [rho,drho] = obj.computeValues();            
