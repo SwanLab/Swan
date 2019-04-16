@@ -17,6 +17,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             
             
             augLagS.nconstr = settings.nconstr;
+            augLagS.constraintCase = settings.constraint_case;
             
             obj.objfunc = Objective_Function_AugLag(augLagS);
             obj.optimizer_unconstr = settings.optimizer_unconstr;
@@ -48,11 +49,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
         
         function updateObjFunc(obj,cost,constraint)
             obj.optimizer_unconstr.target_parameters = obj.target_parameters;
-            obj.objfunc.lambda = obj.objfunc.lambda + obj.objfunc.penalty.*constraint.value';
-            constraint.lambda = obj.objfunc.lambda;
-            constraint =obj.setConstraint_case(constraint);
-            obj.objfunc.computeFunction(cost,constraint);
-            obj.objfunc.computeGradient(cost,constraint);
+            obj.objfunc.updateDual(cost,constraint)
         end
         
         function initUnconstrOpt(obj,x_ini)

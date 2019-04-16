@@ -164,7 +164,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.objfunc.computeGradient(cost,constraint);
             x = obj.optimizer_unconstr.computeX(x_ini,obj.objfunc.gradient);
             constraint.computeCostAndGradient(x);
-            constraint = obj.setConstraint_case(constraint);
+           % constraint = obj.objfunc.setConstraint_case(constraint,obj.constraint_case);
             fval = constraint.value;
         end
         
@@ -172,7 +172,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.optimizer_unconstr.target_parameters = obj.target_parameters;
             obj.objfunc.lambda = obj.objfunc.lambda;
             constraint.lambda = obj.objfunc.lambda;
-            constraint =obj.setConstraint_case(constraint);
+           % constraint =obj.setConstraint_case(constraint);
             obj.objfunc.computeFunction(cost,constraint);
             obj.objfunc.computeGradient(cost,constraint);
         end

@@ -37,10 +37,8 @@ classdef Optimizer_Unconstrained < Optimizer
         end
         
         function x = updateX(obj,x_ini,cost,constraint)
-            x = obj.computeX(x_ini,obj.objfunc.gradient);
-            
-            obj.updateObjectiveFunction(x,cost,constraint);
-            
+            x = obj.computeX(x_ini,obj.objfunc.gradient);            
+            obj.updateObjectiveFunction(x,cost,constraint);            
             obj.updateConvergenceParams(x,x_ini);
             
             if ~obj.has_converged
@@ -52,11 +50,8 @@ classdef Optimizer_Unconstrained < Optimizer
     
     methods (Access = private)
         
-        function updateObjectiveFunction(obj,x,cost,constraint)
-            cost.computeCostAndGradient(x);
-            constraint.computeCostAndGradient(x);
-            constraint = obj.setConstraint_case(constraint);
-            obj.objfunc.computeFunction(cost,constraint)
+        function updateObjectiveFunction(obj,x,cost,constraint)            
+            obj.objfunc.updatePrimal(x,cost,constraint)
         end
         
         function updateConvergenceParams(obj,x,x_ini)
@@ -71,6 +66,7 @@ classdef Optimizer_Unconstrained < Optimizer
             obj.stop_vars(2,1) = incrNormL2;              obj.stop_vars(2,2) = obj.max_constr_change;
             obj.stop_vars(3,1) = obj.line_search.kappa;     obj.stop_vars(3,2) = obj.line_search.kappa_min;
         end
+          
         
     end
     
