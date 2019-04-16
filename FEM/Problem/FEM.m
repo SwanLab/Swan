@@ -96,6 +96,10 @@ classdef FEM < handle
             obj.element.material = obj.element.material.setProps(props);
         end
         
+        function setC(obj,C)
+            obj.element.material.C = C;
+        end
+        
         function print(obj,fileName)
             dI = obj.createPostProcessDataBase(fileName);
             postprocess = Postprocess('Elasticity',dI);

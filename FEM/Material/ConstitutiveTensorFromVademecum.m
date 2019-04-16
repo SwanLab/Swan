@@ -1,4 +1,5 @@
-classdef ConstitutiveTensorFromVademecum < VariableFromVademecum
+classdef ConstitutiveTensorFromVademecum < VariableFromVademecum 
+               
     
     properties (Access = protected)
        fieldName = 'Ctensor'; 
