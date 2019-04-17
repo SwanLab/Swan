@@ -2,9 +2,9 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
    
     methods (Access = public)
         
-        function obj = ShFunc_Compliance(settings)
-            obj@ShFunWithElasticPdes(settings);
-            obj.createEquilibriumProblem(settings.filename);
+        function obj = ShFunc_Compliance(cParams)
+            obj@ShFunWithElasticPdes(cParams);
+            obj.createEquilibriumProblem(cParams.filename);
         end
         
     end

@@ -50,20 +50,20 @@ classdef Optimizer_Constrained < Optimizer
             x0 = designVar.value;
             cost.computeCostAndGradient(x0);
             constraint.computeCostAndGradient(x0);
-            obj.print(x0,obj.niter,cost,constraint);
+            obj.print();
             
             obj.monitor.refresh(x0,obj.niter,cost,constraint,obj.stop_vars,obj.hasFinished(istep,nstep),istep,nstep);
             
             while ~obj.hasFinished(istep,nstep)
                 obj.niter = obj.niter+1;
                 x = obj.update(x0);
+                designVar.update(x);
                 obj.monitor.refresh(x,obj.niter,cost,constraint,obj.stop_vars,obj.hasFinished(istep,nstep),istep,nstep);
-                obj.print(x,obj.niter,cost,constraint);
+                obj.print();
                 obj.exportMetrics(istep)
                 x0 = x;
             end
-            obj.printFinal(x,cost,constraint);
-            designVar.update(x);
+            obj.print();
             
             obj.hasConverged = 0;
         end
@@ -72,13 +72,11 @@ classdef Optimizer_Constrained < Optimizer
     
     methods (Access = protected)
         
-        function print(obj,x,iter,cost,constraint)
-            if (obj.printing)
-                d.x = x;
-                d.cost = cost;
-                d.constraint = constraint;
-                obj.postProcess.print(iter,d);
-            end
+        function print(obj)
+            d.x = obj.designVar.value;
+            d.cost = obj.cost;
+            d.constraint = obj.constraint;
+            obj.postProcess.print(obj.niter,d);
         end
         
         function exportMetrics(obj,iStep)
@@ -92,7 +90,11 @@ classdef Optimizer_Constrained < Optimizer
             d.optimizer = obj.optimizer;
             d.cost = cost;
             d.constraint = constraint;
-            obj.postProcess = Postprocess('TopOptProblem',d);
+            if obj.printing
+                obj.postProcess = Postprocess('TopOptProblem',d);
+            else
+                obj.postProcess = Postprocess_Null('',d);
+            end
         end
         
     end
@@ -128,19 +130,7 @@ classdef Optimizer_Constrained < Optimizer
             d.mesh    = obj.designVar.meshGiD;
             d.outName = fileName;
             ps = PostProcessDataBaseCreator(d);
-            d = ps.getValue();
-        end
-        
-        function printFinal(obj,x,cost,constraint)
-            if obj.monitor.shallDisplayDesignVar
-                if obj.printing
-                    obj.print(x,obj.niter,cost,constraint);
-                else
-                    obj.printing = 1;
-                    obj.print(x,obj.niter,cost,constraint);
-                    obj.printing = 0;
-                end
-            end
+            d  = ps.getValue();
         end
         
     end

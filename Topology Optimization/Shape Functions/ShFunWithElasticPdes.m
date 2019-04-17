@@ -24,9 +24,9 @@ classdef ShFunWithElasticPdes < Shape_Functional
     
     methods (Access = protected)
         
-        function obj = ShFunWithElasticPdes(settings)
-            obj.init(settings);
-            obj.interpolation = Material_Interpolation.create(settings.materialInterpolationParams);
+        function obj = ShFunWithElasticPdes(cParams)
+            obj.init(cParams);
+            obj.interpolation = Material_Interpolation.create(cParams.materialInterpolationParams);
         end
         
         function createEquilibriumProblem(obj,fileName)
