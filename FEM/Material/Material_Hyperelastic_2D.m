@@ -13,13 +13,13 @@ classdef Material_Hyperelastic_2D < Material_Elastic
     end
     
     methods
-        function obj = Material_Hyperelastic_2D(nelem,connec,cartd,nnode,coord)
-            obj@Material_Elastic(nelem);
-            obj.connec= connec;
-            obj.cartd = cartd;
-            obj.nnode = nnode;
+        function obj = Material_Hyperelastic_2D(cParams)
+            obj.nelem = cParams.nelem;
+            obj.connec= cParams.connec;
+            obj.cartd = cParams.cartd;
+            obj.nnode = cParams.nnode;
 %             obj.coord = coord(:,1:2);
-            obj = computeCtens(obj,coord(:,1:2)); % obj.computeCtens
+            obj = computeCtens(obj,cParams.coord(:,1:2)); % obj.computeCtens
 %             obj = obj.updateConstitutiveTensor(coord);
         end
         
