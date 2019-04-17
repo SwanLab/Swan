@@ -32,7 +32,7 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             cost.computeCostAndGradient(x_ini)
             funcs.objective = @(x) obj.objective(x,cost);
             funcs.gradient = @(x) obj.gradient(x,cost);
-            funcs.constraints = @(x) obj.constraint(x,constraint);
+            funcs.constraints = @(x) obj.constraintFunction(x,constraint);
             funcs.jacobian = @(x) sparse(obj.constraint_gradient(x,constraint)');
             n = length(x_ini);
             funcs.jacobianstructure = @() sparse(ones(obj.m,n));
@@ -69,7 +69,7 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             obj.cost_copy=cost;
             f = cost.value;
         end
-        function f = constraint(obj,x,constraint)
+        function f = constraintFunction(obj,x,constraint)
             constraint.computeCostAndGradient(x)
             obj.constraint_copy=constraint;
             f = constraint.value;

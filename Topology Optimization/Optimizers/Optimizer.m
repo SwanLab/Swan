@@ -2,7 +2,7 @@ classdef Optimizer < handle
     
     properties (Access = protected)
         stop_vars
-        has_converged
+        hasConverged
         constraint_case
         nconstr        
     end

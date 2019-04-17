@@ -36,7 +36,9 @@ classdef Optimizer_MMA < Optimizer_Constrained
         function kkttol = get.kkttol(obj)
             kkttol = obj.target_parameters.optimality_tol;
         end
-        function x = update(obj,x,cost,constraint)
+        function x = update(obj,x)
+            cost = obj.cost;
+            constraint = obj.constraint;
             obj.checkInitial(x,cost,constraint);
             obj.outit = obj.outit+1;
             obj.outeriter = obj.outeriter+1;
@@ -60,7 +62,7 @@ classdef Optimizer_MMA < Optimizer_Constrained
                 obj.xmin,obj.xmax,obj.df0dx,obj.fval,obj.dfdx,obj.a0,obj.a,obj.c,obj.d);
             
             has_not_converged = obj.kktnorm > obj.kkttol && obj.outit < obj.maxoutit;
-            obj.has_converged = ~has_not_converged;
+            obj.hasConverged = ~has_not_converged;
             
             constraint.lambda = lam;
             obj.stop_vars(1,1) = obj.kktnorm;   obj.stop_vars(1,2) = obj.kkttol;

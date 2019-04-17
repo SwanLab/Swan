@@ -28,7 +28,7 @@ classdef Optimizer_Unconstrained < Optimizer
         function obj = Optimizer_Unconstrained(settings)            
             obj.nconstr           = settings.nconstr;
             obj.target_parameters = settings.target_parameters;
-            obj.has_converged     = false;            
+            obj.hasConverged     = false;            
             
             obj.line_search    = LineSearch.create(settings.lineSearchSettings);
             obj.scalar_product = ScalarProduct(settings.scalarProductSettings);
@@ -40,7 +40,7 @@ classdef Optimizer_Unconstrained < Optimizer
             obj.objectiveFunction.updateBecauseOfPrimal(x);
             obj.updateConvergenceParams(x,x0);
             
-            if ~obj.has_converged
+            if ~obj.hasConverged
                 obj.line_search.computeKappa();
             end
         end
@@ -49,7 +49,7 @@ classdef Optimizer_Unconstrained < Optimizer
             obj.objectiveFunction = objFunc;
             obj.objectiveFunction.setInitialValue();
             obj.initLineSearch(x0);
-            obj.has_converged = false;
+            obj.hasConverged = false;
         end
         
     end
@@ -62,7 +62,7 @@ classdef Optimizer_Unconstrained < Optimizer
             
             obj.designImproved = incrementObjFunc < 0 && incrementNormL2 < obj.maxIncrNormX;
             
-            obj.has_converged = obj.designImproved || obj.line_search.kappa <= obj.line_search.kappa_min;
+            obj.hasConverged = obj.designImproved || obj.line_search.kappa <= obj.line_search.kappa_min;
             
             obj.stop_vars(1,1) = incrementObjFunc;                 obj.stop_vars(1,2) = 0;
             obj.stop_vars(2,1) = incrementNormL2;              obj.stop_vars(2,2) = obj.maxIncrNormX;

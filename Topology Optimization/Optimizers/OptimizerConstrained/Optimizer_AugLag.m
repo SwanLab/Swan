@@ -25,24 +25,23 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             augLagS.constraintCase = settings.constraint_case;
             
             obj.augLagrangian = AugmentedLagrangian(augLagS);
+            obj.augLagrangian.link(obj.cost,obj.constraint);
             obj.optimizer_unconstr = settings.optimizer_unconstr;
             
             obj.lambda  = zeros(1,settings.nconstr);
             obj.penalty = ones(1,settings.nconstr);
             
+
+            
         end
         
-        function x = update(obj,x0,cost,constraint)
-            obj.augLagrangian.link(cost,constraint);
-            obj.optimizer_unconstr.target_parameters = obj.target_parameters;
-            
-            obj.updateDualVariable(constraint);
-            obj.augLagrangian.updateBecauseOfDual(obj.lambda,obj.penalty);
-            
-            obj.updatePrimalVariable(x0);
-            
-            obj.updateConvergenceStatus(constraint);
-            
+        function x = update(obj,x0)
+        
+            obj.optimizer_unconstr.target_parameters = obj.target_parameters;            
+            obj.updateDualVariable();
+            obj.augLagrangian.updateBecauseOfDual(obj.lambda,obj.penalty);            
+            obj.updatePrimalVariable(x0);            
+            obj.updateConvergenceStatus();            
             x = obj.x;
         end
         
@@ -52,7 +51,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
         
         function updatePrimalVariable(obj,x0)
             obj.optimizer_unconstr.init(x0,obj.augLagrangian);
-            while ~obj.optimizer_unconstr.has_converged
+            while ~obj.optimizer_unconstr.hasConverged
                 x = obj.optimizer_unconstr.update(x0,obj.augLagrangian);
                 obj.stop_vars = obj.optimizer_unconstr.stop_vars;
             end
@@ -64,16 +63,18 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             obj.x = x;
         end
     
-        function updateConvergenceStatus(obj,constraint)
+        function updateConvergenceStatus(obj)
             active_constr = obj.penalty > 0;
-            hasNotConverged = obj.optimizer_unconstr.opt_cond >=  obj.optimizer_unconstr.optimality_tol || any(any(abs(constraint.value(active_constr)) > obj.optimizer_unconstr.constr_tol(active_constr)));
-            obj.has_converged = ~hasNotConverged;
+            isNotOptimal  = obj.optimizer_unconstr.opt_cond >=  obj.optimizer_unconstr.optimality_tol;
+            isNotFeasible = any(any(abs(obj.constraint.value(active_constr)) > obj.optimizer_unconstr.constr_tol(active_constr)));
+            hasNotConverged = isNotOptimal || isNotFeasible;
+            obj.hasConverged = ~hasNotConverged;
         end
         
-        function updateDualVariable(obj,constraint)
+        function updateDualVariable(obj)
             l   = obj.lambda;
             rho = obj.penalty;
-            c   = constraint.value';
+            c   = obj.constraint.value';
             l = l + rho.*c;
             obj.lambda = l;
         end

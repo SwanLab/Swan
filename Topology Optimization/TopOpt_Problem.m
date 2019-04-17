@@ -28,10 +28,14 @@ classdef TopOpt_Problem < handle
             settings.pdim = obj.designVariable.meshGiD.pdim;
             
             obj.createIncrementalScheme(settings);
-            obj.createOptimizerSettings(settings); 
-            obj.optimizer = OptimizerFactory.create(obj.optimizerSettings);
+
+            
             obj.cost = Cost(settings,settings.weights,obj.designVariable);
-            obj.constraint = Constraint(settings,obj.designVariable);
+            obj.constraint = Constraint(settings,obj.designVariable);            
+
+            obj.createOptimizerSettings(settings);             
+            obj.optimizer = OptimizerFactory.create(obj.optimizerSettings);
+
             obj.createVideoManager(settings);
         end
         
@@ -76,7 +80,8 @@ classdef TopOpt_Problem < handle
             optSet.showBC               = settings.showBC;   
             
             optSet.settings = settings;
-            
+            optSet.cost     = obj.cost;
+            optSet.constraint = obj.constraint;
             
             optSet.designVar = obj.designVariable;
             obj.optimizerSettings = optSet;

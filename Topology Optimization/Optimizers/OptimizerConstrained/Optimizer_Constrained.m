@@ -9,6 +9,8 @@ classdef Optimizer_Constrained < Optimizer
     
     properties (Access = protected)
         monitor
+        cost
+        constraint                
     end
     
     properties (Access = private)
@@ -27,7 +29,10 @@ classdef Optimizer_Constrained < Optimizer
             obj.nconstr           = set.nconstr;
             obj.target_parameters = set.target_parameters;
             obj.constraint_case   = set.constraint_case;
-            obj.has_converged     = false;
+            obj.hasConverged     = false;
+            
+            obj.cost = settings.settings.cost;
+            obj.constraint = settings.settings.constraint;
             
             obj.init(set,designVar);
             
@@ -35,7 +40,7 @@ classdef Optimizer_Constrained < Optimizer
             mS.plotting  = set.plotting;
             mS.settings  = set;
             mS.designVar = settings.designVariable;
-
+            
             obj.monitor = MonitoringDocker(mS);
         end
         
@@ -49,8 +54,8 @@ classdef Optimizer_Constrained < Optimizer
             obj.monitor.refresh(x_ini,obj.niter,cost,constraint,obj.stop_vars,obj.hasFinished(istep,nstep),istep,nstep);
             
             while ~obj.hasFinished(istep,nstep)
-                obj.niter = obj.niter+1;             
-                x = obj.update(x_ini,cost,constraint);
+                obj.niter = obj.niter+1;
+                x = obj.update(x_ini);
                 obj.monitor.refresh(x,obj.niter,cost,constraint,obj.stop_vars,obj.hasFinished(istep,nstep),istep,nstep);
                 obj.print(x,obj.niter,cost,constraint);
                 obj.writeToFile(istep,cost,constraint)
@@ -59,7 +64,7 @@ classdef Optimizer_Constrained < Optimizer
             obj.printFinal(x,cost,constraint);
             designVar.update(x);
             
-            obj.has_converged = 0;
+            obj.hasConverged = 0;
         end
         
     end
@@ -128,7 +133,7 @@ classdef Optimizer_Constrained < Optimizer
     methods (Access = protected)
         
         function itHas = hasFinished(obj,istep,nstep)
-            itHas = obj.has_converged || obj.niter >= obj.maxiter*(istep/nstep);
+            itHas = obj.hasConverged || obj.niter >= obj.maxiter*(istep/nstep);
         end
         
     end
@@ -137,7 +142,7 @@ classdef Optimizer_Constrained < Optimizer
         
         function init(obj,settings,designVar)
             obj.designVar = designVar;
-%             fileName  = settings.case_file;
+            %             fileName  = settings.case_file;
             obj.optimizer = settings.optimizer;
             obj.maxiter   = settings.maxiter;
             obj.printing  = settings.printing;
