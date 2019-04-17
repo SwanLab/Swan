@@ -53,9 +53,7 @@ classdef TopOpt_Problem < handle
             
             uncOptimizerSettings = SettingsOptimizerUnconstrained();
             
-            uncOptimizerSettings.nconstr               = settings.nconstr;
             uncOptimizerSettings.target_parameters     = settings.target_parameters;
-            uncOptimizerSettings.constraint_case       = settings.constraint_case;            
             uncOptimizerSettings.lineSearchSettings    = lsS;
             uncOptimizerSettings.scalarProductSettings = scS;
             

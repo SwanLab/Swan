@@ -13,8 +13,8 @@ classdef AugmentedLagrangian < Objective_Function
     
     methods (Access = public)
         
-        function obj = AugmentedLagrangian(settings)
-            obj.createConstraintModifier(settings.constraintCase);
+        function obj = AugmentedLagrangian(cParams)
+            obj.createConstraintModifier(cParams.constraintCase);
         end
         
         function updateBecauseOfPrimal(obj,x)

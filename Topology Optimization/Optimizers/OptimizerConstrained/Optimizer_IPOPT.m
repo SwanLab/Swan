@@ -1,6 +1,6 @@
 classdef Optimizer_IPOPT < Optimizer_Constrained
     properties
-        m
+        nconstr
         info
         max_iter
         constraint_tolerance
@@ -15,7 +15,7 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             ocS.designVariable  = settings.designVar;
             ocS.monitoring      = settings.monitoring;            
             obj@Optimizer_Constrained(ocS);
-            obj.m = settings.nconstr;
+            obj.nconstr = settings.nconstr;
             obj.max_iter = settings.maxiter;
             obj.niter=-1;
         end
@@ -35,7 +35,7 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             funcs.constraints = @(x) obj.constraintFunction(x,constraint);
             funcs.jacobian = @(x) sparse(obj.constraint_gradient(x,constraint)');
             n = length(x_ini);
-            funcs.jacobianstructure = @() sparse(ones(obj.m,n));
+            funcs.jacobianstructure = @() sparse(ones(obj.nconstr,n));
             funcs.iterfunc = @(iter,fval,data) obj.outputfun_ipopt(data,istep,nstep);
             
             options.ipopt.print_level= 0;
@@ -43,14 +43,14 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             options.ipopt.limited_memory_update_type = 'bfgs';
             options.ub = ones(length(x_ini),1);
             options.lb = zeros(length(x_ini),1);
-            if strcmp(obj.constraint_case,'EQUALITY')
-                options.cl = zeros(obj.m,1);
-                options.constraint_case = 'equality';
+            if strcmp(obj.constraintCase,'EQUALITY')
+                options.cl = zeros(obj.nconstr,1);
+                options.constraintCase = 'equality';
             else
-                options.cl = -Inf*ones(obj.m,1); % lower bound constraint
+                options.cl = -Inf*ones(obj.nconstr,1); % lower bound constraint
             end
             
-            options.cu = zeros(obj.m,1); % upper bound constraint value
+            options.cu = zeros(obj.nconstr,1); % upper bound constraint value
             options.ipopt.max_iter = obj.max_iter;
             options.ipopt.constr_viol_tol = obj.constraint_tolerance;
             %         options.ipopt.dual_inf_tol = optimality_tolerance;

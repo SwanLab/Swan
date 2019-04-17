@@ -20,7 +20,6 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         function obj = Optimizer_SLERP(settings)
             obj@Optimizer_Unconstrained(settings);
             obj.maxIncrNormX = +Inf;
-            obj.nconstr = settings.nconstr;
         end
         
         function phi = computeX(obj,phi,g)

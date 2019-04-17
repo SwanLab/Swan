@@ -14,29 +14,23 @@ classdef Optimizer_AugLag < Optimizer_Constrained
     methods (Access = public)
         
         function obj = Optimizer_AugLag(settings)
-            
             ocS.settings       = settings;
             ocS.designVariable = settings.designVar;
             ocS.monitoring     = settings.monitoring;
             obj@Optimizer_Constrained(ocS);
             
-            
-            augLagS.nconstr = settings.nconstr;
-            augLagS.constraintCase = settings.constraint_case;
+            augLagS.constraintCase = obj.constraintCase;
             
             obj.augLagrangian = AugmentedLagrangian(augLagS);
             obj.augLagrangian.link(obj.cost,obj.constraint);
             obj.optimizer_unconstr = settings.optimizer_unconstr;
             
-            obj.lambda  = zeros(1,settings.nconstr);
-            obj.penalty = ones(1,settings.nconstr);
-            
-
-            
+            nConstraints = obj.constraint.nSF;
+            obj.lambda  = zeros(1,nConstraints);
+            obj.penalty = ones(1,nConstraints);
         end
         
         function x = update(obj,x0)
-        
             obj.optimizer_unconstr.target_parameters = obj.target_parameters;            
             obj.updateDualVariable();
             obj.augLagrangian.updateBecauseOfDual(obj.lambda,obj.penalty);            

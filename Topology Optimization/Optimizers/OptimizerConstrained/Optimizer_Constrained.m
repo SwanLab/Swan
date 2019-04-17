@@ -10,7 +10,8 @@ classdef Optimizer_Constrained < Optimizer
     properties (Access = protected)
         monitor
         cost
-        constraint                
+        constraint
+        constraintCase
     end
     
     properties (Access = private)
@@ -22,24 +23,23 @@ classdef Optimizer_Constrained < Optimizer
     
     methods (Access = public)
         
-        function obj = Optimizer_Constrained(settings)
-            set = settings.settings.settings;
-            designVar = settings.designVariable;
+        function obj = Optimizer_Constrained(cParams)
+            set = cParams.settings.settings;
+            designVar = cParams.designVariable;
             
-            obj.nconstr           = set.nconstr;
-            obj.target_parameters = set.target_parameters;
-            obj.constraint_case   = set.constraint_case;
-            obj.hasConverged     = false;
+            obj.constraintCase   = set.constraint_case;
+            obj.hasConverged      = false;
             
-            obj.cost = settings.settings.cost;
-            obj.constraint = settings.settings.constraint;
+            % !! REMOVE !!
+            obj.cost = cParams.settings.cost;
+            obj.constraint = cParams.settings.constraint;
             
             obj.init(set,designVar);
             
-            mS.showOptParams = settings.monitoring;
+            mS.showOptParams = cParams.monitoring;
             mS.plotting  = set.plotting;
             mS.settings  = set;
-            mS.designVar = settings.designVariable;
+            mS.designVar = cParams.designVariable;
             
             obj.monitor = MonitoringDocker(mS);
         end
@@ -142,7 +142,6 @@ classdef Optimizer_Constrained < Optimizer
         
         function init(obj,settings,designVar)
             obj.designVar = designVar;
-            %             fileName  = settings.case_file;
             obj.optimizer = settings.optimizer;
             obj.maxiter   = settings.maxiter;
             obj.printing  = settings.printing;

@@ -17,18 +17,14 @@ classdef Optimizer_Unconstrained < Optimizer
     end
     
     methods (Access = public, Abstract)
-        
         computeX(obj)
-        
     end
     
     
     methods (Access = public)
         
         function obj = Optimizer_Unconstrained(settings)            
-            obj.nconstr           = settings.nconstr;
-            obj.target_parameters = settings.target_parameters;
-            obj.hasConverged     = false;            
+            obj.hasConverged   = false;            
             
             obj.line_search    = LineSearch.create(settings.lineSearchSettings);
             obj.scalar_product = ScalarProduct(settings.scalarProductSettings);
@@ -87,7 +83,7 @@ classdef Optimizer_Unconstrained < Optimizer
     methods
         
         function constr_tol = get.constr_tol(obj)
-            constr_tol(1:obj.nconstr) = obj.target_parameters.constr_tol;
+            constr_tol = obj.target_parameters.constr_tol;
         end
         
     end

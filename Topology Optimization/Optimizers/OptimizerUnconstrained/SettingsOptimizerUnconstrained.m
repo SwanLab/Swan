@@ -5,9 +5,7 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
    end
     
    properties (Access = public)
-       nconstr
        target_parameters
-       constraint_case
        
        epsilon
        scalarProductSettings
