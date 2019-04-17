@@ -84,11 +84,12 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             obj.constraint_copy=constraint;
             g = constraint.gradient;
         end
-        function stop = outputfun_ipopt(obj,data,istep,nstep)            
+        function stop = outputfun_ipopt(obj,data,istep,nstep)   
             stop = true;
             obj.data=data;
             obj.niter=obj.niter+1;
-            obj.print(data.x,obj.niter,obj.cost_copy,obj.constraint_copy);            
+            obj.designVar.update(data.x);
+            obj.print();            
             obj.constraint_copy.lambda=zeros(obj.constraint_copy.nSF,1);
             obj.monitor.refresh(data.x,obj.niter,obj.cost_copy,obj.constraint_copy,data.inf_du,obj.hasFinished(istep,nstep),istep,nstep);            
             obj.exportMetrics(istep)

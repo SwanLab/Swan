@@ -5,7 +5,7 @@ classdef OptimizationMetricsPrinterFactory < handle
         function printer = create(type,shallPrint,cParams)
             if shallPrint
                 switch type
-                    case {'SLERP','PROJECTED GRADIENT','HAMILTON-JACOBI'}
+                    case {'SLERP','PROJECTED GRADIENT','HAMILTON-JACOBI','PROJECTED SLERP'}
                         printer = OptimizationMetricsPrinter_AugLag(cParams);
                     case 'MMA'
                         printer = OptimizationMetricsPrinter_MMA(cParams);

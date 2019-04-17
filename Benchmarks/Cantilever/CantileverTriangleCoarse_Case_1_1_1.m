@@ -25,5 +25,4 @@ TOL.E_minus = 1e-3;
 TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
-printing = true;
-max_iter = 2;
+printing = false;

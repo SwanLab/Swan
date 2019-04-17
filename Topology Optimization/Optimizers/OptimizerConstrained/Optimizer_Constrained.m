@@ -8,6 +8,7 @@ classdef Optimizer_Constrained < Optimizer
     end
     
     properties (Access = protected)
+        designVar
         monitor
         cost
         constraint
@@ -16,7 +17,6 @@ classdef Optimizer_Constrained < Optimizer
     end
     
     properties (Access = private)
-        designVar
         postProcess
         printing
         printMode
