@@ -10,9 +10,9 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
     
     methods (Access = public)
         
-        function obj = DesignVarMonitor_Density(mesh,showBC)
-            obj@DesignVarMonitor_Abstract(mesh,showBC);
-            obj.createFilter();
+        function obj = DesignVarMonitor_Density(designVar,showBC)
+            obj@DesignVarMonitor_Abstract(designVar,showBC);
+            obj.createFilter(designVar);
         end
         
         function plot(obj,rho)
@@ -44,9 +44,12 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
     
     methods (Access = private)
         
-        function createFilter(obj)
-            obj.filter = Filter_P1_Density();
-            obj.filter.setupFromGiDFile(obj.mesh.problemID,obj.mesh.scale);
+        function createFilter(obj,designVar)
+            filterParams = SettingsFilter();
+            filterParams.filterType = 'P1';
+            filterParams.domainType = 'INTERIOR';
+            filterParams.designVar = designVar;
+            obj.filter = Filter_P1_Density(filterParams);
             obj.filter.preProcess();
         end
         

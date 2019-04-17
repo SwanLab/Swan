@@ -34,7 +34,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.objfunc.computeGradient(cost,constraint);
             obj.objfunc.computeFunction(cost,constraint);
             obj.initUnconstrOpt(x_ini);
-            obj.optimizer_unconstr.computeX(x_ini,obj.objfunc.gradient);
+            obj.optimizer_unconstr.compute(x_ini,obj.objfunc.gradient);
             
             obj.hasConverged = ~(obj.optimizer_unconstr.opt_cond >=  obj.optimizer_unconstr.optimality_tol);
             if ~obj.hasConverged
@@ -67,7 +67,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             constraint.lambda = obj.objfunc.lambda;
             obj.objfunc.computeGradient(obj.cost,obj.constraint);
             obj.optimizer_unconstr.line_search.initKappa;
-            x0 = obj.optimizer_unconstr.computeX(x0,obj.objfunc.gradient);
+            x0 = obj.optimizer_unconstr.compute(x0,obj.objfunc.gradient);
             
             obj.fhtri = [];
         end
@@ -111,7 +111,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
                 
                 obj.objfunc.lambda = lambda;
                 obj.objfunc.computeGradient(cost,constraint);
-                x = obj.optimizer_unconstr.computeX(x0,obj.objfunc.gradient);
+                x = obj.optimizer_unconstr.compute(x0,obj.objfunc.gradient);
                 
                 cost.computeCostAndGradient(x);
                 obj.objfunc.computeFunction(cost,constraint);
@@ -133,7 +133,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
                 obj.stop_vars = obj.optimizer_unconstr.stop_vars;
             end
             
-            obj.optimizer_unconstr.computeX(x0,obj.objfunc.gradient);
+            obj.optimizer_unconstr.compute(x0,obj.objfunc.gradient);
         end
         
         function itHas = hasUnconstraintedOptimizerConverged(obj)
@@ -167,7 +167,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             cost.computeCostAndGradient(x_ini)
             constraint.computeCostAndGradient(x_ini)
             obj.objfunc.computeGradient(cost,constraint);
-            x = obj.optimizer_unconstr.computeX(x_ini,obj.objfunc.gradient);
+            x = obj.optimizer_unconstr.compute(x_ini,obj.objfunc.gradient);
             constraint.computeCostAndGradient(x);
             fval = constraint.value;
         end

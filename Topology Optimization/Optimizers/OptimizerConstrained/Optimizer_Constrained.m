@@ -12,6 +12,7 @@ classdef Optimizer_Constrained < Optimizer
         cost
         constraint
         constraintCase
+        metricsPrinter
     end
     
     properties (Access = private)
@@ -46,20 +47,20 @@ classdef Optimizer_Constrained < Optimizer
         
         function designVar = solveProblem(obj,designVar,cost,constraint,istep,nstep)
             obj.createPostProcess(cost,constraint);
-            x_ini = designVar.value;
-            cost.computeCostAndGradient(x_ini);
-            constraint.computeCostAndGradient(x_ini);
-            obj.print(x_ini,obj.niter,cost,constraint);
+            x0 = designVar.value;
+            cost.computeCostAndGradient(x0);
+            constraint.computeCostAndGradient(x0);
+            obj.print(x0,obj.niter,cost,constraint);
             
-            obj.monitor.refresh(x_ini,obj.niter,cost,constraint,obj.stop_vars,obj.hasFinished(istep,nstep),istep,nstep);
+            obj.monitor.refresh(x0,obj.niter,cost,constraint,obj.stop_vars,obj.hasFinished(istep,nstep),istep,nstep);
             
             while ~obj.hasFinished(istep,nstep)
                 obj.niter = obj.niter+1;
-                x = obj.update(x_ini);
+                x = obj.update(x0);
                 obj.monitor.refresh(x,obj.niter,cost,constraint,obj.stop_vars,obj.hasFinished(istep,nstep),istep,nstep);
                 obj.print(x,obj.niter,cost,constraint);
-                obj.writeToFile(istep,cost,constraint)
-                x_ini = x;
+                obj.exportMetrics(istep)
+                x0 = x;
             end
             obj.printFinal(x,cost,constraint);
             designVar.update(x);
@@ -80,42 +81,8 @@ classdef Optimizer_Constrained < Optimizer
             end
         end
         
-        function writeToFile(obj,nstep,cost,constraint)
-            if ~(obj.printing)
-                return
-            end
-            fileName = obj.designVar.meshGiD.problemID;
-            if obj.niter == 1
-                msh_file = fullfile('Output',fileName,strcat(fileName,'.txt'));
-                fid_mesh = fopen(msh_file,'wt');
-            else
-                msh_file = fullfile('Output',fileName,strcat(fileName,'.txt'));
-                fid_mesh = fopen(msh_file,'at');
-            end
-            fprintf(fid_mesh,'-----------------------------------------------------------------------------------------------\n');
-            fprintf(fid_mesh,'\n');
-            fprintf(fid_mesh,'Iteration: %i \n',obj.niter);
-            fprintf(fid_mesh,'Nstep: %i \n',nstep);
-            fprintf(fid_mesh,'Cost  %f \n',cost.value);
-            for i=1:length(cost.ShapeFuncs)
-                fprintf(fid_mesh,strcat('-Cost ',num2str(i),': %f \n'),cost.ShapeFuncs{i}.value);
-            end
-            fprintf(fid_mesh,'Constraint: %f \n',constraint.value);
-            for i=1:length(constraint.ShapeFuncs)
-                fprintf(fid_mesh,strcat('-Constraint ',num2str(i),': %f \n'),constraint.ShapeFuncs{i}.value);
-            end
-            
-            switch obj.optimizer
-                case {'SLERP','PROJECTED GRADIENT','HAMILTON-JACOBI'}
-                    fprintf(fid_mesh,'Optimality tolerance: %f \n',obj.optimizer_unconstr.opt_cond);
-                    fprintf(fid_mesh,'Kappa: %f \n',obj.optimizer_unconstr.line_search.kappa);
-                case 'MMA'
-                    fprintf(fid_mesh,'Optimality tolerance: %f \n',obj.kktnorm);
-                case 'IPOPT'
-                    fprintf(fid_mesh,'Optimality tolerance: %f \n',obj.data.inf_du);
-            end
-            fprintf(fid_mesh,'\n');
-            fclose(fid_mesh);
+        function exportMetrics(obj,iStep)
+            obj.metricsPrinter.print(obj.niter,iStep);
         end
         
         function createPostProcess(obj,cost,constraint)
@@ -146,6 +113,15 @@ classdef Optimizer_Constrained < Optimizer
             obj.maxiter   = settings.maxiter;
             obj.printing  = settings.printing;
             obj.printMode = settings.printMode;
+            obj.createMetricsPrinter();
+        end
+        
+        function createMetricsPrinter(obj)
+            settingsMetricsPrinter.fileName = obj.designVar.meshGiD.problemID;
+            settingsMetricsPrinter.optimizer = obj;
+            settingsMetricsPrinter.cost = obj.cost;
+            settingsMetricsPrinter.constraint = obj.constraint;
+            obj.metricsPrinter = OptimizationMetricsPrinterFactory.create(obj.optimizer,obj.printing,settingsMetricsPrinter);
         end
         
         function d = createPostProcessDataBase(obj,fileName)

@@ -11,7 +11,7 @@ classdef Optimizer_PG < Optimizer_Unconstrained
             obj.maxIncrNormX = +Inf;
         end
         
-        function rho = computeX(obj,design_variable,gradient)
+        function rho = compute(obj,design_variable,gradient)
             rho_n = design_variable;
             rho_step = rho_n-obj.line_search.kappa*gradient;
             ub = ones(length(rho_n(:,1)),1);

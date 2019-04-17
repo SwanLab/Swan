@@ -17,7 +17,7 @@ classdef Optimizer_Unconstrained < Optimizer
     end
     
     methods (Access = public, Abstract)
-        computeX(obj)
+        compute(obj)
     end
     
     
@@ -32,7 +32,7 @@ classdef Optimizer_Unconstrained < Optimizer
         
         function x = update(obj,x0,objfunc)
             obj.objectiveFunction = objfunc;
-            x = obj.computeX(x0,obj.objectiveFunction.gradient);
+            x = obj.compute(x0,obj.objectiveFunction.gradient);
             obj.objectiveFunction.updateBecauseOfPrimal(x);
             obj.updateConvergenceParams(x,x0);
             

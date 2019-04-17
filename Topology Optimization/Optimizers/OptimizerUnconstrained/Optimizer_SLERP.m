@@ -22,7 +22,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             obj.maxIncrNormX = +Inf;
         end
         
-        function phi = computeX(obj,phi,g)
+        function phi = compute(obj,phi,g)
             obj.computeNormalizedLevelSet(phi);
             obj.computeNormalizedGradient(g);
             obj.computeTheta();
