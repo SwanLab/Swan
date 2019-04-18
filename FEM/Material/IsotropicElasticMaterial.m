@@ -24,6 +24,11 @@ classdef IsotropicElasticMaterial < ElasticMaterial
     end
     
     methods (Access = protected)
+        
+        function init(obj,cParams)
+            obj.nelem = cParams.nelem;
+            obj.createCtensor();
+        end
        
         function createCtensor(obj)
             obj.C = zeros(obj.nstre,obj.nstre,obj.nelem);

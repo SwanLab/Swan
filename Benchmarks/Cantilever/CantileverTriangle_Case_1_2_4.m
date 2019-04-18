@@ -6,7 +6,9 @@ initial_case = 'full';
 cost = {'compliance','perimeter'};
 weights = [1 0.01];
 constraint = {'volumeConstraint'};
-optimizer = 'SLERP'; kappaMultiplier = 1;
+optimizer = 'SLERP'; 
+kappaMultiplier = 1;
+designVariable = 'LevelSet';
 filterType = 'PDE';
 
 % epsilon_initial = 0.071;

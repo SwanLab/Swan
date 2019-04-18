@@ -7,7 +7,7 @@ classdef Density < DesignVariable
     methods (Access = public)
         
         function obj = Density(cParams)
-            obj.value = cParams.value;
+            obj.value   = cParams.value;
             obj.meshGiD = cParams.mesh;
         end
         

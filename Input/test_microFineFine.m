@@ -6,7 +6,9 @@ initial_case = 'horizontalFibers';
 cost={'chomog_alphabeta'};
 weights=[1 0.1];
 constraint = {'volumeConstraint'};
-optimizer = 'SLERP'; kappaMultiplier = 1;
+optimizer = 'SLERP'; 
+kappaMultiplier = 1;
+designVariable = 'LevelSet';
 filterType = 'P1';
             
 levelFibers = 3;

@@ -20,7 +20,7 @@ classdef TopOptTests < testRunner
                 
             
             'testCantilever';
-            'testProjectedSlerp';
+            %'testProjectedSlerp';
             
             'testCantilever3';
             
@@ -29,19 +29,10 @@ classdef TopOptTests < testRunner
             'testBridge';
             'testMicro2';
             'testBridge2';
-            
-            
-            
-            
             'testGripping';
             
-            
-            
-            
             'testMicro';
-            
-            
-            
+
             };
         end
         

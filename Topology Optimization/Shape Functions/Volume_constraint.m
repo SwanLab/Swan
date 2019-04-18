@@ -11,14 +11,14 @@ classdef Volume_constraint < ShFunc_Volume
             obj@ShFunc_Volume(settings);
         end
         
-       function VolumeTarget = get.VolumeTarget(obj)
+       function VolumeTarget = getVolumeTarget(obj)
             VolumeTarget = obj.target_parameters.Vfrac;
         end
         
        function computeCostAndGradient(obj,x)
            computeCostAndGradient@ShFunc_Volume(obj,x);
-           obj.value = obj.value/obj.VolumeTarget - 1;
-           obj.gradient = obj.gradient/obj.VolumeTarget;
+           obj.value = obj.value/obj.getVolumeTarget() - 1;
+           obj.gradient = obj.gradient/obj.getVolumeTarget();
         end
         
         

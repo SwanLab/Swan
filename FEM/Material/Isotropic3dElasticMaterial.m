@@ -3,9 +3,7 @@ classdef Isotropic3dElasticMaterial < IsotropicElasticMaterial
        methods (Access = public)
         
         function obj = Isotropic3dElasticMaterial(cParams)
-            obj.nelem = cParams.nelem;
-            obj.nstre = 6;   
-            obj.createCtensor();                        
+            obj.init(cParams);
         end
         
     end
@@ -33,8 +31,7 @@ classdef Isotropic3dElasticMaterial < IsotropicElasticMaterial
             C(3,3,:) = Ch;
             C(4,4,:) = Css;
             C(5,5,:) = Css;
-            C(6,6,:) = Css;
-            
+            C(6,6,:) = Css;            
             obj.C = C;
         end
         

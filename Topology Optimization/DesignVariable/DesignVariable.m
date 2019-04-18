@@ -11,13 +11,20 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
     end
     
     methods (Access = public, Abstract)
-        
         update(obj,value)
+    end
+    
+    methods (Access = public, Static)
+        
+        function designVariable = create(cParams)
+            f = DesignVariableFactory();
+            designVariable = f.create(cParams);
+        end        
         
     end
     
     methods (Access = public)
-        
+                
         function objClone = clone(obj)
             objClone = copy(obj);
         end

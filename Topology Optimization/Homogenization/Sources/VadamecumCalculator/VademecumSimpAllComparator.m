@@ -59,7 +59,7 @@ classdef VademecumSimpAllComparator < handle
             d.typeOfMaterial = 'ISOTROPIC';
             mI = Material_Interpolation.create(d);
             material = mI.computeMatProp(obj.density);
-            me = Material_Elastic_ISO_2D(size(obj.density,1));
+            me = Isotropic2dElasticMaterial(size(obj.density,1));
             me.setProps(material);
             obj.CtensorSIMPALL = me.C;
         end

@@ -120,8 +120,9 @@ classdef TopOpt_Problem < handle
             designVarSettings.mesh = mesh;
             designVarInitializer = DesignVariableCreator(settings,mesh);
             designVarSettings.value = designVarInitializer.getValue();
-            designVarSettings.optimizer = settings.optimizer;
-            obj.designVariable = DesignVariableFactory().create(designVarSettings);
+            %designVarSettings.optimizer = settings.optimizer;
+            designVarSettings.type = settings.designVariable;
+            obj.designVariable = DesignVariable.create(designVarSettings);
         end
         
         function createIncrementalScheme(obj,settings)

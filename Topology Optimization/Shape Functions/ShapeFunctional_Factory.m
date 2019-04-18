@@ -12,7 +12,7 @@ classdef ShapeFunctional_Factory
             filterParams.designVar = designVar;
             
             materialInterpolationParams = SettingsInterpolation();
-            materialInterpolationParams.interpolation=settings.method;
+            materialInterpolationParams.interpolation=settings.materialInterpolation;
             materialInterpolationParams.dim=settings.pdim;
             materialInterpolationParams.typeOfMaterial=settings.material;
             materialInterpolationParams.constitutiveProperties=settings.TOL;
@@ -39,7 +39,7 @@ classdef ShapeFunctional_Factory
                     d.domainType=settings.ptype;
                     d.filterParams.filterType=settings.filter;
                     d.filterParams.designVar = designVar;
-                    d.materialInterpolationParams.interpolation=settings.method;
+                    d.materialInterpolationParams.interpolation=settings.materialInterpolation;
                     d.materialInterpolationParams.dim=settings.pdim;
                     d.materialInterpolationParams.typeOfMaterial=settings.material;
                     d.materialInterpolationParams.constitutiveProperties=settings.TOL;
@@ -51,7 +51,7 @@ classdef ShapeFunctional_Factory
                     d.domainType=settings.ptype;
                     d.filterParams.filterType=settings.filter;
                     d.filterParams.designVar = designVar;
-                    d.materialInterpolationParams.interpolation=settings.method;
+                    d.materialInterpolationParams.interpolation=settings.materialInterpolation;
                     d.materialInterpolationParams.dim=settings.pdim;
                     d.materialInterpolationParams.typeOfMaterial=settings.material;
                     d.materialInterpolationParams.constitutiveProperties=settings.TOL;
@@ -65,7 +65,7 @@ classdef ShapeFunctional_Factory
                     d.domainType=settings.ptype;
                     d.filterParams.filterType=settings.filter;
                     d.filterParams.designVar = designVar;
-                    d.materialInterpolationParams.interpolation=settings.method;
+                    d.materialInterpolationParams.interpolation=settings.materialInterpolation;
                     d.materialInterpolationParams.dim=settings.pdim;
                     d.materialInterpolationParams.typeOfMaterial=settings.material;
                     d.materialInterpolationParams.constitutiveProperties=settings.TOL;

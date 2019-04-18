@@ -42,7 +42,6 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         pdim
         case_file
         filename
-        method
         material
         initial_case
         cost
@@ -63,6 +62,9 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         printIncrementalIter
         printChangingFilter
         printMode = 'DesignAndShapes';
+        homegenizedVariablesComputer
+        materialInterpolation
+        designVariable
     end
     
     properties %exploring tests
@@ -75,7 +77,7 @@ classdef Settings %< handle%& matlab.mixin.Copyable
             obj.case_file=case_file;
             obj.filename = filename;
             obj.ptype = ptype;
-            obj.method = method;
+            obj.materialInterpolation = method;
             obj.material = materialType;
             obj.initial_case = initial_case;
             obj.cost = cost;
@@ -235,6 +237,12 @@ classdef Settings %< handle%& matlab.mixin.Copyable
             
             if exist('shFuncParamsName','var')
                obj.shFuncParamsName = shFuncParamsName;               
+            end
+            
+            
+            
+            if exist('designVariable','var')
+               obj.designVariable = designVariable;               
             end
             
             if  ~(contains(filename,'test','IgnoreCase',true) || contains(filename,'RVE') || obj.hasToAddSpaceBecauseOfIncremental())

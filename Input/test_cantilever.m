@@ -8,7 +8,9 @@ cost = {'compliance';'perimeter'};
 weights = [1 0.1];
 constraint = {'volumeConstraint'};
 constraint_case = 'INEQUALITY';
-optimizer = 'PROJECTED GRADIENT'; kappaMultiplier = 1; 
+optimizer = 'PROJECTED GRADIENT'; 
+kappaMultiplier = 1; 
+designVariable = 'Density';
 filterType = 'PDE';
 
 shFuncParamsName = 'paramsTestCantilever';

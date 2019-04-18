@@ -6,13 +6,10 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
     methods (Access = public)
         
         function obj = Isotropic2dElasticMaterial(cParams)
-            obj.nelem = cParams.nelem;
-            obj.nstre = 3;            
-            obj.createCtensor();            
+            obj.init(cParams);          
         end
         
-    end
-    
+    end    
     
     methods (Access = protected)
         
@@ -21,9 +18,8 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
             obj.computePoissonRatio();
             C = obj.C;            
             E = obj.E;
-            nu = obj.nu;
-            
-            c1 = full(E./(1-nu.^2));
+            nu = obj.nu;            
+            c1 = (E./(1-nu.^2));
             C(1,1,:) = c1;
             C(1,2,:) = c1.*nu;
             C(2,1,:) = c1.*nu;
