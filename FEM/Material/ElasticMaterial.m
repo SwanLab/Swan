@@ -1,4 +1,4 @@
-classdef Material_Elastic < Material
+classdef ElasticMaterial < Material
    
     properties (Access = public)
         C

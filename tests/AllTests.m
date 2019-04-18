@@ -1,5 +1,5 @@
 FemTests;
-%UnfittedIntegrationTests;
+UnfittedIntegrationTests;
 TopOptTests;
 PrintingTests;
 ReadingFilesTests;

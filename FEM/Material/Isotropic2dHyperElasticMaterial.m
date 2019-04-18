@@ -1,4 +1,4 @@
-classdef Material_Hyperelastic_2D < Material_Elastic
+classdef Isotropic2dHyperElasticMaterial < ElasticMaterial
     %UNTITLED2 Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -13,7 +13,7 @@ classdef Material_Hyperelastic_2D < Material_Elastic
     end
     
     methods
-        function obj = Material_Hyperelastic_2D(cParams)
+        function obj = Isotropic2dHyperElasticMaterial(cParams)
             obj.nelem = cParams.nelem;
             obj.connec= cParams.connec;
             obj.cartd = cParams.cartd;

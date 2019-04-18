@@ -1,4 +1,4 @@
-classdef Material_Elastic_ISO < Material_Elastic
+classdef IsotropicElasticMaterial < ElasticMaterial
 
     properties (GetAccess = public, SetAccess = protected)
         kappa
@@ -11,14 +11,12 @@ classdef Material_Elastic_ISO < Material_Elastic
        nu
        nstre        
     end
-    
-        
-    methods (Access = public)
-        
+            
+    methods (Access = public)        
         
         function obj = setProps(obj,props)
             obj.kappa = props.kappa;
-            obj.mu = props.mu;
+            obj.mu    = props.mu;
             obj.lambda = obj.kappa-obj.mu;
             obj.computeC();
         end

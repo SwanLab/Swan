@@ -1,11 +1,14 @@
-classdef Material_Elastic_ISO_3D < Material_Elastic_ISO
+classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
+
+    properties (Access = protected)
+    end
     
-       methods (Access = public)
+    methods (Access = public)
         
-        function obj = Material_Elastic_ISO_3D(cParams)
+        function obj = Isotropic2dElasticMaterial(cParams)
             obj.nelem = cParams.nelem;
-            obj.nstre = 6;   
-            obj.createCtensor();                        
+            obj.nstre = 3;            
+            obj.createCtensor();            
         end
         
     end
@@ -16,28 +19,22 @@ classdef Material_Elastic_ISO_3D < Material_Elastic_ISO
         function obj = computeC(obj)
             obj.computeYoungModulus();
             obj.computePoissonRatio();
-            C = obj.C;
+            C = obj.C;            
             E = obj.E;
             nu = obj.nu;
-            a = E./((1+nu).*(1-2*nu));
-            Ch = a.*(1-nu);
-            Cs = a.*nu;
-            Css = a.*(1-2*nu)/2;
-            C(1,1,:) = Ch;
-            C(1,2,:) = Cs;
-            C(2,1,:) = Cs;
-            C(1,3,:) = Cs;
-            C(3,1,:) = Cs;
-            C(3,2,:) = Cs;
-            C(2,3,:) = Cs;
-            C(2,2,:) = Ch;
-            C(3,3,:) = Ch;
-            C(4,4,:) = Css;
-            C(5,5,:) = Css;
-            C(6,6,:) = Css;
             
+            c1 = full(E./(1-nu.^2));
+            C(1,1,:) = c1;
+            C(1,2,:) = c1.*nu;
+            C(2,1,:) = c1.*nu;
+            C(2,2,:) = c1;
+            C(3,3,:) = c1*0.5.*(1-nu);            
             obj.C = C;
         end
+        
+    end
+    
+    methods (Access = private)
         
         function computeYoungModulus(obj)
             k = obj.kappa;
@@ -52,6 +49,7 @@ classdef Material_Elastic_ISO_3D < Material_Elastic_ISO
             nu = (k - m)./(k + m);
             obj.nu = nu;
         end
+                
         
     end
     

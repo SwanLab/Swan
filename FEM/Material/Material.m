@@ -1,6 +1,6 @@
 classdef Material < handle
     
-    properties (Access = public)
+    properties (Access = protected)
         nelem
     end
     

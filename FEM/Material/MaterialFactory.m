@@ -8,9 +8,9 @@ classdef MaterialFactory < handle
                 case {'ELASTIC','DIFF-REACT'}
                     switch cParams.pdim
                         case '2D'
-                            material = Material_Elastic_ISO_2D(cParams);
+                            material = Isotropic2dElasticMaterial(cParams);
                         case '3D'
-                            material = Material_Elastic_ISO_3D(cParams);
+                            material = Isotropic3dElasticMaterial(cParams);
                     end
                     
                 case 'HYPERELASTIC'
@@ -20,7 +20,7 @@ classdef MaterialFactory < handle
                             cParams.cartd  = geometry(1).cartd;
                             cParams.nnode  = geometry(1).interpolation.nnode;
                             cParams.coord  = mesh.coord;
-                            material = Material_Hyperelastic_2D(cParams);
+                            material = Isotropic2dHyperElasticMaterial(cParams);
                     end
                     
                 case 'THERMAL'
