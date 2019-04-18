@@ -29,14 +29,17 @@ classdef TopOpt_Problem < handle
             
             obj.createIncrementalScheme(settings);
 
-            
             obj.cost = Cost(settings,settings.weights,obj.designVariable);
             obj.constraint = Constraint(settings,obj.designVariable);            
-
-            obj.createOptimizerSettings(settings);             
-            obj.optimizer = OptimizerFactory.create(obj.optimizerSettings);
+            
+            obj.createOptimizer(settings);
 
             obj.createVideoManager(settings);
+        end
+        
+        function createOptimizer(obj,settings)
+            obj.createOptimizerSettings(settings);
+            obj.optimizer = OptimizerFactory.create(obj.optimizerSettings);
         end
         
         function createOptimizerSettings(obj,settings)
@@ -78,6 +81,7 @@ classdef TopOpt_Problem < handle
             optSet.showBC               = settings.showBC;   
             
             optSet.settings = settings;
+            
             optSet.cost     = obj.cost;
             optSet.constraint = obj.constraint;
             
@@ -149,7 +153,7 @@ classdef TopOpt_Problem < handle
         function solveCurrentProblem(obj)
             iStep = obj.incrementalScheme.iStep;
             nSteps = obj.incrementalScheme.nSteps;
-            obj.designVariable = obj.optimizer.solveProblem(obj.designVariable,obj.cost,obj.constraint,iStep,nSteps);
+            obj.designVariable = obj.optimizer.solveProblem(obj.designVariable,iStep,nSteps);
         end
         
         function linkTargetParams(obj)

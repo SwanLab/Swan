@@ -8,25 +8,25 @@ classdef OptimizerFactory < handle
             designVar = settings.designVar;
             switch optimizerName
                 case 'SLERP'
-                    settings.optimizer_unconstr = Optimizer_SLERP(settings.uncOptimizerSettings);
+                    settings.unconstrainedOptimizer = Optimizer_SLERP(settings.uncOptimizerSettings);
                     settings.settings        = settings;
                     settings.designVariable  = settings.designVar;
                     settings.monitoring      = settings.monitoring;
-                    settings.convergenceVars = settings.optimizer_unconstr.convergenceVars;
+                    settings.convergenceVars = settings.unconstrainedOptimizer.convergenceVars;
                     optimizer = Optimizer_AugLag(settings);
                 case 'HAMILTON-JACOBI'
-                    settings.optimizer_unconstr = Optimizer_HJ(settings.uncOptimizerSettings,designVar);
+                    settings.unconstrainedOptimizer = Optimizer_HJ(settings.uncOptimizerSettings,designVar);
                     settings.settings        = settings;
                     settings.designVariable  = settings.designVar;
                     settings.monitoring      = settings.monitoring;
-                    settings.convergenceVars = settings.optimizer_unconstr.convergenceVars;
+                    settings.convergenceVars = settings.unconstrainedOptimizer.convergenceVars;
                     optimizer = Optimizer_AugLag(settings);
                 case 'PROJECTED GRADIENT'
-                    settings.optimizer_unconstr = Optimizer_PG(settings.uncOptimizerSettings);
+                    settings.unconstrainedOptimizer = Optimizer_PG(settings.uncOptimizerSettings);
                     settings.settings        = settings;
                     settings.designVariable  = settings.designVar;
                     settings.monitoring      = settings.monitoring;
-                    settings.convergenceVars = settings.optimizer_unconstr.convergenceVars;
+                    settings.convergenceVars = settings.unconstrainedOptimizer.convergenceVars;
                     optimizer = Optimizer_AugLag(settings);
                 case 'MMA'
                     settings.settings        = settings;
@@ -41,6 +41,10 @@ classdef OptimizerFactory < handle
                     settings.convergenceVars = ConvergenceVariables(1);
                     optimizer = Optimizer_IPOPT(settings);
                 case 'PROJECTED SLERP'
+                    settings.settings        = settings;
+                    settings.designVariable  = settings.designVar;
+                    settings.monitoring      = settings.monitoring;
+                    settings.convergenceVars = ConvergenceVariables(3);
                     optimizer = Optimizer_Projected_Slerp(settings);
                 otherwise
                     error('Invalid optimizer.')
