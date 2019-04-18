@@ -13,7 +13,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
     
     methods (Access = public)
         
-        function obj = Optimizer_Projected_Slerp(cParams,mesh)
+        function obj = Optimizer_Projected_Slerp(cParams)
             obj.init(cParams);
             obj.objfunc = Lagrangian(cParams);
             obj.unconstrainedOptimizer = Optimizer_SLERP(cParams.uncOptimizerSettings);

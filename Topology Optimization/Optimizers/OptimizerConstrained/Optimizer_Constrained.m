@@ -8,12 +8,15 @@ classdef Optimizer_Constrained < Optimizer
     end
     
     properties (Access = protected)
+        hasFinished
         designVar
         monitor
         cost
         constraint
         constraintCase
         historyPrinter
+        iStep
+        nStep
     end
     
     properties (Access = private)
@@ -24,22 +27,27 @@ classdef Optimizer_Constrained < Optimizer
     
     methods (Access = public)
         
-        function designVar = solveProblem(obj,designVar,istep,nstep)
+        function designVar = solveProblem(obj,designVar,iStep,nStep)
+            obj.iStep = iStep;
+            obj.nStep = nStep;
             obj.createPostProcess();
             x0 = designVar.value;
             obj.cost.computeCostAndGradient(x0);
             obj.constraint.computeCostAndGradient(x0);
             obj.printOptimizerVariable();
             
+            obj.hasFinished = false;
+            
             %obj.monitor.refresh(x0,obj.niter,obj.cost,obj.constraint,obj.hasFinished(istep,nstep),istep,nstep);
             
-            while ~obj.hasFinished(istep,nstep)
+            while ~obj.hasFinished
                 obj.niter = obj.niter+1;
                 x = obj.update(x0);
                 designVar.update(x);
-                obj.monitor.refresh(obj.niter,obj.cost,obj.constraint,obj.hasFinished(istep,nstep),istep,nstep);
+                obj.updateStatus();
+                obj.monitor.refresh(obj.niter,obj.hasFinished,iStep,nStep);
                 obj.printOptimizerVariable();
-                obj.printHistory(istep)
+                obj.printHistory()
                 x0 = x;
             end
             obj.printOptimizerVariable();
@@ -51,6 +59,10 @@ classdef Optimizer_Constrained < Optimizer
     
     methods (Access = protected)
         
+        function updateStatus(obj)
+            obj.hasFinished = obj.hasConverged || obj.niter >= obj.maxiter*(obj.iStep/obj.nStep);
+        end
+        
         function printOptimizerVariable(obj)
             d.x = obj.designVar.value;
             d.cost = obj.cost;
@@ -58,8 +70,8 @@ classdef Optimizer_Constrained < Optimizer
             obj.postProcess.print(obj.niter,d);
         end
         
-        function printHistory(obj,iStep)
-            obj.historyPrinter.print(obj.niter,iStep);
+        function printHistory(obj)
+            obj.historyPrinter.print(obj.niter,obj.iStep);
         end
         
         function createPostProcess(obj)
@@ -100,10 +112,6 @@ classdef Optimizer_Constrained < Optimizer
             obj.createMonitorDocker(cParams,set);
         end
         
-        function itHas = hasFinished(obj,istep,nstep)
-            itHas = obj.hasConverged || obj.niter >= obj.maxiter*(istep/nstep);
-        end
-        
     end
     
     methods (Access = private)
@@ -118,6 +126,8 @@ classdef Optimizer_Constrained < Optimizer
         
         function createMonitorDocker(obj,cParams,set)
             mS.settingsParamsMonitor.showOptParams   = cParams.monitoring;
+            mS.settingsParamsMonitor.cost            = obj.cost;
+            mS.settingsParamsMonitor.constraint      = obj.constraint;
             mS.settingsParamsMonitor.convergenceVars = cParams.convergenceVars;
             mS.settingsParamsMonitor.settings        = set;
             mS.settingsDesignVarMonitor.plotting  = set.plotting;

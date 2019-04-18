@@ -11,8 +11,8 @@ classdef MonitoringDocker < handle
             obj.createMonitors(cParams);
         end
         
-        function refresh(obj,it,cost,constraint,hasFinished,istep,nstep)
-            obj.paramsMonitor.refresh(it,cost,constraint,hasFinished,istep,nstep);
+        function refresh(obj,it,hasFinished,istep,nstep)
+            obj.paramsMonitor.refresh(it,hasFinished,istep,nstep);
             obj.designVarMonitor.refresh();
         end
         

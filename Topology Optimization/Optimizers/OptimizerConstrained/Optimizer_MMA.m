@@ -33,7 +33,7 @@ classdef Optimizer_MMA < Optimizer_Constrained
         function obj = Optimizer_MMA(cParams)           
             obj.init(cParams);
             obj.maxoutit = 1e4;
-            obj.convergenceVars = ConvergenceVariables(2);
+            obj.convergenceVars = cParams.convergenceVars;
         end
         
         function x = update(obj,x)

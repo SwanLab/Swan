@@ -30,8 +30,8 @@ classdef ParamsMonitor < ParamsMonitor_Interface
             drawnow
         end
         
-        function refresh(obj,it,cost,constraint,hasFinished,iStep,nStep)
-            obj.updateParams(it,cost,constraint,hasFinished,iStep,nStep);
+        function refresh(obj,it,hasFinished,iStep,nStep)
+            obj.updateParams(it,hasFinished,iStep,nStep);
             obj.updateFigures();
             if obj.shallRefresh()
                 obj.refreshFigures();
@@ -45,8 +45,10 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         
         function init(obj,cParams)
             obj.saveSettings(cParams.settings);
-            obj.convergenceVars = cParams.convergenceVars;
-            obj.namingManager = NamingManager(cParams.settings);
+            obj.costFuncValue    = cParams.cost;
+            obj.constraintValues = cParams.constraint;
+            obj.convergenceVars  = cParams.convergenceVars;
+            obj.namingManager    = NamingManager(cParams.settings);
             obj.createFigures();
         end
         
@@ -131,9 +133,7 @@ classdef ParamsMonitor < ParamsMonitor_Interface
             obj.nCols = round(obj.nFigs/obj.nRows);
         end
         
-        function updateParams(obj,it,cost,constraint,hasFinished,iStep,nStep)
-            obj.costFuncValue = cost;
-            obj.constraintValues = constraint;
+        function updateParams(obj,it,hasFinished,iStep,nStep)
             obj.iteration = it;
             obj.hasFinished = hasFinished;
             obj.iRefresh = 1;
