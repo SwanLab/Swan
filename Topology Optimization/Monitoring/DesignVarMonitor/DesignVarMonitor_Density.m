@@ -5,6 +5,7 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
     end
     
     properties (Access = private)
+        rhoElem
         filter
     end
     
@@ -15,9 +16,9 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
             obj.createFilter(designVar);
         end
         
-        function plot(obj,rho)
-            rhoElem = obj.filterDensity(rho);
-            set(obj.patchHandle,'FaceVertexAlphaData',double(rhoElem));
+        function plot(obj)
+            obj.filterDensity();
+            set(obj.patchHandle,'FaceVertexAlphaData',obj.rhoElem);
         end
         
     end
@@ -53,7 +54,8 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
             obj.filter.preProcess();
         end
         
-        function rhoElem = filterDensity(obj,rho)
+        function rhoElem = filterDensity(obj)
+            rho = obj.designVar.value;
             if obj.isNodal(rho)
                 rhoElem = obj.filter.getP0fromP1(rho);
             elseif obj.isElemental(rho)
@@ -61,6 +63,7 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
             else
                 error('Invalid density vector size')
             end
+            obj.rhoElem = double(rhoElem);
         end
         
         function itIs = isNodal(obj,x)

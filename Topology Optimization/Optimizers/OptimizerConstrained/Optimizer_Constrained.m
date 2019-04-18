@@ -13,7 +13,7 @@ classdef Optimizer_Constrained < Optimizer
         cost
         constraint
         constraintCase
-        metricsPrinter
+        historyPrinter
     end
     
     properties (Access = private)
@@ -24,20 +24,20 @@ classdef Optimizer_Constrained < Optimizer
     
     methods (Access = public)
         
-        function designVar = solveProblem(obj,designVar,cost,constraint,istep,nstep)
-            obj.createPostProcess(cost,constraint);
+        function designVar = solveProblem(obj,designVar,istep,nstep)
+            obj.createPostProcess();
             x0 = designVar.value;
-            cost.computeCostAndGradient(x0);
-            constraint.computeCostAndGradient(x0);
+            obj.cost.computeCostAndGradient(x0);
+            obj.constraint.computeCostAndGradient(x0);
             obj.printOptimizerVariable();
             
-            %             obj.monitor.refresh(x0,obj.niter,cost,constraint,obj.convergenceVars,obj.hasFinished(istep,nstep),istep,nstep);
+            %obj.monitor.refresh(x0,obj.niter,obj.cost,obj.constraint,obj.hasFinished(istep,nstep),istep,nstep);
             
             while ~obj.hasFinished(istep,nstep)
                 obj.niter = obj.niter+1;
                 x = obj.update(x0);
                 designVar.update(x);
-                obj.monitor.refresh(x,obj.niter,cost,constraint,obj.convergenceVars,obj.hasFinished(istep,nstep),istep,nstep);
+                obj.monitor.refresh(obj.niter,obj.cost,obj.constraint,obj.hasFinished(istep,nstep),istep,nstep);
                 obj.printOptimizerVariable();
                 obj.printHistory(istep)
                 x0 = x;
@@ -59,16 +59,16 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function printHistory(obj,iStep)
-            obj.metricsPrinter.print(obj.niter,iStep);
+            obj.historyPrinter.print(obj.niter,iStep);
         end
         
-        function createPostProcess(obj,cost,constraint)
+        function createPostProcess(obj)
             fileName = obj.designVar.meshGiD.problemID;
             d = obj.createPostProcessDataBase(fileName);
             d.printMode = obj.printMode;
             d.optimizer = obj.optimizer;
-            d.cost = cost;
-            d.constraint = constraint;
+            d.cost = obj.cost;
+            d.constraint = obj.constraint;
             if obj.printing
                 obj.postProcess = Postprocess('TopOptProblem',d);
             else
@@ -87,7 +87,6 @@ classdef Optimizer_Constrained < Optimizer
             obj.constraintCase   = set.constraint_case;
             obj.hasConverged     = false;
             
-            % !! REMOVE !!
             obj.cost = cParams.settings.cost;
             obj.constraint = cParams.settings.constraint;
             
@@ -96,16 +95,9 @@ classdef Optimizer_Constrained < Optimizer
             obj.maxiter   = set.maxiter;
             obj.printing  = set.printing;
             obj.printMode = set.printMode;
-            obj.createMetricsPrinter();
+            obj.createHistoyPrinter();
             
-            
-            mS.showOptParams = cParams.monitoring;
-            mS.plotting  = set.plotting;
-            mS.settings  = set;
-            mS.designVar = cParams.designVariable;
-            mS.convergenceVars = cParams.convergenceVars;
-            
-            obj.monitor = MonitoringDocker(mS);
+            obj.createMonitorDocker(cParams,set);
         end
         
         function itHas = hasFinished(obj,istep,nstep)
@@ -116,12 +108,23 @@ classdef Optimizer_Constrained < Optimizer
     
     methods (Access = private)
         
-        function createMetricsPrinter(obj)
+        function createHistoyPrinter(obj)
             settingsMetricsPrinter.fileName = obj.designVar.meshGiD.problemID;
             settingsMetricsPrinter.optimizer = obj;
             settingsMetricsPrinter.cost = obj.cost;
             settingsMetricsPrinter.constraint = obj.constraint;
-            obj.metricsPrinter = OptimizationMetricsPrinterFactory.create(obj.optimizer,obj.printing,settingsMetricsPrinter);
+            obj.historyPrinter = OptimizationMetricsPrinterFactory.create(obj.optimizer,obj.printing,settingsMetricsPrinter);
+        end
+        
+        function createMonitorDocker(obj,cParams,set)
+            mS.settingsParamsMonitor.showOptParams   = cParams.monitoring;
+            mS.settingsParamsMonitor.convergenceVars = cParams.convergenceVars;
+            mS.settingsParamsMonitor.settings        = set;
+            mS.settingsDesignVarMonitor.plotting  = set.plotting;
+            mS.settingsDesignVarMonitor.designVar = cParams.designVariable;
+            mS.settingsDesignVarMonitor.settings  = set;
+            
+            obj.monitor = MonitoringDocker(mS);
         end
         
         function d = createPostProcessDataBase(obj,fileName)

@@ -94,7 +94,7 @@ classdef ShapeFunctional_Factory
                 case 'nonadjoint_compliance'
                     shapeFunction = ShFunc_NonSelfAdjoint_Compliance(new_settings);
                 case 'volume'
-                    shapeFunction = ShFunc_Volume(settings);
+                    shapeFunction = ShFunc_Volume(new_settings);
                 case 'volumeConstraint'
                     shapeFunction = Volume_constraint(new_settings);
                 otherwise

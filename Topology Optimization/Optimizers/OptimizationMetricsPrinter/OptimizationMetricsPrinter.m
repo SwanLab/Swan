@@ -6,6 +6,7 @@ classdef OptimizationMetricsPrinter < handle
     
     properties (Access = private)
         filePath
+        folderPath
         cost
         constraint
     end
@@ -50,11 +51,11 @@ classdef OptimizationMetricsPrinter < handle
     methods (Access = protected)
         
         function init(obj,cParams)
-            fileName = cParams.fileName;
-            obj.filePath = fullfile('Output',fileName,strcat(fileName,'.txt'));
+            obj.createPaths(cParams);
             obj.optimizer = cParams.optimizer;
             obj.cost = cParams.cost;
             obj.constraint = cParams.constraint;
+            obj.createFolderIfNeeded();
             obj.createFile();
         end
         
@@ -62,9 +63,21 @@ classdef OptimizationMetricsPrinter < handle
     
     methods (Access = private)
         
+        function createPaths(obj,cParams)
+            fileName = cParams.fileName;
+            obj.folderPath = fullfile('Output',fileName);
+            obj.filePath = fullfile(obj.folderPath,strcat(fileName,'.txt'));
+        end
+        
         function createFile(obj)
             fid = fopen(obj.filePath,'wt');
             fclose(fid);
+        end
+        
+        function createFolderIfNeeded(obj)
+            if ~exist(obj.folderPath,'dir')
+                mkdir(obj.folderPath);
+            end
         end
         
     end

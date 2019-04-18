@@ -7,8 +7,8 @@ classdef DesignVarMonitor_LevelSet_2D < DesignVarMonitor_LevelSet
     
     methods (Access = public)
         
-        function obj = DesignVarMonitor_LevelSet_2D(mesh,showBC)
-            obj@DesignVarMonitor_LevelSet(mesh,showBC);
+        function obj = DesignVarMonitor_LevelSet_2D(deisgnVar,showBC)
+            obj@DesignVarMonitor_LevelSet(deisgnVar,showBC);
         end
         
     end

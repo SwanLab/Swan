@@ -7,8 +7,8 @@ classdef DesignVarMonitor_LevelSet_3D < DesignVarMonitor_LevelSet
     
     methods (Access = public)
         
-        function obj = DesignVarMonitor_LevelSet_3D(mesh,showBC)
-            obj@DesignVarMonitor_LevelSet(mesh,showBC);
+        function obj = DesignVarMonitor_LevelSet_3D(designVar,showBC)
+            obj@DesignVarMonitor_LevelSet(designVar,showBC);
         end
         
     end

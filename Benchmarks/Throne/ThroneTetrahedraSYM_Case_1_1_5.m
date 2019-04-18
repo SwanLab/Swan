@@ -17,6 +17,8 @@ Perimeter_target = 1;
 optimality_final = 1e-3;
 constr_final =1e-3;
 
+printing = false;
+
 Vfrac_initial = 1;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;

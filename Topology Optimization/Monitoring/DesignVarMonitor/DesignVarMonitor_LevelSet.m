@@ -17,8 +17,8 @@ classdef DesignVarMonitor_LevelSet < DesignVarMonitor_Abstract
             obj.createUnfittedMesh();
         end
         
-        function plot(obj,phi)
-            obj.updateMesh(phi);
+        function plot(obj)
+            obj.updateMesh();
             obj.refreshFigure();
         end
         
@@ -52,7 +52,8 @@ classdef DesignVarMonitor_LevelSet < DesignVarMonitor_Abstract
             obj.meshUnfitted = Mesh_Unfitted_Factory.create(unfittedSettings);
         end
         
-        function updateMesh(obj,phi)
+        function updateMesh(obj)
+            phi = obj.designVar.value;
             obj.meshUnfitted.computeMesh(phi);
         end
         

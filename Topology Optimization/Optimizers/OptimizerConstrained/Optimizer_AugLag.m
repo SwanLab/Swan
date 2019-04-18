@@ -1,7 +1,7 @@
 classdef Optimizer_AugLag < Optimizer_Constrained
     
     properties (GetAccess = public, SetAccess = private)
-        optimizer_unconstr
+        unconstrainedOptimizer
         augLagrangian
         penalty
     end
@@ -16,15 +16,15 @@ classdef Optimizer_AugLag < Optimizer_Constrained
         function obj = Optimizer_AugLag(cParams)
             obj.init(cParams);
             
-            obj.optimizer_unconstr = cParams.optimizer_unconstr;
-            obj.convergenceVars = obj.optimizer_unconstr.convergenceVars;
+            obj.unconstrainedOptimizer = cParams.unconstrainedOptimizer;
+            obj.convergenceVars = obj.unconstrainedOptimizer.convergenceVars;
             
             obj.createAugmentedLagrangian();
             obj.createLambdaAndPenalty();
         end
         
         function x = update(obj,x0)
-            obj.optimizer_unconstr.target_parameters = obj.target_parameters;
+            obj.unconstrainedOptimizer.target_parameters = obj.target_parameters;
             obj.updateDualVariable();
             obj.augLagrangian.updateBecauseOfDual(obj.lambda,obj.penalty);
             obj.updatePrimalVariable(x0);
@@ -37,9 +37,9 @@ classdef Optimizer_AugLag < Optimizer_Constrained
     methods (Access = private)
         
         function updatePrimalVariable(obj,x0)
-            obj.optimizer_unconstr.init(x0,obj.augLagrangian);
-            while ~obj.optimizer_unconstr.hasConverged
-                x = obj.optimizer_unconstr.update(x0);
+            obj.unconstrainedOptimizer.init(x0,obj.augLagrangian);
+            while ~obj.unconstrainedOptimizer.hasConverged
+                x = obj.unconstrainedOptimizer.update(x0);
             end
             x = obj.revertIfDesignNotImproved(x,x0);
             
@@ -48,8 +48,8 @@ classdef Optimizer_AugLag < Optimizer_Constrained
         
         function updateConvergenceStatus(obj)
             active_constr = obj.penalty > 0;
-            isNotOptimal  = obj.optimizer_unconstr.opt_cond >=  obj.optimizer_unconstr.optimality_tol;
-            isNotFeasible = any(any(abs(obj.constraint.value(active_constr)) > obj.optimizer_unconstr.constr_tol(active_constr)));
+            isNotOptimal  = obj.unconstrainedOptimizer.opt_cond >=  obj.unconstrainedOptimizer.optimality_tol;
+            isNotFeasible = any(any(abs(obj.constraint.value(active_constr)) > obj.unconstrainedOptimizer.constr_tol(active_constr)));
             hasNotConverged = isNotOptimal || isNotFeasible;
             obj.hasConverged = ~hasNotConverged;
         end
@@ -63,7 +63,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
         end
         
         function x = revertIfDesignNotImproved(obj,x,x0)
-            if ~obj.optimizer_unconstr.designImproved
+            if ~obj.unconstrainedOptimizer.designImproved
                 x = x0;
             end
         end
