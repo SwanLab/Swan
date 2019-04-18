@@ -1,7 +1,10 @@
 classdef Optimizer < handle
     
+    properties (Access = public)
+        convergenceVars
+    end
+    
     properties (Access = protected)
-        stop_vars
         hasConverged
     end
     

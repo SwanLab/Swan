@@ -24,46 +24,25 @@ classdef Optimizer_Constrained < Optimizer
     
     methods (Access = public)
         
-        function obj = Optimizer_Constrained(cParams)
-            set = cParams.settings.settings;
-            designVar = cParams.designVariable;
-            
-            obj.constraintCase   = set.constraint_case;
-            obj.hasConverged      = false;
-            
-            % !! REMOVE !!
-            obj.cost = cParams.settings.cost;
-            obj.constraint = cParams.settings.constraint;
-            
-            obj.init(set,designVar);
-            
-            mS.showOptParams = cParams.monitoring;
-            mS.plotting  = set.plotting;
-            mS.settings  = set;
-            mS.designVar = cParams.designVariable;
-            
-            obj.monitor = MonitoringDocker(mS);
-        end
-        
         function designVar = solveProblem(obj,designVar,cost,constraint,istep,nstep)
             obj.createPostProcess(cost,constraint);
             x0 = designVar.value;
             cost.computeCostAndGradient(x0);
             constraint.computeCostAndGradient(x0);
-            obj.print();
+            obj.printOptimizerVariable();
             
-            obj.monitor.refresh(x0,obj.niter,cost,constraint,obj.stop_vars,obj.hasFinished(istep,nstep),istep,nstep);
+            %             obj.monitor.refresh(x0,obj.niter,cost,constraint,obj.convergenceVars,obj.hasFinished(istep,nstep),istep,nstep);
             
             while ~obj.hasFinished(istep,nstep)
                 obj.niter = obj.niter+1;
                 x = obj.update(x0);
                 designVar.update(x);
-                obj.monitor.refresh(x,obj.niter,cost,constraint,obj.stop_vars,obj.hasFinished(istep,nstep),istep,nstep);
-                obj.print();
-                obj.exportMetrics(istep)
+                obj.monitor.refresh(x,obj.niter,cost,constraint,obj.convergenceVars,obj.hasFinished(istep,nstep),istep,nstep);
+                obj.printOptimizerVariable();
+                obj.printHistory(istep)
                 x0 = x;
             end
-            obj.print();
+            obj.printOptimizerVariable();
             
             obj.hasConverged = 0;
         end
@@ -72,14 +51,14 @@ classdef Optimizer_Constrained < Optimizer
     
     methods (Access = protected)
         
-        function print(obj)
+        function printOptimizerVariable(obj)
             d.x = obj.designVar.value;
             d.cost = obj.cost;
             d.constraint = obj.constraint;
             obj.postProcess.print(obj.niter,d);
         end
         
-        function exportMetrics(obj,iStep)
+        function printHistory(obj,iStep)
             obj.metricsPrinter.print(obj.niter,iStep);
         end
         
@@ -101,6 +80,34 @@ classdef Optimizer_Constrained < Optimizer
     
     methods (Access = protected)
         
+        function init(obj,cParams)
+            set = cParams.settings.settings;
+            designVar = cParams.designVariable;
+            
+            obj.constraintCase   = set.constraint_case;
+            obj.hasConverged     = false;
+            
+            % !! REMOVE !!
+            obj.cost = cParams.settings.cost;
+            obj.constraint = cParams.settings.constraint;
+            
+            obj.designVar = designVar;
+            obj.optimizer = set.optimizer;
+            obj.maxiter   = set.maxiter;
+            obj.printing  = set.printing;
+            obj.printMode = set.printMode;
+            obj.createMetricsPrinter();
+            
+            
+            mS.showOptParams = cParams.monitoring;
+            mS.plotting  = set.plotting;
+            mS.settings  = set;
+            mS.designVar = cParams.designVariable;
+            mS.convergenceVars = cParams.convergenceVars;
+            
+            obj.monitor = MonitoringDocker(mS);
+        end
+        
         function itHas = hasFinished(obj,istep,nstep)
             itHas = obj.hasConverged || obj.niter >= obj.maxiter*(istep/nstep);
         end
@@ -108,15 +115,6 @@ classdef Optimizer_Constrained < Optimizer
     end
     
     methods (Access = private)
-        
-        function init(obj,settings,designVar)
-            obj.designVar = designVar;
-            obj.optimizer = settings.optimizer;
-            obj.maxiter   = settings.maxiter;
-            obj.printing  = settings.printing;
-            obj.printMode = settings.printMode;
-            obj.createMetricsPrinter();
-        end
         
         function createMetricsPrinter(obj)
             settingsMetricsPrinter.fileName = obj.designVar.meshGiD.problemID;

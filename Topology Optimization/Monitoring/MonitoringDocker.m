@@ -15,11 +15,11 @@ classdef MonitoringDocker < handle
         function obj = MonitoringDocker(cParams)
             obj.shallDisplayParams    = cParams.showOptParams;
             obj.shallDisplayDesignVar = cParams.plotting;
-            obj.createMonitors(cParams.settings,cParams.designVar);
+            obj.createMonitors(cParams);
         end
         
-        function refresh(obj,x,it,cost,constraint,convVars,hasFinished,istep,nstep)
-            obj.paramsMonitor.refresh(it,cost,constraint,convVars,hasFinished,istep,nstep);
+        function refresh(obj,x,it,cost,constraint,convergenceVars,hasFinished,istep,nstep)
+            obj.paramsMonitor.refresh(it,cost,constraint,convergenceVars,hasFinished,istep,nstep);
             obj.designVarMonitor.refresh(x);
         end
         
@@ -27,9 +27,12 @@ classdef MonitoringDocker < handle
     
     methods (Access = private)
         
-        function createMonitors(obj,settings,mesh)
-            obj.paramsMonitor = ParamsMonitorFactory.create(obj.shallDisplayParams,settings);
-            obj.designVarMonitor = DesignVarMonitorFactory().create(obj.shallDisplayDesignVar,settings,mesh);
+        function createMonitors(obj,cParams)
+            settings = cParams.settings;
+            designVar = cParams.designVar;
+            convergenceVars = cParams.convergenceVars;
+            obj.paramsMonitor = ParamsMonitorFactory.create(obj.shallDisplayParams,settings,convergenceVars);
+            obj.designVarMonitor = DesignVarMonitorFactory().create(obj.shallDisplayDesignVar,settings,designVar);
         end
         
     end

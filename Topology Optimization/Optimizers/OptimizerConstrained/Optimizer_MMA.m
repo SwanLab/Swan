@@ -30,13 +30,10 @@ classdef Optimizer_MMA < Optimizer_Constrained
     
     methods (Access = public)
         
-        function obj = Optimizer_MMA(settings)
-            ocS.settings        = settings;
-            ocS.designVariable  = settings.designVar;
-            ocS.monitoring      = settings.monitoring;
-            
-            obj@Optimizer_Constrained(ocS);
+        function obj = Optimizer_MMA(cParams)           
+            obj.init(cParams);
             obj.maxoutit = 1e4;
+            obj.convergenceVars = ConvergenceVariables(2);
         end
         
         function x = update(obj,x)
@@ -65,8 +62,9 @@ classdef Optimizer_MMA < Optimizer_Constrained
             obj.updateConvergenceStatus();
             
             obj.constraint.lambda = lam;
-            obj.stop_vars(1,1) = obj.kktnorm;   obj.stop_vars(1,2) = obj.kkttol;
-            obj.stop_vars(2,1) = obj.outit;     obj.stop_vars(2,2) = obj.maxoutit;
+            obj.convergenceVars.reset();
+            obj.convergenceVars.append(obj.kktnorm);
+            obj.convergenceVars.append(obj.outit/obj.maxoutit);
         end
         
     end

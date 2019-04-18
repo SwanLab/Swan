@@ -28,6 +28,7 @@ classdef AugmentedLagrangian < ObjectiveFunction
             obj.lambda = lambda;
             obj.penalty = penalty;
             obj.modifyInactiveConstraints();
+            obj.constraint.lambda = lambda;
             
             obj.computeFunction();
             obj.computeGradient();

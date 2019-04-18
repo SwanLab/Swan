@@ -10,13 +10,11 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
         data        
     end
     methods
-        function obj = Optimizer_IPOPT(settings)
-            ocS.settings        = settings;
-            ocS.designVariable  = settings.designVar;
-            ocS.monitoring      = settings.monitoring;            
-            obj@Optimizer_Constrained(ocS);
-            obj.nconstr = settings.nconstr;
-            obj.max_iter = settings.maxiter;
+        function obj = Optimizer_IPOPT(cParams)
+            obj.init(ocS);
+            obj.convergenceVars = ConvergenceVariables(1);
+            obj.nconstr = cParams.nconstr;
+            obj.max_iter = cParams.maxiter;
             obj.niter=-1;
         end
         function optimality_tolerance = get.optimality_tolerance(obj)
@@ -89,10 +87,12 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             obj.data=data;
             obj.niter=obj.niter+1;
             obj.designVar.update(data.x);
-            obj.print();            
+            obj.printOptimizerVariable();            
             obj.constraint_copy.lambda=zeros(obj.constraint_copy.nSF,1);
-            obj.monitor.refresh(data.x,obj.niter,obj.cost_copy,obj.constraint_copy,data.inf_du,obj.hasFinished(istep,nstep),istep,nstep);            
-            obj.exportMetrics(istep)
+            obj.convergenceVars.reset();
+            obj.convergenceVars.append(data.inf_du);
+            obj.monitor.refresh(data.x,obj.niter,obj.cost_copy,obj.constraint_copy,obj.convergenceVars,obj.hasFinished(istep,nstep),istep,nstep);            
+            obj.printHistory(istep)
         end
     end
 

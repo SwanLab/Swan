@@ -26,3 +26,4 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 printing = false;
+monitoring_interval = 1;

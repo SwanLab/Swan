@@ -13,17 +13,15 @@ classdef Optimizer_AugLag < Optimizer_Constrained
     
     methods (Access = public)
         
-        function obj = Optimizer_AugLag(settings)
-            ocS.settings       = settings;
-            ocS.designVariable = settings.designVar;
-            ocS.monitoring     = settings.monitoring;
-            obj@Optimizer_Constrained(ocS);
+        function obj = Optimizer_AugLag(cParams)            
+            obj.init(cParams);
             
+            obj.convergenceVars = cParams.optimizer_unconstr.convergenceVars;
             augLagS.constraintCase = obj.constraintCase;
             
             obj.augLagrangian = AugmentedLagrangian(augLagS);
             obj.augLagrangian.link(obj.cost,obj.constraint);
-            obj.optimizer_unconstr = settings.optimizer_unconstr;
+            obj.optimizer_unconstr = cParams.optimizer_unconstr;
             
             nConstraints = obj.constraint.nSF;
             obj.lambda  = zeros(1,nConstraints);
@@ -47,7 +45,6 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             obj.optimizer_unconstr.init(x0,obj.augLagrangian);
             while ~obj.optimizer_unconstr.hasConverged
                 x = obj.optimizer_unconstr.update(x0,obj.augLagrangian);
-                obj.stop_vars = obj.optimizer_unconstr.stop_vars;
             end
             
             if ~obj.optimizer_unconstr.designImproved
