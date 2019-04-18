@@ -1,4 +1,4 @@
-classdef Lagrangian < Objective_Function
+classdef Lagrangian < ObjectiveFunction
    
     properties
         lambda

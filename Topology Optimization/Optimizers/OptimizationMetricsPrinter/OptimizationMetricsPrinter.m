@@ -18,7 +18,6 @@ classdef OptimizationMetricsPrinter < handle
         
         function obj = OptimizationMetricsPrinter(cParams)
             obj.init(cParams);
-            obj.createFile();
         end
         
         function print(obj,nIter,iStep)
@@ -48,7 +47,7 @@ classdef OptimizationMetricsPrinter < handle
         
     end
     
-    methods (Access = private)
+    methods (Access = protected)
         
         function init(obj,cParams)
             fileName = cParams.fileName;
@@ -56,7 +55,12 @@ classdef OptimizationMetricsPrinter < handle
             obj.optimizer = cParams.optimizer;
             obj.cost = cParams.cost;
             obj.constraint = cParams.constraint;
+            obj.createFile();
         end
+        
+    end
+    
+    methods (Access = private)
         
         function createFile(obj)
             fid = fopen(obj.filePath,'wt');

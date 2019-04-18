@@ -9,6 +9,9 @@ classdef OptimizationMetricsPrinter_Null < OptimizationMetricsPrinter
     
     methods (Access = protected)
         
+        function init(obj,cParams)
+        end
+        
         function printConvergenceVariables(obj,fid)
         end
         

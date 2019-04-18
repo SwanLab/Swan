@@ -1,4 +1,4 @@
-classdef AugmentedLagrangian < Objective_Function
+classdef AugmentedLagrangian < ObjectiveFunction
     
     properties (Access = public)
         lambda

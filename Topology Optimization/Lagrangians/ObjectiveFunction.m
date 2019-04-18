@@ -1,4 +1,4 @@
-classdef Objective_Function < handle
+classdef ObjectiveFunction < handle
     
     properties
         value
