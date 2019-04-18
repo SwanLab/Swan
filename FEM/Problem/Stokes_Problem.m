@@ -21,7 +21,8 @@ classdef Stokes_Problem < FEM
         end
         
         function preProcess(obj)
-            obj.material = Material_Stokes(obj.geometry(1).interpolation.nelem);
+            cParams.nelem = obj.geometry(1).interpolation.nelem;
+            obj.material = Material_Stokes(cParams);
             obj.element = Element_Stokes(obj.mesh,obj.geometry,obj.material,obj.dof);
             obj.solver = Solver.create;
         end

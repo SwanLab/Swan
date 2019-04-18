@@ -32,10 +32,6 @@ classdef testComputingFemWithVademecumData < testShowingError ...
     end
     
     methods (Access = protected)
-%         
-%         function computeError(obj)
-%             obj.error = 0;
-%         end
         
         function selectComputedVar(obj)
             obj.computedVar{1} = obj.fem.variables.d_u;            
@@ -59,7 +55,6 @@ classdef testComputingFemWithVademecumData < testShowingError ...
             nelem = obj.fem.element.nelem;
             a = 0.01;
             b = 0.99;
-          %  obj.designVar = (b-a).*rand(nelem,2) + a;
            obj.designVar = (b-a).*[1:nelem;1:nelem]'/(nelem+1) + a;
         end
         

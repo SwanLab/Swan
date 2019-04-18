@@ -15,8 +15,9 @@ classdef AmplificatorTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {...   
-                    'testComputingFemWithVademecumData';
-                    'testMaterialInsertingLpBall';
+                    'testComputingTopOptWithVademecumData';                
+                   % 'testComputingFemWithVademecumData';
+                   % 'testMaterialInsertingLpBall';
                   % 'testFourthOrderAmplificatorTensor';
                   % 'testShapeStressWithAmplificator';
                   % 'testAmplificatorTensorForInclusions';

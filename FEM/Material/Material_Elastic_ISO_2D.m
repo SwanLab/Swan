@@ -1,32 +1,52 @@
 classdef Material_Elastic_ISO_2D < Material_Elastic_ISO
-    %Material_Elastic_ISO_3D Summary of this class goes here
-    %   Detailed explanation goes here
-    
-    properties
+
+    properties (Access = protected)
     end
     
-    methods 
-        function obj = Material_Elastic_ISO_2D(nelem)
-            obj@Material_Elastic_ISO(nelem);
+    methods (Access = public)
+        
+        function obj = Material_Elastic_ISO_2D(cParams)
+            obj.nelem = cParams.nelem;
+            obj.nstre = 3;            
+            obj.createCtensor();            
         end
+        
     end
+    
     
     methods (Access = protected)
+        
         function obj = computeC(obj)
-            C = zeros(3,3,obj.nelem);
+            obj.computeYoungModulus();
+            obj.computePoissonRatio();
+            C = obj.C;            
+            E = obj.E;
+            nu = obj.nu;
             
-            epoiss = (obj.kappa - obj.mu)./(obj.kappa + obj.mu);
-            eyoung = 4*obj.kappa.*obj.mu./(obj.kappa + obj.mu);
-            
-            c1 = full(eyoung./(1-epoiss.^2));
+            c1 = full(E./(1-nu.^2));
             C(1,1,:) = c1;
-            C(1,2,:) = c1.*epoiss;
-            C(2,1,:) = c1.*epoiss;
+            C(1,2,:) = c1.*nu;
+            C(2,1,:) = c1.*nu;
             C(2,2,:) = c1;
-            C(3,3,:) = c1*0.5.*(1-epoiss);
-            
+            C(3,3,:) = c1*0.5.*(1-nu);            
             obj.C = C;
         end
+        
+        function computeYoungModulus(obj)
+            k = obj.kappa;
+            m = obj.mu;            
+            E = 4*k.*m./(k + m);
+            obj.E = E;
+        end
+        
+        function computePoissonRatio(obj)
+            k = obj.kappa;
+            m = obj.mu;            
+            nu = (k - m)./(k + m);
+            obj.nu = nu;
+        end
+                
+        
     end
     
 end
