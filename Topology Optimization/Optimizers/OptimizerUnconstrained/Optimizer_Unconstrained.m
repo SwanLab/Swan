@@ -31,8 +31,7 @@ classdef Optimizer_Unconstrained < Optimizer
             obj.convergenceVars = ConvergenceVariables(3);
         end
         
-        function x = update(obj,x0,objfunc)
-            obj.objectiveFunction = objfunc;
+        function x = update(obj,x0)
             x = obj.compute(x0,obj.objectiveFunction.gradient);
             obj.objectiveFunction.updateBecauseOfPrimal(x);
             obj.updateConvergenceParams(x,x0);
