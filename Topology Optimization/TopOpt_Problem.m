@@ -122,6 +122,7 @@ classdef TopOpt_Problem < handle
         
         function createDesignVariable(obj,settings)
             mesh = Mesh_GiD(settings.filename);
+            designVarSettings = SettingsDesignVariable();
             designVarSettings.mesh = mesh;
             designVarInitializer = DesignVariableCreator(settings,mesh);
             designVarSettings.value = designVarInitializer.getValue();

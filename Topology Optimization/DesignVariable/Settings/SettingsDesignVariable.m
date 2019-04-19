@@ -7,6 +7,7 @@ classdef SettingsDesignVariable < AbstractSettings
     properties (Access = public)
         value
         mesh
+        type
     end
     
      methods (Access = public)

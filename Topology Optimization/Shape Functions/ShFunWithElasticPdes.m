@@ -4,6 +4,7 @@ classdef ShFunWithElasticPdes < Shape_Functional
         interpolation
         matProps
         physProb
+        homogenizedVariablesComputer
     end
     
     methods (Access = public)
@@ -26,7 +27,8 @@ classdef ShFunWithElasticPdes < Shape_Functional
         
         function obj = ShFunWithElasticPdes(cParams)
             obj.init(cParams);
-            obj.interpolation = Material_Interpolation.create(cParams.materialInterpolationParams);
+            obj.homogenizedVariablesComputer = HomegenizedVarComputerFromInterpolation(cParams.materialInterpolationParams);
+            %obj.interpolation = Material_Interpolation.create(cParams.materialInterpolationParams);
         end
         
         function createEquilibriumProblem(obj,fileName)
@@ -36,7 +38,9 @@ classdef ShFunWithElasticPdes < Shape_Functional
         
         function updateMaterialProperties(obj,x)
             rho = obj.filter.getP0fromP1(x);
-            obj.matProps = obj.interpolation.computeMatProp(rho);
+ %           homogenizedVariablesComputer
+%            obj.matProps = obj.interpolation.computeMatProp(rho);
+            obj.matProps = obj.homogenizedVariablesComputer.computeMatProp(rho);
         end
         
         function computeGradient(obj)

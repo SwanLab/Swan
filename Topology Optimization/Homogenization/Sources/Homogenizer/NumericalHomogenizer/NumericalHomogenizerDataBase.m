@@ -43,7 +43,8 @@ classdef NumericalHomogenizerDataBase < handle
             d = SettingsShapeFunctional();
             d.filterParams.filterType = 'P1';
             s = SettingsDesignVariable();
-            d.filterParams.designVar = Density(s);
+            s.type = 'Density';
+            d.filterParams.designVar = DesignVariable.create(s);% Density(s);
             d.filename = obj.femFileName;
             d.domainType = 'MICRO';
         end
@@ -59,7 +60,7 @@ classdef NumericalHomogenizerDataBase < handle
         end
         
         function d = createMaterialInterpDataBase()
-            d.method = 'SIMPALL';
+            d.materialInterpolation = 'SIMPALL';
         end
         
         function d = createMaterialDataBase()
