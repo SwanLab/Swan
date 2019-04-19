@@ -17,7 +17,12 @@ classdef Elastic_Problem < FEM
         end
         
         function preProcess(obj)
-            material = Material.create(obj.geometry,obj.mesh);
+            cParams.ptype = obj.mesh.ptype;
+            cParams.pdim  = obj.mesh.pdim;
+            cParams.nelem = obj.geometry(1).interpolation.nelem;
+            cParams.geometry = obj.geometry;
+            cParams.mesh  = obj.mesh;            
+            material = Material.create(cParams);
             obj.element = Element_Elastic.create(obj.mesh,obj.geometry,material,obj.dof);
             obj.solver = Solver.create;
         end

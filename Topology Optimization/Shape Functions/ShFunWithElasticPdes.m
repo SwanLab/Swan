@@ -2,7 +2,7 @@ classdef ShFunWithElasticPdes < Shape_Functional
     
     properties (Access = protected)
         interpolation
-        matProps
+        homogenizedMatProps
         physProb
         homogenizedVariablesComputer
     end
@@ -10,7 +10,7 @@ classdef ShFunWithElasticPdes < Shape_Functional
     methods (Access = public)
      
         function computeCostAndGradient(obj,x)
-            obj.updateMaterialProperties(x);
+            obj.updateHomogenizedMaterialProperties(x);
             obj.solvePDEs();
             obj.computeFunctionValue();
             obj.computeGradient();
@@ -27,8 +27,6 @@ classdef ShFunWithElasticPdes < Shape_Functional
         
         function obj = ShFunWithElasticPdes(cParams)
             obj.init(cParams);
-            obj.homogenizedVariablesComputer = HomegenizedVarComputerFromInterpolation(cParams.materialInterpolationParams);
-            %obj.interpolation = Material_Interpolation.create(cParams.materialInterpolationParams);
         end
         
         function createEquilibriumProblem(obj,fileName)
@@ -36,11 +34,9 @@ classdef ShFunWithElasticPdes < Shape_Functional
             obj.physProb.preProcess;
         end
         
-        function updateMaterialProperties(obj,x)
+        function updateHomogenizedMaterialProperties(obj,x)
             rho = obj.filter.getP0fromP1(x);
- %           homogenizedVariablesComputer
-%            obj.matProps = obj.interpolation.computeMatProp(rho);
-            obj.matProps = obj.homogenizedVariablesComputer.computeMatProp(rho);
+            obj.homogenizedVariablesComputer.computeMatProp(rho);
         end
         
         function computeGradient(obj)
@@ -55,6 +51,13 @@ classdef ShFunWithElasticPdes < Shape_Functional
             g = obj.filter.getP1fromP0(g);
             g = obj.Msmooth*g;
             obj.gradient = g;
+        end
+        
+        function createHomogenizedVariablesComputer(obj,cParams)
+            cP = cParams.materialInterpolationParams;
+            cP.nelem = obj.physProb.element.nelem;
+            h = HomogenizedVarComputer.create(cP);
+            obj.homogenizedVariablesComputer = h;
         end
         
     end

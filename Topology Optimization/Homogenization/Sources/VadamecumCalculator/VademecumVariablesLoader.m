@@ -34,7 +34,7 @@ classdef VademecumVariablesLoader < handle
         
         function loadVademecumVariables(obj)
             matFile   = [obj.fileName,'.mat'];
-            file2load = fullfile('Output',obj.fileName,matFile);
+            file2load = fullfile('Vademecums',matFile);
             v = load(file2load);
             obj.vadVariables = v.d;
         end

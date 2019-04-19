@@ -5,6 +5,7 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         function obj = ShFunc_Compliance(cParams)
             obj@ShFunWithElasticPdes(cParams);
             obj.createEquilibriumProblem(cParams.filename);
+            obj.createHomogenizedVariablesComputer(cParams);            
         end
         
     end
@@ -12,7 +13,8 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
     methods (Access = protected)
         
         function solvePDEs(obj)
-            obj.physProb.setMatProps(obj.matProps);
+            obj.physProb.setC(obj.homogenizedVariablesComputer.C)
+            %obj.physProb.setMatProps(obj.matProps);
             obj.physProb.computeVariables();
         end
         
@@ -26,7 +28,7 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
             e    = obj.physProb.variables.strain;
             ei   = squeeze(e(igaus,istre,:));
             ej   = squeeze(e(igaus,jstre,:));
-            dCij = squeeze(obj.matProps.dC(istre,jstre,:));
+            dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,:));
             g    = -ei.*dCij.*ej;
         end
         

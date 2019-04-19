@@ -65,6 +65,7 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         homegenizedVariablesComputer
         materialInterpolation
         designVariable
+        vademecumFileName        
     end
     
     properties %exploring tests
@@ -245,9 +246,23 @@ classdef Settings %< handle%& matlab.mixin.Copyable
                obj.designVariable = designVariable;               
             end
             
+            if exist('homegenizedVariablesComputer','var')
+               obj.homegenizedVariablesComputer = homegenizedVariablesComputer;               
+            else
+               obj.homegenizedVariablesComputer = 'ByInterpolation'; 
+               
+            end
+
+            if exist('vademecumFileName','var')            
+                obj.vademecumFileName = vademecumFileName;
+            end
+            
+            
             if  ~(contains(filename,'test','IgnoreCase',true) || contains(filename,'RVE') || obj.hasToAddSpaceBecauseOfIncremental())
                 fprintf('\n')
             end
+            
+            
             
         end
         
@@ -256,9 +271,6 @@ classdef Settings %< handle%& matlab.mixin.Copyable
     
     
     methods (Access = private)
-        
-
-      
         
         function itHas = hasToAddSpaceBecauseOfIncremental(obj)
             itHas = true;

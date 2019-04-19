@@ -23,7 +23,7 @@ classdef ShapeFunctional_Factory
                 case 'perimeterConstraint'
                     obj.cParams = SettingsShFunc_PerimeterConstraint();
                     obj.addParamsFromSettings();
-                    obj.cParams.Perimeter_target=settings.Perimeter_target;
+                    obj.cParams.Perimeter_target = settings.Perimeter_target;
                     shapeFunction = Perimeter_constraint(obj.cParams);
                 case 'chomog_alphabeta'
                     obj.cParams = SettingsShFunc_Chomog();
@@ -61,12 +61,12 @@ classdef ShapeFunctional_Factory
                         iSF = iSF+1;
                     end
                 case 'enforceCh_CCstar_L2'
-                    obj.cParams = SettingsShapeFunctional(); 
-                    obj.addParamsFromSettings();                                        
+                    obj.cParams = SettingsShapeFunctional();
+                    obj.addParamsFromSettings();
                     shapeFunction = ShFunc_Chomog_EnforceCh_CCstar_L2(obj.cParams);
                 case 'nonadjoint_compliance'
                     obj.cParams = SettingsShapeFunctional();
-                    obj.addParamsFromSettings();                                        
+                    obj.addParamsFromSettings();
                     shapeFunction = ShFunc_NonSelfAdjoint_Compliance(obj.cParams);
                 case 'volume'
                     obj.cParams = SettingsShapeFunctional();
@@ -100,11 +100,12 @@ classdef ShapeFunctional_Factory
         end
         
         function createMaterialInterpolationParams(obj)
-            s = SettingsInterpolation();
+            s.type = obj.settings.homegenizedVariablesComputer;
             s.interpolation          = obj.settings.materialInterpolation;
             s.dim                    = obj.settings.pdim;
             s.typeOfMaterial         = obj.settings.material;
             s.constitutiveProperties = obj.settings.TOL;
+            s.vademecumFileName      = obj.settings.vademecumFileName;
             obj.cParams.materialInterpolationParams = s;
         end
         
