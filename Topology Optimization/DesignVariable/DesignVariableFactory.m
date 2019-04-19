@@ -12,13 +12,13 @@ classdef DesignVariableFactory < handle
             obj.cParams = cParams;
             obj.translator = OptimizerToDesignVariableTranslator();
             obj.setupDesignVarSettings();
-            switch obj.cParams.type%obj.getDesignVarType()
+            switch obj.cParams.type
                 case 'LevelSet'
                     designVar = LevelSet(obj.settingsDesignVar);
                 case 'Density'
                     designVar = Density(obj.settingsDesignVar);
                 case 'MicroParams'
-                    designVar = MicroParams();
+                    designVar = MicroParams(obj.settingsDesignVar);
             end
             
         end
@@ -28,8 +28,9 @@ classdef DesignVariableFactory < handle
     methods (Access = private)
         
         function setupDesignVarSettings(obj)
-            obj.settingsDesignVar.mesh = obj.cParams.mesh;
+            obj.settingsDesignVar.mesh  = obj.cParams.mesh;
             obj.settingsDesignVar.value = obj.cParams.value;
+            obj.settingsDesignVar.type  = obj.cParams.type;
         end
         
         function type = getDesignVarType(obj)

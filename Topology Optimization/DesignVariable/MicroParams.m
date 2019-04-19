@@ -1,8 +1,8 @@
-classdef Density < DesignVariable
+classdef MicroParams < DesignVariable
     
     methods (Access = public)
         
-        function obj = Density(cParams)
+        function obj = MicroParams(cParams)
             obj.init(cParams);
         end
         
@@ -17,4 +17,5 @@ classdef Density < DesignVariable
     end
     
 end
-
+    
+   

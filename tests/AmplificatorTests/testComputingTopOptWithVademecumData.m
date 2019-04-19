@@ -31,10 +31,10 @@ classdef testComputingTopOptWithVademecumData < testShowingError ...
             fileName = 'CantileverTriangleCoarse_Case_1_1_1';
             settings = Settings(fileName);
 
-            settings.method = 'VademecumSmoothInclusion';
+           % settings.method = 'VademecumSmoothInclusion';
             settings.homegenizedVariablesComputer = 'ByInterpolation';%'ByVademecum';
             settings.materialInterpolation = 'SIMP-ALL';
-            settings.designVariable = 'LevelSet';'Density';'MicroParams';
+            settings.designVariable = 'MicroParams';'Density';'MicroParams';
             
             settings.optimizer = 'PROJECTED GRADIENT';
 

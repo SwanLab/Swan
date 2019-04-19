@@ -28,8 +28,9 @@ classdef TopOpt_Problem < handle
             settings.pdim = obj.designVariable.meshGiD.pdim;
             
             obj.createIncrementalScheme(settings);
+                        
 
-            obj.cost = Cost(settings,settings.weights,obj.designVariable);
+            obj.cost = Cost(settings,obj.designVariable);
             obj.constraint = Constraint(settings,obj.designVariable);            
             
             obj.createOptimizer(settings);
@@ -124,7 +125,6 @@ classdef TopOpt_Problem < handle
             designVarSettings.mesh = mesh;
             designVarInitializer = DesignVariableCreator(settings,mesh);
             designVarSettings.value = designVarInitializer.getValue();
-            %designVarSettings.optimizer = settings.optimizer;
             designVarSettings.type = settings.designVariable;
             obj.designVariable = DesignVariable.create(designVarSettings);
         end

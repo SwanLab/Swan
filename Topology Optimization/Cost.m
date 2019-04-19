@@ -6,9 +6,9 @@ classdef Cost < CC
     
     methods (Access = public)
         
-        function obj = Cost(settings,weights,designVar)
-            obj@CC(settings,settings.cost,designVar);
-            obj.setWeights(weights);
+        function obj = Cost(settings,designVar)
+            obj.init(settings, settings.cost,designVar);            
+            obj.setWeights(settings.weights);
         end
         
     end

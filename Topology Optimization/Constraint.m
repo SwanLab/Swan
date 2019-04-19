@@ -7,7 +7,7 @@ classdef Constraint < CC
     methods (Access = public)
         
         function obj = Constraint(settings,designVar)
-            obj@CC(settings,settings.constraint,designVar);
+            obj.init(settings, settings.constraint,designVar);
         end
         
         function updateFields(obj,iSF)

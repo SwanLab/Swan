@@ -21,11 +21,6 @@ classdef CC < handle
     
     methods (Access = public)
         
-        function obj = CC(settings,SF_list,designVar)
-            obj.designVar = designVar;
-            obj.createShapeFunctions(SF_list,settings);
-        end
-        
         function preProcess(obj)
             for iSF = 1:obj.nSF
                 obj.ShapeFuncs{iSF}.filter.preProcess;
@@ -41,6 +36,15 @@ classdef CC < handle
                 obj.updateFields(iSF);
             end
         end
+        
+    end
+    
+    methods (Access = protected)
+        
+        function obj = init(obj,settings,SF_list,designVar)
+            obj.designVar = designVar;
+            obj.createShapeFunctions(SF_list,settings);
+        end        
         
     end
     

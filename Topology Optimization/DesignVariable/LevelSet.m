@@ -1,14 +1,9 @@
 classdef LevelSet < DesignVariable
     
-    properties (GetAccess = public, SetAccess = protected)
-        type = 'LevelSet';
-    end
-    
     methods (Access = public)
         
         function obj = LevelSet(cParams)
-            obj.value = cParams.value;
-            obj.meshGiD = cParams.mesh;
+            obj.init(cParams);
             obj.createUnfittedMesh(cParams.mesh);
         end
         

@@ -1,12 +1,9 @@
 classdef DesignVariable < handle & matlab.mixin.Copyable
     
     properties (GetAccess = public, SetAccess = protected)
-        mesh
-        value
         meshGiD
-    end
-    
-    properties (GetAccess = public, SetAccess = protected, Abstract)
+        value
+        mesh        
         type
     end
     
@@ -28,6 +25,17 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
         function objClone = clone(obj)
             objClone = copy(obj);
         end
+        
+    end
+    
+    methods (Access = protected)
+        
+        function init(obj,cParams)
+            obj.type    = cParams.type;
+            obj.value   = cParams.value;
+            obj.meshGiD = cParams.mesh;            
+        end
+        
         
     end
     

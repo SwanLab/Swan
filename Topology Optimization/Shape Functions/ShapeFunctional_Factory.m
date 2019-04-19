@@ -1,81 +1,49 @@
 classdef ShapeFunctional_Factory
     
-    methods (Static, Access = public)
+    properties (Access = private)
+        settings
+        cParams
+        designVar
+    end
+    
+    methods (Access = public)
         
-        function shapeFunction = create(type,settings,designVar)
-            
-            %             if ~isempty(settings.shFuncParamsName)
-            %                 new_settings=SettingsShapeFunctional(settings.shFuncParamsName);
-            %             else
-            filterParams = SettingsFilter();
-            filterParams.filterType = settings.filter;
-            filterParams.designVar = designVar;
-            
-            materialInterpolationParams = SettingsInterpolation();
-            materialInterpolationParams.interpolation=settings.materialInterpolation;
-            materialInterpolationParams.dim=settings.pdim;
-            materialInterpolationParams.typeOfMaterial=settings.material;
-            materialInterpolationParams.constitutiveProperties=settings.TOL;
-            
-            d = SettingsShapeFunctional();
-            
-            d.filterParams = filterParams;
-            d.materialInterpolationParams = materialInterpolationParams;
-            d.filename = settings.filename;
-            d.domainType = settings.ptype;
-            
-            new_settings=d;
-            %             end
-            
-            
+        function shapeFunction = create(obj,type,settings,designVar)
+            obj.settings = settings;
+            obj.designVar = designVar;
             switch type
                 case 'compliance'
-                    shapeFunction = ShFunc_Compliance(new_settings);
+                    obj.cParams = SettingsShapeFunctional();
+                    obj.addParamsFromSettings();
+                    shapeFunction = ShFunc_Compliance(obj.cParams);
                 case 'perimeter'
-                    shapeFunction = ShFunc_Perimeter(new_settings);
+                    obj.cParams = SettingsShapeFunctional();
+                    obj.addParamsFromSettings();
+                    shapeFunction = ShFunc_Perimeter(obj.cParams);
                 case 'perimeterConstraint'
-                    d=SettingsShFunc_PerimeterConstraint();
-                    d.filename=settings.filename;
-                    d.domainType=settings.ptype;
-                    d.filterParams.filterType=settings.filter;
-                    d.filterParams.designVar = designVar;
-                    d.materialInterpolationParams.interpolation=settings.materialInterpolation;
-                    d.materialInterpolationParams.dim=settings.pdim;
-                    d.materialInterpolationParams.typeOfMaterial=settings.material;
-                    d.materialInterpolationParams.constitutiveProperties=settings.TOL;
-                    d.Perimeter_target=settings.Perimeter_target;
-                    shapeFunction = Perimeter_constraint(d);
+                    obj.cParams = SettingsShFunc_PerimeterConstraint();
+                    obj.addParamsFromSettings();
+                    obj.cParams.Perimeter_target=settings.Perimeter_target;
+                    shapeFunction = Perimeter_constraint(obj.cParams);
                 case 'chomog_alphabeta'
-                    d=SettingsShFunc_Chomog();
-                    d.filename=settings.filename;
-                    d.domainType=settings.ptype;
-                    d.filterParams.filterType=settings.filter;
-                    d.filterParams.designVar = designVar;
-                    d.materialInterpolationParams.interpolation=settings.materialInterpolation;
-                    d.materialInterpolationParams.dim=settings.pdim;
-                    d.materialInterpolationParams.typeOfMaterial=settings.material;
-                    d.materialInterpolationParams.constitutiveProperties=settings.TOL;
-                    d.alpha=settings.micro.alpha;
-                    d.beta=settings.micro.beta;
-                    settings=d;
-                    shapeFunction = ShFunc_Chomog_alphabeta(settings);
+                    obj.cParams = SettingsShFunc_Chomog();
+                    obj.addParamsFromSettings();
+                    obj.cParams.alpha=settings.micro.alpha;
+                    obj.cParams.beta=settings.micro.beta;
+                    shapeFunction = ShFunc_Chomog_alphabeta(obj.cParams);
                 case 'chomog_fraction'
-                    d=SettingsShFunc_Chomog();
-                    d.filename=settings.filename;
-                    d.domainType=settings.ptype;
-                    d.filterParams.filterType=settings.filter;
-                    d.filterParams.designVar = designVar;
-                    d.materialInterpolationParams.interpolation=settings.materialInterpolation;
-                    d.materialInterpolationParams.dim=settings.pdim;
-                    d.materialInterpolationParams.typeOfMaterial=settings.material;
-                    d.materialInterpolationParams.constitutiveProperties=settings.TOL;
-                    d.alpha=settings.micro.alpha;
-                    d.beta=settings.micro.beta;
-                    settings=d;
-                    shapeFunction = ShFunc_Chomog_fraction(settings);
+                    obj.cParams = SettingsShFunc_Chomog();
+                    obj.addParamsFromSettings();
+                    obj.cParams.alpha = settings.micro.alpha;
+                    obj.cParams.beta  = settings.micro.beta;
+                    shapeFunction = ShFunc_Chomog_fraction(obj.cParams);
                 case 'chomog_CC'
-                    shapeFunction = ShFunc_Chomog_CC(settings);
+                    obj.cParams = SettingsShapeFunctional();
+                    obj.addNamePtype()
+                    shapeFunction = ShFunc_Chomog_CC();
                 case 'enforceCh_CCstar_inf'
+                    obj.cParams = SettingsShapeFunctional();
+                    obj.addNamePtype()
                     for i=1:6
                         EnforceCh=ShFunc_Chomog_EnforceCh_CCstar_inf(settings,i);
                         if isequal(i,5) || isequal(i,4)
@@ -85,21 +53,66 @@ classdef ShapeFunctional_Factory
                         iSF = iSF+1;
                     end
                 case 'enforceCh_CCstar_eq'
+                    obj.cParams = SettingsShapeFunctional();
+                    obj.addNamePtype()
+                    obj.createFilterParams();
                     for i=1:6
                         shapeFunction=ShFunc_Chomog_EnforceCh_CCstar_eq(settings,i);
                         iSF = iSF+1;
                     end
                 case 'enforceCh_CCstar_L2'
-                    shapeFunction=ShFunc_Chomog_EnforceCh_CCstar_L2(settings);
+                    obj.cParams = SettingsShapeFunctional(); 
+                    obj.addParamsFromSettings();                                        
+                    shapeFunction = ShFunc_Chomog_EnforceCh_CCstar_L2(obj.cParams);
                 case 'nonadjoint_compliance'
-                    shapeFunction = ShFunc_NonSelfAdjoint_Compliance(new_settings);
+                    obj.cParams = SettingsShapeFunctional();
+                    obj.addParamsFromSettings();                                        
+                    shapeFunction = ShFunc_NonSelfAdjoint_Compliance(obj.cParams);
                 case 'volume'
-                    shapeFunction = ShFunc_Volume(new_settings);
+                    obj.cParams = SettingsShapeFunctional();
+                    obj.addNamePtype()
+                    obj.createMaterialInterpolationParams();
+                    obj.createFilterParams();
+                    shapeFunction = ShFunc_Volume(obj.cParams);
                 case 'volumeConstraint'
-                    shapeFunction = Volume_constraint(new_settings);
+                    obj.cParams = SettingsShapeFunctional();
+                    obj.addNamePtype()
+                    obj.createFilterParams();
+                    shapeFunction = Volume_constraint(obj.cParams);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function addParamsFromSettings(obj)
+            obj.addNamePtype()
+            obj.createMaterialInterpolationParams();
+            obj.createFilterParams();
+        end
+        
+        function addNamePtype(obj)
+            obj.cParams.filename     = obj.settings.filename;
+            obj.cParams.domainType   = obj.settings.ptype;
+        end
+        
+        function createMaterialInterpolationParams(obj)
+            s = SettingsInterpolation();
+            s.interpolation          = obj.settings.materialInterpolation;
+            s.dim                    = obj.settings.pdim;
+            s.typeOfMaterial         = obj.settings.material;
+            s.constitutiveProperties = obj.settings.TOL;
+            obj.cParams.materialInterpolationParams = s;
+        end
+        
+        function createFilterParams(obj)
+            s = SettingsFilter();
+            s.filterType = obj.settings.filter;
+            s.designVar  = obj.designVar;
+            obj.cParams.filterParams = s;
         end
         
     end

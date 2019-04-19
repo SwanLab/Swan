@@ -1,6 +1,6 @@
 classdef SettingsShFunc_Chomog < SettingsShapeFunctional
   
-    properties
+    properties (Access = public)
         alpha
         beta
     end
