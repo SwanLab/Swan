@@ -4,8 +4,7 @@ classdef Volume_constraint < ShFunc_Volume
         VolumeTarget
     end
     
-    methods
-        
+    methods (Access = public)        
         
         function  obj = Volume_constraint(settings)
             obj@ShFunc_Volume(settings);

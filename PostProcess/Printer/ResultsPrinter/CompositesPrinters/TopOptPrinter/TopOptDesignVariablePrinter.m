@@ -15,10 +15,6 @@ classdef TopOptDesignVariablePrinter < CompositeResultsPrinter
             obj.printers{1} = ResultsPrinter.create(dV,d);
         end
         
-%         function storeFieldsToPrint(obj,d)
-%             obj.printers{1}.storeFieldsToPrint(d)            
-%         end        
-        
     end
     
 end

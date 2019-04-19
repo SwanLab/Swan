@@ -1,11 +1,6 @@
 classdef HomogenizedVarComputerFromInterpolation ...
          < HomogenizedVarComputer
     
-    properties (Access = public)
-        C
-        dC
-    end
-    
     properties (Access = private)
         interpolation
         material

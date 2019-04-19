@@ -154,7 +154,8 @@ classdef NumericalHomogenizer < handle
             d = obj.volDataBase;
             vComputer = ShFunc_Volume(d);
             dens = obj.density;
-            vol = vComputer.computeCost(dens);
+            vComputer.computeCost(dens);
+            vol = vComputer.value;
             obj.cellVariables.volume = vol;
         end
         

@@ -40,7 +40,7 @@ classdef TopOpt_Problem < handle
         
         function createOptimizer(obj,settings)
             obj.createOptimizerSettings(settings);
-            obj.optimizer = OptimizerFactory.create(obj.optimizerSettings);
+            obj.optimizer = Optimizer.create(obj.optimizerSettings);
         end
         
         function createOptimizerSettings(obj,settings)

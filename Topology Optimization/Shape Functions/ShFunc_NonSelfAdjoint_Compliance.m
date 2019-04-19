@@ -43,10 +43,8 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
         end
         
         function solvePDEs(obj)
-            %obj.adjointProb.setMatProps(obj.homogenizedMatProps);
             obj.adjointProb.setC(obj.homogenizedVariablesComputer.C);
             obj.adjointProb.computeVariables();
-            %obj.physProb.setMatProps(obj.homogenizedMatProps);
             obj.physProb.setC(obj.homogenizedVariablesComputer.C);
             obj.physProb.computeVariables();
         end

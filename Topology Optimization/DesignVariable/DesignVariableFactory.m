@@ -10,7 +10,6 @@ classdef DesignVariableFactory < handle
         
         function designVar = create(obj,cParams)            
             obj.cParams = cParams;
-            obj.translator = OptimizerToDesignVariableTranslator();
             obj.setupDesignVarSettings();
             switch obj.cParams.type
                 case 'LevelSet'
@@ -31,10 +30,6 @@ classdef DesignVariableFactory < handle
             obj.settingsDesignVar.mesh  = obj.cParams.mesh;
             obj.settingsDesignVar.value = obj.cParams.value;
             obj.settingsDesignVar.type  = obj.cParams.type;
-        end
-        
-        function type = getDesignVarType(obj)
-            type = obj.translator.translate(obj.cParams.optimizer);
         end
         
     end

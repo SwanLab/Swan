@@ -70,13 +70,11 @@ classdef ShapeFunctional_Factory
                     shapeFunction = ShFunc_NonSelfAdjoint_Compliance(obj.cParams);
                 case 'volume'
                     obj.cParams = SettingsShapeFunctional();
-                    obj.addNamePtype()
-                    obj.createMaterialInterpolationParams();
-                    obj.createFilterParams();
+                    obj.addParamsFromSettings();
                     shapeFunction = ShFunc_Volume(obj.cParams);
                 case 'volumeConstraint'
                     obj.cParams = SettingsShapeFunctional();
-                    obj.addNamePtype()
+                    obj.addParamsFromSettings()
                     obj.createFilterParams();
                     shapeFunction = Volume_constraint(obj.cParams);
                 otherwise

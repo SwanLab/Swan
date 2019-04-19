@@ -18,10 +18,17 @@ classdef HomogenizedVarComputerFromVademecum ...
         end        
         
         function computeMatProp(obj,rho)
-            mx = sqrt(1-obj.rho);
-            my = sqrt(1-obj.rho);
-            Ctensor = obj.Ctensor.compute([mx,my]);
-            
+            rho = max(0.001,min(rho,0.999));
+            mx = max(0.01,min(sqrt(1-rho),0.99));
+            my = max(0.01,min(sqrt(1-rho),0.99));
+           [c,dc] = obj.Ctensor.compute([mx,my]);
+           obj.dC = zeros(3,3,size(dc,3));
+           obj.C = c;
+           for i = 1:3
+               for j = 1:3
+                    obj.dC(i,j,:) = squeeze(-dc(i,j,:,1))./my; 
+               end
+           end
         end
         
     end

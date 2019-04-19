@@ -14,7 +14,6 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         
         function solvePDEs(obj)
             obj.physProb.setC(obj.homogenizedVariablesComputer.C)
-            %obj.physProb.setMatProps(obj.matProps);
             obj.physProb.computeVariables();
         end
         
