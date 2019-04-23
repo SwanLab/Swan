@@ -152,9 +152,15 @@ classdef NumericalHomogenizer < handle
         
         function computeVolumeValue(obj)
             d = obj.volDataBase;
+            s = SettingsDesignVariable();
+            s.type = 'Density';
+            s.mesh = obj.microProblem.mesh;
+            s.value = obj.elemDensCr.getLevelSet();%obj.levelSet;
+            d.filterParams.designVar = DesignVariable.create(s);
             vComputer = ShFunc_Volume(d);
-            dens = obj.density;
-            vComputer.computeCost(dens);
+           % vComputer.filter.preProcess();
+           % dens(1,:) = obj.density;
+            vComputer.computeCostFromDensity(obj.density);
             vol = vComputer.value;
             obj.cellVariables.volume = vol;
         end

@@ -16,21 +16,23 @@ classdef ShFunc_Volume < Shape_Functional
             obj.computeGradient()
         end
         
-        function computeCost(obj,rho)
-            dens(:,1) = rho;
-            dens = obj.filter.getP0fromP1(dens);            
-            dens(:,1) = rho;           
-            volume = sum(sum(obj.dvolu,2)'*dens);
+        function computeCost(obj,x)
+            xc(:,1) = x;
+            density = obj.filter.getP0fromP1(xc);            
+            obj.computeCostFromDensity(density);           
+        end        
+        
+        function computeCostFromDensity(obj,dens)
+            densV(:,1) = dens;
+            volume = sum(sum(obj.dvolu,2)'*densV);
             volume = volume/(obj.geometric_volume);
             obj.value = volume;            
-        end        
+        end
         
     end
     
     methods (Access = private)
-        
 
-        
         function computeGradient(obj)
             gradient_volume = 1/(obj.geometric_volume);
             nnodes = size(obj.filter.diffReacProb.mesh.connec,1);
