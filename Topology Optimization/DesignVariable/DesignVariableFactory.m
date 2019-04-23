@@ -2,7 +2,6 @@ classdef DesignVariableFactory < handle
     
     properties (Access = private)
         cParams
-        translator
         settingsDesignVar
     end
     

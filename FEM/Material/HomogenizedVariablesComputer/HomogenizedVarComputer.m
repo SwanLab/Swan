@@ -3,8 +3,13 @@ classdef HomogenizedVarComputer < handle
     properties (Access = public)
         C
         dC
+        rho
+        drho
     end
     
+    properties (Access = protected)
+       nelem
+    end    
     
     methods (Access = public, Static)
         
@@ -14,5 +19,5 @@ classdef HomogenizedVarComputer < handle
         end
         
     end
-    
+        
 end

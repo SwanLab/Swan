@@ -25,10 +25,6 @@ classdef ShFunWithElasticPdes < Shape_Functional
     
     methods (Access = protected)
         
-        function obj = ShFunWithElasticPdes(cParams)
-            obj.init(cParams);
-        end
-        
         function createEquilibriumProblem(obj,fileName)
             obj.physProb = FEM.create(fileName);
             obj.physProb.preProcess;
@@ -40,7 +36,9 @@ classdef ShFunWithElasticPdes < Shape_Functional
         end
         
         function computeGradient(obj)
-            g = zeros(obj.physProb.geometry.interpolation.nelem,obj.physProb.element.quadrature.ngaus);
+            nelem = obj.elemGradientSize.nelem;
+            ngaus = obj.elemGradientSize.ngaus;
+            g = zeros(nelem,ngaus);
             for igaus = 1:obj.physProb.element.quadrature.ngaus
                 for istre = 1:obj.physProb.element.getNstre()
                     for jstre = 1:obj.physProb.element.getNstre()
@@ -55,7 +53,8 @@ classdef ShFunWithElasticPdes < Shape_Functional
         
         function createHomogenizedVariablesComputer(obj,cParams)
             cP = cParams.materialInterpolationParams;
-            cP.nelem = obj.physProb.element.nelem;
+            cP.nelem = obj.elemGradientSize.nelem;
+            cP.ngaus = obj.elemGradientSize.ngaus;
             h = HomogenizedVarComputer.create(cP);
             obj.homogenizedVariablesComputer = h;
         end

@@ -3,7 +3,7 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
     methods (Access = public)
         
         function obj = ShFunc_Compliance(cParams)
-            obj@ShFunWithElasticPdes(cParams);
+            obj.init(cParams);
             obj.createEquilibriumProblem(cParams.filename);
             obj.createHomogenizedVariablesComputer(cParams);            
         end

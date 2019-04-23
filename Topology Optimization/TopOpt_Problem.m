@@ -91,11 +91,7 @@ classdef TopOpt_Problem < handle
             
         end
         
-        function preProcess(obj)
-            obj.cost.preProcess();
-            obj.constraint.preProcess();
-        end
-        
+       
         function computeVariables(obj)
             obj.linkTargetParams();
             while obj.incrementalScheme.hasNext()             

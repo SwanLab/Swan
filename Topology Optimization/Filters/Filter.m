@@ -2,6 +2,8 @@ classdef Filter < handle
     
     properties (GetAccess = public, SetAccess = private)
         diffReacProb
+        ngaus
+        nelem        
     end
     
     properties (Access = protected)
@@ -19,9 +21,7 @@ classdef Filter < handle
         
         mesh
         nnode
-        nelem
         npnod
-        ngaus
         shape
     end
     

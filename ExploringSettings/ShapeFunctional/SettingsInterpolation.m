@@ -11,6 +11,8 @@ classdef SettingsInterpolation < AbstractSettings
         interpolation 
         dim 
         type 
+        nelem
+        ngaus
     end
     
     methods (Access = public)

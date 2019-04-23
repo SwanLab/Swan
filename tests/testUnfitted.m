@@ -19,7 +19,6 @@ classdef testUnfitted < test
             settings = Settings(file_name_in);
             settings.printChangingFilter = false;
             obj.topOpt = TopOpt_Problem(settings);
-            obj.topOpt.preProcess();
             obj.levelSet = obj.topOpt.designVariable.value;
         end
         

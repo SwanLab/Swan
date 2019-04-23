@@ -22,7 +22,6 @@ classdef testTopOptComputation < handle
         
         function computeVariableThroughTopOptSolver(obj)
             topOptSolver = TopOpt_Problem(obj.settings);
-            topOptSolver.preProcess();
             topOptSolver.computeVariables();
             obj.topOpt = topOptSolver;
         end

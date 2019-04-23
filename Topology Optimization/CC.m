@@ -23,7 +23,7 @@ classdef CC < handle
         
         function preProcess(obj)
             for iSF = 1:obj.nSF
-                obj.ShapeFuncs{iSF}.filter.preProcess;
+                obj.ShapeFuncs{iSF}.preProcess();
             end
         end
         

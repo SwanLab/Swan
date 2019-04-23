@@ -11,18 +11,17 @@ classdef Shape_Functional < handle
         value0
     end
     
-    methods (Access = public)
-        
-        function obj = Shape_Functional()
-        end
-        
+    properties (Access = protected)
+       elemGradientSize 
     end
-    
+       
     methods (Access = protected)
         
         function init(obj,cParams)
             obj.createFilter(cParams.filterParams);
             obj.createMsmoothAndDvolu(cParams.filename, cParams.domainType);
+            obj.elemGradientSize.nelem = obj.filter.nelem;
+            obj.elemGradientSize.ngaus = obj.filter.ngaus;        
         end
         
         function normalizeFunctionAndGradient(obj)
@@ -36,6 +35,7 @@ classdef Shape_Functional < handle
         
         function createFilter(obj,s)
             obj.filter = FilterFactory().create(s);
+            obj.filter.preProcess();             
         end
         
         function createMsmoothAndDvolu(obj,fileName,scale)

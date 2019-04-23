@@ -20,7 +20,9 @@ classdef HomogenizedVarComputerFromInterpolation ...
            mProps = obj.interpolation.computeMatProp(rho);
            obj.material.setProps(mProps);
            obj.C  = obj.material.C;
-           obj.dC = mProps.dC;           
+           obj.dC = mProps.dC;    
+           obj.rho = rho;           
+           obj.drho = ones(size(rho));
         end        
         
     end

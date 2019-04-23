@@ -29,7 +29,6 @@ for icases=1:size(filenames,1)
     settings = Settings(filenames{icases});
     
     topOptProblem = TopOpt_Problem(settings);
-    topOptProblem.preProcess;
     topOptProblem.computeVariables;
     topOptProblem.postProcess;
 end

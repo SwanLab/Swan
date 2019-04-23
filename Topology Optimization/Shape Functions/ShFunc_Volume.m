@@ -1,31 +1,32 @@
 classdef ShFunc_Volume < Shape_Functional
     
     properties (Access = private)
-       % Vfrac
-        geometric_volume
+        geometricVolume
+        homogenizedVariablesComputer        
     end
     
     methods (Access = public)
-        function obj = ShFunc_Volume(settings)
-            obj.init(settings);
-            obj.geometric_volume = sum(obj.dvolu(:));
+        function obj = ShFunc_Volume(cParams)
+            obj.init(cParams);         
+            obj.createHomogenizedVariablesComputer(cParams); 
+            obj.geometricVolume = sum(obj.dvolu(:));
         end
         
         function computeCostAndGradient(obj,x)
-            obj.computeCost(x)
+            obj.updateHomogenizedMaterialProperties(x);            
+            obj.computeCost()
             obj.computeGradient()
         end
         
-        function computeCost(obj,x)
-            xc(:,1) = x;
-            density = obj.filter.getP0fromP1(xc);            
+        function computeCost(obj)          
+            density = obj.homogenizedVariablesComputer.rho;
             obj.computeCostFromDensity(density);           
         end        
         
         function computeCostFromDensity(obj,dens)
             densV(:,1) = dens;
             volume = sum(sum(obj.dvolu,2)'*densV);
-            volume = volume/(obj.geometric_volume);
+            volume = volume/(obj.geometricVolume);
             obj.value = volume;            
         end
         
@@ -34,13 +35,27 @@ classdef ShFunc_Volume < Shape_Functional
     methods (Access = private)
 
         function computeGradient(obj)
-            gradient_volume = 1/(obj.geometric_volume);
-            nnodes = size(obj.filter.diffReacProb.mesh.connec,1);
-            gradient_volume = gradient_volume*ones(nnodes,size(obj.dvolu,2));
-            gradient_volume = obj.filter.getP1fromP0(gradient_volume);
-            gradient_volume = obj.Msmooth*gradient_volume;            
-            obj.gradient = gradient_volume;            
+            gradient = 1/(obj.geometricVolume);
+            nelem = obj.elemGradientSize.nelem;
+            ngaus = obj.elemGradientSize.ngaus;
+            gradient = gradient*ones(nelem,ngaus);
+            gradient = obj.filter.getP1fromP0(gradient);
+            gradient = obj.Msmooth*gradient;            
+            obj.gradient = gradient;            
         end
+        
+        function createHomogenizedVariablesComputer(obj,cParams)
+            cP = cParams.materialInterpolationParams;
+            cP.nelem = obj.elemGradientSize.nelem;
+            cP.ngaus = obj.elemGradientSize.ngaus;
+            h = HomogenizedVarComputer.create(cP);
+            obj.homogenizedVariablesComputer = h;
+        end                
+        
+        function updateHomogenizedMaterialProperties(obj,x)
+            x0 = obj.filter.getP0fromP1(x);
+            obj.homogenizedVariablesComputer.computeMatProp(x0);
+        end        
         
     end
 end

@@ -7,7 +7,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
     methods (Access = public)
         
         function obj = ShFunc_NonSelfAdjoint_Compliance(cParams)
-            obj@ShFunWithElasticPdes(cParams);
+            obj.init(cParams);     
             obj.createEquilibriumProblem(cParams.filename);
             obj.createAdjointProblem(cParams.filename)            
             obj.createHomogenizedVariablesComputer(cParams);            

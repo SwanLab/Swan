@@ -75,7 +75,6 @@ classdef ShapeFunctional_Factory
                 case 'volumeConstraint'
                     obj.cParams = SettingsShapeFunctional();
                     obj.addParamsFromSettings()
-                    obj.createFilterParams();
                     shapeFunction = Volume_constraint(obj.cParams);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
@@ -98,6 +97,7 @@ classdef ShapeFunctional_Factory
         end
         
         function createMaterialInterpolationParams(obj)
+            %s = SettingsHomogenizedVarComputerFromInterpolation();
             s.type = obj.settings.homegenizedVariablesComputer;
             s.interpolation          = obj.settings.materialInterpolation;
             s.dim                    = obj.settings.pdim;

@@ -46,6 +46,7 @@ classdef NumericalHomogenizerDataBase < handle
             s.type = 'Density';
             d.filterParams.designVar = DesignVariable.create(s);% Density(s);
             d.filename = obj.femFileName;
+            d.materialInterpolationParams.type = 'ByInterpolation';
             d.domainType = 'MICRO';
         end
         
