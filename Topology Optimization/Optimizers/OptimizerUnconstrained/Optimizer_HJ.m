@@ -4,6 +4,10 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         optimality_tol
     end
     
+    properties (GetAccess = public, SetAccess = protected)
+        name = 'HAMILTON JACOBI'
+    end
+    
     properties (Access = private)
         e2
         meanCellSize
@@ -14,9 +18,9 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         
         function obj = Optimizer_HJ(settings,designVar)
             obj@Optimizer_Unconstrained(settings);
+            obj.name = 'HAMILTON-JACOBI';
             obj.e2 = settings.e2;
             obj.meanCellSize = designVar.mesh.computeMeanCellSize();
-            obj.maxIncrNormX = +Inf;
             
             obj.setupFilter(settings,settings.scalarProductSettings.epsilon,designVar);
         end

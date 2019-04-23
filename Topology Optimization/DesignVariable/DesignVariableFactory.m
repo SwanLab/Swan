@@ -12,7 +12,7 @@ classdef DesignVariableFactory < handle
             obj.cParams = cParams;
             obj.translator = OptimizerToDesignVariableTranslator();
             obj.setupDesignVarSettings();
-            switch obj.cParams.type%obj.getDesignVarType()
+            switch obj.cParams.type
                 case 'LevelSet'
                     designVar = LevelSet(obj.settingsDesignVar);
                 case 'Density'

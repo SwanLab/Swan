@@ -20,7 +20,7 @@ classdef TopOptTests < testRunner
                 
             
             'testCantilever';
-            %'testProjectedSlerp';
+            'testProjectedSlerp';
             
             'testCantilever3';
             

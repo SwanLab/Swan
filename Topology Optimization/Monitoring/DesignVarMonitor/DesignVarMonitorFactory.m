@@ -8,15 +8,15 @@ classdef DesignVarMonitorFactory < handle
         optimizer
         dim
         showBC
+        shallDisplay
     end
     
     
     methods (Access = public)
         
         function monitor = create(obj,cParams)
-            shallDisplay = cParams.plotting;
             obj.init(cParams);
-            if shallDisplay
+            if obj.shallDisplay
                 obj.createBuilder();
                 obj.createMonitor();
                 obj.build();
@@ -32,22 +32,25 @@ classdef DesignVarMonitorFactory < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.optimizer = cParams.settings.optimizer;
-            obj.dim = cParams.settings.pdim;
-            obj.designVar = cParams.designVar;
-            obj.showBC = cParams.settings.showBC;
+            obj.shallDisplay = cParams.shallDisplay;
+            obj.optimizer    = cParams.optimizerName;
+            obj.dim          = cParams.dim;
+            obj.designVar    = cParams.designVar;
+            obj.showBC       = cParams.showBC;
         end
         
         function createMonitor(obj)
+            mS.designVar = obj.designVar;
+            mS.showBC    = obj.showBC;
             switch obj.designVariable()
                 case 'Density'
-                    obj.monitor = DesignVarMonitor_Density(obj.designVar,obj.showBC);
+                    obj.monitor = DesignVarMonitor_Density(mS);
                 case 'LevelSet'
                     switch obj.dim
                         case '2D'
-                            obj.monitor = DesignVarMonitor_LevelSet_2D(obj.designVar,obj.showBC);
+                            obj.monitor = DesignVarMonitor_LevelSet_2D(mS);
                         case '3D'
-                            obj.monitor = DesignVarMonitor_LevelSet_3D(obj.designVar,obj.showBC);
+                            obj.monitor = DesignVarMonitor_LevelSet_3D(mS);
                     end
                 otherwise
                     error('Invalid Design Variable')
@@ -72,7 +75,9 @@ classdef DesignVarMonitorFactory < handle
         end
         
         function returnNullMonitor(obj)
-            obj.monitor = DesignVarMonitor_Null(obj.designVar,false);
+            mS.designVar = obj.designVar;
+            mS.showBC    = false;
+            obj.monitor  = DesignVarMonitor_Null(mS);
         end
         
     end

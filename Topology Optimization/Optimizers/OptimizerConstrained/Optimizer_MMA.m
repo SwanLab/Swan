@@ -1,5 +1,9 @@
 classdef Optimizer_MMA < Optimizer_Constrained
     
+    properties (GetAccess = public, SetAccess = protected)
+        name = 'MMA'
+    end
+    
     properties (GetAccess = public, SetAccess = private)
         kktnorm
     end

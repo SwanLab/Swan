@@ -1,5 +1,9 @@
 classdef Optimizer_AugLag < Optimizer_Constrained
     
+    properties (GetAccess = public, SetAccess = protected)
+        name = 'AugmentedLagrangian'
+    end
+    
     properties (GetAccess = public, SetAccess = private)
         unconstrainedOptimizer
         augLagrangian
@@ -14,10 +18,11 @@ classdef Optimizer_AugLag < Optimizer_Constrained
     methods (Access = public)
         
         function obj = Optimizer_AugLag(cParams)
-            obj.init(cParams);
-            
             obj.unconstrainedOptimizer = cParams.unconstrainedOptimizer;
+            obj.name = obj.unconstrainedOptimizer.name;
             obj.convergenceVars = obj.unconstrainedOptimizer.convergenceVars;
+            
+            obj.init(cParams);
             
             obj.createAugmentedLagrangian();
             obj.createLambdaAndPenalty();
