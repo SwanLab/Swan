@@ -6,7 +6,7 @@ classdef TopOpt_Problem < handle
         constraint
         optimizer
         algorithm
-        incrementalScheme   
+        incrementalScheme
         optimizerSettings
     end
     
@@ -18,7 +18,7 @@ classdef TopOpt_Problem < handle
     properties (Access = private)
         videoManager
     end
-        
+    
     
     methods (Access = public)
         
@@ -28,12 +28,12 @@ classdef TopOpt_Problem < handle
             settings.pdim = obj.designVariable.meshGiD.pdim;
             
             obj.createIncrementalScheme(settings);
-
+            
             obj.cost = Cost(settings,settings.weights,obj.designVariable);
-            obj.constraint = Constraint(settings,obj.designVariable);            
+            obj.constraint = Constraint(settings,obj.designVariable);
             
             obj.createOptimizer(settings);
-
+            
             obj.createVideoManager(settings);
         end
         
@@ -67,21 +67,20 @@ classdef TopOpt_Problem < handle
             uncOptimizerSettings.ptype               = settings.ptype;
             
             optSet.uncOptimizerSettings = uncOptimizerSettings;
-
+            
             optSet.nconstr              = settings.nconstr;
             optSet.target_parameters    = settings.target_parameters;
-            optSet.constraint_case      = settings.constraint_case;   
+            optSet.constraint_case      = settings.constraint_case;
             optSet.optimizer            = settings.optimizer;
             optSet.maxiter              = settings.maxiter;
             
             optSet.printing             = settings.printing;
-            optSet.printMode            = settings.printMode;            
+            optSet.printMode            = settings.printMode;
             
-            optSet.monitoring           = settings.monitoring;
-            optSet.monitoring_interval  = settings.monitoring_interval;
-            optSet.plotting             = settings.plotting;
-            optSet.pdim                 = settings.pdim;
-            optSet.showBC               = settings.showBC;   
+            optSet.settingsMonitor.showOptParams               = settings.monitoring;
+            optSet.settingsMonitor.refreshInterval             = settings.monitoring_interval;
+            optSet.settingsMonitor.shallDisplayDesignVar       = settings.plotting;
+            optSet.settingsMonitor.shallShowBoundaryConditions = settings.showBC;
             
             optSet.settings   = settings;
             
@@ -100,7 +99,7 @@ classdef TopOpt_Problem < handle
         
         function computeVariables(obj)
             obj.linkTargetParams();
-            while obj.incrementalScheme.hasNext()             
+            while obj.incrementalScheme.hasNext()
                 obj.incrementalScheme.next();
                 obj.solveCurrentProblem();
             end
@@ -117,7 +116,7 @@ classdef TopOpt_Problem < handle
         function optSet = obtainOptimizersSettings(obj,settings)
             epsilon = obj.incrementalScheme.targetParams.epsilon;
             settings.optimizerSettings.uncOptimizerSettings.lineSearchSettings.epsilon = epsilon;
-            settings.optimizerSettings.uncOptimizerSettings.scalarProductSettings.epsilon = epsilon; 
+            settings.optimizerSettings.uncOptimizerSettings.scalarProductSettings.epsilon = epsilon;
             set = settings.clone();
             optSet = set.optimizerSettings;
         end
@@ -164,7 +163,7 @@ classdef TopOpt_Problem < handle
             obj.constraint.target_parameters = obj.incrementalScheme.targetParams;
             obj.optimizer.target_parameters = obj.incrementalScheme.targetParams;
         end
-       
+        
         function createVideoManager(obj,settings)
             if settings.printing
                 obj.videoManager = VideoManager(settings,obj.designVariable);

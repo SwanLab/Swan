@@ -97,7 +97,7 @@ classdef Optimizer_Constrained < Optimizer
             obj.constraintCase   = set.constraint_case;
             obj.hasConverged     = false;
             
-            obj.cost = cParams.cost;
+            obj.cost       = cParams.cost;
             obj.constraint = cParams.constraint;
             
             obj.designVar = cParams.designVar;
@@ -106,18 +106,7 @@ classdef Optimizer_Constrained < Optimizer
             obj.printMode = set.printMode;
             obj.createHistoyPrinter();
             
-            cParams.monitorSettings.showOptParams               = cParams.monitoring;
-            cParams.monitorSettings.refreshInterval             = cParams.monitoring_interval;
-            cParams.monitorSettings.shallDisplayDesignVar       = cParams.plotting;
-            cParams.monitorSettings.shallShowBoundaryConditions = cParams.showBC;
-            
-            cParams.monitorSettings.problemID                   = set.case_file;
-            cParams.monitorSettings.costFuncNames               = set.cost;
-            cParams.monitorSettings.costWeights                 = set.weights;
-            cParams.monitorSettings.constraintFuncs             = set.constraint;
-            cParams.monitorSettings.dim                         = set.pdim;
-            
-            obj.createMonitorDocker(cParams.monitorSettings);
+            obj.createMonitorDocker(cParams,set);
         end
         
     end
@@ -132,25 +121,22 @@ classdef Optimizer_Constrained < Optimizer
             obj.historyPrinter = OptimizationMetricsPrinterFactory.create(obj.name,obj.printing,settingsMetricsPrinter);
         end
         
-        function createMonitorDocker(obj,cParams)
-            mS.settingsParamsMonitor.showOptParams    = cParams.showOptParams;
-            mS.settingsParamsMonitor.refreshInterval  = cParams.refreshInterval;
-            mS.settingsParamsMonitor.problemID        = cParams.problemID;
-            mS.settingsParamsMonitor.costFuncNames    = cParams.costFuncNames;
-            mS.settingsParamsMonitor.costWeights      = cParams.costWeights;
-            mS.settingsParamsMonitor.constraintFuncs  = cParams.constraintFuncs;
-            mS.settingsParamsMonitor.optimizerName    = obj.name;
-            mS.settingsParamsMonitor.cost             = obj.cost;
-            mS.settingsParamsMonitor.constraint       = obj.constraint;
-            mS.settingsParamsMonitor.convergenceVars  = obj.convergenceVars;
-
-            mS.settingsDesignVarMonitor.shallDisplay  = cParams.shallDisplayDesignVar;
-            mS.settingsDesignVarMonitor.showBC        = cParams.shallShowBoundaryConditions;
-            mS.settingsDesignVarMonitor.designVar     = obj.designVar;
-            mS.settingsDesignVarMonitor.optimizerName = obj.name;
-            mS.settingsDesignVarMonitor.dim           = cParams.dim;
+        function createMonitorDocker(obj,cParams,set) 
+            s = cParams.settingsMonitor;
             
-            obj.monitor = MonitoringDocker(mS);
+            s.problemID                   = set.case_file;
+            s.costFuncNames               = set.cost;
+            s.costWeights                 = set.weights;
+            s.constraintFuncs             = set.constraint;
+            s.dim                         = set.pdim;
+            
+            s.designVar                   = obj.designVar;
+            s.optimizerName               = obj.name;
+            s.cost                        = obj.cost;
+            s.constraint                  = obj.constraint;
+            s.convergenceVars             = obj.convergenceVars;
+            
+            obj.monitor = MonitoringDocker(s);
         end
         
         function d = createPostProcessDataBase(obj,fileName)
