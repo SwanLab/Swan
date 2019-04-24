@@ -7,6 +7,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
     methods (Access = public)
         
         function obj = ShFunc_NonSelfAdjoint_Compliance(cParams)
+            cParams.filterParams.quadratureOrder = 'LINEAR';            
             obj.init(cParams);     
             obj.createEquilibriumProblem(cParams.filename);
             obj.createAdjointProblem(cParams.filename)            

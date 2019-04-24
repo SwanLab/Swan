@@ -7,6 +7,7 @@ classdef ShFunc_Volume < Shape_Functional
     
     methods (Access = public)
         function obj = ShFunc_Volume(cParams)
+            cParams.filterParams.quadratureOrder = 'CONSTANT';            
             obj.init(cParams);         
             obj.createHomogenizedVariablesComputer(cParams); 
             obj.geometricVolume = sum(obj.dvolu(:));
@@ -35,10 +36,10 @@ classdef ShFunc_Volume < Shape_Functional
     methods (Access = private)
 
         function computeGradient(obj)
-            gradient = 1/(obj.geometricVolume);
-            nelem = obj.elemGradientSize.nelem;
+            drho = obj.homogenizedVariablesComputer.drho;
+            gradient = drho/(obj.geometricVolume);
             ngaus = obj.elemGradientSize.ngaus;
-            gradient = gradient*ones(nelem,ngaus);
+            gradient = repmat(gradient,1,ngaus);
             gradient = obj.filter.getP1fromP0(gradient);
             gradient = obj.Msmooth*gradient;            
             obj.gradient = gradient;            

@@ -51,6 +51,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             end
             filterSettings = SettingsFilter('paramsFilter_PDE_Boundary');
             filterSettings.designVar = designVar;
+            filterSettings.quadratureOrder = 'LINEAR';            
             obj.filter = FilterFactory().create(filterSettings);
             obj.filter.preProcess();
             obj.filter.updateEpsilon(e);

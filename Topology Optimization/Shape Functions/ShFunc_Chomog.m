@@ -1,4 +1,5 @@
 classdef ShFunc_Chomog < Shape_Functional
+   
     properties (Access = public)
         Chomog
         tstress
@@ -13,11 +14,12 @@ classdef ShFunc_Chomog < Shape_Functional
     
     methods (Access = public)
         
-        function obj=ShFunc_Chomog(settings)
-            obj.init(settings);
-            obj.physicalProblem = FEM.create(settings.filename);
+        function obj=ShFunc_Chomog(cParams)
+            cParams.filterParams.quadratureOrder = 'LINEAR';            
+            obj.init(cParams);
+            obj.physicalProblem = FEM.create(cParams.filename);
             obj.physicalProblem.preProcess;
-            obj.interpolation = Material_Interpolation.create(settings.materialInterpolationParams);
+            obj.interpolation = Material_Interpolation.create(cParams.materialInterpolationParams);
         end
         
         function f = getPhysicalProblems(obj)
@@ -31,8 +33,8 @@ classdef ShFunc_Chomog < Shape_Functional
             obj.matProps=obj.interpolation.computeMatProp(obj.rho);
             
             nstre = obj.physicalProblem.element.getNstre();
-            ngaus = size(obj.tstrain,2);
-            nelem = obj.physicalProblem.element.nelem;
+            ngaus = obj.elemGradientSize.ngaus;
+            nelem = obj.elemGradientSize.nelem;
             
             obj.Chomog_Derivatives = zeros(nstre,nstre,ngaus,nelem);
             for istreChomog = 1:nstre

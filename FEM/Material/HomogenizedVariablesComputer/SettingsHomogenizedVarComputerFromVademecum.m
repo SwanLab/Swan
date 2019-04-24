@@ -7,6 +7,8 @@ classdef SettingsHomogenizedVarComputerFromVademecum < ....
     
     properties (Access = public)
         fileName
+        nelem
+        ngaus        
     end
     
     methods (Access = public)

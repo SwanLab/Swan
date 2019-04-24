@@ -8,9 +8,10 @@ classdef ShFunc_Perimeter < Shape_Functional
     end
     
     methods
-        function obj = ShFunc_Perimeter(settings)
-            settings.filterParams.filterType = 'PDE';
-            obj.init(settings);
+        function obj = ShFunc_Perimeter(cParams)
+            cParams.filterParams.quadratureOrder = 'LINEAR';            
+            cParams.filterParams.filterType = 'PDE';
+            obj.init(cParams);
         end
         
         function computeCostAndGradient(obj,designVariable)

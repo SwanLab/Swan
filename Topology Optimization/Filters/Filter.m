@@ -25,10 +25,15 @@ classdef Filter < handle
         shape
     end
     
+    properties (Access = private)
+       quadratureOrder 
+    end
+    
     methods (Access = public)
         
         function obj = Filter(cParams)
             obj.createDiffReacProblem(cParams.designVar);
+            obj.quadratureOrder = cParams.quadratureOrder;
         end
         
         function preProcess(obj)
@@ -119,11 +124,11 @@ classdef Filter < handle
         
         function setQuadrature(obj)
             obj.quadrature = Quadrature.set(obj.mesh.geometryType);
-            obj.quadrature.computeQuadrature('LINEAR');
+            obj.quadrature.computeQuadrature(obj.quadratureOrder);
         end
         
         function setInterpolation(obj)
-            obj.interpolation = Interpolation.create(obj.mesh,obj.quadrature.order);
+            obj.interpolation = Interpolation.create(obj.mesh,'LINEAR');
         end
         
         function storeParams(obj)

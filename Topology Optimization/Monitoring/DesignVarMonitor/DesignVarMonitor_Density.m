@@ -50,6 +50,7 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
             filterSettings.filterType = 'P1';
             filterSettings.domainType = 'INTERIOR';
             filterSettings.designVar = obj.designVar;
+            filterSettings.quadratureOrder = 'LINEAR';
             obj.filter = Filter_P1_Density(filterSettings);
             obj.filter.preProcess();
         end

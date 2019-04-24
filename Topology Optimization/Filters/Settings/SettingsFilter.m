@@ -8,6 +8,7 @@ classdef SettingsFilter < AbstractSettings
         filterType 
         domainType
         designVar
+        quadratureOrder
     end
     
     methods (Access = public)

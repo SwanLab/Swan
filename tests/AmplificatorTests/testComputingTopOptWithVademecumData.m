@@ -20,8 +20,7 @@ methods (Access = protected)
     
     function computeError(obj)
         obj.error = 0;
-    end
-    
+    end    
     
 end
 
@@ -39,12 +38,8 @@ methods (Access = private)
         settings.optimizer = 'PROJECTED GRADIENT';
         
         topOptProblem = TopOpt_Problem(settings);
-        
-        topOptProblem.preProcess;
-        topOptProblem.computeVariables;
-        topOptProblem.postProcess;
-        
-        
+        topOptProblem.computeVariables();
+        topOptProblem.postProcess();
     end
     
     

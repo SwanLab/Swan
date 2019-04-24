@@ -31,7 +31,7 @@ classdef HomogenizedVarComputerFromVademecum ...
             end
             [rho,drho] = obj.density.compute([mx,my]);
             obj.rho = rho;
-            obj.drho = ones(obj.nelem,1);
+            obj.drho = ones(size(rho));
         end
         
     end
