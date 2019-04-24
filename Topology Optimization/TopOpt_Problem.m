@@ -68,25 +68,28 @@ classdef TopOpt_Problem < handle
             uncOptimizerSettings.ptype               = settings.ptype;
             
             optSet.uncOptimizerSettings = uncOptimizerSettings;
-            optSet.monitoring           = settings.monitoring;
+
             optSet.nconstr              = settings.nconstr;
             optSet.target_parameters    = settings.target_parameters;
             optSet.constraint_case      = settings.constraint_case;   
             optSet.optimizer            = settings.optimizer;
             optSet.maxiter              = settings.maxiter;
+            
             optSet.printing             = settings.printing;
             optSet.printMode            = settings.printMode;            
             
+            optSet.monitoring           = settings.monitoring;
+            optSet.monitoring_interval  = settings.monitoring_interval;
             optSet.plotting             = settings.plotting;
             optSet.pdim                 = settings.pdim;
             optSet.showBC               = settings.showBC;   
             
-            optSet.settings = settings;
+            optSet.settings   = settings;
             
-            optSet.cost     = obj.cost;
+            optSet.cost       = obj.cost;
             optSet.constraint = obj.constraint;
             
-            optSet.designVar = obj.designVariable;
+            optSet.designVar  = obj.designVariable;
             obj.optimizerSettings = optSet;
             
         end

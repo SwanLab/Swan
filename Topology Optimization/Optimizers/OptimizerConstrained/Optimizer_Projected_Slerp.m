@@ -1,5 +1,9 @@
 classdef Optimizer_Projected_Slerp < Optimizer_Constrained
     
+    properties (GetAccess = public, SetAccess = protected)
+        name = 'PROJECTED SLERP'
+    end
+    
     properties
         unconstrainedOptimizer
         objfunc
@@ -87,7 +91,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             while ~obj.unconstrainedOptimizer.hasConverged
                 
                 cost.value = cost_copy_value;
-                constraint.value = constraint_copy_value;                
+                constraint.value = constraint_copy_value;
                 
                 cost.gradient       = cost_copy_gradient;
                 constraint.gradient = constraint_copy_gradient;

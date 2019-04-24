@@ -6,8 +6,8 @@ classdef DesignVarMonitor_Null < DesignVarMonitor_Abstract
     
     methods (Access = public)
         
-        function obj = DesignVarMonitor_Null(mesh,showBC)
-            obj@DesignVarMonitor_Abstract(mesh,showBC);
+        function obj = DesignVarMonitor_Null(cParams)
+            obj@DesignVarMonitor_Abstract(cParams);
             close;
         end
         

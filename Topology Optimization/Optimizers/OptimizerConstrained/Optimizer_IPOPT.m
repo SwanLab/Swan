@@ -1,4 +1,9 @@
 classdef Optimizer_IPOPT < Optimizer_Constrained
+    
+    properties (GetAccess = public, SetAccess = protected)
+        name = 'IPOPT'
+    end
+        
     properties
         nconstr
         info
@@ -12,7 +17,8 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
     methods
         function obj = Optimizer_IPOPT(cParams)
             obj.init(cParams);
-            obj.convergenceVars = ConvergenceVariables(1);
+            obj.name = 'IPOPT';
+            obj.convergenceVars = cParams.convergenceVars;
             obj.nconstr = cParams.nconstr;
             obj.max_iter = cParams.maxiter;
             obj.niter=-1;

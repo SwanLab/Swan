@@ -9,11 +9,11 @@ classdef NamingManager < handle
     
     methods (Access = public)
         
-        function obj = NamingManager(settings)
-            obj.costFuncNames = settings.cost;
-            obj.costWeights = settings.weights;
-            obj.constraintNames = settings.constraint;
-            obj.convVarsNames = ConvergenceVarsDispatcher.dispatchNames(settings.optimizer);
+        function obj = NamingManager(cParams)
+            obj.costFuncNames = cParams.costFuncNames;
+            obj.costWeights = cParams.costWeights;
+            obj.constraintNames = cParams.constraintFuncs;
+            obj.convVarsNames = ConvergenceVarsDispatcher.dispatchNames(cParams.optimizerName);
         end
         
         function name = getCostFuncFigureTitle(obj,i)

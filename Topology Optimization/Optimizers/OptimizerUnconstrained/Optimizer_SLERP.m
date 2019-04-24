@@ -4,6 +4,10 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         theta = 0.1
     end
     
+    properties (GetAccess = public, SetAccess = protected)
+        name = 'SLERP'
+    end
+    
     properties  (GetAccess = public, SetAccess = private)
         optimality_tol
     end
@@ -19,7 +23,6 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         
         function obj = Optimizer_SLERP(settings)
             obj@Optimizer_Unconstrained(settings);
-            obj.maxIncrNormX = +Inf;
         end
         
         function phi = compute(obj,phi,g)

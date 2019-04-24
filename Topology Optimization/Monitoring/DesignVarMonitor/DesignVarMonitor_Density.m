@@ -11,9 +11,9 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
     
     methods (Access = public)
         
-        function obj = DesignVarMonitor_Density(designVar,showBC)
-            obj@DesignVarMonitor_Abstract(designVar,showBC);
-            obj.createFilter(designVar);
+        function obj = DesignVarMonitor_Density(cParams)
+            obj@DesignVarMonitor_Abstract(cParams);
+            obj.createFilter();
         end
         
         function plot(obj)
@@ -45,12 +45,12 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
     
     methods (Access = private)
         
-        function createFilter(obj,designVar)
-            filterParams = SettingsFilter();
-            filterParams.filterType = 'P1';
-            filterParams.domainType = 'INTERIOR';
-            filterParams.designVar = designVar;
-            obj.filter = Filter_P1_Density(filterParams);
+        function createFilter(obj)
+            filterSettings = SettingsFilter();
+            filterSettings.filterType = 'P1';
+            filterSettings.domainType = 'INTERIOR';
+            filterSettings.designVar = obj.designVar;
+            obj.filter = Filter_P1_Density(filterSettings);
             obj.filter.preProcess();
         end
         

@@ -4,11 +4,14 @@ classdef Optimizer_PG < Optimizer_Unconstrained
         optimality_tol
     end
     
+    properties (GetAccess = public, SetAccess = protected)
+        name = 'PROJECTED GRADIENT'
+    end
+    
     methods (Access = public)
         
         function obj = Optimizer_PG(settings)
             obj@Optimizer_Unconstrained(settings);
-            obj.maxIncrNormX = +Inf;
         end
         
         function rho = compute(obj,design_variable,gradient)

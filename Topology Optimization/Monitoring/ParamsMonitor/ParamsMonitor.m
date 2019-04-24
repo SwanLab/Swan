@@ -44,19 +44,16 @@ classdef ParamsMonitor < ParamsMonitor_Interface
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.saveSettings(cParams.settings);
+            obj.problemID = cParams.problemID;
+            obj.refreshInterval = cParams.refreshInterval;
+            obj.nCostFuncs = length(cParams.costFuncNames);
+            obj.nConstraints = length(cParams.constraintFuncs);
+            
             obj.costFuncValue    = cParams.cost;
             obj.constraintValues = cParams.constraint;
             obj.convergenceVars  = cParams.convergenceVars;
-            obj.namingManager    = NamingManager(cParams.settings);
+            obj.createNamingManager(cParams);
             obj.createFigures();
-        end
-        
-        function saveSettings(obj,settings)
-            obj.problemID = settings.case_file;
-            obj.refreshInterval = settings.monitoring_interval;
-            obj.nCostFuncs = length(settings.cost);
-            obj.nConstraints = length(settings.constraint);
         end
         
         function createFigures(obj)
@@ -192,6 +189,15 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         
         function itIs = isTimeToRefresh(obj)
             itIs = mod(obj.iteration,obj.refreshInterval) == 0;
+        end
+        
+        function createNamingManager(obj,cParams)
+           nmS.costFuncNames = cParams.costFuncNames;
+           nmS.costWeights = cParams.costWeights;
+           nmS.constraintFuncs = cParams.constraintFuncs;
+           nmS.optimizerName = cParams.optimizerName;
+           
+           obj.namingManager    = NamingManager(nmS);
         end
         
     end

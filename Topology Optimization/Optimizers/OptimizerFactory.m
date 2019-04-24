@@ -2,50 +2,32 @@ classdef OptimizerFactory < handle
     
     methods (Access = public, Static)
         
-        function optimizer = create(settings)
+        function optimizer = create(cParams)
             
-            optimizerName = settings.optimizer;
-            designVar = settings.designVar;
+            optimizerName = cParams.optimizer;
+            designVar = cParams.designVar;
             switch optimizerName
                 case 'SLERP'
-                    settings.unconstrainedOptimizer = Optimizer_SLERP(settings.uncOptimizerSettings);
-                    settings.settings        = settings;
-                    settings.designVariable  = settings.designVar;
-                    settings.monitoring      = settings.monitoring;
-                    settings.convergenceVars = settings.unconstrainedOptimizer.convergenceVars;
-                    optimizer = Optimizer_AugLag(settings);
+                    cParams.unconstrainedOptimizer = Optimizer_SLERP(cParams.uncOptimizerSettings);
+                    cParams.convergenceVars = cParams.unconstrainedOptimizer.convergenceVars;
+                    optimizer = Optimizer_AugLag(cParams);
                 case 'HAMILTON-JACOBI'
-                    settings.unconstrainedOptimizer = Optimizer_HJ(settings.uncOptimizerSettings,designVar);
-                    settings.settings        = settings;
-                    settings.designVariable  = settings.designVar;
-                    settings.monitoring      = settings.monitoring;
-                    settings.convergenceVars = settings.unconstrainedOptimizer.convergenceVars;
-                    optimizer = Optimizer_AugLag(settings);
+                    cParams.unconstrainedOptimizer = Optimizer_HJ(cParams.uncOptimizerSettings,designVar);
+                    cParams.convergenceVars = cParams.unconstrainedOptimizer.convergenceVars;
+                    optimizer = Optimizer_AugLag(cParams);
                 case 'PROJECTED GRADIENT'
-                    settings.unconstrainedOptimizer = Optimizer_PG(settings.uncOptimizerSettings);
-                    settings.settings        = settings;
-                    settings.designVariable  = settings.designVar;
-                    settings.monitoring      = settings.monitoring;
-                    settings.convergenceVars = settings.unconstrainedOptimizer.convergenceVars;
-                    optimizer = Optimizer_AugLag(settings);
+                    cParams.unconstrainedOptimizer = Optimizer_PG(cParams.uncOptimizerSettings);
+                    cParams.convergenceVars = cParams.unconstrainedOptimizer.convergenceVars;
+                    optimizer = Optimizer_AugLag(cParams);
                 case 'MMA'
-                    settings.settings        = settings;
-                    settings.designVariable  = settings.designVar;
-                    settings.monitoring      = settings.monitoring;
-                    settings.convergenceVars = ConvergenceVariables(2);
-                    optimizer = Optimizer_MMA(settings);
+                    cParams.convergenceVars = ConvergenceVariables(2);
+                    optimizer = Optimizer_MMA(cParams);
                 case 'IPOPT'
-                    settings.settings        = settings;
-                    settings.designVariable  = settings.designVar;
-                    settings.monitoring      = settings.monitoring;
-                    settings.convergenceVars = ConvergenceVariables(1);
-                    optimizer = Optimizer_IPOPT(settings);
+                    cParams.convergenceVars = ConvergenceVariables(1);
+                    optimizer = Optimizer_IPOPT(cParams);
                 case 'PROJECTED SLERP'
-                    settings.settings        = settings;
-                    settings.designVariable  = settings.designVar;
-                    settings.monitoring      = settings.monitoring;
-                    settings.convergenceVars = ConvergenceVariables(3);
-                    optimizer = Optimizer_Projected_Slerp(settings);
+                    cParams.convergenceVars = ConvergenceVariables(3);
+                    optimizer = Optimizer_Projected_Slerp(cParams);
                 otherwise
                     error('Invalid optimizer.')
             end
