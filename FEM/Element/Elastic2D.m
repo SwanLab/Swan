@@ -21,7 +21,7 @@ classdef Elastic2D < ElasticDim
             strain = obj.computeStrain@ElasticDim(u,idx);
             %strain = obj.computeEz(strain,obj.nstre,obj.nelem,obj.material);
         end
-        
+               
     end        
     
     methods (Access = private, Static)

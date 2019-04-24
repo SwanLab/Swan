@@ -32,16 +32,18 @@ classdef ShFunWithElasticPdes < Shape_Functional
         
         function updateHomogenizedMaterialProperties(obj,x)
             rho = obj.filter.getP0fromP1(x);
-            obj.homogenizedVariablesComputer.computeMatProp(rho);
+           % stress = obj.physProb
+            obj.homogenizedVariablesComputer.computeCtensor(rho);
         end
         
         function computeGradient(obj)
             nelem = obj.elemGradientSize.nelem;
             ngaus = obj.elemGradientSize.ngaus;
+            nstre = obj.physProb.element.getNstre();
             g = zeros(nelem,ngaus);
             for igaus = 1:obj.physProb.element.quadrature.ngaus
-                for istre = 1:obj.physProb.element.getNstre()
-                    for jstre = 1:obj.physProb.element.getNstre()
+                for istre = 1:nstre
+                    for jstre = 1:nstre
                         g(:,igaus) = g(:,igaus) + obj.updateGradient(igaus,istre,jstre);
                     end
                 end

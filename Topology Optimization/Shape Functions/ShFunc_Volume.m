@@ -55,7 +55,7 @@ classdef ShFunc_Volume < Shape_Functional
         
         function updateHomogenizedMaterialProperties(obj,x)
             x0 = obj.filter.getP0fromP1(x);
-            obj.homogenizedVariablesComputer.computeMatProp(x0);
+            obj.homogenizedVariablesComputer.computeDensity(x0);
         end        
         
     end

@@ -33,7 +33,7 @@ methods (Access = private)
         settings.vademecumFileName = 'SmoothRectangle';
         settings.homegenizedVariablesComputer = 'ByVademecum';%'ByVademecum';
         settings.materialInterpolation = 'SIMP-ALL';
-        settings.designVariable = 'MicroParams';'Density';'MicroParams';
+        settings.designVariable = 'MicroParams';
         
         settings.optimizer = 'PROJECTED GRADIENT';
         
