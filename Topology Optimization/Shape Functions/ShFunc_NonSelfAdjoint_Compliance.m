@@ -22,12 +22,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
     end
     
     methods (Access = protected)
-        
-       function createEquilibriumProblem(obj,fileName)
-            obj.physProb = FEM.create(fileName);
-            obj.physProb.preProcess;
-       end        
-        
+
         function computeFunctionValue(obj)
             u = obj.physProb.variables.d_u;
             f = obj.adjointProb.variables.fext;
