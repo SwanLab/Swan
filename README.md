@@ -1,3 +1,5 @@
+## Swan - Topology Optimization Laboratory##
+
 <p align="center">
   <img src="https://github.com/SwanLab/Utilities/blob/master/swan_logo_test2.png" alt="drawing" width="200"/>
 </p>
