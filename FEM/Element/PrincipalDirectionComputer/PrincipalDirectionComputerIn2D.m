@@ -12,6 +12,7 @@ classdef PrincipalDirectionComputerIn2D < PrincipalDirectionComputer
     methods (Access = public)
         
         function compute(obj,tensor)
+            tensor = obj.avarageTensor(tensor);
             s1  = squeeze(tensor(1,1,:));
             s2  = squeeze(tensor(1,2,:));
             s12 = squeeze(tensor(1,3,:));
@@ -35,6 +36,18 @@ classdef PrincipalDirectionComputerIn2D < PrincipalDirectionComputer
             obj.eigenVectors = vS;
         end        
 
+    end
+    
+    methods (Access = private, Static)
+        
+        function t = avarageTensor(tensor)
+            t = zeros(1,size(tensor,2),size(tensor,3));
+            ngaus = size(tensor,1);
+            for igaus = 1 : ngaus
+               t(1,:,:) = t(1,:,:) + tensor(igaus,:,:)/ngaus;
+            end
+        end
+        
     end
     
 end

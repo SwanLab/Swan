@@ -2,20 +2,19 @@ classdef ShFunWithElasticPdes < Shape_Functional
     
     properties (Access = protected)
         interpolation
-        homogenizedMatProps
         physProb
         homogenizedVariablesComputer
     end
     
     methods (Access = public)
-     
+        
         function computeCostAndGradient(obj,x)
             obj.updateHomogenizedMaterialProperties(x);
             obj.solvePDEs();
             obj.computeFunctionValue();
             obj.computeGradient();
             obj.normalizeFunctionAndGradient()
-        end 
+        end
         
         function f = getPhysicalProblems(obj)
             f{1} = obj.physProb;
@@ -28,12 +27,13 @@ classdef ShFunWithElasticPdes < Shape_Functional
         function createEquilibriumProblem(obj,fileName)
             obj.physProb = FEM.create(fileName);
             obj.physProb.preProcess;
+            obj.initPrincipalDirections()
         end
         
         function updateHomogenizedMaterialProperties(obj,x)
             rho = obj.filter.getP0fromP1(x);
-           % stress = obj.physProb
-            obj.homogenizedVariablesComputer.computeCtensor(rho);
+            alpha = obj.physProb.variables.principalDirections;
+            obj.homogenizedVariablesComputer.computeCtensor(rho,alpha);
         end
         
         function computeGradient(obj)
@@ -62,11 +62,20 @@ classdef ShFunWithElasticPdes < Shape_Functional
         end
         
     end
-
+    
+    methods (Access = private)
+        
+        function initPrincipalDirections(obj)
+            ndim = 2;
+            nelem = obj.physProb.element.nelem;
+            obj.physProb.variables.principalDirections = zeros(ndim,ndim,nelem);
+        end
+        
+    end
+    
     methods (Access = protected, Abstract)
         computeFunctionValue(obj)
         updateGradient(obj)
         solvePDEs(obj)
     end
 end
-

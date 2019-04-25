@@ -29,7 +29,6 @@ classdef TopOpt_Problem < handle
             
             obj.createIncrementalScheme(settings);
                         
-
             obj.cost = Cost(settings,obj.designVariable);
             obj.constraint = Constraint(settings,obj.designVariable);            
             

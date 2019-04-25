@@ -20,13 +20,7 @@ classdef CC < handle
     end
     
     methods (Access = public)
-        
-        function preProcess(obj)
-            for iSF = 1:obj.nSF
-                obj.ShapeFuncs{iSF}.preProcess();
-            end
-        end
-        
+
         function computeCostAndGradient(obj, x)
             obj.value = 0;
             obj.gradient = zeros(length(x),1);
