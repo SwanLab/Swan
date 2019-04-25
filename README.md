@@ -37,9 +37,11 @@ Swan's modular design allows to combine several functions to define different op
 - Non-self adjoint compliance (used to minimize/maximize displacements)
 - Homogenized elasticity matrix (used in micro scale problems)
 
-In terms of optimization techniques the following optimizers are implemented:
+In terms of optimization techniques, the following optimizers are implemented:
  - Density: Projected Gradient, MMA and IPOPT. 
  - Level-set: SLERP, Projected SLERP and Hamilton-Jacobi
+ 
+Unconstrained optimizers are combined with an Aumgmented Lagrangian to solve constrained problems. 
 
 
 ## Contact ##
@@ -51,13 +53,15 @@ Current active developers are: Àlex Ferrer (@FerrerFerreAlex), Marc Núñez (@m
 Previous developers are acknowledged: Ferran De la Fuente, Nacho Izquierdo Pérez, Raül Rubio Serrano, Albert Torres Rubio
 
 ## References 
-PENDING (if needed): reference to MMA, IPOPT, P. SLERP, HJ
 
-Bendsøe, M.P. Structural Optimization (1989) 1: 193. https://doi.org/10.1007/BF0165094
+M.  P.  Bendsøe,  Optimal  shape  design  as  a  material  distributionproblem, Structural optimization,  vol.  1,  no.  4,  pp.  193–202,  Dec1989. [Online]. Available: https://doi.org/10.1007/BF01650949
 
-S. Amstutz, C. Dapogny, and A. Ferrer, *SIMP-ALL: a generalized SIMP method based
-on topological and shape derivatives.* WCSMO12, 2017.
+S. Amstutz, H. Andrä, A new algorithm for topology optimization using a level-set method, J. Comput. Phys. 216 (2) (2006) 573–588.
 
-S. Amstutz and H. Andra, *A new algorithm for topology optimization using a level-set
-method,* 2066.
+K. Svanberg, The method of moving asymptotes – a new method for structural optimization, International Journal for Numerical Methods in Engineering, 1987, 24, 359-373.
 
+S.  Amstutz,  C.  Dapogny,  and  A.  Ferrer,  A  consistent  relaxation of   optimal   design   problems   for   coupling   shape   and   topological derivatives, Numerische Mathematik, vol. 140, no. 1, pp. 35–94, Sep 2018. [Online]. Available: https://doi.org/10.1007/s00211-018-0964-4
+
+G.  Allaire,  F.  Jouve,  A.-M.  Toader,  Structural  optimization  using  sensitivity  analysis  and  a  level-set  method,  J.  Comput.  Phys.  194  (1)(2004)  363–393,  http://dx.doi.org/10.1016/j.jcp.2003.09.032.
+
+A. Wächter and L. T. Biegler, On the Implementation of a Primal-Dual Interior Point Filter Line Search Algorithm for Large-Scale Nonlinear Programming, Mathematical Programming 106(1), pp. 25-57, 2006
