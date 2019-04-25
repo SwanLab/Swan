@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/SwanLab/Utilities/blob/master/swan_logo_test.png" alt="drawing" width="200"/>
+  <img src="https://github.com/SwanLab/Utilities/blob/master/swan_logo_test2.png" alt="drawing" width="200"/>
 </p>
 
 *"It is not enough for code to work."
