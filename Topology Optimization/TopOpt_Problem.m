@@ -121,10 +121,17 @@ classdef TopOpt_Problem < handle
         function createDesignVariable(obj,settings)
             mesh = Mesh_GiD(settings.filename);
             designVarSettings = SettingsDesignVariable();
-            designVarSettings.mesh = mesh;
-            dI = DesignVariableCreator(settings,mesh);
-            designVarSettings.value = dI.getValue();
+            designVarSettings.mesh = mesh;            
             designVarSettings.type = settings.designVariable;
+            designVarSettings.levelSetCreatorSettings       = settings.levelSetDataBase;
+            designVarSettings.levelSetCreatorSettings.ndim  = mesh.ndim;
+            designVarSettings.levelSetCreatorSettings.coord = mesh.coord;            
+            designVarSettings.levelSetCreatorSettings.type = settings.initial_case;                         
+            switch designVarSettings.levelSetCreatorSettings.type
+                case 'holes'
+                    designVarSettings.levelSetCreatorSettings.dirichlet = mesh.dirichlet;
+                    designVarSettings.levelSetCreatorSettings.pointload = mesh.pointload;
+            end
             obj.designVariable = DesignVariable.create(designVarSettings);
         end
         

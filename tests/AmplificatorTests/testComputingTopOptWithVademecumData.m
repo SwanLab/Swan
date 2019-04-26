@@ -34,7 +34,7 @@ methods (Access = private)
         settings.homegenizedVariablesComputer = 'ByVademecum';%'ByVademecum';
         settings.materialInterpolation = 'SIMP-ALL';
         settings.designVariable = 'MicroParams';
-        
+        settings.levelSetDataBase = [];
         settings.optimizer = 'PROJECTED GRADIENT';
         
         topOptProblem = TopOpt_Problem(settings);

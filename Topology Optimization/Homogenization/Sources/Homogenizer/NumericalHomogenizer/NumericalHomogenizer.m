@@ -155,11 +155,12 @@ classdef NumericalHomogenizer < handle
             s = SettingsDesignVariable();
             s.type = 'Density';
             s.mesh = obj.microProblem.mesh;
-            s.value = obj.elemDensCr.getLevelSet();%obj.levelSet;
+            s.levelSetCreatorSettings.type  = 'given';
+            s.levelSetCreatorSettings.value = obj.elemDensCr.getLevelSet();
+            s.levelSetCreatorSettings.ndim  = obj.microProblem.mesh.ndim;
+            s.levelSetCreatorSettings.coord = obj.microProblem.mesh.coord;            
             d.filterParams.designVar = DesignVariable.create(s);
             vComputer = ShFunc_Volume(d);
-           % vComputer.filter.preProcess();
-           % dens(1,:) = obj.density;
             vComputer.computeCostFromDensity(obj.density);
             vol = vComputer.value;
             obj.cellVariables.volume = vol;

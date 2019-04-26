@@ -3,7 +3,7 @@ classdef LevelSetFactory < handle
     methods (Access = public, Static)
         
         function obj = create(d)
-            switch d.levelSetType
+            switch d.type
                 case 'circle'
                     obj = LevelSetCircle(d);
                 case 'circle_2'
@@ -37,6 +37,8 @@ classdef LevelSetFactory < handle
                     obj = LevelSetFull(d);
                 case 'horizontalFibers'
                     obj = LevelSetHorizontalFibers(d);
+                case 'given'
+                    obj = LevelSetGiven(d);
                 otherwise
                     error('Invalid initial value of design variable.');
             end

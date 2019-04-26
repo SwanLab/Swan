@@ -44,6 +44,9 @@ classdef NumericalHomogenizerDataBase < handle
             d.filterParams.filterType = 'P1';
             s = SettingsDesignVariable();
             s.type = 'Density';
+            s.levelSetCreatorSettings.type = 'full';       
+            s.levelSetCreatorSettings.ndim  = s.mesh.ndim;
+            s.levelSetCreatorSettings.coord = s.mesh.coord;             
             d.filterParams.designVar = DesignVariable.create(s);% Density(s);
             d.filename = obj.femFileName;
             d.materialInterpolationParams.type = 'ByInterpolation';
@@ -55,7 +58,7 @@ classdef NumericalHomogenizerDataBase < handle
     methods (Access = private, Static)
         
         function d = createLevelSetDataBase()
-            d.levelSetType = 'horizontalFibers';
+            d.type = 'horizontalFibers';
             d.levFib = 3;
             d.volume = 0.5;
         end
