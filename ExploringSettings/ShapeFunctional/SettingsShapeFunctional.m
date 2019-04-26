@@ -8,7 +8,7 @@ classdef SettingsShapeFunctional < AbstractSettings
         filterParams 
         filename 
         domainType 
-       homogVarComputer
+        homogVarComputer
     end
     
      methods (Access = public)
