@@ -1,12 +1,11 @@
-classdef ShFunc_Chomog < Shape_Functional
-   
+classdef ShFunc_Chomog < ShapeFunctional
+    
     properties (Access = public)
         Chomog
         tstress
         tstrain
         Chomog_Derivatives
         physicalProblem
-        interpolation
         rho
         matProps
         Ch_star
@@ -15,11 +14,10 @@ classdef ShFunc_Chomog < Shape_Functional
     methods (Access = public)
         
         function obj=ShFunc_Chomog(cParams)
-            cParams.filterParams.quadratureOrder = 'LINEAR';            
+            cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
             obj.physicalProblem = FEM.create(cParams.filename);
             obj.physicalProblem.preProcess;
-            obj.interpolation = Material_Interpolation.create(cParams.materialInterpolationParams);
         end
         
         function f = getPhysicalProblems(obj)
@@ -29,12 +27,12 @@ classdef ShFunc_Chomog < Shape_Functional
     
     methods (Access = protected)
         function compute_Chomog_Derivatives(obj,x)
-            obj.rho=obj.filter.getP0fromP1(x);
-            obj.matProps=obj.interpolation.computeMatProp(obj.rho);
+             dC = obj.homogenizedVariablesComputer.dC;
             
             nstre = obj.physicalProblem.element.getNstre();
-            ngaus = obj.elemGradientSize.ngaus;
-            nelem = obj.elemGradientSize.nelem;
+            nelem = obj.physicalProblem.geometry.interpolation.nelem;
+            ngaus = obj.physicalProblem.element.quadrature.ngaus;
+            
             
             obj.Chomog_Derivatives = zeros(nstre,nstre,ngaus,nelem);
             for istreChomog = 1:nstre
@@ -45,7 +43,7 @@ classdef ShFunc_Chomog < Shape_Functional
                                 obj.Chomog_Derivatives(istreChomog,jstreChomog,igaus,:) = ...
                                     squeeze(obj.Chomog_Derivatives(istreChomog,jstreChomog,igaus,:)) + ...
                                     (squeeze(obj.tstrain(istreChomog,igaus,istre,:))...
-                                    .*squeeze(obj.matProps.dC(istre,jstre,:))...
+                                    .*squeeze(dC(istre,jstre,:))...
                                     .*squeeze(obj.tstrain(jstreChomog,igaus,jstre,:)));
                             end
                         end
@@ -57,6 +55,7 @@ classdef ShFunc_Chomog < Shape_Functional
         
         function r = derivative_projection_Chomog(obj,inv_matCh,alpha,beta)
             nstre = obj.physicalProblem.element.getNstre();
+            
             ngaus = size(obj.tstrain,2);
             nelem = obj.physicalProblem.element.nelem;
             
@@ -76,14 +75,20 @@ classdef ShFunc_Chomog < Shape_Functional
         end
         
         function computePhysicalData(obj,x)
-            obj.rho=obj.filter.getP0fromP1(x);
-            obj.matProps=obj.interpolation.computeMatProp(obj.rho);
-            obj.physicalProblem.setMatProps(obj.matProps);
+            obj.updateHomogenizedMaterialProperties(x);
+            obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C)
             obj.physicalProblem.computeChomog;
             obj.Chomog = obj.physicalProblem.variables.Chomog;
             obj.tstrain = obj.physicalProblem.variables.tstrain;
             obj.tstress = obj.physicalProblem.variables.tstress;
         end
+        
+        function updateHomogenizedMaterialProperties(obj,x)
+            rhoV = obj.filter.getP0fromP1(x);
+            alpha = 0;
+            obj.homogenizedVariablesComputer.computeCtensor(rhoV,alpha);
+        end
+        
         
         function compute_Ch_star(obj,TOL,C_Cstar_case)
             E_plus = TOL.E_plus;

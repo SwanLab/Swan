@@ -1,9 +1,8 @@
-classdef ShFunWithElasticPdes < Shape_Functional
+classdef ShFunWithElasticPdes < ShapeFunctional
     
     properties (Access = protected)
         interpolation
-        physProb
-        homogenizedVariablesComputer
+        physicalProblem
     end
     
     methods (Access = public)
@@ -17,7 +16,7 @@ classdef ShFunWithElasticPdes < Shape_Functional
         end
         
         function f = getPhysicalProblems(obj)
-            f{1} = obj.physProb;
+            f{1} = obj.physicalProblem;
         end
         
     end
@@ -25,23 +24,23 @@ classdef ShFunWithElasticPdes < Shape_Functional
     methods (Access = protected)
         
         function createEquilibriumProblem(obj,fileName)
-            obj.physProb = FEM.create(fileName);
-            obj.physProb.preProcess;
-            obj.initPrincipalDirections()
+            obj.physicalProblem = FEM.create(fileName);
+            obj.physicalProblem.preProcess;
+            obj.initPrincipalDirections();
         end
         
         function updateHomogenizedMaterialProperties(obj,x)
             rho = obj.filter.getP0fromP1(x);
-            alpha = obj.physProb.variables.principalDirections;
+            alpha = obj.physicalProblem.variables.principalDirections;
             obj.homogenizedVariablesComputer.computeCtensor(rho,alpha);
         end
         
         function computeGradient(obj)
-            nelem = obj.elemGradientSize.nelem;
-            ngaus = obj.elemGradientSize.ngaus;
-            nstre = obj.physProb.element.getNstre();
+            nelem = obj.physicalProblem.geometry.interpolation.nelem;
+            ngaus = obj.physicalProblem.element.quadrature.ngaus;
+            nstre = obj.physicalProblem.element.getNstre();
             g = zeros(nelem,ngaus);
-            for igaus = 1:obj.physProb.element.quadrature.ngaus
+            for igaus = 1:ngaus
                 for istre = 1:nstre
                     for jstre = 1:nstre
                         g(:,igaus) = g(:,igaus) + obj.updateGradient(igaus,istre,jstre);
@@ -52,23 +51,15 @@ classdef ShFunWithElasticPdes < Shape_Functional
             g = obj.Msmooth*g;
             obj.gradient = g;
         end
-        
-        function createHomogenizedVariablesComputer(obj,cParams)
-            cP = cParams.materialInterpolationParams;
-            cP.nelem = obj.elemGradientSize.nelem;
-            cP.ngaus = obj.elemGradientSize.ngaus;
-            h = HomogenizedVarComputer.create(cP);
-            obj.homogenizedVariablesComputer = h;
-        end
-        
+
     end
     
     methods (Access = private)
         
         function initPrincipalDirections(obj)
             ndim = 2;
-            nelem = obj.physProb.element.nelem;
-            obj.physProb.variables.principalDirections = zeros(ndim,ndim,nelem);
+            nelem = obj.physicalProblem.element.nelem;
+            obj.physicalProblem.variables.principalDirections = zeros(ndim,ndim,nelem);
         end
         
     end

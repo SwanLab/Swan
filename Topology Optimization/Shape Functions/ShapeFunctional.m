@@ -1,4 +1,4 @@
-classdef Shape_Functional < handle
+classdef ShapeFunctional < handle
     
     properties
         value
@@ -8,20 +8,28 @@ classdef Shape_Functional < handle
         filter
         Msmooth
         dvolu
-        value0
+        value0        
     end
     
     properties (Access = protected)
-       elemGradientSize 
+       homogenizedVariablesComputer
     end
-       
+    
+    methods (Access = public, Static)
+        
+        function obj = create(type,settings,designVar,homogVarComputer)
+            f = ShapeFunctional_Factory();
+            obj = f.create(type,settings,designVar,homogVarComputer);
+        end
+        
+    end
+    
     methods (Access = protected)
         
         function init(obj,cParams)
             obj.createFilter(cParams.filterParams);
             obj.createMsmoothAndDvolu(cParams.filename, cParams.domainType);
-            obj.elemGradientSize.nelem = obj.filter.nelem;
-            obj.elemGradientSize.ngaus = obj.filter.ngaus;        
+            obj.homogenizedVariablesComputer = cParams.homogVarComputer;
         end
         
         function normalizeFunctionAndGradient(obj)

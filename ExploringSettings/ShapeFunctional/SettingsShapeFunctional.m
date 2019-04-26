@@ -8,7 +8,7 @@ classdef SettingsShapeFunctional < AbstractSettings
         filterParams 
         filename 
         domainType 
-        materialInterpolationParams
+       homogVarComputer
     end
     
      methods (Access = public)

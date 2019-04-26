@@ -32,10 +32,11 @@ classdef Filter_P1 < Filter
     
     methods (Access = private)
         
-        function A = integrate_P1_function_with_shape_function(obj,x)
-            A = 0;
-            for igauss = 1:size(obj.M0,2)
-                A = A + obj.M0{igauss}*x(:,igauss);
+        function intX = integrate_P1_function_with_shape_function(obj,x)
+            intX = zeros(obj.nelem,1);
+            for igaus = 1:obj.quadrature.ngaus
+                dvolu = obj.geometry.dvolu(:,igaus);
+                intX = intX + dvolu.*x(:,igaus);
             end
         end
         

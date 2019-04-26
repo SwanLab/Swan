@@ -7,12 +7,13 @@ classdef CC < handle
     end
     
     properties (GetAccess = public, SetAccess = private)
-        ShapeFuncs
+        shapeFunctions
         nSF = 0
     end
     
     properties (Access = private)
         designVar
+        homogVarComputer
     end
     
     methods (Access = public, Abstract)
@@ -24,9 +25,9 @@ classdef CC < handle
         function computeCostAndGradient(obj, x)
             obj.value = 0;
             obj.gradient = zeros(length(x),1);
-            for iSF = 1:length(obj.ShapeFuncs)
+            for iSF = 1:length(obj.shapeFunctions)
                 obj.updateTargetParameters(iSF);
-                obj.ShapeFuncs{iSF}.computeCostAndGradient(x);
+                obj.shapeFunctions{iSF}.computeCostAndGradient(x);
                 obj.updateFields(iSF);
             end
         end
@@ -35,8 +36,9 @@ classdef CC < handle
     
     methods (Access = protected)
         
-        function obj = init(obj,settings,SF_list,designVar)
+        function obj = init(obj,settings,SF_list,designVar,homogVarComputer)
             obj.designVar = designVar;
+            obj.homogVarComputer = homogVarComputer;
             obj.createShapeFunctions(SF_list,settings);
         end        
         
@@ -44,23 +46,24 @@ classdef CC < handle
     
     methods (Access = private)
         
-        function createShapeFunctions(obj,SF_list,settings)
-            shapeFactory = ShapeFunctional_Factory();
-            for iSF = 1:length(SF_list)
-                newShapeFunction = shapeFactory.create(SF_list{iSF},settings,obj.designVar);
-                obj.append(newShapeFunction);
+        function createShapeFunctions(obj,shapeFunctionNames,settings)
+            nShapeFunctions = length(shapeFunctionNames);
+            for is = 1:nShapeFunctions
+                name          = shapeFunctionNames{is};
+                shapeFunction = ShapeFunctional.create(name,settings,obj.designVar,obj.homogVarComputer);
+                obj.append(shapeFunction);
             end
         end
         
         function append(obj,shapeFunction)
-            obj.ShapeFuncs{obj.nSF+1} = shapeFunction;
+            obj.shapeFunctions{obj.nSF+1} = shapeFunction;
             obj.nSF = obj.nSF+1;
         end
         
         function updateTargetParameters(obj,iSF)
-            obj.ShapeFuncs{iSF}.target_parameters = obj.target_parameters;
-            if contains(class(obj.ShapeFuncs{iSF}.filter),'PDE')
-                obj.ShapeFuncs{iSF}.filter.updateEpsilon(obj.target_parameters.epsilon);
+            obj.shapeFunctions{iSF}.target_parameters = obj.target_parameters;
+            if contains(class(obj.shapeFunctions{iSF}.filter),'PDE')
+                obj.shapeFunctions{iSF}.filter.updateEpsilon(obj.target_parameters.epsilon);
             end
         end
         

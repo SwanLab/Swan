@@ -30,13 +30,13 @@ classdef OptimizationMetricsPrinter < handle
             fprintf(fid,'Nstep: %i \n',iStep);
             fprintf(fid,'obj.cost %f \n',obj.cost.value);
             
-            for i = 1:length(obj.cost.ShapeFuncs)
-                fprintf(fid,strcat('-obj.cost ',num2str(i),': %f \n'),obj.cost.ShapeFuncs{i}.value);
+            for i = 1:length(obj.cost.shapeFunctions)
+                fprintf(fid,strcat('-obj.cost ',num2str(i),': %f \n'),obj.cost.shapeFunctions{i}.value);
             end
             
             fprintf(fid,'obj.constraint: %f \n',obj.constraint.value);
-            for i = 1:length(obj.constraint.ShapeFuncs)
-                fprintf(fid,strcat('-obj.constraint ',num2str(i),': %f \n'),obj.constraint.ShapeFuncs{i}.value);
+            for i = 1:length(obj.constraint.shapeFunctions)
+                fprintf(fid,strcat('-obj.constraint ',num2str(i),': %f \n'),obj.constraint.shapeFunctions{i}.value);
             end
             
             obj.printConvergenceVariables(fid);

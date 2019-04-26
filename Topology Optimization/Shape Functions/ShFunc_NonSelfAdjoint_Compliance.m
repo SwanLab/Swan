@@ -11,11 +11,10 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
             obj.init(cParams);     
             obj.createEquilibriumProblem(cParams.filename);
             obj.createAdjointProblem(cParams.filename)            
-            obj.createHomogenizedVariablesComputer(cParams);            
         end
         
         function f = getPhysicalProblems(obj)
-            f{1} = obj.physProb;
+            f{1} = obj.physicalProblem;
             f{2} = obj.adjointProb;
         end
         
@@ -24,13 +23,13 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
     methods (Access = protected)
 
         function computeFunctionValue(obj)
-            u = obj.physProb.variables.d_u;
+            u = obj.physicalProblem.variables.d_u;
             f = obj.adjointProb.variables.fext;
             obj.value = -f'*u;
         end
         
         function g = updateGradient(obj,igaus,istre,jstre)
-            eu   = obj.physProb.variables.strain;
+            eu   = obj.physicalProblem.variables.strain;
             ev   = obj.adjointProb.variables.strain;
             eu_i = squeeze(eu(igaus,istre,:));
             ev_j = squeeze(ev(igaus,jstre,:)); 
@@ -41,8 +40,8 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
         function solvePDEs(obj)
             obj.adjointProb.setC(obj.homogenizedVariablesComputer.C);
             obj.adjointProb.computeVariables();
-            obj.physProb.setC(obj.homogenizedVariablesComputer.C);
-            obj.physProb.computeVariables();
+            obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
+            obj.physicalProblem.computeVariables();
         end
         
     end

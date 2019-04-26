@@ -1,4 +1,4 @@
-classdef ShFunc_Perimeter < Shape_Functional
+classdef ShFunc_Perimeter < ShapeFunctional
     
     properties (Access = protected)
         epsilon

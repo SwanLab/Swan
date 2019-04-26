@@ -2,7 +2,6 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
     
     properties (GetAccess = public, SetAccess = protected)
         mesh
-        %mesh        
         type
     end
     

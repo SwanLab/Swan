@@ -66,6 +66,7 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         materialInterpolation
         designVariable
         vademecumFileName        
+        nelem
     end
     
     properties %exploring tests

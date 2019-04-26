@@ -12,30 +12,28 @@ classdef TopOpt_Problem < handle
     
     properties (Access = private)
         hole_value
-        ini_design_value
-    end
-    
-    properties (Access = private)
+        ini_design_value        
         videoManager
-    end
-        
+        homogenizedVarComputer
+    end        
     
     methods (Access = public)
         
         function obj = TopOpt_Problem(settings)
-            obj.createDesignVariable(settings);
-            
+            obj.createDesignVariable(settings);            
             settings.pdim = obj.designVariable.mesh.pdim;
-            
+            obj.createHomogenizedVarComputer(settings)
+          
             obj.createIncrementalScheme(settings);
                         
-            obj.cost = Cost(settings,obj.designVariable);
-            obj.constraint = Constraint(settings,obj.designVariable);            
+            obj.cost = Cost(settings,obj.designVariable,obj.homogenizedVarComputer);
+            obj.constraint = Constraint(settings,obj.designVariable,obj.homogenizedVarComputer);            
             
             obj.createOptimizer(settings);
 
             obj.createVideoManager(settings);
         end
+        
         
         function createOptimizer(obj,settings)
             obj.createOptimizerSettings(settings);
@@ -110,6 +108,8 @@ classdef TopOpt_Problem < handle
     
     methods (Access = private)
         
+        
+        
         function optSet = obtainOptimizersSettings(obj,settings)
             epsilon = obj.incrementalScheme.targetParams.epsilon;
             settings.optimizerSettings.uncOptimizerSettings.lineSearchSettings.epsilon = epsilon;
@@ -133,6 +133,18 @@ classdef TopOpt_Problem < handle
                     designVarSettings.levelSetCreatorSettings.pointload = mesh.pointload;
             end
             obj.designVariable = DesignVariable.create(designVarSettings);
+        end
+        
+        function createHomogenizedVarComputer(obj,settings)
+            settings.nelem = size(obj.designVariable.mesh.connec,1);            
+            s.type                   = settings.homegenizedVariablesComputer;
+            s.interpolation          = settings.materialInterpolation;
+            s.dim                    = settings.pdim;
+            s.typeOfMaterial         = settings.material;
+            s.constitutiveProperties = settings.TOL;
+            s.vademecumFileName      = settings.vademecumFileName;            
+            s.nelem                  = settings.nelem;            
+            obj.homogenizedVarComputer = HomogenizedVarComputer.create(s);
         end
         
         function createIncrementalScheme(obj,settings)

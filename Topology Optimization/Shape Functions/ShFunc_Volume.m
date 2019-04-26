@@ -1,15 +1,13 @@
-classdef ShFunc_Volume < Shape_Functional
+classdef ShFunc_Volume < ShapeFunctional
     
     properties (Access = private)
         geometricVolume
-        homogenizedVariablesComputer        
     end
     
     methods (Access = public)
         function obj = ShFunc_Volume(cParams)
             cParams.filterParams.quadratureOrder = 'CONSTANT';            
             obj.init(cParams);         
-            obj.createHomogenizedVariablesComputer(cParams); 
             obj.geometricVolume = sum(obj.dvolu(:));
         end
         
@@ -38,24 +36,14 @@ classdef ShFunc_Volume < Shape_Functional
         function computeGradient(obj)
             drho = obj.homogenizedVariablesComputer.drho;
             gradient = drho/(obj.geometricVolume);
-            ngaus = obj.elemGradientSize.ngaus;
-            gradient = repmat(gradient,1,ngaus);
             gradient = obj.filter.getP1fromP0(gradient);
             gradient = obj.Msmooth*gradient;            
             obj.gradient = gradient;            
         end
         
-        function createHomogenizedVariablesComputer(obj,cParams)
-            cP = cParams.materialInterpolationParams;
-            cP.nelem = obj.elemGradientSize.nelem;
-            cP.ngaus = obj.elemGradientSize.ngaus;
-            h = HomogenizedVarComputer.create(cP);
-            obj.homogenizedVariablesComputer = h;
-        end                
-        
         function updateHomogenizedMaterialProperties(obj,x)
-            x0 = obj.filter.getP0fromP1(x);
-            obj.homogenizedVariablesComputer.computeDensity(x0);
+            rho = obj.filter.getP0fromP1(x);
+            obj.homogenizedVariablesComputer.computeDensity(rho);
         end        
         
     end

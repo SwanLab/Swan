@@ -11,7 +11,6 @@ classdef SettingsHomogenizedVarComputerFromInterpolation < ....
         typeOfMaterial
         constitutiveProperties
         nelem
-        ngaus
         ptype
     end
     

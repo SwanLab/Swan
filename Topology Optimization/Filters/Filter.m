@@ -13,7 +13,6 @@ classdef Filter < handle
     
     properties (GetAccess = protected, SetAccess = private)
         P_operator
-        M0
         
         geometry
         quadrature
@@ -46,8 +45,6 @@ classdef Filter < handle
             obj.interpolation.computeShapeDeriv(obj.quadrature.posgp)
             obj.computeGeometry();
             obj.storeParams();
-            
-            obj.computeElementalMassMatrix();
             
             obj.P_operator = obj.computePoperator(obj.diffReacProb.element.M);
         end
@@ -140,9 +137,10 @@ classdef Filter < handle
         end
         
         function computeElementalMassMatrix(obj)
+            nel = obj.geometry.interpolation.nelem;
             for igauss = 1:obj.quadrature.ngaus
-                obj.M0{igauss} = sparse(1:obj.geometry.interpolation.nelem,1:obj.geometry.interpolation.nelem,...
-                    obj.geometry.dvolu(:,igauss));
+                dvolu = obj.geometry.dvolu(:,igauss);
+                obj.M0{igauss} = sparse(1:nel,1:nel,dvolu);
             end
         end
         
