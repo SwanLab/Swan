@@ -25,7 +25,7 @@ classdef TopOpt_Problem < handle
         function obj = TopOpt_Problem(settings)
             obj.createDesignVariable(settings);
             
-            settings.pdim = obj.designVariable.meshGiD.pdim;
+            settings.pdim = obj.designVariable.mesh.pdim;
             
             obj.createIncrementalScheme(settings);
                         
@@ -152,7 +152,7 @@ classdef TopOpt_Problem < handle
             settingsIncrementalScheme.nSteps = settings.nsteps;
             settingsIncrementalScheme.shallPrintIncremental = settings.printIncrementalIter;
             
-            settingsIncrementalScheme.mesh = obj.designVariable.meshGiD;
+            settingsIncrementalScheme.mesh = obj.designVariable.mesh;
             
             obj.incrementalScheme = IncrementalScheme(settingsIncrementalScheme);
         end

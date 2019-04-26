@@ -23,7 +23,7 @@ classdef testUnfitted < test
         end
         
         function createMesh(obj)
-            meshBackground = obj.topOpt.designVariable.meshGiD;
+            meshBackground = obj.topOpt.designVariable.mesh;
             interpolation = Interpolation.create(meshBackground,'LINEAR');
             settingsUnfitted = SettingsMeshUnfitted(obj.meshType,meshBackground,interpolation,obj.meshIncludeBoxContour);
             obj.mesh = Mesh_Unfitted_Factory.create(settingsUnfitted);

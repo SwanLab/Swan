@@ -1,8 +1,8 @@
 classdef DesignVariable < handle & matlab.mixin.Copyable
     
     properties (GetAccess = public, SetAccess = protected)
-        meshGiD
-        mesh        
+        mesh
+        %mesh        
         type
     end
     
@@ -35,7 +35,7 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
         
         function init(obj,cParams)
             obj.type    = cParams.type;
-            obj.meshGiD = cParams.mesh;            
+            obj.mesh = cParams.mesh;            
         end
         
         

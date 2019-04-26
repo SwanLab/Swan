@@ -53,8 +53,8 @@ classdef Filter < handle
         end
         
         function obj = createDiffReacProblem(obj,designVar)
-            obj.setDiffusionReactionProblem(designVar.meshGiD.scale);
-            obj.diffReacProb.setupFromMesh(designVar.meshGiD);
+            obj.setDiffusionReactionProblem(designVar.mesh.scale);
+            obj.diffReacProb.setupFromMesh(designVar.mesh);
         end
         
     end

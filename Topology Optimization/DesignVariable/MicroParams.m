@@ -16,7 +16,7 @@ classdef MicroParams < DesignVariable
     methods (Access = private)
         
         function createValue(obj)
-            ndof = length(obj.meshGiD.coord(:,1));
+            ndof = length(obj.mesh.coord(:,1));
             obj.value(:,1) = 0.5*ndof;
             %obj.value(:,2) = 0.5*ndof;
         end

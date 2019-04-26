@@ -74,7 +74,7 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function createPostProcess(obj)
-            fileName = obj.designVar.meshGiD.problemID;
+            fileName = obj.designVar.mesh.problemID;
             d = obj.createPostProcessDataBase(fileName);
             d.printMode = obj.printMode;
             d.optimizer = obj.name;
@@ -125,7 +125,7 @@ classdef Optimizer_Constrained < Optimizer
     methods (Access = private)
         
         function createHistoyPrinter(obj)
-            settingsMetricsPrinter.fileName = obj.designVar.meshGiD.problemID;
+            settingsMetricsPrinter.fileName = obj.designVar.mesh.problemID;
             settingsMetricsPrinter.optimizer = obj;
             settingsMetricsPrinter.cost = obj.cost;
             settingsMetricsPrinter.constraint = obj.constraint;
@@ -154,7 +154,7 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function d = createPostProcessDataBase(obj,fileName)
-            d.mesh    = obj.designVar.meshGiD;
+            d.mesh    = obj.designVar.mesh;
             d.outName = fileName;
             ps = PostProcessDataBaseCreator(d);
             d  = ps.getValue();

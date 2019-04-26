@@ -2,6 +2,7 @@ classdef LevelSet < DesignVariable
     
     properties (Access = private)
         levelSetCreatorSettings
+        unfittedMesh
     end    
     
     methods (Access = public)
@@ -29,13 +30,13 @@ classdef LevelSet < DesignVariable
         end        
         
         function createUnfittedMesh(obj)
-            unfittedSettings = SettingsMeshUnfitted('INTERIOR',obj.meshGiD);
-            obj.mesh = Mesh_Unfitted(unfittedSettings);
+            unfittedSettings = SettingsMeshUnfitted('INTERIOR',obj.mesh);
+            obj.unfittedMesh = Mesh_Unfitted(unfittedSettings);
             obj.updateUnfittedMesh();
         end
         
         function updateUnfittedMesh(obj)
-            obj.mesh.computeMesh(obj.value);
+            obj.unfittedMesh.computeMesh(obj.value);
         end
         
     end
