@@ -9,18 +9,18 @@ classdef ShFunc_Chomog_alphabeta < ShFunc_Chomog
             obj.alpha=settings.alpha/norm(settings.alpha);
             obj.beta=settings.beta/norm(settings.beta);
         end
-        function computeCostAndGradient(obj,x)
-            obj.computePhysicalData(x);
+        function computeCostAndGradient(obj)
+            obj.computePhysicalData();
             obj.computeFunctionValue();
-            obj.computeGradient(x);
+            obj.computeGradient();
             obj.normalizeFunctionAndGradient();
         end
     end
     
     methods (Access = private)
         
-        function computeGradient(obj,x)
-            obj.compute_Chomog_Derivatives(x);
+        function computeGradient(obj)
+            obj.compute_Chomog_Derivatives();
             inv_matCh = inv(obj.Chomog);
             gradient = obj.derivative_projection_Chomog(inv_matCh,obj.alpha,obj.beta);            
             mass     = obj.Msmooth;

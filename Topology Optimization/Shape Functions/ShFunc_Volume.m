@@ -11,8 +11,9 @@ classdef ShFunc_Volume < ShapeFunctional
             obj.geometricVolume = sum(obj.dvolu(:));
         end
         
-        function computeCostAndGradient(obj,x)
-            obj.updateHomogenizedMaterialProperties(x);            
+        function computeCostAndGradient(obj)
+            obj.nVariables = obj.designVariable.nVariables;            
+            obj.updateHomogenizedMaterialProperties();            
             obj.computeCost()
             obj.computeGradient()
         end
@@ -35,15 +36,26 @@ classdef ShFunc_Volume < ShapeFunctional
 
         function computeGradient(obj)
             drho = obj.homogenizedVariablesComputer.drho;
-            gradient = drho/(obj.geometricVolume);
-            gradient = obj.filter.getP1fromP0(gradient);
-            gradient = obj.Msmooth*gradient;            
-            obj.gradient = gradient;            
+            g = drho/(obj.geometricVolume);
+            gf = zeros(size(obj.Msmooth,1),obj.nVariables);
+            for ivar = 1:obj.nVariables
+                gs = squeeze(g(:,ivar));
+                gf(:,ivar) = obj.filter.getP1fromP0(gs);
+            end
+            g = obj.Msmooth*gf;
+            obj.gradient = g(:);            
         end
         
-        function updateHomogenizedMaterialProperties(obj,x)
-            rho = obj.filter.getP0fromP1(x);
-            obj.homogenizedVariablesComputer.computeDensity(rho);
+        function updateHomogenizedMaterialProperties(obj)
+            nx = length(obj.designVariable.value)/obj.designVariable.nVariables;
+            x  = obj.designVariable.value;
+            for ivar = 1:obj.nVariables
+                i0 = nx*(ivar-1) + 1;
+                iF = nx*ivar;
+                xs = x(i0:iF);
+                xf(:,ivar) = obj.filter.getP0fromP1(xs);
+            end             
+            obj.homogenizedVariablesComputer.computeDensity(xf);
         end        
         
     end

@@ -27,8 +27,11 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
             e    = obj.physicalProblem.variables.strain;
             ei   = squeeze(e(igaus,istre,:));
             ej   = squeeze(e(igaus,jstre,:));
-            dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,:));
-            g    = -ei.*dCij.*ej;
+            g = zeros(length(ei),1,obj.nVariables);
+            for ivar = 1:obj.nVariables
+                dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:));            
+                g(:,1,ivar) = -ei.*dCij.*ej;
+            end            
         end
         
     end

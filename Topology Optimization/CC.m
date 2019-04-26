@@ -22,12 +22,13 @@ classdef CC < handle
     
     methods (Access = public)
 
-        function computeCostAndGradient(obj, x)
+        function computeCostAndGradient(obj,x)
+            obj.designVar.value = x;
             obj.value = 0;
-            obj.gradient = zeros(length(x),1);
+            obj.gradient = zeros(size(x));
             for iSF = 1:length(obj.shapeFunctions)
                 obj.updateTargetParameters(iSF);
-                obj.shapeFunctions{iSF}.computeCostAndGradient(x);
+                obj.shapeFunctions{iSF}.computeCostAndGradient();
                 obj.updateFields(iSF);
             end
         end

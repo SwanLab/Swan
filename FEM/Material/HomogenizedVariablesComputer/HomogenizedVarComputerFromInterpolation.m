@@ -20,7 +20,8 @@ classdef HomogenizedVarComputerFromInterpolation ...
            mProps = obj.interpolation.computeMatProp(rho);
            obj.material.setProps(mProps);
            obj.C  = obj.material.C;
-           obj.dC = mProps.dC;            
+           obj.dC = zeros(size(mProps.dC,1),size(mProps.dC,2),1,size(mProps.dC,3));
+           obj.dC(:,:,1,:) = mProps.dC;            
         end
         
         function computeDensity(obj,rho)    

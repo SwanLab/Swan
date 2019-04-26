@@ -11,7 +11,7 @@ classdef Constraint < CC
         end
         
         function updateFields(obj,iSF)
-            obj.value(iSF,1) = obj.shapeFunctions{iSF}.value;
+            obj.value(iSF,1)    = obj.shapeFunctions{iSF}.value;
             obj.gradient(:,iSF) = obj.shapeFunctions{iSF}.gradient;
         end
         

@@ -17,38 +17,48 @@ classdef HomogenizedVarComputerFromVademecum ...
             obj.density = v.density;
         end
         
-        function computeCtensor(obj,rho,princDir)
+        function computeCtensor(obj,x,princDir)
             R = obj.computeRotatorMatrix(princDir);
-            rho = max(0.001,min(rho,0.999));
-            mx = max(0.01,min(sqrt(1-rho),0.99));
-            my = max(0.01,min(sqrt(1-rho),0.99));
+            %rho = max(0.001,min(rho,0.999));
+            %mx = max(0.01,min(sqrt(1-rho),0.99));
+            %my = max(0.01,min(sqrt(1-rho),0.99));
+            nv = length(x)/2;
+            %mx = x(1:nv);
+            %my = x(nv+1:2*nv,2);
+            mx = x(:,1);
+            my = x(:,2);
             [c,dc] = obj.Ctensor.compute([mx,my]);
-            obj.dC = zeros(3,3,size(dc,3));
-            for i = 1:3
-                for j = 1:3
-                    dct = squeeze(-dc(i,j,:,1))./my;
-                    obj.dC(i,j,:) = dct;
-                end
-            end
- 
-            cr = zeros(size(c));
-            dCr = zeros(size(obj.dC));
-            for i = 1:3
-                for j= 1:3
-                    for m = 1:3
-                        for n = 1:3
-                            Cij  = R(m,i,:).*c(m,n,:).*R(n,j,:);
-                            dCij = R(m,i,:).*obj.dC(m,n,:).*R(n,j,:);
-                            cr(i,j,:)  = cr(i,j,:) + Cij;
-                            dCr(i,j,:) = dCr(i,j,:) + dCij;
-                        end
-                    end                    
-                end
-            end
-            obj.C = cr;
-            obj.dC = dCr;
-%            obj.C = c;
+            dc = permute(dc,[1 2 4 3]);
+            % obj.dC = zeros(dc);
+            %for i = 1:3
+            %    for j = 1:3
+            %        dct = squeeze(-dc(i,j,:,1))./my;
+            %        obj.dC(i,j,:) = dct;
+            %    end
+            %end
             
+            Cr  = zeros(size(c));
+            dCr = zeros(size(dc));
+            for i = 1:3
+                for m = 1:3
+                    Rmis  = squeeze(R(m,i,:));                    
+                    for n = 1:3
+                        cmns = squeeze(c(m,n,:));
+                        for j= 1:3
+                            Rnjs  = squeeze(R(n,j,:));
+                            Cij  = Rmis.*cmns.*Rnjs;
+                            Cr(i,j,:)  = squeeze(Cr(i,j,:)) + Cij;
+                            for ivar = 1:2
+                                dCmns = squeeze(dc(m,n,ivar,:));
+                                dCij = Rmis.*dCmns.*Rnjs;
+                                dCr(i,j,ivar,:) = squeeze(dCr(i,j,ivar,:)) + dCij;
+                            end
+                        end
+                    end
+                end
+            end
+            obj.C = Cr;
+            obj.dC = dCr;
         end
         
         function R = computeRotatorMatrix(obj,dir)
@@ -64,22 +74,24 @@ classdef HomogenizedVarComputerFromVademecum ...
         end
         
         function a = createSymbolicRotationMatrix(obj)
-            S = StressPlaneStressVoigtTensor();            
+            S = StressPlaneStressVoigtTensor();
             alpha = sym('alpha');
             v = Vector3D();
             v.setValue([0 0 1]);
             factory = RotatorFactory();
             rotator = factory.create(S,alpha,v);
-            a = rotator.rotationMatrix();            
+            a = rotator.rotationMatrix();
         end
         
-        function computeDensity(obj,rho)
-            rho = max(0.001,min(rho,0.999));
-            mx = max(0.01,min(sqrt(1-rho),0.99));
-            my = max(0.01,min(sqrt(1-rho),0.99));
+        function computeDensity(obj,x)
+            %rho = max(0.001,min(rho,0.999));
+            %mx = max(0.01,min(sqrt(1-rho),0.99));
+            %my = max(0.01,min(sqrt(1-rho),0.99));
+            mx = x(:,1);
+            my = x(:,2);
             [rho,drho] = obj.density.compute([mx,my]);
             obj.rho = rho;
-            obj.drho = ones(size(rho));
+            obj.drho = drho;
         end
         
     end

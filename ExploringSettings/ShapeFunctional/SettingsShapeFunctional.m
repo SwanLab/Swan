@@ -9,6 +9,7 @@ classdef SettingsShapeFunctional < AbstractSettings
         filename 
         domainType 
         homogVarComputer
+        designVariable        
     end
     
      methods (Access = public)

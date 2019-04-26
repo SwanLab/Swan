@@ -8,6 +8,7 @@ classdef Density < DesignVariable
         
         function obj = Density(cParams)
             obj.init(cParams);
+            obj.nVariables = 1;            
             obj.levelSetCreatorSettings = cParams.levelSetCreatorSettings;
             obj.createValue();
         end

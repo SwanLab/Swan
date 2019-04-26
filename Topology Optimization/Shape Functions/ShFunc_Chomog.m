@@ -13,7 +13,7 @@ classdef ShFunc_Chomog < ShapeFunctional
     
     methods (Access = public)
         
-        function obj=ShFunc_Chomog(cParams)
+        function obj = ShFunc_Chomog(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
             obj.physicalProblem = FEM.create(cParams.filename);
@@ -26,7 +26,7 @@ classdef ShFunc_Chomog < ShapeFunctional
     end
     
     methods (Access = protected)
-        function compute_Chomog_Derivatives(obj,x)
+        function compute_Chomog_Derivatives(obj)
              dC = obj.homogenizedVariablesComputer.dC;
             
             nstre = obj.physicalProblem.element.getNstre();
@@ -74,8 +74,8 @@ classdef ShFunc_Chomog < ShapeFunctional
             r = DtC;
         end
         
-        function computePhysicalData(obj,x)
-            obj.updateHomogenizedMaterialProperties(x);
+        function computePhysicalData(obj)
+            obj.updateHomogenizedMaterialProperties();
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C)
             obj.physicalProblem.computeChomog;
             obj.Chomog = obj.physicalProblem.variables.Chomog;
@@ -83,8 +83,8 @@ classdef ShFunc_Chomog < ShapeFunctional
             obj.tstress = obj.physicalProblem.variables.tstress;
         end
         
-        function updateHomogenizedMaterialProperties(obj,x)
-            rhoV = obj.filter.getP0fromP1(x);
+        function updateHomogenizedMaterialProperties(obj)
+            rhoV = obj.filter.getP0fromP1(obj.designVariable.value);
             alpha = 0;
             obj.homogenizedVariablesComputer.computeCtensor(rhoV,alpha);
         end

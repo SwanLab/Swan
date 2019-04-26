@@ -7,6 +7,7 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
     
     properties (Access = public)
         value        
+        nVariables
     end
     
     methods (Access = public, Abstract)

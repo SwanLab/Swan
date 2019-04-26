@@ -14,8 +14,8 @@ classdef Volume_constraint < ShFunc_Volume
             VolumeTarget = obj.target_parameters.Vfrac;
         end
         
-       function computeCostAndGradient(obj,x)
-           computeCostAndGradient@ShFunc_Volume(obj,x);
+       function computeCostAndGradient(obj)
+           computeCostAndGradient@ShFunc_Volume(obj);
            obj.value = obj.value/obj.getVolumeTarget() - 1;
            obj.gradient = obj.gradient/obj.getVolumeTarget();
         end

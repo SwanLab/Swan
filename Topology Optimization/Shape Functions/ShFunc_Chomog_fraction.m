@@ -19,19 +19,19 @@ classdef ShFunc_Chomog_fraction < ShFunc_Chomog
             obj.beta=settings.beta/norm(settings.beta);
         end
         
-        function computeCostAndGradient(obj,x)
-            obj.computePhysicalData(x);
+        function computeCostAndGradient(obj)
+            obj.computePhysicalData();
             obj.computeInvChProyections();
             obj.computeFunctionValue();
-            obj.computeGradient(x);
+            obj.computeGradient();
             obj.normalizeFunctionAndGradient();
         end
     end
     
     methods (Access = private)
                 
-        function computeGradient(obj,x)
-            obj.compute_Chomog_Derivatives(x); 
+        function computeGradient(obj)
+            obj.compute_Chomog_Derivatives(); 
             a = obj.alpha;
             b = obj.beta;
             beta1 = obj.Saa*b - obj.Sab*a;

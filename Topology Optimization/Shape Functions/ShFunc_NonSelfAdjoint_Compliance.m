@@ -33,8 +33,11 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
             ev   = obj.adjointProb.variables.strain;
             eu_i = squeeze(eu(igaus,istre,:));
             ev_j = squeeze(ev(igaus,jstre,:)); 
-            dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,:));
-            g    = eu_i.*dCij.*ev_j;
+            g = zeros(length(eu_i),1,obj.nVariables);            
+            for ivar = 1:obj.nVariables
+                dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:));            
+                g(:,1,ivar) = eu_i.*dCij.*ev_j;
+            end              
         end
         
         function solvePDEs(obj)

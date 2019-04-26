@@ -90,7 +90,7 @@ classdef ShapeFunctional_Factory
         function addParamsFromSettings(obj)
             obj.addNamePtype()
             obj.cParams.homogVarComputer = obj.homogVarComputer;
-            %obj.createMaterialInterpolationParams();
+            obj.cParams.designVariable   = obj.designVar;
             obj.createFilterParams();
         end
         

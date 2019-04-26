@@ -7,8 +7,9 @@ classdef ShFunWithElasticPdes < ShapeFunctional
     
     methods (Access = public)
         
-        function computeCostAndGradient(obj,x)
-            obj.updateHomogenizedMaterialProperties(x);
+        function computeCostAndGradient(obj)
+            obj.nVariables = obj.designVariable.nVariables;
+            obj.updateHomogenizedMaterialProperties();
             obj.solvePDEs();
             obj.computeFunctionValue();
             obj.computeGradient();
@@ -29,27 +30,39 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             obj.initPrincipalDirections();
         end
         
-        function updateHomogenizedMaterialProperties(obj,x)
-            rho = obj.filter.getP0fromP1(x);
+        function updateHomogenizedMaterialProperties(obj)
+            nx = length(obj.designVariable.value)/obj.designVariable.nVariables;
+            x  = obj.designVariable.value;
+            for ivar = 1:obj.nVariables
+                i0 = nx*(ivar-1) + 1;
+                iF = nx*ivar;
+                xs = x(i0:iF);
+                xf(:,ivar) = obj.filter.getP0fromP1(xs);
+            end                        
             alpha = obj.physicalProblem.variables.principalDirections;
-            obj.homogenizedVariablesComputer.computeCtensor(rho,alpha);
+            obj.homogenizedVariablesComputer.computeCtensor(xf,alpha);
         end
         
         function computeGradient(obj)
             nelem = obj.physicalProblem.geometry.interpolation.nelem;
             ngaus = obj.physicalProblem.element.quadrature.ngaus;
             nstre = obj.physicalProblem.element.getNstre();
-            g = zeros(nelem,ngaus);
+            g = zeros(nelem,ngaus,obj.nVariables);
             for igaus = 1:ngaus
                 for istre = 1:nstre
-                    for jstre = 1:nstre
-                        g(:,igaus) = g(:,igaus) + obj.updateGradient(igaus,istre,jstre);
+                    for jstre = 1:nstre                        
+                        g(:,igaus,:) = g(:,igaus,:) + obj.updateGradient(igaus,istre,jstre);
                     end
                 end
             end
-            g = obj.filter.getP1fromP0(g);
-            g = obj.Msmooth*g;
-            obj.gradient = g;
+            
+            gf = zeros(size(obj.Msmooth,1),obj.nVariables);
+            for ivar = 1:obj.nVariables
+                gs = squeeze(g(:,:,ivar));
+                gf(:,ivar) = obj.filter.getP1fromP0(gs);
+            end
+            g = obj.Msmooth*gf;
+            obj.gradient = g(:);
         end
 
     end
