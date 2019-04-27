@@ -26,31 +26,26 @@ classdef Optimizer_Constrained < Optimizer
     
     methods (Access = public)
         
-        function designVar = solveProblem(obj,designVar,iStep,nStep)
+        function solveProblem(obj,iStep,nStep)
             obj.iStep = iStep;
             obj.nStep = nStep;
             obj.createPostProcess();
-            x0 = designVar.value;
+            x0 = obj.designVar.value;
             obj.cost.computeCostAndGradient(x0);
             obj.constraint.computeCostAndGradient(x0);
             obj.printOptimizerVariable();
             
             obj.hasFinished = false;
             
-            %obj.monitor.refresh(x0,obj.niter,obj.cost,obj.constraint,obj.hasFinished(istep,nstep),istep,nstep);
-            
-            while ~obj.hasFinished
+             while ~obj.hasFinished
                 obj.niter = obj.niter+1;
-                x = obj.update(x0);
-                designVar.update(x);
+                obj.update();
                 obj.updateStatus();
                 obj.monitor.refresh(obj.niter,obj.hasFinished,iStep,nStep);
                 obj.printOptimizerVariable();
                 obj.printHistory()
-                x0 = x;
             end
-            obj.printOptimizerVariable();
-            
+            obj.printOptimizerVariable();            
             obj.hasConverged = 0;
         end
         

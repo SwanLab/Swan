@@ -38,7 +38,8 @@ classdef ShFunWithElasticPdes < ShapeFunctional
                 iF = nx*ivar;
                 xs = x(i0:iF);
                 xf(:,ivar) = obj.filter.getP0fromP1(xs);
-            end                        
+            end    
+            obj.initPrincipalDirections();
             alpha = obj.physicalProblem.variables.principalDirections;
             obj.homogenizedVariablesComputer.computeCtensor(xf,alpha);
         end

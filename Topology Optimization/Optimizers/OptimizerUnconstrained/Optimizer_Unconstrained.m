@@ -25,8 +25,7 @@ classdef Optimizer_Unconstrained < Optimizer
         
         function obj = Optimizer_Unconstrained(settings)            
             obj.hasConverged   = false;            
-            obj.maxIncrNormX = +Inf;
-            
+            obj.maxIncrNormX = +Inf;            
             obj.line_search    = LineSearch.create(settings.lineSearchSettings);
             obj.scalar_product = ScalarProduct(settings.scalarProductSettings);
             obj.convergenceVars = ConvergenceVariables(3);

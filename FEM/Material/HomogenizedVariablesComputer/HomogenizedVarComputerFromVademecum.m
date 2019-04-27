@@ -22,7 +22,7 @@ classdef HomogenizedVarComputerFromVademecum ...
             %rho = max(0.001,min(rho,0.999));
             %mx = max(0.01,min(sqrt(1-rho),0.99));
             %my = max(0.01,min(sqrt(1-rho),0.99));
-            nv = length(x)/2;
+            %nv = length(x)/2;
             %mx = x(1:nv);
             %my = x(nv+1:2*nv,2);
             mx = x(:,1);

@@ -28,11 +28,11 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             obj.createLambdaAndPenalty();
         end
         
-        function x = update(obj,x0)
+        function x = update(obj)
             obj.unconstrainedOptimizer.target_parameters = obj.target_parameters;
             obj.updateDualVariable();
             obj.augLagrangian.updateBecauseOfDual(obj.lambda,obj.penalty);
-            obj.updatePrimalVariable(x0);
+            obj.updatePrimalVariable(obj.designVar.value);
             obj.updateConvergenceStatus();
             x = obj.x;
         end

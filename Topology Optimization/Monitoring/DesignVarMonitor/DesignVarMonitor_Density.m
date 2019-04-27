@@ -56,7 +56,8 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
         end
         
         function rhoElem = filterDensity(obj)
-            rho = obj.designVar.value;
+            %rho = obj.designVar.value;
+            rho = obj.designVar.rho;
             if obj.isNodal(rho)
                 rhoElem = obj.filter.getP0fromP1(rho);
             elseif obj.isElemental(rho)

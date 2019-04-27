@@ -41,6 +41,11 @@ classdef TopOpt_Problem < handle
         end
         
         function createOptimizerSettings(obj,settings)
+            scS.filename        = settings.filename;
+            scS.epsilon         = obj.incrementalScheme.targetParams.epsilon;
+            scS.nVariables      = obj.designVariable.nVariables;
+            
+            lsS.scalarProductSettings = scS;
             lsS.line_search     = settings.line_search;
             lsS.optimizer       = settings.optimizer;
             lsS.HJiter0         = settings.HJiter0;
@@ -48,10 +53,7 @@ classdef TopOpt_Problem < handle
             lsS.kappaMultiplier = settings.kappaMultiplier;
             lsS.epsilon         = obj.incrementalScheme.targetParams.epsilon;
             
-            
-            scS.filename        = settings.filename;
-            scS.epsilon         = obj.incrementalScheme.targetParams.epsilon;
-            
+           
             uncOptimizerSettings = SettingsOptimizerUnconstrained();
             
             uncOptimizerSettings.target_parameters     = settings.target_parameters;
@@ -63,6 +65,8 @@ classdef TopOpt_Problem < handle
             uncOptimizerSettings.printChangingFilter = settings.printChangingFilter;
             uncOptimizerSettings.filename            = settings.filename;
             uncOptimizerSettings.ptype               = settings.ptype;
+            uncOptimizerSettings.lb                  = settings.lb;
+            uncOptimizerSettings.ub                  = settings.ub;
             
             optSet.uncOptimizerSettings = uncOptimizerSettings;
 
@@ -107,8 +111,6 @@ classdef TopOpt_Problem < handle
     end
     
     methods (Access = private)
-        
-        
         
         function optSet = obtainOptimizersSettings(obj,settings)
             epsilon = obj.incrementalScheme.targetParams.epsilon;
@@ -172,7 +174,7 @@ classdef TopOpt_Problem < handle
         function solveCurrentProblem(obj)
             iStep = obj.incrementalScheme.iStep;
             nSteps = obj.incrementalScheme.nSteps;
-            obj.designVariable = obj.optimizer.solveProblem(obj.designVariable,iStep,nSteps);
+            obj.optimizer.solveProblem(iStep,nSteps);
         end
         
         function linkTargetParams(obj)

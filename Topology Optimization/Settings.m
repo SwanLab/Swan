@@ -13,6 +13,8 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         constraint_case = 'EQUALITY'
         HJiter0 
         e2 
+        ub = 1;
+        lb = 0;
     end
     
     properties %target parameters

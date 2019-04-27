@@ -23,7 +23,8 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.unconstrainedOptimizer = Optimizer_SLERP(cParams.uncOptimizerSettings);
         end
         
-        function x = update(obj,x_ini)
+        function x = update(obj)
+            x_ini = obj.designVar.value;
             cost       = obj.cost;
             constraint = obj.constraint;
             x_ini = obj.compute_initial_value(x_ini);

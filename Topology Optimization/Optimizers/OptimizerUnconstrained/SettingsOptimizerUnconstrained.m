@@ -16,6 +16,8 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
        printChangingFilter       
        filename
        ptype
+       ub
+       lb
    end
    
    methods (Access = public)

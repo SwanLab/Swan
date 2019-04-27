@@ -22,10 +22,8 @@ classdef DesignVarMonitor_Abstract < handle
         axes
     end
     
-    methods (Access = public, Abstract)
-        
-        plot(obj)
-        
+    methods (Access = public, Abstract)        
+        plot(obj)        
     end
     
     methods (Access = protected, Abstract)

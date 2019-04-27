@@ -40,7 +40,8 @@ classdef Optimizer_MMA < Optimizer_Constrained
             obj.convergenceVars = cParams.convergenceVars;
         end
         
-        function x = update(obj,x)
+        function x = update(obj)
+            x = obj.designVar.value;
             obj.checkInitial(x);
             obj.outit = obj.outit+1;
             obj.outeriter = obj.outeriter+1;
@@ -69,6 +70,7 @@ classdef Optimizer_MMA < Optimizer_Constrained
             obj.convergenceVars.reset();
             obj.convergenceVars.append(obj.kktnorm);
             obj.convergenceVars.append(obj.outit/obj.maxoutit);
+            obj.designVar.value = x;
         end
         
     end

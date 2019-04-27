@@ -147,13 +147,13 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         function updateCost(obj)
             obj.updateFigure(obj.costFuncValue.value);
             for i = 1:obj.nCostFuncs
-                obj.updateFigure(obj.costFuncValue.ShapeFuncs{i}.value)
+                obj.updateFigure(obj.costFuncValue.shapeFunctions{i}.value)
             end
         end
         
         function updateConstraints(obj)
             for i = 1:obj.nConstraints
-                obj.updateFigure(obj.constraintValues.ShapeFuncs{i}.value)
+                obj.updateFigure(obj.constraintValues.shapeFunctions{i}.value)
                 if ~isempty(obj.constraintValues.lambda)
                     obj.updateFigure(obj.constraintValues.lambda(i))
                 end

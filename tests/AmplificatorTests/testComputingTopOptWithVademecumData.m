@@ -36,6 +36,9 @@ methods (Access = private)
         settings.designVariable = 'MicroParams';
         settings.levelSetDataBase = [];
         settings.optimizer = 'PROJECTED GRADIENT';
+        settings.ub = 0.98;
+        settings.lb = 0.02;
+        settings.monitoring_interval = 1;
         
         topOptProblem = TopOpt_Problem(settings);
         topOptProblem.computeVariables();
