@@ -21,13 +21,14 @@ classdef Optimizer_PG < Optimizer_Unconstrained
             obj.lowerBound = settings.lb;            
         end
         
-        function rho = compute(obj,design_variable,gradient)
-            rho_n = design_variable;
-            rho_step = rho_n-obj.line_search.kappa*gradient;
-            ub = obj.upperBound*ones(length(rho_n(:,1)),1);
-            lb = obj.lowerBound*ones(length(rho_n(:,1)),1);
-            rho = max(min(rho_step,ub),lb);
-            obj.opt_cond = sqrt(obj.scalar_product.computeSP(rho - rho_n,rho - rho_n))/sqrt(obj.scalar_product.computeSP(rho_n,rho_n));
+        function x_new = compute(obj)
+            x_n      = obj.designVariable.value;
+            gradient = obj.objectiveFunction.gradient;            
+            x_new = x_n-obj.line_search.kappa*gradient;
+            ub = obj.upperBound*ones(length(x_n(:,1)),1);
+            lb = obj.lowerBound*ones(length(x_n(:,1)),1);
+            x_new = max(min(x_new,ub),lb);
+            obj.opt_cond = sqrt(obj.scalar_product.computeSP(x_new - x_n,x_new - x_n))/sqrt(obj.scalar_product.computeSP(x_n,x_n));
         end
         
     end

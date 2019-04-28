@@ -25,7 +25,9 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             obj.setupFilter(settings,settings.scalarProductSettings.epsilon,designVar);
         end
         
-        function phi = compute(obj,phi,gradient)
+        function phi = compute(obj)
+            phi      = obj.designVariable.value;
+            gradient = obj.objectiveFunction.gradient;                        
             V = -obj.filter.regularize(phi,gradient);
             
             dt = 0.5*obj.e2*obj.line_search.kappa*obj.meanCellSize/max(abs(V(:))) ;

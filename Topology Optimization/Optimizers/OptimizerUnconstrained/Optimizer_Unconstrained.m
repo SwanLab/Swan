@@ -18,6 +18,7 @@ classdef Optimizer_Unconstrained < Optimizer
     
     properties (Access = protected)
         designVariable        
+        xOld
     end
     
     methods (Access = public, Abstract)
@@ -37,19 +38,21 @@ classdef Optimizer_Unconstrained < Optimizer
     methods (Access = public)
         
         function obj = Optimizer_Unconstrained(cParams)            
-            obj.hasConverged   = false;            
-            obj.maxIncrNormX   = +Inf;            
-            obj.line_search    = LineSearch.create(cParams.lineSearchSettings);
-            obj.scalar_product = ScalarProduct(cParams.scalarProductSettings);
-            obj.convergenceVars = ConvergenceVariables(3);
+            obj.hasConverged       = false;            
+            obj.maxIncrNormX       = +Inf;            
+            obj.line_search        = LineSearch.create(cParams.lineSearchSettings);
+            obj.scalar_product     = ScalarProduct(cParams.scalarProductSettings);
+            obj.convergenceVars    = ConvergenceVariables(3);
             obj.target_parameters = cParams.target_parameters;
             obj.designVariable = cParams.designVariable;
         end
         
-        function x = update(obj,x0)
-            x = obj.compute(x0,obj.objectiveFunction.gradient);
+        function update(obj,x0)
+            obj.xOld = x0;
+            obj.designVariable.value = x0;
+            x = obj.compute();
             obj.designVariable.value = x;
-            obj.objectiveFunction.updateBecauseOfPrimal(x);
+            obj.objectiveFunction.updateBecauseOfPrimal();
             obj.updateConvergenceParams(x,x0);
             
             if ~obj.hasConverged

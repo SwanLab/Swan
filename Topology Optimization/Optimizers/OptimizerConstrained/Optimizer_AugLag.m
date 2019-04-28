@@ -38,11 +38,11 @@ classdef Optimizer_AugLag < Optimizer_Constrained
         function updatePrimalVariable(obj,x0)
             obj.unconstrainedOptimizer.init(x0,obj.augLagrangian);
             while ~obj.unconstrainedOptimizer.hasConverged
-                x = obj.unconstrainedOptimizer.update(x0);
+                obj.unconstrainedOptimizer.update(x0);
             end
-            x = obj.revertIfDesignNotImproved(x,x0);
+            %x = obj.revertIfDesignNotImproved(x,x0);
             
-            obj.x = x;
+           % obj.x = x;
         end
         
         function updateConvergenceStatus(obj)

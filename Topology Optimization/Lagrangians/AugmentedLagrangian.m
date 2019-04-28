@@ -15,7 +15,7 @@ classdef AugmentedLagrangian < ObjectiveFunction
             obj.createConstraintModifier(cParams.constraintCase);
         end
         
-        function updateBecauseOfPrimal(obj,x)
+        function updateBecauseOfPrimal(obj)
             obj.cost.computeCostAndGradient();
             obj.constraint.computeCostAndGradient();
             obj.modifyInactiveConstraints();

@@ -23,6 +23,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.init(cParams);
             obj.createLagrangian();
             obj.unconstrainedOptimizer = Optimizer_SLERP(cParams.uncOptimizerSettings);                        
+            obj.unconstrainedOptimizer.init(obj.designVariable.value,obj.objfunc)
         end
         
         function x = update(obj)
@@ -35,7 +36,8 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.objfunc.computeGradient();
             obj.objfunc.computeFunction();
             obj.initUnconstrOpt(x_ini);
-            obj.unconstrainedOptimizer.compute(x_ini,obj.objfunc.gradient);
+            obj.designVariable.value = x_ini;
+            obj.unconstrainedOptimizer.compute();
             
             obj.hasConverged = ~(obj.unconstrainedOptimizer.opt_cond >=  obj.unconstrainedOptimizer.optimality_tol);
             if ~obj.hasConverged
@@ -72,7 +74,8 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.constraint.lambda = obj.objfunc.lambda;
             obj.objfunc.computeGradient();
             obj.unconstrainedOptimizer.line_search.initKappa;
-            x0 = obj.unconstrainedOptimizer.compute(x0,obj.objfunc.gradient);
+            obj.designVariable.value = x0;
+            obj.unconstrainedOptimizer.compute();
             
             obj.fhtri = [];
         end
@@ -90,15 +93,15 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
                 obj.restartCost();
                 obj.restartConstraint();
                 obj.restartObjFunc();
-                
+                obj.designVariable.value = x0;
                 
                 obj.problem.objective = @(lambda) obj.compute_feasible_design_variable(lambda,x0);
                 obj.problem.x0 = [0 1000];
                 lambda = fzero(obj.problem);
                 
                 obj.objfunc.lambda = lambda;
-                obj.objfunc.computeGradient();
-                x = obj.unconstrainedOptimizer.compute(x0,obj.objfunc.gradient);
+                obj.objfunc.computeGradient();               
+                x = obj.unconstrainedOptimizer.compute();
                 
                 obj.designVariable.value = x;
                 obj.cost.computeCostAndGradient();
@@ -115,7 +118,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
                 obj.unconstrainedOptimizer.hasConverged = obj.hasUnconstraintedOptimizerConverged();
                 
                 if ~obj.hasUnconstraintedOptimizerConverged()
-                    obj.unconstrainedOptimizer.line_search.computeKappa;
+                    obj.unconstrainedOptimizer.line_search.computeKappa();
                 end
                 
                 obj.convergenceVars = obj.unconstrainedOptimizer.convergenceVars;
@@ -147,13 +150,13 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
         end
         
         function fval = compute_feasible_design_variable(obj,lambda,x_ini)
-            obj.objfunc.lambda = lambda;
-            obj.constraint.lambda = obj.objfunc.lambda;
+            obj.constraint.lambda = lambda;
             obj.designVariable.value = x_ini;
-            obj.cost.computeCostAndGradient()
-            obj.constraint.computeCostAndGradient()
+            obj.cost.computeCostAndGradient();
+            obj.constraint.computeCostAndGradient();
+            obj.objfunc.lambda    = lambda;            
             obj.objfunc.computeGradient();
-            x = obj.unconstrainedOptimizer.compute(x_ini,obj.objfunc.gradient);
+            x = obj.unconstrainedOptimizer.compute();
             obj.designVariable.value = x;
             obj.constraint.computeCostAndGradient();
             fval = obj.constraint.value;
