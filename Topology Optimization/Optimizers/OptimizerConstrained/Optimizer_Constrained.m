@@ -8,7 +8,7 @@ classdef Optimizer_Constrained < Optimizer
     
     properties (Access = protected)
         hasFinished
-        designVar
+        designVariable
         monitor
         cost
         constraint
@@ -30,9 +30,9 @@ classdef Optimizer_Constrained < Optimizer
             obj.iStep = iStep;
             obj.nStep = nStep;
             obj.createPostProcess();
-            x0 = obj.designVar.value;
-            obj.cost.computeCostAndGradient(x0);
-            obj.constraint.computeCostAndGradient(x0);
+            x0 = obj.designVariable.value;
+            obj.cost.computeCostAndGradient();
+            obj.constraint.computeCostAndGradient();
             obj.printOptimizerVariable();
             
             obj.hasFinished = false;
@@ -58,7 +58,7 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function printOptimizerVariable(obj)
-            d.x = obj.designVar.value;
+            d.x = obj.designVariable.value;
             d.cost = obj.cost;
             d.constraint = obj.constraint;
             obj.postProcess.print(obj.niter,d);
@@ -69,12 +69,13 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function createPostProcess(obj)
-            fileName = obj.designVar.mesh.problemID;
+            fileName = obj.designVariable.mesh.problemID;
             d = obj.createPostProcessDataBase(fileName);
             d.printMode = obj.printMode;
             d.optimizer = obj.name;
             d.cost = obj.cost;
             d.constraint = obj.constraint;
+            d.designVar  = obj.designVariable.type;
             if obj.printing
                 obj.postProcess = Postprocess('TopOptProblem',d);
             else
@@ -95,7 +96,7 @@ classdef Optimizer_Constrained < Optimizer
             obj.cost = cParams.cost;
             obj.constraint = cParams.constraint;
             
-            obj.designVar = cParams.designVar;
+            obj.designVariable = cParams.designVar;
             obj.maxiter   = set.maxiter;
             obj.printing  = set.printing;
             obj.printMode = set.printMode;
@@ -120,7 +121,7 @@ classdef Optimizer_Constrained < Optimizer
     methods (Access = private)
         
         function createHistoyPrinter(obj)
-            settingsMetricsPrinter.fileName = obj.designVar.mesh.problemID;
+            settingsMetricsPrinter.fileName = obj.designVariable.mesh.problemID;
             settingsMetricsPrinter.optimizer = obj;
             settingsMetricsPrinter.cost = obj.cost;
             settingsMetricsPrinter.constraint = obj.constraint;
@@ -141,7 +142,7 @@ classdef Optimizer_Constrained < Optimizer
 
             mS.settingsDesignVarMonitor.shallDisplay  = cParams.shallDisplayDesignVar;
             mS.settingsDesignVarMonitor.showBC        = cParams.shallShowBoundaryConditions;
-            mS.settingsDesignVarMonitor.designVar     = obj.designVar;
+            mS.settingsDesignVarMonitor.designVar     = obj.designVariable;
             mS.settingsDesignVarMonitor.optimizerName = obj.name;
             mS.settingsDesignVarMonitor.dim           = cParams.dim;
             
@@ -149,7 +150,7 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function d = createPostProcessDataBase(obj,fileName)
-            d.mesh    = obj.designVar.mesh;
+            d.mesh    = obj.designVariable.mesh;
             d.outName = fileName;
             ps = PostProcessDataBaseCreator(d);
             d  = ps.getValue();

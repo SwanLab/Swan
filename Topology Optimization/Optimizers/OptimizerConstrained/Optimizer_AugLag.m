@@ -18,23 +18,17 @@ classdef Optimizer_AugLag < Optimizer_Constrained
     methods (Access = public)
         
         function obj = Optimizer_AugLag(cParams)
-            obj.unconstrainedOptimizer = cParams.unconstrainedOptimizer;
-            obj.name = obj.unconstrainedOptimizer.name;
-            obj.convergenceVars = obj.unconstrainedOptimizer.convergenceVars;
-            
-            obj.init(cParams);
-            
+            obj.init(cParams);            
             obj.createAugmentedLagrangian();
             obj.createLambdaAndPenalty();
+            obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams);                           
         end
         
-        function x = update(obj)
-            obj.unconstrainedOptimizer.target_parameters = obj.target_parameters;
+        function update(obj)
             obj.updateDualVariable();
             obj.augLagrangian.updateBecauseOfDual(obj.lambda,obj.penalty);
-            obj.updatePrimalVariable(obj.designVar.value);
+            obj.updatePrimalVariable(obj.designVariable.value);
             obj.updateConvergenceStatus();
-            x = obj.x;
         end
         
     end
@@ -74,9 +68,10 @@ classdef Optimizer_AugLag < Optimizer_Constrained
         end
         
         function createAugmentedLagrangian(obj)
-            augLagS.constraintCase = obj.constraintCase;
-            obj.augLagrangian = AugmentedLagrangian(augLagS);
-            obj.augLagrangian.link(obj.cost,obj.constraint);
+            cParamsAL.constraintCase = obj.constraintCase;
+            cParamsAL.cost           = obj.cost;
+            cParamsAL.constraint     = obj.constraint;
+            obj.augLagrangian = AugmentedLagrangian(cParamsAL);
         end
         
         function createLambdaAndPenalty(obj)

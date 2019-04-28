@@ -1,10 +1,7 @@
 classdef AugmentedLagrangian < ObjectiveFunction
     
     properties (Access = public)
-        lambda
         penalty
-        cost
-        constraint
     end
     
     properties (Access = private)
@@ -14,12 +11,13 @@ classdef AugmentedLagrangian < ObjectiveFunction
     methods (Access = public)
         
         function obj = AugmentedLagrangian(cParams)
+            obj.init(cParams);
             obj.createConstraintModifier(cParams.constraintCase);
         end
         
         function updateBecauseOfPrimal(obj,x)
-            obj.cost.computeCostAndGradient(x);
-            obj.constraint.computeCostAndGradient(x);
+            obj.cost.computeCostAndGradient();
+            obj.constraint.computeCostAndGradient();
             obj.modifyInactiveConstraints();
             obj.computeFunction();
         end
@@ -33,12 +31,7 @@ classdef AugmentedLagrangian < ObjectiveFunction
             obj.computeFunction();
             obj.computeGradient();
         end
-        
-        function link(obj,cost,constraint)
-            obj.cost = cost;
-            obj.constraint = constraint;
-        end
-        
+
     end
     
     methods (Access = private)

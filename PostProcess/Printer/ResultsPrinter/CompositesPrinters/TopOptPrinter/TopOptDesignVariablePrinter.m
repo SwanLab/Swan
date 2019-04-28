@@ -11,7 +11,7 @@ classdef TopOptDesignVariablePrinter < CompositeResultsPrinter
     methods (Access = protected)
         
         function createPrinters(obj,d)
-            dV = OptimizerToDesignVariableTranslator().translate(d.optimizer);
+            dV = d.designVariable;
             obj.printers{1} = ResultsPrinter.create(dV,d);
         end
         

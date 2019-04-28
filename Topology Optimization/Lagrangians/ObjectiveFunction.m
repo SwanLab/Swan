@@ -1,12 +1,24 @@
 classdef ObjectiveFunction < handle
     
-    properties
+    properties (Access = public)
         value
         gradient
+        lambda        
     end
     
     properties (Access = protected)
         valueInitial
+        cost
+        constraint        
+    end
+    
+    methods (Access = protected)
+        
+        function init(obj,cParams)
+            obj.cost       = cParams.cost;
+            obj.constraint = cParams.constraint;                        
+        end
+        
     end
     
     methods (Access = public)

@@ -6,31 +6,31 @@ classdef TopOpt_Problem < handle
         constraint
         optimizer
         algorithm
-        incrementalScheme   
+        incrementalScheme
         optimizerSettings
     end
     
     properties (Access = private)
         hole_value
-        ini_design_value        
+        ini_design_value
         videoManager
         homogenizedVarComputer
-    end        
+    end
     
     methods (Access = public)
         
         function obj = TopOpt_Problem(settings)
-            obj.createDesignVariable(settings);            
+            obj.createDesignVariable(settings);
             settings.pdim = obj.designVariable.mesh.pdim;
             obj.createHomogenizedVarComputer(settings)
-          
+            
             obj.createIncrementalScheme(settings);
-                        
+            
             obj.cost = Cost(settings,obj.designVariable,obj.homogenizedVarComputer);
-            obj.constraint = Constraint(settings,obj.designVariable,obj.homogenizedVarComputer);            
+            obj.constraint = Constraint(settings,obj.designVariable,obj.homogenizedVarComputer);
             
             obj.createOptimizer(settings);
-
+            
             obj.createVideoManager(settings);
         end
         
@@ -53,10 +53,9 @@ classdef TopOpt_Problem < handle
             lsS.kappaMultiplier = settings.kappaMultiplier;
             lsS.epsilon         = obj.incrementalScheme.targetParams.epsilon;
             
-           
+            
             uncOptimizerSettings = SettingsOptimizerUnconstrained();
             
-            uncOptimizerSettings.target_parameters     = settings.target_parameters;
             uncOptimizerSettings.lineSearchSettings    = lsS;
             uncOptimizerSettings.scalarProductSettings = scS;
             
@@ -68,37 +67,44 @@ classdef TopOpt_Problem < handle
             uncOptimizerSettings.lb                  = settings.lb;
             uncOptimizerSettings.ub                  = settings.ub;
             
-            optSet.uncOptimizerSettings = uncOptimizerSettings;
+            uncOptimizerSettings.target_parameters     = obj.incrementalScheme.targetParams;
+            uncOptimizerSettings.designVariable     = obj.designVariable;
 
+            
+            optSet.uncOptimizerSettings = uncOptimizerSettings;
+            
             optSet.nconstr              = settings.nconstr;
-            optSet.target_parameters    = settings.target_parameters;
-            optSet.constraint_case      = settings.constraint_case;   
+            optSet.constraint_case      = settings.constraint_case;
             optSet.optimizer            = settings.optimizer;
             optSet.maxiter              = settings.maxiter;
             
             optSet.printing             = settings.printing;
-            optSet.printMode            = settings.printMode;            
+            optSet.printMode            = settings.printMode;
             
             optSet.monitoring           = settings.monitoring;
             optSet.monitoring_interval  = settings.monitoring_interval;
             optSet.plotting             = settings.plotting;
             optSet.pdim                 = settings.pdim;
-            optSet.showBC               = settings.showBC;   
+            optSet.showBC               = settings.showBC;
             
             optSet.settings   = settings;
+            
+            
+            
+            optSet.designVar             = obj.designVariable;
+            optSet.target_parameters    = obj.incrementalScheme.targetParams;
             
             optSet.cost       = obj.cost;
             optSet.constraint = obj.constraint;
             
-            optSet.designVar  = obj.designVariable;
             obj.optimizerSettings = optSet;
             
         end
         
-       
+        
         function computeVariables(obj)
             obj.linkTargetParams();
-            while obj.incrementalScheme.hasNext()             
+            while obj.incrementalScheme.hasNext()
                 obj.incrementalScheme.next();
                 obj.solveCurrentProblem();
             end
@@ -115,7 +121,7 @@ classdef TopOpt_Problem < handle
         function optSet = obtainOptimizersSettings(obj,settings)
             epsilon = obj.incrementalScheme.targetParams.epsilon;
             settings.optimizerSettings.uncOptimizerSettings.lineSearchSettings.epsilon = epsilon;
-            settings.optimizerSettings.uncOptimizerSettings.scalarProductSettings.epsilon = epsilon; 
+            settings.optimizerSettings.uncOptimizerSettings.scalarProductSettings.epsilon = epsilon;
             set = settings.clone();
             optSet = set.optimizerSettings;
         end
@@ -123,12 +129,12 @@ classdef TopOpt_Problem < handle
         function createDesignVariable(obj,settings)
             mesh = Mesh_GiD(settings.filename);
             designVarSettings = SettingsDesignVariable();
-            designVarSettings.mesh = mesh;            
+            designVarSettings.mesh = mesh;
             designVarSettings.type = settings.designVariable;
             designVarSettings.levelSetCreatorSettings       = settings.levelSetDataBase;
             designVarSettings.levelSetCreatorSettings.ndim  = mesh.ndim;
-            designVarSettings.levelSetCreatorSettings.coord = mesh.coord;            
-            designVarSettings.levelSetCreatorSettings.type = settings.initial_case;                         
+            designVarSettings.levelSetCreatorSettings.coord = mesh.coord;
+            designVarSettings.levelSetCreatorSettings.type = settings.initial_case;
             switch designVarSettings.levelSetCreatorSettings.type
                 case 'holes'
                     designVarSettings.levelSetCreatorSettings.dirichlet = mesh.dirichlet;
@@ -138,14 +144,14 @@ classdef TopOpt_Problem < handle
         end
         
         function createHomogenizedVarComputer(obj,settings)
-            settings.nelem = size(obj.designVariable.mesh.connec,1);            
+            settings.nelem = size(obj.designVariable.mesh.connec,1);
             s.type                   = settings.homegenizedVariablesComputer;
             s.interpolation          = settings.materialInterpolation;
             s.dim                    = settings.pdim;
             s.typeOfMaterial         = settings.material;
             s.constitutiveProperties = settings.TOL;
-            s.vademecumFileName      = settings.vademecumFileName;            
-            s.nelem                  = settings.nelem;            
+            s.vademecumFileName      = settings.vademecumFileName;
+            s.nelem                  = settings.nelem;
             obj.homogenizedVarComputer = HomogenizedVarComputer.create(s);
         end
         
@@ -182,7 +188,7 @@ classdef TopOpt_Problem < handle
             obj.constraint.target_parameters = obj.incrementalScheme.targetParams;
             obj.optimizer.target_parameters = obj.incrementalScheme.targetParams;
         end
-       
+        
         function createVideoManager(obj,settings)
             if settings.printing
                 obj.videoManager = VideoManager(settings,obj.designVariable);

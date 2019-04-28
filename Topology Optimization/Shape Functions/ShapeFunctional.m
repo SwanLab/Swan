@@ -3,7 +3,6 @@ classdef ShapeFunctional < handle
     properties
         value
         gradient
-%        designVar
         target_parameters=struct;
         filter
         Msmooth

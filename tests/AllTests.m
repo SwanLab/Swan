@@ -1,7 +1,7 @@
 FemTests;
 UnfittedIntegrationTests;
 TopOptTests;
-PrintingTests;
+%PrintingTests;
 ReadingFilesTests;
 PlottingTests;
 HomogenizationTests;

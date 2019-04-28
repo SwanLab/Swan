@@ -16,23 +16,39 @@ classdef Optimizer_Unconstrained < Optimizer
         constr_tol
     end
     
+    properties (Access = protected)
+        designVariable        
+    end
+    
     methods (Access = public, Abstract)
         compute(obj)
     end
     
+    methods (Access = public, Static)
+        
+        function obj = create(cParams)
+            f = Optimizer_UnconstrainedFactory();
+            obj = f.create(cParams);
+        end
+        
+        
+    end
     
     methods (Access = public)
         
-        function obj = Optimizer_Unconstrained(settings)            
+        function obj = Optimizer_Unconstrained(cParams)            
             obj.hasConverged   = false;            
-            obj.maxIncrNormX = +Inf;            
-            obj.line_search    = LineSearch.create(settings.lineSearchSettings);
-            obj.scalar_product = ScalarProduct(settings.scalarProductSettings);
+            obj.maxIncrNormX   = +Inf;            
+            obj.line_search    = LineSearch.create(cParams.lineSearchSettings);
+            obj.scalar_product = ScalarProduct(cParams.scalarProductSettings);
             obj.convergenceVars = ConvergenceVariables(3);
+            obj.target_parameters = cParams.target_parameters;
+            obj.designVariable = cParams.designVariable;
         end
         
         function x = update(obj,x0)
             x = obj.compute(x0,obj.objectiveFunction.gradient);
+            obj.designVariable.value = x;
             obj.objectiveFunction.updateBecauseOfPrimal(x);
             obj.updateConvergenceParams(x,x0);
             

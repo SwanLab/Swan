@@ -34,14 +34,14 @@ classdef Optimizer_MMA < Optimizer_Constrained
     
     methods (Access = public)
         
-        function obj = Optimizer_MMA(cParams)           
+        function obj = Optimizer_MMA(cParams)     
             obj.init(cParams);
             obj.maxoutit = 1e4;
-            obj.convergenceVars = cParams.convergenceVars;
+            obj.convergenceVars = ConvergenceVariables(2);
         end
         
         function x = update(obj)
-            x = obj.designVar.value;
+            x = obj.designVariable.value;
             obj.checkInitial(x);
             obj.outit = obj.outit+1;
             obj.outeriter = obj.outeriter+1;
@@ -56,8 +56,9 @@ classdef Optimizer_MMA < Optimizer_Constrained
             %%%% The user should now calculate function values and gradients
             %%%% of the objective- and constraint functions at xval.
             %%%% The results should be put in f0val, df0dx, fval and dfdx.
-            obj.cost.computeCostAndGradient(x);
-            obj.constraint.computeCostAndGradient(x);
+            obj.designVariable.value = x;
+            obj.cost.computeCostAndGradient();
+            obj.constraint.computeCostAndGradient();
             
             [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
             %%%% The residual vector of the KKT conditions is calculated:
@@ -70,7 +71,7 @@ classdef Optimizer_MMA < Optimizer_Constrained
             obj.convergenceVars.reset();
             obj.convergenceVars.append(obj.kktnorm);
             obj.convergenceVars.append(obj.outit/obj.maxoutit);
-            obj.designVar.value = x;
+            obj.designVariable.value = x;
         end
         
     end

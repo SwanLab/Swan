@@ -25,7 +25,6 @@ classdef CompositeResultsPrinter < ResultsPrinter
             obj.init@ResultsPrinter(d);
             obj.createPrinters(d);
             obj.obtainHasGaussData();
-            %obj.createHeadPrinter();
         end
         
         function createHeadPrinter(obj,d,dh)

@@ -1,4 +1,4 @@
-classdef CC < handle
+classdef CC < handle & matlab.mixin.Copyable
     
     properties (Access = public)
         value
@@ -12,7 +12,7 @@ classdef CC < handle
     end
     
     properties (Access = private)
-        designVar
+        designVariable
         homogVarComputer
     end
     
@@ -22,23 +22,26 @@ classdef CC < handle
     
     methods (Access = public)
 
-        function computeCostAndGradient(obj,x)
-            obj.designVar.value = x;
+        function computeCostAndGradient(obj)
             obj.value = 0;
-            obj.gradient = zeros(size(x));
+            obj.gradient = zeros(size(obj.designVariable.value));
             for iSF = 1:length(obj.shapeFunctions)
                 obj.updateTargetParameters(iSF);
                 obj.shapeFunctions{iSF}.computeCostAndGradient();
                 obj.updateFields(iSF);
             end
         end
+                       
+        function objClone = clone(obj)
+            objClone = copy(obj);
+        end
         
     end
     
     methods (Access = protected)
         
-        function obj = init(obj,settings,SF_list,designVar,homogVarComputer)
-            obj.designVar = designVar;
+        function obj = init(obj,settings,SF_list,designVariable,homogVarComputer)
+            obj.designVariable = designVariable;
             obj.homogVarComputer = homogVarComputer;
             obj.createShapeFunctions(SF_list,settings);
         end        
@@ -51,7 +54,7 @@ classdef CC < handle
             nShapeFunctions = length(shapeFunctionNames);
             for is = 1:nShapeFunctions
                 name          = shapeFunctionNames{is};
-                shapeFunction = ShapeFunctional.create(name,settings,obj.designVar,obj.homogVarComputer);
+                shapeFunction = ShapeFunctional.create(name,settings,obj.designVariable,obj.homogVarComputer);
                 obj.append(shapeFunction);
             end
         end

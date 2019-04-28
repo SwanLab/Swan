@@ -4,35 +4,36 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
         name = 'PROJECTED SLERP'
     end
     
-    properties
+    properties (Access = public)
         unconstrainedOptimizer
-        objfunc
-        problem
     end
     
     properties (Access = private)
         desVarChangedValue
         costIncrease
+        objfunc
+        problem
+        costCopy
+        constraintCopy
     end
     
     methods (Access = public)
         
         function obj = Optimizer_Projected_Slerp(cParams)
             obj.init(cParams);
-            obj.objfunc = Lagrangian(cParams);
-            obj.unconstrainedOptimizer = Optimizer_SLERP(cParams.uncOptimizerSettings);
+            obj.createLagrangian();
+            obj.unconstrainedOptimizer = Optimizer_SLERP(cParams.uncOptimizerSettings);                        
         end
         
         function x = update(obj)
-            x_ini = obj.designVar.value;
-            cost       = obj.cost;
-            constraint = obj.constraint;
+            x_ini = obj.designVariable.value;
             x_ini = obj.compute_initial_value(x_ini);
+            obj.designVariable.value = x_ini;
             obj.updateObjFunc();
-            cost.computeCostAndGradient(x_ini);
-            constraint.computeCostAndGradient(x_ini);
-            obj.objfunc.computeGradient(cost,constraint);
-            obj.objfunc.computeFunction(cost,constraint);
+            obj.cost.computeCostAndGradient();
+            obj.constraint.computeCostAndGradient();
+            obj.objfunc.computeGradient();
+            obj.objfunc.computeFunction();
             obj.initUnconstrOpt(x_ini);
             obj.unconstrainedOptimizer.compute(x_ini,obj.objfunc.gradient);
             
@@ -50,74 +51,61 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
     
     methods (Access = private)
         
+        function createLagrangian(obj)
+            cParamsL.cost       = obj.cost;
+            cParamsL.constraint = obj.constraint;
+            obj.objfunc = Lagrangian(cParamsL);           
+        end        
+        
         function x0 = compute_initial_value(obj,x0)
             
-            cost       = obj.cost;
-            constraint = obj.constraint;
             
             obj.problem.solver = 'fzero';
             obj.problem.options = optimset(@fzero);
-            obj.problem.objective = @(lambda) obj.compute_feasible_design_variable(lambda,x0,cost,constraint);
+            obj.problem.objective = @(lambda) obj.compute_feasible_design_variable(lambda,x0);
             obj.problem.x0 = [0 100];
             obj.problem.options = optimset(obj.problem.options,'TolX',1e-2);
             
             obj.unconstrainedOptimizer.theta = 0.1;
             lambda = fzero(obj.problem);
             obj.objfunc.lambda = lambda;
-            constraint.lambda = obj.objfunc.lambda;
-            obj.objfunc.computeGradient(obj.cost,obj.constraint);
+            obj.constraint.lambda = obj.objfunc.lambda;
+            obj.objfunc.computeGradient();
             obj.unconstrainedOptimizer.line_search.initKappa;
             x0 = obj.unconstrainedOptimizer.compute(x0,obj.objfunc.gradient);
             
             obj.fhtri = [];
         end
         
-        
-        
         function x = solveUnconstrainedProblem(obj,x0)
-            cost       = obj.cost;
-            constraint = obj.constraint;
-            cost_copy_value       = cost.value;
-            constraint_copy_value = constraint.value;
             
-            cost_copy_gradient       = cost.gradient;
-            constraint_copy_gradient = constraint.gradient;
+            obj.costCopy       = obj.cost.clone();
+            obj.constraintCopy = obj.constraint.clone();
             
-            lambda_copy = constraint.lambda;
             
-            obj.objfunc.computeGradient(cost,constraint);
             
             obj.unconstrainedOptimizer.line_search.kfrac = 1.1;
             
             while ~obj.unconstrainedOptimizer.hasConverged
-                
-                cost.value = cost_copy_value;
-                constraint.value = constraint_copy_value;
-                
-                cost.gradient       = cost_copy_gradient;
-                constraint.gradient = constraint_copy_gradient;
-                
-                constraint.lambda   = lambda_copy;
-                obj.objfunc.lambda  = lambda_copy;
+                obj.restartCost();
+                obj.restartConstraint();
+                obj.restartObjFunc();
                 
                 
-                obj.objfunc.computeGradient(cost,constraint);
-                obj.objfunc.computeFunction(cost,constraint);
-                
-                
-                obj.problem.objective = @(lambda) obj.compute_feasible_design_variable(lambda,x0,cost,constraint);
+                obj.problem.objective = @(lambda) obj.compute_feasible_design_variable(lambda,x0);
                 obj.problem.x0 = [0 1000];
                 lambda = fzero(obj.problem);
                 
                 obj.objfunc.lambda = lambda;
-                obj.objfunc.computeGradient(cost,constraint);
+                obj.objfunc.computeGradient();
                 x = obj.unconstrainedOptimizer.compute(x0,obj.objfunc.gradient);
                 
-                cost.computeCostAndGradient(x);
-                obj.objfunc.computeFunction(cost,constraint);
+                obj.designVariable.value = x;
+                obj.cost.computeCostAndGradient();
+                obj.objfunc.computeFunction();
                 
                 incr_norm_L2  = obj.unconstrainedOptimizer.norm_L2(x,x0);
-                incr_cost = obj.objfunc.computeIncrement();
+                incr_cost     = obj.objfunc.computeIncrement();
                 
                 
                 obj.desVarChangedValue = incr_norm_L2;
@@ -132,7 +120,6 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
                 
                 obj.convergenceVars = obj.unconstrainedOptimizer.convergenceVars;
             end
-            
             obj.unconstrainedOptimizer.compute(x0,obj.objfunc.gradient);
         end
         
@@ -159,23 +146,23 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.unconstrainedOptimizer.convergenceVars.append(obj.unconstrainedOptimizer.line_search.kappa);
         end
         
-        function fval = compute_feasible_design_variable(obj,lambda,x_ini,cost,constraint)
+        function fval = compute_feasible_design_variable(obj,lambda,x_ini)
             obj.objfunc.lambda = lambda;
-            constraint.lambda = obj.objfunc.lambda;
-            cost.computeCostAndGradient(x_ini)
-            constraint.computeCostAndGradient(x_ini)
-            obj.objfunc.computeGradient(cost,constraint);
+            obj.constraint.lambda = obj.objfunc.lambda;
+            obj.designVariable.value = x_ini;
+            obj.cost.computeCostAndGradient()
+            obj.constraint.computeCostAndGradient()
+            obj.objfunc.computeGradient();
             x = obj.unconstrainedOptimizer.compute(x_ini,obj.objfunc.gradient);
-            constraint.computeCostAndGradient(x);
-            fval = constraint.value;
+            obj.designVariable.value = x;
+            obj.constraint.computeCostAndGradient();
+            fval = obj.constraint.value;
         end
         
         function updateObjFunc(obj)
             obj.unconstrainedOptimizer.target_parameters = obj.target_parameters;
-            obj.objfunc.lambda = obj.objfunc.lambda;
-            obj.constraint.lambda = obj.objfunc.lambda;
-            obj.objfunc.computeFunction(obj.cost,obj.constraint);
-            obj.objfunc.computeGradient(obj.cost,obj.constraint);
+            obj.objfunc.computeFunction();
+            obj.objfunc.computeGradient();
         end
         
         function initUnconstrOpt(obj,x_ini)
@@ -190,5 +177,21 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.convergenceVars = obj.unconstrainedOptimizer.convergenceVars;
         end
         
+        function restartCost(obj)
+            obj.cost.value          = obj.costCopy.value;
+            obj.cost.gradient       = obj.costCopy.gradient;
+        end
+        
+        function restartConstraint(obj)
+            obj.constraint.value    = obj.constraintCopy.value;
+            obj.constraint.gradient = obj.constraintCopy.gradient;
+            obj.constraint.lambda   = obj.constraintCopy.lambda;
+        end
+        
+        function restartObjFunc(obj)
+            obj.objfunc.lambda      = obj.constraintCopy.lambda;
+            obj.objfunc.computeGradient();
+            obj.objfunc.computeFunction();
+        end
     end
 end
