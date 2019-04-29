@@ -15,10 +15,11 @@ classdef testUnfitted < test
     methods (Access = protected)
         
         function createTopOpt(obj)
-            file_name_in = fullfile('.','Input',obj.testName);
-            settings = Settings(file_name_in);
+            filename = fullfile('.','Input',obj.testName);
+            settings = Settings(filename);
             settings.printChangingFilter = false;
-            obj.topOpt = TopOpt_Problem(settings);
+            sett = SettingsTopOptProblem(filename,settings);
+            obj.topOpt = TopOpt_Problem(sett);
             obj.levelSet = obj.topOpt.designVariable.value;
         end
         

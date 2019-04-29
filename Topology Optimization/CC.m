@@ -40,10 +40,10 @@ classdef CC < handle & matlab.mixin.Copyable
     
     methods (Access = protected)
         
-        function obj = init(obj,settings,SF_list,designVariable,homogVarComputer)
+        function obj = init(obj,settings,shapeFuncList,designVariable,homogVarComputer)
             obj.designVariable = designVariable;
             obj.homogVarComputer = homogVarComputer;
-            obj.createShapeFunctions(SF_list,settings);
+            obj.createShapeFunctions(shapeFuncList,settings);
         end        
         
     end

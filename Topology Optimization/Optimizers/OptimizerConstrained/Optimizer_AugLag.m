@@ -18,7 +18,6 @@ classdef Optimizer_AugLag < Optimizer_Constrained
     methods (Access = public)
         
         function obj = Optimizer_AugLag(cParams)
-            obj.name = cParams.optimizer;
             obj.init(cParams);            
             obj.createAugmentedLagrangian();
             obj.createLambdaAndPenalty();

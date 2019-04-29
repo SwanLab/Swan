@@ -126,7 +126,7 @@ classdef Optimizer_Constrained < Optimizer
             s.constraintFuncs             = set.constraint;
             s.dim                         = set.pdim;
             
-            s.designVar              = obj.designVariable;
+            s.designVar                   = obj.designVariable;
             s.optimizerName               = obj.name;
             s.cost                        = obj.cost;
             s.constraint                  = obj.constraint;

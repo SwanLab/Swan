@@ -13,7 +13,7 @@ clear variables;
 
 %% Main
 filenames={
-   'CantileverTriangleCoarse_Case_4_1_1'
+   'CantileverTriangleCoarse_Case_1_1_1'
     % 'CantileverTriangle_Case_1_1_1'
 %     'ImprovedBridgeSYM_Case_3_1_1'  
 %     'ImprovedBridgeSYM_Case_5_1_4'     
@@ -26,9 +26,11 @@ filenames={
 for icases=1:size(filenames,1)
     clearvars -except filenames icases;
     close all;
-    settings = Settings(filenames{icases});
     
-    topOptProblem = TopOpt_Problem(settings);
+    settings = Settings(filenames{icases});
+    settingsTopOpt = SettingsTopOptProblem(filenames{icases},settings);
+    
+    topOptProblem = TopOpt_Problem(settingsTopOpt);
     topOptProblem.computeVariables;
     topOptProblem.postProcess;
 end

@@ -42,7 +42,7 @@ classdef DesignVarMonitorFactory < handle
         function createMonitor(obj)
             mS.designVar = obj.designVar;
             mS.showBC    = obj.showBC;
-            switch obj.designVariable()
+            switch obj.designVar.type
                 case 'Density'
                     obj.monitor = DesignVarMonitor_Density(mS);
                 case 'LevelSet'
@@ -63,15 +63,6 @@ classdef DesignVarMonitorFactory < handle
         
         function build(obj)
             obj.builder.build(obj.monitor);
-        end
-        
-        function var = designVariable(obj)
-            switch obj.optimizer
-                case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
-                    var = 'LevelSet';
-                case {'PROJECTED GRADIENT','MMA','IPOPT'}
-                    var = 'Density';
-            end
         end
         
         function returnNullMonitor(obj)
