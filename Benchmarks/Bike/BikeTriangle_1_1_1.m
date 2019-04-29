@@ -14,7 +14,7 @@ constraint_case = 'EQUALITY'; %'INEQUALITY';
 line_search = 'DIMENSIONALLY CONSISTENT';
 showBC = true;
 
-nsteps = 20;
+nsteps = 30;
 Vfrac_final = 0.2;
 Perimeter_target = 1;
 optimality_final = 1e-3;
@@ -31,4 +31,4 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 monitoring_interval = 1;
-
+optimalityInitial = 1e-3;

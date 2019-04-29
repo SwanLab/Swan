@@ -66,11 +66,6 @@ classdef Optimizer_Unconstrained < Optimizer
             obj.hasConverged = false;            
         end
         
-        function init3(obj)
-           % obj.objectiveFunction.setInitialValue();
-            obj.hasConverged = false;                        
-        end
-        
     end
     
     methods (Access = private)

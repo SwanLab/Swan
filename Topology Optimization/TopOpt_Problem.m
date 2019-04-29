@@ -67,7 +67,7 @@ classdef TopOpt_Problem < handle
             uncOptimizerSettings.lb                  = settings.lb;
             uncOptimizerSettings.ub                  = settings.ub;
             
-            uncOptimizerSettings.target_parameters     = obj.incrementalScheme.targetParams;
+            uncOptimizerSettings.target_parameters  = obj.incrementalScheme.targetParams;
             uncOptimizerSettings.designVariable     = obj.designVariable;
 
             

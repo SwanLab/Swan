@@ -15,6 +15,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
         problem
         costCopy
         constraintCopy
+        lambda
     end
     
     methods (Access = public)
@@ -22,43 +23,52 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
         function obj = Optimizer_Projected_Slerp(cParams)
             obj.init(cParams);
             obj.createLagrangian();
+            obj.createLambda();
             obj.unconstrainedOptimizer = Optimizer_SLERP(cParams.uncOptimizerSettings);
             obj.unconstrainedOptimizer.init(obj.objfunc)
-            obj.defineProblem();
+            obj.unconstrainedOptimizer.line_search.kfrac = 1.05;
+            obj.defineProblem();            
         end
         
         function update(obj)
+            tolCons = obj.target_parameters.constr_tol;
+            obj.problem.options = optimset(obj.problem.options,'TolX',1e-2*tolCons);
             obj.unconstrainedOptimizer.line_search.initKappa;
-            obj.unconstrainedOptimizer.line_search.kfrac = 1.1;
             
-            nConstraints = obj.constraint.nSF;
-            obj.constraint.lambda  = zeros(1,nConstraints);
+            obj.constraint.lambda  = obj.lambda;
             obj.costCopy           = obj.cost.clone();
             obj.constraintCopy     = obj.constraint.clone();
             obj.designVariable.valueOld = obj.designVariable.value;
-
             obj.computeValue();
             
-            
+            obj.costCopy                = obj.cost.clone();
+            obj.constraintCopy          = obj.constraint.clone();
+            obj.designVariable.valueOld = obj.designVariable.value;
+     
             obj.objfunc.setInitialValue();
             
             while ~obj.hasUnconstraintedOptimizerConverged()
-                obj.unconstrainedOptimizer.line_search.computeKappa();
                 obj.computeValue();
+                obj.unconstrainedOptimizer.line_search.computeKappa();
             end
-            obj.updateConvergenceStatus()
+            obj.updateConvergenceStatus();
+            obj.lambda = obj.constraint.lambda;
         end
         
     end
     
     methods (Access = private)
         
+        function createLambda(obj)
+            nConstraints = obj.constraint.nSF;
+            obj.lambda  = zeros(1,nConstraints);
+        end
+        
         function defineProblem(obj)
             obj.problem.solver = 'fzero';
             obj.problem.options = optimset(@fzero);
             obj.problem.objective = @(lambda) obj.computeFeasibleDesignVariable(lambda);
             obj.problem.x0 = [0 100];
-            obj.problem.options = optimset(obj.problem.options,'TolX',1e-4);
         end
         
         function createLagrangian(obj)
@@ -68,7 +78,6 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
         end
         
         function computeValue(obj)
-            obj.unconstrainedOptimizer.theta = 0.1;
             fzero(obj.problem);
             obj.updateObjFunc();
         end
@@ -78,7 +87,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             isNotFeasible = any(any(abs(obj.constraint.value()) > obj.unconstrainedOptimizer.constr_tol()));
             hasNotConverged = isNotOptimal || isNotFeasible;
             obj.hasConverged = ~hasNotConverged;
-        end        
+        end
         
         function itHas = hasUnconstraintedOptimizerConverged(obj)
             itHas = obj.isStepAcceptable() || obj.isLineSeachTooSmall();
@@ -117,7 +126,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
         
         function updatePrimalVariableBecauseOfDual(obj,lambda)
             obj.constraint.lambda = lambda;
-            obj.unconstrainedOptimizer.init3();
+            obj.unconstrainedOptimizer.hasConverged = false;
             obj.objfunc.lambda    = lambda;
             obj.objfunc.computeGradient();
             obj.unconstrainedOptimizer.compute();
@@ -128,7 +137,6 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.objfunc.computeFunction();
             obj.objfunc.computeGradient();
         end
-        
         
         function storeConvergedInfo(obj)
             obj.unconstrainedOptimizer.convergenceVars.reset();
@@ -153,7 +161,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.objfunc.lambda      = obj.constraintCopy.lambda;
             obj.objfunc.computeGradient();
             obj.objfunc.computeFunction();
-            obj.objfunc.setInitialValue();            
+            obj.objfunc.setInitialValue();
         end
     end
 end

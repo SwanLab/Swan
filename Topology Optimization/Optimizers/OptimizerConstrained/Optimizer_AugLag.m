@@ -11,7 +11,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
     end
     
     properties (Access = private)
-        x
+       % x
         lambda
     end
     
@@ -28,7 +28,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
         function update(obj)
             obj.updateDualVariable();
             obj.augLagrangian.updateBecauseOfDual(obj.lambda,obj.penalty);
-            obj.updatePrimalVariable(obj.designVariable.value);
+            obj.updatePrimalVariable();
             obj.updateConvergenceStatus();
         end
         
@@ -36,8 +36,8 @@ classdef Optimizer_AugLag < Optimizer_Constrained
     
     methods (Access = private)
         
-        function updatePrimalVariable(obj,x0)
-            obj.designVariable.valueOld = x0;
+        function updatePrimalVariable(obj)
+            obj.designVariable.valueOld = obj.designVariable.value;                        
             obj.unconstrainedOptimizer.init2();            
             while ~obj.unconstrainedOptimizer.hasConverged
                 obj.designVariable.value = obj.designVariable.valueOld;
