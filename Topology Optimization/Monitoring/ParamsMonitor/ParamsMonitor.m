@@ -51,7 +51,7 @@ classdef ParamsMonitor < ParamsMonitor_Interface
             
             obj.costFuncValue    = cParams.cost;
             obj.constraintValues = cParams.constraint;
-            obj.designVariable   = cParams.designVariable;
+            obj.designVariable   = cParams.designVar;
             obj.createNamingManager(cParams);
             obj.createFigures();
         end

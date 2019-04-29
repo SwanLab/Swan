@@ -21,8 +21,34 @@ classdef MonitoringDocker < handle
     methods (Access = private)
         
         function createMonitors(obj,cParams)
-            obj.paramsMonitor = ParamsMonitorFactory.create(cParams.settingsParamsMonitor);
-            obj.designVarMonitor = DesignVarMonitorFactory().create(cParams.settingsDesignVarMonitor);
+            obj.createParamsMonitor(cParams);
+            obj.createDesignVarMonitor(cParams);            
+        end
+        
+        function createParamsMonitor(obj,cParams)
+            s.showOptParams    = cParams.showOptParams;
+            s.refreshInterval  = cParams.refreshInterval;
+            s.problemID        = cParams.problemID;
+            s.costFuncNames    = cParams.costFuncNames;
+            s.costWeights      = cParams.costWeights;
+            s.constraintFuncs  = cParams.constraintFuncs;
+            s.optimizerName    = cParams.optimizerName;
+            s.designVar        = cParams.designVar;
+            s.cost             = cParams.cost;
+            s.constraint       = cParams.constraint;
+            s.convergenceVars  = cParams.convergenceVars;
+            
+            obj.paramsMonitor = ParamsMonitorFactory.create(s);
+        end
+        
+        function createDesignVarMonitor(obj,cParams)
+            s.shallDisplay  = cParams.shallDisplayDesignVar;
+            s.showBC        = cParams.shallShowBoundaryConditions;
+            s.designVar     = cParams.designVar;
+            s.optimizerName = cParams.optimizerName;
+            s.dim           = cParams.dim; 
+            
+            obj.designVarMonitor = DesignVarMonitorFactory().create(s);
         end
         
     end

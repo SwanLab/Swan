@@ -65,15 +65,6 @@ classdef DesignVarMonitorFactory < handle
             obj.builder.build(obj.monitor);
         end
         
-        function var = designVariable(obj)
-            switch obj.optimizer
-                case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
-                    var = 'LevelSet';
-                case {'PROJECTED GRADIENT','MMA','IPOPT'}
-                    var = 'Density';
-            end
-        end
-        
         function returnNullMonitor(obj)
             mS.designVar = obj.designVar;
             mS.showBC    = false;

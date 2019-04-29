@@ -34,6 +34,7 @@ classdef testTopOptComputation < handle
             sett.printChangingFilter = false;
             sett.printing = true;
             obj.settings = sett;
+            obj.settings = SettingsTopOptProblem(file2load,sett);
         end
         
     end
