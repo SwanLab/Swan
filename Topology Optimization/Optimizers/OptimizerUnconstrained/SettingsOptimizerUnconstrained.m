@@ -29,8 +29,6 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
            end
        end
        
-   end
-    
-  
+   end 
     
 end
