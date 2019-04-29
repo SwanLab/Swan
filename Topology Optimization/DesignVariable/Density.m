@@ -1,14 +1,16 @@
 classdef Density < DesignVariable
     
-    properties (GetAccess = public, SetAccess = protected)
-        type = 'Density';
+    properties (Access = private)
+        levelSetCreatorSettings
     end
     
     methods (Access = public)
         
         function obj = Density(cParams)
-            obj.value   = cParams.value;
-            obj.meshGiD = cParams.mesh;
+            obj.init(cParams);
+            obj.nVariables = 1;            
+            obj.levelSetCreatorSettings = cParams.levelSetCreatorSettings;
+            obj.createValue();
         end
         
         function update(obj,value)
@@ -18,6 +20,13 @@ classdef Density < DesignVariable
     end
     
     methods (Access = private)
+        
+        function createValue(obj)
+            s = obj.levelSetCreatorSettings;
+            lsCreator  = LevelSetCreator.create(s);
+            phi        = lsCreator.getValue();
+            obj.value  = 1 - heaviside(phi);
+        end
         
     end
     

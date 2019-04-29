@@ -8,7 +8,7 @@ classdef Optimizer_Constrained < Optimizer
     
     properties (Access = protected)
         hasFinished
-        designVar
+        designVariable
         monitor
         cost
         constraint
@@ -26,31 +26,26 @@ classdef Optimizer_Constrained < Optimizer
     
     methods (Access = public)
         
-        function designVar = solveProblem(obj,designVar,iStep,nStep)
+        function solveProblem(obj,iStep,nStep)
             obj.iStep = iStep;
             obj.nStep = nStep;
             obj.createPostProcess();
-            x0 = designVar.value;
-            obj.cost.computeCostAndGradient(x0);
-            obj.constraint.computeCostAndGradient(x0);
+            x0 = obj.designVariable.value;
+            obj.cost.computeCostAndGradient();
+            obj.constraint.computeCostAndGradient();
             obj.printOptimizerVariable();
             
             obj.hasFinished = false;
             
-            %obj.monitor.refresh(x0,obj.niter,obj.cost,obj.constraint,obj.hasFinished(istep,nstep),istep,nstep);
-            
-            while ~obj.hasFinished
+             while ~obj.hasFinished
                 obj.niter = obj.niter+1;
-                x = obj.update(x0);
-                designVar.update(x);
+                obj.update();
                 obj.updateStatus();
                 obj.monitor.refresh(obj.niter,obj.hasFinished,iStep,nStep);
                 obj.printOptimizerVariable();
                 obj.printHistory()
-                x0 = x;
             end
-            obj.printOptimizerVariable();
-            
+            obj.printOptimizerVariable();            
             obj.hasConverged = 0;
         end
         
@@ -63,7 +58,7 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function printOptimizerVariable(obj)
-            d.x = obj.designVar.value;
+            d.x = obj.designVariable.value;
             d.cost = obj.cost;
             d.constraint = obj.constraint;
             obj.postProcess.print(obj.niter,d);
@@ -74,12 +69,13 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function createPostProcess(obj)
-            fileName = obj.designVar.meshGiD.problemID;
+            fileName = obj.designVariable.mesh.problemID;
             d = obj.createPostProcessDataBase(fileName);
             d.printMode = obj.printMode;
             d.optimizer = obj.name;
             d.cost = obj.cost;
             d.constraint = obj.constraint;
+            d.designVar  = obj.designVariable.type;
             if obj.printing
                 obj.postProcess = Postprocess('TopOptProblem',d);
             else
@@ -100,7 +96,7 @@ classdef Optimizer_Constrained < Optimizer
             obj.cost       = cParams.cost;
             obj.constraint = cParams.constraint;
             
-            obj.designVar = cParams.designVar;
+            obj.designVariable = cParams.designVar;
             obj.maxiter   = set.maxiter;
             obj.printing  = set.printing;
             obj.printMode = set.printMode;
@@ -114,7 +110,7 @@ classdef Optimizer_Constrained < Optimizer
     methods (Access = private)
         
         function createHistoyPrinter(obj)
-            settingsMetricsPrinter.fileName = obj.designVar.meshGiD.problemID;
+            settingsMetricsPrinter.fileName = obj.designVariable.mesh.problemID;
             settingsMetricsPrinter.optimizer = obj;
             settingsMetricsPrinter.cost = obj.cost;
             settingsMetricsPrinter.constraint = obj.constraint;
@@ -130,7 +126,7 @@ classdef Optimizer_Constrained < Optimizer
             s.constraintFuncs             = set.constraint;
             s.dim                         = set.pdim;
             
-            s.designVar                   = obj.designVar;
+            s.designVar              = obj.designVariable;
             s.optimizerName               = obj.name;
             s.cost                        = obj.cost;
             s.constraint                  = obj.constraint;
@@ -140,7 +136,7 @@ classdef Optimizer_Constrained < Optimizer
         end
         
         function d = createPostProcessDataBase(obj,fileName)
-            d.mesh    = obj.designVar.meshGiD;
+            d.mesh    = obj.designVariable.mesh;
             d.outName = fileName;
             ps = PostProcessDataBaseCreator(d);
             d  = ps.getValue();

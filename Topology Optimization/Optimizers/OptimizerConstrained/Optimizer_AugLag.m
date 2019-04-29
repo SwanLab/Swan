@@ -11,44 +11,40 @@ classdef Optimizer_AugLag < Optimizer_Constrained
     end
     
     properties (Access = private)
-        x
+       % x
         lambda
     end
     
     methods (Access = public)
         
         function obj = Optimizer_AugLag(cParams)
-            obj.unconstrainedOptimizer = cParams.unconstrainedOptimizer;
-            obj.name = obj.unconstrainedOptimizer.name;
-            obj.convergenceVars = obj.unconstrainedOptimizer.convergenceVars;
-            
-            obj.init(cParams);
-            
+            obj.name = cParams.optimizer;
+            obj.init(cParams);            
             obj.createAugmentedLagrangian();
             obj.createLambdaAndPenalty();
+            obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams);                           
+            obj.unconstrainedOptimizer.init(obj.augLagrangian);            
         end
         
-        function x = update(obj,x0)
-            obj.unconstrainedOptimizer.target_parameters = obj.target_parameters;
+        function update(obj)
             obj.updateDualVariable();
             obj.augLagrangian.updateBecauseOfDual(obj.lambda,obj.penalty);
-            obj.updatePrimalVariable(x0);
+            obj.updatePrimalVariable();
             obj.updateConvergenceStatus();
-            x = obj.x;
         end
         
     end
     
     methods (Access = private)
         
-        function updatePrimalVariable(obj,x0)
-            obj.unconstrainedOptimizer.init(x0,obj.augLagrangian);
+        function updatePrimalVariable(obj)
+            obj.designVariable.valueOld = obj.designVariable.value;                        
+            obj.unconstrainedOptimizer.init2();            
             while ~obj.unconstrainedOptimizer.hasConverged
-                x = obj.unconstrainedOptimizer.update(x0);
+                obj.designVariable.value = obj.designVariable.valueOld;
+                obj.unconstrainedOptimizer.update();
             end
-            x = obj.revertIfDesignNotImproved(x,x0);
-            
-            obj.x = x;
+            obj.revertIfDesignNotImproved();
         end
         
         function updateConvergenceStatus(obj)
@@ -67,16 +63,17 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             obj.lambda = l;
         end
         
-        function x = revertIfDesignNotImproved(obj,x,x0)
+        function revertIfDesignNotImproved(obj)
             if ~obj.unconstrainedOptimizer.designImproved
-                x = x0;
+                obj.designVariable.value = obj.designVariable.valueOld;
             end
         end
         
         function createAugmentedLagrangian(obj)
-            augLagS.constraintCase = obj.constraintCase;
-            obj.augLagrangian = AugmentedLagrangian(augLagS);
-            obj.augLagrangian.link(obj.cost,obj.constraint);
+            cParamsAL.constraintCase = obj.constraintCase;
+            cParamsAL.cost           = obj.cost;
+            cParamsAL.constraint     = obj.constraint;
+            obj.augLagrangian = AugmentedLagrangian(cParamsAL);
         end
         
         function createLambdaAndPenalty(obj)

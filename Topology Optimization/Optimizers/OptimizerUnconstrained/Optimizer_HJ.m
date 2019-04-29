@@ -25,12 +25,14 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             obj.setupFilter(settings,settings.scalarProductSettings.epsilon,designVar);
         end
         
-        function phi = compute(obj,phi,gradient)
+        function phi = compute(obj)
+            phi      = obj.designVariable.value;
+            gradient = obj.objectiveFunction.gradient;                        
             V = -obj.filter.regularize(phi,gradient);
             
             dt = 0.5*obj.e2*obj.line_search.kappa*obj.meanCellSize/max(abs(V(:))) ;
             phi = obj.solvelvlset(phi,V,dt);
-            
+            obj.designVariable.value = phi;
             obj.opt_cond = obj.line_search.kappa;
         end
         
@@ -51,6 +53,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             end
             filterSettings = SettingsFilter('paramsFilter_PDE_Boundary');
             filterSettings.designVar = designVar;
+            filterSettings.quadratureOrder = 'LINEAR';            
             obj.filter = FilterFactory().create(filterSettings);
             obj.filter.preProcess();
             obj.filter.updateEpsilon(e);

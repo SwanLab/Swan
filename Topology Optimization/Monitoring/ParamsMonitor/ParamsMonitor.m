@@ -13,7 +13,7 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         constraintValues
         nConstraints
         refreshInterval
-        convergenceVars
+        designVariable
         iteration
         hasFinished
         iRefresh
@@ -51,7 +51,7 @@ classdef ParamsMonitor < ParamsMonitor_Interface
             
             obj.costFuncValue    = cParams.cost;
             obj.constraintValues = cParams.constraint;
-            obj.convergenceVars  = cParams.convergenceVars;
+            obj.designVariable   = cParams.designVar;
             obj.createNamingManager(cParams);
             obj.createFigures();
         end
@@ -90,7 +90,7 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         end
         
         function initConvergenceVarsFigures(obj)
-            for i = 1:obj.convergenceVars.nVar
+            for i = 1:obj.designVariable.nVariables
                 title = obj.namingManager.getConvVarFigureTitle(i);
                 obj.initFigure(title);
             end
@@ -147,13 +147,13 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         function updateCost(obj)
             obj.updateFigure(obj.costFuncValue.value);
             for i = 1:obj.nCostFuncs
-                obj.updateFigure(obj.costFuncValue.ShapeFuncs{i}.value)
+                obj.updateFigure(obj.costFuncValue.shapeFunctions{i}.value)
             end
         end
         
         function updateConstraints(obj)
             for i = 1:obj.nConstraints
-                obj.updateFigure(obj.constraintValues.ShapeFuncs{i}.value)
+                obj.updateFigure(obj.constraintValues.shapeFunctions{i}.value)
                 if ~isempty(obj.constraintValues.lambda)
                     obj.updateFigure(obj.constraintValues.lambda(i))
                 end
@@ -161,9 +161,9 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         end
         
         function updateConvergenceVars(obj)
-            for i = 1:obj.convergenceVars.nVar
-                if ~isempty(obj.convergenceVars.values(i))
-                    obj.updateFigure(obj.convergenceVars.values(i));
+            for i = 1:obj.designVariable.nVariables
+                if ~isempty(obj.designVariable.value(i))
+                    obj.updateFigure(obj.designVariable.value(i));
                 end
             end
         end

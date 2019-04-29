@@ -62,13 +62,27 @@ classdef ShapesPrinter < CompositeResultsPrinter
             end             
         end
                
-    end
-    
+    end   
     
     methods (Access = private)
         
         function obtainAllShapes(obj,d)
-            obj.allShapes = {d.cost.ShapeFuncs{:},d.constraint.ShapeFuncs{:}};
+            obj.obtainCostShapes(d);
+            obj.obtainConstraintShapes(d);
+        end
+        
+        function obtainCostShapes(obj,d)
+            nShape = numel(d.cost.shapeFunctions);
+            for ishape = 1:nShape
+                obj.allShapes{ishape} = d.cost.shapeFunctions{ishape};
+            end            
+        end
+        
+        function obtainConstraintShapes(obj,d)
+            nShape = numel(d.constraint.shapeFunctions);            
+            for ishape = 1:nShape
+                obj.allShapes{end + ishape} = d.constraint.shapeFunctions{ishape};
+            end            
         end
         
         function obtainPrintableIndex(obj)

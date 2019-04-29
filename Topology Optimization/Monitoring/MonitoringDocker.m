@@ -33,6 +33,7 @@ classdef MonitoringDocker < handle
             s.costWeights      = cParams.costWeights;
             s.constraintFuncs  = cParams.constraintFuncs;
             s.optimizerName    = cParams.optimizerName;
+            s.designVar        = cParams.designVar;
             s.cost             = cParams.cost;
             s.constraint       = cParams.constraint;
             s.convergenceVars  = cParams.convergenceVars;

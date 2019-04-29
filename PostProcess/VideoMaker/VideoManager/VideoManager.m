@@ -31,7 +31,7 @@ classdef VideoManager < handle
         
         function createVideoMaker(obj,settings,designVar)
             type = designVar.type;
-            pdim = designVar.meshGiD.pdim;
+            pdim = designVar.mesh.pdim;
             obj.videoMaker = VideoMakerTopOptFactory().create(settings.case_file,type,pdim);
         end
         

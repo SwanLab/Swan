@@ -13,36 +13,39 @@ classdef TopOpt_Problem < handle
     properties (Access = private)
         hole_value
         ini_design_value
-    end
-    
-    properties (Access = private)
         videoManager
+        homogenizedVarComputer
     end
-    
     
     methods (Access = public)
         
         function obj = TopOpt_Problem(settings)
             obj.createDesignVariable(settings);
-            
-            settings.pdim = obj.designVariable.meshGiD.pdim;
+            settings.pdim = obj.designVariable.mesh.pdim;
+            obj.createHomogenizedVarComputer(settings)
             
             obj.createIncrementalScheme(settings);
             
-            obj.cost = Cost(settings,settings.weights,obj.designVariable);
-            obj.constraint = Constraint(settings,obj.designVariable);
+            obj.cost = Cost(settings,obj.designVariable,obj.homogenizedVarComputer);
+            obj.constraint = Constraint(settings,obj.designVariable,obj.homogenizedVarComputer);
             
             obj.createOptimizer(settings);
             
             obj.createVideoManager(settings);
         end
         
+        
         function createOptimizer(obj,settings)
             obj.createOptimizerSettings(settings);
-            obj.optimizer = OptimizerFactory.create(obj.optimizerSettings);
+            obj.optimizer = Optimizer.create(obj.optimizerSettings);
         end
         
         function createOptimizerSettings(obj,settings)
+            scS.filename        = settings.filename;
+            scS.epsilon         = obj.incrementalScheme.targetParams.epsilon;
+            scS.nVariables      = obj.designVariable.nVariables;
+            
+            lsS.scalarProductSettings = scS;
             lsS.line_search     = settings.line_search;
             lsS.optimizer       = settings.optimizer;
             lsS.HJiter0         = settings.HJiter0;
@@ -51,12 +54,8 @@ classdef TopOpt_Problem < handle
             lsS.epsilon         = obj.incrementalScheme.targetParams.epsilon;
             
             
-            scS.filename        = settings.filename;
-            scS.epsilon         = obj.incrementalScheme.targetParams.epsilon;
-            
             uncOptimizerSettings = SettingsOptimizerUnconstrained();
             
-            uncOptimizerSettings.target_parameters     = settings.target_parameters;
             uncOptimizerSettings.lineSearchSettings    = lsS;
             uncOptimizerSettings.scalarProductSettings = scS;
             
@@ -65,6 +64,11 @@ classdef TopOpt_Problem < handle
             uncOptimizerSettings.printChangingFilter = settings.printChangingFilter;
             uncOptimizerSettings.filename            = settings.filename;
             uncOptimizerSettings.ptype               = settings.ptype;
+            uncOptimizerSettings.lb                  = settings.lb;
+            uncOptimizerSettings.ub                  = settings.ub;
+            
+            uncOptimizerSettings.target_parameters  = obj.incrementalScheme.targetParams;
+            uncOptimizerSettings.designVariable     = obj.designVariable;
             
             optSet.uncOptimizerSettings = uncOptimizerSettings;
             
@@ -84,18 +88,18 @@ classdef TopOpt_Problem < handle
             
             optSet.settings   = settings;
             
+            
+            
+            optSet.designVar            = obj.designVariable;
+            optSet.target_parameters    = obj.incrementalScheme.targetParams;
+            
             optSet.cost       = obj.cost;
             optSet.constraint = obj.constraint;
             
-            optSet.designVar  = obj.designVariable;
             obj.optimizerSettings = optSet;
             
         end
         
-        function preProcess(obj)
-            obj.cost.preProcess();
-            obj.constraint.preProcess();
-        end
         
         function computeVariables(obj)
             obj.linkTargetParams();
@@ -123,11 +127,31 @@ classdef TopOpt_Problem < handle
         
         function createDesignVariable(obj,settings)
             mesh = Mesh_GiD(settings.filename);
+            designVarSettings = SettingsDesignVariable();
             designVarSettings.mesh = mesh;
-            designVarInitializer = DesignVariableCreator(settings,mesh);
-            designVarSettings.value = designVarInitializer.getValue();
             designVarSettings.type = settings.designVariable;
+            designVarSettings.levelSetCreatorSettings       = settings.levelSetDataBase;
+            designVarSettings.levelSetCreatorSettings.ndim  = mesh.ndim;
+            designVarSettings.levelSetCreatorSettings.coord = mesh.coord;
+            designVarSettings.levelSetCreatorSettings.type = settings.initial_case;
+            switch designVarSettings.levelSetCreatorSettings.type
+                case 'holes'
+                    designVarSettings.levelSetCreatorSettings.dirichlet = mesh.dirichlet;
+                    designVarSettings.levelSetCreatorSettings.pointload = mesh.pointload;
+            end
             obj.designVariable = DesignVariable.create(designVarSettings);
+        end
+        
+        function createHomogenizedVarComputer(obj,settings)
+            settings.nelem = size(obj.designVariable.mesh.connec,1);
+            s.type                   = settings.homegenizedVariablesComputer;
+            s.interpolation          = settings.materialInterpolation;
+            s.dim                    = settings.pdim;
+            s.typeOfMaterial         = settings.material;
+            s.constitutiveProperties = settings.TOL;
+            s.vademecumFileName      = settings.vademecumFileName;
+            s.nelem                  = settings.nelem;
+            obj.homogenizedVarComputer = HomogenizedVarComputer.create(s);
         end
         
         function createIncrementalScheme(obj,settings)
@@ -147,7 +171,7 @@ classdef TopOpt_Problem < handle
             settingsIncrementalScheme.nSteps = settings.nsteps;
             settingsIncrementalScheme.shallPrintIncremental = settings.printIncrementalIter;
             
-            settingsIncrementalScheme.mesh = obj.designVariable.meshGiD;
+            settingsIncrementalScheme.mesh = obj.designVariable.mesh;
             
             obj.incrementalScheme = IncrementalScheme(settingsIncrementalScheme);
         end
@@ -155,7 +179,7 @@ classdef TopOpt_Problem < handle
         function solveCurrentProblem(obj)
             iStep = obj.incrementalScheme.iStep;
             nSteps = obj.incrementalScheme.nSteps;
-            obj.designVariable = obj.optimizer.solveProblem(obj.designVariable,iStep,nSteps);
+            obj.optimizer.solveProblem(iStep,nSteps);
         end
         
         function linkTargetParams(obj)

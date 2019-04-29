@@ -1,8 +1,11 @@
 classdef Rotator < handle
     
+    properties (Access = public)
+        rotationMatrix        
+    end
+    
     properties (Access = protected)
-        rotatedTensor
-        rotationMatrix
+        rotatedTensor        
     end
     
     properties (Access = protected)

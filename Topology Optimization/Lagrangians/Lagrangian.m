@@ -1,21 +1,34 @@
 classdef Lagrangian < ObjectiveFunction
-   
-    properties
-        lambda
-    end
     
     methods (Access = public)
         
-        function obj = Lagrangian(settings)
-            obj.lambda = zeros(1,settings.nconstr);
+        function obj = Lagrangian(cParams)
+            obj.init(cParams);
+            obj.initializeLambda();
         end
         
-        function computeFunction(obj,cost,constraint)
-            obj.value = cost.value + obj.lambda*constraint.value;
+        function computeFunction(obj)
+            l  = obj.lambda;
+            c  = obj.constraint.value;
+            j  = obj.cost.value;            
+            obj.value = j + l*c;
         end
         
-        function computeGradient(obj,cost,constraint)
-            obj.gradient = constraint.gradient*obj.lambda' + cost.gradient;
+        function computeGradient(obj)
+            l   = obj.lambda;
+            dj  = obj.cost.gradient;
+            dc  = obj.constraint.gradient;
+            g = dj + dc*l;
+            obj.gradient = g;            
+        end
+        
+    end
+    
+    methods (Access = private)
+       
+        function initializeLambda(obj)
+            nconstr = numel(obj.constraint);
+            obj.lambda = zeros(1,nconstr);            
         end
         
     end

@@ -22,10 +22,8 @@ classdef DesignVarMonitor_Abstract < handle
         axes
     end
     
-    methods (Access = public, Abstract)
-        
-        plot(obj)
-        
+    methods (Access = public, Abstract)        
+        plot(obj)        
     end
     
     methods (Access = protected, Abstract)
@@ -45,7 +43,7 @@ classdef DesignVarMonitor_Abstract < handle
         function obj = DesignVarMonitor_Abstract(cParams)
             obj.showBC = cParams.showBC;
             obj.designVar = cParams.designVar;
-            obj.mesh = obj.designVar.meshGiD;
+            obj.mesh = obj.designVar.mesh;
             obj.dim = obj.mesh.pdim;
             obj.init();
         end

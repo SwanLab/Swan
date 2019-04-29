@@ -5,7 +5,7 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         showBC = true
         BCscale_factor = 0.10
         rotation_per_it = 0
-        printing = true
+        printing = false
         printing_physics = false
         monitoring = true
         monitoring_interval = 10
@@ -13,6 +13,8 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         constraint_case = 'EQUALITY'
         HJiter0 
         e2 
+        ub = 1;
+        lb = 0;
     end
     
     properties %target parameters
@@ -65,6 +67,8 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         homegenizedVariablesComputer
         materialInterpolation
         designVariable
+        vademecumFileName        
+        nelem
     end
     
     properties %exploring tests
@@ -245,9 +249,23 @@ classdef Settings %< handle%& matlab.mixin.Copyable
                obj.designVariable = designVariable;               
             end
             
+            if exist('homegenizedVariablesComputer','var')
+               obj.homegenizedVariablesComputer = homegenizedVariablesComputer;               
+            else
+               obj.homegenizedVariablesComputer = 'ByInterpolation'; 
+               
+            end
+
+            if exist('vademecumFileName','var')            
+                obj.vademecumFileName = vademecumFileName;
+            end
+            
+            
             if  ~(contains(filename,'test','IgnoreCase',true) || contains(filename,'RVE') || obj.hasToAddSpaceBecauseOfIncremental())
                 fprintf('\n')
             end
+            
+            
             
         end
         
@@ -256,9 +274,6 @@ classdef Settings %< handle%& matlab.mixin.Copyable
     
     
     methods (Access = private)
-        
-
-      
         
         function itHas = hasToAddSpaceBecauseOfIncremental(obj)
             itHas = true;

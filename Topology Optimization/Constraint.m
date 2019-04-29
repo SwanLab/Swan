@@ -6,13 +6,13 @@ classdef Constraint < CC
     
     methods (Access = public)
         
-        function obj = Constraint(settings,designVar)
-            obj@CC(settings,settings.constraint,designVar);
+        function obj = Constraint(settings,designVar,homogVarComputer)
+            obj.init(settings, settings.constraint,designVar,homogVarComputer);
         end
         
         function updateFields(obj,iSF)
-            obj.value(iSF,1) = obj.ShapeFuncs{iSF}.value;
-            obj.gradient(:,iSF) = obj.ShapeFuncs{iSF}.gradient;
+            obj.value(iSF,1)    = obj.shapeFunctions{iSF}.value;
+            obj.gradient(:,iSF) = obj.shapeFunctions{iSF}.gradient;
         end
         
     end

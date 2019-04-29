@@ -4,11 +4,12 @@ classdef SettingsShapeFunctional < AbstractSettings
         defaultParamsName = 'paramsShapeFunctional'
     end
     
-    properties
+    properties (Access = public)
         filterParams 
         filename 
         domainType 
-        materialInterpolationParams
+        homogVarComputer
+        designVariable        
     end
     
      methods (Access = public)

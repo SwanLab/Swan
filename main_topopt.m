@@ -13,13 +13,13 @@ clear variables;
 
 %% Main
 filenames={
-    'CantileverTriangleCoarse_Case_2_1_1'
+   'CantileverTriangleCoarse_Case_4_1_1'
     % 'CantileverTriangle_Case_1_1_1'
-     'ImprovedBridgeSYM_Case_3_1_1'  
+%     'ImprovedBridgeSYM_Case_3_1_1'  
 %     'ImprovedBridgeSYM_Case_5_1_4'     
-    'ThroneTetrahedraSYM_Case_1_1_5'
+%    'ThroneTetrahedraSYM_Case_1_1_5'
 %     'ThroneTetrahedraSYM_Case_5_1_2'
-%     'BikeTriangle_1_1_1'
+     'BikeTriangle_1_1_1'
     };
 
 
@@ -29,7 +29,6 @@ for icases=1:size(filenames,1)
     settings = Settings(filenames{icases});
     
     topOptProblem = TopOpt_Problem(settings);
-    topOptProblem.preProcess;
     topOptProblem.computeVariables;
     topOptProblem.postProcess;
 end

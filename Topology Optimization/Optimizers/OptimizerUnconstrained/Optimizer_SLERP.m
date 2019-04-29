@@ -25,13 +25,16 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             obj@Optimizer_Unconstrained(settings);
         end
         
-        function phi = compute(obj,phi,g)
+        function compute(obj)
+            phi = obj.designVariable.value;
+            g   = obj.objectiveFunction.gradient;
             obj.computeNormalizedLevelSet(phi);
             obj.computeNormalizedGradient(g);
             obj.computeTheta();
             obj.computeCoeficients();
             phi = obj.updateLevelSet();
             obj.updateOptimalityConditionValue();
+            obj.designVariable.value = phi;
         end
         
     end
@@ -65,7 +68,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             phiN = obj.normalizedPhi;
             g    = obj.normalizedGrad;
             phiXg = obj.scalar_product.computeSP(phiN,g);
-            obj.theta = real(acos(phiXg));
+            obj.theta = max(real(acos(phiXg)),1e-14);
         end
         
         function updateOptimalityConditionValue(obj)

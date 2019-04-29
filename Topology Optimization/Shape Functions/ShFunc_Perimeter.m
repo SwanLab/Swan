@@ -1,20 +1,20 @@
-classdef ShFunc_Perimeter < Shape_Functional
+classdef ShFunc_Perimeter < ShapeFunctional
     
     properties (Access = protected)
         epsilon
-        designVariable
         regularizedDensity
         regularizedDensityProjection
     end
     
     methods
-        function obj = ShFunc_Perimeter(settings)
-            settings.filterParams.filterType = 'PDE';
-            obj.init(settings);
+        function obj = ShFunc_Perimeter(cParams)
+            cParams.filterParams.quadratureOrder = 'LINEAR';            
+            cParams.filterParams.filterType = 'PDE';
+            obj.init(cParams);
         end
         
-        function computeCostAndGradient(obj,designVariable)
-            obj.updateProtectedVariables(designVariable)
+        function computeCostAndGradient(obj)
+            obj.updateProtectedVariables()
             obj.computeRegularizedDensity()
             obj.computeRegularizedDensityProjection()
             obj.computePerimeterValue()
@@ -25,18 +25,14 @@ classdef ShFunc_Perimeter < Shape_Functional
     
     methods (Access = protected)
         
-        function updateProtectedVariables(obj,designVariable)
-            obj.updateDesignVariable(designVariable)
+        function updateProtectedVariables(obj)
             obj.updateEpsilonValue()
             obj.updateEpsilonInFilter()
         end
         
-        function updateDesignVariable(obj,designVariable)
-            obj.designVariable = designVariable;
-        end
        
         function updateEpsilonValue(obj)
-            obj.epsilon=obj.target_parameters.epsilon_perimeter;
+            obj.epsilon = obj.target_parameters.epsilon_perimeter;
         end
         
         function updateEpsilonInFilter(obj)
@@ -44,11 +40,11 @@ classdef ShFunc_Perimeter < Shape_Functional
         end
         
         function computeRegularizedDensity(obj)
-            obj.regularizedDensity = obj.filter.getP1fromP1(obj.designVariable);
+            obj.regularizedDensity = obj.filter.getP1fromP1(obj.designVariable.value);
         end
         
         function computeRegularizedDensityProjection(obj)
-            obj.regularizedDensityProjection = obj.filter.integrate_L2_function_with_shape_function(obj.designVariable);
+            obj.regularizedDensityProjection = obj.filter.integrate_L2_function_with_shape_function(obj.designVariable.value);
         end
         
         function computePerimeterValue(obj)

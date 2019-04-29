@@ -6,9 +6,9 @@ classdef Cost < CC
     
     methods (Access = public)
         
-        function obj = Cost(settings,weights,designVar)
-            obj@CC(settings,settings.cost,designVar);
-            obj.setWeights(weights);
+        function obj = Cost(settings,designVar,homogVarComputer)
+            obj.init(settings, settings.cost,designVar,homogVarComputer);            
+            obj.setWeights(settings.weights);
         end
         
     end
@@ -16,8 +16,8 @@ classdef Cost < CC
     methods (Access = public)
         
         function updateFields(obj,iSF)
-            obj.value = obj.value + obj.weights(iSF)*obj.ShapeFuncs{iSF}.value;
-            obj.gradient = obj.gradient + obj.weights(iSF)*obj.ShapeFuncs{iSF}.gradient;
+            obj.value = obj.value + obj.weights(iSF)*obj.shapeFunctions{iSF}.value;
+            obj.gradient = obj.gradient + obj.weights(iSF)*obj.shapeFunctions{iSF}.gradient;
         end
         
     end

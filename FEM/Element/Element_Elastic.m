@@ -17,7 +17,14 @@ classdef Element_Elastic < Element
     properties (Access = protected, Abstract)
         nstre
     end
+    
+    properties (Access = public)
+        principalDirectionComputer                
+    end
+    
     methods (Static) %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?obj})
+        
+        
         function obj = create(mesh,geometry,material,dof)
             switch mesh.scale
                 case 'MICRO'
@@ -34,9 +41,11 @@ classdef Element_Elastic < Element
                         case '3D'
                             obj = Element_Elastic_3D(mesh,geometry,material,dof);
                     end
-            end
+            end            
+            obj.createPrincipalDirection(mesh.pdim);
         end
     end
+
     
     methods %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
         function compute(obj,mesh,geometry,material,dof,nstre)
@@ -185,8 +194,24 @@ classdef Element_Elastic < Element
             variables.strain = obj.computeStrain(variables.d_u,obj.dof.in_elem{1});
             variables.stress = obj.computeStress(variables.strain,obj.material.C,obj.quadrature.ngaus,obj.nstre);
             variables = obj.permuteStressStrain(variables);
+            variables.principalDirections = obj.computePrincipalDirection(variables.stress);
         end
         
+        
+    end
+    
+    methods (Access = private)
+        
+        function createPrincipalDirection(obj, pdim)    
+            cParams.type = pdim;
+            p = PrincipalDirectionComputer.create(cParams);
+            obj.principalDirectionComputer = p;
+        end
+        
+        function dir = computePrincipalDirection(obj,tensor)
+            obj.principalDirectionComputer.compute(tensor);            
+            dir = obj.principalDirectionComputer.direction;
+        end            
         
     end
     

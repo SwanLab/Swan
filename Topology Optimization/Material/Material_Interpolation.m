@@ -10,7 +10,7 @@ classdef Material_Interpolation < handle
     end
     
     methods (Static)
-        function obj=create(cParams)
+        function obj = create(cParams)
             constParams = cParams.constitutiveProperties;
             switch cParams.typeOfMaterial
                 case 'ISOTROPIC'

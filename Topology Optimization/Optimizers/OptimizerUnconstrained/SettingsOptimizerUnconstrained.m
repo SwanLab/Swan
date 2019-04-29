@@ -6,6 +6,7 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
     
    properties (Access = public)
        target_parameters
+       designVariable
        
        epsilon
        scalarProductSettings
@@ -16,6 +17,8 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
        printChangingFilter       
        filename
        ptype
+       ub
+       lb
    end
    
    methods (Access = public)

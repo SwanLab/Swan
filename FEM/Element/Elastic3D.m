@@ -26,6 +26,9 @@ classdef Elastic3D < ElasticDim
                 B(6,j+2,:) = obj.geometry.cartd(2,inode,:,igaus);
             end
         end
+                
+    
+        
     end
 end
 

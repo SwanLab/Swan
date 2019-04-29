@@ -50,12 +50,14 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
             filterSettings.filterType = 'P1';
             filterSettings.domainType = 'INTERIOR';
             filterSettings.designVar = obj.designVar;
+            filterSettings.quadratureOrder = 'LINEAR';
             obj.filter = Filter_P1_Density(filterSettings);
             obj.filter.preProcess();
         end
         
         function rhoElem = filterDensity(obj)
-            rho = obj.designVar.value;
+            %rho = obj.designVar.value;
+            rho = obj.designVar.rho;
             if obj.isNodal(rho)
                 rhoElem = obj.filter.getP0fromP1(rho);
             elseif obj.isElemental(rho)

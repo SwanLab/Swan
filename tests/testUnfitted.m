@@ -19,12 +19,11 @@ classdef testUnfitted < test
             settings = Settings(file_name_in);
             settings.printChangingFilter = false;
             obj.topOpt = TopOpt_Problem(settings);
-            obj.topOpt.preProcess();
             obj.levelSet = obj.topOpt.designVariable.value;
         end
         
         function createMesh(obj)
-            meshBackground = obj.topOpt.designVariable.meshGiD;
+            meshBackground = obj.topOpt.designVariable.mesh;
             interpolation = Interpolation.create(meshBackground,'LINEAR');
             settingsUnfitted = SettingsMeshUnfitted(obj.meshType,meshBackground,interpolation,obj.meshIncludeBoxContour);
             obj.mesh = Mesh_Unfitted_Factory.create(settingsUnfitted);
