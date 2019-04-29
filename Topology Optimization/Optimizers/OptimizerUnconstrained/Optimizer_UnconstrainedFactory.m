@@ -7,7 +7,7 @@ classdef Optimizer_UnconstrainedFactory < handle
                 case 'SLERP'
                     op = Optimizer_SLERP(cParams);
                 case 'HAMILTON-JACOBI'
-                    op = Optimizer_HJ(cParams,cParams.designVar);
+                    op = Optimizer_HJ(cParams);
                 case 'PROJECTED GRADIENT'
                     op = Optimizer_PG(cParams);     
                 otherwise
