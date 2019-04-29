@@ -57,11 +57,7 @@ classdef Optimizer_Unconstrained < Optimizer
             end
         end
         
-        function init(obj,objFunc)
-            obj.objectiveFunction = objFunc;
-        end
-        
-        function init2(obj)
+        function init(obj)
             obj.objectiveFunction.setInitialValue();
             obj.initLineSearch();
             obj.hasConverged = false;            
