@@ -32,7 +32,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             
             dt = 0.5*obj.e2*obj.line_search.kappa*obj.meanCellSize/max(abs(V(:))) ;
             phi = obj.solvelvlset(phi,V,dt);
-            
+            obj.designVariable.value = phi;
             obj.opt_cond = obj.line_search.kappa;
         end
         

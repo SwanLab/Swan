@@ -91,7 +91,7 @@ classdef TopOpt_Problem < handle
             
             
             
-            optSet.designVar             = obj.designVariable;
+            optSet.designVar            = obj.designVariable;
             optSet.target_parameters    = obj.incrementalScheme.targetParams;
             
             optSet.cost       = obj.cost;

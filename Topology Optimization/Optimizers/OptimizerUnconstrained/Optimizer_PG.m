@@ -28,6 +28,7 @@ classdef Optimizer_PG < Optimizer_Unconstrained
             ub = obj.upperBound*ones(length(x_n(:,1)),1);
             lb = obj.lowerBound*ones(length(x_n(:,1)),1);
             x_new = max(min(x_new,ub),lb);
+            obj.designVariable.value = x_new;
             obj.opt_cond = sqrt(obj.scalar_product.computeSP(x_new - x_n,x_new - x_n))/sqrt(obj.scalar_product.computeSP(x_n,x_n));
         end
         

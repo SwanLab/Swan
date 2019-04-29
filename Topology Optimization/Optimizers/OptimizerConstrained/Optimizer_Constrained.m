@@ -138,7 +138,8 @@ classdef Optimizer_Constrained < Optimizer
             mS.settingsParamsMonitor.optimizerName    = obj.name;
             mS.settingsParamsMonitor.cost             = obj.cost;
             mS.settingsParamsMonitor.constraint       = obj.constraint;
-            mS.settingsParamsMonitor.convergenceVars  = obj.convergenceVars;
+            mS.settingsParamsMonitor.designVariable   = obj.designVariable;
+            
 
             mS.settingsDesignVarMonitor.shallDisplay  = cParams.shallDisplayDesignVar;
             mS.settingsDesignVarMonitor.showBC        = cParams.shallShowBoundaryConditions;

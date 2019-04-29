@@ -6,7 +6,8 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
     end
     
     properties (Access = public)
-        value        
+        value
+        valueOld
         nVariables
         rho
     end
@@ -35,7 +36,7 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.type    = cParams.type;
+            obj.type = cParams.type;
             obj.mesh = cParams.mesh;            
         end
         
