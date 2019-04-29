@@ -33,19 +33,20 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
         function update(obj)
             tolCons = obj.target_parameters.constr_tol;
             obj.problem.options = optimset(obj.problem.options,'TolX',1e-2*tolCons);
-            obj.unconstrainedOptimizer.line_search.initKappa;
             
-            obj.constraint.lambda  = obj.lambda;
-            obj.costCopy           = obj.cost.clone();
-            obj.constraintCopy     = obj.constraint.clone();
+            obj.unconstrainedOptimizer.line_search.initKappa;            
+            obj.constraint.lambda       = obj.lambda;
+            obj.costCopy                = obj.cost.clone();
+            obj.constraintCopy          = obj.constraint.clone();
             obj.designVariable.valueOld = obj.designVariable.value;
             obj.computeValue();
             
+            
+            obj.objfunc.setInitialValue();            
             obj.costCopy                = obj.cost.clone();
             obj.constraintCopy          = obj.constraint.clone();
             obj.designVariable.valueOld = obj.designVariable.value;
      
-            obj.objfunc.setInitialValue();
             
             while ~obj.hasUnconstraintedOptimizerConverged()
                 obj.computeValue();
@@ -161,7 +162,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.objfunc.lambda      = obj.constraintCopy.lambda;
             obj.objfunc.computeGradient();
             obj.objfunc.computeFunction();
-            obj.objfunc.setInitialValue();
+            %obj.objfunc.setInitialValue();
         end
     end
 end
