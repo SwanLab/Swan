@@ -36,7 +36,8 @@ classdef Optimizer_Unconstrained < Optimizer
     
     methods (Access = public)
         
-        function obj = Optimizer_Unconstrained(cParams)            
+        function obj = Optimizer_Unconstrained(cParams) 
+            obj.objectiveFunction  = cParams.lagrangian;
             obj.hasConverged       = false;            
             obj.maxIncrNormX       = +Inf;            
             obj.line_search        = LineSearch.create(cParams.lineSearchSettings);

@@ -11,7 +11,6 @@ classdef Optimizer_AugLag < Optimizer_Constrained
     end
     
     properties (Access = private)
-       % x
         lambda
     end
     
@@ -21,8 +20,10 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             obj.init(cParams);            
             obj.createAugmentedLagrangian();
             obj.createLambdaAndPenalty();
-            obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams);                           
-            obj.unconstrainedOptimizer.init(obj.augLagrangian);            
+            cParamsU                = cParams.uncOptimizerSettings;           
+            cParamsU.lagrangian     = obj.augLagrangian;
+            obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams.uncOptimizerSettings);                           
+            %obj.unconstrainedOptimizer.init(obj.augLagrangian);            
         end
         
         function update(obj)

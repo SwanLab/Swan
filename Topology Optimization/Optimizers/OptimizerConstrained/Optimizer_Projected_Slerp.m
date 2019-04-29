@@ -24,6 +24,8 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.init(cParams);
             obj.createLagrangian();
             obj.createLambda();
+            cParams.lagrangian = obj.objfunc;
+
             obj.unconstrainedOptimizer = Optimizer_SLERP(cParams.uncOptimizerSettings);
             obj.unconstrainedOptimizer.init(obj.objfunc)
             obj.unconstrainedOptimizer.line_search.kfrac = 1.05;

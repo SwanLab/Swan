@@ -16,13 +16,15 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
     
     methods (Access = public)
         
-        function obj = Optimizer_HJ(settings,designVar)
-            obj@Optimizer_Unconstrained(settings);
+        function obj = Optimizer_HJ(cParams)
+            designVar = cParams.designVariable;
+            
+            obj@Optimizer_Unconstrained(cParams);
             obj.name = 'HAMILTON-JACOBI';
-            obj.e2 = settings.e2;
+            obj.e2 = cParams.e2;
             obj.meanCellSize = designVar.mesh.computeMeanCellSize();
             
-            obj.setupFilter(settings,settings.scalarProductSettings.epsilon,designVar);
+            obj.setupFilter(cParams,cParams.scalarProductSettings.epsilon,designVar);
         end
         
         function phi = compute(obj)

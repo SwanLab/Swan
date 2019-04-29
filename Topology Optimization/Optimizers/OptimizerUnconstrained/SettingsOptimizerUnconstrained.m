@@ -7,6 +7,8 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
    properties (Access = public)
        target_parameters
        designVariable
+       lagrangian
+       type
        
        epsilon
        scalarProductSettings
