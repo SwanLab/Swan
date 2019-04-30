@@ -13,7 +13,7 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         constraintValues
         nConstraints
         refreshInterval
-        designVariable
+        convergenceVars
         iteration
         hasFinished
         iRefresh
@@ -51,7 +51,7 @@ classdef ParamsMonitor < ParamsMonitor_Interface
             
             obj.costFuncValue    = cParams.cost;
             obj.constraintValues = cParams.constraint;
-            obj.designVariable   = cParams.designVar;
+            obj.convergenceVars  = cParams.convergenceVars;
             obj.createNamingManager(cParams);
             obj.createFigures();
         end
@@ -90,7 +90,7 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         end
         
         function initConvergenceVarsFigures(obj)
-            for i = 1:obj.designVariable.nVariables
+            for i = 1:obj.convergenceVars.nVar
                 title = obj.namingManager.getConvVarFigureTitle(i);
                 obj.initFigure(title);
             end
@@ -161,9 +161,9 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         end
         
         function updateConvergenceVars(obj)
-            for i = 1:obj.designVariable.nVariables
-                if ~isempty(obj.designVariable.value(i))
-                    obj.updateFigure(obj.designVariable.value(i));
+            for i = 1:obj.convergenceVars.nVar
+                if ~isempty(obj.convergenceVars.value(i))
+                    obj.updateFigure(obj.convergenceVars.value(i));
                 end
             end
         end

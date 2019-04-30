@@ -44,6 +44,10 @@ classdef NamingManager < handle
             name = ['Conv Criteria ' num2str(i) ': ' name];
         end
         
+        function n = getNumberOfConvergenceVariables(obj)
+            n = numel(obj.convVarsNames);
+        end
+        
     end
     
     methods (Access = public, Static)
