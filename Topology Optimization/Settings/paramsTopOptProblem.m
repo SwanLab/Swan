@@ -1,4 +1,5 @@
-designVarSettings = SettingsDesignVariable();
+designVarSettings        = SettingsDesignVariable();
 % homogenizedVarComputerSettings = SettingsHomogenizedVarComputer();
 incrementalSchemeSettings = SettingsIncrementalScheme();
-% optimizerSettings = SettingsOptimizer();
+optimizerSettings         = SettingsOptimizer();
+videoManagerSettings      = SettingsVideoManager();

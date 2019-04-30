@@ -20,7 +20,7 @@ classdef Optimizer_Constrained < Optimizer
     
     properties (Access = private)
         postProcess
-        printing
+        shallPrint
         printMode
     end
     
@@ -30,14 +30,13 @@ classdef Optimizer_Constrained < Optimizer
             obj.iStep = iStep;
             obj.nStep = nStep;
             obj.createPostProcess();
-            x0 = obj.designVariable.value;
             obj.cost.computeCostAndGradient();
             obj.constraint.computeCostAndGradient();
             obj.printOptimizerVariable();
             
             obj.hasFinished = false;
             
-             while ~obj.hasFinished
+            while ~obj.hasFinished
                 obj.niter = obj.niter+1;
                 obj.update();
                 obj.updateStatus();
@@ -45,7 +44,6 @@ classdef Optimizer_Constrained < Optimizer
                 obj.printOptimizerVariable();
                 obj.printHistory()
             end
-            obj.printOptimizerVariable();            
             obj.hasConverged = 0;
         end
         
@@ -71,12 +69,12 @@ classdef Optimizer_Constrained < Optimizer
         function createPostProcess(obj)
             fileName = obj.designVariable.mesh.problemID;
             d = obj.createPostProcessDataBase(fileName);
-            d.printMode = obj.printMode;
-            d.optimizer = obj.name;
-            d.cost = obj.cost;
+            d.printMode  = obj.printMode;
+            d.optimizer  = obj.name;
+            d.cost       = obj.cost;
             d.constraint = obj.constraint;
             d.designVar  = obj.designVariable.type;
-            if obj.printing
+            if obj.shallPrint
                 obj.postProcess = Postprocess('TopOptProblem',d);
             else
                 obj.postProcess = Postprocess_Null('',d);
@@ -88,18 +86,17 @@ classdef Optimizer_Constrained < Optimizer
     methods (Access = protected)
         
         function init(obj,cParams)
-            set = cParams.settings;
             
-            obj.constraintCase   = set.constraint_case;
+            obj.constraintCase   = cParams.constraint_case;
             obj.hasConverged     = false;
             
             obj.cost       = cParams.cost;
             obj.constraint = cParams.constraint;
             
             obj.designVariable = cParams.designVar;
-            obj.maxiter   = set.maxiter;
-            obj.printing  = set.printing;
-            obj.printMode = set.printMode;
+            obj.maxiter   = cParams.maxiter;
+            obj.shallPrint  = cParams.shallPrint;
+            obj.printMode = cParams.printMode;
             obj.createHistoyPrinter();
             
             convVarD = ConvergenceVarsDispatcher.dispatchNames(obj.name);
@@ -108,7 +105,7 @@ classdef Optimizer_Constrained < Optimizer
             
             obj.convergenceVars = convVar;
             
-            obj.createMonitorDocker(cParams,set);
+            obj.createMonitorDocker(cParams);
         end
         
     end
@@ -120,25 +117,16 @@ classdef Optimizer_Constrained < Optimizer
             settingsMetricsPrinter.optimizer = obj;
             settingsMetricsPrinter.cost = obj.cost;
             settingsMetricsPrinter.constraint = obj.constraint;
-            obj.historyPrinter = OptimizationMetricsPrinterFactory.create(obj.name,obj.printing,settingsMetricsPrinter);
+            obj.historyPrinter = OptimizationMetricsPrinterFactory.create(obj.name,obj.shallPrint,settingsMetricsPrinter);
         end
         
-        function createMonitorDocker(obj,cParams,set) 
+        function createMonitorDocker(obj,cParams)
             s = cParams.settingsMonitor;
-            
-            s.problemID                   = set.case_file;
-            s.costFuncNames               = set.cost;
-            s.costWeights                 = set.weights;
-            s.constraintFuncs             = set.constraint;
-            s.dim                         = set.pdim;
-            
-            s.designVar                   = obj.designVariable;
-            s.optimizerName               = obj.name;
-            s.cost                        = obj.cost;
-            s.constraint                  = obj.constraint;
-            
+            s.designVar       = obj.designVariable;
+            s.optimizerName   = obj.name;
+            s.cost            = obj.cost;
+            s.constraint      = obj.constraint;
             s.convergenceVars = obj.convergenceVars;
-            
             
             obj.monitor = MonitoringDocker(s);
         end

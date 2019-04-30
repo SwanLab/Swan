@@ -3,7 +3,7 @@ classdef OptimizerFactory < handle
     methods (Access = public, Static)
         
         function op = create(cParams)
-            switch cParams.optimizer
+            switch cParams.name
                 case {'SLERP','HAMILTON-JACOBI','PROJECTED GRADIENT'}
                     op = Optimizer_AugLag(cParams);
                 case 'MMA'

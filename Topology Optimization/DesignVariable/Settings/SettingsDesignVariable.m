@@ -18,6 +18,8 @@ classdef SettingsDesignVariable < AbstractSettings
             if nargin == 1
                     obj.loadParams(varargin{1});
             end
-        end        
+        end 
+        
      end
+     
 end

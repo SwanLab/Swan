@@ -5,7 +5,7 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         showBC = true
         BCscale_factor = 0.10
         rotation_per_it = 0
-        printing = false
+        printing = true
         printing_physics = false
         monitoring = true
         monitoring_interval = 10

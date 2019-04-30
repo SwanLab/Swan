@@ -6,16 +6,18 @@ classdef SettingsTopOptProblem < AbstractSettings
     
     properties (Access = public)
         settings
-        designVarSettings
         pdim
         nelem
+        designVarSettings
         homogenizedVarComputerSettings
         incrementalSchemeSettings
         optimizerSettings
+        videoManagerSettings
     end
     
     properties (Access = private)
         mesh
+        caseFileName
     end
     
     methods (Access = public)
@@ -26,12 +28,14 @@ classdef SettingsTopOptProblem < AbstractSettings
             end
             settings = varargin{2};
             obj.settings = settings;
+            obj.caseFileName = settings.case_file;
             obj.createMesh(settings);
             obj.createDesignVarSettings(settings);
-            obj.setProblemData();
+            obj.setupProblemData();
             obj.createHomogenizedVarComputerSettings(settings);
             obj.createIncrementalSchemeSettings(settings);
             obj.createOptimizerSettings(settings);
+            obj.createVideoManagerSettings();
         end
         
     end
@@ -56,7 +60,7 @@ classdef SettingsTopOptProblem < AbstractSettings
             end
         end
         
-        function setProblemData(obj)
+        function setupProblemData(obj)
             obj.pdim  = obj.mesh.pdim;
             obj.nelem = size(obj.mesh.connec,1);
             obj.settings.pdim = obj.pdim;
@@ -82,25 +86,21 @@ classdef SettingsTopOptProblem < AbstractSettings
         end
         
         function createOptimizerSettings(obj,settings)
+            settings.pdim = obj.pdim;
+            
             uoS = obj.createOptimizerUnconstrainedSettings(settings);
             obj.optimizerSettings.uncOptimizerSettings = uoS;
             
             obj.optimizerSettings.nconstr              = settings.nconstr;
             obj.optimizerSettings.target_parameters    = settings.target_parameters;
             obj.optimizerSettings.constraint_case      = settings.constraint_case;
-            obj.optimizerSettings.optimizer            = settings.optimizer;
+            obj.optimizerSettings.name                 = settings.optimizer;
             obj.optimizerSettings.maxiter              = settings.maxiter;
             
-            obj.optimizerSettings.printing             = settings.printing;
+            obj.optimizerSettings.shallPrint           = settings.printing;
             obj.optimizerSettings.printMode            = settings.printMode;
             
-            obj.optimizerSettings.settingsMonitor.showOptParams               = settings.monitoring;
-            obj.optimizerSettings.settingsMonitor.refreshInterval             = settings.monitoring_interval;
-            obj.optimizerSettings.settingsMonitor.shallDisplayDesignVar       = settings.plotting;
-            obj.optimizerSettings.settingsMonitor.shallShowBoundaryConditions = settings.showBC;
-            
-            obj.optimizerSettings.settings   = settings;
-            obj.optimizerSettings.settings.pdim = obj.pdim;
+            obj.optimizerSettings.setupSettingsMonitor(settings);
         end
         
         function uoS = createOptimizerUnconstrainedSettings(obj,settings)
@@ -120,6 +120,13 @@ classdef SettingsTopOptProblem < AbstractSettings
             uoS.lb                  = settings.lb;
             uoS.ub                  = settings.ub;
             uoS.type                = settings.optimizer;
+        end
+        
+        function createVideoManagerSettings(obj)
+           obj.videoManagerSettings.caseFileName  = obj.caseFileName;
+           obj.videoManagerSettings.shallPrint    = obj.optimizerSettings.shallPrint;
+           obj.videoManagerSettings.designVarType = obj.designVarSettings.type;
+           obj.videoManagerSettings.pdim          = obj.pdim;
         end
         
     end

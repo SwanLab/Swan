@@ -29,7 +29,7 @@ classdef TopOpt_Problem < handle
 
             obj.createOptimizer(cParams);
 
-            obj.createVideoManager(cParams.settings);
+            obj.createVideoManager(cParams);
         end
 
 
@@ -39,26 +39,20 @@ classdef TopOpt_Problem < handle
         end
 
         function createOptimizerSettings(obj,cParams)
-            
-            
             s = cParams.optimizerSettings;
             s.uncOptimizerSettings.lineSearchSettings.scalarProductSettings.epsilon         = obj.incrementalScheme.targetParams.epsilon;
             s.uncOptimizerSettings.lineSearchSettings.scalarProductSettings.nVariables      = obj.designVariable.nVariables;
             s.uncOptimizerSettings.scalarProductSettings = s.uncOptimizerSettings.lineSearchSettings.scalarProductSettings;
 
-
             s.uncOptimizerSettings.lineSearchSettings.epsilon = obj.incrementalScheme.targetParams.epsilon;
-
 
             s.uncOptimizerSettings.target_parameters  = obj.incrementalScheme.targetParams;
             s.uncOptimizerSettings.designVariable     = obj.designVariable;
 
-
-            s.designVar            = obj.designVariable;
-            s.target_parameters    = obj.incrementalScheme.targetParams;
-
-            s.cost       = obj.cost;
-            s.constraint = obj.constraint;
+            s.designVar         = obj.designVariable;
+            s.target_parameters = obj.incrementalScheme.targetParams;
+            s.cost              = obj.cost;
+            s.constraint        = obj.constraint;
 
             obj.optimizerSettings = s;
 
@@ -116,11 +110,12 @@ classdef TopOpt_Problem < handle
             obj.optimizer.target_parameters  = obj.incrementalScheme.targetParams;
         end
 
-        function createVideoManager(obj,settings)
-            if settings.printing
-                obj.videoManager = VideoManager(settings,obj.designVariable);
+        function createVideoManager(obj,cParams)
+            s = cParams.videoManagerSettings;
+            if s.shallPrint
+                obj.videoManager = VideoManager(s);
             else
-                obj.videoManager = VideoManager_Null(settings,obj.designVariable);
+                obj.videoManager = VideoManager_Null(s);
             end
         end
 

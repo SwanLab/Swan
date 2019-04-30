@@ -17,7 +17,6 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
     methods
         function obj = Optimizer_IPOPT(cParams)
             obj.init(cParams);
-            obj.convergenceVars = ConvergenceVariables(1);
             obj.nconstr = cParams.nconstr;
             obj.max_iter = cParams.maxiter;
             obj.niter=-1;
