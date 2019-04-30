@@ -19,7 +19,7 @@ filenames={
 %     'ImprovedBridgeSYM_Case_5_1_4'
 %    'ThroneTetrahedraSYM_Case_1_1_5'
 %     'ThroneTetrahedraSYM_Case_5_1_2'
-     'BikeTriangle_1_1_1'
+   %  'BikeTriangle_1_1_1'
 %     'CantileverTriangle_Case_6_1_1'
     };
 

@@ -20,6 +20,7 @@ classdef Optimizer_AugLag < Optimizer_Constrained
             obj.createAugmentedLagrangian();
             obj.createLambdaAndPenalty();
             cParams.uncOptimizerSettings.lagrangian = obj.augLagrangian;           
+            cParams.uncOptimizerSettings.convergenceVars = obj.convergenceVars;
             obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams.uncOptimizerSettings);                           
         end
         

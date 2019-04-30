@@ -10,6 +10,8 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
        lagrangian
        type
        
+       convergenceVars
+       
        epsilon
        scalarProductSettings
        lineSearchSettings

@@ -39,6 +39,8 @@ classdef TopOpt_Problem < handle
         end
 
         function createOptimizerSettings(obj,cParams)
+            
+            
             s = cParams.optimizerSettings;
             s.uncOptimizerSettings.lineSearchSettings.scalarProductSettings.epsilon         = obj.incrementalScheme.targetParams.epsilon;
             s.uncOptimizerSettings.lineSearchSettings.scalarProductSettings.nVariables      = obj.designVariable.nVariables;

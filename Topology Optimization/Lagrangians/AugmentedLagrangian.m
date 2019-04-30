@@ -36,7 +36,7 @@ classdef AugmentedLagrangian < ObjectiveFunction
     
     methods (Access = private)
         
-        function createPenalty(obj);
+        function createPenalty(obj)
             nConstraints = obj.constraint.nSF;            
             obj.penalty = ones(1,nConstraints);                         
         end        

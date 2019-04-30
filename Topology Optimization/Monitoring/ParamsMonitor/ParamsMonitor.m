@@ -162,8 +162,8 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         
         function updateConvergenceVars(obj)
             for i = 1:obj.convergenceVars.nVar
-                if ~isempty(obj.convergenceVars.value(i))
-                    obj.updateFigure(obj.convergenceVars.value(i));
+                if ~isempty(obj.convergenceVars.values(i))
+                    obj.updateFigure(obj.convergenceVars.values(i));
                 end
             end
         end

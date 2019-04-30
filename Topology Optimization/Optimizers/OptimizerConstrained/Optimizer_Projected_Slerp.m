@@ -24,7 +24,8 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.init(cParams);
             obj.createLagrangian();
             obj.createLambda();
-            cParams.uncOptimizerSettings.lagrangian = obj.lagrangian;           
+            cParams.uncOptimizerSettings.lagrangian = obj.lagrangian;  
+            cParams.uncOptimizerSettings.convergenceVars = obj.convergenceVars;            
             cParams.uncOptimizerSettings.type       = 'SLERP';
             obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams.uncOptimizerSettings);
             obj.unconstrainedOptimizer.line_search.kfrac = 1.05;
@@ -34,12 +35,16 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
         function update(obj)
             tolCons = obj.target_parameters.constr_tol;
             obj.problem.options = optimset(obj.problem.options,'TolX',1e-2*tolCons);
-            
+           
+
             obj.unconstrainedOptimizer.init();           
             obj.constraint.lambda       = obj.lambda;
             obj.costCopy                = obj.cost.clone();
             obj.constraintCopy          = obj.constraint.clone();
             obj.designVariable.valueOld = obj.designVariable.value;
+            
+            obj.updateObjFunc();  
+            obj.lagrangian.setInitialValue();                        
             obj.computeValue();
             
             
@@ -123,6 +128,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
             obj.lagrangian.computeGradient();
             obj.unconstrainedOptimizer.hasConverged = false;            
             obj.unconstrainedOptimizer.compute();
+            obj.unconstrainedOptimizer.updateConvergenceParams();
         end
         
         function updateObjFunc(obj)

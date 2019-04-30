@@ -102,6 +102,12 @@ classdef Optimizer_Constrained < Optimizer
             obj.printMode = set.printMode;
             obj.createHistoyPrinter();
             
+            convVarD = ConvergenceVarsDispatcher.dispatchNames(obj.name);
+            nconvVar = numel(convVarD);
+            convVar = ConvergenceVariables(nconvVar);
+            
+            obj.convergenceVars = convVar;
+            
             obj.createMonitorDocker(cParams,set);
         end
         
@@ -130,7 +136,9 @@ classdef Optimizer_Constrained < Optimizer
             s.optimizerName               = obj.name;
             s.cost                        = obj.cost;
             s.constraint                  = obj.constraint;
-            s.convergenceVars             = obj.convergenceVars;
+            
+            s.convergenceVars = obj.convergenceVars;
+            
             
             obj.monitor = MonitoringDocker(s);
         end
