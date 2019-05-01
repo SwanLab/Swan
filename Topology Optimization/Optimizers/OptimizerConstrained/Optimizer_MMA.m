@@ -1,11 +1,7 @@
-classdef Optimizer_MMA < Optimizer_Constrained
+classdef Optimizer_MMA < Optimizer
     
     properties (GetAccess = public, SetAccess = protected)
         name = 'MMA'
-    end
-    
-    properties (GetAccess = public, SetAccess = private)
-        kktnorm
     end
     
     properties (Access = private)
@@ -61,14 +57,16 @@ classdef Optimizer_MMA < Optimizer_Constrained
             
             [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
             %%%% The residual vector of the KKT conditions is calculated:
-            [~,obj.kktnorm] = obj.kktcheck(obj.m,obj.n,xmma,ymma,zmma,lam,xsi,eta,mu,zet,s, ...
+            [~,kktnorm] = obj.kktcheck(obj.m,obj.n,xmma,ymma,zmma,lam,xsi,eta,mu,zet,s, ...
                 obj.xmin,obj.xmax,obj.df0dx,obj.fval,obj.dfdx,obj.a0,obj.a,obj.c,obj.d);
+            
+            obj.historicalVariables.kktnorm = kktnorm;
             
             obj.updateConvergenceStatus();
             
             obj.constraint.lambda = lam;
             obj.convergenceVars.reset();
-            obj.convergenceVars.append(obj.kktnorm);
+            obj.convergenceVars.append(kktnorm);
             obj.convergenceVars.append(obj.outit/obj.maxoutit);
             obj.designVariable.value = x;
         end
@@ -215,7 +213,8 @@ classdef Optimizer_MMA < Optimizer_Constrained
         end
         
         function updateConvergenceStatus(obj)
-            has_not_converged = obj.kktnorm > obj.kkttol && obj.outit < obj.maxoutit;
+            kktnorm = obj.historicalVariables.kktnorm;
+            has_not_converged = kktnorm > obj.kkttol && obj.outit < obj.maxoutit;
             obj.hasConverged = ~has_not_converged;
         end
         
@@ -460,7 +459,7 @@ classdef Optimizer_MMA < Optimizer_Constrained
     methods
         
         function kkttol = get.kkttol(obj)
-            kkttol = obj.target_parameters.optimality_tol;
+            kkttol = obj.targetParameters.optimality_tol;
         end
         
     end

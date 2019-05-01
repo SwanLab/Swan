@@ -20,6 +20,9 @@ classdef SettingsOptimizer < AbstractSettings
         
         uncOptimizerSettings
         settingsMonitor
+        incrementalScheme
+        postProcessSettings
+        historyPrinterSettings
     end
     
     methods (Access = public)
@@ -43,6 +46,15 @@ classdef SettingsOptimizer < AbstractSettings
             obj.settingsMonitor.costWeights                 = settings.weights;
             obj.settingsMonitor.constraintFuncs             = settings.constraint;
             obj.settingsMonitor.dim                         = settings.pdim;
+        end
+        
+        function setupSettingsHistoryPrinter(obj)
+            obj.historyPrinterSettings.shallPrint = obj.shallPrint;
+        end
+        
+        function setupSettingsPostProcess(obj)
+            obj.postProcessSettings.shallPrint = obj.shallPrint;
+            obj.postProcessSettings.printMode  = obj.printMode;
         end
         
     end

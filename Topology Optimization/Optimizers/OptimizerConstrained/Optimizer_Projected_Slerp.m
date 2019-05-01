@@ -1,4 +1,4 @@
-classdef Optimizer_Projected_Slerp < Optimizer_Constrained
+classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
     
     properties (GetAccess = public, SetAccess = protected)
         name = 'PROJECTED SLERP'
@@ -33,7 +33,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_Constrained
         end
         
         function update(obj)
-            tolCons = obj.target_parameters.constr_tol;
+            tolCons = obj.targetParameters.constr_tol;
             obj.problem.options = optimset(obj.problem.options,'TolX',1e-2*tolCons);
            
 

@@ -1,8 +1,10 @@
-classdef Optimizer_Unconstrained < Optimizer
+classdef Optimizer_Unconstrained < handle
     
     properties (Access = public)
         objectiveFunction
+        targetParameters
         opt_cond
+        hasConverged        
     end
     
     properties (GetAccess = public, SetAccess = protected)
@@ -14,9 +16,10 @@ classdef Optimizer_Unconstrained < Optimizer
         line_search
         scalar_product
         constr_tol
+        convergenceVars
     end
     
-    properties (Access = protected)
+    properties (Access = protected)                
         designVariable        
         xOld
     end
@@ -43,7 +46,7 @@ classdef Optimizer_Unconstrained < Optimizer
             obj.line_search        = LineSearch.create(cParams.lineSearchSettings);
             obj.scalar_product     = ScalarProduct(cParams.scalarProductSettings);
             obj.convergenceVars    = cParams.convergenceVars;
-            obj.target_parameters  = cParams.target_parameters;
+            obj.targetParameters   = cParams.targetParameters;
             obj.designVariable     = cParams.designVariable;
         end
         
@@ -103,7 +106,7 @@ classdef Optimizer_Unconstrained < Optimizer
     methods
         
         function constr_tol = get.constr_tol(obj)
-            constr_tol = obj.target_parameters.constr_tol;
+            constr_tol = obj.targetParameters.constr_tol;
         end
         
     end

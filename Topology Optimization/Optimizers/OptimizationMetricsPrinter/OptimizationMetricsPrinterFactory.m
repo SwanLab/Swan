@@ -2,9 +2,9 @@ classdef OptimizationMetricsPrinterFactory < handle
     
     methods (Access = public, Static)
         
-        function printer = create(type,shallPrint,cParams)
-            if shallPrint
-                switch type
+        function printer = create(cParams)
+            if cParams.shallPrint
+                switch cParams.type
                     case {'AugmentedLagrangian','PROJECTED SLERP'}
                         printer = OptimizationMetricsPrinter_AugLag(cParams);
                     case 'MMA'

@@ -1,1 +1,3 @@
-settingsMonitor = SettingsMonitoringDocker();
+settingsMonitor        = SettingsMonitoringDocker();
+historyPrinterSettings = struct;
+postProcessSettings    = struct;

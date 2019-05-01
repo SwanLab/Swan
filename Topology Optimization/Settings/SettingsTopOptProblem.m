@@ -120,6 +120,8 @@ classdef SettingsTopOptProblem < AbstractSettings
             obj.optimizerSettings.printMode            = settings.printMode;
             
             obj.optimizerSettings.setupSettingsMonitor(settings,obj.isOld);
+            obj.optimizerSettings.setupSettingsHistoryPrinter();
+            obj.optimizerSettings.setupSettingsPostProcess();
         end
         
         function uoS = createOptimizerUnconstrainedSettings(obj,settings)

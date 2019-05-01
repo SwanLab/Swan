@@ -3,7 +3,8 @@ classdef OptimizationMetricsPrinter_MMA < OptimizationMetricsPrinter
     methods (Access = protected)
         
         function printConvergenceVariables(obj,fid)
-            fprintf(fid,'Optimality tolerance: %f \n',obj.optimizer.kktnorm);
+            kktnorm = obj.optimizer.historicalVariables.kktnorm;
+            fprintf(fid,'Optimality tolerance: %f \n',kktnorm);
         end
         
     end
