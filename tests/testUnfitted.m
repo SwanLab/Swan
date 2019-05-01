@@ -18,7 +18,7 @@ classdef testUnfitted < test
             filename = fullfile('.','Input',obj.testName);
             settings = Settings(filename);
             settings.printChangingFilter = false;
-            sett = SettingsTopOptProblem(filename,settings);
+            sett = SettingsTopOptProblem(settings);
             obj.topOpt = TopOpt_Problem(sett);
             obj.levelSet = obj.topOpt.designVariable.value;
         end

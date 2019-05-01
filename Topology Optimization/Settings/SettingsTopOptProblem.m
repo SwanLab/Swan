@@ -6,6 +6,7 @@ classdef SettingsTopOptProblem < AbstractSettings
     
     properties (Access = public)
         settings
+        fileName
         pdim
         nelem
         designVarSettings
@@ -24,9 +25,12 @@ classdef SettingsTopOptProblem < AbstractSettings
         
         function obj = SettingsTopOptProblem(varargin)
             if nargin == 1
+                % obj.loadParams(varargin{1});
+                settings = varargin{1};
+            elseif nargin == 2
                 obj.loadParams(varargin{1});
+                settings = varargin{2};
             end
-            settings = varargin{2};
             obj.settings = settings;
             obj.caseFileName = settings.case_file;
             obj.createMesh(settings);

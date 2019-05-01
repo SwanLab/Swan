@@ -12,27 +12,11 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 clear variables;
 
 %% Main
-filenames={
-   'CantileverTriangleCoarse_Case_4_1_1'
-    % 'CantileverTriangle_Case_1_1_1'
-%     'ImprovedBridgeSYM_Case_3_1_1'
-%     'ImprovedBridgeSYM_Case_5_1_4'
-%    'ThroneTetrahedraSYM_Case_1_1_5'
-%     'ThroneTetrahedraSYM_Case_5_1_2'
-   %  'BikeTriangle_1_1_1'
-%     'CantileverTriangle_Case_6_1_1'
-    };
+settings = Settings('Case_RefactoringSettings_OLD');
+settingsTopOpt = SettingsTopOptProblem('Case_RefactoringSettings_A',settings);
 
+topOptProblem = TopOpt_Problem(settingsTopOpt);
+topOptProblem.computeVariables;
+topOptProblem.postProcess;
 
-for icases=1:size(filenames,1)
-    clearvars -except filenames icases;
-    close all;
-
-    settings = Settings(filenames{icases});
-    settingsTopOpt = SettingsTopOptProblem(filenames{icases},settings);
-
-    topOptProblem = TopOpt_Problem(settingsTopOpt);
-    topOptProblem.computeVariables;
-    topOptProblem.postProcess;
-end
 close all
