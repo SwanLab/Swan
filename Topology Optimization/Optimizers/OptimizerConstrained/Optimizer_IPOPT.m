@@ -29,10 +29,8 @@ classdef Optimizer_IPOPT < Optimizer
             ct = obj.targetParameters.constr_tol*1e-1;
         end
         
-        function solveProblem(obj,iStep,nStep)
-            obj.iStep = iStep;
-            obj.nStep = nStep;
-            obj.createPostProcess();
+        function solveProblem(obj)           
+            %obj.createPostProcess();
             x0 = obj.designVariable.value;
             obj.cost.computeCostAndGradient()
             funcs.objective = @(x) obj.objective(x);

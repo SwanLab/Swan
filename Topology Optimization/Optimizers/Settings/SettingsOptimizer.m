@@ -20,6 +20,9 @@ classdef SettingsOptimizer < AbstractSettings
         
         uncOptimizerSettings
         settingsMonitor
+        incrementalScheme
+        postProcessSettings
+        historyPrinterSettings
     end
     
     methods (Access = public)

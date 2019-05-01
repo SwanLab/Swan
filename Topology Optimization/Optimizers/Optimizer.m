@@ -14,15 +14,13 @@ classdef Optimizer < handle
         hasConverged
         hasFinished
         designVariable
-        monitor
         cost
         constraint
         constraintCase
         historyPrinter
 
-        maxiter 
-        iStep
-        nStep        
+        maxiter     
+        incrementalScheme                
     end
     
     properties (GetAccess = public, SetAccess = protected, Abstract)
@@ -30,11 +28,10 @@ classdef Optimizer < handle
     end
     
     properties (Access = private)
-        postProcess
-        shallPrint
-        printMode        
+        postProcess   
+        monitor        
     end
-    
+       
     methods (Access = public, Static)
         
         function obj = create(cParams)
@@ -46,10 +43,7 @@ classdef Optimizer < handle
     
     methods (Access = public)
         
-        function solveProblem(obj,iStep,nStep)
-            obj.iStep = iStep;
-            obj.nStep = nStep;
-            obj.createPostProcess();
+        function solveProblem(obj)
             obj.cost.computeCostAndGradient();
             obj.constraint.computeCostAndGradient();
             obj.printOptimizerVariable();
@@ -60,9 +54,9 @@ classdef Optimizer < handle
                 obj.niter = obj.niter+1;
                 obj.update();
                 obj.updateStatus();
-                obj.refreshMonitoring()
+                obj.refreshMonitoring();
                 obj.printOptimizerVariable();
-                obj.printHistory()
+                obj.printHistory();
             end
             obj.hasConverged = 0;
         end
@@ -72,7 +66,9 @@ classdef Optimizer < handle
     methods (Access = protected)
         
         function refreshMonitoring(obj)
-           obj.monitor.refresh(obj.niter,obj.hasFinished,obj.iStep,obj.nStep);
+           iStep = obj.incrementalScheme.iStep;
+           nStep = obj.incrementalScheme.nSteps;
+           obj.monitor.refresh(obj.niter,obj.hasFinished,iStep,nStep);
         end
         
         function init(obj,cParams)
@@ -83,16 +79,18 @@ classdef Optimizer < handle
             obj.constraint       = cParams.constraint;            
             obj.designVariable   = cParams.designVar;
             obj.maxiter          = cParams.maxiter;
-            obj.shallPrint       = cParams.shallPrint;
-            obj.printMode        = cParams.printMode;
+            obj.incrementalScheme = cParams.incrementalScheme;
             
-            obj.createHistoyPrinter();
+            obj.createHistoyPrinter(cParams.historyPrinterSettings);
             obj.createConvergenceVariables();
-            obj.createMonitorDocker(cParams);
+            obj.createMonitorDocker(cParams.settingsMonitor);
+            obj.createPostProcess(cParams.postProcessSettings);            
         end
         
       function updateStatus(obj)
-            obj.hasFinished = obj.hasConverged || obj.niter >= obj.maxiter*(obj.iStep/obj.nStep);
+            iStep = obj.incrementalScheme.iStep;
+            nStep = obj.incrementalScheme.nSteps;
+            obj.hasFinished = obj.hasConverged || obj.niter >= obj.maxiter*(iStep/nStep);
         end
         
         function printOptimizerVariable(obj)
@@ -103,34 +101,21 @@ classdef Optimizer < handle
         end
         
         function printHistory(obj)
-            obj.historyPrinter.print(obj.niter,obj.iStep);
+           iStep = obj.incrementalScheme.iStep;
+           obj.historyPrinter.print(obj.niter,iStep);
         end
-        
-        function createPostProcess(obj)
-            fileName = obj.designVariable.mesh.problemID;
-            d = obj.createPostProcessDataBase(fileName);
-            d.printMode  = obj.printMode;
-            d.optimizer  = obj.name;
-            d.cost       = obj.cost;
-            d.constraint = obj.constraint;
-            d.designVar  = obj.designVariable.type;
-            if obj.shallPrint
-                obj.postProcess = Postprocess('TopOptProblem',d);
-            else
-                obj.postProcess = Postprocess_Null('',d);
-            end
-        end        
         
     end
     
     methods (Access = private)
         
-        function createHistoyPrinter(obj)
+        function createHistoyPrinter(obj,cParams)
             cParams.fileName   = obj.designVariable.mesh.problemID;
             cParams.optimizer  = obj;
             cParams.cost       = obj.cost;
             cParams.constraint = obj.constraint;
-            obj.historyPrinter = OptimizationMetricsPrinterFactory.create(obj.name,obj.shallPrint,cParams);
+            cParams.type       = obj.name;
+            obj.historyPrinter = OptimizationMetricsPrinterFactory.create(cParams);
         end
         
         function createConvergenceVariables(obj)
@@ -140,8 +125,7 @@ classdef Optimizer < handle
             obj.convergenceVars = cVar;            
         end
         
-        function createMonitorDocker(obj,cParams)
-            s = cParams.settingsMonitor;
+        function createMonitorDocker(obj,s)
             s.designVar       = obj.designVariable;
             s.optimizerName   = obj.name;
             s.cost            = obj.cost;
@@ -150,11 +134,25 @@ classdef Optimizer < handle
             obj.monitor = MonitoringDocker(s);
         end
         
-        function d = createPostProcessDataBase(obj,fileName)
+        function createPostProcess(obj,cParams)
+            d = obj.createPostProcessDataBase();
+            d.printMode = cParams.printMode;
+            if cParams.shallPrint
+                obj.postProcess = Postprocess('TopOptProblem',d);
+            else
+                obj.postProcess = Postprocess_Null('',d);
+            end
+        end        
+        
+        function d = createPostProcessDataBase(obj)
             d.mesh    = obj.designVariable.mesh;
-            d.outName = fileName;
+            d.outName = obj.designVariable.mesh.problemID;
             ps = PostProcessDataBaseCreator(d);
             d  = ps.getValue();
+            d.optimizer  = obj.name;
+            d.cost       = obj.cost;
+            d.constraint = obj.constraint;
+            d.designVar  = obj.designVariable.type;            
         end        
         
     end

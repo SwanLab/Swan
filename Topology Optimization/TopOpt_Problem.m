@@ -53,7 +53,8 @@ classdef TopOpt_Problem < handle
             s.target_parameters = obj.incrementalScheme.targetParams;
             s.cost              = obj.cost;
             s.constraint        = obj.constraint;
-
+            s.incrementalScheme = obj.incrementalScheme;
+            
             obj.optimizerSettings = s;
 
         end
@@ -63,7 +64,7 @@ classdef TopOpt_Problem < handle
             obj.linkTargetParams();
             while obj.incrementalScheme.hasNext()
                 obj.incrementalScheme.next();
-                obj.solveCurrentProblem();
+                obj.optimizer.solveProblem();
             end
         end
 
@@ -98,16 +99,10 @@ classdef TopOpt_Problem < handle
             obj.incrementalScheme = IncrementalScheme(s);
         end
 
-        function solveCurrentProblem(obj)
-            iStep  = obj.incrementalScheme.iStep;
-            nSteps = obj.incrementalScheme.nSteps;
-            obj.optimizer.solveProblem(iStep,nSteps);
-        end
-
         function linkTargetParams(obj)
             obj.cost.target_parameters       = obj.incrementalScheme.targetParams;
             obj.constraint.target_parameters = obj.incrementalScheme.targetParams;
-            obj.optimizer.targetParameters  = obj.incrementalScheme.targetParams;
+            obj.optimizer.targetParameters   = obj.incrementalScheme.targetParams;
         end
 
         function createVideoManager(obj,cParams)

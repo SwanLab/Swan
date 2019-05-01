@@ -97,8 +97,10 @@ classdef SettingsTopOptProblem < AbstractSettings
             obj.optimizerSettings.name                 = settings.optimizer;
             obj.optimizerSettings.maxiter              = settings.maxiter;
             
-            obj.optimizerSettings.shallPrint           = settings.printing;
-            obj.optimizerSettings.printMode            = settings.printMode;
+            obj.optimizerSettings.postProcessSettings.shallPrint = settings.printing;
+            obj.optimizerSettings.postProcessSettings.printMode  = settings.printMode;
+            
+            obj.optimizerSettings.historyPrinterSettings.shallPrint = settings.printing;
             
             obj.optimizerSettings.setupSettingsMonitor(settings);
         end
