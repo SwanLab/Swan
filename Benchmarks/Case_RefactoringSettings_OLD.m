@@ -10,8 +10,8 @@ weights = [1, 0.1];
 constraint = {'volumeConstraint'};
 optimizer = 'IPOPT'; 
 kappaMultiplier = 1;
-designVariable = 'Density';
-% designVariable = '';
+% designVariable = 'Density';
+designVariable = '';
 filterType = 'P1';
 
 nsteps = 1;
@@ -29,3 +29,5 @@ TOL.E_plus = 1;
 TOL.E_minus = 1e-3;
 TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
+
+isOld = false;

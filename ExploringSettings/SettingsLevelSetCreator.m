@@ -1,15 +1,19 @@
 classdef SettingsLevelSetCreator < AbstractSettings
     
+    properties (Access = protected)
+        defaultParamsName = 'paramsLevelSetCreator'
+    end
+    
     properties (Access = public)
-        levelSetType
+        type
         ndim
         coord
+        value
     end
     
     methods (Access = public)
         
         function obj = SettingsLevelSetCreator(varargin)
-            obj.loadParams('paramsLevelSet');
             if nargin == 1
                 obj.loadParams(varargin{1})
             end

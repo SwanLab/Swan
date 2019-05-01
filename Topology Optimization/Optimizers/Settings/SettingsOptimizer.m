@@ -30,11 +30,13 @@ classdef SettingsOptimizer < AbstractSettings
             end
         end
         
-        function setupSettingsMonitor(obj,settings)
-            obj.settingsMonitor.showOptParams               = settings.monitoring;
-            obj.settingsMonitor.refreshInterval             = settings.monitoring_interval;
-            obj.settingsMonitor.shallDisplayDesignVar       = settings.plotting;
-            obj.settingsMonitor.shallShowBoundaryConditions = settings.showBC;
+        function setupSettingsMonitor(obj,settings,isOld)
+            if isOld
+                obj.settingsMonitor.showOptParams               = settings.monitoring;
+                obj.settingsMonitor.refreshInterval             = settings.monitoring_interval;
+                obj.settingsMonitor.shallDisplayDesignVar       = settings.plotting;
+                obj.settingsMonitor.shallShowBoundaryConditions = settings.showBC;
+            end
             
             obj.settingsMonitor.problemID                   = settings.case_file;
             obj.settingsMonitor.costFuncNames               = settings.cost;
