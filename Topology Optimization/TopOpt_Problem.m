@@ -5,14 +5,12 @@ classdef TopOpt_Problem < handle
         cost
         constraint
         optimizer
-        algorithm
+%         algorithm
         incrementalScheme
         optimizerSettings
     end
 
     properties (Access = private)
-        hole_value
-        ini_design_value
         videoManager
         homogenizedVarComputer
     end

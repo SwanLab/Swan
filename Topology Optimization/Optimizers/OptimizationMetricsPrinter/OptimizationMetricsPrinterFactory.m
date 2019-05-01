@@ -4,7 +4,7 @@ classdef OptimizationMetricsPrinterFactory < handle
         
         function printer = create(cParams)
             if cParams.shallPrint
-                switch cParams.type
+                switch cParams.optimizer.name
                     case {'AugmentedLagrangian','PROJECTED SLERP'}
                         printer = OptimizationMetricsPrinter_AugLag(cParams);
                     case 'MMA'

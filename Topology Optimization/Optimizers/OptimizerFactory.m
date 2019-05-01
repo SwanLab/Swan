@@ -4,7 +4,7 @@ classdef OptimizerFactory < handle
         
         function op = create(cParams)
             switch cParams.name
-                case {'SLERP','HAMILTON-JACOBI','PROJECTED GRADIENT'}
+                case {'AugmentedLagrangian','SLERP','HAMILTON-JACOBI','PROJECTED GRADIENT'}
                     op = Optimizer_AugLag(cParams);
                 case 'MMA'
                     op = Optimizer_MMA(cParams);

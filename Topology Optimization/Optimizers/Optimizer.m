@@ -81,7 +81,7 @@ classdef Optimizer < handle
             obj.maxiter          = cParams.maxiter;
             obj.incrementalScheme = cParams.incrementalScheme;
             
-            obj.createHistoyPrinter(cParams.historyPrinterSettings);
+            obj.createHistoryPrinter(cParams.historyPrinterSettings);
             obj.createConvergenceVariables();
             obj.createMonitorDocker(cParams.settingsMonitor);
             obj.createPostProcess(cParams.postProcessSettings);            
@@ -109,12 +109,10 @@ classdef Optimizer < handle
     
     methods (Access = private)
         
-        function createHistoyPrinter(obj,cParams)
-            cParams.fileName   = obj.designVariable.mesh.problemID;
+        function createHistoryPrinter(obj,cParams)
             cParams.optimizer  = obj;
             cParams.cost       = obj.cost;
             cParams.constraint = obj.constraint;
-            cParams.type       = obj.name;
             obj.historyPrinter = OptimizationMetricsPrinterFactory.create(cParams);
         end
         
@@ -127,7 +125,7 @@ classdef Optimizer < handle
         
         function createMonitorDocker(obj,s)
             s.designVar       = obj.designVariable;
-            s.optimizerName   = obj.name;
+%             s.optimizerName   = obj.name;
             s.cost            = obj.cost;
             s.constraint      = obj.constraint;
             s.convergenceVars = obj.convergenceVars;            

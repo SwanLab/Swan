@@ -6,9 +6,7 @@ classdef SettingsTopOptProblem < AbstractSettings
     
     properties (Access = public)
         settings
-        fileName
-        pdim
-        nelem
+        problemData = struct
         designVarSettings
         homogenizedVarComputerSettings
         incrementalSchemeSettings
@@ -18,8 +16,6 @@ classdef SettingsTopOptProblem < AbstractSettings
     
     properties (Access = private)
         mesh
-        caseFileName
-        
         isOld
     end
     
@@ -27,7 +23,6 @@ classdef SettingsTopOptProblem < AbstractSettings
         
         function obj = SettingsTopOptProblem(varargin)
             if nargin == 1
-                % obj.loadParams(varargin{1});
                 settings = varargin{1};
             elseif nargin == 2
                 obj.loadParams(varargin{1});
@@ -36,17 +31,12 @@ classdef SettingsTopOptProblem < AbstractSettings
             obj.isOld = settings.isOld;
             obj.settings = settings;
             
-            if obj.isOld
-                obj.fileName = settings.filename;
-            end
-            
-            obj.caseFileName = settings.case_file;
-            obj.createMesh();
-            obj.createDesignVarSettings(settings);
             obj.setupProblemData();
-            obj.createHomogenizedVarComputerSettings(settings);
-            obj.createIncrementalSchemeSettings(settings);
-            obj.createOptimizerSettings(settings);
+            
+            obj.createDesignVarSettings();
+            obj.createHomogenizedVarComputerSettings();
+            obj.createIncrementalSchemeSettings();
+            obj.createOptimizerSettings();
             obj.createVideoManagerSettings();
         end
         
@@ -55,16 +45,16 @@ classdef SettingsTopOptProblem < AbstractSettings
     methods (Access = private)
         
         function createMesh(obj)
-            obj.mesh = Mesh_GiD(obj.fileName);
+            obj.mesh = Mesh_GiD(obj.problemData.problemFileName);
         end
         
-        function createDesignVarSettings(obj,settings)
+        function createDesignVarSettings(obj)
             obj.designVarSettings.mesh = obj.mesh;
             if obj.isOld
-                obj.designVarSettings.type = settings.designVariable;
-                obj.designVarSettings.initialCase = settings.initial_case;
+                obj.designVarSettings.type = obj.settings.designVariable;
+                obj.designVarSettings.initialCase = obj.settings.initial_case;
             end
-            obj.designVarSettings.levelSetCreatorSettings       = settings.levelSetDataBase;
+            obj.designVarSettings.levelSetCreatorSettings       = obj.settings.levelSetDataBase;
             obj.designVarSettings.levelSetCreatorSettings.ndim  = obj.mesh.ndim;
             obj.designVarSettings.levelSetCreatorSettings.coord = obj.mesh.coord;
             obj.designVarSettings.levelSetCreatorSettings.type = obj.designVarSettings.initialCase;
@@ -76,109 +66,140 @@ classdef SettingsTopOptProblem < AbstractSettings
         end
         
         function setupProblemData(obj)
-            obj.pdim  = obj.mesh.pdim;
-            obj.nelem = size(obj.mesh.connec,1);
-            obj.settings.pdim = obj.pdim;
+            if obj.isOld
+                obj.problemData.problemFileName = obj.settings.filename;
+                obj.problemData.caseFileName = obj.settings.case_file;
+            else
+                obj.problemData.caseFileName = obj.loadedFile;
+            end
+            
+            obj.createMesh();
+            
+            obj.problemData.pdim  = obj.mesh.pdim;
+            obj.problemData.nelem = size(obj.mesh.connec,1);
+            obj.settings.pdim = obj.problemData.pdim;
+            obj.problemData.costFunctions       = obj.settings.cost;
+            obj.problemData.costWeights         = obj.settings.weights;
+            obj.problemData.constraintFunctions = obj.settings.constraint;
         end
         
-        function createHomogenizedVarComputerSettings(obj,settings)
-            obj.homogenizedVarComputerSettings.type                   = settings.homegenizedVariablesComputer;
-            obj.homogenizedVarComputerSettings.interpolation          = settings.materialInterpolation;
-            obj.homogenizedVarComputerSettings.typeOfMaterial         = settings.material;
-            obj.homogenizedVarComputerSettings.constitutiveProperties = settings.TOL;
-            obj.homogenizedVarComputerSettings.vademecumFileName      = settings.vademecumFileName;
-            obj.homogenizedVarComputerSettings.dim                    = obj.pdim;
-            obj.homogenizedVarComputerSettings.nelem                  = obj.nelem;
+        function createHomogenizedVarComputerSettings(obj)
+            obj.homogenizedVarComputerSettings.type                   = obj.settings.homegenizedVariablesComputer;
+            obj.homogenizedVarComputerSettings.interpolation          = obj.settings.materialInterpolation;
+            obj.homogenizedVarComputerSettings.typeOfMaterial         = obj.settings.material;
+            obj.homogenizedVarComputerSettings.constitutiveProperties = obj.settings.TOL;
+            obj.homogenizedVarComputerSettings.vademecumFileName      = obj.settings.vademecumFileName;
+            obj.homogenizedVarComputerSettings.dim                    = obj.problemData.pdim;
+            obj.homogenizedVarComputerSettings.nelem                  = obj.problemData.nelem;
         end
         
-        function createIncrementalSchemeSettings(obj,settings)
-            tpS = obj.createTargetParamsSettings(settings);
+        function createIncrementalSchemeSettings(obj)
+            tpS = obj.createTargetParamsSettings();
             obj.incrementalSchemeSettings.settingsTargetParams = tpS;
             if obj.isOld
-                obj.incrementalSchemeSettings.nSteps = settings.nsteps;
+                obj.incrementalSchemeSettings.nSteps = obj.settings.nsteps;
             end
-            obj.incrementalSchemeSettings.shallPrintIncremental = settings.printIncrementalIter;
+            obj.incrementalSchemeSettings.shallPrintIncremental = obj.settings.printIncrementalIter;
             
             obj.incrementalSchemeSettings.mesh = obj.mesh;
         end
         
-        function createOptimizerSettings(obj,settings)
-            settings.pdim = obj.pdim;
+        function createOptimizerSettings(obj)
+            obj.settings.pdim = obj.problemData.pdim;
             
-            uoS = obj.createOptimizerUnconstrainedSettings(settings);
+            uoS = obj.createOptimizerUnconstrainedSettings();
             obj.optimizerSettings.uncOptimizerSettings = uoS;
             
-            obj.optimizerSettings.nconstr              = settings.nconstr;
-            obj.optimizerSettings.target_parameters    = settings.target_parameters;
-            obj.optimizerSettings.constraint_case      = settings.constraint_case;
-            obj.optimizerSettings.maxiter              = settings.maxiter;
+            obj.optimizerSettings.nconstr              = obj.settings.nconstr;
+            obj.optimizerSettings.target_parameters    = obj.settings.target_parameters;
+            obj.optimizerSettings.constraint_case      = obj.settings.constraint_case;
+            obj.optimizerSettings.maxiter              = obj.settings.maxiter;
             
             if obj.isOld
-                obj.optimizerSettings.name             = settings.optimizer;
-                obj.optimizerSettings.shallPrint       = settings.printing;
+                obj.optimizerSettings.name             = obj.settings.optimizer;
+                obj.optimizerSettings.shallPrint       = obj.settings.printing;
             end
-            obj.optimizerSettings.printMode            = settings.printMode;
+            obj.optimizerSettings.printMode            = obj.settings.printMode;
             
-            obj.optimizerSettings.setupSettingsMonitor(settings,obj.isOld);
-            obj.optimizerSettings.setupSettingsHistoryPrinter();
+            obj.setupSettingsMonitor();
+            obj.optimizerSettings.setupSettingsHistoryPrinter(obj.problemData.caseFileName);
             obj.optimizerSettings.setupSettingsPostProcess();
         end
         
-        function uoS = createOptimizerUnconstrainedSettings(obj,settings)
-            spS = obj.createScalarProductSettings();
-            lsS = obj.createLineSearchSettings(settings,spS);
+        function uoS = createOptimizerUnconstrainedSettings(obj)
+            uoS = obj.optimizerSettings.uncOptimizerSettings;
+            if obj.isOld
+                uoS.type                = obj.settings.optimizer;
+            end
             
-            uoS = SettingsOptimizerUnconstrained();
+            spS = obj.createScalarProductSettings();
+            lsS = obj.createLineSearchSettings(spS);
             
             uoS.lineSearchSettings    = lsS;
             uoS.scalarProductSettings = spS;
             
-            uoS.e2                  = settings.e2;
-            uoS.filter              = settings.filter;
-            uoS.printChangingFilter = settings.printChangingFilter;
-            uoS.filename            = obj.fileName;
-            uoS.ptype               = settings.ptype;
-            uoS.lb                  = settings.lb;
-            uoS.ub                  = settings.ub;
-            uoS.type                = settings.optimizer;
+            uoS.e2                  = obj.settings.e2;
+            uoS.filter              = obj.settings.filter;
+            uoS.printChangingFilter = obj.settings.printChangingFilter;
+            uoS.filename            = obj.problemData.problemFileName;
+            uoS.ptype               = obj.settings.ptype;
+            uoS.lb                  = obj.settings.lb;
+            uoS.ub                  = obj.settings.ub;
         end
         
         function createVideoManagerSettings(obj)
-            obj.videoManagerSettings.caseFileName  = obj.caseFileName;
+            obj.videoManagerSettings.caseFileName  = obj.problemData.caseFileName;
             obj.videoManagerSettings.shallPrint    = obj.optimizerSettings.shallPrint;
             obj.videoManagerSettings.designVarType = obj.designVarSettings.type;
-            obj.videoManagerSettings.pdim          = obj.pdim;
+            obj.videoManagerSettings.pdim          = obj.problemData.pdim;
         end
         
         function spS = createScalarProductSettings(obj)
-            spS.filename = obj.fileName;
+            spS.filename = obj.problemData.problemFileName;
         end
         
-        function lsS = createLineSearchSettings(obj,settings,spS)
+        function lsS = createLineSearchSettings(obj,spS)
             lsS.scalarProductSettings = spS;
-            lsS.line_search     = settings.line_search;
-            lsS.optimizer       = settings.optimizer;
-            lsS.HJiter0         = settings.HJiter0;
-            lsS.filename        = obj.fileName;
-            lsS.kappaMultiplier = settings.kappaMultiplier;
+            lsS.line_search     = obj.settings.line_search;
+            lsS.optimizer       = obj.optimizerSettings.uncOptimizerSettings.type;
+            lsS.HJiter0         = obj.settings.HJiter0;
+            lsS.filename        = obj.problemData.problemFileName;
+            lsS.kappaMultiplier = obj.settings.kappaMultiplier;
         end
         
-    end
-    
-    methods (Access = private, Static)
+        function setupSettingsMonitor(obj)
+            if obj.isOld
+                obj.optimizerSettings.settingsMonitor.showOptParams               = obj.settings.monitoring;
+                obj.optimizerSettings.settingsMonitor.refreshInterval             = obj.settings.monitoring_interval;
+                obj.optimizerSettings.settingsMonitor.shallDisplayDesignVar       = obj.settings.plotting;
+                obj.optimizerSettings.settingsMonitor.shallShowBoundaryConditions = obj.settings.showBC;
+                
+                obj.optimizerSettings.settingsMonitor.optimizerName   = obj.settings.optimizer;
+                obj.optimizerSettings.settingsMonitor.problemID       = obj.settings.case_file;
+                obj.optimizerSettings.settingsMonitor.dim             = obj.settings.pdim;
+            else
+                obj.optimizerSettings.settingsMonitor.optimizerName   = obj.optimizerSettings.name;
+                obj.optimizerSettings.settingsMonitor.problemID       = obj.problemData.caseFileName;
+                obj.optimizerSettings.settingsMonitor.dim             = obj.problemData.pdim;
+            end
+            
+            obj.optimizerSettings.settingsMonitor.costFuncNames   = obj.problemData.costFunctions;
+            obj.optimizerSettings.settingsMonitor.costWeights     = obj.problemData.costWeights;
+            obj.optimizerSettings.settingsMonitor.constraintFuncs = obj.problemData.constraintFunctions;
+        end
         
-        function tpS = createTargetParamsSettings(settings)
+        function tpS = createTargetParamsSettings(obj)
             tpS = SettingsTargetParamsManager;
-            tpS.VfracInitial = settings.Vfrac_initial;
-            tpS.VfracFinal = settings.Vfrac_final;
-            tpS.constrInitial = settings.constr_initial;
-            tpS.constrFinal = settings.constr_final;
-            tpS.optimalityInitial = settings.optimality_initial;
-            tpS.optimalityFinal = settings.optimality_final;
-            tpS.epsilonInitial = settings.epsilon_initial;
-            tpS.epsilonFinal = settings.epsilon_final;
-            tpS.epsilonIsotropyInitial = settings.epsilon_isotropy_initial;
-            tpS.epsilonIsotropyFinal = settings.epsilon_isotropy_final;
+            tpS.VfracInitial = obj.settings.Vfrac_initial;
+            tpS.VfracFinal = obj.settings.Vfrac_final;
+            tpS.constrInitial = obj.settings.constr_initial;
+            tpS.constrFinal = obj.settings.constr_final;
+            tpS.optimalityInitial = obj.settings.optimality_initial;
+            tpS.optimalityFinal = obj.settings.optimality_final;
+            tpS.epsilonInitial = obj.settings.epsilon_initial;
+            tpS.epsilonFinal = obj.settings.epsilon_final;
+            tpS.epsilonIsotropyInitial = obj.settings.epsilon_isotropy_initial;
+            tpS.epsilonIsotropyFinal = obj.settings.epsilon_isotropy_final;
         end
         
     end

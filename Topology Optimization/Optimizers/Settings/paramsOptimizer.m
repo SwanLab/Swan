@@ -1,3 +1,4 @@
 settingsMonitor        = SettingsMonitoringDocker();
-historyPrinterSettings = struct;
+historyPrinterSettings = SettingsOptimizationMetricsPrinter();
 postProcessSettings    = struct;
+uncOptimizerSettings   = SettingsOptimizerUnconstrained();
