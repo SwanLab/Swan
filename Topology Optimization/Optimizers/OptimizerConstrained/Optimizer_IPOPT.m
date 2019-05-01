@@ -1,10 +1,10 @@
-classdef Optimizer_IPOPT < Optimizer_PrimalDual
+classdef Optimizer_IPOPT < Optimizer
     
     properties (GetAccess = public, SetAccess = protected)
         name = 'IPOPT'
-    end
+    end    
         
-    properties
+    properties (Access = private)
         nconstr
         info
         max_iter
@@ -17,9 +17,9 @@ classdef Optimizer_IPOPT < Optimizer_PrimalDual
     methods
         function obj = Optimizer_IPOPT(cParams)
             obj.init(cParams);
-            obj.nconstr = cParams.nconstr;
+            obj.nconstr  = cParams.nconstr;
             obj.max_iter = cParams.maxiter;
-            obj.niter=-1;
+            obj.niter    = -1;
         end
         function ot = get.optimality_tolerance(obj)
             ot = obj.targetParameters.optimality_tol;
@@ -68,33 +68,40 @@ classdef Optimizer_IPOPT < Optimizer_PrimalDual
         end
         
     end
-    methods
+    
+    methods (Access = private)
+        
         function f = objective(obj,x)
             obj.designVariable.value = x;
             obj.cost.computeCostAndGradient()
             obj.cost_copy = obj.cost;
             f = obj.cost.value;
         end
+        
         function f = constraintFunction(obj,x)
             obj.designVariable.value = x;            
             obj.constraint.computeCostAndGradient()
             obj.constraint_copy = obj.constraint;
             f = obj.constraint.value;
         end
+        
         function g = gradient(obj,x)
             obj.designVariable.value = x;            
             obj.cost.computeCostAndGradient()
             obj.cost_copy=obj.cost;
             g = obj.cost.gradient;
         end
+        
         function g = constraint_gradient(obj,x)
             obj.designVariable.value = x;            
             obj.constraint.computeCostAndGradient()
             obj.constraint_copy = obj.constraint;
             g = obj.constraint.gradient;
         end
+        
         function stop = outputfun_ipopt(obj,data)
             stop = true;
+            obj.historicalVariables.inf_du = data.inf_du;
             obj.data=data;
             obj.niter=obj.niter+1;
             obj.designVariable.update(data.x);
@@ -103,9 +110,10 @@ classdef Optimizer_IPOPT < Optimizer_PrimalDual
             obj.constraint_copy.lambda=zeros(obj.constraint_copy.nSF,1);
             obj.convergenceVars.reset();
             obj.convergenceVars.append(data.inf_du);
-            obj.monitor.refresh(obj.niter,obj.hasFinished,obj.iStep,obj.nStep);
-            obj.printHistory()
+            obj.refreshMonitoring();
+            obj.printHistory();
         end
+        
     end
     
 end
