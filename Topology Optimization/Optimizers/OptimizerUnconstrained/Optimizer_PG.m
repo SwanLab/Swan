@@ -37,7 +37,7 @@ classdef Optimizer_PG < Optimizer_Unconstrained
     methods
         
         function optimality_tol = get.optimality_tol(obj)
-            optimality_tol = obj.target_parameters.optimality_tol;
+            optimality_tol = obj.targetParameters.optimality_tol;
         end
         
     end

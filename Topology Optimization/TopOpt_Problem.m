@@ -46,7 +46,7 @@ classdef TopOpt_Problem < handle
 
             s.uncOptimizerSettings.lineSearchSettings.epsilon = obj.incrementalScheme.targetParams.epsilon;
 
-            s.uncOptimizerSettings.target_parameters  = obj.incrementalScheme.targetParams;
+            s.uncOptimizerSettings.targetParameters  = obj.incrementalScheme.targetParams;
             s.uncOptimizerSettings.designVariable     = obj.designVariable;
 
             s.designVar         = obj.designVariable;
@@ -107,7 +107,7 @@ classdef TopOpt_Problem < handle
         function linkTargetParams(obj)
             obj.cost.target_parameters       = obj.incrementalScheme.targetParams;
             obj.constraint.target_parameters = obj.incrementalScheme.targetParams;
-            obj.optimizer.target_parameters  = obj.incrementalScheme.targetParams;
+            obj.optimizer.targetParameters  = obj.incrementalScheme.targetParams;
         end
 
         function createVideoManager(obj,cParams)

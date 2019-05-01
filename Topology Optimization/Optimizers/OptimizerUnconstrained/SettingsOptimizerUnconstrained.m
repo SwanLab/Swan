@@ -5,7 +5,7 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
    end
     
    properties (Access = public)
-       target_parameters
+       targetParameters
        designVariable
        lagrangian
        type

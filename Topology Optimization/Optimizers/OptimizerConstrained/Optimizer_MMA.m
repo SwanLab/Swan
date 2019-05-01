@@ -1,4 +1,4 @@
-classdef Optimizer_MMA < Optimizer_Constrained
+classdef Optimizer_MMA < Optimizer_PrimalDual
     
     properties (GetAccess = public, SetAccess = protected)
         name = 'MMA'
@@ -460,7 +460,7 @@ classdef Optimizer_MMA < Optimizer_Constrained
     methods
         
         function kkttol = get.kkttol(obj)
-            kkttol = obj.target_parameters.optimality_tol;
+            kkttol = obj.targetParameters.optimality_tol;
         end
         
     end

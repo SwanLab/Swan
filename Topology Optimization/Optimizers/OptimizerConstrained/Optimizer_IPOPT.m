@@ -1,4 +1,4 @@
-classdef Optimizer_IPOPT < Optimizer_Constrained
+classdef Optimizer_IPOPT < Optimizer_PrimalDual
     
     properties (GetAccess = public, SetAccess = protected)
         name = 'IPOPT'
@@ -21,11 +21,12 @@ classdef Optimizer_IPOPT < Optimizer_Constrained
             obj.max_iter = cParams.maxiter;
             obj.niter=-1;
         end
-        function optimality_tolerance = get.optimality_tolerance(obj)
-            optimality_tolerance = obj.target_parameters.optimality_tol;
+        function ot = get.optimality_tolerance(obj)
+            ot = obj.targetParameters.optimality_tol;
         end
-        function constraint_tolerance = get.constraint_tolerance(obj)
-            constraint_tolerance = obj.target_parameters.constr_tol*1e-1;
+        
+        function ct = get.constraint_tolerance(obj)
+            ct = obj.targetParameters.constr_tol*1e-1;
         end
         
         function solveProblem(obj,iStep,nStep)

@@ -13,7 +13,7 @@ classdef Optimizer < handle
     end
     
     properties (Access = public)
-        target_parameters = struct;
+        targetParameters
     end
     
     methods (Access = public, Static)

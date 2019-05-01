@@ -1,4 +1,4 @@
-classdef Optimizer_AugLag < Optimizer_Constrained
+classdef Optimizer_AugLag < Optimizer_PrimalDual
     
     properties (GetAccess = public, SetAccess = protected)
         name = 'AugmentedLagrangian'

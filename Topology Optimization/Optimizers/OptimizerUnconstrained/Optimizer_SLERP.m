@@ -86,7 +86,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
     methods
         
         function optimality_tol = get.optimality_tol(obj)
-            optimality_tol = (0.0175/1e-3)*obj.target_parameters.optimality_tol;
+            optimality_tol = (0.0175/1e-3)*obj.targetParameters.optimality_tol;
         end
         
     end
