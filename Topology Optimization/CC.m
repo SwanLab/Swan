@@ -2,28 +2,26 @@ classdef CC < handle & matlab.mixin.Copyable
     
     properties (Access = public)
         value
-        gradient
+        gradient         
     end
     
-    properties (GetAccess = public, SetAccess = private)
+    properties (GetAccess = public, SetAccess = private)       
         shapeFunctions
-        nSF = 0
+        nSF
     end
     
     properties (Access = private)
-        designVariable
-        homogVarComputer
+        sizeDesigVar        
     end
     
-    methods (Access = public, Abstract)
+    methods (Access = protected, Abstract)
         updateFields(obj)
     end
     
     methods (Access = public)
 
         function computeCostAndGradient(obj)
-            obj.value = 0;
-            obj.gradient = zeros(size(obj.designVariable.value));
+            obj.initValueAndGradient();
             for iSF = 1:length(obj.shapeFunctions)
                 obj.shapeFunctions{iSF}.updateTargetParameters();
                 obj.shapeFunctions{iSF}.computeCostAndGradient();
@@ -40,20 +38,25 @@ classdef CC < handle & matlab.mixin.Copyable
     methods (Access = protected)
         
         function obj = init(obj,settings,shapeFuncList,designVariable,homogVarComputer,targetParameters)
-            obj.designVariable = designVariable;
-            obj.homogVarComputer = homogVarComputer;
-            obj.createShapeFunctions(shapeFuncList,settings,targetParameters);
+            obj.nSF   = 0;
+            obj.sizeDesigVar = size(designVariable.value);
+            obj.createShapeFunctions(settings,shapeFuncList,designVariable,homogVarComputer,targetParameters);
         end        
         
     end
     
     methods (Access = private)
         
-        function createShapeFunctions(obj,shapeFunctionNames,settings,targetParameters)
+        function initValueAndGradient(obj)
+            obj.value = 0;
+            obj.gradient = zeros(obj.sizeDesigVar);            
+        end
+        
+        function createShapeFunctions(obj,settings,shapeFunctionNames,designVariable,homogVarComputer,targetParameters)
             nShapeFunctions = length(shapeFunctionNames);
             for is = 1:nShapeFunctions
                 name          = shapeFunctionNames{is};
-                shapeFunction = ShapeFunctional.create(name,settings,obj.designVariable,obj.homogVarComputer,targetParameters);
+                shapeFunction = ShapeFunctional.create(name,settings,designVariable,homogVarComputer,targetParameters);
                 obj.append(shapeFunction);
             end
         end

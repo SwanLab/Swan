@@ -5,7 +5,6 @@ classdef TopOpt_Problem < handle
         cost
         constraint
         optimizer
-%         algorithm
         incrementalScheme
         optimizerSettings
     end

@@ -13,7 +13,7 @@ classdef Cost < CC
         
     end
     
-    methods (Access = public)
+    methods (Access = protected)
         
         function updateFields(obj,iSF)
             obj.value = obj.value + obj.weights(iSF)*obj.shapeFunctions{iSF}.value;

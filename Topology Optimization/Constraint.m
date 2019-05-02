@@ -10,6 +10,10 @@ classdef Constraint < CC
             obj.init(settings, settings.constraint,designVar,homogVarComputer,targetParameters);
         end
         
+    end
+    
+    methods (Access = protected)
+        
         function updateFields(obj,iSF)
             obj.value(iSF,1)    = obj.shapeFunctions{iSF}.value;
             obj.gradient(:,iSF) = obj.shapeFunctions{iSF}.gradient;

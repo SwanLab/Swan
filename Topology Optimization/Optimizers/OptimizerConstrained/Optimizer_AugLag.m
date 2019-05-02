@@ -10,7 +10,8 @@ classdef Optimizer_AugLag < Optimizer_PrimalDual
     
     properties (Access = private)
         lambda
-        augLagrangian        
+        augLagrangian      
+        dualUpdater
     end
     
     methods (Access = public)
@@ -22,6 +23,14 @@ classdef Optimizer_AugLag < Optimizer_PrimalDual
             cParams.uncOptimizerSettings.lagrangian = obj.augLagrangian;           
             cParams.uncOptimizerSettings.convergenceVars = obj.convergenceVars;
             obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams.uncOptimizerSettings);                           
+            obj.createDualUpdater()
+        end
+        
+        function createDualUpdater(obj)
+            cParams.type                = 'AugmentedLagrangian';
+            cParams.augmentedLagrangian = obj.augLagrangian;
+            cParams.constraint          = obj.constraint;
+            obj.dualUpdater = DualUpdater.create(cParams);
         end
         
         function update(obj)
@@ -54,11 +63,9 @@ classdef Optimizer_AugLag < Optimizer_PrimalDual
         end
         
         function updateDualVariable(obj)
-            l   = obj.lambda;
-            rho = obj.augLagrangian.penalty;
-            c   = obj.constraint.value';
-            l = l + rho.*c;
-            obj.lambda = l;
+            obj.dualUpdater.lambda = obj.lambda;
+            obj.dualUpdater.updateDualVariable();
+            obj.lambda = obj.dualUpdater.lambda;
         end
         
         function revertIfDesignNotImproved(obj)
