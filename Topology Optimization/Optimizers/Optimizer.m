@@ -10,6 +10,7 @@ classdef Optimizer < handle
         hasConverged
         hasFinished
         designVariable
+        dualVariable
         cost
         constraint
         constraintCase
@@ -75,6 +76,7 @@ classdef Optimizer < handle
             obj.cost             = cParams.cost;
             obj.constraint       = cParams.constraint;            
             obj.designVariable   = cParams.designVar;
+            obj.dualVariable     = cParams.dualVariable;
             obj.maxiter          = cParams.maxiter;
             obj.incrementalScheme = cParams.incrementalScheme;
             obj.targetParameters = cParams.target_parameters;

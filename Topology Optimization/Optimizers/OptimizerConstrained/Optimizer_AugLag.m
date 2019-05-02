@@ -9,7 +9,6 @@ classdef Optimizer_AugLag < Optimizer_PrimalDual
     end
     
     properties (Access = private)
-        lambda
         augLagrangian      
         dualUpdater
     end
@@ -19,7 +18,6 @@ classdef Optimizer_AugLag < Optimizer_PrimalDual
         function obj = Optimizer_AugLag(cParams)
             obj.init(cParams);            
             obj.createAugmentedLagrangian();
-            obj.createLambdaAndPenalty();
             cParams.uncOptimizerSettings.lagrangian = obj.augLagrangian;           
             cParams.uncOptimizerSettings.convergenceVars = obj.convergenceVars;
             obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams.uncOptimizerSettings);                           
@@ -30,12 +28,13 @@ classdef Optimizer_AugLag < Optimizer_PrimalDual
             cParams.type                = 'AugmentedLagrangian';
             cParams.augmentedLagrangian = obj.augLagrangian;
             cParams.constraint          = obj.constraint;
+            cParams.dualVariable        = obj.dualVariable;
             obj.dualUpdater = DualUpdater.create(cParams);
         end
         
         function update(obj)
             obj.updateDualVariable();
-            obj.augLagrangian.updateBecauseOfDual(obj.lambda);
+            obj.augLagrangian.updateBecauseOfDual();
             obj.updatePrimalVariable();
             obj.updateConvergenceStatus();
         end
@@ -55,17 +54,15 @@ classdef Optimizer_AugLag < Optimizer_PrimalDual
         end
         
         function updateConvergenceStatus(obj)
-            active_constr = true(size(obj.lambda));
+            active_constr = true(size(obj.dualVariable.value));
             isNotOptimal  = obj.unconstrainedOptimizer.opt_cond >=  obj.unconstrainedOptimizer.optimality_tol;
             isNotFeasible = any(any(abs(obj.constraint.value(active_constr)) > obj.unconstrainedOptimizer.constr_tol(active_constr)));
             hasNotConverged = isNotOptimal || isNotFeasible;
             obj.hasConverged = ~hasNotConverged;
         end
         
-        function updateDualVariable(obj)
-            obj.dualUpdater.lambda = obj.lambda;
+        function updateDualVariable(obj)            
             obj.dualUpdater.updateDualVariable();
-            obj.lambda = obj.dualUpdater.lambda;
         end
         
         function revertIfDesignNotImproved(obj)
@@ -75,17 +72,13 @@ classdef Optimizer_AugLag < Optimizer_PrimalDual
         end
         
         function createAugmentedLagrangian(obj)
-            cParamsAL.constraintCase = obj.constraintCase;
-            cParamsAL.cost           = obj.cost;
-            cParamsAL.constraint     = obj.constraint;
-            obj.augLagrangian = AugmentedLagrangian(cParamsAL);
+            cParams.constraintCase = obj.constraintCase;
+            cParams.cost           = obj.cost;
+            cParams.constraint     = obj.constraint;
+            cParams.dualVariable   = obj.dualVariable;
+            obj.augLagrangian = AugmentedLagrangian(cParams);
         end
-        
-        function createLambdaAndPenalty(obj)
-            nConstraints = obj.constraint.nSF;
-            obj.lambda  = zeros(1,nConstraints);
-        end
-        
+
     end
     
 end

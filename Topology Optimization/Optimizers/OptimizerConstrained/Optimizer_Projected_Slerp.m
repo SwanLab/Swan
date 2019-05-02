@@ -79,9 +79,10 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
         end
         
         function createLagrangian(obj)
-            cParamsL.cost       = obj.cost;
-            cParamsL.constraint = obj.constraint;
-            obj.lagrangian = Lagrangian(cParamsL);
+            cParams.cost        = obj.cost;
+            cParams.constraint  = obj.constraint;
+            cParams.dualVariable = obj.dualVariable;
+            obj.lagrangian = Lagrangian(cParams);
         end
         
         function computeValue(obj)
@@ -114,6 +115,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
                
         function fval = computeFeasibleDesignVariable(obj,lambda)
             obj.designVariable.value = obj.designVariable.valueOld;
+            obj.dualVariable.value = obj.constraintCopy.lambda;                        
             obj.restartCost();
             obj.restartConstraint();
             obj.restartObjFunc();
@@ -124,7 +126,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
         
         function updatePrimalVariableBecauseOfDual(obj,lambda)
             obj.constraint.lambda = lambda;
-            obj.lagrangian.lambda    = lambda;
+            obj.dualVariable.value = lambda;
             obj.lagrangian.computeGradient();
             obj.unconstrainedOptimizer.hasConverged = false;            
             obj.unconstrainedOptimizer.compute();
@@ -148,7 +150,6 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
         end
         
         function restartObjFunc(obj)
-            obj.lagrangian.lambda      = obj.constraintCopy.lambda;
             obj.lagrangian.computeGradient();
             obj.lagrangian.computeFunction();
         end
