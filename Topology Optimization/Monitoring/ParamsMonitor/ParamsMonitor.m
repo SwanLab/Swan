@@ -7,6 +7,8 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         nRows
         nCols
         
+        dualVariable
+        
         problemID
         costFuncValue
         nCostFuncs
@@ -49,6 +51,7 @@ classdef ParamsMonitor < ParamsMonitor_Interface
             obj.nCostFuncs = length(cParams.costFuncNames);
             obj.nConstraints = length(cParams.constraintFuncs);
             
+            obj.dualVariable     = cParams.dualVariable;
             obj.costFuncValue    = cParams.cost;
             obj.constraintValues = cParams.constraint;
             obj.convergenceVars  = cParams.convergenceVars;
@@ -154,8 +157,8 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         function updateConstraints(obj)
             for i = 1:obj.nConstraints
                 obj.updateFigure(obj.constraintValues.shapeFunctions{i}.value)
-                if ~isempty(obj.constraintValues.lambda)
-                    obj.updateFigure(obj.constraintValues.lambda(i))
+                if ~isempty(obj.dualVariable.value)
+                    obj.updateFigure(obj.dualVariable.value(i))
                 end
             end
         end

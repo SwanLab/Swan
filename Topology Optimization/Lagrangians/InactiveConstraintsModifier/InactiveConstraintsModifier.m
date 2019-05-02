@@ -5,7 +5,7 @@ classdef InactiveConstraintsModifier < handle
     end
     
     properties (Access = private)
-        lambda
+        dualVariable
         penalty
         isInactive
         threshold        
@@ -22,9 +22,12 @@ classdef InactiveConstraintsModifier < handle
     
     methods (Access = public)
         
-       function modify(obj,cons,lambda,penalty)
-            obj.constraint = cons;
-            obj.lambda = lambda;
+        function obj = InactiveConstraintsModifier(cParams)
+           obj.dualVariable = cParams.dualVariable;
+           obj.constraint   = cParams.constraint;
+        end
+        
+       function modify(obj,penalty)
             obj.penalty = penalty;            
             obj.computeThreshold();
             obj.obtainInactiveConstraints();
@@ -41,7 +44,7 @@ classdef InactiveConstraintsModifier < handle
         end
         
         function computeThreshold(obj)
-            t = -obj.lambda(:)./obj.penalty(:);
+            t = -obj.dualVariable.value(:)./obj.penalty(:);
             obj.threshold = t';
         end
         

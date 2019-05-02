@@ -1,9 +1,5 @@
 classdef Constraint < CC
     
-    properties (Access = public)
-        lambda
-    end
-    
     properties (Access = private)
        dualVariable 
     end

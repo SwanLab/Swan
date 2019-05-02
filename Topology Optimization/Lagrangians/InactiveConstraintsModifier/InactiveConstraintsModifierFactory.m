@@ -2,13 +2,13 @@ classdef InactiveConstraintsModifierFactory < handle
     
     methods (Access = public, Static)
         
-        function obj = create(constraintCase)
+        function obj = create(cParams)
             
-            switch constraintCase
+            switch cParams.type
                 case 'EQUALITY'
-                    obj = InactiveConstraintsModifierNull();
+                    obj = InactiveConstraintsModifierNull(cParams);
                 case 'INEQUALITY'
-                    obj = InactiveConstraintsModifier();
+                    obj = InactiveConstraintsModifier(cParams);
                 otherwise
                     error('Constraint case not valid.');
             end

@@ -124,7 +124,8 @@ classdef Optimizer < handle
         end
         
         function createMonitorDocker(obj,s)
-            s.designVar       = obj.designVariable;
+            s.designVariable  = obj.designVariable;
+            s.dualVariable    = obj.dualVariable;
             s.cost            = obj.cost;
             s.constraint      = obj.constraint;
             s.convergenceVars = obj.convergenceVars;            

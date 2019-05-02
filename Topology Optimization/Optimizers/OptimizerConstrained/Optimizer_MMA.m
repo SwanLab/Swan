@@ -64,7 +64,7 @@ classdef Optimizer_MMA < Optimizer
             
             obj.updateConvergenceStatus();
             
-            obj.constraint.lambda = lam;
+            obj.dualVariable.value = lam;
             obj.convergenceVars.reset();
             obj.convergenceVars.append(kktnorm);
             obj.convergenceVars.append(obj.outit/obj.maxoutit);

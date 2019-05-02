@@ -33,7 +33,8 @@ classdef MonitoringDocker < handle
             s.costWeights      = cParams.costWeights;
             s.constraintFuncs  = cParams.constraintFuncs;
             s.optimizerName    = cParams.optimizerName;
-            s.designVar        = cParams.designVar;
+            s.designVariable   = cParams.designVariable;
+            s.dualVariable     = cParams.dualVariable;
             s.cost             = cParams.cost;
             s.constraint       = cParams.constraint;
             s.convergenceVars  = cParams.convergenceVars;
@@ -42,11 +43,11 @@ classdef MonitoringDocker < handle
         end
         
         function createDesignVarMonitor(obj,cParams)
-            s.shallDisplay  = cParams.shallDisplayDesignVar;
-            s.showBC        = cParams.shallShowBoundaryConditions;
-            s.designVar     = cParams.designVar;
-            s.optimizerName = cParams.optimizerName;
-            s.dim           = cParams.dim; 
+            s.shallDisplay   = cParams.shallDisplayDesignVar;
+            s.showBC         = cParams.shallShowBoundaryConditions;
+            s.designVariable = cParams.designVariable;
+            s.optimizerName  = cParams.optimizerName;
+            s.dim            = cParams.dim; 
             
             obj.designVarMonitor = DesignVarMonitorFactory().create(s);
         end

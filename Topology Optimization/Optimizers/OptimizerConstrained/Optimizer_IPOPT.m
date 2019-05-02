@@ -105,7 +105,7 @@ classdef Optimizer_IPOPT < Optimizer
             obj.designVariable.update(data.x);
             obj.updateStatus();
             obj.printOptimizerVariable();
-            obj.constraint_copy.lambda=zeros(obj.constraint_copy.nSF,1);
+            obj.dualVariable.value = zeros(obj.constraint_copy.nSF,1);
             obj.convergenceVars.reset();
             obj.convergenceVars.append(data.inf_du);
             obj.refreshMonitoring();

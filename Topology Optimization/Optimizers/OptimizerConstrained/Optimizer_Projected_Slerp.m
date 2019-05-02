@@ -15,7 +15,6 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
         problem
         costCopy
         constraintCopy
-        lambda
     end
     
     methods (Access = public)
@@ -23,7 +22,6 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
         function obj = Optimizer_Projected_Slerp(cParams)
             obj.init(cParams);
             obj.createLagrangian();
-            obj.createLambda();
             cParams.uncOptimizerSettings.lagrangian = obj.lagrangian;  
             cParams.uncOptimizerSettings.convergenceVars = obj.convergenceVars;            
             cParams.uncOptimizerSettings.type       = 'SLERP';
@@ -38,10 +36,11 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
            
 
             obj.unconstrainedOptimizer.init();           
-            obj.constraint.lambda       = obj.lambda;
             obj.costCopy                = obj.cost.clone();
             obj.constraintCopy          = obj.constraint.clone();
             obj.designVariable.valueOld = obj.designVariable.value;
+            obj.dualVariable.valueOld   = obj.dualVariable.value;
+            
             
             obj.updateObjFunc();  
             obj.lagrangian.setInitialValue();                        
@@ -52,6 +51,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
             obj.costCopy                = obj.cost.clone();
             obj.constraintCopy          = obj.constraint.clone();
             obj.designVariable.valueOld = obj.designVariable.value;
+            obj.dualVariable.valueOld   = obj.dualVariable.value;
      
             
             while ~obj.hasUnconstraintedOptimizerConverged()
@@ -59,17 +59,11 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
                 obj.unconstrainedOptimizer.line_search.computeKappa();
             end
             obj.updateConvergenceStatus();
-            obj.lambda = obj.constraint.lambda;
         end
         
     end
     
     methods (Access = private)
-        
-        function createLambda(obj)
-            nConstraints = obj.constraint.nSF;
-            obj.lambda  = zeros(1,nConstraints);
-        end
         
         function defineProblem(obj)
             obj.problem.solver = 'fzero';
@@ -114,19 +108,14 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
         end
                
         function fval = computeFeasibleDesignVariable(obj,lambda)
-            obj.designVariable.value = obj.designVariable.valueOld;
-            obj.dualVariable.value = obj.constraintCopy.lambda;                        
-            obj.restartCost();
-            obj.restartConstraint();
-            obj.restartObjFunc();
-            obj.updatePrimalVariableBecauseOfDual(lambda);
+            obj.restartValues();
+            obj.dualVariable.value = lambda;            
+            obj.updatePrimalVariableBecauseOfDual();
             obj.constraint.computeCostAndGradient();
             fval = obj.constraint.value;
         end
         
-        function updatePrimalVariableBecauseOfDual(obj,lambda)
-            obj.constraint.lambda = lambda;
-            obj.dualVariable.value = lambda;
+        function updatePrimalVariableBecauseOfDual(obj)
             obj.lagrangian.computeGradient();
             obj.unconstrainedOptimizer.hasConverged = false;            
             obj.unconstrainedOptimizer.compute();
@@ -138,6 +127,14 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
             obj.lagrangian.computeGradient();
         end
         
+        function restartValues(obj)
+            obj.designVariable.value = obj.designVariable.valueOld;
+            obj.dualVariable.value   = obj.dualVariable.valueOld;                        
+            obj.restartCost();
+            obj.restartConstraint();
+            obj.restartObjFunc();            
+        end
+        
         function restartCost(obj)
             obj.cost.value          = obj.costCopy.value;
             obj.cost.gradient       = obj.costCopy.gradient;
@@ -146,7 +143,6 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
         function restartConstraint(obj)
             obj.constraint.value    = obj.constraintCopy.value;
             obj.constraint.gradient = obj.constraintCopy.gradient;
-            obj.constraint.lambda   = obj.constraintCopy.lambda;
         end
         
         function restartObjFunc(obj)

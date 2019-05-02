@@ -16,7 +16,8 @@ classdef SettingsMonitoringDocker < AbstractSettings
         constraintFuncs
         dim
         
-        designVar
+        designVariable
+        dualVariable
         optimizerName
         cost
         constraint
