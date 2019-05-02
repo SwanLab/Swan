@@ -3,7 +3,6 @@ classdef ShapeFunctional < handle
     properties
         value
         gradient
-        target_parameters=struct;
         filter
         Msmooth
         dvolu
@@ -14,15 +13,26 @@ classdef ShapeFunctional < handle
        homogenizedVariablesComputer 
        nVariables
        designVariable
+       target_parameters;                      
     end
-    
+        
     methods (Access = public, Static)
         
-        function obj = create(type,settings,designVariable,homogVarComputer)
+        function obj = create(type,settings,designVariable,homogVarComputer,targetParameters)
             f = ShapeFunctional_Factory();
-            obj = f.create(type,settings,designVariable,homogVarComputer);
+            obj = f.create(type,settings,designVariable,homogVarComputer,targetParameters);
         end
         
+    end
+    
+    methods (Access = public)
+        
+        function updateTargetParameters(obj)
+            if contains(class(obj.filter),'PDE')
+                obj.filter.updateEpsilon(obj.target_parameters.epsilon);
+            end
+        end            
+                
     end
     
     methods (Access = protected)
@@ -32,6 +42,7 @@ classdef ShapeFunctional < handle
             obj.createMsmoothAndDvolu(cParams.filename, cParams.domainType);
             obj.homogenizedVariablesComputer = cParams.homogVarComputer;
             obj.designVariable = cParams.designVariable;
+            obj.target_parameters = cParams.targetParameters;
         end
         
         function normalizeFunctionAndGradient(obj)

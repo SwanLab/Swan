@@ -5,14 +5,16 @@ classdef ShapeFunctional_Factory
         cParams
         designVar
         homogVarComputer
+        targetParameters
     end
     
     methods (Access = public)
         
-        function shapeFunction = create(obj,type,settings,designVar,homogVarComputer)
+        function shapeFunction = create(obj,type,settings,designVar,homogVarComputer,targetParameters)
             obj.settings = settings;
             obj.designVar = designVar;
             obj.homogVarComputer = homogVarComputer;
+            obj.targetParameters = targetParameters;
             switch type
                 case 'compliance'
                     obj.cParams = SettingsShapeFunctional();
@@ -91,6 +93,7 @@ classdef ShapeFunctional_Factory
             obj.addNamePtype()
             obj.cParams.homogVarComputer = obj.homogVarComputer;
             obj.cParams.designVariable   = obj.designVar;
+            obj.cParams.targetParameters = obj.targetParameters;
             obj.createFilterParams();
         end
         

@@ -6,8 +6,8 @@ classdef Cost < CC
     
     methods (Access = public)
         
-        function obj = Cost(settings,designVar,homogVarComputer)
-            obj.init(settings,settings.cost,designVar,homogVarComputer);            
+        function obj = Cost(settings,designVar,homogVarComputer,targetParameters)
+            obj.init(settings,settings.cost,designVar,homogVarComputer,targetParameters);            
             obj.setWeights(settings.weights);
         end
         

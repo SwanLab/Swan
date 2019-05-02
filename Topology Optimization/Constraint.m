@@ -6,8 +6,8 @@ classdef Constraint < CC
     
     methods (Access = public)
         
-        function obj = Constraint(settings,designVar,homogVarComputer)
-            obj.init(settings, settings.constraint,designVar,homogVarComputer);
+        function obj = Constraint(settings,designVar,homogVarComputer,targetParameters)
+            obj.init(settings, settings.constraint,designVar,homogVarComputer,targetParameters);
         end
         
         function updateFields(obj,iSF)

@@ -10,6 +10,7 @@ classdef SettingsShapeFunctional < AbstractSettings
         domainType 
         homogVarComputer
         designVariable        
+        targetParameters        
     end
     
      methods (Access = public)

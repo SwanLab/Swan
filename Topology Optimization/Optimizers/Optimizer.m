@@ -1,13 +1,9 @@
 classdef Optimizer < handle
-    
-    properties (Access = public)
-        convergenceVars
-        targetParameters
-    end
-    
+
     properties (GetAccess = public, SetAccess = protected)
-        historicalVariables
         niter
+        convergenceVars
+        historicalVariables        
     end        
     
     properties (Access = protected)
@@ -18,6 +14,7 @@ classdef Optimizer < handle
         constraint
         constraintCase
         historyPrinter
+        targetParameters        
 
         maxiter     
         incrementalScheme                
@@ -80,6 +77,7 @@ classdef Optimizer < handle
             obj.designVariable   = cParams.designVar;
             obj.maxiter          = cParams.maxiter;
             obj.incrementalScheme = cParams.incrementalScheme;
+            obj.targetParameters = cParams.target_parameters;
             
             obj.createHistoryPrinter(cParams.historyPrinterSettings);
             obj.createConvergenceVariables();
@@ -125,7 +123,6 @@ classdef Optimizer < handle
         
         function createMonitorDocker(obj,s)
             s.designVar       = obj.designVariable;
-%             s.optimizerName   = obj.name;
             s.cost            = obj.cost;
             s.constraint      = obj.constraint;
             s.convergenceVars = obj.convergenceVars;            
