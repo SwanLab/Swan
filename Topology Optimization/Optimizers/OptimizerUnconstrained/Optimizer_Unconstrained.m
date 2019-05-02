@@ -87,7 +87,7 @@ classdef Optimizer_Unconstrained < handle
     methods (Access = private)        
         
         function initLineSearch(obj)
-            x0 = obj.designVariable.valueOld;
+            x0 = obj.designVariable.value;%valueOld;
             g  = obj.objectiveFunction.gradient;
             obj.line_search.initKappa(x0,g);
         end

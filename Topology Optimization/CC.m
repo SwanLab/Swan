@@ -11,7 +11,9 @@ classdef CC < handle & matlab.mixin.Copyable
     end
     
     properties (Access = private)
-        sizeDesigVar        
+        sizeDesigVar     
+        valueOld
+        gradientOld        
     end
     
     methods (Access = protected, Abstract)
@@ -31,6 +33,16 @@ classdef CC < handle & matlab.mixin.Copyable
                        
         function objClone = clone(obj)
             objClone = copy(obj);
+        end
+        
+        function restart(obj)
+            obj.value    = obj.valueOld;
+            obj.gradient = obj.gradientOld;            
+        end
+        
+        function updateOld(obj)
+           obj.valueOld    = obj.value;
+           obj.gradientOld = obj.gradient;
         end
         
     end

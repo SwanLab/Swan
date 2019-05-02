@@ -12,9 +12,7 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
         desVarChangedValue
         costIncrease
         lagrangian
-        problem
-        costCopy
-        constraintCopy
+        constraintProjector
     end
     
     methods (Access = public)
@@ -27,19 +25,18 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
             cParams.uncOptimizerSettings.type       = 'SLERP';
             obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams.uncOptimizerSettings);
             obj.unconstrainedOptimizer.line_search.kfrac = 1.05;
-            obj.defineProblem();            
+            obj.createConstraintProjector();
         end
         
         function update(obj)
-            tolCons = obj.targetParameters.constr_tol;
-            obj.problem.options = optimset(obj.problem.options,'TolX',1e-2*tolCons);
-           
+         
 
             obj.unconstrainedOptimizer.init();           
-            obj.costCopy                = obj.cost.clone();
-            obj.constraintCopy          = obj.constraint.clone();
-            obj.designVariable.valueOld = obj.designVariable.value;
-            obj.dualVariable.valueOld   = obj.dualVariable.value;
+            
+            obj.cost.updateOld();
+            obj.constraint.updateOld();
+            obj.designVariable.updateOld();
+            obj.dualVariable.updateOld();
             
             
             obj.updateObjFunc();  
@@ -47,11 +44,12 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
             obj.computeValue();
             
             
-            obj.lagrangian.setInitialValue();            
-            obj.costCopy                = obj.cost.clone();
-            obj.constraintCopy          = obj.constraint.clone();
-            obj.designVariable.valueOld = obj.designVariable.value;
-            obj.dualVariable.valueOld   = obj.dualVariable.value;
+            obj.lagrangian.setInitialValue();  
+            
+            obj.designVariable.updateOld();
+            obj.dualVariable.updateOld();
+            obj.cost.updateOld()
+            obj.constraint.updateOld();
      
             
             while ~obj.hasUnconstraintedOptimizerConverged()
@@ -65,22 +63,16 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
     
     methods (Access = private)
         
-        function defineProblem(obj)
-            obj.problem.solver = 'fzero';
-            obj.problem.options = optimset(@fzero);
-            obj.problem.objective = @(lambda) obj.computeFeasibleDesignVariable(lambda);
-            obj.problem.x0 = [0 100];
-        end
         
         function createLagrangian(obj)
-            cParams.cost        = obj.cost;
-            cParams.constraint  = obj.constraint;
+            cParams.cost         = obj.cost;
+            cParams.constraint   = obj.constraint;
             cParams.dualVariable = obj.dualVariable;
             obj.lagrangian = Lagrangian(cParams);
         end
         
         function computeValue(obj)
-            fzero(obj.problem);
+            obj.constraintProjector.project();
             obj.updateObjFunc();
         end
         
@@ -99,55 +91,31 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
             incr = obj.lagrangian.computeIncrement();
             costHasDecreased = incr < 0;
             itIs = costHasDecreased;
-        end
+        end       
         
         function itIs = isLineSeachTooSmall(obj)
             kappa     = obj.unconstrainedOptimizer.line_search.kappa;
             kappa_min = obj.unconstrainedOptimizer.line_search.kappa_min;
             itIs = kappa <= kappa_min;
         end
+        
+        function createConstraintProjector(obj)
+            cParams.cost        = obj.cost;
+            cParams.constraint  = obj.constraint;
+            cParams.designVariable = obj.designVariable;            
+            cParams.dualVariable = obj.dualVariable;
+            cParams.lagrangian  = obj.lagrangian;
+            cParams.targetParameters = obj.targetParameters;
+            cParams.unconstrainedOptimizer = obj.unconstrainedOptimizer;
+            obj.constraintProjector = ConstraintProjector(cParams); 
+        end
                
-        function fval = computeFeasibleDesignVariable(obj,lambda)
-            obj.restartValues();
-            obj.dualVariable.value = lambda;            
-            obj.updatePrimalVariableBecauseOfDual();
-            obj.constraint.computeCostAndGradient();
-            fval = obj.constraint.value;
-        end
-        
-        function updatePrimalVariableBecauseOfDual(obj)
-            obj.lagrangian.computeGradient();
-            obj.unconstrainedOptimizer.hasConverged = false;            
-            obj.unconstrainedOptimizer.compute();
-            obj.unconstrainedOptimizer.updateConvergenceParams();
-        end
-        
+       
         function updateObjFunc(obj)
             obj.lagrangian.computeFunction();
             obj.lagrangian.computeGradient();
         end
         
-        function restartValues(obj)
-            obj.designVariable.value = obj.designVariable.valueOld;
-            obj.dualVariable.value   = obj.dualVariable.valueOld;                        
-            obj.restartCost();
-            obj.restartConstraint();
-            obj.restartObjFunc();            
-        end
-        
-        function restartCost(obj)
-            obj.cost.value          = obj.costCopy.value;
-            obj.cost.gradient       = obj.costCopy.gradient;
-        end
-        
-        function restartConstraint(obj)
-            obj.constraint.value    = obj.constraintCopy.value;
-            obj.constraint.gradient = obj.constraintCopy.gradient;
-        end
-        
-        function restartObjFunc(obj)
-            obj.lagrangian.computeGradient();
-            obj.lagrangian.computeFunction();
-        end
+
     end
 end

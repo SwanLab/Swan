@@ -6,10 +6,13 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
     end
     
     properties (Access = public)
-        value
-        valueOld
+        valueOld                        
+        value        
         nVariables
         rho
+    end
+    
+    properties (Access = private)
     end
     
     methods (Access = public, Abstract)
@@ -27,6 +30,14 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
     
     methods (Access = public)
                 
+        function restart(obj)
+            obj.value = obj.valueOld;
+        end
+        
+        function updateOld(obj)
+            obj.valueOld = obj.value;
+        end
+        
         function objClone = clone(obj)
             objClone = copy(obj);
         end

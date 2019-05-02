@@ -6,10 +6,13 @@ classdef ObjectiveFunction < handle
     end
     
     properties (Access = protected)
-        valueInitial
         cost
         constraint  
         dualVariable
+    end
+    
+    properties (Access = private)
+        valueOld        
     end
     
     methods (Access = protected)
@@ -26,13 +29,18 @@ classdef ObjectiveFunction < handle
         
         function incr = computeIncrement(obj)
             v  = obj.value;
-            vI = obj.valueInitial;
+            vI = obj.valueOld;
             incr = (v - vI)/abs(vI);
         end
         
         function setInitialValue(obj)
-            obj.valueInitial = obj.value;
+            obj.valueOld = obj.value;
         end
+        
+        function restart(obj)
+            obj.value = obj.valueOld;
+        end
+        
         
     end
     
