@@ -6,8 +6,9 @@ classdef Constraint < CC
     
     methods (Access = public)
         
-        function obj = Constraint(settings,designVar,homogVarComputer,targetParameters)
-            obj.init(settings, settings.constraint,designVar,homogVarComputer,targetParameters);
+        function obj = Constraint(cParams)
+            cParams.shapeFuncList = cParams.settings.constraint;
+            obj.init(cParams);
         end
         
     end

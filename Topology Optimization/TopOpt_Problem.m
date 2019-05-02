@@ -93,10 +93,13 @@ classdef TopOpt_Problem < handle
             obj.incrementalScheme = IncrementalScheme(s);
         end
         
-        function createCostAndConstraint(obj,cParams)
-            tp = obj.incrementalScheme.targetParams;
-            obj.cost       = Cost(cParams.settings,obj.designVariable,obj.homogenizedVarComputer,tp);
-            obj.constraint = Constraint(cParams.settings,obj.designVariable,obj.homogenizedVarComputer,tp);            
+        function createCostAndConstraint(obj,set)
+            cParams.settings = set.settings;
+            cParams.designVariable = obj.designVariable;
+            cParams.homogenizedVarComputer = obj.homogenizedVarComputer;
+            cParams.targetParameters = obj.incrementalScheme.targetParams;
+            obj.cost       = Cost(cParams);
+            obj.constraint = Constraint(cParams);
         end
 
         function createVideoManager(obj,cParams)

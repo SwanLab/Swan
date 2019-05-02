@@ -37,9 +37,14 @@ classdef CC < handle & matlab.mixin.Copyable
     
     methods (Access = protected)
         
-        function obj = init(obj,settings,shapeFuncList,designVariable,homogVarComputer,targetParameters)
+        function obj = init(obj,cParams)
             obj.nSF   = 0;
-            obj.sizeDesigVar = size(designVariable.value);
+            settings = cParams.settings;
+            shapeFuncList = cParams.shapeFuncList;
+            designVariable = cParams.designVariable;
+            homogVarComputer = cParams.homogenizedVarComputer;
+            targetParameters = cParams.targetParameters;
+            obj.sizeDesigVar = size(cParams.designVariable.value);
             obj.createShapeFunctions(settings,shapeFuncList,designVariable,homogVarComputer,targetParameters);
         end        
         
