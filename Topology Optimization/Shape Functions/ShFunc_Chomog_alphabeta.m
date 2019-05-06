@@ -4,10 +4,10 @@ classdef ShFunc_Chomog_alphabeta < ShFunc_Chomog
         beta
     end
     methods
-        function obj=ShFunc_Chomog_alphabeta(settings)
-            obj@ShFunc_Chomog(settings);
-            obj.alpha=settings.alpha/norm(settings.alpha);
-            obj.beta=settings.beta/norm(settings.beta);
+        function obj=ShFunc_Chomog_alphabeta(cParams)
+            obj@ShFunc_Chomog(cParams);
+            obj.alpha = cParams.alpha/norm(cParams.alpha);
+            obj.beta = cParams.beta/norm(cParams.beta);
         end
         function computeCostAndGradient(obj)
             obj.computePhysicalData();

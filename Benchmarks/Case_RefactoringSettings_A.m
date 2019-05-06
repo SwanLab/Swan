@@ -1,4 +1,5 @@
 problemData.problemFileName = 'Cantilever_triangle_coarse';
+problemData.scale = 'MACRO';
 
 designVarSettings             = SettingsDesignVariable();
 designVarSettings.type        = 'LevelSet';
@@ -6,6 +7,9 @@ designVarSettings.initialCase = 'full';
 
 incrementalSchemeSettings = SettingsIncrementalScheme();
 incrementalSchemeSettings.nSteps = 1;
+
+costSettings.shapeFuncList = {'compliance'};
+costSettings.weights = [1 0.1];
 
 optimizerSettings            = SettingsOptimizer();
 optimizerSettings.name       = 'AlternatingPrimalDual';

@@ -10,6 +10,8 @@ classdef SettingsTopOptProblem < AbstractSettings
         designVarSettings
         homogenizedVarComputerSettings
         incrementalSchemeSettings
+        costSettings
+        constraintSettings
         optimizerSettings
         videoManagerSettings
     end
@@ -36,6 +38,8 @@ classdef SettingsTopOptProblem < AbstractSettings
             obj.createDesignVarSettings();
             obj.createHomogenizedVarComputerSettings();
             obj.createIncrementalSchemeSettings();
+            obj.createCostSettings();
+            obj.createConstraintSettings();
             obj.createOptimizerSettings();
             obj.createVideoManagerSettings();
         end
@@ -69,6 +73,7 @@ classdef SettingsTopOptProblem < AbstractSettings
             if obj.isOld
                 obj.problemData.problemFileName = obj.settings.filename;
                 obj.problemData.caseFileName = obj.settings.case_file;
+                obj.problemData.scale = obj.settings.ptype;
             else
                 obj.problemData.caseFileName = obj.loadedFile;
             end
@@ -102,6 +107,48 @@ classdef SettingsTopOptProblem < AbstractSettings
             obj.incrementalSchemeSettings.shallPrintIncremental = obj.settings.printIncrementalIter;
             
             obj.incrementalSchemeSettings.mesh = obj.mesh;
+        end
+        
+        function createCostSettings(obj)
+            obj.costSettings.settings = obj.settings;
+            if obj.isOld
+                obj.costSettings.weights = obj.settings.weights;
+                obj.costSettings.shapeFuncList = obj.settings.cost;
+            end
+            
+            obj.costSettings.shapeFuncSettings{1} = SettingsShFunc_Chomog();
+            obj.costSettings.shapeFuncSettings{1}.type = 'chomog_alphabeta';
+            obj.costSettings.shapeFuncSettings{1}.filename = obj.problemData.problemFileName;
+            obj.costSettings.shapeFuncSettings{1}.scale = obj.problemData.scale;
+            obj.costSettings.shapeFuncSettings{1}.filterParams = obj.createFilterSettings();
+            obj.costSettings.shapeFuncSettings{1}.alpha = obj.settings.micro.alpha;
+            obj.costSettings.shapeFuncSettings{1}.beta = obj.settings.micro.beta;
+            
+            obj.costSettings.shapeFuncSettings{2} = SettingsShFunc_PerimeterConstraint();
+            obj.costSettings.shapeFuncSettings{2}.type = 'perimeterConstraint';
+            obj.costSettings.shapeFuncSettings{2}.filename = obj.problemData.problemFileName;
+            obj.costSettings.shapeFuncSettings{2}.scale = obj.problemData.scale;
+            obj.costSettings.shapeFuncSettings{2}.filterParams = obj.createFilterSettings();
+            obj.costSettings.shapeFuncSettings{2}.Perimeter_target = obj.settings.Perimeter_target;
+            
+        end
+        
+        function createConstraintSettings(obj)
+            obj.constraintSettings.settings = obj.settings;
+            if obj.isOld
+                obj.constraintSettings.shapeFuncList = obj.settings.constraint;
+            end
+            
+            obj.constraintSettings.shapeFuncSettings{1} = SettingsShapeFunctional();
+            obj.constraintSettings.shapeFuncSettings{1}.type = 'volumeConstraint';
+            obj.constraintSettings.shapeFuncSettings{1}.filename = obj.problemData.problemFileName;
+            obj.constraintSettings.shapeFuncSettings{1}.scale = obj.problemData.scale;
+            obj.constraintSettings.shapeFuncSettings{1}.filterParams = obj.createFilterSettings();     
+        end
+        
+        function s = createFilterSettings(obj)
+            s = SettingsFilter();
+            s.filterType = obj.settings.filter;
         end
         
         function createOptimizerSettings(obj)

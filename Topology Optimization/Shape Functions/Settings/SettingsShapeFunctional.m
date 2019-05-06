@@ -5,9 +5,10 @@ classdef SettingsShapeFunctional < AbstractSettings
     end
     
     properties (Access = public)
+        type
         filterParams 
         filename 
-        domainType 
+        scale 
         homogVarComputer
         designVariable        
         targetParameters        

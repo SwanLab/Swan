@@ -9,9 +9,9 @@ classdef Perimeter_constraint < ShFunc_Perimeter
     
     methods
         
-        function  obj = Perimeter_constraint(settings)
-            obj@ShFunc_Perimeter(settings);
-            obj.PerimeterTarget = settings.Perimeter_target; %should be target parameter?
+        function  obj = Perimeter_constraint(cParams)
+            obj@ShFunc_Perimeter(cParams);
+            obj.PerimeterTarget = cParams.Perimeter_target; %should be target parameter?
         end
         
        function computeCostAndGradient(obj)
