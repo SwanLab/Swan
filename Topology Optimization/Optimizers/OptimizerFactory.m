@@ -4,14 +4,14 @@ classdef OptimizerFactory < handle
         
         function op = create(cParams)
             switch cParams.name
-                case {'AugmentedLagrangian','SLERP','HAMILTON-JACOBI','PROJECTED GRADIENT'}
-                    op = Optimizer_AugLag(cParams);
+                case 'AlternatingPrimalDual'
+                    op = OptimizerAlternatingPrimalDual(cParams);
                 case 'MMA'
                     op = Optimizer_MMA(cParams);
                 case 'IPOPT'
                     op = Optimizer_IPOPT(cParams);
-                case 'PROJECTED SLERP'
-                    op = Optimizer_Projected_Slerp(cParams);
+                case 'OptimizerDualNestedInPrimal'
+                    op = OptimizerDualNestedInPrimal(cParams);
                 otherwise
                     error('Invalid optimizer.')
             end

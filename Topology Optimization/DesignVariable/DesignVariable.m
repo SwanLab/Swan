@@ -64,7 +64,6 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
             obj.createScalarProduct(cParams.scalarProductSettings);
         end
         
-        
     end
     
     methods (Access = private)

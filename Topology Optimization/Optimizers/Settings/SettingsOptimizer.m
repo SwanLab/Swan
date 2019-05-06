@@ -18,6 +18,7 @@ classdef SettingsOptimizer < AbstractSettings
         
         shallPrint
         printMode
+        type
         
         uncOptimizerSettings
         settingsMonitor

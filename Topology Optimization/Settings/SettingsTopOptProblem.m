@@ -110,6 +110,10 @@ classdef SettingsTopOptProblem < AbstractSettings
             uoS = obj.createOptimizerUnconstrainedSettings();
             obj.optimizerSettings.uncOptimizerSettings = uoS;
             
+            if obj.isOld
+                obj.optimizerSettings.type = obj.settings.optimizer;
+            end
+            
             obj.optimizerSettings.nconstr              = obj.settings.nconstr;
             obj.optimizerSettings.target_parameters    = obj.settings.target_parameters;
             obj.optimizerSettings.constraint_case      = obj.settings.constraint_case;
@@ -129,7 +133,7 @@ classdef SettingsTopOptProblem < AbstractSettings
         function uoS = createOptimizerUnconstrainedSettings(obj)
             uoS = obj.optimizerSettings.uncOptimizerSettings;
             if obj.isOld
-                uoS.type                = obj.settings.optimizer;
+                uoS.type = obj.settings.optimizerUnconstrained;
             end
             
             spS = obj.createScalarProductSettings();
@@ -160,11 +164,12 @@ classdef SettingsTopOptProblem < AbstractSettings
         
         function lsS = createLineSearchSettings(obj,spS)
             lsS.scalarProductSettings = spS;
-            lsS.line_search     = obj.settings.line_search;
-            lsS.optimizer       = obj.optimizerSettings.uncOptimizerSettings.type;
+            lsS.line_search             = obj.settings.line_search;
+            lsS.optimizerUnconstrained  = obj.settings.optimizerUnconstrained;%obj.optimizerSettings.uncOptimizerSettings.type;
             lsS.HJiter0         = obj.settings.HJiter0;
             lsS.filename        = obj.problemData.problemFileName;
             lsS.kappaMultiplier = obj.settings.kappaMultiplier;
+            lsS.kfrac           = obj.settings.kfrac;
         end
         
         function setupSettingsMonitor(obj)

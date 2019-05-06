@@ -1,7 +1,7 @@
-classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
+classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
     
     properties (GetAccess = public, SetAccess = protected)
-        name = 'PROJECTED SLERP'
+        name = 'OptimizerDualNestedInPrimal'
     end
     
     properties (Access = public)
@@ -17,15 +17,17 @@ classdef Optimizer_Projected_Slerp < Optimizer_PrimalDual
     
     methods (Access = public)
         
-        function obj = Optimizer_Projected_Slerp(cParams)
+        function obj = OptimizerDualNestedInPrimal(cParams)
             obj.init(cParams);
             obj.createLagrangian();
-            cParams.uncOptimizerSettings.lagrangian = obj.lagrangian;  
-            cParams.uncOptimizerSettings.convergenceVars = obj.convergenceVars;            
-            cParams.uncOptimizerSettings.type       = 'SLERP';
-            obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams.uncOptimizerSettings);
-            obj.unconstrainedOptimizer.line_search.kfrac = 1.05;
+            obj.createOptimizerUnconstrained(cParams.uncOptimizerSettings)
             obj.createConstraintProjector();
+        end
+        
+        function createOptimizerUnconstrained(obj,cParams)
+            cParams.lagrangian      = obj.lagrangian;  
+            cParams.convergenceVars = obj.convergenceVars;            
+            obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams);
         end
         
         function update(obj)

@@ -7,8 +7,10 @@ cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
 constraint_case = 'EQUALITY';
-optimizer = 'PROJECTED SLERP';
+optimizer = 'OptimizerDualNestedInPrimal';
+optimizerUnconstrained = 'SLERP';
 kappaMultiplier = 1;
+kfrac = 1.05;
 designVariable = 'LevelSet';
 filterType = 'P1';
 

@@ -9,18 +9,18 @@ classdef LineSearch < handle
         function obj = create(settings)
             switch settings.line_search
                 case 'DIMENSIONALLY CONSISTENT'
-                    switch settings.optimizer
+                    switch settings.optimizerUnconstrained
                         case 'PROJECTED GRADIENT'
                             obj = LS_BackTracking_DimensionallyConsistent_PG(settings,settings.epsilon);
-                        case {'SLERP','PROJECTED SLERP'}
-                            obj = LS_BackTracking_DimensionallyConsistent_SLERP;
+                        case 'SLERP'
+                            obj = LS_BackTracking_DimensionallyConsistent_SLERP(settings);
                         case 'HAMILTON-JACOBI'
                             obj = LS_BackTracking_DimensionallyConsistent_HJ(settings);
                         otherwise
                             error('%s is NOT a valid unconstrained optimizer.',settings.optimizer);
                     end
                 case 'DOUBLING LAST STEP'
-                    switch settings.optimizer
+                    switch settings.optimizerUnconstrained
                         case 'PROJECTED GRADIENT'
                             obj = LS_BackTracking_DoublingLastStep_PG(settings,settings.epsilon);
                         case 'SLERP'

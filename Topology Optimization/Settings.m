@@ -55,8 +55,10 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         weights
         constraint
         optimizer
+        optimizerUnconstrained        
         line_search
         kappaMultiplier
+        kfrac
         filter
         unfitted_mesh_algorithm='DELAUNAY'
         TOL = struct;
@@ -276,7 +278,21 @@ classdef Settings %< handle%& matlab.mixin.Copyable
                 fprintf('\n')
             end
             
+            if ~exist('optimizerUnconstrained','var')
+                switch obj.optimizer
+                    case {'SLERP','HAMILTON-JACOBI','PROJECTED GRADIENT'}
+                        obj.optimizerUnconstrained = obj.optimizer;
+                        obj.optimizer = 'AlternatingPrimalDual';
+                end
+            else                
+                obj.optimizerUnconstrained = optimizerUnconstrained;
+            end
             
+            if exist('kfrac','var')
+                obj.kfrac = kfrac;
+            else 
+                obj.kfrac = 2;
+            end
             
         end
         

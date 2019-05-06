@@ -4,7 +4,7 @@ classdef ConvergenceVarsDispatcher < handle
         
         function names = dispatchNames(optimizer)
             switch optimizer
-                case {'AugmentedLagrangian','PROJECTED SLERP'}
+                case {'OptimizerAlternatingPrimalDual','OptimizerDualNestedInPrimal'}
                     names = {'\Deltacost';'Norm L2';'\kappa'};
                 case 'MMA'
                     names = {'kktnorm';'outit'};
