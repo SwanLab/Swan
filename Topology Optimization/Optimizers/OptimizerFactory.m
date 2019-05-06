@@ -10,7 +10,7 @@ classdef OptimizerFactory < handle
                     op = Optimizer_MMA(cParams);
                 case 'IPOPT'
                     op = Optimizer_IPOPT(cParams);
-                case 'OptimizerDualNestedInPrimal'
+                case 'DualNestedInPrimal'
                     op = OptimizerDualNestedInPrimal(cParams);
                 otherwise
                     error('Invalid optimizer.')
