@@ -24,16 +24,12 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             obj.createConstraintProjector();
         end
         
-        function createOptimizerUnconstrained(obj,cParams)
-            cParams.lagrangian      = obj.lagrangian;  
-            cParams.convergenceVars = obj.convergenceVars;            
-            obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams);
-        end
+        
         
         function update(obj)
-         
-
-            obj.unconstrainedOptimizer.init();           
+            obj.updateObjFunc();
+            
+            obj.unconstrainedOptimizer.init();
             
             obj.cost.updateOld();
             obj.constraint.updateOld();
@@ -41,18 +37,20 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             obj.dualVariable.updateOld();
             
             
-            obj.updateObjFunc();  
-            obj.lagrangian.setInitialValue();                        
+            obj.updateObjFunc();
+            obj.lagrangian.updateOld();
+            
+            
             obj.computeValue();
             
             
-            obj.lagrangian.setInitialValue();  
+            obj.lagrangian.updateOld();
             
             obj.designVariable.updateOld();
             obj.dualVariable.updateOld();
             obj.cost.updateOld()
             obj.constraint.updateOld();
-     
+            
             
             while ~obj.hasUnconstraintedOptimizerConverged()
                 obj.computeValue();
@@ -71,6 +69,23 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             cParams.constraint   = obj.constraint;
             cParams.dualVariable = obj.dualVariable;
             obj.lagrangian = Lagrangian(cParams);
+        end
+        
+        function createOptimizerUnconstrained(obj,cParams)
+            cParams.lagrangian      = obj.lagrangian;
+            cParams.convergenceVars = obj.convergenceVars;
+            obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams);
+        end
+        
+        function createConstraintProjector(obj)
+            cParams.cost        = obj.cost;
+            cParams.constraint  = obj.constraint;
+            cParams.designVariable = obj.designVariable;
+            cParams.dualVariable = obj.dualVariable;
+            cParams.lagrangian  = obj.lagrangian;
+            cParams.targetParameters = obj.targetParameters;
+            cParams.unconstrainedOptimizer = obj.unconstrainedOptimizer;
+            obj.constraintProjector = ConstraintProjector(cParams);
         end
         
         function computeValue(obj)
@@ -93,7 +108,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             incr = obj.lagrangian.computeIncrement();
             costHasDecreased = incr < 0;
             itIs = costHasDecreased;
-        end       
+        end
         
         function itIs = isLineSeachTooSmall(obj)
             kappa     = obj.unconstrainedOptimizer.line_search.kappa;
@@ -101,23 +116,12 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             itIs = kappa <= kappa_min;
         end
         
-        function createConstraintProjector(obj)
-            cParams.cost        = obj.cost;
-            cParams.constraint  = obj.constraint;
-            cParams.designVariable = obj.designVariable;            
-            cParams.dualVariable = obj.dualVariable;
-            cParams.lagrangian  = obj.lagrangian;
-            cParams.targetParameters = obj.targetParameters;
-            cParams.unconstrainedOptimizer = obj.unconstrainedOptimizer;
-            obj.constraintProjector = ConstraintProjector(cParams); 
-        end
-               
        
         function updateObjFunc(obj)
             obj.lagrangian.computeFunction();
             obj.lagrangian.computeGradient();
         end
         
-
+        
     end
 end

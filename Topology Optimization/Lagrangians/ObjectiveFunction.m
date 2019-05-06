@@ -33,7 +33,7 @@ classdef ObjectiveFunction < handle
             incr = (v - vI)/abs(vI);
         end
         
-        function setInitialValue(obj)
+        function updateOld(obj)
             obj.valueOld = obj.value;
         end
         

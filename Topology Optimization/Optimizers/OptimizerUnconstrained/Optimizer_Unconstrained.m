@@ -51,22 +51,25 @@ classdef Optimizer_Unconstrained < handle
         end
         
         function update(obj)
-            obj.compute();
-            obj.objectiveFunction.updateBecauseOfPrimal();
-            obj.updateConvergenceParams();
-            
-            if ~obj.hasConverged
-                obj.line_search.computeKappa();
+            obj.designVariable.updateOld();                                    
+            obj.init();
+            while ~obj.hasConverged
+                obj.designVariable.restart();
+                obj.compute();
+                obj.objectiveFunction.updateBecauseOfPrimal();
+                obj.updateConvergenceParams();
+                if ~obj.hasConverged
+                    obj.line_search.computeKappa();
+               end
             end
+            obj.revertIfDesignNotImproved();
         end
         
         function init(obj)
-            obj.objectiveFunction.setInitialValue();
+            obj.objectiveFunction.updateOld();
             obj.initLineSearch();
             obj.hasConverged = false;            
         end
-        
-
         
         function updateConvergenceParams(obj)
             nIncX = obj.designVariable.computeL2normIncrement();
@@ -91,6 +94,12 @@ classdef Optimizer_Unconstrained < handle
             x0 = obj.designVariable.value;
             g  = obj.objectiveFunction.gradient;
             obj.line_search.initKappa(x0,g);
+        end
+        
+        function revertIfDesignNotImproved(obj)
+            if ~obj.designImproved
+                obj.designVariable.restart();
+            end
         end
         
     end

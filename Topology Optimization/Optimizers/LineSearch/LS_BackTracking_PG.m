@@ -9,7 +9,7 @@ classdef LS_BackTracking_PG < LineSearch
         function obj = LS_BackTracking_PG(cParams,epsilon)
             obj.scalar_product = ScalarProduct(cParams.scalarProductSettings);
             obj.kappaMultiplier = cParams.kappaMultiplier;
-            obj.kfrac = 2;
+            obj.kfrac = cParams.kfrac;
             obj.kappa_min = 1e-15;
         end
     end 

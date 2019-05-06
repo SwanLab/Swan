@@ -4,7 +4,6 @@ classdef Optimizer_PrimalDual < Optimizer
     end
     
     properties (Access = protected)
-       optimizerUncon
     end
     
     properties (Access = private)
