@@ -6,32 +6,32 @@ classdef LineSearch < handle
     end
     
     methods (Static)
-        function obj = create(settings)
-            switch settings.line_search
+        function obj = create(cParams)
+            switch cParams.line_search
                 case 'DIMENSIONALLY CONSISTENT'
-                    switch settings.optimizerUnconstrained
+                    switch cParams.optimizerUnconstrained
                         case 'PROJECTED GRADIENT'
-                            obj = LS_BackTracking_DimensionallyConsistent_PG(settings,settings.epsilon);
+                            obj = LS_BackTracking_DimensionallyConsistent_PG(cParams,cParams.epsilon);
                         case 'SLERP'
-                            obj = LS_BackTracking_DimensionallyConsistent_SLERP(settings);
+                            obj = LS_BackTracking_DimensionallyConsistent_SLERP(cParams);
                         case 'HAMILTON-JACOBI'
-                            obj = LS_BackTracking_DimensionallyConsistent_HJ(settings);
+                            obj = LS_BackTracking_DimensionallyConsistent_HJ(cParams);
                         otherwise
-                            error('%s is NOT a valid unconstrained optimizer.',settings.optimizer);
+                            error('%s is NOT a valid unconstrained optimizer.',cParams.optimizer);
                     end
                 case 'DOUBLING LAST STEP'
-                    switch settings.optimizerUnconstrained
+                    switch cParams.optimizerUnconstrained
                         case 'PROJECTED GRADIENT'
-                            obj = LS_BackTracking_DoublingLastStep_PG(settings,settings.epsilon);
+                            obj = LS_BackTracking_DoublingLastStep_PG(cParams,cParams.epsilon);
                         case 'SLERP'
                             obj = LS_BackTracking_DoublingLastStep_SLERP;
                         case 'HAMILTON-JACOBI'
-                            obj = LS_BackTracking_DoublingLastStep_HJ(settings);
+                            obj = LS_BackTracking_DoublingLastStep_HJ(cParams);
                         otherwise
-                            error('%s is NOT a valid unconstrained optimizer.',settings.optimizer);
+                            error('%s is NOT a valid unconstrained optimizer.',cParams.optimizer);
                     end
                 otherwise
-                    error('%s is NOT a valid line-search algorithm.',settings.line_search);
+                    error('%s is NOT a valid line-search algorithm.',cParams.line_search);
             end
         end
     end

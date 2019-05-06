@@ -8,7 +8,7 @@ incrementalSchemeSettings = SettingsIncrementalScheme();
 incrementalSchemeSettings.nSteps = 1;
 
 optimizerSettings            = SettingsOptimizer();
-optimizerSettings.name       = 'AugmentedLagrangian';
+optimizerSettings.name       = 'AlternatingPrimalDual';
 optimizerSettings.shallPrint = true;
 optimizerSettings.settingsMonitor.showOptParams       = true;
 optimizerSettings.settingsMonitor.refreshInterval     = 2;

@@ -1,7 +1,7 @@
 classdef OptimizerAlternatingPrimalDual < Optimizer_PrimalDual
     
     properties (GetAccess = public, SetAccess = protected)
-        name = 'OptimizerAlternatingPrimalDual'
+        name = 'AlternatingPrimalDual'
     end
     
     properties (GetAccess = public, SetAccess = private)
