@@ -165,7 +165,7 @@ classdef SettingsTopOptProblem < AbstractSettings
         function lsS = createLineSearchSettings(obj,spS)
             lsS.scalarProductSettings = spS;
             lsS.line_search             = obj.settings.line_search;
-            lsS.optimizerUnconstrained  = obj.settings.optimizerUnconstrained;%obj.optimizerSettings.uncOptimizerSettings.type;
+            lsS.optimizerUnconstrained  = obj.optimizerSettings.uncOptimizerSettings.type;
             lsS.HJiter0         = obj.settings.HJiter0;
             lsS.filename        = obj.problemData.problemFileName;
             lsS.kappaMultiplier = obj.settings.kappaMultiplier;

@@ -1,7 +1,7 @@
 classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
     
     properties (GetAccess = public, SetAccess = protected)
-        name = 'OptimizerDualNestedInPrimal'
+        name = 'DualNestedInPrimal'
     end
     
     properties (Access = public)
