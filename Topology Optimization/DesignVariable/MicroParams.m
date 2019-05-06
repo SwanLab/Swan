@@ -3,8 +3,8 @@ classdef MicroParams < DesignVariable
     methods (Access = public)
         
         function obj = MicroParams(cParams)
+            obj.nVariables = 2;                        
             obj.init(cParams);
-            obj.nVariables = 2;            
             obj.createValue();
         end
         

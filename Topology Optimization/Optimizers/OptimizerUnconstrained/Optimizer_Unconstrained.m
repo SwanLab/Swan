@@ -69,16 +69,17 @@ classdef Optimizer_Unconstrained < handle
 
         
         function updateConvergenceParams(obj)
-            incrementNormL2  = obj.norm_L2(obj.designVariable.value,obj.designVariable.valueOld);
-            incrementObjFunc = obj.objectiveFunction.computeIncrement();
+            nIncX = obj.designVariable.computeL2normIncrement();
+            nIncF = obj.objectiveFunction.computeIncrement();
             
-            obj.designImproved = incrementObjFunc < 0 && incrementNormL2 < obj.maxIncrNormX;
+            obj.designImproved = nIncF < 0 && nIncX < obj.maxIncrNormX;
+            isLineSearchSmallerThanMin = obj.line_search.kappa <= obj.line_search.kappa_min;
             
-            obj.hasConverged = obj.designImproved || obj.line_search.kappa <= obj.line_search.kappa_min;
+            obj.hasConverged = obj.designImproved || isLineSearchSmallerThanMin;
             
             obj.convergenceVars.reset();
-            obj.convergenceVars.append(incrementObjFunc);
-            obj.convergenceVars.append(incrementNormL2);
+            obj.convergenceVars.append(nIncF);
+            obj.convergenceVars.append(nIncX);
             obj.convergenceVars.append(obj.line_search.kappa);
         end
         
@@ -87,18 +88,9 @@ classdef Optimizer_Unconstrained < handle
     methods (Access = private)        
         
         function initLineSearch(obj)
-            x0 = obj.designVariable.value;%valueOld;
+            x0 = obj.designVariable.value;
             g  = obj.objectiveFunction.gradient;
             obj.line_search.initKappa(x0,g);
-        end
-        
-    end
-    
-    methods (Access = public)
-        
-        function N_L2 = norm_L2(obj,x,x_ini)
-            inc_x = x-x_ini;
-            N_L2 = obj.scalar_product.computeSP_M(inc_x,inc_x)/obj.scalar_product.computeSP_M(x_ini,x_ini);
         end
         
     end

@@ -46,7 +46,9 @@ classdef NumericalHomogenizerDataBase < handle
             s.type = 'Density';
             s.levelSetCreatorSettings.type = 'full';       
             s.levelSetCreatorSettings.ndim  = s.mesh.ndim;
-            s.levelSetCreatorSettings.coord = s.mesh.coord;             
+            s.levelSetCreatorSettings.coord = s.mesh.coord;  
+            scalarPr.epsilon = 1e-3;
+            s.scalarProductSettings = scalarPr;            
             d.filterParams.designVar = DesignVariable.create(s);% Density(s);
             d.filename = obj.femFileName;
             d.domainType = 'MICRO';

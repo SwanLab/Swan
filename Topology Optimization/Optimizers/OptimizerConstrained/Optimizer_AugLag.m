@@ -44,10 +44,10 @@ classdef Optimizer_AugLag < Optimizer_PrimalDual
     methods (Access = private)
         
         function updatePrimalVariable(obj)
-            obj.designVariable.valueOld = obj.designVariable.value;                        
+            obj.designVariable.updateOld();                        
             obj.unconstrainedOptimizer.init();            
             while ~obj.unconstrainedOptimizer.hasConverged
-                obj.designVariable.value = obj.designVariable.valueOld;
+                obj.designVariable.restart();
                 obj.unconstrainedOptimizer.update();
             end
             obj.revertIfDesignNotImproved();
@@ -67,7 +67,7 @@ classdef Optimizer_AugLag < Optimizer_PrimalDual
         
         function revertIfDesignNotImproved(obj)
             if ~obj.unconstrainedOptimizer.designImproved
-                obj.designVariable.value = obj.designVariable.valueOld;
+                obj.designVariable.restart();
             end
         end
         

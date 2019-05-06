@@ -3,16 +3,17 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
     properties (GetAccess = public, SetAccess = protected)
         mesh
         type
+        nVariables                
     end
     
     properties (Access = public)
-        valueOld                        
         value        
-        nVariables
-        rho
+        rho        
     end
     
     properties (Access = private)
+        scalarProduct   
+        valueOld                                        
     end
     
     methods (Access = public, Abstract)
@@ -42,15 +43,35 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
             objClone = copy(obj);
         end
         
+        function norm = computeL2normIncrement(obj)
+           x = obj.value;
+           x0 = obj.valueOld;
+           incX  = x - x0;
+           nIncX = obj.scalarProduct.computeSP_M(incX,incX);
+           nX0   = obj.scalarProduct.computeSP_M(x0,x0);
+           norm  = nIncX/nX0;
+        end
+        
     end
     
     methods (Access = protected)
         
         function init(obj,cParams)
             obj.type = cParams.type;
-            obj.mesh = cParams.mesh;            
+            obj.mesh = cParams.mesh; 
+            cParams.scalarProductSettings.filename = obj.mesh.problemID;
+            cParams.scalarProductSettings.nVariables = obj.nVariables;
+            obj.createScalarProduct(cParams.scalarProductSettings);
         end
         
+        
+    end
+    
+    methods (Access = private)
+        
+        function createScalarProduct(obj,cParams)
+            obj.scalarProduct = ScalarProduct(cParams);        
+        end
         
     end
     

@@ -8,8 +8,8 @@ classdef LevelSet < DesignVariable
     methods (Access = public)
         
         function obj = LevelSet(cParams)
+            obj.nVariables = 1;            
             obj.init(cParams);
-            obj.nVariables = 1;
             obj.levelSetCreatorSettings = cParams.levelSetCreatorSettings;
             obj.createValue();
             obj.createUnfittedMesh();

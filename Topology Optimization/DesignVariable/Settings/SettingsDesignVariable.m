@@ -10,6 +10,7 @@ classdef SettingsDesignVariable < AbstractSettings
         type
         initialCase
         levelSetCreatorSettings        
+        scalarProductSettings        
     end
     
      methods (Access = public)

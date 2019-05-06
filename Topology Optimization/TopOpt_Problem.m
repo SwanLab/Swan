@@ -18,19 +18,14 @@ classdef TopOpt_Problem < handle
     methods (Access = public)
         
         function obj = TopOpt_Problem(cParams)
+            obj.createIncrementalScheme(cParams);
             obj.createDesignVariable(cParams);
             obj.createDualVariable(cParams);            
             obj.createHomogenizedVarComputer(cParams)
-            obj.createIncrementalScheme(cParams);
-            
             obj.createCostAndConstraint(cParams);
-            
             obj.createOptimizer(cParams);
-            
             obj.createVideoManager(cParams);
         end
-        
-        
         
         function createOptimizer(obj,settings)
             obj.createOptimizerSettings(settings);
@@ -84,6 +79,7 @@ classdef TopOpt_Problem < handle
         
         function createDesignVariable(obj,cParams)
             s = cParams.designVarSettings;
+            s.scalarProductSettings.epsilon  = obj.incrementalScheme.targetParams.epsilon;
             obj.designVariable = DesignVariable.create(s);
         end
         
