@@ -121,9 +121,9 @@ classdef Optimizer_IPOPT < Optimizer
         end
         
         function updateIpoptOptions(obj)
-            obj.ipopt.constr_viol_tol = obj.obtainConstraintTolerance();
-            obj.ipopt.compl_inf_tol   = obj.obtainConstraintTolerance();
-            obj.ipopt.tol             = obj.obtainOptimalityTolerance();            
+            obj.options.constr_viol_tol = obj.obtainConstraintTolerance();
+            obj.options.compl_inf_tol   = obj.obtainConstraintTolerance();
+            obj.options.tol             = obj.obtainOptimalityTolerance();            
         end
         
         function ot = obtainOptimalityTolerance(obj)
@@ -131,7 +131,8 @@ classdef Optimizer_IPOPT < Optimizer
         end
         
         function ct = obtainConstraintTolerance(obj)
-            ct = obj.targetParameters.constr_tol*1e-1;
+            constrTol = obj.targetParameters.constr_tol;
+            ct = 0.1*constrTol;
         end
         
     end
