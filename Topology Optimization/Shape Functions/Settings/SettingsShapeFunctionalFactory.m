@@ -4,23 +4,21 @@ classdef SettingsShapeFunctionalFactory < handle
         
         function s = create(obj,cParams,settings)
             switch cParams.type
-                case 'compliance'
-                    s = SettingsShapeFunctional();
-                case 'perimeter'
+                case {'compliance','perimeter','volume','volumeConstraint',...
+                        'chomog_CC','enforceCh_CCstar_L2','nonadjoint_compliance'}
                     s = SettingsShapeFunctional();
                 case 'perimeterConstraint'
                     s = SettingsShFunc_PerimeterConstraint();
                     s.Perimeter_target = settings.Perimeter_target;
-                case 'chomog_alphabeta'
+                case {'chomog_alphabeta','chomog_fraction'}
                     s = SettingsShFunc_Chomog();
-                    s.alpha = settings.micro.alpha;
-                    s.beta = settings.micro.beta;
-                case 'chomog_fraction'
-                    s = SettingsShFunc_Chomog();
-                    s.alpha = settings.micro.alpha;
-                    s.beta = settings.micro.beta;
-                case 'chomog_CC'
-                    s = SettingsShapeFunctional();
+                    if settings.isOld
+                        s.alpha = settings.micro.alpha;
+                        s.beta = settings.micro.beta;
+                    else
+                        s.alpha = cParams.alpha;
+                        s.beta = cParams.beta;
+                    end
                 case 'enforceCh_CCstar_inf'
                     % !! INCOMPLET !!
                     obj.cParams = SettingsShapeFunctional();
@@ -42,14 +40,6 @@ classdef SettingsShapeFunctionalFactory < handle
                         s = ShFunc_Chomog_EnforceCh_CCstar_eq(obj.settings,i);
                         iSF = iSF+1;
                     end
-                case 'enforceCh_CCstar_L2'
-                    s = SettingsShapeFunctional();
-                case 'nonadjoint_compliance'
-                    s = SettingsShapeFunctional();
-                case 'volume'
-                   s = SettingsShapeFunctional();
-                case 'volumeConstraint'
-                    s = SettingsShapeFunctional();
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end
