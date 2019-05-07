@@ -51,7 +51,7 @@ classdef NumericalHomogenizerDataBase < handle
             s.scalarProductSettings = scalarPr;            
             d.filterParams.designVar = DesignVariable.create(s);% Density(s);
             d.filename = obj.femFileName;
-            d.domainType = 'MICRO';
+            d.scale = 'MICRO';
             
             sHomog.type                   = 'ByInterpolation';
             sHomog.interpolation          = dI.materialInterpDataBase.materialInterpolation;

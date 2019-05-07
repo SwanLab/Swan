@@ -18,9 +18,9 @@ classdef ShapeFunctional < handle
         
     methods (Access = public, Static)
         
-        function obj = create(type,settings,designVariable,homogVarComputer,targetParameters)
+        function obj = create(cParams,settings)
             f = ShapeFunctional_Factory();
-            obj = f.create(type,settings,designVariable,homogVarComputer,targetParameters);
+            obj = f.create(cParams,settings);
         end
         
     end
@@ -39,7 +39,7 @@ classdef ShapeFunctional < handle
         
         function init(obj,cParams)
             obj.createFilter(cParams.filterParams);
-            obj.createMsmoothAndDvolu(cParams.filename, cParams.domainType);
+            obj.createMsmoothAndDvolu(cParams.filename, cParams.scale);
             obj.homogenizedVariablesComputer = cParams.homogVarComputer;
             obj.designVariable = cParams.designVariable;
             obj.target_parameters = cParams.targetParameters;

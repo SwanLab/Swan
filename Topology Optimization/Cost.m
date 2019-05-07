@@ -7,9 +7,8 @@ classdef Cost < CC
     methods (Access = public)
         
         function obj = Cost(cParams)
-            cParams.shapeFuncList = cParams.settings.cost;
             obj.init(cParams);            
-            obj.setWeights(cParams.settings.weights);
+            obj.setWeights(cParams.weights);
         end
         
     end

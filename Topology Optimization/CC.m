@@ -51,7 +51,7 @@ classdef CC < handle & matlab.mixin.Copyable
         
         function obj = init(obj,cParams)
             obj.nSF   = 0;
-            obj.sizeDesigVar = size(cParams.designVariable.value);            
+            obj.sizeDesigVar = size(cParams.designVar.value);            
             obj.createShapeFunctions(cParams);
         end        
         
@@ -65,15 +65,14 @@ classdef CC < handle & matlab.mixin.Copyable
         end
         
         function createShapeFunctions(obj,cParams)
-            settings         = cParams.settings;
-            shapeFuncList    = cParams.shapeFuncList;
-            designVariable   = cParams.designVariable;
-            homogVarComputer = cParams.homogenizedVarComputer;
-            targetParameters = cParams.targetParameters;            
-            nShapeFunctions = length(shapeFuncList);
-            for is = 1:nShapeFunctions
-                name          = shapeFuncList{is};
-                shapeFunction = ShapeFunctional.create(name,settings,designVariable,homogVarComputer,targetParameters);
+            settings         = cParams.settings;       
+            nS = cParams.nShapeFuncs;
+            for iS = 1:nS
+                s = cParams.shapeFuncSettings{iS};
+                s.designVariable = cParams.designVar;
+                s.homogVarComputer = cParams.homogenizedVarComputer;
+                s.targetParameters = cParams.targetParameters;
+                shapeFunction = ShapeFunctional.create(s,settings);
                 obj.append(shapeFunction);
             end
         end

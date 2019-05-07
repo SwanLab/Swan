@@ -10,6 +10,8 @@ classdef SettingsTopOptProblem < AbstractSettings
         designVarSettings
         homogenizedVarComputerSettings
         incrementalSchemeSettings
+        costSettings
+        constraintSettings
         optimizerSettings
         videoManagerSettings
     end
@@ -36,6 +38,8 @@ classdef SettingsTopOptProblem < AbstractSettings
             obj.createDesignVarSettings();
             obj.createHomogenizedVarComputerSettings();
             obj.createIncrementalSchemeSettings();
+            obj.createCostSettings();
+            obj.createConstraintSettings();
             obj.createOptimizerSettings();
             obj.createVideoManagerSettings();
         end
@@ -69,6 +73,7 @@ classdef SettingsTopOptProblem < AbstractSettings
             if obj.isOld
                 obj.problemData.problemFileName = obj.settings.filename;
                 obj.problemData.caseFileName = obj.settings.case_file;
+                obj.problemData.scale = obj.settings.ptype;
             else
                 obj.problemData.caseFileName = obj.loadedFile;
             end
@@ -102,6 +107,54 @@ classdef SettingsTopOptProblem < AbstractSettings
             obj.incrementalSchemeSettings.shallPrintIncremental = obj.settings.printIncrementalIter;
             
             obj.incrementalSchemeSettings.mesh = obj.mesh;
+        end
+        
+        function createCostSettings(obj)
+            if obj.isOld
+                weights = obj.settings.weights;
+                for i = 1:length(obj.settings.cost)
+                    sfS{i} = struct('type',obj.settings.cost{i});
+                end
+            else
+                sfS = obj.costSettings.shapeFuncSettings;
+                weights = obj.costSettings.weights;
+            end
+            obj.costSettings = struct;
+            obj.costSettings.settings = obj.settings;
+            obj.costSettings.weights  = weights;
+            obj.costSettings.shapeFuncSettings = obj.createShapeFunctionsSettings(sfS);
+            obj.costSettings.nShapeFuncs = length(obj.costSettings.shapeFuncSettings);
+            
+        end
+        
+        function createConstraintSettings(obj)
+            if obj.isOld
+                for i = 1:length(obj.settings.constraint)
+                    sfS{i} = struct('type',obj.settings.constraint{i});
+                end
+            else
+                sfS = obj.constraintSettings.shapeFuncSettings;
+            end
+            obj.constraintSettings = struct;
+            obj.constraintSettings.settings = obj.settings;
+            obj.constraintSettings.shapeFuncSettings = obj.createShapeFunctionsSettings(sfS);
+            obj.constraintSettings.nShapeFuncs = length(obj.constraintSettings.shapeFuncSettings);
+        end
+        
+        function cParams = createShapeFunctionsSettings(obj,s)
+            nSF = length(s);
+            cParams = cell(nSF,1);
+            for iSF = 1:nSF
+                s{iSF}.filename = obj.problemData.problemFileName;
+                s{iSF}.scale = obj.problemData.scale;
+                s{iSF}.filterParams = obj.createFilterSettings();
+                cParams{iSF} = SettingsShapeFunctional().create(s{iSF},obj.settings);
+            end
+        end
+        
+        function s = createFilterSettings(obj)
+            s = SettingsFilter();
+            s.filterType = obj.settings.filter;
         end
         
         function createOptimizerSettings(obj)
