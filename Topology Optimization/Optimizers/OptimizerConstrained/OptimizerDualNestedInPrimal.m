@@ -3,15 +3,10 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
     properties (GetAccess = public, SetAccess = protected)
         name = 'DualNestedInPrimal'
     end
-    
-    properties (Access = public)
-        unconstrainedOptimizer
-    end
-    
+
     properties (Access = private)
         desVarChangedValue
         costIncrease
-        lagrangian
         constraintProjector
     end
     
@@ -24,19 +19,17 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             obj.createConstraintProjector();
         end
         
-        
-        
         function update(obj)
             obj.updateLagrangian();
             
             obj.unconstrainedOptimizer.init();
-
+            
             obj.designVariable.updateOld();
-            obj.dualVariable.updateOld();            
+            obj.dualVariable.updateOld();
             
             obj.cost.updateOld();
             obj.constraint.updateOld();
-                        
+            
             obj.updateLagrangian();
             obj.lagrangian.updateOld();
             
@@ -62,28 +55,26 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
         
     end
     
-    methods (Access = private)
+    methods (Access = protected)
         
-        
-        function createLagrangian(obj)
+        function createLagrangianSettings(obj)
+            cParams.type         = 'Lagrangian';            
             cParams.cost         = obj.cost;
             cParams.constraint   = obj.constraint;
             cParams.dualVariable = obj.dualVariable;
-            obj.lagrangian = Lagrangian(cParams);
-        end
+            obj.lagrangianSettings = cParams;
+        end        
         
-        function createOptimizerUnconstrained(obj,cParams)
-            cParams.lagrangian      = obj.lagrangian;
-            cParams.convergenceVars = obj.convergenceVars;
-            obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams);
-        end
+    end
+    
+    methods (Access = private)
         
         function createConstraintProjector(obj)
-            cParams.cost        = obj.cost;
-            cParams.constraint  = obj.constraint;
+            cParams.cost           = obj.cost;
+            cParams.constraint     = obj.constraint;
             cParams.designVariable = obj.designVariable;
-            cParams.dualVariable = obj.dualVariable;
-            cParams.lagrangian  = obj.lagrangian;
+            cParams.dualVariable   = obj.dualVariable;
+            cParams.lagrangian     = obj.lagrangian;
             cParams.targetParameters = obj.targetParameters;
             cParams.unconstrainedOptimizer = obj.unconstrainedOptimizer;
             obj.constraintProjector = ConstraintProjector(cParams);
@@ -91,17 +82,10 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
         
         function computeValue(obj)
             obj.constraintProjector.project();
-            obj.cost.computeCostAndGradient();            
+            obj.cost.computeCostAndGradient();
             obj.updateLagrangian();
         end
-        
-        function updateConvergenceStatus(obj)
-            isNotOptimal  = obj.unconstrainedOptimizer.opt_cond >=  obj.unconstrainedOptimizer.optimality_tol;
-            isNotFeasible = any(any(abs(obj.constraint.value()) > obj.unconstrainedOptimizer.constr_tol()));
-            hasNotConverged = isNotOptimal || isNotFeasible;
-            obj.hasConverged = ~hasNotConverged;
-        end
-        
+         
         function itHas = hasUnconstraintedOptimizerConverged(obj)
             itHas = obj.isStepAcceptable() || obj.isLineSeachTooSmall();
         end
@@ -117,13 +101,11 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             kappa_min = obj.unconstrainedOptimizer.line_search.kappa_min;
             itIs = kappa <= kappa_min;
         end
-        
-       
+                
         function updateLagrangian(obj)
             obj.lagrangian.computeFunction();
             obj.lagrangian.computeGradient();
-        end
-        
+        end        
         
     end
 end

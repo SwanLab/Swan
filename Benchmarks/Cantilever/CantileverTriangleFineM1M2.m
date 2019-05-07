@@ -18,7 +18,7 @@ printing = false;
 monitoring_interval = 1;
 maxiter = 50;
 
-option = 'D';
+option = 'C';
 switch option
     case 'A'
         optimizer = 'DualNestedInPrimal';
@@ -48,20 +48,20 @@ switch option
         ub = 0.98;
         lb = 0.02;
         %kfrac = 1.05;
-        nsteps = 20;
+        nsteps = 1;
         homegenizedVariablesComputer = 'ByVademecum';
         vademecumFileName = 'SmoothRectangle';  
-        maxiter = 10;        
+        maxiter = 1000;        
     case 'D'
         optimizer = 'MMA';
         designVariable = 'MicroParams';
         ub = 0.98;
         lb = 0.02;
         %kfrac = 1.05;
-        nsteps = 20;
+        nsteps = 10;
         homegenizedVariablesComputer = 'ByVademecum';
         vademecumFileName = 'SmoothRectangle';  
-        maxiter = 100;        
+        maxiter = 1000;        
         
     case 'E'
         optimizer = 'AlternatingPrimalDual';
@@ -73,7 +73,7 @@ switch option
         nsteps = 20;
         homegenizedVariablesComputer = 'ByVademecum';
         vademecumFileName = 'SmoothRectangle';  
-        maxiter = 10;        
+        maxiter = 1000;        
 end
 
 

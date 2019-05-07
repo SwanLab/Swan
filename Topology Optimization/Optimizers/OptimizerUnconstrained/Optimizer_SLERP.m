@@ -83,10 +83,10 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         
     end
     
-    methods
+    methods (Access = protected)
         
-        function optimality_tol = get.optimality_tol(obj)
-            optimality_tol = (0.0175/1e-3)*obj.targetParameters.optimality_tol;
+        function opt = obtainOptimalityTolerance(obj)
+            opt = (0.0175/1e-3)*obj.targetParameters.optimality_tol;            
         end
         
     end

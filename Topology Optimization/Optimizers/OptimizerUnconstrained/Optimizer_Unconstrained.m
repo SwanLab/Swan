@@ -42,6 +42,14 @@ classdef Optimizer_Unconstrained < handle
         
     end
     
+    methods (Access = protected)
+        
+        function opt = obtainOptimalityTolerance(obj)
+            opt = obj.targetParameters.optimality_tol;            
+        end
+
+    end
+    
     methods (Access = public)
         
         function obj = Optimizer_Unconstrained(cParams) 
@@ -110,12 +118,13 @@ classdef Optimizer_Unconstrained < handle
         end
         
         function computeIncrements(obj)
-            obj.incX = obj.designVariable.computeL2normIncrement();
+            normXsquare = obj.designVariable.computeL2normIncrement();
+            obj.incX = sqrt(normXsquare);
             obj.incF = obj.objectiveFunction.computeIncrement();
         end
         
         function itIs = isOptimal(obj)
-            optimTol = obj.optimality_tol;
+            optimTol = obj.obtainOptimalityTolerance();
             optCond  = obj.opt_cond;
             isNot = optCond >= optimTol;
             itIs = ~isNot;

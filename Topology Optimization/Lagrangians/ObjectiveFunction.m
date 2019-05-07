@@ -15,6 +15,15 @@ classdef ObjectiveFunction < handle
         valueOld        
     end
     
+    methods (Access = public, Static)
+        
+        function obj = create(cParams)
+            f = ObjectiveFunctionFactory();
+            obj = f.create(cParams);            
+        end
+        
+    end
+    
     methods (Access = protected)
         
         function init(obj,cParams)
