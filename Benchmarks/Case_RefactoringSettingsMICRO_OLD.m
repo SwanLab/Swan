@@ -25,7 +25,7 @@ constr_final =1e-3;
 Vfrac_initial = 0.5;
 optimality_initial = 1e-2;
 constr_initial = 1e-2;
-Perimeter_target = 5;
+% Perimeter_target = 5;
 
 TOL.rho_plus = 1;
 TOL.rho_minus = 0;

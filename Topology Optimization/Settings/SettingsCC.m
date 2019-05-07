@@ -15,7 +15,7 @@ classdef SettingsCC < AbstractSettings
     
     methods (Access = public)
         
-        function obj = SettingsCost(varargin)
+        function obj = SettingsCC(varargin)
             if nargin == 1
                 obj.loadParams(varargin{1});
             end

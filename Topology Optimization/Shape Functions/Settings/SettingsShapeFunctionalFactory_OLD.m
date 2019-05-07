@@ -1,19 +1,19 @@
-classdef SettingsShapeFunctionalFactory < handle
+classdef SettingsShapeFunctionalFactory_OLD < handle
     
     methods (Access = public)
         
-        function s = create(obj,cParams)
+        function s = create(obj,cParams,settings)
             switch cParams.type
                 case {'compliance','perimeter','volume','volumeConstraint',...
                         'chomog_CC','enforceCh_CCstar_L2','nonadjoint_compliance'}
                     s = SettingsShapeFunctional();
                 case 'perimeterConstraint'
                     s = SettingsShFunc_PerimeterConstraint();
-                    s.Perimeter_target = cParams.PerimeterTarget;
+                    s.Perimeter_target = settings.Perimeter_target;
                 case {'chomog_alphabeta','chomog_fraction'}
                     s = SettingsShFunc_Chomog();
-                    s.alpha = cParams.alpha;
-                    s.beta = cParams.beta;
+                    s.alpha = settings.micro.alpha;
+                    s.beta = settings.micro.beta;
                 case 'enforceCh_CCstar_inf'
                     % !! INCOMPLET !!
                     obj.cParams = SettingsShapeFunctional();
@@ -38,7 +38,9 @@ classdef SettingsShapeFunctionalFactory < handle
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end
+            
             s = obj.setCommonParams(s,cParams);
+            
         end
         
     end
