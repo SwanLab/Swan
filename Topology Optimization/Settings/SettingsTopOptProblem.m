@@ -119,7 +119,7 @@ classdef SettingsTopOptProblem < AbstractSettings
                 sfS = obj.costSettings.shapeFuncSettings;
                 weights = obj.costSettings.weights;
             end
-            obj.costSettings = struct;
+            obj.costSettings = SettingsCost();
             obj.costSettings.settings = obj.settings;
             obj.costSettings.weights  = weights;
             obj.costSettings.shapeFuncSettings = obj.createShapeFunctionsSettings(sfS);
@@ -135,7 +135,7 @@ classdef SettingsTopOptProblem < AbstractSettings
             else
                 sfS = obj.constraintSettings.shapeFuncSettings;
             end
-            obj.constraintSettings = struct;
+            obj.constraintSettings = SettingsConstraint();
             obj.constraintSettings.settings = obj.settings;
             obj.constraintSettings.shapeFuncSettings = obj.createShapeFunctionsSettings(sfS);
             obj.constraintSettings.nShapeFuncs = length(obj.constraintSettings.shapeFuncSettings);

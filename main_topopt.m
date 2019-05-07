@@ -12,10 +12,11 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 clear variables;
 
 %% Main
-%settings = Settings('Case_RefactoringSettings_OLD');
+% settings = Settings('Case_RefactoringSettings_OLD');
+% settingsTopOpt = SettingsTopOptProblem('Case_RefactoringSettings_A',settings);
 
-settings = Settings('CantileverTriangleFine_Case_4_1_1');  
-settingsTopOpt = SettingsTopOptProblem('Case_RefactoringSettings_A',settings);
+settings = Settings('Case_RefactoringSettingsMICRO_OLD');
+settingsTopOpt = SettingsTopOptProblem('Case_RefactoringSettingsMICRO_A',settings);
 
 topOptProblem = TopOpt_Problem(settingsTopOpt);
 topOptProblem.computeVariables;
