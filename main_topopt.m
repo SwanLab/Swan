@@ -12,7 +12,8 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 clear variables;
 
 %% Main
-settings = Settings('Case_RefactoringSettings_OLD');
+%settings = Settings('Case_RefactoringSettings_OLD');
+settings = Settings('BikeTriangle_1_1_1');  
 settingsTopOpt = SettingsTopOptProblem('Case_RefactoringSettings_A',settings);
 
 topOptProblem = TopOpt_Problem(settingsTopOpt);

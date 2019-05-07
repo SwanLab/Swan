@@ -27,18 +27,19 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
         
         
         function update(obj)
-            obj.updateObjFunc();
+            obj.updateLagrangian();
             
             obj.unconstrainedOptimizer.init();
+
+            obj.designVariable.updateOld();
+            obj.dualVariable.updateOld();            
             
             obj.cost.updateOld();
             obj.constraint.updateOld();
-            obj.designVariable.updateOld();
-            obj.dualVariable.updateOld();
-            
-            
-            obj.updateObjFunc();
+                        
+            obj.updateLagrangian();
             obj.lagrangian.updateOld();
+            
             
             
             obj.computeValue();
@@ -90,7 +91,8 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
         
         function computeValue(obj)
             obj.constraintProjector.project();
-            obj.updateObjFunc();
+            obj.cost.computeCostAndGradient();            
+            obj.updateLagrangian();
         end
         
         function updateConvergenceStatus(obj)
@@ -117,7 +119,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
         end
         
        
-        function updateObjFunc(obj)
+        function updateLagrangian(obj)
             obj.lagrangian.computeFunction();
             obj.lagrangian.computeGradient();
         end

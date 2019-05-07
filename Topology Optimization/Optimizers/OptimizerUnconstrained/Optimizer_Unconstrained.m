@@ -24,6 +24,11 @@ classdef Optimizer_Unconstrained < handle
         xOld
     end
     
+    properties (Access = private)
+       incX
+       incF
+    end
+    
     methods (Access = public, Abstract)
         compute(obj)
     end
@@ -72,18 +77,41 @@ classdef Optimizer_Unconstrained < handle
         end
         
         function updateConvergenceParams(obj)
-            nIncX = obj.designVariable.computeL2normIncrement();
-            nIncF = obj.objectiveFunction.computeIncrement();
-            
-            obj.designImproved = nIncF < 0 && nIncX < obj.maxIncrNormX;
-            isLineSearchSmallerThanMin = obj.line_search.kappa <= obj.line_search.kappa_min;
-            
-            obj.hasConverged = obj.designImproved || isLineSearchSmallerThanMin;
-            
+            obj.computeIncrements();
+            obj.computeOptimizerFlagConvergence(); 
+            obj.storeConvergenceVariablesValues();            
+        end
+        
+        function storeConvergenceVariablesValues(obj)
             obj.convergenceVars.reset();
-            obj.convergenceVars.append(nIncF);
-            obj.convergenceVars.append(nIncX);
-            obj.convergenceVars.append(obj.line_search.kappa);
+            obj.convergenceVars.append(obj.incF);
+            obj.convergenceVars.append(obj.incX);
+            obj.convergenceVars.append(obj.line_search.kappa);            
+        end
+        
+        function computeOptimizerFlagConvergence(obj)
+            costDecreased = obj.hasCostDecreased();
+            smallChangeX  = obj.isVariableChangeSmall();
+            isValidIter   = costDecreased && smallChangeX;
+            isLineSearchSmall = obj.isLineSearchSmallerThanMin;
+            obj.hasConverged = isValidIter || isLineSearchSmall;            
+        end
+        
+        function itHas = hasCostDecreased(obj)
+            itHas = obj.incF < 0;
+        end
+        
+        function itIs = isVariableChangeSmall(obj)
+            itIs = obj.incX < obj.maxIncrNormX;
+        end
+        
+        function itIs = isLineSearchSmallerThanMin(obj)
+           itIs = obj.line_search.kappa <= obj.line_search.kappa_min;
+        end
+        
+        function computeIncrements(obj)
+            obj.incX = obj.designVariable.computeL2normIncrement();
+            obj.incF = obj.objectiveFunction.computeIncrement();
         end
         
     end

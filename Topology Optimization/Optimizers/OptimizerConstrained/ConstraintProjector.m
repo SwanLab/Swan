@@ -42,33 +42,24 @@ classdef ConstraintProjector < handle
         end
         
         function fval = computeFeasibleDesignVariable(obj,lambda)
-            obj.restartValues();
+            obj.designVariable.restart();
+            obj.constraint.restart();
             obj.dualVariable.value = lambda;
-            obj.updatePrimalVariableBecauseOfDual();
+            obj.lagrangian.computeGradient();            
+            obj.updateDesignVariable();
             obj.constraint.computeCostAndGradient();
             fval = obj.constraint.value;
         end
         
-        function updatePrimalVariableBecauseOfDual(obj)
-            obj.lagrangian.computeGradient();
+        function updateDesignVariable(obj)
             obj.unconstrainedOptimizer.hasConverged = false;            
             obj.unconstrainedOptimizer.compute();
             obj.unconstrainedOptimizer.updateConvergenceParams();
         end        
         
         function restartValues(obj)
-            obj.designVariable.restart();
-            obj.dualVariable.restart();
-            obj.cost.restart();
-            obj.constraint.restart();
-            obj.updateObjFunc();
+
         end
-        
-        function updateObjFunc(obj)
-            obj.lagrangian.computeGradient();
-            obj.lagrangian.computeFunction();
-        end
-        
         
     end
  
