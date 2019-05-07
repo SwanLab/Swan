@@ -65,17 +65,13 @@ classdef CC < handle & matlab.mixin.Copyable
         end
         
         function createShapeFunctions(obj,cParams)
-            settings         = cParams.settings;
-            shapeFuncList    = cParams.shapeFuncList;
-            designVar   = cParams.designVar;
-            homogVarComputer = cParams.homogenizedVarComputer;
-            targetParameters = cParams.targetParameters;            
-            nS = length(shapeFuncList);
+            settings         = cParams.settings;       
+            nS = cParams.nShapeFuncs;
             for iS = 1:nS
                 s = cParams.shapeFuncSettings{iS};
-                s.designVariable = designVar;
-                s.homogVarComputer = homogVarComputer;
-                s.targetParameters = targetParameters;
+                s.designVariable = cParams.designVar;
+                s.homogVarComputer = cParams.homogenizedVarComputer;
+                s.targetParameters = cParams.targetParameters;
                 shapeFunction = ShapeFunctional.create(s,settings);
                 obj.append(shapeFunction);
             end

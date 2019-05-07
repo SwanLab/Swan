@@ -15,30 +15,20 @@ classdef ShapeFunctional_Factory
             obj.designVar = cParams.designVariable;
             obj.homogVarComputer = cParams.homogVarComputer;
             obj.targetParameters = cParams.targetParameters;
+            
+            cParams.filterParams.designVar = cParams.designVariable;
             switch cParams.type
                 case 'compliance'
-                    obj.cParams = SettingsShapeFunctional();
-                    obj.addParamsFromSettings();
-                    sF = ShFunc_Compliance(obj.cParams);
+                    sF = ShFunc_Compliance(cParams);
                 case 'perimeter'
-                    obj.cParams = SettingsShapeFunctional();
-                    obj.addParamsFromSettings();
-                    sF = ShFunc_Perimeter(obj.cParams);
+                    sF = ShFunc_Perimeter(cParams);
                 case 'perimeterConstraint'
-                    cParams.filterParams.designVar = cParams.designVariable;
                     sF = Perimeter_constraint(cParams);
                 case 'chomog_alphabeta'
-                    cParams.filterParams.designVar = cParams.designVariable;
                     sF = ShFunc_Chomog_alphabeta(cParams);
                 case 'chomog_fraction'
-                    obj.cParams = SettingsShFunc_Chomog();
-                    obj.addParamsFromSettings();
-                    obj.cParams.alpha = obj.settings.micro.alpha;
-                    obj.cParams.beta  = obj.settings.micro.beta;
-                    sF = ShFunc_Chomog_fraction(obj.cParams);
+                    sF = ShFunc_Chomog_fraction(cParams);
                 case 'chomog_CC'
-                    obj.cParams = SettingsShapeFunctional();
-                    obj.addNamePtype()
                     sF = ShFunc_Chomog_CC();
                 case 'enforceCh_CCstar_inf'
                     obj.cParams = SettingsShapeFunctional();
@@ -52,27 +42,17 @@ classdef ShapeFunctional_Factory
                         iSF = iSF+1;
                     end
                 case 'enforceCh_CCstar_eq'
-                    obj.cParams = SettingsShapeFunctional();
-                    obj.addNamePtype()
-                    obj.createFilterParams();
-                    for i=1:6
+                    for i = 1:6
                         sF=ShFunc_Chomog_EnforceCh_CCstar_eq(obj.settings,i);
                         iSF = iSF+1;
                     end
                 case 'enforceCh_CCstar_L2'
-                    obj.cParams = SettingsShapeFunctional();
-                    obj.addParamsFromSettings();
-                    sF = ShFunc_Chomog_EnforceCh_CCstar_L2(obj.cParams);
+                    sF = ShFunc_Chomog_EnforceCh_CCstar_L2(cParams);
                 case 'nonadjoint_compliance'
-                    obj.cParams = SettingsShapeFunctional();
-                    obj.addParamsFromSettings();
-                    sF = ShFunc_NonSelfAdjoint_Compliance(obj.cParams);
+                    sF = ShFunc_NonSelfAdjoint_Compliance(cParams);
                 case 'volume'
-                    obj.cParams = SettingsShapeFunctional();
-                    obj.addParamsFromSettings();
-                    sF = ShFunc_Volume(obj.cParams);
+                    sF = ShFunc_Volume(cParams);
                 case 'volumeConstraint'
-                    cParams.filterParams.designVar = cParams.designVariable;
                     sF = Volume_constraint(cParams);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')

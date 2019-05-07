@@ -1,17 +1,15 @@
 classdef SettingsShFunc_PerimeterConstraint < SettingsShapeFunctional
-
-    properties
+    
+    properties (Access = public)
         Perimeter_target
     end
     
-     methods (Access = public)
+    methods (Access = public)
         
         function obj = SettingsShFunc_PerimeterConstraint(varargin)
             obj.defaultParamsName = 'paramsShapeFunctional_PerimeterConstraint';
-            switch nargin
-                case 0
-                    obj.loadParams(obj.defaultParamsName);
-                case 1
+            obj.type = 'perimeterConstraint';
+            if nargin == 1
                     obj.loadParams(varargin{1});
             end
         end

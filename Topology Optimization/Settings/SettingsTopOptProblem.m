@@ -110,40 +110,46 @@ classdef SettingsTopOptProblem < AbstractSettings
         end
         
         function createCostSettings(obj)
-            obj.costSettings.settings = obj.settings;
             if obj.isOld
-                obj.costSettings.weights = obj.settings.weights;
-                obj.costSettings.shapeFuncList = obj.settings.cost;
+                weights = obj.settings.weights;
+                for i = 1:length(obj.settings.cost)
+                    sfS{i} = struct('type',obj.settings.cost{i});
+                end
+            else
+                sfS = obj.costSettings.shapeFuncSettings;
+                weights = obj.costSettings.weights;
             end
-            
-            obj.costSettings.shapeFuncSettings{1} = SettingsShFunc_Chomog();
-            obj.costSettings.shapeFuncSettings{1}.type = 'chomog_alphabeta';
-            obj.costSettings.shapeFuncSettings{1}.filename = obj.problemData.problemFileName;
-            obj.costSettings.shapeFuncSettings{1}.scale = obj.problemData.scale;
-            obj.costSettings.shapeFuncSettings{1}.filterParams = obj.createFilterSettings();
-            obj.costSettings.shapeFuncSettings{1}.alpha = obj.settings.micro.alpha;
-            obj.costSettings.shapeFuncSettings{1}.beta = obj.settings.micro.beta;
-            
-            obj.costSettings.shapeFuncSettings{2} = SettingsShFunc_PerimeterConstraint();
-            obj.costSettings.shapeFuncSettings{2}.type = 'perimeterConstraint';
-            obj.costSettings.shapeFuncSettings{2}.filename = obj.problemData.problemFileName;
-            obj.costSettings.shapeFuncSettings{2}.scale = obj.problemData.scale;
-            obj.costSettings.shapeFuncSettings{2}.filterParams = obj.createFilterSettings();
-            obj.costSettings.shapeFuncSettings{2}.Perimeter_target = obj.settings.Perimeter_target;
+            obj.costSettings = struct;
+            obj.costSettings.settings = obj.settings;
+            obj.costSettings.weights  = weights;
+            obj.costSettings.shapeFuncSettings = obj.createShapeFunctionsSettings(sfS);
+            obj.costSettings.nShapeFuncs = length(obj.costSettings.shapeFuncSettings);
             
         end
         
         function createConstraintSettings(obj)
-            obj.constraintSettings.settings = obj.settings;
             if obj.isOld
-                obj.constraintSettings.shapeFuncList = obj.settings.constraint;
+                for i = 1:length(obj.settings.constraint)
+                    sfS{i} = struct('type',obj.settings.constraint{i});
+                end
+            else
+                sfS = obj.constraintSettings.shapeFuncSettings;
             end
-            
-            obj.constraintSettings.shapeFuncSettings{1} = SettingsShapeFunctional();
-            obj.constraintSettings.shapeFuncSettings{1}.type = 'volumeConstraint';
-            obj.constraintSettings.shapeFuncSettings{1}.filename = obj.problemData.problemFileName;
-            obj.constraintSettings.shapeFuncSettings{1}.scale = obj.problemData.scale;
-            obj.constraintSettings.shapeFuncSettings{1}.filterParams = obj.createFilterSettings();     
+            obj.constraintSettings = struct;
+            obj.constraintSettings.settings = obj.settings;
+            obj.constraintSettings.shapeFuncSettings = obj.createShapeFunctionsSettings(sfS);
+            obj.constraintSettings.nShapeFuncs = length(obj.constraintSettings.shapeFuncSettings);
+        end
+        
+        function cParams = createShapeFunctionsSettings(obj,s)
+            nSF = length(s);
+            cParams = cell(nSF,1);
+            for iSF = 1:nSF
+                s{iSF}.filename = obj.problemData.problemFileName;
+                s{iSF}.scale = obj.problemData.scale;
+                s{iSF}.filterParams = obj.createFilterSettings();
+                cParams{iSF} = SettingsShapeFunctional().create(s{iSF},obj.settings);
+            end
         end
         
         function s = createFilterSettings(obj)

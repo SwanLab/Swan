@@ -8,8 +8,13 @@ designVarSettings.initialCase = 'full';
 incrementalSchemeSettings = SettingsIncrementalScheme();
 incrementalSchemeSettings.nSteps = 1;
 
-costSettings.shapeFuncList = {'compliance'};
+costSettings.shapeFuncSettings = {
+    struct('type','compliance')%,...
+%     struct('type','perimeter')
+    };
 costSettings.weights = [1 0.1];
+
+constraintSettings.shapeFuncSettings = {struct('type','volume')};
 
 optimizerSettings            = SettingsOptimizer();
 optimizerSettings.name       = 'AlternatingPrimalDual';
