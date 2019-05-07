@@ -26,12 +26,16 @@ classdef Optimizer_MMA < Optimizer
         df0dx
         fval
         dfdx
+        upperBound
+        lowerBound
     end
     
     methods (Access = public)
         
         function obj = Optimizer_MMA(cParams)     
             obj.init(cParams);
+            obj.upperBound = cParams.uncOptimizerSettings.ub;
+            obj.lowerBound = cParams.uncOptimizerSettings.lb;             
             obj.maxoutit = 1e4;
         end
         
@@ -109,8 +113,8 @@ classdef Optimizer_MMA < Optimizer
                 obj.x = x0;
                 obj.xold1 = obj.x;
                 obj.xold2 = obj.xold1;
-                obj.xmin = zeros(length(x0),1);
-                obj.xmax = ones(length(x0),1);
+                obj.xmin = obj.lowerBound*ones(length(x0),1);
+                obj.xmax = obj.upperBound*ones(length(x0),1);
                 obj.low = obj.xmin;
                 obj.upp = obj.xmax;
                 [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();

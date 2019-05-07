@@ -23,10 +23,10 @@ classdef TopOptTests < testRunner
             'testMicro2';  
             'testCantilever3';                
             'testBridge2'; 
-            'testCantilever2';                                               
             'testBridge';                  
             'testGripping';                                     
-            'testMicro';              
+            'testMicro';      
+            'testCantilever2';                                                                           
             };
         end
 

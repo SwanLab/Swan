@@ -10,13 +10,15 @@ classdef Optimizer_IPOPT < Optimizer
         max_iter
         constraint_tolerance
         optimality_tolerance
-        cost_copy
-        constraint_copy
         data
+        upperBound
+        lowerBound
     end
     methods
         function obj = Optimizer_IPOPT(cParams)
             obj.init(cParams);
+            obj.upperBound = cParams.uncOptimizerSettings.ub;
+            obj.lowerBound = cParams.uncOptimizerSettings.lb;             
             obj.nconstr  = cParams.nconstr;
             obj.max_iter = cParams.maxiter;
             obj.niter    = -1;
@@ -30,7 +32,6 @@ classdef Optimizer_IPOPT < Optimizer
         end
         
         function solveProblem(obj)           
-            %obj.createPostProcess();
             x0 = obj.designVariable.value;
             obj.cost.computeCostAndGradient()
             funcs.objective = @(x) obj.objective(x);
@@ -44,8 +45,8 @@ classdef Optimizer_IPOPT < Optimizer
             options.ipopt.print_level= 0;
             options.ipopt.hessian_approximation = 'limited-memory';
             options.ipopt.limited_memory_update_type = 'bfgs';
-            options.ub = ones(length(x0),1);
-            options.lb = zeros(length(x0),1);
+            options.ub = obj.upperBound*ones(length(x0),1);
+            options.lb = obj.lowerBound*ones(length(x0),1);
             if strcmp(obj.constraintCase,'EQUALITY')
                 options.cl = zeros(obj.nconstr,1);
                 options.constraintCase = 'equality';
@@ -56,7 +57,6 @@ classdef Optimizer_IPOPT < Optimizer
             options.cu = zeros(obj.nconstr,1); % upper bound constraint value
             options.ipopt.max_iter = obj.max_iter;
             options.ipopt.constr_viol_tol = obj.constraint_tolerance;
-            %         options.ipopt.dual_inf_tol = optimality_tolerance;
             options.ipopt.compl_inf_tol = obj.constraint_tolerance;
             options.ipopt.tol = obj.optimality_tolerance;
             
@@ -72,28 +72,24 @@ classdef Optimizer_IPOPT < Optimizer
         function f = objective(obj,x)
             obj.designVariable.value = x;
             obj.cost.computeCostAndGradient()
-            obj.cost_copy = obj.cost;
             f = obj.cost.value;
         end
         
         function f = constraintFunction(obj,x)
             obj.designVariable.value = x;            
             obj.constraint.computeCostAndGradient()
-            obj.constraint_copy = obj.constraint;
             f = obj.constraint.value;
         end
         
         function g = gradient(obj,x)
             obj.designVariable.value = x;            
             obj.cost.computeCostAndGradient()
-            obj.cost_copy=obj.cost;
             g = obj.cost.gradient;
         end
         
         function g = constraint_gradient(obj,x)
             obj.designVariable.value = x;            
             obj.constraint.computeCostAndGradient()
-            obj.constraint_copy = obj.constraint;
             g = obj.constraint.gradient;
         end
         
@@ -105,7 +101,8 @@ classdef Optimizer_IPOPT < Optimizer
             obj.designVariable.update(data.x);
             obj.updateStatus();
             obj.printOptimizerVariable();
-            obj.dualVariable.value = zeros(obj.constraint_copy.nSF,1);
+            obj.dualVariable.value = zeros(obj.constraint.nSF,1);
+            
             obj.convergenceVars.reset();
             obj.convergenceVars.append(data.inf_du);
             obj.refreshMonitoring();

@@ -88,23 +88,34 @@ classdef Settings %< handle%& matlab.mixin.Copyable
             obj.case_file=case_file;
             obj.filename = filename;
             obj.ptype = ptype;
-            obj.materialInterpolation = method;
-            obj.material = materialType;
+            
+            if exist('method','var')
+                obj.materialInterpolation = method;
+            end
+            
+            if exist('materialType','var')
+                obj.material = materialType;                
+            end
             obj.initial_case = initial_case;
             obj.cost = cost;
             obj.weights = weights;
             obj.constraint = constraint;
             obj.nconstr = length(constraint);
             obj.optimizer = optimizer;
-            obj.kappaMultiplier = kappaMultiplier;
+            if exist('kappaMultiplier','var')
+               obj.kappaMultiplier = kappaMultiplier;
+            end
             obj.filter = filterType;
             obj.nsteps = nsteps;
-            obj.TOL.rho_plus = TOL.rho_plus;
-            obj.TOL.rho_minus = TOL.rho_minus;
-            obj.TOL.E_plus = TOL.E_plus;
-            obj.TOL.E_minus = TOL.E_minus;
-            obj.TOL.nu_plus = TOL.nu_plus;
-            obj.TOL.nu_minus = TOL.nu_minus;
+            if exist('TOL','var')
+                obj.TOL.rho_plus = TOL.rho_plus;
+                obj.TOL.rho_minus = TOL.rho_minus;
+                obj.TOL.E_plus = TOL.E_plus;
+                obj.TOL.E_minus = TOL.E_minus;
+                obj.TOL.nu_plus = TOL.nu_plus;
+                obj.TOL.nu_minus = TOL.nu_minus;                
+            end
+            
             obj.Vfrac_initial = Vfrac_initial;
             obj.optimality_initial  = optimality_initial;
             obj.constr_initial = constr_initial;
@@ -293,6 +304,18 @@ classdef Settings %< handle%& matlab.mixin.Copyable
             else 
                 obj.kfrac = 2;
             end
+            
+            if exist('ub','var')
+                obj.ub = ub;
+            else
+                obj.ub = 1;
+            end
+            
+            if exist('lb','var')
+                obj.lb = lb;
+            else
+                obj.lb = 0;
+            end            
             
         end
         
