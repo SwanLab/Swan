@@ -114,6 +114,13 @@ classdef Optimizer_Unconstrained < handle
             obj.incF = obj.objectiveFunction.computeIncrement();
         end
         
+        function itIs = isOptimal(obj)
+            optimTol = obj.optimality_tol;
+            optCond  = obj.opt_cond;
+            isNot = optCond >= optimTol;
+            itIs = ~isNot;
+        end
+        
     end
     
     methods (Access = private)        
@@ -132,12 +139,12 @@ classdef Optimizer_Unconstrained < handle
         
     end
     
-    methods
-        
-        function constr_tol = get.constr_tol(obj)
-            constr_tol = obj.targetParameters.constr_tol;
-        end
-        
-    end
-    
+%     methods
+%         
+%         function constr_tol = get.constr_tol(obj)
+%             constr_tol = obj.targetParameters.constr_tol;
+%         end
+%         
+%     end
+%     
 end

@@ -64,11 +64,17 @@ classdef OptimizerAlternatingPrimalDual < Optimizer_PrimalDual
         end
         
         function updateConvergenceStatus(obj)
-            active_constr = true(size(obj.dualVariable.value));
-            isNotOptimal  = obj.unconstrainedOptimizer.opt_cond >=  obj.unconstrainedOptimizer.optimality_tol;
-            isNotFeasible = any(any(abs(obj.constraint.value(active_constr)) > obj.unconstrainedOptimizer.constr_tol(active_constr)));
-            hasNotConverged = isNotOptimal || isNotFeasible;
-            obj.hasConverged = ~hasNotConverged;
+            isOptimal   = obj.unconstrainedOptimizer.isOptimal();
+            isFeasible  = obj.isFeasible();
+            obj.hasConverged = isOptimal && isFeasible;
+        end
+        
+        function itIs = isFeasible(obj)
+            active_constr    = true(size(obj.dualVariable.value));   
+            constraintValues = any(any(abs(obj.constraint.value(active_constr)))); 
+            constrTol        = obj.targetParameters.constr_tol(active_constr);
+            isNotFeasible = constraintValues > constrTol;
+            itIs = ~isNotFeasible;            
         end
         
     end

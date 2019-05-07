@@ -62,6 +62,18 @@ switch option
         homegenizedVariablesComputer = 'ByVademecum';
         vademecumFileName = 'SmoothRectangle';  
         maxiter = 100;        
+        
+    case 'E'
+        optimizer = 'AlternatingPrimalDual';
+        optimizerUnconstrained = 'PROJECTED GRADIENT';        
+        designVariable = 'MicroParams';
+        ub = 0.98;
+        lb = 0.02;
+        %kfrac = 1.05;
+        nsteps = 20;
+        homegenizedVariablesComputer = 'ByVademecum';
+        vademecumFileName = 'SmoothRectangle';  
+        maxiter = 10;        
 end
 
 
