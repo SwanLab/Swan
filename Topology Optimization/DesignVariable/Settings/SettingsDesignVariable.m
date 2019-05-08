@@ -1,4 +1,4 @@
-classdef SettingsDesignVariable < AbstractSettings
+classdef SettingsDesignVariable < AbstractSettings_B
     
     properties (Access = protected)
         defaultParamsName = 'paramsDesignVariable'
@@ -15,10 +15,7 @@ classdef SettingsDesignVariable < AbstractSettings
     
      methods (Access = public)
         
-        function obj = SettingsDesignVariable(varargin)
-            if nargin == 1
-                    obj.loadParams(varargin{1});
-            end
+        function obj = SettingsDesignVariable()
         end 
         
      end
