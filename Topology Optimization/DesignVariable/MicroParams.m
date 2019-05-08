@@ -18,7 +18,8 @@ classdef MicroParams < DesignVariable
         
         function createValue(obj)
             ndof = length(obj.mesh.coord(:,1));
-            obj.value(:,1) = 0.02*ones(obj.nVariables*ndof,1);
+            %obj.value(:,1) = 0.87*ones(obj.nVariables*ndof,1);
+            obj.value(:,1) = 0.02*ones(obj.nVariables*ndof,1);            
         end
         
     end

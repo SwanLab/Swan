@@ -1,4 +1,4 @@
-filename='Cantilever_triangle_coarse';
+filename='Cantilever_triangle_fine';
 ptype = 'MACRO';
 initial_case = 'full';
 cost = {'compliance'};
@@ -17,20 +17,38 @@ constr_initial = 1e-3;
 printing = false;
 monitoring_interval = 1;
 maxiter = 50;
+printing = false;           
+
 
 option = 'C';
 switch option
-    case 'A'
+    case 'A0'
+        Vfrac_initial = 1;        
         optimizer = 'DualNestedInPrimal';
         optimizerUnconstrained = 'PROJECTED GRADIENT';
         designVariable = 'MicroParams';
-        ub = 0.98;
-        lb = 0.02;
-        kfrac = 1.05;
-        nsteps = 50;
+        ub = 0.989;
+        lb = 0.011;
+        kfrac = 2;%1.05;
+        nsteps = 30;
         homegenizedVariablesComputer = 'ByVademecum';
         vademecumFileName = 'SmoothRectangle';
+        maxiter = 250;    
+    
+    case 'A'
+        Vfrac_initial = 0.3;        
+        optimizer = 'DualNestedInPrimal';
+        optimizerUnconstrained = 'PROJECTED GRADIENT';
+        designVariable = 'MicroParams';
+        ub = 0.989;
+        lb = 0.011;
+        kfrac = 2;%1.05;
+        nsteps = 1;
+        homegenizedVariablesComputer = 'ByVademecum';
+        vademecumFileName = 'SmoothRectangle';
+        maxiter = 150;
     case 'B'
+        Vfrac_initial = 0.3;                
         optimizer = 'IPOPT';
         designVariable = 'Density';
         nsteps = 50;
@@ -41,24 +59,26 @@ switch option
         TOL.nu_plus = 1/3;
         TOL.nu_minus = 1/3;
         method = 'SIMPALL';
-        materialType = 'ISOTROPIC';   
+        materialType = 'ISOTROPIC'; 
     case 'C'
+        Vfrac_initial = 1;                        
         optimizer = 'IPOPT';
         designVariable = 'MicroParams';
-        ub = 0.98;
-        lb = 0.02;
+        ub = 0.989;
+        lb = 0.011;
         %kfrac = 1.05;
-        nsteps = 1;
+        nsteps = 50;
         homegenizedVariablesComputer = 'ByVademecum';
         vademecumFileName = 'SmoothRectangle';  
-        maxiter = 1000;        
+        maxiter = 30; 
     case 'D'
+        Vfrac_initial = 0.3;                        
         optimizer = 'MMA';
         designVariable = 'MicroParams';
-        ub = 0.98;
-        lb = 0.02;
+        ub = 0.989;
+        lb = 0.011;
         %kfrac = 1.05;
-        nsteps = 10;
+        nsteps = 1;
         homegenizedVariablesComputer = 'ByVademecum';
         vademecumFileName = 'SmoothRectangle';  
         maxiter = 1000;        
@@ -67,10 +87,10 @@ switch option
         optimizer = 'AlternatingPrimalDual';
         optimizerUnconstrained = 'PROJECTED GRADIENT';        
         designVariable = 'MicroParams';
-        ub = 0.98;
-        lb = 0.02;
+        ub = 0.989;
+        lb = 0.011;
         %kfrac = 1.05;
-        nsteps = 20;
+        nsteps = 1;
         homegenizedVariablesComputer = 'ByVademecum';
         vademecumFileName = 'SmoothRectangle';  
         maxiter = 1000;        
