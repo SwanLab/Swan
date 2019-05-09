@@ -2,6 +2,7 @@ classdef AbstractSettings < handle
     
     properties (GetAccess = public, SetAccess = private)
         loadedFile
+        cParams
     end
     
     properties (Access = protected, Abstract)
@@ -15,12 +16,37 @@ classdef AbstractSettings < handle
     methods (Access = protected)
         
         function obj = AbstractSettings()
-            obj.loadParams(obj.defaultParamsName);
+            obj.loadParams(obj.defaultParamsName)
         end
         
-        function loadParams(obj,paramsFilename)
-            obj.loadedFile = paramsFilename;
-            run(paramsFilename);
+        function loadParams(obj,paramsFileName)
+            switch obj.getFileType(paramsFileName)
+                case {'','.m'}
+                    obj.loadParamsFromMatlabScript(paramsFileName);
+                case '.json'
+                    obj.loadParamsFromJSON(paramsFileName);
+                otherwise
+                    error('Invalid extension');
+            end
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function loadParamsFromJSON(obj,paramsFileName)
+            obj.loadedFile = paramsFileName;
+ 
+            fid = fopen(paramsFileName);
+            raw = fread(fid,inf);
+            str = char(raw');
+            fclose(fid);
+            val = jsondecode(str);          
+        end
+        
+        function loadParamsFromMatlabScript(obj,paramsFileName)
+            obj.loadedFile = paramsFileName;
+            run(paramsFileName);
             obj.customParams = who;
             obj.clearCustomParams();
             
@@ -34,12 +60,8 @@ classdef AbstractSettings < handle
             end
         end
         
-    end
-    
-    methods (Access = private)
-        
         function clearCustomParams(obj)
-            obj.removeVar('paramsFilename');
+            obj.removeVar('paramsFileName');
             obj.removeVar('obj');
         end
         
@@ -50,6 +72,14 @@ classdef AbstractSettings < handle
         function removeVar(obj,var)
             pos = strcmp(obj.customParams,var);
             obj.customParams(pos) = [];
+        end
+        
+    end
+    
+    methods (Access = private, Static)
+        
+        function ext = getFileType(fileName)
+            [~,~,ext] = fileparts(fileName);
         end
         
     end

@@ -14,9 +14,9 @@ cParams.costSettings.weights = [1 0.1];
 
 cParams.constraintSettings.shapeFuncSettings = {struct('type','volumeConstraint')};
 
-cParams.optimizerSettings.name       = 'AlternatingPrimalDual';
+cParams.optimizerSettings.type       = 'AlternatingPrimalDual';
 cParams.optimizerSettings.shallPrint = false;
-cParams.optimizerSettings.settingsMonitor.showOptParams       = false;
+cParams.optimizerSettings.settingsMonitor.showOptParams       = true;
 cParams.optimizerSettings.settingsMonitor.refreshInterval     = 2;
 cParams.optimizerSettings.settingsMonitor.shallDisplayDesignVar       = true;
 cParams.optimizerSettings.settingsMonitor.shallShowBoundaryConditions = true;

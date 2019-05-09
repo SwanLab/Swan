@@ -1,4 +1,4 @@
-classdef SettingsDesignVariable < AbstractSettings_B
+classdef SettingsDesignVariable < AbstractSettings
     
     properties (Access = protected)
         defaultParamsName = 'paramsDesignVariable'

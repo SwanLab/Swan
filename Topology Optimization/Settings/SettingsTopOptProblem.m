@@ -1,4 +1,4 @@
-classdef SettingsTopOptProblem < AbstractSettings_B
+classdef SettingsTopOptProblem < AbstractSettings
     
     properties (Access = protected)
         defaultParamsName = 'paramsTopOptProblem'
@@ -28,8 +28,8 @@ classdef SettingsTopOptProblem < AbstractSettings_B
                 settings = varargin{1};
                 cParams = [];
             elseif nargin == 2
-                %                 obj.loadParams(varargin{1});
-                cParams  = varargin{1};
+                obj.loadParams(varargin{1});
+                cParams = obj.cParams;
                 settings = varargin{2};
             end
             obj.isOld = settings.isOld;
@@ -59,7 +59,7 @@ classdef SettingsTopOptProblem < AbstractSettings_B
                 s = cParams.problemData;
                 obj.problemData.problemFileName = s.problemFileName;
                 obj.problemData.caseFileName = obj.loadedFile;
-                obj.problemData.scale = s.problemData.scale;
+                obj.problemData.scale = s.scale;
             end
             
             obj.createMesh();
@@ -134,7 +134,7 @@ classdef SettingsTopOptProblem < AbstractSettings_B
             else
                 s = cParams.costSettings;
                 obj.costSettings.weights = s.weights;
-                sfS = obj.costSettings.shapeFuncSettings;
+                sfS = s.shapeFuncSettings;
             end
             obj.costSettings.settings = obj.settings;
             obj.costSettings.shapeFuncSettings = obj.createShapeFunctionsSettings(sfS);
@@ -173,7 +173,7 @@ classdef SettingsTopOptProblem < AbstractSettings_B
         end
         
         function createOptimizerSettings(obj,cParams)
-            obj.optimizerSettings = SettingsOptimizer();            
+            obj.optimizerSettings = SettingsOptimizer();
             if obj.isOld
                 s = [];
                 obj.optimizerSettings.type = obj.settings.optimizer;
@@ -190,6 +190,9 @@ classdef SettingsTopOptProblem < AbstractSettings_B
             if obj.isOld
                 obj.optimizerSettings.name             = obj.settings.optimizer;
                 obj.optimizerSettings.shallPrint       = obj.settings.printing;
+            else
+                obj.optimizerSettings.name             = s.type;
+                obj.optimizerSettings.shallPrint       = s.shallPrint;
             end
             obj.optimizerSettings.printMode            = obj.settings.printMode;
             
@@ -257,10 +260,10 @@ classdef SettingsTopOptProblem < AbstractSettings_B
                 obj.optimizerSettings.settingsMonitor.dim             = obj.settings.pdim;
             else
                 s = cParams.settingsMonitor;
-                obj.optimizerSettings.settingsMonitor.showOptParams               = s.monitoring;
-                obj.optimizerSettings.settingsMonitor.refreshInterval             = s.monitoring_interval;
-                obj.optimizerSettings.settingsMonitor.shallDisplayDesignVar       = s.plotting;
-                obj.optimizerSettings.settingsMonitor.shallShowBoundaryConditions = s.showBC;
+                obj.optimizerSettings.settingsMonitor.showOptParams               = s.showOptParams;
+                obj.optimizerSettings.settingsMonitor.refreshInterval             = s.refreshInterval;
+                obj.optimizerSettings.settingsMonitor.shallDisplayDesignVar       = s.shallDisplayDesignVar;
+                obj.optimizerSettings.settingsMonitor.shallShowBoundaryConditions = s.shallShowBoundaryConditions;
                 
                 obj.optimizerSettings.settingsMonitor.optimizerName   = obj.optimizerSettings.name;
                 obj.optimizerSettings.settingsMonitor.problemID       = obj.problemData.caseFileName;
