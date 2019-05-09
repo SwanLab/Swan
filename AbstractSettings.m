@@ -9,7 +9,7 @@ classdef AbstractSettings < handle
         defaultParamsName
     end
     
-    properties (Access = private)
+    properties (GetAccess = protected, SetAccess = private)
         customParams
     end
     
@@ -28,6 +28,7 @@ classdef AbstractSettings < handle
                 otherwise
                     error('Invalid extension');
             end
+            obj.assignParams();
         end
         
     end
@@ -36,12 +37,8 @@ classdef AbstractSettings < handle
         
         function loadParamsFromJSON(obj,paramsFileName)
             obj.loadedFile = paramsFileName;
- 
-            fid = fopen(paramsFileName);
-            raw = fread(fid,inf);
-            str = char(raw');
-            fclose(fid);
-            val = jsondecode(str);          
+            obj.customParams = jsondecode(fileread(paramsFileName));
+            obj.customParams = rmfield(obj.customParams,'line_endings');
         end
         
         function loadParamsFromMatlabScript(obj,paramsFileName)
@@ -49,11 +46,24 @@ classdef AbstractSettings < handle
             run(paramsFileName);
             obj.customParams = who;
             obj.clearCustomParams();
-            
+            s = struct;
             for i = 1:length(obj.customParams)
                 param = obj.customParams{i};
                 if isprop(obj,param)
-                    obj.(param) = eval(param);
+                    s.(param) = eval(param);
+                else
+                    obj.warnOfInvalidCustomParams(param);
+                end
+            end
+            obj.customParams = s;
+        end
+        
+        function assignParams(obj)
+            fields = fieldnames(obj.customParams);
+            for i = 1:length(fields)
+                param = fields{i};
+                if isprop(obj,param)
+                    obj.(param) = obj.customParams.(param);
                 else
                     obj.warnOfInvalidCustomParams(param);
                 end

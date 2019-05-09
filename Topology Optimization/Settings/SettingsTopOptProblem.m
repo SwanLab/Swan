@@ -29,7 +29,7 @@ classdef SettingsTopOptProblem < AbstractSettings
                 cParams = [];
             elseif nargin == 2
                 obj.loadParams(varargin{1});
-                cParams = obj.cParams;
+                cParams = obj.customParams;
                 settings = varargin{2};
             end
             obj.isOld = settings.isOld;
@@ -159,11 +159,18 @@ classdef SettingsTopOptProblem < AbstractSettings
         function cParams = createShapeFunctionsSettings(obj,s)
             nSF = length(s);
             cParams = cell(nSF,1);
-            for iSF = 1:nSF
-                s{iSF}.filename = obj.problemData.problemFileName;
-                s{iSF}.scale = obj.problemData.scale;
-                s{iSF}.filterParams = obj.createFilterSettings();
-                cParams{iSF} = SettingsShapeFunctional().create(s{iSF},obj.settings);
+            if iscell(s)
+                for iSF = 1:nSF
+                    s{iSF}.filename = obj.problemData.problemFileName;
+                    s{iSF}.scale = obj.problemData.scale;
+                    s{iSF}.filterParams = obj.createFilterSettings();
+                    cParams{iSF} = SettingsShapeFunctional().create(s{iSF},obj.settings);
+                end
+            else
+                s.filename = obj.problemData.problemFileName;
+                s.scale = obj.problemData.scale;
+                s.filterParams = obj.createFilterSettings();
+                cParams{1} = SettingsShapeFunctional().create(s,obj.settings);
             end
         end
         
