@@ -19,16 +19,23 @@ classdef AbstractSettings < handle
             obj.loadParams(obj.defaultParamsName)
         end
         
-        function loadParams(obj,paramsFileName)
-            switch obj.getFileType(paramsFileName)
-                case {'','.m'}
-                    obj.loadParamsFromMatlabScript(paramsFileName);
-                case '.json'
-                    obj.loadParamsFromJSON(paramsFileName);
-                otherwise
-                    error('Invalid extension');
+        function loadParams(obj,p)
+            if ~isempty(p)
+                if isstruct(p)
+                    obj.customParams = p;
+                else
+                    switch obj.getFileType(p)
+                        case {'','.m'}
+                            error('MOCCCC');
+                            obj.loadParamsFromMatlabScript(p);
+                        case '.json'
+                            obj.loadParamsFromJSON(p);
+                        otherwise
+                            error('Invalid extension');
+                    end
+                end
+                obj.assignParams();
             end
-            obj.assignParams();
         end
         
     end
@@ -38,7 +45,6 @@ classdef AbstractSettings < handle
         function loadParamsFromJSON(obj,paramsFileName)
             obj.loadedFile = paramsFileName;
             obj.customParams = jsondecode(fileread(paramsFileName));
-            obj.customParams = rmfield(obj.customParams,'line_endings');
         end
         
         function loadParamsFromMatlabScript(obj,paramsFileName)

@@ -1,7 +1,7 @@
 classdef SettingsOptimizer < AbstractSettings
     
     properties (Access = protected)
-        defaultParamsName = 'paramsOptimizer'
+        defaultParamsName = 'paramsOptimizer.json'
     end
     
     properties (Access = public)

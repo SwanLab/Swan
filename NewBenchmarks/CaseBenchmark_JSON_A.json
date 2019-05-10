@@ -1,6 +1,4 @@
 {
-  "$schema": "http://json.schemastore.org/coffeelint",
-  "line_endings": "unix",
   "problemData": {
     "problemFileName": "test2d_micro",
     "scale": "MICRO"
@@ -18,18 +16,18 @@
         "type": "chomog_alphabeta",
         "alpha": [
           1,
-          1,
+          0,
           0
         ],
         "beta": [
-          1,
-          1,
+          0,
+         -1,
           0
         ]
       },
       {
         "type": "perimeterConstraint",
-        "Perimeter_target": 1
+        "PerimeterTarget": 5
       }
     ],
     "weights": [
@@ -47,10 +45,12 @@
   "optimizerSettings": {
     "type": "AlternatingPrimalDual",
     "shallPrint": false,
-    "showOptParams": false,
-    "refreshInterval": 2,
-    "shallDisplayDesignVar": true,
-    "shallShowBoundaryConditions": true,
+    "settingsMonitor": {
+      "showOptParams": false,
+      "refreshInterval": 2,
+      "shallDisplayDesignVar": true,
+      "shallShowBoundaryConditions": true
+    },
     "uncOptimizerSettings": {
       "type": "SLERP"
     }

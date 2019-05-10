@@ -2,7 +2,7 @@ classdef SettingsHomogenizedVarComputerFromInterpolation < ....
         AbstractSettings
     
     properties (Access = protected)
-        defaultParamsName = 'paramsHomogenizedVarComputerFromInterpolation'
+        defaultParamsName = 'paramsHomogenizedVarComputerFromInterpolation.json'
     end
     
     properties (Access = public)
@@ -15,12 +15,13 @@ classdef SettingsHomogenizedVarComputerFromInterpolation < ....
     end
     
     methods (Access = public)
+        
         function obj = SettingsHomogenizedVarComputerFromInterpolation(varargin)
             if nargin == 1
                 obj.loadParams(varargin{1})
             end
         end
+        
     end
-    
-    
+       
 end

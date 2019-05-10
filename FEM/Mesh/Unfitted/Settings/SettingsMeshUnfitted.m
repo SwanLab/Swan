@@ -1,7 +1,7 @@
 classdef SettingsMeshUnfitted < AbstractSettings
     
     properties (Access = protected)
-        defaultParamsName = 'paramsMeshUnfitted'
+        defaultParamsName = 'paramsMeshUnfitted.json'
     end
     
     properties (Access = public)
@@ -31,6 +31,26 @@ classdef SettingsMeshUnfitted < AbstractSettings
                     obj.interpolationBackground = varargin{3};
                     obj.includeBoxContour = varargin{4};
             end
+            obj.init();
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function init(obj)
+            obj.createBackgroundMesh();
+            obj.createBackgroundInterpolation();
+        end
+        
+        function createBackgroundMesh(obj)
+            if ischar(obj.meshBackground)
+                obj.meshBackground = Mesh_GiD(obj.meshBackground);
+            end
+        end
+        
+        function createBackgroundInterpolation(obj)
+            obj.interpolationBackground = Interpolation.create(obj.meshBackground,'LINEAR');
         end
         
     end

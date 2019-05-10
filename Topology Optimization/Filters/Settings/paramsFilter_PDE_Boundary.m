@@ -1,2 +1,0 @@
-filterType = 'PDE';
-domainType = 'BOUNDARY';

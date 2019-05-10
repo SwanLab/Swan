@@ -1,7 +1,7 @@
 classdef SettingsShapeFunctional < AbstractSettings
     
     properties (Access = protected)
-        defaultParamsName = 'paramsShapeFunctional'
+        defaultParamsName = 'paramsShapeFunctional.json'
     end
     
     properties (Access = public)

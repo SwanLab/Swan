@@ -1,7 +1,7 @@
 classdef SettingsOptimizerUnconstrained < AbstractSettings
     
    properties (Access = protected)
-      defaultParamsName = 'paramsOptimizerUnconstrained' 
+      defaultParamsName = 'paramsOptimizerUnconstrained.json' 
    end
     
    properties (Access = public)

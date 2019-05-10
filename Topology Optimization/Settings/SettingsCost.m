@@ -1,7 +1,7 @@
 classdef SettingsCost < SettingsCC
     
     properties (Access = protected)
-        defaultParamsName = 'paramsCost'
+        defaultParamsName = 'paramsCost.json'
     end
     
     properties (Access = public)

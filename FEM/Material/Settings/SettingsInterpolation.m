@@ -1,12 +1,11 @@
 classdef SettingsInterpolation < AbstractSettings
     
-    
     properties (Access = protected)
-        defaultParamsName = 'paramsMaterialInterpolation'
+        defaultParamsName = 'paramsMaterialInterpolation.json'
     end
    
     properties (Access = public)
-        constitutiveProperties = struct
+        constitutiveProperties
         typeOfMaterial
         interpolation 
         dim 
@@ -16,10 +15,23 @@ classdef SettingsInterpolation < AbstractSettings
     end
     
     methods (Access = public)
+        
         function obj = SettingsInterpolation(varargin)            
             if nargin == 1
                 obj.loadParams(varargin{1})
             end
+            obj.init();
         end
+        
     end
+    
+    methods (Access = private)
+        
+        function init(obj)
+            s = obj.constitutiveProperties;
+            obj.constitutiveProperties = SettingsConstitutiveProperties(s);
+        end
+        
+    end
+    
 end

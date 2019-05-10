@@ -1,7 +1,7 @@
 classdef SettingsMonitoringDocker < AbstractSettings
     
     properties (Access = protected)
-        defaultParamsName = 'paramsMonitoringDocker'
+        defaultParamsName = 'paramsMonitoringDocker.json'
     end
     
     properties (Access = public)

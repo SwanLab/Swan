@@ -1,7 +1,7 @@
 classdef SettingsConstraint < SettingsCC
     
     properties (Access = protected)
-        defaultParamsName = 'paramsConstraint'
+        defaultParamsName = 'paramsConstraint.json'
     end
     
     properties (Access = public)

@@ -18,9 +18,11 @@ clear variables;
 % settings = Settings('Case_RefactoringSettingsMICRO_OLD');
 % settingsTopOpt = SettingsTopOptProblem('Case_RefactoringSettingsMICRO_A',settings);
 
-settings = Settings('Case_RefactoringSettingsMICRO_OLD_2');
-% settingsTopOpt = SettingsTopOptProblem('Case_RefactoringSettingsMICRO_B',settings);
-settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_A.json',settings);
+% settings = Settings('Case_RefactoringSettingsMICRO_OLD_2');
+% settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_A.json',settings);
+
+settings = Settings('Case_RefactoringSettings_OLD');
+settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_B.json',settings);
 
 topOptProblem = TopOpt_Problem(settingsTopOpt);
 topOptProblem.computeVariables;

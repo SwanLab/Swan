@@ -1,7 +1,7 @@
 classdef SettingsDesignVariable < AbstractSettings
     
     properties (Access = protected)
-        defaultParamsName = 'paramsDesignVariable'
+        defaultParamsName = 'paramsDesignVariable.json'
     end
     
     properties (Access = public)
@@ -9,15 +9,30 @@ classdef SettingsDesignVariable < AbstractSettings
         mesh
         type
         initialCase
-        levelSetCreatorSettings        
-        scalarProductSettings        
+        levelSetCreatorSettings
+        scalarProductSettings
     end
     
-     methods (Access = public)
+    methods (Access = public)
         
-        function obj = SettingsDesignVariable()
-        end 
+        function obj = SettingsDesignVariable(varargin)
+            if nargin == 1
+                obj.loadParams(varargin{1});
+            end
+            obj.init();
+        end
         
-     end
-     
+    end
+    
+    methods (Access = private)
+        
+        function init(obj)
+            if ischar(obj.mesh)
+                obj.mesh = Mesh_GiD(obj.mesh);
+            end
+            obj.value = ones(size(obj.mesh.coord,1),1);
+        end
+        
+    end
+    
 end

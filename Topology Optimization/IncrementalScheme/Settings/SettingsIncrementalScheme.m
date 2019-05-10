@@ -1,7 +1,7 @@
 classdef SettingsIncrementalScheme < AbstractSettings
     
     properties (Access = protected)
-        defaultParamsName = 'paramsIncrementalScheme'
+        defaultParamsName = 'paramsIncrementalScheme.json'
     end
     
     properties (Access = public)

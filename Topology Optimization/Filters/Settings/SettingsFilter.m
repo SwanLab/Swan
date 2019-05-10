@@ -1,7 +1,7 @@
 classdef SettingsFilter < AbstractSettings
     
     properties (Access = protected)
-        defaultParamsName = 'paramsFilter'
+        defaultParamsName = 'paramsFilter.json'
     end
     
     properties (Access = public)

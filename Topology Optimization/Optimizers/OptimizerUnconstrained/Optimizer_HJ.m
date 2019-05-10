@@ -53,7 +53,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             if obj.settingsFilterIsNotPDE(s)
                 obj.displayChangingFilter(s)
             end
-            filterSettings = SettingsFilter('paramsFilter_PDE_Boundary');
+            filterSettings = SettingsFilter('paramsFilter_PDE_Boundary.json');
             filterSettings.designVar = designVar;
             filterSettings.quadratureOrder = 'LINEAR';            
             obj.filter = FilterFactory().create(filterSettings);

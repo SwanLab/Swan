@@ -1,8 +1,7 @@
 {
-  "line_endings": "unix",
   "problemData": {
-    "problemFileName": "test2d_micro",
-    "scale": "MICRO"
+    "problemFileName": "Cantilever_triangle_coarse",
+    "scale": "MACRO"
   },
   "designVarSettings": {
     "type": "LevelSet",
@@ -14,21 +13,10 @@
   "costSettings": {
     "shapeFuncSettings": [
       {
-        "type": "chomog_alphabeta",
-        "alpha": [
-          1,
-          0,
-          0
-        ],
-        "beta": [
-          0,
-         -1,
-          0
-        ]
+        "type": "compliance"
       },
       {
-        "type": "perimeterConstraint",
-        "PerimeterTarget": 5
+        "type": "perimeter"
       }
     ],
     "weights": [
@@ -47,7 +35,7 @@
     "type": "AlternatingPrimalDual",
     "shallPrint": false,
     "settingsMonitor": {
-      "showOptParams": false,
+      "showOptParams": true,
       "refreshInterval": 2,
       "shallDisplayDesignVar": true,
       "shallShowBoundaryConditions": true

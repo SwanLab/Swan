@@ -1,7 +1,7 @@
 classdef SettingsTopOptProblem < AbstractSettings
     
     properties (Access = protected)
-        defaultParamsName = 'paramsTopOptProblem'
+        defaultParamsName = 'paramsTopOptProblem.json'
     end
     
     properties (Access = public)
@@ -77,17 +77,15 @@ classdef SettingsTopOptProblem < AbstractSettings
         end
         
         function createDesignVarSettings(obj,cParams)
-            obj.designVarSettings = SettingsDesignVariable();
             if obj.isOld
+                obj.designVarSettings = SettingsDesignVariable();
                 obj.designVarSettings.type = obj.settings.designVariable;
                 obj.designVarSettings.initialCase = obj.settings.initial_case;
                 obj.designVarSettings.mesh = obj.mesh;
             else
                 s = cParams.designVarSettings;
                 s.mesh = obj.mesh;
-                obj.designVarSettings.type = s.type;
-                obj.designVarSettings.initialCase = s.initialCase;
-                obj.designVarSettings.mesh = s.mesh;
+                obj.designVarSettings = SettingsDesignVariable(s);
             end
             obj.designVarSettings.levelSetCreatorSettings       = obj.settings.levelSetDataBase;
             obj.designVarSettings.levelSetCreatorSettings.ndim  = obj.mesh.ndim;
@@ -112,28 +110,29 @@ classdef SettingsTopOptProblem < AbstractSettings
         
         function createIncrementalSchemeSettings(obj,cParams)
             tpS = obj.createTargetParamsSettings();
-            obj.incrementalSchemeSettings = SettingsIncrementalScheme();
-            obj.incrementalSchemeSettings.settingsTargetParams = tpS;
             if obj.isOld
+                obj.incrementalSchemeSettings = SettingsIncrementalScheme();
                 obj.incrementalSchemeSettings.nSteps = obj.settings.nsteps;
+                obj.incrementalSchemeSettings.mesh = obj.mesh;
             else
                 s = cParams.incrementalSchemeSettings;
-                obj.incrementalSchemeSettings.nSteps = s.nSteps;
+                s.mesh = obj.mesh;
+                obj.incrementalSchemeSettings = SettingsIncrementalScheme(s);
             end
+            obj.incrementalSchemeSettings.settingsTargetParams = tpS;
             obj.incrementalSchemeSettings.shallPrintIncremental = obj.settings.printIncrementalIter;
-            obj.incrementalSchemeSettings.mesh = obj.mesh;
         end
         
         function createCostSettings(obj,cParams)
-            obj.costSettings = SettingsCost();
             if obj.isOld
+                obj.costSettings = SettingsCost();
                 obj.costSettings.weights = obj.settings.weights;
                 for i = 1:length(obj.settings.cost)
                     sfS{i} = struct('type',obj.settings.cost{i});
                 end
             else
                 s = cParams.costSettings;
-                obj.costSettings.weights = s.weights;
+                obj.costSettings = SettingsCost(s);
                 sfS = s.shapeFuncSettings;
             end
             obj.costSettings.settings = obj.settings;
@@ -142,13 +141,14 @@ classdef SettingsTopOptProblem < AbstractSettings
         end
         
         function createConstraintSettings(obj,cParams)
-            obj.constraintSettings = SettingsConstraint();
             if obj.isOld
+                obj.constraintSettings = SettingsConstraint();
                 for i = 1:length(obj.settings.constraint)
                     sfS{i} = struct('type',obj.settings.constraint{i});
                 end
             else
                 s = cParams.constraintSettings;
+                obj.constraintSettings = SettingsConstraint(s);
                 sfS = s.shapeFuncSettings;
             end
             obj.constraintSettings.settings = obj.settings;
@@ -159,18 +159,18 @@ classdef SettingsTopOptProblem < AbstractSettings
         function cParams = createShapeFunctionsSettings(obj,s)
             nSF = length(s);
             cParams = cell(nSF,1);
-            if iscell(s)
-                for iSF = 1:nSF
+            for iSF = 1:nSF
+                if iscell(s)
                     s{iSF}.filename = obj.problemData.problemFileName;
                     s{iSF}.scale = obj.problemData.scale;
                     s{iSF}.filterParams = obj.createFilterSettings();
                     cParams{iSF} = SettingsShapeFunctional().create(s{iSF},obj.settings);
+                else
+                    s(iSF).filename = obj.problemData.problemFileName;
+                    s(iSF).scale = obj.problemData.scale;
+                    s(iSF).filterParams = obj.createFilterSettings();
+                    cParams{iSF} = SettingsShapeFunctional().create(s(iSF),obj.settings);
                 end
-            else
-                s.filename = obj.problemData.problemFileName;
-                s.scale = obj.problemData.scale;
-                s.filterParams = obj.createFilterSettings();
-                cParams{1} = SettingsShapeFunctional().create(s,obj.settings);
             end
         end
         
@@ -267,10 +267,7 @@ classdef SettingsTopOptProblem < AbstractSettings
                 obj.optimizerSettings.settingsMonitor.dim             = obj.settings.pdim;
             else
                 s = cParams.settingsMonitor;
-                obj.optimizerSettings.settingsMonitor.showOptParams               = s.showOptParams;
-                obj.optimizerSettings.settingsMonitor.refreshInterval             = s.refreshInterval;
-                obj.optimizerSettings.settingsMonitor.shallDisplayDesignVar       = s.shallDisplayDesignVar;
-                obj.optimizerSettings.settingsMonitor.shallShowBoundaryConditions = s.shallShowBoundaryConditions;
+                obj.optimizerSettings.settingsMonitor = SettingsMonitoringDocker(s);
                 
                 obj.optimizerSettings.settingsMonitor.optimizerName   = obj.optimizerSettings.name;
                 obj.optimizerSettings.settingsMonitor.problemID       = obj.problemData.caseFileName;
@@ -283,7 +280,7 @@ classdef SettingsTopOptProblem < AbstractSettings
         end
         
         function tpS = createTargetParamsSettings(obj)
-            tpS = SettingsTargetParamsManager;
+            tpS = SettingsTargetParamsManager();
             tpS.VfracInitial = obj.settings.Vfrac_initial;
             tpS.VfracFinal = obj.settings.Vfrac_final;
             tpS.constrInitial = obj.settings.constr_initial;

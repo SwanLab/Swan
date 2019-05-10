@@ -1,0 +1,5 @@
+{
+  "mesh": "defaultMeshGiD",
+  "type": "Density",
+  "initialCase": "full"
+}

@@ -1,7 +1,7 @@
 classdef SettingsTargetParamsManager < AbstractSettings
     
     properties (Access = protected)
-        defaultParamsName = 'paramsTargetParamsManager'
+        defaultParamsName = 'paramsTargetParamsManager.json'
     end
     
     properties (Access = public)
