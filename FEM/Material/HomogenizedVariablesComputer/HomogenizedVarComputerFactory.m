@@ -6,18 +6,18 @@ classdef HomogenizedVarComputerFactory < handle
            switch cParams.type
                case 'ByVademecum'
                    s = SettingsHomogenizedVarComputerFromVademecum();
-                   s.fileName = cParams.vademecumFileName;
-                   s.nelem    = cParams.nelem;
-                   %s.ngaus    = cParams.ngaus;
+                   s.fileName       = cParams.vademecumFileName;
+                   s.nelem          = cParams.nelem;
+                   s.designVariable = cParams.designVariable;
                    h = HomogenizedVarComputerFromVademecum(s);                   
                case 'ByInterpolation'
                    s = SettingsHomogenizedVarComputerFromInterpolation();
-                   s.interpolation          = cParams.interpolation;
-                   s.dim                    = cParams.dim;
-                   s.typeOfMaterial         = cParams.typeOfMaterial;
-                   s.constitutiveProperties = cParams.constitutiveProperties;  
-                   s.nelem                  = cParams.nelem;
-                   %s.ngaus                  = cParams.ngaus;
+                  s.interpolation          = cParams.interpolation;
+                  s.dim                    = cParams.dim;
+                  s.typeOfMaterial         = cParams.typeOfMaterial;
+                  s.constitutiveProperties = cParams.constitutiveProperties;  
+                  s.nelem                  = cParams.nelem;
+                  s.designVariable = cParams.designVariable;
                    h = HomogenizedVarComputerFromInterpolation(s);
            end
            

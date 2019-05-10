@@ -1,5 +1,5 @@
 classdef SettingsHomogenizedVarComputerFromVademecum < ....
-        AbstractSettings
+         SettingsHomogenizedVarComputer
     
     properties (Access = protected)
         defaultParamsName = 'paramsHomogenizedVarComputerFromVademecum'

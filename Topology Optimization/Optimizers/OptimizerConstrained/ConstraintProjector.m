@@ -55,12 +55,8 @@ classdef ConstraintProjector < handle
             obj.unconstrainedOptimizer.hasConverged = false;            
             obj.unconstrainedOptimizer.compute();
             obj.unconstrainedOptimizer.updateConvergenceParams();
-        end        
-        
-        function restartValues(obj)
-
-        end
-        
+        end              
+       
     end
  
 end

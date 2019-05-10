@@ -59,6 +59,7 @@ classdef TopOpt_Problem < handle
                 obj.incrementalScheme.next();
                 obj.optimizer.solveProblem();
             end
+            
         end
         
         function postProcess(obj)
@@ -90,6 +91,7 @@ classdef TopOpt_Problem < handle
         
         function createHomogenizedVarComputer(obj,cParams)
             s = cParams.homogenizedVarComputerSettings;
+            s.designVariable = obj.designVariable;
             obj.homogenizedVarComputer = HomogenizedVarComputer.create(s);
         end
         

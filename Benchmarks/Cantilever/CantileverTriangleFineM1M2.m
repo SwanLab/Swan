@@ -20,7 +20,7 @@ maxiter = 50;
 printing = false;           
 
 
-option = 'C';
+option = 'A';
 switch option
     case 'A0'
         Vfrac_initial = 1;        
@@ -30,7 +30,7 @@ switch option
         ub = 0.989;
         lb = 0.011;
         kfrac = 2;%1.05;
-        nsteps = 30;
+        nsteps = 50;
         homegenizedVariablesComputer = 'ByVademecum';
         vademecumFileName = 'SmoothRectangle';
         maxiter = 250;    
@@ -46,7 +46,7 @@ switch option
         nsteps = 1;
         homegenizedVariablesComputer = 'ByVademecum';
         vademecumFileName = 'SmoothRectangle';
-        maxiter = 150;
+        maxiter = 250;
     case 'B'
         Vfrac_initial = 0.3;                
         optimizer = 'IPOPT';
@@ -67,7 +67,7 @@ switch option
         ub = 0.989;
         lb = 0.011;
         %kfrac = 1.05;
-        nsteps = 50;
+        nsteps = 1;
         homegenizedVariablesComputer = 'ByVademecum';
         vademecumFileName = 'SmoothRectangle';  
         maxiter = 30; 

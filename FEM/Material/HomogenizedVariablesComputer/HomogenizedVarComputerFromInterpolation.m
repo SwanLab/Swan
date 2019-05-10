@@ -14,6 +14,7 @@ classdef HomogenizedVarComputerFromInterpolation ...
             s.ptype = 'ELASTIC';
             s.pdim  = cParams.dim;
             obj.material = Material.create(s);
+            obj.designVariable = cParams.designVariable;
         end
         
         function computeCtensor(obj,rho,alpha)

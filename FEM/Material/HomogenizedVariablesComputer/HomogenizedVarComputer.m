@@ -9,6 +9,7 @@ classdef HomogenizedVarComputer < handle
     
     properties (Access = protected)
        nelem
+       designVariable
     end    
     
     methods (Access = public, Static)
