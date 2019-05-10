@@ -6,7 +6,7 @@ classdef Quadrature_Quadrilateral < Quadrature
             switch order
                 case 'CONSTANT'
                     obj.ngaus = 1;
-                    obj.posgp = [0,0];
+                    obj.posgp(:,1) = [0,0];
                     obj.weigp = 4;
                     
                 case 'LINEAR'

@@ -5,19 +5,20 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
     end
     
     properties (Access = private)
+        rhoElem
         filter
     end
     
     methods (Access = public)
         
-        function obj = DesignVarMonitor_Density(mesh,showBC)
-            obj@DesignVarMonitor_Abstract(mesh,showBC);
+        function obj = DesignVarMonitor_Density(cParams)
+            obj@DesignVarMonitor_Abstract(cParams);
             obj.createFilter();
         end
         
-        function plot(obj,rho)
-            rhoElem = obj.filterDensity(rho);
-            set(obj.patchHandle,'FaceVertexAlphaData',double(rhoElem));
+        function plot(obj)
+            obj.filterDensity();
+            set(obj.patchHandle,'FaceVertexAlphaData',obj.rhoElem,'FaceAlpha','flat');
         end
         
     end
@@ -45,12 +46,18 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
     methods (Access = private)
         
         function createFilter(obj)
-            obj.filter = Filter_P1_Density();
-            obj.filter.setupFromGiDFile(obj.mesh.problemID,obj.mesh.scale);
+            filterSettings = SettingsFilter();
+            filterSettings.filterType = 'P1';
+            filterSettings.domainType = 'INTERIOR';
+            filterSettings.designVar = obj.designVar;
+            filterSettings.quadratureOrder = 'LINEAR';
+            obj.filter = Filter_P1_Density(filterSettings);
             obj.filter.preProcess();
         end
         
-        function rhoElem = filterDensity(obj,rho)
+        function rhoElem = filterDensity(obj)
+            %rho = obj.designVar.value;
+            rho = obj.designVar.rho;
             if obj.isNodal(rho)
                 rhoElem = obj.filter.getP0fromP1(rho);
             elseif obj.isElemental(rho)
@@ -58,6 +65,7 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
             else
                 error('Invalid density vector size')
             end
+            obj.rhoElem = double(rhoElem);
         end
         
         function itIs = isNodal(obj,x)

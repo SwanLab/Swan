@@ -8,7 +8,6 @@ classdef TopOptElementalDensityPrinter < CompositeResultsPrinter
         
     end
     
-    
     methods (Access = protected)
         
         function createPrinters(obj,d)
@@ -17,13 +16,13 @@ classdef TopOptElementalDensityPrinter < CompositeResultsPrinter
         end
         
         function storeFieldsToPrint(obj,d)
-            phyPr = d.cost.ShapeFuncs{1}.getPhysicalProblems();
+            phyPr = d.cost.shapeFunctions{1}.getPhysicalProblems();
             d.fields = obj.computeElementalDensity(d.x,phyPr{1});
             obj.printers{1}.storeFieldsToPrint(d);            
         end       
         
         function createHeadPrinter(obj,d,dh)
-            phyPr = d.cost.ShapeFuncs{1}.getPhysicalProblems();
+            phyPr = d.cost.shapeFunctions{1}.getPhysicalProblems();
             d.quad = phyPr{1}.element.quadrature;
             obj.printers{1}.createHeadPrinter(d,dh);
             h = obj.printers{1}.getHeadPrinter();

@@ -2,11 +2,12 @@ classdef ParamsMonitorFactory <  handle
     
     methods (Access = public, Static)
         
-        function monitor = create(shallDisplay,settings)
+        function monitor = create(cParams)
+            shallDisplay = cParams.showOptParams;
             if shallDisplay
-                monitor = ParamsMonitor(settings);
+                monitor = ParamsMonitor(cParams);
             else
-                monitor = ParamsMonitor_Null;
+                monitor = ParamsMonitor_Null();
             end
         end
         

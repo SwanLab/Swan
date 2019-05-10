@@ -14,7 +14,7 @@ classdef testPrintingInputFileForFem < testNotShowingError
             g  = obj.gmsFile;
             oD = obj.resultsDir;
             oF = obj.fullFileName;
-            c = GmsFile2FemMatOoFileConverter(g,oD,oF);
+            c = GmsFile2SwanFileConverter(g,oD,oF);
             c.convert();
         end
         

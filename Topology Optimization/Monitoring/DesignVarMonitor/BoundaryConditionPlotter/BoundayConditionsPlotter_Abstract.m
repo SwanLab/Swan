@@ -84,6 +84,8 @@ classdef BoundayConditionsPlotter_Abstract < handle
         function i = getNodesFromInputData(d)
             if ~isempty(d)
                 i = unique(d(:,1));
+            else
+                i = [];
             end
         end
         

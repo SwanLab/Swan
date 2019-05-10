@@ -6,7 +6,9 @@ initial_case = 'cylinder';
 cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
-optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
+optimizer = 'HAMILTON-JACOBI'; 
+designVariable = 'LevelSet';
+kappaMultiplier = 1;
 filterType = 'PDE';
 
 nsteps = 1;

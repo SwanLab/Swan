@@ -4,6 +4,10 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         theta = 0.1
     end
     
+    properties (GetAccess = public, SetAccess = protected)
+        name = 'SLERP'
+    end
+    
     properties  (GetAccess = public, SetAccess = private)
         optimality_tol
     end
@@ -19,17 +23,18 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         
         function obj = Optimizer_SLERP(settings)
             obj@Optimizer_Unconstrained(settings);
-            obj.max_constr_change = +Inf;
-            obj.nconstr = settings.nconstr;
         end
         
-        function phi = computeX(obj,phi,g)
+        function compute(obj)
+            phi = obj.designVariable.value;
+            g   = obj.objectiveFunction.gradient;
             obj.computeNormalizedLevelSet(phi);
             obj.computeNormalizedGradient(g);
             obj.computeTheta();
             obj.computeCoeficients();
             phi = obj.updateLevelSet();
             obj.updateOptimalityConditionValue();
+            obj.designVariable.value = phi;
         end
         
     end
@@ -63,7 +68,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             phiN = obj.normalizedPhi;
             g    = obj.normalizedGrad;
             phiXg = obj.scalar_product.computeSP(phiN,g);
-            obj.theta = real(acos(phiXg));
+            obj.theta = max(real(acos(phiXg)),1e-14);
         end
         
         function updateOptimalityConditionValue(obj)
@@ -78,10 +83,10 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         
     end
     
-    methods
+    methods (Access = protected)
         
-        function optimality_tol = get.optimality_tol(obj)
-            optimality_tol = (0.0175/1e-3)*obj.target_parameters.optimality_tol;
+        function opt = obtainOptimalityTolerance(obj)
+            opt = (0.0175/1e-3)*obj.targetParameters.optimality_tol;            
         end
         
     end

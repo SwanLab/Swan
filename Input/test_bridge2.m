@@ -6,8 +6,10 @@ initial_case = 'holes';
 cost = {'compliance'};
 weights = 1;
 constraint = {'volumeConstraint'};
-optimizer = 'SLERP'; kappaMultiplier = 1;
+optimizer = 'SLERP'; 
+kappaMultiplier = 1;
 filterType = 'P1';
+designVariable = 'LevelSet';
 constraint_case = 'INEQUALITY';
 
 nsteps = 1;

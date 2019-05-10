@@ -7,6 +7,7 @@ classdef DesignVarMonitor_Abstract < handle
     properties (Access = protected)
         figHandle
         patchHandle
+        designVar
         mesh
         cam
         BCplotter
@@ -21,10 +22,8 @@ classdef DesignVarMonitor_Abstract < handle
         axes
     end
     
-    methods (Access = public, Abstract)
-        
-        plot(obj)
-        
+    methods (Access = public, Abstract)        
+        plot(obj)        
     end
     
     methods (Access = protected, Abstract)
@@ -41,15 +40,16 @@ classdef DesignVarMonitor_Abstract < handle
     
     methods (Access = public)
         
-        function obj = DesignVarMonitor_Abstract(designVar,showBC)
-            obj.mesh = designVar.meshGiD;
+        function obj = DesignVarMonitor_Abstract(cParams)
+            obj.showBC = cParams.showBC;
+            obj.designVar = cParams.designVar;
+            obj.mesh = obj.designVar.mesh;
             obj.dim = obj.mesh.pdim;
-            obj.showBC = showBC;
             obj.init();
         end
         
-        function refresh(obj,x)
-            obj.plot(x);
+        function refresh(obj)
+            obj.plot();
             obj.cam.updateView();
             drawnow
         end

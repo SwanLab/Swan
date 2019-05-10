@@ -1,4 +1,5 @@
 classdef testStoredComputedChecker < handle
+    
     properties (Abstract, Access = protected)
         variablesToStore
         storedVar

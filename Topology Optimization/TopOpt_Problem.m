@@ -1,114 +1,68 @@
 classdef TopOpt_Problem < handle
     
     properties (GetAccess = public, SetAccess = public)
+        designVariable
+        dualVariable
         cost
         constraint
-        designVariable
-        x
-        algorithm
         optimizer
-        mesh
-        settings
-        incrementalScheme   
+        incrementalScheme
         optimizerSettings
     end
     
     properties (Access = private)
-        hole_value
-        ini_design_value
-    end
-    
-    properties (Access = private)
         videoManager
+        homogenizedVarComputer
     end
-        
     
     methods (Access = public)
         
-        function obj = TopOpt_Problem(settings)
-            obj.createDesignVariable(settings);
-            
-            settings.pdim = obj.mesh.pdim;
-            obj.settings = settings;
-            
-            obj.createIncrementalScheme(settings);
-            obj.createOptimizerSettings(settings); 
-            obj.optimizer = OptimizerFactory.create(obj.optimizerSettings);
-            obj.cost = Cost(settings,settings.weights);
-            obj.constraint = Constraint(settings);
-            obj.createVideoManager(settings);
-
-
+        function obj = TopOpt_Problem(cParams)
+            obj.createIncrementalScheme(cParams);
+            obj.createDesignVariable(cParams);
+            obj.createDualVariable(cParams);            
+            obj.createHomogenizedVarComputer(cParams)
+            obj.createCostAndConstraint(cParams);
+            obj.createOptimizer(cParams);
+            obj.createVideoManager(cParams);
         end
         
-        function createOptimizerSettings(obj,settings)
-            lsS.line_search     = settings.line_search;
-            lsS.optimizer       = settings.optimizer;
-            lsS.HJiter0         = settings.HJiter0;
-            lsS.filename        = settings.filename;
-            lsS.kappaMultiplier = settings.kappaMultiplier;
-            lsS.epsilon         = obj.incrementalScheme.targetParams.epsilon;
-            
-            
-            scS.filename        = settings.filename;
-            scS.epsilon         = obj.incrementalScheme.targetParams.epsilon;
-            
-            uncOptimizerSettings = SettingsOptimizerUnconstrained;
-            
-            uncOptimizerSettings.nconstr               = settings.nconstr;
-            uncOptimizerSettings.target_parameters     = settings.target_parameters;
-            uncOptimizerSettings.constraint_case       = settings.constraint_case;            
-            uncOptimizerSettings.lineSearchSettings    = lsS;
-            uncOptimizerSettings.scalarProductSettings = scS;
-            
-            uncOptimizerSettings.e2                  = settings.e2;
-            uncOptimizerSettings.filter              = settings.filter;
-            uncOptimizerSettings.printChangingFilter = settings.printChangingFilter;
-            uncOptimizerSettings.filename            = settings.filename;
-            uncOptimizerSettings.ptype               = settings.ptype;
-            
-            optSet.uncOptimizerSettings = uncOptimizerSettings;
-            optSet.monitoring           = settings.monitoring;
-            optSet.nconstr              = settings.nconstr;
-            optSet.target_parameters    = settings.target_parameters;
-            optSet.constraint_case      = settings.constraint_case;   
-            optSet.optimizer            = settings.optimizer;
-            optSet.maxiter              = settings.maxiter;
-            optSet.printing             = settings.printing;
-            optSet.printMode            = settings.printMode;            
-            
-            optSet.plotting             = settings.plotting;
-            optSet.pdim                 = settings.pdim;
-            optSet.showBC               = settings.showBC;   
-            
-            
-            optSet.designVar = obj.designVariable;
-            obj.optimizerSettings = optSet;
-            
+        function createOptimizer(obj,settings)
+            obj.createOptimizerSettings(settings);
+            obj.optimizer = Optimizer.create(obj.optimizerSettings);
         end
         
-        function preProcess(obj)
-            obj.cost.preProcess();
-            obj.constraint.preProcess();
-            obj.x = obj.designVariable.value;
+        function createOptimizerSettings(obj,cParams)
+            s = cParams.optimizerSettings;
+            s.uncOptimizerSettings.lineSearchSettings.scalarProductSettings.epsilon         = obj.incrementalScheme.targetParams.epsilon;
+            s.uncOptimizerSettings.lineSearchSettings.scalarProductSettings.nVariables      = obj.designVariable.nVariables;
+            s.uncOptimizerSettings.scalarProductSettings = s.uncOptimizerSettings.lineSearchSettings.scalarProductSettings;
+            
+            s.uncOptimizerSettings.lineSearchSettings.epsilon = obj.incrementalScheme.targetParams.epsilon;
+            
+            s.uncOptimizerSettings.targetParameters  = obj.incrementalScheme.targetParams;
+            s.uncOptimizerSettings.designVariable     = obj.designVariable;
+            
+            s.designVar         = obj.designVariable;
+            s.target_parameters = obj.incrementalScheme.targetParams;
+            s.cost              = obj.cost;
+            s.constraint        = obj.constraint;
+            s.incrementalScheme = obj.incrementalScheme;
+            s.dualVariable      = obj.dualVariable;
+            
+            obj.optimizerSettings = s;
+            
         end
         
         function computeVariables(obj)
-
-            
-            obj.linkTargetParams();
-            while obj.incrementalScheme.hasNext()             
+            while obj.incrementalScheme.hasNext()
                 obj.incrementalScheme.next();
-                obj.solveCurrentProblem();
+                obj.optimizer.solveProblem();
             end
         end
         
-        
         function postProcess(obj)
-            % Video creation
-            if obj.settings.printing
-                obj.videoManager.makeVideo(obj.optimizer.niter);
-            end
+            obj.videoManager.makeVideo(obj.optimizer.niter);
         end
         
     end
@@ -118,56 +72,61 @@ classdef TopOpt_Problem < handle
         function optSet = obtainOptimizersSettings(obj,settings)
             epsilon = obj.incrementalScheme.targetParams.epsilon;
             settings.optimizerSettings.uncOptimizerSettings.lineSearchSettings.epsilon = epsilon;
-            settings.optimizerSettings.uncOptimizerSettings.scalarProductSettings.epsilon = epsilon; 
+            settings.optimizerSettings.uncOptimizerSettings.scalarProductSettings.epsilon = epsilon;
             set = settings.clone();
             optSet = set.optimizerSettings;
         end
         
-        function createDesignVariable(obj,settings)
-            obj.mesh = Mesh_GiD(settings.filename);
-            designVarSettings.mesh = obj.mesh;
-            designVarInitializer = DesignVariableCreator(settings,obj.mesh);
-            designVarSettings.value = designVarInitializer.getValue();
-            designVarSettings.optimizer = settings.optimizer;
-            obj.designVariable = DesignVariableFactory().create(designVarSettings);
+        function createDesignVariable(obj,cParams)
+            s = cParams.designVarSettings;
+            s.scalarProductSettings.epsilon  = obj.incrementalScheme.targetParams.epsilon;
+            obj.designVariable = DesignVariable.create(s);
         end
         
-        function createIncrementalScheme(obj,settings)
-            settingsIncrementalScheme = SettingsIncrementalScheme();
-            
-            settingsIncrementalScheme.settingsTargetParams.VfracInitial = settings.Vfrac_initial;
-            settingsIncrementalScheme.settingsTargetParams.VfracFinal = settings.Vfrac_final;
-            settingsIncrementalScheme.settingsTargetParams.constrInitial = settings.constr_initial;
-            settingsIncrementalScheme.settingsTargetParams.constrFinal = settings.constr_final;
-            settingsIncrementalScheme.settingsTargetParams.optimalityInitial = settings.optimality_initial;
-            settingsIncrementalScheme.settingsTargetParams.optimalityFinal = settings.optimality_final;
-            settingsIncrementalScheme.settingsTargetParams.epsilonInitial = settings.epsilon_initial;
-            settingsIncrementalScheme.settingsTargetParams.epsilonFinal = settings.epsilon_final;
-            settingsIncrementalScheme.settingsTargetParams.epsilonIsotropyInitial = settings.epsilon_isotropy_initial;
-            settingsIncrementalScheme.settingsTargetParams.epsilonIsotropyFinal = settings.epsilon_isotropy_final;
-            
-            settingsIncrementalScheme.nSteps = settings.nsteps;
-            settingsIncrementalScheme.shallPrintIncremental = settings.printIncrementalIter;
-            
-            settingsIncrementalScheme.mesh = obj.mesh;
-            
-            obj.incrementalScheme = IncrementalScheme(settingsIncrementalScheme);
+        function createDualVariable(obj,cParams)
+            cParamsD.nConstraints = numel(cParams.settings.constraint);
+            obj.dualVariable = DualVariable(cParamsD);
+        end        
+        
+        function createHomogenizedVarComputer(obj,cParams)
+            s = cParams.homogenizedVarComputerSettings;
+            obj.homogenizedVarComputer = HomogenizedVarComputer.create(s);
         end
         
-        function solveCurrentProblem(obj)
-            istep = obj.incrementalScheme.iStep;
-            obj.designVariable = obj.optimizer.solveProblem(obj.designVariable,obj.cost,obj.constraint,istep,obj.settings.nsteps);
-            obj.x = obj.designVariable.value;
+        function createIncrementalScheme(obj,cParams)
+            s = cParams.incrementalSchemeSettings;
+            obj.incrementalScheme = IncrementalScheme(s);
         end
         
-        function linkTargetParams(obj)
-            obj.cost.target_parameters = obj.incrementalScheme.targetParams;
-            obj.constraint.target_parameters = obj.incrementalScheme.targetParams;
-            obj.optimizer.target_parameters = obj.incrementalScheme.targetParams;
+        function createCostAndConstraint(obj,cParams)
+            obj.createCost(cParams);
+            obj.createConstraint(cParams);
         end
-       
-        function createVideoManager(obj,settings)
-            obj.videoManager = VideoManager(settings,obj.designVariable.type,obj.mesh.pdim);
+        
+        function createCost(obj,cParams)
+            s = cParams.costSettings;
+            s.designVar = obj.designVariable;
+            s.homogenizedVarComputer = obj.homogenizedVarComputer;
+            s.targetParameters = obj.incrementalScheme.targetParams;
+            obj.cost       = Cost(s);
+        end
+        
+        function createConstraint(obj,cParams)
+            s = cParams.constraintSettings;
+            s.designVar = obj.designVariable;
+            s.homogenizedVarComputer = obj.homogenizedVarComputer;
+            s.targetParameters = obj.incrementalScheme.targetParams;
+            s.dualVariable = obj.dualVariable;
+            obj.constraint = Constraint(s);
+        end
+        
+        function createVideoManager(obj,cParams)
+            s = cParams.videoManagerSettings;
+            if s.shallPrint
+                obj.videoManager = VideoManager(s);
+            else
+                obj.videoManager = VideoManager_Null(s);
+            end
         end
         
     end

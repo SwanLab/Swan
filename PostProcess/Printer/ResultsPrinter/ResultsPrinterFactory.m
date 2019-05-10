@@ -16,7 +16,7 @@ classdef ResultsPrinterFactory < handle
         
         function createPrinter(obj,resultCase,d)
             switch resultCase
-                case 'Elasticity'                    
+                case 'Elasticity'
                     p = ElasticityResultsPrinter(d);
                 case 'ElasticityMicro'
                     p = ElasticityMicroResultsPrinter(d);
@@ -28,16 +28,20 @@ classdef ResultsPrinterFactory < handle
                     p = DensityResultsPrinter(d);
                 case 'NumericalHomogenizer'
                     p = NumericalHomogenizerPrinter(d);
-                case 'TopOptProblem'                    
+                case 'TopOptProblem'
                     p = TopOptResultsPrinter(d);
                 case 'HomogenizedTensor'
                     p = HomogenizedTensorPrinter(d);
+                case 'HomogenizedTensorStressBasis'
+                    p = HomogenizedTensorStressBasisPrinter(d);
                 case 'ElasticityMicroAndLevelSet'
                     p = ElasticityMicroDefinedByLevelSet(d);
+                case ''
+                    p = [];
             end
             obj.printer = p;
         end
         
     end
-
+    
 end

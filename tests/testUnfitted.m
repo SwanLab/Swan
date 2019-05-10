@@ -15,16 +15,16 @@ classdef testUnfitted < test
     methods (Access = protected)
         
         function createTopOpt(obj)
-            file_name_in = fullfile('.','Input',obj.testName);
-            settings = Settings(file_name_in);
+            filename = fullfile('.','Input',obj.testName);
+            settings = Settings(filename);
             settings.printChangingFilter = false;
-            obj.topOpt = TopOpt_Problem(settings);
-            obj.topOpt.preProcess();
-            obj.levelSet = obj.topOpt.x;
+            sett = SettingsTopOptProblem(settings);
+            obj.topOpt = TopOpt_Problem(sett);
+            obj.levelSet = obj.topOpt.designVariable.value;
         end
         
         function createMesh(obj)
-            meshBackground = obj.topOpt.mesh;
+            meshBackground = obj.topOpt.designVariable.mesh;
             interpolation = Interpolation.create(meshBackground,'LINEAR');
             settingsUnfitted = SettingsMeshUnfitted(obj.meshType,meshBackground,interpolation,obj.meshIncludeBoxContour);
             obj.mesh = Mesh_Unfitted_Factory.create(settingsUnfitted);

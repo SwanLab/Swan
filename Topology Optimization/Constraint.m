@@ -1,16 +1,25 @@
 classdef Constraint < CC
-    properties (Access = public)
-        lambda
+    
+    properties (Access = private)
+       dualVariable 
     end
     
     methods (Access = public)
-        function obj=Constraint(settings)
-            obj@CC(settings,settings.constraint);
+        
+        function obj = Constraint(cParams)
+            obj.dualVariable = cParams.dualVariable;
+            obj.init(cParams);
         end
         
-        function updateFields(obj,iSF)
-            obj.value(iSF,1) = obj.ShapeFuncs{iSF}.value;
-            obj.gradient(:,iSF) = obj.ShapeFuncs{iSF}.gradient;
-        end
     end
+    
+    methods (Access = protected)
+        
+        function updateFields(obj,iSF)
+            obj.value(iSF,1)    = obj.shapeFunctions{iSF}.value;
+            obj.gradient(:,iSF) = obj.shapeFunctions{iSF}.gradient;
+        end
+        
+    end
+    
 end

@@ -57,10 +57,11 @@ classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
         
         function computeNumericallyChForLaminate(obj)  
            d = obj.createNumericalHomogenizerDataBase();
-           homog = NumericalHomogenizer(d);                
+           homog = NumericalHomogenizer(d);
+           homog.compute();
            obj.NumericalCh    = obj.rotateCh(homog);
            obj.MaterialValues = homog.matValues;
-           obj.FractionVolume = homog.volume;
+           obj.FractionVolume = homog.cellVariables.volume;
         end
         
         function d = createNumericalHomogenizerDataBase(obj)
@@ -116,7 +117,7 @@ classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
         function Ch = rotateCh(obj,homog)
             dir = obj.FiberDirection;
             r = ChRotatorForFiberHomogenizer();
-            Ch = r.rotate(dir,homog.Ch());
+            Ch = r.rotate(dir,homog.cellVariables.Ch());
         end
        
     end

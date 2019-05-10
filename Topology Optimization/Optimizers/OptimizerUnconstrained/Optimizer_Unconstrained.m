@@ -1,94 +1,159 @@
-classdef Optimizer_Unconstrained < Optimizer
+classdef Optimizer_Unconstrained < handle
     
     properties (Access = public)
-        objfunc
+        objectiveFunction
+        targetParameters
         opt_cond
+        hasConverged        
     end
     
     properties (GetAccess = public, SetAccess = protected)
         designImproved
-        max_constr_change
+        maxIncrNormX
     end
     
     properties (GetAccess = public, SetAccess = private)
         line_search
         scalar_product
         constr_tol
+        convergenceVars
+    end
+    
+    properties (Access = protected)                
+        designVariable        
+        xOld
+    end
+    
+    properties (Access = private)
+       incX
+       incF
     end
     
     methods (Access = public, Abstract)
+        compute(obj)
+    end
+    
+    methods (Access = public, Static)
         
-        computeX(obj)
+        function obj = create(cParams)
+            f = Optimizer_UnconstrainedFactory();
+            obj = f.create(cParams);
+        end        
         
     end
     
+    methods (Access = protected)
+        
+        function opt = obtainOptimalityTolerance(obj)
+            opt = obj.targetParameters.optimality_tol;            
+        end
+
+    end
     
     methods (Access = public)
         
-        function obj = Optimizer_Unconstrained(settings)
-            
-            opS.nconstr           = settings.nconstr;
-            opS.target_parameters = settings.target_parameters;
-            opS.constraint_case   = settings.constraint_case;
-                       
-            obj@Optimizer(opS);
-            obj.line_search    = LineSearch.create(settings.lineSearchSettings);
-            obj.scalar_product = ScalarProduct(settings.scalarProductSettings);
+        function obj = Optimizer_Unconstrained(cParams) 
+            obj.objectiveFunction  = cParams.lagrangian;
+            obj.hasConverged       = false;            
+            obj.maxIncrNormX       = +Inf;            
+            obj.line_search        = LineSearch.create(cParams.lineSearchSettings);
+            obj.scalar_product     = ScalarProduct(cParams.scalarProductSettings);
+            obj.convergenceVars    = cParams.convergenceVars;
+            obj.targetParameters   = cParams.targetParameters;
+            obj.designVariable     = cParams.designVariable;
         end
         
-        function x = updateX(obj,x_ini,cost,constraint)
-            x = obj.computeX(x_ini,obj.objfunc.gradient);
-            
-            obj.updateObjectiveFunction(x,cost,constraint);
-            
-            obj.updateConvergenceParams(x,x_ini);
-            
-            if ~obj.has_converged
-                obj.line_search.computeKappa();
+        function update(obj)
+            obj.designVariable.updateOld();                                    
+            obj.init();
+            while ~obj.hasConverged
+                obj.designVariable.restart();
+                obj.compute();
+                obj.objectiveFunction.updateBecauseOfPrimal();
+                obj.updateConvergenceParams();
+                if ~obj.hasConverged
+                    obj.line_search.computeKappa();
+               end
+            end
+            obj.revertIfDesignNotImproved();
+        end
+        
+        function init(obj)
+            obj.objectiveFunction.updateOld();
+            obj.initLineSearch();
+            obj.hasConverged = false;            
+        end
+        
+        function updateConvergenceParams(obj)
+            obj.computeIncrements();
+            obj.computeOptimizerFlagConvergence(); 
+            obj.storeConvergenceVariablesValues();            
+        end
+        
+        function storeConvergenceVariablesValues(obj)
+            obj.convergenceVars.reset();
+            obj.convergenceVars.append(obj.incF);
+            obj.convergenceVars.append(obj.incX);
+            obj.convergenceVars.append(obj.line_search.kappa);            
+        end
+        
+        function computeOptimizerFlagConvergence(obj)
+            costDecreased = obj.hasCostDecreased();
+            smallChangeX  = obj.isVariableChangeSmall();
+            isValidIter   = costDecreased && smallChangeX;
+            isLineSearchSmall = obj.isLineSearchSmallerThanMin;
+            obj.hasConverged = isValidIter || isLineSearchSmall;            
+        end
+        
+        function itHas = hasCostDecreased(obj)
+            itHas = obj.incF < 0;
+        end
+        
+        function itIs = isVariableChangeSmall(obj)
+            itIs = obj.incX < obj.maxIncrNormX;
+        end
+        
+        function itIs = isLineSearchSmallerThanMin(obj)
+           itIs = obj.line_search.kappa <= obj.line_search.kappa_min;
+        end
+        
+        function computeIncrements(obj)
+            normXsquare = obj.designVariable.computeL2normIncrement();
+            obj.incX = sqrt(normXsquare);
+            obj.incF = obj.objectiveFunction.computeIncrement();
+        end
+        
+        function itIs = isOptimal(obj)
+            optimTol = obj.obtainOptimalityTolerance();
+            optCond  = obj.opt_cond;
+            isNot = optCond >= optimTol;
+            itIs = ~isNot;
+        end
+        
+    end
+    
+    methods (Access = private)        
+        
+        function initLineSearch(obj)
+            x0 = obj.designVariable.value;
+            g  = obj.objectiveFunction.gradient;
+            obj.line_search.initKappa(x0,g);
+        end
+        
+        function revertIfDesignNotImproved(obj)
+            if ~obj.designImproved
+                obj.designVariable.restart();
             end
         end
         
     end
     
-    methods (Access = private)
-        
-        function updateObjectiveFunction(obj,x,cost,constraint)
-            cost.computeCostAndGradient(x);
-            constraint.computeCostAndGradient(x);
-            constraint = obj.setConstraint_case(constraint);
-            obj.objfunc.computeFunction(cost,constraint)
-        end
-        
-        function updateConvergenceParams(obj,x,x_ini)
-            incrNormL2  = obj.norm_L2(x,x_ini);
-            incrCost = (obj.objfunc.value - obj.objfunc.value_initial)/abs(obj.objfunc.value_initial);
-            
-            obj.designImproved = incrCost < 0 && incrNormL2 < obj.max_constr_change;
-            
-            obj.has_converged = obj.designImproved || obj.line_search.kappa <= obj.line_search.kappa_min;
-            
-            obj.stop_vars(1,1) = incrCost;                 obj.stop_vars(1,2) = 0;
-            obj.stop_vars(2,1) = incrNormL2;              obj.stop_vars(2,2) = obj.max_constr_change;
-            obj.stop_vars(3,1) = obj.line_search.kappa;     obj.stop_vars(3,2) = obj.line_search.kappa_min;
-        end
-        
-    end
-    
-    methods (Access = public)
-        
-        function N_L2 = norm_L2(obj,x,x_ini)
-            inc_x = x-x_ini;
-            N_L2 = obj.scalar_product.computeSP_M(inc_x,inc_x)/obj.scalar_product.computeSP_M(x_ini,x_ini);
-        end
-        
-    end
-    
-    methods
-        
-        function constr_tol = get.constr_tol(obj)
-            constr_tol(1:obj.nconstr) = obj.target_parameters.constr_tol;
-        end
-        
-    end
-    
+%     methods
+%         
+%         function constr_tol = get.constr_tol(obj)
+%             constr_tol = obj.targetParameters.constr_tol;
+%         end
+%         
+%     end
+%     
 end

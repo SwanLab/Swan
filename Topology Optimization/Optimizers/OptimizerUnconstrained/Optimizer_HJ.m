@@ -4,6 +4,10 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         optimality_tol
     end
     
+    properties (GetAccess = public, SetAccess = protected)
+        name = 'HAMILTON JACOBI'
+    end
+    
     properties (Access = private)
         e2
         meanCellSize
@@ -12,22 +16,25 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
     
     methods (Access = public)
         
-        function obj = Optimizer_HJ(settings,phi)
-            obj@Optimizer_Unconstrained(settings);
-            obj.e2 = settings.e2;
-            obj.meanCellSize = phi.mesh.computeMeanCellSize();
-            obj.max_constr_change = +Inf;
-            %obj.nconstr = settings.nconstr;
+        function obj = Optimizer_HJ(cParams)
+            designVar = cParams.designVariable;
             
-            obj.setupFilter(settings,settings.scalarProductSettings.epsilon,phi);
+            obj@Optimizer_Unconstrained(cParams);
+            obj.name = 'HAMILTON-JACOBI';
+            obj.e2 = cParams.e2;
+            obj.meanCellSize = designVar.mesh.computeMeanCellSize();
+            
+            obj.setupFilter(cParams,cParams.scalarProductSettings.epsilon,designVar);
         end
         
-        function phi = computeX(obj,phi,gradient)
+        function phi = compute(obj)
+            phi      = obj.designVariable.value;
+            gradient = obj.objectiveFunction.gradient;                        
             V = -obj.filter.regularize(phi,gradient);
             
             dt = 0.5*obj.e2*obj.line_search.kappa*obj.meanCellSize/max(abs(V(:))) ;
             phi = obj.solvelvlset(phi,V,dt);
-            
+            obj.designVariable.value = phi;
             obj.opt_cond = obj.line_search.kappa;
         end
         
@@ -42,13 +49,14 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             solvedPhi = phi;
         end
         
-        function setupFilter(obj,s,e,phi)
+        function setupFilter(obj,s,e,designVar)
             if obj.settingsFilterIsNotPDE(s)
                 obj.displayChangingFilter(s)
             end
-            filterFactorySettings = SettingsFilterFactory('paramsFilterFactory_PDE_LevelSet_Boundary');
-            obj.filter = FilterFactory().create(filterFactorySettings,phi);
-            obj.filter.setupFromGiDFile(s.filename,s.ptype);
+            filterSettings = SettingsFilter('paramsFilter_PDE_Boundary');
+            filterSettings.designVar = designVar;
+            filterSettings.quadratureOrder = 'LINEAR';            
+            obj.filter = FilterFactory().create(filterSettings);
             obj.filter.preProcess();
             obj.filter.updateEpsilon(e);
         end
@@ -73,14 +81,6 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             if print
                 disp('Filter P1 changed to PDE for HJ velocity regularization');
             end
-        end
-        
-    end
-    
-    methods
-        
-        function optimality_tol = get.optimality_tol(obj)
-            optimality_tol = (0.0175/1e-3)*obj.target_parameters.optimality_tol;
         end
         
     end

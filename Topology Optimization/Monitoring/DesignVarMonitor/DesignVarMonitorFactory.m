@@ -4,18 +4,19 @@ classdef DesignVarMonitorFactory < handle
         monitor
         builder
         
-        mesh
+        designVariable
         optimizer
         dim
         showBC
+        shallDisplay
     end
     
     
     methods (Access = public)
         
-        function monitor = create(obj,shallDisplay,settings,mesh)
-            obj.init(settings,mesh);
-            if shallDisplay
+        function monitor = create(obj,cParams)
+            obj.init(cParams);
+            if obj.shallDisplay
                 obj.createBuilder();
                 obj.createMonitor();
                 obj.build();
@@ -30,23 +31,26 @@ classdef DesignVarMonitorFactory < handle
     
     methods (Access = private)
         
-        function init(obj,settings,mesh)
-            obj.optimizer = settings.optimizer;
-            obj.dim = settings.pdim;
-            obj.mesh = mesh;
-            obj.showBC = settings.showBC;
+        function init(obj,cParams)
+            obj.shallDisplay   = cParams.shallDisplay;
+            obj.optimizer      = cParams.optimizerName;
+            obj.dim            = cParams.dim;
+            obj.designVariable = cParams.designVariable;
+            obj.showBC         = cParams.showBC;
         end
         
         function createMonitor(obj)
-            switch obj.designVariable()
-                case 'Density'
-                    obj.monitor = DesignVarMonitor_Density(obj.mesh,obj.showBC);
+            mS.designVar = obj.designVariable;
+            mS.showBC    = obj.showBC;
+            switch obj.designVariable.type
+                case {'Density','MicroParams'}
+                    obj.monitor = DesignVarMonitor_Density(mS);
                 case 'LevelSet'
                     switch obj.dim
                         case '2D'
-                            obj.monitor = DesignVarMonitor_LevelSet_2D(obj.mesh,obj.showBC);
+                            obj.monitor = DesignVarMonitor_LevelSet_2D(mS);
                         case '3D'
-                            obj.monitor = DesignVarMonitor_LevelSet_3D(obj.mesh,obj.showBC);
+                            obj.monitor = DesignVarMonitor_LevelSet_3D(mS);
                     end
                 otherwise
                     error('Invalid Design Variable')
@@ -61,17 +65,10 @@ classdef DesignVarMonitorFactory < handle
             obj.builder.build(obj.monitor);
         end
         
-        function var = designVariable(obj)
-            switch obj.optimizer
-                case {'SLERP','HAMILTON-JACOBI','PROJECTED SLERP'}
-                    var = 'LevelSet';
-                case {'PROJECTED GRADIENT','MMA','IPOPT'}
-                    var = 'Density';
-            end
-        end
-        
         function returnNullMonitor(obj)
-            obj.monitor = DesignVarMonitor_Null(obj.mesh,false);
+            mS.designVar = obj.designVariable;
+            mS.showBC    = false;
+            obj.monitor  = DesignVarMonitor_Null(mS);
         end
         
     end

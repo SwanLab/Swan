@@ -46,7 +46,7 @@ classdef VademecumTxiRhoPlotter < VademecumPlotter
                 end
             end
         end
-        
+                  
         function computeFeasibleIndex(obj)
             d.mx = obj.mxV;
             d.my = obj.myV;

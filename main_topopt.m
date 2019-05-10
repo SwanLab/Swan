@@ -8,28 +8,18 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 % run('TopOptTests.m');
 % run('UnfittedIntegrationTests.m')
 % run('ExploringSettingsTests.m')
-run('AllTests.m')
+% run('AllTests.m')
 clear variables;
 
 %% Main
-filenames={
-%     'CantileverTriangleCoarse_Case_1_1_1'
-    % 'CantileverTriangle_Case_1_1_1'
-%     'ImprovedBridgeSYM_Case_5_1_4'     
-%     'ThroneTetrahedraSYM_Case_1_1_5'
-%     'ThroneTetrahedraSYM_Case_5_1_2'
-%     'BikeTriangle_1_1_1'
-    };
+% settings = Settings('Case_RefactoringSettings_OLD');
+% settingsTopOpt = SettingsTopOptProblem('Case_RefactoringSettings_A',settings);
 
+settings = Settings('CantileverTriangleFine_Case_4_1_1');
+settingsTopOpt = SettingsTopOptProblem('Case_RefactoringSettingsMICRO_A',settings);
 
-for icases=1:size(filenames,1)
-    clearvars -except filenames icases;
-    close all;
-    settings = Settings(filenames{icases});
-    
-    topOptProblem = TopOpt_Problem(settings);
-    topOptProblem.preProcess;
-    topOptProblem.computeVariables;
-    topOptProblem.postProcess;
-end
+topOptProblem = TopOpt_Problem(settingsTopOpt);
+topOptProblem.computeVariables;
+topOptProblem.postProcess;
+
 close all

@@ -25,7 +25,7 @@ classdef NumericalHomogenizerDataBase < handle
             d.levelSetDataBase       = obj.createLevelSetDataBase();
             d.materialInterpDataBase = obj.createMaterialInterpDataBase();
             d.materialDataBase       = obj.createMaterialDataBase();
-            d.volumeShFuncDataBase   = obj.createShVolumeDataBase();
+            d.volumeShFuncDataBase   = obj.createShVolumeDataBase(d);
             obj.dataBase = d;
         end
         
@@ -39,12 +39,28 @@ classdef NumericalHomogenizerDataBase < handle
             d.pdim = '2D';
         end
         
-        function d = createShVolumeDataBase(obj)
+        function d = createShVolumeDataBase(obj,dI)
             d = SettingsShapeFunctional();
-            d.filterParams.filter = 'P1';
-            d.filterParams.optimizer = 'MMA';
+            d.filterParams.filterType = 'P1';
+            s = SettingsDesignVariable();
+            s.type = 'Density';
+            s.levelSetCreatorSettings.type = 'full';       
+            s.levelSetCreatorSettings.ndim  = s.mesh.ndim;
+            s.levelSetCreatorSettings.coord = s.mesh.coord;  
+            scalarPr.epsilon = 1e-3;
+            s.scalarProductSettings = scalarPr;            
+            d.filterParams.designVar = DesignVariable.create(s);% Density(s);
             d.filename = obj.femFileName;
-            d.domainType = 'MICRO';
+            d.scale = 'MICRO';
+            
+            sHomog.type                   = 'ByInterpolation';
+            sHomog.interpolation          = dI.materialInterpDataBase.materialInterpolation;
+            sHomog.dim                    = dI.pdim;
+            sHomog.typeOfMaterial         = dI.materialDataBase.materialType;
+            sHomog.constitutiveProperties = dI.materialDataBase.matProp;
+            sHomog.vademecumFileName      = [];            
+            sHomog.nelem                  = size(s.mesh.coord,1);            
+            d.homogVarComputer = HomogenizedVarComputer.create(sHomog);            
         end
         
     end
@@ -52,13 +68,13 @@ classdef NumericalHomogenizerDataBase < handle
     methods (Access = private, Static)
         
         function d = createLevelSetDataBase()
-            d.levelSetType = 'horizontalFibers';
+            d.type = 'horizontalFibers';
             d.levFib = 3;
             d.volume = 0.5;
         end
         
         function d = createMaterialInterpDataBase()
-            d.method = 'SIMPALL';
+            d.materialInterpolation = 'SIMPALL';
         end
         
         function d = createMaterialDataBase()

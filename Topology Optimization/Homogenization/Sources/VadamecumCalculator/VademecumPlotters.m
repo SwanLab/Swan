@@ -5,7 +5,7 @@ classdef VademecumPlotters < handle
     end
     
     properties (Access = private)        
-       postData
+       vademecumData
        outPutPath
        fileName
        dBForPlotter
@@ -28,20 +28,18 @@ classdef VademecumPlotters < handle
     methods (Access = private)
         
         function init(obj,d)
-            obj.postData   = d.postData;  
-            obj.outPutPath = d.outPutPath;
-            obj.fileName   = d.fileName;
+            obj.vademecumData = d;  
         end
                 
         function computeDataBaseForPlotter(obj)
-            d.mxV        = obj.postData.mxV;
-            d.myV        = obj.postData.myV;
-            d.C          = obj.postData.Ctensor;
-            d.invP       = obj.postData.PinvTensor;
-            d.volume     = obj.postData.volume;
+            d.mxV        = obj.vademecumData.mxV;
+            d.myV        = obj.vademecumData.myV;
+            d.C          = obj.vademecumData.C;
+            d.invP       = obj.vademecumData.invP;
+            d.volume     = obj.vademecumData.volume;
             d.hasToPrint = true;
-            d.outPutPath = obj.outPutPath;
-            d.microName  = obj.fileName;
+            d.outPutPath = obj.vademecumData.outPutPath;
+            d.microName  = obj.vademecumData.fileName;
             obj.dBForPlotter = d;            
         end
         

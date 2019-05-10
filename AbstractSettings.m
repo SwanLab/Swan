@@ -1,5 +1,9 @@
 classdef AbstractSettings < handle
     
+    properties (GetAccess = public, SetAccess = private)
+        loadedFile
+    end
+    
     properties (Access = protected, Abstract)
         defaultParamsName
     end
@@ -14,8 +18,9 @@ classdef AbstractSettings < handle
             obj.loadParams(obj.defaultParamsName);
         end
         
-        function loadParams(obj,param_filenme)
-            run(param_filenme);
+        function loadParams(obj,paramsFilename)
+            obj.loadedFile = paramsFilename;
+            run(paramsFilename);
             obj.customParams = who;
             obj.clearCustomParams();
             
@@ -34,7 +39,7 @@ classdef AbstractSettings < handle
     methods (Access = private)
         
         function clearCustomParams(obj)
-            obj.removeVar('param_filenme');
+            obj.removeVar('paramsFilename');
             obj.removeVar('obj');
         end
         

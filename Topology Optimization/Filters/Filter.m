@@ -2,6 +2,8 @@ classdef Filter < handle
     
     properties (GetAccess = public, SetAccess = private)
         diffReacProb
+        ngaus
+        nelem        
     end
     
     properties (Access = protected)
@@ -11,7 +13,6 @@ classdef Filter < handle
     
     properties (GetAccess = protected, SetAccess = private)
         P_operator
-        M0
         
         geometry
         quadrature
@@ -19,16 +20,19 @@ classdef Filter < handle
         
         mesh
         nnode
-        nelem
         npnod
-        ngaus
         shape
+    end
+    
+    properties (Access = private)
+       quadratureOrder 
     end
     
     methods (Access = public)
         
         function obj = Filter(cParams)
-            
+            obj.createDiffReacProblem(cParams.designVar);
+            obj.quadratureOrder = cParams.quadratureOrder;
         end
         
         function preProcess(obj)
@@ -42,19 +46,12 @@ classdef Filter < handle
             obj.computeGeometry();
             obj.storeParams();
             
-            obj.computeElementalMassMatrix();
-            
             obj.P_operator = obj.computePoperator(obj.diffReacProb.element.M);
         end
         
-        function obj = setupFromMesh(obj,mesh,scale)
-            obj.setDiffusionReactionProblem(scale);
-            obj.diffReacProb.setupFromMesh(mesh);
-        end
-        
-        function obj = setupFromGiDFile(obj,problemID,scale)
-            obj.setDiffusionReactionProblem(scale);
-            obj.diffReacProb.setupFromGiDFile(problemID);
+        function obj = createDiffReacProblem(obj,designVar)
+            obj.setDiffusionReactionProblem(designVar.mesh.scale);
+            obj.diffReacProb.setupFromMesh(designVar.mesh);
         end
         
     end
@@ -79,14 +76,14 @@ classdef Filter < handle
         end
         
         function P_operator = computePoperator(obj,Msmooth)
-            dirichlet_data=zeros(obj.nnode,obj.nelem);
-            for inode=1:obj.nnode
+            dirichlet_data = zeros(obj.nnode,obj.nelem);
+            for inode = 1:obj.nnode
                 dirichlet_data(inode,:)=obj.mesh.connec(:,inode);
             end
             
             T_nodal_2_gauss = sparse(obj.nelem,obj.npnod);
             
-            for inode=1:obj.nnode
+            for inode = 1:obj.nnode
                 T_nodal_2_gauss = T_nodal_2_gauss + sparse(1:obj.nelem,dirichlet_data(inode,:),ones(obj.nelem,1),obj.nelem,obj.npnod);
             end
             
@@ -124,11 +121,11 @@ classdef Filter < handle
         
         function setQuadrature(obj)
             obj.quadrature = Quadrature.set(obj.mesh.geometryType);
-            obj.quadrature.computeQuadrature('LINEAR');
+            obj.quadrature.computeQuadrature(obj.quadratureOrder);
         end
         
         function setInterpolation(obj)
-            obj.interpolation = Interpolation.create(obj.mesh,obj.quadrature.order);
+            obj.interpolation = Interpolation.create(obj.mesh,'LINEAR');
         end
         
         function storeParams(obj)
@@ -140,9 +137,10 @@ classdef Filter < handle
         end
         
         function computeElementalMassMatrix(obj)
+            nel = obj.geometry.interpolation.nelem;
             for igauss = 1:obj.quadrature.ngaus
-                obj.M0{igauss} = sparse(1:obj.geometry.interpolation.nelem,1:obj.geometry.interpolation.nelem,...
-                    obj.geometry.dvolu(:,igauss));
+                dvolu = obj.geometry.dvolu(:,igauss);
+                obj.M0{igauss} = sparse(1:nel,1:nel,dvolu);
             end
         end
         

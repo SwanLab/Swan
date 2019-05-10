@@ -4,28 +4,33 @@ classdef Optimizer_PG < Optimizer_Unconstrained
         optimality_tol
     end
     
+    properties (GetAccess = public, SetAccess = protected)
+        name = 'PROJECTED GRADIENT'
+    end
+    
+    properties (Access = private)
+       upperBound
+       lowerBound
+    end
+    
     methods (Access = public)
         
         function obj = Optimizer_PG(settings)
             obj@Optimizer_Unconstrained(settings);
-            obj.max_constr_change = +Inf;
+            obj.upperBound = settings.ub;
+            obj.lowerBound = settings.lb;            
         end
         
-        function rho = computeX(obj,design_variable,gradient)
-            rho_n = design_variable;
-            rho_step = rho_n-obj.line_search.kappa*gradient;
-            ub = ones(length(rho_n(:,1)),1);
-            lb = zeros(length(rho_n(:,1)),1);
-            rho = max(min(rho_step,ub),lb);
-            obj.opt_cond = sqrt(obj.scalar_product.computeSP(rho - rho_n,rho - rho_n))/sqrt(obj.scalar_product.computeSP(rho_n,rho_n));
-        end
-        
-    end
-    
-    methods
-        
-        function optimality_tol = get.optimality_tol(obj)
-            optimality_tol = obj.target_parameters.optimality_tol;
+        function x_new = compute(obj)
+            x_n      = obj.designVariable.value;
+            gradient = obj.objectiveFunction.gradient;            
+            x_new = x_n-obj.line_search.kappa*gradient;
+            ub = obj.upperBound*ones(length(x_n(:,1)),1);
+            lb = obj.lowerBound*ones(length(x_n(:,1)),1);
+            x_new = max(min(x_new,ub),lb);
+            obj.designVariable.value = x_new;
+            l2Norm = obj.designVariable.computeL2normIncrement();
+            obj.opt_cond = sqrt(l2Norm);
         end
         
     end

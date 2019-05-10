@@ -1,36 +1,67 @@
 classdef ScalarProduct < handle
-    %ScalarProduct Summary of this class goes here
-    %   Detailed explanation goes here
     
-    properties %(Access = private)
+    properties (Access = public)
         epsilon
         Ksmooth
         Msmooth
     end
     
-    methods 
-        function obj = ScalarProduct(settings)
-            obj.epsilon = settings.epsilon;
-            physProb = DiffReact_Problem();
-            physProb.setupFromGiDFile(settings.filename);
-            physProb.preProcess;
-            obj.Ksmooth = physProb.element.computeStiffnessMatrix;
-            obj.Msmooth = physProb.element.computeMassMatrix(2);
+    properties (Access = private)
+       nVariables 
+    end
+    
+    methods (Access = public)
+        function obj = ScalarProduct(cParams)
+            obj.init(cParams);
+            obj.createMatrices(cParams);
         end
     end
     
-    methods
+    methods (Access = public)
+        
         function sp = computeSP(obj,f,g)
-            sp = f'*(((obj.epsilon)^2)*obj.Ksmooth + obj.Msmooth)*g;
+            spM = obj.computeSP_M(f,g);
+            spK = obj.computeSP_K(f,g);
+            sp  = obj.epsilon^2*spK + spM;
         end
         
-        %% !! USE APPROPIATE TERMINOLOGY -- SP WITH ONLY M IS CALLED...? !!
+        % !! USE APPROPIATE TERMINOLOGY -- SP WITH ONLY M IS CALLED...? !!
         function sp = computeSP_M(obj,f,g)
-            sp = f'*(obj.Msmooth)*g;
+            sp = obj.computeProduct(obj.Msmooth,f,g);
         end
         
         function sp = computeSP_K(obj,f,g)
-            sp = f'*(obj.Ksmooth)*g;
+            sp = obj.computeProduct(obj.Ksmooth,f,g);
         end
     end
+    
+    methods (Access = private)
+        
+        function init(obj,cParams)
+            obj.epsilon = cParams.epsilon;
+            obj.nVariables = cParams.nVariables;
+        end
+        
+        function createMatrices(obj,cParams)
+            physProb = DiffReact_Problem();
+            physProb.setupFromGiDFile(cParams.filename);
+            physProb.preProcess;
+            obj.Ksmooth = physProb.element.computeStiffnessMatrix;
+            obj.Msmooth = physProb.element.computeMassMatrix(2);                                    
+        end
+        
+        function n = computeProduct(obj,K,f,g)
+            nx = length(f)/obj.nVariables;
+            n = 0;
+            for ivar = 1:obj.nVariables
+                i0 = nx*(ivar-1) + 1;
+                iF = nx*ivar;
+                fs = f(i0:iF);
+                gs = g(i0:iF);                
+                n = n + fs'*K*gs;
+            end              
+        end
+        
+    end    
+    
 end

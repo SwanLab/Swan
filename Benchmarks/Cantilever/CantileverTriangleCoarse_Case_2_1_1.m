@@ -6,7 +6,9 @@ initial_case = 'full';
 cost = {'compliance'};
 weights = [1, 0.1];
 constraint = {'volumeConstraint'};
-optimizer = 'PROJECTED GRADIENT'; kappaMultiplier = 1;
+optimizer = 'PROJECTED GRADIENT'; 
+kappaMultiplier = 1;
+designVariable = 'Density';
 filterType = 'P1';
 
 nsteps = 1;
@@ -24,3 +26,5 @@ TOL.E_plus = 1;
 TOL.E_minus = 1e-3;
 TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
+
+printing = true;

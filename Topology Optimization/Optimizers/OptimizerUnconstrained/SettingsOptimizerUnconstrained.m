@@ -5,9 +5,12 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
    end
     
    properties (Access = public)
-       nconstr
-       target_parameters
-       constraint_case
+       targetParameters
+       designVariable
+       lagrangian
+       type
+       
+       convergenceVars
        
        epsilon
        scalarProductSettings
@@ -18,6 +21,8 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
        printChangingFilter       
        filename
        ptype
+       ub
+       lb
    end
    
    methods (Access = public)
@@ -28,8 +33,6 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
            end
        end
        
-   end
-    
-  
+   end 
     
 end

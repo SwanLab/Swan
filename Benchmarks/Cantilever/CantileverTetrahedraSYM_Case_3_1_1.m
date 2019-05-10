@@ -6,7 +6,9 @@ initial_case = 'full';
 cost = {'compliance'};
 weights = [1];
 constraint = {'volume'};
-optimizer = 'MMA'; kappaMultiplier = 1;
+optimizer = 'MMA'; 
+kappaMultiplier = 1;
+designVariable = 'Density';
 filterType = 'P1';
 showBC = true;
 

@@ -7,14 +7,15 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         nRows
         nCols
         
+        dualVariable
+        
         problemID
         costFuncValue
         nCostFuncs
         constraintValues
         nConstraints
         refreshInterval
-        convVarsValues
-        nConvVars
+        convergenceVars
         iteration
         hasFinished
         iRefresh
@@ -26,13 +27,13 @@ classdef ParamsMonitor < ParamsMonitor_Interface
     
     methods (Access = public)
         
-        function obj = ParamsMonitor(settings)
-            obj.init(settings);
+        function obj = ParamsMonitor(cParams)
+            obj.init(cParams);
             drawnow
         end
         
-        function refresh(obj,it,cost,constraint,convVars,hasFinished,iStep,nStep)
-            obj.updateParams(it,cost,constraint,convVars,hasFinished,iStep,nStep);
+        function refresh(obj,it,hasFinished,iStep,nStep)
+            obj.updateParams(it,hasFinished,iStep,nStep);
             obj.updateFigures();
             if obj.shallRefresh()
                 obj.refreshFigures();
@@ -44,18 +45,18 @@ classdef ParamsMonitor < ParamsMonitor_Interface
     
     methods (Access = private)
         
-        function init(obj,settings)
-            obj.saveSettings(settings);
-            obj.namingManager = NamingManager(settings);
+        function init(obj,cParams)
+            obj.problemID = cParams.problemID;
+            obj.refreshInterval = cParams.refreshInterval;
+            obj.nCostFuncs = length(cParams.costFuncNames);
+            obj.nConstraints = length(cParams.constraintFuncs);
+            
+            obj.dualVariable     = cParams.dualVariable;
+            obj.costFuncValue    = cParams.cost;
+            obj.constraintValues = cParams.constraint;
+            obj.convergenceVars  = cParams.convergenceVars;
+            obj.createNamingManager(cParams);
             obj.createFigures();
-        end
-        
-        function saveSettings(obj,settings)
-            obj.problemID = settings.case_file;
-            obj.refreshInterval = settings.monitoring_interval;
-            obj.nCostFuncs = length(settings.cost);
-            obj.nConstraints = length(settings.constraint);
-            obj.nConvVars = ConvergenceVarsDispatcher.dispatchNumber(settings.optimizer);
         end
         
         function createFigures(obj)
@@ -92,7 +93,7 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         end
         
         function initConvergenceVarsFigures(obj)
-            for i = 1:obj.nConvVars
+            for i = 1:obj.convergenceVars.nVar
                 title = obj.namingManager.getConvVarFigureTitle(i);
                 obj.initFigure(title);
             end
@@ -132,10 +133,7 @@ classdef ParamsMonitor < ParamsMonitor_Interface
             obj.nCols = round(obj.nFigs/obj.nRows);
         end
         
-        function updateParams(obj,it,cost,constraint,convVars,hasFinished,iStep,nStep)
-            obj.costFuncValue = cost;
-            obj.constraintValues = constraint;
-            obj.convVarsValues = convVars;
+        function updateParams(obj,it,hasFinished,iStep,nStep)
             obj.iteration = it;
             obj.hasFinished = hasFinished;
             obj.iRefresh = 1;
@@ -152,28 +150,23 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         function updateCost(obj)
             obj.updateFigure(obj.costFuncValue.value);
             for i = 1:obj.nCostFuncs
-                obj.updateFigure(obj.costFuncValue.ShapeFuncs{i}.value)
+                obj.updateFigure(obj.costFuncValue.shapeFunctions{i}.value)
             end
         end
         
         function updateConstraints(obj)
             for i = 1:obj.nConstraints
-                obj.updateFigure(obj.constraintValues.ShapeFuncs{i}.value)
-                if ~isempty(obj.constraintValues.lambda)
-                    obj.updateFigure(obj.constraintValues.lambda(i))
+                obj.updateFigure(obj.constraintValues.shapeFunctions{i}.value)
+                if ~isempty(obj.dualVariable.value)
+                    obj.updateFigure(obj.dualVariable.value(i))
                 end
             end
         end
         
         function updateConvergenceVars(obj)
-            for i = 1:obj.nConvVars
-                if ~isempty(obj.convVarsValues)
-                    isStacked = contains(class(obj.figures{obj.iRefresh}),'stacked','IgnoreCase',true);
-                    if isStacked
-                        obj.updateFigure(obj.convVarsValues(i,:))
-                    else
-                        obj.updateFigure(obj.convVarsValues(i,1))
-                    end
+            for i = 1:obj.convergenceVars.nVar
+                if ~isempty(obj.convergenceVars.values(i))
+                    obj.updateFigure(obj.convergenceVars.values(i));
                 end
             end
         end
@@ -199,6 +192,15 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         
         function itIs = isTimeToRefresh(obj)
             itIs = mod(obj.iteration,obj.refreshInterval) == 0;
+        end
+        
+        function createNamingManager(obj,cParams)
+           nmS.costFuncNames = cParams.costFuncNames;
+           nmS.costWeights = cParams.costWeights;
+           nmS.constraintFuncs = cParams.constraintFuncs;
+           nmS.optimizerName = cParams.optimizerName;
+           
+           obj.namingManager    = NamingManager(nmS);
         end
         
     end

@@ -18,9 +18,9 @@ classdef HomogenizedTensorPrinter < CompositeResultsPrinter
         
         function storeFieldsToPrint(obj,d)
             microProblems = d.phyProblems{1};
-            fields = microProblems.variables;
+            fields = microProblems.variables2print;%  variables.var2print;
             for istre = 1:obj.nstre
-                di.fields = fields.var2print{istre};
+                di.fields = fields{istre};
                 p = obj.printers{istre};
                 p.storeFieldsToPrint(di);
                 p.setStrVariablesMicroCase(istre)                                
@@ -29,7 +29,9 @@ classdef HomogenizedTensorPrinter < CompositeResultsPrinter
         
         function createPrinters(obj,d)
             for istre = 1:obj.nstre
-                obj.printers{istre} = ResultsPrinter.create('ElasticityMicro',d);
+                p = ResultsPrinter.create('ElasticityMicro',d);
+                obj.printers{istre} = p;
+                
             end
         end
         

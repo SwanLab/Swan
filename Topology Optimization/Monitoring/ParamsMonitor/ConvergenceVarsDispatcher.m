@@ -4,23 +4,14 @@ classdef ConvergenceVarsDispatcher < handle
         
         function names = dispatchNames(optimizer)
             switch optimizer
-                case {'SLERP','PROJECTED GRADIENT','HAMILTON-JACOBI','PROJECTED SLERP'}
+                case {'AlternatingPrimalDual','DualNestedInPrimal'}
                     names = {'\Deltacost';'Norm L2';'\kappa'};
                 case 'MMA'
                     names = {'kktnorm';'outit'};
                 case 'IPOPT'
                     names = {'inf_{du}'};
-            end
-        end
-        
-        function number = dispatchNumber(optimizer)
-            switch optimizer
-                case {'SLERP','PROJECTED GRADIENT','HAMILTON-JACOBI','PROJECTED SLERP'}
-                    number = 3;
-                case 'MMA'
-                    number = 2;
-                case 'IPOPT'
-                    number = 1;
+                otherwise
+                    error('Invalid optimizer name');
             end
         end
         

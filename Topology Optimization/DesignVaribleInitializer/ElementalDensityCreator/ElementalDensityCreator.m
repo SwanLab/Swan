@@ -24,7 +24,7 @@ classdef ElementalDensityCreator < handle
            d = obj.density;
        end    
        
-       function f = getFieldsToPrint()
+       function f = getFieldsToPrint(obj)
            f{1} = obj.density;
        end
        

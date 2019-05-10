@@ -4,7 +4,7 @@ classdef Quadrature_Hexahedra < Quadrature
         function computeQuadrature(obj,order)
             computeQuadrature@Quadrature(obj,order);
             switch order
-                case 'LINEAR'
+                case {'LINEAR','CONSTANT'}
                     obj.ngaus = 8;
                     nlocs = 2;
                     posgl(1) = -0.577350269189626;

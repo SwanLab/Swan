@@ -7,7 +7,9 @@ cost = {'chomog_fraction';'perimeter'};
 weights = [1 0.1];
 constraint = {'volumeConstraint'};
 constraint_case = 'INEQUALITY';
-optimizer = 'MMA'; kappaMultiplier = 1;
+optimizer = 'MMA'; 
+kappaMultiplier = 1;
+designVariable = 'Density';
 filterType = 'P1';
 
 nsteps = 1;

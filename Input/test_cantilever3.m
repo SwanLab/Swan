@@ -8,7 +8,9 @@ widthV = 0.4;
 cost = {'compliance';'perimeter'};
 weights = [1 0.1];
 constraint = {'volumeConstraint'};
-optimizer = 'SLERP'; kappaMultiplier = 1;
+optimizer = 'SLERP'; 
+kappaMultiplier = 1;
+designVariable = 'LevelSet';
 filterType = 'P1';
 
 shFuncParamsName = 'paramsTestCantilever3';

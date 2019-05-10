@@ -1,98 +1,140 @@
-classdef Optimizer_IPOPT < Optimizer_Constrained
-    properties
-        m
+classdef Optimizer_IPOPT < Optimizer
+    
+    properties (GetAccess = public, SetAccess = protected)
+        name = 'IPOPT'
+    end
+    
+    properties (Access = private)
+        nconstr
         info
         max_iter
-        constraint_tolerance
-        optimality_tolerance
-        cost_copy
-        constraint_copy
-        data        
+        constraintTolerance
+        optimalityTolerance
+        data
+        upperBound
+        lowerBound
+        functions
+        nX
+        options
     end
-    methods
-        function obj = Optimizer_IPOPT(settings)
-            ocS.settings        = settings;
-            ocS.designVariable  = settings.designVar;
-            ocS.monitoring      = settings.monitoring;            
-            obj@Optimizer_Constrained(ocS);
-            obj.m = settings.nconstr;
-            obj.max_iter = settings.maxiter;
-            obj.niter=-1;
-        end
-        function optimality_tolerance = get.optimality_tolerance(obj)
-            optimality_tolerance = obj.target_parameters.optimality_tol;
-        end
-        function constraint_tolerance = get.constraint_tolerance(obj)
-            constraint_tolerance = obj.target_parameters.constr_tol*1e-1;
+    
+    methods (Access = public)
+        
+        function obj = Optimizer_IPOPT(cParams)
+            obj.init(cParams);
+            obj.upperBound = cParams.uncOptimizerSettings.ub;
+            obj.lowerBound = cParams.uncOptimizerSettings.lb;
+            obj.nconstr    = cParams.nconstr;
+            obj.max_iter   = cParams.maxiter;
+            obj.niter      = -1;
+            obj.nX         = length(obj.designVariable.value);
+            obj.createFunctions();
+            obj.createOptions();
         end
         
-        function designVar = solveProblem(obj,designVar,cost,constraint,istep,nstep)
-            obj.createPostProcess(cost,constraint);
-            x_ini = designVar.value;
-            cost.computeCostAndGradient(x_ini)
-            funcs.objective = @(x) obj.objective(x,cost);
-            funcs.gradient = @(x) obj.gradient(x,cost);
-            funcs.constraints = @(x) obj.constraint(x,constraint);
-            funcs.jacobian = @(x) sparse(obj.constraint_gradient(x,constraint)');
-            n = length(x_ini);
-            funcs.jacobianstructure = @() sparse(ones(obj.m,n));
-            funcs.iterfunc = @(iter,fval,data) obj.outputfun_ipopt(data,istep,nstep);
-            
-            options.ipopt.print_level= 0;
-            options.ipopt.hessian_approximation = 'limited-memory';
-            options.ipopt.limited_memory_update_type = 'bfgs';
-            options.ub = ones(length(x_ini),1);
-            options.lb = zeros(length(x_ini),1);
-            if strcmp(obj.constraint_case,'EQUALITY')
-                options.cl = zeros(obj.m,1);
-                options.constraint_case = 'equality';
-            else
-                options.cl = -Inf*ones(obj.m,1); % lower bound constraint
-            end
-            
-            options.cu = zeros(obj.m,1); % upper bound constraint value
-            options.ipopt.max_iter = obj.max_iter;
-            options.ipopt.constr_viol_tol = obj.constraint_tolerance;
-            %         options.ipopt.dual_inf_tol = optimality_tolerance;
-            options.ipopt.compl_inf_tol = obj.constraint_tolerance;
-            options.ipopt.tol = obj.optimality_tolerance;
-            
-            [x, obj.info] = ipopt(x_ini,funcs,options);
-            
-            designVar.update(x);
+        function solveProblem(obj)
+            obj.cost.computeCostAndGradient();
+            obj.updateIpoptOptions();
+            x = obj.callIpopt();
+            obj.designVariable.update(x);
         end
         
     end
-    methods 
-        function f = objective(obj,x,cost)
-            cost.computeCostAndGradient(x)
-            obj.cost_copy=cost;
-            f = cost.value;
+    
+    methods (Access = private)
+        
+        function x = callIpopt(obj)
+            x0  = obj.designVariable.value;
+            fun = obj.functions;
+            opt = obj.options;
+            [x, obj.info] = ipopt(x0,fun,opt);
         end
-        function f = constraint(obj,x,constraint)
-            constraint.computeCostAndGradient(x)
-            obj.constraint_copy=constraint;
-            f = constraint.value;
+        
+        function createFunctions(obj)
+            funcs.objective         = @(x) obj.objective(x);
+            funcs.gradient          = @(x) obj.gradient(x);
+            funcs.constraints       = @(x) obj.constraintFunction(x);
+            funcs.jacobian          = @(x) sparse(obj.constraint_gradient(x)');
+            funcs.jacobianstructure = @() sparse(ones(obj.nconstr,obj.nX));
+            funcs.iterfunc          = @(iter,fval,data) obj.outputfun_ipopt(data);
+            obj.functions           = funcs;
         end
-        function g = gradient(obj,x,cost)
-            cost.computeCostAndGradient(x)   
-            obj.cost_copy=cost;
-            g = cost.gradient;
+        
+        function f = objective(obj,x)
+            obj.designVariable.value = x;
+            obj.cost.computeCostAndGradient()
+            f = obj.cost.value;
         end
-        function g = constraint_gradient(obj,x,constraint)
-            constraint.computeCostAndGradient(x)    
-            obj.constraint_copy=constraint;
-            g = constraint.gradient;
+        
+        function f = constraintFunction(obj,x)
+            obj.designVariable.value = x;
+            obj.constraint.computeCostAndGradient()
+            f = obj.constraint.value;
         end
-        function stop = outputfun_ipopt(obj,data,istep,nstep)            
+        
+        function g = gradient(obj,x)
+            obj.designVariable.value = x;
+            obj.cost.computeCostAndGradient()
+            g = obj.cost.gradient;
+        end
+        
+        function g = constraint_gradient(obj,x)
+            obj.designVariable.value = x;
+            obj.constraint.computeCostAndGradient()
+            g = obj.constraint.gradient;
+        end
+        
+        function stop = outputfun_ipopt(obj,data)
             stop = true;
+            obj.historicalVariables.inf_du = data.inf_du;
             obj.data=data;
             obj.niter=obj.niter+1;
-            obj.print(data.x,obj.niter,obj.cost_copy,obj.constraint_copy);            
-            obj.constraint_copy.lambda=zeros(obj.constraint_copy.nSF,1);
-            obj.monitor.refresh(data.x,obj.niter,obj.cost_copy,obj.constraint_copy,data.inf_du,obj.hasFinished(istep,nstep),istep,nstep);            
-            obj.writeToFile(istep,obj.cost_copy,obj.constraint_copy)
+            obj.designVariable.update(data.x);
+            obj.updateStatus();
+            obj.printOptimizerVariable();
+            obj.dualVariable.value = zeros(obj.constraint.nSF,1);
+            
+            obj.convergenceVars.reset();
+            obj.convergenceVars.append(data.inf_du);
+            obj.refreshMonitoring();
+            obj.printHistory();
         end
+        
+        function createOptions(obj)
+            opt.ipopt.print_level= 0;
+            opt.ipopt.hessian_approximation = 'limited-memory';
+            opt.ipopt.limited_memory_update_type = 'bfgs';
+            opt.ub = obj.upperBound*ones(obj.nX,1);
+            opt.lb = obj.lowerBound*ones(obj.nX,1);
+            if strcmp(obj.constraintCase,'EQUALITY')
+                opt.cl = zeros(obj.nconstr,1);
+                opt.constraintCase = 'equality';
+            else
+                opt.cl = -Inf*ones(obj.nconstr,1);
+            end
+            opt.cu                    = zeros(obj.nconstr,1);
+            opt.ipopt.max_iter        = obj.max_iter;
+            opt.ipopt.constr_viol_tol = obj.obtainConstraintTolerance();
+            opt.ipopt.compl_inf_tol   = obj.obtainConstraintTolerance();
+            opt.ipopt.tol             = obj.obtainOptimalityTolerance();
+            obj.options = opt;
+        end
+        
+        function updateIpoptOptions(obj)
+            obj.options.constr_viol_tol = obj.obtainConstraintTolerance();
+            obj.options.compl_inf_tol   = obj.obtainConstraintTolerance();
+            obj.options.tol             = obj.obtainOptimalityTolerance();            
+        end
+        
+        function ot = obtainOptimalityTolerance(obj)
+            ot = obj.targetParameters.optimality_tol;
+        end
+        
+        function ct = obtainConstraintTolerance(obj)
+            constrTol = obj.targetParameters.constr_tol;
+            ct = 0.1*constrTol;
+        end
+        
     end
-
+    
 end

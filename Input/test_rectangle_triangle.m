@@ -6,7 +6,9 @@ initial_case = 'full';
 cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
-optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
+optimizer = 'HAMILTON-JACOBI'; 
+kappaMultiplier = 1;
+designVariable = 'LevelSet';
 filterType = 'P1';
 
 nsteps = 1;

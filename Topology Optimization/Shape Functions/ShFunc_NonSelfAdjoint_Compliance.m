@@ -6,46 +6,45 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
     
     methods (Access = public)
         
-        function obj = ShFunc_NonSelfAdjoint_Compliance(settings)
-            obj@ShFunWithElasticPdes(settings);
-            obj.createEquilibriumProblem(settings.filename);
-            obj.createAdjointProblem(settings.filename)            
+        function obj = ShFunc_NonSelfAdjoint_Compliance(cParams)
+            cParams.filterParams.quadratureOrder = 'LINEAR';            
+            obj.init(cParams);     
+            obj.createEquilibriumProblem(cParams.filename);
+            obj.createAdjointProblem(cParams.filename)            
         end
         
         function f = getPhysicalProblems(obj)
-            f{1} = obj.physProb;
+            f{1} = obj.physicalProblem;
             f{2} = obj.adjointProb;
         end
         
     end
     
     methods (Access = protected)
-        
-       function createEquilibriumProblem(obj,fileName)
-            obj.physProb = FEM.create(fileName);
-            obj.physProb.preProcess;
-       end        
-        
+
         function computeFunctionValue(obj)
-            u = obj.physProb.variables.d_u;
+            u = obj.physicalProblem.variables.d_u;
             f = obj.adjointProb.variables.fext;
             obj.value = -f'*u;
         end
         
         function g = updateGradient(obj,igaus,istre,jstre)
-            eu   = obj.physProb.variables.strain;
+            eu   = obj.physicalProblem.variables.strain;
             ev   = obj.adjointProb.variables.strain;
             eu_i = squeeze(eu(igaus,istre,:));
             ev_j = squeeze(ev(igaus,jstre,:)); 
-            dCij = squeeze(obj.matProps.dC(istre,jstre,:));
-            g    = eu_i.*dCij.*ev_j;
+            g = zeros(length(eu_i),1,obj.nVariables);            
+            for ivar = 1:obj.nVariables
+                dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:));            
+                g(:,1,ivar) = eu_i.*dCij.*ev_j;
+            end              
         end
         
         function solvePDEs(obj)
-            obj.adjointProb.setMatProps(obj.matProps);
-            obj.adjointProb.computeVariables;
-            obj.physProb.setMatProps(obj.matProps);
-            obj.physProb.computeVariables();
+            obj.adjointProb.setC(obj.homogenizedVariablesComputer.C);
+            obj.adjointProb.computeVariables();
+            obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
+            obj.physicalProblem.computeVariables();
         end
         
     end

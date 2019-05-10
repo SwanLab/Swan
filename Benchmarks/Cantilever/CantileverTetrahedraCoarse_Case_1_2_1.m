@@ -7,6 +7,7 @@ cost = {'compliance';'perimeter'};
 weights = [1, 0.1];
 constraint = {'volumeConstraint'};
 optimizer = 'SLERP'; kappaMultiplier = 1;
+designVariable = 'LevelSet';
 filterType = 'P1';
 
 nsteps = 5;

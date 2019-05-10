@@ -1,0 +1,5 @@
+showOptParams = true;
+refreshInterval = 10;
+
+shallDisplayDesignVar = true;
+shallShowBoundaryConditions = true;

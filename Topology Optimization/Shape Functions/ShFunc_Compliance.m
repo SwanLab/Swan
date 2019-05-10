@@ -2,9 +2,10 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
    
     methods (Access = public)
         
-        function obj = ShFunc_Compliance(settings)
-            obj@ShFunWithElasticPdes(settings);
-            obj.createEquilibriumProblem(settings.filename);
+        function obj = ShFunc_Compliance(cParams)
+            cParams.filterParams.quadratureOrder = 'LINEAR';            
+            obj.init(cParams);
+            obj.createEquilibriumProblem(cParams.filename);
         end
         
     end
@@ -12,22 +13,25 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
     methods (Access = protected)
         
         function solvePDEs(obj)
-            obj.physProb.setMatProps(obj.matProps);
-            obj.physProb.computeVariables();
+            obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C)
+            obj.physicalProblem.computeVariables();
         end
         
         function computeFunctionValue(obj)
-            u = obj.physProb.variables.d_u;
-            f = obj.physProb.variables.fext;
+            u = obj.physicalProblem.variables.d_u;
+            f = obj.physicalProblem.variables.fext;
             obj.value = f'*u;
         end
         
         function g = updateGradient(obj,igaus,istre,jstre)
-            e    = obj.physProb.variables.strain;
+            e    = obj.physicalProblem.variables.strain;
             ei   = squeeze(e(igaus,istre,:));
             ej   = squeeze(e(igaus,jstre,:));
-            dCij = squeeze(obj.matProps.dC(istre,jstre,:));
-            g    = -ei.*dCij.*ej;
+            g = zeros(length(ei),1,obj.nVariables);
+            for ivar = 1:obj.nVariables
+                dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:));            
+                g(:,1,ivar) = -ei.*dCij.*ej;
+            end            
         end
         
     end

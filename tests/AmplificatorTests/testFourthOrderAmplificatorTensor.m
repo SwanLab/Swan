@@ -5,10 +5,13 @@ classdef testFourthOrderAmplificatorTensor < testShowingError
         testName = 'testShapeStressWithAmplificator';
     end
     
-    properties (Access = private)
-        fileName   
-        printingDir
-        gmsFile        
+    properties (Access = private)  
+        pNorm
+        monomials
+        PinfRectangle
+        P2Rectangle
+        PinfSmoothRectangle
+        P2SmoothRectangle
     end
     
     
@@ -16,9 +19,9 @@ classdef testFourthOrderAmplificatorTensor < testShowingError
         
         function obj = testFourthOrderAmplificatorTensor()
             obj.init();
-            obj.generateMeshFile();
-            obj.createFemMatOoInputData();
-            obj.createNumericalHomogenizer();
+            obj.computeSmoothAmplificators();
+            obj.computeNonSmoothAmplificators();
+            obj.plotNorms();                       
         end
         
     end
@@ -34,37 +37,52 @@ classdef testFourthOrderAmplificatorTensor < testShowingError
     methods (Access = private)
         
         function init(obj)
-            obj.fileName    = 'FourthOrderAmplificator';
-            obj.printingDir = fullfile(pwd,'Output',obj.fileName);  
-            obj.gmsFile     = [fullfile(obj.printingDir,obj.fileName),'.msh'];            
+            obj.pNorm = 8;
         end
         
-        function generateMeshFile(obj)
-            d.mxV         = 0.8;
-            d.myV         = 0.2;
-            d.fileName    = obj.fileName;
-            d.printingDir = obj.printingDir;
-            d.freeFemFileName = 'SmoothRectangle';
-            fG = FreeFemMeshGenerator(d);
-            fG.generate();
-        end       
-        
-        function createFemMatOoInputData(obj)
-            oD = fullfile('Output',obj.fileName);
-            fullOutFile = fullfile(oD,[obj.fileName,'.m']);
-            c = GmsFile2FemMatOoFileConverter(obj.gmsFile,oD,fullOutFile);
-            c.convert();
-        end           
-        
-        function createNumericalHomogenizer(obj)
-            defaultDB = NumericalHomogenizerDataBase([obj.fileName,'.m']);
-            dB = defaultDB.dataBase;
-            dB.outFileName                   = obj.fileName;
-            dB.print                         = true;
-            dB.levelSetDataBase.levelSetType = 'full';
-            obj.homog = NumericalHomogenizer(dB);                                            
+        function computeSmoothAmplificators(obj)
+            d.microCase = 'SmoothRectangle';
+            d.pNorm = obj.pNorm;
+            aC = AmplificatorComponentsMeasurer(d);
+            aC.compute();
+            obj.PinfSmoothRectangle = aC.PmaxNorm;
+            obj.P2SmoothRectangle   = aC.Pl2Norm;
+            obj.monomials = aC.monomials;
         end
-         
+        
+        function computeNonSmoothAmplificators(obj)
+            d.microCase = 'Rectangle';
+            d.pNorm = obj.pNorm;            
+            aC = AmplificatorComponentsMeasurer(d);
+            aC.compute();
+            obj.PinfRectangle = aC.PmaxNorm;
+            obj.P2Rectangle = aC.Pl2Norm;
+            obj.monomials = aC.monomials;            
+        end        
+        
+        function plotNorms(obj)
+            obj.plotNorm([obj.PinfSmoothRectangle,obj.PinfRectangle],'PtensorCompLogInfNorm');
+            obj.plotNorm([obj.P2SmoothRectangle,obj.P2Rectangle],'PtensorCompLogL2Norm');
+        end
+        
+        function plotNorm(obj,norm,plotName)
+            fig = figure();
+            h = bar(log(norm));
+            monomialsLeg = obj.computeAlphaLegend();
+            set(gca, 'XTickLabel',monomialsLeg, 'XTick',1:numel(monomialsLeg));
+            set(gca,'XTickLabelRotation',45);
+            legend('SmoothRectangle','Rectangle')
+            p = barPrinter(fig,h);
+            path = '/home/alex/Dropbox/Amplificators/Images/FourthOrderAmplificator/';
+            p.print([path,plotName]);
+        end
+        
+        function a = computeAlphaLegend(obj)
+            for ia = 1:size(obj.monomials,1)
+               a{ia} = mat2str(obj.monomials(ia,:)); 
+            end
+        end
+        
     end
     
     

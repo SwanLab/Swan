@@ -9,11 +9,9 @@ classdef VideoManager < handle
     
     methods (Access = public)
         
-        function obj = VideoManager(settings,designVarType,pdim)
-            obj.createVideoMaker(settings,designVarType,pdim);
-            obj.gidPath = 'C:\Program Files\GiD\GiD 13.0.4';% 'C:\Program Files\GiD\GiD 13.0.3';
-            obj.fileName = settings.case_file;
-            obj.filePath = fullfile(pwd,'Output',settings.case_file);
+        function obj = VideoManager(cParams)
+            obj.createPaths(cParams);
+            obj.createVideoMaker(cParams);
         end
         
         function makeVideo(obj,nIter)
@@ -22,6 +20,11 @@ classdef VideoManager < handle
             
             videoName = strcat('./Videos/Video_',obj.fileName,'_',int2str(nIter),'.gif');
             videoPath = fullfile(pwd,videoName);
+            
+            if ~exist(obj.filePath,'dir')
+                mkdir(obj.filePath);
+            end
+            
             obj.videoMaker.Make_video_design_variable(videoPath)
         end
         
@@ -29,8 +32,17 @@ classdef VideoManager < handle
     
     methods (Access = private)
         
-        function createVideoMaker(obj,settings,designVarType,pdim)
-            obj.videoMaker = VideoMakerTopOptFactory().create(settings.case_file,designVarType,pdim);
+        function createVideoMaker(obj,cParams)
+            type = cParams.designVarType;
+            pdim = cParams.pdim;
+            obj.videoMaker = VideoMakerTopOptFactory().create(obj.fileName,type,pdim);
+        end
+        
+        function createPaths(obj,cParams)
+            fileName = cParams.caseFileName;
+            obj.gidPath = 'C:\Program Files\GiD\GiD 13.0.4';% 'C:\Program Files\GiD\GiD 13.0.3';
+            obj.fileName = fileName;
+            obj.filePath = fullfile(pwd,'Output',fileName);
         end
         
     end

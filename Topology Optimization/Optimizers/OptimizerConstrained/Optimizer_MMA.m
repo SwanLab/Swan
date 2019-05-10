@@ -1,7 +1,11 @@
-classdef Optimizer_MMA < Optimizer_Constrained
-    properties
+classdef Optimizer_MMA < Optimizer
+    
+    properties (GetAccess = public, SetAccess = protected)
+        name = 'MMA'
+    end
+    
+    properties (Access = private)
         kkttol
-        kktnorm
         maxoutit
         x
         xold1
@@ -22,21 +26,22 @@ classdef Optimizer_MMA < Optimizer_Constrained
         df0dx
         fval
         dfdx
+        upperBound
+        lowerBound
     end
-    methods
-        function obj = Optimizer_MMA(settings)
-            ocS.settings        = settings;
-            ocS.designVariable  = settings.designVar;
-            ocS.monitoring      = settings.monitoring;
-            
-            obj@Optimizer_Constrained(ocS)%,mesh,settings.monitoring);
+    
+    methods (Access = public)
+        
+        function obj = Optimizer_MMA(cParams)     
+            obj.init(cParams);
+            obj.upperBound = cParams.uncOptimizerSettings.ub;
+            obj.lowerBound = cParams.uncOptimizerSettings.lb;             
             obj.maxoutit = 1e4;
         end
-        function kkttol = get.kkttol(obj)
-            kkttol = obj.target_parameters.optimality_tol;
-        end
-        function x = updateX(obj,x,cost,constraint)
-            obj.checkInitial(x,cost,constraint);
+        
+        function x = update(obj)
+            x = obj.designVariable.value;
+            obj.checkInitial(x);
             obj.outit = obj.outit+1;
             obj.outeriter = obj.outeriter+1;
             %%%% The MMA subproblem is solved at the point xval:
@@ -50,31 +55,69 @@ classdef Optimizer_MMA < Optimizer_Constrained
             %%%% The user should now calculate function values and gradients
             %%%% of the objective- and constraint functions at xval.
             %%%% The results should be put in f0val, df0dx, fval and dfdx.
-            cost.computeCostAndGradient(x);
-            constraint.computeCostAndGradient(x);
+            obj.designVariable.value = x;
+            obj.cost.computeCostAndGradient();
+            obj.constraint.computeCostAndGradient();
             
-            [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma(obj.constraint_case,cost,constraint);
+            [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
             %%%% The residual vector of the KKT conditions is calculated:
-            [~,obj.kktnorm] = obj.kktcheck(obj.m,obj.n,xmma,ymma,zmma,lam,xsi,eta,mu,zet,s, ...
+            [~,kktnorm] = obj.kktcheck(obj.m,obj.n,xmma,ymma,zmma,lam,xsi,eta,mu,zet,s, ...
                 obj.xmin,obj.xmax,obj.df0dx,obj.fval,obj.dfdx,obj.a0,obj.a,obj.c,obj.d);
             
-            has_not_converged = obj.kktnorm > obj.kkttol && obj.outit < obj.maxoutit;
-            obj.has_converged = ~has_not_converged;
+            obj.historicalVariables.kktnorm = kktnorm;
             
-            constraint.lambda = lam;
-            obj.stop_vars(1,1) = obj.kktnorm;   obj.stop_vars(1,2) = obj.kkttol;
-            obj.stop_vars(2,1) = obj.outit;     obj.stop_vars(2,2) = obj.maxoutit;
+            obj.updateConvergenceStatus();
+            
+            obj.dualVariable.value = lam;
+            obj.convergenceVars.reset();
+            obj.convergenceVars.append(kktnorm);
+            obj.convergenceVars.append(obj.outit/obj.maxoutit);
+            obj.designVariable.value = x;
         end
-        function checkInitial(obj,x_ini,cost,constraint)
+        
+    end
+    
+    methods (Access = private)
+        
+        function [f,df,c,dc] = funmma(obj)
+            f  = obj.cost.value;
+            df = obj.cost.gradient;
+            c  = obj.constraint.value;
+            dc = obj.constraint.gradient;
+            dc = dc';
+            
+            [c,dc] = obj.checkConstraintCase(c,dc);
+            
+            %% Re-scale constraints
+            % In many applications, the constraints are on the form yi(x) < =  ymaxi
+            % The user should then preferably scale the constraints in such a way that 1 < =  ymaxi < =  100 for each i
+            % (and not ymaxi = 10^10 for example).
+            kconstr = 1;
+            cconstr = 0;
+            c = kconstr*c;
+            c(c > 0) = c(c > 0) + cconstr;
+            c(c < 0) = c(c < 0) - cconstr;
+            % dc = kconstr*dc;
+            
+            %% Re-scale objective function
+            % The objective function f(x) should preferably be scaled such that
+            % 1 < =  f0(x) < =  100 for reasonable values on the variables.
+            kfun = 1;
+            cfun = 0;
+            f = kfun*f + cfun;
+            df = kfun*df;
+        end
+        
+        function checkInitial(obj,x0)
             if isempty(obj.x)
-                obj.x = x_ini;
+                obj.x = x0;
                 obj.xold1 = obj.x;
                 obj.xold2 = obj.xold1;
-                obj.xmin = zeros(length(x_ini),1);
-                obj.xmax = ones(length(x_ini),1);
+                obj.xmin = obj.lowerBound*ones(length(x0),1);
+                obj.xmax = obj.upperBound*ones(length(x0),1);
                 obj.low = obj.xmin;
                 obj.upp = obj.xmax;
-                [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma(obj.constraint_case,cost, constraint);
+                [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
                 obj.m = length(obj.fval);
                 obj.c =  1e3*ones(obj.m,1);
                 obj.d = 0*ones(obj.m,1);
@@ -83,6 +126,7 @@ classdef Optimizer_MMA < Optimizer_Constrained
                 obj.n = length(obj.x);
             end
         end
+        
         function [xmma,ymma,zmma,lam,xsi,eta,mu,zet,s,low,upp] = ...
                 mmasub(obj,m,n,iter,xval,xmin,xmax,xold1,xold2, ...
                 ~,df0dx,fval,dfdx,low,upp,a0,a,c,d)
@@ -170,43 +214,25 @@ classdef Optimizer_MMA < Optimizer_Constrained
             %%% Solving the subproblem by a primal-dual Newton method
             [xmma,ymma,zmma,lam,xsi,eta,mu,zet,s] = ...
                 obj.subsolv(m,n,epsimin,low,upp,alfa,beta,p0,q0,P,Q,a0,a,b,c,d);
-            
         end
-    end
-    methods (Static)
-        function [f,df,c,dc] = funmma(CC,cost,constraint)
-            f = cost.value;
-            df = cost.gradient;
-            c = constraint.value;
-            dc = constraint.gradient;
-            dc = dc';
-            
-            %Check constraint case
-            if strcmp(CC,'EQUALITY')
-                c = [c;-c];
+        
+        function updateConvergenceStatus(obj)
+            kktnorm = obj.historicalVariables.kktnorm;
+            has_not_converged = kktnorm > obj.kkttol && obj.outit < obj.maxoutit;
+            obj.hasConverged = ~has_not_converged;
+        end
+        
+        function [c,dc] = checkConstraintCase(obj,c,dc)
+            if strcmp(obj.constraintCase,'EQUALITY')
+                c  = [c;-c];
                 dc = [dc;-dc];
             end
-            
-            %% Re-scale constraints
-            % In many applications, the constraints are on the form yi(x) < =  ymaxi
-            % The user should then preferably scale the constraints in such a way that 1 < =  ymaxi < =  100 for each i
-            % (and not ymaxi = 10^10 for example).
-            kconstr = 1;
-            cconstr = 0;
-            c = kconstr*c;
-            c(c > 0) = c(c > 0) + cconstr;
-            c(c < 0) = c(c < 0) - cconstr;
-            % dc = kconstr*dc;
-            
-            %% Re-scale objective function
-            % The objective function f(x) should preferably be scaled such that
-            % 1 < =  f0(x) < =  100 for reasonable values on the variables.
-            kfun = 1;
-            cfun = 0;
-            f = kfun*f + cfun;
-            df = kfun*df;
-            
         end
+        
+    end
+    
+    methods (Access = private, Static)
+        
         function [xmma,ymma,zmma,lamma,xsimma,etamma,mumma,zetmma,smma] = ...
                 subsolv(m,n,epsimin,low,upp,alfa,beta,p0,q0,P,Q,a0,a,b,c,d)
             %
@@ -410,11 +436,11 @@ classdef Optimizer_MMA < Optimizer_Constrained
             zetmma =  zet;
             smma   =   s;
         end
+        
         function [residu,residunorm,residumax] = ...
                 kktcheck(~,~,x,y,z,lam,xsi,eta,mu,zet,s, ...
                 xmin,xmax,df0dx,fval,dfdx,a0,a,c,d)
             
-            %
             rex   = df0dx + dfdx'*lam - xsi + eta;
             rey   = c + d.*y - mu - lam;
             rez   = a0 - zet - a'*lam;
@@ -430,7 +456,15 @@ classdef Optimizer_MMA < Optimizer_Constrained
             residu = [residu1' residu2']';
             residunorm = sqrt(residu'*residu);
             residumax = max(abs(residu));
-            %----------------------------------------
         end
+        
+    end
+    
+    methods
+        
+        function kkttol = get.kkttol(obj)
+            kkttol = obj.targetParameters.optimality_tol;
+        end
+        
     end
 end
