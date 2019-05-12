@@ -1,4 +1,4 @@
-filename='Cantilever_triangle_fine';
+filename='CantileverSquare';%'Cantilever_triangle_fine';
 ptype = 'MACRO';
 initial_case = 'full';
 cost = {'compliance'};

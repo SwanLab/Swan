@@ -17,7 +17,7 @@ classdef HomogenizedVarComputerFromInterpolation ...
             obj.designVariable = cParams.designVariable;
         end
         
-        function computeCtensor(obj,rho,alpha)
+        function computeCtensor(obj,rho)
            mProps = obj.interpolation.computeMatProp(rho);
            obj.material.setProps(mProps);
            obj.C  = obj.material.C;

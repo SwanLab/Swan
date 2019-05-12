@@ -11,7 +11,10 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             obj.nVariables = obj.designVariable.nVariables;
             obj.updateHomogenizedMaterialProperties();
             obj.solvePDEs();
+            obj.designVariable.alpha = obj.physicalProblem.variables.principalDirections;            
             obj.updateHomogenizedMaterialProperties();            
+            obj.solvePDEs();
+            obj.designVariable.alpha = obj.physicalProblem.variables.principalDirections;            
             obj.computeFunctionValue();
             obj.computeGradient();
             obj.normalizeFunctionAndGradient()
@@ -39,9 +42,8 @@ classdef ShFunWithElasticPdes < ShapeFunctional
                 iF = nx*ivar;
                 xs = x(i0:iF);
                 xf(:,ivar) = obj.filter.getP0fromP1(xs);
-            end    
-            alpha = obj.physicalProblem.variables.principalDirections;
-            obj.homogenizedVariablesComputer.computeCtensor(xf,alpha);
+            end   
+            obj.homogenizedVariablesComputer.computeCtensor(xf);
         end
         
         function computeGradient(obj)
@@ -74,6 +76,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             ndim = 2;
             nelem = obj.physicalProblem.element.nelem;
             obj.physicalProblem.variables.principalDirections = zeros(ndim,ndim,nelem);
+            obj.designVariable.alpha = obj.physicalProblem.variables.principalDirections;                        
         end
         
     end

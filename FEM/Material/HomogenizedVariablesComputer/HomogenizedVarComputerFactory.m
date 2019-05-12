@@ -17,7 +17,7 @@ classdef HomogenizedVarComputerFactory < handle
                   s.typeOfMaterial         = cParams.typeOfMaterial;
                   s.constitutiveProperties = cParams.constitutiveProperties;  
                   s.nelem                  = cParams.nelem;
-                  s.designVariable = cParams.designVariable;
+                  s.designVariable         = [];
                    h = HomogenizedVarComputerFromInterpolation(s);
            end
            

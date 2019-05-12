@@ -34,3 +34,4 @@ TOL.nu_minus = 1/3;
 monitoring_interval = 1;
 optimalityInitial = 1e-3;
 printing = false;
+maxiter = 300;

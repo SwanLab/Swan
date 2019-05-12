@@ -1,5 +1,6 @@
 classdef MicroParams < DesignVariable
     
+   
     methods (Access = public)
         
         function obj = MicroParams(cParams)
