@@ -85,8 +85,7 @@ classdef ShFunc_Chomog < ShapeFunctional
         
         function updateHomogenizedMaterialProperties(obj)
             rhoV = obj.filter.getP0fromP1(obj.designVariable.value);
-            alpha = 0;
-            obj.homogenizedVariablesComputer.computeCtensor(rhoV,alpha);
+            obj.homogenizedVariablesComputer.computeCtensor(rhoV);
         end
         
         

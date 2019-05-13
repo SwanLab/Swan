@@ -1,6 +1,6 @@
 classdef SettingsHomogenizedVarComputerFromInterpolation < ....
-        AbstractSettings
-    
+         SettingsHomogenizedVarComputer 
+
     properties (Access = protected)
         defaultParamsName = 'paramsHomogenizedVarComputerFromInterpolation.json'
     end

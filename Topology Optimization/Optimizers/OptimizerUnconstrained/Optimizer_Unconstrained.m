@@ -130,15 +130,17 @@ classdef Optimizer_Unconstrained < handle
             itIs = ~isNot;
         end
         
-    end
-    
-    methods (Access = private)        
-        
-        function initLineSearch(obj)
+       function initLineSearch(obj)
             x0 = obj.designVariable.value;
             g  = obj.objectiveFunction.gradient;
             obj.line_search.initKappa(x0,g);
         end
+        
+    end
+    
+    methods (Access = private)        
+        
+
         
         function revertIfDesignNotImproved(obj)
             if ~obj.designImproved

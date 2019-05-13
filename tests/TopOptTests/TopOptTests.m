@@ -17,16 +17,16 @@ classdef TopOptTests < testRunner
 
         function loadTests(obj)
             obj.tests = {...
-            'testCantilever2';                
-            'testDualNestedInPrimalWithProjectedGradient';
             'testDualNestedInPrimalWithSlerp';
+            'testDualNestedInPrimalWithProjectedGradient';
+            'testCantilever2';                
             'testCantilever';
             'testMicro2';
             'testCantilever3';
             'testBridge2';
             'testBridge';
             'testGripping';
-            'testMicro';
+            'testMicro';                                 
             };
         end
 

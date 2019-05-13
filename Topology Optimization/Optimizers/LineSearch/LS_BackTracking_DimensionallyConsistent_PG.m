@@ -7,7 +7,6 @@ classdef LS_BackTracking_DimensionallyConsistent_PG < LS_BackTracking_Dimensiona
         function initKappa(obj,x,g)
             xNorm = obj.scalar_product.computeSP(x,x);
             gNorm = obj.scalar_product.computeSP(g,g);
-            %obj.kappa = (xNorm/gNorm);
             obj.kappa = sqrt(xNorm/gNorm);
         end
     end

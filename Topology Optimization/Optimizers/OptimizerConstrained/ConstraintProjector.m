@@ -38,7 +38,7 @@ classdef ConstraintProjector < handle
             obj.problem.solver = 'fzero';
             obj.problem.options = optimset(@fzero);
             obj.problem.objective = @(lambda) obj.computeFeasibleDesignVariable(lambda);
-            obj.problem.x0 = [0 100];
+            obj.problem.x0 = [-10 1000];
         end
         
         function fval = computeFeasibleDesignVariable(obj,lambda)
@@ -55,12 +55,8 @@ classdef ConstraintProjector < handle
             obj.unconstrainedOptimizer.hasConverged = false;            
             obj.unconstrainedOptimizer.compute();
             obj.unconstrainedOptimizer.updateConvergenceParams();
-        end        
-        
-        function restartValues(obj)
-
-        end
-        
+        end              
+       
     end
  
 end
