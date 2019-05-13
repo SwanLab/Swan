@@ -49,7 +49,7 @@ classdef SettingsDesignVariable < AbstractSettings
             s.coord = obj.mesh.coord;
             s.type = obj.initialCase;
             s.geomParams = obj.levelSetParams;
-            obj.levelSetCreatorSettings = SettingsLevelSetCreator().create(s);
+            obj.levelSetCreatorSettings = SettingsLevelSetCreator(s);
         end
         
     end
