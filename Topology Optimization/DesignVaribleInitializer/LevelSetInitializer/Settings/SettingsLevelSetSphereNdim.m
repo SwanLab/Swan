@@ -1,4 +1,4 @@
-classdef SettingsLevelSetCircleInclusion < SettingsLevelSetCreator
+classdef SettingsLevelSetSphereNdim < SettingsLevelSetCreator
     
     properties (Access = public)
         fracRadius
@@ -6,8 +6,8 @@ classdef SettingsLevelSetCircleInclusion < SettingsLevelSetCreator
     
     methods (Access = public)
         
-        function obj = SettingsLevelSetCircleInclusion(varargin)
-            obj.loadParams('paramsLevelSetCreator_CircleInclusion.json')
+        function obj = SettingsLevelSetSphereNdim(varargin)
+            obj.loadParams('paramsLevelSetCreator_SphereNdim.json')
             if nargin == 1
                 obj.loadParams(varargin{1})
             end

@@ -9,7 +9,6 @@ classdef SettingsLevelSetCreator < AbstractSettings
         ndim
         coord
         value
-        geomParams
     end
     
     methods (Access = public)

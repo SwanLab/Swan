@@ -85,13 +85,10 @@ classdef SettingsTopOptProblem < AbstractSettings
                 s = cParams.designVarSettings;
                 s.mesh = obj.mesh;
             end
-            s.levelSetParams = obj.settings.levelSetDataBase;
             obj.designVarSettings = SettingsDesignVariable(s);
             
-            switch obj.designVarSettings.levelSetCreatorSettings.type
-                case 'holes'
-                    obj.designVarSettings.levelSetCreatorSettings.geomParams.dirichlet = obj.mesh.dirichlet;
-                    obj.designVarSettings.levelSetCreatorSettings.geomParams.pointload = obj.mesh.pointload;
+            if obj.isOld
+                obj.addGeomParams();
             end
         end
         
@@ -288,6 +285,18 @@ classdef SettingsTopOptProblem < AbstractSettings
             tpS.epsilonFinal = obj.settings.epsilon_final;
             tpS.epsilonIsotropyInitial = obj.settings.epsilon_isotropy_initial;
             tpS.epsilonIsotropyFinal = obj.settings.epsilon_isotropy_final;
+        end
+        
+        function addGeomParams(obj)
+            if ~isempty(obj.settings.levelSetDataBase)
+                fields = fieldnames(obj.settings.levelSetDataBase);
+                for i = 1:length(fields)
+                    field = fields{i};
+                    if isfield(obj.settings.levelSetDataBase,field)
+                        obj.designVarSettings.levelSetCreatorSettings.(field) = obj.settings.levelSetDataBase.(field);
+                    end
+                end
+            end
         end
         
     end

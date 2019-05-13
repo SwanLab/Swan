@@ -245,7 +245,11 @@ classdef Settings %< handle%& matlab.mixin.Copyable
             
             if exist('warningHoleBC','var')
                 obj.levelSetDataBase.warningHoleBC = warningHoleBC;
-            end             
+            end  
+            
+            if exist('fracRadius','var')
+                obj.levelSetDataBase.fracRadius = fracRadius;
+            end
             
             if exist('levFib','var')
                 obj.levelSetDataBase.levFib = levFib;

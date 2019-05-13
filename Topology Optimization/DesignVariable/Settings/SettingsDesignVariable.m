@@ -10,7 +10,6 @@ classdef SettingsDesignVariable < AbstractSettings
         type
         initialCase
         levelSetCreatorSettings
-        levelSetParams
         scalarProductSettings
     end
     
@@ -48,8 +47,7 @@ classdef SettingsDesignVariable < AbstractSettings
             s.ndim  = obj.mesh.ndim;
             s.coord = obj.mesh.coord;
             s.type = obj.initialCase;
-            s.geomParams = obj.levelSetParams;
-            obj.levelSetCreatorSettings = SettingsLevelSetCreator(s);
+            obj.levelSetCreatorSettings = SettingsLevelSetCreator().create(s);
         end
         
     end

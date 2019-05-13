@@ -6,9 +6,9 @@ classdef LevelSetGiven < LevelSetCreator
             
     methods (Access = public)
         
-        function obj = LevelSetGiven(input)
-            obj.value = input.value;
-            obj.compute(input);
+        function obj = LevelSetGiven(cParams)
+            obj.value = cParams.value;
+            obj.compute(cParams);
         end
         
     end

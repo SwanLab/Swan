@@ -20,8 +20,7 @@ classdef SettingsNumericalHomogenizer < AbstractSettings
         
         function obj = SettingsNumericalHomogenizer(varargin)
             obj.loadParams('paramsNumericalHomogenizer');
-            switch nargin
-                case 1
+            if nargin == 1
                     obj.loadParams(varargin{1});
             end
             obj.setParams();

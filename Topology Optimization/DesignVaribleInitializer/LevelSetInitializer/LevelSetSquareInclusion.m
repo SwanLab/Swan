@@ -5,7 +5,7 @@ classdef LevelSetSquareInclusion <  ...
     methods (Access = public)
         
         function obj = LevelSetSquareInclusion(cParams)
-            obj.m = cParams.geomParams.widthSquare;
+            obj.m = cParams.widthSquare;
             obj.compute(cParams);
         end
     end    

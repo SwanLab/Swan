@@ -2,8 +2,8 @@ classdef LevelSetFull < LevelSetCreator
     
     methods (Access = public)
         
-        function obj = LevelSetFull(input)
-            obj.compute(input);
+        function obj = LevelSetFull(cParams)
+            obj.compute(cParams);
         end
         
     end

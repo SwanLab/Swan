@@ -69,7 +69,7 @@ classdef NumericalHomogenizerDataBase < handle
         
         function d = createLevelSetDataBase()
             d.type = 'horizontalFibers';
-            d.levFib = 3;
+            d.levelOfFibers = 3;
             d.volume = 0.5;
         end
         

@@ -5,7 +5,7 @@
   },
   "designVarSettings": {
     "type": "LevelSet",
-    "initialCase": "circleInclusion"
+    "initialCase": "smoothRectangle"
   },
   "incrementalSchemeSettings": {
     "nSteps": 1
@@ -35,7 +35,7 @@
     "type": "AlternatingPrimalDual",
     "shallPrint": false,
     "settingsMonitor": {
-      "showOptParams": true,
+      "showOptParams": false,
       "refreshInterval": 2,
       "shallDisplayDesignVar": true,
       "shallShowBoundaryConditions": true

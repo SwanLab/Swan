@@ -3,6 +3,7 @@ ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'sphere';
+fracRadius = 1-1e-6;
 cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};

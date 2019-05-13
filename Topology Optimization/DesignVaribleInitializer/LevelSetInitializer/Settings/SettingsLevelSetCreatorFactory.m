@@ -5,47 +5,43 @@ classdef SettingsLevelSetCreatorFactory < handle
         function obj = create(s)
             switch s.type
                 case 'circle'
-                    obj = LevelSetCircle(s);
-                case 'circle_2'
-                    obj = LevelSetCircle2(s);
+                    obj = SettingsLevelSetSphereNdim(s);
                 case 'circleInclusion'
-                    obj = SettingsLevelSetCircleInclusion(s);
+                    obj = SettingsLevelSetSphereNdim(s);
                 case 'sphere'
-                    obj = LevelSetSphere(s);
+                    obj = SettingsLevelSetSphereNdim(s);
                 case 'sphereInclusion'
-                    obj = LevelSetWithSphereInclusion(s);
+                    obj = SettingsLevelSetSphereNdim(s);
                 case 'cylinder'
-                    obj = LevelSetCylinder(s);
+                    obj = SettingsLevelSetSphereNdim(s);
                 case 'horizontal'
-                    obj = LevelSetHorizontalInclusion(Input);
+                    obj = SettingsLevelSetHorizontalInclusion(s);
                 case 'square'
-                    obj = LevelSetSquareInclusion(s);
-                case 'smoothSquare'
-                    s.m = settings.widthSquare;                    
-                    obj = LevelSetSmoothSquareInclusion(s);
+                    obj = SettingsLevelSetSquareInclusion(s);
+                case 'smoothSquare'                    
+                    obj = SettingsLevelSetSmoothSquareInclusion(s);
                 case 'rectangle'
-                    obj = LevelSetRectangleInclusion(s);
+                    obj = SettingsLevelSetRectangleInclusion(s);
                 case 'smoothRectangle'
-                    obj = LevelSetSmoothRectangleInclusion(s);
+                    obj = SettingsLevelSetSmoothRectangleInclusion(s);
                 case 'feasible'
-                    obj = LevelSetFeasible(s);
+                    obj = SettingsLevelSetCreator(s);
                 case 'rand'
-                    obj = LevelSetRandom(s);
+                    obj = SettingsLevelSetCreator(s);
                 case 'holes'                                       
-                    obj = LevelSetWithSeveralHoles(s);
+                    obj = SettingsLevelSetSeveralHoles(s);
                 case 'full'
-                    obj = LevelSetFull(s);
+                    obj = SettingsLevelSetCreator(s);
                 case 'horizontalFibers'
-                    obj = LevelSetHorizontalFibers(s);
+                    obj = SettingsLevelSetHorizontalFibers(s);
                 case 'given'
-                    obj = LevelSetGiven(s);
+                    obj = SettingsLevelSetGiven(s);
                 otherwise
                     error('Invalid initial value of design variable.');
             end
             
         end
     end
-    
 
 end
 
