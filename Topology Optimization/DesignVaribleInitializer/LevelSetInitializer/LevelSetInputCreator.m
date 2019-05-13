@@ -7,7 +7,6 @@ classdef LevelSetInputCreator < handle
     methods (Access = public)
         
         function obj = LevelSetInputCreator(settings,mesh)
-
             obj.input = input;
         end
         

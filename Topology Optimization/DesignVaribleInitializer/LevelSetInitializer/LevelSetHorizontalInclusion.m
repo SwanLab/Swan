@@ -32,6 +32,5 @@ classdef LevelSetHorizontalInclusion < LevelSetCreator
         
     end
     
-    
 end
 

@@ -78,23 +78,20 @@ classdef SettingsTopOptProblem < AbstractSettings
         
         function createDesignVarSettings(obj,cParams)
             if obj.isOld
-                obj.designVarSettings = SettingsDesignVariable();
-                obj.designVarSettings.type = obj.settings.designVariable;
-                obj.designVarSettings.initialCase = obj.settings.initial_case;
-                obj.designVarSettings.mesh = obj.mesh;
+                s.type = obj.settings.designVariable;
+                s.initialCase = obj.settings.initial_case;
+                s.mesh = obj.mesh;
             else
                 s = cParams.designVarSettings;
                 s.mesh = obj.mesh;
-                obj.designVarSettings = SettingsDesignVariable(s);
             end
-            obj.designVarSettings.levelSetCreatorSettings       = obj.settings.levelSetDataBase;
-            obj.designVarSettings.levelSetCreatorSettings.ndim  = obj.mesh.ndim;
-            obj.designVarSettings.levelSetCreatorSettings.coord = obj.mesh.coord;
-            obj.designVarSettings.levelSetCreatorSettings.type = obj.designVarSettings.initialCase;
+            s.levelSetParams = obj.settings.levelSetDataBase;
+            obj.designVarSettings = SettingsDesignVariable(s);
+            
             switch obj.designVarSettings.levelSetCreatorSettings.type
                 case 'holes'
-                    obj.designVarSettings.levelSetCreatorSettings.dirichlet = obj.mesh.dirichlet;
-                    obj.designVarSettings.levelSetCreatorSettings.pointload = obj.mesh.pointload;
+                    obj.designVarSettings.levelSetCreatorSettings.geomParams.dirichlet = obj.mesh.dirichlet;
+                    obj.designVarSettings.levelSetCreatorSettings.geomParams.pointload = obj.mesh.pointload;
             end
         end
         

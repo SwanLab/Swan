@@ -18,8 +18,8 @@ classdef LevelSetCreator < handle
     methods (Access = public, Static)
         
         function obj = create(d)
-            factory      = LevelSetFactory();
-            obj          = factory.create(d);
+            factory = LevelSetFactory();
+            obj     = factory.create(d);
         end
     end
     

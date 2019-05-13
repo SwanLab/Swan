@@ -3,10 +3,10 @@ classdef LevelSetRectangleInclusion < ...
          MaxNormDescriptor        
 
     methods (Access = public)
-        function obj = LevelSetRectangleInclusion(input)
-            obj.m1 = input.widthH;
-            obj.m2 = input.widthV;
-            obj.compute(input);
+        function obj = LevelSetRectangleInclusion(cParams)
+            obj.m1 = cParams.geomParams.widthH;
+            obj.m2 = cParams.geomParams.widthV;
+            obj.compute(cParams);
         end
     end      
 end

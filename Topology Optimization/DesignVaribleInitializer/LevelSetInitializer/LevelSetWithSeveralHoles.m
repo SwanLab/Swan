@@ -10,11 +10,11 @@ classdef LevelSetWithSeveralHoles < LevelSetCreator
     
     methods (Access = public)
         
-        function obj = LevelSetWithSeveralHoles(input)
-            obj.load_holes_settings(input);
-            obj.loadWarningOption(input);
-            obj.loadBoundaryConditions(input);
-            obj.compute(input);
+        function obj = LevelSetWithSeveralHoles(cParams)
+            obj.load_holes_settings(cParams);
+            obj.loadWarningOption(cParams);
+            obj.loadBoundaryConditions(cParams);
+            obj.compute(cParams);
         end
         
     end
@@ -30,19 +30,21 @@ classdef LevelSetWithSeveralHoles < LevelSetCreator
     
     methods (Access = private)
         
-        function loadBoundaryConditions(obj,input)
+        function loadBoundaryConditions(obj,cParams)
+            s = cParams.geomParams;
             bCond = [];
-            if ~isempty(input.dirichlet) && ~isempty(input.pointload)
-                bCond = unique([input.dirichlet(:,1); input.pointload(:,1)]);
+            if ~isempty(s.dirichlet) && ~isempty(s.pointload)
+                bCond = unique([s.dirichlet(:,1); s.pointload(:,1)]);
             end
             obj.bc = bCond;
         end
         
-        function loadWarningOption(obj,input)
+        function loadWarningOption(obj,cParams)
+            s = cParams.geomParams;
             obj.hasToShowHoleInBCWarning = false;            
-            if isfield(input,'warningHoleBC')
-                if ~isempty(input.warningHoleBC)
-                    obj.hasToShowHoleInBCWarning = input.warningHoleBC;
+            if isfield(s,'warningHoleBC')
+                if ~isempty(s.warningHoleBC)
+                    obj.hasToShowHoleInBCWarning = s.warningHoleBC;
                 end
             end
         end
@@ -64,10 +66,11 @@ classdef LevelSetWithSeveralHoles < LevelSetCreator
             end
         end
         
-        function load_holes_settings(obj,input)
-            obj.nHoles = input.nHoles;
-            obj.rHoles = input.rHoles;
-            obj.phaseHoles = input.phaseHoles;
+        function load_holes_settings(obj,cParams)
+            s = cParams.geomParams;
+            obj.nHoles = s.nHoles;
+            obj.rHoles = s.rHoles;
+            obj.phaseHoles = s.phaseHoles;
         end
         
         function cosDir  = computeDirectionalCosinus(obj,coord,dir)

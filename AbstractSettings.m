@@ -16,7 +16,7 @@ classdef AbstractSettings < handle
     methods (Access = protected)
         
         function obj = AbstractSettings()
-            obj.loadParams(obj.defaultParamsName)
+            obj.loadParams(obj.defaultParamsName);
         end
         
         function loadParams(obj,p)
