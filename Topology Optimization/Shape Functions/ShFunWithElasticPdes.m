@@ -2,7 +2,11 @@ classdef ShFunWithElasticPdes < ShapeFunctional
     
     properties (Access = protected)
         interpolation
-        physicalProblem
+        physicalProblem        
+    end
+    
+    properties (Access = private)
+       regDesignVariable 
     end
     
     methods (Access = public)
@@ -35,6 +39,11 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         end
         
         function updateHomogenizedMaterialProperties(obj)
+            obj.filterDesignVariable()
+            obj.homogenizedVariablesComputer.computeCtensor(obj.regDesignVariable);
+        end
+        
+        function filterDesignVariable(obj)
             nx = length(obj.designVariable.value)/obj.designVariable.nVariables;
             x  = obj.designVariable.value;
             for ivar = 1:obj.nVariables
@@ -42,8 +51,8 @@ classdef ShFunWithElasticPdes < ShapeFunctional
                 iF = nx*ivar;
                 xs = x(i0:iF);
                 xf(:,ivar) = obj.filter.getP0fromP1(xs);
-            end   
-            obj.homogenizedVariablesComputer.computeCtensor(xf);
+            end              
+            obj.regDesignVariable = xf;
         end
         
         function computeGradient(obj)

@@ -1,4 +1,6 @@
-filename='CantileverSquare';%'Cantilever_triangle_fine';
+filename='CantileverSquare';
+%filename = 'BridgeArch';
+%filename = 'Cantilever_triangle_fine';
 ptype = 'MACRO';
 initial_case = 'full';
 cost = {'compliance'};
@@ -46,7 +48,7 @@ switch option
         nsteps = 1;
         homegenizedVariablesComputer = 'ByVademecum';
         vademecumFileName = 'SmoothRectangle';
-        maxiter = 250;
+        maxiter = 500;
     case 'B'
         Vfrac_initial = 0.3;                
         optimizer = 'IPOPT';

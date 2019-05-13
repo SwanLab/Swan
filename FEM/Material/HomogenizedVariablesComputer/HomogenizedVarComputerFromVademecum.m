@@ -58,7 +58,7 @@ classdef HomogenizedVarComputerFromVademecum ...
         end
         
         function R = computeRotatorMatrix(obj,dir)
-            angle = squeeze(acos(dir(1,1,:)));
+            angle = squeeze(acos(dir(1,1,:)))- pi/2;
             Rs = obj.Rsymbolic;
             R = zeros(3,3,length(angle));
             for i = 1:3
@@ -71,12 +71,13 @@ classdef HomogenizedVarComputerFromVademecum ...
         
         function a = createSymbolicRotationMatrix(obj)
             S = StressPlaneStressVoigtTensor();
-            alpha = sym('alpha');
+            alpha = sym('alpha','real');
             v = Vector3D();
             v.setValue([0 0 1]);
             factory = RotatorFactory();
             rotator = factory.create(S,alpha,v);
             a = rotator.rotationMatrix();
+            a = a';
         end
         
         function computeDensity(obj,x)
