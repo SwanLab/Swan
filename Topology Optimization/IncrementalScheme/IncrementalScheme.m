@@ -54,8 +54,8 @@ classdef IncrementalScheme < handle
         end
         
         function createTargetParams(obj,cParams)
-            settingsTargetParams = obj.editTargetParamsSettings(cParams);
-            obj.targetParamsManager = TargetParamsManager(settingsTargetParams);
+            targetParamsSettings = obj.editTargetParamsSettings(cParams);
+            obj.targetParamsManager = TargetParamsManager(targetParamsSettings);
             obj.targetParams = obj.targetParamsManager.targetParams;
         end
         
@@ -70,29 +70,29 @@ classdef IncrementalScheme < handle
             end
         end
         
-        function setupEpsilons(obj,mesh,settingsTargetParams)
+        function setupEpsilons(obj,mesh,targetParamsSettings)
             L = mesh.computeCharacteristicLength();
             D = mesh.computeMeanCellSize();
-            obj.assignWithBackup('epsilonInitial',settingsTargetParams.epsilonInitial,D);
-            obj.assignWithBackup('epsilonFinal',settingsTargetParams.epsilonFinal,obj.epsilonInitial);
+            obj.assignWithBackup('epsilonInitial',targetParamsSettings.epsilonInitial,D);
+            obj.assignWithBackup('epsilonFinal',targetParamsSettings.epsilonFinal,obj.epsilonInitial);
             obj.epsilonPerInitial = L;
             obj.epsilonPerFinal = obj.epsilonInitial;
-            obj.assignWithBackup('epsilonIsoInitial',settingsTargetParams.epsilonIsotropyInitial,nan);
-            obj.assignWithBackup('epsilonIsoFinal',settingsTargetParams.epsilonIsotropyFinal,nan);
+            obj.assignWithBackup('epsilonIsoInitial',targetParamsSettings.epsilonIsotropyInitial,nan);
+            obj.assignWithBackup('epsilonIsoFinal',targetParamsSettings.epsilonIsotropyFinal,nan);
             
         end
         
-        function settingsTargetParams = editTargetParamsSettings(obj,cParams)
-            obj.setupEpsilons(cParams.mesh,cParams.settingsTargetParams);
+        function targetParamsSettings = editTargetParamsSettings(obj,cParams)
+            obj.setupEpsilons(cParams.mesh,cParams.targetParamsSettings);
             
-            settingsTargetParams = cParams.settingsTargetParams;
-            settingsTargetParams.nSteps = obj.nSteps;
-            settingsTargetParams.epsilonInitial = obj.epsilonInitial;
-            settingsTargetParams.epsilonFinal = obj.epsilonFinal;
-            settingsTargetParams.epsilonPerInitial = obj.epsilonPerInitial;
-            settingsTargetParams.epsilonPerFinal = obj.epsilonPerFinal;
-            settingsTargetParams.epsilonIsotropyInitial = obj.epsilonIsoInitial;
-            settingsTargetParams.epsilonIsotropyFinal = obj.epsilonIsoFinal;
+            targetParamsSettings = cParams.targetParamsSettings;
+            targetParamsSettings.nSteps = obj.nSteps;
+            targetParamsSettings.epsilonInitial = obj.epsilonInitial;
+            targetParamsSettings.epsilonFinal = obj.epsilonFinal;
+            targetParamsSettings.epsilonPerInitial = obj.epsilonPerInitial;
+            targetParamsSettings.epsilonPerFinal = obj.epsilonPerFinal;
+            targetParamsSettings.epsilonIsotropyInitial = obj.epsilonIsoInitial;
+            targetParamsSettings.epsilonIsotropyFinal = obj.epsilonIsoFinal;
         end
         
         function setWhetherShallDisplayStep(obj,flag)

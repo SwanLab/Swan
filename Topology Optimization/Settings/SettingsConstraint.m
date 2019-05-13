@@ -14,14 +14,7 @@ classdef SettingsConstraint < SettingsCC
             if nargin == 1
                 obj.loadParams(varargin{1});
             end
-        end
-        
-    end
-    
-    methods (Access = public, Static)
-        
-        function s = create(cParams,settings)
-
+            obj.init();
         end
         
     end

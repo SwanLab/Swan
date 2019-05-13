@@ -51,7 +51,6 @@ classdef TopOpt_Problem < handle
             s.dualVariable      = obj.dualVariable;
             
             obj.optimizerSettings = s;
-            
         end
         
         function computeVariables(obj)
@@ -59,7 +58,6 @@ classdef TopOpt_Problem < handle
                 obj.incrementalScheme.next();
                 obj.optimizer.solveProblem();
             end
-            
         end
         
         function postProcess(obj)

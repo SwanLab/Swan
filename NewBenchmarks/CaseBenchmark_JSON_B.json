@@ -8,7 +8,15 @@
     "initialCase": "smoothRectangle"
   },
   "incrementalSchemeSettings": {
-    "nSteps": 1
+    "nSteps": 1,
+    "targetParamsSettings": {
+      "VfracInitial": 1.0,
+      "VfracFinal": 0.4,
+      "constrInitial": 1e-3,
+      "constrFinal": 1e-3,
+      "optimalityInitial": 1e-3,
+      "optimalityFinal": 1e-3
+    }
   },
   "costSettings": {
     "shapeFuncSettings": [

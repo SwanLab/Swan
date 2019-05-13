@@ -18,12 +18,14 @@ designVariable = '';
 filterType = 'P1';
 
 nsteps = 1;
-Vfrac_final = 0.4;
+% Vfrac_final = 0.4;
+Vfrac_final = '';
 Perimeter_target = 1;
 optimality_final = 1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 1;
+% Vfrac_initial = 1;
+Vfrac_initial = '';
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 TOL.rho_plus = 1;

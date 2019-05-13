@@ -103,74 +103,45 @@ classdef SettingsTopOptProblem < AbstractSettings
         end
         
         function createIncrementalSchemeSettings(obj,cParams)
-            tpS = obj.createTargetParamsSettings();
             if obj.isOld
-                obj.incrementalSchemeSettings = SettingsIncrementalScheme();
-                obj.incrementalSchemeSettings.nSteps = obj.settings.nsteps;
-                obj.incrementalSchemeSettings.mesh = obj.mesh;
+                s.nSteps = obj.settings.nsteps;
+                s.shallPrintIncremental = obj.settings.printIncrementalIter;
             else
                 s = cParams.incrementalSchemeSettings;
-                s.mesh = obj.mesh;
-                obj.incrementalSchemeSettings = SettingsIncrementalScheme(s);
             end
-            obj.incrementalSchemeSettings.settingsTargetParams = tpS;
-            obj.incrementalSchemeSettings.shallPrintIncremental = obj.settings.printIncrementalIter;
+            s.mesh = obj.mesh;
+            s.settings = obj.settings;
+            obj.incrementalSchemeSettings = SettingsIncrementalScheme(s);
         end
         
         function createCostSettings(obj,cParams)
             if obj.isOld
-                obj.costSettings = SettingsCost();
-                obj.costSettings.weights = obj.settings.weights;
+                s.weights = obj.settings.weights;
                 for i = 1:length(obj.settings.cost)
                     sfS{i} = struct('type',obj.settings.cost{i});
                 end
+                s.shapeFuncSettings = sfS;
             else
                 s = cParams.costSettings;
-                obj.costSettings = SettingsCost(s);
-                sfS = s.shapeFuncSettings;
             end
-            obj.costSettings.settings = obj.settings;
-            obj.costSettings.shapeFuncSettings = obj.createShapeFunctionsSettings(sfS);
-            obj.costSettings.nShapeFuncs = length(obj.costSettings.shapeFuncSettings);
+            s.settings = obj.settings;
+            s.problemData = obj.problemData;
+            
+            obj.costSettings = SettingsCost(s);
         end
         
         function createConstraintSettings(obj,cParams)
             if obj.isOld
-                obj.constraintSettings = SettingsConstraint();
                 for i = 1:length(obj.settings.constraint)
                     sfS{i} = struct('type',obj.settings.constraint{i});
                 end
+                s.shapeFuncSettings = sfS;
             else
                 s = cParams.constraintSettings;
-                obj.constraintSettings = SettingsConstraint(s);
-                sfS = s.shapeFuncSettings;
             end
-            obj.constraintSettings.settings = obj.settings;
-            obj.constraintSettings.shapeFuncSettings = obj.createShapeFunctionsSettings(sfS);
-            obj.constraintSettings.nShapeFuncs = length(obj.constraintSettings.shapeFuncSettings);
-        end
-        
-        function cParams = createShapeFunctionsSettings(obj,s)
-            nSF = length(s);
-            cParams = cell(nSF,1);
-            for iSF = 1:nSF
-                if iscell(s)
-                    s{iSF}.filename = obj.problemData.problemFileName;
-                    s{iSF}.scale = obj.problemData.scale;
-                    s{iSF}.filterParams = obj.createFilterSettings();
-                    cParams{iSF} = SettingsShapeFunctional().create(s{iSF},obj.settings);
-                else
-                    s(iSF).filename = obj.problemData.problemFileName;
-                    s(iSF).scale = obj.problemData.scale;
-                    s(iSF).filterParams = obj.createFilterSettings();
-                    cParams{iSF} = SettingsShapeFunctional().create(s(iSF),obj.settings);
-                end
-            end
-        end
-        
-        function s = createFilterSettings(obj)
-            s = SettingsFilter();
-            s.filterType = obj.settings.filter;
+            s.settings = obj.settings;
+            s.problemData = obj.problemData;
+            obj.constraintSettings = SettingsConstraint(s);
         end
         
         function createOptimizerSettings(obj,cParams)
@@ -271,20 +242,6 @@ classdef SettingsTopOptProblem < AbstractSettings
             obj.optimizerSettings.settingsMonitor.costFuncNames   = obj.problemData.costFunctions;
             obj.optimizerSettings.settingsMonitor.costWeights     = obj.problemData.costWeights;
             obj.optimizerSettings.settingsMonitor.constraintFuncs = obj.problemData.constraintFunctions;
-        end
-        
-        function tpS = createTargetParamsSettings(obj)
-            tpS = SettingsTargetParamsManager();
-            tpS.VfracInitial = obj.settings.Vfrac_initial;
-            tpS.VfracFinal = obj.settings.Vfrac_final;
-            tpS.constrInitial = obj.settings.constr_initial;
-            tpS.constrFinal = obj.settings.constr_final;
-            tpS.optimalityInitial = obj.settings.optimality_initial;
-            tpS.optimalityFinal = obj.settings.optimality_final;
-            tpS.epsilonInitial = obj.settings.epsilon_initial;
-            tpS.epsilonFinal = obj.settings.epsilon_final;
-            tpS.epsilonIsotropyInitial = obj.settings.epsilon_isotropy_initial;
-            tpS.epsilonIsotropyFinal = obj.settings.epsilon_isotropy_final;
         end
         
         function addGeomParams(obj)
