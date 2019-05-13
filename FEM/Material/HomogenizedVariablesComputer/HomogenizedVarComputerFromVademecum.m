@@ -23,8 +23,8 @@ classdef HomogenizedVarComputerFromVademecum ...
         end
         
         function computeCtensor(obj,x)
-            princDir = obj.designVariable.alpha;
-            R = obj.computeRotatorMatrix(princDir);
+            
+            R = obj.computeRotatorMatrix();
 
             mx = x(:,1);
             my = x(:,2);
@@ -57,8 +57,11 @@ classdef HomogenizedVarComputerFromVademecum ...
             obj.dC = dCr;
         end
         
-        function R = computeRotatorMatrix(obj,dir)
-            angle = squeeze(acos(dir(1,1,:)))- pi/2;
+        function R = computeRotatorMatrix(obj)
+            dir = obj.designVariable.alpha;            
+            nx = squeeze(dir(1,:));
+            ny = squeeze(dir(2,:));
+            angle = squeeze(atan2(ny,nx));
             Rs = obj.Rsymbolic;
             R = zeros(3,3,length(angle));
             for i = 1:3

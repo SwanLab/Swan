@@ -15,10 +15,10 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             obj.nVariables = obj.designVariable.nVariables;
             obj.updateHomogenizedMaterialProperties();
             obj.solvePDEs();
-            obj.designVariable.alpha = obj.physicalProblem.variables.principalDirections;            
+            obj.updateAlpha();
             obj.updateHomogenizedMaterialProperties();            
             obj.solvePDEs();
-            obj.designVariable.alpha = obj.physicalProblem.variables.principalDirections;            
+            obj.updateAlpha();
             obj.computeFunctionValue();
             obj.computeGradient();
             obj.normalizeFunctionAndGradient()
@@ -84,8 +84,24 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         function initPrincipalDirections(obj)
             ndim = 2;
             nelem = obj.physicalProblem.element.nelem;
-            obj.physicalProblem.variables.principalDirections = zeros(ndim,ndim,nelem);
-            obj.designVariable.alpha = obj.physicalProblem.variables.principalDirections;                        
+            alpha0 = zeros(ndim,nelem);
+            alpha0(1,:) = 1;
+            obj.physicalProblem.variables.principalDirections = alpha0;            
+            obj.designVariable.alpha = alpha0;                        
+        end
+        
+        function updateAlpha(obj)
+            pD = obj.physicalProblem.variables.principalDirections;            
+            pS = obj.physicalProblem.variables.principalStress;
+            [~,indM] = max(abs(pS));
+            for i = 1:2
+                dirD = squeeze(pD(i,:,:));
+                for j = 1:2
+                    ind = indM == j;
+                    dir(i,ind) = dirD(j,ind);
+                end
+            end
+            obj.designVariable.alpha = dir;%squeeze(pD(:,1,:));%dir;
         end
         
     end

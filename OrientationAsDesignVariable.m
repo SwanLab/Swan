@@ -46,12 +46,22 @@ classdef OrientationAsDesignVariable < handle
         end
         
         function plotStress(obj)            
-            U = obj.filter.getP1fromP0(squeeze(obj.designVariable.alpha(1,2,:)));
-            V = obj.filter.getP1fromP0(squeeze(obj.designVariable.alpha(2,2,:)));            
+            U = obj.filter.getP1fromP0(squeeze(obj.designVariable.alpha(1,:)));
+            V = obj.filter.getP1fromP0(squeeze(obj.designVariable.alpha(2,:)));            
             x = obj.phyP.mesh.coord(:,1);
             y = obj.phyP.mesh.coord(:,2);
+            conn = obj.phyP.mesh.connec;
+            for inode = 1:3
+                nodes = conn(:,inode);
+                xp(:,inode) =  x(nodes);
+                yp(:,inode) =  y(nodes);
+            end
+            xp = mean(xp');
+            yp = mean(yp');
+            a1 = obj.designVariable.alpha(1,:);
+            a2 = obj.designVariable.alpha(2,:);
             figure(2);
-            quiver(x,y,U,V)            
+            quiver(xp,yp,a1,a2)            
         end
         
         function createFilter(obj)
@@ -78,9 +88,9 @@ classdef OrientationAsDesignVariable < handle
             s.mesh = obj.phyP.mesh;
             s.scalarProductSettings.epsilon = 1e-3;
             obj.designVariable = DesignVariable.create(s);
-            obj.designVariable.alpha = zeros(2,2,size(obj.phyP.mesh.connec,1));
-            obj.designVariable.alpha(1,1,:) = 1;
-            obj.designVariable.alpha(2,2,:) = 1;
+            obj.designVariable.alpha = zeros(2,size(obj.phyP.mesh.connec,1));
+            obj.designVariable.alpha(1,:) = 1;
+            obj.designVariable.alpha(2,:) = 0;
         end
         
         function computeInitialCost(obj)
@@ -108,15 +118,25 @@ classdef OrientationAsDesignVariable < handle
         
         function createPhysicalProblem(obj)
             %testName = 'Cantilever_triangle_fine';
-            testName = 'CantileverSquare';
+            %testName = 'CantileverSquare';
             %testName = 'CantileverLong';%'CantileverSquare';'Cantilever_triangle_fine';
+            testName = 'BridgeArch';
             obj.phyP = FEM.create(testName);
             obj.phyP.preProcess();            
         end
         
         function updateAlpha(obj)
             pD = obj.phyP.variables.principalDirections;
-            obj.designVariable.alpha = pD;
+            pS = obj.phyP.variables.principalStress;
+            [~,indM] = max(abs(pS));
+            for i = 1:2
+                dirD = squeeze(pD(i,:,:));
+                for j = 1:2
+                    ind = indM == j;
+                    dir(i,ind) = dirD(j,ind);
+                end
+            end
+            obj.designVariable.alpha = dir;%squeeze(pD(:,1,:));%dir
         end
         
          function filterDesignVariable(obj)
