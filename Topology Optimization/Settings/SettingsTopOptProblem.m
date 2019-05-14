@@ -42,6 +42,7 @@ classdef SettingsTopOptProblem < AbstractSettings
             obj.createIncrementalSchemeSettings(cParams);
             obj.createCostSettings(cParams);
             obj.createConstraintSettings(cParams);
+            obj.updateProblemData();
             obj.createOptimizerSettings(cParams);
             obj.createVideoManagerSettings();
         end
@@ -66,10 +67,9 @@ classdef SettingsTopOptProblem < AbstractSettings
             
             obj.problemData.pdim  = obj.mesh.pdim;
             obj.problemData.nelem = size(obj.mesh.connec,1);
-            obj.settings.pdim = obj.problemData.pdim;
-            obj.problemData.costFunctions       = obj.settings.cost;
-            obj.problemData.costWeights         = obj.settings.weights;
-            obj.problemData.constraintFunctions = obj.settings.constraint;
+            if obj.isOld
+                obj.settings.pdim = obj.problemData.pdim;
+            end
         end
         
         function createMesh(obj)
@@ -153,6 +153,12 @@ classdef SettingsTopOptProblem < AbstractSettings
             obj.constraintSettings = SettingsConstraint(s);
         end
         
+        function updateProblemData(obj)
+            obj.problemData.costFunctions       = obj.costSettings.getShapeFuncList();
+            obj.problemData.costWeights         = obj.costSettings.weights();
+            obj.problemData.constraintFunctions = obj.constraintSettings.getShapeFuncList();
+        end
+        
         function createOptimizerSettings(obj,cParams)
             obj.optimizerSettings = SettingsOptimizer();
             if obj.isOld
@@ -160,6 +166,7 @@ classdef SettingsTopOptProblem < AbstractSettings
                 obj.optimizerSettings.type = obj.settings.optimizer;
             else
                 s = cParams.optimizerSettings;
+                obj.optimizerSettings.problemData = obj.problemData;
                 obj.optimizerSettings.type = s.type;
             end
             
@@ -177,9 +184,13 @@ classdef SettingsTopOptProblem < AbstractSettings
             end
             obj.optimizerSettings.printMode            = obj.settings.printMode;
             
-            obj.setupSettingsMonitor(s);
-            obj.optimizerSettings.setupSettingsHistoryPrinter(obj.problemData.caseFileName);
-            obj.optimizerSettings.setupSettingsPostProcess();
+            if obj.isOld
+                obj.setupSettingsMonitor();
+            else
+                obj.optimizerSettings.initSettingsMonitorDocker(s);
+            end
+            obj.optimizerSettings.initSettingsHistoryPrinter(obj.problemData.caseFileName);
+            obj.optimizerSettings.initSettingsPostProcess();
             
             obj.createOptimizerUnconstrainedSettings(s);
         end
@@ -230,24 +241,15 @@ classdef SettingsTopOptProblem < AbstractSettings
             lsS.kfrac           = obj.settings.kfrac;
         end
         
-        function setupSettingsMonitor(obj,cParams)
-            if obj.isOld
-                obj.optimizerSettings.settingsMonitor.showOptParams               = obj.settings.monitoring;
-                obj.optimizerSettings.settingsMonitor.refreshInterval             = obj.settings.monitoring_interval;
-                obj.optimizerSettings.settingsMonitor.shallDisplayDesignVar       = obj.settings.plotting;
-                obj.optimizerSettings.settingsMonitor.shallShowBoundaryConditions = obj.settings.showBC;
-                
-                obj.optimizerSettings.settingsMonitor.optimizerName   = obj.settings.optimizer;
-                obj.optimizerSettings.settingsMonitor.problemID       = obj.settings.case_file;
-                obj.optimizerSettings.settingsMonitor.dim             = obj.settings.pdim;
-            else
-                s = cParams.settingsMonitor;
-                obj.optimizerSettings.settingsMonitor = SettingsMonitoringDocker(s);
-                
-                obj.optimizerSettings.settingsMonitor.optimizerName   = obj.optimizerSettings.name;
-                obj.optimizerSettings.settingsMonitor.problemID       = obj.problemData.caseFileName;
-                obj.optimizerSettings.settingsMonitor.dim             = obj.problemData.pdim;
-            end
+        function setupSettingsMonitor(obj)
+            obj.optimizerSettings.settingsMonitor.showOptParams               = obj.settings.monitoring;
+            obj.optimizerSettings.settingsMonitor.refreshInterval             = obj.settings.monitoring_interval;
+            obj.optimizerSettings.settingsMonitor.shallDisplayDesignVar       = obj.settings.plotting;
+            obj.optimizerSettings.settingsMonitor.shallShowBoundaryConditions = obj.settings.showBC;
+            
+            obj.optimizerSettings.settingsMonitor.optimizerName   = obj.settings.optimizer;
+            obj.optimizerSettings.settingsMonitor.problemID       = obj.settings.case_file;
+            obj.optimizerSettings.settingsMonitor.dim             = obj.settings.pdim;
             
             obj.optimizerSettings.settingsMonitor.costFuncNames   = obj.problemData.costFunctions;
             obj.optimizerSettings.settingsMonitor.costWeights     = obj.problemData.costWeights;

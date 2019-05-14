@@ -16,7 +16,7 @@ classdef SettingsCost < SettingsCC
             end
             obj.init();
         end
-        
+
     end
     
 end

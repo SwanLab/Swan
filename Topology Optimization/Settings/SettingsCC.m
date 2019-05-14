@@ -22,12 +22,24 @@ classdef SettingsCC < AbstractSettings
             end
         end
         
+        function list = getShapeFuncList(obj)
+            list = obj.getShapeFunctionProperty('type');
+        end
+        
     end
     
     methods (Access = protected)
         
         function init(obj)
             obj.createShapeFunctionsSettings();
+        end
+        
+        function list = getShapeFunctionProperty(obj,prop)
+            nSF = obj.nShapeFuncs;
+            list = cell(1,nSF);
+            for iSF = 1:nSF
+                list{iSF} = obj.shapeFuncSettings{iSF}.(prop);
+            end
         end
         
     end
