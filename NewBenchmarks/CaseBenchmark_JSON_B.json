@@ -3,6 +3,12 @@
     "problemFileName": "Cantilever_triangle_coarse",
     "scale": "MACRO"
   },
+  "homogenizedVarComputerSettings": {
+    "type": "ByInterpolation",
+    "interpolation": "SIMP_P3",
+    "typeOfMaterial": "ISOTROPIC",
+    "constitutiveProperties": "paramsConstitutiveProperties.json"
+  },
   "designVarSettings": {
     "type": "LevelSet",
     "initialCase": "smoothRectangle"

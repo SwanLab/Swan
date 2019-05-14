@@ -57,9 +57,9 @@ classdef NumericalHomogenizerDataBase < handle
             sHomog.interpolation          = dI.materialInterpDataBase.materialInterpolation;
             sHomog.dim                    = dI.pdim;
             sHomog.typeOfMaterial         = dI.materialDataBase.materialType;
-            sHomog.constitutiveProperties = dI.materialDataBase.matProp;
-            sHomog.vademecumFileName      = [];            
-            sHomog.nelem                  = size(s.mesh.coord,1);            
+            sHomog.constitutiveProperties = dI.materialDataBase.matProp;       
+            sHomog.nelem                  = size(s.mesh.coord,1);   
+            sHomog = SettingsHomogenizedVarComputer.create(sHomog);
             d.homogVarComputer = HomogenizedVarComputer.create(sHomog);            
         end
         

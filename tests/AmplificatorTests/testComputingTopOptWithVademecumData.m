@@ -28,7 +28,7 @@ classdef testComputingTopOptWithVademecumData < testShowingError
         
         function createTopOptProblem(obj)
             settings = Settings('CantileverTriangleFineM1M2');  
-            settingsTopOpt = SettingsTopOptProblem('Case_RefactoringSettings_A',settings);
+            settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_B.json',settings);
             
             topOptProblem = TopOpt_Problem(settingsTopOpt);
             topOptProblem.computeVariables();

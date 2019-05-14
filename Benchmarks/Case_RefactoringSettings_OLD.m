@@ -1,7 +1,8 @@
 filename='Cantilever_triangle_coarse';
 % filename = '';
  ptype = 'MACRO';
-method = 'SIMPALL';
+% method = 'SIMP_Adaptative';
+method = '';
 materialType = 'ISOTROPIC';
 % initial_case = 'full';
 initial_case = '';

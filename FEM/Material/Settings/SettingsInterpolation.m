@@ -3,20 +3,20 @@ classdef SettingsInterpolation < AbstractSettings
     properties (Access = protected)
         defaultParamsName = 'paramsMaterialInterpolation.json'
     end
-   
+    
     properties (Access = public)
         constitutiveProperties
         typeOfMaterial
-        interpolation 
-        dim 
-        type 
+        interpolation
+        dim
+        type
         nelem
         ngaus
     end
     
     methods (Access = public)
         
-        function obj = SettingsInterpolation(varargin)            
+        function obj = SettingsInterpolation(varargin)
             if nargin == 1
                 obj.loadParams(varargin{1})
             end
@@ -29,7 +29,9 @@ classdef SettingsInterpolation < AbstractSettings
         
         function init(obj)
             s = obj.constitutiveProperties;
-            obj.constitutiveProperties = SettingsConstitutiveProperties(s);
+            if isstruct(s)
+                obj.constitutiveProperties = SettingsConstitutiveProperties(s);
+            end
         end
         
     end

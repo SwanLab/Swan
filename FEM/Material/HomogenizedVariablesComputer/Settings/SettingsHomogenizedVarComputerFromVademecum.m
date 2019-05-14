@@ -2,7 +2,7 @@ classdef SettingsHomogenizedVarComputerFromVademecum < ....
          SettingsHomogenizedVarComputer
     
     properties (Access = protected)
-        defaultParamsName = 'paramsHomogenizedVarComputerFromVademecum'
+        defaultParamsName = 'paramsHomogenizedVarComputerFromVademecum.json'
     end
     
     properties (Access = public)

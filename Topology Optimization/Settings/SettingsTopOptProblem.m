@@ -93,13 +93,22 @@ classdef SettingsTopOptProblem < AbstractSettings
         end
         
         function createHomogenizedVarComputerSettings(obj)
-            obj.homogenizedVarComputerSettings.type                   = obj.settings.homegenizedVariablesComputer;
-            obj.homogenizedVarComputerSettings.interpolation          = obj.settings.materialInterpolation;
-            obj.homogenizedVarComputerSettings.typeOfMaterial         = obj.settings.material;
-            obj.homogenizedVarComputerSettings.constitutiveProperties = obj.settings.TOL;
-            obj.homogenizedVarComputerSettings.vademecumFileName      = obj.settings.vademecumFileName;
-            obj.homogenizedVarComputerSettings.dim                    = obj.problemData.pdim;
-            obj.homogenizedVarComputerSettings.nelem                  = obj.problemData.nelem;
+            if obj.isOld
+                s.type  = obj.settings.homegenizedVariablesComputer;
+                switch s.type
+                    case 'ByInterpolation'
+                        s.interpolation          = obj.settings.materialInterpolation;
+                        s.typeOfMaterial         = obj.settings.material;
+                        s.constitutiveProperties = obj.settings.TOL;
+                    case 'ByVademecum'
+                        s.fileName               = obj.settings.vademecumFileName;
+                end
+            else
+                s = obj.homogenizedVarComputerSettings;
+            end
+            s.nelem = obj.problemData.nelem;
+            s.dim   = obj.problemData.pdim;
+            obj.homogenizedVarComputerSettings = SettingsHomogenizedVarComputer.create(s);
         end
         
         function createIncrementalSchemeSettings(obj,cParams)
@@ -200,10 +209,11 @@ classdef SettingsTopOptProblem < AbstractSettings
         end
         
         function createVideoManagerSettings(obj)
-            obj.videoManagerSettings.caseFileName  = obj.problemData.caseFileName;
-            obj.videoManagerSettings.shallPrint    = obj.optimizerSettings.shallPrint;
-            obj.videoManagerSettings.designVarType = obj.designVarSettings.type;
-            obj.videoManagerSettings.pdim          = obj.problemData.pdim;
+            s.caseFileName  = obj.problemData.caseFileName;
+            s.shallPrint    = obj.optimizerSettings.shallPrint;
+            s.designVarType = obj.designVarSettings.type;
+            s.pdim          = obj.problemData.pdim;
+            obj.videoManagerSettings = SettingsVideoManager(s);
         end
         
         function spS = createScalarProductSettings(obj)
