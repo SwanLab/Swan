@@ -24,6 +24,10 @@ clear variables;
 settings = Settings('Case_RefactoringSettings_OLD');
 settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_B.json',settings);
 
+% settings = Settings('CantileverTetrahedra_Case_1_1_1');
+% SettingsTranslator().translate(settings);
+% settingsTopOpt = SettingsTopOptProblem('CantileverTetrahedra_Case_1_1_1.json');
+
 topOptProblem = TopOpt_Problem(settingsTopOpt);
 topOptProblem.computeVariables;
 topOptProblem.postProcess;

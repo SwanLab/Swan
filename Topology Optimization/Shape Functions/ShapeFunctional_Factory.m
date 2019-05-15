@@ -1,7 +1,6 @@
-classdef ShapeFunctional_Factory
+classdef ShapeFunctional_Factory < handle
     
     properties (Access = private)
-        settings
         cParams
         designVar
         homogVarComputer
@@ -10,8 +9,7 @@ classdef ShapeFunctional_Factory
     
     methods (Access = public)
         
-        function sF = create(obj,cParams,settings)
-            obj.settings = settings;
+        function sF = create(obj,cParams)
             obj.designVar = cParams.designVariable;
             obj.homogVarComputer = cParams.homogVarComputer;
             obj.targetParameters = cParams.targetParameters;
@@ -31,19 +29,17 @@ classdef ShapeFunctional_Factory
                 case 'chomog_CC'
                     sF = ShFunc_Chomog_CC();
                 case 'enforceCh_CCstar_inf'
-                    obj.cParams = SettingsShapeFunctional();
-                    obj.addNamePtype()
-                    for i=1:6
-                        EnforceCh=ShFunc_Chomog_EnforceCh_CCstar_inf(obj.settings,i);
+                    for i = 1:6
+                        EnforceCh = ShFunc_Chomog_EnforceCh_CCstar_inf(settings,i);
                         if isequal(i,5) || isequal(i,4)
                             EnforceCh.setEpsilon(0);
                         end
-                        sF=EnforceCh;
+                        sF  = EnforceCh;
                         iSF = iSF+1;
                     end
                 case 'enforceCh_CCstar_eq'
                     for i = 1:6
-                        sF=ShFunc_Chomog_EnforceCh_CCstar_eq(obj.settings,i);
+                        sF  = ShFunc_Chomog_EnforceCh_CCstar_eq(settings,i);
                         iSF = iSF+1;
                     end
                 case 'enforceCh_CCstar_L2'

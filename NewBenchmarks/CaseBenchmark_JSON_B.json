@@ -36,21 +36,23 @@
     "weights": [
       1,
       0.1
-    ]
+    ],
+"filterType": "P1"
   },
   "constraintSettings": {
     "shapeFuncSettings": [
       {
         "type": "volumeConstraint"
       }
-    ]
+    ],
+"filterType": "P1"
   },
   "optimizerSettings": {
     "type": "AlternatingPrimalDual",
     "uncOptimizerSettings": {
       "type": "SLERP"
     },
-    "maxIter": 5,
+    "maxIter": 50,
     "shallPrint": false,
 "printMode": "DesignAndShape",
     "monitoringDockerSettings": "paramsMonitoringDocker_OnlyDesignVar.json"

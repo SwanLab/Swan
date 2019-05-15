@@ -143,7 +143,6 @@ classdef SettingsTopOptProblem < AbstractSettings
             else
                 s = cParams.costSettings;
             end
-            s.settings = obj.settings;
             s.problemData = obj.problemData;
             
             obj.costSettings = SettingsCost(s);
@@ -158,7 +157,6 @@ classdef SettingsTopOptProblem < AbstractSettings
             else
                 s = cParams.constraintSettings;
             end
-            s.settings = obj.settings;
             s.problemData = obj.problemData;
             obj.constraintSettings = SettingsConstraint(s);
         end

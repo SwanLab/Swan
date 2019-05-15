@@ -5,13 +5,13 @@ classdef SettingsCC < AbstractSettings
     end
     
     properties (Access = public)
-        settings
         shapeFuncSettings
         nShapeFuncs
         designVar
         homogenizedVarComputer
         targetParameters
         problemData
+        filterType
     end
     
     methods (Access = public)
@@ -55,12 +55,12 @@ classdef SettingsCC < AbstractSettings
                     s{iSF}.filename = obj.problemData.problemFileName;
                     s{iSF}.scale = obj.problemData.scale;
                     s{iSF}.filterParams = obj.createFilterSettings();
-                    sfS{iSF} = SettingsShapeFunctional().create(s{iSF},obj.settings);
+                    sfS{iSF} = SettingsShapeFunctional().create(s{iSF});
                 else
                     s(iSF).filename = obj.problemData.problemFileName;
                     s(iSF).scale = obj.problemData.scale;
                     s(iSF).filterParams = obj.createFilterSettings();
-                    sfS{iSF} = SettingsShapeFunctional().create(s(iSF),obj.settings);
+                    sfS{iSF} = SettingsShapeFunctional().create(s(iSF));
                 end
             end
             obj.shapeFuncSettings = sfS;
@@ -68,7 +68,7 @@ classdef SettingsCC < AbstractSettings
         end
         
         function s = createFilterSettings(obj)
-            s.filterType = obj.settings.filter;
+            s.filterType = obj.filterType;
             s = SettingsFilter(s);
         end
         
