@@ -140,12 +140,14 @@ classdef SettingsTopOptProblem < AbstractSettings
                     sfS{i} = struct('type',obj.settings.cost{i});
                 end
                 s.shapeFuncSettings = sfS;
+                s.problemData = obj.problemData;
+                s.settings = obj.settings;
+                obj.costSettings = SettingsCost_OLD(s);
             else
                 s = cParams.costSettings;
+                s.problemData = obj.problemData;
+                obj.costSettings = SettingsCost(s);
             end
-            s.problemData = obj.problemData;
-            
-            obj.costSettings = SettingsCost(s);
         end
         
         function createConstraintSettings(obj,cParams)
@@ -154,11 +156,14 @@ classdef SettingsTopOptProblem < AbstractSettings
                     sfS{i} = struct('type',obj.settings.constraint{i});
                 end
                 s.shapeFuncSettings = sfS;
+                s.problemData = obj.problemData;
+                s.settings = obj.settings;
+                obj.constraintSettings = SettingsConstraint_OLD(s);
             else
                 s = cParams.constraintSettings;
+                s.problemData = obj.problemData;
+                obj.constraintSettings = SettingsConstraint(s);
             end
-            s.problemData = obj.problemData;
-            obj.constraintSettings = SettingsConstraint(s);
         end
         
         function updateProblemData(obj)

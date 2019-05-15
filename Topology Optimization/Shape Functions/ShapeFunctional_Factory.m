@@ -57,40 +57,5 @@ classdef ShapeFunctional_Factory < handle
         
     end
     
-    methods (Access = private)
-        
-        function addParamsFromSettings(obj)
-            obj.addNamePtype()
-            obj.cParams.homogVarComputer = obj.homogVarComputer;
-            obj.cParams.designVariable   = obj.designVar;
-            obj.cParams.targetParameters = obj.targetParameters;
-            obj.createFilterParams();
-        end
-        
-        function addNamePtype(obj)
-            obj.cParams.filename     = obj.settings.filename;
-            obj.cParams.domainType   = obj.settings.ptype;
-        end
-        
-        function createMaterialInterpolationParams(obj)
-            %s = SettingsHomogenizedVarComputerFromInterpolation();
-            s.type = obj.settings.homegenizedVariablesComputer;
-            s.interpolation          = obj.settings.materialInterpolation;
-            s.dim                    = obj.settings.pdim;
-            s.typeOfMaterial         = obj.settings.material;
-            s.constitutiveProperties = obj.settings.TOL;
-            s.vademecumFileName      = obj.settings.vademecumFileName;
-            obj.cParams.materialInterpolationParams = s;
-        end
-        
-        function createFilterParams(obj)
-            s = SettingsFilter();
-            s.filterType = obj.settings.filter;
-            s.designVar  = obj.designVar;
-            obj.cParams.filterParams = s;
-        end
-        
-    end
-    
 end
 
