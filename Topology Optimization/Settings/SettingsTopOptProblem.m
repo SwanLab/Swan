@@ -115,11 +115,21 @@ classdef SettingsTopOptProblem < AbstractSettings
             if obj.isOld
                 s.nSteps = obj.settings.nsteps;
                 s.shallPrintIncremental = obj.settings.printIncrementalIter;
+
+                s.targetParamsSettings.VfracInitial = obj.settings.Vfrac_initial;
+                s.targetParamsSettings.VfracFinal = obj.settings.Vfrac_final;
+                s.targetParamsSettings.constrInitial = obj.settings.constr_initial;
+                s.targetParamsSettings.constrFinal = obj.settings.constr_final;
+                s.targetParamsSettings.optimalityInitial = obj.settings.optimality_initial;
+                s.targetParamsSettings.optimalityFinal = obj.settings.optimality_final;
+                s.targetParamsSettings.epsilonInitial = obj.settings.epsilon_initial;
+                s.targetParamsSettings.epsilonFinal = obj.settings.epsilon_final;
+                s.targetParamsSettings.epsilonIsoInitial = obj.settings.epsilon_isotropy_initial;
+                s.targetParamsSettings.epsilonIsoFinal = obj.settings.epsilon_isotropy_final;
             else
                 s = cParams.incrementalSchemeSettings;
             end
             s.mesh = obj.mesh;
-            s.settings = obj.settings;
             obj.incrementalSchemeSettings = SettingsIncrementalScheme(s);
         end
         

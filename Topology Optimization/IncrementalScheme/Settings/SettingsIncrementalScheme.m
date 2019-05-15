@@ -9,7 +9,6 @@ classdef SettingsIncrementalScheme < AbstractSettings
         targetParamsSettings
         shallPrintIncremental
         mesh
-        settings
     end
     
     methods (Access = public)
@@ -31,20 +30,10 @@ classdef SettingsIncrementalScheme < AbstractSettings
         
         function createTargetParamsSettings(obj)
             s = obj.targetParamsSettings;
+            s.mesh = obj.mesh;
+            s.nSteps = obj.nSteps;
             obj.targetParamsSettings = SettingsTargetParamsManager(s);
-            if obj.settings.isOld
-                obj.targetParamsSettings.VfracInitial = obj.settings.Vfrac_initial;
-                obj.targetParamsSettings.VfracFinal = obj.settings.Vfrac_final;
-                obj.targetParamsSettings.constrInitial = obj.settings.constr_initial;
-                obj.targetParamsSettings.constrFinal = obj.settings.constr_final;
-                obj.targetParamsSettings.optimalityInitial = obj.settings.optimality_initial;
-                obj.targetParamsSettings.optimalityFinal = obj.settings.optimality_final;
-            end
-            obj.targetParamsSettings.epsilonInitial = obj.settings.epsilon_initial;
-            obj.targetParamsSettings.epsilonFinal = obj.settings.epsilon_final;
-            obj.targetParamsSettings.epsilonIsotropyInitial = obj.settings.epsilon_isotropy_initial;
-            obj.targetParamsSettings.epsilonIsotropyFinal = obj.settings.epsilon_isotropy_final;
-        end
+        end                
         
     end
     

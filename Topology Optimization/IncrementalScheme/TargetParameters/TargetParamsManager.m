@@ -12,7 +12,7 @@ classdef TargetParamsManager < handle
         optimalityTol
         epsilon
         epsilonPer
-        epsilonIsotropy
+        epsilonIso
     end
     
     methods (Access = public)
@@ -43,7 +43,7 @@ classdef TargetParamsManager < handle
             obj.optimalityTol = LinearSequence(0,1,obj.nSteps,cParams.optimalityInitial,cParams.optimalityFinal);
             obj.epsilon = LinearSequence(0,1,obj.nSteps,cParams.epsilonInitial,cParams.epsilonFinal);
             obj.epsilonPer = LogarithmicSequence(-1,0,obj.nSteps,cParams.epsilonPerInitial,cParams.epsilonPerFinal);
-            obj.epsilonIsotropy = LinearSequence(0,1,obj.nSteps,cParams.epsilonIsotropyInitial,cParams.epsilonIsotropyFinal);
+            obj.epsilonIso = LinearSequence(0,1,obj.nSteps,cParams.epsilonIsoInitial,cParams.epsilonIsoFinal);
         end
         
         function computeValues(obj,iStep)
@@ -60,7 +60,7 @@ classdef TargetParamsManager < handle
             obj.targetParams.epsilon_perimeter = obj.epsilonPer.value;
             obj.targetParams.constr_tol = obj.constraintTol.value;
             obj.targetParams.optimality_tol = obj.optimalityTol.value;
-            obj.targetParams.epsilon_isotropy = obj.epsilonIsotropy.value;
+            obj.targetParams.epsilon_isotropy = obj.epsilonIso.value;
         end
         
     end
