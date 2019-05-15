@@ -47,15 +47,12 @@
   },
   "optimizerSettings": {
     "type": "AlternatingPrimalDual",
-    "shallPrint": false,
-    "settingsMonitor": {
-      "showOptParams": false,
-      "refreshInterval": 2,
-      "shallDisplayDesignVar": true,
-      "shallShowBoundaryConditions": true
-    },
     "uncOptimizerSettings": {
       "type": "SLERP"
-    }
+    },
+    "maxIter": 5,
+    "shallPrint": false,
+"printMode": "DesignAndShape",
+    "monitoringDockerSettings": "paramsMonitoringDocker_OnlyDesignVar.json"
   }
 }

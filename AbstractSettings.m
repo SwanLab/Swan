@@ -26,7 +26,7 @@ classdef AbstractSettings < handle
                 else
                     switch obj.getFileType(p)
                         case {'','.m'}
-                            error('MOCCCC');
+                            error('THIS IS NO JSON FILE!');
                             obj.loadParamsFromMatlabScript(p);
                         case '.json'
                             obj.loadParamsFromJSON(p);

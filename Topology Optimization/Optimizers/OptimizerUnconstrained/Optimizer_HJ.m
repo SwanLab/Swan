@@ -5,7 +5,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
     end
     
     properties (GetAccess = public, SetAccess = protected)
-        name = 'HAMILTON JACOBI'
+        type = 'HAMILTON JACOBI'
     end
     
     properties (Access = private)
@@ -20,7 +20,6 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             designVar = cParams.designVariable;
             
             obj@Optimizer_Unconstrained(cParams);
-            obj.name = 'HAMILTON-JACOBI';
             obj.e2 = cParams.e2;
             obj.meanCellSize = designVar.mesh.computeMeanCellSize();
             

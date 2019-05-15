@@ -31,6 +31,16 @@ classdef SettingsMonitoringDocker < AbstractSettings
             if nargin == 1
                 obj.loadParams(varargin{1});
             end
+            obj.init();
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function init(obj)
+            if ischar(obj)
+            end
         end
         
     end

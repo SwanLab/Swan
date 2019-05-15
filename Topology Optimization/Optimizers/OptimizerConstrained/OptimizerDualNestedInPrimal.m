@@ -1,7 +1,7 @@
 classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
     
     properties (GetAccess = public, SetAccess = protected)
-        name = 'DualNestedInPrimal'
+        type = 'DualNestedInPrimal'
     end
     
     properties (Access = private)
@@ -39,7 +39,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             obj.hasFinished = false;
             
             while ~obj.hasFinished
-                obj.niter = obj.niter+1;
+                obj.nIter = obj.nIter+1;
                 
                 obj.unconstrainedOptimizer.initLineSearch();
                 %kappa = 0.1*obj.unconstrainedOptimizer.line_search.kappa;

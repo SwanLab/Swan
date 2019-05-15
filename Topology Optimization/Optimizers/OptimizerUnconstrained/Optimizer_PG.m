@@ -5,7 +5,7 @@ classdef Optimizer_PG < Optimizer_Unconstrained
     end
     
     properties (GetAccess = public, SetAccess = protected)
-        name = 'PROJECTED GRADIENT'
+        type = 'PROJECTED GRADIENT'
     end
     
     properties (Access = private)

@@ -28,11 +28,11 @@ classdef TopOpt_Problem < handle
         end
         
         function createOptimizer(obj,settings)
-            obj.createOptimizerSettings(settings);
+            obj.completeOptimizerSettings(settings);
             obj.optimizer = Optimizer.create(obj.optimizerSettings);
         end
         
-        function createOptimizerSettings(obj,cParams)
+        function completeOptimizerSettings(obj,cParams)
             s = cParams.optimizerSettings;
             s.uncOptimizerSettings.lineSearchSettings.scalarProductSettings.epsilon         = obj.incrementalScheme.targetParams.epsilon;
             s.uncOptimizerSettings.lineSearchSettings.scalarProductSettings.nVariables      = obj.designVariable.nVariables;
@@ -44,7 +44,7 @@ classdef TopOpt_Problem < handle
             s.uncOptimizerSettings.designVariable     = obj.designVariable;
             
             s.designVar         = obj.designVariable;
-            s.target_parameters = obj.incrementalScheme.targetParams;
+            s.targetParameters  = obj.incrementalScheme.targetParams;
             s.cost              = obj.cost;
             s.constraint        = obj.constraint;
             s.incrementalScheme = obj.incrementalScheme;
@@ -61,7 +61,7 @@ classdef TopOpt_Problem < handle
         end
         
         function postProcess(obj)
-            obj.videoManager.makeVideo(obj.optimizer.niter);
+            obj.videoManager.makeVideo(obj.optimizer.nIter);
         end
         
     end

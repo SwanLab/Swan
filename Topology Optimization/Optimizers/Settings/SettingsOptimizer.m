@@ -5,12 +5,12 @@ classdef SettingsOptimizer < AbstractSettings
     end
     
     properties (Access = public)
+        type
         problemData
-        nconstr
-        target_parameters
-        constraint_case
-        name
-        maxiter
+        targetParameters
+        constraintCase
+        nConstr
+        maxIter
         
         designVar
         dualVariable
@@ -19,10 +19,9 @@ classdef SettingsOptimizer < AbstractSettings
         
         shallPrint
         printMode
-        type
         
         uncOptimizerSettings
-        settingsMonitor
+        monitoringDockerSettings
         incrementalScheme
         postProcessSettings
         historyPrinterSettings
@@ -42,7 +41,7 @@ classdef SettingsOptimizer < AbstractSettings
     methods (Access = private)
         
         function init(obj)
-%             obj.initSettingsMonitorDocker();
+            %             obj.initSettingsMonitorDocker();
         end
         
     end
@@ -50,20 +49,23 @@ classdef SettingsOptimizer < AbstractSettings
     methods (Access = public)
         
         function initSettingsMonitorDocker(obj,cParams)
-            s = cParams.settingsMonitor;
+            if isfield(cParams,'monitoringDockerSettings')
+                s = cParams.monitoringDockerSettings;
+            else
+                s = [];
+            end
+            obj.monitoringDockerSettings = SettingsMonitoringDocker(s);
             
-            s.optimizerName   = obj.name;
-            s.problemID       = obj.problemData.caseFileName;
-            s.dim             = obj.problemData.pdim;
+            obj.monitoringDockerSettings.optimizerName   = obj.type;
+            obj.monitoringDockerSettings.problemID       = obj.problemData.caseFileName;
+            obj.monitoringDockerSettings.dim             = obj.problemData.pdim;
             
-            s.costFuncNames   = obj.problemData.costFunctions;
-            s.costWeights     = obj.problemData.costWeights;
-            s.constraintFuncs = obj.problemData.constraintFunctions;
-            
-            obj.settingsMonitor = SettingsMonitoringDocker(s);
+            obj.monitoringDockerSettings.costFuncNames   = obj.problemData.costFunctions;
+            obj.monitoringDockerSettings.costWeights     = obj.problemData.costWeights;
+            obj.monitoringDockerSettings.constraintFuncs = obj.problemData.constraintFunctions;
         end
         
-                
+        
         function initSettingsHistoryPrinter(obj,fileName)
             obj.historyPrinterSettings.fileName   = fileName;
             obj.historyPrinterSettings.shallPrint = obj.shallPrint;

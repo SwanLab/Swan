@@ -1,13 +1,12 @@
 classdef Optimizer_IPOPT < Optimizer
     
     properties (GetAccess = public, SetAccess = protected)
-        name = 'IPOPT'
+        type = 'IPOPT'
     end
     
     properties (Access = private)
-        nconstr
+        nConstr
         info
-        max_iter
         constraintTolerance
         optimalityTolerance
         data
@@ -24,9 +23,9 @@ classdef Optimizer_IPOPT < Optimizer
             obj.init(cParams);
             obj.upperBound = cParams.uncOptimizerSettings.ub;
             obj.lowerBound = cParams.uncOptimizerSettings.lb;
-            obj.nconstr    = cParams.nconstr;
-            obj.max_iter   = cParams.maxiter;
-            obj.niter      = -1;
+            obj.nConstr    = cParams.nConstr;
+            obj.maxIter    = cParams.maxIter;
+            obj.nIter      = -1;
             obj.nX         = length(obj.designVariable.value);
             obj.createFunctions();
             obj.createOptions();
@@ -55,7 +54,7 @@ classdef Optimizer_IPOPT < Optimizer
             funcs.gradient          = @(x) obj.gradient(x);
             funcs.constraints       = @(x) obj.constraintFunction(x);
             funcs.jacobian          = @(x) sparse(obj.constraint_gradient(x)');
-            funcs.jacobianstructure = @() sparse(ones(obj.nconstr,obj.nX));
+            funcs.jacobianstructure = @() sparse(ones(obj.nConstr,obj.nX));
             funcs.iterfunc          = @(iter,fval,data) obj.outputfun_ipopt(data);
             obj.functions           = funcs;
         end
@@ -87,8 +86,8 @@ classdef Optimizer_IPOPT < Optimizer
         function stop = outputfun_ipopt(obj,data)
             stop = true;
             obj.historicalVariables.inf_du = data.inf_du;
-            obj.data=data;
-            obj.niter=obj.niter+1;
+            obj.data = data;
+            obj.nIter = obj.nIter+1;
             obj.designVariable.update(data.x);
             obj.updateStatus();
             obj.printOptimizerVariable();
@@ -107,13 +106,13 @@ classdef Optimizer_IPOPT < Optimizer
             opt.ub = obj.upperBound*ones(obj.nX,1);
             opt.lb = obj.lowerBound*ones(obj.nX,1);
             if strcmp(obj.constraintCase,'EQUALITY')
-                opt.cl = zeros(obj.nconstr,1);
+                opt.cl = zeros(obj.nConstr,1);
                 opt.constraintCase = 'equality';
             else
-                opt.cl = -Inf*ones(obj.nconstr,1);
+                opt.cl = -Inf*ones(obj.nConstr,1);
             end
-            opt.cu                    = zeros(obj.nconstr,1);
-            opt.ipopt.max_iter        = obj.max_iter;
+            opt.cu                    = zeros(obj.nConstr,1);
+            opt.ipopt.max_iter         = obj.maxIter;
             opt.ipopt.constr_viol_tol = obj.obtainConstraintTolerance();
             opt.ipopt.compl_inf_tol   = obj.obtainConstraintTolerance();
             opt.ipopt.tol             = obj.obtainOptimalityTolerance();

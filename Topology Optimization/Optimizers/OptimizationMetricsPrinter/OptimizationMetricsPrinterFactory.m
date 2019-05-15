@@ -4,7 +4,7 @@ classdef OptimizationMetricsPrinterFactory < handle
         
         function printer = create(cParams)
             if cParams.shallPrint
-                switch cParams.optimizer.name
+                switch cParams.optimizer.type
                     case {'AlternatingPrimalDual','DualNestedInPrimal'}
                         printer = OptimizationMetricsPrinter_AugLag(cParams);
                     case 'MMA'

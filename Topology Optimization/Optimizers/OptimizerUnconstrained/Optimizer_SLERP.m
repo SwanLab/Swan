@@ -5,7 +5,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
     end
     
     properties (GetAccess = public, SetAccess = protected)
-        name = 'SLERP'
+        type = 'SLERP'
     end
     
     properties  (GetAccess = public, SetAccess = private)

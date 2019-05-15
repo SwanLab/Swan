@@ -167,38 +167,31 @@ classdef SettingsTopOptProblem < AbstractSettings
             obj.problemData.costFunctions       = obj.costSettings.getShapeFuncList();
             obj.problemData.costWeights         = obj.costSettings.weights();
             obj.problemData.constraintFunctions = obj.constraintSettings.getShapeFuncList();
+            obj.problemData.nConstraints        = obj.constraintSettings.nShapeFuncs;
         end
         
         function createOptimizerSettings(obj,cParams)
             obj.optimizerSettings = SettingsOptimizer();
+            
             if obj.isOld
                 s = [];
                 obj.optimizerSettings.type = obj.settings.optimizer;
+                obj.optimizerSettings.constraintCase = obj.settings.constraint_case;
+                obj.optimizerSettings.maxIter = obj.settings.maxiter;
+                obj.optimizerSettings.shallPrint = obj.settings.printing;
+                obj.optimizerSettings.printMode  = obj.settings.printMode;
+                obj.setupSettingsMonitor();
             else
                 s = cParams.optimizerSettings;
                 obj.optimizerSettings.problemData = obj.problemData;
                 obj.optimizerSettings.type = s.type;
-            end
-            
-            obj.optimizerSettings.nconstr              = obj.settings.nconstr;
-            obj.optimizerSettings.target_parameters    = obj.settings.target_parameters;
-            obj.optimizerSettings.constraint_case      = obj.settings.constraint_case;
-            obj.optimizerSettings.maxiter              = obj.settings.maxiter;
-            
-            if obj.isOld
-                obj.optimizerSettings.name             = obj.settings.optimizer;
-                obj.optimizerSettings.shallPrint       = obj.settings.printing;
-            else
-                obj.optimizerSettings.name             = s.type;
-                obj.optimizerSettings.shallPrint       = s.shallPrint;
-            end
-            obj.optimizerSettings.printMode            = obj.settings.printMode;
-            
-            if obj.isOld
-                obj.setupSettingsMonitor();
-            else
+                obj.optimizerSettings.maxIter = s.maxIter;
+                obj.optimizerSettings.shallPrint = s.shallPrint;
+                obj.optimizerSettings.printMode  = s.printMode;
                 obj.optimizerSettings.initSettingsMonitorDocker(s);
             end
+            
+            obj.optimizerSettings.nConstr = obj.problemData.nConstraints;
             obj.optimizerSettings.initSettingsHistoryPrinter(obj.problemData.caseFileName);
             obj.optimizerSettings.initSettingsPostProcess();
             
@@ -252,18 +245,18 @@ classdef SettingsTopOptProblem < AbstractSettings
         end
         
         function setupSettingsMonitor(obj)
-            obj.optimizerSettings.settingsMonitor.showOptParams               = obj.settings.monitoring;
-            obj.optimizerSettings.settingsMonitor.refreshInterval             = obj.settings.monitoring_interval;
-            obj.optimizerSettings.settingsMonitor.shallDisplayDesignVar       = obj.settings.plotting;
-            obj.optimizerSettings.settingsMonitor.shallShowBoundaryConditions = obj.settings.showBC;
+            obj.optimizerSettings.monitoringDockerSettings.showOptParams               = obj.settings.monitoring;
+            obj.optimizerSettings.monitoringDockerSettings.refreshInterval             = obj.settings.monitoring_interval;
+            obj.optimizerSettings.monitoringDockerSettings.shallDisplayDesignVar       = obj.settings.plotting;
+            obj.optimizerSettings.monitoringDockerSettings.shallShowBoundaryConditions = obj.settings.showBC;
             
-            obj.optimizerSettings.settingsMonitor.optimizerName   = obj.settings.optimizer;
-            obj.optimizerSettings.settingsMonitor.problemID       = obj.settings.case_file;
-            obj.optimizerSettings.settingsMonitor.dim             = obj.settings.pdim;
+            obj.optimizerSettings.monitoringDockerSettings.optimizerName   = obj.settings.optimizer;
+            obj.optimizerSettings.monitoringDockerSettings.problemID       = obj.settings.case_file;
+            obj.optimizerSettings.monitoringDockerSettings.dim             = obj.settings.pdim;
             
-            obj.optimizerSettings.settingsMonitor.costFuncNames   = obj.problemData.costFunctions;
-            obj.optimizerSettings.settingsMonitor.costWeights     = obj.problemData.costWeights;
-            obj.optimizerSettings.settingsMonitor.constraintFuncs = obj.problemData.constraintFunctions;
+            obj.optimizerSettings.monitoringDockerSettings.costFuncNames   = obj.problemData.costFunctions;
+            obj.optimizerSettings.monitoringDockerSettings.costWeights     = obj.problemData.costWeights;
+            obj.optimizerSettings.monitoringDockerSettings.constraintFuncs = obj.problemData.constraintFunctions;
         end
         
         function addGeomParams(obj)

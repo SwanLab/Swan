@@ -55,11 +55,12 @@ classdef TargetParamsManager < handle
         end
         
         function assignValues(obj)
-            obj.targetParams.Vfrac = obj.volumeFrac.value;
-            obj.targetParams.epsilon = obj.epsilon.value;
-            obj.targetParams.epsilon_perimeter = obj.epsilonPer.value;
             obj.targetParams.constr_tol = obj.constraintTol.value;
             obj.targetParams.optimality_tol = obj.optimalityTol.value;
+            obj.targetParams.Vfrac = obj.volumeFrac.value;
+            obj.targetParams.epsilon = obj.epsilon.value;
+            obj.targetParams.epsilon_velocity = obj.epsilon.value;
+            obj.targetParams.epsilon_perimeter = obj.epsilonPer.value;
             obj.targetParams.epsilon_isotropy = obj.epsilonIso.value;
         end
         
