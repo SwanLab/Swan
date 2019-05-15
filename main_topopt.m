@@ -20,13 +20,15 @@ clear variables;
 
 % settings = Settings('Case_RefactoringSettingsMICRO_OLD_2');
 % settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_A.json',settings);
+% 
+% settings = Settings('Case_RefactoringSettings_OLD');
+% settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_B.json',settings);
 
-settings = Settings('Case_RefactoringSettings_OLD');
-settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_B.json',settings);
-
-% settings = Settings('CantileverTetrahedra_Case_1_1_1');
-% SettingsTranslator().translate(settings);
-% settingsTopOpt = SettingsTopOptProblem('CantileverTetrahedra_Case_1_1_1.json');
+settings = Settings('CantileverTriangle_Case_1_2_2');
+settings.isOld = false;
+translator = SettingsTranslator();
+translator.translate(settings);
+settingsTopOpt = SettingsTopOptProblem(translator.fileName,settings);
 
 topOptProblem = TopOpt_Problem(settingsTopOpt);
 topOptProblem.computeVariables;
