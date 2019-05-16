@@ -222,9 +222,6 @@ classdef SettingsTopOptProblem < AbstractSettings
             
             obj.initScalarProductSettings();
             obj.initLineSearchSettings(s);
-            
-            obj.optimizerSettings.uncOptimizerSettings.filename            = obj.problemData.problemFileName;
-            obj.optimizerSettings.uncOptimizerSettings.ptype               = obj.problemData.scale;
         end
         
         function createVideoManagerSettings(obj)

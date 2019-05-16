@@ -5,10 +5,10 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
    end
     
    properties (Access = public)
+       type
        targetParameters
        designVariable
        lagrangian
-       type
        
        convergenceVars
        
@@ -17,8 +17,6 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
        lineSearchSettings
        
        e2    
-       filename
-       ptype
        ub
        lb
    end
