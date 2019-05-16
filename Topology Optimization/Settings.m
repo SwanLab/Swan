@@ -206,6 +206,8 @@ classdef Settings %< handle%& matlab.mixin.Copyable
             end
             if exist('e2','var')
                 obj.e2 = e2;
+            else
+                obj.e2 = 1;
             end
 
             

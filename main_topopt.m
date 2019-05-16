@@ -22,7 +22,7 @@ clear variables;
 % settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_A.json',settings);
 
 settings = Settings('Case_RefactoringSettings_OLD');
-settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_B.json',settings);
+settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_B.json');
 
 % settings = Settings('CantileverTetrahedra_Case_1_1_1');
 % SettingsTranslator().translate(settings);

@@ -16,9 +16,7 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
        scalarProductSettings
        lineSearchSettings
        
-       e2
-       filter
-       printChangingFilter       
+       e2    
        filename
        ptype
        ub

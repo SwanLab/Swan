@@ -42,13 +42,13 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
                 obj.nIter = obj.nIter+1;
                 
                 obj.unconstrainedOptimizer.initLineSearch();
-                %kappa = 0.1*obj.unconstrainedOptimizer.line_search.kappa;
-                %obj.unconstrainedOptimizer.line_search.kappa = kappa;
+                %kappa = 0.1*obj.unconstrainedOptimizer.lineSearch.kappa;
+                %obj.unconstrainedOptimizer.lineSearch.kappa = kappa;
                 
                 while ~obj.hasUnconstraintedOptimizerConverged()
                     obj.restartValues();
                     obj.computeValue();
-                    obj.unconstrainedOptimizer.line_search.computeKappa();
+                    obj.unconstrainedOptimizer.lineSearch.computeKappa();
                 end
                 
                 obj.unconstrainedOptimizer.updateConvergenceParams();
@@ -90,8 +90,8 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
                 
                 %kappa
                 obj.unconstrainedOptimizer.initLineSearch();
-                %kappa = 0.01*obj.unconstrainedOptimizer.line_search.kappa;
-                %obj.unconstrainedOptimizer.line_search.kappa = kappa;
+                %kappa = 0.01*obj.unconstrainedOptimizer.lineSearch.kappa;
+                %obj.unconstrainedOptimizer.lineSearch.kappa = kappa;
                 
                 obj.constraintProjector.project();
             end
@@ -105,7 +105,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
         function update(obj)
             while ~obj.hasUnconstraintedOptimizerConverged()
                 obj.computeValue();
-                obj.unconstrainedOptimizer.line_search.computeKappa();
+                obj.unconstrainedOptimizer.lineSearch.computeKappa();
             end
         end
         
@@ -153,8 +153,8 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
         end
         
         function itIs = isLineSeachTooSmall(obj)
-            kappa     = obj.unconstrainedOptimizer.line_search.kappa;
-            kappa_min = obj.unconstrainedOptimizer.line_search.kappa_min;
+            kappa     = obj.unconstrainedOptimizer.lineSearch.kappa;
+            kappa_min = obj.unconstrainedOptimizer.lineSearch.kappa_min;
             itIs = kappa <= kappa_min;
         end
         

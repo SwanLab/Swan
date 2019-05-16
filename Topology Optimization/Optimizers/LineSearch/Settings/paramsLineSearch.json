@@ -1,0 +1,7 @@
+{
+        "type": "DIMENSIONALLY CONSISTENT",
+        "kfrac": 2,
+        "kappaMultiplier": 1,
+        "epsilon": 0.015,
+        "HJiter0": 30
+}

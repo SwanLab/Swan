@@ -19,10 +19,10 @@ classdef TopOpt_Problem < handle
         
         function obj = TopOpt_Problem(cParams)
             obj.createIncrementalScheme(cParams);
-            obj.createDesignVariable(cParams);
-            obj.createDualVariable(cParams);            
+            obj.createDesignVariable(cParams);           
             obj.createHomogenizedVarComputer(cParams)
             obj.createCostAndConstraint(cParams);
+            obj.createDualVariable();
             obj.createOptimizer(cParams);
             obj.createVideoManager(cParams);
         end
@@ -82,9 +82,9 @@ classdef TopOpt_Problem < handle
             obj.designVariable = DesignVariable.create(s);
         end
         
-        function createDualVariable(obj,cParams)
-            cParamsD.nConstraints = numel(cParams.settings.constraint);
-            obj.dualVariable = DualVariable(cParamsD);
+        function createDualVariable(obj)
+            s.nConstraints = obj.constraint.nSF;
+            obj.dualVariable = DualVariable(s);
         end        
         
         function createHomogenizedVarComputer(obj,cParams)
