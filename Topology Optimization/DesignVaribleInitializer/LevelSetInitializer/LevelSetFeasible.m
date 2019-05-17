@@ -5,26 +5,17 @@ classdef LevelSetFeasible < LevelSetCreator
     
     methods (Access = public)
         
-        function obj = LevelSetFeasible(input)
-            obj.compute(input);            
+        function obj = LevelSetFeasible(cParams)
+            obj.compute(cParams);            
         end
     end
     
     methods (Access = protected)
         
-        function computeInitialLevelSet(obj)
-            obj.computeLevelSet();
-        end
-        
-    end
-    
-    methods (Access = private)
-        
         function computeLevelSet(obj)
-            x = obj.nodeCoord.x;
+            x = obj.nodeCoord;
             obj.levelSet = ones(size(x,1),1);
         end
-        
         
     end
     

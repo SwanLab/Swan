@@ -13,7 +13,7 @@ classdef Optimizer_Unconstrained < handle
     end
     
     properties (GetAccess = public, SetAccess = private)
-        line_search
+        lineSearch
         scalar_product
         constr_tol
         convergenceVars
@@ -56,7 +56,7 @@ classdef Optimizer_Unconstrained < handle
             obj.objectiveFunction  = cParams.lagrangian;
             obj.hasConverged       = false;            
             obj.maxIncrNormX       = +Inf;            
-            obj.line_search        = LineSearch.create(cParams.lineSearchSettings);
+            obj.lineSearch         = LineSearch.create(cParams.lineSearchSettings);
             obj.scalar_product     = ScalarProduct(cParams.scalarProductSettings);
             obj.convergenceVars    = cParams.convergenceVars;
             obj.targetParameters   = cParams.targetParameters;
@@ -72,7 +72,7 @@ classdef Optimizer_Unconstrained < handle
                 obj.objectiveFunction.updateBecauseOfPrimal();
                 obj.updateConvergenceParams();
                 if ~obj.hasConverged
-                    obj.line_search.computeKappa();
+                    obj.lineSearch.computeKappa();
                end
             end
             obj.revertIfDesignNotImproved();
@@ -94,7 +94,7 @@ classdef Optimizer_Unconstrained < handle
             obj.convergenceVars.reset();
             obj.convergenceVars.append(obj.incF);
             obj.convergenceVars.append(obj.incX);
-            obj.convergenceVars.append(obj.line_search.kappa);            
+            obj.convergenceVars.append(obj.lineSearch.kappa);            
         end
         
         function computeOptimizerFlagConvergence(obj)
@@ -114,7 +114,7 @@ classdef Optimizer_Unconstrained < handle
         end
         
         function itIs = isLineSearchSmallerThanMin(obj)
-           itIs = obj.line_search.kappa <= obj.line_search.kappa_min;
+           itIs = obj.lineSearch.kappa <= obj.lineSearch.kappa_min;
         end
         
         function computeIncrements(obj)
@@ -133,7 +133,7 @@ classdef Optimizer_Unconstrained < handle
        function initLineSearch(obj)
             x0 = obj.designVariable.value;
             g  = obj.objectiveFunction.gradient;
-            obj.line_search.initKappa(x0,g);
+            obj.lineSearch.initKappa(x0,g);
         end
         
     end

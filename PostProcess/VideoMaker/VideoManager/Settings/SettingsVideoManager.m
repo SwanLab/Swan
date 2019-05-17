@@ -1,7 +1,7 @@
 classdef SettingsVideoManager < AbstractSettings
     
     properties (Access = protected)
-        defaultParamsName = 'paramsVideoManager'
+        defaultParamsName = 'paramsVideoManager.json'
     end
     
     properties (Access = public)

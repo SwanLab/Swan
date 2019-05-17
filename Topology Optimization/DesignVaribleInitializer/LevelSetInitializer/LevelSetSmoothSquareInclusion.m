@@ -4,10 +4,10 @@ classdef LevelSetSmoothSquareInclusion <  ...
      
     methods (Access = public)
         
-        function obj = LevelSetSmoothSquareInclusion(input)
-            obj.m = input.m;
-            obj.pnorm = input.p;
-            obj.compute(input);
+        function obj = LevelSetSmoothSquareInclusion(cParams)
+            obj.m = cParams.widthSquare;
+            obj.pnorm = cParams.pnorm;
+            obj.compute(cParams);
         end
     end    
   

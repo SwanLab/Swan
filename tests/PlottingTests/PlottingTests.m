@@ -17,22 +17,22 @@ classdef PlottingTests < testRunner
                 
             'testSmoothRectangleTriangle'
             'testSmoothRectangleQuadrilateral'
-
-                'testRectangleTriangle'
-                'testRectangleQuadrilateral'
-                
-                'testCircumferenceTriangle'
-                'testCircumferenceQuadrilateral'
-                
-                'testPlotCircleTriangle'
-                'testPlotCircleQuadrilateral'
-                
-                'testPlotSphereTetrahedra';
-                'testPlotSphereHexahedra';
-                
-                'testPlotCylinderTetrahedra';
-                'testPlotCylinderHexahedra';
-                };
+            
+            'testRectangleTriangle'
+            'testRectangleQuadrilateral'
+            
+            'testCircumferenceTriangle'
+            'testCircumferenceQuadrilateral'
+            
+            'testPlotCircleTriangle'
+            'testPlotCircleQuadrilateral'
+            
+            'testPlotSphereTetrahedra';
+            'testPlotSphereHexahedra';
+            
+            'testPlotCylinderTetrahedra';
+            'testPlotCylinderHexahedra';
+            };
         end
     end
 end

@@ -64,15 +64,14 @@ classdef CC < handle & matlab.mixin.Copyable
             obj.gradient = zeros(obj.sizeDesigVar);            
         end
         
-        function createShapeFunctions(obj,cParams)
-            settings         = cParams.settings;       
+        function createShapeFunctions(obj,cParams)     
             nS = cParams.nShapeFuncs;
             for iS = 1:nS
                 s = cParams.shapeFuncSettings{iS};
                 s.designVariable = cParams.designVar;
                 s.homogVarComputer = cParams.homogenizedVarComputer;
                 s.targetParameters = cParams.targetParameters;
-                shapeFunction = ShapeFunctional.create(s,settings);
+                shapeFunction = ShapeFunctional.create(s);
                 obj.append(shapeFunction);
             end
         end

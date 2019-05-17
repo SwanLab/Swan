@@ -2,9 +2,9 @@ classdef LevelSetWithCircleInclusion < LevelSetSphereNdim
    
     methods (Access = public)
         
-        function obj = LevelSetWithCircleInclusion(input)
-            obj.fracRadius = 0.4;
-            obj.compute(input);
+        function obj = LevelSetWithCircleInclusion(cParams)
+            obj.fracRadius = cParams.fracRadius;
+            obj.compute(cParams);
         end
     end
     

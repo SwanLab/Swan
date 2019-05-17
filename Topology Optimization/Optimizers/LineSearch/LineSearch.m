@@ -7,9 +7,9 @@ classdef LineSearch < handle
     
     methods (Static)
         function obj = create(cParams)
-            switch cParams.line_search
+            switch cParams.type
                 case 'DIMENSIONALLY CONSISTENT'
-                    switch cParams.optimizerUnconstrained
+                    switch cParams.optimizerType
                         case 'PROJECTED GRADIENT'
                             obj = LS_BackTracking_DimensionallyConsistent_PG(cParams,cParams.epsilon);
                         case 'SLERP'
@@ -20,7 +20,7 @@ classdef LineSearch < handle
                             error('%s is NOT a valid unconstrained optimizer.',cParams.optimizer);
                     end
                 case 'DOUBLING LAST STEP'
-                    switch cParams.optimizerUnconstrained
+                    switch cParams.optimizerType
                         case 'PROJECTED GRADIENT'
                             obj = LS_BackTracking_DoublingLastStep_PG(cParams,cParams.epsilon);
                         case 'SLERP'
@@ -30,8 +30,8 @@ classdef LineSearch < handle
                         otherwise
                             error('%s is NOT a valid unconstrained optimizer.',cParams.optimizer);
                     end
-                otherwise
-                    error('%s is NOT a valid line-search algorithm.',cParams.line_search);
+                otherwise  
+                    error('%s is NOT a valid line-search algorithm.',cParams.type);
             end
         end
     end

@@ -14,8 +14,7 @@ classdef HomogenizationTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {...
-                'testHorizontalLaminate';
-                'testNumericalConvergenceOfNumberOfLaminates';                                
+                'testNumericalConvergenceOfNumberOfLaminates';
                 'testDiagonalLaminate';
                 'testCommutingHomogPlaneStressWithZeroPoisson';
                 'testNotCommutingHomogPlaneStress';
@@ -42,6 +41,7 @@ classdef HomogenizationTests < testRunner
                 'testHorizontalTensorRotatedVsRank2';
                 'testHorizontalTensorRotatedVsHVP';
                 'TestGeneralTwoRankSequentialLaminate';
+                'testHorizontalLaminate';
                 };
         end
         

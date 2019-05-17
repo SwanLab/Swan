@@ -7,10 +7,10 @@ classdef LevelSetHorizontalFibers < LevelSetCreator
     
     methods (Access = public)
         
-        function obj = LevelSetHorizontalFibers(input)
-            obj.levelOfFibers = input.levFib;
-            obj.volume = input.volume;
-            obj.compute(input);
+        function obj = LevelSetHorizontalFibers(cParams)
+            obj.levelOfFibers = cParams.levelOfFibers;
+            obj.volume = cParams.volume;
+            obj.compute(cParams);
         end
     end
     

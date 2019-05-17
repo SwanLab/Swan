@@ -5,7 +5,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
     end
     
     properties (GetAccess = public, SetAccess = protected)
-        name = 'SLERP'
+        type = 'SLERP'
     end
     
     properties  (GetAccess = public, SetAccess = private)
@@ -21,8 +21,8 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
     
     methods (Access = public)
         
-        function obj = Optimizer_SLERP(settings)
-            obj@Optimizer_Unconstrained(settings);
+        function obj = Optimizer_SLERP(cParams)
+            obj@Optimizer_Unconstrained(cParams);
         end
         
         function compute(obj)
@@ -50,7 +50,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         end
         
         function computeCoeficients(obj)
-            k = obj.line_search.kappa;
+            k = obj.lineSearch.kappa;
             t = obj.theta;
             obj.coefPhi  = sin((1-k)*t)/sin(t);
             obj.coefGrad = sin(k*t)/sin(t);

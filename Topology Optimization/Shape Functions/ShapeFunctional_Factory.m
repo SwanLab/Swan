@@ -1,7 +1,6 @@
-classdef ShapeFunctional_Factory
+classdef ShapeFunctional_Factory < handle
     
     properties (Access = private)
-        settings
         cParams
         designVar
         homogVarComputer
@@ -10,8 +9,7 @@ classdef ShapeFunctional_Factory
     
     methods (Access = public)
         
-        function sF = create(obj,cParams,settings)
-            obj.settings = settings;
+        function sF = create(obj,cParams)
             obj.designVar = cParams.designVariable;
             obj.homogVarComputer = cParams.homogVarComputer;
             obj.targetParameters = cParams.targetParameters;
@@ -31,19 +29,17 @@ classdef ShapeFunctional_Factory
                 case 'chomog_CC'
                     sF = ShFunc_Chomog_CC();
                 case 'enforceCh_CCstar_inf'
-                    obj.cParams = SettingsShapeFunctional();
-                    obj.addNamePtype()
-                    for i=1:6
-                        EnforceCh=ShFunc_Chomog_EnforceCh_CCstar_inf(obj.settings,i);
+                    for i = 1:6
+                        EnforceCh = ShFunc_Chomog_EnforceCh_CCstar_inf(settings,i);
                         if isequal(i,5) || isequal(i,4)
                             EnforceCh.setEpsilon(0);
                         end
-                        sF=EnforceCh;
+                        sF  = EnforceCh;
                         iSF = iSF+1;
                     end
                 case 'enforceCh_CCstar_eq'
                     for i = 1:6
-                        sF=ShFunc_Chomog_EnforceCh_CCstar_eq(obj.settings,i);
+                        sF  = ShFunc_Chomog_EnforceCh_CCstar_eq(settings,i);
                         iSF = iSF+1;
                     end
                 case 'enforceCh_CCstar_L2'
@@ -57,41 +53,6 @@ classdef ShapeFunctional_Factory
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end
-        end
-        
-    end
-    
-    methods (Access = private)
-        
-        function addParamsFromSettings(obj)
-            obj.addNamePtype()
-            obj.cParams.homogVarComputer = obj.homogVarComputer;
-            obj.cParams.designVariable   = obj.designVar;
-            obj.cParams.targetParameters = obj.targetParameters;
-            obj.createFilterParams();
-        end
-        
-        function addNamePtype(obj)
-            obj.cParams.filename     = obj.settings.filename;
-            obj.cParams.domainType   = obj.settings.ptype;
-        end
-        
-        function createMaterialInterpolationParams(obj)
-            %s = SettingsHomogenizedVarComputerFromInterpolation();
-            s.type = obj.settings.homegenizedVariablesComputer;
-            s.interpolation          = obj.settings.materialInterpolation;
-            s.dim                    = obj.settings.pdim;
-            s.typeOfMaterial         = obj.settings.material;
-            s.constitutiveProperties = obj.settings.TOL;
-            s.vademecumFileName      = obj.settings.vademecumFileName;
-            obj.cParams.materialInterpolationParams = s;
-        end
-        
-        function createFilterParams(obj)
-            s = SettingsFilter();
-            s.filterType = obj.settings.filter;
-            s.designVar  = obj.designVar;
-            obj.cParams.filterParams = s;
         end
         
     end

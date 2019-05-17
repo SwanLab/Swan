@@ -1,5 +1,5 @@
 classdef HomogenizedVarComputerFromInterpolation ...
-         < HomogenizedVarComputer
+        < HomogenizedVarComputer
     
     properties (Access = private)
         interpolation
@@ -18,16 +18,16 @@ classdef HomogenizedVarComputerFromInterpolation ...
         end
         
         function computeCtensor(obj,rho)
-           mProps = obj.interpolation.computeMatProp(rho);
-           obj.material.setProps(mProps);
-           obj.C  = obj.material.C;
-           obj.dC = zeros(size(mProps.dC,1),size(mProps.dC,2),1,size(mProps.dC,3));
-           obj.dC(:,:,1,:) = mProps.dC;            
+            mProps = obj.interpolation.computeMatProp(rho);
+            obj.material.setProps(mProps);
+            obj.C  = obj.material.C;
+            obj.dC = zeros(size(mProps.dC,1),size(mProps.dC,2),1,size(mProps.dC,3));
+            obj.dC(:,:,1,:) = mProps.dC;
         end
         
-        function computeDensity(obj,rho)    
-           obj.rho = rho;           
-           obj.drho = ones(size(rho));            
+        function computeDensity(obj,rho)
+            obj.rho = rho;
+            obj.drho = ones(size(rho));
         end
         
     end
@@ -35,13 +35,9 @@ classdef HomogenizedVarComputerFromInterpolation ...
     methods (Access = private)
         
         function createMaterialInterpolation(obj,cParams)
-            s = SettingsInterpolation();
-            s.interpolation          = cParams.interpolation;
-            s.dim                    = cParams.dim;
-            s.typeOfMaterial         = cParams.typeOfMaterial;
-            s.constitutiveProperties = cParams.constitutiveProperties;            
-            int = Material_Interpolation.create(s);        
-            obj.interpolation = int;            
+            s = cParams.interpolationSettings;
+            int = Material_Interpolation.create(s);
+            obj.interpolation = int;
         end
         
     end

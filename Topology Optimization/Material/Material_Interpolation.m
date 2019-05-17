@@ -9,7 +9,8 @@ classdef Material_Interpolation < handle
         rho_minus
     end
     
-    methods (Static)
+    methods (Access = public, Static)
+        
         function obj = create(cParams)
             constParams = cParams.constitutiveProperties;
             switch cParams.typeOfMaterial
@@ -18,19 +19,24 @@ classdef Material_Interpolation < handle
                         case 'SIMPALL'
                             switch cParams.dim
                                 case '2D'
-                                    obj=Material_Interpolation_ISO_SIMPALL_2D(constParams);
+                                    obj = Material_Interpolation_ISO_SIMPALL_2D(constParams);
                                 case '3D'
-                                    obj=Material_Interpolation_ISO_SIMPALL_3D(constParams);
+                                    obj = Material_Interpolation_ISO_SIMPALL_3D(constParams);
                             end
                         case 'SIMP_Adaptative'
-                            obj=Material_Interpolation_ISO_SIMP_Adaptative(constParams);
+                            obj = Material_Interpolation_ISO_SIMP_Adaptative(constParams);
                         case 'SIMP_P3'
-                            obj=Material_Interpolation_ISO_SIMP_P3(constParams);
+                            obj = Material_Interpolation_ISO_SIMP_P3(constParams);
                         otherwise
-                            disp('Method not added')
+                            error('Invalid Material Interpolation method.');
                     end
+                otherwise
+                    error('Invalid type of material');
             end
         end
+        
         computeMatProp()
+        
     end
+    
 end

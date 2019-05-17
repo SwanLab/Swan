@@ -5,7 +5,7 @@ classdef Optimizer_PG < Optimizer_Unconstrained
     end
     
     properties (GetAccess = public, SetAccess = protected)
-        name = 'PROJECTED GRADIENT'
+        type = 'PROJECTED GRADIENT'
     end
     
     properties (Access = private)
@@ -15,16 +15,16 @@ classdef Optimizer_PG < Optimizer_Unconstrained
     
     methods (Access = public)
         
-        function obj = Optimizer_PG(settings)
-            obj@Optimizer_Unconstrained(settings);
-            obj.upperBound = settings.ub;
-            obj.lowerBound = settings.lb;            
+        function obj = Optimizer_PG(cParams)
+            obj@Optimizer_Unconstrained(cParams);
+            obj.upperBound = cParams.ub;
+            obj.lowerBound = cParams.lb;            
         end
         
         function compute(obj)
             x_n      = obj.designVariable.value;
             gradient = obj.objectiveFunction.gradient;            
-            x_new = x_n-obj.line_search.kappa*gradient;
+            x_new = x_n-obj.lineSearch.kappa*gradient;
             ub = obj.upperBound*ones(length(x_n(:,1)),1);
             lb = obj.lowerBound*ones(length(x_n(:,1)),1);
             x_new = max(min(x_new,ub),lb);

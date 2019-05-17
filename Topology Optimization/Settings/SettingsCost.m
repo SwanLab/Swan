@@ -1,7 +1,7 @@
 classdef SettingsCost < SettingsCC
     
     properties (Access = protected)
-        defaultParamsName = 'paramsCost'
+        defaultParamsName = 'paramsCost.json'
     end
     
     properties (Access = public)
@@ -14,16 +14,9 @@ classdef SettingsCost < SettingsCC
             if nargin == 1
                 obj.loadParams(varargin{1});
             end
+            obj.init();
         end
-        
-    end
-    
-    methods (Access = public, Static)
-        
-        function s = create(cParams,settings)
 
-        end
-        
     end
     
 end

@@ -1,20 +1,17 @@
 classdef LevelSetRandom < LevelSetCreator
     
-    properties 
+    methods (Access = public)
+        
+        function obj = LevelSetRandom(cParams)
+            obj.compute(cParams);
+        end
+        
     end
     
     methods (Access = protected)
         
-        function computeInitialLevelSet(obj)
-            obj.computeLevelSet()
-        end
-                       
-    end
-    
-    methods (Access = private)
-        
         function computeLevelSet(obj)
-            x = obj.nodeCoord.x;
+            x = obj.nodeCoord;
             obj.levelSet = 2*rand(size(x,1),1) - 1;
         end              
         

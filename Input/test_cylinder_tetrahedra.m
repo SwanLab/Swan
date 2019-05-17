@@ -3,6 +3,7 @@ ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'cylinder';
+fracRadius = 1-1e-6;
 cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
