@@ -3,6 +3,7 @@ classdef PrincipalDirectionComputer < handle
    properties (Access = public)
        direction 
        principalStress
+       avarageTensor
    end
    
    properties (Access = protected)

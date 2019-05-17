@@ -21,7 +21,7 @@ classdef Optimizer_PG < Optimizer_Unconstrained
             obj.lowerBound = settings.lb;            
         end
         
-        function x_new = compute(obj)
+        function compute(obj)
             x_n      = obj.designVariable.value;
             gradient = obj.objectiveFunction.gradient;            
             x_new = x_n-obj.line_search.kappa*gradient;

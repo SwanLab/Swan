@@ -60,8 +60,9 @@ classdef OrientationAsDesignVariable < handle
             yp = mean(yp');
             a1 = obj.designVariable.alpha(1,:);
             a2 = obj.designVariable.alpha(2,:);
-            figure(2);
-            quiver(xp,yp,a1,a2)            
+            figure(200);
+            quiver(xp,yp,a1,a2) ;
+            drawnow
         end
         
         function createFilter(obj)
@@ -136,7 +137,7 @@ classdef OrientationAsDesignVariable < handle
                     dir(i,ind) = dirD(j,ind);
                 end
             end
-            obj.designVariable.alpha = dir;%squeeze(pD(:,1,:));%dir
+            obj.designVariable.alpha = squeeze(pD(:,1,:));%dir
         end
         
          function filterDesignVariable(obj)

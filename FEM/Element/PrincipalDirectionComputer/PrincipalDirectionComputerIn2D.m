@@ -12,10 +12,10 @@ classdef PrincipalDirectionComputerIn2D < PrincipalDirectionComputer
     methods (Access = public)
         
         function compute(obj,tensor)
-            tensor = obj.avarageTensor(tensor);
-            s1  = squeeze(tensor(1,1,:));
-            s2  = squeeze(tensor(1,2,:));
-            s12 = squeeze(tensor(1,3,:));
+            obj.computeAvarageTensor(tensor);
+            s1  = squeeze(obj.avarageTensor(1,1,:));
+            s2  = squeeze(obj.avarageTensor(1,2,:));
+            s12 = squeeze(obj.avarageTensor(1,3,:));
             for i = 1:2
                 for j = 1:2
                     obj.direction(i,j,:) = obj.directionFunction{i,j}(s1,s2,s12);
@@ -40,14 +40,15 @@ classdef PrincipalDirectionComputerIn2D < PrincipalDirectionComputer
 
     end
     
-    methods (Access = private, Static)
+    methods (Access = private)
         
-        function t = avarageTensor(tensor)
+        function computeAvarageTensor(obj,tensor)
             t = zeros(1,size(tensor,2),size(tensor,3));
             ngaus = size(tensor,1);
             for igaus = 1 : ngaus
                t(1,:,:) = t(1,:,:) + tensor(igaus,:,:)/ngaus;
             end
+            obj.avarageTensor = t;
         end
         
     end

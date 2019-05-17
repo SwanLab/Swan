@@ -9,6 +9,7 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
     properties (Access = public)
         value   
         alpha
+        beta
         rho        
     end
     
@@ -16,6 +17,7 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
         scalarProduct   
         valueOld                                        
         alphaOld
+        betaOld
     end
     
     methods (Access = public, Abstract)
@@ -36,11 +38,13 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
         function restart(obj)
             obj.value = obj.valueOld;
             obj.alpha = obj.alphaOld;
+            obj.beta  = obj.betaOld;            
         end
         
         function updateOld(obj)
             obj.valueOld = obj.value;
             obj.alphaOld = obj.alpha;
+            obj.betaOld = obj.beta;            
         end
         
         function objClone = clone(obj)

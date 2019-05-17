@@ -26,9 +26,9 @@ classdef Optimizer_PrimalDual < Optimizer
         
         function itIs = isFeasible(obj)
             active_constr    = true(size(obj.dualVariable.value));
-            constraintValues = any(any(abs(obj.constraint.value(active_constr))));
+            constraintValues = abs(obj.constraint.value(active_constr));
             constrTol        = obj.targetParameters.constr_tol(active_constr);
-            isNotFeasible = constraintValues > constrTol;
+            isNotFeasible = any(any(constraintValues > constrTol));
             itIs = ~isNotFeasible;
         end   
         
