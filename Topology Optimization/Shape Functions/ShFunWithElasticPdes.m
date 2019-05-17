@@ -16,9 +16,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             for i = 1:1
                 obj.updateHomogenizedMaterialProperties();
                 obj.solvePDEs();
-                %obj.initPrincipalDirections();                
                 obj.updateAlpha();
-                obj.plotAlpha();
             end
             obj.computeFunctionValue();
             obj.computeGradient();
@@ -29,16 +27,20 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             x = obj.physicalProblem.mesh.coord(:,1);
             y = obj.physicalProblem.mesh.coord(:,2);
             conn = obj.physicalProblem.mesh.connec;
-            for inode = 1:3
+            nnode = size(conn,2);
+            nelem = size(conn,1);
+            xn = zeros(nelem,nnode);
+            yn = zeros(nelem,nnode);
+            for inode = 1:nnode
                 nodes = conn(:,inode);
-                xp(:,inode) =  x(nodes);
-                yp(:,inode) =  y(nodes);
+                xn(:,inode) =  x(nodes);
+                yn(:,inode) =  y(nodes);
             end
-            xp = mean(xp');
-            yp = mean(yp');
+            xp = mean(xn,2);
+            yp = mean(yn,2);
             a1 = obj.designVariable.alpha(1,:);
             a2 = obj.designVariable.alpha(2,:);
-            figure(200);
+            figure();
             quiver(xp,yp,a1,a2) ;
             drawnow
         end
@@ -101,36 +103,18 @@ classdef ShFunWithElasticPdes < ShapeFunctional
     methods (Access = private)
         
         function initPrincipalDirections(obj)
-            ndim = 2;
+            ndim = obj.physicalProblem.mesh.ndim;
             nelem = obj.physicalProblem.element.nelem;
             alpha0 = zeros(ndim,nelem);
             alpha0(1,:) = 1;
             obj.physicalProblem.variables.principalDirections = alpha0;
             obj.designVariable.alpha = alpha0;
-            obj.designVariable.beta = alpha0;
         end
         
         function updateAlpha(obj)
-            stress = squeeze(obj.physicalProblem.variables.avarageStress);
-            sx = stress(1,:);
-            sy = stress(2,:);
-            sxy = stress(3,:);
-            sn = sqrt((sx - sy).^2 + 4*sxy.^2);
-            b(1,:) = (sx - sy)./sn;
-            b(2,:) = 2*sxy./sn;
-            
             pD = obj.physicalProblem.variables.principalDirections;
-            pS = obj.physicalProblem.variables.principalStress;
-            [~,indM] = min(abs(pS));
-            for i = 1:2
-                dirD = squeeze(pD(i,:,:));
-                for j = 1:2
-                    ind = indM == j;
-                    dir(i,ind) = dirD(j,ind);
-                end
-            end
-            obj.designVariable.alpha = squeeze(pD(:,1,:));%dir;
-            obj.designVariable.beta = b;
+            firstPD = squeeze(pD(:,1,:));
+            obj.designVariable.alpha = firstPD;
         end
         
     end

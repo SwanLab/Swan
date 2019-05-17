@@ -38,7 +38,7 @@ classdef ConstraintProjector < handle
             obj.problem.solver = 'fzero';
             obj.problem.options = optimset(@fzero);
             obj.problem.objective = @(lambda) obj.computeFeasibleDesignVariable(lambda);
-            obj.problem.x0 = [-1000 1000];
+            obj.problem.x0 = [-10 1000];
         end
         
         function fval = computeFeasibleDesignVariable(obj,lambda)

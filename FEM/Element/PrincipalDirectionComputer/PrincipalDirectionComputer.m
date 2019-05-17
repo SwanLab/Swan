@@ -3,7 +3,6 @@ classdef PrincipalDirectionComputer < handle
    properties (Access = public)
        direction 
        principalStress
-       avarageTensor
    end
    
    properties (Access = protected)
@@ -12,6 +11,7 @@ classdef PrincipalDirectionComputer < handle
        ndim
        eigenVectors
        eigenValues
+       avarageTensor       
    end    
     
    methods (Access = public, Static)

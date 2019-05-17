@@ -36,8 +36,10 @@ classdef ResultsPrinterFactory < handle
                     p = HomogenizedTensorStressBasisPrinter(d);
                 case 'ElasticityMicroAndLevelSet'
                     p = ElasticityMicroDefinedByLevelSet(d);
-                case ''
+                case {''}
                     p = [];
+                case {'MicroParams'}
+                    p = DensityResultsPrinter(d);
             end
             obj.printer = p;
         end

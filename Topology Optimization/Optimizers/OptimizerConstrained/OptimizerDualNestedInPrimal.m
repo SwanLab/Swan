@@ -42,8 +42,8 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
                 obj.niter = obj.niter+1;
                 
                 obj.unconstrainedOptimizer.initLineSearch();
-                kappa = 0.1*obj.unconstrainedOptimizer.line_search.kappa;
-                obj.unconstrainedOptimizer.line_search.kappa = kappa;
+                %kappa = 0.01*obj.unconstrainedOptimizer.line_search.kappa;
+                %obj.unconstrainedOptimizer.line_search.kappa = kappa;
                 
                 while ~obj.hasUnconstraintedOptimizerConverged()
                     obj.restartValues();
@@ -90,8 +90,8 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
                 
                 %kappa
                 obj.unconstrainedOptimizer.initLineSearch();
-                kappa = 0.01*obj.unconstrainedOptimizer.line_search.kappa;
-                obj.unconstrainedOptimizer.line_search.kappa = kappa;
+                %kappa = 0.01*obj.unconstrainedOptimizer.line_search.kappa;
+                %obj.unconstrainedOptimizer.line_search.kappa = kappa;
                 
                 obj.constraintProjector.project();
             end
