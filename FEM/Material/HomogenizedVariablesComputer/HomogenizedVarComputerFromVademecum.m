@@ -11,6 +11,7 @@ classdef HomogenizedVarComputerFromVademecum ...
        Rot
        Cref
        dCref
+       rotator
     end
     
     methods (Access = public)
@@ -23,6 +24,7 @@ classdef HomogenizedVarComputerFromVademecum ...
             obj.density = v.density;
             obj.computeSymbolicRotationMatrix();
             obj.designVariable = cParams.designVariable;
+            obj.rotator = ConstitutiveTensorRotator();            
         end
         
         function computeCtensor(obj,x)
@@ -70,36 +72,13 @@ classdef HomogenizedVarComputerFromVademecum ...
         function rotateConstitutiveTensor(obj)
             cr  = obj.Cref;    
             dCr = obj.dCref;
-            c  = zeros(size(cr));
-            dc = zeros(size(dCr));
-            nstre = size(cr,1);
-            for i = 1:nstre
-                for m = 1:nstre
-                    Rmi  = obj.rotationComponent(m,i);  
-                    for n = 1:nstre
-                        Cmn  = squeeze(cr(m,n,:));
-                        dCmn = squeeze(dCr(m,n,:,:));
-                        for j = 1:nstre
-                            Rnj = obj.rotationComponent(n,j);
-                            Cij = Rmi.*Cmn.*Rnj;
-                            c(i,j,:)  = squeeze(c(i,j,:)) + Cij;
-                            for s = 1:2
-                                dCmns(:,1) = dCmn(s,:);
-                                dCij = Rmi.*dCmns.*Rnj;
-                                dc(i,j,s,:) = squeeze(dc(i,j,s,:)) + dCij;
-                            end
-                        end
-                    end
-                end
-            end      
+            c = obj.rotator.rotate(cr,obj.Rot);
+            dc(:,:,1,:) = obj.rotator.rotate(squeeze(dCr(:,:,1,:)),obj.Rot);
+            dc(:,:,2,:) = obj.rotator.rotate(squeeze(dCr(:,:,2,:)),obj.Rot);     
             obj.C = c;
-            obj.dC = dc;            
+            obj.dC = dc;               
         end
-        
-        function Rij = rotationComponent(obj,i,j)
-            R = obj.Rot;
-            Rij = squeeze(R(i,j,:));            
-        end        
+  
         
         function a = computeSymbolicRotationMatrix(obj)
             S = StressPlaneStressVoigtTensor();
@@ -107,8 +86,8 @@ classdef HomogenizedVarComputerFromVademecum ...
             v = Vector3D();
             v.setValue([0 0 1]);
             factory = RotatorFactory();
-            rotator = factory.create(S,alpha,v);
-            a = rotator.rotationMatrix();  
+            rot = factory.create(S,alpha,v);
+            a = rot.rotationMatrix();  
             obj.Reps = simplify(inv(a)');
         end
         

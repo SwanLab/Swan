@@ -49,6 +49,8 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
                     obj.restartValues();
                     obj.computeValue();
                     obj.unconstrainedOptimizer.lineSearch.computeKappa();
+                    %obj.unconstrainedOptimizer.storeKappaVariable();
+                    %obj.refreshMonitoring();                        
                 end
 
                 obj.unconstrainedOptimizer.updateConvergenceParams();

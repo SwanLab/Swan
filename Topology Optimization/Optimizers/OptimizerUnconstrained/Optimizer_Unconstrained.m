@@ -84,6 +84,10 @@ classdef Optimizer_Unconstrained < handle
             obj.hasConverged = false;            
         end
         
+        function storeKappaVariable(obj)
+            obj.convergenceVars.set(obj.lineSearch.kappa);            
+        end
+        
         function updateConvergenceParams(obj)
             obj.computeIncrements();
             obj.computeOptimizerFlagConvergence(); 
