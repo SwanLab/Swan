@@ -24,13 +24,13 @@ clear variables;
 % settings = Settings('Case_RefactoringSettings_OLD');
 % settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_B.json',settings);
 
-settings = Settings('CantileverTriangle_Case_1_2_2');
-settings.isOld = false;
+settings = Settings('CantileverTriangle_Case_2_1_1');
+settings.printing = false;
 translator = SettingsTranslator();
 translator.translate(settings);
-settingsTopOpt = SettingsTopOptProblem(translator.fileName,settings);
+fileName = translator.fileName;
+settingsTopOpt = SettingsTopOptProblem(fileName);
 
-% settings = Settings('Case_RefactoringSettings_OLD');
 % settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_B.json');
 
 

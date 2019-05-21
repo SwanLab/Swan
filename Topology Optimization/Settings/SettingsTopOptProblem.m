@@ -179,11 +179,9 @@ classdef SettingsTopOptProblem < AbstractSettings
             obj.problemData.nConstraints        = obj.constraintSettings.nShapeFuncs;
         end
         
-        function createOptimizerSettings(obj,cParams)
-            obj.optimizerSettings = SettingsOptimizer();
-            
+        function createOptimizerSettings(obj,cParams)           
             if obj.isOld
-                s = [];
+                obj.optimizerSettings = SettingsOptimizer();
                 obj.optimizerSettings.type = obj.settings.optimizer;
                 obj.optimizerSettings.constraintCase = obj.settings.constraint_case;
                 obj.optimizerSettings.maxIter = obj.settings.maxiter;
@@ -192,11 +190,8 @@ classdef SettingsTopOptProblem < AbstractSettings
                 obj.setupSettingsMonitor();
             else
                 s = cParams.optimizerSettings;
+                obj.optimizerSettings = SettingsOptimizer(s);
                 obj.optimizerSettings.problemData = obj.problemData;
-                obj.optimizerSettings.type = s.type;
-                obj.optimizerSettings.maxIter = s.maxIter;
-                obj.optimizerSettings.shallPrint = s.shallPrint;
-                obj.optimizerSettings.printMode  = s.printMode;
                 obj.optimizerSettings.initSettingsMonitorDocker(s);
             end
             

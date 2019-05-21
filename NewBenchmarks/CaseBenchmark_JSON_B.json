@@ -49,6 +49,7 @@
   },
   "optimizerSettings": {
     "type": "AlternatingPrimalDual",
+"constraintCase": "INEQUALITY",
     "uncOptimizerSettings": {
       "type": "SLERP",
       "e2": 10,
