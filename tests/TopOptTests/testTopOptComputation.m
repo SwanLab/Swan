@@ -32,7 +32,7 @@ classdef testTopOptComputation < handle
             sett.warningHoleBC = false;
             sett.printIncrementalIter = false; 
             sett.printChangingFilter = false;
-            sett.printing = true;
+            sett.printing = false;
             obj.settings = sett;
             obj.settings = SettingsTopOptProblem(sett);
         end

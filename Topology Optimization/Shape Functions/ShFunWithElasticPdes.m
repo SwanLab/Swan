@@ -5,19 +5,44 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         physicalProblem
     end
     
+    properties (Access = private)
+        regDesignVariable
+    end
+    
     methods (Access = public)
         
         function computeCostAndGradient(obj)
             obj.nVariables = obj.designVariable.nVariables;
-            obj.updateHomogenizedMaterialProperties();
-            obj.solvePDEs();
-            obj.designVariable.alpha = obj.physicalProblem.variables.principalDirections;            
-            obj.updateHomogenizedMaterialProperties();            
-            obj.solvePDEs();
-            obj.designVariable.alpha = obj.physicalProblem.variables.principalDirections;            
+            for i = 1:1
+                obj.updateHomogenizedMaterialProperties();
+                obj.solvePDEs();
+                obj.updateAlpha();
+            end
             obj.computeFunctionValue();
             obj.computeGradient();
             obj.normalizeFunctionAndGradient()
+        end
+        
+        function plotAlpha(obj)
+            x = obj.physicalProblem.mesh.coord(:,1);
+            y = obj.physicalProblem.mesh.coord(:,2);
+            conn = obj.physicalProblem.mesh.connec;
+            nnode = size(conn,2);
+            nelem = size(conn,1);
+            xn = zeros(nelem,nnode);
+            yn = zeros(nelem,nnode);
+            for inode = 1:nnode
+                nodes = conn(:,inode);
+                xn(:,inode) =  x(nodes);
+                yn(:,inode) =  y(nodes);
+            end
+            xp = mean(xn,2);
+            yp = mean(yn,2);
+            a1 = obj.designVariable.alpha(1,:);
+            a2 = obj.designVariable.alpha(2,:);
+            figure();
+            quiver(xp,yp,a1,a2) ;
+            drawnow
         end
         
         function f = getPhysicalProblems(obj)
@@ -35,6 +60,11 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         end
         
         function updateHomogenizedMaterialProperties(obj)
+            obj.filterDesignVariable();
+            obj.homogenizedVariablesComputer.computeCtensor(obj.regDesignVariable);
+        end
+        
+        function filterDesignVariable(obj)
             nx = length(obj.designVariable.value)/obj.designVariable.nVariables;
             x  = obj.designVariable.value;
             for ivar = 1:obj.nVariables
@@ -42,8 +72,8 @@ classdef ShFunWithElasticPdes < ShapeFunctional
                 iF = nx*ivar;
                 xs = x(i0:iF);
                 xf(:,ivar) = obj.filter.getP0fromP1(xs);
-            end   
-            obj.homogenizedVariablesComputer.computeCtensor(xf);
+            end
+            obj.regDesignVariable = xf;
         end
         
         function computeGradient(obj)
@@ -53,7 +83,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             g = zeros(nelem,ngaus,obj.nVariables);
             for igaus = 1:ngaus
                 for istre = 1:nstre
-                    for jstre = 1:nstre                        
+                    for jstre = 1:nstre
                         g(:,igaus,:) = g(:,igaus,:) + obj.updateGradient(igaus,istre,jstre);
                     end
                 end
@@ -67,16 +97,24 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             g = obj.Msmooth*gf;
             obj.gradient = g(:);
         end
-
+        
     end
     
     methods (Access = private)
         
         function initPrincipalDirections(obj)
-            ndim = 2;
+            ndim = obj.physicalProblem.mesh.ndim;
             nelem = obj.physicalProblem.element.nelem;
-            obj.physicalProblem.variables.principalDirections = zeros(ndim,ndim,nelem);
-            obj.designVariable.alpha = obj.physicalProblem.variables.principalDirections;                        
+            alpha0 = zeros(ndim,nelem);
+            alpha0(1,:) = 1;
+            obj.physicalProblem.variables.principalDirections = alpha0;
+            obj.designVariable.alpha = alpha0;
+        end
+        
+        function updateAlpha(obj)
+            pD = obj.physicalProblem.variables.principalDirections;
+            firstPD = squeeze(pD(:,1,:));
+            obj.designVariable.alpha = firstPD;
         end
         
     end

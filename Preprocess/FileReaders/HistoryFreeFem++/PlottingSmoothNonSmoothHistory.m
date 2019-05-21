@@ -24,8 +24,10 @@ classdef PlottingSmoothNonSmoothHistory < handle
         
         function init(obj)
             obj.resultsDir = '/home/alex/git-repos/OptimizationFreeFem/';
-            obj.color = {'b','r','g','k'};
-            obj.caseNames = {'SmoothRectangle','Rectangle','RectangleWithMmax','VademecumSmoothCorner'};
+            obj.color = {'r','g'};
+%            obj.caseNames = {'SmoothRectangle','Rectangle','RectangleWithMmax','VademecumSmoothCorner'};
+            obj.caseNames = {'Rectangle','VademecumSmoothCorner'};
+            
         end
         
         function obj = readFiles(obj)

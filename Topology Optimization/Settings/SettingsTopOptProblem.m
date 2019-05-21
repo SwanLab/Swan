@@ -25,15 +25,21 @@ classdef SettingsTopOptProblem < AbstractSettings
         
         function obj = SettingsTopOptProblem(varargin)
             if nargin == 1
-                settings = varargin{1};
-                cParams = [];
+                if ischar(varargin{1})
+                    obj.loadParams(varargin{1});
+                    cParams = obj.customParams;
+                    obj.isOld = false;
+                else
+                    obj.settings = varargin{1};
+                    cParams = [];
+                    obj.isOld = true;
+                end
             elseif nargin == 2
                 obj.loadParams(varargin{1});
                 cParams = obj.customParams;
-                settings = varargin{2};
+                obj.settings = varargin{2};
+                obj.isOld = obj.settings.isOld;
             end
-            obj.isOld = settings.isOld;
-            obj.settings = settings;
             
             obj.setupProblemData(cParams);
             
@@ -115,7 +121,7 @@ classdef SettingsTopOptProblem < AbstractSettings
             if obj.isOld
                 s.nSteps = obj.settings.nsteps;
                 s.shallPrintIncremental = obj.settings.printIncrementalIter;
-
+                
                 s.targetParamsSettings.VfracInitial = obj.settings.Vfrac_initial;
                 s.targetParamsSettings.VfracFinal = obj.settings.Vfrac_final;
                 s.targetParamsSettings.constrInitial = obj.settings.constr_initial;
@@ -140,12 +146,14 @@ classdef SettingsTopOptProblem < AbstractSettings
                     sfS{i} = struct('type',obj.settings.cost{i});
                 end
                 s.shapeFuncSettings = sfS;
+                s.problemData = obj.problemData;
+                s.settings = obj.settings;
+                obj.costSettings = SettingsCost_OLD(s);
             else
                 s = cParams.costSettings;
+                s.problemData = obj.problemData;
+                obj.costSettings = SettingsCost(s);
             end
-            s.problemData = obj.problemData;
-            
-            obj.costSettings = SettingsCost(s);
         end
         
         function createConstraintSettings(obj,cParams)
@@ -154,11 +162,14 @@ classdef SettingsTopOptProblem < AbstractSettings
                     sfS{i} = struct('type',obj.settings.constraint{i});
                 end
                 s.shapeFuncSettings = sfS;
+                s.problemData = obj.problemData;
+                s.settings = obj.settings;
+                obj.constraintSettings = SettingsConstraint_OLD(s);
             else
                 s = cParams.constraintSettings;
+                s.problemData = obj.problemData;
+                obj.constraintSettings = SettingsConstraint(s);
             end
-            s.problemData = obj.problemData;
-            obj.constraintSettings = SettingsConstraint(s);
         end
         
         function updateProblemData(obj)
@@ -193,31 +204,24 @@ classdef SettingsTopOptProblem < AbstractSettings
             obj.optimizerSettings.initSettingsHistoryPrinter(obj.problemData.caseFileName);
             obj.optimizerSettings.initSettingsPostProcess();
             
-            obj.createOptimizerUnconstrainedSettings(s);
+            obj.initOptimizerUnconstrainedSettings(s);
         end
         
-        function createOptimizerUnconstrainedSettings(obj,cParams)
-            obj.optimizerSettings.uncOptimizerSettings = SettingsOptimizerUnconstrained();
+        function initOptimizerUnconstrainedSettings(obj,cParams)
             if obj.isOld
+                s = [];
                 obj.optimizerSettings.uncOptimizerSettings.type = obj.settings.optimizerUnconstrained;
+                obj.optimizerSettings.uncOptimizerSettings.ub = obj.settings.ub;
+                obj.optimizerSettings.uncOptimizerSettings.lb = obj.settings.lb;
+                obj.optimizerSettings.uncOptimizerSettings.e2 = obj.settings.e2;
             else
                 s = cParams.uncOptimizerSettings;
+                obj.optimizerSettings.uncOptimizerSettings = SettingsOptimizerUnconstrained(s);
                 obj.optimizerSettings.uncOptimizerSettings.type = s.type;
             end
             
-            spS = obj.createScalarProductSettings();
-            lsS = obj.createLineSearchSettings(spS);
-            
-            obj.optimizerSettings.uncOptimizerSettings.lineSearchSettings    = lsS;
-            obj.optimizerSettings.uncOptimizerSettings.scalarProductSettings = spS;
-            
-            obj.optimizerSettings.uncOptimizerSettings.e2                  = obj.settings.e2;
-            obj.optimizerSettings.uncOptimizerSettings.filter              = obj.settings.filter;
-            obj.optimizerSettings.uncOptimizerSettings.printChangingFilter = obj.settings.printChangingFilter;
-            obj.optimizerSettings.uncOptimizerSettings.filename            = obj.problemData.problemFileName;
-            obj.optimizerSettings.uncOptimizerSettings.ptype               = obj.settings.ptype;
-            obj.optimizerSettings.uncOptimizerSettings.lb                  = obj.settings.lb;
-            obj.optimizerSettings.uncOptimizerSettings.ub                  = obj.settings.ub;
+            obj.initScalarProductSettings();
+            obj.initLineSearchSettings(s);
         end
         
         function createVideoManagerSettings(obj)
@@ -228,18 +232,23 @@ classdef SettingsTopOptProblem < AbstractSettings
             obj.videoManagerSettings = SettingsVideoManager(s);
         end
         
-        function spS = createScalarProductSettings(obj)
-            spS.filename = obj.problemData.problemFileName;
+        function initScalarProductSettings(obj)
+            obj.optimizerSettings.uncOptimizerSettings.scalarProductSettings.filename = obj.problemData.problemFileName;
         end
         
-        function lsS = createLineSearchSettings(obj,spS)
-            lsS.scalarProductSettings = spS;
-            lsS.line_search             = obj.settings.line_search;
-            lsS.optimizerUnconstrained  = obj.optimizerSettings.uncOptimizerSettings.type;
-            lsS.HJiter0         = obj.settings.HJiter0;
-            lsS.filename        = obj.problemData.problemFileName;
-            lsS.kappaMultiplier = obj.settings.kappaMultiplier;
-            lsS.kfrac           = obj.settings.kfrac;
+        function initLineSearchSettings(obj,cParams,spS)
+            if obj.isOld
+                obj.optimizerSettings.uncOptimizerSettings.lineSearchSettings.type            = obj.settings.line_search;
+                obj.optimizerSettings.uncOptimizerSettings.lineSearchSettings.HJiter0         = obj.settings.HJiter0;
+                obj.optimizerSettings.uncOptimizerSettings.lineSearchSettings.kfrac           = obj.settings.kfrac;
+                obj.optimizerSettings.uncOptimizerSettings.lineSearchSettings.kappaMultiplier = obj.settings.kappaMultiplier;
+            else
+                s = cParams.lineSearchSettings;
+                obj.optimizerSettings.uncOptimizerSettings.lineSearchSettings = SettingsLineSearch(s);
+            end
+            obj.optimizerSettings.uncOptimizerSettings.lineSearchSettings.scalarProductSettings = obj.optimizerSettings.uncOptimizerSettings.scalarProductSettings;
+            obj.optimizerSettings.uncOptimizerSettings.lineSearchSettings.optimizerType  = obj.optimizerSettings.uncOptimizerSettings.type;
+            obj.optimizerSettings.uncOptimizerSettings.lineSearchSettings.filename       = obj.problemData.problemFileName;
         end
         
         function setupSettingsMonitor(obj)

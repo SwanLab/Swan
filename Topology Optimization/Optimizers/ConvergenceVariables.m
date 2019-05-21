@@ -21,6 +21,10 @@ classdef ConvergenceVariables < handle
             obj.nVar = obj.nVar + 1;
         end
         
+        function set(obj,value)
+            obj.values(end) = value;
+        end
+        
     end
     
 end

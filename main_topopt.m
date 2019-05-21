@@ -30,6 +30,10 @@ translator = SettingsTranslator();
 translator.translate(settings);
 settingsTopOpt = SettingsTopOptProblem(translator.fileName,settings);
 
+% settings = Settings('Case_RefactoringSettings_OLD');
+% settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_B.json');
+
+
 topOptProblem = TopOpt_Problem(settingsTopOpt);
 topOptProblem.computeVariables;
 topOptProblem.postProcess;

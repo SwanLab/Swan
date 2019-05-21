@@ -1,5 +1,4 @@
-classdef SettingsHomogenizedVarComputer < ...
-        AbstractSettings
+classdef SettingsHomogenizedVarComputer < AbstractSettings
     
     properties (Access = public)
         type

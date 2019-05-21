@@ -37,7 +37,7 @@
       1,
       0.1
     ],
-"filterType": "P1"
+    "filterType": "P1"
   },
   "constraintSettings": {
     "shapeFuncSettings": [
@@ -45,16 +45,25 @@
         "type": "volumeConstraint"
       }
     ],
-"filterType": "P1"
+    "filterType": "P1"
   },
   "optimizerSettings": {
     "type": "AlternatingPrimalDual",
     "uncOptimizerSettings": {
-      "type": "SLERP"
+      "type": "SLERP",
+      "e2": 10,
+      "ub": 1,
+      "lb": 0,
+      "lineSearchSettings": {
+        "type": "DIMENSIONALLY CONSISTENT",
+        "HJiter0": 10,
+        "kappaMultiplier": 1,
+        "kfrac": 2
+      }
     },
     "maxIter": 50,
     "shallPrint": false,
-"printMode": "DesignAndShape",
+    "printMode": "DesignAndShape",
     "monitoringDockerSettings": "paramsMonitoringDocker_OnlyDesignVar.json"
   }
 }
