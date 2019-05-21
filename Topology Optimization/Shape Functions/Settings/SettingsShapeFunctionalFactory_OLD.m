@@ -5,7 +5,7 @@ classdef SettingsShapeFunctionalFactory_OLD < handle
         function s = create(obj,cParams,settings)
             switch cParams.type
                 case {'compliance','perimeter','volume','volumeConstraint',...
-                        'chomog_CC','enforceCh_CCstar_L2','nonadjoint_compliance'}
+                        'chomog_CC','enforceCh_CCstar_L2','nonadjoint_compliance','stressNorm'}
                     s = SettingsShapeFunctional();
                 case 'perimeterConstraint'
                     s = SettingsShFunc_PerimeterConstraint();

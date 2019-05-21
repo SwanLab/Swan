@@ -30,15 +30,6 @@ classdef VariableFromVademecum < handle
             obj.nParams = n;
         end
         
-    end
-    
-    methods (Access = private)
-        
-        function init(obj,cParams)
-            obj.vadVariables = cParams.vadVariables;
-            obj.interpolator = cParams.interpolator;
-        end
-        
         function obtainValues(obj)
             var = obj.vadVariables.variables;
             mxV = obj.vadVariables.domVariables.mxV;
@@ -53,4 +44,13 @@ classdef VariableFromVademecum < handle
         
     end
     
+    methods (Access = private)
+        
+        function init(obj,cParams)
+            obj.vadVariables = cParams.vadVariables;
+            obj.interpolator = cParams.interpolator;
+        end
+        
+    end
+       
 end

@@ -5,7 +5,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         physicalProblem
     end
     
-    properties (Access = private)
+    properties (Access = protected)
         regDesignVariable
     end
     

@@ -5,6 +5,8 @@ classdef HomogenizedVarComputer < handle
         dC
         rho
         drho
+        P
+        dP
     end
     
     properties (Access = protected)

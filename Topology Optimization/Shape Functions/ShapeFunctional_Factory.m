@@ -18,6 +18,8 @@ classdef ShapeFunctional_Factory < handle
             switch cParams.type
                 case 'compliance'
                     sF = ShFunc_Compliance(cParams);
+                case 'stressNorm'
+                    sF = ShFunc_StressNorm(cParams);
                 case 'perimeter'
                     sF = ShFunc_Perimeter(cParams);
                 case 'perimeterConstraint'

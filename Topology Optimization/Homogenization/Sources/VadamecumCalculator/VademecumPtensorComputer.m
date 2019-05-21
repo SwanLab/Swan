@@ -1,4 +1,4 @@
-    classdef VademecumPtensorComputer < VademecumVariablesComputer
+classdef VademecumPtensorComputer < VademecumVariablesComputer
     
     properties (Access = private)
        pNorm 

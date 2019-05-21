@@ -4,6 +4,7 @@ classdef HomogenizedVarComputerFromVademecum ...
     properties (Access = public)
         Ctensor
         density
+        Ptensor
     end
     
     properties (Access = private)
@@ -12,15 +13,18 @@ classdef HomogenizedVarComputerFromVademecum ...
        Cref
        dCref
        rotator
+       Pref
+       dPref
     end
     
     methods (Access = public)
         
         function obj = HomogenizedVarComputerFromVademecum(cParams)
-            s.fileName = [cParams.fileName,'Reduced'];
+            s.fileName = [cParams.fileName,'WithAmplificators'];
             v = VademecumVariablesLoader(s);
             v.load();
             obj.Ctensor = v.Ctensor;
+            obj.Ptensor = v.Ptensor;
             obj.density = v.density;
             obj.computeSymbolicRotationMatrix();
             obj.designVariable = cParams.designVariable;
@@ -31,6 +35,12 @@ classdef HomogenizedVarComputerFromVademecum ...
             obj.obtainReferenceConsistutiveTensor(x);            
             obj.computeRotationMatrix();
             obj.rotateConstitutiveTensor();
+        end
+        
+        function computePtensor(obj,x)
+            obj.obtainReferenceAmplificatorTensor(x);            
+            obj.computeRotationMatrix();
+            obj.rotateAmplificatorTensor();            
         end
         
         function computeDensity(obj,x)
@@ -52,6 +62,14 @@ classdef HomogenizedVarComputerFromVademecum ...
             obj.Cref  = c;
             obj.dCref = permute(dc,[1 2 4 3]);            
         end        
+        
+        function obtainReferenceAmplificatorTensor(obj,x)
+            mx = x(:,1);
+            my = x(:,2);
+            [p,dp] = obj.Ptensor.compute([mx,my]);
+            obj.Pref  = p;
+            obj.dPref = permute(dp,[1 2 4 3]);            
+        end                
         
         function computeRotationMatrix(obj)
             Rsym = obj.Reps;
@@ -79,6 +97,15 @@ classdef HomogenizedVarComputerFromVademecum ...
             obj.dC = dc;               
         end
   
+        function rotateAmplificatorTensor(obj)
+            pr  = obj.Pref;    
+            dPr = obj.dPref;
+            p = obj.rotator.rotate(pr,obj.Rot);
+            dp(:,:,1,:) = obj.rotator.rotate(squeeze(dPr(:,:,1,:)),obj.Rot);
+            dp(:,:,2,:) = obj.rotator.rotate(squeeze(dPr(:,:,2,:)),obj.Rot);     
+            obj.P = p;
+            obj.dP = dp;               
+        end        
         
         function a = computeSymbolicRotationMatrix(obj)
             S = StressPlaneStressVoigtTensor();

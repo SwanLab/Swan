@@ -1,182 +1,74 @@
 classdef ShFunc_StressNorm < ShFunWithElasticPdes
     
     properties (Access = private)
-        pNorm = 2;
-        stressHomog
-        strainHomog
-        Chomog
+        adjointProb
     end
     
     methods (Access = public)
         
-        function obj = ShFunc_StressNorm(settings)
-            obj@ShFunWithElasticPdes(settings);
-            obj.createEquilibriumProblem(settings.filename);
-            obj.stressHomog = settings.stressHomog;
+        function obj = ShFunc_StressNorm(cParams)
+            cParams.filterParams.quadratureOrder = 'LINEAR';            
+            obj.init(cParams);     
+            obj.createEquilibriumProblem(cParams.filename);
+           % obj.createAdjointProblem(cParams.filename)            
         end
         
-        function v = getValue(obj)
-            v = obj.value;
-        end
-        
-        function setVstrain(obj,s)
-            sV(1,:) = s;
-            obj.physProb.element.setVstrain(sV);
-        end
-        
-        function setPnorm(obj,p)
-            obj.pNorm = p;
-        end
-        function computeCostAndGradient(obj,x)
-            obj.updateMaterialProperties(x);
-            obj.solvePDEs();
-            obj.computeFunctionValue();
-            obj.computeGradient();
-        end
-        
-        function c = computeCostWithFullDomain(obj)
-            nnodes = size(obj.physProb.mesh.coord,1);
-            x = -ones(nnodes,1);
-            obj.computeCostAndGradient(x);
-            c = obj.value;
-        end
-        
-        function s = computeMaxStressWithFullDomain(obj)
-            nnodes = size(obj.physProb.mesh.coord,1);
-            x = -ones(nnodes,1);
-            obj.updateMaterialProperties(x);
-            obj.solveCellProblem();
-            stress = obj.physProb.variables.stress;
-            ngaus = obj.physProb.element.quadrature.ngaus;            
-            nstre = obj.physProb.element.getNstre();
-            V = sum(sum(obj.physProb.geometry.dvolu));
-            dV = obj.physProb.element.geometry.dvolu;            
-            s = obj.obtainMaxSigmaNorm(stress,ngaus,nstre,dV,V);
+        function f = getPhysicalProblems(obj)
+            f{1} = obj.physicalProblem;
+            f{2} = obj.adjointProb;
         end
         
     end
     
     methods (Access = protected)
-        
-        function updateGradient(obj)
+
+        function computeFunctionValue(obj)
+            u = obj.physicalProblem.variables.d_u;
+            f = obj.adjointProb.variables.fext;
+            obj.value = -f'*u;
+            % Sum with stress + Amplificators
+            %
+            
         end
         
-        function computeGradient(obj)
-            obj.gradient = 0;
+        function updateHomogenizedMaterialProperties(obj)
+            obj.filterDesignVariable();
+            obj.homogenizedVariablesComputer.computeCtensor(obj.regDesignVariable);
+            obj.homogenizedVariablesComputer.computePtensor(obj.regDesignVariable);
+        end
+                
+        
+        function g = updateGradient(obj,igaus,istre,jstre)
+            eu   = obj.physicalProblem.variables.strain;
+            ev   = obj.adjointProb.variables.strain;
+            eu_i = squeeze(eu(igaus,istre,:));
+            ev_j = squeeze(ev(igaus,jstre,:)); 
+            g = zeros(length(eu_i),1,obj.nVariables);            
+            for ivar = 1:obj.nVariables
+                dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:));            
+                g(:,1,ivar) = eu_i.*dCij.*ev_j;
+            end              
         end
         
         function solvePDEs(obj)
-           obj.computeHomogenizedTensor();
-           obj.computeHomogenizedStrain();            
-           obj.solveCellProblem(); 
-        end
-        
-        function computeFunctionValue(obj)
-            stress       = obj.physProb.variables.stress;
-            stress_fluct = obj.physProb.variables.stress_fluct;
-            v = obj.integrateStressNorm(obj.physProb);
-            obj.value = v;
+            obj.adjointProb.setC(obj.homogenizedVariablesComputer.C);
+            obj.adjointProb.computeVariables();
+            obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
+            obj.physicalProblem.computeVariables();
         end
         
     end
     
     methods (Access = private)
         
-        function solveCellProblem(obj)
-            cellProblem = obj.physProb;
-            sH(1,:) = obj.strainHomog;
-            cellProblem.element.setVstrain(sH);            
-            cellProblem.setMatProps(obj.matProps);
-            cellProblem.computeVariables();
+        function createAdjointProblem(obj,fileName)
+            fAdj = Preprocess.getBC_adjoint(fileName);
+            obj.adjointProb = FEM.create(fileName);
+            [dof,dofVal] = obj.adjointProb.dof.get_dof_conditions(fAdj,obj.adjointProb.dof.nunkn);
+            obj.adjointProb.dof.neumann = dof;
+            obj.adjointProb.dof.neumann_values = -dofVal;
+            obj.adjointProb.preProcess;
         end
-        
-        function computeHomogenizedTensor(obj)
-            cellProblem = obj.physProb;
-            Ch = cellProblem.computeChomog();
-            obj.Chomog = Ch;
-        end
-        
-        function computeHomogenizedStrain(obj)
-             Ch = obj.Chomog;
-             stress = obj.stressHomog;
-             strain = Ch\stress;
-             obj.strainHomog = strain;
-        end
-        
-        function value = integrateStressNorm(obj,physProb)
-            nstre = physProb.element.getNstre();
-            V = sum(sum(physProb.geometry.dvolu));
-            ngaus = physProb.element.quadrature.ngaus;
-            dV    = physProb.element.geometry.dvolu;
-            stress = obj.physProb.variables.stress;
-            value = obj.integratePNormOfL2Norm(stress,ngaus,nstre,dV,V);
-        end
-        
-        
-        function v = integratePNormOfL2Norm(obj,stress,ngaus,nstre,dV,V)
-            p = obj.pNorm;
-            v = 0;
-            for igaus = 1:ngaus
-                s = zeros(size(stress,3),1);
-                for istre = 1:nstre
-                    Si = squeeze(stress(igaus,istre,:));
-                    factor = obj.computeVoigtFactor(istre,nstre);
-                    Sistre = factor*(Si.^2);
-                    s = s + Sistre;
-                end
-                s = sqrt(s);
-                sigmaNorm = s.^p;
-                v = v + 1/V*sigmaNorm'*dV(:,igaus);
-            end
-        end
-        
-        function v = obtainMaxSigmaNorm(obj,stress,ngaus,nstre,dV,V)
-            v = [];
-            for igaus = 1:ngaus
-                s = zeros(size(stress,3),1);
-                for istre = 1:nstre
-                    Si = squeeze(stress(igaus,istre,:));
-                    factor = obj.computeVoigtFactor(istre,nstre);
-                    Sistre = factor*(Si.^2);
-                    s = s + Sistre;
-                end
-                v = max([sqrt(s);v]);
-            end            
-            
-        end
-        
-        function v = integratePNormOfComponents(obj,stress,ngaus,nstre,dV,V)
-            p = obj.pNorm;
-            v = 0;
-            for igaus = 1:ngaus
-                s = zeros(size(stress,1),size(stress,3));
-                for istre = 1:nstre
-                    Si = squeeze(stress(igaus,istre,:));
-                    factor = obj.computeVoigtFactor(istre,nstre);
-                    Sistre = factor*(Si.^p);
-                    s = s + Sistre;
-                end
-                v = v + 1/V*s'*dV(:,igaus);
-            end
-        end
-        
-        function f = computeVoigtFactor(obj,k,nstre)
-            if nstre == 3
-                if k < 3
-                    f = 1;
-                else
-                    f = 2;
-                end
-            elseif nstre ==6
-                if k <= 3
-                    f = 1;
-                else
-                    f = 2;
-                end
-            end
-        end
-        
         
     end
-    
 end
