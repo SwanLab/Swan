@@ -2,6 +2,7 @@ classdef SettingsTranslator < handle
     
     properties (GetAccess = public, SetAccess = private)
         fileName
+        filePath
     end
     
     properties (Access = private)
@@ -127,9 +128,9 @@ classdef SettingsTranslator < handle
         end
         
         function exportFile(obj,s)
-            obj.getFileName();
+            obj.getFilePath();
             json = jsonencode(s);
-            fid = fopen(obj.fileName,'w+');
+            fid = fopen(obj.filePath,'w+');
             fprintf(fid,json);
             fclose(fid);
         end
@@ -138,6 +139,11 @@ classdef SettingsTranslator < handle
             old = obj.oldSettings.case_file;
             new = [old '.json'];
             obj.fileName = new;
+        end
+        
+        function getFilePath(obj)
+            obj.getFileName();
+            obj.filePath = fullfile('.','tests','Applications',obj.fileName);
         end
         
         function s = translateLevelSetCreator(obj,s)
