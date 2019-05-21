@@ -1,9 +1,5 @@
 classdef Settings %< handle%& matlab.mixin.Copyable
     
-    properties
-        isOld
-    end
-    
     properties %optmizer access
         optimizerSettings
         plotting = true
@@ -121,13 +117,7 @@ classdef Settings %< handle%& matlab.mixin.Copyable
             obj.constr_initial = constr_initial;
             obj.optimality_final = optimality_final;
             obj.constr_final = constr_final;
-            
-            if exist('isOld','var')
-                obj.isOld = isOld;
-            else
-                obj.isOld = true;
-            end
-            
+
             if exist('line_search','var')
                 obj.line_search = line_search;
             else

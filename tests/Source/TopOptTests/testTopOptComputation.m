@@ -27,14 +27,29 @@ classdef testTopOptComputation < handle
         end
           
         function createSettings(obj)
-            file2load = obj.testName;
-            sett = Settings(file2load);
-            sett.warningHoleBC = false;
-            sett.printIncrementalIter = false; 
-            sett.printChangingFilter = false;
-            sett.printing = false;
-            obj.settings = sett;
-            obj.settings = SettingsTopOptProblem(sett);
+            obj.createOldSettings();
+            obj.translateToNewSettings();
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function createOldSettings(obj)
+            fileName = obj.testName;
+            s = Settings(fileName);             
+            s.warningHoleBC = false;
+            s.printIncrementalIter = false; 
+            s.printChangingFilter = false;
+            s.printing = false;
+            obj.settings = s;
+        end
+        
+        function translateToNewSettings(obj)
+            translator = SettingsTranslator();
+            translator.translate(obj.settings);
+            fileName = translator.fileName;
+            obj.settings  = SettingsTopOptProblem(fileName);
         end
         
     end

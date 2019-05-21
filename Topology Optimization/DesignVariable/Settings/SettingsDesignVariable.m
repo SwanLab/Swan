@@ -44,6 +44,7 @@ classdef SettingsDesignVariable < AbstractSettings
         end
         
         function initLevelSetCreator(obj)
+            s = obj.levelSetCreatorSettings;
             s.ndim  = obj.mesh.ndim;
             s.coord = obj.mesh.coord;
             s.type = obj.initialCase;

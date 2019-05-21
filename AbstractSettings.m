@@ -2,7 +2,6 @@ classdef AbstractSettings < handle
     
     properties (GetAccess = public, SetAccess = private)
         loadedFile
-        cParams
     end
     
     properties (Access = protected, Abstract)
@@ -10,7 +9,7 @@ classdef AbstractSettings < handle
     end
     
     properties (GetAccess = protected, SetAccess = private)
-        customParams
+        cParams
     end
     
     methods (Access = protected)
@@ -22,11 +21,12 @@ classdef AbstractSettings < handle
         function loadParams(obj,p)
             if ~isempty(p)
                 if isstruct(p)
-                    obj.customParams = p;
+                    obj.cParams = p;
+                    obj.loadedFile = 'Settings loaded from struct.';
                 else
                     switch obj.getFileType(p)
                         case {'','.m'}
-                            error('THIS IS NO JSON FILE!');
+                            error('Only JSON files accepted!');
                             obj.loadParamsFromMatlabScript(p);
                         case '.json'
                             obj.loadParamsFromJSON(p);
@@ -44,50 +44,51 @@ classdef AbstractSettings < handle
         
         function loadParamsFromJSON(obj,paramsFileName)
             obj.loadedFile = paramsFileName;
-            obj.customParams = jsondecode(fileread(paramsFileName));
+            addpath(genpath(fileparts(mfilename('fullpath'))));
+            obj.cParams = jsondecode(fileread(paramsFileName));
         end
         
         function loadParamsFromMatlabScript(obj,paramsFileName)
             obj.loadedFile = paramsFileName;
             run(paramsFileName);
-            obj.customParams = who;
-            obj.clearCustomParams();
+            obj.cParams = who;
+            obj.clearConstructionParams();
             s = struct;
-            for i = 1:length(obj.customParams)
-                param = obj.customParams{i};
+            for i = 1:length(obj.cParams)
+                param = obj.cParams{i};
                 if isprop(obj,param)
                     s.(param) = eval(param);
                 else
-                    obj.warnOfInvalidCustomParams(param);
+                    obj.warnOfInvalidConstructionParams(param);
                 end
             end
-            obj.customParams = s;
+            obj.cParams = s;
         end
         
         function assignParams(obj)
-            fields = fieldnames(obj.customParams);
+            fields = fieldnames(obj.cParams);
             for i = 1:length(fields)
                 param = fields{i};
                 if isprop(obj,param)
-                    obj.(param) = obj.customParams.(param);
+                    obj.(param) = obj.cParams.(param);
                 else
-                    obj.warnOfInvalidCustomParams(param);
+                    obj.warnOfInvalidConstruction(param);
                 end
             end
         end
         
-        function clearCustomParams(obj)
+        function clearConstructionParams(obj)
             obj.removeVar('paramsFileName');
             obj.removeVar('obj');
         end
         
-        function warnOfInvalidCustomParams(obj,param)
+        function warnOfInvalidConstructionParams(obj,param)
             warning([param ' is not a property of ' class(obj)]);
         end
         
         function removeVar(obj,var)
-            pos = strcmp(obj.customParams,var);
-            obj.customParams(pos) = [];
+            pos = strcmp(obj.cParams,var);
+            obj.cParams(pos) = [];
         end
         
     end
