@@ -36,44 +36,53 @@ classdef SettingsOptimizer < AbstractSettings
             obj.init();
         end
         
+        function init(obj)
+            obj.initProblemData();
+            obj.initSettingsMonitorDocker();
+            obj.initSettingsHistoryPrinter();
+            obj.initSettingsPostProcess();
+            obj.initOptimizerUnconstrainedSettings();
+        end
+        
     end
     
     methods (Access = private)
         
-        function init(obj)
-            %             obj.initSettingsMonitorDocker();
+        function initProblemData(obj)
+            s = obj.problemData;
+            obj.problemData = TopOptProblemDataContainer(s);
         end
         
-    end
-    
-    methods (Access = public)
-        
-        function initSettingsMonitorDocker(obj,cParams)
-            if isfield(cParams,'monitoringDockerSettings')
-                s = cParams.monitoringDockerSettings;
-            else
-                s = [];
-            end
+        function initSettingsMonitorDocker(obj)
+            s = obj.monitoringDockerSettings;
             obj.monitoringDockerSettings = SettingsMonitoringDocker(s);
             
-            obj.monitoringDockerSettings.optimizerName   = obj.type;
-            obj.monitoringDockerSettings.problemID       = obj.problemData.caseFileName;
-            obj.monitoringDockerSettings.dim             = obj.problemData.pdim;
-            
-            obj.monitoringDockerSettings.costFuncNames   = obj.problemData.costFunctions;
-            obj.monitoringDockerSettings.costWeights     = obj.problemData.costWeights;
-            obj.monitoringDockerSettings.constraintFuncs = obj.problemData.constraintFunctions;
+            s2.optimizerName = obj.type;
+            s2.problemID       = obj.problemData.caseFileName;
+            s2.dim             = obj.problemData.pdim;
+            s2.costFuncNames   = obj.problemData.costFunctions;
+            s2.costWeights     = obj.problemData.costWeights;
+            s2.constraintFuncs = obj.problemData.constraintFunctions;
+            obj.monitoringDockerSettings.loadParams(s2);
         end
         
         
-        function initSettingsHistoryPrinter(obj,fileName)
-            obj.historyPrinterSettings.fileName   = fileName;
+        function initSettingsHistoryPrinter(obj)
+            obj.historyPrinterSettings.fileName   = obj.problemData.caseFileName;
             obj.historyPrinterSettings.shallPrint = obj.shallPrint;
         end
         
         function initSettingsPostProcess(obj)
             obj.postProcessSettings.shallPrint = obj.shallPrint;
             obj.postProcessSettings.printMode  = obj.printMode;
+        end
+        
+        function initOptimizerUnconstrainedSettings(obj)
+            s = obj.uncOptimizerSettings;
+            obj.uncOptimizerSettings = SettingsOptimizerUnconstrained(s);
+            s2.femFileName = obj.problemData.femFileName;
+            obj.uncOptimizerSettings.loadParams(s2);
+            obj.uncOptimizerSettings.init();
         end
         
     end

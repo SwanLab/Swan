@@ -1,9 +1,9 @@
 {
   "problemData": {
-    "problemFileName": "Cantilever_triangle_coarse",
+    "femFileName": "Cantilever_triangle_coarse",
     "scale": "MACRO"
   },
-  "homogenizedVarComputerSettings": {
+  "homogenizedclaVarComputerSettings": {
     "type": "ByInterpolation",
     "interpolation": "SIMP_P3",
     "typeOfMaterial": "ISOTROPIC",

@@ -12,45 +12,73 @@ classdef AbstractSettings < handle
         cParams
     end
     
+    methods (Access = public)
+        
+        function loadParams(obj,p)
+            if ~isempty(p)
+                if isstruct(p)
+                    obj.loadFromStruct(p);
+                elseif isobject(p)
+                    obj.loadFromObject(p);
+                else
+                    obj.loadFromFile(p);
+                end
+            end
+        end
+        
+        function s = getParams(obj)
+            s = struct;
+            props = properties(obj);
+            for i = 1:length(props)
+                prop = props{i};
+                s.(prop) = obj.(prop);
+            end
+        end
+        
+    end
+    
     methods (Access = protected)
         
         function obj = AbstractSettings()
             obj.loadParams(obj.defaultParamsName);
         end
         
-        function loadParams(obj,p)
-            if ~isempty(p)
-                if isstruct(p)
-                    obj.cParams = p;
-                    obj.loadedFile = 'Settings loaded from struct.';
-                else
-                    switch obj.getFileType(p)
-                        case {'','.m'}
-                            error('Only JSON files accepted!');
-                            obj.loadParamsFromMatlabScript(p);
-                        case '.json'
-                            obj.loadParamsFromJSON(p);
-                        otherwise
-                            error('Invalid extension');
-                    end
-                end
-                obj.assignParams();
-            end
-        end
-        
     end
     
     methods (Access = private)
         
-        function loadParamsFromJSON(obj,paramsFileName)
-            obj.loadedFile = paramsFileName;
-            addpath(genpath(fileparts(mfilename('fullpath'))));
-            obj.cParams = jsondecode(fileread(paramsFileName));
+        function loadFromStruct(obj,s)
+            obj.cParams = s;
+            obj.loadedFile = 'Settings loaded from struct.';
+            obj.assignParams();
         end
         
-        function loadParamsFromMatlabScript(obj,paramsFileName)
-            obj.loadedFile = paramsFileName;
-            run(paramsFileName);
+        function loadFromObject(obj,obj2)
+            s = obj2.getParams();
+            obj.loadFromStruct(s);
+        end
+        
+        function loadFromFile(obj,f)
+            switch obj.getFileType(f)
+                case {'','.m'}
+                    error('Only JSON files accepted!');
+                    obj.loadParamsFromMatlabScript(f);
+                case '.json'
+                    obj.loadParamsFromJSON(f);
+                otherwise
+                    error('Invalid extension');
+            end
+            obj.loadedFile = f;
+            obj.assignParams();
+        end
+        
+        function loadParamsFromJSON(obj,fileName)
+            addpath(genpath(fileparts(mfilename('fullpath'))));
+            obj.cParams = jsondecode(fileread(fileName));
+        end
+        
+        function loadParamsFromMatlabScript(obj,fileName)
+            run(fileName);
             obj.cParams = who;
             obj.clearConstructionParams();
             s = struct;
@@ -72,7 +100,7 @@ classdef AbstractSettings < handle
                 if isprop(obj,param)
                     obj.(param) = obj.cParams.(param);
                 else
-                    obj.warnOfInvalidConstruction(param);
+                    obj.warnOfInvalidConstructionParams(param);
                 end
             end
         end

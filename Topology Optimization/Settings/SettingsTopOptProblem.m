@@ -26,7 +26,6 @@ classdef SettingsTopOptProblem < AbstractSettings
                 obj.loadParams(varargin{1});
             end
             obj.setupProblemData();
-            
             obj.createDesignVarSettings();
             obj.createHomogenizedVarComputerSettings();
             obj.createIncrementalSchemeSettings();
@@ -35,6 +34,7 @@ classdef SettingsTopOptProblem < AbstractSettings
             obj.updateProblemData();
             obj.createOptimizerSettings();
             obj.createVideoManagerSettings();
+            obj.printSummary();
         end
         
     end
@@ -43,8 +43,9 @@ classdef SettingsTopOptProblem < AbstractSettings
         
         function setupProblemData(obj)
             s = obj.cParams.problemData;
-            obj.problemData.problemFileName = s.problemFileName;
+            obj.problemData = TopOptProblemDataContainer(s);
             obj.problemData.caseFileName = obj.loadedFile;
+            obj.problemData.femFileName = s.femFileName;
             obj.problemData.scale = s.scale;
             
             obj.createMesh();
@@ -54,7 +55,7 @@ classdef SettingsTopOptProblem < AbstractSettings
         end
         
         function createMesh(obj)
-            obj.mesh = Mesh_GiD(obj.problemData.problemFileName);
+            obj.mesh = Mesh_GiD(obj.problemData.femFileName);
         end
         
         function createDesignVarSettings(obj)
@@ -89,32 +90,21 @@ classdef SettingsTopOptProblem < AbstractSettings
         end
         
         function updateProblemData(obj)
-            obj.problemData.costFunctions       = obj.costSettings.getShapeFuncList();
-            obj.problemData.costWeights         = obj.costSettings.weights();
-            obj.problemData.constraintFunctions = obj.constraintSettings.getShapeFuncList();
-            obj.problemData.nConstraints        = obj.constraintSettings.nShapeFuncs;
+            s.costFunctions       = obj.costSettings.getShapeFuncList();
+            s.costWeights         = obj.costSettings.weights();
+            s.constraintFunctions = obj.constraintSettings.getShapeFuncList();
+            s.nConstraints        = obj.constraintSettings.nShapeFuncs;
+            obj.problemData.loadParams(s);
         end
         
         function createOptimizerSettings(obj)
             s = obj.cParams.optimizerSettings;
             obj.optimizerSettings = SettingsOptimizer(s);
-            obj.optimizerSettings.problemData = obj.problemData;
-            obj.optimizerSettings.initSettingsMonitorDocker(s);
             
-            obj.optimizerSettings.nConstr = obj.problemData.nConstraints;
-            obj.optimizerSettings.initSettingsHistoryPrinter(obj.problemData.caseFileName);
-            obj.optimizerSettings.initSettingsPostProcess();
-            
-            obj.initOptimizerUnconstrainedSettings(s);
-        end
-        
-        function initOptimizerUnconstrainedSettings(obj,cParams)
-            s = cParams.uncOptimizerSettings;
-            obj.optimizerSettings.uncOptimizerSettings = SettingsOptimizerUnconstrained(s);
-            obj.optimizerSettings.uncOptimizerSettings.type = s.type;
-            
-            obj.initScalarProductSettings();
-            obj.initLineSearchSettings(s);
+            s2.problemData = obj.problemData;
+            s2.nConstr = obj.problemData.nConstraints;
+            obj.optimizerSettings.loadParams(s2);
+            obj.optimizerSettings.init();
         end
         
         function createVideoManagerSettings(obj)
@@ -125,16 +115,23 @@ classdef SettingsTopOptProblem < AbstractSettings
             obj.videoManagerSettings = SettingsVideoManager(s);
         end
         
-        function initScalarProductSettings(obj)
-            obj.optimizerSettings.uncOptimizerSettings.scalarProductSettings.filename = obj.problemData.problemFileName;
+        function printSummary(obj)
+            if obj.isNotTest()
+                fprintf('<strong>%s</strong>\n',obj.problemData.caseFileName)
+                fprintf('\t-Optimizer: <strong>%s</strong>\n',obj.optimizerSettings.type); 
+                if strcmp(obj.optimizerSettings.type,'AlternatingPrimalDual')
+                    fprintf('\t-Primal Updater: <strong>%s</strong>\n',obj.optimizerSettings.uncOptimizerSettings.type); 
+                end
+                fprintf('\t-Cost: <strong>%s</strong>, ',obj.problemData.costFunctions{:})
+                fprintf('\n\t-Constraints: ')
+                fprintf('<strong>%s</strong>, ', obj.problemData.constraintFunctions{:})
+                fprintf('\n\t-Incremental Steps: <strong>%.0f</strong> \n ',obj.incrementalSchemeSettings.nSteps)
+                fprintf('\t-Max Iters: <strong>%.0f</strong> \n ',obj.optimizerSettings.maxIter)
+            end
         end
         
-        function initLineSearchSettings(obj,cParams)
-            s = cParams.lineSearchSettings;
-            obj.optimizerSettings.uncOptimizerSettings.lineSearchSettings = SettingsLineSearch(s);
-            obj.optimizerSettings.uncOptimizerSettings.lineSearchSettings.scalarProductSettings = obj.optimizerSettings.uncOptimizerSettings.scalarProductSettings;
-            obj.optimizerSettings.uncOptimizerSettings.lineSearchSettings.optimizerType  = obj.optimizerSettings.uncOptimizerSettings.type;
-            obj.optimizerSettings.uncOptimizerSettings.lineSearchSettings.filename       = obj.problemData.problemFileName;
+        function itIsNot = isNotTest(obj)
+            itIsNot = ~contains(obj.problemData.caseFileName,'test','IgnoreCase',true);
         end
         
     end

@@ -52,12 +52,12 @@ classdef SettingsCC < AbstractSettings
             sfS = cell(nSF,1);
             for iSF = 1:nSF
                 if iscell(s)
-                    s{iSF}.filename = obj.problemData.problemFileName;
+                    s{iSF}.filename = obj.problemData.femFileName;
                     s{iSF}.scale = obj.problemData.scale;
                     s{iSF}.filterParams = obj.createFilterSettings();
                     sfS{iSF} = SettingsShapeFunctional().create(s{iSF});
                 else
-                    s(iSF).filename = obj.problemData.problemFileName;
+                    s(iSF).filename = obj.problemData.femFileName;
                     s(iSF).scale = obj.problemData.scale;
                     s(iSF).filterParams = obj.createFilterSettings();
                     sfS{iSF} = SettingsShapeFunctional().create(s(iSF));
