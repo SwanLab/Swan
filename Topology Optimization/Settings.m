@@ -160,31 +160,31 @@ classdef Settings %< handle%& matlab.mixin.Copyable
                 obj.monitoring_interval = monitoring_interval;
             end
             
-            if ~contains(case_file,'test','IgnoreCase',true)
-                fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: ',case_file,obj.optimizer)
-                fprintf('%s, ',obj.cost{:})
-                fprintf('\n -Constraint: ')
-                fprintf('%s, ', obj.constraint{:})
-                fprintf('\n -Incremental Steps: %f \n ',obj.nsteps)
-            end
+%             if ~contains(case_file,'test','IgnoreCase',true)
+%                 fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: ',case_file,obj.optimizer)
+%                 fprintf('%s, ',obj.cost{:})
+%                 fprintf('\n -Constraint: ')
+%                 fprintf('%s, ', obj.constraint{:})
+%                 fprintf('\n -Incremental Steps: %f \n ',obj.nsteps)
+%             end
             
             if exist('maxiter','var')
                 obj.maxiter = maxiter;
                 if ~contains(case_file,'test','IgnoreCase',true)
-                    fprintf('-Max iters: %f \n ',obj.maxiter)
+%                     fprintf('-Max iters: %f \n ',obj.maxiter)
                 end
             end
             
             if exist('Vfrac_final','var')
                 obj.Vfrac_final = Vfrac_final;
                 if ~contains(case_file,'test','IgnoreCase',true)
-                    fprintf('-Volume target: %f \n ',obj.Vfrac_final)
+%                     fprintf('-Volume target: %f \n ',obj.Vfrac_final)
                 end
             end
             if exist('Perimeter_target','var')
                 obj.Perimeter_target = Perimeter_target;
                 if ~contains(case_file,'test','IgnoreCase',true)
-                    fprintf('-Perimeter target: %f \n',obj.Perimeter_target)
+%                     fprintf('-Perimeter target: %f \n',obj.Perimeter_target)
                 end
             end
             if exist('epsilon_initial','var')

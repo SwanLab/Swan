@@ -117,7 +117,7 @@ classdef SettingsTopOptProblem < AbstractSettings
         
         function printSummary(obj)
             if obj.isNotTest()
-                fprintf('<strong>%s</strong>\n',obj.problemData.caseFileName)
+                fprintf('<strong>%s</strong>\n\n',obj.problemData.caseFileName)
                 fprintf('\t-Optimizer: <strong>%s</strong>\n',obj.optimizerSettings.type); 
                 if strcmp(obj.optimizerSettings.type,'AlternatingPrimalDual')
                     fprintf('\t-Primal Updater: <strong>%s</strong>\n',obj.optimizerSettings.uncOptimizerSettings.type); 
