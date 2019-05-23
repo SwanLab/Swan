@@ -23,9 +23,36 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
     methods (Access = protected)
 
         function computeFunctionValue(obj)
-            u = obj.physicalProblem.variables.d_u;
-            f = obj.adjointProb.variables.fext;
-            obj.value = -f'*u;
+            phy = obj.physicalProblem;
+            u = phy.variables.d_u;
+            f = phy.variables.fext;
+            c2 = -f'*u;   
+            
+            
+            dvolum  = phy.geometry.dvolu;
+            strain = phy.variables.strain;
+            C = phy.element.material.C;
+            ngaus = phy.element.quadrature.ngaus;
+            nstre = size(strain,2);
+            c = 0;
+            for igaus = 1:ngaus
+                strainG = squeeze(strain(igaus,:,:));
+                dV = dvolum(:,igaus);
+                for istre = 1:nstre
+                    sI(:,1) = strainG(istre,:);
+                    for jstre = 1:nstre
+                        sJ(:,1) = strainG(jstre,:);
+                        Cij = squeeze(C(istre,jstre,:));
+                        csum = sI.*Cij.*sJ.*dV;
+                        c = c + sum(csum);
+                    end
+                end
+            end            
+            
+            obj.value = c
+            
+            
+            
             % Sum with stress + Amplificators
             %
             
