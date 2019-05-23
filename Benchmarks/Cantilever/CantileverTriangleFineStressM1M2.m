@@ -52,6 +52,7 @@ switch option
         epsilon_initial = 0.01;
         epsilon_final = 0.01;
         optimality_final = 1e-5;
+        kappa_min = 1;
     case 'B'
         Vfrac_initial = 0.3;                
         optimizer = 'IPOPT';

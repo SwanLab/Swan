@@ -9,7 +9,9 @@ classdef HomogenizedVarComputerFromVademecum ...
     
     properties (Access = private)
        Reps      
-       Rot
+       RepsV
+       Rsig
+       RsigV
        Cref
        dCref
        rotator
@@ -33,13 +35,13 @@ classdef HomogenizedVarComputerFromVademecum ...
         
         function computeCtensor(obj,x)
             obj.obtainReferenceConsistutiveTensor(x);            
-            obj.computeRotationMatrix();
+            obj.computeRepsMatrix();
             obj.rotateConstitutiveTensor();
         end
         
         function computePtensor(obj,x)
             obj.obtainReferenceAmplificatorTensor(x);            
-            obj.computeRotationMatrix();
+            obj.computeRsigMatrix();
             obj.rotateAmplificatorTensor();            
         end
         
@@ -71,7 +73,7 @@ classdef HomogenizedVarComputerFromVademecum ...
             obj.dPref = permute(dp,[1 2 4 3]);            
         end                
         
-        function computeRotationMatrix(obj)
+        function computeRepsMatrix(obj)
             Rsym = obj.Reps;
             dir = obj.designVariable.alpha;            
             nx = squeeze(dir(1,:));
@@ -84,15 +86,31 @@ classdef HomogenizedVarComputerFromVademecum ...
                     R(i,j,:) = rij(angle);
                 end
             end
-            obj.Rot = R;
+            obj.RepsV = R;
         end        
+        
+        function computeRsigMatrix(obj)
+            Rsym = obj.Rsig;
+            dir = obj.designVariable.alpha;            
+            nx = squeeze(dir(1,:));
+            ny = squeeze(dir(2,:));
+            angle = squeeze(atan2(ny,nx));
+            R = zeros(3,3,length(angle));
+            for i = 1:3
+                for j = 1:3
+                    rij = matlabFunction(Rsym(i,j));
+                    R(i,j,:) = rij(angle);
+                end
+            end
+            obj.RsigV = R;
+        end              
         
         function rotateConstitutiveTensor(obj)
             cr  = obj.Cref;    
             dCr = obj.dCref;
-            c = obj.rotator.rotate(cr,obj.Rot);
-            dc(:,:,1,:) = obj.rotator.rotate(squeeze(dCr(:,:,1,:)),obj.Rot);
-            dc(:,:,2,:) = obj.rotator.rotate(squeeze(dCr(:,:,2,:)),obj.Rot);     
+            c = obj.rotator.rotate(cr,obj.RepsV);
+            dc(:,:,1,:) = obj.rotator.rotate(squeeze(dCr(:,:,1,:)),obj.RepsV);
+            dc(:,:,2,:) = obj.rotator.rotate(squeeze(dCr(:,:,2,:)),obj.RepsV);     
             obj.C = c;
             obj.dC = dc;               
         end
@@ -100,9 +118,9 @@ classdef HomogenizedVarComputerFromVademecum ...
         function rotateAmplificatorTensor(obj)
             pr  = obj.Pref;    
             dPr = obj.dPref;
-            p = obj.rotator.rotate(pr,obj.Rot);
-            dp(:,:,1,:) = obj.rotator.rotate(squeeze(dPr(:,:,1,:)),obj.Rot);
-            dp(:,:,2,:) = obj.rotator.rotate(squeeze(dPr(:,:,2,:)),obj.Rot);     
+            p = obj.rotator.rotate(pr,obj.RsigV);
+            dp(:,:,1,:) = obj.rotator.rotate(squeeze(dPr(:,:,1,:)),obj.RsigV);
+            dp(:,:,2,:) = obj.rotator.rotate(squeeze(dPr(:,:,2,:)),obj.RsigV);     
             obj.P = p;
             obj.dP = dp;               
         end        
@@ -115,6 +133,7 @@ classdef HomogenizedVarComputerFromVademecum ...
             factory = RotatorFactory();
             rot = factory.create(S,alpha,v);
             a = rot.rotationMatrix();  
+            obj.Rsig = a;
             obj.Reps = simplify(inv(a)');
         end
         

@@ -4,8 +4,8 @@ classdef Elastic2D < ElasticDim
         nstre = 3;
     end
     
-    methods (Access = protected)
- 
+    methods (Access = public)
+       
         function [B] = computeB(obj,igaus)
             B = zeros(obj.nstre,obj.nnode*obj.dof.nunkn,obj.nelem);
             for i = 1:obj.nnode
@@ -15,7 +15,14 @@ classdef Elastic2D < ElasticDim
                 B(3,j,:)  = obj.geometry.cartd(2,i,:,igaus);
                 B(3,j+1,:)= obj.geometry.cartd(1,i,:,igaus);
             end
-        end
+        end        
+        
+        
+    end
+    
+    methods (Access = protected)
+ 
+
                 
         function strain = computeStrain(obj,u,idx)
             strain = obj.computeStrain@ElasticDim(u,idx);

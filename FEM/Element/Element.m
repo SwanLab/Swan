@@ -10,12 +10,9 @@ classdef Element < handle
         dof
         uD
         nfields
+        bcApplier                
     end   
     
-    properties (Access = protected)
-        bcApplier        
-    end
-
     methods (Access = protected)        
         function initElement(obj,geometry,material,dof,scale)            
             obj.nelem = geometry(1).interpolation.nelem;

@@ -5,7 +5,7 @@ classdef Elastic3D < ElasticDim
         nstre = 6;
     end
     
-    methods (Access = protected)
+    methods (Access = public)
                 
         function [B] = computeB(obj,igaus)
             B = zeros(obj.nstre,obj.nnode*obj.dof.nunkn,obj.nelem);

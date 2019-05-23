@@ -1,6 +1,10 @@
 classdef Element_Elastic < Element
     %Element_Elastic Summary of this class goes here
     %   Detailed explanation goes here
+    properties (Access = public)
+        fextRed        
+    end
+    
     
     properties
         fext
@@ -116,6 +120,7 @@ classdef Element_Elastic < Element
             R = obj.compute_imposed_displacement_force(obj.K);
             obj.fext = Fext + R;
             fext_red = obj.bcApplier.full_vector_2_reduced_vector(obj.fext);
+            obj.fextRed = fext_red;
         end
         
         function [K] = computeStiffnessMatrix(obj)
@@ -245,7 +250,10 @@ classdef Element_Elastic < Element
     methods (Abstract, Access = protected)
         computeStrain(obj)     
         computeBmat(obj)
-        computeB(obj)
+    end
+    
+    methods (Abstract, Access = public)
+        computeB(obj)        
     end
     
     methods(Static, Access = protected)

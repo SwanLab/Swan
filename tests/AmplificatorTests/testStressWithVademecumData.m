@@ -27,8 +27,14 @@ classdef testStressWithVademecumData < testShowingError
     methods (Access = private)
         
         function createTopOptProblem(obj)
-            settings = Settings('CantileverTriangleFineStressM1M2');  
-            settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_B.json',settings);
+            settings = Settings('CantileverTriangleFineStressM1M2');
+%            settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_B.json',settings);
+            settings.printing = false;
+            translator = SettingsTranslator();
+            translator.translate(settings);
+            fileName = translator.fileName;
+            settingsTopOpt = SettingsTopOptProblem(fileName);            
+            
             
             topOptProblem = TopOpt_Problem(settingsTopOpt);
             topOptProblem.computeVariables();

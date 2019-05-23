@@ -28,10 +28,18 @@ classdef Elastic_Problem < FEM
         end
         
         function computeVariables(obj)
-            Kred = obj.element.computeLHS;
-            fext_red = obj.element.computeRHS;
-            u = obj.solver.solve(Kred,fext_red);
+            Kred = obj.element.computeLHS();
+            obj.element.computeRHS();
+            u = obj.solver.solve(Kred,obj.element.fextRed);
             obj.variables = obj.element.computeVars(u);
+        end
+        
+        function computeVariablesWithBodyForces(obj,fbody)
+            Kred = obj.element.computeLHS();
+            %obj.element.computeRHS();
+            f = obj.element.bcApplier.full_vector_2_reduced_vector(fbody);
+            u = obj.solver.solve(Kred,f);
+            obj.variables = obj.element.computeVars(u);                        
         end
         
         function c = computeCompliance(obj)
