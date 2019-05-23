@@ -34,6 +34,28 @@ classdef Elastic_Problem < FEM
             obj.variables = obj.element.computeVars(u);
         end
         
+        function c = computeCompliance(obj)
+            dvolum  = obj.geometry.dvolu;
+            strain = obj.variables.strain;
+            C = obj.element.material.C;
+            ngaus = obj.element.quadrature.ngaus;
+            nstre = size(strain,2);
+            c = 0;
+            for igaus = 1:ngaus
+                strainG = squeeze(strain(igaus,:,:));
+                dV = dvolum(:,igaus);
+                for istre = 1:nstre
+                    sI(:,1) = strainG(istre,:);
+                    for jstre = 1:nstre
+                        sJ(:,1) = strainG(jstre,:);
+                        Cij = squeeze(C(istre,jstre,:));
+                        csum = sI.*Cij.*sJ.*dV;
+                        c = c + sum(csum);
+                    end
+                end
+            end
+        end
+        
 %         function print(obj)
 %             postprocess = Postprocess_PhysicalProblem;
 %             results.physicalVars = obj.variables;
