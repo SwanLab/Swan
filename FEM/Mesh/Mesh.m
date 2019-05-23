@@ -4,16 +4,18 @@ classdef Mesh < handle & matlab.mixin.Copyable
         coord
         connec
         ndim
+        nnode
+        npnod
+        nelem
         geometryType
     end
     
     methods (Access = public)
         
-        function obj = create(obj,coordinates,connectivities)
-            obj.coord = coordinates;
-            obj.connec = connectivities;
-            obj.ndim = size(coordinates,2);
-            obj.computeGeometryType();
+        function obj = create(obj,coord,connec)
+            obj.coord  = coord;
+            obj.connec = connec;
+            obj.computeDescriptorParams();
         end
         
         function objClone = clone(obj)
@@ -55,9 +57,21 @@ classdef Mesh < handle & matlab.mixin.Copyable
     
     methods (Access = protected)
         
+        function computeDescriptorParams(obj)
+            obj.npnod = size(obj.coord ,1);
+            obj.ndim  = size(obj.coord, 2);
+            obj.nelem = size(obj.connec,1);
+            obj.nnode = size(obj.connec,2);
+            obj.computeGeometryType();
+        end
+        
+    end
+    
+    methods (Access = private)
+        
         function computeGeometryType(obj)
-            nnode = size(obj.connec,2);
-            obj.geometryType = MeshGeometryType_Factory.getGeometryType(obj.ndim,nnode);
+            factory = MeshGeometryType_Factory();
+            obj.geometryType = factory.getGeometryType(obj.ndim,obj.nnode);
         end
         
     end

@@ -20,7 +20,7 @@ classdef Mesh_Unfitted < Mesh ...
             else
                 obj.returnNullMesh();
             end
-            obj.computeGeometryType();
+            obj.computeDescriptorParams();
         end
         
         function m = computeMass(obj)

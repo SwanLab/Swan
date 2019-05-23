@@ -19,6 +19,8 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
         e2
         ub
         lb
+        
+        femFileName
     end
     
     methods (Access = public)
@@ -27,6 +29,29 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
             if nargin == 1
                 obj.loadParams(varargin{1});
             end
+            obj.init();
+        end
+        
+        function init(obj)
+            obj.initScalarProductSettings();
+            obj.initLineSearchSettings();
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function initScalarProductSettings(obj)
+            obj.scalarProductSettings.filename = obj.femFileName;
+        end
+        
+        function initLineSearchSettings(obj)
+            s = obj.lineSearchSettings;
+            obj.lineSearchSettings = SettingsLineSearch(s);
+            s2.scalarProductSettings = obj.scalarProductSettings;
+            s2.optimizerType  = obj.type;
+            s2.filename       = obj.femFileName;
+            obj.lineSearchSettings.loadParams(s2);
         end
         
     end
