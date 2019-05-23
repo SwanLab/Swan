@@ -5,10 +5,13 @@ classdef HomogenizedVarComputer < handle
         dC
         rho
         drho
+        P
+        dP
     end
     
     properties (Access = protected)
        nelem
+       designVariable
     end    
     
     methods (Access = public, Static)

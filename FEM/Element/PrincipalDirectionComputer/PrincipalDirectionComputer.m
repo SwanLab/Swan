@@ -2,12 +2,16 @@ classdef PrincipalDirectionComputer < handle
    
    properties (Access = public)
        direction 
+       principalStress
    end
    
    properties (Access = protected)
        directionFunction       
+       eigenValueFunction
        ndim
        eigenVectors
+       eigenValues
+       avarageTensor       
    end    
     
    methods (Access = public, Static)
@@ -22,9 +26,10 @@ classdef PrincipalDirectionComputer < handle
    methods (Access = protected)
                
         function init(obj)
-            obj.obtainEigenVectors();
+            obj.obtainEigenValuesAndVectors();
             obj.normalizeEigenVectors();
             obj.transformSymEigenVectorsInFunctions();
+            obj.transformSymEigenValuesInFunctions();            
         end       
                
         function normalizeEigenVectors(obj)
@@ -42,6 +47,13 @@ classdef PrincipalDirectionComputer < handle
                 end
             end
         end       
+        
+        function transformSymEigenValuesInFunctions(obj)
+            for i = 1:obj.ndim
+                    e = obj.eigenValues(i,i);
+                    obj.eigenValueFunction{i} = matlabFunction(e);
+            end            
+        end
        
    end
    
@@ -50,6 +62,6 @@ classdef PrincipalDirectionComputer < handle
    end   
     
    methods (Access = protected, Abstract)
-      obtainEigenVectors(obj)
+      obtainEigenValuesAndVectors(obj)
    end
 end

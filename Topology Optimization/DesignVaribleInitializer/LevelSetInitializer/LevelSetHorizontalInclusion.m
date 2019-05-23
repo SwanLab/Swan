@@ -1,37 +1,30 @@
 classdef LevelSetHorizontalInclusion < LevelSetCreator
     
     properties (Access = private)
+        widthH
     end
-    
+
     methods (Access = public)
         
-        function obj = LevelSetHorizontalInclusion(input)
-            obj.compute(input);
+        function obj = LevelSetHorizontalInclusion(cParams)
+            obj.widthH = cParams.widthH;
+            obj.compute(cParams);
         end
     end
     
     methods (Access = protected)
         
-        function computeInitialLevelSet(obj)
-            obj.computeLevelSet()
-        end
-        
-    end
-    
-    methods (Access = private)
-        
         function computeLevelSet(obj)
-            m = 0.2;
-            y0 = obj.nodeCoord.y;
+            m = obj.widthH;
+            y0 = obj.nodeCoord;
             H = max(y0) - min(y0);
-            center_y = 0.5*(max(y0) + min(y0));
-            offset_y = 0.5*m*H;            
-            y = y0 - center_y;
-            obj.levelSet =  - (max(y/offset_y) - 1);
+            centerY = 0.5*(max(y0) + min(y0));
+            offsetY = 0.5*m*H;            
+            y = y0 - centerY;
+            obj.levelSet =  - (max(y./offsetY,[],2) - 1);
         end
         
     end
-    
     
 end
 

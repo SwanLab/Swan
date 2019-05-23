@@ -1,7 +1,7 @@
 classdef Optimizer_MMA < Optimizer
     
     properties (GetAccess = public, SetAccess = protected)
-        name = 'MMA'
+        type = 'MMA'
     end
     
     properties (Access = private)

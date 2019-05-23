@@ -5,7 +5,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
     end
     
     properties (GetAccess = public, SetAccess = protected)
-        name = 'HAMILTON JACOBI'
+        type = 'HAMILTON JACOBI'
     end
     
     properties (Access = private)
@@ -20,11 +20,10 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             designVar = cParams.designVariable;
             
             obj@Optimizer_Unconstrained(cParams);
-            obj.name = 'HAMILTON-JACOBI';
             obj.e2 = cParams.e2;
             obj.meanCellSize = designVar.mesh.computeMeanCellSize();
             
-            obj.setupFilter(cParams,cParams.scalarProductSettings.epsilon,designVar);
+            obj.setupFilter(cParams.scalarProductSettings.epsilon,designVar);
         end
         
         function phi = compute(obj)
@@ -32,10 +31,10 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             gradient = obj.objectiveFunction.gradient;                        
             V = -obj.filter.regularize(phi,gradient);
             
-            dt = 0.5*obj.e2*obj.line_search.kappa*obj.meanCellSize/max(abs(V(:))) ;
+            dt = 0.5*obj.e2*obj.lineSearch.kappa*obj.meanCellSize/max(abs(V(:))) ;
             phi = obj.solvelvlset(phi,V,dt);
             obj.designVariable.value = phi;
-            obj.opt_cond = obj.line_search.kappa;
+            obj.opt_cond = obj.lineSearch.kappa;
         end
         
     end
@@ -43,44 +42,19 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
     methods (Access = private)
         
         function solvedPhi = solvelvlset(obj,phi,V,dt)
-            for i = 1:obj.line_search.HJiter
+            for i = 1:obj.lineSearch.HJiter
                 phi = phi - dt*V;
             end
             solvedPhi = phi;
         end
         
-        function setupFilter(obj,s,e,designVar)
-            if obj.settingsFilterIsNotPDE(s)
-                obj.displayChangingFilter(s)
-            end
-            filterSettings = SettingsFilter('paramsFilter_PDE_Boundary');
+        function setupFilter(obj,e,designVar)
+            filterSettings = SettingsFilter('paramsFilter_PDE_Boundary.json');
             filterSettings.designVar = designVar;
             filterSettings.quadratureOrder = 'LINEAR';            
             obj.filter = FilterFactory().create(filterSettings);
             obj.filter.preProcess();
             obj.filter.updateEpsilon(e);
-        end
-        
-    end
-    
-    methods (Static,Access = private)
-        
-        function itIsNot = settingsFilterIsNotPDE(s)
-            if ~strcmp(s.filter,'PDE')
-                itIsNot = true;
-            else
-                itIsNot = false;
-            end
-        end
-        
-        function displayChangingFilter(settings)
-            print = settings.printChangingFilter;
-            if isempty(print)
-                print = true;
-            end
-            if print
-                disp('Filter P1 changed to PDE for HJ velocity regularization');
-            end
         end
         
     end

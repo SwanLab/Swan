@@ -2,9 +2,9 @@ classdef LevelSetWithSphereInclusion < LevelSetSphereNdim
     
     methods (Access = public)
         
-        function obj = LevelSetSphere(input)
-            obj.fracRadius = 1-1e-6;
-            obj.compute(input);
+        function obj = LevelSetSphere(cParams)
+            obj.fracRadius = cParams;
+            obj.compute(cParams);
         end
     end
     

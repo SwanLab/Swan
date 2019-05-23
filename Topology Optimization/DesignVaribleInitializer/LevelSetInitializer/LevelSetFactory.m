@@ -6,8 +6,6 @@ classdef LevelSetFactory < handle
             switch d.type
                 case 'circle'
                     obj = LevelSetCircle(d);
-                case 'circle_2'
-                    obj = LevelSetCircle2(d);
                 case 'circleInclusion'
                     obj = LevelSetWithCircleInclusion(d);
                 case 'sphere'
@@ -17,11 +15,10 @@ classdef LevelSetFactory < handle
                 case 'cylinder'
                     obj = LevelSetCylinder(d);
                 case 'horizontal'
-                    obj = LevelSetHorizontalInclusion(Input);
+                    obj = LevelSetHorizontalInclusion(d);
                 case 'square'
                     obj = LevelSetSquareInclusion(d);
-                case 'smoothSquare'
-                    d.m = settings.widthSquare;                    
+                case 'smoothSquare'                   
                     obj = LevelSetSmoothSquareInclusion(d);
                 case 'rectangle'
                     obj = LevelSetRectangleInclusion(d);

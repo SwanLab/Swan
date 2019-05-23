@@ -19,9 +19,7 @@ classdef SettingsNumericalHomogenizer < AbstractSettings
     methods (Access = public)
         
         function obj = SettingsNumericalHomogenizer(varargin)
-            obj.loadParams('paramsNumericalHomogenizer');
-            switch nargin
-                case 1
+            if nargin == 1
                     obj.loadParams(varargin{1});
             end
             obj.setParams();
@@ -33,7 +31,7 @@ classdef SettingsNumericalHomogenizer < AbstractSettings
         
         function setParams(obj)
             obj.volumeShFuncParams.filename = obj.testName;
-            obj.volumeShFuncParams.ptype = 'MICRO';
+            obj.volumeShFuncParams.scale = 'MICRO';
         end
         
     end

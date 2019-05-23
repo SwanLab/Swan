@@ -1,7 +1,7 @@
 classdef SettingsShapeFunctional < AbstractSettings
     
     properties (Access = protected)
-        defaultParamsName = 'paramsShapeFunctional'
+        defaultParamsName = 'paramsShapeFunctional.json'
     end
     
     properties (Access = public)
@@ -26,14 +26,9 @@ classdef SettingsShapeFunctional < AbstractSettings
     
     methods (Access = public, Static)
         
-        function s = create(cParams,settings)
-            if settings.isOld
-                f = SettingsShapeFunctionalFactory_OLD();
-                s = f.create(cParams,settings);
-            else
-                f = SettingsShapeFunctionalFactory();
-                s = f.create(cParams);
-            end
+        function s = create(cParams)
+            f = SettingsShapeFunctionalFactory();
+            s = f.create(cParams);
         end
         
     end

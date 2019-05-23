@@ -2,6 +2,7 @@ classdef VademecumVariablesLoader < handle
     
     properties (Access = public)
         Ctensor
+        Ptensor
         density
     end
     
@@ -21,6 +22,7 @@ classdef VademecumVariablesLoader < handle
             obj.loadVademecumVariables();
             obj.createInterpolator();
             obj.computeConstitutiveFromVademecum();
+            obj.computePtensorFromVademecum();            
             obj.computeDensityFromVademecum();            
         end
         
@@ -58,6 +60,13 @@ classdef VademecumVariablesLoader < handle
             s.interpolator = obj.interpolator;
             dt = DensityFromVademecum(s);
             obj.density = dt;
+        end
+        
+        function computePtensorFromVademecum(obj)
+            s.vadVariables = obj.vadVariables;
+            s.interpolator = obj.interpolator;
+            pt = AmplificatorTensorFromVademecum(s);
+            obj.Ptensor = pt;            
         end
         
     end

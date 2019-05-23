@@ -43,7 +43,7 @@ classdef StressNormShapeFuncCreator < handle
             dB.filter      = 'P1';
             dB.optimizer   = 'SLERP';
             dB.pdim        = '2D';
-            dB.ptype       = 'MICRO';
+            dB.scale       = 'MICRO';
             obj.stressShapeDB = dB;
         end
     end

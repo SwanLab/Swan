@@ -8,8 +8,33 @@ classdef AbstractSettings < handle
         defaultParamsName
     end
     
-    properties (Access = private)
-        customParams
+    properties (GetAccess = protected, SetAccess = private)
+        cParams
+    end
+    
+    methods (Access = public)
+        
+        function loadParams(obj,p)
+            if ~isempty(p)
+                if isstruct(p)
+                    obj.loadFromStruct(p);
+                elseif isobject(p)
+                    obj.loadFromObject(p);
+                else
+                    obj.loadFromFile(p);
+                end
+            end
+        end
+        
+        function s = getParams(obj)
+            s = struct;
+            props = properties(obj);
+            for i = 1:length(props)
+                prop = props{i};
+                s.(prop) = obj.(prop);
+            end
+        end
+        
     end
     
     methods (Access = protected)
@@ -18,38 +43,88 @@ classdef AbstractSettings < handle
             obj.loadParams(obj.defaultParamsName);
         end
         
-        function loadParams(obj,paramsFilename)
-            obj.loadedFile = paramsFilename;
-            run(paramsFilename);
-            obj.customParams = who;
-            obj.clearCustomParams();
-            
-            for i = 1:length(obj.customParams)
-                param = obj.customParams{i};
-                if isprop(obj,param)
-                    obj.(param) = eval(param);
-                else
-                    obj.warnOfInvalidCustomParams(param);
-                end
-            end
-        end
-        
     end
     
     methods (Access = private)
         
-        function clearCustomParams(obj)
-            obj.removeVar('paramsFilename');
+        function loadFromStruct(obj,s)
+            obj.cParams = s;
+            obj.loadedFile = 'Settings loaded from struct.';
+            obj.assignParams();
+        end
+        
+        function loadFromObject(obj,obj2)
+            s = obj2.getParams();
+            obj.loadFromStruct(s);
+        end
+        
+        function loadFromFile(obj,f)
+            switch obj.getFileType(f)
+                case {'','.m'}
+                    error('Only JSON files accepted!');
+                    obj.loadParamsFromMatlabScript(f);
+                case '.json'
+                    obj.loadParamsFromJSON(f);
+                otherwise
+                    error('Invalid extension');
+            end
+            obj.loadedFile = f;
+            obj.assignParams();
+        end
+        
+        function loadParamsFromJSON(obj,fileName)
+%             addpath(genpath(fileparts(mfilename('fullpath'))));
+            obj.cParams = jsondecode(fileread(fileName));
+        end
+        
+        function loadParamsFromMatlabScript(obj,fileName)
+            run(fileName);
+            obj.cParams = who;
+            obj.clearConstructionParams();
+            s = struct;
+            for i = 1:length(obj.cParams)
+                param = obj.cParams{i};
+                if isprop(obj,param)
+                    s.(param) = eval(param);
+                else
+                    obj.warnOfInvalidConstructionParams(param);
+                end
+            end
+            obj.cParams = s;
+        end
+        
+        function assignParams(obj)
+            fields = fieldnames(obj.cParams);
+            for i = 1:length(fields)
+                param = fields{i};
+                if isprop(obj,param)
+                    obj.(param) = obj.cParams.(param);
+                else
+                    obj.warnOfInvalidConstructionParams(param);
+                end
+            end
+        end
+        
+        function clearConstructionParams(obj)
+            obj.removeVar('paramsFileName');
             obj.removeVar('obj');
         end
         
-        function warnOfInvalidCustomParams(obj,param)
+        function warnOfInvalidConstructionParams(obj,param)
             warning([param ' is not a property of ' class(obj)]);
         end
         
         function removeVar(obj,var)
-            pos = strcmp(obj.customParams,var);
-            obj.customParams(pos) = [];
+            pos = strcmp(obj.cParams,var);
+            obj.cParams(pos) = [];
+        end
+        
+    end
+    
+    methods (Access = private, Static)
+        
+        function ext = getFileType(fileName)
+            [~,~,ext] = fileparts(fileName);
         end
         
     end

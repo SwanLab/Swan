@@ -57,9 +57,9 @@ classdef NumericalHomogenizerDataBase < handle
             sHomog.interpolation          = dI.materialInterpDataBase.materialInterpolation;
             sHomog.dim                    = dI.pdim;
             sHomog.typeOfMaterial         = dI.materialDataBase.materialType;
-            sHomog.constitutiveProperties = dI.materialDataBase.matProp;
-            sHomog.vademecumFileName      = [];            
-            sHomog.nelem                  = size(s.mesh.coord,1);            
+            sHomog.constitutiveProperties = dI.materialDataBase.matProp;       
+            sHomog.nelem                  = size(s.mesh.coord,1);   
+            sHomog = SettingsHomogenizedVarComputer.create(sHomog);
             d.homogVarComputer = HomogenizedVarComputer.create(sHomog);            
         end
         
@@ -69,7 +69,7 @@ classdef NumericalHomogenizerDataBase < handle
         
         function d = createLevelSetDataBase()
             d.type = 'horizontalFibers';
-            d.levFib = 3;
+            d.levelOfFibers = 3;
             d.volume = 0.5;
         end
         

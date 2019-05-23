@@ -3,7 +3,7 @@ classdef OptimizerFactory < handle
     methods (Access = public, Static)
         
         function op = create(cParams)
-            switch cParams.name
+            switch cParams.type
                 case 'AlternatingPrimalDual'
                     op = OptimizerAlternatingPrimalDual(cParams);
                 case 'MMA'

@@ -1,8 +1,6 @@
 classdef LevelSetWithSeveralHoles < LevelSetCreator
     
     properties (Access = private)
-        hasToShowHoleInBCWarning
-        bc
         nHoles
         rHoles
         phaseHoles
@@ -10,11 +8,9 @@ classdef LevelSetWithSeveralHoles < LevelSetCreator
     
     methods (Access = public)
         
-        function obj = LevelSetWithSeveralHoles(input)
-            obj.load_holes_settings(input);
-            obj.loadWarningOption(input);
-            obj.loadBoundaryConditions(input);
-            obj.compute(input);
+        function obj = LevelSetWithSeveralHoles(cParams)
+            obj.load_holes_settings(cParams);
+            obj.compute(cParams);
         end
         
     end
@@ -22,30 +18,12 @@ classdef LevelSetWithSeveralHoles < LevelSetCreator
     methods (Access = protected)
         
         function computeLevelSet(obj)
-            obj.computeLevelSetValue()
-            obj.showPossibleHoleinBcWarning()
+            obj.computeLevelSetValue();
         end
         
     end
     
     methods (Access = private)
-        
-        function loadBoundaryConditions(obj,input)
-            bCond = [];
-            if ~isempty(input.dirichlet) && ~isempty(input.pointload)
-                bCond = unique([input.dirichlet(:,1); input.pointload(:,1)]);
-            end
-            obj.bc = bCond;
-        end
-        
-        function loadWarningOption(obj,input)
-            obj.hasToShowHoleInBCWarning = false;            
-            if isfield(input,'warningHoleBC')
-                if ~isempty(input.warningHoleBC)
-                    obj.hasToShowHoleInBCWarning = input.warningHoleBC;
-                end
-            end
-        end
         
         function computeLevelSetValue(obj)
             ls = ones(obj.lsSize);
@@ -58,16 +36,10 @@ classdef LevelSetWithSeveralHoles < LevelSetCreator
             obj.levelSet = ls;
         end
         
-        function showPossibleHoleinBcWarning(obj)
-            if any(obj.levelSet(obj.bc)>0) && obj.hasToShowHoleInBCWarning
-                warning('At least one BC is set on a hole')
-            end
-        end
-        
-        function load_holes_settings(obj,input)
-            obj.nHoles = input.nHoles;
-            obj.rHoles = input.rHoles;
-            obj.phaseHoles = input.phaseHoles;
+        function load_holes_settings(obj,cParams)
+            obj.nHoles = cParams.nHoles;
+            obj.rHoles = cParams.rHoles;
+            obj.phaseHoles = cParams.phaseHoles;
         end
         
         function cosDir  = computeDirectionalCosinus(obj,coord,dir)

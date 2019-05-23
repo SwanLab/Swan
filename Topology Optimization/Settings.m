@@ -1,9 +1,5 @@
 classdef Settings %< handle%& matlab.mixin.Copyable
     
-    properties
-        isOld
-    end
-    
     properties %optmizer access
         optimizerSettings
         plotting = true
@@ -121,13 +117,7 @@ classdef Settings %< handle%& matlab.mixin.Copyable
             obj.constr_initial = constr_initial;
             obj.optimality_final = optimality_final;
             obj.constr_final = constr_final;
-            
-            if exist('isOld','var')
-                obj.isOld = isOld;
-            else
-                obj.isOld = true;
-            end
-            
+
             if exist('line_search','var')
                 obj.line_search = line_search;
             else
@@ -170,31 +160,31 @@ classdef Settings %< handle%& matlab.mixin.Copyable
                 obj.monitoring_interval = monitoring_interval;
             end
             
-            if ~contains(case_file,'test','IgnoreCase',true)
-                fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: ',case_file,obj.optimizer)
-                fprintf('%s, ',obj.cost{:})
-                fprintf('\n -Constraint: ')
-                fprintf('%s, ', obj.constraint{:})
-                fprintf('\n -Incremental Steps: %f \n ',obj.nsteps)
-            end
+%             if ~contains(case_file,'test','IgnoreCase',true)
+%                 fprintf('Loaded %s: \n -Optimizer: %s \n -Cost: ',case_file,obj.optimizer)
+%                 fprintf('%s, ',obj.cost{:})
+%                 fprintf('\n -Constraint: ')
+%                 fprintf('%s, ', obj.constraint{:})
+%                 fprintf('\n -Incremental Steps: %f \n ',obj.nsteps)
+%             end
             
             if exist('maxiter','var')
                 obj.maxiter = maxiter;
                 if ~contains(case_file,'test','IgnoreCase',true)
-                    fprintf('-Max iters: %f \n ',obj.maxiter)
+%                     fprintf('-Max iters: %f \n ',obj.maxiter)
                 end
             end
             
             if exist('Vfrac_final','var')
                 obj.Vfrac_final = Vfrac_final;
                 if ~contains(case_file,'test','IgnoreCase',true)
-                    fprintf('-Volume target: %f \n ',obj.Vfrac_final)
+%                     fprintf('-Volume target: %f \n ',obj.Vfrac_final)
                 end
             end
             if exist('Perimeter_target','var')
                 obj.Perimeter_target = Perimeter_target;
                 if ~contains(case_file,'test','IgnoreCase',true)
-                    fprintf('-Perimeter target: %f \n',obj.Perimeter_target)
+%                     fprintf('-Perimeter target: %f \n',obj.Perimeter_target)
                 end
             end
             if exist('epsilon_initial','var')
@@ -206,6 +196,8 @@ classdef Settings %< handle%& matlab.mixin.Copyable
             end
             if exist('e2','var')
                 obj.e2 = e2;
+            else
+                obj.e2 = 1;
             end
 
             
@@ -245,7 +237,11 @@ classdef Settings %< handle%& matlab.mixin.Copyable
             
             if exist('warningHoleBC','var')
                 obj.levelSetDataBase.warningHoleBC = warningHoleBC;
-            end             
+            end  
+            
+            if exist('fracRadius','var')
+                obj.levelSetDataBase.fracRadius = fracRadius;
+            end
             
             if exist('levFib','var')
                 obj.levelSetDataBase.levFib = levFib;

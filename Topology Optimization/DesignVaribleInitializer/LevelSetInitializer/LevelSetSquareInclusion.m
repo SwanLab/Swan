@@ -4,9 +4,9 @@ classdef LevelSetSquareInclusion <  ...
         
     methods (Access = public)
         
-        function obj = LevelSetSquareInclusion(input)
-            obj.m = input.widthSquare;
-            obj.compute(input);
+        function obj = LevelSetSquareInclusion(cParams)
+            obj.m = cParams.widthSquare;
+            obj.compute(cParams);
         end
     end    
   

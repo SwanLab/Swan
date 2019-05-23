@@ -38,9 +38,7 @@ classdef VademecumVariablesComputer < handle
     methods (Access = private)
         
         function computeCellVariables(obj)
-            matFile = [obj.fileName,'.mat'];
-            file2load = fullfile('Output',obj.fileName,matFile);
-            a  = load(file2load);
+            a  = load(obj.fileName);
             obj.vademecumData = a.d;
         end
         

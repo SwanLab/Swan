@@ -1,18 +1,17 @@
 classdef LevelSetSmoothRectangleInclusion < ...
-         LevelSetAbstractRectangleInclusion & ...
-         PnormDescriptor
-        
+        LevelSetAbstractRectangleInclusion & ...
+        PnormDescriptor
+    
     methods (Access = public)
         
-        function obj = LevelSetSmoothRectangleInclusion(input)
-            obj.m1 = input.m1;
-            obj.m2 = input.m2;
-            obj.pnorm  = input.pnorm;
-            obj.compute(input);
+        function obj = LevelSetSmoothRectangleInclusion(cParams)
+            obj.m1 = cParams.widthH;
+            obj.m2 = cParams.widthV;
+            obj.pnorm  = cParams.pnorm;
+            obj.compute(cParams);
         end
+        
     end
-    
-
     
 end
 

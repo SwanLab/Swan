@@ -31,7 +31,7 @@ classdef PrincipalDirectionComputerIn3D < PrincipalDirectionComputer
     
     methods (Access = protected)
         
-        function obtainEigenVectors(obj)
+        function obtainEigenValuesAndVectors(obj)
             s1 = sym('s1','real');
             s2 = sym('s2','real');
             s3 = sym('s3','real');
@@ -39,8 +39,9 @@ classdef PrincipalDirectionComputerIn3D < PrincipalDirectionComputer
             s13 = sym('s13','real');
             s23 = sym('s23','real');
             S = [s1 s12 s13; s12 s2 s23; s13 s23 s3];
-            [vS,~] = eig(S);
+            [vS,dS] = eig(S);
             obj.eigenVectors = vS;
+            obj.eigenValues = dS;
         end
                 
     end

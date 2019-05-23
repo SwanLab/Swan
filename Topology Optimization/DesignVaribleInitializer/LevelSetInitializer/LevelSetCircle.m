@@ -2,9 +2,9 @@ classdef LevelSetCircle < LevelSetSphereNdim
     
     methods (Access = public)
         
-        function obj = LevelSetCircle(input)
-            obj.fracRadius = 1-1e-6;
-            obj.compute(input);
+        function obj = LevelSetCircle(cParams)
+            obj.fracRadius = cParams.fracRadius;
+            obj.compute(cParams);
         end
     end
     
