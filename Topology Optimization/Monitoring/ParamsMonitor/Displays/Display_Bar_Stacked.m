@@ -2,10 +2,6 @@ classdef Display_Bar_Stacked < Display_Bar
     
     methods (Access = public)
         
-        function obj = Display_Bar_Stacked(title)
-            obj@Display_Bar(title);
-        end
-        
         function refresh(obj)
             if ~isempty(obj.valueArray) && ~isempty(obj.iterationArray)                
                 it = obj.iterationArray(end);

@@ -10,7 +10,7 @@ classdef SettingsLineSearch < AbstractSettings
         filename
         kfrac
         kappaMultiplier
-        scalarProductSettings
+        scalarProduct
         epsilon
         HJiter0
     end

@@ -13,11 +13,11 @@ classdef Stokes_Problem < FEM
     
     %% Public methods definition ==========================================
     methods (Access = public)
-        function obj = Stokes_Problem(problemID)
-            obj.problemID = problemID;
-            obj.mesh = Mesh_GiD(problemID); % Mesh defined twice, but almost free
+        function obj = Stokes_Problem(fileName)
+            obj.problemData.fileName = fileName;
+            obj.mesh = Mesh_GiD(fileName); % Mesh defined twice, but almost free
             obj.createGeometry(obj.mesh);
-            obj.dof = DOF_Stokes(problemID,obj.geometry);
+            obj.dof = DOF_Stokes(fileName,obj.geometry);
         end
         
         function preProcess(obj)

@@ -59,7 +59,7 @@ classdef SettingsTranslator < handle
                             
                         elseif strcmp(value{k},'perimeterConstraint')
                             if isprop(oldSettings,'Perimeter_target')
-                                s.costSettings.shapeFuncSettings{k}.PerimeterTarget = oldSettings.Perimeter_target;
+                                s.costSettings.shapeFuncSettings{k}.perimeterTarget = oldSettings.Perimeter_target;
                             end
                         end
                     end
@@ -73,7 +73,7 @@ classdef SettingsTranslator < handle
                         s.constraintSettings.shapeFuncSettings{k}.type = value{k};
                         if strcmp(value{k},'perimeterConstraint')
                             if isprop(oldSettings,'Perimeter_target')
-                                s.constraintSettings.shapeFuncSettings{k}.PerimeterTarget = oldSettings.Perimeter_target;
+                                s.constraintSettings.shapeFuncSettings{k}.perimeterTarget = oldSettings.Perimeter_target;
                             end
                         end
                     end

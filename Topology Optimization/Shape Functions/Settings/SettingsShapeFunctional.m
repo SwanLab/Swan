@@ -7,8 +7,7 @@ classdef SettingsShapeFunctional < AbstractSettings
     properties (Access = public)
         type
         filterParams
-        filename
-        scale
+        femSettings
         homogVarComputer
         designVariable
         targetParameters
@@ -31,6 +30,6 @@ classdef SettingsShapeFunctional < AbstractSettings
             s = f.create(cParams);
         end
         
-    end
+    end       
     
 end

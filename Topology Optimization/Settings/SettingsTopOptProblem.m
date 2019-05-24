@@ -60,7 +60,8 @@ classdef SettingsTopOptProblem < AbstractSettings
         
         function createDesignVarSettings(obj)
             s = obj.cParams.designVarSettings;
-            s.mesh = obj.mesh;
+            s.mesh = obj.mesh;     
+            s.problemData = obj.problemData;
             obj.designVarSettings = SettingsDesignVariable(s);
         end
         
@@ -118,9 +119,9 @@ classdef SettingsTopOptProblem < AbstractSettings
         function printSummary(obj)
             if obj.isNotTest()
                 fprintf('<strong>%s</strong>\n\n',obj.problemData.caseFileName)
-                fprintf('\t-Optimizer: <strong>%s</strong>\n',obj.optimizerSettings.type); 
+                fprintf('\t-Optimizer: <strong>%s</strong>\n',obj.optimizerSettings.type);
                 if strcmp(obj.optimizerSettings.type,'AlternatingPrimalDual')
-                    fprintf('\t-Primal Updater: <strong>%s</strong>\n',obj.optimizerSettings.uncOptimizerSettings.type); 
+                    fprintf('\t-Primal Updater: <strong>%s</strong>\n',obj.optimizerSettings.uncOptimizerSettings.type);
                 end
                 fprintf('\t-Cost: <strong>%s</strong>, ',obj.problemData.costFunctions{:})
                 fprintf('\n\t-Constraints: ')

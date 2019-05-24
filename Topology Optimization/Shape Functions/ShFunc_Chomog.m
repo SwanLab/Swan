@@ -16,7 +16,7 @@ classdef ShFunc_Chomog < ShapeFunctional
         function obj = ShFunc_Chomog(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
-            obj.physicalProblem = FEM.create(cParams.filename);
+            obj.physicalProblem = FEM.create(cParams.femSettings.fileName);
             obj.physicalProblem.preProcess;
         end
         

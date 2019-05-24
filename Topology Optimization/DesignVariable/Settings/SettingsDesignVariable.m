@@ -11,6 +11,8 @@ classdef SettingsDesignVariable < AbstractSettings
         initialCase
         levelSetCreatorSettings
         scalarProductSettings
+        problemData
+        femSettings
     end
     
     methods (Access = public)
@@ -49,6 +51,20 @@ classdef SettingsDesignVariable < AbstractSettings
             s.coord = obj.mesh.coord;
             s.type = obj.initialCase;
             obj.levelSetCreatorSettings = SettingsLevelSetCreator().create(s);
+        end
+        
+        function initScalarProductSettings(obj)
+            obj.scalarProductSettings.femSettings.fileName = obj.problemData.femFileName;
+            obj.scalarProductSettings.scale = obj.problemData.scale;
+        end
+        
+    end
+    
+    methods
+        
+        function set.problemData(obj,pD)
+            obj.problemData = pD;
+            obj.initScalarProductSettings();
         end
         
     end

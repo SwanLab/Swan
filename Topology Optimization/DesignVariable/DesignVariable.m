@@ -12,8 +12,11 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
         rho        
     end
     
-    properties (Access = private)
-        scalarProduct   
+    properties (GetAccess = public, SetAccess = private)
+        scalarProduct
+    end
+    
+    properties (Access = private) 
         valueOld                                        
         alphaOld
     end
@@ -63,9 +66,8 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
         function init(obj,cParams)
             obj.type = cParams.type;
             obj.mesh = cParams.mesh; 
-            cParams.scalarProductSettings.filename = obj.mesh.problemID;
             cParams.scalarProductSettings.nVariables = obj.nVariables;
-            obj.createScalarProduct(cParams.scalarProductSettings);
+            obj.createScalarProduct(cParams);
         end
         
     end
@@ -73,7 +75,9 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
     methods (Access = private)
         
         function createScalarProduct(obj,cParams)
-            obj.scalarProduct = ScalarProduct(cParams);        
+            s = cParams.scalarProductSettings;
+            s.femSettings.mesh = obj.mesh;
+            obj.scalarProduct = ScalarProduct(s);        
         end
         
     end

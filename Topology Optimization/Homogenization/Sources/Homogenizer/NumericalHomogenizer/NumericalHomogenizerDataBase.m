@@ -1,11 +1,11 @@
 classdef NumericalHomogenizerDataBase < handle
     
     properties (SetAccess = private, GetAccess = public)
-       dataBase                
+        dataBase
     end
-        
+    
     properties (Access = private)
-       femFileName
+        femFileName
     end
     
     methods (Access = public)
@@ -44,23 +44,23 @@ classdef NumericalHomogenizerDataBase < handle
             d.filterParams.filterType = 'P1';
             s = SettingsDesignVariable();
             s.type = 'Density';
-            s.levelSetCreatorSettings.type = 'full';       
+            s.levelSetCreatorSettings.type = 'full';
             s.levelSetCreatorSettings.ndim  = s.mesh.ndim;
-            s.levelSetCreatorSettings.coord = s.mesh.coord;  
+            s.levelSetCreatorSettings.coord = s.mesh.coord;
             scalarPr.epsilon = 1e-3;
-            s.scalarProductSettings = scalarPr;            
+            s.scalarProductSettings = scalarPr;
             d.filterParams.designVar = DesignVariable.create(s);% Density(s);
-            d.filename = obj.femFileName;
-            d.scale = 'MICRO';
+            d.femSettings.fileName = obj.femFileName;
+            d.femSettings.scale = 'MICRO';
             
             sHomog.type                   = 'ByInterpolation';
             sHomog.interpolation          = dI.materialInterpDataBase.materialInterpolation;
             sHomog.dim                    = dI.pdim;
             sHomog.typeOfMaterial         = dI.materialDataBase.materialType;
-            sHomog.constitutiveProperties = dI.materialDataBase.matProp;       
-            sHomog.nelem                  = size(s.mesh.coord,1);   
+            sHomog.constitutiveProperties = dI.materialDataBase.matProp;
+            sHomog.nelem                  = size(s.mesh.coord,1);
             sHomog = SettingsHomogenizedVarComputer.create(sHomog);
-            d.homogVarComputer = HomogenizedVarComputer.create(sHomog);            
+            d.homogVarComputer = HomogenizedVarComputer.create(sHomog);
         end
         
     end
@@ -85,7 +85,7 @@ classdef NumericalHomogenizerDataBase < handle
             d.matProp.E_minus = 1e-3;
             d.matProp.nu_plus = 1/3;
             d.matProp.nu_minus = 1/3;
-        end        
+        end
         
     end
     

@@ -34,14 +34,10 @@ classdef TopOpt_Problem < handle
         
         function completeOptimizerSettings(obj,cParams)
             s = cParams.optimizerSettings;
-            s.uncOptimizerSettings.lineSearchSettings.scalarProductSettings.epsilon         = obj.incrementalScheme.targetParams.epsilon;
-            s.uncOptimizerSettings.lineSearchSettings.scalarProductSettings.nVariables      = obj.designVariable.nVariables;
-            s.uncOptimizerSettings.scalarProductSettings = s.uncOptimizerSettings.lineSearchSettings.scalarProductSettings;
+            s.uncOptimizerSettings.scalarProductSettings = obj.designVariable.scalarProduct;
             
-            s.uncOptimizerSettings.lineSearchSettings.epsilon = obj.incrementalScheme.targetParams.epsilon;
-            
-            s.uncOptimizerSettings.targetParameters  = obj.incrementalScheme.targetParams;
-            s.uncOptimizerSettings.designVariable     = obj.designVariable;
+            s.uncOptimizerSettings.targetParameters = obj.incrementalScheme.targetParams;
+            s.uncOptimizerSettings.designVariable   = obj.designVariable;
             
             s.designVar         = obj.designVariable;
             s.targetParameters  = obj.incrementalScheme.targetParams;
@@ -108,7 +104,7 @@ classdef TopOpt_Problem < handle
             s.designVar = obj.designVariable;
             s.homogenizedVarComputer = obj.homogenizedVarComputer;
             s.targetParameters = obj.incrementalScheme.targetParams;
-            obj.cost       = Cost(s);
+            obj.cost = Cost(s);
         end
         
         function createConstraint(obj,cParams)

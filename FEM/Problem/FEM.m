@@ -1,10 +1,7 @@
 classdef FEM < handle
-    %FEM Summary of this class goes here
-    %   Detailed explanation goes here
     
-    %% Public GetAccess properties definition =============================
     properties (GetAccess = public, SetAccess = public)
-        problemID
+        problemData
         geometry
         mesh
         dof
@@ -13,41 +10,47 @@ classdef FEM < handle
         variables
     end
     
-    %% Restricted properties definition ===================================    
-    properties (GetAccess = ?Postprocess, SetAccess = private)
-    end
-
-   %% Private properties definition ======================================
     properties (Access = protected)
         solver
-        iter = 0;        
+        iter = 0;   
+        inputReader
     end
     
-    %% Public methods definition ==========================================
+    methods (Access = public)
+        
+        function obj = FEM()
+            obj.inputReader = FemInputReader_GiD();
+        end
+        
+    end
+    
     methods (Static, Access = public)
-        function obj = create(problemID)
-            mesh = Mesh_GiD(problemID); % Mesh defined twice, but almost free
+        
+        function obj = create(fileName)
+            mesh = Mesh_GiD(fileName); % Mesh defined twice, but almost free
             switch mesh.ptype
                 case 'ELASTIC'
                     switch mesh.scale
                         case 'MACRO'
-                            obj = Elastic_Problem(problemID);
+                            obj = Elastic_Problem(fileName);
                         case 'MICRO'
-                            obj = Elastic_Problem_Micro(problemID);
+                            obj = Elastic_Problem_Micro(fileName);
                     end
                 case 'THERMAL'
-                    obj = Thermal_Problem(problemID);
+                    obj = Thermal_Problem(fileName);
                 case 'DIFF-REACT'
-                    obj = DiffReact_Problem(problemID);
+                    obj = DiffReact_Problem(fileName);
                 case 'HYPERELASTIC'
-                    obj = Hyperelastic_Problem(problemID);
+                    obj = Hyperelastic_Problem(fileName);
                 case 'Stokes'
-                    obj = Stokes_Problem(problemID);
+                    obj = Stokes_Problem(fileName);
             end
         end
+        
     end
     
     methods (Access = public)
+        
         function sol = solve_steady_nonlinear_problem(obj,free_dof,tol)
             total_free_dof = sum(free_dof);
             dr = obj.element.computedr;
@@ -125,6 +128,16 @@ classdef FEM < handle
         
     end
     
+    methods (Access = protected)
+        
+        function createMesh(obj)
+            coord  = obj.inputReader.coord;
+            connec = obj.inputReader.connec;
+            obj.mesh = Mesh().create(coord,connec);
+        end
+        
+    end
+    
     methods (Access = private)
         
         function d = createPostProcessDataBase(obj,fileName)
@@ -136,9 +149,9 @@ classdef FEM < handle
         
     end
     
-    methods (Abstract)
+    methods (Access = public, Abstract)
         preProcess(obj)
         computeVariables(obj)
-        postProcess(obj)
     end
+    
 end

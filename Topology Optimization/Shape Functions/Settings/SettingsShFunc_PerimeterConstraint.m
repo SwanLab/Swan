@@ -1,7 +1,7 @@
 classdef SettingsShFunc_PerimeterConstraint < SettingsShapeFunctional
     
     properties (Access = public)
-        Perimeter_target
+        perimeterTarget
     end
     
     methods (Access = public)

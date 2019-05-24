@@ -49,10 +49,10 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         end
         
         function setupFilter(obj,e,designVar)
-            filterSettings = SettingsFilter('paramsFilter_PDE_Boundary.json');
-            filterSettings.designVar = designVar;
-            filterSettings.quadratureOrder = 'LINEAR';            
-            obj.filter = FilterFactory().create(filterSettings);
+            s = SettingsFilter('paramsFilter_PDE_Boundary.json');
+            s.designVar = designVar;
+            s.quadratureOrder = 'LINEAR';            
+            obj.filter = FilterFactory().create(s);
             obj.filter.preProcess();
             obj.filter.updateEpsilon(e);
         end

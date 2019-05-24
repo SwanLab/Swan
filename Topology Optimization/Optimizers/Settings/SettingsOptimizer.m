@@ -80,7 +80,7 @@ classdef SettingsOptimizer < AbstractSettings
         function initOptimizerUnconstrainedSettings(obj)
             s = obj.uncOptimizerSettings;
             obj.uncOptimizerSettings = SettingsOptimizerUnconstrained(s);
-            s2.femFileName = obj.problemData.femFileName;
+            s2.problemData = obj.problemData;
             obj.uncOptimizerSettings.loadParams(s2);
             obj.uncOptimizerSettings.init();
         end

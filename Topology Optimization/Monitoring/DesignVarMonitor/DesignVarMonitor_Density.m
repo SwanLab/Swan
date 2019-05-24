@@ -46,12 +46,12 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
     methods (Access = private)
         
         function createFilter(obj)
-            filterSettings = SettingsFilter();
-            filterSettings.filterType = 'P1';
-            filterSettings.domainType = 'INTERIOR';
-            filterSettings.designVar = obj.designVar;
-            filterSettings.quadratureOrder = 'LINEAR';
-            obj.filter = Filter_P1_Density(filterSettings);
+            s.filterType = 'P1';
+            s.domainType = 'INTERIOR';
+            s.designVar = obj.designVar;
+            s.quadratureOrder = 'LINEAR';
+            s = SettingsFilter(s);
+            obj.filter = Filter_P1_Density(s);
             obj.filter.preProcess();
         end
         

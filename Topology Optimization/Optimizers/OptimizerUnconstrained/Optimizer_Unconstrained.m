@@ -4,7 +4,7 @@ classdef Optimizer_Unconstrained < handle
         objectiveFunction
         targetParameters
         opt_cond
-        hasConverged        
+        hasConverged
     end
     
     properties (GetAccess = public, SetAccess = protected)
@@ -19,14 +19,14 @@ classdef Optimizer_Unconstrained < handle
         convergenceVars
     end
     
-    properties (Access = protected)                
-        designVariable        
+    properties (Access = protected)
+        designVariable
         xOld
     end
     
     properties (Access = private)
-       incX
-       incF
+        incX
+        incF
     end
     
     methods (Access = public, Abstract)
@@ -38,33 +38,33 @@ classdef Optimizer_Unconstrained < handle
         function obj = create(cParams)
             f = Optimizer_UnconstrainedFactory();
             obj = f.create(cParams);
-        end        
+        end
         
     end
     
     methods (Access = protected)
         
         function opt = obtainOptimalityTolerance(obj)
-            opt = obj.targetParameters.optimality_tol;            
+            opt = obj.targetParameters.optimality_tol;
         end
-
+        
     end
     
     methods (Access = public)
         
-        function obj = Optimizer_Unconstrained(cParams) 
+        function obj = Optimizer_Unconstrained(cParams)
             obj.objectiveFunction  = cParams.lagrangian;
-            obj.hasConverged       = false;            
-            obj.maxIncrNormX       = +Inf;            
-            obj.lineSearch         = LineSearch.create(cParams.lineSearchSettings);
-            obj.scalar_product     = ScalarProduct(cParams.scalarProductSettings);
+            obj.hasConverged       = false;
+            obj.maxIncrNormX       = +Inf;
+            obj.createScalarProductCalculator(cParams);
+            obj.createLineSearch(cParams);
             obj.convergenceVars    = cParams.convergenceVars;
             obj.targetParameters   = cParams.targetParameters;
             obj.designVariable     = cParams.designVariable;
         end
         
         function update(obj)
-            obj.designVariable.updateOld();                                    
+            obj.designVariable.updateOld();
             obj.init();
             while ~obj.hasConverged
                 obj.designVariable.restart();
@@ -73,7 +73,7 @@ classdef Optimizer_Unconstrained < handle
                 obj.updateConvergenceParams();
                 if ~obj.hasConverged
                     obj.lineSearch.computeKappa();
-               end
+                end
             end
             obj.revertIfDesignNotImproved();
         end
@@ -81,24 +81,24 @@ classdef Optimizer_Unconstrained < handle
         function init(obj)
             obj.objectiveFunction.updateOld();
             obj.initLineSearch();
-            obj.hasConverged = false;            
+            obj.hasConverged = false;
         end
         
         function storeKappaVariable(obj)
-            obj.convergenceVars.set(obj.lineSearch.kappa);            
+            obj.convergenceVars.set(obj.lineSearch.kappa);
         end
         
         function updateConvergenceParams(obj)
             obj.computeIncrements();
-            obj.computeOptimizerFlagConvergence(); 
-            obj.storeConvergenceVariablesValues();            
+            obj.computeOptimizerFlagConvergence();
+            obj.storeConvergenceVariablesValues();
         end
         
         function storeConvergenceVariablesValues(obj)
             obj.convergenceVars.reset();
             obj.convergenceVars.append(obj.incF);
             obj.convergenceVars.append(obj.incX);
-            obj.convergenceVars.append(obj.lineSearch.kappa);            
+            obj.convergenceVars.append(obj.lineSearch.kappa);
         end
         
         function computeOptimizerFlagConvergence(obj)
@@ -106,7 +106,7 @@ classdef Optimizer_Unconstrained < handle
             smallChangeX  = obj.isVariableChangeSmall();
             isValidIter   = costDecreased && smallChangeX;
             isLineSearchSmall = obj.isLineSearchSmallerThanMin;
-            obj.hasConverged = isValidIter || isLineSearchSmall;            
+            obj.hasConverged = isValidIter || isLineSearchSmall;
         end
         
         function itHas = hasCostDecreased(obj)
@@ -118,7 +118,7 @@ classdef Optimizer_Unconstrained < handle
         end
         
         function itIs = isLineSearchSmallerThanMin(obj)
-           itIs = obj.lineSearch.kappa <= obj.lineSearch.kappa_min;
+            itIs = obj.lineSearch.kappa <= obj.lineSearch.kappa_min;
         end
         
         function computeIncrements(obj)
@@ -134,7 +134,7 @@ classdef Optimizer_Unconstrained < handle
             itIs = ~isNot;
         end
         
-       function initLineSearch(obj)
+        function initLineSearch(obj)
             x0 = obj.designVariable.value;
             g  = obj.objectiveFunction.gradient;
             obj.lineSearch.initKappa(x0,g);
@@ -142,9 +142,22 @@ classdef Optimizer_Unconstrained < handle
         
     end
     
-    methods (Access = private)        
+    methods (Access = private)
         
-
+        function createScalarProductCalculator(obj,cParams)
+            s = cParams.scalarProductSettings;
+            if isa(s,'ScalarProduct')
+                obj.scalar_product = s;
+            else
+                obj.scalar_product = ScalarProduct(s);
+            end
+        end
+        
+        function createLineSearch(obj,cParams)
+            s = cParams.lineSearchSettings;
+            s.scalarProduct = obj.scalar_product;
+            obj.lineSearch  = LineSearch.create(s);
+        end
         
         function revertIfDesignNotImproved(obj)
             if ~obj.designImproved
@@ -154,12 +167,4 @@ classdef Optimizer_Unconstrained < handle
         
     end
     
-%     methods
-%         
-%         function constr_tol = get.constr_tol(obj)
-%             constr_tol = obj.targetParameters.constr_tol;
-%         end
-%         
-%     end
-%     
 end

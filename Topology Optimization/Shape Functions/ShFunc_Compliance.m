@@ -1,11 +1,12 @@
 classdef ShFunc_Compliance < ShFunWithElasticPdes
-   
+    
     methods (Access = public)
         
         function obj = ShFunc_Compliance(cParams)
-            cParams.filterParams.quadratureOrder = 'LINEAR';            
+            cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
-            obj.createEquilibriumProblem(cParams.filename);
+            fileName = cParams.femSettings.fileName;
+            obj.createEquilibriumProblem(fileName);
         end
         
     end
@@ -29,9 +30,9 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
             ej   = squeeze(e(igaus,jstre,:));
             g = zeros(length(ei),1,obj.nVariables);
             for ivar = 1:obj.nVariables
-                dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:));            
+                dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:));
                 g(:,1,ivar) = -ei.*dCij.*ej;
-            end            
+            end
         end
         
     end
