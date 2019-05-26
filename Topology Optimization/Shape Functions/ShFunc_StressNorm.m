@@ -80,7 +80,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
                 for istre = 1:nstre
                     ei   = squeeze(eu(igaus,istre,:));
                     for jstre = 1:nstre
-                        for ivar = obj.nVariables
+                        for ivar = 1:obj.nVariables
                             dCij_iv = squeeze(dC(istre,jstre,ivar,:));
                             for kstre = 1:nstre
                                 Pjk  = squeeze(P(jstre,kstre,:));
@@ -109,7 +109,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
                 for istre = 1:nstre
                     ei   = squeeze(eu(igaus,istre,:));
                     for jstre = 1:nstre
-                        for ivar = obj.nVariables
+                        for ivar = 1:obj.nVariables
                             Cij = squeeze(C(istre,jstre,:));
                             for kstre = 1:nstre
                                 dPjk_iv  = squeeze(dP(jstre,kstre,ivar,:));
@@ -139,25 +139,13 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
                     ei   = squeeze(eu(igaus,istre,:));
                     for jstre = 1:nstre
                         ej   = squeeze(ep(igaus,jstre,:));
-                        for ivar = obj.nVariables
+                        for ivar = 1:obj.nVariables
                             dCij_iv = squeeze(dC(istre,jstre,ivar,:));                            
                             g_iv  = squeeze(g(:,igaus,ivar));
                             g(:,igaus,ivar) = g_iv + ei.*dCij_iv.*ej;
                         end
                     end                    
                 end
-            end
-        end
-        
-        function g = updateGradient(obj,igaus,istre,jstre)
-            eu   = obj.physicalProblem.variables.strain;
-            ev   = obj.adjointProb.variables.strain;
-            eu_i = squeeze(eu(igaus,istre,:));
-            ev_j = squeeze(ev(igaus,jstre,:));
-            g = zeros(length(eu_i),1,obj.nVariables);
-            for ivar = 1:obj.nVariables
-                dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:));
-                g(:,1,ivar) = eu_i.*dCij.*ev_j;
             end
         end
         
@@ -169,6 +157,10 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
             obj.adjointProb.computeVariablesWithBodyForces(obj.fAdjoint);
         end
         
+        function updateGradient(obj)
+            
+            
+        end
     end
     
     methods (Access = private)
