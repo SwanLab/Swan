@@ -105,7 +105,7 @@ classdef Optimizer_Unconstrained < handle
             costDecreased = obj.hasCostDecreased();
             smallChangeX  = obj.isVariableChangeSmall();
             isValidIter   = costDecreased && smallChangeX;
-            isLineSearchSmall = obj.isLineSearchSmallerThanMin;
+            isLineSearchSmall = obj.isLineSearchSmallerThanMin();
             obj.hasConverged = isValidIter || isLineSearchSmall;            
         end
         
