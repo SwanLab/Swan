@@ -9,6 +9,7 @@ classdef DesignVarMonitor_Abstract < handle
         patchHandle
         designVar
         mesh
+        bc
         cam
         BCplotter
     end
@@ -22,8 +23,8 @@ classdef DesignVarMonitor_Abstract < handle
         axes
     end
     
-    methods (Access = public, Abstract)        
-        plot(obj)        
+    methods (Access = public, Abstract)
+        plot(obj)
     end
     
     methods (Access = protected, Abstract)
@@ -41,10 +42,11 @@ classdef DesignVarMonitor_Abstract < handle
     methods (Access = public)
         
         function obj = DesignVarMonitor_Abstract(cParams)
-            obj.showBC = cParams.showBC;
+            obj.showBC    = cParams.showBC;
             obj.designVar = cParams.designVar;
-            obj.mesh = obj.designVar.mesh;
-            obj.dim = obj.mesh.pdim;
+            obj.mesh      = obj.designVar.mesh;
+            obj.bc        = cParams.bc;
+            obj.dim       = cParams.dim;
             obj.init();
         end
         
@@ -94,7 +96,7 @@ classdef DesignVarMonitor_Abstract < handle
         end
         
         function createBCplotter(obj)
-            obj.BCplotter = FactoryBoundayConditions.create(obj.showBC,obj.dim,obj.axes,obj.mesh);
+            obj.BCplotter = FactoryBoundayConditions.create(obj.showBC,obj.dim,obj.axes,obj.mesh,obj.bc);
         end
         
     end

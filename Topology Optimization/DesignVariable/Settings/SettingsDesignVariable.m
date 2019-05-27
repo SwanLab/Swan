@@ -11,8 +11,7 @@ classdef SettingsDesignVariable < AbstractSettings
         initialCase
         levelSetCreatorSettings
         scalarProductSettings
-        problemData
-        femSettings
+        femData
     end
     
     methods (Access = public)
@@ -21,7 +20,6 @@ classdef SettingsDesignVariable < AbstractSettings
             if nargin == 1
                 obj.loadParams(varargin{1});
             end
-            obj.init();
         end
         
     end
@@ -29,42 +27,32 @@ classdef SettingsDesignVariable < AbstractSettings
     methods (Access = private)
         
         function init(obj)
-            obj.initMesh();
-            obj.initValue();
             obj.initLevelSetCreator();
-        end
-        
-        function initMesh(obj)
-            if ischar(obj.mesh)
-                meshFile = obj.mesh;
-                obj.mesh = Mesh_GiD(meshFile);
-            end
-        end
-        
-        function initValue(obj)
-            obj.value = ones(size(obj.mesh.coord,1),1);
         end
         
         function initLevelSetCreator(obj)
             s = obj.levelSetCreatorSettings;
-            s.ndim  = obj.mesh.ndim;
-            s.coord = obj.mesh.coord;
             s.type = obj.initialCase;
             obj.levelSetCreatorSettings = SettingsLevelSetCreator().create(s);
         end
         
         function initScalarProductSettings(obj)
-            obj.scalarProductSettings.femSettings.fileName = obj.problemData.femFileName;
-            obj.scalarProductSettings.scale = obj.problemData.scale;
+            obj.scalarProductSettings.femSettings.fileName = obj.femData.fileName;
+            obj.scalarProductSettings.scale = obj.femData.scale;
         end
         
     end
     
     methods
         
-        function set.problemData(obj,pD)
-            obj.problemData = pD;
+        function set.femData(obj,pD)
+            obj.femData = pD;
             obj.initScalarProductSettings();
+        end
+        
+        function set.mesh(obj,m)
+            obj.mesh = m;
+            obj.init();
         end
         
     end

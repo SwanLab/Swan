@@ -10,7 +10,7 @@ classdef SettingsCC < AbstractSettings
         designVar
         homogenizedVarComputer
         targetParameters
-        problemData
+        femData
         filterType
     end
     
@@ -56,8 +56,8 @@ classdef SettingsCC < AbstractSettings
                 else
                     s = cParams(iSF);
                 end
-                s.femSettings.fileName = obj.problemData.femFileName;
-                s.femSettings.scale = obj.problemData.scale;
+                s.femSettings.fileName = obj.femData.fileName;
+                s.femSettings.scale = obj.femData.scale;
                 s.filterParams = obj.createFilterSettings();
                 sfS{iSF} = SettingsShapeFunctional().create(s);
             end
@@ -67,7 +67,8 @@ classdef SettingsCC < AbstractSettings
         
         function s = createFilterSettings(obj)
             s.filterType  = obj.filterType;
-            s.femSettings.fileName = obj.problemData.femFileName;
+            s.femSettings.fileName = obj.femData.fileName;
+            s.femSettings.scale = obj.femData.scale;
             s = SettingsFilter(s);
         end
         

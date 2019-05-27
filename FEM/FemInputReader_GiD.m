@@ -21,12 +21,16 @@ classdef FemInputReader_GiD < handle
     methods (Access = public)
         
         function s = read(obj,fileName)
-            obj.readFile(fileName);
+            if ~isempty(fileName)
+                obj.readFile(fileName);
+            end
             s = obj.getData();
         end
         
         function s = getData(obj)
             s.mesh = Mesh().create(obj.coord,obj.connec);
+            s.coord  = obj.coord;
+            s.connec = obj.connec;
             s.pdim = obj.pdim;
             s.geometryType = obj.geometryType;
             s.ptype = obj.ptype;

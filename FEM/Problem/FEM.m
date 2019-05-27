@@ -27,10 +27,10 @@ classdef FEM < handle
     methods (Static, Access = public)
         
         function obj = create(fileName)
-            mesh = Mesh_GiD(fileName); % Mesh defined twice, but almost free
-            switch mesh.ptype
+            s = FemInputReader_GiD().read(fileName);
+            switch s.ptype
                 case 'ELASTIC'
-                    switch mesh.scale
+                    switch s.scale
                         case 'MACRO'
                             obj = Elastic_Problem(fileName);
                         case 'MICRO'
@@ -129,6 +129,21 @@ classdef FEM < handle
     end
     
     methods (Access = protected)
+        
+        function readProblemData(obj,fileName)
+            femReader = FemInputReader_GiD();
+            s = femReader.read(fileName);
+            
+            obj.problemData.fileName = fileName;
+            obj.problemData.scale = s.scale;
+            obj.problemData.pdim  = s.pdim;
+            obj.problemData.ptype = s.ptype;
+            obj.problemData.nelem = s.mesh.nelem;
+            obj.problemData.bc.dirichlet = s.dirichlet;
+            obj.problemData.bc.pointload = s.pointload;
+            
+            obj.mesh = Mesh().create(s.coord,s.connec);
+        end
         
         function createMesh(obj)
             coord  = obj.inputReader.coord;

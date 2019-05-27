@@ -14,8 +14,7 @@ classdef Stokes_Problem < FEM
     %% Public methods definition ==========================================
     methods (Access = public)
         function obj = Stokes_Problem(fileName)
-            obj.problemData.fileName = fileName;
-            obj.mesh = Mesh_GiD(fileName); % Mesh defined twice, but almost free
+            obj.readProblemData(fileName);
             obj.createGeometry(obj.mesh);
             obj.dof = DOF_Stokes(fileName,obj.geometry);
         end
@@ -23,7 +22,7 @@ classdef Stokes_Problem < FEM
         function preProcess(obj)
             cParams.nelem = obj.geometry(1).interpolation.nelem;
             obj.material = Material_Stokes(cParams);
-            obj.element = Element_Stokes(obj.mesh,obj.geometry,obj.material,obj.dof);
+            obj.element = Element_Stokes(obj.mesh,obj.geometry,obj.material,obj.dof,obj.problemData);
             obj.solver = Solver.create;
         end
         

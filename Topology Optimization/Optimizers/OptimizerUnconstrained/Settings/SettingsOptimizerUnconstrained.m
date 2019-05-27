@@ -48,15 +48,15 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
         end
         
         function initScalarProductSettings(obj)
-            obj.scalarProductSettings.scale = obj.problemData.scale;
-            obj.scalarProductSettings.femSettings.fileName = obj.problemData.femFileName;
+            obj.scalarProductSettings.scale = obj.problemData.femData.scale;
+            obj.scalarProductSettings.femSettings.fileName = obj.problemData.femData.fileName;
         end
         
         function initLineSearchSettings(obj)
             s = obj.lineSearchSettings;
             obj.lineSearchSettings = SettingsLineSearch(s);
             s2.optimizerType  = obj.type;
-            s2.filename       = obj.problemData.femFileName;
+            s2.filename       = obj.problemData.femData.fileName;
             obj.lineSearchSettings.loadParams(s2);
         end
         

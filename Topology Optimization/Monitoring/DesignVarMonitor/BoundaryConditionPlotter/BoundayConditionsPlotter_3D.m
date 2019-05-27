@@ -2,10 +2,6 @@ classdef BoundayConditionsPlotter_3D < BoundayConditionsPlotter_Abstract
     
     methods (Access = public)
         
-        function obj = BoundayConditionsPlotter_3D(axes,mesh)
-            obj.init(axes,mesh);
-        end
-        
         function plotDirichlet(obj)
             plot3(obj.axes,obj.mesh.coord(obj.iD,1),obj.mesh.coord(obj.iD,2),obj.mesh.coord(obj.iD,3),'>','Color',obj.colorD,'MarkerSize',4,'MarkerFaceColor',obj.colorD)
             quiver3(obj.axes,obj.mesh.coord(obj.iD,1),obj.mesh.coord(obj.iD,2),obj.mesh.coord(obj.iD,3),obj.vD(:,1),obj.vD(:,2),obj.vD(:,3),'Color',obj.colorD,'AutoScaleFactor',obj.scaleD,'LineWidth',obj.lineWidth,'MaxHeadSize',obj.maxHeadSize);

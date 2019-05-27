@@ -20,9 +20,7 @@ classdef SettingsTranslator < handle
                 value = oldSettings.(prop);
                 %                 if ~isempty(value)
                 if strcmp(prop,'filename')
-                    s.problemData.femFileName = value;
-                elseif strcmp(prop,'ptype')
-                    s.problemData.scale = value;
+                    s.problemData.femData.fileName = value;
                 elseif strcmp(prop,'homegenizedVariablesComputer')
                     s.homogenizedVarComputerSettings.type = value;
                     s = obj.translateHomogenizedVariablesComputer(s);

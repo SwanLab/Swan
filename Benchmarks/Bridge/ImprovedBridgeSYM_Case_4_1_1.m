@@ -7,6 +7,7 @@ cost = {'compliance'};
 weights = [1];
 constraint = {'volume'};
 optimizer = 'IPOPT'; kappaMultiplier = 1;
+designVariable = 'Density';
 filterType = 'P1';
 line_search = 'DIMENSIONALLY CONSISTENT';
 showBC = true;

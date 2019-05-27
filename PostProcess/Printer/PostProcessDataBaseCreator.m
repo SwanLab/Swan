@@ -14,9 +14,9 @@ classdef PostProcessDataBaseCreator < handle
             d.nnode = size(mesh.connec,2);
             d.npnod = size(mesh.coord,1);
             d.gtype = mesh.geometryType;
-            d.pdim  = mesh.pdim;
+            d.pdim  = dI.pdim;
             d.nelem = size(mesh.connec,1);
-            d.ptype = mesh.ptype;
+            d.ptype = dI.ptype;
             d.ndim  = obj.computeNdim(d.pdim);
             d.etype = obj.computeGiDElementType(d.gtype);
             obj.data = d;

@@ -6,9 +6,9 @@ classdef LevelSetCreator < handle
         lsSize
         ndim
     end
-        
+    
     methods (Access = public)
-               
+        
         function x = getValue(obj)
             x = obj.levelSet;
         end

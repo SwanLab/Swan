@@ -3,6 +3,7 @@ classdef BoundayConditionsPlotter_Abstract < handle
     properties (GetAccess = protected, SetAccess = private)
         axes
         mesh
+        bc
         scaleD
         scaleN
         
@@ -26,6 +27,10 @@ classdef BoundayConditionsPlotter_Abstract < handle
     
     methods (Access = public)
         
+        function obj = BoundayConditionsPlotter_Abstract(axes,mesh,bc)
+            obj.init(axes,mesh,bc);
+        end
+        
         function plot(obj)
             obj.plotDirichlet();
             obj.plotNeumann();
@@ -35,9 +40,10 @@ classdef BoundayConditionsPlotter_Abstract < handle
     
     methods (Access = protected)
         
-        function init(obj,axes,mesh)
+        function init(obj,axes,mesh,bc)
             obj.axes = axes;
             obj.mesh = mesh;
+            obj.bc   = bc;
             
             obj.getBoundaryConditions();
             
@@ -54,13 +60,13 @@ classdef BoundayConditionsPlotter_Abstract < handle
         end
         
         function findNodes(obj)
-            obj.iN = obj.getNodesFromInputData(obj.mesh.pointload);
-            obj.iD = obj.getNodesFromInputData(obj.mesh.dirichlet);
+            obj.iN = obj.getNodesFromInputData(obj.bc.pointload);
+            obj.iD = obj.getNodesFromInputData(obj.bc.dirichlet);
         end
         
         function findValues(obj)
-            obj.vN = obj.getValuesFromInputData(obj.mesh.pointload);
-            obj.vD = obj.getValuesFromInputData(obj.mesh.dirichlet);
+            obj.vN = obj.getValuesFromInputData(obj.bc.pointload);
+            obj.vD = obj.getValuesFromInputData(obj.bc.dirichlet);
         end
         
         function computeScaleFactor(obj)

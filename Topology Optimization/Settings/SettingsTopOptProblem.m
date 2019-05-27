@@ -15,10 +15,6 @@ classdef SettingsTopOptProblem < AbstractSettings
         videoManagerSettings
     end
     
-    properties (Access = private)
-        mesh
-    end
-    
     methods (Access = public)
         
         function obj = SettingsTopOptProblem(varargin)
@@ -43,50 +39,37 @@ classdef SettingsTopOptProblem < AbstractSettings
         
         function setupProblemData(obj)
             s = obj.cParams.problemData;
+            s.caseFileName = obj.loadedFile;
             obj.problemData = TopOptProblemDataContainer(s);
-            obj.problemData.caseFileName = obj.loadedFile;
-            obj.problemData.femFileName = s.femFileName;
-            obj.problemData.scale = s.scale;
-            
-            obj.createMesh();
-            
-            obj.problemData.pdim  = obj.mesh.pdim;
-            obj.problemData.nelem = size(obj.mesh.connec,1);
-        end
-        
-        function createMesh(obj)
-            obj.mesh = Mesh_GiD(obj.problemData.femFileName);
         end
         
         function createDesignVarSettings(obj)
             s = obj.cParams.designVarSettings;
-            s.mesh = obj.mesh;     
-            s.problemData = obj.problemData;
+            s.femData = obj.problemData.femData;
             obj.designVarSettings = SettingsDesignVariable(s);
         end
         
         function createHomogenizedVarComputerSettings(obj)
             s = obj.homogenizedVarComputerSettings;
-            s.nelem = obj.problemData.nelem;
-            s.dim   = obj.problemData.pdim;
+            s.nelem = obj.problemData.femData.nelem;
+            s.dim   = obj.problemData.femData.pdim;
             obj.homogenizedVarComputerSettings = SettingsHomogenizedVarComputer.create(s);
         end
         
         function createIncrementalSchemeSettings(obj)
             s = obj.cParams.incrementalSchemeSettings;
-            s.mesh = obj.mesh;
             obj.incrementalSchemeSettings = SettingsIncrementalScheme(s);
         end
         
         function createCostSettings(obj)
             s = obj.cParams.costSettings;
-            s.problemData = obj.problemData;
+            s.femData = obj.problemData.femData;
             obj.costSettings = SettingsCost(s);
         end
         
         function createConstraintSettings(obj)
             s = obj.cParams.constraintSettings;
-            s.problemData = obj.problemData;
+            s.femData = obj.problemData.femData;
             obj.constraintSettings = SettingsConstraint(s);
         end
         
@@ -112,7 +95,7 @@ classdef SettingsTopOptProblem < AbstractSettings
             s.caseFileName  = obj.problemData.caseFileName;
             s.shallPrint    = obj.optimizerSettings.shallPrint;
             s.designVarType = obj.designVarSettings.type;
-            s.pdim          = obj.problemData.pdim;
+            s.pdim          = obj.problemData.femData.pdim;
             obj.videoManagerSettings = SettingsVideoManager(s);
         end
         

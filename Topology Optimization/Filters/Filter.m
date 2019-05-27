@@ -51,7 +51,7 @@ classdef Filter < handle
         
         function obj = createDiffReacProblem(obj,cParams)
             s = cParams.femSettings;
-            switch cParams.designVar.mesh.scale
+            switch s.scale
                 case 'MACRO'
                     obj.diffReacProb = DiffReact_Problem(s);
                 case 'MICRO'

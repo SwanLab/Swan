@@ -141,7 +141,7 @@ classdef Optimizer < handle
         end
         
         function createPostProcess(obj,cParams)
-            d = obj.createPostProcessDataBase();
+            d = obj.createPostProcessDataBase(cParams);
             d.printMode = cParams.printMode;
             if cParams.shallPrint
                 obj.postProcess = Postprocess('TopOptProblem',d);
@@ -150,9 +150,11 @@ classdef Optimizer < handle
             end
         end
         
-        function d = createPostProcessDataBase(obj)
+        function d = createPostProcessDataBase(obj,cParams)
             d.mesh    = obj.designVariable.mesh;
-            d.outName = obj.designVariable.mesh.problemID;
+            d.outName = cParams.femFileName;
+            d.pdim    = cParams.pdim;
+            d.ptype   = cParams.ptype;
             ps = PostProcessDataBaseCreator(d);
             d  = ps.getValue();
             d.optimizer  = obj.type;

@@ -11,6 +11,7 @@ classdef TopOpt_Problem < handle
     end
     
     properties (Access = private)
+        mesh
         videoManager
         homogenizedVarComputer
     end
@@ -19,7 +20,7 @@ classdef TopOpt_Problem < handle
         
         function obj = TopOpt_Problem(cParams)
             obj.createIncrementalScheme(cParams);
-            obj.createDesignVariable(cParams);           
+            obj.createDesignVariable(cParams);
             obj.createHomogenizedVarComputer(cParams)
             obj.createCostAndConstraint(cParams);
             obj.createDualVariable();
@@ -72,26 +73,28 @@ classdef TopOpt_Problem < handle
             optSet = set.optimizerSettings;
         end
         
+        function createIncrementalScheme(obj,cParams)
+            s = cParams.incrementalSchemeSettings;
+            s.mesh = obj.createMesh(cParams);
+            obj.incrementalScheme = IncrementalScheme(s);
+        end
+        
         function createDesignVariable(obj,cParams)
             s = cParams.designVarSettings;
-            s.scalarProductSettings.epsilon  = obj.incrementalScheme.targetParams.epsilon;
+            s.mesh = obj.createMesh(cParams);
+            s.scalarProductSettings.epsilon = obj.incrementalScheme.targetParams.epsilon;
             obj.designVariable = DesignVariable.create(s);
         end
         
         function createDualVariable(obj)
             s.nConstraints = obj.constraint.nSF;
             obj.dualVariable = DualVariable(s);
-        end        
+        end
         
         function createHomogenizedVarComputer(obj,cParams)
             s = cParams.homogenizedVarComputerSettings;
             s.designVariable = obj.designVariable;
             obj.homogenizedVarComputer = HomogenizedVarComputer.create(s);
-        end
-        
-        function createIncrementalScheme(obj,cParams)
-            s = cParams.incrementalSchemeSettings;
-            obj.incrementalScheme = IncrementalScheme(s);
         end
         
         function createCostAndConstraint(obj,cParams)
@@ -123,6 +126,15 @@ classdef TopOpt_Problem < handle
             else
                 obj.videoManager = VideoManager_Null(s);
             end
+        end
+        
+    end
+    
+    methods (Access = private, Static)
+        
+        function mesh = createMesh(cParams)
+            s = cParams.designVarSettings;
+            mesh = Mesh().create(s.femData.coord,s.femData.connec);
         end
         
     end

@@ -34,7 +34,6 @@ classdef SettingsTargetParamsManager < AbstractSettings
             if nargin == 1
                 obj.loadParams(varargin{1});
             end
-            obj.init();
         end
         
     end
@@ -42,9 +41,11 @@ classdef SettingsTargetParamsManager < AbstractSettings
     methods (Access = private)
         
         function init(obj)
-            obj.initEpsilons();
+            if ~isempty(obj.mesh)
+                obj.initEpsilons();
+            end
         end
-
+        
         function initEpsilons(obj)
             L = obj.mesh.computeCharacteristicLength();
             D = obj.mesh.computeMeanCellSize();
@@ -60,6 +61,15 @@ classdef SettingsTargetParamsManager < AbstractSettings
             if isempty(obj.(prop))
                 obj.(prop) = b;
             end
+        end
+        
+    end
+    
+    methods
+        
+        function set.mesh(obj,m)
+            obj.mesh = m;
+            obj.init();
         end
         
     end

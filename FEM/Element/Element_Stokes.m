@@ -15,8 +15,8 @@ classdef Element_Stokes < Element
     end
     
     methods
-        function obj=Element_Stokes(mesh,geometry,material,dof)
-            obj.initElement(geometry,material,dof,mesh.scale);
+        function obj=Element_Stokes(mesh,geometry,material,dof,problemData)
+            obj.initElement(geometry,material,dof,problemData.scale);
             %obj.nstre=0;
             obj.nfields=2;
             obj.interpolation_v=Interpolation.create(mesh,'QUADRATIC');
