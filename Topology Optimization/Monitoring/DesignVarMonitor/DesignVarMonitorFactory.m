@@ -8,6 +8,7 @@ classdef DesignVarMonitorFactory < handle
         optimizer
         dim
         showBC
+        bc
         shallDisplay
     end
     
@@ -37,11 +38,11 @@ classdef DesignVarMonitorFactory < handle
             obj.dim            = cParams.dim;
             obj.designVariable = cParams.designVariable;
             obj.showBC         = cParams.showBC;
+            obj.bc             = cParams.bc;
         end
         
         function createMonitor(obj)
-            mS.designVar = obj.designVariable;
-            mS.showBC    = obj.showBC;
+            mS = obj.getMonitorSettings();
             switch obj.designVariable.type
                 case {'Density','MicroParams'}
                     obj.monitor = DesignVarMonitor_Density(mS);
@@ -66,9 +67,15 @@ classdef DesignVarMonitorFactory < handle
         end
         
         function returnNullMonitor(obj)
-            mS.designVar = obj.designVariable;
-            mS.showBC    = false;
+            mS = obj.getMonitorSettings();
             obj.monitor  = DesignVarMonitor_Null(mS);
+        end
+        
+        function s = getMonitorSettings(obj)
+            s.designVar = obj.designVariable;
+            s.showBC    = obj.showBC;
+            s.bc        = obj.bc;
+            s.dim       = obj.dim;
         end
         
     end

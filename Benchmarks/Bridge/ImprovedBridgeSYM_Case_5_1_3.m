@@ -12,6 +12,8 @@ constraint_case = 'INEQUALITY';
 line_search = 'DIMENSIONALLY CONSISTENT';
 showBC = true;
 
+designVariable = 'LevelSet';
+
 HJiter0 = 1;
 e2 = 100;
 N_holes = [12 5 5];

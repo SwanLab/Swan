@@ -13,4 +13,11 @@ classdef BoundayConditionsPlotter_Null < BoundayConditionsPlotter_Abstract
         
     end
     
+    methods (Access = protected)
+        
+        function init(obj)
+        end
+        
+    end
+    
 end

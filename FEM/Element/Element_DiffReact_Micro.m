@@ -1,8 +1,8 @@
 classdef Element_DiffReact_Micro < Element_DiffReact
     
     methods
-        function obj = Element_DiffReact_Micro(mesh,geometry,material,dof)
-            obj = obj@Element_DiffReact(mesh,geometry,material,dof);
+        function obj = Element_DiffReact_Micro(mesh,geometry,material,dof,scale)
+            obj = obj@Element_DiffReact(mesh,geometry,material,dof,scale);
         end
         
         function FextPoint = computePunctualFext(obj)

@@ -11,10 +11,12 @@ classdef ScalarProduct < handle
     end
     
     methods (Access = public)
+        
         function obj = ScalarProduct(cParams)
             obj.init(cParams);
             obj.createMatrices(cParams);
         end
+        
     end
     
     methods (Access = public)
@@ -25,7 +27,6 @@ classdef ScalarProduct < handle
             sp  = obj.epsilon^2*spK + spM;
         end
         
-        % !! USE APPROPIATE TERMINOLOGY -- SP WITH ONLY M IS CALLED...? !!
         function sp = computeSP_M(obj,f,g)
             sp = obj.computeProduct(obj.Msmooth,f,g);
         end
@@ -43,11 +44,11 @@ classdef ScalarProduct < handle
         end
         
         function createMatrices(obj,cParams)
-            physProb = DiffReact_Problem();
-            physProb.setupFromGiDFile(cParams.filename);
-            physProb.preProcess;
+            s = cParams.femSettings;
+            physProb = DiffReact_Problem(s);
+            physProb.preProcess();
             obj.Ksmooth = physProb.element.computeStiffnessMatrix;
-            obj.Msmooth = physProb.element.computeMassMatrix(2);                                    
+            obj.Msmooth = physProb.element.computeMassMatrix(2);
         end
         
         function n = computeProduct(obj,K,f,g)

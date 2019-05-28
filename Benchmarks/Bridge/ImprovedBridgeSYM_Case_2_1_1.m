@@ -12,6 +12,8 @@ constraint_case = 'INEQUALITY';
 line_search = 'DIMENSIONALLY CONSISTENT';
 showBC = true;
 
+designVariable = 'Density';
+
 nsteps = 10;
 Vfrac_final = 0.1;
 Perimeter_target = 1;

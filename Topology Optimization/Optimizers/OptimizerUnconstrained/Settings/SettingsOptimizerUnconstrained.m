@@ -20,7 +20,7 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
         ub
         lb
         
-        femFileName
+        problemData
     end
     
     methods (Access = public)
@@ -33,6 +33,7 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
         end
         
         function init(obj)
+            obj.initProblemData();
             obj.initScalarProductSettings();
             obj.initLineSearchSettings();
         end
@@ -41,16 +42,21 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
     
     methods (Access = private)
         
+        function initProblemData(obj)
+            s = obj.problemData;
+            obj.problemData = TopOptProblemDataContainer(s);
+        end
+        
         function initScalarProductSettings(obj)
-            obj.scalarProductSettings.filename = obj.femFileName;
+            obj.scalarProductSettings.scale = obj.problemData.femData.scale;
+            obj.scalarProductSettings.femSettings.fileName = obj.problemData.femData.fileName;
         end
         
         function initLineSearchSettings(obj)
             s = obj.lineSearchSettings;
             obj.lineSearchSettings = SettingsLineSearch(s);
-            s2.scalarProductSettings = obj.scalarProductSettings;
             s2.optimizerType  = obj.type;
-            s2.filename       = obj.femFileName;
+            s2.filename       = obj.problemData.femData.fileName;
             obj.lineSearchSettings.loadParams(s2);
         end
         

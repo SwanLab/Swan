@@ -45,9 +45,10 @@ classdef MonitoringDocker < handle
         function createDesignVarMonitor(obj,cParams)
             s.shallDisplay   = cParams.shallDisplayDesignVar;
             s.showBC         = cParams.shallShowBoundaryConditions;
+            s.bc             = cParams.boundaryConditions;
             s.designVariable = cParams.designVariable;
             s.optimizerName  = cParams.optimizerName;
-            s.dim            = cParams.dim; 
+            s.dim            = cParams.dim;
             
             obj.designVarMonitor = DesignVarMonitorFactory().create(s);
         end

@@ -6,16 +6,16 @@ classdef ShapeFunctional < handle
         filter
         Msmooth
         dvolu
-        value0        
+        value0
     end
     
     properties (Access = protected)
-       homogenizedVariablesComputer 
-       nVariables
-       designVariable
-       target_parameters;                      
+        homogenizedVariablesComputer
+        nVariables
+        designVariable
+        target_parameters;
     end
-        
+    
     methods (Access = public, Static)
         
         function obj = create(cParams)
@@ -31,15 +31,15 @@ classdef ShapeFunctional < handle
             if contains(class(obj.filter),'PDE')
                 obj.filter.updateEpsilon(obj.target_parameters.epsilon);
             end
-        end            
-                
+        end
+        
     end
     
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.createFilter(cParams.filterParams);
-            obj.createMsmoothAndDvolu(cParams.filename, cParams.scale);
+            obj.createFilter(cParams);
+            obj.createMsmoothAndDvolu(cParams);
             obj.homogenizedVariablesComputer = cParams.homogVarComputer;
             obj.designVariable = cParams.designVariable;
             obj.target_parameters = cParams.targetParameters;
@@ -54,15 +54,24 @@ classdef ShapeFunctional < handle
     
     methods (Access = private)
         
-        function createFilter(obj,s)
+        function createFilter(obj,cParams)
+            s = cParams.filterParams;
             obj.filter = FilterFactory().create(s);
-            obj.filter.preProcess();             
+            obj.filter.preProcess();
         end
         
-        function createMsmoothAndDvolu(obj,fileName,scale)
-            diffReacProb = obj.createDiffReactProb(scale);
-            diffReacProb.setupFromGiDFile(fileName);
-            diffReacProb.preProcess;
+        function createMsmoothAndDvolu(obj,cParams)
+            s = cParams.femSettings;
+            if ~isempty(cParams.designVariable)
+                s.mesh = cParams.designVariable.mesh;
+            end
+            switch s.scale
+                case 'MACRO'
+                    diffReacProb = DiffReact_Problem(s);
+                case 'MICRO'
+                    diffReacProb = DiffReact_Problem_Micro(s);
+            end
+            diffReacProb.preProcess();
             obj.Msmooth = diffReacProb.element.M;
             obj.dvolu = diffReacProb.geometry.dvolu;
         end
@@ -80,14 +89,4 @@ classdef ShapeFunctional < handle
         
     end
     
-    methods (Static, Access = private)
-        function diffReacProb = createDiffReactProb(scale)
-            switch scale
-                case 'MACRO'
-                    diffReacProb = DiffReact_Problem;
-                case 'MICRO'
-                    diffReacProb = DiffReact_Problem_Micro;
-            end
-        end
-    end
 end

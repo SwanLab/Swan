@@ -12,8 +12,11 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
         rho        
     end
     
-    properties (Access = private)
-        scalarProduct   
+    properties (GetAccess = public, SetAccess = private)
+        scalarProduct
+    end
+    
+    properties (Access = private) 
         valueOld                                        
         alphaOld
     end
@@ -62,18 +65,34 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
         
         function init(obj,cParams)
             obj.type = cParams.type;
-            obj.mesh = cParams.mesh; 
-            cParams.scalarProductSettings.filename = obj.mesh.problemID;
-            cParams.scalarProductSettings.nVariables = obj.nVariables;
-            obj.createScalarProduct(cParams.scalarProductSettings);
+            obj.createMesh(cParams); 
+            obj.initValue();
+            obj.createScalarProduct(cParams);
         end
         
     end
     
     methods (Access = private)
         
+        function createMesh(obj,s)
+            if ischar(s.mesh)
+                fileName = s.mesh;
+                d = FemInputReader_GiD().read(fileName);
+                obj.mesh = Mesh().create(d.coord,d.connec);
+            else
+                obj.mesh = s.mesh;
+            end
+        end
+        
+        function initValue(obj)
+            obj.value = ones(size(obj.mesh.coord,1),1);
+        end
+        
         function createScalarProduct(obj,cParams)
-            obj.scalarProduct = ScalarProduct(cParams);        
+            s = cParams.scalarProductSettings;
+            s.nVariables = obj.nVariables;
+            s.femSettings.mesh = obj.mesh;
+            obj.scalarProduct = ScalarProduct(s);        
         end
         
     end

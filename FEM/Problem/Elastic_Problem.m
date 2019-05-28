@@ -9,21 +9,20 @@ classdef Elastic_Problem < FEM
     
     %% Public methods definition ==========================================
     methods (Access = public)
-        function obj = Elastic_Problem(problemID)
-            obj.problemID = problemID;
-            obj.mesh = Mesh_GiD(problemID); % Mesh defined twice, but almost free
+        function obj = Elastic_Problem(fileName)
+            obj.readProblemData(fileName);
             obj.createGeometry(obj.mesh);
-            obj.dof = DOF_Elastic(problemID,obj.geometry,obj.mesh);
+            obj.dof = DOF_Elastic(fileName,obj.geometry,obj.problemData.pdim);
         end
         
         function preProcess(obj)
-            cParams.ptype = obj.mesh.ptype;
-            cParams.pdim  = obj.mesh.pdim;
+            cParams.ptype = obj.problemData.ptype;
+            cParams.pdim  = obj.problemData.pdim;
             cParams.nelem = obj.geometry(1).interpolation.nelem;
             cParams.geometry = obj.geometry;
             cParams.mesh  = obj.mesh;            
             material = Material.create(cParams);
-            obj.element = Element_Elastic.create(obj.mesh,obj.geometry,material,obj.dof);
+            obj.element = Element_Elastic.create(obj.mesh,obj.geometry,material,obj.dof,obj.problemData);
             obj.solver = Solver.create;
         end
         

@@ -11,7 +11,7 @@ classdef LineSearch < handle
                 case 'DIMENSIONALLY CONSISTENT'
                     switch cParams.optimizerType
                         case 'PROJECTED GRADIENT'
-                            obj = LS_BackTracking_DimensionallyConsistent_PG(cParams,cParams.epsilon);
+                            obj = LS_BackTracking_DimensionallyConsistent_PG(cParams);
                         case 'SLERP'
                             obj = LS_BackTracking_DimensionallyConsistent_SLERP(cParams);
                         case 'HAMILTON-JACOBI'
@@ -22,7 +22,7 @@ classdef LineSearch < handle
                 case 'DOUBLING LAST STEP'
                     switch cParams.optimizerType
                         case 'PROJECTED GRADIENT'
-                            obj = LS_BackTracking_DoublingLastStep_PG(cParams,cParams.epsilon);
+                            obj = LS_BackTracking_DoublingLastStep_PG(cParams);
                         case 'SLERP'
                             obj = LS_BackTracking_DoublingLastStep_SLERP;
                         case 'HAMILTON-JACOBI'

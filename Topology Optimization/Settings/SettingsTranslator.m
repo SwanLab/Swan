@@ -20,9 +20,7 @@ classdef SettingsTranslator < handle
                 value = oldSettings.(prop);
                 %                 if ~isempty(value)
                 if strcmp(prop,'filename')
-                    s.problemData.femFileName = value;
-                elseif strcmp(prop,'ptype')
-                    s.problemData.scale = value;
+                    s.problemData.femData.fileName = value;
                 elseif strcmp(prop,'homegenizedVariablesComputer')
                     s.homogenizedVarComputerSettings.type = value;
                     s = obj.translateHomogenizedVariablesComputer(s);
@@ -59,7 +57,7 @@ classdef SettingsTranslator < handle
                             
                         elseif strcmp(value{k},'perimeterConstraint')
                             if isprop(oldSettings,'Perimeter_target')
-                                s.costSettings.shapeFuncSettings{k}.PerimeterTarget = oldSettings.Perimeter_target;
+                                s.costSettings.shapeFuncSettings{k}.perimeterTarget = oldSettings.Perimeter_target;
                             end
                         end
                     end
@@ -73,7 +71,7 @@ classdef SettingsTranslator < handle
                         s.constraintSettings.shapeFuncSettings{k}.type = value{k};
                         if strcmp(value{k},'perimeterConstraint')
                             if isprop(oldSettings,'Perimeter_target')
-                                s.constraintSettings.shapeFuncSettings{k}.PerimeterTarget = oldSettings.Perimeter_target;
+                                s.constraintSettings.shapeFuncSettings{k}.perimeterTarget = oldSettings.Perimeter_target;
                             end
                         end
                     end

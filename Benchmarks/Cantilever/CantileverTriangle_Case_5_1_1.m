@@ -13,8 +13,8 @@ filterType = 'P1';
 constraint_case = 'INEQUALITY';
 line_search = 'DIMENSIONALLY CONSISTENT';
 
-HJiter0 = 1;
-e2 = 50;
+HJiter0 = 10;
+e2 = 200;
 N_holes = [11 12];
 R_holes = 0.4;
 phase_holes = [pi/2 pi/2];

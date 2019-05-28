@@ -25,31 +25,31 @@ classdef Element_Elastic < Element
     methods (Static) %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?obj})
         
         
-        function obj = create(mesh,geometry,material,dof)
-            switch mesh.scale
+        function obj = create(mesh,geometry,material,dof,problemData)
+            switch problemData.scale
                 case 'MICRO'
-                    switch mesh.pdim
+                    switch problemData.pdim
                         case '2D'
-                            obj = Element_Elastic_2D_Micro(mesh,geometry,material,dof);
+                            obj = Element_Elastic_2D_Micro(mesh,geometry,material,dof,problemData);
                         case '3D'
-                            obj = Element_Elastic_3D_Micro(mesh,geometry,material,dof);
+                            obj = Element_Elastic_3D_Micro(mesh,geometry,material,dof,problemData);
                     end
                 case 'MACRO'
-                    switch mesh.pdim
+                    switch problemData.pdim
                         case '2D'
-                            obj = Element_Elastic_2D(mesh,geometry,material,dof);
+                            obj = Element_Elastic_2D(mesh,geometry,material,dof,problemData);
                         case '3D'
-                            obj = Element_Elastic_3D(mesh,geometry,material,dof);
+                            obj = Element_Elastic_3D(mesh,geometry,material,dof,problemData);
                     end
             end            
-            obj.createPrincipalDirection(mesh.pdim);
+            obj.createPrincipalDirection(problemData.pdim);
         end
     end
 
     
     methods %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
-        function compute(obj,mesh,geometry,material,dof,nstre)
-            obj.initElement(geometry,material,dof,mesh.scale)
+        function compute(obj,mesh,geometry,material,dof,problemData)
+            obj.initElement(geometry,material,dof,problemData.scale)
             obj.nfields=1;
             obj.interpolation_u = Interpolation.create(mesh,'LINEAR');
             

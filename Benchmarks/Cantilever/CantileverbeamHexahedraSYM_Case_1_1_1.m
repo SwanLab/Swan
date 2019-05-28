@@ -11,10 +11,10 @@ kappaMultiplier = 1;
 designVariable = 'LevelSet';
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
-line_search = 'DOUBLING LAST STEP';
+line_search = 'DIMENSIONALLY CONSISTENT';
 
 nsteps = 10;
-Vfrac_final = 0.15;
+Vfrac_final = 0.2;
 Perimeter_target=3.5;
 optimality_final =1e-4;
 constr_final =1e-4;

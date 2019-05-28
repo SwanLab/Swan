@@ -7,8 +7,8 @@ classdef DOF_Elastic < DOF
     end
     
     methods
-        function obj = DOF_Elastic(filename,geometry,mesh) % Replace mesh for pdim
-            switch mesh.pdim
+        function obj = DOF_Elastic(filename,geometry,pdim) % Replace mesh for pdim
+            switch pdim
                 case '2D'
                     obj.nunkn = 2;
                 case '3D'
