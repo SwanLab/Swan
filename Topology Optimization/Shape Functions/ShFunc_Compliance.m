@@ -5,13 +5,9 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         function obj = ShFunc_Compliance(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
-<<<<<<< HEAD
-            obj.createEquilibriumProblem(cParams.filename);
-            obj.createOrientationUpdater();                        
-=======
             fileName = cParams.femSettings.fileName;
             obj.createEquilibriumProblem(fileName);
->>>>>>> origin/DecouplingFemDataAndMesh
+            obj.createOrientationUpdater();                                    
         end
         
     end

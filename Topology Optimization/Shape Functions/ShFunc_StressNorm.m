@@ -10,8 +10,9 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
         function obj = ShFunc_StressNorm(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
-            obj.createEquilibriumProblem(cParams.filename);
-            obj.createAdjointProblem(cParams.filename);
+            fileName = cParams.femSettings.fileName;            
+            obj.createEquilibriumProblem(fileName);
+            obj.createAdjointProblem(fileName);
             obj.createOrientationUpdater();                        
         end
         

@@ -23,6 +23,8 @@ classdef Density < DesignVariable
         
         function createValue(obj)
             s = obj.levelSetCreatorSettings;
+            s.ndim  = obj.mesh.ndim;
+            s.coord = obj.mesh.coord;            
             lsCreator  = LevelSetCreator.create(s);
             phi        = lsCreator.getValue();
             obj.value  = 1 - heaviside(phi);
