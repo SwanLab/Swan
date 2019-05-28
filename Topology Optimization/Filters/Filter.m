@@ -3,7 +3,7 @@ classdef Filter < handle
     properties (GetAccess = public, SetAccess = private)
         diffReacProb
         ngaus
-        nelem        
+        nelem
     end
     
     properties (Access = protected)
@@ -25,19 +25,19 @@ classdef Filter < handle
     end
     
     properties (Access = private)
-       quadratureOrder 
+        quadratureOrder
     end
     
     methods (Access = public)
         
         function obj = Filter(cParams)
-            obj.createDiffReacProblem(cParams.designVar);
+            obj.createDiffReacProblem(cParams);
+            obj.mesh = cParams.designVar.mesh;
             obj.quadratureOrder = cParams.quadratureOrder;
         end
         
         function preProcess(obj)
             obj.diffReacProb.preProcess();
-            obj.mesh = obj.diffReacProb.mesh;
             
             obj.setQuadrature();
             obj.setInterpolation();
@@ -49,9 +49,14 @@ classdef Filter < handle
             obj.P_operator = obj.computePoperator(obj.diffReacProb.element.M);
         end
         
-        function obj = createDiffReacProblem(obj,designVar)
-            obj.setDiffusionReactionProblem(designVar.mesh.scale);
-            obj.diffReacProb.setupFromMesh(designVar.mesh);
+        function obj = createDiffReacProblem(obj,cParams)
+            s = cParams.femSettings;
+            switch s.scale
+                case 'MACRO'
+                    obj.diffReacProb = DiffReact_Problem(s);
+                case 'MICRO'
+                    obj.diffReacProb = DiffReact_Problem_Micro(s);
+            end
         end
         
     end
@@ -103,15 +108,6 @@ classdef Filter < handle
     end
     
     methods (Access = private)
-        
-        function setDiffusionReactionProblem(obj,scale)
-            switch scale
-                case 'MACRO'
-                    obj.diffReacProb = DiffReact_Problem();
-                case 'MICRO'
-                    obj.diffReacProb = DiffReact_Problem_Micro();
-            end
-        end
         
         function computeGeometry(obj)
             obj.geometry = Geometry(obj.mesh,'LINEAR');

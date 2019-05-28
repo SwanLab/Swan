@@ -26,6 +26,8 @@ classdef LevelSet < DesignVariable
         
         function createValue(obj)
             s = obj.levelSetCreatorSettings;
+            s.ndim  = obj.mesh.ndim;
+            s.coord = obj.mesh.coord;
             lsCreator  = LevelSetCreator.create(s);
             obj.value  = lsCreator.getValue();
         end        

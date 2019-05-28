@@ -12,7 +12,7 @@ classdef Mesh_GiD < Mesh
         problemID
     end
     
-    properties (Access = private)
+    properties (Access = public)
         femReader
     end
     

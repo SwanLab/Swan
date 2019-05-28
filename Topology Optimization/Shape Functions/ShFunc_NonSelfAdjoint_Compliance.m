@@ -1,26 +1,27 @@
 classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
-    
+
     properties (Access = private)
         adjointProb
     end
-    
+
     methods (Access = public)
-        
+
         function obj = ShFunc_NonSelfAdjoint_Compliance(cParams)
-            cParams.filterParams.quadratureOrder = 'LINEAR';            
-            obj.init(cParams);     
-            obj.createEquilibriumProblem(cParams.filename);
-            obj.createAdjointProblem(cParams.filename);
-            obj.createOrientationUpdater();            
+            cParams.filterParams.quadratureOrder = 'LINEAR';
+            obj.init(cParams);
+            fileName = cParams.femSettings.fileName;
+            obj.createEquilibriumProblem(fileName);
+            obj.createAdjointProblem(fileName);
+            obj.createOrientationUpdater();                     
         end
-        
+
         function f = getPhysicalProblems(obj)
             f{1} = obj.physicalProblem;
             f{2} = obj.adjointProb;
         end
-        
+
     end
-    
+
     methods (Access = protected)
 
         function computeFunctionValue(obj)
@@ -28,30 +29,30 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
             f = obj.adjointProb.variables.fext;
             obj.value = -f'*u;
         end
-        
+
         function g = updateGradient(obj,igaus,istre,jstre)
             eu   = obj.physicalProblem.variables.strain;
             ev   = obj.adjointProb.variables.strain;
             eu_i = squeeze(eu(igaus,istre,:));
-            ev_j = squeeze(ev(igaus,jstre,:)); 
-            g = zeros(length(eu_i),1,obj.nVariables);            
+            ev_j = squeeze(ev(igaus,jstre,:));
+            g = zeros(length(eu_i),1,obj.nVariables);
             for ivar = 1:obj.nVariables
-                dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:));            
+                dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:));
                 g(:,1,ivar) = eu_i.*dCij.*ev_j;
-            end              
+            end
         end
-        
+
         function solvePDEs(obj)
             obj.adjointProb.setC(obj.homogenizedVariablesComputer.C);
             obj.adjointProb.computeVariables();
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
             obj.physicalProblem.computeVariables();
         end
-        
+
     end
-    
+
     methods (Access = private)
-        
+
         function createAdjointProblem(obj,fileName)
             fAdj = Preprocess.getBC_adjoint(fileName);
             obj.adjointProb = FEM.create(fileName);
@@ -60,6 +61,6 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
             obj.adjointProb.dof.neumann_values = -dofVal;
             obj.adjointProb.preProcess;
         end
-        
+
     end
 end

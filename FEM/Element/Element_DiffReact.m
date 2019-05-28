@@ -18,8 +18,8 @@ classdef Element_DiffReact < Element
     end
     
     methods %(Access = ?Physical_Problem)
-        function obj=Element_DiffReact(mesh,geometry,material,dof)
-            obj.initElement(geometry,material,dof,mesh.scale);
+        function obj = Element_DiffReact(mesh,geometry,material,dof,scale)
+            obj.initElement(geometry,material,dof,scale);
             obj.nstre = 2;
             obj.nfields = 1;
             obj.interpolation_u=Interpolation.create(mesh,'LINEAR');

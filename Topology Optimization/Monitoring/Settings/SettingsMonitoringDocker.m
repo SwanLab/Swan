@@ -23,6 +23,7 @@ classdef SettingsMonitoringDocker < AbstractSettings
         constraint
         
         convergenceVars
+        boundaryConditions
     end
     
     methods (Access = public)

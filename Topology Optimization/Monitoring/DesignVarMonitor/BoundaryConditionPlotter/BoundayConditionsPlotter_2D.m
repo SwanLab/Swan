@@ -2,10 +2,6 @@ classdef BoundayConditionsPlotter_2D < BoundayConditionsPlotter_Abstract
     
     methods (Access = public)
         
-        function obj = BoundayConditionsPlotter_2D(axes,mesh)
-            obj.init(axes,mesh);
-        end
-        
         function plotDirichlet(obj)
             if ~isempty(obj.iD)
                 plot(obj.axes,obj.mesh.coord(obj.iD,1),obj.mesh.coord(obj.iD,2),'>','Color',obj.colorD,'MarkerSize',4,'MarkerFaceColor',obj.colorD)
