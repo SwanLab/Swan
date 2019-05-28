@@ -1,13 +1,12 @@
 classdef PrincipalStressDirections < handle
     
     properties (GetAccess = public, SetAccess = private)
-        principalStressDir   
-        stress
+        principalStressDir
+        principalStress
     end
     
     properties (Access = private)
-        strain
-        Ctensor
+        stress
     end
     
     methods (Access = public)
@@ -17,34 +16,42 @@ classdef PrincipalStressDirections < handle
         end
         
         function compute(obj)
-            obj.computeStress();
-            obj.computeStressPrincipalDirections();                        
+            obj.computeStressBase();
+            obj.normalizePrincipalDirection();
+            obj.transformBaseToElementalBase();            
         end
     end
     
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.strain = cParams.strain;
-            obj.Ctensor = cParams.Ctensor;            
+            obj.stress = cParams.stress;
         end
-        
-        
-        function computeStress(obj)
-            C = obj.Ctensor;
-            e = obj.strain;
-            obj.stress = C*e;
-        end
-        
-        function computeStressPrincipalDirections(obj)
+                
+        function computeStressBase(obj)
             s = obj.stress;
             S = [s(1) s(3);s(3) s(2)];
             [V,D] = eig(S);
-            V(:,1) = V(:,1)/norm(V(:,1));
-            V(:,2) = V(:,2)/norm(V(:,2));
             obj.principalStressDir = V;
+            obj.principalStress = D;                        
         end
         
+    end
+    
+    methods (Access = private)
+        
+        function normalizePrincipalDirection(obj)
+            V = obj.principalStressDir;
+            V(:,1) = V(:,1)/norm(V(:,1));
+            V(:,2) = V(:,2)/norm(V(:,2));            
+            obj.principalStressDir = V;            
+        end
+        
+        function transformBaseToElementalBase(obj)
+            V = obj.principalStressDir;
+            V(:,2) = V(:,2)*det(V);
+            obj.principalStressDir = V;            
+        end
         
     end
 end

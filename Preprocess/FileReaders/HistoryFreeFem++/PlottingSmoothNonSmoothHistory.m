@@ -44,8 +44,7 @@ classdef PlottingSmoothNonSmoothHistory < handle
             rH = ReadingHistoryFile(d);
             obj.cost{obj.iter} = rH.cost;
             obj.lambda{obj.iter} = rH.lambda;            
-        end        
-        
+        end                
         
         function plotHistory(obj)            
             obj.plotVariable(obj.cost,'Cost');

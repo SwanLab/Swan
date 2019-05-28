@@ -44,20 +44,42 @@ classdef Elastic_Problem < FEM
         
         function c = computeCompliance(obj)
             dvolum  = obj.geometry.dvolu;
-            strain = obj.variables.strain;
+            stress = obj.variables.stress;
             C = obj.element.material.C;
+            
+            C11 = C(1,1,:);
+            C22 = C(2,2,:);
+            C12 = C(1,2,:);
+            C33 = C(3,3,:);
+            
+            Cinv = zeros(size(C));
+
+            det = C11.*C22 - C12.^2;
+            Cinv(1,1,:) = C22./det;
+            Cinv(2,2,:) = C11./det;
+            Cinv(1,2,:) = -C12./det;
+            Cinv(2,1,:) = -C12./det;
+            Cinv(3,3,:) = 1./C33;
+            
+            
+            
+            
             ngaus = obj.element.quadrature.ngaus;
-            nstre = size(strain,2);
+            nstre = size(stress,2);
             c = 0;
             for igaus = 1:ngaus
-                strainG = squeeze(strain(igaus,:,:));
+                stressG = squeeze(stress(igaus,:,:));
                 dV = dvolum(:,igaus);
                 for istre = 1:nstre
-                    sI(:,1) = strainG(istre,:);
+                    sI(:,1) = stressG(istre,:);
                     for jstre = 1:nstre
-                        sJ(:,1) = strainG(jstre,:);
-                        Cij = squeeze(C(istre,jstre,:));
-                        csum = sI.*Cij.*sJ.*dV;
+                        sJ(:,1) = stressG(jstre,:);
+                        %Cij = squeeze(C(istre,jstre,:));
+                        %csum = sI.*Cij.*sJ.*dV;
+                        
+                        Cinv_ij = squeeze(Cinv(istre,jstre,:));
+                        csum = sI.*Cinv_ij.*sJ.*dV;
+                        
                         c = c + sum(csum);
                     end
                 end

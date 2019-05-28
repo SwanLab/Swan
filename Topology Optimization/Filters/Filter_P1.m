@@ -34,7 +34,8 @@ classdef Filter_P1 < Filter
         
         function intX = integrate_P1_function_with_shape_function(obj,x)
             intX = zeros(obj.nelem,1);
-            for igaus = 1:obj.quadrature.ngaus
+            ngaus = size(x,2);
+            for igaus = 1:ngaus
                 dvolu = obj.geometry.dvolu(:,igaus);
                 intX = intX + dvolu.*x(:,igaus);
             end

@@ -23,8 +23,8 @@ clear variables;
 % 
 % settings = Settings('Case_RefactoringSettings_OLD');
 % settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_B.json',settings);
-
-settings = Settings('CantileverTriangle_Case_2_1_1');
+%settings = Settings('CantileverTriangle_Case_2_1_1');
+settings = Settings('CantileverHexahedra_Case_1_1_1');
 settings.printing = false;
 translator = SettingsTranslator();
 translator.translate(settings);

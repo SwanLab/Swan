@@ -28,6 +28,7 @@ classdef PrincipalDirectionComputer < handle
         function init(obj)
             obj.obtainEigenValuesAndVectors();
             obj.normalizeEigenVectors();
+            obj.transformEigenVectorsInNormalBase();
             obj.transformSymEigenVectorsInFunctions();
             obj.transformSymEigenValuesInFunctions();            
         end       
@@ -36,6 +37,14 @@ classdef PrincipalDirectionComputer < handle
             for i = 1:obj.ndim
                 e = obj.eigenVectors(:,i);
                 obj.eigenVectors(:,i) = e/norm(e);
+            end
+        end
+        
+        function transformEigenVectorsInNormalBase(obj)
+            %deter = det(obj.eigenVectors);
+%            obj.eigenVectors(:,2) = obj.eigenVectors(:,2)*deter;
+            if size(obj.eigenVectors,1) == 2
+                obj.eigenVectors(:,2) = [-obj.eigenVectors(2,1),obj.eigenVectors(1,1)];
             end
         end
         

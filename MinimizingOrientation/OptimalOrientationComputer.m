@@ -1,25 +1,25 @@
-classdef Pedersen < handle
+classdef OptimalOrientationComputer < handle
     
     properties (GetAccess = public, SetAccess = private)
         optimalAngle
         compliance
-        RotationMatrix        
+        Rsigma        
     end
     
     properties (Access = private)
         angle
-        strain
+        stress
         Ctensor
     end
     
     methods (Access = public)
         
-        function obj = Pedersen()
+        function obj = OptimalOrientationComputer()
             obj.init();
         end
-        
-        function compute(obj,strain,Ctensor)
-            obj.strain = strain;
+             
+        function compute(obj,stress,Ctensor)            
+            obj.stress = stress;
             obj.Ctensor = Ctensor;            
             obj.computeCompliance();
             obj.obtainOptimalAngle();            
@@ -42,24 +42,22 @@ classdef Pedersen < handle
             a = obj.angle;
             c = cos(2*a);
             s = sin(2*a);
-            R = [ 0.5*(1+c) 0.5*(1-c) s;
-                0.5*(1-c) 0.5*(1+c) -s;
-                -s/2       s/2      c];
-            obj.RotationMatrix = R;
+            Rs = [ 0.5*(1+c) 0.5*(1-c) s;
+                 0.5*(1-c) 0.5*(1+c) -s;
+                 -s/2       s/2      c];
+            obj.Rsigma = Rs;
         end
         
         function computeCompliance(obj)
-            e = obj.strain;
+            s = obj.stress;
             C = obj.Ctensor;
-            R = obj.RotationMatrix;
-            c = e'*R*C*R'*e;
-            %Re = inv(R');
-            %c = e'*Re'*C*Re*e;            
+            Rs = obj.Rsigma;
+            c = s'*Rs'*inv(C)*Rs*s;            
             obj.compliance = matlabFunction(c);
         end
         
         function obtainOptimalAngle(obj)
-           x = fminbnd(obj.compliance,0,2*pi);
+           x = fminbnd(obj.compliance,-pi,pi);
            obj.optimalAngle = x;
         end
         

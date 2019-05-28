@@ -6,6 +6,7 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
             cParams.filterParams.quadratureOrder = 'LINEAR';            
             obj.init(cParams);
             obj.createEquilibriumProblem(cParams.filename);
+            obj.createOrientationUpdater();                        
         end
         
     end
