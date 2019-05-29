@@ -105,6 +105,8 @@ classdef SettingsTranslator < handle
                     s.optimizerSettings.monitoringDockerSettings.showOptParams = value;
                 elseif strcmp(prop,'monitoring_interval')
                     s.optimizerSettings.monitoringDockerSettings.refreshInterval = value;
+                elseif strcmp(prop,'ptype')
+                    s.optimizerSettings.monitoringDockerSettings.scale = value;
                 elseif strcmp(prop,'plotting')
                     s.optimizerSettings.monitoringDockerSettings.shallDisplayDesignVar = value;
                 elseif strcmp(prop,'showBC')
