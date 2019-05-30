@@ -30,11 +30,12 @@ classdef  VideoMaker_TopOpt_density < VideoMaker_TopOpt
             file_tcl_name = 'tcl_gid.tcl';
             file_list = obj.create_file_list(obj.iterations_to_print,obj.file_name,obj.files_folder);
             [output_video_name] = obj.replace_special_character(output_video_name);
-            [output_photo]=obj.replace_special_character(strcat(obj.files_folder,'\',obj.file_name,'.png'));
+            
+            [output_photo]=obj.replace_special_character(fullfile(obj.files_folder,[obj.file_name,'.png']));
             [file_list] = obj.replace_special_character(file_list);
             
             file_tcl_name_with_path = fullfile(obj.files_folder,file_tcl_name);
-            file_path_in = fullfile(pwd,'FEM','PostProcess','Make_Video_density.tcl');
+            file_path_in = fullfile(pwd,'PostProcess','VideoMaker','Make_Video_density.tcl');
             filepath = obj.replace_special_character(file_path_in);
                   
             fid = fopen(file_tcl_name_with_path,'w+');            

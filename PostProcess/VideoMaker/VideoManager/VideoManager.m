@@ -18,7 +18,8 @@ classdef VideoManager < handle
             iterations = 0:nIter;
             obj.videoMaker.Set_up_make_video(obj.gidPath,obj.fileName,obj.filePath,iterations)
             
-            videoName = strcat('./Videos/Video_',obj.fileName,'_',int2str(nIter),'.gif');
+            fileNameWithExtension = ['Video_',obj.fileName,'_',int2str(nIter),'.gif'];
+            videoName = fullfile('Output',obj.fileName,fileNameWithExtension);
             videoPath = fullfile(pwd,videoName);
             
             if ~exist(obj.filePath,'dir')
@@ -39,10 +40,11 @@ classdef VideoManager < handle
         end
         
         function createPaths(obj,cParams)
-            fileName = cParams.caseFileName;
-            obj.gidPath = 'C:\Program Files\GiD\GiD 13.0.4';% 'C:\Program Files\GiD\GiD 13.0.3';
-            obj.fileName = fileName;
-            obj.filePath = fullfile(pwd,'Output',fileName);
+            fName = cParams.caseFileName;
+            %obj.gidPath = 'C:\Program Files\GiD\GiD 13.0.4';% 'C:\Program Files\GiD\GiD 13.0.3';
+            obj.gidPath = '/opt/GiDx64/13.0.2/';% 'C:\Program Files\GiD\GiD 13.0.3';
+            obj.fileName = fName;
+            obj.filePath = fullfile(pwd,'Output',fName);
         end
         
     end

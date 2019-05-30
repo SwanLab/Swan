@@ -26,7 +26,7 @@ classdef VideoMaker < handle
             file_list = [];
             
             for iter = 1:length(iterations_to_print)
-                msh_file = fullfile(files_folder,strcat(file_name,'_',num2str(iterations_to_print(iter)),'.flavia.res'));
+                msh_file = fullfile(files_folder,strcat(file_name,num2str(iterations_to_print(iter)),'.flavia.res'));
                 file_list = [file_list, ' ',msh_file];
             end
             %             file_list= replace(file_list,'\','\\\\');

@@ -18,7 +18,6 @@ classdef SettingsTranslator < handle
             for i = 1:obj.nProps
                 prop = obj.propList{i};
                 value = oldSettings.(prop);
-                %                 if ~isempty(value)
                 if strcmp(prop,'filename')
                     s.problemData.femData.fileName = value;
                 elseif strcmp(prop,'homegenizedVariablesComputer')
@@ -130,14 +129,15 @@ classdef SettingsTranslator < handle
         function exportFile(obj,s)
             obj.getFilePath();
             str = jsonencode(s);
-            fid = fopen(obj.filePath,'w+');
+            fid = fopen([obj.filePath,'.json'],'w+');
             fprintf(fid,str);
             fclose(fid);
         end
         
         function getFileName(obj)
             old = obj.oldSettings.case_file;
-            new = [old '.json'];
+            new = old;
+            %new = [old '.json'];
             obj.fileName = new;
         end
         
