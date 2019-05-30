@@ -13,12 +13,12 @@ classdef  VideoMaker_TopOpt_levelSet < VideoMaker_TopOpt_density
     
     methods (Access = private)
         
-        function Make_video_characteristic_function(obj,field2print,componentfield,output_video_name_in)
+        function Make_video_characteristic_function(obj,field2print,componentfield,output_video_name)
             file_tcl_name = 'tcl_gid.tcl';
             file_list = obj.create_file_list(obj.iterations_to_print,obj.file_name,obj.files_folder);
             
-            [output_video_name] = obj.replace_special_character(output_video_name_in);
-            [output_photo]=obj.replace_special_character(strcat(obj.files_folder,'\',obj.file_name,'.png'));
+            [output_video_name] = obj.replace_special_character(output_video_name);
+            [output_photo]=obj.replace_special_character(fullfile(obj.files_folder,[obj.file_name,'.png']));
             [file_list] = obj.replace_special_character(file_list);
             
             min_value = -1e-32;
