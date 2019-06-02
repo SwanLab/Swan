@@ -54,12 +54,10 @@ classdef VideoMaker_Physical_Problem < VideoMaker
             fprintf(fid,'%s\n',['Make_Video_stress $arg1 $arg2 $arg3 $arg4']);
             fprintf(fid,'%s\n',['GiD_Process Mescape Quit']);
             fclose(fid);
-            obj.execute_tcl_files(obj.gidPath,file_tcl_name_with_path)
+            obj.executeTclFiles(obj.gidPath,file_tcl_name_with_path)
         end
         
       end
-    
-  
-    
+
     
 end

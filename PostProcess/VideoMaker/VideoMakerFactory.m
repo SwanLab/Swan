@@ -1,57 +1,62 @@
-classdef VideoMakerTopOptFactory < handle
+classdef VideoMakerFactory < handle
     
     methods (Access = public)
         
-        function obj = VideoMakerTopOptFactory()
+        function obj = VideoMakerFactory()
             
         end
         
-        function obj = create(obj,filename,varType,dim)
-            if contains(filename,'SYM','IgnoreCase',true) && contains(filename,'cantilever','IgnoreCase',true)
+        function obj = create(obj,cParams)
+            
+            fileName = cParams.fileName;
+            type     = cParams.type;
+            dim      = cParams.dim;
+            
+            if contains(fileName,'SYM','IgnoreCase',true) && contains(fileName,'cantilever','IgnoreCase',true)
                 switch dim
                     case '2D'
-                        switch varType
+                        switch type
                             case 'LevelSet'
                                 obj = VideoMaker_TopOpt_levelSetBridge();
                             case 'Density'
                                 obj = VideoMaker_TopOpt_densityBridge();
                         end
                     case '3D'
-                        switch varType
+                        switch type
                             case 'LevelSet'
                                 obj = VideoMaker_TopOpt_levelSet3DYmirror();
                             case 'Density'
                                 obj = VideoMaker_TopOpt_density3DYmirror();
                         end
                 end
-            elseif contains(filename,'SYM','IgnoreCase',true) && (contains(filename,'chair','IgnoreCase',true) || contains(filename,'throne','IgnoreCase',true))
+            elseif contains(fileName,'SYM','IgnoreCase',true) && (contains(fileName,'chair','IgnoreCase',true) || contains(fileName,'throne','IgnoreCase',true))
                 switch dim
                     case '2D'
-                        switch varType
+                        switch type
                             case 'LevelSet'
                                 obj = VideoMaker_TopOpt_levelSetBridge();
                             case 'Density'
                                 obj = VideoMaker_TopOpt_densityBridge();
                         end
                     case '3D'
-                        switch varType
+                        switch type
                             case 'LevelSet'
                                 obj = VideoMaker_TopOpt_levelSet3DXmirror();
                             case 'Density'
                                 obj = VideoMaker_TopOpt_density3DXmirror();
                         end
                 end
-            elseif contains(filename,'SYM','IgnoreCase',true)
+            elseif contains(fileName,'SYM','IgnoreCase',true)
                 switch dim
                     case '2D'
-                        switch varType
+                        switch type
                             case 'LevelSet'
                                 obj = VideoMaker_TopOpt_levelSetBridge();
                             case 'Density'
                                 obj = VideoMaker_TopOpt_densityBridge();
                         end
                     case '3D'
-                        switch varType
+                        switch type
                             case 'LevelSet'
                                 obj = VideoMaker_TopOpt_levelSet3DBridge();
                             case 'Density'
@@ -61,14 +66,14 @@ classdef VideoMakerTopOptFactory < handle
             else
                 switch dim
                     case '2D'
-                        switch varType
+                        switch type
                             case 'LevelSet'
-                                obj = VideoMaker_TopOpt_levelSet();
+                                obj = VideoMaker_TopOpt_levelSet(cParams);
                             case 'Density'
-                                obj = VideoMaker_TopOpt_density();
+                                obj = VideoMaker_TopOpt_density(cParams);
                         end
                     case '3D'
-                        switch varType
+                        switch type
                             case 'LevelSet'
                                 obj = VideoMaker_TopOpt_levelSet3D();
                             case 'Density'
