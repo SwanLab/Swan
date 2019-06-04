@@ -30,7 +30,6 @@ classdef VideoMaker_Physical_Problem < VideoMaker
         
       end
         
-        
       methods (Access = private)
         function Make_video_standard_field(obj,field2print,componentfield,output_video_name_in)
             file_tcl_name = 'tcl_gid.tcl';

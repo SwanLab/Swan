@@ -16,9 +16,9 @@ classdef VideoManager < handle
         end
 
         function makeVideo(obj,nIter)
-            iterations = 0:nIter;
-            obj.videoMaker.Set_up_make_video(iterations)
+            obj.videoMaker.iterations = 0:nIter;
             obj.videoMaker.makeDesignVariableVideo();
+            obj.videoMaker.makeRegDesignVariableVideo(); 
         end
         
     end
@@ -39,7 +39,7 @@ classdef VideoManager < handle
             cParams.fileName    = obj.fileName;
             cParams.filesFolder = obj.filePath;
             cParams.gidPath     = obj.gidPath;
-            obj.videoMaker = VideoMaker.create(cParams);
+            obj.videoMaker = VideoMaker(cParams);
         end
         
         function createFolder(obj)

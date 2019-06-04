@@ -1,12 +1,8 @@
 classdef VideoMakerFactory < handle
     
-    methods (Access = public)
+    methods (Access = public, Static)
         
-        function obj = VideoMakerFactory()
-            
-        end
-        
-        function obj = create(obj,cParams)
+        function obj = create(cParams)
             
             fileName = cParams.fileName;
             type     = cParams.type;
@@ -68,9 +64,11 @@ classdef VideoMakerFactory < handle
                     case '2D'
                         switch type
                             case 'LevelSet'
-                                obj = VideoMaker_TopOpt_levelSet(cParams);
+                                cParams.tclTemplateName = 'Make_Video_characteristic';                                
+                                obj = VideoMaker(cParams);
                             case 'Density'
-                                obj = VideoMaker_TopOpt_density(cParams);
+                                cParams.tclTemplateName = 'Make_Video_density';                                
+                                obj = VideoMaker(cParams);
                         end
                     case '3D'
                         switch type

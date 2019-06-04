@@ -1,8 +1,11 @@
 classdef VideoMaker < handle
     
+    properties (GetAccess = private, SetAccess = public)
+        iterations        
+    end
+    
     properties (GetAccess = protected, SetAccess = private)
         videoFileName
-        fullTclTemplateName     
         fileList
         photoFileName         
     end
@@ -10,25 +13,44 @@ classdef VideoMaker < handle
     properties (Access = protected)
         gidPath
         tclFileName
-        tclTemplateName                  
         filesFolder
-        iterations
         fileName
-    end
-    
-    methods (Access = public, Static)
-        
-        function obj = create(cParams)
-            f = VideoMakerFactory();
-            obj = f.create(cParams);
-        end
-        
+        tclFileWriter
+        fieldName 
     end
     
     methods (Access = public)
         
-        function Set_up_make_video(obj,iter)
-            obj.iterations = iter;
+        
+        function makeDesignVariableVideo(obj)
+            obj.createVideoFileName();
+            obj.createFinalPhotoName();
+            obj.createFileList();          
+            obj.createTclFileName();  
+            obj.createTclFileWriter(obj.fieldName);
+            obj.writeTclFile();
+            obj.executeTclFiles();    
+            obj.deleteTclFile();
+        end
+        
+        function makeRegDesignVariableVideo(obj)
+            obj.createVideoFileName();
+            obj.createFinalPhotoName();
+            obj.createFileList();          
+            obj.createTclFileName();  
+            obj.createTclFileWriter('RegularizedDensity');
+            obj.writeTclFile();
+            obj.executeTclFiles();    
+            obj.deleteTclFile();
+        end           
+      
+        
+    end
+    
+    methods (Access = public, Static)
+        
+        function obj = VideoMaker(cParams)
+            obj.init(cParams);
         end
         
     end
@@ -39,14 +61,14 @@ classdef VideoMaker < handle
             obj.gidPath     = cParams.gidPath;
             obj.fileName    = cParams.fileName;
             obj.filesFolder = cParams.filesFolder;
-            obj.createTclTemplateName();
+            obj.fieldName   = cParams.type;
         end
         
         function createVideoFileName(obj)
             iterStr = int2str(obj.iterations(end));
             fName = ['Video_',obj.fileName,'_',iterStr,'.gif'];
             fullName = fullfile(pwd,'Output',obj.fileName,fName);
-            obj.videoFileName = obj.replace_special_character(fullName);
+            obj.videoFileName = SpecialCharacterReplacer.replace(fullName);
         end
         
         function createFileList(obj)
@@ -60,18 +82,31 @@ classdef VideoMaker < handle
                 iFullFileName = fullfile(folderName,iFileName);
                 list = [list, ' ',iFullFileName];
             end
-            obj.fileList = obj.replace_special_character(list);
+            obj.fileList = SpecialCharacterReplacer.replace(list);
         end
         
         function createFinalPhotoName(obj)
             fName = fullfile(obj.filesFolder,[obj.fileName,'.png']);
-            obj.photoFileName = obj.replace_special_character(fName);
+            obj.photoFileName = SpecialCharacterReplacer.replace(fName);
         end
         
         function createTclFileName(obj)
             fName = 'tcl_gid.tcl';
             obj.tclFileName = fullfile(obj.filesFolder,fName);
         end          
+        
+        function createTclFileWriter(obj,field)
+            cParams.type = field;
+            cParams.tclFileName = obj.tclFileName;            
+            cParams.fileList = obj.fileList;
+            cParams.videoFileName = obj.videoFileName;
+            cParams.photoFileName = obj.photoFileName;
+            obj.tclFileWriter = TclFileWriter.create(cParams);
+        end
+        
+        function writeTclFile(obj)
+           obj.tclFileWriter.write(); 
+        end
         
         function executeTclFiles(obj) 
             tFile = replace(obj.tclFileName,'\','\\');            
@@ -88,31 +123,9 @@ classdef VideoMaker < handle
                 system(['rm ',tFile]);
             elseif ismac
             end            
-        end
-        
+        end        
+
     end
-    
-    methods (Access = protected, Static)
-        
-        function [output_string] = replace_special_character(input_string)
-            if ispc
-                output_string = replace(input_string,'\','\\\\');
-            elseif isunix
-                output_string = input_string;
-            elseif ismac
-            end
-        end
-        
-    end
-    
-    methods (Access = private)
-        
-       function createTclTemplateName(obj)
-            fName = fullfile(pwd,'PostProcess','VideoMaker',[obj.tclTemplateName,'.tcl']);
-            obj.fullTclTemplateName = obj.replace_special_character(fName);
-        end           
-        
-      
-        
-    end
+
+
 end
