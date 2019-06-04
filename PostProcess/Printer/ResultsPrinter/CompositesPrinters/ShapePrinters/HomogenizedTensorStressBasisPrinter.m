@@ -1,9 +1,5 @@
-classdef HomogenizedTensorStressBasisPrinter < CompositeResultsPrinter
-    
-    properties (Access = private)
-        nstre
-    end
-    
+classdef HomogenizedTensorStressBasisPrinter < AbstractHomogenizedTensorPrinter
+
     methods (Access = public)
         
         function obj = HomogenizedTensorStressBasisPrinter(d)
@@ -16,7 +12,7 @@ classdef HomogenizedTensorStressBasisPrinter < CompositeResultsPrinter
     
     methods (Access = protected)
         
-        function storeFieldsToPrint(obj,d)
+        function storeMicroProblemsFields(obj,d)
             microProblems = d.phyProblems{1};
             fields = microProblems.variables2printStressBasis;
             for istre = 1:obj.nstre
@@ -26,28 +22,7 @@ classdef HomogenizedTensorStressBasisPrinter < CompositeResultsPrinter
                 p.setStrVariablesNames('StressBasis');
                 p.setStrVariablesMicroCase(istre)                                
             end
-        end
-        
-        function createPrinters(obj,d)
-            for istre = 1:obj.nstre
-                p = ResultsPrinter.create('ElasticityMicro',d);
-                obj.printers{istre} = p;
-                
-            end
-        end
-        
+        end        
     end
-    
-    methods (Access = private)
-        
-        function computeNstre(obj,ndim)
-            if ndim == 2
-                obj.nstre = 3;
-            elseif ndim == 3
-                obj.nstre = 6;
-            end
-        end
-    end
-    
     
 end

@@ -1,8 +1,4 @@
-classdef HomogenizedTensorPrinter < CompositeResultsPrinter
-    
-    properties (Access = private)
-        nstre
-    end
+classdef HomogenizedTensorPrinter < AbstractHomogenizedTensorPrinter
     
     methods (Access = public)
         
@@ -16,37 +12,17 @@ classdef HomogenizedTensorPrinter < CompositeResultsPrinter
     
     methods (Access = protected)
         
-        function storeFieldsToPrint(obj,d)
+        function storeMicroProblemsFields(obj,d)
             microProblems = d.phyProblems{1};
-            fields = microProblems.variables2print;%  variables.var2print;
+            fields = microProblems.variables2print;
             for istre = 1:obj.nstre
                 di.fields = fields{istre};
                 p = obj.printers{istre};
                 p.storeFieldsToPrint(di);
                 p.setStrVariablesMicroCase(istre)                                
-            end
-        end
+            end                       
+        end               
         
-        function createPrinters(obj,d)
-            for istre = 1:obj.nstre
-                p = ResultsPrinter.create('ElasticityMicro',d);
-                obj.printers{istre} = p;
-                
-            end
-        end
-        
-    end
-    
-    methods (Access = private)
-        
-        function computeNstre(obj,ndim)
-            if ndim == 2
-                obj.nstre = 3;
-            elseif ndim == 3
-                obj.nstre = 6;
-            end
-        end
-    end
-    
+    end    
     
 end

@@ -38,6 +38,7 @@ classdef ShapesPrinter < CompositeResultsPrinter
                 index = obj.printableIndex(iprinter);
                 shape = obj.allShapes{index};   
                 d.phyProblems = shape.getPhysicalProblems();
+                d.regDensity  = shape.getRegularizedDensity();
                 p = obj.printers{iprinter};
                 p.storeFieldsToPrint(d);
             end
@@ -101,7 +102,7 @@ classdef ShapesPrinter < CompositeResultsPrinter
         function itIs = isShapePrintable(obj,shapeFunc)
             shapeName = class(shapeFunc);
             printingShapes = {'ShFunc_NonSelfAdjoint_Compliance',...
-                'ShFunc_Compliance', ...
+                'ShFunc_Compliance', 'ShFunc_Compliance',...
                 'ShFunc_Chomog_alphabeta',...
                 'ShFunc_Chomog_fraction'};
             itIs = any(strcmp(printingShapes,shapeName));
