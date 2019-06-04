@@ -30,11 +30,7 @@ classdef VideoMaker < handle
     end
     
     methods (Access = public, Static)
-        
-        function obj = VideoMaker(cParams)
-            obj.init(cParams);
-        end
-        
+
         function obj = create(cParams)
             f = VideoMakerFactory();
             obj = f.create(cParams);
@@ -151,8 +147,6 @@ classdef VideoMaker < handle
             obj.executeTclFiles();    
             obj.deleteTclFile();
         end               
-        
-        
         
     end
 

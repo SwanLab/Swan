@@ -1,28 +1,12 @@
 classdef VideoMaker_TopOpt < VideoMaker
     
-    properties (Access = protected)
-    end
-    
-    properties (GetAccess = protected, SetAccess = private)
-  
-    end    
-    
-      
-        
-    end       
-    
-    methods (Access = protected)
-        
    
-                
- 
+    methods (Access = public)                
         
-    end
-    
-    methods (Access = private)
+        function obj = VideoMaker_TopOpt(cParams)
+            obj.init(cParams);            
+        end
         
-
-    end
-
-    
+    end    
+               
 end

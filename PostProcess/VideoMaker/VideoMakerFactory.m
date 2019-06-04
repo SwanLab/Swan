@@ -64,11 +64,9 @@ classdef VideoMakerFactory < handle
                         case '2D'
                             switch type
                                 case 'LevelSet'
-                                   % cParams.tclTemplateName = 'Make_Video_characteristic';
-                                    obj = VideoMaker(cParams);
+                                    obj = VideoMaker_TopOpt(cParams);
                                 case 'Density'
-                                    %cParams.tclTemplateName = 'Make_Video_density';
-                                    obj = VideoMaker(cParams);
+                                    obj = VideoMaker_TopOpt(cParams);
                             end
                         case '3D'
                             switch type
