@@ -13,7 +13,7 @@ classdef SettingsTopOptProblem < AbstractSettings
         costSettings
         constraintSettings
         optimizerSettings
-        videoManagerSettings
+        videoMakerSettings
     end
     
     methods (Access = public)
@@ -94,12 +94,11 @@ classdef SettingsTopOptProblem < AbstractSettings
         end
         
         function createVideoManagerSettings(obj)
-           % s = obj.cParams.videoManagerSettings;            
             s.shallPrint    = obj.optimizerSettings.shallPrint;
             s.designVarType = obj.designVarSettings.type;
             s.pdim          = obj.problemData.femData.pdim;
             s.caseFileName  = obj.fileName;            
-            obj.videoManagerSettings = SettingsVideoManager(s);
+            obj.videoMakerSettings = SettingsVideoMaker(s);
         end
         
         function printSummary(obj)

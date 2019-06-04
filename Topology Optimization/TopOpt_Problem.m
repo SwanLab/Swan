@@ -12,7 +12,7 @@ classdef TopOpt_Problem < handle
     
     properties (Access = private)
         mesh
-        videoManager
+        videoMaker
         homogenizedVarComputer
     end
     
@@ -25,7 +25,7 @@ classdef TopOpt_Problem < handle
             obj.createCostAndConstraint(cParams);
             obj.createDualVariable();
             obj.createOptimizer(cParams);
-            obj.createVideoManager(cParams);
+            obj.createVideoMaker(cParams);
         end
         
         function createOptimizer(obj,settings)
@@ -58,7 +58,7 @@ classdef TopOpt_Problem < handle
         end
         
         function postProcess(obj)
-            obj.videoManager.makeVideo(obj.optimizer.nIter);
+            obj.videoMaker.makeVideo(obj.optimizer.nIter);
         end
         
     end
@@ -119,13 +119,9 @@ classdef TopOpt_Problem < handle
             obj.constraint = Constraint(s);
         end
         
-        function createVideoManager(obj,cParams)
-            s = cParams.videoManagerSettings;
-            if s.shallPrint
-                obj.videoManager = VideoManager(s);
-            else
-                obj.videoManager = VideoManager_Null(s);
-            end
+        function createVideoMaker(obj,cParams)
+            s = cParams.videoMakerSettings;
+            obj.videoMaker = VideoMaker.create(s);
         end
         
     end

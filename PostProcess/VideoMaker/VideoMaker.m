@@ -21,29 +21,11 @@ classdef VideoMaker < handle
     
     methods (Access = public)
         
-        
-        function makeDesignVariableVideo(obj)
-            obj.createVideoFileName();
-            obj.createFinalPhotoName();
-            obj.createFileList();          
-            obj.createTclFileName();  
-            obj.createTclFileWriter(obj.fieldName);
-            obj.writeTclFile();
-            obj.executeTclFiles();    
-            obj.deleteTclFile();
+        function makeVideo(obj,nIter)
+            obj.iterations = 0:nIter;
+            obj.makeDesignVariableVideo();
+            obj.makeRegDesignVariableVideo(); 
         end
-        
-        function makeRegDesignVariableVideo(obj)
-            obj.createVideoFileName();
-            obj.createFinalPhotoName();
-            obj.createFileList();          
-            obj.createTclFileName();  
-            obj.createTclFileWriter('RegularizedDensity');
-            obj.writeTclFile();
-            obj.executeTclFiles();    
-            obj.deleteTclFile();
-        end           
-      
         
     end
     
@@ -53,15 +35,20 @@ classdef VideoMaker < handle
             obj.init(cParams);
         end
         
+        function obj = create(cParams)
+            f = VideoMakerFactory();
+            obj = f.create(cParams);
+        end
+        
     end
     
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.gidPath     = cParams.gidPath;
-            obj.fileName    = cParams.fileName;
-            obj.filesFolder = cParams.filesFolder;
-            obj.fieldName   = cParams.type;
+            obj.fileName    = cParams.caseFileName;
+            obj.fieldName   = cParams.designVarType;
+            obj.createPaths(cParams);
+            obj.createFolder();              
         end
         
         function createVideoFileName(obj)
@@ -96,9 +83,9 @@ classdef VideoMaker < handle
         end          
         
         function createTclFileWriter(obj,field)
-            cParams.type = field;
-            cParams.tclFileName = obj.tclFileName;            
-            cParams.fileList = obj.fileList;
+            cParams.type          = field;
+            cParams.tclFileName   = obj.tclFileName;            
+            cParams.fileList      = obj.fileList;
             cParams.videoFileName = obj.videoFileName;
             cParams.photoFileName = obj.photoFileName;
             obj.tclFileWriter = TclFileWriter.create(cParams);
@@ -125,6 +112,48 @@ classdef VideoMaker < handle
             end            
         end        
 
+    end
+    
+    methods (Access = private)
+        
+       function createFolder(obj)
+            if ~exist(obj.filesFolder,'dir')
+                mkdir(obj.filesFolder);
+            end            
+       end     
+        
+        function createPaths(obj,cParams)
+            fName = cParams.caseFileName;
+            %obj.gidPath = 'C:\Program Files\GiD\GiD 13.0.4';% 
+            obj.gidPath = '/opt/GiDx64/13.0.2/';
+            obj.fileName = fName;
+            obj.filesFolder = fullfile(pwd,'Output',fName);
+        end       
+        
+        function makeDesignVariableVideo(obj)
+            obj.createVideoFileName();
+            obj.createFinalPhotoName();
+            obj.createFileList();          
+            obj.createTclFileName();  
+            obj.createTclFileWriter(obj.fieldName);
+            obj.writeTclFile();
+            obj.executeTclFiles();    
+            obj.deleteTclFile();
+        end
+        
+        function makeRegDesignVariableVideo(obj)
+            obj.createVideoFileName();
+            obj.createFinalPhotoName();
+            obj.createFileList();          
+            obj.createTclFileName();  
+            obj.createTclFileWriter('RegularizedDensity');
+            obj.writeTclFile();
+            obj.executeTclFiles();    
+            obj.deleteTclFile();
+        end               
+        
+        
+        
     end
 
 
