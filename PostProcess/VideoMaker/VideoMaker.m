@@ -1,36 +1,30 @@
 classdef VideoMaker < handle
     
     properties (GetAccess = private, SetAccess = public)
-        iterations        
+        iterations
     end
     
-    properties (GetAccess = protected, SetAccess = private)
-        videoFileName
-        fileList
-        photoFileName         
-    end
-    
-    properties (Access = protected)
+    properties (Access = private)
         gidPath
         tclFileName
         filesFolder
         fileName
         tclFileWriter
-        fieldName 
+        fieldName
+        designVariableName
     end
     
     methods (Access = public)
         
-        function makeVideo(obj,nIter)
-            obj.iterations = 0:nIter;
+        function makeVideo(obj)
             obj.makeDesignVariableVideo();
-            obj.makeRegDesignVariableVideo(); 
+            obj.makeRegularizedDesignVariableVideo();
         end
         
     end
     
     methods (Access = public, Static)
-
+        
         function obj = create(cParams)
             f = VideoMakerFactory();
             obj = f.create(cParams);
@@ -41,114 +35,82 @@ classdef VideoMaker < handle
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.fileName    = cParams.caseFileName;
-            obj.fieldName   = cParams.designVarType;
-            obj.createPaths(cParams);
-            obj.createFolder();              
+            obj.fileName           = cParams.caseFileName;
+            obj.designVariableName = cParams.designVarType;
+            obj.createPaths();
+            obj.createFolder();
         end
         
-        function createVideoFileName(obj)
-            iterStr = int2str(obj.iterations(end));
-            fName = ['Video_',obj.fileName,'_',iterStr,'.gif'];
-            fullName = fullfile(pwd,'Output',obj.fileName,fName);
-            obj.videoFileName = SpecialCharacterReplacer.replace(fullName);
-        end
+    end
+    
+    methods (Access = private)
         
-        function createFileList(obj)
-            iter2print = obj.iterations;
-            fName      = obj.fileName;
-            folderName = obj.filesFolder;
-            list = [];
-            for iter = 1:length(iter2print)
-                iStr          = num2str(iter2print(iter));
-                iFileName     = [fName,iStr,'.flavia.res'];
-                iFullFileName = fullfile(folderName,iFileName);
-                list = [list, ' ',iFullFileName];
+        function createFolder(obj)
+            if ~exist(obj.filesFolder,'dir')
+                mkdir(obj.filesFolder);
             end
-            obj.fileList = SpecialCharacterReplacer.replace(list);
         end
         
-        function createFinalPhotoName(obj)
-            fName = fullfile(obj.filesFolder,[obj.fileName,'.png']);
-            obj.photoFileName = SpecialCharacterReplacer.replace(fName);
+        function createPaths(obj)
+            %obj.gidPath = 'C:\Program Files\GiD\GiD 13.0.4';%
+            obj.gidPath = '/opt/GiDx64/13.0.2/';
+            obj.filesFolder = fullfile(pwd,'Output',obj.fileName);
+        end
+        
+        function makeDesignVariableVideo(obj)
+            obj.fieldName = obj.designVariableName;
+            obj.makeFieldVideo();
+        end
+        
+        function makeRegularizedDesignVariableVideo(obj)
+            obj.fieldName = 'RegularizedDensity';
+            obj.makeFieldVideo();            
+        end
+        
+        function makeFieldVideo(obj)
+            obj.createTclFileName();
+            obj.createTclFileWriter();
+            obj.writeTclFile();
+            obj.executeTclFile();
+            obj.deleteTclFile();            
         end
         
         function createTclFileName(obj)
             fName = 'tcl_gid.tcl';
             obj.tclFileName = fullfile(obj.filesFolder,fName);
-        end          
+        end
         
-        function createTclFileWriter(obj,field)
-            cParams.type          = field;
-            cParams.tclFileName   = obj.tclFileName;            
-            cParams.fileList      = obj.fileList;
-            cParams.videoFileName = obj.videoFileName;
-            cParams.photoFileName = obj.photoFileName;
-            obj.tclFileWriter = TclFileWriter.create(cParams);
+        function createTclFileWriter(obj)
+            cParams.type         = obj.fieldName;
+            cParams.tclFileName  = obj.tclFileName;
+            cParams.filesFolder  = obj.filesFolder;
+            cParams.outputName   = [obj.fieldName,obj.fileName];
+            cParams.iterations   = obj.iterations;
+            cParams.fileName     = obj.fileName;
+            obj.tclFileWriter    = TclFileWriter.create(cParams);
         end
         
         function writeTclFile(obj)
-           obj.tclFileWriter.write(); 
+            obj.tclFileWriter.write();
         end
         
-        function executeTclFiles(obj) 
-            tFile = replace(obj.tclFileName,'\','\\');            
+        function executeTclFile(obj)
+            tFile = replace(obj.tclFileName,'\','\\');
             gFile = fullfile(obj.gidPath,'gid_offscreen');
             executingLine = ['"',gFile,'"', ' -t ' ,'"source ',tFile,'"'];
-            system(executingLine);            
+            system(executingLine);
         end
         
         function deleteTclFile(obj)
-            tFile = obj.tclFileName;            
+            tFile = obj.tclFileName;
             if ispc
                 system(['DEL ',tFile]);
             elseif isunix
                 system(['rm ',tFile]);
             elseif ismac
-            end            
-        end        
-
-    end
-    
-    methods (Access = private)
-        
-       function createFolder(obj)
-            if ~exist(obj.filesFolder,'dir')
-                mkdir(obj.filesFolder);
-            end            
-       end     
-        
-        function createPaths(obj,cParams)
-            fName = cParams.caseFileName;
-            %obj.gidPath = 'C:\Program Files\GiD\GiD 13.0.4';% 
-            obj.gidPath = '/opt/GiDx64/13.0.2/';
-            obj.fileName = fName;
-            obj.filesFolder = fullfile(pwd,'Output',fName);
-        end       
-        
-        function makeDesignVariableVideo(obj)
-            obj.createVideoFileName();
-            obj.createFinalPhotoName();
-            obj.createFileList();          
-            obj.createTclFileName();  
-            obj.createTclFileWriter(obj.fieldName);
-            obj.writeTclFile();
-            obj.executeTclFiles();    
-            obj.deleteTclFile();
+            end
         end
         
-        function makeRegDesignVariableVideo(obj)
-            obj.createVideoFileName();
-            obj.createFinalPhotoName();
-            obj.createFileList();          
-            obj.createTclFileName();  
-            obj.createTclFileWriter('RegularizedDensity');
-            obj.writeTclFile();
-            obj.executeTclFiles();    
-            obj.deleteTclFile();
-        end               
-        
-    end
-
-
+    end    
+    
 end

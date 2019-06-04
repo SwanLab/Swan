@@ -58,7 +58,9 @@ classdef TopOpt_Problem < handle
         end
         
         function postProcess(obj)
-            obj.videoMaker.makeVideo(obj.optimizer.nIter);
+            iter = 0:obj.optimizer.nIter;
+            obj.videoMaker.iterations = iter;
+            obj.videoMaker.makeVideo();
         end
         
     end
