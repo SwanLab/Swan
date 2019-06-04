@@ -11,6 +11,10 @@ classdef ShFunc_Chomog < ShapeFunctional
         Ch_star
     end
     
+    properties (Access = protected)
+        regDesignVariable
+    end    
+    
     methods (Access = public)
         
         function obj = ShFunc_Chomog(cParams)
@@ -23,6 +27,11 @@ classdef ShFunc_Chomog < ShapeFunctional
         function f = getPhysicalProblems(obj)
             f{1} = obj.physicalProblem;
         end
+        
+        function f = getRegularizedDensity(obj)
+            f = obj.regDesignVariable;
+        end
+        
     end
     
     methods (Access = protected)
@@ -85,6 +94,7 @@ classdef ShFunc_Chomog < ShapeFunctional
         
         function updateHomogenizedMaterialProperties(obj)
             rhoV = obj.filter.getP0fromP1(obj.designVariable.value);
+            obj.regDesignVariable = rhoV;           
             obj.homogenizedVariablesComputer.computeCtensor(rhoV);
         end
         

@@ -31,6 +31,10 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             f{1} = obj.physicalProblem;
         end
         
+        function f = getRegularizedDensity(obj)
+            f = obj.regDesignVariable;
+        end
+        
     end
     
     methods (Access = protected)
