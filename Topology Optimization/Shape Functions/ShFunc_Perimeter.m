@@ -28,8 +28,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
         function updateProtectedVariables(obj)
             obj.updateEpsilonValue()
             obj.updateEpsilonInFilter()
-        end
-        
+        end        
        
         function updateEpsilonValue(obj)
             obj.epsilon = obj.target_parameters.epsilon_perimeter;
