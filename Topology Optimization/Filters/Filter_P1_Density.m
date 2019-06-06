@@ -5,6 +5,10 @@ classdef Filter_P1_Density < Filter_P1
     end
     
     methods (Access = public)
+        
+        function obj = Filter_P1_Density(cParams)
+            obj.init(cParams);
+        end
        
         function preProcess(obj)
            preProcess@Filter(obj)

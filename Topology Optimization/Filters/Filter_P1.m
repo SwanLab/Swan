@@ -6,9 +6,9 @@ classdef Filter_P1 < Filter
     
     methods (Access = public)
         
-        function obj = Filter_P1(cParams)
-            obj@ Filter(cParams);
-        end
+        %function obj = Filter_P1(cParams)
+        %    obj.init(cParams);
+        %end
         
         function preProcess(obj)
             preProcess@Filter(obj)

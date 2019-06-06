@@ -40,9 +40,7 @@ classdef Filter < handle
     methods (Access = public)
         
         function obj = Filter(cParams)
-            obj.createDiffReacProblem(cParams);
-            obj.mesh = cParams.designVar.mesh;
-            obj.quadratureOrder = cParams.quadratureOrder;
+
         end
         
         function preProcess(obj)
@@ -71,6 +69,12 @@ classdef Filter < handle
     end
     
     methods (Access = protected)
+        
+        function init(obj,cParams)
+            obj.createDiffReacProblem(cParams);
+            obj.mesh = cParams.designVar.mesh;
+            obj.quadratureOrder = cParams.quadratureOrder;                        
+        end
         
         function A_nodal_2_gauss = computeA(obj)
             A_nodal_2_gauss = sparse(obj.nelem,obj.npnod);

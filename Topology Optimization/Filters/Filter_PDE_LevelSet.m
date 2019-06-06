@@ -3,8 +3,11 @@ classdef Filter_PDE_LevelSet < Filter_PDE & Filter_LevelSet
     methods (Access = public)
         
         function obj = Filter_PDE_LevelSet(cParams)
-            obj@ Filter_PDE(cParams);
-            obj@ Filter_LevelSet(cParams);
+            obj.init(cParams)
+            obj.domainType = cParams.domainType;
+            %obj@ Filter_PDE(cParams);
+            %
+            %obj@ Filter_LevelSet(cParams);
         end
         
         function preProcess(obj)

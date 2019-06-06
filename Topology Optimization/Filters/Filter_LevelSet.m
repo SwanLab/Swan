@@ -2,19 +2,14 @@ classdef Filter_LevelSet < Filter
     
     properties (Access = protected)
         unfittedMesh
+        domainType        
     end
     
     properties(Access = private)
-        domainType
         integrator
     end
     
     methods (Access = public)
-        
-        function obj = Filter_LevelSet(cParams)
-            obj@ Filter(cParams);
-            obj.domainType = cParams.domainType;
-        end
         
         function preProcess(obj)
             preProcess@Filter(obj);
