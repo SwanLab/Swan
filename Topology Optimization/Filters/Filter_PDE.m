@@ -6,11 +6,6 @@ classdef Filter_PDE < Filter
     
     methods (Access = public)
         
-        function preProcess(obj)
-            preProcess@Filter(obj);
-            obj.Anodal2Gauss = obj.computeA();
-        end
-        
         function x_reg = getP1fromP1(obj,x)
             RHS = obj.integrate_L2_function_with_shape_function(x);
             x_reg = obj.solve_filter(RHS);

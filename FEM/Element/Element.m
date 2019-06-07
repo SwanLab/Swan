@@ -17,6 +17,10 @@ classdef Element < handle
         bcType        
     end
     
+    properties (Access = private)
+       scale 
+    end
+    
     methods (Access = public)
        
         function obj = Element()
@@ -28,6 +32,7 @@ classdef Element < handle
     methods (Access = protected)        
         function initElement(obj,geometry,material,dof,scale)            
             obj.nelem = geometry(1).interpolation.nelem;
+            obj.scale = scale;
             obj.nfields = geometry.nfields;
             for ifield=1:obj.nfields
                 obj.nnode(ifield) = geometry(ifield).interpolation.nnode;
@@ -35,13 +40,21 @@ classdef Element < handle
             obj.geometry = geometry;
             obj.quadrature = Quadrature.set(geometry(1).type);
             obj.material = material;
-            obj.dof = dof;
-            obj.bcApplier = BoundaryConditionsApplier.create(obj.nfields,obj.dof,scale,obj.bcType);
+            obj.dof = dof;            
+            obj.createBoundaryConditionasApplier();
             obj.assign_dirichlet_values();
         end
     end
     
     methods
+        
+        function createBoundaryConditionasApplier(obj)            
+            cParams.nfields = obj.nfields;
+            cParams.dof = obj.dof;
+            cParams.scale = obj.scale;
+            cParams.type = obj.bcType;
+            obj.bcApplier = BoundaryConditionsApplier.create(cParams);
+        end
         
         function bc = getBcApplier(obj)
             bc = obj.bcApplier;            
@@ -139,8 +152,12 @@ classdef Element < handle
         
         function R = compute_imposed_displacement_force(obj,K)
             % Forces coming from imposed displacement
-            dirApplier = DirichletConditionsApplier(obj.nfields,obj.dof);
-            [dirichlet,uD,~] = dirApplier.compute_global_dirichlet_free_uD();
+            cParams.nfields = obj.nfields;
+            cParams.dof = obj.dof;
+            cParams.scale = 'MACRO';
+            cParams.type = 'Dirichlet';
+            bcApplier = BoundaryConditionsApplier.create(cParams);
+            [dirichlet,uD,~] = bcApplier.compute_global_dirichlet_free_uD();
             if ~isempty(dirichlet)
                 R = -K(:,dirichlet)*uD;
             else

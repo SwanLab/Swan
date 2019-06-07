@@ -41,10 +41,6 @@ classdef Filter < handle
     
     methods (Access = public)
         
-    %    function obj = Filter(cParams)
-
-     %   end
-        
         function preProcess(obj)
             obj.diffReacProb.preProcess();
             

@@ -5,11 +5,11 @@ classdef Element_DiffReact_Micro < Element_DiffReact
         function FextPoint = computePunctualFext(obj)
             %Compute Global Puntual Forces (Not well-fashioned in FEM)
             if ~isempty(obj.dof.neumann)
-                FextPoint = obj.reduced_vector_2_full_vector(obj.dof.neumann_values);
+                FextPoint = obj.reducedToFullVector(obj.dof.neumann_values);
             end
         end
         
-        function Ared = full_matrix_2_reduced_matrix(obj,A)                
+        function Ared = fullToReducedMatrix(obj,A)                
             vF = obj.dof.free;
             vP = obj.dof.periodic_free;
             vQ = obj.dof.periodic_constrained;
@@ -23,7 +23,7 @@ classdef Element_DiffReact_Micro < Element_DiffReact
             Ared = [A_II, A_IP; A_PI, A_PP];
         end
         
-        function b_red = full_vector_2_reduced_vector(obj,b)
+        function b_red = fullToReducedVector(obj,b)
             vF = obj.dof.free{1};
             vP = obj.dof.periodic_free;
             vQ = obj.dof.periodic_constrained;
@@ -34,7 +34,7 @@ classdef Element_DiffReact_Micro < Element_DiffReact
             b_red = [b_I; b_P];
         end
         
-        function b = reduced_vector_2_full_vector(obj,bfree)
+        function b = reducedToFullVector(obj,bfree)
             % HEAD
             % b = zeros(obj.dof.ndof,1);
             % b(obj.dof.free{1}) = bfree;

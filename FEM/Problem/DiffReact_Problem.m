@@ -54,10 +54,10 @@ classdef DiffReact_Problem < FEM
                 obj.variables.x = x_reg;
             else
                 bc = obj.element.getBcApplier();
-                x_red  = bc.full_vector_2_reduced_vector(x);
+                x_red  = bc.fullToReducedVector(x);
                 LHS = obj.element.computeLHS();
                 x_reg = obj.solver.solve(LHS,x_red);
-                obj.variables.x = bc.reduced_vector_2_full_vector(x_reg);
+                obj.variables.x = bc.reducedToFullVector(x_reg);
             end
         end
         

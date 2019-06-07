@@ -36,7 +36,7 @@ classdef Elastic_Problem < FEM
         function computeVariablesWithBodyForces(obj,fbody)
             Kred = obj.element.computeLHS();
             %obj.element.computeRHS();
-            f = obj.element.bcApplier.full_vector_2_reduced_vector(fbody);
+            f = obj.element.bcApplier.fullToReducedVector(fbody);
             u = obj.solver.solve(Kred,f);
             obj.variables = obj.element.computeVars(u);                        
         end

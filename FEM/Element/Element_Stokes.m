@@ -40,9 +40,9 @@ classdef Element_Stokes < Element
             R = obj.compute_imposed_displacement_force(obj.LHS);
             Fext = Fext + R ;
             
-            %             Kred = obj.full_matrix_2_reduced_matrix(K);
+            %             Kred = obj.fullToReducedMatrix(K);
             
-            Fext_red = obj.bcApplier.full_vector_2_reduced_vector(Fext);
+            Fext_red = obj.bcApplier.fullToReducedVector(Fext);
             Fext_red(1:length(obj.dof.free{1}),1) = Fext_red(1:length(obj.dof.free{1}),1) + Mred_x_n;
             
             fint_red = dr*x;
@@ -57,7 +57,7 @@ classdef Element_Stokes < Element
                 dt=inf;
             end
             obj.LHS = compute_LHS(obj,dt);
-            LHSred = obj.bcApplier.full_matrix_2_reduced_matrix(obj.LHS);
+            LHSred = obj.bcApplier.fullToReducedMatrix(obj.LHS);
             dr = LHSred;
         end
         
@@ -209,7 +209,7 @@ classdef Element_Stokes < Element
         end
         
         function variable = computeVars(obj,x_free)
-            x = obj.bcApplier.reduced_vector_2_full_vector(x_free);
+            x = obj.bcApplier.reducedToFullVector(x_free);
             variable.u = x(1:obj.dof.ndof(1),:);
             variable.p = x(obj.dof.ndof(1)+1:end,:);
         end    

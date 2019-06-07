@@ -1,26 +1,19 @@
 classdef BoundaryConditionsApplier < handle
-    
-    properties
-    end
-    
+
     methods (Access = public, Static)
         
-        function bc = create(nfields,ndof,scale,type)
-            switch type
-                case 'Neumann'
-                    bc = NeumannConditionsApplier();
-                    %bc = DirichletConditionsApplier(nfields,ndof);                    
-                otherwise
-                    switch scale
-                        case 'MACRO'
-                            bc = DirichletConditionsApplier(nfields,ndof);
-                        case 'MICRO'
-                            bc = PeriodicBoundaryConditionApplier(nfields,ndof);
-                    end
-            end
-            
+        function obj = create(cParams)
+            f = BoundaryConditionsApplierFactory();
+            obj = f.create(cParams);
         end
+        
     end
     
+    methods (Access = public, Abstract)
+        fullToReducedMatrix(obj) 
+        fullToReducedVector(obj)
+        reducedToFullVector(obj)
+    end
+   
 end
 

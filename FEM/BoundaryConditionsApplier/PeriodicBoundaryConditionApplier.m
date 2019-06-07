@@ -1,4 +1,4 @@
-classdef PeriodicBoundaryConditionApplier < handle
+classdef PeriodicBoundaryConditionApplier < BoundaryConditionsApplier
     
     properties (Access = private)
         nfields
@@ -7,12 +7,12 @@ classdef PeriodicBoundaryConditionApplier < handle
     
     methods (Access = public)
         
-        function obj = PeriodicBoundaryConditionApplier(nfields,dof)
-            obj.nfields = nfields;
-            obj.dof = dof;            
+        function obj = PeriodicBoundaryConditionApplier(cParams)
+            obj.nfields = cParams.nfields;
+            obj.dof = cParams.dof;            
         end
         
-        function Ared = full_matrix_2_reduced_matrix(obj,A)                
+        function Ared = fullToReducedMatrix(obj,A)                
             vF = obj.dof.free;
             vP = obj.dof.periodic_free;
             vQ = obj.dof.periodic_constrained;
@@ -26,7 +26,7 @@ classdef PeriodicBoundaryConditionApplier < handle
             Ared = [A_II, A_IP; A_PI, A_PP];
         end
         
-        function b_red = full_vector_2_reduced_vector(obj,b)
+        function b_red = fullToReducedVector(obj,b)
             vF = obj.dof.free{1};
             vP = obj.dof.periodic_free;
             vQ = obj.dof.periodic_constrained;
@@ -36,7 +36,7 @@ classdef PeriodicBoundaryConditionApplier < handle
             b_red = [b_I; b_P];
         end
         
-        function b = reduced_vector_2_full_vector(obj,bfree)
+        function b = reducedToFullVector(obj,bfree)
             vF = obj.dof.free;
             vP = obj.dof.periodic_free;
             vI = setdiff(vF{1},vP);

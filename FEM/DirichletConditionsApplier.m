@@ -9,7 +9,7 @@ classdef DirichletConditionsApplier < BoundaryConditionsApplier
         
         function obj = DirichletConditionsApplier(cParams)
             obj.nfields = cParams.nfields;
-            obj.dof = cParams.dof;
+            obj.dof     = cParams.dof;
         end
         
         function Ared = fullToReducedMatrix(obj,A)
