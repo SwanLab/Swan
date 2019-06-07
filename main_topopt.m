@@ -23,11 +23,11 @@ clear variables;
 % 
 % settings = Settings('Case_RefactoringSettings_OLD');
 % settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_B.json',settings);
-settings = Settings('CantileverTriangle_Case_1_1_1Robin');
+%settings = Settings('CantileverTriangle_Case_1_1_1InteriorPerimeter');
+settings = Settings('test_interiorPerimeter');
 %settings = Settings('CantileverHexahedra_Case_1_1_1');
 % settings = Settings('CantileverTriangle_Case_2_1_1');
 %settings = Settings('ImprovedBridgeSYM_Case_1_1_1');
-
 %settings.printing = false;
 %settings.plotting = false;
 %settings.monitoring = false;

@@ -6,6 +6,7 @@ classdef DiffReact_Problem < FEM
     
     properties (Access = protected)
         isRobinTermAdded
+        bcApplierType
     end
     
     methods (Access = public)
@@ -16,6 +17,12 @@ classdef DiffReact_Problem < FEM
                 obj.isRobinTermAdded = cParams.isRobinTermAdded;
             else
                 obj.isRobinTermAdded = false;
+            end
+            
+            if isfield(cParams,'bcApplierType')
+                obj.bcApplierType = cParams.bcApplierType;
+            else
+                obj.bcApplierType = '';
             end
             
             if ischar(cParams)
@@ -69,7 +76,9 @@ classdef DiffReact_Problem < FEM
         
         function setElement(obj)
             isRobinTermAdded = obj.isRobinTermAdded;
-            obj.element = Element_DiffReact(obj.mesh,obj.geometry,obj.material,obj.dof,obj.problemData.scale,isRobinTermAdded);
+            bcType = obj.bcApplierType;
+            obj.element = Element_DiffReact(obj.mesh,obj.geometry,...
+                 obj.material,obj.dof,obj.problemData.scale,isRobinTermAdded,bcType);
         end
         
         function setDOFs(obj)

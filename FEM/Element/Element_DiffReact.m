@@ -20,9 +20,10 @@ classdef Element_DiffReact < Element
     end
     
     methods %(Access = ?Physical_Problem)
-        function obj = Element_DiffReact(mesh,geometry,material,dof,scale,addRobinTerm)
+        function obj = Element_DiffReact(mesh,geometry,material,dof,scale,addRobinTerm,bcType)
             obj.mesh = mesh;
             obj.addRobinTerm = addRobinTerm;
+            obj.bcType = bcType;
             obj.initElement(geometry,material,dof,scale);
             obj.nstre = 2;
             obj.nfields = 1;

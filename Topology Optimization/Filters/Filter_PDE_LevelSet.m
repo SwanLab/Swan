@@ -4,7 +4,6 @@ classdef Filter_PDE_LevelSet < Filter_PDE
         integrator
         unfittedMesh
         domainType        
-        Anodal2Gauss    
     end
     
     methods (Access = public)
@@ -18,7 +17,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             obj.computeGeometry();
             obj.nelem = obj.mesh.nelem;
             obj.npnod = obj.geometry.interpolation.npnod;           
-           
+            obj.ngaus = obj.quadrature.ngaus;
             obj.Anodal2Gauss = obj.computeA();
             
             cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh,obj.interpolation);

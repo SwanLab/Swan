@@ -1,6 +1,6 @@
 classdef Filter_PDE < Filter
     
-    properties (Access = private)
+    properties (Access = protected)
         Anodal2Gauss
     end
     
