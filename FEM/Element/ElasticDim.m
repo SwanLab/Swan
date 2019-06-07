@@ -45,7 +45,7 @@ classdef ElasticDim < handle
         
     end
     
-    methods (Abstract, Access = protected)
+    methods (Abstract, Access = public)
         computeB(obj)
     end
     

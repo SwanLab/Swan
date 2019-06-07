@@ -4,13 +4,16 @@ classdef ShFunc_Perimeter < ShapeFunctional
         epsilon
         regularizedDensity
         regularizedDensityProjection
+        axes
     end
     
     methods
         function obj = ShFunc_Perimeter(cParams)
-            cParams.filterParams.quadratureOrder = 'LINEAR';            
+            cParams.filterParams.quadratureOrder = 'LINEAR';
             cParams.filterParams.filterType = 'PDE';
+            cParams.filterParams.femSettings.bcApplierType = 'Neumann';         
             obj.init(cParams);
+          %  obj.initFrame();
         end
         
         function computeCostAndGradient(obj)
@@ -20,7 +23,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
             obj.computePerimeterValue()
             obj.computePerimeterGradient()
         end
-                
+        
     end
     
     methods (Access = protected)
@@ -30,7 +33,6 @@ classdef ShFunc_Perimeter < ShapeFunctional
             obj.updateEpsilonInFilter()
         end
         
-       
         function updateEpsilonValue(obj)
             obj.epsilon = obj.target_parameters.epsilon_perimeter;
         end
@@ -40,7 +42,24 @@ classdef ShFunc_Perimeter < ShapeFunctional
         end
         
         function computeRegularizedDensity(obj)
-            obj.regularizedDensity = obj.filter.getP1fromP1(obj.designVariable.value);
+             obj.regularizedDensity = obj.filter.getP1fromP1(obj.designVariable.value);
+%             cla(obj.axes)
+%             patchHandle = patch(obj.axes,'Faces',obj.designVariable.mesh.connec,'Vertices',obj.designVariable.mesh.coord,...
+%                 'FaceAlpha','flat','EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
+%             set(obj.axes,'ALim',[0, 1],'XTick',[],'YTick',[]);
+%             set(patchHandle,'FaceVertexAlphaData',obj.regularizedDensity,'FaceAlpha','flat');
+         end
+        
+        function initFrame(obj)
+            figHandle = figure();
+            
+            set(figHandle,'Pointer','arrow','NumberTitle','off');
+            
+            hold on
+            axis off
+            axis equal
+            
+            obj.axes = figHandle.Children;
         end
         
         function computeRegularizedDensityProjection(obj)

@@ -24,10 +24,7 @@ classdef IncrementalSequence < handle
     
     methods (Access = public)
         
-        function obj = IncrementalSequence(x0,x1,nSteps,initialValue,finalValue)
-            obj.init(x0,x1,nSteps,initialValue,finalValue);
-            obj.generateAlphaSequence();
-        end
+
         
         function update(obj,i)
             obj.value = (1-obj.alpha(i))*obj.initialValue + obj.alpha(i)*obj.finalValue;
@@ -35,7 +32,7 @@ classdef IncrementalSequence < handle
         
     end
     
-    methods (Access = private)
+    methods (Access = protected)
         
         function init(obj,x0,x1,nSteps,a0,a1)
             obj.x0 = x0;

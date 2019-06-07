@@ -76,7 +76,8 @@ classdef SettingsOptimizer < AbstractSettings
         function initSettingsPostProcess(obj)
             obj.postProcessSettings.shallPrint  = obj.shallPrint;
             obj.postProcessSettings.printMode   = obj.printMode;
-            obj.postProcessSettings.femFileName = obj.problemData.femData.fileName;
+            obj.postProcessSettings.femFileName = obj.problemData.caseFileName;
+            %obj.postProcessSettings.femFileName = obj.problemData.femData.fileName;
             obj.postProcessSettings.pdim  = obj.problemData.femData.pdim;
             obj.postProcessSettings.ptype = obj.problemData.femData.ptype;
         end

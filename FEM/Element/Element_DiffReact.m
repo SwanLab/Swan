@@ -9,58 +9,68 @@ classdef Element_DiffReact < Element
         mesh
         K
         M
+        Mr
         epsilon
         interpolation_u
     end
     
     properties (Access = private)
         nstre
+        addRobinTerm
     end
     
     methods %(Access = ?Physical_Problem)
-        function obj = Element_DiffReact(mesh,geometry,material,dof,scale)
+        function obj = Element_DiffReact(mesh,geometry,material,dof,scale,addRobinTerm,bcType)
+            obj.mesh = mesh;
+            obj.addRobinTerm = addRobinTerm;
+            obj.bcType = bcType;
             obj.initElement(geometry,material,dof,scale);
             obj.nstre = 2;
             obj.nfields = 1;
             obj.interpolation_u=Interpolation.create(mesh,'LINEAR');
-            obj.K = obj.computeStiffnessMatrix;
-            obj.M = obj.computeMassMatrix(2);
+            obj.computeStiffnessMatrix();
+            obj.computeMassMatrix(2);
+            obj.computeBoundaryMassMatrix();
         end
         
         function obj = setEpsilon(obj,epsilon)
             obj.epsilon = epsilon;
         end
         
-%         function r = computeResidual(obj,x)
-%             % *************************************************************
-%             % Compute
-%             % - residual: r = (e^2*K + M)*u - F
-%             % - residual derivative: dr = (e^2*K + M)
-%             % *************************************************************
-%             
-%             Fext = obj.computeExternalForces();
-%             R = obj.compute_imposed_displacement_force(obj.epsilon^2*obj.K + obj.M);
-%             fext = Fext + R;
-% 
-%             fext = obj.full_vector_2_reduced_vector(fext);
-%             
-%             fint = dr*x;
-%             r = fint - fext;
-%         end
-        
         function LHS = computeLHS(obj)
-            LHS = obj.epsilon^2*obj.K + obj.M;
-            LHS = obj.bcApplier.full_matrix_2_reduced_matrix(LHS);
+            if obj.addRobinTerm
+                LHS = obj.epsilon^2*obj.K + obj.M + 1/obj.epsilon*obj.Mr;              
+            else
+                LHS = obj.epsilon^2*obj.K + obj.M;
+                LHS = obj.bcApplier.fullToReducedMatrix(LHS);
+            end
         end
         
-        function [K] = computeStiffnessMatrix(obj)
-            [K] = compute_elem_StiffnessMatrix(obj);
-            [K] = obj.AssembleMatrix(K,1,1); % !!
+        function computeStiffnessMatrix(obj)
+            Ke = compute_elem_StiffnessMatrix(obj);
+            Kg = obj.AssembleMatrix(Ke,1,1); % !!
+            obj.K = Kg;
         end
         
-        function [M] = computeMassMatrix(obj,job)
-            [M] = compute_elem_MassMatrix(obj,job);
-            [M] = obj.AssembleMatrix(M,1,1); % !!
+        function computeMassMatrix(obj,job)
+            Me = compute_elem_MassMatrix(obj,job);
+            Mg = obj.AssembleMatrix(Me,1,1); % !!
+            obj.M = Mg;
+        end
+        
+        function computeBoundaryMassMatrix(obj)
+            if obj.addRobinTerm
+                meshB = obj.mesh;
+                int = Interpolation.create(meshB,'LINEAR');
+                meshType = 'BOUNDARY';
+                meshIncludeBoxContour = true;
+                cParams = SettingsMeshUnfitted(meshType,meshB,int,meshIncludeBoxContour);
+                levelSet = -ones(size(obj.mesh.coord,1),1);
+                uMesh = Mesh_Unfitted.create2(cParams);
+                uMesh.computeMesh(levelSet);
+                integrator = Integrator.create(uMesh);
+                obj.Mr = integrator.integrateLHS(uMesh);
+            end
         end
         
         function [K] = compute_elem_StiffnessMatrix(obj)
@@ -109,43 +119,10 @@ classdef Element_DiffReact < Element
             obj.quadrature.computeQuadrature('LINEAR');
             obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
-            %% !!!!!!!!!!!!!!!!!!!!
+            % !!!!!!!!!!!!!!!!!!!!
             
             M = Me;
             
-            %% !! ERROR IN QUADRATURE: NGAUS = 1, WHEN THE
-            %
-            %             if (job==1)
-            %                 % lumped mass matrix
-            %                 elumped = zeros(obj.geometry.nnode,obj.mesh.nelem);
-            %                 M = zeros(obj.geom.nnode,1);
-            %                 [nproc,coeff] = nprocedure(etype,nnode);
-            %                 if (nproc==1)
-            %                     for inode=1:nnode
-            %                         for jnode=1:nnode
-            %                             elumped(inode,:)=elumped(inode,:)+squeeze(Me(inode,jnode,:))';
-            %                         end
-            %                     end
-            %                 elseif (nproc==2)
-            %                     for inode=1:nnode
-            %                         for jnode=1:nnode
-            %                             elumped(inode,:)=elumped(inode,:)+squeeze(Me(inode,jnode,:))';
-            %                         end
-            %                         elumped(inode,:)=elumped(inode,:)*coeff(inode);
-            %                     end
-            %                 end
-            %                 for inode=1:nnode
-            %                     M = M + sparse(dirichlet_data(inode,:),1,elumped(inode,:),npnod,1);
-            %                 end
-            %             elseif (job==2)
-            %                 M = sparse(obj.mesh.npnod*obj.geometry.quadrature.ngauss,obj.mesh.npnod*obj.geometry.quadrature.ngaus);
-            %                 for k=1:obj.geometry.quadrature.ngaus
-            %                     for l=1:obj.geometry.quadrature.ngaus
-            %                         vmass = squeeze(Me(k,l,:));
-            %                         M = M + sparse(dirichlet_data(k,:),dirichlet_data(l,:),vmass,obj.mesh.npnod,obj.mesh.npnod);
-            %                     end
-            %                 end
-            %             end
         end
     end
     

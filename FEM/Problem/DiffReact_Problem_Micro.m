@@ -3,7 +3,10 @@ classdef DiffReact_Problem_Micro < DiffReact_Problem
     methods (Access = protected)
         
         function setElement(obj)
-            obj.element = Element_DiffReact_Micro(obj.mesh,obj.geometry,obj.material,obj.dof,obj.problemData.scale);
+            isRobinTermAdded = obj.isRobinTermAdded;
+            bcType = obj.bcApplierType;            
+            obj.element = Element_DiffReact_Micro(obj.mesh,obj.geometry,...
+                obj.material,obj.dof,obj.problemData.scale,isRobinTermAdded,bcType);
         end
         
         function setDOFs(obj)

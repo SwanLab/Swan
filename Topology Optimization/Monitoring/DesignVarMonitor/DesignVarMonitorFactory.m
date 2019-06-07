@@ -4,6 +4,7 @@ classdef DesignVarMonitorFactory < handle
         monitor
         builder
         
+        scale
         designVariable
         optimizer
         dim
@@ -39,6 +40,7 @@ classdef DesignVarMonitorFactory < handle
             obj.designVariable = cParams.designVariable;
             obj.showBC         = cParams.showBC;
             obj.bc             = cParams.bc;
+            obj.scale          = cParams.scale;
         end
         
         function createMonitor(obj)
@@ -76,6 +78,7 @@ classdef DesignVarMonitorFactory < handle
             s.showBC    = obj.showBC;
             s.bc        = obj.bc;
             s.dim       = obj.dim;
+            s.scale     = obj.scale;
         end
         
     end

@@ -83,7 +83,7 @@ classdef DesignVarMonitor_Abstract < handle
             axis off
             axis equal
             
-            obj.axes = obj.figHandle.CurrentAxes;
+            obj.axes = obj.figHandle.Children;%CurrentAxes;
         end
         
         function setupTheme(obj)

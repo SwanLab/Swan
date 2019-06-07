@@ -13,7 +13,7 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
         
         function obj = DesignVarMonitor_Density(cParams)
             obj@DesignVarMonitor_Abstract(cParams);
-            obj.createFilter();
+            obj.createFilter(cParams);
         end
         
         function plot(obj)
@@ -28,7 +28,7 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
         function initPlotting(obj)
             obj.patchHandle = patch(obj.axes,'Faces',obj.mesh.connec,'Vertices',obj.mesh.coord,...
                 'FaceAlpha','flat','EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
-            set(gca,'ALim',[0, 1],'XTick',[],'YTick',[]);
+            set(obj.axes,'ALim',[0, 1],'XTick',[],'YTick',[]);
             
             obj.BCplotter.plot();
         end
@@ -45,12 +45,13 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
     
     methods (Access = private)
         
-        function createFilter(obj)
+        function createFilter(obj,cParams)
             s.filterType = 'P1';
             s.domainType = 'INTERIOR';
             s.designVar = obj.designVar;
             s.quadratureOrder = 'LINEAR';
             s = SettingsFilter(s);
+            s.femSettings.scale = cParams.scale;
             obj.filter = Filter_P1_Density(s);
             obj.filter.preProcess();
         end

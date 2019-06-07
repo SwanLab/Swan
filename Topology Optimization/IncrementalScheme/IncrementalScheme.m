@@ -8,14 +8,6 @@ classdef IncrementalScheme < handle
     
     properties (Access = private)
         targetParamsManager
-        
-        epsilonInitial
-        epsilonFinal
-        epsilonPerInitial
-        epsilonPerFinal
-        epsilonIsoInitial
-        epsilonIsoFinal
-        
         shallDisplayStep
     end
     

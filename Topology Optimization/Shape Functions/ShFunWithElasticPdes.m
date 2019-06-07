@@ -5,6 +5,10 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         physicalProblem
     end
     
+    properties (Access = private)
+        orientationUpdater        
+    end
+    
     properties (Access = protected)
         regDesignVariable
     end
@@ -23,35 +27,22 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             obj.normalizeFunctionAndGradient()
         end
         
-        function plotAlpha(obj)
-            x = obj.physicalProblem.mesh.coord(:,1);
-            y = obj.physicalProblem.mesh.coord(:,2);
-            conn = obj.physicalProblem.mesh.connec;
-            nnode = size(conn,2);
-            nelem = size(conn,1);
-            xn = zeros(nelem,nnode);
-            yn = zeros(nelem,nnode);
-            for inode = 1:nnode
-                nodes = conn(:,inode);
-                xn(:,inode) =  x(nodes);
-                yn(:,inode) =  y(nodes);
-            end
-            xp = mean(xn,2);
-            yp = mean(yn,2);
-            a1 = obj.designVariable.alpha(1,:);
-            a2 = obj.designVariable.alpha(2,:);
-            figure();
-            quiver(xp,yp,a1,a2) ;
-            drawnow
-        end
-        
         function f = getPhysicalProblems(obj)
             f{1} = obj.physicalProblem;
+        end
+        
+        function f = getRegularizedDensity(obj)
+            f = obj.regDesignVariable;
         end
         
     end
     
     methods (Access = protected)
+        
+        function createOrientationUpdater(obj)
+            cParams.type = 'MinimumEigenValue';
+            obj.orientationUpdater = OrientationUpdater.create(cParams);            
+        end
         
         function createEquilibriumProblem(obj,fileName)
             obj.physicalProblem = FEM.create(fileName);
@@ -112,9 +103,11 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         end
         
         function updateAlpha(obj)
-            pD = obj.physicalProblem.variables.principalDirections;
-            firstPD = squeeze(pD(:,1,:));
-            obj.designVariable.alpha = firstPD;
+            cParams.pD = obj.physicalProblem.variables.principalDirections;
+            cParams.pS = obj.physicalProblem.variables.principalStress;
+            obj.orientationUpdater.compute(cParams);
+            alpha = obj.orientationUpdater.alpha;            
+            obj.designVariable.alpha = alpha;
         end
         
     end

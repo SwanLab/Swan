@@ -21,6 +21,10 @@ classdef Integrator_Composite < Integrator
             A.boxFacesIntegrals = obj.computeBoxFacesIntegrals(F1);
         end
         
+        function A = computeLHS(obj)
+            A = obj.computeBoxFacesIntegralsLHS();
+        end        
+        
     end
     
     methods (Access = private)
@@ -47,6 +51,16 @@ classdef Integrator_Composite < Integrator
                 A{iface} = obj.integratorsBoxFaces{iface}.computeIntegral(F1);
             end
         end
+        
+        function A = computeBoxFacesIntegralsLHS(obj)
+            npnod = obj.meshBackground.npnod;            
+            A = sparse(npnod,npnod);
+            for iactive = 1:obj.meshUnfitted.nActiveBoxFaces
+                iface = obj.meshUnfitted.activeBoxFaceMeshesList(iactive);
+                globalConnec = obj.meshUnfitted.globalConnectivities{iface};
+                A = A + obj.integratorsBoxFaces{iface}.computeLHS(globalConnec,npnod);
+            end
+        end        
         
     end
     

@@ -16,8 +16,8 @@ proc Make_Video_density {arg1 arg2 arg3 arg4 arg5} {
     GiD_Process Results ContOptions SetMaxOptions MaxColor Black Mescape
     GiD_Process Results ContOptions ColorRamp Tangent Mescape
     
-    foreach iStep [GiD_Info post get all_steps {Elastic Problem}] {
-    GiD_Process Results AnalysisSel {Elastic Problem} $iStep Mescape
+    foreach iStep [GiD_Info post get all_steps {TopOpt}] {
+    GiD_Process Results AnalysisSel {TopOpt} $iStep Mescape
     GiD_Process Results ContourFill $Field_2_print $component Mescape
     GiD_Process Results contoptions setmaxoptions setvalue 1 Mescape
     GiD_Process results contoptions setminoptions setvalue 0 Mescape

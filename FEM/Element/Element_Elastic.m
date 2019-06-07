@@ -1,6 +1,10 @@
 classdef Element_Elastic < Element
     %Element_Elastic Summary of this class goes here
     %   Detailed explanation goes here
+    properties (Access = public)
+        fextRed        
+    end
+    
     
     properties
         fext
@@ -108,14 +112,15 @@ classdef Element_Elastic < Element
         
         function Kred = computeLHS(obj)
             obj.K = obj.computeStiffnessMatrix;
-            Kred = obj.bcApplier.full_matrix_2_reduced_matrix(obj.K);
+            Kred = obj.bcApplier.fullToReducedMatrix(obj.K);
         end
         
         function fext_red = computeRHS(obj)
             Fext = obj.computeExternalForces();
             R = obj.compute_imposed_displacement_force(obj.K);
             obj.fext = Fext + R;
-            fext_red = obj.bcApplier.full_vector_2_reduced_vector(obj.fext);
+            fext_red = obj.bcApplier.fullToReducedVector(obj.fext);
+            obj.fextRed = fext_red;
         end
         
         function [K] = computeStiffnessMatrix(obj)
@@ -230,7 +235,7 @@ classdef Element_Elastic < Element
         end
         
         function u = compute_displacements(obj,usol)
-            u = obj.bcApplier.reduced_vector_2_full_vector(usol);
+            u = obj.bcApplier.reducedToFullVector(usol);
         end
 
     end
@@ -245,7 +250,10 @@ classdef Element_Elastic < Element
     methods (Abstract, Access = protected)
         computeStrain(obj)     
         computeBmat(obj)
-        computeB(obj)
+    end
+    
+    methods (Abstract, Access = public)
+        computeB(obj)        
     end
     
     methods(Static, Access = protected)

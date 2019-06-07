@@ -56,7 +56,7 @@ classdef ShapeFunctional < handle
         
         function createFilter(obj,cParams)
             s = cParams.filterParams;
-            obj.filter = FilterFactory().create(s);
+            obj.filter = Filter.create(s);
             obj.filter.preProcess();
         end
         

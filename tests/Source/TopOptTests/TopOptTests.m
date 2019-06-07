@@ -1,36 +1,38 @@
 classdef TopOptTests < testRunner
-    
+
     properties (Access = protected)
         FieldOfStudy = 'Topology Optimization'
         tests
     end
-    
+
     methods (Access = public)
-        
+
         function obj = TopOptTests()
             obj@testRunner();
         end
-        
+
     end
-    
+
     methods (Access = protected)
-        
+
         function loadTests(obj)
-            obj.tests = {...
-%                 'testM1M2'
-                'testMicro2';
-                'testCantilever3';
-                'testBridge2';
-                'testBridge';
-                'testGripping';
+            obj.tests = {... 
+                'testInteriorPerimeter';
+                'testCantilever2';                
                 'testMicro';
-                'testCantilever2';
-                'testDualNestedInPrimalWithSlerp';
-                'testDualNestedInPrimalWithProjectedGradient';
+                'testCantilever3';
+                'testBridge';                
                 'testCantilever';
+                'testBridge2';                                  
+                'testDualNestedInPrimalWithProjectedGradient';  
+                'testDualNestedInPrimalWithSlerp';                                
+                'testStressM1M2';                
+                'testM1M2';    
+                'testGripping';   
+                'testMicro2';                                 
                 };
         end
-        
+
     end
-    
+
 end

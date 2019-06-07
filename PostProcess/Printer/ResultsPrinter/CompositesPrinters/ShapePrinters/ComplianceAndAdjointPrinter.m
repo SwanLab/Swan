@@ -13,21 +13,26 @@ classdef ComplianceAndAdjointPrinter < CompositeResultsPrinter
         function createPrinters(obj,d)
             obj.printers{1} = obj.createCompliancePrinter(d);
             obj.printers{2} = obj.createAdjointPrinter(d);
+            obj.printers{3} = obj.createRegularizedDensityPrinter(d);
         end
         
         function storeFieldsToPrint(obj,d)
-            obj.storeFieldsToPrintFromPhyPr(obj.printers{1},d.phyProblems{1});
-            obj.storeFieldsToPrintFromPhyPr(obj.printers{2},d.phyProblems{2});
-        end
+            obj.storeComplianceFields(d);
+            obj.storeAdjointFields(d);
+            obj.storeRegularizedDensity(d);
+        end        
+
+        function createHeadPrinter(obj,d,dh)
+            phyPr = d.cost.shapeFunctions{1}.getPhysicalProblems();
+            d.quad = phyPr{1}.element.quadrature;
+            obj.printers{3}.createHeadPrinter(d,dh);
+            h = obj.printers{3}.getHeadPrinter();
+            obj.headPrinter = h;            
+        end                
         
     end
     
     methods (Access = private, Static)
-        
-        function storeFieldsToPrintFromPhyPr(printer,phyPr)
-            d.fields = phyPr.variables;            
-            printer.storeFieldsToPrint(d);
-        end
         
         function p = createCompliancePrinter(d)
             p =  ResultsPrinter.create('Elasticity',d);
@@ -38,5 +43,34 @@ classdef ComplianceAndAdjointPrinter < CompositeResultsPrinter
             p =  ResultsPrinter.create('Elasticity',d);
             p.setStrVariablesNames('StressAdj','StrainAdj','DispAdj');
         end
+        
+        function p = createRegularizedDensityPrinter(d)
+            p = ResultsPrinter.create('DensityGauss',d);
+        end        
+        
+        function storeFieldsToPrintFromPhyPr(printer,phyPr)
+            d.fields = phyPr.variables;            
+            printer.storeFieldsToPrint(d);
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function storeComplianceFields(obj,d)
+            d.fields = d.phyProblems{1}.variables;
+            obj.printer{1}.storeFieldsToPrint(fields); 
+        end
+        
+        function storeAdjointFileds(obj,d)
+            d.fields = d.phyProblems{2}.variables;
+            obj.printer{2}.storeFieldsToPrint(fields); 
+        end
+        
+        function storeRegularizedDensity(obj,d)
+            d.fields = d.regDensity;
+            obj.printers{3}.storeFieldsToPrint(d);
+        end                        
+        
     end
 end

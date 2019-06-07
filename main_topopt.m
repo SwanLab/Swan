@@ -23,11 +23,14 @@ clear variables;
 % 
 % settings = Settings('Case_RefactoringSettings_OLD');
 % settingsTopOpt = SettingsTopOptProblem('CaseBenchmark_JSON_B.json',settings);
-
+%settings = Settings('CantileverTriangle_Case_1_1_1InteriorPerimeter');
+settings = Settings('test_interiorPerimeter');
+%settings = Settings('CantileverHexahedra_Case_1_1_1');
 % settings = Settings('CantileverTriangle_Case_2_1_1');
-settings = Settings('ImprovedBridgeSYM_Case_1_1_1');
-
-settings.printing = false;
+%settings = Settings('ImprovedBridgeSYM_Case_1_1_1');
+%settings.printing = false;
+%settings.plotting = false;
+%settings.monitoring = false;
 translator = SettingsTranslator();
 translator.translate(settings);
 fileName = translator.fileName;
@@ -40,4 +43,4 @@ topOptProblem = TopOpt_Problem(settingsTopOpt);
 topOptProblem.computeVariables;
 topOptProblem.postProcess;
 
-close all
+%close all

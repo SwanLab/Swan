@@ -60,14 +60,16 @@ classdef AbstractSettings < handle
         
         function loadFromFile(obj,f)
             switch obj.getFileType(f)
-                case {'','.m'}
-                    error('Only JSON files accepted!');
-                    obj.loadParamsFromMatlabScript(f);
-                case '.json'
-                    obj.loadParamsFromJSON(f);
-                otherwise
-                    error('Invalid extension');
+               case {'','.m'}
+                   error('Only JSON files accepted!');
+                   obj.loadParamsFromMatlabScript(f);
+               case '.json'
+                   obj.loadParamsFromJSON(f);
+               otherwise
+                   error('Invalid extension');
             end
+            %f = [f,'.json'];
+            %obj.loadParamsFromJSON(f);            
             obj.loadedFile = f;
             obj.assignParams();
         end

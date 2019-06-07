@@ -1,6 +1,6 @@
 classdef Filter < handle
     
-    properties (GetAccess = public, SetAccess = private)
+    properties (GetAccess = public, SetAccess = protected)
         diffReacProb
         ngaus
         nelem
@@ -11,7 +11,7 @@ classdef Filter < handle
         x_reg
     end
     
-    properties (GetAccess = protected, SetAccess = private)
+    properties (GetAccess = protected, SetAccess = protected)
         P_operator
         
         geometry
@@ -22,19 +22,24 @@ classdef Filter < handle
         nnode
         npnod
         shape
+        
+        quadratureOrder
+        
     end
     
     properties (Access = private)
-        quadratureOrder
+    end
+    
+    methods (Access = public, Static)
+       
+        function obj = create(cParams)
+           f = FilterFactory();
+           obj = f.create(cParams);
+        end
+        
     end
     
     methods (Access = public)
-        
-        function obj = Filter(cParams)
-            obj.createDiffReacProblem(cParams);
-            obj.mesh = cParams.designVar.mesh;
-            obj.quadratureOrder = cParams.quadratureOrder;
-        end
         
         function preProcess(obj)
             obj.diffReacProb.preProcess();
@@ -46,7 +51,6 @@ classdef Filter < handle
             obj.computeGeometry();
             obj.storeParams();
             
-            obj.P_operator = obj.computePoperator(obj.diffReacProb.element.M);
         end
         
         function obj = createDiffReacProblem(obj,cParams)
@@ -62,6 +66,12 @@ classdef Filter < handle
     end
     
     methods (Access = protected)
+        
+        function init(obj,cParams)
+            obj.createDiffReacProblem(cParams);
+            obj.mesh = cParams.designVar.mesh;
+            obj.quadratureOrder = cParams.quadratureOrder;                        
+        end
         
         function A_nodal_2_gauss = computeA(obj)
             A_nodal_2_gauss = sparse(obj.nelem,obj.npnod);
@@ -80,21 +90,7 @@ classdef Filter < handle
             end
         end
         
-        function P_operator = computePoperator(obj,Msmooth)
-            dirichlet_data = zeros(obj.nnode,obj.nelem);
-            for inode = 1:obj.nnode
-                dirichlet_data(inode,:)=obj.mesh.connec(:,inode);
-            end
-            
-            T_nodal_2_gauss = sparse(obj.nelem,obj.npnod);
-            
-            for inode = 1:obj.nnode
-                T_nodal_2_gauss = T_nodal_2_gauss + sparse(1:obj.nelem,dirichlet_data(inode,:),ones(obj.nelem,1),obj.nelem,obj.npnod);
-            end
-            
-            m = T_nodal_2_gauss*sum(Msmooth,2);
-            P_operator = diag(m)\T_nodal_2_gauss;
-        end
+  
         
         function itHas = xHasChanged(obj,x)
             itHas = ~isequal(x,obj.x);

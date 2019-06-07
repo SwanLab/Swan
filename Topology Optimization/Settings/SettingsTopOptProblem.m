@@ -5,6 +5,7 @@ classdef SettingsTopOptProblem < AbstractSettings
     end
     
     properties (Access = public)
+        fileName
         problemData = struct
         designVarSettings
         homogenizedVarComputerSettings
@@ -12,14 +13,15 @@ classdef SettingsTopOptProblem < AbstractSettings
         costSettings
         constraintSettings
         optimizerSettings
-        videoManagerSettings
+        videoMakerSettings
     end
     
     methods (Access = public)
         
         function obj = SettingsTopOptProblem(varargin)
             if nargin == 1
-                obj.loadParams(varargin{1});
+                obj.loadParams([varargin{1},'.json']);
+                obj.fileName = varargin{1};
             end
             obj.setupProblemData();
             obj.createDesignVarSettings();
@@ -39,7 +41,7 @@ classdef SettingsTopOptProblem < AbstractSettings
         
         function setupProblemData(obj)
             s = obj.cParams.problemData;
-            s.caseFileName = obj.loadedFile;
+            s.caseFileName = obj.fileName;
             obj.problemData = TopOptProblemDataContainer(s);
         end
         
@@ -92,11 +94,11 @@ classdef SettingsTopOptProblem < AbstractSettings
         end
         
         function createVideoManagerSettings(obj)
-            s.caseFileName  = obj.problemData.caseFileName;
             s.shallPrint    = obj.optimizerSettings.shallPrint;
             s.designVarType = obj.designVarSettings.type;
             s.pdim          = obj.problemData.femData.pdim;
-            obj.videoManagerSettings = SettingsVideoManager(s);
+            s.caseFileName  = obj.fileName;            
+            obj.videoMakerSettings = SettingsVideoMaker(s);
         end
         
         function printSummary(obj)

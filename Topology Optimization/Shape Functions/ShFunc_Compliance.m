@@ -7,6 +7,7 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
             obj.init(cParams);
             fileName = cParams.femSettings.fileName;
             obj.createEquilibriumProblem(fileName);
+            obj.createOrientationUpdater();                                    
         end
         
     end

@@ -22,8 +22,8 @@ classdef testUnfittedIntegration < testShowingError...
     methods (Access = protected)
         
         function obj = testUnfittedIntegration()
-            obj.createTopOpt()
-            obj.integrateSurface()
+            obj.createTopOpt();
+            obj.integrateSurface();
         end
         
         function integrateSurface(obj)

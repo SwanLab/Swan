@@ -18,7 +18,6 @@ classdef SettingsTranslator < handle
             for i = 1:obj.nProps
                 prop = obj.propList{i};
                 value = oldSettings.(prop);
-                %                 if ~isempty(value)
                 if strcmp(prop,'filename')
                     s.problemData.femData.fileName = value;
                 elseif strcmp(prop,'homegenizedVariablesComputer')
@@ -105,6 +104,8 @@ classdef SettingsTranslator < handle
                     s.optimizerSettings.monitoringDockerSettings.showOptParams = value;
                 elseif strcmp(prop,'monitoring_interval')
                     s.optimizerSettings.monitoringDockerSettings.refreshInterval = value;
+                elseif strcmp(prop,'ptype')
+                    s.optimizerSettings.monitoringDockerSettings.scale = value;
                 elseif strcmp(prop,'plotting')
                     s.optimizerSettings.monitoringDockerSettings.shallDisplayDesignVar = value;
                 elseif strcmp(prop,'showBC')
@@ -128,14 +129,15 @@ classdef SettingsTranslator < handle
         function exportFile(obj,s)
             obj.getFilePath();
             str = jsonencode(s);
-            fid = fopen(obj.filePath,'w+');
+            fid = fopen([obj.filePath,'.json'],'w+');
             fprintf(fid,str);
             fclose(fid);
         end
         
         function getFileName(obj)
             old = obj.oldSettings.case_file;
-            new = [old '.json'];
+            new = old;
+            %new = [old '.json'];
             obj.fileName = new;
         end
         

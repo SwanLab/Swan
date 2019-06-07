@@ -4,16 +4,34 @@ classdef DiffReact_Problem < FEM
         material
     end
     
+    properties (Access = protected)
+        isRobinTermAdded
+        bcApplierType
+    end
+    
     methods (Access = public)
         
-        function obj = DiffReact_Problem(input)
-            if ischar(input)
-                obj.setupFromGiDFile(input);
-            elseif isstruct(input)
-                if isfield(input,'mesh')
-                    obj.setupFromMesh(input);
+        function obj = DiffReact_Problem(cParams)
+            
+            if isfield(cParams,'isRobinTermAdded')
+                obj.isRobinTermAdded = cParams.isRobinTermAdded;
+            else
+                obj.isRobinTermAdded = false;
+            end
+            
+            if isfield(cParams,'bcApplierType')
+                obj.bcApplierType = cParams.bcApplierType;
+            else
+                obj.bcApplierType = '';
+            end
+            
+            if ischar(cParams)
+                obj.setupFromGiDFile(cParams);
+            elseif isstruct(cParams)
+                if isfield(cParams,'mesh')
+                    obj.setupFromMesh(cParams);
                 else
-                    obj.setupFromGiDFile(input.fileName);
+                    obj.setupFromGiDFile(cParams.fileName);
                 end
             else
                 error('Invalid input type');
@@ -30,12 +48,19 @@ classdef DiffReact_Problem < FEM
         end
         
         function computeVariables(obj,x)
-            bc = obj.element.getBcApplier();
-            x_red  = bc.full_vector_2_reduced_vector(x);
-            LHS = obj.element.computeLHS();
-            x_reg = obj.solver.solve(LHS,x_red);
-            obj.variables.x = bc.reduced_vector_2_full_vector(x_reg);
+            if obj.isRobinTermAdded
+                LHS = obj.element.computeLHS();
+                x_reg = obj.solver.solve(LHS,x);
+                obj.variables.x = x_reg;
+            else
+                bc = obj.element.getBcApplier();
+                x_red  = bc.fullToReducedVector(x);
+                LHS = obj.element.computeLHS();
+                x_reg = obj.solver.solve(LHS,x_red);
+                obj.variables.x = bc.reducedToFullVector(x_reg);
+            end
         end
+        
         
         function obj = setEpsilon(obj,epsilon)
             obj.element.setEpsilon(epsilon);
@@ -50,7 +75,10 @@ classdef DiffReact_Problem < FEM
     methods (Access = protected)
         
         function setElement(obj)
-            obj.element = Element_DiffReact(obj.mesh,obj.geometry,obj.material,obj.dof,obj.problemData.scale);
+            isRobinTermAdded = obj.isRobinTermAdded;
+            bcType = obj.bcApplierType;
+            obj.element = Element_DiffReact(obj.mesh,obj.geometry,...
+                 obj.material,obj.dof,obj.problemData.scale,isRobinTermAdded,bcType);
         end
         
         function setDOFs(obj)

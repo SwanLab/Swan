@@ -1,19 +1,10 @@
 classdef Filter_PDE < Filter
     
-    properties (Access = private)
+    properties (Access = protected)
         Anodal2Gauss
     end
     
     methods (Access = public)
-        
-        function obj = Filter_PDE(cParams)
-            obj@Filter(cParams);
-        end
-        
-        function preProcess(obj)
-            preProcess@Filter(obj);
-            obj.Anodal2Gauss = obj.computeA();
-        end
         
         function x_reg = getP1fromP1(obj,x)
             RHS = obj.integrate_L2_function_with_shape_function(x);

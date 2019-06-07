@@ -15,6 +15,7 @@ classdef SettingsMonitoringDocker < AbstractSettings
         costWeights
         constraintFuncs
         dim
+        scale
         
         designVariable
         dualVariable

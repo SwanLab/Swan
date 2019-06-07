@@ -1,11 +1,11 @@
 classdef SettingsShapeFunctionalFactory < handle
-    
+
     methods (Access = public)
-        
+
         function s = create(obj,cParams)
             switch cParams.type
-                case {'compliance','perimeter','volume','volumeConstraint',...
-                        'chomog_CC','enforceCh_CCstar_L2','nonadjoint_compliance'}
+                case {'compliance','perimeter','perimeterInterior','volume','volumeConstraint',...
+                        'chomog_CC','enforceCh_CCstar_L2','nonadjoint_compliance','stressNorm'}
                     s = SettingsShapeFunctional(cParams);
                 case 'perimeterConstraint'
                     s = SettingsShFunc_PerimeterConstraint(cParams);
@@ -19,8 +19,7 @@ classdef SettingsShapeFunctionalFactory < handle
                     error('Wrong cost name or not added to Cost Object')
             end
         end
-        
-    end
-    
-end
 
+    end
+
+end

@@ -20,10 +20,20 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
         end
 
         function solveProblem(obj)
+            obj.hasFinished = false;
+            
             obj.cost.computeCostAndGradient();
             obj.constraint.computeCostAndGradient();
-            obj.printOptimizerVariable();
-
+            
+            obj.updateOldValues();
+            obj.unconstrainedOptimizer.initLineSearch();
+            obj.unconstrainedOptimizer.updateConvergenceParams();
+            obj.refreshMonitoring();
+            obj.printOptimizerVariable();            
+            obj.printHistory();            
+            obj.nIter = obj.nIter+1;
+            
+            
             obj.designVariable.updateOld();
             obj.computeFeasibleDesignVariable();
 
@@ -31,20 +41,19 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
 
             obj.updateOldValues();
 
+            %obj.unconstrainedOptimizer.initLineSearch();            
             obj.unconstrainedOptimizer.updateConvergenceParams();
             obj.refreshMonitoring();
             obj.printOptimizerVariable();
             obj.printHistory();
 
             obj.hasFinished = false;
-
+            
             while ~obj.hasFinished
                 obj.nIter = obj.nIter+1;
 
                 obj.unconstrainedOptimizer.initLineSearch();
-                %kappa = 0.01*obj.unconstrainedOptimizer.line_search.kappa;
-                %obj.unconstrainedOptimizer.line_search.kappa = kappa;
-
+                
                 while ~obj.hasUnconstraintedOptimizerConverged()
                     obj.restartValues();
                     obj.computeValue();
@@ -90,9 +99,8 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
                 obj.updateLagrangian();
                 obj.lagrangian.updateOld();
 
-                %kappa
                 obj.unconstrainedOptimizer.initLineSearch();
-                %kappa = 0.01*obj.unconstrainedOptimizer.lineSearch.kappa;
+                %kappa = obj.unconstrainedOptimizer.lineSearch.kappa;
                 %obj.unconstrainedOptimizer.lineSearch.kappa = kappa;
 
                 obj.constraintProjector.project();

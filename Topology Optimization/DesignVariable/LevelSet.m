@@ -33,8 +33,8 @@ classdef LevelSet < DesignVariable
         end        
         
         function createUnfittedMesh(obj)
-            unfittedSettings = SettingsMeshUnfitted('INTERIOR',obj.mesh);
-            obj.unfittedMesh = Mesh_Unfitted(unfittedSettings);
+            cParams = SettingsMeshUnfitted('INTERIOR',obj.mesh);
+            obj.unfittedMesh = Mesh_Unfitted.create2(cParams);
             obj.updateUnfittedMesh();
         end
         

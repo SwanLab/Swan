@@ -1,8 +1,9 @@
-classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
+classdef Mesh_Unfitted_Composite < Mesh_Unfitted
     
     properties (GetAccess = public, SetAccess = private)
         meshInterior
         boxFaceMeshes
+        globalConnectivities        
         activeBoxFaceMeshesList
         nActiveBoxFaces
         unfittedType = 'COMPOSITE'
@@ -67,7 +68,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
         end
         
         function createInteriorMesh(obj,cParams)
-            obj.meshInterior = Mesh_Unfitted(cParams);
+            obj.meshInterior = Mesh_Unfitted_Single(cParams);
         end
         
         function computeInteriorMesh(obj,levelSet)
@@ -84,10 +85,17 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
                 for iside = 1:obj.nsides
                     iface = iface + 1;
                     [boxFaceMesh,nodesInBoxFace] = obj.createBoxFaceMesh(idime,iside);
-                    obj.boxFaceMeshes{iface}     = boxFaceMesh;
-                    obj.nodesInBoxFaces{iface}   = nodesInBoxFace;
+                    obj.boxFaceMeshes{iface}        = boxFaceMesh;
+                    obj.nodesInBoxFaces{iface}      = nodesInBoxFace;
+                    obj.globalConnectivities{iface} = obj.computeGlobalConnectivities(nodesInBoxFace,boxFaceMesh);
                 end
             end
+        end
+        
+        function connec = computeGlobalConnectivities(obj,nodesInBoxFace,boxFaceMesh)
+            nodes = find(nodesInBoxFace);
+            boxFaceConnec = boxFaceMesh.meshBackground.connec;
+            connec = [nodes(boxFaceConnec(:,1)),nodes(boxFaceConnec(:,2))];                                     
         end
         
         function computeBoxMeshes(obj,levelSet)
@@ -122,14 +130,15 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted_Abstract
         end
         
         function [boxFaceMesh,nodesInBoxFace] = createBoxFaceMesh(obj,idime,iside)
-            [meshBackground,nodesInBoxFace] = obj.createBoxFaceBackgroundMesh(idime,iside);
-            interpolationUnfitted = Interpolation.create(meshBackground,'LINEAR');
-            settingsUnfitted = SettingsMeshUnfitted('INTERIOR',meshBackground,interpolationUnfitted);
-            boxFaceMesh = Mesh_Unfitted(settingsUnfitted);
+            [mesh,nodesInBoxFace] = obj.createBoxFaceBackgroundMesh(idime,iside);
+            interp = Interpolation.create(mesh,'LINEAR');
+            cParams = SettingsMeshUnfitted('INTERIOR',mesh,interp);
+            boxFaceMesh = Mesh_Unfitted.create2(cParams);
         end
         
         function [mb, nodesInBoxFace] = createBoxFaceBackgroundMesh(obj,idime,iside)
             [boxFaceCoords,nodesInBoxFace] = obj.getFaceCoordinates(idime,iside);
+            
             switch obj.ndim
                 case 2
                     boxFaceConnec = obj.computeConnectivities(boxFaceCoords);

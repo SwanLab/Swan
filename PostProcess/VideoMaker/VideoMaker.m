@@ -1,62 +1,116 @@
 classdef VideoMaker < handle
     
+    properties (GetAccess = private, SetAccess = public)
+        iterations
+    end
     
-    properties (Access = protected)
+    properties (Access = private)
         gidPath
-        files_folder
-        iterations_to_print
-        file_name
+        tclFileName
+        filesFolder
+        fileName
+        tclFileWriter
+        fieldName
+        designVariableName
     end
     
     methods (Access = public)
         
-        
-        function Set_up_make_video(obj,gidPath,file_name,files_folder,iterations_to_print)
-            obj.gidPath = gidPath;
-            obj.file_name = file_name;
-            obj.files_folder = files_folder;
-            obj.iterations_to_print = iterations_to_print;
+        function makeVideo(obj)
+            obj.makeDesignVariableVideo();
+            obj.makeRegularizedDesignVariableVideo();
         end
         
     end
     
-    methods (Static, Access = protected)
+    methods (Access = public, Static)
         
-        function file_list = create_file_list(iterations_to_print,file_name,files_folder)
-            file_list = [];
-            
-            for iter = 1:length(iterations_to_print)
-                msh_file = fullfile(files_folder,strcat(file_name,'_',num2str(iterations_to_print(iter)),'.flavia.res'));
-                file_list = [file_list, ' ',msh_file];
-            end
-            %             file_list= replace(file_list,'\','\\\\');
+        function obj = create(cParams)
+            f = VideoMakerFactory();
+            obj = f.create(cParams);
         end
         
-        function execute_tcl_files(gidPath,file_tcl_name_with_path)
-            %system([fullfile(gidPath,'gid_offscreen'),' -t "source ',file_tcl_name_with_path,'"'])
-            file_tcl_name_tcl= replace(file_tcl_name_with_path,'\','\\');
-            system(['"',fullfile(gidPath,'gid_offscreen'),'"', ' -t ' ,'"source ',file_tcl_name_tcl,'"']);
-            if ispc
-                system(['DEL ',file_tcl_name_with_path]);
-            elseif isunix
-                system(['rm ',file_tcl_name_with_path]);
-            elseif ismac
-            end
-            
-        end
-        
-        function [output_string] = replace_special_character(input_string)
-            if ispc
-                output_string = replace(input_string,'\','\\\\');   
-            elseif isunix 
-                output_string = input_string;
-            elseif ismac
-            end
-        end      
     end
+    
+    methods (Access = protected)
+        
+        function init(obj,cParams)
+            obj.fileName           = cParams.caseFileName;
+            obj.designVariableName = cParams.designVarType;
+            obj.createPaths();
+            obj.createFolder();
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function createFolder(obj)
+            if ~exist(obj.filesFolder,'dir')
+                mkdir(obj.filesFolder);
+            end
+        end
+        
+        function createPaths(obj)
+            %obj.gidPath = 'C:\Program Files\GiD\GiD 13.0.4';%
+            obj.gidPath = '/opt/GiDx64/13.0.2/';
+            obj.filesFolder = fullfile(pwd,'Output',obj.fileName);
+        end
+        
+        function makeDesignVariableVideo(obj)
+            obj.fieldName = obj.designVariableName;
+            obj.makeFieldVideo();
+        end
+        
+        function makeRegularizedDesignVariableVideo(obj)
+            obj.fieldName = 'RegularizedDensity';
+            obj.makeFieldVideo();            
+        end
+        
+        function makeFieldVideo(obj)
+            obj.createTclFileName();
+            obj.createTclFileWriter();
+            obj.writeTclFile();
+            obj.executeTclFile();
+            obj.deleteTclFile();            
+        end
+        
+        function createTclFileName(obj)
+            fName = 'tcl_gid.tcl';
+            obj.tclFileName = fullfile(obj.filesFolder,fName);
+        end
+        
+        function createTclFileWriter(obj)
+            cParams.type         = obj.fieldName;
+            cParams.tclFileName  = obj.tclFileName;
+            cParams.filesFolder  = obj.filesFolder;
+            cParams.outputName   = [obj.fieldName,obj.fileName];
+            cParams.iterations   = obj.iterations;
+            cParams.fileName     = obj.fileName;
+            obj.tclFileWriter    = TclFileWriter.create(cParams);
+        end
+        
+        function writeTclFile(obj)
+            obj.tclFileWriter.write();
+        end
+        
+        function executeTclFile(obj)
+            tFile = replace(obj.tclFileName,'\','\\');
+            gFile = fullfile(obj.gidPath,'gid_offscreen');
+            executingLine = ['"',gFile,'"', ' -t ' ,'"source ',tFile,'"'];
+            system(executingLine);
+        end
+        
+        function deleteTclFile(obj)
+            tFile = obj.tclFileName;
+            if ispc
+                system(['DEL ',tFile]);
+            elseif isunix
+                system(['rm ',tFile]);
+            elseif ismac
+            end
+        end
+        
+    end    
+    
 end
-
-
-
-
-

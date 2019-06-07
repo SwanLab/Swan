@@ -47,8 +47,10 @@ classdef ScalarProduct < handle
             s = cParams.femSettings;
             physProb = DiffReact_Problem(s);
             physProb.preProcess();
-            obj.Ksmooth = physProb.element.computeStiffnessMatrix;
-            obj.Msmooth = physProb.element.computeMassMatrix(2);
+            physProb.element.computeStiffnessMatrix();
+            physProb.element.computeMassMatrix(2);
+            obj.Ksmooth = physProb.element.K;
+            obj.Msmooth = physProb.element.M;
         end
         
         function n = computeProduct(obj,K,f,g)

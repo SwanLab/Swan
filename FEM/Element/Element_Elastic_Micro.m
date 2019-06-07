@@ -57,19 +57,26 @@ classdef Element_Elastic_Micro < Element_Elastic
         
         function F = computeStrainRHS(obj,vstrain)
             Cmat = obj.material.C;
-            eforce = zeros(obj.dof.nunkn*obj.nnode,1,obj.nelem);
-            sigma = zeros(obj.nstre,1,obj.nelem);
-            for igaus = 1:obj.quadrature.ngaus
-                %                 Bmat = obj.computeB(obj.dof.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
-                Bmat = obj.computeB(igaus);
+            ngaus = obj.quadrature.ngaus;
+            eforce = zeros(obj.dof.nunkn*obj.nnode,ngaus,obj.nelem);
+            sigma = zeros(obj.nstre,ngaus,obj.nelem);
+            for igaus = 1:ngaus
+                Bmat    = obj.computeB(igaus);
+                dV(:,1) = obj.geometry.dvolu(:,igaus);                
                 for istre = 1:obj.nstre
                     for jstre = 1:obj.nstre
-                        sigma(istre,:) = sigma(istre,:) + squeeze(Cmat(istre,jstre,:)*vstrain(jstre))';
+                        Cij = squeeze(Cmat(istre,jstre,:));
+                        vj  = vstrain(jstre);
+                        si  = squeeze(sigma(istre,igaus,:));
+                        sigma(istre,igaus,:) = si + Cij*vj;
                     end
                 end
                 for iv = 1:obj.nnode*obj.dof.nunkn
                     for istre = 1:obj.nstre
-                        eforce(iv,:) = eforce(iv,:)+(squeeze(Bmat(istre,iv,:)).*sigma(istre,:)'.*obj.geometry.dvolu(:,igaus))';
+                        Biv_i = squeeze(Bmat(istre,iv,:));
+                        si    = squeeze(sigma(istre,igaus,:));
+                        Fiv   = squeeze(eforce(iv,igaus,:));
+                        eforce(iv,igaus,:) = Fiv + Biv_i.*si.*dV;
                     end
                 end
             end
