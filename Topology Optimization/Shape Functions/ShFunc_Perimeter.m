@@ -41,8 +41,8 @@ classdef ShFunc_Perimeter < ShapeFunctional
         end
         
         function computeRegularizedDensity(obj)
-            obj.regularizedDensity = obj.filter.getP1fromP1(obj.designVariable.value);
-%             obj.regularizedDensity = obj.filter.getP1fromP1Robin(obj.designVariable.value);
+           % obj.regularizedDensity = obj.filter.getP1fromP1(obj.designVariable.value);
+             obj.regularizedDensity = obj.filter.getP1fromP1Robin(obj.designVariable.value);
 %             cla(obj.axes)
 %             patchHandle = patch(obj.axes,'Faces',obj.designVariable.mesh.connec,'Vertices',obj.designVariable.mesh.coord,...
 %                 'FaceAlpha','flat','EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
