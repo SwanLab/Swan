@@ -4,18 +4,18 @@ classdef DiffReact_Problem < FEM
         material
     end
     
-    properties (Access = private)
-        addRobinTerm
+    properties (Access = protected)
+        isRobinTermAdded
     end
     
     methods (Access = public)
         
         function obj = DiffReact_Problem(cParams)
             
-            if isfield(cParams,'addRobinTerm')
-                obj.addRobinTerm = cParams.addRobinTerm;
+            if isfield(cParams,'isRobinTermAdded')
+                obj.isRobinTermAdded = cParams.isRobinTermAdded;
             else
-                obj.addRobinTerm = false;
+                obj.isRobinTermAdded = false;
             end
             
             if ischar(cParams)
@@ -41,7 +41,7 @@ classdef DiffReact_Problem < FEM
         end
         
         function computeVariables(obj,x)
-            if obj.addRobinTerm
+            if obj.isRobinTermAdded
                 LHS = obj.element.computeLHS();
                 x_reg = obj.solver.solve(LHS,x);
                 obj.variables.x = x_reg;
@@ -68,8 +68,8 @@ classdef DiffReact_Problem < FEM
     methods (Access = protected)
         
         function setElement(obj)
-            robinTerm = obj.addRobinTerm;
-            obj.element = Element_DiffReact(obj.mesh,obj.geometry,obj.material,obj.dof,obj.problemData.scale,robinTerm);
+            isRobinTermAdded = obj.isRobinTermAdded;
+            obj.element = Element_DiffReact(obj.mesh,obj.geometry,obj.material,obj.dof,obj.problemData.scale,isRobinTermAdded);
         end
         
         function setDOFs(obj)

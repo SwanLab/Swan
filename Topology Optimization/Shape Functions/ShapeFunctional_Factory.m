@@ -21,12 +21,13 @@ classdef ShapeFunctional_Factory < handle
                 case 'stressNorm'
                     sF = ShFunc_StressNorm(cParams);
                 case {'perimeter','perimeterTotal'}
-                    cParams.filterParams.femSettings.addRobinTerm = true;
+                    cParams.filterParams.femSettings.isRobinTermAdded = true;
                     sF = ShFunc_Perimeter(cParams);
-                case 'perimeterRelative'
-                    cParams.filterParams.femSettings.addRobinTerm = false;
+                case 'perimeterInterior'
+                    cParams.filterParams.femSettings.isRobinTermAdded = false;
                     sF = ShFunc_Perimeter(cParams);
                 case 'perimeterConstraint'
+                    cParams.filterParams.femSettings.isRobinTermAdded = true;                    
                     sF = Perimeter_constraint(cParams);
                 case 'chomog_alphabeta'
                     sF = ShFunc_Chomog_alphabeta(cParams);
