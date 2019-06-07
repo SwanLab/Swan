@@ -11,6 +11,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
         function obj = ShFunc_Perimeter(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             cParams.filterParams.filterType = 'PDE';
+            cParams.filterParams.femSettings.bcApplierType = 'Neumann';         
             obj.init(cParams);
           %  obj.initFrame();
         end
@@ -41,8 +42,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
         end
         
         function computeRegularizedDensity(obj)
-           % obj.regularizedDensity = obj.filter.getP1fromP1(obj.designVariable.value);
-             obj.regularizedDensity = obj.filter.getP1fromP1Robin(obj.designVariable.value);
+             obj.regularizedDensity = obj.filter.getP1fromP1(obj.designVariable.value);
 %             cla(obj.axes)
 %             patchHandle = patch(obj.axes,'Faces',obj.designVariable.mesh.connec,'Vertices',obj.designVariable.mesh.coord,...
 %                 'FaceAlpha','flat','EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);

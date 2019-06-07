@@ -16,18 +16,20 @@ classdef Element_DiffReact < Element
     
     properties (Access = private)
         nstre
+        addRobinTerm
     end
     
     methods %(Access = ?Physical_Problem)
-        function obj = Element_DiffReact(mesh,geometry,material,dof,scale)
+        function obj = Element_DiffReact(mesh,geometry,material,dof,scale,addRobinTerm)
             obj.mesh = mesh;
+            obj.addRobinTerm = addRobinTerm;
             obj.initElement(geometry,material,dof,scale);
             obj.nstre = 2;
             obj.nfields = 1;
             obj.interpolation_u=Interpolation.create(mesh,'LINEAR');
-            obj.K = obj.computeStiffnessMatrix;
-            obj.M = obj.computeMassMatrix(2);
-            obj.Mr = obj.computeBoundaryMassMatrix();
+            obj.computeStiffnessMatrix();
+            obj.computeMassMatrix(2);
+            obj.computeBoundaryMassMatrix();
         end
         
         function obj = setEpsilon(obj,epsilon)
@@ -35,38 +37,39 @@ classdef Element_DiffReact < Element
         end
         
         function LHS = computeLHS(obj)
-            LHS = obj.epsilon^2*obj.K + obj.M;
-            LHS = obj.bcApplier.full_matrix_2_reduced_matrix(LHS);
+            if obj.addRobinTerm
+                LHS = obj.epsilon^2*obj.K + obj.M + 1/obj.epsilon*obj.Mr;              
+            else
+                LHS = obj.epsilon^2*obj.K + obj.M;
+                LHS = obj.bcApplier.full_matrix_2_reduced_matrix(LHS);
+            end
         end
         
-        function LHS = computeRobinLHS(obj)
-            LHS = obj.epsilon^2*obj.K + obj.M + 1/obj.epsilon*obj.Mr;
-           % LHS = obj.epsilon^2*obj.K + obj.M;
-
-           % LHS = obj.bcApplier.full_matrix_2_reduced_matrix(LHS);            
+        function computeStiffnessMatrix(obj)
+            Ke = compute_elem_StiffnessMatrix(obj);
+            Kg = obj.AssembleMatrix(Ke,1,1); % !!
+            obj.K = Kg;
         end
         
-        function [K] = computeStiffnessMatrix(obj)
-            [K] = compute_elem_StiffnessMatrix(obj);
-            [K] = obj.AssembleMatrix(K,1,1); % !!
+        function computeMassMatrix(obj,job)
+            Me = compute_elem_MassMatrix(obj,job);
+            Mg = obj.AssembleMatrix(Me,1,1); % !!
+            obj.M = Mg;
         end
         
-        function [M] = computeMassMatrix(obj,job)
-            [M] = compute_elem_MassMatrix(obj,job);
-            [M] = obj.AssembleMatrix(M,1,1); % !!
-        end
-        
-        function M = computeBoundaryMassMatrix(obj)
-            meshB = obj.mesh;
-            int = Interpolation.create(meshB,'LINEAR');
-            meshType = 'BOUNDARY';
-            meshIncludeBoxContour = true;
-            cParams = SettingsMeshUnfitted(meshType,meshB,int,meshIncludeBoxContour);
-            levelSet = -ones(size(obj.mesh.coord,1),1);
-            uMesh = Mesh_Unfitted.create2(cParams);
-            uMesh.computeMesh(levelSet); 
-            integrator = Integrator.create(uMesh);            
-            M = integrator.integrateLHS(uMesh);
+        function computeBoundaryMassMatrix(obj)
+            if obj.addRobinTerm
+                meshB = obj.mesh;
+                int = Interpolation.create(meshB,'LINEAR');
+                meshType = 'BOUNDARY';
+                meshIncludeBoxContour = true;
+                cParams = SettingsMeshUnfitted(meshType,meshB,int,meshIncludeBoxContour);
+                levelSet = -ones(size(obj.mesh.coord,1),1);
+                uMesh = Mesh_Unfitted.create2(cParams);
+                uMesh.computeMesh(levelSet);
+                integrator = Integrator.create(uMesh);
+                obj.Mr = integrator.integrateLHS(uMesh);
+            end
         end
         
         function [K] = compute_elem_StiffnessMatrix(obj)
@@ -118,7 +121,7 @@ classdef Element_DiffReact < Element
             % !!!!!!!!!!!!!!!!!!!!
             
             M = Me;
-        
+            
         end
     end
     

@@ -16,11 +16,6 @@ classdef Filter_PDE < Filter
             x_reg = obj.solve_filter(RHS);
         end
         
-        function x_reg = getP1fromP1Robin(obj,x)
-            RHS = obj.integrate_L2_function_with_shape_function(x);            
-            x_reg = obj.solve_filterRobin(RHS);
-        end        
-        
         function x_reg = getP1fromP0(obj,x0)
             RHS = obj.integrate_P1_function_with_shape_function(x0);
             x_reg = obj.solve_filter(RHS);
@@ -57,11 +52,6 @@ classdef Filter_PDE < Filter
             obj.diffReacProb.computeVariables(RHS);
             x_reg = obj.diffReacProb.variables.x;
         end
-        
-        function x_reg = solve_filterRobin(obj,RHS)
-            obj.diffReacProb.computeVariablesRobin(RHS);
-            x_reg = obj.diffReacProb.variables.x;
-        end        
         
     end
     
