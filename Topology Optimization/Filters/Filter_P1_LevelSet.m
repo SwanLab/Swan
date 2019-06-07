@@ -1,16 +1,49 @@
-classdef Filter_P1_LevelSet < Filter_P1 & Filter_LevelSet
+classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
     
-  
+    properties (Access = private)
+        mesh        
+        quadratureOrder
+
+        Poper
+        
+        x
+        x_reg
+        
+        geometry
+        quadrature
+
+        domainType        
+        projector
+    end
+    
     methods (Access = public)
         
         function obj = Filter_P1_LevelSet(cParams)
             obj.init(cParams);
             obj.domainType = cParams.domainType;
+            obj.createQuadrature();            
+            obj.createProjector();
+            obj.createGeometry();
+            obj.createPoperator(cParams);
+            obj.disableDelaunayWarning();      
         end
         
         function preProcess(obj)
-            preProcess@Filter_P1(obj)
-            preProcess@Filter_LevelSet(obj)
+        end
+        
+        function x_reg = getP1fromP0(obj,x0)
+            RHS = obj.integrateRHS(x0);
+            P = obj.Poper.value;            
+            x_reg = P'*RHS;
+        end
+        
+        function x0 = getP0fromP1(obj,x)
+            if obj.xHasChanged(x)
+                x0 = obj.computeP0fromP1(x);
+            else
+                x0 = obj.x_reg;
+            end
+            obj.updateStoredValues(x,x0);
         end
         
     end
@@ -18,23 +51,77 @@ classdef Filter_P1_LevelSet < Filter_P1 & Filter_LevelSet
     methods (Access = protected)
         
         function x0 = computeP0fromP1(obj,x)
-            M2 = obj.computeM2(x);
-            x0 = obj.P_operator*M2;
+            xN = obj.projector.project(x);
+            P  = obj.Poper.value;            
+            x0 = P*xN;
         end
         
     end
     
     methods (Access = private)
         
-        function M2 = computeM2(obj,x)
-            switch obj.diffReacProb.geometry.type
-                case 'TRIANGLE'
-                    M2 = obj.faireF2(obj.mesh.coord',obj.mesh.connec',x);
-                otherwise
-                    M2 = obj.computeRHS(x,ones(size(x)));
+        function createPoperator(obj,cPar)            
+            cParams.nnode  = obj.geometry.interpolation.nnode;
+            cParams.npnod  = obj.geometry.interpolation.npnod;
+            cParams.connec = obj.mesh.connec;
+            cParams.nelem  = obj.mesh.nelem;
+            cParams.diffReactEq = cPar.femSettings;
+            
+            obj.Poper = Poperator(cParams);
+        end
+        
+        function createProjector(obj)
+            cParams.mesh = obj.mesh;
+            cParams.domainType = obj.domainType;
+            cParams.quadrature = obj.quadrature;
+            cParams.type = obj.mesh.geometryType;
+            obj.projector = ShapeFunctionProjector.create(cParams);                                    
+        end
+                
+        function intX = integrateRHS(obj,x)
+            intX = zeros(obj.mesh.nelem,1);
+            ngaus = size(x,2);
+            for igaus = 1:ngaus
+                dvolu = obj.geometry.dvolu(:,igaus);
+                intX = intX + dvolu.*x(:,igaus);
             end
         end
         
+        function itHas = xHasChanged(obj,x)
+            itHas = ~isequal(x,obj.x);
+        end
+        
+        function updateStoredValues(obj,x,x0)
+            obj.x = x;
+            obj.x_reg = x0;
+        end
+        
+        function init(obj,cParams)
+            obj.mesh = cParams.designVar.mesh;
+            obj.quadratureOrder = cParams.quadratureOrder;
+        end
+        
+        function createQuadrature(obj)
+            obj.quadrature = Quadrature.set(obj.mesh.geometryType);
+            obj.quadrature.computeQuadrature(obj.quadratureOrder);
+        end        
+        
+        function createGeometry(obj)
+            obj.geometry = Geometry(obj.mesh,'LINEAR');
+            obj.geometry.interpolation.computeShapeDeriv(obj.quadrature.posgp);
+            obj.geometry.computeGeometry(obj.quadrature,obj.geometry.interpolation);
+        end
+
     end
+    
+     methods (Access = private, Static)
+     
+        function disableDelaunayWarning()
+            MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';
+            warning('off', MSGID)
+        end
+        
+    end
+    
     
 end

@@ -121,7 +121,8 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         function createFrame(obj)
             obj.frame = figure;
             warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame')
-            drawnow; set(get(obj.frame,'JavaFrame'),'Maximized',1);
+            drawnow; 
+            set(get(obj.frame,'JavaFrame'),'Maximized',1);
         end
         
         function computeDistribution(obj)

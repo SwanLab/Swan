@@ -53,7 +53,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             s.designVar = designVar;
             s.quadratureOrder = 'LINEAR';   
             s.femSettings.scale = 'MACRO';
-            obj.filter = FilterFactory().create(s);
+            obj.filter = Filter.create(s);
             obj.filter.preProcess();
             obj.filter.updateEpsilon(e);
         end

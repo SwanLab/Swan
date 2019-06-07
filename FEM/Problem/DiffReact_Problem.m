@@ -37,6 +37,14 @@ classdef DiffReact_Problem < FEM
             obj.variables.x = bc.reduced_vector_2_full_vector(x_reg);
         end
         
+        function computeVariablesRobin(obj,x)
+           % bc = obj.element.getBcApplier();
+           % x_red  = bc.full_vector_2_reduced_vector(x);
+            LHS = obj.element.computeRobinLHS();
+            x_reg = obj.solver.solve(LHS,x);
+            obj.variables.x = x_reg;
+        end        
+        
         function obj = setEpsilon(obj,epsilon)
             obj.element.setEpsilon(epsilon);
         end

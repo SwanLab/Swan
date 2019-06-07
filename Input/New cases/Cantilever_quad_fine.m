@@ -26205,7 +26205,7 @@ dirichlet_data = [
 % Node                Dimension                Value
 
 pointload_complete = [
-1393 1            0
+1303 1     0
 1303 2    -1
 ];
 

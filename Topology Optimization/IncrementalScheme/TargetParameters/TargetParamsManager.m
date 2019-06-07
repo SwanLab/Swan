@@ -39,10 +39,11 @@ classdef TargetParamsManager < handle
         
         function generateSequences(obj,cParams)
             obj.volumeFrac = LinearSequence(1/obj.nSteps,1,obj.nSteps,cParams.VfracInitial,cParams.VfracFinal);
+            %obj.volumeFrac = LogarithmicSequence(0.85,obj.nSteps,cParams.VfracInitial,cParams.VfracFinal);
             obj.constraintTol = LinearSequence(0,1,obj.nSteps,cParams.constrInitial,cParams.constrFinal);
             obj.optimalityTol = LinearSequence(0,1,obj.nSteps,cParams.optimalityInitial,cParams.optimalityFinal);
             obj.epsilon = LinearSequence(0,1,obj.nSteps,cParams.epsilonInitial,cParams.epsilonFinal);
-            obj.epsilonPer = LogarithmicSequence(-1,0,obj.nSteps,cParams.epsilonPerInitial,cParams.epsilonPerFinal);
+            obj.epsilonPer = LogarithmicSequence(-0.9,obj.nSteps,cParams.epsilonPerInitial,cParams.epsilonPerFinal);
             obj.epsilonIso = LinearSequence(0,1,obj.nSteps,cParams.epsilonIsoInitial,cParams.epsilonIsoFinal);
         end
         
@@ -52,6 +53,14 @@ classdef TargetParamsManager < handle
             obj.optimalityTol.update(iStep);
             obj.epsilon.update(iStep);
             obj.epsilonPer.update(iStep);
+%             epsi = zeros(obj.nSteps,1);
+%             for i = 1:obj.nSteps
+%             obj.epsilonPer.update(i);
+%             epsi(i,1) = obj.epsilonPer.value;
+%             %obj.volumeFrac.update(i);
+%             %epsi(i,1) = obj.volumeFrac.value;            
+%             end
+%             plot(epsi,'+')
         end
         
         function assignValues(obj)

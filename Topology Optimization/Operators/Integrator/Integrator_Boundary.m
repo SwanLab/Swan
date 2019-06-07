@@ -12,6 +12,10 @@ classdef Integrator_Boundary < Integrator
             A = obj.rearrangeOutputRHS(shapeValues);
         end
         
+        function A = computeLHS(obj)
+           A = 0; 
+        end
+        
     end
     
     methods (Access = private)

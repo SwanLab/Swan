@@ -9,7 +9,7 @@ classdef Integrator < handle
     methods (Access = protected, Abstract)
         
         computeIntegral(obj)
-        
+        computeLHS(obj)
     end
     
     methods (Access = public)
@@ -19,6 +19,13 @@ classdef Integrator < handle
                 obj.updateMeshes(meshUnfitted);
             end
             A = obj.computeIntegral(F);
+        end
+        
+        function M = integrateLHS(obj,meshUnfitted)
+            if exist('meshUnfitted','var')
+                obj.updateMeshes(meshUnfitted);
+            end
+            M = obj.computeLHS();
         end
         
     end

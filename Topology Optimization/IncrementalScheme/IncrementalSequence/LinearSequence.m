@@ -1,5 +1,14 @@
 classdef LinearSequence < IncrementalSequence
     
+    methods (Access = public)
+       
+        function obj = LinearSequence(x0,x1,nSteps,initialValue,finalValue)
+            obj.init(x0,x1,nSteps,initialValue,finalValue);
+            obj.generateAlphaSequence();
+        end                
+        
+    end
+    
     methods (Access = protected)
         
         function generateAlphaSequence(obj)

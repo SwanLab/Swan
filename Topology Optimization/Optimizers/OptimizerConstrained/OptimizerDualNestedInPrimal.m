@@ -20,6 +20,8 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
         end
 
         function solveProblem(obj)
+       %     obj.hasFinished = false;
+            
             obj.cost.computeCostAndGradient();
             obj.constraint.computeCostAndGradient();
             
@@ -46,7 +48,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             obj.printHistory();
 
             obj.hasFinished = false;
-
+            
             while ~obj.hasFinished
                 obj.nIter = obj.nIter+1;
 
