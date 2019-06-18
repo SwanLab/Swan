@@ -68,8 +68,10 @@ classdef Element_DiffReact < Element
                 levelSet = -ones(size(obj.mesh.coord,1),1);
                 uMesh = Mesh_Unfitted.create2(cParams);
                 uMesh.computeMesh(levelSet);
-                integrator = Integrator.create(uMesh);
-                obj.Mr = integrator.integrateLHS(uMesh);
+                
+                uMesh2 = Mesh_Composite(uMesh);
+                integrator = Integrator.create(uMesh2);
+                obj.Mr = integrator.integrateLHS(uMesh2);
             end
         end
         

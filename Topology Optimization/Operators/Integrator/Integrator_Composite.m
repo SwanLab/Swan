@@ -1,5 +1,10 @@
 classdef Integrator_Composite < Integrator
     
+    properties (GetAccess = public, SetAccess = private)
+        integrators
+        nInt
+    end
+    
     properties (Access = private)
         integratorInterior
         integratorsBoxFaces
@@ -7,27 +12,46 @@ classdef Integrator_Composite < Integrator
     
     methods (Access = public)
         
-        function obj = Integrator_Composite(meshComposite)
-            obj.createInteriorIntegrator(meshComposite);
-            obj.createBoxFacesIntegrators(meshComposite);
+        function obj = Integrator_Composite(mesh)
+            obj.createIntegrators(mesh);
+            %             obj.createInteriorIntegrator(meshComposite);
+            %             obj.createBoxFacesIntegrators(meshComposite);
         end
         
     end
     
     methods (Access = protected)
         
-        function A = computeIntegral(obj,F1)
-            A.interiorIntegral = obj.computeInteriorIntegral(F1);
-            A.boxFacesIntegrals = obj.computeBoxFacesIntegrals(F1);
+        function f = computeIntegral(obj,nodalFunc)
+            f = cell(1,obj.nInt);
+            for iInt = 1:obj.nInt
+                f{iInt} = obj.integrators{iInt}.computeIntegral(nodalFunc);
+            end
+            %             A.interiorIntegral = obj.computeInteriorIntegral(F1);
+            %             A.boxFacesIntegrals = obj.computeBoxFacesIntegrals(F1);
         end
         
         function A = computeLHS(obj)
-            A = obj.computeBoxFacesIntegralsLHS();
-        end        
+            npnod = obj.meshBackground.npnod;
+            A = sparse(npnod,npnod);
+            for iInt = 1:obj.nInt
+                globalConnec = obj.meshUnfitted.globalConnectivities{iInt};
+                A = A + obj.integrators{iInt}.computeLHS(globalConnec,npnod);
+            end
+        end
         
     end
     
     methods (Access = private)
+        
+        function createIntegrators(obj,meshComposite)
+            activeMeshes = meshComposite.getActiveMeshes();
+            for iMesh = 1:meshComposite.nActiveMeshes
+                mesh = activeMeshes{iMesh};
+                obj.integrators{iMesh} = Integrator.create(mesh);
+            end
+            obj.nInt = numel(obj.integrators);
+        end
         
         function createInteriorIntegrator(obj,meshComposite)
             obj.integratorInterior = Integrator.create(meshComposite.meshInterior);
@@ -51,16 +75,6 @@ classdef Integrator_Composite < Integrator
                 A{iface} = obj.integratorsBoxFaces{iface}.computeIntegral(F1);
             end
         end
-        
-        function A = computeBoxFacesIntegralsLHS(obj)
-            npnod = obj.meshBackground.npnod;            
-            A = sparse(npnod,npnod);
-            for iactive = 1:obj.meshUnfitted.nActiveBoxFaces
-                iface = obj.meshUnfitted.activeBoxFaceMeshesList(iactive);
-                globalConnec = obj.meshUnfitted.globalConnectivities{iface};
-                A = A + obj.integratorsBoxFaces{iface}.computeLHS(globalConnec,npnod);
-            end
-        end        
         
     end
     

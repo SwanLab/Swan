@@ -1,5 +1,9 @@
 classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
     
+    properties (Access = protected)
+        integrator
+    end
+    
     methods (Access = protected)
         
         function M = computeGeometricalVariable(obj)
@@ -16,8 +20,8 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
     methods (Access = private)
         
         function M2 = integrateMesh(obj)
-            integrator = Integrator.create(obj.mesh);
-            M2 = integrator.integrateUnfittedMesh(ones(size(obj.mesh.levelSet_background)),obj.mesh);
+            obj.integrator = Integrator.create(obj.mesh);
+            M2 = obj.integrator.integrateUnfittedMesh(ones(size(obj.mesh.levelSet_background)),obj.mesh);
         end
         
     end

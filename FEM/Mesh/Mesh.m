@@ -10,6 +10,11 @@ classdef Mesh < handle & matlab.mixin.Copyable
         geometryType
     end
     
+    properties (Access = public)
+        unfittedType
+        meshBackground
+    end
+    
     methods (Access = public)
         
         function obj = create(obj,coord,connec)

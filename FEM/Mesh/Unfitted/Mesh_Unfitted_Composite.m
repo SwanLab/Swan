@@ -1,11 +1,20 @@
 classdef Mesh_Unfitted_Composite < Mesh_Unfitted
     
+    properties (Access = public)
+        meshBackground
+    end
+    
     properties (GetAccess = public, SetAccess = private)
+        meshes
+        nMeshes
+        
         meshInterior
         boxFaceMeshes
-        globalConnectivities        
+        globalConnectivities
         activeBoxFaceMeshesList
-        nActiveBoxFaces
+        activeMeshesList
+        nBoxActiveMeshes
+        nActiveMeshes
         unfittedType = 'COMPOSITE'
     end
     
@@ -27,12 +36,14 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
             obj.init(cParams.meshBackground);
             obj.createInteriorMesh(cParams);
             obj.createBoxMeshes();
+            obj.createMeshes();
         end
         
         function computeMesh(obj,levelSet)
             obj.levelSet_background = levelSet;
             obj.computeInteriorMesh(levelSet);
             obj.computeBoxMeshes(levelSet);
+            obj.createMeshes();
         end
         
         function M = computeMass(obj)
@@ -51,9 +62,17 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         
         function add2plot(obj,ax)
             obj.meshInterior.add2plot(ax);
-            for iactive = 1:obj.nActiveBoxFaces
-                iface = obj.activeBoxFaceMeshesList(iactive);
+            for iActive = 1:obj.nBoxActiveMeshes
+                iface = obj.activeBoxFaceMeshesList(iActive);
                 obj.boxFaceMeshes{iface}.add2plot(ax,obj.removedDimensions(iface),obj.removedDimensionCoord(iface));
+            end
+        end
+        
+        function aMeshes = getActiveMeshes(obj)
+            aMeshes = cell(1,obj.nActiveMeshes);
+            for iActive = 1:obj.nActiveMeshes
+                iMesh = obj.activeMeshesList(iActive);
+                aMeshes{iActive} = obj.meshes{iMesh};
             end
         end
         
@@ -65,6 +84,14 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
             obj.ndim = meshBackground.ndim;
             obj.meshBackground = meshBackground;
             obj.nboxFaces = obj.ndim*obj.nsides;
+        end
+        
+        function createMeshes(obj)
+            obj.meshes{1} = obj.meshInterior;
+            for iface = 1:obj.nboxFaces
+                obj.meshes{iface+1} = obj.boxFaceMeshes{iface};
+            end
+            obj.nMeshes = numel(obj.meshes);
         end
         
         function createInteriorMesh(obj,cParams)
@@ -95,7 +122,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         function connec = computeGlobalConnectivities(obj,nodesInBoxFace,boxFaceMesh)
             nodes = find(nodesInBoxFace);
             boxFaceConnec = boxFaceMesh.meshBackground.connec;
-            connec = [nodes(boxFaceConnec(:,1)),nodes(boxFaceConnec(:,2))];                                     
+            connec = [nodes(boxFaceConnec(:,1)),nodes(boxFaceConnec(:,2))];
         end
         
         function computeBoxMeshes(obj,levelSet)
@@ -123,7 +150,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         
         function M = computeBoxMass(obj)
             M = 0;
-            for iactive = 1:obj.nActiveBoxFaces
+            for iactive = 1:obj.nBoxActiveMeshes
                 iface = obj.activeBoxFaceMeshesList(iactive);
                 M = M + obj.boxFaceMeshes{iface}.computeMass();
             end
@@ -185,11 +212,14 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         
         function updateActiveBoxFaceMeshesList(obj)
             obj.activeBoxFaceMeshesList = find(obj.isBoxFaceMeshActive);
-            obj.nActiveBoxFaces = length(obj.activeBoxFaceMeshesList);
+            obj.activeMeshesList = find([true obj.isBoxFaceMeshActive]);
+            obj.nBoxActiveMeshes = length(obj.activeBoxFaceMeshesList);
+            obj.nActiveMeshes = length(obj.activeMeshesList);
         end
     end
     
     methods (Static, Access = private)
+        
         function itIs = isBoxMeshActive(levelSet,meshBack)
             phi_nodes = levelSet(meshBack.connec);
             phi_case = sum((sign(phi_nodes)<0),2);
@@ -217,5 +247,6 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         end
         
     end
+    
 end
 
