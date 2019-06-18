@@ -5,17 +5,10 @@ classdef Integrator_Composite < Integrator
         nInt
     end
     
-    properties (Access = private)
-        integratorInterior
-        integratorsBoxFaces
-    end
-    
     methods (Access = public)
         
         function obj = Integrator_Composite(mesh)
             obj.createIntegrators(mesh);
-            %             obj.createInteriorIntegrator(meshComposite);
-            %             obj.createBoxFacesIntegrators(meshComposite);
         end
         
     end
@@ -27,8 +20,6 @@ classdef Integrator_Composite < Integrator
             for iInt = 1:obj.nInt
                 f{iInt} = obj.integrators{iInt}.computeIntegral(nodalFunc);
             end
-            %             A.interiorIntegral = obj.computeInteriorIntegral(F1);
-            %             A.boxFacesIntegrals = obj.computeBoxFacesIntegrals(F1);
         end
         
         function A = computeLHS(obj)
@@ -52,30 +43,7 @@ classdef Integrator_Composite < Integrator
             end
             obj.nInt = numel(obj.integrators);
         end
-        
-        function createInteriorIntegrator(obj,meshComposite)
-            obj.integratorInterior = Integrator.create(meshComposite.meshInterior);
-        end
-        
-        function createBoxFacesIntegrators(obj,meshComposite)
-            for iactive = 1:meshComposite.nActiveBoxFaces
-                iface = meshComposite.activeBoxFaceMeshesList(iactive);
-                obj.integratorsBoxFaces{iface} = Integrator.create(meshComposite.boxFaceMeshes{iface});
-            end
-        end
-        
-        function A = computeInteriorIntegral(obj,F1)
-            A = obj.integratorInterior.computeIntegral(F1);
-        end
-        
-        function A = computeBoxFacesIntegrals(obj,F1)
-            A = cell(1,obj.meshUnfitted.nActiveBoxFaces);
-            for iactive = 1:obj.meshUnfitted.nActiveBoxFaces
-                iface = obj.meshUnfitted.activeBoxFaceMeshesList(iactive);
-                A{iface} = obj.integratorsBoxFaces{iface}.computeIntegral(F1);
-            end
-        end
-        
+                
     end
     
 end
