@@ -8,7 +8,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         meshes
         nMeshes
         
-        meshInterior
+        innerMesh
         boxFaceMeshes
         globalConnectivities
         activeBoxFaceMeshesList
@@ -62,7 +62,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         end
         
         function add2plot(obj,ax)
-            obj.meshInterior.add2plot(ax);
+            obj.innerMesh.add2plot(ax);
             for iActive = 1:obj.nActiveBoxFaces
                 iFace = obj.activeBoxFaceMeshesList(iActive);
                 obj.boxFaceMeshes{iFace}.add2plot(ax,obj.removedDimensions(iFace),obj.removedDimensionCoord(iFace));
@@ -95,7 +95,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         end
         
         function createMeshes(obj)
-            obj.meshes{1} = obj.meshInterior;
+            obj.meshes{1} = obj.innerMesh;
             for iface = 1:obj.nboxFaces
                 obj.meshes{iface+1} = obj.boxFaceMeshes{iface};
             end
@@ -105,18 +105,18 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         function createInteriorMesh(obj,cParams)
             s.coord  = obj.totalMesh.coord;
             s.connec = obj.totalMesh.connec;
-            s.meshBackground = obj.totalMesh.meshInterior;
+            s.meshBackground = obj.totalMesh.innerMesh;
             s.interpolationBackground = Interpolation.create(s.meshBackground,'LINEAR');
             s.unfittedType = cParams.unfittedType;
-            obj.meshInterior = Mesh_Unfitted_Single(s);
+            obj.innerMesh = Mesh_Unfitted_Single(s);
         end
         
         function computeInteriorMesh(obj,levelSet)
-            obj.meshInterior.computeMesh(levelSet);
+            obj.innerMesh.computeMesh(levelSet);
         end
         
         function M = computeInteriorMass(obj)
-            M = obj.meshInterior.computeMass();
+            M = obj.innerMesh.computeMass();
         end
         
         function createBoxMeshes(obj)
@@ -170,7 +170,10 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         
         function boxFaceMesh = createBoxFaceMesh(obj,mesh)
             interp = Interpolation.create(mesh,'LINEAR');
-            cParams = SettingsMeshUnfitted('INTERIOR',mesh,interp);
+            s.unfittedType = 'INTERIOR';
+            s.meshBackground = mesh;
+            s.interpolationBackground = interp;
+            cParams = SettingsMeshUnfitted(s);
             boxFaceMesh = Mesh_Unfitted.create2(cParams);
         end
         

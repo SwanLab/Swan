@@ -35,7 +35,10 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
         end      
         
         function createUnfittedMesh(obj)
-            cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh,obj.interpolation);
+            s.unfittedType = obj.domainType;
+            s.meshBackground = obj.mesh;
+            s.interpolationBackground = obj.interpolation;
+            cParams = SettingsMeshUnfitted(s);
             obj.unfittedMesh = Mesh_Unfitted.create2(cParams);            
         end
         

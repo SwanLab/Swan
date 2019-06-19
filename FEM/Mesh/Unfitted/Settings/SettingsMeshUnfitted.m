@@ -9,6 +9,7 @@ classdef SettingsMeshUnfitted < AbstractSettings
         meshBackground
         interpolationBackground
         includeBoxContour
+        mesh
     end
     
     methods (Access = public)
@@ -19,17 +20,14 @@ classdef SettingsMeshUnfitted < AbstractSettings
                     obj.loadParams(varargin{1});
                 case 2
                     obj.unfittedType = varargin{1};
-                    obj.meshBackground = varargin{2};
-                    obj.interpolationBackground = Interpolation.create(obj.meshBackground,'LINEAR');
+                    mesh = varargin{2};
+                    obj.meshBackground = mesh.innerMesh;
+                    obj.mesh           = mesh;
                 case 3
-                    obj.unfittedType = varargin{1};
-                    obj.meshBackground = varargin{2};
-                    obj.interpolationBackground = varargin{3};
+                    disp('eis');
                 case 4
-                    obj.unfittedType = varargin{1};
-                    obj.meshBackground = varargin{2};
-                    obj.interpolationBackground = varargin{3};
-                    obj.includeBoxContour = varargin{4};
+                    disp('eis');
+                    
             end
             obj.init();
         end
@@ -45,12 +43,16 @@ classdef SettingsMeshUnfitted < AbstractSettings
         
         function createBackgroundMesh(obj)
             if ischar(obj.meshBackground)
-                obj.meshBackground = Mesh_GiD(obj.meshBackground);
+                fileName = obj.meshBackground;
+                femReader = FemInputReader_GiD();
+                s = femReader.read(fileName);
+                obj.meshBackground = s.mesh;
             end
         end
         
         function createBackgroundInterpolation(obj)
-            obj.interpolationBackground = Interpolation.create(obj.meshBackground,'LINEAR');
+            inter = Interpolation.create(obj.meshBackground,'LINEAR');
+            obj.interpolationBackground = inter;
         end
         
     end

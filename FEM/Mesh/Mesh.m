@@ -1,13 +1,12 @@
-classdef Mesh < handle & matlab.mixin.Copyable
+classdef Mesh < AbstractMesh & matlab.mixin.Copyable
     
     properties (GetAccess = public, SetAccess = protected)
-        coord
-        connec
+%         coord
+%         connec
         ndim
         nnode
         npnod
-        nelem
-        geometryType
+%         nelem
     end
     
     properties (Access = public)

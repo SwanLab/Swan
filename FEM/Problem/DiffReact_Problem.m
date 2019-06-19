@@ -41,7 +41,11 @@ classdef DiffReact_Problem < FEM
         end
         
         function preProcess(obj)
-            obj.createGeometry(obj.mesh);
+            if contains(class(obj.mesh),'Total')
+                obj.createGeometry(obj.mesh.innerMesh);
+            else
+                obj.createGeometry(obj.mesh);
+            end
             obj.setDOFs();
             obj.setElement();
             obj.solver = Solver.create();

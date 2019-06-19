@@ -78,14 +78,14 @@ classdef TopOpt_Problem < handle
         
         function createIncrementalScheme(obj,cParams)
             s = cParams.incrementalSchemeSettings;
-            s.mesh = obj.mesh.meshInterior;
+            s.mesh = obj.mesh.innerMesh;
             s.targetParamsSettings.epsilonPerInitial = 10*s.targetParamsSettings.epsilonPerFinal;
             obj.incrementalScheme = IncrementalScheme(s);
         end
         
         function createDesignVariable(obj,cParams)
             s = cParams.designVarSettings;
-            s.mesh = obj.mesh.meshInterior;
+            s.mesh = obj.mesh;
             s.scalarProductSettings.epsilon = obj.incrementalScheme.targetParams.epsilon;
             obj.designVariable = DesignVariable.create(s);
         end

@@ -1,11 +1,11 @@
-classdef Mesh_Total < handle
+classdef Mesh_Total < AbstractMesh
     
     properties (GetAccess = public, SetAccess = private)
-        coord
-        connec
+%         coord
+%         connec
         ndim
         
-        meshInterior
+        innerMesh
         boxFaceMeshes
         nodesInBoxFaces
         globalConnectivities
@@ -24,6 +24,12 @@ classdef Mesh_Total < handle
             obj.init(cParams);
             obj.createInteriorMesh();
             obj.createBoxFaceMeshes();
+            obj.geometryType = obj.innerMesh.geometryType;
+            obj.nelem = size(obj.connec,1);
+        end
+        
+        function S = computeMeanCellSize(obj)
+            S = obj.innerMesh.computeMeanCellSize();
         end
         
     end
@@ -37,7 +43,7 @@ classdef Mesh_Total < handle
         end
         
         function createInteriorMesh(obj)
-            obj.meshInterior = Mesh().create(obj.coord,obj.connec);
+            obj.innerMesh = Mesh().create(obj.coord,obj.connec);
         end
         
         function createBoxFaceMeshes(obj)
@@ -76,17 +82,17 @@ classdef Mesh_Total < handle
         
         function [boxFaceCoords, nodesInBoxFace] = getFaceCoordinates(obj,idime,iside)
             D = obj.getFaceCharacteristicDimension(idime,iside);
-            nodesInBoxFace = obj.meshInterior.coord(:,idime) == D;
-            boxFaceCoords = obj.meshInterior.coord(nodesInBoxFace,:);
+            nodesInBoxFace = obj.innerMesh.coord(:,idime) == D;
+            boxFaceCoords = obj.innerMesh.coord(nodesInBoxFace,:);
             boxFaceCoords = obj.removeExtraDimension(boxFaceCoords,idime);
             obj.storeRemovedDimensions(idime,iside,D);
         end
         
         function D = getFaceCharacteristicDimension(obj,idime,iside)
             if iside == 1
-                D = min(obj.meshInterior.coord(:,idime));
+                D = min(obj.innerMesh.coord(:,idime));
             elseif iside == 2
-                D = max(obj.meshInterior.coord(:,idime));
+                D = max(obj.innerMesh.coord(:,idime));
             else
                 error('Invalid iside value. Valid values: 1 and 2.')
             end

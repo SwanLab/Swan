@@ -20,7 +20,8 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             obj.ngaus = obj.quadrature.ngaus;
             obj.Anodal2Gauss = obj.computeA();
             
-            cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh,obj.interpolation);
+%             cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh,obj.interpolation);
+cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh);
             obj.unfittedMesh = Mesh_Unfitted.create2(cParams);
             obj.integrator = Integrator.create(obj.unfittedMesh);            
             obj.disableDelaunayWarning();                 
