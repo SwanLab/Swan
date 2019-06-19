@@ -80,9 +80,10 @@ classdef Element_DiffReact < Element
 %                 uMesh2 = Mesh_Composite(uMesh);
 %                 integrator = Integrator.create(uMesh2);
 %                 obj.Mr = integrator.integrateLHS(uMesh2);
-
-                integrator = Integrator.create(obj.mesh);
-                obj.Mr = integrator.integrateLHS(obj.mesh);
+                cParams.mesh = obj.mesh;
+                integrator = Integrator.create(cParams);
+               % obj.Mr = integrator.integrateLHS(obj.mesh);
+               obj.Mr = integrator.computeLHS();
             end
         end
         

@@ -7,39 +7,45 @@ classdef Integrator_Composite < Integrator
     
     methods (Access = public)
         
-        function obj = Integrator_Composite(mesh)
-            obj.createIntegrators(mesh);
+        function obj = Integrator_Composite(cParams)  
+            obj.init(cParams);
+            obj.createIntegrators();
         end
         
-    end
-    
-    methods (Access = protected)
+        function A = computeLHS(obj)
+            npnod = obj.mesh.innerMesh.npnod;
+            A = sparse(npnod,npnod);
+            for iInt = 1:obj.nInt
+                globalConnec = obj.mesh.globalConnectivities{iInt};
+                A = A + obj.integrators{iInt}.computeLHS(globalConnec,npnod);
+            end
+        end 
         
         function f = computeIntegral(obj,nodalFunc)
             f = cell(1,obj.nInt);
             for iInt = 1:obj.nInt
                 f{iInt} = obj.integrators{iInt}.computeIntegral(nodalFunc);
             end
-        end
+        end        
         
-        function A = computeLHS(obj)
-            npnod = obj.meshBackground.npnod;
-            A = sparse(npnod,npnod);
-            for iInt = 1:obj.nInt
-                globalConnec = obj.meshUnfitted.globalConnectivities{iInt};
-                A = A + obj.integrators{iInt}.computeLHS(globalConnec,npnod);
-            end
-        end
+    end
+    
+    methods (Access = protected)
+        
+
+        
+
         
     end
     
     methods (Access = private)
         
-        function createIntegrators(obj,meshComposite)
-            activeMeshes = meshComposite.getActiveMeshes();
-            for iMesh = 1:meshComposite.nActiveMeshes
-                mesh = activeMeshes{iMesh};
-                obj.integrators{iMesh} = Integrator.create(mesh);
+        function createIntegrators(obj)
+            meshC = obj.mesh;
+            activeMeshes = meshC.getActiveMeshes();
+            for iMesh = 1:meshC.nActiveMeshes
+                cParams.mesh = activeMeshes{iMesh};                
+                obj.integrators{iMesh} = Integrator.create(cParams);
             end
             obj.nInt = numel(obj.integrators);
         end

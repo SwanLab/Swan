@@ -1,14 +1,14 @@
-classdef Mesh_Total < AbstractMesh
+classdef Mesh_Total < Mesh_Composite 
     
     properties (GetAccess = public, SetAccess = private)
 %         coord
 %         connec
         ndim
+        nBoxFaces
         
         innerMesh
         boxFaceMeshes
         nodesInBoxFaces
-        globalConnectivities
         
         removedDimensions
         removedDimensionCoord
@@ -24,6 +24,7 @@ classdef Mesh_Total < AbstractMesh
             obj.init(cParams);
             obj.createInteriorMesh();
             obj.createBoxFaceMeshes();
+            obj.defineActiveMeshes();            
             obj.geometryType = obj.innerMesh.geometryType;
             obj.nelem = size(obj.connec,1);
         end
@@ -40,23 +41,32 @@ classdef Mesh_Total < AbstractMesh
             obj.coord  = cParams.coord;
             obj.connec = cParams.connec;
             obj.ndim   = size(obj.coord,2);
+            obj.unfittedType = 'COMPOSITE';
+        end
+        
+        function defineActiveMeshes(obj)
+            obj.activeMeshesList = find([false true(1,obj.nBoxFaces)]);
+            obj.nActiveMeshes     = numel(obj.activeMeshesList);
         end
         
         function createInteriorMesh(obj)
             obj.innerMesh = Mesh().create(obj.coord,obj.connec);
+            obj.append(obj.innerMesh);
         end
         
         function createBoxFaceMeshes(obj)
             nSides = 2;
             for iDime = 1:obj.ndim
                 for iSide = 1:nSides
-                    iFace = obj.computeIface(iDime,iSide);
+                    iFace = obj.computeIface(iSide,iDime);
                     [mesh,nodesInBoxFace] = obj.createBoxFaceMesh(iDime,iSide);
                     obj.boxFaceMeshes{iFace} = mesh;
+                    obj.append(mesh);
                     obj.nodesInBoxFaces{iFace} = nodesInBoxFace;
                     obj.computeGlobalConnectivities(iFace);
                 end
             end
+            obj.nBoxFaces = numel(obj.boxFaceMeshes);            
         end
         
         function connec = computeGlobalConnectivities(obj,iFace)
@@ -104,13 +114,14 @@ classdef Mesh_Total < AbstractMesh
         end
         
         function storeRemovedDimensions(obj,iDime,iSide,D)
-            iFace = obj.computeIface(iDime,iSide);
+            iFace = obj.computeIface(iSide,iDime);
             obj.removedDimensions(iFace) = iDime;
             obj.removedDimensionCoord(iFace) = D;
         end
         
         function iFace = computeIface(obj,iSide,iDime)
-            iFace = (iDime-1)*obj.ndim + iSide;
+            nSides = 2;
+            iFace = (iDime-1)*nSides + iSide;
         end
         
     end

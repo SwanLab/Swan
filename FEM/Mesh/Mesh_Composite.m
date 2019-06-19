@@ -1,4 +1,4 @@
-classdef Mesh_Composite < handle
+classdef Mesh_Composite < AbstractMesh
     
     properties (GetAccess = public, SetAccess = public)
         meshes
@@ -7,25 +7,20 @@ classdef Mesh_Composite < handle
         activeMeshesList
         
         globalConnectivities
-        
-        meshBackground
-        unfittedType
     end
     
     methods (Access = public)
         
-        function obj = Mesh_Composite(mesh)
+        function obj = Mesh_Composite()
             obj.unfittedType = 'COMPOSITE';
-            obj.meshBackground = mesh.meshBackground;
+           % obj.meshBackground = mesh.meshBackground;
             
-            obj.activeMeshesList = find([false true(1,mesh.nActiveBoxFaces)]);
-            obj.nActiveMeshes = numel(obj.activeMeshesList);
-            for iMesh = 1:mesh.nMeshes
-                obj.meshes{iMesh} = mesh.meshes{iMesh}.meshBackground;
-                obj.meshes{iMesh}.unfittedType = 'INTERIOR';
-                obj.meshes{iMesh}.meshBackground = obj.meshes{iMesh};
-            end
-            obj.globalConnectivities = mesh.globalConnectivities;
+            %for iMesh = 1:mesh.nMeshes
+            %    obj.meshes{iMesh} = mesh.meshes{iMesh}.meshBackground;
+            %    obj.meshes{iMesh}.unfittedType = 'INTERIOR';
+            %    obj.meshes{iMesh}.meshBackground = obj.meshes{iMesh};
+            %end
+            %obj.globalConnectivities = mesh.globalConnectivities;
             
             obj.createMeshes();
         end
@@ -37,6 +32,14 @@ classdef Mesh_Composite < handle
                 aMeshes{iActive} = obj.meshes{iMesh};
             end
         end
+    end
+    
+    methods (Access = protected)
+        
+        function append(obj,mesh)
+           obj.meshes{end+1} = mesh;
+        end
+        
     end
     
     methods (Access = private)

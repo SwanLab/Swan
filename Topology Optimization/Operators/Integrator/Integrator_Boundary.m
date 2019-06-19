@@ -1,6 +1,6 @@
-classdef Integrator_Boundary < Integrator
+classdef Integrator_Boundary < IntegratorUnfitted
     
-    methods (Access = protected)
+    methods (Access = public)
         
         function A = computeIntegral(obj,F1)
             if obj.isLeveSetCuttingMesh()
@@ -12,8 +12,14 @@ classdef Integrator_Boundary < Integrator
             A = obj.rearrangeOutputRHS(shapeValues);
         end
         
+        
+    end
+    
+    methods (Access = protected)
+        
+        
         function A = computeLHS(obj)
-           A = 0; 
+            A = 0;
         end
         
     end

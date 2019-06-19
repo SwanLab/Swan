@@ -43,7 +43,8 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
         end
         
         function createIntegrator(obj)
-            obj.integrator = Integrator.create(obj.unfittedMesh);            
+            cParams.mesh = obj.unfittedMesh;
+            obj.integrator = Integrator.create(cParams);            
         end        
         
     end

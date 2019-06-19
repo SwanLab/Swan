@@ -128,8 +128,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
                 for iside = 1:obj.nsides
                     iFace = iFace + 1;
                     mesh = fMeshes{iFace};
-                    nodesInBoxFace = fNodes{iFace};
-                    
+                    nodesInBoxFace = fNodes{iFace};                    
                     obj.boxFaceMeshes{iFace}        = obj.createBoxFaceMesh(mesh);
                     obj.nodesInBoxFaces{iFace}      = nodesInBoxFace;
                     obj.globalConnectivities{iFace} = fGlobalConnec{iFace};

@@ -10,7 +10,7 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
     end
     
     properties (Access = public)
-        unfittedType
+       % unfittedType
         meshBackground
     end
     
@@ -20,6 +20,7 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             obj.coord  = coord;
             obj.connec = connec;
             obj.computeDescriptorParams();
+            obj.unfittedType = 'SIMPLE';
         end
         
         function objClone = clone(obj)

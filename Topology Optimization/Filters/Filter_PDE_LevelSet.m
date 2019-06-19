@@ -21,9 +21,10 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             obj.Anodal2Gauss = obj.computeA();
             
 %             cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh,obj.interpolation);
-cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh);
+            cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh);
             obj.unfittedMesh = Mesh_Unfitted.create2(cParams);
-            obj.integrator = Integrator.create(obj.unfittedMesh);            
+            s.mesh = obj.unfittedMesh;
+            obj.integrator = Integrator.create(s);            
             obj.disableDelaunayWarning();                 
         end
         
