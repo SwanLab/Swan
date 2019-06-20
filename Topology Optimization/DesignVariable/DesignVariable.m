@@ -65,7 +65,7 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
         
         function init(obj,cParams)
             obj.type = cParams.type;
-            obj.createMesh(cParams); 
+            obj.mesh = cParams.mesh;
             obj.initValue();
             obj.createScalarProduct(cParams);
         end
@@ -74,16 +74,7 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
     
     methods (Access = private)
         
-        function createMesh(obj,s)
-            if ischar(s.mesh)
-                fileName = s.mesh;
-                d = FemInputReader_GiD().read(fileName);
-                obj.mesh = Mesh().create(d.coord,d.connec);
-            else
-                obj.mesh = s.mesh;
-            end
-        end
-        
+
         function initValue(obj)
             obj.value = ones(size(obj.mesh.coord,1),1);
         end

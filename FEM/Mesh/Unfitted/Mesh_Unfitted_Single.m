@@ -31,8 +31,8 @@ classdef Mesh_Unfitted_Single < Mesh ...
             cParams.mesh = obj;
             integrator = Integrator.create(cParams);
             nnodesBackground = size(obj.levelSet_background);
-            M2 = integrator.integrateUnfittedMesh(ones(nnodesBackground),obj);
-            m = sum(M2);
+            fInt = integrator.computeIntegral(ones(nnodesBackground));
+            m = sum(fInt);
         end
         
         function plot(obj)

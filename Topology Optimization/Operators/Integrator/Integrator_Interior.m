@@ -16,47 +16,6 @@ classdef Integrator_Interior < IntegratorUnfitted
         
     end
     
-    
-    methods (Access = protected)
-        
-    
-        
-%         function A = computeLHS(obj,globalConnec,npnod)
-%             interpolation = Interpolation.create(obj.meshBackground,'LINEAR');
-%             quadrature = obj.computeQuadrature(obj.meshBackground.geometryType);
-%             interpolation.computeShapeDeriv(quadrature.posgp);
-%             geometry = Geometry(obj.meshBackground,'LINEAR');
-%             geometry.computeGeometry(quadrature,interpolation);
-%             nelem = obj.meshBackground.nelem;
-%             Ae = zeros(interpolation.nnode,interpolation.nnode,nelem);            
-%             for igaus = 1:quadrature.ngaus
-%                 for inode = 1:interpolation.nnode
-%                     for jnode = 1:interpolation.nnode
-%                         Ae(inode,jnode,:) = squeeze(Ae(inode,jnode,:)) + quadrature.weigp(igaus)*interpolation.shape(inode,igaus)...
-%                             *interpolation.shape(jnode,igaus)*geometry.djacob(:,igaus);
-%                     end
-%                 end
-%             end
-%             
-%             nunkn1 = 1;
-%             nunkn2 = 1;
-%             nnode1 = size(globalConnec,2);
-%             nnode2 = size(globalConnec,2);
-%             idx1 = globalConnec';
-%             idx2 = globalConnec';
-%            
-%             A = sparse(npnod,npnod);
-%             for i = 1:nnode1*nunkn1
-%                 for j = 1:nnode2*nunkn2
-%                     a = squeeze(Ae(i,j,:));
-%                     A = A + sparse(idx1(i,:),idx2(j,:),a,npnod,npnod);
-%                 end
-%             end                
-%            
-%         end
-        
-    end
-    
     methods (Access = private)
         
         function shapeValues_FullCells = integrateFullCells(obj,F1)            

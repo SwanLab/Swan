@@ -64,26 +64,9 @@ classdef Element_DiffReact < Element
         
         function computeBoundaryMassMatrix(obj)
             if obj.addRobinTerm
-%                 meshB = obj.mesh;
-%                 int = Interpolation.create(meshB,'LINEAR');
-%                 meshType = 'BOUNDARY';
-%                 meshIncludeBoxContour = true;
-%                 s.unfittedType = meshType;
-%                 s.meshBackground = meshB.innerMesh;
-%                 s.interpolationBackground = int;
-%                 s.includeBoxContour = meshIncludeBoxContour;
-%                 cParams = SettingsMeshUnfitted(s);
-%                 levelSet = -ones(size(obj.mesh.coord,1),1);
-%                 uMesh = Mesh_Unfitted.create2(cParams);
-%                 uMesh.computeMesh(levelSet);
-%                 
-%                 uMesh2 = Mesh_Composite(uMesh);
-%                 integrator = Integrator.create(uMesh2);
-%                 obj.Mr = integrator.integrateLHS(uMesh2);
                 cParams.mesh = obj.mesh;
                 integrator = Integrator.create(cParams);
-               % obj.Mr = integrator.integrateLHS(obj.mesh);
-               obj.Mr = integrator.computeLHS();
+                obj.Mr = integrator.computeLHS();
             end
         end
         

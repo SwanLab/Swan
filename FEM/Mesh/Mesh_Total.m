@@ -119,14 +119,14 @@ classdef Mesh_Total < Mesh_Composite
             obj.removedDimensionCoord(iFace) = D;
         end
         
-        function iFace = computeIface(obj,iSide,iDime)
-            nSides = 2;
-            iFace = (iDime-1)*nSides + iSide;
-        end
-        
     end
     
     methods (Access = private, Static)
+        
+        function iFace = computeIface(iSide,iDime)
+            nSides = 2;
+            iFace = (iDime-1)*nSides + iSide;
+        end        
         
         function connec = computeDelaunay(coord)
             DT = delaunayTriangulation(coord);

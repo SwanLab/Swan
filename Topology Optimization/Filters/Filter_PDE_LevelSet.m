@@ -41,9 +41,9 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             RHS = obj.computeRHS(x,F);
         end
         
-        function M2 = computeRHS(obj,x,F1)
+        function fInt = computeRHS(obj,x,fNodes)
             obj.unfittedMesh.computeMesh(x);
-            M2 = obj.integrator.integrateUnfittedMesh(F1,obj.unfittedMesh);
+            fInt = obj.integrator.computeIntegral(fNodes);
         end        
         
     end

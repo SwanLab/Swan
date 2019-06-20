@@ -13,15 +13,15 @@ classdef IntegratorUnfitted < Integrator
         
         function obj = IntegratorUnfitted(cParams)
             obj.init(cParams);
-            obj.updateBackgroundMesh();
-            obj.updateUnfittedMesh();            
+            obj.meshUnfitted   = obj.mesh;            
+            obj.meshBackground = obj.mesh.meshBackground;                   
         end
         
         function A = integrateUnfittedMesh(obj,F,meshUnfitted)
             if exist('meshUnfitted','var')
                 %obj.updateMeshes(meshUnfitted);
-                obj.updateBackgroundMesh();
-                obj.updateUnfittedMesh();   
+             %   obj.updateBackgroundMesh();
+             %   obj.updateUnfittedMesh();   
             end
             A = obj.computeIntegral(F);
         end
@@ -75,21 +75,7 @@ classdef IntegratorUnfitted < Integrator
 
         
     end
-    
 
-    
-    methods (Access = private)
-        
-        function updateUnfittedMesh(obj)
-            obj.meshUnfitted = obj.mesh;
-        end
-        
-        function updateBackgroundMesh(obj)
-            obj.meshBackground = obj.mesh.meshBackground;
-        end
-        
-    end
-    
     methods (Static, Access = private)
         
         function posgp = computePosGP(subcell_coord,interpolation,quadrature)

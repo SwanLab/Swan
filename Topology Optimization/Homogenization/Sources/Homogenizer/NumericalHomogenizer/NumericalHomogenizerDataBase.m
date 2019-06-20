@@ -40,14 +40,25 @@ classdef NumericalHomogenizerDataBase < handle
         end
         
         function d = createShVolumeDataBase(obj,dI)
+
+            
             d = SettingsShapeFunctional();
             d.filterParams.filterType = 'P1';
             s = SettingsDesignVariable();
             s.type = 'Density';
             s.levelSetCreatorSettings.type = 'full';
-
+            
             scalarPr.epsilon = 1e-3;
             s.scalarProductSettings = scalarPr;
+            
+            fileName = s.mesh;
+            dF = FemInputReader_GiD().read(fileName);
+            cParams.coord  = dF.coord;
+            cParams.connec = dF.connec;
+            meshT = Mesh_Total(cParams);
+            
+            s.mesh = meshT;
+            
             d.filterParams.designVar = DesignVariable.create(s);% Density(s);
             d.femSettings.fileName = obj.femFileName;
             d.femSettings.scale = 'MICRO';

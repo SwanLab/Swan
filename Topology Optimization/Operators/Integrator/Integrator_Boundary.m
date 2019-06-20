@@ -14,16 +14,16 @@ classdef Integrator_Boundary < IntegratorUnfitted
         
         
     end
-    
-    methods (Access = protected)
-        
-        
-        function A = computeLHS(obj)
-            A = 0;
-        end
-        
-    end
-    
+%     
+%     methods (Access = protected)
+%         
+%         
+%         function A = computeLHS(obj)
+%             A = 0;
+%         end
+%         
+%     end
+%     
     methods (Access = private)
         
         function shapeValues_AllCells = assembleShapeValues(obj,shapeValues_CutCells)
