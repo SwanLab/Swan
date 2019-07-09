@@ -13,12 +13,20 @@ classdef UnfittedMesh < handle
         backgroundFullCells
         
         nActiveMeshes
+        nActiveBoxFaces
+        activeBoxFaceMeshesList
+        boxFaceMeshes
+        innerMesh
+    end
+    
+    properties (GetAccess = public, SetAccess = private)
+        innerMeshNew
+        innerCutMesh
     end
     
     properties (Access = private)
         oldUnfittedMesh
     end
-    
     
     methods (Access = public)
         
@@ -28,7 +36,26 @@ classdef UnfittedMesh < handle
         
         function compute(obj,lvlSet)
             obj.oldUnfittedMesh.computeMesh(lvlSet);
+            %             obj.computeInnerCutMesh();
         end
+        
+        function plot(obj)
+            obj.oldUnfittedMesh.plot();
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function computeInnerCutMesh(obj)
+            cParams.coord = obj.oldUnfittedMesh.coord;
+            cParams.connec = obj.oldUnfittedMesh.connec;
+            obj.innerCutMesh = CutMesh(cParams);
+        end
+        
+    end
+    
+    methods (Access = public)
         
         function m = computeMass(obj)
             m = obj.oldUnfittedMesh.computeMass();
@@ -36,6 +63,10 @@ classdef UnfittedMesh < handle
         
         function aMeshes = getActiveMeshes(obj)
             aMeshes = obj.oldUnfittedMesh.getActiveMeshes();
+        end
+        
+        function add2plot(obj,ax,removedDim,removedCoord)
+            obj.oldUnfittedMesh.add2plot(ax,removedDim,removedCoord);
         end
         
     end
@@ -86,6 +117,22 @@ classdef UnfittedMesh < handle
             nActiveMeshes = obj.oldUnfittedMesh.nActiveMeshes;
         end
         
+        function nActiveBoxFaces = get.nActiveBoxFaces(obj)
+            nActiveBoxFaces = obj.oldUnfittedMesh.nActiveBoxFaces;
+        end
+        
+        function activeBoxFaceMeshesList = get.activeBoxFaceMeshesList(obj)
+            activeBoxFaceMeshesList = obj.oldUnfittedMesh.activeBoxFaceMeshesList;
+        end
+        
+        function boxFaceMeshes = get.boxFaceMeshes(obj)
+            boxFaceMeshes = obj.oldUnfittedMesh.boxFaceMeshes;
+        end
+        
+        function innerMesh = get.innerMesh(obj)
+            innerMesh = obj.oldUnfittedMesh.innerMesh;
+        end
+                
     end
     
 end
