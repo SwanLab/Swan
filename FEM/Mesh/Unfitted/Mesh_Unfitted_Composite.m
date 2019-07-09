@@ -147,7 +147,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
                     mshBack = boxFaceMesh.meshBackground;
                     lsBoxFace = levelSet(obj.nodesInBoxFaces{iface});
                     if obj.isBoxMeshActive(lsBoxFace,mshBack)
-                        obj.boxFaceMeshes{iface}.computeMesh(lsBoxFace);
+                        obj.boxFaceMeshes{iface}.compute(lsBoxFace);
                         obj.isBoxFaceMeshActive(iface) = true;
                     end
                 end
@@ -173,7 +173,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
             s.meshBackground = mesh;
             s.interpolationBackground = interp;
             cParams = SettingsMeshUnfitted(s);
-            boxFaceMesh = Mesh_Unfitted.create2(cParams);
+            boxFaceMesh = UnfittedMesh(cParams);
         end
         
         
