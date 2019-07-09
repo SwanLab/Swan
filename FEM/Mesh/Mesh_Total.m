@@ -6,12 +6,15 @@ classdef Mesh_Total < Mesh_Composite
         ndim
         nBoxFaces
         
-        innerMesh
+        innerMeshOLD
         boxFaceMeshes
         nodesInBoxFaces
         
         removedDimensions
         removedDimensionCoord
+        
+        npnod
+        nnode
     end
     
     properties (Access = private)
@@ -25,12 +28,14 @@ classdef Mesh_Total < Mesh_Composite
             obj.createInteriorMesh();
             obj.createBoxFaceMeshes();
             obj.defineActiveMeshes();            
-            obj.geometryType = obj.innerMesh.geometryType;
+            obj.geometryType = obj.innerMeshOLD.geometryType;
             obj.nelem = size(obj.connec,1);
+            obj.npnod = obj.innerMeshOLD.npnod;
+            obj.nnode = obj.innerMeshOLD.nnode;
         end
         
         function S = computeMeanCellSize(obj)
-            S = obj.innerMesh.computeMeanCellSize();
+            S = obj.innerMeshOLD.computeMeanCellSize();
         end
         
     end
@@ -50,8 +55,8 @@ classdef Mesh_Total < Mesh_Composite
         end
         
         function createInteriorMesh(obj)
-            obj.innerMesh = Mesh().create(obj.coord,obj.connec);
-            obj.append(obj.innerMesh);
+            obj.innerMeshOLD = Mesh().create(obj.coord,obj.connec);
+            obj.append(obj.innerMeshOLD);
         end
         
         function createBoxFaceMeshes(obj)
@@ -92,17 +97,17 @@ classdef Mesh_Total < Mesh_Composite
         
         function [boxFaceCoords, nodesInBoxFace] = getFaceCoordinates(obj,idime,iside)
             D = obj.getFaceCharacteristicDimension(idime,iside);
-            nodesInBoxFace = obj.innerMesh.coord(:,idime) == D;
-            boxFaceCoords = obj.innerMesh.coord(nodesInBoxFace,:);
+            nodesInBoxFace = obj.innerMeshOLD.coord(:,idime) == D;
+            boxFaceCoords = obj.innerMeshOLD.coord(nodesInBoxFace,:);
             boxFaceCoords = obj.removeExtraDimension(boxFaceCoords,idime);
             obj.storeRemovedDimensions(idime,iside,D);
         end
         
         function D = getFaceCharacteristicDimension(obj,idime,iside)
             if iside == 1
-                D = min(obj.innerMesh.coord(:,idime));
+                D = min(obj.innerMeshOLD.coord(:,idime));
             elseif iside == 2
-                D = max(obj.innerMesh.coord(:,idime));
+                D = max(obj.innerMeshOLD.coord(:,idime));
             else
                 error('Invalid iside value. Valid values: 1 and 2.')
             end

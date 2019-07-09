@@ -1,37 +1,46 @@
 classdef Integrator_Boundary < IntegratorUnfitted
     
+    properties (Access = private)
+        shapes
+        cutShapes
+    end
+    
     methods (Access = public)
         
         function A = computeIntegral(obj,F1)
+            obj.initShapes();
             if obj.isLeveSetCuttingMesh()
-                shapeValues = obj.integrateCutCells(F1);
-                shapeValues = obj.assembleShapeValues(shapeValues);
-            else
-                shapeValues = zeros(size(obj.meshBackground.connec));
+                obj.cutShapes = obj.evaluateCutShapes(F1);
+                obj.assembleShapes();
             end
-            A = obj.rearrangeOutputRHS(shapeValues);
+            A = obj.rearrangeOutputRHS(obj.shapes);
         end
         
         
     end
-%     
-%     methods (Access = protected)
-%         
-%         
-%         function A = computeLHS(obj)
-%             A = 0;
-%         end
-%         
-%     end
-%     
+    
     methods (Access = private)
         
-        function shapeValues_AllCells = assembleShapeValues(obj,shapeValues_CutCells)
-            interpolation = Interpolation.create(obj.meshBackground,'LINEAR');
-            shapeValues_AllCells = zeros(size(obj.meshBackground.connec));
+        function initShapes(obj)
+            nelem = obj.meshBackground.nelem;
+            nnode = obj.meshBackground.nnode;
+            obj.shapes = zeros(nelem,nnode);
+        end
+        
+        function assembleShapes(obj)
+            obj.assembleCutShapes();
+        end
+        
+        function assembleCutShapes(obj)
+            nelem = obj.meshBackground.nelem;
+            cell = obj.meshUnfitted.cellContainingSubcell;
+            nnode = obj.meshBackground.nnode;
             
-            for i_subcell = 1:size(shapeValues_CutCells,2)
-                shapeValues_AllCells(:,i_subcell) = shapeValues_AllCells(:,i_subcell)+accumarray(obj.meshUnfitted.cellContainingSubcell,shapeValues_CutCells(:,i_subcell),[interpolation.nelem,1],@sum,0);
+            for iNode = 1:nnode
+                csNode = obj.cutShapes(:,iNode);
+                csNodeGlobal  = accumarray(cell,csNode,[nelem,1],@sum,0);
+                sNode  = obj.shapes(:,iNode);
+                obj.shapes(:,iNode) = sNode + csNodeGlobal;
             end
         end
         

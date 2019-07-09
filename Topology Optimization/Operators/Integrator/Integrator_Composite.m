@@ -13,7 +13,7 @@ classdef Integrator_Composite < Integrator
         end
         
         function A = computeLHS(obj)
-            npnod = obj.mesh.innerMesh.npnod;
+            npnod = obj.mesh.innerMeshOLD.npnod;
             A = sparse(npnod,npnod);
             for iInt = 1:obj.nInt
                 A = A + obj.integrators{iInt}.computeLHS();
@@ -48,7 +48,7 @@ classdef Integrator_Composite < Integrator
                     case 'SIMPLE'
                       cParams.mesh = activeMeshes{iMesh};
                       cParams.globalConnec = meshC.globalConnectivities{iMesh};
-                      cParams.npnod = obj.mesh.innerMesh.npnod;
+                      cParams.npnod = obj.mesh.innerMeshOLD.npnod;
                       obj.integrators{iMesh} = Integrator.create(cParams);
                     case {'INTERIOR','BOUNDARY'}
                       cParams.mesh = activeMeshes{iMesh};

@@ -21,7 +21,7 @@ classdef SettingsMeshUnfitted < AbstractSettings
                 case 2
                     obj.unfittedType = varargin{1};
                     mesh = varargin{2};
-                    obj.meshBackground = mesh.innerMesh;
+                    obj.meshBackground = mesh.innerMeshOLD;
                     obj.mesh           = mesh;
                 case 3
                     disp('eis');

@@ -28,7 +28,7 @@ classdef Element_DiffReact < Element
             obj.nstre = 2;
             obj.nfields = 1;
             if contains(class(obj.mesh),'Total')
-                obj.interpolation_u=Interpolation.create(mesh.innerMesh,'LINEAR');
+                obj.interpolation_u=Interpolation.create(mesh.innerMeshOLD,'LINEAR');
             else
                 obj.interpolation_u=Interpolation.create(mesh,'LINEAR');
             end

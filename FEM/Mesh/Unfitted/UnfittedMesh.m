@@ -16,11 +16,11 @@ classdef UnfittedMesh < handle
         nActiveBoxFaces
         activeBoxFaceMeshesList
         boxFaceMeshes
-        innerMesh
+        innerMeshOLD
     end
     
     properties (GetAccess = public, SetAccess = private)
-        innerMeshNew
+        innerMesh
         innerCutMesh
     end
     
@@ -36,7 +36,7 @@ classdef UnfittedMesh < handle
         
         function compute(obj,lvlSet)
             obj.oldUnfittedMesh.computeMesh(lvlSet);
-            %             obj.computeInnerCutMesh();
+            obj.computeInnerCutMesh();
         end
         
         function plot(obj)
@@ -129,8 +129,8 @@ classdef UnfittedMesh < handle
             boxFaceMeshes = obj.oldUnfittedMesh.boxFaceMeshes;
         end
         
-        function innerMesh = get.innerMesh(obj)
-            innerMesh = obj.oldUnfittedMesh.innerMesh;
+        function innerMeshOLD = get.innerMeshOLD(obj)
+            innerMeshOLD = obj.oldUnfittedMesh.innerMeshOLD;
         end
                 
     end

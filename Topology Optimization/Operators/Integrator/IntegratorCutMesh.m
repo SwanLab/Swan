@@ -1,79 +1,60 @@
-classdef IntegratorUnfitted < Integrator
+classdef IntegratorCutMesh < Integrator
     
     properties (GetAccess = public, SetAccess = protected)
-        meshUnfitted
-        meshBackground
-    end
-        
-    methods (Access = public, Abstract)        
-        computeIntegral(obj)
+        cutMesh
+        backgroundMesh
     end
     
     methods (Access = public)
         
         function obj = IntegratorUnfitted(cParams)
             obj.init(cParams);
-            obj.meshUnfitted   = obj.mesh;            
-            obj.meshBackground = obj.mesh.meshBackground;                   
+            obj.cutMesh   = obj.mesh;            
+            obj.backgroundMesh = obj.mesh.backgroundMesh;                   
         end
         
-        function A = integrateUnfittedMesh(obj,F,meshUnfitted)
-            if exist('meshUnfitted','var')
-                %obj.updateMeshes(meshUnfitted);
-             %   obj.updateBackgroundMesh();
-             %   obj.updateUnfittedMesh();   
-            end
-            A = obj.computeIntegral(F);
+        function A = integrate(obj,F)
+            A = integrateCutCells(obj,F1);
+            A = obj.rearrangeOutputRHS(A);
         end
-        
 
-        
     end
-    
-    methods (Static, Access = public)
-
+  
+    methods (Access = private)
         
-    end
-    
-    methods (Access = protected)
-        
-        function shapeValues = evaluateCutShapes(obj,F1)
-            interpolation_background = Interpolation.create(obj.meshBackground,'LINEAR');
-            interpolation_unfitted = Interpolation.create(obj.meshUnfitted,'LINEAR');
-            quadrature_unfitted = obj.computeQuadrature(obj.meshUnfitted.geometryType);
+        function shapeValues = integrateCutCells(obj,F1)
+            interpolation_background = Interpolation.create(obj.backgroundMesh,'LINEAR');
+            interpolation_unfitted = Interpolation.create(obj.cutMesh,'LINEAR');
+            quadrature_unfitted = obj.computeQuadrature(obj.cutMesh.geometryType);
             
-            posGP_iso_unfitted = obj.computePosGP(obj.meshUnfitted.coord_iso_per_cell,interpolation_unfitted,quadrature_unfitted);
+            posGP_iso_unfitted = obj.computePosGP(obj.cutMesh.coord_iso_per_cell,interpolation_unfitted,quadrature_unfitted);
             
-            shapeValues = zeros(size(obj.meshUnfitted.connec,1),interpolation_background.nnode);
-            for isubcell = 1:size(obj.meshUnfitted.connec,1) % !! VECTORIZE THIS LOOP !!
-                icell = obj.meshUnfitted.cellContainingSubcell(isubcell);
-                inode = obj.meshBackground.connec(icell,:);
+            shapeValues = zeros(size(obj.cutMesh.connec,1),interpolation_background.nnode);
+            for isubcell = 1:size(obj.cutMesh.connec,1) % !! VECTORIZE THIS LOOP !!
+                icell = obj.cutMesh.cellContainingSubcell(isubcell);
+                inode = obj.backgroundMesh.connec(icell,:);
                 
                 interpolation_background.computeShapeDeriv(posGP_iso_unfitted(:,:,isubcell)');
                 
-                djacob = obj.mapping(obj.meshUnfitted.coord(obj.meshUnfitted.connec(isubcell,:),:),interpolation_unfitted.dvolu); % !! Could be done through Geometry class?? !!
+                djacob = obj.mapping(obj.cutMesh.coord(obj.cutMesh.connec(isubcell,:),:),interpolation_unfitted.dvolu); % !! Could be done through Geometry class?? !!
                 
                 F0 = (interpolation_background.shape*quadrature_unfitted.weigp')'*F1(inode)/interpolation_unfitted.dvolu;
                 shapeValues(isubcell,:) = shapeValues(isubcell,:) + (interpolation_background.shape*(djacob.*quadrature_unfitted.weigp')*F0)';
             end
         end
         
-        function M2 = rearrangeOutputRHS(obj,shapes)
-            npnod = obj.meshBackground.npnod;
-            nnode = obj.meshBackground.nnode;
+        function M2 = rearrangeOutputRHS(obj,shapeValues_AllCells)
+            interpolation = Interpolation.create(obj.backgroundMesh,'LINEAR');
             
-            M2 = zeros(npnod,1);
-            for inode = 1:nnode
-                M2 = M2 + accumarray(obj.meshBackground.connec(:,inode),shapes(:,inode),[npnod,1],@sum,0);
+            M2 = zeros(interpolation.npnod,1);
+            for inode = 1:interpolation.nnode
+                M2 = M2 + accumarray(obj.backgroundMesh.connec(:,inode),shapeValues_AllCells(:,inode),[interpolation.npnod,1],@sum,0);
             end
         end
         
         function itIs = isLeveSetCuttingMesh(obj)
-            itIs = ~isempty(obj.meshUnfitted.backgroundCutCells);
+            itIs = ~isempty(obj.cutMesh.backgroundCutCells);
         end
-        
-        
-
         
     end
 

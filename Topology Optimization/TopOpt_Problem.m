@@ -78,7 +78,7 @@ classdef TopOpt_Problem < handle
         
         function createIncrementalScheme(obj,cParams)
             s = cParams.incrementalSchemeSettings;
-            s.mesh = obj.mesh.innerMesh;
+            s.mesh = obj.mesh.innerMeshOLD;
             s.targetParamsSettings.epsilonPerInitial = 10*s.targetParamsSettings.epsilonPerFinal;
             obj.incrementalScheme = IncrementalScheme(s);
         end

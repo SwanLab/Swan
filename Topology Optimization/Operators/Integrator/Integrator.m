@@ -3,14 +3,6 @@ classdef Integrator < handle
     properties (GetAccess = public, SetAccess = protected)
         mesh
     end
-        
-    methods (Access = protected, Abstract)        
-    end
-    
-    methods (Access = public)
-
-        
-    end
     
     methods (Static, Access = public)
         
@@ -34,18 +26,6 @@ classdef Integrator < handle
             quadrature = Quadrature.set(geometryType);
             quadrature.computeQuadrature('LINEAR');
         end        
-        
-    end
-    
-    methods (Access = private)
-        
-  
-        
-    end
-    
-    methods (Static, Access = private)
-        
-     
         
     end
     

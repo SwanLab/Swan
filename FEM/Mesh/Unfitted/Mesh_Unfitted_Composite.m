@@ -8,7 +8,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         meshes
         nMeshes
         
-        innerMesh
+        innerMeshOLD
         boxFaceMeshes
         globalConnectivities
         activeBoxFaceMeshesList
@@ -16,6 +16,9 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         nActiveBoxFaces
         nActiveMeshes
         unfittedType = 'COMPOSITE'
+        
+        coord
+        connec
     end
     
     properties (Access = private)
@@ -62,7 +65,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         end
         
         function add2plot(obj,ax)
-            obj.innerMesh.add2plot(ax);
+            obj.innerMeshOLD.add2plot(ax);
             for iActive = 1:obj.nActiveBoxFaces
                 iFace = obj.activeBoxFaceMeshesList(iActive);
                 obj.boxFaceMeshes{iFace}.add2plot(ax,obj.removedDimensions(iFace),obj.removedDimensionCoord(iFace));
@@ -95,7 +98,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         end
         
         function createMeshes(obj)
-            obj.meshes{1} = obj.innerMesh;
+            obj.meshes{1} = obj.innerMeshOLD;
             for iface = 1:obj.nboxFaces
                 obj.meshes{iface+1} = obj.boxFaceMeshes{iface};
             end
@@ -105,18 +108,18 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         function createInteriorMesh(obj,cParams)
             s.coord  = obj.totalMesh.coord;
             s.connec = obj.totalMesh.connec;
-            s.meshBackground = obj.totalMesh.innerMesh;
+            s.meshBackground = obj.totalMesh.innerMeshOLD;
             s.interpolationBackground = Interpolation.create(s.meshBackground,'LINEAR');
             s.unfittedType = cParams.unfittedType;
-            obj.innerMesh = Mesh_Unfitted_Single(s);
+            obj.innerMeshOLD = Mesh_Unfitted_Single(s);
         end
         
         function computeInteriorMesh(obj,levelSet)
-            obj.innerMesh.computeMesh(levelSet);
+            obj.innerMeshOLD.computeMesh(levelSet);
         end
         
         function M = computeInteriorMass(obj)
-            M = obj.innerMesh.computeMass();
+            M = obj.innerMeshOLD.computeMass();
         end
         
         function createBoxMeshes(obj)
@@ -128,7 +131,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
                 for iside = 1:obj.nsides
                     iFace = iFace + 1;
                     mesh = fMeshes{iFace};
-                    nodesInBoxFace = fNodes{iFace};                    
+                    nodesInBoxFace = fNodes{iFace};
                     obj.boxFaceMeshes{iFace}        = obj.createBoxFaceMesh(mesh);
                     obj.nodesInBoxFaces{iFace}      = nodesInBoxFace;
                     obj.globalConnectivities{iFace} = fGlobalConnec{iFace};
@@ -196,6 +199,18 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
             phi_nodes = levelSet(meshBack.connec);
             phi_case = sum((sign(phi_nodes)<0),2);
             itIs = (any(phi_case));
+        end
+        
+    end
+    
+    methods
+        
+        function coord = get.coord(obj)
+            coord = obj.innerMeshOLD.coord;
+        end
+        
+        function connec = get.connec(obj)
+            connec = obj.innerMeshOLD.connec;
         end
         
     end

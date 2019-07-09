@@ -42,7 +42,7 @@ classdef DiffReact_Problem < FEM
         
         function preProcess(obj)
             if contains(class(obj.mesh),'Total')
-                obj.createGeometry(obj.mesh.innerMesh);
+                obj.createGeometry(obj.mesh.innerMeshOLD);
             else
                 obj.createGeometry(obj.mesh);
             end
