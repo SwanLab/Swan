@@ -4,8 +4,15 @@ classdef IntegratorUnfitted < Integrator
         meshUnfitted
         meshBackground
     end
-        
-    methods (Access = public, Abstract)        
+    
+    properties (Access = private)
+        backgroundInterp        
+        unfittedInterp
+        quadrature
+        unfittedQuad        
+    end    
+    
+    methods (Access = public, Abstract)
         computeIntegral(obj)
     end
     
@@ -38,25 +45,34 @@ classdef IntegratorUnfitted < Integrator
     methods (Access = protected)
         
         function shapeValues = evaluateCutShapes(obj,F1)
-            interpolation_background = Interpolation.create(obj.meshBackground,'LINEAR');
-            interpolation_unfitted = Interpolation.create(obj.meshUnfitted,'LINEAR');
-            quadrature_unfitted = obj.computeQuadrature(obj.meshUnfitted.geometryType);
+            obj.createBackgroundInterpolation();
+            obj.createUnfittedInterpolation();
+            obj.computeThisQuadrature();
+            obj.computeUnfittedGaussPoints();
             
-            posGP_iso_unfitted = obj.computePosGP(obj.meshUnfitted.coord_iso_per_cell,interpolation_unfitted,quadrature_unfitted);
             
-            shapeValues = zeros(size(obj.meshUnfitted.connec,1),interpolation_background.nnode);
-            for isubcell = 1:size(obj.meshUnfitted.connec,1) % !! VECTORIZE THIS LOOP !!
-                icell = obj.meshUnfitted.cellContainingSubcell(isubcell);
+            nelem = size(obj.meshUnfitted.connec,1);
+            nnode = obj.backgroundInterp.nnode;
+            shapeValues = zeros(nelem,nnode);
+            for isubcell = 1:nelem % !! VECTORIZE THIS LOOP !!
+                
+                shape = obj.computeShape(isubcell);
+                
+                djacob = obj.computeJacobian(isubcell);
+                icell  = obj.meshUnfitted.cellContainingSubcell(isubcell);
+
                 inode = obj.meshBackground.connec(icell,:);
                 
-                interpolation_background.computeShapeDeriv(posGP_iso_unfitted(:,:,isubcell)');
+                weigth = obj.quadrature.weigp';
+                dvolu  = obj.unfittedInterp.dvolu;
                 
-                djacob = obj.mapping(obj.meshUnfitted.coord(obj.meshUnfitted.connec(isubcell,:),:),interpolation_unfitted.dvolu); % !! Could be done through Geometry class?? !!
+                F0 = (shape*weigth)'*F1(inode)/dvolu;
                 
-                F0 = (interpolation_background.shape*quadrature_unfitted.weigp')'*F1(inode)/interpolation_unfitted.dvolu;
-                shapeValues(isubcell,:) = shapeValues(isubcell,:) + (interpolation_background.shape*(djacob.*quadrature_unfitted.weigp')*F0)';
+                shapeValues(isubcell,:) = shapeValues(isubcell,:) + (shape*(djacob.*weigth)*F0)';
             end
-        end
+        end      
+        
+
         
         function M2 = rearrangeOutputRHS(obj,shapes)
             npnod = obj.meshBackground.npnod;
@@ -78,6 +94,8 @@ classdef IntegratorUnfitted < Integrator
     end
 
     methods (Static, Access = private)
+        
+        
         
         function posgp = computePosGP(subcell_coord,interpolation,quadrature)
             interpolation.computeShapeDeriv(quadrature.posgp);
@@ -114,6 +132,49 @@ classdef IntegratorUnfitted < Integrator
                     V = (1/6)*det([v1;v2;v3]);
                     djacob = V/dvolu;
             end
+        end
+        
+    end
+    
+    
+    methods (Access = private)
+        
+        function shape = computeShape(obj,isubcell)
+           xGauss = obj.unfittedQuad(:,:,isubcell)';
+           obj.backgroundInterp.computeShapeDeriv(xGauss);
+           shape = obj.backgroundInterp.shape;
+        end
+        
+        function computeThisQuadrature(obj)
+            type = obj.meshUnfitted.geometryType;
+            obj.quadrature = obj.computeQuadrature(type);
+        end
+        
+        function computeUnfittedGaussPoints(obj)
+           coord = obj.meshUnfitted.coord_iso_per_cell;
+           inter = obj.unfittedInterp;
+           quad  =  obj.quadrature;
+           quadU = obj.computePosGP(coord,inter,quad);
+           obj.unfittedQuad = quadU;
+        end
+        
+        function createBackgroundInterpolation(obj)
+            mesh = obj.meshBackground;
+            int = Interpolation.create(mesh,'LINEAR');            
+            obj.backgroundInterp = int;
+        end
+        
+       function createUnfittedInterpolation(obj)
+           mesh = obj.meshUnfitted;
+           int = Interpolation.create(mesh,'LINEAR');
+           obj.unfittedInterp = int;            
+        end
+        
+        function dJ = computeJacobian(obj,isubcell)
+            connec = obj.meshUnfitted.connec(isubcell,:);
+            coord  = obj.meshUnfitted.coord(connec,:);
+            dvolu = obj.unfittedInterp.dvolu;
+            dJ = obj.mapping(coord,dvolu); % !! Could be done through Geometry class?? !!            
         end
         
     end
