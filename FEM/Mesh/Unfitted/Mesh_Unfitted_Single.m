@@ -20,7 +20,7 @@ classdef Mesh_Unfitted_Single < Mesh & Mesh_Unfitted
     properties (GetAccess = public, SetAccess = ?MemoryManager_MeshUnfitted)
         coord_iso
         connec_local
-        coord_iso_per_cell
+        subcellIsoCoords
         cellContainingSubcell
     end
     
@@ -69,9 +69,10 @@ classdef Mesh_Unfitted_Single < Mesh & Mesh_Unfitted
         
         function m = computeMass(obj)
             cParams.mesh = obj;
+            cParams.type = obj.unfittedType;
             integrator = Integrator.create(cParams);
             nnodesBackground = size(obj.levelSet_background);
-            fInt = integrator.computeIntegral(ones(nnodesBackground));
+            fInt = integrator.integrate(ones(nnodesBackground));
             m = sum(fInt);
         end
         

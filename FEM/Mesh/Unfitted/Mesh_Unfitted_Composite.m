@@ -19,6 +19,8 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         
         coord
         connec
+        subcellIsoCoords
+        cellContainingSubcell
     end
     
     properties (Access = private)
@@ -211,6 +213,14 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         
         function connec = get.connec(obj)
             connec = obj.innerMeshOLD.connec;
+        end
+        
+        function s = get.subcellIsoCoords(obj)
+            s = obj.innerMeshOLD.subcellIsoCoords;
+         end
+        
+         function c = get.cellContainingSubcell(obj)
+            c = obj.innerMeshOLD.cellContainingSubcell;
         end
         
     end

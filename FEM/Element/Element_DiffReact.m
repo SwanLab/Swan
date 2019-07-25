@@ -65,6 +65,7 @@ classdef Element_DiffReact < Element
         function computeBoundaryMassMatrix(obj)
             if obj.addRobinTerm
                 cParams.mesh = obj.mesh;
+                cParams.type = obj.mesh.unfittedType;
                 integrator = Integrator.create(cParams);
                 obj.Mr = integrator.computeLHS();
             end

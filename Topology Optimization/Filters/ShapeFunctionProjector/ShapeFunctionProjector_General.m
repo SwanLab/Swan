@@ -23,7 +23,7 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
             nodalF = ones(size(x));
             obj.unfittedMesh.compute(x);
             %xP = obj.integrator.integrateUnfittedMesh(nodalF,obj.unfittedMesh);            
-            xP = obj.integrator.computeIntegral(nodalF);                        
+            xP = obj.integrator.integrate(nodalF);                        
         end        
         
     end
@@ -45,6 +45,7 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
         
         function createIntegrator(obj)
             cParams.mesh = obj.unfittedMesh;
+            cParams.type = obj.unfittedMesh.unfittedType;
             obj.integrator = Integrator.create(cParams);            
         end        
         

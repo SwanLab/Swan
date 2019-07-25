@@ -7,7 +7,7 @@ classdef Integrator_Boundary < IntegratorUnfitted
     
     methods (Access = public)
         
-        function A = computeIntegral(obj,F1)
+        function A = integrate(obj,F1)
             obj.initShapes();
             if obj.isLeveSetCuttingMesh()
                 obj.cutShapes = obj.evaluateCutShapes(F1);

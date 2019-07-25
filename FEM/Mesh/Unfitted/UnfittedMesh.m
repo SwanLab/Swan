@@ -8,7 +8,7 @@ classdef UnfittedMesh < handle
         geometryType
         coord
         connec
-        coord_iso_per_cell
+        subcellIsoCoords
         cellContainingSubcell
         backgroundFullCells
         
@@ -50,6 +50,9 @@ classdef UnfittedMesh < handle
         function computeInnerCutMesh(obj)
             cParams.coord = obj.oldUnfittedMesh.coord;
             cParams.connec = obj.oldUnfittedMesh.connec;
+            cParams.backgroundMesh = obj.oldUnfittedMesh.meshBackground;
+            cParams.subcellIsoCoords = obj.subcellIsoCoords;
+            cParams.cellContainingSubcell = obj.cellContainingSubcell;
             obj.innerCutMesh = CutMesh(cParams);
         end
         
@@ -101,8 +104,8 @@ classdef UnfittedMesh < handle
             connec = obj.oldUnfittedMesh.connec;
         end
         
-        function coord_iso_per_cell = get.coord_iso_per_cell(obj)
-            coord_iso_per_cell = obj.oldUnfittedMesh.coord_iso_per_cell;
+        function subcellIsoCoords = get.subcellIsoCoords(obj)
+            subcellIsoCoords = obj.oldUnfittedMesh.subcellIsoCoords;
         end
         
         function cellContainingSubcell = get.cellContainingSubcell(obj)

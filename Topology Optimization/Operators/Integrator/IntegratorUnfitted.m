@@ -13,7 +13,7 @@ classdef IntegratorUnfitted < Integrator
     end    
     
     methods (Access = public, Abstract)
-        computeIntegral(obj)
+        integrate(obj)
     end
     
     methods (Access = public)
@@ -30,7 +30,7 @@ classdef IntegratorUnfitted < Integrator
              %   obj.updateBackgroundMesh();
              %   obj.updateUnfittedMesh();   
             end
-            A = obj.computeIntegral(F);
+            A = obj.integrate(F);
         end
         
 
@@ -95,8 +95,6 @@ classdef IntegratorUnfitted < Integrator
 
     methods (Static, Access = private)
         
-        
-        
         function posgp = computePosGP(subcell_coord,interpolation,quadrature)
             interpolation.computeShapeDeriv(quadrature.posgp);
             posgp = zeros(quadrature.ngaus,size(subcell_coord,3),size(subcell_coord,1));
@@ -151,7 +149,7 @@ classdef IntegratorUnfitted < Integrator
         end
         
         function computeUnfittedGaussPoints(obj)
-           coord = obj.meshUnfitted.coord_iso_per_cell;
+           coord = obj.meshUnfitted.subcellIsoCoords;
            inter = obj.unfittedInterp;
            quad  =  obj.quadrature;
            quadU = obj.computePosGP(coord,inter,quad);

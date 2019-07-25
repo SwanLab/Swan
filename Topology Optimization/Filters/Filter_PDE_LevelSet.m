@@ -24,6 +24,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh);
             obj.unfittedMesh = UnfittedMesh(cParams);
             s.mesh = obj.unfittedMesh;
+            s.type = obj.unfittedMesh.unfittedType;
             obj.integrator = Integrator.create(s);            
             obj.disableDelaunayWarning();                 
         end
@@ -43,7 +44,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
         
         function fInt = computeRHS(obj,x,fNodes)
             obj.unfittedMesh.compute(x);
-            fInt = obj.integrator.computeIntegral(fNodes);
+            fInt = obj.integrator.integrate(fNodes);
         end        
         
     end

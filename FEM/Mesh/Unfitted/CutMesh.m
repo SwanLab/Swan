@@ -1,8 +1,12 @@
-classdef CutMesh < handle
-   
-    properties (GetAccess = public, SetAccess = protected)
-        coord
-        connec
+classdef CutMesh < Mesh
+    
+    properties (GetAccess = public, SetAccess = private)
+         subcellIsoCoords
+         cellContainingSubcell
+    end
+    
+    properties (Access = private)
+        backgroundMesh
     end
         
     methods (Access = public)
@@ -10,8 +14,16 @@ classdef CutMesh < handle
         function obj = CutMesh(cParams)
             obj.coord  = cParams.coord;
             obj.connec = cParams.connec;
+            obj.backgroundMesh = cParams.backgroundMesh;
+            obj.subcellIsoCoords = cParams.subcellIsoCoords;
+            obj.cellContainingSubcell = cParams.cellContainingSubcell;
+            obj.computeDescriptorParams();
         end
         
-    end         
+        function b = getBackgroundMesh(obj)
+            b = obj.backgroundMesh;
+        end
+        
+    end        
     
 end

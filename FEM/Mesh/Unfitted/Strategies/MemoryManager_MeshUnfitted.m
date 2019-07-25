@@ -9,7 +9,7 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
         levelSet_unfitted
         coord_iso
         connec_local
-        coord_iso_per_cell
+        subcellIsoCoords
         cellContainingSubcell
         coord_global_raw
         cellContainingNodes
@@ -36,7 +36,7 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
             obj.init();
             obj.coord_iso = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells*obj.mesh.nnodesSubcell,obj.mesh.meshBackground.ndim);
             obj.coord_global_raw = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells*obj.mesh.nnodesSubcell,obj.mesh.meshBackground.ndim);
-            obj.coord_iso_per_cell = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells,obj.mesh.nnodesSubcell,obj.mesh.meshBackground.ndim);
+            obj.subcellIsoCoords = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells,obj.mesh.nnodesSubcell,obj.mesh.meshBackground.ndim);
             obj.connec_local = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells,obj.mesh.nnodesSubcell);
             obj.connec = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells,obj.mesh.nnodesSubcell);
             obj.levelSet_unfitted = (zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells*obj.mesh.nnodesSubcell,1));
@@ -58,8 +58,8 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
                 obj.cellContainingSubcell(obj.upperBound_B+1:end) = [];
             end
             
-            if length(obj.coord_iso_per_cell) > obj.upperBound_C
-                obj.coord_iso_per_cell(obj.upperBound_C+1:end,:,:) = [];
+            if length(obj.subcellIsoCoords) > obj.upperBound_C
+                obj.subcellIsoCoords(obj.upperBound_C+1:end,:,:) = [];
             end
         end
         
@@ -76,7 +76,7 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
         function transferData(obj)
             obj.mesh.coord_iso = obj.coord_iso;
             obj.mesh.coord_global_raw = obj.coord_global_raw;
-            obj.mesh.coord_iso_per_cell = obj.coord_iso_per_cell;
+            obj.mesh.subcellIsoCoords = obj.subcellIsoCoords;
             obj.mesh.connec_local = obj.connec_local;
             obj.mesh.setConnec(obj.connec);
             obj.mesh.setLevelSetUnfitted(obj.levelSet_unfitted);
@@ -121,7 +121,7 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
         function assignUnfittedCutCoordIsoPerCell(obj)
             for idime = 1:obj.mesh.ndim
                 c = obj.subcells.coord_iso(:,idime);
-                obj.coord_iso_per_cell(obj.lowerBound_C+1:obj.upperBound_C,:,idime) = c(obj.subcells.connec);
+                obj.subcellIsoCoords(obj.lowerBound_C+1:obj.upperBound_C,:,idime) = c(obj.subcells.connec);
             end
         end
         
