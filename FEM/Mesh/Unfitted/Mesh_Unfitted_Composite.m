@@ -21,6 +21,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         connec
         subcellIsoCoords
         cellContainingSubcell
+        backgroundFullCells
     end
     
     properties (Access = private)
@@ -221,6 +222,10 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         
          function c = get.cellContainingSubcell(obj)
             c = obj.innerMeshOLD.cellContainingSubcell;
+         end
+        
+         function c = get.backgroundFullCells(obj)
+            c = obj.innerMeshOLD.backgroundFullCells;
         end
         
     end

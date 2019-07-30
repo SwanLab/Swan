@@ -25,7 +25,7 @@ classdef IntegratorCutMesh < Integrator
         function A = integrate(obj,F)
             obj.initShapes();
             obj.cutShapes = obj.evaluateCutShapes(F);
-            obj.assembleCutShapes();
+            obj.assembleLocally();
             A = obj.assembleIntegrand(obj.shapes);
         end
         
@@ -78,7 +78,7 @@ classdef IntegratorCutMesh < Integrator
             end
         end
         
-        function assembleCutShapes(obj)
+        function assembleLocally(obj)
             nelem = obj.backgroundMesh.nelem;
             cell  = obj.cutMesh.cellContainingSubcell;
             nnode = obj.backgroundMesh.nnode;

@@ -71,8 +71,7 @@ classdef IntegratorUnfitted < Integrator
                 shapeValues(isubcell,:) = shapeValues(isubcell,:) + (shape*(djacob.*weigth)*F0)';
             end
         end      
-        
-
+ 
         
         function M2 = rearrangeOutputRHS(obj,shapes)
             npnod = obj.meshBackground.npnod;
@@ -88,9 +87,7 @@ classdef IntegratorUnfitted < Integrator
             itIs = ~isempty(obj.meshUnfitted.backgroundCutCells);
         end
         
-        
-
-        
+ 
     end
 
     methods (Static, Access = private)

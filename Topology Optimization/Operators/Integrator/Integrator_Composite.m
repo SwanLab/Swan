@@ -32,15 +32,19 @@ classdef Integrator_Composite < Integrator
     methods (Access = private)
         
         function createIntegrators(obj)
+           
 %             cParamsInnerCut.mesh = obj.mesh.innerCutMesh;
 %             cParamsInnerCut.type = 'CutMesh';
 %             innerCutIntegrator = Integrator.create(cParamsInnerCut);
 %             obj.integrators{end+1} = innerCutIntegrator;
 %             
-%             %                 cParamsInner.mesh = obj.mesh.innerMesh;
-%             %                 cParamsInner.type = 'Simple';
-%             %                 innerIntegrator = Integrator.create(cParamsInner);
-            
+%             cParamsInner.mesh = obj.mesh.innerMesh;
+%             cParamsInner.type = 'SIMPLE';
+%             cParamsInner.globalConnec = obj.mesh.globalConnec;
+%             cParamsInner.npnod = obj.mesh.innerMesh.npnod;
+%             innerIntegrator = Integrator.create(cParamsInner);
+%             obj.integrators{end+1} = innerIntegrator;
+
             
             meshC = obj.mesh;
             activeMeshes = meshC.getActiveMeshes();
