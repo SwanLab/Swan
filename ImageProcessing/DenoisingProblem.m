@@ -11,13 +11,16 @@ classdef DenoisingProblem < handle
         noisyImage
         noisyImageNorm
         
+        optimizer
+        designVariable
+        
+        energyFunction
+        l1Proximal
         
         En
         gap
         maxIter
-        lipschitzConstant
         lambda
-        pDual
     end
     
     methods (Access = public)
@@ -27,16 +30,17 @@ classdef DenoisingProblem < handle
             obj.createDiscreteGradient();
             obj.createNoisyImage(cParams);
             obj.computeNoisyImageNorm();
+            obj.createDesignVariable();
+            obj.createEnergyFunction(cParams);
+            obj.createL1Proximal(cParams);
+            obj.createOptimizer();
         end
         
         function solve(obj)
-            mn = obj.imageSize.rowsTimesColumns;     
-            obj.pDual = zeros(2*mn,1);
             for i=1:obj.maxIter
-                obj.computeGradientStep();
-                obj.projectInTheBall();
+                obj.optimizer.update();
+                obj.En(i) = obj.energyFunction.computeCost();                
                 obj.computeU();
-                obj.En(i) = obj.computeEnergy();
                 obj.gap(i) = obj.computeDualGap();
             end
         end
@@ -50,7 +54,6 @@ classdef DenoisingProblem < handle
             obj.computeImageSize(im);
             obj.transformImageInVectorForm(im)
             obj.maxIter = cParams.maxIter;
-            obj.lipschitzConstant = cParams.lipschitzConstant;
             obj.lambda = cParams.totalVariationWeigth;
         end
         
@@ -91,56 +94,54 @@ classdef DenoisingProblem < handle
             obj.noisyImageNorm = 0.5*(g'*g);
         end
         
-        function computeGradientStep(obj)
-            L = obj.lipschitzConstant;
-            tauV = 1/L;
-            D = obj.discreteGradient;
-            g = obj.noisyImage;
-            p = obj.pDual;
-            p = p - tauV*D*(D'*p - g);
-            obj.pDual = p;
+        function createDesignVariable(obj)
+            mn = 2*obj.imageSize.rowsTimesColumns;
+            s.xLength = mn;
+            obj.designVariable = DesignVariable(s);
         end
-        
-        function projectInTheBall(obj)
-            lam = obj.lambda;
-            normP = obj.computeNormP();
-            no  = max(1,normP/lam);
-            p = obj.pDual;
-            p = p./[no;no];
-            obj.pDual = p;
-        end
-        
-        function normP = computeNormP(obj)
-            p  = obj.pDual;
-            mn = obj.imageSize.rowsTimesColumns;
-            normP = hypot(p(1:mn),p(mn+1:end));
-        end
-        
+    
         function computeU(obj)
             g = obj.noisyImage;
             D = obj.discreteGradient;
-            p = obj.pDual;
+            p = obj.designVariable.value;
             obj.optimizedImage = g(:) - D'*p;
         end
+
+        function createEnergyFunction(obj,cParams)
+            s.lipschitzConstant = cParams.lipschitzConstant;
+            s.A = obj.discreteGradient';
+            s.b = obj.noisyImage;
+            s.designVariable = obj.designVariable;
+            c = QuadraticFunction(s);
+            obj.energyFunction = c;            
+        end
         
-        function E = computeEnergy(obj)
-            p = obj.pDual;
-            D = obj.discreteGradient;
-            g = obj.noisyImage;
-            gN = obj.noisyImageNorm;
-            r = D'*p - g;
-            E = 0.5*(r'*r)/gN;
+        function createL1Proximal(obj,cParams)
+            s.lambda = cParams.totalVariationWeigth;            
+            s.imageSize = obj.imageSize;
+            s.designVariable = obj.designVariable;
+            obj.l1Proximal = L1VectorNormProximal(s);
         end
         
         function gap = computeDualGap(obj)
             lam = obj.lambda;
             ut  = obj.optimizedImage;
-            p   = obj.pDual;
+            p   = obj.designVariable.value;
             D   = obj.discreteGradient;
             gN  = obj.noisyImageNorm;
             q   = D'*p;
             gap = lam*sum(abs(D*ut)) + q'*ut;
             gap = gap/gN;
+        end
+        
+        function createOptimizer(obj)
+            sg.designVariable = obj.designVariable;
+            sg.differentiableFunction = obj.energyFunction;
+            sg.designVariable = obj.designVariable;
+            
+            s.gradientMethodParams = sg;
+            s.proximal = obj.l1Proximal;
+            obj.optimizer = ForwardBackward(s);
         end
         
     end
