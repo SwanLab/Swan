@@ -1,4 +1,4 @@
-u0 = double(imread('~/Desktop/58468899e2951a4b87b00897.png'));
+u0 = double(imread('58468899e2951a4b87b00897.png'));
 u0 = mean(u0,3);
 
 [M N] = size(u0);

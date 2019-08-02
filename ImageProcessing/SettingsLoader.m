@@ -38,6 +38,4 @@ classdef SettingsLoader < handle
         
     end
     
-    
-    
 end

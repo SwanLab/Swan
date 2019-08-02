@@ -1,13 +1,13 @@
-classdef ImageTests < testRunner
+classdef ImageProcessingTests < testRunner
     
     
     properties (Access = protected)
-        FieldOfStudy = 'FEM'
+        FieldOfStudy = 'ImageProcessing'
         tests
     end
     
     methods (Access = public)
-        function obj = ImageTests()
+        function obj = ImageProcessingTests()
             obj@testRunner();
         end
     end
