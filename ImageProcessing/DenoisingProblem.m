@@ -2,6 +2,7 @@ classdef DenoisingProblem < handle
     
     properties (GetAccess = public, SetAccess = private)
         optimizedImage
+        plottingData
     end
     
     properties (Access = private)
@@ -13,13 +14,14 @@ classdef DenoisingProblem < handle
         
         optimizer
         designVariable
+        iterator
+        
+        
         
         energyFunction
         l1Proximal
+        dualGap
         
-        En
-        gap
-        maxIter
         lambda
     end
     
@@ -31,17 +33,21 @@ classdef DenoisingProblem < handle
             obj.createNoisyImage(cParams);
             obj.computeNoisyImageNorm();
             obj.createDesignVariable();
+            obj.createIterator(cParams);            
             obj.createEnergyFunction(cParams);
             obj.createL1Proximal(cParams);
-            obj.createOptimizer();
+            obj.createOptimizer(cParams);
         end
         
         function solve(obj)
-            for i=1:obj.maxIter
+            while obj.iterator.hasNotFinished()
                 obj.optimizer.update();
-                obj.En(i) = obj.energyFunction.computeCost();                
+                obj.designVariable.update();
+                obj.energyFunction.computeCost();
                 obj.computeU();
-                obj.gap(i) = obj.computeDualGap();
+                obj.computeDualGap();
+                obj.updatePlottingData();
+                obj.iterator.update;
             end
         end
         
@@ -49,11 +55,18 @@ classdef DenoisingProblem < handle
     
     methods (Access = private)
         
+        function updatePlottingData(obj)
+            p = obj.plottingData;
+            i = obj.iterator.value;             
+            p.cost(i) = obj.energyFunction.value;
+            p.dualGap(i) = obj.dualGap; 
+            obj.plottingData = p;
+        end
+        
         function init(obj,cParams)
             im = obj.readImage(cParams);
             obj.computeImageSize(im);
             obj.transformImageInVectorForm(im)
-            obj.maxIter = cParams.maxIter;
             obj.lambda = cParams.totalVariationWeigth;
         end
         
@@ -123,7 +136,12 @@ classdef DenoisingProblem < handle
             obj.l1Proximal = L1VectorNormProximal(s);
         end
         
-        function gap = computeDualGap(obj)
+        function createIterator(obj,cParams)
+            s.maxIter = cParams.maxIter;
+            obj.iterator = Iterator(s);
+        end
+        
+        function computeDualGap(obj)
             lam = obj.lambda;
             ut  = obj.optimizedImage;
             p   = obj.designVariable.value;
@@ -131,17 +149,23 @@ classdef DenoisingProblem < handle
             gN  = obj.noisyImageNorm;
             q   = D'*p;
             gap = lam*sum(abs(D*ut)) + q'*ut;
-            gap = gap/gN;
+            obj.dualGap = gap/gN;
         end
         
-        function createOptimizer(obj)
+        function createOptimizer(obj,cParams)            
             sg.designVariable = obj.designVariable;
             sg.differentiableFunction = obj.energyFunction;
             sg.designVariable = obj.designVariable;
-            
             s.gradientMethodParams = sg;
+            
+            sm.designVariable = obj.designVariable;
+            sm.iterator       = obj.iterator;
+            s.momentumParams  = sm;
+            
             s.proximal = obj.l1Proximal;
-            obj.optimizer = ForwardBackward(s);
+            s.type     = cParams.optimizer;
+            s.iterator = obj.iterator;            
+            obj.optimizer = SplittingAlgorithm.create(s);
         end
         
     end

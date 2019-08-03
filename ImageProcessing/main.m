@@ -1,6 +1,20 @@
-problemName  = 'DenoisingEinstein';
-sLoader      = SettingsLoader(problemName);
-settings     = sLoader.settings;
+function main
+close all
+problemNames  = {'DenoisingEinstein';'AcceleratedDenoisingEinstein'};
 
-imageProblem = DenoisingProblem(settings);
-imageProblem.solve();
+for iproblem = 1:length(problemNames)
+    pName = problemNames{iproblem};
+    sLoader      = SettingsLoader(pName);
+    settings     = sLoader.settings;
+    denoisingProblem = DenoisingProblem(settings);
+    denoisingProblem.solve();
+    pD = denoisingProblem.plottingData;
+    figure(1)
+    hold on
+    plot(pD.cost)
+    figure(2)
+    hold on
+    plot(pD.dualGap)
+end
+
+end

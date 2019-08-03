@@ -8,6 +8,8 @@ classdef ForwardBackwardExample < handle
         rowsColumns
         Differential
         
+        betaAll
+        
         uStar
         L2
         tau
@@ -29,7 +31,7 @@ classdef ForwardBackwardExample < handle
     
     methods (Access = public)
         
-        function obj = ForwardBackward()
+        function obj = ForwardBackwardExample()
             obj.readImage();
             obj.createDmatrix();
             obj.computeParameters();
@@ -121,6 +123,7 @@ classdef ForwardBackwardExample < handle
             pOld = obj.pOldOld;
             p    = obj.pDual;
             beta = obj.computeBeta(i);
+            obj.betaAll(i) = beta;
             p = p + beta*(p - pOld);
             obj.pDual = p;
         end

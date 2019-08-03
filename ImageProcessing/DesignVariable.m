@@ -2,6 +2,8 @@ classdef DesignVariable < handle
     
    properties (Access = public)
       value 
+      valueOld
+      valueOldOld
    end
    
    properties (GetAccess = public, SetAccess = private)
@@ -18,16 +20,22 @@ classdef DesignVariable < handle
           obj.init(cParams)
        end    
        
+       function update(obj)
+           obj.valueOldOld = obj.valueOld;
+           obj.valueOld = obj.value;
+       end
+       
    end
    
    methods (Access = private)
       
        function init(obj,cParams)
           obj.xLength = cParams.xLength;
-          obj.value = zeros(obj.xLength,1); 
+          obj.valueOldOld = zeros(obj.xLength,1);                     
+          obj.valueOld    = zeros(obj.xLength,1);           
+          obj.value       = zeros(obj.xLength,1); 
        end
        
    end
-               
     
 end

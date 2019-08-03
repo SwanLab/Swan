@@ -1,4 +1,4 @@
-classdef ForwardBackward < handle
+classdef ForwardBackward < SplittingAlgorithm
     
     properties (Access = private)
         gradientMethod

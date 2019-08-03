@@ -16,7 +16,8 @@ classdef GradientMethod < handle
 
         function compute(obj)
             t = obj.lineSearch.value;
-            g = obj.differentiableFunction.computeGradient();
+            obj.differentiableFunction.computeGradient();
+            g = obj.differentiableFunction.gradient;
             x = obj.designVariable.value;
             x = x - t*g;
             obj.designVariable.value = x;

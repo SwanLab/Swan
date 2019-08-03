@@ -1,6 +1,5 @@
 classdef ImageProcessingTests < testRunner
-    
-    
+        
     properties (Access = protected)
         FieldOfStudy = 'ImageProcessing'
         tests
@@ -16,6 +15,7 @@ classdef ImageProcessingTests < testRunner
         function loadTests(obj)
             obj.tests = {...  
                 'testDenoisingEinstein';
+                'testAcceleratedDenoisingEinstein';
                 };
 
         end

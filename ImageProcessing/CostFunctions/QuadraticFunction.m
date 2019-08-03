@@ -1,7 +1,9 @@
 classdef QuadraticFunction < handle
     
-   properties (GetAccess = public) 
+   properties (GetAccess = public, SetAccess = private) 
       lipschitzConstant 
+      value
+      gradient
    end
     
    properties (Access = private)
@@ -22,22 +24,24 @@ classdef QuadraticFunction < handle
            obj.computeLipschitzConstant(cParams);           
        end
        
-       function c = computeCost(obj)
+       function computeCost(obj)
            x = obj.designVariable.value;
            A = obj.Av;
            b = obj.bv;
            r = A*x - b;
            c0 = obj.value0;
            c = 0.5*(r'*r)/c0;
+           obj.value = c;
        end
        
-       function g = computeGradient(obj)
+       function computeGradient(obj)
            x = obj.designVariable.value;
            A = obj.Av;
            b = obj.bv;
            r = A*x - b;
            c0 = obj.value0;
            g = (A'*r)/c0;
+           obj.gradient = g;
        end
        
        function computeAdimensionalValue(obj)
