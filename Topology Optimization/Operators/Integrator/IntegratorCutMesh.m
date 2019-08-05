@@ -24,9 +24,9 @@ classdef IntegratorCutMesh < Integrator
         
         function A = integrate(obj,F)
             obj.initShapes();
-            obj.cutShapes = obj.evaluateCutShapes(F);
-            obj.assembleLocally();
-            A = obj.assembleIntegrand(obj.shapes);
+            obj.computeElementalRHS(F);
+            obj.assembleSubcellsInCells();
+            A = obj.assembleIntegrand();
         end
         
     end
@@ -35,11 +35,14 @@ classdef IntegratorCutMesh < Integrator
         
         function initShapes(obj)
             nelem = obj.backgroundMesh.nelem;
+            cNelem = obj.cutMesh.nelem;
             nnode = obj.backgroundMesh.nnode;
             obj.shapes = zeros(nelem,nnode);
+            obj.cutShapes = zeros(cNelem,nnode);
         end
         
-        function shapeValues = evaluateCutShapes(obj,F1)
+        function computeElementalRHS(obj,F1)
+            int = obj.cutShapes;
             obj.createBackgroundInterpolation();
             obj.createUnfittedInterpolation();
             obj.computeThisQuadrature();
@@ -47,26 +50,37 @@ classdef IntegratorCutMesh < Integrator
             
             nelem = obj.cutMesh.nelem;
             nnode = obj.backgroundInterp.nnode;
-            shapeValues = zeros(nelem,nnode);
             for isubcell = 1:nelem
-                
                 shape = obj.computeShape(isubcell);
-                
                 djacob = obj.computeJacobian(isubcell);
                 icell  = obj.cutMesh.cellContainingSubcell(isubcell);
-                
                 inode = obj.backgroundMesh.connec(icell,:);
-                
-                weigth = obj.quadrature.weigp';
+                weight = obj.quadrature.weigp';
                 dvolu  = obj.unfittedInterp.dvolu;
                 
-                F0 = (shape*weigth)'*F1(inode)/dvolu;
+                F0 = (shape*weight)'*F1(inode)/dvolu;
                 
-                shapeValues(isubcell,:) = shapeValues(isubcell,:) + (shape*(djacob.*weigth)*F0)';
+                int(isubcell,:) = int(isubcell,:) + (shape*(djacob.*weight)*F0)';
             end
+            obj.cutShapes = int;
         end
         
-        function f = assembleIntegrand(obj,integrand)
+        function assembleSubcellsInCells(obj)
+            nnode = obj.backgroundMesh.nnode;
+            nelem = obj.backgroundMesh.nelem;
+            cellNum = obj.cutMesh.cellContainingSubcell;
+            totalInt = obj.shapes;
+            
+            for iNode = 1:nnode
+                int = obj.cutShapes(:,iNode);
+                intGlobal  = accumarray(cellNum,int,[nelem,1],@sum,0);
+                totalInt(:,iNode) = totalInt(:,iNode) + intGlobal;
+            end
+            obj.shapes = totalInt;
+        end
+        
+        function f = assembleIntegrand(obj)
+            integrand = obj.shapes;
             npnod  = obj.backgroundMesh.npnod;
             nnode  = obj.backgroundMesh.nnode;
             connec = obj.backgroundMesh.connec;
@@ -75,19 +89,6 @@ classdef IntegratorCutMesh < Integrator
                 int = integrand(:,inode);
                 con = connec(:,inode);
                 f = f + accumarray(con,int,[npnod,1],@sum,0);
-            end
-        end
-        
-        function assembleLocally(obj)
-            nelem = obj.backgroundMesh.nelem;
-            cell  = obj.cutMesh.cellContainingSubcell;
-            nnode = obj.backgroundMesh.nnode;
-            
-            for iNode = 1:nnode
-                csNode = obj.cutShapes(:,iNode);
-                csNodeGlobal  = accumarray(cell,csNode,[nelem,1],@sum,0);
-                sNode  = obj.shapes(:,iNode);
-                obj.shapes(:,iNode) = sNode + csNodeGlobal;
             end
         end
         

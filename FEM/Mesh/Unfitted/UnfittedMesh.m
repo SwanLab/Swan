@@ -24,8 +24,6 @@ classdef UnfittedMesh < handle
         innerCutMesh
 
         globalConnec
-        innerMeshConnec
-        innerMeshCoord
     end
     
     properties (Access = private)
@@ -52,41 +50,18 @@ classdef UnfittedMesh < handle
     
     methods (Access = private)
         
-        function computeInnerMesh(obj)
-            obj.computeGlobalConnec();
-            obj.computeInnerMeshCoords();
-            obj.computeInnerMeshConnec();
-            obj.innerMesh = Mesh().create(obj.innerMeshCoord,obj.innerMeshCoord);
+        function computeInnerMesh(obj)            
+            obj.computeInnerGlobalConnec();
+            s.backgroundCoord = obj.meshBackground.coord;
+            s.globalConnec = obj.globalConnec;
+            obj.innerMesh = InnerMesh(s);
         end
         
-        function computeGlobalConnec(obj)
+        function computeInnerGlobalConnec(obj)
             fullCells = obj.oldUnfittedMesh.backgroundFullCells;
             obj.globalConnec = obj.meshBackground.connec(fullCells,:);
         end
-        
-         function computeInnerMeshCoords(obj)
-            coordElem = [];
-             for inode = 1:obj.meshBackground.nnode
-                nodes = obj.globalConnec(:,inode);
-                coordElem = [coordElem; obj.meshBackground.coord(nodes,:)];
-            end
-            subCoords = unique(coordElem,'rows','stable');
-            obj.innerMeshCoord = subCoords;
-         end  
-         
-         function computeInnerMeshConnec(obj)
-            connec = obj.globalConnec;
-            coords = obj.meshBackground.coord;
-            subCoords = obj.innerMeshCoord;
-            nnode = size(connec,2);
-             for inode = 1:nnode 
-                    coord = coords(connec(:,inode),:);
-                    I = obj.findIndexesComparingCoords(coord,subCoords);                    
-                    subConnec(:,inode) = I;
-             end
-            obj.innerMeshConnec = subConnec;
-         end
-        
+
         function computeInnerCutMesh(obj)
             cParams.coord = obj.oldUnfittedMesh.coord;
             cParams.connec = obj.oldUnfittedMesh.connec;
@@ -97,21 +72,6 @@ classdef UnfittedMesh < handle
         end
         
     end
-    
-      methods (Access = private, Static)
-        
-            function I = findIndexesComparingCoords(A,B)
-                I = zeros(1,size(A,1));
-                for inode = 1:size(A,1)
-                    match = true(size(B,1),1);
-                    for idime = 1:size(A,2)
-                        match = match & B(:,idime) == A(inode,idime);
-                    end
-                    I(inode) = find(match,1);
-                end
-            end
-        end
-    
     
     methods (Access = public)
         
@@ -128,9 +88,7 @@ classdef UnfittedMesh < handle
         end
         
     end
-    
-    
-    
+
     methods
         
         function type = get.unfittedType(obj)
@@ -138,7 +96,8 @@ classdef UnfittedMesh < handle
         end
         
         function mB = get.meshBackground(obj)
-            mB = obj.oldUnfittedMesh.meshBackground;
+            mT = obj.oldUnfittedMesh.meshBackground;
+            mB = Mesh().create(mT.coord,mT.connec);
         end
         
         function lvlSet = get.levelSet_background(obj)
