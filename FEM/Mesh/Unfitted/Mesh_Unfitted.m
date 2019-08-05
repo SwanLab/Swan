@@ -1,7 +1,7 @@
 classdef Mesh_Unfitted < handle
     
     properties (GetAccess = public, SetAccess = protected)
-        meshBackground
+%         meshBackground
         levelSet_background
         levelSet_unfitted
     end
@@ -9,6 +9,9 @@ classdef Mesh_Unfitted < handle
     methods (Access = public, Abstract)
         
         computeMesh(obj,levelSet)
+        computeMass(obj)
+        plot(obj)
+        add2plot(obj)
         
     end
     
@@ -18,7 +21,6 @@ classdef Mesh_Unfitted < handle
             f   = Mesh_Unfitted_Factory();
             obj = f.create(cParams);            
         end
-        
         
     end
     

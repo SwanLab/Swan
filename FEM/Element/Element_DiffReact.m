@@ -27,7 +27,11 @@ classdef Element_DiffReact < Element
             obj.initElement(geometry,material,dof,scale);
             obj.nstre = 2;
             obj.nfields = 1;
-            obj.interpolation_u=Interpolation.create(mesh,'LINEAR');
+            if contains(class(obj.mesh),'Total')
+                obj.interpolation_u=Interpolation.create(mesh.innerMeshOLD,'LINEAR');
+            else
+                obj.interpolation_u=Interpolation.create(mesh,'LINEAR');
+            end
             obj.computeStiffnessMatrix();
             obj.computeMassMatrix(2);
             obj.computeBoundaryMassMatrix();
@@ -39,7 +43,7 @@ classdef Element_DiffReact < Element
         
         function LHS = computeLHS(obj)
             if obj.addRobinTerm
-                LHS = obj.epsilon^2*obj.K + obj.M + 1/obj.epsilon*obj.Mr;              
+                LHS = obj.epsilon^2*obj.K + obj.M + 1/obj.epsilon*obj.Mr;
             else
                 LHS = obj.epsilon^2*obj.K + obj.M;
                 LHS = obj.bcApplier.fullToReducedMatrix(LHS);
@@ -60,16 +64,10 @@ classdef Element_DiffReact < Element
         
         function computeBoundaryMassMatrix(obj)
             if obj.addRobinTerm
-                meshB = obj.mesh;
-                int = Interpolation.create(meshB,'LINEAR');
-                meshType = 'BOUNDARY';
-                meshIncludeBoxContour = true;
-                cParams = SettingsMeshUnfitted(meshType,meshB,int,meshIncludeBoxContour);
-                levelSet = -ones(size(obj.mesh.coord,1),1);
-                uMesh = Mesh_Unfitted.create2(cParams);
-                uMesh.computeMesh(levelSet);
-                integrator = Integrator.create(uMesh);
-                obj.Mr = integrator.integrateLHS(uMesh);
+                cParams.mesh = obj.mesh;
+                cParams.type = obj.mesh.unfittedType;
+                integrator = Integrator.create(cParams);
+                obj.Mr = integrator.computeLHS();
             end
         end
         

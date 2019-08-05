@@ -1,81 +1,69 @@
-classdef Integrator_Interior < Integrator  
+classdef Integrator_Interior < IntegratorUnfitted
     
-    methods (Access = protected)
+    properties (Access = private)
+        shapes
+        cutShapes
+        innerShapes
+    end
+    
+    methods (Access = public)
         
-        function A = computeIntegral(obj,F1)
+        function A = integrate(obj,F1)
+            obj.initShapes();
             if obj.isLeveSetCuttingMesh()
-                shapeValues_CutCells = obj.integrateCutCells(F1);
-                shapeValues_FullCells = obj.integrateFullCells(F1);
-                shapeValues_All = obj.assembleShapeValues(shapeValues_CutCells,shapeValues_FullCells);
+                obj.cutShapes = obj.evaluateCutShapes(F1);
+                obj.evaluateInnerShapes(F1);
+                obj.assembleShapes();
             else
-                shapeValues_All = obj.integrateFullCells(F1);
+                obj.evaluateInnerShapes(F1);
+                obj.assembleInnerShapes();
             end
-            
-            A = obj.rearrangeOutputRHS(shapeValues_All);
+            A = obj.rearrangeOutputRHS(obj.shapes);
         end
-        
-        function A = computeLHS(obj,globalConnec,npnod)
-            interpolation = Interpolation.create(obj.meshBackground,'LINEAR');
-            quadrature = obj.computeQuadrature(obj.meshBackground.geometryType);
-            interpolation.computeShapeDeriv(quadrature.posgp);
-            geometry = Geometry(obj.meshBackground,'LINEAR');
-            geometry.computeGeometry(quadrature,interpolation);
-            nelem = obj.meshBackground.nelem;
-            Me = zeros(interpolation.nnode,interpolation.nnode,nelem);            
-            for igaus=1:quadrature.ngaus
-                for inode=1:interpolation.nnode
-                    for jnode=1:interpolation.nnode
-                        Me(inode,jnode,:)=squeeze(Me(inode,jnode,:)) + quadrature.weigp(igaus)*interpolation.shape(inode,igaus)...
-                            *interpolation.shape(jnode,igaus)*geometry.djacob(:,igaus);
-                    end
-                end
-            end
-            
-            row = npnod;
-            col = npnod;
-            nunkn1 = 1;
-            nunkn2 = 1;
-            nnode1 = size(globalConnec,2);
-            nnode2 = size(globalConnec,2);
-            A_elem = Me;
-            idx1 = globalConnec';
-            idx2 = globalConnec';
-           
-            A = sparse(row,col);
-            for i = 1:nnode1*nunkn1
-                for j = 1:nnode2*nunkn2
-                    a = squeeze(A_elem(i,j,:));
-                    A = A + sparse(idx1(i,:),idx2(j,:),a,row,col);
-                end
-            end                
-           
-        end
-        
         
     end
     
     methods (Access = private)
         
-        function shapeValues_FullCells = integrateFullCells(obj,F1)            
+        function evaluateInnerShapes(obj,F1)
             interpolation = Interpolation.create(obj.meshBackground,'LINEAR');
             quadrature = obj.computeQuadrature(obj.meshBackground.geometryType);
             interpolation.computeShapeDeriv(quadrature.posgp);
             geometry = Geometry(obj.meshBackground,'LINEAR');
             geometry.computeGeometry(quadrature,interpolation);
             
-            shapeValues_FullCells = zeros(size(obj.meshBackground.connec));
+            obj.innerShapes = zeros(size(obj.meshBackground.connec));
             for igauss = 1:quadrature.ngaus
-                shapeValues_FullCells = shapeValues_FullCells + interpolation.shape(:,igauss)'.*geometry.dvolu(:,igauss);
+                obj.innerShapes = obj.innerShapes + interpolation.shape(:,igauss)'.*geometry.dvolu(:,igauss);
             end
         end
         
-        function shapeValues_AllCells = assembleShapeValues(obj,shapeValues_CutCells,shapeValues_FullCells)
-            interpolation = Interpolation.create(obj.meshBackground,'LINEAR');
-            shapeValues_AllCells = zeros(size(obj.meshBackground.connec));
-            shapeValues_AllCells(obj.meshUnfitted.backgroundFullCells,:) = shapeValues_FullCells(obj.meshUnfitted.backgroundFullCells,:);
+        function initShapes(obj)
+            nelem = obj.meshBackground.nelem;
+            nnode = obj.meshBackground.nnode;
+            obj.shapes = zeros(nelem,nnode);
+        end
+        
+        function assembleShapes(obj)
+            obj.assembleInnerShapes();
+            obj.assembleCutShapes();
+        end
+        
+        function assembleInnerShapes(obj)
+            innerCells = obj.meshUnfitted.backgroundFullCells;
+            obj.shapes(innerCells,:) = obj.innerShapes(innerCells,:);
+        end
+        
+        function assembleCutShapes(obj)
+            nelem = obj.meshBackground.nelem;
+            cell = obj.meshUnfitted.cellContainingSubcell;
+            nnode = obj.meshBackground.nnode;
             
-            for i_subcell = 1:size(shapeValues_CutCells,2)
-                shapeValues_AllCells(:,i_subcell) = shapeValues_AllCells(:,i_subcell)+accumarray(obj.meshUnfitted.cellContainingSubcell,shapeValues_CutCells(:,i_subcell),[interpolation.nelem,1],@sum,0);
+            for iNode = 1:nnode
+                csNode = obj.cutShapes(:,iNode);
+                csNodeGlobal  = accumarray(cell,csNode,[nelem,1],@sum,0);
+                sNode  = obj.shapes(:,iNode);
+                obj.shapes(:,iNode) = sNode + csNodeGlobal;
             end
         end
         

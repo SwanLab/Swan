@@ -15,6 +15,8 @@ classdef PlottingTests < testRunner
         function loadTests(obj)
             obj.tests = {...
                 
+            'testPlotCircleQuadrilateral'
+            
             'testSmoothRectangleTriangle'
             'testSmoothRectangleQuadrilateral'
             
@@ -25,7 +27,6 @@ classdef PlottingTests < testRunner
             'testCircumferenceQuadrilateral'
             
             'testPlotCircleTriangle'
-            'testPlotCircleQuadrilateral'
             
             'testPlotSphereTetrahedra';
             'testPlotSphereHexahedra';

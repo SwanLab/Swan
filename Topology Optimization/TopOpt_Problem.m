@@ -19,6 +19,7 @@ classdef TopOpt_Problem < handle
     methods (Access = public)
         
         function obj = TopOpt_Problem(cParams)
+            obj.createMesh(cParams);
             obj.createIncrementalScheme(cParams);
             obj.createDesignVariable(cParams);
             obj.createHomogenizedVarComputer(cParams)
@@ -77,14 +78,14 @@ classdef TopOpt_Problem < handle
         
         function createIncrementalScheme(obj,cParams)
             s = cParams.incrementalSchemeSettings;
-            s.mesh = obj.createMesh(cParams);
+            s.mesh = obj.mesh.innerMeshOLD;
             s.targetParamsSettings.epsilonPerInitial = 10*s.targetParamsSettings.epsilonPerFinal;
             obj.incrementalScheme = IncrementalScheme(s);
         end
         
         function createDesignVariable(obj,cParams)
             s = cParams.designVarSettings;
-            s.mesh = obj.createMesh(cParams);
+            s.mesh = obj.mesh;
             s.scalarProductSettings.epsilon = obj.incrementalScheme.targetParams.epsilon;
             obj.designVariable = DesignVariable.create(s);
         end
@@ -127,13 +128,11 @@ classdef TopOpt_Problem < handle
             obj.videoMaker = VideoMaker.create(s);
         end
         
-    end
-    
-    methods (Access = private, Static)
-        
-        function mesh = createMesh(cParams)
+        function createMesh(obj,cParams)
             s = cParams.designVarSettings;
-            mesh = Mesh().create(s.femData.coord,s.femData.connec);
+            sM.coord  = s.femData.coord;
+            sM.connec = s.femData.connec;
+            obj.mesh = Mesh_Total(sM);
         end
         
     end

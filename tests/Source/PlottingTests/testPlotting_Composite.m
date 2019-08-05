@@ -14,7 +14,7 @@ classdef testPlotting_Composite < testPlotting
                 iface = obj.mesh.activeBoxFaceMeshesList(iactive);
                 boxMeshesCoords{iactive} = obj.mesh.boxFaceMeshes{iface}.coord;
             end
-            coordsOk = obj.checkComposedVar(obj.mesh.meshInterior.coord,boxMeshesCoords,storedCoords);
+            coordsOk = obj.checkComposedVar(obj.mesh.innerMeshOLD.coord,boxMeshesCoords,storedCoords);
         end
         
         function connecsOk = checkConnectivities(obj,storedConnecs)
@@ -23,7 +23,7 @@ classdef testPlotting_Composite < testPlotting
                 iface = obj.mesh.activeBoxFaceMeshesList(iactive);
                 boxMeshesConnecs{iactive} = obj.mesh.boxFaceMeshes{iface}.connec;
             end
-            connecsOk = obj.checkComposedVar(obj.mesh.meshInterior.connec,boxMeshesConnecs,storedConnecs);
+            connecsOk = obj.checkComposedVar(obj.mesh.innerMeshOLD.connec,boxMeshesConnecs,storedConnecs);
         end
     end
     

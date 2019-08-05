@@ -5,4 +5,5 @@ TopOptTests;
 ReadingFilesTests;
 PlottingTests;
 HomogenizationTests;
+ImageProcessingTests;
 %AmplificatorTests;

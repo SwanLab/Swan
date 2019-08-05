@@ -35,6 +35,7 @@ classdef NumericalHomogenizer < handle
         
         printers
         interpolation
+        
     end
     
     methods (Access = public)
@@ -151,10 +152,13 @@ classdef NumericalHomogenizer < handle
         end
         
         function computeVolumeValue(obj)
+            cParams.coord  = obj.microProblem.mesh.coord;
+            cParams.connec = obj.microProblem.mesh.connec;
+            mesh = Mesh_Total(cParams);                        
             d = obj.volDataBase;
             s = SettingsDesignVariable();
-            s.type = 'Density';
-            s.mesh = obj.microProblem.mesh;
+            s.type = 'Density';            
+            s.mesh = mesh;%obj.microProblem.mesh;
             s.levelSetCreatorSettings.type  = 'given';
             s.levelSetCreatorSettings.value = obj.elemDensCr.getLevelSet();
             s.levelSetCreatorSettings.ndim  = obj.microProblem.mesh.ndim;
@@ -169,7 +173,7 @@ classdef NumericalHomogenizer < handle
             vol = vComputer.value;
             obj.cellVariables.volume = vol;
         end
-        
+               
         function obtainIntegrationUsedVariables(obj)        
            intVar.nstre  = obj.microProblem.element.getNstre();
            intVar.geoVol = obj.microProblem.computeGeometricalVolume();

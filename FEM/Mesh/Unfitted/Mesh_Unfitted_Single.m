@@ -1,6 +1,46 @@
-classdef Mesh_Unfitted_Single < Mesh ...
-        & Mesh_Unfitted...
-        & Mesh_Unfitted_Properties
+classdef Mesh_Unfitted_Single < Mesh & Mesh_Unfitted
+    
+    properties (GetAccess = public, SetAccess = protected)
+        backgroundFullCells
+        backgroundEmptyCells
+        backgroundCutCells
+        
+        backgroundGeomInterpolation
+        pdim
+    end
+    
+    properties (Access = public, Dependent)
+        nCutCells
+    end
+    
+    properties (GetAccess = public, SetAccess = ?UnfittedMesh_AbstractBuilder)
+        %         unfittedType
+    end
+    
+    properties (GetAccess = public, SetAccess = ?MemoryManager_MeshUnfitted)
+        coord_iso
+        connec_local
+        subcellIsoCoords
+        cellContainingSubcell
+    end
+    
+    properties (GetAccess = protected, SetAccess = ?MemoryManager_MeshUnfitted)
+        coord_global_raw
+        cellContainingNodes
+    end
+    
+    properties (GetAccess = ?MemoryManager_MeshUnfitted, SetAccess = ?UnfittedMesh_AbstractBuilder)
+        maxSubcells
+        nnodesSubcell
+    end
+    
+    properties (GetAccess = protected, SetAccess = ?UnfittedMesh_AbstractBuilder)
+        subcellsMesher
+        cutPointsCalculator
+        meshPlotter
+        cellsClassifier
+        memoryManager
+    end
     
     methods (Access = public, Static)
         
@@ -20,7 +60,7 @@ classdef Mesh_Unfitted_Single < Mesh ...
             obj.updateLevelSet(levelSet);
             obj.classifyCells();
             if obj.isLevelSetCrossingZero()
-                obj.computeUnfittedMesh();
+                obj.computeCutMesh();
             else
                 obj.returnNullMesh();
             end
@@ -28,10 +68,12 @@ classdef Mesh_Unfitted_Single < Mesh ...
         end
         
         function m = computeMass(obj)
-            integrator = Integrator.create(obj);
+            cParams.mesh = obj;
+            cParams.type = obj.unfittedType;
+            integrator = Integrator.create(cParams);
             nnodesBackground = size(obj.levelSet_background);
-            M2 = integrator.integrateUnfittedMesh(ones(nnodesBackground),obj);
-            m = sum(M2);
+            fInt = integrator.integrate(ones(nnodesBackground));
+            m = sum(fInt);
         end
         
         function plot(obj)
@@ -54,6 +96,7 @@ classdef Mesh_Unfitted_Single < Mesh ...
             S = obj.meshBackground.computeMeanCellSize();
         end
         
+        
     end
     
     methods (Access = private)
@@ -71,7 +114,7 @@ classdef Mesh_Unfitted_Single < Mesh ...
             builder.build(obj);
         end
         
-        function computeUnfittedMesh(obj)
+        function computeCutMesh(obj)
             obj.computeSubcells();
             obj.computeGlobalUnfittedMesh();
         end
@@ -179,6 +222,14 @@ classdef Mesh_Unfitted_Single < Mesh ...
             else
                 theyDo = false;
             end
+        end
+        
+    end
+    
+    methods
+        
+        function nCutCells = get.nCutCells(obj)
+            nCutCells = length(obj.backgroundCutCells);
         end
         
     end

@@ -1,13 +1,17 @@
-classdef Mesh < handle & matlab.mixin.Copyable
+classdef Mesh < AbstractMesh & matlab.mixin.Copyable
     
     properties (GetAccess = public, SetAccess = protected)
-        coord
-        connec
+%         coord
+%         connec
         ndim
         nnode
         npnod
-        nelem
-        geometryType
+%         nelem
+    end
+    
+    properties (Access = public)
+       % unfittedType
+        meshBackground
     end
     
     methods (Access = public)
@@ -16,6 +20,7 @@ classdef Mesh < handle & matlab.mixin.Copyable
             obj.coord  = coord;
             obj.connec = connec;
             obj.computeDescriptorParams();
+            obj.unfittedType = 'SIMPLE';
         end
         
         function objClone = clone(obj)

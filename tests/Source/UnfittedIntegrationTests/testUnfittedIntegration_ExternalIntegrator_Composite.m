@@ -2,10 +2,14 @@ classdef testUnfittedIntegration_ExternalIntegrator_Composite < testUnfittedInte
     
     methods (Access = protected)
         
-        function B = sumResults(obj,A)
-            Bi = obj.sumInteriorResults(A);
-            Bb = obj.sumBoxFacesResults(A);
-            B = Bi + Bb;
+        function intF = sumResults(obj,f)
+%                         Bi = obj.sumInteriorResults(f);
+%                         Bb = obj.sumBoxFacesResults(f);
+            %             B = Bi + Bb;
+            intF = 0;
+            for iInt = 1:obj.integrator.nInt
+                intF = intF + sum(f{iInt});
+            end
         end
         
     end

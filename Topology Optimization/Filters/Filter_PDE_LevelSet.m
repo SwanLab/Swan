@@ -20,9 +20,12 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             obj.ngaus = obj.quadrature.ngaus;
             obj.Anodal2Gauss = obj.computeA();
             
-            cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh,obj.interpolation);
-            obj.unfittedMesh = Mesh_Unfitted.create2(cParams);
-            obj.integrator = Integrator.create(obj.unfittedMesh);            
+%             cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh,obj.interpolation);
+            cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh);
+            obj.unfittedMesh = UnfittedMesh(cParams);
+            s.mesh = obj.unfittedMesh;
+            s.type = obj.unfittedMesh.unfittedType;
+            obj.integrator = Integrator.create(s);            
             obj.disableDelaunayWarning();                 
         end
         
@@ -39,9 +42,9 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             RHS = obj.computeRHS(x,F);
         end
         
-        function M2 = computeRHS(obj,x,F1)
-            obj.unfittedMesh.computeMesh(x);
-            M2 = obj.integrator.integrateUnfittedMesh(F1,obj.unfittedMesh);
+        function fInt = computeRHS(obj,x,fNodes)
+            obj.unfittedMesh.compute(x);
+            fInt = obj.integrator.integrate(fNodes);
         end        
         
     end
