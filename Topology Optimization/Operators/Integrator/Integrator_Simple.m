@@ -52,6 +52,26 @@ classdef Integrator_Simple < Integrator
             obj.RHScells = zeros(nelem,nnode);
         end
         
+        function createQuadrature(obj)
+            quad = obj.computeQuadrature(obj.mesh.geometryType);
+            obj.quadrature = quad;
+        end
+        
+        function createInterpolation(obj)
+            quad = obj.quadrature;
+            int = Interpolation.create(obj.mesh,'LINEAR');
+            int.computeShapeDeriv(quad.posgp);
+            obj.interpolation = int;
+        end
+        
+        function createGeometry(obj)
+            quad = obj.quadrature;
+            int  = obj.interpolation;
+            geom = Geometry(obj.mesh,'LINEAR');
+            geom.computeGeometry(quad,int);
+            obj.geometry = geom;
+        end
+        
         function computeElementalRHS(obj,F1)
             jacob  = obj.geometry.djacob;
             shapes = obj.interpolation.shape;
@@ -87,26 +107,6 @@ classdef Integrator_Simple < Integrator
                 con = connec(:,inode);
                 f = f + accumarray(con,int,[npnod,1],@sum,0);
             end
-        end
-        
-        function createQuadrature(obj)
-            quad = obj.computeQuadrature(obj.mesh.geometryType);
-            obj.quadrature = quad;
-        end
-        
-        function createInterpolation(obj)
-            quad = obj.quadrature;
-            int = Interpolation.create(obj.mesh,'LINEAR');
-            int.computeShapeDeriv(quad.posgp);
-            obj.interpolation = int;
-        end
-        
-        function createGeometry(obj)
-            quad = obj.quadrature;
-            int  = obj.interpolation;
-            geom = Geometry(obj.mesh,'LINEAR');
-            geom.computeGeometry(quad,int);
-            obj.geometry = geom;
         end
         
         function computeElementalLHS(obj)

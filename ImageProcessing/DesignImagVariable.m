@@ -1,4 +1,4 @@
-classdef DesignVariable < handle
+classdef DesignImagVariable < handle
     
    properties (Access = public)
       value 
@@ -16,7 +16,7 @@ classdef DesignVariable < handle
     
    methods (Access = public)
        
-       function obj = DesignVariable(cParams)
+       function obj = DesignImagVariable(cParams)
           obj.init(cParams)
        end    
        

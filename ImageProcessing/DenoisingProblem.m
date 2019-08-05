@@ -110,7 +110,7 @@ classdef DenoisingProblem < handle
         function createDesignVariable(obj)
             mn = 2*obj.imageSize.rowsTimesColumns;
             s.xLength = mn;
-            obj.designVariable = DesignVariable(s);
+            obj.designVariable = DesignImagVariable(s);
         end
     
         function computeU(obj)
