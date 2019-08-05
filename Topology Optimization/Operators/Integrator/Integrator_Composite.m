@@ -41,7 +41,7 @@ classdef Integrator_Composite < Integrator
         end
         
         function createIntegratorsNew(obj,cParams)
-                        obj.createNint(cParams);
+            obj.createNint(cParams);
             params = cParams.compositeParams;
             for iInt = 1:obj.nInt
                 s = params{iInt};
@@ -68,6 +68,7 @@ classdef Integrator_Composite < Integrator
                         obj.integrators{iMesh} = Integrator.create(cParams);
                 end
             end
+            obj.nInt = numel(obj.integrators);
         end
         
     end

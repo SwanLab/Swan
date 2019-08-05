@@ -4,7 +4,7 @@ classdef Integrator_Simple < Integrator
         globalConnec
         backgroundMesh
         npnod
-        LHSelem
+        LHScells
         LHS
         
         quadrature
@@ -129,13 +129,13 @@ classdef Integrator_Simple < Integrator
                     end
                 end
             end
-            obj.LHSelem = Ae;
+            obj.LHScells = Ae;
         end
         
         function assembleMatrix(obj)
             connec = obj.globalConnec;
             ndofs  = obj.npnod;
-            Ae     = obj.LHSelem;
+            Ae     = obj.LHScells;
             nunkn1 = 1;
             nunkn2 = 1;
             nnode1 = size(connec,2);
