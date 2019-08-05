@@ -10,8 +10,8 @@ classdef IntegratorCutMesh < Integrator
         unfittedInterp
         quadrature
         unfittedQuad
-        shapes
-        cutShapes
+        RHScells
+        RHScellsCut
     end
     
     methods (Access = public)
@@ -37,12 +37,12 @@ classdef IntegratorCutMesh < Integrator
             nelem = obj.backgroundMesh.nelem;
             cNelem = obj.cutMesh.nelem;
             nnode = obj.backgroundMesh.nnode;
-            obj.shapes = zeros(nelem,nnode);
-            obj.cutShapes = zeros(cNelem,nnode);
+            obj.RHScells = zeros(nelem,nnode);
+            obj.RHScellsCut = zeros(cNelem,nnode);
         end
         
         function computeElementalRHS(obj,F1)
-            int = obj.cutShapes;
+            int = obj.RHScellsCut;
             obj.createBackgroundInterpolation();
             obj.createUnfittedInterpolation();
             obj.computeThisQuadrature();
@@ -62,25 +62,25 @@ classdef IntegratorCutMesh < Integrator
                 
                 int(isubcell,:) = int(isubcell,:) + (shape*(djacob.*weight)*F0)';
             end
-            obj.cutShapes = int;
+            obj.RHScellsCut = int;
         end
         
         function assembleSubcellsInCells(obj)
             nnode = obj.backgroundMesh.nnode;
             nelem = obj.backgroundMesh.nelem;
             cellNum = obj.cutMesh.cellContainingSubcell;
-            totalInt = obj.shapes;
+            totalInt = obj.RHScells;
             
             for iNode = 1:nnode
-                int = obj.cutShapes(:,iNode);
+                int = obj.RHScellsCut(:,iNode);
                 intGlobal  = accumarray(cellNum,int,[nelem,1],@sum,0);
                 totalInt(:,iNode) = totalInt(:,iNode) + intGlobal;
             end
-            obj.shapes = totalInt;
+            obj.RHScells = totalInt;
         end
         
         function f = assembleIntegrand(obj)
-            integrand = obj.shapes;
+            integrand = obj.RHScells;
             npnod  = obj.backgroundMesh.npnod;
             nnode  = obj.backgroundMesh.nnode;
             connec = obj.backgroundMesh.connec;

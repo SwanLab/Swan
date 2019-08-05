@@ -19,27 +19,34 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
     
     methods (Access = private)
         
-        function M2 = integrateMesh(obj)
+        function int = integrateMesh(obj)
+            int = obj.integrateMeshOld();
+            %int = obj.integrateMeshNew();
+        end
+        
+        function M2 = integrateMeshOld(obj)
             cParams.mesh = obj.mesh;
-                        cParams.type = cParams.mesh.unfittedType;
+            cParams.type = cParams.mesh.unfittedType;
             obj.integrator = Integrator.create(cParams);
-            %M2 = obj.integrator.integrateUnfittedMesh(ones(size(obj.mesh.levelSet_background)),obj.mesh);
             M2 = obj.integrator.integrate(ones(size(obj.mesh.levelSet_background)));
-             
-%             cParams.mesh = obj.mesh;
-%             cParams.type = 'COMPOSITE';
-%             cParamsInnerCut = obj.createInnerCutParams();
-%             cParams.compositeParams{1} = cParamsInnerCut;
-%             cParamsInner = obj.createInnerParams();
-%             cParams.compositeParams{2} = cParamsInner;
-%             integratorC = Integrator.create(cParams);
-%             M2_2 = integratorC.integrate(ones(size(obj.mesh.levelSet_background)));
-%             ref = sum(M2);
-%             cut = sum(M2_2{1});
-%             inner = sum(M2_2{2});
-%             total = M2_2{1} + M2_2{2};
-%             sum(abs(M2-total))
-%             
+        end
+        
+        function M2 = integrateMeshNew(obj)
+            M2 = obj.integrateMeshOld();
+            cParams.mesh = obj.mesh;
+            cParams.type = 'COMPOSITE';
+            cParamsInnerCut = obj.createInnerCutParams();
+            cParams.compositeParams{1} = cParamsInnerCut;
+            cParamsInner = obj.createInnerParams();
+            cParams.compositeParams{2} = cParamsInner;
+            integratorC = Integrator.create(cParams);
+            M2_2 = integratorC.integrate(ones(size(obj.mesh.levelSet_background)));
+            ref = sum(M2);
+            cut = sum(M2_2{1});
+            inner = sum(M2_2{2});
+            total = M2_2{1} + M2_2{2};
+            %M2 = M2_2{1} + M2_2{2};
+            sum(abs(M2-total))
         end
         
         function params = createInnerCutParams(obj)
