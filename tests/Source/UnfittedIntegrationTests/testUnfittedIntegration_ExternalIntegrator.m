@@ -20,8 +20,8 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
     methods (Access = private)
         
         function int = integrateMesh(obj)
-            int = obj.integrateMeshOld();
-%             int = obj.integrateMeshNew();
+            %             int = obj.integrateMeshOld();
+            int = obj.integrateMeshNew();
         end
         
         function M2 = integrateMeshOld(obj)
@@ -36,39 +36,54 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
                 case 'INTERIOR'
                     cParams.mesh = obj.mesh;
                     cParams.type = 'COMPOSITE';
-                    cParamsInnerCut = obj.createInnerCutParams();
+                    cParamsInnerCut = obj.createInnerCutParams(obj.mesh);
                     cParams.compositeParams{1} = cParamsInnerCut;
-                    cParamsInner = obj.createInnerParams();
+                    cParamsInner = obj.createInnerParams(obj.mesh);
                     cParams.compositeParams{2} = cParamsInner;
-                    integratorC = Integrator.create(cParams);
-                    integral = integratorC.integrate(ones(size(obj.mesh.levelSet_background)));
                 case 'BOUNDARY'
-                    cParams.mesh = obj.mesh;
-                    cParams.type = 'COMPOSITE';
-                    cParamsInnerCut = obj.createInnerCutParams();
-                    cParams.compositeParams{1} = cParamsInnerCut;
-                    integratorC = Integrator.create(cParams);
-                    integral = integratorC.integrate(ones(size(obj.mesh.levelSet_background)));
+                    if contains(class(obj),'Rectangle')
+                        cParams.type = 'COMPOSITE';
+                        cParams.mesh = obj.mesh;
+                        for iMesh = 1:obj.mesh.nActiveBoxFaces
+                            boxFaceMesh = obj.mesh.boxFaceMeshes{iMesh};
+                            params = obj.createCompositeParams(boxFaceMesh);
+                            cParams.compositeParams{iMesh} = params;
+                        end
+                    else
+                        cParams.mesh = obj.mesh;
+                        cParams.type = 'COMPOSITE';
+                        cParamsInnerCut = obj.createInnerCutParams(obj.mesh);
+                        cParams.compositeParams{1} = cParamsInnerCut;
+                    end
             end
-            
-            int = 0;
-            for iInt = 1:numel(integral)
-                int = int + integral{iInt};
-            end
+            integratorC = Integrator.create(cParams);
+            f = ones(size(obj.mesh.levelSet_background));
+            int = integratorC.integrateAndSum(f);
         end
         
-        function params = createInnerCutParams(obj)
-            params.mesh = obj.mesh.innerCutMesh;
+        function params = createInnerCutParams(obj,mesh)
+            params.mesh = mesh.innerCutMesh;
             params.type = 'CutMesh';
         end
         
-        function params = createInnerParams(obj)
-            params.mesh = obj.mesh.innerMesh;
+        function params = createInnerParams(obj,mesh)
+            params.mesh = mesh.innerMesh;
             params.type = 'SIMPLE';
-            params.globalConnec = obj.mesh.globalConnec;
-            params.npnod = obj.mesh.innerMesh.npnod;
+            params.globalConnec = mesh.globalConnec;
+            params.npnod = mesh.innerMesh.npnod;
+            params.backgroundMesh = mesh.meshBackground;
+            params.innerToBackground = mesh.backgroundFullCells;
+        end
+        
+        function params = createCompositeParams(obj,mesh)
+            params.mesh = mesh;
+            params.type = 'COMPOSITE';
             params.backgroundMesh = obj.mesh.meshBackground;
-            params.innerToBackground = obj.mesh.backgroundFullCells;
+            params.globalConnec = mesh.globalConnec;
+            params.innerToBackground = [];
+            params.npnod = obj.mesh.meshBackground.npnod;
+            cParamsInner = obj.createInnerParams(mesh);
+            params.compositeParams{1} = cParamsInner;
         end
     end
     

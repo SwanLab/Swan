@@ -27,6 +27,21 @@ classdef Integrator_Composite < Integrator
             end
         end
         
+        function f = integrateAndSum(obj,nodalFunc)
+            f = 0;
+            for iInt = 1:obj.nInt
+                integrator = obj.integrators{iInt};
+                if contains(class(integrator),'Composite')
+                    int = integrator.integrateAndSum(nodalFunc);
+                else
+                    int = integrator.integrate(nodalFunc);
+                end
+                f = f + int;
+            end
+            
+%             f = obj.sumIntegrals(int);
+        end
+        
     end
     
     methods (Access = private)
@@ -36,8 +51,8 @@ classdef Integrator_Composite < Integrator
         end
         
         function createIntegrators(obj,cParams)
-%             obj.createIntegratorsNew(cParams);
-            obj.createIntegratorsOld();
+            obj.createIntegratorsNew(cParams);
+%                         obj.createIntegratorsOld();
         end
         
         function createIntegratorsNew(obj,cParams)
@@ -69,6 +84,17 @@ classdef Integrator_Composite < Integrator
                 end
             end
             obj.nInt = numel(obj.integrators);
+        end
+        
+    end
+    
+    methods (Access = private, Static)
+        
+        function sumIntegrals(int)
+            f = 0;
+            for iInt = 1:numel(int)
+                f = f + int{iInt};
+            end
         end
         
     end
