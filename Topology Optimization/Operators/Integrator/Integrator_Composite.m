@@ -36,7 +36,7 @@ classdef Integrator_Composite < Integrator
         end
         
         function createIntegrators(obj,cParams)
-          %   obj.createIntegratorsNew(cParams);
+%             obj.createIntegratorsNew(cParams);
             obj.createIntegratorsOld();
         end
         

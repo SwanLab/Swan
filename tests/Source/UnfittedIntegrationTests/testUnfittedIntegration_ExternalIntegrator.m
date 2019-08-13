@@ -21,7 +21,7 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
         
         function int = integrateMesh(obj)
             int = obj.integrateMeshOld();
-            %int = obj.integrateMeshNew();
+%             int = obj.integrateMeshNew();
         end
         
         function M2 = integrateMeshOld(obj)
@@ -31,22 +31,30 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
             M2 = obj.integrator.integrate(ones(size(obj.mesh.levelSet_background)));
         end
         
-        function M2 = integrateMeshNew(obj)
-            M2 = obj.integrateMeshOld();
-            cParams.mesh = obj.mesh;
-            cParams.type = 'COMPOSITE';
-            cParamsInnerCut = obj.createInnerCutParams();
-            cParams.compositeParams{1} = cParamsInnerCut;
-            cParamsInner = obj.createInnerParams();
-            cParams.compositeParams{2} = cParamsInner;
-            integratorC = Integrator.create(cParams);
-            M2_2 = integratorC.integrate(ones(size(obj.mesh.levelSet_background)));
-            ref = sum(M2);
-            cut = sum(M2_2{1});
-            inner = sum(M2_2{2});
-            total = M2_2{1} + M2_2{2};
-            %M2 = M2_2{1} + M2_2{2};
-            sum(abs(M2-total))
+        function int = integrateMeshNew(obj)
+            switch obj.meshType
+                case 'INTERIOR'
+                    cParams.mesh = obj.mesh;
+                    cParams.type = 'COMPOSITE';
+                    cParamsInnerCut = obj.createInnerCutParams();
+                    cParams.compositeParams{1} = cParamsInnerCut;
+                    cParamsInner = obj.createInnerParams();
+                    cParams.compositeParams{2} = cParamsInner;
+                    integratorC = Integrator.create(cParams);
+                    integral = integratorC.integrate(ones(size(obj.mesh.levelSet_background)));
+                case 'BOUNDARY'
+                    cParams.mesh = obj.mesh;
+                    cParams.type = 'COMPOSITE';
+                    cParamsInnerCut = obj.createInnerCutParams();
+                    cParams.compositeParams{1} = cParamsInnerCut;
+                    integratorC = Integrator.create(cParams);
+                    integral = integratorC.integrate(ones(size(obj.mesh.levelSet_background)));
+            end
+            
+            int = 0;
+            for iInt = 1:numel(integral)
+                int = int + integral{iInt};
+            end
         end
         
         function params = createInnerCutParams(obj)
