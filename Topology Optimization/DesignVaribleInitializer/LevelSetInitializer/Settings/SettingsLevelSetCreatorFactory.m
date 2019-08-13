@@ -20,7 +20,7 @@ classdef SettingsLevelSetCreatorFactory < handle
                     obj = SettingsLevelSetSquareInclusion(s);
                 case 'smoothSquare'                    
                     obj = SettingsLevelSetSmoothSquareInclusion(s);
-                case 'rectangle'
+                case {'rectangle', 'rectangleInclusion'}
                     obj = SettingsLevelSetRectangleInclusion(s);
                 case 'smoothRectangle'
                     obj = SettingsLevelSetSmoothRectangleInclusion(s);
