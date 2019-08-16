@@ -1,5 +1,5 @@
 classdef Line_Linear < Interpolation
-
+    
     methods (Access = public)
         function obj = Line_Linear(mesh)
             obj = obj@Interpolation(mesh);
@@ -12,9 +12,13 @@ classdef Line_Linear < Interpolation
         end
         
         function computeShapeDeriv(obj,posgp)
-            s = posgp;
-            obj.shape = [ones(length(posgp),1)-s,s+1]/2;
-            obj.deriv = repmat([-0.5,0.5],1,1,length(posgp));
+            ngaus = size(posgp,2);
+            s = posgp(1,:);
+            I = ones(1,ngaus);
+            obj.shape = [I-s;s+1]/2;
+            obj.deriv = repmat([-0.5,0.5],1,1,ngaus);
         end
+        
     end
+    
 end

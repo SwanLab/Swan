@@ -22,10 +22,10 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         subcellIsoCoords
         cellContainingSubcell
         backgroundFullCells
+        nodesInBoxFaces
     end
     
     properties (Access = private)
-        nodesInBoxFaces
         isBoxFaceMeshActive
         nboxFaces
         ndim

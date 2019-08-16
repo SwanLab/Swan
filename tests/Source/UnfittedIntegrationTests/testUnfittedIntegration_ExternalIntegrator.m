@@ -41,14 +41,19 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
                     cParamsInner = obj.createInnerParams(obj.mesh);
                     cParams.compositeParams{2} = cParamsInner;
                 case 'BOUNDARY'
-                    if contains(class(obj),'Rectangle')
+                    if contains(class(obj),'Rectangle') || contains(class(obj),'Cylinder')
                         cParams.type = 'COMPOSITE';
                         cParams.mesh = obj.mesh;
+                        cParams.boxFaceToGlobal = obj.mesh.nodesInBoxFaces;
                         for iMesh = 1:obj.mesh.nActiveBoxFaces
-                            boxFaceMesh = obj.mesh.boxFaceMeshes{iMesh};
+                            iActive = obj.mesh.activeBoxFaceMeshesList(iMesh);
+                            boxFaceMesh = obj.mesh.boxFaceMeshes{iActive};
                             params = obj.createCompositeParams(boxFaceMesh);
+                            params.boxFaceToGlobal =  obj.mesh.nodesInBoxFaces{iActive};
                             cParams.compositeParams{iMesh} = params;
                         end
+                        cParamsInnerCut = obj.createInnerCutParams(obj.mesh);
+                        cParams.compositeParams{end+1} = cParamsInnerCut;
                     else
                         cParams.mesh = obj.mesh;
                         cParams.type = 'COMPOSITE';
@@ -58,6 +63,7 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
             end
             integratorC = Integrator.create(cParams);
             f = ones(size(obj.mesh.levelSet_background));
+%             int = integratorC.integrate(f);
             int = integratorC.integrateAndSum(f);
         end
         
@@ -84,6 +90,8 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
             params.npnod = obj.mesh.meshBackground.npnod;
             cParamsInner = obj.createInnerParams(mesh);
             params.compositeParams{1} = cParamsInner;
+            cParamsInnerCut = obj.createInnerCutParams(mesh);
+            params.compositeParams{2} = cParamsInnerCut;
         end
     end
     
