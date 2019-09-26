@@ -64,8 +64,7 @@ classdef Element_DiffReact < Element
         
         function computeBoundaryMassMatrix(obj)
             if obj.addRobinTerm
-                cParams.mesh = obj.mesh;
-                cParams.type = obj.mesh.unfittedType;
+                cParams = obj.createIntegratorParams();
                 integrator = Integrator.create(cParams);
                 obj.Mr = integrator.computeLHS();
             end
@@ -122,6 +121,25 @@ classdef Element_DiffReact < Element
             M = Me;
             
         end
+    end
+    
+    methods (Access = private)
+        
+        function params = createIntegratorParams(obj)
+            params.type = 'COMPOSITE';
+            params.mesh = obj.mesh;
+            for iMesh = 1:obj.mesh.nBoxFaces
+                boxFaceMesh = obj.mesh.boxFaceMeshes{iMesh};
+                cParams.mesh = boxFaceMesh;
+                cParams.type = 'SIMPLE';
+                cParams.backgroundMesh = obj.mesh.innerMeshOLD;
+                cParams.globalConnec = obj.mesh.globalConnectivities{iMesh};
+                cParams.innerToBackground = [];
+                cParams.npnod = obj.mesh.innerMeshOLD.npnod;
+                params.compositeParams{iMesh} = cParams;
+            end
+        end
+        
     end
     
     methods(Access = protected) % Only the child sees the function

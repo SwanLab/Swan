@@ -5,10 +5,19 @@ classdef Integrator_Composite < Integrator
         nInt
     end
     
+    properties (Access = private)
+       RHScells
+       RHSsubcells
+       boxFaceToGlobal
+    end
+    
     methods (Access = public)
         
         function obj = Integrator_Composite(cParams)
             obj.init(cParams);
+            if isfield(cParams,'boxFaceToGlobal')
+                obj.boxFaceToGlobal = cParams.boxFaceToGlobal;
+            end
             obj.createIntegrators(cParams);
         end
         
@@ -27,6 +36,26 @@ classdef Integrator_Composite < Integrator
             end
         end
         
+        function f = integrateAndSum(obj,nodalFunc)
+            f = 0;
+            for iInt = 1:obj.nInt
+                integrator = obj.integrators{iInt};
+                if contains(class(integrator),'Composite')
+                    intLocal = integrator.integrateAndSum(nodalFunc);
+                    npnod = obj.mesh.meshBackground.npnod;
+                    obj.RHScells = zeros(npnod,1);
+                    obj.RHSsubcells = intLocal;
+                    obj.assembleBoxFaceToGlobal(iInt);
+                    int = obj.RHScells;
+                else
+                    int = integrator.integrate(nodalFunc);
+                end
+                f = f + int;
+            end
+            
+%             f = obj.sumIntegrals(int);
+        end
+        
     end
     
     methods (Access = private)
@@ -36,8 +65,8 @@ classdef Integrator_Composite < Integrator
         end
         
         function createIntegrators(obj,cParams)
-          %   obj.createIntegratorsNew(cParams);
-            obj.createIntegratorsOld();
+            obj.createIntegratorsNew(cParams);
+%                         obj.createIntegratorsOld();
         end
         
         function createIntegratorsNew(obj,cParams)
@@ -69,6 +98,22 @@ classdef Integrator_Composite < Integrator
                 end
             end
             obj.nInt = numel(obj.integrators);
+        end
+        
+        function assembleBoxFaceToGlobal(obj,iInt)
+            boxFaceCells = obj.integrators{iInt}.boxFaceToGlobal;
+            obj.RHScells(boxFaceCells,:) = obj.RHSsubcells;
+        end
+        
+    end
+    
+    methods (Access = private, Static)
+        
+        function sumIntegrals(int)
+            f = 0;
+            for iInt = 1:numel(int)
+                f = f + int{iInt};
+            end
         end
         
     end

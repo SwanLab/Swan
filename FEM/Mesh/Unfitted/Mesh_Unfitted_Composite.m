@@ -22,10 +22,10 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         subcellIsoCoords
         cellContainingSubcell
         backgroundFullCells
+        nodesInBoxFaces
     end
     
     properties (Access = private)
-        nodesInBoxFaces
         isBoxFaceMeshActive
         nboxFaces
         ndim
@@ -152,7 +152,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
                     boxFaceMesh = obj.boxFaceMeshes{iface};
                     mshBack = boxFaceMesh.meshBackground;
                     lsBoxFace = levelSet(obj.nodesInBoxFaces{iface});
-                    if obj.isBoxMeshActive(lsBoxFace,mshBack)
+                    if obj.isBoxMeshActive(lsBoxFace)
                         obj.boxFaceMeshes{iface}.compute(lsBoxFace);
                         obj.isBoxFaceMeshActive(iface) = true;
                     end
@@ -198,10 +198,8 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
     
     methods (Static, Access = private)
         
-        function itIs = isBoxMeshActive(levelSet,meshBack)
-            phi_nodes = levelSet(meshBack.connec);
-            phi_case = sum((sign(phi_nodes)<0),2);
-            itIs = (any(phi_case));
+        function itIs = isBoxMeshActive(levelSet)
+            itIs = any(sign(levelSet)<0);
         end
         
     end
