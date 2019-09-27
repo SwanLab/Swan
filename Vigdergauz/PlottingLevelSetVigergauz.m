@@ -74,5 +74,4 @@ classdef PlottingLevelSetVigergauz < handle
         
     end
     
-    
 end

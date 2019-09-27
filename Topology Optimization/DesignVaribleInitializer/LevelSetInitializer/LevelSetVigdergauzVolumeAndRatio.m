@@ -20,9 +20,12 @@ classdef LevelSetVigdergauzVolumeAndRatio < LevelSetCreator
             volum = obj.volume;
             phi = atan(obj.ratio);
             if obj.isMicroStructureValid(phi,volum)
-                x = obj.nodeCoord(:,1);                
-                y = obj.nodeCoord(:,2);                
-                obj.levelSet = LevelSetLipung(x,y,volum,phi);
+                cParams.x = obj.nodeCoord(:,1);                
+                cParams.y = obj.nodeCoord(:,2);  
+                cParams.volum = volum;
+                cParams.phi = phi;
+                lsVig = LevelSetLipung(cParams);
+                obj.levelSet = lsVig.value;
             else
                 error('Not possible axisRatio with this volume')
             end
