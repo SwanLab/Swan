@@ -38,6 +38,10 @@ classdef LevelSetFactory < handle
                     obj = LevelSetHorizontalFibers(d);
                 case 'given'
                     obj = LevelSetGiven(d);
+                case 'VigdergauzVolumeAndStrian'
+                    obj = LevelSetVigdergauzVolumeAndRatio(d);
+                case 'VigdergauzVolumeAndRatio'
+                    obj = LevelSetVigdergauzVolumeAndRatio(d);
                 otherwise
                     error('Invalid initial value of design variable.');
             end

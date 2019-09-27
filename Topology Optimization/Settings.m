@@ -16,6 +16,8 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         e2 
         ub = 1;
         lb = 0;
+        volumeMicro
+        superEllipseRatio
     end
     
     properties %target parameters
@@ -311,6 +313,14 @@ classdef Settings %< handle%& matlab.mixin.Copyable
                 obj.lb = lb;
             else
                 obj.lb = 0;
+            end   
+            
+            if exist('superEllipseRatio','var')
+               obj.levelSetDataBase.superEllipseRatio = superEllipseRatio;
+            end
+            
+            if exist('volumeMicro','var')
+               obj.levelSetDataBase.volumeMicro = volumeMicro;
             end            
             
         end

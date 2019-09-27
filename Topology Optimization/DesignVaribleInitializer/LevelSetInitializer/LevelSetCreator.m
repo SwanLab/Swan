@@ -26,8 +26,8 @@ classdef LevelSetCreator < handle
     methods (Access = protected)
         
         function obj = compute(obj,input)
-            obj.lsSize = size(input.coord(:,1));
-            obj.ndim   = input.ndim;
+            obj.lsSize    = size(input.coord(:,1));
+            obj.ndim      = input.ndim;
             obj.nodeCoord = input.coord;
             obj.computeLevelSet();
         end

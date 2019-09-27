@@ -84,7 +84,8 @@ c = 1.1;
 % rl = 1/c;
 [rub,rlb] = findRbounds2(F);
 options = optimset('Display','iter');
-r = fzero(F,[rlb,rub],options);
+%r = fzero(F,[rlb,rub],options);
+r = fzero(F,[rlb,rub]);
 %options = optimset('Display','iter');
 %r = fzero(F,1,options);
 end
@@ -195,7 +196,8 @@ if T <= 0.15
 else
     F = @(x) implicitMequation(x,T);
     options = optimset('Display','iter');
-    x = fzero(F,[0+eps,1-eps],options);
+    %x = fzero(F,[0+eps,1-eps],options);
+    x = fzero(F,[0+eps,1-eps]);
 end
 end
 
