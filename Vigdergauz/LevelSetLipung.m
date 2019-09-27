@@ -1,20 +1,11 @@
-function untitled12
+function phi = LevelSetLipung(x,y,theta,phi)
+
+x = (1 - (-1))*(x-0.5);
+y = (1 - (-1))*(y-0.5);
+
 cx = 1; cy = 1;
 
 
-theta = 0.4;
-
-rxMax = 0.99;
-ryMax = 0.99;
-
-phimin = atan((theta)/(rxMax^2))*180/pi;
-phimax = atan((rxMax^2)/(theta))*180/pi;
-
-%alpha = rand(1);
-alpha = 0.5;
-phi = phimin + (phimax - phimin)*alpha;
-phi = phi*pi/180;
-rat = tan(phi);
 
 r = computeOptimalR(theta,phi,cx,cy);
 
@@ -37,7 +28,7 @@ FyMax = incompleteEllipticFunction(sqrt(1-M),my);
 rx = computeR(ax,mx,M);
 ry = computeR(ay,my,M);
 
-[x,y] = createGrid(cx,cy);
+%[x,y] = createGrid(cx,cy);
 
 xp(:,1) = (ellipj(x(:,1)/rx*FxMax,mx));
 yp(:,1) = (ellipj(y(:,1)/ry*FyMax,my));
@@ -47,22 +38,21 @@ hold on
 isPositive = levelset>0;
 validx = abs(x) <= rx;
 validy = abs(y) <= ry;
-ind = isPositive & validx & validy;
+valid =  validx & validy;
+ind = isPositive & valid;
 %ind = isPositive;
-plot(x(~ind,:),y(~ind,:),'+')
-axis([-cx, cx, -cy, cy])
+%plot(x(~ind,:),y(~ind,:),'+')
+%axis([-cx, cx, -cy, cy])
 
-tri = delaunay(x,y);
-h = trisurf(tri, x, y, levelset);
-axis vis3d
+phi = levelset;
 
-axis off
-l = light('Position',[-50 -15 29]);
-set(gca,'CameraPosition',[208 -50 7687])
-lighting phong
-shading interp
-colorbar EastOutside
+%phi(ind) = -phi(ind);
+phi(~(validx & validy)) = -abs(phi(~(validx & validy)));
 
+% tri = delaunay(x,y);
+% h = trisurf(tri, x, y, phi);
+% axis off
+% shading interp
 
 end
 
