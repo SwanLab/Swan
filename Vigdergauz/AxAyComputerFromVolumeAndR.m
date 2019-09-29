@@ -1,22 +1,16 @@
 classdef AxAyComputerFromVolumeAndR < handle
-    
-    properties (Access = public)
-        ax
-        ay
-    end
-    
+
     properties (Access = private)
         theta
         r
         cx
+        cy
     end
     
     methods (Access = public)
         
-        function obj = AxAyComputerFromVolumeAndR(volume,r,cx)
-            obj.theta = 1 - volume;
-            obj.r = r;
-            obj.cx = cx;
+        function obj = AxAyComputerFromVolumeAndR(cParams)
+            obj.init(cParams)
         end
         
         function [ax,ay] = compute(obj)
@@ -25,6 +19,17 @@ classdef AxAyComputerFromVolumeAndR < handle
             Ty = obj.computeTy(obj.r,h,obj.cx);
             ax = obj.computeAx(Tx,Ty,obj.cx);
             ay = obj.computeAy(Tx,Ty,obj.cx);
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function init(obj,cParams)
+            obj.theta = 1 - cParams.volume;
+            obj.r     = cParams.r;
+            obj.cx    = cParams.cx;            
+            obj.cy    = cParams.cy;
         end
         
     end

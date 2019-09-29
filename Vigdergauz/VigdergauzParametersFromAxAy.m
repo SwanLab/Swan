@@ -1,4 +1,4 @@
-classdef VigdergauzParametersComputerFromAxAy < handle
+classdef VigdergauzParametersFromAxAy < VigdergauzParameters
     
     properties (GetAccess = public, SetAccess = private)
         mx
@@ -19,7 +19,7 @@ classdef VigdergauzParametersComputerFromAxAy < handle
        
     methods (Access = public)
         
-        function obj = VigdergauzParametersComputerFromAxAy(cParams)
+        function obj = VigdergauzParametersFromAxAy(cParams)
             obj.init(cParams)
             obj.computeParameters();
         end

@@ -20,7 +20,6 @@ classdef PlottingLevelSetVigergauz < handle
             obj.createTopOptProblem();
             obj.createLevelSet();
             obj.createMesh();
-            obj.computeLevelSet();
             obj.plotMesh();
         end
         

@@ -1,4 +1,4 @@
-filename='RVE_Square_Triangle_FineFine';
+filename ='test2d_micro';
 ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -10,9 +10,10 @@ kappaMultiplier = 1;
 designVariable = 'LevelSet';
 filterType = 'P1';
 initial_case = 'Vigdergauz';
-vigdergauzType = 'VolumeAndRatio';
-superEllipseRatio = 1;
-volumeMicro = 0.5;
+vigdergauzType = 'VolumeAndStrain';
+vigdergauzStrainMacro = [cos(pi/4) sin(pi/4) 0];
+volumeMicro = 0.8;
+
 
 nsteps = 1;
 Vfrac_final = 0.5;

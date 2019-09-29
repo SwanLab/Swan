@@ -6,9 +6,11 @@ classdef VigdergauzParametersFactory < handle
             
            switch cParams.type               
                case 'VolumeAndRatio'
-                   v = VigdergauzParametersFromThetaAndPhi(cParams);                   
+                   v = VigdergauzParametersFromVolumeAndPhi(cParams);                   
                case 'VolumeAndStrain'
-               
+                   v = VigdergauzParametersFromVolumeAndStrain(cParams);  
+               case 'AxAndAy'
+                   v = VigdergauzParametersFromAxAy(cParams);
            end
             
         end

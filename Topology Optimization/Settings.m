@@ -327,6 +327,16 @@ classdef Settings %< handle%& matlab.mixin.Copyable
                obj.levelSetDataBase.vigdergauzDataBase.type =  vigdergauzType;
             end
             
+            if exist('vigdergauzStrainMacro','var')
+               obj.levelSetDataBase.vigdergauzDataBase.strain =  vigdergauzStrainMacro;
+               if exist('TOL','var')
+                   obj.levelSetDataBase.vigdergauzDataBase.E1 = TOL.E_plus;
+                   obj.levelSetDataBase.vigdergauzDataBase.E0 = TOL.E_minus;
+                   obj.levelSetDataBase.vigdergauzDataBase.nu1 = TOL.nu_plus;
+                   obj.levelSetDataBase.vigdergauzDataBase.nu0 = TOL.nu_minus;
+               end
+            end            
+            
         end
         
        

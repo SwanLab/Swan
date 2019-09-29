@@ -1,4 +1,4 @@
-classdef VigdergauzParametersFromThetaAndPhi < handle
+classdef VigdergauzParametersFromVolumeAndPhi < handle
     
     properties (Access = public)
         parameters
@@ -15,15 +15,14 @@ classdef VigdergauzParametersFromThetaAndPhi < handle
     
     methods (Access = public)
         
-        function obj = VigdergauzParametersFromThetaAndPhi(cParams)
+        function obj = VigdergauzParametersFromVolumeAndPhi(cParams)
             obj.init(cParams);
             obj.checkValidityOfParameters();
         end
         
         function compute(obj)
             r = obj.computeOptimalR();
-            axay = AxAyComputerFromVolumeAndR(obj.volume,r,obj.cx);
-            [obj.ax,obj.ay] = axay.compute();  
+            obj.computeAxAy(r)  
             obj.computeVigergauzParameters();
         end        
         
@@ -38,6 +37,15 @@ classdef VigdergauzParametersFromThetaAndPhi < handle
             obj.cy     = cParams.cy;            
         end
         
+        function computeAxAy(obj,r)
+            s.r = r;
+            s.volume = obj.volume;
+            s.cx = obj.cx;
+            s.cy = obj.cy;
+            axay = AxAyComputerFromVolumeAndR(s); 
+            [obj.ax,obj.ay] = axay.compute();            
+        end
+        
         function r = computeOptimalR(obj)
             s.x0 = 1;
             s.functionToSolve = @(r) obj.equationForR(r);
@@ -46,8 +54,7 @@ classdef VigdergauzParametersFromThetaAndPhi < handle
         end
                
         function f = equationForR(obj,r)
-            axay = AxAyComputerFromVolumeAndR(obj.volume,r,obj.cx);
-            [obj.ax,obj.ay] = axay.compute();
+            obj.computeAxAy(r);
             obj.computeVigergauzParameters();
             rx = obj.parameters.rx;
             ry = obj.parameters.ry;
@@ -59,7 +66,8 @@ classdef VigdergauzParametersFromThetaAndPhi < handle
             s.ay = obj.ay;
             s.cx = obj.cx;
             s.cy = obj.cy;
-            obj.parameters = VigdergauzParametersComputerFromAxAy(s);
+            s.type = 'AxAndAy';
+            obj.parameters = VigdergauzParameters.create(s);
         end 
         
         function checkValidityOfParameters(obj)
