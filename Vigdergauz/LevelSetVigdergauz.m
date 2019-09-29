@@ -1,26 +1,34 @@
-classdef LevelSetLipung < handle
-    
-    properties (Access = public)
-        value
-    end
+classdef LevelSetVigdergauz < LevelSetCreator
     
     properties (Access = private)
         x
         y
-        volume
-        phi
         ax
         ay
         cx
         cy
         parameters
+        vigdergauzType
+        vigdergauzDataBase        
     end
     
     methods (Access = public)
         
-        function obj = LevelSetLipung(cParams)
-            obj.init(cParams)
-            obj.compute();
+        function obj = LevelSetVigdergauz(cParams)
+            obj.init(cParams);   
+            obj.compute(cParams);
+        end
+        
+    end
+    
+    methods (Access = protected)
+        
+        function computeLevelSet(obj)          
+            obj.rescaleCoordinates();
+            obj.computeVigdergauzParameters();                  
+            ls = obj.computeLevelSetInEllipticCoordinates();
+            ls = obj.makeLevelSetNegativeOutRectangelEnvelope(ls);
+            obj.levelSet = ls;
         end
         
     end
@@ -28,38 +36,26 @@ classdef LevelSetLipung < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.x      = cParams.x;
-            obj.y      = cParams.y;
-            obj.volume = cParams.volum;
-            obj.phi    = cParams.phi;
+            obj.vigdergauzType     = cParams.vigdergauzType;
+            obj.vigdergauzDataBase = cParams.vigdergauzDataBase;        
             obj.cx = 1; 
             obj.cy = 1;            
         end
         
-        function compute(obj)
-            obj.rescaleCoordinates();
-            obj.computeVigdergauzParameters();
-            obj.computeLevelSet();
-        end
-        
+        function rescaleCoordinates(obj)
+            xv = obj.nodeCoord(:,1);
+            yv = obj.nodeCoord(:,2);
+            obj.x = (1 - (-1))*(xv-0.5);
+            obj.y = (1 - (-1))*(yv-0.5);            
+        end        
+                
         function computeVigdergauzParameters(obj)
-            s.volume = obj.volume;
-            s.phi    = obj.phi;
+            s.volume = obj.vigdergauzDataBase.volumeMicro;
+            s.phi    = atan(obj.vigdergauzDataBase.superEllipseRatio);
             s.cx     = obj.cx;
             s.cy     = obj.cy;
             v = VigdergauzParametersFromThetaAndPhi(s);      
             obj.parameters = v.parameters;
-        end
-        
-        function rescaleCoordinates(obj)
-            obj.x = (1 - (-1))*(obj.x-0.5);
-            obj.y = (1 - (-1))*(obj.y-0.5);            
-        end
-         
-        function computeLevelSet(obj)
-            ls = obj.computeLevelSetInEllipticCoordinates();
-            ls = obj.makeLevelSetNegativeOutRectangelEnvelope(ls);
-            obj.value = ls;
         end
         
         function ls = computeLevelSetInEllipticCoordinates(obj)

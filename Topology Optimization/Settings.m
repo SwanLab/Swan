@@ -316,12 +316,16 @@ classdef Settings %< handle%& matlab.mixin.Copyable
             end   
             
             if exist('superEllipseRatio','var')
-               obj.levelSetDataBase.superEllipseRatio = superEllipseRatio;
+               obj.levelSetDataBase.vigdergauzDataBase.superEllipseRatio = superEllipseRatio;
             end
             
             if exist('volumeMicro','var')
-               obj.levelSetDataBase.volumeMicro = volumeMicro;
+               obj.levelSetDataBase.vigdergauzDataBase.volumeMicro = volumeMicro;
             end            
+            
+            if exist('vigdergauzType','var')
+               obj.levelSetDataBase.vigdergauzType =  vigdergauzType;
+            end
             
         end
         

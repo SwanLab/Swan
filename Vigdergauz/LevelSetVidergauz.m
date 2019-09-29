@@ -42,7 +42,7 @@ s.ay = ay;
 s.cx = cx;
 s.cy = cy;
 
-p = VigdergauzParametersComputer(s);
+p = VigdergauzParametersComputerFromAxAy(s);
 
 xp(:,1) = (ellipj(x(:,1)/p.rx*p.FxMax,p.mx));
 yp(:,1) = (ellipj(y(:,1)/p.ry*p.FyMax,p.my));

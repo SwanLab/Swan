@@ -36,8 +36,8 @@ classdef SettingsLevelSetCreatorFactory < handle
                     obj = SettingsLevelSetHorizontalFibers(s);
                 case 'given'
                     obj = SettingsLevelSetGiven(s);
-                case 'VigdergauzVolumeAndRatio'
-                    obj = SettingsLevelSetVigdergauzVolumeAndRatio(s);
+                case 'Vigdergauz'
+                    obj = SettingsLevelSetVigdergauz(s);
                 otherwise
                     error('Invalid initial value of design variable.');
             end

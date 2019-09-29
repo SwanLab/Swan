@@ -2,7 +2,6 @@ filename ='test2d_micro';%'RVE_Square_Triangle_FineFine';
 ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'VigdergauzVolumeAndRatio';
 cost={'chomog_alphabeta','perimeterConstraint'};
 weights=[1 0.1];
 constraint = {'volumeConstraint'};
@@ -10,6 +9,8 @@ optimizer = 'SLERP';
 kappaMultiplier = 1;
 designVariable = 'LevelSet';
 filterType = 'P1';
+initial_case = 'Vigdergauz';
+vigdergauzType = 'VolumeAndRatio';
 superEllipseRatio = 1;
 volumeMicro = 0.5;
 
