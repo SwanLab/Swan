@@ -7,17 +7,13 @@ classdef LevelSetLipung < handle
     properties (Access = private)
         x
         y
-        volum
+        volume
         phi
-        h
-        Tx
-        Ty
-        r
         ax
         ay
-        theta
         cx
         cy
+        parameters
     end
     
     methods (Access = public)
@@ -32,77 +28,72 @@ classdef LevelSetLipung < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.x     = cParams.x;
-            obj.y     = cParams.y;
-            obj.volum = cParams.volum;
-            obj.phi   = cParams.phi;
+            obj.x      = cParams.x;
+            obj.y      = cParams.y;
+            obj.volume = cParams.volum;
+            obj.phi    = cParams.phi;
             obj.cx = 1; 
             obj.cy = 1;            
         end
         
         function compute(obj)
             obj.rescaleCoordinates();
-            obj.theta = 1-obj.volum;
-            obj.r = obj.computeOptimalR();           
-            axay = AxAyComputerFromVolumeAndR(obj.volum,obj.r,obj.cx);
-            [obj.ax,obj.ay] = axay.compute();
-            
-            p = computeVigergauzParameters(obj);
-            
-            obj.value = obj.computeLevelSet(obj.x,obj.y,p);
+            obj.computeVigdergauzParameters();
+            obj.computeLevelSet();
+        end
+        
+        function computeVigdergauzParameters(obj)
+            s.volume = obj.volume;
+            s.phi    = obj.phi;
+            s.cx     = obj.cx;
+            s.cy     = obj.cy;
+            v = VigdergauzParametersFromThetaAndPhi(s);      
+            obj.parameters = v.parameters;
         end
         
         function rescaleCoordinates(obj)
             obj.x = (1 - (-1))*(obj.x-0.5);
             obj.y = (1 - (-1))*(obj.y-0.5);            
         end
-        
-        function f = equationForR(obj,r,theta,phi)            
-            obj.r = r;
-            obj.theta = theta;
-            axay = AxAyComputerFromVolumeAndR(obj.volum,r,obj.cx);
-            [obj.ax,obj.ay] = axay.compute();
-            p = obj.computeVigergauzParameters();
-            f = tan(phi) - p.rx/p.ry;
+         
+        function computeLevelSet(obj)
+            ls = obj.computeLevelSetInEllipticCoordinates();
+            ls = obj.makeLevelSetNegativeOutRectangelEnvelope(ls);
+            obj.value = ls;
         end
         
-        function p = computeVigergauzParameters(obj)
-            s.ax = obj.ax;
-            s.ay = obj.ay;
-            s.cx = obj.cx;
-            s.cy = obj.cy;
-            p = VigdergauzParametersComputer(s);
+        function ls = computeLevelSetInEllipticCoordinates(obj)
+            M  = obj.parameters.M;            
+            [xe,ye] = obj.computeEllipticCoordinates();
+            ls(:,1) = (1-xe.^2).*(1-ye.^2) - M;
+        end       
+        
+        function ls = makeLevelSetNegativeOutRectangelEnvelope(obj,ls)
+            out = obj.isOutsideRectangleEnvelope();
+            ls(out) = -abs(ls(out));                
         end
         
-          function r = computeOptimalR(obj)
-            s.x0 = 1;
-            s.functionToSolve = @(r) obj.equationForR(r,obj.theta,obj.phi);
-            solver = ImplicitEquationSolver(s); 
-            r = solver.solve();
+        function itIs = isOutsideRectangleEnvelope(obj)
+            xv = obj.x;
+            yv = obj.y;              
+            isSmallerThanRx  = abs(xv) <= obj.parameters.rx;
+            isSmallerThanRy  = abs(yv) <= obj.parameters.ry;
+            isInsideRectange =  isSmallerThanRx & isSmallerThanRy;  
+            itIs = ~isInsideRectange;            
         end
         
-       function r = computeR(obj,a,m,M)
-            K = obj.completeEllipticFunction(m);
-            Fmax = obj.incompleteEllipticFunction(sqrt(1-M),m);
-            r = a/K*Fmax;
+        function [xe,ye] = computeEllipticCoordinates(obj)
+            xv = obj.x;
+            yv = obj.y;            
+            mx = obj.parameters.mx;
+            my = obj.parameters.my;
+            FxMax = obj.parameters.FxMax;
+            FyMax = obj.parameters.FxMax;  
+            rx = obj.parameters.rx;
+            ry = obj.parameters.ry;  
+            xe = ellipj(xv/rx*FxMax,mx);
+            ye = ellipj(yv/ry*FyMax,my);            
         end
-
-    end
-    
-    methods (Access = private, Static)
-        
-        function phi = computeLevelSet(x,y,p)
-            xp(:,1) = ellipj(x(:,1)/p.rx*p.FxMax,p.mx);
-            yp(:,1) = ellipj(y(:,1)/p.ry*p.FyMax,p.my);
-            levelset(:,1) = (1-xp(:,1).^2).*(1-yp(:,1).^2) - p.M;
-            validx = abs(x) <= p.rx;
-            validy = abs(y) <= p.ry;
-            valid =  validx & validy;
-            phi = levelset;
-            phi(~(valid)) = -abs(phi(~(valid)));           
-        end
-        
-
         
     end
     
