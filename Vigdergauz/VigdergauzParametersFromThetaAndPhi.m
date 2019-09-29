@@ -18,18 +18,6 @@ classdef VigdergauzParametersFromThetaAndPhi < handle
         function obj = VigdergauzParametersFromThetaAndPhi(cParams)
             obj.init(cParams);
             obj.checkValidityOfParameters();
-            obj.compute();
-        end
-        
-    end
-    
-    methods (Access = private)
-        
-        function init(obj,cParams)
-            obj.volume = cParams.volume;
-            obj.phi    = cParams.phi;
-            obj.cx     = cParams.cx;
-            obj.cy     = cParams.cy;            
         end
         
         function compute(obj)
@@ -37,7 +25,18 @@ classdef VigdergauzParametersFromThetaAndPhi < handle
             axay = AxAyComputerFromVolumeAndR(obj.volume,r,obj.cx);
             [obj.ax,obj.ay] = axay.compute();  
             obj.computeVigergauzParameters();
-        end                
+        end        
+        
+    end
+    
+    methods (Access = private)
+        
+        function init(obj,cParams)
+            obj.volume = cParams.volumeMicro;
+            obj.phi    = atan(cParams.superEllipseRatio);
+            obj.cx     = cParams.cx;
+            obj.cy     = cParams.cy;            
+        end
         
         function r = computeOptimalR(obj)
             s.x0 = 1;

@@ -324,7 +324,7 @@ classdef Settings %< handle%& matlab.mixin.Copyable
             end            
             
             if exist('vigdergauzType','var')
-               obj.levelSetDataBase.vigdergauzType =  vigdergauzType;
+               obj.levelSetDataBase.vigdergauzDataBase.type =  vigdergauzType;
             end
             
         end

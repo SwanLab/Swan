@@ -1,7 +1,6 @@
 classdef SettingsLevelSetVigdergauz < SettingsLevelSetCreator
     
     properties (Access = public)
-       vigdergauzType
        vigdergauzDataBase
     end
     

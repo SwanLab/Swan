@@ -8,7 +8,6 @@ classdef LevelSetVigdergauz < LevelSetCreator
         cx
         cy
         parameters
-        vigdergauzType
         vigdergauzDataBase        
     end
     
@@ -36,7 +35,6 @@ classdef LevelSetVigdergauz < LevelSetCreator
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.vigdergauzType     = cParams.vigdergauzType;
             obj.vigdergauzDataBase = cParams.vigdergauzDataBase;        
             obj.cx = 1; 
             obj.cy = 1;            
@@ -50,11 +48,11 @@ classdef LevelSetVigdergauz < LevelSetCreator
         end        
                 
         function computeVigdergauzParameters(obj)
-            s.volume = obj.vigdergauzDataBase.volumeMicro;
-            s.phi    = atan(obj.vigdergauzDataBase.superEllipseRatio);
+            s = obj.vigdergauzDataBase;
             s.cx     = obj.cx;
             s.cy     = obj.cy;
-            v = VigdergauzParametersFromThetaAndPhi(s);      
+            v = VigdergauzParameters.create(s);      
+            v.compute();
             obj.parameters = v.parameters;
         end
         
