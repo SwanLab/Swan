@@ -8,6 +8,7 @@ classdef VigdergauzParametersFromAxAy < VigdergauzParameters
         M
         rx
         ry
+        TxTy
     end
     
     properties (Access = private)
@@ -15,6 +16,8 @@ classdef VigdergauzParametersFromAxAy < VigdergauzParameters
         ay
         cx
         cy
+        Tx
+        Ty
     end
        
     methods (Access = public)
@@ -36,6 +39,10 @@ classdef VigdergauzParametersFromAxAy < VigdergauzParameters
         end
         
         function computeParameters(obj)
+            obj.Tx = obj.computeTx();
+            obj.Ty = obj.computeTy();
+            obj.TxTy = obj.Tx*obj.Ty;
+            obj.computeFeasibility()
             obj.mx = obj.computeMx();
             obj.my = obj.computeMy();            
             obj.M = obj.computeM();           
@@ -45,16 +52,32 @@ classdef VigdergauzParametersFromAxAy < VigdergauzParameters
             obj.ry = obj.computeRy();
         end
         
+        function Tx = computeTx(obj)
+            Tx = obj.computeT(obj.ax,obj.ay,obj.cy);
+        end
+        
+        function Ty = computeTy(obj)
+            Ty = obj.computeT(obj.ay,obj.ax,obj.cx);
+        end
+        
+        function computeFeasibility(obj)
+            if obj.TxTy > 1 
+               error('Tx*Ty > 1'); 
+            end
+            if obj.TxTy < 0 
+               error('Tx*Ty < 0'); 
+            end            
+        end
+        
         function mx = computeMx(obj)
-            mx = obj.computeEllipticParameter(obj.ax,obj.ay,obj.cy);
+            mx = obj.computeEllipticParameter(obj.Tx);
         end
         
         function my = computeMy(obj)
-            my = obj.computeEllipticParameter(obj.ay,obj.ax,obj.cx);            
+            my = obj.computeEllipticParameter(obj.Ty);            
         end
         
-        function x = computeEllipticParameter(obj,a1,a2,c)
-            T = (c - a2)/a1;
+        function x = computeEllipticParameter(obj,T)
             eps = 2.2204*1e-14;
             if T <= 0.15
                 x = 1 - eps;
@@ -109,7 +132,11 @@ classdef VigdergauzParametersFromAxAy < VigdergauzParameters
        
         function F = incompleteElliptic(x,k)
             F = ellipticF(asin(x),k);
-        end                 
+        end       
+        
+        function T = computeT(a1,a2,c)
+           T = (c - a2)/a1; 
+        end               
         
     end
     

@@ -47,25 +47,7 @@ classdef PlottingLevelSetVigergauz < handle
             settingsTopOpt = SettingsTopOptProblem(fileName);
             obj.topOpt = TopOpt_Problem(settingsTopOpt);
         end
-        
-        function computeLevelSet(obj)            
-            volume = 0.3;
-            theta = 1 - volume;            
-            rxMax = 0.99;
-            ryMax = 0.99;            
-            phimin = atan((theta)/(rxMax^2))*180/pi;
-            phimax = atan((rxMax^2)/(theta))*180/pi;
-            alpha = 0.2;
-            phi = phimin + (phimax - phimin)*alpha;
-            phi = phi*pi/180;
-            rat = tan(phi);
-            x = obj.mesh.meshBackground.coord(:,1);
-            y = obj.mesh.meshBackground.coord(:,2);
-            obj.levelSet = LevelSetLipung(x,y,theta,phi);
-            obj.mesh.compute(obj.levelSet);   
-            v = obj.mesh.computeMass();
-        end
-        
+               
         function plotMesh(obj)
             obj.mesh.plot();
             view([0 0 1]);

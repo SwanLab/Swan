@@ -82,7 +82,7 @@ classdef LevelSetVigdergauz < LevelSetCreator
             mx = obj.parameters.mx;
             my = obj.parameters.my;
             FxMax = obj.parameters.FxMax;
-            FyMax = obj.parameters.FxMax;  
+            FyMax = obj.parameters.FyMax;  
             rx = obj.parameters.rx;
             ry = obj.parameters.ry;  
             xe = ellipj(xv/rx*FxMax,mx);

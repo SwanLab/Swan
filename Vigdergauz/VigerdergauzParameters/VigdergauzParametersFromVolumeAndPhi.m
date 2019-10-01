@@ -78,8 +78,8 @@ classdef VigdergauzParametersFromVolumeAndPhi < handle
         
         function itIs = isMicroStructureValid(obj)
             rMax = 0.99;
-            phiMin = atan((obj.volume)/(rMax^2));
-            phiMax = atan((rMax^2)/(obj.volume));
+            phiMin = atan((1 - obj.volume)/(rMax^2));
+            phiMax = atan((rMax^2)/(1 - obj.volume));
             itIs = obj.phi <= phiMax && obj.phi >= phiMin;
         end        
         

@@ -63,8 +63,6 @@ classdef VigdergauzParametersFromVolumeAndStrain < handle
             s.ay = obj.ay;
             s.cx = obj.cx;
             s.cy = obj.cy;
-            s.cx = 0.5;
-            s.cy = 0.5;
             s.type = 'AxAndAy';
             obj.parameters = VigdergauzParameters.create(s);
         end         

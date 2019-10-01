@@ -23,8 +23,8 @@ classdef AxAyComputerFromVolumeAndStrain < handle
             q = b/c;
             q2 = ((obj.mu1 + obj.k0)/(obj.k1 - obj.k0) + obj.theta)*(obj.strain(1) - obj.strain(2))/(obj.strain(1)+obj.strain(2));
             strainNorm = norm(obj.strain);
-            phi = atan2(-obj.strain(1)/strainNorm,obj.strain(2)/strainNorm);            
-            q3 = ((obj.mu1 + obj.k0)/(obj.k1 - obj.k0) + obj.theta)*tan(phi + pi/4);
+            phi = atan2(obj.strain(1)/strainNorm,obj.strain(2)/strainNorm);            
+            q3 = ((obj.mu1 + obj.k0)/(obj.k1 - obj.k0) + obj.theta)/tan(phi + pi/4);
             ax = obj.computeAx(q);
             ay = obj.computeAy(q);
         end
