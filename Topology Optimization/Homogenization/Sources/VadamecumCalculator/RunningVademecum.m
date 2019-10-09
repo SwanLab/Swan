@@ -2,10 +2,13 @@ function RunningVademecum
 
 
 dSmooth = obtainSettings('VademecumSmoothCorner','SmoothRectangle');
+d.smoothingExponentSettings.type = 'Optimal';
 computeVademecum(dSmooth);
 
 
 dSmooth = obtainSettings('VademecumCorner','Rectangle');
+d.smoothingExponentSettings.type = 'Given';
+d.smoothingExponentSettings.q = 32;
 computeVademecum(dSmooth);
 
 end

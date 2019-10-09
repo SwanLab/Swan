@@ -67,6 +67,7 @@ classdef NumericalHomogenizer < handle
             obj.matDataBase    = d.materialDataBase;
             obj.interDataBase  = d.materialInterpDataBase;
             obj.volDataBase    = d.volumeShFuncDataBase;
+            obj.hasToCaptureImage = d.hasToCaptureImage;
         end
         
         function createMicroProblem(obj)
@@ -214,6 +215,8 @@ classdef NumericalHomogenizer < handle
         function dB = createPostProcessDataBase(obj)
             dI.mesh            = obj.microProblem.mesh;
             dI.outName         = obj.outputName;
+            dI.pdim            = obj.pdim;
+            dI.ptype           = 'MICRO';
             ps = PostProcessDataBaseCreator(dI);
             dB = ps.getValue();
         end
@@ -224,7 +227,11 @@ classdef NumericalHomogenizer < handle
                 f = obj.resFile;
                 outPutNameWithIter = [obj.outputName,num2str(i)];
                 inputFileName = fullfile('Output',f,[f,num2str(i),'.flavia.res']);
-                GiDImageCapturer(f,outPutNameWithIter,inputFileName);
+                s.fileName = f;
+                s.outPutImageName = outPutNameWithIter;
+                s.inputFileName = inputFileName;
+                imageCapturer = GiDImageCapturer(s);
+                imageCapturer.capture();
             end
         end
         

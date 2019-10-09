@@ -11,7 +11,7 @@ classdef HomogenizedTensorPrinter < AbstractHomogenizedTensorPrinter
     end
     
     methods (Access = protected)
-        
+               
         function storeMicroProblemsFields(obj,d)
             microProblems = d.phyProblems{1};
             fields = microProblems.variables2print;

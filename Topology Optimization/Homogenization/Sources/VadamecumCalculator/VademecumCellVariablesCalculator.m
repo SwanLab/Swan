@@ -6,8 +6,7 @@ classdef VademecumCellVariablesCalculator < handle
     
     properties (Access = private)
         fileNames        
-        homog
-        
+        homog        
         iMxIndex
         iMyIndex
         mxV
@@ -15,7 +14,7 @@ classdef VademecumCellVariablesCalculator < handle
         iter
         freeFemSettings
         print
-        cornerSmoothParams
+        smoothingExponentSettings
     end
     
     methods (Access = public)
@@ -67,9 +66,7 @@ classdef VademecumCellVariablesCalculator < handle
             obj.myV = linspace(d.myMin,d.myMax,nMy);
             obj.print = d.print;
             obj.freeFemSettings = d.freeFemSettings;
-            obj.cornerSmoothParams.gamma = 4;
-            obj.cornerSmoothParams.alpha = 6;
-            obj.cornerSmoothParams.beta  = 20;
+            obj.smoothingExponentSettings = d.smoothingExponentSettings;
         end
         
         function computeFileNames(obj,d)
@@ -103,13 +100,11 @@ classdef VademecumCellVariablesCalculator < handle
         end
         
         function q = computeCornerSmoothingExponent(obj)
-            a = obj.cornerSmoothParams.alpha;
-            b = obj.cornerSmoothParams.beta;
-            c = obj.cornerSmoothParams.gamma;
-            mx = obj.mxV(obj.iMxIndex);
-            my = obj.myV(obj.iMyIndex);
-            x = max(mx,my);
-            q = min(512,c*(1/(1-x^b))^a);
+            s = obj.smoothingExponentSettings;
+            s.m1 = obj.mxV(obj.iMxIndex);
+            s.m2 = obj.myV(obj.iMyIndex);
+            qComputer = SmoothingExponentComputer.create(s);
+            q = qComputer.compute();
         end
              
         function computeNumericalHomogenizer(obj)

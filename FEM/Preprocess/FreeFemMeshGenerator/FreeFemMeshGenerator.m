@@ -14,7 +14,8 @@ classdef FreeFemMeshGenerator < handle
         freeFemFileName
         freeFemFile
         inputData
-        linesRead        
+        linesRead
+        loadedFile
     end
     
     methods (Access = public)
