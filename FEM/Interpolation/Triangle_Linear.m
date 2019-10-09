@@ -28,14 +28,16 @@ classdef Triangle_Linear < Interpolation
         end
         
         function computeShapeDeriv(obj,posgp)
+            ngaus = size(posgp,2);
             obj.shape = [];
             obj.deriv = [];
             s = posgp(1,:);
             t = posgp(2,:);
+            I = ones(1,ngaus);
             
-            obj.shape = [ones(1,size(posgp,2))-s-t;s;t];
+            obj.shape = [I-s-t;s;t];
             obj.deriv = repmat([-1.0 1.0 0.0;
-                                -1.0 0.0 1.0],1,1,size(posgp,2));
+                                -1.0 0.0 1.0],1,1,ngaus);
         end
     end
 end

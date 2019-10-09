@@ -16,6 +16,8 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         e2 
         ub = 1;
         lb = 0;
+        volumeMicro
+        superEllipseRatio
     end
     
     properties %target parameters
@@ -311,6 +313,28 @@ classdef Settings %< handle%& matlab.mixin.Copyable
                 obj.lb = lb;
             else
                 obj.lb = 0;
+            end   
+            
+            if exist('superEllipseRatio','var')
+               obj.levelSetDataBase.vigdergauzDataBase.superEllipseRatio = superEllipseRatio;
+            end
+            
+            if exist('volumeMicro','var')
+               obj.levelSetDataBase.vigdergauzDataBase.volumeMicro = volumeMicro;
+            end            
+            
+            if exist('vigdergauzType','var')
+               obj.levelSetDataBase.vigdergauzDataBase.type =  vigdergauzType;
+            end
+            
+            if exist('vigdergauzStrainMacro','var')
+               obj.levelSetDataBase.vigdergauzDataBase.strain =  vigdergauzStrainMacro;
+               if exist('TOL','var')
+                   obj.levelSetDataBase.vigdergauzDataBase.E1 = TOL.E_plus;
+                   obj.levelSetDataBase.vigdergauzDataBase.E0 = TOL.E_minus;
+                   obj.levelSetDataBase.vigdergauzDataBase.nu1 = TOL.nu_plus;
+                   obj.levelSetDataBase.vigdergauzDataBase.nu0 = TOL.nu_minus;
+               end
             end            
             
         end

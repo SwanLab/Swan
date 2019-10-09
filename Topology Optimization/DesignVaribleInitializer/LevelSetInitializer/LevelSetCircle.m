@@ -16,5 +16,3 @@ classdef LevelSetCircle < LevelSetSphereNdim
     end
     
 end
-
-

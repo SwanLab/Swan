@@ -66,10 +66,10 @@ classdef IntegratorCutMesh < Integrator
         end
         
         function assembleSubcellsInCells(obj)
+            totalInt = obj.RHScells;
             nnode = obj.backgroundMesh.nnode;
             nelem = obj.backgroundMesh.nelem;
             cellNum = obj.cutMesh.cellContainingSubcell;
-            totalInt = obj.RHScells;
             
             for iNode = 1:nnode
                 int = obj.RHScellsCut(:,iNode);

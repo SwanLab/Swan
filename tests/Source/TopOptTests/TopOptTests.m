@@ -17,6 +17,8 @@ classdef TopOptTests < testRunner
         
         function loadTests(obj)
             obj.tests = {...
+                'testVigdergauzMicroStructureWithStrain';    
+                'testVigdergauzMicroStructure';
                 'testInteriorPerimeter';
                 'testCantilever2';
                 'testMicro';                

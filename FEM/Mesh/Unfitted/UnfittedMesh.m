@@ -17,12 +17,13 @@ classdef UnfittedMesh < handle
         activeBoxFaceMeshesList
         boxFaceMeshes
         innerMeshOLD
+        nodesInBoxFaces
     end
     
     properties (GetAccess = public, SetAccess = private)
         innerMesh
         innerCutMesh
-
+        
         globalConnec
     end
     
@@ -50,7 +51,7 @@ classdef UnfittedMesh < handle
     
     methods (Access = private)
         
-        function computeInnerMesh(obj)            
+        function computeInnerMesh(obj)
             obj.computeInnerGlobalConnec();
             s.backgroundCoord = obj.meshBackground.coord;
             s.globalConnec = obj.globalConnec;
@@ -61,7 +62,7 @@ classdef UnfittedMesh < handle
             fullCells = obj.oldUnfittedMesh.backgroundFullCells;
             obj.globalConnec = obj.meshBackground.connec(fullCells,:);
         end
-
+        
         function computeInnerCutMesh(obj)
             cParams.coord = obj.oldUnfittedMesh.coord;
             cParams.connec = obj.oldUnfittedMesh.connec;
@@ -88,7 +89,7 @@ classdef UnfittedMesh < handle
         end
         
     end
-
+    
     methods
         
         function type = get.unfittedType(obj)
@@ -151,7 +152,11 @@ classdef UnfittedMesh < handle
         function innerMeshOLD = get.innerMeshOLD(obj)
             innerMeshOLD = obj.oldUnfittedMesh.innerMeshOLD;
         end
-                
+        
+        function nodesInBoxFaces = get.nodesInBoxFaces(obj)
+            nodesInBoxFaces = obj.oldUnfittedMesh.nodesInBoxFaces;
+        end
+        
     end
     
 end

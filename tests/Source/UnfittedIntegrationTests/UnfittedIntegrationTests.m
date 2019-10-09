@@ -17,15 +17,15 @@ classdef UnfittedIntegrationTests < testRunner
         
         function loadTests(obj)
             obj.tests = {...
-              'testAreaCircleQuadrilateral'  
-            'testAreaCircleTriangle'
+                
+            'testPerimeterRectangleTriangle'
+            'testPerimeterRectangleQuadrilateral'
             
+            'testAreaCircleQuadrilateral'
+            'testAreaCircleTriangle'
             
             'testPerimeterCircleTriangle'
             'testPerimeterCircleQuadrilateral'
-            
-            'testPerimeterRectangleTriangle'
-            'testPerimeterRectangleQuadrilateral'
             
             'testSurfaceSphereTetrahedra';
             'testSurfaceSphereHexahedra';

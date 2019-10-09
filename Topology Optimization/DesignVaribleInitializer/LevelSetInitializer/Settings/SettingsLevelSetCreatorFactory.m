@@ -20,7 +20,7 @@ classdef SettingsLevelSetCreatorFactory < handle
                     obj = SettingsLevelSetSquareInclusion(s);
                 case 'smoothSquare'                    
                     obj = SettingsLevelSetSmoothSquareInclusion(s);
-                case 'rectangle'
+                case {'rectangle', 'rectangleInclusion'}
                     obj = SettingsLevelSetRectangleInclusion(s);
                 case 'smoothRectangle'
                     obj = SettingsLevelSetSmoothRectangleInclusion(s);
@@ -36,6 +36,8 @@ classdef SettingsLevelSetCreatorFactory < handle
                     obj = SettingsLevelSetHorizontalFibers(s);
                 case 'given'
                     obj = SettingsLevelSetGiven(s);
+                case 'Vigdergauz'
+                    obj = SettingsLevelSetVigdergauz(s);
                 otherwise
                     error('Invalid initial value of design variable.');
             end

@@ -27,6 +27,14 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             objClone = copy(obj);
         end
         
+        function plot(obj)
+            figure;
+            patch('vertices',obj.coord,'faces',obj.connec,...
+                'edgecolor',[0.5 0 0], 'edgealpha',0.5,'edgelighting','flat',...
+                'facecolor',[1 0 0],'facelighting','flat')
+            axis('equal');
+        end
+        
         function S = computeMeanCellSize(obj)
             x1 = obj.coord(obj.connec(:,1));
             x2 = obj.coord(obj.connec(:,2));
