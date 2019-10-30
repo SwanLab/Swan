@@ -173,6 +173,7 @@ classdef NumericalHomogenizer < handle
             vComputer.computeCostFromDensity(obj.density);
             vol = vComputer.value;
             obj.cellVariables.volume = vol;
+            obj.cellVariables.geometricVolume = vComputer.geometricVolume;
         end
                
         function obtainIntegrationUsedVariables(obj)        

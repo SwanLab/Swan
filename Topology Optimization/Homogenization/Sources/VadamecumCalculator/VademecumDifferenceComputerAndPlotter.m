@@ -53,6 +53,7 @@ classdef VademecumDifferenceComputerAndPlotter < handle
             d.microName   = obj.fileName;
             d.outPutPath  = obj.outPutPath;
             d.hasToPrint  = true;
+            d.addZeroValueLine = true;            
             vp = VademecumTxiRhoPlotterDiff(d);
             vp.plot();
         end
@@ -65,7 +66,8 @@ classdef VademecumDifferenceComputerAndPlotter < handle
             d.volume     = obj.difVD.volume;
             d.microName  = obj.fileName;
             d.outPutPath = obj.outPutPath;             
-            d.hasToPrint = true;            
+            d.hasToPrint = true;  
+            d.addZeroValueLine = true;
             p = VademecumMxMyPlotter(d);
             p.plot();               
         end

@@ -5,9 +5,9 @@ classdef VademecumTxiRhoPlotterDiff < VademecumPlotter
     end
     
     properties (Access = protected)
-        XYname = ' TxiRho'
-    end
-    
+       name = 'TxiRho'; 
+    end    
+        
     properties (Access = private)
         chi
         smoothDB        
@@ -45,7 +45,7 @@ classdef VademecumTxiRhoPlotterDiff < VademecumPlotter
                 for j = 1:length(obj.myV)
                     mx = obj.mxV(i);
                     my = obj.myV(j);
-                    obj.chi(i,j) = mx/my;
+                    obj.chi(i,j) = atan(mx/my);
                 end
             end
         end
@@ -62,12 +62,13 @@ classdef VademecumTxiRhoPlotterDiff < VademecumPlotter
     methods (Access = protected)
         
         function init(obj,d)
+            obj.index = [1 1; 2 2;3 3; 1 2;2 3;1 3];            
             obj.smoothDB    = d.smoothDB;
             obj.nonSmoothDB = d.nonSmoothDB;
             obj.mxV = obj.nonSmoothDB.mxV;
             obj.myV = obj.nonSmoothDB.myV;
-            obj.iS = d.iS;
-            obj.iN = d.iN;
+            obj.iS = intersect(d.iS,d.iN);
+            obj.iN = intersect(d.iS,d.iN);
             obj.hasToPrint = d.hasToPrint;
             obj.outPutPath = d.outPutPath;
             obj.microName  = d.microName;            
@@ -77,13 +78,15 @@ classdef VademecumTxiRhoPlotterDiff < VademecumPlotter
             obj.tensor{1} = obj.smoothDB.C;
             obj.tensor{2} = obj.nonSmoothDB.C;            
             obj.tensorCase = 'C_';
+            obj.tensorTitleName = '\Delta C_';            
             obj.plotTensor();
         end
                 
         function plotAmplificatorTensor(obj)
             obj.tensor{1} = obj.smoothDB.invP;
-            obj.tensor{2} = obj.nonSmoothDB.invP;                
-            obj.tensorCase = 'Pinv_';
+            obj.tensor{2} = obj.nonSmoothDB.invP;  
+            obj.tensorCase = 'P_';            
+            obj.tensorTitleName = '(\Delta  P^{-1})_';
             obj.plotTensor();
         end     
         
@@ -109,11 +112,37 @@ classdef VademecumTxiRhoPlotterDiff < VademecumPlotter
             tricontour(tri,x(ind),y(ind),z(ind),ncolors) 
             colorbar
             hold on
-            plot(x,y,'+');
-            plot(obj.txiS,obj.rhoS,'+')            
-            xlabel('$\frac{m1}{m2}$','Interpreter','latex');
+             plot(x,y,'+');
+             plot(obj.txiS,obj.rhoS,'+')            
+            xlabel('$\xi$','Interpreter','latex');
             ylabel('\rho');
-            obj.addTitle();
+            tN = obj.titleName;
+            title(['$',tN,'$'],'interpreter','latex')
+            hold on                                   
+            v = [0,0];
+            [M,c] = tricontour(tri,x(ind),y(ind),z(ind),v);
+            c(1).LineWidth = 3;
+            c(1).EdgeColor = 'r';            
+%            c(2).LineWidth = 3;
+ %           c(2).EdgeColor = 'r'; 
+            
+            txiV = sort(obj.txiN);
+            s.q = 10^6;
+            s.txi = txiV;
+            s.mxMin = 0;
+            s.myMin = 0;  
+            s.mxMax = 0.99;            
+            s.myMax = 0.99;  
+            rhoBounds = SuperEllipseRhoBoundsComputer(s);
+            [rhoMin,rhoMax] = rhoBounds.compute(); 
+            h1 = plot(txiV,rhoMin,['-','k']);
+            set(h1,'LineWidth',2);        
+            hold on
+            h2 = plot(obj.txiN,rhoMax,['-','k']);
+            set(h2,'LineWidth',2);            
+            set(gca,'xtick',[0:pi/8:pi/2]) % where to set the tick marks
+            set(gca,'xticklabels',{'0','\pi/8','\pi/4','3\pi/8','\pi/2'})
+ 
         end        
         
     end

@@ -34,7 +34,8 @@ classdef GiDImageCapturer < handle
             obj.outPutImageName = cParams.outPutImageName;
             obj.inputFileName   = cParams.inputFileName;
             obj.swanPath = '/home/alex/git-repos/Swan/';
-            obj.gidPath = '/home/alex/GiDx64/gid14.0.3/';
+            %obj.gidPath = '/home/alex/GiDx64/gid14.0.3/';
+            obj.gidPath = '/home/alex/GiDx64/14.1.6d/';            
         end
         
         function createPathNames(obj)
@@ -59,14 +60,15 @@ classdef GiDImageCapturer < handle
         
         function captureImage(obj)
             tclFile = [obj.pathTcl,'callGiDCapturer.tcl"'];
-            command = [obj.gidPath,'gid_offscreen -t "source ',tclFile];
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',tclFile];
             system(command);            
         end
         
         function cropImage(obj)
             inputImage  = [' ',obj.outputImageName,'.png'];
             outPutImage = inputImage;
-            convert     = 'convert -crop 700x700+0+0 -gravity Center';
+            convert     = 'convert -crop 700x700+0+0 -gravity Center';            
+            %convert     = 'convert -crop 1500x1500+0+0 -gravity Center';
             command = strcat(convert,' ',inputImage,' ',outPutImage);
             system(command);
         end

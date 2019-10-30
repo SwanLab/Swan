@@ -5,13 +5,13 @@ classdef VademecumTxiRhoPlotter < VademecumPlotter
     end
     
     properties (Access = protected)
-        XYname = ' TxiRho'
+       name = 'TxiRho'; 
     end
     
     properties (Access = private)
         mxT
         myT
-        chi        
+        chi    
     end
     
     methods (Access = public)
@@ -20,6 +20,7 @@ classdef VademecumTxiRhoPlotter < VademecumPlotter
             obj.init(d);
             obj.computeTxiMxMyVariables();
             obj.computeFeasibleIndex();
+            obj.feasibleIndex = 1:length(obj.mxV)*length(obj.myV);
             ind = obj.feasibleIndex;
             obj.xV = obj.chi(ind);
             obj.yV = obj.volume(ind);            
@@ -28,6 +29,7 @@ classdef VademecumTxiRhoPlotter < VademecumPlotter
         function plot(obj)
             obj.plotMxMy();
             obj.plotHomogenizedTensor();
+            obj.plotHomogenizedTensorIsotropy();            
             obj.plotAmplificatorTensor();
         end
         
@@ -40,7 +42,7 @@ classdef VademecumTxiRhoPlotter < VademecumPlotter
                 for j = 1:length(obj.myV)
                     mx = obj.mxV(i);
                     my = obj.myV(j);
-                    obj.chi(i,j) = mx/my;
+                    obj.chi(i,j) = atan(mx/my);
                     obj.mxT(i,j) = mx;
                     obj.myT(i,j) = my;
                 end
@@ -57,12 +59,13 @@ classdef VademecumTxiRhoPlotter < VademecumPlotter
         end
         
         function plotMxMy(obj)
-            obj.printWidthVariable(obj.mxT,'Mx');
-            obj.printWidthVariable(obj.myT,'My');
+            obj.printWidthVariable(obj.mxT,'m_1');
+            obj.printWidthVariable(obj.myT,'m_2');
         end
         
         function printWidthVariable(obj,val,name)
             obj.fileName    = name;
+            obj.titleName   = name;
             obj.value2print = val;
             obj.plotFigure();
             obj.printFigure();
@@ -83,9 +86,13 @@ classdef VademecumTxiRhoPlotter < VademecumPlotter
             colorbar
             hold on
             plot(x,y,'+');
-            xlabel('$\frac{m1}{m2}$','Interpreter','latex');
+            ylim([0 1])
+            xlabel('$\xi$','Interpreter','latex');
             ylabel('\rho');
-            obj.addTitle();
+            tN = obj.titleName;
+            title(['$',tN,'$'],'interpreter','latex')
+            set(gca,'xtick',[0:pi/8:pi/2]) % where to set the tick marks
+            set(gca,'xticklabels',{'0','\pi/8','\pi/4','3\pi/8','\pi/2'})            
         end
         
     end

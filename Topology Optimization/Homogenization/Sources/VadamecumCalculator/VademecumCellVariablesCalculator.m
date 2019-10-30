@@ -129,7 +129,7 @@ classdef VademecumCellVariablesCalculator < handle
         end
         
         function obtainVolume(obj)
-            v = obj.homog.cellVariables.volume;
+            v = obj.homog.cellVariables.geometricVolume;
             imx = obj.iMxIndex;
             imy = obj.iMyIndex;
             obj.variables{imx,imy}.volume = v;

@@ -1,6 +1,6 @@
 classdef ShFunc_Volume < ShapeFunctional
     
-    properties (Access = private)
+    properties (Access = public)
         geometricVolume
     end
     
