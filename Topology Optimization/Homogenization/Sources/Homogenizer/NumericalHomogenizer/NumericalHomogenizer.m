@@ -52,6 +52,10 @@ classdef NumericalHomogenizer < handle
             obj.captureImage();            
         end
         
+        function m = getMicroProblem(obj)
+            m = obj.microProblem;
+        end
+        
     end
     
     methods (Access = private)

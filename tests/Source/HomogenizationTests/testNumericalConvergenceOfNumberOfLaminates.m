@@ -70,6 +70,7 @@ classdef testNumericalConvergenceOfNumberOfLaminates < testShowingError
             d = nDB.dataBase;
             d.outFileName = obj.outFileName;
             d.levelSetDataBase.levFib = LoF;
+            d.hasToCaptureImage = false;
         end
         
         function C = rotateCh(obj,homog)

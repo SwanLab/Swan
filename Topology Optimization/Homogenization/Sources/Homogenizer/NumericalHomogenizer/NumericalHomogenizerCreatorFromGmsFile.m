@@ -50,7 +50,7 @@ classdef NumericalHomogenizerCreatorFromGmsFile < handle
             dB.outFileName                   = obj.outFile;
             dB.print                         = obj.print;
             dB.levelSetDataBase.type = 'full';
-            dB.hasToCaptureImage = true;
+            dB.hasToCaptureImage = false;
             obj.homogDataBase = dB;
         end  
         

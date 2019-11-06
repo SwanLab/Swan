@@ -68,6 +68,7 @@ classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
             nDB = NumericalHomogenizerDataBase(obj.microFile);
             d = nDB.dataBase;
             d.outFileName = obj.fileOutputName;
+            d.hasToCaptureImage = false;
         end
         
         function loadFractionVolume(obj)
