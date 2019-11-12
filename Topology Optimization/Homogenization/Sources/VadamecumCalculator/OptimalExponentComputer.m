@@ -1,9 +1,11 @@
 classdef OptimalExponentComputer < handle
     
+    properties (Access = public)
+       qOpt 
+    end
+    
     properties (Access = private)
         maxStress
-        mxV
-        myV
         mx
         my
         rho
@@ -12,16 +14,16 @@ classdef OptimalExponentComputer < handle
         txiV
         mxMax
         myMax
-        qOpt
         psi
         psiV
+        samplePoints
+        fileName
     end
     
     methods (Access = public)
         
-        function obj = OptimalExponentComputer()
-            obj.init();
-            obj.compute();
+        function obj = OptimalExponentComputer(cParams)
+            obj.init(cParams);
         end
         
         function compute(obj)
@@ -41,36 +43,24 @@ classdef OptimalExponentComputer < handle
             x.txi = obj.txiV;
             x.psi = obj.psiV;
             x.q = obj.qOpt;
-            save('OptimalSuperEllipseExponentData','x');
+            save(obj.fileName,'x');
         end
         
     end
     
     methods (Access = private)
         
-        function init(obj)
-            obj.mxMax = 0.99;
-            obj.myMax = 0.99;
-            obj.mxV = linspace(0.01,obj.mxMax,10);
-            obj.myV = linspace(0.01,obj.myMax,10);
-            obj.psiV = linspace(pi/4,pi/4,10);
-            obj.computeRhoAndTxiSamples();
+        function init(obj,cParams)
+            obj.fileName = cParams.fileName;
+            obj.samplePoints = cParams.samplePoints;
+            obj.computeRhoTxiAndPsiSamples();
         end
         
-        function computeRhoAndTxiSamples(obj)
-            nmx = length(obj.mxV);
-            nmy = length(obj.myV);
-            q = 10^6;
-            for imx = 1:nmx
-                for imy = 1:nmy
-                    mx = obj.mxV(imx);
-                    my = obj.myV(imy);
-                    c = obj.cFunction(q);
-                    index = nmx*(imy - 1) + imx;
-                    obj.rhoV(index) = 1 - c*mx*my;
-                    obj.txiV(index) = atan(mx/my);
-                end
-            end
+        function computeRhoTxiAndPsiSamples(obj)
+            obj.samplePoints.compute();
+            obj.rhoV = obj.samplePoints.rhoV;
+            obj.txiV = obj.samplePoints.txiV;
+            obj.psiV = obj.samplePoints.psiV;
         end
         
         function x = computeOptimalExponent(obj)
@@ -84,11 +74,11 @@ classdef OptimalExponentComputer < handle
         
         function maxStress = computingMaxStress(obj,q)
             obj.computeMxMy(q);
-            fileName = 'OptimalSuperEllipse';
-            outputFolder = fullfile(pwd,'Output',fileName);
-            gmsFile = [fullfile(outputFolder,fileName),'.msh'];
-            obj.createMesh(fileName,outputFolder,q);
-            homog = obj.createNumericalHomogenizer(fileName,gmsFile);
+            fName = 'OptimalSuperEllipse';
+            outputFolder = fullfile(pwd,'Output',fName);
+            gmsFile = [fullfile(outputFolder,fName),'.msh'];
+            obj.createMesh(fName,outputFolder,q);
+            homog = obj.createNumericalHomogenizer(fName,gmsFile);
             maxStress = obj.computeMaxStressNorm(homog);
         end
         
@@ -145,9 +135,7 @@ classdef OptimalExponentComputer < handle
             d = obj.cFunction(q)*tan(obj.txi);
             obj.my = sqrt(n/d);
         end
-        
-        
-        
+
     end
     
     methods (Access = private, Static)
