@@ -30,10 +30,10 @@ classdef SamplePointsCreatorFromFixedRhoForOptimalExponentComputer ...
             obj.psiV = cParams.psi;                        
             obj.mxMax = 0.99;
             obj.myMax = 0.99;       
-            qmax = 32;
-            c = obj.cFunction(qmax);
-            obj.txiMax = atan((obj.mxMax*c)/(1-obj.rho0));
-            obj.txiMin = atan((1-obj.rho0)/(obj.myMax*c)); 
+            qMax = 32;
+            sE = SuperEllipseParamsRelator;
+            obj.txiMax = sE.txiFromMxRho(obj.mxMax,obj.rho,qMax);
+            obj.txiMin = sE.txiFromMxRho(obj.myMax,obj.rho,qMax);
             obj.npoints = 20;
         end
         

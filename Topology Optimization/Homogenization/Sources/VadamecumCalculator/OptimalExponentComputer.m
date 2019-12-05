@@ -125,26 +125,14 @@ classdef OptimalExponentComputer < handle
         end
         
         function computeMx(obj,q)
-            n = (1-obj.rho)*tan(obj.txi);
-            d = obj.cFunction(q);
-            obj.mx = sqrt(n/d);
+            obj.mx = SuperEllipseParamsRelator.mx(obj.txi,obj.rho,q);            
         end
         
         function computeMy(obj,q)
-            n = (1-obj.rho);
-            d = obj.cFunction(q)*tan(obj.txi);
-            obj.my = sqrt(n/d);
+            obj.my = SuperEllipseParamsRelator.my(obj.txi,obj.rho,q);
         end
 
-    end
-    
-    methods (Access = private, Static)
-        
-        function c = cFunction(q)
-            c = gamma(1 + 1/q)^2/gamma(1 + 2/q);
-        end
-        
-    end
+    end    
     
 end
 

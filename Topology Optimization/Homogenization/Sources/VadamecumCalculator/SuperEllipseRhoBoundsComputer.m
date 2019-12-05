@@ -30,7 +30,8 @@ classdef SuperEllipseRhoBoundsComputer < handle
             obj.mxMin = cParams.mxMin;
             obj.myMin = cParams.myMin;  
             obj.mxMax = cParams.mxMax;            
-            obj.myMax = cParams.myMax;                        
+            obj.myMax = cParams.myMax;   
+            obj.superEllipse = SuperEllipseParamsRelator;
         end
 
         function rhoMin = computeRhoMin(obj)         
@@ -46,20 +47,12 @@ classdef SuperEllipseRhoBoundsComputer < handle
         end
         
         function rho = rhoFromMx(obj,mx)
-          rho = 1 - obj.c(obj.q)*mx^2*tan(obj.txi);
+            rho = obj.superEllipse.rhoFromMxAndTxi(mx,obj.txi,obj.q);
         end
 
         function rho = rhoFromMy(obj,my)
-          rho = 1 - obj.c(obj.q)*my^2./tan(obj.txi);
+            rho = obj.superEllipse.rhoFromMyAndTxi(my,obj.txi,obj.q);
         end                
-        
-    end
-    
-    methods (Access = private, Static)
-        
-        function c = c(q)
-            c = gamma(1 + 1/q)^2/gamma(1 + 2/q);            
-        end        
         
     end
     

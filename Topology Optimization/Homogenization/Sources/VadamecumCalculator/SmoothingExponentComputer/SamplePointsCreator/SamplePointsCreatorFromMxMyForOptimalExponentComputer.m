@@ -6,6 +6,7 @@ classdef SamplePointsCreatorFromMxMyForOptimalExponentComputer ...
         myMax
         mxV
         myV
+        superEllipse
     end
     
     methods (Access = public)
@@ -26,7 +27,8 @@ classdef SamplePointsCreatorFromMxMyForOptimalExponentComputer ...
             nPsi = 10;
             obj.mxV = linspace(0.01,obj.mxMax,nMx);
             obj.myV = linspace(0.01,obj.myMax,nMy);            
-            obj.psiV = linspace(pi/4,pi/4,nPsi);            
+            obj.psiV = linspace(pi/4,pi/4,nPsi);   
+            obj.superellipse = SuperEllipseParamsRelator();
         end
         
     end
@@ -41,15 +43,14 @@ classdef SamplePointsCreatorFromMxMyForOptimalExponentComputer ...
                 for imy = 1:nmy
                     mx = obj.mxV(imx);
                     my = obj.myV(imy);
-                    c = obj.cFunction(q);
                     index = nmx*(imy - 1) + imx;
-                    obj.rhoV(index) = 1 - c*mx*my;
-                    obj.txiV(index) = atan(mx/my);
+                    obj.rhoV(index) = obj.superellipse.rho(mx,my,q);
+                    obj.txiV(index) = obj.superellipse.txi(mx,my);
                 end
             end            
         end
   
     end
-    
+       
     
 end

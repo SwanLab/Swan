@@ -38,7 +38,7 @@ classdef FeasibleIndexComputer < handle
             obj.rho = d.rho;
             d.m1max = 0.99;
             d.m2max = 0.99;
-            cFunction = @(q) gamma(1 + 1/q)^2/gamma(1 + 2/q);
+            cFunction = SuperEllipseParamsRelator.c();
             d.c = cFunction(512); 
             obj.m1max = d.m1max;
             obj.m2max = d.m2max;

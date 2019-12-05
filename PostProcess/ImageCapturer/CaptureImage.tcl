@@ -22,3 +22,4 @@ proc CaptureImage {pathFileVar outputFileVar} {
 	GiD_Process 'Hardcopy PNG "$outputFile.png"
     GiD_Process Quit
 }
+      

@@ -47,7 +47,7 @@ classdef GiDImageCapturer < handle
         function writeCallGiDTclFile(obj)
             tclFile = 'callGiDCapturer.tcl';
             obj.inputFileName = char(obj.inputFileName);
-            stlFileTocall = 'CaptureImage.tcl';
+            stlFileTocall = 'CaptureImage3.tcl';
             fid = fopen([obj.pathTcl,tclFile],'w+');
             fprintf(fid,['set path "',obj.pathTcl,'"\n']);
             fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
@@ -67,7 +67,8 @@ classdef GiDImageCapturer < handle
         function cropImage(obj)
             inputImage  = [' ',obj.outputImageName,'.png'];
             outPutImage = inputImage;
-            convert     = 'convert -crop 700x700+0+0 -gravity Center';            
+            %convert     = 'convert -crop 700x700+0+0 -gravity Center';
+            convert     = 'convert -crop 500x500+0+0 -gravity Center';                        
             %convert     = 'convert -crop 1500x1500+0+0 -gravity Center';
             command = strcat(convert,' ',inputImage,' ',outPutImage);
             system(command);

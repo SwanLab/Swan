@@ -32,7 +32,7 @@ classdef SettingsTopOptProblem < AbstractSettings
             obj.updateProblemData();
             obj.createOptimizerSettings();
             obj.createVideoManagerSettings();
-            obj.printSummary();
+            %obj.printSummary();
         end
         
     end

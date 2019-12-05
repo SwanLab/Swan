@@ -9,20 +9,7 @@ optimizer = 'SLERP';
 kappaMultiplier = 1;
 designVariable = 'LevelSet';
 filterType = 'P1';
-initial_case = 'Vigdergauz';
-
-myCase = 'A';
-switch myCase
-    case 'A'
-        vigdergauzType = 'VolumeAndRatio';
-        superEllipseRatio = tan(pi/6);%tan(pi/5);
-        volumeMicro = 0.8;
-    case 'B'
-        phi = 35*pi/180;
-        vigdergauzStrainMacro = [cos(phi) sin(phi) 0];
-        volumeMicro = 0.3;
-        vigdergauzType = 'VolumeAndStrain';
-end
+initial_case = 'smoothRectangle';
 
 nsteps = 1;
 Vfrac_final = 0.5;

@@ -71,8 +71,8 @@ classdef PonderatedOptimalSuperEllipseComputer < handle
                 rho = obj.rhoV(ipoint);
                 txi = obj.txiV(ipoint);
                 q = obj.qMean(ipoint,1);
-                mx(ipoint) = sqrt((1-rho)/(obj.c(q)*tan(txi)));
-                my(ipoint) = sqrt(((1-rho)*tan(txi))/(obj.c(q)));
+                mx(ipoint) = obj.computeMx(txi,rho,q);
+                my(ipoint) = obj.computeMy(txi,rho,q);
             end
             obj.mxV = mx;
             obj.myV = my;
@@ -82,10 +82,14 @@ classdef PonderatedOptimalSuperEllipseComputer < handle
     
     methods (Access = private, Static)
         
-        function c = c(q)
-            c = gamma(1 + 1/q)^2/gamma(1 + 2/q);
+        function mx = computeMx(txi,rho,q)
+            mx = SuperEllipseParamsRelator.mx(txi,rho,q);
         end
         
+        function my = computeMy(txi,rho,q)
+            my = SuperEllipseParamsRelator.my(txi,rho,q);            
+        end
+                
     end    
     
 end

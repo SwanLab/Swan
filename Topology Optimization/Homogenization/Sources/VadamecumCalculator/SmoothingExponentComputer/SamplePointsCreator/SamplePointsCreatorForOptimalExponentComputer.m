@@ -27,12 +27,5 @@ classdef SamplePointsCreatorForOptimalExponentComputer < handle
         computeRhoTxiValues(obj)
     end
     
-    methods (Access = protected, Static)
-        
-        function c = cFunction(q)
-            c = gamma(1 + 1/q)^2/gamma(1 + 2/q);
-        end
-        
-    end        
     
 end
