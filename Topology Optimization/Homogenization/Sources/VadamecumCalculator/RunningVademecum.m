@@ -1,17 +1,17 @@
 function RunningVademecum
 
 % 
-dSmooth = obtainSettings('SmoothRectangleQ2','SmoothRectangle');
-dSmooth.smoothingExponentSettings.type = 'Given';
-dSmooth.smoothingExponentSettings.q = 2;
-computeVademecum(dSmooth);
+% dSmooth = obtainSettings('SmoothRectangleQ2','SmoothRectangle');
+% dSmooth.smoothingExponentSettings.type = 'Given';
+% dSmooth.smoothingExponentSettings.q = 2;
+% computeVademecum(dSmooth);
+% 
+% 
+% dSmooth = obtainSettings('RectangleVademecum','Rectangle');
+% dSmooth.smoothingExponentSettings.type = 'Given';
+% computeVademecum(dSmooth);
 
-
-dSmooth = obtainSettings('RectangleVademecum','Rectangle');
-dSmooth.smoothingExponentSettings.type = 'Given';
-computeVademecum(dSmooth);
-
-dSmooth = obtainSettings('OptimalSuperEllipseVademecum','SmoothRectangle');
+dSmooth = obtainSettings('SuperEllipseQOpt2','SmoothRectangle');
 dSmooth.smoothingExponentSettings.type = 'Optimal';
 computeVademecum(dSmooth);
 

@@ -6,7 +6,7 @@ classdef SamplePointsCreatorFromMxMyForOptimalExponentComputer ...
         myMax
         mxV
         myV
-        superEllipse
+        superellipse
     end
     
     methods (Access = public)

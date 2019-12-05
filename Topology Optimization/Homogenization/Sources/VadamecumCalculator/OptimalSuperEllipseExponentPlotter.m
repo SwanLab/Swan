@@ -9,7 +9,8 @@ classdef OptimalSuperEllipseExponentPlotter < handle
         
         function obj = OptimalSuperEllipseExponentPlotter()
             obj.outputPath = '/home/alex/Dropbox/PaperStress/';
-            obj.computePonderatedOptimalSuperEllipse()
+            obj.computePonderatedOptimalSuperEllipse();
+            obj.saveQmeanMxMy();
             obj.plotQmeanTxiRho();
             obj.plotQmeanMxMy();  
         end
@@ -51,6 +52,22 @@ classdef OptimalSuperEllipseExponentPlotter < handle
             fp.print(filePath);            
         end
         
+        function saveQmeanMxMy(obj)
+           n = 20;
+           xmin = 0.011;0.009;
+           xmax = 0.989;0.991;
+           ymin = 0.011;0.009;
+           ymax = 0.989;0.991;            
+           [mx,my,q] = obj.interpolateQmeanMxMy(n,xmin,xmax,ymin,ymax);           
+           d.mx = mx;
+           d.my = my;
+           d.q = q;
+           fN = 'OptimalSuperEllipseExponent';
+           pD = 'Topology Optimization/Vademecums';
+           file2SaveName = [pD,'/',fN,'.mat'];
+           save(file2SaveName,'d');            
+        end
+        
         function plotQmeanTxiRhoTrisurf(obj)
             x = obj.optimalSuperEllipse.txiV;
             y = obj.optimalSuperEllipse.rhoV;
@@ -73,17 +90,27 @@ classdef OptimalSuperEllipseExponentPlotter < handle
             fp.print(filePath);            
         end
         
-        
-        function plotQmeanMxMy(obj)
-            n = 50;
+        function [xq,yq,vq] = interpolateQmeanMxMy(obj,n,xmin,xmax,ymin,ymax)
             x = obj.optimalSuperEllipse.mxV;
             y = obj.optimalSuperEllipse.myV;
             v = obj.optimalSuperEllipse.qMean;           
-            xv = linspace(0.009,0.991,n);
-            yv = linspace(0.009,0.991,n);
-            [xq,yq] = meshgrid(xv,yv);
-            vq = griddata(x,y,v,xq,yq);
+            xv = linspace(xmin,xmax,n);
+            yv = linspace(ymin,ymax,n);
+            [xq,yq] = meshgrid(xv,yv); 
+            vq = griddata(x,y,v,xq,yq);            
+        end
+        
+        function plotQmeanMxMy(obj)
+            x = obj.optimalSuperEllipse.mxV;
+            y = obj.optimalSuperEllipse.myV;
+            v = obj.optimalSuperEllipse.qMean;    
             f = figure();
+            n = 50; 
+            xmin = 0.011;0.009;
+            xmax = 0.989;0.991;
+            ymin = 0.011;0.009;
+            ymax = 0.989;0.991;           
+            [xq,yq,vq] = obj.interpolateQmeanMxMy(n,xmin,xmax,ymin,ymax);
             h = surf(xq,yq,vq);
             hold on
             plot3(x,y,v,'+')

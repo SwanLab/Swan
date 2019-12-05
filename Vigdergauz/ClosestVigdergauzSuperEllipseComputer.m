@@ -9,9 +9,9 @@ classdef ClosestVigdergauzSuperEllipseComputer < handle
         txi
         rho
         q
-        comparator
         problem
         frames
+        optimalExponent
     end
     
     methods (Access = public)
@@ -20,7 +20,7 @@ classdef ClosestVigdergauzSuperEllipseComputer < handle
             obj.init();
             obj.solveProblem();
             obj.writeOptimizationVideo();
-            obj.printVigdergauzSuperEllipse()
+            obj.printVigdergauzSuperEllipse();
         end
         
     end
@@ -28,28 +28,20 @@ classdef ClosestVigdergauzSuperEllipseComputer < handle
     methods (Access = private)
         
         function init(obj)
-            obj.comparator = VigdergauzSuperEllipseComparator;
             obj.txi = pi/8;
             obj.rho = 0.8;
         end
         
         function solveProblem(obj)
-            p.objective = @(q) obj.vigdergauzSuperEllipseDistance(q);
-            p.x1 = 2;
-            p.x2 = 32;
-            p.solver = 'fminbnd';
-            p.options = optimset('Display','iter','TolX',1e-8,'MaxIter',1000);
-            obj.problem = p;
-            [x,fsol] = fminbnd(obj.problem);
-            obj.xopt = x;
-            obj.q = x;
-            obj.error = fsol;
-        end
-        
-        function d = vigdergauzSuperEllipseDistance(obj,q)
-            obj.comparator.computeComparison(obj.txi,obj.rho,q);
-            obj.frames{end+1} = obj.comparator.frame;
-            d = obj.comparator.rhoDifferenceNorm;
+            s.rho = obj.rho;
+            s.txi = obj.txi;
+            s.savingFrames = true;
+            obj.optimalExponent = OptimalExponentClosestToVigergauz(s);
+            obj.optimalExponent.compute();
+            obj.xopt   = obj.optimalExponent.qOpt;
+            obj.q      = obj.optimalExponent.qOpt;
+            obj.error  = obj.optimalExponent.error;    
+            obj.frames = obj.optimalExponent.frames;
         end
         
         function writeOptimizationVideo(obj)
@@ -65,8 +57,8 @@ classdef ClosestVigdergauzSuperEllipseComputer < handle
         end
         
         function printVigdergauzSuperEllipse(obj)
-            s.mx = obj.comparator.mx;
-            s.my = obj.comparator.my;
+            s.mx = obj.optimalExponent.mx;
+            s.my = obj.optimalExponent.my;
             s.txi = obj.txi;
             s.rho = obj.rho;
             s.q   = obj.q;

@@ -42,8 +42,12 @@ classdef VigdergauzSuperEllipseComparator < handle
             obj.computeVigdergauzDensity();
             obj.computeDifference();
             obj.computeDifferenceNorm();            
-            obj.plotDifference();            
         end
+        
+        function plotDifference(obj)
+            obj.plotDensity(abs(obj.rhoDifference));
+        end
+                
         
     end
     
@@ -178,9 +182,6 @@ classdef VigdergauzSuperEllipseComparator < handle
             obj.rhoDifferenceNorm = relNorm;
         end
         
-        function plotDifference(obj)
-            obj.plotDensity(abs(obj.rhoDifference));
-        end
         
         function plotDensity(obj,density)
             [x,y] = obj.computeXYgaussPoints();
