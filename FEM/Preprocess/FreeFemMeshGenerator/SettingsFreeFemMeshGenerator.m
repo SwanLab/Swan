@@ -1,7 +1,7 @@
 classdef SettingsFreeFemMeshGenerator < AbstractSettings
     
     properties (Access = protected)
-        defaultParamsName = 'paramsFreeFemMeshGenerator'
+        defaultParamsName = 'paramsFreeFemMeshGenerator.json'
     end
     
     properties (Access = public)

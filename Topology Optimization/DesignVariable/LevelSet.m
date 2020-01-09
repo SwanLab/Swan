@@ -12,12 +12,16 @@ classdef LevelSet < DesignVariable
             obj.init(cParams);
             obj.levelSetCreatorSettings = cParams.levelSetCreatorSettings;
             obj.createValue();
-            obj.createUnfittedMesh();
+         %   obj.createUnfittedMesh();
         end
         
         function update(obj,value)
             obj.value = value;
             obj.updateUnfittedMesh();
+        end
+        
+        function m = getUnfittedMesh(obj)
+            m = obj.unfittedMesh;
         end
         
     end

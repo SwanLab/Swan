@@ -11,7 +11,7 @@ designVariable = 'LevelSet';
 filterType = 'P1';
 initial_case = 'Vigdergauz';
 
-myCase = 'B';
+myCase = 'A';
 switch myCase
     case 'A'
         vigdergauzType = 'VolumeAndRatio';

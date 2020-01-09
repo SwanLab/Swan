@@ -5,14 +5,17 @@ classdef SmoothingRectangleVademecum < handle
         smoothVad
         nonSmoothVad
         difDB
+        
+        firstVademecum
+        secondVademecum
     end
     
     methods (Access = public)
         
         function obj = SmoothingRectangleVademecum()
             obj.init();           
-            obj.smoothVad    = obj.computeVademecum('SmoothRectangle');
-            obj.nonSmoothVad = obj.computeVademecum('Rectangle');
+            obj.smoothVad    = obj.computeVademecum(obj.firstVademecum);
+            obj.nonSmoothVad = obj.computeVademecum(obj.secondVademecum);
             obj.postprocessDifVademecum();
         end
         
@@ -22,11 +25,14 @@ classdef SmoothingRectangleVademecum < handle
         
         function init(obj)
             obj.createOutPutPath();
+            %obj.firstVademecum = 'SuperEllipseQOptAnalytic';
+            obj.firstVademecum = 'SuperEllipseQ2';
+            obj.secondVademecum = 'SuperEllipseQInf';
         end
         
         function createOutPutPath(obj)
-            firstPart  = fullfile( '/home','alex','Dropbox');
-            secondPart = fullfile('Amplificators','Images','MicroWithHole/');
+            firstPart  = fullfile('/home','alex','Dropbox');
+            secondPart = fullfile('PaperStress','VademecumHomogenizedProperties/');
             obj.outPutPath = fullfile(firstPart,secondPart);
         end        
         
@@ -38,8 +44,12 @@ classdef SmoothingRectangleVademecum < handle
         end
                 
         function postprocessDifVademecum(obj)
+            fV = obj.firstVademecum;
+            sV = obj.secondVademecum;
+            folderPath = fullfile(obj.outPutPath,['DifferenceFrom',fV,'to',sV],'/');
+            mkdir(folderPath);
             d.fileName   = 'ReactangleDifference';
-            d.outPutPath = fullfile(obj.outPutPath,'Difference','/');
+            d.outPutPath = folderPath;
             d.smoothVD   = obj.smoothVad.vademecumData;
             d.smoothVD.feasibleIndex = obj.smoothVad.getFeasibleIndex();            
             d.nonSmoothVD = obj.nonSmoothVad.vademecumData;

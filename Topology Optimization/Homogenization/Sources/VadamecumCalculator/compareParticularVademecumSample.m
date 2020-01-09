@@ -41,7 +41,7 @@ classdef compareParticularVademecumSample < handle
             obj.inclutionRatio = 1;%1;%0.5;
             obj.pNorms = [2,4,8];
             obj.qNorms = [2,4,8,16,32];%[2,4,8,16,32];%[4,8,16,32];
-            obj.plottingShearTerms = false;
+            obj.plottingShearTerms = true;
         end
         
         function computeAndPlotPtensors(obj)

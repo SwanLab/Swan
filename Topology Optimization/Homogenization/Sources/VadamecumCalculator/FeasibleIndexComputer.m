@@ -9,10 +9,13 @@ classdef FeasibleIndexComputer < handle
         my
         nmx
         nmy
+        m1max
+        m2max
         chi
         rho
         iIndex
-        jIndex         
+        jIndex   
+        c
     end
     
     
@@ -33,6 +36,13 @@ classdef FeasibleIndexComputer < handle
             obj.my = d.my;            
             obj.chi = d.chi;
             obj.rho = d.rho;
+            d.m1max = 0.99;
+            d.m2max = 0.99;
+            cFunction = SuperEllipseParamsRelator.c();
+            d.c = cFunction(512); 
+            obj.m1max = d.m1max;
+            obj.m2max = d.m2max;
+            obj.c     = d.c;
             obj.nmx = length(obj.mx);
             obj.nmy = length(obj.my);
         end
@@ -52,21 +62,16 @@ classdef FeasibleIndexComputer < handle
         
         function itIs = isFeasible(obj,i,j)
             itIs = obj.isFirstCondSatisfied(i,j) &&...
-                obj.isSecondCondSatisfied(i,j) && ...
-                obj.isThirdCondSatisfied(i,j);
+                obj.isSecondCondSatisfied(i,j); 
         end
         
         function itIs = isFirstCondSatisfied(obj,i,j)
-            itIs = obj.chi(i,j) <= 1;
+            itIs = obj.chi(i,j) <= (obj.m1max^2*obj.c)/(1-obj.rho(i,j));
         end
         
         function itIs = isSecondCondSatisfied(obj,i,j)
-            itIs = 1 - obj.rho(i,j) <= obj.chi(i,j);
+            itIs = (1 - obj.rho(i,j))/(obj.m2max^2*obj.c) <= obj.chi(i,j);
         end
-        
-        function itIs = isThirdCondSatisfied(obj,i,j)
-            itIs = obj.chi(i,j) <= 1/(1-obj.rho(i,j));
-        end 
         
         function computeGlobalIndex(obj)
             i = obj.iIndex();

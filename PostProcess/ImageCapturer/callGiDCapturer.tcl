@@ -1,6 +1,6 @@
-set path "/home/alex/git-repos/FEM-MAT-OO/PostProcess/ImageCapturer/"
-set tclFile "CaptureImage.tcl"
+set path "/home/alex/git-repos/Swan/PostProcess/ImageCapturer/"
+set tclFile "CaptureImage3.tcl"
 source $path$tclFile 
-set output /home/alex/Dropbox/Amplificators/Images/FourthOrderAmplificator0 
-set inputFile Output/FourthOrderAmplificator/FourthOrderAmplificator0.flavia.res
+set output /home/alex/git-repos/Swan/Output/VigdergauzPrinting/VigdergauzPrinting10 
+set inputFile Output/VigdergauzPrinting/VigdergauzPrinting10.flavia.res
 CaptureImage $inputFile $output 
