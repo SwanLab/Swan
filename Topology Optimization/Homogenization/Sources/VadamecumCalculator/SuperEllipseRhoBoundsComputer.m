@@ -7,6 +7,7 @@ classdef SuperEllipseRhoBoundsComputer < handle
        myMax
        mxMin
        myMin
+       superEllipse
     end
     
     methods (Access = public)

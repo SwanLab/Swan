@@ -31,11 +31,11 @@ classdef SuperEllipseParamsRelator < handle
        end
        
        function my = myFromMxAndTxi(mx,txi)
-          my = mx/tan(txi);
+          my = mx./tan(txi);
        end
        
        function mx = mxFromMyAndTxi(my,txi)
-          mx = my*tan(txi);
+          mx = my.*tan(txi);
        end
        
        function rho = rhoFromMxAndTxi(mx,txi,q)
@@ -46,7 +46,7 @@ classdef SuperEllipseParamsRelator < handle
        
        function rho = rhoFromMyAndTxi(my,txi,q)
            sE  = SuperEllipseParamsRelator();
-           my  = sE.mxFromMyAndTxi(my,txi);
+           mx  = sE.mxFromMyAndTxi(my,txi);
            rho = sE.rho(mx,my,q);
        end       
        

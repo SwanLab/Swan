@@ -20,9 +20,19 @@ classdef SmoothingExponentComputerOptimal < SmoothingExponentComputer
 
    methods (Access = protected)
        
-       function computeExponent(obj) 
-            obj.alpha = 0.2505;
-            obj.beta  = 0.5483;
+       function computeExponent(obj)
+           obj.computeExponentAnalytical();           
+       end
+       
+      
+       
+   end   
+   
+   methods (Access = private)
+       
+ function computeExponentAnalytical(obj) 
+            obj.alpha = 0.5483;
+            obj.beta  = 0.2505;
             obj.gamma = 1;         
             obj.qMin = 2;
             obj.qMax = 32;           
@@ -30,21 +40,17 @@ classdef SmoothingExponentComputerOptimal < SmoothingExponentComputer
             obj.value = q;
        end
        
-       function computeExponent2(obj) 
+       function computeExponentAnalyticalOld(obj) 
             obj.alpha = 6;
             obj.beta  = 20;
             obj.gamma = 4;  
-            obj.qMin = 2;
-            obj.qMax = 512;            
-            a = obj.alpha;
-            b = obj.beta;
-            c = obj.gamma;           
-            x = max(obj.m1,obj.m2);
-            q = min(512,c*(1/(1-x^b))^a);  
-            obj.value = q;
+            obj.qMin  = 2;
+            obj.qMax = 32;   
+            q = obj.computeQ();          
+            obj.value = q;            
        end
        
-       function computeExponent3(obj)
+       function computeExponentNumerical(obj)
            fN = 'OptimalSuperEllipseExponent';
            pD = 'Topology Optimization/Vademecums';
            file2SaveName = [pD,'/',fN,'.mat'];
@@ -61,11 +67,7 @@ classdef SmoothingExponentComputerOptimal < SmoothingExponentComputer
              q = interp2(mx,my,q,obj.m1,obj.m2);
            end
            obj.value = q;
-       end
-       
-   end   
-   
-   methods (Access = private)
+       end       
        
        function init(obj,cParams)
           obj.m1 = cParams.m1;

@@ -11,7 +11,7 @@ function RunningVademecum
 % dSmooth.smoothingExponentSettings.type = 'Given';
 % computeVademecum(dSmooth);
 
-dSmooth = obtainSettings('SuperEllipseQOpt2','SmoothRectangle');
+dSmooth = obtainSettings('SuperEllipseQOptAnalytic','SmoothRectangle');
 dSmooth.smoothingExponentSettings.type = 'Optimal';
 computeVademecum(dSmooth);
 

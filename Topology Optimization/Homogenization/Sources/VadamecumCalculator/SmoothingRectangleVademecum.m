@@ -25,8 +25,8 @@ classdef SmoothingRectangleVademecum < handle
         
         function init(obj)
             obj.createOutPutPath();
-            obj.firstVademecum = 'SuperEllipseQOpt';
-            %obj.firstVademecum = 'SuperEllipseQ2';
+            %obj.firstVademecum = 'SuperEllipseQOptAnalytic';
+            obj.firstVademecum = 'SuperEllipseQ2';
             obj.secondVademecum = 'SuperEllipseQInf';
         end
         
