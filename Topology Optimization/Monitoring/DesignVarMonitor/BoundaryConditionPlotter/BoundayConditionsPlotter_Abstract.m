@@ -27,10 +27,6 @@ classdef BoundayConditionsPlotter_Abstract < handle
     
     methods (Access = public)
         
-        function obj = BoundayConditionsPlotter_Abstract(axes,mesh,bc)
-            obj.init(axes,mesh,bc);
-        end
-        
         function plot(obj)
             obj.plotDirichlet();
             obj.plotNeumann();

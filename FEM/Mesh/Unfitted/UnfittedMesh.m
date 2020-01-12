@@ -86,6 +86,7 @@ classdef UnfittedMesh < handle
         
         function add2plot(obj,ax,removedDim,removedCoord)
             obj.oldUnfittedMesh.add2plot(ax,removedDim,removedCoord);
+            %obj.oldUnfittedMesh.add2plot(ax);
         end
         
     end

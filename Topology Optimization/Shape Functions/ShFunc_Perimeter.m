@@ -1,13 +1,17 @@
 classdef ShFunc_Perimeter < ShapeFunctional
     
+    properties (GetAccess = public, SetAccess = private)
+       regularizedDensity        
+    end
+    
     properties (Access = protected)
         epsilon
-        regularizedDensity
         regularizedDensityProjection
         axes
     end
     
-    methods
+    methods (Access = public)
+        
         function obj = ShFunc_Perimeter(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             cParams.filterParams.filterType = 'PDE';

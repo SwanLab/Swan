@@ -13,7 +13,7 @@ classdef CutPointsCalculator_2D < CutPointsCalculator_Abstract
             P = P1 + gamma1.*(P2-P1)./(gamma1-gamma2);
             
             obj.cutPointsIso = P;
-            obj.activeCutPoints = sign(gamma1.*gamma2)<=0;
+            obj.activeCutPoints = sign(gamma1.*gamma2)<= 0;
         end
         
         function computeCutPoints_Global(obj)
@@ -31,7 +31,7 @@ classdef CutPointsCalculator_2D < CutPointsCalculator_Abstract
             P = P1 + gamma1.*(P2-P1)./(gamma1-gamma2);
             
             obj.cutPointsGlobal = P;
-            obj.activeCutPoints = sign(gamma1.*gamma2)<=0;
+            obj.activeCutPoints = sign(gamma1.*gamma2)<= 0;
         end
         
     end
