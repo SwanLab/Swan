@@ -40,7 +40,7 @@ classdef testVigdergauzMicroStructure < testShowingError & testTopOptComputation
         
         function init(obj)
             obj.tol = 2*1e-1;
-            obj.volume = 0.5;
+            obj.volume = 0.6;
         end
         
         function createUnfittedMesh(obj)

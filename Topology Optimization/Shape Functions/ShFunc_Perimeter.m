@@ -71,7 +71,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
         end
         
         function computePerimeterValue(obj)
-            obj.value = 0.5/obj.epsilon*((1 - obj.regularizedDensity)'*obj.regularizedDensityProjection);
+            obj.value = 1/(0.5*obj.epsilon)*((1 - obj.regularizedDensity)'*obj.regularizedDensityProjection);
         end
         
         function computePerimeterGradient(obj)
