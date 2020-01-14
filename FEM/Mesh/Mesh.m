@@ -45,13 +45,14 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             x1x3 = abs(x1-x3);
             hs = max([x1x2,x2x3,x1x3]');
             
-            S = mean(hs);
+            %S = mean(hs);
+            S = max(hs);
         end
         
         function L = computeCharacteristicLength(obj)
             xmin = min(obj.coord);
             xmax = max(obj.coord);
-            L = norm(xmax-xmin)/2;
+            L = norm(xmax-xmin);%/2;
         end
         
         function changeCoordinates(obj,newCoords)
