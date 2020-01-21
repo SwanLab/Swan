@@ -17,6 +17,8 @@ classdef RegularizedPerimeterComputer < handle
         capturingImage
         perimeterShapeFunction
         outputFigureName
+        perimeterType
+        isRobinTermAdded
     end
     
     methods (Access = public)
@@ -43,6 +45,8 @@ classdef RegularizedPerimeterComputer < handle
             obj.plotting         = cParams.plotting;
             obj.printing         = cParams.printing;
             obj.capturingImage   = cParams.capturingImage;
+            obj.perimeterType    = cParams.perimeterType;
+            obj.isRobinTermAdded = cParams.isRobinTermAdded;
         end
         
         function createEpsilonValues(obj)
@@ -78,11 +82,13 @@ classdef RegularizedPerimeterComputer < handle
         end
         
         function s = createPerimeterParams(obj)
-            sC.inputFile      = obj.inputFile;
-            sC.mesh           = obj.mesh;
-            sC.designVariable = obj.designVariable;
-            sC.epsilon        = obj.epsilon;
-            sC.scale          = obj.scale;
+            sC.inputFile        = obj.inputFile;
+            sC.mesh             = obj.mesh;
+            sC.designVariable   = obj.designVariable;
+            sC.epsilon          = obj.epsilon;
+            sC.scale            = obj.scale;
+            sC.type             = obj.perimeterType;
+            sC.isRobinTermAdded = obj.isRobinTermAdded;
             fCreator = PerimeterParamsCreator(sC);
             s = fCreator.perimeterParams;
         end

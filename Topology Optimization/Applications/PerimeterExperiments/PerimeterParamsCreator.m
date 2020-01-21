@@ -10,6 +10,8 @@ classdef PerimeterParamsCreator < handle
        designVariable 
        epsilon
        scale
+       type
+       isRobinTermAdded
     end
     
     methods (Access = public)
@@ -27,11 +29,13 @@ classdef PerimeterParamsCreator < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.inputFile      = cParams.inputFile;
-            obj.mesh           = cParams.mesh;
-            obj.designVariable = cParams.designVariable;
-            obj.epsilon        = cParams.epsilon;
-            obj.scale          = cParams.scale;
+            obj.inputFile        = cParams.inputFile;
+            obj.mesh             = cParams.mesh;
+            obj.designVariable   = cParams.designVariable;
+            obj.epsilon          = cParams.epsilon;
+            obj.scale            = cParams.scale;
+            obj.type             = cParams.type;
+            obj.isRobinTermAdded = cParams.isRobinTermAdded;
         end
         
         function createPerimeterParams(obj)
@@ -59,7 +63,7 @@ classdef PerimeterParamsCreator < handle
             s.fileName = obj.inputFile;
             s.scale    = obj.scale;
             s.mesh     = obj.mesh;
-            s.isRobinTermAdded = false;
+            s.isRobinTermAdded = obj.isRobinTermAdded;
         end        
         
         function addTargetParamters(obj)

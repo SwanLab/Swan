@@ -97,6 +97,8 @@ classdef CirclePerimeter < handle
             s.plotting         = true;
             s.printing         = true;
             s.capturingImage   = true;
+            s.isRobinTermAdded = false;
+            s.perimeterType    = 'perimeterInterior';            
             rPerimeter = RegularizedPerimeterComputer(s);
             rPerimeter.compute();
         end

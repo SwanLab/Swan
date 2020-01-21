@@ -95,6 +95,8 @@ classdef testAnalyticVsRegularizedPerimeter < testShowingError ... & testTopOptC
            sC.designVariable = obj.designVariable;
            sC.epsilon        = obj.designVariable.mesh.computeMeanCellSize();
            sC.scale          = 'MACRO';
+           sC.type           = 'perimeterInterior';
+           sC.isRobinTermAdded = false;
            fCreator = PerimeterParamsCreator(sC);        
            s = fCreator.perimeterParams;
         end     

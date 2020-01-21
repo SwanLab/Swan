@@ -43,7 +43,7 @@ classdef Element_DiffReact < Element
         
         function LHS = computeLHS(obj)
             if obj.addRobinTerm
-                LHS = obj.epsilon^2*obj.K + obj.M + 1/obj.epsilon*obj.Mr;
+                LHS = obj.epsilon^2*obj.K + obj.M + (obj.epsilon)*obj.Mr;
             else
                 LHS = obj.epsilon^2*obj.K + obj.M;
                 LHS = obj.bcApplier.fullToReducedMatrix(LHS);

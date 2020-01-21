@@ -16,8 +16,8 @@ classdef LevelSetFactory < handle
                     obj = LevelSetCylinder(d);
                 case 'horizontal'
                     obj = LevelSetHorizontalInclusion(d);
-                case 'square'
-                    obj = LevelSetSquareInclusion(d);
+                case {'squareInclusion'}
+                    obj = LevelSetSquareInclusion(d);                    
                 case 'smoothSquare'
                     obj = LevelSetSmoothSquareInclusion(d);
                 case 'rectangle'
