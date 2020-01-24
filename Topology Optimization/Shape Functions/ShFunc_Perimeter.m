@@ -28,6 +28,11 @@ classdef ShFunc_Perimeter < ShapeFunctional
             obj.computePerimeterGradient()
         end
         
+        function d = addPrintableVariables(obj,d)
+            d.gradient   = obj.gradient;
+            d.regDensity = obj.regularizedDensity;
+        end        
+        
     end
     
     methods (Access = protected)
@@ -71,7 +76,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
         end
         
         function computePerimeterValue(obj)
-            obj.value = 1/(0.5*obj.epsilon)*((1 - obj.regularizedDensity)'*obj.regularizedDensityProjection);
+            obj.value = 2/(obj.epsilon)*((1 - obj.regularizedDensity)'*obj.regularizedDensityProjection);
         end
         
         function computePerimeterGradient(obj)
@@ -80,11 +85,11 @@ classdef ShFunc_Perimeter < ShapeFunctional
         end
         
         function computeContinousGradient(obj)
-            obj.gradient = 0.5/obj.epsilon*(1 - 2*obj.regularizedDensity);
+            obj.gradient = 2/obj.epsilon*(1 - 2*obj.regularizedDensity);
         end
         
         function computeDiscreteGradient(obj)
-            obj.gradient = obj.Msmooth*obj.gradient;
+          %  obj.gradient = obj.Msmooth*obj.gradient;
         end
         
     end

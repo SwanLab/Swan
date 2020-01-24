@@ -42,6 +42,10 @@ classdef Geometry < handle
             for igauss = 1:ngaus
                 for inode = 1:nnode
                     for idime = 1:ndime
+                        node = interp_variable.T(:,inode);
+                        xnode = squeeze(interp_variable.xpoints(node,idime));
+                        shape = interp_variable.shape(inode,igauss);
+                        x = shape.*xnode;
                         x = interp_variable.shape(inode,igauss).*squeeze(interp_variable.xpoints(interp_variable.T(:,inode),idime));
                         gp_position(idime,igauss,:) = squeeze(gp_position(idime,igauss,:))+x;
                     end

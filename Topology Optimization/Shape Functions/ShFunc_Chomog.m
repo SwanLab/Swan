@@ -32,6 +32,11 @@ classdef ShFunc_Chomog < ShapeFunctional
             f = obj.regDesignVariable;
         end
         
+        function d = addPrintableVariables(obj,d)
+            d.phyProblems = obj.getPhysicalProblems();
+            d.regDensity  = obj.getRegularizedDensity();
+        end
+        
     end
     
     methods (Access = protected)

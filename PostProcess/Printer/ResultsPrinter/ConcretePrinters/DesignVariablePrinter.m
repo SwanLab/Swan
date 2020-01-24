@@ -1,7 +1,7 @@
 classdef DesignVariablePrinter < ResultsPrinter
     
     properties (Access = protected, Abstract)
-        simulationStr
+        %simulationStr
         fieldName
     end
     

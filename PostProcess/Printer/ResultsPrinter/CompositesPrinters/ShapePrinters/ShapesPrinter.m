@@ -8,6 +8,7 @@ classdef ShapesPrinter < CompositeResultsPrinter
     methods (Access = public)
         
         function obj = ShapesPrinter(d)
+            obj.simulationStr = 'ShapePrinters';
             obj.obtainAllShapes(d);
             obj.obtainPrintableIndex();
             obj.init(d);
@@ -37,8 +38,7 @@ classdef ShapesPrinter < CompositeResultsPrinter
             for iprinter = 1:numel(obj.printers)
                 index = obj.printableIndex(iprinter);
                 shape = obj.allShapes{index};   
-                d.phyProblems = shape.getPhysicalProblems();
-                d.regDensity  = shape.getRegularizedDensity();
+                d = shape.addPrintableVariables(d);
                 p = obj.printers{iprinter};
                 p.storeFieldsToPrint(d);
             end
@@ -48,8 +48,12 @@ classdef ShapesPrinter < CompositeResultsPrinter
             for iprinter = 1:numel(obj.printers)
                 index = obj.printableIndex(iprinter);
                 shape = obj.allShapes{index};
-                phyPr = shape.getPhysicalProblems(); 
-                d.quad = phyPr{1}.element.quadrature;
+                if obj.getHasGaussData
+                  phyPr = shape.getPhysicalProblems(); 
+                  d.quad = phyPr{1}.element.quadrature;
+                else
+                    d.quad = [];
+                end
                 p = obj.printers{iprinter};                
                 p.createHeadPrinter(d,dh);
                 if p.getHasGaussData()
@@ -104,7 +108,7 @@ classdef ShapesPrinter < CompositeResultsPrinter
             printingShapes = {'ShFunc_NonSelfAdjoint_Compliance',...
                 'ShFunc_Compliance', 'ShFunc_Compliance',...
                 'ShFunc_Chomog_alphabeta',...
-                'ShFunc_Chomog_fraction'};
+                'ShFunc_Chomog_fraction','ShFunc_Perimeter'};
             itIs = any(strcmp(printingShapes,shapeName));
         end
         

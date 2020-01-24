@@ -2,6 +2,9 @@ classdef RegularizedPerimeterComputer < handle
     
     properties (Access = public)
         perimeters
+        perimetersGradient
+        regularizedDensity
+        perimeterShapeFunctions
         epsilons
     end
     
@@ -71,8 +74,13 @@ classdef RegularizedPerimeterComputer < handle
         function computeRegularizedPerimeter(obj,iepsilon)
             obj.createPerimeterShapeFunction();
             obj.perimeterShapeFunction.computeCostAndGradient();
-            per = obj.perimeterShapeFunction.value;
+            per    = obj.perimeterShapeFunction.value;
+            dPer   = obj.perimeterShapeFunction.gradient;
+            rhoReg = obj.perimeterShapeFunction.regularizedDensity;
             obj.perimeters(iepsilon) = per;
+            obj.perimetersGradient(:,iepsilon) = dPer;
+            obj.regularizedDensity(:,iepsilon) = rhoReg;
+            obj.perimeterShapeFunctions{iepsilon} = obj.perimeterShapeFunction;
         end
         
         function createPerimeterShapeFunction(obj)
@@ -108,7 +116,7 @@ classdef RegularizedPerimeterComputer < handle
             s.inputFile = obj.inputFile;
             s.iter      = iepsilon;
             s.mesh      = obj.designVariable.mesh;
-            s.density   = obj.perimeterShapeFunction.regularizedDensity;
+            s.perimeter   = obj.perimeterShapeFunction;
             printer = DensityPrinterForPerimeter(s);
             printer.print();
         end

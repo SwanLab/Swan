@@ -3,7 +3,7 @@ classdef DensityPrinterForPerimeter < handle
     properties (Access = private)
         inputFile
         mesh
-        density
+        perimeter
         iter
     end
     
@@ -14,8 +14,9 @@ classdef DensityPrinterForPerimeter < handle
         end
         
         function print(obj)
-            printer = obj.createPrinter();
-            d.x  = obj.density;
+            printer = obj.createPrinter();            
+            d.cost.shapeFunctions{1} = obj.perimeter;
+            d.constraint.shapeFunctions = [];
             printer.print(obj.iter,d);               
         end
         
@@ -26,7 +27,7 @@ classdef DensityPrinterForPerimeter < handle
         function init(obj,cParams)
             obj.inputFile = cParams.inputFile;
             obj.mesh      = cParams.mesh;
-            obj.density   = cParams.density;
+            obj.perimeter = cParams.perimeter;
             obj.iter      = cParams.iter;
         end
         
@@ -37,7 +38,9 @@ classdef DensityPrinterForPerimeter < handle
             sP.ptype   = 'TRIANGLE';
             p = PostProcessDataBaseCreator(sP);
             s = p.getValue();
-            type = 'Density';
+            s.cost.shapeFunctions{1} = obj.perimeter;
+            s.constraint.shapeFunctions = [];
+            type = 'ShapeFunction';
             p = Postprocess(type,s);            
         end                     
         

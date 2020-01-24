@@ -41,34 +41,15 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             x2(:,1) = obj.coord(obj.connec(:,2),1);
             x2(:,2) = obj.coord(obj.connec(:,2),2);
             x3(:,1) = obj.coord(obj.connec(:,3),1);
-            x3(:,2) = obj.coord(obj.connec(:,3),2);
-            
+            x3(:,2) = obj.coord(obj.connec(:,3),2);            
             x1x2 = (x2-x1);
             x2x3 = (x3-x2);
             x1x3 = (x1-x3);
-            
             n12 = sqrt(x1x2(:,1).^2 + x1x2(:,2).^2);
             n23 = sqrt(x2x3(:,1).^2 + x2x3(:,2).^2);
             n13 = sqrt(x1x3(:,1).^2 + x1x3(:,2).^2);
-                        
-            hs = max([n12,n23,n13]');
-            
+            hs = max([n12,n23,n13],[],2);
             S = max(hs);
-            
-
-%             x1 = obj.coord(obj.connec(:,1));
-%             x2 = obj.coord(obj.connec(:,2));
-%             x3 = obj.coord(obj.connec(:,3));
-%             
-%             
-%             x1x2 = abs(x2-x1);
-%             x2x3 = abs(x3-x2);
-%             x1x3 = abs(x1-x3);
-%             hs = max([x1x2,x2x3,x1x3]');
-%             
-%             S = max(hs);
-
-            
         end
         
         function L = computeCharacteristicLength(obj)

@@ -6,7 +6,7 @@ classdef CirclePerimeter < handle
         radius
         
         mesh
-        levelSetCreator
+        levelSet
         analyticPerimeter
         regularizedPerimeter
         geometricPerimeter
@@ -39,29 +39,21 @@ classdef CirclePerimeter < handle
         
         function init(obj)
             obj.radius = 0.21;
-            %obj.inputFile = 'DoubleSquareMacroTriangle';
             obj.nameCase = 'CirclePerimeterExperiment';
             obj.inputFile = {'SquareMacroTriangle'; ...
                              'SquareMacroTriangleFine';...
                              'SquareMacroTriangleFineFine'};
             obj.scale     = 'MACRO';
-            %obj.analyticPerimeter    = 0.7*4;
             obj.analyticPerimeter    = 2*pi*(obj.radius);
             obj.outputFolder = '/home/alex/Dropbox/Perimeter/';
         end
         
         function createMesh(obj)
-            [connec,coord] = obj.loadSquareMeshParams();
-            s.coord  = coord;
-            s.connec = connec;
-            obj.mesh = Mesh_Total(s);
-        end
-        
-        function [connec,coord] = loadSquareMeshParams(obj)
-            eval(obj.inputFile{obj.imesh});
-            coord  = coord(:,2:3);
-            connec = connec(:,2:end);
-            obj.domainLength = max(coord(:,1)) - min(coord(:,1));
+            s.inputFile = obj.inputFile{obj.imesh};
+            meshCreator = MeshCreatorFromInputFile(s);
+            meshCreator.createMesh();
+            obj.mesh         = meshCreator.mesh;
+            obj.domainLength = meshCreator.domainLength;
         end
         
         function createLevelSet(obj)
@@ -72,7 +64,7 @@ classdef CirclePerimeter < handle
             s.printing              = true;
             s.levelSetCreatorParams = obj.createLevelSetCreatorParams();
             lsCreator = LevelSetCreatorForPerimeter(s);
-            obj.levelSetCreator = lsCreator;
+            obj.levelSet = lsCreator.levelSet;
         end
         
         function s = createLevelSetCreatorParams(obj)
@@ -92,7 +84,7 @@ classdef CirclePerimeter < handle
             s.inputFile        = obj.inputFile{obj.imesh};
             s.mesh             = obj.mesh;
             s.scale            = obj.scale;
-            s.designVariable   = obj.levelSetCreator.levelSet;
+            s.designVariable   = obj.levelSet;
             s.outputFigureName = ['SmoothedCircleMesh',num2str(obj.imesh)];
             s.plotting         = true;
             s.printing         = true;
@@ -104,7 +96,7 @@ classdef CirclePerimeter < handle
         end
         
         function gPerimeter = computeGeometricPerimeter(obj)
-            s.designVariable = obj.levelSetCreator.levelSet;
+            s.designVariable = obj.levelSet;
             gPerimeter = GeometricPerimeterComputer(s);
             gPerimeter.compute();
         end
