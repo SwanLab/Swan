@@ -73,20 +73,17 @@ classdef Integrator_Simple < Integrator
         end
         
         function computeElementalRHS(obj,F1)
-            jacob  = obj.geometry.djacob;
             shapes = obj.interpolation.shape;
-            weight = obj.quadrature.weigp;
+            dvolu  = obj.geometry.dvolu;            
             ngaus  = obj.quadrature.ngaus;
             nelem  = obj.mesh.nelem;
             nnode  = obj.mesh.nnode;
             f      = zeros(nelem,nnode);
             for igaus = 1:ngaus
-                for iNode = 1:nnode
-                    dJ = jacob(:,igaus);
-                    w = weight(igaus);
-                    Ni = shapes(iNode,igaus);
-                    f(:,iNode) = f(:,iNode) + w*Ni*dJ;
-                end
+                    dv = dvolu(:,igaus);
+                    Ni(1,:) = shapes(:,igaus);
+                    inc = bsxfun(@times,dv,Ni);
+                    f = f + inc;
             end
             obj.RHSsubcells = f;
         end
@@ -110,26 +107,21 @@ classdef Integrator_Simple < Integrator
         end
         
         function computeElementalLHS(obj)
-            jacob  = obj.geometry.djacob;
             shapes = obj.interpolation.shape;
-            weight  = obj.quadrature.weigp;
+            dvolu  = obj.geometry.dvolu;
             ngaus  = obj.quadrature.ngaus;
             nelem  = obj.mesh.nelem;
             nnode  = obj.mesh.nnode;
-            Ae = zeros(nnode,nnode,nelem);
+            Me = zeros(nnode,nnode,nelem);
             for igaus = 1:ngaus
-                for inode = 1:nnode
-                    for jnode = 1:nnode
-                        dJ = jacob(:,igaus);
-                        w  = weight(igaus);
-                        Ni = shapes(inode,igaus);
-                        Nj = shapes(jnode,igaus);
-                        Aij = squeeze(Ae(inode,jnode,:));
-                        Ae(inode,jnode,:) = Aij + w*Ni*Nj*dJ;
-                    end
-                end
+                        dv(1,1,:) = dvolu(:,igaus);
+                        Ni = shapes(:,igaus);
+                        Nj = shapes(:,igaus);
+                        NiNj = Ni*Nj';
+                        Aij = bsxfun(@times,NiNj,dv);
+                        Me = Me + Aij;
             end
-            obj.LHScells = Ae;
+            obj.LHScells = Me;
         end
         
         function assembleMatrix(obj)

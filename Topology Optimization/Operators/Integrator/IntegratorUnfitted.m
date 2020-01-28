@@ -64,9 +64,9 @@ classdef IntegratorUnfitted < Integrator
                 inode = obj.meshBackground.connec(icell,:);
                 
                 weigth = obj.quadrature.weigp';
-                dvolu  = obj.unfittedInterp.dvolu;
+                isoDv  = obj.unfittedInterp.isoDv;
                 
-                F0 = (shape*weigth)'*F1(inode)/dvolu;
+                F0 = (shape*weigth)'*F1(inode)/isoDv;
                 
                 shapeValues(isubcell,:) = shapeValues(isubcell,:) + (shape*(djacob.*weigth)*F0)';
             end
@@ -148,7 +148,7 @@ classdef IntegratorUnfitted < Integrator
         function computeUnfittedGaussPoints(obj)
            coord = obj.meshUnfitted.subcellIsoCoords;
            inter = obj.unfittedInterp;
-           quad  =  obj.quadrature;
+           quad  = obj.quadrature;
            quadU = obj.computePosGP(coord,inter,quad);
            obj.unfittedQuad = quadU;
         end
@@ -168,7 +168,7 @@ classdef IntegratorUnfitted < Integrator
         function dJ = computeJacobian(obj,isubcell)
             connec = obj.meshUnfitted.connec(isubcell,:);
             coord  = obj.meshUnfitted.coord(connec,:);
-            dvolu = obj.unfittedInterp.dvolu;
+            dvolu = obj.unfittedInterp.isoDv;
             dJ = obj.mapping(coord,dvolu); % !! Could be done through Geometry class?? !!            
         end
         

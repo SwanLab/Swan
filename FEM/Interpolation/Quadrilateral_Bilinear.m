@@ -8,7 +8,7 @@ classdef Quadrilateral_Bilinear < Interpolation
             obj.ndime = 2;
             obj.nnode = 4;
             obj.pos_nodes = [-1 -1; 1 -1; 1 1; -1 1];
-            obj.dvolu = 4;           
+            obj.isoDv = 4;           
             obj.cases(:,:,1)=[1 5 6
                 5 2 3
                 5 3 6

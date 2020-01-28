@@ -10,7 +10,7 @@ classdef Hexahedra_Linear < Interpolation
             obj.order = 'LINEAR';
             obj.ndime = 3;          % 1D/2D/3D
             obj.nnode = 8;
-            obj.dvolu = 8;
+            obj.isoDv = 8;
             obj.pos_nodes=[-1 -1 -1;
                 +1 -1 -1;
                 +1 +1 -1;

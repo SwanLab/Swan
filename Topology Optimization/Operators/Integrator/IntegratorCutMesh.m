@@ -56,9 +56,9 @@ classdef IntegratorCutMesh < Integrator
                 icell  = obj.cutMesh.cellContainingSubcell(isubcell);
                 inode = obj.backgroundMesh.connec(icell,:);
                 weight = obj.quadrature.weigp';
-                dvolu  = obj.unfittedInterp.dvolu;
+                isoDv  = obj.unfittedInterp.isoDv;
                 
-                F0 = (shape*weight)'*F1(inode)/dvolu;
+                F0 = (shape*weight)'*F1(inode)/isoDv;
                 
                 int(isubcell,:) = int(isubcell,:) + (shape*(djacob.*weight)*F0)';
             end
@@ -175,8 +175,8 @@ classdef IntegratorCutMesh < Integrator
         function dJ = computeJacobian(obj,isubcell)
             connec = obj.cutMesh.connec(isubcell,:);
             coord  = obj.cutMesh.coord(connec,:);
-            dvolu = obj.unfittedInterp.dvolu;
-            dJ = obj.mapping(coord,dvolu); % !! Could be done through Geometry class?? !!
+            isoDv = obj.unfittedInterp.isoDv;
+            dJ = obj.mapping(coord,isoDv); % !! Could be done through Geometry class?? !!
         end
         
     end

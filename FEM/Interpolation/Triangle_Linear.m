@@ -8,7 +8,7 @@ classdef Triangle_Linear < Interpolation
             obj.ndime = 2;
             obj.nnode = 3;
             obj.pos_nodes = [0 0; 1 0; 0 1];
-            obj.dvolu = 0.5;
+            obj.isoDv = 0.5;
             obj.cases(:,:,1) = [1 4 5;
                                 4 2 3;
                                 5 4 3];

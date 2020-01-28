@@ -11,7 +11,7 @@ classdef Interpolation < handle
         pos_nodes
         shape
         deriv
-        dvolu
+        isoDv
         iteration
         cases
         selectcases

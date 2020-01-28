@@ -11,7 +11,7 @@ classdef Tetrahedra_Linear<Interpolation
                              1 0 0;
                              0 1 0;
                              0 0 1];
-            obj.dvolu = 1/6;
+            obj.isoDv = 1/6;
             obj.iteration = [1 1 1 2 2 3;
                              2 3 4 3 4 4];
         end
