@@ -169,7 +169,6 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
         
         function createAdjointProblem(obj,fileName)
             obj.adjointProb = FEM.create(fileName);
-            obj.adjointProb.preProcess;
         end
         
         function computeFadjoint(obj)

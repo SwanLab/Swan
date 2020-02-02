@@ -59,7 +59,6 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
             [dof,dofVal] = obj.adjointProb.dof.get_dof_conditions(fAdj,obj.adjointProb.dof.nunkn);
             obj.adjointProb.dof.neumann = dof;
             obj.adjointProb.dof.neumann_values = -dofVal;
-            obj.adjointProb.preProcess;
         end
 
     end

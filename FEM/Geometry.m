@@ -5,8 +5,8 @@ classdef Geometry < handle
         cart_pos_gp
         dvolu        
         type
-        interpolation
         nfields
+        interpolation                      
     end
     
     properties (Access = private)
@@ -27,7 +27,8 @@ classdef Geometry < handle
         function obj = Geometry(mesh,order)
             obj.type = mesh.geometryType;   
             obj.nfields = 1;            
-            obj.interpolation = Interpolation.create(mesh,order);
+            obj.interpolation = Interpolation.create(mesh,order); %!!!!!!!!!!!
+            %obj.interpolation = Interpolation.create(mesh,'LINEAR');            
         end
         
         function computeGeometry(obj,quad,interpV)

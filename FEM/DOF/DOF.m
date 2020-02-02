@@ -30,7 +30,8 @@ classdef DOF < handle
         end
         
         function obj = computeDOF(obj,geometry)
-            for ifield = 1:geometry(1).nfields
+            nfields = numel(geometry);
+            for ifield = 1:nfields
                 nunkn = obj.nunkn(ifield);
                 nnode = geometry(ifield).interpolation.nnode;
                 npnod = geometry(ifield).interpolation.npnod;

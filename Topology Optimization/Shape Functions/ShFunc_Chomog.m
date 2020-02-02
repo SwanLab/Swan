@@ -21,7 +21,6 @@ classdef ShFunc_Chomog < ShapeFunctional
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
             obj.physicalProblem = FEM.create(cParams.femSettings.fileName);
-            obj.physicalProblem.preProcess;
         end
         
         function f = getPhysicalProblems(obj)

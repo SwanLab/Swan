@@ -17,13 +17,10 @@ classdef Stokes_Problem < FEM
             obj.readProblemData(fileName);
             obj.createGeometry(obj.mesh);
             obj.dof = DOF_Stokes(fileName,obj.geometry);
-        end
-        
-        function preProcess(obj)
             cParams.nelem = obj.geometry(1).interpolation.nelem;
             obj.material = Material_Stokes(cParams);
             obj.element = Element_Stokes(obj.mesh,obj.geometry,obj.material,obj.dof,obj.problemData);
-            obj.solver = Solver.create;
+            obj.solver = Solver.create;            
         end
         
         function computeVariables(obj)

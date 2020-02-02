@@ -51,7 +51,6 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         
         function createEquilibriumProblem(obj,fileName)
             obj.physicalProblem = FEM.create(fileName);
-            obj.physicalProblem.preProcess;
             obj.initPrincipalDirections();
         end
         

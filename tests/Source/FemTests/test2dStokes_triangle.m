@@ -15,7 +15,6 @@ classdef test2dStokes_triangle < testCheckStoredWithFemComputedVariable
         
         function computeVariableThroughFemSolver(obj)
             femSolver = FEM.create(obj.testName);
-            femSolver.preProcess;          
             femSolver.computeVariables;
             obj.fem = femSolver;
         end

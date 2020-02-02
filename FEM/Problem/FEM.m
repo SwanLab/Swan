@@ -165,7 +165,7 @@ classdef FEM < handle
     end
     
     methods (Access = public, Abstract)
-        preProcess(obj)
+        %preProcess(obj)
         computeVariables(obj)
     end
     
