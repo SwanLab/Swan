@@ -9,8 +9,8 @@ classdef DOF_Elastic_Micro < DOF_Elastic
     end
     
     methods
-        function obj = DOF_Elastic_Micro(problemID,geometry,mesh)
-            obj@DOF_Elastic(problemID,geometry,mesh);
+        function obj = DOF_Elastic_Micro(problemID,geometry,mesh,nFields)
+            obj@DOF_Elastic(problemID,geometry,mesh,nFields);
         end
         
         function obj = computeDOF(obj,geometry)

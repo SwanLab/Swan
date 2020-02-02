@@ -11,12 +11,19 @@ classdef Stokes_Problem < FEM
         material
     end
     
+    properties (Access = private)
+       nFields 
+    end
+    
     %% Public methods definition ==========================================
     methods (Access = public)
         function obj = Stokes_Problem(fileName)
             obj.readProblemData(fileName);
             obj.createGeometry(obj.mesh);
-            obj.dof = DOF_Stokes(fileName,obj.geometry);
+            interpU = 'QUADRATIC';
+            interpP = 'LINEAR';
+            obj.nFields = 2;
+            obj.dof = DOF_Stokes(fileName,obj.geometry,interpU,obj.nFields);
             cParams.nelem = obj.geometry(1).interpolation.nelem;
             obj.material = Material_Stokes(cParams);
             obj.element = Element_Stokes(obj.mesh,obj.geometry,obj.material,obj.dof,obj.problemData);
@@ -24,7 +31,7 @@ classdef Stokes_Problem < FEM
         end
         
         function computeVariables(obj)
-            for ifield = 1:obj.geometry(1).nfields
+            for ifield = 1:obj.nFields
                 free_dof(ifield) = length(obj.dof.free{ifield});
             end
             transient = false;  % !! This should not be defined in here !!

@@ -195,8 +195,9 @@ classdef Element_Stokes < Element
                 for inode=1:nnode
                     for iunkn=1:nunkn
                         elemental_dof = inode*nunkn-nunkn+iunkn; %% dof per guardar el valor de la integral
-                        
-                        v= squeeze(obj.interpolation_v.shape(inode,igaus).*f(iunkn,igaus,:));
+                        shape = obj.interpolation_v.shape(inode,igaus);
+                        fvalue = f(iunkn,igaus,:);
+                        v= squeeze(shape.*fvalue);
                         Fext(elemental_dof,1,:)= squeeze(Fext(elemental_dof,1,:)) + v(:).*geometry.dvolu(:,igaus);
                         
                     end
@@ -261,7 +262,7 @@ classdef Element_Stokes < Element
         function Fext = computeVolumetricFext(obj,nelem,geometry,dof)
             idx = obj.dof.in_elem{1};
             geometry = geometry(1);
-            nnode = geometry(1).interpolation.nnode;
+            nnode = obj.interpolation_v.nnode;
             nunkn= obj.dof.nunkn(1);
             %             f = zeros(nnode*nunkn,1,nelem);
             

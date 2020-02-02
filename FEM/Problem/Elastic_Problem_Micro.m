@@ -16,12 +16,14 @@ classdef Elastic_Problem_Micro < FEM
         
         material
         fileName
+        nFields
     end
     
     % Public methods definition ==========================================
     methods (Access = public)
         function obj = Elastic_Problem_Micro(fileName)
             obj.fileName = fileName;
+            obj.nFields = 1;
             obj.readProblemData(fileName);
             obj.createGeometry();
             obj.createDOF();
@@ -140,7 +142,7 @@ classdef Elastic_Problem_Micro < FEM
         end
         
         function createDOF(obj)
-            obj.dof = DOF_Elastic_Micro(obj.fileName,obj.geometry,obj.problemData.pdim);
+            obj.dof = DOF_Elastic_Micro(obj.fileName,obj.geometry,obj.problemData.pdim,obj.nFields);
         end
         
         function createElement(obj)

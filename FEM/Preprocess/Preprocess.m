@@ -74,7 +74,7 @@ classdef Preprocess<handle
             
         end
         
-        function [fixnodes,forces,full_dirichlet_data,Master_slave] = getBC_fluids(filename,geometry)
+        function [fixnodes,forces,full_dirichlet_data,Master_slave] = getBC_fluids(filename,geometry,interpU,interpP)
             run(filename)
             nelem=geometry(1).interpolation.nelem;
             full_dirichlet_data=External_border_nodes;
@@ -137,7 +137,7 @@ classdef Preprocess<handle
                 for ielem = 1:nelem
                     ind=1;
                     quadrature=Quadrature.set(geometry(1).type);
-                    quadrature.computeQuadrature(geometry(1).interpolation.order);
+                    quadrature.computeQuadrature(interpU);
                     geometry(1).interpolation.computeShapeDeriv(quadrature.posgp)
                     geometry(1).computeGeometry(quadrature,geometry(1).interpolation)
                     for igaus = 1:quadrature.ngaus

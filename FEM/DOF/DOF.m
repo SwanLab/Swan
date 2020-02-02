@@ -21,10 +21,10 @@ classdef DOF < handle
     end
     
     methods
-        function obj = getDOFconditions(obj,geometry,dirichlet_data,neumann_data,full_dirichlet_data)
+        function obj = getDOFconditions(obj,nFields,dirichlet_data,neumann_data,full_dirichlet_data)
             [obj.neumann,obj.neumann_values] = obj.get_dof_conditions(neumann_data,obj.nunkn(1));
             [obj.full_dirichlet,obj.full_dirichlet_values] = obj.get_dof_conditions(full_dirichlet_data,obj.nunkn(1));
-            for ifield = 1:geometry(1).nfields
+            for ifield = 1:nFields
                 [obj.dirichlet{ifield},obj.dirichlet_values{ifield}] = obj.get_dof_conditions(dirichlet_data{ifield},obj.nunkn(ifield));
             end
         end

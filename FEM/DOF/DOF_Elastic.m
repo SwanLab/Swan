@@ -7,7 +7,7 @@ classdef DOF_Elastic < DOF
     end
     
     methods
-        function obj = DOF_Elastic(filename,geometry,pdim) % Replace mesh for pdim
+        function obj = DOF_Elastic(filename,geometry,pdim,nFields) % Replace mesh for pdim
             switch pdim
                 case '2D'
                     obj.nunkn = 2;
@@ -15,7 +15,7 @@ classdef DOF_Elastic < DOF
                     obj.nunkn = 3;
             end
             [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = Preprocess.getBC_mechanics(filename);
-            obj.getDOFconditions(geometry,dirichlet_data,neumann_data,full_dirichlet_data);
+            obj.getDOFconditions(nFields,dirichlet_data,neumann_data,full_dirichlet_data);
             obj.master_slave = master_slave;
             obj.computeDOF(geometry);
         end

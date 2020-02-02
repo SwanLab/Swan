@@ -9,6 +9,7 @@ classdef Elastic_Problem < FEM
     properties (Access = private)
         material
         fileName
+        nFields
     end
     
     
@@ -16,6 +17,7 @@ classdef Elastic_Problem < FEM
     methods (Access = public)
         function obj = Elastic_Problem(fileName)
             obj.fileName = fileName;
+            obj.nFields = 1;
             obj.readProblemData(fileName);
             obj.createGeometry();
             obj.createDOF();
@@ -118,7 +120,7 @@ classdef Elastic_Problem < FEM
         end
         
         function createDOF(obj)
-            obj.dof = DOF_Elastic(obj.fileName,obj.geometry,obj.problemData.pdim);            
+            obj.dof = DOF_Elastic(obj.fileName,obj.geometry,obj.problemData.pdim,obj.nFields);            
         end
         
         function createElement(obj)
