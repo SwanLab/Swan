@@ -72,7 +72,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         end
         
         function computeGradient(obj)
-            nelem = obj.physicalProblem.geometry.interpolation.nelem;
+            nelem = obj.physicalProblem.mesh.nelem;
             ngaus = obj.physicalProblem.element.quadrature.ngaus;
             nstre = obj.physicalProblem.element.getNstre();
             g = zeros(nelem,ngaus,obj.nVariables);

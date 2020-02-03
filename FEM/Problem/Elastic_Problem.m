@@ -10,6 +10,7 @@ classdef Elastic_Problem < FEM
         material
         fileName
         nFields
+        interp
     end
     
     
@@ -20,6 +21,7 @@ classdef Elastic_Problem < FEM
             obj.nFields = 1;
             obj.readProblemData(fileName);
             obj.createGeometry();
+            obj.createInterpolation();
             obj.createDOF();
             obj.createMaterial();
             obj.createSolver(); 
@@ -104,12 +106,16 @@ classdef Elastic_Problem < FEM
         
         function createGeometry(obj)
             obj.geometry = Geometry(obj.mesh,'LINEAR');
+        end     
+        
+        function createInterpolation(obj)
+            obj.interp{1} = Interpolation.create(obj.mesh,'LINEAR');                                    
         end        
         
         function createMaterial(obj)
             cParams.ptype = obj.problemData.ptype;
             cParams.pdim  = obj.problemData.pdim;
-            cParams.nelem = obj.geometry(1).interpolation.nelem;
+            cParams.nelem = obj.interp{1}.nelem;
             cParams.geometry = obj.geometry;
             cParams.mesh  = obj.mesh;            
             obj.material = Material.create(cParams);                        
@@ -120,11 +126,11 @@ classdef Elastic_Problem < FEM
         end
         
         function createDOF(obj)
-            obj.dof = DOF_Elastic(obj.fileName,obj.geometry,obj.problemData.pdim,obj.nFields);            
+            obj.dof = DOF_Elastic(obj.fileName,obj.geometry,obj.problemData.pdim,obj.nFields,obj.interp);            
         end
         
         function createElement(obj)
-            obj.element = Element_Elastic.create(obj.mesh,obj.geometry,obj.material,obj.dof,obj.problemData);            
+            obj.element = Element_Elastic.create(obj.mesh,obj.geometry,obj.material,obj.dof,obj.problemData,obj.interp);            
         end
         
     end

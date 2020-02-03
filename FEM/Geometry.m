@@ -6,11 +6,12 @@ classdef Geometry < handle
         dvolu        
         type
         nfields
-        interpolation                      
+
     end
     
     properties (Access = private)
         matrixInverter
+        interpolation                                     
         interpolationVariable
         quadrature
         ngaus
@@ -27,8 +28,8 @@ classdef Geometry < handle
         function obj = Geometry(mesh,order)
             obj.type = mesh.geometryType;   
             obj.nfields = 1;            
-            obj.interpolation = Interpolation.create(mesh,order); %!!!!!!!!!!!
-            %obj.interpolation = Interpolation.create(mesh,'LINEAR');            
+            %obj.interpolation = Interpolation.create(mesh,order); %!!!!!!!!!!!
+            obj.interpolation = Interpolation.create(mesh,'LINEAR');            
         end
         
         function computeGeometry(obj,quad,interpV)
@@ -61,9 +62,10 @@ classdef Geometry < handle
         end
         
         function computeGaussPointsPosition(obj)
+            nNode = obj.interpolationVariable.nnode;
             shapes = obj.interpolationVariable.shape;
             xGauss = zeros(obj.ngaus,obj.ndime,obj.nelem);
-            for kNode = 1:obj.nnode 
+            for kNode = 1:nNode 
                 shapeKJ(:,1) = shapes(kNode,:)';
                 xKJ = obj.coordElem(kNode,:,:);
                 xG = bsxfun(@times,shapeKJ,xKJ);

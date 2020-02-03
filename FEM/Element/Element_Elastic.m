@@ -29,21 +29,21 @@ classdef Element_Elastic < Element
     methods (Static) %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?obj})
         
         
-        function obj = create(mesh,geometry,material,dof,problemData)
+        function obj = create(mesh,geometry,material,dof,problemData,interp)
             switch problemData.scale
                 case 'MICRO'
                     switch problemData.pdim
                         case '2D'
-                            obj = Element_Elastic_2D_Micro(mesh,geometry,material,dof,problemData);
+                            obj = Element_Elastic_2D_Micro(mesh,geometry,material,dof,problemData,interp);
                         case '3D'
-                            obj = Element_Elastic_3D_Micro(mesh,geometry,material,dof,problemData);
+                            obj = Element_Elastic_3D_Micro(mesh,geometry,material,dof,problemData,interp);
                     end
                 case 'MACRO'
                     switch problemData.pdim
                         case '2D'
-                            obj = Element_Elastic_2D(mesh,geometry,material,dof,problemData);
+                            obj = Element_Elastic_2D(mesh,geometry,material,dof,problemData,interp);
                         case '3D'
-                            obj = Element_Elastic_3D(mesh,geometry,material,dof,problemData);
+                            obj = Element_Elastic_3D(mesh,geometry,material,dof,problemData,interp);
                     end
             end            
             obj.createPrincipalDirection(problemData.pdim);
@@ -52,10 +52,10 @@ classdef Element_Elastic < Element
 
     
     methods %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
-        function compute(obj,mesh,geometry,material,dof,problemData)
-            obj.initElement(geometry,material,dof,problemData.scale)
+        function compute(obj,mesh,geometry,material,dof,problemData,interp)
+            obj.interpolation_u = interp{1};            
+            obj.initElement(geometry,mesh,material,dof,problemData.scale,interp)
             obj.nfields=1;
-            obj.interpolation_u = Interpolation.create(mesh,'LINEAR');
             
             obj.initialize_dvolum()
             Bmat   = obj.computeBmat();
@@ -63,7 +63,7 @@ classdef Element_Elastic < Element
             
             ngaus  = obj.quadrature.ngaus;
             dimen = obj.computeDim(ngaus);
-            connect = obj.geometry.interpolation.T;
+            connect = obj.interp{1}.T;
             
             
             obj.dim = dimen;

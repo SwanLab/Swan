@@ -20,18 +20,14 @@ classdef Element_DiffReact < Element
     end
     
     methods %(Access = ?Physical_Problem)
-        function obj = Element_DiffReact(mesh,geometry,material,dof,scale,addRobinTerm,bcType)
+        function obj = Element_DiffReact(mesh,geometry,material,dof,scale,addRobinTerm,bcType,interp)
             obj.mesh = mesh;
             obj.addRobinTerm = addRobinTerm;
             obj.bcType = bcType;
-            obj.initElement(geometry,material,dof,scale);
+            obj.initElement(geometry,mesh,material,dof,scale,interp);
             obj.nstre = 2;
             obj.nfields = 1;
-            if contains(class(obj.mesh),'Total')
-                obj.interpolation_u=Interpolation.create(mesh.innerMeshOLD,'LINEAR');
-            else
-                obj.interpolation_u=Interpolation.create(mesh,'LINEAR');
-            end
+            obj.interpolation_u = interp{1};
             obj.computeStiffnessMatrix();
             obj.computeMassMatrix();
             obj.computeBoundaryMassMatrix();

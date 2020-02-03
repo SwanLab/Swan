@@ -70,7 +70,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
         end
         
         function g = computeFirstTerm(obj)
-            nelem = obj.physicalProblem.geometry.interpolation.nelem;
+            nelem = obj.physicalProblem.mesh.nelem;
             ngaus = obj.physicalProblem.element.quadrature.ngaus;
             nstre = obj.physicalProblem.element.getNstre();
             eu = obj.physicalProblem.variables.strain;
@@ -100,7 +100,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
         end
         
         function g = computeSecondTerm(obj)
-            nelem = obj.physicalProblem.geometry.interpolation.nelem;
+            nelem = obj.physicalProblem.mesh.nelem;
             ngaus = obj.physicalProblem.element.quadrature.ngaus;
             nstre = obj.physicalProblem.element.getNstre();
             eu = obj.physicalProblem.variables.strain;
@@ -129,7 +129,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
         end
         
         function g = computeThirdTerm(obj)
-            nelem = obj.physicalProblem.geometry.interpolation.nelem;
+            nelem = obj.physicalProblem.mesh.nelem;
             ngaus = obj.physicalProblem.element.quadrature.ngaus;
             nstre = obj.physicalProblem.element.getNstre();
             eu = obj.physicalProblem.variables.strain;

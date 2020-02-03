@@ -43,7 +43,7 @@ classdef ShFunc_Chomog < ShapeFunctional
              dC = obj.homogenizedVariablesComputer.dC;
             
             nstre = obj.physicalProblem.element.getNstre();
-            nelem = obj.physicalProblem.geometry.interpolation.nelem;
+            nelem = obj.physicalProblem.mesh.nelem;
             ngaus = obj.physicalProblem.element.quadrature.ngaus;
             
             

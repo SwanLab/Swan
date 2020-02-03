@@ -9,14 +9,14 @@ classdef DOF_Elastic_Micro < DOF_Elastic
     end
     
     methods
-        function obj = DOF_Elastic_Micro(problemID,geometry,mesh,nFields)
-            obj@DOF_Elastic(problemID,geometry,mesh,nFields);
+        function obj = DOF_Elastic_Micro(problemID,geometry,mesh,nFields,interp)
+            obj@DOF_Elastic(problemID,geometry,mesh,nFields,interp);
         end
         
-        function obj = computeDOF(obj,geometry)
+        function obj = computeDOF(obj,geometry,interp)
             obj.periodic_free = obj.compute_periodic_nodes(obj.master_slave(:,1),obj.nunkn);
             obj.periodic_constrained = obj.compute_periodic_nodes(obj.master_slave(:,2),obj.nunkn);
-            computeDOF@DOF(obj,geometry);
+            computeDOF@DOF(obj,geometry,interp);
         end
         
         function constrained = compute_constrained_dof(obj,ifield)

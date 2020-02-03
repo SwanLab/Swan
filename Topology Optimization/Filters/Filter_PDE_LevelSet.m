@@ -3,7 +3,8 @@ classdef Filter_PDE_LevelSet < Filter_PDE
     properties(Access = private)
         integrator
         unfittedMesh
-        domainType        
+        domainType  
+        interp
     end
     
     methods (Access = public)
@@ -14,9 +15,10 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             
             obj.diffReacProb.preProcess();
             obj.createQuadrature();
+            obj.createInterpolation();            
             obj.computeGeometry();
             obj.nelem = obj.mesh.nelem;
-            obj.npnod = obj.geometry.interpolation.npnod;           
+            obj.npnod = obj.interp.npnod;           
             obj.ngaus = obj.quadrature.ngaus;
             obj.Anodal2Gauss = obj.computeA();
             
@@ -56,10 +58,14 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             obj.quadrature.computeQuadrature(obj.quadratureOrder);
         end        
           
-        function computeGeometry(obj)
+        function createInterpolation(obj)
+            obj.interp = Interpolation.create(obj.mesh,'LINEAR');    
+            obj.interp.computeShapeDeriv(obj.quadrature.posgp);
+        end        
+        
+        function computeGeometry(obj)           
             obj.geometry = Geometry(obj.mesh,'LINEAR');
-            obj.geometry.interpolation.computeShapeDeriv(obj.quadrature.posgp);
-            obj.geometry.computeGeometry(obj.quadrature,obj.geometry.interpolation);
+            obj.geometry.computeGeometry(obj.quadrature,obj.interp);        
         end
                 
         

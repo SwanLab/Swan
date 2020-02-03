@@ -28,6 +28,7 @@ classdef Filter < handle
     end
     
     properties (Access = private)
+        interp
     end
     
     methods (Access = public, Static)
@@ -47,7 +48,8 @@ classdef Filter < handle
             obj.setQuadrature();
             obj.setInterpolation();
             
-            obj.interpolation.computeShapeDeriv(obj.quadrature.posgp)
+            obj.interpolation.computeShapeDeriv(obj.quadrature.posgp);
+            obj.createInterpolation();
             obj.computeGeometry();
             obj.storeParams();
             
@@ -105,10 +107,14 @@ classdef Filter < handle
     
     methods (Access = private)
         
+        function createInterpolation(obj)
+            obj.interp = Interpolation.create(obj.mesh,'LINEAR');    
+            obj.interp.computeShapeDeriv(obj.quadrature.posgp);
+        end                
+        
         function computeGeometry(obj)
             obj.geometry = Geometry(obj.mesh,'LINEAR');
-            obj.geometry.interpolation.computeShapeDeriv(obj.quadrature.posgp);
-            obj.geometry.computeGeometry(obj.quadrature,obj.geometry.interpolation);
+            obj.geometry.computeGeometry(obj.quadrature,obj.interp);   
         end
         
         function setQuadrature(obj)
@@ -121,9 +127,9 @@ classdef Filter < handle
         end
         
         function storeParams(obj)
-            obj.nelem = obj.geometry.interpolation.nelem;
-            obj.nnode = obj.geometry.interpolation.nnode;
-            obj.npnod = obj.geometry.interpolation.npnod;
+            obj.nelem = obj.mesh.nelem;
+            obj.nnode = obj.interp.nnode;
+            obj.npnod = obj.interp.npnod;
             obj.ngaus = obj.quadrature.ngaus;
             obj.shape = obj.interpolation.shape;
         end

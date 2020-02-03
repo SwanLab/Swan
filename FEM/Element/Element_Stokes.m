@@ -15,12 +15,12 @@ classdef Element_Stokes < Element
     end
     
     methods
-        function obj=Element_Stokes(mesh,geometry,material,dof,problemData)
-            obj.initElement(geometry,material,dof,problemData.scale);
+        function obj = Element_Stokes(geometry,mesh,material,dof,problemData,interp)
+            obj.initElement(geometry,mesh,material,dof,problemData.scale,interp);
             %obj.nstre=0;
             obj.nfields=2;
-            obj.interpolation_v=Interpolation.create(mesh,'QUADRATIC');
-            obj.interpolation_p=Interpolation.create(mesh,'LINEAR');
+            obj.interpolation_v= interp{1};
+            obj.interpolation_p= interp{2};
         end
         
         function [r,dr] = computeResidual(obj,x,dr,x_n)
@@ -206,7 +206,7 @@ classdef Element_Stokes < Element
         end
         
         function g = compute_velocity_divergence(obj)
-            g = zeros(obj.geometry(2).interpolation.nnode*obj.dof.nunkn(2),1,obj.nelem);
+            g = zeros(obj.interp{2}.nnode*obj.dof.nunkn(2),1,obj.nelem);
         end
         
         function variable = computeVars(obj,x_free)

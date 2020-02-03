@@ -74,9 +74,9 @@ classdef Preprocess<handle
             
         end
         
-        function [fixnodes,forces,full_dirichlet_data,Master_slave] = getBC_fluids(filename,geometry,interpU,interpP)
+        function [fixnodes,forces,full_dirichlet_data,Master_slave] = getBC_fluids(filename,mesh,geometry,interp)
             run(filename)
-            nelem=geometry(1).interpolation.nelem;
+            nelem= mesh.nelem;
             full_dirichlet_data=External_border_nodes;
             if ~isempty(full_dirichlet_data)
                 full_dirichlet_data(:,2)=ones(length(full_dirichlet_data(:,1)),1);
@@ -88,12 +88,15 @@ classdef Preprocess<handle
             end
             
             
+            xpoints = interp{1}.xpoints;
+            nnode   = length(xpoints(:,1));
             
             if (~isempty(velocity))
                 ind=1;
-                for inode = 1: length(geometry(1).interpolation.xpoints(:,1))
-                    if geometry(1).interpolation.xpoints(inode,1) ==0  || geometry(1).interpolation.xpoints(inode,1) == 1 ...
-                            || geometry(1).interpolation.xpoints(inode,2) == 0 || geometry(1).interpolation.xpoints(inode,2) == 1
+                
+                for inode = 1: nnode
+                    if xpoints(inode,1) ==0  || xpoints(inode,1) == 1 ...
+                            || xpoints(inode,2) == 0 || xpoints(inode,2) == 1
                         fixnodes(ind,:)=[inode 1 0];
                         fixnodes(ind+1,:)=[inode 2 0];
                         ind = ind+2;
@@ -134,14 +137,19 @@ classdef Preprocess<handle
                 %                     F(ind:ind + length(f)-1,:) = [[inode;inode] [1;2] f];
                 %                     ind=ind+length(f);
                 %                 end
+                quadrature=Quadrature.set(geometry(1).type);
+                quadrature.computeQuadrature(interp{1}.order);
+                interp{1}.computeShapeDeriv(quadrature.posgp);
+
+                geometry(1).computeGeometry(quadrature,interp{1})
+
                 for ielem = 1:nelem
                     ind=1;
-                    quadrature=Quadrature.set(geometry(1).type);
-                    quadrature.computeQuadrature(interpU);
-                    geometry(1).interpolation.computeShapeDeriv(quadrature.posgp)
-                    geometry(1).computeGeometry(quadrature,geometry(1).interpolation)
+                   % geometry(1).interpolation.computeShapeDeriv(quadrature.posgp)
+                    %geometry(1).computeGeometry(quadrature,geometry(1).interpolation)
                     for igaus = 1:quadrature.ngaus
-                        pos_node= num2cell(geometry(1).cart_pos_gp(:,igaus,ielem));
+                        xGauss = geometry(1).cart_pos_gp(:,igaus,ielem);
+                        pos_node= num2cell(xGauss);
                         f = cell2mat(Vol_force(pos_node{:}));
                         F(:,igaus,ielem) = f;
                         ind=ind+length(f);

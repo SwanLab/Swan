@@ -29,13 +29,13 @@ classdef DOF < handle
             end
         end
         
-        function obj = computeDOF(obj,geometry)
-            nfields = numel(geometry);
+        function obj = computeDOF(obj,geometry,interp)
+            nfields = numel(interp);
             for ifield = 1:nfields
                 nunkn = obj.nunkn(ifield);
-                nnode = geometry(ifield).interpolation.nnode;
-                npnod = geometry(ifield).interpolation.npnod;
-                obj.in_elem{ifield} = obj.compute_idx(geometry(ifield).interpolation.T,nunkn,nnode);
+                nnode = interp{ifield}.nnode;
+                npnod = interp{ifield}.npnod;
+                obj.in_elem{ifield} = obj.compute_idx(interp{ifield}.T,nunkn,nnode);
                 obj.ndof(ifield) = nunkn*npnod;
                 obj.constrained{ifield} = obj.compute_constrained_dof(ifield);
                 obj.free{ifield} = obj.compute_free_dof(ifield);

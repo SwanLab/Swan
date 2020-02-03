@@ -12,7 +12,7 @@ classdef Stokes_Problem < FEM
     end
     
     properties (Access = private)
-       nFields 
+        interp
     end
     
     %% Public methods definition ==========================================
@@ -20,22 +20,21 @@ classdef Stokes_Problem < FEM
         function obj = Stokes_Problem(fileName)
             obj.readProblemData(fileName);
             obj.createGeometry(obj.mesh);
-            interpU = 'QUADRATIC';
-            interpP = 'LINEAR';
-            obj.nFields = 2;
-            obj.dof = DOF_Stokes(fileName,obj.geometry,interpU,obj.nFields);
-            cParams.nelem = obj.geometry(1).interpolation.nelem;
+            obj.createInterpolation();
+            obj.dof = DOF_Stokes(fileName,obj.mesh,obj.geometry,obj.interp);
+            cParams.nelem = obj.mesh.nelem;
             obj.material = Material_Stokes(cParams);
-            obj.element = Element_Stokes(obj.mesh,obj.geometry,obj.material,obj.dof,obj.problemData);
-            obj.solver = Solver.create;            
+            obj.element  = Element_Stokes(obj.geometry,obj.mesh,obj.material,obj.dof,obj.problemData,obj.interp);
+            obj.solver   = Solver.create;
         end
         
         function computeVariables(obj)
-            for ifield = 1:obj.nFields
+            nFields = numel(obj.interp);
+            for ifield = 1:nFields
                 free_dof(ifield) = length(obj.dof.free{ifield});
             end
             transient = false;  % !! This should not be defined in here !!
-            tol = 1e-6;         % !! This should not be defined in here !! 
+            tol = 1e-6;         % !! This should not be defined in here !!
             if transient
                 dt = 0.01;      % !! This should not be defined in here !!
                 final_time = 1; % !! This should not be defined in here !!
@@ -46,11 +45,11 @@ classdef Stokes_Problem < FEM
             obj.variables = obj.element.computeVars(x);
         end
         
-%         function print(obj)
-%             postprocess = Postprocess_PhysicalProblem();
-%             results.physicalVars = obj.variables;
-%             postprocess.print(obj,obj.problemID,results);
-%         end
+        %         function print(obj)
+        %             postprocess = Postprocess_PhysicalProblem();
+        %             results.physicalVars = obj.variables;
+        %             postprocess.print(obj,obj.problemID,results);
+        %         end
         
         function postProcess(obj)
             % ToDo
@@ -59,9 +58,19 @@ classdef Stokes_Problem < FEM
         end
         
         function createGeometry(obj,mesh)
-                obj.geometry = Geometry(mesh,'QUADRATIC');
-                obj.geometry(2) = Geometry(mesh,'LINEAR');
-                obj.geometry(1).nfields = 2;
+            obj.geometry    = Geometry(mesh,'QUADRATIC');
+            obj.geometry(2) = Geometry(mesh,'LINEAR');
+            obj.geometry(1).nfields = 2;
+        end
+    end
+    
+    methods (Access = private)
+        
+        function createInterpolation(obj)
+            interpU = 'QUADRATIC';
+            interpP = 'LINEAR';
+            obj.interp{1}=Interpolation.create(obj.mesh,interpU);
+            obj.interp{2}=Interpolation.create(obj.mesh,interpP);
         end
     end
 end
