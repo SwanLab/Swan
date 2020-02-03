@@ -60,11 +60,10 @@ classdef Filter_PDE_LevelSet < Filter_PDE
           
         function createInterpolation(obj)
             obj.interp = Interpolation.create(obj.mesh,'LINEAR');    
-            obj.interp.computeShapeDeriv(obj.quadrature.posgp);
         end        
         
         function computeGeometry(obj)           
-            obj.geometry = Geometry(obj.mesh,'LINEAR');
+            obj.geometry = Geometry(obj.mesh);
             obj.geometry.computeGeometry(obj.quadrature,obj.interp);        
         end
                 

@@ -143,10 +143,8 @@ classdef VigdergauzSuperEllipseComparator < handle
         
         function computeDV(obj)            
             q = obj.quadrature;
-            inter = Interpolation.create(obj.mesh,'LINEAR');
-            xpg = obj.quadrature.posgp;       
-            inter.computeShapeDeriv(xpg)
-            geometry = Geometry(obj.mesh,'LINEAR');
+            inter = Interpolation.create(obj.mesh,'LINEAR');            
+            geometry = Geometry(obj.mesh);
             geometry.computeGeometry(q,inter);
             obj.dV = geometry.dvolu;                  
         end

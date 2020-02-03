@@ -58,32 +58,30 @@ classdef Integrator_Simple < Integrator
         end
         
         function createInterpolation(obj)
-            quad = obj.quadrature;
             int = Interpolation.create(obj.mesh,'LINEAR');
-            int.computeShapeDeriv(quad.posgp);
             obj.interpolation = int;
         end
         
         function createGeometry(obj)
             quad = obj.quadrature;
             int  = obj.interpolation;
-            geom = Geometry(obj.mesh,'LINEAR');
+            geom = Geometry(obj.mesh);
             geom.computeGeometry(quad,int);
             obj.geometry = geom;
         end
         
         function computeElementalRHS(obj,F1)
             shapes = obj.interpolation.shape;
-            dvolu  = obj.geometry.dvolu;            
+            dvolu  = obj.geometry.dvolu;
             ngaus  = obj.quadrature.ngaus;
             nelem  = obj.mesh.nelem;
             nnode  = obj.mesh.nnode;
             f      = zeros(nelem,nnode);
             for igaus = 1:ngaus
-                    dv = dvolu(:,igaus);
-                    Ni(1,:) = shapes(:,igaus);
-                    inc = bsxfun(@times,dv,Ni);
-                    f = f + inc;
+                dv = dvolu(:,igaus);
+                Ni(1,:) = shapes(:,igaus);
+                inc = bsxfun(@times,dv,Ni);
+                f = f + inc;
             end
             obj.RHSsubcells = f;
         end
@@ -114,12 +112,12 @@ classdef Integrator_Simple < Integrator
             nnode  = obj.mesh.nnode;
             Me = zeros(nnode,nnode,nelem);
             for igaus = 1:ngaus
-                        dv(1,1,:) = dvolu(:,igaus);
-                        Ni = shapes(:,igaus);
-                        Nj = shapes(:,igaus);
-                        NiNj = Ni*Nj';
-                        Aij = bsxfun(@times,NiNj,dv);
-                        Me = Me + Aij;
+                dv(1,1,:) = dvolu(:,igaus);
+                Ni = shapes(:,igaus);
+                Nj = shapes(:,igaus);
+                NiNj = Ni*Nj';
+                Aij = bsxfun(@times,NiNj,dv);
+                Me = Me + Aij;
             end
             obj.LHScells = Me;
         end

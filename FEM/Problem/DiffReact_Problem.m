@@ -73,7 +73,7 @@ classdef DiffReact_Problem < FEM
         end
         
         function createGeometry(obj,mesh)
-            obj.geometry = Geometry(mesh,'LINEAR');
+            obj.geometry = Geometry(mesh);
         end
         
     end

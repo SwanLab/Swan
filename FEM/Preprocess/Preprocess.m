@@ -139,14 +139,11 @@ classdef Preprocess<handle
                 %                 end
                 quadrature=Quadrature.set(geometry(1).type);
                 quadrature.computeQuadrature(interp{1}.order);
-                interp{1}.computeShapeDeriv(quadrature.posgp);
 
                 geometry(1).computeGeometry(quadrature,interp{1})
 
                 for ielem = 1:nelem
                     ind=1;
-                   % geometry(1).interpolation.computeShapeDeriv(quadrature.posgp)
-                    %geometry(1).computeGeometry(quadrature,geometry(1).interpolation)
                     for igaus = 1:quadrature.ngaus
                         xGauss = geometry(1).cart_pos_gp(:,igaus,ielem);
                         pos_node= num2cell(xGauss);

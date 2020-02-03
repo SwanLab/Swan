@@ -110,11 +110,10 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
         
         function createInterpolation(obj)
             obj.interp = Interpolation.create(obj.mesh,'LINEAR');    
-            obj.interp.computeShapeDeriv(obj.quadrature.posgp);
         end
         
         function createGeometry(obj)
-            obj.geometry = Geometry(obj.mesh,'LINEAR');
+            obj.geometry = Geometry(obj.mesh);
             obj.geometry.computeGeometry(obj.quadrature,obj.interp);
         end
 

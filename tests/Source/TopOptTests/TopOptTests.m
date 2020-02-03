@@ -16,13 +16,7 @@ classdef TopOptTests < testRunner
     methods (Access = protected)
         
         function loadTests(obj)
-            obj.tests = {...                                                    
-                'testStressM1M2';
-                'testM1M2';                
-                'testCantilever2';
-                'testMicro';                
-                'testCantilever3';
-                'testBridge';                
+            obj.tests = {...                                                                   
                 'testCantilever';
                 'testBridge2';                
                 'testGripping';             
@@ -33,6 +27,12 @@ classdef TopOptTests < testRunner
                 'testVigdergauzMicroStructureWithStrain';    
                 'testDualNestedInPrimalWithProjectedGradient';
                 'testDualNestedInPrimalWithSlerp';
+                'testStressM1M2';
+                'testM1M2';  
+                'testCantilever2';
+                'testMicro';                
+                'testCantilever3';   
+                'testBridge';                                
                 };
         end
         

@@ -36,7 +36,6 @@ classdef Elastic_Problem_Micro < FEM
         
         function [Chomog,tstrain,tstress] = computeChomog(obj)
             obj.element.quadrature.computeQuadrature('LINEAR');
-            obj.element.interpolation_u.computeShapeDeriv(obj.element.quadrature.posgp)
             obj.element.geometry.computeGeometry(obj.element.quadrature,obj.element.interpolation_u);
             nstre = obj.element.getNstre();
             basis = diag(ones(nstre,1));
@@ -75,7 +74,6 @@ classdef Elastic_Problem_Micro < FEM
         
         function computeStressBasisCellProblem(obj)
             obj.element.quadrature.computeQuadrature('LINEAR');
-            obj.element.interpolation_u.computeShapeDeriv(obj.element.quadrature.posgp)
             obj.element.geometry.computeGeometry(obj.element.quadrature,obj.element.interpolation_u);
             nstre = obj.element.getNstre();
             basis = diag(ones(nstre,1));
@@ -127,7 +125,7 @@ classdef Elastic_Problem_Micro < FEM
     methods (Access = private)
         
         function createGeometry(obj)
-            obj.geometry = Geometry(obj.mesh,'LINEAR');
+            obj.geometry = Geometry(obj.mesh);
         end
         
         function createInterpolation(obj)

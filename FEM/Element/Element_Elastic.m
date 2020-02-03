@@ -93,19 +93,14 @@ classdef Element_Elastic < Element
         end
         
         function initialize_dvolum(obj)
-            obj.computeQuadrature()
-            obj.computeInterpolation()
-            obj.computeGeometry() 
+            obj.computeQuadrature();
+            obj.computeGeometry();
         end
         
         function computeQuadrature(obj)
             obj.quadrature.computeQuadrature('LINEAR');
         end
-        
-        function computeInterpolation(obj)
-            obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
-        end
-        
+                
         function computeGeometry(obj)
             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
         end
@@ -140,7 +135,6 @@ classdef Element_Elastic < Element
         
         function K = compute_elem_StiffnessMatrix(obj)
             obj.quadrature.computeQuadrature('LINEAR');
-            obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
             % Stiffness matrix
             Ke = zeros(obj.dof.nunkn*obj.nnode,obj.dof.nunkn*obj.nnode,obj.nelem);

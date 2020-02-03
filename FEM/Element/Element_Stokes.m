@@ -108,7 +108,6 @@ classdef Element_Stokes < Element
             
             Cmat = material.mu;
             obj.quadrature.computeQuadrature('QUADRATIC');
-            obj.interpolation_v.computeShapeDeriv(obj.quadrature.posgp)
             obj.geometry(1).computeGeometry(obj.quadrature,obj.interpolation_v);
             for igauss = 1 :obj.quadrature.ngaus
                 Bmat = obj.computeB(nunkn,nelem,obj.interpolation_v.nnode,obj.geometry(1).cartd(:,:,:,igauss));
@@ -134,7 +133,6 @@ classdef Element_Stokes < Element
             
             D = zeros(nunkn_u*obj.interpolation_v.nnode,obj.interpolation_p.nnode,nelem);
             obj.quadrature.computeQuadrature('QUADRATIC');
-            obj.interpolation_p.computeShapeDeriv(obj.quadrature.posgp)
             obj.geometry(2).computeGeometry(obj.quadrature,obj.interpolation_p);
             for igauss=1:obj.quadrature.ngaus
                 for inode_var = 1:obj.interpolation_p.nnode

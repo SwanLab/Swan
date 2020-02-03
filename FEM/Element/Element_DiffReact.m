@@ -73,7 +73,6 @@ classdef Element_DiffReact < Element
         
         function Ke = computeElementalStiffnessMatrix(obj)
             obj.quadrature.computeQuadrature('LINEAR');
-            obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
             ndof  = obj.dof.nunkn*obj.nnode;
             ngaus = obj.quadrature.ngaus;
@@ -94,7 +93,6 @@ classdef Element_DiffReact < Element
         
         function Me = computeElementalMassMatrix(obj)
             obj.quadrature.computeQuadrature('QUADRATICMASS');
-            obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);            
             shapes = obj.interpolation_u.shape;
             dvolu  = obj.geometry.dvolu;
@@ -111,7 +109,6 @@ classdef Element_DiffReact < Element
                 Me = Me + Mij;
             end            
             obj.quadrature.computeQuadrature('LINEAR');
-            obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
         end        
         

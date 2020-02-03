@@ -121,11 +121,10 @@ classdef Filter_P1_Density < handle %Filter_P1
         
         function createInterpolation(obj)
             obj.interp = Interpolation.create(obj.mesh,'LINEAR');    
-            obj.interp.computeShapeDeriv(obj.quadrature.posgp);
         end           
                 
         function createGeometry(obj)
-            obj.geometry = Geometry(obj.mesh,'LINEAR');
+            obj.geometry = Geometry(obj.mesh);
             obj.geometry.computeGeometry(obj.quadrature,obj.interp);        
         end
         
