@@ -1,4 +1,4 @@
-classdef GaussHeadPrinterss < handle
+classdef GaussResultsPrinter < handle
     
     properties (Abstract, Access = protected)
         dataBase
@@ -7,7 +7,7 @@ classdef GaussHeadPrinterss < handle
     
     methods (Access = public)
         
-        function obj = GaussHeadPrinter(d,dh)
+        function obj = GaussResultsPrinter(d,dh)
 
         end
         

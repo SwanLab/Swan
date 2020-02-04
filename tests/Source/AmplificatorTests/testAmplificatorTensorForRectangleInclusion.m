@@ -3,7 +3,7 @@ classdef testAmplificatorTensorForRectangleInclusion < ...
     
     
     properties (Access = protected)
-        testName = 'AmplificatorTensorForRectangleInclusion';
+       % testName = 'AmplificatorTensorForRectangleInclusion';
     end
     
     methods (Access = protected)

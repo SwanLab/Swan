@@ -50,6 +50,7 @@ classdef Mesh_Unfitted_Single < Mesh & Mesh_Unfitted
             end
             obj.build(cParams);
             obj.init(cParams);
+            
         end
         
     end
@@ -230,6 +231,14 @@ classdef Mesh_Unfitted_Single < Mesh & Mesh_Unfitted
         
         function nCutCells = get.nCutCells(obj)
             nCutCells = length(obj.backgroundCutCells);
+        end
+        
+    end
+    
+    methods (Access = protected)
+        
+        function computeEmbeddingDim(obj)
+            obj.embeddedDim = obj.ndim;%- 1;            
         end
         
     end

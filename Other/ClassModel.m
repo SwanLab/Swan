@@ -5,7 +5,7 @@ classdef ClassModel
     
     methods (Access = public)
         
-        function obj = 
+        function obj = ClassModel()
             
             
         end

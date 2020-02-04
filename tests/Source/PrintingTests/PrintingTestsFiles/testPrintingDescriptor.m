@@ -1,11 +1,14 @@
-classdef testPrintingComperator < handle
+classdef testPrintingDescriptor < handle
     
     properties (Access = protected, Abstract)
         fileOutputName
         iter
     end
     
+    
+    
     methods (Access = protected)
+        
        
         function hasPassed = hasPassed(obj)
             hasMshChanged = obj.compareFile('.msh');

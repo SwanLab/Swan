@@ -1,8 +1,8 @@
 classdef Quadrilateral_Bilinear < Interpolation
 
     methods (Access = public)
-     function obj = Quadrilateral_Bilinear(mesh)
-            obj = obj@Interpolation(mesh);
+     function obj = Quadrilateral_Bilinear(mesh,order)
+            %obj = obj@Interpolation(mesh,order);
             obj.type = 'QUADRILATERAL';
             obj.order = 'LINEAR';
             obj.ndime = 2;
@@ -95,6 +95,7 @@ classdef Quadrilateral_Bilinear < Interpolation
                                0 6 3
                                0 0 2
                                0 0 1];
+         obj.init(mesh,order);
      end
         
         function computeShapeDeriv(obj,posgp)

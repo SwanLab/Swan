@@ -1,4 +1,4 @@
-classdef VigdergauzMicrostructurePrinter < handle
+classdef printingVigdergauzMicroStructures < handle
     
     properties (Access = private)
         mesh
@@ -13,7 +13,7 @@ classdef VigdergauzMicrostructurePrinter < handle
             obj.ouputName = 'VigergauzMicroStructure';            
         end
         
-        function VigdergauzMicrostructurePrinter()
+        function obj = printingVigdergauzMicroStructures()
             settings = Settings('VigergauzLevelSetInput');
             
             settings.superEllipseRatio = tan(pi/6);%tan(pi/5);

@@ -7,6 +7,7 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
         nnode
         npnod
 %         nelem
+        embeddedDim
     end
     
     properties (Access = public)
@@ -79,7 +80,12 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             obj.ndim  = size(obj.coord, 2);
             obj.nelem = size(obj.connec,1);
             obj.nnode = size(obj.connec,2);
+            obj.computeEmbeddingDim();
             obj.computeGeometryType();
+        end
+        
+        function computeEmbeddingDim(obj)
+            obj.embeddedDim = obj.ndim;            
         end
         
     end
@@ -88,7 +94,7 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
         
         function computeGeometryType(obj)
             factory = MeshGeometryType_Factory();
-            obj.geometryType = factory.getGeometryType(obj.ndim,obj.nnode);
+            obj.geometryType = factory.getGeometryType(obj.ndim,obj.nnode,obj.embeddedDim);
         end
         
     end

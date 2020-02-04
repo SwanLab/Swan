@@ -56,7 +56,7 @@ classdef Integrator_Interior < IntegratorUnfitted
         
         function assembleCutShapes(obj)
             nelem = obj.meshBackground.nelem;
-            cell = obj.meshUnfitted.cellContainingSubcell;
+            cell  = obj.meshUnfitted.cellContainingSubcell;
             nnode = obj.meshBackground.nnode;
             
             for iNode = 1:nnode

@@ -24,6 +24,14 @@ classdef CutMesh < Mesh
             b = obj.backgroundMesh;
         end
         
-    end        
+    end      
+    
+    methods (Access = protected)
+        
+        function computeEmbeddingDim(obj)
+            obj.embeddedDim = obj.ndim; %max(1,obj.ndim - 1);            
+        end
+        
+    end    
     
 end

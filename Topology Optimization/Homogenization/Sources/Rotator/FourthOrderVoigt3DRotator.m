@@ -9,7 +9,7 @@ classdef FourthOrderVoigt3DRotator < FourthOrderVoigtRotator
         
     end
     
-    methods (Access = private)
+    methods (Access = protected)
                
         function rotator = createStressRotator(a,d)
             rotator = StressVoigtRotator(a,d);

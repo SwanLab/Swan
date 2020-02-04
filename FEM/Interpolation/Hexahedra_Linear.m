@@ -4,8 +4,8 @@ classdef Hexahedra_Linear < Interpolation
     end
     methods
         %constructor
-        function obj=Hexahedra_Linear(mesh)
-            obj = obj@Interpolation(mesh);
+        function obj=Hexahedra_Linear(mesh,order)
+           % obj = obj@Interpolation(mesh,order);
             obj.type = 'HEXAHEDRA';
             obj.order = 'LINEAR';
             obj.ndime = 3;          % 1D/2D/3D
@@ -1064,6 +1064,8 @@ classdef Hexahedra_Linear < Interpolation
             obj.selectcases(20,353)=50;
             obj.selectcases(16,277)=51;
             obj.selectcases(20,226)=51;
+            
+            obj.init(mesh,order);
         end
         function computeShapeDeriv(obj,posgp)
             obj.shape=[];

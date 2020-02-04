@@ -5,7 +5,7 @@ classdef Element_Hyperelastic < Element
     properties
     end
     
-    methods (Access = ?Physical_Problem)
+    methods (Access = public)
         function [r,dr] = computeResidual(obj,uL)
             % *************************************************************
             % Compute

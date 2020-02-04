@@ -1,14 +1,15 @@
 classdef Line_Linear < Interpolation
     
     methods (Access = public)
-        function obj = Line_Linear(mesh)
-            obj = obj@Interpolation(mesh);
+        function obj = Line_Linear(mesh,order)
+            %obj = obj@Interpolation(mesh,order);
             obj.type = 'LINE';
             obj.order = 'LINEAR';
             obj.ndime = 1;
             obj.nnode = 2;
             obj.pos_nodes = [-1; 1];
             obj.isoDv = 2;
+            obj.init(mesh,order);
         end
         
         function computeShapeDeriv(obj,posgp)

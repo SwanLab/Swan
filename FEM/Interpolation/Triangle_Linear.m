@@ -1,8 +1,8 @@
 classdef Triangle_Linear < Interpolation
     
     methods (Access = public)
-        function obj = Triangle_Linear(mesh)
-            obj = obj@Interpolation(mesh);
+        function obj = Triangle_Linear(mesh,order)
+            %obj = obj@Interpolation(mesh,order);                        
             obj.type = 'TRIANGLE';
             obj.order = 'LINEAR';
             obj.ndime = 2;
@@ -25,6 +25,7 @@ classdef Triangle_Linear < Interpolation
                                 0     1];
             obj.main_loop = [3 3];
             obj.extra_cases = [];
+            obj.init(mesh,order);
         end
         
         function computeShapeDeriv(obj,posgp)

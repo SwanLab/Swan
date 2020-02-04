@@ -1,8 +1,8 @@
 classdef Tetrahedra_Linear<Interpolation
 
     methods
-        function obj = Tetrahedra_Linear(mesh)
-            obj = obj@Interpolation(mesh);
+        function obj = Tetrahedra_Linear(mesh,order)
+            %obj = obj@Interpolation(mesh,order);
             obj.type = 'TETRAHEDRA';
             obj.order= 'LINEAR';
             obj.ndime = 3;
@@ -14,6 +14,7 @@ classdef Tetrahedra_Linear<Interpolation
             obj.isoDv = 1/6;
             obj.iteration = [1 1 1 2 2 3;
                              2 3 4 3 4 4];
+            obj.init(mesh,order);                                                    
         end
 
 

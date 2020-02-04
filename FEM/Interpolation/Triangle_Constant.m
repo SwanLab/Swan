@@ -1,8 +1,8 @@
-classdef Triangle_Constant < Isoparametric
+classdef Triangle_Constant < Interpolation
 
     methods (Access = public)
-        function obj = Triangle_Constant
-            obj = obj@Isoparametric;
+        function obj = Triangle_Constant(mesh)
+            obj = obj@Interpolation(mesh);
             obj.type = 'TRIANGLE';
             obj.ndime = 2;
             obj.nnode = 1;

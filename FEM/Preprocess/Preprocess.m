@@ -137,15 +137,17 @@ classdef Preprocess<handle
                 %                     F(ind:ind + length(f)-1,:) = [[inode;inode] [1;2] f];
                 %                     ind=ind+length(f);
                 %                 end
-                quadrature=Quadrature.set(geometry(1).type);
+                geom = geometry(1);
+                
+                quadrature=Quadrature.set(geom.type);
                 quadrature.computeQuadrature(interp{1}.order);
 
-                geometry(1).computeGeometry(quadrature,interp{1})
+                geom.computeGeometry(quadrature,interp{1})
 
                 for ielem = 1:nelem
                     ind=1;
                     for igaus = 1:quadrature.ngaus
-                        xGauss = geometry(1).cart_pos_gp(:,igaus,ielem);
+                        xGauss = geom.cart_pos_gp(:,igaus,ielem);
                         pos_node= num2cell(xGauss);
                         f = cell2mat(Vol_force(pos_node{:}));
                         F(:,igaus,ielem) = f;
