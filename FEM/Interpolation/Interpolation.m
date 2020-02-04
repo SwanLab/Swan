@@ -1,4 +1,5 @@
 classdef Interpolation < handle
+    
     properties (GetAccess = public, SetAccess = protected)
         T
         xpoints
@@ -19,106 +20,55 @@ classdef Interpolation < handle
         extra_cases
     end
     
-    methods (Static, Access = public)
-        function interpolation = create(mesh,order)
-            switch mesh.geometryType
-                case 'LINE'
-                    switch order
-                        case 'LINEAR'
-                            interpolation = Line_Linear(mesh,order);
-                        otherwise
-                            error('Invalid order for element LINE.');
-                    end
-                case 'TRIANGLE'
-                    switch order
-                        case 'LINEAR'
-                            interpolation = Triangle_Linear(mesh,order);
-                        case 'QUADRATIC'
-                            interpolation = Triangle_Quadratic(mesh,order);
-                        otherwise
-                            error('Invalid order for element TRIANGLE.');
-                    end
-                case 'QUAD'
-                    switch order
-                        case 'LINEAR'
-                            interpolation = Quadrilateral_Bilinear(mesh,order);
-                        case 'QUADRATIC'
-                            warning('PENDING TO BE TRASFORMED TO INTERPOLATION. SEE TRIANGLE_QUADRATIC AS EXAMPLE')
-                            interpolation = Quadrilateral_Serendipity(mesh,order);
-                        otherwise
-                            error('Invalid order for element QUADRILATERAL.');
-                    end
-                case 'TETRAHEDRA'
-                    interpolation = Tetrahedra_Linear(mesh,order);
-                case 'HEXAHEDRA'
-                    interpolation = Hexahedra_Linear(mesh,order);
-                otherwise
-                    error('Invalid mesh type.')
-            end
-            
-          % if interpolation.nnode ~= size(mesh.connec,2)
-           %    interpolation.computeCoordAndConnec(mesh);               
-          % end
-        end
+    properties (Access = protected)
+        mesh
     end
     
-    methods (Access = public)
+    methods (Static, Access = public)
         
-        function obj = Interpolation()
-
+        function obj = create(mesh,order)
+            cParams.mesh = mesh;
+            cParams.order = order;
+            f = InterpolationFactory;
+            obj = f.create(cParams);
         end
         
     end
     
     methods (Access = protected)
         
-        function init(obj,mesh,order)
-            switch order 
+        function init(obj,cParams)
+            obj.mesh  = cParams.mesh;
+            obj.order = cParams.order;            
+        end
+        
+        function computeCoordAndConnec(obj)
+            switch obj.order
                 case 'LINEAR'
-                    obj.xpoints = mesh.coord;
-                    obj.T       = mesh.connec;
+                    coord  = obj.mesh.coord;
+                    connec = obj.mesh.connec;
                 otherwise
-                    [coord,connec] = obj.computeCoordAndConnec(mesh);
-                    obj.xpoints = coord;
-                    obj.T       = connec;
+                    [coord,connec] = obj.computeCoordAndConnecInGeneral(obj.mesh);                    
             end
+            obj.xpoints = coord;
+            obj.T       = connec;
             obj.npnod = size(obj.xpoints,1);
-            obj.nelem = size(obj.T,1);        
+            obj.nelem = size(obj.T,1);
         end
         
     end
     
     methods (Access = private)
         
-        function shapes = computeShapesInVariableNodes(obj,mesh)
-            interpMesh = Interpolation.create(mesh,'LINEAR');                        
-            nNodeMesh = interpMesh.nnode;
-            nNodeVar  = obj.nnode;
-            shapes    = zeros(nNodeVar,nNodeMesh);
-            nodesVar  = obj.pos_nodes;
-            for inodeVar = 1:obj.nnode
-                nodesPoints = nodesVar(inodeVar,:);
-                interpMesh.computeShapeDeriv(nodesPoints')
-                shapes(inodeVar,:) = interpMesh.shape;
-            end            
-        end
-        
-%          function [xPoints,Tinterp] = computeCoordAndConnec(obj,mesh)
-%             [xPoints,Tinterp] = obj.computeConnectivities(mesh);
-% %            obj.T = Tinterp;
-% %            obj.xpoints = xPoints;
-%             obj.npnod = size(obj.xpoints,1);
-%         end
-        
-        function [xPoints,Tinterp] = computeCoordAndConnec(obj,mesh)
+        function [xPoints,Tinterp] = computeCoordAndConnecInGeneral(obj,mesh)
             shapesInVarNodes = obj.computeShapesInVariableNodes(mesh);
             xPointsMesh      = mesh.coord;
             Tmesh            = mesh.connec;
             
-            xPoints = zeros(1,obj.ndime);            
+            xPoints = zeros(1,obj.ndime);
             Tinterp = zeros(obj.nelem,obj.nnode);
             
-            inode = 1;            
+            inode = 1;
             for ielem = 1:mesh.nelem
                 for inodeVar = 1:obj.nnode
                     xNode = zeros(1,obj.ndime);
@@ -138,10 +88,27 @@ classdef Interpolation < handle
                         Tinterp(ielem,inodeVar) = node;
                     end
                 end
-            end  
+            end
         end
         
-        function ind = findPointInList(obj,node,xPoints)
+        function shapes = computeShapesInVariableNodes(obj,mesh)
+            interpMesh = Interpolation.create(mesh,'LINEAR');
+            nNodeMesh = interpMesh.nnode;
+            nNodeVar  = obj.nnode;
+            shapes    = zeros(nNodeVar,nNodeMesh);
+            nodesVar  = obj.pos_nodes;
+            for inodeVar = 1:obj.nnode
+                nodesPoints = nodesVar(inodeVar,:);
+                interpMesh.computeShapeDeriv(nodesPoints')
+                shapes(inodeVar,:) = interpMesh.shape;
+            end
+        end        
+        
+    end
+    
+    methods (Access = private, Static)
+        
+        function ind = findPointInList(node,xPoints)
             match = true(size(xPoints,1),1);
             for idime = 1:size(node,2)
                 match = match & xPoints(:,idime) == node(idime);

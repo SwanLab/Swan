@@ -1,14 +1,13 @@
 classdef Triangle_Quadratic < Interpolation
     
     methods (Access = public)
-        function obj = Triangle_Quadratic(mesh,order)
-            %obj = obj@Interpolation(mesh,order);
+        function obj = Triangle_Quadratic(cParams)
+            obj.init(cParams);
             obj.type = 'TRIANGLE_QUADRATIC';
-            obj.order = 'QUADRATIC';
             obj.ndime = 2;         
             obj.nnode = 6;
             obj.pos_nodes = [0,0 ; 1 0; 0,1 ; 0.5,0 ; 0.5,0.5 ; 0,0.5];
-            obj.init(mesh,order);
+            obj.computeCoordAndConnec();
         end
         
         function computeShapeDeriv(obj,posgp)
