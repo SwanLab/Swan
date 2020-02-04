@@ -1,5 +1,5 @@
 classdef Quadrilateral_Serendipity < Interpolation    
-    %% !! SHAPE FUNCTIONS & DERIVATIVES SHOULD BE REVISED !!
+    % !! SHAPE FUNCTIONS & DERIVATIVES SHOULD BE REVISED !!
     % Source: http://www.ce.memphis.edu/7111/notes/class_notes/chapter_03e_slides.pdf
     
     methods (Access = public)

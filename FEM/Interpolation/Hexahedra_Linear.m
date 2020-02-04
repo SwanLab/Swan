@@ -4,18 +4,7 @@ classdef Hexahedra_Linear < Interpolation
 
         function obj = Hexahedra_Linear(cParams)
             obj.init(cParams);
-            obj.type  = obj.mesh.geometryType;
-            obj.ndime = 3;
-            obj.nnode = 8;
-            obj.isoDv = 8;
-            obj.pos_nodes=[-1 -1 -1;
-                +1 -1 -1;
-                +1 +1 -1;
-                -1 +1 -1;
-                -1 -1 +1;
-                +1 -1 +1;
-                +1 +1 +1;
-                -1 +1 +1];
+            obj.computeParams();
             obj.computeCases();
             obj.computeCoordAndConnec();
         end
@@ -45,6 +34,21 @@ classdef Hexahedra_Linear < Interpolation
     end
     
     methods (Access = private)
+        
+        function computeParams(obj)
+            obj.type  = obj.mesh.geometryType;
+            obj.ndime = 3;
+            obj.nnode = 8;
+            obj.isoDv = 8;
+            obj.pos_nodes=[-1 -1 -1;
+                +1 -1 -1;
+                +1 +1 -1;
+                -1 +1 -1;
+                -1 -1 +1;
+                +1 -1 +1;
+                +1 +1 +1;
+                -1 +1 +1];
+        end            
         
         function computeCases(obj)
             obj.iteration=[1 1 1 2 2 3 3 4 5 5 6 7;

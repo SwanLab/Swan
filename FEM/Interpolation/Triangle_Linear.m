@@ -4,30 +4,43 @@ classdef Triangle_Linear < Interpolation
         
         function obj = Triangle_Linear(cParams)
             obj.init(cParams);
+            obj.computeParams();
+            obj.computeCases();
+            obj.computeCoordAndConnec();
+        end
+        
+        function computeShapeDeriv(obj,posgp)
+            obj.computeShapes(posgp);
+            obj.computeShapeDerivatives(posgp);
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function computeParams(obj)
             obj.type  = obj.mesh.geometryType;
             obj.ndime = 2;
             obj.nnode = 3;
             obj.pos_nodes = [0 0; 1 0; 0 1];
             obj.isoDv = 0.5;
             obj.main_loop = [3 3];
-            obj.extra_cases = [];
-            obj.computeCases();
-            obj.computeCoordAndConnec();
+            obj.extra_cases = [];                        
         end
         
-        function computeShapeDeriv(obj,posgp)
+        function computeShapes(obj,posgp)
             ngaus = size(posgp,2);
             s = posgp(1,:);
             t = posgp(2,:);
             I = ones(1,ngaus);            
             obj.shape = [I-s-t;s;t];
-            derivative = [-1.0 1.0 0.0;-1.0 0.0 1.0];
-            obj.deriv = repmat(derivative,1,1,ngaus);
         end
         
-    end
-    
-    methods (Access = private)
+        function computeShapeDerivatives(obj,posgp)
+            ngaus = size(posgp,2);                      
+            derivative = [-1.0 1.0 0.0;-1.0 0.0 1.0];                        
+            obj.deriv = repmat(derivative,1,1,ngaus);            
+        end
         
         function computeCases(obj)
             obj.cases(:,:,1) = [1 4 5;
@@ -47,4 +60,5 @@ classdef Triangle_Linear < Interpolation
         end
         
     end
+    
 end

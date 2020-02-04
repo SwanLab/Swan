@@ -115,7 +115,7 @@ classdef Elastic_Problem < FEM
         function createMaterial(obj)
             cParams.ptype = obj.problemData.ptype;
             cParams.pdim  = obj.problemData.pdim;
-            cParams.nelem = obj.interp{1}.nelem;
+            cParams.nelem = obj.mesh.nelem;
             cParams.geometry = obj.geometry;
             cParams.mesh  = obj.mesh;            
             obj.material = Material.create(cParams);                        

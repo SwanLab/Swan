@@ -3,16 +3,19 @@ classdef Interpolation < handle
     properties (GetAccess = public, SetAccess = protected)
         T
         xpoints
-        ndime
-        nnode
+
         order
-        npnod
-        nelem
         type
+        
+        ndime
+        nnode       
+        npnod
+        
         pos_nodes
         shape
         deriv
         isoDv
+        
         iteration
         cases
         selectcases
@@ -22,6 +25,8 @@ classdef Interpolation < handle
     
     properties (Access = protected)
         mesh
+        nelem
+        
     end
     
     methods (Static, Access = public)
