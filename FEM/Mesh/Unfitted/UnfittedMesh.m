@@ -64,8 +64,9 @@ classdef UnfittedMesh < handle
         end
         
         function computeInnerCutMesh(obj)
-            cParams.coord = obj.oldUnfittedMesh.coord;
+            cParams.coord  = obj.oldUnfittedMesh.coord;
             cParams.connec = obj.oldUnfittedMesh.connec;
+            cParams.type   = obj.oldUnfittedMesh.typeMesh;
             cParams.backgroundMesh = obj.oldUnfittedMesh.meshBackground;
             cParams.subcellIsoCoords = obj.subcellIsoCoords;
             cParams.cellContainingSubcell = obj.cellContainingSubcell;

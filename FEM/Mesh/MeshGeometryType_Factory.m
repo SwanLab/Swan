@@ -34,8 +34,8 @@ classdef MeshGeometryType_Factory < handle
                             end
                         case 3
                             switch nnode
-                                case 3
-                                    geometryType = 'TRIANGLE';                                
+                               % case 3
+                               %     geometryType = 'TRIANGLE';                                
                                 case 4
                                     geometryType = 'TETRAHEDRA';
                                 case 8

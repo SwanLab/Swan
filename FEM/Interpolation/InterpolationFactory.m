@@ -43,7 +43,4 @@ classdef InterpolationFactory < handle
         
     end
     
-    
-    
-    
 end

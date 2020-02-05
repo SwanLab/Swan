@@ -155,7 +155,7 @@ classdef IntegratorCutMesh < Integrator
         function computeUnfittedGaussPoints(obj)
             coord = obj.cutMesh.subcellIsoCoords;
             inter = obj.unfittedInterp;
-            quad  =  obj.quadrature;
+            quad  = obj.quadrature;
             quadU = obj.computePosGP(coord,inter,quad);
             obj.unfittedQuad = quadU;
         end

@@ -1,5 +1,9 @@
 classdef Mesh_Unfitted_Single < Mesh & Mesh_Unfitted
     
+    properties (GetAccess = public, SetAccess = private)
+       typeMesh
+    end
+    
     properties (GetAccess = public, SetAccess = protected)
         backgroundFullCells
         backgroundEmptyCells
@@ -48,9 +52,9 @@ classdef Mesh_Unfitted_Single < Mesh & Mesh_Unfitted
             if nargin == 0
                 cParams = SettingsMeshUnfitted();
             end
+            obj.typeMesh = cParams.unfittedType;            
             obj.build(cParams);
-            obj.init(cParams);
-            
+            obj.init(cParams);            
         end
         
     end
@@ -238,7 +242,14 @@ classdef Mesh_Unfitted_Single < Mesh & Mesh_Unfitted
     methods (Access = protected)
         
         function computeEmbeddingDim(obj)
-            obj.embeddedDim = obj.ndim;%- 1;            
+            switch obj.typeMesh
+                case 'BOUNDARY'
+                    obj.embeddedDim = obj.ndim - 1;
+                case {'INTERIOR','COMPOSITE'}
+                    obj.embeddedDim = obj.ndim;
+                otherwise
+                    error('EmbeddedDim not defined')
+            end            
         end
         
     end

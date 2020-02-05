@@ -15,7 +15,8 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
         activeMeshesList
         nActiveBoxFaces
         nActiveMeshes
-        unfittedType = 'COMPOSITE'
+        typeMesh
+        unfittedType
         
         coord
         connec
@@ -40,6 +41,8 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
     methods (Access = public)
         
         function obj = Mesh_Unfitted_Composite(cParams)
+            obj.typeMesh = cParams.unfittedType;
+            obj.unfittedType = 'COMPOSITE';
             obj.init(cParams.meshBackground);
             obj.createInteriorMesh(cParams);
             obj.createBoxMeshes();
