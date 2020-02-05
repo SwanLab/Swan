@@ -113,7 +113,8 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
         end
         
         function createGeometry(obj)
-            obj.geometry = Geometry(obj.mesh);
+            s.mesh = obj.mesh;
+            obj.geometry = Geometry.create(s);
             obj.geometry.computeGeometry(obj.quadrature,obj.interp);
         end
 

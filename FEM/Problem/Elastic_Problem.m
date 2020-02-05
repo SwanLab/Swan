@@ -105,7 +105,8 @@ classdef Elastic_Problem < FEM
     methods (Access = private)
         
         function createGeometry(obj)
-            obj.geometry = Geometry(obj.mesh);
+            s.mesh = obj.mesh;
+            obj.geometry = Geometry.create(s);
         end     
         
         function createInterpolation(obj)

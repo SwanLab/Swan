@@ -40,7 +40,7 @@ classdef Element < handle
                 obj.nnode(ifield) = interp{ifield}.nnode;
             end
             obj.geometry = geometry;
-            obj.quadrature = Quadrature.set(geometry(1).type);
+            obj.quadrature = Quadrature.set(mesh.geometryType);
             obj.material = material;
             obj.dof = dof;            
             obj.createBoundaryConditionasApplier();

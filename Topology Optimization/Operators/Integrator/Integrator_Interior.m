@@ -29,7 +29,8 @@ classdef Integrator_Interior < IntegratorUnfitted
             interpolation = Interpolation.create(obj.meshBackground,'LINEAR');
             quadrature = obj.computeQuadrature(obj.meshBackground.geometryType);
             interpolation.computeShapeDeriv(quadrature.posgp);
-            geometry = Geometry(obj.meshBackground);
+            s.mesh = obj.meshBackground;
+            geometry = Geometry.create(s);
             geometry.computeGeometry(quadrature,interpolation);
             
             obj.innerShapes = zeros(size(obj.meshBackground.connec));

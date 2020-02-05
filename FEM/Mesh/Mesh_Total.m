@@ -15,7 +15,7 @@ classdef Mesh_Total < Mesh_Composite
         
         npnod
         nnode
-        
+        embeddedDim
 
     end
     
@@ -52,6 +52,7 @@ classdef Mesh_Total < Mesh_Composite
             obj.obtainExteriorMesh(cParams);
             obj.ndim   = size(obj.coord,2);
             obj.unfittedType = 'COMPOSITE';
+            obj.embeddedDim = obj.ndim;
         end
         
         function obtainExteriorMesh(obj,cParams)

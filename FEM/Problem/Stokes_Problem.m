@@ -58,9 +58,10 @@ classdef Stokes_Problem < FEM
         end
         
         function createGeometry(obj,mesh)
-            obj.geometry    = Geometry(mesh);
-            obj.geometry(2) = Geometry(mesh);
-            obj.geometry(1).nfields = 2;
+            s.mesh = mesh;
+            obj.geometry    = Geometry.create(s);
+            obj.geometry(2) = Geometry.create(s);
+            %obj.geometry(1).nfields = 2;
         end
     end
     

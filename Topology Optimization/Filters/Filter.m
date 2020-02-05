@@ -108,7 +108,8 @@ classdef Filter < handle
         end                
         
         function createGeometry(obj)
-            obj.geometry = Geometry(obj.mesh);
+            s.mesh = obj.mesh;
+            obj.geometry = Geometry.create(s);
             obj.geometry.computeGeometry(obj.quadrature,obj.interp);   
         end
         

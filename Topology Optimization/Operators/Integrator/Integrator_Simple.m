@@ -65,7 +65,8 @@ classdef Integrator_Simple < Integrator
         function createGeometry(obj)
             quad = obj.quadrature;
             int  = obj.interpolation;
-            geom = Geometry(obj.mesh);
+            s.mesh = obj.mesh;
+            geom = Geometry.create(s);
             geom.computeGeometry(quad,int);
             obj.geometry = geom;
         end
