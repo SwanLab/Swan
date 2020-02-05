@@ -1,9 +1,6 @@
 classdef Mesh_Total < Mesh_Composite 
     
     properties (GetAccess = public, SetAccess = private)
-%         coord
-%         connec
-        ndim
         nBoxFaces
         
         innerMeshOLD
@@ -36,6 +33,8 @@ classdef Mesh_Total < Mesh_Composite
             obj.nelem = size(obj.connec,1);
             obj.npnod = obj.innerMeshOLD.npnod;
             obj.nnode = obj.innerMeshOLD.nnode;
+            obj.createInterpolation();
+            obj.computeElementCoordinates();             
         end
         
         function S = computeMeanCellSize(obj)

@@ -6,11 +6,9 @@ classdef Geometry_Line < Geometry
     end
     
     properties (Access = private)
-        interpolationGeometry
+        mesh
         interpolationVariable  
-        quadrature
-        nElem
-        coordElem        
+        quadrature      
     end
     
     methods (Access = public)
@@ -31,8 +29,7 @@ classdef Geometry_Line < Geometry
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.nElem = cParams.mesh.nelem;
-            obj.interpolationGeometry = Interpolation.create(cParams.mesh,'LINEAR');
+            obj.mesh = cParams.mesh;
         end
         
         function initGeometry(obj,interpV,quad)
@@ -44,45 +41,15 @@ classdef Geometry_Line < Geometry
         function computeShapeFunctions(obj)
             xpg = obj.quadrature.posgp;
             obj.interpolationVariable.computeShapeDeriv(xpg)
-            obj.interpolationGeometry.computeShapeDeriv(xpg);
+            obj.mesh.interpolation.computeShapeDeriv(xpg);
         end
-        
-        function computeElementCoordinates(obj)
-            nNode  = obj.interpolationGeometry.nnode;
-            nDime  = obj.interpolationGeometry.ndime;
-            coord  = obj.interpolationGeometry.xpoints;
-            connec = obj.interpolationGeometry.T;
-            coordE = zeros(nNode,nDime,obj.nElem);
-            coord  = coord';
-            for inode = 1:nNode
-                nodes = connec(:,inode);
-                coordNodes = coord(:,nodes);
-                coordE(inode,:,:) = coordNodes;
-            end
-            obj.coordElem = coordE;
-        end 
-        
-        function computeGaussPointsPosition(obj)
-            nNode  = obj.interpolationGeometry.nnode;
-            nDime  = obj.interpolationGeometry.ndime;
-            shapes = obj.interpolationGeometry.shape;
-            nGaus  = obj.quadrature.ngaus;
-            xGaus = zeros(nGaus,nDime,obj.nElem);
-            for kNode = 1:nNode
-                shapeKJ(:,1) = shapes(kNode,:)';
-                xKJ = obj.coordElem(kNode,:,:);
-                xG = bsxfun(@times,shapeKJ,xKJ);
-                xGaus = xGaus + xG;
-            end
-            obj.xGauss = permute(xGaus,[2 1 3]);
-        end     
         
         function computeDvolu(obj)
             nGaus  = obj.quadrature.ngaus;
-            nDime  = obj.interpolationGeometry.ndime;            
+            nDime  = obj.mesh.ndime;            
             drDtxi = zeros(nGaus,obj.nElem);
             xp     = permute(obj.coordElem,[1 3 2]);
-            deriv  = obj.interpolationGeometry.deriv(1,:,:);
+            deriv  = obj.mesh.interpolation.deriv(1,:,:);
             dShapes = permute(deriv,[3 2 1]);
             for idime = 1:nDime
                 x(:,1) = xp(:,:,idime);

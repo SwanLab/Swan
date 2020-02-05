@@ -12,16 +12,7 @@ classdef Mesh_Composite < AbstractMesh
     methods (Access = public)
         
         function obj = Mesh_Composite()
-            obj.unfittedType = 'COMPOSITE';
-           % obj.meshBackground = mesh.meshBackground;
-            
-            %for iMesh = 1:mesh.nMeshes
-            %    obj.meshes{iMesh} = mesh.meshes{iMesh}.meshBackground;
-            %    obj.meshes{iMesh}.unfittedType = 'INTERIOR';
-            %    obj.meshes{iMesh}.meshBackground = obj.meshes{iMesh};
-            %end
-            %obj.globalConnectivities = mesh.globalConnectivities;
-            
+            obj.unfittedType = 'COMPOSITE';           
             obj.createMeshes();
         end
         

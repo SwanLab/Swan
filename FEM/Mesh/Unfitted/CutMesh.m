@@ -20,6 +20,8 @@ classdef CutMesh < Mesh
             obj.subcellIsoCoords = cParams.subcellIsoCoords;
             obj.cellContainingSubcell = cParams.cellContainingSubcell;
             obj.computeDescriptorParams();
+            obj.createInterpolation();
+            obj.computeElementCoordinates();            
         end
         
         function b = getBackgroundMesh(obj)

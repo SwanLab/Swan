@@ -9,7 +9,7 @@ classdef IntegratorCutMesh < Integrator
         backgroundInterp
         unfittedInterp
         quadrature
-        unfittedQuad
+        xGauss
         RHScells
         RHScellsCut
     end
@@ -142,8 +142,8 @@ classdef IntegratorCutMesh < Integrator
     methods (Access = private)
         
         function shape = computeShape(obj,isubcell)
-            xGauss = obj.unfittedQuad(:,:,isubcell)';
-            obj.backgroundInterp.computeShapeDeriv(xGauss);
+            xGaus = obj.xGauss(:,:,isubcell)';
+            obj.backgroundInterp.computeShapeDeriv(xGaus);
             shape = obj.backgroundInterp.shape;
         end
         
@@ -156,8 +156,8 @@ classdef IntegratorCutMesh < Integrator
             coord = obj.cutMesh.subcellIsoCoords;
             inter = obj.unfittedInterp;
             quad  = obj.quadrature;
-            quadU = obj.computePosGP(coord,inter,quad);
-            obj.unfittedQuad = quadU;
+            xGaus = obj.computePosGP(coord,inter,quad);
+            obj.xGauss = xGaus;
         end
         
         function createBackgroundInterpolation(obj)

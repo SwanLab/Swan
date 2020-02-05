@@ -143,7 +143,7 @@ classdef Preprocess<handle
                 quadrature.computeQuadrature(interp{1}.order);
 
                 geom.computeGeometry(quadrature,interp{1})
-                xGauss = geom.xGauss;    
+                xGauss = mesh.computeXgauss(quadrature);
                 for ielem = 1:nelem
                     ind=1;
                     for igaus = 1:quadrature.ngaus

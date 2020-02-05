@@ -6,6 +6,8 @@ classdef InterpolationFactory < handle
             mesh  = cParams.mesh;
             order = cParams.order;
             switch mesh.geometryType
+                case 'EMPTY MESH'
+                    obj = [];
                 case 'LINE'
                     switch order
                         case 'LINEAR'

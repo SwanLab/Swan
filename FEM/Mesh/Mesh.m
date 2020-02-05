@@ -1,17 +1,13 @@
 classdef Mesh < AbstractMesh & matlab.mixin.Copyable
     
     properties (GetAccess = public, SetAccess = protected)
-%         coord
-%         connec
-        ndim
         nnode
         npnod
-%         nelem
+
         embeddedDim
     end
     
     properties (Access = public)
-       % unfittedType
         meshBackground
     end
     
@@ -21,6 +17,8 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             obj.coord  = coord;
             obj.connec = connec;
             obj.computeDescriptorParams();
+            obj.createInterpolation();
+            obj.computeElementCoordinates();
             obj.unfittedType = 'SIMPLE';
         end
         

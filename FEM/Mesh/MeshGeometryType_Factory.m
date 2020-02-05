@@ -3,7 +3,6 @@ classdef MeshGeometryType_Factory < handle
     methods (Access = public, Static)
         
         function geometryType = getGeometryType(ndim,nnode,embeddedDim)
-            %embeddedDim = ndim;
             switch ndim
                 case 1
                     geometryType = 'LINE';

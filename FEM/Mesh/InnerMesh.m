@@ -12,6 +12,8 @@ classdef InnerMesh < Mesh
             obj.computeCoords();
             obj.computeConnec();
             obj.computeDescriptorParams();
+            obj.createInterpolation();
+            obj.computeElementCoordinates();            
             obj.unfittedType = 'SIMPLE';
         end
         
