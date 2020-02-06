@@ -7,7 +7,6 @@ classdef CutMesh < Mesh
     
     properties (Access = private)
         backgroundMesh
-        type
     end
         
     methods (Access = public)
@@ -41,7 +40,6 @@ classdef CutMesh < Mesh
                 otherwise
                     error('EmbeddedDim not defined')
             end
-
         end
         
     end    

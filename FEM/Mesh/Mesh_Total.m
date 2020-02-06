@@ -48,7 +48,7 @@ classdef Mesh_Total < Mesh_Composite
         function init(obj,cParams)
             obj.coord  = cParams.coord;
             obj.connec = cParams.connec;
-            obj.obtainExteriorMesh(cParams);
+            obj.obtainExteriorMesh(cParams);              
             obj.ndim   = size(obj.coord,2);
             obj.unfittedType = 'COMPOSITE';
             obj.embeddedDim = obj.ndim;
@@ -66,7 +66,9 @@ classdef Mesh_Total < Mesh_Composite
         end
         
         function createInteriorMesh(obj)
-            obj.innerMeshOLD = Mesh().create(obj.coord,obj.connec);
+            s.connec = obj.connec;
+            s.coord  = obj.coord;
+            obj.innerMeshOLD = Mesh().create(s);
             obj.append(obj.innerMeshOLD);
         end
         
@@ -82,10 +84,10 @@ classdef Mesh_Total < Mesh_Composite
             nExteriorMeshes = 1;
             for imesh = 1:nExteriorMeshes
                 nodes  = obj.borderNodes;
-                boxFaceCoords = obj.coord(nodes,:);
-                boxFaceConnec = obj.computeConnectivitiesFromData();
-                m = Mesh;
-                m = m.create(boxFaceCoords,boxFaceConnec);
+                s.coord = obj.coord(nodes,:);
+                s.connec = obj.computeConnectivitiesFromData();
+                s.type = 'BOUNDARY';
+                m = Mesh().create(s);
                 obj.boxFaceMeshes{imesh} = m;
                 obj.append(m);
                 obj.nodesInBoxFaces{imesh} = false(size(obj.coord,1),1);
@@ -166,8 +168,9 @@ classdef Mesh_Total < Mesh_Composite
                 case 3
                     boxFaceConnec = obj.computeDelaunay(boxFaceCoords);
             end
-            m = Mesh;
-            m = m.create(boxFaceCoords,boxFaceConnec);
+            s.connec = boxFaceConnec;
+            s.coord  = boxFaceCoords;
+            m = Mesh().create(s);
         end
         
         function [boxFaceCoords, nodesInBoxFace] = getFaceCoordinates(obj,idime,iside)

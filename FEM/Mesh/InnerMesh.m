@@ -14,7 +14,6 @@ classdef InnerMesh < Mesh
             obj.computeDescriptorParams();
             obj.createInterpolation();
             obj.computeElementCoordinates();            
-            obj.unfittedType = 'SIMPLE';
         end
         
     end
@@ -24,6 +23,8 @@ classdef InnerMesh < Mesh
         function init(obj,cParams)
             obj.globalConnec = cParams.globalConnec;
             obj.backgroundCoord = cParams.backgroundCoord;
+            obj.unfittedType = 'SIMPLE';            
+            obj.type = 'INTERIOR';                        
         end
         
         function computeCoords(obj)

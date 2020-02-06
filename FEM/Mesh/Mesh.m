@@ -9,17 +9,19 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
     
     properties (Access = public)
         meshBackground
+    end    
+       
+    properties (Access = protected)
+       type 
     end
     
     methods (Access = public)
         
-        function obj = create(obj,coord,connec)
-            obj.coord  = coord;
-            obj.connec = connec;
+        function obj = create(obj,cParams)
+            obj.init(cParams);
             obj.computeDescriptorParams();
             obj.createInterpolation();
             obj.computeElementCoordinates();
-            obj.unfittedType = 'SIMPLE';
         end
         
         function objClone = clone(obj)
@@ -83,12 +85,31 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
         end
         
         function computeEmbeddingDim(obj)
-            obj.embeddedDim = obj.ndim;            
+            switch obj.type
+                case 'BOUNDARY'
+                    obj.embeddedDim = obj.ndim - 1;
+                case {'INTERIOR','COMPOSITE'}
+                    obj.embeddedDim = obj.ndim;
+                otherwise
+                    error('EmbeddedDim not defined')
+            end
         end
         
     end
     
     methods (Access = private)
+        
+        function init(obj,cParams)
+            obj.coord  = cParams.coord;
+            obj.connec = cParams.connec;
+            if isfield(cParams,'type')
+                obj.type = cParams.type;
+            else
+                obj.type = 'INTERIOR';
+            end
+            obj.unfittedType = 'SIMPLE';
+            
+        end
         
         function computeGeometryType(obj)
             factory = MeshGeometryType_Factory();

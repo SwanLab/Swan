@@ -100,7 +100,9 @@ classdef UnfittedMesh < handle
         
         function mB = get.meshBackground(obj)
             mT = obj.oldUnfittedMesh.meshBackground;
-            mB = Mesh().create(mT.coord,mT.connec);
+            s.coord = mT.coord;
+            s.connec = mT.connec;
+            mB = Mesh().create(s);
         end
         
         function lvlSet = get.levelSet_background(obj)

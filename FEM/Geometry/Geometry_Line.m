@@ -1,7 +1,6 @@
 classdef Geometry_Line < Geometry
     
     properties (GetAccess = public, SetAccess = private)
-        xGauss
         dvolu
     end
     
@@ -19,9 +18,7 @@ classdef Geometry_Line < Geometry
         
         function computeGeometry(obj,quad,interpV)
             obj.initGeometry(interpV,quad);
-            obj.computeElementCoordinates();
-            obj.computeGaussPointsPosition();
-            obj.computeDvolu(igaus);
+            obj.computeDvolu();
         end
         
     end
@@ -46,18 +43,19 @@ classdef Geometry_Line < Geometry
         
         function computeDvolu(obj)
             nGaus  = obj.quadrature.ngaus;
-            nDime  = obj.mesh.ndime;            
-            drDtxi = zeros(nGaus,obj.nElem);
-            xp     = permute(obj.coordElem,[1 3 2]);
+            nDime  = obj.mesh.ndim;            
+            drDtxi = zeros(nGaus,obj.mesh.nelem);
+            xp     = permute(obj.mesh.coordElem,[1 3 2]);
             deriv  = obj.mesh.interpolation.deriv(1,:,:);
             dShapes = permute(deriv,[3 2 1]);
             for idime = 1:nDime
-                x(:,1) = xp(:,:,idime);
+                x      = xp(:,:,idime);
                 dxDtxi = dShapes*x;
                 drDtxi = drDtxi + (dxDtxi).^2;
             end
             w(:,1) = obj.quadrature.weigp;
-            obj.dvolu = bsxfun(@times,w,sqrt(drDtxi));
+            dv =  bsxfun(@times,w,sqrt(drDtxi));
+            obj.dvolu = dv';
         end        
         
     end
