@@ -24,7 +24,11 @@ classdef InnerMesh < Mesh
             obj.globalConnec = cParams.globalConnec;
             obj.backgroundCoord = cParams.backgroundCoord;
             obj.unfittedType = 'SIMPLE';            
-            obj.type = 'INTERIOR';                        
+           if isfield(cParams,'type')
+                obj.type = cParams.type;
+            else
+                obj.type = 'INTERIOR';
+           end
         end
         
         function computeCoords(obj)

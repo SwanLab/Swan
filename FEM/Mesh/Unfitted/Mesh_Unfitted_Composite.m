@@ -70,7 +70,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
             hold off
         end
         
-        function add2plot(obj,ax)
+        function add2plot(obj,ax,removedDim,removedCoord)
             obj.innerMeshOLD.add2plot(ax);
             for iActive = 1:obj.nActiveBoxFaces
                 iFace = obj.activeBoxFaceMeshesList(iActive);
@@ -153,7 +153,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
                 for iside = 1:obj.nsides
                     iface = iface + 1;
                     boxFaceMesh = obj.boxFaceMeshes{iface};
-                    mshBack = boxFaceMesh.meshBackground;
+                    %mshBack = boxFaceMesh.meshBackground;
                     lsBoxFace = levelSet(obj.nodesInBoxFaces{iface});
                     if obj.isBoxMeshActive(lsBoxFace)
                         obj.boxFaceMeshes{iface}.compute(lsBoxFace);
@@ -182,6 +182,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
             s.meshBackground = mesh;
             s.interpolationBackground = interp;
             cParams = SettingsMeshUnfitted(s);
+            %cParams.type = 'BOUNDARY';
             boxFaceMesh = UnfittedMesh(cParams);
         end
         

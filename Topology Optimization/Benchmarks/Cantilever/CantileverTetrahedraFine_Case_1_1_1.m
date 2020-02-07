@@ -11,7 +11,7 @@ kappaMultiplier = 1;
 designVariable = 'LevelSet';
 filterType = 'P1';
 
-nsteps = 5;
+nsteps = 5;6
 Vfrac_final = 0.05;
 Perimeter_target = 1;
 optimality_final = 1e-3;

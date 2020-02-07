@@ -10,6 +10,7 @@ classdef SettingsMeshUnfitted < AbstractSettings
         interpolationBackground
         includeBoxContour
         mesh
+        type
     end
     
     methods (Access = public)

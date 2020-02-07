@@ -1,4 +1,4 @@
-classdef  VideoMaker_TopOpt_levelSet3D < VideoMaker_TopOpt_levelSet
+classdef  VideoMaker_TopOpt_levelSet3D < VideoMaker
   properties
       
       
@@ -6,6 +6,12 @@ classdef  VideoMaker_TopOpt_levelSet3D < VideoMaker_TopOpt_levelSet
   end
   
   methods (Access = public)
+      
+        
+        function obj = VideoMaker_TopOpt_levelSet3D(cParams)
+            obj.init(cParams);
+        end        
+        
 
         function Make_video_design_variable(obj,output_video_name)
             post = Postprocess_TopOpt_levelSet();

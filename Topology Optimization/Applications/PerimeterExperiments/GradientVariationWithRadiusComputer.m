@@ -98,12 +98,4 @@ classdef GradientVariationWithRadiusComputer < handle
        
     end
     
-    
-    
-    
-    
-    
-    
-    
-    
 end

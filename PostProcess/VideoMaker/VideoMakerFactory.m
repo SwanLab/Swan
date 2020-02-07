@@ -71,9 +71,9 @@ classdef VideoMakerFactory < handle
                         case '3D'
                             switch type
                                 case 'LevelSet'
-                                    obj = VideoMaker_TopOpt_levelSet3D();
+                                    obj = VideoMaker_TopOpt_levelSet3D(cParams);
                                 case 'Density'
-                                    obj = VideoMaker_TopOpt_density3D();
+                                    obj = VideoMaker_TopOpt_density3D(cParams);
                             end
                     end
                 end

@@ -16,6 +16,8 @@ classdef ExteriorGradientCirclePerimeterExperiment < handle
         gradientInNodesToPlot
         
         outputFolder
+        
+        radius
 
     end
     
@@ -28,6 +30,7 @@ classdef ExteriorGradientCirclePerimeterExperiment < handle
                 obj.createMesh();
                 obj.createLevelSet();
                 obj.computeRegularizedPerimeters();
+                obj.computeGradientVariationWithRadius();
                 obj.computeGradientVariationWithTheta();
             end
         end
@@ -38,9 +41,13 @@ classdef ExteriorGradientCirclePerimeterExperiment < handle
         
         function init(obj)
             obj.nameCase = 'GradientCirclePerimeterExperiment';
-            obj.inputFile = {'CircleMacro'; ...
-                'CircleMacroFine';...
-                'CircleMacroFineFine'};
+            %nameRoot = 'CircleMacro';
+            %obj.radius = 1;
+            nameRoot = 'DoubleCircleMacro';
+            obj.radius = 2;                      
+            obj.inputFile = {nameRoot;...
+                [nameRoot,'Fine'];...
+                [nameRoot,'FineFine']};
             obj.scale     = 'MACRO';
             obj.outputFolder = '/home/alex/Dropbox/Perimeter/';
         end
@@ -77,7 +84,7 @@ classdef ExteriorGradientCirclePerimeterExperiment < handle
             s.designVariable   = obj.levelSet;
             s.outputFigureName = ['SmoothedCircleMesh',num2str(obj.imesh)];
             s.plotting         = true;
-            s.printing         = true;
+            s.printing         = false;
             s.capturingImage   = false;
             s.isRobinTermAdded = true;
             s.perimeterType    = 'perimeter';
@@ -85,13 +92,24 @@ classdef ExteriorGradientCirclePerimeterExperiment < handle
             rPerimeter.compute();
             obj.regularizedPerimeter = rPerimeter;
         end
+        
+        function computeGradientVariationWithRadius(obj) 
+            s.mesh                 = obj.mesh;
+            s.regularizedPerimeter = obj.regularizedPerimeter;
+            s.inputFile            = obj.inputFile{obj.imesh};
+            s.nameCase             = obj.nameCase;
+            s.outputFolder         = obj.outputFolder;
+            s.domainLength         = obj.domainLength;            
+            gComputer = ExteriorGradientVariationWithRadiusComputer(s);
+            gComputer.compute();
+        end            
                 
         function computeGradientVariationWithTheta(obj)
             filePlotName = [obj.outputFolder,obj.inputFile{obj.imesh}];
             s.filePlotName         = filePlotName;
             s.mesh                 = obj.mesh;
             s.levelSet             = obj.levelSet;
-            s.radius               = 1;
+            s.radius               = obj.radius;
             s.regularizedPerimeter = obj.regularizedPerimeter;
             s.domainLength         = obj.domainLength;
             gComputer = ExteriorGradientVariationWithThetaComputer(s);

@@ -14,7 +14,7 @@ classdef ExteriorGradientVariationWithThetaComputer < handle
         nEpsilon
         nNode
         nodes
-        legendPlot
+        legendPlot        
     end
     
     methods (Access = public)
@@ -53,7 +53,7 @@ classdef ExteriorGradientVariationWithThetaComputer < handle
         function eNodes = computeExteriorNodes(obj)
             x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);
-            isExterior = abs(x.^2 + y.^2 - 1) < 1e-6;
+            isExterior = abs(sqrt(x.^2 + y.^2) - obj.radius) < 1e-6;
             allNodes = 1:length(obj.mesh.coord(:,1));
             eNodes(:,1) = allNodes(isExterior);
         end
@@ -89,7 +89,7 @@ classdef ExteriorGradientVariationWithThetaComputer < handle
         function plotGradientVsTheta(obj)
             f = figure();
             r = obj.radius;
-            p{1} = plot([-180 180],[(-1/r) (-1/r)]);
+            p{1} = plot([-180 180],[(1/r) (1/r)]);
             leg{1} = '$\kappa = 1/R$';
             hold on
             for iepsilon = 2:obj.nEpsilon
@@ -110,8 +110,8 @@ classdef ExteriorGradientVariationWithThetaComputer < handle
         function tit = computeTitle(obj)
             h = obj.mesh.computeMeanCellSize;
             L = obj.domainLength;
-            [n,d] = rat(h/L);
-            tit = ['$h/L = ',num2str(n),'/',num2str(d),'$'];
+            %tit = ['$h/L = ',num2str(n),'/',num2str(d),'$'];
+            tit = ['$h/L = ',num2str(round(h/L,3)),'$'];                                    
         end
         
         function [x,y] = obtainDataByIncreasingTheta(obj,iepsilon)
