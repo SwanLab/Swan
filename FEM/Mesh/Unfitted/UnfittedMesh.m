@@ -36,6 +36,7 @@ classdef UnfittedMesh < handle
     methods (Access = public)
         
         function obj = UnfittedMesh(cParams)
+            obj.meshBackground = cParams.meshBackground;
             obj.oldUnfittedMesh = Mesh_Unfitted.create2(cParams);
             if isobject(cParams)
                 if (isempty(cParams.type))
@@ -70,7 +71,7 @@ classdef UnfittedMesh < handle
                 obj.computeInnerGlobalConnec();
                 s.backgroundCoord = obj.meshBackground.coord;
                 s.globalConnec = obj.globalConnec;
-                s.type = obj.type;%'BOUNDARY';
+                s.type = obj.type;
                 obj.innerMesh = InnerMesh(s);
             end
             
@@ -83,7 +84,7 @@ classdef UnfittedMesh < handle
                 cParams.coord  = obj.oldUnfittedMesh.coord;
                 cParams.connec = obj.oldUnfittedMesh.connec;
                 cParams.type   = obj.oldUnfittedMesh.typeMesh;
-                cParams.backgroundMesh = obj.oldUnfittedMesh.meshBackground;
+                cParams.backgroundMesh = obj.meshBackground;
                 cParams.subcellIsoCoords = obj.subcellIsoCoords;
                 cParams.cellContainingSubcell = obj.cellContainingSubcell;
                 obj.innerCutMesh = CutMesh(cParams);
@@ -112,14 +113,6 @@ classdef UnfittedMesh < handle
             
             function type = get.unfittedType(obj)
                 type = obj.oldUnfittedMesh.unfittedType;
-            end
-            
-            function mB = get.meshBackground(obj)
-                mT = obj.oldUnfittedMesh.meshBackground;
-                %s.coord = mT.coord;
-                %s.connec = mT.connec;
-                %mB = Mesh().create(s);
-                mB = mT;
             end
             
             function lvlSet = get.levelSet_background(obj)

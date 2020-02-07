@@ -33,7 +33,7 @@ classdef testUnfitted < test
             s.includeBoxContour = obj.meshIncludeBoxContour;
             cParams = SettingsMeshUnfitted(s);
             
-%             obj.mesh = Mesh_Unfitted.create2(cParams);
+%             obj.mesh = Mesh_Unfitted.create(cParams);
 %             obj.mesh.computeMesh(obj.levelSet);
             
             obj.mesh = UnfittedMesh(cParams);
