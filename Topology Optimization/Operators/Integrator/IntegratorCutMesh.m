@@ -35,7 +35,7 @@ classdef IntegratorCutMesh < Integrator
         
         function initShapes(obj)
             nelem = obj.backgroundMesh.nelem;
-            cNelem = obj.cutMesh.nelem;
+            cNelem = length(obj.cutMesh.cellContainingSubcell);obj.cutMesh.nelem;
             nnode = obj.backgroundMesh.nnode;
             obj.RHScells = zeros(nelem,nnode);
             obj.RHScellsCut = zeros(cNelem,nnode);
@@ -48,7 +48,7 @@ classdef IntegratorCutMesh < Integrator
             obj.computeThisQuadrature();
             obj.computeUnfittedGaussPoints();
             
-            nelem = obj.cutMesh.nelem;
+            nelem = length(obj.cutMesh.cellContainingSubcell);% nelem;
             nnode = obj.backgroundInterp.nnode;
             for isubcell = 1:nelem
                 shape = obj.computeShape(isubcell);

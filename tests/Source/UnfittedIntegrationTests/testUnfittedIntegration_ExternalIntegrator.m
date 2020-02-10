@@ -36,12 +36,15 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
                 case 'BOUNDARY'
                     cParams.compositeParams = cell(0);
                     if contains(class(obj),'Rectangle') || contains(class(obj),'Cylinder')
-                        cParams.boxFaceToGlobal = obj.mesh.nodesInBoxFaces;
-                        for iMesh = 1:obj.mesh.nActiveBoxFaces
-                            iActive = obj.mesh.activeBoxFaceMeshesList(iMesh);
-                            boxFaceMesh = obj.mesh.boxFaceMeshes{iActive};
-                            params = obj.createCompositeParams(boxFaceMesh);
-                            params.boxFaceToGlobal = obj.mesh.nodesInBoxFaces{iActive};
+                        
+                        thisMesh = obj.mesh.oldUnfittedMeshBoundary;
+                        
+                        cParams.boxFaceToGlobal = thisMesh.nodesInBoxFaces;
+                        for iMesh = 1:thisMesh.nActiveBoxFaces
+                            iActive = thisMesh.activeBoxFaceMeshesList(iMesh);
+                            boxFaceMesh = thisMesh.boxFaceMeshes{iActive};
+                            params = obj.createCompositeParams(boxFaceMesh,thisMesh);
+                            params.boxFaceToGlobal = thisMesh.nodesInBoxFaces{iActive};
                             cParams.compositeParams{iMesh} = params;
                         end
                     end
@@ -74,13 +77,14 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
             cParams.innerToBackground = mesh.backgroundFullCells;
         end
         
-        function cParams = createCompositeParams(obj,mesh)
+        function cParams = createCompositeParams(obj,mesh,thisMesh)
             cParams.mesh = mesh;
             cParams.type = 'COMPOSITE';
             cParams.backgroundMesh = obj.mesh.meshBackground;
-            cParams.globalConnec = mesh.globalConnec;
+            %cParams.globalConnec = thisMesh.globalConnec;
+            cParams.globalConnec = obj.mesh.globalConnec;
             cParams.innerToBackground = [];
-            cParams.npnod = obj.mesh.meshBackground.npnod;
+            cParams.npnod = thisMesh.meshBackground.npnod;
             cParams = obj.createInteriorParams(cParams,mesh);
         end
         

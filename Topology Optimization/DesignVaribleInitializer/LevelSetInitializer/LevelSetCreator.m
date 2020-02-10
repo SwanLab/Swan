@@ -30,6 +30,16 @@ classdef LevelSetCreator < handle
             obj.ndim      = input.ndim;
             obj.nodeCoord = input.coord;
             obj.computeLevelSet();
+            obj.perturbLevelSetWhenIsZeroInNode();
+        end
+        
+    end
+    
+    methods (Access = private)
+       
+        function perturbLevelSetWhenIsZeroInNode(obj)
+            nodes = obj.levelSet == 0;
+            obj.levelSet(nodes) = -1e-16;                        
         end
         
     end
