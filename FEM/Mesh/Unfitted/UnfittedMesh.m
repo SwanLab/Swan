@@ -34,7 +34,7 @@ classdef UnfittedMesh < handle
     end
     
     properties (Access = private)
-      %  oldUnfittedMesh
+        %oldUnfittedMesh
         oldUnfittedMeshInterior
         
         type
@@ -74,7 +74,7 @@ classdef UnfittedMesh < handle
         
         function compute(obj,lvlSet)
             
-          %  obj.oldUnfittedMesh.computeMesh(lvlSet);            
+            %obj.oldUnfittedMesh.computeMesh(lvlSet);            
             obj.oldUnfittedMeshInterior.computeMesh(lvlSet)
             obj.oldUnfittedMeshBoundary.computeMesh(lvlSet);
             
@@ -110,7 +110,12 @@ classdef UnfittedMesh < handle
         end
         
         function plot(obj)
-            obj.oldUnfittedMesh.plot();
+            switch obj.unfittedType
+                case 'BOUNDARY'
+                    obj.oldUnfittedMeshBoundary.plot();
+                case 'INTERIOR'
+                    obj.oldUnfittedMeshInterior.plot();
+            end
         end
         
     end
@@ -177,7 +182,12 @@ classdef UnfittedMesh < handle
     methods (Access = public)
         
         function m = computeMass(obj)
-            m = obj.oldUnfittedMeshInterior.computeMass();
+            switch obj.unfittedType
+                case 'BOUNDARY'
+                    m = obj.oldUnfittedMeshBoundary.computeMass();
+                case 'INTERIOR'
+                    m = obj.oldUnfittedMeshInterior.computeMass();
+            end
         end
         
         function aMeshes = getActiveMeshes(obj)
@@ -185,8 +195,13 @@ classdef UnfittedMesh < handle
         end
         
         function add2plot(obj,ax,removedDim,removedCoord)
-            obj.oldUnfittedMesh.add2plot(ax,removedDim,removedCoord);
-            %obj.oldUnfittedMesh.add2plot(ax);
+            switch obj.unfittedType
+                case 'BOUNDARY'
+                     obj.oldUnfittedMeshBoundary.add2plot(ax,removedDim,removedCoord);
+                case 'INTERIOR'
+                    obj.oldUnfittedMeshInterior.add2plot(ax,removedDim,removedCoord);
+            end            
+
         end
         
     end
