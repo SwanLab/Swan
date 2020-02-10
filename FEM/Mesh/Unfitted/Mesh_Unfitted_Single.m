@@ -54,7 +54,8 @@ classdef Mesh_Unfitted_Single < Mesh & Mesh_Unfitted
             end
             obj.typeMesh = cParams.unfittedType;            
             obj.build(cParams);
-            obj.init(cParams);            
+            obj.init(cParams); 
+            %obj.computeDescriptorParams();            
         end
         
     end
