@@ -55,7 +55,7 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
         end
         
         function cParams = createInnerCutParams(obj,mesh)
-            cParams.mesh = mesh.innerCutMesh;
+            cParams.mesh = mesh.innerCutMesh; %Nop, should be boundaryCutMesh!
             cParams.type = 'CutMesh';
         end
         
