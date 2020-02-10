@@ -1,7 +1,7 @@
 classdef IntegratorFactory
     methods (Access = public, Static)
         function integrator = create(cParams)
-            switch cParams.type
+           switch cParams.type
                 case 'INTERIOR'
                     integrator = Integrator_Interior(cParams);
                 case 'BOUNDARY'

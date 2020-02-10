@@ -45,7 +45,7 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
                             cParams.compositeParams{iMesh} = params;
                         end
                     end
-                    cParamsInnerCut = obj.createInnerCutParams(obj.mesh);
+                    cParamsInnerCut = obj.createBoundaryCutParams(obj.mesh);
                     cParams.compositeParams{end+1} = cParamsInnerCut;
             end
             integratorC = Integrator.create(cParams);
@@ -58,6 +58,12 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
             cParams.mesh = mesh.innerCutMesh; %Nop, should be boundaryCutMesh!
             cParams.type = 'CutMesh';
         end
+        
+        function cParams = createBoundaryCutParams(obj,mesh)
+            cParams.mesh = mesh.boundaryCutMesh; %Nop, should be boundaryCutMesh!
+            cParams.type = 'CutMesh';
+        end
+        
         
         function cParams = createInnerParams(obj,mesh)
             cParams.mesh = mesh.innerMesh;

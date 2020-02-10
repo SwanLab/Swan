@@ -100,12 +100,12 @@ classdef IntegratorCutMesh < Integrator
     
     methods (Static, Access = private)
         
-        function posgp = computePosGP(coord,interpolation,quadrature)
+        function xG = computeXgauss(coord,interpolation,quadrature)
             interpolation.computeShapeDeriv(quadrature.posgp);
-            posgp = zeros(quadrature.ngaus,size(coord,3),size(coord,1));
+            xG = zeros(quadrature.ngaus,size(coord,3),size(coord,1));
             for igaus = 1:quadrature.ngaus
                 for idime = 1:size(coord,3)
-                    posgp(igaus,idime,:) = coord(:,:,idime)*interpolation.shape(:,igaus);
+                    xG(igaus,idime,:) = coord(:,:,idime)*interpolation.shape(:,igaus);
                 end
             end
         end
@@ -156,7 +156,7 @@ classdef IntegratorCutMesh < Integrator
             coord = obj.cutMesh.subcellIsoCoords;
             inter = obj.unfittedInterp;
             quad  = obj.quadrature;
-            xGaus = obj.computePosGP(coord,inter,quad);
+            xGaus = obj.computeXgauss(coord,inter,quad);
             obj.xGauss = xGaus;
         end
         
