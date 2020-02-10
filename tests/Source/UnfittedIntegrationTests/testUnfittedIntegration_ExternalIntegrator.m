@@ -37,6 +37,7 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
                     cParams.compositeParams = cell(0);
                     if contains(class(obj),'Rectangle') || contains(class(obj),'Cylinder')
                         
+                        %thisMesh = obj.mesh;
                         thisMesh = obj.mesh.oldUnfittedMeshBoundary;
                         
                         cParams.boxFaceToGlobal = thisMesh.nodesInBoxFaces;
@@ -58,12 +59,12 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
         end
         
         function cParams = createInnerCutParams(obj,mesh)
-            cParams.mesh = mesh.innerCutMesh; %Nop, should be boundaryCutMesh!
+            cParams.mesh = mesh.innerCutMesh; 
             cParams.type = 'CutMesh';
         end
         
         function cParams = createBoundaryCutParams(obj,mesh)
-            cParams.mesh = mesh.boundaryCutMesh; %Nop, should be boundaryCutMesh!
+            cParams.mesh = mesh.boundaryCutMesh; 
             cParams.type = 'CutMesh';
         end
         

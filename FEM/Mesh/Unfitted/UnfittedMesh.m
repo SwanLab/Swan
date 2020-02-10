@@ -29,13 +29,14 @@ classdef UnfittedMesh < handle
         nodesInBoxFaces
         
         oldUnfittedMeshBoundary  
-        oldUnfittedMeshInterior
         
         
     end
     
     properties (Access = private)
-        oldUnfittedMesh
+      %  oldUnfittedMesh
+        oldUnfittedMeshInterior
+        
         type
     end
     
@@ -43,11 +44,11 @@ classdef UnfittedMesh < handle
         
         function obj = UnfittedMesh(cParams)
             obj.meshBackground = cParams.meshBackground;
-            obj.oldUnfittedMesh = Mesh_Unfitted.create2(cParams);
+            %obj.oldUnfittedMesh = Mesh_Unfitted.create2(cParams);
             
 
             
-            obj.unfittedType = obj.oldUnfittedMesh.unfittedType;
+            obj.unfittedType = cParams.unfittedType;
             
             if isobject(cParams)
                 if (isempty(cParams.type))
@@ -73,13 +74,18 @@ classdef UnfittedMesh < handle
         
         function compute(obj,lvlSet)
             
-            obj.oldUnfittedMesh.computeMesh(lvlSet);            
+          %  obj.oldUnfittedMesh.computeMesh(lvlSet);            
             obj.oldUnfittedMeshInterior.computeMesh(lvlSet)
             obj.oldUnfittedMeshBoundary.computeMesh(lvlSet);
             
             
+            %1.subcellIsoCoords
+            %2.cellContainingSubcell
+            %3.backgroundFullCells
+            %4.backgroundCutCells
+            
             %Both
-            obj.backgroundFullCells = obj.oldUnfittedMesh.backgroundFullCells;
+            obj.backgroundFullCells = obj.oldUnfittedMeshInterior.backgroundFullCells;
             
             obj.computeInnerMesh();
             obj.computeInnerCutMesh();
@@ -94,10 +100,10 @@ classdef UnfittedMesh < handle
                 case 'TopOpt'
                     obj.updateParamsforTopOpt();                    
                 case 'Unfi'
-                    obj.updateParamsForUnfittedTest();
+                    %obj.updateParamsForUnfittedTest();
                 case 'Both'
                     obj.updateParamsforTopOpt();
-                    obj.updateParamsForUnfittedTest();
+                    %obj.updateParamsForUnfittedTest();
             end
             
 
@@ -111,29 +117,12 @@ classdef UnfittedMesh < handle
     
     methods (Access = private)
         
-        function updateParamsForUnfittedTest(obj)
-            
-            mesh = obj.oldUnfittedMesh;            
-            
-            if isprop(mesh,'nActiveBoxFaces')
-                obj.nActiveBoxFaces = mesh.nActiveBoxFaces;
-            end
-            
-            if isprop(mesh,'boxFaceMeshes')
-                obj.boxFaceMeshes = mesh.boxFaceMeshes;
-            end
-            
-            if isprop(mesh,'activeBoxFaceMeshesList')
-                obj.activeBoxFaceMeshesList = mesh.activeBoxFaceMeshesList;
-            end
-            
-            if isprop(mesh,'nodesInBoxFaces')
-                obj.nodesInBoxFaces = mesh.nodesInBoxFaces;
-            end
-        end
+      
         
         function updateParamsforTopOpt(obj)
-            mesh = obj.oldUnfittedMesh;
+            
+            
+            mesh = obj.oldUnfittedMeshInterior;
             
             if isprop(mesh,'geometryType')
                 obj.geometryType = mesh.geometryType;
@@ -145,8 +134,8 @@ classdef UnfittedMesh < handle
             
             obj.subcellIsoCoords      = mesh.subcellIsoCoords;
             obj.cellContainingSubcell = mesh.cellContainingSubcell;
-            obj.coord  = mesh.coord;
-            obj.connec = mesh.connec;
+            obj.coord  = mesh.coord; %Why?? Not necessary 
+            obj.connec = mesh.connec; %Why?? Not necessary 
             
         end
         
@@ -164,35 +153,23 @@ classdef UnfittedMesh < handle
         end
         
         function computeInnerCutMesh(obj)
+            s.type                  = 'INTERIOR';            
             s.coord                 = obj.oldUnfittedMeshInterior.coord;
             s.connec                = obj.oldUnfittedMeshInterior.connec;
-            % s.type                  = obj.oldUnfittedMesh.typeMesh;            
-            
-%            cells = obj.oldUnfittedMesh.cellContainingSubcell;
-%            connec = obj.meshBackground.connec(cells,:);
-            
-%            s.coord                 = obj.meshBackground.coord;
-%            s.connec                = connec;
-            
-            s.type = 'INTERIOR';
-            
-            
             s.backgroundMesh        = obj.meshBackground;
             s.subcellIsoCoords      = obj.oldUnfittedMeshInterior.subcellIsoCoords;
             s.cellContainingSubcell = obj.oldUnfittedMeshInterior.cellContainingSubcell;
-            
-                      
             obj.innerCutMesh = CutMesh(s);
         end
         
         function computeBoundaryCutMesh(obj)
-            cParams.coord                 = obj.oldUnfittedMeshBoundary.coord;
-            cParams.connec                = obj.oldUnfittedMeshBoundary.connec;
-            cParams.type                  = 'BOUNDARY';
-            cParams.backgroundMesh        = obj.meshBackground;
-            cParams.subcellIsoCoords      = obj.oldUnfittedMeshBoundary.subcellIsoCoords;
-            cParams.cellContainingSubcell = obj.oldUnfittedMeshBoundary.cellContainingSubcell;
-            obj.boundaryCutMesh = CutMesh(cParams);
+            s.type                  = 'BOUNDARY';            
+            s.coord                 = obj.oldUnfittedMeshBoundary.coord;
+            s.connec                = obj.oldUnfittedMeshBoundary.connec;
+            s.backgroundMesh        = obj.meshBackground;
+            s.subcellIsoCoords      = obj.oldUnfittedMeshBoundary.subcellIsoCoords;
+            s.cellContainingSubcell = obj.oldUnfittedMeshBoundary.cellContainingSubcell;
+            obj.boundaryCutMesh = CutMesh(s);
         end
         
     end
@@ -200,11 +177,11 @@ classdef UnfittedMesh < handle
     methods (Access = public)
         
         function m = computeMass(obj)
-            m = obj.oldUnfittedMesh.computeMass();
+            m = obj.oldUnfittedMeshInterior.computeMass();
         end
         
         function aMeshes = getActiveMeshes(obj)
-            aMeshes = obj.oldUnfittedMesh.getActiveMeshes();
+            aMeshes = obj.oldUnfittedMeshInterior.getActiveMeshes();
         end
         
         function add2plot(obj,ax,removedDim,removedCoord)
