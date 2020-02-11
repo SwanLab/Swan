@@ -3,6 +3,7 @@ classdef CutMesh < Mesh
     properties (GetAccess = public, SetAccess = private)
          subcellIsoCoords
          cellContainingSubcell
+         globalConnec
     end
     
     properties (Access = private)
@@ -20,11 +21,8 @@ classdef CutMesh < Mesh
             obj.cellContainingSubcell = cParams.cellContainingSubcell;
             obj.computeDescriptorParams();
             obj.createInterpolation();
-            obj.computeElementCoordinates();            
-        end
-        
-        function b = getBackgroundMesh(obj)
-            b = obj.backgroundMesh;
+            obj.computeElementCoordinates();    
+            obj.computeGlobalConnec();
         end
         
     end      
@@ -42,6 +40,21 @@ classdef CutMesh < Mesh
             end
         end
         
-    end    
+    end 
+    
+    methods (Access = private)
+        
+        function computeGlobalConnec(obj)
+            nnode = obj.backgroundMesh.nnode;
+            nelem = obj.nelem;
+            obj.globalConnec = zeros(nelem,nnode);
+            for ielem = 1:nelem
+                icell  = obj.cellContainingSubcell(ielem);
+                nodes  = obj.backgroundMesh.connec(icell,:);
+                obj.globalConnec(ielem,:) = nodes;
+            end            
+            
+        end
+    end
     
 end

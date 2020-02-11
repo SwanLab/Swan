@@ -18,8 +18,8 @@ classdef IntegratorCutMesh < Integrator
         
         function obj = IntegratorCutMesh(cParams)
             obj.init(cParams);
-            obj.cutMesh = obj.mesh;
-            obj.backgroundMesh = obj.cutMesh.getBackgroundMesh();
+            obj.backgroundMesh = cParams.meshBackground;            
+            obj.cutMesh        = obj.mesh;
         end
         
         function A = integrate(obj,F)
@@ -52,12 +52,11 @@ classdef IntegratorCutMesh < Integrator
             for isubcell = 1:nelem
                 shape = obj.computeShape(isubcell);
                 djacob = obj.computeJacobian(isubcell);
-                icell  = obj.cutMesh.cellContainingSubcell(isubcell);
-                inode = obj.backgroundMesh.connec(icell,:);
+                nodes = obj.cutMesh.globalConnec(isubcell,:);
                 weight = obj.quadrature.weigp';
                 isoDv  = obj.unfittedInterp.isoDv;
                 
-                F0 = (shape*weight)'*F1(inode)/isoDv;
+                F0 = (shape*weight)'*F1(nodes)/isoDv;
                 
                 int(isubcell,:) = int(isubcell,:) + (shape*(djacob.*weight)*F0)';
             end

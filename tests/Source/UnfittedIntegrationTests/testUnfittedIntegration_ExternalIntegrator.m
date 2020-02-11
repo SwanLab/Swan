@@ -37,15 +37,14 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
                     cParams.compositeParams = cell(0);
                     if contains(class(obj),'Rectangle') || contains(class(obj),'Cylinder')
                         
-                        %thisMesh = obj.mesh;
-                        thisMesh = obj.mesh.oldUnfittedMeshBoundary;
-                        
-                        cParams.boxFaceToGlobal = thisMesh.nodesInBoxFaces;
-                        for iMesh = 1:thisMesh.nActiveBoxFaces
-                            iActive = thisMesh.activeBoxFaceMeshesList(iMesh);
-                            boxFaceMesh = thisMesh.boxFaceMeshes{iActive};
-                            params = obj.createCompositeParams(boxFaceMesh,thisMesh);
-                            params.boxFaceToGlobal = thisMesh.nodesInBoxFaces{iActive};
+                        oldUnfitted = obj.oldMeshUnfitted;
+                        cParams.boxFaceToGlobal = oldUnfitted.nodesInBoxFaces;
+                        for iMesh = 1:oldUnfitted.nActiveBoxFaces
+                            iActive = oldUnfitted.activeBoxFaceMeshesList(iMesh);
+                            boxFaceMesh = oldUnfitted.boxFaceMeshes{iActive};
+                            params = obj.createCompositeParams(boxFaceMesh,oldUnfitted);
+                            params.boxFaceToGlobal = oldUnfitted.nodesInBoxFaces{iActive};
+                            params.meshBackground = obj.mesh.meshBackground;
                             cParams.compositeParams{iMesh} = params;
                         end
                     end
@@ -61,11 +60,13 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
         function cParams = createInnerCutParams(obj,mesh)
             cParams.mesh = mesh.innerCutMesh; 
             cParams.type = 'CutMesh';
+            cParams.meshBackground = mesh.meshBackground;            
         end
         
         function cParams = createBoundaryCutParams(obj,mesh)
             cParams.mesh = mesh.boundaryCutMesh; 
             cParams.type = 'CutMesh';
+            cParams.meshBackground = mesh.meshBackground;                        
         end
         
         

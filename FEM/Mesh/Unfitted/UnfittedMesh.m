@@ -24,7 +24,6 @@ classdef UnfittedMesh < handle
         connec
         
         
-        oldUnfittedMeshBoundary
         
         subcellIsoCoords        
 
@@ -32,8 +31,9 @@ classdef UnfittedMesh < handle
     end
     
     properties (Access = private)
-        %oldUnfittedMesh
         oldUnfittedMeshInterior
+        oldUnfittedMeshBoundary        
+        
         levelSet
         
         type
@@ -80,8 +80,8 @@ classdef UnfittedMesh < handle
             
             %1.subcellIsoCoords
             %2.cellContainingSubcell
-            %3.backgroundFullCells
-            %4.backgroundCutCells
+
+            
             
             %Both
             obj.backgroundFullCells  = F;
