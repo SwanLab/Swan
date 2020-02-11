@@ -4,9 +4,9 @@ classdef UnfittedMesh_Volumetric < UnfittedMesh_AbstractBuilder
         maxSubcells = 20;
         nnodesSubcell = 4;
         
-        subcellsMesher = SubcellsMesher_Interior;
+        subcellsMesher      = SubcellsMesher_Interior;
         cutPointsCalculator = CutPointsCalculator_3D;
-        meshPlotter = MeshPlotter_Null;
+        meshPlotter         = MeshPlotter_Null;
     end
 end
 

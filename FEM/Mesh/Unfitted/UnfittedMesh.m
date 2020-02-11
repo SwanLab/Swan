@@ -6,6 +6,8 @@ classdef UnfittedMesh < handle
         innerCutMesh
         boundaryCutMesh
         
+        backgroundEmptyCells
+        
         %TopOpt + Unfitted
         backgroundFullCells
         globalConnec
@@ -68,9 +70,12 @@ classdef UnfittedMesh < handle
         
         function compute(obj,lvlSet)
             
-            %obj.oldUnfittedMesh.computeMesh(lvlSet);
+
             obj.oldUnfittedMeshInterior.computeMesh(lvlSet)
             obj.oldUnfittedMeshBoundary.computeMesh(lvlSet);
+
+            cellsClassifier = CellsClassifier;
+            [F,E,C] = cellsClassifier.classifyCells(lvlSet,obj.meshBackground.connec);
             
             
             %1.subcellIsoCoords
@@ -79,7 +84,10 @@ classdef UnfittedMesh < handle
             %4.backgroundCutCells
             
             %Both
-            obj.backgroundFullCells = obj.oldUnfittedMeshInterior.backgroundFullCells;
+            obj.backgroundFullCells  = F;
+            obj.backgroundEmptyCells = E;            
+            obj.backgroundCutCells   = C;
+         
             
             obj.computeInnerMesh();
             obj.computeInnerCutMesh();
@@ -136,7 +144,7 @@ classdef UnfittedMesh < handle
         end
         
         function computeInnerGlobalConnec(obj)
-            fullCells = obj.oldUnfittedMeshInterior.backgroundFullCells;
+            fullCells = obj.backgroundFullCells;
             obj.globalConnec = obj.meshBackground.connec(fullCells,:);
         end
         
