@@ -24,7 +24,7 @@ classdef UnfittedMesh_AbstractBuilder < handle
         
     end
     
-    methods (Access = ?Mesh_Unfitted)
+    methods (Access = {?Mesh_Unfitted, ?CutMesh})
         
         function build(obj,mesh)
             mesh.unfittedType = obj.unfittedType;

@@ -34,14 +34,24 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
         
         function allocateMemory(obj)
             obj.init();
-            obj.coord_iso = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells*obj.mesh.nnodesSubcell,obj.mesh.meshBackground.ndim);
-            obj.coord_global_raw = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells*obj.mesh.nnodesSubcell,obj.mesh.meshBackground.ndim);
-            obj.subcellIsoCoords = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells,obj.mesh.nnodesSubcell,obj.mesh.meshBackground.ndim);
-            obj.connec_local = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells,obj.mesh.nnodesSubcell);
-            obj.connec = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells,obj.mesh.nnodesSubcell);
-            obj.levelSet_unfitted = (zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells*obj.mesh.nnodesSubcell,1));
-            obj.cellContainingNodes = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells*obj.mesh.nnodesSubcell,1);
-            obj.cellContainingSubcell = zeros(obj.mesh.nCutCells*obj.mesh.maxSubcells*obj.mesh.nnodesSubcell,1);
+            
+            nCutCells     = obj.mesh.nCutCells;
+            maxSubcells   = obj.mesh.maxSubcells;
+            nnodesSubCell = obj.mesh.nnodesSubcell;
+            
+            %ndim   = obj.mesh.meshBackground.ndim;
+            ndim   = obj.mesh.ndim;
+            nCell  = nCutCells*maxSubcells;
+            nNodes = nCutCells*maxSubcells*nnodesSubCell;
+            
+            obj.coord_iso             = zeros(nNodes,ndim);
+            obj.coord_global_raw      = zeros(nNodes,ndim);
+            obj.subcellIsoCoords      = zeros(nCell,nnodesSubCell,ndim);
+            obj.connec_local          = zeros(nCell,nnodesSubCell);
+            obj.connec                = zeros(nCell,nnodesSubCell);
+            obj.levelSet_unfitted     = zeros(nNodes,1);
+            obj.cellContainingNodes   = zeros(nNodes,1);
+            obj.cellContainingSubcell = zeros(nNodes,1);
         end
         
         function freeSpareMemory(obj)

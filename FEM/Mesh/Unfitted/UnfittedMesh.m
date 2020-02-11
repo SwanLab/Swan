@@ -146,20 +146,33 @@ classdef UnfittedMesh < handle
         end
         
         function computeInnerCutMesh(obj)
-            s.type                  = 'INTERIOR';
+            s.unfittedType                  = 'INTERIOR';
             s.coord                 = obj.oldUnfittedMeshInterior.coord;
             s.connec                = obj.oldUnfittedMeshInterior.connec;
-            s.backgroundMesh        = obj.meshBackground;
+            s.meshBackground        = obj.meshBackground;
             s.subcellIsoCoords      = obj.oldUnfittedMeshInterior.subcellIsoCoords;
             s.cellContainingSubcell = obj.oldUnfittedMeshInterior.cellContainingSubcell;
             obj.innerCutMesh = CutMesh(s);
+
+%             s.unfittedType            = 'INTERIOR';
+%             s.meshBackground  = obj.meshBackground;
+%             s.interpolationBackground = Interpolation.create(obj.meshBackground,'LINEAR');
+%             
+%             
+%             s.backgroundFullCells = obj.backgroundFullCells;
+%             s.backgroundEmptyCells = obj.backgroundEmptyCells;
+%             s.backgroundCutCells = obj.backgroundCutCells;     
+%             s.levelSet = obj.levelSet;
+%            obj.innerCutMesh = CutMesh(s);
+
+
         end
         
         function computeBoundaryCutMesh(obj)
-            s.type                  = 'BOUNDARY';
+            s.unfittedType          = 'BOUNDARY';
             s.coord                 = obj.oldUnfittedMeshBoundary.coord;
             s.connec                = obj.oldUnfittedMeshBoundary.connec;
-            s.backgroundMesh        = obj.meshBackground;
+            s.meshBackground        = obj.meshBackground;
             s.subcellIsoCoords      = obj.oldUnfittedMeshBoundary.subcellIsoCoords;
             s.cellContainingSubcell = obj.oldUnfittedMeshBoundary.cellContainingSubcell;
             obj.boundaryCutMesh = CutMesh(s);
