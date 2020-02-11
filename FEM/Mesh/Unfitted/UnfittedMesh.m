@@ -6,7 +6,7 @@ classdef UnfittedMesh < handle
         innerCutMesh
         boundaryCutMesh
         
-        %Both
+        %TopOpt + Unfitted
         backgroundFullCells
         globalConnec
         unfittedType
@@ -21,12 +21,6 @@ classdef UnfittedMesh < handle
         coord
         connec
         
-        
-        %unfitted
-        nActiveBoxFaces
-        boxFaceMeshes
-        activeBoxFaceMeshesList
-        nodesInBoxFaces
         
         oldUnfittedMeshBoundary
         

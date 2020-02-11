@@ -49,7 +49,6 @@ classdef IntegratorCutMesh < Integrator
             obj.computeUnfittedGaussPoints();
             
             nelem = length(obj.cutMesh.cellContainingSubcell);% nelem;
-            nnode = obj.backgroundInterp.nnode;
             for isubcell = 1:nelem
                 shape = obj.computeShape(isubcell);
                 djacob = obj.computeJacobian(isubcell);
