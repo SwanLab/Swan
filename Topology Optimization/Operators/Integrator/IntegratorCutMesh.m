@@ -2,7 +2,6 @@ classdef IntegratorCutMesh < Integrator
     
     properties (GetAccess = public, SetAccess = protected)
         cutMesh
-        backgroundMesh
     end
     
     properties (Access = private)
@@ -12,6 +11,7 @@ classdef IntegratorCutMesh < Integrator
         xGauss
         RHScells
         RHScellsCut
+        backgroundMesh        
     end
     
     methods (Access = public)
@@ -35,7 +35,7 @@ classdef IntegratorCutMesh < Integrator
         
         function initShapes(obj)
             nelem = obj.backgroundMesh.nelem;
-            cNelem = length(obj.cutMesh.cellContainingSubcell);obj.cutMesh.nelem;
+            cNelem = length(obj.cutMesh.cellContainingSubcell);
             nnode = obj.backgroundMesh.nnode;
             obj.RHScells = zeros(nelem,nnode);
             obj.RHScellsCut = zeros(cNelem,nnode);

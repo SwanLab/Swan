@@ -17,7 +17,7 @@ classdef UnfittedMesh < handle
         
         %TopOpt
         backgroundCutCells
-        subcellIsoCoords
+
         cellContainingSubcell
         geometryType
         coord
@@ -26,12 +26,15 @@ classdef UnfittedMesh < handle
         
         oldUnfittedMeshBoundary
         
+        subcellIsoCoords        
+
         
     end
     
     properties (Access = private)
         %oldUnfittedMesh
         oldUnfittedMeshInterior
+        levelSet
         
         type
     end
@@ -40,9 +43,6 @@ classdef UnfittedMesh < handle
         
         function obj = UnfittedMesh(cParams)
             obj.meshBackground = cParams.meshBackground;
-            %obj.oldUnfittedMesh = Mesh_Unfitted.create2(cParams);
-            
-            
             
             obj.unfittedType = cParams.unfittedType;
             
@@ -70,7 +70,7 @@ classdef UnfittedMesh < handle
         
         function compute(obj,lvlSet)
             
-
+            obj.levelSet = lvlSet;
             obj.oldUnfittedMeshInterior.computeMesh(lvlSet)
             obj.oldUnfittedMeshBoundary.computeMesh(lvlSet);
 
@@ -92,6 +92,7 @@ classdef UnfittedMesh < handle
             obj.computeInnerMesh();
             obj.computeInnerCutMesh();
             obj.computeBoundaryCutMesh();
+            obj.computeUnfittedBoxMesh();
             
             obj.updateParamsforTopOpt();
 
@@ -122,10 +123,6 @@ classdef UnfittedMesh < handle
                         
             if isprop(mesh,'geometryType')
                 obj.geometryType = mesh.geometryType;
-            end
-            
-            if isprop(mesh,'backgroundCutCells')
-                obj.backgroundCutCells = mesh.backgroundCutCells;
             end
             
             obj.subcellIsoCoords      = mesh.subcellIsoCoords;
@@ -168,6 +165,10 @@ classdef UnfittedMesh < handle
             obj.boundaryCutMesh = CutMesh(s);
         end
         
+        function computeUnfittedBoxMesh(obj)
+            obj.meshBackground;
+        end
+        
     end
     
     methods (Access = public)
@@ -175,9 +176,22 @@ classdef UnfittedMesh < handle
         function m = computeMass(obj)
             switch obj.unfittedType
                 case 'BOUNDARY'
-                    m = obj.oldUnfittedMeshBoundary.computeMass();
+                   m = obj.oldUnfittedMeshBoundary.computeMass();
+                  %   cParams.mesh = obj;
+                  %   cParams.type = obj.unfittedType;
+                  %   integrator = Integrator.create(cParams);
+                  %   nnodesBackground = size(obj.levelSet);
+                  %   fInt = integrator.integrate(ones(nnodesBackground));
+                  %   m = sum(fInt);                       
                 case 'INTERIOR'
-                    m = obj.oldUnfittedMeshInterior.computeMass();
+                    %m = obj.oldUnfittedMeshInterior.computeMass();
+                    cParams.mesh = obj;
+                    cParams.type = obj.unfittedType;
+                    integrator = Integrator.create(cParams);
+                    nnodesBackground = size(obj.levelSet);
+                    fInt = integrator.integrate(ones(nnodesBackground));
+                    m = sum(fInt);                    
+                    
             end
         end
         
