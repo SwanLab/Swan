@@ -1,6 +1,7 @@
 classdef testPlotting_Composite < testPlotting
     methods (Access = protected)
         function hasPassed = hasPassed(obj)
+            obj.mesh = obj.mesh.oldUnfittedMeshBoundary;
             coordsOk = obj.checkCoordinates(obj.storedVar{1});
             connecsOk = obj.checkConnectivities(obj.storedVar{2});
             hasPassed = coordsOk && connecsOk;

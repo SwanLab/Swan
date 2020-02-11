@@ -12,9 +12,9 @@ classdef testPlotting < testNotShowingError...
     
     methods (Access = protected)
         function obj = testPlotting()
-            obj.createTopOpt()
-            obj.createMesh()
-            obj.plot()
+            obj.createTopOpt();
+            obj.createMesh();
+            obj.plot();
         end
         
         function plot(obj)

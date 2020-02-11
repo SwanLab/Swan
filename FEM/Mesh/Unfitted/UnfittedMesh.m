@@ -91,21 +91,8 @@ classdef UnfittedMesh < handle
             obj.computeInnerCutMesh();
             obj.computeBoundaryCutMesh();
             
-            % caseUnf = 'TopOpt';
-            %caseUnf = 'Unfi';
-            %caseUnf = '';
-            caseUnf = 'Both';
-            
-            switch  caseUnf
-                case 'TopOpt'
-                    obj.updateParamsforTopOpt();
-                case 'Unfi'
-                    obj.updateParamsForUnfittedTest();
-                case 'Both'
-                    obj.updateParamsforTopOpt();
-                    obj.updateParamsForUnfittedTest();
-            end
-            
+            obj.updateParamsforTopOpt();
+
             
         end
         
@@ -121,34 +108,6 @@ classdef UnfittedMesh < handle
     end
     
     methods (Access = private)
-        
-        
-        function updateParamsForUnfittedTest(obj)
-                        
-            switch obj.unfittedType
-                case 'BOUNDARY'
-                    mesh = obj.oldUnfittedMeshBoundary;
-                case 'INTERIOR'
-                    mesh = obj.oldUnfittedMeshInterior;
-            end
-                     
-            if isprop(mesh,'nActiveBoxFaces')
-                obj.nActiveBoxFaces = mesh.nActiveBoxFaces;
-            end
-            
-            if isprop(mesh,'boxFaceMeshes')
-                obj.boxFaceMeshes = mesh.boxFaceMeshes;
-            end
-            
-            if isprop(mesh,'activeBoxFaceMeshesList')
-                obj.activeBoxFaceMeshesList = mesh.activeBoxFaceMeshesList;
-            end
-            
-            if isprop(mesh,'nodesInBoxFaces')
-                obj.nodesInBoxFaces = mesh.nodesInBoxFaces;
-            end
-        end
-        
         
         function updateParamsforTopOpt(obj)
             
