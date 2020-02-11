@@ -117,6 +117,7 @@ classdef Mesh_Unfitted_Composite < Mesh_Unfitted
             s.meshBackground = obj.totalMesh.innerMeshOLD;
             s.interpolationBackground = Interpolation.create(s.meshBackground,'LINEAR');
             s.unfittedType = cParams.unfittedType;
+            %s.unfittedType = 'INTERIOR';
             obj.innerMeshOLD = Mesh_Unfitted_Single(s);
         end
         

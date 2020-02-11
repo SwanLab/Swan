@@ -28,6 +28,7 @@ classdef testPlotting_Composite < testPlotting
     end
     
     methods (Access = private)
+        
         function varOk = checkComposedVar(obj,interiorVar,boxMeshesVar,storedVar)
             interiorVarOk = obj.checkVar(interiorVar,storedVar{1});
             boxMeshesVarOk = true;
@@ -39,6 +40,7 @@ classdef testPlotting_Composite < testPlotting
     end
     
     methods (Access = private, Static)
+        
         function varOk = checkVar(var,ref)
             if all(size(var) == size(ref))
                 if all(all(var == ref))

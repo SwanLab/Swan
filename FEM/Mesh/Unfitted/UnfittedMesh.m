@@ -28,7 +28,7 @@ classdef UnfittedMesh < handle
         activeBoxFaceMeshesList
         nodesInBoxFaces
         
-        oldUnfittedMeshBoundary  
+        oldUnfittedMeshBoundary
         
         
     end
@@ -46,7 +46,7 @@ classdef UnfittedMesh < handle
             obj.meshBackground = cParams.meshBackground;
             %obj.oldUnfittedMesh = Mesh_Unfitted.create2(cParams);
             
-
+            
             
             obj.unfittedType = cParams.unfittedType;
             
@@ -66,15 +66,15 @@ classdef UnfittedMesh < handle
             
             cParams.unfittedType = 'INTERIOR';
             obj.oldUnfittedMeshInterior = Mesh_Unfitted.create2(cParams);
-                        
+            
             cParams.unfittedType = 'BOUNDARY';
-            obj.oldUnfittedMeshBoundary = Mesh_Unfitted.create2(cParams);            
+            obj.oldUnfittedMeshBoundary = Mesh_Unfitted.create2(cParams);
             
         end
         
         function compute(obj,lvlSet)
             
-            %obj.oldUnfittedMesh.computeMesh(lvlSet);            
+            %obj.oldUnfittedMesh.computeMesh(lvlSet);
             obj.oldUnfittedMeshInterior.computeMesh(lvlSet)
             obj.oldUnfittedMeshBoundary.computeMesh(lvlSet);
             
@@ -89,7 +89,7 @@ classdef UnfittedMesh < handle
             
             obj.computeInnerMesh();
             obj.computeInnerCutMesh();
-            obj.computeBoundaryCutMesh();            
+            obj.computeBoundaryCutMesh();
             
             % caseUnf = 'TopOpt';
             %caseUnf = 'Unfi';
@@ -98,15 +98,15 @@ classdef UnfittedMesh < handle
             
             switch  caseUnf
                 case 'TopOpt'
-                    obj.updateParamsforTopOpt();                    
+                    obj.updateParamsforTopOpt();
                 case 'Unfi'
-                    %obj.updateParamsForUnfittedTest();
+                    obj.updateParamsForUnfittedTest();
                 case 'Both'
                     obj.updateParamsforTopOpt();
-                    %obj.updateParamsForUnfittedTest();
+                    obj.updateParamsForUnfittedTest();
             end
             
-
+            
         end
         
         function plot(obj)
@@ -122,13 +122,43 @@ classdef UnfittedMesh < handle
     
     methods (Access = private)
         
-      
+        
+        function updateParamsForUnfittedTest(obj)
+                        
+            switch obj.unfittedType
+                case 'BOUNDARY'
+                    mesh = obj.oldUnfittedMeshBoundary;
+                case 'INTERIOR'
+                    mesh = obj.oldUnfittedMeshInterior;
+            end
+                     
+            if isprop(mesh,'nActiveBoxFaces')
+                obj.nActiveBoxFaces = mesh.nActiveBoxFaces;
+            end
+            
+            if isprop(mesh,'boxFaceMeshes')
+                obj.boxFaceMeshes = mesh.boxFaceMeshes;
+            end
+            
+            if isprop(mesh,'activeBoxFaceMeshesList')
+                obj.activeBoxFaceMeshesList = mesh.activeBoxFaceMeshesList;
+            end
+            
+            if isprop(mesh,'nodesInBoxFaces')
+                obj.nodesInBoxFaces = mesh.nodesInBoxFaces;
+            end
+        end
+        
         
         function updateParamsforTopOpt(obj)
             
-            
-            mesh = obj.oldUnfittedMeshInterior;
-            
+            switch obj.unfittedType
+                case 'BOUNDARY'
+                    mesh = obj.oldUnfittedMeshBoundary;
+                case 'INTERIOR'
+                    mesh = obj.oldUnfittedMeshInterior;
+            end
+                        
             if isprop(mesh,'geometryType')
                 obj.geometryType = mesh.geometryType;
             end
@@ -139,8 +169,8 @@ classdef UnfittedMesh < handle
             
             obj.subcellIsoCoords      = mesh.subcellIsoCoords;
             obj.cellContainingSubcell = mesh.cellContainingSubcell;
-            obj.coord  = mesh.coord; %Why?? Not necessary 
-            obj.connec = mesh.connec; %Why?? Not necessary 
+            obj.coord  = mesh.coord; %Why?? Not necessary
+            obj.connec = mesh.connec; %Why?? Not necessary
             
         end
         
@@ -158,7 +188,7 @@ classdef UnfittedMesh < handle
         end
         
         function computeInnerCutMesh(obj)
-            s.type                  = 'INTERIOR';            
+            s.type                  = 'INTERIOR';
             s.coord                 = obj.oldUnfittedMeshInterior.coord;
             s.connec                = obj.oldUnfittedMeshInterior.connec;
             s.backgroundMesh        = obj.meshBackground;
@@ -168,7 +198,7 @@ classdef UnfittedMesh < handle
         end
         
         function computeBoundaryCutMesh(obj)
-            s.type                  = 'BOUNDARY';            
+            s.type                  = 'BOUNDARY';
             s.coord                 = obj.oldUnfittedMeshBoundary.coord;
             s.connec                = obj.oldUnfittedMeshBoundary.connec;
             s.backgroundMesh        = obj.meshBackground;
@@ -197,11 +227,11 @@ classdef UnfittedMesh < handle
         function add2plot(obj,ax,removedDim,removedCoord)
             switch obj.unfittedType
                 case 'BOUNDARY'
-                     obj.oldUnfittedMeshBoundary.add2plot(ax,removedDim,removedCoord);
+                    obj.oldUnfittedMeshBoundary.add2plot(ax,removedDim,removedCoord);
                 case 'INTERIOR'
                     obj.oldUnfittedMeshInterior.add2plot(ax,removedDim,removedCoord);
-            end            
-
+            end
+            
         end
         
     end
