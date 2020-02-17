@@ -15,10 +15,7 @@ classdef PlottingTests < testRunner
         function loadTests(obj)
             obj.tests = {...
                 
-            'testPlotCylinderTetrahedra';
-            'testPlotCylinderHexahedra';            
-                
-            'testPlotCircleQuadrilateral'
+
             
             'testSmoothRectangleTriangle'
             'testSmoothRectangleQuadrilateral'
@@ -33,6 +30,11 @@ classdef PlottingTests < testRunner
             
             'testPlotSphereTetrahedra';
             'testPlotSphereHexahedra';
+            
+            'testPlotCylinderTetrahedra';
+            'testPlotCylinderHexahedra';            
+                
+            'testPlotCircleQuadrilateral'            
             
 
             };

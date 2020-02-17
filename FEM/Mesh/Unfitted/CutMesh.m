@@ -17,10 +17,13 @@ classdef CutMesh < Mesh
         cellContainingNodes
     end
     
+    properties (GetAccess = ?PatchedMeshPlotter_Abstract )
+        backgroundFullCells
+    end
+    
     properties (Access = private)
         backgroundMesh
         
-        backgroundFullCells
         backgroundEmptyCells
         
         levelSet_unfitted
@@ -80,6 +83,13 @@ classdef CutMesh < Mesh
             obj.levelSet_unfitted = LS;
         end
         
+        function add2plot(obj,ax,removedDim,removedDimCoord)
+            meshUnfittedCopy = obj.clone();
+            if obj.existPatchingInputs(nargin)
+                meshUnfittedCopy = obj.meshPlotter.patchRemovedDimension(meshUnfittedCopy,removedDim,removedDimCoord);
+            end
+            obj.meshPlotter.plot(meshUnfittedCopy,ax);            
+        end
         
     end
     
@@ -99,6 +109,8 @@ classdef CutMesh < Mesh
     end
     
     methods (Access = private)
+        
+    
         
         function init(obj,cParams)
             obj.levelSet_background = cParams.levelSet;
@@ -217,6 +229,14 @@ classdef CutMesh < Mesh
                 I(inode) = find(match,1);
             end
         end
+        
+        function theyDo = existPatchingInputs(nInputs)
+            if nInputs == 4
+                theyDo = true;
+            else
+                theyDo = false;
+            end
+        end            
         
     end
     

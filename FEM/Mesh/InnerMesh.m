@@ -16,6 +16,13 @@ classdef InnerMesh < Mesh
             obj.computeElementCoordinates();            
         end
         
+        function add2plot(obj,ax)
+            patch(ax,'vertices',obj.coord,'faces',obj.connec,...
+                'edgecolor',[0.5 0 0], 'edgealpha',0.5,'edgelighting','flat',...
+                'facecolor',[1 0 0],'facelighting','flat')
+            axis('equal');           
+        end                
+        
     end
     
     methods (Access = private)

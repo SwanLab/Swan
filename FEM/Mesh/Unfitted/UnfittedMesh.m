@@ -102,7 +102,13 @@ classdef UnfittedMesh < handle
         function plot(obj)
             switch obj.unfittedType
                 case 'BOUNDARY'
-                    obj.oldUnfittedMeshBoundary.plot();
+                    %obj.oldUnfittedMeshBoundary.plot();
+                    figure
+                    hold on                    
+                    obj.boundaryCutMesh.plot;
+                    light
+                    axis equal off
+                    hold off                      
                 case 'INTERIOR'
                     figure;
                     hold on
@@ -198,8 +204,7 @@ classdef UnfittedMesh < handle
                     integrator = Integrator.create(cParams);
                     nnodesBackground = size(obj.levelSet);
                     fInt = integrator.integrate(ones(nnodesBackground));
-                    m = sum(fInt);                    
-                    
+                    m = sum(fInt);                                        
             end
         end
 
@@ -208,7 +213,12 @@ classdef UnfittedMesh < handle
                 case 'BOUNDARY'
                     obj.oldUnfittedMeshBoundary.add2plot(ax,removedDim,removedCoord);
                 case 'INTERIOR'
-                    obj.oldUnfittedMeshInterior.add2plot(ax,removedDim,removedCoord);
+                    %obj.oldUnfittedMeshInterior.add2plot(ax,removedDim,removedCoord);
+                    
+                    %obj.boundaryCutMesh.add2plot(ax);
+                    obj.innerMesh.add2plot(ax);
+                    obj.innerCutMesh.add2plot(ax,removedDim,removedCoord);
+                    
             end
             
         end
