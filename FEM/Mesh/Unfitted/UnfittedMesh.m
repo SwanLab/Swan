@@ -104,7 +104,13 @@ classdef UnfittedMesh < handle
                 case 'BOUNDARY'
                     obj.oldUnfittedMeshBoundary.plot();
                 case 'INTERIOR'
-                    obj.oldUnfittedMeshInterior.plot();
+                    figure;
+                    hold on
+                    obj.innerMesh.plot;
+                    obj.innerCutMesh.plot;
+                    light
+                    axis equal off
+                    hold off                    
             end
         end
         
@@ -116,9 +122,9 @@ classdef UnfittedMesh < handle
             
             switch obj.unfittedType
                 case 'BOUNDARY'
-                    mesh = obj.oldUnfittedMeshBoundary;
+                    mesh = obj.boundaryCutMesh;
                 case 'INTERIOR'
-                    mesh = obj.oldUnfittedMeshInterior;
+                    mesh = obj.innerCutMesh;                    
             end
                         
             if isprop(mesh,'geometryType')
@@ -180,7 +186,6 @@ classdef UnfittedMesh < handle
         function m = computeMass(obj)
             switch obj.unfittedType
                 case 'BOUNDARY'
-%                     m = obj.oldUnfittedMeshBoundary.computeMass();
                      cParams.mesh = obj.boundaryCutMesh;
                      cParams.type = obj.unfittedType;
                      integrator = Integrator.create(cParams);
@@ -188,7 +193,6 @@ classdef UnfittedMesh < handle
                      fInt = integrator.integrate(ones(nnodesBackground));
                      m = sum(fInt);                       
                 case 'INTERIOR'
-                    %m = obj.oldUnfittedMeshInterior.computeMass();
                     cParams.mesh = obj;
                     cParams.type = obj.unfittedType;
                     integrator = Integrator.create(cParams);
@@ -198,11 +202,7 @@ classdef UnfittedMesh < handle
                     
             end
         end
-        
-        function aMeshes = getActiveMeshes(obj)
-            aMeshes = obj.oldUnfittedMeshInterior.getActiveMeshes();
-        end
-        
+
         function add2plot(obj,ax,removedDim,removedCoord)
             switch obj.unfittedType
                 case 'BOUNDARY'
