@@ -69,14 +69,6 @@ classdef CutMesh < Mesh
             else
                 obj.returnNullMesh();
             end
-            
-            
-            %
-            %             obj.coord  = cParams.coord;
-            %             obj.connec = cParams.connec;
-            %             obj.subcellIsoCoords = cParams.subcellIsoCoords;
-            %             obj.cellContainingSubcell = cParams.cellContainingSubcell;
-            
             obj.computeDescriptorParams();
             obj.createInterpolation();
             obj.computeElementCoordinates();
@@ -87,6 +79,7 @@ classdef CutMesh < Mesh
         function setLevelSetUnfitted(obj,LS)
             obj.levelSet_unfitted = LS;
         end
+        
         
     end
     
