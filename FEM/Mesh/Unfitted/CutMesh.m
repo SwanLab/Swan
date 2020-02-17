@@ -1,9 +1,20 @@
 classdef CutMesh < Mesh
     
     properties (GetAccess = public, SetAccess = private)
+        globalConnec
+    end
+    
+    properties (GetAccess = public, SetAccess = ?MemoryManager_MeshUnfitted)
         subcellIsoCoords
         cellContainingSubcell
-        globalConnec
+    end
+    
+    
+    properties (GetAccess = private, SetAccess = ?MemoryManager_MeshUnfitted)
+        coord_iso
+        coord_global_raw
+        connec_local
+        cellContainingNodes
     end
     
     properties (Access = private)
@@ -11,13 +22,18 @@ classdef CutMesh < Mesh
         
         backgroundFullCells
         backgroundEmptyCells
+        
+        levelSet_unfitted
     end
     
     properties (GetAccess = ?CutPointsCalculator_Abstract, SetAccess = private)
-        backgroundGeomInterpolation
         backgroundCutCells
+    end
+    
+    properties (GetAccess = {?CutPointsCalculator_Abstract,?SubcellsMesher_Abstract}, SetAccess = private)
         levelSet_background
-    end    
+        backgroundGeomInterpolation
+    end
     
     properties (GetAccess = private, SetAccess = ?UnfittedMesh_AbstractBuilder)
         subcellsMesher
@@ -41,28 +57,35 @@ classdef CutMesh < Mesh
         
         function obj = CutMesh(cParams)
             obj.type   = cParams.unfittedType;
-            obj.backgroundMesh = cParams.meshBackground;
+            obj.meshBackground = cParams.meshBackground;
             
-%             obj.build(cParams);
-%             obj.init(cParams);
-%             
-%             obj.subcellsMesher.link(obj);
-%             obj.memoryManager.link(obj);
-%             if obj.isLevelSetCrossingZero()
-%                 obj.computeCutMesh();
-%             else
-%                 obj.returnNullMesh();
-%             end
-%             
-            obj.coord  = cParams.coord;
-            obj.connec = cParams.connec;
-            obj.subcellIsoCoords = cParams.subcellIsoCoords;
-            obj.cellContainingSubcell = cParams.cellContainingSubcell;
+            obj.build(cParams);
+            obj.init(cParams);
+            
+            obj.subcellsMesher.link(obj);
+            obj.memoryManager.link(obj);
+            if obj.isLevelSetCrossingZero()
+                obj.computeCutMesh();
+            else
+                obj.returnNullMesh();
+            end
+            
+            
+            %
+            %             obj.coord  = cParams.coord;
+            %             obj.connec = cParams.connec;
+            %             obj.subcellIsoCoords = cParams.subcellIsoCoords;
+            %             obj.cellContainingSubcell = cParams.cellContainingSubcell;
             
             obj.computeDescriptorParams();
             obj.createInterpolation();
             obj.computeElementCoordinates();
             obj.computeGlobalConnec();
+        end
+        
+        
+        function setLevelSetUnfitted(obj,LS)
+            obj.levelSet_unfitted = LS;
         end
         
     end
@@ -159,6 +182,49 @@ classdef CutMesh < Mesh
             end
             
         end
+        
+        function computeGlobalConnectivities(obj)
+            nSubcells = size(obj.connec_local,1);
+            for isub = 1:nSubcells
+                icell = obj.cellContainingSubcell(isub);
+                indexes = obj.findSubcellNodesIndexes(icell);
+                obj.assembleConnecs(isub,indexes);
+            end
+        end
+        
+        function computeGlobalCoordinates(obj)
+            obj.coord = unique(obj.coord_global_raw,'rows','stable');
+        end
+        
+        function indexes = findSubcellNodesIndexes(obj,icell)
+            thisSubcellCoords = obj.coord_global_raw(obj.cellContainingNodes == icell,:);
+            indexes = obj.findIndexesComparingCoords(thisSubcellCoords,obj.coord);
+        end
+        
+        function assembleConnecs(obj,isub,indexes)
+            obj.connec(isub,:) = indexes(obj.connec_local(isub,:));
+        end    
+        
+        function returnNullMesh(obj)
+            obj.coord = zeros(0,obj.ndim);
+            obj.connec = [];
+        end        
+        
+    end
+    
+    methods (Access = private, Static) 
+        
+        function I = findIndexesComparingCoords(A,B)
+            I = zeros(1,size(A,1));
+            for inode = 1:size(A,1)
+                match = true(size(B,1),1);
+                for idime = 1:size(A,2)
+                    match = match & B(:,idime) == A(inode,idime);
+                end
+                I(inode) = find(match,1);
+            end
+        end
+        
     end
     
 end

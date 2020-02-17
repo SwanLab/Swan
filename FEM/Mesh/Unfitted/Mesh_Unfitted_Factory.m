@@ -17,7 +17,7 @@ classdef Mesh_Unfitted_Factory < handle
         function shall = shallBeComposite(obj,cParams)
             type = cParams.unfittedType;
             if cParams.includeBoxContour && strcmp(type,"INTERIOR")
-                warning('Contours are always included for INTERIOR mesh type.')
+               % warning('Contours are always included for INTERIOR mesh type.')
                 shall = false;
             else
                 shall = cParams.includeBoxContour;

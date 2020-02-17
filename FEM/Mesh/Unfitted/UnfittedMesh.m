@@ -146,35 +146,52 @@ classdef UnfittedMesh < handle
         end
         
         function computeInnerCutMesh(obj)
-            s.unfittedType                  = 'INTERIOR';
-            s.coord                 = obj.oldUnfittedMeshInterior.coord;
-            s.connec                = obj.oldUnfittedMeshInterior.connec;
-            s.meshBackground        = obj.meshBackground;
-            s.subcellIsoCoords      = obj.oldUnfittedMeshInterior.subcellIsoCoords;
-            s.cellContainingSubcell = obj.oldUnfittedMeshInterior.cellContainingSubcell;
-            obj.innerCutMesh = CutMesh(s);
+%             s.unfittedType                  = 'INTERIOR';
+%             s.coord                 = obj.oldUnfittedMeshInterior.coord;
+%             s.connec                = obj.oldUnfittedMeshInterior.connec;
+%             s.meshBackground        = obj.meshBackground;
+%             s.subcellIsoCoords      = obj.oldUnfittedMeshInterior.subcellIsoCoords;
+%             s.cellContainingSubcell = obj.oldUnfittedMeshInterior.cellContainingSubcell;
+%             obj.innerCutMesh = CutMesh(s);
 
-%             s.unfittedType            = 'INTERIOR';
-%             s.meshBackground  = obj.meshBackground;
-%             s.interpolationBackground = Interpolation.create(obj.meshBackground,'LINEAR');
-%             
-%             
-%             s.backgroundFullCells = obj.backgroundFullCells;
-%             s.backgroundEmptyCells = obj.backgroundEmptyCells;
-%             s.backgroundCutCells = obj.backgroundCutCells;     
-%             s.levelSet = obj.levelSet;
-%            obj.innerCutMesh = CutMesh(s);
+            s.unfittedType            = 'INTERIOR';
+            s.meshBackground  = obj.meshBackground;
+            s.interpolationBackground = Interpolation.create(obj.meshBackground,'LINEAR');
+            
+            
+            s.backgroundFullCells = obj.backgroundFullCells;
+            s.backgroundEmptyCells = obj.backgroundEmptyCells;
+            s.backgroundCutCells = obj.backgroundCutCells;     
+            s.levelSet = obj.levelSet;
+            obj.innerCutMesh = CutMesh(s);
 
 
         end
         
         function computeBoundaryCutMesh(obj)
-            s.unfittedType          = 'BOUNDARY';
-            s.coord                 = obj.oldUnfittedMeshBoundary.coord;
-            s.connec                = obj.oldUnfittedMeshBoundary.connec;
-            s.meshBackground        = obj.meshBackground;
-            s.subcellIsoCoords      = obj.oldUnfittedMeshBoundary.subcellIsoCoords;
-            s.cellContainingSubcell = obj.oldUnfittedMeshBoundary.cellContainingSubcell;
+%             s.unfittedType          = 'BOUNDARY';
+%             s.coord                 = obj.oldUnfittedMeshBoundary.coord;
+%             s.connec                = obj.oldUnfittedMeshBoundary.connec;
+%             s.meshBackground        = obj.meshBackground;
+%             s.subcellIsoCoords      = obj.oldUnfittedMeshBoundary.subcellIsoCoords;
+%             s.cellContainingSubcell = obj.oldUnfittedMeshBoundary.cellContainingSubcell;
+%             
+%             
+            
+            s.unfittedType            = 'BOUNDARY';
+            s.meshBackground  = obj.meshBackground;
+            s.interpolationBackground = Interpolation.create(obj.meshBackground,'LINEAR');
+            
+            
+            s.backgroundFullCells = obj.backgroundFullCells;
+            s.backgroundEmptyCells = obj.backgroundEmptyCells;
+            s.backgroundCutCells = obj.backgroundCutCells;     
+            s.levelSet = obj.levelSet;
+            
+            
+            
+            
+            
             obj.boundaryCutMesh = CutMesh(s);
         end
         
