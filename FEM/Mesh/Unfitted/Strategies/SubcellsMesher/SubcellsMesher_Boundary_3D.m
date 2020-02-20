@@ -52,7 +52,9 @@ classdef SubcellsMesher_Boundary_3D < SubcellsMesher_Boundary
         end
         
         function allocateMemoryConnec(obj)
-            obj.connec = zeros([obj.nBoundSubcells,3]);
+            %nnode = size(obj.connec,2);
+            nnode = 3;
+            obj.connec = zeros([obj.nBoundSubcells,nnode]);
         end
         
     end

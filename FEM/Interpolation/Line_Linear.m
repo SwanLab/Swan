@@ -4,7 +4,8 @@ classdef Line_Linear < Interpolation
         
         function obj = Line_Linear(cParams)
             obj.init(cParams);
-            obj.computeParams()
+            obj.computeParams();
+            obj.computeCases();            
             obj.computeCoordAndConnec();
         end
         
@@ -35,6 +36,11 @@ classdef Line_Linear < Interpolation
         function computeShapeDerivatives(obj,posgp)
             ngaus = size(posgp,2);            
             obj.deriv = repmat([-0.5,0.5],1,1,ngaus);
+        end
+        
+        function computeCases(obj)
+            obj.iteration = [1; 
+                             2 ];                            
         end
         
     end

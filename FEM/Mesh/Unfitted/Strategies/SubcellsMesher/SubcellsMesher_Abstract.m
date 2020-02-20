@@ -4,7 +4,7 @@ classdef SubcellsMesher_Abstract < handle
         subcells
     end
     
-    properties (GetAccess = public, SetAccess = protected)
+    properties (GetAccess = protected, SetAccess = protected)
         coord_iso
         coord_global
         levelSet
@@ -67,13 +67,13 @@ classdef SubcellsMesher_Abstract < handle
         end
         
         function packResultsInStruct(obj)
-            obj.subcells.levelSet = obj.levelSet;
-            obj.subcells.coord_iso = obj.coord_iso;
+            obj.subcells.levelSet     = obj.levelSet;
+            obj.subcells.coord_iso    = obj.coord_iso;
             obj.subcells.coord_global = obj.coord_global;
-            obj.subcells.connec = obj.connec;
+            obj.subcells.connec       = obj.connec;
             
-            obj.subcells.nNodes = size(obj.coord_iso,1);
-            obj.subcells.nSubcells = size(obj.connec,1);
+            obj.subcells.nNodes       = size(obj.coord_iso,1);
+            obj.subcells.nSubcells    = size(obj.connec,1);
         end
         
     end

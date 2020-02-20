@@ -29,11 +29,11 @@ classdef CutMesh < Mesh
         levelSet_unfitted
     end
     
-    properties (GetAccess = ?CutPointsCalculator_Abstract, SetAccess = private)
+    properties (GetAccess = ?CutPointsCalculator, SetAccess = private)
         backgroundCutCells
     end
     
-    properties (GetAccess = {?CutPointsCalculator_Abstract,?SubcellsMesher_Abstract}, SetAccess = private)
+    properties (GetAccess = {?CutPointsCalculator,?SubcellsMesher_Abstract}, SetAccess = private)
         levelSet_background
         backgroundGeomInterpolation
     end
@@ -54,11 +54,20 @@ classdef CutMesh < Mesh
     properties (GetAccess = ?MemoryManager, SetAccess = private)
         nCutCells
         ndimBackground
+       isInBoundary
+
     end
     
     methods (Access = public)
         
         function obj = CutMesh(cParams)
+            
+            if isfield(cParams,'isInBoundary')
+               obj.isInBoundary = cParams.isInBoundary;
+            else
+               obj.isInBoundary = false;
+            end
+            
             obj.type   = cParams.unfittedType;
             obj.meshBackground = cParams.meshBackground;
             
@@ -104,6 +113,10 @@ classdef CutMesh < Mesh
                 otherwise
                     error('EmbeddedDim not defined')
             end
+            
+            if isequal(obj.type,'INTERIOR') && obj.ndim == 3 && obj.isInBoundary
+               obj.embeddedDim = obj.ndim - 1;
+            end
         end
         
     end
@@ -125,7 +138,27 @@ classdef CutMesh < Mesh
         
         function build(obj,cParams)
             obj.ndim = cParams.meshBackground.ndim;
-            builder = UnfittedMesh_Builder_Factory.create(cParams.unfittedType,obj.ndim);
+            ndimUnf = obj.ndim;
+            if obj.isInBoundary
+                
+                if ndimUnf == 2
+                    builderType = 'BOUNDARY';
+                else                    
+                    builderType = cParams.unfittedType;
+                end
+                
+       %         builderType = 'BOUNDARY';
+
+               if ndimUnf == 3 
+                 ndimUnf = ndimUnf - 1;
+               else 
+                   ndimUnf = ndimUnf - 1;
+                 %obj.ndim = ndimUnf;
+               end
+            else
+                builderType = cParams.unfittedType;
+            end                
+            builder = UnfittedMesh_Builder_Factory.create(builderType,ndimUnf);
             builder.build(obj);
         end
         

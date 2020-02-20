@@ -2,7 +2,7 @@ classdef SubcellsMesher_Interior < SubcellsMesher_Abstract
     
     properties (Access = protected)
         interiorSubcells
-         subcells_connec
+        subcells_connec
     end
     
     methods (Access = protected)
@@ -26,7 +26,14 @@ classdef SubcellsMesher_Interior < SubcellsMesher_Abstract
         end
         
         function computeAllPossibleSubcellsInCell(obj)
-            obj.subcells_connec = obj.computeDelaunay(obj.coord_iso);
+            if size(obj.coord_iso,2) == 1
+                [~,I] = sort(obj.coord_iso);
+                connec = [I circshift(I,-1)];
+                connec(end,:) = [];
+                obj.subcells_connec = connec;
+            else
+                obj.subcells_connec = obj.computeDelaunay(obj.coord_iso);
+            end
         end
         
     end

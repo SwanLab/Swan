@@ -5,7 +5,7 @@ classdef UnfittedMesh_FlatSurface < UnfittedMesh_AbstractBuilder
         nnodesSubcell = 3;
         
         subcellsMesher      = SubcellsMesher_Interior;
-        cutPointsCalculator = CutPointsCalculator_2D;
+        cutPointsCalculator = CutPointsCalculator;
         meshPlotter         = MeshPlotter_Interior_2D;
     end
 end

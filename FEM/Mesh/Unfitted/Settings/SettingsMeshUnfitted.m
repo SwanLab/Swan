@@ -11,6 +11,7 @@ classdef SettingsMeshUnfitted < AbstractSettings
         includeBoxContour
         mesh
         type
+        isInBoundary
     end
     
     methods (Access = public)

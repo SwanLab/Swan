@@ -161,23 +161,24 @@ classdef Mesh_Total < Mesh_Composite
         end
         
         function [m, nodesInBoxFace] = createBoxFaceMesh(obj,idime,iside)
-            [boxFaceCoords,nodesInBoxFace] = obj.getFaceCoordinates(idime,iside);
+            [boxFaceCoords,nodesInBoxFace,boxFaceCoordsRemoved] = obj.getFaceCoordinates(idime,iside);
             switch obj.ndim
                 case 2
-                    boxFaceConnec = obj.computeConnectivities(boxFaceCoords);
+                    boxFaceConnec = obj.computeConnectivities(boxFaceCoordsRemoved);
                 case 3
-                    boxFaceConnec = obj.computeDelaunay(boxFaceCoords);
+                    boxFaceConnec = obj.computeDelaunay(boxFaceCoordsRemoved);
             end
             s.connec = boxFaceConnec;
             s.coord  = boxFaceCoords;
+            s.type = 'BOUNDARY';
             m = Mesh().create(s);
         end
         
-        function [boxFaceCoords, nodesInBoxFace] = getFaceCoordinates(obj,idime,iside)
+        function [boxFaceCoords, nodesInBoxFace,boxFaceCoordsRemoved] = getFaceCoordinates(obj,idime,iside)
             D = obj.getFaceCharacteristicDimension(idime,iside);
             nodesInBoxFace = obj.innerMeshOLD.coord(:,idime) == D;
             boxFaceCoords = obj.innerMeshOLD.coord(nodesInBoxFace,:);
-            boxFaceCoords = obj.removeExtraDimension(boxFaceCoords,idime);
+            boxFaceCoordsRemoved = obj.removeExtraDimension(boxFaceCoords,idime);
             obj.storeRemovedDimensions(idime,iside,D);
         end
         

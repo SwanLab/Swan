@@ -5,7 +5,7 @@ classdef UnfittedMesh_StraightLine < UnfittedMesh_AbstractBuilder
         nnodesSubcell = 2;
         
         subcellsMesher      = SubcellsMesher_1D;
-        cutPointsCalculator = CutPointsCalculator_1D;
+        cutPointsCalculator = CutPointsCalculator;
         meshPlotter         = MeshPlotter_1D;
     end
 end

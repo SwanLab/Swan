@@ -5,7 +5,7 @@ classdef SubcellsMesher_Boundary_2D < SubcellsMesher_Boundary
         function computeFacetsConnectivities(obj)
             npnod =  size(obj.coord_iso,1);
             switch npnod
-                case 2
+                case {2,1}
                     obj.connectPairOfPoints();
                 case 4
                     obj.computeConnectivitiesSolvingAmbiguity();

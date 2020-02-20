@@ -40,7 +40,7 @@ classdef Tetrahedra_Linear<Interpolation
         
         function computeCases(obj)
             obj.iteration = [1 1 1 2 2 3;
-                2 3 4 3 4 4];
+                             2 3 4 3 4 4];
             obj.cases(:,:,1) = [7 6 5 1
                 5 6 7 4
                 5 6 4 2

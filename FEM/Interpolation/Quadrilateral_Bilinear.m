@@ -54,6 +54,8 @@ classdef Quadrilateral_Bilinear < Interpolation
         end
         
         function computeCases(obj)
+            obj.iteration = [1 2 3 4;
+                             2 3 4 1];
             obj.cases(:,:,1)=[1 5 6
                 5 2 3
                 5 3 6

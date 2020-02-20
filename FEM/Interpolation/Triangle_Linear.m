@@ -43,6 +43,8 @@ classdef Triangle_Linear < Interpolation
         end
         
         function computeCases(obj)
+            obj.iteration = [1 2 3;
+                             2 3 1];            
             obj.cases(:,:,1) = [1 4 5;
                 4 2 3;
                 5 4 3];

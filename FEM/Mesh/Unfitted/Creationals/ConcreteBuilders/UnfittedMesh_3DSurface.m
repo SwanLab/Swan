@@ -5,7 +5,7 @@ classdef UnfittedMesh_3DSurface < UnfittedMesh_AbstractBuilder
         nnodesSubcell = 3;
         
         subcellsMesher      = SubcellsMesher_Boundary_3D;
-        cutPointsCalculator = CutPointsCalculator_3D;
+        cutPointsCalculator = CutPointsCalculator;
         meshPlotter         = MeshPlotter_Boundary_3D;
     end
 end

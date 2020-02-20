@@ -3,6 +3,7 @@ classdef InnerMesh < Mesh
     properties (Access = private)
         globalConnec
         backgroundCoord
+        isInBoundary
     end
     
     methods (Access = public)
@@ -13,15 +14,27 @@ classdef InnerMesh < Mesh
             obj.computeConnec();
             obj.computeDescriptorParams();
             obj.createInterpolation();
-            obj.computeElementCoordinates();            
+            obj.computeElementCoordinates();
         end
         
         function add2plot(obj,ax)
             patch(ax,'vertices',obj.coord,'faces',obj.connec,...
                 'edgecolor',[0.5 0 0], 'edgealpha',0.5,'edgelighting','flat',...
                 'facecolor',[1 0 0],'facelighting','flat')
-            axis('equal');           
-        end                
+            axis('equal');
+        end
+        
+    end
+    
+    methods (Access = protected)
+        
+        function computeEmbeddingDim(obj)
+            if obj.isInBoundary
+                obj.embeddedDim = obj.ndim - 1;
+            else
+                obj.embeddedDim = obj.ndim;
+            end
+        end
         
     end
     
@@ -30,12 +43,13 @@ classdef InnerMesh < Mesh
         function init(obj,cParams)
             obj.globalConnec = cParams.globalConnec;
             obj.backgroundCoord = cParams.backgroundCoord;
-            obj.unfittedType = 'SIMPLE';            
-           if isfield(cParams,'type')
+            obj.unfittedType = 'SIMPLE';
+            obj.isInBoundary = cParams.isInBoundary;
+            if isfield(cParams,'type')
                 obj.type = cParams.type;
             else
                 obj.type = 'INTERIOR';
-           end
+            end
         end
         
         function computeCoords(obj)

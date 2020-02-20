@@ -18,6 +18,7 @@ classdef testPlotting < testNotShowingError...
         end
         
         function plot(obj)
+            figure
             obj.mesh.plot();
             view(obj.getViewAngle());
         end

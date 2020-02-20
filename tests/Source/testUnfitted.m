@@ -48,7 +48,7 @@ classdef testUnfitted < test
             obj.oldMeshUnfitted = Mesh_Unfitted.create2(cParams2);
             
             ls = obj.topOpt.designVariable.value;
-            obj.oldMeshUnfitted.computeMesh(ls)
+%            obj.oldMeshUnfitted.computeMesh(ls)
             
             
         end
