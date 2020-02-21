@@ -2,13 +2,9 @@ classdef Geometry_Volumetric < Geometry
     
     properties (GetAccess = public, SetAccess = private)
         cartd
-        dvolu
     end
     
-    properties (Access = private)
-        mesh
-        interpolationVariable
-        quadrature                
+    properties (Access = private)              
         matrixInverter
         jacobian
         detJ
@@ -22,6 +18,8 @@ classdef Geometry_Volumetric < Geometry
         
         function computeGeometry(obj,quad,interpV)
             obj.initGeometry(interpV,quad);
+            obj.initVariables();
+            obj.matrixInverter = MatrixVectorizedInverter();            
             for igaus = 1:obj.quadrature.ngaus
                 obj.computeJacobian(igaus);
                 obj.computeJacobianDeterminant(igaus);
@@ -31,43 +29,16 @@ classdef Geometry_Volumetric < Geometry
         end
         
     end
+    
     methods (Access = private)
-        
-        function init(obj,cParams)
-            obj.mesh = cParams.mesh;
-        end
-        
-        function initGeometry(obj,interpV,quad)
-            obj.interpolationVariable = interpV;
-            obj.quadrature = quad;
-            obj.computeShapeFunctions();
-            obj.initDvolu();
-            obj.initDetJ();
-            obj.initCartD();
-            obj.matrixInverter = MatrixVectorizedInverter();
-        end
-        
-        function computeShapeFunctions(obj)
-            xpg = obj.quadrature.posgp;
-            obj.interpolationVariable.computeShapeDeriv(xpg)
-            obj.mesh.interpolation.computeShapeDeriv(xpg)            
-        end
-        
-        function initDvolu(obj)
-            nGaus     = obj.quadrature.ngaus;
-            obj.dvolu = zeros(obj.mesh.nelem,nGaus);
-        end
-        
-        function initDetJ(obj)
-            nGaus    = obj.quadrature.ngaus;
-            obj.detJ = zeros(obj.mesh.nelem,nGaus);
-        end
-        
-        function initCartD(obj)
+    
+        function initVariables(obj)
             nDime = obj.interpolationVariable.ndime;
             nNode = obj.interpolationVariable.nnode;
             nGaus = obj.quadrature.ngaus;
-            obj.cartd  = zeros(nDime,nNode,obj.mesh.nelem,nGaus);
+            obj.cartd = zeros(nDime,nNode,obj.mesh.nelem,nGaus);
+            obj.detJ  = zeros(obj.mesh.nelem,nGaus);
+            obj.dvolu = zeros(obj.mesh.nelem,nGaus);  
         end
           
         function computeJacobian(obj,igaus)

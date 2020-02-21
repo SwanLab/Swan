@@ -160,7 +160,8 @@ classdef UnfittedMesh < handle
             end
             
             if isprop(mesh,'geometryType')
-                obj.geometryType = mesh.geometryType;
+                %obj.geometryType = mesh.geometryType;
+                obj.geometryType = obj.innerMesh.geometryType;                
             end
             
             obj.subcellIsoCoords      = mesh.subcellIsoCoords;
@@ -249,6 +250,8 @@ classdef UnfittedMesh < handle
                 end
                 obj.unfittedBoxMeshes.boxFaceMeshes = boxFaceMeshes;  
                 obj.unfittedBoxMeshes.isBoxFaceMeshActive = isBoxFaceMeshActive;
+                obj.unfittedBoxMeshes.nodesInBoxFaces = nodesInBoxFaces;
+                obj.unfittedBoxMeshes.globalConnectivities = globalConnectivities;
             end
         end
         
@@ -265,13 +268,22 @@ classdef UnfittedMesh < handle
                     nnodesBackground = size(obj.levelSet);
                     fInt = integrator.integrate(ones(nnodesBackground));
                     m = sum(fInt);
+                    
                 case 'INTERIOR'
-                    cParams.mesh = obj;
-                    cParams.type = obj.unfittedType;
-                    integrator = Integrator.create(cParams);
-                    nnodesBackground = size(obj.levelSet);
-                    fInt = integrator.integrate(ones(nnodesBackground));
-                    m = sum(fInt);
+                    s.mesh = obj;
+                    s.type = 'COMPOSITE';
+                    s = obj.createInteriorParams(s,s.mesh);            
+                    integrator = Integrator.create(s);
+                    nodalF = ones(size(obj.levelSet));            
+                    fInt = integrator.integrateAndSum(nodalF);                                    
+                    m = sum(fInt);                                
+                    
+%                     cParams.mesh = obj;
+%                     cParams.type = obj.unfittedType;
+%                     integrator = Integrator.create(cParams);
+%                     nnodesBackground = size(obj.levelSet);
+%                     fInt = integrator.integrate(ones(nnodesBackground));
+%                     m = sum(fInt);
             end
         end
         
@@ -297,6 +309,35 @@ classdef UnfittedMesh < handle
             end
             
         end
+        
+    end
+    
+    methods (Access = private)
+        
+       function cParams = createInteriorParams(obj,cParams,mesh)
+            cParamsInnerCut = obj.createInnerCutParams(mesh);
+            cParams.compositeParams{1} = cParamsInnerCut;
+            if mesh.innerMesh.nelem ~= 0
+            cParamsInner = obj.createInnerParams(mesh);
+            cParams.compositeParams{2} = cParamsInner;
+            end
+        end        
+        
+        function cParams = createInnerParams(obj,mesh)
+            cParams.mesh = mesh.innerMesh;
+            cParams.type = 'SIMPLE';
+            cParams.globalConnec = mesh.globalConnec;
+            cParams.npnod = mesh.innerMesh.npnod;
+            cParams.backgroundMesh = mesh.meshBackground;
+            cParams.innerToBackground = mesh.backgroundFullCells;
+        end        
+        
+        function cParams = createInnerCutParams(obj,mesh)
+            cParams.mesh = mesh.innerCutMesh; 
+            cParams.type = 'CutMesh';
+            cParams.meshBackground = mesh.meshBackground;            
+        end               
+                
         
     end
     

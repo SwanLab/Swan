@@ -45,8 +45,18 @@ classdef Filter_PDE_LevelSet < Filter_PDE
         end
         
         function fInt = computeRHS(obj,levelSet,fNodes)
+            if all(levelSet>0)
+                fInt = zeros(size(levelSet));
+            else            
             obj.unfittedMesh.compute(levelSet);
-            fInt = obj.integrator.integrate(fNodes);
+            
+            s.mesh = obj.unfittedMesh;
+            s.type = 'COMPOSITE';
+            s = obj.createInteriorParams(s,s.mesh);            
+            integrator = Integrator.create(s);
+            fInt = integrator.integrateAndSum(fNodes);
+            end
+            %fInt = obj.integrator.integrate(fNodes);
         end        
         
     end
@@ -72,8 +82,47 @@ classdef Filter_PDE_LevelSet < Filter_PDE
       function disableDelaunayWarning(obj)
             MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';
             warning('off', MSGID)
+      end        
+      
+       function cParams = createInteriorParams(obj,cParams,mesh)
+            
+           if mesh.innerCutMesh.nelem ~= 0
+                cParamsInnerCut = obj.createInnerCutParams(mesh);
+                cParams.compositeParams{1} = cParamsInnerCut;
+               if mesh.innerMesh.nelem ~= 0                   
+                cParamsInner = obj.createInnerParams(mesh);
+                cParams.compositeParams{end+1} = cParamsInner;
+               end
+           else
+               if mesh.innerMesh.nelem ~= 0                   
+                cParamsInner = obj.createInnerParams(mesh);
+                cParams.compositeParams{1} = cParamsInner;
+               else 
+                  cParams.compositeParams = cell(0); 
+               end                  
+            end
+%             cParamsInnerCut = obj.createInnerCutParams(mesh);
+%             cParams.compositeParams{1} = cParamsInnerCut;
+%             cParamsInner = obj.createInnerParams(mesh);
+%             cParams.compositeParams{2} = cParamsInner;
         end        
-          
+        
+        function cParams = createInnerParams(obj,mesh)
+            cParams.mesh = mesh.innerMesh;
+            cParams.type = 'SIMPLE';
+            cParams.globalConnec = mesh.globalConnec;
+            cParams.npnod = mesh.innerMesh.npnod;
+            cParams.backgroundMesh = mesh.meshBackground;
+            cParams.innerToBackground = mesh.backgroundFullCells;
+        end        
+        
+        function cParams = createInnerCutParams(obj,mesh)
+            cParams.mesh = mesh.innerCutMesh; 
+            cParams.type = 'CutMesh';
+            cParams.meshBackground = mesh.meshBackground;            
+        end         
+        
+      
     end
     
 end

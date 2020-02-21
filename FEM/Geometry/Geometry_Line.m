@@ -1,15 +1,5 @@
 classdef Geometry_Line < Geometry
     
-    properties (GetAccess = public, SetAccess = private)
-        dvolu
-    end
-    
-    properties (Access = private)
-        mesh
-        interpolationVariable  
-        quadrature      
-    end
-    
     methods (Access = public)
         
         function obj = Geometry_Line(cParams)
@@ -24,23 +14,7 @@ classdef Geometry_Line < Geometry
     end
     
     methods (Access = private)
-        
-        function init(obj,cParams)
-            obj.mesh = cParams.mesh;
-        end
-        
-        function initGeometry(obj,interpV,quad)
-            obj.interpolationVariable = interpV;
-            obj.quadrature = quad;
-            obj.computeShapeFunctions();
-        end
-        
-        function computeShapeFunctions(obj)
-            xpg = obj.quadrature.posgp;
-            obj.interpolationVariable.computeShapeDeriv(xpg)
-            obj.mesh.interpolation.computeShapeDeriv(xpg);
-        end
-        
+               
         function computeDvolu(obj)
             nGaus  = obj.quadrature.ngaus;
             nDime  = obj.mesh.ndim;            
@@ -58,8 +32,6 @@ classdef Geometry_Line < Geometry
             obj.dvolu = dv';
         end        
         
-    end
-    
-    
+    end   
     
 end
