@@ -14,39 +14,18 @@ classdef PlottingTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {...
-          
-                                   
-            
-            'testSmoothRectangleTriangle'                          
-            'testSmoothRectangleQuadrilateral'
-                
-                            
-                        
-            
             'testPlotCircleQuadrilateral'   
             'testPlotCircleTriangle'                                
-            
-          
-            
             'testRectangleTriangle'
             'testRectangleQuadrilateral'           
-            
+            'testSmoothRectangleTriangle'                          
+            'testSmoothRectangleQuadrilateral'
             'testCircumferenceTriangle'
             'testCircumferenceQuadrilateral'
-            
- 
-            'testPlotCylinderTetrahedra';
-            'testPlotCylinderHexahedra';      
-                       
-            
-            
             'testPlotSphereTetrahedra';
             'testPlotSphereHexahedra';                                
-        
-            
-             
-    
-
+            'testPlotCylinderTetrahedra';
+            'testPlotCylinderHexahedra';  
             };
         end
     end
