@@ -51,7 +51,7 @@ classdef IntegratorCutMesh < Integrator
         function assembleSubcellsInCells(obj)
             nnode = obj.backgroundMesh.nnode;
             nelem = obj.backgroundMesh.nelem;
-            cellNum = obj.mesh.cellContainingSubcell;
+            cellNum = obj.cutMesh.cellContainingSubcell;
             totalInt = zeros(nelem,nnode);
             for iNode = 1:nnode
                 int = obj.RHScellsCut(:,iNode);
@@ -75,7 +75,7 @@ classdef IntegratorCutMesh < Integrator
         end
         
         function itIs = isLeveSetCuttingMesh(obj)
-            itIs = ~isempty(obj.mesh.backgroundCutCells);
+            itIs = ~isempty(obj.cutMesh.backgroundCutCells);
         end
         
     end
@@ -96,7 +96,7 @@ classdef IntegratorCutMesh < Integrator
         
         function xGauss = computeUnfittedGaussPoints(obj)
             quad  = obj.quadrature;
-            coord = obj.mesh.subcellIsoCoords;
+            coord = obj.cutMesh.subcellIsoCoords;
             obj.unfittedInterp.computeShapeDeriv(quad.posgp);
             xGauss = zeros(size(coord,3),quad.ngaus,size(coord,1));
             shape = obj.unfittedInterp.shape;
@@ -115,37 +115,33 @@ classdef IntegratorCutMesh < Integrator
 
         function Fproj = integrateFwithShapeFunction(obj)
             Fgauss = obj.interpolateFunctionInGaussPoints();
-            dvolume = obj.computeDvolume();
-            
-            fdV(1,:,:) = (Fgauss.*dvolume);
-            Fproj = bsxfun(@times,obj.shapes,fdV);
-            Fproj = sum(Fproj,2);
-            
-            cNelem = length(obj.mesh.cellContainingSubcell);
-            nnode = obj.backgroundMesh.nnode;
-            Fproj = reshape(Fproj,cNelem,nnode,[]);
+            dvolume = obj.computeDvolume();            
+            fdV = (Fgauss.*dvolume);
+            nelem = obj.mesh.nelem;
+            nnode = obj.backgroundMesh.nnode;            
+            Fproj = zeros(nnode,nelem);
+            for igaus = 1:obj.quadrature.ngaus
+               fdVig = fdV(igaus,:);
+               shapeIg = squeeze(obj.shapes(:,igaus,:));            
+               Fproj = Fproj + bsxfun(@times,shapeIg,fdVig);
+            end
+            Fproj = Fproj';
         end
-        
-        
                 
         function Fgaus = interpolateFunctionInGaussPoints(obj)
-            connec = obj.mesh.globalConnec;
-            nCell  = obj.mesh.nelem;
+            connec = obj.cutMesh.globalConnec;
+            nCell  = obj.cutMesh.nelem;
             nnode = obj.backgroundMesh.nnode;
             ngaus = obj.quadrature.ngaus;
             Fgaus = zeros(ngaus,nCell);
-            %  shapes2 = permute(shapes,[2 3 1]);
-            for inode = 1:nnode
+             for inode = 1:nnode
                 nodes  = connec(:,inode);
                 Fnodes = obj.Fnodal(nodes,1);
                 for igaus = 1:ngaus
-                    shape = squeeze(obj.shapes(inode,igaus,:));
-                    Fgaus(igaus,:) = Fgaus(igaus,:) + (shape.*Fnodes)';
+                   shape = squeeze(obj.shapes(inode,igaus,:)); 
+                   Fgaus(igaus,:) = Fgaus(igaus,:) + (shape.*Fnodes)';
                 end
-                % shape2 = shapes2(:,:,inode);
-                %  Fgaus2 = bsxfun(@times,shape2,Fnodes);
-                %  Fgaus2 = sum(Fgaus2,2);
-            end
+             end
         end
 
         function dvolume = computeDvolume(obj)
