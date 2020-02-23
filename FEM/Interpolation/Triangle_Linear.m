@@ -30,16 +30,34 @@ classdef Triangle_Linear < Interpolation
         
         function computeShapes(obj,posgp)
             ngaus = size(posgp,2);
-            s = posgp(1,:);
-            t = posgp(2,:);
-            I = ones(1,ngaus);            
-            obj.shape = [I-s-t;s;t];
+            nelem = size(posgp,3);            
+            s = posgp(1,:,:);
+            t = posgp(2,:,:);
+            I = ones(size(t));                 
+            obj.shape = zeros(obj.nnode,ngaus,nelem);
+            obj.shape(1,:,:) = I-s-t;
+            obj.shape(2,:,:) = s;
+            obj.shape(3,:,:) = t;
+%             ngaus = size(posgp,2);
+%             s = posgp(1,:);
+%             t = posgp(2,:);
+%             I = ones(1,ngaus);            
+%             obj.shape = [I-s-t;s;t];
         end
         
         function computeShapeDerivatives(obj,posgp)
-            ngaus = size(posgp,2);                      
-            derivative = [-1.0 1.0 0.0;-1.0 0.0 1.0];                        
-            obj.deriv = repmat(derivative,1,1,ngaus);            
+            ngaus = size(posgp,2);
+            nelem = size(posgp,3);                          
+            obj.deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);
+            obj.deriv(1,1,:,:) = -1;
+            obj.deriv(1,2,:,:) = 1;
+            obj.deriv(1,3,:,:) = 0;
+            obj.deriv(2,1,:,:) = -1;
+            obj.deriv(2,2,:,:) = 0;
+            obj.deriv(2,3,:,:) = 1;
+            %ngaus = size(posgp,2);                      
+            %derivative = [-1.0 1.0 0.0;-1.0 0.0 1.0];                        
+            %obj.deriv = repmat(derivative,1,1,ngaus);                
         end
         
         function computeCases(obj)

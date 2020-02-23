@@ -35,8 +35,8 @@ classdef AbstractMesh < handle
                 xGauss = xGauss + xG;
             end
             xGauss = permute(xGauss,[2 1 3]);
-        end        
-        
+       end        
+                
     end
     
     methods (Access = protected)

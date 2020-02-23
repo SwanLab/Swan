@@ -28,14 +28,20 @@ classdef Line_Linear < Interpolation
         
         function computeShapes(obj,posgp)
             ngaus = size(posgp,2);
-            s = posgp(1,:);
-            I = ones(1,ngaus);
-            obj.shape = [I-s;s+1]/2;            
+            nelem = size(posgp,3);            
+            s = posgp(1,:,:);
+            I = ones(size(s));                 
+            obj.shape = zeros(obj.nnode,ngaus,nelem);
+            obj.shape(1,:,:) = 0.5*(I-s);
+            obj.shape(2,:,:) = 0.5*(s+I);                 
         end
         
         function computeShapeDerivatives(obj,posgp)
-            ngaus = size(posgp,2);            
-            obj.deriv = repmat([-0.5,0.5],1,1,ngaus);
+            ngaus = size(posgp,2);
+            nelem = size(posgp,3);                          
+            obj.deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);
+            obj.deriv(1,1,:,:) = -0.5;
+            obj.deriv(1,2,:,:) = 0.5;
         end
         
         function computeCases(obj)

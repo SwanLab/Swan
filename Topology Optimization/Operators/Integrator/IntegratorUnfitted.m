@@ -52,28 +52,17 @@ classdef IntegratorUnfitted < Integrator
            
             shapes = obj.computeShapes();
             dvolum = obj.computeJacobians();
-            F0V = obj.interpolateFunctionInGaussPoints(F1,shapes);
+            Fgauss = obj.interpolateFunctionInGaussPoints(F1,shapes);
             
-            nelem = size(obj.meshUnfitted.connec,1);
-            nnode = obj.backgroundInterp.nnode;
-            shapeValues = zeros(nelem,nnode);
-            for isubcell = 1:nelem % !! VECTORIZE THIS LOOP !!                
-%                 shape = obj.computeShape(isubcell);
-%                 weigth = obj.quadrature.weigp';
-%                 djacob = obj.computeJacobian(isubcell);
-%                 dvolu(1,:) = djacob*weigth;                
-%                 icell  = obj.meshUnfitted.cellContainingSubcell(isubcell);
-%                 inode = obj.meshBackground.connec(icell,:);
-%                 Fnodes(:,1) = F1(inode);
-%                 F0(1,:) = (shape)'*Fnodes;
-                
-                shape = shapes(:,:,isubcell);                     
-                dvolu(1,:) = dvolum(isubcell,:);
-                F0(1,:) = F0V(:,isubcell);
-
-                
-                shapeValues(isubcell,:) = shapeValues(isubcell,:) + (sum(dvolu.*shape.*F0,2))';
-            end
+             
+            
+            dV = dvolum;
+            fdV(1,:,:) = Fgauss.*dV;   
+            shapes = permute(shapes,[1 3 2]);
+            shapeValues = bsxfun(@times,shapes,fdV);
+            shapeValues = sum(shapeValues,3);
+            shapeValues = shapeValues';
+            
         end
         
         
@@ -96,12 +85,12 @@ classdef IntegratorUnfitted < Integrator
     
     methods (Static, Access = private)
         
-        function posgp = computePosGP(subcell_coord,interpolation,quadrature)
-            interpolation.computeShapeDeriv(quadrature.posgp);
-            posgp = zeros(size(subcell_coord,3),quadrature.ngaus,size(subcell_coord,1));
-            for igaus = 1:quadrature.ngaus
-                for idime = 1:size(subcell_coord,3)
-                    posgp(idime,igaus,:) = subcell_coord(:,:,idime)*interpolation.shape(:,igaus);
+        function xGaus = computePosGP(coord,interp,quad)
+            interp.computeShapeDeriv(quad.posgp);
+            xGaus = zeros(size(coord,3),quad.ngaus,size(coord,1));
+            for igaus = 1:quad.ngaus
+                for idime = 1:size(coord,3)
+                    xGaus(idime,igaus,:) = coord(:,:,idime)*interp.shape(:,igaus);
                 end
             end
         end
@@ -111,11 +100,13 @@ classdef IntegratorUnfitted < Integrator
     
     methods (Access = private)
         
-      function shape = computeShape(obj,isubcell)
-           xGauss = obj.unfittedQuad(:,:,isubcell);
-           obj.backgroundInterp.computeShapeDeriv(xGauss);
-           shape = obj.backgroundInterp.shape;
-        end        
+        function computeUnfittedGaussPoints(obj)
+            coord = obj.meshUnfitted.subcellIsoCoords;
+            inter = obj.unfittedInterp;
+            quad  = obj.quadrature;
+            quadU = obj.computePosGP(coord,inter,quad);
+            obj.unfittedQuad = quadU;
+        end           
         
         function shapes = computeShapes(obj)
             xGauss = obj.unfittedQuad(:,:,:);
@@ -126,14 +117,6 @@ classdef IntegratorUnfitted < Integrator
         function computeThisQuadrature(obj)
             type = obj.meshUnfitted.geometryType;
             obj.quadrature = obj.computeQuadrature(type);
-        end
-        
-        function computeUnfittedGaussPoints(obj)
-            coord = obj.meshUnfitted.subcellIsoCoords;
-            inter = obj.unfittedInterp;
-            quad  = obj.quadrature;
-            quadU = obj.computePosGP(coord,inter,quad);
-            obj.unfittedQuad = quadU;
         end
         
         function createBackgroundInterpolation(obj)
@@ -148,12 +131,6 @@ classdef IntegratorUnfitted < Integrator
             obj.unfittedInterp = int;
         end
         
-        function dJ = computeJacobian(obj,isubcell)
-            connec = obj.meshUnfitted.connec(isubcell,:);
-            coord  = obj.meshUnfitted.coord(connec,:);
-            dJ = obj.mapping(coord); % !! Could be done through Geometry class?? !!
-        end
-        
         function dvolu = computeJacobians(obj)
            s.mesh = obj.meshUnfitted;
            g = Geometry.create(s);
@@ -166,47 +143,23 @@ classdef IntegratorUnfitted < Integrator
             nCell = obj.meshUnfitted.nelem;
             nnode = obj.meshBackground.nnode;         
             ngaus = size(shapes,2);
-            Fgaus = zeros(ngaus,nCell);
+            Fgaus = zeros(nCell,ngaus);
+          %  shapes2 = permute(shapes,[2 3 1]);
              for inode = 1:nnode
                 nodes  = connec(:,inode);
                 Fnodes = F(nodes,1);
                 for igaus = 1:ngaus
                    shape = squeeze(shapes(inode,igaus,:)); 
-                   Fgaus(igaus,:) = Fgaus(igaus,:) + (shape.*Fnodes)';
+                   Fgaus(:,igaus) = Fgaus(:,igaus) + (shape.*Fnodes);
                 end
+               % shape2 = shapes2(:,:,inode);
+              %  Fgaus2 = bsxfun(@times,shape2,Fnodes);
+              %  Fgaus2 = sum(Fgaus2,2);
              end
         end
         
         
-        function djacob = mapping(obj,coord)
-            % !! PERFORM THROUGH GEOMETRY CLASS OR EXTRACT "mapping" CAPACITY FROM
-            % GEOMETRY CLASS !!
-            
-            N_points = size(coord,1);
-            switch N_points
-                case 2
-                    v = diff(coord);
-                    L = norm(v);
-                    djacob = L;
-                case 3
-                    if size(coord,2) == 2
-                        coord = [coord, zeros(N_points,1)];
-                    end
-                    v1 = diff(coord([1 2],:));
-                    v2 = diff(coord([1 3],:));
-                    A = 0.5*norm(cross(v1,v2));
-                    djacob = A;
-                case 4
-                    v1 = diff(coord([1 2],:));
-                    v2 = diff(coord([1 3],:));
-                    v3 = diff(coord([1 4],:));
-                    V = (1/6)*det([v1;v2;v3]);
-                    djacob = V;
-            end
-            isoDv  = obj.unfittedInterp.isoDv;
-            djacob = djacob/isoDv;            
-        end        
-        
+       
     end
     
 end

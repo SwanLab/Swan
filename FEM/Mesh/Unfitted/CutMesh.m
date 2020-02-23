@@ -113,8 +113,8 @@ classdef CutMesh < Mesh
                 otherwise
                     error('EmbeddedDim not defined')
             end
-            
-            if isequal(obj.type,'INTERIOR') && obj.ndim == 3 && obj.isInBoundary
+            isNdim = obj.ndim == 3 || obj.ndim == 2;
+            if isequal(obj.type,'INTERIOR') && isNdim && obj.isInBoundary
                obj.embeddedDim = obj.ndim - 1;
             end
         end
