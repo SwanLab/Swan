@@ -36,6 +36,14 @@ classdef AbstractMesh < handle
             end
             xGauss = permute(xGauss,[2 1 3]);
        end        
+       
+       function dvolume = computeDvolume(obj,quad)
+            s.mesh = obj;
+            g = Geometry.create(s);
+            g.computeGeometry(quad,obj.interpolation);
+            dvolume = g.dvolu;
+            dvolume = dvolume';
+        end       
                 
     end
     

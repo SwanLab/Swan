@@ -23,6 +23,7 @@ classdef UnfittedIntegrationTests < testRunner
                
 
                       
+             'testSurfaceSphereTetrahedra';                       
 
                      
             'testPerimeterRectangleTriangle';                
@@ -35,7 +36,6 @@ classdef UnfittedIntegrationTests < testRunner
             'testAreaCircleQuadrilateral';               
                 
            'testSurfaceSphereHexahedra';   
- 'testSurfaceSphereTetrahedra';                       
              
            'testSurfaceCylinderTetrahedra';
            'testSurfaceCylinderHexahedra';                   

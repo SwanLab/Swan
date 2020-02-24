@@ -21,21 +21,16 @@ classdef TopOptTests < testRunner
                 'testMicro2'; 
                 'testBridge2';                
                 'testCantilever3';   
-                'testBridge';                                         
-                
-                
                 'testInteriorPerimeter';                                                
                 'testDualNestedInPrimalWithProjectedGradient';
                 'testDualNestedInPrimalWithSlerp';                
                 'testStressM1M2';
                 'testM1M2';  
                 'testVigdergauzMicroStructureWithStrain';                 
-                'testVigdergauzMicroStructure';                                                
-              
+                'testVigdergauzMicroStructure';                                                              
                 'testMicro';                                                      
                 'testGripping';   
                 'testCantilever2';
-                'testCantilever3';   
                 'testCantilever';                
                 'testBridge';                                         
                 };
