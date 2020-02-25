@@ -2,7 +2,6 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
     
     properties (Access = private)
         unfittedMesh
-        integrator
         domainType
         interpolation
         quadrature
@@ -16,24 +15,21 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
             obj.quadrature = cParams.quadrature;
             obj.createInterpolation();
             obj.createUnfittedMesh();
-            obj.createIntegrator();
         end
         
         function xP = project(obj,x)
             if all(x>0)
                 xP = zeros(size(x));
             else
-            nodalF = ones(size(x));
-            obj.unfittedMesh.compute(x);
-            %xP = obj.integrator.integrateUnfittedMesh(nodalF,obj.unfittedMesh);
-            
-            s.mesh = obj.unfittedMesh;
-            s.type = 'COMPOSITE';
-            s = obj.createInteriorParams(s,s.mesh);
-            integrator = Integrator.create(s);
-            xP = integrator.integrateAndSum(nodalF);
+                nodalF = ones(size(x));
+                obj.unfittedMesh.compute(x);
+                s.mesh = obj.unfittedMesh;
+                s.type = 'COMPOSITE';
+                s = obj.createInteriorParams(s,s.mesh);
+                int = Integrator.create(s);
+                xP = int.integrateAndSum(nodalF);
             end
-            %xP = obj.integrator.integrate(nodalF);
+            
         end
         
     end
@@ -53,28 +49,22 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
             obj.unfittedMesh = UnfittedMesh(cParams);
         end
         
-        function createIntegrator(obj)
-            cParams.mesh = obj.unfittedMesh;
-            cParams.type = obj.unfittedMesh.unfittedType;
-            obj.integrator = Integrator.create(cParams);
-        end
-        
         function cParams = createInteriorParams(obj,cParams,mesh)
-   
-           if mesh.innerCutMesh.nelem ~= 0
+            
+            if mesh.innerCutMesh.nelem ~= 0
                 cParamsInnerCut = obj.createInnerCutParams(mesh);
                 cParams.compositeParams{1} = cParamsInnerCut;
-               if mesh.innerMesh.nelem ~= 0                   
-                cParamsInner = obj.createInnerParams(mesh);
-                cParams.compositeParams{end+1} = cParamsInner;
-               end
-           else
-               if mesh.innerMesh.nelem ~= 0                   
-                cParamsInner = obj.createInnerParams(mesh);
-                cParams.compositeParams{1} = cParamsInner;
-               else 
-                  cParams.compositeParams = cell(0); 
-               end              
+                if mesh.innerMesh.nelem ~= 0
+                    cParamsInner = obj.createInnerParams(mesh);
+                    cParams.compositeParams{end+1} = cParamsInner;
+                end
+            else
+                if mesh.innerMesh.nelem ~= 0
+                    cParamsInner = obj.createInnerParams(mesh);
+                    cParams.compositeParams{1} = cParamsInner;
+                else
+                    cParams.compositeParams = cell(0);
+                end
             end
         end
         

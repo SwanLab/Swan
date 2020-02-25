@@ -36,18 +36,6 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
                 case 'BOUNDARY'
                     cParams.compositeParams = cell(0);
                     if contains(class(obj),'Rectangle') || contains(class(obj),'Cylinder')
-                        cParams2 = cParams;
-%                         oldUnfitted = obj.oldMeshUnfitted;
-%                         cParams.boxFaceToGlobal = oldUnfitted.nodesInBoxFaces;
-%                         for iMesh = 1:oldUnfitted.nActiveBoxFaces
-%                             iActive = oldUnfitted.activeBoxFaceMeshesList(iMesh);
-%                             boxFaceMesh = oldUnfitted.boxFaceMeshes{iActive};
-%                             params = obj.createCompositeParams(boxFaceMesh,oldUnfitted);
-%                             params.boxFaceToGlobal = oldUnfitted.nodesInBoxFaces{iActive};
-%                             params.meshBackground = obj.mesh.meshBackground;
-%                             cParams.compositeParams{iMesh} = params;
-%                         end
-                        
                         meshes = obj.mesh.unfittedBoxMeshes;
                         cParams.boxFaceToGlobal = meshes.nodesInBoxFaces;
                         iActive = 1;
@@ -100,7 +88,6 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
             cParams.mesh = mesh;
             cParams.type = 'COMPOSITE';
             cParams.backgroundMesh = obj.mesh.meshBackground;
-            %cParams.globalConnec = thisMesh.globalConnec;
             cParams.globalConnec = obj.mesh.globalConnec;
             cParams.innerToBackground = [];
             cParams.npnod = thisMesh.meshBackground.npnod;

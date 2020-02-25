@@ -1,9 +1,9 @@
-classdef Filter_PDE_LevelSet < Filter_PDE 
+classdef Filter_PDE_LevelSet < Filter_PDE
     
     properties(Access = private)
         integrator
         unfittedMesh
-        domainType  
+        domainType
         interp
     end
     
@@ -15,24 +15,24 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             
             obj.diffReacProb.preProcess();
             obj.createQuadrature();
-            obj.createInterpolation();            
+            obj.createInterpolation();
             obj.computeGeometry();
             obj.nelem = obj.mesh.nelem;
-            obj.npnod = obj.interp.npnod;           
+            obj.npnod = obj.interp.npnod;
             obj.ngaus = obj.quadrature.ngaus;
             obj.Anodal2Gauss = obj.computeA();
             
-%             cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh,obj.interpolation);
+            %             cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh,obj.interpolation);
             cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh);
             obj.unfittedMesh = UnfittedMesh(cParams);
-            s.mesh = obj.unfittedMesh;
-            s.type = obj.unfittedMesh.unfittedType;
-           % obj.integrator = Integrator.create(s);            
-            obj.disableDelaunayWarning();                 
+            % s.mesh = obj.unfittedMesh;
+            % s.type = obj.unfittedMesh.unfittedType;
+            % obj.integrator = Integrator.create(s);
+            obj.disableDelaunayWarning();
         end
         
         function preProcess(obj)
-       
+            
         end
         
         function RHS = integrate_L2_function_with_shape_function(obj,x)
@@ -44,20 +44,18 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             RHS = obj.computeRHS(x,F);
         end
         
-        function fInt = computeRHS(obj,levelSet,fNodes)
-            if all(levelSet>0)
-                fInt = zeros(size(levelSet));
-            else            
-            obj.unfittedMesh.compute(levelSet);
-            
-            s.mesh = obj.unfittedMesh;
-            s.type = 'COMPOSITE';
-            s = obj.createInteriorParams(s,s.mesh);            
-            integrator = Integrator.create(s);
-            fInt = integrator.integrateAndSum(fNodes);
+        function fInt = computeRHS(obj,ls,fNodes)
+            if all(ls>0)
+                fInt = zeros(size(ls));
+            else
+                obj.unfittedMesh.compute(ls);                
+                s.mesh = obj.unfittedMesh;
+                s.type = 'COMPOSITE';
+                s = obj.createInteriorParams(s,s.mesh);
+                int = Integrator.create(s);
+                fInt = int.integrateAndSum(fNodes);
             end
-            %fInt = obj.integrator.integrate(fNodes);
-        end        
+        end
         
     end
     
@@ -66,46 +64,41 @@ classdef Filter_PDE_LevelSet < Filter_PDE
         function createQuadrature(obj)
             obj.quadrature = Quadrature.set(obj.mesh.geometryType);
             obj.quadrature.computeQuadrature(obj.quadratureOrder);
-        end        
-          
+        end
+        
         function createInterpolation(obj)
-            obj.interp = Interpolation.create(obj.mesh,'LINEAR');    
-        end        
+            obj.interp = Interpolation.create(obj.mesh,'LINEAR');
+        end
         
         function computeGeometry(obj)
             s.mesh = obj.mesh;
             obj.geometry = Geometry.create(s);
-            obj.geometry.computeGeometry(obj.quadrature,obj.interp);        
+            obj.geometry.computeGeometry(obj.quadrature,obj.interp);
         end
-                
         
-      function disableDelaunayWarning(obj)
+        
+        function disableDelaunayWarning(obj)
             MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';
             warning('off', MSGID)
-      end        
-      
-       function cParams = createInteriorParams(obj,cParams,mesh)
-            
-           if mesh.innerCutMesh.nelem ~= 0
+        end
+        
+        function cParams = createInteriorParams(obj,cParams,mesh)            
+            if mesh.innerCutMesh.nelem ~= 0
                 cParamsInnerCut = obj.createInnerCutParams(mesh);
                 cParams.compositeParams{1} = cParamsInnerCut;
-               if mesh.innerMesh.nelem ~= 0                   
-                cParamsInner = obj.createInnerParams(mesh);
-                cParams.compositeParams{end+1} = cParamsInner;
-               end
-           else
-               if mesh.innerMesh.nelem ~= 0                   
-                cParamsInner = obj.createInnerParams(mesh);
-                cParams.compositeParams{1} = cParamsInner;
-               else 
-                  cParams.compositeParams = cell(0); 
-               end                  
+                if mesh.innerMesh.nelem ~= 0
+                    cParamsInner = obj.createInnerParams(mesh);
+                    cParams.compositeParams{end+1} = cParamsInner;
+                end
+            else
+                if mesh.innerMesh.nelem ~= 0
+                    cParamsInner = obj.createInnerParams(mesh);
+                    cParams.compositeParams{1} = cParamsInner;
+                else
+                    cParams.compositeParams = cell(0);
+                end
             end
-%             cParamsInnerCut = obj.createInnerCutParams(mesh);
-%             cParams.compositeParams{1} = cParamsInnerCut;
-%             cParamsInner = obj.createInnerParams(mesh);
-%             cParams.compositeParams{2} = cParamsInner;
-        end        
+        end
         
         function cParams = createInnerParams(obj,mesh)
             cParams.mesh = mesh.innerMesh;
@@ -114,15 +107,15 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             cParams.npnod = mesh.innerMesh.npnod;
             cParams.backgroundMesh = mesh.meshBackground;
             cParams.innerToBackground = mesh.backgroundFullCells;
-        end        
+        end
         
         function cParams = createInnerCutParams(obj,mesh)
-            cParams.mesh = mesh.innerCutMesh; 
+            cParams.mesh = mesh.innerCutMesh;
             cParams.type = 'CutMesh';
-            cParams.meshBackground = mesh.meshBackground;            
-        end         
+            cParams.meshBackground = mesh.meshBackground;
+        end
         
-      
+        
     end
     
 end
