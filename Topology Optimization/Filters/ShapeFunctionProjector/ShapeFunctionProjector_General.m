@@ -17,17 +17,13 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
             obj.createUnfittedMesh();
         end
         
-        function xP = project(obj,x)
-            if all(x>0)
-                xP = zeros(size(x));
+        function fInt = project(obj,ls)
+            if all(ls>0)
+                fInt = zeros(size(ls));
             else
-                nodalF = ones(size(x));
-                obj.unfittedMesh.compute(x);
-                s.mesh = obj.unfittedMesh;
-                s.type = 'COMPOSITE';
-                s = obj.createInteriorParams(s,s.mesh);
-                int = Integrator.create(s);
-                xP = int.integrateAndSum(nodalF);
+                fNodes = ones(size(ls));
+                obj.unfittedMesh.compute(ls);
+                fInt = obj.unfittedMesh.integrateNodalFunction(fNodes);
             end
             
         end
@@ -47,40 +43,6 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
             s.interpolationBackground = obj.interpolation;
             cParams = SettingsMeshUnfitted(s);
             obj.unfittedMesh = UnfittedMesh(cParams);
-        end
-        
-        function cParams = createInteriorParams(obj,cParams,mesh)
-            
-            if mesh.innerCutMesh.nelem ~= 0
-                cParamsInnerCut = obj.createInnerCutParams(mesh);
-                cParams.compositeParams{1} = cParamsInnerCut;
-                if mesh.innerMesh.nelem ~= 0
-                    cParamsInner = obj.createInnerParams(mesh);
-                    cParams.compositeParams{end+1} = cParamsInner;
-                end
-            else
-                if mesh.innerMesh.nelem ~= 0
-                    cParamsInner = obj.createInnerParams(mesh);
-                    cParams.compositeParams{1} = cParamsInner;
-                else
-                    cParams.compositeParams = cell(0);
-                end
-            end
-        end
-        
-        function cParams = createInnerParams(obj,mesh)
-            cParams.mesh = mesh.innerMesh;
-            cParams.type = 'SIMPLE';
-            cParams.globalConnec = mesh.globalConnec;
-            cParams.npnod = mesh.innerMesh.npnod;
-            cParams.backgroundMesh = mesh.meshBackground;
-            cParams.innerToBackground = mesh.backgroundFullCells;
-        end
-        
-        function cParams = createInnerCutParams(obj,mesh)
-            cParams.mesh = mesh.innerCutMesh;
-            cParams.type = 'CutMesh';
-            cParams.meshBackground = mesh.meshBackground;
         end
         
     end

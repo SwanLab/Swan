@@ -7,8 +7,7 @@ classdef CutMesh < Mesh
     properties (GetAccess = public, SetAccess = ?MemoryManager_MeshUnfitted)
         subcellIsoCoords
         cellContainingSubcell
-    end
-    
+    end    
     
     properties (GetAccess = private, SetAccess = ?MemoryManager_MeshUnfitted)
         coord_iso
@@ -123,8 +122,6 @@ classdef CutMesh < Mesh
     
     methods (Access = private)
         
-    
-        
         function init(obj,cParams)
             obj.levelSet_background = cParams.levelSet;
             obj.backgroundFullCells = cParams.backgroundFullCells;
@@ -223,7 +220,7 @@ classdef CutMesh < Mesh
         
         function computeGlobalConnectivities(obj)
             nSubcells = size(obj.connec_local,1);
-            for isub = 1:nSubcells
+            for isub = 1:nSubcells %Vectorize !!!
                 icell = obj.cellContainingSubcell(isub);
                 indexes = obj.findSubcellNodesIndexes(icell);
                 obj.assembleConnecs(isub,indexes);

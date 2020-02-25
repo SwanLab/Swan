@@ -82,7 +82,7 @@ classdef InnerMesh < Mesh
         
         function I = findIndexesComparingCoords(A,B)
             I = zeros(1,size(A,1));
-            for inode = 1:size(A,1)
+            for inode = 1:size(A,1) %Vectorize!!!!
                 match = true(size(B,1),1);
                 for idime = 1:size(A,2)
                     match = match & B(:,idime) == A(inode,idime);
