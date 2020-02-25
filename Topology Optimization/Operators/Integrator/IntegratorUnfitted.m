@@ -10,6 +10,7 @@ classdef IntegratorUnfitted < Integrator
         unfittedInterp
         quadrature
         unfittedQuad
+        integratorCut
     end
     
     methods (Access = public, Abstract)
@@ -22,6 +23,8 @@ classdef IntegratorUnfitted < Integrator
             obj.init(cParams);
             obj.meshUnfitted   = obj.mesh;
             obj.meshBackground = obj.mesh.meshBackground;
+            cParams.meshBackground = obj.meshBackground;
+            obj.integratorCut = IntegratorCutMesh(cParams);
         end
         
         function A = integrateUnfittedMesh(obj,F,meshUnfitted)
@@ -31,6 +34,8 @@ classdef IntegratorUnfitted < Integrator
                 %   obj.updateUnfittedMesh();
             end
             A = obj.integrate(F);
+            A2 = obj.integratorCut.integrate(F);
+            norm(A(:)-A2(:))
         end
         
         

@@ -27,7 +27,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             obj.unfittedMesh = UnfittedMesh(cParams);
             s.mesh = obj.unfittedMesh;
             s.type = obj.unfittedMesh.unfittedType;
-            obj.integrator = Integrator.create(s);            
+           % obj.integrator = Integrator.create(s);            
             obj.disableDelaunayWarning();                 
         end
         

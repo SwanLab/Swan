@@ -4,8 +4,8 @@ classdef IntegratorFactory
            switch cParams.type
                 case 'INTERIOR'
                     integrator = Integrator_Interior(cParams);
-                case 'BOUNDARY'
-                    integrator = Integrator_Boundary(cParams);
+        %        case 'BOUNDARY'
+        %            integrator = Integrator_Boundary(cParams);
                 case 'COMPOSITE'
                     integrator = Integrator_Composite(cParams);
                 case 'SIMPLE'
