@@ -7,7 +7,7 @@ classdef CutMesh < Mesh
     properties (GetAccess = public, SetAccess = ?MemoryManager_MeshUnfitted)
         subcellIsoCoords
         cellContainingSubcell
-    end    
+    end
     
     properties (GetAccess = private, SetAccess = ?MemoryManager_MeshUnfitted)
         coord_iso
@@ -26,13 +26,17 @@ classdef CutMesh < Mesh
         backgroundEmptyCells
         
         levelSet_unfitted
+        
+        index1
+        index2
+        
     end
     
     properties (GetAccess = ?CutPointsCalculator, SetAccess = private)
         backgroundCutCells
     end
     
-    properties (GetAccess = {?CutPointsCalculator,?SubcellsMesher_Abstract}, SetAccess = private)
+    properties (GetAccess = {?CutPointsCalculator,?SubcellsMesher}, SetAccess = private)
         levelSet_background
         backgroundGeomInterpolation
     end
@@ -53,8 +57,8 @@ classdef CutMesh < Mesh
     properties (GetAccess = ?MemoryManager, SetAccess = private)
         nCutCells
         ndimBackground
-       isInBoundary
-
+        isInBoundary
+        
     end
     
     methods (Access = public)
@@ -62,15 +66,48 @@ classdef CutMesh < Mesh
         function obj = CutMesh(cParams)
             
             if isfield(cParams,'isInBoundary')
-               obj.isInBoundary = cParams.isInBoundary;
+                obj.isInBoundary = cParams.isInBoundary;
             else
-               obj.isInBoundary = false;
+                obj.isInBoundary = false;
             end
             
             obj.type   = cParams.unfittedType;
             obj.meshBackground = cParams.meshBackground;
             
-            obj.build(cParams);
+            m = obj.meshBackground;
+            
+            cutConnec = m.connec(cParams.backgroundCutCells,:);
+            s.connec = cutConnec;
+            nodes = unique(cutConnec(:));
+            s.coord = m.coord(nodes,:);
+            
+            
+            
+            %             m2 = Mesh().create(s);
+            %             figure
+            %             m2.plot();
+            %             subMesher = SubMesher();
+            %             subMesh = subMesher.computeSubMesh(m2);
+            %             figure
+            %             subMesh.plot();
+            
+            %ComputeLevelSet
+            
+            %ComputeMeshUnfitted
+            
+            %ChangeCparams cParams!!
+            
+            ndim = cParams.meshBackground.ndim;
+            uType = cParams.unfittedType;
+            
+            builderType = uType;
+            if obj.isInBoundary && ndim == 2
+               builderType = 'BOUNDARY';
+            end
+            obj.unfittedType = builderType;            
+            
+            
+            obj.build(ndim);
             obj.init(cParams);
             
             obj.subcellsMesher.link(obj);
@@ -96,7 +133,7 @@ classdef CutMesh < Mesh
             if obj.existPatchingInputs(nargin)
                 meshUnfittedCopy = obj.meshPlotter.patchRemovedDimension(meshUnfittedCopy,removedDim,removedDimCoord);
             end
-            obj.meshPlotter.plot(meshUnfittedCopy,ax);            
+            obj.meshPlotter.plot(meshUnfittedCopy,ax);
         end
         
     end
@@ -114,7 +151,7 @@ classdef CutMesh < Mesh
             end
             isNdim = obj.ndim == 3 || obj.ndim == 2;
             if isequal(obj.type,'INTERIOR') && isNdim && obj.isInBoundary
-               obj.embeddedDim = obj.ndim - 1;
+                obj.embeddedDim = obj.ndim - 1;
             end
         end
         
@@ -133,30 +170,25 @@ classdef CutMesh < Mesh
             obj.backgroundGeomInterpolation = cParams.interpolationBackground;
         end
         
-        function build(obj,cParams)
-            obj.ndim = cParams.meshBackground.ndim;
-            ndimUnf = obj.ndim;
+        function build(obj,ndim)
+            
+            obj.ndim = ndim;
             if obj.isInBoundary
-                
-                if ndimUnf == 2
-                    builderType = 'BOUNDARY';
-                else                    
-                    builderType = cParams.unfittedType;
-                end
-                
-       %         builderType = 'BOUNDARY';
-
-               if ndimUnf == 3 
-                 ndimUnf = ndimUnf - 1;
-               else 
-                   ndimUnf = ndimUnf - 1;
-                 %obj.ndim = ndimUnf;
-               end
+                ndimUnf = obj.ndim - 1;
             else
-                builderType = cParams.unfittedType;
-            end                
-            builder = UnfittedMesh_Builder_Factory.create(builderType,ndimUnf);
-            builder.build(obj);
+                ndimUnf = obj.ndim;
+            end
+            
+            s.ndimIso = ndimUnf;
+            s.unfittedType = obj.unfittedType;
+            
+            obj.subcellsMesher = SubcellsMesher.create(s);
+            obj.meshPlotter    = MeshPlotter.create(s);
+            obj.memoryManager  = MemoryManager_MeshUnfitted(s);
+            
+            obj.cutPointsCalculator  = CutPointsCalculator;
+            obj.cellsClassifier      = CellsClassifier;
+            
         end
         
         function itIs = isLevelSetCrossingZero(obj)
@@ -178,7 +210,7 @@ classdef CutMesh < Mesh
             
             obj.computeCutPoints();
             
-            for icut = 1:obj.nCutCells
+            for icut = 1:obj.nCutCells %Vectorize
                 icell = obj.backgroundCutCells(icut);
                 
                 newSubcells = obj.computeThisCellSubcells(icut,icell);
@@ -210,7 +242,7 @@ classdef CutMesh < Mesh
             nnode = obj.backgroundMesh.nnode;
             nelem = obj.nelem;
             obj.globalConnec = zeros(nelem,nnode);
-            for ielem = 1:nelem
+            for ielem = 1:nelem %Vectorize!
                 icell  = obj.cellContainingSubcell(ielem);
                 nodes  = obj.backgroundMesh.connec(icell,:);
                 obj.globalConnec(ielem,:) = nodes;
@@ -220,15 +252,42 @@ classdef CutMesh < Mesh
         
         function computeGlobalConnectivities(obj)
             nSubcells = size(obj.connec_local,1);
+            cellOfSubCell = obj.cellContainingSubcell;
+            coordGlobal   = obj.coord_global_raw;
+            connecLocal   = obj.connec_local;
+            cellContNodes = obj.cellContainingNodes;
+            nnode = size(connecLocal,2);
+            connecV = zeros(nSubcells,nnode);
+            
+            
             for isub = 1:nSubcells %Vectorize !!!
-                icell = obj.cellContainingSubcell(isub);
-                indexes = obj.findSubcellNodesIndexes(icell);
-                obj.assembleConnecs(isub,indexes);
+                cell = cellContNodes == cellOfSubCell(isub);
+                % size(find(cell))
+                coordsSubCell = coordGlobal(cell,:);
+                indexes = obj.findIndexesComparingCoords(coordsSubCell,obj.coord);
+                
+                %                 p = reshape(obj.index2,[],obj.nCutCells)';
+                %                 cell = obj.backgroundCutCells == cellOfSubCell(isub);
+                %                 indexes = p(cell,:);
+                
+                
+                %norm(indexes(:) - indexes2(:))
+                
+                connecV(isub,:) = indexes(connecLocal(isub,:));
+                
+                
+                %  icell = obj.cellContainingSubcell(isub);
+                %  indexes = obj.findSubcellNodesIndexes(icell);
+                %  obj.assembleConnecs(isub,indexes);
             end
+            obj.connec = connecV;
         end
         
         function computeGlobalCoordinates(obj)
-            obj.coord = unique(obj.coord_global_raw,'rows','stable');
+            [coord,ind1,ind2] = unique(obj.coord_global_raw,'rows','stable');
+            obj.coord = coord;
+            obj.index1 = ind1;
+            obj.index2 = ind2;
         end
         
         function indexes = findSubcellNodesIndexes(obj,icell)
@@ -238,16 +297,16 @@ classdef CutMesh < Mesh
         
         function assembleConnecs(obj,isub,indexes)
             obj.connec(isub,:) = indexes(obj.connec_local(isub,:));
-        end    
+        end
         
         function returnNullMesh(obj)
             obj.coord = zeros(0,obj.ndim);
             obj.connec = [];
-        end        
+        end
         
     end
     
-    methods (Access = private, Static) 
+    methods (Access = private, Static)
         
         function I = findIndexesComparingCoords(A,B)
             I = zeros(1,size(A,1));
@@ -266,7 +325,7 @@ classdef CutMesh < Mesh
             else
                 theyDo = false;
             end
-        end            
+        end
         
     end
     

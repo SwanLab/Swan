@@ -32,7 +32,7 @@ classdef TopOptTests < testRunner
                 'testMicro2'; 
                 'testBridge2';                
                 'testCantilever3'; 
-                'testBridge';                 
+                'testBridge';                                                 
                 };
         end
         

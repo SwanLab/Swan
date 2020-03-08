@@ -23,21 +23,7 @@ classdef UnfittedMesh_AbstractBuilder < handle
         end
         
     end
-    
-    methods (Access = {?Mesh_Unfitted, ?CutMesh})
-        
-        function build(obj,mesh)
-            mesh.unfittedType = obj.unfittedType;
-            mesh.maxSubcells = obj.maxSubcells;
-            mesh.nnodesSubcell = obj.nnodesSubcell;
-            mesh.subcellsMesher = obj.subcellsMesher;
-            mesh.cutPointsCalculator = obj.cutPointsCalculator;
-            mesh.meshPlotter = obj.meshPlotter;
-            mesh.cellsClassifier = obj.cellsClassifier;
-            mesh.memoryManager = obj.memoryManager;
-        end
-        
-    end
+
     
 end
 

@@ -1,4 +1,4 @@
-classdef SubcellsMesher_Boundary < SubcellsMesher_Abstract
+classdef SubcellsMesher_Boundary < SubcellsMesher
     
     properties (GetAccess = protected, SetAccess = private)
         nCellNodes

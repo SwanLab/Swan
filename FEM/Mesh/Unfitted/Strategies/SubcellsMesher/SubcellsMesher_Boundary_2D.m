@@ -24,18 +24,63 @@ classdef SubcellsMesher_Boundary_2D < SubcellsMesher_Boundary
         end
         
         function computeConnectivitiesSolvingAmbiguity(obj)
-            del_connec = obj.computeDelaunay(obj.interior_coord_iso);
-            nnode = size(del_connec,2);
+            levelSet = obj.cell_levelSet;
+            coordIso = obj.interior_coord_iso;
+            coordIso(end,:) = [0 0];
+            int = Interpolation.create(obj.mesh.meshBackground,'LINEAR');
+            xG = [0 0]';
+            int.computeShapeDeriv(xG)
+            shapes = int.shape;
+            nnode = obj.mesh.meshBackground.nnode;
+            lsNodes = levelSet(1:nnode);
+            levelSet(end+1) = shapes'*lsNodes;
             
-            positiveCellNodes = find(obj.cell_levelSet > 0);
+%             
+%             m.meshBackground = obj.mesh.meshBackground;
+%             m.levelSet            = m.levelSet_background;            
+%             m.backgroundCutCells  = m.backgroundCutCells;
+%             m.backgroundGeomInterpolation = m.backgroundGeomInterpolation;             
+            
+            
+           % levelSet(end,1) = 
+            connecDel = obj.computeDelaunay(coordIso);
+            nnode = size(connecDel,2);
+            
+            positiveCellNodes  = find(levelSet > 0);
             nPositiveCellNodes = length(positiveCellNodes);
 
-            obj.connec = zeros(nPositiveCellNodes,nnode);
+            connecV = zeros(nPositiveCellNodes,nnode);
             for idel = 1:nPositiveCellNodes
-                [connec_positive, ~] = find(del_connec == positiveCellNodes(idel));
-                obj.connec(idel,:) = del_connec(connec_positive(end),del_connec(connec_positive(end),:)~=positiveCellNodes(idel)) - nnode;
+                [connec_positive, ~] = find(connecDel == positiveCellNodes(idel));
+                nodePos = connecDel(connec_positive(end),:);
+                posCell = nodePos ~= positiveCellNodes(idel);
+                pos = connec_positive(end);
+                connecV(idel,:) = connecDel(pos,posCell) - nnode;
             end
+            obj.connec = connecV;
         end
+        
+        
+%         
+%         
+%         
+%         function computeCutPoints()
+%             m.meshBackground = ;
+%             m.levelSet            = m.levelSet_background;            
+%             m.backgroundCutCells  = m.backgroundCutCells;
+%             m.backgroundGeomInterpolation = m.backgroundGeomInterpolation;            
+%             
+%             
+%         end
+%         
+            
+            
+        
+        
+        
+        
+        
+        
     end
     
 end

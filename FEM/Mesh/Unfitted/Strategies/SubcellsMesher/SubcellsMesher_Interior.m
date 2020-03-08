@@ -1,4 +1,4 @@
-classdef SubcellsMesher_Interior < SubcellsMesher_Abstract
+classdef SubcellsMesher_Interior < SubcellsMesher
     
     properties (Access = protected)
         interiorSubcells

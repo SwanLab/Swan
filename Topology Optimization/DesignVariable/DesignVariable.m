@@ -74,7 +74,6 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
     
     methods (Access = private)
         
-
         function initValue(obj)
             obj.value = ones(size(obj.mesh.coord,1),1);
         end

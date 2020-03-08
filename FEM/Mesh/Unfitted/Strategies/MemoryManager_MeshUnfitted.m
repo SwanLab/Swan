@@ -22,12 +22,18 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
         upperBound_C
         
         ndimIso
+        unfittedType
+        
+        maxSubcells
+        nnodesSubCell
     end
     
     methods (Access = public)
         
-        function obj = MemoryManager_MeshUnfitted()
-            obj.init();
+        function obj = MemoryManager_MeshUnfitted(cParams)
+            obj.unfittedType = cParams.unfittedType;
+            obj.ndimIso      = cParams.ndimIso;
+            obj.init();            
         end
         
         function link(obj,mesh)
@@ -38,24 +44,8 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
             obj.init();
             
             nCutCells     = obj.mesh.nCutCells;
-            maxSubcells   = obj.mesh.maxSubcells;
-            nnodesSubCell = obj.mesh.nnodesSubcell;
-            
-            if ~isequal(class(obj.mesh),'Mesh_Unfitted_Single')
-                if obj.mesh.isInBoundary
-                    ndimIso   = obj.mesh.ndim - 1;
-                    %nnodesSubCellIso = nnodesSubCell - 1;
-                   nnodesSubCellIso = nnodesSubCell;                   
-                else
-                    ndimIso   = obj.mesh.ndim;
-                    nnodesSubCellIso = nnodesSubCell;
-                end
-            else
-                ndimIso   = obj.mesh.ndim;
-                nnodesSubCellIso = nnodesSubCell;
-           end
-            
-            obj.ndimIso = ndimIso;
+            maxSubcells   = obj.maxSubcells;
+            nnodesSubCell = obj.nnodesSubCell;
             
             ndim   = obj.mesh.ndim;
             
@@ -63,13 +53,11 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
             nCell  = nCutCells*maxSubcells;
             nNodes = nCutCells*maxSubcells*nnodesSubCell;
             
-            obj.coord_iso             = zeros(nNodes,ndimIso);
+            obj.coord_iso             = zeros(nNodes,obj.ndimIso);
             obj.coord_global_raw      = zeros(nNodes,ndim);
-            obj.subcellIsoCoords      = zeros(nCell,nnodesSubCellIso,ndimIso);
-            %obj.subcellIsoCoords      = zeros(nCell,nnodesSubCell,ndimIso);            
+            obj.subcellIsoCoords      = zeros(nCell,nnodesSubCell,obj.ndimIso);
             obj.connec_local          = zeros(nCell,nnodesSubCell);
-            %obj.connec_local          = zeros(nCell,nnodesSubCellIso);
-            obj.connec                = zeros(nCell,nnodesSubCellIso);
+            obj.connec                = zeros(nCell,nnodesSubCell);
             obj.levelSet_unfitted     = zeros(nNodes,1);
             obj.cellContainingNodes   = zeros(nNodes,1);
             obj.cellContainingSubcell = zeros(nNodes,1);
@@ -118,11 +106,38 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
     end
     
     methods (Access = private)
-        
+     
         function init(obj)
             obj.lowerBound_A = 0;
             obj.lowerBound_B = 0;
             obj.lowerBound_C = 0;
+            obj.computeMaxAndNodesSubcells();            
+        end
+        
+        function computeMaxAndNodesSubcells(obj)
+            switch obj.ndimIso
+                case 1
+                    obj.maxSubcells = 2;
+                    obj.nnodesSubCell = 2;
+                case 2
+                    switch obj.unfittedType
+                        case 'INTERIOR'
+                            obj.maxSubcells = 6;
+                            obj.nnodesSubCell = 3;
+                        case 'BOUNDARY'
+                            obj.maxSubcells = 2;
+                            obj.nnodesSubCell = 2;
+                    end
+                case 3
+                    switch obj.unfittedType
+                        case 'INTERIOR'
+                            obj.maxSubcells = 20;
+                            obj.nnodesSubCell = 4;
+                        case 'BOUNDARY'
+                            obj.maxSubcells = 6;
+                            obj.nnodesSubCell = 3;
+                    end
+            end
         end
         
         function updateUpperBounds(obj)

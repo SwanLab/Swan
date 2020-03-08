@@ -1,4 +1,4 @@
-classdef SubcellsMesher_Abstract < handle
+classdef SubcellsMesher < handle
     
     properties (GetAccess = public, SetAccess = protected)
         subcells
@@ -30,8 +30,17 @@ classdef SubcellsMesher_Abstract < handle
         
     end
     
-    methods (Access = public)
+    methods (Access = public, Static)
         
+        function obj = create(cParams)
+            f = SubcellsMesherFactory();
+            obj = f.create(cParams);            
+        end
+        
+    end
+    
+    methods (Access = public)
+ 
         function link(obj,mesh)
             obj.mesh = mesh;
         end
