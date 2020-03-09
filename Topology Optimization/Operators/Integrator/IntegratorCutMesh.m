@@ -47,22 +47,8 @@ classdef IntegratorCutMesh < Integrator
         end
         
         function xGauss = computeUnfittedGaussPoints(obj)
-            quad  = obj.quadrature;
-            coord = obj.mesh.subcellIsoCoords;
-            coord = permute(coord,[1 3 2]);
-            shape = obj.createShapes(obj.mesh,quad.posgp);
-            nDime = size(coord,2);
-            nNode = obj.mesh.nnode;
-            nElem = obj.mesh.nelem;
-            nGaus = quad.ngaus;
-            xGauss = zeros(nGaus,nElem,nDime);
-            for kNode = 1:nNode
-                shapeKJ(:,1) = shape(kNode,:);
-                xKJ(1,:,:) = coord(:,:,kNode);
-                xG = bsxfun(@times,shapeKJ,xKJ);
-                xGauss = xGauss + xG;
-            end
-            xGauss = permute(xGauss,[3 1 2]);
+            q = obj.quadrature;
+            xGauss = obj.mesh.computeUnfittedGaussPoints(q);
         end
         
         function Fproj = integrateFwithShapeFunction(obj)
@@ -93,12 +79,13 @@ classdef IntegratorCutMesh < Integrator
         end
         
         function Fnodes = computeFinNodesPerElement(obj)
-            connec = obj.mesh.globalConnec;
+            cells  = obj.mesh.cellContainingSubcell;            
             nCell  = obj.mesh.nelem;
+            connec = obj.backgroundMesh.connec;            
             nnode  = obj.backgroundMesh.nnode;
             Fnodes = zeros(nnode,nCell);
             for inode = 1:nnode
-                nodes  = connec(:,inode);
+                nodes  = connec(cells,inode);
                 Fnodes(inode,:) = obj.Fnodal(nodes,1);
             end
         end

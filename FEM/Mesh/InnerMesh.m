@@ -3,7 +3,6 @@ classdef InnerMesh < Mesh
     properties (Access = private)
         globalConnec
         backgroundCoord
-        %isInBoundary
         all2unique
         unique2all
         uniqueNodes
@@ -30,24 +29,12 @@ classdef InnerMesh < Mesh
         
     end
     
-%     methods (Access = protected)
-%         
-%         function computeEmbeddingDim(obj)
-%             if obj.isInBoundary
-%                 obj.embeddedDim = obj.ndim - 1;
-%             else
-%                 obj.embeddedDim = obj.ndim;
-%             end
-%         end
-%         
-%     end
-    
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.globalConnec = cParams.globalConnec;
+            obj.globalConnec    = cParams.globalConnec;
             obj.backgroundCoord = cParams.backgroundCoord;
-            obj.isInBoundary = cParams.isInBoundary;
+            obj.isInBoundary    = cParams.isInBoundary;
             obj.type = 'INTERIOR';
         end
         

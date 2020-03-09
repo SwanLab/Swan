@@ -1,14 +1,15 @@
 classdef CutMesh < Mesh
     
     properties (GetAccess = public, SetAccess = private)
-        globalConnec        
-        subcellIsoCoords
         cellContainingSubcell
     end
     
     properties (Access = private)
-        backgroundMesh
+        subcellIsoCoords
+
         
+        backgroundMesh
+           
         backgroundEmptyCells
         backgroundCutCells
         backgroundFullCells
@@ -34,7 +35,6 @@ classdef CutMesh < Mesh
         
         nCutCells
         ndimBackground
-      %  isInBoundary       
         
         levelSet_background
         backgroundGeomInterpolation        
@@ -89,9 +89,7 @@ classdef CutMesh < Mesh
             obj.computeDescriptorParams();
             obj.createInterpolation();
             obj.computeElementCoordinates();
-            obj.computeGlobalConnec();
         end
-        
         
         function setLevelSetUnfitted(obj,LS)
             obj.levelSet_unfitted = LS;
@@ -104,6 +102,24 @@ classdef CutMesh < Mesh
             end
             bF = obj.backgroundFullCells;
             obj.meshPlotter.plot(meshUnfittedCopy,ax,bF);
+        end
+        
+        function xGauss = computeUnfittedGaussPoints(obj,quad)
+            coord = obj.subcellIsoCoords;
+            coord = permute(coord,[1 3 2]);
+            shape = obj.createShapes(quad.posgp);
+            nDime = size(coord,2);
+            nNode = obj.nnode;
+            nElem = obj.nelem;
+            nGaus = quad.ngaus;
+            xGauss = zeros(nGaus,nElem,nDime);
+            for kNode = 1:nNode
+                shapeKJ(:,1) = shape(kNode,:);
+                xKJ(1,:,:) = coord(:,:,kNode);
+                xG = bsxfun(@times,shapeKJ,xKJ);
+                xGauss = xGauss + xG;
+            end
+            xGauss = permute(xGauss,[3 1 2]);            
         end
         
     end
@@ -249,18 +265,6 @@ classdef CutMesh < Mesh
             subcells = obj.subcellsMesher.subcells;
         end
         
-        function computeGlobalConnec(obj)
-            nnode = obj.backgroundMesh.nnode;
-            nelem = obj.nelem;
-            obj.globalConnec = zeros(nelem,nnode);
-            for ielem = 1:nelem %Vectorize!
-                icell  = obj.cellContainingSubcell(ielem);
-                nodes  = obj.backgroundMesh.connec(icell,:);
-                obj.globalConnec(ielem,:) = nodes;
-            end
-            
-        end
-        
         function computeGlobalConnectivities(obj)
             nSubcells = size(obj.connec_local,1);
             cellOfSubCell = obj.cellContainingSubcell;
@@ -314,6 +318,12 @@ classdef CutMesh < Mesh
             obj.coord = zeros(0,obj.ndim);
             obj.connec = [];
         end
+        
+        function shapes = createShapes(obj,xG)
+            int = Interpolation.create(obj,'LINEAR');
+            int.computeShapeDeriv(xG);
+            shapes = permute(int.shape,[1 3 2]);
+        end        
         
     end
     
