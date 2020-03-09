@@ -1,5 +1,13 @@
 classdef SubcellsMesher_Boundary_2D < SubcellsMesher_Boundary
     
+    methods (Access = public)
+        
+        function obj = SubcellsMesher_Boundary_2D(cParams)
+           obj.init(cParams); 
+        end
+        
+    end        
+    
     methods (Access = protected)
         
         function computeFacetsConnectivities(obj)

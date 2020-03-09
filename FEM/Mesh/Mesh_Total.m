@@ -50,7 +50,6 @@ classdef Mesh_Total < Mesh_Composite
             obj.connec = cParams.connec;
             obj.obtainExteriorMesh(cParams);              
             obj.ndim   = size(obj.coord,2);
-            obj.unfittedType = 'COMPOSITE';
             obj.embeddedDim = obj.ndim;
         end
         
@@ -170,7 +169,7 @@ classdef Mesh_Total < Mesh_Composite
             end
             s.connec = boxFaceConnec;
             s.coord  = boxFaceCoords;
-            s.type = 'BOUNDARY';
+            s.isInBoundary = true;
             m = Mesh().create(s);
         end
         

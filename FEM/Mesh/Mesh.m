@@ -13,7 +13,9 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
        
     properties (Access = protected)
        type 
+       isInBoundary
     end
+    
     
     methods (Access = public)
         
@@ -84,17 +86,14 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             obj.computeGeometryType();
         end
         
-        function computeEmbeddingDim(obj)
-            switch obj.type
-                case 'BOUNDARY'
-                    obj.embeddedDim = obj.ndim - 1;
-                case {'INTERIOR','COMPOSITE'}
-                    obj.embeddedDim = obj.ndim;
-                otherwise
-                    error('EmbeddedDim not defined')
-            end
-        end
-        
+         function computeEmbeddingDim(obj)
+            if obj.isInBoundary
+                obj.embeddedDim = obj.ndim - 1;
+            else
+                obj.embeddedDim = obj.ndim;
+            end      
+         end
+       
     end
     
     methods (Access = private)
@@ -102,13 +101,21 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
         function init(obj,cParams)
             obj.coord  = cParams.coord;
             obj.connec = cParams.connec;
-            if isfield(cParams,'type')
-                obj.type = cParams.type;
-            else
-                obj.type = 'INTERIOR';
-            end
-            obj.unfittedType = 'SIMPLE';
             
+            if isobject(cParams)
+                if (isempty(cParams.isInBoundary))
+                    obj.isInBoundary = false;
+                else
+                    obj.isInBoundary = cParams.isInBoundary;
+                end
+            else
+                if isfield(cParams,'isInBoundary')
+                    obj.isInBoundary = cParams.isInBoundary;
+                else
+                    obj.isInBoundary = false;
+                end
+            end
+
         end
         
         function computeGeometryType(obj)

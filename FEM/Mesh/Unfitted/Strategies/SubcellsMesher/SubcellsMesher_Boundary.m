@@ -30,7 +30,7 @@ classdef SubcellsMesher_Boundary < SubcellsMesher
     methods
         
         function nCellNodes = get.nCellNodes(obj)
-            nCellNodes = size(obj.mesh.backgroundGeomInterpolation.pos_nodes,1);
+            nCellNodes = size(obj.posNodes,1);
         end
         
     end

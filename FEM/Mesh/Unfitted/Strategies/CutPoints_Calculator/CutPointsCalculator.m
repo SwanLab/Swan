@@ -19,11 +19,11 @@ classdef CutPointsCalculator < handle
     
     methods (Access = public)
         
-        function init(obj,mesh)
-            obj.meshBackground      = mesh.meshBackground;
-            obj.levelSet            = mesh.levelSet_background;            
-            obj.backgroundCutCells  = mesh.backgroundCutCells;
-            obj.backgroundGeomInterpolation = mesh.backgroundGeomInterpolation;
+        function init(obj,cParams)
+            obj.meshBackground      = cParams.meshBackground;
+            obj.levelSet            = cParams.levelSet_background;            
+            obj.backgroundCutCells  = cParams.backgroundCutCells;
+            obj.backgroundGeomInterpolation = cParams.backgroundGeomInterpolation;
         end
         
         function computeCutPoints(obj)

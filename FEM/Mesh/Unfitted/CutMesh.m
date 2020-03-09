@@ -1,86 +1,62 @@
 classdef CutMesh < Mesh
     
     properties (GetAccess = public, SetAccess = private)
-        globalConnec
-    end
-    
-    properties (GetAccess = public, SetAccess = ?MemoryManager_MeshUnfitted)
+        globalConnec        
         subcellIsoCoords
         cellContainingSubcell
-    end
-    
-    properties (GetAccess = private, SetAccess = ?MemoryManager_MeshUnfitted)
-        coord_iso
-        coord_global_raw
-        connec_local
-        cellContainingNodes
-    end
-    
-    properties (GetAccess = ?PatchedMeshPlotter_Abstract )
-        backgroundFullCells
     end
     
     properties (Access = private)
         backgroundMesh
         
         backgroundEmptyCells
+        backgroundCutCells
+        backgroundFullCells
+        
         
         levelSet_unfitted
         
         index1
         index2
         
-    end
-    
-    properties (GetAccess = ?CutPointsCalculator, SetAccess = private)
-        backgroundCutCells
-    end
-    
-    properties (GetAccess = {?CutPointsCalculator,?SubcellsMesher}, SetAccess = private)
-        levelSet_background
-        backgroundGeomInterpolation
-    end
-    
-    properties (GetAccess = private, SetAccess = ?UnfittedMesh_AbstractBuilder)
         subcellsMesher
         cutPointsCalculator
         meshPlotter
         cellsClassifier
-        memoryManager
-    end
-    
-    properties (GetAccess = ?MemoryManager, SetAccess = ?UnfittedMesh_AbstractBuilder)
-        maxSubcells
-        nnodesSubcell
-    end
-    
-    properties (GetAccess = ?MemoryManager, SetAccess = private)
+        memoryManager    
+        
+        coord_iso
+        coord_global_raw
+        connec_local
+        cellContainingNodes        
+        
+        ndimUnf
+        
         nCutCells
         ndimBackground
-        isInBoundary
+      %  isInBoundary       
         
+        levelSet_background
+        backgroundGeomInterpolation        
     end
-    
+
     methods (Access = public)
         
         function obj = CutMesh(cParams)
-            
-            if isfield(cParams,'isInBoundary')
-                obj.isInBoundary = cParams.isInBoundary;
-            else
-                obj.isInBoundary = false;
-            end
-            
-            obj.type   = cParams.unfittedType;
             obj.meshBackground = cParams.meshBackground;
+            obj.isInBoundary   = cParams.isInBoundary;            
+            obj.type           = cParams.type;
+            obj.ndim           = cParams.meshBackground.ndim;
             
+            
+            %%%%%%%%%%%%%%%%%%%%
             m = obj.meshBackground;
             
             cutConnec = m.connec(cParams.backgroundCutCells,:);
             s.connec = cutConnec;
             nodes = unique(cutConnec(:));
             s.coord = m.coord(nodes,:);
-            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%5
             
             
             %             m2 = Mesh().create(s);
@@ -97,26 +73,19 @@ classdef CutMesh < Mesh
             
             %ChangeCparams cParams!!
             
-            ndim = cParams.meshBackground.ndim;
-            uType = cParams.unfittedType;
+
             
-            builderType = uType;
-            if obj.isInBoundary && ndim == 2
-               builderType = 'BOUNDARY';
-            end
-            obj.unfittedType = builderType;            
-            
-            
-            obj.build(ndim);
             obj.init(cParams);
+            obj.build();
             
-            obj.subcellsMesher.link(obj);
-            obj.memoryManager.link(obj);
+            
+
             if obj.isLevelSetCrossingZero()
                 obj.computeCutMesh();
             else
                 obj.returnNullMesh();
             end
+            
             obj.computeDescriptorParams();
             obj.createInterpolation();
             obj.computeElementCoordinates();
@@ -133,7 +102,8 @@ classdef CutMesh < Mesh
             if obj.existPatchingInputs(nargin)
                 meshUnfittedCopy = obj.meshPlotter.patchRemovedDimension(meshUnfittedCopy,removedDim,removedDimCoord);
             end
-            obj.meshPlotter.plot(meshUnfittedCopy,ax);
+            bF = obj.backgroundFullCells;
+            obj.meshPlotter.plot(meshUnfittedCopy,ax,bF);
         end
         
     end
@@ -144,51 +114,74 @@ classdef CutMesh < Mesh
             switch obj.type
                 case 'BOUNDARY'
                     obj.embeddedDim = obj.ndim - 1;
-                case {'INTERIOR','COMPOSITE'}
+                case {'INTERIOR'}
                     obj.embeddedDim = obj.ndim;
                 otherwise
                     error('EmbeddedDim not defined')
             end
-            isNdim = obj.ndim == 3 || obj.ndim == 2;
-            if isequal(obj.type,'INTERIOR') && isNdim && obj.isInBoundary
+
+            if obj.isInBoundary
                 obj.embeddedDim = obj.ndim - 1;
-            end
+            end            
         end
         
     end
     
     methods (Access = private)
         
+        function createNdimUnf(obj)
+            if obj.isInBoundary
+                nUnf = obj.ndim - 1;
+            else
+                nUnf = obj.ndim;
+            end  
+            obj.ndimUnf = nUnf;
+        end        
+        
         function init(obj,cParams)
-            obj.levelSet_background = cParams.levelSet;
-            obj.backgroundFullCells = cParams.backgroundFullCells;
-            obj.backgroundEmptyCells = cParams.backgroundEmptyCells;
-            obj.backgroundCutCells = cParams.backgroundCutCells;
-            obj.nCutCells = length(obj.backgroundCutCells);
+            obj.levelSet_background   = cParams.levelSet;
+            obj.backgroundFullCells   = cParams.backgroundFullCells;
+            obj.backgroundEmptyCells  = cParams.backgroundEmptyCells;
+            obj.backgroundCutCells    = cParams.backgroundCutCells;
+            obj.nCutCells             = length(obj.backgroundCutCells);
             
-            obj.backgroundMesh = cParams.meshBackground;
+            obj.backgroundMesh              = cParams.meshBackground;
             obj.backgroundGeomInterpolation = cParams.interpolationBackground;
         end
         
-        function build(obj,ndim)
-            
-            obj.ndim = ndim;
-            if obj.isInBoundary
-                ndimUnf = obj.ndim - 1;
-            else
-                ndimUnf = obj.ndim;
-            end
-            
-            s.ndimIso = ndimUnf;
-            s.unfittedType = obj.unfittedType;
-            
-            obj.subcellsMesher = SubcellsMesher.create(s);
-            obj.meshPlotter    = MeshPlotter.create(s);
-            obj.memoryManager  = MemoryManager_MeshUnfitted(s);
-            
+        function createSubCellsMesher(obj)
+            sS.ndimIso = obj.ndimUnf;
+            sS.type = obj.type;
+
+            sS.posNodes = obj.backgroundGeomInterpolation.pos_nodes;
+            sS.levelSetBackground = obj.levelSet_background;
+            sS.coordsBackground = obj.meshBackground.coord;
+            obj.subcellsMesher = SubcellsMesher.create(sS);            
+        end
+        
+
+        
+        function createMeshPlotter(obj)
+            s.ndimIso  = obj.ndimUnf;
+            s.type     = obj.type;            
+            obj.meshPlotter = MeshPlotter.create(s);          
+        end
+        
+        function createMemoryManager(obj)
+            s.ndimIso       = obj.ndimUnf;
+            s.unfittedType  = obj.type;            
+            s.nCutCells     = obj.nCutCells;
+            s.ndim          = obj.ndim;                          
+            obj.memoryManager  = MemoryManager_MeshUnfitted(s);                        
+        end
+        
+        function build(obj)
+            obj.createNdimUnf();
+            obj.createSubCellsMesher();
+            obj.createMeshPlotter();
+            obj.createMemoryManager();
             obj.cutPointsCalculator  = CutPointsCalculator;
-            obj.cellsClassifier      = CellsClassifier;
-            
+            obj.cellsClassifier      = CellsClassifier;            
         end
         
         function itIs = isLevelSetCrossingZero(obj)
@@ -215,17 +208,31 @@ classdef CutMesh < Mesh
                 
                 newSubcells = obj.computeThisCellSubcells(icut,icell);
                 
-                newCellContainingNodes = repmat(icell,[newSubcells.nNodes 1]);
+                newCellContainingNodes   = repmat(icell,[newSubcells.nNodes 1]);
                 newCellContainingSubcell = repmat(icell,[newSubcells.nSubcells 1]);
                 
                 obj.memoryManager.saveNewSubcells(newSubcells,newCellContainingNodes,newCellContainingSubcell);
             end
             obj.memoryManager.freeSpareMemory();
-            obj.memoryManager.transferData();
+            
+            
+            obj.coord_iso             = obj.memoryManager.coord_iso;
+            obj.coord_global_raw      = obj.memoryManager.coord_global_raw;
+            obj.subcellIsoCoords      = obj.memoryManager.subcellIsoCoords;
+            obj.connec_local          = obj.memoryManager.connec_local;
+            obj.connec                = obj.memoryManager.connec;
+            obj.levelSet_unfitted     = obj.memoryManager.levelSet_unfitted;
+            obj.cellContainingNodes   = obj.memoryManager.cellContainingNodes;
+            obj.cellContainingSubcell = obj.memoryManager.cellContainingSubcell;            
+       
         end
         
         function computeCutPoints(obj)
-            obj.cutPointsCalculator.init(obj);
+            s.meshBackground              = obj.meshBackground;
+            s.levelSet_background         = obj.levelSet_background;            
+            s.backgroundCutCells          = obj.backgroundCutCells;
+            s.backgroundGeomInterpolation = obj.backgroundGeomInterpolation;            
+            obj.cutPointsCalculator.init(s);
             obj.cutPointsCalculator.computeCutPoints();
         end
         
@@ -233,7 +240,11 @@ classdef CutMesh < Mesh
             cutPoints_thisCell = obj.cutPointsCalculator.getThisCellCutPoints(icut);
             connec_thisCell = obj.meshBackground.connec(icell,:);
             
-            obj.subcellsMesher.computeSubcells(connec_thisCell,cutPoints_thisCell);
+
+            sS.cellConnec = connec_thisCell;
+            sS.cutPoints = cutPoints_thisCell;
+            
+            obj.subcellsMesher.computeSubcells(sS);
             
             subcells = obj.subcellsMesher.subcells;
         end

@@ -11,6 +11,9 @@ classdef SubcellsMesher < handle
         connec
     end
     
+    properties (Access = private)
+    end
+    
     properties (GetAccess = protected, SetAccess = private)
         mesh
         interior_coord_iso
@@ -20,6 +23,10 @@ classdef SubcellsMesher < handle
         cell_connec
         cell_levelSet
         boundary_levelSet
+        coordsBackground
+        posNodes
+        levelSetBackground
+
     end
     
     methods (Access = protected, Abstract)
@@ -41,18 +48,27 @@ classdef SubcellsMesher < handle
     
     methods (Access = public)
  
-        function link(obj,mesh)
-            obj.mesh = mesh;
-        end
-        
-        function computeSubcells(obj,cell_connec,cutPoints)
-            obj.saveInputs(cell_connec,cutPoints);
+        function computeSubcells(obj,cParams)
+
+            cellConnec = cParams.cellConnec;
+            cutPoints  = cParams.cutPoints;
+      
+            obj.saveInputs(cellConnec,cutPoints);
             obj.computeLevelSet();
             obj.computeCoordinates();
             obj.computeConnectivities();
             obj.packResultsInStruct();
         end
         
+    end
+    
+    methods (Access = protected)
+        
+        function init(obj,cParams)         
+            obj.posNodes = cParams.posNodes;
+            obj.levelSetBackground = cParams.levelSetBackground;
+            obj.coordsBackground = cParams.coordsBackground;            
+        end 
     end
     
     methods (Access = protected, Static)
@@ -98,11 +114,11 @@ classdef SubcellsMesher < handle
         end
         
         function nodes = get.cell_nodes(obj)
-            nodes = obj.mesh.backgroundGeomInterpolation.pos_nodes;
+            nodes = obj.posNodes;
         end
         
         function lvlSet = get.cell_levelSet(obj)
-            lvlSet = obj.mesh.levelSet_background(obj.cell_connec);
+            lvlSet = obj.levelSetBackground(obj.cell_connec);
         end
         
         function lvlSet = get.boundary_levelSet(obj)

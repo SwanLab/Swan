@@ -8,6 +8,14 @@ classdef SubcellsMesher_Boundary_3D < SubcellsMesher_Boundary
         nExtNodes
     end
     
+    methods (Access = public)
+        
+        function obj = SubcellsMesher_Boundary_3D(cParams)
+           obj.init(cParams); 
+        end
+        
+    end        
+        
     methods (Access = protected)
         
         function computeFacetsConnectivities(obj)

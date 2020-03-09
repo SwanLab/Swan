@@ -12,7 +12,6 @@ classdef Mesh_Composite < AbstractMesh
     methods (Access = public)
         
         function obj = Mesh_Composite()
-            obj.unfittedType = 'COMPOSITE';           
             obj.createMeshes();
         end
         
