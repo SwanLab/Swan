@@ -4,7 +4,7 @@ classdef PrincipalDirectionComputerIn3D < PrincipalDirectionComputer
         
         function obj = PrincipalDirectionComputerIn3D(cParams)
             obj.ndim = 3;
-            obj.init()
+            obj.init(cParams)
         end
         
     end
@@ -18,9 +18,10 @@ classdef PrincipalDirectionComputerIn3D < PrincipalDirectionComputer
             s12 = squeeze(tensor(1,4,:));
             s13 = squeeze(tensor(1,5,:));
             s23 = squeeze(tensor(1,6,:));
+            eG = obj.eigenComputer;            
             for i = 1:obj.ndim
                 for j = 1:obj.ndim
-                    d = obj.directionFunction{i,j}(s1,s2,s3,s12,s13,s23);
+                    d = eG.eigenVectorFunction{i,j}(s1,s12,s13,s2,s23,s3);
                     obj.direction(i,j,:) = real(d);                    
                     obj.assertSmallImaginaryValue(d);
                 end
@@ -29,22 +30,7 @@ classdef PrincipalDirectionComputerIn3D < PrincipalDirectionComputer
         
     end
     
-    methods (Access = protected)
-        
-        function obtainEigenValuesAndVectors(obj)
-            s1 = sym('s1','real');
-            s2 = sym('s2','real');
-            s3 = sym('s3','real');
-            s12 = sym('s12','real');
-            s13 = sym('s13','real');
-            s23 = sym('s23','real');
-            S = [s1 s12 s13; s12 s2 s23; s13 s23 s3];
-            [vS,dS] = eig(S);
-            obj.eigenVectors = vS;
-            obj.eigenValues = dS;
-        end
-                
-    end
+ 
     
     methods (Access = private, Static)
         

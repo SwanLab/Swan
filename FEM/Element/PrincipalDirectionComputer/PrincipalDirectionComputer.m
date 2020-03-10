@@ -6,12 +6,9 @@ classdef PrincipalDirectionComputer < handle
    end
    
    properties (Access = protected)
-       directionFunction       
-       eigenValueFunction
-       ndim
-       eigenVectors
-       eigenValues
-       avarageTensor       
+       eigenComputer
+       ndim    
+       eType
    end    
     
    methods (Access = public, Static)
@@ -25,44 +22,21 @@ classdef PrincipalDirectionComputer < handle
    
    methods (Access = protected)
                
-        function init(obj)
-            obj.obtainEigenValuesAndVectors();
-            obj.normalizeEigenVectors();
-            obj.transformEigenVectorsInNormalBase();
-            obj.transformSymEigenVectorsInFunctions();
-            obj.transformSymEigenValuesInFunctions();            
-        end       
-               
-        function normalizeEigenVectors(obj)
-            for i = 1:obj.ndim
-                e = obj.eigenVectors(:,i);
-                obj.eigenVectors(:,i) = e/norm(e);
-            end
-        end
-        
-        function transformEigenVectorsInNormalBase(obj)
-            %deter = det(obj.eigenVectors);
-%            obj.eigenVectors(:,2) = obj.eigenVectors(:,2)*deter;
-            if size(obj.eigenVectors,1) == 2
-                obj.eigenVectors(:,2) = [-obj.eigenVectors(2,1),obj.eigenVectors(1,1)];
-            end
-        end
-        
-        function transformSymEigenVectorsInFunctions(obj)
-            for i = 1:obj.ndim
-                for j = 1:obj.ndim
-                    e = obj.eigenVectors(i,j);
-                    obj.directionFunction{i,j} = matlabFunction(e);
-                end
-            end
-        end       
-        
-        function transformSymEigenValuesInFunctions(obj)
-            for i = 1:obj.ndim
-                    e = obj.eigenValues(i,i);
-                    obj.eigenValueFunction{i} = matlabFunction(e);
-            end            
-        end
+       function init(obj,cParams)
+          obj.eType = cParams.eigenValueComputer.type; 
+          obj.createEigenValueAndVectorFunction();            
+       end       
+       
+   end
+   
+   methods (Access = private)
+       
+       function createEigenValueAndVectorFunction(obj)
+           s.ndim = obj.ndim;
+           s.type = obj.eType;
+           eV = EigenValueAndVectorComputer.create(s);
+           obj.eigenComputer = eV;
+       end
        
    end
    
@@ -70,7 +44,4 @@ classdef PrincipalDirectionComputer < handle
       compute(obj) 
    end   
     
-   methods (Access = protected, Abstract)
-      obtainEigenValuesAndVectors(obj)
-   end
 end

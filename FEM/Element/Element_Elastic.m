@@ -45,7 +45,7 @@ classdef Element_Elastic < Element
                         case '3D'
                             obj = Element_Elastic_3D(mesh,geometry,material,dof,problemData,interp);
                     end
-            end            
+            end                        
             obj.createPrincipalDirection(problemData.pdim);
         end
     end
@@ -203,9 +203,10 @@ classdef Element_Elastic < Element
     
     methods (Access = private)
         
-        function createPrincipalDirection(obj, pdim)    
-            cParams.type = pdim;
-            p = PrincipalDirectionComputer.create(cParams);
+        function createPrincipalDirection(obj, pdim)   
+            s.eigenValueComputer.type = 'PRECOMPUTED';            
+            s.type = pdim;
+            p = PrincipalDirectionComputer.create(s);
             obj.principalDirectionComputer = p;
         end
         
