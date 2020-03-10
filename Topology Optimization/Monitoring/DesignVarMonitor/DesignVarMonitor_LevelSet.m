@@ -48,11 +48,15 @@ classdef DesignVarMonitor_LevelSet < DesignVarMonitor_Abstract
         
         function createUnfittedMesh(obj)
             interpolation = Interpolation.create(obj.mesh,'LINEAR');
-            unfittedSettings = SettingsMeshUnfitted(obj.unfittedType,obj.mesh,interpolation,obj.meshIncludeBoxContour);
-            unfittedSettings.includeBoxContour = true;
-            unfittedSettings.unfittedType = 'BOUNDARY';    
-            unfittedSettings.type = 'BOUNDARY';                        
-            obj.meshUnfitted = UnfittedMesh(unfittedSettings);
+            s = SettingsMeshUnfitted(obj.unfittedType,obj.mesh,interpolation,obj.meshIncludeBoxContour);
+            s.includeBoxContour = true;
+            s.unfittedType = 'INTERIOR';
+            s.type = 'INTERIOR';
+            obj.meshUnfitted = UnfittedMesh(s);
+            
+            % uM = obj.designVar.getUnfittedMesh()
+            
+            
         end
         
         function updateMesh(obj)
@@ -64,9 +68,13 @@ classdef DesignVarMonitor_LevelSet < DesignVarMonitor_Abstract
             cla(obj.axes);
             rDim = obj.mesh.removedDimensions;
             rCoord = obj.mesh.removedDimensionCoord;
-            obj.meshUnfitted.add2plot(obj.axes,rDim,rCoord);
+            %            obj.meshUnfitted.add2plot(obj.axes,rDim,rCoord);
+
+            figure(obj.figHandle.Number)
             light(obj.axes)
             obj.BCplotter.plot();
+            hold on
+            obj.meshUnfitted.plot()%(obj.axes,rDim,rCoord);                        
         end
         
     end

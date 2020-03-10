@@ -48,7 +48,7 @@ classdef IntegratorCutMesh < Integrator
         
         function xGauss = computeUnfittedGaussPoints(obj)
             q = obj.quadrature;
-            xGauss = obj.mesh.computeUnfittedGaussPoints(q);
+            xGauss = obj.mesh.computeIsoGaussPoints(q);
         end
         
         function Fproj = integrateFwithShapeFunction(obj)

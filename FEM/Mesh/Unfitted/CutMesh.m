@@ -104,7 +104,7 @@ classdef CutMesh < Mesh
             obj.meshPlotter.plot(meshUnfittedCopy,ax,bF);
         end
         
-        function xGauss = computeUnfittedGaussPoints(obj,quad)
+        function xGauss = computeIsoGaussPoints(obj,quad)
             coord = obj.subcellIsoCoords;
             coord = permute(coord,[1 3 2]);
             shape = obj.createShapes(quad.posgp);
