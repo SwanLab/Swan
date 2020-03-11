@@ -1,8 +1,5 @@
 classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
 
-    properties (Access = protected)
-    end
-    
     methods (Access = public)
         
         function obj = Isotropic2dElasticMaterial(cParams)
@@ -13,41 +10,41 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
     
     methods (Access = protected)
         
+        function computeLambda(obj)
+            obj.lambda = obj.kappa-obj.mu;                        
+        end
+        
         function obj = computeC(obj)
-            obj.computeYoungModulus();
-            obj.computePoissonRatio();
-            C = obj.C;            
-            E = obj.E;
-            nu = obj.nu;            
-            c1 = (E./(1-nu.^2));
-            C(1,1,:) = c1;
-            C(1,2,:) = c1.*nu;
-            C(2,1,:) = c1.*nu;
-            C(2,2,:) = c1;
-            C(3,3,:) = c1*0.5.*(1-nu);            
-            obj.C = C;
+%            obj.computeYoungModulus();
+%            obj.computePoissonRatio();
+            m = obj.mu;
+            l = obj.lambda;
+            obj.C(1,1,:)= 2*m+l;
+            obj.C(1,2,:)= l;
+            obj.C(2,1,:)= l;
+            obj.C(2,2,:)= 2*m+l;
+            obj.C(3,3,:)= m;
         end
         
     end
     
-    methods (Access = private)
-        
-        function computeYoungModulus(obj)
-            k = obj.kappa;
-            m = obj.mu;            
-            E = 4*k.*m./(k + m);
-            obj.E = E;
-        end
-        
-        function computePoissonRatio(obj)
-            k = obj.kappa;
-            m = obj.mu;            
-            nu = (k - m)./(k + m);
-            obj.nu = nu;
-        end
-                
-        
-    end
+%     methods (Access = private)
+%         
+%         function computeYoungModulus(obj)
+%             k = obj.kappa;
+%             m = obj.mu;            
+%             E = 4*k.*m./(k + m);
+%             obj.E = E;
+%         end
+%         
+%         function computePoissonRatio(obj)
+%             k = obj.kappa;
+%             m = obj.mu;            
+%             nu = (k - m)./(k + m);
+%             obj.nu = nu;
+%         end                
+%         
+%     end
     
 end
 

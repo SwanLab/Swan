@@ -1,15 +1,16 @@
 classdef Material_Interpolation_ISO_SIMPALL_2D < Material_Interpolation_ISO_SIMPALL
-    properties        
-    end
-    methods
-        function obj=Material_Interpolation_ISO_SIMPALL_2D(MaterialParameters)
-            obj@Material_Interpolation_ISO_SIMPALL(MaterialParameters);
+        
+    methods  (Access = public)
+        
+        function obj = Material_Interpolation_ISO_SIMPALL_2D(cParams)
+            obj.init(cParams)
         end
+        
         function matProps=computeMatProp(obj, rho)
             nelem = max(size(rho));
             dC=zeros(3,3,nelem);
             if isempty(obj.mu_func)
-                obj.computeSymProps(rho);
+                obj.computeSymProps();
                 
                 dmu = diff(obj.mu_sym);
                 d = 2; % the dimension, 2 in 2D

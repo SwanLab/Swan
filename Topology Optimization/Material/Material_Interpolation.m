@@ -12,30 +12,22 @@ classdef Material_Interpolation < handle
     methods (Access = public, Static)
         
         function obj = create(cParams)
-            constParams = cParams.constitutiveProperties;
-            switch cParams.typeOfMaterial
-                case 'ISOTROPIC'
-                    switch cParams.interpolation
-                        case 'SIMPALL'
-                            switch cParams.dim
-                                case '2D'
-                                    obj = Material_Interpolation_ISO_SIMPALL_2D(constParams);
-                                case '3D'
-                                    obj = Material_Interpolation_ISO_SIMPALL_3D(constParams);
-                            end
-                        case 'SIMP_Adaptative'
-                            obj = Material_Interpolation_ISO_SIMP_Adaptative(constParams);
-                        case 'SIMP_P3'
-                            obj = Material_Interpolation_ISO_SIMP_P3(constParams);
-                        otherwise
-                            error('Invalid Material Interpolation method.');
-                    end
-                otherwise
-                    error('Invalid type of material');
-            end
+            f = MaterialInterpolationFactory;
+            obj = f.create(cParams);
         end
+    end
+    
+    methods (Access = protected)
         
-        computeMatProp()
+        function init(obj,cParams)
+            cP = cParams.constitutiveProperties;            
+            obj.rho_plus  = cP.rho_plus;
+            obj.rho_minus = cP.rho_minus;
+            obj.E_plus    = cP.E_plus;
+            obj.E_minus   = cP.E_minus;
+            obj.nu_plus   = cP.nu_plus;
+            obj.nu_minus  = cP.nu_minus;            
+        end
         
     end
     

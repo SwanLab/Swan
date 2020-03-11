@@ -1,14 +1,15 @@
 classdef Material_Interpolation_ISO_SIMPALL_3D < Material_Interpolation_ISO_SIMPALL
-    properties
-    end
-    methods
-        function obj=Material_Interpolation_ISO_SIMPALL_3D(HSbounds)
-            obj@Material_Interpolation_ISO_SIMPALL(HSbounds);
+    
+    methods (Access = public)
+
+        function obj= Material_Interpolation_ISO_SIMPALL_3D(cParams)
+            obj.init(cParams)
         end
+        
         function matProps=computeMatProp(obj, rho)
             dC=zeros(6,6,size(rho,1));
             if isempty(obj.mu_func)
-                obj.computeSymProps(rho);
+                obj.computeSymProps();
                 
                 dmu = diff(obj.mu_sym);
                 d = 3; % the dimension, 3 in 3D

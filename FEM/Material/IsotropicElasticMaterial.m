@@ -17,7 +17,7 @@ classdef IsotropicElasticMaterial < ElasticMaterial
         function obj = setProps(obj,props)
             obj.kappa = props.kappa;
             obj.mu    = props.mu;
-            obj.lambda = obj.kappa-obj.mu;
+            obj.computeLambda()
             obj.computeC();
         end
         
@@ -27,6 +27,7 @@ classdef IsotropicElasticMaterial < ElasticMaterial
         
         function init(obj,cParams)
             obj.nelem = cParams.nelem;
+            obj.nstre = cParams.nstre;
             obj.createCtensor();
         end
        
@@ -38,6 +39,7 @@ classdef IsotropicElasticMaterial < ElasticMaterial
             
     methods (Access = protected, Abstract)
         computeC(obj)
+        computeLambda(obj)
     end
     
 end
