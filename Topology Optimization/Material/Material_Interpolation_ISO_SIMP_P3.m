@@ -4,7 +4,8 @@ classdef Material_Interpolation_ISO_SIMP_P3 < Material_Interpolation_ISO_SIMP
         
         function obj= Material_Interpolation_ISO_SIMP_P3(cParams)
             obj.init(cParams)
-            obj.p = 3;
+            obj.pExp = 3;
+            obj.computeSymbolicInterpolationFunctions();
         end
            
     end

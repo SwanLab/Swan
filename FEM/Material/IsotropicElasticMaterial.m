@@ -1,24 +1,24 @@
 classdef IsotropicElasticMaterial < ElasticMaterial
 
     properties (GetAccess = public, SetAccess = protected)
-        kappa
-        mu
-        lambda
+       nstre        
     end
     
     properties (Access = protected)
-       E
-       nu
-       nstre        
+        ndim
+       
+        kappa
+        mu
+        lambda       
     end
             
     methods (Access = public)        
         
-        function obj = setProps(obj,props)
-            obj.kappa = props.kappa;
-            obj.mu    = props.mu;
-            obj.computeLambda()
-            obj.computeC();
+        function compute(obj,s)
+            obj.kappa = s.kappa;
+            obj.mu    = s.mu;
+            obj.computeLambda();
+            obj.computeC(obj.mu,obj.lambda);
         end
         
     end
@@ -26,15 +26,10 @@ classdef IsotropicElasticMaterial < ElasticMaterial
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.nelem = cParams.nelem;
+            obj.nElem = cParams.nelem;
             obj.nstre = cParams.nstre;
-            obj.createCtensor();
         end
        
-        function createCtensor(obj)
-            obj.C = zeros(obj.nstre,obj.nstre,obj.nelem);
-        end
-
     end
             
     methods (Access = protected, Abstract)

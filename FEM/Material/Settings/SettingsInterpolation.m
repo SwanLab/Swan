@@ -10,7 +10,7 @@ classdef SettingsInterpolation < AbstractSettings
         interpolation
         dim
         type
-        nelem
+        nElem
         ngaus
     end
     

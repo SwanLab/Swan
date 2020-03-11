@@ -95,8 +95,8 @@ classdef FEM < handle
             obj.dof = dof;
         end
         
-        function setMatProps(obj,props)
-            obj.element.material.setProps(props);           
+        function setMatProps(obj,s)
+            obj.element.material.compute(s);           
         end
         
         function setC(obj,C)

@@ -1,6 +1,5 @@
 classdef MaterialInterpolationFactory < handle
     
-    
     methods (Access = public, Static)
         
         function obj = create(cParams)

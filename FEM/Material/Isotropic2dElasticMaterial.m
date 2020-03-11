@@ -4,6 +4,7 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
         
         function obj = Isotropic2dElasticMaterial(cParams)
             obj.init(cParams);          
+            obj.ndim = 2;
         end
         
     end    
@@ -11,40 +12,23 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
     methods (Access = protected)
         
         function computeLambda(obj)
-            obj.lambda = obj.kappa-obj.mu;                        
+            d = obj.ndim;
+            obj.lambda = obj.kappa - 2/d*obj.mu;                        
         end
         
-        function obj = computeC(obj)
-%            obj.computeYoungModulus();
-%            obj.computePoissonRatio();
-            m = obj.mu;
-            l = obj.lambda;
-            obj.C(1,1,:)= 2*m+l;
-            obj.C(1,2,:)= l;
-            obj.C(2,1,:)= l;
-            obj.C(2,2,:)= 2*m+l;
-            obj.C(3,3,:)= m;
+        function C = computeC(obj,mu,lambda)
+            m = mu;
+            l = lambda;
+            C = zeros(obj.nstre,obj.nstre,obj.nElem);                        
+            C(1,1,:)= 2*m+l;
+            C(1,2,:)= l;
+            C(2,1,:)= l;
+            C(2,2,:)= 2*m+l;
+            C(3,3,:)= m;
+            obj.C = C;
         end
         
     end
-    
-%     methods (Access = private)
-%         
-%         function computeYoungModulus(obj)
-%             k = obj.kappa;
-%             m = obj.mu;            
-%             E = 4*k.*m./(k + m);
-%             obj.E = E;
-%         end
-%         
-%         function computePoissonRatio(obj)
-%             k = obj.kappa;
-%             m = obj.mu;            
-%             nu = (k - m)./(k + m);
-%             obj.nu = nu;
-%         end                
-%         
-%     end
-    
+
 end
 

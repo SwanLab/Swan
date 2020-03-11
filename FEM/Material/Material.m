@@ -1,7 +1,7 @@
 classdef Material < handle
     
     properties (Access = protected)
-        nelem
+        nElem
     end
     
     
