@@ -9,6 +9,7 @@ classdef SettingsInterpolation < AbstractSettings
         typeOfMaterial
         interpolation
         dim
+        ndim
         type
         nElem
         ngaus

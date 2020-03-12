@@ -1,8 +1,8 @@
-classdef Material_Interpolation_ISO_SIMP_Adaptative < Material_Interpolation_ISO_SIMP
+classdef SimpInterpolationAdaptative < SimpInterpolation
     
     methods (Access = public)
         
-        function obj= Material_Interpolation_ISO_SIMP_Adaptative(cParams)
+        function obj= SimpInterpolationAdaptative(cParams)
             obj.init(cParams)
             obj.computeExponentP();
             obj.computeSymbolicInterpolationFunctions();
@@ -13,8 +13,8 @@ classdef Material_Interpolation_ISO_SIMP_Adaptative < Material_Interpolation_ISO
     methods (Access = private)
         
         function computeExponentP(obj)
-           pUB = 2/(1-obj.nu1);
-           pLB = 4/(1+obj.nu1);
+           pUB = 2/(1-obj.matProp.nu1);
+           pLB = 4/(1+obj.matProp.nu1);
            obj.pExp = max(pUB,pLB);
         end
     end

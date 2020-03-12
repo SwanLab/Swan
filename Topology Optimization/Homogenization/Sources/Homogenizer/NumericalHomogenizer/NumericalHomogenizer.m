@@ -88,12 +88,13 @@ classdef NumericalHomogenizer < handle
         end        
         
         function createInterpolation(obj)
+            d = SettingsInterpolation();
             d.interpolation = obj.interDataBase.materialInterpolation;
             d.constitutiveProperties  = obj.matDataBase.matProp;
             d.typeOfMaterial = obj.matDataBase.materialType;
             d.dim  = obj.pdim;
             d.nElem = obj.microProblem.mesh.nelem;
-            mI  = Material_Interpolation.create(d);
+            mI  = MaterialInterpolation.create(d);
             obj.interpolation = mI;
             obj.matValues = d.constitutiveProperties;
         end

@@ -1,11 +1,10 @@
-classdef SimpallInterpolationExplicit3D < SimpallInterpolationExplicit
+classdef SimpAllInterpolationExplicit3D < SimpAllInterpolationExplicit
         
     methods  (Access = public)
         
-        function obj = SimpallInterpolationExplicit3D(cParams)
+        function obj = SimpAllInterpolationExplicit3D(cParams)
             obj.init(cParams);
             obj.nstre = 6;  
-            obj.ndim  = 3;   
             obj.computeSymbolicInterpolationFunctions();
         end
 

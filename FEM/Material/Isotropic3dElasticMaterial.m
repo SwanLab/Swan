@@ -4,16 +4,16 @@ classdef Isotropic3dElasticMaterial < IsotropicElasticMaterial
         
         function obj = Isotropic3dElasticMaterial(cParams)
             obj.init(cParams);
-            obj.ndim = 3;
+            obj.nstre = 6;
         end
         
     end
     
     methods (Access = protected)
 
-        function computeC(obj,mu,lambda)            
-            m = mu;
-            l = lambda;
+        function computeC(obj)   
+            m = obj.mu;
+            l = obj.computeLambdaFromMuAndKappa(obj.mu,obj.kappa);
             C = zeros(obj.nstre,obj.nstre,obj.nElem);            
             C(1,1,:) = 2*m + l;
             C(2,2,:) = 2*m + l;
@@ -28,6 +28,30 @@ classdef Isotropic3dElasticMaterial < IsotropicElasticMaterial
             C(5,5,:) = m;
             C(6,6,:) = m;
             obj.C = C;
+        end
+        
+    end
+    
+    methods (Access = public, Static)
+        
+        function E = computeYoungFromMuAndKappa(mu,kappa)
+            E = 9*kappa*mu/(3*kappa + mu);
+        end
+        
+        function nu = computeNuFromMuAndKappa(mu,kappa)
+            nu = (3*kappa-2*mu)/(6*kappa+2*mu);
+        end        
+        
+        function k = computeKappaFromYoungAndNu(E,nu)
+            k = E/(3*(1-2*nu));
+        end
+        
+        function lambda = computeLambdaFromMuAndKappa(mu,kappa)
+            lambda = kappa - 2/3*mu;
+        end
+        
+        function kappa = computeKappaFromMuAndLambda(mu,lambda)
+            kappa = lambda + 2/3*mu;
         end
         
     end

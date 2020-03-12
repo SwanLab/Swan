@@ -12,8 +12,7 @@ classdef SimplAllTestExplicitVsImplicit < testShowingError
         nElem
         nGaus
         dim
-     end
-     
+     end     
     
     methods (Access = protected)
         
@@ -61,7 +60,7 @@ classdef SimplAllTestExplicitVsImplicit < testShowingError
             s.nElem = obj.nElem;   
             s.simpAllType = type;
             s.dim = obj.dim;
-            mI = Material_Interpolation.create(s);
+            mI = MaterialInterpolation.create(s);
             p = mI.computeMatProp(obj.rho);  
             obj.matInterpExplicit = p;
         end

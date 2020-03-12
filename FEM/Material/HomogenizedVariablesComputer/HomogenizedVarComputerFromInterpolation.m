@@ -45,7 +45,6 @@ classdef HomogenizedVarComputerFromInterpolation ...
         end
         
         function createMaterial(obj)
-            s.nelem = obj.nElem;
             s.pdim  = obj.pdim;            
             s.ptype = 'ELASTIC';
             obj.material = Material.create(s);            
@@ -54,7 +53,8 @@ classdef HomogenizedVarComputerFromInterpolation ...
         function createMaterialInterpolation(obj,cParams)
             s = cParams.interpolationSettings;
             s.nElem = obj.nElem;
-            int = Material_Interpolation.create(s);
+            s.dim  = obj.pdim;
+            int = MaterialInterpolation.create(s);
             obj.interpolation = int;
         end
         
