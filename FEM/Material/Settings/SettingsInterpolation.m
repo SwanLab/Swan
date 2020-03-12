@@ -12,6 +12,7 @@ classdef SettingsInterpolation < AbstractSettings
         type
         nElem
         ngaus
+        simpAllType
     end
     
     methods (Access = public)

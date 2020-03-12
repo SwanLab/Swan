@@ -11,10 +11,7 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
     
     methods (Access = protected)
         
-        function computeLambda(obj)
-            d = obj.ndim;
-            obj.lambda = obj.kappa - 2/d*obj.mu;                        
-        end
+
         
         function C = computeC(obj,mu,lambda)
             m = mu;

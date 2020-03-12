@@ -1,40 +1,37 @@
 classdef Material_Interpolation_ISO_SIMP < Material_Interpolation
     
-    properties (Access = protected)             
+    properties (Access = protected)
         pExp
     end
     
     methods (Access = protected)
-        
-        function [muS,dmuS,kS,dkS] = computeSymbolicMuKappa(obj)
-            [muS,kS] = obj.computeMuAndKappaSym();
-            dmuS = diff(muS);
-            dkS  = diff(kS);
+          
+        function [k,dk] = computeKappaSymbolicFunctionAndDerivative(obj)
+            [k0,k1] = obj.computeKappaLimits();            
+            k = obj.interpolate(k0,k1);            
+            dk = diff(k);
         end
         
-        function [mu_sym,kappa_sym] = computeMuAndKappaSym(obj)
-            rho1 = obj.rho1;
-            rho0 = obj.rho0;
-            E1   = obj.E1;
-            E0   = obj.E0;
-            nu1  = obj.nu1;
-            nu0  = obj.nu0;
+        function [mu,dmu] = computeMuSymbolicFunctionAndDerivative(obj)
+            [mu0,mu1] = obj.computeMuLimits();            
+            mu = obj.interpolate(mu0,mu1);            
+            dmu = diff(mu);
+        end
+        
+        function f = interpolate(obj,f0,f1)
             p = obj.pExp;
-            
-            rho = sym('rho','real');
-            mu_sym = (E1*(rho - rho0)^p)/((2*nu1 + 2)*(rho1 - rho0)^p) - (E0*((rho - rho0)^p/(rho1 - rho0)^p - 1))/(2*nu0 + 2);
-            kappa_sym = -(((2*E0*((rho - rho0)^p/(rho1 - rho0)^p - 1))/(nu0 + 1) - (2*E1*(rho - rho0)^p)/...
-                ((rho1 - rho0)^p*(nu1 + 1)))*((E0*((rho - rho0)^p/...
-                (rho1 - rho0)^p - 1))/(2*(nu0 + 1)) - (E0*nu0*((rho - rho0)^p/...
-                (rho1 - rho0)^p - 1))/(nu0^2 - 1) - (E1*(rho - rho0)^p)/(2*(rho1 - rho0)^p*(nu1 + 1)) ...
-                + (E1*nu1*(rho - rho0)^p)/((nu1^2 - 1)*(rho1 - rho0)^p)))/(((2*((E0*nu0*((rho - rho0)^p/...
-                (rho1 - rho0)^p - 1))/(nu0^2 - 1) - (E1*nu1*(rho - rho0)^p)/((nu1^2 - 1)*(rho1 - rho0)^p)))/...
-                ((E0*((rho - rho0)^p/(rho1 - rho0)^p - 1))/(nu0 + 1) - (E0*nu0*((rho - rho0)^p/...
-                (rho1 - rho0)^p - 1))/(nu0^2 - 1) - (E1*(rho - rho0)^p)/((rho1 - rho0)^p*(nu1 + 1)) + ...
-                (E1*nu1*(rho - rho0)^p)/((nu1^2 - 1)*(rho1 - rho0)^p)) + 2)*((E0*((rho - rho0)^p/(rho1 - rho0)^p...
-                - 1))/(nu0 + 1) - (E0*nu0*((rho - rho0)^p/(rho1 - rho0)^p - 1))/(nu0^2 - 1) - (E1*(rho - rho0)^p)/...
-                ((rho1 - rho0)^p*(nu1 + 1)) + (E1*nu1*(rho - rho0)^p)/((nu1^2 - 1)*(rho1 - rho0)^p)));            
+            [drho0,drho1] = obj.computeDensities();            
+            f = (drho0^p)*f0 + (drho1^p)*f1;
         end
-        
+
+        function [drho0,drho1] = computeDensities(obj)
+            rho1 = obj.rho1;
+            rho0 = obj.rho0;           
+            rho = sym('rho','real');            
+            inc  = rho1 - rho0;
+            drho0 = (rho1 - rho)/inc;
+            drho1 = (rho  - rho0)/inc;             
+        end
+               
     end
 end

@@ -7,11 +7,27 @@ classdef MaterialInterpolationFactory < handle
                 case 'ISOTROPIC'
                     switch cParams.interpolation
                         case 'SIMPALL'
+                            if ~isfield(cParams,'simpAllType') 
+                                if isempty(cParams.simpAllType) 
+                                    cParams.simpAllType = 'EXPLICIT';
+                                end
+                            end
                             switch cParams.dim
                                 case '2D'
-                                    obj = Material_Interpolation_ISO_SIMPALL_2D(cParams);
+                                    switch cParams.simpAllType
+                                        case 'EXPLICIT'
+                                            obj = SimpallInterpolationExplicit2D(cParams);
+                                        case 'IMPLICIT'
+                                            obj = Material_Interpolation_ISO_SIMPALL_2D(cParams);
+                                    end
                                 case '3D'
-                                    obj = Material_Interpolation_ISO_SIMPALL_3D(cParams);
+                                    switch cParams.simpAllType
+                                        case 'EXPLICIT'                                    
+                                            obj = Material_Interpolation_ISO_SIMPALL_3D(cParams);
+                                        case 'IMPLICIT'
+                                            obj = SimpallInterpolationExplicit3D(cParams);
+                                    end
+                                    
                             end
                         case 'SIMP_Adaptative'
                             obj = Material_Interpolation_ISO_SIMP_Adaptative(cParams);

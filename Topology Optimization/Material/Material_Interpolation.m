@@ -65,10 +65,38 @@ classdef Material_Interpolation < handle
             obj.dkappaFunc = matlabFunction(dkS);            
         end
         
+        function [muS,dmuS,kS,dkS] = computeSymbolicMuKappa(obj)
+            [muS,dmuS] = obj.computeMuSymbolicFunctionAndDerivative();
+            [kS,dkS]   = obj.computeKappaSymbolicFunctionAndDerivative();   
+        end    
+        
+        function [k0,k1] = computeKappaLimits(obj)
+            k0  = obj.computeKappa(obj.E0,obj.nu0);
+            k1  = obj.computeKappa(obj.E1,obj.nu1);           
+        end 
+        
+        function [mu0,mu1] = computeMuLimits(obj)
+            mu0  = obj.computeMu(obj.E0,obj.nu0);
+            mu1  = obj.computeMu(obj.E1,obj.nu1);           
+        end        
+        
+    end
+    
+    methods (Access = protected, Static)
+        
+      function mu = computeMu(E,nu)
+            mu = E/(2*(1+nu));
+        end
+        
+        function k = computeKappa(E,nu)
+            k = E/(2*(1 - nu));
+        end       
+        
     end
     
     methods (Access = protected, Abstract)
-        computeSymbolicMuKappa(obj)
+        computeMuSymbolicFunctionAndDerivative(obj)
+        computeKappaSymbolicFunctionAndDerivative(obj)        
     end
     
 end

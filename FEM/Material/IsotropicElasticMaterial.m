@@ -29,12 +29,16 @@ classdef IsotropicElasticMaterial < ElasticMaterial
             obj.nElem = cParams.nelem;
             obj.nstre = cParams.nstre;
         end
+        
+        function computeLambda(obj)
+            d = obj.ndim;
+            obj.lambda = obj.kappa - 2/d*obj.mu;                        
+        end        
        
     end
             
     methods (Access = protected, Abstract)
         computeC(obj)
-        computeLambda(obj)
     end
     
 end
