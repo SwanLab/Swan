@@ -31,7 +31,7 @@ s.connec = connecCut;
 
 s.levelSet = ls;
 cutMesh = CutMeshComputerProvisional(s);
-connecCutInterior = cutMesh.connecCutInt;
+connecCutInterior = cutMesh.connec;
 coordT = cutMesh.coord;
 
 

@@ -4,12 +4,12 @@ classdef EdgesConnectivitiesComputer < handle
         nodesInEdges
         edgesInElem
         nEdgeByElem
+        nNodeByEdge        
     end
     
     properties (Access = private)
         nodesByElem
         nElem
-        nNodeByEdge
         nAllEdges
         
         localEdgesInElem
