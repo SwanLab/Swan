@@ -1,8 +1,8 @@
 classdef CutEdgesComputer < handle
     
     properties (GetAccess = public, SetAccess = private)
-        cutEdgeInElem
 
+        nodesInCutEdges
         nCutEdgeByElem  
       
         cutEdges        
@@ -16,6 +16,7 @@ classdef CutEdgesComputer < handle
         isEdgeCutInElem
         nElem
         nCutEdges
+        cutEdgeInElem
 
         code
     end
@@ -29,6 +30,7 @@ classdef CutEdgesComputer < handle
         function compute(obj)
             obj.computeCutEdges();
             obj.computeNcutEdges();
+            obj.computeNodesInCutEdges();
             obj.computeIsEdgeCutInElem();
             obj.computeCutEdgeInElem();
             obj.computeElementCases();
@@ -54,6 +56,12 @@ classdef CutEdgesComputer < handle
             ls1 = obj.levelSet(nodes1);
             ls2 = obj.levelSet(nodes2);
             obj.cutEdges = xor(ls1<0,ls2<0);
+        end
+        
+        function computeNodesInCutEdges(obj)
+            nodes = obj.edgesComputer.nodesInEdges;
+            cEdges = obj.cutEdges;
+            obj.nodesInCutEdges = nodes(cEdges,:);            
         end
         
         function computeNcutEdges(obj)

@@ -26,7 +26,6 @@ connecFull = connec(isFull,:);
 connecCut = connec(isCut,:);
 
 s.coord = coord;
-s.connec = connec;
 s.connec = connecCut;
 
 s.levelSet = ls;
