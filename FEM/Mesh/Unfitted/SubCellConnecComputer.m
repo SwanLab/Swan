@@ -10,12 +10,14 @@ classdef SubCellConnecComputer < handle
         connecTotal
         connecTall
         elemCases
-        levelSet        
+        levelSet
         isoNode
-        backgroundConnec
-        nCutEdgeByElem
-        cutNodePerElemen
-        isSubCellInterior        
+        vertexNodesInElem
+        cutNodesInElem
+        allNodesInElem
+        
+        
+        isSubCellInterior
     end
     
     methods (Access = public)
@@ -30,116 +32,78 @@ classdef SubCellConnecComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.nCutEdgeByElem = cParams.nCutEdgeByElem;
-            obj.cutNodePerElemen = cParams.cutNodePerElemen;
-            obj.backgroundConnec = cParams.backgroundConnec;
-            obj.nElem = cParams.nElem;
-            obj.elemCases = cParams.elemCases;
-            obj.coord = cParams.coord;
-            obj.levelSet = cParams.levelSet;
+            obj.cutNodesInElem   = cParams.cutNodePerElemen;
+            obj.vertexNodesInElem = cParams.backgroundConnec;
+            obj.nElem            = cParams.nElem;
+            obj.elemCases        = cParams.elemCases;
+            obj.coord            = cParams.coord;
+            obj.levelSet         = cParams.levelSet;
         end
         
         function compute(obj)
-            obj.computeConnecTotal();
+            obj.computeAllNodesInElem();
             obj.computeAllConnec();
             obj.computeIsoNode();
-            obj.computeIsSubCellInterior();  
+            obj.computeIsSubCellInterior();
             obj.computeConnec();
         end
         
-        function connecT = computeConnecTotal(obj)
-         
-            
-            nCutNode = obj.nCutEdgeByElem;
-            nnode    = size(obj.backgroundConnec,2);
-           
-            nNodeConnec = nnode + nCutNode;
-
-            bConnec = obj.backgroundConnec;            
-            connecT = zeros(obj.nElem,nNodeConnec);
-            
-            connecT(:,1) = bConnec(:,1);
-            connecT(:,2) = bConnec(:,2);
-            connecT(:,3) = bConnec(:,3);
-            
-            connecT(:,4) = obj.cutNodePerElemen(:,1);
-            connecT(:,5) = obj.cutNodePerElemen(:,2);
-            
-            obj.connecTotal = connecT;
-            
+        function computeAllNodesInElem(obj)
+            vertexNodes = obj.vertexNodesInElem;
+            cutNodes    = obj.cutNodesInElem;
+            allNodes    = [vertexNodes,cutNodes];
+            obj.allNodesInElem = allNodes;
         end
-        
-
-        
-        
-        function computeConnec(obj)
-            isInterior = obj.isSubCellInterior(:);
-            nSubCellInerior = sum(isInterior);
-            connecT = zeros(nSubCellInerior,3);
-            connecT(:,1) =  obj.connecTall(isInterior,1);
-            connecT(:,2) =  obj.connecTall(isInterior,2);
-            connecT(:,3) =  obj.connecTall(isInterior,3);   
-            obj.connec = connecT;
-        end
-        
-        function isSubCellInterior = computeIsSubCellInterior(obj)
-
-            isoNodeIsFull = obj.levelSet(obj.isoNode) < 0;            
-            
-            isTriangleInterior = isoNodeIsFull;
-            
-    
-            nSubElem = 3;
-            isSubCellInterior = false(nSubElem,obj.nElem);
-            
-            isSubCellInterior(1,isTriangleInterior) = true;
-            isSubCellInterior(2,isTriangleInterior) = false;
-            isSubCellInterior(3,isTriangleInterior) = false;
-            
-            isSubCellInterior(1,~isTriangleInterior) = false;
-            isSubCellInterior(2,~isTriangleInterior) = true;
-            isSubCellInterior(3,~isTriangleInterior) = true;    
-            
-            obj.isSubCellInterior = isSubCellInterior;
-        end        
-                
-        
         
         function computeAllConnec(obj)
-            coordT = obj.coord;
+            subTriangleConnec = obj.computeSubTriangleConnec();
+            allConnecQuad     = obj.computeSubTriangleConnecFromQuad();
             
-            connecTot = obj.connecTotal;
+            nSubCell = 3;
+            nnode    = 3;
+            allConnec = zeros(nSubCell,nnode,obj.nElem);
+            allConnec(1,:,:) = subTriangleConnec;
+            allConnec(2:3,:,:) = allConnecQuad;
             
+            allConnec = permute(allConnec,[1 3 2]);
             
+            connecTall = reshape(allConnec,30,3);
+            
+            obj.connecTall = connecTall;
+        end
+        
+        function allConnec = computeSubTriangleConnec(obj)
+            nCases = 3;
+            nNodeT = 3;
             nCutCells = obj.nElem;
-            connecT = zeros(3,nCutCells);
-            connecQ = zeros(4,obj.nElem);
-            
-            nSubElem = 3;
-            allConnec = zeros(nSubElem,3,obj.nElem);
+            connecTot = obj.allNodesInElem;
             
             localTriangleCon = [1 4 5;
                 4 2 5;
                 4 3 5];
             
-            localQuadConnec = [4 2 3 5;
-                1 4 5 3;
-                1 2 4 5];
+            connecT = zeros(3,nCutCells);
+            allConnec = zeros(3,obj.nElem);
             
-            
-            nCases = 3;
-            nNode = 2;
-            nEdge = 2;
-            largCase = zeros(nEdge,nNode,nCases);
-            largCase(:,:,1) = [4 3; 5 2];
-            
-            
-            largCase(:,:,2) = [4 3; 1 5];
-            
-            
-            largCase(:,:,3) = [1 4; 5 2];
-            
-            
+            for icase = 1:nCases
+                elemCase = obj.elemCases(:,icase);
+                for inode = 1:nNodeT
+                    localNode = localTriangleCon(icase,inode);
+                    connecT(inode,elemCase) = localNode ;
+                    node = connecTot(elemCase,localNode);
+                    allConnec(inode,elemCase) = node;
+                end
+                
+            end
+        end
+        
+        function allConnecQuad = computeSubTriangleConnecFromQuad(obj)            
+            allConnec = obj.computeConnecSubCases();
+            imax = obj.computeBetterSubCaseOption(allConnec);
+            allConnecQuad = obj.computeAllConnecQuad(allConnec,imax);
+        end        
+        
+        function allConnec = computeConnecSubCases(obj)
             connecCase(:,:,1,1) = [4 2 3;5 4 3];
             connecCase(:,:,1,2) = [2 3 5;4 2 5];
             
@@ -149,118 +113,64 @@ classdef SubCellConnecComputer < handle
             connecCase(:,:,3,1) = [1 2 5;2 4 5];
             connecCase(:,:,3,2) = [1 4 5;1 2 4];
             
-            nNodeT = 3;
-            nNodeQ = 4;
             
             
-            allConnec1 = allConnec;
-            allConnec2 = allConnec;
+            allConnec = zeros(2,3,obj.nElem,2);
             
-            for icase = 1:nCases
-                elemCase = obj.elemCases(:,icase);
-                % cutElemCase(elemCases,1) = icase;
-                
-                for inode = 1:nNodeT
-                    localNode = localTriangleCon(icase,inode);
-                    connecT(inode,elemCase) = localNode ;
-                    node = connecTot(elemCase,localNode);
-                    allConnec(1,inode,elemCase) = node;
-                    allConnec1(1,inode,elemCase) = node;
-                    allConnec2(1,inode,elemCase) = node;
-                end
-                
-                for inode = 1:nNodeQ
-                    connecQ(inode,elemCase) = localQuadConnec(icase,inode);
-                end
-                
-                lCase = largCase(:,:,icase);
-                
-                nCutElem = sum(elemCase);
-                nEdge = 2;
-                norm = zeros(nCutElem,2);
-                
-                for iedge = 1:nEdge
-                    nodesEdge = lCase(iedge,:);
-                    x = zeros(nCutElem,2);
-                    y = zeros(nCutElem,2);
-                    for inode = 1:2
-                        nodes = connecTot(elemCase,nodesEdge(inode));
-                        x(:,inode) = coordT(nodes,1);
-                        y(:,inode) = coordT(nodes,2);
-                    end
-                    norm(:,iedge) = sqrt((x(:,1)-x(:,2)).^2 + (y(:,1) - y(:,2)).^2);
-                end
-                
-                [a,imax] = min(norm,[],2);
-                
-                subElem = find(elemCase);
-                
-                
-                isubcase = 1;
-                for inode = 1:3
-                    for isubElem = 1:2
-                        localNode = connecCase(isubElem,inode,icase,isubcase);
-                        allConnec1(1+isubElem,inode,subElem) = connecTot(subElem,localNode);
-                    end
-                end
-                
-                
-                isubcase = 2;
-                for inode = 1:3
-                    for isubElem = 1:2
-                        localNode = connecCase(isubElem,inode,icase,isubcase);
-                        allConnec2(1+isubElem,inode,subElem) = connecTot(subElem,localNode);
-                    end
-                end
-                %end
-                
+            for isubCase = 1:2
+                connecT = connecCase(:,:,:,isubCase);
+                connecSubCase = obj.computeConnecSubCase(connecT);
+                allConnec(:,:,:,isubCase) = connecSubCase;
             end
-            
-            q1 = obj.computeQuality(allConnec1,coordT);
-            q2 = obj.computeQuality(allConnec2,coordT);
-            
-            qT(1,:) = sum(q1,1);
-            qT(2,:) = sum(q2,1);
-            
-            [~,imax] = max(qT);
-            
-            subcase = imax == 1;
-            allConnec(2:3,:,subcase) = allConnec1(2:3,:,subcase);
-            subcase = imax == 2;
-            allConnec(2:3,:,subcase) = allConnec2(2:3,:,subcase);
-            
-            connecTall = reshape(permute(allConnec,[1 3 2]),30,3);
-
-            obj.connecTall = connecTall;
             
             
         end
         
-        function computeIsoNode(obj)
-            
-            isoNodeT = zeros(obj.nElem,1);
+        
+        function allConnec = computeConnecSubCase(obj,connec)
+            allConnec = zeros(2,3,obj.nElem);
+            connecTot = obj.allNodesInElem;
             
             nCases = 3;
             
-            isoNodeCase = [1 2 3];
-            
             for icase = 1:nCases
                 elemCase = obj.elemCases(:,icase);
-                isoNodeT(elemCase,1) = isoNodeCase(icase);
+                connec2 = connecTot(elemCase,:);
+                for inode = 1:3
+                    for isubElem = 1:2
+                        localNode = connec(isubElem,inode,icase);
+                        node = connec2(:,localNode);
+                        allConnec(isubElem,inode,elemCase) = node;
+                    end
+                end
+                
             end
-            
-            t = sub2ind([10 3],[1:10]',isoNodeT);
-            connecTot = obj.connecTotal;
-            
-            obj.isoNode = connecTot(t);
         end
         
-        function q = computeQuality(obj,allConnec,coordT)
+        function imax = computeBetterSubCaseOption(obj,allConnec)
+            qT = zeros(2,obj.nElem);
+            for isubCase = 1:2
+                q = obj.computeQuality(allConnec(:,:,:,isubCase));
+                qT(isubCase,:) = sum(q,1);
+            end
+            [~,imax] = max(qT);            
+        end
+
+        function allConnecQuad = computeAllConnecQuad(obj,allConnec,imax)
+            allConnecQuad = zeros(2,3,obj.nElem);
+            for isubCase = 1:2
+                subcase = imax == isubCase;
+                allConnecQuad(:,:,subcase) = allConnec(:,:,subcase,isubCase);
+            end            
+        end
+        
+        function q = computeQuality(obj,allConnec)
+            coordT = obj.coord;
             A = zeros(2,obj.nElem);
             q = zeros(2,obj.nElem);
             for isubElem = 1:2
                 
-                nodes = squeeze(allConnec(1+isubElem,:,:))';
+                nodes = squeeze(allConnec(isubElem,:,:))';
                 
                 xA = coordT(nodes(:,1),1);
                 yA = coordT(nodes(:,1),2);
@@ -281,15 +191,58 @@ classdef SubCellConnecComputer < handle
             
         end
         
+        function computeIsoNode(obj)
+            
+            isoNodeT = zeros(obj.nElem,1);
+            
+            nCases = 3;
+            
+            isoNodeCase = [1 2 3];
+            
+            for icase = 1:nCases
+                elemCase = obj.elemCases(:,icase);
+                isoNodeT(elemCase,1) = isoNodeCase(icase);
+            end
+            
+            t = sub2ind([10 3],[1:10]',isoNodeT);
+            
+            obj.isoNode = obj.allNodesInElem(t);
+        end
+        
+        function isSubCellInterior = computeIsSubCellInterior(obj)
+            
+            isoNodeIsFull = obj.levelSet(obj.isoNode) < 0;
+            
+            isTriangleInterior = isoNodeIsFull;
+            
+            
+            nSubElem = 3;
+            isSubCellInterior = false(nSubElem,obj.nElem);
+            
+            isSubCellInterior(1,isTriangleInterior) = true;
+            isSubCellInterior(2,isTriangleInterior) = false;
+            isSubCellInterior(3,isTriangleInterior) = false;
+            
+            isSubCellInterior(1,~isTriangleInterior) = false;
+            isSubCellInterior(2,~isTriangleInterior) = true;
+            isSubCellInterior(3,~isTriangleInterior) = true;
+            
+            obj.isSubCellInterior = isSubCellInterior;
+        end
+        
+        
+        function computeConnec(obj)
+            isInterior = obj.isSubCellInterior(:);
+            nSubCellInerior = sum(isInterior);
+            connecT = zeros(nSubCellInerior,3);
+            connecT(:,1) =  obj.connecTall(isInterior,1);
+            connecT(:,2) =  obj.connecTall(isInterior,2);
+            connecT(:,3) =  obj.connecTall(isInterior,3);
+            obj.connec = connecT;
+        end
+        
         
         
     end
-    
-    
-    
-    
-    
-    
-    
     
 end

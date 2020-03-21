@@ -3,7 +3,6 @@ classdef CutEdgesComputer < handle
     properties (GetAccess = public, SetAccess = private)
 
         nodesInCutEdges
-        nCutEdgeByElem  
       
         cutEdges        
         elemCases        
@@ -17,7 +16,7 @@ classdef CutEdgesComputer < handle
         nElem
         nCutEdges
         cutEdgeInElem
-
+        nCutEdgeByElem  
         code
     end
     

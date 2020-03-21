@@ -65,7 +65,6 @@ classdef CutMeshComputerProvisional < handle
         
         function computeConnec(obj)
             s.cutNodePerElemen = obj.computeCutNodePerElem();
-            s.nCutEdgeByElem = obj.cutEdgesComputer.nCutEdgeByElem;
             s.backgroundConnec = obj.backgroundConnec;
             s.nElem = size(obj.backgroundConnec,1);
             s.elemCases = obj.cutEdgesComputer.elemCases;
