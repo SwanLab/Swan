@@ -1,68 +1,58 @@
-classdef TriangleSubCellNodesComputer < handle
+classdef AllSubCellsConnecComputer < handle
     
     properties (Access = public)
-        allSubCellsConnec
-        isoNode
+        allSubCellsConnec                
     end
     
     properties (Access = private)
-        localQuadNodeCases
-        localTriangleNodeCases
-        
         nSubCases
         nSubCellsByQuad
         
-        nodesInElem
-        nSubCellNodes
-        nSubCellsByElem
-        nElem
-        nCases
-        nSubCells        
-        
         allNodesInElem
         
-        elemCases
+        nSubCellNodes
+        nElem
+        nCases
+        nSubCells           
+        nSubCellsByElem
+       
+        localQuadNodeCases
+        localTriangleNodeCases        
+        
+        
+        subCellCases
         
         coord
     end
     
     methods (Access = public)
         
-        % SUBMESHERRRRR
-        function obj = TriangleSubCellNodesComputer(cParams)
+        function obj = AllSubCellsConnecComputer(cParams)
             obj.init(cParams)
         end
-        
-        function compute(obj)
+         
+        function compute(obj)          
             
-            isoNodeCase = [1 2 3];
-            
-            nodesInSubCells = zeros(obj.nSubCellsByElem,obj.nSubCellNodes,obj.nElem);
-            
-            isoNodeT = zeros(obj.nElem,1);
+            nodesInSubCells = zeros(obj.nSubCellsByElem,obj.nSubCellNodes,obj.nElem);            
             
             for icase = 1:obj.nCases
-                elemCase     = obj.elemCases(:,icase);
-                nElemInCase  = sum(elemCase);
+                subCells = obj.subCellCases(:,icase);
+                nElemInCase  = sum(subCells);
                 
-                nodes        = obj.nodesInElem(elemCase,:);
+                nodes        = obj.allNodesInElem(subCells,:);
                 
                 localNodes   = obj.localTriangleNodeCases(icase,:);
                 nodesT = obj.computeNodesSubCasesTriangle(localNodes,nodes,nElemInCase);
-                nodesInSubCells(1,:,elemCase) = nodesT;
+                nodesInSubCells(1,:,subCells) = nodesT;
                 
                 
                 localNodes = obj.localQuadNodeCases(:,:,:,icase);
                 nodeQuad = obj.computeAllConnecQuad(localNodes,nodes,nElemInCase);
-                nodesInSubCells(2:3,:,elemCase) = nodeQuad;
+                nodesInSubCells(2:3,:,subCells) = nodeQuad;
                 
-                isoNodeT(elemCase,1) = isoNodeCase(icase);
                 
             end
-            obj.allSubCellsConnec = obj.computeAllSubCells(nodesInSubCells);
-            
-            t = sub2ind([obj.nElem obj.nSubCellsByElem],(1:obj.nElem)',isoNodeT);
-            obj.isoNode = obj.nodesInElem(t);
+            obj.allSubCellsConnec = obj.computeAllSubCells(nodesInSubCells);            
         end
         
     end
@@ -70,21 +60,24 @@ classdef TriangleSubCellNodesComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
+            obj.coord          = cParams.coord;        
+            obj.allNodesInElem = cParams.allNodesInElem;
+            obj.nElem          = cParams.nElem;
+            obj.subCellCases   = cParams.subCellCases;   
+            
+            
             obj.nSubCases       = 2;
             obj.nSubCellsByQuad = 2;
+            obj.nSubCellNodes   = 3;
+            obj.nSubCellsByElem = 3;
+             
+            obj.nSubCells = obj.nElem*obj.nSubCellsByElem;
             
-            obj.coord = cParams.coord;
-        
-            obj.nodesInElem = cParams.nodesInElem;
-            obj.nSubCellNodes = cParams.nSubCellNodes;
-            obj.nSubCellsByElem = cParams.nSubCellsByElem;
-            obj.nElem = cParams.nElem;
-            obj.nCases = cParams.nCases;                
-            obj.elemCases = cParams.elemCases;   
-            obj.nSubCells = cParams.nSubCells;
             
             obj.computeTriangleLocalNodeCases();
-            obj.computeLocalNodesCases();
+            obj.computeLocalNodesCases(); 
+            
+            obj.nCases = size(obj.subCellCases,2);                        
             
         end
         
@@ -110,7 +103,6 @@ classdef TriangleSubCellNodesComputer < handle
             nodes = permute(nodes,[1 3 2]);
             nodes = reshape(nodes,obj.nSubCells,obj.nSubCellNodes);
         end
-        
         
         function nodesSubCases = computeNodesSubCasesTriangle(obj,localNodes,nodes,nElemInCase)
             nodesSubCases = zeros(obj.nSubCellNodes,nElemInCase);
@@ -158,6 +150,7 @@ classdef TriangleSubCellNodesComputer < handle
             [~,imax] = max(qT);
         end
         
+        
         function q = computeQuality(obj,allConnec,nElemInCase)
             coordT = obj.coord;
             A = zeros(2,nElemInCase);
@@ -182,9 +175,6 @@ classdef TriangleSubCellNodesComputer < handle
                 L = Lab + Lcb + Lac;
                 q(isubElem,:) = 4*sqrt(3)*A(isubElem,:)./L';
             end
-            
-            
-            
         end
         
     end

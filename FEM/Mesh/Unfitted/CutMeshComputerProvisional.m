@@ -10,9 +10,9 @@ classdef CutMeshComputerProvisional < handle
         backgroundCoord
         levelSet
         
-        edgesComputer
         cutEdgesComputer        
-   
+        allNodesInElem    
+        cutEdgesParams
     end
     
     methods (Access = public)
@@ -29,57 +29,53 @@ classdef CutMeshComputerProvisional < handle
         function init(obj,cParams)
             obj.backgroundConnec   = cParams.connec;
             obj.backgroundCoord    = cParams.coord;
+            obj.cutEdgesParams     = cParams.cutEdgesParams;
             obj.levelSet = cParams.levelSet;
         end
         
         function compute(obj)
-            obj.computeEdges();
-            obj.computeCutEdges();         
+            obj.computeCutEdges();    
+            obj.computeAllNodesInElem();
             obj.computeCoordinates();                                      
             obj.computeConnec();
         end
         
-        function computeEdges(obj)
-            s.nodesByElem = obj.backgroundConnec;
-            e = EdgesConnectivitiesComputer(s);
-            e.compute();
-            obj.edgesComputer = e;
-        end
-        
         function computeCutEdges(obj)
+            s = obj.cutEdgesParams;
             s.levelSet = obj.levelSet;
-            s.edgesComputer = obj.edgesComputer;
             c = CutEdgesComputer(s);
             c.compute();
             obj.cutEdgesComputer = c;    
         end
         
+        function computeAllNodesInElem(obj)
+            s.finalNodeNumber  = size(obj.backgroundCoord,1);
+            s.firstCutEdge     = obj.cutEdgesComputer.firstCutEdge;
+            s.backgroundConnec = obj.backgroundConnec;
+            aComputer = AllNodesInElemComputer(s);
+            aComputer.compute();
+            obj.allNodesInElem = aComputer.allNodesInElem;
+        end
+        
         function computeCoordinates(obj)           
-            s.nodesInCutEdges     = obj.cutEdgesComputer.nodesInCutEdges;
-            s.levelSet     = obj.levelSet;
-            s.backgroundCoord = obj.backgroundCoord;
+            s.nodesInCutEdges  = obj.cutEdgesComputer.nodesInCutEdges;
+            s.levelSet         = obj.levelSet;
+            s.backgroundCoord  = obj.backgroundCoord;
             coordComputer = CutCoordinatesComputer(s);
             coordComputer.compute();
             obj.coord = coordComputer.coord;
         end        
         
         function computeConnec(obj)
-            s.cutNodePerElemen = obj.computeCutNodePerElem();
-            s.backgroundConnec = obj.backgroundConnec;
-            s.nElem = size(obj.backgroundConnec,1);
-            s.elemCases = obj.cutEdgesComputer.elemCases;
-            s.coord = obj.coord;
-            s.levelSet = obj.levelSet;
-            subCell = SubCellConnecComputer(s);
+            s.firstCutEdge     = obj.cutEdgesComputer.firstCutEdge;
+            s.allNodesInElem   = obj.allNodesInElem;
+            s.nElem            = size(obj.backgroundConnec,1);
+            s.isEdgeCutInElem  = obj.cutEdgesComputer.isEdgeCutInElem;
+            s.coord            = obj.coord;
+            s.levelSet         = obj.levelSet;            
+            subCell = InteriorSubCellsConnecComputer(s);
             obj.connec = subCell.connec;
-        end        
-        
-        function cutNodePerElemen = computeCutNodePerElem(obj)
-            firstCutEdgePerElem = obj.cutEdgesComputer.firstCutEdge;
-            finalNode = size(obj.backgroundCoord,1);                                    
-            cutNodePerElemen = firstCutEdgePerElem + finalNode;
-        end        
-        
+        end               
         
     end
     

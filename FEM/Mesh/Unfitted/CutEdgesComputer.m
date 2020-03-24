@@ -1,23 +1,21 @@
 classdef CutEdgesComputer < handle
     
     properties (GetAccess = public, SetAccess = private)
-
         nodesInCutEdges
-      
-        cutEdges        
-        elemCases        
         firstCutEdge
+        isEdgeCutInElem
     end
     
     properties (Access = private)
         edgesComputer
         levelSet
-        isEdgeCutInElem
         nElem
         nCutEdges
         cutEdgeInElem
         nCutEdgeByElem  
-        code
+
+        cutEdges        
+
     end
     
     methods (Access = public)
@@ -32,7 +30,6 @@ classdef CutEdgesComputer < handle
             obj.computeNodesInCutEdges();
             obj.computeIsEdgeCutInElem();
             obj.computeCutEdgeInElem();
-            obj.computeElementCases();
             obj.computeCutNodePerElemen();
         end
         
@@ -45,7 +42,6 @@ classdef CutEdgesComputer < handle
             obj.edgesComputer = cParams.edgesComputer;
             obj.nElem = size(obj.edgesComputer.edgesInElem,1);
             obj.nCutEdgeByElem = 2;
-            obj.code = [5 3 6];
         end
         
         function computeCutEdges(obj)
@@ -87,24 +83,6 @@ classdef CutEdgesComputer < handle
             obj.cutEdgeInElem = edge;
         end
                 
-        function computeElementCases(obj)
-            edgeCases(:,1) = obj.computeEdgeCases();
-            nCases = size(unique(edgeCases),1);
-            obj.elemCases = false(obj.nElem,nCases);
-            for icase = 1:nCases
-                isEdgeCase = edgeCases == obj.code(icase);
-                obj.elemCases(:,icase) = isEdgeCase;
-            end
-        end
-        
-        function d = computeEdgeCases(obj)
-            isCut = obj.isEdgeCutInElem;
-            nEdgeByElem = obj.edgesComputer.nEdgeByElem;
-            edges = (1:nEdgeByElem) - 1;
-            pow2vector = 2.^(edges);
-            d = pow2vector*isCut;
-        end        
-        
         function computeCutNodePerElemen(obj)
             nAllEdges = size(obj.cutEdges,1);
             cEdges = zeros(nAllEdges,1);

@@ -6,30 +6,19 @@ classdef SubCellConnecComputer < handle
     
     properties (Access = private)
         coord
-        nElem
-        connecTotal
-        
-        allSubCellsConnec
-        
-        elemCases
+        nElem      
+        isEdgeCutInElem
         levelSet
-        isoNode
         vertexNodesInElem
-        cutNodesInElem
+        
         allNodesInElem
         
-        
-        nSubCellNodes
-        nSubCells
-        nSubCellsByElem
-        nCases
-        
-        nSubCases
-        nSubCellsByQuad
-        
-        nnodeT
-        
-        isSubCellInterior
+        firstCutEdge
+        finalNode
+        cutNodesInElem
+                
+        isSubCellInterior        
+        triangleSubMesher
     end
     
     methods (Access = public)
@@ -44,22 +33,21 @@ classdef SubCellConnecComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.cutNodesInElem   = cParams.cutNodePerElemen;
+            obj.firstCutEdge      = cParams.firstCutEdge;
             obj.vertexNodesInElem = cParams.backgroundConnec;
-            obj.nElem            = cParams.nElem;
-            obj.elemCases        = cParams.elemCases;
-            obj.coord            = cParams.coord;
-            obj.levelSet         = cParams.levelSet;
-            obj.nSubCellNodes    = 3;
-            obj.nSubCellsByElem  = 3;
-            obj.nSubCells        = obj.nElem*obj.nSubCellsByElem;
-            obj.nCases           = size(obj.elemCases,2);
+            obj.nElem             = cParams.nElem;
+            obj.isEdgeCutInElem   = cParams.isEdgeCutInElem;
+            obj.coord             = cParams.coord;
+            obj.levelSet          = cParams.levelSet;
+            obj.finalNode         = cParams.finalNode;
+            
         end
         
         function compute(obj)
+            obj.computeCutNodePerElem();
             obj.computeAllNodesInElem();
             obj.computeNodesInAllSubCells();
-            obj.computeIsSubCellInterior();
+            obj.computeIsSubCellsInterior();
             obj.computeConnec();
         end
         
@@ -71,44 +59,42 @@ classdef SubCellConnecComputer < handle
         end
         
         function computeNodesInAllSubCells(obj)
-            s.nodesInElem = obj.allNodesInElem;
-            s.elemCases = obj.elemCases;              
-            s.nSubCellNodes = obj.nSubCellNodes;
-            s.nSubCellsByElem = obj.nSubCellsByElem;
-            s.nElem = obj.nElem;
-            s.nCases = obj.nCases;    
-            s.coord = obj.coord;
-            s.nSubCells = obj.nSubCells;            
-            
+            s.nodesInElem     = obj.allNodesInElem;
+            s.isEdgeCutInElem = obj.isEdgeCutInElem;              
+            s.nElem           = obj.nElem;
+            s.coord           = obj.coord;   
             tComputer = TriangleSubCellNodesComputer(s);
-            tComputer.compute();
-            
-            
-             obj.allSubCellsConnec = tComputer.allSubCellsConnec;
-             obj.isoNode = tComputer.isoNode;
+            tComputer.compute();            
+            obj.triangleSubMesher = tComputer;
+        end
+           
+        function computeIsSubCellsInterior(obj)
+            isTriInt  = obj.computeIsSubCellTriangleInterior();
+            nSubCells = obj.triangleSubMesher.nSubCellsByElem;            
+            itIs = false(nSubCells,obj.nElem);            
+            itIs(1,isTriInt)  = true;
+            itIs(2,~isTriInt) = true;
+            itIs(3,~isTriInt) = true;            
+            obj.isSubCellInterior = itIs;
         end
         
-   
-        function isSubCellInterior = computeIsSubCellInterior(obj)
-            
-            isoNodeIsFull = obj.levelSet(obj.isoNode) < 0;
-            
-            isTriangleInterior = isoNodeIsFull;
-            
-            
-            isSubCellInterior = false(obj.nSubCellsByElem,obj.nElem);            
-            isSubCellInterior(1,isTriangleInterior)  = true;
-            isSubCellInterior(2,~isTriangleInterior) = true;
-            isSubCellInterior(3,~isTriangleInterior) = true;
-            
-            obj.isSubCellInterior = isSubCellInterior;
-        end
+        function itIs = computeIsSubCellTriangleInterior(obj)            
+            isoNode = obj.triangleSubMesher.isoNode;
+            isoNodeIsFull = obj.levelSet(isoNode) < 0;            
+            itIs = isoNodeIsFull;            
+        end        
         
         function computeConnec(obj)
+            allConnec  = obj.triangleSubMesher.allSubCellsConnec;
             isInterior = obj.isSubCellInterior(:);
-            obj.connec =  obj.allSubCellsConnec(isInterior,:);           
+            obj.connec = allConnec(isInterior,:);           
         end
         
+        function cutNodePerElemen = computeCutNodePerElem(obj)
+            firstCutEdgePerElem = obj.firstCutEdge;                               
+            cutNodePerElemen = firstCutEdgePerElem + obj.finalNode;  
+            obj.cutNodesInElem = cutNodePerElemen;
+        end        
         
         
     end

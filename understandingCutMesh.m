@@ -27,6 +27,7 @@ connecCut = connec(isCut,:);
 
 s.coord = coord;
 s.connec = connecCut;
+s.cutEdgesParams.edgesComputer = computeEdges(connecCut);
 
 s.levelSet = ls;
 cutMesh = CutMeshComputerProvisional(s);
@@ -40,6 +41,12 @@ s.coord = coordT;
 figure
 m = Mesh().create(s);
 m.plot();
+end
+
+function e = computeEdges(connec)
+s.nodesByElem = connec;
+e = EdgesConnectivitiesComputer(s);
+e.compute();
 end
 
 
