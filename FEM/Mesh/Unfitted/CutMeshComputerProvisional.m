@@ -67,10 +67,12 @@ classdef CutMeshComputerProvisional < handle
         end        
         
         function computeConnec(obj)
+            sS.bestSubCellCaseSelectorParams.coord = obj.coord;
+            sA.subMeshConnecParams = sS;
+            s.allSubCellsConnecParams = sA;
             s.firstCutEdge     = obj.cutEdgesComputer.firstCutEdge;
             s.allNodesInElem   = obj.allNodesInElem;
-            s.isEdgeCutInElem  = obj.cutEdgesComputer.isEdgeCutInElem;
-            s.coord            = obj.coord;
+            s.isEdgeCutInElem  = obj.cutEdgesComputer.isEdgeCutInElem;            
             s.levelSet         = obj.levelSet;            
             subCell = InteriorSubCellsConnecComputer(s);
             obj.connec = subCell.connec;

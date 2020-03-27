@@ -8,15 +8,15 @@ classdef TriangleSubMeshConnecComputer < handle
     end
     
     properties (Access = private)
-        coord
-        
-        localTriangleNodeCases
-        localQuadNodeCases
+        localTriangleConnecCases
+        localQuadConnecCases
         
         cellNodes
         nSubCellsByQuad
         nSubCases
-        nElemInCase       
+        nElemInCase  
+        
+        bestSubCellCaseSelectorParams
     end
     
     methods (Access = public)
@@ -25,39 +25,37 @@ classdef TriangleSubMeshConnecComputer < handle
             obj.init(cParams)
         end
         
-        function nodesInSubCells = compute(obj,nodes,icase)
+        function connec = compute(obj,nodes,icase)
             obj.nElemInCase = size(nodes,1);
             obj.cellNodes   = nodes;
-            nodesInSubCells = zeros(obj.nSubCellsByElem,obj.nSubCellNodes,obj.nElemInCase); 
-            obj.connecSubTriangle = obj.computeSubTriangleConnec(icase);
-            obj.connecSubQuad     = obj.computeSubQuadConnec(icase);
-            
-            nodesInSubCells(1,:,:)   = obj.connecSubTriangle;
-            nodesInSubCells(2:3,:,:) = obj.connecSubQuad;
+            obj.computeSubTriangleConnec(icase);
+            obj.computeSubQuadConnec(icase);
+            connec = obj.initSubCellsConnec();
+            connec(1,:,:)   = obj.connecSubTriangle;
+            connec(2:3,:,:) = obj.connecSubQuad;
         end
-        
-       
         
     end
     
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.coord = cParams.coord;            
+            s = cParams.bestSubCellCaseSelector;            
+            obj.bestSubCellCaseSelectorParams = s;
             obj.nSubCellNodes   = 3;
             obj.nSubCellsByQuad = 2;
             obj.nSubCases       = 2;
             obj.nSubCellsByElem = 3;
-            obj.computeTriangleLocalNodeCases();
-            obj.computeLocalNodesCases();
+            obj.computeTriangleLocalConnecCases();
+            obj.computeLocalQuadConnecCases();
         end
         
-        function computeTriangleLocalNodeCases(obj)
+        function computeTriangleLocalConnecCases(obj)
             nodes = [1 4 5;4 2 5; 4 3 5];
-            obj.localTriangleNodeCases = nodes;
+            obj.localTriangleConnecCases = nodes;
         end
         
-        function computeLocalNodesCases(obj)
+        function computeLocalQuadConnecCases(obj)
             nodes(:,:,1,1) = [4 2 3;5 4 3];
             nodes(:,:,2,1) = [2 3 5;4 2 5];
             
@@ -66,52 +64,73 @@ classdef TriangleSubMeshConnecComputer < handle
             
             nodes(:,:,1,3) = [1 2 5;2 4 5];
             nodes(:,:,2,3) = [1 4 5;1 2 4];            
-            obj.localQuadNodeCases = nodes;
+            obj.localQuadConnecCases = nodes;
         end
         
-        function nodesT = computeSubTriangleConnec(obj,icase)
-            localNodes   = obj.localTriangleNodeCases(icase,:);
-            nodesT = zeros(obj.nSubCellNodes,obj.nElemInCase);
+        function c = initSubCellsConnec(obj)
+            c = zeros(obj.nSubCellsByElem,obj.nSubCellNodes,obj.nElemInCase);             
+        end
+        
+        function connec = computeSubTriangleConnec(obj,icase)
+            localConnec = obj.localTriangleConnecCases(icase,:);
+            connec = zeros(obj.nSubCellNodes,obj.nElemInCase);
             for inode = 1:obj.nSubCellNodes
-                localNode = localNodes(inode);
+                localNode = localConnec(inode);
                 node = obj.cellNodes(:,localNode);
-                nodesT(inode,:) = node;
+                connec(inode,:) = node;
             end
+            obj.connecSubTriangle = connec;            
         end
         
-        function nodeQ = computeSubQuadConnec(obj,icase)
-            localNodes = obj.localQuadNodeCases(:,:,:,icase);
-            nodesSubCases = obj.computeNodesSubCases(localNodes);
-            nodeQ = obj.computeBestCase(nodesSubCases);
+        function computeSubQuadConnec(obj,icase)
+            localConnec = obj.localQuadConnecCases(:,:,:,icase);
+            connecCases = obj.computeSubCasesConnec(localConnec);
+            connec = obj.computeBestCase(connecCases);
+            obj.connecSubQuad = connec;             
         end        
         
         function nodeQ = computeBestCase(obj,nodesSubCases)
-           s.coord         = obj.coord;
+           s = obj.bestSubCellCaseSelectorParams;
            s.nodesSubCases = nodesSubCases;
            bestCase = BestSubCellCaseSelector(s);
            nodeQ = bestCase.compute();
         end
         
-        function nodesSubCases = computeNodesSubCases(obj,localNodesCase)
-            nodesSubCases = zeros(obj.nSubCellsByQuad,obj.nSubCellNodes,obj.nSubCases,obj.nElemInCase);
+        function connec = computeSubCasesConnec(obj,localConnecCases)
+            connec = obj.initQuadConnecCases();
             for isubCase = 1:obj.nSubCases
-                localNodes = localNodesCase(:,:,isubCase);
-                nodesT = zeros(obj.nSubCellsByQuad,obj.nSubCellNodes,obj.nElemInCase);
-                for isubCell = 1:obj.nSubCellsByQuad
-                    for inode = 1:obj.nSubCellNodes
-                        localNode = localNodes(isubCell,inode);
-                        node = obj.cellNodes(:,localNode);
-                        nodesT(isubCell,inode,:) = node;
-                    end
-                end
-                nodesSubCases(:,:,isubCase,:) = nodesT;
+                localConnec = localConnecCases(:,:,isubCase);
+                connecCase  = obj.computeOneCaseQuadConnec(localConnec);
+                connec(:,:,isubCase,:) = connecCase;
             end
         end
         
-    
+        function connec = computeOneCaseQuadConnec(obj,localConnec)
+            connec = obj.initConnecQuad();
+            for isubCell = 1:obj.nSubCellsByQuad
+                for inode = 1:obj.nSubCellNodes
+                    localNode = localConnec(isubCell,inode);
+                    node = obj.cellNodes(:,localNode);
+                    connec(isubCell,inode,:) = node;
+                end
+            end
+        end
+        
+        function connec = initConnecQuad(obj)
+            n1 = obj.nSubCellsByQuad;
+            n2 = obj.nSubCellNodes;
+            n3 = obj.nElemInCase;            
+            connec = zeros(n1,n2,n3);
+        end
+        
+        function connec = initQuadConnecCases(obj)
+            n1 = obj.nSubCellsByQuad;
+            n2 = obj.nSubCellNodes;
+            n3 = obj.nSubCases;
+            n4 = obj.nElemInCase;
+            connec = zeros(n1,n2,n3,n4);
+        end
         
     end
-    
-    
     
 end

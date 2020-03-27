@@ -9,7 +9,9 @@ classdef AllSubCellsConnecComputer < handle
         subCellCases                
         nElem
         nCases               
-        cellMesher        
+        cellMesher 
+        
+        subMeshConnecParams
     end
     
     methods (Access = public)
@@ -37,12 +39,13 @@ classdef AllSubCellsConnecComputer < handle
             obj.allNodesInElem = cParams.allNodesInElem;
             obj.subCellCases   = cParams.subCellCases;               
             obj.nElem  = size(obj.subCellCases,1);
-            obj.nCases = size(obj.subCellCases,2);                                                
-            s = cParams.subMeshConnecParams;
-            obj.createSubCellMesher(s);                        
+            obj.nCases = size(obj.subCellCases,2);  
+            obj.subMeshConnecParams = cParams.subMeshConnecParams;
+            obj.createSubCellMesher();                        
         end
         
-        function createSubCellMesher(obj,s)
+        function createSubCellMesher(obj)
+            s = obj.subMeshConnecParams;
             obj.cellMesher = TriangleSubMeshConnecComputer(s);
         end
         
