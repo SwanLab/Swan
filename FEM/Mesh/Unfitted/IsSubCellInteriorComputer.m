@@ -8,8 +8,7 @@ classdef IsSubCellInteriorComputer < handle
         subCellCases
         levelSet
         allNodesInElem
-        nSubCellsByElem
-        
+        nSubCellsByElem        
     end
     
     methods (Access = public)

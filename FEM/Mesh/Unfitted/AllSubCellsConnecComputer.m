@@ -1,28 +1,15 @@
 classdef AllSubCellsConnecComputer < handle
     
-    properties (Access = public)
+    properties (GetAccess = public, SetAccess = private)
         allSubCellsConnec                
     end
     
     properties (Access = private)
-        nSubCases
-        nSubCellsByQuad
-        
-        allNodesInElem
-        
-        nSubCellNodes
+        allNodesInElem        
+        subCellCases                
         nElem
-        nCases
-        nSubCells           
-        nSubCellsByElem
-       
-        localQuadNodeCases
-        localTriangleNodeCases        
-        
-        
-        subCellCases
-        
-        coord
+        nCases               
+        cellMesher        
     end
     
     methods (Access = public)
@@ -31,26 +18,13 @@ classdef AllSubCellsConnecComputer < handle
             obj.init(cParams)
         end
          
-        function compute(obj)          
-            
-            nodesInSubCells = zeros(obj.nSubCellsByElem,obj.nSubCellNodes,obj.nElem);            
-            
+        function compute(obj)                      
+            nodesInSubCells = obj.initNodesInSubCells();
             for icase = 1:obj.nCases
-                subCells = obj.subCellCases(:,icase);
-                nElemInCase  = sum(subCells);
-                
-                nodes        = obj.allNodesInElem(subCells,:);
-                
-                localNodes   = obj.localTriangleNodeCases(icase,:);
-                nodesT = obj.computeNodesSubCasesTriangle(localNodes,nodes,nElemInCase);
-                nodesInSubCells(1,:,subCells) = nodesT;
-                
-                
-                localNodes = obj.localQuadNodeCases(:,:,:,icase);
-                nodeQuad = obj.computeAllConnecQuad(localNodes,nodes,nElemInCase);
-                nodesInSubCells(2:3,:,subCells) = nodeQuad;
-                
-                
+                subCells  = obj.subCellCases(:,icase);               
+                nodesCase = obj.allNodesInElem(subCells,:);                
+                connecSubCell = obj.cellMesher.compute(nodesCase,icase);
+                nodesInSubCells(:,:,subCells) = connecSubCell;                
             end
             obj.allSubCellsConnec = obj.computeAllSubCells(nodesInSubCells);            
         end
@@ -59,126 +33,33 @@ classdef AllSubCellsConnecComputer < handle
     
     methods (Access = private)
         
-        function init(obj,cParams)
-            obj.coord          = cParams.coord;        
+        function init(obj,cParams)            
             obj.allNodesInElem = cParams.allNodesInElem;
-            obj.nElem          = cParams.nElem;
-            obj.subCellCases   = cParams.subCellCases;   
-            
-            
-            obj.nSubCases       = 2;
-            obj.nSubCellsByQuad = 2;
-            obj.nSubCellNodes   = 3;
-            obj.nSubCellsByElem = 3;
-             
-            obj.nSubCells = obj.nElem*obj.nSubCellsByElem;
-            
-            
-            obj.computeTriangleLocalNodeCases();
-            obj.computeLocalNodesCases(); 
-            
-            obj.nCases = size(obj.subCellCases,2);                        
-            
+            obj.subCellCases   = cParams.subCellCases;               
+            obj.nElem  = size(obj.subCellCases,1);
+            obj.nCases = size(obj.subCellCases,2);                                                
+            s = cParams.subMeshConnecParams;
+            obj.createSubCellMesher(s);                        
         end
         
-        function computeTriangleLocalNodeCases(obj)
-            nodes = [1 4 5;4 2 5; 4 3 5];
-            obj.localTriangleNodeCases = nodes;
+        function createSubCellMesher(obj,s)
+            obj.cellMesher = TriangleSubMeshConnecComputer(s);
         end
         
-        function computeLocalNodesCases(obj)
-            nodes(:,:,1,1) = [4 2 3;5 4 3];
-            nodes(:,:,2,1) = [2 3 5;4 2 5];
-            
-            nodes(:,:,1,2) = [4 5 3;1 4 3];
-            nodes(:,:,2,2) = [1 4 5;1 5 3];
-            
-            nodes(:,:,1,3) = [1 2 5;2 4 5];
-            nodes(:,:,2,3) = [1 4 5;1 2 4];
-            
-            obj.localQuadNodeCases = nodes;
+        function nodes = initNodesInSubCells(obj)
+            nSubCellsByElem = obj.cellMesher.nSubCellsByElem;
+            nSubCellNodes   = obj.cellMesher.nSubCellNodes;
+            nodes = zeros(nSubCellsByElem,nSubCellNodes,obj.nElem);            
         end
-        
+    
         function nodes = computeAllSubCells(obj,nodes)
+            nSubCellsByElem = obj.cellMesher.nSubCellsByElem;            
+            nSubCellNodes   = obj.cellMesher.nSubCellNodes;            
+            nSubCells       = obj.nElem*nSubCellsByElem;            
             nodes = permute(nodes,[1 3 2]);
-            nodes = reshape(nodes,obj.nSubCells,obj.nSubCellNodes);
-        end
-        
-        function nodesSubCases = computeNodesSubCasesTriangle(obj,localNodes,nodes,nElemInCase)
-            nodesSubCases = zeros(obj.nSubCellNodes,nElemInCase);
-            for inode = 1:obj.nSubCellNodes
-                localNode = localNodes(inode);
-                node = nodes(:,localNode);
-                nodesSubCases(inode,:) = node;
-            end
-        end
-        
-        function nodeQuad = computeAllConnecQuad(obj,localNodesCase,nodes,nElemInCase)
-            nodesSubCases = obj.computeNodesSubCases(nodes,localNodesCase,nElemInCase);
-            nodeQuad = zeros(obj.nSubCellsByQuad,obj.nSubCellNodes,nElemInCase);
-            imax = obj.computeBetterSubCaseOption(nodesSubCases,nElemInCase);
-            for isubCase = 1:obj.nSubCases
-                isSubCaseActive = imax == isubCase;
-                nodesSubCase = squeeze(nodesSubCases(:,:,isubCase,isSubCaseActive));
-                nodeQuad(:,:,isSubCaseActive) = nodesSubCase;
-            end
-        end
-        
-        function nodesSubCases = computeNodesSubCases(obj,nodes,localNodesCase,nElemInCase)
-            nodesSubCases = zeros(obj.nSubCellsByQuad,obj.nSubCellNodes,obj.nSubCases,nElemInCase);
-            for isubCase = 1:obj.nSubCases
-                localNodes = localNodesCase(:,:,isubCase);
-                nodesT = zeros(obj.nSubCellsByQuad,obj.nSubCellNodes,nElemInCase);
-                for isubCell = 1:obj.nSubCellsByQuad
-                    for inode = 1:obj.nSubCellNodes
-                        localNode = localNodes(isubCell,inode);
-                        node = nodes(:,localNode);
-                        nodesT(isubCell,inode,:) = node;
-                    end
-                end
-                nodesSubCases(:,:,isubCase,:) = nodesT;
-            end
-        end
-        
-        function imax = computeBetterSubCaseOption(obj,nodesSubCases,nElemInCase)
-            qT = zeros(obj.nSubCases,nElemInCase);
-            for isubCase = 1:obj.nSubCases
-                nodesT = nodesSubCases(:,:,isubCase,:);
-                q = obj.computeQuality(nodesT,nElemInCase);
-                qT(isubCase,:) = sum(q,1);
-            end
-            [~,imax] = max(qT);
-        end
-        
-        
-        function q = computeQuality(obj,allConnec,nElemInCase)
-            coordT = obj.coord;
-            A = zeros(2,nElemInCase);
-            q = zeros(2,nElemInCase);
-            for isubElem = 1:2
-                
-                nodes = squeeze(allConnec(isubElem,:,:))';
-                
-                xA = coordT(nodes(:,1),1);
-                yA = coordT(nodes(:,1),2);
-                
-                xB = coordT(nodes(:,2),1);
-                yB = coordT(nodes(:,2),2);
-                
-                xC = coordT(nodes(:,3),1);
-                yC = coordT(nodes(:,3),2);
-                
-                A(isubElem,:) =1/2*abs((xA -xC).*(yB-yA)-(xA-xB).*(yC-yA));
-                Lab = (xA - xB).^2 + (yA - yB).^2;
-                Lcb = (xC - xB).^2 + (yC - yB).^2;
-                Lac = (xA - xC).^2 + (yA - yC).^2;
-                L = Lab + Lcb + Lac;
-                q(isubElem,:) = 4*sqrt(3)*A(isubElem,:)./L';
-            end
+            nodes = reshape(nodes,nSubCells,nSubCellNodes);
         end
         
     end
-    
-    
     
 end

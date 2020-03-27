@@ -6,7 +6,6 @@ classdef InteriorSubCellsConnecComputer < handle
     
     properties (Access = private)
         coord
-        nElem      
         isEdgeCutInElem
         levelSet
         allNodesInElem
@@ -30,7 +29,6 @@ classdef InteriorSubCellsConnecComputer < handle
         
         function init(obj,cParams)
             obj.allNodesInElem    = cParams.allNodesInElem;
-            obj.nElem             = cParams.nElem;
             obj.isEdgeCutInElem   = cParams.isEdgeCutInElem;
             obj.coord             = cParams.coord;
             obj.levelSet          = cParams.levelSet;
@@ -46,17 +44,15 @@ classdef InteriorSubCellsConnecComputer < handle
         
         function computeSubCellCases(obj)            
            s.isEdgeCutInElem = obj.isEdgeCutInElem;
-           s.nElem           = obj.nElem;
            subCells = SubCellsCasesComputer(s);
            subCells.compute();
            obj.subCellCases = subCells.subCellCases;
         end
         
         function computeAllSubCellsConnec(obj)
-            s.coord           = obj.coord;               
-            s.allNodesInElem  = obj.allNodesInElem;
-            s.nElem           = obj.nElem;            
-            s.subCellCases    = obj.subCellCases;              
+            s.allNodesInElem            = obj.allNodesInElem;
+            s.subCellCases              = obj.subCellCases;              
+            s.subMeshConnecParams.coord = obj.coord;               
             a = AllSubCellsConnecComputer(s);
             a.compute();            
             obj.allSubCellsConnec = a.allSubCellsConnec;            
