@@ -47,7 +47,8 @@ classdef BestSubCellCaseSelector < handle
             for isubCase = 1:obj.nSubCases
                 nodesS = obj.nodesSubCases(:,:,isubCase,:);
                 q = obj.computeCaseQuality(nodesS);
-                qT(isubCase,:) = sum(q,1);
+                qT(isubCase,:) = obj.computeMeritFunction(q);
+                %qT(isubCase,:) = sum(q,1);
             end
             [~,imax] = max(qT);
         end
@@ -59,6 +60,18 @@ classdef BestSubCellCaseSelector < handle
                 nodes = nodeSubCases(:,:,iCase);
                 q(iCase,:) = obj.computeQuality(nodes);
             end
+        end
+        
+        function m = computeMeritFunction(obj,q)
+            quality     = sum(q,1);
+            meanQuality = quality/obj.nSubCases;
+            desviation = zeros(size(quality));
+            for iCase = 1:obj.nSubCases
+                desv = (q(iCase,:) - meanQuality).^2;
+                desviation = desviation + desv;
+            end                        
+            homogeonity = -sqrt(desviation);
+            m = 0.9*quality + 0.1*homogeonity;            
         end
         
         function q = computeQuality(obj,nodes)

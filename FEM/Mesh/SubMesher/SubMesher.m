@@ -7,6 +7,7 @@ classdef SubMesher < handle
       newConnec  
       newCoord
       subMesh
+      lastNode
    end
     
    methods (Access = public)
@@ -23,13 +24,36 @@ classdef SubMesher < handle
           obj.createSubMesh();
           s = obj.subMesh;
        end
+       
+       function fC = projectToSubMesh(obj,f)
+            nNode  = obj.mesh.nnode;
+            nDime  = size(f,2);
+            nElem  = obj.mesh.nelem;            
+            coordE = zeros(nNode,nDime,nElem);
+            coords = f';
+            for inode = 1:nNode
+                nodes = obj.mesh.connec(:,inode);
+                coordNodes = coords(:,nodes);
+                coordE(inode,:,:) = coordNodes;
+            end
+            fElem = coordE;           
+           
+           
+           m = obj.mesh;
+           q = Quadrature.set(m.geometryType);
+           q.computeQuadrature('CONSTANT');
+           xV = q.posgp;
+           fCenter = m.interpolateFunction(xV,fElem);
+           fC = squeeze(fCenter);                     
+       end
     
    end
    
    methods (Access = private)
 
-       function init(obj,mesh)
-           obj.mesh = mesh;
+       function init(obj,cParams)
+           obj.mesh = cParams.mesh;
+           obj.lastNode = cParams.lastNode;
            obj.connecLocal = [1 2 5;
                               2 3 5;
                               3 4 5;
@@ -47,8 +71,7 @@ classdef SubMesher < handle
        
        function nNodes = computeNewNodes(obj)
            nelemOld = obj.mesh.nelem;
-           lastNode = max(obj.mesh.connec(:));
-           nNodes(:,1) = (lastNode+1):(lastNode + nelemOld);
+           nNodes(:,1) = (obj.lastNode+1):(obj.lastNode + nelemOld);
        end       
        
        function computeConnecAndGlobalConnec(obj) 

@@ -21,21 +21,25 @@ classdef AbstractMesh < handle
     methods (Access = public)
        
        function xGauss = computeXgauss(obj,quad)
-            xpg = quad.posgp;
-            obj.interpolation.computeShapeDeriv(xpg);           
+            xV = quad.posgp;
+            xGauss = obj.interpolateFunction(xV,obj.coordElem);
+       end      
+       
+       function fxV = interpolateFunction(obj,xV,func)
+            obj.interpolation.computeShapeDeriv(xV);           
             nNode  = obj.nnode;
-            nDime  = obj.ndim;
+            nDime  = size(func,2);
             shapes = obj.interpolation.shape;
-            nGaus  = quad.ngaus;
-            xGauss = zeros(nGaus,nDime,obj.nelem);
+            nGaus  = size(xV,2);
+            fxV = zeros(nGaus,nDime,obj.nelem);
             for kNode = 1:nNode
                 shapeKJ(:,1) = shapes(kNode,:)';
-                xKJ = obj.coordElem(kNode,:,:);
-                xG = bsxfun(@times,shapeKJ,xKJ);
-                xGauss = xGauss + xG;
+                fKJ = func(kNode,:,:);
+                f = bsxfun(@times,shapeKJ,fKJ);
+                fxV = fxV + f;
             end
-            xGauss = permute(xGauss,[2 1 3]);
-       end        
+            fxV = permute(fxV,[2 1 3]);           
+       end
        
        function dvolume = computeDvolume(obj,quad)
             s.mesh = obj;

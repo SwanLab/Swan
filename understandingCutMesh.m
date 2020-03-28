@@ -34,8 +34,6 @@ cutMesh = CutMeshComputerProvisional(s);
 connecCutInterior = cutMesh.connec;
 coordT = cutMesh.coord;
 
-
-
 s.connec = [connecFull;connecCutInterior];
 s.coord = coordT;
 figure
