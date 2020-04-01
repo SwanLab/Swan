@@ -2,6 +2,7 @@ classdef InteriorSubCellsConnecComputer < handle
     
     properties (GetAccess = public, SetAccess = private)
         connec
+        xCoordsIso
     end
     
     properties (Access = private)
@@ -13,6 +14,8 @@ classdef InteriorSubCellsConnecComputer < handle
         subCellCases                
         isSubCellInterior        
         allSubCellsConnec
+        xNodesInSubCells
+        yNodesInSubCells
         
         allSubCellsConnecParams
     end
@@ -41,6 +44,7 @@ classdef InteriorSubCellsConnecComputer < handle
             obj.computeAllSubCellsConnec();
             obj.computeIsSubCellsInterior();
             obj.computeConnec();
+            obj.computeXcoordsIso();
         end
         
         function computeSubCellCases(obj)            
@@ -56,7 +60,9 @@ classdef InteriorSubCellsConnecComputer < handle
             s.subCellCases              = obj.subCellCases;                     
             a = AllSubCellsConnecComputer(s);
             a.compute();            
-            obj.allSubCellsConnec = a.allSubCellsConnec;            
+            obj.allSubCellsConnec = a.allSubCellsConnec;  
+            obj.xNodesInSubCells = a.xNodesInSubCells;
+            obj.yNodesInSubCells = a.yNodesInSubCells;            
         end
            
         function computeIsSubCellsInterior(obj)
@@ -68,11 +74,19 @@ classdef InteriorSubCellsConnecComputer < handle
             subCellInt.compute();
             obj.isSubCellInterior = subCellInt.isSubCellInterior;
         end
-        
+
         function computeConnec(obj)
             allConnec  = obj.allSubCellsConnec;
             isInterior = obj.isSubCellInterior(:);
             obj.connec = allConnec(isInterior,:);           
+        end
+                
+        function computeXcoordsIso(obj)
+            isInterior = obj.isSubCellInterior(:);            
+            x = obj.xNodesInSubCells;
+            y = obj.yNodesInSubCells;
+            obj.xCoordsIso(:,1,:) = x(isInterior,:);
+            obj.xCoordsIso(:,2,:) = y(isInterior,:);
         end
                 
     end

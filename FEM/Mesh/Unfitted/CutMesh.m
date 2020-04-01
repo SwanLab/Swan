@@ -112,7 +112,7 @@ classdef CutMesh < Mesh
             nNode = obj.nnode;
             nElem = obj.nelem;
             nGaus = quad.ngaus;
-            xGauss = zeros(nGaus,nElem,nDime);
+            xGauss = zeros(nGaus,nElem,nDime); 
             for kNode = 1:nNode
                 shapeKJ(:,1) = shape(kNode,:);
                 xKJ(1,:,:) = coord(:,:,kNode);

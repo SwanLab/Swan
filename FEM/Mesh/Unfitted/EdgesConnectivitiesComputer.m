@@ -4,7 +4,8 @@ classdef EdgesConnectivitiesComputer < handle
         nodesInEdges
         edgesInElem
         nEdgeByElem
-        nNodeByEdge        
+        nNodeByEdge   
+        localNodeByEdgeByElem
     end
     
     properties (Access = private)
@@ -29,6 +30,7 @@ classdef EdgesConnectivitiesComputer < handle
             obj.computeUniqueEdgesIndex();
             obj.computeNodesInUniqueEdges();
             obj.computeEdgesInElem();
+            obj.computeLocalNodeByEdgeByElem();
         end
         
     end
@@ -60,7 +62,7 @@ classdef EdgesConnectivitiesComputer < handle
         
        function computeUniqueEdgesIndex(obj)
             nE = obj.nodesInAllEdges;
-            nE = sort(nE,2);
+            [nE] = sort(nE,2);
             [~,a2u,u2a] = unique(nE,'rows');
             obj.allToUnique = a2u;
             obj.uniqueToAll = u2a;
@@ -87,6 +89,31 @@ classdef EdgesConnectivitiesComputer < handle
             edgeByElem = reshape(edges,obj.nEdgeByElem,obj.nElem);
             edgeByElem = edgeByElem';
         end        
+        
+        function computeLocalNodeByEdgeByElem(obj)
+            for iedge = 1:3
+            edges = obj.edgesInElem(:,iedge);
+            node(:,1) = obj.nodesInEdges(edges,1);
+            node(:,2) = obj.nodesInEdges(edges,2);
+
+
+            localNodeA = obj.localEdgesInElem(iedge,1);
+            localNodeB = obj.localEdgesInElem(iedge,2);
+
+            node2(:,1) = obj.nodesByElem(:,localNodeA);
+            node2(:,2) = obj.nodesByElem(:,localNodeB);
+            
+            isLocalAndGlobalEquallyOriented = sum(abs(node - node2),2) < 1;
+            itIs = isLocalAndGlobalEquallyOriented;
+            localNodeByEdgeByElem(itIs,1,iedge)  = localNodeA;
+            localNodeByEdgeByElem(itIs,2,iedge)  = localNodeB;
+            localNodeByEdgeByElem(~itIs,1,iedge) = localNodeB;
+            localNodeByEdgeByElem(~itIs,2,iedge) = localNodeA;
+            end
+            
+            obj.localNodeByEdgeByElem = localNodeByEdgeByElem;
+            
+        end
         
     end
 end

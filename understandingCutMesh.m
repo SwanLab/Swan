@@ -1,44 +1,63 @@
 function understandingCutMesh
 coord = [0 0;1 0;1 1;0 1;2 0;2 1;0 2;1 2;2 2; 0.5 0.5; 1.5 0.5; 0.5 1.5; 1.5 1.5];
 connec = [1 2 10; 2 3 10; 10 3 4; 10 4 1; 2 11 3; 2 5 11; 5 6 11; 11 6 3; 3 8 12; 4 3 12; 12 8 7; 12 7 4; 3 6 13; 6 9 13; 13 9 8; 3 13 8];
-s.coord = coord;
-s.connec = connec;
-m = Mesh_Total(s);
-
 ls = [-0.05 0.2 -0.5 0.1 0.1 -1 1 -0.2 -0.5 -0.05 -0.05 0.05 -0.5]';
 
-% inter = Interpolation.create(m,'LINEAR');
-% s.unfittedType = 'INTERIOR';
-% s.meshBackground = m;
-% s.interpolationBackground = inter;
-% s.includeBoxContour = true;
-% uMesh = UnfittedMesh(s);
-% uMesh.compute(ls);
-% uMesh.plot()
-
-lsV(:,1) = ls(connec(:,1));
-lsV(:,2) = ls(connec(:,2));
-lsV(:,3) = ls(connec(:,3));
-isFull = all(lsV<0,2);
-isEmpty = all(lsV>0,2);
-isCut = ~isFull & ~isEmpty;
-connecFull = connec(isFull,:);
-connecCut = connec(isCut,:);
-
 s.coord = coord;
-s.connec = connecCut;
-s.cutEdgesParams.edgesComputer = computeEdges(connecCut);
+s.connec = connec;
+
+[connecFull,connecCut] = computeConnecCutAndFull(ls,connec);
+mInterior    = computeMesh(connecFull,coord);
+
+cutMeshInterior = computeCutMeshInterior(coord,connecCut,ls);
+
+connecCutInterior = cutMeshInterior.connec;
+coordCutInterior  = cutMeshInterior.coord;
+
+mCutInterior = computeMesh(connecCutInterior,coordCutInterior);
+
+mInterior.plot();
+hold on
+mCutInterior.plot();
+end
+
+function m = computeMesh(connec,coord)
+s.connec = connec;
+s.coord = coord;
+m = Mesh().create(s);
+end
+
+function cMeshInt = computeCutMeshInterior(coord,connec,ls)
+s.connec = connec;
+e = computeEdges(connec);
+s.cutEdgesParams.nodesInEdges = e.nodesInEdges;
+s.cutEdgesParams.levelSet     = ls;
+s.cutCoordParams.coord = coord;
+s.cutCoordParams.nodesInEdges = e.nodesInEdges;
+s.cutEdgesComputerParams.allNodesinElemParams.finalNodeNumber = size(coord,1);
+
+s.cutEdgesComputerParams.edgesInElem = e.edgesInElem;
+s.cutEdgesComputerParams.nEdgeByElem = e.nEdgeByElem;
+s.cutEdgesComputerParams.localNodeByEdgeByElem = e.localNodeByEdgeByElem;
+
 
 s.levelSet = ls;
-cutMesh = CutMeshComputerProvisional(s);
-connecCutInterior = cutMesh.connec;
-coordT = cutMesh.coord;
+cMeshInt = CutMeshComputerProvisional(s);
+end
 
-s.connec = [connecFull;connecCutInterior];
-s.coord = coordT;
-figure
-m = Mesh().create(s);
-m.plot();
+function [connecFull,connecCut] = computeConnecCutAndFull(ls,connec)
+lsInElem = computeLevelSetInElem(ls,connec);
+isFull  = all(lsInElem<0,2);
+isEmpty = all(lsInElem>0,2);
+isCut = ~isFull & ~isEmpty;
+connecFull = connec(isFull,:);
+connecCut  = connec(isCut,:);
+end
+
+function lsElem = computeLevelSetInElem(ls,connec)
+lsElem(:,1) = ls(connec(:,1));
+lsElem(:,2) = ls(connec(:,2));
+lsElem(:,3) = ls(connec(:,3));
 end
 
 function e = computeEdges(connec)

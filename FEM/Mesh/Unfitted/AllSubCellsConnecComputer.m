@@ -1,12 +1,15 @@
 classdef AllSubCellsConnecComputer < handle
     
     properties (GetAccess = public, SetAccess = private)
-        allSubCellsConnec                
+        allSubCellsConnec 
+        xNodesInSubCells
+        yNodesInSubCells
     end
     
     properties (Access = private)
         allNodesInElem        
-        subCellCases                
+        subCellCases       
+        xAllNodesInElem
         nElem
         nCases               
         cellMesher 
@@ -22,13 +25,25 @@ classdef AllSubCellsConnecComputer < handle
          
         function compute(obj)                      
             nodesInSubCells = obj.initNodesInSubCells();
+            xNodesInSubCells = obj.initNodesInSubCells();
+            yNodesInSubCells = obj.initNodesInSubCells();
             for icase = 1:obj.nCases
-                subCells  = obj.subCellCases(:,icase);               
-                nodesCase = obj.allNodesInElem(subCells,:);                
-                connecSubCell = obj.cellMesher.compute(nodesCase,icase);
-                nodesInSubCells(:,:,subCells) = connecSubCell;                
+                subCells  = obj.subCellCases(:,icase);                                           
+
+                nodesCase = obj.allNodesInElem(subCells,:);
+                obj.cellMesher.compute(nodesCase,icase);
+                
+                nodesInSubCells(:,:,subCells) = obj.cellMesher.partition(nodesCase);
+                
+                %nodesInSubCells(:,:,subCells) = obj.computeCase(subCells,icase,obj.allNodesInElem);              
+                xNodesInSubCells(:,:,subCells) = obj.cellMesher.partition(obj.xAllNodesInElem(subCells,:,1)); 
+                yNodesInSubCells(:,:,subCells) = obj.cellMesher.partition(obj.xAllNodesInElem(subCells,:,2));              
+
+
             end
-            obj.allSubCellsConnec = obj.computeAllSubCells(nodesInSubCells);            
+            obj.allSubCellsConnec = obj.computeAllSubCells(nodesInSubCells);      
+            obj.xNodesInSubCells = obj.computeAllSubCells(xNodesInSubCells);
+            obj.yNodesInSubCells = obj.computeAllSubCells(yNodesInSubCells);            
         end
         
     end
@@ -37,11 +52,17 @@ classdef AllSubCellsConnecComputer < handle
         
         function init(obj,cParams)            
             obj.allNodesInElem = cParams.allNodesInElem;
-            obj.subCellCases   = cParams.subCellCases;               
+            obj.subCellCases   = cParams.subCellCases;            
+            obj.xAllNodesInElem = cParams.xAllNodesInElem;
             obj.nElem  = size(obj.subCellCases,1);
             obj.nCases = size(obj.subCellCases,2);  
             obj.subMeshConnecParams = cParams.subMeshConnecParams;
             obj.createSubCellMesher();                        
+        end
+        
+        function connecSubCell = computeCase(obj,subCells,icase,allNodesInElem)
+            nodesCase = allNodesInElem(subCells,:);
+            connecSubCell = obj.cellMesher.compute(nodesCase,icase);            
         end
         
         function createSubCellMesher(obj)

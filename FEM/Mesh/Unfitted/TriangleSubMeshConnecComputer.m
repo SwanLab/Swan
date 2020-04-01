@@ -1,8 +1,6 @@
 classdef TriangleSubMeshConnecComputer < handle
     
     properties (Access = public)
-        connecSubTriangle
-        connecSubQuad
         nSubCellNodes
         nSubCellsByElem
     end
@@ -11,6 +9,9 @@ classdef TriangleSubMeshConnecComputer < handle
         localTriangleConnecCases
         localQuadConnecCases
         
+        nodeCaseByElem
+        
+        imax
         cellNodes
         nSubCellsByQuad
         nSubCases
@@ -25,14 +26,53 @@ classdef TriangleSubMeshConnecComputer < handle
             obj.init(cParams)
         end
         
-        function connec = compute(obj,nodes,icase)
+        function computeBestQuadrilateralSubCell(obj,icase)
+            localConnec = obj.localQuadConnecCases(:,:,:,icase);
+            connecCases = obj.computeSubCasesConnec(localConnec);            
+            
+            s = obj.bestSubCellCaseSelectorParams;
+            s.nodesSubCases = connecCases;
+            bestCase = BestSubCellCaseSelector(s);
+            obj.imax = bestCase.compute();            
+        end
+        
+        function compute(obj,nodes,icase)
             obj.nElemInCase = size(nodes,1);
             obj.cellNodes   = nodes;
-            obj.computeSubTriangleConnec(icase);
-            obj.computeSubQuadConnec(icase);
+                        
+            obj.computeBestQuadrilateralSubCell(icase);
+            
+            
+            nodeCaseByElem = zeros(obj.nSubCellsByElem,obj.nSubCellNodes,obj.nElemInCase);
+            for isubCase = 1:2
+                isActive = obj.imax == isubCase;
+                nodesT = obj.localTriangleConnecCases(icase,:);
+                nodesQ = obj.localQuadConnecCases(:,:,isubCase,icase);
+                
+                for inode = 1:3                
+                    nodeCaseByElem(1,inode,isActive) = nodesT(inode);
+                    nodeCaseByElem(2,inode,isActive) = nodesQ(1,inode);
+                    nodeCaseByElem(3,inode,isActive) = nodesQ(2,inode);
+                end
+            end
+            
+            obj.nodeCaseByElem = nodeCaseByElem;
+            
+        end
+        
+        function connec = partition(obj,nodes)
+            t = obj.nodeCaseByElem;
+            nElem = obj.nElemInCase;
+            nnodesSubCell = size(nodes,2);
             connec = obj.initSubCellsConnec();
-            connec(1,:,:)   = obj.connecSubTriangle;
-            connec(2:3,:,:) = obj.connecSubQuad;
+            for isubcell = 1:3
+                for inode = 1:3
+                    node = squeeze(t(isubcell,inode,:));
+                    ind = sub2ind([nElem,nnodesSubCell],(1:nElem)',node);
+                    connec(isubcell,inode,:) = nodes(ind);
+                end
+            end
+            
         end
         
     end
@@ -94,6 +134,7 @@ classdef TriangleSubMeshConnecComputer < handle
            s.nodesSubCases = nodesSubCases;
            bestCase = BestSubCellCaseSelector(s);
            nodeQ = bestCase.compute();
+           obj.imax = bestCase.imax;
         end
         
         function connec = computeSubCasesConnec(obj,localConnecCases)

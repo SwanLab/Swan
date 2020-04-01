@@ -5,10 +5,14 @@ classdef CutCoordinatesComputer < handle
     end
     
     properties (Access = private)
-        levelSet
-        backgroundCoord
         xCutPoints
-        nodesInCutEdges
+        nodesInEdges
+        isEdgeCut
+    end
+    
+    properties (Access = private)
+        backgroundCoord
+        xCutEdgePoint
     end
     
     methods (Access = public)
@@ -26,21 +30,37 @@ classdef CutCoordinatesComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.nodesInCutEdges = cParams.nodesInCutEdges;
-            obj.levelSet        = cParams.levelSet;
-            obj.backgroundCoord = cParams.backgroundCoord;
+            obj.isEdgeCut       = cParams.isEdgeCut;
+            obj.nodesInEdges    = cParams.nodesInEdges;
+            obj.xCutEdgePoint   = cParams.xCutEdgePoint;
+            obj.backgroundCoord = cParams.coord;
         end
         
         function computeCutPoints(obj)
-            node1 = obj.nodesInCutEdges(:,1);
-            node2 = obj.nodesInCutEdges(:,2);
-            ls1 = obj.levelSet(node1);
-            ls2 = obj.levelSet(node2);
-            x1  = obj.backgroundCoord(node1,:);
-            x2  = obj.backgroundCoord(node2,:);
-            xCut = x1+ls1.*(x2-x1)./(ls1-ls2);
+            shapes = obj.computeShapes();            
+            shapeA = shapes(:,1);
+            shapeB = shapes(:,2);            
+            node1 = obj.nodesInEdges(obj.isEdgeCut,1);
+            node2 = obj.nodesInEdges(obj.isEdgeCut,2);            
+            xA  = obj.backgroundCoord(node1,:);
+            xB  = obj.backgroundCoord(node2,:);
+            xCut = zeros(size(xA));
+            nnode = size(xA,2);
+            for idim = 1:nnode
+                xCut(:,idim) = xA(:,idim).*shapeA + xB(:,idim).*shapeB;
+            end
             obj.xCutPoints = xCut;
         end        
+        
+        function shapes = computeShapes(obj)
+            m.geometryType = 'LINE';
+            m.coord  = [];
+            m.connec = [];
+            int = Interpolation.create(m,'LINEAR');
+            xCutIso = obj.xCutEdgePoint';
+            int.computeShapeDeriv(xCutIso);
+            shapes = int.shape';            
+        end
         
         function computeCutMeshCoordinates(obj)
             obj.coord = [obj.backgroundCoord;obj.xCutPoints];
