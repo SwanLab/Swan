@@ -19,6 +19,13 @@ mCutInterior = computeMesh(connecCutInterior,coordCutInterior);
 mInterior.plot();
 hold on
 mCutInterior.plot();
+
+
+d = load('cutMeshProvisional');
+
+n1 = norm(d.connec(:) - cutMeshInterior.connec(:));
+n2 = norm(d.xCoordIso(:) - cutMeshInterior.xCoordsIso(:));
+error = abs(n1 + n2)
 end
 
 function m = computeMesh(connec,coord)
@@ -28,20 +35,19 @@ m = Mesh().create(s);
 end
 
 function cMeshInt = computeCutMeshInterior(coord,connec,ls)
-s.connec = connec;
 e = computeEdges(connec);
 s.cutEdgesParams.nodesInEdges = e.nodesInEdges;
 s.cutEdgesParams.levelSet     = ls;
 s.cutCoordParams.coord = coord;
 s.cutCoordParams.nodesInEdges = e.nodesInEdges;
-s.cutEdgesComputerParams.allNodesinElemParams.finalNodeNumber = size(coord,1);
 
+s.cutEdgesComputerParams.allNodesinElemParams.finalNodeNumber = size(coord,1);
+s.cutEdgesComputerParams.allNodesinElemParams.backgroundConnec = connec;
+s.cutEdgesComputerParams.allNodesInElemCoordParams.localNodeByEdgeByElem = e.localNodeByEdgeByElem;
 s.cutEdgesComputerParams.edgesInElem = e.edgesInElem;
 s.cutEdgesComputerParams.nEdgeByElem = e.nEdgeByElem;
-s.cutEdgesComputerParams.localNodeByEdgeByElem = e.localNodeByEdgeByElem;
+s.interiorSubCellsParams.isSubCellInteriorParams.levelSet = ls;
 
-
-s.levelSet = ls;
 cMeshInt = CutMeshComputerProvisional(s);
 end
 

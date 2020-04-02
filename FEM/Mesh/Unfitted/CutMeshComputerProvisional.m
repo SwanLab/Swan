@@ -3,20 +3,18 @@ classdef CutMeshComputerProvisional < handle
     properties (Access = public)
         connec
         coord
+        xCoordsIso
     end
     
     properties (Access = private)
-        backgroundConnec
-        levelSet
-        
-        cutEdgesComputer        
-        allNodesInElem  
-        isEdgeCutInElem
-        xAllNodesInElem
-        
+        cutEdgesComputer  
+        cutPointsInElemComputer            
+    end
+    
+    properties (Access = private)        
         cutEdgesParams
         cutCoordParams
-        allNodesinElemParams
+        interiorSubCellsParams
         cutEdgesComputerParams
     end
     
@@ -32,17 +30,16 @@ classdef CutMeshComputerProvisional < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.backgroundConnec       = cParams.connec;
             obj.cutEdgesParams         = cParams.cutEdgesParams;
             obj.cutCoordParams         = cParams.cutCoordParams;
             obj.cutEdgesComputerParams = cParams.cutEdgesComputerParams;
-            obj.levelSet = cParams.levelSet;
+            obj.interiorSubCellsParams = cParams.interiorSubCellsParams;
         end
         
         function compute(obj)
             obj.computeCutEdges();
             obj.computeCoordinates();  
-            obj.computeCutEdgesComputer();
+            obj.computeCutPointsInElemComputer();
             obj.computeConnec();
         end
         
@@ -62,28 +59,31 @@ classdef CutMeshComputerProvisional < handle
             obj.coord = coordComputer.coord;
         end        
         
-        function computeCutEdgesComputer(obj)
+        function computeCutPointsInElemComputer(obj)
             s = obj.cutEdgesComputerParams;
-            s.backgroundConnec = obj.backgroundConnec;
             s.isEdgeCut        = obj.cutEdgesComputer.isEdgeCut;
-            s.xCutEdgePoint    = obj.cutEdgesComputer.xCutEdgePoint;
+            s.allNodesInElemCoordParams.xCutEdgePoint = obj.cutEdgesComputer.xCutEdgePoint;
             c = CutPointsInElemComputer(s);
             c.compute();
-            obj.allNodesInElem = c.allNodesInElem;  
-            obj.isEdgeCutInElem = c.isEdgeCutInElem;
-            obj.xAllNodesInElem = c.xAllNodesInElem;
+            obj.cutPointsInElemComputer = c;
         end
          
         function computeConnec(obj)
+            c = obj.cutPointsInElemComputer;
             sS.bestSubCellCaseSelector.coord = obj.coord;
             sA.subMeshConnecParams = sS;
-            sA.xAllNodesInElem = obj.xAllNodesInElem;
+            sA.xAllNodesInElem = c.xAllNodesInElem;
+            sA.allNodesInElem  = c.allNodesInElem;
+            sC.isEdgeCutInElem = c.isEdgeCutInElem;
+            s = obj.interiorSubCellsParams;          
+            sI = s.isSubCellInteriorParams;
+            sI.allNodesInElem = c.allNodesInElem;
             s.allSubCellsConnecParams = sA;
-            s.allNodesInElem   = obj.allNodesInElem;
-            s.isEdgeCutInElem  = obj.isEdgeCutInElem;            
-            s.levelSet         = obj.levelSet;            
+            s.subCellsCasesParams = sC; 
+            s.isSubCellInteriorParams = sI;
             subCell = InteriorSubCellsConnecComputer(s);
             obj.connec = subCell.connec;
+            obj.xCoordsIso = subCell.xCoordsIso;
         end               
         
     end

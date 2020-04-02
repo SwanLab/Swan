@@ -4,13 +4,15 @@ classdef AllNodesInElemComputer < handle
        allNodesInElem
    end
    
+   properties (Access = private)       
+       cutNodesInElem
+   end
+
    properties (Access = private)
        firstCutEdge
        vertexNodesInElem
-       finalNodeNumber
-       
-       cutNodesInElem
-   end
+       finalNodeNumber             
+   end   
    
    methods (Access = public)
        

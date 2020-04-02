@@ -4,19 +4,21 @@ classdef EdgesConnectivitiesComputer < handle
         nodesInEdges
         edgesInElem
         nEdgeByElem
-        nNodeByEdge   
+        nNodeByEdge
         localNodeByEdgeByElem
+    end
+    
+    properties (Access = private)
+        allToUnique
+        uniqueToAll
+        nodesInAllEdges                
     end
     
     properties (Access = private)
         nodesByElem
         nElem
-        nAllEdges
-        
+        nAllEdges       
         localEdgesInElem
-        allToUnique
-        uniqueToAll
-        nodesInAllEdges
     end
     
     methods (Access = public)
@@ -30,7 +32,7 @@ classdef EdgesConnectivitiesComputer < handle
             obj.computeUniqueEdgesIndex();
             obj.computeNodesInUniqueEdges();
             obj.computeEdgesInElem();
-            obj.computeLocalNodeByEdgeByElem();
+            obj.computeLocalOrientedEdgeConnec();
         end
         
     end
@@ -60,7 +62,7 @@ classdef EdgesConnectivitiesComputer < handle
             obj.nodesInAllEdges = nodesInE;
         end
         
-       function computeUniqueEdgesIndex(obj)
+        function computeUniqueEdgesIndex(obj)
             nE = obj.nodesInAllEdges;
             [nE] = sort(nE,2);
             [~,a2u,u2a] = unique(nE,'rows');
@@ -81,38 +83,51 @@ classdef EdgesConnectivitiesComputer < handle
                 edge = uniqueEdgeByElem(:,iEdge);
                 eInElem(:,iEdge) = obj.uniqueToAll(edge);
             end
-            obj.edgesInElem = eInElem;      
+            obj.edgesInElem = eInElem;
         end
         
         function edgeByElem = computeUniqueEdgesByElem(obj)
             edges(:,1) = 1:obj.nAllEdges;
             edgeByElem = reshape(edges,obj.nEdgeByElem,obj.nElem);
             edgeByElem = edgeByElem';
-        end        
+        end
         
-        function computeLocalNodeByEdgeByElem(obj)
-            for iedge = 1:3
-            edges = obj.edgesInElem(:,iedge);
-            node(:,1) = obj.nodesInEdges(edges,1);
-            node(:,2) = obj.nodesInEdges(edges,2);
-
-
-            localNodeA = obj.localEdgesInElem(iedge,1);
-            localNodeB = obj.localEdgesInElem(iedge,2);
-
-            node2(:,1) = obj.nodesByElem(:,localNodeA);
-            node2(:,2) = obj.nodesByElem(:,localNodeB);
-            
-            isLocalAndGlobalEquallyOriented = sum(abs(node - node2),2) < 1;
-            itIs = isLocalAndGlobalEquallyOriented;
-            localNodeByEdgeByElem(itIs,1,iedge)  = localNodeA;
-            localNodeByEdgeByElem(itIs,2,iedge)  = localNodeB;
-            localNodeByEdgeByElem(~itIs,1,iedge) = localNodeB;
-            localNodeByEdgeByElem(~itIs,2,iedge) = localNodeA;
-            end
-            
-            obj.localNodeByEdgeByElem = localNodeByEdgeByElem;
-            
+        function computeLocalOrientedEdgeConnec(obj)
+            edgeConnec = zeros(obj.nElem,obj.nEdgeByElem,obj.nNodeByEdge);
+            for iedge = 1:obj.nEdgeByElem
+                isOriented = obj.isEdgeOriented(iedge);                
+                nodeA = obj.localEdgesInElem(iedge,1);
+                nodeB = obj.localEdgesInElem(iedge,2);
+                edgeConnec(isOriented,iedge,1)  = nodeA;
+                edgeConnec(isOriented,iedge,2)  = nodeB;
+                edgeConnec(~isOriented,iedge,1) = nodeB;
+                edgeConnec(~isOriented,iedge,2) = nodeA;
+            end            
+            obj.localNodeByEdgeByElem = edgeConnec;            
+        end
+        
+        function itIs = isEdgeOriented(obj,iedge)
+            globalNodes = obj.computeGlobalNode(iedge);
+            localNodes  = obj.computeLocalNodes(iedge);
+            itIs = obj.isEquallyOriented(globalNodes,localNodes);
+        end
+        
+        function globalNodes = computeGlobalNode(obj,iedge)
+            edges       = obj.edgesInElem(:,iedge);
+            globalNodes = obj.nodesInEdges(edges,:);
+        end
+        
+        function localNodes = computeLocalNodes(obj,iedge)
+            localNode   = obj.localEdgesInElem(iedge,:);
+            localNodes  = obj.nodesByElem(:,localNode);
+        end
+        
+    end
+    
+    methods (Access = private, Static)
+        
+        function itIs = isEquallyOriented(gNode,lNode)
+            itIs = sum(abs(gNode - lNode),2) < 1;
         end
         
     end
