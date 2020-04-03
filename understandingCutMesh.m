@@ -6,10 +6,10 @@ ls = [-0.05 0.2 -0.5 0.1 0.1 -1 1 -0.2 -0.5 -0.05 -0.05 0.05 -0.5]';
 s.coord = coord;
 s.connec = connec;
 
-[connecFull,connecCut] = computeConnecCutAndFull(ls,connec);
+[connecFull,connecCut,cutElems] = computeConnecCutAndFull(ls,connec);
 mInterior    = computeMesh(connecFull,coord);
 
-cutMeshInterior = computeCutMeshInterior(coord,connecCut,ls);
+cutMeshInterior = computeCutMeshInterior(coord,connecCut,cutElems,ls);
 
 connecCutInterior = cutMeshInterior.connec;
 coordCutInterior  = cutMeshInterior.coord;
@@ -24,8 +24,11 @@ mCutInterior.plot();
 d = load('cutMeshProvisional');
 
 n1 = norm(d.connec(:) - cutMeshInterior.connec(:));
-n2 = norm(d.xCoordIso(:) - cutMeshInterior.xCoordsIso(:));
-error = abs(n1 + n2)
+n2 = norm(d.xCoordsIso(:) - cutMeshInterior.xCoordsIso(:));
+n3 = norm(d.cellContainingSubcell - cutMeshInterior.cellContainingSubcell);
+n4 = norm(d.coord(:) - cutMeshInterior.coord(:));
+
+error = n1 + n2 + n3 + n4
 end
 
 function m = computeMesh(connec,coord)
@@ -34,7 +37,7 @@ s.coord = coord;
 m = Mesh().create(s);
 end
 
-function cMeshInt = computeCutMeshInterior(coord,connec,ls)
+function cMeshInt = computeCutMeshInterior(coord,connec,cutElems,ls)
 e = computeEdges(connec);
 s.cutEdgesParams.nodesInEdges = e.nodesInEdges;
 s.cutEdgesParams.levelSet     = ls;
@@ -47,17 +50,18 @@ s.cutEdgesComputerParams.allNodesInElemCoordParams.localNodeByEdgeByElem = e.loc
 s.cutEdgesComputerParams.edgesInElem = e.edgesInElem;
 s.cutEdgesComputerParams.nEdgeByElem = e.nEdgeByElem;
 s.interiorSubCellsParams.isSubCellInteriorParams.levelSet = ls;
-
+s.interiorSubCellsParams.cutElems = cutElems;
 cMeshInt = CutMeshComputerProvisional(s);
 end
 
-function [connecFull,connecCut] = computeConnecCutAndFull(ls,connec)
+function [connecFull,connecCut,cutElems] = computeConnecCutAndFull(ls,connec)
 lsInElem = computeLevelSetInElem(ls,connec);
 isFull  = all(lsInElem<0,2);
 isEmpty = all(lsInElem>0,2);
 isCut = ~isFull & ~isEmpty;
 connecFull = connec(isFull,:);
 connecCut  = connec(isCut,:);
+cutElems = find(isCut);
 end
 
 function lsElem = computeLevelSetInElem(ls,connec)

@@ -3,6 +3,7 @@ classdef InteriorSubCellsConnecComputer < handle
     properties (GetAccess = public, SetAccess = private)
         connec
         xCoordsIso
+        cellContainingSubcell
     end
     
     properties (Access = private)
@@ -17,6 +18,7 @@ classdef InteriorSubCellsConnecComputer < handle
         allSubCellsConnecParams
         isSubCellInteriorParams
         subCellsCasesParams
+        cutElems
     end
     
     methods (Access = public)
@@ -34,6 +36,7 @@ classdef InteriorSubCellsConnecComputer < handle
             obj.allSubCellsConnecParams = cParams.allSubCellsConnecParams;
             obj.isSubCellInteriorParams = cParams.isSubCellInteriorParams;
             obj.subCellsCasesParams     = cParams.subCellsCasesParams;
+            obj.cutElems                = cParams.cutElems;
             obj.nSubCellsByElem   = 3;            
         end
         
@@ -43,6 +46,7 @@ classdef InteriorSubCellsConnecComputer < handle
             obj.computeIsSubCellsInterior();
             obj.computeConnec();
             obj.computeXcoordsIso();
+            obj.computeCellContainingSubCell();
         end
         
         function computeSubCellCases(obj)            
@@ -83,6 +87,20 @@ classdef InteriorSubCellsConnecComputer < handle
             for idim = 1:nDim
                 obj.xCoordsIso(:,idim,:) = x(isInterior,:,idim);
             end
+        end
+        
+        function computeCellContainingSubCell(obj)
+            localToGlobalCut = obj.cutElems;
+            localCell  = obj.computeLocalCellContainingSubCell();
+            globalCell = localToGlobalCut(localCell); 
+            obj.cellContainingSubcell = globalCell;
+        end
+        
+        function cells = computeLocalCellContainingSubCell(obj)
+            isInterior = obj.isSubCellInterior;            
+            nCutElem = size(isInterior,2);
+            localSubCellsInCell = repmat(1:nCutElem,obj.nSubCellsByElem,1);
+            cells = localSubCellsInCell(isInterior);            
         end
                 
     end

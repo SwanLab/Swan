@@ -4,6 +4,7 @@ classdef CutMeshComputerProvisional < handle
         connec
         coord
         xCoordsIso
+        cellContainingSubcell
     end
     
     properties (Access = private)
@@ -82,8 +83,9 @@ classdef CutMeshComputerProvisional < handle
             s.subCellsCasesParams = sC; 
             s.isSubCellInteriorParams = sI;
             subCell = InteriorSubCellsConnecComputer(s);
-            obj.connec = subCell.connec;
-            obj.xCoordsIso = subCell.xCoordsIso;
+            obj.connec                = subCell.connec;
+            obj.xCoordsIso            = subCell.xCoordsIso;
+            obj.cellContainingSubcell = subCell.cellContainingSubcell;
         end               
         
     end
