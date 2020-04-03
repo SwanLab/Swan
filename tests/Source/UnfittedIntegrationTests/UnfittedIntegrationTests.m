@@ -19,28 +19,37 @@ classdef UnfittedIntegrationTests < testRunner
             
             
             obj.tests = {...
-
+                
+            
             'testPerimeterRectangleQuadrilateral';                      
             
-            'testPerimeterRectangleTriangle';                
+             'testPerimeterCircleQuadrilateral';
             
-            'testPerimeterCircleTriangle';
-            'testPerimeterCircleQuadrilateral';
-            
-            'testAreaCircleTriangle';            
             'testAreaCircleQuadrilateral';       
             
            'testSurfaceSphereHexahedra';   
            'testSurfaceSphereTetrahedra';                       
-                         
-           'testSurfaceCylinderTetrahedra';
-           'testSurfaceCylinderHexahedra';                            
-                      
+
            'testVolumeSphereTetrahedra';
            'testVolumeSphereHexahedra';  
+                   
+            
+
+            'testPerimeterRectangleTriangle';                            
+            'testPerimeterCircleTriangle';            
+       
+            'testAreaCircleTriangle';                 
+
+            
+
+           'testSurfaceCylinderTetrahedra';            
+           'testSurfaceCylinderHexahedra';   
            
            'testVolumeCylinderTetrahedra';
-           'testVolumeCylinderHexahedra';        
+           'testVolumeCylinderHexahedra';              
+                                  
+
+     
     
 
                                   

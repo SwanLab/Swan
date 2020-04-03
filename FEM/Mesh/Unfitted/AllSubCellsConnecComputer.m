@@ -34,9 +34,11 @@ classdef AllSubCellsConnecComputer < handle
             obj.initXnodesInSubCellsByElem();
             for icase = 1:obj.nCases
                 subCells = obj.subCellCases(:,icase);
+                if sum(subCells) > 0
                 obj.updateCellMesherPartitioner(subCells,icase);
                 obj.computePartitionConnecSubCell(subCells);
                 obj.computePartitionCoordSubCell(subCells);
+                end
             end
             obj.concatenateAllNodesConnec();
             obj.concatenateAllNodesCoordinates();

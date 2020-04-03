@@ -16,25 +16,28 @@ classdef TopOptTests < testRunner
     methods (Access = protected)
         
         function loadTests(obj)
-            obj.tests = {...    
-                 'testMicro2';                                 
-             'testBridge2';                                                               
-            'testCantilever2';
-            'SimplAllTest3DExplicitVsImplicit';                
-                 'SimplAllTest2DExplicitVsImplicit';
-                'testCantilever3';                 
-                'testMicro';                 
-                'testDualNestedInPrimalWithProjectedGradient';
-                'testDualNestedInPrimalWithSlerp';                  
-                'testCantilever';                
-                'testAnalyticVsRegularizedPerimeter';               
-                'testInteriorPerimeter';                
+            obj.tests = {...
+                'testMicro2';                  
+                 'testBridge2';                                                               
                 'testVigdergauzMicroStructureWithStrain';                 
+                'testAnalyticVsRegularizedPerimeter';               
                 'testVigdergauzMicroStructure';                                                              
-                'testGripping';   
-                'testStressM1M2';
-                'testM1M2';               
-                'testBridge';                                 
+               
+%                 'testGripping';   
+%                 'testInteriorPerimeter';                
+%                 'testDualNestedInPrimalWithSlerp';                  
+%                 'testCantilever2';
+%                 'SimplAllTest3DExplicitVsImplicit';                
+%                 'SimplAllTest2DExplicitVsImplicit';
+%                 'testCantilever3';                 
+%                 'testMicro';                 
+%                 'testDualNestedInPrimalWithProjectedGradient';
+%                 'testCantilever';                
+%                 'testStressM1M2';
+%                 'testM1M2';               
+%                 'testBridge';                                 
+%                  
+% %                
                 };
         end
         
