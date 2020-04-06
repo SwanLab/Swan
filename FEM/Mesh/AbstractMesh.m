@@ -3,6 +3,7 @@ classdef AbstractMesh < handle
 %     properties (Access = public)
 %         unfittedType        
 %     end
+
     
     
     properties (GetAccess = public, SetAccess = protected)
@@ -16,29 +17,36 @@ classdef AbstractMesh < handle
         
         coordElem
         interpolation
+        
+        edges
     end
     
     methods (Access = public)
        
        function xGauss = computeXgauss(obj,quad)
-            xV = quad.posgp;
-            xGauss = obj.interpolateFunction(xV,obj.coordElem);
+            xV     = quad.posgp;
+            fElem  = obj.coordElem;
+            fElem   = permute(fElem,[3 2 1]);                      
+            xGauss = obj.interpolateFunction(xV,fElem);
        end      
        
        function fxV = interpolateFunction(obj,xV,func)
-            obj.interpolation.computeShapeDeriv(xV);           
-            nNode  = obj.nnode;
+            intF   = obj.interpolation;           
+            intF.computeShapeDeriv(xV);
+            shapes = intF.shape;
+            nNode  = size(shapes,1);
+            nGaus  = size(shapes,2); 
+            nElem  = size(func,1);                        
             nDime  = size(func,2);
-            shapes = obj.interpolation.shape;
-            nGaus  = size(xV,2);
-            fxV = zeros(nGaus,nDime,obj.nelem);
+            shapes = permute(shapes,[3 1 2]);            
+            fxV = zeros(nElem,nDime,nGaus);
             for kNode = 1:nNode
-                shapeKJ(:,1) = shapes(kNode,:)';
-                fKJ = func(kNode,:,:);
+                shapeKJ = shapes(:,kNode,:);
+                fKJ(:,:,1) = func(:,:,kNode);
                 f = bsxfun(@times,shapeKJ,fKJ);
                 fxV = fxV + f;
             end
-            fxV = permute(fxV,[2 1 3]);           
+            fxV = permute(fxV,[2 3 1]);           
        end
        
        function dvolume = computeDvolume(obj,quad)
@@ -56,6 +64,13 @@ classdef AbstractMesh < handle
             L(1,:) = obj.computeSquarePerimeter();
             q = 4*sqrt(3)*volume./L;           
        end
+       
+        function computeEdges(obj)
+            s.nodesByElem = obj.connec;
+            edge = EdgesConnectivitiesComputer(s);
+            edge.compute();            
+            obj.edges = edge;
+        end       
                 
     end
     
@@ -84,15 +99,12 @@ classdef AbstractMesh < handle
     methods (Access = private)
         
         function L = computeSquarePerimeter(obj)
-            nodes = obj.connec;
-            s.nodesByElem = nodes;
-            edges = EdgesConnectivitiesComputer(s);
-            edges.compute();
-            nElem = size(nodes,1);
+            obj.computeEdges();
+            nElem = size(obj.connec,1);
             L = zeros(nElem,1);
-            for iedge = 1:edges.nEdgeByElem
-                edge = edges.edgesInElem(:,iedge);
-                nodesEdge = edges.nodesInEdges(edge,:);
+            for iedge = 1:obj.edges.nEdgeByElem
+                edge = obj.edges.edgesInElem(:,iedge);
+                nodesEdge = obj.edges.nodesInEdges(edge,:);
                 for idim = 1:obj.ndim
                     xA = obj.coord(nodesEdge(:,1),idim);
                     xB = obj.coord(nodesEdge(:,2),idim);
@@ -100,7 +112,7 @@ classdef AbstractMesh < handle
                 end
             end
         end
-       
+        
     end
     
 end

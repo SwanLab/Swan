@@ -9,14 +9,16 @@ classdef CutMeshComputerProvisional < handle
     
     properties (Access = private)
         cutEdgesComputer  
-        cutPointsInElemComputer            
-    end
-    
-    properties (Access = private)        
+        cutPointsInElemComputer      
+        
         cutEdgesParams
         cutCoordParams
         interiorSubCellsParams
-        cutEdgesComputerParams
+        cutEdgesComputerParams        
+    end
+    
+    properties (Access = private)        
+        
     end
     
     methods (Access = public)
@@ -31,10 +33,27 @@ classdef CutMeshComputerProvisional < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.cutEdgesParams         = cParams.cutEdgesParams;
-            obj.cutCoordParams         = cParams.cutCoordParams;
-            obj.cutEdgesComputerParams = cParams.cutEdgesComputerParams;
-            obj.interiorSubCellsParams = cParams.interiorSubCellsParams;
+            obj.computeAllParams(cParams);
+        end
+        
+        function computeAllParams(obj,cParams)
+            backgroundMesh = cParams.backgroundMesh;
+            cutElems       = cParams.cutElems;
+            ls             = cParams.levelSet;            
+            backgroundMesh.computeEdges();
+            e = backgroundMesh.edges;
+            obj.cutEdgesParams.nodesInEdges = e.nodesInEdges;
+            obj.cutEdgesParams.levelSet     = ls;
+            obj.cutCoordParams.coord = backgroundMesh.coord;
+            obj.cutCoordParams.nodesInEdges = e.nodesInEdges;
+            
+            obj.cutEdgesComputerParams.allNodesinElemParams.finalNodeNumber = size(backgroundMesh.coord,1);
+            obj.cutEdgesComputerParams.allNodesinElemParams.backgroundConnec = backgroundMesh.connec;
+            obj.cutEdgesComputerParams.allNodesInElemCoordParams.localNodeByEdgeByElem = e.localNodeByEdgeByElem;
+            obj.cutEdgesComputerParams.edgesInElem = e.edgesInElem;
+            obj.cutEdgesComputerParams.nEdgeByElem = e.nEdgeByElem;
+            obj.interiorSubCellsParams.isSubCellInteriorParams.levelSet = ls;
+            obj.interiorSubCellsParams.cutElems = cutElems;
         end
         
         function compute(obj)

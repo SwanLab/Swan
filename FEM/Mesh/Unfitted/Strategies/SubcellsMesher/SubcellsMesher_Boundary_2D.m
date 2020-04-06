@@ -35,21 +35,28 @@ classdef SubcellsMesher_Boundary_2D < SubcellsMesher_Boundary
             levelSet = obj.cell_levelSet;
             coordIso = obj.interior_coord_iso;
             coordIso(end,:) = [0 0];
-            int = Interpolation.create(obj.mesh.meshBackground,'LINEAR');
-            xG = [0 0]';
+            
+            m.coord = [];
+            m.connec = [];
+            m.geometryType = 'QUAD';
+            
+            int = Interpolation.create(m,'LINEAR');
+            xG = coordIso(5:end,:)';[0 0]';
             int.computeShapeDeriv(xG)
             shapes = int.shape;
-            nnode = obj.mesh.meshBackground.nnode;
+            nnode = size(shapes,1);%obj.mesh.meshBackground.nnode;
             lsNodes = levelSet(1:nnode);
-            levelSet(end+1) = shapes'*lsNodes;
+            levelSetNew = shapes'*lsNodes;
+            levelSetNew = zeros(4,1);
             
+            levelSet = [levelSet;levelSetNew];
 %             
 %             m.meshBackground = obj.mesh.meshBackground;
 %             m.levelSet            = m.levelSet_background;            
 %             m.backgroundCutCells  = m.backgroundCutCells;
 %             m.backgroundGeomInterpolation = m.backgroundGeomInterpolation;             
             
-            
+            %coordIso = [obj.interior_coord_iso(1:4,:);xG']; 
            % levelSet(end,1) = 
             connecDel = obj.computeDelaunay(coordIso);
             nnode = size(connecDel,2);
@@ -63,9 +70,16 @@ classdef SubcellsMesher_Boundary_2D < SubcellsMesher_Boundary
                 nodePos = connecDel(connec_positive(end),:);
                 posCell = nodePos ~= positiveCellNodes(idel);
                 pos = connec_positive(end);
-                connecV(idel,:) = connecDel(pos,posCell) - nnode;
+                connecV(idel,posCell) = connecDel(pos,posCell) - nnode;
             end
-            obj.connec = connecV;
+            
+            lsElem(:,1) = levelSet(connecDel(:,1));
+            lsElem(:,2) = levelSet(connecDel(:,2));
+            lsElem(:,3) = levelSet(connecDel(:,3)); 
+            
+            isEmpty = any(lsElem>0,2);
+
+            obj.connec = connecDel(~isEmpty,:);
         end
         
         

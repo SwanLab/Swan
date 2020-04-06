@@ -1,12 +1,25 @@
 function understandingCutMesh
 coord = [0 0;1 0;1 1;0 1;2 0;2 1;0 2;1 2;2 2; 0.5 0.5; 1.5 0.5; 0.5 1.5; 1.5 1.5];
 connec = [1 2 10; 2 3 10; 10 3 4; 10 4 1; 2 11 3; 2 5 11; 5 6 11; 11 6 3; 3 8 12; 4 3 12; 12 8 7; 12 7 4; 3 6 13; 6 9 13; 13 9 8; 3 13 8];
+
+s.coord = coord;
+s.connec = connec;
+backgroundMesh = Mesh().create(s);
 ls = [-0.05 0.2 -0.5 0.1 0.1 -1 1 -0.2 -0.5 -0.05 -0.05 0.05 -0.5]';
 
 [connecFull,connecCut,cutElems] = computeConnecCutAndFull(ls,connec);
 mInterior = computeMesh(connecFull,coord);
 
-cutMeshInterior = computeCutMeshInterior(coord,connecCut,cutElems,ls);
+s.coord = coord;
+s.connec = connecCut;
+backgroundCutMesh = Mesh().create(s);
+backgroundCutMesh.computeEdges();
+
+s.backgroundMesh = backgroundCutMesh;
+s.cutElems = cutElems;
+s.levelSet = ls;
+cutMeshInterior = CutMeshComputerProvisional(s);
+
 
 connecCutInterior = cutMeshInterior.connec;
 coordCutInterior  = cutMeshInterior.coord;
@@ -34,22 +47,6 @@ s.coord = coord;
 m = Mesh().create(s);
 end
 
-function cMeshInt = computeCutMeshInterior(coord,connec,cutElems,ls)
-e = computeEdges(connec);
-s.cutEdgesParams.nodesInEdges = e.nodesInEdges;
-s.cutEdgesParams.levelSet     = ls;
-s.cutCoordParams.coord = coord;
-s.cutCoordParams.nodesInEdges = e.nodesInEdges;
-
-s.cutEdgesComputerParams.allNodesinElemParams.finalNodeNumber = size(coord,1);
-s.cutEdgesComputerParams.allNodesinElemParams.backgroundConnec = connec;
-s.cutEdgesComputerParams.allNodesInElemCoordParams.localNodeByEdgeByElem = e.localNodeByEdgeByElem;
-s.cutEdgesComputerParams.edgesInElem = e.edgesInElem;
-s.cutEdgesComputerParams.nEdgeByElem = e.nEdgeByElem;
-s.interiorSubCellsParams.isSubCellInteriorParams.levelSet = ls;
-s.interiorSubCellsParams.cutElems = cutElems;
-cMeshInt = CutMeshComputerProvisional(s);
-end
 
 function [connecFull,connecCut,cutElems] = computeConnecCutAndFull(ls,connec)
 lsInElem = computeLevelSetInElem(ls,connec);
@@ -72,7 +69,3 @@ s.nodesByElem = connec;
 e = EdgesConnectivitiesComputer(s);
 e.compute();
 end
-
-
-
-

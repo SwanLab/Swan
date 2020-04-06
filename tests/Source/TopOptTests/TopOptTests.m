@@ -21,23 +21,22 @@ classdef TopOptTests < testRunner
                  'testBridge2';                                                               
                 'testVigdergauzMicroStructureWithStrain';                 
                 'testAnalyticVsRegularizedPerimeter';               
-                'testVigdergauzMicroStructure';                                                              
-               
-%                 'testGripping';   
-%                 'testInteriorPerimeter';                
-%                 'testDualNestedInPrimalWithSlerp';                  
-%                 'testCantilever2';
-%                 'SimplAllTest3DExplicitVsImplicit';                
-%                 'SimplAllTest2DExplicitVsImplicit';
-%                 'testCantilever3';                 
-%                 'testMicro';                 
-%                 'testDualNestedInPrimalWithProjectedGradient';
-%                 'testCantilever';                
-%                 'testStressM1M2';
-%                 'testM1M2';               
-%                 'testBridge';                                 
-%                  
-% %                
+                'testVigdergauzMicroStructure';                                                                             
+                'testGripping';   
+                'testInteriorPerimeter';                
+                'testDualNestedInPrimalWithSlerp';                  
+                'testCantilever2';
+                'SimplAllTest3DExplicitVsImplicit';                
+                'SimplAllTest2DExplicitVsImplicit';
+                'testCantilever3';                 
+                'testMicro';                 
+                'testDualNestedInPrimalWithProjectedGradient';
+                'testCantilever';                
+                'testStressM1M2';
+                'testM1M2';               
+                'testBridge';                                 
+                 
+%                
                 };
         end
         

@@ -57,8 +57,19 @@ classdef CutMesh < Mesh
                 ls = cParams.levelSet;
                 connecCut = cParams.meshBackground.connec(cutElems,:);            
     
-                coord = cParams.meshBackground.coord(:,1:2);                
-                cM = obj.computeCutMeshInterior(coord,connecCut,cutElems,ls);
+                coord = cParams.meshBackground.coord(:,1:2);     
+                
+                s.coord  = coord;
+                s.connec = connecCut;
+                backgroundCutMesh = Mesh().create(s);
+                backgroundCutMesh.computeEdges();
+                
+                s.backgroundMesh = backgroundCutMesh;
+                s.cutElems = cutElems;
+                s.levelSet = ls;
+                cM = CutMeshComputerProvisional(s);
+                
+               % cM = obj.computeCutMeshInterior(coord,connecCut,cutElems,ls);
                 %   s.connec = cM.connec;
                 %   s.coord = cM.coord;
                 %   m = Mesh().create(s);
