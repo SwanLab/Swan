@@ -87,8 +87,12 @@ classdef Preprocess<handle
                 Master_slave = [];
             end
             
+            s.mesh = mesh;
+            s.interpolation = interp{1};
+            c = ConnecCoordFromInterpAndMesh(s);            
+            c.compute();
+            xpoints = c.coord;
             
-            xpoints = interp{1}.xpoints;
             nnode   = length(xpoints(:,1));
             
             if (~isempty(velocity))

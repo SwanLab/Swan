@@ -64,8 +64,8 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
     methods (Access = private)
         
         function createPoperator(obj,cPar)            
-            cParams.nnode  = obj.interp.nnode;
-            cParams.npnod  = obj.interp.npnod;
+            cParams.nnode  = obj.mesh.nnode;
+            cParams.npnod  = obj.mesh.npnod;
             cParams.connec = obj.mesh.connec;
             cParams.nelem  = obj.mesh.nelem;
             cParams.diffReactEq = cPar.femSettings;            

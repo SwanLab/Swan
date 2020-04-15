@@ -6,7 +6,6 @@ classdef Quadrilateral_Bilinear < Interpolation
             obj.init(cParams);
             obj.computeParameters();
             obj.computeCases();
-            obj.computeCoordAndConnec();
         end
         
         function computeShapeDeriv(obj,posgp)

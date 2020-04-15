@@ -6,7 +6,6 @@ classdef Hexahedra_Linear < Interpolation
             obj.init(cParams);
             obj.computeParams();
             obj.computeCases();
-            obj.computeCoordAndConnec();
         end
         
         function computeShapeDeriv(obj,posgp)
@@ -38,7 +37,6 @@ classdef Hexahedra_Linear < Interpolation
     methods (Access = private)
         
         function computeParams(obj)
-            obj.type  = obj.mesh.geometryType;
             obj.ndime = 3;
             obj.nnode = 8;
             obj.isoDv = 8;

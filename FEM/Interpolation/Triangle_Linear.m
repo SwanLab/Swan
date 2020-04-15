@@ -6,12 +6,11 @@ classdef Triangle_Linear < Interpolation
             obj.init(cParams);
             obj.computeParams();
             obj.computeCases();
-            obj.computeCoordAndConnec();
         end
         
-        function computeShapeDeriv(obj,posgp)
-            obj.computeShapes(posgp);
-            obj.computeShapeDerivatives(posgp);
+        function computeShapeDeriv(obj,xGauss)
+            obj.computeShapes(xGauss);
+            obj.computeShapeDerivatives(xGauss);
         end
         
     end
@@ -19,7 +18,6 @@ classdef Triangle_Linear < Interpolation
     methods (Access = private)
         
         function computeParams(obj)
-            obj.type  = obj.mesh.geometryType;
             obj.ndime = 2;
             obj.nnode = 3;
             obj.pos_nodes = [0 0; 1 0; 0 1];
@@ -38,11 +36,6 @@ classdef Triangle_Linear < Interpolation
             obj.shape(1,:,:) = I-s-t;
             obj.shape(2,:,:) = s;
             obj.shape(3,:,:) = t;
-%             ngaus = size(posgp,2);
-%             s = posgp(1,:);
-%             t = posgp(2,:);
-%             I = ones(1,ngaus);            
-%             obj.shape = [I-s-t;s;t];
         end
         
         function computeShapeDerivatives(obj,posgp)
@@ -54,10 +47,7 @@ classdef Triangle_Linear < Interpolation
             obj.deriv(1,3,:,:) = 0;
             obj.deriv(2,1,:,:) = -1;
             obj.deriv(2,2,:,:) = 0;
-            obj.deriv(2,3,:,:) = 1;
-            %ngaus = size(posgp,2);                      
-            %derivative = [-1.0 1.0 0.0;-1.0 0.0 1.0];                        
-            %obj.deriv = repmat(derivative,1,1,ngaus);                
+            obj.deriv(2,3,:,:) = 1;              
         end
         
         function computeCases(obj)

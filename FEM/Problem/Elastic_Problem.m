@@ -127,7 +127,7 @@ classdef Elastic_Problem < FEM
         end
         
         function createDOF(obj)
-            obj.dof = DOF_Elastic(obj.fileName,obj.geometry,obj.problemData.pdim,obj.nFields,obj.interp);            
+            obj.dof = DOF_Elastic(obj.fileName,obj.mesh,obj.problemData.pdim,obj.nFields,obj.interp);            
         end
         
         function createElement(obj)

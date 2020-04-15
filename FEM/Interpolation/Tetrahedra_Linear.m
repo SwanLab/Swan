@@ -6,7 +6,6 @@ classdef Tetrahedra_Linear<Interpolation
             obj.init(cParams);
             obj.computeParams()
             obj.computeCases();
-            obj.computeCoordAndConnec();
         end
         
         function computeShapeDeriv(obj,posgp)
@@ -19,7 +18,6 @@ classdef Tetrahedra_Linear<Interpolation
     methods (Access = private)
         
         function computeParams(obj)
-            obj.type  = obj.mesh.geometryType;
             obj.ndime = 3;
             obj.nnode = 4;
             obj.pos_nodes = [0 0 0;

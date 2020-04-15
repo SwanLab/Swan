@@ -1,11 +1,5 @@
 classdef DOF < handle
-    %DOF Summary of this class goes here
-    %   Detailed explanation goes here
-    
-    %     properties (GetAccess = {?Physical_Problem, ?Element, ?Solver}, SetAccess = private)
-    %
-    %     end
-    
+
     properties (GetAccess = public)
         dirichlet_values
         neumann_values
@@ -29,18 +23,43 @@ classdef DOF < handle
             end
         end
         
-        function obj = computeDOF(obj,geometry,interp)
+        function obj = computeDOF(obj,mesh,interp)
             nfields = numel(interp);
             for ifield = 1:nfields
+                int = interp{ifield};
                 nunkn = obj.nunkn(ifield);
-                nnode = interp{ifield}.nnode;
-                npnod = interp{ifield}.npnod;
-                obj.in_elem{ifield} = obj.compute_idx(interp{ifield}.T,nunkn,nnode);
+
+                [T,npnod] = obj.computeConnec(mesh,int);
+                nnode = size(T,2);
+                obj.in_elem{ifield} = obj.compute_idx(T,nunkn,nnode);
                 obj.ndof(ifield) = nunkn*npnod;
                 obj.constrained{ifield} = obj.compute_constrained_dof(ifield);
                 obj.free{ifield} = obj.compute_free_dof(ifield);
             end
         end
+    end
+    
+    methods (Access = protected)
+        
+        function [connec,npnod] = computeConnec(obj,mesh,int)
+                switch int.order                    
+                    case 'LINEAR'
+                        connec = mesh.connec;
+                        coord = mesh.coord;
+                    otherwise
+                        s.mesh = mesh;
+                        s.interpolation = int;
+                        c = ConnecCoordFromInterpAndMesh(s);
+                        c.compute();
+                        connec = c.connec;
+                        coord = c.coord;
+                        
+                        %connec = c.computeConnec();
+                end
+                npnod = size(coord,1);
+                
+        end
+        
     end
     
     methods

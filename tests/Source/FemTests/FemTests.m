@@ -15,9 +15,9 @@ classdef FemTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {...
+                'test2dStokes_triangle';                                                
                 'test3dTetrahedra';
                 'test3dHexahedra';                
-                'test2dStokes_triangle';                                
                 'test2dMicro';
                 'test2dQuad';                
                 'test2dTriangle';

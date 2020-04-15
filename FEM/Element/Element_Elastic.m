@@ -61,9 +61,9 @@ classdef Element_Elastic < Element
             Bmat   = obj.computeBmat();
             dvolum = obj.geometry.dvolu;
             
-            ngaus  = obj.quadrature.ngaus;
-            dimen = obj.computeDim(ngaus);
-            connect = obj.interp{1}.T;
+            ngaus   = obj.quadrature.ngaus;
+            dimen   = obj.computeDim(ngaus);
+            connect = mesh.connec;%obj.interp{1}.T;
             
             
             obj.dim = dimen;

@@ -147,7 +147,7 @@ classdef Elastic_Problem_Micro < FEM
         end
         
         function createDOF(obj)
-            obj.dof = DOF_Elastic_Micro(obj.fileName,obj.geometry,obj.problemData.pdim,obj.nFields,obj.interp);
+            obj.dof = DOF_Elastic_Micro(obj.fileName,obj.mesh,obj.problemData.pdim,obj.nFields,obj.interp);
         end
         
         function createElement(obj)

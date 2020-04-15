@@ -17,7 +17,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             obj.createInterpolation();
             obj.computeGeometry();
             obj.nelem = obj.mesh.nelem;
-            obj.npnod = obj.interp.npnod;
+            obj.npnod = obj.mesh.npnod;
             obj.ngaus = obj.quadrature.ngaus;
             obj.Anodal2Gauss = obj.computeA();            
             cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh);

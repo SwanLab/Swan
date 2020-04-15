@@ -5,7 +5,6 @@ classdef Triangle_Quadratic < Interpolation
         function obj = Triangle_Quadratic(cParams)
             obj.init(cParams);
             obj.computeParams();
-            obj.computeCoordAndConnec();
         end
         
         function computeShapeDeriv(obj,posgp)

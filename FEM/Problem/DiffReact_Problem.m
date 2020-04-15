@@ -89,7 +89,7 @@ classdef DiffReact_Problem < FEM
         end
         
         function setDOFs(obj)
-            obj.dof = DOF_DiffReact(obj.geometry,obj.interp);
+            obj.dof = DOF_DiffReact(obj.mesh,obj.interp);
         end
         
         function setScale(obj)

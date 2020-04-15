@@ -10,16 +10,21 @@ classdef DOF_Stokes < DOF
             obj.nunkn = [nunkn_u nunkn_p];
             [dirichlet_data,neumann_data,full_dirichlet_data] = Preprocess.getBC_fluids(filename,mesh,geometry,interp);
             obj.getDOFconditions(nFields,dirichlet_data,neumann_data,full_dirichlet_data);
-            obj.computeDOF(interp);
+            obj.computeDOF(mesh,interp);
         end
-    
-       function obj = computeDOF(obj,interp)
+        
+        function obj = computeDOF(obj,mesh,interp)
             nfields = numel(interp);
             for ifield = 1:nfields
                 nunkn = obj.nunkn(ifield);
-                nnode = interp{ifield}.nnode;
-                npnod = interp{ifield}.npnod;
-                obj.in_elem{ifield} = obj.compute_idx(interp{ifield}.T,nunkn,nnode);
+                int = interp{ifield};
+              %  npnod = int.npnod;
+
+                %T = interp{ifield}.T;
+                [T,npnod] = obj.computeConnec(mesh,int);
+                nnode = size(T,2);
+                
+                obj.in_elem{ifield} = obj.compute_idx(T,nunkn,nnode);
                 obj.ndof(ifield) = nunkn*npnod;
                 obj.constrained{ifield} = obj.compute_constrained_dof(ifield);
                 obj.free{ifield} = obj.compute_free_dof(ifield);

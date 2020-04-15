@@ -9,7 +9,7 @@ classdef DOF_DiffReact_Micro < DOF
     end
     
     methods
-        function obj = DOF_DiffReact_Micro(problemID,geometry,interp)
+        function obj = DOF_DiffReact_Micro(problemID,mesh,interp)
             obj.nunkn = 1;
             obj.dirichlet{1} = [];
             obj.dirichlet_values{1} = [];
@@ -18,7 +18,7 @@ classdef DOF_DiffReact_Micro < DOF
             [~,~,~,obj.master_slave] = Preprocess.getBC_mechanics(problemID);
             obj.periodic_free = obj.compute_periodic_nodes(obj.master_slave(:,1),obj.nunkn);
             obj.periodic_constrained = obj.compute_periodic_nodes(obj.master_slave(:,2),obj.nunkn);
-            obj.computeDOF(geometry,interp);
+            obj.computeDOF(mesh,interp);
         end
         
         function constrained = compute_constrained_dof(obj,ifield)

@@ -82,7 +82,7 @@ classdef CutMesh < Mesh
                 obj.subcellIsoCoords = permute(cM.xCoordsIso,[1 3 2]);
                 obj.cellContainingSubcell = cM.cellContainingSubcell;
                 
-            elseif  isQuad && isInterior && thereIsCutElem 
+            elseif false% isQuad && isInterior && thereIsCutElem 
                 
                 ls = cParams.levelSet;
                 connecCut = cParams.meshBackground.connec(cutElems,:);            
