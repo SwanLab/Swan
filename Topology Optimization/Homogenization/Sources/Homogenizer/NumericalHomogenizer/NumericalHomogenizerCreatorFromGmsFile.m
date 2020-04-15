@@ -7,6 +7,7 @@ classdef NumericalHomogenizerCreatorFromGmsFile < handle
         homogDataBase     
         print
         iter
+        hasToCaptureImage
     end
    
     methods (Access = public)
@@ -31,10 +32,11 @@ classdef NumericalHomogenizerCreatorFromGmsFile < handle
     methods (Access = private)
         
         function init(obj,d)
-            obj.gmsFile = d.gmsFile;
-            obj.outFile = d.outFile;
-            obj.print   = d.print;
-            obj.iter    = d.iter;
+            obj.gmsFile           = d.gmsFile;
+            obj.outFile           = d.outFile;
+            obj.print             = d.print;
+            obj.iter              = d.iter;
+            obj.hasToCaptureImage = d.hasToCaptureImage;
         end
                  
         function createSwanInputData(obj)
@@ -50,7 +52,7 @@ classdef NumericalHomogenizerCreatorFromGmsFile < handle
             dB.outFileName                   = obj.outFile;
             dB.print                         = obj.print;
             dB.levelSetDataBase.type = 'full';
-            dB.hasToCaptureImage = false;
+            dB.hasToCaptureImage = obj.hasToCaptureImage;
             obj.homogDataBase = dB;
         end  
         

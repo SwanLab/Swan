@@ -52,6 +52,7 @@ classdef CutMesh < Mesh
             isInterior = isequal(obj.type,'INTERIOR');            
             cutElems = cParams.backgroundCutCells;                   
             thereIsCutElem = ~isempty(cutElems);
+            isQuad = isequal(cParams.meshBackground.geometryType,'QUAD');
             if isTriangle && isInterior && thereIsCutElem 
                  
                 ls = cParams.levelSet;
@@ -62,25 +63,53 @@ classdef CutMesh < Mesh
                 s.coord  = coord;
                 s.connec = connecCut;
                 backgroundCutMesh = Mesh().create(s);
-                backgroundCutMesh.computeEdges();
+                %backgroundCutMesh.computeEdges();
                 
                 s.backgroundMesh = backgroundCutMesh;
                 s.cutElems = cutElems;
                 s.levelSet = ls;
+                
                 cM = CutMeshComputerProvisional(s);
                 
-               % cM = obj.computeCutMeshInterior(coord,connecCut,cutElems,ls);
-                %   s.connec = cM.connec;
-                %   s.coord = cM.coord;
-                %   m = Mesh().create(s);
-                %  m.plot();
                 
+                
+                cM.compute();
+               
                 %obj.coord = zeros(size(cParams.meshBackground.coord));
                 obj.connec = cM.connec;
                 obj.coord = zeros(size(cM.coord,1),size(cParams.meshBackground.coord,2));
                 obj.coord(:,1:2)  = cM.coord;
                 obj.subcellIsoCoords = permute(cM.xCoordsIso,[1 3 2]);
                 obj.cellContainingSubcell = cM.cellContainingSubcell;
+                
+            elseif  isQuad && isInterior && thereIsCutElem 
+                
+                ls = cParams.levelSet;
+                connecCut = cParams.meshBackground.connec(cutElems,:);            
+    
+                coord = cParams.meshBackground.coord(:,1:2);     
+                
+                s.coord  = coord;
+                s.connec = connecCut;
+                backgroundCutMesh = Mesh().create(s);
+                %backgroundCutMesh.computeEdges();
+                
+                s.backgroundMesh = backgroundCutMesh;
+                s.cutElems = cutElems;
+                s.levelSet = ls;
+                s.lastNode = max(cParams.meshBackground.connec(:));
+
+                cM = CutMeshProvisionalQuadrilater(s);                
+                cM.compute();
+               
+                %obj.coord = zeros(size(cParams.meshBackground.coord));
+                obj.connec = cM.connec;
+                obj.coord = zeros(size(cM.coord,1),size(cParams.meshBackground.coord,2));
+                obj.coord(:,1:2)  = cM.coord;
+                obj.subcellIsoCoords = permute(cM.xCoordsIso,[1 3 2]);
+                obj.cellContainingSubcell = cM.cellContainingSubcell;                
+                
+                
                 
             else
                 
@@ -127,29 +156,6 @@ classdef CutMesh < Mesh
             
         end
         
-        function cMeshInt = computeCutMeshInterior(obj,coord,connec,cutElems,ls)
-            e = obj.computeEdges(connec);
-            s.cutEdgesParams.nodesInEdges = e.nodesInEdges;
-            s.cutEdgesParams.levelSet     = ls;
-            s.cutCoordParams.coord = coord;
-            s.cutCoordParams.nodesInEdges = e.nodesInEdges;
-            
-            s.cutEdgesComputerParams.allNodesinElemParams.finalNodeNumber = size(coord,1);
-            s.cutEdgesComputerParams.allNodesinElemParams.backgroundConnec = connec;
-            s.cutEdgesComputerParams.allNodesInElemCoordParams.localNodeByEdgeByElem = e.localNodeByEdgeByElem;
-            s.cutEdgesComputerParams.edgesInElem = e.edgesInElem;
-            s.cutEdgesComputerParams.nEdgeByElem = e.nEdgeByElem;
-            s.interiorSubCellsParams.isSubCellInteriorParams.levelSet = ls;
-            s.interiorSubCellsParams.cutElems = cutElems;
-            cMeshInt = CutMeshComputerProvisional(s);
-        end
-        
-        function e = computeEdges(obj,connec)
-            s.nodesByElem = connec;
-            e = EdgesConnectivitiesComputer(s);
-            e.compute();
-        end
-        
         
         function setLevelSetUnfitted(obj,LS)
             obj.levelSet_unfitted = LS;
@@ -170,7 +176,7 @@ classdef CutMesh < Mesh
             shape = obj.createShapes(quad.posgp);
             nDime = size(coord,2);
             nNode = obj.nnode;
-            nElem = obj.nelem;
+            nElem = size(coord,1);
             nGaus = quad.ngaus;
             xGauss = zeros(nGaus,nElem,nDime);
             for kNode = 1:nNode
@@ -286,6 +292,9 @@ classdef CutMesh < Mesh
                 
                 newCellContainingNodes   = repmat(icell,[newSubcells.nNodes 1]);
                 newCellContainingSubcell = repmat(icell,[newSubcells.nSubcells 1]);
+                
+                nnode = (newSubcells.nNodes);
+                
                 
                 obj.memoryManager.saveNewSubcells(newSubcells,newCellContainingNodes,newCellContainingSubcell);
             end

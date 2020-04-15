@@ -1,11 +1,6 @@
 classdef AbstractMesh < handle
     
-%     properties (Access = public)
-%         unfittedType        
-%     end
 
-    
-    
     properties (GetAccess = public, SetAccess = protected)
         coord
         connec
@@ -25,28 +20,23 @@ classdef AbstractMesh < handle
        
        function xGauss = computeXgauss(obj,quad)
             xV     = quad.posgp;
-            fElem  = obj.coordElem;
-            fElem   = permute(fElem,[3 2 1]);                      
-            xGauss = obj.interpolateFunction(xV,fElem);
+            xElem  = obj.coordElem;
+            xElem  = permute(xElem,[2 1 3]);            
+            xGauss = obj.interpolation.interpolateFunction(xV,xElem);
        end      
        
-       function fxV = interpolateFunction(obj,xV,func)
-            intF   = obj.interpolation;           
-            intF.computeShapeDeriv(xV);
-            shapes = intF.shape;
+       function fxV = interpolateFunction(obj,shapes,func)
             nNode  = size(shapes,1);
             nGaus  = size(shapes,2); 
-            nElem  = size(func,1);                        
-            nDime  = size(func,2);
-            shapes = permute(shapes,[3 1 2]);            
-            fxV = zeros(nElem,nDime,nGaus);
+            nF     = size(func,1);                        
+            nElem  = size(func,3);
+            fxV = zeros(nF,nGaus,nElem);
             for kNode = 1:nNode
-                shapeKJ = shapes(:,kNode,:);
-                fKJ(:,:,1) = func(:,:,kNode);
+                shapeKJ = shapes(kNode,:,:);
+                fKJ     = func(:,kNode,:);
                 f = bsxfun(@times,shapeKJ,fKJ);
                 fxV = fxV + f;
             end
-            fxV = permute(fxV,[2 3 1]);           
        end
        
        function dvolume = computeDvolume(obj,quad)

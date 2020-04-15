@@ -12,6 +12,7 @@ classdef OptimalSuperEllipseExponentPlotter < handle
             obj.computePonderatedOptimalSuperEllipse();
             obj.saveQmeanMxMy();
             obj.plotQmeanTxiRho();
+            obj.plotQdesvTxiRho();
             obj.plotQmeanMxMy();  
         end
         
@@ -29,10 +30,15 @@ classdef OptimalSuperEllipseExponentPlotter < handle
             obj.plotQmeanTxiRhoTrisurf();                        
         end        
         
-        function plotQmeanTxiRhoContour(obj)
+        function plotQdesvTxiRho(obj)
+            obj.plotQdesvTxiRhoContour();  
+            obj.plotQdesvTxiRhoTrisurf();                                    
+        end
+        
+        function plotContour(obj,q,fName)
             x = obj.optimalSuperEllipse.txiV;
             y = obj.optimalSuperEllipse.rhoV;
-            z = obj.optimalSuperEllipse.qMean;            
+            z = q;
             tri = delaunay(x,y);
             f = figure();
             ncolors = 50;
@@ -43,14 +49,26 @@ classdef OptimalSuperEllipseExponentPlotter < handle
             ylim([0 1])
             xlabel('$\xi$','Interpreter','latex');
             ylabel('\rho');
-            tN = '\textrm{Optimal SuperEllipse exponent}';
-            title(['$',tN,'$'],'interpreter','latex')
+           % tN = '\textrm{Optimal SuperEllipse exponent}';
+           % title(['$',tN,'$'],'interpreter','latex')
             set(gca,'xtick',[0:pi/8:pi/2]) % where to set the tick marks
             set(gca,'xticklabels',{'0','\pi/8','\pi/4','3\pi/8','\pi/2'})  
             fp = contourPrinter(f);            
-            filePath = [obj.outputPath,'QmeanTxiRhoContour'];
-            fp.print(filePath);            
+            filePath = [obj.outputPath,fName];
+            fp.print(filePath);                 
         end
+        
+        function plotQmeanTxiRhoContour(obj)
+            q = obj.optimalSuperEllipse.qMean;            
+            fName = 'QmeanTxiRhoContour';
+            obj.plotContour(q,fName);       
+        end
+        
+        function plotQdesvTxiRhoContour(obj)
+            q = obj.optimalSuperEllipse.qDesv;            
+            fName = 'QdesvTxiRhoContour';
+            obj.plotContour(q,fName);                         
+        end        
         
         function saveQmeanMxMy(obj)
            n = 20;
@@ -69,9 +87,21 @@ classdef OptimalSuperEllipseExponentPlotter < handle
         end
         
         function plotQmeanTxiRhoTrisurf(obj)
+            q = obj.optimalSuperEllipse.qMean;
+            fName = 'QmeanTxiRhoSurf';
+            obj.plotTrisurf(q,fName);
+        end
+        
+        function plotQdesvTxiRhoTrisurf(obj)
+            q = obj.optimalSuperEllipse.qDesv;
+            fName = 'QdesvTxiRhoSurf';
+            obj.plotTrisurf(q,fName);            
+        end
+        
+        function plotTrisurf(obj,q,fName)
             x = obj.optimalSuperEllipse.txiV;
             y = obj.optimalSuperEllipse.rhoV;
-            z = obj.optimalSuperEllipse.qMean; 
+            z = q; 
             tri = delaunay(x,y);            
             f = figure();
             trisurf(tri,x,y,z);
@@ -86,8 +116,8 @@ classdef OptimalSuperEllipseExponentPlotter < handle
             set(gca,'xtick',[0:pi/8:pi/2]) % where to set the tick marks
             set(gca,'xticklabels',{'0','\pi/8','\pi/4','3\pi/8','\pi/2'})  
             fp = surfPrinter(f);            
-            filePath = [obj.outputPath,'QmeanTxiRhoSurf'];
-            fp.print(filePath);            
+            filePath = [obj.outputPath,fName];
+            fp.print(filePath);              
         end
         
         function [xq,yq,vq] = interpolateQmeanMxMy(obj,n,xmin,xmax,ymin,ymax)

@@ -167,7 +167,7 @@ classdef UnfittedMesh < handle
             obj.innerCutMesh = CutMesh(s);
         end
         
-        function computeBoundaryCutMesh(obj)
+            function computeBoundaryCutMesh(obj)
             if ~obj.isInBoundary
                 s.type                    = 'BOUNDARY';
                 s.meshBackground          = obj.meshBackground;

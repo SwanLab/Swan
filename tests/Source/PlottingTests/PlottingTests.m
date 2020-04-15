@@ -7,7 +7,7 @@ classdef PlottingTests < testRunner
     methods (Access = public)
         function  obj = PlottingTests()
             obj@testRunner();
-           % close all;
+         %   close all;
         end
     end
     

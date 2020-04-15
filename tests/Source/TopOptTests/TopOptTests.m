@@ -17,8 +17,8 @@ classdef TopOptTests < testRunner
         
         function loadTests(obj)
             obj.tests = {...
-                'testMicro2';                  
-                 'testBridge2';                                                               
+                 'testBridge2';                                                                               
+            'testMicro2';                  
                 'testVigdergauzMicroStructureWithStrain';                 
                 'testAnalyticVsRegularizedPerimeter';               
                 'testVigdergauzMicroStructure';                                                                             

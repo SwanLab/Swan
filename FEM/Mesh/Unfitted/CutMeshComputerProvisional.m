@@ -25,8 +25,14 @@ classdef CutMeshComputerProvisional < handle
         
         function  obj = CutMeshComputerProvisional(cParams)
             obj.init(cParams);
-            obj.compute()
         end
+        
+        function compute(obj)
+            obj.computeCutEdges();
+            obj.computeCoordinates();  
+            obj.computeCutPointsInElemComputer();
+            obj.computeConnec();
+        end        
         
     end    
     
@@ -54,13 +60,6 @@ classdef CutMeshComputerProvisional < handle
             obj.cutEdgesComputerParams.nEdgeByElem = e.nEdgeByElem;
             obj.interiorSubCellsParams.isSubCellInteriorParams.levelSet = ls;
             obj.interiorSubCellsParams.cutElems = cutElems;
-        end
-        
-        function compute(obj)
-            obj.computeCutEdges();
-            obj.computeCoordinates();  
-            obj.computeCutPointsInElemComputer();
-            obj.computeConnec();
         end
         
         function computeCutEdges(obj)
