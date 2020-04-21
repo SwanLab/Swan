@@ -36,26 +36,35 @@ classdef OptimalSuperEllipseExponentPlotter < handle
         end
         
         function plotContour(obj,q,fName)
+            
             x = obj.optimalSuperEllipse.txiV;
             y = obj.optimalSuperEllipse.rhoV;
             z = q;
             tri = delaunay(x,y);
-            f = figure();
-            ncolors = 50;
-            tricontour(tri,x,y,z,ncolors);            
+            
+            s.coord = [x',y'];
+            s.connec = tri;
+            m = Mesh().create(s);
+            qua = m.computeElementQuality';
+            isQ = qua > 0.02;
+            f = figure();            
+            h = trisurf(tri(isQ,:),x,y,z);
             colorbar
-            hold on
-            plot(x,y,'+');
+            h.FaceColor = 'interp';
+            %h.EdgeColor = 'none';
+            view(2)
+            
             ylim([0 1])
             xlabel('$\xi$','Interpreter','latex');
             ylabel('\rho');
-           % tN = '\textrm{Optimal SuperEllipse exponent}';
-           % title(['$',tN,'$'],'interpreter','latex')
+            % tN = '\textrm{Optimal SuperEllipse exponent}';
+            % title(['$',tN,'$'],'interpreter','latex')
             set(gca,'xtick',[0:pi/8:pi/2]) % where to set the tick marks
-            set(gca,'xticklabels',{'0','\pi/8','\pi/4','3\pi/8','\pi/2'})  
-            fp = contourPrinter(f);            
+            set(gca,'xticklabels',{'0','\pi/8','\pi/4','3\pi/8','\pi/2'})
+            fp = contourPrinter(f);
             filePath = [obj.outputPath,fName];
-            fp.print(filePath);                 
+            fp.print(filePath);
+                        
         end
         
         function plotQmeanTxiRhoContour(obj)

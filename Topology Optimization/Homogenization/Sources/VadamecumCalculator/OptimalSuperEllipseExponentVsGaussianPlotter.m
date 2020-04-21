@@ -4,93 +4,139 @@ classdef OptimalSuperEllipseExponentVsGaussianPlotter < handle
         samplePoints
         gaussian
         qOpt
-        psi
-        psiV
-        icase
-        rho0
+        phiMin
+        phiMax
+        nPhi
+        rhoV
+        txiV
+        rho
+        txi
         figureID
-        outputPath        
+        outputPath
+        phiIntegrationInterval
     end
     
     methods (Access = public)
         
         function obj = OptimalSuperEllipseExponentVsGaussianPlotter()
             obj.init();
-            for iphi = 1:length(obj.psiV)
-                obj.icase = iphi;
-                obj.psi = obj.psiV(iphi);
+            for itxi = 1:length(obj.txiV)
+                obj.rho = obj.rhoV(itxi);
+                obj.txi = obj.txiV(itxi);
                 obj.createSamplePoints();
                 obj.computeOptimalSuperEllipseExponent();
-                obj.plotQoptAndGaussianVsTxi(); 
+                obj.plotQoptAndGaussianVsPhi(itxi);
             end
         end
         
     end
-    
     methods (Access = private)
         
         function init(obj)
-            obj.outputPath = '/home/alex/Dropbox/PaperStress/';            
+            obj.outputPath = '/home/alex/Dropbox/PaperStress/';
             obj.gaussian = gaussianFunction();
-            obj.psiV = linspace(0,pi/2,6);
-            obj.rho0 = 0.8;
+            obj.phiMin = -pi;%0;
+            obj.phiMax = pi;%pi/2;
+            obj.nPhi = 25;
+            %
+            %             obj.phiMin = 0-pi/6;%0;
+            %             obj.phiMax = 0+pi/6;%pi/2;
+            %             obj.nPhi   = 2;
+            %
+            obj.rhoV  = [0.9,0.9,0.5,0.5];
+            obj.txiV  = pi/2 - [0.1083,0.557,0.88974,1.0984];
+            
+            obj.rhoV = obj.rhoV(2);
+            obj.txiV = obj.txiV(2);
+            
+            obj.phiIntegrationInterval = pi/4;
         end
         
         function createSamplePoints(obj)
-            s.type = 'FromFixedRho';
-            s.rho0 = obj.rho0;
-            s.psi  = obj.psi;
+            s.type = 'FromFixedRhoAndTxi';
+            s.rho0 = obj.rho;
+            s.txi  = obj.txi;
+            s.phi  = linspace(obj.phiMin,obj.phiMax,obj.nPhi);
             sample = SamplePointsCreatorForOptimalExponentComputer.create(s);
+            sample.compute();
             obj.samplePoints = sample;
         end
         
         function computeOptimalSuperEllipseExponent(obj)
             s.samplePoints = obj.samplePoints;
-            s.fileName = 'OptimalSuperEllipseExponentDataFromFixedRho';
+            rhoT = strrep(num2str(obj.rho),'.','_');
+            txiT = strrep(num2str(round(obj.txi,3)),'.','_');
+            fN = ['AveragingSuperEllipseRho',rhoT,'Txi',txiT];
+            s.fileName = fN;
             exponentComputer = OptimalExponentComputer(s);
             exponentComputer.compute();
             obj.qOpt = exponentComputer.qOpt;
         end
         
-        function plotQoptAndGaussianVsTxi(obj)
+        function plotQoptAndGaussianVsPhi(obj,itxi)
             obj.figureID = figure();
-            obj.plotQvsTxi();
-            obj.plotPvsTxiobtainPvsTxi();
+            obj.plotQvsPhi();
+            obj.plotPvsTxiObtainPvsPhi();
             obj.addXlabel();
-            obj.print()
-        end               
-        
-        function plotQvsTxi(obj)
-            obj.samplePoints.compute();
-            txi(:,1) = obj.samplePoints.txiV;
-            q(:,1)   = obj.qOpt;   
-            yyaxis left            
-            plot(txi,q,'+-','LineWidth',4);
-            ylabel('q');            
+            obj.addTitle();
+            %  obj.print(itxi);
         end
         
-        function plotPvsTxiobtainPvsTxi(obj)
+        function plotQvsPhi(obj)
+            sE = SuperEllipseParamsRelator;
+            qMax = 32;
+            mxMax = 0.99;
+            myMax = 0.99;
+            txiMax = sE.txiFromMxAndRho(mxMax,obj.rho,qMax);
+            txiMin = sE.txiFromMyAndRho(myMax,obj.rho,qMax);
+            phi(:,1) = obj.samplePoints.phiV;
+            q(:,1)   = obj.qOpt();
+            yyaxis left
+            plot(phi,q,'+-','LineWidth',4);
+            ylabel('q');
+            %set(gca,'xtick',[0:pi/8:pi/2])
+            %set(gca,'xticklabels',{'0','\pi/8','\pi/4','3\pi/8','\pi/2'})
+            set(gca,'xtick',[obj.phiMin:pi/8:obj.phiMax])
+            set(gca,'xticklabels',{'\pi','-7\pi/8','-3\pi/4','-5\pi/8',...
+                '-\pi/2','-3\pi/8','-\pi/4','-\pi/8',...
+                '0','\pi/8','\pi/4','3\pi/8','\pi/2',...
+                '5\pi/8','3\pi/4','7\pi/8','\pi'})
+            
+            T = obj.phiIntegrationInterval/2;
+            pMin = min(txiMin - T/2,obj.phiMin);
+            pMax = max(txiMax + T/2,obj.phiMax);
+            axis([pMin,pMax,2,32])
+        end
+        
+        function plotPvsTxiObtainPvsPhi(obj)
+            T   = obj.phiIntegrationInterval;
             npoints = 100;
-            phiValue = obj.psi;
-            txiMin = obj.samplePoints.txiMin;
-            txiMax = obj.samplePoints.txiMax;            
-            txi =  linspace(txiMin,txiMax,npoints);
-            P = obj.gaussian(txi,phiValue);  
+            txiG = pi/2 - obj.txi;
+            phiV = linspace(txiG-T,txiG+T,npoints);
+            P = obj.gaussian(txiG,phiV);
             yyaxis right
-            plot(txi,P,'LineWidth',4)
-            ylabel('P');            
+            plot(phiV,P,'LineWidth',4)
+            ylabel('P');
         end
         
         function addXlabel(obj)
-            xlabel('$\xi$','Interpreter','latex');            
-            set(gca,'xtick',[0:pi/8:pi/2]) % where to set the tick marks
-            set(gca,'xticklabels',{'0','\pi/8','\pi/4','3\pi/8','\pi/2'})              
+            xlabel('$\phi$','Interpreter','latex');
+            set(gca,'xtick',[0:pi/8:pi/2])
+            set(gca,'xticklabels',{'0','\pi/8','\pi/4','3\pi/8','\pi/2'})
         end
         
-        function print(obj)
-            fp = contourPrinter(obj.figureID);            
-            filePath = [obj.outputPath,'QoptAndGaussianVsTxi',num2str(obj.icase)];
-            fp.print(filePath);             
+        function addTitle(obj)
+            rhoT = ['\rho = ',num2str(obj.rho)];
+            txiT = ['\xi = ',num2str(obj.txi)];
+            tit =  ['$',rhoT,'\quad',txiT,'$'];%,', \quad','\xi = ',num2str(obj.txi),'$'];
+            title(tit,'Interpreter','latex');
+        end
+        
+        function print(obj,itxi)
+            fp = contourPrinter(obj.figureID);
+            rhoStr = strrep(num2str(obj.rho),'.','_');
+            filePath = [obj.outputPath,'QoptAndGaussianVsTxi',num2str(itxi),rhoStr];
+            fp.print(filePath);
         end
         
     end

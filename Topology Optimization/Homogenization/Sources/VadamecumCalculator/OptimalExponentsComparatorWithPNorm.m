@@ -28,7 +28,7 @@ classdef OptimalExponentsComparatorWithPNorm < handle
         function init(obj,cParams)
             obj.optimalExponentParams.txi  = pi/4;
             obj.optimalExponentParams.rho  = 0.15;
-            obj.optimalExponentParams.psi  = pi/4;
+            obj.optimalExponentParams.phi  = pi/4;
             obj.optimalExponentParams.hMesh = 0.01;
             obj.pNorm = {2,4,16,32,'max'};            
         end
@@ -73,7 +73,7 @@ classdef OptimalExponentsComparatorWithPNorm < handle
             
             legObj = legend(leg);
             set(legObj,'Interpreter','latex','Location','Best');             
-            outputName = [outPutPath,'StressNormVsQForPmax'];
+            %outputName = [outPutPath,'StressNormVsQForPmax'];
             %outputName = [outPutPath,'StressNormVsQForDifferentP'];
             printer = plotPrinter(f,h);
             printer.print(outputName);

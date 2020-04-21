@@ -2,6 +2,7 @@ classdef SamplePointsCreatorFromMxMyForOptimalExponentComputer ...
         < SamplePointsCreatorForOptimalExponentComputer
     
     properties (Access = private)
+        phiV
         mxMax
         myMax
         mxV
@@ -24,10 +25,10 @@ classdef SamplePointsCreatorFromMxMyForOptimalExponentComputer ...
             obj.myMax = 0.99;
             nMx = 10;
             nMy = 10;
-            nPsi = 10;
+            nPhi = 10;
             obj.mxV = linspace(0.01,obj.mxMax,nMx);
             obj.myV = linspace(0.01,obj.myMax,nMy);            
-            obj.psiV = linspace(pi/4,pi/4,nPsi);   
+            obj.phiV = linspace(pi/4,pi/4,nPhi);   
             obj.superellipse = SuperEllipseParamsRelator();
         end
         

@@ -57,6 +57,7 @@ classdef PonderatedOptimalSuperEllipseComputer < handle
                 txi = obj.txiV(ipoint);
                 psi = obj.psiV(:);
                 q   = obj.qV(:,ipoint);
+                txi = pi/2 - txi;
                 P(:,1) = obj.gaussian(psi,txi);
                 num = sum(P.*q);
                 den = sum(P);

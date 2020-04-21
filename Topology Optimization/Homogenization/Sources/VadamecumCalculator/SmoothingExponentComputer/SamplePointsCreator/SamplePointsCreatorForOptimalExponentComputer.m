@@ -3,7 +3,7 @@ classdef SamplePointsCreatorForOptimalExponentComputer < handle
     properties (Access = public)
        rhoV
        txiV
-       psiV
+       phiV
     end
     
     methods (Access = public, Static)

@@ -28,7 +28,7 @@ classdef OptimalExponentsComparatorWithHmesh < handle
         function init(obj,cParams)
             obj.optimalExponentParams.txi  = pi/4;
             obj.optimalExponentParams.rho  = 0.15;
-            obj.optimalExponentParams.psi  = pi/4;
+            obj.optimalExponentParams.phi  = pi/4;
             obj.hMesh = [0.1,0.01,0.001];
             obj.optimalExponentParams.pNorm = 'max';            
         end

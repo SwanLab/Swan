@@ -9,6 +9,8 @@ classdef SamplePointsCreatorForOptimalExponentComputerFactory < handle
                   obj = SamplePointsCreatorFromMxMyForOptimalExponentComputer();
               case 'FromFixedRho'
                   obj = SamplePointsCreatorFromFixedRhoForOptimalExponentComputer(cParams);
+              case 'FromFixedRhoAndTxi'
+                  obj = SamplePointsCreatorFromFixedRhoAndTxiForOptimalExponentComputer(cParams);
           end
            
        end
