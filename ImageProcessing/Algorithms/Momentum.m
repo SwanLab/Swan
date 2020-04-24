@@ -32,7 +32,7 @@ classdef Momentum < handle
                 beta = 1;
             else
                 t = (1+sqrt(1+4*obj.tOld^2))/2;
-                beta = obj.tOldOld/t;  % beta = i/(i+3);
+                beta = (obj.tOldOld-1)/t;  % beta = i/(i+3);
                 obj.tOldOld = obj.tOld;
                 obj.tOld = t;
             end
