@@ -1,9 +1,9 @@
 classdef StressNormSuperEllipseComputer < handle
-        
+    
     properties (Access = private)
-        homog        
-        fName        
-        outputFolder                
+        homog
+        fName
+        outputFolder
     end
     
     properties (Access = private)
@@ -22,12 +22,28 @@ classdef StressNormSuperEllipseComputer < handle
         
         function obj = StressNormSuperEllipseComputer(cParams)
             obj.init(cParams)
-        end        
+        end
         
         function sPnorm = compute(obj)
             obj.createMesh();
             obj.createNumericalHomogenizer();
-            sPnorm = obj.computePstressNorm();            
+            sPnorm = obj.computePstressNorm();
+        end
+        
+        function printStress(obj)
+            microProblem = obj.homog.getMicroProblem(); 
+            dI.mesh    =  microProblem.mesh;
+            dI.outName = [obj.fileName,'Print'];
+            dI.pdim    = '2D';
+            dI.ptype   = 'MICRO';
+            ps = PostProcessDataBaseCreator(dI);
+            dB = ps.getValue();
+            postCase = 'ElasticityMicro';
+            postProcess = Postprocess(postCase,dB);
+            d.fields = microProblem.variables;
+            d.quad = microProblem.element.quadrature;
+            iter = 0;
+            postProcess.print(iter,d);
         end
         
     end
@@ -41,7 +57,7 @@ classdef StressNormSuperEllipseComputer < handle
             obj.phi      = cParams.phi;
             obj.pNorm    = cParams.pNorm;
             obj.print    = cParams.print;
-            obj.hMesh    = cParams.hMesh; 
+            obj.hMesh    = cParams.hMesh;
             obj.fileName = cParams.fileName;
             obj.hasToCaptureImage = cParams.hasToCaptureImage;
             obj.computeFileNameAndOutputFolder();
@@ -53,13 +69,12 @@ classdef StressNormSuperEllipseComputer < handle
         end
         
         function sPnorm = computePstressNorm(obj)
-            Ch = obj.homog.cellVariables.Ch;
+            stress = [cos(obj.phi) sin(obj.phi) 0];
             microProblem = obj.homog.getMicroProblem();
-            stress = [cos(obj.phi) sin(obj.phi) 0]';
-            strain = Ch\stress;
-            microProblem.element.setVstrain(strain');
-            microProblem.computeVariables;
-            stresses = microProblem.variables.stress;
+            v = microProblem.computeVarFromStress(stress);
+            stresses = v.stress;
+            
+            
             m = microProblem.mesh;
             quad = Quadrature.set(m.geometryType);
             quad.computeQuadrature('CONSTANT');
@@ -67,12 +82,12 @@ classdef StressNormSuperEllipseComputer < handle
             sx  = squeeze(stresses(:,1,:));
             sy  = squeeze(stresses(:,2,:));
             sxy = squeeze(stresses(:,3,:));
-            sNorm2 = sqrt(sx.*sx + 2*sxy.*sxy + sy.*sy);
+            sNorm = sqrt(sx.*sx + 2*sxy.*sxy + sy.*sy);
             if isequal(obj.pNorm,'max')
-                sPnorm = max(sNorm2);
+                sPnorm = max(sNorm);
             else
                 p = obj.pNorm;
-                int = sNorm2.^p;
+                int = sNorm.^p;
                 sPnorm = sum(int(:).*dV(:))^(1/p);
             end
         end
@@ -85,8 +100,9 @@ classdef StressNormSuperEllipseComputer < handle
             d.hasToCaptureImage = obj.hasToCaptureImage;
             nH = NumericalHomogenizerCreatorFromGmsFile(d);
             obj.homog = nH.getHomogenizer();
+            
         end
-                
+        
         function createMesh(obj)
             d = SettingsFreeFemMeshGenerator();
             d.freeFemFileName = 'SmoothRectangle';
@@ -98,9 +114,9 @@ classdef StressNormSuperEllipseComputer < handle
             d.qNorm           = obj.q;
             fG = FreeFemMeshGenerator(d);
             fG.generate();
-        end        
+        end
         
     end
     
-        
+    
 end

@@ -34,7 +34,7 @@ classdef Elastic_Problem_Micro < FEM
             obj.createElement();
         end
         
-        function [Chomog,tstrain,tstress] = computeChomog(obj)
+        function [Ch,tstrain,tstress] = computeChomog(obj)
             obj.element.quadrature.computeQuadrature('LINEAR');
             obj.element.geometry.computeGeometry(obj.element.quadrature,obj.element.interpolation_u);
             nstre = obj.element.getNstre();
@@ -48,7 +48,7 @@ classdef Elastic_Problem_Micro < FEM
                 strain = basis(istre,:);
                 obj.element.setVstrain(strain);
                 obj.computeVariables;
-                Chomog(:,istre) = obj.variables.stress_homog;
+                Ch(:,istre) = obj.variables.stress_homog;
                 tstrain(istre,:,:,:) = obj.variables.strain;
                 tstress(istre,:,:,:) = obj.variables.stress;
                 tdisp(istre,:) = obj.variables.d_u;
@@ -59,7 +59,7 @@ classdef Elastic_Problem_Micro < FEM
                 var2print{istre}.d_u = obj.variables.d_u;
                 var2print{istre}.fext = obj.variables.fext;
             end
-            obj.variables.Chomog  = Chomog;
+            obj.variables.Chomog  = Ch;
             obj.variables.tstrain = tstrain;
             obj.variables.tstress = tstress;
             obj.variables.tdisp   = tdisp;
@@ -67,7 +67,7 @@ classdef Elastic_Problem_Micro < FEM
             
             obj.variables2print = var2print;
             
-            obj.Chomog = Chomog;
+            obj.Chomog = Ch;
             obj.tstrain = tstrain;
             obj.tstress = tstress;
         end
@@ -76,36 +76,15 @@ classdef Elastic_Problem_Micro < FEM
             obj.element.quadrature.computeQuadrature('LINEAR');
             obj.element.geometry.computeGeometry(obj.element.quadrature,obj.element.interpolation_u);
             nstre = obj.element.getNstre();
-            basis = diag(ones(nstre,1));
-            Chomog =  zeros(nstre,nstre);
-            tstrain = zeros(nstre,obj.element.quadrature.ngaus,nstre,obj.element.nelem);
-            tstress = zeros(nstre,obj.element.quadrature.ngaus,nstre,obj.element.nelem);
-            tdisp   = zeros(nstre,obj.element.dof.ndof);
+            basis = diag(ones(nstre,1));          
             var2print = cell(nstre,1);
             for istre=1:nstre
                 stress = basis(istre,:);
-                strain(1,:) = (obj.Chomog)\stress';
-                obj.element.setVstrain(strain);
-                obj.computeVariables;
-                Chomog(:,istre) = obj.variables.stress_homog;
-                tstrain(istre,:,:,:) = obj.variables.strain;
-                tstress(istre,:,:,:) = obj.variables.stress;
-                tdisp(istre,:) = obj.variables.d_u;
-                var2print{istre}.stress = obj.variables.stress;
-                var2print{istre}.strain = obj.variables.strain;
-                var2print{istre}.stress_fluct = obj.variables.strain_fluct;
-                var2print{istre}.strain_fluct = obj.variables.strain_fluct;
-                var2print{istre}.d_u = obj.variables.d_u;
-                var2print{istre}.fext = obj.variables.fext;
+                v = obj.computeVariablesForGivenStress(stress,obj.Chomog);
+                var2print{istre}= v;
             end
-            %            obj.variables2printStressBasis.Chomog  = Chomog;
-            % obj.variables2printStressBasis.tstrain = tstrain;
-            %  obj.variables2printStressBasis.tstress = tstress;
-            %   obj.variables2printStressBasis.tdisp   = tdisp;
-            obj.variables2printStressBasis = var2print;
-            
+           obj.variables2printStressBasis = var2print;            
         end
-        
         
         function v = computeGeometricalVolume(obj)
             v = 1;%sum(sum(obj.geometry.dvolu));
@@ -118,11 +97,26 @@ classdef Elastic_Problem_Micro < FEM
             obj.variables = obj.element.computeVars(u);
         end        
         
-        
+        function v = computeVarFromStress(obj,stress)
+           Ch = obj.computeChomog();
+           v  = obj.computeVariablesForGivenStress(stress,Ch);            
+        end
         
     end
     
     methods (Access = private)
+        
+        function v = computeVariablesForGivenStress(obj,stress,Chomog)
+            strain(1,:) = Chomog\stress';
+            obj.element.setVstrain(strain);
+            obj.computeVariables();
+            v.stress = obj.variables.stress;
+            v.strain = obj.variables.strain;
+            v.stress_fluct = obj.variables.strain_fluct;
+            v.strain_fluct = obj.variables.strain_fluct;
+            v.d_u = obj.variables.d_u;
+            v.fext = obj.variables.fext;
+        end        
         
         function createGeometry(obj)
             s.mesh = obj.mesh;

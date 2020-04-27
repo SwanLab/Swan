@@ -37,7 +37,7 @@ classdef OptimalSuperEllipseExponentVsGaussianPlotter < handle
             obj.gaussian = gaussianFunction();
             obj.phiMin = -pi;%0;
             obj.phiMax = pi;%pi/2;
-            obj.nPhi = 25;
+            obj.nPhi = 50;
             %
             %             obj.phiMin = 0-pi/6;%0;
             %             obj.phiMax = 0+pi/6;%pi/2;
@@ -46,8 +46,8 @@ classdef OptimalSuperEllipseExponentVsGaussianPlotter < handle
             obj.rhoV  = [0.9,0.9,0.5,0.5];
             obj.txiV  = pi/2 - [0.1083,0.557,0.88974,1.0984];
             
-            obj.rhoV = obj.rhoV(2);
-            obj.txiV = obj.txiV(2);
+            obj.rhoV = obj.rhoV(1);
+            obj.txiV = obj.txiV(1);
             
             obj.phiIntegrationInterval = pi/4;
         end

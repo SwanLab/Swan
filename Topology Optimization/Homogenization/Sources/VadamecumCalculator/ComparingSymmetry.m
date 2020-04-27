@@ -1,12 +1,29 @@
-txi = pi/2 - 0.1083;
+function ComparingSymmetry
+
+incPhi = pi/180;
+
+
+fileName = 'StressSymmetryTraction';
+sPnormT = computeExperiment(incPhi,fileName);
+
+
+fileName = 'StressSymmetryCompression';
+sPnormC = computeExperiment(-incPhi,fileName);
+
+end
+
+function sPnorm = computeExperiment(incPhi,fileName)
+
+txi = pi/2 - 0.2;%1083;
 rho = 0.9;
 q = 4;
-phi = 0-pi/6;
+
+phi = 0+incPhi;
 pNorm = 'max';
-print = true;
-hMesh = 0.1;
+print = false;
+hMesh = 0.01;
 hasToCaptureImage = true;
-fileName = 'StressSymmetry';
+
 mx = SuperEllipseParamsRelator.mx(txi,rho,q); 
 my = SuperEllipseParamsRelator.my(txi,rho,q);
 
@@ -21,4 +38,8 @@ s.fileName = fileName;
 s.hasToCaptureImage = false;
 sN = StressNormSuperEllipseComputer(s);
 sPnorm = sN.compute();
+sN.printStress();
 
+
+
+end
