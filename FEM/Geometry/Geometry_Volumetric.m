@@ -17,6 +17,7 @@ classdef Geometry_Volumetric < Geometry
         end
         
         function computeGeometry(obj,quad,interpV)
+            obj.coordElem = permute(obj.mesh.coordElem,[2 1 3]);            
             obj.initGeometry(interpV,quad);
             obj.initVariables();
             obj.matrixInverter = MatrixVectorizedInverter();            
@@ -46,10 +47,10 @@ classdef Geometry_Volumetric < Geometry
             nNode   = obj.mesh.nnode;
             nElem   = obj.mesh.nelem;
             dShapes = obj.mesh.interpolation.deriv(:,:,igaus);
-            jac = zeros(nDime,nDime,nElem);
+            jac = zeros(nDime,nDime,nElem);           
             for kNode = 1:nNode
                 dShapeIK = dShapes(:,kNode);
-                xKJ      = obj.mesh.coordElem(kNode,:,:);
+                xKJ      = obj.coordElem(kNode,:,:);
                 jacIJ    = bsxfun(@times, dShapeIK, xKJ);
                 jac = jac + jacIJ;
             end

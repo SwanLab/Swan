@@ -69,7 +69,12 @@ classdef CutMeshProvisionalQuadrilater < handle
         
         function computeLevelSetInSubMesh(obj)
             ls = obj.levelSet;
-            lsSubMesh = obj.subMesher.projectToSubMesh(ls);
+            
+            s.mesh   = obj.backgroundMesh;
+            s.fNodes = ls;
+            f = FeFunction(s);
+            lsSubMesh = f.computeValueInCenterElement();              
+            
             obj.levelSetSubMesh = [ls;lsSubMesh];
         end
         
@@ -78,8 +83,8 @@ classdef CutMeshProvisionalQuadrilater < handle
             isFull  = all(lsInElem<0,2);
             isEmpty = all(lsInElem>0,2);
             isCut = ~isFull & ~isEmpty;           
-            obj.fullCells  = isFull;
-            obj.cutCells   = isCut;
+            obj.fullCells  = find(isFull);
+            obj.cutCells   = find(isCut);
        end
        
         function lsElem = computeLevelSetInElem(obj)
@@ -96,7 +101,7 @@ classdef CutMeshProvisionalQuadrilater < handle
         
         function computeSubCutSubMesh(obj)
             s.backgroundMesh = obj.computeCutSubMesh();
-            s.cutElems = find(obj.cutCells);
+            s.cutElems = obj.cutCells;
             s.levelSet = obj.levelSetSubMesh;
             cMesh = CutMeshComputerProvisional(s);
             cMesh.compute();
@@ -112,10 +117,10 @@ classdef CutMeshProvisionalQuadrilater < handle
                
         function  computeCellContainingSubCell(obj)
             cellSubMesh = obj.subCutSubMesh.cellContainingSubcell;
-            fCells = find(obj.fullCells);           
+            fCells = obj.fullCells;           
             cellSubMesh = [fCells;cellSubMesh];
             
-            cell        = obj.computeSubTriangleOfSubCell();
+            cell = obj.computeSubTriangleOfSubCell();
             obj.cellContainingSubcell = cell(cellSubMesh);            
         end
         
@@ -126,11 +131,47 @@ classdef CutMeshProvisionalQuadrilater < handle
         end
             
         function computeXcoord(obj)
-            cellSubMesh = [obj.subCutSubMesh.cellContainingSubcell];   
-            fCells = find(obj.fullCells);
-            xIso = obj.subCutSubMesh.xCoordsIso;
-            xIso = permute(xIso,[2 3 1]);                       
-            xCoords = obj.subMesher.projectToIsoSubMesh(cellSubMesh,xIso,fCells); 
+            cCells = obj.subCutSubMesh.cellContainingSubcell;   
+            fCells = obj.fullCells;
+            xIso   = obj.subCutSubMesh.xCoordsIso;
+            xIso   = permute(xIso,[2 3 1]);                       
+            
+            
+            nFull = size(fCells,1);
+            nCut  = size(cCells,1);
+            nElem = nFull + nCut;
+            iFull = 1:nFull;
+            iCut  = nFull + (1:nCut);
+            
+            allSubCells = zeros(nElem,1);
+            
+            allSubCells(iFull,1) = fCells;
+            allSubCells(iCut,1)  = cCells;            
+            
+            bConnec = obj.backgroundMesh.connec;
+            nnode   = size(bConnec,2);
+            nElem   = size(bConnec,1);
+            cell = repmat((1:nnode)',1,nElem);
+            globalToLocal = cell(:);            
+            
+            localSubCells = globalToLocal(allSubCells);
+                      
+            m = obj.subMesher.computeLocalSubMesh(localSubCells);
+            
+            xNodalAllIso = m.coordElem;
+            
+            xIsoCutCells = xIso;
+            nDim  = size(xIsoCutCells,1);
+            nNode = size(xIsoCutCells,2);
+            xIsoAll = zeros(nDim,nNode,nElem);
+            xIsoFull = xNodalAllIso(:,:,iFull);
+            xIsoAll(:,:,iFull) = xIsoFull;
+            xIsoAll(:,:,iCut)  = xIsoCutCells;
+            
+             
+            xE = m.computeXgauss(xIsoAll);  
+            xCoords = xE;
+            
             obj.xCoordsIso = permute(xCoords,[3 1 2]);
         end
         

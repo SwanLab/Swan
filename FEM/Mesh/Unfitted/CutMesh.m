@@ -82,7 +82,7 @@ classdef CutMesh < Mesh
                 obj.subcellIsoCoords = permute(cM.xCoordsIso,[1 3 2]);
                 obj.cellContainingSubcell = cM.cellContainingSubcell;
                 
-            elseif false% isQuad && isInterior && thereIsCutElem 
+            elseif  0%isQuad && isInterior && thereIsCutElem 
                 
                 ls = cParams.levelSet;
                 connecCut = cParams.meshBackground.connec(cutElems,:);            
@@ -113,29 +113,7 @@ classdef CutMesh < Mesh
                 
             else
                 
-                %%%%%%%%%%%%%%%%%%%%
-                m = obj.meshBackground;
-                
-                cutConnec = m.connec(cParams.backgroundCutCells,:);
-                s.connec = cutConnec;
-                nodes = unique(cutConnec(:));
-                s.coord = m.coord(nodes,:);
-                %%%%%%%%%%%%%%%%%%%%%%%%%%%%5
-                
-                
-                %             m2 = Mesh().create(s);
-                %             figure
-                %             m2.plot();
-                %             subMesher = SubMesher();
-                %             subMesh = subMesher.computeSubMesh(m2);
-                %             figure
-                %             subMesh.plot();
-                
-                %ComputeLevelSet
-                
-                %ComputeMeshUnfitted
-                
-                %ChangeCparams cParams!!
+        
                 obj.init(cParams);
                 obj.build();
                 

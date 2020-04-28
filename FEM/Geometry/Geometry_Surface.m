@@ -13,6 +13,7 @@ classdef Geometry_Surface < Geometry
         end
         
         function computeGeometry(obj,quad,interpV)
+            obj.coordElem = permute(obj.mesh.coordElem,[3 2 1]);            
             obj.initGeometry(interpV,quad);
             obj.computeDrDtxi();
             obj.computeNormals();
@@ -30,7 +31,7 @@ classdef Geometry_Surface < Geometry
             nGaus   = obj.quadrature.ngaus;
             nElem   = obj.mesh.nelem;
             nNode   = obj.mesh.nnode;            
-            xp      = permute(obj.mesh.coordElem,[3 1 2]);
+            xp      = obj.coordElem;
             deriv   = obj.mesh.interpolation.deriv(:,:,:);
             dShapes = permute(deriv,[1 3 2]);
             obj.drDtxi = zeros(nGaus,nElem,nEmb,nDime);            

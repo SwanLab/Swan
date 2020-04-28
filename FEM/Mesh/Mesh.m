@@ -13,7 +13,7 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
        
     properties (Access = protected)
        type 
-       isInBoundary
+       isInBoundary               
     end
     
     
@@ -77,6 +77,8 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
     
     methods (Access = protected)
         
+
+        
         function computeDescriptorParams(obj)
             obj.npnod = size(obj.coord ,1);
             obj.ndim  = size(obj.coord, 2);
@@ -115,8 +117,9 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
                     obj.isInBoundary = false;
                 end
             end
-
-        end
+            
+        end        
+       
         
         function computeGeometryType(obj)
             factory = MeshGeometryType_Factory();

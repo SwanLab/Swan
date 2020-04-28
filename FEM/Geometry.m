@@ -10,6 +10,10 @@ classdef Geometry < handle
         mesh
     end
     
+    properties (Access = protected)
+        coordElem                
+    end
+    
     methods (Access = public, Static)
         
         function obj = create(cParams)
@@ -29,6 +33,7 @@ classdef Geometry < handle
        
        function init(obj,cParams)
             obj.mesh = cParams.mesh;
+            obj.coordElem = obj.mesh.coordElem;
        end        
        
     end

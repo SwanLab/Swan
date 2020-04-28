@@ -7,6 +7,7 @@ classdef Geometry_Line < Geometry
         end
         
         function computeGeometry(obj,quad,interpV)
+            obj.coordElem = permute(obj.coordElem,[2 3 1]);             
             obj.initGeometry(interpV,quad);
             obj.computeDvolu();
         end
@@ -19,7 +20,7 @@ classdef Geometry_Line < Geometry
             nGaus  = obj.quadrature.ngaus;
             nDime  = obj.mesh.ndim;            
             drDtxi = zeros(nGaus,obj.mesh.nelem);
-            xp     = permute(obj.mesh.coordElem,[1 3 2]);
+            xp = obj.coordElem;
             deriv  = obj.mesh.interpolation.deriv(1,:,:);
             dShapes = permute(deriv,[3 2 1]);
             for idime = 1:nDime

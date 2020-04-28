@@ -2,7 +2,6 @@ classdef Interpolation < handle
     
     properties (GetAccess = public, SetAccess = protected)
       
-
         order
         
         ndime
@@ -32,27 +31,6 @@ classdef Interpolation < handle
             f = InterpolationFactory;
             obj = f.create(cParams);
         end
-        
-    end
-    
-    methods (Access = public) 
-        
-        function fxV = interpolateFunction(obj,xV,func)
-            obj.computeShapeDeriv(xV);
-            shapes = obj.shape;
-            nNode  = size(shapes,1);
-            nGaus  = size(shapes,2); 
-            nF     = size(func,1);                        
-            nElem  = size(func,3);
-            fxV = zeros(nF,nGaus,nElem);
-            for kNode = 1:nNode
-                shapeKJ = shapes(kNode,:,:);
-                fKJ     = func(:,kNode,:);
-                f = bsxfun(@times,shapeKJ,fKJ);
-                fxV = fxV + f;
-            end
-        end        
-        
         
     end
     
