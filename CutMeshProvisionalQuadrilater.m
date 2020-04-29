@@ -64,7 +64,7 @@ classdef CutMeshProvisionalQuadrilater < handle
         end
         
         function createSubMesh(obj)
-            obj.subMesh = obj.subMesher.computeSubMesh();
+            obj.subMesh = obj.subMesher.subMesh;
         end
         
         function computeLevelSetInSubMesh(obj)
@@ -128,30 +128,7 @@ classdef CutMeshProvisionalQuadrilater < handle
             nnode  = size(obj.backgroundMesh.connec,2);  
             cElems = transpose(obj.cutElems);
             cell = repmat(cElems,nnode,1);
-        end
-        
-        
-        function xIsoAll = computeXisoAll(obj,iFull,iCut,xNodalAllIso,nElem)
-            xIso   = obj.subCutSubMesh.xCoordsIso;
-            xIsoCutCells = xIso;
-            nDim  = size(xIsoCutCells,1);
-            nNode = size(xIsoCutCells,2);
-            xIsoAll = zeros(nDim,nNode,nElem);
-            xIsoFull = xNodalAllIso(:,:,iFull);
-            xIsoAll(:,:,iFull) = xIsoFull;
-            xIsoAll(:,:,iCut)  = xIsoCutCells;            
-        end
-        
-
-         function [iFull,iCut,nElemA] = computeIfullIcut(obj,fCells,cCells)
-            nFull = size(fCells,1);
-            nCut  = size(cCells,1);
-            nElemA = nFull + nCut;            
-            iFull = false(nElemA,1);
-            iCut  = false(nElemA,1);
-            iFull(1:nFull,1) = true;
-            iCut(nFull + (1:nCut),1) = true;             
-         end
+        end        
         
         function globalToLocal = computeGlobalToLocal(obj)
             bConnec = obj.backgroundMesh.connec;
@@ -161,38 +138,16 @@ classdef CutMeshProvisionalQuadrilater < handle
             globalToLocal = cell(:);               
         end
         
-        function allSubCells = computeAllSubCells(obj,nElemA,iFull,iCut,fCells,cCells)            
-            allSubCells = zeros(nElemA,1);            
-            allSubCells(iFull,1) = fCells;
-            allSubCells(iCut,1)  = cCells;              
-        end
-        
-        function localSubCells = computeLocalSubCells(obj,nElemA,iFull,iCut,fCells,cCells)
-            allSubCells   = obj.computeAllSubCells(nElemA,iFull,iCut,fCells,cCells);            
-            globalToLocal = obj.computeGlobalToLocal();            
-            localSubCells = globalToLocal(allSubCells);            
-        end
-                
         function computeXcoord(obj)
-            cCells = obj.subCutSubMesh.cellContainingSubcell;   
-            fCells = obj.fullCells;
-            
-            [iFull,iCut,nElemA] = obj.computeIfullIcut(fCells,cCells);
-     
-            localSubCells = obj.computeLocalSubCells(nElemA,iFull,iCut,fCells,cCells);
-
-                      
-            m = obj.subMesher.computeLocalSubMesh(localSubCells);
-            
-            xNodalAllIso = m.coordElem;
-            
-            xIsoAll = obj.computeXisoAll(iFull,iCut,xNodalAllIso,nElemA);
-             
-            xCoords = m.computeXgauss(xIsoAll);  
-           
-            obj.xCoordsIso = xCoords;
+            s.fullCells     = obj.fullCells;
+            s.cutCells      = obj.subCutSubMesh.cellContainingSubcell;
+            s.globalToLocal = obj.computeGlobalToLocal();
+            s.localMesh     = obj.subMesher.localMesh;
+            s.xIsoCutCoord  = obj.subCutSubMesh.xCoordsIso;
+            xC = XcoordIsoComputer(s);
+            obj.xCoordsIso = xC.compute();
         end
-        
+     
         function computeConnec(obj)
             connecCutInterior = obj.subCutSubMesh.connec;
             connecFull        = obj.subMesh.connec(obj.fullCells,:);

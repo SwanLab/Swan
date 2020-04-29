@@ -1,10 +1,8 @@
 classdef SubMesher < handle
     
-    properties (Access = private)
-        connecLocal
-        coordLocal
-        newConnec
-        newCoord
+    properties (Access = public)
+       subMesh
+       localMesh        
     end
     
     properties (Access = private)
@@ -16,20 +14,8 @@ classdef SubMesher < handle
         
         function obj = SubMesher(cParams)
             obj.init(cParams);
-            obj.computeNewConnec();
-            obj.computeNewCoordinates();
-        end
-        
-        function m = computeSubMesh(obj)
-            s.connec = obj.newConnec;
-            s.coord  = obj.newCoord;
-            m = Mesh().create(s);
-        end
-        
-        function m = computeLocalSubMesh(obj,localSubCells)
-            s.coord  = obj.coordLocal;
-            s.connec = obj.connecLocal(localSubCells,:);
-            m = Mesh().create(s);            
+            obj.computeLocalMesh();
+            obj.computeSubMesh();
         end
               
     end
@@ -39,11 +25,15 @@ classdef SubMesher < handle
         function init(obj,cParams)
             obj.mesh        = cParams.mesh;
             obj.lastNode    = cParams.lastNode;
-            obj.connecLocal = [1 2 5;
+        end
+        
+        function computeLocalMesh(obj)
+            s.connec = [1 2 5;
                 2 3 5;
                 3 4 5;
                 1 5 4];
-            obj.coordLocal = obj.computeCoordLocal();
+            s.coord =  obj.computeCoordLocal();  
+            obj.localMesh = Mesh().create(s);                        
         end
         
         function xIsoCoord = computeCoordLocal(obj)
@@ -52,26 +42,31 @@ classdef SubMesher < handle
             xIsoCoord = [xIsoQuad;xIsoCent];
         end
         
+        function computeSubMesh(obj)
+            s.connec = obj.computeSubMeshConnec();
+            s.coord  = obj.computeSubMeshCoord();            
+            obj.subMesh = Mesh().create(s);
+        end                
+        
         function x = computeXisoQuad(obj)
             int = Interpolation.create(obj.mesh,'LINEAR');
             x = int.pos_nodes;
         end
         
-        function computeNewConnec(obj)
+        function newConnec = computeSubMeshConnec(obj)
             connecE = obj.computeExtendedConnectivities();
-            nnodeN   = size(obj.connecLocal,2);
-            nsubCells = size(obj.connecLocal,1);
+            nnodeN   = size(obj.localMesh.connec,2);
+            nsubCells = size(obj.localMesh.connec,1);
             nelemB = obj.mesh.nelem;
             nelemN = nsubCells*nelemB;
-            nConnec = zeros(nelemN,nnodeN);
+            newConnec = zeros(nelemN,nnodeN);
             for isubcell = 1:nsubCells
                 element = obj.computeGlobalElements(isubcell,nsubCells,nelemN);
                 for inode = 1:nnodeN
-                    node = obj.connecLocal(isubcell,inode);
-                    nConnec(element,inode) = connecE(:,node);
+                    node = obj.localMesh.connec(isubcell,inode);
+                    newConnec(element,inode) = connecE(:,node);
                 end
             end
-            obj.newConnec = nConnec;
         end
         
         function connecE = computeExtendedConnectivities(obj)
@@ -87,10 +82,9 @@ classdef SubMesher < handle
             nNodes(:,1) = (obj.lastNode+1):(obj.lastNode + nelemOld);
         end        
         
-        function computeNewCoordinates(obj)
+        function newCoord = computeSubMeshCoord(obj)
             xC = obj.mesh.computeBaricenter();
-            nCoord = [obj.mesh.coord; xC' ];
-            obj.newCoord = nCoord;
+            newCoord = [obj.mesh.coord; xC' ];
         end
         
     end
