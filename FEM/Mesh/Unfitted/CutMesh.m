@@ -75,14 +75,16 @@ classdef CutMesh < Mesh
                 
                 cM.compute();
                
-                %obj.coord = zeros(size(cParams.meshBackground.coord));
                 obj.connec = cM.connec;
                 obj.coord = zeros(size(cM.coord,1),size(cParams.meshBackground.coord,2));
                 obj.coord(:,1:2)  = cM.coord;
-                obj.subcellIsoCoords = permute(cM.xCoordsIso,[1 3 2]);
+
+                xCoordIso = cM.xCoordsIso;
+                obj.subcellIsoCoords = xCoordIso;                 
+                
                 obj.cellContainingSubcell = cM.cellContainingSubcell;
                 
-            elseif 0%isQuad && isInterior && thereIsCutElem 
+            elseif isQuad && isInterior && thereIsCutElem 
                 
                 ls = cParams.levelSet;
                 connecCut = cParams.meshBackground.connec(cutElems,:);            
@@ -106,7 +108,12 @@ classdef CutMesh < Mesh
                 obj.connec = cM.connec;
                 obj.coord = zeros(size(cM.coord,1),size(cParams.meshBackground.coord,2));
                 obj.coord(:,1:2)  = cM.coord;
-                obj.subcellIsoCoords = permute(cM.xCoordsIso,[1 3 2]);
+                
+                xCoordIso = cM.xCoordsIso;
+               % xCoordIso = permute(xCoordIso,[1 3 2]);
+              %  xCoordIso = permute(xCoordIso,[3 2 1]);    
+                obj.subcellIsoCoords = xCoordIso;                                           
+                
                 obj.cellContainingSubcell = cM.cellContainingSubcell;                
                 
                 
@@ -125,6 +132,8 @@ classdef CutMesh < Mesh
                     obj.returnNullMesh();
                 end
                 
+                obj.subcellIsoCoords = permute(obj.subcellIsoCoords,[3 2 1]);                 
+
                 
             end
             
@@ -149,24 +158,7 @@ classdef CutMesh < Mesh
         end
         
         function xGauss = computeIsoGaussPoints(obj,quad)
-%             coord = obj.subcellIsoCoords;
-%             coord = permute(coord,[1 3 2]);                        
-%             shape = obj.createShapes(quad.posgp);
-%             nDime = size(coord,2);
-%             nNode = obj.nnode;
-%             nElem = size(coord,1);
-%             nGaus = quad.ngaus;
-%             xGauss = zeros(nGaus,nElem,nDime);
-%             for kNode = 1:nNode
-%                 shapeKJ(:,1) = shape(kNode,:);
-%                 xKJ(1,:,:) = coord(:,:,kNode);
-%                 xG = bsxfun(@times,shapeKJ,xKJ);
-%                 xGauss = xGauss + xG;
-%             end
-%             xGauss = permute(xGauss,[3 1 2]);
-%             
             coord = obj.subcellIsoCoords;
-            coord = permute(coord,[3 2 1]);                                           
             int = Interpolation.create(obj,'LINEAR');
             int.computeShapeDeriv(quad.posgp);
             shape = int.shape;            

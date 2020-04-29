@@ -8,8 +8,7 @@ classdef AllSubCellsConnecComputer < handle
     properties (Access = private)
         nodesInSubCells
         xNodesInSubCellsByElem
-        cellMesher
-        
+        cellMesher        
     end
     
     properties (Access = private)
@@ -107,6 +106,10 @@ classdef AllSubCellsConnecComputer < handle
         
         function concatenateAllNodesCoordinates(obj)
             nDim = size(obj.xAllNodesInElem,3);
+            nSubCellsByElem = obj.cellMesher.nSubCellsByElem;
+            nSubCellNodes   = obj.cellMesher.nSubCellNodes;
+            nSubCells       = obj.nElem*nSubCellsByElem;            
+            obj.xNodesInSubCells = zeros(nSubCellNodes,nSubCells,nDim);            
             for idim = 1:nDim
                 x = obj.xNodesInSubCellsByElem(:,:,:,idim);
                 xAll = obj.concatenateSubCells(x);
@@ -117,6 +120,7 @@ classdef AllSubCellsConnecComputer < handle
         function concatenateAllNodesConnec(obj)
             nodes = obj.nodesInSubCells;
             allNodes = obj.concatenateSubCells(nodes);
+            allNodes = transpose(allNodes);
             obj.allSubCellsConnec = allNodes;
         end
         
@@ -124,8 +128,8 @@ classdef AllSubCellsConnecComputer < handle
             nSubCellsByElem = obj.cellMesher.nSubCellsByElem;
             nSubCellNodes   = obj.cellMesher.nSubCellNodes;
             nSubCells       = obj.nElem*nSubCellsByElem;
-            nodesByElem = permute(nodesByElem,[1 3 2]);
-            allNodes = reshape(nodesByElem,nSubCells,nSubCellNodes);
+            nodesByElem = permute(nodesByElem,[2 1 3]);
+            allNodes = reshape(nodesByElem,nSubCellNodes,nSubCells);                      
         end
         
     end

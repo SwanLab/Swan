@@ -133,7 +133,6 @@ classdef CutMeshProvisionalQuadrilater < handle
         
         function xIsoAll = computeXisoAll(obj,iFull,iCut,xNodalAllIso,nElem)
             xIso   = obj.subCutSubMesh.xCoordsIso;
-            xIso   = permute(xIso,[2 3 1]);                
             xIsoCutCells = xIso;
             nDim  = size(xIsoCutCells,1);
             nNode = size(xIsoCutCells,2);
@@ -189,10 +188,9 @@ classdef CutMeshProvisionalQuadrilater < handle
             
             xIsoAll = obj.computeXisoAll(iFull,iCut,xNodalAllIso,nElemA);
              
-            xE = m.computeXgauss(xIsoAll);  
+            xCoords = m.computeXgauss(xIsoAll);  
            
-            xCoords = xE;            
-            obj.xCoordsIso = permute(xCoords,[3 1 2]);
+            obj.xCoordsIso = xCoords;
         end
         
         function computeConnec(obj)
