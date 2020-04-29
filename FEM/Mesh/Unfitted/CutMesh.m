@@ -82,7 +82,7 @@ classdef CutMesh < Mesh
                 obj.subcellIsoCoords = permute(cM.xCoordsIso,[1 3 2]);
                 obj.cellContainingSubcell = cM.cellContainingSubcell;
                 
-            elseif  0%isQuad && isInterior && thereIsCutElem 
+            elseif 0%isQuad && isInterior && thereIsCutElem 
                 
                 ls = cParams.levelSet;
                 connecCut = cParams.meshBackground.connec(cutElems,:);            
@@ -149,22 +149,45 @@ classdef CutMesh < Mesh
         end
         
         function xGauss = computeIsoGaussPoints(obj,quad)
+%             coord = obj.subcellIsoCoords;
+%             coord = permute(coord,[1 3 2]);                        
+%             shape = obj.createShapes(quad.posgp);
+%             nDime = size(coord,2);
+%             nNode = obj.nnode;
+%             nElem = size(coord,1);
+%             nGaus = quad.ngaus;
+%             xGauss = zeros(nGaus,nElem,nDime);
+%             for kNode = 1:nNode
+%                 shapeKJ(:,1) = shape(kNode,:);
+%                 xKJ(1,:,:) = coord(:,:,kNode);
+%                 xG = bsxfun(@times,shapeKJ,xKJ);
+%                 xGauss = xGauss + xG;
+%             end
+%             xGauss = permute(xGauss,[3 1 2]);
+%             
             coord = obj.subcellIsoCoords;
-            coord = permute(coord,[1 3 2]);
-            shape = obj.createShapes(quad.posgp);
-            nDime = size(coord,2);
+            coord = permute(coord,[3 2 1]);                                           
+            int = Interpolation.create(obj,'LINEAR');
+            int.computeShapeDeriv(quad.posgp);
+            shape = int.shape;            
+            nDime = size(coord,1);
             nNode = obj.nnode;
-            nElem = size(coord,1);
+            nElem = size(coord,3);
             nGaus = quad.ngaus;
-            xGauss = zeros(nGaus,nElem,nDime);
+            xGauss = zeros(nDime,nGaus,nElem);
             for kNode = 1:nNode
-                shapeKJ(:,1) = shape(kNode,:);
-                xKJ(1,:,:) = coord(:,:,kNode);
+                shapeKJ = shape(kNode,:);
+                xKJ = coord(:,kNode,:);
                 xG = bsxfun(@times,shapeKJ,xKJ);
                 xGauss = xGauss + xG;
             end
-            xGauss = permute(xGauss,[3 1 2]);
         end
+        
+        function shapes = createShapes(obj,xG)
+            int = Interpolation.create(obj,'LINEAR');
+            int.computeShapeDeriv(xG);
+            shapes = permute(int.shape,[1 3 2]);
+        end        
         
     end
     
@@ -366,11 +389,7 @@ classdef CutMesh < Mesh
             obj.connec = [];
         end
         
-        function shapes = createShapes(obj,xG)
-            int = Interpolation.create(obj,'LINEAR');
-            int.computeShapeDeriv(xG);
-            shapes = permute(int.shape,[1 3 2]);
-        end
+
         
     end
     

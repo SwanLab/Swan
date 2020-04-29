@@ -30,21 +30,6 @@ classdef FeFunction < handle
             fC = squeeze(fCenter);            
        end
         
-        function computeFnodesByelem(obj)
-            f = obj.fNodes;
-            nNode  = obj.mesh.nnode;
-            nDime  = size(f,2);
-            nElem  = obj.mesh.nelem;
-            coordE = zeros(nDime,nNode,nElem);
-            coords = transpose(f);
-            for inode = 1:nNode
-                nodes = obj.mesh.connec(:,inode);
-                coordNodes = coords(:,nodes);
-                coordE(:,inode,:) = coordNodes;
-            end
-            obj.fElem = coordE;           
-        end  
-        
        function fxV = interpolateFunction(obj,xV)  
             func = obj.fElem;
             obj.interpolation.computeShapeDeriv(xV);           
@@ -75,20 +60,22 @@ classdef FeFunction < handle
            obj.interpolation = Interpolation.create(obj.mesh,'LINEAR');
        end
        
+       function computeFnodesByelem(obj)
+           f = obj.fNodes;
+           nNode  = obj.mesh.nnode;
+           nDime  = size(f,2);
+           nElem  = obj.mesh.nelem;
+           coordE = zeros(nDime,nNode,nElem);
+           coords = transpose(f);
+           for inode = 1:nNode
+               nodes = obj.mesh.connec(:,inode);
+               coordNodes = coords(:,nodes);
+               coordE(:,inode,:) = coordNodes;
+           end
+           obj.fElem = coordE;
+       end
 
    end
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     
     
