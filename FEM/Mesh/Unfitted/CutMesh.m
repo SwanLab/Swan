@@ -84,7 +84,7 @@ classdef CutMesh < Mesh
                 
                 obj.cellContainingSubcell = cM.cellContainingSubcell;
                 
-            elseif isQuad && isInterior && thereIsCutElem 
+            elseif 0%isQuad && isInterior && thereIsCutElem 
                 
                 ls = cParams.levelSet;
                 connecCut = cParams.meshBackground.connec(cutElems,:);            

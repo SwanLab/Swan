@@ -71,7 +71,7 @@ classdef AllSubCellsConnecComputer < handle
         function initNodesInSubCells(obj)
             nSubCellsByElem = obj.cellMesher.nSubCellsByElem;
             nSubCellNodes   = obj.cellMesher.nSubCellNodes;
-            nodes = zeros(nSubCellsByElem,nSubCellNodes,obj.nElem);
+            nodes = zeros(nSubCellNodes,nSubCellsByElem,obj.nElem);
             obj.nodesInSubCells = nodes;
         end
         
@@ -128,7 +128,6 @@ classdef AllSubCellsConnecComputer < handle
             nSubCellsByElem = obj.cellMesher.nSubCellsByElem;
             nSubCellNodes   = obj.cellMesher.nSubCellNodes;
             nSubCells       = obj.nElem*nSubCellsByElem;
-            nodesByElem = permute(nodesByElem,[2 1 3]);
             allNodes = reshape(nodesByElem,nSubCellNodes,nSubCells);                      
         end
         

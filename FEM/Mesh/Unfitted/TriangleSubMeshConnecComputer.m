@@ -41,7 +41,7 @@ classdef TriangleSubMeshConnecComputer < handle
                 for inode = 1:obj.nSubCellNodes
                     node = connec(:,isubcell,inode);
                     ind  = obj.computeAbsoluteMatrixIndex(node,nNodesSubCell);
-                    nodePartition(isubcell,inode,:) = nodes(ind);
+                    nodePartition(inode,isubcell,:) = nodes(ind);
                 end
             end            
         end
@@ -149,7 +149,7 @@ classdef TriangleSubMeshConnecComputer < handle
         end                
         
         function c = initNodePartition(obj)
-            c = zeros(obj.nSubCellsByElem,obj.nSubCellNodes,obj.nElemInCase);             
+            c = zeros(obj.nSubCellNodes,obj.nSubCellsByElem,obj.nElemInCase);             
         end         
         
         function ind = computeAbsoluteMatrixIndex(obj,colums,nNodesSubCell)

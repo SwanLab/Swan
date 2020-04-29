@@ -84,6 +84,9 @@ classdef InteriorSubCellsConnecComputer < handle
             isInterior = obj.isSubCellInterior(:);            
             x = obj.xNodesInSubCells;
             nDim = size(x,3);
+            nElem = sum(isInterior);
+            nNode = size(x,1);
+            obj.xCoordsIso = zeros(nDim,nNode,nElem);
             for idim = 1:nDim
                 obj.xCoordsIso(idim,:,:) = x(:,isInterior,idim);
             end
