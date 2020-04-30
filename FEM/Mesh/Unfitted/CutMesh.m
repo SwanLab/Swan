@@ -117,7 +117,7 @@ classdef CutMesh < Mesh
                 
                 obj.cellContainingSubcell = cM.cellContainingSubcell;                
                 
-            elseif isTriangle && isBoundary && thereIsCutElem
+            elseif 0%isTriangle && isBoundary && thereIsCutElem
                                
                 ls = cParams.levelSet;
                 connecCut = cParams.meshBackground.connec(cutElems,:);                
@@ -139,6 +139,29 @@ classdef CutMesh < Mesh
                 obj.coord  = bMesh.coord;
                 obj.subcellIsoCoords = cutMesh.obtainXcutIso();
                 obj.cellContainingSubcell = cutElems;
+
+            elseif isQuad && isBoundary && thereIsCutElem                
+                
+  
+                obj.init(cParams);
+                obj.build();
+                
+                if obj.isLevelSetCrossingZero()
+                    obj.computeCutMesh();
+                else
+                    obj.returnNullMesh();
+                end
+                
+                obj.subcellIsoCoords = permute(obj.subcellIsoCoords,[3 2 1]);                 
+                            
+                obj.computeDescriptorParams();
+                obj.createInterpolation();   
+                
+                    
+                conn = obj.connec;
+                coor = obj.coord;
+                subCel = obj.subcellIsoCoords;
+                cellC  = obj.cellContainingSubcell;
                 
             else
                 

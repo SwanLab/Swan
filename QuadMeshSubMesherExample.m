@@ -52,6 +52,7 @@ function lsElem = computeLevelSetInElem(ls,connec)
 lsElem(:,1) = ls(connec(:,1));
 lsElem(:,2) = ls(connec(:,2));
 lsElem(:,3) = ls(connec(:,3));
+lsElem(:,4) = ls(connec(:,4));
 end
 
 function mCut = computeMesh(connec,coord)

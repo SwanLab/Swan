@@ -46,6 +46,10 @@ classdef CutMeshProvisionalQuadrilater < handle
             obj.computeCellContainingSubCell();
         end
         
+        function m = computeBoundaryMesh(obj)
+            m = obj.subCutSubMesh.computeBoundaryMesh();
+        end  
+        
     end   
     
     methods (Access = private)

@@ -35,6 +35,8 @@ figure
 bMesh.plot();
 
 
+
+
 end
 
 function m = computeMesh(connec,coord)
@@ -42,7 +44,6 @@ s.connec = connec;
 s.coord = coord;
 m = Mesh().create(s);
 end
-
 
 function [connecFull,connecCut,cutElems] = computeConnecCutAndFull(ls,connec)
 lsInElem = computeLevelSetInElem(ls,connec);
