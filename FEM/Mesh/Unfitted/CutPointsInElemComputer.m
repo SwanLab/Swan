@@ -4,10 +4,12 @@ classdef CutPointsInElemComputer < handle
         isEdgeCutInElem
         allNodesInElem
         xAllNodesInElem
+        edgeCutPointInElem
+        xCut
     end
     
     properties (Access = private)
-        edgeCutPointInElem
+        cutEdgeInElem
     end
     
     properties (Access = private)        
@@ -33,9 +35,10 @@ classdef CutPointsInElemComputer < handle
         function compute(obj)
             obj.computeIsEdgeCutInElem();
             obj.createAllEdges2CutEdge();
+            obj.computeCutEdgeInElem();
             obj.computeEdgeCutPointsInElem();
             obj.computeAllNodesInElem();
-            obj.computeXallNodesInElem()
+            obj.computeXallNodesInElemAndXcut();
         end
         
     end
@@ -69,29 +72,34 @@ classdef CutPointsInElemComputer < handle
            obj.all2Cut = AllEdges2CutEdgesComputer(s);
         end
         
+        function computeCutEdgeInElem(obj)   
+           edges = obj.edgesInElem;
+           obj.cutEdgeInElem = obj.all2Cut.compute(edges);
+        end
+        
         function computeEdgeCutPointsInElem(obj)
-            cutEdgeInElem = obj.all2Cut.compute(obj.edgesInElem);
+            cEdgeInElem = obj.cutEdgeInElem;
             nAllEdges = size(obj.isEdgeCut,1);
             cutPoint = zeros(nAllEdges,1);
             cutPoint(obj.isEdgeCut) = 1:obj.nCutEdges;
             edgeCutPoint = zeros(obj.nElem,obj.nCutEdgeByElem);
             for iedge = 1:obj.nCutEdgeByElem
-                edge = cutEdgeInElem(:,iedge);
+                edge = cEdgeInElem(:,iedge);
                 edgeCutPoint(:,iedge) = cutPoint(edge);
             end
             obj.edgeCutPointInElem = edgeCutPoint;
-        end
+        end        
         
         function computeAllNodesInElem(obj)
             edge = obj.edgeCutPointInElem;
             s = obj.allNodesinElemParams;
-            s.firstCutEdge     = edge;
+            s.firstCutEdge = edge;
             aComputer = AllNodesInElemComputer(s);
             aComputer.compute();
             obj.allNodesInElem = aComputer.allNodesInElem;
         end
         
-        function computeXallNodesInElem(obj)
+        function computeXallNodesInElemAndXcut(obj)
             s = obj.allNodesInElemCoordParams;
             s.nCutEdgeByElem        = obj.nCutEdgeByElem;
             s.all2Cut               = obj.all2Cut;        
@@ -99,6 +107,7 @@ classdef CutPointsInElemComputer < handle
             a = AllNodesInElemCoordinatesComputer(s);
             a.compute();
             obj.xAllNodesInElem = a.xAllNodesInElem;
+            obj.xCut = a.xCut;
         end
         
     end

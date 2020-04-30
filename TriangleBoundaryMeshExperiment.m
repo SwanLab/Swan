@@ -1,8 +1,19 @@
-function understandingCutMesh
+function TriangleBoundaryMeshExperiment
 coord = [0 0;1 0;1 1;0 1;2 0;2 1;0 2;1 2;2 2; 0.5 0.5; 1.5 0.5; 0.5 1.5; 1.5 1.5];
 connec = [1 2 10; 2 3 10; 10 3 4; 10 4 1; 2 11 3; 2 5 11; 5 6 11; 11 6 3; 3 8 12; 4 3 12; 12 8 7; 12 7 4; 3 6 13; 6 9 13; 13 9 8; 3 13 8];
 ls = [-0.05 0.2 -0.5 0.1 0.1 -1 1 -0.2 -0.5 -0.05 -0.05 0.05 -0.5]';
 nameCase = 'cutMeshProvisional';
+
+s.coord = coord;
+s.connec = connec;
+m = Mesh().create(s);
+
+figure()
+s.meshBackground = m;
+s.unfittedType = 'INTERIOR';
+uMesh = UnfittedMesh(s);
+uMesh.compute(ls);
+bMeshOld = uMesh.boundaryCutMesh;
 
 [connecFull,connecCut,cutElems] = computeConnecCutAndFull(ls,connec);
 mInterior = computeMesh(connecFull,coord);
@@ -17,20 +28,13 @@ s.levelSet = ls;
 cutMesh = CutMeshComputerProvisional(s);
 cutMesh.compute();
 
-mCutInterior = computeMesh(cutMesh.connec,cutMesh.coord);
+bMesh = cutMesh.computeBoundaryMesh();
+
+bMeshOld.plot()
 figure
-mInterior.plot();
-hold on
-mCutInterior.plot();
+bMesh.plot();
 
-d = load(nameCase);
 
-n1 = norm(d.connec(:) - cutMesh.connec(:));
-n2 = norm(d.xCoordsIso(:) - cutMesh.xCoordsIso(:));
-n3 = norm(d.cellContainingSubcell - cutMesh.cellContainingSubcell);
-n4 = norm(d.coord(:) - cutMesh.coord(:));
-
-error = n1 + n2 + n3 + n4
 end
 
 function m = computeMesh(connec,coord)

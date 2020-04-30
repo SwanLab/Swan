@@ -14,7 +14,9 @@ classdef CutMeshComputerProvisional < handle
         cutEdgesParams
         cutCoordParams
         interiorSubCellsParams
-        cutEdgesComputerParams        
+        cutEdgesComputerParams   
+        
+        cutCoordComputer
     end
     
     properties (Access = private)        
@@ -29,10 +31,21 @@ classdef CutMeshComputerProvisional < handle
         
         function compute(obj)
             obj.computeCutEdges();
-            obj.computeCoordinates();  
-            obj.computeCutPointsInElemComputer();
+            obj.computeCutCoordinateComputer();  
+            obj.coord = obj.cutCoordComputer.coord;
+            obj.computeCutPointsInElemComputer();            
             obj.computeConnec();
         end        
+        
+        function m = computeBoundaryMesh(obj)
+            s.coord  = obj.cutCoordComputer.xCutPoints;
+            s.connec = obj.cutPointsInElemComputer.edgeCutPointInElem;
+            m = Mesh().create(s);
+        end        
+        
+        function xCutIso = obtainXcutIso(obj)
+            xCutIso = obj.cutPointsInElemComputer.xCut;
+        end
         
     end    
     
@@ -53,11 +66,16 @@ classdef CutMeshComputerProvisional < handle
             obj.cutCoordParams.coord = backgroundMesh.coord;
             obj.cutCoordParams.nodesInEdges = e.nodesInEdges;
             
-            obj.cutEdgesComputerParams.allNodesinElemParams.finalNodeNumber = size(backgroundMesh.coord,1);
-            obj.cutEdgesComputerParams.allNodesinElemParams.backgroundConnec = backgroundMesh.connec;
-            obj.cutEdgesComputerParams.allNodesInElemCoordParams.localNodeByEdgeByElem = e.localNodeByEdgeByElem;
-            obj.cutEdgesComputerParams.edgesInElem = e.edgesInElem;
-            obj.cutEdgesComputerParams.nEdgeByElem = e.nEdgeByElem;
+            cEparams = obj.cutEdgesComputerParams;
+            
+            cEparams.allNodesinElemParams.finalNodeNumber = size(backgroundMesh.coord,1);
+            cEparams.allNodesinElemParams.backgroundConnec = backgroundMesh.connec;
+            cEparams.allNodesInElemCoordParams.localNodeByEdgeByElem = e.localNodeByEdgeByElem;
+            cEparams.edgesInElem = e.edgesInElem;
+            cEparams.nEdgeByElem = e.nEdgeByElem;
+            
+            obj.cutEdgesComputerParams = cEparams;
+            
             obj.interiorSubCellsParams.isSubCellInteriorParams.levelSet = ls;
             obj.interiorSubCellsParams.cutElems = cutElems;
         end
@@ -68,19 +86,19 @@ classdef CutMeshComputerProvisional < handle
             c.compute();
             obj.cutEdgesComputer = c;    
         end
-        
-        function computeCoordinates(obj)   
+     
+        function computeCutCoordinateComputer(obj)
             s = obj.cutCoordParams;
             s.xCutEdgePoint    = obj.cutEdgesComputer.xCutEdgePoint;
             s.isEdgeCut        = obj.cutEdgesComputer.isEdgeCut;
-            coordComputer = CutCoordinatesComputer(s);
-            coordComputer.compute();
-            obj.coord = coordComputer.coord;
-        end        
+            cComputer = CutCoordinatesComputer(s);
+            cComputer.compute();        
+            obj.cutCoordComputer = cComputer;
+        end
         
         function computeCutPointsInElemComputer(obj)
             s = obj.cutEdgesComputerParams;
-            s.isEdgeCut        = obj.cutEdgesComputer.isEdgeCut;
+            s.isEdgeCut = obj.cutEdgesComputer.isEdgeCut;
             s.allNodesInElemCoordParams.xCutEdgePoint = obj.cutEdgesComputer.xCutEdgePoint;
             c = CutPointsInElemComputer(s);
             c.compute();

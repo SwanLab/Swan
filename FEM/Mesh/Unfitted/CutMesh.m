@@ -49,7 +49,8 @@ classdef CutMesh < Mesh
             obj.ndim           = cParams.meshBackground.ndim;
             
             isTriangle = isequal(cParams.meshBackground.geometryType,'TRIANGLE');
-            isInterior = isequal(obj.type,'INTERIOR');            
+            isInterior = isequal(obj.type,'INTERIOR');  
+            isBoundary = isequal(obj.type,'BOUNDARY');  
             cutElems = cParams.backgroundCutCells;                   
             thereIsCutElem = ~isempty(cutElems);
             isQuad = isequal(cParams.meshBackground.geometryType,'QUAD');
@@ -116,15 +117,34 @@ classdef CutMesh < Mesh
                 
                 obj.cellContainingSubcell = cM.cellContainingSubcell;                
                 
+            elseif isTriangle && isBoundary && thereIsCutElem
+                               
+                ls = cParams.levelSet;
+                connecCut = cParams.meshBackground.connec(cutElems,:);                
+                coord = cParams.meshBackground.coord(:,1:2);     
                 
+                s.coord  = coord;
+                s.connec = connecCut;
+                backgroundCutMesh = Mesh().create(s);                
+                
+                s.backgroundMesh = backgroundCutMesh;
+                s.cutElems = cutElems;
+                s.levelSet = ls;
+                cutMesh = CutMeshComputerProvisional(s);
+                cutMesh.compute();
+                
+                bMesh = cutMesh.computeBoundaryMesh();
+                
+                obj.connec = bMesh.connec;
+                obj.coord  = bMesh.coord;
+                obj.subcellIsoCoords = cutMesh.obtainXcutIso();
+                obj.cellContainingSubcell = cutElems;
                 
             else
                 
         
                 obj.init(cParams);
                 obj.build();
-                
-                
                 
                 if obj.isLevelSetCrossingZero()
                     obj.computeCutMesh();
@@ -133,7 +153,6 @@ classdef CutMesh < Mesh
                 end
                 
                 obj.subcellIsoCoords = permute(obj.subcellIsoCoords,[3 2 1]);                 
-
                 
             end
             

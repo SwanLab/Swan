@@ -2,10 +2,10 @@ classdef CutCoordinatesComputer < handle
     
     properties (GetAccess = public, SetAccess = private)
       coord
+      xCutPoints      
     end
     
     properties (Access = private)
-        xCutPoints
         nodesInEdges
         isEdgeCut
     end
