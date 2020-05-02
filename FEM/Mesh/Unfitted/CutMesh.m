@@ -209,10 +209,6 @@ classdef CutMesh < Mesh
             obj.meshPlotter.plot(meshUnfittedCopy,ax,bF);
         end
         
-        function xGauss = computeIsoGaussPoints(obj,quad)
-            xGauss = obj.cutMeshLocal.computeXgauss(quad.posgp);
-        end
-        
     end
     
     methods (Access = protected)
