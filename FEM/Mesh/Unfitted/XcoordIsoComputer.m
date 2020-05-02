@@ -14,7 +14,7 @@ classdef XcoordIsoComputer < handle
         fullCells
         cutCells
         localMesh
-        xIsoCutCoord
+        xIsoSubCut
     end
     
     methods (Access = public)
@@ -29,7 +29,6 @@ classdef XcoordIsoComputer < handle
             obj.computeCutCellIndex();
             obj.computeAllSubCells();
             obj.computeLocalSubCells();
-            obj.computeLocalSubMesh();            
             xCoords = obj.computeXcoords();            
         end
         
@@ -42,33 +41,33 @@ classdef XcoordIsoComputer < handle
             obj.cutCells      = cParams.cutCells;
             obj.globalToLocal = cParams.globalToLocal;
             obj.localMesh     = cParams.localMesh;
-            obj.xIsoCutCoord  = cParams.xIsoCutCoord;
+            obj.xIsoSubCut    = cParams.xIsoCutCoord;
         end
         
-        function computeLocalSubMesh(obj)
-            s.coord  = obj.localMesh.coord;
-            s.connec = obj.localMesh.connec(obj.localSubCells,:);
-            obj.localSubMesh = Mesh().create(s);                        
-        end
-        
-        function xCoords = computeXcoords(obj)
-            xIsoAll = obj.computeXisoAll();            
-            xCoords = obj.localSubMesh.computeXgauss(xIsoAll);
-        end                
-        
-        function xIsoAll = computeXisoAll(obj)   
+        function xCoords = computeXcoords(obj)   
             xIsoFull = obj.computeXisoFull();            
-            xIsoCut  = obj.xIsoCutCoord;
+            xIsoCut  = obj.computeXisoSubCut();
             nDim  = size(xIsoCut,1);
             nNode = size(xIsoCut,2);
-            xIsoAll = zeros(nDim,nNode,obj.nElem);
-            xIsoAll(:,:,obj.iFull) = xIsoFull;
-            xIsoAll(:,:,obj.iCut)  = xIsoCut;
+            xCoords = zeros(nDim,nNode,obj.nElem);
+            xCoords(:,:,obj.iFull) = xIsoFull;
+            xCoords(:,:,obj.iCut)  = xIsoCut;
         end
         
         function xIsoFull = computeXisoFull(obj)
-            xNodalAllIso = obj.localSubMesh.coordElem;            
-            xIsoFull = xNodalAllIso(:,:,obj.iFull);                        
+            s.coord  = obj.localMesh.coord;
+            s.connec = obj.localMesh.connec(obj.localSubCells(obj.iFull),:);
+            m = Mesh().create(s);               
+            xNodalAllIso = m.coordElem;
+            xIsoFull = xNodalAllIso(:,:,:);                        
+        end
+        
+        function xIsoQuadCut = computeXisoSubCut(obj)
+            xIsoTri  = obj.xIsoSubCut;
+            s.coord  = obj.localMesh.coord;
+            s.connec = obj.localMesh.connec(obj.localSubCells(obj.iCut),:);
+            m = Mesh().create(s);  
+            xIsoQuadCut = m.computeXgauss(xIsoTri);            
         end
         
         function computeNelem(obj)
@@ -93,7 +92,7 @@ classdef XcoordIsoComputer < handle
         end
 
         function computeLocalSubCells(obj)
-            aSubCells = obj.allSubCells();
+            aSubCells = obj.allSubCells;
             obj.localSubCells = obj.globalToLocal(aSubCells);
         end
         

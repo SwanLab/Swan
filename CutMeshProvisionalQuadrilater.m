@@ -50,6 +50,10 @@ classdef CutMeshProvisionalQuadrilater < handle
             m = obj.subCutSubMesh.computeBoundaryMesh();
         end  
         
+        function xCutIso = obtainXcutIso(obj)
+       %     xCutIso = obj.cutPointsInElemComputer.xCut;
+        end        
+        
     end   
     
     methods (Access = private)

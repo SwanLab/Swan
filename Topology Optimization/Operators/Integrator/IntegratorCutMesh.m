@@ -2,12 +2,11 @@ classdef IntegratorCutMesh < Integrator
     
     properties (Access = private)
         Fnodal
-        Fprojection
         quadrature
-        shapes
         RHScells
         RHScellsCut
         backgroundMesh
+        xGauss
     end
     
     methods (Access = public)
@@ -35,59 +34,61 @@ classdef IntegratorCutMesh < Integrator
     methods (Access = private)
         
         function computeElementalRHS(obj)
-            obj.computeShapesInUnfittedGaussPoints();
+            obj.computeUnfittedGaussPoints();            
+            obj.computeShapeFunctions();
             int = obj.integrateFwithShapeFunction();
             obj.RHScellsCut = int;
         end
         
-        function computeShapesInUnfittedGaussPoints(obj)
-            xG    = obj.computeUnfittedGaussPoints();
-            shape = obj.createShapes(obj.backgroundMesh,xG);
-            obj.shapes = shape;
-        end
-        
-        function xGauss = computeUnfittedGaussPoints(obj)
+        function computeUnfittedGaussPoints(obj)
             q = obj.quadrature;
-            xGauss = obj.mesh.computeIsoGaussPoints(q);
+            m = obj.mesh.cutMeshOfSubCellLocal;
+            obj.xGauss = m.computeXgauss(q.posgp);
         end
         
-        function Fproj = integrateFwithShapeFunction(obj)
-            Fgauss = obj.interpolateFunctionInGaussPoints();
-            dvolume = obj.mesh.computeDvolume(obj.quadrature);
-            fdV = (Fgauss.*dvolume);
+        function int = integrateFwithShapeFunction(obj)
+            Fgauss  = obj.computeFinGaussPoints();
+            dV      = obj.computeDvolume;
+            fdV     = (Fgauss.*dV);
+            shapes  = obj.computeShapeFunctions();
+            int = obj.initIntegrand();
+            for igaus = 1:obj.quadrature.ngaus
+                fdv   = fdV(igaus,:);
+                shape = shapes(:,:,igaus);
+                int = int + bsxfun(@times,shape,fdv);
+            end
+            int = transpose(int);
+        end        
+        
+        function fG = computeFinGaussPoints(obj)
+            f = createFeFunction(obj);
+            fG = f.interpolateFunction(obj.xGauss);
+            fG = permute(fG,[2 3 1]);            
+        end
+        
+        function f = createFeFunction(obj)            
+            m = obj.mesh.cutMeshOfSubCellGlobal();
+            s.fNodes = obj.Fnodal;
+            s.mesh = m;
+            f = FeFunction(s);
+        end    
+        
+        function dV = computeDvolume(obj)
+            q  = obj.quadrature;
+            dV = obj.mesh.computeDvolume(q);            
+        end
+        
+        function shapes = computeShapeFunctions(obj)
+            m = obj.backgroundMesh;
+            int = Interpolation.create(m,'LINEAR');
+            int.computeShapeDeriv(obj.xGauss);
+            shapes = permute(int.shape,[1 3 2]);            
+        end       
+        
+        function int = initIntegrand(obj)
             nelem = obj.mesh.nelem;
             nnode = obj.backgroundMesh.nnode;
-            Fproj = zeros(nnode,nelem);
-            for igaus = 1:obj.quadrature.ngaus
-                fdv = fdV(igaus,:);
-                shape = obj.shapes(:,:,igaus);
-                Fproj = Fproj + bsxfun(@times,shape,fdv);
-            end
-            Fproj = Fproj';
-        end
-        
-        function Fgaus = interpolateFunctionInGaussPoints(obj)
-            nCell  = obj.mesh.nelem;
-            ngaus = obj.quadrature.ngaus;
-            Fgaus = zeros(ngaus,nCell);
-            Fnodes = obj.computeFinNodesPerElement();
-            for igaus = 1:ngaus
-                shape = obj.shapes(:,:,igaus);
-                int = sum(shape.*Fnodes,1);
-                Fgaus(igaus,:) = Fgaus(igaus,:) + int;
-            end
-        end
-        
-        function Fnodes = computeFinNodesPerElement(obj)
-            cells  = obj.mesh.cellContainingSubcell;            
-            nCell  = obj.mesh.nelem;
-            connec = obj.backgroundMesh.connec;            
-            nnode  = obj.backgroundMesh.nnode;
-            Fnodes = zeros(nnode,nCell);
-            for inode = 1:nnode
-                nodes  = connec(cells,inode);
-                Fnodes(inode,:) = obj.Fnodal(nodes,1);
-            end
+            int = zeros(nnode,nelem);            
         end
         
         function assembleSubcellsInCells(obj)
@@ -117,16 +118,6 @@ classdef IntegratorCutMesh < Integrator
         end
         
     end
-    
-    methods (Access = private, Static)
-        
-        function shapes = createShapes(mesh,xG)
-            int = Interpolation.create(mesh,'LINEAR');
-            int.computeShapeDeriv(xG);
-            shapes = permute(int.shape,[1 3 2]);
-        end
-        
-    end
-    
+
 end
 

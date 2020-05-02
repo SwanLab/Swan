@@ -132,11 +132,9 @@ classdef UnfittedMesh < handle
             end
             
             if isprop(mesh,'geometryType')
-                %obj.geometryType = mesh.geometryType;
                 obj.geometryType = obj.innerMesh.geometryType;
             end
             
-            obj.cellContainingSubcell = mesh.cellContainingSubcell;
             obj.coord  = mesh.coord; %Why?? Not necessary
             obj.connec = mesh.connec; %Why?? Not necessary
             
