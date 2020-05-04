@@ -20,6 +20,7 @@ classdef UnfittedIntegrationTests < testRunner
             
             obj.tests = {...
            
+            'testPerimeterCircleQuadrilateral';            
                      
              'testAreaCircleQuadrilateral';                    
 
@@ -27,7 +28,6 @@ classdef UnfittedIntegrationTests < testRunner
              'testPerimeterRectangleTriangle';                            
              'testAreaCircleTriangle';                 
 
-            'testPerimeterCircleQuadrilateral';
             
             'testPerimeterRectangleQuadrilateral';                      
             
