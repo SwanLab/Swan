@@ -27,6 +27,7 @@ clear variables;
 %settings = Settings('InteriorPerimeter');
 %settings = Settings('CantileverHexahedra_Case_1_1_1');
 settings = Settings('CantileverQuadFine_Case_1_1_1');
+%settings = Settings('MinPoissLevelSet');
  %settings = Settings('CantileverTetrahedraFine_Case_1_1_1');
 %settings = Settings('CantileverHexahedraCoarse_Case_1_1_1');
 %settings = Settings('ImprovedBridgeSYM_Case_1_1_1');

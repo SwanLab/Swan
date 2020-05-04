@@ -109,9 +109,9 @@ classdef UnfittedMesh < handle
                     hold off
                 case 'INTERIOR'
                     % figure;
-                    hold on
-                    obj.innerMesh.plot;
-                    obj.innerCutMesh.plot;
+                  %  hold on
+                    obj.innerMesh.plot();
+                    obj.innerCutMesh.plot();
                     light
                     axis equal off
                     hold off

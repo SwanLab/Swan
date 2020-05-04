@@ -7,6 +7,8 @@ classdef XcoordIsoComputer < handle
         localSubCells
         allSubCells
         localSubMesh
+        xIsoFull
+        xIsoCut
     end
     
     properties (Access = private)
@@ -29,7 +31,19 @@ classdef XcoordIsoComputer < handle
             obj.computeCutCellIndex();
             obj.computeAllSubCells();
             obj.computeLocalSubCells();
+            obj.computeXisoFull(); 
+            obj.computeXisoSubCut();
             xCoords = obj.computeXcoords();            
+        end
+        
+        function x = computeXSubCut(obj)
+            obj.computeNelem();
+            obj.computeFullCellIndex();
+            obj.computeCutCellIndex();
+            obj.computeAllSubCells();
+            obj.computeLocalSubCells();
+            obj.computeXisoSubCut();   
+            x = obj.xIsoCut;
         end
         
     end
@@ -45,30 +59,29 @@ classdef XcoordIsoComputer < handle
         end
         
         function xCoords = computeXcoords(obj)   
-            xIsoFull = obj.computeXisoFull();            
-            xIsoCut  = obj.computeXisoSubCut();
-            nDim  = size(xIsoCut,1);
-            nNode = size(xIsoCut,2);
+            nDim  = size(obj.xIsoCut,1);
+            nNode = size(obj.xIsoCut,2);
             xCoords = zeros(nDim,nNode,obj.nElem);
-            xCoords(:,:,obj.iFull) = xIsoFull;
-            xCoords(:,:,obj.iCut)  = xIsoCut;
+            xCoords(:,:,obj.iFull) = obj.xIsoFull;
+            xCoords(:,:,obj.iCut)  = obj.xIsoCut;
         end
         
-        function xIsoFull = computeXisoFull(obj)
+        function computeXisoFull(obj)
             s.coord  = obj.localMesh.coord;
             s.connec = obj.localMesh.connec(obj.localSubCells(obj.iFull),:);
             m = Mesh().create(s);               
             xNodalAllIso = m.coordElem;
-            xIsoFull = xNodalAllIso(:,:,:);                        
+            obj.xIsoFull = xNodalAllIso(:,:,:);                        
         end
         
-        function xIsoQuadCut = computeXisoSubCut(obj)
+        function computeXisoSubCut(obj)
             xIsoTri  = obj.xIsoSubCut;
             s.coord  = obj.localMesh.coord;
             s.connec = obj.localMesh.connec(obj.localSubCells(obj.iCut),:);
             m = Mesh().create(s);  
-            xIsoQuadCut = m.computeXgauss(xIsoTri);            
-        end
+            obj.xIsoCut = m.computeXgauss(xIsoTri);  
+        end                
+
         
         function computeNelem(obj)
             nFull = size(obj.fullCells,1);

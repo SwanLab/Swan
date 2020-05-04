@@ -17,7 +17,7 @@ classdef Quadrature_Line < Quadrature
                 case 'QUADRATIC'
                     obj.ngaus = 3;         
                     obj.weigp = [5/9,8/9,5/9];
-                    obj.posgp = [-3/sqrt(5),0,3/sqrt(5)];
+                    obj.posgp = [-sqrt(3/5),0,sqrt(3/5)];
                     
                 otherwise
                     disp('Quadrature not implemented for triangle elements')

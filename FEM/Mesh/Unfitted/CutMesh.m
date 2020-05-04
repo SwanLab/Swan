@@ -148,26 +148,68 @@ classdef CutMesh < Mesh
 
             elseif isQuad && isBoundary && thereIsCutElem                
                 
-  
-                obj.init(cParams);
-                obj.build();
+%   
+%                 obj.init(cParams);
+%                 obj.build();
+%                 
+%                 if obj.isLevelSetCrossingZero()
+%                     obj.computeCutMesh();
+%                 else
+%                     obj.returnNullMesh();
+%                 end
+%                 
+%                 obj.subcellIsoCoords = permute(obj.subcellIsoCoords,[3 2 1]);                 
+%                             
+%                   
+%                 conn = obj.connec;
+%                 coor = obj.coord;
+%                 subCel = obj.subcellIsoCoords;
+%                 cellC  = obj.cellContainingSubcell;
+%                 
+                ls = cParams.levelSet;
+                connecCut = cParams.meshBackground.connec(cutElems,:);            
+    
+                coord = cParams.meshBackground.coord(:,1:2);     
                 
-                if obj.isLevelSetCrossingZero()
-                    obj.computeCutMesh();
-                else
-                    obj.returnNullMesh();
-                end
+                s.coord  = coord;
+                s.connec = connecCut;
+                backgroundCutMesh = Mesh().create(s);
+                %backgroundCutMesh.computeEdges();
                 
-                obj.subcellIsoCoords = permute(obj.subcellIsoCoords,[3 2 1]);                 
-                            
-                obj.computeDescriptorParams();
-                obj.createInterpolation();   
+                s.backgroundMesh = backgroundCutMesh;
+                s.cutElems = cutElems;
+                s.levelSet = ls;
+                s.lastNode = max(cParams.meshBackground.connec(:));
+
+                cM = CutMeshProvisionalQuadrilater(s);                
+                cM.compute();
+               
+                %obj.coord = zeros(size(cParams.meshBackground.coord));
+               % obj.connec = cM.connec;
+               % obj.coord = zeros(size(cM.coord,1),size(cParams.meshBackground.coord,2));
+               % obj.coord(:,1:2)  = cM.coord;
                 
-                    
-                conn = obj.connec;
-                coor = obj.coord;
-                subCel = obj.subcellIsoCoords;
-                cellC  = obj.cellContainingSubcell;
+                %xCoordIso = cM.xCoordsIso;
+               % xCoordIso = permute(xCoordIso,[1 3 2]);
+              %  xCoordIso = permute(xCoordIso,[3 2 1]);    
+               % obj.subcellIsoCoords = xCoordIso;                                           
+                
+               % obj.cellContainingSubcell = cM.cellContainingSubcell;                
+
+                
+                
+                
+                mt = cM.computeBoundaryMesh();
+                conn2 = mt.connec;
+                coor2 = mt.coord;
+                subCel2 = cM.obtainXcutIsoBoundary();
+                cellC2 = cM.obtainBoundaryCellContainingSubCell();
+                
+                
+                obj.coord  = coor2;
+                obj.connec = conn2;
+                obj.subcellIsoCoords = subCel2;
+                obj.cellContainingSubcell = cellC2;
                 
             else
                 
@@ -262,7 +304,7 @@ classdef CutMesh < Mesh
             obj.subcellsMesher = SubcellsMesher.create(sS);
         end
         
-  function m = computeCutMeshOfSubCellGlobal(obj)
+        function m = computeCutMeshOfSubCellGlobal(obj)
             coord  = obj.meshBackground.coord; 
             connec = obj.meshBackground.connec;
             cells  = obj.cellContainingSubcell;            

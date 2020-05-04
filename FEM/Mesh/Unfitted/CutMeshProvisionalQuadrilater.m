@@ -43,15 +43,41 @@ classdef CutMeshProvisionalQuadrilater < handle
             obj.computeXcoord();            
             obj.computeCoord();
             obj.computeConnec();
-            obj.computeCellContainingSubCell();
+            obj.computeCellContainingSubCell();            
+
+        end
+        
+        function [xCutG,m] = obtainXcutIsoBoundary(obj)
+            xCutIso = obj.subCutSubMesh.obtainXcutIso();
+           
+            s.fullCells     = obj.fullCells;
+            s.cutCells      = obj.cutCells;
+            s.globalToLocal = obj.computeGlobalToLocal();
+            s.localMesh     = obj.subMesher.localMesh;
+            s.xIsoCutCoord  = xCutIso;
+            xC = XcoordIsoComputer(s); 
+            xCutG = xC.computeXSubCut();
+            %xCutG = xC.compute();
+            
+            nElem = size(xCutG,3);
+            nNode = size(xCutG,2);
+            nDim  = size(xCutG,1);
+            s.coord = reshape(xCutG,nDim,[])';
+            s.connec = reshape(1:nElem*nNode,nNode,nElem)';
+            if nNode == 3 && nDim == 3
+                s.isInBoundary = 'true';
+            end
+            m = Mesh().create(s);            
         end
         
         function m = computeBoundaryMesh(obj)
             m = obj.subCutSubMesh.computeBoundaryMesh();
         end  
         
-        function xCutIso = obtainXcutIso(obj)
-       %     xCutIso = obj.cutPointsInElemComputer.xCut;
+        function cellCont = obtainBoundaryCellContainingSubCell(obj)
+            cutC = obj.cutCells;
+            cell = obj.computeSubTriangleOfSubCell();
+            cellCont = cell(cutC);
         end        
         
     end   
@@ -136,6 +162,7 @@ classdef CutMeshProvisionalQuadrilater < handle
             nnode  = size(obj.backgroundMesh.connec,2);  
             cElems = transpose(obj.cutElems);
             cell = repmat(cElems,nnode,1);
+            cell = cell(:);
         end        
         
         function globalToLocal = computeGlobalToLocal(obj)
