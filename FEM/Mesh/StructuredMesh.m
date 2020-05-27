@@ -16,9 +16,9 @@ classdef StructuredMesh < Mesh
         
         function obj = StructuredMesh(cParams)
             obj.init(cParams);
-            coord  = obj.createCoordinates();
-            connec = obj.createConnectivities();
-            obj.create(coord,connec);
+            s.coord  = obj.createCoordinates();
+            s.connec = obj.createConnectivities();
+            obj.create(s);
         end
         
     end

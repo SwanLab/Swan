@@ -58,7 +58,7 @@ classdef Preprocess<handle
             end
                         
             if exist('External_border_nodes','var')
-                full_dirichlet_data=External_border_nodes;
+                full_dirichlet_data= External_border_nodes;
             else
                 full_dirichlet_data = [];
             end
@@ -74,9 +74,9 @@ classdef Preprocess<handle
             
         end
         
-        function [fixnodes,forces,full_dirichlet_data,Master_slave] = getBC_fluids(filename,geometry)
+        function [fixnodes,forces,full_dirichlet_data,Master_slave] = getBC_fluids(filename,mesh,geometry,interp)
             run(filename)
-            nelem=geometry(1).interpolation.nelem;
+            nelem= mesh.nelem;
             full_dirichlet_data=External_border_nodes;
             if ~isempty(full_dirichlet_data)
                 full_dirichlet_data(:,2)=ones(length(full_dirichlet_data(:,1)),1);
@@ -87,13 +87,20 @@ classdef Preprocess<handle
                 Master_slave = [];
             end
             
+            s.mesh = mesh;
+            s.interpolation = interp{1};
+            c = ConnecCoordFromInterpAndMesh(s);            
+            c.compute();
+            xpoints = c.coord;
             
+            nnode   = length(xpoints(:,1));
             
             if (~isempty(velocity))
                 ind=1;
-                for inode = 1: length(geometry(1).interpolation.xpoints(:,1))
-                    if geometry(1).interpolation.xpoints(inode,1) ==0  || geometry(1).interpolation.xpoints(inode,1) == 1 ...
-                            || geometry(1).interpolation.xpoints(inode,2) == 0 || geometry(1).interpolation.xpoints(inode,2) == 1
+                
+                for inode = 1: nnode
+                    if xpoints(inode,1) ==0  || xpoints(inode,1) == 1 ...
+                            || xpoints(inode,2) == 0 || xpoints(inode,2) == 1
                         fixnodes(ind,:)=[inode 1 0];
                         fixnodes(ind+1,:)=[inode 2 0];
                         ind = ind+2;
@@ -134,14 +141,19 @@ classdef Preprocess<handle
                 %                     F(ind:ind + length(f)-1,:) = [[inode;inode] [1;2] f];
                 %                     ind=ind+length(f);
                 %                 end
+                geom = geometry(1);
+                
+                quadrature = Quadrature.set(mesh.geometryType);
+                quadrature.computeQuadrature(interp{1}.order);
+
+                geom.computeGeometry(quadrature,interp{1})
+                xV = quadrature.posgp;
+                xGauss = mesh.computeXgauss(xV);
                 for ielem = 1:nelem
                     ind=1;
-                    quadrature=Quadrature.set(geometry(1).type);
-                    quadrature.computeQuadrature(geometry(1).interpolation.order);
-                    geometry(1).interpolation.computeShapeDeriv(quadrature.posgp)
-                    geometry(1).computeGeometry(quadrature,geometry(1).interpolation)
                     for igaus = 1:quadrature.ngaus
-                        pos_node= num2cell(geometry(1).cart_pos_gp(:,igaus,ielem));
+                        xG = xGauss(:,igaus,ielem);
+                        pos_node= num2cell(xG);
                         f = cell2mat(Vol_force(pos_node{:}));
                         F(:,igaus,ielem) = f;
                         ind=ind+length(f);

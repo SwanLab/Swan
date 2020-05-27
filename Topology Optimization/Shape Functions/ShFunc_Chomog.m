@@ -21,7 +21,6 @@ classdef ShFunc_Chomog < ShapeFunctional
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
             obj.physicalProblem = FEM.create(cParams.femSettings.fileName);
-            obj.physicalProblem.preProcess;
         end
         
         function f = getPhysicalProblems(obj)
@@ -32,6 +31,11 @@ classdef ShFunc_Chomog < ShapeFunctional
             f = obj.regDesignVariable;
         end
         
+        function d = addPrintableVariables(obj,d)
+            d.phyProblems = obj.getPhysicalProblems();
+            d.regDensity  = obj.getRegularizedDensity();
+        end
+        
     end
     
     methods (Access = protected)
@@ -39,7 +43,7 @@ classdef ShFunc_Chomog < ShapeFunctional
              dC = obj.homogenizedVariablesComputer.dC;
             
             nstre = obj.physicalProblem.element.getNstre();
-            nelem = obj.physicalProblem.geometry.interpolation.nelem;
+            nelem = obj.physicalProblem.mesh.nelem;
             ngaus = obj.physicalProblem.element.quadrature.ngaus;
             
             

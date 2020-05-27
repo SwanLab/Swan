@@ -2,6 +2,8 @@ classdef OptimalExponentComputer < handle
     
     properties (Access = public)
        qOpt 
+       qMin
+       qMax
     end
     
     properties (Access = private)
@@ -14,8 +16,8 @@ classdef OptimalExponentComputer < handle
         txiV
         mxMax
         myMax
-        psi
-        psiV
+        phi
+        phiV
         samplePoints
         fileName
     end
@@ -27,21 +29,26 @@ classdef OptimalExponentComputer < handle
         end
         
         function compute(obj)
-            npsi = length(obj.psiV);
+            nphi = length(obj.phiV);
             npoints = length(obj.rhoV);
-            obj.qOpt = zeros(npsi,npoints);
-            for ipsi = 1:npsi
-                obj.psi = obj.psiV(ipsi);
-                disp([num2str(ipsi/npsi*100),'%'])                
+            obj.qOpt = zeros(nphi,npoints);
+            obj.qMin = zeros(nphi,npoints);
+            obj.qMax = zeros(nphi,npoints);
+            for iphi = 1:nphi
+                obj.phi = obj.phiV(iphi);
+                disp([num2str(iphi/nphi*100),'%'])                
                 for ipoint = 1:npoints
                     obj.rho = obj.rhoV(ipoint);
                     obj.txi = obj.txiV(ipoint);
-                    obj.qOpt(ipsi,ipoint) = obj.computeOptimalExponent();
+                    [q,qmin,qmax] = obj.computeOptimalExponent(ipoint,iphi);
+                    obj.qOpt(iphi,ipoint)    = q;
+                    obj.qMin(iphi,ipoint) = qmin;
+                    obj.qMax(iphi,ipoint) = qmax;
                 end
             end
             x.rho = obj.rhoV;
             x.txi = obj.txiV;
-            x.psi = obj.psiV;
+            x.phi = obj.phiV;
             x.q = obj.qOpt;
             save(obj.fileName,'x');
         end
@@ -57,79 +64,24 @@ classdef OptimalExponentComputer < handle
         end
         
         function computeRhoTxiAndPsiSamples(obj)
-            obj.samplePoints.compute();
             obj.rhoV = obj.samplePoints.rhoV;
             obj.txiV = obj.samplePoints.txiV;
-            obj.psiV = obj.samplePoints.psiV;
+            obj.phiV = obj.samplePoints.phiV;
         end
         
-        function x = computeOptimalExponent(obj)
-            f = @(q) obj.computingMaxStress(q);
-            qmin = 2;
-            qmax = 32;
-            options = optimset('Display','iter');
-            %options = optimset();            
-            x = fminbnd(f,qmin,qmax,options);
-        end
-        
-        function maxStress = computingMaxStress(obj,q)
-            obj.computeMxMy(q);
-            fName = 'OptimalSuperEllipse';
-            outputFolder = fullfile(pwd,'Output',fName);
-            gmsFile = [fullfile(outputFolder,fName),'.msh'];
-            obj.createMesh(fName,outputFolder,q);
-            homog = obj.createNumericalHomogenizer(fName,gmsFile);
-            maxStress = obj.computeMaxStressNorm(homog);
-        end
-        
-        function maxSnorm = computeMaxStressNorm(obj,homog)
-            Ch = homog.cellVariables.Ch;
-            microProblem = homog.getMicroProblem();
-            stress = [cos(obj.psi) sin(obj.psi) 0]';
-            strain = Ch\stress;
-            microProblem.element.setVstrain(strain');
-            microProblem.computeVariables;
-            stresses = microProblem.variables.stress;
-            sx = squeeze(stresses(:,1,:));
-            sy = squeeze(stresses(:,2,:));
-            sxy = squeeze(stresses(:,3,:));
-            sNorm = sqrt(sx.*sx + 2*sxy.*sxy + sy.*sy);
-            maxSnorm = max(sNorm);
-        end
-        
-        function createMesh(obj,fileName,outputFolder,q)
-            d = SettingsFreeFemMeshGenerator();
-            d.freeFemFileName = 'SmoothRectangle';
-            d.hMax  = 0.02;%0.0025;
-            d.mxV             = obj.mx;
-            d.myV             = obj.my;
-            d.fileName        = fileName;
-            d.printingDir     = outputFolder;
-            d.qNorm           = q;
-            fG = FreeFemMeshGenerator(d);
-            fG.generate();
-        end
-        
-        function homog = createNumericalHomogenizer(obj,fileName,gmsFile)
-            d.gmsFile = gmsFile;
-            d.outFile = fileName;
-            d.print   = false;
-            d.iter = 0;
-            nH = NumericalHomogenizerCreatorFromGmsFile(d);
-            homog = nH.getHomogenizer();
-        end
-        
-        function computeMxMy(obj,q)
-            obj.computeMx(q);
-            obj.computeMy(q);
-        end
-        
-        function computeMx(obj,q)
-            obj.mx = SuperEllipseParamsRelator.mx(obj.txi,obj.rho,q);            
-        end
-        
-        function computeMy(obj,q)
-            obj.my = SuperEllipseParamsRelator.my(obj.txi,obj.rho,q);
+        function [q,qMin,qMax] = computeOptimalExponent(obj,ipoint,iphi)            
+            s.fileName = [obj.fileName,'Txi',num2str(ipoint),'Phi',num2str(iphi)];
+            s.rho   = obj.rho;
+            s.txi   = obj.txi;
+            s.phi   = obj.phi;
+            s.pNorm = 'max';
+            s.hMesh = 0.1;
+            c = OneOptimalExponentComputerAndFunctionVariation(s);
+            c.computeOptimalExponent();
+            %c.printOptimalMicroStructure();
+            q = c.qOptIter(end);
+            qMin = c.qMax;
+            qMax = c.qMin;
         end
 
     end    

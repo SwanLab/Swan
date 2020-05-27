@@ -43,8 +43,10 @@ classdef LevelSetVigdergauz < LevelSetCreator
         function rescaleCoordinates(obj)
             xv = obj.nodeCoord(:,1);
             yv = obj.nodeCoord(:,2);
-            obj.x = (1 - (-1))*(xv-0.5);
-            obj.y = (1 - (-1))*(yv-0.5);            
+%             obj.x = (1 - (-1))*(xv-0.5);
+%             obj.y = (1 - (-1))*(yv-0.5);  
+            obj.x = (xv-0.5);
+            obj.y = (yv-0.5);
         end        
                 
         function computeVigdergauzParameters(obj)
@@ -57,9 +59,9 @@ classdef LevelSetVigdergauz < LevelSetCreator
         end
         
         function ls = computeLevelSetInEllipticCoordinates(obj)
-            M  = obj.parameters.M;            
+            R  = obj.parameters.R;            
             [xe,ye] = obj.computeEllipticCoordinates();
-            ls(:,1) = (1-xe.^2).*(1-ye.^2) - M;
+            ls(:,1) = (1-xe.^2).*(1-ye.^2) - R;
         end       
         
         function ls = makeLevelSetNegativeOutRectangelEnvelope(obj,ls)
@@ -70,23 +72,23 @@ classdef LevelSetVigdergauz < LevelSetCreator
         function itIs = isOutsideRectangleEnvelope(obj)
             xv = obj.x;
             yv = obj.y;              
-            isSmallerThanRx  = abs(xv) <= obj.parameters.rx;
-            isSmallerThanRy  = abs(yv) <= obj.parameters.ry;
-            isInsideRectange =  isSmallerThanRx & isSmallerThanRy;  
+            isSmallerThanMx  = abs(xv) <= obj.parameters.mx/2;
+            isSmallerThanMy  = abs(yv) <= obj.parameters.my/2;
+            isInsideRectange =  isSmallerThanMx & isSmallerThanMy;  
             itIs = ~isInsideRectange;            
         end
         
         function [xe,ye] = computeEllipticCoordinates(obj)
             xv = obj.x;
             yv = obj.y;            
-            mx = obj.parameters.mx;
-            my = obj.parameters.my;
+            rx = obj.parameters.rx;
+            ry = obj.parameters.ry;
             FxMax = obj.parameters.FxMax;
             FyMax = obj.parameters.FyMax;  
-            rx = obj.parameters.rx;
-            ry = obj.parameters.ry;  
-            xe = ellipj(xv/rx*FxMax,mx);
-            ye = ellipj(yv/ry*FyMax,my);            
+            mx = obj.parameters.mx;
+            my = obj.parameters.my;  
+            xe = ellipj(xv/(mx/2)*FxMax,rx);
+            ye = ellipj(yv/(my/2)*FyMax,ry);            
         end
         
     end

@@ -1,4 +1,4 @@
-classdef MeshPlotter_1D < MeshPlotter_Abstract & PatchedMeshPlotter_Abstract
+classdef MeshPlotter_1D < MeshPlotter & PatchedMeshPlotter_Abstract
     methods (Access = protected, Static)
         function plotSurface(ax,coord,connec)
             hold on

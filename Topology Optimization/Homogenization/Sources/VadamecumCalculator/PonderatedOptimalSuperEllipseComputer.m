@@ -6,6 +6,7 @@ classdef PonderatedOptimalSuperEllipseComputer < handle
         txiV
         rhoV
         qMean
+        qDesv
     end
     
     properties (Access = private)
@@ -23,6 +24,7 @@ classdef PonderatedOptimalSuperEllipseComputer < handle
         function compute(obj)
             obj.createGaussian();
             obj.computeQmean();
+            obj.computeQdesv();
             obj.computeMxMy();            
         end
         
@@ -55,12 +57,30 @@ classdef PonderatedOptimalSuperEllipseComputer < handle
                 txi = obj.txiV(ipoint);
                 psi = obj.psiV(:);
                 q   = obj.qV(:,ipoint);
+                txi = pi/2 - txi;
                 P(:,1) = obj.gaussian(psi,txi);
                 num = sum(P.*q);
                 den = sum(P);
                 qmean(ipoint,1) = num/den;
             end
             obj.qMean = qmean;
+        end
+        
+        function computeQdesv(obj)
+           npoint = length(obj.rhoV);
+            qD = zeros(npoint,1);
+            for ipoint = 1:npoint
+                txi = obj.txiV(ipoint);
+                psi = obj.psiV(:);
+                q   = obj.qV(:,ipoint);
+                qM  = obj.qMean(ipoint,1);
+                int = (q - qM).^2;
+                P(:,1) = obj.gaussian(psi,txi);
+                num = sum(P.*int);
+                den = sum(P);
+                qD(ipoint,1) = num/den;
+            end
+            obj.qDesv = qD;            
         end
         
         function computeMxMy(obj)

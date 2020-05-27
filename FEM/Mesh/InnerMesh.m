@@ -3,16 +3,28 @@ classdef InnerMesh < Mesh
     properties (Access = private)
         globalConnec
         backgroundCoord
+        all2unique
+        unique2all
+        uniqueNodes
     end
     
     methods (Access = public)
         
         function obj = InnerMesh(cParams)
             obj.init(cParams);
+            obj.computeUniqueNodes();
             obj.computeCoords();
             obj.computeConnec();
             obj.computeDescriptorParams();
-            obj.unfittedType = 'SIMPLE';
+            obj.createInterpolation();
+            obj.computeElementCoordinates();
+        end
+        
+        function add2plot(obj,ax)
+            patch(ax,'vertices',obj.coord,'faces',obj.connec,...
+                'edgecolor',[0.5 0 0], 'edgealpha',0.5,'edgelighting','flat',...
+                'facecolor',[1 0 0],'facelighting','flat')
+            axis('equal');
         end
         
     end
@@ -20,48 +32,33 @@ classdef InnerMesh < Mesh
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.globalConnec = cParams.globalConnec;
+            obj.globalConnec    = cParams.globalConnec;
             obj.backgroundCoord = cParams.backgroundCoord;
+            obj.isInBoundary    = cParams.isInBoundary;
+            obj.type = 'INTERIOR';
+        end
+        
+        function computeUniqueNodes(obj)
+            allNodes = obj.globalConnec(:);
+            [uNodes,ind,ind2] = unique(allNodes,'rows','stable');
+            obj.all2unique  = ind;    
+            obj.unique2all  = ind2;   
+            obj.uniqueNodes = uNodes;
         end
         
         function computeCoords(obj)
-            coordElem = [];
-            nnode = size(obj.globalConnec,2);
-            for inode = 1:nnode
-                nodes = obj.globalConnec(:,inode);
-                coordElem = [coordElem; obj.backgroundCoord(nodes,:)];
-            end
-            subCoords = unique(coordElem,'rows','stable');
-            obj.coord = subCoords;
+            uNodes       = obj.uniqueNodes;
+            allCoords    = obj.backgroundCoord;
+            uniqueCoords = allCoords(uNodes,:);
+            obj.coord    = uniqueCoords;
         end
         
         function computeConnec(obj)
-            connec = obj.globalConnec;
-            coords = obj.backgroundCoord;
-            subCoords = obj.coord;
-            nnode = size(connec,2);
-            for inode = 1:nnode
-                coord = coords(connec(:,inode),:);
-                I = obj.findIndexesComparingCoords(coord,subCoords);
-                subConnec(:,inode) = I;
-            end
-            obj.connec = subConnec;
-        end
+            nnode = size(obj.globalConnec,2);
+            nCell = size(obj.globalConnec,1);             
+            obj.connec = reshape(obj.unique2all,nCell,nnode);
+        end          
         
-    end
-    
-    methods (Access = private, Static)
-        
-        function I = findIndexesComparingCoords(A,B)
-            I = zeros(1,size(A,1));
-            for inode = 1:size(A,1)
-                match = true(size(B,1),1);
-                for idime = 1:size(A,2)
-                    match = match & B(:,idime) == A(inode,idime);
-                end
-                I(inode) = find(match,1);
-            end
-        end
     end
     
 end

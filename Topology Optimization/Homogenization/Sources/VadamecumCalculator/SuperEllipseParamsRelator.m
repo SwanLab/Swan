@@ -1,6 +1,5 @@
 classdef SuperEllipseParamsRelator < handle
-    
-    
+       
    methods (Access = public, Static)
        
        function mx = mx(txi,rho,q)

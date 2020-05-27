@@ -46,13 +46,13 @@ classdef VademecumPlotters < handle
         function makeMxMyPlot(obj)
             d = obj.dBForPlotter;
             p = VademecumMxMyPlotter(d);
-            p.plot(); 
+            %p.plot(); 
         end
         
         function makeTxiRhoPlot(obj)
             d = obj.dBForPlotter;            
             p = VademecumTxiRhoPlotter(d);
-            p.plot();            
+            %p.plot();            
             obj.feasibleIndex = p.feasibleIndex;            
         end
         

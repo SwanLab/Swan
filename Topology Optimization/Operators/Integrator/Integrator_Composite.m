@@ -52,8 +52,6 @@ classdef Integrator_Composite < Integrator
                 end
                 f = f + int;
             end
-            
-%             f = obj.sumIntegrals(int);
         end
         
     end
@@ -65,11 +63,6 @@ classdef Integrator_Composite < Integrator
         end
         
         function createIntegrators(obj,cParams)
-            obj.createIntegratorsNew(cParams);
-%                         obj.createIntegratorsOld();
-        end
-        
-        function createIntegratorsNew(obj,cParams)
             obj.createNint(cParams);
             params = cParams.compositeParams;
             for iInt = 1:obj.nInt
@@ -79,44 +72,12 @@ classdef Integrator_Composite < Integrator
             end
         end
         
-        function createIntegratorsOld(obj)
-            meshC = obj.mesh;
-            activeMeshes = meshC.getActiveMeshes();
-            for iMesh = 1:meshC.nActiveMeshes
-                thisMesh = activeMeshes{iMesh};
-                cParams.mesh = activeMeshes{iMesh};
-                cParams.type = activeMeshes{iMesh}.unfittedType;
-                switch thisMesh.unfittedType
-                    case 'SIMPLE'
-                        cParams.globalConnec = meshC.globalConnectivities{iMesh};
-                        cParams.backgroundMesh = thisMesh;
-                        cParams.innerToBackground = [];
-                        cParams.npnod = obj.mesh.innerMeshOLD.npnod;
-                        obj.integrators{iMesh} = Integrator.create(cParams);
-                    case {'INTERIOR','BOUNDARY'}
-                        obj.integrators{iMesh} = Integrator.create(cParams);
-                end
-            end
-            obj.nInt = numel(obj.integrators);
-        end
-        
         function assembleBoxFaceToGlobal(obj,iInt)
             boxFaceCells = obj.integrators{iInt}.boxFaceToGlobal;
             obj.RHScells(boxFaceCells,:) = obj.RHSsubcells;
         end
         
     end
-    
-    methods (Access = private, Static)
-        
-        function sumIntegrals(int)
-            f = 0;
-            for iInt = 1:numel(int)
-                f = f + int{iInt};
-            end
-        end
-        
-    end
-    
+       
 end
 

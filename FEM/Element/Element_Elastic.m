@@ -29,41 +29,41 @@ classdef Element_Elastic < Element
     methods (Static) %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?obj})
         
         
-        function obj = create(mesh,geometry,material,dof,problemData)
+        function obj = create(mesh,geometry,material,dof,problemData,interp)
             switch problemData.scale
                 case 'MICRO'
                     switch problemData.pdim
                         case '2D'
-                            obj = Element_Elastic_2D_Micro(mesh,geometry,material,dof,problemData);
+                            obj = Element_Elastic_2D_Micro(mesh,geometry,material,dof,problemData,interp);
                         case '3D'
-                            obj = Element_Elastic_3D_Micro(mesh,geometry,material,dof,problemData);
+                            obj = Element_Elastic_3D_Micro(mesh,geometry,material,dof,problemData,interp);
                     end
                 case 'MACRO'
                     switch problemData.pdim
                         case '2D'
-                            obj = Element_Elastic_2D(mesh,geometry,material,dof,problemData);
+                            obj = Element_Elastic_2D(mesh,geometry,material,dof,problemData,interp);
                         case '3D'
-                            obj = Element_Elastic_3D(mesh,geometry,material,dof,problemData);
+                            obj = Element_Elastic_3D(mesh,geometry,material,dof,problemData,interp);
                     end
-            end            
+            end                        
             obj.createPrincipalDirection(problemData.pdim);
         end
     end
 
     
     methods %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
-        function compute(obj,mesh,geometry,material,dof,problemData)
-            obj.initElement(geometry,material,dof,problemData.scale)
+        function compute(obj,mesh,geometry,material,dof,problemData,interp)
+            obj.interpolation_u = interp{1};            
+            obj.initElement(geometry,mesh,material,dof,problemData.scale,interp)
             obj.nfields=1;
-            obj.interpolation_u = Interpolation.create(mesh,'LINEAR');
             
             obj.initialize_dvolum()
             Bmat   = obj.computeBmat();
             dvolum = obj.geometry.dvolu;
             
-            ngaus  = obj.quadrature.ngaus;
-            dimen = obj.computeDim(ngaus);
-            connect = obj.geometry.interpolation.T;
+            ngaus   = obj.quadrature.ngaus;
+            dimen   = obj.computeDim(ngaus);
+            connect = mesh.connec;%obj.interp{1}.T;
             
             
             obj.dim = dimen;
@@ -93,19 +93,14 @@ classdef Element_Elastic < Element
         end
         
         function initialize_dvolum(obj)
-            obj.computeQuadrature()
-            obj.computeInterpolation()
-            obj.computeGeometry() 
+            obj.computeQuadrature();
+            obj.computeGeometry();
         end
         
         function computeQuadrature(obj)
             obj.quadrature.computeQuadrature('LINEAR');
         end
-        
-        function computeInterpolation(obj)
-            obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
-        end
-        
+                
         function computeGeometry(obj)
             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
         end
@@ -140,7 +135,6 @@ classdef Element_Elastic < Element
         
         function K = compute_elem_StiffnessMatrix(obj)
             obj.quadrature.computeQuadrature('LINEAR');
-            obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
             % Stiffness matrix
             Ke = zeros(obj.dof.nunkn*obj.nnode,obj.dof.nunkn*obj.nnode,obj.nelem);
@@ -209,9 +203,10 @@ classdef Element_Elastic < Element
     
     methods (Access = private)
         
-        function createPrincipalDirection(obj, pdim)    
-            cParams.type = pdim;
-            p = PrincipalDirectionComputer.create(cParams);
+        function createPrincipalDirection(obj, pdim)   
+            s.eigenValueComputer.type = 'PRECOMPUTED';            
+            s.type = pdim;
+            p = PrincipalDirectionComputer.create(s);
             obj.principalDirectionComputer = p;
         end
         

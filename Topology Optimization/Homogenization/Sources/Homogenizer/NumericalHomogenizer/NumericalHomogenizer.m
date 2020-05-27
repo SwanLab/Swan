@@ -85,15 +85,16 @@ classdef NumericalHomogenizer < handle
         
         function buildMicroProblem(obj)
             obj.microProblem = Elastic_Problem_Micro(obj.fileName);
-            obj.microProblem.preProcess();
         end        
         
         function createInterpolation(obj)
+            d = SettingsInterpolation();
             d.interpolation = obj.interDataBase.materialInterpolation;
             d.constitutiveProperties  = obj.matDataBase.matProp;
             d.typeOfMaterial = obj.matDataBase.materialType;
             d.dim  = obj.pdim;
-            mI  = Material_Interpolation.create(d);
+            d.nElem = obj.microProblem.mesh.nelem;
+            mI  = MaterialInterpolation.create(d);
             obj.interpolation = mI;
             obj.matValues = d.constitutiveProperties;
         end
@@ -120,7 +121,7 @@ classdef NumericalHomogenizer < handle
         
         function d = createFilterDataBase(obj)
             d.shape = obj.microProblem.element.interpolation_u.shape;
-            d.conec = obj.microProblem.geometry.interpolation.T;
+            d.conec = obj.microProblem.mesh.connec;
             d.quadr = obj.microProblem.element.quadrature;
         end        
         

@@ -1,9 +1,6 @@
 classdef Mesh_Total < Mesh_Composite 
     
     properties (GetAccess = public, SetAccess = private)
-%         coord
-%         connec
-        ndim
         nBoxFaces
         
         innerMeshOLD
@@ -15,10 +12,14 @@ classdef Mesh_Total < Mesh_Composite
         
         npnod
         nnode
+        embeddedDim
+
     end
     
     properties (Access = private)
-        
+        borderNodes
+        borderElements
+        isExteriorMeshExplicit
     end
     
     methods (Access = public)
@@ -32,6 +33,8 @@ classdef Mesh_Total < Mesh_Composite
             obj.nelem = size(obj.connec,1);
             obj.npnod = obj.innerMeshOLD.npnod;
             obj.nnode = obj.innerMeshOLD.nnode;
+            obj.createInterpolation();
+            obj.computeElementCoordinates();             
         end
         
         function S = computeMeanCellSize(obj)
@@ -45,21 +48,94 @@ classdef Mesh_Total < Mesh_Composite
         function init(obj,cParams)
             obj.coord  = cParams.coord;
             obj.connec = cParams.connec;
+            obj.obtainExteriorMesh(cParams);              
             obj.ndim   = size(obj.coord,2);
-            obj.unfittedType = 'COMPOSITE';
+            obj.embeddedDim = obj.ndim;
         end
         
-        function defineActiveMeshes(obj)
-            obj.activeMeshesList = find([false true(1,obj.nBoxFaces)]);
-            obj.nActiveMeshes     = numel(obj.activeMeshesList);
+        function obtainExteriorMesh(obj,cParams)
+            obj.isExteriorMeshExplicit = false;
+            if isfield(cParams,'borderNodes')
+                if ~isempty(cParams.borderNodes)
+                    obj.borderNodes    = cParams.borderNodes;
+                    obj.borderElements = cParams.borderElements;
+                    obj.isExteriorMeshExplicit = true;
+                end
+            end
         end
         
         function createInteriorMesh(obj)
-            obj.innerMeshOLD = Mesh().create(obj.coord,obj.connec);
+            s.connec = obj.connec;
+            s.coord  = obj.coord;
+            obj.innerMeshOLD = Mesh().create(s);
             obj.append(obj.innerMeshOLD);
         end
         
         function createBoxFaceMeshes(obj)
+            if obj.isExteriorMeshExplicit
+                obj.computeExteriorMeshesFromData();
+            else
+               obj.computeExteriorMeshesFromBoxSides();
+            end
+        end
+        
+        function computeExteriorMeshesFromData(obj)
+            nExteriorMeshes = 1;
+            for imesh = 1:nExteriorMeshes
+                nodes  = obj.borderNodes;
+                s.coord = obj.coord(nodes,:);
+                s.connec = obj.computeConnectivitiesFromData();
+                s.type = 'BOUNDARY';
+                m = Mesh().create(s);
+                obj.boxFaceMeshes{imesh} = m;
+                obj.append(m);
+                obj.nodesInBoxFaces{imesh} = false(size(obj.coord,1),1);
+                obj.nodesInBoxFaces{imesh}(nodes,1) = true;
+                obj.globalConnectivities{imesh} = obj.borderElements(:,2:end);  
+            end
+           obj.nBoxFaces = numel(obj.boxFaceMeshes);                              
+        end
+        
+        function borderConnecSwitch = computeConnectivitiesFromData(obj)
+            connec = obj.borderElements(:,2:end);            
+            nNode = size(connec,2);
+            nElem = size(connec,1);
+            icell = 1;
+            borderConnec(1,:) = connec(1,:);
+            nodeOld = connec(icell,1);
+            nodeNew = connec(icell,2);            
+            for ielem = 2:nElem 
+                isInElementAsNodeA = find(connec(:,1) == nodeNew);
+                isInElementAsNodeB = find(connec(:,2) == nodeNew);
+                
+                isNewCellAsA = isInElementAsNodeA ~= icell;
+                isNewCellAsB = isInElementAsNodeB ~= icell;
+                
+                if isNewCellAsA                    
+                    icell = isInElementAsNodeA;                    
+                    nodeOld = nodeNew;                    
+                    nodeNew = connec(icell,2);
+                    borderConnec(ielem,1) = nodeOld;
+                    borderConnec(ielem,2) = nodeNew;
+                elseif isNewCellAsB
+                    icell = isInElementAsNodeB;                    
+                    nodeOld = nodeNew;
+                    nodeNew = connec(icell,2);
+                    borderConnec(ielem,1) = nodeOld;
+                    borderConnec(ielem,2) = nodeNew;
+                end                
+                
+            end
+            for inode = 1:nNode
+                nodes = borderConnec(:,inode);
+                [~,I] = sort(nodes);
+                borderConnecOrdered(I,inode) = 1:length(nodes);
+            end
+            borderConnecSwitch(:,1) = borderConnecOrdered(:,2);
+            borderConnecSwitch(:,2) = borderConnecOrdered(:,1);
+        end
+        
+        function computeExteriorMeshesFromBoxSides(obj)
             nSides = 2;
             for iDime = 1:obj.ndim
                 for iSide = 1:nSides
@@ -71,7 +147,7 @@ classdef Mesh_Total < Mesh_Composite
                     obj.computeGlobalConnectivities(iFace);
                 end
             end
-            obj.nBoxFaces = numel(obj.boxFaceMeshes);            
+            obj.nBoxFaces = numel(obj.boxFaceMeshes);                              
         end
         
         function connec = computeGlobalConnectivities(obj,iFace)
@@ -84,22 +160,24 @@ classdef Mesh_Total < Mesh_Composite
         end
         
         function [m, nodesInBoxFace] = createBoxFaceMesh(obj,idime,iside)
-            [boxFaceCoords,nodesInBoxFace] = obj.getFaceCoordinates(idime,iside);
+            [boxFaceCoords,nodesInBoxFace,boxFaceCoordsRemoved] = obj.getFaceCoordinates(idime,iside);
             switch obj.ndim
                 case 2
-                    boxFaceConnec = obj.computeConnectivities(boxFaceCoords);
+                    boxFaceConnec = obj.computeConnectivities(boxFaceCoordsRemoved);
                 case 3
-                    boxFaceConnec = obj.computeDelaunay(boxFaceCoords);
+                    boxFaceConnec = obj.computeDelaunay(boxFaceCoordsRemoved);
             end
-            m = Mesh;
-            m = m.create(boxFaceCoords,boxFaceConnec);
+            s.connec = boxFaceConnec;
+            s.coord  = boxFaceCoords;
+            s.isInBoundary = true;
+            m = Mesh().create(s);
         end
         
-        function [boxFaceCoords, nodesInBoxFace] = getFaceCoordinates(obj,idime,iside)
+        function [boxFaceCoords, nodesInBoxFace,boxFaceCoordsRemoved] = getFaceCoordinates(obj,idime,iside)
             D = obj.getFaceCharacteristicDimension(idime,iside);
             nodesInBoxFace = obj.innerMeshOLD.coord(:,idime) == D;
             boxFaceCoords = obj.innerMeshOLD.coord(nodesInBoxFace,:);
-            boxFaceCoords = obj.removeExtraDimension(boxFaceCoords,idime);
+            boxFaceCoordsRemoved = obj.removeExtraDimension(boxFaceCoords,idime);
             obj.storeRemovedDimensions(idime,iside,D);
         end
         
@@ -123,6 +201,11 @@ classdef Mesh_Total < Mesh_Composite
             obj.removedDimensions(iFace) = iDime;
             obj.removedDimensionCoord(iFace) = D;
         end
+        
+        function defineActiveMeshes(obj)
+            obj.activeMeshesList = find([false true(1,obj.nBoxFaces)]);
+            obj.nActiveMeshes     = numel(obj.activeMeshesList);
+        end        
         
     end
     

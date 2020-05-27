@@ -74,7 +74,6 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
     
     methods (Access = private)
         
-
         function initValue(obj)
             obj.value = ones(size(obj.mesh.coord,1),1);
         end
@@ -82,7 +81,7 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
         function createScalarProduct(obj,cParams)
             s = cParams.scalarProductSettings;
             s.nVariables = obj.nVariables;
-            s.femSettings.mesh = obj.mesh.innerMeshOLD;
+            s.femSettings.mesh = obj.mesh;
             obj.scalarProduct = ScalarProduct(s);        
         end
         

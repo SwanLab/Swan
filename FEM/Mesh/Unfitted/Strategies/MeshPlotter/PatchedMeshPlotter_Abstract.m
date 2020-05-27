@@ -12,8 +12,8 @@ classdef PatchedMeshPlotter_Abstract < handle
     
     methods (Access = public)
         
-        function plot(obj,meshUnfitted,ax)
-            obj.init(meshUnfitted);
+        function plot(obj,meshUnfitted,ax,bF)
+            obj.init(meshUnfitted,bF);
             obj.plotCutCells(ax);
             obj.plotInteriorCells(ax);
         end
@@ -27,10 +27,10 @@ classdef PatchedMeshPlotter_Abstract < handle
     
     methods (Access = private)
         
-        function init(obj,meshUnfitted)
+        function init(obj,meshUnfitted,backgroundFullCells)
             obj.meshUnfitted = meshUnfitted;
             obj.meshBackground = meshUnfitted.meshBackground;
-            obj.fullCells = meshUnfitted.backgroundFullCells;
+            obj.fullCells = backgroundFullCells;
         end
         
         function plotCutCells(obj,ax)

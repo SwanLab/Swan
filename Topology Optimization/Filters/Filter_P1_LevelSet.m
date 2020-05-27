@@ -14,6 +14,8 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
 
         domainType        
         projector
+        
+        interp
     end
     
     methods (Access = public)
@@ -23,6 +25,7 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
             obj.domainType = cParams.domainType;
             obj.createQuadrature();            
             obj.createProjector();
+            obj.createInterpolation();
             obj.createGeometry();
             obj.createPoperator(cParams);
             obj.disableDelaunayWarning();      
@@ -61,12 +64,11 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
     methods (Access = private)
         
         function createPoperator(obj,cPar)            
-            cParams.nnode  = obj.geometry.interpolation.nnode;
-            cParams.npnod  = obj.geometry.interpolation.npnod;
+            cParams.nnode  = obj.mesh.nnode;
+            cParams.npnod  = obj.mesh.npnod;
             cParams.connec = obj.mesh.connec;
             cParams.nelem  = obj.mesh.nelem;
-            cParams.diffReactEq = cPar.femSettings;
-            
+            cParams.diffReactEq = cPar.femSettings;            
             obj.Poper = Poperator(cParams);
         end
         
@@ -106,10 +108,14 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
             obj.quadrature.computeQuadrature(obj.quadratureOrder);
         end        
         
+        function createInterpolation(obj)
+            obj.interp = Interpolation.create(obj.mesh,'LINEAR');    
+        end
+        
         function createGeometry(obj)
-            obj.geometry = Geometry(obj.mesh,'LINEAR');
-            obj.geometry.interpolation.computeShapeDeriv(obj.quadrature.posgp);
-            obj.geometry.computeGeometry(obj.quadrature,obj.geometry.interpolation);
+            s.mesh = obj.mesh;
+            obj.geometry = Geometry.create(s);
+            obj.geometry.computeGeometry(obj.quadrature,obj.interp);
         end
 
     end

@@ -1,7 +1,7 @@
 classdef SettingsLevelSetGiven < SettingsLevelSetCreator
     
     properties (Access = public)
-        value
+       % value
     end
     
     methods (Access = public)

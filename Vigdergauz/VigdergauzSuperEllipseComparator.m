@@ -143,12 +143,7 @@ classdef VigdergauzSuperEllipseComparator < handle
         
         function computeDV(obj)            
             q = obj.quadrature;
-            inter = Interpolation.create(obj.mesh,'LINEAR');
-            xpg = obj.quadrature.posgp;       
-            inter.computeShapeDeriv(xpg)
-            geometry = Geometry(obj.mesh,'LINEAR');
-            geometry.computeGeometry(q,inter);
-            obj.dV = geometry.dvolu;                  
+            obj.dV = obj.mesh.computeDvolume(q);
         end
         
         function computeSuperEllipseDensity(obj)
@@ -167,10 +162,11 @@ classdef VigdergauzSuperEllipseComparator < handle
         end
         
         function normF = computeNorm(obj,f)
+            dv(:,1) = obj.dV;
             q = obj.quadrature;
             int = 0;            
             for igaus = 1:q.ngaus
-               int = int + sum(f.*f.*obj.dV);
+               int = int + sum(f.*f.*dv);
             end    
             normF = int;
         end
@@ -197,8 +193,10 @@ classdef VigdergauzSuperEllipseComparator < handle
             c = gray;
             c = flipud(c);
             colormap(c)
-            fName = ['Volume = ',num2str(obj.rhoDifferenceNorm*100)];
-            title([fName, '%'])
+            vTitle = ['Volume = ',num2str(obj.rhoDifferenceNorm*100),'%'];
+            qTitle = ['q = ',num2str(obj.qExponent)];
+            fName = [vTitle, ' {and} ',qTitle];
+            title(fName);
             drawnow
             c = contourPrinter(figureID);
             c.print([fName,'.png'])

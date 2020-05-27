@@ -1,11 +1,5 @@
 classdef DOF < handle
-    %DOF Summary of this class goes here
-    %   Detailed explanation goes here
-    
-    %     properties (GetAccess = {?Physical_Problem, ?Element, ?Solver}, SetAccess = private)
-    %
-    %     end
-    
+
     properties (GetAccess = public)
         dirichlet_values
         neumann_values
@@ -21,25 +15,51 @@ classdef DOF < handle
     end
     
     methods
-        function obj = getDOFconditions(obj,geometry,dirichlet_data,neumann_data,full_dirichlet_data)
+        function obj = getDOFconditions(obj,nFields,dirichlet_data,neumann_data,full_dirichlet_data)
             [obj.neumann,obj.neumann_values] = obj.get_dof_conditions(neumann_data,obj.nunkn(1));
             [obj.full_dirichlet,obj.full_dirichlet_values] = obj.get_dof_conditions(full_dirichlet_data,obj.nunkn(1));
-            for ifield = 1:geometry(1).nfields
+            for ifield = 1:nFields
                 [obj.dirichlet{ifield},obj.dirichlet_values{ifield}] = obj.get_dof_conditions(dirichlet_data{ifield},obj.nunkn(ifield));
             end
         end
         
-        function obj = computeDOF(obj,geometry)
-            for ifield = 1:geometry(1).nfields
+        function obj = computeDOF(obj,mesh,interp)
+            nfields = numel(interp);
+            for ifield = 1:nfields
+                int = interp{ifield};
                 nunkn = obj.nunkn(ifield);
-                nnode = geometry(ifield).interpolation.nnode;
-                npnod = geometry(ifield).interpolation.npnod;
-                obj.in_elem{ifield} = obj.compute_idx(geometry(ifield).interpolation.T,nunkn,nnode);
+
+                [T,npnod] = obj.computeConnec(mesh,int);
+                nnode = size(T,2);
+                obj.in_elem{ifield} = obj.compute_idx(T,nunkn,nnode);
                 obj.ndof(ifield) = nunkn*npnod;
                 obj.constrained{ifield} = obj.compute_constrained_dof(ifield);
                 obj.free{ifield} = obj.compute_free_dof(ifield);
             end
         end
+    end
+    
+    methods (Access = protected)
+        
+        function [connec,npnod] = computeConnec(obj,mesh,int)
+                switch int.order                    
+                    case 'LINEAR'
+                        connec = mesh.connec;
+                        coord = mesh.coord;
+                    otherwise
+                        s.mesh = mesh;
+                        s.interpolation = int;
+                        c = ConnecCoordFromInterpAndMesh(s);
+                        c.compute();
+                        connec = c.connec;
+                        coord = c.coord;
+                        
+                        %connec = c.computeConnec();
+                end
+                npnod = size(coord,1);
+                
+        end
+        
     end
     
     methods

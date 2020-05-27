@@ -47,7 +47,9 @@ classdef GiDImageCapturer < handle
         function writeCallGiDTclFile(obj)
             tclFile = 'callGiDCapturer.tcl';
             obj.inputFileName = char(obj.inputFileName);
-            stlFileTocall = 'CaptureImage3.tcl';
+            stlFileTocall = 'CaptureImage2.tcl';
+%            stlFileTocall = 'CaptureImage2.tcl';
+            
             fid = fopen([obj.pathTcl,tclFile],'w+');
             fprintf(fid,['set path "',obj.pathTcl,'"\n']);
             fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);

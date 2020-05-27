@@ -14,7 +14,7 @@ classdef computingOptimal < handle
             
         end
         
-        function computingOptimal(obj)
+        function obj = computingOpt()
             fileName = 'OptimalSuperEllipse';
             outputFolder = fullfile(pwd,'Output',fileName);
             gmsFile = [fullfile(outputFolder,fileName),'.msh'];

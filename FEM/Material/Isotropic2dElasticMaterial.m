@@ -1,53 +1,53 @@
 classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
 
-    properties (Access = protected)
-    end
-    
     methods (Access = public)
         
         function obj = Isotropic2dElasticMaterial(cParams)
-            obj.init(cParams);          
+            obj.init(cParams);    
+            obj.nstre = 3;            
         end
         
     end    
     
     methods (Access = protected)
         
-        function obj = computeC(obj)
-            obj.computeYoungModulus();
-            obj.computePoissonRatio();
-            C = obj.C;            
-            E = obj.E;
-            nu = obj.nu;            
-            c1 = (E./(1-nu.^2));
-            C(1,1,:) = c1;
-            C(1,2,:) = c1.*nu;
-            C(2,1,:) = c1.*nu;
-            C(2,2,:) = c1;
-            C(3,3,:) = c1*0.5.*(1-nu);            
+        function C = computeC(obj)
+            m = obj.mu;
+            l = obj.computeLambdaFromMuAndKappa(obj.mu,obj.kappa);
+            C = zeros(obj.nstre,obj.nstre,obj.nElem);                        
+            C(1,1,:)= 2*m+l;
+            C(1,2,:)= l;
+            C(2,1,:)= l;
+            C(2,2,:)= 2*m+l;
+            C(3,3,:)= m;
             obj.C = C;
         end
         
     end
     
-    methods (Access = private)
+    methods (Access = public, Static)
         
-        function computeYoungModulus(obj)
-            k = obj.kappa;
-            m = obj.mu;            
-            E = 4*k.*m./(k + m);
-            obj.E = E;
+        function E = computeYoungFromMuAndKappa(mu,kappa)
+            E = 4*kappa*mu/(kappa + mu);
         end
         
-        function computePoissonRatio(obj)
-            k = obj.kappa;
-            m = obj.mu;            
-            nu = (k - m)./(k + m);
-            obj.nu = nu;
+        function nu = computeNuFromMuAndKappa(mu,kappa)
+            nu = (kappa - mu)/(kappa +mu);
+        end        
+        
+        function k = computeKappaFromYoungAndNu(E,nu)
+            k = E/(2*(1-nu));
         end
-                
+        
+        function lambda = computeLambdaFromMuAndKappa(mu,kappa)
+            lambda = kappa - mu;
+        end
+        
+        function kappa = computeKappaFromMuAndLambda(mu,lambda)
+            kappa = lambda + mu;
+        end
         
     end
-    
+
 end
 

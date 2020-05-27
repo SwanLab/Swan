@@ -1,4 +1,4 @@
-classdef SettingsVideoMaker < AbstractSettings
+classdef SettingsVideoManager < AbstractSettings
     
     properties (Access = protected)
         defaultParamsName = 'paramsVideoManager.json'
@@ -13,7 +13,7 @@ classdef SettingsVideoMaker < AbstractSettings
     
     methods (Access = public)
         
-        function obj = SettingsVideoMaker(varargin)
+        function obj = SettingsVideoManager(varargin)
             if nargin == 1
                 obj.loadParams(varargin{1});
             end

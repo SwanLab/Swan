@@ -20,20 +20,16 @@ classdef Element_DiffReact < Element
     end
     
     methods %(Access = ?Physical_Problem)
-        function obj = Element_DiffReact(mesh,geometry,material,dof,scale,addRobinTerm,bcType)
+        function obj = Element_DiffReact(mesh,geometry,material,dof,scale,addRobinTerm,bcType,interp)
             obj.mesh = mesh;
             obj.addRobinTerm = addRobinTerm;
             obj.bcType = bcType;
-            obj.initElement(geometry,material,dof,scale);
+            obj.initElement(geometry,mesh,material,dof,scale,interp);
             obj.nstre = 2;
             obj.nfields = 1;
-            if contains(class(obj.mesh),'Total')
-                obj.interpolation_u=Interpolation.create(mesh.innerMeshOLD,'LINEAR');
-            else
-                obj.interpolation_u=Interpolation.create(mesh,'LINEAR');
-            end
+            obj.interpolation_u = interp{1};
             obj.computeStiffnessMatrix();
-            obj.computeMassMatrix(2);
+            obj.computeMassMatrix();
             obj.computeBoundaryMassMatrix();
         end
         
@@ -43,21 +39,26 @@ classdef Element_DiffReact < Element
         
         function LHS = computeLHS(obj)
             if obj.addRobinTerm
-                LHS = obj.epsilon^2*obj.K + obj.M + 1/obj.epsilon*obj.Mr;
+                LHS = obj.epsilon^2*obj.K + obj.M + (obj.epsilon)*obj.Mr;
             else
                 LHS = obj.epsilon^2*obj.K + obj.M;
                 LHS = obj.bcApplier.fullToReducedMatrix(LHS);
             end
         end
         
+
+    end
+    
+    methods (Access = private)
+        
         function computeStiffnessMatrix(obj)
-            Ke = compute_elem_StiffnessMatrix(obj);
+            Ke = obj.computeElementalStiffnessMatrix();
             Kg = obj.AssembleMatrix(Ke,1,1); % !!
             obj.K = Kg;
         end
         
-        function computeMassMatrix(obj,job)
-            Me = compute_elem_MassMatrix(obj,job);
+        function computeMassMatrix(obj)
+            Me = obj.computeElementalMassMatrix();
             Mg = obj.AssembleMatrix(Me,1,1); % !!
             obj.M = Mg;
         end
@@ -70,60 +71,46 @@ classdef Element_DiffReact < Element
             end
         end
         
-        function [K] = compute_elem_StiffnessMatrix(obj)
+        function Ke = computeElementalStiffnessMatrix(obj)
             obj.quadrature.computeQuadrature('LINEAR');
-            obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
-            % Stiffness matrix
-            Ke = zeros(obj.dof.nunkn*obj.nnode,obj.dof.nunkn*obj.nnode,obj.nelem);
-            
-            for igaus = 1 :obj.quadrature.ngaus
-                % Strain-displacement matrix
-                Bmat = obj.computeB(obj.dof.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
-                
-                % Compute Ke
-                
-                for iv = 1:obj.nnode*obj.dof.nunkn
-                    for jv = 1:obj.nnode*obj.dof.nunkn
-                        for istre = 1:obj.nstre
-                            % for jstre=1:nstre
-                            v = squeeze(Bmat(istre,iv,:).*Bmat(istre,jv,:));
-                            Ke(iv,jv,:) = squeeze(Ke(iv,jv,:)) + v(:).*obj.geometry.dvolu(:,igaus);
-                            %end
-                        end
-                    end
+            ndof  = obj.dof.nunkn*obj.nnode;
+            ngaus = obj.quadrature.ngaus;
+            Ke = zeros(ndof,ndof,obj.nelem);
+            for igaus = 1:ngaus
+                dShapeDx = obj.geometry.cartd(:,:,:,igaus);
+                Bmat     = obj.computeB(obj.dof.nunkn,obj.nelem,obj.nnode,dShapeDx);
+                for istre = 1:obj.nstre
+                    BmatI = Bmat(istre,:,:);
+                    BmatJ = permute(Bmat(istre,:,:),[2 1 3]);
+                    dNdN = bsxfun(@times,BmatJ,BmatI);
+                    dv(1,1,:) = obj.geometry.dvolu(:,igaus);
+                    inc = bsxfun(@times,dv,dNdN);
+                    Ke = Ke + inc;
                 end
-            end
-            
-            K = Ke;
+            end            
         end
         
-        function [M] = compute_elem_MassMatrix(obj,job)
+        function Me = computeElementalMassMatrix(obj)
             obj.quadrature.computeQuadrature('QUADRATICMASS');
-            obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
-            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
-            Me = zeros(obj.interpolation_u.nnode,obj.interpolation_u.nnode,obj.nelem);
-            
-            for igaus=1:obj.quadrature.ngaus
-                for inode=1:obj.interpolation_u.nnode
-                    for jnode=1:obj.interpolation_u.nnode
-                        Me(inode,jnode,:)=squeeze(Me(inode,jnode,:)) + obj.quadrature.weigp(igaus)*obj.interpolation_u.shape(inode,igaus)...
-                            *obj.interpolation_u.shape(jnode,igaus)*obj.geometry.djacob(:,igaus);
-                    end
-                end
-            end
-            %% PENDING TO BE REMOVED AS SOON AS PHYSPROBLEM FAMILIY IS IMPLEMENTED
+            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);            
+            shapes = obj.interpolation_u.shape;
+            dvolu  = obj.geometry.dvolu;
+            ngaus  = obj.quadrature.ngaus;
+            nelem  = obj.mesh.nelem;
+            nnode  = obj.mesh.nnode;
+            Me = zeros(nnode,nnode,nelem);
+            for igaus = 1:ngaus
+                dv(1,1,:) = dvolu(:,igaus);
+                Ni = shapes(:,igaus);
+                Nj = shapes(:,igaus);
+                NiNj = Ni*Nj';
+                Mij = bsxfun(@times,NiNj,dv);
+                Me = Me + Mij;
+            end            
             obj.quadrature.computeQuadrature('LINEAR');
-            obj.interpolation_u.computeShapeDeriv(obj.quadrature.posgp)
             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
-            % !!!!!!!!!!!!!!!!!!!!
-            
-            M = Me;
-            
-        end
-    end
-    
-    methods (Access = private)
+        end        
         
         function params = createIntegratorParams(obj)
             params.type = 'COMPOSITE';

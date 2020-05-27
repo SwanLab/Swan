@@ -5,7 +5,7 @@ classdef VigdergauzParametersFromAxAy < VigdergauzParameters
         my
         FxMax
         FyMax
-        M
+        R
         rx
         ry
         TxTy
@@ -43,13 +43,13 @@ classdef VigdergauzParametersFromAxAy < VigdergauzParameters
             obj.Ty = obj.computeTy();
             obj.TxTy = obj.Tx*obj.Ty;
             obj.computeFeasibility()
-            obj.mx = obj.computeMx();
-            obj.my = obj.computeMy();            
-            obj.M = obj.computeM();           
+            obj.rx = obj.computeRx();
+            obj.ry = obj.computeRy();            
+            obj.R = obj.computeR();           
             obj.FxMax = obj.computeFxMax();
             obj.FyMax = obj.computeFyMax();            
-            obj.rx = obj.computeRx();
-            obj.ry = obj.computeRy();
+            obj.mx = obj.computeMx();
+            obj.my = obj.computeMy();
         end
         
         function Tx = computeTx(obj)
@@ -69,12 +69,12 @@ classdef VigdergauzParametersFromAxAy < VigdergauzParameters
             end            
         end
         
-        function mx = computeMx(obj)
-            mx = obj.computeEllipticParameter(obj.Tx);
+        function rx = computeRx(obj)
+            rx = obj.computeEllipticParameter(obj.Tx);
         end
         
-        function my = computeMy(obj)
-            my = obj.computeEllipticParameter(obj.Ty);            
+        function ry = computeRy(obj)
+            ry = obj.computeEllipticParameter(obj.Ty);            
         end
         
         function x = computeEllipticParameter(obj,T)
@@ -82,29 +82,29 @@ classdef VigdergauzParametersFromAxAy < VigdergauzParameters
             if T <= 0.15
                 x = 1 - eps;
             else
-                F = @(x) obj.implicitMequation(x,T);
+                F = @(x) obj.implicitRequation(x,T);
                 x = fzero(F,[0+eps,1-eps]);
             end
         end
               
-        function M = computeM(obj)
+        function R = computeR(obj)
             f = @(x) (1 - x)/x;
-            M = f(obj.mx)*f(obj.my);
+            R = f(obj.rx)*f(obj.ry);
         end    
         
         function Fx = computeFxMax(obj)
-            Fx = obj.computeFmax(obj.mx);
+            Fx = obj.computeFmax(obj.rx);
         end
         
         function Fy = computeFyMax(obj)
-            Fy = obj.computeFmax(obj.my);
+            Fy = obj.computeFmax(obj.ry);
         end
         
-        function F = computeFmax(obj,m)
-            F = obj.incompleteElliptic(sqrt(1 - obj.M),m);                        
+        function F = computeFmax(obj,r)
+            F = obj.incompleteElliptic(sqrt(1 - obj.R),r);                        
         end
         
-        function f = implicitMequation(obj,x,T)
+        function f = implicitRequation(obj,x,T)
             f = obj.completeElliptic(x)*T - obj.completeElliptic(1-x);
         end
         
@@ -112,18 +112,18 @@ classdef VigdergauzParametersFromAxAy < VigdergauzParameters
             K = obj.incompleteElliptic(1,k);
         end
         
-        function Rx = computeRx(obj)
-            Rx = obj.computeR(obj.ax,obj.mx);            
+        function Mx = computeMx(obj)
+            Mx = obj.computeM(obj.ax,obj.rx);            
         end
 
-        function Ry = computeRy(obj)
-            Ry = obj.computeR(obj.ay,obj.my);            
+        function My = computeMy(obj)
+            My = obj.computeM(obj.ay,obj.ry);            
         end        
         
-        function r = computeR(obj,a,m)
-            K = obj.completeElliptic(m);
-            Fmax = obj.incompleteElliptic(sqrt(1-obj.M),m);
-            r = a/K*Fmax;
+        function m = computeM(obj,a,r)
+            K = obj.completeElliptic(r);
+            Fmax = obj.incompleteElliptic(sqrt(1-obj.R),r);
+            m = a/K*Fmax;
         end
         
     end

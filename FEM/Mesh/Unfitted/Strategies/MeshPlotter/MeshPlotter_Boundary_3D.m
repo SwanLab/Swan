@@ -1,4 +1,4 @@
-classdef MeshPlotter_Boundary_3D < MeshPlotter_Abstract
+classdef MeshPlotter_Boundary_3D < MeshPlotter
     methods (Access = public, Static)
         function plot(mesh,ax)
             hold on

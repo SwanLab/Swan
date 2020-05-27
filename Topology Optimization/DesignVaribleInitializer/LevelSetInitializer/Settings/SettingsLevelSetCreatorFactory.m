@@ -16,7 +16,7 @@ classdef SettingsLevelSetCreatorFactory < handle
                     obj = SettingsLevelSetSphereNdim(s);
                 case 'horizontal'
                     obj = SettingsLevelSetHorizontalInclusion(s);
-                case 'square'
+                case 'squareInclusion'
                     obj = SettingsLevelSetSquareInclusion(s);
                 case 'smoothSquare'                    
                     obj = SettingsLevelSetSmoothSquareInclusion(s);

@@ -7,11 +7,13 @@ classdef Quadrature < handle
     end
     
     methods (Access = public)
+        
         function computeQuadrature(obj,order)
             obj.posgp = [];
             obj.weigp = [];
             obj.order = order;
         end
+        
     end
     
     methods (Static, Access = public)        

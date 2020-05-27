@@ -16,7 +16,7 @@ classdef Filter < handle
         
         geometry
         quadrature
-        interpolation
+        %interpolation
         
         mesh
         nnode
@@ -28,6 +28,7 @@ classdef Filter < handle
     end
     
     properties (Access = private)
+        interp
     end
     
     methods (Access = public, Static)
@@ -43,12 +44,9 @@ classdef Filter < handle
         
         function preProcess(obj)
             obj.diffReacProb.preProcess();
-            
-            obj.setQuadrature();
-            obj.setInterpolation();
-            
-            obj.interpolation.computeShapeDeriv(obj.quadrature.posgp)
-            obj.computeGeometry();
+            obj.createQuadrature();
+            obj.createInterpolation();
+            obj.createGeometry();
             obj.storeParams();
             
         end
@@ -105,27 +103,27 @@ classdef Filter < handle
     
     methods (Access = private)
         
-        function computeGeometry(obj)
-            obj.geometry = Geometry(obj.mesh,'LINEAR');
-            obj.geometry.interpolation.computeShapeDeriv(obj.quadrature.posgp);
-            obj.geometry.computeGeometry(obj.quadrature,obj.geometry.interpolation);
+        function createInterpolation(obj)
+            obj.interp = Interpolation.create(obj.mesh,'LINEAR');    
+        end                
+        
+        function createGeometry(obj)
+            s.mesh = obj.mesh;
+            obj.geometry = Geometry.create(s);
+            obj.geometry.computeGeometry(obj.quadrature,obj.interp);   
         end
         
-        function setQuadrature(obj)
+        function createQuadrature(obj)
             obj.quadrature = Quadrature.set(obj.mesh.geometryType);
             obj.quadrature.computeQuadrature(obj.quadratureOrder);
         end
         
-        function setInterpolation(obj)
-            obj.interpolation = Interpolation.create(obj.mesh,'LINEAR');
-        end
-        
         function storeParams(obj)
-            obj.nelem = obj.geometry.interpolation.nelem;
-            obj.nnode = obj.geometry.interpolation.nnode;
-            obj.npnod = obj.geometry.interpolation.npnod;
+            obj.nelem = obj.mesh.nelem;
+            obj.nnode = obj.mesh.nnode;
+            obj.npnod = obj.mesh.npnod;
             obj.ngaus = obj.quadrature.ngaus;
-            obj.shape = obj.interpolation.shape;
+            obj.shape = obj.interp.shape;
         end
         
         function computeElementalMassMatrix(obj)

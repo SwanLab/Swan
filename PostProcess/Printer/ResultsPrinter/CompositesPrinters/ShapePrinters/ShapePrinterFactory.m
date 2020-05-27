@@ -11,6 +11,8 @@ classdef ShapePrinterFactory < handle
                     p = CompliancePrinter(d);
                 case {'ShFunc_Chomog_alphabeta','ShFunc_Chomog_fraction'}
                     p = HomogenizedTensorPrinter(d);
+                case {'ShFunc_Perimeter'}
+                    p = PerimeterPrinter(d);
             end
         end
     end    

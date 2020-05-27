@@ -82,7 +82,7 @@ classdef VademecumComputerAndPlotter < handle
             d.Ptensor  = obj.vademecumData.Ptensor;
             d.volume   = obj.vademecumData.volume;
             p = VademecumDataPrinter(d);
-            p.print();
+           % p.print();
         end
         
     end

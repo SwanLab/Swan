@@ -1,12 +1,13 @@
 classdef SamplePointsCreatorFromFixedRhoForOptimalExponentComputer ...
         < SamplePointsCreatorForOptimalExponentComputer
     
-    properties (Access = public)
-        txiMax
-        txiMin        
-    end
+%     properties (Access = public)
+%      
+%     end
     
     properties (Access = private)
+        txiMax
+        txiMin           
         rho0
         mxV
         myV
@@ -27,14 +28,14 @@ classdef SamplePointsCreatorFromFixedRhoForOptimalExponentComputer ...
         
         function init(obj,cParams)
             obj.rho0 = cParams.rho0;
-            obj.psiV = cParams.psi;                        
+            obj.phiV = cParams.phi;                        
             obj.mxMax = 0.99;
             obj.myMax = 0.99;       
             qMax = 32;
             sE = SuperEllipseParamsRelator;
-            obj.txiMax = sE.txiFromMxRho(obj.mxMax,obj.rho,qMax);
-            obj.txiMin = sE.txiFromMxRho(obj.myMax,obj.rho,qMax);
-            obj.npoints = 20;
+            obj.txiMax = sE.txiFromMxAndRho(obj.mxMax,obj.rho0,qMax);
+            obj.txiMin = sE.txiFromMyAndRho(obj.myMax,obj.rho0,qMax);
+            obj.npoints = 4;
         end
         
     end

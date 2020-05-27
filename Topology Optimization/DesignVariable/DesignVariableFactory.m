@@ -1,14 +1,10 @@
 classdef DesignVariableFactory < handle
+
     
-    properties (Access = private)
-        cParams
-    end
-    
-    methods (Access = public)
+    methods (Access = public, Static)
         
-        function designVar = create(obj,cParams)
-            obj.cParams = cParams;
-            switch obj.cParams.type
+        function designVar = create(cParams)
+            switch cParams.type
                 case 'LevelSet'                  
                     designVar = LevelSet(cParams);
                 case 'Density'                  

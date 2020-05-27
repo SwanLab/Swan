@@ -9,9 +9,11 @@ classdef SettingsInterpolation < AbstractSettings
         typeOfMaterial
         interpolation
         dim
+        ndim
         type
-        nelem
+        nElem
         ngaus
+        simpAllType
     end
     
     methods (Access = public)

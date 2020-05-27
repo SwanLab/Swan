@@ -3,11 +3,11 @@ classdef DOF_Thermal < DOF
     %   Detailed explanation goes here
     
     methods
-        function obj = DOF_Thermal(filename,geometry) % Replace mesh for pdim
+        function obj = DOF_Thermal(filename,pdim,nFields,interp) % Replace mesh for pdim
             obj.nunkn = 1;
             [dirichlet_data,neumann_data,full_dirichlet_data] = Preprocess.getBC_mechanics(filename);
-            obj.getDOFcondition(geometry,dirichlet_data,neumann_data,full_dirichlet_data);
-            obj.computeDOF(geometry);
+            obj.getDOFconditions(nFields,dirichlet_data,neumann_data,full_dirichlet_data);
+            obj.computeDOF(interp);
         end
     end
 end

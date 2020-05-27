@@ -40,6 +40,10 @@ classdef ResultsPrinterFactory < handle
                     p = [];
                 case {'MicroParams'}
                     p = DensityResultsPrinter(d);
+                case {'ShapeFunction'}
+                    p = ShapesPrinter(d);
+                case {'Gradient'}
+                    p = GradientVariablePrinter(d);
             end
             obj.printer = p;
         end

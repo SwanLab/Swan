@@ -10,6 +10,7 @@ classdef testUnfitted < test
         topOpt
         levelSet
         mesh
+        oldMeshUnfitted
     end
     
     properties (Access = private)
@@ -31,13 +32,9 @@ classdef testUnfitted < test
             s.meshBackground = meshBackground;
             s.interpolationBackground = interpolation;
             s.includeBoxContour = obj.meshIncludeBoxContour;
-            cParams = SettingsMeshUnfitted(s);
-            
-%             obj.mesh = Mesh_Unfitted.create2(cParams);
-%             obj.mesh.computeMesh(obj.levelSet);
-            
+            cParams = SettingsMeshUnfitted(s);            
             obj.mesh = UnfittedMesh(cParams);
-            obj.mesh.compute(obj.levelSet);
+            obj.mesh.compute(obj.levelSet); 
         end
         
     end

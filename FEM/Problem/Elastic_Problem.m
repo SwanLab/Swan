@@ -6,26 +6,28 @@ classdef Elastic_Problem < FEM
     properties (GetAccess = public, SetAccess = public)
     end
     
+    properties (Access = private)
+        material
+        fileName
+        nFields
+        interp
+    end
+    
     
     %% Public methods definition ==========================================
     methods (Access = public)
         function obj = Elastic_Problem(fileName)
+            obj.fileName = fileName;
+            obj.nFields = 1;
             obj.readProblemData(fileName);
-            obj.createGeometry(obj.mesh);
-            obj.dof = DOF_Elastic(fileName,obj.geometry,obj.problemData.pdim);
+            obj.createGeometry();
+            obj.createInterpolation();
+            obj.createDOF();
+            obj.createMaterial();
+            obj.createSolver(); 
+            obj.createElement();            
         end
-        
-        function preProcess(obj)
-            cParams.ptype = obj.problemData.ptype;
-            cParams.pdim  = obj.problemData.pdim;
-            cParams.nelem = obj.geometry(1).interpolation.nelem;
-            cParams.geometry = obj.geometry;
-            cParams.mesh  = obj.mesh;            
-            material = Material.create(cParams);
-            obj.element = Element_Elastic.create(obj.mesh,obj.geometry,material,obj.dof,obj.problemData);
-            obj.solver = Solver.create;
-        end
-        
+
         function computeVariables(obj)
             Kred = obj.element.computeLHS();
             obj.element.computeRHS();
@@ -97,9 +99,42 @@ classdef Elastic_Problem < FEM
         end
         
         % !! THIS SHOULD BE DEFINED BY THE USER !!
-        function createGeometry(obj,mesh)
-            obj.geometry = Geometry(mesh,'LINEAR');
-        end
+
     end
+    
+    methods (Access = private)
+        
+        function createGeometry(obj)
+            s.mesh = obj.mesh;
+            obj.geometry = Geometry.create(s);
+        end     
+        
+        function createInterpolation(obj)
+            obj.interp{1} = Interpolation.create(obj.mesh,'LINEAR');                                    
+        end        
+        
+        function createMaterial(obj)
+            cParams.ptype = obj.problemData.ptype;
+            cParams.pdim  = obj.problemData.pdim;
+            cParams.nelem = obj.mesh.nelem;
+            cParams.geometry = obj.geometry;
+            cParams.mesh  = obj.mesh;            
+            obj.material = Material.create(cParams);                        
+        end
+        
+        function createSolver(obj)
+            obj.solver = Solver.create;
+        end
+        
+        function createDOF(obj)
+            obj.dof = DOF_Elastic(obj.fileName,obj.mesh,obj.problemData.pdim,obj.nFields,obj.interp);            
+        end
+        
+        function createElement(obj)
+            obj.element = Element_Elastic.create(obj.mesh,obj.geometry,obj.material,obj.dof,obj.problemData,obj.interp);            
+        end
+        
+    end
+    
 end
 

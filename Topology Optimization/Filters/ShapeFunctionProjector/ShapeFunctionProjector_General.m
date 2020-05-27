@@ -2,29 +2,36 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
     
     properties (Access = private)
         unfittedMesh
-        integrator 
         domainType
         interpolation
-        quadrature        
+        quadrature
     end
     
     methods (Access = public)
-    
+        
         function obj = ShapeFunctionProjector_General(cParams)
             obj.init(cParams)
             obj.domainType = cParams.domainType;
             obj.quadrature = cParams.quadrature;
             obj.createInterpolation();
             obj.createUnfittedMesh();
-            obj.createIntegrator();                           
         end
-    
-        function xP = project(obj,x)
-            nodalF = ones(size(x));
-            obj.unfittedMesh.compute(x);
-            %xP = obj.integrator.integrateUnfittedMesh(nodalF,obj.unfittedMesh);            
-            xP = obj.integrator.integrate(nodalF);                        
-        end        
+        
+        function fInt = project(obj,ls)
+            if all(ls>0)
+                fInt = zeros(size(ls));
+            else
+                fNodes = ones(size(ls));
+                obj.unfittedMesh.compute(ls);
+%                 close all
+%                 figure(1)
+%                 obj.unfittedMesh.plot();
+%                 drawnow
+%                 pause(1)
+                fInt = obj.unfittedMesh.integrateNodalFunction(fNodes);
+            end
+            
+        end
         
     end
     
@@ -33,21 +40,15 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
         function createInterpolation(obj)
             obj.interpolation = Interpolation.create(obj.mesh,'LINEAR');
             obj.interpolation.computeShapeDeriv(obj.quadrature.posgp)
-        end      
+        end
         
         function createUnfittedMesh(obj)
             s.unfittedType = obj.domainType;
             s.meshBackground = obj.mesh;
             s.interpolationBackground = obj.interpolation;
             cParams = SettingsMeshUnfitted(s);
-            obj.unfittedMesh = UnfittedMesh(cParams);            
+            obj.unfittedMesh = UnfittedMesh(cParams);
         end
-        
-        function createIntegrator(obj)
-            cParams.mesh = obj.unfittedMesh;
-            cParams.type = obj.unfittedMesh.unfittedType;
-            obj.integrator = Integrator.create(cParams);            
-        end        
         
     end
     

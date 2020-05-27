@@ -1,10 +1,14 @@
 classdef PrincipalDirectionComputerIn2D < PrincipalDirectionComputer
     
+    properties (Access = private)
+       avarageTensor               
+    end
+    
     methods (Access = public)
         
         function obj = PrincipalDirectionComputerIn2D(cParams)
             obj.ndim = 2;
-            obj.init();
+            obj.init(cParams);
         end
         
     end
@@ -16,29 +20,17 @@ classdef PrincipalDirectionComputerIn2D < PrincipalDirectionComputer
             s1  = squeeze(obj.avarageTensor(1,1,:));
             s2  = squeeze(obj.avarageTensor(1,2,:));
             s12 = squeeze(obj.avarageTensor(1,3,:));
+            eG = obj.eigenComputer;
             for i = 1:2
                 for j = 1:2
-                    obj.direction(i,j,:) = obj.directionFunction{i,j}(s1,s2,s12);
+                    obj.direction(i,j,:) = eG.eigenVectorFunction{i,j}(s1,s12,s2);
                 end
-                obj.principalStress(i,:) = obj.eigenValueFunction{i}(s1,s2,s12);
+                obj.principalStress(i,:) = eG.eigenValueFunction{i}(s1,s12,s2);
             end
         end
         
     end
     
-    methods (Access = protected)
-           
-        function obtainEigenValuesAndVectors(obj)
-            s1 = sym('s1','real');
-            s2 = sym('s2','real');
-            s12 = sym('s12','real');
-            S = [s1 s12; s12 s2];
-            [vS,dS] = eig(S);
-            obj.eigenVectors = vS;
-            obj.eigenValues = dS;
-        end        
-
-    end
     
     methods (Access = private)
         

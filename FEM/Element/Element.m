@@ -15,6 +15,7 @@ classdef Element < handle
     
     properties (Access = protected)
         bcType        
+        interp
     end
     
     properties (Access = private)
@@ -30,15 +31,16 @@ classdef Element < handle
     end
     
     methods (Access = protected)        
-        function initElement(obj,geometry,material,dof,scale)            
-            obj.nelem = geometry(1).interpolation.nelem;
+        function initElement(obj,geometry,mesh,material,dof,scale,interp)            
+            obj.interp = interp;
+            obj.nelem = mesh.nelem;
             obj.scale = scale;
-            obj.nfields = geometry.nfields;
+            obj.nfields = numel(interp);
             for ifield=1:obj.nfields
-                obj.nnode(ifield) = geometry(ifield).interpolation.nnode;
+                obj.nnode(ifield) = interp{ifield}.nnode;
             end
             obj.geometry = geometry;
-            obj.quadrature = Quadrature.set(geometry(1).type);
+            obj.quadrature = Quadrature.set(mesh.geometryType);
             obj.material = material;
             obj.dof = dof;            
             obj.createBoundaryConditionasApplier();
@@ -100,7 +102,7 @@ classdef Element < handle
             for ifield = 1:obj.nfields
                 b_elem = b_elem_cell{ifield,1};
                 b = zeros(obj.dof.ndof(ifield),1);
-                for i = 1:obj.geometry(ifield).interpolation.nnode*obj.dof.nunkn(ifield)
+                for i = 1:obj.interp{ifield}.nnode*obj.dof.nunkn(ifield)
                     c = squeeze(b_elem(i,1,:));
                     idof_elem = obj.dof.in_elem{ifield}(i,:);
                     b = b + sparse(idof_elem,1,c',obj.dof.ndof(ifield),1);
@@ -133,9 +135,9 @@ classdef Element < handle
             idx1 = obj.dof.in_elem{ifield};
             idx2 = obj.dof.in_elem{jfield};
             nunkn1 = obj.dof.nunkn(ifield);
-            nnode1 = obj.geometry(ifield).interpolation.nnode;
+            nnode1 = obj.interp{ifield}.nnode;
             nunkn2 = obj.dof.nunkn(jfield);
-            nnode2 = obj.geometry(jfield).interpolation.nnode;
+            nnode2 = obj.interp{jfield}.nnode;
             col = obj.dof.ndof(jfield);
             row = obj.dof.ndof(ifield);
         end

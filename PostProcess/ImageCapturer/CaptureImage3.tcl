@@ -11,6 +11,8 @@ proc CaptureImage {pathFileVar outputFileVar} {
     GiD_Process Results ContourFill Density Density Mescape
     GiD_Process Results contoptions setmaxoptions setvalue 1 Mescape
     GiD_Process results contoptions setminoptions setvalue 0 Mescape
+    GiD_Process Mescape DisplayStyle Body_Bound Mescape
+    GiD_Process Results ContourFill Density Density Mescape
 	GiD_Process MEscape 'Hardcopy Options ShowLegends No MEscape
 	GiD_Process MEscape 'Hardcopy Options ShowAxes No MEscape
 	GiD_Process MEscape 'Hardcopy Options PrintLogo No MEscape

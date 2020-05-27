@@ -1,36 +1,32 @@
-classdef Filter_PDE_LevelSet < Filter_PDE 
+classdef Filter_PDE_LevelSet < Filter_PDE
     
     properties(Access = private)
         integrator
         unfittedMesh
-        domainType        
+        domainType
+        interp
     end
     
     methods (Access = public)
         
         function obj = Filter_PDE_LevelSet(cParams)
             obj.init(cParams)
-            obj.domainType = cParams.domainType;
-            
+            obj.domainType = cParams.domainType;            
             obj.diffReacProb.preProcess();
             obj.createQuadrature();
+            obj.createInterpolation();
             obj.computeGeometry();
             obj.nelem = obj.mesh.nelem;
-            obj.npnod = obj.geometry.interpolation.npnod;           
+            obj.npnod = obj.mesh.npnod;
             obj.ngaus = obj.quadrature.ngaus;
-            obj.Anodal2Gauss = obj.computeA();
-            
-%             cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh,obj.interpolation);
+            obj.Anodal2Gauss = obj.computeA();            
             cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh);
             obj.unfittedMesh = UnfittedMesh(cParams);
-            s.mesh = obj.unfittedMesh;
-            s.type = obj.unfittedMesh.unfittedType;
-            obj.integrator = Integrator.create(s);            
-            obj.disableDelaunayWarning();                 
+            obj.disableDelaunayWarning();
         end
         
         function preProcess(obj)
-       
+            
         end
         
         function RHS = integrate_L2_function_with_shape_function(obj,x)
@@ -42,10 +38,14 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             RHS = obj.computeRHS(x,F);
         end
         
-        function fInt = computeRHS(obj,x,fNodes)
-            obj.unfittedMesh.compute(x);
-            fInt = obj.integrator.integrate(fNodes);
-        end        
+        function fInt = computeRHS(obj,ls,fNodes)
+            if all(ls>0)
+                fInt = zeros(size(ls));
+            else
+                obj.unfittedMesh.compute(ls);                
+                fInt = obj.unfittedMesh.integrateNodalFunction(fNodes);
+            end
+        end
         
     end
     
@@ -54,20 +54,23 @@ classdef Filter_PDE_LevelSet < Filter_PDE
         function createQuadrature(obj)
             obj.quadrature = Quadrature.set(obj.mesh.geometryType);
             obj.quadrature.computeQuadrature(obj.quadratureOrder);
-        end        
-          
+        end
+        
+        function createInterpolation(obj)
+            obj.interp = Interpolation.create(obj.mesh,'LINEAR');
+        end
+        
         function computeGeometry(obj)
-            obj.geometry = Geometry(obj.mesh,'LINEAR');
-            obj.geometry.interpolation.computeShapeDeriv(obj.quadrature.posgp);
-            obj.geometry.computeGeometry(obj.quadrature,obj.geometry.interpolation);
+            s.mesh = obj.mesh;
+            obj.geometry = Geometry.create(s);
+            obj.geometry.computeGeometry(obj.quadrature,obj.interp);
         end
                 
-        
-      function disableDelaunayWarning(obj)
+        function disableDelaunayWarning(obj)
             MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';
             warning('off', MSGID)
-        end        
-          
+        end
+        
     end
     
 end

@@ -35,6 +35,11 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             f = obj.regDesignVariable;
         end
         
+        function d = addPrintableVariables(obj,d)
+            d.phyProblems = obj.getPhysicalProblems();
+            d.regDensity  = obj.getRegularizedDensity();
+        end        
+        
     end
     
     methods (Access = protected)
@@ -46,7 +51,6 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         
         function createEquilibriumProblem(obj,fileName)
             obj.physicalProblem = FEM.create(fileName);
-            obj.physicalProblem.preProcess;
             obj.initPrincipalDirections();
         end
         
@@ -68,7 +72,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         end
         
         function computeGradient(obj)
-            nelem = obj.physicalProblem.geometry.interpolation.nelem;
+            nelem = obj.physicalProblem.mesh.nelem;
             ngaus = obj.physicalProblem.element.quadrature.ngaus;
             nstre = obj.physicalProblem.element.getNstre();
             g = zeros(nelem,ngaus,obj.nVariables);

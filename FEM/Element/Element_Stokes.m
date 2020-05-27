@@ -15,12 +15,12 @@ classdef Element_Stokes < Element
     end
     
     methods
-        function obj=Element_Stokes(mesh,geometry,material,dof,problemData)
-            obj.initElement(geometry,material,dof,problemData.scale);
+        function obj = Element_Stokes(geometry,mesh,material,dof,problemData,interp)
+            obj.initElement(geometry,mesh,material,dof,problemData.scale,interp);
             %obj.nstre=0;
             obj.nfields=2;
-            obj.interpolation_v=Interpolation.create(mesh,'QUADRATIC');
-            obj.interpolation_p=Interpolation.create(mesh,'LINEAR');
+            obj.interpolation_v= interp{1};
+            obj.interpolation_p= interp{2};
         end
         
         function [r,dr] = computeResidual(obj,x,dr,x_n)
@@ -108,7 +108,6 @@ classdef Element_Stokes < Element
             
             Cmat = material.mu;
             obj.quadrature.computeQuadrature('QUADRATIC');
-            obj.interpolation_v.computeShapeDeriv(obj.quadrature.posgp)
             obj.geometry(1).computeGeometry(obj.quadrature,obj.interpolation_v);
             for igauss = 1 :obj.quadrature.ngaus
                 Bmat = obj.computeB(nunkn,nelem,obj.interpolation_v.nnode,obj.geometry(1).cartd(:,:,:,igauss));
@@ -134,7 +133,6 @@ classdef Element_Stokes < Element
             
             D = zeros(nunkn_u*obj.interpolation_v.nnode,obj.interpolation_p.nnode,nelem);
             obj.quadrature.computeQuadrature('QUADRATIC');
-            obj.interpolation_p.computeShapeDeriv(obj.quadrature.posgp)
             obj.geometry(2).computeGeometry(obj.quadrature,obj.interpolation_p);
             for igauss=1:obj.quadrature.ngaus
                 for inode_var = 1:obj.interpolation_p.nnode
@@ -195,8 +193,9 @@ classdef Element_Stokes < Element
                 for inode=1:nnode
                     for iunkn=1:nunkn
                         elemental_dof = inode*nunkn-nunkn+iunkn; %% dof per guardar el valor de la integral
-                        
-                        v= squeeze(obj.interpolation_v.shape(inode,igaus).*f(iunkn,igaus,:));
+                        shape = obj.interpolation_v.shape(inode,igaus);
+                        fvalue = f(iunkn,igaus,:);
+                        v= squeeze(shape.*fvalue);
                         Fext(elemental_dof,1,:)= squeeze(Fext(elemental_dof,1,:)) + v(:).*geometry.dvolu(:,igaus);
                         
                     end
@@ -205,7 +204,7 @@ classdef Element_Stokes < Element
         end
         
         function g = compute_velocity_divergence(obj)
-            g = zeros(obj.geometry(2).interpolation.nnode*obj.dof.nunkn(2),1,obj.nelem);
+            g = zeros(obj.interp{2}.nnode*obj.dof.nunkn(2),1,obj.nelem);
         end
         
         function variable = computeVars(obj,x_free)
@@ -261,7 +260,7 @@ classdef Element_Stokes < Element
         function Fext = computeVolumetricFext(obj,nelem,geometry,dof)
             idx = obj.dof.in_elem{1};
             geometry = geometry(1);
-            nnode = geometry(1).interpolation.nnode;
+            nnode = obj.interpolation_v.nnode;
             nunkn= obj.dof.nunkn(1);
             %             f = zeros(nnode*nunkn,1,nelem);
             

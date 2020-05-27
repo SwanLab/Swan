@@ -14,7 +14,6 @@ classdef test2dMicro < testCheckStoredWithFemComputedVariable
         
         function computeVariableThroughFemSolver(obj)
             femSolver = Elastic_Problem_Micro.create(obj.testName);
-            femSolver.preProcess;
             props.kappa = .9107;
             props.mu    = .3446;
             femSolver.setMatProps(props);

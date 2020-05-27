@@ -19,6 +19,11 @@ classdef Quadrature_Triangle < Quadrature
                     obj.weigp = [1/6;1/6;1/6];
                     obj.posgp = [0,0.5;0.5,0;0.5,0.5]';
                     
+                case 'QUADRATIC2'
+                    obj.ngaus = 2;         
+                    obj.weigp = [1/6;1/6;1/6];
+                    obj.posgp = [1/6,1/6;2/3,1/6;1/6,2/3]';                    
+                    
                 case 'QUADRATICMASS'
                     obj.ngaus = 3;          
                     obj.weigp = [1/6;1/6;1/6];

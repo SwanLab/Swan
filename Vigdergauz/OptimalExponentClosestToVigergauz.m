@@ -5,7 +5,8 @@ classdef OptimalExponentClosestToVigergauz < handle
         error
         mx
         my
-        frames        
+        frames  
+        qIter
     end
     
     properties (Access = private)
@@ -52,6 +53,7 @@ classdef OptimalExponentClosestToVigergauz < handle
             if obj.savingFrames
                 obj.comparator.plotDifference();
                 obj.frames{end+1} = obj.comparator.frame;
+                obj.qIter{end+1} = q;
             end
             d = obj.comparator.rhoDifferenceNorm;
         end       

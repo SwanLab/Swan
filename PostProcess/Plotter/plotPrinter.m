@@ -1,7 +1,7 @@
 classdef plotPrinter < figurePrinter
     
     properties (Access = private)
-        lineWidth = 1.5;
+        lineWidth = 2;
         pObj
     end
     

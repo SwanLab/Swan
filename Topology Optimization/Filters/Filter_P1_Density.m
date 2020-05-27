@@ -14,6 +14,7 @@ classdef Filter_P1_Density < handle %Filter_P1
         
         M
         Kernel        
+        interp
     end
     
     properties
@@ -26,6 +27,7 @@ classdef Filter_P1_Density < handle %Filter_P1
             obj.init(cParams);
             obj.createMassMatrix(cParams);
             obj.createQuadrature();
+            obj.createInterpolation();
             obj.createGeometry();
             obj.createPoperator(cParams);
             obj.createFilterKernel();
@@ -105,8 +107,8 @@ classdef Filter_P1_Density < handle %Filter_P1
         
         function createPoperator(obj,cPar)
             cParams.nelem  = obj.mesh.nelem;
-            cParams.nnode  = obj.geometry.interpolation.nnode;
-            cParams.npnod  = obj.geometry.interpolation.npnod;
+            cParams.nnode  = obj.mesh.nnode;
+            cParams.npnod  = obj.mesh.npnod;
             cParams.connec = obj.mesh.connec;
             cParams.diffReactEq = cPar.femSettings;
             obj.Poper = Poperator(cParams);
@@ -116,11 +118,15 @@ classdef Filter_P1_Density < handle %Filter_P1
             obj.quadrature = Quadrature.set(obj.mesh.geometryType);
             obj.quadrature.computeQuadrature(obj.quadratureOrder);
         end
+        
+        function createInterpolation(obj)
+            obj.interp = Interpolation.create(obj.mesh,'LINEAR');    
+        end           
                 
         function createGeometry(obj)
-            obj.geometry = Geometry(obj.mesh,'LINEAR');
-            obj.geometry.interpolation.computeShapeDeriv(obj.quadrature.posgp);
-            obj.geometry.computeGeometry(obj.quadrature,obj.geometry.interpolation);
+            s.mesh = obj.mesh;
+            obj.geometry = Geometry.create(s);
+            obj.geometry.computeGeometry(obj.quadrature,obj.interp);        
         end
         
     end

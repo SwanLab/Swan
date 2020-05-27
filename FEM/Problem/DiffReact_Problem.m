@@ -7,6 +7,7 @@ classdef DiffReact_Problem < FEM
     properties (Access = protected)
         isRobinTermAdded
         bcApplierType
+       interp         
     end
     
     methods (Access = public)
@@ -38,6 +39,7 @@ classdef DiffReact_Problem < FEM
             end
             obj.problemData.ptype = 'DIFF-REACT';
             obj.setScale();
+            obj.createInterpolation();
         end
         
         function preProcess(obj)
@@ -71,7 +73,8 @@ classdef DiffReact_Problem < FEM
         end
         
         function createGeometry(obj,mesh)
-            obj.geometry = Geometry(mesh,'LINEAR');
+            s.mesh = mesh;
+            obj.geometry = Geometry.create(s);
         end
         
     end
@@ -82,11 +85,11 @@ classdef DiffReact_Problem < FEM
             isRobinTermAdded = obj.isRobinTermAdded;
             bcType = obj.bcApplierType;
             obj.element = Element_DiffReact(obj.mesh,obj.geometry,...
-                 obj.material,obj.dof,obj.problemData.scale,isRobinTermAdded,bcType);
+                 obj.material,obj.dof,obj.problemData.scale,isRobinTermAdded,bcType,obj.interp);
         end
         
         function setDOFs(obj)
-            obj.dof = DOF_DiffReact(obj.geometry);
+            obj.dof = DOF_DiffReact(obj.mesh,obj.interp);
         end
         
         function setScale(obj)
@@ -96,6 +99,15 @@ classdef DiffReact_Problem < FEM
     end
     
     methods (Access = private)
+        
+        function createInterpolation(obj)
+            if contains(class(obj.mesh),'Total')
+                obj.interp{1} =Interpolation.create(obj.mesh.innerMeshOLD,'LINEAR');
+            else
+                obj.interp{1} =Interpolation.create(obj.mesh,'LINEAR');
+            end
+
+        end
         
         function setupFromGiDFile(obj,fileName)
             obj.inputReader.read(fileName);

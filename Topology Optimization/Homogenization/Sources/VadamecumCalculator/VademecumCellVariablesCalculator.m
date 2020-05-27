@@ -103,6 +103,7 @@ classdef VademecumCellVariablesCalculator < handle
             s = obj.smoothingExponentSettings;
             s.m1 = obj.mxV(obj.iMxIndex);
             s.m2 = obj.myV(obj.iMyIndex);
+            s.type = 'Optimal';
             qComputer = SmoothingExponentComputer.create(s);
             q = qComputer.compute();
         end

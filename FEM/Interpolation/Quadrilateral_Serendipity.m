@@ -1,32 +1,35 @@
-classdef Quadrilateral_Serendipity < Isoparametric    
-    %% !! SHAPE FUNCTIONS & DERIVATIVES SHOULD BE REVISED !!
+classdef Quadrilateral_Serendipity < Interpolation    
+    % !! SHAPE FUNCTIONS & DERIVATIVES SHOULD BE REVISED !!
     % Source: http://www.ce.memphis.edu/7111/notes/class_notes/chapter_03e_slides.pdf
     
-    methods
-        function obj = Quadrilateral_Serendipity
-            obj = obj@Isoparametric;
+    methods (Access = public)
+        
+        function obj = Quadrilateral_Serendipity()
+            obj.init(cParams);
             obj.type = 'QUADRILATERAL';
             obj.ndime = 2;
             obj.nnode = 8;
-            obj.ngaus = 9;
-            
-            % Compute WEIGP and POSGP
+            obj.computeCoordAndConnec();            
+        end
+        
+        function computeShapeDeriv(obj,posgp)
+            ngaus = 9;                    
             a =  0.77459667;
-            obj.posgp(1,:) = [ 0,+a];
-            obj.posgp(2,:) = [ 0, 0];
-            obj.posgp(3,:) = [+a,+a];
-            obj.posgp(4,:) = [-a,-a];
-            obj.posgp(5,:) = [-a, 0];
-            obj.posgp(6,:) = [+a, 0];
-            obj.posgp(7,:) = [+a,-a];
-            obj.posgp(8,:) = [-a,+a];
-            obj.posgp(9,:) = [ 0,-a];
-            obj.posgp = obj.posgp';
-            obj.weigp = 1*ones(1,obj.ngaus);
+            posgp(1,:) = [ 0,+a];
+            posgp(2,:) = [ 0, 0];
+            posgp(3,:) = [+a,+a];
+            posgp(4,:) = [-a,-a];
+            posgp(5,:) = [-a, 0];
+            posgp(6,:) = [+a, 0];
+            posgp(7,:) = [+a,-a];
+            posgp(8,:) = [-a,+a];
+            posgp(9,:) = [ 0,-a];
+            posgp = posgp';
+            weigp = 1*ones(1,ngaus);
             
-            for igaus = 1:obj.ngaus
-                s = obj.posgp(1,igaus);
-                t = obj.posgp(2,igaus);
+            for igaus = 1:ngaus
+                s = posgp(1,igaus);
+                t = posgp(2,igaus);
                 
                 % Shape Functions
                 obj.shape(1,igaus) = (1-s)*(1-t)*(-1-s-t)*0.25;

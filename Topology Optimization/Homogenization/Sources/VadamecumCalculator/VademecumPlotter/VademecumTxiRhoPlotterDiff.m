@@ -18,6 +18,10 @@ classdef VademecumTxiRhoPlotterDiff < VademecumPlotter
         txiS
         rhoS
         iS
+        txiV
+        rhoMin
+        rhoMax
+        indexSort
     end
     
     methods (Access = public)
@@ -102,8 +106,32 @@ classdef VademecumTxiRhoPlotterDiff < VademecumPlotter
         end        
         
         function plotFigure(obj)
-            x = obj.txiN;
-            y = obj.rhoN;
+            obj.computeRhoMinRhoMaxAndTxiV();            
+            obj.plotDifference();
+            obj.plotRhoMinRhoMaxLines();            
+            obj.plotSmoothSuperEllipsePoints();
+            obj.plotRectanglePoints();
+            obj.addTitleAndAxisNames();
+            obj.addZeroLevelSetValue();
+        end        
+        
+        function computeRhoMinRhoMaxAndTxiV(obj)
+            [obj.txiV,obj.indexSort] = sort(obj.txiS);
+            s.q = 2;
+            s.txi = obj.txiV;
+            s.mxMin = min(obj.smoothDB.mxV);
+            s.myMin = min(obj.smoothDB.myV);  
+            s.mxMax = max(obj.smoothDB.mxV);            
+            s.myMax = max(obj.smoothDB.myV);    
+            rhoBounds = SuperEllipseRhoBoundsComputer(s);
+            [rMin,rMax] = rhoBounds.compute();      
+            obj.rhoMin = rMin;
+            obj.rhoMax = rMax;
+        end        
+        
+        function plotDifference(obj)
+            x = obj.txiS;
+            y = obj.rhoS;            
             z = obj.value2print;
             ind = ~isnan(z);
             ncolors = 50;
@@ -111,39 +139,57 @@ classdef VademecumTxiRhoPlotterDiff < VademecumPlotter
             obj.fig = figure;            
             tricontour(tri,x(ind),y(ind),z(ind),ncolors) 
             colorbar
-            hold on
-             plot(x,y,'+');
-             plot(obj.txiS,obj.rhoS,'+')            
+            hold on            
+        end
+        
+        function plotSmoothSuperEllipsePoints(obj)
+            x = obj.txiS;
+            y = obj.rhoS;             
+            plot(x,y,'+');
+        end
+        
+        function plotRectanglePoints(obj)
+           rho = obj.rhoN(obj.indexSort);
+           txi = obj.txiN(obj.indexSort);
+           isLowerRhoMax = rho <= obj.rhoMax;
+           isUpperRhoMin = rho >= obj.rhoMin;
+           isFeasible = isLowerRhoMax & isUpperRhoMin;
+           plot(txi(isFeasible),rho(isFeasible),'+')            
+        end
+        
+        function addTitleAndAxisNames(obj)
             xlabel('$\xi$','Interpreter','latex');
             ylabel('\rho');
             tN = obj.titleName;
-            title(['$',tN,'$'],'interpreter','latex')
-            hold on                                   
+            title(['$',tN,'$'],'interpreter','latex')     
+            ylim([0 1])   
+            set(gca,'xtick',[0:pi/8:pi/2]) 
+            set(gca,'xticklabels',{'0','\pi/8','\pi/4','3\pi/8','\pi/2'})            
+        end
+        
+        function addZeroLevelSetValue(obj)
+            x = obj.txiS;
+            y = obj.rhoS;            
+            z = obj.value2print;        
+            ind = ~isnan(z);
+            tri = delaunay(x(ind),y(ind));            
             v = [0,0];
-            [M,c] = tricontour(tri,x(ind),y(ind),z(ind),v);
+            [~,c] = tricontour(tri,x(ind),y(ind),z(ind),v);
             c(1).LineWidth = 3;
-            c(1).EdgeColor = 'r';            
-%            c(2).LineWidth = 3;
- %           c(2).EdgeColor = 'r'; 
-            
-            txiV = sort(obj.txiN);
-            s.q = 10^6;
-            s.txi = txiV;
-            s.mxMin = 0;
-            s.myMin = 0;  
-            s.mxMax = 0.99;            
-            s.myMax = 0.99;  
-            rhoBounds = SuperEllipseRhoBoundsComputer(s);
-            [rhoMin,rhoMax] = rhoBounds.compute(); 
-            h1 = plot(txiV,rhoMin,['-','k']);
-            set(h1,'LineWidth',2);        
-            hold on
-            h2 = plot(obj.txiN,rhoMax,['-','k']);
-            set(h2,'LineWidth',2);            
-            set(gca,'xtick',[0:pi/8:pi/2]) % where to set the tick marks
-            set(gca,'xticklabels',{'0','\pi/8','\pi/4','3\pi/8','\pi/2'})
- 
-        end        
+            c(1).EdgeColor = 'r';             
+        end
+        
+        function plotRhoMinRhoMaxLines(obj)
+           obj.plotRhoLine(obj.txiV,obj.rhoMin);
+           obj.plotRhoLine(obj.txiV,obj.rhoMax);
+        end
+        
+        function plotRhoLine(obj,txiV,rho)
+            h = plot(txiV,rho,['-','k']);
+            set(h,'LineWidth',2);        
+        end
+        
+        
         
     end
     

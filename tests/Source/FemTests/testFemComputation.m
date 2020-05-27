@@ -20,7 +20,6 @@ classdef testFemComputation < handle
         
         function computeVariableThroughFemSolver(obj)
             femSolver = FEM.create(obj.testName);
-            femSolver.preProcess;
             props.kappa = .9107;
             props.mu    = .3446;        
             femSolver.setMatProps(props);            
