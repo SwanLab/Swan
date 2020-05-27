@@ -2,6 +2,8 @@ classdef OptimalExponentComputer < handle
     
     properties (Access = public)
        qOpt 
+       qMin
+       qMax
     end
     
     properties (Access = private)
@@ -30,14 +32,18 @@ classdef OptimalExponentComputer < handle
             nphi = length(obj.phiV);
             npoints = length(obj.rhoV);
             obj.qOpt = zeros(nphi,npoints);
+            obj.qMin = zeros(nphi,npoints);
+            obj.qMax = zeros(nphi,npoints);
             for iphi = 1:nphi
                 obj.phi = obj.phiV(iphi);
                 disp([num2str(iphi/nphi*100),'%'])                
                 for ipoint = 1:npoints
                     obj.rho = obj.rhoV(ipoint);
                     obj.txi = obj.txiV(ipoint);
-                    q = obj.computeOptimalExponent(ipoint,iphi);
-                    obj.qOpt(iphi,ipoint) = q;
+                    [q,qmin,qmax] = obj.computeOptimalExponent(ipoint,iphi);
+                    obj.qOpt(iphi,ipoint)    = q;
+                    obj.qMin(iphi,ipoint) = qmin;
+                    obj.qMax(iphi,ipoint) = qmax;
                 end
             end
             x.rho = obj.rhoV;
@@ -63,7 +69,7 @@ classdef OptimalExponentComputer < handle
             obj.phiV = obj.samplePoints.phiV;
         end
         
-        function x = computeOptimalExponent(obj,ipoint,iphi)            
+        function [q,qMin,qMax] = computeOptimalExponent(obj,ipoint,iphi)            
             s.fileName = [obj.fileName,'Txi',num2str(ipoint),'Phi',num2str(iphi)];
             s.rho   = obj.rho;
             s.txi   = obj.txi;
@@ -72,8 +78,10 @@ classdef OptimalExponentComputer < handle
             s.hMesh = 0.1;
             c = OneOptimalExponentComputerAndFunctionVariation(s);
             c.computeOptimalExponent();
-            %c.printOptimalMicroStructure()
-            x = c.qOptIter(end);
+            %c.printOptimalMicroStructure();
+            q = c.qOptIter(end);
+            qMin = c.qMax;
+            qMax = c.qMin;
         end
 
     end    

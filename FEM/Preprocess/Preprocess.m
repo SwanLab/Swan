@@ -58,7 +58,7 @@ classdef Preprocess<handle
             end
                         
             if exist('External_border_nodes','var')
-                full_dirichlet_data=External_border_nodes;
+                full_dirichlet_data= External_border_nodes;
             else
                 full_dirichlet_data = [];
             end

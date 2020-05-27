@@ -5,11 +5,14 @@ classdef OneOptimalExponentComputerAndFunctionVariation < handle
         fOptIter
         fValues
         qValues
+        qMin
+        qMax        
     end
     
     properties (Access = private)
-        qMin
-        qMax
+        stressProblem        
+        print
+        hasToCaptureImage        
     end
     
     properties (Access = private)
@@ -17,8 +20,6 @@ classdef OneOptimalExponentComputerAndFunctionVariation < handle
         txi
         phi
         pNorm
-        print
-        hasToCaptureImage
         fileName
         hMesh
     end
@@ -27,24 +28,44 @@ classdef OneOptimalExponentComputerAndFunctionVariation < handle
         
         function obj = OneOptimalExponentComputerAndFunctionVariation(cParams)
             obj.init(cParams);
-            obj.computeQbounds();
+            obj.createStressProblem();
+            obj.computeQbounds();               
         end
         
-        function compute(obj)
+        function compute(obj)         
             obj.computeOptimalExponent();
             obj.printOptimalMicroStructure();
-            obj.computeStressNormRelationWithQ();
+            nValues = 50;
+            obj.computeStressNormRelationWithQ(nValues);
         end
-        
+                
         function printOptimalMicroStructure(obj)
             obj.print = true;
             obj.hasToCaptureImage = true;
+            obj.createStressProblem();
             qOpt = obj.qOptIter(end);
-            obj.computingMaxStress(qOpt);
+            obj.stressProblem.objective(qOpt);
         end
         
+        function computeStressNormRelationWithQ(obj,nValues)
+            obj.print = true;
+            obj.createStressProblem();
+            obj.computeQbounds();                 
+            
+            qVal = linspace(obj.qMin,obj.qMax,nValues);
+            fVal = zeros(nValues,1);
+            for ivalues = 1:nValues
+                obj.stressProblem.iter = ivalues;
+                qV = qVal(ivalues);
+                fVal(ivalues) = obj.stressProblem.objective(qV);
+                disp([num2str(ivalues/nValues*100),'%'])
+            end
+            obj.qValues = qVal;
+            obj.fValues = fVal;
+        end        
+        
         function computeOptimalExponent(obj)
-            f = @(q) obj.computingMaxStress(q);
+            f = @(q) obj.stressProblem.objective(q);
             xIter = [];
             fIter = [];
             options = optimset('Display','iter','OutputFcn', @myoutput);
@@ -78,66 +99,23 @@ classdef OneOptimalExponentComputerAndFunctionVariation < handle
         end
         
         function computeQbounds(obj)
-            c = @(q) gamma(1 + 1/q)^2/gamma(1 + 2/q);
-            mxMax = 0.99;
-            myMax = 0.99;
-            mxMin = 0.01;
-            myMin = 0.01;
-            obj.qMin = obj.computeQmin(c,mxMax,myMax);
-            obj.qMax = obj.computeQmax(c,mxMin,myMin);
+            obj.qMin = obj.stressProblem.qMin;
+            obj.qMax = obj.stressProblem.qMax;
         end
         
-        function computeStressNormRelationWithQ(obj)
-            nValues = 50;
-            qVal = linspace(obj.qMin,obj.qMax,nValues);
-            fVal = zeros(nValues,1);
-            for ivalues = 2:nValues
-                qV = qVal(ivalues);
-                fVal(ivalues) = obj.computingMaxStress(qV);
-            end
-            obj.qValues = qVal;
-            obj.fValues = fVal;
-        end
-        
-        function qMin = computeQmin(obj,c,mxMax,myMax)
-            qMin = 2;
-            cqMinMx =  (1 - obj.rho)/(mxMax*tan(obj.txi));
-            cqMinMy =  (1 - obj.rho)*tan(obj.txi)/myMax;
-            qMinMx = fzero(@(q) c(q) - cqMinMx,16);
-            qMinMy = fzero(@(q) c(q) - cqMinMy,16);
-            qMin = max(qMin,max(qMinMx,qMinMy));
-        end
-        
-        function qMax = computeQmax(obj,c,mxMin,myMin)
-            qMax = 32;
-            cqMaxMx =  (1 - obj.rho)/(mxMin*tan(obj.txi));
-            cqMaxMy =  (1 - obj.rho)*tan(obj.txi)/(myMin);
-            qMaxMx = fzero(@(q) c(q) - cqMaxMx,16);
-            qMaxMy = fzero(@(q) c(q) - cqMaxMy,16);
-            qMax = min(qMax,min(qMaxMx,qMaxMy));
-        end
-        
-        function sPnorm = computingMaxStress(obj,q)
-            s.mx       = obj.computeMx(q);
-            s.my       = obj.computeMy(q);
-            s.q        = q;
-            s.phi      = obj.phi;
-            s.pNorm    = obj.pNorm;
-            s.print    = obj.print;
-            s.hMesh    = obj.hMesh;
-            s.fileName = [obj.fileName,'Q',strrep(num2str(q),'.','_')];
+        function createStressProblem(obj)
+            s.rho                  = obj.rho;
+            s.xi                   = obj.txi;
+            s.fileName             = obj.fileName;
+            s.phi                  = obj.phi;
+            s.hMesh                = obj.hMesh;
+            s.pNorm                = obj.pNorm;
+            s.print                = obj.print;
             s.hasToCaptureImage = obj.hasToCaptureImage;
-            sN = StressNormSuperEllipseComputer(s);
-            sPnorm = sN.compute();
-        end
-        
-        function mx = computeMx(obj,q)
-            mx = SuperEllipseParamsRelator.mx(obj.txi,obj.rho,q);
-        end
-        
-        function my = computeMy(obj,q)
-            my = SuperEllipseParamsRelator.my(obj.txi,obj.rho,q);
-        end
+            sProblem   = StressNormVsQproblemCreator(s);
+            sProblem.compute();
+            obj.stressProblem = sProblem;
+        end           
         
     end
     

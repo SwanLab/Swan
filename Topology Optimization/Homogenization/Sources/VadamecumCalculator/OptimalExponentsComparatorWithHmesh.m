@@ -25,6 +25,7 @@ classdef OptimalExponentsComparatorWithHmesh < handle
     
     methods (Access = private)
         
+        
         function init(obj,cParams)
             obj.optimalExponentParams.txi  = pi/4;
             obj.optimalExponentParams.rho  = 0.15;

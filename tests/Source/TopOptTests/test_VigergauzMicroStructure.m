@@ -11,8 +11,8 @@ designVariable = 'LevelSet';
 filterType = 'P1';
 initial_case = 'Vigdergauz';
 vigdergauzType = 'VolumeAndRatio';
-superEllipseRatio = 1;
-volumeMicro = 0.5;
+superEllipseRatio = 0.9;
+volumeMicro = 0.61;
 
 
 nsteps = 1;

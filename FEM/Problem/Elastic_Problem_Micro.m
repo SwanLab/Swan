@@ -34,6 +34,16 @@ classdef Elastic_Problem_Micro < FEM
             obj.createElement();
         end
         
+        function setMesh(obj,mesh)
+            obj.mesh = mesh;
+            obj.createGeometry();
+            obj.createInterpolation();            
+            obj.setDOF();
+            obj.createMaterial();
+            obj.createSolver();
+            obj.createElement();            
+        end
+        
         function [Ch,tstrain,tstress] = computeChomog(obj)
             obj.element.quadrature.computeQuadrature('LINEAR');
             obj.element.geometry.computeGeometry(obj.element.quadrature,obj.element.interpolation_u);
@@ -102,6 +112,25 @@ classdef Elastic_Problem_Micro < FEM
            v  = obj.computeVariablesForGivenStress(stress,Ch);            
         end
         
+        function sPnorm = computeStressPnorm(obj,stress,p)
+            v = obj.computeVarFromStress(stress);
+            stresses = v.stress;                        
+            m = obj.mesh;
+            quad = Quadrature.set(m.geometryType);
+            quad.computeQuadrature('CONSTANT');
+            dV = m.computeDvolume(quad);
+            sx  = squeeze(stresses(:,1,:));
+            sy  = squeeze(stresses(:,2,:));
+            sxy = squeeze(stresses(:,3,:));
+            sNorm = sqrt(sx.*sx + 2*sxy.*sxy + sy.*sy);
+            if isequal(p,'max')
+                sPnorm = max(sNorm);
+            else
+                int = sNorm.^p;
+                sPnorm = sum(int(:).*dV(:))^(1/p);
+            end            
+        end
+        
     end
     
     methods (Access = private)
@@ -143,6 +172,10 @@ classdef Elastic_Problem_Micro < FEM
         function createDOF(obj)
             obj.dof = DOF_Elastic_Micro(obj.fileName,obj.mesh,obj.problemData.pdim,obj.nFields,obj.interp);
         end
+        
+        function setDOF(obj,mesh)
+            obj.dof.setMesh(obj.mesh);
+        end        
         
         function createElement(obj)
             obj.element = Element_Elastic.create(obj.mesh,obj.geometry,obj.material,obj.dof,obj.problemData,obj.interp);

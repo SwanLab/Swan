@@ -18,10 +18,14 @@ classdef SettingsTopOptProblem < AbstractSettings
     
     methods (Access = public)
         
-        function obj = SettingsTopOptProblem(varargin)
+        function obj = SettingsTopOptProblem(fileName)
+            settings = Settings(fileName);
+            translator = SettingsTranslator();
+            translator.translate(settings);
+            fileName = translator.fileName;
             if nargin == 1
-                obj.loadParams([varargin{1},'.json']);
-                obj.fileName = varargin{1};
+                obj.loadParams([fileName,'.json']);
+                obj.fileName = fileName;
             end
             obj.setupProblemData();
             obj.createDesignVarSettings();

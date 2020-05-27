@@ -56,9 +56,9 @@ classdef VigdergauzParametersFromVolumeAndPhi < handle
         function f = equationForR(obj,r)
             obj.computeAxAy(r);
             obj.computeVigergauzParameters();
-            rx = obj.parameters.rx;
-            ry = obj.parameters.ry;
-            f = tan(obj.phi) - rx/ry;
+            mx = obj.parameters.mx;
+            my = obj.parameters.my;
+            f = tan(obj.phi) - mx/my;
         end
         
         function computeVigergauzParameters(obj)
@@ -77,9 +77,9 @@ classdef VigdergauzParametersFromVolumeAndPhi < handle
         end
         
         function itIs = isMicroStructureValid(obj)
-            rMax = 0.99;
-            phiMin = atan((1 - obj.volume)/(rMax^2));
-            phiMax = atan((rMax^2)/(1 - obj.volume));
+            mMax = 0.99;
+            phiMin = atan((1 - obj.volume)/(mMax^2));
+            phiMax = atan((mMax^2)/(1 - obj.volume));
             itIs = obj.phi <= phiMax && obj.phi >= phiMin;
         end        
         

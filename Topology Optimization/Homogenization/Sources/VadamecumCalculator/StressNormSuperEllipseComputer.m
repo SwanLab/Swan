@@ -1,7 +1,8 @@
 classdef StressNormSuperEllipseComputer < handle
     
     properties (Access = private)
-        homog
+        microProblem
+        microProblem2
         fName
         outputFolder
     end
@@ -16,23 +17,26 @@ classdef StressNormSuperEllipseComputer < handle
         hMesh
         fileName
         hasToCaptureImage
+        testName
+        iter
     end
     
     methods (Access = public)
         
         function obj = StressNormSuperEllipseComputer(cParams)
-            obj.init(cParams)
+            obj.init(cParams);            
         end
         
         function sPnorm = compute(obj)
             obj.createMesh();
-            obj.createNumericalHomogenizer();
+            obj.createMicroProblem();
+            %obj.createMicroProblem2()            
             sPnorm = obj.computePstressNorm();
         end
         
         function printStress(obj)
-            microProblem = obj.homog.getMicroProblem(); 
-            dI.mesh    =  microProblem.mesh;
+            microP = obj.microProblem2;
+            dI.mesh    =  microP.mesh;
             dI.outName = [obj.fileName,'Print'];
             dI.pdim    = '2D';
             dI.ptype   = 'MICRO';
@@ -40,10 +44,9 @@ classdef StressNormSuperEllipseComputer < handle
             dB = ps.getValue();
             postCase = 'ElasticityMicro';
             postProcess = Postprocess(postCase,dB);
-            d.fields = microProblem.variables;
-            d.quad = microProblem.element.quadrature;
-            iter = 0;
-            postProcess.print(iter,d);
+            d.fields = microP.variables;
+            d.quad   = microP.element.quadrature;            
+            postProcess.print(obj.iter,d);
         end
         
     end
@@ -59,6 +62,7 @@ classdef StressNormSuperEllipseComputer < handle
             obj.print    = cParams.print;
             obj.hMesh    = cParams.hMesh;
             obj.fileName = cParams.fileName;
+            obj.iter     = cParams.iter;
             obj.hasToCaptureImage = cParams.hasToCaptureImage;
             obj.computeFileNameAndOutputFolder();
         end
@@ -68,39 +72,22 @@ classdef StressNormSuperEllipseComputer < handle
             obj.outputFolder = fullfile(pwd,'Output',obj.fName);
         end
         
-        function sPnorm = computePstressNorm(obj)
-            stress = [cos(obj.phi) sin(obj.phi) 0];
-            microProblem = obj.homog.getMicroProblem();
-            v = microProblem.computeVarFromStress(stress);
-            stresses = v.stress;
-            
-            
-            m = microProblem.mesh;
-            quad = Quadrature.set(m.geometryType);
-            quad.computeQuadrature('CONSTANT');
-            dV = m.computeDvolume(quad);
-            sx  = squeeze(stresses(:,1,:));
-            sy  = squeeze(stresses(:,2,:));
-            sxy = squeeze(stresses(:,3,:));
-            sNorm = sqrt(sx.*sx + 2*sxy.*sxy + sy.*sy);
-            if isequal(obj.pNorm,'max')
-                sPnorm = max(sNorm);
-            else
-                p = obj.pNorm;
-                int = sNorm.^p;
-                sPnorm = sum(int(:).*dV(:))^(1/p);
-            end
+        function sPnorm2 = computePstressNorm(obj)
+            stress = [sin(obj.phi) cos(obj.phi) 0];
+            p = obj.pNorm;          
+            sPnorm2 = obj.microProblem.computeStressPnorm(stress,p);
+            %sPnorm2 = obj.microProblem2.computeStressPnorm(stress,p);            
         end
         
-        function createNumericalHomogenizer(obj)
+        function createMicroProblem(obj)
             d.gmsFile = [fullfile(obj.outputFolder,obj.fName),'.msh'];
             d.outFile = obj.fName;
             d.print   = obj.print;
-            d.iter = 0;
+            d.iter = obj.iter;
             d.hasToCaptureImage = obj.hasToCaptureImage;
             nH = NumericalHomogenizerCreatorFromGmsFile(d);
-            obj.homog = nH.getHomogenizer();
-            
+            homog = nH.getHomogenizer();     
+            obj.microProblem = homog.getMicroProblem(); 
         end
         
         function createMesh(obj)
@@ -115,6 +102,70 @@ classdef StressNormSuperEllipseComputer < handle
             fG = FreeFemMeshGenerator(d);
             fG.generate();
         end
+        
+        function [coord, connec] = readCoordConnec(obj)
+            %obj.testName = 'RVE_Square_Triangle_FineFine';
+            obj.testName = 'RVE_Square_Triangle_Fine';
+            run(obj.testName)            
+        end
+        
+        function createMicroProblem2(obj)
+            [coord, connec] = obj.readCoordConnec();
+            s.coord = coord(:,2:end-1);
+            s.connec = connec(:,2:end);
+            mesh = Mesh_Total(s);
+            
+            
+            s.widthH = obj.mx;
+            s.widthV = obj.my;
+            s.pnorm = obj.q;
+            s.type = 'smoothRectangle';
+            
+            s.levelSetCreatorSettings = s;
+            s.type = 'LevelSet';
+            s.mesh = mesh;
+            s.scalarProductSettings.epsilon = 1;
+            
+            ls = LevelSet(s);
+            
+            uMesh = ls.getUnfittedMesh;
+            
+            
+            cInner = uMesh.meshBackground.connec(uMesh.backgroundFullCells,:);
+            connec = [cInner;uMesh.innerCutMesh.connec];
+            coord = uMesh.innerCutMesh.coord;
+            
+            
+            allNodes = connec(:);
+            [uNodes,ind,ind2] = unique(allNodes,'rows','stable');
+                      
+            allCoords    = coord;
+            uniqueCoords = allCoords(uNodes,:);
+            sM.coord    = uniqueCoords;
+            
+            nnode = size(connec,2);
+            nCell = size(connec,1);             
+            sM.connec = reshape(ind2,nCell,nnode);            
+            
+            
+            mN = Mesh().create(sM);
+          %  mN.plot();
+            
+           
+            
+          
+        
+            
+            femSolver = Elastic_Problem_Micro.create(obj.testName);
+            femSolver.setMesh(mN);
+            
+            props.kappa = .75;
+            props.mu    = .375;
+            femSolver.setMatProps(props);           
+            obj.microProblem2 = femSolver;
+        end
+        
+        
         
     end
     
