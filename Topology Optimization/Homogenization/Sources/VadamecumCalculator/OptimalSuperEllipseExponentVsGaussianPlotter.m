@@ -26,7 +26,7 @@ classdef OptimalSuperEllipseExponentVsGaussianPlotter < handle
         
         function obj = OptimalSuperEllipseExponentVsGaussianPlotter()
             obj.init();
-            for iTest = 2:length(obj.txiV)
+            for iTest = 1:length(obj.txiV)
                 obj.rho   = obj.rhoV(iTest);
                 obj.txi   = obj.txiV(iTest);
                 obj.phiV  = obj.createPhi();
@@ -181,7 +181,7 @@ classdef OptimalSuperEllipseExponentVsGaussianPlotter < handle
             xlabel('$\phi$','Interpreter','latex');
              set(gca,'xtick',[obj.phiMin:pi/8:obj.phiMax])
             set(gca,'xticklabels',{'0','\pi/8','\pi/4','3\pi/8','\pi/2',...
-                                    '5\pi/8','3\pi/8','7\pi/8','\pi'})            
+                                    '5\pi/8','3\pi/4','7\pi/8','\pi'})            
         end
         
         function addTitle(obj)

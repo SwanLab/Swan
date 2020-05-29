@@ -79,7 +79,12 @@ classdef OptimalExponentComputer < handle
             c = OneOptimalExponentComputerAndFunctionVariation(s);
             c.computeOptimalExponent();
             %c.printOptimalMicroStructure();
-            q = c.qOptIter(end);
+            
+            qMin = c.qOptIter();
+            fMin = c.fOptIter();
+            
+            [~,ind] = min(fMin);
+            q = qMin(ind);
             qMin = c.qMax;
             qMax = c.qMin;
         end

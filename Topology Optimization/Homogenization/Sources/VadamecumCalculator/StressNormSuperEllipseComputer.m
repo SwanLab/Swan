@@ -28,14 +28,14 @@ classdef StressNormSuperEllipseComputer < handle
         end
         
         function sPnorm = compute(obj)
-            obj.createMesh();
-            obj.createMicroProblem();
-            %obj.createMicroProblem2()            
+         %   obj.createMesh();
+         %   obj.createMicroProblem();
+            obj.createMicroProblem2()            
             sPnorm = obj.computePstressNorm();
         end
         
         function printStress(obj)
-            microP = obj.microProblem2;
+            microP = obj.microProblem;
             dI.mesh    =  microP.mesh;
             dI.outName = [obj.fileName,'Print'];
             dI.pdim    = '2D';
@@ -75,8 +75,8 @@ classdef StressNormSuperEllipseComputer < handle
         function sPnorm2 = computePstressNorm(obj)
             stress = [sin(obj.phi) cos(obj.phi) 0];
             p = obj.pNorm;          
-            sPnorm2 = obj.microProblem.computeStressPnorm(stress,p);
-            %sPnorm2 = obj.microProblem2.computeStressPnorm(stress,p);            
+            %sPnorm2 = obj.microProblem.computeStressPnorm(stress,p);
+            sPnorm2 = obj.microProblem2.computeStressPnorm(stress,p);            
         end
         
         function createMicroProblem(obj)
@@ -87,7 +87,32 @@ classdef StressNormSuperEllipseComputer < handle
             d.hasToCaptureImage = obj.hasToCaptureImage;
             nH = NumericalHomogenizerCreatorFromGmsFile(d);
             homog = nH.getHomogenizer();     
-            obj.microProblem = homog.getMicroProblem(); 
+            mProblem = homog.getMicroProblem(); 
+            
+            mN = mProblem.mesh;
+            coord = mN.coord;
+            coord(:,3) = 0;
+            mshG = msh(coord,mN.connec);            
+            refine  = mmg(mshG,1e-3);
+            hsiz(refine,0.007);
+            nosurf(refine);
+            [mesh1] = run(refine);   
+            
+            s.coord = mesh1.vtx(:,1:2);
+            s.connec = mesh1.elt;
+            
+            mN1 = Mesh().create(s);
+            
+            mN1.plot()
+            drawnow
+            
+            mProblem.setMesh(mN1);  
+            props.kappa = .75;
+            props.mu    = .375;
+            mProblem.setMatProps(props);             
+            
+            obj.microProblem = mProblem;
+            
         end
         
         function createMesh(obj)
@@ -104,8 +129,8 @@ classdef StressNormSuperEllipseComputer < handle
         end
         
         function [coord, connec] = readCoordConnec(obj)
-            %obj.testName = 'RVE_Square_Triangle_FineFine';
-            obj.testName = 'RVE_Square_Triangle_Fine';
+            obj.testName = 'RVE_Square_Triangle_FineFine';
+            %obj.testName = 'RVE_Square_Triangle_Fine';
             run(obj.testName)            
         end
         
@@ -135,36 +160,105 @@ classdef StressNormSuperEllipseComputer < handle
             connec = [cInner;uMesh.innerCutMesh.connec];
             coord = uMesh.innerCutMesh.coord;
             
+            [sM.coord,sM.connec] = obj.computeUniqueCoordConnec(coord,connec);
+                    
             
+            
+            
+            bMesh = uMesh.meshBackground;
+           % bMesh.plot()
+            
+            
+            coord = bMesh.coord;
+            coord(:,3) = 0;
+            mshG = msh(coord,bMesh.connec);
+            refine  = mmg(mshG,1e-3);
+            hminBmesh = bMesh.computeMinCellSize();
+            hmeanBmesh = bMesh.computeMeanCellSize();
+            hmin(refine,hminBmesh);
+            %hmax(refine,3*hminBmesh);
+
+            %nosurf(refine);
+            
+            map(refine,ls.value);
+            %hsiz(refine,0.007);
+            nosurf(refine); 
+            %hgrad(refine,10)
+            
+            verbose(refine,-2);
+            [mesh1] = runLs(refine);
+            
+%             plot(mesh1)
+%             
+            
+            
+            it = mesh1.col == 3;
+            connec = mesh1.elt(it,:);
+            coord  = mesh1.vtx(:,1:2);
+            [s.coord,s.connec] = obj.computeUniqueCoordConnec(coord,connec);            
+            
+            
+            mN2 = Mesh().create(s);
+            mN2.plot()
+            
+            
+%             
+%             
+            mN = Mesh().create(sM);
+            mN2.computeMinCellSize
+            mN2.computeMeanCellSize
+            %  mN.plot();
+            
+           
+                
+            coord = mN.coord;
+            coord(:,3) = 0;
+            mshG = msh(coord,mN.connec);            
+            refine  = mmg(mshG,1e-3);            
+            hsiz(refine,0.007);
+            nosurf(refine);
+            verbose(refine,-2);            
+            [mesh1] = run(refine);   
+            
+            coord = mesh1.vtx(:,1:2);
+            connec = mesh1.elt;
+            
+            [s.coord,s.connec] = obj.computeUniqueCoordConnec(coord,connec);            
+            
+            mN1 = Mesh().create(s);
+%             mN1.plot()
+            
+            %mF = mN1;
+            
+            
+            mF = mN2;
+            
+            figure(1)
+            clf()                        
+            mF.plot();
+            drawnow          
+            
+            femSolver = Elastic_Problem_Micro.create(obj.testName);
+            femSolver.setMesh(mF);
+            
+            props.kappa = .75;
+            props.mu    = .375;
+            femSolver.setMatProps(props);           
+            obj.microProblem2 = femSolver;            
+        end
+        
+        function [newCoord,newConnec] = computeUniqueCoordConnec(obj,coord,connec)
             allNodes = connec(:);
             [uNodes,ind,ind2] = unique(allNodes,'rows','stable');
                       
             allCoords    = coord;
             uniqueCoords = allCoords(uNodes,:);
-            sM.coord    = uniqueCoords;
+            newCoord    = uniqueCoords;
             
             nnode = size(connec,2);
             nCell = size(connec,1);             
-            sM.connec = reshape(ind2,nCell,nnode);            
-            
-            
-            mN = Mesh().create(sM);
-          %  mN.plot();
-            
-           
-            
-          
-        
-            
-            femSolver = Elastic_Problem_Micro.create(obj.testName);
-            femSolver.setMesh(mN);
-            
-            props.kappa = .75;
-            props.mu    = .375;
-            femSolver.setMatProps(props);           
-            obj.microProblem2 = femSolver;
+            newConnec = reshape(ind2,nCell,nnode);  
         end
-        
         
         
     end

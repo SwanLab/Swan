@@ -65,6 +65,15 @@ classdef OneOptimalExponentComputerAndFunctionVariation < handle
         end        
         
         function computeOptimalExponent(obj)
+            x = linspace(-10,10);               % Interval To Evaluate Over
+            f = @(x) x.^2-4;                    % Function
+            fx = f(x);                          % Function Evaluated Over ‘x’
+            cs = fx.*circshift(fx,-1,2);        % Product Negative At Zero-Crossings
+            xc = x(cs <= 0);                    % Values Of ‘x’ Near Zero Crossings
+            for k1 = 1:length(xc)
+              fz(k1) = fzero(f, xc(k1));      % Use ‘xc’ As Initial Zero Estimate
+            end            
+            
             f = @(q) obj.stressProblem.objective(q);
             xIter = [];
             fIter = [];

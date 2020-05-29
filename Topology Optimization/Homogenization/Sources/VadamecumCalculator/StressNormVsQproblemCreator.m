@@ -88,7 +88,7 @@ classdef StressNormVsQproblemCreator < handle
             s.hasToCaptureImage = obj.hasToCaptureImage;
             sN = StressNormSuperEllipseComputer(s);
             sPnorm = sN.compute();
-            %sN.printStress();
+%            sN.printStress();
         end
         
     end
