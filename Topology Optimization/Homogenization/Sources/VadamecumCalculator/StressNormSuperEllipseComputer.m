@@ -172,27 +172,27 @@ classdef StressNormSuperEllipseComputer < handle
             coord = bMesh.coord;
             coord(:,3) = 0;
             mshG = msh(coord,bMesh.connec);
-            refine  = mmg(mshG,1e-3);
+            meshMmg  = mmg(mshG,1e-3);
             hminBmesh = bMesh.computeMinCellSize();
             hmeanBmesh = bMesh.computeMeanCellSize();
-            hmin(refine,hminBmesh);
-            %hmax(refine,3*hminBmesh);
-
-            %nosurf(refine);
+            hmin(meshMmg,hminBmesh);
+            hmax(meshMmg,10*hminBmesh);
+            hausd(meshMmg,hminBmesh)
+            nosurf(meshMmg);
             
-            map(refine,ls.value);
+            map(meshMmg,ls.value);
             %hsiz(refine,0.007);
-            nosurf(refine); 
+            %nosurf(meshMmg); 
             %hgrad(refine,10)
             
-            verbose(refine,-2);
-            [mesh1] = runLs(refine);
+            %verbose(meshMmg,-2);
+            [mesh1] = runLs(meshMmg);
             
 %             plot(mesh1)
 %             
             
             
-            it = mesh1.col == 3;
+            it = mesh1.col == 0;
             connec = mesh1.elt(it,:);
             coord  = mesh1.vtx(:,1:2);
             [s.coord,s.connec] = obj.computeUniqueCoordConnec(coord,connec);            
@@ -214,11 +214,11 @@ classdef StressNormSuperEllipseComputer < handle
             coord = mN.coord;
             coord(:,3) = 0;
             mshG = msh(coord,mN.connec);            
-            refine  = mmg(mshG,1e-3);            
-            hsiz(refine,0.007);
-            nosurf(refine);
-            verbose(refine,-2);            
-            [mesh1] = run(refine);   
+            meshMmg  = mmg(mshG,1e-3);            
+            hsiz(meshMmg,0.007);
+            nosurf(meshMmg);
+            verbose(meshMmg,-2);            
+            [mesh1] = run(meshMmg);   
             
             coord = mesh1.vtx(:,1:2);
             connec = mesh1.elt;

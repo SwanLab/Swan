@@ -10,7 +10,11 @@ filename = varargin{1};
 mesh     = varargin{2};
 if (nargin==3)
     I = varargin{3};    
-else
+elseif (nargin==5)
+    I = varargin{3};
+    RequieredEdges = varargin{4};
+    edges = varargin{5};
+else 
     I = [];
 end
 
@@ -67,6 +71,31 @@ if ~isempty(I)
     fprintf(fid,'\n');
 end
 
+% msRelator = MasterSlaveRelator(mesh.vtx(:,1:2));
+% master_slave = msRelator.getRelation();
+% 
+% 
+
+
+
+if (nargin==5)
+    
+% Write nodes
+fprintf(fid,'Edges\n');
+N = size(edges,1);
+fprintf(fid,'%d\n',N);
+if is2d(mesh)
+    fprintf(fid,'%d %d %d\n',edges');
+else
+    fprintf(fid,'%f %f %f %d\n',[mesh.vtx,zeros(N,1)]');
+end
+fprintf(fid,'\n');    
+
+fprintf(fid,'RequiredEdges\n');
+fprintf(fid,'%d\n',length(RequieredEdges));
+fprintf(fid,'%d\n',RequieredEdges);
+fprintf(fid,'\n');
+end
 % Termination
 fprintf(fid,'End \n');
 

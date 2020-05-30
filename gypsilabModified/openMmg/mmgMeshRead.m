@@ -1,4 +1,4 @@
-function [mesh,req] = mmgMeshRead(filename)
+function [mesh,req,label,edg] = mmgMeshRead(filename)
 % Copyright (c) 2018-2019
 % Matthieu Aussal, CMAP, Ecole Polytechnique
 % Algiane Froehly, CARDAMOME, INRIA-SOFT
@@ -54,6 +54,11 @@ while ~(str==-1)
     elseif startsWith(str,'RequiredTetrahedra')
         N    = str2double(fgets(fid));
         Itet = fscanf(fid,'%d',[1 N])';
+   
+    % Triangular elements and colours
+    elseif startsWith(str,'Edges')
+        N   = str2double(fgets(fid));
+        edg = fscanf(fid,'%d %d %d',[3 N])';   
     end
     
     % Next line
@@ -64,7 +69,9 @@ end
 fclose(fid);
 
 % Final vertices 
+label = [];
 if (dim==2) 
+    label = edg(:,3);
     vtx(:,3) = 0;
 end
 vtx = vtx(:,1:3);

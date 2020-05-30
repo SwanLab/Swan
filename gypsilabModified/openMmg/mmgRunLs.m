@@ -89,7 +89,34 @@ command = [os,bin,file,opt];
 system(command);
 
 % Read refined mesh
-[remesh,req] = mmgMeshRead('refined.mesh');
+[remesh,req,label,edges] = mmgMeshRead('refined.mesh');
+
+delete('refined.mesh');
+delete('original.sol');
+
+it = remesh.col == 3;
+connec = remesh.elt(it,:);
+coord  = remesh.vtx(:,1:2);
+[s.coord,s.connec,edges] = computeUniqueCoordConnec(coord,connec,edges);
+
+msRelator = MasterSlaveRelator(s.coord);
+master_slave = msRelator.getRelation();
+
+
+mN2 = Mesh().create(s);
+mN2.plot()
+coord = mN2.coord;
+coord(:,3) = 0;
+remesh = msh(coord,mN2.connec);            
+
+nodes = find(edges(:,3) ~= 10);
+mmgMeshWrite('original.mesh',remesh,[],nodes,edges);
+
+command = [os,bin,file,' -hausd 0.001 -hmin 0.0001 -hmax 0.001 '];
+system(command);
+
+[remesh,req,label,edges] = mmgMeshRead('refined.mesh');
+
 
 % Replace required entites by original ones
 if ~isempty(req)
@@ -119,6 +146,26 @@ deleteFiles();
 
 % Back to current directory
 cd(here)
+end
+
+function [newCoord,newConnec,newEdges] = computeUniqueCoordConnec(coord,connec,edges)
+allNodes = connec(:);
+[uNodes,ind,ind2] = unique(allNodes,'rows','stable');
+
+allCoords    = coord;
+uniqueCoords = allCoords(uNodes,:);
+newCoord     = uniqueCoords;
+
+nnode = size(connec,2);
+nCell = size(connec,1);
+newConnec = reshape(ind2,nCell,nnode);
+
+all(uNodes,1) = 1:length(uNodes);
+newEdges(:,1) = all(edges(:,1));
+newEdges(:,2) = all(edges(:,2));
+newEdges(:,3) = edges(:,3);
+
+
 end
 
 
