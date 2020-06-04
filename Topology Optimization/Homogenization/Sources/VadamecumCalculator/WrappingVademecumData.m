@@ -1,6 +1,6 @@
 function WrappingVademecumData
 
-for i = 1:20
+for i = 2:20
    RunningVademecumInParalel(i); 
 end
 

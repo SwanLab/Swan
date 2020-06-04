@@ -6,12 +6,17 @@ function mesh = mmgRunLs(mmg)
 % Remeshing using Mmg tools : https://www.mmgtools.org
 
 % Current and mmg directory
-here  = pwd;
+%here  = pwd;
 there = which('mmg.m');
 there = there(1:end-6);
 
+oldMeshFileName = mmg.oldMeshFileName;
+newMeshFileName = mmg.newMeshFileName;
+levelSetOldFileName = mmg.levelSetOldFileName;
+levelSetNewFileName = mmg.levelSetNewFileName;
+
 % Move to mmg directory
-cd(there)
+%cd(there)
 
 % Check mesh (3D nodes, triangle or tetra, colours are int)
 mesh = mmg.Mesh;
@@ -25,7 +30,7 @@ if (norm(mesh.col-floor(mesh.col),'inf') > 1e-12) || (min(mesh.col)<0)
 end
 
 % Delete .mesh and .sol files
-deleteFiles()
+deleteFiles(oldMeshFileName,newMeshFileName,levelSetOldFileName,levelSetNewFileName)
 
 
 %figure(1)
@@ -48,11 +53,11 @@ edges(:,3) = 0;
 nodes = find(edges(:,3) ~= 10);
 
 % Write original mesh in .mesh format
-mmgMeshWrite('original.mesh',mesh,mmg.Req,nodes,edges);
+mmgMeshWrite(oldMeshFileName,mesh,mmg.Req,nodes,edges);
 
 % Write size map in .sol format
 if ~isempty(mmg.Map)
-    mmgSolWrite('original.sol',mmg.Map,is2d(mesh));
+    mmgSolWrite(levelSetOldFileName,mmg.Map,is2d(mesh));
 end
 
 % Operating system
@@ -61,10 +66,11 @@ if ismac
 elseif ispc
     os = 'win_';
 elseif isunix
-    os = './uni_';
+    os = '/./uni_';
 else
     disp('mmg.m : unavailable case')
 end
+os = [there,os];
 
 % Element form
 if (size(mesh.elt,2) == 3)
@@ -85,20 +91,24 @@ else
 end
 
 % Define temporary mesh files
-file = '-in original.mesh -out refined.mesh ';
+file = ['-in ',oldMeshFileName,' -out ',newMeshFileName,' '];
 
 % Convert input to command
 field = fieldnames(mmg);
 opt   = '';
 for i = 1:length(field)
     cmd = getfield(mmg,field{i});
-    if ~isempty(cmd) && ~strcmp(field{i},'Mesh') && ~strcmp(field{i},'Req') && ~strcmp(field{i},'Map')
+    if ~isempty(cmd) && ~strcmp(field{i},'Mesh') && ~strcmp(field{i},'Req')...
+       && ~strcmp(field{i},'Map') ...
+       && ~strcmp(field{i},'oldMeshFileName') && ~strcmp(field{i},'newMeshFileName') ...
+       && ~strcmp(field{i},'levelSetOldFileName') && ~strcmp(field{i},'levelSetNewFileName')
+       %&& ~strcmp(field{i},'original') && ~strcmp(field{i},'refined') ...
         opt = [opt,cmd,' '];
     end
 end
 
 if ~isempty(mmg.Map)
-    cmd = ['-sol original.sol'];
+    cmd = ['-sol ',levelSetOldFileName];
     opt = [opt,cmd,' '];
     cmd = ['-ls 0'];
     opt = [opt,cmd,' '];
@@ -106,44 +116,16 @@ end
 
 
 % Execute mmg binaries
-command = [os,bin,file,opt,'-hausd 0.01 -hmin 0.001 -hmax 0.01 '];
-%command = [os,bin,file,opt,'-hausd 0.005 -hmin 0.0005 -hmax 0.005 '];
-system(command);
+command = [os,bin,file,opt];
+[~,~] = system(command);
 
 % Read refined mesh
-[remesh,req,label,edges] = mmgMeshRead('refined.mesh');
-
-% delete('refined.mesh');
-% delete('original.sol');
-% 
-% it = remesh.col == 3;
-% connec = remesh.elt(it,:);
-% coord  = remesh.vtx(:,1:2);
-% [s.coord,s.connec,edges] = computeUniqueCoordConnec(coord,connec,edges);
-% 
-% 
-% 
-% figure(1)
-% clf
-% mN2 = Mesh().create(s);
-% mN2.plot()
-% coord = mN2.coord;
-% coord(:,3) = 0;
-% remesh = msh(coord,mN2.connec);            
-% 
-% nodes = find(edges(:,3) ~= 10);
-% mmgMeshWrite('original.mesh',remesh,[],nodes,edges);
-% 
-% command = [os,bin,file,' -hmin 0.001 -hmax 0.01 '];
-% system(command);
-% 
-% [remesh,req,label,edges] = mmgMeshRead('refined.mesh');
-
+[remesh,req,label,edges] = mmgMeshRead(newMeshFileName);
 
 % Replace required entites by original ones
 if ~isempty(req)
     % Read original mesh for double/single troubles 
-    origin = mmgMeshRead('original.mesh');
+    origin = mmgMeshRead(oldMeshFileName);
     
     % Vertex indices from required elements
     I = mesh.elt(mmg.Req,:);
@@ -164,44 +146,25 @@ end
 mesh = remesh;
 
 % Delete .mesh and .sol files
-deleteFiles();
+deleteFiles(oldMeshFileName,newMeshFileName,levelSetOldFileName,levelSetNewFileName);
 
 % Back to current directory
-cd(here)
-end
-
-function [newCoord,newConnec,newEdges] = computeUniqueCoordConnec(coord,connec,edges)
-allNodes = connec(:);
-[uNodes,ind,ind2] = unique(allNodes,'rows','stable');
-
-allCoords    = coord;
-uniqueCoords = allCoords(uNodes,:);
-newCoord     = uniqueCoords;
-
-nnode = size(connec,2);
-nCell = size(connec,1);
-newConnec = reshape(ind2,nCell,nnode);
-
-all(uNodes,1) = 1:length(uNodes);
-newEdges(:,1) = all(edges(:,1));
-newEdges(:,2) = all(edges(:,2));
-newEdges(:,3) = edges(:,3);
-
-
+%cd(here)
 end
 
 
-function deleteFiles()
-if exist('original.mesh','file')
-    delete('original.mesh');
+function deleteFiles(oldMeshFileName,newMeshFileName,levelSetOldFileName,levelSetNewFileName)
+if exist(oldMeshFileName,'file')
+    delete(oldMeshFileName);
 end
-if exist('original.sol','file')
-    delete('original.sol');
+if exist(newMeshFileName,'file')
+    delete(newMeshFileName);
 end
-if exist('refined.mesh','file')
-    delete('refined.mesh');
+if exist(levelSetOldFileName,'file')
+    delete(levelSetOldFileName);
 end
-if exist('refined.sol','file')
-    delete('refined.sol');
+if exist(levelSetNewFileName,'file')
+    delete(levelSetNewFileName);
 end
+
 end

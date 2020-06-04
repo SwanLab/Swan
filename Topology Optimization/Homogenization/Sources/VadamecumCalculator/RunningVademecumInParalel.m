@@ -75,8 +75,9 @@ classdef RunningVademecumInParalel < handle
             s.xi = obj.samplePoints.txiV(iter);
             s.phi = obj.samplePoints.phiV(iphi);   
             s.nCase = [num2str(imx),num2str(imy),num2str(iphi)];
-           % v = VademecumCalculator(s);
-            v.cellVariables = s.nCase;
+            v = VademecumCalculator(s);
+            v.compute();            
+            %v.cellVariables = s.nCase;
             cellV = v.cellVariables;
         end
          

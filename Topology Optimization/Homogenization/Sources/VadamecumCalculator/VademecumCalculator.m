@@ -23,9 +23,9 @@ classdef VademecumCalculator < handle
         end
         
         function compute(obj)
-            obj.createOptimalExponentComputer(iphi);
+            obj.createOptimalExponentComputer();
             obj.computeOptimalExponent();
-            obj.obtainCellVariables(iphi);
+            obj.obtainCellVariables();
         end
         
     end

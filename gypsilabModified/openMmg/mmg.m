@@ -4,6 +4,10 @@ classdef mmg < handle
 % Algiane Froehly, CARDAMOME, INRIA-SOFT 
 % LGPL Lesser General Public License v3.0. 
 % Remeshing using Mmg tools : https://www.mmgtools.org             
+properties (SetAccess = public, GetAccess = private)
+    oldFileName = 'original';
+    newFileName = 'refined';    
+end
 
 properties 
     % Edge 
@@ -33,6 +37,12 @@ properties
     Mesh    = [];    % MESH OBJECT FROM GYPSILAB (vtx, elt, col)
     Req     = [];    % REQUIRED ENTITIES AT ELEMENTS
     Map     = [];    % SIZE MAP AT VERTICES
+    
+    % File names
+    oldMeshFileName
+    newMeshFileName
+    levelSetOldFileName
+    levelSetNewFileName
 end
 
 methods
@@ -53,6 +63,7 @@ methods
         else
             error('mmg.m : unavailable case')
         end
+                
     end
     
     
@@ -152,6 +163,22 @@ methods
     function mesh = runLs(mmg)
         mesh = mmgRunLs(mmg);
     end    
+    
+    function v = get.oldMeshFileName(obj)
+      v = [obj.oldFileName,'.mesh'];
+    end
+    
+    function v = get.newMeshFileName(obj)
+       v = [obj.newFileName,'.mesh'];
+    end
+    
+    function v = get.levelSetOldFileName(obj)
+        v = [obj.oldFileName,'.sol'];
+    end
+    
+    function v = get.levelSetNewFileName(obj)
+        v = [obj.newFileName,'.sol'];
+    end
     
 end
 end

@@ -2,7 +2,6 @@ classdef StressNormSuperEllipseComputer < handle
     
     properties (Access = private)
         microProblem
-        microProblem2
         fName
         outputFolder
     end
@@ -14,7 +13,6 @@ classdef StressNormSuperEllipseComputer < handle
         phi
         pNorm
         print
-        hMesh
         fileName
         hasToCaptureImage
         testName
@@ -28,15 +26,13 @@ classdef StressNormSuperEllipseComputer < handle
         end
         
         function sPnorm = compute(obj)
-            %   obj.createMesh();
-            %   obj.createMicroProblem();
-            obj.createMicroProblem2()
+            obj.createMicroProblem()
             sPnorm = obj.computePstressNorm();
         end
         
         function var = computeCellVariables(obj)
             obj.compute();
-            mProblem = obj.microProblem2;
+            mProblem = obj.microProblem;
             var.Ctensor = mProblem.variables.varFromCh.Chomog;
             var.tstress = mProblem.variables.varFromCh.tstress;
             var.tstrain = mProblem.variables.varFromCh.tstrain;
@@ -53,7 +49,7 @@ classdef StressNormSuperEllipseComputer < handle
         end
         
         function printImage(obj)
-            microP = obj.microProblem2;
+            microP = obj.microProblem;
             outputName = [obj.fileName,'Print'];
             if obj.print
                 outName = outputName;
@@ -85,7 +81,7 @@ classdef StressNormSuperEllipseComputer < handle
         
         function printStress(obj)
             if obj.print
-                microP = obj.microProblem2;
+                microP = obj.microProblem;
                 outputName = [obj.fileName,'Print'];
                 dI.mesh    =  microP.mesh;
                 dI.outName = outputName;
@@ -112,7 +108,6 @@ classdef StressNormSuperEllipseComputer < handle
             obj.phi      = cParams.phi;
             obj.pNorm    = cParams.pNorm;
             obj.print    = cParams.print;
-            obj.hMesh    = cParams.hMesh;
             obj.fileName = cParams.fileName;
             obj.iter     = cParams.iter;
             obj.hasToCaptureImage = cParams.hasToCaptureImage;
@@ -127,57 +122,7 @@ classdef StressNormSuperEllipseComputer < handle
         function sPnorm2 = computePstressNorm(obj)
             stress = [sin(obj.phi) cos(obj.phi) 0];
             p = obj.pNorm;
-            %sPnorm2 = obj.microProblem.computeStressPnorm(stress,p);
-            sPnorm2 = obj.microProblem2.computeStressPnorm(stress,p);
-        end
-        
-        function createMicroProblem(obj)
-            d.gmsFile = [fullfile(obj.outputFolder,obj.fName),'.msh'];
-            d.outFile = obj.fName;
-            d.print   = obj.print;
-            d.iter = obj.iter;
-            d.hasToCaptureImage = obj.hasToCaptureImage;
-            nH = NumericalHomogenizerCreatorFromGmsFile(d);
-            homog = nH.getHomogenizer();
-            mProblem = homog.getMicroProblem();
-            
-            mN = mProblem.mesh;
-            coord = mN.coord;
-            coord(:,3) = 0;
-            mshG = msh(coord,mN.connec);
-            refine  = mmg(mshG,1e-3);
-            hsiz(refine,0.007);
-            nosurf(refine);
-            [mesh1] = run(refine);
-            
-            s.coord = mesh1.vtx(:,1:2);
-            s.connec = mesh1.elt;
-            
-            mN1 = Mesh().create(s);
-            
-            % mN1.plot()
-            drawnow
-            
-            mProblem.setMesh(mN1);
-            props.kappa = .75;
-            props.mu    = .375;
-            mProblem.setMatProps(props);
-            
-            obj.microProblem = mProblem;
-            
-        end
-        
-        function createMesh(obj)
-            d = SettingsFreeFemMeshGenerator();
-            d.freeFemFileName = 'SmoothRectangle';
-            d.hMax  = obj.hMesh;%0.002;%0.0025;
-            d.mxV             = obj.mx;
-            d.myV             = obj.my;
-            d.fileName        = obj.fileName;
-            d.printingDir     = obj.outputFolder;
-            d.qNorm           = obj.q;
-            fG = FreeFemMeshGenerator(d);
-            fG.generate();
+            sPnorm2 = obj.microProblem.computeStressPnorm(stress,p);
         end
         
         function [coord, connec] = readCoordConnec(obj)
@@ -186,7 +131,7 @@ classdef StressNormSuperEllipseComputer < handle
             run(obj.testName)
         end
         
-        function createMicroProblem2(obj)
+        function createMicroProblem(obj)
             [coord, connec] = obj.readCoordConnec();
             s.coord = coord(:,2:end-1);
             s.connec = connec(:,2:end);
@@ -213,10 +158,7 @@ classdef StressNormSuperEllipseComputer < handle
             coord = uMesh.innerCutMesh.coord;
             
             [sM.coord,sM.connec] = obj.computeUniqueCoordConnec(coord,connec);
-            
-            
-            
-            
+                        
             bMesh = uMesh.meshBackground;
             % bMesh.plot()
             
@@ -225,24 +167,22 @@ classdef StressNormSuperEllipseComputer < handle
             coord(:,3) = 0;
             mshG = msh(coord,bMesh.connec);
             meshMmg  = mmg(mshG,1e-3);
-            hminBmesh = bMesh.computeMinCellSize();
-            hmeanBmesh = bMesh.computeMeanCellSize();
-            %hmin(meshMmg,hminBmesh);
-            % hmax(meshMmg,10*hminBmesh);
-            hausd(meshMmg,hminBmesh)
-            %nosurf(meshMmg);
+           
+            hausd(meshMmg,0.01);            
+            hmin(meshMmg,0.001);
+            hmax(meshMmg,0.01);
+            
+            %hausd(meshMmg,0.005);            
+            %hmin(meshMmg,0.0005);
+            %hmax(meshMmg,0.005);            
             
             map(meshMmg,ls.value);
-            %hsiz(refine,0.007);
-            %nosurf(meshMmg);
-            %hgrad(refine,10)
-            
+           
             verbose(meshMmg,-1);
-            [mesh1] = runLs(meshMmg);
+            meshMmg.oldFileName = [obj.fileName,'Out'];
+            meshMmg.newFileName = [obj.fileName,'In'];
             
-            %             plot(mesh1)
-            %
-            
+            mesh1 = runLs(meshMmg);
             
             it = mesh1.col == 3;
             connec = mesh1.elt(it,:);
@@ -250,41 +190,8 @@ classdef StressNormSuperEllipseComputer < handle
             [s.coord,s.connec] = obj.computeUniqueCoordConnec(coord,connec);
             
             
-            mN2 = Mesh().create(s);
-            %  mN2.plot()
-            
-            
-            %
-            %
-            %     mN = Mesh().create(sM);
-            %             mN2.computeMinCellSize
-            %             mN2.computeMeanCellSize
-            %  mN.plot();
-            
-            
-            %
-            %             coord = mN.coord;
-            %             coord(:,3) = 0;
-            %             mshG = msh(coord,mN.connec);
-            %             meshMmg  = mmg(mshG,1e-3);
-            %             hsiz(meshMmg,0.007);
-            %             nosurf(meshMmg);
-            %             verbose(meshMmg,-2);
-            %             [mesh1] = run(meshMmg);
-            %
-            %             coord = mesh1.vtx(:,1:2);
-            %             connec = mesh1.elt;
-            %
-            %             [s.coord,s.connec] = obj.computeUniqueCoordConnec(coord,connec);
-            %
-            %             mN1 = Mesh().create(s);
-            %             mN1.plot()
-            
-            %mF = mN1;
-            
-            
-            mF = mN2;
-            
+            mF = Mesh().create(s);
+              
            figure(10)
            clf()
            mF.plot();
@@ -296,7 +203,7 @@ classdef StressNormSuperEllipseComputer < handle
             props.kappa = .75;
             props.mu    = .375;
             femSolver.setMatProps(props);
-            obj.microProblem2 = femSolver;
+            obj.microProblem = femSolver;
         end
         
         function [newCoord,newConnec] = computeUniqueCoordConnec(obj,coord,connec)

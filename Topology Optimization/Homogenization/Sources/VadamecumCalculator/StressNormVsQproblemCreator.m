@@ -42,7 +42,6 @@ classdef StressNormVsQproblemCreator < handle
         
     end
     
-    
     methods (Access = private)
         
         function init(obj,cParams)
@@ -85,8 +84,8 @@ classdef StressNormVsQproblemCreator < handle
             qMin = 2;
             cqMinMx =  (1 - obj.rho)/(mxMax*tan(obj.xi));
             cqMinMy =  (1 - obj.rho)*tan(obj.xi)/myMax;
-            qMinMx = fzero(@(q) c(q) - cqMinMx,16);
-            qMinMy = fzero(@(q) c(q) - cqMinMy,16);
+            qMinMx = obj.obtainQsolution(c,cqMinMx);
+            qMinMy = obj.obtainQsolution(c,cqMinMy);
             qMin = max(qMin,max(qMinMx,qMinMy));
         end
         
@@ -94,8 +93,8 @@ classdef StressNormVsQproblemCreator < handle
             qMax = 32;
             cqMaxMx =  (1 - obj.rho)/(mxMin*tan(obj.xi));
             cqMaxMy =  (1 - obj.rho)*tan(obj.xi)/(myMin);
-            qMaxMx = fzero(@(q) c(q) - cqMaxMx,16);
-            qMaxMy = fzero(@(q) c(q) - cqMaxMy,16);
+            qMaxMx = obj.obtainQsolution(c,cqMaxMx);
+            qMaxMy = obj.obtainQsolution(c,cqMaxMy);
             qMax = min(qMax,min(qMaxMx,qMaxMy));
         end
         
@@ -111,5 +110,16 @@ classdef StressNormVsQproblemCreator < handle
         
     end
     
+    methods (Access = private, Static)
+       
+        function q = obtainQsolution(c,cV)
+            problem.x0 = 16;
+            problem.options = optimset('Display','off');    
+            problem.objective = @(q) c(q) - cV;
+            problem.solver = 'fzero';
+            q = fzero(problem);                    
+        end
+        
+    end
     
 end
