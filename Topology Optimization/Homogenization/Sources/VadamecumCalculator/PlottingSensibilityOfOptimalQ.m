@@ -29,7 +29,7 @@ classdef PlottingSensibilityOfOptimalQ < handle
         
         function obj = PlottingSensibilityOfOptimalQ()
             obj.init();
-            for iTest = 1:length(obj.rhoV)
+            for iTest = 2:length(obj.rhoV)
                 obj.rho = obj.rhoV(iTest);
                 obj.xi  = obj.xiV(iTest);
                 obj.computePhiV();
@@ -59,7 +59,9 @@ classdef PlottingSensibilityOfOptimalQ < handle
         end
         
         function computePhiV(obj)
-            obj.phiV = [obj.xi,pi - obj.xi,0,pi/4,pi/2,3*pi/4];            
+            %obj.phiV = [20*pi/32,21*pi/32,22*pi/32,23*pi/32,24*pi/32,...
+            %            obj.xi,pi - obj.xi,0,pi/4,pi/2,3*pi/4];       
+            obj.phiV = [obj.xi,pi - obj.xi,0,pi/4,pi/2,3*pi/4];                      
         end
         
         function createStressProblem(obj)

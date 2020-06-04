@@ -63,7 +63,7 @@ classdef OptimalSuperEllipseExponentPlotter < handle
             set(gca,'xticklabels',{'0','\pi/8','\pi/4','3\pi/8','\pi/2'})
             fp = contourPrinter(f);
             filePath = [obj.outputPath,fName];
-            fp.print(filePath);
+       %     fp.print(filePath);
                         
         end
         
@@ -126,7 +126,7 @@ classdef OptimalSuperEllipseExponentPlotter < handle
             set(gca,'xticklabels',{'0','\pi/8','\pi/4','3\pi/8','\pi/2'})  
             fp = surfPrinter(f);            
             filePath = [obj.outputPath,fName];
-            fp.print(filePath);              
+          %  fp.print(filePath);              
         end
         
         function [xq,yq,vq] = interpolateQmeanMxMy(obj,n,xmin,xmax,ymin,ymax)
@@ -160,7 +160,7 @@ classdef OptimalSuperEllipseExponentPlotter < handle
             title(['$',tN,'$'],'interpreter','latex')
             fp = surfPrinter(f);            
             filePath = [obj.outputPath,'QmeanMxMy'];
-            fp.print(filePath);
+     %       fp.print(filePath);
         end
         
     end

@@ -16,8 +16,7 @@ classdef GiDImageCapturer < handle
         function obj = GiDImageCapturer(cParams)
             obj.init(cParams);
             obj.createPathNames();
-            obj.createOutPutImageFolder();
-            obj.writeCallGiDTclFile();                 
+                   obj.writeCallGiDTclFile();                 
         end
         
         function capture(obj)
@@ -35,20 +34,21 @@ classdef GiDImageCapturer < handle
             obj.inputFileName   = cParams.inputFileName;
             obj.swanPath = '/home/alex/git-repos/Swan/';
             %obj.gidPath = '/home/alex/GiDx64/gid14.0.3/';
-            obj.gidPath = '/home/alex/GiDx64/14.1.6d/';            
+            %obj.gidPath = '/home/alex/GiDx64/14.1.6d/';                                   
+            obj.gidPath = '/home/alex/GiDx64/14.1.9d/';
         end
         
         function createPathNames(obj)
             obj.pathTcl = [obj.swanPath,'PostProcess/ImageCapturer/'];
             obj.outPutFolderPath = [obj.swanPath,'Output/',obj.resultsFile,'/'];
-            obj.outputImageName = [obj.outPutFolderPath,obj.outPutImageName];            
+            obj.outputImageName = [obj.outPutImageName];            
         end
         
         function writeCallGiDTclFile(obj)
             tclFile = 'callGiDCapturer.tcl';
             obj.inputFileName = char(obj.inputFileName);
-            stlFileTocall = 'CaptureImage2.tcl';
-%            stlFileTocall = 'CaptureImage2.tcl';
+            %stlFileTocall = 'CaptureImage.tcl';
+            stlFileTocall = 'CaptureImage3.tcl';
             
             fid = fopen([obj.pathTcl,tclFile],'w+');
             fprintf(fid,['set path "',obj.pathTcl,'"\n']);
@@ -74,14 +74,6 @@ classdef GiDImageCapturer < handle
             %convert     = 'convert -crop 1500x1500+0+0 -gravity Center';
             command = strcat(convert,' ',inputImage,' ',outPutImage);
             system(command);
-        end
-        
-        function createOutPutImageFolder(obj)
-            dir = obj.outputImageName;
-            if ~exist(dir,'dir')
-                mkdir(dir)
-                addpath(dir)
-            end
         end
         
     end

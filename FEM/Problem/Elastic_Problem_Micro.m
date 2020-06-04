@@ -107,14 +107,17 @@ classdef Elastic_Problem_Micro < FEM
             obj.variables = obj.element.computeVars(u);
         end        
         
-        function v = computeVarFromStress(obj,stress)
+        function stress = computeVarFromStress(obj,stress)
            Ch = obj.computeChomog();
-           v  = obj.computeVariablesForGivenStress(stress,Ch);            
+           varFromCh = obj.variables;
+           v  = obj.computeVariablesForGivenStress(stress,Ch);  
+           v.varFromCh = varFromCh;
+           obj.variables = v;
+           stress = v.stress;
         end
         
         function sPnorm = computeStressPnorm(obj,stress,p)
-            v = obj.computeVarFromStress(stress);
-            stresses = v.stress;                        
+            stresses = obj.computeVarFromStress(stress);
             m = obj.mesh;
             quad = Quadrature.set(m.geometryType);
             quad.computeQuadrature('CONSTANT');
@@ -145,6 +148,7 @@ classdef Elastic_Problem_Micro < FEM
             v.strain_fluct = obj.variables.strain_fluct;
             v.d_u = obj.variables.d_u;
             v.fext = obj.variables.fext;
+            v.Ch   = obj.Chomog;
         end        
         
         function createGeometry(obj)

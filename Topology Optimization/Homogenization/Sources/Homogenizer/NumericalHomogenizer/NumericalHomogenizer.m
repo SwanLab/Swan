@@ -153,8 +153,8 @@ classdef NumericalHomogenizer < handle
             obj.cellVariables = cV;
             
             
-            obj.microProblem.computeStressBasisCellProblem();
-            var = obj.microProblem.variables2printStressBasis();            
+            %obj.microProblem.computeStressBasisCellProblem();
+            %var = obj.microProblem.variables2printStressBasis();            
         end
         
         function computeVolumeValue(obj)
@@ -170,14 +170,13 @@ classdef NumericalHomogenizer < handle
             s.levelSetCreatorSettings.ndim  = obj.microProblem.mesh.ndim;
             s.levelSetCreatorSettings.coord = obj.microProblem.mesh.coord; 
             scalarPr.epsilon = 1e-3;
-            s.scalarProductSettings = scalarPr;
+            s.scalarProductSettings    = scalarPr;
             d.filterParams.femSettings = d.femSettings;
             d.filterParams.designVar = DesignVariable.create(s);
             d.filterParams = SettingsFilter(d.filterParams);
             vComputer = ShFunc_Volume(d);
             vComputer.computeCostFromDensity(obj.density);
-            vol = vComputer.value;
-            obj.cellVariables.volume = vol;
+            obj.cellVariables.volume = vComputer.value;
             obj.cellVariables.geometricVolume = vComputer.geometricVolume;
         end
                

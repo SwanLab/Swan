@@ -2,7 +2,6 @@ classdef OptimalSuperEllipseExponentVsGaussianPlotter < handle
     
     properties (Access = private)
         samplePoints
-        gaussian
         qOpt
         phiMin
         phiMax
@@ -20,20 +19,22 @@ classdef OptimalSuperEllipseExponentVsGaussianPlotter < handle
         iOut
         qMin
         qMax
+        qMean
     end
     
     methods (Access = public)
         
         function obj = OptimalSuperEllipseExponentVsGaussianPlotter()
             obj.init();
-            for iTest = 1:length(obj.txiV)
+            for iTest = 1:4%length(obj.txiV)
                 obj.rho   = obj.rhoV(iTest);
                 obj.txi   = obj.txiV(iTest);
                 obj.phiV  = obj.createPhi();
                 obj.phiDV = obj.createPhiInInterval();       
                 obj.createSamplePoints();
                 obj.computeOptimalSuperEllipseExponent();
-                obj.plotQoptAndGaussianVsPhi(iTest);
+                obj.computeMeanSuperEllipseExponent();            
+                obj.plotQoptAndGaussianVsPhi(iTest);                
             end
         end
         
@@ -61,13 +62,13 @@ classdef OptimalSuperEllipseExponentVsGaussianPlotter < handle
         
         function init(obj)
             obj.outputPath = '/home/alex/Dropbox/PaperStress/';
-            obj.gaussian = gaussianFunction();
             %obj.phiMin = -pi;
             %obj.phiMax = pi;
             %obj.nPhi = 50;
             obj.phiMin = 0;
             obj.phiMax = pi;
             obj.nPhi = 50;%50;
+            
             
             
             obj.rhoV  = [0.9,0.9,0.5,0.5];
@@ -102,21 +103,12 @@ classdef OptimalSuperEllipseExponentVsGaussianPlotter < handle
             obj.qMin = exponentComputer.qMin;
         end
         
-        function qmean = computeMeanSuperEllipseExponent(obj)
-            xi = obj.txi;
-            qL = obj.computeQmean(xi);
-            qR = obj.computeQmean(pi - xi);
-            qmean = 0.5*qL + 0.5*qR;
-        end
-        
-        function qmean = computeQmean(obj,txiV)          
-            P(:,1) = obj.plotPvsTxiObtainPvsPhi(obj.phiV,txiV);
-            q(:,1) = obj.qOpt();
-            num = trapz(obj.phiV,P.*q);
-            den = trapz(obj.phiV,P);
-            qmean(:,1) = num/den;            
-        end
-        
+        function computeMeanSuperEllipseExponent(obj)
+            s.phiV   = obj.phiV;
+            qMeanComputer = SuperEllipseMeanExponentComputer(s);
+            obj.qMean = qMeanComputer.compute(obj.qOpt,obj.txi);
+        end        
+       
         function plotQoptAndGaussianVsPhi(obj,itxi)
             obj.figureID = figure();
             obj.plotQvsPhi();
@@ -124,7 +116,7 @@ classdef OptimalSuperEllipseExponentVsGaussianPlotter < handle
             obj.addXlabel();
             obj.addTitle();
             obj.addLegend();
-            obj.print(itxi);
+            %obj.print(itxi);
         end
         
         function addLegend(obj)
@@ -145,18 +137,16 @@ classdef OptimalSuperEllipseExponentVsGaussianPlotter < handle
             hold on
             plot(obj.phiV,obj.qMin,'--','LineWidth',3);    
             cs = get(gca,'colororder');            
-            plot(obj.phiV,obj.qMax,'--','LineWidth',3,'Color',cs(1,:));                  
-            
-            qM = obj.computeMeanSuperEllipseExponent();            
-            plot([obj.phiMin,obj.phiMax],[qM,qM],'-','LineWidth',4,'Color','k');          
+            plot(obj.phiV,obj.qMax,'--','LineWidth',3,'Color',cs(1,:));                              
+            plot([obj.phiMin,obj.phiMax],[obj.qMean,obj.qMean],'-','LineWidth',4,'Color','k');          
             axis([obj.phiMin,obj.phiMax,0,35])
         end
         
         function plotBothPvsTxiObtainPvsPhi(obj)
             xi = obj.txi;
             phi(:,1) = linspace(obj.phiMin,obj.phiMax,1000);             
-            Pl = obj.plotPvsTxiObtainPvsPhi(phi,xi);
-            Pr = obj.plotPvsTxiObtainPvsPhi(phi,pi - xi);            
+            Pl = SuperEllipseMeanExponentComputer.obtainPvsPhi(phi,xi);
+            Pr = SuperEllipseMeanExponentComputer.obtainPvsPhi(phi,pi - xi);            
             yyaxis right
             hold on
             plot(phi,Pl,'LineWidth',3,'LineStyle','--');
@@ -164,17 +154,6 @@ classdef OptimalSuperEllipseExponentVsGaussianPlotter < handle
             hold on
             plot(phi,Pr,'LineWidth',3,'Color',cs(1,:),'LineStyle','-.');
             ylabel('P');
-        end
-        
-        function P = plotPvsTxiObtainPvsPhi(obj,phi,txiT)            
-            phiH = abs((phi) - (txiT));
-            phiS = abs((phi + pi) - (txiT));
-            phiT = [phiS,phiH];
-            [~,ind] = min(phiT,[],2);            
-            phiS = phi;
-            phiS(ind == 1) = phi(ind == 1) + pi;
-            phiS(ind == 2) = phi(ind == 2);
-            P = obj.gaussian(txiT,phiS);       
         end
         
         function addXlabel(obj)

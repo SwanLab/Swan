@@ -31,7 +31,7 @@ classdef OneOptimalExponentComputerAndFunctionVariation < handle
             obj.createStressProblem();
             obj.computeQbounds();               
         end
-        
+                
         function compute(obj)         
             obj.computeOptimalExponent();
             obj.printOptimalMicroStructure();
@@ -84,7 +84,12 @@ classdef OneOptimalExponentComputerAndFunctionVariation < handle
                 end
             end
             obj.qOptIter = xIter;
-            obj.fOptIter = fIter;
+                         obj.fOptIter = fIter;
+        end
+        
+        function cVariables = obtainCellVariables(obj,q)
+            v = obj.stressProblem.computeCellVariables(q);
+            cVariables = v;
         end
         
     end

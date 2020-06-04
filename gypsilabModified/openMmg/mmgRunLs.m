@@ -27,8 +27,28 @@ end
 % Delete .mesh and .sol files
 deleteFiles()
 
+
+%figure(1)
+s.connec  = mesh.elt();
+s.coord   = mesh.vtx(:,1:2);
+mN1 = Mesh().create(s);
+%mN1.plot();
+msRelator = MasterSlaveRelator(s.coord);
+masterSlave = msRelator.getRelation();
+cell = CellNodesDescriptor(s.coord);
+n1 = masterSlave(:);
+n2 = cell.cornerNodes;
+nT = [n1;n2];
+mN1.computeEdges();
+nodeInBoundaryEdges = mN1.edges.computeBoundaryEdges(nT);
+edges = nodeInBoundaryEdges;
+edges(:,3) = 0;
+            
+
+nodes = find(edges(:,3) ~= 10);
+
 % Write original mesh in .mesh format
-mmgMeshWrite('original.mesh',mesh,mmg.Req);
+mmgMeshWrite('original.mesh',mesh,mmg.Req,nodes,edges);
 
 % Write size map in .sol format
 if ~isempty(mmg.Map)
@@ -84,38 +104,40 @@ if ~isempty(mmg.Map)
     opt = [opt,cmd,' '];
 end
 
+
 % Execute mmg binaries
-command = [os,bin,file,opt];
+command = [os,bin,file,opt,'-hausd 0.01 -hmin 0.001 -hmax 0.01 '];
+%command = [os,bin,file,opt,'-hausd 0.005 -hmin 0.0005 -hmax 0.005 '];
 system(command);
 
 % Read refined mesh
 [remesh,req,label,edges] = mmgMeshRead('refined.mesh');
 
-delete('refined.mesh');
-delete('original.sol');
-
-it = remesh.col == 3;
-connec = remesh.elt(it,:);
-coord  = remesh.vtx(:,1:2);
-[s.coord,s.connec,edges] = computeUniqueCoordConnec(coord,connec,edges);
-
-msRelator = MasterSlaveRelator(s.coord);
-master_slave = msRelator.getRelation();
-
-
-mN2 = Mesh().create(s);
-mN2.plot()
-coord = mN2.coord;
-coord(:,3) = 0;
-remesh = msh(coord,mN2.connec);            
-
-nodes = find(edges(:,3) ~= 10);
-mmgMeshWrite('original.mesh',remesh,[],nodes,edges);
-
-command = [os,bin,file,' -hausd 0.001 -hmin 0.0001 -hmax 0.001 '];
-system(command);
-
-[remesh,req,label,edges] = mmgMeshRead('refined.mesh');
+% delete('refined.mesh');
+% delete('original.sol');
+% 
+% it = remesh.col == 3;
+% connec = remesh.elt(it,:);
+% coord  = remesh.vtx(:,1:2);
+% [s.coord,s.connec,edges] = computeUniqueCoordConnec(coord,connec,edges);
+% 
+% 
+% 
+% figure(1)
+% clf
+% mN2 = Mesh().create(s);
+% mN2.plot()
+% coord = mN2.coord;
+% coord(:,3) = 0;
+% remesh = msh(coord,mN2.connec);            
+% 
+% nodes = find(edges(:,3) ~= 10);
+% mmgMeshWrite('original.mesh',remesh,[],nodes,edges);
+% 
+% command = [os,bin,file,' -hmin 0.001 -hmax 0.01 '];
+% system(command);
+% 
+% [remesh,req,label,edges] = mmgMeshRead('refined.mesh');
 
 
 % Replace required entites by original ones

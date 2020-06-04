@@ -34,14 +34,12 @@ classdef AmplificatorComponentsCalculator < handle
     end
     
     methods (Access = private)
-        
+                                                                                                                                                                                                                    
         function init(obj,d)
             obj.integrationDB.nstre = d.nstre;
             obj.integrationDB.V = d.V;
             obj.integrationDB.dV = d.dV;
             obj.integrationDB.ngaus = d.ngaus;
-            obj.integrationDB.nstre = d.nstre;
-            obj.tstress = d.tstress;
             obj.Chomog  = d.Ch;
             obj.pExp  = d.pNorm/2;
         end
