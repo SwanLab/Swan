@@ -1,4 +1,4 @@
-classdef SuperEllipseMeanExponentComputer < handle
+classdef SuperEllipseMeanAndDesvExponentComputer < handle
     
     properties (Access = private)
         phiV
@@ -6,15 +6,21 @@ classdef SuperEllipseMeanExponentComputer < handle
     
     methods (Access = public)
         
-        function obj = SuperEllipseMeanExponentComputer(cParams)
+        function obj = SuperEllipseMeanAndDesvExponentComputer(cParams)
             obj.init(cParams)
         end
         
-        function qmean = compute(obj,qOpt,xi)
+        function qmean = computeMean(obj,qOpt,xi)
             qL = obj.computeQmean(qOpt,xi);
             qR = obj.computeQmean(qOpt,pi - xi);
             qmean = 0.5*qL + 0.5*qR;
-        end        
+        end   
+        
+        function qDesv = computeDesv(obj,qOpt,xi)
+            qL = obj.computeQdesv(qOpt,xi);
+            qR = obj.computeQdesv(qOpt,pi - xi);
+            qDesv = 0.5*qL + 0.5*qR;
+        end            
         
     end
     
@@ -31,6 +37,15 @@ classdef SuperEllipseMeanExponentComputer < handle
             den = trapz(obj.phiV,P);
             qmean(:,1) = num/den;
         end        
+        
+        function qDesv = computeQdesv(obj,qOpt,xiV)
+            qMean = obj.computeQmean(qOpt,xiV);
+            P(:,1) = obj.obtainPvsPhi(obj.phiV,xiV);
+            q(:,1) = qOpt;
+            num = trapz(obj.phiV,P.*(q-qMean).^2);
+            den = trapz(obj.phiV,P);
+            qDesv(:,1) = num/den;            
+        end
    
     end
     

@@ -4,29 +4,29 @@ classdef SuperEllipseParamsRelator < handle
        
        function mx = mx(txi,rho,q)
             c = SuperEllipseParamsRelator.c();
-            n = (1-rho)*tan(txi);
+            n = (1-rho).*tan(txi);
             d = c(q);
-            mx = sqrt(n/d);               
+            mx = sqrt(n./d);               
        end
        
        function my = my(txi,rho,q)
             c = SuperEllipseParamsRelator.c();
             n = (1-rho);
-            d = c(q)*tan(txi);
-            my = sqrt(n/d);                      
+            d = c(q).*tan(txi);
+            my = sqrt(n./d);                      
        end
        
        function rho = rho(mx,my,q)
             c = SuperEllipseParamsRelator.c();
-            rho =  1 - c(q)*mx*my;
+            rho =  1 - c(q).*mx.*my;
        end
        
        function txi = txi(mx,my)
-           txi = atan(mx/my);
+           txi = atan(mx./my);
        end
        
        function c = c()       
-          c = @(q) gamma(1 + 1/q)^2/gamma(1 + 2/q); 
+          c = @(q) gamma(1 + 1./q).^2./gamma(1 + 2./q); 
        end
        
        function my = myFromMxAndTxi(mx,txi)
