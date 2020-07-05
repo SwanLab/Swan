@@ -37,7 +37,7 @@ classdef VademecumPlotters < handle
             d.C          = obj.vademecumData.C;
             d.invP       = obj.vademecumData.invP;
             d.volume     = obj.vademecumData.volume;
-            d.hasToPrint = true;
+            d.hasToPrint = false;
             d.outPutPath = obj.vademecumData.outPutPath;
             d.microName  = obj.vademecumData.fileName;
             obj.dBForPlotter = d;            
@@ -46,13 +46,13 @@ classdef VademecumPlotters < handle
         function makeMxMyPlot(obj)
             d = obj.dBForPlotter;
             p = VademecumMxMyPlotter(d);
-            %p.plot(); 
+            p.plot(); 
         end
         
         function makeTxiRhoPlot(obj)
             d = obj.dBForPlotter;            
             p = VademecumTxiRhoPlotter(d);
-            %p.plot();            
+            p.plot();            
             obj.feasibleIndex = p.feasibleIndex;            
         end
         

@@ -23,6 +23,12 @@ classdef SuperEllipseExponentContourPlotter < handle
             obj.print();
         end
         
+        function print(obj)
+            fp = contourPrinter(obj.fig);
+            filePath = obj.fileName;
+            fp.print(filePath);             
+        end        
+        
     end
     
     methods (Access = private)
@@ -40,9 +46,10 @@ classdef SuperEllipseExponentContourPlotter < handle
             colorbar
             h.FaceColor = 'interp';
             h.EdgeColor = 'black';
-            h.EdgeAlpha = 1;
+            h.EdgeAlpha = 0.3;
+            h.FaceAlpha = 1;            
             hold on
-            plot3(x,y,10*z,'ro','MarkerFaceColor','red','MarkerSize',3)            
+            plot3(x,y,10*abs(z),'ro','MarkerFaceColor','red','MarkerSize',3)            
             view(2)              
         end
 
@@ -51,41 +58,25 @@ classdef SuperEllipseExponentContourPlotter < handle
             connec = obj.obtainQualityElements(connec,x,y);
         end
         
-        function print(obj)
-            fp = contourPrinter(obj.fig);
-            filePath = obj.fileName;
-            fp.print(filePath);             
-        end
-%         
-%         function addAxis(obj)
-%             xlabel(obj.xAxis,'Interpreter','latex');
-%             set(gca,'xtick',[0:pi/8:pi/2]);
-%             set(gca,'xticklabels',{'0','\pi/8','\pi/4','3\pi/8','\pi/2'})                         
-%             ylabel(obj.yAxis,'Interpreter','latex'); 
-%         end
-        
         function addAxis(obj)
             obj.axisAdder.add();
         end                  
         
         function addTitle(obj)
             tN = ['\textrm{',obj.titleF,'optimal super-ellipse exponent}'];
-            title(['$',tN,'$'],'interpreter','latex')            
+          %  title(['$',tN,'$'],'interpreter','latex')            
         end        
         
     end
     
     methods (Access = private, Static)
-        
-        
-
-        function connec = obtainQualityElements(connec,x,y)            
-            s.coord = [x,y];
+     
+        function newConnec = obtainQualityElements(connec,x,y)            
+            s.x = x;
+            s.y = y;
             s.connec = connec;
-            m = Mesh().create(s);
-            qua = m.computeElementQuality';
-            isQ = qua > 0.02;    
-            connec = connec(isQ,:);
+            c = ConnecWithQualityComputer(s);
+            newConnec = c.compute();
         end
         
     end

@@ -10,7 +10,7 @@ classdef OptimalSuperEllipseExponentPlotter < handle
     methods (Access = public)
         
         function obj = OptimalSuperEllipseExponentPlotter()
-            obj.outputPath = '/home/alex/Dropbox/PaperStress/';
+            obj.outputPath = '/home/alex/git-repos/MicroStructurePaper/';
             obj.readVademecum();
             obj.computePonderatedOptimalSuperEllipse();
             obj.plotAverage();

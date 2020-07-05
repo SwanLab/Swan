@@ -17,6 +17,9 @@ classdef StressNormSuperEllipseComputer < handle
         hasToCaptureImage
         testName
         iter
+        meshBackground
+        mesh
+        hMesh
     end
     
     methods (Access = public)
@@ -43,38 +46,21 @@ classdef StressNormSuperEllipseComputer < handle
             quad = Quadrature.set(var.mesh.geometryType);
             quad.computeQuadrature('CONSTANT');
             volume = var.mesh.computeDvolume(quad);  
-            var.dV    = volume;            
-            var.nstre = size(var.tstress,1);
-            var.ngaus = size(var.tstress,2);
+            var.integrationVar.dV    = volume;            
+            var.integrationVar.nstre = size(var.tstress,1);
+            var.integrationVar.ngaus = size(var.tstress,2);
+            var.integrationVar.geoVol = obj.meshBackground.computeVolume();            
         end
         
         function printImage(obj)
-            microP = obj.microProblem;
             outputName = [obj.fileName,'Print'];
             if obj.print
-                outName = outputName;
-                dI.mesh            = microP.mesh;
-                dI.outName         = outName;
-                dI.pdim            = '2D';
-                dI.ptype           = 'MICRO';
-                ps = PostProcessDataBaseCreator(dI);
-                dB = ps.getValue();
-                dB.printers = 'Density';
-                postCase = 'Density';
-                postProcess = Postprocess(postCase,dB);
-                d.x = ones(size(microP.mesh.coord(:,1),1),1);
-                it = 0;
-                postProcess.print(it,d);
+                    s.mesh       = obj.mesh;
+                    s.outPutName = outputName;
+                    printer = SuperEllipsePrinter(s);
+                    printer.print();
                 if obj.hasToCaptureImage
-                    f = outputName;
-                    imagePath = '/home/alex/git-repos/MicroStructurePaper/';
-                    outPutNameImage = fullfile(imagePath,[f,num2str(it)]);
-                    inputFileName = fullfile('Output',f,[f,num2str(it),'.flavia.res']);
-                    sI.fileName = f;
-                    sI.outPutImageName = outPutNameImage;
-                    sI.inputFileName = inputFileName;
-                    imageCapturer = GiDImageCapturer(sI);
-                    imageCapturer.capture();
+                    printer.captureImage()
                 end
             end
         end
@@ -110,6 +96,7 @@ classdef StressNormSuperEllipseComputer < handle
             obj.print    = cParams.print;
             obj.fileName = cParams.fileName;
             obj.iter     = cParams.iter;
+            obj.hMesh    = cParams.hMesh;
             obj.hasToCaptureImage = cParams.hasToCaptureImage;
             obj.computeFileNameAndOutputFolder();
         end
@@ -125,100 +112,50 @@ classdef StressNormSuperEllipseComputer < handle
             sPnorm2 = obj.microProblem.computeStressPnorm(stress,p);
         end
         
-        function [coord, connec] = readCoordConnec(obj)
-            obj.testName = 'RVE_Square_Triangle_FineFine';
-            %obj.testName = 'RVE_Square_Triangle_Fine';
-            run(obj.testName)
-        end
-        
-        function createMicroProblem(obj)
-            [coord, connec] = obj.readCoordConnec();
-            s.coord = coord(:,2:end-1);
-            s.connec = connec(:,2:end);
-            mesh = Mesh_Total(s);
-            
+        function ls = createLevelSet(obj)
+            sM.coord  = obj.meshBackground.coord;
+            sM.connec = obj.meshBackground.connec;
+            s.mesh = Mesh_Total(sM);
             
             s.widthH = obj.mx;
             s.widthV = obj.my;
-            s.pnorm = obj.q;
+            s.pnorm  = obj.q;
             s.type = 'smoothRectangle';
             
             s.levelSetCreatorSettings = s;
             s.type = 'LevelSet';
-            s.mesh = mesh;
-            s.scalarProductSettings.epsilon = 1;
             
-            ls = LevelSet(s);
-            
-            uMesh = ls.getUnfittedMesh;
-            
-            
-            cInner = uMesh.meshBackground.connec(uMesh.backgroundFullCells,:);
-            connec = [cInner;uMesh.innerCutMesh.connec];
-            coord = uMesh.innerCutMesh.coord;
-            
-            [sM.coord,sM.connec] = obj.computeUniqueCoordConnec(coord,connec);
-                        
-            bMesh = uMesh.meshBackground;
-            % bMesh.plot()
-            
-            
-            coord = bMesh.coord;
-            coord(:,3) = 0;
-            mshG = msh(coord,bMesh.connec);
-            meshMmg  = mmg(mshG,1e-3);
-           
-            hausd(meshMmg,0.01);            
-            hmin(meshMmg,0.001);
-            hmax(meshMmg,0.01);
-            
-            %hausd(meshMmg,0.005);            
-            %hmin(meshMmg,0.0005);
-            %hmax(meshMmg,0.005);            
-            
-            map(meshMmg,ls.value);
-           
-            verbose(meshMmg,-1);
-            meshMmg.oldFileName = [obj.fileName,'Out'];
-            meshMmg.newFileName = [obj.fileName,'In'];
-            
-            mesh1 = runLs(meshMmg);
-            
-            it = mesh1.col == 3;
-            connec = mesh1.elt(it,:);
-            coord  = mesh1.vtx(:,1:2);
-            [s.coord,s.connec] = obj.computeUniqueCoordConnec(coord,connec);
-            
-            
-            mF = Mesh().create(s);
-              
-           figure(10)
-           clf()
-           mF.plot();
-           drawnow
-            
+            s.scalarProductSettings.epsilon = 1;            
+            levelSet = LevelSet(s);            
+            ls = levelSet.value;
+        end
+        
+        function createBackgroundMesh(obj)
+            obj.testName = 'RVE_Square_Triangle_FineFine';            
+            %obj.testName = 'RVE_Square_Triangle_Fine';
+            s.testName = obj.testName;
+            obj.meshBackground = Mesh().createFromFile(s); 
+        end
+        
+        function createMesh(obj)
+            s.fileName = obj.fileName;
+            s.levelSet = obj.createLevelSet();
+            s.meshBackground = obj.meshBackground;
+            s.hMesh = obj.hMesh;
+            mCreator = MeshCreatorFromLevelSetWithMMG(s);
+            obj.mesh = mCreator.create();
+        end
+        
+        function createMicroProblem(obj)
+            obj.createBackgroundMesh();
+            obj.createMesh();
             femSolver = Elastic_Problem_Micro.create(obj.testName);
-            femSolver.setMesh(mF);
-            
+            femSolver.setMesh(obj.mesh);            
             props.kappa = .75;
             props.mu    = .375;
             femSolver.setMatProps(props);
             obj.microProblem = femSolver;
         end
-        
-        function [newCoord,newConnec] = computeUniqueCoordConnec(obj,coord,connec)
-            allNodes = connec(:);
-            [uNodes,ind,ind2] = unique(allNodes,'rows','stable');
-            
-            allCoords    = coord;
-            uniqueCoords = allCoords(uNodes,:);
-            newCoord    = uniqueCoords;
-            
-            nnode = size(connec,2);
-            nCell = size(connec,1);
-            newConnec = reshape(ind2,nCell,nnode);
-        end
-        
         
     end
     

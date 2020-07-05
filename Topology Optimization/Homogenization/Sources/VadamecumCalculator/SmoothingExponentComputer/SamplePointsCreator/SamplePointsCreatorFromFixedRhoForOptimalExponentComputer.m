@@ -1,10 +1,6 @@
 classdef SamplePointsCreatorFromFixedRhoForOptimalExponentComputer ...
         < SamplePointsCreatorForOptimalExponentComputer
-    
-%     properties (Access = public)
-%      
-%     end
-    
+
     properties (Access = private)
         txiMax
         txiMin           

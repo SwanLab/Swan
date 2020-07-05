@@ -25,14 +25,14 @@ classdef SmoothingRectangleVademecum < handle
         
         function init(obj)
             obj.createOutPutPath();
+            obj.firstVademecum = 'SuperEllipseQ2';            
             %obj.firstVademecum = 'SuperEllipseQOptAnalytic';
-            obj.firstVademecum = 'SuperEllipseQ2';
-            obj.secondVademecum = 'SuperEllipseQInf';
+            obj.secondVademecum = 'SuperEllipseQMax';            
         end
         
         function createOutPutPath(obj)
-            firstPart  = fullfile('/home','alex','Dropbox');
-            secondPart = fullfile('PaperStress','VademecumHomogenizedProperties/');
+            firstPart  = fullfile('/home','alex');
+            secondPart = fullfile('git-repos','MicroStructurePaper','Other');
             obj.outPutPath = fullfile(firstPart,secondPart);
         end        
         

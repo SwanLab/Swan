@@ -12,11 +12,11 @@ classdef StressNormVsQproblemCreator < handle
         xi
         fileName
         phi
-        hMesh
         pNorm
         print
         hasToCaptureImage
         stressNormParameters
+        hMesh
     end
     
     methods (Access = public)
@@ -49,9 +49,9 @@ classdef StressNormVsQproblemCreator < handle
             obj.xi       = cParams.xi;
             obj.fileName = cParams.fileName;
             obj.phi      = cParams.phi;
-            obj.hMesh    = cParams.hMesh;
             obj.pNorm    = cParams.pNorm;
             obj.print    = cParams.print;
+            obj.hMesh    = cParams.hMesh;
             obj.hasToCaptureImage = cParams.hasToCaptureImage;           
         end
 
@@ -59,7 +59,6 @@ classdef StressNormVsQproblemCreator < handle
             s.phi      = obj.phi;
             s.pNorm    = obj.pNorm;
             s.print    = obj.print;
-            s.hMesh    = obj.hMesh;
             s.iter     = obj.iter;
             s.fileName = obj.fileName;            
             s.hasToCaptureImage = obj.hasToCaptureImage;            
@@ -87,6 +86,7 @@ classdef StressNormVsQproblemCreator < handle
             s.mx = SuperEllipseParamsRelator.mx(obj.xi,obj.rho,q);
             s.my = SuperEllipseParamsRelator.my(obj.xi,obj.rho,q);
             s.q  = q;
+            s.hMesh = obj.hMesh;
             sN = StressNormSuperEllipseComputer(s);
             sPnorm = sN.compute();
             sN.printImage();

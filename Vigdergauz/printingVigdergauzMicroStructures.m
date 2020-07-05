@@ -28,14 +28,7 @@ classdef printingVigdergauzMicroStructures < handle
             
             
             dV = topOpt.designVariable;
-            
-            
-            
-            
-            
-            
-            
-            
+              
             
         end
         

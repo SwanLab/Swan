@@ -1,4 +1,5 @@
 classdef testShowingError < test
+   
     properties (Access = protected)
        error
     end

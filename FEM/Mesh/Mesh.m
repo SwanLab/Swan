@@ -26,6 +26,14 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             obj.computeElementCoordinates();
         end
         
+        function obj = createFromFile(obj,cParams)
+            testName = cParams.testName;
+            [coordV, connecV] = obj.readCoordConnec(testName);
+            s.coord  = coordV(:,2:end-1);
+            s.connec = connecV(:,2:end);
+            obj = obj.create(s);
+        end
+        
         function objClone = clone(obj)
             objClone = copy(obj);
         end
@@ -136,12 +144,19 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             end
             
         end        
-       
         
         function computeGeometryType(obj)
             factory = MeshGeometryType_Factory();
             obj.geometryType = factory.getGeometryType(obj.ndim,obj.nnode,obj.embeddedDim);
         end
+        
+    end
+    
+    methods (Access = private, Static)
+       
+        function [coord, connec] = readCoordConnec(testName)
+            run(testName)            
+        end     
         
     end
     

@@ -34,7 +34,7 @@ classdef OneOptimalExponentComputerAndFunctionVariation < handle
                 
         function compute(obj)         
             obj.computeOptimalExponent();
-            obj.printOptimalMicroStructure();
+            %obj.printOptimalMicroStructure();
             nValues = 50;
             obj.computeStressNormRelationWithQ(nValues);
         end

@@ -20,13 +20,22 @@ classdef VademecumCalculator < handle
         
         function obj = VademecumCalculator(cParams)
             obj.init(cParams)
+            obj.createOptimalExponentComputer();            
         end
         
         function compute(obj)
-            obj.createOptimalExponentComputer();
             obj.computeOptimalExponent();
-            obj.obtainCellVariables();
+            obj.obtainCellVariables(obj.qOptimal);
         end
+        
+        function obtainCellVariables(obj,q)
+            cVariables = obj.optimalExponent.obtainCellVariables(q);  
+            cVariables.rho = obj.rho;
+            cVariables.xi = obj.xi;
+            cVariables.phi = obj.phi;
+            cVariables.q = q;
+            obj.cellVariables = cVariables;
+        end        
         
     end
     
@@ -59,15 +68,7 @@ classdef VademecumCalculator < handle
              obj.qOptimal = q;
         end
         
-        function obtainCellVariables(obj)
-            q = obj.qOptimal;
-            cVariables = obj.optimalExponent.obtainCellVariables(q);  
-            cVariables.rho = obj.rho;
-            cVariables.xi = obj.xi;
-            cVariables.phi = obj.phi;
-            cVariables.q = q;
-            obj.cellVariables = cVariables;
-        end
+
         
     end
     

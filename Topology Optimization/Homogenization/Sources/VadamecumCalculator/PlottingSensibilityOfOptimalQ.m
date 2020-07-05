@@ -29,7 +29,7 @@ classdef PlottingSensibilityOfOptimalQ < handle
         
         function obj = PlottingSensibilityOfOptimalQ()
             obj.init();
-            for iTest = 2:length(obj.rhoV)
+            for iTest = 3:length(obj.rhoV)
                 obj.rho = obj.rhoV(iTest);
                 obj.xi  = obj.xiV(iTest);
                 obj.computePhiV();
@@ -52,9 +52,9 @@ classdef PlottingSensibilityOfOptimalQ < handle
             obj.rhoV = [0.9 0.9 0.5 0.5];
             obj.xiV  = [83.7951 58.0865 39.0219 27.0665]*pi/180;
             obj.hMesh = 0.2;
-            obj.pNorm = 16;
+            obj.pNorm = 'max';
             obj.fileName = 'MaxStressVsQ';
-            obj.outPutPath = '/home/alex/git-repos/MicroStructurePaper/';
+            obj.outPutPath = '/home/alex/Dropbox/GregMeeting/';
             obj.nValues = 50;
         end
         
