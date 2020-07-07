@@ -1,8 +1,11 @@
 classdef InnerMesh < Mesh
     
+    properties (GetAccess = public, SetAccess = private)
+        backgroundMesh        
+    end
+    
     properties (Access = private)
         globalConnec
-        backgroundCoord
         all2unique
         unique2all
         uniqueNodes
@@ -20,21 +23,16 @@ classdef InnerMesh < Mesh
             obj.computeElementCoordinates();
         end
         
-        function add2plot(obj,ax)
-            patch(ax,'vertices',obj.coord,'faces',obj.connec,...
-                'edgecolor',[0.5 0 0], 'edgealpha',0.5,'edgelighting','flat',...
-                'facecolor',[1 0 0],'facelighting','flat')
-            axis('equal');
-        end
+
         
     end
     
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.globalConnec    = cParams.globalConnec;
-            obj.backgroundCoord = cParams.backgroundCoord;
-            obj.isInBoundary    = cParams.isInBoundary;
+            obj.globalConnec   = cParams.globalConnec;
+            obj.backgroundMesh = cParams.backgroundMesh;
+            obj.isInBoundary   = cParams.isInBoundary;
             obj.type = 'INTERIOR';
         end
         
@@ -48,7 +46,7 @@ classdef InnerMesh < Mesh
         
         function computeCoords(obj)
             uNodes       = obj.uniqueNodes;
-            allCoords    = obj.backgroundCoord;
+            allCoords    = obj.backgroundMesh.coord;
             uniqueCoords = allCoords(uNodes,:);
             obj.coord    = uniqueCoords;
         end

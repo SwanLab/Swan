@@ -79,14 +79,15 @@ classdef testVigdergauzMicroStructure < testShowingError & testTopOptComputation
             cParams.type = 'SIMPLE';
             cParams.globalConnec = mesh.globalConnec;
             cParams.npnod = mesh.innerMesh.npnod;
-            cParams.backgroundMesh = mesh.meshBackground;
+            cParams.backgroundMesh = obj.topOpt.designVariable.mesh;
             cParams.innerToBackground = mesh.backgroundFullCells;
         end        
         
         function cParams = createInnerCutParams(obj,mesh)
             cParams.mesh = mesh.innerCutMesh; 
             cParams.type = 'CutMesh';
-            cParams.meshBackground = mesh.meshBackground;            
+            cParams.meshBackground = obj.topOpt.designVariable.mesh;
+          
         end               
         
     end

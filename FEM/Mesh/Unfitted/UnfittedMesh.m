@@ -1,11 +1,9 @@
 classdef UnfittedMesh < handle
     
-    
     properties (GetAccess = public, SetAccess = private)
         innerMesh
         innerCutMesh
         boundaryCutMesh
-        unfittedBoxMeshes
         
         backgroundEmptyCells
         
@@ -13,7 +11,7 @@ classdef UnfittedMesh < handle
         backgroundFullCells
         globalConnec
         unfittedType
-        meshBackground
+        
         
         
         %TopOpt
@@ -28,17 +26,20 @@ classdef UnfittedMesh < handle
         
         
         isInBoundary
-        
+        backgroundMesh
     end
     
     properties (Access = private)
         levelSet
+        unfittedBoxMeshes
+        meshBackground
     end
     
     methods (Access = public)
         
         function obj = UnfittedMesh(cParams)
             obj.meshBackground = cParams.meshBackground;
+            obj.backgroundMesh = cParams.meshBackground;
             
             obj.unfittedType = cParams.unfittedType;
 
@@ -88,6 +89,22 @@ classdef UnfittedMesh < handle
             
         end
         
+        
+        function plotBoundary(obj)
+            s.mesh = obj.boundaryCutMesh;
+            mP = MeshPlotter(s);
+            mP.plotWithGrid();     
+            
+            for imesh = 1:length(obj.unfittedBoxMeshes.isBoxFaceMeshActive)
+                if obj.unfittedBoxMeshes.isBoxFaceMeshActive(imesh)
+                    m = obj.unfittedBoxMeshes.boxFaceMeshes{imesh};
+                    s.mesh = m;
+                    mP = MeshPlotter(s);
+                    mP.plot();                      
+                end
+            end
+        end
+        
         function plot(obj)
             % figure
             switch obj.unfittedType
@@ -110,11 +127,15 @@ classdef UnfittedMesh < handle
                 case 'INTERIOR'
                     % figure;
                   %  hold on
-                    obj.innerMesh.plot();
-                    obj.innerCutMesh.plot();
-                    light
-                    axis equal off
-                    hold off
+                    s.mesh = obj;
+                    mP = MeshPlotter(s);
+                    mP.plotWithGrid();
+%                     obj.innerMesh.plot();
+%                     obj.innerCutMesh.plot();
+%                     obj.boundaryCutMesh.plot();
+%                     light
+%                     axis equal off
+%                     hold off
             end
         end
         
@@ -142,7 +163,7 @@ classdef UnfittedMesh < handle
         
         function computeInnerMesh(obj)
             obj.computeInnerGlobalConnec();
-            s.backgroundCoord = obj.meshBackground.coord;
+            s.backgroundMesh = obj.meshBackground;
             s.globalConnec    = obj.globalConnec;
             s.isInBoundary    = obj.isInBoundary;
             obj.innerMesh = InnerMesh(s);
@@ -155,7 +176,7 @@ classdef UnfittedMesh < handle
         
         function computeInnerCutMesh(obj)
             s.type                   = 'INTERIOR';
-            s.meshBackground          = obj.meshBackground;
+            s.backgroundMesh          = obj.meshBackground;
             s.interpolationBackground = Interpolation.create(obj.meshBackground,'LINEAR');
             s.backgroundFullCells     = obj.backgroundFullCells;
             s.backgroundEmptyCells    = obj.backgroundEmptyCells;
@@ -168,7 +189,7 @@ classdef UnfittedMesh < handle
             function computeBoundaryCutMesh(obj)
             if ~obj.isInBoundary
                 s.type                    = 'BOUNDARY';
-                s.meshBackground          = obj.meshBackground;
+                s.backgroundMesh          = obj.meshBackground;
                 s.interpolationBackground = Interpolation.create(obj.meshBackground,'LINEAR');
                 s.backgroundFullCells     = obj.backgroundFullCells;
                 s.backgroundEmptyCells    = obj.backgroundEmptyCells;
@@ -217,9 +238,9 @@ classdef UnfittedMesh < handle
                         
                     end
                 end
-                obj.unfittedBoxMeshes.boxFaceMeshes = boxFaceMeshes;
-                obj.unfittedBoxMeshes.isBoxFaceMeshActive = isBoxFaceMeshActive;
-                obj.unfittedBoxMeshes.nodesInBoxFaces = nodesInBoxFaces;
+                obj.unfittedBoxMeshes.boxFaceMeshes        = boxFaceMeshes;
+                obj.unfittedBoxMeshes.isBoxFaceMeshActive  = isBoxFaceMeshActive;
+                obj.unfittedBoxMeshes.nodesInBoxFaces      = nodesInBoxFaces;
                 obj.unfittedBoxMeshes.globalConnectivities = globalConnectivities;
             end
         end
@@ -288,23 +309,23 @@ classdef UnfittedMesh < handle
             mass = sum(fInt);
         end
         
-        function add2plot(obj,ax,removedDim,removedCoord)
-            switch obj.unfittedType
-                case 'BOUNDARY'
-                    obj.boundaryCutMesh.add2plot(ax);
-                    for imesh = 1:length(obj.unfittedBoxMeshes.isBoxFaceMeshActive)
-                        if obj.unfittedBoxMeshes.isBoxFaceMeshActive(imesh)
-                            m = obj.unfittedBoxMeshes.boxFaceMeshes{imesh};
-                            m.add2plot(ax,removedDim,removedCoord);
-                        end
-                    end
-                    
-                case 'INTERIOR'
-                    obj.innerMesh.add2plot(ax);
-                    obj.innerCutMesh.add2plot(ax,removedDim,removedCoord);                    
-            end
-            
-        end
+%         function add2plot(obj,ax,removedDim,removedCoord)
+%             switch obj.unfittedType
+%                 case 'BOUNDARY'
+%                     obj.boundaryCutMesh.add2plot(ax);
+%                     for imesh = 1:length(obj.unfittedBoxMeshes.isBoxFaceMeshActive)
+%                         if obj.unfittedBoxMeshes.isBoxFaceMeshActive(imesh)
+%                             m = obj.unfittedBoxMeshes.boxFaceMeshes{imesh};
+%                             m.add2plot(ax,removedDim,removedCoord);
+%                         end
+%                     end
+%                     
+%                 case 'INTERIOR'
+%                     obj.innerMesh.add2plot(ax);
+%                     obj.innerCutMesh.add2plot(ax,removedDim,removedCoord);                    
+%             end
+%             
+%         end
         
     end
     

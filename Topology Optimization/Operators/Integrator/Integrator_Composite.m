@@ -42,7 +42,7 @@ classdef Integrator_Composite < Integrator
                 integrator = obj.integrators{iInt};
                 if contains(class(integrator),'Composite')
                     intLocal = integrator.integrateAndSum(nodalFunc);
-                    npnod = obj.mesh.meshBackground.npnod;
+                    npnod = size(nodalFunc,1);
                     obj.RHScells = zeros(npnod,1);
                     obj.RHSsubcells = intLocal;
                     obj.assembleBoxFaceToGlobal(iInt);

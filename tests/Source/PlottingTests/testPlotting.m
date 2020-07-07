@@ -4,6 +4,7 @@ classdef testPlotting < testNotShowingError...
     
     properties (Access = protected, Abstract)
         testName
+        meshType
     end
     
     properties (Access = protected)
@@ -18,9 +19,12 @@ classdef testPlotting < testNotShowingError...
         end
         
         function plot(obj)
-            figure
-            obj.mesh.plot();
-            view(obj.getViewAngle());
+            if isequal(obj.meshType,'BOUNDARY')            
+                obj.mesh.plotBoundary();
+            elseif isequal(obj.meshType,'INTERIOR')            
+                obj.mesh.plot();
+            end
+             view(obj.getViewAngle());            
         end
         
         function hasPassed = hasPassed(obj)
