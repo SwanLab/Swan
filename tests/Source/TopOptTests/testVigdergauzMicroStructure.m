@@ -56,40 +56,10 @@ classdef testVigdergauzMicroStructure < testShowingError & testTopOptComputation
         end
         
         function computeFractionVolume(obj)
-            s.mesh = obj.unfittedMesh;
-            s.type = 'COMPOSITE';
-            s = obj.createInteriorParams(s,s.mesh);            
-            integrator = Integrator.create(s);
-            nodalF = ones(size(obj.designVariable.value));            
-            xP = integrator.integrateAndSum(nodalF);                                    
-            obj.numericalVolume = sum(xP);
+            v = obj.unfittedMesh.computeMass();
+            obj.numericalVolume = v;              
         end
-        
-       function cParams = createInteriorParams(obj,cParams,mesh)
-            cParamsInnerCut = obj.createInnerCutParams(mesh);
-            cParams.compositeParams{1} = cParamsInnerCut;
-            if mesh.innerMesh.nelem ~= 0
-            cParamsInner = obj.createInnerParams(mesh);
-            cParams.compositeParams{2} = cParamsInner;
-            end
-        end        
-        
-        function cParams = createInnerParams(obj,mesh)
-            cParams.mesh = mesh.innerMesh;
-            cParams.type = 'SIMPLE';
-            cParams.globalConnec = mesh.globalConnec;
-            cParams.npnod = mesh.innerMesh.npnod;
-            cParams.backgroundMesh = obj.topOpt.designVariable.mesh;
-            cParams.innerToBackground = mesh.backgroundFullCells;
-        end        
-        
-        function cParams = createInnerCutParams(obj,mesh)
-            cParams.mesh = mesh.innerCutMesh; 
-            cParams.type = 'CutMesh';
-            cParams.meshBackground = obj.topOpt.designVariable.mesh;
-          
-        end               
-        
+
     end
     
     

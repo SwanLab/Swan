@@ -72,7 +72,6 @@ classdef CutMesh < Mesh
                 s.coord  = coord;
                 s.connec = connecCut;
                 backgroundCutMesh = Mesh().create(s);
-                %backgroundCutMesh.computeEdges();
                 
                 s.backgroundMesh = backgroundCutMesh;
                 s.cutElems = cutElems;
@@ -117,8 +116,7 @@ classdef CutMesh < Mesh
                 obj.coord(:,1:2)  = cM.coord;
                 
                 xCoordIso = cM.xCoordsIso;
-               % xCoordIso = permute(xCoordIso,[1 3 2]);
-              %  xCoordIso = permute(xCoordIso,[3 2 1]);    
+                
                 obj.subcellIsoCoords = xCoordIso;                                           
                 
                 obj.cellContainingSubcell = cM.cellContainingSubcell;                
@@ -203,14 +201,6 @@ classdef CutMesh < Mesh
             obj.computeElementCoordinates();
             
         end
-        
-      
-        
-        function setLevelSetUnfitted(obj,LS)
-            obj.levelSet_unfitted = LS;
-        end
-        
-
         
     end
     
@@ -402,19 +392,9 @@ classdef CutMesh < Mesh
                 coordsSubCell = coordGlobal(cell,:);
                 indexes = obj.findIndexesComparingCoords(coordsSubCell,obj.coord);
                 
-                %                 p = reshape(obj.index2,[],obj.nCutCells)';
-                %                 cell = obj.backgroundCutCells == cellOfSubCell(isub);
-                %                 indexes = p(cell,:);
-                
-                
-                %norm(indexes(:) - indexes2(:))
-                
                 connecV(isub,:) = indexes(connecLocal(isub,:));
                 
                 
-                %  icell = obj.cellContainingSubcell(isub);
-                %  indexes = obj.findSubcellNodesIndexes(icell);
-                %  obj.assembleConnecs(isub,indexes);
             end
             obj.connec = connecV;
         end
@@ -426,21 +406,10 @@ classdef CutMesh < Mesh
             obj.index2 = ind2;
         end
         
-        function indexes = findSubcellNodesIndexes(obj,icell)
-            thisSubcellCoords = obj.coord_global_raw(obj.cellContainingNodes == icell,:);
-            indexes = obj.findIndexesComparingCoords(thisSubcellCoords,obj.coord);
-        end
-        
-        function assembleConnecs(obj,isub,indexes)
-            obj.connec(isub,:) = indexes(obj.connec_local(isub,:));
-        end
-        
         function returnNullMesh(obj)
             obj.coord = zeros(0,obj.ndim);
             obj.connec = [];
         end
-        
-
         
     end
     

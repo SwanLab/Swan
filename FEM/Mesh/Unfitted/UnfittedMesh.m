@@ -1,63 +1,30 @@
 classdef UnfittedMesh < handle
     
-    properties (GetAccess = public, SetAccess = private)
+    properties (Access = private)
         innerMesh
         innerCutMesh
-        boundaryCutMesh
+        boundaryCutMesh        
+        unfittedBoxMeshes   
         
-        backgroundEmptyCells
-        
-        %TopOpt + Unfitted
-        backgroundFullCells
         globalConnec
-        unfittedType
-        
-        
-        
-        %TopOpt
+
+        backgroundFullCells
+        backgroundEmptyCells
         backgroundCutCells
-        
-        cellContainingSubcell
-        geometryType
-        coord
-        connec
-        
-        
-        
-        
-        isInBoundary
-        backgroundMesh
+
+        backgroundMesh           
     end
     
     properties (Access = private)
+        unfittedType
+        isInBoundary     
         levelSet
-        unfittedBoxMeshes
-        meshBackground
     end
     
     methods (Access = public)
         
         function obj = UnfittedMesh(cParams)
-            obj.meshBackground = cParams.meshBackground;
-            obj.backgroundMesh = cParams.meshBackground;
-            
-            obj.unfittedType = cParams.unfittedType;
-
-            if isobject(cParams)
-                if (isempty(cParams.isInBoundary))
-                    obj.isInBoundary = false;
-                else
-                    obj.isInBoundary = cParams.isInBoundary;
-                end
-            else
-                if isfield(cParams,'isInBoundary')
-                    obj.isInBoundary = cParams.isInBoundary;
-                else
-                    obj.isInBoundary = false;
-                end
-            end
-            
-             
+            obj.init(cParams);
         end
         
         function compute(obj,lvlSet)
@@ -65,13 +32,7 @@ classdef UnfittedMesh < handle
             obj.levelSet = lvlSet;
             
             cellsClassifier = CellsClassifier;
-            [F,E,C] = cellsClassifier.classifyCells(lvlSet,obj.meshBackground.connec);
-            
-            
-            %1.subcellIsoCoords
-            %2.cellContainingSubcell
-            
-            
+            [F,E,C] = cellsClassifier.classifyCells(lvlSet,obj.backgroundMesh.connec);
             
             %Both
             obj.backgroundFullCells  = F;
@@ -84,86 +45,47 @@ classdef UnfittedMesh < handle
             obj.computeBoundaryCutMesh();
             obj.computeUnfittedBoxMesh();
             
-            obj.updateParamsforTopOpt();
-            
-            
         end
         
-        
         function plotBoundary(obj)
-            s.mesh = obj.boundaryCutMesh;
-            mP = MeshPlotter(s);
-            mP.plotWithGrid();     
-            
+            figure 
+            hold on            
+            obj.plotMesh(obj.backgroundMesh);            
+            obj.plotMesh(obj.boundaryCutMesh);
             for imesh = 1:length(obj.unfittedBoxMeshes.isBoxFaceMeshActive)
                 if obj.unfittedBoxMeshes.isBoxFaceMeshActive(imesh)
-                    m = obj.unfittedBoxMeshes.boxFaceMeshes{imesh};
-                    s.mesh = m;
-                    mP = MeshPlotter(s);
-                    mP.plot();                      
+                    uBoxMesh = obj.unfittedBoxMeshes.boxFaceMeshes{imesh};
+                    uBoxMesh.plotAll();
                 end
             end
         end
         
         function plot(obj)
-            % figure
-            switch obj.unfittedType
-                case 'BOUNDARY'
-                    %obj.oldUnfittedMeshBoundary.plot();
-                    %figure
-                    hold on
-                    obj.boundaryCutMesh.plot();
-                    
-                    for imesh = 1:length(obj.unfittedBoxMeshes.isBoxFaceMeshActive)
-                        if obj.unfittedBoxMeshes.isBoxFaceMeshActive(imesh)
-                            m = obj.unfittedBoxMeshes.boxFaceMeshes{imesh};
-                            m.plot();
-                        end
-                    end
-                    
-                    light
-                    axis equal off
-                    hold off
-                case 'INTERIOR'
-                    % figure;
-                  %  hold on
-                    s.mesh = obj;
-                    mP = MeshPlotter(s);
-                    mP.plotWithGrid();
-%                     obj.innerMesh.plot();
-%                     obj.innerCutMesh.plot();
-%                     obj.boundaryCutMesh.plot();
-%                     light
-%                     axis equal off
-%                     hold off
-            end
+            figure 
+            hold on
+            obj.plotAll()
+        end
+        
+        function plotAll(obj)
+            obj.plotMesh(obj.backgroundMesh);
+            obj.plotMesh(obj.innerMesh);
+            obj.plotMesh(obj.innerCutMesh);
+            obj.plotMesh(obj.boundaryCutMesh);                                
         end
         
     end
     
     methods (Access = private)
         
-        function updateParamsforTopOpt(obj)
-            
-            switch obj.unfittedType
-                case 'BOUNDARY'
-                    mesh = obj.boundaryCutMesh;
-                case 'INTERIOR'
-                    mesh = obj.innerCutMesh;
-            end
-            
-            if isprop(mesh,'geometryType')
-                obj.geometryType = obj.innerMesh.geometryType;
-            end
-            
-            obj.coord  = mesh.coord; %Why?? Not necessary
-            obj.connec = mesh.connec; %Why?? Not necessary
-            
-        end
+        function init(obj,cParams)
+            obj.backgroundMesh = cParams.meshBackground;            
+            obj.unfittedType   = cParams.unfittedType;     
+            obj.isInBoundary   = cParams.isInBoundary;            
+        end        
         
         function computeInnerMesh(obj)
             obj.computeInnerGlobalConnec();
-            s.backgroundMesh = obj.meshBackground;
+            s.backgroundMesh = obj.backgroundMesh;
             s.globalConnec    = obj.globalConnec;
             s.isInBoundary    = obj.isInBoundary;
             obj.innerMesh = InnerMesh(s);
@@ -171,13 +93,13 @@ classdef UnfittedMesh < handle
         
         function computeInnerGlobalConnec(obj)
             fullCells = obj.backgroundFullCells;
-            obj.globalConnec = obj.meshBackground.connec(fullCells,:);
+            obj.globalConnec = obj.backgroundMesh.connec(fullCells,:);
         end
         
         function computeInnerCutMesh(obj)
             s.type                   = 'INTERIOR';
-            s.backgroundMesh          = obj.meshBackground;
-            s.interpolationBackground = Interpolation.create(obj.meshBackground,'LINEAR');
+            s.backgroundMesh          = obj.backgroundMesh;
+            s.interpolationBackground = Interpolation.create(obj.backgroundMesh,'LINEAR');
             s.backgroundFullCells     = obj.backgroundFullCells;
             s.backgroundEmptyCells    = obj.backgroundEmptyCells;
             s.backgroundCutCells      = obj.backgroundCutCells;
@@ -186,23 +108,23 @@ classdef UnfittedMesh < handle
             obj.innerCutMesh = CutMesh(s);
         end
         
-            function computeBoundaryCutMesh(obj)
+        function computeBoundaryCutMesh(obj)
             if ~obj.isInBoundary
                 s.type                    = 'BOUNDARY';
-                s.backgroundMesh          = obj.meshBackground;
-                s.interpolationBackground = Interpolation.create(obj.meshBackground,'LINEAR');
+                s.backgroundMesh          = obj.backgroundMesh;
+                s.interpolationBackground = Interpolation.create(obj.backgroundMesh,'LINEAR');
                 s.backgroundFullCells     = obj.backgroundFullCells;
                 s.backgroundEmptyCells    = obj.backgroundEmptyCells;
-                s.backgroundCutCells      = obj.backgroundCutCells;                
-                s.isInBoundary            = obj.isInBoundary;                
+                s.backgroundCutCells      = obj.backgroundCutCells;
+                s.isInBoundary            = obj.isInBoundary;
                 s.levelSet = obj.levelSet;
                 obj.boundaryCutMesh = CutMesh(s);
             end
         end
         
         function computeUnfittedBoxMesh(obj)
-            if isequal(class(obj.meshBackground),'Mesh_Total')
-                m = obj.meshBackground;
+            if isequal(class(obj.backgroundMesh),'Mesh_Total')
+                m = obj.backgroundMesh;
                 fMeshes = m.boxFaceMeshes;
                 fNodes  = m.nodesInBoxFaces;
                 fGlobalConnec = m.globalConnectivities;
@@ -220,14 +142,12 @@ classdef UnfittedMesh < handle
                         s.meshBackground = mesh;
                         s.interpolationBackground = interp;
                         cParams = SettingsMeshUnfitted(s);
-                        %cParams.type = 'BOUNDARY';
                         cParams.isInBoundary = true;
                         boxFaceMesh = UnfittedMesh(cParams);
                         
-                        %mshBack = boxFaceMesh.meshBackground;
                         
                         lsBoxFace = obj.levelSet(nodesInBoxFace);
-                        if any(sign(lsBoxFace)<0) %obj.isBoxMeshActive(lsBoxFace)
+                        if any(sign(lsBoxFace)<0)
                             boxFaceMesh.compute(lsBoxFace);
                             isBoxFaceMeshActive(iFace) = true;
                         end
@@ -249,25 +169,31 @@ classdef UnfittedMesh < handle
     
     methods (Access = public)
         
+        function mass = computeMass2(obj)
+            npnod = obj.backgroundMesh.npnod;
+            f = ones(npnod,1);
+            fInt = obj.integrateNodalFunction(f);
+            mass = sum(fInt);
+            mass2 = obj.computeMass();
+        end        
+        
         function m = computeMass(obj)
-            switch obj.unfittedType
-                case 'BOUNDARY'
-                    cParams.mesh = obj.boundaryCutMesh;
-                    cParams.type = obj.unfittedType;
-                    integrator = Integrator.create(cParams);
-                    nnodesBackground = size(obj.levelSet);
-                    fInt = integrator.integrate(ones(nnodesBackground));
-                    m = sum(fInt);
-                    
-                case 'INTERIOR'
-                    s.mesh = obj;
-                    s.type = 'COMPOSITE';
-                    s = obj.createInteriorParams(s,s.mesh);
-                    integrator = Integrator.create(s);
-                    nodalF = ones(size(obj.levelSet));
-                    fInt = integrator.integrateAndSum(nodalF);
-                    m = sum(fInt);
-            end
+            s.mesh = obj;
+            s.type = 'COMPOSITE';
+            s = obj.createInteriorParams(s,s.mesh);
+            integrator = Integrator.create(s);
+            nodalF = ones(size(obj.levelSet));
+            fInt = integrator.integrateAndSum(nodalF);
+            m = sum(fInt);
+        end
+        
+        function m = computePerimeter(obj)
+            cParams.mesh = obj.boundaryCutMesh;
+            cParams.type = obj.unfittedType;
+            integrator = Integrator.create(cParams);
+            nnodesBackground = size(obj.levelSet);
+            fInt = integrator.integrate(ones(nnodesBackground));
+            m = sum(fInt);
         end
         
         function int = integrateNodalFunction(obj,f)
@@ -278,7 +204,7 @@ classdef UnfittedMesh < handle
                 case 'INTERIOR'
                     cParams = obj.createInteriorParams(cParams,uMesh);
                 case 'BOUNDARY'
-                        cParams.compositeParams = cell(0);                    
+                    cParams.compositeParams = cell(0);
                     if ~isempty(uMesh.unfittedBoxMeshes)
                         meshes = uMesh.unfittedBoxMeshes;
                         cParams.boxFaceToGlobal = meshes.nodesInBoxFaces;
@@ -287,10 +213,10 @@ classdef UnfittedMesh < handle
                             isActive = meshes.isBoxFaceMeshActive(iMesh);
                             if isActive
                                 boxFaceMesh = meshes.boxFaceMeshes{iMesh};
-                                params = obj.createCompositeParams(boxFaceMesh,uMesh);
-                                params.boxFaceToGlobal = meshes.nodesInBoxFaces{iMesh};
-                                params.meshBackground = uMesh.meshBackground;
-                                cParams.compositeParams{iActive} = params;
+                                s = obj.createCompositeParams(boxFaceMesh,uMesh);
+                                s.boxFaceToGlobal = meshes.nodesInBoxFaces{iMesh};
+                                s.meshBackground = uMesh.backgroundMesh;
+                                cParams.compositeParams{iActive} = s;
                                 iActive = iActive + 1;
                             end
                         end
@@ -300,32 +226,7 @@ classdef UnfittedMesh < handle
             end
             integratorC = Integrator.create(cParams);
             int = integratorC.integrateAndSum(f);
-        end
-        
-        function mass = computeMass2(obj)
-            npnod = obj.meshBackground.npnod;
-            f = ones(npnod,1);
-            fInt = obj.integrateNodalFunction(f);
-            mass = sum(fInt);
-        end
-        
-%         function add2plot(obj,ax,removedDim,removedCoord)
-%             switch obj.unfittedType
-%                 case 'BOUNDARY'
-%                     obj.boundaryCutMesh.add2plot(ax);
-%                     for imesh = 1:length(obj.unfittedBoxMeshes.isBoxFaceMeshActive)
-%                         if obj.unfittedBoxMeshes.isBoxFaceMeshActive(imesh)
-%                             m = obj.unfittedBoxMeshes.boxFaceMeshes{imesh};
-%                             m.add2plot(ax,removedDim,removedCoord);
-%                         end
-%                     end
-%                     
-%                 case 'INTERIOR'
-%                     obj.innerMesh.add2plot(ax);
-%                     obj.innerCutMesh.add2plot(ax,removedDim,removedCoord);                    
-%             end
-%             
-%         end
+        end                
         
     end
     
@@ -354,32 +255,42 @@ classdef UnfittedMesh < handle
             cParams.type = 'SIMPLE';
             cParams.globalConnec = mesh.globalConnec;
             cParams.npnod = mesh.innerMesh.npnod;
-            cParams.backgroundMesh = mesh.meshBackground;
+            cParams.backgroundMesh = mesh.backgroundMesh;
             cParams.innerToBackground = mesh.backgroundFullCells;
         end
         
         function cParams = createInnerCutParams(obj,mesh)
             cParams.mesh = mesh.innerCutMesh;
             cParams.type = 'CutMesh';
-            cParams.meshBackground = mesh.meshBackground;
+            cParams.meshBackground = mesh.backgroundMesh;
         end
         
         function cParams = createBoundaryCutParams(obj,mesh)
             cParams.mesh = mesh.boundaryCutMesh;
             cParams.type = 'CutMesh';
-            cParams.meshBackground = mesh.meshBackground;
+            cParams.meshBackground = mesh.backgroundMesh;
         end
         
         function cParams = createCompositeParams(obj,mesh,thisMesh)
             cParams.mesh = mesh;
             cParams.type = 'COMPOSITE';
-            cParams.backgroundMesh = obj.meshBackground; %%
+            cParams.meshBackground = obj.backgroundMesh; %%
             cParams.globalConnec = obj.globalConnec;
             cParams.innerToBackground = [];
-            cParams.npnod = thisMesh.meshBackground.npnod;
+            cParams.npnod = thisMesh.backgroundMesh.npnod;
             cParams = obj.createInteriorParams(cParams,mesh);
         end
     end
- 
+    
+    methods (Access = private, Static)
+        
+        function plotMesh(mesh)
+            s.mesh = mesh;
+            mP = MeshPlotter(s);
+            mP.plot();
+        end
+        
+    end
+    
     
 end

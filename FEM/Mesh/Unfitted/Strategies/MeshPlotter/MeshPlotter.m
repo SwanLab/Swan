@@ -12,27 +12,26 @@ classdef MeshPlotter < handle
         
         function plotWithGrid(obj)
             figure
-            obj.plot();            
-            obj.plotBackgroundMesh();   
+            obj.plot();
         end
         
         function plot(obj)
             m = obj.mesh;
-            if isequal(class(m),'UnfittedMesh')
-                hold on
-                plot(m.innerMesh);
-                plot(m.innerCutMesh);
-                plot(m.boundaryCutMesh);                
-            else      
-                hold on                
-                if m.ndim == 2 && m.embeddedDim == 2 %(InnerMesh, InnerCutMesh)
-                    obj.plotInnerMeshIn2D();
-                elseif m.ndim == 2 && m.embeddedDim == 1 %(BoundaryCutMesh2D)
-                    obj.plotBoundaryMesh();
-                elseif m.ndim == 3 && m.embeddedDim == 2  %(BoundaryCutMesh3D)
-                    obj.plotBoundary3DMesh();
-                else         %(Others)
-                    obj.plotGeneralMesh();
+            if isequal(class(m),'Mesh_Total')
+                obj.plotBackgroundMesh();
+            else
+                if ~isempty(m)
+                    hold on
+                    if m.ndim == 2 && m.embeddedDim == 2 %(InnerMesh, InnerCutMesh)
+                        obj.plotInnerMeshIn2D();
+                    elseif m.ndim == 2 && m.embeddedDim == 1 %(BoundaryCutMesh2D)
+                        obj.plotBoundaryMesh();
+                    elseif m.ndim == 3 && m.embeddedDim == 2  %(BoundaryCutMesh3D)
+                        obj.plotBoundary3DMesh();
+                        
+                    else         %(Others)
+                        obj.plotGeneralMesh();
+                    end
                 end
             end
         end
@@ -42,15 +41,15 @@ classdef MeshPlotter < handle
     methods (Access = private)
         
         function plotGeneralMesh(obj)
-                m = obj.mesh;
-                p = patch('vertices',m.coord,'faces',m.connec);
-%                p.Edgecolor = 'b';
-                p.EdgeAlpha = 0.5;
-                p.EdgeLighting = 'flat';
-                p.FaceColor = [1 0 0];
-                p.FaceLighting = 'flat';
-                p.LineWidth = 0.5;
-                axis('equal');            
+            m = obj.mesh;
+            p = patch('vertices',m.coord,'faces',m.connec);
+            %                p.Edgecolor = 'b';
+            p.EdgeAlpha = 0.5;
+            p.EdgeLighting = 'flat';
+            p.FaceColor = [1 0 0];
+            p.FaceLighting = 'flat';
+            p.LineWidth = 0.5;
+            axis('equal');
         end
         
         function plotBoundary3DMesh(obj)
@@ -67,15 +66,15 @@ classdef MeshPlotter < handle
         end
         
         function plotBoundaryMesh(obj)
-                m = obj.mesh;
-                p = patch('vertices',m.coord,'faces',m.connec);
-                p.EdgeColor = 'g';
-                p.EdgeAlpha = 1;
-                p.EdgeLighting = 'flat';
-                p.LineWidth = 2.5;
-                p.LineStyle = '-';
-                axis('equal');            
-        end        
+            m = obj.mesh;
+            p = patch('vertices',m.coord,'faces',m.connec);
+            p.EdgeColor = 'g';
+            p.EdgeAlpha = 1;
+            p.EdgeLighting = 'flat';
+            p.LineWidth = 2.5;
+            p.LineStyle = '-';
+            axis('equal');
+        end
         
         function plotInnerMeshIn2D(obj)
             m = obj.mesh;
@@ -94,8 +93,8 @@ classdef MeshPlotter < handle
         end
         
         function plotBackgroundMesh(obj)
-            coor = obj.mesh.backgroundMesh.coord;
-            conn = obj.mesh.backgroundMesh.connec;
+            coor = obj.mesh.coord;
+            conn = obj.mesh.connec;
             p = patch('vertices',coor,'faces',conn);
             p.EdgeColor = 'k';
             p.EdgeAlpha = 0.5;
@@ -106,7 +105,7 @@ classdef MeshPlotter < handle
             axis('equal');
         end
         
-    end    
+    end
     
     methods (Access = public, Static)
         
