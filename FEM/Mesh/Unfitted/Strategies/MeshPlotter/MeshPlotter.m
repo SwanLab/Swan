@@ -17,7 +17,7 @@ classdef MeshPlotter < handle
         
         function plot(obj)
             m = obj.mesh;
-            if isequal(class(m),'Mesh_Total')
+            if isequal(class(m),'Mesh_Total') || isequal(class(m),'Mesh')
                 obj.plotBackgroundMesh();
             else
                 if ~isempty(m)
@@ -28,9 +28,6 @@ classdef MeshPlotter < handle
                         obj.plotBoundaryMesh();
                     elseif m.ndim == 3 && m.embeddedDim == 2  %(BoundaryCutMesh3D)
                         obj.plotBoundary3DMesh();
-                        
-                    else         %(Others)
-                        obj.plotGeneralMesh();
                     end
                 end
             end
@@ -40,7 +37,8 @@ classdef MeshPlotter < handle
     
     methods (Access = private)
         
-        function plotGeneralMesh(obj)
+        
+        function plotBoundary3DMesh(obj)
             m = obj.mesh;
             p = patch('vertices',m.coord,'faces',m.connec);
             %                p.Edgecolor = 'b';
@@ -48,19 +46,7 @@ classdef MeshPlotter < handle
             p.EdgeLighting = 'flat';
             p.FaceColor = [1 0 0];
             p.FaceLighting = 'flat';
-            p.LineWidth = 0.5;
-            axis('equal');
-        end
-        
-        function plotBoundary3DMesh(obj)
-            m = obj.mesh;
-            p = patch('vertices',m.coord,'faces',m.connec);
-            %                p.Edgecolor = 'b';
-            p.EdgeAlpha = 1;
-            p.EdgeLighting = 'flat';
-            p.FaceColor = [1 0 0];
-            p.FaceLighting = 'flat';
-            p.FaceAlpha = 0.1;
+            p.FaceAlpha = 1;
             p.LineWidth = 1.5;
             axis('equal');
         end
@@ -97,11 +83,12 @@ classdef MeshPlotter < handle
             conn = obj.mesh.connec;
             p = patch('vertices',coor,'faces',conn);
             p.EdgeColor = 'k';
-            p.EdgeAlpha = 0.5;
+            p.EdgeAlpha = 0.1;
             p.EdgeLighting = 'flat';
             p.FaceColor = 'none';
             p.FaceLighting = 'flat';
             p.FaceAlpha = 0;
+            p.LineWidth = 0.5;            
             axis('equal');
         end
         

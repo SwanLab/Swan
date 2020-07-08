@@ -34,7 +34,6 @@ classdef UnfittedMesh < handle
             cellsClassifier = CellsClassifier;
             [F,E,C] = cellsClassifier.classifyCells(lvlSet,obj.backgroundMesh.connec);
             
-            %Both
             obj.backgroundFullCells  = F;
             obj.backgroundEmptyCells = E;
             obj.backgroundCutCells   = C;

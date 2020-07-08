@@ -86,6 +86,7 @@ classdef CutMesh < Mesh
                 obj.connec = cM.connec;
                 obj.coord = zeros(size(cM.coord,1),size(cParams.backgroundMesh.coord,2));
                 obj.coord(:,1:2)  = cM.coord;
+            %    obj.coord(:,3) = cParams.backgroundMesh.coord(:,3);
 
                 xCoordIso = cM.xCoordsIso;
                 obj.subcellIsoCoords = xCoordIso;                 
