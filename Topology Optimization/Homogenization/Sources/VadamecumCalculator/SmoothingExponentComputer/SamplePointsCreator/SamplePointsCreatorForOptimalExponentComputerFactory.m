@@ -6,7 +6,7 @@ classdef SamplePointsCreatorForOptimalExponentComputerFactory < handle
            
           switch cParams.type
               case 'FromMxMy'
-                  obj = SamplePointsCreatorFromMxMyForOptimalExponentComputer();
+                  obj = SamplePointsCreatorFromMxMyForOptimalExponentComputer(cParams);
               case 'FromFixedRho'
                   obj = SamplePointsCreatorFromFixedRhoForOptimalExponentComputer(cParams);
               case 'FromFixedRhoAndTxi'

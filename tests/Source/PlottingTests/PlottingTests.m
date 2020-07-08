@@ -25,7 +25,7 @@ classdef PlottingTests < testRunner
             'testPlotSphereTetrahedra';
             'testPlotSphereHexahedra';                                
             'testPlotCylinderTetrahedra';
-            'testPlotCylinderHexahedra';  
+             'testPlotCylinderHexahedra';  
             };
         end
     end

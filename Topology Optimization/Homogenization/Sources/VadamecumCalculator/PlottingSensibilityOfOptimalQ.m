@@ -29,7 +29,7 @@ classdef PlottingSensibilityOfOptimalQ < handle
         
         function obj = PlottingSensibilityOfOptimalQ()
             obj.init();
-            for iTest = 2:length(obj.rhoV)
+            for iTest = 3:length(obj.rhoV)
                 obj.rho = obj.rhoV(iTest);
                 obj.xi  = obj.xiV(iTest);
                 obj.computePhiV();
@@ -51,15 +51,17 @@ classdef PlottingSensibilityOfOptimalQ < handle
         function init(obj)
             obj.rhoV = [0.9 0.9 0.5 0.5];
             obj.xiV  = [83.7951 58.0865 39.0219 27.0665]*pi/180;
-            obj.hMesh = 0.01;
+            obj.hMesh = 0.2;
             obj.pNorm = 'max';
             obj.fileName = 'MaxStressVsQ';
-            obj.outPutPath = '/home/alex/git-repos/MicroStructurePaper/';
+            obj.outPutPath = '/home/alex/Dropbox/GregMeeting/';
             obj.nValues = 50;
         end
         
         function computePhiV(obj)
-            obj.phiV = [obj.xi,pi - obj.xi,0,pi/4,pi/2,3*pi/4];            
+            %obj.phiV = [20*pi/32,21*pi/32,22*pi/32,23*pi/32,24*pi/32,...
+            %            obj.xi,pi - obj.xi,0,pi/4,pi/2,3*pi/4];       
+            obj.phiV = [obj.xi,pi - obj.xi,0,pi/4,pi/2,3*pi/4];                      
         end
         
         function createStressProblem(obj)
@@ -111,7 +113,8 @@ classdef PlottingSensibilityOfOptimalQ < handle
             for iphi = 1:length(obj.phiV)
                 q = obj.qOpt{iphi};
                 f = obj.fOpt{iphi};
-                plot(q(end),f(end),'-s','LineWidth',2,'Color',h{iphi}.Color)
+                [~,ind] = min(f);
+                plot(q(ind),f(ind),'-s','LineWidth',2,'Color',h{iphi}.Color)
             end
         end
         

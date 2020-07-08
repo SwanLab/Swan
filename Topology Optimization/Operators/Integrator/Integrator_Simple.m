@@ -35,6 +35,12 @@ classdef Integrator_Simple < Integrator
             LHS = obj.LHS;
         end
         
+        function norm = computeL2norm(obj,f)
+            fv(:,1) = f(:);
+            M = obj.LHS;
+            norm = fv'*M*fv;
+        end
+        
         function RHS = integrate(obj,F)
             obj.initShapes();
             obj.computeElementalRHS(F);

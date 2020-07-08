@@ -76,23 +76,31 @@ classdef VademecumTxiRhoPlotter < VademecumPlotter
     methods (Access = protected)
         
         function plotFigure(obj)
-            x = obj.xV;
-            y = obj.yV;
-            z = obj.value2print(obj.feasibleIndex);
-            ncolors = 50;
-            tri = delaunay(x,y);
-            obj.fig = figure;
-            tricontour(tri,x,y,z,ncolors)
-            colorbar
-            hold on
-            plot(x,y,'+');
-            ylim([0 1])
-            xlabel('$\xi$','Interpreter','latex');
-            ylabel('\rho');
-            tN = obj.titleName;
-            title(['$',tN,'$'],'interpreter','latex')
-            set(gca,'xtick',[0:pi/8:pi/2]) % where to set the tick marks
-            set(gca,'xticklabels',{'0','\pi/8','\pi/4','3\pi/8','\pi/2'})            
+            x(:,1) = obj.xV;
+            y(:,1) = obj.yV;
+            z(:,1) = obj.value2print(obj.feasibleIndex);
+            
+            
+            s.fileName = fullfile(obj.outPutPath,[obj.fileName,'XiRho']);
+            s.title    = obj.titleName;
+            s.axisAdder = XiRhoAxisAdder();
+            p  = SuperEllipseExponentContourPlotter(s); 
+            p.plot(x,y,z);
+%             
+%             ncolors = 50;
+%             tri = delaunay(x,y);
+%             obj.fig = figure;
+%             tricontour(tri,x,y,z,ncolors)
+%             colorbar
+%             hold on
+%             plot(x,y,'+');
+%             ylim([0 1])
+%             xlabel('$\xi$','Interpreter','latex');
+%             ylabel('\rho');
+%             tN = obj.titleName;
+%             title(['$',tN,'$'],'interpreter','latex')
+%             set(gca,'xtick',[0:pi/8:pi/2]) % where to set the tick marks
+%             set(gca,'xticklabels',{'0','\pi/8','\pi/4','3\pi/8','\pi/2'})            
         end
         
     end

@@ -76,7 +76,7 @@ classdef OptimalExponentsComparatorWithPNorm < handle
             %outputName = [outPutPath,'StressNormVsQForPmax'];
             %outputName = [outPutPath,'StressNormVsQForDifferentP'];
             printer = plotPrinter(f,h);
-            printer.print(outputName);
+           % printer.print(outputName);
         end
         
         function plotConvergence(obj)
@@ -101,7 +101,7 @@ classdef OptimalExponentsComparatorWithPNorm < handle
             outputName = [outPutPath,'StressNormMinimizationForPmax'];
             %outputName = [outPutPath,'StressNormMinimizationFineMax'];
             printer = plotPrinter(f,h);
-            printer.print(outputName);
+           % printer.print(outputName);
         end
         
         

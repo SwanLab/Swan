@@ -34,15 +34,14 @@ classdef AmplificatorComponentsCalculator < handle
     end
     
     methods (Access = private)
-        
+                                                                                                                                                                                                                    
         function init(obj,d)
             obj.integrationDB.nstre = d.nstre;
             obj.integrationDB.V = d.V;
             obj.integrationDB.dV = d.dV;
             obj.integrationDB.ngaus = d.ngaus;
-            obj.integrationDB.nstre = d.nstre;
-            obj.tstress = d.tstress;
             obj.Chomog  = d.Ch;
+            obj.tstress = d.tstress;
             obj.pExp  = d.pNorm/2;
         end
         
@@ -97,7 +96,7 @@ classdef AmplificatorComponentsCalculator < handle
                         alpha = obj.monom(t,s);
                         integrandG = integrandG.*(prodTerm.^alpha);
                     end
-                   integrand = integrand + 1/V*integrandG'*dV(:,igaus);
+                   integrand = integrand + 1/V*integrandG'*dV(igaus,:)';
                 end
                 P(t) = integrand;                
             end

@@ -41,9 +41,16 @@ classdef AbstractMesh < handle
        function q = computeElementQuality(obj)
             quad = Quadrature.set(obj.geometryType);
             quad.computeQuadrature('CONSTANT');
-            volume = obj.computeDvolume(quad);
+            volume = obj.computeDvolume(quad); 
             L(1,:) = obj.computeSquarePerimeter();
             q = 4*sqrt(3)*volume./L;           
+       end
+       
+       function v = computeVolume(obj)
+            quad = Quadrature.set(obj.geometryType);
+            quad.computeQuadrature('CONSTANT');
+            v = obj.computeDvolume(quad); 
+            v = sum(v(:));
        end
        
         function computeEdges(obj)

@@ -38,13 +38,13 @@ classdef VademecumVariablesComputer < handle
     methods (Access = private)
         
         function computeCellVariables(obj)
-            a  = load(obj.fileName);
+            a  = load(['/media/alex/My Passport/Vademecum/',obj.fileName]);
             obj.vademecumData = a.d;
         end
         
         function computeAmplificatorComponents(obj)
             mxV = obj.vademecumData.domVariables.mxV;
-            myV = obj.vademecumData.domVariables.mxV;
+            myV = obj.vademecumData.domVariables.myV;
             for imx = 1:length(mxV)
                 for imy = 1:length(myV)
                     obj.specifySamplingCase(imx,imy);

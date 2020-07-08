@@ -24,24 +24,31 @@ classdef VademecumMxMyPlotter < VademecumPlotter
     methods (Access = protected)
         
         function plotFigure(obj)
-            obj.fig = figure();
             x = obj.xV;
             y = obj.yV;
             z = obj.value2print;
-            %figID = figure();
-            contour(x,y,z,50);
-            xlabel('$m_1$','Interpreter','latex');
-            ylabel('$m_2$','Interpreter','latex');
-            tN = obj.titleName;
-            title(['$',tN,'$'],'interpreter','latex');
-            colorbar;
-            
-            hold on                                   
-            v = [0,0];
-            [M,c] = contour(x,y,z,v);
-            c.LineWidth = 3;
-            c.LineColor = 'r';
-            
+%             %figID = figure();
+%             contour(x,y,z,50);
+%             xlabel('$m_1$','Interpreter','latex');
+%             ylabel('$m_2$','Interpreter','latex');
+%             tN = obj.titleName;
+%             title(['$',tN,'$'],'interpreter','latex');
+%             colorbar;
+%             
+%             hold on                                   
+%             v = [0,0];
+%             [M,c] = contour(x,y,z,v);
+%             c.LineWidth = 3;
+%             c.LineColor = 'r';
+                x2 = repmat(x,20,1);                    
+                y2 = repmat(y',1,20);
+%             
+            s.fileName = fullfile(obj.outPutPath,[obj.fileName,'MxMy']);
+            s.title    = obj.titleName;            
+            s.axisAdder = MxMyAxisAdder();
+            p =  SuperEllipseExponentContourPlotter(s);
+            p.plot(x2(:),y2(:),z(:));            
+
 %             s.x = x;
 %             s.y = y;
 %             s.z = z;  

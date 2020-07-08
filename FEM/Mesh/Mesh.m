@@ -26,19 +26,50 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             obj.computeElementCoordinates();
         end
         
+        function obj = createFromFile(obj,cParams)
+            testName = cParams.testName;
+            [coordV, connecV] = obj.readCoordConnec(testName);
+            s.coord  = coordV(:,2:end-1);
+            s.connec = connecV(:,2:end);
+            obj = obj.create(s);
+        end
+        
         function objClone = clone(obj)
             objClone = copy(obj);
         end
         
+%         function plot(obj)
+%             %figure;
+%             patch('vertices',obj.coord,'faces',obj.connec,...
+%                 'edgecolor','b', 'edgealpha',1,'edgelighting','flat',...
+%                 'facecolor',[1 0 0],'facelighting','flat','LineWidth',1.5)
+%             axis('equal');
+%         end
+        
         function plot(obj)
-            %figure;
-            patch('vertices',obj.coord,'faces',obj.connec,...
-                'edgecolor',[0.5 0 0], 'edgealpha',0.5,'edgelighting','flat',...
-                'facecolor',[1 0 0],'facelighting','flat')
-            axis('equal');
+            s.mesh = obj;
+            mP = MeshPlotter(s);
+            mP.plot();
+        end        
+        
+        function hMin = computeMinCellSize(obj)
+            x1(:,1) = obj.coord(obj.connec(:,1),1);
+            x1(:,2) = obj.coord(obj.connec(:,1),2);
+            x2(:,1) = obj.coord(obj.connec(:,2),1);
+            x2(:,2) = obj.coord(obj.connec(:,2),2);
+            x3(:,1) = obj.coord(obj.connec(:,3),1);
+            x3(:,2) = obj.coord(obj.connec(:,3),2);            
+            x1x2 = (x2-x1);
+            x2x3 = (x3-x2);
+            x1x3 = (x1-x3);
+            n12 = sqrt(x1x2(:,1).^2 + x1x2(:,2).^2);
+            n23 = sqrt(x2x3(:,1).^2 + x2x3(:,2).^2);
+            n13 = sqrt(x1x3(:,1).^2 + x1x3(:,2).^2);
+            hs = min([n12,n23,n13],[],2);
+            hMin = min(hs);            
         end
         
-        function S = computeMeanCellSize(obj)
+        function hMean = computeMeanCellSize(obj)
             x1(:,1) = obj.coord(obj.connec(:,1),1);
             x1(:,2) = obj.coord(obj.connec(:,1),2);
             x2(:,1) = obj.coord(obj.connec(:,2),1);
@@ -52,7 +83,7 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             n23 = sqrt(x2x3(:,1).^2 + x2x3(:,2).^2);
             n13 = sqrt(x1x3(:,1).^2 + x1x3(:,2).^2);
             hs = max([n12,n23,n13],[],2);
-            S = max(hs);
+            hMean = max(hs);
         end
         
         function L = computeCharacteristicLength(obj)
@@ -119,12 +150,19 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             end
             
         end        
-       
         
         function computeGeometryType(obj)
             factory = MeshGeometryType_Factory();
             obj.geometryType = factory.getGeometryType(obj.ndim,obj.nnode,obj.embeddedDim);
         end
+        
+    end
+    
+    methods (Access = private, Static)
+       
+        function [coord, connec] = readCoordConnec(testName)
+            run(testName)            
+        end     
         
     end
     

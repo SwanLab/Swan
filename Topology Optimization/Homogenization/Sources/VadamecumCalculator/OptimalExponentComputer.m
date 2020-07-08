@@ -41,7 +41,7 @@ classdef OptimalExponentComputer < handle
                     obj.rho = obj.rhoV(ipoint);
                     obj.txi = obj.txiV(ipoint);
                     [q,qmin,qmax] = obj.computeOptimalExponent(ipoint,iphi);
-                    obj.qOpt(iphi,ipoint)    = q;
+                    obj.qOpt(iphi,ipoint) = q;
                     obj.qMin(iphi,ipoint) = qmin;
                     obj.qMax(iphi,ipoint) = qmax;
                 end
@@ -79,7 +79,12 @@ classdef OptimalExponentComputer < handle
             c = OneOptimalExponentComputerAndFunctionVariation(s);
             c.computeOptimalExponent();
             %c.printOptimalMicroStructure();
-            q = c.qOptIter(end);
+            
+            qMin = c.qOptIter();
+            fMin = c.fOptIter();
+            
+            [~,ind] = min(fMin);
+            q = qMin(ind);
             qMin = c.qMax;
             qMax = c.qMin;
         end

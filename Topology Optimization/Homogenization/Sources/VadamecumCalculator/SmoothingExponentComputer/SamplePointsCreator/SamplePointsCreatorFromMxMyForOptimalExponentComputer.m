@@ -1,10 +1,11 @@
 classdef SamplePointsCreatorFromMxMyForOptimalExponentComputer ...
         < SamplePointsCreatorForOptimalExponentComputer
     
-    properties (Access = private)
-        phiV
+    properties (Access = private)        
         mxMax
         myMax
+        mxMin
+        myMin
         mxV
         myV
         superellipse
@@ -12,23 +13,27 @@ classdef SamplePointsCreatorFromMxMyForOptimalExponentComputer ...
     
     methods (Access = public)
         
-        function obj = SamplePointsCreatorFromMxMyForOptimalExponentComputer()
-            obj.init()            
+        function obj = SamplePointsCreatorFromMxMyForOptimalExponentComputer(cParams)
+            obj.init(cParams)            
         end
         
     end
     
     methods (Access = private)
         
-        function init(obj)
+        function init(obj,cParams)
+            nMx  = cParams.nMx;
+            nMy  = cParams.nMy;
+            nPhi = cParams.nPhi;
+            phiMin = cParams.phiMin;
+            phiMax = cParams.phiMax;            
             obj.mxMax = 0.99;
             obj.myMax = 0.99;
-            nMx = 10;
-            nMy = 10;
-            nPhi = 10;
-            obj.mxV = linspace(0.01,obj.mxMax,nMx);
-            obj.myV = linspace(0.01,obj.myMax,nMy);            
-            obj.phiV = linspace(pi/4,pi/4,nPhi);   
+            obj.mxMin = 0.01;
+            obj.myMin = 0.01;
+            obj.mxV = linspace(obj.mxMin,obj.mxMax,nMx);
+            obj.myV = linspace(obj.myMin,obj.myMax,nMy);            
+            obj.phiV = linspace(phiMin,phiMax,nPhi);   
             obj.superellipse = SuperEllipseParamsRelator();
         end
         

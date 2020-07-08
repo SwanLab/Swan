@@ -30,7 +30,7 @@ classdef OptimalExponentsComparatorWithHmesh < handle
             obj.optimalExponentParams.txi  = pi/4;
             obj.optimalExponentParams.rho  = 0.15;
             obj.optimalExponentParams.phi  = pi/4;
-            obj.hMesh = [0.1,0.01,0.001];
+            obj.hMesh = [0.01,0.005,0.0025];
             obj.optimalExponentParams.pNorm = 'max';            
         end
         
@@ -74,7 +74,7 @@ classdef OptimalExponentsComparatorWithHmesh < handle
                       
             outputName = [outPutPath,'StressNormVsQWithH'];
             printer = plotPrinter(f,h);
-            printer.print(outputName);
+           % printer.print(outputName);
         end
         
         function plotConvergence(obj)
@@ -94,7 +94,7 @@ classdef OptimalExponentsComparatorWithHmesh < handle
             %outputName = [outPutPath,'StressNormMinimization'];
             outputName = [outPutPath,'StressNormMinimizationMaxWithH'];
             printer = plotPrinter(f,h);
-            printer.print(outputName);
+            %printer.print(outputName);
         end
         
     end

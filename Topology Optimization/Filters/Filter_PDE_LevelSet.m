@@ -21,6 +21,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             obj.ngaus = obj.quadrature.ngaus;
             obj.Anodal2Gauss = obj.computeA();            
             cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh);
+            cParams.isInBoundary = false;
             obj.unfittedMesh = UnfittedMesh(cParams);
             obj.disableDelaunayWarning();
         end

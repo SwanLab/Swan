@@ -23,11 +23,6 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
             else
                 fNodes = ones(size(ls));
                 obj.unfittedMesh.compute(ls);
-%                 close all
-%                 figure(1)
-%                 obj.unfittedMesh.plot();
-%                 drawnow
-%                 pause(1)
                 fInt = obj.unfittedMesh.integrateNodalFunction(fNodes);
             end
             

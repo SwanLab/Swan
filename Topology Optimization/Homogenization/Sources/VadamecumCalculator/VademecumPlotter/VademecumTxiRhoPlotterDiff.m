@@ -22,6 +22,7 @@ classdef VademecumTxiRhoPlotterDiff < VademecumPlotter
         rhoMin
         rhoMax
         indexSort
+        plotter
     end
     
     methods (Access = public)
@@ -57,8 +58,12 @@ classdef VademecumTxiRhoPlotterDiff < VademecumPlotter
         function zDif = computeDiff(obj,varN,varS)
             zN = varN(obj.iN);            
             zS = varS(obj.iS);
-            ZnInt = griddata(obj.txiN,obj.rhoN,zN,obj.txiS,obj.rhoS);            
-            zDif = (zS - ZnInt);            
+            x_c(:,1) = obj.txiS;
+            y_c(:,1) = obj.rhoS;
+            z_c(:,1) = zS;
+            F = scatteredInterpolant(x_c,y_c,z_c);
+            ZsInt = F(obj.txiN,obj.rhoN);
+            zDif = (ZsInt - zN);
         end                        
         
     end
@@ -108,10 +113,10 @@ classdef VademecumTxiRhoPlotterDiff < VademecumPlotter
         function plotFigure(obj)
             obj.computeRhoMinRhoMaxAndTxiV();            
             obj.plotDifference();
-            obj.plotRhoMinRhoMaxLines();            
-            obj.plotSmoothSuperEllipsePoints();
-            obj.plotRectanglePoints();
-            obj.addTitleAndAxisNames();
+%             obj.plotRhoMinRhoMaxLines();            
+            %obj.plotSmoothSuperEllipsePoints();
+%           obj.plotRectanglePoints();
+            %obj.addTitleAndAxisNames();
             obj.addZeroLevelSetValue();
         end        
         
@@ -130,15 +135,24 @@ classdef VademecumTxiRhoPlotterDiff < VademecumPlotter
         end        
         
         function plotDifference(obj)
-            x = obj.txiS;
-            y = obj.rhoS;            
-            z = obj.value2print;
-            ind = ~isnan(z);
-            ncolors = 50;
-            tri = delaunay(x(ind),y(ind));
-            obj.fig = figure;            
-            tricontour(tri,x(ind),y(ind),z(ind),ncolors) 
-            colorbar
+            x(:,1) = obj.txiS;
+            y(:,1) = obj.rhoS;            
+            z(:,1) = obj.value2print;
+%             ind = ~isnan(z);
+%             ncolors = 50;
+%             tri = delaunay(x(ind),y(ind));
+%             obj.fig = figure;            
+%             tricontour(tri,x(ind),y(ind),z(ind),ncolors) 
+%             colorbar
+                 
+            s.fileName = fullfile(obj.outPutPath,[obj.fileName,'XiRho']);
+            s.title    = obj.titleName;
+            s.axisAdder = XiRhoAxisAdder();
+            p  = SuperEllipseExponentContourPlotter(s); 
+            p.plot(x,y,z);
+%           
+            obj.plotter = p;
+            
             hold on            
         end
         
@@ -168,15 +182,36 @@ classdef VademecumTxiRhoPlotterDiff < VademecumPlotter
         end
         
         function addZeroLevelSetValue(obj)
-            x = obj.txiS;
-            y = obj.rhoS;            
-            z = obj.value2print;        
-            ind = ~isnan(z);
-            tri = delaunay(x(ind),y(ind));            
-            v = [0,0];
-            [~,c] = tricontour(tri,x(ind),y(ind),z(ind),v);
-            c(1).LineWidth = 3;
-            c(1).EdgeColor = 'r';             
+            x(:,1) = obj.txiS;
+            y(:,1) = obj.rhoS;            
+            z(:,1) = obj.value2print;        
+%             ind = ~isnan(z);
+%             ind(:) = true;
+%             connec = delaunay(x(ind),y(ind));     
+%             s.x = x;
+%             s.y = y;
+%             s.connec = connec;
+%             c = ConnecWithQualityComputer(s);
+%             connec = c.compute();                        
+%             v = [0,0];
+%             [~,c] = tricontour(connec,x(ind),y(ind),z(ind),v);
+%             
+            
+%             
+%             
+%             [xi, yi] = meshgrid(...
+%             linspace(min(x),max(x)),...
+%             linspace(min(y),max(y)));
+%             zi = griddata(x,y,z, xi,yi);
+            x2 = reshape(x,20,20);
+            y2 = reshape(y,20,20);
+            z2 = reshape(z,20,20);
+
+           [M,c] = contourf(x2,y2,z2,[0 0]);
+           c.Fill = false;
+           c.LineWidth = 3;
+           c.EdgeColor = 'r';  
+           obj.plotter.print();
         end
         
         function plotRhoMinRhoMaxLines(obj)
@@ -188,8 +223,6 @@ classdef VademecumTxiRhoPlotterDiff < VademecumPlotter
             h = plot(txiV,rho,['-','k']);
             set(h,'LineWidth',2);        
         end
-        
-        
         
     end
     

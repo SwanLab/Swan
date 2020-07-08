@@ -31,7 +31,7 @@ classdef VademecumCellVariablesCalculator < handle
                     obj.storeIndex(imx,imy);
                     obj.iter = (imy + nMx*(imx -1));
                     disp([num2str(obj.iter/(nMx*nMy)*100),'% done']);                    
-                    obj.generateMeshFile();
+                   % obj.generateMeshFile();
                     obj.computeNumericalHomogenizer();
                     obj.obtainHomogenizerData();
                 end
@@ -41,7 +41,7 @@ classdef VademecumCellVariablesCalculator < handle
         function saveVademecumData(obj)
            d = obj.getData();
            fN = obj.fileNames.fileName;
-           pD = obj.fileNames.printingDir;
+           pD = obj.fileNames.outPutPath;
            file2SaveName = [pD,'/',fN,'.mat'];
            save(file2SaveName,'d');
         end
@@ -65,7 +65,6 @@ classdef VademecumCellVariablesCalculator < handle
             obj.mxV = linspace(d.mxMin,d.mxMax,nMx);
             obj.myV = linspace(d.myMin,d.myMax,nMy);
             obj.print = d.print;
-            obj.freeFemSettings = d.freeFemSettings;
             obj.smoothingExponentSettings = d.smoothingExponentSettings;
         end
         
@@ -73,12 +72,9 @@ classdef VademecumCellVariablesCalculator < handle
             fN = d.fileName;
             oP = d.outPutPath;
             pD = fullfile(pwd,'Output',fN);
-            gF = [fullfile(pD,fN),'.msh'];
             fNs.fileName    = fN;
             fNs.outPutPath  = oP;
             fNs.printingDir = pD;                        
-            fNs.gmsFile     = gF;
-            fNs.freeFemFileName = d.freeFemFileName;
             obj.fileNames = fNs;
         end        
         
@@ -87,34 +83,45 @@ classdef VademecumCellVariablesCalculator < handle
             obj.iMyIndex = imy;
         end
         
-        function generateMeshFile(obj)
-            d = obj.freeFemSettings;
-            d.mxV             = obj.mxV(obj.iMxIndex);
-            d.myV             = obj.myV(obj.iMyIndex);
-            d.fileName        = obj.fileNames.fileName;
-            d.freeFemFileName = obj.fileNames.freeFemFileName;
-            d.printingDir     = obj.fileNames.printingDir;
-            d.qNorm           = obj.computeCornerSmoothingExponent();
-            fG = FreeFemMeshGenerator(d);
-            fG.generate();
-        end
         
         function q = computeCornerSmoothingExponent(obj)
             s = obj.smoothingExponentSettings;
             s.m1 = obj.mxV(obj.iMxIndex);
             s.m2 = obj.myV(obj.iMyIndex);
-            s.type = 'Optimal';
             qComputer = SmoothingExponentComputer.create(s);
             q = qComputer.compute();
         end
              
         function computeNumericalHomogenizer(obj)
-            d.gmsFile = obj.fileNames.gmsFile;
-            d.outFile = [obj.fileNames.fileName];
-            d.print   = obj.print;
-            d.iter = obj.iter;
-            nH = NumericalHomogenizerCreatorFromGmsFile(d);
-            obj.homog = nH.getHomogenizer();
+%             d.gmsFile = obj.fileNames.gmsFile;
+%             d.outFile = [obj.fileNames.fileName];
+%             d.print   = obj.print;
+%             d.iter = obj.iter;
+%             nH = NumericalHomogenizerCreatorFromGmsFile(d);
+%             obj.homog = nH.getHomogenizer();
+            
+            s.fileName = ['OptimaSuperEllipseCase',num2str(obj.iter)];
+            
+            mx = obj.mxV(obj.iMxIndex);
+            my = obj.mxV(obj.iMyIndex);           
+            q = obj.computeCornerSmoothingExponent();
+            
+            %s.rho   = SuperEllipseParamsRelator.rho(mx,my,q);
+            %s.txi   = SuperEllipseParamsRelator.xi(mx,my,q);
+            s.mx = mx;
+            s.my = my;
+            s.q = q;
+            s.phi   = 0;
+            s.pNorm = 'max';
+            s.print = false;
+            s.iter = obj.iter;
+            s.hasToCaptureImage = false;
+            stressNorm = StressNormSuperEllipseComputer(s);
+            obj.homog.cellVariables = stressNorm.computeCellVariables();
+            obj.homog.cellVariables.mx = mx;
+            obj.homog.cellVariables.my = my;
+            obj.homog.cellVariables.rho = SuperEllipseParamsRelator.rho(mx,my,q);
+            obj.homog.cellVariables.xi = SuperEllipseParamsRelator.xi(mx,my);
         end
         
         function obtainHomogenizerData(obj)
@@ -130,14 +137,14 @@ classdef VademecumCellVariablesCalculator < handle
         end
         
         function obtainVolume(obj)
-            v = obj.homog.cellVariables.geometricVolume;
+            v = obj.homog.cellVariables.volume;
             imx = obj.iMxIndex;
             imy = obj.iMyIndex;
             obj.variables{imx,imy}.volume = v;
         end      
         
         function obtainCtensor(obj)
-            Ch = obj.homog.cellVariables.Ch;
+            Ch = obj.homog.cellVariables.Ctensor;
             imx = obj.iMxIndex;
             imy = obj.iMyIndex;
             obj.variables{imx,imy}.Ctensor = Ch;
@@ -160,7 +167,7 @@ classdef VademecumCellVariablesCalculator < handle
         end
         
         function obtainIntegrationVariables(obj)
-            intVar = obj.homog.integrationVar;
+            intVar = obj.homog.cellVariables.integrationVar;
             imx = obj.iMxIndex;
             imy = obj.iMyIndex;            
             obj.variables{imx,imy}.integrationVar = intVar;
