@@ -22,7 +22,7 @@ classdef Integrator_Composite < Integrator
         end
         
         function A = computeLHS(obj)
-            npnod = obj.mesh.innerMeshOLD.npnod;
+            npnod = obj.mesh.npnod;
             A = sparse(npnod,npnod);
             for iInt = 1:obj.nInt
                 A = A + obj.integrators{iInt}.computeLHS();

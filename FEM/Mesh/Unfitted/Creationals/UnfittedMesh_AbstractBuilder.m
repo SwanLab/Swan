@@ -11,14 +11,14 @@ classdef UnfittedMesh_AbstractBuilder < handle
     end
     
     properties (GetAccess = public, SetAccess = private)
-        cellsClassifier
+      %  cellsClassifier
         memoryManager
     end
     
     methods (Access = public)
         
         function obj = UnfittedMesh_AbstractBuilder()
-            obj.cellsClassifier = CellsClassifier;
+       %     obj.cellsClassifier = CellsClassifier;
             obj.memoryManager = MemoryManager_MeshUnfitted;
         end
         

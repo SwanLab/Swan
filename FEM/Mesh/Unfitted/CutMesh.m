@@ -25,8 +25,7 @@ classdef CutMesh < Mesh
         
         subcellsMesher
         cutPointsCalculator
-        meshPlotter
-        cellsClassifier
+
         memoryManager
         
         coord_iso
@@ -58,7 +57,7 @@ classdef CutMesh < Mesh
             isTriangle = isequal(cParams.backgroundMesh.geometryType,'TRIANGLE');
             isInterior = isequal(obj.type,'INTERIOR');  
             isBoundary = isequal(obj.type,'BOUNDARY');  
-            cutElems = cParams.backgroundCutCells; 
+            cutElems   = cParams.cutCells; 
             thereIsCutElem = ~isempty(cutElems);
             isQuad = isequal(cParams.backgroundMesh.geometryType,'QUAD');
             
@@ -237,9 +236,9 @@ classdef CutMesh < Mesh
         
         function init(obj,cParams)
             obj.levelSet_background   = cParams.levelSet;
-            obj.backgroundFullCells   = cParams.backgroundFullCells;
-            obj.backgroundEmptyCells  = cParams.backgroundEmptyCells;
-            obj.backgroundCutCells    = cParams.backgroundCutCells;
+            obj.backgroundFullCells   = cParams.fullCells;
+            obj.backgroundEmptyCells  = cParams.emptyCells;
+            obj.backgroundCutCells    = cParams.cutCells;
             obj.nCutCells             = length(obj.backgroundCutCells);
             
             obj.backgroundMesh              = cParams.backgroundMesh;
@@ -285,12 +284,7 @@ classdef CutMesh < Mesh
             obj.cutMeshOfSubCellLocal = m;            
         end        
         
-        
-        function createMeshPlotter(obj)
-            s.ndimIso  = obj.ndimUnf;
-            s.type     = obj.type;
-%            obj.meshPlotter = MeshPlotter.create(s);
-        end
+
         
         function createMemoryManager(obj)
             s.ndimIso       = obj.ndimUnf;
@@ -303,10 +297,8 @@ classdef CutMesh < Mesh
         function build(obj)
             obj.createNdimUnf();
             obj.createSubCellsMesher();
-            obj.createMeshPlotter();
             obj.createMemoryManager();
             obj.cutPointsCalculator  = CutPointsCalculator;
-            obj.cellsClassifier      = CellsClassifier;
         end
         
         function itIs = isLevelSetCrossingZero(obj)

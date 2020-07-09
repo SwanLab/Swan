@@ -98,7 +98,7 @@ classdef IntegratorCutMesh < Integrator
             totalInt = zeros(nelem,nnode);
             for iNode = 1:nnode
                 int = obj.RHScellsCut(:,iNode);
-                intGlobal  = accumarray(cellNum,int,[nelem,1],@sum,0);
+                intGlobal = accumarray(cellNum,int,[nelem,1],@sum,0);
                 totalInt(:,iNode) = totalInt(:,iNode) + intGlobal;
             end
             obj.RHScells = totalInt;
