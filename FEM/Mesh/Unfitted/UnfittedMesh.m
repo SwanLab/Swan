@@ -29,7 +29,6 @@ classdef UnfittedMesh < handle
             obj.init(cParams);
         end
         
-        
         function compute(obj,lSet)
             obj.levelSet = lSet;
             obj.classifyCells();

@@ -89,7 +89,6 @@ classdef Integrator_Unfitted < Integrator
             cParams.globalConnec      = mesh.backgroundMesh.connec(mesh.innerMesh.fullCells,:);
             cParams.npnod             = mesh.innerMesh.npnod;
             cParams.backgroundMesh    = mesh.backgroundMesh;
-            cParams.innerToBackground = mesh.innerMesh.fullCells;
         end
         
         function cParams = createInnerCutParams(obj,mesh)
@@ -105,11 +104,11 @@ classdef Integrator_Unfitted < Integrator
         end
         
         function cParams = createCompositeParams(obj,mesh)
+            globalConnec = obj.mesh.backgroundMesh.connec(mesh.innerMesh.fullCells,:);
             cParams.mesh = mesh;
             cParams.type = 'COMPOSITE';
             cParams.meshBackground    = obj.mesh.backgroundMesh; %%
-            cParams.globalConnec      = obj.mesh.backgroundMesh.connec(mesh.innerMesh.fullCells,:);
-            cParams.innerToBackground = [];
+            cParams.globalConnec      = globalConnec;
             cParams.npnod = obj.mesh.backgroundMesh.npnod;
             cParams = obj.createInteriorParams(cParams,mesh);
             cParams.meshBackground = obj.mesh.backgroundMesh;            

@@ -35,7 +35,7 @@ classdef IntegratorCutMesh < Integrator
         
         function computeElementalRHS(obj)
             obj.computeUnfittedGaussPoints();            
-            obj.computeShapeFunctions();
+            %obj.computeShapeFunctions();
             int = obj.integrateFwithShapeFunction();
             obj.RHScellsCut = int;
         end

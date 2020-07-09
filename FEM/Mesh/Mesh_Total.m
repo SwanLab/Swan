@@ -155,7 +155,9 @@ classdef Mesh_Total < Mesh_Composite
             nodesInBoxFace = obj.nodesInBoxFaces{iFace};
             nodes = find(nodesInBoxFace);
             boxFaceConnec = boxFaceMesh.connec;
-            connec = [nodes(boxFaceConnec(:,1)),nodes(boxFaceConnec(:,2))];
+            for inode = 1:size(boxFaceConnec,2)
+               connec(:,inode) = nodes(boxFaceConnec(:,inode));
+            end
             obj.globalConnectivities{iFace} = connec;
         end
         

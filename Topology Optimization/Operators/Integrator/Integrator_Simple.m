@@ -13,7 +13,8 @@ classdef Integrator_Simple < Integrator
         
         RHScells
         RHSsubcells
-        innerToBackground
+        Fnodal
+        xGauss
     end
     
     methods (Access = public)
@@ -21,12 +22,8 @@ classdef Integrator_Simple < Integrator
         function obj = Integrator_Simple(cParams)
             obj.init(cParams)
             obj.backgroundMesh = cParams.backgroundMesh;
-            obj.innerToBackground = cParams.innerToBackground;
-            obj.npnod = cParams.npnod;
-            
-           %%%%Ehhhh 
-            %obj.globalConnec = obj.backgroundMesh.connec(obj.innerToBackground,:);
-            obj.globalConnec = cParams.globalConnec;
+            obj.npnod          = cParams.npnod;            
+            obj.globalConnec   = cParams.globalConnec;
             
             
             obj.createQuadrature();
@@ -47,9 +44,9 @@ classdef Integrator_Simple < Integrator
         end
         
         function RHS = integrate(obj,F)
+            obj.Fnodal = F;
             obj.initShapes();
-            obj.computeElementalRHS(F);
-            obj.assembleSubcellsInCells();
+            obj.computeElementalRHS();
             RHS = obj.assembleIntegrand();
         end
         
@@ -95,24 +92,77 @@ classdef Integrator_Simple < Integrator
                 inc = bsxfun(@times,dv,Ni);
                 f = f + inc;
             end
-            obj.RHSsubcells = f;
+            obj.RHScells = f;
         end
         
-        function assembleSubcellsInCells(obj)
-            innerCells = obj.innerToBackground;
-            obj.RHScells(innerCells,:) = obj.RHSsubcells;
+%         function computeElementalRHS(obj)
+%             obj.computeUnfittedGaussPoints();            
+%             %obj.computeShapeFunctions();
+%             int = obj.integrateFwithShapeFunction();
+%             obj.RHScells = int;
+%         end
+        
+        function computeUnfittedGaussPoints(obj)
+            q = obj.quadrature;
+            m = obj.mesh;
+            obj.xGauss = m.computeXgauss(q.posgp);
         end
+        
+        function shapes = computeShapeFunctions(obj)
+            m = obj.backgroundMesh;
+            int = Interpolation.create(m,'LINEAR');
+            int.computeShapeDeriv(obj.xGauss);
+            shapes = permute(int.shape,[1 3 2]);            
+        end          
+        
+        function int = integrateFwithShapeFunction(obj)
+            Fgauss  = obj.computeFinGaussPoints();
+            dV      = obj.computeDvolume;
+            fdV     = (Fgauss.*dV);
+            shapes  = obj.computeShapeFunctions();
+            int = obj.initIntegrand();
+            for igaus = 1:obj.quadrature.ngaus
+                fdv   = fdV(igaus,:);
+                shape = shapes(:,:,igaus);
+                int = int + bsxfun(@times,shape,fdv);
+            end
+            int = transpose(int);
+        end   
+        
+        function int = initIntegrand(obj)
+            nelem = obj.mesh.nelem;
+            nnode = obj.backgroundMesh.nnode;
+            int = zeros(nnode,nelem);            
+        end        
+        
+        function dV = computeDvolume(obj)
+            q  = obj.quadrature;
+            dV = obj.mesh.computeDvolume(q);            
+        end        
+        
+        function fG = computeFinGaussPoints(obj)
+            f = createFeFunction(obj);
+            fG = f.interpolateFunction(obj.xGauss);
+            fG = permute(fG,[2 3 1]);            
+        end
+        
+        function f = createFeFunction(obj)            
+            m = obj.mesh;
+            s.fNodes = obj.Fnodal;
+            s.mesh = m;
+            f = FeFunction(s);
+        end           
         
         function f = assembleIntegrand(obj)
             integrand = obj.RHScells;
-            npnod  = obj.backgroundMesh.npnod;
-            nnode  = obj.backgroundMesh.nnode;
-            connec = obj.backgroundMesh.connec;
-            f = zeros(npnod,1);
+            ndofs  = obj.backgroundMesh.npnod;
+            connec = obj.globalConnec;
+            nnode  = size(connec,2);
+            f = zeros(ndofs,1);
             for inode = 1:nnode
                 int = integrand(:,inode);
                 con = connec(:,inode);
-                f = f + accumarray(con,int,[npnod,1],@sum,0);
+                f = f + accumarray(con,int,[ndofs,1],@sum,0);
             end
         end
         
@@ -144,6 +194,7 @@ classdef Integrator_Simple < Integrator
             nnode2 = size(connec,2);
             idx1 = connec';
             idx2 = connec';
+            tic
             A = sparse(ndofs,ndofs);
             for i = 1:nnode1*nunkn1
                 for j = 1:nnode2*nunkn2

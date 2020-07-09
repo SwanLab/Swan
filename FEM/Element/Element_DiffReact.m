@@ -121,7 +121,6 @@ classdef Element_DiffReact < Element
                 cParams.type = 'SIMPLE';
                 cParams.backgroundMesh = obj.mesh.innerMeshOLD;
                 cParams.globalConnec = obj.mesh.globalConnectivities{iMesh};
-                cParams.innerToBackground = [];
                 cParams.npnod = obj.mesh.innerMeshOLD.npnod;
                 params.compositeParams{iMesh} = cParams;
             end
