@@ -43,8 +43,11 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             if all(ls>0)
                 fInt = zeros(size(ls));
             else
-                obj.unfittedMesh.compute(ls);                
-                fInt = obj.unfittedMesh.integrateNodalFunction(fNodes);
+                obj.unfittedMesh.compute(ls); 
+                s.mesh = obj.unfittedMesh;
+                s.type = 'Unfitted';
+                int = Integrator.create(s);            
+                fInt = int.integrateInDomain(fNodes);                    
             end
         end
         

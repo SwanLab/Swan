@@ -1,26 +1,21 @@
 classdef UnfittedMesh < handle
     
     properties (GetAccess = public, SetAccess = private)
-        unfittedType
-        unfittedBoxMeshes
-        innerCutMesh
         innerMesh
-        
-        connecFullCells     
-        
-        fullCells
-        
-        boundaryCutMesh
-        
+        innerCutMesh        
+        boundaryCutMesh       
+        unfittedBoxMeshes
+    
+        %%%%%%ehhh
         backgroundMesh
         
     end
     
     properties (Access = private)
+        unfittedType  
+        fullCells                        
         cutCells        
         emptyCells
-    
-        
     end
     
     properties (Access = private)
@@ -94,18 +89,12 @@ classdef UnfittedMesh < handle
         end       
         
         function computeInnerMesh(obj)
-            obj.computeInnerGlobalConnec();
             s.backgroundMesh = obj.backgroundMesh;
-            s.globalConnec   = obj.connecFullCells;
             s.isInBoundary   = obj.isInBoundary;
+            s.fullCells      = obj.fullCells;
             obj.innerMesh = InnerMesh(s);
         end
-        
-        function computeInnerGlobalConnec(obj)
-            fCells = obj.fullCells;
-            obj.connecFullCells = obj.backgroundMesh.connec(fCells,:);
-        end
-        
+                  
         function computeInnerCutMesh(obj)
             s.type                   = 'INTERIOR';
             s.backgroundMesh          = obj.backgroundMesh;
@@ -201,19 +190,6 @@ classdef UnfittedMesh < handle
             mass = sum(fInt);
         end
 
-        function int = integrateNodalFunction(obj,f)
-            uMesh  = obj;
-            s.mesh = uMesh;
-            s.type = 'Unfitted';
-            integrator = Integrator.create(s);            
-             switch obj.unfittedType
-                 case 'INTERIOR'
-                     int = integrator.integrateInDomain(f);
-                 case 'BOUNDARY'
-                     int = integrator.integrateInBoundary(f);
-             end
-        end
-        
     end
     
     methods (Access = private)

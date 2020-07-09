@@ -22,8 +22,12 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
                 fInt = zeros(size(ls));
             else
                 fNodes = ones(size(ls));
-                obj.unfittedMesh.compute(ls);
-                fInt = obj.unfittedMesh.integrateNodalFunction(fNodes);
+                obj.unfittedMesh.compute(ls);                
+                s.mesh = obj.unfittedMesh;
+                s.type = 'Unfitted';
+                integrator = Integrator.create(s);            
+                fInt = integrator.integrateInDomain(fNodes);                
+                %fInt = obj.unfittedMesh.integrateNodalFunction(fNodes);
             end
             
         end

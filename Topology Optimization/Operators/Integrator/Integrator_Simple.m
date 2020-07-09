@@ -21,9 +21,14 @@ classdef Integrator_Simple < Integrator
         function obj = Integrator_Simple(cParams)
             obj.init(cParams)
             obj.backgroundMesh = cParams.backgroundMesh;
-            obj.globalConnec = cParams.globalConnec;
             obj.innerToBackground = cParams.innerToBackground;
             obj.npnod = cParams.npnod;
+            
+           %%%%Ehhhh 
+            %obj.globalConnec = obj.backgroundMesh.connec(obj.innerToBackground,:);
+            obj.globalConnec = cParams.globalConnec;
+            
+            
             obj.createQuadrature();
             obj.createInterpolation();
             obj.createGeometry();
