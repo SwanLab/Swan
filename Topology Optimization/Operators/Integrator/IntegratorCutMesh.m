@@ -27,7 +27,7 @@ classdef IntegratorCutMesh < Integrator
             s.fNodal         = fNodal;
             s.xGauss         = obj.computeUnfittedGaussPoints();            
             s.quadrature     = obj.computeQuadrature(obj.mesh.geometryType);
-            s.backgroundMesh = obj.backgroundMesh;
+            s.geometryType   = obj.mesh.cutMeshOfSubCellGlobal.geometryType;
             s.mesh           = obj.mesh;            
             s.feMesh         = obj.mesh.cutMeshOfSubCellGlobal();
             rhs = RHSintegrator(s);

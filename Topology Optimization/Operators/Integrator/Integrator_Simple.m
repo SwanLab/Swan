@@ -2,17 +2,12 @@ classdef Integrator_Simple < Integrator
     
     properties (Access = private)
         globalConnec
-        backgroundMesh
         npnod
-        LHScells
-        LHS
-        
-        quadrature
-        interpolation
-        geometry
+
         
         RHScells
         RHSsubcells
+        backgroundMesh        
     end
     
     methods (Access = public)
@@ -22,17 +17,14 @@ classdef Integrator_Simple < Integrator
             obj.backgroundMesh = cParams.backgroundMesh;
             obj.npnod          = cParams.npnod;            
             obj.globalConnec   = cParams.globalConnec;
-            
-            
-            obj.createQuadrature();
-            obj.createInterpolation();
-            obj.createGeometry();
         end
         
         function LHS = computeLHS(obj)
-            obj.computeElementalLHS();
-            obj.assembleMatrix();
-            LHS = obj.LHS;
+            s.mesh         = obj.mesh;
+            s.globalConnec = obj.globalConnec;
+            s.npnod        = obj.npnod;
+            lhs = LHSintegrator(s);
+            LHS = lhs.compute();
         end
         
         function norm = computeL2norm(obj,f)
@@ -50,30 +42,11 @@ classdef Integrator_Simple < Integrator
     
     methods (Access = private)
         
-        function createQuadrature(obj)
-            quad = obj.computeQuadrature(obj.mesh.geometryType);
-            obj.quadrature = quad;
-        end
-        
-        function createInterpolation(obj)
-            int = Interpolation.create(obj.mesh,'LINEAR');
-            obj.interpolation = int;
-        end
-        
-        function createGeometry(obj)
-            quad = obj.quadrature;
-            int  = obj.interpolation;
-            s.mesh = obj.mesh;
-            geom = Geometry.create(s);
-            geom.computeGeometry(quad,int);
-            obj.geometry = geom;
-        end
-       
         function computeElementalRHS(obj,fNodal)
             s.fNodal         = fNodal;
             s.xGauss         = obj.computeGaussPoints();   
-            s.quadrature     = obj.quadrature;            
-            s.backgroundMesh = obj.backgroundMesh;
+            s.quadrature     = obj.computeQuadrature(obj.mesh.geometryType);            
+            s.geometryType   = obj.backgroundMesh.geometryType;
             s.mesh           = obj.mesh;
             s.feMesh         = obj.mesh;
             rhs = RHSintegrator(s);
@@ -81,7 +54,7 @@ classdef Integrator_Simple < Integrator
         end
         
         function xGauss = computeGaussPoints(obj)
-            q = obj.quadrature;
+            q = obj.computeQuadrature(obj.mesh.geometryType);
             m = obj.mesh;
             xGauss = repmat(q.posgp,[1,1,m.nelem]);
         end             
@@ -97,45 +70,6 @@ classdef Integrator_Simple < Integrator
                 con = connec(:,inode);
                 f = f + accumarray(con,int,[ndofs,1],@sum,0);
             end
-        end
-        
-        function computeElementalLHS(obj)
-            shapes = obj.interpolation.shape;
-            dvolu  = obj.geometry.dvolu;
-            ngaus  = obj.quadrature.ngaus;
-            nelem  = obj.mesh.nelem;
-            nnode  = obj.mesh.nnode;
-            Me = zeros(nnode,nnode,nelem);
-            for igaus = 1:ngaus
-                dv(1,1,:) = dvolu(:,igaus);
-                Ni = shapes(:,igaus);
-                Nj = shapes(:,igaus);
-                NiNj = Ni*Nj';
-                Aij = bsxfun(@times,NiNj,dv);
-                Me = Me + Aij;
-            end
-            obj.LHScells = Me;
-        end
-        
-        function assembleMatrix(obj)
-            connec = obj.globalConnec;
-            ndofs  = obj.npnod;
-            Ae     = obj.LHScells;
-            nunkn1 = 1;
-            nunkn2 = 1;
-            nnode1 = size(connec,2);
-            nnode2 = size(connec,2);
-            idx1 = connec';
-            idx2 = connec';
-            tic
-            A = sparse(ndofs,ndofs);
-            for i = 1:nnode1*nunkn1
-                for j = 1:nnode2*nunkn2
-                    a = squeeze(Ae(i,j,:));
-                    A = A + sparse(idx1(i,:),idx2(j,:),a,ndofs,ndofs);
-                end
-            end
-            obj.LHS = A;
         end
         
     end
