@@ -13,8 +13,6 @@ classdef Integrator_Simple < Integrator
         
         RHScells
         RHSsubcells
-        Fnodal
-        xGauss
     end
     
     methods (Access = public)
@@ -44,21 +42,13 @@ classdef Integrator_Simple < Integrator
         end
         
         function RHS = integrate(obj,F)
-            obj.Fnodal = F;
-            obj.initShapes();
-            obj.computeElementalRHS();
+            obj.computeElementalRHS(F);
             RHS = obj.assembleIntegrand();
         end
         
     end
     
     methods (Access = private)
-        
-        function initShapes(obj)
-            nelem = obj.backgroundMesh.nelem;
-            nnode = obj.backgroundMesh.nnode;
-            obj.RHScells = zeros(nelem,nnode);
-        end
         
         function createQuadrature(obj)
             quad = obj.computeQuadrature(obj.mesh.geometryType);
@@ -78,80 +68,23 @@ classdef Integrator_Simple < Integrator
             geom.computeGeometry(quad,int);
             obj.geometry = geom;
         end
-        
-        function computeElementalRHS(obj,F1)
-            shapes = obj.interpolation.shape;
-            dvolu  = obj.geometry.dvolu;
-            ngaus  = obj.quadrature.ngaus;
-            nelem  = obj.mesh.nelem;
-            nnode  = obj.mesh.nnode;
-            f      = zeros(nelem,nnode);
-            for igaus = 1:ngaus
-                dv = dvolu(:,igaus);
-                Ni(1,:) = shapes(:,igaus);
-                inc = bsxfun(@times,dv,Ni);
-                f = f + inc;
-            end
-            obj.RHScells = f;
+       
+        function computeElementalRHS(obj,fNodal)
+            s.fNodal         = fNodal;
+            s.xGauss         = obj.computeGaussPoints();   
+            s.quadrature     = obj.quadrature;            
+            s.backgroundMesh = obj.backgroundMesh;
+            s.mesh           = obj.mesh;
+            s.feMesh         = obj.mesh;
+            rhs = RHSintegrator(s);
+            obj.RHScells = rhs.integrate();        
         end
         
-%         function computeElementalRHS(obj)
-%             obj.computeUnfittedGaussPoints();            
-%             %obj.computeShapeFunctions();
-%             int = obj.integrateFwithShapeFunction();
-%             obj.RHScells = int;
-%         end
-        
-        function computeUnfittedGaussPoints(obj)
+        function xGauss = computeGaussPoints(obj)
             q = obj.quadrature;
             m = obj.mesh;
-            obj.xGauss = m.computeXgauss(q.posgp);
-        end
-        
-        function shapes = computeShapeFunctions(obj)
-            m = obj.backgroundMesh;
-            int = Interpolation.create(m,'LINEAR');
-            int.computeShapeDeriv(obj.xGauss);
-            shapes = permute(int.shape,[1 3 2]);            
-        end          
-        
-        function int = integrateFwithShapeFunction(obj)
-            Fgauss  = obj.computeFinGaussPoints();
-            dV      = obj.computeDvolume;
-            fdV     = (Fgauss.*dV);
-            shapes  = obj.computeShapeFunctions();
-            int = obj.initIntegrand();
-            for igaus = 1:obj.quadrature.ngaus
-                fdv   = fdV(igaus,:);
-                shape = shapes(:,:,igaus);
-                int = int + bsxfun(@times,shape,fdv);
-            end
-            int = transpose(int);
-        end   
-        
-        function int = initIntegrand(obj)
-            nelem = obj.mesh.nelem;
-            nnode = obj.backgroundMesh.nnode;
-            int = zeros(nnode,nelem);            
-        end        
-        
-        function dV = computeDvolume(obj)
-            q  = obj.quadrature;
-            dV = obj.mesh.computeDvolume(q);            
-        end        
-        
-        function fG = computeFinGaussPoints(obj)
-            f = createFeFunction(obj);
-            fG = f.interpolateFunction(obj.xGauss);
-            fG = permute(fG,[2 3 1]);            
-        end
-        
-        function f = createFeFunction(obj)            
-            m = obj.mesh;
-            s.fNodes = obj.Fnodal;
-            s.mesh = m;
-            f = FeFunction(s);
-        end           
+            xGauss = repmat(q.posgp,[1,1,m.nelem]);
+        end             
         
         function f = assembleIntegrand(obj)
             integrand = obj.RHScells;
