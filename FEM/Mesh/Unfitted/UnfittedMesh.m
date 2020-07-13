@@ -124,8 +124,7 @@ classdef UnfittedMesh < handle
         function computeUnfittedBoxMesh(obj)
             if isequal(class(obj.backgroundMesh),'Mesh_Total')
                 m = obj.backgroundMesh;
-                fMeshes = m.boxFaceMeshes;
-                fNodes  = m.nodesInBoxFaces;
+                bMeshes = m.boxFaceMeshes;
                 sides = 2;
                 nboxFaces = sides*m.ndim;
                 isBoxFaceMeshActive = false([1 nboxFaces]);
@@ -133,11 +132,11 @@ classdef UnfittedMesh < handle
                 for idime = 1:m.ndim
                     for iside = 1:sides
                         iFace = iFace + 1;
-                        mesh = fMeshes{iFace};
-                        nodesInBoxFace = fNodes{iFace};
-                        interp = Interpolation.create(mesh,'LINEAR');
+                        bMesh = bMeshes{iFace};
+                        nodesInBoxFace = bMesh.nodesInBoxFaces;
+                        interp = Interpolation.create(bMesh.mesh,'LINEAR');
                         s.type = 'INTERIOR';
-                        s.meshBackground = mesh;
+                        s.meshBackground = bMesh.mesh;
                         s.interpolationBackground = interp;
                         cParams = SettingsMeshUnfitted(s);
                         cParams.isInBoundary = true;
@@ -153,10 +152,10 @@ classdef UnfittedMesh < handle
                         boxFaceMeshes{iFace}        = boxFaceMesh;
                         nodesInBoxFaces{iFace}      = nodesInBoxFace;
                         
-                        m2.boxFaceMesh     = boxFaceMesh;
-                        m2.nodesInBoxFaces = nodesInBoxFaces;
-                        m2.isActive        = isBoxFaceMeshActive(iFace);
-                        obj.unfittedBoxMeshes2{iFace} = m2;
+                       % m2.boxFaceMesh     = boxFaceMesh;
+                       % m2.nodesInBoxFaces = nodesInBoxFaces;
+                       % m2.isActive        = isBoxFaceMeshActive(iFace);
+                       % obj.unfittedBoxMeshes2{iFace} = m2;
                         
                     end
                 end

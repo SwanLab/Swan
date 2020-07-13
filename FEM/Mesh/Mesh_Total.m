@@ -83,15 +83,18 @@ classdef Mesh_Total < Mesh_Composite
             nExteriorMeshes = 1;
             for imesh = 1:nExteriorMeshes
                 nodes  = obj.borderNodes;
-                s.coord = obj.coord(nodes,:);
+                s.coord  = obj.coord(nodes,:);
                 s.connec = obj.computeConnectivitiesFromData();
-                s.type = 'BOUNDARY';
-                m = Mesh().create(s);
+                %s.globalConnec = obj.borderElements(:,2:end);
+                s.nodesInBoxFaces = false(size(obj.coord,1),1);
+                s.nodesInBoxFaces(nodes,1) = true;
+                m = BoundaryMesh(s);
+                %s.type = 'BOUNDARY';
+                %m = Mesh().create(s);
                 obj.boxFaceMeshes{imesh} = m;
                 obj.append(m);
-                s.nodesInBoxFaces{imesh} = false(size(obj.coord,1),1);
-                obj.nodesInBoxFaces{imesh}(nodes,1) = true;
-                obj.globalConnectivities{imesh} = obj.borderElements(:,2:end);  
+                
+             %   obj.globalConnectivities{imesh} = obj.borderElements(:,2:end);  
                 
                 
                 
@@ -143,40 +146,40 @@ classdef Mesh_Total < Mesh_Composite
             nSides = 2;
             for iDime = 1:obj.ndim
                 for iSide = 1:nSides
-                    iFace = obj.computeIface(iSide,iDime);
-                    [mesh,nodesInBoxFace] = obj.createBoxFaceMesh(iDime,iSide);
+                    iFace = obj.computeIface(iSide,iDime);                                
+                    mesh = obj.createBoxFaceMesh(iDime,iSide);
                     obj.boxFaceMeshes{iFace} = mesh;
                     obj.append(mesh);
-                    obj.nodesInBoxFaces{iFace} = nodesInBoxFace;
-                    obj.computeGlobalConnectivities(iFace);
                 end
             end
             obj.nBoxFaces = numel(obj.boxFaceMeshes);                              
         end
+%         
+%         function connec = computeGlobalConnectivities(obj,boxFaceConnec,nodesInBoxFace)
+%             iFace = obj.computeIface(iSide,iDime);            
+%             
+%             boxFaceMesh    = obj.boxFaceMeshes{iFace};
+%             nodesInBoxFace = obj.nodesInBoxFaces{iFace};
+% 
+%             obj.globalConnectivities{iFace} = connec;
+%         end
         
-        function connec = computeGlobalConnectivities(obj,iFace)
-            boxFaceMesh    = obj.boxFaceMeshes{iFace};
-            nodesInBoxFace = obj.nodesInBoxFaces{iFace};
-            nodes = find(nodesInBoxFace);
-            boxFaceConnec = boxFaceMesh.connec;
-            for inode = 1:size(boxFaceConnec,2)
-               connec(:,inode) = nodes(boxFaceConnec(:,inode));
-            end
-            obj.globalConnectivities{iFace} = connec;
-        end
-        
-        function [m, nodesInBoxFace] = createBoxFaceMesh(obj,idime,iside)
-            [boxFaceCoords,nodesInBoxFace,boxFaceCoordsRemoved] = obj.getFaceCoordinates(idime,iside);
+        function m = createBoxFaceMesh(obj,iDime,iSide)
+            
+            [boxFaceCoords,nodesInBoxFace,boxFaceCoordsRemoved] = obj.getFaceCoordinates(iDime,iSide);
             switch obj.ndim
                 case 2
                     boxFaceConnec = obj.computeConnectivities(boxFaceCoordsRemoved);
                 case 3
                     boxFaceConnec = obj.computeDelaunay(boxFaceCoordsRemoved);
             end
+            
+            %s.globalConnec = obj.computeGlobalConnectivities(boxFaceConnec,nodesInBoxFace);
             s.connec = boxFaceConnec;
             s.coord  = boxFaceCoords;
-            s.isInBoundary = true;
-            m = Mesh().create(s);
+            s.nodesInBoxFaces = nodesInBoxFace;
+            %s.isInBoundary = true;
+            m = BoundaryMesh(s);
         end
         
         function [boxFaceCoords, nodesInBoxFace,boxFaceCoordsRemoved] = getFaceCoordinates(obj,idime,iside)

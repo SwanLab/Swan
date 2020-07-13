@@ -2,7 +2,7 @@ classdef BoundaryMesh < handle
     
     properties (Access = public)
        nodesInBoxFaces
-       globalConnectivities
+       globalConnec
        mesh
     end
     
@@ -19,7 +19,8 @@ classdef BoundaryMesh < handle
         
         function obj = BoundaryMesh(cParams)
             obj.init(cParams)
-            obj.createMesh();
+            obj.createMesh();  
+            obj.createGlobalConnec();
         end
         
     end
@@ -28,7 +29,6 @@ classdef BoundaryMesh < handle
         
         function init(obj,cParams)
             obj.nodesInBoxFaces = cParams.nodesInBoxFaces;
-            obj.globalConnec    = cParams.globalConnec;
             obj.connec          = cParams.connec;
             obj.coord           = cParams.coord;
         end
@@ -36,8 +36,16 @@ classdef BoundaryMesh < handle
         function createMesh(obj)
             s.coord  = obj.coord;
             s.connec = obj.connec;
+            s.isInBoundary = true;
             s.type   = 'BOUNDARY';
             obj.mesh = Mesh().create(s);
+        end
+        
+        function createGlobalConnec(obj)
+            nodes = find(obj.nodesInBoxFaces);
+            for inode = 1:size(obj.connec,2)
+               obj.globalConnec(:,inode) = nodes(obj.connec(:,inode));
+            end            
         end
     end
     

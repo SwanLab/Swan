@@ -117,9 +117,9 @@ classdef Element_DiffReact < Element
             params.npnod = obj.mesh.npnod;
             for iMesh = 1:obj.mesh.nBoxFaces
                 boxFaceMesh = obj.mesh.boxFaceMeshes{iMesh};
-                cParams.mesh = boxFaceMesh;
+                cParams.mesh = boxFaceMesh.mesh;
                 cParams.type = 'SIMPLE';
-                cParams.globalConnec = obj.mesh.globalConnectivities{iMesh};
+                cParams.globalConnec = boxFaceMesh.globalConnec;
                 cParams.npnod        = obj.mesh.innerMeshOLD.npnod;
                 cParams.geometryType = obj.mesh.innerMeshOLD.geometryType;
                 params.compositeParams{iMesh} = cParams;
