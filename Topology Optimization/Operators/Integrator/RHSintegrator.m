@@ -68,12 +68,6 @@ classdef RHSintegrator < handle
             shapes = permute(int.shape,[1 3 2]);            
         end          
         
-        function int = initIntegrand(obj)
-            nelem = obj.mesh.nelem;
-            nnode = obj.backgroundMesh.nnode;
-            int = zeros(nnode,nelem);            
-        end          
-        
     end
     
 end

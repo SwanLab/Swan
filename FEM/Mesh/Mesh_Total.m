@@ -89,9 +89,13 @@ classdef Mesh_Total < Mesh_Composite
                 m = Mesh().create(s);
                 obj.boxFaceMeshes{imesh} = m;
                 obj.append(m);
-                obj.nodesInBoxFaces{imesh} = false(size(obj.coord,1),1);
+                s.nodesInBoxFaces{imesh} = false(size(obj.coord,1),1);
                 obj.nodesInBoxFaces{imesh}(nodes,1) = true;
                 obj.globalConnectivities{imesh} = obj.borderElements(:,2:end);  
+                
+                
+                
+                
             end
            obj.nBoxFaces = numel(obj.boxFaceMeshes);                              
         end

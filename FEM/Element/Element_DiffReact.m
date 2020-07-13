@@ -114,14 +114,14 @@ classdef Element_DiffReact < Element
         
         function params = createIntegratorParams(obj)
             params.type = 'COMPOSITE';
-            params.mesh = obj.mesh;
+            params.npnod = obj.mesh.npnod;
             for iMesh = 1:obj.mesh.nBoxFaces
                 boxFaceMesh = obj.mesh.boxFaceMeshes{iMesh};
                 cParams.mesh = boxFaceMesh;
                 cParams.type = 'SIMPLE';
-                cParams.backgroundMesh = obj.mesh.innerMeshOLD;
                 cParams.globalConnec = obj.mesh.globalConnectivities{iMesh};
-                cParams.npnod = obj.mesh.innerMeshOLD.npnod;
+                cParams.npnod        = obj.mesh.innerMeshOLD.npnod;
+                cParams.geometryType = obj.mesh.innerMeshOLD.geometryType;
                 params.compositeParams{iMesh} = cParams;
             end
         end

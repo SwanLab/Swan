@@ -11,15 +11,7 @@ classdef Integrator < handle
         end
         
     end
-    
-    methods (Access = protected)
-        
-        function init(obj,cParams)           
-           obj.mesh = cParams.mesh;
-        end        
-        
-    end
-    
+       
     methods (Static, Access = protected)
         
         function quadrature = computeQuadrature(geometryType)

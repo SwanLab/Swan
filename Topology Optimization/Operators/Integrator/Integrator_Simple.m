@@ -1,22 +1,15 @@
 classdef Integrator_Simple < Integrator
     
     properties (Access = private)
-        globalConnec
+        globalConnec        
         npnod
-
-        
-        RHScells
-        RHSsubcells
-        backgroundMesh        
+        geometryType
     end
     
     methods (Access = public)
         
         function obj = Integrator_Simple(cParams)
             obj.init(cParams)
-            obj.backgroundMesh = cParams.backgroundMesh;
-            obj.npnod          = cParams.npnod;            
-            obj.globalConnec   = cParams.globalConnec;
         end
         
         function LHS = computeLHS(obj)
@@ -27,41 +20,42 @@ classdef Integrator_Simple < Integrator
             LHS = lhs.compute();
         end
         
-        function norm = computeL2norm(obj,f)
-            fv(:,1) = f(:);
-            M = obj.LHS;
-            norm = fv'*M*fv;
-        end
-        
-        function RHS = integrate(obj,F)
-            obj.computeElementalRHS(F);
-            RHS = obj.assembleIntegrand();
+        function rhs = integrate(obj,F)
+            rhsCells = obj.computeElementalRHS(F);
+            rhs = obj.assembleIntegrand(rhsCells);
         end
         
     end
     
     methods (Access = private)
         
-        function computeElementalRHS(obj,fNodal)
+        function init(obj,cParams)
+            obj.mesh         = cParams.mesh;
+            obj.globalConnec = cParams.globalConnec;            
+            obj.npnod        = cParams.npnod;
+            obj.geometryType = cParams.geometryType;
+        end
+        
+        function rhsC = computeElementalRHS(obj,fNodal)
             s.fNodal         = fNodal;
-            s.xGauss         = obj.computeGaussPoints();   
-            s.quadrature     = obj.computeQuadrature(obj.mesh.geometryType);            
-            s.geometryType   = obj.backgroundMesh.geometryType;
+            s.xGauss         = obj.computeGaussPoints();
+            s.quadrature     = obj.computeQuadrature(obj.mesh.geometryType);
+            s.geometryType   = obj.geometryType;
             s.mesh           = obj.mesh;
             s.feMesh         = obj.mesh;
             rhs = RHSintegrator(s);
-            obj.RHScells = rhs.integrate();        
+            rhsC = rhs.integrate();
         end
         
         function xGauss = computeGaussPoints(obj)
-            q = obj.computeQuadrature(obj.mesh.geometryType);
             m = obj.mesh;
+            q = obj.computeQuadrature(m.geometryType);
             xGauss = repmat(q.posgp,[1,1,m.nelem]);
-        end             
+        end
         
-        function f = assembleIntegrand(obj)
-            integrand = obj.RHScells;
-            ndofs  = obj.backgroundMesh.npnod;
+        function f = assembleIntegrand(obj,rhsCells)
+            integrand = rhsCells;
+            ndofs  = obj.npnod;
             connec = obj.globalConnec;
             nnode  = size(connec,2);
             f = zeros(ndofs,1);

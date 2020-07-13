@@ -5,6 +5,7 @@ classdef UnfittedMesh < handle
         innerCutMesh        
         boundaryCutMesh       
         unfittedBoxMeshes
+        unfittedBoxMeshes2
     
         %%%%%%ehhh
         backgroundMesh
@@ -125,7 +126,6 @@ classdef UnfittedMesh < handle
                 m = obj.backgroundMesh;
                 fMeshes = m.boxFaceMeshes;
                 fNodes  = m.nodesInBoxFaces;
-                fGlobalConnec = m.globalConnectivities;
                 sides = 2;
                 nboxFaces = sides*m.ndim;
                 isBoxFaceMeshActive = false([1 nboxFaces]);
@@ -152,14 +152,17 @@ classdef UnfittedMesh < handle
                         
                         boxFaceMeshes{iFace}        = boxFaceMesh;
                         nodesInBoxFaces{iFace}      = nodesInBoxFace;
-                        globalConnectivities{iFace} = fGlobalConnec{iFace};
+                        
+                        m2.boxFaceMesh     = boxFaceMesh;
+                        m2.nodesInBoxFaces = nodesInBoxFaces;
+                        m2.isActive        = isBoxFaceMeshActive(iFace);
+                        obj.unfittedBoxMeshes2{iFace} = m2;
                         
                     end
                 end
                 obj.unfittedBoxMeshes.boxFaceMeshes        = boxFaceMeshes;
                 obj.unfittedBoxMeshes.isBoxFaceMeshActive  = isBoxFaceMeshActive;
                 obj.unfittedBoxMeshes.nodesInBoxFaces      = nodesInBoxFaces;
-                obj.unfittedBoxMeshes.globalConnectivities = globalConnectivities;
             end
         end
         
@@ -189,11 +192,6 @@ classdef UnfittedMesh < handle
             mass = sum(fInt);
         end
 
-    end
-    
-    methods (Access = private)
-        
-      
     end
     
     methods (Access = private, Static)
