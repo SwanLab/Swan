@@ -19,10 +19,8 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             obj.nelem = obj.mesh.nelem;
             obj.npnod = obj.mesh.npnod;
             obj.ngaus = obj.quadrature.ngaus;
-            obj.Anodal2Gauss = obj.computeA();            
-            cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh);
-            cParams.isInBoundary = false;
-            obj.unfittedMesh = UnfittedMesh(cParams);
+            obj.Anodal2Gauss = obj.computeA();                      
+            obj.createUnfittedMesh();
             obj.disableDelaunayWarning();
         end
         
@@ -54,6 +52,15 @@ classdef Filter_PDE_LevelSet < Filter_PDE
     end
     
     methods (Access = private)
+        
+        function createUnfittedMesh(obj)
+            s.unfittedType   = obj.domainType;
+            s.backgroundMesh = obj.mesh.innerMeshOLD;
+            s.boundaryMesh   = obj.mesh.boxFaceMeshes;
+            s.isInBoundary   = false;                               
+            cParams = SettingsMeshUnfitted(s);
+            obj.unfittedMesh = UnfittedMesh(cParams);            
+        end
         
         function createQuadrature(obj)
             obj.quadrature = Quadrature.set(obj.mesh.geometryType);

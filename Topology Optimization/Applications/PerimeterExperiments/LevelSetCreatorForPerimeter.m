@@ -77,7 +77,11 @@ classdef LevelSetCreatorForPerimeter < handle
         end                
         
        function mesh = createUnfittedMesh(obj)
-            cParams = SettingsMeshUnfitted('INTERIOR',obj.mesh);
+            s.backgroundMesh = obj.mesh.innerMeshOLD;
+            s.boundaryMesh   = obj.mesh.boxFaceMeshes;
+            s.unfittedType   = 'INTERIOR';
+            s.isInBoundary = false;                       
+            cParams = SettingsMeshUnfitted(s);
             mesh = UnfittedMesh(cParams);
             mesh.compute(obj.levelSet.value);           
         end

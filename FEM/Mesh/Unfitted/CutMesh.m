@@ -239,8 +239,7 @@ classdef CutMesh < Mesh
             obj.backgroundFullCells   = cParams.fullCells;
             obj.backgroundEmptyCells  = cParams.emptyCells;
             obj.backgroundCutCells    = cParams.cutCells;
-            obj.nCutCells             = length(obj.backgroundCutCells);
-            
+            obj.nCutCells             = length(obj.backgroundCutCells);            
             obj.backgroundMesh              = cParams.backgroundMesh;
             obj.backgroundGeomInterpolation = cParams.interpolationBackground;
         end

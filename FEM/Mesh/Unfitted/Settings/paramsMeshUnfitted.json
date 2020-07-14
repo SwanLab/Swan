@@ -1,5 +1,4 @@
 {
     "unfittedType": "INTERIOR",
-    "meshBackground": "Bridge_Tetrahedra_Coarse",
-    "includeBoxContour": false
+    "backgroundMesh": "Bridge_Tetrahedra_Coarse"
 }

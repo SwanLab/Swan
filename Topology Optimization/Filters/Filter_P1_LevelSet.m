@@ -75,7 +75,6 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
         function createProjector(obj)
             cParams.mesh = obj.mesh;
             cParams.domainType = obj.domainType;
-            cParams.quadrature = obj.quadrature;
             cParams.type = obj.mesh.geometryType;
             obj.projector = ShapeFunctionProjector.create(cParams);                                    
         end

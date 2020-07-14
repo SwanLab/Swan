@@ -3,8 +3,6 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
     properties (Access = private)
         unfittedMesh
         domainType
-        interpolation
-        quadrature
     end
     
     methods (Access = public)
@@ -12,8 +10,6 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
         function obj = ShapeFunctionProjector_General(cParams)
             obj.init(cParams)
             obj.domainType = cParams.domainType;
-            obj.quadrature = cParams.quadrature;
-            obj.createInterpolation();
             obj.createUnfittedMesh();
         end
         
@@ -27,7 +23,6 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
                 s.type = 'Unfitted';
                 integrator = Integrator.create(s);            
                 fInt = integrator.integrateInDomain(fNodes);                
-                %fInt = obj.unfittedMesh.integrateNodalFunction(fNodes);
             end
             
         end
@@ -36,15 +31,12 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
     
     methods (Access = private)
         
-        function createInterpolation(obj)
-            obj.interpolation = Interpolation.create(obj.mesh,'LINEAR');
-            obj.interpolation.computeShapeDeriv(obj.quadrature.posgp)
-        end
         
         function createUnfittedMesh(obj)
-            s.unfittedType = obj.domainType;
-            s.meshBackground = obj.mesh;
-            s.interpolationBackground = obj.interpolation;
+            s.unfittedType   =  obj.domainType;
+            s.backgroundMesh = obj.mesh.innerMeshOLD;
+            s.boundaryMesh   = obj.mesh.boxFaceMeshes;
+            s.isInBoundary = false;            
             cParams = SettingsMeshUnfitted(s);
             obj.unfittedMesh = UnfittedMesh(cParams);
         end

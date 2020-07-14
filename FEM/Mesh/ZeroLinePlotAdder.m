@@ -44,11 +44,12 @@ classdef ZeroLinePlotAdder < handle
         
         function createUnfittedMesh(obj)
             interp = Interpolation.create(obj.meshBackground,'LINEAR');
-            s.unfittedType = 'BOUNDARY';
             s.meshBackground = obj.meshBackground;
-            s.interpolationBackground = interp;
-            cParams = SettingsMeshUnfitted(s);
-            cParams.includeBoxContour = true;
+            s.backgroundMesh = obj.meshBackground.innerMeshOLD;
+            s.boundaryMesh   = obj.meshBackground.boxFaceMeshes;
+            s.unfittedType   = 'BOUNDARY';
+            s.isInBoundary = false;                        
+            cParams = SettingsMeshUnfitted(s);            
             uMesh = UnfittedMesh(cParams);
             levelSet = obj.z;
             uMesh.compute(levelSet);

@@ -9,6 +9,7 @@ classdef UnfittedMesh < handle
     
         %%%%%%ehhh
         backgroundMesh
+
         
     end
     
@@ -17,9 +18,11 @@ classdef UnfittedMesh < handle
         fullCells                        
         cutCells        
         emptyCells
+        
     end
     
     properties (Access = private)
+        boundaryMesh        
         isInBoundary
         levelSet
     end
@@ -70,7 +73,8 @@ classdef UnfittedMesh < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.backgroundMesh = cParams.meshBackground;
+            obj.backgroundMesh = cParams.backgroundMesh;
+            obj.boundaryMesh   = cParams.boundaryMesh;
             obj.unfittedType   = cParams.unfittedType;
             obj.isInBoundary   = cParams.isInBoundary;
         end
@@ -122,24 +126,20 @@ classdef UnfittedMesh < handle
         end
         
         function computeUnfittedBoxMesh(obj)
-            if isequal(class(obj.backgroundMesh),'Mesh_Total')
-                m = obj.backgroundMesh;
-                bMeshes = m.boxFaceMeshes;
+            if ~obj.backgroundMesh.isInBoundary
+                m = obj.boundaryMesh;
                 sides = 2;
-                nboxFaces = sides*m.ndim;
+                nboxFaces = sides*obj.backgroundMesh.ndim;
                 isBoxFaceMeshActive = false([1 nboxFaces]);
                 iFace = 0;
-                for idime = 1:m.ndim
+                for idime = 1:obj.backgroundMesh.ndim
                     for iside = 1:sides
                         iFace = iFace + 1;
-                        bMesh = bMeshes{iFace};
+                        bMesh = m{iFace};
                         nodesInBoxFace = bMesh.nodesInBoxFaces;
-                        interp = Interpolation.create(bMesh.mesh,'LINEAR');
-                        s.type = 'INTERIOR';
-                        s.meshBackground = bMesh.mesh;
-                        s.interpolationBackground = interp;
+                        s.backgroundMesh = bMesh.mesh;
+                        s.isInBoundary   = true;                        
                         cParams = SettingsMeshUnfitted(s);
-                        cParams.isInBoundary = true;
                         boxFaceMesh = UnfittedMesh(cParams);
                         
                         

@@ -5,6 +5,7 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
         npnod
 
         embeddedDim
+        isInBoundary
     end
     
     properties (Access = public)
@@ -13,7 +14,7 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
        
     properties (Access = protected)
        type 
-       isInBoundary               
+                      
     end
     
     
