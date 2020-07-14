@@ -4,8 +4,7 @@ classdef UnfittedMesh < handle
         innerMesh
         innerCutMesh        
         boundaryCutMesh       
-        unfittedBoxMeshes
-        unfittedBoxMeshes2
+        unfittedBoundaryMesh
     
         %%%%%%ehhh
         backgroundMesh
@@ -47,9 +46,10 @@ classdef UnfittedMesh < handle
             hold on
             obj.plotMesh(obj.backgroundMesh);
             obj.plotMesh(obj.boundaryCutMesh);
-            for imesh = 1:length(obj.unfittedBoxMeshes.isBoxFaceMeshActive)
-                if obj.unfittedBoxMeshes.isBoxFaceMeshActive(imesh)
-                    uBoxMesh = obj.unfittedBoxMeshes.boxFaceMeshes{imesh};
+            for imesh = 1:length(obj.unfittedBoundaryMesh.isBoxFaceMeshActive)
+                uMesh = obj.unfittedBoundaryMesh.meshes{imesh};
+                if uMesh.isBoxFaceMeshActive
+                    uBoxMesh = uMesh.boxFaceMeshes;
                     uBoxMesh.plotAll();
                 end
             end
@@ -126,42 +126,12 @@ classdef UnfittedMesh < handle
         end
         
         function computeUnfittedBoxMesh(obj)
+            s.ndim = obj.backgroundMesh.ndim;
+            s.boundaryMesh = obj.boundaryMesh;            
+            obj.unfittedBoundaryMesh = UnfittedBoundaryMesh(s);
             if ~obj.backgroundMesh.isInBoundary
-                m = obj.boundaryMesh;
-                sides = 2;
-                nboxFaces = sides*obj.backgroundMesh.ndim;
-                isBoxFaceMeshActive = false([1 nboxFaces]);
-                iFace = 0;
-                for idime = 1:obj.backgroundMesh.ndim
-                    for iside = 1:sides
-                        iFace = iFace + 1;
-                        bMesh = m{iFace};
-                        nodesInBoxFace = bMesh.nodesInBoxFaces;
-                        s.backgroundMesh = bMesh.mesh;
-                        s.isInBoundary   = true;                        
-                        cParams = SettingsMeshUnfitted(s);
-                        boxFaceMesh = UnfittedMesh(cParams);
-                        
-                        
-                        lsBoxFace = obj.levelSet(nodesInBoxFace);
-                        if any(sign(lsBoxFace)<0)
-                            boxFaceMesh.compute(lsBoxFace);
-                            isBoxFaceMeshActive(iFace) = true;
-                        end
-                        
-                        boxFaceMeshes{iFace}        = boxFaceMesh;
-                        nodesInBoxFaces{iFace}      = nodesInBoxFace;
-                        
-                       % m2.boxFaceMesh     = boxFaceMesh;
-                       % m2.nodesInBoxFaces = nodesInBoxFaces;
-                       % m2.isActive        = isBoxFaceMeshActive(iFace);
-                       % obj.unfittedBoxMeshes2{iFace} = m2;
-                        
-                    end
-                end
-                obj.unfittedBoxMeshes.boxFaceMeshes        = boxFaceMeshes;
-                obj.unfittedBoxMeshes.isBoxFaceMeshActive  = isBoxFaceMeshActive;
-                obj.unfittedBoxMeshes.nodesInBoxFaces      = nodesInBoxFaces;
+               ls   = obj.levelSet;
+               obj.unfittedBoundaryMesh.compute(ls);
             end
         end
         

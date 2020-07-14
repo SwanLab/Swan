@@ -48,14 +48,15 @@ classdef Integrator_Unfitted < Integrator
             s.npnod = uMesh.backgroundMesh.npnod;
             s.type = 'COMPOSITE';
             s.compositeParams = cell(0);
-            meshes = uMesh.unfittedBoxMeshes;
+            uBoundary = uMesh.unfittedBoundaryMesh;
             iActive = 1;
-            for iMesh = 1:length(meshes.isBoxFaceMeshActive)
-                isActive = meshes.isBoxFaceMeshActive(iMesh);
+            for iMesh = 1:numel(uBoundary.meshes)
+                m = uBoundary.meshes{iMesh};
+                isActive = m.isBoxFaceMeshActive(iMesh);
                 if isActive
-                    boxFaceMesh = meshes.boxFaceMeshes{iMesh};
+                    boxFaceMesh = m.boxFaceMeshes;
                     sB = obj.createInteriorParams(boxFaceMesh);
-                    sB.boxFaceToGlobal = meshes.nodesInBoxFaces{iMesh};
+                    sB.boxFaceToGlobal = m.nodesInBoxFaces;
                     s.compositeParams{iActive} = sB;
                     iActive = iActive + 1;
                 end
