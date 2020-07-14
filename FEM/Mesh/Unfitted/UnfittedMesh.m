@@ -46,7 +46,7 @@ classdef UnfittedMesh < handle
             hold on
             obj.plotMesh(obj.backgroundMesh);
             obj.plotMesh(obj.boundaryCutMesh);
-            for imesh = 1:length(obj.unfittedBoundaryMesh.isBoxFaceMeshActive)
+            for imesh = 1:numel(obj.unfittedBoundaryMesh.meshes)
                 uMesh = obj.unfittedBoundaryMesh.meshes{imesh};
                 if uMesh.isBoxFaceMeshActive
                     uBoxMesh = uMesh.boxFaceMeshes;
@@ -126,7 +126,6 @@ classdef UnfittedMesh < handle
         end
         
         function computeUnfittedBoxMesh(obj)
-            s.ndim = obj.backgroundMesh.ndim;
             s.boundaryMesh = obj.boundaryMesh;            
             obj.unfittedBoundaryMesh = UnfittedBoundaryMesh(s);
             if ~obj.backgroundMesh.isInBoundary

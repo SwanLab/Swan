@@ -39,27 +39,31 @@ classdef Integrator_Unfitted < Integrator
         
         function computeBoundaryIntegrators(obj)
             uMesh  = obj.mesh;
-            s = obj.createUnfittedBoxMeshesParams(uMesh);
-            s.compositeParams{end+1} = obj.createCutParams(uMesh.boundaryCutMesh,uMesh.backgroundMesh);
+            s.type = 'COMPOSITE';      
+            s.npnod = uMesh.backgroundMesh.npnod; 
+            s.compositeParams = obj.computeCompositeParams();
             obj.integrators = Integrator.create(s);
         end
         
-        function s = createUnfittedBoxMeshesParams(obj,uMesh)            
-            s.npnod = uMesh.backgroundMesh.npnod;
-            s.type = 'COMPOSITE';
-            s.compositeParams = cell(0);
-            uBoundary = uMesh.unfittedBoundaryMesh;
-            iActive = 1;
-            for iMesh = 1:numel(uBoundary.meshes)
-                m = uBoundary.meshes{iMesh};
-                isActive = m.isBoxFaceMeshActive(iMesh);
-                if isActive
-                    boxFaceMesh = m.boxFaceMeshes;
-                    sB = obj.createInteriorParams(boxFaceMesh);
-                    sB.boxFaceToGlobal = m.nodesInBoxFaces;
-                    s.compositeParams{iActive} = sB;
-                    iActive = iActive + 1;
-                end
+        function s = computeCompositeParams(obj)
+            uMesh  = obj.mesh.unfittedBoundaryMesh;        
+            [sUnfitted,nMeshes] = obj.createUnfittedBoundaryMeshParams(uMesh);     
+            s = cell(nMeshes+1,1);
+            for iMesh = 1:nMeshes
+                s{iMesh} = sUnfitted{iMesh};
+            end
+            sCut = obj.createCutParams(obj.mesh.boundaryCutMesh,obj.mesh.backgroundMesh);            
+            s{nMeshes+1} = sCut;            
+        end
+        
+        function [s,nMeshes] = createUnfittedBoundaryMeshParams(obj,uMesh)            
+            uMeshes = uMesh.getActiveMesh();
+            gConnec = uMesh.getGlobalConnec();
+            nMeshes = numel(uMeshes);
+            s = cell(nMeshes,1);
+            for iMesh = 1:nMeshes
+              s{iMesh} = obj.createInteriorParams(uMeshes{iMesh});
+              s{iMesh}.boxFaceToGlobal = gConnec{iMesh};
             end
         end
         
