@@ -4,26 +4,22 @@ classdef UnfittedMesh < handle
         innerMesh
         innerCutMesh        
         boundaryCutMesh       
-        unfittedBoundaryMesh
-    
-        %%%%%%ehhh
+        unfittedBoundaryMesh    
         backgroundMesh
-
-        
     end
     
     properties (Access = private)
         unfittedType  
         fullCells                        
         cutCells        
-        emptyCells
-        
+        emptyCells    
+        plotter
     end
     
     properties (Access = private)
         boundaryMesh        
         isInBoundary
-        levelSet
+        levelSet        
     end
     
     methods (Access = public)
@@ -38,34 +34,25 @@ classdef UnfittedMesh < handle
             obj.computeInnerMesh();
             obj.computeInnerCutMesh();
             obj.computeBoundaryCutMesh();
-            obj.computeUnfittedBoxMesh();            
+            obj.computeUnfittedBoxMesh();
+            obj.createPlotter()            
+        end
+        
+        function createPlotter(obj)
+            s.uMesh = obj;
+            obj.plotter = UnfittedMeshPlotter(s);
         end
         
         function plotBoundary(obj)
-            figure
-            hold on
-            obj.plotMesh(obj.backgroundMesh);
-            obj.plotMesh(obj.boundaryCutMesh);
-            for imesh = 1:numel(obj.unfittedBoundaryMesh.meshes)
-                uMesh = obj.unfittedBoundaryMesh.meshes{imesh};
-                if uMesh.isBoxFaceMeshActive
-                    uBoxMesh = uMesh.boxFaceMeshes;
-                    uBoxMesh.plotAll();
-                end
-            end
+            obj.plotter.plotBoundary();
         end
         
         function plot(obj)
-            figure
-            hold on
-            obj.plotAll()
+            obj.plotter.plotDomain();
         end
         
         function plotAll(obj)
-            obj.plotMesh(obj.backgroundMesh);
-            obj.plotMesh(obj.innerMesh);
-            obj.plotMesh(obj.innerCutMesh);
-            obj.plotMesh(obj.boundaryCutMesh);
+            obj.plotter.plotAll();           
         end
         
     end
@@ -161,16 +148,5 @@ classdef UnfittedMesh < handle
         end
 
     end
-    
-    methods (Access = private, Static)
-        
-        function plotMesh(mesh)
-            s.mesh = mesh;
-            mP = MeshPlotter(s);
-            mP.plot();
-        end
-        
-    end
-    
-    
+
 end
