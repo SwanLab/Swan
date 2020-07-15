@@ -87,6 +87,7 @@ classdef UnfittedMesh < handle
         end
                   
         function computeInnerCutMesh(obj)
+           if ~isempty(obj.cutCells)
             s.type                   = 'INTERIOR';
             s.backgroundMesh          = obj.backgroundMesh;
             s.interpolationBackground = Interpolation.create(obj.backgroundMesh,'LINEAR');
@@ -96,9 +97,11 @@ classdef UnfittedMesh < handle
             s.isInBoundary  = obj.isInBoundary;
             s.levelSet = obj.levelSet;
             obj.innerCutMesh = CutMesh(s);
+           end
         end
         
         function computeBoundaryCutMesh(obj)
+          if ~isempty(obj.cutCells)
             if ~obj.isInBoundary
                 s.type                    = 'BOUNDARY';
                 s.backgroundMesh          = obj.backgroundMesh;
@@ -110,12 +113,13 @@ classdef UnfittedMesh < handle
                 s.levelSet = obj.levelSet;
                 obj.boundaryCutMesh = CutMesh(s);
             end
+          end
         end
         
         function computeUnfittedBoxMesh(obj)
             s.boundaryMesh = obj.boundaryMesh;            
             obj.unfittedBoundaryMesh = UnfittedBoundaryMesh(s);
-            if ~obj.backgroundMesh.isInBoundary
+            if ~obj.isInBoundary
                ls   = obj.levelSet;
                obj.unfittedBoundaryMesh.compute(ls);
             end

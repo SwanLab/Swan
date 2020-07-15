@@ -44,6 +44,7 @@ classdef UnfittedBoundaryMesh < handle
         function init(obj,cParams)
             obj.boundaryMesh = cParams.boundaryMesh;
             obj.nBoundaries  = numel(obj.boundaryMesh);
+            obj.activeMeshes = false(obj.nBoundaries,1);            
         end
         
         function createUnfittedMeshes(obj)
@@ -65,13 +66,13 @@ classdef UnfittedBoundaryMesh < handle
         function computeActiveMesh(obj)
             for iBoundary = 1:obj.nBoundaries                
                 isActive = obj.isUnfittedMeshActive(iBoundary);
-                obj.activeMeshes{iBoundary} = isActive;
+                obj.activeMeshes(iBoundary) = isActive;
             end            
         end
         
         function computeUnfittedMeshes(obj)
             for iBoundary = 1:obj.nBoundaries       
-                isMeshActive = obj.activeMeshes{iBoundary};
+                isMeshActive = obj.activeMeshes(iBoundary);
                 if isMeshActive
                    obj.computeUnfittedMesh(iBoundary);
                 end
@@ -94,7 +95,7 @@ classdef UnfittedBoundaryMesh < handle
             activeFields = cell(0);
             iMesh = 1;
             for iBoundary = 1:obj.nBoundaries       
-                isMeshActive = obj.activeMeshes{iBoundary};
+                isMeshActive = obj.activeMeshes(iBoundary);
                 if isMeshActive
                    activeFields{iMesh} = fields{iBoundary};
                    iMesh = iMesh +1;

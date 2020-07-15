@@ -90,7 +90,7 @@ classdef Integrator_Unfitted < Integrator
             if mesh.innerMesh.nelem ~= 0
                 s.compositeParams{1} = obj.createInnerParams(mesh.innerMesh,mesh.backgroundMesh);
             end
-            if mesh.innerCutMesh.nelem ~= 0
+            if ~isempty(mesh.innerCutMesh)
                 s.compositeParams{end+1} = obj.createCutParams(mesh.innerCutMesh,mesh.backgroundMesh);
             end
         end

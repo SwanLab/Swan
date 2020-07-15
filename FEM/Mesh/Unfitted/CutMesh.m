@@ -49,19 +49,34 @@ classdef CutMesh < Mesh
     methods (Access = public)
         
         function obj = CutMesh(cParams)
+            
+            if isobject(cParams)
+                if (isempty(cParams.isInBoundary))
+                    obj.isInBoundary = false;
+                else
+                    obj.isInBoundary = cParams.isInBoundary;
+                end
+            else
+                if isfield(cParams,'isInBoundary')
+                    obj.isInBoundary = cParams.isInBoundary;
+                else
+                    obj.isInBoundary = false;
+                end
+            end            
+            
             obj.backgroundMesh = cParams.backgroundMesh;
             obj.isInBoundary   = cParams.isInBoundary;
             obj.type           = cParams.type;
             obj.ndim           = cParams.backgroundMesh.ndim;
             
             isTriangle = isequal(cParams.backgroundMesh.geometryType,'TRIANGLE');
+            isQuad     = isequal(cParams.backgroundMesh.geometryType,'QUAD');
+            
             isInterior = isequal(obj.type,'INTERIOR');  
             isBoundary = isequal(obj.type,'BOUNDARY');  
             cutElems   = cParams.cutCells; 
-            thereIsCutElem = ~isempty(cutElems);
-            isQuad = isequal(cParams.backgroundMesh.geometryType,'QUAD');
             
-            if isTriangle && isInterior && thereIsCutElem 
+            if isTriangle && isInterior  
                  
                 ls = cParams.levelSet;
                 connecCut = cParams.backgroundMesh.connec(cutElems,:);            
@@ -92,7 +107,7 @@ classdef CutMesh < Mesh
                 
                 obj.cellContainingSubcell = cM.cellContainingSubcell;
                 
-            elseif isQuad && isInterior && thereIsCutElem 
+            elseif isQuad && isInterior 
                 
                 ls = cParams.levelSet;
                 connecCut = cParams.backgroundMesh.connec(cutElems,:);            
@@ -121,7 +136,7 @@ classdef CutMesh < Mesh
                 
                 obj.cellContainingSubcell = cM.cellContainingSubcell;                
                 
-            elseif isTriangle && isBoundary && thereIsCutElem
+            elseif isTriangle && isBoundary 
                                
                 ls = cParams.levelSet;
                 connecCut = cParams.backgroundMesh.connec(cutElems,:);                
@@ -144,7 +159,7 @@ classdef CutMesh < Mesh
                 obj.subcellIsoCoords = cutMesh.obtainXcutIso();
                 obj.cellContainingSubcell = cutElems;
 
-            elseif isQuad && isBoundary && thereIsCutElem                
+            elseif isQuad && isBoundary            
                 
 
                 ls = cParams.levelSet;
@@ -415,14 +430,6 @@ classdef CutMesh < Mesh
                     match = match & B(:,idime) == A(inode,idime);
                 end
                 I(inode) = find(match,1);
-            end
-        end
-        
-        function theyDo = existPatchingInputs(nInputs)
-            if nInputs == 4
-                theyDo = true;
-            else
-                theyDo = false;
             end
         end
         

@@ -136,18 +136,10 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             obj.coord  = cParams.coord;
             obj.connec = cParams.connec;
             
-            if isobject(cParams)
-                if (isempty(cParams.isInBoundary))
-                    obj.isInBoundary = false;
-                else
-                    obj.isInBoundary = cParams.isInBoundary;
-                end
+            if isfield(cParams,'isInBoundary')
+                obj.isInBoundary = cParams.isInBoundary;
             else
-                if isfield(cParams,'isInBoundary')
-                    obj.isInBoundary = cParams.isInBoundary;
-                else
-                    obj.isInBoundary = false;
-                end
+                obj.isInBoundary = false;
             end
             
         end        

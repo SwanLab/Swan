@@ -17,14 +17,6 @@ classdef TopOptTests < testRunner
         
         function loadTests(obj)
             obj.tests = {...
-                'testVigdergauzMicroStructure';                                
-                'testSuperEllipseExponent'                
-                'testCantilever2';                
-            'testCantilever3';
-                'testMicro2';
-                'testVigdergauzMicroStructureWithStrain';
-                'testAnalyticVsRegularizedPerimeter';
-                'testGripping';
                 'testInteriorPerimeter';
                 'testDualNestedInPrimalWithSlerp';
                 'SimplAllTest3DExplicitVsImplicit';
@@ -35,7 +27,15 @@ classdef TopOptTests < testRunner
                 'testStressM1M2';
                 'testM1M2';
                 'testBridge2';
-                'testBridge';         
+                'testBridge';        
+                'testVigdergauzMicroStructure';                                
+                'testSuperEllipseExponent'                
+                'testCantilever2';                
+                'testCantilever3';
+                'testMicro2';
+                'testVigdergauzMicroStructureWithStrain';
+                'testAnalyticVsRegularizedPerimeter';
+                'testGripping';                
                 };
         end
         
