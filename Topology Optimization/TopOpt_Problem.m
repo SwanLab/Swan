@@ -130,8 +130,8 @@ classdef TopOpt_Problem < handle
         
         function createMesh(obj,cParams)
             s = cParams.designVarSettings;
-            sM.coord  = s.femData.coord;
-            sM.connec = s.femData.connec;
+            sM.coord  = s.femData.mesh.coord;
+            sM.connec = s.femData.mesh.connec;
             obj.mesh = Mesh_Total(sM);
         end
         

@@ -9,7 +9,6 @@ classdef UnfittedMesh < handle
     end
     
     properties (Access = private)
-        unfittedType  
         fullCells                        
         cutCells        
         emptyCells    
@@ -62,8 +61,6 @@ classdef UnfittedMesh < handle
         function init(obj,cParams)
             obj.backgroundMesh = cParams.backgroundMesh;
             obj.boundaryMesh   = cParams.boundaryMesh;
-            obj.unfittedType   = cParams.unfittedType;
-            obj.isInBoundary   = cParams.isInBoundary;
         end
         
         function classifyCells(obj)            
@@ -81,35 +78,32 @@ classdef UnfittedMesh < handle
         
         function computeInnerMesh(obj)
             s.backgroundMesh = obj.backgroundMesh;
-            s.isInBoundary   = obj.isInBoundary;
             s.fullCells      = obj.fullCells;
             obj.innerMesh = InnerMesh(s);
         end
                   
         function computeInnerCutMesh(obj)
            if ~isempty(obj.cutCells)
-            s.type                   = 'INTERIOR';
+            s.type                    = 'INTERIOR';
             s.backgroundMesh          = obj.backgroundMesh;
             s.interpolationBackground = Interpolation.create(obj.backgroundMesh,'LINEAR');
-            s.fullCells     = obj.fullCells;
-            s.emptyCells    = obj.emptyCells;
-            s.cutCells      = obj.cutCells;
-            s.isInBoundary  = obj.isInBoundary;
-            s.levelSet = obj.levelSet;
+            s.fullCells               = obj.fullCells;
+            s.emptyCells              = obj.emptyCells;
+            s.cutCells                = obj.cutCells;
+            s.levelSet                = obj.levelSet;
             obj.innerCutMesh = CutMesh(s);
            end
         end
         
         function computeBoundaryCutMesh(obj)
           if ~isempty(obj.cutCells)
-            if ~obj.isInBoundary
+            if (obj.backgroundMesh.ndim + obj.backgroundMesh.kFace) > 1
                 s.type                    = 'BOUNDARY';
                 s.backgroundMesh          = obj.backgroundMesh;
                 s.interpolationBackground = Interpolation.create(obj.backgroundMesh,'LINEAR');
                 s.fullCells     = obj.fullCells;
                 s.emptyCells    = obj.emptyCells;
                 s.cutCells      = obj.cutCells;
-                s.isInBoundary  = obj.isInBoundary;
                 s.levelSet = obj.levelSet;
                 obj.boundaryCutMesh = CutMesh(s);
             end
@@ -119,10 +113,8 @@ classdef UnfittedMesh < handle
         function computeUnfittedBoxMesh(obj)
             s.boundaryMesh = obj.boundaryMesh;            
             obj.unfittedBoundaryMesh = UnfittedBoundaryMesh(s);
-            if ~obj.isInBoundary
-               ls   = obj.levelSet;
-               obj.unfittedBoundaryMesh.compute(ls);
-            end
+            ls   = obj.levelSet;
+            obj.unfittedBoundaryMesh.compute(ls);
         end
         
     end

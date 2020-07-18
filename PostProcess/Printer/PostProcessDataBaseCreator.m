@@ -13,7 +13,7 @@ classdef PostProcessDataBaseCreator < handle
             d.connectivities = mesh.connec;
             d.nnode = size(mesh.connec,2);
             d.npnod = size(mesh.coord,1);
-            d.gtype = mesh.geometryType;
+            d.gtype = mesh.type;
             d.pdim  = dI.pdim;
             d.nelem = size(mesh.connec,1);
             d.ptype = dI.ptype;

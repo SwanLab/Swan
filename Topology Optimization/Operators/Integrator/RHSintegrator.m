@@ -62,7 +62,7 @@ classdef RHSintegrator < handle
         end        
         
         function shapes = computeShapeFunctions(obj)
-            m.geometryType = obj.geometryType;
+            m.type = obj.geometryType;
             int = Interpolation.create(m,'LINEAR');
             int.computeShapeDeriv(obj.xGauss);
             shapes = permute(int.shape,[1 3 2]);            

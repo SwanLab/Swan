@@ -39,7 +39,7 @@ classdef Integrator_Simple < Integrator
         function rhsC = computeElementalRHS(obj,fNodal)
             s.fNodal         = fNodal;
             s.xGauss         = obj.computeGaussPoints();
-            s.quadrature     = obj.computeQuadrature(obj.mesh.geometryType);
+            s.quadrature     = obj.computeQuadrature(obj.mesh.type);
             s.geometryType   = obj.geometryType;
             s.mesh           = obj.mesh;
             s.feMesh         = obj.mesh;
@@ -49,7 +49,7 @@ classdef Integrator_Simple < Integrator
         
         function xGauss = computeGaussPoints(obj)
             m = obj.mesh;
-            q = obj.computeQuadrature(m.geometryType);
+            q = obj.computeQuadrature(m.type);
             xGauss = repmat(q.posgp,[1,1,m.nelem]);
         end
         

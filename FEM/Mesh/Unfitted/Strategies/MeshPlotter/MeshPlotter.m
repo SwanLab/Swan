@@ -17,16 +17,21 @@ classdef MeshPlotter < handle
         
         function plot(obj)
             m = obj.mesh;
-            if isequal(class(m),'Mesh_Total') || isequal(class(m),'Mesh')
+            if isequal(class(m),'Mesh_Total') 
                 obj.plotBackgroundMesh();
+            elseif isequal(class(m),'InnerMesh') 
+                hold on
+                if m.ndim == 2  %(InnerMesh, InnerCutMesh)
+                   obj.plotInnerMeshIn2D();
+                end
             else
                 if ~isempty(m)
                     hold on
-                    if m.ndim == 2 && m.embeddedDim == 2 %(InnerMesh, InnerCutMesh)
+                    if m.ndim == 2 && m.kFace == 0 %(InnerMesh, InnerCutMesh)
                         obj.plotInnerMeshIn2D();
-                    elseif m.ndim == 2 && m.embeddedDim == 1 %(BoundaryCutMesh2D)
+                    elseif m.ndim == 2 && m.kFace == -1 %(BoundaryCutMesh2D)
                         obj.plotBoundaryMesh();
-                    elseif m.ndim == 3 && m.embeddedDim == 2  %(BoundaryCutMesh3D)
+                    elseif m.ndim == 3 && m.kFace == -1  %(BoundaryCutMesh3D)
                         obj.plotBoundary3DMesh();
                     end
                 end

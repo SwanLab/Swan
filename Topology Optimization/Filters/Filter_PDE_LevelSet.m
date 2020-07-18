@@ -54,16 +54,14 @@ classdef Filter_PDE_LevelSet < Filter_PDE
     methods (Access = private)
         
         function createUnfittedMesh(obj)
-            s.unfittedType   = obj.domainType;
             s.backgroundMesh = obj.mesh.innerMeshOLD;
             s.boundaryMesh   = obj.mesh.boxFaceMeshes;
-            s.isInBoundary   = false;                               
             cParams = SettingsMeshUnfitted(s);
             obj.unfittedMesh = UnfittedMesh(cParams);            
         end
         
         function createQuadrature(obj)
-            obj.quadrature = Quadrature.set(obj.mesh.geometryType);
+            obj.quadrature = Quadrature.set(obj.mesh.type);
             obj.quadrature.computeQuadrature(obj.quadratureOrder);
         end
         
@@ -72,7 +70,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
         end
         
         function computeGeometry(obj)
-            s.mesh = obj.mesh;
+            s.mesh = obj.mesh.innerMeshOLD;
             obj.geometry = Geometry.create(s);
             obj.geometry.computeGeometry(obj.quadrature,obj.interp);
         end

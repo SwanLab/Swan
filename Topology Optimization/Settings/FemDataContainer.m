@@ -12,8 +12,7 @@ classdef FemDataContainer < AbstractSettings
         ptype
         nelem
         bc
-        coord
-        connec
+        mesh
     end
     
     methods (Access = public)
@@ -39,8 +38,7 @@ classdef FemDataContainer < AbstractSettings
             femReader = FemInputReader_GiD();
             s = femReader.read(obj.fileName);
             
-            obj.coord  = s.coord;
-            obj.connec = s.connec;
+            obj.mesh  = s.mesh;
             obj.scale  = s.scale;
             obj.pdim   = s.pdim;
             obj.ptype  = s.ptype;

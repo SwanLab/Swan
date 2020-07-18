@@ -75,7 +75,7 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
         function createProjector(obj)
             cParams.mesh = obj.mesh;
             cParams.domainType = obj.domainType;
-            cParams.type = obj.mesh.geometryType;
+            cParams.type = obj.mesh.type;
             obj.projector = ShapeFunctionProjector.create(cParams);                                    
         end
                 
@@ -103,7 +103,7 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
         end
         
         function createQuadrature(obj)
-            obj.quadrature = Quadrature.set(obj.mesh.geometryType);
+            obj.quadrature = Quadrature.set(obj.mesh.type);
             obj.quadrature.computeQuadrature(obj.quadratureOrder);
         end        
         
@@ -112,7 +112,7 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
         end
         
         function createGeometry(obj)
-            s.mesh = obj.mesh;
+            s.mesh = obj.mesh.innerMeshOLD;
             obj.geometry = Geometry.create(s);
             obj.geometry.computeGeometry(obj.quadrature,obj.interp);
         end

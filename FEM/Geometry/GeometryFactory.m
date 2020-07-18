@@ -8,19 +8,19 @@ classdef GeometryFactory < handle
                 case 1
                     obj = Geometry_Volumetric(cParams);                                        
                 case 2
-                    switch cParams.mesh.embeddedDim                        
-                        case 1
+                    switch cParams.mesh.kFace                        
+                        case -1
                             obj = Geometry_Line(cParams);                            
-                        case 2
+                        case 0
                             obj = Geometry_Volumetric(cParams);
                     end                    
                 case 3
-                    switch cParams.mesh.embeddedDim                        
-                        case 1
+                    switch cParams.mesh.kFace                     
+                        case -2
                             obj = Geometry_Line(cParams);                                                        
-                        case 2
+                        case -1
                             obj = Geometry_Surface(cParams);                                                        
-                        case 3
+                        case 0
                             obj = Geometry_Volumetric(cParams);
                     end                    
             end

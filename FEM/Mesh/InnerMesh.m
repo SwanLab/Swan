@@ -1,14 +1,17 @@
-classdef InnerMesh < Mesh
+classdef InnerMesh < handle
     
     properties (GetAccess = public, SetAccess = private)
        fullCells        
-       backgroundMesh        
+       backgroundMesh    
+       mesh
     end
     
     properties (Access = private)
         all2unique
         unique2all
         uniqueNodes
+        coord
+        connec
     end
         
     methods (Access = public)
@@ -18,9 +21,7 @@ classdef InnerMesh < Mesh
             obj.computeUniqueNodes();
             obj.computeCoords();
             obj.computeConnec();
-            obj.computeDescriptorParams();
-            obj.createInterpolation();
-            obj.computeElementCoordinates();
+            obj.createMesh();
         end
         
     end
@@ -29,9 +30,7 @@ classdef InnerMesh < Mesh
         
         function init(obj,cParams)
             obj.backgroundMesh = cParams.backgroundMesh;
-            obj.isInBoundary   = cParams.isInBoundary;
             obj.fullCells      = cParams.fullCells;
-            obj.type = 'INTERIOR';
         end
         
         function computeUniqueNodes(obj)
@@ -56,6 +55,13 @@ classdef InnerMesh < Mesh
             nCell = size(obj.fullCells,1);             
             obj.connec = reshape(obj.unique2all,nCell,nnode);
         end          
+        
+        function createMesh(obj)
+            s.coord  = obj.coord;
+            s.connec = obj.connec;
+            s.kFace  = obj.backgroundMesh.kFace;
+            obj.mesh = Mesh(s);
+        end
         
     end
     

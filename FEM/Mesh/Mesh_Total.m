@@ -29,7 +29,7 @@ classdef Mesh_Total < Mesh_Composite
             obj.createInteriorMesh();
             obj.createBoxFaceMeshes();
             obj.defineActiveMeshes();            
-            obj.geometryType = obj.innerMeshOLD.geometryType;
+            obj.type = obj.innerMeshOLD.type;
             obj.nelem = size(obj.connec,1);
             obj.npnod = obj.innerMeshOLD.npnod;
             obj.nnode = obj.innerMeshOLD.nnode;
@@ -67,7 +67,7 @@ classdef Mesh_Total < Mesh_Composite
         function createInteriorMesh(obj)
             s.connec = obj.connec;
             s.coord  = obj.coord;
-            obj.innerMeshOLD = Mesh().create(s);
+            obj.innerMeshOLD = Mesh(s);
             obj.append(obj.innerMeshOLD);
         end
         
@@ -89,8 +89,6 @@ classdef Mesh_Total < Mesh_Composite
                 s.nodesInBoxFaces = false(size(obj.coord,1),1);
                 s.nodesInBoxFaces(nodes,1) = true;
                 m = BoundaryMesh(s);
-                %s.type = 'BOUNDARY';
-                %m = Mesh().create(s);
                 obj.boxFaceMeshes{imesh} = m;
                 obj.append(m);
                 
@@ -178,7 +176,6 @@ classdef Mesh_Total < Mesh_Composite
             s.connec = boxFaceConnec;
             s.coord  = boxFaceCoords;
             s.nodesInBoxFaces = nodesInBoxFace;
-            %s.isInBoundary = true;
             m = BoundaryMesh(s);
         end
         

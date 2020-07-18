@@ -5,10 +5,8 @@ classdef SettingsMeshUnfitted < AbstractSettings
     end
     
     properties (Access = public)
-        unfittedType
         backgroundMesh
         boundaryMesh
-        isInBoundary        
     end
     
     methods (Access = public)
@@ -18,7 +16,6 @@ classdef SettingsMeshUnfitted < AbstractSettings
                 case 1
                     obj.loadParams(varargin{1});
                 case 2
-                    obj.unfittedType = varargin{1};
                     obj.backgroundMesh = varargin{2};
                 case 3
                     disp('eis');

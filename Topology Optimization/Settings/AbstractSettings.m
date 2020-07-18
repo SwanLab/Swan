@@ -75,7 +75,6 @@ classdef AbstractSettings < handle
         end
         
         function loadParamsFromJSON(obj,fileName)
-%             addpath(genpath(fileparts(mfilename('fullpath'))));
             obj.cParams = jsondecode(fileread(fileName));
         end
         

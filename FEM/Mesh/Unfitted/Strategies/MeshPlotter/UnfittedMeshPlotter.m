@@ -27,9 +27,9 @@ classdef UnfittedMeshPlotter < handle
         function plotAll(obj)
             uM = obj.uMesh;
             obj.plotMesh(uM.backgroundMesh);
-            obj.plotMesh(uM.innerMesh);
-            obj.plotMesh(uM.innerCutMesh);
-            obj.plotMesh(uM.boundaryCutMesh);            
+            obj.plotMesh(uM.innerMesh.mesh);
+            obj.plotMesh(uM.innerCutMesh.mesh);
+            obj.plotMesh(uM.boundaryCutMesh.mesh);            
         end        
         
     end

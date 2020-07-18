@@ -1,4 +1,4 @@
-classdef CutMesh < Mesh
+classdef CutMesh < handle
     
     properties (GetAccess = public, SetAccess = private)        
         cutMeshOfSubCellLocal
@@ -6,6 +6,7 @@ classdef CutMesh < Mesh
         
         cellContainingSubcell
         backgroundMesh
+        mesh
     end
     
     properties (Access = private)
@@ -38,39 +39,29 @@ classdef CutMesh < Mesh
         nCutCells
         ndimBackground
         
-        levelSet_background
+        levelSet
         backgroundGeomInterpolation
         
         
-      
+        coord 
+        connec
+        type
+       
         
     end
     
     methods (Access = public)
         
+        
+        
         function obj = CutMesh(cParams)
+
+            obj.initCut2(cParams)
             
-            if isobject(cParams)
-                if (isempty(cParams.isInBoundary))
-                    obj.isInBoundary = false;
-                else
-                    obj.isInBoundary = cParams.isInBoundary;
-                end
-            else
-                if isfield(cParams,'isInBoundary')
-                    obj.isInBoundary = cParams.isInBoundary;
-                else
-                    obj.isInBoundary = false;
-                end
-            end            
-            
-            obj.backgroundMesh = cParams.backgroundMesh;
-            obj.isInBoundary   = cParams.isInBoundary;
-            obj.type           = cParams.type;
-            obj.ndim           = cParams.backgroundMesh.ndim;
-            
-            isTriangle = isequal(cParams.backgroundMesh.geometryType,'TRIANGLE');
-            isQuad     = isequal(cParams.backgroundMesh.geometryType,'QUAD');
+
+            isTriangle = isequal(cParams.backgroundMesh.type,'TRIANGLE');
+            isQuad     = isequal(cParams.backgroundMesh.type,'QUAD');
+            isLine     = isequal(cParams.backgroundMesh.type,'LINE');
             
             isInterior = isequal(obj.type,'INTERIOR');  
             isBoundary = isequal(obj.type,'BOUNDARY');  
@@ -78,14 +69,15 @@ classdef CutMesh < Mesh
             
             if isTriangle && isInterior  
                  
-                ls = cParams.levelSet;
-                connecCut = cParams.backgroundMesh.connec(cutElems,:);            
+                ls = obj.levelSet;
+                connecCut = obj.backgroundMesh.connec(cutElems,:);            
     
-                coord = cParams.backgroundMesh.coord(:,1:2);     
+                coord = obj.backgroundMesh.coord;     
                 
                 s.coord  = coord;
                 s.connec = connecCut;
-                backgroundCutMesh = Mesh().create(s);
+                s.kFace = obj.backgroundMesh.kFace;                
+                backgroundCutMesh = Mesh(s);
                 
                 s.backgroundMesh = backgroundCutMesh;
                 s.cutElems = cutElems;
@@ -98,8 +90,8 @@ classdef CutMesh < Mesh
                 cM.compute();
                
                 obj.connec = cM.connec;
-                obj.coord = zeros(size(cM.coord,1),size(cParams.backgroundMesh.coord,2));
-                obj.coord(:,1:2)  = cM.coord;
+                obj.coord = zeros(size(cM.coord,1),size(obj.backgroundMesh.coord,2));
+                obj.coord  = cM.coord;
             %    obj.coord(:,3) = cParams.backgroundMesh.coord(:,3);
 
                 xCoordIso = cM.xCoordsIso;
@@ -109,25 +101,25 @@ classdef CutMesh < Mesh
                 
             elseif isQuad && isInterior 
                 
-                ls = cParams.levelSet;
-                connecCut = cParams.backgroundMesh.connec(cutElems,:);            
+                ls = obj.levelSet;
+                connecCut = obj.backgroundMesh.connec(cutElems,:);            
     
-                coord = cParams.backgroundMesh.coord(:,1:2);     
+                coord = obj.backgroundMesh.coord(:,1:2);     
                 
                 s.coord  = coord;
                 s.connec = connecCut;
-                backgroundCutMesh = Mesh().create(s);
+                backgroundCutMesh = Mesh(s);
                 
                 s.backgroundMesh = backgroundCutMesh;
                 s.cutElems = cutElems;
                 s.levelSet = ls;
-                s.lastNode = max(cParams.backgroundMesh.connec(:));
+                s.lastNode = max(obj.backgroundMesh.connec(:));
 
                 cM = CutMeshProvisionalQuadrilater(s);                
                 cM.compute();
                
                 obj.connec = cM.connec;
-                obj.coord = zeros(size(cM.coord,1),size(cParams.backgroundMesh.coord,2));
+                obj.coord = zeros(size(cM.coord,1),size(obj.backgroundMesh.coord,2));
                 obj.coord(:,1:2)  = cM.coord;
                 
                 xCoordIso = cM.xCoordsIso;
@@ -138,13 +130,14 @@ classdef CutMesh < Mesh
                 
             elseif isTriangle && isBoundary 
                                
-                ls = cParams.levelSet;
-                connecCut = cParams.backgroundMesh.connec(cutElems,:);                
-                coord = cParams.backgroundMesh.coord(:,1:2);     
+                ls = obj.levelSet;
+                connecCut = obj.backgroundMesh.connec(cutElems,:);                
+                coord = obj.backgroundMesh.coord;     
                 
                 s.coord  = coord;
                 s.connec = connecCut;
-                backgroundCutMesh = Mesh().create(s);                
+                s.kFace = obj.backgroundMesh.kFace;
+                backgroundCutMesh = Mesh(s);                
                 
                 s.backgroundMesh = backgroundCutMesh;
                 s.cutElems = cutElems;
@@ -162,19 +155,19 @@ classdef CutMesh < Mesh
             elseif isQuad && isBoundary            
                 
 
-                ls = cParams.levelSet;
-                connecCut = cParams.backgroundMesh.connec(cutElems,:);            
+                ls = obj.levelSet;
+                connecCut = obj.backgroundMesh.connec(cutElems,:);            
     
-                coord = cParams.backgroundMesh.coord(:,1:2);     
+                coord = obj.backgroundMesh.coord(:,1:2);     
                 
                 s.coord  = coord;
                 s.connec = connecCut;
-                backgroundCutMesh = Mesh().create(s);
+                backgroundCutMesh = Mesh(s);
                 
                 s.backgroundMesh = backgroundCutMesh;
                 s.cutElems = cutElems;
                 s.levelSet = ls;
-                s.lastNode = max(cParams.backgroundMesh.connec(:));
+                s.lastNode = max(obj.backgroundMesh.connec(:));
 
                 cM = CutMeshProvisionalQuadrilater(s);                
                 cM.compute();
@@ -193,9 +186,35 @@ classdef CutMesh < Mesh
                 obj.subcellIsoCoords = subCel2;
                 obj.cellContainingSubcell = cellC2;
                 
+            elseif isLine && isInterior
+                coord = obj.backgroundMesh.coord(:,1:2);     
+                connecCut = obj.backgroundMesh.connec(cutElems,:);            
+
+                s.coord  = coord;
+                s.connec = connecCut;
+                backgroundCutMesh = Mesh(s);
+                
+                s.backgroundMesh = backgroundCutMesh;
+                s.cutElems = cutElems;
+                s.levelSet = obj.levelSet;
+                
+                cM = CutMeshProvisionalLine(s);
+                
+                cM.compute();
+                
+                sM.connec = cM.connec;
+                sM.coord  = cM.coord;
+                m = Mesh(sM);
+                
+                
+                obj.connec = cM.connec;
+                obj.coord  = cM.coord;
+                obj.subcellIsoCoords = cM.xCoordsIso;
+                obj.cellContainingSubcell = cM.cellContainingSubcell;                
+                
             else
                         
-                obj.init(cParams);
+                obj.initCut(cParams);
                 obj.build();
                 
                 if obj.isLevelSetCrossingZero()
@@ -208,49 +227,36 @@ classdef CutMesh < Mesh
                 
             end
             
+            
+            
             obj.computeCutMeshOfSubCellGlobal();
             obj.computeCutMeshOfSubCellLocal();
             
-            obj.computeDescriptorParams();
-            obj.createInterpolation();
-            obj.computeElementCoordinates();
-            
+            sM.connec = obj.connec;
+            sM.coord  = obj.coord;   
+            if isequal(obj.type,'INTERIOR')
+              sM.kFace = obj.backgroundMesh.kFace;
+            else
+                sM.kFace = obj.backgroundMesh.kFace -1;
+            end
+            obj.mesh = Mesh(sM);
         end
         
     end
     
-    methods (Access = protected)
-        
-        function computeEmbeddingDim(obj)
-            switch obj.type
-                case 'BOUNDARY'
-                    obj.embeddedDim = obj.ndim - 1;
-                case {'INTERIOR'}
-                    obj.embeddedDim = obj.ndim;
-                otherwise
-                    error('EmbeddedDim not defined')
-            end
-            
-            if obj.isInBoundary
-                obj.embeddedDim = obj.ndim - 1;
-            end
-        end
-        
-    end
     
     methods (Access = private)
         
         function createNdimUnf(obj)
-            if obj.isInBoundary
-                nUnf = obj.ndim - 1;
+            if isequal(obj.type,'INTERIOR')
+                kFace = obj.backgroundMesh.kFace;
             else
-                nUnf = obj.ndim;
+                kFace = obj.backgroundMesh.kFace;
             end
-            obj.ndimUnf = nUnf;
+            obj.ndimUnf = obj.backgroundMesh.ndim + kFace ;
         end
         
-        function init(obj,cParams)
-            obj.levelSet_background   = cParams.levelSet;
+        function initCut(obj,cParams)
             obj.backgroundFullCells   = cParams.fullCells;
             obj.backgroundEmptyCells  = cParams.emptyCells;
             obj.backgroundCutCells    = cParams.cutCells;
@@ -259,12 +265,19 @@ classdef CutMesh < Mesh
             obj.backgroundGeomInterpolation = cParams.interpolationBackground;
         end
         
+        function initCut2(obj,cParams)
+            obj.levelSet = cParams.levelSet;                    
+            obj.backgroundMesh = cParams.backgroundMesh;
+            obj.type           = cParams.type;
+          %  obj.ndim           = cParams.backgroundMesh.ndim;            
+        end        
+        
         function createSubCellsMesher(obj)
             sS.ndimIso = obj.ndimUnf;
             sS.type = obj.type;
             
             sS.posNodes = obj.backgroundGeomInterpolation.pos_nodes;
-            sS.levelSetBackground = obj.levelSet_background;
+            sS.levelSetBackground = obj.levelSet;
             sS.coordsBackground = obj.backgroundMesh.coord;
             obj.subcellsMesher = SubcellsMesher.create(sS);
         end
@@ -274,13 +287,14 @@ classdef CutMesh < Mesh
             connec = obj.backgroundMesh.connec;
             cells  = obj.cellContainingSubcell;            
             s.coord  = coord;
-            s.connec = connec(cells,:);            
-            nNode = size(connec,2);
-            nDim = size(coord,2);            
-            if nNode == 3 && nDim == 3
-                s.isInBoundary = 'true';
-            end                        
-            m = Mesh().create(s); 
+            s.connec = connec(cells,:);        
+            if isequal(obj.type,'INTERIOR')
+                kFace = obj.backgroundMesh.kFace - 0;
+            else
+                kFace = obj.backgroundMesh.kFace - 0;
+            end            
+            s.kFace = kFace;            
+            m = Mesh(s); 
             obj.cutMeshOfSubCellGlobal = m;
         end
         
@@ -291,11 +305,18 @@ classdef CutMesh < Mesh
             nDim  = size(coord,1);
             s.coord = reshape(coord,nDim,[])';
             s.connec = reshape(1:nElem*nNode,nNode,nElem)';
-            if nNode == 3 && nDim == 3
-                s.isInBoundary = 'true';
+            if isequal(obj.type,'INTERIOR')
+                kFace =  0;
+            else
+                kFace = - 1;
+            end            
+            s.kFace = kFace;
+            if kFace + obj.backgroundMesh.ndim > 0
+                m = Mesh(s);
+                obj.cutMeshOfSubCellLocal = m;  
+            else
+                m = 1;
             end
-            m = Mesh().create(s);
-            obj.cutMeshOfSubCellLocal = m;            
         end        
         
 
@@ -304,7 +325,7 @@ classdef CutMesh < Mesh
             s.ndimIso       = obj.ndimUnf;
             s.unfittedType  = obj.type;
             s.nCutCells     = obj.nCutCells;
-            s.ndim          = obj.ndim;
+            s.ndim          = obj.backgroundMesh.ndim;
             obj.memoryManager  = MemoryManager_MeshUnfitted(s);
         end
         
@@ -363,7 +384,7 @@ classdef CutMesh < Mesh
         
         function computeCutPoints(obj)
             s.meshBackground              = obj.backgroundMesh;
-            s.levelSet_background         = obj.levelSet_background;
+            s.levelSet_background         = obj.levelSet;
             s.backgroundCutCells          = obj.backgroundCutCells;
             s.backgroundGeomInterpolation = obj.backgroundGeomInterpolation;
             obj.cutPointsCalculator.init(s);

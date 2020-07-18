@@ -62,12 +62,9 @@ classdef CutMeshProvisionalQuadrilater < handle
             nElem = size(xCutG,3);
             nNode = size(xCutG,2);
             nDim  = size(xCutG,1);
-            s.coord = reshape(xCutG,nDim,[])';
-            s.connec = reshape(1:nElem*nNode,nNode,nElem)';
-            if nNode == 3 && nDim == 3
-                s.isInBoundary = 'true';
-            end
-            m = Mesh().create(s);            
+            sM.coord = reshape(xCutG,nDim,[])';
+            sM.connec = reshape(1:nElem*nNode,nNode,nElem)';            
+            m = Mesh(sM);            
         end
         
         function m = computeBoundaryMesh(obj)
@@ -146,7 +143,7 @@ classdef CutMeshProvisionalQuadrilater < handle
             connecCut = obj.subMesh.connec(obj.cutCells,:);            
             s.coord   = obj.subMesh.coord;
             s.connec = connecCut;
-            m = Mesh().create(s);
+            m = Mesh(s);
         end
                
         function  computeCellContainingSubCell(obj)

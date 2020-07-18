@@ -33,10 +33,8 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
         
         
         function createUnfittedMesh(obj)
-            s.unfittedType   =  obj.domainType;
             s.backgroundMesh = obj.mesh.innerMeshOLD;
             s.boundaryMesh   = obj.mesh.boxFaceMeshes;
-            s.isInBoundary = false;            
             cParams = SettingsMeshUnfitted(s);
             obj.unfittedMesh = UnfittedMesh(cParams);
         end

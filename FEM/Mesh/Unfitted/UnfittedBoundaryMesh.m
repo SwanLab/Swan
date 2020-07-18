@@ -50,7 +50,6 @@ classdef UnfittedBoundaryMesh < handle
         function createUnfittedMeshes(obj)
             for iBoundary = 1:obj.nBoundaries
                 s.backgroundMesh = obj.boundaryMesh{iBoundary}.mesh;
-                s.isInBoundary   = true;
                 s = SettingsMeshUnfitted(s);
                 obj.meshes{iBoundary} = UnfittedMesh(s);                
             end

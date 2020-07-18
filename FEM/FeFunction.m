@@ -23,7 +23,7 @@ classdef FeFunction < handle
        
        function fC = computeValueInCenterElement(obj)          
             m = obj.mesh;
-            q = Quadrature.set(m.geometryType);
+            q = Quadrature.set(m.type);
             q.computeQuadrature('CONSTANT');
             xV = q.posgp;
             fCenter = obj.interpolateFunction(xV);

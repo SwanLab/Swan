@@ -33,7 +33,7 @@ classdef SubMesher < handle
                 3 4 5;
                 1 5 4];
             s.coord =  obj.computeCoordLocal();  
-            obj.localMesh = Mesh().create(s);                        
+            obj.localMesh = Mesh(s);                        
         end
         
         function xIsoCoord = computeCoordLocal(obj)
@@ -45,7 +45,7 @@ classdef SubMesher < handle
         function computeSubMesh(obj)
             s.connec = obj.computeSubMeshConnec();
             s.coord  = obj.computeSubMeshCoord();            
-            obj.subMesh = Mesh().create(s);
+            obj.subMesh = Mesh(s);
         end                
         
         function x = computeXisoQuad(obj)

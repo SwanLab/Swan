@@ -141,9 +141,7 @@ classdef FEM < handle
             obj.problemData.nelem = s.mesh.nelem;
             obj.problemData.bc.dirichlet = s.dirichlet;
             obj.problemData.bc.pointload = s.pointload;
-            sM.coord  = s.coord;
-            sM.connec = s.connec;
-            obj.mesh = Mesh().create(sM);
+            obj.mesh = s.mesh;
         end
         
         function createMesh(obj)

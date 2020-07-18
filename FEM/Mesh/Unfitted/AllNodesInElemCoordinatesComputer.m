@@ -51,7 +51,7 @@
         end
         
         function createInterpolation(obj)
-            m.geometryType = 'LINE';
+            m.type = 'LINE';
             m.coord  = [];
             m.connec = [];
             int = Interpolation.create(m,'LINEAR');
@@ -59,7 +59,7 @@
         end
         
         function computeXisoNodes(obj)
-            m.geometryType = 'TRIANGLE';
+            m.type = 'TRIANGLE';
             m.coord  = [];
             m.connec = [];
             int = Interpolation.create(m,'LINEAR');

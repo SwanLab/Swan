@@ -67,28 +67,28 @@ classdef Integrator_Unfitted < Integrator
             end
         end
         
-        function s = createInnerParams(obj,mesh,backgroundMesh)
+        function s = createInnerParams(obj,mesh,backgroundMesh,fullCells)
             s.mesh = mesh;
             s.type = 'SIMPLE';
-            s.globalConnec      = backgroundMesh.connec(mesh.fullCells,:);
+            s.globalConnec      = backgroundMesh.connec(fullCells,:);
             s.npnod             = backgroundMesh.npnod;
-            s.geometryType      = mesh.geometryType;
+            s.geometryType      = mesh.type;
         end
         
         function s = createCutParams(obj,mesh,backgroundMesh)
             s.mesh = mesh;
             s.type = 'CutMesh';
-            s.globalConnec      = backgroundMesh.connec(:,:);
+            s.globalConnec      = backgroundMesh.connec;
             s.npnod             = backgroundMesh.npnod;
-            s.geometryType      = mesh.geometryType;
+            s.geometryType      = backgroundMesh.type;
         end
         
         function s = createInteriorParams(obj,mesh)
             s.type = 'COMPOSITE';
             s.npnod = mesh.backgroundMesh.npnod;
             s.compositeParams = cell(0);
-            if mesh.innerMesh.nelem ~= 0
-                s.compositeParams{1} = obj.createInnerParams(mesh.innerMesh,mesh.backgroundMesh);
+            if ~isempty(mesh.innerCutMesh)
+                s.compositeParams{1} = obj.createInnerParams(mesh.innerMesh.mesh,mesh.backgroundMesh,mesh.innerMesh.fullCells);
             end
             if ~isempty(mesh.innerCutMesh)
                 s.compositeParams{end+1} = obj.createCutParams(mesh.innerCutMesh,mesh.backgroundMesh);

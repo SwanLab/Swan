@@ -20,7 +20,7 @@ classdef CutMeshComputerProvisional < handle
     end
     
     properties (Access = private)        
-        
+        backgroundMesh
     end
     
     methods (Access = public)
@@ -40,7 +40,8 @@ classdef CutMeshComputerProvisional < handle
         function m = computeBoundaryMesh(obj)
             s.coord  = obj.cutCoordComputer.xCutPoints;
             s.connec = obj.cutPointsInElemComputer.edgeCutPointInElem;
-            m = Mesh().create(s);
+            s.kFace  = obj.backgroundMesh.kFace -1;
+            m = Mesh(s);
         end        
         
         function xCutIso = obtainXcutIso(obj)
@@ -56,20 +57,20 @@ classdef CutMeshComputerProvisional < handle
         end
         
         function computeAllParams(obj,cParams)
-            backgroundMesh = cParams.backgroundMesh;
+            obj.backgroundMesh = cParams.backgroundMesh;
             cutElems       = cParams.cutElems;
             ls             = cParams.levelSet;            
-            backgroundMesh.computeEdges();
-            e = backgroundMesh.edges;
+            obj.backgroundMesh.computeEdges();
+            e = obj.backgroundMesh.edges;
             obj.cutEdgesParams.nodesInEdges = e.nodesInEdges;
             obj.cutEdgesParams.levelSet     = ls;
-            obj.cutCoordParams.coord = backgroundMesh.coord;
+            obj.cutCoordParams.coord = obj.backgroundMesh.coord;
             obj.cutCoordParams.nodesInEdges = e.nodesInEdges;
             
             cEparams = obj.cutEdgesComputerParams;
             
-            cEparams.allNodesinElemParams.finalNodeNumber = size(backgroundMesh.coord,1);
-            cEparams.allNodesinElemParams.backgroundConnec = backgroundMesh.connec;
+            cEparams.allNodesinElemParams.finalNodeNumber = size(obj.backgroundMesh.coord,1);
+            cEparams.allNodesinElemParams.backgroundConnec = obj.backgroundMesh.connec;
             cEparams.allNodesInElemCoordParams.localNodeByEdgeByElem = e.localNodeByEdgeByElem;
             cEparams.edgesInElem = e.edgesInElem;
             cEparams.nEdgeByElem = e.nEdgeByElem;

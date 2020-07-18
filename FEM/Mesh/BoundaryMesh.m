@@ -36,9 +36,8 @@ classdef BoundaryMesh < handle
         function createMesh(obj)
             s.coord  = obj.coord;
             s.connec = obj.connec;
-            s.isInBoundary = true;
-            s.type   = 'BOUNDARY';
-            obj.mesh = Mesh().create(s);
+            s.kFace  = -1;
+            obj.mesh = Mesh(s);
         end
         
         function createGlobalConnec(obj)
