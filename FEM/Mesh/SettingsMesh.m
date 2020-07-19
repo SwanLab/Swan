@@ -23,11 +23,17 @@ classdef SettingsMesh < AbstractSettings
     methods (Access = private)
         
         function computeType(obj)
-            s.ndim  = size(obj.coord,2);
-            s.nnode = size(obj.connec,2);
-            s.kFace = obj.kFace;
+            s.geometryType = obj.computeGeometryType();            
+            s.nnode        = size(obj.connec,2);
             m = MeshTypeComputer(s);
             obj.type = m.compute();
+        end
+        
+        function g = computeGeometryType(obj)
+            sG.ndim           = size(obj.coord,2);
+            sG.kFace          = obj.kFace;
+            gC = GeometryTypeComputer(sG);            
+            g = gC.compute();
         end
         
     end

@@ -4,8 +4,9 @@ classdef Mesh < handle
         nnode
         npnod
         type
-        kFace    
-    
+        kFace
+        geometryType
+        
         coord
         connec
         
@@ -20,17 +21,20 @@ classdef Mesh < handle
     end
     
     properties (Access = private)
-       xFE 
+        xFE
+        geometry
     end
     
     methods (Access = public)
         
         function obj = Mesh(cParams)
             obj.init(cParams);
-            obj.computeDescriptorParams();            
+            obj.computeDimensionParams();
+            obj.computeGeometryType();
             obj.computeType();
             obj.createInterpolation();
             obj.computeElementCoordinates();
+            obj.createGeometry();
         end
         
         function obj = createFromFile(obj,cParams)
@@ -40,13 +44,13 @@ classdef Mesh < handle
             s.connec = connecV(:,2:end);
             obj = Mesh(s);
         end
-  
+        
         function plot(obj)
             s.mesh = obj;
             s = SettingsMeshPlotter(s);
             mP = MeshPlotter(s);
             mP.plot();
-        end        
+        end
         
         function hMin = computeMinCellSize(obj)
             x1(:,1) = obj.coord(obj.connec(:,1),1);
@@ -54,7 +58,7 @@ classdef Mesh < handle
             x2(:,1) = obj.coord(obj.connec(:,2),1);
             x2(:,2) = obj.coord(obj.connec(:,2),2);
             x3(:,1) = obj.coord(obj.connec(:,3),1);
-            x3(:,2) = obj.coord(obj.connec(:,3),2);            
+            x3(:,2) = obj.coord(obj.connec(:,3),2);
             x1x2 = (x2-x1);
             x2x3 = (x3-x2);
             x1x3 = (x1-x3);
@@ -62,7 +66,7 @@ classdef Mesh < handle
             n23 = sqrt(x2x3(:,1).^2 + x2x3(:,2).^2);
             n13 = sqrt(x1x3(:,1).^2 + x1x3(:,2).^2);
             hs = min([n12,n23,n13],[],2);
-            hMin = min(hs);            
+            hMin = min(hs);
         end
         
         function hMean = computeMeanCellSize(obj)
@@ -71,7 +75,7 @@ classdef Mesh < handle
             x2(:,1) = obj.coord(obj.connec(:,2),1);
             x2(:,2) = obj.coord(obj.connec(:,2),2);
             x3(:,1) = obj.coord(obj.connec(:,3),1);
-            x3(:,2) = obj.coord(obj.connec(:,3),2);            
+            x3(:,2) = obj.coord(obj.connec(:,3),2);
             x1x2 = (x2-x1);
             x2x3 = (x3-x2);
             x1x3 = (x1-x3);
@@ -100,88 +104,95 @@ classdef Mesh < handle
             obj.connec = newConnec;
         end
         
-       function xV = computeBaricenter(obj)
+        function xV = computeBaricenter(obj)
             xV = obj.xFE.computeValueInCenterElement();
-       end
-       
-       function xGauss = computeXgauss(obj,xV)                
-            xGauss = obj.xFE.interpolateFunction(xV);            
-       end   
-       
-       function dvolume = computeDvolume(obj,quad)
-            s.mesh = obj;
-            g = Geometry.create(s);
+        end
+        
+        function xGauss = computeXgauss(obj,xV)
+            xGauss = obj.xFE.interpolateFunction(xV);
+        end
+        
+        function dvolume = computeDvolume(obj,quad)
+            g = obj.geometry;    
             g.computeGeometry(quad,obj.interpolation);
             dvolume = g.dvolu;
             dvolume = dvolume';
-       end  
-       
-       function q = computeElementQuality(obj)
+        end
+        
+        function q = computeElementQuality(obj)
             quad = Quadrature.set(obj.type);
             quad.computeQuadrature('CONSTANT');
-            volume = obj.computeDvolume(quad); 
+            volume = obj.computeDvolume(quad);
             L(1,:) = obj.computeSquarePerimeter();
-            q = 4*sqrt(3)*volume./L;           
-       end
-       
-       function v = computeVolume(obj)
+            q = 4*sqrt(3)*volume./L;
+        end
+        
+        function v = computeVolume(obj)
             quad = Quadrature.set(obj.type);
             quad.computeQuadrature('CONSTANT');
-            v = obj.computeDvolume(quad); 
+            v = obj.computeDvolume(quad);
             v = sum(v(:));
-       end
-       
+        end
+        
         function computeEdges(obj)
             s.nodesByElem = obj.connec;
             edge = EdgesConnectivitiesComputer(s);
-            edge.compute();            
+            edge.compute();
             obj.edges = edge;
-        end              
+        end
         
     end
     
-    methods (Access = protected)
-       
-        function computeDescriptorParams(obj)
+    
+    methods (Access = private)
+        
+        function init(obj,cParams)
+            s = SettingsMesh(cParams);
+            obj.coord  = s.coord;
+            obj.connec = s.connec;
+            obj.type   = s.type;
+            obj.kFace  = s.kFace;
+        end
+        
+        function computeDimensionParams(obj)
             obj.npnod = size(obj.coord,1);
             obj.ndim  = size(obj.coord,2);
             obj.nelem = size(obj.connec,1);
             obj.nnode = size(obj.connec,2);
         end
         
-    end
-    
-    methods (Access = private)
-        
-        function init(obj,cParams)
-            s = SettingsMesh(cParams);            
-            obj.coord  = s.coord;
-            obj.connec = s.connec;
-            obj.type   = s.type;
-            obj.kFace  = s.kFace;
-        end        
-        
         function computeType(obj)
-            s.ndim = obj.ndim;
-            s.nnode = obj.nnode;
-            s.kFace = obj.kFace;
+            s.geometryType = obj.geometryType;
+            s.nnode        = obj.nnode;
             t = MeshTypeComputer(s);
             obj.type = t.compute();
         end
         
+        function computeGeometryType(obj)
+            s.ndim  = obj.ndim;
+            s.kFace = obj.kFace;
+            g = GeometryTypeComputer(s);
+            obj.geometryType = g.compute();
+        end
+        
+        function createGeometry(obj)
+            s.mesh = obj;
+            obj.geometry = Geometry.create(s);
+        end
+        
         function createInterpolation(obj)
-            obj.interpolation = Interpolation.create(obj,'LINEAR');            
-        end        
+            obj.interpolation = Interpolation.create(obj,'LINEAR');
+        end
         
         function computeElementCoordinates(obj)
             obj.computeCoordFEfunction();
             obj.coordElem = obj.xFE.fElem;
-        end             
+        end
         
         function computeCoordFEfunction(obj)
             s.mesh   = obj;
             s.fNodes = obj.coord;
-            obj.xFE = FeFunction(s);             
+            obj.xFE = FeFunction(s);
         end
         
         function L = computeSquarePerimeter(obj)
@@ -197,15 +208,15 @@ classdef Mesh < handle
                     L = L + (xA - xB).^2;
                 end
             end
-        end        
+        end
         
     end
     
     methods (Access = private, Static)
-       
+        
         function [coord, connec] = readCoordConnec(testName)
-            run(testName)            
-        end     
+            run(testName)
+        end
         
     end
     

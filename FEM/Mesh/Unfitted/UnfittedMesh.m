@@ -99,7 +99,7 @@ classdef UnfittedMesh < handle
         
         function computeBoundaryCutMesh(obj)
           if ~isempty(obj.cutCells)
-            if (obj.backgroundMesh.ndim + obj.backgroundMesh.kFace) > 1
+            if ~isequal(obj.backgroundMesh.geometryType,'Line')
                 s.type                    = 'BOUNDARY';
                 s.backgroundMesh          = obj.backgroundMesh;
                 s.interpolationBackground = Interpolation.create(obj.backgroundMesh,'LINEAR');

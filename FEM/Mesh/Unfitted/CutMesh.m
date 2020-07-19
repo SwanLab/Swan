@@ -237,9 +237,9 @@ classdef CutMesh < handle
             sM.connec = obj.connec;
             sM.coord  = obj.coord;   
             if isequal(obj.type,'INTERIOR')
-              sM.kFace = obj.backgroundMesh.kFace;
+               sM.kFace = obj.backgroundMesh.kFace;
             else
-                sM.kFace = obj.backgroundMesh.kFace -1;
+               sM.kFace = obj.backgroundMesh.kFace -1;
             end
             obj.mesh = Mesh(sM);
         end
@@ -250,12 +250,7 @@ classdef CutMesh < handle
     methods (Access = private)
         
         function createNdimUnf(obj)
-            if isequal(obj.type,'INTERIOR')
-                kFace = obj.backgroundMesh.kFace;
-            else
-                kFace = obj.backgroundMesh.kFace;
-            end
-            obj.ndimUnf = obj.backgroundMesh.ndim + kFace ;
+            obj.ndimUnf = obj.backgroundMesh.geometryType;
         end
         
         function initCut(obj,cParams)
@@ -271,17 +266,15 @@ classdef CutMesh < handle
             obj.levelSet = cParams.levelSet;                    
             obj.backgroundMesh = cParams.backgroundMesh;
             obj.type           = cParams.type;
-          %  obj.ndim           = cParams.backgroundMesh.ndim;            
         end        
         
         function createSubCellsMesher(obj)
             sS.ndimIso = obj.ndimUnf;
-            sS.type = obj.type;
-            
-            sS.posNodes = obj.backgroundGeomInterpolation.pos_nodes;
+            sS.type = obj.type;            
+            sS.posNodes           = obj.backgroundGeomInterpolation.pos_nodes;
             sS.levelSetBackground = obj.levelSet;
-            sS.coordsBackground = obj.backgroundMesh.coord;
-            obj.subcellsMesher = SubcellsMesher.create(sS);
+            sS.coordsBackground   = obj.backgroundMesh.coord;
+            obj.subcellsMesher    = SubcellsMesher.create(sS);
         end
         
         function m = computeCutMeshOfSubCellGlobal(obj)
@@ -289,13 +282,8 @@ classdef CutMesh < handle
             connec = obj.backgroundMesh.connec;
             cells  = obj.cellContainingSubcell;            
             s.coord  = coord;
-            s.connec = connec(cells,:);        
-            if isequal(obj.type,'INTERIOR')
-                kFace = obj.backgroundMesh.kFace - 0;
-            else
-                kFace = obj.backgroundMesh.kFace - 0;
-            end            
-            s.kFace = kFace;            
+            s.connec = connec(cells,:);              
+            s.kFace = obj.backgroundMesh.kFace;            
             m = Mesh(s); 
             obj.cutMeshOfSubCellGlobal = m;
         end
@@ -308,20 +296,16 @@ classdef CutMesh < handle
             s.coord = reshape(coord,nDim,[])';
             s.connec = reshape(1:nElem*nNode,nNode,nElem)';
             if isequal(obj.type,'INTERIOR')
-                kFace =  0;
+                kFace = 0;
             else
-                kFace = - 1;
+                kFace = -1;
             end            
             s.kFace = kFace;
             if kFace + obj.backgroundMesh.ndim > 0
                 m = Mesh(s);
                 obj.cutMeshOfSubCellLocal = m;  
-            else
-                m = 1;
             end
         end        
-        
-
         
         function createMemoryManager(obj)
             s.ndimIso       = obj.ndimUnf;
@@ -366,8 +350,6 @@ classdef CutMesh < handle
                 newCellContainingSubcell = repmat(icell,[newSubcells.nSubcells 1]);
                 
                 nnode = (newSubcells.nNodes);
-                
-                
                 obj.memoryManager.saveNewSubcells(newSubcells,newCellContainingNodes,newCellContainingSubcell);
             end
             obj.memoryManager.freeSpareMemory();

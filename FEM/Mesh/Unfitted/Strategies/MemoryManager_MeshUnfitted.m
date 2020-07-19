@@ -49,9 +49,9 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
             nCell  = obj.nCutCells*obj.maxSubcells;
             nNodes = obj.nCutCells*obj.maxSubcells*obj.nnodesSubCell;
             
-            obj.coord_iso             = zeros(nNodes,obj.ndimIso);
+            obj.coord_iso             = zeros(nNodes,obj.ndim);
             obj.coord_global_raw      = zeros(nNodes,obj.ndim);
-            obj.subcellIsoCoords      = zeros(nCell,obj.nnodesSubCell,obj.ndimIso);
+            obj.subcellIsoCoords      = zeros(nCell,obj.nnodesSubCell,obj.ndim);
             obj.connec_local          = zeros(nCell,obj.nnodesSubCell);
             obj.connec                = zeros(nCell,obj.nnodesSubCell);
             obj.levelSet_unfitted     = zeros(nNodes,1);
@@ -108,10 +108,10 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
         
         function computeMaxAndNodesSubcells(obj)
             switch obj.ndimIso
-                case 1
+                case 'Line'
                     obj.maxSubcells = 2;
                     obj.nnodesSubCell = 2;
-                case 2
+                case 'Surface'
                     switch obj.unfittedType
                         case 'INTERIOR'
                             obj.maxSubcells = 6;
@@ -120,7 +120,7 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
                             obj.maxSubcells = 2;
                             obj.nnodesSubCell = 2;
                     end
-                case 3
+                case 'Volume'
                     switch obj.unfittedType
                         case 'INTERIOR'
                             obj.maxSubcells = 20;
@@ -159,7 +159,7 @@ classdef MemoryManager_MeshUnfitted < MemoryManager
         end
         
         function assignUnfittedCutCoordIsoPerCell(obj)
-            for idime = 1:obj.ndimIso
+            for idime = 1:obj.ndim
                 c = obj.subcells.coord_iso(:,idime);
                 indexC = obj.lowerBound_C+1:obj.upperBound_C;
                 obj.subcellIsoCoords(indexC,:,idime) = c(obj.subcells.connec);

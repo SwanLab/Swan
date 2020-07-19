@@ -1,10 +1,9 @@
 classdef MeshTypeComputer < handle
     
     properties (Access = private)
-       ndim
-       nnode
-       kFace
-    end        
+        nnode
+        geometryType
+    end
     
     methods (Access = public)
         
@@ -12,25 +11,24 @@ classdef MeshTypeComputer < handle
             obj.init(cParams)
         end
         
-        function type = compute(obj)    
-            nGeom = obj.ndim + obj.kFace;
-            switch nGeom 
-                case 1                    
-                type = 'LINE';
-                case 2
-                    switch obj.nnode 
+        function type = compute(obj)
+            switch obj.geometryType
+                case 'Line'
+                    type = 'LINE';
+                case 'Surface'
+                    switch obj.nnode
                         case 3
-                            type = 'TRIANGLE';                            
-                        case 4 
+                            type = 'TRIANGLE';
+                        case 4
                             type = 'QUAD';
                     end
-                case 3
-                    switch obj.nnode                             
-                                case 4
-                                    type = 'TETRAHEDRA';
-                                case 8
-                                    type = 'HEXAHEDRA';
-                    end                    
+                case 'Volume'
+                    switch obj.nnode
+                        case 4
+                            type = 'TETRAHEDRA';
+                        case 8
+                            type = 'HEXAHEDRA';
+                    end
             end
         end
         
@@ -38,10 +36,9 @@ classdef MeshTypeComputer < handle
     
     methods (Access = private)
         
-        function init(obj,cParams) 
-            obj.ndim  = cParams.ndim;
-            obj.nnode = cParams.nnode;
-            obj.kFace = cParams.kFace;
+        function init(obj,cParams)
+            obj.geometryType = cParams.geometryType;
+            obj.nnode        =  cParams.nnode;
         end
         
     end
