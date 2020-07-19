@@ -1,7 +1,7 @@
 classdef UnfittedMeshPlotter < handle
-
+    
     properties (Access = private)
-       uMesh 
+        uMesh
     end
     
     methods (Access = public)
@@ -12,25 +12,26 @@ classdef UnfittedMeshPlotter < handle
         
         function plotDomain(obj)
             figure
+            clf            
             hold on
-            obj.plotAll();            
+            obj.plotAll();
         end
         
         function plotBoundary(obj)
-            figure
+            figure(1)
+            clf
             hold on
-            obj.plotMesh(obj.uMesh.backgroundMesh);
-            obj.plotMesh(obj.uMesh.boundaryCutMesh);
+            obj.plotBackground();
+            obj.plotBoundaryCutMesh();
             obj.plotUnfittedBoundaryMesh();
-        end  
+        end
         
         function plotAll(obj)
-            uM = obj.uMesh;
-            obj.plotMesh(uM.backgroundMesh);
-            obj.plotMesh(uM.innerMesh.mesh);
-            obj.plotMesh(uM.innerCutMesh.mesh);
-            obj.plotMesh(uM.boundaryCutMesh.mesh);            
-        end        
+            obj.plotBackground();
+            obj.plotInner();
+            obj.plotInnerCut();
+            obj.plotBoundaryCutMesh();
+        end
         
     end
     
@@ -40,25 +41,54 @@ classdef UnfittedMeshPlotter < handle
             obj.uMesh = cParams.uMesh;
         end
         
-        function plotUnfittedBoundaryMesh(obj)  
+        function plotBackground(obj)
+            s.mesh = obj.uMesh.backgroundMesh;
+            s.isBackground = true;
+            obj.plotMesh(s);
+        end
+        
+        function plotInner(obj)
+            m = obj.uMesh.innerMesh;
+            obj.plotSubMesh(m);
+        end
+        
+        function plotInnerCut(obj)
+            m = obj.uMesh.innerCutMesh;
+            obj.plotSubMesh(m);
+        end
+        
+        function plotBoundaryCutMesh(obj)
+            m = obj.uMesh.boundaryCutMesh;
+            obj.plotSubMesh(m);
+        end
+        
+        function plotUnfittedBoundaryMesh(obj)
             uB = obj.uMesh.unfittedBoundaryMesh;
             uBoundaryMeshes = uB.getActiveMesh();
             for imesh = 1:numel(uBoundaryMeshes)
                 uM = uBoundaryMeshes{imesh};
                 uM.plotAll();
-            end            
-        end       
+            end
+        end
+        
+        function plotSubMesh(obj,uM)
+            if ~isempty(uM)
+                s.mesh = uM.mesh;
+                obj.plotMesh(s);
+            end
+        end        
         
     end
     
     methods (Access = private, Static)
         
-        function plotMesh(mesh)
-            s.mesh = mesh;
-            mP = MeshPlotter(s);
-            mP.plot();
+        function plotMesh(s)
+            s = SettingsMeshPlotter(s);
+            if ~isempty(s.mesh)
+                mP = MeshPlotter(s);
+                mP.plot();
+            end
         end
-        
-    end    
+    end
     
 end

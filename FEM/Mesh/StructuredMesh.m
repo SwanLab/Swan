@@ -1,10 +1,11 @@
-classdef StructuredMesh < Mesh
+classdef StructuredMesh < handle
     
     properties (Access = public)
         nx
         ny
         x
-        y        
+        y  
+        mesh
     end
     
     properties (Access = private)
@@ -18,7 +19,7 @@ classdef StructuredMesh < Mesh
             obj.init(cParams);
             s.coord  = obj.createCoordinates();
             s.connec = obj.createConnectivities();
-            obj.create(s);
+            obj.createMesh(s);
         end
         
     end
@@ -51,6 +52,11 @@ classdef StructuredMesh < Mesh
             v = bsxfun(@(x,y) x + Ny*(y-1),xv',yv);
             v = v(:);
         end        
+
+        function createMesh(obj,s)
+            s.kFace = 0;
+            obj.mesh = Mesh(s);
+        end
         
     end
     

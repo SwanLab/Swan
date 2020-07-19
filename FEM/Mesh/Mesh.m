@@ -43,6 +43,7 @@ classdef Mesh < handle
   
         function plot(obj)
             s.mesh = obj;
+            s = SettingsMeshPlotter(s);
             mP = MeshPlotter(s);
             mP.plot();
         end        

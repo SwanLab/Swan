@@ -47,22 +47,11 @@ classdef DesignVarMonitor_LevelSet < DesignVarMonitor_Abstract
     methods (Access = private)
         
         function createUnfittedMesh(obj)
-            interpolation = Interpolation.create(obj.mesh,'LINEAR');
             s.backgroundMesh = obj.mesh.innerMeshOLD;
             s.boundaryMesh   = obj.mesh.boxFaceMeshes;
-            s.unfittedType   = 'INTERIOR';
             s.isInBoundary = false;                  
-            s.interpolationBackground = interpolation;
             s = SettingsMeshUnfitted(s);
-            s.includeBoxContour = true;
-            s.unfittedType = 'INTERIOR';
-            s.type = 'INTERIOR';
-            
-            
             obj.meshUnfitted = UnfittedMesh(s);
-            
-            
-            
         end
         
         function updateMesh(obj)

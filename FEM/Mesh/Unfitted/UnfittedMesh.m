@@ -34,7 +34,7 @@ classdef UnfittedMesh < handle
             obj.computeInnerCutMesh();
             obj.computeBoundaryCutMesh();
             obj.computeUnfittedBoxMesh();
-            obj.createPlotter()            
+            obj.createPlotter();  
         end
         
         function createPlotter(obj)
@@ -43,7 +43,7 @@ classdef UnfittedMesh < handle
         end
         
         function plotBoundary(obj)
-            obj.plotter.plotBoundary();
+             obj.plotter.plotBoundary();
         end
         
         function plot(obj)
@@ -77,9 +77,11 @@ classdef UnfittedMesh < handle
         end       
         
         function computeInnerMesh(obj)
+           if ~isempty(obj.fullCells)
             s.backgroundMesh = obj.backgroundMesh;
             s.fullCells      = obj.fullCells;
             obj.innerMesh = InnerMesh(s);
+            end
         end
                   
         function computeInnerCutMesh(obj)

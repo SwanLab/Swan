@@ -45,10 +45,8 @@ classdef testVigdergauzMicroStructureWithStrain < testShowingError & testTopOptC
         
         function createUnfittedMesh(obj)
             meshBackground = obj.topOpt.designVariable.mesh;
-            s.unfittedType            = 'INTERIOR';
             s.backgroundMesh          = meshBackground.innerMeshOLD;
             s.boundaryMesh            = meshBackground.boxFaceMeshes;            
-            s.isInBoundary            = false;
             cParams = SettingsMeshUnfitted(s);
             obj.unfittedMesh = UnfittedMesh(cParams);
             obj.unfittedMesh.compute(obj.designVariable.value);

@@ -36,7 +36,7 @@ classdef LHSintegrator < handle
         end
         
        function createQuadrature(obj)
-           quad = Quadrature.set(obj.mesh.geometryType);
+           quad = Quadrature.set(obj.mesh.type);
            quad.computeQuadrature('LINEAR');            
            obj.quadrature = quad;
        end

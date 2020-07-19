@@ -87,7 +87,7 @@ classdef Integrator_Unfitted < Integrator
             s.type = 'COMPOSITE';
             s.npnod = mesh.backgroundMesh.npnod;
             s.compositeParams = cell(0);
-            if ~isempty(mesh.innerCutMesh)
+            if ~isempty(mesh.innerMesh)
                 s.compositeParams{1} = obj.createInnerParams(mesh.innerMesh.mesh,mesh.backgroundMesh,mesh.innerMesh.fullCells);
             end
             if ~isempty(mesh.innerCutMesh)

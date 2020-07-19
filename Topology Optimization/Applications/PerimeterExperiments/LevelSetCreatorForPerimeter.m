@@ -63,10 +63,9 @@ classdef LevelSetCreatorForPerimeter < handle
             s.scale    = obj.scale;
             s.pdim     = '2D';
             s.ptype    = 'ELASTIC';
-            s.nelem    = size(obj.mesh.connec,1);
+            s.nelem    = size(obj.mesh.innerMeshOLD.connec,1);
             s.bc       = [];
-            s.coord    = obj.mesh.coord;
-            s.connec   = obj.mesh.connec;
+            s.mesh    = obj.mesh.innerMeshOLD;
         end
         
         function plotLevelSet(obj)
@@ -79,8 +78,6 @@ classdef LevelSetCreatorForPerimeter < handle
        function mesh = createUnfittedMesh(obj)
             s.backgroundMesh = obj.mesh.innerMeshOLD;
             s.boundaryMesh   = obj.mesh.boxFaceMeshes;
-            s.unfittedType   = 'INTERIOR';
-            s.isInBoundary = false;                       
             cParams = SettingsMeshUnfitted(s);
             mesh = UnfittedMesh(cParams);
             mesh.compute(obj.levelSet.value);           

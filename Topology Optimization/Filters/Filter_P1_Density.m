@@ -115,7 +115,7 @@ classdef Filter_P1_Density < handle %Filter_P1
         end
         
         function createQuadrature(obj)
-            obj.quadrature = Quadrature.set(obj.mesh.geometryType);
+            obj.quadrature = Quadrature.set(obj.mesh.type);
             obj.quadrature.computeQuadrature(obj.quadratureOrder);
         end
         
@@ -124,7 +124,7 @@ classdef Filter_P1_Density < handle %Filter_P1
         end           
                 
         function createGeometry(obj)
-            s.mesh = obj.mesh;
+            s.mesh = obj.mesh.innerMeshOLD;
             obj.geometry = Geometry.create(s);
             obj.geometry.computeGeometry(obj.quadrature,obj.interp);        
         end

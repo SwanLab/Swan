@@ -63,7 +63,8 @@ classdef CutMeshProvisionalQuadrilater < handle
             nNode = size(xCutG,2);
             nDim  = size(xCutG,1);
             sM.coord = reshape(xCutG,nDim,[])';
-            sM.connec = reshape(1:nElem*nNode,nNode,nElem)';            
+            sM.connec = reshape(1:nElem*nNode,nNode,nElem)'; 
+            sM.kFace = -1;
             m = Mesh(sM);            
         end
         

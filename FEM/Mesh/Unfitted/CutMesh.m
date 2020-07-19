@@ -192,6 +192,7 @@ classdef CutMesh < handle
 
                 s.coord  = coord;
                 s.connec = connecCut;
+                s.kFace = obj.backgroundMesh.kFace;
                 backgroundCutMesh = Mesh(s);
                 
                 s.backgroundMesh = backgroundCutMesh;
@@ -204,6 +205,7 @@ classdef CutMesh < handle
                 
                 sM.connec = cM.connec;
                 sM.coord  = cM.coord;
+                sM.kFace = obj.backgroundMesh.kFace;                
                 m = Mesh(sM);
                 
                 
