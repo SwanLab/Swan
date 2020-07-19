@@ -146,8 +146,8 @@ classdef FEM < handle
         
         function createMesh(obj)
             s.coord  = obj.inputReader.coord;
-            s.connec = obj.inputReader.connec;
-            obj.mesh = Mesh().create(s);
+            s.connec = obj.inputReader.connec;            
+            obj.mesh = Mesh(s);
         end
         
     end
