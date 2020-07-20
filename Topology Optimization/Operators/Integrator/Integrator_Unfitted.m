@@ -1,9 +1,5 @@
 classdef Integrator_Unfitted < Integrator
     
-    properties (Access = public)
-        
-    end
-    
     properties (Access = private)
         integrators
     end
@@ -33,7 +29,7 @@ classdef Integrator_Unfitted < Integrator
         end
         
         function computeInteriorIntegrators(obj)
-            s = obj.createInteriorParams(obj.mesh);
+            s = obj.createInteriorParams(obj.mesh,obj.mesh.backgroundMesh.connec);
             obj.integrators = Integrator.create(s);
         end
         
@@ -52,7 +48,7 @@ classdef Integrator_Unfitted < Integrator
             for iMesh = 1:nMeshes
                 s{iMesh} = sUnfitted{iMesh};
             end
-            sCut = obj.createCutParams(obj.mesh.boundaryCutMesh,obj.mesh.backgroundMesh);            
+            sCut = obj.createCutParams(obj.mesh.backgroundMesh.connec,obj.mesh.boundaryCutMesh,obj.mesh.backgroundMesh);            
             s{nMeshes+1} = sCut;            
         end
         
@@ -62,38 +58,42 @@ classdef Integrator_Unfitted < Integrator
             nMeshes = numel(uMeshes);
             s = cell(nMeshes,1);
             for iMesh = 1:nMeshes
-              s{iMesh} = obj.createInteriorParams(uMeshes{iMesh});
-              s{iMesh}.boxFaceToGlobal = gConnec{iMesh};
+              s{iMesh} = obj.createInteriorParams(uMeshes{iMesh},gConnec{iMesh});
             end
         end
         
-        function s = createInnerParams(obj,mesh,backgroundMesh,fullCells)
+        function s = createInnerParams(obj,gConnec,mesh)
             s.mesh = mesh;
             s.type = 'SIMPLE';
-            s.globalConnec      = backgroundMesh.connec(fullCells,:);
-            s.npnod             = backgroundMesh.npnod;
+            s.globalConnec      = gConnec;
+            s.npnod             = obj.mesh.backgroundMesh.npnod;
             s.geometryType      = mesh.type;
         end
         
-        function s = createCutParams(obj,mesh,backgroundMesh)
+        function s = createCutParams(obj,gConnec,mesh,backgroundMesh)
             s.mesh = mesh;
             s.type = 'CutMesh';
-            s.globalConnec      = backgroundMesh.connec;
-            s.npnod             = backgroundMesh.npnod;
+            s.globalConnec      = gConnec;
+            s.npnod             = obj.mesh.backgroundMesh.npnod;
             s.geometryType      = backgroundMesh.type;
         end
         
-        function s = createInteriorParams(obj,mesh)
+        function s = createInteriorParams(obj,mesh,connec)
             s.type = 'COMPOSITE';
             s.npnod = mesh.backgroundMesh.npnod;
             s.compositeParams = cell(0);
             if ~isempty(mesh.innerMesh)
-                s.compositeParams{1} = obj.createInnerParams(mesh.innerMesh.mesh,mesh.backgroundMesh,mesh.innerMesh.fullCells);
+                fullCells = mesh.innerMesh.fullCells;
+                gConnec   = connec(fullCells,:);
+                s.compositeParams{1} = obj.createInnerParams(gConnec,mesh.innerMesh.mesh);
             end
             if ~isempty(mesh.innerCutMesh)
-                s.compositeParams{end+1} = obj.createCutParams(mesh.innerCutMesh,mesh.backgroundMesh);
+                gConnec = connec;
+                s.compositeParams{end+1} = obj.createCutParams(gConnec,mesh.innerCutMesh,mesh.backgroundMesh);
             end
         end
+        
+
         
     end
     

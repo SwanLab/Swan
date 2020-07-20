@@ -31,6 +31,7 @@ classdef UnfittedMeshPlotter < handle
             obj.plotInner();
             obj.plotInnerCut();
             obj.plotBoundaryCutMesh();
+            obj.plotUnfittedBoundaryMesh();            
         end
         
     end

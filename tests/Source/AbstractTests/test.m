@@ -18,11 +18,9 @@ classdef test < handle
     end
     
     methods (Abstract, Access = protected)
-        
         hasPassed(obj)
         printTestPassed(obj)
         printTestNotPassed(obj)
-        
     end
     
 end

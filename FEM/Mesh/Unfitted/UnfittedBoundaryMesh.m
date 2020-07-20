@@ -1,14 +1,15 @@
 classdef UnfittedBoundaryMesh < handle
     
     properties (Access = public)
-        meshes
-        globalConnec
+        meshes        
     end
     
     properties (Access = private)
         nBoundaries
         levelSet
         activeMeshes
+        globalConnec
+        nodesInBoxFaces
     end
     
     properties (Access = private)
@@ -20,7 +21,8 @@ classdef UnfittedBoundaryMesh < handle
         function obj = UnfittedBoundaryMesh(cParams)
             obj.init(cParams)
             obj.createUnfittedMeshes();
-            obj.obtainGlobalConnec()
+            obj.obtainGlobalConnec();
+            obj.obtainNodesInBoxFaces();
         end
         
         function compute(obj,ls)
@@ -58,9 +60,16 @@ classdef UnfittedBoundaryMesh < handle
         function obtainGlobalConnec(obj)
             for iBoundary = 1:obj.nBoundaries
                 m = obj.boundaryMesh{iBoundary};
-                obj.globalConnec{iBoundary} = m.nodesInBoxFaces;
+                obj.globalConnec{iBoundary} = m.globalConnec;%m.nodesInBoxFaces;
             end            
         end
+        
+        function obtainNodesInBoxFaces(obj)
+            for iBoundary = 1:obj.nBoundaries
+                m = obj.boundaryMesh{iBoundary};
+                obj.nodesInBoxFaces{iBoundary} = m.nodesInBoxFaces;
+            end            
+        end        
         
         function computeActiveMesh(obj)
             for iBoundary = 1:obj.nBoundaries                
@@ -79,13 +88,13 @@ classdef UnfittedBoundaryMesh < handle
         end     
         
         function computeUnfittedMesh(obj,iBoundary)
-            nodes = obj.globalConnec{iBoundary};
+            nodes = obj.nodesInBoxFaces{iBoundary};
             ls    = obj.levelSet(nodes);            
             obj.meshes{iBoundary}.compute(ls);
         end
         
         function itIs = isUnfittedMeshActive(obj,iBoundary)
-            nodes = obj.globalConnec{iBoundary};
+            nodes = obj.nodesInBoxFaces{iBoundary};
             ls    = obj.levelSet(nodes);          
             itIs = any(sign(ls)<0);
         end

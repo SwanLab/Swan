@@ -1,14 +1,15 @@
 classdef BoundaryMesh < handle
     
     properties (Access = public)
-       nodesInBoxFaces
-       globalConnec
+       nodesInBoxFaces       
        mesh
+       globalConnec
     end
     
     properties (Access = private)
-       connec
-       coord
+       connec       
+       coord      
+       
     end
     
     properties (Access = private)

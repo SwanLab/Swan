@@ -8,16 +8,12 @@ classdef Integrator_Composite < Integrator
     properties (Access = private)
        RHScells
        RHSsubcells
-       boxFaceToGlobal
        npnod
     end
     
     methods (Access = public)
         
         function obj = Integrator_Composite(cParams)
-            if isfield(cParams,'boxFaceToGlobal')
-                obj.boxFaceToGlobal = cParams.boxFaceToGlobal;
-            end
             obj.createIntegrators(cParams);
         end
         
@@ -40,11 +36,7 @@ classdef Integrator_Composite < Integrator
             for iInt = 1:obj.nInt
                 integrator = obj.integrators{iInt};
                 if contains(class(integrator),'Composite')
-                    intLocal = integrator.integrateAndSum(nodalFunc);
-                    obj.RHScells = zeros(obj.npnod,1);
-                    obj.RHSsubcells = intLocal;
-                    obj.assembleBoxFaceToGlobal(iInt);
-                    int = obj.RHScells;
+                    int = integrator.integrateAndSum(nodalFunc);
                 else
                     int = integrator.integrate(nodalFunc);
                 end
@@ -75,12 +67,7 @@ classdef Integrator_Composite < Integrator
             end
             
         end
-        
-        function assembleBoxFaceToGlobal(obj,iInt)
-            boxFaceCells = obj.integrators{iInt}.boxFaceToGlobal;
-            obj.RHScells(boxFaceCells,:) = obj.RHSsubcells;
-        end
-        
+
     end
        
 end
