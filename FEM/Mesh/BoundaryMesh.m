@@ -4,12 +4,13 @@ classdef BoundaryMesh < handle
        nodesInBoxFaces       
        mesh
        globalConnec
+       dimension
     end
     
     properties (Access = private)
        connec       
-       coord      
-       
+       coord           
+       kFace
     end
     
     properties (Access = private)
@@ -32,12 +33,14 @@ classdef BoundaryMesh < handle
             obj.nodesInBoxFaces = cParams.nodesInBoxFaces;
             obj.connec          = cParams.connec;
             obj.coord           = cParams.coord;
+            obj.dimension       = cParams.dimension;
+            obj.kFace           = cParams.kFace;
         end
         
         function createMesh(obj)
             s.coord  = obj.coord;
             s.connec = obj.connec;
-            s.kFace  = -1;
+            s.kFace  = obj.kFace -1;
             obj.mesh = Mesh(s);
         end
         

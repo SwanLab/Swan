@@ -3,10 +3,12 @@ classdef BoundaryMeshCreatorFromRectangularBox < handle
     properties (Access = private)
         nSides
         nFaces
+        nDim
     end
     
     properties (Access = private)
         backgroundMesh
+        dimensions
     end
     
     methods (Access = public)
@@ -17,7 +19,7 @@ classdef BoundaryMeshCreatorFromRectangularBox < handle
         
         function b = create(obj)
             bMeshes = cell(obj.nFaces,1);
-            for iDime = 1:obj.backgroundMesh.ndim
+            for iDime = 1:obj.nDim
                 for iSide = 1:obj.nSides
                     iFace = obj.computeIface(iSide,iDime);
                     bMeshes{iFace} = obj.createBoundaryMesh(iDime,iSide);
@@ -32,27 +34,31 @@ classdef BoundaryMeshCreatorFromRectangularBox < handle
         
         function init(obj,cParams)
             obj.backgroundMesh = cParams.backgroundMesh;
+            obj.dimensions     = cParams.dimensions;
             obj.nSides = 2;
-            obj.nFaces = obj.backgroundMesh.ndim*obj.nSides;
+            obj.nDim   = obj.backgroundMesh.ndim + obj.backgroundMesh.kFace;
+            obj.nFaces = obj.nDim*obj.nSides;
         end
         
-        function m = createBoundaryMesh(obj,iDime,iSide)            
-            nodes  = obj.obtainBoxNodes(iDime,iSide);
-            coords = obj.computeCoords(nodes);            
-            connec = obj.computeConnectivities(coords,iDime);
-            s.connec = connec;
-            s.coord  = coords;
+        function m = createBoundaryMesh(obj,iDime,iSide) 
+            nodes       = obj.obtainBoxNodes(iDime,iSide);
+            coords      = obj.computeCoords(nodes);      
+            connec      = obj.computeConnectivities(nodes,iDime);
+            s.connec      = connec;
+            s.coord       = coords;
             s.nodesInBoxFaces = nodes;
+            s.dimension  = iDime;
+            s.kFace      = obj.backgroundMesh.kFace;
             m = BoundaryMesh(s);
         end       
         
         function coords = computeCoords(obj,nodes)
             coords = obj.backgroundMesh.coord(nodes,:);            
-        end
+        end        
         
-        function connec = computeConnectivities(obj,boxFaceCoords,iDime)
-            facetCoords = obj.computeFacetCoords(boxFaceCoords,iDime);            
-            switch obj.backgroundMesh.ndim
+        function connec = computeConnectivities(obj,nodes,iDime)
+            facetCoords = obj.computeFacetCoords(nodes,iDime);                                    
+            switch obj.nDim
                 case 2
                     connec = obj.computeConnectivities1D(facetCoords);
                 case 3
@@ -61,7 +67,8 @@ classdef BoundaryMeshCreatorFromRectangularBox < handle
         end
         
         function nodes = obtainBoxNodes(obj,iDime,iSide)
-            coordDim = obj.backgroundMesh.coord(:,iDime);
+            dim = obj.dimensions(iDime);
+            coordDim = obj.backgroundMesh.coord(:,dim);
             switch iSide 
                 case 1
                     xL = min(coordDim);
@@ -71,10 +78,10 @@ classdef BoundaryMeshCreatorFromRectangularBox < handle
             nodes = coordDim == xL;
         end
         
-        function facetCoord = computeFacetCoords(obj,facetCoord,idime)
-            nDim       = obj.backgroundMesh.ndim;
-            facetDim   = setdiff(1:nDim,idime);
-            facetCoord = facetCoord(:,facetDim);
+        function facetCoord = computeFacetCoords(obj,nodes,idime)
+            coord      = obj.backgroundMesh.coord(nodes,:); 
+            facetDim   = setdiff(1:obj.nDim,idime);
+            facetCoord = coord(:,obj.dimensions(facetDim));
         end   
 
         function iFace = computeIface(obj,iSide,iDime)

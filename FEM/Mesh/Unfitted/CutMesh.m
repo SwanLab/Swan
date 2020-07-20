@@ -187,7 +187,7 @@ classdef CutMesh < handle
                 obj.cellContainingSubcell = cellC2;
                 
             elseif isLine && isInterior
-                coord = obj.backgroundMesh.coord(:,1:2);     
+                coord = obj.backgroundMesh.coord(:,:);     
                 connecCut = obj.backgroundMesh.connec(cutElems,:);            
 
                 s.coord  = coord;

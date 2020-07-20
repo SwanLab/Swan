@@ -44,6 +44,7 @@ classdef testPlotLargeCylinderTethaedra < testNotShowingError...
         
         function createBoundaryMesh(obj)
             s.backgroundMesh = obj.backgroundMesh;
+            s.dimensions = 1:obj.backgroundMesh.ndim;
             bC = BoundaryMeshCreatorFromRectangularBox(s);
             bM = bC.create();   
             obj.boundaryMesh = bM;

@@ -51,9 +51,13 @@ classdef UnfittedBoundaryMesh < handle
         
         function createUnfittedMeshes(obj)
             for iBoundary = 1:obj.nBoundaries
-                s.backgroundMesh = obj.boundaryMesh{iBoundary}.mesh;
+                bMesh = obj.boundaryMesh{iBoundary};
+                s.backgroundMesh = bMesh.mesh;
+                if ~isequal(bMesh.mesh.geometryType,'Line')
+                    s.boundaryMesh = obj.createBoundaryMesh(bMesh);
+                end
                 s = SettingsMeshUnfitted(s);
-                obj.meshes{iBoundary} = UnfittedMesh(s);                
+                obj.meshes{iBoundary} = UnfittedMesh(s);
             end
         end
         
@@ -109,7 +113,18 @@ classdef UnfittedBoundaryMesh < handle
                    iMesh = iMesh +1;
                 end
             end              
-        end        
+        end       
+        
+    end
+    
+    methods (Access = private, Static)    
+    
+        function m = createBoundaryMesh(bMesh)
+            s.backgroundMesh = bMesh.mesh;
+            s.dimensions     = setdiff(1:bMesh.mesh.ndim,bMesh.dimension);
+            bC = BoundaryMeshCreatorFromRectangularBox(s);
+            m = bC.create();
+        end
         
     end
     

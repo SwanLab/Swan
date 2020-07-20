@@ -12,7 +12,7 @@ classdef UnfittedMeshPlotter < handle
         
         function plotDomain(obj)
             figure
-            clf            
+            clf
             hold on
             obj.plotAll();
         end
@@ -31,7 +31,7 @@ classdef UnfittedMeshPlotter < handle
             obj.plotInner();
             obj.plotInnerCut();
             obj.plotBoundaryCutMesh();
-            obj.plotUnfittedBoundaryMesh();            
+            obj.plotUnfittedBoundaryMesh();
         end
         
     end
@@ -65,10 +65,12 @@ classdef UnfittedMeshPlotter < handle
         
         function plotUnfittedBoundaryMesh(obj)
             uB = obj.uMesh.unfittedBoundaryMesh;
-            uBoundaryMeshes = uB.getActiveMesh();
-            for imesh = 1:numel(uBoundaryMeshes)
-                uM = uBoundaryMeshes{imesh};
-                uM.plotAll();
+            if ~isempty(uB)
+                uBoundaryMeshes = uB.getActiveMesh();
+                for imesh = 1:numel(uBoundaryMeshes)
+                    uM = uBoundaryMeshes{imesh};
+                    uM.plotAll();
+                end
             end
         end
         
@@ -77,7 +79,7 @@ classdef UnfittedMeshPlotter < handle
                 s.mesh = uM.mesh;
                 obj.plotMesh(s);
             end
-        end        
+        end
         
     end
     

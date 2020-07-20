@@ -135,6 +135,7 @@ classdef Mesh_Total < Mesh_Composite
         
         function computeExteriorMeshesFromBoxSides(obj)  
                s.backgroundMesh = obj.innerMeshOLD;
+               s.dimensions = 1:s.backgroundMesh.ndim;
                bC = BoundaryMeshCreatorFromRectangularBox(s);
                bMeshes = bC.create();
                obj.nBoxFaces = numel(bMeshes);
