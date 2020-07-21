@@ -1,27 +1,23 @@
 classdef CutMeshProvisionalOthers < handle
     
     properties (Access = public)
-       coord
-       connec
        xCoordsIso
-       cellContainingSubcell
+       cellContainingSubcell       
+       mesh
        
        type
     end
     
-    properties (Access = private)
+    properties (Access = private)        
         subcellsMesher
         cutPointsCalculator        
-        memoryManager
-        ndimUnf
-        
+        memoryManager        
         nCutCells
     end
     
     properties (Access = private)
         backgroundCutCells
         backgroundMesh
-        backgroundGeomInterpolation
         levelSet
     end
     
@@ -35,18 +31,14 @@ classdef CutMeshProvisionalOthers < handle
         end
         
         function compute(obj)
-            obj.computeCutMesh();
+            obj.computeSubcells();
+            obj.mesh                 = obj.computeGlobalUnfittedMesh();
+            obj.xCoordsIso           = obj.computeXcoordIso();            
+            obj.cellContainingSubcell = obj.memoryManager.cellContainingSubcell;           
         end
         
         function m = computeMesh(obj)
-            s.connec = obj.connec;
-            s.coord  = obj.coord;
-            if isequal(obj.type,'INTERIOR')
-                s.kFace = obj.backgroundMesh.kFace;
-            else
-                s.kFace = obj.backgroundMesh.kFace -1;
-            end
-            m = Mesh(s);
+            m = obj.mesh;
         end
         
         function m = computeBoundaryMesh(obj)
@@ -70,14 +62,14 @@ classdef CutMeshProvisionalOthers < handle
             obj.levelSet                    = cParams.levelSet;            
             obj.backgroundCutCells          = cParams.cutCells;
             obj.backgroundMesh              = cParams.backgroundMesh;
-            obj.backgroundGeomInterpolation = cParams.interpolationBackground;   
             obj.nCutCells                   = length(obj.backgroundCutCells);           
         end
         
         function createSubCellsMesher(obj)
+            inter = Interpolation.create(obj.backgroundMesh,'LINEAR');
             sS.ndimIso            = obj.backgroundMesh.geometryType;
             sS.type               = obj.type;
-            sS.posNodes           = obj.backgroundGeomInterpolation.pos_nodes;
+            sS.posNodes           = inter.pos_nodes;
             sS.levelSetBackground = obj.levelSet;
             sS.coordsBackground   = obj.backgroundMesh.coord;
             obj.subcellsMesher    = SubcellsMesher.create(sS);
@@ -94,22 +86,21 @@ classdef CutMeshProvisionalOthers < handle
         function createCutPointsCalculator(obj)
             obj.cutPointsCalculator  = CutPointsCalculator();            
         end       
-
-        function computeCutMesh(obj)
-            obj.computeSubcells();
-            obj.computeGlobalUnfittedMesh();
-            obj.computeXcoordIso();            
-            obj.cellContainingSubcell = obj.memoryManager.cellContainingSubcell;            
-        end
         
-        function computeXcoordIso(obj)
+        function x = computeXcoordIso(obj)
             subCell = obj.memoryManager.subcellIsoCoords;
-            obj.xCoordsIso = permute(subCell,[3 2 1]);                        
+            x = permute(subCell,[3 2 1]);                        
         end
         
-        function computeGlobalUnfittedMesh(obj)
-            obj.computeGlobalCoordinates();
-            obj.computeGlobalConnectivities();
+        function m = computeGlobalUnfittedMesh(obj)
+            s.coord  = obj.computeGlobalCoordinates();
+            s.connec = obj.computeGlobalConnectivities(s.coord);
+            if isequal(obj.type,'INTERIOR')
+                s.kFace = obj.backgroundMesh.kFace;
+            else
+                s.kFace = obj.backgroundMesh.kFace -1;
+            end
+            m = Mesh(s);            
         end
         
         function obj = computeSubcells(obj)
@@ -127,10 +118,9 @@ classdef CutMeshProvisionalOthers < handle
         end
         
         function computeCutPoints(obj)
-            s.meshBackground              = obj.backgroundMesh;
+            s.backgroundMesh              = obj.backgroundMesh;
             s.levelSet_background         = obj.levelSet;
             s.backgroundCutCells          = obj.backgroundCutCells;
-            s.backgroundGeomInterpolation = obj.backgroundGeomInterpolation;
             obj.cutPointsCalculator.init(s);
             obj.cutPointsCalculator.computeCutPoints();
         end
@@ -144,7 +134,7 @@ classdef CutMeshProvisionalOthers < handle
             subcells = obj.subcellsMesher.subcells;
         end
         
-        function computeGlobalConnectivities(obj)
+        function conn = computeGlobalConnectivities(obj,coord)
             nSubcells = size(obj.memoryManager.connec_local,1);
             cellOfSubCell = obj.memoryManager.cellContainingSubcell;
             coordGlobal   = obj.memoryManager.coord_global_raw;
@@ -155,15 +145,13 @@ classdef CutMeshProvisionalOthers < handle
             for isub = 1:nSubcells %Vectorize !!!
                 cell = cellContNodes == cellOfSubCell(isub);
                 coordsSubCell = coordGlobal(cell,:);
-                indexes = obj.findIndexesComparingCoords(coordsSubCell,obj.coord);
+                indexes = obj.findIndexesComparingCoords(coordsSubCell,coord);
                 conn(isub,:) = indexes(connecLocal(isub,:));
             end
-            obj.connec = conn;
         end
         
-        function computeGlobalCoordinates(obj)
-            [coord,ind1,ind2] = unique(obj.memoryManager.coord_global_raw,'rows','stable');
-            obj.coord = coord;
+        function coord = computeGlobalCoordinates(obj)
+            [coord,ind1,ind2] = unique(obj.memoryManager.coord_global_raw,'rows','stable');            
         end
         
     end

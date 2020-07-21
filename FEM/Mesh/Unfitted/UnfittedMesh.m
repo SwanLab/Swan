@@ -99,16 +99,14 @@ classdef UnfittedMesh < handle
                 if is3D
                     s.type                    = 'INTERIOR';
                     s.backgroundMesh          = obj.backgroundMesh;
-                    s.interpolationBackground = Interpolation.create(obj.backgroundMesh,'LINEAR');
                     s.cutCells                = obj.cutCells;
                     s.levelSet                = obj.levelSet;
                     c = CutMesh(s);
-                    obj.innerCutMesh = c.computeBoundaryMesh();
+                    obj.innerCutMesh = c.computeInteriorMesh();
                     
                     if ~isequal(obj.backgroundMesh.geometryType,'Line')
                         s.type                    = 'BOUNDARY';
                         s.backgroundMesh          = obj.backgroundMesh;
-                        s.interpolationBackground = Interpolation.create(obj.backgroundMesh,'LINEAR');
                         s.cutCells                = obj.cutCells;
                         s.levelSet                = obj.levelSet;
                         c = CutMesh(s);

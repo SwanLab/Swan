@@ -6,7 +6,7 @@ classdef CutPointsCalculator < handle
     end
         
     properties (Access = private)
-        meshBackground
+        backgroundMesh
         backgroundCutCells
         backgroundGeomInterpolation
         levelSet  
@@ -20,10 +20,10 @@ classdef CutPointsCalculator < handle
     methods (Access = public)
         
         function init(obj,cParams)
-            obj.meshBackground      = cParams.meshBackground;
+            obj.backgroundMesh      = cParams.backgroundMesh;
             obj.levelSet            = cParams.levelSet_background;            
             obj.backgroundCutCells  = cParams.backgroundCutCells;
-            obj.backgroundGeomInterpolation = cParams.backgroundGeomInterpolation;
+            obj.backgroundGeomInterpolation =  Interpolation.create(obj.backgroundMesh,'LINEAR');
         end
         
         function computeCutPoints(obj)
@@ -57,7 +57,7 @@ classdef CutPointsCalculator < handle
         function computeIndex(obj)
             node1 = obj.backgroundGeomInterpolation.iteration(1,:);
             node2 = obj.backgroundGeomInterpolation.iteration(2,:);
-            connec        = obj.meshBackground.connec;
+            connec        = obj.backgroundMesh.connec;
             cutCells      = obj.backgroundCutCells;
             cutNode1 = connec(cutCells,node1);
             cutNode2 = connec(cutCells,node2);
@@ -109,13 +109,13 @@ classdef CutPointsCalculator < handle
         end              
         
         function [x1,x2] = computeNodesGlobalCoords(obj)
-            ndim  = obj.meshBackground.ndim;
+            ndim  = obj.backgroundMesh.ndim;
             nPossibleCut = length(obj.backgroundGeomInterpolation.iteration(1,:));
             nCutCells = length(obj.backgroundCutCells);
             x1 = zeros(nPossibleCut,ndim,nCutCells);
             x2 = zeros(nPossibleCut,ndim,nCutCells);
             for idim = 1:ndim
-                xNode = obj.meshBackground.coord(:,idim);
+                xNode = obj.backgroundMesh.coord(:,idim);
                 xNode1 = xNode(obj.index1);
                 xNode2 = xNode(obj.index2);
                 x1(:,idim,:) = xNode1;
