@@ -103,7 +103,7 @@ classdef UnfittedMesh < handle
                     s.cutCells                = obj.cutCells;
                     s.levelSet                = obj.levelSet;
                     c = CutMesh(s);
-                    obj.innerCutMesh = c.compute3D();
+                    obj.innerCutMesh = c.computeBoundaryMesh();
                     
                     if ~isequal(obj.backgroundMesh.geometryType,'Line')
                         s.type                    = 'BOUNDARY';
@@ -112,7 +112,7 @@ classdef UnfittedMesh < handle
                         s.cutCells                = obj.cutCells;
                         s.levelSet                = obj.levelSet;
                         c = CutMesh(s);
-                        obj.boundaryCutMesh = c.compute3D();
+                        obj.boundaryCutMesh = c.computeBoundaryMesh();
                     end
                     
                 else

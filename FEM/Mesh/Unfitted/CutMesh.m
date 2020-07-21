@@ -17,10 +17,21 @@ classdef CutMesh < handle
         cM
     end
     
+    methods (Access = public, Static)
+        
+        function obj = create(cParams)
+            f = CutMeshFactory();
+            obj = f.create(cParams);            
+        end
+        
+        
+    end
+        
+    
     methods (Access = public)
         
         function c = computeInteriorMesh(obj)
-            obj.mesh = obj.cM.computeMesh();
+            obj.mesh                  = obj.cM.computeMesh();
             obj.subcellIsoCoords      = obj.cM.xCoordsIso;
             obj.cellContainingSubcell = obj.cM.cellContainingSubcell;
             obj.computeCutMeshOfSubCellGlobal();
@@ -67,7 +78,6 @@ classdef CutMesh < handle
                 s.cutCells       = obj.cutCells;
                 s.levelSet       = obj.levelSet;
                 obj.cM = CutMeshComputerProvisional(s);
-                obj.cM.compute();
 
             elseif isQuad
                 s.backgroundMesh = obj.backgroundCutMesh;
@@ -75,19 +85,17 @@ classdef CutMesh < handle
                 s.levelSet       = obj.levelSet;
                 s.lastNode       = max(obj.backgroundMesh.connec(:));
                 obj.cM = CutMeshProvisionalQuadrilater(s);
-                obj.cM.compute();
                 
             elseif isLine
                 s.backgroundMesh = obj.backgroundCutMesh;
                 s.cutCells       = obj.cutCells;
                 s.levelSet       = obj.levelSet;
                 obj.cM = CutMeshProvisionalLine(s);
-                obj.cM.compute();
             else
                 obj.cM = CutMeshProvisionalOthers(cParams);
-                obj.cM.compute();
             end
-  
+               obj.cM.compute();
+            
         end
         
     end

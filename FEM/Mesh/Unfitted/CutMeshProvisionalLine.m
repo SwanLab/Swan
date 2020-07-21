@@ -57,8 +57,8 @@ classdef CutMeshProvisionalLine < handle
             obj.cutEdgesComputer = CutEdgesComputer(s);
             obj.cutEdgesComputer.compute();    
             
-            s.coord = obj.backgroundMesh.coord;
-            s.nodesInEdges = obj.backgroundMesh.connec;
+            s.coord            = obj.backgroundMesh.coord;
+            s.nodesInEdges     = obj.backgroundMesh.connec;
             s.xCutEdgePoint    = obj.cutEdgesComputer.xCutEdgePoint;
             s.isEdgeCut        = obj.cutEdgesComputer.isEdgeCut;
             cComputer = CutCoordinatesComputer(s);
@@ -94,7 +94,6 @@ classdef CutMeshProvisionalLine < handle
             xIso(1,2,isNodeBinterior) = obj.isoCoord(2);
             obj.xCoordsIso = xIso;
         end
-        
         
     end
     
