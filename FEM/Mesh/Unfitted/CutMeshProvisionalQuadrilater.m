@@ -15,7 +15,6 @@ classdef CutMeshProvisionalQuadrilater < handle
        subMesher
        
        fullCells
-       cutCells
        
        levelSetSubMesh
     end
@@ -24,7 +23,8 @@ classdef CutMeshProvisionalQuadrilater < handle
         backgroundMesh        
         lastNode
         levelSet
-        cutElems
+        cutCells
+
     end
     
     methods (Access = public)
@@ -47,8 +47,8 @@ classdef CutMeshProvisionalQuadrilater < handle
 
         end
         
-        function [xCutG,m] = obtainXcutIsoBoundary(obj)
-            xCutIso = obj.subCutSubMesh.obtainXcutIso();
+        function [xCutG,m] = obtainBoundaryXcutIso(obj)
+            xCutIso = obj.subCutSubMesh.obtainBoundaryXcutIso();
            
             s.fullCells     = obj.fullCells;
             s.cutCells      = obj.cutCells;
@@ -92,7 +92,7 @@ classdef CutMeshProvisionalQuadrilater < handle
             obj.backgroundMesh = cParams.backgroundMesh;
             obj.lastNode = cParams.lastNode;            
             obj.levelSet = cParams.levelSet;
-            obj.cutElems = cParams.cutElems;
+            obj.cutCells = cParams.cutCells;
         end
         
         function createSubMesher(obj)
@@ -139,7 +139,7 @@ classdef CutMeshProvisionalQuadrilater < handle
         
         function computeSubCutSubMesh(obj)
             s.backgroundMesh = obj.computeCutSubMesh();
-            s.cutElems = obj.cutCells;
+            s.cutCells = obj.cutCells;
             s.levelSet = obj.levelSetSubMesh;
             cMesh = CutMeshComputerProvisional(s);
             cMesh.compute();
@@ -164,7 +164,7 @@ classdef CutMeshProvisionalQuadrilater < handle
         
         function cell = computeSubTriangleOfSubCell(obj)
             nnode  = size(obj.backgroundMesh.connec,2);  
-            cElems = transpose(obj.cutElems);
+            cElems = transpose(obj.cutCells);
             cell = repmat(cElems,nnode,1);
             cell = cell(:);
         end        

@@ -1,13 +1,11 @@
 classdef CutMesh < handle
     
-    properties (GetAccess = public, SetAccess = private)
+    properties (Access = private)
         cutMeshOfSubCellLocal
         cutMeshOfSubCellGlobal
         cellContainingSubcell        
-        mesh
-    end
-    
-    properties (Access = private)
+        mesh        
+        
         backgroundCutMesh
         subcellIsoCoords
     end
@@ -16,13 +14,47 @@ classdef CutMesh < handle
         backgroundMesh        
         levelSet
         type
-        cutElems
+        cutCells
+        cM
     end
     
     methods (Access = public)
         
+        function c = computeInteriorMesh(obj)
+            obj.mesh = obj.cM.computeMesh();
+            obj.subcellIsoCoords      = obj.cM.xCoordsIso;
+            obj.cellContainingSubcell = obj.cM.cellContainingSubcell;
+            obj.computeCutMeshOfSubCellGlobal();
+            obj.computeCutMeshOfSubCellLocal('INTERIOR');               
+            c = obj.compute();
+        end
+        
+        function c = computeBoundaryMesh(obj)
+            obj.mesh = obj.cM.computeBoundaryMesh();
+            obj.subcellIsoCoords      = obj.cM.obtainBoundaryXcutIso();
+            obj.cellContainingSubcell = obj.cM.obtainBoundaryCellContainingSubCell();
+            obj.computeCutMeshOfSubCellGlobal();
+            obj.computeCutMeshOfSubCellLocal('BOUNDARY');               
+            c = obj.compute();
+        end
+        
+        function c = compute3D(obj)
+            obj.mesh                  = obj.cM.computeMesh();
+            obj.subcellIsoCoords      = obj.cM.xCoordsIso;
+            obj.cellContainingSubcell = obj.cM.cellContainingSubcell;
+            obj.computeCutMeshOfSubCellGlobal();
+            obj.computeCutMeshOfSubCellLocal(obj.cM.type);               
+            c = obj.compute();            
+        end
+        
+        function c = compute(obj)         
+            c.cutMeshOfSubCellLocal  = obj.cutMeshOfSubCellLocal;
+            c.cutMeshOfSubCellGlobal = obj.cutMeshOfSubCellGlobal;
+            c.cellContainingSubcell  = obj.cellContainingSubcell;
+            c.mesh                   = obj.mesh;
+        end
+        
         function obj = CutMesh(cParams)
-            
             obj.init(cParams)
             obj.computeBackgroundCutMesh();
             
@@ -31,89 +63,46 @@ classdef CutMesh < handle
             isQuad     = isequal(bMtype,'QUAD');
             isLine     = isequal(bMtype,'LINE');
             
-            isInterior = isequal(obj.type,'INTERIOR');
-            isBoundary = isequal(obj.type,'BOUNDARY');
-            
             if isTriangle
-                
                 s.backgroundMesh = obj.backgroundCutMesh;
-                s.cutElems       = obj.cutElems;
+                s.cutCells       = obj.cutCells;
                 s.levelSet       = obj.levelSet;
-                cM = CutMeshComputerProvisional(s);
-                cM.compute();
-                
-                if isInterior
-                    
-                    obj.mesh = cM.computeMesh();                    
-                    obj.subcellIsoCoords      = cM.xCoordsIso;
-                    obj.cellContainingSubcell = cM.cellContainingSubcell;
-                    
-                elseif isBoundary
-                    
-                    obj.mesh = cM.computeBoundaryMesh();                    
-                    obj.subcellIsoCoords      = cM.obtainXcutIso();
-                    obj.cellContainingSubcell = obj.cutElems;
-                end
-                
+                obj.cM = CutMeshComputerProvisional(s);
+                obj.cM.compute();
+
             elseif isQuad
-                
                 s.backgroundMesh = obj.backgroundCutMesh;
-                s.cutElems       = obj.cutElems;
+                s.cutCells       = obj.cutCells;
                 s.levelSet       = obj.levelSet;
                 s.lastNode       = max(obj.backgroundMesh.connec(:));
-                cM = CutMeshProvisionalQuadrilater(s);
-                cM.compute();
+                obj.cM = CutMeshProvisionalQuadrilater(s);
+                obj.cM.compute();
                 
-                if isInterior       
-                    obj.mesh = cM.computeMesh();                                        
-                    obj.subcellIsoCoords      = cM.xCoordsIso;
-                    obj.cellContainingSubcell = cM.cellContainingSubcell;
-                elseif isBoundary                    
-                    obj.mesh = cM.computeBoundaryMesh();
-                    obj.subcellIsoCoords      = cM.obtainXcutIsoBoundary();
-                    obj.cellContainingSubcell = cM.obtainBoundaryCellContainingSubCell();                    
-                end
-                
-                
-            elseif isLine && isInterior
+            elseif isLine
                 s.backgroundMesh = obj.backgroundCutMesh;
-                s.cutElems       = obj.cutElems;
+                s.cutCells       = obj.cutCells;
                 s.levelSet       = obj.levelSet;
-                cM = CutMeshProvisionalLine(s);
-                cM.compute();
-                
-                obj.mesh                  = cM.computeMesh();
-                obj.subcellIsoCoords      = cM.xCoordsIso;
-                obj.cellContainingSubcell = cM.cellContainingSubcell;                
-                
+                obj.cM = CutMeshProvisionalLine(s);
+                obj.cM.compute();
             else
-                cM = CutMeshProvisionalOthers(cParams);
-                cM.compute();
-                obj.mesh                  = cM.computeMesh();
-                obj.subcellIsoCoords      = cM.xCoordsIso;
-                obj.cellContainingSubcell = cM.cellContainingSubcell;
-                
+                obj.cM = CutMeshProvisionalOthers(cParams);
+                obj.cM.compute();
             end
-            
-            obj.computeCutMeshOfSubCellGlobal();
-            obj.computeCutMeshOfSubCellLocal();
-
+  
         end
         
     end
-    
     
     methods (Access = private)
         
         function init(obj,cParams)
             obj.levelSet       = cParams.levelSet;
             obj.backgroundMesh = cParams.backgroundMesh;
-            obj.type           = cParams.type;
-            obj.cutElems       = cParams.cutCells;
+            obj.cutCells       = cParams.cutCells;
         end
         
         function computeBackgroundCutMesh(obj)
-            cells = obj.cutElems;
+            cells = obj.cutCells;
             m = obj.computeSubMesh(cells);
             obj.backgroundCutMesh = m;
         end
@@ -131,23 +120,21 @@ classdef CutMesh < handle
             obj.cutMeshOfSubCellGlobal = m;
         end
         
-        function computeCutMeshOfSubCellLocal(obj)
+        function computeCutMeshOfSubCellLocal(obj,type)
             coord = obj.subcellIsoCoords;
             nElem = size(coord,3);
             nNode = size(coord,2);
             nDim  = size(coord,1);
             s.coord = reshape(coord,nDim,[])';
             s.connec = reshape(1:nElem*nNode,nNode,nElem)';
-            if isequal(obj.type,'INTERIOR')
+            if isequal(type,'INTERIOR')
                 kFace = 0;
             else
                 kFace = -1;
             end
             s.kFace = kFace;
-            if kFace + obj.backgroundMesh.ndim > 0
-                m = Mesh(s);
-                obj.cutMeshOfSubCellLocal = m;
-            end
+            m = Mesh(s);
+            obj.cutMeshOfSubCellLocal = m;            
         end
         
     end

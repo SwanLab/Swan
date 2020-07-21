@@ -5,6 +5,8 @@ classdef CutMeshProvisionalOthers < handle
        connec
        xCoordsIso
        cellContainingSubcell
+       
+       type
     end
     
     properties (Access = private)
@@ -31,7 +33,7 @@ classdef CutMeshProvisionalOthers < handle
         backgroundMesh
         backgroundGeomInterpolation
         levelSet
-        type
+        
     end
     
     methods (Access = public)

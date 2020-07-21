@@ -21,6 +21,7 @@ classdef CutMeshComputerProvisional < handle
     
     properties (Access = private)        
         backgroundMesh
+        cutCells
     end
     
     methods (Access = public)
@@ -52,8 +53,12 @@ classdef CutMeshComputerProvisional < handle
             m = Mesh(sM);
         end        
         
-        function xCutIso = obtainXcutIso(obj)
+        function xCutIso = obtainBoundaryXcutIso(obj)
             xCutIso = obj.cutPointsInElemComputer.xCut;
+        end
+        
+        function c = obtainBoundaryCellContainingSubCell(obj)
+            c = obj.cutCells;            
         end
         
     end    
@@ -66,7 +71,8 @@ classdef CutMeshComputerProvisional < handle
         
         function computeAllParams(obj,cParams)
             obj.backgroundMesh = cParams.backgroundMesh;
-            cutElems       = cParams.cutElems;
+            obj.cutCells       = cParams.cutCells;
+            cutCells       = cParams.cutCells;
             ls             = cParams.levelSet;            
             obj.backgroundMesh.computeEdges();
             e = obj.backgroundMesh.edges;
@@ -86,7 +92,7 @@ classdef CutMeshComputerProvisional < handle
             obj.cutEdgesComputerParams = cEparams;
             
             obj.interiorSubCellsParams.isSubCellInteriorParams.levelSet = ls;
-            obj.interiorSubCellsParams.cutElems = cutElems;
+            obj.interiorSubCellsParams.cutElems = obj.cutCells;
         end
         
         function computeCutEdges(obj)
