@@ -34,31 +34,7 @@ classdef EdgesConnectivitiesComputer < handle
             obj.computeEdgesInElem();
             obj.computeLocalOrientedEdgeConnec();
         end
-        
-        function nodeInBoundaryEdges = computeBoundaryEdges(obj,nodesInBoundary)
-            nodesInEdges = obj.nodesInEdges;
-            allNodes = nodesInBoundary(:);
-            uniqueNodes = unique(allNodes);
-            nNodes = length(uniqueNodes);
-            edgesOfNodes = zeros(nNodes,10);
-            for iNode = 1:nNodes
-                node = uniqueNodes(iNode);
-                isNodeA = node == nodesInEdges(:,1);
-                isNodeB = node == nodesInEdges(:,2);
-                edgesOfNode = find(or(isNodeA,isNodeB));
-                nEdges = length(edgesOfNode);
-                edgesOfNodes(iNode,1:nEdges) = edgesOfNode;
-            end
-            
-            edgeOnBoundary = edgesOfNodes(:,:);
-            allEdgesInBoundary = edgeOnBoundary(:);
-            newAllBound = allEdgesInBoundary(allEdgesInBoundary>0);
-            [~,ind] = unique(newAllBound);    
-            dupl = setdiff(1:length(newAllBound),ind);
-            bEdges = unique(newAllBound(dupl,:));
-            nodeInBoundaryEdges = nodesInEdges(bEdges,:);
-        end
-        
+
     end
     
     methods (Access = private)

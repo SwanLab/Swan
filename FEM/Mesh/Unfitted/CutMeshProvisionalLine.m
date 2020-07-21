@@ -33,6 +33,13 @@ classdef CutMeshProvisionalLine < handle
             obj.cellContainingSubcell = obj.cutElems;
         end
         
+        function m = computeMesh(obj)
+            s.connec = obj.connec;
+            s.coord  = obj.coord;
+            s.kFace  = obj.backgroundMesh.kFace;
+            m = Mesh(s);
+        end
+        
     end
     
     methods (Access = private)

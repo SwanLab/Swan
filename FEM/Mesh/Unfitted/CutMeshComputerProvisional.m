@@ -35,6 +35,7 @@ classdef CutMeshComputerProvisional < handle
             obj.coord = obj.cutCoordComputer.coord;
             obj.computeCutPointsInElemComputer();            
             obj.computeConnec();
+            obj.computeMesh();
         end        
         
         function m = computeBoundaryMesh(obj)
@@ -42,6 +43,13 @@ classdef CutMeshComputerProvisional < handle
             s.connec = obj.cutPointsInElemComputer.edgeCutPointInElem;
             s.kFace  = obj.backgroundMesh.kFace -1;
             m = Mesh(s);
+        end        
+        
+        function m = computeMesh(obj)
+            sM.connec = obj.connec;
+            sM.coord  = obj.coord;
+            sM.kFace  = obj.backgroundMesh.kFace;
+            m = Mesh(sM);
         end        
         
         function xCutIso = obtainXcutIso(obj)
@@ -123,8 +131,8 @@ classdef CutMeshComputerProvisional < handle
             obj.connec                = subCell.connec;
             obj.xCoordsIso            = subCell.xCoordsIso;
             obj.cellContainingSubcell = subCell.cellContainingSubcell;
-        end               
-        
+        end            
+
     end
     
 end

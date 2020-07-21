@@ -6,7 +6,7 @@ classdef TriangleSubMeshConnecComputer < handle
     end
     
     properties (Access = private)
-        connecCase      
+        connecCase
         imax        
     end
     
@@ -97,22 +97,7 @@ classdef TriangleSubMeshConnecComputer < handle
             bestCase = BestSubCellCaseSelector(s);
             obj.imax = bestCase.compute();            
         end        
-        
-        function computeSubQuadConnec(obj,icase)
-            localConnec = obj.localQuadConnecCases(:,:,:,icase);
-            connecCases = obj.computeSubCasesConnec(localConnec);
-            connec = obj.computeBestCase(connecCases);
-            obj.connecSubQuad = connec;             
-        end                
-        
-        function nodeQ = computeBestCase(obj,nodesSubCases)
-           s = obj.bestSubCellCaseSelectorParams;
-           s.nodesSubCases = nodesSubCases;
-           bestCase = BestSubCellCaseSelector(s);
-           nodeQ = bestCase.compute();
-           obj.imax = bestCase.imax;
-        end
-        
+               
         function connec = computeSubCasesConnec(obj,localConnecCases)
             connec = obj.initQuadConnecCases();
             for isubCase = 1:obj.nSubCases

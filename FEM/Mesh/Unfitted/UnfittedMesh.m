@@ -89,8 +89,6 @@ classdef UnfittedMesh < handle
                 s.type                    = 'INTERIOR';
                 s.backgroundMesh          = obj.backgroundMesh;
                 s.interpolationBackground = Interpolation.create(obj.backgroundMesh,'LINEAR');
-                s.fullCells               = obj.fullCells;
-                s.emptyCells              = obj.emptyCells;
                 s.cutCells                = obj.cutCells;
                 s.levelSet                = obj.levelSet;
                 obj.innerCutMesh = CutMesh(s);
@@ -103,8 +101,6 @@ classdef UnfittedMesh < handle
                     s.type                    = 'BOUNDARY';
                     s.backgroundMesh          = obj.backgroundMesh;
                     s.interpolationBackground = Interpolation.create(obj.backgroundMesh,'LINEAR');
-                    s.fullCells     = obj.fullCells;
-                    s.emptyCells    = obj.emptyCells;
                     s.cutCells      = obj.cutCells;
                     s.levelSet = obj.levelSet;
                     obj.boundaryCutMesh = CutMesh(s);

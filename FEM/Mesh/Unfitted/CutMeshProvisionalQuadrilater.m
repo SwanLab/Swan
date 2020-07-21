@@ -57,7 +57,6 @@ classdef CutMeshProvisionalQuadrilater < handle
             s.xIsoCutCoord  = xCutIso;
             xC = XcoordIsoComputer(s); 
             xCutG = xC.computeXSubCut();
-            %xCutG = xC.compute();
             
             nElem = size(xCutG,3);
             nNode = size(xCutG,2);
@@ -71,6 +70,13 @@ classdef CutMeshProvisionalQuadrilater < handle
         function m = computeBoundaryMesh(obj)
             m = obj.subCutSubMesh.computeBoundaryMesh();
         end  
+        
+        function m = computeMesh(obj)
+            sM.connec = obj.connec;
+            sM.coord  = obj.coord;
+            sM.kFace  = obj.backgroundMesh.kFace;
+            m = Mesh(sM);
+        end
         
         function cellCont = obtainBoundaryCellContainingSubCell(obj)
             cutC = obj.cutCells;
