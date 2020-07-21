@@ -15,7 +15,7 @@ classdef CutMeshProvisionalQuadrilater < handle
        subMesher
        
        fullCells
-       
+       cutCells
        levelSetSubMesh
     end
     
@@ -23,8 +23,8 @@ classdef CutMeshProvisionalQuadrilater < handle
         backgroundMesh        
         lastNode
         levelSet
-        cutCells
-
+        
+        cutQuadCells
     end
     
     methods (Access = public)
@@ -92,7 +92,7 @@ classdef CutMeshProvisionalQuadrilater < handle
             obj.backgroundMesh = cParams.backgroundMesh;
             obj.lastNode = cParams.lastNode;            
             obj.levelSet = cParams.levelSet;
-            obj.cutCells = cParams.cutCells;
+            obj.cutQuadCells = cParams.cutCells;
         end
         
         function createSubMesher(obj)
@@ -164,7 +164,7 @@ classdef CutMeshProvisionalQuadrilater < handle
         
         function cell = computeSubTriangleOfSubCell(obj)
             nnode  = size(obj.backgroundMesh.connec,2);  
-            cElems = transpose(obj.cutCells);
+            cElems = transpose(obj.cutQuadCells);
             cell = repmat(cElems,nnode,1);
             cell = cell(:);
         end        

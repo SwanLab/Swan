@@ -13,7 +13,6 @@ classdef CutMesh < handle
     properties (Access = private)
         backgroundMesh        
         levelSet
-        type
         cutCells
         cM
     end

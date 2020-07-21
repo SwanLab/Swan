@@ -72,7 +72,7 @@ classdef CutMeshComputerProvisional < handle
         function computeAllParams(obj,cParams)
             obj.backgroundMesh = cParams.backgroundMesh;
             obj.cutCells       = cParams.cutCells;
-            cutCells       = cParams.cutCells;
+            %cutCells       = cParams.cutCells;
             ls             = cParams.levelSet;            
             obj.backgroundMesh.computeEdges();
             e = obj.backgroundMesh.edges;
