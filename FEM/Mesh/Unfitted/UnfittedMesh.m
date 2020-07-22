@@ -125,6 +125,8 @@ classdef UnfittedMesh < handle
                     end
                     
                 else
+                    
+  
                     s.backgroundMesh          = obj.backgroundMesh;
                     s.cutCells                = obj.cutCells;
                     s.levelSet                = obj.levelSet;

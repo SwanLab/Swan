@@ -21,7 +21,7 @@ classdef PlottingTests < testRunner
             'testPlotCircleQuadrilateral'                 
             'testRectangleTriangle'
             'testRectangleQuadrilateral'      
-            'testSmoothRectangleTriangle'
+             'testSmoothRectangleTriangle'
             'testSmoothRectangleQuadrilateral'                            
             'testPlotSphereTetrahedra';
             'testPlotSphereHexahedra';                                

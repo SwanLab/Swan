@@ -1,7 +1,6 @@
 classdef CutMesh < handle
     
     properties (Access = protected)
-        backgroundCutMesh     
         backgroundMesh        
         levelSet
         cutCells
@@ -59,7 +58,7 @@ classdef CutMesh < handle
         function init(obj,cParams)
             obj.levelSet       = cParams.levelSet;
             obj.backgroundMesh = cParams.backgroundMesh;
-            obj.backgroundCutMesh = cParams.backgroundCutMesh;            
+            %obj.backgroundCutMesh = cParams.backgroundCutMesh;            
             obj.cutCells       = cParams.cutCells;
         end
         

@@ -1,13 +1,15 @@
 classdef CutMeshComputerProvisional < CutMesh
     
     properties (Access = public)
-        connec
-        coord
+        mesh
         xCoordsIso
         cellContainingSubcell
     end
     
     properties (Access = private)
+        connec
+        coord        
+        
         cutEdgesComputer  
         cutPointsInElemComputer      
         
@@ -20,7 +22,7 @@ classdef CutMeshComputerProvisional < CutMesh
     end
     
     properties (Access = private)        
-        mesh
+        
     end
     
     methods (Access = public)
@@ -58,7 +60,7 @@ classdef CutMeshComputerProvisional < CutMesh
         function m = obtainBoundaryMesh(obj)
             s.coord  = obj.cutCoordComputer.xCutPoints;
             s.connec = obj.cutPointsInElemComputer.edgeCutPointInElem;
-            s.kFace  = obj.backgroundCutMesh.kFace -1;
+            s.kFace  = obj.backgroundMesh.kFace -1;
             m = Mesh(s);
         end             
         
@@ -75,17 +77,17 @@ classdef CutMeshComputerProvisional < CutMesh
     methods (Access = private)
         
         function computeAllParams(obj)          
-            obj.backgroundCutMesh.computeEdges();
-            e = obj.backgroundCutMesh.edges;
+            obj.backgroundMesh.computeEdges();
+            e = obj.backgroundMesh.edges;
             obj.cutEdgesParams.nodesInEdges = e.nodesInEdges;
             obj.cutEdgesParams.levelSet     = obj.levelSet;
-            obj.cutCoordParams.coord = obj.backgroundCutMesh.coord;
+            obj.cutCoordParams.coord = obj.backgroundMesh.coord;
             obj.cutCoordParams.nodesInEdges = e.nodesInEdges;
             
             cEparams = obj.cutEdgesComputerParams;
             
-            cEparams.allNodesinElemParams.finalNodeNumber = size(obj.backgroundCutMesh.coord,1);
-            cEparams.allNodesinElemParams.backgroundConnec = obj.backgroundCutMesh.connec;
+            cEparams.allNodesinElemParams.finalNodeNumber = size(obj.backgroundMesh.coord,1);
+            cEparams.allNodesinElemParams.backgroundConnec = obj.backgroundMesh.connec;
             cEparams.allNodesInElemCoordParams.localNodeByEdgeByElem = e.localNodeByEdgeByElem;
             cEparams.edgesInElem = e.edgesInElem;
             cEparams.nEdgeByElem = e.nEdgeByElem;
@@ -143,7 +145,7 @@ classdef CutMeshComputerProvisional < CutMesh
         function computeMesh(obj)
             sM.connec = obj.connec;
             sM.coord  = obj.coord;
-            sM.kFace  = obj.backgroundCutMesh.kFace;
+            sM.kFace  = obj.backgroundMesh.kFace;
             obj.mesh = Mesh(sM);            
         end
 

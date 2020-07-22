@@ -13,6 +13,8 @@ classdef CutMeshProvisionalOthers < CutMesh
         cutPointsCalculator        
         memoryManager        
         nCutCells
+        coord
+        connec
     end
     
     methods (Access = public)
@@ -28,7 +30,9 @@ classdef CutMeshProvisionalOthers < CutMesh
         
         function compute(obj)
             obj.computeSubcells();
-            obj.mesh                 = obj.computeGlobalUnfittedMesh();
+            obj.computeCoord();
+            obj.computeConnec();            
+            obj.computeMesh();
             obj.xCoordsIso           = obj.computeXcoordIso();            
             obj.cellContainingSubcell = obj.memoryManager.cellContainingSubcell;           
         end
@@ -71,7 +75,7 @@ classdef CutMeshProvisionalOthers < CutMesh
             sS.type               = obj.type;
             sS.posNodes           = inter.pos_nodes;
             sS.levelSetBackground = obj.levelSet;
-            sS.coordsBackground   = obj.backgroundCutMesh.coord;
+            sS.coordsBackground   = obj.backgroundMesh.coord;
             obj.subcellsMesher    = SubcellsMesher.create(sS);
         end           
         
@@ -92,15 +96,15 @@ classdef CutMeshProvisionalOthers < CutMesh
             x = permute(subCell,[3 2 1]);                        
         end
         
-        function m = computeGlobalUnfittedMesh(obj)
-            s.coord  = obj.computeGlobalCoordinates();
-            s.connec = obj.computeGlobalConnectivities(s.coord);
+        function computeMesh(obj)
+            s.coord  = obj.coord;
+            s.connec = obj.connec;
             if isequal(obj.type,'INTERIOR')
-                s.kFace = obj.backgroundCutMesh.kFace;
+                s.kFace = obj.backgroundMesh.kFace;
             else
-                s.kFace = obj.backgroundCutMesh.kFace -1;
+                s.kFace = obj.backgroundMesh.kFace -1;
             end
-            m = Mesh(s);            
+            obj.mesh = Mesh(s);            
         end
         
         function obj = computeSubcells(obj)
@@ -134,7 +138,7 @@ classdef CutMeshProvisionalOthers < CutMesh
             subcells = obj.subcellsMesher.subcells;
         end
         
-        function conn = computeGlobalConnectivities(obj,coord)
+        function computeConnec(obj)
             nSubcells = size(obj.memoryManager.connec_local,1);
             cellOfSubCell = obj.memoryManager.cellContainingSubcell;
             coordGlobal   = obj.memoryManager.coord_global_raw;
@@ -145,20 +149,19 @@ classdef CutMeshProvisionalOthers < CutMesh
             for isub = 1:nSubcells %Vectorize !!!
                 cell = cellContNodes == cellOfSubCell(isub);
                 coordsSubCell = coordGlobal(cell,:);
-                indexes = obj.findIndexesComparingCoords(coordsSubCell,coord);
+                indexes = obj.findIndexesComparingCoords(coordsSubCell);
                 conn(isub,:) = indexes(connecLocal(isub,:));
             end
+            obj.connec = conn;
         end
         
-        function coord = computeGlobalCoordinates(obj)
-            [coord,ind1,ind2] = unique(obj.memoryManager.coord_global_raw,'rows','stable');            
+        function computeCoord(obj)
+            allCoord = obj.memoryManager.coord_global_raw;
+            obj.coord = unique(allCoord,'rows','stable');            
         end
         
-    end
-    
-    methods (Access = private, Static)
-        
-        function I = findIndexesComparingCoords(A,B)
+        function I = findIndexesComparingCoords(obj,A)
+            B = obj.coord;
             I = zeros(1,size(A,1));
             for inode = 1:size(A,1)
                 match = true(size(B,1),1);
