@@ -1,4 +1,4 @@
-classdef CutMeshProvisionalLine < handle
+classdef CutMeshProvisionalLine < CutMesh
     
     properties (Access = public)
         connec
@@ -13,9 +13,6 @@ classdef CutMeshProvisionalLine < handle
     end
     
     properties (Access = private)
-        backgroundMesh
-        cutCells
-        levelSet
         isoCoord
     end
     
@@ -23,6 +20,7 @@ classdef CutMeshProvisionalLine < handle
         
         function obj = CutMeshProvisionalLine(cParams)
             obj.init(cParams)
+            obj.isoCoord = [-1 1];
         end
         
         function compute(obj)
@@ -33,32 +31,49 @@ classdef CutMeshProvisionalLine < handle
             obj.cellContainingSubcell = obj.cutCells;
         end
         
-        function m = computeMesh(obj)
+    end
+    
+    methods (Access = protected)
+        
+        function m = obtainMesh(obj)
             s.connec = obj.connec;
             s.coord  = obj.coord;
-            s.kFace  = obj.backgroundMesh.kFace;
+            s.kFace  = obj.backgroundCutMesh.kFace;
             m = Mesh(s);
         end
+        
+        function x = obtainXcoordIso(obj)
+            x = obj.xCoordsIso;
+        end        
+        
+        function c = obtainCellContainingSubCells(obj)
+           c = obj.cellContainingSubcell; 
+        end
+        
+        function obtainBoundaryMesh(obj)
+          
+        end         
+        
+        function obtainBoundaryXcutIso(obj)
+                   
+        end
+        
+        function  obtainBoundaryCellContainingSubCell(obj)
+          
+        end                  
         
     end
     
     methods (Access = private)
-        
-        function init(obj,cParams)
-            obj.backgroundMesh = cParams.backgroundMesh;
-            obj.cutCells       = cParams.cutCells;
-            obj.levelSet       = cParams.levelSet;     
-            obj.isoCoord       = [-1 1];
-        end
-        
+
         function computeCutCoordinate(obj)
             s.levelSet      = obj.levelSet;
-            s.nodesInEdges  = obj.backgroundMesh.connec;  
+            s.nodesInEdges  = obj.backgroundCutMesh.connec;  
             obj.cutEdgesComputer = CutEdgesComputer(s);
             obj.cutEdgesComputer.compute();    
             
-            s.coord            = obj.backgroundMesh.coord;
-            s.nodesInEdges     = obj.backgroundMesh.connec;
+            s.coord            = obj.backgroundCutMesh.coord;
+            s.nodesInEdges     = obj.backgroundCutMesh.connec;
             s.xCutEdgePoint    = obj.cutEdgesComputer.xCutEdgePoint;
             s.isEdgeCut        = obj.cutEdgesComputer.isEdgeCut;
             cComputer = CutCoordinatesComputer(s);
@@ -67,21 +82,21 @@ classdef CutMeshProvisionalLine < handle
         end
         
         function computeConnec(obj)
-            nodeA = obj.backgroundMesh.connec(:,1);
-            nodeB = obj.backgroundMesh.connec(:,2);
+            nodeA = obj.backgroundCutMesh.connec(:,1);
+            nodeB = obj.backgroundCutMesh.connec(:,2);
             lsA = obj.levelSet(nodeA);
             isNodeAinterior = lsA < 0;
             isNodeBinterior = ~isNodeAinterior;
             interiorNode(isNodeAinterior,1) = nodeA(isNodeAinterior);
             interiorNode(isNodeBinterior,1) = nodeB(isNodeBinterior);
-            lastNode = size(obj.backgroundMesh.coord,1);
-            nElem    = obj.backgroundMesh.nelem;
+            lastNode = size(obj.backgroundCutMesh.coord,1);
+            nElem    = obj.backgroundCutMesh.nelem;
             boundaryNode(:,1) = lastNode + (1:nElem);
             obj.connec = [interiorNode boundaryNode];
         end
         
         function computeXcoordIso(obj)
-            nodeA = obj.backgroundMesh.connec(:,1);
+            nodeA = obj.backgroundCutMesh.connec(:,1);
             lsA = obj.levelSet(nodeA);
             isNodeAinterior = lsA < 0;         
             isNodeBinterior = ~isNodeAinterior;            

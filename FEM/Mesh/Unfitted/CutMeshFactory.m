@@ -15,31 +15,40 @@ classdef CutMeshFactory < handle
     methods (Access = public, Static)
         
         function c = create(cParams)
-            s.coord  = cParams.backgroundMesh.coord;
-            s.connec = cParams.backgroundMesh.connec(cParams.cParams,:);
-            s.kFace  = cParams.backgroundMesh.kFace;
+            bMesh = cParams.backgroundMesh;
+            s.coord  = bMesh.coord;
+            s.connec = bMesh.connec(cParams.cutCells,:);
+            s.kFace  = bMesh.kFace;
             backgroundCutMesh = Mesh(s);            
 
             switch cParams.backgroundMesh.type
                 case 'LINE'
-                    s.backgroundMesh = backgroundCutMesh;
-                    s.cutCells       = cParams.cutCells;
-                    s.levelSet       = cParams.levelSet;
+                    s.backgroundMesh    = bMesh;
+                    s.backgroundCutMesh = backgroundCutMesh;
+                    s.cutCells          = cParams.cutCells;
+                    s.levelSet          = cParams.levelSet;
                     c = CutMeshProvisionalLine(s);
                 case 'TRIANGLE'
-                    s.backgroundMesh = backgroundCutMesh;
+                    s.backgroundMesh    = bMesh;
+                    s.backgroundCutMesh = backgroundCutMesh;                    
                     s.cutCells       = cParams.cutCells;
                     s.levelSet       = cParams.levelSet;
                     c = CutMeshComputerProvisional(s);
                                                            
                 case 'QUAD'
-                    s.backgroundMesh = backgroundCutMesh;
-                    s.cutCells       = cParams.cutCells;
-                    s.levelSet       = cParams.levelSet;
-                    s.lastNode       = max(cParams.backgroundMesh.connec(:));
+                    s.backgroundMesh    = bMesh;                    
+                    s.backgroundCutMesh = backgroundCutMesh;
+                    s.cutCells          = cParams.cutCells;
+                    s.levelSet          = cParams.levelSet;
+                    s.lastNode          = max(cParams.backgroundMesh.connec(:));
                     c = CutMeshProvisionalQuadrilater(s);
                 otherwise
-                    c = CutMeshProvisionalOthers(cParams);                
+                    s.backgroundMesh    = bMesh;                    
+                    s.backgroundCutMesh = backgroundCutMesh;
+                    s.cutCells          = cParams.cutCells;
+                    s.levelSet          = cParams.levelSet;
+                    s.type              = cParams.type;
+                    c = CutMeshProvisionalOthers(s);                
             end
 
                 

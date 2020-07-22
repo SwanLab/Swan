@@ -1,4 +1,4 @@
-classdef CutMeshProvisionalQuadrilater < handle
+classdef CutMeshProvisionalQuadrilater < CutMesh
     
     properties (Access = public)
         connec
@@ -14,23 +14,20 @@ classdef CutMeshProvisionalQuadrilater < handle
        
        subMesher
        
-       fullCells
-       cutCells
+       fullSubCells
+       cutSubCells
        levelSetSubMesh
     end
     
     properties (Access = private)
-        backgroundMesh        
         lastNode
-        levelSet
-        
-        cutQuadCells
     end
     
     methods (Access = public)
         
         function obj = CutMeshProvisionalQuadrilater(cParams)
             obj.init(cParams);
+            obj.lastNode = cParams.lastNode;            
         end
         
         function compute(obj)
@@ -38,48 +35,60 @@ classdef CutMeshProvisionalQuadrilater < handle
             obj.createSubMesh();
             obj.computeLevelSetInSubMesh();            
             obj.classifyCells();
-            obj.computeCutSubMesh();
+            %obj.computeCutSubMesh();
             obj.computeSubCutSubMesh();
             obj.computeXcoord();            
             obj.computeCoord();
             obj.computeConnec();
             obj.computeCellContainingSubCell();            
-
         end
         
-        function [xCutG,m] = obtainBoundaryXcutIso(obj)
+    end
+    
+    methods (Access = protected)
+        
+        function m = obtainMesh(obj)
+            sM.connec = obj.connec;
+            sM.coord  = obj.coord;
+            sM.kFace  = obj.backgroundCutMesh.kFace;
+            m = Mesh(sM);
+        end   
+        
+        function x = obtainXcoordIso(obj)
+            x = obj.xCoordsIso;
+        end        
+        
+        function c = obtainCellContainingSubCells(obj)
+           c = obj.cellContainingSubcell; 
+        end        
+        
+        function m = obtainBoundaryMesh(obj)
+            m = obj.subCutSubMesh.computeBoundaryMesh();
+            m = m.mesh;
+        end         
+        
+        function xCutG = obtainBoundaryXcutIso(obj)
             xCutIso = obj.subCutSubMesh.obtainBoundaryXcutIso();
            
-            s.fullCells     = obj.fullCells;
-            s.cutCells      = obj.cutCells;
+            s.fullCells     = obj.fullSubCells;
+            s.cutCells      = obj.cutSubCells;
             s.globalToLocal = obj.computeGlobalToLocal();
             s.localMesh     = obj.subMesher.localMesh;
             s.xIsoCutCoord  = xCutIso;
             xC = XcoordIsoComputer(s); 
             xCutG = xC.computeXSubCut();
-            
-            nElem = size(xCutG,3);
-            nNode = size(xCutG,2);
-            nDim  = size(xCutG,1);
-            sM.coord = reshape(xCutG,nDim,[])';
-            sM.connec = reshape(1:nElem*nNode,nNode,nElem)'; 
-            sM.kFace = -1;
-            m = Mesh(sM);            
-        end
-        
-        function m = computeBoundaryMesh(obj)
-            m = obj.subCutSubMesh.computeBoundaryMesh();
-        end  
-        
-        function m = computeMesh(obj)
-            sM.connec = obj.connec;
-            sM.coord  = obj.coord;
-            sM.kFace  = obj.backgroundMesh.kFace;
-            m = Mesh(sM);
+%             
+%             nElem = size(xCutG,3);
+%             nNode = size(xCutG,2);
+%             nDim  = size(xCutG,1);
+%             sM.coord = reshape(xCutG,nDim,[])';
+%             sM.connec = reshape(1:nElem*nNode,nNode,nElem)'; 
+%             sM.kFace = -1;
+%             m = Mesh(sM);            
         end
         
         function cellCont = obtainBoundaryCellContainingSubCell(obj)
-            cutC = obj.cutCells;
+            cutC = obj.cutSubCells;
             cell = obj.computeSubTriangleOfSubCell();
             cellCont = cell(cutC);
         end        
@@ -88,15 +97,8 @@ classdef CutMeshProvisionalQuadrilater < handle
     
     methods (Access = private)
         
-        function init(obj,cParams)
-            obj.backgroundMesh = cParams.backgroundMesh;
-            obj.lastNode = cParams.lastNode;            
-            obj.levelSet = cParams.levelSet;
-            obj.cutQuadCells = cParams.cutCells;
-        end
-        
         function createSubMesher(obj)
-            s.mesh        = obj.backgroundMesh;
+            s.mesh        = obj.backgroundCutMesh;
             s.lastNode    = obj.lastNode;
             obj.subMesher = SubMesher(s);            
         end
@@ -108,7 +110,7 @@ classdef CutMeshProvisionalQuadrilater < handle
         function computeLevelSetInSubMesh(obj)
             ls = obj.levelSet;
             
-            s.mesh   = obj.backgroundMesh;
+            s.mesh   = obj.backgroundCutMesh;
             s.fNodes = ls;
             f = FeFunction(s);
             lsSubMesh = f.computeValueInCenterElement();              
@@ -121,8 +123,8 @@ classdef CutMeshProvisionalQuadrilater < handle
             isFull  = all(lsInElem<0,2);
             isEmpty = all(lsInElem>0,2);
             isCut = ~isFull & ~isEmpty;           
-            obj.fullCells  = find(isFull);
-            obj.cutCells   = find(isCut);
+            obj.fullSubCells  = find(isFull);
+            obj.cutSubCells   = find(isCut);
        end
        
         function lsElem = computeLevelSetInElem(obj)
@@ -138,16 +140,17 @@ classdef CutMeshProvisionalQuadrilater < handle
         end        
         
         function computeSubCutSubMesh(obj)
-            s.backgroundMesh = obj.computeCutSubMesh();
-            s.cutCells = obj.cutCells;
-            s.levelSet = obj.levelSetSubMesh;
-            cMesh = CutMeshComputerProvisional(s);
+            s.backgroundMesh    = obj.computeCutSubMesh();
+            %s.backgroundCutMesh = 
+            s.cutCells = obj.cutSubCells;
+            s.levelSet = obj.levelSetSubMesh();
+            cMesh = CutMesh.create(s);
             cMesh.compute();
             obj.subCutSubMesh = cMesh;
         end
         
         function m = computeCutSubMesh(obj)
-            connecCut = obj.subMesh.connec(obj.cutCells,:);            
+            connecCut = obj.subMesh.connec(:,:);            
             s.coord   = obj.subMesh.coord;
             s.connec = connecCut;
             m = Mesh(s);
@@ -155,7 +158,7 @@ classdef CutMeshProvisionalQuadrilater < handle
                
         function  computeCellContainingSubCell(obj)
             cellSubMesh = obj.subCutSubMesh.cellContainingSubcell;
-            fCells      = obj.fullCells;           
+            fCells      = obj.fullSubCells;           
             cellSubMesh = [fCells;cellSubMesh];
             
             cell = obj.computeSubTriangleOfSubCell();
@@ -163,14 +166,14 @@ classdef CutMeshProvisionalQuadrilater < handle
         end
         
         function cell = computeSubTriangleOfSubCell(obj)
-            nnode  = size(obj.backgroundMesh.connec,2);  
-            cElems = transpose(obj.cutQuadCells);
+            nnode  = size(obj.backgroundCutMesh.connec,2);  
+            cElems = transpose(obj.cutCells);
             cell = repmat(cElems,nnode,1);
             cell = cell(:);
         end        
         
         function globalToLocal = computeGlobalToLocal(obj)
-            bConnec = obj.backgroundMesh.connec;
+            bConnec = obj.backgroundCutMesh.connec;
             nnode   = size(bConnec,2);
             nElem   = size(bConnec,1);
             cell = repmat((1:nnode)',1,nElem);
@@ -178,7 +181,7 @@ classdef CutMeshProvisionalQuadrilater < handle
         end
         
         function computeXcoord(obj)
-            s.fullCells     = obj.fullCells;
+            s.fullCells     = obj.fullSubCells;
             s.cutCells      = obj.subCutSubMesh.cellContainingSubcell;
             s.globalToLocal = obj.computeGlobalToLocal();
             s.localMesh     = obj.subMesher.localMesh;
@@ -189,7 +192,7 @@ classdef CutMeshProvisionalQuadrilater < handle
      
         function computeConnec(obj)
             connecCutInterior = obj.subCutSubMesh.connec;
-            connecFull        = obj.subMesh.connec(obj.fullCells,:);
+            connecFull        = obj.subMesh.connec(obj.fullSubCells,:);
             obj.connec = [connecFull;connecCutInterior];            
         end
         

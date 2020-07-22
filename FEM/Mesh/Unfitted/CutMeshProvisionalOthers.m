@@ -1,4 +1,4 @@
-classdef CutMeshProvisionalOthers < handle
+classdef CutMeshProvisionalOthers < CutMesh
     
     properties (Access = public)
        xCoordsIso
@@ -15,16 +15,12 @@ classdef CutMeshProvisionalOthers < handle
         nCutCells
     end
     
-    properties (Access = private)
-        backgroundCutCells
-        backgroundMesh
-        levelSet
-    end
-    
     methods (Access = public)
         
         function obj = CutMeshProvisionalOthers(cParams)
-            obj.init(cParams)    
+            obj.init(cParams);
+            obj.type                        = cParams.type;                        
+            obj.nCutCells                   = length(obj.cutCells);                       
             obj.createSubCellsMesher();
             obj.createMemoryManager();
             obj.createCutPointsCalculator();            
@@ -37,12 +33,24 @@ classdef CutMeshProvisionalOthers < handle
             obj.cellContainingSubcell = obj.memoryManager.cellContainingSubcell;           
         end
         
-        function m = computeMesh(obj)
+    end
+    
+    methods (Access = protected)
+        
+        function m = obtainMesh(obj)
             m = obj.mesh;
         end
         
-        function m = computeBoundaryMesh(obj)
-            m = obj.computeMesh();
+        function x = obtainXcoordIso(obj)
+            x = obj.xCoordsIso;
+        end     
+        
+        function c = obtainCellContainingSubCells(obj)
+           c = obj.cellContainingSubcell; 
+        end        
+        
+        function m = obtainBoundaryMesh(obj)
+            m = obj.mesh;
         end
         
         function x = obtainBoundaryXcutIso(obj)
@@ -57,21 +65,13 @@ classdef CutMeshProvisionalOthers < handle
     
     methods (Access = private)
         
-        function init(obj,cParams)
-            obj.type                        = cParams.type;            
-            obj.levelSet                    = cParams.levelSet;            
-            obj.backgroundCutCells          = cParams.cutCells;
-            obj.backgroundMesh              = cParams.backgroundMesh;
-            obj.nCutCells                   = length(obj.backgroundCutCells);           
-        end
-        
         function createSubCellsMesher(obj)
             inter = Interpolation.create(obj.backgroundMesh,'LINEAR');
             sS.ndimIso            = obj.backgroundMesh.geometryType;
             sS.type               = obj.type;
             sS.posNodes           = inter.pos_nodes;
             sS.levelSetBackground = obj.levelSet;
-            sS.coordsBackground   = obj.backgroundMesh.coord;
+            sS.coordsBackground   = obj.backgroundCutMesh.coord;
             obj.subcellsMesher    = SubcellsMesher.create(sS);
         end           
         
@@ -96,9 +96,9 @@ classdef CutMeshProvisionalOthers < handle
             s.coord  = obj.computeGlobalCoordinates();
             s.connec = obj.computeGlobalConnectivities(s.coord);
             if isequal(obj.type,'INTERIOR')
-                s.kFace = obj.backgroundMesh.kFace;
+                s.kFace = obj.backgroundCutMesh.kFace;
             else
-                s.kFace = obj.backgroundMesh.kFace -1;
+                s.kFace = obj.backgroundCutMesh.kFace -1;
             end
             m = Mesh(s);            
         end
@@ -107,7 +107,7 @@ classdef CutMeshProvisionalOthers < handle
             obj.memoryManager.allocateMemory();
             obj.computeCutPoints();            
             for icut = 1:obj.nCutCells %Vectorize
-                icell = obj.backgroundCutCells(icut);               
+                icell = obj.cutCells(icut);               
                 newSubcells = obj.computeThisCellSubcells(icut,icell);                
                 newCellContainingNodes   = repmat(icell,[newSubcells.nNodes 1]);
                 newCellContainingSubcell = repmat(icell,[newSubcells.nSubcells 1]);                
@@ -120,7 +120,7 @@ classdef CutMeshProvisionalOthers < handle
         function computeCutPoints(obj)
             s.backgroundMesh              = obj.backgroundMesh;
             s.levelSet_background         = obj.levelSet;
-            s.backgroundCutCells          = obj.backgroundCutCells;
+            s.backgroundCutCells          = obj.cutCells;
             obj.cutPointsCalculator.init(s);
             obj.cutPointsCalculator.computeCutPoints();
         end
