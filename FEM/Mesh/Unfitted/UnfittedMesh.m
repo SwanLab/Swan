@@ -103,7 +103,11 @@ classdef UnfittedMesh < handle
                     s.levelSet                = obj.levelSet;
                     c = CutMesh.create(s);
                     c.compute();
-                    obj.innerCutMesh = c.computeInteriorMesh();
+                    
+                    cM = c.computeInteriorMesh();                 
+                    m = obj.computeCutMeshOfSubCellGlobal(cM.cellContainingSubcell);
+                    cM.cutMeshOfSubCellGlobal = m;                    
+                    obj.innerCutMesh = cM;        
                     
                     if ~isequal(obj.backgroundMesh.geometryType,'Line')
                         s.type                    = 'BOUNDARY';
@@ -112,7 +116,12 @@ classdef UnfittedMesh < handle
                         s.levelSet                = obj.levelSet;
                         c = CutMesh.create(s);
                         c.compute();
-                        obj.boundaryCutMesh = c.computeBoundaryMesh();
+                        
+                        cM = c.computeBoundaryMesh();
+                        m = obj.computeCutMeshOfSubCellGlobal(cM.cellContainingSubcell);
+                        cM.cutMeshOfSubCellGlobal = m;
+                        obj.boundaryCutMesh = cM;                        
+
                     end
                     
                 else
@@ -122,14 +131,28 @@ classdef UnfittedMesh < handle
                     c = CutMesh.create(s);
                     c.compute();
                     
-                    obj.innerCutMesh = c.computeInteriorMesh();
-                  
+                    cM = c.computeInteriorMesh();                 
+                    m = obj.computeCutMeshOfSubCellGlobal(cM.cellContainingSubcell);
+                    cM.cutMeshOfSubCellGlobal = m;                    
+                    obj.innerCutMesh = cM;
+                    
+                    
                     if ~isequal(obj.backgroundMesh.geometryType,'Line') 
-                       obj.boundaryCutMesh = c.computeBoundaryMesh();
+                        cM = c.computeBoundaryMesh();
+                        m = obj.computeCutMeshOfSubCellGlobal(cM.cellContainingSubcell);
+                        cM.cutMeshOfSubCellGlobal = m;
+                        obj.boundaryCutMesh = cM;
                     end
                     
                 end
             end
+        end
+        
+        function m = computeCutMeshOfSubCellGlobal(obj,cells)
+            sM.coord  = obj.backgroundMesh.coord;
+            sM.connec = obj.backgroundMesh.connec(cells,:);
+            sM.kFace  = obj.backgroundMesh.kFace;
+            m = Mesh(sM);
         end
             
             function computeUnfittedBoxMesh(obj)

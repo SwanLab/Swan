@@ -30,12 +30,13 @@ classdef IntegratorCutMesh < Integrator
         end
         
         function rhsV = computeElementalCutRHS(obj,fNodal)
+            gGlobal = obj.mesh.cutMeshOfSubCellGlobal;
             s.fNodal         = fNodal;
             s.xGauss         = obj.computeGaussPoints();
             s.quadrature     = obj.computeQuadrature(obj.mesh.mesh.type);
-            s.geometryType   = obj.mesh.cutMeshOfSubCellGlobal.type;
+            s.geometryType   = gGlobal.type;
             s.mesh           = obj.mesh.mesh;
-            s.feMesh         = obj.mesh.cutMeshOfSubCellGlobal();
+            s.feMesh         = gGlobal;
             rhs = RHSintegrator(s);
             rhsV = rhs.integrate();
         end
