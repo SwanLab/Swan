@@ -1,11 +1,5 @@
 classdef CutMeshProvisionalQuadrilater < CutMesh
     
-    properties (Access = public)
-        mesh
-        cellContainingSubcell
-        xCoordsIso
-    end
-    
     properties (Access = private)
         connec
         coord
@@ -42,50 +36,13 @@ classdef CutMeshProvisionalQuadrilater < CutMesh
             obj.computeCoord();
             obj.computeConnec();
             obj.computeCellContainingSubCell(); 
-            obj.computeMesh();            
+            obj.computeMesh();          
+            obj.computeBoundaryMesh();
+            obj.computeBoundaryXCoordsIso();
+            obj.computeBoundaryCellContainingSubCell();            
         end
         
     end
-    
-    methods (Access = protected)
-        
-        function m = obtainMesh(obj)
-            m = obj.mesh;
-        end   
-        
-        function x = obtainXcoordIso(obj)
-            x = obj.xCoordsIso;
-        end        
-        
-        function c = obtainCellContainingSubCells(obj)
-           c = obj.cellContainingSubcell; 
-        end        
-        
-        function m = obtainBoundaryMesh(obj)
-            m = obj.subCutSubMesh.computeBoundaryMesh();
-            m = m.mesh;
-        end         
-        
-        function xCutG = obtainBoundaryXcutIso(obj)
-            xCutIso = obj.subCutSubMesh.obtainBoundaryXcutIso();
-           
-            s.fullCells     = obj.fullSubCells;
-            s.cutCells      = obj.cutSubCells;
-            s.globalToLocal = obj.computeGlobalToLocal();
-            s.localMesh     = obj.subMesher.localMesh;
-            s.xIsoCutCoord  = xCutIso;
-            xC = XcoordIsoComputer(s); 
-            xCutG = xC.computeXSubCut();
-        
-        end
-        
-        function cellCont = obtainBoundaryCellContainingSubCell(obj)
-            cutC = obj.cutSubCells;
-            cell = obj.computeSubTriangleOfSubCell();
-            cellCont = cell(cutC);
-        end        
-        
-    end   
     
     methods (Access = private)
         
@@ -134,7 +91,7 @@ classdef CutMeshProvisionalQuadrilater < CutMesh
         function computeSubCutSubMesh(obj)
             s.backgroundMesh = obj.subMesh;
             s.cutCells       = obj.cutSubCells;
-            s.levelSet       = obj.levelSetSubMesh();
+            s.levelSet       = obj.levelSetSubMesh;
             cMesh = CutMesh.create(s);
             cMesh.compute();
             obj.subCutSubMesh = cMesh;
@@ -189,7 +146,31 @@ classdef CutMeshProvisionalQuadrilater < CutMesh
             sM.coord  = obj.coord;
             sM.kFace  = obj.backgroundMesh.kFace;
             obj.mesh = Mesh(sM);            
-        end        
+        end   
+        
+       function computeBoundaryMesh(obj)
+            m = obj.subCutSubMesh.boundaryMesh;
+            obj.boundaryMesh = m;
+        end          
+        
+        function computeBoundaryXCoordsIso(obj)
+            xCutIso = obj.subCutSubMesh.xCoordsIsoBoundary;           
+            s.fullCells     = obj.fullSubCells;
+            s.cutCells      = obj.cutSubCells;
+            s.globalToLocal = obj.computeGlobalToLocal();
+            s.localMesh     = obj.subMesher.localMesh;
+            s.xIsoCutCoord  = xCutIso;
+            xC = XcoordIsoComputer(s); 
+            xCutG = xC.computeXSubCut();
+            obj.xCoordsIsoBoundary = xCutG;
+        end
+        
+        function cellCont = computeBoundaryCellContainingSubCell(obj)
+            cutC = obj.cutSubCells;
+            cell = obj.computeSubTriangleOfSubCell();
+            cellCont = cell(cutC);
+            obj.cellContainingSubCellBoundary = cellCont;
+        end         
      
     end
     

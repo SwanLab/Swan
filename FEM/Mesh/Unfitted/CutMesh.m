@@ -1,9 +1,21 @@
 classdef CutMesh < handle
     
-    properties (Access = protected)
+    properties (GetAccess = protected, SetAccess = private)
         backgroundMesh        
         levelSet
         cutCells
+    end
+    
+    properties (SetAccess = protected, GetAccess = public)
+        mesh
+        xCoordsIso
+        cellContainingSubcell          
+    end
+    
+    properties (GetAccess = protected, SetAccess = protected)        
+        boundaryMesh
+        cellContainingSubCellBoundary
+        xCoordsIsoBoundary              
     end
     
     methods (Access = public, Static)
@@ -16,36 +28,23 @@ classdef CutMesh < handle
     end
     
     methods (Abstract, Access = public)
-        compute(obj)
-        
+        compute(obj)        
     end
-    
-    methods (Abstract, Access = protected)
-        
-        obtainMesh(obj)
-        obtainXcoordIso(obj)
-        obtainCellContainingSubCells(obj)
-        
-        obtainBoundaryMesh(obj)                
-        obtainBoundaryXcutIso(obj)
-        obtainBoundaryCellContainingSubCell(obj)
-    end
-        
     
     methods (Access = public)
         
         function c = computeInteriorMesh(obj)
-            xCoord                   = obj.obtainXcoordIso();
-            cellContSubCell          = obj.obtainCellContainingSubCells();            
-            c.mesh                   = obj.obtainMesh();
+            xCoord                   = obj.xCoordsIso;
+            cellContSubCell          = obj.cellContainingSubcell;            
+            c.mesh                   = obj.mesh();
             c.cellContainingSubcell  = cellContSubCell;
             c.cutMeshOfSubCellLocal  = obj.computeCutMeshOfSubCellLocal(xCoord,'INTERIOR');               
         end
         
-        function c = computeBoundaryMesh(obj)
-            xCoord                   = obj.obtainBoundaryXcutIso(); 
-            cellContSubCell          = obj.obtainBoundaryCellContainingSubCell();
-            c.mesh                   = obj.obtainBoundaryMesh();
+        function c = computeBoundaryMesh2(obj)
+            xCoord                   = obj.xCoordsIsoBoundary; 
+            cellContSubCell          = obj.cellContainingSubCellBoundary;
+            c.mesh                   = obj.boundaryMesh;
             c.cellContainingSubcell  = cellContSubCell;
             c.cutMeshOfSubCellLocal  = obj.computeCutMeshOfSubCellLocal(xCoord,'BOUNDARY');               
         end
@@ -58,13 +57,10 @@ classdef CutMesh < handle
         function init(obj,cParams)
             obj.levelSet       = cParams.levelSet;
             obj.backgroundMesh = cParams.backgroundMesh;
-            %obj.backgroundCutMesh = cParams.backgroundCutMesh;            
             obj.cutCells       = cParams.cutCells;
         end
         
     end
-    
-  
     
     methods (Access = private, Static)
         

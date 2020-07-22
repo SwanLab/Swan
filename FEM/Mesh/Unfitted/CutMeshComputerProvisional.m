@@ -1,10 +1,6 @@
 classdef CutMeshComputerProvisional < CutMesh
     
-    properties (Access = public)
-        mesh
-        xCoordsIso
-        cellContainingSubcell
-    end
+  
     
     properties (Access = private)
         connec
@@ -20,11 +16,7 @@ classdef CutMeshComputerProvisional < CutMesh
         
         cutCoordComputer
     end
-    
-    properties (Access = private)        
         
-    end
-    
     methods (Access = public)
         
         function  obj = CutMeshComputerProvisional(cParams)
@@ -39,40 +31,12 @@ classdef CutMeshComputerProvisional < CutMesh
             obj.computeCutPointsInElemComputer();            
             obj.computeConnec();
             obj.computeMesh();
+            obj.computeBoundaryMesh();
+            obj.computeBoundaryXCoordsIso();
+            obj.computeBoundaryCellContainingSubCell();
         end    
         
     end
-    
-    methods (Access = protected)
-        
-        function m = obtainMesh(obj)
-            m = obj.mesh;
-        end      
-        
-        function x = obtainXcoordIso(obj)
-            x = obj.xCoordsIso;
-        end
-        
-        function c = obtainCellContainingSubCells(obj)
-           c = obj.cellContainingSubcell; 
-        end
-
-        function m = obtainBoundaryMesh(obj)
-            s.coord  = obj.cutCoordComputer.xCutPoints;
-            s.connec = obj.cutPointsInElemComputer.edgeCutPointInElem;
-            s.kFace  = obj.backgroundMesh.kFace -1;
-            m = Mesh(s);
-        end             
-        
-        function xCutIso = obtainBoundaryXcutIso(obj)
-            xCutIso = obj.cutPointsInElemComputer.xCut;
-        end
-        
-        function c = obtainBoundaryCellContainingSubCell(obj)
-            c = obj.cutCells;            
-        end
-        
-    end    
     
     methods (Access = private)
         
@@ -148,7 +112,21 @@ classdef CutMeshComputerProvisional < CutMesh
             sM.kFace  = obj.backgroundMesh.kFace;
             obj.mesh = Mesh(sM);            
         end
+        
+        function computeBoundaryMesh(obj)
+            s.coord  = obj.cutCoordComputer.xCutPoints;
+            s.connec = obj.cutPointsInElemComputer.edgeCutPointInElem;
+            s.kFace  = obj.backgroundMesh.kFace -1;
+            obj.boundaryMesh = Mesh(s);
+        end                
+        
+        function computeBoundaryXCoordsIso(obj)
+            obj.xCoordsIsoBoundary = obj.cutPointsInElemComputer.xCut;
+        end        
 
+        function computeBoundaryCellContainingSubCell(obj)
+            obj.cellContainingSubCellBoundary = obj.cutCells;            
+        end
     end
     
 end

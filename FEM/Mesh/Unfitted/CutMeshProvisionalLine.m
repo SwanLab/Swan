@@ -1,11 +1,5 @@
 classdef CutMeshProvisionalLine < CutMesh
     
-    properties (Access = public)
-        mesh
-        xCoordsIso
-        cellContainingSubcell        
-    end
-    
     properties (Access = private)
         connec
         coord        
@@ -30,36 +24,8 @@ classdef CutMeshProvisionalLine < CutMesh
             obj.computeConnec();
             obj.computeXcoordIso();
             obj.cellContainingSubcell = obj.cutCells;
-            obj.computeMesh();
+            obj.computeMesh();            
         end
-        
-    end
-    
-    methods (Access = protected)
-        
-        function m = obtainMesh(obj)
-            m = obj.mesh;
-        end
-        
-        function x = obtainXcoordIso(obj)
-            x = obj.xCoordsIso;
-        end        
-        
-        function c = obtainCellContainingSubCells(obj)
-           c = obj.cellContainingSubcell; 
-        end
-        
-        function obtainBoundaryMesh(obj)
-          
-        end         
-        
-        function obtainBoundaryXcutIso(obj)
-                   
-        end
-        
-        function  obtainBoundaryCellContainingSubCell(obj)
-          
-        end                  
         
     end
     

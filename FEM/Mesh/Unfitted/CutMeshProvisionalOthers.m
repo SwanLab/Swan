@@ -1,10 +1,6 @@
 classdef CutMeshProvisionalOthers < CutMesh
     
     properties (Access = public)
-       xCoordsIso
-       cellContainingSubcell       
-       mesh
-       
        type
     end
     
@@ -35,38 +31,13 @@ classdef CutMeshProvisionalOthers < CutMesh
             obj.computeMesh();
             obj.xCoordsIso           = obj.computeXcoordIso();            
             obj.cellContainingSubcell = obj.memoryManager.cellContainingSubcell;           
+            obj.computeBoundaryMesh();
+            obj.computeBoundaryXCoordsIso();
+            obj.computeBoundaryCellContainingSubCell();                        
         end
         
     end
-    
-    methods (Access = protected)
-        
-        function m = obtainMesh(obj)
-            m = obj.mesh;
-        end
-        
-        function x = obtainXcoordIso(obj)
-            x = obj.xCoordsIso;
-        end     
-        
-        function c = obtainCellContainingSubCells(obj)
-           c = obj.cellContainingSubcell; 
-        end        
-        
-        function m = obtainBoundaryMesh(obj)
-            m = obj.mesh;
-        end
-        
-        function x = obtainBoundaryXcutIso(obj)
-            x = obj.xCoordsIso;
-        end
-        
-        function c = obtainBoundaryCellContainingSubCell(obj)
-            c = obj.cellContainingSubcell;
-        end
-        
-    end
-    
+  
     methods (Access = private)
         
         function createSubCellsMesher(obj)
@@ -170,6 +141,18 @@ classdef CutMeshProvisionalOthers < CutMesh
                 end
                 I(inode) = find(match,1);
             end
+        end
+        
+        function computeBoundaryMesh(obj)
+           obj.boundaryMesh = obj.mesh; 
+        end
+        
+        function computeBoundaryXCoordsIso(obj)
+            obj.xCoordsIsoBoundary = obj.xCoordsIso;
+        end
+        
+        function computeBoundaryCellContainingSubCell(obj)
+            obj.cellContainingSubCellBoundary = obj.cellContainingSubcell;
         end
         
     end

@@ -1,6 +1,5 @@
 classdef CutMeshFactory < handle
     
-
     methods (Access = public)
         
         function c = create(obj,cParams)

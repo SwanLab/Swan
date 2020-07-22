@@ -117,7 +117,7 @@ classdef UnfittedMesh < handle
                         c = CutMesh.create(s);
                         c.compute();
                         
-                        cM = c.computeBoundaryMesh();
+                        cM = c.computeBoundaryMesh2();
                         m = obj.computeCutMeshOfSubCellGlobal(cM.cellContainingSubcell);
                         cM.cutMeshOfSubCellGlobal = m;
                         obj.boundaryCutMesh = cM;                        
@@ -140,7 +140,7 @@ classdef UnfittedMesh < handle
                     
                     
                     if ~isequal(obj.backgroundMesh.geometryType,'Line') 
-                        cM = c.computeBoundaryMesh();
+                        cM = c.computeBoundaryMesh2();
                         m = obj.computeCutMeshOfSubCellGlobal(cM.cellContainingSubcell);
                         cM.cutMeshOfSubCellGlobal = m;
                         obj.boundaryCutMesh = cM;
