@@ -104,10 +104,7 @@ classdef UnfittedMesh < handle
                     c = CutMesh.create(s);
                     c.compute();
                     
-                    cM = c.computeInteriorMesh();                 
-                    m = obj.computeCutMeshOfSubCellGlobal(cM.cellContainingSubcell);
-                    cM.cutMeshOfSubCellGlobal = m;                    
-                    obj.innerCutMesh = cM;        
+                    obj.innerCutMesh = c.innerCutMesh;          
                     
                     if ~isequal(obj.backgroundMesh.geometryType,'Line')
                         s.type                    = 'BOUNDARY';
@@ -116,33 +113,24 @@ classdef UnfittedMesh < handle
                         s.levelSet                = obj.levelSet;
                         c = CutMesh.create(s);
                         c.compute();
-                        
-                        cM = c.computeBoundaryMesh2();
-                        m = obj.computeCutMeshOfSubCellGlobal(cM.cellContainingSubcell);
-                        cM.cutMeshOfSubCellGlobal = m;
-                        obj.boundaryCutMesh = cM;                        
+                       
+                        obj.boundaryCutMesh = c.boundaryCutMesh;                        
 
                     end
                     
                 else
-                    
-  
+                      
                     s.backgroundMesh          = obj.backgroundMesh;
                     s.cutCells                = obj.cutCells;
                     s.levelSet                = obj.levelSet;
                     c = CutMesh.create(s);
                     c.compute();
                     
-                    cM = c.computeInteriorMesh();                 
-                    m = obj.computeCutMeshOfSubCellGlobal(cM.cellContainingSubcell);
-                    cM.cutMeshOfSubCellGlobal = m;                    
+                    cM = c.innerCutMesh;                 
                     obj.innerCutMesh = cM;
                     
-                    
                     if ~isequal(obj.backgroundMesh.geometryType,'Line') 
-                        cM = c.computeBoundaryMesh2();
-                        m = obj.computeCutMeshOfSubCellGlobal(cM.cellContainingSubcell);
-                        cM.cutMeshOfSubCellGlobal = m;
+                        cM = c.boundaryCutMesh;
                         obj.boundaryCutMesh = cM;
                     end
                     

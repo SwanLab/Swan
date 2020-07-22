@@ -33,7 +33,13 @@ classdef CutMeshProvisionalOthers < CutMesh
             obj.cellContainingSubcell = obj.memoryManager.cellContainingSubcell;           
             obj.computeBoundaryMesh();
             obj.computeBoundaryXCoordsIso();
-            obj.computeBoundaryCellContainingSubCell();                        
+            obj.computeBoundaryCellContainingSubCell();
+            switch obj.type
+                case 'INTERIOR'
+                    obj.computeInnerCutMesh();
+                case 'BOUNDARY'
+                    obj.computeBoundaryCutMesh()
+            end
         end
         
     end

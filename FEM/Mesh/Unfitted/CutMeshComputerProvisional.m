@@ -1,7 +1,5 @@
 classdef CutMeshComputerProvisional < CutMesh
-    
   
-    
     properties (Access = private)
         connec
         coord        
@@ -31,15 +29,17 @@ classdef CutMeshComputerProvisional < CutMesh
             obj.computeCutPointsInElemComputer();            
             obj.computeConnec();
             obj.computeMesh();
-            obj.computeBoundaryMesh();
             obj.computeBoundaryXCoordsIso();
             obj.computeBoundaryCellContainingSubCell();
+            obj.computeBoundaryMesh();                        
+            obj.computeInnerCutMesh();
+            obj.computeBoundaryCutMesh();            
         end    
         
     end
     
     methods (Access = private)
-        
+                
         function computeAllParams(obj)          
             obj.backgroundMesh.computeEdges();
             e = obj.backgroundMesh.edges;

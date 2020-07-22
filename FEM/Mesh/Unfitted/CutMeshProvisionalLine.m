@@ -24,7 +24,8 @@ classdef CutMeshProvisionalLine < CutMesh
             obj.computeConnec();
             obj.computeXcoordIso();
             obj.cellContainingSubcell = obj.cutCells;
-            obj.computeMesh();            
+            obj.computeMesh();
+            obj.computeInnerCutMesh();
         end
         
     end

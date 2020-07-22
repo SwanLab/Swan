@@ -6,16 +6,18 @@ classdef CutMesh < handle
         cutCells
     end
     
-    properties (SetAccess = protected, GetAccess = public)
+    properties (Access = protected)
         mesh
         xCoordsIso
-        cellContainingSubcell          
-    end
-    
-    properties (GetAccess = protected, SetAccess = protected)        
+        cellContainingSubcell  
         boundaryMesh
         cellContainingSubCellBoundary
-        xCoordsIsoBoundary              
+        xCoordsIsoBoundary        
+    end
+    
+    properties (SetAccess = protected, GetAccess = public) 
+        innerCutMesh
+        boundaryCutMesh
     end
     
     methods (Access = public, Static)
@@ -31,27 +33,6 @@ classdef CutMesh < handle
         compute(obj)        
     end
     
-    methods (Access = public)
-        
-        function c = computeInteriorMesh(obj)
-            xCoord                   = obj.xCoordsIso;
-            cellContSubCell          = obj.cellContainingSubcell;            
-            c.mesh                   = obj.mesh();
-            c.cellContainingSubcell  = cellContSubCell;
-            c.cutMeshOfSubCellLocal  = obj.computeCutMeshOfSubCellLocal(xCoord,'INTERIOR');               
-        end
-        
-        function c = computeBoundaryMesh2(obj)
-            xCoord                   = obj.xCoordsIsoBoundary; 
-            cellContSubCell          = obj.cellContainingSubCellBoundary;
-            c.mesh                   = obj.boundaryMesh;
-            c.cellContainingSubcell  = cellContSubCell;
-            c.cutMeshOfSubCellLocal  = obj.computeCutMeshOfSubCellLocal(xCoord,'BOUNDARY');               
-        end
-        
-        
-    end
-    
     methods (Access = protected)
         
         function init(obj,cParams)
@@ -59,6 +40,20 @@ classdef CutMesh < handle
             obj.backgroundMesh = cParams.backgroundMesh;
             obj.cutCells       = cParams.cutCells;
         end
+        
+        function computeInnerCutMesh(obj)
+            s.mesh                  = obj.mesh;
+            s.xCoordsIso            = obj.xCoordsIso;
+            s.cellContainingSubcell = obj.cellContainingSubcell;
+            obj.innerCutMesh = InnerCutMesh(s);
+        end
+        
+        function computeBoundaryCutMesh(obj)
+            s.mesh                  = obj.boundaryMesh;
+            s.xCoordsIso            = obj.xCoordsIsoBoundary;
+            s.cellContainingSubcell = obj.cellContainingSubCellBoundary;
+            obj.boundaryCutMesh = BoundaryCutMesh(s);
+        end        
         
     end
     

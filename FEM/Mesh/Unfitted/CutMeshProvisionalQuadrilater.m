@@ -1,8 +1,8 @@
 classdef CutMeshProvisionalQuadrilater < CutMesh
     
     properties (Access = private)
-        connec
-        coord
+       connec
+       coord
         
        cutMesh 
        subMesh
@@ -39,7 +39,9 @@ classdef CutMeshProvisionalQuadrilater < CutMesh
             obj.computeMesh();          
             obj.computeBoundaryMesh();
             obj.computeBoundaryXCoordsIso();
-            obj.computeBoundaryCellContainingSubCell();            
+            obj.computeBoundaryCellContainingSubCell(); 
+            obj.computeInnerCutMesh();
+            obj.computeBoundaryCutMesh();            
         end
         
     end
@@ -98,7 +100,7 @@ classdef CutMeshProvisionalQuadrilater < CutMesh
         end
                
         function  computeCellContainingSubCell(obj)
-            cellSubMesh = obj.subCutSubMesh.cellContainingSubcell;
+            cellSubMesh = obj.subCutSubMesh.innerCutMesh.cellContainingSubcell;
             fCells      = obj.fullSubCells;           
             cellSubMesh = [fCells;cellSubMesh];
             
@@ -123,22 +125,22 @@ classdef CutMeshProvisionalQuadrilater < CutMesh
         
         function computeXcoord(obj)
             s.fullCells     = obj.fullSubCells;
-            s.cutCells      = obj.subCutSubMesh.cellContainingSubcell;
+            s.cutCells      = obj.subCutSubMesh.innerCutMesh.cellContainingSubcell;
             s.globalToLocal = obj.computeGlobalToLocal();
             s.localMesh     = obj.subMesher.localMesh;
-            s.xIsoCutCoord  = obj.subCutSubMesh.xCoordsIso;
+            s.xIsoCutCoord  = obj.subCutSubMesh.innerCutMesh.xCoordsIso;
             xC = XcoordIsoComputer(s);
             obj.xCoordsIso = xC.compute();
         end
      
         function computeConnec(obj)
-            connecCutInterior = obj.subCutSubMesh.mesh.connec;
+            connecCutInterior = obj.subCutSubMesh.innerCutMesh.mesh.connec;
             connecFull        = obj.subMesh.connec(obj.fullSubCells,:);
             obj.connec = [connecFull;connecCutInterior];            
         end
         
         function computeCoord(obj)
-            obj.coord  = obj.subCutSubMesh.mesh.coord;            
+            obj.coord  = obj.subCutSubMesh.innerCutMesh.mesh.coord;            
         end
         
         function computeMesh(obj)
@@ -149,7 +151,7 @@ classdef CutMeshProvisionalQuadrilater < CutMesh
         end   
         
        function computeBoundaryMesh(obj)
-            m = obj.subCutSubMesh.boundaryMesh;
+            m = obj.subCutSubMesh.boundaryCutMesh.mesh;
             obj.boundaryMesh = m;
         end          
         
