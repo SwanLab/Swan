@@ -48,7 +48,13 @@ classdef Integrator_Unfitted < Integrator
             for iMesh = 1:nMeshes
                 s{iMesh} = sUnfitted{iMesh};
             end
-            sCut = obj.createCutParams(obj.mesh.backgroundMesh.connec,obj.mesh.boundaryCutMesh,obj.mesh.backgroundMesh);            
+            
+            gConnec = obj.mesh.backgroundMesh.connec;
+            sM.coord  = obj.mesh.backgroundMesh.coord;
+            sM.connec = gConnec(obj.mesh.boundaryCutMesh.cellContainingSubcell,:);
+            sM.kFace  = obj.mesh.backgroundMesh.kFace;
+            backgroundCutMesh = Mesh(sM);            
+            sCut = obj.createCutParams(gConnec,obj.mesh.boundaryCutMesh,obj.mesh.backgroundMesh,backgroundCutMesh);            
             s{nMeshes+1} = sCut;            
         end
         
@@ -70,12 +76,13 @@ classdef Integrator_Unfitted < Integrator
             s.geometryType      = mesh.type;
         end
         
-        function s = createCutParams(obj,gConnec,mesh,backgroundMesh)
+        function s = createCutParams(obj,gConnec,mesh,backgroundMesh,backgroundCutMesh)
             s.mesh = mesh;
             s.type = 'CutMesh';
             s.globalConnec      = gConnec;
             s.npnod             = obj.mesh.backgroundMesh.npnod;
-            s.geometryType      = backgroundMesh.type;
+            s.geometryType      = backgroundMesh.type;            
+            s.backgroundCutMesh = backgroundCutMesh;
         end
         
         function s = createInteriorParams(obj,mesh,connec)
@@ -89,7 +96,12 @@ classdef Integrator_Unfitted < Integrator
             end
             if ~isempty(mesh.innerCutMesh)
                 gConnec = connec;
-                s.compositeParams{end+1} = obj.createCutParams(gConnec,mesh.innerCutMesh,mesh.backgroundMesh);
+                
+                sM.coord  = obj.mesh.backgroundMesh.coord;
+                sM.connec = gConnec(mesh.innerCutMesh.cellContainingSubcell,:);
+                sM.kFace  = mesh.backgroundMesh.kFace;
+                backgroundCutMesh = Mesh(sM);
+                s.compositeParams{end+1} = obj.createCutParams(gConnec,mesh.innerCutMesh,mesh.backgroundMesh,backgroundCutMesh);
             end
         end
         

@@ -5,7 +5,6 @@ classdef CutMeshFactory < handle
         function c = create(obj,cParams)
              bMesh    = cParams.backgroundMesh;
              bCutMesh = obj.computeBackgroundCutMesh(bMesh,cParams.cutCells);
-
             switch cParams.backgroundMesh.type
                 case 'LINE'
                     s.backgroundMesh    = bCutMesh;
@@ -28,10 +27,8 @@ classdef CutMeshFactory < handle
                     s.backgroundMesh    = bMesh;                    
                     s.cutCells          = cParams.cutCells;
                     s.levelSet          = cParams.levelSet;
-                    s.type              = cParams.type;
                     c = CutMeshProvisionalOthers(s);                
             end
-
                 
         end
         

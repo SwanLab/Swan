@@ -5,7 +5,6 @@ classdef InnerCutMesh < handle
         xCoordsIso
         cellContainingSubcell
         cutMeshOfSubCellLocal
-        cutMeshOfSubCellGlobal
     end
     
     properties (Access = private)
@@ -29,7 +28,7 @@ classdef InnerCutMesh < handle
         
         function init(obj,cParams)
             obj.mesh                  = cParams.mesh;
-            obj.xCoordsIso             = cParams.xCoordsIso;
+            obj.xCoordsIso            = cParams.xCoordsIso;
             obj.cellContainingSubcell = cParams.cellContainingSubcell;            
         end
         
@@ -44,9 +43,7 @@ classdef InnerCutMesh < handle
             m = Mesh(s);
             obj.cutMeshOfSubCellLocal = m;
         end   
-    
-        
-        
+            
     end
     
 end

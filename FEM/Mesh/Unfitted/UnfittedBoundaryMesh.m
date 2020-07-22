@@ -64,7 +64,7 @@ classdef UnfittedBoundaryMesh < handle
         function obtainGlobalConnec(obj)
             for iBoundary = 1:obj.nBoundaries
                 m = obj.boundaryMesh{iBoundary};
-                obj.globalConnec{iBoundary} = m.globalConnec;%m.nodesInBoxFaces;
+                obj.globalConnec{iBoundary} = m.globalConnec;
             end            
         end
         

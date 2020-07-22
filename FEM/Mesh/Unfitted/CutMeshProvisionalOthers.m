@@ -17,29 +17,45 @@ classdef CutMeshProvisionalOthers < CutMesh
         
         function obj = CutMeshProvisionalOthers(cParams)
             obj.init(cParams);
-            obj.type                        = cParams.type;                        
-            obj.nCutCells                   = length(obj.cutCells);                       
-            obj.createSubCellsMesher();
-            obj.createMemoryManager();
-            obj.createCutPointsCalculator();            
+            obj.nCutCells = length(obj.cutCells);                                              
         end
         
         function compute(obj)
+            obj.computeThisInnerCutMesh();    
+            if ~isequal(obj.backgroundMesh.geometryType,'Line')                 
+                obj.computeThisBoundaryCutMesh();
+            end
+        end
+        
+        function computeThisBoundaryCutMesh(obj)
+            obj.type  = 'BOUNDARY';
+            obj.createSubCellsMesher();
+            obj.createMemoryManager();
+            obj.createCutPointsCalculator();             
+            obj.computeSubcells();
+            obj.computeCoord();
+            obj.computeConnec();            
+            obj.computeMesh();    
+            obj.xCoordsIso            = obj.computeXcoordIso();            
+            obj.cellContainingSubcell = obj.memoryManager.cellContainingSubcell;             
+            obj.computeBoundaryMesh();
+            obj.computeBoundaryXCoordsIso();
+            obj.computeBoundaryCellContainingSubCell();            
+            obj.computeBoundaryCutMesh();                        
+        end
+        
+        function computeThisInnerCutMesh(obj)
+            obj.type  = 'INTERIOR';
+            obj.createSubCellsMesher();
+            obj.createMemoryManager();
+            obj.createCutPointsCalculator();             
             obj.computeSubcells();
             obj.computeCoord();
             obj.computeConnec();            
             obj.computeMesh();
-            obj.xCoordsIso           = obj.computeXcoordIso();            
-            obj.cellContainingSubcell = obj.memoryManager.cellContainingSubcell;           
-            obj.computeBoundaryMesh();
-            obj.computeBoundaryXCoordsIso();
-            obj.computeBoundaryCellContainingSubCell();
-            switch obj.type
-                case 'INTERIOR'
-                    obj.computeInnerCutMesh();
-                case 'BOUNDARY'
-                    obj.computeBoundaryCutMesh()
-            end
+            obj.xCoordsIso            = obj.computeXcoordIso();            
+            obj.cellContainingSubcell = obj.memoryManager.cellContainingSubcell;  
+            obj.computeInnerCutMesh();            
         end
         
     end

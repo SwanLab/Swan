@@ -9,6 +9,7 @@ classdef UnfittedMesh < handle
     end
     
     properties (Access = private)
+        cutMesh
         fullCells
         cutCells
         emptyCells
@@ -31,11 +32,13 @@ classdef UnfittedMesh < handle
             obj.levelSet = lSet;
             obj.classifyCells();
             obj.computeInnerMesh();
-            obj.computeCutMesh();
-            %obj.computeInnerCutMesh();
-            %obj.computeBoundaryCutMesh();
-            obj.computeUnfittedBoxMesh();
-            obj.createPlotter();
+            if ~isempty(obj.cutCells)                 
+                obj.computeCutMesh();
+                obj.computeInnerCutMesh();
+                obj.computeBoundaryCutMesh();
+            end
+            obj.computeUnfittedBoxMesh();            
+            obj.createPlotter();            
         end
         
         function createPlotter(obj)
@@ -86,100 +89,59 @@ classdef UnfittedMesh < handle
         end
         
         function computeCutMesh(obj)
-            
-            bMtype = obj.backgroundMesh.type;
-            isLine     = isequal(bMtype,'LINE');
-            isTriangle = isequal(bMtype,'TRIANGLE');
-            isQuad     = isequal(bMtype,'QUAD');
-            is3D       = ~( isLine || isTriangle || isQuad );
-            
-            
-            if ~isempty(obj.cutCells)
-                
-                if is3D
-                    s.type                    = 'INTERIOR';
-                    s.backgroundMesh          = obj.backgroundMesh;
-                    s.cutCells                = obj.cutCells;
-                    s.levelSet                = obj.levelSet;
-                    c = CutMesh.create(s);
-                    c.compute();
-                    
-                    obj.innerCutMesh = c.innerCutMesh;          
-                    
-                    if ~isequal(obj.backgroundMesh.geometryType,'Line')
-                        s.type                    = 'BOUNDARY';
-                        s.backgroundMesh          = obj.backgroundMesh;
-                        s.cutCells                = obj.cutCells;
-                        s.levelSet                = obj.levelSet;
-                        c = CutMesh.create(s);
-                        c.compute();
-                       
-                        obj.boundaryCutMesh = c.boundaryCutMesh;                        
-
-                    end
-                    
-                else
-                      
-                    s.backgroundMesh          = obj.backgroundMesh;
-                    s.cutCells                = obj.cutCells;
-                    s.levelSet                = obj.levelSet;
-                    c = CutMesh.create(s);
-                    c.compute();
-                    
-                    cM = c.innerCutMesh;                 
-                    obj.innerCutMesh = cM;
-                    
-                    if ~isequal(obj.backgroundMesh.geometryType,'Line') 
-                        cM = c.boundaryCutMesh;
-                        obj.boundaryCutMesh = cM;
-                    end
-                    
-                end
-            end
+            s.backgroundMesh = obj.backgroundMesh;
+            s.cutCells       = obj.cutCells;
+            s.levelSet       = obj.levelSet;
+            obj.cutMesh = CutMesh.create(s);
+            obj.cutMesh.compute();
         end
         
-        function m = computeCutMeshOfSubCellGlobal(obj,cells)
-            sM.coord  = obj.backgroundMesh.coord;
-            sM.connec = obj.backgroundMesh.connec(cells,:);
-            sM.kFace  = obj.backgroundMesh.kFace;
-            m = Mesh(sM);
+        function computeInnerCutMesh(obj)
+            obj.innerCutMesh = obj.cutMesh.innerCutMesh;
         end
-            
-            function computeUnfittedBoxMesh(obj)
-                s.boundaryMesh = obj.boundaryMesh;
-                obj.unfittedBoundaryMesh = UnfittedBoundaryMesh(s);
-                if ~isempty(obj.unfittedBoundaryMesh.meshes)
-                    ls   = obj.levelSet;
-                    obj.unfittedBoundaryMesh.compute(ls);
-                end
+        
+        function computeBoundaryCutMesh(obj)
+            if ~isequal(obj.backgroundMesh.geometryType,'Line')
+                obj.boundaryCutMesh = obj.cutMesh.boundaryCutMesh;
             end
             
         end
         
-        methods (Access = public)
-            
-            function mass = computeMass(obj)
-                npnod = obj.backgroundMesh.npnod;
-                f = ones(npnod,1);
-                s.mesh = obj;
-                s.type = 'Unfitted';
-                integrator = Integrator.create(s);
-                fInt = integrator.integrateInDomain(f);
-                %%Now to check IntegrateNodal, later by obj.mesh.computeMass
-                mass = sum(fInt);
+        function computeUnfittedBoxMesh(obj)
+            s.boundaryMesh = obj.boundaryMesh;
+            obj.unfittedBoundaryMesh = UnfittedBoundaryMesh(s);
+            if ~isempty(obj.unfittedBoundaryMesh.meshes)
+                ls   = obj.levelSet;
+                obj.unfittedBoundaryMesh.compute(ls);
             end
-            
-            function mass = computePerimeter(obj)
-                npnod = obj.backgroundMesh.npnod;
-                f = ones(npnod,1);
-                s.mesh = obj;
-                s.type = 'Unfitted';
-                integrator = Integrator.create(s);
-                fInt = integrator.integrateInBoundary(f);
-                %%Now to check IntegrateNodal, later by obj.mesh.computeMass
-                mass = sum(fInt);
-            end
-            
         end
         
     end
+    
+    methods (Access = public)
+        
+        function mass = computeMass(obj)
+            npnod = obj.backgroundMesh.npnod;
+            f = ones(npnod,1);
+            s.mesh = obj;
+            s.type = 'Unfitted';
+            integrator = Integrator.create(s);
+            fInt = integrator.integrateInDomain(f);
+            %%Now to check IntegrateNodal, later by obj.mesh.computeMass
+            mass = sum(fInt);
+        end
+        
+        function mass = computePerimeter(obj)
+            npnod = obj.backgroundMesh.npnod;
+            f = ones(npnod,1);
+            s.mesh = obj;
+            s.type = 'Unfitted';
+            integrator = Integrator.create(s);
+            fInt = integrator.integrateInBoundary(f);
+            %%Now to check IntegrateNodal, later by obj.mesh.computeMass
+            mass = sum(fInt);
+        end
+        
+    end
+    
+end

@@ -4,6 +4,7 @@ classdef IntegratorCutMesh < Integrator
         globalConnec
         npnod
         geometryType
+        backgroundCutMesh
     end
     
     methods (Access = public)
@@ -23,20 +24,21 @@ classdef IntegratorCutMesh < Integrator
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh         = cParams.mesh;
-            obj.globalConnec = cParams.globalConnec;
-            obj.npnod        = cParams.npnod;
-            obj.geometryType = cParams.geometryType;
+            obj.mesh               = cParams.mesh;
+            obj.globalConnec       = cParams.globalConnec;
+            obj.npnod              = cParams.npnod;
+            obj.geometryType       = cParams.geometryType;
+            obj.backgroundCutMesh  = cParams.backgroundCutMesh;
         end
         
-        function rhsV = computeElementalCutRHS(obj,fNodal)
-            gGlobal = obj.mesh.cutMeshOfSubCellGlobal;
+        function rhsV = computeElementalCutRHS(obj,fNodal)            
+            bCutMesh = obj.backgroundCutMesh;
             s.fNodal         = fNodal;
             s.xGauss         = obj.computeGaussPoints();
             s.quadrature     = obj.computeQuadrature(obj.mesh.mesh.type);
-            s.geometryType   = gGlobal.type;
+            s.geometryType   = bCutMesh.type;
             s.mesh           = obj.mesh.mesh;
-            s.feMesh         = gGlobal;
+            s.feMesh         = bCutMesh;
             rhs = RHSintegrator(s);
             rhsV = rhs.integrate();
         end

@@ -57,25 +57,4 @@ classdef CutMesh < handle
         
     end
     
-    methods (Access = private, Static)
-        
-        function m = computeCutMeshOfSubCellLocal(xCoordIso,type)
-            coord = xCoordIso;
-            nElem = size(coord,3);
-            nNode = size(coord,2);
-            nDim  = size(coord,1);
-            s.coord = reshape(coord,nDim,[])';
-            s.connec = reshape(1:nElem*nNode,nNode,nElem)';
-            if isequal(type,'INTERIOR')
-                kFace = 0;
-            else
-                kFace = -1;
-            end
-            s.kFace = kFace;
-            m = Mesh(s);
-        end
-        
-    end
-    
-    
 end
