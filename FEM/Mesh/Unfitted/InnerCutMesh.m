@@ -7,7 +7,7 @@ classdef InnerCutMesh < handle
         cutMeshOfSubCellLocal
     end
     
-    properties (Access = private)
+    properties (GetAccess = ?CutMeshProvisionalQuadrilater)
         
     end
     

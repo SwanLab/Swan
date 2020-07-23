@@ -8,7 +8,6 @@ classdef Integrator_Composite < Integrator
     properties (Access = private)
        RHScells
        RHSsubcells
-       npnod
     end
     
     methods (Access = public)

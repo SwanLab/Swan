@@ -2,7 +2,6 @@ classdef RHSintegrator < handle
 
     properties (Access = private)
         fNodal
-        geometryType
         mesh
         feMesh
         xGauss
@@ -12,7 +11,8 @@ classdef RHSintegrator < handle
     methods (Access = public)
         
         function obj = RHSintegrator(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)   
+            obj.computeQuadrature();
         end
         
         function int = integrate(obj)
@@ -37,12 +37,16 @@ classdef RHSintegrator < handle
         
         function init(obj,cParams)
             obj.fNodal         = cParams.fNodal;
-            obj.geometryType   = cParams.geometryType;
             obj.xGauss         = cParams.xGauss;
             obj.mesh           = cParams.mesh;
-            obj.quadrature     = cParams.quadrature;
             obj.feMesh = cParams.feMesh;
         end
+        
+        function q = computeQuadrature(obj)
+           q = Quadrature.set(obj.mesh.type);
+           q.computeQuadrature('LINEAR');
+           obj.quadrature = q;
+       end          
         
         function fG = computeFinGaussPoints(obj)
             f  = obj.createFeFunction();
@@ -57,12 +61,12 @@ classdef RHSintegrator < handle
         end             
         
         function dV = computeDvolume(obj)
-            q  = obj.quadrature;
+            q = obj.quadrature;
             dV = obj.mesh.computeDvolume(q);            
         end        
         
         function shapes = computeShapeFunctions(obj)
-            m.type = obj.geometryType;
+            m.type = obj.feMesh.type;
             int = Interpolation.create(m,'LINEAR');
             int.computeShapeDeriv(obj.xGauss);
             shapes = permute(int.shape,[1 3 2]);            
