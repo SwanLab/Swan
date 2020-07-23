@@ -1,9 +1,8 @@
 classdef IntegratorCutMesh < Integrator
     
     properties (Access = private)        
-        connec
-        meshType
-        cutMeshOfSubCellLocal
+        backgroundMeshType
+        xCoordsIso
         cellContainingSubcell
     end
     
@@ -11,15 +10,15 @@ classdef IntegratorCutMesh < Integrator
         
         function obj = IntegratorCutMesh(cParams)
             obj.init(cParams);
-            obj.meshType                  = cParams.meshType;
-            obj.connec                = cParams.connec; 
-            obj.cutMeshOfSubCellLocal = cParams.cutMeshOfSubCellLocal;
+            obj.globalConnec          = cParams.globalConnec;            
+            obj.xCoordsIso            = cParams.xCoordsIso;
             obj.cellContainingSubcell = cParams.cellContainingSubcell;
+            obj.backgroundMeshType    = cParams.backgroundMeshType;                        
         end
         
         function rhs = integrate(obj,fNodal)
-            c = obj.connec;
-            t = obj.meshType;
+            c = obj.computeSubCellConnec();
+            t = obj.backgroundMeshType;
             xGauss = obj.computeGaussPoints();
             rhsCellsCut = obj.computeElementalRHS(fNodal,xGauss,c,t);
             rhsCells    = obj.assembleSubcellsInCells(rhsCellsCut);
@@ -31,9 +30,30 @@ classdef IntegratorCutMesh < Integrator
     methods (Access = private)
         
         function xGauss = computeGaussPoints(obj)
-            q = obj.computeQuadrature();
-            m = obj.cutMeshOfSubCellLocal;
-            xGauss = m.computeXgauss(q.posgp);
+            q = obj.computeQuadrature();            
+            s.connec = obj.computeSubCellsLocalConnec();
+            s.fNodes = obj.computeSubCellsLocalCoord();
+            s.type   = obj.mesh.type;
+            x = FeFunction(s);
+            xGauss = x.interpolateFunction(q.posgp);
+        end
+        
+        function c = computeSubCellsLocalCoord(obj)
+            coord = obj.xCoordsIso; 
+            nDim  = size(coord,1);            
+            c = reshape(coord,nDim,[])';             
+        end
+        
+        function lConnec = computeSubCellsLocalConnec(obj)
+            coord = obj.xCoordsIso;
+            nElem = size(coord,3);
+            nNode = size(coord,2);
+            lConnec = reshape(1:nElem*nNode,nNode,nElem)';            
+        end
+        
+        function c = computeSubCellConnec(obj)
+            cells = obj.cellContainingSubcell;
+            c = obj.globalConnec(cells,:);        
         end
         
         function rhsCells = assembleSubcellsInCells(obj,rhsCut)           

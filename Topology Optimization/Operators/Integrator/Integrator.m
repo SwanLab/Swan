@@ -18,7 +18,6 @@ classdef Integrator < handle
         
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
-            obj.globalConnec       = cParams.globalConnec;
             obj.npnod              = cParams.npnod;
         end
         

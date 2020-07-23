@@ -4,6 +4,7 @@ classdef InnerMesh < handle
        fullCells        
        backgroundMesh    
        mesh
+       globalConnec
     end
     
     properties (Access = private)
@@ -22,6 +23,7 @@ classdef InnerMesh < handle
             obj.computeCoords();
             obj.computeConnec();
             obj.createMesh();
+            obj.computeGlobalConnec();
         end
         
     end
@@ -61,6 +63,11 @@ classdef InnerMesh < handle
             s.connec = obj.connec;
             s.kFace  = obj.backgroundMesh.kFace;
             obj.mesh = Mesh(s);
+        end
+        
+        function computeGlobalConnec(obj)
+            con  = obj.backgroundMesh.connec;
+            obj.globalConnec = con(obj.fullCells,:);            
         end
         
     end

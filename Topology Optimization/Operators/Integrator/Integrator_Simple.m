@@ -4,6 +4,7 @@ classdef Integrator_Simple < Integrator
         
         function obj = Integrator_Simple(cParams)
             obj.init(cParams)
+            obj.globalConnec = cParams.globalConnec;            
         end
         
         function LHS = computeLHS(obj)
