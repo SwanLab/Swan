@@ -40,11 +40,12 @@ classdef Integrator < handle
             end
         end   
         
-        function rhsC = computeElementalRHS(obj,fNodal,feMesh,xGauss)
+        function rhsC = computeElementalRHS(obj,fNodal,xGauss,connec,type)
             s.fNodal         = fNodal;
             s.xGauss         = xGauss;
             s.mesh           = obj.mesh;
-            s.feMesh         = feMesh;
+            s.connec         = connec;
+            s.type           = type;
             rhs = RHSintegrator(s);
             rhsC = rhs.integrate();
         end        

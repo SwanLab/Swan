@@ -61,7 +61,8 @@ classdef CutMeshProvisionalQuadrilater < CutMesh
         function computeLevelSetInSubMesh(obj)
             ls = obj.levelSet;
             
-            s.mesh   = obj.backgroundMesh;
+            s.connec = obj.backgroundMesh.connec;
+            s.type   = obj.backgroundMesh.type;
             s.fNodes = ls;
             f = FeFunction(s);
             lsSubMesh = f.computeValueInCenterElement();              

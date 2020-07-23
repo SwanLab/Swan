@@ -190,8 +190,9 @@ classdef Mesh < handle
         end
         
         function computeCoordFEfunction(obj)
-            s.mesh   = obj;
-            s.fNodes = obj.coord;
+            s.connec   = obj.connec;
+            s.type     = obj.type;            
+            s.fNodes   = obj.coord;
             obj.xFE = FeFunction(s);
         end
         

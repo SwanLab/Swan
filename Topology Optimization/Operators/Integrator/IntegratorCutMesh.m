@@ -1,7 +1,8 @@
 classdef IntegratorCutMesh < Integrator
     
     properties (Access = private)        
-        backgroundCutMesh
+        connec
+        meshType
         cutMeshOfSubCellLocal
         cellContainingSubcell
     end
@@ -10,15 +11,17 @@ classdef IntegratorCutMesh < Integrator
         
         function obj = IntegratorCutMesh(cParams)
             obj.init(cParams);
-            obj.backgroundCutMesh     = cParams.backgroundCutMesh; 
+            obj.meshType                  = cParams.meshType;
+            obj.connec                = cParams.connec; 
             obj.cutMeshOfSubCellLocal = cParams.cutMeshOfSubCellLocal;
             obj.cellContainingSubcell = cParams.cellContainingSubcell;
         end
         
         function rhs = integrate(obj,fNodal)
-            feMesh = obj.backgroundCutMesh;
+            c = obj.connec;
+            t = obj.meshType;
             xGauss = obj.computeGaussPoints();
-            rhsCellsCut = obj.computeElementalRHS(fNodal,feMesh,xGauss);
+            rhsCellsCut = obj.computeElementalRHS(fNodal,xGauss,c,t);
             rhsCells    = obj.assembleSubcellsInCells(rhsCellsCut);
             rhs = obj.assembleIntegrand(rhsCells);
         end

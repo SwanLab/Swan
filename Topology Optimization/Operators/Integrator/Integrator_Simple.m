@@ -15,9 +15,10 @@ classdef Integrator_Simple < Integrator
         end
         
         function rhs = integrate(obj,fNodal)
-            feMesh   = obj.mesh;     
+            connec   = obj.mesh.connec;     
+            type     = obj.mesh.type;     
             xGauss   = obj.computeGaussPoints();
-            rhsCells = obj.computeElementalRHS(fNodal,feMesh,xGauss);
+            rhsCells = obj.computeElementalRHS(fNodal,xGauss,connec,type);
             rhs = obj.assembleIntegrand(rhsCells);
         end
         

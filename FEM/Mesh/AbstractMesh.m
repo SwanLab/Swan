@@ -78,7 +78,8 @@ classdef AbstractMesh < handle
     methods (Access = private)
         
         function computeCoordFEfunction(obj)
-            s.mesh   = obj;
+            s.connec   = obj.connec;
+            s.type     = obj.type;
             s.fNodes = obj.coord;
             obj.xFE = FeFunction(s);             
         end
