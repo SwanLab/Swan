@@ -45,6 +45,7 @@ classdef CutMeshComputerProvisional < CutMesh
             e = obj.backgroundMesh.edges;
             obj.cutEdgesParams.nodesInEdges = e.nodesInEdges;
             obj.cutEdgesParams.levelSet     = obj.levelSet;
+           
             obj.cutCoordParams.coord = obj.backgroundMesh.coord;
             obj.cutCoordParams.nodesInEdges = e.nodesInEdges;
             

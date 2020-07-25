@@ -68,9 +68,8 @@ classdef UnfittedMesh < handle
         end
         
         function classifyCells(obj)
-            nodes         = obj.backgroundMesh.connec;
             allCells(:,1) = 1:obj.backgroundMesh.nelem;
-            lsNodes  = obj.levelSet(nodes);
+            lsNodes  = obj.computelsNodes();
             isLsNeg  = lsNodes < 0;
             full  = all(isLsNeg,2);
             empty = all(~isLsNeg,2);
@@ -78,6 +77,14 @@ classdef UnfittedMesh < handle
             obj.fullCells  = allCells(full);
             obj.emptyCells = allCells(empty);
             obj.cutCells   = allCells(cut);
+        end
+        
+        function ls = computelsNodes(obj)
+            nodes = obj.backgroundMesh.connec;
+            ls = zeros(size(nodes));
+            for iNode = 1:size(nodes,2)
+                ls(:,iNode) = obj.levelSet(nodes(:,iNode));            
+            end
         end
         
         function computeInnerMesh(obj)

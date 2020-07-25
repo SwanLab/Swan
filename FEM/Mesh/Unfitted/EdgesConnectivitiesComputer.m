@@ -41,7 +41,13 @@ classdef EdgesConnectivitiesComputer < handle
         
         function init(obj,cParams)
             obj.nodesByElem = cParams.nodesByElem;
-            obj.localEdgesInElem =  [1 2; 2 3; 3 1];
+            nNodes = size(cParams.nodesByElem,2);
+            switch nNodes
+                case 3            
+                    obj.localEdgesInElem =  [1 2; 2 3; 3 1];
+                case 4
+                    obj.localEdgesInElem =  nchoosek(1:nNodes,2);%[1 2; 2 3; 3 1];
+            end            
             obj.nElem = size(obj.nodesByElem,1);
             obj.nEdgeByElem = size(obj.localEdgesInElem,1);
             obj.nNodeByEdge = size(obj.localEdgesInElem,2);

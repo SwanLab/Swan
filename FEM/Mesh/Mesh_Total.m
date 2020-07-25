@@ -83,10 +83,10 @@ classdef Mesh_Total < Mesh_Composite
             for imesh = 1:nExteriorMeshes
                 nodes  = obj.borderNodes;
                 s.coord  = obj.coord(nodes,:);
-                s.connec = obj.computeConnectivitiesFromData();
-                %s.globalConnec = obj.borderElements(:,2:end);
+                s.connec = obj.computeConnectivitiesFromData(obj.borderElements(:,2:end));
                 s.nodesInBoxFaces = false(size(obj.coord,1),1);
                 s.nodesInBoxFaces(nodes,1) = true;
+                s.isRectangularBox = false;
                 m = BoundaryMesh(s);
                 obj.boxFaceMeshes{imesh} = m;
                 obj.append(m);
@@ -94,8 +94,7 @@ classdef Mesh_Total < Mesh_Composite
            obj.nBoxFaces = numel(obj.boxFaceMeshes);                              
         end
         
-        function borderConnecSwitch = computeConnectivitiesFromData(obj)
-            connec = obj.borderElements(:,2:end);            
+        function borderConnecSwitch = computeConnectivitiesFromData(obj,connec)
             nNode = size(connec,2);
             nElem = size(connec,1);
             icell = 1;
@@ -135,7 +134,7 @@ classdef Mesh_Total < Mesh_Composite
         
         function computeExteriorMeshesFromBoxSides(obj)  
                s.backgroundMesh = obj.innerMeshOLD;
-               s.dimensions = 1:s.backgroundMesh.ndim;
+               s.dimension = 1:s.backgroundMesh.ndim;
                bC = BoundaryMeshCreatorFromRectangularBox(s);
                bMeshes = bC.create();
                obj.nBoxFaces = numel(bMeshes);

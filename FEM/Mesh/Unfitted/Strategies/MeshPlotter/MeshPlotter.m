@@ -61,14 +61,27 @@ classdef MeshPlotter < handle
         
         function plotSurfaceMesh(obj)
             m = obj.mesh;
-            p = patch('vertices',m.coord,'faces',m.connec);
-            p.EdgeAlpha = 0.5;
-            p.EdgeLighting = 'flat';
-            p.FaceColor = [1 0 0];
-            p.FaceLighting = 'flat';
-            p.FaceAlpha = 1;
-            p.LineWidth = 1.5;
-            axis('equal');
+            if size(m.connec,2) == 3 && size(m.coord,2) == 3
+                x = m.coord(:,1);
+                y = m.coord(:,2);
+                z = m.coord(:,3);
+                p = trisurf(m.connec,m.coord(:,1),m.coord(:,2),m.coord(:,3));
+                p.FaceColor = 'cyan';
+                p.FaceAlpha = 0.8;
+                axis equal;
+                hold on
+                plot3(x,y,z,'.r')
+            else
+                p = patch('vertices',m.coord,'faces',m.connec);
+                p.EdgeAlpha = 0.5;
+                p.EdgeLighting = 'flat';
+                p.FaceColor = [1 0 0];
+                p.FaceLighting = 'flat';
+                p.FaceAlpha = 1;
+                p.LineWidth = 1.5;
+                axis('equal');
+            end
+            
         end
         
     end
