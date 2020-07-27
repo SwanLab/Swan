@@ -7,7 +7,6 @@ classdef InteriorSubCellsConnecComputer < handle
     end
     
     properties (Access = private)
-        subCellCases                
         isSubCellInterior        
         allSubCellsConnec        
         xNodesInSubCells    
@@ -17,7 +16,6 @@ classdef InteriorSubCellsConnecComputer < handle
         nSubCellsByElem
         allSubCellsConnecParams
         isSubCellInteriorParams
-        subCellsCasesParams
         cutElems
     end
     
@@ -35,13 +33,11 @@ classdef InteriorSubCellsConnecComputer < handle
         function init(obj,cParams)        
             obj.allSubCellsConnecParams = cParams.allSubCellsConnecParams;
             obj.isSubCellInteriorParams = cParams.isSubCellInteriorParams;
-            obj.subCellsCasesParams     = cParams.subCellsCasesParams;
             obj.cutElems                = cParams.cutElems;
         end
         
         function compute(obj)
             obj.computeNsubCellsByElem();
-            obj.computeSubCellCases();
             obj.computeAllSubCellsConnec();
             obj.computeIsSubCellsInterior();
             obj.computeConnec();
@@ -50,24 +46,16 @@ classdef InteriorSubCellsConnecComputer < handle
         end
         
         function computeNsubCellsByElem(obj)
-            switch size(obj.subCellsCasesParams.cutCase,2)
+            switch size(obj.isSubCellInteriorParams.subCellCases,2)
                 case 3
                     obj.nSubCellsByElem   = 3;            
-                case 6
+                case 4
                     obj.nSubCellsByElem   = 4;
             end            
         end        
         
-        function computeSubCellCases(obj)            
-           s = obj.subCellsCasesParams;
-           subCells = SubCellsCasesComputer(s);
-           subCells.compute();
-           obj.subCellCases = subCells.subCellCases;
-        end
-        
         function computeAllSubCellsConnec(obj)
             s = obj.allSubCellsConnecParams;
-            s.subCellCases              = obj.subCellCases;                     
             a = AllSubCellsConnecComputer(s);
             a.compute();            
             obj.allSubCellsConnec = a.allSubCellsConnec;  
@@ -76,7 +64,6 @@ classdef InteriorSubCellsConnecComputer < handle
            
         function computeIsSubCellsInterior(obj)
             s = obj.isSubCellInteriorParams;
-            s.subCellCases    = obj.subCellCases;
             s.nSubCellsByElem = obj.nSubCellsByElem; 
             subCellInt = IsSubCellInteriorComputer(s);
             subCellInt.compute();

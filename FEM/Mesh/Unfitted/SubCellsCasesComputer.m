@@ -10,10 +10,17 @@ classdef SubCellsCasesComputer < handle
        integerCases
    end
    
+   properties (Access = private)
+      connec
+      levelSet
+   end
+   
    methods (Access = public)
        
        function obj = SubCellsCasesComputer(cParams)
           obj.init(cParams);
+          obj.computeCutCase();
+          obj.computeIntergerCodeCases();
           obj.computeIntegerCases();                                  
        end
        
@@ -34,13 +41,27 @@ classdef SubCellsCasesComputer < handle
    methods (Access = private)
        
        function init(obj,cParams)
-           obj.cutCase  = cParams.cutCase;
+           obj.connec  = cParams.connec;
+           obj.levelSet = cParams.levelSet;        
+       end
+       
+       function computeIntergerCodeCases(obj)
            switch size(obj.cutCase,2)
                case 3
-                  obj.intergerCodeCases = [6 1;5 2;3 4];      
+                  obj.intergerCodeCases = [6 1;5 2;3 4];   
+                  %obj.intergerCodeCases = [3 4;5 2;6 1];                        
                case 4
                   obj.intergerCodeCases = [1 14;2 13;4 11;8 7];       
-           end
+           end           
+       end
+       
+       function computeCutCase(obj)
+            nodes = obj.connec;
+            ls = zeros(size(nodes));
+            for iNode = 1:size(nodes,2)
+                ls(:,iNode) = obj.levelSet(nodes(:,iNode));                 
+            end            
+            obj.cutCase = 1 - heaviside(ls);           
        end
        
         function d = computeIntegerCases(obj)

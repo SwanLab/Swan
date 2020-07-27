@@ -13,7 +13,8 @@ classdef CutMeshComputerProvisional < CutMesh
         cutEdgesComputerParams   
         
         cutCoordComputer
-        cutCase
+        
+        subCellCases
     end
         
     methods (Access = public)
@@ -24,7 +25,7 @@ classdef CutMeshComputerProvisional < CutMesh
         end
         
         function compute(obj)
-            obj.computeCutCase();
+            obj.computeSubCellCases();            
             obj.computeCutEdges();
             obj.computeCutCoordinateComputer();  
             obj.coord = obj.cutCoordComputer.coord;
@@ -72,13 +73,12 @@ classdef CutMeshComputerProvisional < CutMesh
             obj.cutEdgesComputer = c;    
         end
         
-        function computeCutCase(obj)
-            nodes = obj.backgroundMesh.connec;
-            ls = zeros(size(nodes));
-            for iNode = 1:size(nodes,2)
-                ls(:,iNode) = obj.levelSet(nodes(:,iNode));                 
-            end            
-            obj.cutCase = 1 - heaviside(ls);
+        function computeSubCellCases(obj)
+            s.connec = obj.backgroundMesh.connec;
+            s.levelSet = obj.levelSet;
+            subCells = SubCellsCasesComputer(s);
+            subCells.compute();
+            obj.subCellCases = subCells.subCellCases;
         end
      
         function computeCutCoordinateComputer(obj)
@@ -105,12 +105,13 @@ classdef CutMeshComputerProvisional < CutMesh
             sA.subMeshConnecParams = sS;
             sA.xAllNodesInElem = c.xAllNodesInElem;
             sA.allNodesInElem  = c.allNodesInElem;
-            sC.cutCase = obj.cutCase;
+            sA.subCellCases    = obj.subCellCases;
             s = obj.interiorSubCellsParams;          
             sI = s.isSubCellInteriorParams;
             sI.allNodesInElem = c.allNodesInElem;
+            sI.subCellCases   = obj.subCellCases;
             s.allSubCellsConnecParams = sA;
-            s.subCellsCasesParams = sC; 
+            s.subCellsCases = obj.subCellCases; 
             s.isSubCellInteriorParams = sI;
             subCell = InteriorSubCellsConnecComputer(s);
             obj.connec                = subCell.connec;

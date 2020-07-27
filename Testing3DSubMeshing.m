@@ -135,10 +135,18 @@ classdef Testing3DSubMeshing < handle
             
             cutCells = 1;
             
+            
+            s.connec = obj.backgroundMesh.connec;
+            s.levelSet = obj.levelSet;
+            subCells = SubCellsCasesComputer(s);
+            subCells.compute();
+            subCellCases = subCells.subCellCases;            
+            
+            
             sI.isSubCellInteriorParams.levelSet = obj.levelSet;
             
              
-            
+            sI.subCellCases   = subCellCases;
             sI.allNodesInElem = cE.allNodesInElem;
             s.allSubCellsConnecParams = sA;
             s.subCellsCasesParams = sC; 

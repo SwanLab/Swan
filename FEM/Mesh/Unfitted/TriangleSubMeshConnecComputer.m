@@ -62,7 +62,11 @@ classdef TriangleSubMeshConnecComputer < handle
         end
         
         function computeTriangleLocalConnecCases(obj)
-            nodes = [1 4 5;4 2 5; 4 3 5];
+            %nodes = [1 4 5;4 2 5; 4 3 5];
+            nodes(1,:) = [1 4 5];
+            nodes(2,:) = [4 2 5];
+            nodes(3,:) = [4 3 5];
+            
             obj.localTriangleConnecCases = nodes;
         end
         
