@@ -13,6 +13,7 @@ classdef CutMeshComputerProvisional < CutMesh
         cutEdgesComputerParams   
         
         cutCoordComputer
+        cutCase
     end
         
     methods (Access = public)
@@ -23,6 +24,7 @@ classdef CutMeshComputerProvisional < CutMesh
         end
         
         function compute(obj)
+            obj.computeCutCase();
             obj.computeCutEdges();
             obj.computeCutCoordinateComputer();  
             obj.coord = obj.cutCoordComputer.coord;
@@ -69,6 +71,15 @@ classdef CutMeshComputerProvisional < CutMesh
             c.compute();
             obj.cutEdgesComputer = c;    
         end
+        
+        function computeCutCase(obj)
+            nodes = obj.backgroundMesh.connec;
+            ls = zeros(size(nodes));
+            for iNode = 1:size(nodes,2)
+                ls(:,iNode) = obj.levelSet(nodes(:,iNode));                 
+            end            
+            obj.cutCase = 1 - heaviside(ls);
+        end
      
         function computeCutCoordinateComputer(obj)
             s = obj.cutCoordParams;
@@ -94,7 +105,7 @@ classdef CutMeshComputerProvisional < CutMesh
             sA.subMeshConnecParams = sS;
             sA.xAllNodesInElem = c.xAllNodesInElem;
             sA.allNodesInElem  = c.allNodesInElem;
-            sC.isEdgeCutInElem = c.isEdgeCutInElem;
+            sC.cutCase = obj.cutCase;
             s = obj.interiorSubCellsParams;          
             sI = s.isSubCellInteriorParams;
             sI.allNodesInElem = c.allNodesInElem;

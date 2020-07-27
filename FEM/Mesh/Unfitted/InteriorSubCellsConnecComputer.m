@@ -10,7 +10,7 @@ classdef InteriorSubCellsConnecComputer < handle
         subCellCases                
         isSubCellInterior        
         allSubCellsConnec        
-        xNodesInSubCells        
+        xNodesInSubCells    
     end
     
     properties (Access = private)
@@ -37,10 +37,10 @@ classdef InteriorSubCellsConnecComputer < handle
             obj.isSubCellInteriorParams = cParams.isSubCellInteriorParams;
             obj.subCellsCasesParams     = cParams.subCellsCasesParams;
             obj.cutElems                = cParams.cutElems;
-            obj.nSubCellsByElem   = 3;            
         end
         
         function compute(obj)
+            obj.computeNsubCellsByElem();
             obj.computeSubCellCases();
             obj.computeAllSubCellsConnec();
             obj.computeIsSubCellsInterior();
@@ -48,6 +48,15 @@ classdef InteriorSubCellsConnecComputer < handle
             obj.computeXcoordsIso();
             obj.computeCellContainingSubCell();
         end
+        
+        function computeNsubCellsByElem(obj)
+            switch size(obj.subCellsCasesParams.cutCase,2)
+                case 3
+                    obj.nSubCellsByElem   = 3;            
+                case 6
+                    obj.nSubCellsByElem   = 4;
+            end            
+        end        
         
         function computeSubCellCases(obj)            
            s = obj.subCellsCasesParams;
@@ -105,6 +114,7 @@ classdef InteriorSubCellsConnecComputer < handle
             localSubCellsInCell = repmat(1:nCutElem,obj.nSubCellsByElem,1);
             cells = localSubCellsInCell(isInterior);            
         end
+        
                 
     end
     

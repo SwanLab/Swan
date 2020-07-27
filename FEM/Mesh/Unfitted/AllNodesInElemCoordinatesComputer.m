@@ -59,7 +59,12 @@
         end
         
         function computeXisoNodes(obj)
-            m.type = 'TRIANGLE';
+            switch obj.nEdgeByElem
+                case 3
+                    m.type = 'TRIANGLE';
+                case 6
+                    m.type = 'TETRAHEDRA';
+            end
             m.coord  = [];
             m.connec = [];
             int = Interpolation.create(m,'LINEAR');
@@ -93,7 +98,7 @@
         function computeXcut(obj)
             nodes = obj.computeIsoCutNodesInElem();
             xC = obj.initXcut();
-            for iedge = 1:2                
+            for iedge = 1:obj.nCutEdgeByElem                
                 [xA,xB] = obj.computeXnodes(nodes,iedge);
                 [shapeA,shapeB] = obj.computeShapes(iedge);
                 x = xA.*shapeA + xB.*shapeB; 

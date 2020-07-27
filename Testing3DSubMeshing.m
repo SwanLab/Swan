@@ -41,8 +41,8 @@ classdef Testing3DSubMeshing < handle
         function createLevelSet(obj)
              b = -10;
              a = 10;
-             obj.levelSet = b + (a-b)*rand(size(obj.coord,1),1);           
-            % obj.levelSet = [-7.8496;-9.7731;-8.3404;8.3622];
+            % obj.levelSet = b + (a-b)*rand(size(obj.coord,1),1);           
+             obj.levelSet = [-7.8496;-9.7731;-8.3404;8.3622];
         end
         
         function createBackgroundMesh(obj)
@@ -103,6 +103,54 @@ classdef Testing3DSubMeshing < handle
             z = cutCoordComputer.xCutPoints(:,3);
             hold on
             plot3(x,y,z,'k*','LineWidth',10,'MarkerSize',10,'MarkerFaceColor','k','MarkerEdgeColor','k')
+            
+            
+            cEparams.allNodesinElemParams.finalNodeNumber = size(obj.backgroundMesh.coord,1);
+            cEparams.allNodesinElemParams.backgroundConnec = obj.backgroundMesh.connec;
+            cEparams.allNodesInElemCoordParams.localNodeByEdgeByElem = e.localNodeByEdgeByElem;
+            cEparams.edgesInElem = e.edgesInElem;
+            cEparams.nEdgeByElem = e.nEdgeByElem;            
+            cEparams.isEdgeCut = cutEdgesComputer.isEdgeCut;
+            cEparams.allNodesInElemCoordParams.xCutEdgePoint = cutEdgesComputer.xCutEdgePoint;
+            
+            cE = CutPointsInElemComputer(cEparams);
+            cE.compute();            
+            
+            
+            sS.bestSubCellCaseSelector.coord = obj.coord;
+            sA.subMeshConnecParams = sS;
+            sA.xAllNodesInElem = cE.xAllNodesInElem;
+            sA.allNodesInElem  = cE.allNodesInElem;
+            
+            nodes = obj.backgroundMesh.connec;
+            ls = zeros(size(nodes));
+            for iNode = 1:size(nodes,2)
+                ls(:,iNode) = obj.levelSet(nodes(:,iNode));                 
+            end            
+            cutCase = 1 - heaviside(ls);            
+            
+            
+            sC.cutCase = cutCase;
+
+            
+            cutCells = 1;
+            
+            sI.isSubCellInteriorParams.levelSet = obj.levelSet;
+            
+             
+            
+            sI.allNodesInElem = cE.allNodesInElem;
+            s.allSubCellsConnecParams = sA;
+            s.subCellsCasesParams = sC; 
+            s.isSubCellInteriorParams = sI;
+            s.cutElems = cutCells;            
+            subCell = InteriorSubCellsConnecComputer(s);
+            
+            
+              
+        
+            
+            
             
         end
         
