@@ -5,9 +5,9 @@ classdef testUnfittedIntegration_ExternalIntegrator < testUnfittedIntegration
         function totalIntegral = computeGeometricalVariable(obj)
             switch obj.meshType  
                 case 'INTERIOR'
-                    totalIntegral = obj.mesh.computeMass();
+                    totalIntegral = obj.unfittedMesh.computeMass();
                 case 'BOUNDARY'
-                    totalIntegral = obj.mesh.computePerimeter();
+                    totalIntegral = obj.unfittedMesh.computePerimeter();
             end
 
         end

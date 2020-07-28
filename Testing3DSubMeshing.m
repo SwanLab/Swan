@@ -117,10 +117,7 @@ classdef Testing3DSubMeshing < handle
             cE.compute();            
             
             
-            sS.bestSubCellCaseSelector.coord = obj.coord;
-            sA.subMeshConnecParams = sS;
-            sA.xAllNodesInElem = cE.xAllNodesInElem;
-            sA.allNodesInElem  = cE.allNodesInElem;
+
             
             nodes = obj.backgroundMesh.connec;
             ls = zeros(size(nodes));
@@ -145,6 +142,11 @@ classdef Testing3DSubMeshing < handle
             
             sI.isSubCellInteriorParams.levelSet = obj.levelSet;
             
+            sS.bestSubCellCaseSelector.coord = obj.coord;            
+            sA.subMeshConnecParams = sS;
+            sA.xAllNodesInElem = cE.xAllNodesInElem;
+            sA.allNodesInElem  = cE.allNodesInElem;
+            sA.subCellCases    = subCellCases ;           
              
             sI.subCellCases   = subCellCases;
             sI.allNodesInElem = cE.allNodesInElem;

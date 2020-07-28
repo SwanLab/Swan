@@ -14,7 +14,7 @@ classdef QuadBoundaryMeshExperiment < MeshAndGaussOfUnfittedQuadMesh
             nameCase = 'cutMeshProvisionalQuadBoundary';
             s.coord = obj.backgroundMesh.coord;
             s.connec = obj.backgroundMesh.connec;
-            m = Mesh().create(s);
+            m = Mesh(s);
             
             figure()
             s.meshBackground = m;
@@ -27,7 +27,7 @@ classdef QuadBoundaryMeshExperiment < MeshAndGaussOfUnfittedQuadMesh
             
             sM.coord = obj.backgroundMesh.coord;
             sM.connec = connecCut;
-            backgroundCutMesh = Mesh().create(sM);
+            backgroundCutMesh = Mesh(sM);
             
             s.backgroundMesh = backgroundCutMesh;
             s.cutElems = cutElems;

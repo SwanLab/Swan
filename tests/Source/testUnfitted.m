@@ -9,7 +9,7 @@ classdef testUnfitted < test
     properties (Access = protected)
         topOpt
         levelSet
-        mesh
+        unfittedMesh
         oldMeshUnfitted
     end
     
@@ -30,8 +30,8 @@ classdef testUnfitted < test
             s.backgroundMesh = bM.innerMeshOLD;
             s.boundaryMesh   = bM.boxFaceMeshes;
             cParams = SettingsMeshUnfitted(s);            
-            obj.mesh = UnfittedMesh(cParams);
-            obj.mesh.compute(obj.levelSet); 
+            obj.unfittedMesh = UnfittedMesh(cParams);
+            obj.unfittedMesh.compute(obj.levelSet); 
         end
         
     end

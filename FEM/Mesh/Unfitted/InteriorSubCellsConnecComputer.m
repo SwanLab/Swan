@@ -13,7 +13,7 @@ classdef InteriorSubCellsConnecComputer < handle
     end
     
     properties (Access = private)
-        nSubCellsByElem
+        localCells
         allSubCellsConnecParams
         isSubCellInteriorParams
         cutElems
@@ -37,22 +37,12 @@ classdef InteriorSubCellsConnecComputer < handle
         end
         
         function compute(obj)
-            obj.computeNsubCellsByElem();
             obj.computeAllSubCellsConnec();
             obj.computeIsSubCellsInterior();
             obj.computeConnec();
             obj.computeXcoordsIso();
             obj.computeCellContainingSubCell();
         end
-        
-        function computeNsubCellsByElem(obj)
-            switch size(obj.isSubCellInteriorParams.subCellCases,2)
-                case 3
-                    obj.nSubCellsByElem   = 3;            
-                case 4
-                    obj.nSubCellsByElem   = 4;
-            end            
-        end        
         
         function computeAllSubCellsConnec(obj)
             s = obj.allSubCellsConnecParams;
@@ -64,10 +54,10 @@ classdef InteriorSubCellsConnecComputer < handle
            
         function computeIsSubCellsInterior(obj)
             s = obj.isSubCellInteriorParams;
-            s.nSubCellsByElem = obj.nSubCellsByElem; 
-            subCellInt = IsSubCellInteriorComputer(s);
-            subCellInt.compute();
-            obj.isSubCellInterior = subCellInt.isSubCellInterior;
+            c = IsSubCellInteriorComputer(s);
+            c.compute();
+            obj.isSubCellInterior = c.isSubCellInterior;
+            obj.localCells        = c.localCellContainingSubCell;
         end
 
         function computeConnec(obj)
@@ -90,19 +80,12 @@ classdef InteriorSubCellsConnecComputer < handle
         
         function computeCellContainingSubCell(obj)
             localToGlobalCut = obj.cutElems;
-            localCell  = obj.computeLocalCellContainingSubCell();
-            globalCell = localToGlobalCut(localCell); 
+            lCells  = obj.localCells;
+            globalCell = localToGlobalCut(lCells); 
             obj.cellContainingSubcell = globalCell;
         end
         
-        function cells = computeLocalCellContainingSubCell(obj)
-            isInterior = obj.isSubCellInterior;            
-            nCutElem = size(isInterior,2);
-            localSubCellsInCell = repmat(1:nCutElem,obj.nSubCellsByElem,1);
-            cells = localSubCellsInCell(isInterior);            
-        end
-        
-                
+  
     end
     
 end

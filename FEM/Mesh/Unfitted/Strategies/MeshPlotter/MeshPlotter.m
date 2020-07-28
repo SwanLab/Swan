@@ -57,29 +57,48 @@ classdef MeshPlotter < handle
             p.LineWidth = 2.5;
             p.LineStyle = '-';
             axis('equal');
+            nodes = unique(m.connec(:));            
+            if size(m.coord,2) == 3
+                x = m.coord(:,1);
+                y = m.coord(:,2);
+                z = m.coord(:,3);                   
+                hold on
+                plot3(x(nodes),y(nodes),z(nodes),'.r')                
+            else
+                x = m.coord(:,1);
+                y = m.coord(:,2);
+                hold on
+                plot(x(nodes),y(nodes),'.r')                                
+            end            
         end
         
         function plotSurfaceMesh(obj)
             m = obj.mesh;
+            nodes = unique(m.connec(:));            
             if size(m.connec,2) == 3 && size(m.coord,2) == 3
                 x = m.coord(:,1);
                 y = m.coord(:,2);
                 z = m.coord(:,3);
-                p = trisurf(m.connec,m.coord(:,1),m.coord(:,2),m.coord(:,3));
+                p = trisurf(m.connec,x,y,z);
                 p.FaceColor = 'cyan';
                 p.FaceAlpha = 0.8;
                 axis equal;
                 hold on
-                plot3(x,y,z,'.r')
+                plot3(x(nodes),y(nodes),z(nodes),'.r')
             else
+                x = m.coord(:,1);
+                y = m.coord(:,2);                
                 p = patch('vertices',m.coord,'faces',m.connec);
                 p.EdgeAlpha = 0.5;
                 p.EdgeLighting = 'flat';
-                p.FaceColor = [1 0 0];
+%                p.FaceColor = [1 0 0];
+                p.FaceColor = 'cyan';                
                 p.FaceLighting = 'flat';
                 p.FaceAlpha = 1;
                 p.LineWidth = 1.5;
                 axis('equal');
+                hold on
+                plot(x(nodes),y(nodes),'.r')                
             end
             
         end

@@ -1,17 +1,13 @@
 classdef testPlotting < testNotShowingError...
         & testUnfitted...
-        & testLoadStoredVariable
     
     properties (Access = protected, Abstract)
         testName
         meshType
     end
     
-    properties (Access = protected)
-        variablesToStore = {'coord','connec'};
-    end
-    
     methods (Access = protected)
+        
         function obj = testPlotting()
             obj.createTopOpt();
             obj.createMesh();
@@ -20,16 +16,19 @@ classdef testPlotting < testNotShowingError...
         
         function plot(obj)
             if isequal(obj.meshType,'BOUNDARY')            
-                obj.mesh.plotBoundary();
+                obj.unfittedMesh.plotBoundary();
             elseif isequal(obj.meshType,'INTERIOR')            
-                obj.mesh.plot();
+                obj.unfittedMesh.plot();
             end
              view(obj.getViewAngle());            
         end
         
         function hasPassed = hasPassed(obj)
-            hasPassed = true;
+            d = load(obj.testName);     
+            itIs = isequaln(obj.unfittedMesh,d.unfittedMesh);            
+            hasPassed = itIs;
         end
+        
     end
     
     methods (Access = private)

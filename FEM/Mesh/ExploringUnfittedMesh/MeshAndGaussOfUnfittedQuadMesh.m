@@ -20,7 +20,7 @@ classdef MeshAndGaussOfUnfittedQuadMesh < handle
         function computeBackgroundMesh(obj)
             s.coord = [0 0;1 0;1 1;0 1;2 0;2 1;0 2;1 2;2 2];
             s.connec = [1 2 3 4; 2 5 6 3; 4 3 8 7; 3 6 9 8];            
-            m = Mesh().create(s);
+            m = Mesh(s);
             obj.backgroundMesh = m;
         end
         
@@ -36,8 +36,6 @@ classdef MeshAndGaussOfUnfittedQuadMesh < handle
             cutElems = find(isCut);
         end
         
-        
-        
     end
     
     methods (Access = protected, Static)
@@ -45,7 +43,7 @@ classdef MeshAndGaussOfUnfittedQuadMesh < handle
         function m = computeMesh(connec,coord)
             s.connec = connec;
             s.coord = coord;
-            m = Mesh().create(s);
+            m = Mesh(s);
         end
         
         function lsElem = computeLevelSetInElem(ls,connec)
