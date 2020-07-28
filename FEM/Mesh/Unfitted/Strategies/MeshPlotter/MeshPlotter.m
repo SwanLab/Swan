@@ -63,12 +63,14 @@ classdef MeshPlotter < handle
                 y = m.coord(:,2);
                 z = m.coord(:,3);                   
                 hold on
-                plot3(x(nodes),y(nodes),z(nodes),'.r')                
+                p = plot3(x(nodes),y(nodes),z(nodes),'.r');                
+                p.MarkerSize = 6;
             else
                 x = m.coord(:,1);
                 y = m.coord(:,2);
                 hold on
-                plot(x(nodes),y(nodes),'.r')                                
+                p = plot(x(nodes),y(nodes),'.r');                                
+                p.MarkerSize = 8;
             end            
         end
         
@@ -81,10 +83,11 @@ classdef MeshPlotter < handle
                 z = m.coord(:,3);
                 p = trisurf(m.connec,x,y,z);
                 p.FaceColor = 'cyan';
-                p.FaceAlpha = 0.8;
+                p.FaceAlpha = 0.3;
                 axis equal;
                 hold on
-                plot3(x(nodes),y(nodes),z(nodes),'.r')
+                p = plot3(x(nodes),y(nodes),z(nodes),'.r');
+                p.MarkerSize = 6;
             else
                 x = m.coord(:,1);
                 y = m.coord(:,2);                
@@ -94,11 +97,12 @@ classdef MeshPlotter < handle
 %                p.FaceColor = [1 0 0];
                 p.FaceColor = 'cyan';                
                 p.FaceLighting = 'flat';
-                p.FaceAlpha = 1;
+                p.FaceAlpha = 0.3;
                 p.LineWidth = 1.5;
                 axis('equal');
                 hold on
-                plot(x(nodes),y(nodes),'.r')                
+                p = plot(x(nodes),y(nodes),'.r');
+                p.MarkerSize = 8;
             end
             
         end
