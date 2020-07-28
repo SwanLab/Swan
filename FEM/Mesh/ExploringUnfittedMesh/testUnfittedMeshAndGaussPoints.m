@@ -1,4 +1,0 @@
-TriangleDomainMeshExperiment;
-TriangleBoundaryMeshExperiment;
-QuadBoundaryMeshExperiment;
-QuadMeshSubMesherExample;
