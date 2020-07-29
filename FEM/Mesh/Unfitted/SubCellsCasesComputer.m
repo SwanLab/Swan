@@ -2,10 +2,11 @@ classdef SubCellsCasesComputer < handle
     
    properties (GetAccess = public, SetAccess = private)
        subCellCases
+       isSubCellsInterior
    end
    
    properties (Access = private)
-       cutCase
+       isNodeInterior
        intergerCodeCases
        integerCases
    end
@@ -25,14 +26,23 @@ classdef SubCellsCasesComputer < handle
        end
        
        function compute(obj)
-            nElem  = size(obj.cutCase,1);
+            nElem  = size(obj.isNodeInterior,1);
             nCases = size(obj.intergerCodeCases,1);
-            obj.subCellCases = false(nElem,nCases);
+            obj.subCellCases = false(nElem,nCases);            
+           switch size(obj.isNodeInterior,2)
+               case 3
+                   nSubCells = 3;
+               case 4
+                   nSubCells = 4;
+           end                                
+            obj.isSubCellsInterior = false(nSubCells,nElem);
             for icase = 1:nCases                
                 isCaseA = obj.computeIntegerCase(icase,1);
                 isCaseB = obj.computeIntegerCase(icase,2);
                 isCase = or(isCaseA,isCaseB);
                 obj.subCellCases(:,icase) = isCase;
+                obj.isSubCellsInterior(2:end,isCaseA) = true;
+                obj.isSubCellsInterior(1,isCaseB) = true;
             end
         end     
        
@@ -46,12 +56,12 @@ classdef SubCellsCasesComputer < handle
        end
        
        function computeIntergerCodeCases(obj)
-           switch size(obj.cutCase,2)
+           switch size(obj.isNodeInterior,2)
                case 3
                   obj.intergerCodeCases = [6 1;5 2;3 4];   
                   %obj.intergerCodeCases = [3 4;5 2;6 1];                        
                case 4
-                  obj.intergerCodeCases = [1 14;2 13;4 11;8 7];       
+                  obj.intergerCodeCases = [14 1;13 2;11 4;7 8];       
            end           
        end
        
@@ -61,11 +71,11 @@ classdef SubCellsCasesComputer < handle
             for iNode = 1:size(nodes,2)
                 ls(:,iNode) = obj.levelSet(nodes(:,iNode));                 
             end            
-            obj.cutCase = 1 - heaviside(ls);           
+            obj.isNodeInterior = 1 - heaviside(ls);           
        end
        
         function d = computeIntegerCases(obj)
-            nodes = obj.cutCase;
+            nodes = obj.isNodeInterior;
             nnode = size(nodes,2);
             nodePos = (1:nnode) - 1;
             pow2vector = 2.^(nodePos);

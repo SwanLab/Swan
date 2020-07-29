@@ -1,4 +1,4 @@
-classdef testQuadToyUntittedExample < PlottingToyUnfittedExample%MeshAndGaussOfUnfittedQuadMesh
+classdef testQuadToyUntittedExample < PlottingToyUnfittedExample
     
     properties (Access = public)
         testName = 'test_quadToyUntittedExample';

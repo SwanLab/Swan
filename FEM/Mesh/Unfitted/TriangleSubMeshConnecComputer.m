@@ -128,7 +128,7 @@ classdef TriangleSubMeshConnecComputer < handle
                 isActive = obj.imax == isubCase;
                 nodesT = obj.localTriangleConnecCases(icase,:);
                 nodesQ = obj.localQuadConnecCases(:,:,isubCase,icase);                
-                for inode = 1:obj.nSubCellNodes                
+                for inode = 1:obj.nSubCellNodes 
                     nodes(1,inode,isActive) = nodesT(inode);
                     nodes(2,inode,isActive) = nodesQ(1,inode);
                     nodes(3,inode,isActive) = nodesQ(2,inode);

@@ -15,8 +15,8 @@ classdef PlottingTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {... 
+            'testTriangleToyUntittedExample'                
             'testQuadToyUntittedExample'                
-            'testTriangleToyUntittedExample'
             'testCircumferenceQuadrilateral'                
             'testCircumferenceTriangle'            
             'testPlotCircleTriangle'                 

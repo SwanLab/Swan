@@ -5,8 +5,7 @@ classdef AllSubCellsConnecComputer < handle
         xNodesInSubCells
     end
     
-    properties (Access = private)
-        nodesInSubCells
+    properties (Access = private)        
         xNodesInSubCellsByElem
         cellMesher        
     end
@@ -17,7 +16,7 @@ classdef AllSubCellsConnecComputer < handle
         subCellCases
         nElem
         nCases
-        
+        nodesInSubCells        
         subMeshConnecParams
     end
     
@@ -34,9 +33,9 @@ classdef AllSubCellsConnecComputer < handle
             for icase = 1:obj.nCases
                 subCells = obj.subCellCases(:,icase);
                 if sum(subCells) > 0
-                obj.updateCellMesherPartitioner(subCells,icase);
-                obj.computePartitionConnecSubCell(subCells);
-                obj.computePartitionCoordSubCell(subCells);
+                    obj.updateCellMesherPartitioner(subCells,icase);
+                    obj.computePartitionConnecSubCell(subCells);
+                    obj.computePartitionCoordSubCell(subCells);
                 end
             end
             obj.concatenateAllNodesConnec();
@@ -59,7 +58,12 @@ classdef AllSubCellsConnecComputer < handle
         
         function createSubCellMesher(obj)
             s = obj.subMeshConnecParams;
-            obj.cellMesher = TriangleSubMeshConnecComputer(s);
+            switch size(obj.subCellCases,2)
+                case 3
+                    obj.cellMesher = TriangleSubMeshConnecComputer(s);
+                case 4
+                    obj.cellMesher = TethaedraSubMeshConnecComputer(s);
+            end            
         end
         
         function permuteXallNodes(obj)

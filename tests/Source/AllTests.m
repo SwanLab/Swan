@@ -1,5 +1,6 @@
 FemTests;
 UnfittedIntegrationTests;
+VectorizedTriangulationTests;
 TopOptTests;
 %PrintingTests;
 ReadingFilesTests;

@@ -7,7 +7,8 @@ classdef InteriorSubCellsConnecComputer < handle
     end
     
     properties (Access = private)
-        isSubCellInterior        
+        isSubCellInterior 
+        subCellCases
         allSubCellsConnec        
         xNodesInSubCells    
     end
@@ -15,8 +16,8 @@ classdef InteriorSubCellsConnecComputer < handle
     properties (Access = private)
         localCells
         allSubCellsConnecParams
-        isSubCellInteriorParams
         cutElems
+        nSubCellsByElem
     end
     
     methods (Access = public)
@@ -32,13 +33,14 @@ classdef InteriorSubCellsConnecComputer < handle
         
         function init(obj,cParams)        
             obj.allSubCellsConnecParams = cParams.allSubCellsConnecParams;
-            obj.isSubCellInteriorParams = cParams.isSubCellInteriorParams;
             obj.cutElems                = cParams.cutElems;
+            obj.nSubCellsByElem         = cParams.nSubCellsByElem;
+            obj.isSubCellInterior       = cParams.isSubCellInterior;
         end
         
         function compute(obj)
             obj.computeAllSubCellsConnec();
-            obj.computeIsSubCellsInterior();
+            obj.computeLocalCellContainingSubCell();
             obj.computeConnec();
             obj.computeXcoordsIso();
             obj.computeCellContainingSubCell();
@@ -51,15 +53,15 @@ classdef InteriorSubCellsConnecComputer < handle
             obj.allSubCellsConnec = a.allSubCellsConnec;  
             obj.xNodesInSubCells  = a.xNodesInSubCells;
         end
-           
-        function computeIsSubCellsInterior(obj)
-            s = obj.isSubCellInteriorParams;
-            c = IsSubCellInteriorComputer(s);
-            c.compute();
-            obj.isSubCellInterior = c.isSubCellInterior;
-            obj.localCells        = c.localCellContainingSubCell;
-        end
-
+        
+        function cells = computeLocalCellContainingSubCell(obj)
+            isInterior = obj.isSubCellInterior;    
+            nCutElem   = size(isInterior,2);
+            localSubCellsInCell = repmat(1:nCutElem,obj.nSubCellsByElem,1);
+            cells = localSubCellsInCell(isInterior);   
+            obj.localCells = cells;            
+        end            
+        
         function computeConnec(obj)
             allConnec  = obj.allSubCellsConnec;
             isInterior = obj.isSubCellInterior(:);

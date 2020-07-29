@@ -15,6 +15,8 @@ classdef CutMeshComputerProvisional < CutMesh
         cutCoordComputer
         
         subCellCases
+        
+        isSubCellInterior
     end
         
     methods (Access = public)
@@ -62,8 +64,7 @@ classdef CutMeshComputerProvisional < CutMesh
             
             obj.cutEdgesComputerParams = cEparams;
             
-            obj.interiorSubCellsParams.isSubCellInteriorParams.levelSet = obj.levelSet;
-            obj.interiorSubCellsParams.cutElems = obj.cutCells;
+
         end
         
         function computeCutEdges(obj)
@@ -79,6 +80,7 @@ classdef CutMeshComputerProvisional < CutMesh
             subCells = SubCellsCasesComputer(s);
             subCells.compute();
             obj.subCellCases = subCells.subCellCases;
+            obj.isSubCellInterior = subCells.isSubCellsInterior;
         end
      
         function computeCutCoordinateComputer(obj)
@@ -100,19 +102,25 @@ classdef CutMeshComputerProvisional < CutMesh
         end
          
         function computeConnec(obj)
+            switch size(obj.subCellCases,2)
+                case 3
+                    nSubCellsByElem   = 3;            
+                case 4
+                    nSubCellsByElem   = 4;
+            end                            
+            
             c = obj.cutPointsInElemComputer;
             sS.bestSubCellCaseSelector.coord = obj.coord;
             sA.subMeshConnecParams = sS;
             sA.xAllNodesInElem = c.xAllNodesInElem;
             sA.allNodesInElem  = c.allNodesInElem;
             sA.subCellCases    = obj.subCellCases;
-            s = obj.interiorSubCellsParams;          
-            sI = s.isSubCellInteriorParams;
-            sI.allNodesInElem = c.allNodesInElem;
-            sI.subCellCases   = obj.subCellCases;
+
             s.allSubCellsConnecParams = sA;
-            s.subCellsCases = obj.subCellCases; 
-            s.isSubCellInteriorParams = sI;
+            
+            s.cutElems = obj.cutCells;
+            s.nSubCellsByElem = nSubCellsByElem; 
+            s.isSubCellInterior = obj.isSubCellInterior;
             subCell = InteriorSubCellsConnecComputer(s);
             obj.connec                = subCell.connec;
             obj.xCoordsIso            = subCell.xCoordsIso;

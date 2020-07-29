@@ -1,65 +1,49 @@
-classdef Testing3DSubMeshing < handle
+classdef ComputingCutMeshVectorized < handle
     
     properties (Access = public)
+
+    end
+    
+    properties (Access = private)
+        boundaryMesh
+        uMesh        
     end
     
     properties (Access = private)
         backgroundMesh
-        boundaryMesh
-        uMesh
         levelSet
-    end
-    
-    properties (Access = private)
-        coord        
     end
     
     methods (Access = public)
         
-        function obj = Testing3DSubMeshing()
-            obj.init();
-            obj.createLevelSet();
-            obj.createBackgroundMesh();
+        function obj = ComputingCutMeshVectorized(cParams)
+            obj.init(cParams)            
+        end
+        
+        function error = compute(obj)
             obj.createBoundaryMesh();
             obj.createUnfittedMesh();
             obj.plotUnfittedMesh();
-            obj.computeCutPoints();            
+            error = obj.computeCutPoints();    
         end
         
     end
     
     methods (Access = private)
         
-        function init(obj)
-            obj.coord = [0 0 0;
-                     1 0 0;
-                     0 1 0;
-                     0 0 1];    
-            %obj.coord = rand(4,3);
+        function init(obj,cParams)
+            obj.levelSet = cParams.levelSet;
+            obj.backgroundMesh = cParams.backgroundMesh;
         end
         
-        function createLevelSet(obj)
-             b = -10;
-             a = 10;
-            % obj.levelSet = b + (a-b)*rand(size(obj.coord,1),1);           
-             obj.levelSet = [-7.8496;-9.7731;-8.3404;8.3622];
-        end
-        
-        function createBackgroundMesh(obj)
-            s.connec = [1 2 3 4];
-            s.coord  = obj.coord;
-            m = Mesh(s);
-            obj.backgroundMesh = m;
-        end
-        
-        function createBoundaryMesh(obj)
+         function createBoundaryMesh(obj)
             connec = [1 2 3;
                       1 2 4;
                       1 3 4;
                       2 3 4];
             for iFace = 1:size(connec,1)
                con = connec(iFace,:);
-               s.coord =  obj.coord(con,:);
+               s.coord =  obj.backgroundMesh.coord(con,:);
                s.nodesInBoxFaces = con;
                s.connec = [1 2 3];
                s.kFace = 0;
@@ -79,9 +63,10 @@ classdef Testing3DSubMeshing < handle
         
         function plotUnfittedMesh(obj)
             obj.uMesh.plotBoundary()
+            view([1 1 1])
         end
         
-        function computeCutPoints(obj)
+        function error = computeCutPoints(obj)
             obj.backgroundMesh.computeEdges();
             e = obj.backgroundMesh.edges;
             s.nodesInEdges = e.nodesInEdges;
@@ -138,32 +123,45 @@ classdef Testing3DSubMeshing < handle
             subCells = SubCellsCasesComputer(s);
             subCells.compute();
             subCellCases = subCells.subCellCases;            
+
             
-            
-            sI.isSubCellInteriorParams.levelSet = obj.levelSet;
-            
-            sS.bestSubCellCaseSelector.coord = obj.coord;            
+            sS.bestSubCellCaseSelector.coord = obj.backgroundMesh.coord;            
             sA.subMeshConnecParams = sS;
             sA.xAllNodesInElem = cE.xAllNodesInElem;
             sA.allNodesInElem  = cE.allNodesInElem;
             sA.subCellCases    = subCellCases ;           
-             
-            sI.subCellCases   = subCellCases;
-            sI.allNodesInElem = cE.allNodesInElem;
+
             s.allSubCellsConnecParams = sA;
             s.subCellsCasesParams = sC; 
-            s.isSubCellInteriorParams = sI;
-            s.cutElems = cutCells;            
+            s.isSubCellInterior = subCells.isSubCellsInterior;
+            s.cutElems = cutCells;     
+            s.nSubCellsByElem = 4;            
             subCell = InteriorSubCellsConnecComputer(s);
             
+            s.connec = subCell.connec;
+            s.coord  = cutCoordComputer.coord;
             
-              
-        
+            m = Mesh(s);
+            s.mesh                  = m;
+            s.xCoordsIso            = subCell.xCoordsIso;
+            s.cellContainingSubcell = subCell.cellContainingSubcell;
+            innerCutMesh = InnerCutMesh(s);          
             
+            quad = Quadrature.set(innerCutMesh.mesh.type);
+            quad.computeQuadrature('CONSTANT');
             
+            connecT = obj.uMesh.innerCutMesh.mesh.connec;
+            connecT(:,:,2) = innerCutMesh.mesh.connec;
+            
+            vR = obj.uMesh.innerCutMesh.mesh.computeDvolume(quad);            
+            vA = innerCutMesh.mesh.computeDvolume(quad);                       
+            
+            connecT
+            volums = [vR; vA]'
+            
+            error = abs(sum(vA) - sum(vR))
             
         end
-        
         
     end
     
