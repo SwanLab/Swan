@@ -12,6 +12,7 @@ classdef ComputingCutMeshVectorized < handle
     properties (Access = private)
         backgroundMesh
         levelSet
+        boundaryConnec
     end
     
     methods (Access = public)
@@ -34,13 +35,11 @@ classdef ComputingCutMeshVectorized < handle
         function init(obj,cParams)
             obj.levelSet = cParams.levelSet;
             obj.backgroundMesh = cParams.backgroundMesh;
+            obj.boundaryConnec = cParams.boundaryConnec;
         end
         
          function createBoundaryMesh(obj)
-            connec = [1 2 3;
-                      1 2 4;
-                      1 3 4;
-                      2 3 4];
+            connec = obj.boundaryConnec;
             for iFace = 1:size(connec,1)
                con = connec(iFace,:);
                s.coord =  obj.backgroundMesh.coord(con,:);
@@ -115,7 +114,7 @@ classdef ComputingCutMeshVectorized < handle
             sC.cutCase = cutCase;
 
             
-            cutCells = 1;
+            cutCells(:,1) = 1:size(nodes,1);
             
             
             s.connec = obj.backgroundMesh.connec;
@@ -138,10 +137,10 @@ classdef ComputingCutMeshVectorized < handle
             s.nSubCellsByElem = 4;            
             subCell = InteriorSubCellsConnecComputer(s);
             
-            s.connec = subCell.connec;
-            s.coord  = cutCoordComputer.coord;
+            sM.connec = subCell.connec;
+            sM.coord  = cutCoordComputer.coord;
             
-            m = Mesh(s);
+            m = Mesh(sM);
             s.mesh                  = m;
             s.xCoordsIso            = subCell.xCoordsIso;
             s.cellContainingSubcell = subCell.cellContainingSubcell;
@@ -149,15 +148,17 @@ classdef ComputingCutMeshVectorized < handle
             
             quad = Quadrature.set(innerCutMesh.mesh.type);
             quad.computeQuadrature('CONSTANT');
-            
-            connecT = obj.uMesh.innerCutMesh.mesh.connec;
-            connecT(:,:,2) = innerCutMesh.mesh.connec;
+
+            connecU = obj.uMesh.innerCutMesh.mesh.connec
+            connecI = innerCutMesh.mesh.connec
+
             
             vR = obj.uMesh.innerCutMesh.mesh.computeDvolume(quad);            
             vA = innerCutMesh.mesh.computeDvolume(quad);                       
             
-            connecT
-            volums = [vR; vA]'
+            vAT = zeros(size(vR));
+            vAT(1:length(vA)) = vA;
+            volums = [vR; vAT]'
             
             error = abs(sum(vA) - sum(vR))
             

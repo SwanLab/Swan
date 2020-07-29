@@ -11,6 +11,7 @@ classdef VectorizedTriangulationTest < testShowingError
     properties (Access = protected)
         coord          
         connec
+        boundaryConnec        
         levelSet        
     end
     
@@ -40,6 +41,7 @@ classdef VectorizedTriangulationTest < testShowingError
         function computeError(obj)
             s.backgroundMesh = obj.backgroundMesh;
             s.levelSet       = obj.levelSet;
+            s.boundaryConnec = obj.boundaryConnec;
             c = ComputingCutMeshVectorized(s);
             e = c.compute();
             obj.error = e;
