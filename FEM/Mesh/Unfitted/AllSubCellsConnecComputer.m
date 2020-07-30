@@ -58,10 +58,10 @@ classdef AllSubCellsConnecComputer < handle
         
         function createSubCellMesher(obj)
             s = obj.subMeshConnecParams;
-            switch size(obj.subCellCases,2)
-                case 3
+            switch size(obj.xAllNodesInElem,2)
+                case 5
                     obj.cellMesher = TriangleSubMeshConnecComputer(s);
-                case 4
+                case {7,8}
                     obj.cellMesher = TethaedraSubMeshConnecComputer(s);
             end            
         end
@@ -73,14 +73,29 @@ classdef AllSubCellsConnecComputer < handle
         end
         
         function initNodesInSubCells(obj)
-            nSubCellsByElem = obj.cellMesher.nSubCellsByElem;
+           % nSubCellsByElem = obj.cellMesher.nSubCellsByElem;
+            switch mode(size(obj.allNodesInElem,2))
+                case 5
+                    nSubCellsByElem = 3;
+                case 7
+                    nSubCellsByElem = 4;
+                case 8
+                    nSubCellsByElem = 6;
+            end                      
             nSubCellNodes   = obj.cellMesher.nSubCellNodes;
             nodes = zeros(nSubCellNodes,nSubCellsByElem,obj.nElem);
             obj.nodesInSubCells = nodes;
         end
         
         function initXnodesInSubCellsByElem(obj)
-            nSubCellsByElem = obj.cellMesher.nSubCellsByElem;
+            switch mode(size(obj.allNodesInElem,2))
+                case 5
+                    nSubCellsByElem = 3;
+                case 7
+                    nSubCellsByElem = 4;
+                case 8
+                    nSubCellsByElem = 6;
+            end
             nSubCellNodes   = obj.cellMesher.nSubCellNodes;
             nDim = size(obj.xAllNodesInElem,3);
             nodes = zeros(nSubCellsByElem,nSubCellNodes,obj.nElem,nDim);

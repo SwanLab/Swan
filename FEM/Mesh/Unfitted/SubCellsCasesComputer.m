@@ -33,7 +33,13 @@ classdef SubCellsCasesComputer < handle
                case 3
                    nSubCells = 3;
                case 4
-                   nSubCells = 4;
+                   switch mode(sum(obj.isNodeInterior,2))
+                       case {1,3}
+                          nSubCells = 4;
+                       case 2
+                          nSubCells = 6;                           
+                   end
+                       
            end                                
             obj.isSubCellsInterior = false(nSubCells,nElem);
             for icase = 1:nCases                
@@ -41,8 +47,22 @@ classdef SubCellsCasesComputer < handle
                 isCaseB = obj.computeIntegerCase(icase,2);
                 isCase = or(isCaseA,isCaseB);
                 obj.subCellCases(:,icase) = isCase;
-                obj.isSubCellsInterior(2:end,isCaseA) = true;
-                obj.isSubCellsInterior(1,isCaseB) = true;
+                
+                switch size(obj.isNodeInterior,2)
+                    case 3
+                        obj.isSubCellsInterior(2:end,isCaseA) = true;
+                        obj.isSubCellsInterior(1,isCaseB) = true;
+                    case 4
+                        switch mode(sum(obj.isNodeInterior,2))
+
+                            case {1,3}
+                                obj.isSubCellsInterior(2:end,isCaseA) = true;
+                                obj.isSubCellsInterior(1,isCaseB) = true;
+                            case 2
+                                obj.isSubCellsInterior(1:3,isCaseA) = true;
+                                obj.isSubCellsInterior(4:6,isCaseB) = true;    
+                        end
+                end                
             end
         end     
        
@@ -61,7 +81,13 @@ classdef SubCellsCasesComputer < handle
                   obj.intergerCodeCases = [6 1;5 2;3 4];   
                   %obj.intergerCodeCases = [3 4;5 2;6 1];                        
                case 4
-                  obj.intergerCodeCases = [14 1;13 2;11 4;7 8];       
+                   nodesInterior = mode(sum(obj.isNodeInterior,2))
+                   switch nodesInterior                   
+                       case {1,3}
+                        obj.intergerCodeCases = [14 1;13 2;11 4;7 8];
+                       case 2
+                        obj.intergerCodeCases = [6 9;12 3;10 5];
+                   end
            end           
        end
        
