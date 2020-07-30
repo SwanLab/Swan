@@ -1,7 +1,7 @@
-classdef OneTetrahedronAllRand <  VectorizedTriangulationTest
+classdef OneTetrahedronAllRand2Vs2 <  VectorizedTriangulationTest
     
     properties (Access = private)
-       testName = 'OneTetrahedronAllRand';        
+       testName = 'OneTetrahedronAllRand2Vs2';        
     end
     
     methods (Access = protected)
@@ -17,14 +17,7 @@ classdef OneTetrahedronAllRand <  VectorizedTriangulationTest
             a = 0;
             ls = rand(4,1);
             ls = a + (b-a)*ls;            
-            difPos = randperm(4,1);
-            isPositive = randperm(2,1);
-            position = false(4,1);
-            if isPositive == 1
-                position(difPos) = true;
-            else 
-                position(setdiff(1:4,difPos)) = true;
-            end            
+            position = randperm(4,2);      
             ls(position) = -ls(position);
             obj.levelSet = ls;
         end        

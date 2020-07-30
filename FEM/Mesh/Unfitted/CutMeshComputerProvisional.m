@@ -102,12 +102,7 @@ classdef CutMeshComputerProvisional < CutMesh
         end
          
         function computeConnec(obj)
-            switch size(obj.subCellCases,2)
-                case 3
-                    nSubCellsByElem   = 3;            
-                case 4
-                    nSubCellsByElem   = 4;
-            end                            
+                      
             
             c = obj.cutPointsInElemComputer;
             sS.bestSubCellCaseSelector.coord = obj.coord;
@@ -119,6 +114,21 @@ classdef CutMeshComputerProvisional < CutMesh
             s.allSubCellsConnecParams = sA;
             
             s.cutElems = obj.cutCells;
+            
+            switch size(obj.subCellCases,2)
+                case 3
+                    nSubCellsByElem   = 3;            
+                case 4
+                    switch mode(size(c.allNodesInElem,2))
+                        case 7
+                            s.nSubCellsByElem = 4;
+                        case 8
+                            s.nSubCellsByElem = 6;
+                    end
+                    
+                    nSubCellsByElem   = 4;
+            end                  
+            
             s.nSubCellsByElem = nSubCellsByElem; 
             s.isSubCellInterior = obj.isSubCellInterior;
             subCell = InteriorSubCellsConnecComputer(s);

@@ -98,7 +98,7 @@ classdef AllSubCellsConnecComputer < handle
             end
             nSubCellNodes   = obj.cellMesher.nSubCellNodes;
             nDim = size(obj.xAllNodesInElem,3);
-            nodes = zeros(nSubCellsByElem,nSubCellNodes,obj.nElem,nDim);
+            nodes = zeros(nSubCellNodes,nSubCellsByElem,obj.nElem,nDim);
             obj.xNodesInSubCellsByElem = nodes;
         end
         

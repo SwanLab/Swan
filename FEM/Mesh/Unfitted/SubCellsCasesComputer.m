@@ -86,7 +86,7 @@ classdef SubCellsCasesComputer < handle
                        case {1,3}
                         obj.intergerCodeCases = [14 1;13 2;11 4;7 8];
                        case 2
-                        obj.intergerCodeCases = [6 9;12 3;10 5];
+                        obj.intergerCodeCases = [9 6;3 12;5 10];
                    end
            end           
        end

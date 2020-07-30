@@ -29,9 +29,16 @@ classdef VectorizedTriangulationTests < testRunner
             'OneTetrahedronRandCoordOrderedConnecCase14';
              'OneTetrahedronIsoCoordOrderedConnecCase1';            
             'OneTetrahedronRandCoordOrderedConnecCase1';
-            'OneTetrahedronAllRand';
+            'OneTetrahedronAllRand3Vs1';
             'TwoTetrahedronIsoCoordOrderedConnecCase3VsOnePoint'
-            %  'OneTetrahedronIsoCoordOrderedConnecCase6';            
+               'OneTetrahedronIsoCoordOrderedConnecCase6';
+               'OneTetrahedronIsoCoordOrderedConnecCase9';
+                'OneTetrahedronIsoCoordOrderedConnecCase12';               
+                'OneTetrahedronIsoCoordOrderedConnecCase3';    
+                'OneTetrahedronIsoCoordOrderedConnecCase10';
+                'OneTetrahedronIsoCoordOrderedConnecCase5';                
+                'OneTetrahedronAllRand2Vs2';  
+                'TwoTetrahedronIsoCoordOrderedConnecCase2Vs2Point'
             };
         end
     end

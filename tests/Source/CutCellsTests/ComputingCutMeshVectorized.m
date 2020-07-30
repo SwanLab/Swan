@@ -133,8 +133,18 @@ classdef ComputingCutMeshVectorized < handle
             s.allSubCellsConnecParams = sA;
             s.subCellsCasesParams = sC; 
             s.isSubCellInterior = subCells.isSubCellsInterior;
-            s.cutElems = cutCells;     
-            s.nSubCellsByElem = 4;            
+            s.cutElems = cutCells;    
+            
+            
+            
+            switch mode(size(cE.allNodesInElem,2))
+                case 7
+                    s.nSubCellsByElem = 4;
+                case 8
+                    s.nSubCellsByElem = 6;
+            end            
+            
+            
             subCell = InteriorSubCellsConnecComputer(s);
             
             sM.connec = subCell.connec;

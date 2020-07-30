@@ -73,20 +73,18 @@ classdef TethaedraSubMeshConnecComputer < handle
         function nodes = computeNodesFourCutNodes(obj,icase)
             icase
             switch icase
-                case 4
-%                     nodesT = [5 6 7 4];
-%                     nodesP = [1 5 6 7;1 2 7 6;1 2 3 7];
-%                 case 3
-%                     nodesT = [5 7 6 3];
-%                     nodesP = [5 6 7 1 ;2 7 6 1;2 4 7 1 ];
-%                     %nodesP = [1 5 7 6;1 4 6 7;1 4 2 6];
-                    %nodesP  = [5 6 7 2;1 5 7 2;4 1 7 2];
+                case 3
+                    nodes1 = obj.prismaTriangulation([1 5 6],[3 7 8]);
+                    nodes2 = obj.prismaTriangulation([2 5 7],[4 6 8]);
+                    nodes = [nodes1;nodes2];
                 case 2
-%                     nodesT = [5 6 7 2];
-%                     nodesP = [1 5 6 7;1 4 7 6;6 1 4 3];
+                    nodes1 = obj.prismaTriangulation([2 7 8],[1 5 6]);
+                    nodes2 = obj.prismaTriangulation([5 3 7],[6 4 8]);
+                    nodes = [nodes1;nodes2];
                 case 1
-                    nodesT = [6 7 1 5;       ;       ];
-                    nodesP = [5 6 7 2;4 2 7 6;2 3 6 4];
+                    nodes1 = obj.prismaTriangulation([4 7 8],[1 5 6]);
+                    nodes2 = obj.prismaTriangulation([5 2 7],[6 3 8]);
+                    nodes = [nodes1;nodes2];
             end
             
             
