@@ -1,105 +1,134 @@
 classdef SubCellsCasesComputer < handle
     
-   properties (GetAccess = public, SetAccess = private)
-       subCellCases
-       isSubCellsInterior
-   end
-   
-   properties (Access = private)
-       isNodeInterior
-       intergerCodeCases
-       integerCases
-   end
-   
-   properties (Access = private)
-      connec
-      levelSet
-   end
-   
-   methods (Access = public)
-       
-       function obj = SubCellsCasesComputer(cParams)
-          obj.init(cParams);
-          obj.computeCutCase();
-          obj.computeIntergerCodeCases();
-          obj.computeIntegerCases();                                  
-       end
-       
-       function compute(obj)
+    properties (GetAccess = public, SetAccess = private)
+        caseInfo
+    end
+    
+    properties (Access = private)
+        isNodeInterior
+        intergerCodeCases
+        integerCases
+    end
+    
+    properties (Access = private)
+        connec
+        levelSet
+    end
+    
+    methods (Access = public)
+        
+        function obj = SubCellsCasesComputer(cParams)
+            obj.init(cParams);
+            obj.computeCutCase();
+            obj.computeIntegerCases();
+        end
+        %
+        function [subCell,isInt] = computeSubCellsTriangle(obj)
             nElem  = size(obj.isNodeInterior,1);
             nCases = size(obj.intergerCodeCases,1);
-            obj.subCellCases = false(nElem,nCases);            
-           switch size(obj.isNodeInterior,2)
-               case 3
-                   nSubCells = 3;
-               case 4
-                   switch mode(sum(obj.isNodeInterior,2))
-                       case {1,3}
-                          nSubCells = 4;
-                       case 2
-                          nSubCells = 6;                           
-                   end
-                       
-           end                                
-            obj.isSubCellsInterior = false(nSubCells,nElem);
-            for icase = 1:nCases                
+            subCell = false(nElem,nCases);
+            nSubCells = 3;
+            isInt = false(nSubCells,nElem);
+            for icase = 1:nCases
                 isCaseA = obj.computeIntegerCase(icase,1);
                 isCaseB = obj.computeIntegerCase(icase,2);
                 isCase = or(isCaseA,isCaseB);
-                obj.subCellCases(:,icase) = isCase;
-                
-                switch size(obj.isNodeInterior,2)
-                    case 3
-                        obj.isSubCellsInterior(2:end,isCaseA) = true;
-                        obj.isSubCellsInterior(1,isCaseB) = true;
-                    case 4
-                        switch mode(sum(obj.isNodeInterior,2))
-
-                            case {1,3}
-                                obj.isSubCellsInterior(2:end,isCaseA) = true;
-                                obj.isSubCellsInterior(1,isCaseB) = true;
-                            case 2
-                                obj.isSubCellsInterior(1:3,isCaseA) = true;
-                                obj.isSubCellsInterior(4:6,isCaseB) = true;    
-                        end
-                end                
+                subCell(:,icase) = isCase;
+                isInt(2:end,isCaseA) = true;
+                isInt(1,isCaseB) = true;
+            end            
+        end
+        
+        function [subCell,isInt] = computeSubCellsThetaedraThreeVsOne(obj)
+            nElem  = size(obj.isNodeInterior,1);
+            nCases = size(obj.intergerCodeCases,1);
+            subCell = false(nElem,nCases);
+            nSubCells = 4;
+            isInt = false(nSubCells,nElem);            
+            for icase = 1:nCases
+                isCaseA = obj.computeIntegerCase(icase,1);
+                isCaseB = obj.computeIntegerCase(icase,2);
+                isCase = or(isCaseA,isCaseB);
+                subCell(:,icase) = isCase;                
+                isInt(2:end,isCaseA) = true;
+                isInt(1,isCaseB) = true;
             end
-        end     
-       
-   end
+        end
+        
+        function [subCell,isInt] = computeSubCellsThetaedraTwoVsTwo(obj)
+            nElem  = size(obj.isNodeInterior,1);
+            nCases = size(obj.intergerCodeCases,1);
+            subCell = false(nElem,nCases);            
+            nSubCells = 6;
+            isInt = false(nSubCells,nElem);            
+            for icase = 1:nCases
+                isCaseA = obj.computeIntegerCase(icase,1);
+                isCaseB = obj.computeIntegerCase(icase,2);
+                isCase = or(isCaseA,isCaseB);
+                subCell(:,icase) = isCase;                
+                isInt(1:3,isCaseA) = true;
+                isInt(4:6,isCaseB) = true;
+            end
+        end
+        
+        
+        function compute(obj)
+            switch size(obj.isNodeInterior,2)
+                case 3
+                    obj.intergerCodeCases = [6 1;5 2;3 4];                      
+                    [subCell,isInt] = obj.computeSubCellsTriangle();
+                    c{1}.subCellCases       = subCell;
+                    c{1}.isSubCellsInterior = isInt;                                 
+                case 4                    
+                    switch mode(sum(obj.isNodeInterior,2))
+                        case {1,3}
+                            obj.intergerCodeCases = [14 1;13 2;11 4;7 8];            
+                            [subCell,isInt] = obj.computeSubCellsThetaedraThreeVsOne();     
+                            c{1}.cellsCase          = obj.isThreeVsOne();
+                            c{1}.subCellCases       = subCell;
+                            c{1}.isSubCellsInterior = isInt;                                
+                        case 2
+                            obj.intergerCodeCases = [9 6;3 12;5 10];                            
+                            [subCell,isInt] = obj.computeSubCellsThetaedraTwoVsTwo();
+                            c{1}.cellsCase          = obj.isTwoVsTwo();
+                            c{1}.subCellCases       = subCell;
+                            c{1}.isSubCellsInterior = isInt;                            
+                    end               
+            end
+            obj.caseInfo = c;
+        end
+        
+        function itIs = isThreeVsOne(obj)
+            nInteriorNode = sum(obj.isNodeInterior,2);
+            isCase1 = nInteriorNode == 1;
+            isCase3 = nInteriorNode == 3;
+            itIs = or(isCase1,isCase3);             
+        end
+        
+        function itIs = isTwoVsTwo(obj)
+            nInteriorNode = sum(obj.isNodeInterior,2);
+            itIs = nInteriorNode == 2;                 
+        end        
+        
+    end
     
-   methods (Access = private)
-       
-       function init(obj,cParams)
-           obj.connec  = cParams.connec;
-           obj.levelSet = cParams.levelSet;        
-       end
-       
-       function computeIntergerCodeCases(obj)
-           switch size(obj.isNodeInterior,2)
-               case 3
-                  obj.intergerCodeCases = [6 1;5 2;3 4];   
-                  %obj.intergerCodeCases = [3 4;5 2;6 1];                        
-               case 4
-                   nodesInterior = mode(sum(obj.isNodeInterior,2))
-                   switch nodesInterior                   
-                       case {1,3}
-                        obj.intergerCodeCases = [14 1;13 2;11 4;7 8];
-                       case 2
-                        obj.intergerCodeCases = [9 6;3 12;5 10];
-                   end
-           end           
-       end
-       
-       function computeCutCase(obj)
+    methods (Access = private)
+        
+        function init(obj,cParams)
+            obj.connec  = cParams.connec;
+            obj.levelSet = cParams.levelSet;
+        end
+        
+        
+        function computeCutCase(obj)
             nodes = obj.connec;
             ls = zeros(size(nodes));
             for iNode = 1:size(nodes,2)
-                ls(:,iNode) = obj.levelSet(nodes(:,iNode));                 
-            end            
-            obj.isNodeInterior = 1 - heaviside(ls);           
-       end
-       
+                ls(:,iNode) = obj.levelSet(nodes(:,iNode));
+            end
+            obj.isNodeInterior = 1 - heaviside(ls);
+        end
+        
         function d = computeIntegerCases(obj)
             nodes = obj.isNodeInterior;
             nnode = size(nodes,2);
@@ -110,12 +139,12 @@ classdef SubCellsCasesComputer < handle
         end
         
         function isCase = computeIntegerCase(obj,icase,subCase)
-            integerCase = obj.integerCases;            
+            integerCase = obj.integerCases;
             isCase = integerCase == obj.intergerCodeCases(icase,subCase);
         end
         
         
         
-   end
-        
+    end
+    
 end

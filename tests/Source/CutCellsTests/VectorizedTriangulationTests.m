@@ -39,6 +39,7 @@ classdef VectorizedTriangulationTests < testRunner
                 'OneTetrahedronIsoCoordOrderedConnecCase5';                
                 'OneTetrahedronAllRand2Vs2';  
                 'TwoTetrahedronIsoCoordOrderedConnecCase2Vs2Point'
+%                 'TwoTetrahedronIsoCoordOrderedConnecCaseBothCases'
             };
         end
     end

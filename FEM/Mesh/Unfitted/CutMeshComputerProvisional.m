@@ -79,8 +79,8 @@ classdef CutMeshComputerProvisional < CutMesh
             s.levelSet = obj.levelSet;
             subCells = SubCellsCasesComputer(s);
             subCells.compute();
-            obj.subCellCases = subCells.subCellCases;
-            obj.isSubCellInterior = subCells.isSubCellsInterior;
+            obj.subCellCases      = subCells.caseInfo{1}.subCellCases;
+            obj.isSubCellInterior = subCells.caseInfo{1}.isSubCellsInterior;
         end
      
         function computeCutCoordinateComputer(obj)

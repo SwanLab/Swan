@@ -121,7 +121,7 @@ classdef ComputingCutMeshVectorized < handle
             s.levelSet = obj.levelSet;
             subCells = SubCellsCasesComputer(s);
             subCells.compute();
-            subCellCases = subCells.subCellCases;            
+            subCellCases = subCells.caseInfo{1}.subCellCases;            
 
             
             sS.bestSubCellCaseSelector.coord = obj.backgroundMesh.coord;            
@@ -132,7 +132,7 @@ classdef ComputingCutMeshVectorized < handle
 
             s.allSubCellsConnecParams = sA;
             s.subCellsCasesParams = sC; 
-            s.isSubCellInterior = subCells.isSubCellsInterior;
+            s.isSubCellInterior = subCells.caseInfo{1}.isSubCellsInterior;
             s.cutElems = cutCells;    
             
             
