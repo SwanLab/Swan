@@ -27,8 +27,7 @@ classdef TethaedraSubMeshConnecComputer < handle
                     obj.nSubCellsByElem = 4;
                 case 8
                     obj.nSubCellsByElem = 6;
-            end
-            
+            end            
             
             obj.nElemInCase = size(nodes,1);
             obj.cellNodes   = nodes;
@@ -44,7 +43,17 @@ classdef TethaedraSubMeshConnecComputer < handle
                         nodesC(4,inode,isActive) = nodesP(3,inode);
                     end
                 case 8
-                    nodesC = obj.computeNodesFourCutNodes(icase);
+                    nodesCC = obj.computeNodesFourCutNodes(icase);
+                    for inode = 1:obj.nSubCellNodes
+                        nodesC(1,inode,isActive) = nodesCC(1,inode);
+                        nodesC(2,inode,isActive) = nodesCC(2,inode);
+                        nodesC(3,inode,isActive) = nodesCC(3,inode);
+                        nodesC(4,inode,isActive) = nodesCC(4,inode);
+                        nodesC(5,inode,isActive) = nodesCC(5,inode);   
+                        nodesC(6,inode,isActive) = nodesCC(6,inode);                        
+                    end                    
+                    
+                    
             end
             obj.connecCase = nodesC;
         end

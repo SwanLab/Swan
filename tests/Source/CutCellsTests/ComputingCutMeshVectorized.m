@@ -5,6 +5,8 @@ classdef ComputingCutMeshVectorized < handle
     end
     
     properties (Access = private)
+        t2
+        t1
         boundaryMesh
         uMesh        
     end
@@ -23,9 +25,14 @@ classdef ComputingCutMeshVectorized < handle
         
         function error = compute(obj)
             obj.createBoundaryMesh();
+           tic            
             obj.createUnfittedMesh();
-            obj.plotUnfittedMesh();
+          obj.t1 = toc;
+           % obj.plotUnfittedMesh();
+          tic  
             error = obj.computeCutPoints();    
+          obj.t2 =   toc;
+          ratio = obj.t1/obj.t2
         end
         
     end
@@ -66,8 +73,8 @@ classdef ComputingCutMeshVectorized < handle
         end
         
         function subCellCases = computeSubCellCases(obj)
-            s.connec = obj.backgroundMesh.connec;
-            s.levelSet = obj.levelSet;
+            s.connec     = obj.backgroundMesh.connec;
+            s.levelSet   = obj.levelSet;
             subCellCases = SubCellsCasesComputer(s);
             subCellCases.compute();
         end
@@ -83,21 +90,9 @@ classdef ComputingCutMeshVectorized < handle
             c.compute();
             cutEdgesComputer = c;   
             
-            s.edgesInElem   = e.edgesInElem;
-            s.isEdgeCut     = cutEdgesComputer.isEdgeCut;
-            isEdgeCut       = EdgeCutInElemComputer(s);
-            isEdgeCutInElem = isEdgeCut.compute();                   
             
-            
-            
-            subCellCases = obj.computeSubCellCases();
-            
-          
-                 
-            
-         
-            sC.coord = obj.backgroundMesh.coord;
-            sC.nodesInEdges = e.nodesInEdges;  
+            sC.coord            = obj.backgroundMesh.coord;
+            sC.nodesInEdges     = e.nodesInEdges;  
             sC.xCutEdgePoint    = cutEdgesComputer.xCutEdgePoint;
             sC.isEdgeCut        = cutEdgesComputer.isEdgeCut;
             cComputer = CutCoordinatesComputer(sC);
@@ -109,89 +104,129 @@ classdef ComputingCutMeshVectorized < handle
             z = cutCoordComputer.xCutPoints(:,3);
             hold on
             plot3(x,y,z,'k*','LineWidth',10,'MarkerSize',10,'MarkerFaceColor','k','MarkerEdgeColor','k')
+                 
+            
+            s.edgesInElem   = e.edgesInElem;
+            s.isEdgeCut     = cutEdgesComputer.isEdgeCut;
+            isEdgeCut       = EdgeCutInElemComputer(s);
+            isEdgeCutInElem = isEdgeCut.compute();                   
             
             
-            cEparams.allNodesinElemParams.finalNodeNumber = size(obj.backgroundMesh.coord,1);
-            cEparams.allNodesinElemParams.backgroundConnec = obj.backgroundMesh.connec;
-            cEparams.allNodesInElemCoordParams.localNodeByEdgeByElem = e.localNodeByEdgeByElem;
-            cEparams.edgesInElem = e.edgesInElem;
-            cEparams.nEdgeByElem = e.nEdgeByElem;            
-            cEparams.isEdgeCut = cutEdgesComputer.isEdgeCut;
-            cEparams.allNodesInElemCoordParams.xCutEdgePoint = cutEdgesComputer.xCutEdgePoint;
-            cEparams.isEdgeCutInElem = isEdgeCutInElem;
-            cE = CutPointsInElemComputer(cEparams);
-            cE.compute();            
+            
+            subCellCases = obj.computeSubCellCases();
+            
+            nEdgesCutCase   = [3 4];
+            nSubCellsByElem = [4 6];
+            
+            subCell = cell(length(nEdgesCutCase),1);
+            nCutEdges = sum(isEdgeCutInElem,1);
+            for icases = 1:length(nEdgesCutCase)
+                t = nCutEdges == nEdgesCutCase(icases);
+                isEdgeCutInElemCase = isEdgeCutInElem(:,t);
+                
+                s.isEdgeCutInElem = isEdgeCutInElemCase;
+                all2Cut = AllEdges2CutEdgesComputer(s);
+                
+                cEparams.all2Cut = all2Cut;
+                cEparams.allNodesinElemParams.finalNodeNumber = size(obj.backgroundMesh.coord,1);
+                cEparams.allNodesinElemParams.connec = obj.backgroundMesh.connec(t,:);
+                cEparams.allNodesInElemCoordParams.localNodeByEdgeByElem = e.localNodeByEdgeByElem(t,:,:);
+                cEparams.edgesInElem = e.edgesInElem(t,:);
+                cEparams.nEdgeByElem = e.nEdgeByElem;
+                cEparams.isEdgeCut = cutEdgesComputer.isEdgeCut;
+                cEparams.allNodesInElemCoordParams.xCutEdgePoint = cutEdgesComputer.xCutEdgePoint;
+                cEparams.isEdgeCutInElem = isEdgeCutInElemCase;
+                cE = CutPointsInElemComputer(cEparams);
+                cE.compute();
+                cT{icases} = cE;
+                
+                caseInfo = subCellCases.caseInfo{icases};
+                
+            
+                nodes = obj.backgroundMesh.connec;
+                cutCells(:,1) = 1:size(nodes,1);
+                
+                
+                
+                sS.bestSubCellCaseSelector.coord = obj.backgroundMesh.coord;
+                sA.subMeshConnecParams           = sS;
+                sA.xAllNodesInElem               = cE.xAllNodesInElem;
+                sA.allNodesInElem                = cE.allNodesInElem;
+                sA.subCellCases                  = caseInfo.subCellCases(t,:);
+                
+                sI.allSubCellsConnecParams = sA;
+                sI.isSubCellInterior = caseInfo.isSubCellsInterior(:,t);
+                sI.cutElems = cutCells;
+                
+                sI.nSubCellsByElem = nSubCellsByElem(icases);
+                
+                if ~isempty(sI.isSubCellInterior)
+                subCell{icases} = InteriorSubCellsConnecComputer(sI);
+                end
+            
+            end
+            
+            connecT = [];
+            xCoordsIso = [];
+            cellC = [];
+            
+%
+            for icase = 1:2
+               subC = subCell{icase};
+               if ~isempty(subC)                 
+                 connecT = cat(1,connecT,subC.connec);
+                 xCoordsIso = cat(3,xCoordsIso,subC.xCoordsIso);
+
+                 cellC = cat(1,cellC,subC.cellContainingSubcell);                 
+               end
+            end
+            
+            connec                = connecT;
+            coord                 = cutCoordComputer.coord;
+            xCoordsIso            = xCoordsIso;
+            cellContainingSubcell = cellC;
+            
+            error = obj.createInnerCutAndPlot(connec,coord,xCoordsIso,cellContainingSubcell);
             
             
 
             
-            nodes = obj.backgroundMesh.connec;
-            ls = zeros(size(nodes));
-            for iNode = 1:size(nodes,2)
-                ls(:,iNode) = obj.levelSet(nodes(:,iNode));                 
-            end            
-            cutCase = 1 - heaviside(ls);            
+        end
+        
+        
+        
+        function error = createInnerCutAndPlot(obj,connec,coord,xCoordsIso,cellContainingSubcell)            
+          
+            if ~isempty(obj.uMesh.innerCutMesh)
+            quad = Quadrature.set(obj.uMesh.innerCutMesh.mesh.type);
+            quad.computeQuadrature('CONSTANT');          
             
-            
-            sC.cutCase = cutCase;
+            vR = obj.uMesh.innerCutMesh.mesh.computeDvolume(quad);
 
-            
-            cutCells(:,1) = 1:size(nodes,1);
-            
-            
-           switch mode(size(cE.allNodesInElem,2))
-                case 7
-                    nSubCellsByElem = 4;
-                    caseInfo = subCellCases.caseInfo{1};                    
-                case 8
-                    nSubCellsByElem = 6;
-                    caseInfo = subCellCases.caseInfo{2};
-            end   
-
-            
-            sS.bestSubCellCaseSelector.coord = obj.backgroundMesh.coord;            
-            sA.subMeshConnecParams = sS;
-            sA.xAllNodesInElem = cE.xAllNodesInElem;
-            sA.allNodesInElem  = cE.allNodesInElem;
-            sA.subCellCases    = caseInfo.subCellCases;           
-
-            s.allSubCellsConnecParams = sA;
-            s.subCellsCasesParams = sC; 
-            s.isSubCellInterior = caseInfo.isSubCellsInterior;
-            s.cutElems = cutCells;    
-            
-            
-            
-            s.nSubCellsByElem = nSubCellsByElem;
-            
-            
-            subCell = InteriorSubCellsConnecComputer(s);
-            
-            sM.connec = subCell.connec;
-            sM.coord  = cutCoordComputer.coord;
+            sM.connec = connec
+            sM.coord  = coord
             
             m = Mesh(sM);
             s.mesh                  = m;
-            s.xCoordsIso            = subCell.xCoordsIso;
-            s.cellContainingSubcell = subCell.cellContainingSubcell;
-            innerCutMesh = InnerCutMesh(s);          
-            
-            quad = Quadrature.set(innerCutMesh.mesh.type);
-            quad.computeQuadrature('CONSTANT');
+            s.xCoordsIso            = xCoordsIso;
+            s.cellContainingSubcell = cellContainingSubcell;
+            innerCutMesh = InnerCutMesh(s);
 
+            
             connecU = obj.uMesh.innerCutMesh.mesh.connec
             connecI = innerCutMesh.mesh.connec
-
             
-            vR = obj.uMesh.innerCutMesh.mesh.computeDvolume(quad);            
-            vA = innerCutMesh.mesh.computeDvolume(quad);                       
+            
+            vA = innerCutMesh.mesh.computeDvolume(quad);
             
             vAT = zeros(size(vR));
             vAT(1:length(vA)) = vA;
             volums = [vR; vAT]'
             
             error = abs(sum(vA) - sum(vR))
-            
+            else
+                error = 0
+            end
         end
         
     end

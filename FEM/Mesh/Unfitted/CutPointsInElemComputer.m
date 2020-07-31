@@ -34,7 +34,6 @@ classdef CutPointsInElemComputer < handle
         end
         
         function compute(obj)
-            obj.createAllEdges2CutEdge();
             obj.computeEdgeCutPointsInElem();
             obj.computeAllNodesInElem();
             obj.computeXallNodesInElemAndXcut();
@@ -51,15 +50,11 @@ classdef CutPointsInElemComputer < handle
             obj.nEdgeByElem               = cParams.nEdgeByElem;
             obj.allNodesinElemParams      = cParams.allNodesinElemParams;
             obj.allNodesInElemCoordParams = cParams.allNodesInElemCoordParams;
+            obj.all2Cut                   = cParams.all2Cut;
             obj.nElem             = size(obj.edgesInElem,1);
             obj.nCutEdges         = sum(obj.isEdgeCut);
         end
         
-        
-        function createAllEdges2CutEdge(obj)
-           s.isEdgeCutInElem = obj.isEdgeCutInElem;
-           obj.all2Cut = AllEdges2CutEdgesComputer(s);
-        end
 
         function computeEdgeCutPointsInElem(obj)
             edges = obj.edgesInElem;                          

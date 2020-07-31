@@ -19,7 +19,7 @@ classdef AllEdges2CutEdgesComputer < handle
             allEdges = transpose(allEdges);
             cutEdges = allEdges(obj.isEdgeCutInElem);
             cutEdges = reshape(cutEdges,obj.nCutEdgeByElem,nElem);
-            edge = transpose(cutEdges);           
+            edge     = transpose(cutEdges);           
        end
        
        

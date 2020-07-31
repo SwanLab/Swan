@@ -14,7 +14,7 @@ classdef TwoTetrahedronIsoCoordOrderedConnecCaseBothCases <  VectorizedTriangula
         end
         
         function createLevelSet(obj)
-             obj.levelSet = [-7.8496;5.7731;-8.3404;-8.3622;10.3622];
+             obj.levelSet =  [-7.8496;5.7731;-8.3404;-8.3622;10.3622];
         end        
         
     end
