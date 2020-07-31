@@ -23,7 +23,7 @@ classdef SubCellsCasesComputer < handle
             obj.computeIntegerCases();
         end
         %
-        function [subCell,isInt] = computeSubCellsTriangle(obj)
+        function c = computeSubCellsTriangle(obj)
             nElem  = size(obj.isNodeInterior,1);
             nCases = size(obj.intergerCodeCases,1);
             subCell = false(nElem,nCases);
@@ -36,10 +36,13 @@ classdef SubCellsCasesComputer < handle
                 subCell(:,icase) = isCase;
                 isInt(2:end,isCaseA) = true;
                 isInt(1,isCaseB) = true;
-            end            
+            end 
+           % c.cellsCase          = isThreeVsOne;
+            c.subCellCases       = subCell;
+            c.isSubCellsInterior  = isInt;    
         end
         
-        function [subCell,isInt] = computeSubCellsThetaedraThreeVsOne(obj)
+        function c = computeSubCellsThetaedraThreeVsOne(obj)
             nElem  = size(obj.isNodeInterior,1);
             nCases = size(obj.intergerCodeCases,1);
             subCell = false(nElem,nCases);
@@ -53,9 +56,12 @@ classdef SubCellsCasesComputer < handle
                 isInt(2:end,isCaseA) = true;
                 isInt(1,isCaseB) = true;
             end
+            c.cellsCase          = obj.isThreeVsOne();
+            c.subCellCases       = subCell;
+            c.isSubCellsInterior  = isInt;               
         end
         
-        function [subCell,isInt] = computeSubCellsThetaedraTwoVsTwo(obj)
+        function c = computeSubCellsThetaedraTwoVsTwo(obj)
             nElem  = size(obj.isNodeInterior,1);
             nCases = size(obj.intergerCodeCases,1);
             subCell = false(nElem,nCases);            
@@ -69,6 +75,9 @@ classdef SubCellsCasesComputer < handle
                 isInt(1:3,isCaseA) = true;
                 isInt(4:6,isCaseB) = true;
             end
+            c.cellsCase          = obj.isTwoVsTwo();
+            c.subCellCases       = subCell;
+            c.isSubCellsInterior  = isInt;             
         end
         
         
@@ -76,24 +85,16 @@ classdef SubCellsCasesComputer < handle
             switch size(obj.isNodeInterior,2)
                 case 3
                     obj.intergerCodeCases = [6 1;5 2;3 4];                      
-                    [subCell,isInt] = obj.computeSubCellsTriangle();
-                    c{1}.subCellCases       = subCell;
-                    c{1}.isSubCellsInterior = isInt;                                 
+                    c{1} = obj.computeSubCellsTriangle();                              
                 case 4                    
-                    switch mode(sum(obj.isNodeInterior,2))
-                        case {1,3}
+                  %  switch mode(sum(obj.isNodeInterior,2))
+                       % case {1,3}
                             obj.intergerCodeCases = [14 1;13 2;11 4;7 8];            
-                            [subCell,isInt] = obj.computeSubCellsThetaedraThreeVsOne();     
-                            c{1}.cellsCase          = obj.isThreeVsOne();
-                            c{1}.subCellCases       = subCell;
-                            c{1}.isSubCellsInterior = isInt;                                
-                        case 2
+                            c{1} = obj.computeSubCellsThetaedraThreeVsOne();                              
+                       % case 2
                             obj.intergerCodeCases = [9 6;3 12;5 10];                            
-                            [subCell,isInt] = obj.computeSubCellsThetaedraTwoVsTwo();
-                            c{1}.cellsCase          = obj.isTwoVsTwo();
-                            c{1}.subCellCases       = subCell;
-                            c{1}.isSubCellsInterior = isInt;                            
-                    end               
+                            c{2} = obj.computeSubCellsThetaedraTwoVsTwo();                                                  
+                 %   end               
             end
             obj.caseInfo = c;
         end

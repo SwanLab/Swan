@@ -73,7 +73,6 @@ classdef AllSubCellsConnecComputer < handle
         end
         
         function initNodesInSubCells(obj)
-           % nSubCellsByElem = obj.cellMesher.nSubCellsByElem;
             switch mode(size(obj.allNodesInElem,2))
                 case 5
                     nSubCellsByElem = 3;

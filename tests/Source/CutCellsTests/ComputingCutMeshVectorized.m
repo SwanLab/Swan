@@ -65,14 +65,36 @@ classdef ComputingCutMeshVectorized < handle
             view([1 1 1])
         end
         
+        function subCellCases = computeSubCellCases(obj)
+            s.connec = obj.backgroundMesh.connec;
+            s.levelSet = obj.levelSet;
+            subCellCases = SubCellsCasesComputer(s);
+            subCellCases.compute();
+        end
+        
         function error = computeCutPoints(obj)
+            
             obj.backgroundMesh.computeEdges();
+            
             e = obj.backgroundMesh.edges;
             s.nodesInEdges = e.nodesInEdges;
             s.levelSet     = obj.levelSet;       
             c = CutEdgesComputer(s);
             c.compute();
             cutEdgesComputer = c;   
+            
+            s.edgesInElem   = e.edgesInElem;
+            s.isEdgeCut     = cutEdgesComputer.isEdgeCut;
+            isEdgeCut       = EdgeCutInElemComputer(s);
+            isEdgeCutInElem = isEdgeCut.compute();                   
+            
+            
+            
+            subCellCases = obj.computeSubCellCases();
+            
+          
+                 
+            
          
             sC.coord = obj.backgroundMesh.coord;
             sC.nodesInEdges = e.nodesInEdges;  
@@ -96,7 +118,7 @@ classdef ComputingCutMeshVectorized < handle
             cEparams.nEdgeByElem = e.nEdgeByElem;            
             cEparams.isEdgeCut = cutEdgesComputer.isEdgeCut;
             cEparams.allNodesInElemCoordParams.xCutEdgePoint = cutEdgesComputer.xCutEdgePoint;
-            
+            cEparams.isEdgeCutInElem = isEdgeCutInElem;
             cE = CutPointsInElemComputer(cEparams);
             cE.compute();            
             
@@ -117,32 +139,30 @@ classdef ComputingCutMeshVectorized < handle
             cutCells(:,1) = 1:size(nodes,1);
             
             
-            s.connec = obj.backgroundMesh.connec;
-            s.levelSet = obj.levelSet;
-            subCells = SubCellsCasesComputer(s);
-            subCells.compute();
-            subCellCases = subCells.caseInfo{1}.subCellCases;            
+           switch mode(size(cE.allNodesInElem,2))
+                case 7
+                    nSubCellsByElem = 4;
+                    caseInfo = subCellCases.caseInfo{1};                    
+                case 8
+                    nSubCellsByElem = 6;
+                    caseInfo = subCellCases.caseInfo{2};
+            end   
 
             
             sS.bestSubCellCaseSelector.coord = obj.backgroundMesh.coord;            
             sA.subMeshConnecParams = sS;
             sA.xAllNodesInElem = cE.xAllNodesInElem;
             sA.allNodesInElem  = cE.allNodesInElem;
-            sA.subCellCases    = subCellCases ;           
+            sA.subCellCases    = caseInfo.subCellCases;           
 
             s.allSubCellsConnecParams = sA;
             s.subCellsCasesParams = sC; 
-            s.isSubCellInterior = subCells.caseInfo{1}.isSubCellsInterior;
+            s.isSubCellInterior = caseInfo.isSubCellsInterior;
             s.cutElems = cutCells;    
             
             
             
-            switch mode(size(cE.allNodesInElem,2))
-                case 7
-                    s.nSubCellsByElem = 4;
-                case 8
-                    s.nSubCellsByElem = 6;
-            end            
+            s.nSubCellsByElem = nSubCellsByElem;
             
             
             subCell = InteriorSubCellsConnecComputer(s);

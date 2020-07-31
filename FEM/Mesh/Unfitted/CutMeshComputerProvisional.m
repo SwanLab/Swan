@@ -74,13 +74,28 @@ classdef CutMeshComputerProvisional < CutMesh
             obj.cutEdgesComputer = c;    
         end
         
+        function isEdgeCutInElem = computeIsEdgeCutInElem(obj)
+            s.edgesInElem = obj.backgroundMesh.edges.edgesInElem;
+            s.isEdgeCut   = obj.cutEdgesComputer.isEdgeCut;
+            isEdgeCut = EdgeCutInElemComputer(s);
+            isEdgeCutInElem = isEdgeCut.compute();                
+        end
+        
         function computeSubCellCases(obj)
             s.connec = obj.backgroundMesh.connec;
             s.levelSet = obj.levelSet;
             subCells = SubCellsCasesComputer(s);
             subCells.compute();
-            obj.subCellCases      = subCells.caseInfo{1}.subCellCases;
-            obj.isSubCellInterior = subCells.caseInfo{1}.isSubCellsInterior;
+            
+           switch numel(subCells.caseInfo)
+               case 1
+                    caseInfo = subCells.caseInfo{1};                    
+                case 2
+                    caseInfo = subCells.caseInfo{2};
+            end             
+            
+            obj.subCellCases      = caseInfo.subCellCases;
+            obj.isSubCellInterior = caseInfo.isSubCellsInterior;
         end
      
         function computeCutCoordinateComputer(obj)
@@ -96,6 +111,7 @@ classdef CutMeshComputerProvisional < CutMesh
             s = obj.cutEdgesComputerParams;
             s.isEdgeCut = obj.cutEdgesComputer.isEdgeCut;
             s.allNodesInElemCoordParams.xCutEdgePoint = obj.cutEdgesComputer.xCutEdgePoint;
+            s.isEdgeCutInElem  = obj.computeIsEdgeCutInElem();            
             c = CutPointsInElemComputer(s);
             c.compute();
             obj.cutPointsInElemComputer = c;
@@ -152,7 +168,7 @@ classdef CutMeshComputerProvisional < CutMesh
         end                
         
         function computeBoundaryXCoordsIso(obj)
-            obj.xCoordsIsoBoundary = obj.cutPointsInElemComputer.xCut;
+            obj.xCoordsIsoBoundary = obj.cutPointsInElemComputer.xCutInElem;
         end        
 
         function computeBoundaryCellContainingSubCell(obj)

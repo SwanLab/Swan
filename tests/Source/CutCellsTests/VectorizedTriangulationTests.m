@@ -30,7 +30,7 @@ classdef VectorizedTriangulationTests < testRunner
              'OneTetrahedronIsoCoordOrderedConnecCase1';            
             'OneTetrahedronRandCoordOrderedConnecCase1';
             'OneTetrahedronAllRand3Vs1';
-            'TwoTetrahedronIsoCoordOrderedConnecCase3VsOnePoint'
+              'TwoTetrahedronIsoCoordOrderedConnecCase3VsOnePoint'
                'OneTetrahedronIsoCoordOrderedConnecCase6';
                'OneTetrahedronIsoCoordOrderedConnecCase9';
                 'OneTetrahedronIsoCoordOrderedConnecCase12';               
@@ -39,7 +39,7 @@ classdef VectorizedTriangulationTests < testRunner
                 'OneTetrahedronIsoCoordOrderedConnecCase5';                
                 'OneTetrahedronAllRand2Vs2';  
                 'TwoTetrahedronIsoCoordOrderedConnecCase2Vs2Point'
-%                 'TwoTetrahedronIsoCoordOrderedConnecCaseBothCases'
+ %                'TwoTetrahedronIsoCoordOrderedConnecCaseBothCases'
             };
         end
     end
