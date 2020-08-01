@@ -11,8 +11,8 @@ classdef CutMeshFactory < handle
                     s.cutCells          = cParams.cutCells;
                     s.levelSet          = cParams.levelSet;
                     c = CutMeshProvisionalLine(s);
-                %case {'TRIANGLE','TETRAHEDRA'}
-                case {'TRIANGLE'}                    
+                case {'TRIANGLE','TETRAHEDRA'}
+                %case {'TRIANGLE'}                    
                     s.backgroundMesh = bCutMesh;
                     s.cutCells       = cParams.cutCells;
                     s.levelSet       = cParams.levelSet;
