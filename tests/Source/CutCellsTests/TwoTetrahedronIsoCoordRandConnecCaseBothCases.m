@@ -7,7 +7,7 @@ classdef TwoTetrahedronIsoCoordRandConnecCaseBothCases <  VectorizedTriangulatio
     methods (Access = protected)
         
         function createCoordAndConnec(obj)
-            obj.coord = rand(5000,3); 
+            obj.coord = rand(50,3); 
             t = delaunayTriangulation(obj.coord);
             obj.connec = t.ConnectivityList;
             obj.boundaryConnec = boundary(obj.coord);                        

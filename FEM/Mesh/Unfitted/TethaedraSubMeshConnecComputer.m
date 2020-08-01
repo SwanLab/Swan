@@ -27,7 +27,7 @@ classdef TethaedraSubMeshConnecComputer < handle
                     obj.nSubCellsByElem = 4;
                 case 8
                     obj.nSubCellsByElem = 6;
-            end            
+            end              
             
             obj.nElemInCase = size(nodes,1);
             obj.cellNodes   = nodes;
@@ -80,7 +80,7 @@ classdef TethaedraSubMeshConnecComputer < handle
         end
         
         function nodes = computeNodesFourCutNodes(obj,icase)
-            icase
+            
             switch icase
                 case 3
                     nodes1 = obj.prismaTriangulation([1 5 6],[3 7 8]);
@@ -100,7 +100,7 @@ classdef TethaedraSubMeshConnecComputer < handle
         end
         
         function [nodesT,nodesP] = computeNodesTAndNodesP(obj,icase)
-            icase
+            
             switch icase
                 case 4
                     nodesT = [5 6 7 4];
