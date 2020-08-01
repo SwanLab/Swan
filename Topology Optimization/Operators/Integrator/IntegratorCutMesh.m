@@ -1,123 +1,75 @@
 classdef IntegratorCutMesh < Integrator
     
-    properties (Access = private)
-        Fnodal
-        quadrature
-        RHScells
-        RHScellsCut
-        backgroundMesh
-        xGauss
+    properties (Access = private)        
+        backgroundMeshType
+        xCoordsIso
+        cellContainingSubcell
     end
     
     methods (Access = public)
         
         function obj = IntegratorCutMesh(cParams)
             obj.init(cParams);
-            obj.backgroundMesh = cParams.meshBackground;
+            obj.globalConnec          = cParams.globalConnec;            
+            obj.xCoordsIso            = cParams.xCoordsIso;
+            obj.cellContainingSubcell = cParams.cellContainingSubcell;
+            obj.backgroundMeshType    = cParams.backgroundMeshType;                        
         end
         
-        function A = integrate(obj,Fnodal,quad)
-            obj.Fnodal = Fnodal;
-            if nargin == 3
-                obj.quadrature = quad;
-            else
-                type = obj.mesh.geometryType;
-                obj.quadrature = obj.computeQuadrature(type);
-            end
-            obj.computeElementalRHS();
-            obj.assembleSubcellsInCells();
-            A = obj.assembleIntegrand();
+        function rhs = integrate(obj,fNodal)
+            c = obj.computeSubCellConnec();
+            t = obj.backgroundMeshType;
+            xGauss = obj.computeGaussPoints();
+            rhsCellsCut = obj.computeElementalRHS(fNodal,xGauss,c,t);
+            rhsCells    = obj.assembleSubcellsInCells(rhsCellsCut);
+            rhs = obj.assembleIntegrand(rhsCells);
         end
         
     end
     
     methods (Access = private)
         
-        function computeElementalRHS(obj)
-            obj.computeUnfittedGaussPoints();            
-            obj.computeShapeFunctions();
-            int = obj.integrateFwithShapeFunction();
-            obj.RHScellsCut = int;
+        function xGauss = computeGaussPoints(obj)
+            q = obj.computeQuadrature();            
+            s.connec = obj.computeSubCellsLocalConnec();
+            s.fNodes = obj.computeSubCellsLocalCoord();
+            s.type   = obj.mesh.type;
+            x = FeFunction(s);
+            xGauss = x.interpolateFunction(q.posgp);
         end
         
-        function computeUnfittedGaussPoints(obj)
-            q = obj.quadrature;
-            m = obj.mesh.cutMeshOfSubCellLocal;
-            obj.xGauss = m.computeXgauss(q.posgp);
+        function c = computeSubCellsLocalCoord(obj)
+            coord = obj.xCoordsIso; 
+            nDim  = size(coord,1);            
+            c = reshape(coord,nDim,[])';             
         end
         
-        function int = integrateFwithShapeFunction(obj)
-            Fgauss  = obj.computeFinGaussPoints();
-            dV      = obj.computeDvolume;
-            fdV     = (Fgauss.*dV);
-            shapes  = obj.computeShapeFunctions();
-            int = obj.initIntegrand();
-            for igaus = 1:obj.quadrature.ngaus
-                fdv   = fdV(igaus,:);
-                shape = shapes(:,:,igaus);
-                int = int + bsxfun(@times,shape,fdv);
-            end
-            int = transpose(int);
-        end        
-        
-        function fG = computeFinGaussPoints(obj)
-            f = createFeFunction(obj);
-            fG = f.interpolateFunction(obj.xGauss);
-            fG = permute(fG,[2 3 1]);            
+        function lConnec = computeSubCellsLocalConnec(obj)
+            coord = obj.xCoordsIso;
+            nElem = size(coord,3);
+            nNode = size(coord,2);
+            lConnec = reshape(1:nElem*nNode,nNode,nElem)';            
         end
         
-        function f = createFeFunction(obj)            
-            m = obj.mesh.cutMeshOfSubCellGlobal();
-            s.fNodes = obj.Fnodal;
-            s.mesh = m;
-            f = FeFunction(s);
-        end    
-        
-        function dV = computeDvolume(obj)
-            q  = obj.quadrature;
-            dV = obj.mesh.computeDvolume(q);            
+        function c = computeSubCellConnec(obj)
+            cells = obj.cellContainingSubcell;
+            c = obj.globalConnec(cells,:);        
         end
         
-        function shapes = computeShapeFunctions(obj)
-            m = obj.backgroundMesh;
-            int = Interpolation.create(m,'LINEAR');
-            int.computeShapeDeriv(obj.xGauss);
-            shapes = permute(int.shape,[1 3 2]);            
-        end       
-        
-        function int = initIntegrand(obj)
-            nelem = obj.mesh.nelem;
-            nnode = obj.backgroundMesh.nnode;
-            int = zeros(nnode,nelem);            
-        end
-        
-        function assembleSubcellsInCells(obj)
-            nnode = obj.backgroundMesh.nnode;
-            nelem = obj.backgroundMesh.nelem;
-            cellNum = obj.mesh.cellContainingSubcell;
+        function rhsCells = assembleSubcellsInCells(obj,rhsCut)           
+            nnode = size(obj.globalConnec,2);
+            nelem = size(obj.globalConnec,1);
+            cellNum = obj.cellContainingSubcell;
             totalInt = zeros(nelem,nnode);
             for iNode = 1:nnode
-                int = obj.RHScellsCut(:,iNode);
-                intGlobal  = accumarray(cellNum,int,[nelem,1],@sum,0);
+                int = rhsCut(:,iNode);
+                intGlobal = accumarray(cellNum,int,[nelem,1],@sum,0);
                 totalInt(:,iNode) = totalInt(:,iNode) + intGlobal;
             end
-            obj.RHScells = totalInt;
-        end
-        
-        function f = assembleIntegrand(obj)
-            integrand = obj.RHScells;
-            npnod  = obj.backgroundMesh.npnod;
-            nnode  = obj.backgroundMesh.nnode;
-            connec = obj.backgroundMesh.connec;
-            f = zeros(npnod,1);
-            for inode = 1:nnode
-                int = integrand(:,inode);
-                con = connec(:,inode);
-                f = f + accumarray(con,int,[npnod,1],@sum,0);
-            end
+            rhsCells = totalInt;
         end
         
     end
-
+    
 end
 

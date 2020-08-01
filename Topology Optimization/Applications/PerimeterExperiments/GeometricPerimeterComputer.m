@@ -41,11 +41,9 @@ classdef GeometricPerimeterComputer < handle
        
        function s = createMeshUnfittedSettings(obj)
             mBackground   = obj.designVariable.mesh;
-            interpolation = Interpolation.create(mBackground,'LINEAR');
             sM.unfittedType            = 'BOUNDARY';
-            sM.meshBackground          = mBackground;
-            sM.interpolationBackground = interpolation;
-            sM.includeBoxContour       = false;
+            sM.backgroundMesh = mBackground.innerMeshOLD;
+            sM.boundaryMesh   = mBackground.boxFaceMeshes;
             s = SettingsMeshUnfitted(sM);           
        end
        

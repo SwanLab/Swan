@@ -34,38 +34,21 @@ classdef EdgesConnectivitiesComputer < handle
             obj.computeEdgesInElem();
             obj.computeLocalOrientedEdgeConnec();
         end
-        
-        function nodeInBoundaryEdges = computeBoundaryEdges(obj,nodesInBoundary)
-            nodesInEdges = obj.nodesInEdges;
-            allNodes = nodesInBoundary(:);
-            uniqueNodes = unique(allNodes);
-            nNodes = length(uniqueNodes);
-            edgesOfNodes = zeros(nNodes,10);
-            for iNode = 1:nNodes
-                node = uniqueNodes(iNode);
-                isNodeA = node == nodesInEdges(:,1);
-                isNodeB = node == nodesInEdges(:,2);
-                edgesOfNode = find(or(isNodeA,isNodeB));
-                nEdges = length(edgesOfNode);
-                edgesOfNodes(iNode,1:nEdges) = edgesOfNode;
-            end
-            
-            edgeOnBoundary = edgesOfNodes(:,:);
-            allEdgesInBoundary = edgeOnBoundary(:);
-            newAllBound = allEdgesInBoundary(allEdgesInBoundary>0);
-            [~,ind] = unique(newAllBound);    
-            dupl = setdiff(1:length(newAllBound),ind);
-            bEdges = unique(newAllBound(dupl,:));
-            nodeInBoundaryEdges = nodesInEdges(bEdges,:);
-        end
-        
+
     end
     
     methods (Access = private)
         
         function init(obj,cParams)
             obj.nodesByElem = cParams.nodesByElem;
-            obj.localEdgesInElem =  [1 2; 2 3; 3 1];
+            nNodes = size(cParams.nodesByElem,2);
+            switch nNodes
+                case 3            
+                    obj.localEdgesInElem = nchoosek(1:nNodes,2);%[1 2; 2 3; 3 1];
+                    obj.localEdgesInElem = [1 2; 2 3; 3 1];                    
+                case 4
+                    obj.localEdgesInElem =  nchoosek(1:nNodes,2);%[1 2; 2 3; 3 1];
+            end            
             obj.nElem = size(obj.nodesByElem,1);
             obj.nEdgeByElem = size(obj.localEdgesInElem,1);
             obj.nNodeByEdge = size(obj.localEdgesInElem,2);

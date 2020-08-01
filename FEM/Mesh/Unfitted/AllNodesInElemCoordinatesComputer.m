@@ -2,7 +2,7 @@
     
      properties (Access = public)
         xAllNodesInElem   
-        xCut
+        xCutInElem
      end
      
     properties (Access = private)
@@ -12,7 +12,6 @@
     properties (Access = private)
         interpolation
         xIsoNodes   
-        nCutEdgeByElem
         nElem
         nEdgeByElem        
         localNodeByEdgeByElem
@@ -40,7 +39,7 @@
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.nCutEdgeByElem        = cParams.nCutEdgeByElem;
+       %     obj.nCutEdgeByElem        = cParams.nCutEdgeByElem;
             obj.localNodeByEdgeByElem = cParams.localNodeByEdgeByElem;
             obj.xCutEdgePoint         = cParams.xCutEdgePoint;
             obj.edgeCutPointInElem    = cParams.edgeCutPointInElem;
@@ -51,7 +50,7 @@
         end
         
         function createInterpolation(obj)
-            m.geometryType = 'LINE';
+            m.type = 'LINE';
             m.coord  = [];
             m.connec = [];
             int = Interpolation.create(m,'LINEAR');
@@ -59,7 +58,12 @@
         end
         
         function computeXisoNodes(obj)
-            m.geometryType = 'TRIANGLE';
+            switch obj.nEdgeByElem
+                case 3
+                    m.type = 'TRIANGLE';
+                case 6
+                    m.type = 'TETRAHEDRA';
+            end
             m.coord  = [];
             m.connec = [];
             int = Interpolation.create(m,'LINEAR');
@@ -76,8 +80,8 @@
         
         function addXcutInXall(obj)
             nNode = size(obj.xIsoNodes,1);  
-            xC = obj.xCut;
-            for inode = 1:obj.nCutEdgeByElem
+            xC = obj.xCutInElem;
+            for inode = 1:obj.all2Cut.nCutEdgeByElem
                 obj.xAllNodesInElem(:,inode+nNode,:) = xC(:,inode,:);
             end            
         end
@@ -93,19 +97,19 @@
         function computeXcut(obj)
             nodes = obj.computeIsoCutNodesInElem();
             xC = obj.initXcut();
-            for iedge = 1:2                
+            for iedge = 1:obj.all2Cut.nCutEdgeByElem                
                 [xA,xB] = obj.computeXnodes(nodes,iedge);
                 [shapeA,shapeB] = obj.computeShapes(iedge);
                 x = xA.*shapeA + xB.*shapeB; 
                 xC(:,iedge,:) = x;
             end
-            obj.xCut = xC;
+            obj.xCutInElem = xC;
         end
         
         function nodesCutEdges = computeIsoCutNodesInElem(obj)
             allNodesByEdge = obj.localNodeByEdgeByElem;
             nNodeByEdge = size(allNodesByEdge,3);
-            nodesCutEdges = zeros(obj.nElem,obj.nCutEdgeByElem,nNodeByEdge);
+            nodesCutEdges = zeros(obj.nElem,obj.all2Cut.nCutEdgeByElem,nNodeByEdge);
             for inode = 1:nNodeByEdge
                 nodes = allNodesByEdge(:,:,inode);
                 nodesCutEdges(:,:,inode) = obj.all2Cut.compute(nodes);
@@ -114,7 +118,7 @@
         
         function xCut = initXcut(obj)
             nDim = size(obj.xIsoNodes,2);            
-            xCut = zeros(nDim,obj.nCutEdgeByElem,obj.nElem);            
+            xCut = zeros(nDim,obj.all2Cut.nCutEdgeByElem,obj.nElem);            
         end
         
         function [xA,xB] = computeXnodes(obj,nodes,iedge)

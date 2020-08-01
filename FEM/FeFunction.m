@@ -9,7 +9,8 @@ classdef FeFunction < handle
    end
    
    properties (Access = private)
-      mesh 
+      type
+      connec
       fNodes
    end
     
@@ -22,8 +23,7 @@ classdef FeFunction < handle
        end
        
        function fC = computeValueInCenterElement(obj)          
-            m = obj.mesh;
-            q = Quadrature.set(m.geometryType);
+            q = Quadrature.set(obj.type);
             q.computeQuadrature('CONSTANT');
             xV = q.posgp;
             fCenter = obj.interpolateFunction(xV);
@@ -52,23 +52,25 @@ classdef FeFunction < handle
    methods (Access = private)
       
        function init(obj,cParams)
-           obj.mesh   = cParams.mesh;
+           obj.connec = cParams.connec;
+           obj.type   = cParams.type;
            obj.fNodes = cParams.fNodes;           
        end
        
        function createInterpolation(obj)
-           obj.interpolation = Interpolation.create(obj.mesh,'LINEAR');
+           m.type = obj.type;
+           obj.interpolation = Interpolation.create(m,'LINEAR');
        end
        
        function computeFnodesByelem(obj)
            f = obj.fNodes;
-           nNode  = obj.mesh.nnode;
+           nNode  = size(obj.connec,2);
            nDime  = size(f,2);
-           nElem  = obj.mesh.nelem;
+           nElem  = size(obj.connec,1);
            coordE = zeros(nDime,nNode,nElem);
            coords = transpose(f);
            for inode = 1:nNode
-               nodes = obj.mesh.connec(:,inode);
+               nodes = obj.connec(:,inode);
                coordNodes = coords(:,nodes);
                coordE(:,inode,:) = coordNodes;
            end

@@ -6,16 +6,16 @@ classdef SubcellsMesherFactory < handle
             ndimIso = cParams.ndimIso;
             type    = cParams.type;
             switch ndimIso
-                case 1
+                case 'Line'
                     obj = SubcellsMesher_1D(cParams);
-                case 2
+                case 'Surface'
                     switch type
                         case 'INTERIOR'
                             obj  = SubcellsMesher_Interior(cParams);
                         case 'BOUNDARY'
                             obj = SubcellsMesher_Boundary_2D(cParams);
                     end
-                case 3
+                case 'Volume'
                     switch type
                         case 'INTERIOR'
                             obj = SubcellsMesher_Interior(cParams);

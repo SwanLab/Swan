@@ -1,16 +1,20 @@
-classdef InnerMesh < Mesh
+classdef InnerMesh < handle
     
     properties (GetAccess = public, SetAccess = private)
-        backgroundMesh        
+       fullCells        
+       backgroundMesh    
+       mesh
+       globalConnec
     end
     
     properties (Access = private)
-        globalConnec
         all2unique
         unique2all
         uniqueNodes
+        coord
+        connec
     end
-    
+        
     methods (Access = public)
         
         function obj = InnerMesh(cParams)
@@ -18,26 +22,23 @@ classdef InnerMesh < Mesh
             obj.computeUniqueNodes();
             obj.computeCoords();
             obj.computeConnec();
-            obj.computeDescriptorParams();
-            obj.createInterpolation();
-            obj.computeElementCoordinates();
+            obj.createMesh();
+            obj.computeGlobalConnec();
         end
-        
-
         
     end
     
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.globalConnec   = cParams.globalConnec;
             obj.backgroundMesh = cParams.backgroundMesh;
-            obj.isInBoundary   = cParams.isInBoundary;
-            obj.type = 'INTERIOR';
+            obj.fullCells      = cParams.fullCells;
         end
         
         function computeUniqueNodes(obj)
-            allNodes = obj.globalConnec(:);
+            connecB = obj.backgroundMesh.connec;
+            connecF = connecB(obj.fullCells,:);
+            allNodes = connecF(:);
             [uNodes,ind,ind2] = unique(allNodes,'rows','stable');
             obj.all2unique  = ind;    
             obj.unique2all  = ind2;   
@@ -52,10 +53,22 @@ classdef InnerMesh < Mesh
         end
         
         function computeConnec(obj)
-            nnode = size(obj.globalConnec,2);
-            nCell = size(obj.globalConnec,1);             
+            nnode = size(obj.backgroundMesh.connec,2);
+            nCell = size(obj.fullCells,1);             
             obj.connec = reshape(obj.unique2all,nCell,nnode);
         end          
+        
+        function createMesh(obj)
+            s.coord  = obj.coord;
+            s.connec = obj.connec;
+            s.kFace  = obj.backgroundMesh.kFace;
+            obj.mesh = Mesh(s);
+        end
+        
+        function computeGlobalConnec(obj)
+            con  = obj.backgroundMesh.connec;
+            obj.globalConnec = con(obj.fullCells,:);            
+        end
         
     end
     

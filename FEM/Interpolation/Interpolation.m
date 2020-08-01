@@ -37,7 +37,7 @@ classdef Interpolation < handle
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.type  = cParams.mesh.geometryType;
+            obj.type  = cParams.mesh.type;
             obj.order = cParams.order;            
         end
         

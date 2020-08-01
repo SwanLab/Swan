@@ -8,7 +8,7 @@ classdef AbstractMesh < handle
         nelem
         ndim
         
-        geometryType
+        type
         
         coordElem
         interpolation
@@ -39,7 +39,7 @@ classdef AbstractMesh < handle
        end  
        
        function q = computeElementQuality(obj)
-            quad = Quadrature.set(obj.geometryType);
+            quad = Quadrature.set(obj.type);
             quad.computeQuadrature('CONSTANT');
             volume = obj.computeDvolume(quad); 
             L(1,:) = obj.computeSquarePerimeter();
@@ -47,7 +47,7 @@ classdef AbstractMesh < handle
        end
        
        function v = computeVolume(obj)
-            quad = Quadrature.set(obj.geometryType);
+            quad = Quadrature.set(obj.type);
             quad.computeQuadrature('CONSTANT');
             v = obj.computeDvolume(quad); 
             v = sum(v(:));
@@ -78,7 +78,8 @@ classdef AbstractMesh < handle
     methods (Access = private)
         
         function computeCoordFEfunction(obj)
-            s.mesh   = obj;
+            s.connec   = obj.connec;
+            s.type     = obj.type;
             s.fNodes = obj.coord;
             obj.xFE = FeFunction(s);             
         end

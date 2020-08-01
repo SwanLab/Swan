@@ -64,11 +64,10 @@ classdef PlottingSomeOptimalMicroStructures < handle
         
         function createUnfittedMesh(obj)
             m = obj.mesh;
-            interp  = Interpolation.create(m,'LINEAR');
             s.unfittedType = 'INTERIOR';
-            s.meshBackground = m;
-            s.interpolationBackground = interp;
-            s.includeBoxContour = true;
+            s.backgroundMesh = m.innerMeshOLD;
+            s.boundaryMesh   = m.boxFaceMeshes;
+            s.isInBoundary = false;
             uMesh = UnfittedMesh(s);
             uMesh.compute(obj.levelSet);
             uMesh.plot()

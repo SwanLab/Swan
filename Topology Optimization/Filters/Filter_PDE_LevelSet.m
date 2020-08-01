@@ -19,10 +19,8 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             obj.nelem = obj.mesh.nelem;
             obj.npnod = obj.mesh.npnod;
             obj.ngaus = obj.quadrature.ngaus;
-            obj.Anodal2Gauss = obj.computeA();            
-            cParams = SettingsMeshUnfitted(obj.domainType,obj.mesh);
-            cParams.isInBoundary = false;
-            obj.unfittedMesh = UnfittedMesh(cParams);
+            obj.Anodal2Gauss = obj.computeA();                      
+            obj.createUnfittedMesh();
             obj.disableDelaunayWarning();
         end
         
@@ -43,8 +41,11 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             if all(ls>0)
                 fInt = zeros(size(ls));
             else
-                obj.unfittedMesh.compute(ls);                
-                fInt = obj.unfittedMesh.integrateNodalFunction(fNodes);
+                obj.unfittedMesh.compute(ls); 
+                s.mesh = obj.unfittedMesh;
+                s.type = 'Unfitted';
+                int = Integrator.create(s);            
+                fInt = int.integrateInDomain(fNodes);                    
             end
         end
         
@@ -52,8 +53,15 @@ classdef Filter_PDE_LevelSet < Filter_PDE
     
     methods (Access = private)
         
+        function createUnfittedMesh(obj)
+            s.backgroundMesh = obj.mesh.innerMeshOLD;
+            s.boundaryMesh   = obj.mesh.boxFaceMeshes;
+            cParams = SettingsMeshUnfitted(s);
+            obj.unfittedMesh = UnfittedMesh(cParams);            
+        end
+        
         function createQuadrature(obj)
-            obj.quadrature = Quadrature.set(obj.mesh.geometryType);
+            obj.quadrature = Quadrature.set(obj.mesh.type);
             obj.quadrature.computeQuadrature(obj.quadratureOrder);
         end
         
@@ -62,7 +70,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
         end
         
         function computeGeometry(obj)
-            s.mesh = obj.mesh;
+            s.mesh = obj.mesh.innerMeshOLD;
             obj.geometry = Geometry.create(s);
             obj.geometry.computeGeometry(obj.quadrature,obj.interp);
         end

@@ -6,7 +6,7 @@ classdef TriangleSubMeshConnecComputer < handle
     end
     
     properties (Access = private)
-        connecCase      
+        connecCase
         imax        
     end
     
@@ -62,7 +62,11 @@ classdef TriangleSubMeshConnecComputer < handle
         end
         
         function computeTriangleLocalConnecCases(obj)
-            nodes = [1 4 5;4 2 5; 4 3 5];
+            %nodes = [1 4 5;4 2 5; 4 3 5];
+            nodes(1,:) = [1 4 5];
+            nodes(2,:) = [4 2 5];
+            nodes(3,:) = [4 3 5];
+            
             obj.localTriangleConnecCases = nodes;
         end
         
@@ -97,22 +101,7 @@ classdef TriangleSubMeshConnecComputer < handle
             bestCase = BestSubCellCaseSelector(s);
             obj.imax = bestCase.compute();            
         end        
-        
-        function computeSubQuadConnec(obj,icase)
-            localConnec = obj.localQuadConnecCases(:,:,:,icase);
-            connecCases = obj.computeSubCasesConnec(localConnec);
-            connec = obj.computeBestCase(connecCases);
-            obj.connecSubQuad = connec;             
-        end                
-        
-        function nodeQ = computeBestCase(obj,nodesSubCases)
-           s = obj.bestSubCellCaseSelectorParams;
-           s.nodesSubCases = nodesSubCases;
-           bestCase = BestSubCellCaseSelector(s);
-           nodeQ = bestCase.compute();
-           obj.imax = bestCase.imax;
-        end
-        
+               
         function connec = computeSubCasesConnec(obj,localConnecCases)
             connec = obj.initQuadConnecCases();
             for isubCase = 1:obj.nSubCases
@@ -139,7 +128,7 @@ classdef TriangleSubMeshConnecComputer < handle
                 isActive = obj.imax == isubCase;
                 nodesT = obj.localTriangleConnecCases(icase,:);
                 nodesQ = obj.localQuadConnecCases(:,:,isubCase,icase);                
-                for inode = 1:obj.nSubCellNodes                
+                for inode = 1:obj.nSubCellNodes 
                     nodes(1,inode,isActive) = nodesT(inode);
                     nodes(2,inode,isActive) = nodesQ(1,inode);
                     nodes(3,inode,isActive) = nodesQ(2,inode);

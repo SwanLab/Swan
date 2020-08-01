@@ -56,12 +56,10 @@ classdef GradientVariationWithThetaComputer < handle
         end        
         
         function s = createMeshUnfittedSettings(obj)
-            mBackground   = obj.levelSet.mesh;
-            interpolation = Interpolation.create(mBackground,'LINEAR');
-            sM.unfittedType            = 'BOUNDARY';
-            sM.meshBackground          = mBackground;
-            sM.interpolationBackground = interpolation;
-            sM.includeBoxContour       = false;
+            sM.unfittedType   = 'BOUNDARY';
+            sM.backgroundMesh = obj.mesh.innerMeshOLD;
+            sM.boundaryMesh   = obj.mesh.boxFaceMeshes;
+            sM.isInBoundary = false;                              
             s = SettingsMeshUnfitted(sM);
         end
         

@@ -5,8 +5,7 @@ classdef AllSubCellsConnecComputer < handle
         xNodesInSubCells
     end
     
-    properties (Access = private)
-        nodesInSubCells
+    properties (Access = private)        
         xNodesInSubCellsByElem
         cellMesher        
     end
@@ -17,7 +16,7 @@ classdef AllSubCellsConnecComputer < handle
         subCellCases
         nElem
         nCases
-        
+        nodesInSubCells        
         subMeshConnecParams
     end
     
@@ -34,9 +33,9 @@ classdef AllSubCellsConnecComputer < handle
             for icase = 1:obj.nCases
                 subCells = obj.subCellCases(:,icase);
                 if sum(subCells) > 0
-                obj.updateCellMesherPartitioner(subCells,icase);
-                obj.computePartitionConnecSubCell(subCells);
-                obj.computePartitionCoordSubCell(subCells);
+                    obj.updateCellMesherPartitioner(subCells,icase);
+                    obj.computePartitionConnecSubCell(subCells);
+                    obj.computePartitionCoordSubCell(subCells);
                 end
             end
             obj.concatenateAllNodesConnec();
@@ -59,7 +58,12 @@ classdef AllSubCellsConnecComputer < handle
         
         function createSubCellMesher(obj)
             s = obj.subMeshConnecParams;
-            obj.cellMesher = TriangleSubMeshConnecComputer(s);
+            switch size(obj.xAllNodesInElem,2)
+                case 5
+                    obj.cellMesher = TriangleSubMeshConnecComputer(s);
+                case {7,8}
+                    obj.cellMesher = TethaedraSubMeshConnecComputer(s);
+            end            
         end
         
         function permuteXallNodes(obj)
@@ -69,17 +73,31 @@ classdef AllSubCellsConnecComputer < handle
         end
         
         function initNodesInSubCells(obj)
-            nSubCellsByElem = obj.cellMesher.nSubCellsByElem;
+            switch mode(size(obj.allNodesInElem,2))
+                case 5
+                    nSubCellsByElem = 3;
+                case 7
+                    nSubCellsByElem = 4;
+                case 8
+                    nSubCellsByElem = 6;
+            end                      
             nSubCellNodes   = obj.cellMesher.nSubCellNodes;
             nodes = zeros(nSubCellNodes,nSubCellsByElem,obj.nElem);
             obj.nodesInSubCells = nodes;
         end
         
         function initXnodesInSubCellsByElem(obj)
-            nSubCellsByElem = obj.cellMesher.nSubCellsByElem;
+            switch mode(size(obj.allNodesInElem,2))
+                case 5
+                    nSubCellsByElem = 3;
+                case 7
+                    nSubCellsByElem = 4;
+                case 8
+                    nSubCellsByElem = 6;
+            end
             nSubCellNodes   = obj.cellMesher.nSubCellNodes;
             nDim = size(obj.xAllNodesInElem,3);
-            nodes = zeros(nSubCellsByElem,nSubCellNodes,obj.nElem,nDim);
+            nodes = zeros(nSubCellNodes,nSubCellsByElem,obj.nElem,nDim);
             obj.xNodesInSubCellsByElem = nodes;
         end
         

@@ -28,9 +28,9 @@ classdef FemInputReader_GiD < handle
         end
         
         function s = getData(obj)
-            s.coord = obj.coord;
-            s.connec = obj.connec;
-            s.mesh = Mesh().create(s);
+            sM.coord  = obj.coord;
+            sM.connec = obj.connec;
+            s.mesh = Mesh(sM);
             s.pdim = obj.pdim;
             s.geometryType = obj.geometryType;
             s.ptype = obj.ptype;

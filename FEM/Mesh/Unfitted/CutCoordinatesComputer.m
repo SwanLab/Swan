@@ -53,7 +53,7 @@ classdef CutCoordinatesComputer < handle
         end        
         
         function shapes = computeShapes(obj)
-            m.geometryType = 'LINE';
+            m.type = 'LINE';
             m.coord  = [];
             m.connec = [];
             int = Interpolation.create(m,'LINEAR');

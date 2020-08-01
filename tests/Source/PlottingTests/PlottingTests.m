@@ -7,6 +7,7 @@ classdef PlottingTests < testRunner
     methods (Access = public)
         function  obj = PlottingTests()
             obj@testRunner();
+            pause(0.5)
             close all;
         end
     end
@@ -14,6 +15,8 @@ classdef PlottingTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {... 
+            'testTriangleToyUntittedExample'                
+            'testQuadToyUntittedExample'                
             'testCircumferenceQuadrilateral'                
             'testCircumferenceTriangle'            
             'testPlotCircleTriangle'                 
@@ -25,7 +28,8 @@ classdef PlottingTests < testRunner
             'testPlotSphereTetrahedra';
             'testPlotSphereHexahedra';                                
             'testPlotCylinderTetrahedra';
-             'testPlotCylinderHexahedra';  
+            'testPlotCylinderHexahedra';  
+             'testPlotLargeCylinderTethaedra';            
             };
         end
     end

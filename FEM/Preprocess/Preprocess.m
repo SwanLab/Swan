@@ -143,7 +143,7 @@ classdef Preprocess<handle
                 %                 end
                 geom = geometry(1);
                 
-                quadrature = Quadrature.set(mesh.geometryType);
+                quadrature = Quadrature.set(mesh.type);
                 quadrature.computeQuadrature(interp{1}.order);
 
                 geom.computeGeometry(quadrature,interp{1})

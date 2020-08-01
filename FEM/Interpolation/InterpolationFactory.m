@@ -5,7 +5,7 @@ classdef InterpolationFactory < handle
         function obj = create(cParams)
             mesh  = cParams.mesh;
             order = cParams.order;
-            switch mesh.geometryType
+            switch mesh.type
                 case 'EMPTY MESH'
                     obj = [];
                 case 'LINE'

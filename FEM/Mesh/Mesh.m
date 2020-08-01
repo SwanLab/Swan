@@ -1,29 +1,40 @@
-classdef Mesh < AbstractMesh & matlab.mixin.Copyable
+classdef Mesh < handle
     
-    properties (GetAccess = public, SetAccess = protected)
+    properties (GetAccess = public, SetAccess = private)
         nnode
         npnod
-
-        embeddedDim
+        type
+        kFace
+        geometryType
+        
+        coord
+        connec
+        
+        nelem
+        ndim
+        
+        
+        coordElem
+        interpolation
+        
+        edges
     end
     
-    properties (Access = public)
-        meshBackground
-    end    
-       
-    properties (Access = protected)
-       type 
-       isInBoundary               
+    properties (Access = private)
+        xFE
+        geometry
     end
-    
     
     methods (Access = public)
         
-        function obj = create(obj,cParams)
+        function obj = Mesh(cParams)
             obj.init(cParams);
-            obj.computeDescriptorParams();
+            obj.computeDimensionParams();
+            obj.computeGeometryType();
+            obj.computeType();
             obj.createInterpolation();
             obj.computeElementCoordinates();
+            obj.createGeometry();
         end
         
         function obj = createFromFile(obj,cParams)
@@ -31,26 +42,15 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             [coordV, connecV] = obj.readCoordConnec(testName);
             s.coord  = coordV(:,2:end-1);
             s.connec = connecV(:,2:end);
-            obj = obj.create(s);
+            obj = Mesh(s);
         end
-        
-        function objClone = clone(obj)
-            objClone = copy(obj);
-        end
-        
-%         function plot(obj)
-%             %figure;
-%             patch('vertices',obj.coord,'faces',obj.connec,...
-%                 'edgecolor','b', 'edgealpha',1,'edgelighting','flat',...
-%                 'facecolor',[1 0 0],'facelighting','flat','LineWidth',1.5)
-%             axis('equal');
-%         end
         
         function plot(obj)
             s.mesh = obj;
+            s = SettingsMeshPlotter(s);
             mP = MeshPlotter(s);
             mP.plot();
-        end        
+        end
         
         function hMin = computeMinCellSize(obj)
             x1(:,1) = obj.coord(obj.connec(:,1),1);
@@ -58,7 +58,7 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             x2(:,1) = obj.coord(obj.connec(:,2),1);
             x2(:,2) = obj.coord(obj.connec(:,2),2);
             x3(:,1) = obj.coord(obj.connec(:,3),1);
-            x3(:,2) = obj.coord(obj.connec(:,3),2);            
+            x3(:,2) = obj.coord(obj.connec(:,3),2);
             x1x2 = (x2-x1);
             x2x3 = (x3-x2);
             x1x3 = (x1-x3);
@@ -66,7 +66,7 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             n23 = sqrt(x2x3(:,1).^2 + x2x3(:,2).^2);
             n13 = sqrt(x1x3(:,1).^2 + x1x3(:,2).^2);
             hs = min([n12,n23,n13],[],2);
-            hMin = min(hs);            
+            hMin = min(hs);
         end
         
         function hMean = computeMeanCellSize(obj)
@@ -75,7 +75,7 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             x2(:,1) = obj.coord(obj.connec(:,2),1);
             x2(:,2) = obj.coord(obj.connec(:,2),2);
             x3(:,1) = obj.coord(obj.connec(:,3),1);
-            x3(:,2) = obj.coord(obj.connec(:,3),2);            
+            x3(:,2) = obj.coord(obj.connec(:,3),2);
             x1x2 = (x2-x1);
             x2x3 = (x3-x2);
             x1x3 = (x1-x3);
@@ -104,65 +104,120 @@ classdef Mesh < AbstractMesh & matlab.mixin.Copyable
             obj.connec = newConnec;
         end
         
-    end
-    
-    methods (Access = protected)
-        
-
-        
-        function computeDescriptorParams(obj)
-            obj.npnod = size(obj.coord ,1);
-            obj.ndim  = size(obj.coord, 2);
-            obj.nelem = size(obj.connec,1);
-            obj.nnode = size(obj.connec,2);
-            obj.computeEmbeddingDim();
-            obj.computeGeometryType();
+        function xV = computeBaricenter(obj)
+            xV = obj.xFE.computeValueInCenterElement();
         end
         
-         function computeEmbeddingDim(obj)
-            if obj.isInBoundary
-                obj.embeddedDim = obj.ndim - 1;
-            else
-                obj.embeddedDim = obj.ndim;
-            end      
-         end
-       
+        function xGauss = computeXgauss(obj,xV)
+            xGauss = obj.xFE.interpolateFunction(xV);
+        end
+        
+        function dvolume = computeDvolume(obj,quad)
+            g = obj.geometry;    
+            g.computeGeometry(quad,obj.interpolation);
+            dvolume = g.dvolu;
+            dvolume = dvolume';
+        end
+        
+        function q = computeElementQuality(obj)
+            quad = Quadrature.set(obj.type);
+            quad.computeQuadrature('CONSTANT');
+            volume = obj.computeDvolume(quad);
+            L(1,:) = obj.computeSquarePerimeter();
+            q = 4*sqrt(3)*volume./L;
+        end
+        
+        function v = computeVolume(obj)
+            quad = Quadrature.set(obj.type);
+            quad.computeQuadrature('CONSTANT');
+            v = obj.computeDvolume(quad);
+            v = sum(v(:));
+        end
+        
+        function computeEdges(obj)
+            s.nodesByElem = obj.connec;
+            edge = EdgesConnectivitiesComputer(s);
+            edge.compute();
+            obj.edges = edge;
+        end
+        
     end
+    
     
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.coord  = cParams.coord;
-            obj.connec = cParams.connec;
-            
-            if isobject(cParams)
-                if (isempty(cParams.isInBoundary))
-                    obj.isInBoundary = false;
-                else
-                    obj.isInBoundary = cParams.isInBoundary;
-                end
-            else
-                if isfield(cParams,'isInBoundary')
-                    obj.isInBoundary = cParams.isInBoundary;
-                else
-                    obj.isInBoundary = false;
-                end
-            end
-            
-        end        
+            s = SettingsMesh(cParams);
+            obj.coord  = s.coord;
+            obj.connec = s.connec;
+            obj.type   = s.type;
+            obj.kFace  = s.kFace;
+        end
+        
+        function computeDimensionParams(obj)
+            obj.npnod = size(obj.coord,1);
+            obj.ndim  = size(obj.coord,2);
+            obj.nelem = size(obj.connec,1);
+            obj.nnode = size(obj.connec,2);
+        end
+        
+        function computeType(obj)
+            s.geometryType = obj.geometryType;
+            s.nnode        = obj.nnode;
+            t = MeshTypeComputer(s);
+            obj.type = t.compute();
+        end
         
         function computeGeometryType(obj)
-            factory = MeshGeometryType_Factory();
-            obj.geometryType = factory.getGeometryType(obj.ndim,obj.nnode,obj.embeddedDim);
+            s.ndim  = obj.ndim;
+            s.kFace = obj.kFace;
+            g = GeometryTypeComputer(s);
+            obj.geometryType = g.compute();
+        end
+        
+        function createGeometry(obj)
+            s.mesh = obj;
+            obj.geometry = Geometry.create(s);
+        end
+        
+        function createInterpolation(obj)
+            obj.interpolation = Interpolation.create(obj,'LINEAR');
+        end
+        
+        function computeElementCoordinates(obj)
+            obj.computeCoordFEfunction();
+            obj.coordElem = obj.xFE.fElem;
+        end
+        
+        function computeCoordFEfunction(obj)
+            s.connec   = obj.connec;
+            s.type     = obj.type;            
+            s.fNodes   = obj.coord;
+            obj.xFE = FeFunction(s);
+        end
+        
+        function L = computeSquarePerimeter(obj)
+            obj.computeEdges();
+            nElem = size(obj.connec,1);
+            L = zeros(nElem,1);
+            for iedge = 1:obj.edges.nEdgeByElem
+                edge = obj.edges.edgesInElem(:,iedge);
+                nodesEdge = obj.edges.nodesInEdges(edge,:);
+                for idim = 1:obj.ndim
+                    xA = obj.coord(nodesEdge(:,1),idim);
+                    xB = obj.coord(nodesEdge(:,2),idim);
+                    L = L + (xA - xB).^2;
+                end
+            end
         end
         
     end
     
     methods (Access = private, Static)
-       
+        
         function [coord, connec] = readCoordConnec(testName)
-            run(testName)            
-        end     
+            run(testName)
+        end
         
     end
     

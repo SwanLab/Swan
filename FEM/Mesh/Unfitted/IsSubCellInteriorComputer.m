@@ -8,13 +8,14 @@ classdef IsSubCellInteriorComputer < handle
         subCellCases
         levelSet
         allNodesInElem
-        nSubCellsByElem        
+        nSubCellsByElem    
+        nodesInSubCells
     end
     
     methods (Access = public)
         
         function obj = IsSubCellInteriorComputer(cParams)
-            obj.init(cParams);
+            obj.init(cParams);            
         end
         
         function compute(obj)
@@ -26,7 +27,15 @@ classdef IsSubCellInteriorComputer < handle
             itIs(1,isTriInt)  = true;
             itIs(2,~isTriInt) = true;
             itIs(3,~isTriInt) = true;
-            obj.isSubCellInterior = itIs;
+            obj.isSubCellInterior = itIs;  
+%             subCellInt = false(nSubCells,nElem);
+%             for iSubCell = 1:3
+%                 nodes = squeeze(obj.nodesInSubCells(:,iSubCell,:));
+%                 ls = obj.levelSet(nodes);
+%                 isT = any(ls);
+%                 subCellInt(iSubCell,:) = isT;
+%             end
+%             
         end
         
     end
@@ -38,8 +47,9 @@ classdef IsSubCellInteriorComputer < handle
             obj.levelSet        = cParams.levelSet;
             obj.allNodesInElem  = cParams.allNodesInElem;
             obj.nSubCellsByElem = cParams.nSubCellsByElem;
+            obj.nodesInSubCells = cParams.nodesInSubCells;
         end
-        
+
         function isoNode = computeIsoNode(obj)
             nCases  = size(obj.subCellCases,2);
             nElem   = size(obj.subCellCases,1);
@@ -59,6 +69,5 @@ classdef IsSubCellInteriorComputer < handle
         end
         
     end
-    
     
 end

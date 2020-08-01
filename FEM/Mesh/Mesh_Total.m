@@ -7,8 +7,7 @@ classdef Mesh_Total < Mesh_Composite
         boxFaceMeshes
         nodesInBoxFaces
         
-        removedDimensions
-        removedDimensionCoord
+
         
         npnod
         nnode
@@ -29,7 +28,7 @@ classdef Mesh_Total < Mesh_Composite
             obj.createInteriorMesh();
             obj.createBoxFaceMeshes();
             obj.defineActiveMeshes();            
-            obj.geometryType = obj.innerMeshOLD.geometryType;
+            obj.type = obj.innerMeshOLD.type;
             obj.nelem = size(obj.connec,1);
             obj.npnod = obj.innerMeshOLD.npnod;
             obj.nnode = obj.innerMeshOLD.nnode;
@@ -67,7 +66,7 @@ classdef Mesh_Total < Mesh_Composite
         function createInteriorMesh(obj)
             s.connec = obj.connec;
             s.coord  = obj.coord;
-            obj.innerMeshOLD = Mesh().create(s);
+            obj.innerMeshOLD = Mesh(s);
             obj.append(obj.innerMeshOLD);
         end
         
@@ -83,21 +82,19 @@ classdef Mesh_Total < Mesh_Composite
             nExteriorMeshes = 1;
             for imesh = 1:nExteriorMeshes
                 nodes  = obj.borderNodes;
-                s.coord = obj.coord(nodes,:);
-                s.connec = obj.computeConnectivitiesFromData();
-                s.type = 'BOUNDARY';
-                m = Mesh().create(s);
+                s.coord  = obj.coord(nodes,:);
+                s.connec = obj.computeConnectivitiesFromData(obj.borderElements(:,2:end));
+                s.nodesInBoxFaces = false(size(obj.coord,1),1);
+                s.nodesInBoxFaces(nodes,1) = true;
+                s.isRectangularBox = false;
+                m = BoundaryMesh(s);
                 obj.boxFaceMeshes{imesh} = m;
                 obj.append(m);
-                obj.nodesInBoxFaces{imesh} = false(size(obj.coord,1),1);
-                obj.nodesInBoxFaces{imesh}(nodes,1) = true;
-                obj.globalConnectivities{imesh} = obj.borderElements(:,2:end);  
             end
            obj.nBoxFaces = numel(obj.boxFaceMeshes);                              
         end
         
-        function borderConnecSwitch = computeConnectivitiesFromData(obj)
-            connec = obj.borderElements(:,2:end);            
+        function borderConnecSwitch = computeConnectivitiesFromData(obj,connec)
             nNode = size(connec,2);
             nElem = size(connec,1);
             icell = 1;
@@ -135,71 +132,17 @@ classdef Mesh_Total < Mesh_Composite
             borderConnecSwitch(:,2) = borderConnecOrdered(:,1);
         end
         
-        function computeExteriorMeshesFromBoxSides(obj)
-            nSides = 2;
-            for iDime = 1:obj.ndim
-                for iSide = 1:nSides
-                    iFace = obj.computeIface(iSide,iDime);
-                    [mesh,nodesInBoxFace] = obj.createBoxFaceMesh(iDime,iSide);
-                    obj.boxFaceMeshes{iFace} = mesh;
-                    obj.append(mesh);
-                    obj.nodesInBoxFaces{iFace} = nodesInBoxFace;
-                    obj.computeGlobalConnectivities(iFace);
-                end
-            end
-            obj.nBoxFaces = numel(obj.boxFaceMeshes);                              
-        end
-        
-        function connec = computeGlobalConnectivities(obj,iFace)
-            boxFaceMesh    = obj.boxFaceMeshes{iFace};
-            nodesInBoxFace = obj.nodesInBoxFaces{iFace};
-            nodes = find(nodesInBoxFace);
-            boxFaceConnec = boxFaceMesh.connec;
-            connec = [nodes(boxFaceConnec(:,1)),nodes(boxFaceConnec(:,2))];
-            obj.globalConnectivities{iFace} = connec;
-        end
-        
-        function [m, nodesInBoxFace] = createBoxFaceMesh(obj,idime,iside)
-            [boxFaceCoords,nodesInBoxFace,boxFaceCoordsRemoved] = obj.getFaceCoordinates(idime,iside);
-            switch obj.ndim
-                case 2
-                    boxFaceConnec = obj.computeConnectivities(boxFaceCoordsRemoved);
-                case 3
-                    boxFaceConnec = obj.computeDelaunay(boxFaceCoordsRemoved);
-            end
-            s.connec = boxFaceConnec;
-            s.coord  = boxFaceCoords;
-            s.isInBoundary = true;
-            m = Mesh().create(s);
-        end
-        
-        function [boxFaceCoords, nodesInBoxFace,boxFaceCoordsRemoved] = getFaceCoordinates(obj,idime,iside)
-            D = obj.getFaceCharacteristicDimension(idime,iside);
-            nodesInBoxFace = obj.innerMeshOLD.coord(:,idime) == D;
-            boxFaceCoords = obj.innerMeshOLD.coord(nodesInBoxFace,:);
-            boxFaceCoordsRemoved = obj.removeExtraDimension(boxFaceCoords,idime);
-            obj.storeRemovedDimensions(idime,iside,D);
-        end
-        
-        function D = getFaceCharacteristicDimension(obj,idime,iside)
-            if iside == 1
-                D = min(obj.innerMeshOLD.coord(:,idime));
-            elseif iside == 2
-                D = max(obj.innerMeshOLD.coord(:,idime));
-            else
-                error('Invalid iside value. Valid values: 1 and 2.')
-            end
-        end
-        
-        function face_coord = removeExtraDimension(obj,face_coord,idime)
-            dimen = 1:obj.ndim;
-            face_coord = face_coord(:,dimen(dimen~=idime));
-        end
-        
-        function storeRemovedDimensions(obj,iDime,iSide,D)
-            iFace = obj.computeIface(iSide,iDime);
-            obj.removedDimensions(iFace) = iDime;
-            obj.removedDimensionCoord(iFace) = D;
+        function computeExteriorMeshesFromBoxSides(obj)  
+               s.backgroundMesh = obj.innerMeshOLD;
+               s.dimension = 1:s.backgroundMesh.ndim;
+               bC = BoundaryMeshCreatorFromRectangularBox(s);
+               bMeshes = bC.create();
+               obj.nBoxFaces = numel(bMeshes);
+               for iM = 1:obj.nBoxFaces
+                  m = bMeshes{iM};
+                  obj.boxFaceMeshes{iM} = m;
+                  obj.append(m);                   
+               end
         end
         
         function defineActiveMeshes(obj)
@@ -209,24 +152,5 @@ classdef Mesh_Total < Mesh_Composite
         
     end
     
-    methods (Access = private, Static)
-        
-        function iFace = computeIface(iSide,iDime)
-            nSides = 2;
-            iFace = (iDime-1)*nSides + iSide;
-        end        
-        
-        function connec = computeDelaunay(coord)
-            DT = delaunayTriangulation(coord);
-            connec = DT.ConnectivityList;
-        end
-        
-        function connec = computeConnectivities(coord)
-            [~,I] = sort(coord);
-            connec = [I circshift(I,-1)];
-            connec(end,:) = [];
-        end
-        
-    end
     
 end

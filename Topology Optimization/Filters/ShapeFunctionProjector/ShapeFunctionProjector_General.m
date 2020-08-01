@@ -3,8 +3,6 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
     properties (Access = private)
         unfittedMesh
         domainType
-        interpolation
-        quadrature
     end
     
     methods (Access = public)
@@ -12,8 +10,6 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
         function obj = ShapeFunctionProjector_General(cParams)
             obj.init(cParams)
             obj.domainType = cParams.domainType;
-            obj.quadrature = cParams.quadrature;
-            obj.createInterpolation();
             obj.createUnfittedMesh();
         end
         
@@ -22,8 +18,15 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
                 fInt = zeros(size(ls));
             else
                 fNodes = ones(size(ls));
-                obj.unfittedMesh.compute(ls);
-                fInt = obj.unfittedMesh.integrateNodalFunction(fNodes);
+                obj.unfittedMesh.compute(ls); 
+%                 hold on
+%                 obj.unfittedMesh.plotBoundary(); 
+%                 view([1 1 1]);
+%                 drawnow
+                s.mesh = obj.unfittedMesh;
+                s.type = 'Unfitted';
+                integrator = Integrator.create(s);            
+                fInt = integrator.integrateInDomain(fNodes);                
             end
             
         end
@@ -32,15 +35,10 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
     
     methods (Access = private)
         
-        function createInterpolation(obj)
-            obj.interpolation = Interpolation.create(obj.mesh,'LINEAR');
-            obj.interpolation.computeShapeDeriv(obj.quadrature.posgp)
-        end
         
         function createUnfittedMesh(obj)
-            s.unfittedType = obj.domainType;
-            s.meshBackground = obj.mesh;
-            s.interpolationBackground = obj.interpolation;
+            s.backgroundMesh = obj.mesh.innerMeshOLD;
+            s.boundaryMesh   = obj.mesh.boxFaceMeshes;
             cParams = SettingsMeshUnfitted(s);
             obj.unfittedMesh = UnfittedMesh(cParams);
         end

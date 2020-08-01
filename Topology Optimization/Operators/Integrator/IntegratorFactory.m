@@ -8,6 +8,8 @@ classdef IntegratorFactory
                     integrator = Integrator_Simple(cParams);
                 case 'CutMesh'
                     integrator = IntegratorCutMesh(cParams);
+               case 'Unfitted'
+                    integrator = Integrator_Unfitted(cParams);
                 otherwise
                     error('Invalid Unfitted Mesh type. Currently, integrator only works with INTERIOR and BOUNDARY.')
             end

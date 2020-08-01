@@ -31,7 +31,7 @@ classdef AllNodesInElemComputer < handle
        
        function init(obj,cParams)
            obj.firstCutEdge      = cParams.firstCutEdge;
-           obj.vertexNodesInElem = cParams.backgroundConnec;
+           obj.vertexNodesInElem = cParams.connec;
            obj.finalNodeNumber   = cParams.finalNodeNumber;
        end
        

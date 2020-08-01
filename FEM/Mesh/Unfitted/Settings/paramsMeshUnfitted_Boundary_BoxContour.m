@@ -1,2 +1,1 @@
 unfittedType = 'BOUNDARY';
-includeBoxContour = true;

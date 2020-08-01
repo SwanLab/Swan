@@ -1,7 +1,7 @@
 classdef Interpolator < handle
     
     properties (Access = private)
-       mesh
+       sMesh
        interpolation
        cellFinder
        zGrid
@@ -17,7 +17,7 @@ classdef Interpolator < handle
         end
         
         function setValues(obj,x,y)
-            s.mesh     = obj.mesh;
+            s.mesh     = obj.sMesh;
             s.points.x = x;
             s.points.y = y;
             obj.cellFinder = CellFinderInStructuredMesh(s);            
@@ -38,11 +38,12 @@ classdef Interpolator < handle
     methods (Access = private)
                 
         function init(obj,cParams)
-            obj.mesh = cParams.mesh;                    
+            obj.sMesh = cParams.mesh;                    
         end
         
         function createInterpolation(obj)
-            int = Interpolation.create(obj.mesh,'LINEAR');
+            m = obj.sMesh.mesh;
+            int = Interpolation.create(m,'LINEAR');
             obj.interpolation = int;    
         end        
         

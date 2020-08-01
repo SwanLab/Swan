@@ -1,4 +1,0 @@
-understandingCutMesh;
-TriangleBoundaryMeshExperiment;
-QuadBoundaryMeshExperiment;
-QuadMeshSubMesherExample;
