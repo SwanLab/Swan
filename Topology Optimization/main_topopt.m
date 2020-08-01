@@ -14,7 +14,7 @@ clear variables;
 %% Main
 %fileName = 'CantileverQuadFine_Case_1_1_1';
 fileName = 'CantileverTetrahedra_Case_1_1_1';
-
+%fileName = 'InteriorPerimeter';
 % settings = Settings('Case_RefactoringSettings_OLD');
 % settingsTopOpt = SettingsTopOptProblem('Case_RefactoringSettings_A',settings);
 

@@ -18,10 +18,11 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
                 fInt = zeros(size(ls));
             else
                 fNodes = ones(size(ls));
-                obj.unfittedMesh.compute(ls);    
-%                obj.unfittedMesh.plotBoundary(); 
-%                view([1 1 1]);
-%                drawnow
+                obj.unfittedMesh.compute(ls); 
+%                 hold on
+%                 obj.unfittedMesh.plotBoundary(); 
+%                 view([1 1 1]);
+%                 drawnow
                 s.mesh = obj.unfittedMesh;
                 s.type = 'Unfitted';
                 integrator = Integrator.create(s);            

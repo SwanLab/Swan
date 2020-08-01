@@ -1,28 +1,30 @@
-filename='Cantilever_tetrahedra';
+filename='Cantileverbeam_Tetrahedra_Linear_Structured_Fine';%Cantilever_tetrahedra';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
+%cost = {'compliance','perimeter'};
+%weights = [1 0.1];
 cost = {'compliance'};
 weights = [1];
-constraint = {'volume'};
-optimizer = 'SLERP'; 
+constraint = {'volumeConstraint'};
+%optimizer = 'DualNestedInPrimal';
+optimizer = 'AlternatingPrimalDual';
+
+optimizerUnconstrained = 'SLERP'; 
 kappaMultiplier = 1;
 designVariable = 'LevelSet';
 filterType = 'P1';
-constraint_case = 'INEQUALITY';
-line_search = 'DIMENSIONALLY CONSISTENT';
-showBC = true;
 
-nsteps = 10;
-Vfrac_final = 0.1;
-Perimeter_target = 1;
-optimality_final = 1e-3;
-constr_final =1e-3;
+nsteps = 5;
+Vfrac_final = 0.2;
+optimality_final =1e-3;
+constr_final = 1e-3;
 
 Vfrac_initial = 1;
-optimality_initial = 1e-3;
-constr_initial = 1e-3;
+optimality_initial = 1e-1;
+constr_initial = 1e-1;
+
 TOL.rho_plus = 1;
 TOL.rho_minus = 0;
 TOL.E_plus = 1;
@@ -33,4 +35,4 @@ TOL.nu_minus = 1/3;
 plotting = false;
 printing = false;
 monitoring = false;
-monitoring_interval = 1;
+monitoring_interval = 10;

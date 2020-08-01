@@ -120,7 +120,7 @@ classdef UnfittedBoundaryMesh < handle
     methods (Access = private, Static)    
     
         function m = createBoundaryMesh(bMesh)
-            if isequal(bMesh.mesh.geometryType,'Surface') 
+            if false%isequal(bMesh.mesh.geometryType,'Surface') 
                coord = bMesh.mesh.coord;
                [~,~,N]=svd(coord,0);
                xy=coord*N(:,1:2);

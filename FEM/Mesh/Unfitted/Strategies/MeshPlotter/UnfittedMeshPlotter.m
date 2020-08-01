@@ -18,7 +18,7 @@ classdef UnfittedMeshPlotter < handle
         end
         
         function plotBoundary(obj)
-            figure()
+            figure(10)
             clf
             hold on
             obj.plotBackground();
