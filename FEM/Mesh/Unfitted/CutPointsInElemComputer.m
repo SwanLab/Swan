@@ -2,6 +2,7 @@ classdef CutPointsInElemComputer < handle
     
     properties (GetAccess = public, SetAccess = private)        
         allNodesInElem
+        cutNodesInElem
         xAllNodesInElem
         edgeCutPointInElem
         xCutInElem
@@ -77,6 +78,7 @@ classdef CutPointsInElemComputer < handle
             aComputer = AllNodesInElemComputer(s);
             aComputer.compute();
             obj.allNodesInElem = aComputer.allNodesInElem;
+            obj.cutNodesInElem = aComputer.cutNodesInElem;
         end
         
         function computeXallNodesInElemAndXcut(obj)

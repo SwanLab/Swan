@@ -1,4 +1,4 @@
-classdef BoundaryMeshCreatorFromRectangularBox < handle
+classdef BoundaryMeshCreatorFromRectangularBox < BoundaryMeshCreator
     
     properties (Access = private)
         nSides

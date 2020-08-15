@@ -19,7 +19,10 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
             else
                 fNodes = ones(size(ls));
                 obj.unfittedMesh.compute(ls); 
-%                 hold on
+                
+                 
+          %       obj.unfittedMesh.plot
+                
 %                 obj.unfittedMesh.plotBoundary(); 
 %                 view([1 1 1]);
 %                 drawnow
@@ -37,8 +40,7 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
         
         
         function createUnfittedMesh(obj)
-            s.backgroundMesh = obj.mesh.innerMeshOLD;
-            s.boundaryMesh   = obj.mesh.boxFaceMeshes;
+            s.backgroundMesh = obj.mesh;
             cParams = SettingsMeshUnfitted(s);
             obj.unfittedMesh = UnfittedMesh(cParams);
         end

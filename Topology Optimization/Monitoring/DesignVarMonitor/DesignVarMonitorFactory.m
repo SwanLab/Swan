@@ -11,6 +11,7 @@ classdef DesignVarMonitorFactory < handle
         showBC
         bc
         shallDisplay
+        mesh
     end
     
     
@@ -41,6 +42,7 @@ classdef DesignVarMonitorFactory < handle
             obj.showBC         = cParams.showBC;
             obj.bc             = cParams.bc;
             obj.scale          = cParams.scale;
+            obj.mesh           = cParams.mesh;
         end
         
         function createMonitor(obj)
@@ -79,6 +81,7 @@ classdef DesignVarMonitorFactory < handle
             s.bc        = obj.bc;
             s.dim       = obj.dim;
             s.scale     = obj.scale;
+            s.mesh      = obj.mesh;
         end
         
     end

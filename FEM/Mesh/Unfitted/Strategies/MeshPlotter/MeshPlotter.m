@@ -70,7 +70,7 @@ classdef MeshPlotter < handle
                 y = m.coord(:,2);
                 hold on
                 p = plot(x(nodes),y(nodes),'.r');                                
-                p.MarkerSize = 8;
+                p.MarkerSize = 14;
             end            
         end
         
@@ -86,7 +86,7 @@ classdef MeshPlotter < handle
                 p.FaceAlpha = 0.3;
                 axis equal;
                 hold on
-                p = plot3(x(nodes),y(nodes),z(nodes),'.r');
+               p = plot3(x(nodes),y(nodes),z(nodes),'.r');
                 p.MarkerSize = 6;
             else
                 x = m.coord(:,1);
@@ -101,8 +101,8 @@ classdef MeshPlotter < handle
                 p.LineWidth = 1.5;
                 axis('equal');
                 hold on
-                p = plot(x(nodes),y(nodes),'.r');
-                p.MarkerSize = 8;
+              %  p = plot(x(nodes),y(nodes),'.r');
+              %  p.MarkerSize = 8;
             end
             
         end

@@ -2,10 +2,10 @@ classdef AllNodesInElemComputer < handle
     
    properties (Access = public)
        allNodesInElem
+       cutNodesInElem       
    end
    
    properties (Access = private)       
-       cutNodesInElem
    end
 
    properties (Access = private)

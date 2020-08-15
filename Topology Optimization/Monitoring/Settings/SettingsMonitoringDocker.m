@@ -25,6 +25,8 @@ classdef SettingsMonitoringDocker < AbstractSettings
         
         convergenceVars
         boundaryConditions
+        
+        mesh
     end
     
     methods (Access = public)

@@ -59,10 +59,10 @@ classdef NumericalHomogenizerDataBase < handle
             
             s.mesh = meshT;
             
-            d.filterParams.designVar = DesignVariable.create(s);% Density(s);
+            designVar = DesignVariable.create(s);% Density(s);
             d.femSettings.fileName = obj.femFileName;
             d.femSettings.scale = 'MICRO';
-            mesh = d.filterParams.designVar.mesh;
+            mesh = designVar.mesh;
             
             sHomog.type                   = 'ByInterpolation';
             sHomog.interpolation          = dI.materialInterpDataBase.materialInterpolation;

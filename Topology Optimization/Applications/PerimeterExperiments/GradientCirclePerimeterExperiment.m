@@ -7,7 +7,11 @@ classdef GradientCirclePerimeterExperiment < handle
         scale
         imesh
         
-        mesh
+        
+        backgroundMesh
+        boundaryMesh
+        unfittedMesh
+        
         domainLength
         levelSet
         
@@ -26,8 +30,10 @@ classdef GradientCirclePerimeterExperiment < handle
             obj.init();
             for imesh = 1:numel(obj.inputFile)
                 obj.imesh = imesh;
-                obj.createMesh();
+                obj.createBackgroundAndBoundaryMesh();
+                obj.computeDomainLength();
                 obj.createLevelSet();
+                obj.createUnfittedMesh();
                 obj.computeRegularizedPerimeters();
                 obj.computeGradientVariationWithRadius();
                 obj.computeGradientVariationWithTheta();
@@ -49,23 +55,37 @@ classdef GradientCirclePerimeterExperiment < handle
             obj.outputFolder = '/home/alex/Dropbox/Perimeter/';
         end
         
-        function createMesh(obj)
+        function createBackgroundAndBoundaryMesh(obj)
             s.inputFile = obj.inputFile{obj.imesh};
-            meshCreator = MeshCreatorFromInputFile(s);
-            meshCreator.createMesh();
-            obj.mesh         = meshCreator.mesh;
-            obj.domainLength = meshCreator.domainLength;
+            s.isBackgroundMeshRectangularBox = true;
+            mCreator = BackgroundAndBoundaryMeshCreatorFromInputFile(s);
+            obj.backgroundMesh = mCreator.backgroundMesh;
+            obj.boundaryMesh   = mCreator.boundaryMesh;            
+        end
+        
+        
+        function computeDomainLength(obj)
+            x = obj.backgroundMesh.coord;
+            d = max(x(:,1)) - min(x(:,1));          
+            obj.domainLength = d;
         end
         
         function createLevelSet(obj)
-            s.inputFile             = obj.inputFile{obj.imesh};
-            s.mesh                  = obj.mesh;
-            s.scale                 = obj.scale;
-            s.plotting              = true;
-            s.printing              = true;
-            s.levelSetCreatorParams = obj.createLevelSetCreatorParams();
-            lsCreator = LevelSetCreatorForPerimeter(s);
-            obj.levelSet = lsCreator.levelSet;
+            s.type = 'circleInclusion';
+            halfSide = obj.domainLength/2;            
+            s.fracRadius = obj.radius/halfSide;
+            s.coord      = obj.backgroundMesh.coord;
+            s.ndim       = obj.backgroundMesh.ndim;
+            lsCreator = LevelSetCreator.create(s);
+            obj.levelSet = lsCreator.getValue();
+        end
+        
+        function createUnfittedMesh(obj)
+            s.backgroundMesh = obj.backgroundMesh;
+            s.boundaryMesh   = obj.boundaryMesh;
+            uMesh = UnfittedMesh(s);
+            uMesh.compute(obj.levelSet);  
+            obj.unfittedMesh = uMesh;
         end
         
         function s = createLevelSetCreatorParams(obj)
@@ -78,12 +98,12 @@ classdef GradientCirclePerimeterExperiment < handle
         
         function computeRegularizedPerimeters(obj)
             s.inputFile        = obj.inputFile{obj.imesh};
-            s.mesh             = obj.mesh;
+            s.mesh             = obj.backgroundMesh;
             s.scale            = obj.scale;
             s.designVariable   = obj.levelSet;
             s.outputFigureName = ['SmoothedCircleMesh',num2str(obj.imesh)];
             s.plotting         = false;
-            s.printing         = true;
+            s.printing         = false;
             s.capturingImage   = false;
             s.isRobinTermAdded = false;
             s.perimeterType    = 'perimeterInterior';
@@ -93,7 +113,7 @@ classdef GradientCirclePerimeterExperiment < handle
         end
                 
         function computeGradientVariationWithRadius(obj) 
-            s.mesh                 = obj.mesh;
+            s.mesh                 = obj.backgroundMesh;
             s.regularizedPerimeter = obj.regularizedPerimeter;
             s.inputFile            = obj.inputFile{obj.imesh};
             s.nameCase             = obj.nameCase;
@@ -106,18 +126,19 @@ classdef GradientCirclePerimeterExperiment < handle
         function computeGradientVariationWithTheta(obj)
             filePlotName = [obj.outputFolder,obj.inputFile{obj.imesh}];
             s.filePlotName         = filePlotName;
-            s.mesh                 = obj.mesh;
+            s.mesh                 = obj.backgroundMesh;
             s.levelSet             = obj.levelSet;
             s.radius               = obj.radius;
             s.regularizedPerimeter = obj.regularizedPerimeter;
             s.domainLength         = obj.domainLength;
+            s.circunferenceMesh    = obj.unfittedMesh.boundaryCutMesh;
             gComputer = GradientVariationWithThetaComputer(s);
             gComputer.compute();
         end        
         
         function computeGradientSurfaces(obj)
             s.outPutFolder = obj.outputFolder;
-            s.mesh         = obj.mesh;
+            s.mesh         = obj.backgroundMesh;
             s.rPerimeter   = obj.regularizedPerimeter;
             s.iMesh        = obj.imesh;
             s.domainLength = obj.domainLength;

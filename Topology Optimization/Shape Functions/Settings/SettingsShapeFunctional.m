@@ -11,6 +11,7 @@ classdef SettingsShapeFunctional < AbstractSettings
         homogVarComputer
         designVariable
         targetParameters
+        mesh
     end
     
     methods (Access = public)

@@ -54,8 +54,15 @@ classdef Filter_PDE_LevelSet < Filter_PDE
     methods (Access = private)
         
         function createUnfittedMesh(obj)
-            s.backgroundMesh = obj.mesh.innerMeshOLD;
-            s.boundaryMesh   = obj.mesh.boxFaceMeshes;
+            s.backgroundMesh = obj.mesh;
+            
+            sB.backgroundMesh = s.backgroundMesh;
+            sB.dimension = 1:s.backgroundMesh.ndim;
+            sB.type = 'FromReactangularBox';
+            bC = BoundaryMeshCreator.create(sB);
+            s.boundaryMesh = bC.create();
+            
+       %     s.boundaryMesh   = obj.mesh.boxFaceMeshes;
             cParams = SettingsMeshUnfitted(s);
             obj.unfittedMesh = UnfittedMesh(cParams);            
         end
@@ -70,7 +77,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
         end
         
         function computeGeometry(obj)
-            s.mesh = obj.mesh.innerMeshOLD;
+            s.mesh = obj.mesh;
             obj.geometry = Geometry.create(s);
             obj.geometry.computeGeometry(obj.quadrature,obj.interp);
         end

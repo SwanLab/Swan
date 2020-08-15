@@ -41,6 +41,8 @@ classdef TopOpt_Problem < handle
             s.uncOptimizerSettings.targetParameters = obj.incrementalScheme.targetParams;
             s.uncOptimizerSettings.designVariable   = obj.designVariable;
             
+            s.monitoringDockerSettings.mesh = obj.mesh;
+            
             s.designVar         = obj.designVariable;
             s.targetParameters  = obj.incrementalScheme.targetParams;
             s.cost              = obj.cost;

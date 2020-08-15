@@ -1,4 +1,4 @@
-classdef MeshCreatorFromInputFile < handle
+classdef BackgroundAndBoundaryMeshCreatorFromInputFile < handle
     
     properties (Access = public)
         backgroundMesh
@@ -7,11 +7,12 @@ classdef MeshCreatorFromInputFile < handle
     
     properties (Access = private)
         inputFile
+        isRectangularBox
     end
     
     methods (Access = public)
         
-        function obj = MeshCreatorFromInputFile(cParams)
+        function obj = BackgroundAndBoundaryMeshCreatorFromInputFile(cParams)
             obj.init(cParams);
             obj.createBackgroundMesh();
             obj.createBoundaryMesh();            
@@ -22,7 +23,8 @@ classdef MeshCreatorFromInputFile < handle
     methods (Access = private)
         
         function init(obj,cParams)
-           obj.inputFile = cParams.inputFile; 
+           obj.inputFile        = cParams.inputFile; 
+           obj.isRectangularBox = cParams.isBackgroundMeshRectangularBox;
         end
         
         function createBackgroundMesh(obj)
@@ -36,23 +38,27 @@ classdef MeshCreatorFromInputFile < handle
         
         function createBoundaryMesh(obj)
             eval(obj.inputFile);
-            if exist('External_border_nodes','var')
+            if exist('External_border_nodes','var') && ~isempty(External_border_nodes)
                 s.borderNodes    = External_border_nodes;
                 s.borderElements = External_border_elements;
                 s.backgroundMesh = obj.backgroundMesh;
-                b = BoundaryMeshCreatorFromData(s);
+                s.type = 'FromData';
+                b = BoundaryMeshCreator.create(s);
                 obj.boundaryMesh = b.create();
+            elseif obj.isRectangularBox
+                s.backgroundMesh = obj.backgroundMesh;
+                s.dimension = 1:obj.backgroundMesh.ndim;
+                s.type = 'FromReactangularBox';
+                bC = BoundaryMeshCreator.create(s);
+                obj.boundaryMesh = bC.create();
             else
-            s.backgroundMesh = obj.backgroundMesh;
-            s.dimension = 1:obj.backgroundMesh.ndim;
-            bC = BoundaryMeshCreatorFromRectangularBox(s);
-            obj.boundaryMesh = bC.create();                 
-            end
+                
+            end  
         end
-        
-              
+            
         
     end
-    
+        
+  
     
 end

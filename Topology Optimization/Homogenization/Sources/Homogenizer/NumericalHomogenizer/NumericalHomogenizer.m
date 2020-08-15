@@ -172,8 +172,11 @@ classdef NumericalHomogenizer < handle
             scalarPr.epsilon = 1e-3;
             s.scalarProductSettings    = scalarPr;
             d.filterParams.femSettings = d.femSettings;
-            d.filterParams.designVar = DesignVariable.create(s);
+            desVar = DesignVariable.create(s);
+            d.filterParams.mesh = desVar.mesh.innerMeshOLD;
+            d.filterParams.designVarType = desVar.type;
             d.filterParams = SettingsFilter(d.filterParams);
+            d.mesh = mesh;
             vComputer = ShFunc_Volume(d);
             vComputer.computeCostFromDensity(obj.density);
             obj.cellVariables.volume = vComputer.value;

@@ -53,9 +53,8 @@ classdef RegularizedPerimeterComputer < handle
         end
         
         function createEpsilonValues(obj)
-            m = obj.designVariable.mesh;
-            epsmin = m.computeMeanCellSize;
-            epsmax = m.innerMeshOLD.computeCharacteristicLength();
+            epsmin = obj.mesh.computeMeanCellSize;
+            epsmax = obj.mesh.computeCharacteristicLength();
             obj.nEpsilon = min(6,ceil(log2(epsmax/epsmin)));
             obj.epsilons = epsmin*(2.^((1:obj.nEpsilon) - 1));
         end
@@ -115,7 +114,7 @@ classdef RegularizedPerimeterComputer < handle
         function printDensity(obj,iepsilon)
             s.inputFile = obj.inputFile;
             s.iter      = iepsilon;
-            s.mesh      = obj.designVariable.mesh;
+            s.mesh      = obj.mesh;
             s.perimeter   = obj.perimeterShapeFunction;
             printer = DensityPrinterForPerimeter(s);
             printer.print();

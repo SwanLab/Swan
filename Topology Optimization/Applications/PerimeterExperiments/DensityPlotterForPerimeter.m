@@ -53,8 +53,8 @@ classdef DensityPlotterForPerimeter < handle
             s.ptype    = 'ELASTIC';
             s.nelem    = size(obj.mesh.connec,1);
             s.bc       = [];
-            s.coord    = obj.mesh.coord;
-            s.connec   = obj.mesh.connec;
+%             s.coord    = obj.mesh.innerMeshOLD.coord;
+%             s.connec   = obj.mesh.innerMeshOLD.connec;
         end
         
         function s = createScalarProductParams(obj)
@@ -76,6 +76,7 @@ classdef DensityPlotterForPerimeter < handle
             sD.optimizerName  = '';
             sD.dim            = '2D';
             sD.scale          = obj.scale;
+            sD.mesh           = obj.mesh;
             f = DesignVarMonitorFactory;
             obj.plotter = f.create(sD);                        
         end

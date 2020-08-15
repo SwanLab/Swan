@@ -50,7 +50,8 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         
         function setupFilter(obj,e,designVar)
             s = SettingsFilter('paramsFilter_PDE_Boundary.json');
-            s.designVar = designVar;
+            s.mesh = designVar.mesh.innerMeshOLD;
+            s.designVarType = designVar.type;
             s.quadratureOrder = 'LINEAR';   
             s.femSettings.scale = 'MACRO';
             obj.filter = Filter.create(s);

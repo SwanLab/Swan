@@ -20,16 +20,20 @@ classdef PlottingTests < testRunner
             'testCircumferenceQuadrilateral'                
             'testCircumferenceTriangle'            
             'testPlotCircleTriangle'                 
-            'testPlotCircleQuadrilateral'                 
+            'testPlotCircleQuadrilateral'   
+            
+         
+            
             'testRectangleTriangle'
             'testRectangleQuadrilateral'      
             'testSmoothRectangleTriangle'
             'testSmoothRectangleQuadrilateral'                            
+
             'testPlotSphereTetrahedra';
-            'testPlotSphereHexahedra';                                
+            'testPlotSphereHexahedra';              
             'testPlotCylinderTetrahedra';
             'testPlotCylinderHexahedra';  
-             'testPlotLargeCylinderTethaedra';            
+            'testPlotLargeCylinderTethaedra';            
             };
         end
     end

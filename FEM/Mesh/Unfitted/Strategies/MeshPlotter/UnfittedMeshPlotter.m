@@ -11,10 +11,11 @@ classdef UnfittedMeshPlotter < handle
         end
         
         function plotDomain(obj)
-            figure
+            figure(100)
             clf
             hold on
             obj.plotAll();
+            drawnow
         end
         
         function plotBoundary(obj)

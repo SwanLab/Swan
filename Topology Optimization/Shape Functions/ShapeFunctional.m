@@ -62,9 +62,8 @@ classdef ShapeFunctional < handle
         
         function createMsmoothAndDvolu(obj,cParams)
             s = cParams.femSettings;
-            if ~isempty(cParams.designVariable)
-                s.mesh = cParams.designVariable.mesh;
-            end
+            s.mesh = cParams.mesh;
+            
             switch s.scale
                 case 'MACRO'
                     diffReacProb = DiffReact_Problem(s);
@@ -73,7 +72,7 @@ classdef ShapeFunctional < handle
             end
             diffReacProb.preProcess();
             obj.Msmooth = diffReacProb.element.M;
-            obj.dvolu = diffReacProb.geometry.dvolu;
+            obj.dvolu   = diffReacProb.geometry.dvolu;
         end
         
         function normalizeFunctionValue(obj)

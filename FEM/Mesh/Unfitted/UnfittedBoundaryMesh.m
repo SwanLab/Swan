@@ -120,28 +120,10 @@ classdef UnfittedBoundaryMesh < handle
     methods (Access = private, Static)    
     
         function m = createBoundaryMesh(bMesh)
-            if false%isequal(bMesh.mesh.geometryType,'Surface') 
-               coord = bMesh.mesh.coord;
-               [~,~,N]=svd(coord,0);
-               xy=coord*N(:,1:2);
-               k = boundary(xy,0.81);
-               s.nodesInBoxFaces = k(1:end-1);
-               s.coord = coord(k(1:end-1),:);
-               nodes = 1:size(s.coord,1);
-               s.connec(:,1) = nodes(1:end);
-               s.connec(:,2) = [nodes(2:end) nodes(1)];
-               s.kFace = bMesh.mesh.kFace;
-               s.dimension = bMesh.dimension;
-               s.isRectangularBox = false;
-               m{1} = BoundaryMesh(s);
-            else                
-                s.backgroundMesh = bMesh.mesh;
-                s.dimension      = setdiff(1:bMesh.mesh.ndim,bMesh.dimension);
-                bC = BoundaryMeshCreatorFromRectangularBox(s);
-                m = bC.create();
-            end
-            
-                                  
+            s.backgroundMesh = bMesh.mesh;
+            s.dimension      = setdiff(1:bMesh.mesh.ndim,bMesh.dimension);
+            bC = BoundaryMeshCreatorFromRectangularBox(s);
+            m = bC.create();
         end
         
     end

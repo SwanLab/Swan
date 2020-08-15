@@ -214,7 +214,7 @@ classdef CutMeshComputerProvisional < CutMesh
                 
                 sI.allSubCellsConnecParams = sA;
                 sI.isSubCellInterior = caseInfo.isSubCellsInterior(:,t);
-                sI.cutElems = cutCells;
+                sI.cutElems = obj.cutCells;
                 
                 sI.nSubCellsByElem = nSubCellsByElem(icases);
                 
@@ -245,20 +245,18 @@ classdef CutMeshComputerProvisional < CutMesh
                end
                
                if ~isempty(scN) 
-                   conn = scN.edgeCutPointInElem;
+                   conn = scN.cutNodesInElem;
                    xB = scN.xCutInElem;
                    tCC = tP{icase};
                    
                    cellCBA = obj.cutCells(tCC);
                    if size(conn,2) == 4
-                       connF = conn(:,1:3);
-                       connS = conn(:,[1 3 4 ]);
-                       connR = [connF;connS];
+
+
+                       [connR,xCoordsIsoBoundaryR] = obj.divideInSubTriangle(conn,xB);
                        
-                       xBS = xB(:,1:3,:);
-                       xBR = xB(:,[1 3 4 ],:);
+                      
                        
-                       xCoordsIsoBoundaryR = cat(3,xBS,xBR);
                        
                        cellCBR = [cellCBA; cellCBA];
                        
@@ -284,6 +282,79 @@ classdef CutMeshComputerProvisional < CutMesh
             obj.cellContainingSubCellBoundary = cellCB; 
         end
         
+        function [conn,xCoordsIsoBoundaryR] = divideInSubTriangle(obj,conn,xB)
+            indexT1 = 1:3;
+            indexT2 = [1 3 4 ];
+            
+            coor = obj.cutCoordComputer.coord;
+            xNode1 = coor(conn(:,1),:);
+            xNode2 = coor(conn(:,2),:);
+            xNode3 = coor(conn(:,3),:);
+            xNode4 = coor(conn(:,4),:);
+            
+            x12 = xNode2 - xNode1;
+            x13 = xNode3 - xNode1;
+            x14 = xNode4 - xNode1;
+            
+            nx12 = obj.computeNorm(x12);
+            nx13 = obj.computeNorm(x13);
+            nx14 = obj.computeNorm(x14);
+
+            [~,indMax] = max([nx12,nx13,nx14],[],2);
+            [~,indMin] = min([nx12,nx13,nx14],[],2);
+            
+            pos = [2; 3; 4];
+            
+            longestNode = pos(indMax);
+            closestNode = pos(indMin);
+            
+            elem1 = [ones(length(indMax),1),longestNode,closestNode];
+            
+            posT = false(length(indMax),4);
+            
+            ind1 = sub2ind(size(posT),[1:length(indMax)]',elem1(:,1));
+            ind2 = sub2ind(size(posT),[1:length(indMax)]',elem1(:,2));
+            ind3 = sub2ind(size(posT),[1:length(indMax)]',elem1(:,3));
+            posT(ind1) = true;
+            posT(ind2) = true;
+            posT(ind3) = true;
+            
+            [~,otherNode] = max(~posT,[],2);
+            
+            elem2 = [ones(length(indMax),1),otherNode,longestNode];
+
+            for i = 1:3
+               nodei1 = elem1(:,i);
+               index1 = sub2ind(size(posT),[1:size(elem1,1)]',nodei1);
+               connF(:,i) = conn(index1);
+               
+               nodei2 = elem2(:,i);
+               index2 = sub2ind(size(posT),[1:size(elem2,1)]',nodei2);
+               connS(:,i) = conn(index2);
+               
+                for idim = 1:size(xB,1)
+                    xBi = squeeze(xB(idim,:,:))';
+                    xBS(idim,i,:) = xB(index1);
+                    xBR(idim,i,:) = xB(index2);   
+                end
+               
+            end
+            
+            conn = [connF;connS];
+            
+            xCoordsIsoBoundaryR = cat(3,xBS,xBR);
+
+ 
+            %m = Mesh(s);
+            
+            
+            
+        end
+        
+        function n = computeNorm(obj,x)
+            n = sqrt(x(:,1).^2 + x(:,2).^2 + x(:,3).^2);            
+        end
+        
         function computeMesh(obj)
             sM.connec = obj.connec;
             sM.coord  = obj.coord;
@@ -292,7 +363,7 @@ classdef CutMeshComputerProvisional < CutMesh
         end
         
         function computeBoundaryMesh(obj)
-            s.coord  = obj.cutCoordComputer.xCutPoints;
+            s.coord  = obj.cutCoordComputer.coord;
             s.connec = obj.connecB;%obj.cutPointsInElemComputer.edgeCutPointInElem;
             s.kFace  = obj.backgroundMesh.kFace -1;
             obj.boundaryMesh = Mesh(s);

@@ -51,13 +51,28 @@ classdef ShFunc_Perimeter < ShapeFunctional
         end
         
         function computeRegularizedDensity(obj)
-             obj.regularizedDensity = obj.filter.getP1fromP1(obj.designVariable.value);
-%             cla(obj.axes)
-%             patchHandle = patch(obj.axes,'Faces',obj.designVariable.mesh.connec,'Vertices',obj.designVariable.mesh.coord,...
+             obj.regularizedDensity = obj.filter.getP1fromP1(obj.designVariable);
+%              rho = obj.regularizedDensity;
+%              m = obj.filter.diffReacProb.mesh;
+%              
+%              
+%              x = m.coord(:,1);
+%              y = m.coord(:,2);
+%              z = rho;
+%              tri = delaunay(x,y);
+%              f = figure();
+%              trisurf(tri,x,y,z);
+%              shading interp
+%              
+%              node1 = rho(m.connec(:,1));
+%              node2 = rho(m.connec(:,2));
+%              node3 = rho(m.connec(:,3));
+%              rhoElem = mean([node1,node2,node3],2);
+%            cla(obj.axes)
+%             patchHandle = patch('Faces',m.connec,'Vertices',m.coord,...
 %                 'FaceAlpha','flat','EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
-%             set(obj.axes,'ALim',[0, 1],'XTick',[],'YTick',[]);
-%             set(patchHandle,'FaceVertexAlphaData',obj.regularizedDensity,'FaceAlpha','flat');
-         end
+%            set(patchHandle,'FaceVertexAlphaData',rhoElem,'FaceAlpha','flat');
+          end
         
         function initFrame(obj)
             figHandle = figure();
@@ -72,7 +87,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
         end
         
         function computeRegularizedDensityProjection(obj)
-            obj.regularizedDensityProjection = obj.filter.integrate_L2_function_with_shape_function(obj.designVariable.value);
+            obj.regularizedDensityProjection = obj.filter.integrate_L2_function_with_shape_function(obj.designVariable);
         end
         
         function computePerimeterValue(obj)

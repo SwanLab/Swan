@@ -115,10 +115,10 @@ classdef DiffReact_Problem < FEM
             obj.problemData.fileName = fileName;
         end
         
-        function setupFromMesh(obj,inputData)
-            obj.mesh = inputData.mesh;
-            if isfield(inputData,'fileName')
-                obj.problemData.fileName = inputData.fileName;
+        function setupFromMesh(obj,s)
+            obj.mesh = s.mesh;
+            if isfield(s,'fileName')
+                obj.problemData.fileName = s.fileName;
             end
         end
         

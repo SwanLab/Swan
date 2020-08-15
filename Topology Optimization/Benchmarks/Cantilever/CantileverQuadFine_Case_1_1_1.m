@@ -3,8 +3,8 @@ filename='Cantilever_quad_fine';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'compliance'};
-weights = [1, 0.1];
+cost = {'compliance','perimeterInterior'};
+weights = [1, 0.01];
 constraint = {'volumeConstraint'};
 optimizer = 'SLERP'; 
 kappaMultiplier = 1;
@@ -30,4 +30,4 @@ TOL.nu_minus = 1/3;
 
 plotting = false;
 printing = false;
-monitoring = false;
+monitoring = true;

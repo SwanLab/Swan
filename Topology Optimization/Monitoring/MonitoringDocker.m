@@ -50,6 +50,7 @@ classdef MonitoringDocker < handle
             s.optimizerName  = cParams.optimizerName;
             s.dim            = cParams.dim; 
             s.scale          = cParams.scale;
+            s.mesh           = cParams.mesh;
             f = DesignVarMonitorFactory;
             obj.designVarMonitor = f.create(s);
         end

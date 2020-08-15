@@ -42,25 +42,11 @@ classdef GradientVariationWithThetaComputer < handle
             obj.radius       = cParams.radius;
             obj.rPerimeter   = cParams.regularizedPerimeter;
             obj.domainLength = cParams.domainLength;
-            obj.circunferenceMesh = obj.computeCircunferenceMesh();
+            obj.circunferenceMesh = cParams.circunferenceMesh;
             obj.nEpsilon        = size(obj.rPerimeter.epsilons,2);
-            obj.nCell           = size(obj.circunferenceMesh.connec,1);
+            obj.nCell           = size(obj.circunferenceMesh.mesh.connec,1);
             obj.theta           = zeros(obj.nCell,obj.nEpsilon);           
             obj.gradientCircunf = zeros(obj.nCell,obj.nEpsilon);                        
-        end
-        
-        function cMesh = computeCircunferenceMesh(obj)
-            s = obj.createMeshUnfittedSettings();
-            cMesh = UnfittedMesh(s);
-            cMesh.compute(obj.levelSet.value);
-        end        
-        
-        function s = createMeshUnfittedSettings(obj)
-            sM.unfittedType   = 'BOUNDARY';
-            sM.backgroundMesh = obj.mesh.innerMeshOLD;
-            sM.boundaryMesh   = obj.mesh.boxFaceMeshes;
-            sM.isInBoundary = false;                              
-            s = SettingsMeshUnfitted(sM);
         end
         
         function computeGradientInCircunference(obj,iepsilon)
@@ -74,7 +60,7 @@ classdef GradientVariationWithThetaComputer < handle
         end        
         
         function computeTheta(obj,iepsilon)
-            cMesh = obj.circunferenceMesh;
+            cMesh = obj.circunferenceMesh.mesh;
             for icell = 1:obj.nCell
                 nodeA  = cMesh.connec(icell,1);
                 nodeB  = cMesh.connec(icell,2);
@@ -132,7 +118,7 @@ classdef GradientVariationWithThetaComputer < handle
         function printPlot(obj,f,h)
             outputName = [obj.filePlotName,'GradientVsTheta'];
             printer = plotPrinter(f,h);
-            printer.print(outputName);
+           % printer.print(outputName);
         end                
         
         function fNodalInCell = computeFnodalInCell(obj,icell,fNodal)
@@ -142,7 +128,7 @@ classdef GradientVariationWithThetaComputer < handle
         end
         
         function x1pos = computeXpos(obj,icell)
-            x1pos = obj.circunferenceMesh.subcellIsoCoords(icell,1,:);
+            x1pos = obj.circunferenceMesh.xCoordsIso(:,1,icell);
             x1pos = squeeze(x1pos);
         end
         
