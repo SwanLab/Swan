@@ -141,6 +141,21 @@ classdef Mesh < handle
             obj.edges = edge;
         end
         
+        function newMesh = computeCanonicalMesh(obj)
+            [~,ind,ind2] = unique(obj.connec);
+            newConnec = reshape(ind2,[],obj.nnode);
+            newCoord = zeros(size(ind,1),obj.nnode);
+            for inode = 1:obj.nnode
+                oldNode = obj.connec(:,inode);
+                newNode = newConnec(:,inode);
+                newCoord(newNode,:) = obj.coord(oldNode,:);
+            end
+            s.coord = newCoord;
+            s.connec = newConnec;
+            s.kFace = obj.kFace;
+            newMesh = Mesh(s);
+        end
+        
     end
     
     

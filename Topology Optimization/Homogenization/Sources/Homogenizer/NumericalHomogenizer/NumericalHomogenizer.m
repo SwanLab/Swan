@@ -170,13 +170,14 @@ classdef NumericalHomogenizer < handle
             s.levelSetCreatorSettings.ndim  = obj.microProblem.mesh.ndim;
             s.levelSetCreatorSettings.coord = obj.microProblem.mesh.coord; 
             scalarPr.epsilon = 1e-3;
+            scalarPr.mesh = mesh.innerMeshOLD;
             s.scalarProductSettings    = scalarPr;
             d.filterParams.femSettings = d.femSettings;
             desVar = DesignVariable.create(s);
             d.filterParams.mesh = desVar.mesh.innerMeshOLD;
             d.filterParams.designVarType = desVar.type;
             d.filterParams = SettingsFilter(d.filterParams);
-            d.mesh = mesh;
+            d.mesh = mesh.innerMeshOLD;
             vComputer = ShFunc_Volume(d);
             vComputer.computeCostFromDensity(obj.density);
             obj.cellVariables.volume = vComputer.value;

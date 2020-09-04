@@ -9,11 +9,11 @@ classdef Geometry_Surface < Geometry
     methods (Access = public)
         
         function obj = Geometry_Surface(cParams)
-            obj.init(cParams)
+            obj.permutation = [3 2 1];                        
+            obj.init(cParams);
         end
         
         function computeGeometry(obj,quad,interpV)
-            obj.coordElem = permute(obj.mesh.coordElem,[3 2 1]);            
             obj.initGeometry(interpV,quad);
             obj.computeDrDtxi();
             obj.computeNormals();

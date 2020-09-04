@@ -48,8 +48,7 @@ classdef NumericalHomogenizerDataBase < handle
             s.type = 'Density';
             s.levelSetCreatorSettings.type = 'full';
             
-            scalarPr.epsilon = 1e-3;
-            s.scalarProductSettings = scalarPr;
+
             
             fileName = s.mesh;
             dF = FemInputReader_GiD().read(fileName);
@@ -58,6 +57,10 @@ classdef NumericalHomogenizerDataBase < handle
             meshT = Mesh_Total(cParams);
             
             s.mesh = meshT;
+            
+            scalarPr.epsilon = 1e-3;
+            scalarPr.mesh = meshT.innerMeshOLD;
+            s.scalarProductSettings = scalarPr;            
             
             designVar = DesignVariable.create(s);% Density(s);
             d.femSettings.fileName = obj.femFileName;

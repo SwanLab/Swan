@@ -11,7 +11,8 @@ classdef Geometry < handle
     end
     
     properties (Access = protected)
-        coordElem                
+        coordElem            
+        permutation
     end
     
     methods (Access = public, Static)
@@ -33,7 +34,7 @@ classdef Geometry < handle
        
        function init(obj,cParams)
             obj.mesh = cParams.mesh;
-            obj.coordElem = obj.mesh.coordElem;
+            obj.coordElem = permute(obj.mesh.coordElem,obj.permutation);                         
        end        
        
     end

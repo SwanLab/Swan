@@ -3,11 +3,11 @@ classdef Geometry_Line < Geometry
     methods (Access = public)
         
         function obj = Geometry_Line(cParams)
-            obj.init(cParams)
+            obj.permutation = [2 3 1];            
+            obj.init(cParams);
         end
         
         function computeGeometry(obj,quad,interpV)
-            obj.coordElem = permute(obj.coordElem,[2 3 1]);             
             obj.initGeometry(interpV,quad);
             obj.computeDvolu();
         end

@@ -28,18 +28,20 @@ classdef GradientCirclePerimeterExperiment < handle
         
         function obj = GradientCirclePerimeterExperiment()
             obj.init();
+
+            
             for imesh = 1:numel(obj.inputFile)
                 obj.imesh = imesh;
                 obj.createBackgroundAndBoundaryMesh();
                 obj.computeDomainLength();
                 obj.createLevelSet();
-                obj.createUnfittedMesh();
                 obj.computeRegularizedPerimeters();
-                obj.computeGradientVariationWithRadius();
-                obj.computeGradientVariationWithTheta();
                 obj.computeGradientSurfaces();
-            end
+            end                        
+                   
         end
+
+        
         
     end
     
@@ -61,8 +63,7 @@ classdef GradientCirclePerimeterExperiment < handle
             mCreator = BackgroundAndBoundaryMeshCreatorFromInputFile(s);
             obj.backgroundMesh = mCreator.backgroundMesh;
             obj.boundaryMesh   = mCreator.boundaryMesh;            
-        end
-        
+        end        
         
         function computeDomainLength(obj)
             x = obj.backgroundMesh.coord;
@@ -80,63 +81,7 @@ classdef GradientCirclePerimeterExperiment < handle
             obj.levelSet = lsCreator.getValue();
         end
         
-        function createUnfittedMesh(obj)
-            s.backgroundMesh = obj.backgroundMesh;
-            s.boundaryMesh   = obj.boundaryMesh;
-            uMesh = UnfittedMesh(s);
-            uMesh.compute(obj.levelSet);  
-            obj.unfittedMesh = uMesh;
-        end
-        
-        function s = createLevelSetCreatorParams(obj)
-            ss.type = 'circleInclusion';
-            halfSide = obj.domainLength/2;
-            ss.fracRadius = (obj.radius/halfSide);
-            s = SettingsLevelSetCreator;
-            s = s.create(ss);
-        end
-        
-        function computeRegularizedPerimeters(obj)
-            s.inputFile        = obj.inputFile{obj.imesh};
-            s.mesh             = obj.backgroundMesh;
-            s.scale            = obj.scale;
-            s.designVariable   = obj.levelSet;
-            s.outputFigureName = ['SmoothedCircleMesh',num2str(obj.imesh)];
-            s.plotting         = false;
-            s.printing         = false;
-            s.capturingImage   = false;
-            s.isRobinTermAdded = false;
-            s.perimeterType    = 'perimeterInterior';
-            rPerimeter = RegularizedPerimeterComputer(s);
-            rPerimeter.compute();
-            obj.regularizedPerimeter = rPerimeter;
-        end
-                
-        function computeGradientVariationWithRadius(obj) 
-            s.mesh                 = obj.backgroundMesh;
-            s.regularizedPerimeter = obj.regularizedPerimeter;
-            s.inputFile            = obj.inputFile{obj.imesh};
-            s.nameCase             = obj.nameCase;
-            s.outputFolder         = obj.outputFolder;
-            s.domainLength         = obj.domainLength;            
-            gComputer = GradientVariationWithRadiusComputer(s);
-            gComputer.compute();
-        end
-        
-        function computeGradientVariationWithTheta(obj)
-            filePlotName = [obj.outputFolder,obj.inputFile{obj.imesh}];
-            s.filePlotName         = filePlotName;
-            s.mesh                 = obj.backgroundMesh;
-            s.levelSet             = obj.levelSet;
-            s.radius               = obj.radius;
-            s.regularizedPerimeter = obj.regularizedPerimeter;
-            s.domainLength         = obj.domainLength;
-            s.circunferenceMesh    = obj.unfittedMesh.boundaryCutMesh;
-            gComputer = GradientVariationWithThetaComputer(s);
-            gComputer.compute();
-        end        
-        
-        function computeGradientSurfaces(obj)
+       function computeGradientSurfaces(obj)
             s.outPutFolder = obj.outputFolder;
             s.mesh         = obj.backgroundMesh;
             s.rPerimeter   = obj.regularizedPerimeter;

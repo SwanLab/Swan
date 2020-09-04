@@ -17,10 +17,11 @@ classdef Element_DiffReact < Element
     properties (Access = private)
         nstre
         addRobinTerm
+        boundaryMesh
     end
     
     methods %(Access = ?Physical_Problem)
-        function obj = Element_DiffReact(mesh,geometry,material,dof,scale,addRobinTerm,bcType,interp)
+        function obj = Element_DiffReact(mesh,geometry,material,dof,scale,addRobinTerm,bcType,interp,boundaryMesh)
             obj.mesh = mesh;
             obj.addRobinTerm = addRobinTerm;
             obj.bcType = bcType;
@@ -28,6 +29,7 @@ classdef Element_DiffReact < Element
             obj.nstre = 2;
             obj.nfields = 1;
             obj.interpolation_u = interp{1};
+            obj.boundaryMesh = boundaryMesh;
             obj.computeStiffnessMatrix();
             obj.computeMassMatrix();
             obj.computeBoundaryMassMatrix();
@@ -121,6 +123,9 @@ classdef Element_DiffReact < Element
             s.type = 'FromReactangularBox';
             bC = BoundaryMeshCreator.create(s);
             bMeshes = bC.create();
+            
+            bMeshes = obj.boundaryMesh;
+            
             nBoxFaces = numel(bMeshes);
             
             
