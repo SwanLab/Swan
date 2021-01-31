@@ -127,10 +127,14 @@ classdef DiffReact_Problem < FEM
         end
         
         function createBoundaryMesh(obj,fileName)
-            eval(fileName);
+            run(fileName);
             if exist('External_border_nodes','var') && ~isempty(External_border_nodes)
                 s.borderNodes    = External_border_nodes;
-                s.borderElements = External_border_elements;
+                if exist('External_border_elements','var') 
+                    s.borderElements = External_border_elements;
+                else
+                    s.borderElements = [];
+                end
                 s.backgroundMesh = obj.mesh;
                 s.type = 'FromData';
                 b = BoundaryMeshCreator.create(s);

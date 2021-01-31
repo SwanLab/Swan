@@ -1,13 +1,13 @@
-classdef DesignVariable < handle & matlab.mixin.Copyable
+classdef DesignVariable < handle
     
     properties (GetAccess = public, SetAccess = protected)
         mesh
         type
-        nVariables                
+        nVariables        
+        value           
     end
     
     properties (Access = public)
-        value   
         alpha
         rho        
     end
@@ -21,8 +21,12 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
         alphaOld
     end
     
+    properties (Access = protected)
+       isFixed 
+    end
+    
     methods (Access = public, Abstract)
-        update(obj,value)
+        getVariablesToPlot(obj)
     end
     
     methods (Access = public, Static)
@@ -37,9 +41,16 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
     methods (Access = public)
                 
         function restart(obj)
-            obj.value = obj.valueOld;
+            obj.update(obj.valueOld);
             obj.alpha = obj.alphaOld;
         end
+        
+        function update(obj,value)
+            obj.value = value;
+            if ~isempty(obj.isFixed)
+               obj.value(obj.isFixed.nodes) = obj.isFixed.values;
+            end
+        end        
         
         function updateOld(obj)
             obj.valueOld = obj.value;
@@ -64,8 +75,9 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.type = cParams.type;
-            obj.mesh = cParams.mesh;
+            obj.type    = cParams.type;
+            obj.mesh    = cParams.mesh;
+            obj.isFixed = cParams.isFixed;
             obj.initValue();
             obj.createScalarProduct(cParams);
         end
@@ -86,6 +98,7 @@ classdef DesignVariable < handle & matlab.mixin.Copyable
         end
         
     end
+
     
 end
 

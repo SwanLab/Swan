@@ -21,7 +21,6 @@ classdef FemTests < testRunner
                 'test2dMicro';
                 'test2dQuad';                
                 'test2dTriangle';
-
                 'testPrincipalDirection2D';
                 'testPrincipalDirection3D';                
                 };

@@ -16,26 +16,27 @@ classdef TopOptTests < testRunner
     methods (Access = protected)
         
         function loadTests(obj)
-            obj.tests = {...   
-            'testDualNestedInPrimalWithSlerp';
-            'testMicro2';  
-                'testMicro';                  
-                'testCantilever2'; 
-                'testCantilever3';                                
-                'testBridge2';                   
-                'testGripping';                  
+            obj.tests = {...  
+                'testMicro2';                
+                'testM1M2';   
+                
+                'testCantilever';
+                'testDualNestedInPrimalWithProjectedGradient';                
+                'testCantilever3';                
+                'testDualNestedInPrimalWithSlerp';
+                'testCantilever2';                
+                'testBridge2';
+                'testGripping';
+                'testStressM1M2';
+                'testMicro';                             
+                'testAnalyticVsRegularizedPerimeter';                
+                'testSuperEllipseExponent';
                 'testInteriorPerimeter';
                 'SimplAllTest3DExplicitVsImplicit';
-                'SimplAllTest2DExplicitVsImplicit';
-                'testDualNestedInPrimalWithProjectedGradient';
-                'testCantilever';
-                'testStressM1M2';
-                'testM1M2';                             
-                'testVigdergauzMicroStructure';  
-                'testSuperEllipseExponent';                                                
-                'testVigdergauzMicroStructureWithStrain';
-                'testAnalyticVsRegularizedPerimeter';                 
-                'testBridge';                                                            
+                'SimplAllTest2DExplicitVsImplicit';                                
+                'testBridge';
+                'testVigdergauzMicroStructure';
+                'testVigdergauzMicroStructureWithStrain';                                
                 };
         end
         

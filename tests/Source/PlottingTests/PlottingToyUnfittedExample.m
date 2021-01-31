@@ -19,10 +19,14 @@ classdef PlottingToyUnfittedExample < testNotShowingError
             obj.computeBackgroundMesh();
             obj.computeBoundaryMeshes();
             obj.computeUnfittedMesh();
+        end
+        
+        function plot(obj)
+            figure();            
             obj.plotUnfittedMesh();              
             obj.plotGaussPointsInUnfittedMesh(obj.unfittedMesh)
-            obj.plotUnfittedBoundaryMesh();            
-        end
+            obj.plotUnfittedBoundaryMesh();              
+        end        
         
         function hasPassed = hasPassed(obj)
             d = load(obj.testName);     
@@ -33,6 +37,8 @@ classdef PlottingToyUnfittedExample < testNotShowingError
     end    
     
     methods (Access = private)
+        
+    
         
        function computeBackgroundMesh(obj)
             s.coord  = obj.coord;

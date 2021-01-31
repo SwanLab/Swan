@@ -9,13 +9,13 @@ classdef DOF_DiffReact_Micro < DOF
     end
     
     methods
-        function obj = DOF_DiffReact_Micro(problemID,mesh,interp)
+        function obj = DOF_DiffReact_Micro(mesh,interp)
             obj.nunkn = 1;
             obj.dirichlet{1} = [];
             obj.dirichlet_values{1} = [];
             obj.neumann = [];
             obj.neumann_values  = [];
-            [~,~,~,obj.master_slave] = Preprocess.getBC_mechanics(problemID);
+            obj.master_slave = mesh.masterSlaveNodes;
             obj.periodic_free = obj.compute_periodic_nodes(obj.master_slave(:,1),obj.nunkn);
             obj.periodic_constrained = obj.compute_periodic_nodes(obj.master_slave(:,2),obj.nunkn);
             obj.computeDOF(mesh,interp);

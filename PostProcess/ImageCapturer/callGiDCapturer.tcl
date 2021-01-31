@@ -1,6 +1,6 @@
 set path "/home/alex/git-repos/Swan/PostProcess/ImageCapturer/"
-set tclFile "CaptureImage3.tcl"
+set tclFile "CaptureImageColor.tcl"
 source $path$tclFile 
-set output /home/alex/git-repos/MicroStructurePaper/ExamplePaper0_1Print0 
-set inputFile Output/ExamplePaper0_1Print/ExamplePaper0_1Print0.flavia.res
+set output RelativeSmoothedRectangleMeshColor1Epsilon6 
+set inputFile Output/RectangleMacroTriangle/RectangleMacroTriangle6.flavia.res
 CaptureImage $inputFile $output 

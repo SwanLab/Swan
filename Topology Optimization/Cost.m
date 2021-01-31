@@ -4,11 +4,25 @@ classdef Cost < CC
         weights
     end
     
+    properties (GetAccess = public, SetAccess = private)
+        value0
+    end
+    
     methods (Access = public)
         
         function obj = Cost(cParams)
-            obj.init(cParams);            
-            obj.setWeights(cParams.weights);
+            obj.weights = cParams.weights;            
+            obj.init(cParams);  
+        end
+        
+        function c = computeNonNormalizedValue(obj)
+            c = 0;
+            for iSF = 1:length(obj.shapeFunctions)
+                s0 = obj.shapeFunctions{iSF}.value0;
+                s  = obj.shapeFunctions{iSF}.value;
+                sR = s*s0;
+                c = c + obj.weights(iSF)*sR;
+            end
         end
         
     end
@@ -19,19 +33,7 @@ classdef Cost < CC
             obj.value = obj.value + obj.weights(iSF)*obj.shapeFunctions{iSF}.value;
             obj.gradient = obj.gradient + obj.weights(iSF)*obj.shapeFunctions{iSF}.gradient;
         end
-        
-    end
-    
-    methods (Access = private)
-        
-        function setWeights(obj,weights)
-            if isempty(weights)
-                obj.weights = ones(1,length(settings.cost));
-            else
-                obj.weights = weights;
-            end
-        end
-        
+   
     end
     
 end

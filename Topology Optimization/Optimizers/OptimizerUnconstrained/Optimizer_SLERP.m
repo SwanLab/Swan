@@ -1,11 +1,7 @@
 classdef Optimizer_SLERP < Optimizer_Unconstrained
     
-    properties (Access = public)
-        theta = 0.1
-    end
-    
     properties (GetAccess = public, SetAccess = protected)
-        type = 'SLERP'
+        type = 'SLERP'        
     end
     
     properties  (GetAccess = public, SetAccess = private)
@@ -17,6 +13,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         normalizedGrad
         coefPhi
         coefGrad
+        theta                
     end
     
     methods (Access = public)
@@ -34,8 +31,17 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             obj.computeCoeficients();
             phi = obj.updateLevelSet();
             obj.updateOptimalityConditionValue();
-            obj.designVariable.value = phi;
+            obj.designVariable.update(phi);
         end
+        
+        function storeConvergenceVariablesValues(obj)
+            obj.convergenceVars.reset();
+            obj.convergenceVars.append(obj.incF);
+            obj.convergenceVars.append(obj.incX);
+            obj.convergenceVars.append(obj.lineSearch.value);
+            obj.convergenceVars.append(obj.lineSearch.nTrials);            
+            obj.convergenceVars.append(obj.theta*180/pi);            
+        end           
         
     end
     
@@ -50,7 +56,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         end
         
         function computeCoeficients(obj)
-            k = obj.lineSearch.kappa;
+            k = obj.lineSearch.value;
             t = obj.theta;
             obj.coefPhi  = sin((1-k)*t)/sin(t);
             obj.coefGrad = sin(k*t)/sin(t);
@@ -72,7 +78,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         end
         
         function updateOptimalityConditionValue(obj)
-            obj.opt_cond = obj.theta;
+            obj.optimalityCond = obj.theta;
         end
         
         function x = normalizeFunction(obj,x)
@@ -86,8 +92,11 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
     methods (Access = protected)
         
         function opt = obtainOptimalityTolerance(obj)
-            opt = (0.0175/1e-3)*obj.targetParameters.optimality_tol;            
+            ratioTolInRad = (0.0175/1e-3);
+            opt = ratioTolInRad*obj.targetParameters.optimality_tol;            
         end
+        
+           
         
     end
     

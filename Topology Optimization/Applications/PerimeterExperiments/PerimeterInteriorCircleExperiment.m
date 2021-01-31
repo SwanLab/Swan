@@ -3,7 +3,7 @@ classdef PerimeterInteriorCircleExperiment < handle
     methods (Access = public)
         
         function obj = PerimeterInteriorCircleExperiment()
-            obj.computeGradientVariationWithRadius();            
+        %    obj.computeGradientVariationWithRadius();            
             obj.computeGradientVariationWithBoundary();
             obj.computeGradientSurfPerimeterComputer();
         end

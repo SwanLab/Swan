@@ -32,6 +32,8 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         Perimeter_target
         epsilon_isotropy_initial
         epsilon_isotropy_final
+        stressNormExponent_initial
+        stressNormExponent_final
     end
     
     properties
@@ -54,9 +56,9 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         constraint
         optimizer
         optimizerUnconstrained        
-        line_search
-        kappaMultiplier
-        kfrac
+        line_search_initiator
+        incrementFactor
+        rate
         filter
         unfitted_mesh_algorithm='DELAUNAY'
         TOL = struct;
@@ -74,6 +76,12 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         designVariable
         vademecumFileName        
         nelem
+        m1
+        m2
+        rho0
+        isDesignVariableFixed
+        costDomainNotOptimizable
+        constraintDomainNotOptimizable
     end
     
     properties %exploring tests
@@ -94,14 +102,56 @@ classdef Settings %< handle%& matlab.mixin.Copyable
             if exist('materialType','var')
                 obj.material = materialType;                
             end
-            obj.initial_case = initial_case;
+            
+            if exist('initial_case','var')
+                 obj.initial_case = initial_case;
+                 if isequal(initial_case,'full') 
+                    obj.levelSetDataBase.type = 'initial_case'; 
+                 end
+            end            
+            
+            if exist('isDesignVariableFixed','var')
+                femReader = FemInputReader_GiD();
+                s = femReader.read(obj.filename);
+                coord = s.mesh.coord;                
+                obj.isDesignVariableFixed.nodes  = isDesignVariableFixed.nodes(coord);
+                obj.isDesignVariableFixed.values = isDesignVariableFixed.values(coord);
+            end
+            
+            if exist('costDomainNotOptimizable','var')
+                femReader = FemInputReader_GiD();
+                s = femReader.read(obj.filename);
+                coord = transpose(s.mesh.computeBaricenter);
+                for i = 1:numel(costDomainNotOptimizable)
+                    cD = costDomainNotOptimizable{i};
+                    if ~isempty(cD)
+                        obj.costDomainNotOptimizable{i} = cD(coord);
+                    else
+                        obj.costDomainNotOptimizable{i} = false(size(coord,1));
+                    end
+                end
+            end
+            if exist('constraintDomainNotOptimizable','var')
+                femReader = FemInputReader_GiD();
+                s = femReader.read(obj.filename);
+                coord = transpose(s.mesh.computeBaricenter);
+                for i = 1:numel(constraintDomainNotOptimizable)
+                    cD = constraintDomainNotOptimizable{i};
+                    if ~isempty(cD)
+                        obj.constraintDomainNotOptimizable{i} = cD(coord);
+                    else
+                        obj.constraintDomainNotOptimizable{i} = false(size(coord,1),1);
+                    end
+                end
+            end
+            
             obj.cost = cost;
             obj.weights = weights;
             obj.constraint = constraint;
             obj.nconstr = length(constraint);
             obj.optimizer = optimizer;
-            if exist('kappaMultiplier','var')
-               obj.kappaMultiplier = kappaMultiplier;
+            if exist('incrementFactor','var')
+               obj.incrementFactor = incrementFactor;
             end
             obj.filter = filterType;
             obj.nsteps = nsteps;
@@ -120,13 +170,13 @@ classdef Settings %< handle%& matlab.mixin.Copyable
             obj.optimality_final = optimality_final;
             obj.constr_final = constr_final;
 
-            if exist('line_search','var')
-                obj.line_search = line_search;
+            if exist('line_search_initiator','var')
+                obj.line_search_initiator = line_search_initiator;
             else
                 if strcmp(obj.optimizer,'PROJECTED GRADIENT')
-                    obj.line_search = 'DOUBLING LAST STEP';
+                    obj.line_search_initiator = 'INCREASING LAST STEP';
                 else
-                    obj.line_search = 'DIMENSIONALLY CONSISTENT';
+                    obj.line_search_initiator = 'STANDARD';
                 end
             end
             
@@ -297,10 +347,10 @@ classdef Settings %< handle%& matlab.mixin.Copyable
                 obj.optimizerUnconstrained = optimizerUnconstrained;
             end
             
-            if exist('kfrac','var')
-                obj.kfrac = kfrac;
+            if exist('rate','var')
+                obj.rate = rate;
             else 
-                obj.kfrac = 2;
+                obj.rate = 0.5;
             end
             
             if exist('ub','var')
@@ -335,6 +385,26 @@ classdef Settings %< handle%& matlab.mixin.Copyable
                    obj.levelSetDataBase.vigdergauzDataBase.nu1 = TOL.nu_plus;
                    obj.levelSetDataBase.vigdergauzDataBase.nu0 = TOL.nu_minus;
                end
+            end   
+            
+            if exist('rho0','var')
+                obj.rho0 = rho0;
+            end
+            
+            if exist('m1','var')
+               obj.m1 = m1;
+            end
+            
+            if exist('m2','var')
+               obj.m2 = m2;
+            end  
+            
+            if exist('stressNormExponent_initial','var')
+                obj.stressNormExponent_initial = stressNormExponent_initial;
+            end            
+            
+            if exist('stressNormExponent_final','var')
+                obj.stressNormExponent_final = stressNormExponent_final;
             end            
             
         end

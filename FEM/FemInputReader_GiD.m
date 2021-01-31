@@ -18,6 +18,10 @@ classdef FemInputReader_GiD < handle
         connec
     end
     
+    properties (Access = private)
+        masterSlave    
+    end
+    
     methods (Access = public)
         
         function s = read(obj,fileName)
@@ -28,9 +32,7 @@ classdef FemInputReader_GiD < handle
         end
         
         function s = getData(obj)
-            sM.coord  = obj.coord;
-            sM.connec = obj.connec;
-            s.mesh = Mesh(sM);
+            s.mesh = obj.createMesh();
             s.pdim = obj.pdim;
             s.geometryType = obj.geometryType;
             s.ptype = obj.ptype;
@@ -44,8 +46,18 @@ classdef FemInputReader_GiD < handle
     
     methods (Access = private)
         
+        function m = createMesh(obj)
+            sM.coord  = obj.coord;
+            sM.connec = obj.connec;
+            m = Mesh(sM);
+            m.setMasterSlaveNodes(obj.masterSlave)
+        end
+        
         function readFile(obj,fileName)
             data = Preprocess.readFromGiD(fileName);
+            if isequal(data.scale,'MICRO')
+               [~,~,~,obj.masterSlave] = Preprocess.getBC_mechanics(fileName); 
+            end
             obj.pdim = data.problem_dim;
             obj.geometryType = data.geometry;
             obj.ptype = data.problem_type;
@@ -57,8 +69,10 @@ classdef FemInputReader_GiD < handle
             obj.connec = data.connectivities(:,2:end);
             
             if strcmpi(data.problem_type,'elastic')
-                obj.dirichlet = data.dirichlet_data;
-                obj.pointload = data.pointload;
+                if isfield(data,'dirichlet_data')
+                    obj.dirichlet = data.dirichlet_data;
+                    obj.pointload = data.pointload;
+                end
             end
         end
         

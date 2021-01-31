@@ -12,12 +12,12 @@ addpath(genpath(fileparts(mfilename('fullpath'))));
 clear variables;
 
 %% Main
-fileName = 'CantileverQuadFine_Case_1_1_1';
+%fileName = 'CantileverTriangle_Case_1_1_1';
 %fileName = 'CantileverTetrahedra_Case_1_1_1';
 %fileName = 'InteriorPerimeter';
+fileName = 'MinPoissLevelSet';
 % settings = Settings('Case_RefactoringSettings_OLD');
 % settingsTopOpt = SettingsTopOptProblem('Case_RefactoringSettings_A',settings);
-
 % settings = Settings('Case_RefactoringSettingsMICRO_OLD');
 % settingsTopOpt = SettingsTopOptProblem('Case_RefactoringSettingsMICRO_A',settings);
 

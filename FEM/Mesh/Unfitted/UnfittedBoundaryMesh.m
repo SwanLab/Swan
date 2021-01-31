@@ -39,6 +39,15 @@ classdef UnfittedBoundaryMesh < handle
             g = obj.getActiveField(obj.globalConnec);
         end
         
+        function v = computeVolume(obj)
+            m = obj.getActiveMesh();
+            v = 0;
+            for imesh = 1:numel(m)
+                v = v + m{imesh}.computeMass();
+            end
+        end
+        
+        
     end
     
     methods (Access = private)

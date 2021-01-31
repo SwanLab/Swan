@@ -108,7 +108,7 @@ classdef GradientVariationWithBoundaryExperiment < handle
             else
                 hStr = num2str(round(h/L,3));
             end            
-            obj.legendPlot{obj.iMesh} = ['$(h/L = ',hStr,')$'];
+            obj.legendPlot{obj.iMesh} = ['${\bar{\kappa}_\varepsilon} (h/L = ',hStr,')$'];
         end
                 
         function computeEpsilonMeshSizeRatio(obj)

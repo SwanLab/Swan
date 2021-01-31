@@ -10,7 +10,7 @@ classdef RegularizedPerimeterComputer < handle
     
     properties (Access = private)
         inputFile
-        mesh
+        backgroundMesh
         designVariable
         scale
         nEpsilon
@@ -41,7 +41,7 @@ classdef RegularizedPerimeterComputer < handle
         
         function init(obj,cParams)
             obj.inputFile        = cParams.inputFile;
-            obj.mesh             = cParams.mesh;
+            obj.backgroundMesh   = cParams.backgroundMesh;
             obj.scale            = cParams.scale;
             obj.designVariable   = cParams.designVariable;
             obj.outputFigureName = cParams.outputFigureName;
@@ -53,8 +53,8 @@ classdef RegularizedPerimeterComputer < handle
         end
         
         function createEpsilonValues(obj)
-            epsmin = obj.mesh.computeMeanCellSize;
-            epsmax = obj.mesh.computeCharacteristicLength();
+            epsmin = obj.backgroundMesh.computeMeanCellSize;
+            epsmax = obj.backgroundMesh.computeCharacteristicLength();
             obj.nEpsilon = min(6,ceil(log2(epsmax/epsmin)));
             obj.epsilons = epsmin*(2.^((1:obj.nEpsilon) - 1));
         end
@@ -72,7 +72,7 @@ classdef RegularizedPerimeterComputer < handle
         
         function computeRegularizedPerimeter(obj,iepsilon)
             obj.createPerimeterShapeFunction();
-            obj.perimeterShapeFunction.computeCostAndGradient();
+            obj.perimeterShapeFunction.computeFunctionAndGradient();
             per    = obj.perimeterShapeFunction.value;
             dPer   = obj.perimeterShapeFunction.gradient;
             rhoReg = obj.perimeterShapeFunction.regularizedDensity;
@@ -90,8 +90,9 @@ classdef RegularizedPerimeterComputer < handle
         
         function s = createPerimeterParams(obj)
             sC.inputFile        = obj.inputFile;
-            sC.mesh             = obj.mesh;
-            sC.designVariable   = obj.designVariable;
+            sC.mesh             = obj.backgroundMesh;
+            sC.designVariable.value   = obj.designVariable;
+            sC.designVariable.nVariables = 1;
             sC.epsilon          = obj.epsilon;
             sC.scale            = obj.scale;
             sC.type             = obj.perimeterType;
@@ -101,7 +102,7 @@ classdef RegularizedPerimeterComputer < handle
         end
         
         function plotDensity(obj)
-            s.mesh      = obj.mesh;
+            s.mesh      = obj.backgroundMesh;
             s.inputFile = obj.inputFile;
             s.scale     = obj.scale;
             s.density   = obj.perimeterShapeFunction.regularizedDensity;
@@ -114,7 +115,7 @@ classdef RegularizedPerimeterComputer < handle
         function printDensity(obj,iepsilon)
             s.inputFile = obj.inputFile;
             s.iter      = iepsilon;
-            s.mesh      = obj.mesh;
+            s.mesh      = obj.backgroundMesh;
             s.perimeter   = obj.perimeterShapeFunction;
             printer = DensityPrinterForPerimeter(s);
             printer.print();

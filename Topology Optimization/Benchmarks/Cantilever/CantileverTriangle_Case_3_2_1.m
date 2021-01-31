@@ -7,11 +7,11 @@ cost = {'compliance','perimeter'};
 weights = [1 0.1];
 constraint = {'volume'};
 optimizer = 'MMA'; 
-kappaMultiplier = 1;
+incrementFactor = 1;
 designVariable = 'Density';
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
-line_search = 'DIMENSIONALLY CONSISTENT';
+line_search_initiator = 'STANDARD';
 
 nsteps = 1;
 Vfrac_final = 0.4;

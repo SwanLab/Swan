@@ -24,13 +24,13 @@ classdef Optimizer_PG < Optimizer_Unconstrained
         function compute(obj)
             x_n      = obj.designVariable.value;
             gradient = obj.objectiveFunction.gradient;            
-            x_new = x_n-obj.lineSearch.kappa*gradient;
+            x_new = x_n-obj.lineSearch.value*gradient;
             ub = obj.upperBound*ones(length(x_n(:,1)),1);
             lb = obj.lowerBound*ones(length(x_n(:,1)),1);
             x_new = max(min(x_new,ub),lb);
-            obj.designVariable.value = x_new;
+            obj.designVariable.update(x_new);
             l2Norm = obj.designVariable.computeL2normIncrement();
-            obj.opt_cond = sqrt(l2Norm);
+            obj.optimalityCond = sqrt(l2Norm);
         end
         
     end

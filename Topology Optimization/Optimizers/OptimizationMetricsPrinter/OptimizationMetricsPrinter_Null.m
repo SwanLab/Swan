@@ -5,6 +5,9 @@ classdef OptimizationMetricsPrinter_Null < OptimizationMetricsPrinter
         function print(obj,nIter,iStep)
         end
         
+        function printFinal(obj)
+        end        
+        
     end
     
     methods (Access = protected)
@@ -14,6 +17,8 @@ classdef OptimizationMetricsPrinter_Null < OptimizationMetricsPrinter
         
         function printConvergenceVariables(obj,fid)
         end
+        
+
         
     end
     

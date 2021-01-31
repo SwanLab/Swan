@@ -1,25 +1,47 @@
-filename='CantileverBeam_Triangle_Linear_Fine';
+%filename = 'CantileverBeam_Triangle_Linear_FineFine';
+%filename = 'CantileverBeam_Triangle_Linear_Fine';
+%filename = 'Cantilever_quad_fine';
+%filename = 'CantileverLargeCoarse';
+filename = 'CantileverLargeFine';
 ptype = 'MACRO';
-method = 'SIMPALL';
-materialType = 'ISOTROPIC';
 initial_case = 'full';
-%cost = {'compliance','perimeter'};
-%weights = [1 0.1];
-cost = {'compliance'};
-weights = [1];
+cost = {'compliance','perimeterInterior'};
+weights = [1 0.1];
+%cost = {'compliance'};
+%cost = {'stressNorm'};
+%weights = [1];
 constraint = {'volumeConstraint'};
 optimizer = 'DualNestedInPrimal';
 %optimizer = 'AlternatingPrimalDual';
 
 optimizerUnconstrained = 'SLERP'; 
-kappaMultiplier = 1;
 designVariable = 'LevelSet';
-filterType = 'P1';
+method = 'SIMPALL';
+materialType = 'ISOTROPIC';
 
-nsteps = 5;
+% optimizerUnconstrained = 'PROJECTED GRADIENT';
+% designVariable = 'Density';
+% method = 'SIMPALL';
+% materialType = 'ISOTROPIC';
+
+% optimizerUnconstrained = 'PROJECTED GRADIENT';
+% designVariable = 'MicroParams';
+% ub = 0.989;
+% lb = 0.011;
+% homegenizedVariablesComputer = 'ByVademecum';
+% vademecumFileName = 'SuperEllipseQOptAnalytic';
+% m1 = 0.0101;
+% m2 = 0.0101;
+
+
+
+%filterType = 'P1';
+filterType = 'PDE';
+
+nsteps = 20;
 Vfrac_final = 0.4;
-optimality_final =1e-3;
-constr_final = 1e-3;
+optimality_final =1e-4;
+constr_final = 1e-4;
 
 Vfrac_initial = 1;
 optimality_initial = 1e-2;

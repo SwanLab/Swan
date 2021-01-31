@@ -30,7 +30,7 @@ monitoring_interval = 1;
 
 ub = 0.989;
 lb = 0.011;
-kfrac = 2;
+rate = 0.5;
 
 
 

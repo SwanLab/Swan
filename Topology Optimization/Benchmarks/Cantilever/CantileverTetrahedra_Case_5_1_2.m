@@ -7,11 +7,11 @@ cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
 optimizer = 'HAMILTON-JACOBI'; 
-kappaMultiplier = 1;
+incrementFactor = 1;
 designVariable = 'Density';
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
-line_search = 'DOUBLING LAST STEP';
+line_search_initiator = 'INCREASING LAST STEP';
 
 nsteps = 3;
 Vfrac_final = 0.5;

@@ -8,17 +8,25 @@ classdef VideoMaker < handle
         gidPath
         tclFileName
         filesFolder
-        fileName
         tclFileWriter
+        tclTemplateName
         fieldName
-        designVariableName
+        outputName
     end
+    
+    properties (Access = private)
+        outPutNames
+        fileName
+        designVariableName     
+        tclTemplateNames
+    end 
+       
     
     methods (Access = public)
         
         function makeVideo(obj)
             obj.makeDesignVariableVideo();
-            obj.makeRegularizedDesignVariableVideo();
+           % obj.makeRegularizedDesignVariableVideo();
         end
         
     end
@@ -37,6 +45,8 @@ classdef VideoMaker < handle
         function init(obj,cParams)
             obj.fileName           = cParams.caseFileName;
             obj.designVariableName = cParams.designVarType;
+            obj.tclTemplateNames   = cParams.tclTemplateNames;
+            obj.outPutNames        = cParams.outPutNames;
             obj.createPaths();
             obj.createFolder();
         end
@@ -52,14 +62,17 @@ classdef VideoMaker < handle
         end
         
         function createPaths(obj)
-            %obj.gidPath = 'C:\Program Files\GiD\GiD 13.0.4';%
-            obj.gidPath = '/opt/GiDx64/13.0.2/';
+            obj.gidPath = '/home/alex/GiDx64/14.1.9d';
             obj.filesFolder = fullfile(pwd,'Output',obj.fileName);
         end
         
         function makeDesignVariableVideo(obj)
-            obj.fieldName = obj.designVariableName;
-            obj.makeFieldVideo();
+            for ivideo = 1:numel(obj.tclTemplateNames)
+                obj.tclTemplateName = obj.tclTemplateNames{ivideo};
+                obj.fieldName = obj.designVariableName;
+                obj.outputName = [obj.fileName,obj.outPutNames{ivideo}];
+                obj.makeFieldVideo();
+            end
         end
         
         function makeRegularizedDesignVariableVideo(obj)
@@ -81,13 +94,14 @@ classdef VideoMaker < handle
         end
         
         function createTclFileWriter(obj)
-            cParams.type         = obj.fieldName;
-            cParams.tclFileName  = obj.tclFileName;
-            cParams.filesFolder  = obj.filesFolder;
-            cParams.outputName   = [obj.fieldName,obj.fileName];
-            cParams.iterations   = obj.iterations;
-            cParams.fileName     = obj.fileName;
-            obj.tclFileWriter    = TclFileWriter.create(cParams);
+            s.type            = obj.fieldName;
+            s.tclFileName     = obj.tclFileName;
+            s.filesFolder     = obj.filesFolder;
+            s.outputName      = obj.outputName;
+            s.iterations      = obj.iterations;
+            s.fileName        = obj.fileName;
+            s.tclTemplateName = obj.tclTemplateName;
+            obj.tclFileWriter = TclFileWriter(s);
         end
         
         function writeTclFile(obj)
@@ -97,7 +111,7 @@ classdef VideoMaker < handle
         function executeTclFile(obj)
             tFile = replace(obj.tclFileName,'\','\\');
             gFile = fullfile(obj.gidPath,'gid_offscreen');
-            executingLine = ['"',gFile,'"', ' -t ' ,'"source ',tFile,'"'];
+            executingLine = ['"',gFile,'"',' -offscreen', ' -t ' ,'"source ',tFile,'"'];
             system(executingLine);
         end
         

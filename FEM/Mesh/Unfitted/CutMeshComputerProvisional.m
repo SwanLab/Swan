@@ -162,7 +162,7 @@ classdef CutMeshComputerProvisional < CutMesh
         end         
         
         function computeConnecNew(obj)
-            isEdgeCutInElem =  obj.computeIsEdgeCutInElem();   
+            isEdgeCutInElem =  obj.computeIsEdgeCutInElem();
             
             e = obj.backgroundMesh.edges;
             nEdgesCutCase   = [2 3 4];
@@ -196,32 +196,31 @@ classdef CutMeshComputerProvisional < CutMesh
                 
                 if sum(t) ~= 0
                     
-                cN{icases} = cE;
-    
-                caseInfo = obj.subCellCases.caseInfo{icases};
-                
-            
-                nodes = obj.backgroundMesh.connec;
-                cutCells(:,1) = 1:size(nodes,1);
-                
-                
-                
-                sS.bestSubCellCaseSelector.coord = obj.coord;
-                sA.subMeshConnecParams           = sS;
-                sA.xAllNodesInElem               = cE.xAllNodesInElem;
-                sA.allNodesInElem                = cE.allNodesInElem;
-                sA.subCellCases                  = caseInfo.subCellCases(t,:);
-                
-                sI.allSubCellsConnecParams = sA;
-                sI.isSubCellInterior = caseInfo.isSubCellsInterior(:,t);
-                sI.cutElems = obj.cutCells;
-                
-                sI.nSubCellsByElem = nSubCellsByElem(icases);
-                
-                
+                    cN{icases} = cE;
+                    
+                    caseInfo = obj.subCellCases.caseInfo{icases};
+                    
+                    
+                    nodes = obj.backgroundMesh.connec;
+                    cutCells(:,1) = 1:size(nodes,1);
+                    
+                    
+                    
+                    sS.bestSubCellCaseSelector.coord = obj.coord;
+                    sA.subMeshConnecParams           = sS;
+                    sA.xAllNodesInElem               = cE.xAllNodesInElem;
+                    sA.allNodesInElem                = cE.allNodesInElem;
+                    sA.subCellCases                  = caseInfo.subCellCases(t,:);
+                    
+                    sI.allSubCellsConnecParams = sA;
+                    sI.isSubCellInterior = caseInfo.isSubCellsInterior(:,t);
+                    sI.cutElems = obj.cutCells;
+                    
+                    sI.nSubCellsByElem = nSubCellsByElem(icases);
+                    
                     subCell{icases} = InteriorSubCellsConnecComputer(sI);
                 end
-            
+                
             end
             
             connecT = [];
@@ -231,47 +230,49 @@ classdef CutMeshComputerProvisional < CutMesh
             connecBound = [];
             xCoordsIsoBoundary = [];
             cellCB = [];
-
+            
             for icase = 1:3
-               subC = subCell{icase};
-               scN  = cN{icase};
-               if ~isempty(subC)                 
-                 connecT = cat(1,connecT,subC.connec);
-                 xCoordsIso = cat(3,xCoordsIso,subC.xCoordsIso);
-                 cellC = cat(1,cellC,subC.cellContainingSubcell);
-                 
-                 
-                 
-               end
-               
-               if ~isempty(scN) 
-                   conn = scN.cutNodesInElem;
-                   xB = scN.xCutInElem;
-                   tCC = tP{icase};
-                   
-                   cellCBA = obj.cutCells(tCC);
-                   if size(conn,2) == 4
-
-
-                       [connR,xCoordsIsoBoundaryR] = obj.divideInSubTriangle(conn,xB);
-                       
-                      
-                       
-                       
-                       cellCBR = [cellCBA; cellCBA];
-                       
-                   else 
-                       connR = conn;  
-                       xCoordsIsoBoundaryR = xB;
-                       cellCBR = cellCBA;
-                       
-                   end                   
-                   connecBound = cat(1,connecBound,connR);                         
-                   xCoordsIsoBoundary = cat(3,xCoordsIsoBoundary,xCoordsIsoBoundaryR);
-                   cellCB = cat(1,cellCB,cellCBR);
+                subC = subCell{icase};
+                scN  = cN{icase};
+                if ~isempty(subC)
+                    connecT = cat(1,connecT,subC.connec);
+                    xCoordsIso = cat(3,xCoordsIso,subC.xCoordsIso);
+                    cellC = cat(1,cellC,subC.cellContainingSubcell);
                     
-               end
-               
+                    
+                    
+                end
+                
+                if ~isempty(scN)
+                    conn = scN.cutNodesInElem;
+                    xB = scN.xCutInElem;
+                    tCC = tP{icase};
+                    localIncidenceMatrix = scN.nodesInCutEdges;
+                    
+                    cellCBA = obj.cutCells(tCC);
+                    if size(conn,2) == 4
+                        
+                        s.localIncidenceMatrix = localIncidenceMatrix;
+                        s.coord        = obj.coord;
+                        s.connec       = conn;
+                        s.xLocalVertex = xB;
+                        qS = QuadrilaterSubTriangulator(s);
+                        [connR,xCoordsIsoBoundaryR] = qS.compute();
+                        
+                        cellCBR = [cellCBA; cellCBA];
+                        
+                    else
+                        connR = conn;
+                        xCoordsIsoBoundaryR = xB;
+                        cellCBR = cellCBA;
+                        
+                    end
+                    connecBound = cat(1,connecBound,connR);
+                    xCoordsIsoBoundary = cat(3,xCoordsIsoBoundary,xCoordsIsoBoundaryR);
+                    cellCB = cat(1,cellCB,cellCBR);
+                    
+                end
+                
             end
             
             obj.connec                = connecT;
@@ -282,15 +283,12 @@ classdef CutMeshComputerProvisional < CutMesh
             obj.cellContainingSubCellBoundary = cellCB; 
         end
         
-        function [conn,xCoordsIsoBoundaryR] = divideInSubTriangle(obj,conn,xB)
-            indexT1 = 1:3;
-            indexT2 = [1 3 4 ];
-            
-            coor = obj.cutCoordComputer.coord;
-            xNode1 = coor(conn(:,1),:);
-            xNode2 = coor(conn(:,2),:);
-            xNode3 = coor(conn(:,3),:);
-            xNode4 = coor(conn(:,4),:);
+        function [lNode,cNode] = obtainLongestAndClosestNode(obj,connec)
+            xNodes  = obj.cutCoordComputer.coord;            
+            xNode1 = xNodes(connec(:,1),:);
+            xNode2 = xNodes(connec(:,2),:);
+            xNode3 = xNodes(connec(:,3),:);
+            xNode4 = xNodes(connec(:,4),:);
             
             x12 = xNode2 - xNode1;
             x13 = xNode3 - xNode1;
@@ -303,53 +301,36 @@ classdef CutMeshComputerProvisional < CutMesh
             [~,indMax] = max([nx12,nx13,nx14],[],2);
             [~,indMin] = min([nx12,nx13,nx14],[],2);
             
-            pos = [2; 3; 4];
-            
-            longestNode = pos(indMax);
-            closestNode = pos(indMin);
-            
-            elem1 = [ones(length(indMax),1),longestNode,closestNode];
-            
-            posT = false(length(indMax),4);
-            
-            ind1 = sub2ind(size(posT),[1:length(indMax)]',elem1(:,1));
-            ind2 = sub2ind(size(posT),[1:length(indMax)]',elem1(:,2));
-            ind3 = sub2ind(size(posT),[1:length(indMax)]',elem1(:,3));
+            pos = [2; 3; 4];            
+            lNode = pos(indMax);            
+            cNode = pos(indMin);            
+        end        
+        
+        function connec = obtainFirstTriangleConnectivity(obj,longestNode,closestNode)            
+        %    connec = [ones(length(longestNode),1),longestNode,closestNode];
+           connec = [ones(length(longestNode),1),2*ones(length(longestNode),1),4*ones(length(longestNode),1)];                    
+        end
+        
+        function connec = obtainSecondTriangleConnectivity(obj,longestNode,closestNode,connec1) 
+%             posT    = obj.computePosT(connec1);            
+%             [~,otherNode] = max(~posT,[],2);            
+%             connec = [ones(length(longestNode),1),otherNode,longestNode];
+            connec = [ones(length(longestNode),1),3*ones(length(longestNode),1),4*ones(length(longestNode),1)];                 
+        end
+        
+        function posT = computePosT(obj,connec1)
+            posT = false(size(connec1,1),4);            
+            ind1 = sub2ind(size(posT),[1:size(connec1,1)]',connec1(:,1));
+            ind2 = sub2ind(size(posT),[1:size(connec1,1)]',connec1(:,2));
+            ind3 = sub2ind(size(posT),[1:size(connec1,1)]',connec1(:,3));
             posT(ind1) = true;
             posT(ind2) = true;
-            posT(ind3) = true;
-            
-            [~,otherNode] = max(~posT,[],2);
-            
-            elem2 = [ones(length(indMax),1),otherNode,longestNode];
-
-            for i = 1:3
-               nodei1 = elem1(:,i);
-               index1 = sub2ind(size(posT),[1:size(elem1,1)]',nodei1);
-               connF(:,i) = conn(index1);
-               
-               nodei2 = elem2(:,i);
-               index2 = sub2ind(size(posT),[1:size(elem2,1)]',nodei2);
-               connS(:,i) = conn(index2);
-               
-                for idim = 1:size(xB,1)
-                    xBi = squeeze(xB(idim,:,:))';
-                    xBS(idim,i,:) = xB(index1);
-                    xBR(idim,i,:) = xB(index2);   
-                end
-               
-            end
-            
-            conn = [connF;connS];
-            
-            xCoordsIsoBoundaryR = cat(3,xBS,xBR);
-
- 
-            %m = Mesh(s);
-            
-            
-            
+            posT(ind3) = true;            
         end
+        
+
+      
+   
         
         function n = computeNorm(obj,x)
             n = sqrt(x(:,1).^2 + x(:,2).^2 + x(:,3).^2);            

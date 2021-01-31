@@ -6,7 +6,7 @@ initial_case = 'holes';
 cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint','perimeterConstraint'};
-optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
+optimizer = 'HAMILTON-JACOBI'; incrementFactor = 1;
 filterType = 'P1';
 
 nsteps = 1;

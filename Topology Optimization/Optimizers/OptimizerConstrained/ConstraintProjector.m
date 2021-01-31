@@ -49,47 +49,39 @@ classdef ConstraintProjector < handle
         end
         
         function computeBounds(obj)
+            obj.dualVariable.restart();
             lambda = obj.dualVariable.value;            
             fref = obj.computeFeasibleDesignVariable(lambda);
             
-
-            lLB = lambda - 10^-4;
-            fLB = obj.computeFeasibleDesignVariable(lLB);
-            
-            if fLB < fref
-                if fref < 0
-                    isUB2change = true;
-                else
-                    isUB2change = false;
-                end
-            else
-                if fref < 0
-                    isUB2change = false;
-                else
-                    isUB2change = true;
-                end
-            end
-            
-            fB = fref;
-            i = -4;
-            while fref*fB > 0
-                if isUB2change
-                    lambdaB = lambda + 10^i;
-                else
-                    lambdaB = lambda - 10^i;
-                end
-                 fB = obj.computeFeasibleDesignVariable(lambdaB);
-
+            isLB = false;
+            isUB = false;
+            i = -15;
+            pow = 1.1;
+           
+            while ~isLB && ~isUB && i < 1000
+                lLB = lambda - pow^(i);
+                fLB = obj.computeFeasibleDesignVariable(lLB);
+                
+                
+                lUB = lambda + pow^(i);
+                fUB = obj.computeFeasibleDesignVariable(lUB);
+                
+                isLB = fLB*fref < 0;
+                isUB = fUB*fref < 0;
                 i = i + 1;
             end
             
-            if isUB2change
-                lLB = lambda;
-                lUB = lambdaB;
-            else
-                lLB = lambdaB;
-                lUB = lambda;
-            end
+             if isLB
+                 lUB = lambda + pow^(i-2);
+             else
+                 lLB = lambda - pow^(i-2);
+             end
+             
+             if i > 49
+                a = 0; 
+             end
+
+
             obj.lambdaLB = lLB;
             obj.lambdaUB = lUB;
             
@@ -101,7 +93,7 @@ classdef ConstraintProjector < handle
             obj.dualVariable.value = lambda;
             obj.lagrangian.computeGradient();
             obj.updateDesignVariable();
-            obj.constraint.computeCostAndGradient();
+            obj.constraint.computeFunctionAndGradient();
             fval = obj.constraint.value;
         end
         

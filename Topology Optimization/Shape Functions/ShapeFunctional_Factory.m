@@ -15,7 +15,7 @@ classdef ShapeFunctional_Factory < handle
             obj.targetParameters = cParams.targetParameters;
             
             cParams.mesh = cParams.designVariable.mesh.innerMeshOLD;     
-            cParams.filterParams.mesh          = cParams.designVariable.mesh.innerMeshOLD;
+            cParams.filterParams.mesh = cParams.designVariable.mesh.innerMeshOLD;            
             cParams.filterParams.designVarType = cParams.designVariable.type;
             
             switch cParams.type
@@ -23,17 +23,19 @@ classdef ShapeFunctional_Factory < handle
                     sF = ShFunc_Compliance(cParams);
                 case 'stressNorm'
                     sF = ShFunc_StressNorm(cParams);
+                    %sF = ShFunc_StressNorm2(cParams);
+                    %sF = ShFunc_StressNorm3(cParams);                    
                 case 'perimeter'
                     cParams.filterParams.femSettings.isRobinTermAdded = true;
-                    cParams.designVariable = cParams.designVariable.value;
+                    %cParams.designVariable = cParams.designVariable.value;
                     sF = ShFunc_Perimeter(cParams);
                 case 'perimeterInterior'
                     cParams.filterParams.femSettings.isRobinTermAdded = false;
-                    cParams.designVariable = cParams.designVariable.value;                    
+                    %cParams.designVariable = cParams.designVariable.value;                    
                     sF = ShFunc_Perimeter(cParams);
                 case 'perimeterConstraint'
                     cParams.filterParams.femSettings.isRobinTermAdded = true;   
-                    cParams.designVariable = cParams.designVariable.value;                    
+                    %cParams.designVariable = cParams.designVariable.value;                    
                     sF = Perimeter_constraint(cParams);
                 case 'chomog_alphabeta'
                     sF = ShFunc_Chomog_alphabeta(cParams);

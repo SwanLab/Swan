@@ -99,8 +99,7 @@ classdef TethaedraSubMeshConnecComputer < handle
             
         end
         
-        function [nodesT,nodesP] = computeNodesTAndNodesP(obj,icase)
-            
+        function [nodesT,nodesP] = computeNodesTAndNodesP(obj,icase)            
             switch icase
                 case 4
                     nodesT = [5 6 7 4];
@@ -129,10 +128,16 @@ classdef TethaedraSubMeshConnecComputer < handle
             
         end
         
+       function nodes = prismaTriangulation2(obj,nodesA,nodesB)
+             nodes =  [nodesA(1) nodesA(2) nodesA(3) nodesB(1);
+                       nodesA(1) nodesA(2) nodesA(3) nodesB(2);
+                       nodesA(1) nodesA(2) nodesA(3) nodesB(3)];
+        end        
+        
         function nodes = prismaTriangulation(obj,nodesA,nodesB)
              nodes =  [nodesB(1) nodesA(1) nodesA(2) nodesA(3);
-                 nodesB(1) nodesB(2) nodesA(3) nodesA(2);
-                 nodesB(1) nodesB(2) nodesB(3) nodesA(3)];
+                       nodesB(1) nodesB(2) nodesA(3) nodesA(2);
+                       nodesB(1) nodesB(2) nodesB(3) nodesA(3)];
         end
         
         

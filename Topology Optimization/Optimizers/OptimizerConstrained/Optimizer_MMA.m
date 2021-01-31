@@ -55,9 +55,9 @@ classdef Optimizer_MMA < Optimizer
             %%%% The user should now calculate function values and gradients
             %%%% of the objective- and constraint functions at xval.
             %%%% The results should be put in f0val, df0dx, fval and dfdx.
-            obj.designVariable.value = x;
-            obj.cost.computeCostAndGradient();
-            obj.constraint.computeCostAndGradient();
+            obj.designVariable.update(x);
+            obj.cost.computeFunctionAndGradient();
+            obj.constraint.computeFunctionAndGradient();
             
             [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
             %%%% The residual vector of the KKT conditions is calculated:
@@ -72,7 +72,7 @@ classdef Optimizer_MMA < Optimizer
             obj.convergenceVars.reset();
             obj.convergenceVars.append(kktnorm);
             obj.convergenceVars.append(obj.outit/obj.maxoutit);
-            obj.designVariable.value = x;
+            obj.designVariable.update(x);
         end
         
     end
@@ -92,7 +92,7 @@ classdef Optimizer_MMA < Optimizer
             % In many applications, the constraints are on the form yi(x) < =  ymaxi
             % The user should then preferably scale the constraints in such a way that 1 < =  ymaxi < =  100 for each i
             % (and not ymaxi = 10^10 for example).
-            kconstr = 1;
+            kconstr = 100;
             cconstr = 0;
             c = kconstr*c;
             c(c > 0) = c(c > 0) + cconstr;
@@ -119,7 +119,7 @@ classdef Optimizer_MMA < Optimizer
                 obj.upp = obj.xmax;
                 [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
                 obj.m = length(obj.fval);
-                obj.c =  1e3*ones(obj.m,1);
+                obj.c = 1e3*ones(obj.m,1);
                 obj.d = 0*ones(obj.m,1);
                 obj.a0 = 1;
                 obj.a = 0*ones(obj.m,1);

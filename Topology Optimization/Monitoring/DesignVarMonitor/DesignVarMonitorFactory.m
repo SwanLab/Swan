@@ -36,7 +36,7 @@ classdef DesignVarMonitorFactory < handle
         
         function init(obj,cParams)
             obj.shallDisplay   = cParams.shallDisplay;
-            obj.optimizer      = cParams.optimizerName;
+            obj.optimizer      = cParams.optimizerNames;
             obj.dim            = cParams.dim;
             obj.designVariable = cParams.designVariable;
             obj.showBC         = cParams.showBC;

@@ -17,6 +17,9 @@ classdef DensityPrinterForPerimeter < handle
             printer = obj.createPrinter();            
             d.cost.shapeFunctions{1} = obj.perimeter;
             d.constraint.shapeFunctions = [];
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature('CONSTANT');            
+            d.quad = quad;
             printer.print(obj.iter,d);               
         end
         

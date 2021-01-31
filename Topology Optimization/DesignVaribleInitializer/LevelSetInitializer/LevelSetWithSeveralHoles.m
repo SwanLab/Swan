@@ -9,7 +9,7 @@ classdef LevelSetWithSeveralHoles < LevelSetCreator
     methods (Access = public)
         
         function obj = LevelSetWithSeveralHoles(cParams)
-            obj.load_holes_settings(cParams);
+            obj.init(cParams);
             obj.compute(cParams);
         end
         
@@ -36,7 +36,7 @@ classdef LevelSetWithSeveralHoles < LevelSetCreator
             obj.levelSet = ls;
         end
         
-        function load_holes_settings(obj,cParams)
+        function init(obj,cParams)
             obj.nHoles = cParams.nHoles;
             obj.rHoles = cParams.rHoles;
             obj.phaseHoles = cParams.phaseHoles;

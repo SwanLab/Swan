@@ -58,6 +58,7 @@ classdef TopOpt_Problem < handle
                 obj.incrementalScheme.next();
                 obj.optimizer.solveProblem();
             end
+            obj.optimizer.saveMonitoring();
         end
         
         function postProcess(obj)
@@ -81,7 +82,7 @@ classdef TopOpt_Problem < handle
         function createIncrementalScheme(obj,cParams)
             s = cParams.incrementalSchemeSettings;
             s.mesh = obj.mesh.innerMeshOLD;
-            s.targetParamsSettings.epsilonPerInitial = 10*s.targetParamsSettings.epsilonPerFinal;
+        %    s.targetParamsSettings.epsilonPerInitial = 10*s.targetParamsSettings.epsilonPerFinal;
             obj.incrementalScheme = IncrementalScheme(s);
         end
         
@@ -89,7 +90,7 @@ classdef TopOpt_Problem < handle
             s = cParams.designVarSettings;
             s.mesh = obj.mesh;
             s.scalarProductSettings.epsilon = obj.incrementalScheme.targetParams.epsilon;
-            s.scalarProductSettings.mesh = obj.mesh.innerMeshOLD;            
+            s.scalarProductSettings.mesh    = obj.mesh.innerMeshOLD;            
             obj.designVariable = DesignVariable.create(s);
         end
         
@@ -100,7 +101,6 @@ classdef TopOpt_Problem < handle
         
         function createHomogenizedVarComputer(obj,cParams)
             s = cParams.homogenizedVarComputerSettings;
-            s.designVariable = obj.designVariable;
             obj.homogenizedVarComputer = HomogenizedVarComputer.create(s);
         end
         
@@ -136,6 +136,7 @@ classdef TopOpt_Problem < handle
             sM.coord  = s.femData.mesh.coord;
             sM.connec = s.femData.mesh.connec;
             obj.mesh = Mesh_Total(sM);
+            obj.mesh.innerMeshOLD.setMasterSlaveNodes(s.femData.mesh.masterSlaveNodes);
         end
         
     end

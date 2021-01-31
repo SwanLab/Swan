@@ -67,7 +67,8 @@ classdef testPlotLargeCylinderTethaedra < testNotShowingError...
             obj.unfittedMesh = uM;
         end
         
-        function plotUnfittedMesh(obj)            
+        function plotUnfittedMesh(obj) 
+            figure();
             obj.unfittedMesh.plot();
             view([1 1 1])            
         end

@@ -7,7 +7,7 @@ classdef SettingsFilter < AbstractSettings
     properties (Access = public)
         filterType
         domainType
-       % designVar
+        designVariable
         quadratureOrder
         femSettings
         designVarType

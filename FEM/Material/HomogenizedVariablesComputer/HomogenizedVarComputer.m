@@ -1,18 +1,15 @@
 classdef HomogenizedVarComputer < handle
     
     properties (Access = public)
+        Cref
+        dCref        
         C
         dC
         rho
         drho
-        P
-        dP
+        Pp
+        dPp      
     end
-    
-    properties (Access = protected)
-       nelem
-       designVariable
-    end    
     
     methods (Access = public, Static)
         
@@ -21,6 +18,12 @@ classdef HomogenizedVarComputer < handle
             obj = f.create(cParams);
         end
         
+    end
+    
+    methods (Access = public, Abstract)
+        computeCtensor(obj)
+        computePtensor(obj)
+        computeDensity(obj)
     end
         
 end

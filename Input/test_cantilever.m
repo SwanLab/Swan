@@ -1,24 +1,24 @@
-filename = 'Tests_Triangle_Linear';
+filename = 'CantileverBeam_Triangle_Linear';
 ptype = 'MACRO';
-method = 'SIMP_Adaptative';
+method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'squareInclusion';
-widthSquare = 0.4;
-cost = {'compliance';'perimeter'};
+initial_case = 'full';
+cost = {'compliance','perimeter'};
 weights = [1 0.1];
 constraint = {'volumeConstraint'};
-constraint_case = 'INEQUALITY';
-optimizer = 'PROJECTED GRADIENT'; 
-kappaMultiplier = 1; 
+constraint_case = 'EQUALITY';
+optimizerUnconstrained = 'PROJECTED GRADIENT'; 
+optimizer = 'AlternatingPrimalDual';
+incrementFactor = 1.05; 
 designVariable = 'Density';
-filterType = 'PDE';
+filterType = 'P1';
+line_search_initiator = 'INCREASING LAST STEP';
 
-shFuncParamsName = 'paramsTestCantilever';
 
 nsteps = 1;
-Vfrac_final = 1;
+Vfrac_final = 0.3;
 optimality_final =1e-3;
-constr_final =1e-3;
+constr_final = 1e-5;
 
 Vfrac_initial = 1;
 optimality_initial = 1e-3;
@@ -36,4 +36,5 @@ plotting = false;
 printing = false;
 printing_physics = false;
 monitoring = false;
-maxiter = 3;
+monitoring_interval = 1;
+maxiter = 15;

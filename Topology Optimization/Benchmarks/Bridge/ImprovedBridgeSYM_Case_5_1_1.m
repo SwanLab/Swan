@@ -6,9 +6,9 @@ initial_case = 'holes';
 cost = {'compliance'};
 weights = [1];
 constraint = {'volume'};
-optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
+optimizer = 'HAMILTON-JACOBI'; incrementFactor = 1;
 filterType = 'P1';
-line_search = 'DOUBLING LAST STEP';
+line_search_initiator = 'INCREASING LAST STEP';
 showBC = true;
 
 HJiter0 = 1;

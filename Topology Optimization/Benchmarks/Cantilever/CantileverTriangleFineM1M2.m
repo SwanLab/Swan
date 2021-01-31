@@ -31,7 +31,7 @@ switch option
         designVariable = 'MicroParams';
         ub = 0.989;
         lb = 0.011;
-        kfrac = 2;%1.05;
+        rate = 0.5;%1.05;
         nsteps = 50;
         homegenizedVariablesComputer = 'ByVademecum';
         vademecumFileName = 'SmoothRectangle';
@@ -43,7 +43,7 @@ switch option
         designVariable = 'MicroParams';
         ub = 0.989;
         lb = 0.011;
-        kfrac = 2;%1.05;
+        rate = 0.5;%1.05;
         nsteps = 1;
         homegenizedVariablesComputer = 'ByVademecum';
         vademecumFileName = 'Rectangle';%'SmoothRectangle';
@@ -84,7 +84,7 @@ switch option
         designVariable = 'MicroParams';
         ub = 0.989;
         lb = 0.011;
-        %kfrac = 1.05;
+        %rate = 1/1.05;
         nsteps = 1;
         homegenizedVariablesComputer = 'ByVademecum';
         vademecumFileName = 'SmoothRectangle';  
@@ -95,7 +95,7 @@ switch option
         designVariable = 'MicroParams';
         ub = 0.989;
         lb = 0.011;
-        %kfrac = 1.05;
+        %rate = 1/1.05;
         nsteps = 1;
         homegenizedVariablesComputer = 'ByVademecum';
         vademecumFileName = 'SmoothRectangle';  
@@ -107,7 +107,7 @@ switch option
         designVariable = 'MicroParams';
         ub = 0.989;
         lb = 0.011;
-        %kfrac = 1.05;
+        %rate = 1/1.05;
         nsteps = 1;
         homegenizedVariablesComputer = 'ByVademecum';
         vademecumFileName = 'SmoothRectangle';  

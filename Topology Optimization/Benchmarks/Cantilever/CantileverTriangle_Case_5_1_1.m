@@ -7,11 +7,11 @@ cost = {'compliance'};
 weights = 1;
 constraint = {'volume'};
 optimizer = 'HAMILTON-JACOBI'; 
-kappaMultiplier = 1;
+incrementFactor = 1;
 designVariable = 'LevelSet';
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
-line_search = 'DIMENSIONALLY CONSISTENT';
+line_search_initiator = 'STANDARD';
 
 HJiter0 = 10;
 e2 = 200;

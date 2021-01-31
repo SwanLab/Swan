@@ -6,12 +6,12 @@ classdef DOF_Elastic_Micro < DOF
         % !! Consider moving periodic to MICRO case !!
         periodic_free % Perioic
         periodic_constrained
-        master_slave
     end
     
     properties (Access = private)
        interpolation
        nFields
+        master_slave       
     end
     
     methods

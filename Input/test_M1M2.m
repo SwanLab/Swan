@@ -23,11 +23,14 @@ lb = 0.011;
 kfrac = 2;
 nsteps = 1;
 homegenizedVariablesComputer = 'ByVademecum';
-vademecumFileName = 'Rectangle';
+vademecumFileName = 'SuperEllipseQMax';
 
+m1 = 0.3;
+m2 = 0.3;
 
 plotting = false;
 printing = false;
 printing_physics = false;
 monitoring = false;
-maxiter = 3;
+monitoring_interval = 1;
+maxiter = 5;

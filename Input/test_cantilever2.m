@@ -7,7 +7,7 @@ cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'; 'perimeterConstraint'};
 optimizer = 'IPOPT';
-kappaMultiplier = 1;
+incrementFactor = 1;
 designVariable = 'Density';
 filterType = 'P1';
 

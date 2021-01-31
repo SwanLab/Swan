@@ -10,10 +10,10 @@ classdef NamingManager < handle
     methods (Access = public)
         
         function obj = NamingManager(cParams)
-            obj.costFuncNames = cParams.costFuncNames;
-            obj.costWeights = cParams.costWeights;
+            obj.costFuncNames   = cParams.costFuncNames;
+            obj.costWeights     = cParams.costWeights;
             obj.constraintNames = cParams.constraintFuncs;
-            obj.convVarsNames = ConvergenceVarsDispatcher.dispatchNames(cParams.optimizerName);
+            obj.convVarsNames   = ConvergenceVarsDispatcher.dispatchNames(cParams.optimizerNames);
         end
         
         function name = getCostFuncFigureTitle(obj,i)
@@ -46,6 +46,10 @@ classdef NamingManager < handle
         
         function n = getNumberOfConvergenceVariables(obj)
             n = numel(obj.convVarsNames);
+        end
+        
+        function name = getConvVarNames(obj,i)
+            name = obj.convVarsNames{i};            
         end
         
     end

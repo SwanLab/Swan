@@ -9,11 +9,12 @@ classdef ShFunc_Chomog_alphabeta < ShFunc_Chomog
             obj.alpha = cParams.alpha/norm(cParams.alpha);
             obj.beta = cParams.beta/norm(cParams.beta);
         end
-        function computeCostAndGradient(obj)
+        function computeFunctionAndGradient(obj)
             obj.computePhysicalData();
             obj.computeFunctionValue();
+            obj.normalizeFunction();            
             obj.computeGradient();
-            obj.normalizeFunctionAndGradient();
+            obj.normalizeGradient();            
         end
     end
     

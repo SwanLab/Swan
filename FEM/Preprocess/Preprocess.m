@@ -32,8 +32,9 @@ classdef Preprocess<handle
             if strcmpi(data.problem_type,'elastic')
                 if exist('dirichlet_data','var')
                     data.dirichlet_data = dirichlet_data;
-                else
+                elseif exist('lnodes','var')
                     data.dirichlet_data = lnodes;
+                else
                 end
                 
                 if exist('pointload_complete','var')                

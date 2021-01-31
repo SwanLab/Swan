@@ -51,6 +51,7 @@ classdef Element_Elastic_Micro < Element_Elastic
                 for istre = 1:obj.nstre
                     variables.stress_homog(istre) = variables.stress_homog(istre) +  1/vol_dom *(squeeze(variables.stress(igaus,istre,:)))'*obj.geometry.dvolu(:,igaus);
                 end
+                
             end
             
         end

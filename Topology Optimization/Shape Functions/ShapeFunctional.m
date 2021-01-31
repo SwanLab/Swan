@@ -28,9 +28,9 @@ classdef ShapeFunctional < handle
     methods (Access = public)
         
         function updateTargetParameters(obj)
-            if contains(class(obj.filter),'PDE')
-                obj.filter.updateEpsilon(obj.target_parameters.epsilon);
-            end
+%            if contains(class(obj.filter),'PDE')
+%                obj.filter.updateEpsilon(obj.target_parameters.epsilon);
+%            end
         end
         
     end
@@ -42,13 +42,32 @@ classdef ShapeFunctional < handle
             obj.createMsmoothAndDvolu(cParams);
             obj.homogenizedVariablesComputer = cParams.homogVarComputer;
             obj.designVariable = cParams.designVariable;
-            obj.target_parameters = cParams.targetParameters;
+            obj.target_parameters = cParams.targetParameters; 
+            obj.nVariables = obj.designVariable.nVariables;            
         end
         
-        function normalizeFunctionAndGradient(obj)
-            obj.normalizeFunctionValue();
-            obj.normalizeGradient();
+        function normalizeFunction(obj)
+            if isempty(obj.value0)
+                obj.value0 = obj.value;
+            end
+            obj.value = obj.value/abs(obj.value0);
         end
+        
+        function normalizeGradient(obj)
+            obj.gradient = obj.gradient/abs(obj.value0);
+        end
+        
+    end
+    
+    methods (Access = protected, Static)
+        
+        function fP = obtainPrintVariables(types,names)
+            fP = cell(numel(types),1);
+            for iV = 1:numel(types)
+               fP{iV}.type = types{iV}; 
+               fP{iV}.name = names{iV};
+            end 
+        end        
         
     end
     
@@ -56,6 +75,8 @@ classdef ShapeFunctional < handle
         
         function createFilter(obj,cParams)
             s = cParams.filterParams;
+            s.femSettings.mesh = s.mesh;
+            s.designVariable = cParams.designVariable;
             obj.filter = Filter.create(s);
             obj.filter.preProcess();
         end
@@ -75,17 +96,7 @@ classdef ShapeFunctional < handle
             obj.dvolu   = diffReacProb.geometry.dvolu;
         end
         
-        function normalizeFunctionValue(obj)
-            if isempty(obj.value0)
-                obj.value0 = obj.value;
-            end
-            obj.value = obj.value/abs(obj.value0);
-        end
-        
-        function normalizeGradient(obj)
-            obj.gradient = obj.gradient/abs(obj.value0);
-        end
-        
+
     end
     
 end

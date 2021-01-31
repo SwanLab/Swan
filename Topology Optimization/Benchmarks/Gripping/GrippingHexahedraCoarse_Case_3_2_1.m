@@ -7,7 +7,7 @@ cost = {'nonadjoint_compliance';'perimeter'};
 weights = [1, 1];
 constraint = {'volumeConstraint'};
 constraint_case = 'INEQUALITY';
-optimizer = 'MMA'; kappaMultiplier = 1;
+optimizer = 'MMA'; incrementFactor = 1;
 filterType = 'P1';
 
 nsteps = 5;

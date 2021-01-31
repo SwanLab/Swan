@@ -73,6 +73,13 @@ classdef Filter_P1_Density < handle %Filter_P1
       
         function x0 = computeP0fromP1(obj,x)
             x0 = obj.Kernel*x;
+%            %
+%             s.connec = obj.mesh.connec;
+%             s.type = obj.mesh.type;
+%             s.fNodes = x;
+%             fe = FeFunction(s);
+%             x0 = fe.computeValueInCenterElement();            
+            %
         end
         
         function createFilterKernel(obj)
@@ -88,6 +95,7 @@ classdef Filter_P1_Density < handle %Filter_P1
         
         function pB = createDiffReacProblem(obj,cParams)
             s = cParams.femSettings;
+            s.mesh = cParams.mesh;
             switch s.scale
                 case 'MACRO'
                     pB = DiffReact_Problem(s);

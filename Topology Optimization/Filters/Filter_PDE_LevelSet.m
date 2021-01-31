@@ -1,16 +1,22 @@
 classdef Filter_PDE_LevelSet < Filter_PDE
     
+    properties (Access = public)
+        unfittedMesh        
+    end
+    
     properties(Access = private)
         integrator
-        unfittedMesh
         domainType
         interp
+        levelSet
     end
     
     methods (Access = public)
         
         function obj = Filter_PDE_LevelSet(cParams)
             obj.init(cParams)
+            obj.levelSet = cParams.designVariable;
+            obj.epsilon = cParams.mesh.computeMeanCellSize();            
             obj.domainType = cParams.domainType;            
             obj.diffReacProb.preProcess();
             obj.createQuadrature();
@@ -19,53 +25,57 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             obj.nelem = obj.mesh.nelem;
             obj.npnod = obj.mesh.npnod;
             obj.ngaus = obj.quadrature.ngaus;
-            obj.Anodal2Gauss = obj.computeA();                      
-            obj.createUnfittedMesh();
-            obj.disableDelaunayWarning();
+            obj.Anodal2Gauss = obj.computeA(); 
         end
         
         function preProcess(obj)
-            
+            preProcess@Filter(obj)                                    
+            obj.Anodal2Gauss = obj.computeA();  
+            obj.diffReacProb.setEpsilon(obj.epsilon);
+            obj.computeLHS();
         end
         
         function RHS = integrate_L2_function_with_shape_function(obj,x)
-            F = ones(size(x));
-            RHS = obj.computeRHS(x,F);
+            ls = obj.levelSet.value;
+            F = ones(size(ls));
+            RHS = obj.computeRHS(F);
         end
         
-        function RHS = integrate_function_along_facets(obj,x,F)
-            RHS = obj.computeRHS(x,F);
-        end
-        
-        function fInt = computeRHS(obj,ls,fNodes)
-            if all(ls>0)
-                fInt = zeros(size(ls));
-            else
-                obj.unfittedMesh.compute(ls); 
-                s.mesh = obj.unfittedMesh;
-                s.type = 'Unfitted';
-                int = Integrator.create(s);            
-                fInt = int.integrateInDomain(fNodes);                    
-            end
+        function RHS = integrate_function_along_facets(obj,F)
+            RHS = obj.computeRHSinBoundary(F);
         end
         
     end
     
     methods (Access = private)
         
-        function createUnfittedMesh(obj)
-            s.backgroundMesh = obj.mesh;
-            
-            sB.backgroundMesh = s.backgroundMesh;
-            sB.dimension = 1:s.backgroundMesh.ndim;
-            sB.type = 'FromReactangularBox';
-            bC = BoundaryMeshCreator.create(sB);
-            s.boundaryMesh = bC.create();
-            
-       %     s.boundaryMesh   = obj.mesh.boxFaceMeshes;
-            cParams = SettingsMeshUnfitted(s);
-            obj.unfittedMesh = UnfittedMesh(cParams);            
-        end
+        function fInt = computeRHS(obj,fNodes)
+            ls = obj.levelSet.value;
+            if all(ls>0)
+                fInt = zeros(size(ls));
+            else
+                uMesh = obj.levelSet.getUnfittedMesh();
+                s.mesh = uMesh;
+                s.type = 'Unfitted';
+                int = Integrator.create(s);            
+                fInt = int.integrateInDomain(fNodes);                    
+            end
+        end    
+        
+        function fInt = computeRHSinBoundary(obj,fNodes)
+            ls = obj.levelSet.value;
+            if all(ls>0)
+                fInt = zeros(size(ls));
+            else
+                uMesh = obj.levelSet.getUnfittedMesh();
+                s.mesh = uMesh;
+                s.type = 'Unfitted';
+                int = Integrator.create(s);            
+                fInt = int.integrateInBoundary(fNodes);                    
+            end
+        end             
+        
+        
         
         function createQuadrature(obj)
             obj.quadrature = Quadrature.set(obj.mesh.type);
@@ -80,12 +90,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             s.mesh = obj.mesh;
             obj.geometry = Geometry.create(s);
             obj.geometry.computeGeometry(obj.quadrature,obj.interp);
-        end
-                
-        function disableDelaunayWarning(obj)
-            MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';
-            warning('off', MSGID)
-        end
+        end              
         
     end
     

@@ -46,7 +46,7 @@ classdef NumericalHomogenizerDataBase < handle
             d.filterParams.filterType = 'P1';
             s = SettingsDesignVariable();
             s.type = 'Density';
-            s.levelSetCreatorSettings.type = 'full';
+            s.initialCase = 'full';
             
 
             

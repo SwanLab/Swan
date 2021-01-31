@@ -16,6 +16,10 @@ classdef MonitoringDocker < handle
             obj.designVarMonitor.refresh();
         end
         
+        function f = saveMonitorFigure(obj)
+            f = obj.paramsMonitor.saveFigure();
+        end
+        
     end
     
     methods (Access = private)
@@ -26,20 +30,19 @@ classdef MonitoringDocker < handle
         end
         
         function createParamsMonitor(obj,cParams)
-            s.showOptParams    = cParams.showOptParams;
-            s.refreshInterval  = cParams.refreshInterval;
-            s.problemID        = cParams.problemID;
-            s.costFuncNames    = cParams.costFuncNames;
-            s.costWeights      = cParams.costWeights;
-            s.constraintFuncs  = cParams.constraintFuncs;
-            s.optimizerName    = cParams.optimizerName;
-            s.designVariable   = cParams.designVariable;
-            s.dualVariable     = cParams.dualVariable;
-            s.cost             = cParams.cost;
-            s.constraint       = cParams.constraint;
-            s.convergenceVars  = cParams.convergenceVars;
-            
-            obj.paramsMonitor = ParamsMonitorFactory.create(s);
+            s.showOptParams         = cParams.showOptParams;
+            s.refreshInterval       = cParams.refreshInterval;
+            s.problemID             = cParams.problemID;
+            s.costFuncNames         = cParams.costFuncNames;
+            s.costWeights           = cParams.costWeights;
+            s.constraintFuncs       = cParams.constraintFuncs;
+            s.optimizerNames        = cParams.optimizerNames;
+            s.designVariable      = cParams.designVariable;
+            s.dualVariable        = cParams.dualVariable;
+            s.cost                = cParams.cost;
+            s.constraint          = cParams.constraint;
+            s.convergenceVars     = cParams.convergenceVars;
+            obj.paramsMonitor     = ParamsMonitorFactory.create(s);
         end
         
         function createDesignVarMonitor(obj,cParams)
@@ -47,7 +50,7 @@ classdef MonitoringDocker < handle
             s.showBC         = cParams.shallShowBoundaryConditions;
             s.bc             = cParams.boundaryConditions;
             s.designVariable = cParams.designVariable;
-            s.optimizerName  = cParams.optimizerName;
+            s.optimizerNames  = cParams.optimizerNames;
             s.dim            = cParams.dim; 
             s.scale          = cParams.scale;
             s.mesh           = cParams.mesh;

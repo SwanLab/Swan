@@ -9,9 +9,10 @@ classdef SettingsDesignVariable < AbstractSettings
         mesh
         type
         initialCase
-        levelSetCreatorSettings
+        creatorSettings
         scalarProductSettings
         femData
+        isFixed
     end
     
     methods (Access = public)
@@ -20,6 +21,7 @@ classdef SettingsDesignVariable < AbstractSettings
             if nargin == 1
                 obj.loadParams(varargin{1});
             end
+            obj.init();
         end
         
     end
@@ -27,13 +29,22 @@ classdef SettingsDesignVariable < AbstractSettings
     methods (Access = private)
         
         function init(obj)
-            obj.initLevelSetCreator();
+            switch obj.type
+                case 'Density'
+                    if isfield(obj.creatorSettings,'rho0') 
+                        obj.creatorSettings.type = 'Given';
+                    else
+                        obj.creatorSettings.type = 'FromLevelSet';
+                    end
+                case 'LevelSet'
+                    obj.initLevelSetCreator();
+            end
         end
         
-        function initLevelSetCreator(obj)
-            s = obj.levelSetCreatorSettings;
+        function initLevelSetCreator(obj)            
+            s = obj.creatorSettings;
             s.type = obj.initialCase;
-            obj.levelSetCreatorSettings = SettingsLevelSetCreator().create(s);
+            obj.creatorSettings = SettingsLevelSetCreator().create(s);
         end
         
         function initScalarProductSettings(obj)
@@ -52,7 +63,6 @@ classdef SettingsDesignVariable < AbstractSettings
         
         function set.mesh(obj,m)
             obj.mesh = m;
-            obj.init();
         end
         
     end

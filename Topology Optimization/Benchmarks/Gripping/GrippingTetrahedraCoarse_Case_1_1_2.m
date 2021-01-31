@@ -7,7 +7,7 @@ cost = {'nonadjoint_compliance'};
 weights = [1, 0.1];
 constraint = {'volumeConstraint'};
 constraint_case = 'INEQUALITY';
-optimizer = 'SLERP'; kappaMultiplier = 1;
+optimizer = 'SLERP'; incrementFactor = 1;
 filterType = 'P1';
 
 nsteps = 1;

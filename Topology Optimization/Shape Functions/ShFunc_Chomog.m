@@ -33,8 +33,23 @@ classdef ShFunc_Chomog < ShapeFunctional
         
         function d = addPrintableVariables(obj,d)
             d.phyProblems = obj.getPhysicalProblems();
-            d.regDensity  = obj.getRegularizedDensity();
+           % d.regDensity  = obj.getRegularizedDensity();
         end
+        
+        function fP = createPrintVariables(obj)           
+            types = {'Elasticity'};
+            names = {'Primal'};
+            fP = obj.obtainPrintVariables(types,names);
+%            fP = obj.addHomogPrintVariablesNames(fP);
+        end   
+        
+        function v = getVariablesToPlot(obj)
+            v = [];
+        end
+
+        function t = getTitlesToPlot(obj)
+            t = [];
+        end         
         
     end
     
@@ -91,14 +106,14 @@ classdef ShFunc_Chomog < ShapeFunctional
             obj.updateHomogenizedMaterialProperties();
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C)
             obj.physicalProblem.computeChomog;
-            obj.Chomog = obj.physicalProblem.variables.Chomog;
+            obj.Chomog  = obj.physicalProblem.variables.Chomog;
             obj.tstrain = obj.physicalProblem.variables.tstrain;
             obj.tstress = obj.physicalProblem.variables.tstress;
         end
         
         function updateHomogenizedMaterialProperties(obj)
-            rhoV = obj.filter.getP0fromP1(obj.designVariable.value);
-            obj.regDesignVariable = rhoV;           
+            rhoV{1} = obj.filter.getP0fromP1(obj.designVariable.value);
+            obj.regDesignVariable = rhoV{1};           
             obj.homogenizedVariablesComputer.computeCtensor(rhoV);
         end
         

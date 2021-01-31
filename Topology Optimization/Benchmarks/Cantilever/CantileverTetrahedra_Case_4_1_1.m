@@ -7,11 +7,11 @@ cost = {'compliance'};
 weights = [1];
 constraint = {'volume'};
 optimizer = 'IPOPT';
-kappaMultiplier = 1;
+incrementFactor = 1;
 designVariable = 'Density';
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
-line_search = 'DIMENSIONALLY CONSISTENT';
+line_search_initiator = 'STANDARD';
 showBC = true;
 
 nsteps = 10;

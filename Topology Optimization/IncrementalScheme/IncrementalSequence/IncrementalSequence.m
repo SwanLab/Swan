@@ -24,8 +24,6 @@ classdef IncrementalSequence < handle
     
     methods (Access = public)
         
-
-        
         function update(obj,i)
             obj.value = (1-obj.alpha(i))*obj.initialValue + obj.alpha(i)*obj.finalValue;
         end

@@ -27,7 +27,7 @@ settings.constraint = {'volumeConstraint'};
 
 
 settings.optimizer = 'SLERP';
-%settings.optimizer = 'PROJECTED GRADIENT';settings.kappaMultiplier = 1;
+%settings.optimizer = 'PROJECTED GRADIENT';settings.incrementFactor = 1;
 %settings.optimizer = 'MMA';
 %settings.optimizer = 'IPOPT';
 

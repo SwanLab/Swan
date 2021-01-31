@@ -6,9 +6,9 @@ initial_case = 'full';
 cost = {'compliance','perimeter'};
 weights = [1 0.1];
 constraint = {'volume'};
-optimizer = 'PROJECTED GRADIENT'; kappaMultiplier = 1;
+optimizer = 'PROJECTED GRADIENT'; incrementFactor = 1;
 filterType = 'P1';
-line_search = 'DIMENSIONALLY CONSISTENT';
+line_search_initiator = 'STANDARD';
 showBC = true;
 
 nsteps = 1;

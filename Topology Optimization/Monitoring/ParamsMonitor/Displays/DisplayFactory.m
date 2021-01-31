@@ -9,9 +9,7 @@ classdef DisplayFactory < handle
                 case 'log'
                     display = Display_SemilogY(title);
                 case 'bar'
-                    display = Display_Bar(title);
-                case 'stacked'
-                    display = Display_Bar_Stacked(title);
+                    display = Display_Bar(title);           
                 otherwise
                     error('Invalid Chart Type.')
             end

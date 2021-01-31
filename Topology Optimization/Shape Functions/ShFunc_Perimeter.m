@@ -1,13 +1,18 @@
 classdef ShFunc_Perimeter < ShapeFunctional
     
     properties (GetAccess = public, SetAccess = private)
-       regularizedDensity        
+       regularizedDensity  
+
     end
     
     properties (Access = protected)
         epsilon
         regularizedDensityProjection
         axes
+    end
+    
+    properties (Access = private)
+       quad      
     end
     
     methods (Access = public)
@@ -20,22 +25,51 @@ classdef ShFunc_Perimeter < ShapeFunctional
           %  obj.initFrame();
         end
         
-        function computeCostAndGradient(obj)
-            obj.updateProtectedVariables()
-            obj.computeRegularizedDensity()
-            obj.computeRegularizedDensityProjection()
-            obj.computePerimeterValue()
-            obj.computePerimeterGradient()
+        function computeFunctionAndGradient(obj)
+            obj.computeFunction();
+            obj.computeGradient();
         end
         
-        function d = addPrintableVariables(obj,d)
-            d.gradient   = obj.gradient;
-            d.regDensity = obj.regularizedDensity;
-        end        
+        function computeFunction(obj)
+            obj.updateProtectedVariables();
+            obj.computeRegularizedDensity();
+            obj.computeRegularizedDensityProjection();
+            obj.computePerimeterValue();  
+            obj.normalizeFunction();
+        end
+        
+        function fP = addPrintableVariables(obj)
+            fP{1}.value = obj.gradient;
+            fP{2}.value = obj.regularizedDensity;
+            fP{3}.value = obj.computePerimeterIntegrandP0();
+            fP{4}.value = obj.computePerimeterIntegrandP1();            
+        end    
+        
+        function v = getVariablesToPlot(obj)
+            v{1} = obj.value*obj.value0;
+            v{2} = obj.computeGeometricRelativePerimeter();
+            v{3} = obj.computeGeometricTotalPerimeter();
+            v{4} = obj.computeEpsilonOverhValue();
+        end
+        
+        function t = getTitlesToPlot(obj)
+            t{1} = 'Perimeter non scaled';
+            t{2} = 'Geometric Relative Perimeter';
+            t{3} = 'Geometric Total Perimeter';
+            t{4} = 'epsilon over h';
+        end
+        
+        function fP = createPrintVariables(obj)
+            types = {'ScalarNodal','ScalarNodal','ScalarGauss'...
+                        'ScalarNodal'};
+            names = {'PerimeterGradient','RegularizedDensity',...
+                     'PerimeterGauss','PerimeterNodal'};
+            fP = obj.obtainPrintVariables(types,names);            
+        end
         
     end
     
-    methods (Access = protected)
+    methods (Access = private)
         
         function updateProtectedVariables(obj)
             obj.updateEpsilonValue()
@@ -51,52 +85,67 @@ classdef ShFunc_Perimeter < ShapeFunctional
         end
         
         function computeRegularizedDensity(obj)
-             obj.regularizedDensity = obj.filter.getP1fromP1(obj.designVariable);
-%              rho = obj.regularizedDensity;
-%              m = obj.filter.diffReacProb.mesh;
-%              
-%              
-%              x = m.coord(:,1);
-%              y = m.coord(:,2);
-%              z = rho;
-%              tri = delaunay(x,y);
-%              f = figure();
-%              trisurf(tri,x,y,z);
-%              shading interp
-%              
-%              node1 = rho(m.connec(:,1));
-%              node2 = rho(m.connec(:,2));
-%              node3 = rho(m.connec(:,3));
-%              rhoElem = mean([node1,node2,node3],2);
-%            cla(obj.axes)
-%             patchHandle = patch('Faces',m.connec,'Vertices',m.coord,...
-%                 'FaceAlpha','flat','EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
-%            set(patchHandle,'FaceVertexAlphaData',rhoElem,'FaceAlpha','flat');
-          end
-        
-        function initFrame(obj)
-            figHandle = figure();
-            
-            set(figHandle,'Pointer','arrow','NumberTitle','off');
-            
-            hold on
-            axis off
-            axis equal
-            
-            obj.axes = figHandle.Children;
-        end
+             obj.regularizedDensity = obj.filter.getP1fromP1(obj.designVariable.value);
+         end
         
         function computeRegularizedDensityProjection(obj)
-            obj.regularizedDensityProjection = obj.filter.integrate_L2_function_with_shape_function(obj.designVariable);
+            obj.regularizedDensityProjection = obj.filter.integrate_L2_function_with_shape_function(obj.designVariable.value);
+        end
+        
+        function per0 = computePerimeterIntegrandP0(obj)
+            vfrac = obj.designVariable.computeVolumeFraction();
+            s.connec = obj.designVariable.mesh.connec;
+            s.type   = obj.designVariable.mesh.type;
+            s.fNodes = 2/(obj.epsilon)*(1 - obj.regularizedDensity);
+            f = FeFunction(s);
+            per = f.computeValueInCenterElement();
+            per = per.*vfrac;
+            per0 = per;
+        end        
+        
+        function per = computePerimeterIntegrandP1(obj)
+            per = 2/(obj.epsilon)*((1 - obj.regularizedDensity).*(obj.Msmooth\obj.regularizedDensityProjection));
+            %value2 =  sum(obj.Msmooth*per);
         end
         
         function computePerimeterValue(obj)
-            obj.value = 2/(obj.epsilon)*((1 - obj.regularizedDensity)'*obj.regularizedDensityProjection);
+            int = 2/(obj.epsilon)*((1 - obj.regularizedDensity).*obj.regularizedDensityProjection);
+            obj.value =  sum(int);    
         end
         
-        function computePerimeterGradient(obj)
+        function computeGradient(obj)
             obj.computeContinousGradient();
             obj.computeDiscreteGradient();
+            obj.normalizeGradient();
+        end        
+        
+        function pT = computeGeometricTotalPerimeter(obj)
+            if isequal(class(obj.designVariable),'LevelSet')            
+            u = obj.filter.unfittedMesh;
+            pR = obj.computeGeometricRelativePerimeter();
+            pB = u.unfittedBoundaryMesh.computeVolume();            
+            pT = pR + pB;
+            pT2 = u.computePerimeter();
+            pT2 - pT
+            else 
+                pT = 0;   
+            end
+        end
+        
+        function eh = computeEpsilonOverhValue(obj)            
+            e = obj.epsilon;
+            m = obj.designVariable.mesh;
+            h = m.computeMeanCellSize();
+            eh = e/h;
+        end
+        
+        function p = computeGeometricRelativePerimeter(obj)
+            if isequal(class(obj.designVariable),'LevelSet')
+                u = obj.filter.unfittedMesh;
+                p = u.boundaryCutMesh.mesh.computeVolume;
+            else
+                p = 0;
+            end
         end
         
         function computeContinousGradient(obj)
@@ -104,8 +153,10 @@ classdef ShFunc_Perimeter < ShapeFunctional
         end
         
         function computeDiscreteGradient(obj)
-          %  obj.gradient = obj.Msmooth*obj.gradient;
+            %    obj.gradient = obj.Msmooth*obj.gradient;
         end
+        
+        
         
     end
 end

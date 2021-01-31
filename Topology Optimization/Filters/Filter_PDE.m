@@ -2,6 +2,8 @@ classdef Filter_PDE < Filter
     
     properties (Access = protected)
         Anodal2Gauss
+        LHS
+        epsilon
     end
     
     methods (Access = public)
@@ -18,17 +20,32 @@ classdef Filter_PDE < Filter
         
         function x0 = getP0fromP1(obj,x)
             x_reg =  obj.getP1fromP1(x);
+           %!!!! EHHH 
+           % x_reg = x;
             x0 = obj.Anodal2Gauss*x_reg;
         end
         
-        function x_reg = regularize(obj,x,F)
-            RHS = obj.integrate_function_along_facets(x,F);
+        function x_reg = regularize(obj,F)
+            RHS = obj.integrate_function_along_facets(F);
             x_reg = obj.solve_filter(RHS);
         end
         
         function obj = updateEpsilon(obj,epsilon)
-            obj.diffReacProb.setEpsilon(epsilon);
+            if obj.hasEpsilonChanged(epsilon)
+                obj.epsilon = epsilon;
+                obj.diffReacProb.setEpsilon(epsilon);
+                obj.computeLHS();
+            end
         end
+        
+    end
+    
+    methods (Access = protected)
+        
+        function computeLHS(obj)
+            lhs = obj.diffReacProb.element.computeLHS();
+            obj.LHS = decomposition(lhs);
+        end                
         
     end
     
@@ -44,9 +61,19 @@ classdef Filter_PDE < Filter
         end
         
         function x_reg = solve_filter(obj,RHS)
-            obj.diffReacProb.computeVariables(RHS);
-            x_reg = obj.diffReacProb.variables.x;
+            x_reg = obj.LHS\(RHS);
+            %obj.diffReacProb.computeVariables(RHS);
+            %x_reg = obj.diffReacProb.variables.x;
         end
+
+        
+        function itHas = hasEpsilonChanged(obj,eps)
+            if isempty(obj.epsilon)
+                obj.epsilon = 0;
+            end
+            var = abs(eps - obj.epsilon)/eps;
+            itHas = var > 1e-15;
+        end        
         
     end
     

@@ -4,7 +4,7 @@ classdef testAnalyticVsRegularizedPerimeter < testShowingError
         designVariable
         backgroundMesh
         boundaryMesh
-        unfittedMesh
+     %   unfittedMesh
         levelSet
         regularizedPerimeter
         analyticPerimeter
@@ -23,7 +23,6 @@ classdef testAnalyticVsRegularizedPerimeter < testShowingError
             obj.init();
             obj.createBackgroundAndBoundaryMesh();            
             obj.createLevelSet();
-            obj.createUnfittedMesh();
             obj.computeRegularizedPerimeter();
         end
         
@@ -56,32 +55,29 @@ classdef testAnalyticVsRegularizedPerimeter < testShowingError
             obj.boundaryMesh   = mCreator.boundaryMesh;            
         end
         
-        function createLevelSet(obj)
-            s.type = 'circleInclusion';
-            
+        function createLevelSet(obj)           
             domainLength = max(obj.backgroundMesh.coord(:,1)) - min(obj.backgroundMesh.coord(:,1));
-            halfSide = domainLength/2;
-            
-            s.fracRadius = (obj.radius/halfSide);
-            s.coord      = obj.backgroundMesh.coord;
-            s.ndim       = obj.backgroundMesh.ndim;
-            lsCreator = LevelSetCreator.create(s);
-            obj.levelSet = lsCreator.getValue();
+            halfSide = domainLength/2;            
+            sa.fracRadius = (obj.radius/halfSide);
+            sa.coord      = obj.backgroundMesh.coord;
+            sa.ndim       = obj.backgroundMesh.ndim;
+            s.creatorSettings = sa;            
+            s.initialCase = 'circleInclusion';
+            s.type = 'LevelSet';
+            s.mesh = Mesh_Total(obj.backgroundMesh);
+            s.scalarProductSettings.epsilon = 0.01;
+            s.scalarProductSettings.mesh = Mesh_Total(obj.backgroundMesh);
+            s.isFixed = [];
+            obj.levelSet = DesignVariable.create(s);
         end        
-        
-        function createUnfittedMesh(obj)
-            s.backgroundMesh = obj.backgroundMesh;
-            s.boundaryMesh   = obj.boundaryMesh;
-            uMesh = UnfittedMesh(s);
-            uMesh.compute(obj.levelSet);  
-            obj.unfittedMesh = uMesh;
-        end        
+
           
          function computeRegularizedPerimeter(obj)
             s = obj.createPerimeterParams();
             perimeterFunc = ShFunc_Perimeter(s);
-            perimeterFunc.computeCostAndGradient();
-            obj.regularizedPerimeter = perimeterFunc.value;             
+            perimeterFunc.computeFunctionAndGradient();
+            per = perimeterFunc.value*perimeterFunc.value0;
+            obj.regularizedPerimeter = per;             
         end     
         
         function s = createPerimeterParams(obj)

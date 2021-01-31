@@ -6,10 +6,10 @@ initial_case = 'full';
 cost = {'compliance'};
 weights = [1];
 constraint = {'volume'};
-optimizer = 'SLERP'; kappaMultiplier = 1;
+optimizer = 'SLERP'; incrementFactor = 1;
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
-line_search = 'DIMENSIONALLY CONSISTENT';
+line_search_initiator = 'STANDARD';
 showBC = true;
 
 nsteps = 1;

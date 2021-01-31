@@ -47,13 +47,14 @@ classdef Filter < handle
             obj.createQuadrature();
             obj.createInterpolation();
             obj.createGeometry();
-            obj.storeParams();
-            
+            obj.storeParams();            
         end
         
         function obj = createDiffReacProblem(obj,cParams)
             s = cParams.femSettings;
-            s.mesh = cParams.mesh;
+            if isprop(cParams,'mesh')
+                s.mesh = cParams.mesh;
+            end            
             switch s.scale
                 case 'MACRO'
                     obj.diffReacProb = DiffReact_Problem(s);

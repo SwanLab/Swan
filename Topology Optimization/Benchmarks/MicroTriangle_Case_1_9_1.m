@@ -6,7 +6,7 @@ initial_case = 'circleInclusion';
 cost={'enforceCh_CCstar_L2'};%enforceCh_CCstar_L2
 weights=[1];
 constraint = {'volumeConstraint'};
-optimizer = 'SLERP'; kappaMultiplier = 1;
+optimizer = 'SLERP'; incrementFactor = 1;
 filterType = 'P1';
 
 nsteps = 1;

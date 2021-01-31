@@ -25,6 +25,7 @@ classdef SettingsOptimizer < AbstractSettings
         incrementalScheme
         postProcessSettings
         historyPrinterSettings
+        optimizerNames
     end
     
     methods (Access = public)
@@ -38,6 +39,7 @@ classdef SettingsOptimizer < AbstractSettings
         
         function init(obj)
             obj.initProblemData();
+            obj.initOptimizerNames();            
             obj.initSettingsMonitorDocker();
             obj.initSettingsHistoryPrinter();
             obj.initSettingsPostProcess();
@@ -57,14 +59,24 @@ classdef SettingsOptimizer < AbstractSettings
             s = obj.monitoringDockerSettings;
             obj.monitoringDockerSettings = SettingsMonitoringDocker(s);
             
-            s2.optimizerName = obj.type;
-            s2.problemID       = obj.problemData.caseFileName;
-            s2.dim             = obj.problemData.femData.pdim;
-            s2.costFuncNames   = obj.problemData.costFunctions;
-            s2.costWeights     = obj.problemData.costWeights;
-            s2.constraintFuncs = obj.problemData.constraintFunctions;
+            s2.problemID          = obj.problemData.caseFileName;
+            s2.dim                = obj.problemData.femData.pdim;
+            s2.costFuncNames      = obj.problemData.costFunctions;
+            s2.costWeights        = obj.problemData.costWeights;
+            s2.constraintFuncs    = obj.problemData.constraintFunctions;
             s2.boundaryConditions = obj.problemData.femData.bc;
+            s2.optimizerNames     = obj.optimizerNames;
             obj.monitoringDockerSettings.loadParams(s2);
+        end
+        
+        function initOptimizerNames(obj)
+            s.type = obj.type;
+            if ~isempty(obj.uncOptimizerSettings)
+               s.primal = obj.uncOptimizerSettings.type; 
+            else
+               s.primal = [];
+            end            
+            obj.optimizerNames = s;
         end
         
         

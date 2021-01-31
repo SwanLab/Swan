@@ -7,7 +7,7 @@ cost = {''};
 weights = '';
 constraint = {''};
 optimizer = ''; 
-kappaMultiplier = 1;
+incrementFactor = 1;
 designVariable = '';
 filterType = '';
 

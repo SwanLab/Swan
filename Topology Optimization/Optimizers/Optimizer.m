@@ -42,22 +42,29 @@ classdef Optimizer < handle
     methods (Access = public)
         
         function solveProblem(obj)
-            obj.cost.computeCostAndGradient();
-            obj.constraint.computeCostAndGradient();
+            obj.cost.computeFunctionAndGradient();
+            obj.constraint.computeFunctionAndGradient();
             obj.printOptimizerVariable();
-            
             obj.hasFinished = false;
-            
+
             while ~obj.hasFinished
                 obj.increaseIter();
                 obj.update();
                 obj.updateStatus();
                 obj.refreshMonitoring();
-                obj.printOptimizerVariable();
-                obj.printHistory();
+                %obj.printOptimizerVariable();
+                %obj.printHistory();
             end
+            obj.printOptimizerVariable();
+            obj.printHistory();
+
             obj.hasConverged = 0;
+            obj.printHistoryFinalValues();
         end
+        
+        function saveMonitoring(obj)
+            obj.monitor.saveMonitorFigure();
+        end         
         
     end
     
@@ -82,7 +89,7 @@ classdef Optimizer < handle
             obj.targetParameters  = cParams.targetParameters;
             
             obj.createHistoryPrinter(cParams.historyPrinterSettings);
-            obj.createConvergenceVariables();
+            obj.createConvergenceVariables(cParams);
             obj.createMonitorDocker(cParams.monitoringDockerSettings);
             obj.createPostProcess(cParams.postProcessSettings);
         end
@@ -92,7 +99,7 @@ classdef Optimizer < handle
         end
         
         function printOptimizerVariable(obj)
-            d.x = obj.designVariable.value;
+            d.fields  = obj.designVariable.getVariablesToPlot();
             d.cost = obj.cost;
             d.constraint = obj.constraint;
             obj.postProcess.print(obj.nIter,d);
@@ -103,6 +110,10 @@ classdef Optimizer < handle
             obj.historyPrinter.print(obj.nIter,iStep);
         end
         
+        function printHistoryFinalValues(obj)
+            obj.historyPrinter.printFinal();                    
+        end
+               
     end
     
     methods (Access = private)
@@ -124,8 +135,9 @@ classdef Optimizer < handle
             obj.historyPrinter = OptimizationMetricsPrinterFactory.create(cParams);
         end
         
-        function createConvergenceVariables(obj)
-            cVarD = ConvergenceVarsDispatcher.dispatchNames(obj.type);
+        function createConvergenceVariables(obj,cParams)
+            s = cParams.optimizerNames;
+            cVarD = ConvergenceVarsDispatcher.dispatchNames(s);
             n = numel(cVarD);
             cVar = ConvergenceVariables(n);
             obj.convergenceVars = cVar;
@@ -143,6 +155,7 @@ classdef Optimizer < handle
         function createPostProcess(obj,cParams)
             d = obj.createPostProcessDataBase(cParams);
             d.printMode = cParams.printMode;
+            d.nDesignVariables = obj.designVariable.nVariables;
             if cParams.shallPrint
                 obj.postProcess = Postprocess('TopOptProblem',d);
             else
@@ -162,6 +175,8 @@ classdef Optimizer < handle
             d.constraint = obj.constraint;
             d.designVar  = obj.designVariable.type;
         end
+        
+
         
     end
     

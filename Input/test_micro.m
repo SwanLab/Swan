@@ -8,9 +8,11 @@ weights = [1 0.1];
 constraint = {'volumeConstraint'};
 constraint_case = 'INEQUALITY';
 optimizer = 'MMA'; 
-kappaMultiplier = 1;
+
+incrementFactor = 1;
 designVariable = 'Density';
 filterType = 'P1';
+fracRadius = 0.5;
 
 nsteps = 1;
 Vfrac_final = 0.5;

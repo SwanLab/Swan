@@ -9,8 +9,8 @@ constraint = {'volumeConstraint'};
 constraint_case = 'EQUALITY';
 optimizer = 'DualNestedInPrimal';
 optimizerUnconstrained = 'PROJECTED GRADIENT';
-kappaMultiplier = 1;
-kfrac = 1.05;
+incrementFactor = 1;
+rate = 0.95;
 designVariable = 'Density';
 filterType = 'P1';
 

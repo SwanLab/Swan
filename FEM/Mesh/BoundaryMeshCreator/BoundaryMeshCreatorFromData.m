@@ -23,7 +23,8 @@ classdef BoundaryMeshCreatorFromData < BoundaryMeshCreator
         function m = create(obj)
             nodes    = obj.borderNodes;
             s.coord  = obj.backgroundMesh.coord(nodes,:);
-            s.connec = boundary(s.coord);
+            kConnec = boundary(s.coord);
+            s.connec = [kConnec(1:end-1),kConnec(2:end)];
             %s.connec = obj.computeConnectivitiesFromData(obj.borderElements(:,2:end));
            
             

@@ -58,7 +58,7 @@ classdef GradientVariationExperiment < handle
         
         function createRegularizedPerimeters(obj)
             s.inputFile        = obj.inputFile;
-            s.mesh             = obj.backgroundMesh;
+            s.backgroundMesh   = obj.backgroundMesh;
             s.scale            = 'MACRO';
             s.designVariable   = obj.levelSet;
             s.outputFigureName = ['SmoothedCircleMesh',num2str(obj.iMesh)];

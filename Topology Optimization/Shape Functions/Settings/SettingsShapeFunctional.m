@@ -12,6 +12,7 @@ classdef SettingsShapeFunctional < AbstractSettings
         designVariable
         targetParameters
         mesh
+        domainNotOptimizable
     end
     
     methods (Access = public)

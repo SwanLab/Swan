@@ -17,10 +17,11 @@ classdef AugmentedLagrangian < ObjectiveFunction
         end
         
         function updateBecauseOfPrimal(obj)
-            obj.cost.computeCostAndGradient();
-            obj.constraint.computeCostAndGradient();
+            obj.cost.computeFunctionAndGradient();
+            obj.constraint.computeFunctionAndGradient();
             obj.modifyInactiveConstraints();
             obj.computeFunction();
+            obj.computeGradient();            
         end
         
         function updateBecauseOfDual(obj)

@@ -6,9 +6,10 @@ classdef testQuadToyUntittedExample < PlottingToyUnfittedExample
     
     methods (Access = public)
         
-        function obj = testQuadToyUntittedExample()            
+        function obj = testQuadToyUntittedExample()      
             obj.init();
-            obj.compute();           
+            obj.compute(); 
+            obj.plot();
         end
         
     end

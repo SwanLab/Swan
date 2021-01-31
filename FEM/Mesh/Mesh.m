@@ -18,11 +18,13 @@ classdef Mesh < handle
         interpolation
         
         edges
+        
+        masterSlaveNodes
     end
     
     properties (Access = private)
         xFE
-        geometry
+        geometry        
     end
     
     methods (Access = public)
@@ -119,6 +121,14 @@ classdef Mesh < handle
             dvolume = dvolume';
         end
         
+        function n = getNormals(obj)
+            quad = Quadrature.set(obj.type);
+            quad.computeQuadrature('CONSTANT');
+            g = obj.geometry;    
+            g.computeGeometry(quad,obj.interpolation);
+            n = g.normalVector;
+        end
+        
         function q = computeElementQuality(obj)
             quad = Quadrature.set(obj.type);
             quad.computeQuadrature('CONSTANT');
@@ -154,6 +164,33 @@ classdef Mesh < handle
             s.connec = newConnec;
             s.kFace = obj.kFace;
             newMesh = Mesh(s);
+        end
+        
+        function setMasterSlaveNodes(obj,nodes)
+            obj.masterSlaveNodes = nodes;
+        end
+        
+        function computeMasterSlaveNodes(obj)
+           mR = MasterSlaveRelator(obj.coord);
+           nodes = mR.getRelation();
+           obj.masterSlaveNodes = nodes; 
+        end
+        
+        function plotNormals(obj)
+            switch obj.ndim
+                case 3
+                    normal = obj.getNormals();
+                    n(:,1:obj.nelem) = squeeze(normal)';
+                    xy = obj.computeBaricenter();
+                    q = quiver3(xy(1,:),xy(2,:),xy(3,:),n(1,:),n(2,:),n(3,:),'k');
+                    h = obj.computeMeanCellSize;
+                    q.LineWidth = h;
+                    q.Marker = '.';
+                    q.MaxHeadSize = 1;
+                    ah = annotation('arrow','headStyle','cback1');
+                    set(ah,'parent',gca);
+                    axis equal
+            end
         end
         
     end

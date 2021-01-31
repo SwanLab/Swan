@@ -7,11 +7,11 @@ cost = {'compliance','perimeter'};
 weights = [1 0.1];
 constraint = {'volume'};
 optimizer = 'PROJECTED GRADIENT'; 
-kappaMultiplier = 1;
+incrementFactor = 1;
 designVariable = 'Density';
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
-line_search = 'DOUBLING LAST STEP';
+line_search_initiator = 'INCREASING LAST STEP';
 showBC = true;
 
 nsteps = 1;
