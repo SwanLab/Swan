@@ -57,6 +57,13 @@ classdef ShapeFunctional < handle
             obj.gradient = obj.gradient/abs(obj.value0);
         end
         
+        function fP = addHomogPrintVariablesNames(obj,fP)
+            fH = obj.homogenizedVariablesComputer.createPrintVariables();
+            nP = numel(fP);
+            for i = 1:numel(fH)
+                fP{nP+i} = fH{i};
+            end
+        end        
     end
     
     methods (Access = protected, Static)

@@ -78,7 +78,7 @@ classdef DesignVariable < handle
             obj.type    = cParams.type;
             obj.mesh    = cParams.mesh;
             obj.isFixed = cParams.isFixed;
-            obj.initValue();
+            obj.initValue(cParams);
             obj.createScalarProduct(cParams);
         end
         
@@ -86,8 +86,12 @@ classdef DesignVariable < handle
     
     methods (Access = private)
         
-        function initValue(obj)
-            obj.value = ones(size(obj.mesh.coord,1),1);
+        function initValue(obj,cParams)
+            if isempty(cParams.value)
+                obj.value = ones(size(obj.mesh.coord,1),1);
+            else
+                obj.value = cParams.value;
+            end
         end
         
         function createScalarProduct(obj,cParams)

@@ -35,6 +35,10 @@ classdef SettingsTranslator < handle
                     if ~isempty(value)
                        s.designVarSettings.creatorSettings.m2 = value;
                     end
+                elseif strcmp(prop,'alpha0')                    
+                    if ~isempty(value)
+                       s.designVarSettings.creatorSettings.alpha0 = value;
+                    end                    
                 elseif strcmp(prop,'rho0')
                     if ~isempty(value)
                        s.designVarSettings.creatorSettings.rho = value;

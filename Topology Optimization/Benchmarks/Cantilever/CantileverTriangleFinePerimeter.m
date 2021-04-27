@@ -4,7 +4,8 @@ filename='Cantilever_triangle_fine';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'compliance','perimeter'};
+cost = {'compliance','perimeterInterior'};
+%cost = {'compliance','perimeter'};
 %cost = {'compliance'};
 weights = [1, 0.2];
 %weights = 1;
@@ -20,12 +21,12 @@ optimizer = 'DualNestedInPrimal';
 nsteps = 5;
 Vfrac_final = 0.4;
 Perimeter_target = 1;
-optimality_final = 1e-3;
-constr_final =1e-2;
+optimality_final = 1e-4;
+constr_final =1e-4;
 
 Vfrac_initial = 0.4;
-optimality_initial = 0.5*1e-3;
-constr_initial = 1e-2;
+optimality_initial = 1e-4;
+constr_initial = 1e-4;
 TOL.rho_plus = 1;
 TOL.rho_minus = 0;
 TOL.E_plus = 1;
@@ -34,8 +35,8 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 plotting = true;
-printing = false;
+printing = true;
 monitoring = true;
-monitoring_interval = 3;
+monitoring_interval = 15;
 
 maxiter = 300;

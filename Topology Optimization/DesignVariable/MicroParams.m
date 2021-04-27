@@ -92,7 +92,9 @@ classdef MicroParams < DesignVariable
         function createAlpha(obj,cParams)
             if isfield(cParams,'alpha0')
                 if ~isempty(cParams.alpha0)
-                    obj.alpha = cParams.alpha0;
+                    obj.alpha = zeros(obj.mesh.ndim,obj.mesh.nelem);
+                    obj.alpha(1,:) = cParams.alpha0(1,:);
+                    obj.alpha(2,:) = cParams.alpha0(2,:);
                 end
             end
         end

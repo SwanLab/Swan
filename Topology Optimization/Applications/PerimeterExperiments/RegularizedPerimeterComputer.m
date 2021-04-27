@@ -91,14 +91,31 @@ classdef RegularizedPerimeterComputer < handle
         function s = createPerimeterParams(obj)
             sC.inputFile        = obj.inputFile;
             sC.mesh             = obj.backgroundMesh;
-            sC.designVariable.value   = obj.designVariable;
-            sC.designVariable.nVariables = 1;
+          %  sC.designVariable.value      = obj.designVariable;
+          %  sC.designVariable.nVariables = 1;
+            sC.designVariable   = obj.createDesignVariable();
             sC.epsilon          = obj.epsilon;
             sC.scale            = obj.scale;
             sC.type             = obj.perimeterType;
             sC.isRobinTermAdded = obj.isRobinTermAdded;
             fCreator = PerimeterParamsCreator(sC);
             s = fCreator.perimeterParams;
+        end
+        
+        function dV = createDesignVariable(obj)
+          %  s.scalarProductSettings.femSettings = [];
+          %  s.epsilon = [];  
+          %  ss.type = 'full';
+          %  sLs = SettingsLevelSetCreator;
+          %  s = sLs.create(ss); 
+            s.mesh      = obj.backgroundMesh;
+            s.inputFile = obj.inputFile;
+            s.scale     = obj.scale;
+            s.type      = 'LevelSet';
+            d = DesignVariableCreatorSettings(s);
+            s = d.create();
+            dV = DesignVariable.create(s);                                    
+            dV.update(obj.designVariable);
         end
         
         function plotDensity(obj)

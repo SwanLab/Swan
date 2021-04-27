@@ -11,7 +11,8 @@
 %filename = 'LshapeTriSmall';
 %filename = 'Lshape';
 %filename = 'LshapeFine';
-filename = 'ArchTriFine';
+%filename = 'ArchTriFine';
+filename = 'ArchTri';
 %'Arch_quad_coarse';
 %'Bridge_quad_coarse';
 %'BridgeCool_Quadrilateral_Bilinear_Structured_Coarse';
@@ -34,11 +35,11 @@ filterType = 'PDE';
 constraint_case = 'EQUALITY';
 
 Vfrac_initial = 0.3;
-optimality_initial = 1e-8;
+optimality_initial = 1e-4;
 constr_initial = 1e-8;
 
 Vfrac_final = 0.3;
-optimality_final = 1e-8;
+optimality_final = 1e-4;
 constr_final = 1e-8;
 
 stressNormExponent_initial = 2;
@@ -78,7 +79,7 @@ vademecumFileName = 'SuperEllipseQOptAnalytic';
 % rho0 = 0.3;
 
 line_search_initiator = 'INCREASING LAST STEP';
-incrementFactor = 1.1;
+incrementFactor = 1.95;
 %
 
 

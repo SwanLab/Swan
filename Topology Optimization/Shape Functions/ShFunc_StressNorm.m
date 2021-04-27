@@ -195,7 +195,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
                 for j = 1:nstre
                   k = obj.indexTensor2Voigt(i,j);
                   f = factor(k);
-                  sk = obj.squeezeParticular(s2(:,k,:,:),2);                
+                  sk = squeezeParticular(s2(:,k,:,:),2);                
                   s2M(:,i,j,:,:) = f*sk;
                 end
             end            
@@ -210,7 +210,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
             alphat = alpha(isNotZero,:);
             sigH2Ve(1,:,:,:) = sigH2V;
             t = bsxfun(@power,sigH2Ve,alphat);
-            sP(isNotZero,:,:) = obj.squeezeParticular(prod(t,2),2);
+            sP(isNotZero,:,:) = squeezeParticular(prod(t,2),2);
         end        
         
         
@@ -227,7 +227,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
             Ppe(:,1,:) = Pp;
             Ppe  = repmat(Ppe,1,obj.ngaus,1);            
             sigP = Ppe.*sigmaP;
-            sP = obj.squeezeParticular(sum(sigP,1),1);            
+            sP = squeezeParticular(sum(sigP,1),1);            
         end               
 
         function intSAP = integrateSigmaAP(obj,sP)
@@ -276,7 +276,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
         function PpdSigmaPdx = computePpDSigmaPdx(obj,dSigmadx)
             dSig2Mdx     = obj.computeDsigma2M(obj.sigma,dSigmadx);
             PpdSigmaPdxE = obj.PpdSigP_Dsig2M.*dSig2Mdx;
-            PpdSigmaPdx  = obj.squeezeParticular(sum(PpdSigmaPdxE,[1 2]),[1 2]);                                
+            PpdSigmaPdx  = squeezeParticular(sum(PpdSigmaPdxE,[1 2]),[1 2]);                                
         end        
         
         function dSigmaAPdu = computedSigmaAPdu(obj)
@@ -285,7 +285,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
             nV   = size(dEps,1);            
             dSigmaAPdu = zeros(nV,obj.ngaus,obj.nelem);
             for iv = 1:nV
-                dEpsDu        = obj.squeezeParticular(dEps(iv,:,:,:),1); 
+                dEpsDu        = squeezeParticular(dEps(iv,:,:,:),1); 
                 dSigmadu      = obj.computeSigma(C,dEpsDu);
                 PpdSigmaPdu   = obj.computePpDSigmaPdx(dSigmadu);                  
                 dSigmaAPdu(iv,:,:) = PpdSigmaPdu;
@@ -319,7 +319,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
             for igaus = 1:obj.ngaus
                 eG(1,:,:) = squeeze(e(igaus,:,:));
                 sGt = bsxfun(@times,C,eG);
-                s(igaus,:,:) = obj.squeezeParticular(sum(sGt,2),2);
+                s(igaus,:,:) = squeezeParticular(sum(sGt,2),2);
             end
         end
         
@@ -332,7 +332,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
             for ivar = 1:obj.nVariables                
                 dCiv = squeeze(dC(:,:,ivar,:));
                 ds = obj.computeSigma(dCiv,ep);                  
-                g(:,:,ivar) = obj.squeezeParticular(sum(eu.*ds,2),2);
+                g(:,:,ivar) = squeezeParticular(sum(eu.*ds,2),2);
             end
         end        
         
@@ -389,7 +389,7 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
             Ppe = repmat(Pp,1,1,1,3,3);
             Ppep = permute(Ppe,[1 4 5 3 2]);
             PpdSigP_Dsig2Me = (Ppep.*dSigP_Dsig2M);
-            PpdSigP_Dsig2M  = obj.squeezeParticular(sum(PpdSigP_Dsig2Me,1),1);
+            PpdSigP_Dsig2M  = squeezeParticular(sum(PpdSigP_Dsig2Me,1),1);
         end
     
         function createElementsToOptimize(obj)
@@ -419,8 +419,8 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
             factor = [1 1 2];
             sNorm = zeros(obj.ngaus,obj.nelem);
             for iStre = 1:nStre
-                sAi = obj.squeezeParticular(sa(:,iStre,:),2);                
-                sBi = obj.squeezeParticular(sb(:,iStre,:),2);
+                sAi = squeezeParticular(sa(:,iStre,:),2);                
+                sBi = squeezeParticular(sb(:,iStre,:),2);
                 sNorm = sNorm + factor(iStre)*(sAi.*sBi);
             end            
         end        
@@ -429,12 +429,6 @@ classdef ShFunc_StressNorm < ShFunWithElasticPdes
     
     methods (Access = private, Static)
     
-        function squeezed = squeezeParticular(t,dim)
-            z = size(t);
-            index = setdiff(1:length(z),dim);
-            squeezed = reshape(t,[z(index) z(dim)]);
-        end
-        
         function k = indexTensor2Voigt(i,j)
             T = [1 6 5;6 2 4;5 4 3];
             k = T(i,j);

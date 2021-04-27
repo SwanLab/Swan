@@ -96,10 +96,9 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         end
         
         function v = getPdeVariableToPrint(obj,p)
-            v.stress = p.variables.stress;
-            v.strain = p.variables.strain;
-            v.u      = obj.splitDisplacement(p.variables.d_u,p.dof.nunkn);
-            v.quad   = p.element.quadrature;
+            cParams.physicalProblem = p;
+            g = PdeVariableToPrintGetter(cParams);
+            v = g.compute();
         end   
         
         function fP = addHomogPrintVariablesNames(obj,fP)
@@ -110,14 +109,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             end
         end
         
-        function fP = addHomogVariables(obj,fP)
-            x = obj.designVariable;
-            fH = obj.homogenizedVariablesComputer.addPrintableVariables(x); 
-            nP = numel(fP);            
-            for i = 1:numel(fH)
-                fP{nP+i} = fH{i};
-            end            
-        end
+
         
       function updateAlpha(obj)
           if isequal(obj.designVariable.type,'MicroParams')
@@ -129,7 +121,14 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             obj.designVariable.alpha = alpha;
             end
           end
-        end        
+      end        
+        
+      function fP = addHomogVariables(obj,fP)
+          fH = obj.homogenizedVariablesComputer.addPrintableVariables(obj.designVariable);
+          for i = 1:numel(fH)
+              fP{end+1} = fH{i};
+          end
+      end
         
     end
     
@@ -145,25 +144,10 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             end
             obj.physicalProblem.variables.principalDirections = obj.designVariable.alpha;            
         end
-        
-  
-        
-        
+                 
     end
     
-    methods (Access = private, Static)
-        
-        function uM = splitDisplacement(u,nu)
-            nnode = round(length(u)/nu); 
-            nodes = 1:nnode;
-            uM = zeros(nnode,nu);
-            for idim = 1:nu
-                dofs = nu*(nodes-1)+idim;
-                uM(:,idim) = u(dofs);
-            end
-        end       
-        
-    end
+
     
     methods (Access = protected, Abstract)
         computeFunctionValue(obj)

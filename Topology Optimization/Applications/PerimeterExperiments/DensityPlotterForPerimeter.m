@@ -33,50 +33,28 @@ classdef DensityPlotterForPerimeter < handle
         end
         
         function createDesignVariable(obj)
-            s = SettingsDesignVariable();
-            s.mesh                    = obj.mesh;
-            s.type                    = 'Density';
-            s.initialCase             = 'full';
-            s.levelSetCreatorSettings = obj.createLevelSetParams();
-            s.scalarProductSettings   = obj.createScalarProductParams();
-            s.femData                 = obj.createFemContainerData();
+            s.mesh      = obj.mesh;
+            s.inputFile = obj.inputFile;
+            s.scale     = obj.scale;
+            s.type      = 'Density';
+            d = DesignVariableCreatorSettings(s);
+            s = d.create();
             obj.densityVariable       = DesignVariable.create(s);            
-            obj.densityVariable.value = obj.density;
+            obj.densityVariable.update(obj.density);
             obj.densityVariable.rho   = obj.density;                        
         end
         
-        function s = createFemContainerData(obj)
-            s = FemDataContainer;
-            s.fileName = obj.inputFile;
-            s.scale    = obj.scale;
-            s.pdim     = '2D';
-            s.ptype    = 'ELASTIC';
-            s.nelem    = size(obj.mesh.connec,1);
-            s.bc       = [];
-%             s.coord    = obj.mesh.innerMeshOLD.coord;
-%             s.connec   = obj.mesh.innerMeshOLD.connec;
-        end
-        
-        function s = createScalarProductParams(obj)
-            s.scalarProductSettings.femSettings = [];
-            s.epsilon = [];     
-        end
-        
-        function s = createLevelSetParams(obj)
-            ss.type = 'full';
-            s = SettingsLevelSetCreator;
-            s = s.create(ss);
-        end        
+    
         
         function createPlotter(obj)
             sD.shallDisplay   = true;
             sD.showBC         = false;
             sD.bc             = false;
             sD.designVariable = obj.densityVariable;
-            sD.optimizerName  = '';
+            sD.optimizerNames = '';
             sD.dim            = '2D';
             sD.scale          = obj.scale;
-            sD.mesh           = obj.mesh;
+            sD.mesh           = Mesh_Total(obj.mesh);
             f = DesignVarMonitorFactory;
             obj.plotter = f.create(sD);                        
         end

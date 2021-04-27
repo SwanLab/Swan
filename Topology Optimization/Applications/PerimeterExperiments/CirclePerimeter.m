@@ -5,7 +5,7 @@ classdef CirclePerimeter < handle
         scale
         radius
         
-        mesh
+        backgroundMesh
         levelSet
         analyticPerimeter
         regularizedPerimeter
@@ -38,33 +38,37 @@ classdef CirclePerimeter < handle
     methods (Access = private)
         
         function init(obj)
-            obj.radius = 0.21;
+            obj.radius = 0.25;
+            obj.domainLength = 1;            
             obj.nameCase = 'CirclePerimeterExperiment';
             obj.inputFile = {'SquareMacroTriangle'; ...
                              'SquareMacroTriangleFine';...
                              'SquareMacroTriangleFineFine'};
             obj.scale     = 'MACRO';
-            obj.analyticPerimeter    = 2*pi*(obj.radius);
+            obj.analyticPerimeter    = 2*pi*(obj.radius) + 4*obj.domainLength;
             obj.outputFolder = '/home/alex/Dropbox/Perimeter/';
         end
         
         function createMesh(obj)
             s.inputFile = obj.inputFile{obj.imesh};
-            meshCreator = MeshCreatorFromInputFile(s);
-            meshCreator.createMesh();
-            obj.mesh         = meshCreator.mesh;
-            obj.domainLength = meshCreator.domainLength;
+            s.isBackgroundMeshRectangularBox = true;            
+            meshCreator = BackgroundAndBoundaryMeshCreatorFromInputFile(s);
+            obj.backgroundMesh = meshCreator.backgroundMesh;
         end
         
         function createLevelSet(obj)
-            s.inputFile             = obj.inputFile{obj.imesh};
-            s.mesh                  = obj.mesh;
-            s.scale                 = obj.scale;
-            s.plotting              = true;
-            s.printing              = true;
-            s.levelSetCreatorParams = obj.createLevelSetCreatorParams();
-            lsCreator = LevelSetCreatorForPerimeter(s);
-            obj.levelSet = lsCreator.levelSet;
+            s = obj.createLevelSetCreatorParams();            
+            %s.inputFile             = obj.inputFile{obj.imesh};
+            %s.mesh                  = obj.backgroundMesh;
+            %s.scale                 = obj.scale;
+            %s.plotting              = true;
+            %s.printing              = true;
+            %lsCreator = LevelSetCreatorForPerimeter(s);            
+            %obj.levelSet = lsCreator.levelSet;
+            s.coord      = obj.backgroundMesh.coord;
+            s.ndim       = obj.backgroundMesh.ndim;
+            lsCreator = LevelSetCreator.create(s);
+            obj.levelSet = lsCreator.getValue();               
         end
         
         function s = createLevelSetCreatorParams(obj)
@@ -82,15 +86,16 @@ classdef CirclePerimeter < handle
         
         function rPerimeter = computeRegularizedPerimeters(obj)
             s.inputFile        = obj.inputFile{obj.imesh};
-            s.mesh             = obj.mesh;
+            s.backgroundMesh   = obj.backgroundMesh;
             s.scale            = obj.scale;
             s.designVariable   = obj.levelSet;
             s.outputFigureName = ['SmoothedCircleMesh',num2str(obj.imesh)];
             s.plotting         = true;
             s.printing         = true;
             s.capturingImage   = true;
-            s.isRobinTermAdded = false;
-            s.perimeterType    = 'perimeterInterior';            
+            s.isRobinTermAdded = true;
+            %s.perimeterType    = 'perimeterInterior'; 
+            s.perimeterType    = 'perimeter'; 
             rPerimeter = RegularizedPerimeterComputer(s);
             rPerimeter.compute();
         end
@@ -102,7 +107,7 @@ classdef CirclePerimeter < handle
         end
         
         function storePlotInfo(obj)
-            h = obj.mesh.computeMeanCellSize;
+            h = obj.backgroundMesh.computeMeanCellSize;
             L = obj.domainLength;
             obj.xplot{obj.imesh} = obj.regularizedPerimeter.epsilons/h;
             obj.yplot{obj.imesh} = obj.regularizedPerimeter.perimeters;

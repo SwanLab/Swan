@@ -45,9 +45,7 @@ classdef Optimizer_Unconstrained < handle
 
     methods (Access = protected)
 
-        function opt = obtainOptimalityTolerance(obj)
-            opt = obj.targetParameters.optimality_tol;
-        end
+
 
     end
 
@@ -56,7 +54,7 @@ classdef Optimizer_Unconstrained < handle
         function obj = Optimizer_Unconstrained(cParams)
             obj.objectiveFunction  = cParams.lagrangian;
             obj.hasConverged       = false;
-            obj.maxIncrNormX       = +Inf;
+            obj.maxIncrNormX       = 1e-8;1e-2;
             obj.convergenceVars    = cParams.convergenceVars;
             obj.targetParameters   = cParams.targetParameters;
             obj.designVariable     = cParams.designVariable;            
@@ -126,7 +124,8 @@ classdef Optimizer_Unconstrained < handle
             optimTol = obj.obtainOptimalityTolerance();
             optCond  = obj.optimalityCond;
             isNot = optCond >= optimTol;
-            itIs = ~isNot;
+            smallChangeX  = obj.isVariableChangeSmall();            
+            itIs = ~isNot || smallChangeX ;
         end
 
         function tryLineSearch(obj)
@@ -148,6 +147,10 @@ classdef Optimizer_Unconstrained < handle
     end
 
     methods (Access = private)
+        
+        function opt = obtainOptimalityTolerance(obj)
+            opt = obj.targetParameters.optimality_tol;
+        end        
         
         function createScalarProductCalculator(obj,cParams)
             s = cParams.scalarProductSettings;

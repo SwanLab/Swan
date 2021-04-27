@@ -36,6 +36,7 @@ classdef LineSearch < handle
             s.minValue          = obj.minValue;
             init = LineSearchInitiator.create(s);
             obj.value = init.compute();
+            obj.nTrials = 0;            
         end
         
         function computeTrial(obj)
@@ -51,15 +52,24 @@ classdef LineSearch < handle
         function init(obj,cParams)
             obj.designVariable    = cParams.designVariable;
             obj.objectiveFunction = cParams.objectiveFunction;
-            obj.minValue          = 1e-3;%1e-6;1e-15;
             obj.initiatorSettings = cParams.lineSearchInitiatorSettings;
+            obj.minValue = obj.computeMinValue();
             obj.computeLineSearchInitiator();
-            %obj.computeInitialValue();
         end
         
     end
     
     methods (Access = private)
+        
+        function minV = computeMinValue(obj)
+            s = obj.initiatorSettings;
+            switch s.optimizerType
+                case {'PROJECTED GRADIENT','HAMILTON-JACOBI'}
+                    minV = 1e-13;
+                case {'SLERP'}
+                    minV = 1e-2;
+            end                       
+        end
         
         function computeLineSearchInitiator(obj)
             s = obj.initiatorSettings;

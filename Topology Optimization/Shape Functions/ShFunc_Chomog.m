@@ -24,23 +24,32 @@ classdef ShFunc_Chomog < ShapeFunctional
         end
         
         function f = getPhysicalProblems(obj)
-            f{1} = obj.physicalProblem;
+            f{1} = obj.physicalProblem;            
         end
         
         function f = getRegularizedDensity(obj)
             f = obj.regDesignVariable;
         end
         
-        function d = addPrintableVariables(obj,d)
-            d.phyProblems = obj.getPhysicalProblems();
-           % d.regDensity  = obj.getRegularizedDensity();
+        function fP = addPrintableVariables(obj)
+            p = obj.getPhysicalProblems();
+            cParams.physicalProblem = p{1};
+            g = PdeVariableToPrintGetter(cParams);
+            v = g.compute();
+            fP{1}.value = v;
+            fP{2}.value = obj.gradient;
+            fH = obj.homogenizedVariablesComputer.addPrintableVariables(obj.designVariable);
+            for i = 1:numel(fH)
+                fP{end+1} = fH{i};
+            end
         end
         
         function fP = createPrintVariables(obj)           
-            types = {'Elasticity'};
-            names = {'Primal'};
-            fP = obj.obtainPrintVariables(types,names);
-%            fP = obj.addHomogPrintVariablesNames(fP);
+            types = {'Elasticity','ScalarNodal'};      
+            names = {'Primal','Gradient'};
+            
+            fP = obj.obtainPrintVariables(types,names); 
+            fP = obj.addHomogPrintVariablesNames(fP);            
         end   
         
         function v = getVariablesToPlot(obj)
@@ -104,11 +113,15 @@ classdef ShFunc_Chomog < ShapeFunctional
         
         function computePhysicalData(obj)
             obj.updateHomogenizedMaterialProperties();
+            obj.solveState();
+        end
+        
+        function solveState(obj)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C)
             obj.physicalProblem.computeChomog;
             obj.Chomog  = obj.physicalProblem.variables.Chomog;
             obj.tstrain = obj.physicalProblem.variables.tstrain;
-            obj.tstress = obj.physicalProblem.variables.tstress;
+            obj.tstress = obj.physicalProblem.variables.tstress;            
         end
         
         function updateHomogenizedMaterialProperties(obj)

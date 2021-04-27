@@ -22,10 +22,7 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
             fP{2}.value = obj.compliance/obj.value0;
             fP{3}.value = obj.designVariable.alpha;
             fP{4}.value = abs(obj.designVariable.alpha);
-            fH = obj.homogenizedVariablesComputer.addPrintableVariables(obj.designVariable);
-            for i = 1:numel(fH)
-                fP{end+1} = fH{i};
-            end
+            fP = obj.addHomogVariables(fP);
         end
 
         function v = getVariablesToPlot(obj)

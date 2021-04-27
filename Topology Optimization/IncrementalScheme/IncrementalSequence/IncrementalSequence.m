@@ -1,6 +1,6 @@
 classdef IncrementalSequence < handle
     
-    properties (GetAccess = public, SetAccess = private)
+    properties (GetAccess = public, SetAccess = protected)
         value
     end
     

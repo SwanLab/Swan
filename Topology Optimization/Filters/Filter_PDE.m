@@ -61,9 +61,9 @@ classdef Filter_PDE < Filter
         end
         
         function x_reg = solve_filter(obj,RHS)
-            x_reg = obj.LHS\(RHS);
-            %obj.diffReacProb.computeVariables(RHS);
-            %x_reg = obj.diffReacProb.variables.x;
+            %x_reg = obj.LHS\(RHS);
+            obj.diffReacProb.computeVariables(RHS);
+            x_reg = obj.diffReacProb.variables.x;
         end
 
         

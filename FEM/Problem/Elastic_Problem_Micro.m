@@ -83,16 +83,18 @@ classdef Elastic_Problem_Micro < FEM
             dV = obj.geometry.dvolu;
             for istre = 1:nstre
                 for jstre = 1:nstre
-                    s = squeeze(tstress(istre,:,:,:));
-                    e = squeeze(tstrain(jstre,:,:,:));
+                    s = squeezeParticular(tstress(istre,:,:,:),1);
+                    e = squeezeParticular(tstrain(jstre,:,:,:),1);
                     ener = (s.*e);
-                    en = sum(ener,1);
-                    Ch2(istre,jstre) = en*dV;
+                    en = sum(ener,2);
+                    en = squeezeParticular(en,2);
+                    Ch2(istre,jstre) = en(:)'*dV(:);
                 end
             end
             
             
             Cmat = obj.element.material.C;
+            
             Ch3 = zeros(nstre,nstre);
             ngaus = size(tstrain,2);
             nelem = size(tstrain,4);
@@ -105,12 +107,13 @@ classdef Elastic_Problem_Micro < FEM
                         for lstre = 1:nstre
                          eiV(1:ngaus,:) = squeeze(ei(:,kstre,:));
                          ejV(1:ngaus,:) = squeeze(ej(:,lstre,:));
-                         Cm(1:ngaus,:)  = squeeze(Cmat(kstre,lstre,:,:));
+                         Cmm(1,:) = squeeze(Cmat(kstre,lstre,:,:));
+                         Cm  = repmat(Cmm,ngaus,1);
                          c = c + Cm.*eiV.*ejV;
                         end
                     end
                     cC = c.*dV';                    
-                    Ch3(istre,jstre) = sum(cC);
+                    Ch3(istre,jstre) = sum(cC(:));
                 end
             end
             

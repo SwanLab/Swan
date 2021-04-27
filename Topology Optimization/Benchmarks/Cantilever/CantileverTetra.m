@@ -23,17 +23,18 @@ designVariable = 'LevelSet';
 filterType = 'PDE';
 optimizer = 'DualNestedInPrimal';
 %optimizer = 'AlternatingPrimalDual';
+line_search_initiator = 'INCREASING LAST STEP';
+incremenFactor = 1.2;
 
-
-nsteps = 1;
+nsteps = 85;
 Vfrac_final = 0.15;
 Perimeter_target = 1;
-optimality_final = 1e-3;
-constr_final = 1e-2;
+optimality_final = 1e-4;
+constr_final = 1e-4;
 
-Vfrac_initial      = 0.15;
-optimality_initial = 0.5*1e-2;
-constr_initial     = 1e-2;
+Vfrac_initial      = 1;
+optimality_initial = 1*1e-4;
+constr_initial     = 1e-4;
 
 
 TOL.rho_plus = 1;
@@ -44,8 +45,8 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 plotting = true;
-printing = false;
+printing = true;
 monitoring = true;
 monitoring_interval = 1;
 
-maxiter = 50;
+maxiter = 8500;

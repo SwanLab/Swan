@@ -28,8 +28,8 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             
             obj.updateOldValues();
             obj.unconstrainedOptimizer.startLineSearch();
-         %   obj.unconstrainedOptimizer.updateConvergenceParams();
-        %    obj.refreshMonitoring();
+            obj.unconstrainedOptimizer.updateConvergenceParams();
+            obj.refreshMonitoring();
             obj.printOptimizerVariable();            
        %     obj.printHistory();            
             obj.nIter = obj.nIter+1;
@@ -45,16 +45,18 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             obj.unconstrainedOptimizer.updateConvergenceParams();   
             obj.unconstrainedOptimizer.updateLineSearch();
             obj.refreshMonitoring();
-            obj.printOptimizerVariable();
             obj.printHistory();
             obj.saveDesignVariable();
+            obj.printOptimizerVariable();            
+       %     obj.printHistory();            
+            obj.nIter = obj.nIter+1;            
 
             %obj.hasFinished = false;
             obj.updateStatus();
 
             
             while ~obj.hasFinished
-                obj.nIter = obj.nIter+1;
+             
 
                 obj.unconstrainedOptimizer.tryLineSearch();                
                 while ~obj.hasUnconstraintedOptimizerConverged()
@@ -67,7 +69,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
 
                 obj.cost.computeFunctionAndGradient();
 
-                 obj.unconstrainedOptimizer.updateConvergenceParams();
+                obj.unconstrainedOptimizer.updateConvergenceParams();
 
                 obj.updateConvergenceStatus();
                 obj.updateStatus();
@@ -78,6 +80,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
                 obj.printOptimizerVariable();
                 obj.printHistory();
                 obj.saveDesignVariable();
+                obj.nIter = obj.nIter+1;
             end
             %obj.printOptimizerVariable();
             %obj.printHistory();            

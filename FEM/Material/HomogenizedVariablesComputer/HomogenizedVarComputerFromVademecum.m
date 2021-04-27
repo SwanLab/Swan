@@ -61,7 +61,7 @@ classdef HomogenizedVarComputerFromVademecum ...
             fP{1}.value = obj.rho;
             fP{2}.value = obj.superEllipseExp;  
             fP{3}.value = obj.xiSymmetry;       
-            pMax = 16;
+            pMax = 32;
             fP{4}.value = obj.computePcomponents(pMax,x);
         end
         

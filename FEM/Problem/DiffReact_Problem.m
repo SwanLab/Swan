@@ -68,7 +68,7 @@ classdef DiffReact_Problem < FEM
             end
         end
         
-        
+
         function obj = setEpsilon(obj,epsilon)
             obj.element.setEpsilon(epsilon);
         end

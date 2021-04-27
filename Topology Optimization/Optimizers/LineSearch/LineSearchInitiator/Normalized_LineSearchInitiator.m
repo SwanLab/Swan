@@ -16,7 +16,7 @@ classdef Normalized_LineSearchInitiator < LineSearchInitiator
             g = obj.objectiveFunction.gradient;
             xNorm = obj.scalarProduct.computeSP(x,x);
             gNorm = obj.scalarProduct.computeSP(g,g);
-            initStep = 0.1*sqrt(xNorm/gNorm);
+            initStep = 0.001*sqrt(xNorm/gNorm);
         end
         
     end

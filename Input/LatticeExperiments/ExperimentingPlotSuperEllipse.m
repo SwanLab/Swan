@@ -1,8 +1,8 @@
 %filename = 'CantileverSquareSYmmetricMesh';
-%filename = 'CantileverSquareMedium';
+filename = 'CantileverSquareMedium';
 %'CantileverSquareSYmmetricMesh';
 %filename = 'CantileverSquare';
-filename = 'CantileverSquareSmall';
+%filename = 'CantileverSquareSmall';
 %filename = 'CantileverSquareNew';
 %'CantileverSquareNewFine';
 %filename = 'Cantilever_quad_coarse';
@@ -34,15 +34,15 @@ filterType = 'PDE';
 constraint_case = 'EQUALITY';
 
 Vfrac_initial = 0.3;
-optimality_initial = 1e-5;
+optimality_initial = 1e-4;
 constr_initial = 1e-8;
 
 Vfrac_final = 0.3;
-optimality_final = 1e-5;
+optimality_final = 1e-4;
 constr_final = 1e-8;
 
 stressNormExponent_initial = 2;
-stressNormExponent_final = 16;
+stressNormExponent_final = 32;
 % 
 optimizer = 'DualNestedInPrimal';
 %optimizer = 'AlternatingPrimalDual';
@@ -78,21 +78,21 @@ vademecumFileName = 'SuperEllipseQOptAnalytic';
 % rho0 = 0.3;
 
 line_search_initiator = 'INCREASING LAST STEP';
-incrementFactor = 1.1;
+incrementFactor = 1.95;
 %
 
 
 %kfrac = 2;
-nsteps = 8;
+nsteps = 17;
 
 plotting = true;
-printing = false;
+printing = true;
 monitoring = true;
-monitoring_interval = 2;
-maxiter = 3000;
+monitoring_interval = 3;
+maxiter = 8000;
 
-
-
+% 
+% % % 
 isDirichletPartX = @(x) x > -1e-12 & x < 0.1;
 isDirichletPart1 = @(y) y > 0.20 & y < 0.30;
 isDirichletPart2 = @(y) y > 0.70 & y < 0.80;

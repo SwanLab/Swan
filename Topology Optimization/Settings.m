@@ -78,6 +78,7 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         nelem
         m1
         m2
+        alpha0
         rho0
         isDesignVariableFixed
         costDomainNotOptimizable
@@ -398,6 +399,10 @@ classdef Settings %< handle%& matlab.mixin.Copyable
             if exist('m2','var')
                obj.m2 = m2;
             end  
+            
+            if exist('alpha0','var')
+               obj.alpha0 = alpha0;
+            end
             
             if exist('stressNormExponent_initial','var')
                 obj.stressNormExponent_initial = stressNormExponent_initial;

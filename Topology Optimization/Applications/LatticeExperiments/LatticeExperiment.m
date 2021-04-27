@@ -31,10 +31,15 @@ classdef LatticeExperiment < handle
         
         function init(obj)
             obj.fileNames = {   ...
-         % 'ExperimentingPlotSuperEllipseArchDesignVariable'                
-         % 'ExperimentingPlotSuperEllipseArch';              
-            %    'ExperimentingPlotRectangle';
-          'ExperimentingPlotSuperEllipse';              
+                %'CantileverSymmetricFixingDirichletZone'
+                'CantileverSymmetricFixingMaxStressZone'
+                %'CantileverSymmetricWithoutFixing';
+                %'ArchSymSuperEllipseDesignVariable'
+   %'LshapeCoarseSuperEllipseDesignVariable'
+            %       'ExperimentingPlotSuperEllipseArchDesignVariable'                
+        %  'ExperimentingPlotSuperEllipseArch';              
+ %              'ExperimentingPlotRectangle';
+        %'ExperimentingPlotSuperEllipse';              
             %'CantileverSymmetricMeshSuperEllipsePDEDouble'
           %  'LatticeExperimentInputCantileverSymmetricMeshSuperEllipseP1';
          %   'LatticeExperimentInputCantileverSymmetricMeshRectangleP1'

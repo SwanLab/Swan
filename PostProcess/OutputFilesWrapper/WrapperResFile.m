@@ -26,11 +26,20 @@ classdef WrapperResFile < FileReader
             obj.readStress();
             obj.readStrain();  
             obj.readDisplacement();  
-            obj.readCompliance();
+            obj.readStress();
+            obj.readStrain();  
+            obj.readDisplacement();              
+            obj.readAmplifiedStressNormP();
+            %obj.readCompliance();
             obj.readAngle();  
-            obj.readAngle();             
+            obj.readAngle(); 
+            obj.readAmplifiedStressNormP();            
             obj.readDensity();  
-            obj.readLevelSet();          
+            obj.readScalarInNodes();
+            obj.readScalarInNodes();
+            obj.readScalarInGauss();            
+            obj.readScalarInNodes();
+            obj.readScalarInNodes();
             obj.closeFile();
         end
         
@@ -67,6 +76,10 @@ classdef WrapperResFile < FileReader
             obj.readScalarInGauss();            
         end
         
+        function readAmplifiedStressNormP(obj)
+            obj.readScalarInGauss();            
+        end
+                
         function readAngle(obj)
             obj.readVectorFieldInGauss();              
         end
@@ -78,6 +91,7 @@ classdef WrapperResFile < FileReader
         function readLevelSet(obj)
             obj.readScalarInNodes();
         end
+               
         
         function readVectorFieldInGauss(obj)
             obj.readVectorInGauss(obj.dimension)

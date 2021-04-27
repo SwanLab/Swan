@@ -26,7 +26,7 @@ constr_initial = 1e-6;
 
 
 plotting = true;
-printing = true;
+printing = false;
 monitoring = true;
 monitoring_interval = 1;
 

@@ -19,9 +19,13 @@ function DehomogenisingCases
 %fCase = 'ExperimentingPlot';
 %folder = '/media/alex/My Passport/LatticeResults/StressNormRectangleRotationSmall';
 
-iteration = 296;
-fCase = 'ExperimentingPlot';
-folder = '/media/alex/My Passport/LatticeResults/StressNormSuperEllipseRotationSmall';
+%iteration = 296;
+%fCase = 'ExperimentingPlot';
+%folder = '/media/alex/My Passport/LatticeResults/StressNormSuperEllipseRotationSmall';
+
+iteration = 262;
+fCase = 'CantileverSymmetricFixingMaxStressZone';
+folder = '/media/alex/My Passport/LatticeResults/CantileverSymmetricCoarse/CantileverSymmetricFixingMaxStressZone';
 
 s.fileName = [fCase,num2str(iteration)];
 s.folderPath = fullfile(folder);

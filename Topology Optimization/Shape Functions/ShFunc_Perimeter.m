@@ -121,7 +121,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
         
         function pT = computeGeometricTotalPerimeter(obj)
             if isequal(class(obj.designVariable),'LevelSet')            
-            u = obj.filter.unfittedMesh;
+            u = obj.designVariable.getUnfittedMesh();
             pR = obj.computeGeometricRelativePerimeter();
             pB = u.unfittedBoundaryMesh.computeVolume();            
             pT = pR + pB;
@@ -141,7 +141,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
         
         function p = computeGeometricRelativePerimeter(obj)
             if isequal(class(obj.designVariable),'LevelSet')
-                u = obj.filter.unfittedMesh;
+                u = obj.designVariable.getUnfittedMesh();
                 p = u.boundaryCutMesh.mesh.computeVolume;
             else
                 p = 0;

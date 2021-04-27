@@ -62,8 +62,9 @@ classdef PerimeterVolumeProblem < handle
         function s = setInitialAndFinalEpsilon(obj,s)
            sT = s.incrementalSchemeSettings.targetParamsSettings;
            m  = obj.mesh;
-           sT.epsilonPerFinal = 2*m.computeMeanCellSize();
-           sT.epsilonPerInitial = m.computeCharacteristicLength();
+           sT.epsilonPerFinal   = 2*m.computeMeanCellSize();
+           sT.epsilonPerInitial = 124*m.computeMeanCellSize();           
+           %sT.epsilonPerInitial = m.computeCharacteristicLength();
            s.incrementalSchemeSettings.targetParamsSettings = sT;
         end
         

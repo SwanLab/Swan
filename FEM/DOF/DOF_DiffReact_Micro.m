@@ -15,7 +15,10 @@ classdef DOF_DiffReact_Micro < DOF
             obj.dirichlet_values{1} = [];
             obj.neumann = [];
             obj.neumann_values  = [];
-            obj.master_slave = mesh.masterSlaveNodes;
+            if isempty(mesh.masterSlaveNodes)
+               mesh.computeMasterSlaveNodes;
+            end
+            obj.master_slave = mesh.masterSlaveNodes;            
             obj.periodic_free = obj.compute_periodic_nodes(obj.master_slave(:,1),obj.nunkn);
             obj.periodic_constrained = obj.compute_periodic_nodes(obj.master_slave(:,2),obj.nunkn);
             obj.computeDOF(mesh,interp);
