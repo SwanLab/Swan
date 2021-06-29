@@ -74,18 +74,24 @@ classdef Filter < handle
         end
         
         function A_nodal_2_gauss = computeA(obj)
-            A_nodal_2_gauss = sparse(obj.nelem,obj.npnod);
+            A0 = sparse(obj.nelem,obj.npnod);
+            A_nodal_2_gauss = cell(obj.ngaus,1);
             fn = ones(1,obj.npnod);
             
-            dirichlet_data = obj.mesh.connec';
-            fe = zeros(obj.nnode,obj.nelem);
+            nodes = obj.mesh.connec;
+            fN = zeros(obj.nnode,obj.nelem);
             fg = zeros(obj.ngaus,obj.nelem);
             
             for igaus = 1:obj.ngaus
+                A_nodal_2_gauss{igaus} = A0;
                 for inode = 1:obj.nnode
-                    fe(inode,:) = fn(dirichlet_data(inode,:));
-                    fg(igaus,:) = fg(igaus,:) + obj.shape(inode,igaus)*fe(inode,:);
-                    A_nodal_2_gauss = A_nodal_2_gauss + sparse(1:obj.nelem,dirichlet_data(inode,:),ones(obj.nelem,1)*obj.shape(inode,igaus),obj.nelem,obj.npnod);
+                    node   = nodes(:,inode);
+                    fN     = fn(node);
+                    shapeN = obj.shape(inode,igaus);
+                    fg(igaus,:) = fg(igaus,:) + shapeN*fN;
+                    Ni = ones(obj.nelem,1)*shapeN;
+                    A  = sparse(1:obj.nelem,node,Ni,obj.nelem,obj.npnod);
+                    A_nodal_2_gauss{igaus} = A_nodal_2_gauss{igaus} + A;
                 end
             end
         end

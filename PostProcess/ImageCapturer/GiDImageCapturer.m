@@ -16,7 +16,7 @@ classdef GiDImageCapturer < handle
         function obj = GiDImageCapturer(cParams)
             obj.init(cParams);
             obj.createPathNames();
-                   obj.writeCallGiDTclFile();                 
+           obj.writeCallGiDTclFile();                 
         end
         
         function capture(obj)
@@ -35,7 +35,9 @@ classdef GiDImageCapturer < handle
             obj.swanPath = '/home/alex/git-repos/Swan/';
             %obj.gidPath = '/home/alex/GiDx64/gid14.0.3/';
             %obj.gidPath = '/home/alex/GiDx64/14.1.6d/';                                   
-            obj.gidPath = '/home/alex/GiDx64/14.1.9d/';
+            %obj.gidPath = '/home/alex/GiDx64/14.1.9d/';
+            %obj.gidPath = '/home/alex/GiDx64/15.0.1/';
+            obj.gidPath = '/home/alex/GiDx64/gid-15.0.3/';
         end
         
         function createPathNames(obj)
@@ -48,8 +50,8 @@ classdef GiDImageCapturer < handle
             tclFile = 'callGiDCapturer.tcl';
             obj.inputFileName = char(obj.inputFileName);
             %stlFileTocall = 'CaptureImage.tcl';
-           % stlFileTocall = 'CaptureImage3.tcl';
-            stlFileTocall = 'CaptureImageColor.tcl';
+            stlFileTocall = 'CaptureImage3.tcl';
+           % stlFileTocall = 'CaptureImageColor.tcl';
           %  stlFileTocall = 'CaptureSmoothImageColor.tcl';
 
             
@@ -73,8 +75,9 @@ classdef GiDImageCapturer < handle
             inputImage  = [' ',obj.outputImageName,'.png'];
             outPutImage = inputImage;
             %convert     = 'convert -crop 700x700+0+0 -gravity Center';
-            convert     = 'convert -crop 500x500+0+0 -gravity Center';                        
+           % convert     = 'convert -crop 500x500+0+0 -gravity Center';                        
             %convert     = 'convert -crop 1500x1500+0+0 -gravity Center';
+            convert     = 'convert -crop 600x300+0+0 -gravity Center';
             command = strcat(convert,' ',inputImage,' ',outPutImage);
             system(command);
         end

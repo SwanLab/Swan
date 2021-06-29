@@ -49,7 +49,7 @@ classdef InactiveConstraintsModifier < handle
         end
         
         function modifyValue(obj)
-            obj.constraint.value(obj.isInactive);
+            obj.constraint.value(obj.isInactive) = obj.threshold;
         end
         
         function modifyGradient(obj)

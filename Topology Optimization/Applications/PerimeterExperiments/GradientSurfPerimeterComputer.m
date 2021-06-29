@@ -66,9 +66,44 @@ classdef GradientSurfPerimeterComputer < handle
             z = dPer(:,iEpsilon);
             tri = delaunay(x,y);
             f = figure();
-            trisurf(tri,x,y,z);
-            shading interp
-            obj.figureID = f;
+            h = trisurf(tri,x,y,z);
+            shading interp            
+            obj.figureID = f;         
+            ar = get(gca,'DataAspectRatio');            
+            obj.plotBoundaryCutMesh(tri,x,y,z)
+            set(gca,'DataAspectRatio',ar);
+            view(-60,25);
+      end
+        
+        function plotBoundaryCutMesh(obj,tri,x,y,z)
+            m = obj.computeBoundaryCutMesh();            
+            %nodes = unique(m.connec(:));
+            Xi = m.coord(:,1);
+            Yi = m.coord(:,2);
+            Zi = interptri(tri,x,y,z,Xi,Yi);
+            s.coord = [Xi Yi Zi];
+            %s.connec(:,1) = 1:length(Xi);
+            %s.connec(:,2) = 2:length(Xi)+1;
+            %s.connec(end,2) = 1;
+            %s.coord = m.coord;
+            s.connec = m.connec;
+            s.kFace = -2;
+            mB = Mesh(s);
+            hold on
+            mB.plot
+           % axes(axes_h)
+           % axis(axis_h)
+           % view(a,b)
+        end
+        
+        function mBCut = computeBoundaryCutMesh(obj)
+            g = obj.gExperiment;
+            s.backgroundMesh = g.backgroundMesh;
+            s.boundaryMesh   = g.boundaryMesh;
+            uMesh = UnfittedMesh(s);
+            uMesh.compute(g.levelSet);
+            bCut = uMesh.boundaryCutMesh;
+            mBCut = bCut.mesh;
         end
         
         function printSurf(obj,iEpsilon)

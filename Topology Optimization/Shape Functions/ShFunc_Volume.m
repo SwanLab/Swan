@@ -7,7 +7,7 @@ classdef ShFunc_Volume < ShapeFunctional
     methods (Access = public)
         
         function obj = ShFunc_Volume(cParams)
-            cParams.filterParams.quadratureOrder = 'CONSTANT';            
+            cParams.filterParams.quadratureOrder = 'LINEAR';            
             obj.init(cParams);         
             obj.geometricVolume = sum(obj.dvolu(:));
         end
@@ -25,8 +25,8 @@ classdef ShFunc_Volume < ShapeFunctional
         end        
         
         function computeFunctionFromDensity(obj,dens)
-            densV(:,1) = dens;
-            volume = sum(sum(obj.dvolu,2)'*densV);
+            densV = dens;
+            volume = (sum(obj.dvolu,2)'*mean(densV,2));
             volume = volume/(obj.geometricVolume);
             obj.value = volume;            
         end
@@ -37,11 +37,11 @@ classdef ShFunc_Volume < ShapeFunctional
 
         function computeGradient(obj)
             drho = obj.homogenizedVariablesComputer.drho;
-            g = drho/(obj.geometricVolume);
+            g = drho;
             gf = zeros(size(obj.Msmooth,1),obj.nVariables);
             for ivar = 1:obj.nVariables
-                gs = squeeze(g(:,ivar));
-                gf(:,ivar) = obj.filter.getP1fromP0(gs);
+                gs = g{ivar}/obj.geometricVolume;
+                gf(:,ivar) = obj.filter.getP1fromP0((gs));
             end
            % g = obj.Msmooth*gf;
             g = gf;

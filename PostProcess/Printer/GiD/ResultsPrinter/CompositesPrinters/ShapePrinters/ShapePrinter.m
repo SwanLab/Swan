@@ -18,8 +18,15 @@ classdef ShapePrinter < CompositeResultsPrinter
         end
         
         function createHeadPrinter(obj,d,dh)
-            obj.printers{1}.createHeadPrinter(d,dh);
-            h = obj.printers{1}.getHeadPrinter();
+            for iP = 1:numel(obj.printers)
+              p = obj.printers{iP};
+              hasGauss(iP) = p.getHasGaussData;  
+            end
+            hasGauss = find(hasGauss);
+            firstPrinterWithGauss = obj.printers{hasGauss(1)};
+            p = firstPrinterWithGauss;
+            p.createHeadPrinter(d,dh);
+            h = p.getHeadPrinter();
             obj.headPrinter = h;            
         end        
         

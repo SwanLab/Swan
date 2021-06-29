@@ -45,7 +45,11 @@ classdef Filter_P1_Density < handle %Filter_P1
         
         function x0 = getP0fromP1(obj,x)
             if obj.xHasChanged(x)
-                x0 = obj.computeP0fromP1(x);
+                xR = obj.computeP0fromP1(x);
+                x0 = zeros(length(xR),obj.quadrature.ngaus);                
+                for igaus = 1:obj.quadrature.ngaus
+                    x0(:,igaus) = xR;
+                end
             else
                 x0 = obj.x_reg;
             end

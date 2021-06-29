@@ -149,7 +149,7 @@ classdef Element_Elastic < Element
                     for jv = 1:obj.nnode*obj.dof.nunkn
                         for istre = 1:obj.nstre
                             for jstre = 1:obj.nstre
-                                v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:).*Bmat(jstre,jv,:));
+                                v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:,igaus).*Bmat(jstre,jv,:));
                                 Ke(iv,jv,:) = squeeze(Ke(iv,jv,:)) + v(:).*obj.geometry.dvolu(:,igaus);
                             end
                         end
@@ -262,7 +262,7 @@ classdef Element_Elastic < Element
             for igaus = 1:ngaus
                 for istre=1:nstre
                     for jstre=1:nstre
-                        stres(istre,:,igaus) = stres(istre,:,igaus) + squeeze(C(istre,jstre,:))'.*strain(jstre,:,igaus);
+                        stres(istre,:,igaus) = stres(istre,:,igaus) + squeeze(C(istre,jstre,:,igaus))'.*strain(jstre,:,igaus);
                     end
                 end
             end

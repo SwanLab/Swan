@@ -1,6 +1,6 @@
 function createSTL
 pathTcl = '/home/alex/Desktop/tclFiles/';
-gidPath = '/opt/GiDx64/13.0.2/';
+gidPath = '/home/alex/GiDx64/15.0.1/';
 resultsFile = '/home/alex/git-repos/FEM-MAT-OO/Output/GrippingTriangleFine_Case_1_1_1/GrippingTriangleFine_Case_1_1_1_12.flavia.res';
 writeTclFile(pathTcl,gidPath,resultsFile)
 writeExportTclFile(pathTcl,gidPath)

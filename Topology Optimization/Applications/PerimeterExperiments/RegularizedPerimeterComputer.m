@@ -76,7 +76,7 @@ classdef RegularizedPerimeterComputer < handle
             per    = obj.perimeterShapeFunction.value;
             dPer   = obj.perimeterShapeFunction.gradient;
             rhoReg = obj.perimeterShapeFunction.regularizedDensity;
-            obj.perimeters(iepsilon) = per;
+            obj.perimeters(iepsilon) = per*obj.perimeterShapeFunction.value0;
             obj.perimetersGradient(:,iepsilon) = dPer;
             obj.regularizedDensity(:,iepsilon) = rhoReg;
             obj.perimeterShapeFunctions{iepsilon} = obj.perimeterShapeFunction;

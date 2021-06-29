@@ -92,7 +92,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             x = obj.designVariable.value;
             mesh = obj.designVariable.mesh.innerMeshOLD;
             path = 'Output/CantileverTetraPerimeterTotal/DesignVariable';
-            save([path,num2str(obj.nIter)],'x','mesh');            
+            %save([path,num2str(obj.nIter)],'x','mesh');            
         end
 
         function restartValues(obj)

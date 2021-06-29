@@ -73,6 +73,8 @@ classdef SettingsTranslator < handle
                                 s.costSettings.shapeFuncSettings{k}.alpha = oldSettings.micro.alpha;
                                 s.costSettings.shapeFuncSettings{k}.beta = oldSettings.micro.beta;
                             end
+                        elseif strcmp(value{k},'enforceCh_CCstar_L2')
+                            s.costSettings.shapeFuncSettings{k}.ChTarget.type = oldSettings.selectiveC_Cstar;
                             
                         elseif strcmp(value{k},'perimeterConstraint')
                             if isprop(oldSettings,'Perimeter_target')

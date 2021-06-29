@@ -103,9 +103,11 @@ classdef Element < handle
                 b_elem = b_elem_cell{ifield,1};
                 b = zeros(obj.dof.ndof(ifield),1);
                 for i = 1:obj.interp{ifield}.nnode*obj.dof.nunkn(ifield)
-                    c = squeeze(b_elem(i,1,:));
+                    for igaus = 1:size(b_elem,2)
+                    c = squeeze(b_elem(i,igaus,:));
                     idof_elem = obj.dof.in_elem{ifield}(i,:);
                     b = b + sparse(idof_elem,1,c',obj.dof.ndof(ifield),1);
+                    end
                 end
                 b_global{ifield,1} = b;
             end

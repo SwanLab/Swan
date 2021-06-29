@@ -41,9 +41,11 @@ classdef Optimizer < handle
     
     methods (Access = public)
         
-        function solveProblem(obj)
+       function solveProblem(obj)
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
+         %   obj.lagrangian.updateBecauseOfPrimal();            
+         %   obj.unconstrainedOptimizer.startLineSearch();            
             obj.printOptimizerVariable();
             obj.hasFinished = false;
 
@@ -52,7 +54,7 @@ classdef Optimizer < handle
                 obj.update();
                 obj.updateStatus();
                 obj.refreshMonitoring();
-                %obj.printOptimizerVariable();
+                obj.printOptimizerVariable();
                 %obj.printHistory();
             end
             obj.printOptimizerVariable();
@@ -120,7 +122,7 @@ classdef Optimizer < handle
         
         function increaseIter(obj)
             obj.nIter = obj.nIter+1;
-        end
+        end 
         
         function itHas = hasExceededStepIterations(obj)
             iStep = obj.incrementalScheme.iStep;

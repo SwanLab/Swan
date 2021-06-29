@@ -38,7 +38,7 @@ classdef HomogenizedVarComputerFromInterpolation ...
         function computeDensity(obj,x)
             rho = x{1};            
             obj.rho = rho;
-            obj.drho = ones(size(rho));
+            obj.drho{1} = ones(size(rho));
         end
         
         function computePtensor(obj,x,pNorm)

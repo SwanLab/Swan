@@ -3,7 +3,7 @@ classdef PerimeterInteriorCircleExperiment < handle
     methods (Access = public)
         
         function obj = PerimeterInteriorCircleExperiment()
-        %    obj.computeGradientVariationWithRadius();            
+            obj.computeGradientVariationWithRadius();            
             obj.computeGradientVariationWithBoundary();
             obj.computeGradientSurfPerimeterComputer();
         end
@@ -38,11 +38,11 @@ classdef PerimeterInteriorCircleExperiment < handle
             radius = 0.25;
             s.circleCase = 'interior';   
             s.levelSetParams.fracRadius = radius;
-            s.levelSetParams.type = 'circleInclusion';
+            s.levelSetParams.type = 'circle';
             L = 1;
             halfSide = L/2;
             s.levelSetParams.fracRadius = radius/halfSide;               
-            s.curvature = -1/radius;
+            s.curvature = 1/radius;
             s.circleCase = 'interior';
             s.nameCase = 'GradientCirclePerimeterExperiment';
             nameRoot   = 'SquareMacroTriangle';

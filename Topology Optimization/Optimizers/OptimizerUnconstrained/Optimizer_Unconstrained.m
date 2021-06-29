@@ -101,7 +101,7 @@ classdef Optimizer_Unconstrained < handle
         function computeOptimizerFlagConvergence(obj)
             costDecreased = obj.hasCostDecreased();
             smallChangeX  = obj.isVariableChangeSmall();
-            isIterValid   = costDecreased && smallChangeX;
+            isIterValid   = costDecreased;% && smallChangeX;
             isLSsmall = obj.isLineSearchTooSmall();
             obj.hasConverged = isIterValid || isLSsmall;
         end

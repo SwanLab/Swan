@@ -19,7 +19,6 @@ classdef OptimizerAlternatingPrimalDual < Optimizer_PrimalDual
         
         function update(obj)
             obj.lagrangian.updateBecauseOfPrimal();
-            obj.unconstrainedOptimizer.startLineSearch();
             obj.updateDualVariable();
             obj.updatePrimalVariable();
             obj.updateConvergenceStatus();

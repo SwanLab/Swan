@@ -32,7 +32,8 @@ classdef LatticeExperiment < handle
         function init(obj)
             obj.fileNames = {   ...
                 %'CantileverSymmetricFixingDirichletZone'
-                'CantileverSymmetricFixingMaxStressZone'
+                'LshapeCoarseSuperEllipseDesignVariable'
+                %'CantileverSymmetricFixingMaxStressZone'
                 %'CantileverSymmetricWithoutFixing';
                 %'ArchSymSuperEllipseDesignVariable'
    %'LshapeCoarseSuperEllipseDesignVariable'

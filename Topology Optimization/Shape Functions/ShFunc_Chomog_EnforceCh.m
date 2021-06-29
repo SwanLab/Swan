@@ -1,96 +1,90 @@
-classdef ShFunc_Chomog_EnforceCh< ShFunc_Chomog
-    properties (Access = protected)
+classdef ShFunc_Chomog_EnforceCh < ShFunc_Chomog
+    
+    properties (Access = public)
+        ChTarget
     end
     
-    methods
-        function obj=ShFunc_Chomog_EnforceCh(settings)
-            obj.init(settings);
-        end
-    end
     
     methods (Access = protected)
+        
+        function filterGradient(obj)
+            g = obj.gradient;
+            gf = zeros(size(obj.Msmooth,1),obj.nVariables);
+            for ivar = 1:obj.nVariables
+                gs = g(:,:,ivar);
+                gf(:,ivar) = obj.filter.getP1fromP0(gs);
+            end
+            %gf = obj.Msmooth*gf;
+            g = gf(:);
+            obj.gradient = g;
+        end        
+        
         function obj = passFilter(obj)
             mass=obj.Msmooth;
             g = obj.gradient;
             obj.gradient = zeros(size(mass,1),size(g,2));
             for t=1:size(obj.gradient,2)
-                gradient=obj.filter.getP1fromP0(g(:,t));
-                obj.gradient(:,t) = mass*gradient;
+                gradient=obj.filter.getP1fromP0(g(:,:,t));
+                obj.gradient(:,:,t) = mass*gradient;
             end
-            %             if isempty(obj.h_C_0)
-            %                 obj.h_C_0 = obj.value;
-            %             end
-            %             obj.value = obj.value/abs(obj.h_C_0);
-            %             gradient=gradient/abs(obj.h_C_0);
-            %             obj.h_C_0 = costfunc;
+            
         end
         
-        function computeCCstar(obj,x)
-            %Cost
-            Ch_star_div = obj.Ch_star;
-            Ch_star_div (abs(Ch_star_div) < 1e-5) = 1;
-            C_C = (obj.Chomog - obj.Ch_star)./Ch_star_div;
+        
+        %
+        %         function computeCost(obj)
+        %
+        %         end
+        
+        function computeCCstar(obj)
+            obj.compute_Chomog_Derivatives();
             
-            % C-C*
-            sq2 = sqrt(2);
-            weights = [1,1,1,sq2,sq2,sq2]';
-            obj.value = weights.*[C_C(1,1); ...
-                C_C(2,2); ...
-                C_C(3,3); ...
-                C_C(2,3); ...
-                C_C(1,3); ...
-                C_C(1,2)];
+            %nChTarget = 1;%obj.computeL2Norm(obj.ChTarget);
+            obj.Chomog
+            obj.ChTarget
+            incC = (obj.Chomog - obj.ChTarget)
+            
+            f = 1;%0000;
+            weights = [1,1,1,1,1,f]';
             
             %Gradient
-            
             neq = 6;
-            selectiveC_Cstar = zeros(3,3,neq);
-            
-            % Eqn 1
-            selectiveC_Cstar(1,1,1) = 1;
-            selective_Ch_star_div(1) = Ch_star_div(1,1);
-            
-            % Eqn 2
-            selectiveC_Cstar(2,2,2) = 1;
-            selective_Ch_star_div(2) = Ch_star_div(2,2);
-            
-            % Eqn 3
-            selectiveC_Cstar(3,3,3) = 1;
-            selective_Ch_star_div(3) = Ch_star_div(3,3);
-            
-            % Eqn 4
-            selectiveC_Cstar(2,3,4) = 1;
-            selective_Ch_star_div(4) = Ch_star_div(2,3);
-            
-            % Eqn 5
-            selectiveC_Cstar(1,3,5) = 1;
-            selective_Ch_star_div(5) = Ch_star_div(1,3);
-            
-            % Eqn 6
-            selectiveC_Cstar(1,2,6) = 1;
-            selective_Ch_star_div(6) = Ch_star_div(1,2);
-            
-            %Gradient
             nelem = obj.physicalProblem.element.nelem;
             ngaus = size(obj.tstrain,2);
-            nstre = obj.physicalProblem.element.nstre;
+            nStres = obj.physicalProblem.element.getNstre;
+            cost = zeros(neq,1);            
+            grad = zeros(nelem,ngaus,neq);            
+            Cdiv = ones(3,3);
+            Cdiv(1,1) = obj.ChTarget(1,1);
+            Cdiv(2,2) = obj.ChTarget(2,2);
+            Cdiv(3,3) = obj.ChTarget(3,3);
             
-            obj.gradient = zeros(nelem,neq);
-            obj.compute_Chomog_Derivatives(x);
-            for i = 1:neq
-                C_C = selectiveC_Cstar(:,:,i)./selective_Ch_star_div(i);
-                DtC1 = zeros(ngaus,nelem);
-                DtC = zeros(ngaus,nelem);
-                for igaus=1:ngaus
-                    for a=1:nstre
-                        for b=1:nstre
-                            DtC1(igaus,:) = squeeze(obj.Chomog_Derivatives(a,b,igaus,:));
-                            DtC(igaus,:) = DtC(igaus,:) + C_C(a,b)*DtC1(igaus,:);
-                        end
-                    end
+            for iStres = 1:nStres
+                for jStres = 1:nStres
+                    iv = obj.vector2Voigt(iStres,jStres);
+                    costIv = weights(iv)*(incC(iStres,jStres)/Cdiv(iStres,jStres))^2;
+                    DCij = squeeze(obj.Chomog_Derivatives(iStres,jStres,:,:));
+                    dCostIv = 2*weights(iv)*incC(iStres,jStres)*DCij/Cdiv(iStres,jStres)^2;                    
+                    cost(iv)         = costIv;
+                    grad(:,:,iv) = dCostIv + grad(:,:,iv);                    
                 end
-                obj.gradient(:,i) = weights(i)*DtC;
             end
+            obj.value = sum(cost);
+            obj.gradient = sum(grad,3);
         end
+        
+        function computeChTarget(obj,cParams)
+            obj.ChTarget = ChTargetFactory.create(cParams);
+        end
+        
+    end
+    
+    methods (Access = private, Static)
+        
+        function [iv] = vector2Voigt(iStre,jStre)
+            T = [1 6 5; 6 2 4; 5 4 3];
+            iv = T(iStre,jStre);
+        end
+        
     end
 end

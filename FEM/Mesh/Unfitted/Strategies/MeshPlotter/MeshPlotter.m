@@ -39,7 +39,7 @@ classdef MeshPlotter < handle
             conn = obj.mesh.connec;
             p = patch('vertices',coor,'faces',conn);
             p.EdgeColor = 'k';
-            p.EdgeAlpha = 0.01;
+            p.EdgeAlpha = 0.3;
             p.EdgeLighting = 'flat';
             p.FaceColor = 'none';
             p.FaceLighting = 'flat';
@@ -90,9 +90,9 @@ classdef MeshPlotter < handle
                 p = patch('vertices',m.coord,'faces',m.connec);
                 p.EdgeAlpha = 0.5;
                 p.EdgeLighting = 'flat';
-                p.FaceColor = 'red';                
+                p.FaceColor = 'red';%[167,238,237]/265; 'green';'red';%
                 p.FaceLighting = 'flat';
-                p.FaceAlpha = 0.3;
+                p.FaceAlpha = 0.3;1;
                 p.LineWidth = 1.5;
                 axis('equal');
                 hold on

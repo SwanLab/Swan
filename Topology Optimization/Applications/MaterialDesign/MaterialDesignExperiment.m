@@ -23,6 +23,7 @@ classdef MaterialDesignExperiment < handle
                 obj.solveProblem();
                 close all
             end
+            
         end
         
     end
@@ -30,7 +31,17 @@ classdef MaterialDesignExperiment < handle
     methods (Access = private)
         
         function init(obj)
-            obj.fileNames = {'CompositeMaterialDesign'};            
+            obj.fileNames = {...
+                             'HorizontalMaterialDesign';
+                          %   'CompositeMaterialDesignTriDensityP1';
+                           %  'CompositeMaterialDesignTriDensityPDE';
+                           %  'CompositeMaterialDesignQuadDensityP1';
+                            %  'CompositeMaterialDesignQuadDensityPDE';
+                            % 'CompositeMaterialDesignTriLevelSetP1';
+                            % 'CompositeMaterialDesignTriLevelSetPDE';
+                           % 'CompositeMaterialDesignQuadLevelSetP1';
+                           %  'CompositeMaterialDesignQuadLevelSetPDE';
+                             };            
         end
         
         

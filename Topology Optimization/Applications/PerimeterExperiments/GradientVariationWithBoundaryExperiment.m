@@ -77,10 +77,10 @@ classdef GradientVariationWithBoundaryExperiment < handle
             switch obj.circleCase
                 case 'interior'
                     obj.circleMesh = uMesh.boundaryCutMesh;   
-                    obj.kappaLegend = '$\kappa = -1/R$';
+                    obj.kappaLegend = '$1/R$';
                 case 'exterior'
                     obj.circleMesh = obj.gExperiment.boundaryMesh{1};                    
-                    obj.kappaLegend = '$\kappa = 1/R$';                     
+                    obj.kappaLegend = '$1/R$';                     
             end
         end
        
@@ -108,7 +108,7 @@ classdef GradientVariationWithBoundaryExperiment < handle
             else
                 hStr = num2str(round(h/L,3));
             end            
-            obj.legendPlot{obj.iMesh} = ['${\bar{\kappa}_\varepsilon} (h/L = ',hStr,')$'];
+            obj.legendPlot{obj.iMesh} = ['$h = ',hStr,'$'];
         end
                 
         function computeEpsilonMeshSizeRatio(obj)

@@ -47,9 +47,9 @@ classdef Perimeter2DCantileverPlotter < handle
 %             obj.perimeterName = 'PerimeterInterior';
 %             obj.perimeterSym  = 'Neu';
 %             obj.perimterExactSym = 'R';
-%             obj.perimeterFactor = 1;
-%             obj.perimeterFactorStr = '';            
-            
+%             obj.perimeterFactor = 1/2;
+%             obj.perimeterFactorStr = '\frac{1}{2}';            
+%             
 
             obj.testName = ['PerimeterVolumeTest',obj.perimeterCase,'3'];
             obj.filesPath = '/media/alex/My Passport/PerimeterResults/';
@@ -86,13 +86,13 @@ classdef Perimeter2DCantileverPlotter < handle
             p{3} = plot(xP,0.2*yP);
             p{4} = plot(xV,yV);            
             p{5} = plot(xL,yL);                        
-            perString = ['\textrm{P}^{',obj.perimeterSym,'}_{\varepsilon}(\Omega)'];            
-            leg{1} = ['$\textrm{C}(\Omega) +  \alpha ',perString,'$'];
-            leg{2} = '$\textrm{C}(\Omega) $';
+            perString = ['\textrm{P}^{',obj.perimeterSym,'}_{\varepsilon}(\chi_{\Omega})'];            
+            leg{1} = ['$\bar{\textrm{C}}(\chi_{\Omega}) +  \alpha ',perString,'$'];
+            leg{2} = '$\bar{\textrm{C}}(\chi_{\Omega}) $';
             leg{3} = ['$\alpha ',perString,'$']; 
-            leg{4} = '$\textrm{Vol}(\Omega)$';        
+            leg{4} = '$\textrm{Vol}(\chi_{\Omega})$';        
             leg{5} = '$\lambda$';                                    
-            leg = legend(leg,'Interpreter','latex','Location','Best');
+            leg = legend(leg,'Interpreter','latex','Location','SouthEast');
             set(leg,'Interpreter','latex')            
             p = plotPrinter(f,p);
             p.print(fullfile(obj.testPath,['Cost']));            
@@ -105,8 +105,8 @@ classdef Perimeter2DCantileverPlotter < handle
             hold on
             p{1} = plot(xPe,yPe*obj.perimeterFactor);
             p{2} = plot(xPa,obj.perimeterFactor*yPa);
-            perString = ['\textrm{P}^{',obj.perimeterSym,'}_{\varepsilon}(\Omega)'];            
-            leg{1} = ['$\textrm{Exact ',lower(obj.perimeterCase),' perimeter }  ',obj.perimeterFactorStr,'\textrm{P}^',obj.perimterExactSym,'(\Omega)','$'];                        
+            perString = ['\textrm{P}^{',obj.perimeterSym,'}_{\varepsilon}(\chi_{\Omega})'];            
+            leg{1} = ['$\textrm{Exact ',lower(obj.perimeterCase),' perimeter }  ',obj.perimeterFactorStr,'\textrm{P}^',obj.perimterExactSym,'(\chi_{\Omega})','$'];                        
             leg{2} = ['$\textrm{Approximated ',lower(obj.perimeterCase),' perimeter }  ',perString,'$'];                        
             leg = legend(leg,'Interpreter','latex','Location','Best');
             set(leg,'Interpreter','latex')            

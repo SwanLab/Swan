@@ -14,9 +14,42 @@ classdef Optimizer_PrimalDual < Optimizer
     end
     
     methods (Access = public)
+        
+        function solveProblem(obj)
+            obj.cost.computeFunctionAndGradient();
+            obj.constraint.computeFunctionAndGradient();
+            obj.lagrangian.updateBecauseOfPrimal();            
+            obj.unconstrainedOptimizer.startLineSearch();            
+            obj.printOptimizerVariable();
+            obj.hasFinished = false;
+
+            while ~obj.hasFinished
+                obj.increaseIter();
+                obj.update();
+                obj.updateStatus();
+                obj.refreshMonitoring();
+                obj.printOptimizerVariable();
+                %obj.printHistory();
+            end
+            obj.printOptimizerVariable();
+            obj.printHistory();
+
+            obj.hasConverged = 0;
+            obj.printHistoryFinalValues();
+        end
+        
     end
     
     methods (Access = protected)
+        
+        function updateOldValues(obj)
+            obj.designVariable.updateOld();
+            obj.dualVariable.updateOld();
+            obj.cost.updateOld();
+            obj.constraint.updateOld();
+            obj.updateLagrangian();
+            obj.lagrangian.updateOld();
+        end        
        
         function updateConvergenceStatus(obj)
             isOptimal   = obj.unconstrainedOptimizer.isOptimal();
@@ -43,8 +76,20 @@ classdef Optimizer_PrimalDual < Optimizer
             cParams.convergenceVars = obj.convergenceVars;
             obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams);              
        end 
+       
+        function updateLagrangian(obj)
+            obj.lagrangian.computeFunction();
+            obj.lagrangian.computeGradient();
+        end           
         
-
+    end
+    
+    
+    methods (Access = private)
+       
+        function increaseIter(obj)
+            obj.nIter = obj.nIter+1;
+        end        
         
     end
     
