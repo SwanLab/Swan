@@ -34,9 +34,9 @@ incrementFactor = 2.95;
 %optimizerUnconstrained = 'SLERP';
 %selectiveC_Cstar = 'Composite';
 %selectiveC_Cstar = 'Vfrac04b';
-%selectiveC_Cstar = 'HorizontalRectangleInclusion';
+selectiveC_Cstar = 'HorizontalRectangleInclusion';
 %selectiveC_Cstar = 'NegativePoiss06';
-selectiveC_Cstar = 'nu_0_6';
+%selectiveC_Cstar = 'nu_0_6';
 
 
 nsteps = 6;
@@ -74,4 +74,4 @@ plotting = true;
 printing = true;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 3;%2000;
+maxiter = 10;%2000;
