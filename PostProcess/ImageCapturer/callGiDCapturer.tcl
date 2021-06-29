@@ -1,6 +1,6 @@
 set path "/home/alex/git-repos/Swan/PostProcess/ImageCapturer/"
-set tclFile "CaptureImageColor.tcl"
+set tclFile "CaptureImage3.tcl"
 source $path$tclFile 
-set output SmoothedCircleMesh1Epsilon1 
-set inputFile Output/SquareMacroTriangle/SquareMacroTriangle1.flavia.res
+set output SmoothedCircleMesh2Epsilon1 
+set inputFile Output/SquareMacroTriangleFine/SquareMacroTriangleFine1.flavia.res
 CaptureImage $inputFile $output 

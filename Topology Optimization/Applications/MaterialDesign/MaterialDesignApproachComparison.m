@@ -1,12 +1,17 @@
 function MaterialDesignApproachComparison
 
+matCase = 'Horizontal';
+path = '/media/alex/My Passport/MaterialDesign/';
+element = {'Tri','Quad'};
+desVar  = {'Density','LevelSet'};
+filter  = {'P1';'PDE'};
 
 fCase{1} = 'CompositeMaterialDesign';
-folder{1} = '/media/alex/My Passport/MaterialDesign/Bulk/LevelSet';
+folder{1} = fullfile(path,matCase,element,desVar,filter);
 
 
 fCase{2} = 'CompositeMaterialDesign';
-folder{2} = '/media/alex/My Passport/MaterialDesign/Bulk/Density';
+folder{2} = '/media/alex/My Passport/MaterialDesign/Quadrilater/Horizontal/Density';
 
 %fCase{2} = 'ExperimentingPlot';
 %folder{2} = '/media/alex/My Passport/LatticeResults/StressNormRectangleRotation';
@@ -24,7 +29,7 @@ for iPlot = 1:numel(fCase)
 end
 legend('LevelSet','Density')
 pr = plotPrinter(f,p);
-pr.print(fullfile('/home/alex/Dropbox/MaterialDesign',['Bulk']));
+pr.print(fullfile('/home/alex/Dropbox/MaterialDesign',['HorizontalQuadrilater']));
 end
 
 

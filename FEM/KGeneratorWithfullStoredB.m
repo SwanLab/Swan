@@ -57,7 +57,7 @@ classdef KGeneratorWithfullStoredB < handle
                         posI = (istre)+(obj.dim.nstre)*(igaus-1) : obj.dim.ngaus*obj.dim.nstre : obj.nt ;
                         posJ = (jstre)+(obj.dim.nstre)*(igaus-1) : obj.dim.ngaus*obj.dim.nstre : obj.nt ;
                         
-                        Ct = squeeze(Cmat(istre,jstre,:)).*obj.dvolum(:,igaus);                        
+                        Ct = squeeze(Cmat(istre,jstre,:,igaus)).*obj.dvolum(:,igaus);                        
                         obj.CmatTot = obj.CmatTot + sparse(posI,posJ,Ct,obj.nt,obj.nt);
                     end
                         

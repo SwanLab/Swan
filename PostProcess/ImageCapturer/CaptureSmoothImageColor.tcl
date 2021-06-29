@@ -6,6 +6,8 @@ proc CaptureImage {pathFileVar outputFileVar} {
     GiD_Process 'Zoom Frame Mescape escape escape escape escape
     GiD_Process Mescape Results ContOptions NumberOfColor 50  Mescape     
     GiD_Process Results ContOptions ColorRamp Tangent Mescape
+    GiD_Process Results contoptions setmaxoptions setvalue 1 Mescape
+    GiD_Process results contoptions setminoptions setvalue 0 Mescape
     GiD_Process Results SmoothContourFill RegularizedDensity RegularizedDensity Mescape
     GiD_Process Mescape DisplayStyle Body_Bound Mescape
     GiD_Process Results SmoothContourFill RegularizedDensity RegularizedDensity Mescape
@@ -13,5 +15,8 @@ proc CaptureImage {pathFileVar outputFileVar} {
 	GiD_Process MEscape 'Hardcopy Options ShowAxes No MEscape
 	GiD_Process MEscape 'Hardcopy Options PrintLogo No MEscape
 	GiD_Process 'Hardcopy PNG "$outputFile.png"
+    GiD_Process Results ContOptions SetMinOptions MinColor Standard Mescape
+    GiD_Process Results ContOptions SetMaxOptions MaxColor Standard Mescape
+    GiD_Process Results ContOptions ColorRamp Tangent MEscape
     GiD_Process Quit
 }

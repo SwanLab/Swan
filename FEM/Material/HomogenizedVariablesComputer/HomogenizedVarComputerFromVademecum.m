@@ -52,7 +52,8 @@ classdef HomogenizedVarComputerFromVademecum ...
             my = x{2};
             [rho,drho] = obj.density.compute([mx,my]);
             obj.rho = rho;
-            obj.drho = drho;
+            obj.drho{1} = drho(:,1);
+            obj.drho{2} = drho(:,2);
         end        
         
         function fP = addPrintableVariables(obj,x)            

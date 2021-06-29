@@ -61,7 +61,7 @@ classdef Elastic_Problem_Micro < FEM
             for istre=1:nstre
                 strain = basis(istre,:);
                 obj.element.setVstrain(strain);
-                obj.computeVariables;
+                obj.computeVariables();
                 Ch(:,istre) = obj.variables.stress_homog;
                 tstrain(istre,:,:,:) = obj.variables.strain;
                 tstrainF(istre,:,:,:) = obj.variables.strain_fluct;
@@ -107,8 +107,9 @@ classdef Elastic_Problem_Micro < FEM
                         for lstre = 1:nstre
                          eiV(1:ngaus,:) = squeeze(ei(:,kstre,:));
                          ejV(1:ngaus,:) = squeeze(ej(:,lstre,:));
-                         Cmm(1,:) = squeeze(Cmat(kstre,lstre,:,:));
-                         Cm  = repmat(Cmm,ngaus,1);
+                         Cm = squeezeParticular(Cmat(kstre,lstre,:,:),1);
+                         Cm = squeezeParticular(Cm,1)';
+                         %Cm  = repmat(Cmm,ngaus,1);
                          c = c + Cm.*eiV.*ejV;
                         end
                     end

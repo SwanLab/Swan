@@ -5,11 +5,11 @@ classdef SettingsShapeFunctionalFactory < handle
         function s = create(obj,cParams)
             switch cParams.type
                 case {'compliance','perimeter','perimeterInterior','volume','volumeConstraint',...
-                        'chomog_CC','enforceCh_CCstar_L2','nonadjoint_compliance','stressNorm'}
+                        'chomog_CC','nonadjoint_compliance','stressNorm'}
                     s = SettingsShapeFunctional(cParams);
                 case 'perimeterConstraint'
                     s = SettingsShFunc_PerimeterConstraint(cParams);
-                case {'chomog_alphabeta','chomog_fraction'}
+                case {'chomog_alphabeta','chomog_fraction','enforceCh_CCstar_L2'}
                     s = SettingsShFunc_Chomog(cParams);
                 case 'enforceCh_CCstar_inf'
                     error('Settings still not implemented');

@@ -44,7 +44,8 @@ classdef Element_Elastic_Micro < Element_Elastic
                 variables.strain(igaus,1:obj.nstre,:) = obj.vstrain.*ones(1,obj.nstre,obj.nelem) + variables.strain_fluct(igaus,1:obj.nstre,:);
                 for istre = 1:obj.nstre
                     for jstre = 1:obj.nstre
-                        variables.stress(igaus,istre,:) = squeeze(variables.stress(igaus,istre,:)) + 1/vol_dom*squeeze(squeeze(Cmat(istre,jstre,:))).* squeeze(variables.strain(igaus,jstre,:));
+                        C  = squeeze(squeeze(Cmat(istre,jstre,:,igaus)));
+                        variables.stress(igaus,istre,:) = squeeze(variables.stress(igaus,istre,:)) + 1/vol_dom*C.* squeeze(variables.strain(igaus,jstre,:));
                     end
                 end
                 % contribucion a la C homogeneizada
@@ -66,7 +67,7 @@ classdef Element_Elastic_Micro < Element_Elastic
                 dV(:,1) = obj.geometry.dvolu(:,igaus);                
                 for istre = 1:obj.nstre
                     for jstre = 1:obj.nstre
-                        Cij = squeeze(Cmat(istre,jstre,:));
+                        Cij = squeeze(Cmat(istre,jstre,:,igaus));
                         vj  = vstrain(jstre);
                         si  = squeeze(sigma(istre,igaus,:));
                         sigma(istre,igaus,:) = si + Cij*vj;

@@ -22,7 +22,9 @@ classdef Filter_PDE < Filter
             x_reg =  obj.getP1fromP1(x);
            %!!!! EHHH 
            % x_reg = x;
-            x0 = obj.Anodal2Gauss*x_reg;
+           for igaus = 1:obj.quadrature.ngaus
+                x0(:,igaus) = obj.Anodal2Gauss{igaus}*x_reg;                
+           end
         end
         
         function x_reg = regularize(obj,F)
@@ -52,11 +54,13 @@ classdef Filter_PDE < Filter
     methods (Access = private)
         
         function intX = integrate_P1_function_with_shape_function(obj,x)
-            ndof = size(obj.Anodal2Gauss,2);
+            ndof = size(obj.Anodal2Gauss{1},2);
             intX = zeros(ndof,1);            
             for igaus = 1:obj.quadrature.ngaus
-                dv = obj.geometry.dvolu(:,igaus);
-                intX = intX + obj.Anodal2Gauss'*(dv.*x(:,igaus));
+                dVG = obj.geometry.dvolu(:,igaus);
+                xG = x(:,igaus);
+                A = obj.Anodal2Gauss{igaus};
+                intX = intX + A'*(xG.*dVG);
             end
         end
         

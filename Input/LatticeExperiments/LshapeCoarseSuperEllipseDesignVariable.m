@@ -24,22 +24,23 @@ initial_case = 'given';
 m1 = 0.0101;
 m2 = 0.0101;
 %cost = {'compliance'};
-cost = {'stressNorm'};
+%cost = {'stressNorm'};
+cost = {'stressNorm','compliance'};
 %cost = {'stressNorm','compliance'};
-%weights = [0.55,0.45];
-weights = 1;
+weights = [1,10];
+%weights = 1;
 constraint = {'volumeConstraint'};
 filterType = 'PDE';
 %filterType = 'P1';
 constraint_case = 'EQUALITY';
 
 Vfrac_initial = 0.3;
-optimality_initial = 1e-4;
-constr_initial = 1e-8;
+optimality_initial = 1e-5;
+constr_initial = 1e-5;
 
 Vfrac_final = 0.3;
-optimality_final = 1e-4;
-constr_final = 1e-8;
+optimality_final = 1e-5;
+constr_final = 1e-5;
 
 stressNormExponent_initial = 2;
 stressNormExponent_final = 16;
@@ -83,13 +84,13 @@ incrementFactor = 1.95;
 
 
 %kfrac = 2;
-nsteps = 8;%17;
+nsteps = 16;%17;
 
 plotting = true;
 printing = true;
 monitoring = true;
 monitoring_interval = 3;
-maxiter = 8000;
+maxiter = 800;
 
 % 
 % % % 
@@ -98,15 +99,21 @@ maxiter = 8000;
 % isDirichletPart2 = @(y) y > 0.70 & y < 0.80;
 % isDirichletPartY = @(y) isDirichletPart1(y) | isDirichletPart2(y);
 % isDirichletPart = @(x,y) isDirichletPartX(x) & isDirichletPartY(y);
- isNeumannPartX = @(x) x > (1-0.05) & x < (1+1e-12);
- isNeumannPartY = @(y) y > 0.35 & y < 0.4;
+ isNeumannPartX = @(x) x > (0.96) & x < (1+1e-12);
+ isNeumannPartY = @(y) y > 0.35 & y < 0.5;
+ 
+ isCornerX = @(x) x > (0.4 - 0.05) & x < (0.4 +0.05);
+ isCornerY = @(y) y > (0.4 - 0.05) & y < (0.4 +0.05);
+ isCornerPart = @(x,y) isCornerX(x) & isCornerY(y);
 % 
-% isNeumannPart = @(x,y) isNeumannPartX(x) & isNeumannPartY(y);
+ isNeumannPart = @(x,y) isNeumannPartX(x) & isNeumannPartY(y);
 % iNotOptimizable = @(coord) isDirichletPart(coord(:,1),coord(:,2)) & ~isNeumannPart(coord(:,1),coord(:,2));
-% 
-% costDomainNotOptimizable       = {iNotOptimizable};
-% constraintDomainNotOptimizable = {[]};
-% 
-% isDesignVariableFixed.nodes  = iNotOptimizable;
-% isDesignVariableFixed.values = @(x) [m1*ones(size(x,1),1);m2*ones(size(x,1),1)];
+
+iNotOptimizable = @(coord) isCornerPart(coord(:,1),coord(:,2)) | isNeumannPart(coord(:,1),coord(:,2));
+
+costDomainNotOptimizable       = {iNotOptimizable};
+constraintDomainNotOptimizable = {[]};
+
+isDesignVariableFixed.nodes  = iNotOptimizable;
+isDesignVariableFixed.values = @(x) [m1*ones(size(x,1),1);m2*ones(size(x,1),1)];
 

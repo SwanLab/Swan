@@ -85,7 +85,7 @@ classdef GradientVariationWithRadiusComputer < handle
             h = obj.mesh.computeMeanCellSize;
             L = obj.domainLength;
             [n,d] = rat(h/L);
-            tit = ['$h/L = ',num2str(n),'/',num2str(d),'$'];
+            tit = ['$h = ',num2str(n),'/',num2str(d),'$'];
         end       
        
        function printPlot(obj,f,h)

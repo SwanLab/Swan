@@ -18,7 +18,7 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
         
         function plot(obj)
             obj.filterDensity();
-            set(obj.patchHandle,'FaceVertexAlphaData',obj.rhoElem,'FaceAlpha','flat');
+            set(obj.patchHandle,'FaceVertexAlphaData',mean(obj.rhoElem,2),'FaceAlpha','flat');
         end
         
     end

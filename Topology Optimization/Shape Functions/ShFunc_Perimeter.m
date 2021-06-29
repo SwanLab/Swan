@@ -38,10 +38,10 @@ classdef ShFunc_Perimeter < ShapeFunctional
             obj.normalizeFunction();
         end
         
-        function fP = addPrintableVariables(obj)
+        function fP = addPrintableVariables(obj)            
             fP{1}.value = obj.gradient;
             fP{2}.value = obj.regularizedDensity;
-            fP{3}.value = obj.computePerimeterIntegrandP0();
+            fP{3}.value = obj.computePerimeterIntegrandP0();                        
             fP{4}.value = obj.computePerimeterIntegrandP1();            
         end    
         
@@ -60,8 +60,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
         end
         
         function fP = createPrintVariables(obj)
-            types = {'ScalarNodal','ScalarNodal','ScalarGauss'...
-                        'ScalarNodal'};
+            types = {'ScalarNodal','ScalarNodal','ScalarGauss','ScalarNodal'};
             names = {'PerimeterGradient','RegularizedDensity',...
                      'PerimeterGauss','PerimeterNodal'};
             fP = obj.obtainPrintVariables(types,names);            

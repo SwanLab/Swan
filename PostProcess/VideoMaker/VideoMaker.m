@@ -26,7 +26,7 @@ classdef VideoMaker < handle
         
         function makeVideo(obj)
             obj.makeDesignVariableVideo();
-           % obj.makeRegularizedDesignVariableVideo();
+            obj.makeRegularizedDesignVariableVideo();
         end
         
     end
@@ -62,7 +62,8 @@ classdef VideoMaker < handle
         end
         
         function createPaths(obj)
-            obj.gidPath = '/home/alex/GiDx64/14.1.9d';
+            %obj.gidPath = '/home/alex/GiDx64/14.1.9d';
+            obj.gidPath = '/home/alex/GiDx64/gid-15.0.3';
             obj.filesFolder = fullfile(pwd,'Output',obj.fileName);
         end
         
@@ -76,7 +77,9 @@ classdef VideoMaker < handle
         end
         
         function makeRegularizedDesignVariableVideo(obj)
-            obj.fieldName = 'RegularizedDensity';
+            obj.fieldName = 'DensityGauss';
+            obj.tclTemplateName = 'Make_Video_density';
+            obj.outputName = [obj.fileName,obj.fieldName];
             obj.makeFieldVideo();            
         end
         

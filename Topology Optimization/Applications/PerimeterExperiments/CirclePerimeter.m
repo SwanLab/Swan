@@ -6,6 +6,7 @@ classdef CirclePerimeter < handle
         radius
         
         backgroundMesh
+        boundaryMesh
         levelSet
         analyticPerimeter
         regularizedPerimeter
@@ -17,6 +18,7 @@ classdef CirclePerimeter < handle
         legendPlot
         nameCase
         outputFolder
+        unfittedMesh
     end
     
     methods (Access = public)
@@ -25,7 +27,7 @@ classdef CirclePerimeter < handle
             obj.init();
             for imesh = 1:numel(obj.inputFile)
                 obj.imesh = imesh;
-                obj.createMesh();
+                obj.createMeshes();
                 obj.createLevelSet();
                 obj.computePerimeters();
                 obj.storePlotInfo();
@@ -49,11 +51,15 @@ classdef CirclePerimeter < handle
             obj.outputFolder = '/home/alex/Dropbox/Perimeter/';
         end
         
-        function createMesh(obj)
+        function createMeshes(obj)
             s.inputFile = obj.inputFile{obj.imesh};
             s.isBackgroundMeshRectangularBox = true;            
             meshCreator = BackgroundAndBoundaryMeshCreatorFromInputFile(s);
             obj.backgroundMesh = meshCreator.backgroundMesh;
+            obj.boundaryMesh   = meshCreator.boundaryMesh;
+            s.backgroundMesh  = obj.backgroundMesh;
+            s.boundaryMesh    = obj.boundaryMesh;
+            obj.unfittedMesh   = UnfittedMesh(s);
         end
         
         function createLevelSet(obj)
@@ -101,9 +107,8 @@ classdef CirclePerimeter < handle
         end
         
         function gPerimeter = computeGeometricPerimeter(obj)
-            s.designVariable = obj.levelSet;
-            gPerimeter = GeometricPerimeterComputer(s);
-            gPerimeter.compute();
+            obj.unfittedMesh.compute(obj.levelSet);
+            gPerimeter = obj.unfittedMesh.computePerimeter();
         end
         
         function storePlotInfo(obj)

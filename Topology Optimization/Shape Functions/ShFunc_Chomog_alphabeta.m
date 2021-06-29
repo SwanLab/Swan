@@ -8,7 +8,7 @@ classdef ShFunc_Chomog_alphabeta < ShFunc_Chomog
     methods (Access = public)
    
         function obj = ShFunc_Chomog_alphabeta(cParams)
-            obj@ShFunc_Chomog(cParams);
+            obj.initChomog(cParams);
             obj.alpha = cParams.alpha/norm(cParams.alpha);
             obj.beta = cParams.beta/norm(cParams.beta);
         end
