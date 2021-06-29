@@ -6,8 +6,9 @@ classdef SquarePerimeterTotalVsRelative < handle
 
         widthX
         widthY
-        mesh
-        levelSetCreator
+        backgroundMesh
+        boundaryMesh
+        levelSet
         analyticTotalPerimeter
         analyticRelativePerimeter        
         regularizedRelativePerimeter
@@ -15,7 +16,7 @@ classdef SquarePerimeterTotalVsRelative < handle
         geometricRelativePerimeter
         domainLengthX
         domainLengthY
-        imesh
+        iMesh
         xplot
         totPerimeter
         relPerimeter
@@ -29,8 +30,8 @@ classdef SquarePerimeterTotalVsRelative < handle
         
         function obj = SquarePerimeterTotalVsRelative()
             obj.init();
-            for imesh = 1:numel(obj.inputFile)
-                obj.imesh = imesh;
+            for im = 1:numel(obj.inputFile)
+                obj.iMesh = im;
                 obj.createMesh();
                 obj.createLevelSet();
                 obj.computePerimeters();
@@ -44,7 +45,7 @@ classdef SquarePerimeterTotalVsRelative < handle
     methods (Access = private)
         
         function init(obj)
-            obj.widthX = 0.50001;
+            obj.widthX = 0.52;
             obj.widthY = 1;
             %obj.inputFile = 'DoubleSquareMacroTriangle';
             obj.nameCase = 'SquareTotalVsRelativePerimeterExperiment';
@@ -57,29 +58,25 @@ classdef SquarePerimeterTotalVsRelative < handle
         end
         
         function createMesh(obj)
-            [connec,coord] = obj.loadSquareMeshParams();
-            s.coord  = coord;
-            s.connec = connec;
-            obj.mesh = Mesh_Total(s);
+            s.inputFile = obj.inputFile{obj.iMesh};
+            s.isBackgroundMeshRectangularBox = true;
+            mCreator = BackgroundAndBoundaryMeshCreatorFromInputFile(s);
+            obj.backgroundMesh = mCreator.backgroundMesh;
+            obj.boundaryMesh = mCreator.boundaryMesh;
         end
         
-        function [connec,coord] = loadSquareMeshParams(obj)
-            eval(obj.inputFile{obj.imesh});
-            coord  = coord(:,2:3);
-            connec = connec(:,2:end);
+        function loadSquareMeshParams(obj)
+            coord  = obj.backgroundMesh.coord;
             obj.domainLengthX = max(coord(:,1)) - min(coord(:,1));
             obj.domainLengthY = max(coord(:,2)) - min(coord(:,2));            
         end
         
         function createLevelSet(obj)
-            s.inputFile             = obj.inputFile{obj.imesh};
-            s.mesh                  = obj.mesh;
-            s.scale                 = obj.scale;
-            s.plotting              = true;
-            s.printing              = true;
-            s.levelSetCreatorParams = obj.createLevelSetCreatorParams();
-            lsCreator = LevelSetCreatorForPerimeter(s);
-            obj.levelSetCreator = lsCreator;
+            s = obj.createLevelSetCreatorParams();
+            s.coord      = obj.backgroundMesh.coord;
+            s.ndim       = obj.backgroundMesh.ndim;
+            lsCreator = LevelSetCreator.create(s);
+            obj.levelSet = lsCreator.getValue();            
         end
         
         function s = createLevelSetCreatorParams(obj)
@@ -99,11 +96,11 @@ classdef SquarePerimeterTotalVsRelative < handle
         end
         
         function rPerimeter = computeRelativePerimeters(obj)
-            s.inputFile        = obj.inputFile{obj.imesh};
-            s.mesh             = obj.mesh;
+            s.inputFile        = obj.inputFile{obj.iMesh};
+            s.backgroundMesh   = obj.backgroundMesh;
             s.scale            = obj.scale;
-            s.designVariable   = obj.levelSetCreator.levelSet;
-            s.outputFigureName = ['RelativeSmoothedRectangleMesh',num2str(obj.imesh)];
+            s.designVariable   = obj.levelSet;
+            s.outputFigureName = ['RelativeSmoothedRectangleMeshColor',num2str(obj.iMesh)];
             s.plotting         = false;
             s.printing         = true;
             s.capturingImage   = true;
@@ -112,12 +109,13 @@ classdef SquarePerimeterTotalVsRelative < handle
             rPerimeter = RegularizedPerimeterComputer(s);
             rPerimeter.compute();
         end
+        
         function tPerimeter = computeTotalPerimeters(obj)
-            s.inputFile        = obj.inputFile{obj.imesh};
-            s.mesh             = obj.mesh;
+            s.inputFile        = obj.inputFile{obj.iMesh};
+            s.backgroundMesh   = obj.backgroundMesh;
             s.scale            = obj.scale;
-            s.designVariable   = obj.levelSetCreator.levelSet;
-            s.outputFigureName = ['TotalSmoothedRectangleMesh',num2str(obj.imesh)];
+            s.designVariable   = obj.levelSet;
+            s.outputFigureName = ['TotalSmoothedRectangleMeshColor',num2str(obj.iMesh)];
             s.plotting         = false;
             s.printing         = true;
             s.capturingImage   = true;
@@ -128,23 +126,31 @@ classdef SquarePerimeterTotalVsRelative < handle
         end        
         
         function gPerimeter = computeGeometricPerimeter(obj)
-            s.designVariable = obj.levelSetCreator.levelSet;
+            s.unfittedMesh = obj.createUnfittedMesh();            
             gPerimeter = GeometricPerimeterComputer(s);
             gPerimeter.compute();
         end
         
+        function uMesh = createUnfittedMesh(obj)
+            sM.backgroundMesh = obj.backgroundMesh;
+            sM.boundaryMesh   = obj.boundaryMesh;            
+            uMesh = UnfittedMesh(sM);
+            uMesh.compute(obj.levelSet);
+        end
+        
         function storePlotInfo(obj)
-            h = obj.mesh.computeMeanCellSize;
+            obj.loadSquareMeshParams();            
+            h = obj.backgroundMesh.computeMeanCellSize;
             L = obj.domainLengthY;
-            obj.xplot{obj.imesh} = obj.regularizedTotalPerimeter.epsilons/h;
+            obj.xplot{obj.iMesh} = obj.regularizedTotalPerimeter.epsilons/h;
             PerR = obj.regularizedRelativePerimeter.perimeters; 
             PerT = obj.regularizedTotalPerimeter.perimeters; 
-            obj.relPerimeter{obj.imesh} = PerR;
-           % obj.totPerimeter{obj.imesh} = (PerT - PerR)/2 + PerR;
-             obj.totPerimeter{obj.imesh} = PerT;
+            obj.relPerimeter{obj.iMesh} = PerR;
+           % obj.totPerimeter{obj.iMesh} = (PerT - PerR)/2 + PerR;
+             obj.totPerimeter{obj.iMesh} = PerT;
             [n,d] = rat(h/L);
-            obj.legendRelativePlot{obj.imesh} = ['$Per^R_\varepsilon \ (h/L = ',num2str(n),'/',num2str(d),')$'];
-            obj.legendTotalPlot{obj.imesh} = ['$Per^T_\varepsilon \ (h/L = ',num2str(n),'/',num2str(d),')$'];
+            obj.legendRelativePlot{obj.iMesh} = ['$Per^R_\varepsilon \ (h/L = ',num2str(n),'/',num2str(d),')$'];
+            obj.legendTotalPlot{obj.iMesh} = ['$Per^T_\varepsilon \ (h/L = ',num2str(n),'/',num2str(d),')$'];
         end
         
         function plotPerimeterValues(obj)
@@ -204,7 +210,7 @@ classdef SquarePerimeterTotalVsRelative < handle
         function printPlot(obj,f,h,perCase)
             outputName = strcat(obj.outputFolder,perCase,obj.nameCase);
             printer = plotPrinter(f,h);
-            printer.print(outputName);
+           % printer.print(outputName);
         end
         
     end

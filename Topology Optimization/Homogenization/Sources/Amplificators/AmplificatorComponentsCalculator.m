@@ -65,42 +65,68 @@ classdef AmplificatorComponentsCalculator < handle
         end
         
         function computeQuadStressComponents(obj)
-            n = 0;
-            for i = 1:obj.integrationDB.nstre
-                n = n + i;
-            end
-            obj.nQuadStre = n;
+            nstre = obj.integrationDB.nstre;
+            nQ = nstre*(nstre+1)/2;
+            obj.nQuadStre = nQ;
         end
         
         function integratePtensor(obj)
-            nstre = obj.integrationDB.nstre;
+            P2v = obj.computeP2inVector();
             V     = obj.integrationDB.V;
             dV    = obj.integrationDB.dV;
             ngaus = obj.integrationDB.ngaus;
-            Pt    = obj.computePtensor();
-            
+            nelem = size(P2v,3);
+            prodTerm  = zeros(ngaus,nelem);            
             P = zeros(obj.nMonom,1);
             for t = 1:obj.nMonom
-                integrand = 0;                
-                for igaus = 1:ngaus
-                    integrandG = ones(size(Pt,4),1);
-                    for s = 1:obj.nQuadStre
-                        [istre,jstre] = obj.indexVoigt2tensor(s);
-                        prodTerm = zeros(size(Pt,4),1);
-                        for kstre = 1:nstre
-                            Pki = squeeze(Pt(kstre,igaus,istre,:));
-                            Pkj = squeeze(Pt(kstre,igaus,jstre,:));
-                            factor = obj.computeVoigtFactor(kstre,nstre);
-                            prodTerm = prodTerm + factor*(Pki.*Pkj);                                                        
-                        end
-                        alpha = obj.monom(t,s);
-                        integrandG = integrandG.*(prodTerm.^alpha);
-                    end
-                   integrand = integrand + 1/V*integrandG'*dV(igaus,:)';
+                integrand = ones(ngaus,nelem);
+                for k = 1:obj.nQuadStre                  
+                   prodTerm(1:ngaus,:) = squeeze(P2v(k,:,:));
+                   alpha = obj.monom(t,k);
+                   integrand = integrand.*(prodTerm.^alpha);
                 end
-                P(t) = integrand;                
+                int = integrand.*dV;
+                P(t) = 1/V*sum(int(:));               
             end
             obj.Phomog = P;
+        end
+        
+        function P2 = computeP2(obj)            
+            Pt    = obj.computePtensor();
+            ngaus = size(Pt,2);
+            nstre = size(Pt,1);
+            nelem = size(Pt,4);
+            P2 = zeros(nstre,nstre,ngaus,nelem);            
+            for istre = 1:nstre
+                for jstre = 1:nstre
+                    P2ij = zeros(ngaus,nelem);
+                    for kstre = 1:nstre
+                         Pki(1:ngaus,:) = squeeze(Pt(kstre,:,istre,:));
+                         Pkj(1:ngaus,:) = squeeze(Pt(kstre,:,jstre,:));
+                         if kstre == 3
+                             f = 2;
+                         else
+                             f = 1;
+                         end
+                         P2ij = P2ij + f*Pki.*Pkj;
+                    end
+                    P2(istre,jstre,1:ngaus,:) = P2ij;
+                end
+            end                        
+        end
+        
+        function P2v = computeP2inVector(obj)
+            P2 = obj.computeP2();
+            nstre = size(P2,1);
+            ngaus = size(P2,3);
+            nelem = size(P2,4);
+            nQuads = nstre*(nstre+1)/2;
+            P2v = zeros(nQuads,ngaus,nelem);
+            for s = 1:nQuads
+                   [istre,jstre]    = obj.indexVoigt2tensor(s);
+                   factor           = obj.computeVoigtFactor(s,nstre);
+                   P2v(s,1:ngaus,:) = factor*squeeze(P2(istre,jstre,:,:));       
+             end                         
         end
         
         function computePtensorWithCoef(obj)
@@ -134,12 +160,12 @@ classdef AmplificatorComponentsCalculator < handle
         
         function f = computeVoigtFactor(k,nstre)
             if nstre == 3
-                if k < 3
+                if k <= 3
                     f = 1;
                 else
                     f = 2;
                 end
-            elseif nstre ==6
+            elseif nstre == 6
                 if k <= 3
                     f = 1;
                 else

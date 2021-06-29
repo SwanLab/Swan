@@ -48,7 +48,10 @@ classdef GiDImageCapturer < handle
             tclFile = 'callGiDCapturer.tcl';
             obj.inputFileName = char(obj.inputFileName);
             %stlFileTocall = 'CaptureImage.tcl';
-            stlFileTocall = 'CaptureImage3.tcl';
+           % stlFileTocall = 'CaptureImage3.tcl';
+            stlFileTocall = 'CaptureImageColor.tcl';
+          %  stlFileTocall = 'CaptureSmoothImageColor.tcl';
+
             
             fid = fopen([obj.pathTcl,tclFile],'w+');
             fprintf(fid,['set path "',obj.pathTcl,'"\n']);

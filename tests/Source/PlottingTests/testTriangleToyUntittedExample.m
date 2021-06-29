@@ -7,8 +7,10 @@ classdef testTriangleToyUntittedExample < PlottingToyUnfittedExample
     methods (Access = public)
         
         function obj = testTriangleToyUntittedExample()
+            figure()
             obj.init();
             obj.compute();
+            obj.plot();
         end        
         
     end

@@ -27,11 +27,11 @@ classdef VademecumAmplificatorAdder < handle
     methods (Access = private)
         
         function init(obj)
-            obj.fileName        = 'Rectangle';
+            obj.fileName        = 'SuperEllipseQMax';'SuperEllipseQOptAnalytic';'SuperEllipseQ2';
             obj.fileNameReduced = [obj.fileName,'Reduced'];
             obj.fullFileName        = obj.obtainFullFileName(obj.fileName);  
             obj.fullFileNameReduced = obj.obtainFullFileName(obj.fileNameReduced);  
-            obj.order = [2,4];            
+            obj.order = 2:2:32;%[2,4,6,8,10,12,14,16];            
         end
         
         function loadReducedVademecum(obj)
@@ -92,7 +92,7 @@ classdef VademecumAmplificatorAdder < handle
         function saveReducedVademecum(obj)
             d = obj.reducedVademecumWithAmplificators;
             matFile   = [obj.fileName,'WithAmplificators','.mat'];
-            file2save = fullfile('Vademecums',matFile);
+            file2save = fullfile('Topology Optimization','Vademecums',matFile);
             save(file2save,'d');
         end        
         
@@ -102,7 +102,7 @@ classdef VademecumAmplificatorAdder < handle
         
         function f = obtainFullFileName(fileName)
             matFile   = [fileName,'.mat'];
-            f = fullfile('Vademecums',matFile);                        
+            f = ['/media/alex/My Passport/Vademecum/',matFile];                        
         end        
         
     end

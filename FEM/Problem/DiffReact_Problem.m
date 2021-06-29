@@ -7,7 +7,8 @@ classdef DiffReact_Problem < FEM
     properties (Access = protected)
         isRobinTermAdded
         bcApplierType
-       interp         
+       interp  
+       boundaryMesh
     end
     
     methods (Access = public)
@@ -67,7 +68,7 @@ classdef DiffReact_Problem < FEM
             end
         end
         
-        
+
         function obj = setEpsilon(obj,epsilon)
             obj.element.setEpsilon(epsilon);
         end
@@ -85,7 +86,7 @@ classdef DiffReact_Problem < FEM
             isRobinTermAdded = obj.isRobinTermAdded;
             bcType = obj.bcApplierType;
             obj.element = Element_DiffReact(obj.mesh,obj.geometry,...
-                 obj.material,obj.dof,obj.problemData.scale,isRobinTermAdded,bcType,obj.interp);
+                obj.material,obj.dof,obj.problemData.scale,isRobinTermAdded,bcType,obj.interp,obj.boundaryMesh);
         end
         
         function setDOFs(obj)
@@ -106,21 +107,47 @@ classdef DiffReact_Problem < FEM
             else
                 obj.interp{1} =Interpolation.create(obj.mesh,'LINEAR');
             end
-
+            
         end
         
         function setupFromGiDFile(obj,fileName)
             obj.inputReader.read(fileName);
             obj.createMesh();
+            obj.createBoundaryMesh(fileName);
             obj.problemData.fileName = fileName;
         end
         
-        function setupFromMesh(obj,inputData)
-            obj.mesh = inputData.mesh;
-            if isfield(inputData,'fileName')
-                obj.problemData.fileName = inputData.fileName;
+        function setupFromMesh(obj,s)
+            obj.mesh = s.mesh;
+            if isfield(s,'fileName')
+                obj.problemData.fileName = s.fileName;
+                obj.createBoundaryMesh(s.fileName);
+            end
+            
+        end
+        
+        function createBoundaryMesh(obj,fileName)
+            run(fileName);
+            if exist('External_border_nodes','var') && ~isempty(External_border_nodes)
+                s.borderNodes    = External_border_nodes;
+                if exist('External_border_elements','var') 
+                    s.borderElements = External_border_elements;
+                else
+                    s.borderElements = [];
+                end
+                s.backgroundMesh = obj.mesh;
+                s.type = 'FromData';
+                b = BoundaryMeshCreator.create(s);
+                obj.boundaryMesh = b.create();
+            else
+                s.backgroundMesh = obj.mesh;
+                s.dimension = 1:obj.mesh.ndim;
+                s.type = 'FromReactangularBox';
+                bC = BoundaryMeshCreator.create(s);
+                obj.boundaryMesh = bC.create();
             end
         end
+        
         
     end
     

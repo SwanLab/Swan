@@ -6,10 +6,16 @@ initial_case = 'circleInclusion';
 cost={'chomog_fraction'};
 weights=[1 0.1];
 constraint = {'volumeConstraint'};
-designVariable = 'LevelSet';
-optimizer = 'SLERP';
-kappaMultiplier = 1;
+designVariable = 'Density';
+%optimizer = 'DualNestedInPrimal';
+%optimizer = 'AlternatingPrimalDual';
+%optimizerUnconstrained = 'PROJECTED GRADIENT';
+optimizer = 'MMA';
+
+incrementFactor = 1;
 filterType = 'P1';
+
+fracRadius = 0.2;
 
 nsteps = 10;
 Vfrac_final = 0.5;
@@ -21,7 +27,7 @@ Vfrac_initial = 1;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 
-TOL.rho_plus = 1;
+TOL.rho_plus = 0.5;
 TOL.rho_minus = 0;
 TOL.E_plus = 1;
 TOL.E_minus = 1e-3;
@@ -33,3 +39,10 @@ epsilon_isotropy_initial=1e-1;
 epsilon_isotropy_final = 1e-3;
 micro.alpha =[1 0 0]';
 micro.beta =[0 -1 0]';
+
+
+plotting   = true;
+printing   = false;
+monitoring = true;
+monitoring_interval = 1;
+maxiter = 1600;

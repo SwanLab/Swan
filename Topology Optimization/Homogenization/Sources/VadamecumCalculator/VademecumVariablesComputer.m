@@ -38,7 +38,7 @@ classdef VademecumVariablesComputer < handle
     methods (Access = private)
         
         function computeCellVariables(obj)
-            a  = load(['/media/alex/My Passport/Vademecum/',obj.fileName]);
+            a  = load(obj.fileName);
             obj.vademecumData = a.d;
         end
         

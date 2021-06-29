@@ -39,7 +39,7 @@ classdef MeshPlotter < handle
             conn = obj.mesh.connec;
             p = patch('vertices',coor,'faces',conn);
             p.EdgeColor = 'k';
-            p.EdgeAlpha = 0.1;
+            p.EdgeAlpha = 0.01;
             p.EdgeLighting = 'flat';
             p.FaceColor = 'none';
             p.FaceLighting = 'flat';
@@ -54,7 +54,7 @@ classdef MeshPlotter < handle
             p.EdgeColor = 'b';
             p.EdgeAlpha = 1;
             p.EdgeLighting = 'flat';
-            p.LineWidth = 2.5;
+            p.LineWidth = 0.5;
             p.LineStyle = '-';
             axis('equal');
             nodes = unique(m.connec(:));            
@@ -70,39 +70,32 @@ classdef MeshPlotter < handle
                 y = m.coord(:,2);
                 hold on
                 p = plot(x(nodes),y(nodes),'.r');                                
-                p.MarkerSize = 8;
+                p.MarkerSize = 14;
             end            
         end
         
+        
         function plotSurfaceMesh(obj)
             m = obj.mesh;
-            nodes = unique(m.connec(:));            
             if size(m.connec,2) == 3 && size(m.coord,2) == 3
                 x = m.coord(:,1);
                 y = m.coord(:,2);
                 z = m.coord(:,3);
                 p = trisurf(m.connec,x,y,z);
-                p.FaceColor = 'cyan';
-                p.FaceAlpha = 0.3;
-                axis equal;
+                p.FaceColor = [1 0 0];
+                p.FaceAlpha = 1;
+                p.EdgeColor = 'none';
                 hold on
-                p = plot3(x(nodes),y(nodes),z(nodes),'.r');
-                p.MarkerSize = 6;
             else
-                x = m.coord(:,1);
-                y = m.coord(:,2);                
                 p = patch('vertices',m.coord,'faces',m.connec);
                 p.EdgeAlpha = 0.5;
                 p.EdgeLighting = 'flat';
-%                p.FaceColor = [1 0 0];
-                p.FaceColor = 'cyan';                
+                p.FaceColor = 'red';                
                 p.FaceLighting = 'flat';
                 p.FaceAlpha = 0.3;
                 p.LineWidth = 1.5;
                 axis('equal');
                 hold on
-                p = plot(x(nodes),y(nodes),'.r');
-                p.MarkerSize = 8;
             end
             
         end

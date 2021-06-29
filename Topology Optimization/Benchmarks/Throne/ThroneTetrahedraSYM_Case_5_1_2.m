@@ -6,10 +6,10 @@ initial_case = 'holes';
 cost = {'compliance'};
 weights = [1];
 constraint = {'volume'};
-optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
+optimizer = 'HAMILTON-JACOBI'; incrementFactor = 1;
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
-line_search = 'DOUBLING LAST STEP';
+line_search_initiator = 'INCREASING LAST STEP';
 
 nsteps = 10;
 Vfrac_final = 0.1;

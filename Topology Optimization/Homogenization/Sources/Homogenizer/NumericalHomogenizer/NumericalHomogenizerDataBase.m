@@ -46,10 +46,9 @@ classdef NumericalHomogenizerDataBase < handle
             d.filterParams.filterType = 'P1';
             s = SettingsDesignVariable();
             s.type = 'Density';
-            s.levelSetCreatorSettings.type = 'full';
+            s.initialCase = 'full';
             
-            scalarPr.epsilon = 1e-3;
-            s.scalarProductSettings = scalarPr;
+
             
             fileName = s.mesh;
             dF = FemInputReader_GiD().read(fileName);
@@ -59,10 +58,14 @@ classdef NumericalHomogenizerDataBase < handle
             
             s.mesh = meshT;
             
-            d.filterParams.designVar = DesignVariable.create(s);% Density(s);
+            scalarPr.epsilon = 1e-3;
+            scalarPr.mesh = meshT.innerMeshOLD;
+            s.scalarProductSettings = scalarPr;            
+            
+            designVar = DesignVariable.create(s);% Density(s);
             d.femSettings.fileName = obj.femFileName;
             d.femSettings.scale = 'MICRO';
-            mesh = d.filterParams.designVar.mesh;
+            mesh = designVar.mesh;
             
             sHomog.type                   = 'ByInterpolation';
             sHomog.interpolation          = dI.materialInterpDataBase.materialInterpolation;

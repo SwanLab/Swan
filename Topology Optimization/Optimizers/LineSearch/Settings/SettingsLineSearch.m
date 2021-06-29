@@ -7,12 +7,15 @@ classdef SettingsLineSearch < AbstractSettings
     properties (Access = public)
         type
         optimizerType
-        filename
-        kfrac
-        kappaMultiplier
+        filename               
         scalarProduct
         epsilon
         HJiter0
+        lineSearchInitiatorSettings
+        designVariable
+        objectiveFunction
+        rate
+        incrementFactor
     end
     
     methods (Access = public)

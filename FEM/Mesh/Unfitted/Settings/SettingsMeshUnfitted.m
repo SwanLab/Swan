@@ -43,8 +43,6 @@ classdef SettingsMeshUnfitted < AbstractSettings
             end
         end
         
-
-        
     end
     
 end

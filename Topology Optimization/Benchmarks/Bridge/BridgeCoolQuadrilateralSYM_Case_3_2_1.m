@@ -6,10 +6,10 @@ initial_case = 'full';
 cost = {'compliance','perimeter'};
 weights = [1 0.1];
 constraint = {'volume'};
-optimizer = 'MMA'; kappaMultiplier = 1;
+optimizer = 'MMA'; incrementFactor = 1;
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
-line_search = 'DIMENSIONALLY CONSISTENT';
+line_search_initiator = 'STANDARD';
 
 nsteps = 15;
 Vfrac_final = 0.2;

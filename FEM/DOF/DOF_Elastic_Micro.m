@@ -6,12 +6,12 @@ classdef DOF_Elastic_Micro < DOF
         % !! Consider moving periodic to MICRO case !!
         periodic_free % Perioic
         periodic_constrained
-        master_slave
     end
     
     properties (Access = private)
        interpolation
        nFields
+        master_slave       
     end
     
     methods
@@ -25,6 +25,10 @@ classdef DOF_Elastic_Micro < DOF
             obj.nFields = nFields;
             obj.interpolation = interp;            
             [dirichlet_data,neumann_data,full_dirichlet_data,master_slave] = Preprocess.getBC_mechanics(filename);
+            if isempty(master_slave)
+                mesh.computeMasterSlaveNodes;
+                master_slave = mesh.masterSlaveNodes;
+            end
             obj.computeData(dirichlet_data,neumann_data,full_dirichlet_data,master_slave,mesh)
         end
         

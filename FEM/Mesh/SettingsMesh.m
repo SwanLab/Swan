@@ -14,7 +14,13 @@ classdef SettingsMesh < AbstractSettings
     methods (Access = public)
         
         function obj = SettingsMesh(varargin)
-            obj.loadParams(varargin{1});
+            if ~isfield(varargin{1},'kFace')
+                varargin{1}.kFace = 0;            
+            end            
+            obj.coord  = varargin{1}.coord;
+            obj.connec = varargin{1}.connec;
+            obj.kFace  = varargin{1}.kFace;            
+            %obj.loadParams(varargin{1});
             obj.computeType();
         end
         

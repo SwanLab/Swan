@@ -41,10 +41,10 @@ classdef ExteriorGradientCirclePerimeterExperiment < handle
         
         function init(obj)
             obj.nameCase = 'GradientCirclePerimeterExperiment';
-            %nameRoot = 'CircleMacro';
-            %obj.radius = 1;
-            nameRoot = 'DoubleCircleMacro';
-            obj.radius = 2;                      
+            nameRoot = 'CircleMacro';
+            obj.radius = 1;
+            %nameRoot = 'DoubleCircleMacro';
+            %obj.radius = 2;                      
             obj.inputFile = {nameRoot;...
                 [nameRoot,'Fine'];...
                 [nameRoot,'FineFine']};

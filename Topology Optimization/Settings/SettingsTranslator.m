@@ -27,6 +27,22 @@ classdef SettingsTranslator < handle
                     s.designVarSettings.type = value;
                 elseif strcmp(prop,'initial_case')
                     s.designVarSettings.initialCase = value;
+                elseif strcmp(prop,'m1')
+                    if ~isempty(value)
+                       s.designVarSettings.creatorSettings.m1 = value;
+                    end
+                elseif strcmp(prop,'m2')                    
+                    if ~isempty(value)
+                       s.designVarSettings.creatorSettings.m2 = value;
+                    end
+                elseif strcmp(prop,'alpha0')                    
+                    if ~isempty(value)
+                       s.designVarSettings.creatorSettings.alpha0 = value;
+                    end                    
+                elseif strcmp(prop,'rho0')
+                    if ~isempty(value)
+                       s.designVarSettings.creatorSettings.rho = value;
+                    end
                 elseif strcmp(prop,'levelSetDataBase')
                     s = obj.translateLevelSetCreator(s);
                 elseif strcmp(prop,'nsteps')
@@ -45,6 +61,10 @@ classdef SettingsTranslator < handle
                     s.incrementalSchemeSettings.targetParamsSettings.constrInitial = value;
                 elseif strcmp(prop,'constr_final')
                     s.incrementalSchemeSettings.targetParamsSettings.constrFinal = value;
+                elseif strcmp(prop,'stressNormExponent_initial')
+                    s.incrementalSchemeSettings.targetParamsSettings.stressNormExponentInitial = value;
+                elseif strcmp(prop,'stressNormExponent_final')
+                    s.incrementalSchemeSettings.targetParamsSettings.stressNormExponentFinal = value;                    
                 elseif strcmp(prop,'cost')
                     for k = 1:length(value)
                         s.costSettings.shapeFuncSettings{k}.type = value{k};
@@ -74,6 +94,14 @@ classdef SettingsTranslator < handle
                             end
                         end
                     end
+                elseif strcmp(prop,'constraintDomainNotOptimizable')
+                    for k = 1:numel(value)
+                        s.constraintSettings.shapeFuncSettings{k}.domainNotOptimizable = value{k};                      
+                    end                    
+                elseif strcmp(prop,'costDomainNotOptimizable')
+                    for k = 1:numel(value)
+                        s.costSettings.shapeFuncSettings{k}.domainNotOptimizable = value{k};                      
+                    end                                        
                 elseif strcmp(prop,'optimizer')
                     s.optimizerSettings.type = value;
                 elseif strcmp(prop,'constraint_case')
@@ -86,14 +114,14 @@ classdef SettingsTranslator < handle
                     s.optimizerSettings.uncOptimizerSettings.ub = value;
                 elseif strcmp(prop,'lb')
                     s.optimizerSettings.uncOptimizerSettings.lb = value;
-                elseif strcmp(prop,'line_search')
-                    s.optimizerSettings.uncOptimizerSettings.lineSearchSettings.type = value;
+                elseif strcmp(prop,'line_search_initiator')
+                    s.optimizerSettings.uncOptimizerSettings.lineSearchSettings.lineSearchInitiatorSettings.type = value;
                 elseif strcmp(prop,'HJiter0')
                     s.optimizerSettings.uncOptimizerSettings.lineSearchSettings.HJiter0 = value;
-                elseif strcmp(prop,'kappaMultiplier')
-                    s.optimizerSettings.uncOptimizerSettings.lineSearchSettings.kappaMultiplier = value;
-                elseif strcmp(prop,'kfrac')
-                    s.optimizerSettings.uncOptimizerSettings.lineSearchSettings.kfrac = value;
+                elseif strcmp(prop,'incrementFactor')
+                    s.optimizerSettings.uncOptimizerSettings.lineSearchSettings.lineSearchInitiatorSettings.incrementFactor = value;
+                elseif strcmp(prop,'rate')
+                    s.optimizerSettings.uncOptimizerSettings.lineSearchSettings.rate = value;
                 elseif strcmp(prop,'maxiter')
                     s.optimizerSettings.maxIter = value;
                 elseif strcmp(prop,'printing')
@@ -110,9 +138,14 @@ classdef SettingsTranslator < handle
                     s.optimizerSettings.monitoringDockerSettings.shallDisplayDesignVar = value;
                 elseif strcmp(prop,'showBC')
                     s.optimizerSettings.monitoringDockerSettings.shallShowBoundaryConditions = value;
+               elseif strcmp(prop,'isDesignVariableFixed')
+                   s.designVarSettings.isFixed = value;               
                 end
-                %                 end
             end
+            if strcmp(s.designVarSettings.type,'MicroParams')
+               s.designVarSettings.creatorSettings.homogSettings = s.homogenizedVarComputerSettings;
+            end            
+                                 
             obj.exportFile(s);
         end
         
@@ -153,7 +186,7 @@ classdef SettingsTranslator < handle
                 for i = 1:length(fields)
                     field = fields{i};
                     value = prop.(field);
-                    s.designVarSettings.levelSetCreatorSettings.(field) = value;
+                    s.designVarSettings.creatorSettings.(field) = value;
                 end
             end
         end
@@ -173,7 +206,7 @@ classdef SettingsTranslator < handle
                     end
                 case 'ByVademecum'
                     if isprop(old,'vademecumFileName')
-                        s.homogenizedVarComputerSettings.fileName = old.vademecumFileName;
+                        s.homogenizedVarComputerSettings.fileName = old.vademecumFileName;                        
                     end
             end
         end

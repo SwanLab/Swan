@@ -11,6 +11,8 @@ classdef SettingsShapeFunctional < AbstractSettings
         homogVarComputer
         designVariable
         targetParameters
+        mesh
+        domainNotOptimizable
     end
     
     methods (Access = public)

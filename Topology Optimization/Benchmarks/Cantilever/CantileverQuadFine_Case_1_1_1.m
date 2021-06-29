@@ -3,15 +3,19 @@ filename='Cantilever_quad_fine';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'compliance'};
-weights = [1, 0.1];
+cost = {'compliance','perimeterInterior'};
+%cost = {'compliance'};
+weights = [1, 0.01];
+%weights = 1;
 constraint = {'volumeConstraint'};
-optimizer = 'SLERP'; 
-kappaMultiplier = 1;
+optimizerUnconstrained = 'SLERP'; 
+incrementFactor = 1;
 designVariable = 'LevelSet';
 filterType = 'P1';
+optimizer = 'DualNestedInPrimal';
 
-nsteps = 5;
+
+nsteps = 50;
 Vfrac_final = 0.4;
 Perimeter_target = 1;
 optimality_final = 1e-3;
@@ -28,6 +32,7 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 
-plotting = false;
+plotting = true;
 printing = false;
-monitoring = false;
+monitoring = true;
+monitoring_interval = 1;

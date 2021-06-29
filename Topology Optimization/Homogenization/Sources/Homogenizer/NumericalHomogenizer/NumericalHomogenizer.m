@@ -165,19 +165,29 @@ classdef NumericalHomogenizer < handle
             s = SettingsDesignVariable();
             s.type = 'Density';            
             s.mesh = mesh;%obj.microProblem.mesh;
-            s.levelSetCreatorSettings.type  = 'given';
-            s.levelSetCreatorSettings.value = obj.elemDensCr.getLevelSet();
-            s.levelSetCreatorSettings.ndim  = obj.microProblem.mesh.ndim;
-            s.levelSetCreatorSettings.coord = obj.microProblem.mesh.coord; 
+            s.initialCase  = 'given';
+            s.creatorSettings.value = obj.elemDensCr.getLevelSet();
+            s.creatorSettings.ndim  = obj.microProblem.mesh.ndim;
+            s.creatorSettings.coord = obj.microProblem.mesh.coord; 
             scalarPr.epsilon = 1e-3;
+            scalarPr.mesh = mesh.innerMeshOLD;
             s.scalarProductSettings    = scalarPr;
             d.filterParams.femSettings = d.femSettings;
-            d.filterParams.designVar = DesignVariable.create(s);
+            desVar = DesignVariable.create(s);
+            d.filterParams.mesh = desVar.mesh.innerMeshOLD;
+            d.filterParams.designVarType = desVar.type;
             d.filterParams = SettingsFilter(d.filterParams);
+            d.mesh = mesh.innerMeshOLD;
+            d.mesh.computeMasterSlaveNodes();
+            d.designVariable = desVar;
             vComputer = ShFunc_Volume(d);
-            vComputer.computeCostFromDensity(obj.density);
+            vComputer.computeFunctionFromDensity(obj.density);
             obj.cellVariables.volume = vComputer.value;
             obj.cellVariables.geometricVolume = vComputer.geometricVolume;
+        end
+        
+        function mesh = setMasterSlaveNodes(obj,mesh)
+                       
         end
                
         function obtainIntegrationUsedVariables(obj)        

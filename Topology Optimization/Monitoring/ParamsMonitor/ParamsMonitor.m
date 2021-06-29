@@ -10,9 +10,9 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         dualVariable
         
         problemID
-        costFuncValue
+        cost
         nCostFuncs
-        constraintValues
+        constraint
         nConstraints
         refreshInterval
         convergenceVars
@@ -41,6 +41,14 @@ classdef ParamsMonitor < ParamsMonitor_Interface
             end
         end
         
+        function f = saveFigure(obj)
+            f = obj.frame;
+            fNameFig = fullfile('Output',obj.problemID,'Monitoring.fig');
+            fNamePng = fullfile('Output',obj.problemID,'Monitoring.png');
+            saveas(f,fNameFig)
+            saveas(f,fNamePng)
+        end
+        
     end
     
     methods (Access = private)
@@ -48,12 +56,12 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         function init(obj,cParams)
             obj.problemID = cParams.problemID;
             obj.refreshInterval = cParams.refreshInterval;
-            obj.nCostFuncs = length(cParams.costFuncNames);
-            obj.nConstraints = length(cParams.constraintFuncs);
+            obj.nCostFuncs      = length(cParams.costFuncNames);
+            obj.nConstraints    = length(cParams.constraintFuncs);
             
             obj.dualVariable     = cParams.dualVariable;
-            obj.costFuncValue    = cParams.cost;
-            obj.constraintValues = cParams.constraint;
+            obj.cost             = cParams.cost;
+            obj.constraint       = cParams.constraint;
             obj.convergenceVars  = cParams.convergenceVars;
             obj.createNamingManager(cParams);
             obj.createFigures();
@@ -64,6 +72,7 @@ classdef ParamsMonitor < ParamsMonitor_Interface
             obj.initCostFigures();
             obj.initConstraintFigures();
             obj.initConvergenceVarsFigures();
+            obj.initShapeFunctionsVariablesFigures();
             obj.displayFigures();
         end
         
@@ -94,15 +103,31 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         
         function initConvergenceVarsFigures(obj)
             for i = 1:obj.convergenceVars.nVar
-                title = obj.namingManager.getConvVarFigureTitle(i);
+                title = obj.namingManager.getConvVarNames(i);
                 obj.initFigure(title);
             end
         end
         
+        function initShapeFunctionsVariablesFigures(obj)
+            obj.initShapeFunctionsVariablesFromFunctional(obj.cost);
+            obj.initShapeFunctionsVariablesFromFunctional(obj.constraint);
+        end
+        
+        function initShapeFunctionsVariablesFromFunctional(obj,functional)
+            nShapes = numel(functional.shapeFunctions);
+            for i = 1:nShapes
+                shape  = functional.shapeFunctions{i};
+                titles = shape.getTitlesToPlot();
+                for iv = 1:numel(titles)
+                    title = titles{iv};
+                    obj.initFigure(title);
+                end
+            end                                 
+        end
+        
         function obj = initFigure(obj,title)
             chartType = obj.getChartType(title);
-            newFig = DisplayFactory.create(chartType,title);
-            
+            newFig = DisplayFactory.create(chartType,title);            
             obj.appendFigure(newFig);
         end
         
@@ -120,9 +145,8 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         
         function createFrame(obj)
             obj.frame = figure;
-            warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame')
             drawnow; 
-            set(get(obj.frame,'JavaFrame'),'Maximized',1);
+            obj.frame.WindowState = "maximized";
         end
         
         function computeDistribution(obj)
@@ -146,18 +170,23 @@ classdef ParamsMonitor < ParamsMonitor_Interface
             obj.updateCost();
             obj.updateConstraints();
             obj.updateConvergenceVars();
+            obj.updateShapeFunctionsVar();
         end
         
         function updateCost(obj)
-            obj.updateFigure(obj.costFuncValue.value);
+            obj.updateFigure(obj.cost.value);
             for i = 1:obj.nCostFuncs
-                obj.updateFigure(obj.costFuncValue.shapeFunctions{i}.value)
+                shape = obj.cost.shapeFunctions{i};                
+                value = shape.value;
+                obj.updateFigure(value);
             end
         end
         
         function updateConstraints(obj)
             for i = 1:obj.nConstraints
-                obj.updateFigure(obj.constraintValues.shapeFunctions{i}.value)
+                shape = obj.constraint.shapeFunctions{i};
+                value = shape.value;
+                obj.updateFigure(value);
                 if ~isempty(obj.dualVariable.value)
                     obj.updateFigure(obj.dualVariable.value(i))
                 end
@@ -171,6 +200,23 @@ classdef ParamsMonitor < ParamsMonitor_Interface
                 end
             end
         end
+        
+        function updateShapeFunctionsVar(obj)
+            obj.updateShapeFunctionsVarFromFunctional(obj.cost);                     
+            obj.updateShapeFunctionsVarFromFunctional(obj.constraint);
+        end       
+        
+        function updateShapeFunctionsVarFromFunctional(obj,functional)
+            nShapes = numel(functional.shapeFunctions);
+            for i = 1:nShapes
+                shape  = functional.shapeFunctions{i};
+                values = shape.getVariablesToPlot();
+                for iv = 1:numel(values)
+                    value = values{iv};
+                    obj.updateFigure(value);
+                end
+            end                        
+        end            
         
         function updateFigure(obj,value)
             obj.figures{obj.iRefresh}.updateParams(obj.iteration,value,obj);
@@ -196,12 +242,11 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         end
         
         function createNamingManager(obj,cParams)
-           nmS.costFuncNames = cParams.costFuncNames;
-           nmS.costWeights = cParams.costWeights;
-           nmS.constraintFuncs = cParams.constraintFuncs;
-           nmS.optimizerName = cParams.optimizerName;
-           
-           obj.namingManager    = NamingManager(nmS);
+           s.costFuncNames   = cParams.costFuncNames;
+           s.costWeights     = cParams.costWeights;
+           s.constraintFuncs = cParams.constraintFuncs;
+           s.optimizerNames   = cParams.optimizerNames; 
+           obj.namingManager = NamingManager(s);
         end
         
     end
@@ -209,14 +254,13 @@ classdef ParamsMonitor < ParamsMonitor_Interface
     methods (Access = private, Static)
         
         function type = getChartType(title)
-            if contains(title,'kappa')
-                type = 'bar';
-            elseif contains(title,'outit')
-                type = 'stacked';
-            elseif contains(title,'L2') || contains(title,'kkt')
-                type = 'log';
-            else
-                type = 'plot';
+            switch title
+                case {'Line Search','outit','Line Search trials'}
+                    type = 'bar';
+                case {'kktnorm','Norm L2','inf_{pr}','inf_{du}'}
+                    type = 'log';
+                otherwise 
+                    type = 'plot';
             end
         end
         

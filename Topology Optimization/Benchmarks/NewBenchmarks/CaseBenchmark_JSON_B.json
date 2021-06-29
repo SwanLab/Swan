@@ -55,10 +55,10 @@
       "ub": 1,
       "lb": 0,
       "lineSearchSettings": {
-        "type": "DIMENSIONALLY CONSISTENT",
+        "type": "STANDARD",
         "HJiter0": 10,
-        "kappaMultiplier": 1,
-        "kfrac": 2
+        "incrementFactor": 1,
+        "rate": 0.5
       }
     },
     "maxIter": 50,

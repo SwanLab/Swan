@@ -16,19 +16,30 @@ classdef Integrator_Simple < Integrator
         end
         
         function rhs = integrate(obj,fNodal)
-            connec   = obj.mesh.connec;     
-            type     = obj.mesh.type;     
-            xGauss   = obj.computeGaussPoints();
-            rhsCells = obj.computeElementalRHS(fNodal,xGauss,connec,type);
-            rhs = obj.assembleIntegrand(rhsCells);
+            quadOrder = 'LINEAR';
+            rhs = obj.integrateFnodal(fNodal,quadOrder);
+        end
+        
+        function rhs = integrateFnodal(obj,fNodal,quadOrder)
+            connec   = obj.mesh.connec;               
+            xGauss   = obj.computeGaussPoints(quadOrder);
+            type     = obj.mesh.type;                 
+            fGauss   = obj.computeFgauss(fNodal,xGauss,connec,type);            
+            rhs = obj.integrateFgauss(fGauss,xGauss,quadOrder);            
+        end
+        
+        function rhs = integrateFgauss(obj,fGauss,xGauss,quadOrder)
+            type     = obj.mesh.type;                 
+            rhsCells = obj.computeElementalRHS(fGauss,xGauss,type,quadOrder);
+            rhs = obj.assembleIntegrand(rhsCells);                        
         end
         
     end
     
     methods (Access = private)
         
-        function xGauss = computeGaussPoints(obj)
-            q = obj.computeQuadrature();
+        function xGauss = computeGaussPoints(obj,quadOrder)
+            q = obj.computeQuadrature(quadOrder);
             xGauss = repmat(q.posgp,[1,1,obj.mesh.nelem]);
         end
         

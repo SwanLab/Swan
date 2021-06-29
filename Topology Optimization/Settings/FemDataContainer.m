@@ -38,7 +38,7 @@ classdef FemDataContainer < AbstractSettings
             femReader = FemInputReader_GiD();
             s = femReader.read(obj.fileName);
             
-            obj.mesh  = s.mesh;
+            obj.mesh   = s.mesh;
             obj.scale  = s.scale;
             obj.pdim   = s.pdim;
             obj.ptype  = s.ptype;

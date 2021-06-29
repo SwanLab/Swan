@@ -9,6 +9,8 @@ classdef SettingsVideoMaker < AbstractSettings
         shallPrint
         designVarType
         pdim
+        tclTemplateNames
+        outPutNames
     end
     
     methods (Access = public)

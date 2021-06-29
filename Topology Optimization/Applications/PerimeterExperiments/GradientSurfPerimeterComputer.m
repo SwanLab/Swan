@@ -2,11 +2,16 @@ classdef GradientSurfPerimeterComputer < handle
     
     properties (Access = private)
         outPutFolder
-        mesh
-        rPerimeter
         iMesh
-        domainLength
         figureID
+        gExperiment
+    end
+    
+    properties (Access = private)
+        inputFiles
+        outputFolder
+        levelSetParams
+        circleCase
     end
     
     methods (Access = public)
@@ -15,28 +20,38 @@ classdef GradientSurfPerimeterComputer < handle
             obj.init(cParams)
         end
         
-        function compute(obj)
-            epsilons = obj.rPerimeter.epsilons;
-            nEpsilon = length(epsilons);
-            for iEpsilon = 1:nEpsilon
-                obj.plotSurf(iEpsilon);
-                obj.addXYlabel();
-                obj.addTitle(iEpsilon);
-                obj.printSurf(iEpsilon);
+        function compute(obj)            
+            for im = 1:numel(obj.inputFiles)
+                obj.iMesh = im;
+                obj.createGradientVariationExperiment();                
+                nEpsilon = length(obj.gExperiment.regularizedPerimeter.epsilons);
+                for iEpsilon = 1:nEpsilon                    
+                    obj.plotSurf(iEpsilon);
+                    obj.addXYlabel();
+                    obj.addTitle(iEpsilon);
+                    obj.printSurf(iEpsilon);
+                end
             end
         end
         
     end
     
     methods (Access = private)
-        
+
         function init(obj,cParams)
-            obj.outPutFolder = cParams.outPutFolder;
-            obj.mesh         = cParams.mesh;
-            obj.rPerimeter   = cParams.rPerimeter;
-            obj.iMesh        = cParams.iMesh;
-            obj.domainLength = cParams.domainLength;
-        end
+            obj.inputFiles   = cParams.inputFiles; 
+            obj.outputFolder = cParams.outputFolder;
+            obj.levelSetParams = cParams.levelSetParams; 
+            obj.circleCase = cParams.circleCase;
+        end        
+        
+        function createGradientVariationExperiment(obj)
+            s.levelSetParams = obj.levelSetParams;
+            s.inputFile      = obj.inputFiles{obj.iMesh};
+            s.iMesh          = obj.iMesh;
+            g = GradientVariationExperiment(s);
+            obj.gExperiment = g;
+        end        
         
         function addXYlabel(obj)
             xlabel('$x$','interpreter','latex')
@@ -44,10 +59,11 @@ classdef GradientSurfPerimeterComputer < handle
         end
         
         function plotSurf(obj,iEpsilon)
-            coord = obj.mesh.coord;
+            coord = obj.gExperiment.backgroundMesh.coord;
             x = coord(:,1);
             y = coord(:,2);
-            z = obj.rPerimeter.perimetersGradient(:,iEpsilon);
+            dPer = obj.gExperiment.regularizedPerimeter.perimetersGradient;
+            z = dPer(:,iEpsilon);
             tri = delaunay(x,y);
             f = figure();
             trisurf(tri,x,y,z);
@@ -56,7 +72,7 @@ classdef GradientSurfPerimeterComputer < handle
         end
         
         function printSurf(obj,iEpsilon)
-            part1 = [obj.outPutFolder,'GradientMesh',num2str(obj.iMesh)];
+            part1 = [obj.outputFolder,obj.circleCase,'GradientMesh',num2str(obj.iMesh)];
             part2 = ['Epsilon',num2str(iEpsilon)];
             outFile = [part1,part2];
             printer = surfPrinter(obj.figureID);
@@ -64,15 +80,19 @@ classdef GradientSurfPerimeterComputer < handle
         end
         
         function addTitle(obj,iEpsilon)
-            epsilons = obj.rPerimeter.epsilons;
-            h = obj.mesh.computeMeanCellSize;
+            epsilons = obj.gExperiment.regularizedPerimeter.epsilons;
+            h = obj.gExperiment.backgroundMesh.computeMeanCellSize;
             epsStr = num2str(epsilons(iEpsilon)/h);
             firstStr = 'dPer^R_\varepsilon \ \textrm{with} \ \,';
             secondStr = '\varepsilon/h \, = \, ';
             thirdStr = '\ \textrm{and} \ h/L \, = \, ';
-            L = obj.domainLength;
+            L = obj.gExperiment.domainLength;
             [n,d] = rat(h/L);
-            hStr = [num2str(n),'/',num2str(d)];
+            if n == 1
+                hStr = [num2str(n),'/',num2str(d)];
+            else
+                hStr = num2str(round(h/L,3));
+            end
             titleStr = ['$',firstStr,secondStr,epsStr,thirdStr,hStr,'$'];
             title(titleStr,'interpreter','latex');
         end        

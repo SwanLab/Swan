@@ -6,7 +6,7 @@ initial_case = 'holes';
 cost = {'compliance','perimeter'};
 weights = [1 0.02];
 constraint = {'volumeConstraint'};
-optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
+optimizer = 'HAMILTON-JACOBI'; incrementFactor = 1;
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
 

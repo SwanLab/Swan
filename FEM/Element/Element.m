@@ -82,7 +82,7 @@ classdef Element < handle
             FextVolumetric  = obj.computeVolumetricFext;
             FextSupVol = {FextSuperficial + FextVolumetric};
             FextSupVol = obj.AssembleVector(FextSupVol);
-            FextPoint = obj.computePunctualFext;
+            FextPoint = obj.computePunctualFext();
             Fext = FextSupVol +  FextPoint;
         end
         

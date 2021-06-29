@@ -6,7 +6,7 @@ initial_case = 'circleInclusion';
 cost={'volume','perimeter'};
 weights=[1 0.1];
 constraint = {'enforceCh_CCstar_eq'};%inf & equality
-optimizer = 'MMA'; kappaMultiplier = 1;
+optimizer = 'MMA'; incrementFactor = 1;
 filterType = 'P1';
 
 nsteps = 1;

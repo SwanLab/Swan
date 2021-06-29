@@ -14,7 +14,7 @@ optimizer = 'DualNestedInPrimal';
 
 
 optimizerUnconstrained = 'SLERP'; 
-kappaMultiplier = 1;
+incrementFactor = 1;
 designVariable = 'LevelSet';
 filterType = 'P1';
 

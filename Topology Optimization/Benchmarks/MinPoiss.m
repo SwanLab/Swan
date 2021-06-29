@@ -6,7 +6,7 @@ initial_case = 'circleInclusion';
 cost={'chomog_fraction','perimeter'};
 weights=[1 0.1];
 constraint = {'volumeConstraint'};
-optimizer = 'MMA'; kappaMultiplier = 1;
+optimizer = 'MMA'; incrementFactor = 1;
 filterType = 'P1';
 
 nsteps = 10;

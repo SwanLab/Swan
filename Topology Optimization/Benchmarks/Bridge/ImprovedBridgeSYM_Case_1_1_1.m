@@ -9,10 +9,10 @@ constraint = {'volume'};
 optimizer = 'AlternatingPrimalDual';
 optimizerUnconstrained = 'SLERP';
 designVariable = 'LevelSet';
-kappaMultiplier = 1;
+incrementFactor = 1;
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
-line_search = 'DIMENSIONALLY CONSISTENT';
+line_search_initiator = 'STANDARD';
 showBC = true;
 
 nsteps = 10;

@@ -7,6 +7,12 @@ constraint = {'volumeConstraint'};
 filterType = 'P1';
 constraint_case = 'EQUALITY';
 
+m1 = 0.3;
+m2 = 0.3;
+
+stressNormExponent_initial = 2;
+stressNormExponent_final = 16;
+
 Vfrac_initial = 0.3;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
@@ -21,13 +27,14 @@ designVariable = 'MicroParams';
 ub = 0.989;
 lb = 0.011;
 kfrac = 2;
-nsteps = 1;
+nsteps = 8;
 homegenizedVariablesComputer = 'ByVademecum';
-vademecumFileName = 'Rectangle';
+vademecumFileName = 'SuperEllipseQOptAnalytic';
 
 
 plotting = false;
 printing = false;
 printing_physics = false;
 monitoring = false;
-maxiter = 3;
+monitoring_interval = 1;
+maxiter = 16;

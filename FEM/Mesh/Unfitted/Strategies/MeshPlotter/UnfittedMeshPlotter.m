@@ -11,19 +11,15 @@ classdef UnfittedMeshPlotter < handle
         end
         
         function plotDomain(obj)
-            figure
-            clf
-            hold on
             obj.plotAll();
+            obj.addLighting();
         end
         
         function plotBoundary(obj)
-            figure(10)
-            clf
-            hold on
             obj.plotBackground();
             obj.plotBoundaryCutMesh();
             obj.plotUnfittedBoundaryMesh();
+            obj.addLighting();            
         end
         
         function plotAll(obj)
@@ -81,9 +77,29 @@ classdef UnfittedMeshPlotter < handle
             end
         end
         
+        
+        function addLighting(obj)
+            delete(findall(gcf,'Type','light'))
+            if ~isempty(obj.uMesh.innerMesh)
+                if obj.uMesh.innerMesh.mesh.ndim == 3
+                    l = lightangle(120,30);
+                    material metal
+                    l = lightangle(240,30);
+                    material metal
+                    l = lightangle(90,180);
+                    material metal
+                    l = lightangle(90,0);
+                    material metal
+                    view([1 1 1])
+                end
+            end
+        end
     end
     
+    
     methods (Access = private, Static)
+        
+        
         
         function plotMesh(s)
             s = SettingsMeshPlotter(s);

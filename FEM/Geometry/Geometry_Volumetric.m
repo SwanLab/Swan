@@ -13,11 +13,11 @@ classdef Geometry_Volumetric < Geometry
     methods (Access = public)
         
         function obj = Geometry_Volumetric(cParams)
-            obj.init(cParams)
+            obj.permutation = [2 1 3];                        
+            obj.init(cParams);
         end
         
         function computeGeometry(obj,quad,interpV)
-            obj.coordElem = permute(obj.mesh.coordElem,[2 1 3]);            
             obj.initGeometry(interpV,quad);
             obj.initVariables();
             obj.matrixInverter = MatrixVectorizedInverter();            

@@ -7,11 +7,11 @@ cost = {'compliance','perimeter'};
 weights = [1 0.25];
 constraint = {'volume'};
 optimizer = 'HAMILTON-JACOBI'; 
-kappaMultiplier = 1;
+incrementFactor = 1;
 designVariable = 'LevelSet';
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
-line_search = 'DIMENSIONALLY CONSISTENT';
+line_search_initiator = 'STANDARD';
 
 HJiter0 = 1;
 e2 = 50;

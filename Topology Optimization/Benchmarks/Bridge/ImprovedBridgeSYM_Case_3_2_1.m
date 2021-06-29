@@ -6,9 +6,9 @@ initial_case = 'full';
 cost = {'compliance','perimeter'};
 weights = [1 0.1];
 constraint = {'volume'};
-optimizer = 'MMA'; kappaMultiplier = 1;
+optimizer = 'MMA'; incrementFactor = 1;
 filterType = 'P1';
-line_search = 'DIMENSIONALLY CONSISTENT';
+line_search_initiator = 'STANDARD';
 showBC = true;
 
 nsteps = 10;

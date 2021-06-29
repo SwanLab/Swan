@@ -19,13 +19,20 @@ classdef ShFunc_Chomog_fraction < ShFunc_Chomog
             obj.beta=settings.beta/norm(settings.beta);
         end
         
-        function computeCostAndGradient(obj)
+        function computeFunctionAndGradient(obj)
             obj.computePhysicalData();
             obj.computeInvChProyections();
-            obj.computeFunctionValue();
+            obj.computeFunction();
+            obj.normalizeFunction();
             obj.computeGradient();
-            obj.normalizeFunctionAndGradient();
+            obj.normalizeGradient();
         end
+        
+        function computeFunction(obj)            
+            obj.value = obj.Sab/obj.Saa + obj.Sba/obj.Sbb;
+        end           
+    
+        
     end
     
     methods (Access = private)
@@ -45,9 +52,7 @@ classdef ShFunc_Chomog_fraction < ShFunc_Chomog
             obj.gradient = gradient;
         end
         
-        function computeFunctionValue(obj)            
-            obj.value = obj.Sab/obj.Saa + obj.Sba/obj.Sbb;
-        end   
+
         
         function computeInvChProyections(obj)
             obj.S = inv(obj.Chomog);

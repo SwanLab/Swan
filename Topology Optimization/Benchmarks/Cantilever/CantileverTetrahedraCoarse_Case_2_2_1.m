@@ -7,7 +7,7 @@ cost = {'compliance';'perimeter'};
 weights = [1, 0.1];
 constraint = {'volumeConstraint'};
 optimizer = 'PROJECTED GRADIENT'; 
-kappaMultiplier = 1;
+incrementFactor = 1;
 designVariable = 'Density';
 filterType = 'P1';
 

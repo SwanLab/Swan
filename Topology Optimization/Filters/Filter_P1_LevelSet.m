@@ -98,7 +98,7 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
         end
         
         function init(obj,cParams)
-            obj.mesh = cParams.designVar.mesh;
+            obj.mesh = cParams.mesh;
             obj.quadratureOrder = cParams.quadratureOrder;
         end
         
@@ -112,7 +112,7 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
         end
         
         function createGeometry(obj)
-            s.mesh = obj.mesh.innerMeshOLD;
+            s.mesh = obj.mesh;
             obj.geometry = Geometry.create(s);
             obj.geometry.computeGeometry(obj.quadrature,obj.interp);
         end

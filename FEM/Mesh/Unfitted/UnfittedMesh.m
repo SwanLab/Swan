@@ -36,6 +36,10 @@ classdef UnfittedMesh < handle
                 obj.computeCutMesh();
                 obj.computeInnerCutMesh();
                 obj.computeBoundaryCutMesh();
+            else 
+                obj.cutMesh         = [];
+                obj.innerCutMesh    = [];
+                obj.boundaryCutMesh = [];
             end
             obj.computeUnfittedBoxMesh();            
             obj.createPlotter();            
@@ -58,9 +62,48 @@ classdef UnfittedMesh < handle
             obj.plotter.plotAll();
         end
         
+        function plotNormals(obj)
+            if ~isempty(obj.boundaryCutMesh)
+                obj.boundaryCutMesh.mesh.plotNormals();
+            end            
+        end
+        
+        function dv = computeDvolume(obj,quad)
+            if ~isempty(obj.innerMesh)            
+                dvI = obj.computeInnerDvolume(quad);
+            else 
+                dvI = 0;
+            end
+            dvC = obj.computeInnerCutDvolume(quad);    
+            dv = dvC + dvI;
+        end
+        
+        
     end
     
     methods (Access = private)
+        
+        function dvolume = computeInnerDvolume(obj,quad)
+            nelem = obj.backgroundMesh.nelem;
+            ngaus = quad.ngaus;
+            dv    = obj.innerMesh.mesh.computeDvolume(quad);
+            iCells = obj.innerMesh.fullCells;
+            dvolume = zeros(nelem,ngaus);
+            dvolume(iCells,:) = dv;
+        end
+        
+        function dvolume = computeInnerCutDvolume(obj,quad)
+            nelem = obj.backgroundMesh.nelem;
+            ngaus = quad.ngaus;  
+            dvolume = zeros(nelem,ngaus);   
+            if ~isempty(obj.innerCutMesh)
+            cCells = obj.innerCutMesh.cellContainingSubcell;                
+            dv = obj.innerCutMesh.mesh.computeDvolume(quad);                        
+            for igaus = 1:ngaus
+               dvolume(:,igaus) = accumarray(cCells,dv(igaus,:)',[nelem,1],@sum,0);            
+            end
+            end
+        end
         
         function init(obj,cParams)
             obj.backgroundMesh = cParams.backgroundMesh;
@@ -92,6 +135,8 @@ classdef UnfittedMesh < handle
                 s.backgroundMesh = obj.backgroundMesh;
                 s.fullCells      = obj.fullCells;
                 obj.innerMesh = InnerMesh(s);
+            else
+                obj.innerMesh = [];
             end
         end
         
@@ -135,6 +180,8 @@ classdef UnfittedMesh < handle
             integrator = Integrator.create(s);
             fInt = integrator.integrateInDomain(f);
             %%Now to check IntegrateNodal, later by obj.mesh.computeMass
+            %disp('Interior')
+            %sum(fInt<0)/size(fInt,1)
             mass = sum(fInt);
         end
         
@@ -146,6 +193,8 @@ classdef UnfittedMesh < handle
             integrator = Integrator.create(s);
             fInt = integrator.integrateInBoundary(f);
             %%Now to check IntegrateNodal, later by obj.mesh.computeMass
+            %disp('Boundary')
+            %sum(fInt<0)/size(fInt,1)           
             mass = sum(fInt);
         end
         

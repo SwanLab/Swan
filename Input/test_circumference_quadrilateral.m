@@ -8,7 +8,7 @@ cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
 optimizer = 'HAMILTON-JACOBI'; 
-kappaMultiplier = 1;
+incrementFactor = 1;
 designVariable = 'LevelSet';
 filterType = 'P1';
 

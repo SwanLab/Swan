@@ -2,7 +2,7 @@ classdef Element_Elastic < Element
     %Element_Elastic Summary of this class goes here
     %   Detailed explanation goes here
     properties (Access = public)
-        fextRed        
+        fextRed
     end
     
     
@@ -23,7 +23,7 @@ classdef Element_Elastic < Element
     end
     
     properties (Access = public)
-        principalDirectionComputer                
+        principalDirectionComputer
     end
     
     methods (Static) %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?obj})
@@ -45,15 +45,15 @@ classdef Element_Elastic < Element
                         case '3D'
                             obj = Element_Elastic_3D(mesh,geometry,material,dof,problemData,interp);
                     end
-            end                        
+            end
             obj.createPrincipalDirection(problemData.pdim);
         end
     end
-
+    
     
     methods %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
         function compute(obj,mesh,geometry,material,dof,problemData,interp)
-            obj.interpolation_u = interp{1};            
+            obj.interpolation_u = interp{1};
             obj.initElement(geometry,mesh,material,dof,problemData.scale,interp)
             obj.nfields=1;
             
@@ -68,18 +68,18 @@ classdef Element_Elastic < Element
             
             obj.dim = dimen;
             obj.connec = connect;
-%            obj.DeltaC = ContitutiveTensorIncrement();
+            %            obj.DeltaC = ContitutiveTensorIncrement();
             
             obj.K_generator = StiffnessMatrixGenerator(connect,Bmat,dvolum,dimen);
             
-            obj.Bmatrix = obj.computeB_InMatrixForm(); 
+            obj.Bmatrix = obj.computeB_InMatrixForm();
             
             
-             obj.StiffnessMatrix = KGeneratorWithfullStoredB(obj.dim,obj.connec,obj.Bmatrix,dvolum);
-           
+            obj.StiffnessMatrix = KGeneratorWithfullStoredB(obj.dim,obj.connec,obj.Bmatrix,dvolum);
+            
             
         end
-
+        
         function dim = computeDim(obj,ngaus)
             dim                = DimensionVariables();
             dim.nnode          = obj.nnode;
@@ -100,13 +100,13 @@ classdef Element_Elastic < Element
         function computeQuadrature(obj)
             obj.quadrature.computeQuadrature('LINEAR');
         end
-                
+        
         function computeGeometry(obj)
             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
         end
         
         function Kred = computeLHS(obj)
-            obj.K = obj.computeStiffnessMatrix;
+            obj.K = obj.computeStiffnessMatrix();
             Kred = obj.bcApplier.fullToReducedMatrix(obj.K);
         end
         
@@ -119,7 +119,7 @@ classdef Element_Elastic < Element
         end
         
         function [K] = computeStiffnessMatrix(obj)
-            [K] = obj.computeStiffnessMatrixSYM;            
+            [K] = obj.computeStiffnessMatrixSYM();
         end
         
         function [idx1,idx2,nunkn1,nunkn2,nnode1,nnode2,col,row] = get_assemble_parameters(obj,~,~)
@@ -160,10 +160,10 @@ classdef Element_Elastic < Element
             K = Ke;
         end
         function K = computeStiffnessMatrixSYM(obj)
-           %  obj.DeltaC.obtainChangedElements(obj.material.C)
-           %  obj.K_generator.generate(obj.material.C);
-           %  K = obj.K_generator.getStiffMatrix();
-
+            %  obj.DeltaC.obtainChangedElements(obj.material.C)
+            %  obj.K_generator.generate(obj.material.C);
+            %  K = obj.K_generator.getStiffMatrix();
+            
             
             obj.StiffnessMatrix.compute(obj.material.C);
             K = obj.StiffnessMatrix.K;
@@ -187,15 +187,17 @@ classdef Element_Elastic < Element
             end
         end
         
-       function variables = computeVars(obj,uL)
+        function variables = computeVars(obj,uL)
             variables.d_u = obj.compute_displacements(uL);
             variables.fext = obj.fext;
             variables.strain = obj.computeStrain(variables.d_u,obj.dof.in_elem{1});
             variables.stress = obj.computeStress(variables.strain,obj.material.C,obj.quadrature.ngaus,obj.nstre);
             variables = obj.permuteStressStrain(variables);
-            [dir,s] = obj.computePrincipalStressDirection(variables.stress);
-            variables.principalDirections = dir;
-            variables.principalStress     = s;
+            if ~isequal(class(obj),'Element_Elastic_3D')
+                [dir,s] = obj.computePrincipalStressDirection(variables.stress);
+                variables.principalDirections = dir;
+                variables.principalStress     = s;
+            end
         end
         
         
@@ -203,18 +205,18 @@ classdef Element_Elastic < Element
     
     methods (Access = private)
         
-        function createPrincipalDirection(obj, pdim)   
-            s.eigenValueComputer.type = 'PRECOMPUTED';            
+        function createPrincipalDirection(obj, pdim)
+            s.eigenValueComputer.type = 'PRECOMPUTED';
             s.type = pdim;
             p = PrincipalDirectionComputer.create(s);
             obj.principalDirectionComputer = p;
         end
         
         function [dir,str] = computePrincipalStressDirection(obj,tensor)
-            obj.principalDirectionComputer.compute(tensor);            
+            obj.principalDirectionComputer.compute(tensor);
             dir = obj.principalDirectionComputer.direction;
             str = obj.principalDirectionComputer.principalStress;
-        end            
+        end
         
     end
     
@@ -232,7 +234,7 @@ classdef Element_Elastic < Element
         function u = compute_displacements(obj,usol)
             u = obj.bcApplier.reducedToFullVector(usol);
         end
-
+        
     end
     
     methods(Static)
@@ -243,12 +245,12 @@ classdef Element_Elastic < Element
     end
     
     methods (Abstract, Access = protected)
-        computeStrain(obj)     
+        computeStrain(obj)
         computeBmat(obj)
     end
     
     methods (Abstract, Access = public)
-        computeB(obj)        
+        computeB(obj)
     end
     
     methods(Static, Access = protected)

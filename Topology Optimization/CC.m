@@ -22,14 +22,23 @@ classdef CC < handle & matlab.mixin.Copyable
     
     methods (Access = public)
 
-        function computeCostAndGradient(obj)
+        function computeFunctionAndGradient(obj)
             obj.initValueAndGradient();
             for iSF = 1:length(obj.shapeFunctions)
                 obj.shapeFunctions{iSF}.updateTargetParameters();
-                obj.shapeFunctions{iSF}.computeCostAndGradient();
+                obj.shapeFunctions{iSF}.computeFunctionAndGradient();
                 obj.updateFields(iSF);
             end
         end
+        
+        function computeFunction(obj)
+            obj.initValueAndGradient();
+            for iSF = 1:length(obj.shapeFunctions)
+                obj.shapeFunctions{iSF}.updateTargetParameters();
+                obj.shapeFunctions{iSF}.computeFunction();
+                obj.updateFields(iSF);
+            end
+        end        
                        
         function objClone = clone(obj)
             objClone = copy(obj);
@@ -75,6 +84,7 @@ classdef CC < handle & matlab.mixin.Copyable
                 obj.append(shapeFunction);
             end
         end
+        
         
         function append(obj,shapeFunction)
             obj.shapeFunctions{obj.nSF+1} = shapeFunction;

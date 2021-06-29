@@ -7,7 +7,7 @@ cost={'volume','perimeter'};
 weights=[1 0.1];
 constraint = {'enforceCh_CCstar_inf'};%inferior
 constraint_case = 'EQUALITY';
-optimizer = 'MMA'; kappaMultiplier = 1;
+optimizer = 'MMA'; incrementFactor = 1;
 filterType = 'P1';
 
 nsteps = 1;

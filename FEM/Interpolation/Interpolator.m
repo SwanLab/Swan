@@ -5,6 +5,8 @@ classdef Interpolator < handle
        interpolation
        cellFinder
        zGrid
+       zValues
+       nComponents
        zInterp
        zInterpDeriv       
     end    
@@ -25,12 +27,13 @@ classdef Interpolator < handle
         end
         
         function [z,dz] = interpolate(obj,z)
-            obj.zGrid  = z;                 
+            obj.nComponents = size(z,3);
+            obj.zValues  = obj.computeZvalues(z);                 
             obj.obtainInterpolationValues();
             obj.obtainInterpolationDerivativesValues();
             z = obj.zInterp;
             dz = obj.zInterpDeriv;
-        end
+        end        
         
     end
     
@@ -51,33 +54,42 @@ classdef Interpolator < handle
             nC = obj.cellFinder.naturalCoord;
             obj.interpolation.computeShapeDeriv(nC);
         end
-                
+                    
         function obtainInterpolationValues(obj)
-            shapes = obj.interpolation.shape;        
-            z(:,1) = reshape(obj.zGrid',[],1);
-            v      = zeros(size(shapes,2),1);
-            for inode = 1:size(shapes,1)
-                nodes = obj.cellFinder.cells(:,inode);
-                znode = z(nodes);
-                v(:,1) = v(:,1) + znode.*shapes(inode,:)';
-            end            
+            shapes = obj.interpolation.shape;
+            v = obj.interpolateValues(shapes,obj.zValues);
             obj.zInterp = v;
         end
         
-        function obtainInterpolationDerivativesValues(obj)
-            shapeDeriv = obj.interpolation.deriv;            
-            z(:,1) = reshape(obj.zGrid',[],1);
-            v      = zeros(size(shapeDeriv,3),size(shapeDeriv,1));
-            for inode = 1:size(shapeDeriv,2)
-                nodes = obj.cellFinder.cells(:,inode);
-                znode = z(nodes);
-                sh = squeeze(shapeDeriv(:,inode,:));
-                v = v + bsxfun(@(x,y) x.*y,znode,sh');
-            end            
-            obj.zInterpDeriv = v;
+        function v = interpolateValues(obj,shapes,f)
+            shapesT = shapes';            
+            v = bsxfun(@times,shapesT,f);
+            v = permute(v,[3 1 2]);
+            v = sum(v,3);
         end
         
-
+        function zT = computeZvalues(obj,z)
+            z = permute(z,[2 1 3]);
+            z = reshape(z,[],obj.nComponents);
+            nodes = obj.cellFinder.cells;
+            [nelem,nnode] = size(nodes);
+            znode = z(nodes(:),:);
+            zT = reshape(znode,nelem,nnode,obj.nComponents);    
+        end
+                
+        function obtainInterpolationDerivativesValues(obj)
+            shapeDeriv = obj.interpolation.deriv;            
+            ndir  = size(shapeDeriv,1);
+            nelem = size(shapeDeriv,3);
+            v = zeros(obj.nComponents,nelem,ndir);            
+            for idir = 1:ndir
+                shapes = squeeze(shapeDeriv(idir,:,:));
+                vi = obj.interpolateValues(shapes,obj.zValues);
+                v(:,:,idir) = vi;
+            end
+            obj.zInterpDeriv = v;
+        end         
+        
     end
     
     

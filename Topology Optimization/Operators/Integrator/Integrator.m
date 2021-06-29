@@ -17,13 +17,13 @@ classdef Integrator < handle
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.mesh               = cParams.mesh;
-            obj.npnod              = cParams.npnod;
+            obj.mesh  = cParams.mesh;
+            obj.npnod = cParams.npnod;
         end
         
-        function quadrature = computeQuadrature(obj)
+        function quadrature = computeQuadrature(obj,quadOrder)
             quadrature = Quadrature.set(obj.mesh.type);
-            quadrature.computeQuadrature('LINEAR');
+            quadrature.computeQuadrature(quadOrder);
         end                
         
         function f = assembleIntegrand(obj,rhsCells)
@@ -39,16 +39,24 @@ classdef Integrator < handle
             end
         end   
         
-        function rhsC = computeElementalRHS(obj,fNodal,xGauss,connec,type)
-            s.fNodal         = fNodal;
-            s.xGauss         = xGauss;
-            s.mesh           = obj.mesh;
-            s.connec         = connec;
-            s.type           = type;
+        function rhsC = computeElementalRHS(obj,fGauss,xGauss,type,quadOrder)
+            s.fGauss    = fGauss;
+            s.xGauss    = xGauss;
+            s.mesh      = obj.mesh;
+            s.type      = type;
+            s.quadOrder = quadOrder;
             rhs = RHSintegrator(s);
             rhsC = rhs.integrate();
         end        
         
+        function fG = computeFgauss(obj,fNodal,xGauss,connec,type)
+            s.fNodes = fNodal;
+            s.connec = connec;
+            s.type   = type;
+            f = FeFunction(s);
+            fG = f.interpolateFunction(xGauss);
+            fG = permute(fG,[2 3 1]);  
+        end
         
     end
     

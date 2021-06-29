@@ -1,39 +1,91 @@
 classdef LineSearch < handle
-    properties
-        kappa
-        kappa_min
-        kfrac
+    
+    properties (Access = public)
+        value
+        nTrials
     end
     
-    methods (Static)
+    properties (Access = private)
+        minValue
+        initiator
+        designVariable
+        objectiveFunction
+        initiatorSettings
+    end
+    
+    methods (Access = public, Static)
+        
         function obj = create(cParams)
-            switch cParams.type
-                case 'DIMENSIONALLY CONSISTENT'
-                    switch cParams.optimizerType
-                        case 'PROJECTED GRADIENT'
-                            obj = LS_BackTracking_DimensionallyConsistent_PG(cParams);
-                        case 'SLERP'
-                            obj = LS_BackTracking_DimensionallyConsistent_SLERP(cParams);
-                        case 'HAMILTON-JACOBI'
-                            obj = LS_BackTracking_DimensionallyConsistent_HJ(cParams);
-                        otherwise
-                            error('%s is NOT a valid unconstrained optimizer.',cParams.optimizer);
-                    end
-                case 'DOUBLING LAST STEP'
-                    switch cParams.optimizerType
-                        case 'PROJECTED GRADIENT'
-                            obj = LS_BackTracking_DoublingLastStep_PG(cParams);
-                        case 'SLERP'
-                            obj = LS_BackTracking_DoublingLastStep_SLERP;
-                        case 'HAMILTON-JACOBI'
-                            obj = LS_BackTracking_DoublingLastStep_HJ(cParams);
-                        otherwise
-                            error('%s is NOT a valid unconstrained optimizer.',cParams.optimizer);
-                    end
-                otherwise  
-                    error('%s is NOT a valid line-search algorithm.',cParams.type);
-            end
+            f = LineSearchFactory();
+            obj = f.create(cParams);
         end
+        
+    end
+    
+    methods (Access = public)
+        
+        function itIs = isTooSmall(obj)
+            itIs = obj.value <= obj.minValue;
+        end
+        
+        function computeStartingValue(obj)
+            s = obj.initiatorSettings;
+            s.type = 'STANDARD';
+            s.designVariable    = obj.designVariable;
+            s.objectiveFunction = obj.objectiveFunction;
+            s.minValue          = obj.minValue;
+            init = LineSearchInitiator.create(s);
+            obj.value = init.compute();
+            obj.nTrials = 0;            
+        end
+        
+        function computeTrial(obj)
+            v = obj.initiator.compute(obj.value);
+            obj.value = v;
+            obj.nTrials = 0;
+        end
+        
+    end
+    
+    methods (Access = protected)
+        
+        function init(obj,cParams)
+            obj.designVariable    = cParams.designVariable;
+            obj.objectiveFunction = cParams.objectiveFunction;
+            obj.initiatorSettings = cParams.lineSearchInitiatorSettings;
+            obj.minValue = obj.computeMinValue();
+            obj.computeLineSearchInitiator();
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function minV = computeMinValue(obj)
+            s = obj.initiatorSettings;
+            switch s.optimizerType
+                case {'PROJECTED GRADIENT','HAMILTON-JACOBI'}
+                    minV = 1e-13;
+                case {'SLERP'}
+                    minV = 1e-2;
+            end                       
+        end
+        
+        function computeLineSearchInitiator(obj)
+            s = obj.initiatorSettings;
+            s.designVariable    = obj.designVariable;
+            s.objectiveFunction = obj.objectiveFunction;
+            s.minValue          = obj.minValue;
+            obj.initiator = LineSearchInitiator.create(s);
+        end
+        
+        
+        
+    end
+    
+    methods (Access = public, Abstract)
+        update(obj)
     end
 end
+
 

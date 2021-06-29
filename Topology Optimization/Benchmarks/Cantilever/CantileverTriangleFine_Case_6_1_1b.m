@@ -9,8 +9,8 @@ constraint = {'volumeConstraint'};
 constraint_case = 'EQUALITY';
 optimizer = 'DualNestedInPrimal';
 optimizerUnconstrained = 'SLERP';
-kappaMultiplier = 1;
-kfrac = 1.05;
+incrementFactor = 1;
+rate = 0.95;
 designVariable = 'LevelSet';
 filterType = 'P1';
 

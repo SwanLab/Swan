@@ -19,12 +19,14 @@ classdef SettingsMonitoringDocker < AbstractSettings
         
         designVariable
         dualVariable
-        optimizerName
+        optimizerNames        
         cost
         constraint
         
         convergenceVars
         boundaryConditions
+        
+        mesh
     end
     
     methods (Access = public)

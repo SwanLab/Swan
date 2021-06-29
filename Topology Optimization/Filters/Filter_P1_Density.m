@@ -67,12 +67,19 @@ classdef Filter_P1_Density < handle %Filter_P1
         
         function init(obj,cParams)
             obj.createDiffReacProblem(cParams);
-            obj.mesh = cParams.designVar.mesh;
+            obj.mesh = cParams.mesh;
             obj.quadratureOrder = cParams.quadratureOrder;
         end
       
         function x0 = computeP0fromP1(obj,x)
             x0 = obj.Kernel*x;
+%            %
+%             s.connec = obj.mesh.connec;
+%             s.type = obj.mesh.type;
+%             s.fNodes = x;
+%             fe = FeFunction(s);
+%             x0 = fe.computeValueInCenterElement();            
+            %
         end
         
         function createFilterKernel(obj)
@@ -88,6 +95,7 @@ classdef Filter_P1_Density < handle %Filter_P1
         
         function pB = createDiffReacProblem(obj,cParams)
             s = cParams.femSettings;
+            s.mesh = cParams.mesh;
             switch s.scale
                 case 'MACRO'
                     pB = DiffReact_Problem(s);
@@ -124,7 +132,7 @@ classdef Filter_P1_Density < handle %Filter_P1
         end           
                 
         function createGeometry(obj)
-            s.mesh = obj.mesh.innerMeshOLD;
+            s.mesh = obj.mesh;
             obj.geometry = Geometry.create(s);
             obj.geometry.computeGeometry(obj.quadrature,obj.interp);        
         end

@@ -9,7 +9,7 @@ weights = [1];
 constraint = {'volumeConstraint'};
 optimizer = 'SLERP'; 
 designVariable = 'LevelSet';
-kappaMultiplier = 1;
+incrementFactor = 1;
 filterType = 'PDE';
 
 nsteps = 1;

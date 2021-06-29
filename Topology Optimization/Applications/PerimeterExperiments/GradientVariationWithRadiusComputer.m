@@ -36,7 +36,6 @@ classdef GradientVariationWithRadiusComputer < handle
             obj.domainLength = cParams.domainLength;            
         end
 
-        
         function xN = computeXinNodesToPlot(obj)
             x = obj.mesh.coord(:,1);
             nodesToPlot = obj.obtainNodesToPlot();            
@@ -73,7 +72,7 @@ classdef GradientVariationWithRadiusComputer < handle
             for iepsilon = 1:nEpsilon
                 p{iepsilon} = plot(x,y(:,iepsilon),'+-');
                 epsStr   = num2str(epsilons(iepsilon)/h);
-                leg{iepsilon} = ['$dPer^R_\varepsilon \ \textrm{with} \ \varepsilon/h \, = \,',epsStr,'$'];
+                leg{iepsilon} = ['$\varepsilon/h \, = \,',epsStr,'$'];
             end
             legObj = legend(leg);
             set(legObj,'Interpreter','latex','Location','Best');

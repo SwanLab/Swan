@@ -1,9 +1,11 @@
-classdef testAnalyticVsRegularizedPerimeter < testShowingError ... & testTopOptComputation
+classdef testAnalyticVsRegularizedPerimeter < testShowingError
     
     properties (Access = private)
         designVariable
-        mesh
-        levelSetCreator
+        backgroundMesh
+        boundaryMesh
+     %   unfittedMesh
+        levelSet
         regularizedPerimeter
         analyticPerimeter
         radius
@@ -19,7 +21,7 @@ classdef testAnalyticVsRegularizedPerimeter < testShowingError ... & testTopOptC
         
         function obj = testAnalyticVsRegularizedPerimeter()
             obj.init();
-            obj.createMesh();
+            obj.createBackgroundAndBoundaryMesh();            
             obj.createLevelSet();
             obj.computeRegularizedPerimeter();
         end
@@ -27,10 +29,6 @@ classdef testAnalyticVsRegularizedPerimeter < testShowingError ... & testTopOptC
     end
     
     methods (Access = protected)
-        
-        function selectComputedVar(obj)
-            obj.designVariable = obj.topOpt.designVariable;
-        end
         
         function computeError(obj)
             aP = obj.analyticPerimeter;
@@ -49,51 +47,44 @@ classdef testAnalyticVsRegularizedPerimeter < testShowingError ... & testTopOptC
             obj.inputFile = 'SquareMacroTriangle';
         end
         
-         function createMesh(obj)
-            [connec,coord] = obj.loadSquareMeshParams();
-            s.coord  = coord;
-            s.connec = connec;
-            obj.mesh = Mesh_Total(s);
+        function createBackgroundAndBoundaryMesh(obj)
+            s.inputFile = obj.inputFile;
+            s.isBackgroundMeshRectangularBox = true;
+            mCreator = BackgroundAndBoundaryMeshCreatorFromInputFile(s);
+            obj.backgroundMesh = mCreator.backgroundMesh;
+            obj.boundaryMesh   = mCreator.boundaryMesh;            
         end
         
-        function [connec,coord] = loadSquareMeshParams(obj)
-            eval(obj.inputFile);
-            coord  = coord(:,2:3);
-            connec = connec(:,2:end);
-        end
-        
-        function createLevelSet(obj)
-            s.inputFile    = obj.inputFile;
-            s.mesh         = obj.mesh;
-            s.scale        = 'MACRO';
-            s.plotting              = false;
-            s.printing              = false;
-            s.levelSetCreatorParams = obj.createLevelSetCreatorParams();
-            lsCreator = LevelSetCreatorForPerimeter(s);
-            obj.designVariable = lsCreator.levelSet;
-        end
-        
-        function s = createLevelSetCreatorParams(obj)
-            ss.type = 'circleInclusion';
-            domainLength = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
-            halfSide = domainLength/2;
-            ss.fracRadius = (obj.radius/halfSide);            
-            s = SettingsLevelSetCreator;
-            s = s.create(ss); 
+        function createLevelSet(obj)           
+            domainLength = max(obj.backgroundMesh.coord(:,1)) - min(obj.backgroundMesh.coord(:,1));
+            halfSide = domainLength/2;            
+            sa.fracRadius = (obj.radius/halfSide);
+            sa.coord      = obj.backgroundMesh.coord;
+            sa.ndim       = obj.backgroundMesh.ndim;
+            s.creatorSettings = sa;            
+            s.initialCase = 'circleInclusion';
+            s.type = 'LevelSet';
+            s.mesh = Mesh_Total(obj.backgroundMesh);
+            s.scalarProductSettings.epsilon = 0.01;
+            s.scalarProductSettings.mesh = Mesh_Total(obj.backgroundMesh);
+            s.isFixed = [];
+            obj.levelSet = DesignVariable.create(s);
         end        
-        
+
+          
          function computeRegularizedPerimeter(obj)
             s = obj.createPerimeterParams();
             perimeterFunc = ShFunc_Perimeter(s);
-            perimeterFunc.computeCostAndGradient();
-            obj.regularizedPerimeter = perimeterFunc.value;             
+            perimeterFunc.computeFunctionAndGradient();
+            per = perimeterFunc.value*perimeterFunc.value0;
+            obj.regularizedPerimeter = per;             
         end     
         
-          function s = createPerimeterParams(obj)
+        function s = createPerimeterParams(obj)
            sC.inputFile      = obj.inputFile;
-           sC.mesh           = obj.mesh; 
-           sC.designVariable = obj.designVariable;
-           sC.epsilon        = obj.designVariable.mesh.computeMeanCellSize();
+           sC.mesh           = obj.backgroundMesh; 
+           sC.designVariable = obj.levelSet;
+           sC.epsilon        = obj.backgroundMesh.computeMeanCellSize();
            sC.scale          = 'MACRO';
            sC.type           = 'perimeterInterior';
            sC.isRobinTermAdded = false;

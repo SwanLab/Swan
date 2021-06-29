@@ -49,9 +49,13 @@ classdef Elastic_Problem_Micro < FEM
             obj.element.geometry.computeGeometry(obj.element.quadrature,obj.element.interpolation_u);
             nstre = obj.element.getNstre();
             basis = diag(ones(nstre,1));
-            tstrain = zeros(nstre,obj.element.quadrature.ngaus,nstre,obj.element.nelem);
-            tstress = zeros(nstre,obj.element.quadrature.ngaus,nstre,obj.element.nelem);
+            tstrain  = zeros(nstre,obj.element.quadrature.ngaus,nstre,obj.element.nelem);
+            tstrainF = zeros(nstre,obj.element.quadrature.ngaus,nstre,obj.element.nelem);
+            tstress  = zeros(nstre,obj.element.quadrature.ngaus,nstre,obj.element.nelem);
             tdisp   = zeros(nstre,obj.element.dof.ndof);
+            
+            Ch2 = zeros(nstre,nstre);
+            Ch = zeros(nstre,nstre);
             
             var2print = cell(nstre,1);
             for istre=1:nstre
@@ -60,7 +64,9 @@ classdef Elastic_Problem_Micro < FEM
                 obj.computeVariables;
                 Ch(:,istre) = obj.variables.stress_homog;
                 tstrain(istre,:,:,:) = obj.variables.strain;
+                tstrainF(istre,:,:,:) = obj.variables.strain_fluct;
                 tstress(istre,:,:,:) = obj.variables.stress;
+                
                 tdisp(istre,:) = obj.variables.d_u;
                 var2print{istre}.stress = obj.variables.stress;
                 var2print{istre}.strain = obj.variables.strain;
@@ -74,6 +80,44 @@ classdef Elastic_Problem_Micro < FEM
             obj.variables.tstress = tstress;
             obj.variables.tdisp   = tdisp;
             
+            dV = obj.geometry.dvolu;
+            for istre = 1:nstre
+                for jstre = 1:nstre
+                    s = squeezeParticular(tstress(istre,:,:,:),1);
+                    e = squeezeParticular(tstrain(jstre,:,:,:),1);
+                    ener = (s.*e);
+                    en = sum(ener,2);
+                    en = squeezeParticular(en,2);
+                    Ch2(istre,jstre) = en(:)'*dV(:);
+                end
+            end
+            
+            
+            Cmat = obj.element.material.C;
+            
+            Ch3 = zeros(nstre,nstre);
+            ngaus = size(tstrain,2);
+            nelem = size(tstrain,4);
+            for istre = 1:nstre
+                for jstre = 1:nstre
+                   ei(1:ngaus,:,:) = squeeze(tstrain(istre,:,:,:));
+                   ej(1:ngaus,:,:) = squeeze(tstrain(jstre,:,:,:));
+                   c = zeros(ngaus,nelem);
+                    for kstre = 1:nstre
+                        for lstre = 1:nstre
+                         eiV(1:ngaus,:) = squeeze(ei(:,kstre,:));
+                         ejV(1:ngaus,:) = squeeze(ej(:,lstre,:));
+                         Cmm(1,:) = squeeze(Cmat(kstre,lstre,:,:));
+                         Cm  = repmat(Cmm,ngaus,1);
+                         c = c + Cm.*eiV.*ejV;
+                        end
+                    end
+                    cC = c.*dV';                    
+                    Ch3(istre,jstre) = sum(cC(:));
+                end
+            end
+            
+
             
             obj.variables2print = var2print;
             

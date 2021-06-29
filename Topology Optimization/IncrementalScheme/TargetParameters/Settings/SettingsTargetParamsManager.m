@@ -22,6 +22,9 @@ classdef SettingsTargetParamsManager < AbstractSettings
         
         epsilonIsoInitial
         epsilonIsoFinal
+        
+        stressNormExponentInitial
+        stressNormExponentFinal
     end
     
     properties (GetAccess = private, SetAccess = public)
@@ -34,6 +37,8 @@ classdef SettingsTargetParamsManager < AbstractSettings
             if nargin == 1
                 obj.loadParams(varargin{1});
             end
+            obj.setIfEmpty('stressNormExponentInitial',2);
+            obj.setIfEmpty('stressNormExponentFinal',2);                        
         end
         
     end

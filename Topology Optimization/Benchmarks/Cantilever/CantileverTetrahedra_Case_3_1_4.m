@@ -7,7 +7,7 @@ cost = {'compliance'};
 weights = [1 0.1];
 constraint = {'volumeConstraint'};
 optimizer = 'MMA'; 
-kappaMultiplier = 1;
+incrementFactor = 1;
 designVariable = 'Density';
 filterType = 'P1';
 

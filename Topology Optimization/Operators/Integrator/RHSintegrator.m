@@ -1,12 +1,13 @@
 classdef RHSintegrator < handle
 
     properties (Access = private)
-        fNodal
+        fGauss
+        xGauss        
         mesh
         type
-        connec
-        xGauss
-        quadrature
+        quadOrder
+        
+        quadrature        
     end
     
     methods (Access = public)
@@ -17,12 +18,12 @@ classdef RHSintegrator < handle
         end
         
         function int = integrate(obj)
-            Fgauss  = obj.computeFinGaussPoints();
-            dV      = obj.computeDvolume();
-            fdV     = (Fgauss.*dV);
-            shapes  = obj.computeShapeFunctions();
-            nnode   = size(shapes,1);
-            nelem   = size(shapes,2);
+            fG     = obj.fGauss;
+            dV     = obj.computeDvolume();
+            fdV    = (fG.*dV);
+            shapes = obj.computeShapeFunctions();
+            nnode  = size(shapes,1);
+            nelem  = size(shapes,2);
             int = zeros(nnode,nelem);
             for igaus = 1:obj.quadrature.ngaus
                 fdv   = fdV(igaus,:);
@@ -37,31 +38,18 @@ classdef RHSintegrator < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.fNodal = cParams.fNodal;
-            obj.xGauss = cParams.xGauss;
-            obj.mesh   = cParams.mesh;
-            obj.type   = cParams.type;
-            obj.connec = cParams.connec;
+            obj.fGauss    = cParams.fGauss;
+            obj.xGauss    = cParams.xGauss;
+            obj.mesh      = cParams.mesh;
+            obj.type      = cParams.type;
+            obj.quadOrder = cParams.quadOrder;
         end
         
         function q = computeQuadrature(obj)
            q = Quadrature.set(obj.mesh.type);
-           q.computeQuadrature('LINEAR');
+           q.computeQuadrature(obj.quadOrder);
            obj.quadrature = q;
        end          
-        
-        function fG = computeFinGaussPoints(obj)
-            f  = obj.createFeFunction();
-            fG = f.interpolateFunction(obj.xGauss);
-            fG = permute(fG,[2 3 1]);            
-        end        
-        
-        function f = createFeFunction(obj)            
-            s.fNodes = obj.fNodal;
-            s.connec = obj.connec;
-            s.type   = obj.type;
-            f = FeFunction(s);
-        end             
         
         function dV = computeDvolume(obj)
             q = obj.quadrature;

@@ -6,7 +6,7 @@ initial_case = 'full';
 cost = {'compliance';'perimeter'};
 weights = [1, 0.1];
 constraint = {'volumeConstraint'};
-optimizer = 'SLERP'; kappaMultiplier = 1;
+optimizer = 'SLERP'; incrementFactor = 1;
 filterType = 'P1';
 
 nsteps = 5;

@@ -42,7 +42,9 @@ classdef Optimizer_PrimalDual < Optimizer
             cParams.lagrangian      = obj.lagrangian;           
             cParams.convergenceVars = obj.convergenceVars;
             obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams);              
-        end             
+       end 
+        
+
         
     end
     

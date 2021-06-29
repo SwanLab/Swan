@@ -32,8 +32,9 @@ classdef Optimizer_IPOPT < Optimizer
         end
         
         function solveProblem(obj)
-            obj.cost.computeCostAndGradient();
+            obj.cost.computeFunctionAndGradient();
             obj.updateIpoptOptions();
+            obj.designVariable.updateOld();                
             x = obj.callIpopt();
             obj.designVariable.update(x);
         end
@@ -60,41 +61,50 @@ classdef Optimizer_IPOPT < Optimizer
         end
         
         function f = objective(obj,x)
-            obj.designVariable.value = x;
-            obj.cost.computeCostAndGradient()
+            obj.designVariable.update(x);
+            obj.cost.computeFunctionAndGradient();
             f = obj.cost.value;
         end
         
         function f = constraintFunction(obj,x)
-            obj.designVariable.value = x;
-            obj.constraint.computeCostAndGradient()
+            obj.designVariable.update(x);
+            obj.constraint.computeFunctionAndGradient()
             f = obj.constraint.value;
         end
         
         function g = gradient(obj,x)
-            obj.designVariable.value = x;
-            obj.cost.computeCostAndGradient()
+            obj.designVariable.update(x);
+            obj.cost.computeFunctionAndGradient()
             g = obj.cost.gradient;
         end
         
         function g = constraint_gradient(obj,x)
-            obj.designVariable.value = x;
-            obj.constraint.computeCostAndGradient()
+            obj.designVariable.update(x);
+            obj.constraint.computeFunctionAndGradient()
             g = obj.constraint.gradient;
         end
         
         function stop = outputfun_ipopt(obj,data)
             stop = true;
+            obj.historicalVariables.inf_pr = data.inf_pr;
             obj.historicalVariables.inf_du = data.inf_du;
             obj.data = data;
             obj.nIter = obj.nIter+1;
-            obj.designVariable.update(data.x);
+            if ~isempty(data.x)
+                obj.designVariable.update(data.x);                
+                normXsquare = obj.designVariable.computeL2normIncrement();
+                obj.designVariable.updateOld();                
+                incX = sqrt(normXsquare);
+            end
             obj.updateStatus();
             obj.printOptimizerVariable();
             obj.dualVariable.value = zeros(obj.constraint.nSF,1);
             
+            
             obj.convergenceVars.reset();
+            obj.convergenceVars.append(data.inf_pr);
             obj.convergenceVars.append(data.inf_du);
+            obj.convergenceVars.append(incX);
             obj.refreshMonitoring();
             obj.printHistory();
         end
@@ -103,6 +113,8 @@ classdef Optimizer_IPOPT < Optimizer
             opt.ipopt.print_level= 0;
             opt.ipopt.hessian_approximation = 'limited-memory';
             opt.ipopt.limited_memory_update_type = 'bfgs';
+            opt.ipopt.mu_strategy                = 'adaptive'; 
+            opt.ipopt.mu_init                = 0.01;             
             opt.ub = obj.upperBound*ones(obj.nX,1);
             opt.lb = obj.lowerBound*ones(obj.nX,1);
             if strcmp(obj.constraintCase,'EQUALITY')

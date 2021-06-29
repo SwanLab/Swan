@@ -7,11 +7,11 @@ cost = {'compliance','perimeter'};
 weights = [1 0.1];
 constraint = {'volumeConstraint'};
 optimizer = 'SLERP'; 
-kappaMultiplier = 1;
+incrementFactor = 1;
 designVariable = 'LevelSet';
 filterType = 'P1';
 constraint_case = 'EQUALITY'; %'INEQUALITY';
-line_search = 'DIMENSIONALLY CONSISTENT';
+line_search_initiator = 'STANDARD';
 showBC = true;
 
 nsteps = 20;

@@ -55,9 +55,8 @@ classdef SettingsOptimizerUnconstrained < AbstractSettings
         function initLineSearchSettings(obj)
             s = obj.lineSearchSettings;
             obj.lineSearchSettings = SettingsLineSearch(s);
-            s2.optimizerType  = obj.type;
-            s2.filename       = obj.problemData.femData.fileName;
-            obj.lineSearchSettings.loadParams(s2);
+            obj.lineSearchSettings.lineSearchInitiatorSettings.optimizerType  = obj.type;
+            obj.lineSearchSettings.filename       = obj.problemData.femData.fileName;
         end
         
     end

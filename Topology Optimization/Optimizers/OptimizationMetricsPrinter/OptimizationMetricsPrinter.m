@@ -28,15 +28,15 @@ classdef OptimizationMetricsPrinter < handle
             fprintf(fid,'\n');
             fprintf(fid,'Iteration: %i \n',nIter);
             fprintf(fid,'Nstep: %i \n',iStep);
-            fprintf(fid,'obj.cost %f \n',obj.cost.value);
+            fprintf(fid,'cost %f \n',obj.cost.value);
             
             for i = 1:length(obj.cost.shapeFunctions)
-                fprintf(fid,strcat('-obj.cost ',num2str(i),': %f \n'),obj.cost.shapeFunctions{i}.value);
+                fprintf(fid,strcat('-cost ',num2str(i),': %f \n'),obj.cost.shapeFunctions{i}.value);
             end
             
-            fprintf(fid,'obj.constraint: %f \n',obj.constraint.value);
+            fprintf(fid,'constraint: %f \n',obj.constraint.value);
             for i = 1:length(obj.constraint.shapeFunctions)
-                fprintf(fid,strcat('-obj.constraint ',num2str(i),': %f \n'),obj.constraint.shapeFunctions{i}.value);
+                fprintf(fid,strcat('-constraint ',num2str(i),': %f \n'),obj.constraint.shapeFunctions{i}.value);
             end
             
             obj.printConvergenceVariables(fid);
@@ -44,6 +44,15 @@ classdef OptimizationMetricsPrinter < handle
             fprintf(fid,'\n');
             
             fclose(fid);
+        end
+        
+        function printFinal(obj)
+           fid = fopen(obj.filePath,'at');
+           fprintf(fid,'\n');           
+           fprintf(fid,'-----------------------------------------------------------------------------------------------\n');
+           fprintf(fid,'\n');
+           fprintf(fid,'cost %f \n',obj.cost.computeNonNormalizedValue());          
+           fclose(fid);
         end
         
     end

@@ -1,8 +1,7 @@
 classdef LevelSet < DesignVariable
     
-    
     properties (Access = private)
-        levelSetCreatorSettings
+        creatorSettings
         unfittedMesh
     end    
     
@@ -11,13 +10,17 @@ classdef LevelSet < DesignVariable
         function obj = LevelSet(cParams)
             obj.nVariables = 1;            
             obj.init(cParams);
-            obj.levelSetCreatorSettings = cParams.levelSetCreatorSettings;
+            obj.creatorSettings      = cParams.creatorSettings;
+            obj.creatorSettings.type = cParams.initialCase;
             obj.createValue();
             obj.createUnfittedMesh();
         end
         
         function update(obj,value)
             obj.value = value;
+            if ~isempty(obj.isFixed)
+                obj.value(obj.isFixed.nodes) = obj.isFixed.values;
+            end
             obj.updateUnfittedMesh();
         end
         
@@ -25,16 +28,30 @@ classdef LevelSet < DesignVariable
             m = obj.unfittedMesh;
         end
         
+        function v = getVariablesToPlot(obj)
+            v{1} = obj.value;
+        end
+        
+        function vf = computeVolumeFraction(obj)
+            q = Quadrature.set(obj.unfittedMesh.backgroundMesh.type);
+            q.computeQuadrature('CONSTANT');            
+            bM = obj.unfittedMesh.backgroundMesh;            
+            dv = obj.unfittedMesh.computeDvolume(q);
+            dVT = bM.computeDvolume(q)';  
+            vf = dv./dVT;               
+        end
+        
     end
     
     methods (Access = private)
         
         function createValue(obj)
-            s = obj.levelSetCreatorSettings;
+            s = obj.creatorSettings;
             s.ndim  = obj.mesh.ndim;
             s.coord = obj.mesh.coord;
             lsCreator  = LevelSetCreator.create(s);
-            obj.value  = lsCreator.getValue();
+            lsValue = lsCreator.getValue();
+            obj.value = lsValue;
         end        
         
         function createUnfittedMesh(obj)

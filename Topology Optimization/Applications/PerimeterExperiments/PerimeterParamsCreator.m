@@ -41,7 +41,8 @@ classdef PerimeterParamsCreator < handle
         function createPerimeterParams(obj)
             obj.perimeterParams = SettingsShapeFunctional();                              
             obj.perimeterParams.type = 'perimeterInterior';            
-            obj.perimeterParams.designVariable = obj.designVariable;            
+            obj.perimeterParams.designVariable = obj.designVariable;     
+            obj.perimeterParams.mesh = obj.mesh;
         end
            
         function addFemParams(obj)
@@ -53,9 +54,9 @@ classdef PerimeterParamsCreator < handle
             s = SettingsFilter();
             s.filterType =  'PDE';
             s.domainType =  'INTERIOR';
-            s.designVar  =  obj.designVariable;
-            s.quadratureOrder =  'LINEAR';
             s.femSettings = obj.createFemParams();
+            s.designVarType = 'LevelSet';
+            s.mesh = obj.mesh;
             obj.perimeterParams.filterParams = s;            
         end        
         

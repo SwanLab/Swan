@@ -6,9 +6,9 @@ initial_case = 'holes';
 cost = {'compliance','perimeter'};
 weights = [1 0.1];
 constraint = {'volume'};
-optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
+optimizer = 'HAMILTON-JACOBI'; incrementFactor = 1;
 filterType = 'P1';
-line_search = 'DIMENSIONALLY CONSISTENT';
+line_search_initiator = 'STANDARD';
 showBC = true;
 
 HJiter0 = 1;

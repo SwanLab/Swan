@@ -1,6 +1,6 @@
 classdef testPlotting < testNotShowingError...
         & testUnfitted...
-    
+        
     properties (Access = protected, Abstract)
         testName
         meshType
@@ -15,23 +15,27 @@ classdef testPlotting < testNotShowingError...
         end
         
         function plot(obj)
-            if isequal(obj.meshType,'BOUNDARY')            
+            figure();
+            if isequal(obj.meshType,'BOUNDARY')
                 obj.unfittedMesh.plotBoundary();
-            elseif isequal(obj.meshType,'INTERIOR')            
+                obj.unfittedMesh.plotNormals();
+            elseif isequal(obj.meshType,'INTERIOR')
                 obj.unfittedMesh.plot();
             end
-             view(obj.getViewAngle());            
+            view(obj.getViewAngle());
         end
         
         function hasPassed = hasPassed(obj)
-            d = load(obj.testName);     
-            itIs = isequaln(obj.unfittedMesh,d.unfittedMesh);            
+            d = load(obj.testName);
+            itIs = isequaln(obj.unfittedMesh,d.unfittedMesh);
             hasPassed = itIs;
         end
         
     end
     
     methods (Access = private)
+        
+
         function angle = getViewAngle(obj)
             if isprop(obj,'viewAngle')
                 angle = obj.viewAngle;

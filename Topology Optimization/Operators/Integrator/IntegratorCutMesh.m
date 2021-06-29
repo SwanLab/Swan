@@ -17,20 +17,31 @@ classdef IntegratorCutMesh < Integrator
         end
         
         function rhs = integrate(obj,fNodal)
-            c = obj.computeSubCellConnec();
-            t = obj.backgroundMeshType;
-            xGauss = obj.computeGaussPoints();
-            rhsCellsCut = obj.computeElementalRHS(fNodal,xGauss,c,t);
-            rhsCells    = obj.assembleSubcellsInCells(rhsCellsCut);
-            rhs = obj.assembleIntegrand(rhsCells);
+            quadOrder = 'LINEAR';            
+            rhs = obj.integrateFnodal(fNodal,quadOrder);
         end
+        
+        function rhs = integrateFnodal(obj,fNodal,quadOrder)
+            connec = obj.computeSubCellConnec();
+            type   = obj.backgroundMeshType;
+            xGauss = obj.computeGaussPoints(quadOrder);
+            fGauss = obj.computeFgauss(fNodal,xGauss,connec,type);            
+            rhs    = obj.integrateFgauss(fGauss,xGauss,quadOrder);
+        end
+        
+        function rhs = integrateFgauss(obj,fGauss,xGauss,quadOrder)
+            type     = obj.backgroundMeshType;                 
+            rhsCellsCut = obj.computeElementalRHS(fGauss,xGauss,type,quadOrder);
+            rhsCells    = obj.assembleSubcellsInCells(rhsCellsCut);
+            rhs = obj.assembleIntegrand(rhsCells);                          
+        end        
         
     end
     
     methods (Access = private)
         
-        function xGauss = computeGaussPoints(obj)
-            q = obj.computeQuadrature();            
+        function xGauss = computeGaussPoints(obj,quadOrder)
+            q = obj.computeQuadrature(quadOrder);            
             s.connec = obj.computeSubCellsLocalConnec();
             s.fNodes = obj.computeSubCellsLocalCoord();
             s.type   = obj.mesh.type;

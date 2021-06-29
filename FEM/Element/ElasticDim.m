@@ -1,7 +1,15 @@
 classdef ElasticDim < handle
     
+    properties (Access = public)
+       dEps 
+    end
+    
     properties (Abstract, Access = protected)
         nstre
+        %geometry
+        %nnode
+        %dof
+        %quadrature
     end
     
     methods (Access = public)
@@ -9,6 +17,19 @@ classdef ElasticDim < handle
         function n = getNstre(obj)
             n = obj.nstre;
         end
+        
+        function dEps = computedEps(obj)
+            dvolum = obj.geometry.dvolu';            
+            nv     = obj.nnode*obj.dof.nunkn;
+            dEps = zeros(nv,obj.quadrature.ngaus,obj.nstre,obj.nelem);
+            for igaus = 1:obj.quadrature.ngaus
+               B  = obj.computeB(igaus); 
+               Bm = permute(B,[2 1 3]);
+               dvG(1,1,:) = squeeze(dvolum(igaus,:));
+               dvGm = repmat(dvG,nv,obj.nstre,1);
+               dEps(:,igaus,:,:) = Bm.*dvGm;
+            end
+        end      
         
     end
     

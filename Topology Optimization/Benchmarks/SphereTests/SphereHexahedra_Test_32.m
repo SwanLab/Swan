@@ -6,7 +6,7 @@ initial_case = 'sphere';
 cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
-optimizer = 'HAMILTON-JACOBI'; kappaMultiplier = 1;
+optimizer = 'HAMILTON-JACOBI'; incrementFactor = 1;
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
 

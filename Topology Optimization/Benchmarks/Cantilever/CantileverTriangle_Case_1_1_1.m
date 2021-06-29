@@ -7,11 +7,11 @@ cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
 optimizer = 'SLERP'; 
-kappaMultiplier = 1;
+incrementFactor = 1;
 designVariable = 'LevelSet';
 filterType = 'P1';
 
-nsteps = 5;
+nsteps = 15;
 Vfrac_final = 0.3;
 optimality_final =1e-3;
 constr_final =1e-3;
@@ -27,8 +27,8 @@ TOL.E_minus = 1e-3;
 TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
-maxiter = 5;
+maxiter = 50;
 
-plotting = false;
+plotting = true;
 printing = false;
-monitoring = false;
+monitoring = true;

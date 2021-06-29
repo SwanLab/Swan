@@ -27,9 +27,9 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
         
         function initPlotting(obj)
             obj.patchHandle = patch(obj.axes,'Faces',obj.mesh.connec,'Vertices',obj.mesh.coord,...
-                'FaceAlpha','flat','EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
+               'EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);            
             set(obj.axes,'ALim',[0, 1],'XTick',[],'YTick',[]);
-            
+            %obj.plot();
             obj.BCplotter.plot();
         end
         
@@ -48,17 +48,22 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
         function createFilter(obj,cParams)
             s.filterType = 'P1';
             s.domainType = 'INTERIOR';
-            s.designVar = obj.designVar;
             s.quadratureOrder = 'LINEAR';
+            s.mesh = cParams.mesh.innerMeshOLD;
             s = SettingsFilter(s);
             s.femSettings.scale = cParams.scale;
+            s.femSettings.mesh = cParams.mesh.innerMeshOLD;            
             obj.filter = Filter_P1_Density(s);
             obj.filter.preProcess();
         end
         
         function rhoElem = filterDensity(obj)
-            %rho = obj.designVar.value;
-            rho = obj.designVar.rho;
+            x = obj.designVar.getVariablesToPlot();
+            if isa(obj.designVar,'MicroParams')
+                rho = x{3};
+            else
+                rho = x{1};
+            end
             if obj.isNodal(rho)
                 rhoElem = obj.filter.getP0fromP1(rho);
             elseif obj.isElemental(rho)

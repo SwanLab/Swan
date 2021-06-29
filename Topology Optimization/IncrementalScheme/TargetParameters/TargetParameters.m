@@ -8,6 +8,8 @@ classdef TargetParameters < handle
         epsilon_velocity
         epsilon_perimeter
         epsilon_isotropy
+        stressNormExponent
+        iStep
     end
     
 end

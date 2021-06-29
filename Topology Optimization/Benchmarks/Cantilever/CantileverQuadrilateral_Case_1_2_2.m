@@ -7,11 +7,11 @@ cost = {'compliance';'perimeter'};
 weights = [1 0.1];
 constraint = {'volumeConstraint'};
 optimizer = 'SLERP'; 
-kappaMultiplier = 1;
+incrementFactor = 1;
 designVariable = 'LevelSet';
 filterType = 'P1';
 constraints_case = 'INEQUALITY';
-line_search = 'DOUBLING LAST STEP';
+line_search_initiator = 'INCREASING LAST STEP';
 
 nsteps = 10;
 Vfrac_final = 0.2;

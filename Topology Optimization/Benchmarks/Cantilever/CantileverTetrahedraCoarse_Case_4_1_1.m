@@ -6,7 +6,7 @@ initial_case = 'full';
 cost = {'compliance'};
 weights = [1, 0.1];
 constraint = {'volumeConstraint'};
-optimizer = 'IPOPT'; kappaMultiplier = 1;
+optimizer = 'IPOPT'; incrementFactor = 1;
 designVariable = 'Density';
 filterType = 'P1';
 

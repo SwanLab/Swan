@@ -6,7 +6,7 @@ initial_case = 'full';
 cost = {'compliance'};
 weights = 1;
 constraint = {'volume'};
-optimizer = 'IPOPT'; kappaMultiplier = 1;
+optimizer = 'IPOPT'; incrementFactor = 1;
 filterType = 'P1';
 constraint_case = 'INEQUALITY';
 

@@ -6,39 +6,49 @@ classdef ShFunWithElasticPdes < ShapeFunctional
     end
     
     properties (Access = private)
-        orientationUpdater        
+        orientationUpdater 
+        alpha
     end
     
-    properties (Access = protected)
+    properties (Access = public)
         regDesignVariable
     end
     
     methods (Access = public)
         
-        function computeCostAndGradient(obj)
-            obj.nVariables = obj.designVariable.nVariables;
-            for i = 1:1
-                obj.updateHomogenizedMaterialProperties();
-                obj.solvePDEs();
-                obj.updateAlpha();
-            end
-            obj.computeFunctionValue();
+        function computeFunctionAndGradient(obj)
+            obj.updateAlpha();            
+            obj.computeFunction();  
+            obj.updateAlpha();                        
             obj.computeGradient();
-            obj.normalizeFunctionAndGradient()
+            obj.updateAlpha();            
+        end
+        
+        function computeFunction(obj)
+            obj.updateHomogenizedMaterialProperties();                 
+            obj.solveState();
+            obj.computeFunctionValue();     
+            obj.normalizeFunction();            
+        end
+        
+        function computeGradient(obj)
+            obj.solveAdjoint();
+            obj.computeGradientValue();    
+            obj.filterGradient();                        
+            obj.normalizeGradient();
         end
         
         function f = getPhysicalProblems(obj)
             f{1} = obj.physicalProblem;
         end
         
-        function f = getRegularizedDensity(obj)
-            f = obj.regDesignVariable;
+        function f = getRegularizedDesignVariable(obj)
+            f = obj.regDesignVariable{1:end-1};
         end
         
-        function d = addPrintableVariables(obj,d)
-            d.phyProblems = obj.getPhysicalProblems();
-            d.regDensity  = obj.getRegularizedDensity();
-        end        
+        function q = getQuad(obj)
+            q = obj.physicalProblem.element.quadrature;
+        end
         
     end
     
@@ -62,63 +72,87 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         function filterDesignVariable(obj)
             nx = length(obj.designVariable.value)/obj.designVariable.nVariables;
             x  = obj.designVariable.value;
-            for ivar = 1:obj.nVariables
+            xf = cell(obj.designVariable.nVariables,1);
+            for ivar = 1:obj.designVariable.nVariables
                 i0 = nx*(ivar-1) + 1;
                 iF = nx*ivar;
                 xs = x(i0:iF);
-                xf(:,ivar) = obj.filter.getP0fromP1(xs);
+                xf{ivar} = obj.filter.getP0fromP1(xs);
             end
+            xf{ivar+1} = obj.designVariable.alpha;
             obj.regDesignVariable = xf;
         end
-        
-        function computeGradient(obj)
-            nelem = obj.physicalProblem.mesh.nelem;
-            ngaus = obj.physicalProblem.element.quadrature.ngaus;
-            nstre = obj.physicalProblem.element.getNstre();
-            g = zeros(nelem,ngaus,obj.nVariables);
-            for igaus = 1:ngaus
-                for istre = 1:nstre
-                    for jstre = 1:nstre
-                        g(:,igaus,:) = g(:,igaus,:) + obj.updateGradient(igaus,istre,jstre);
-                    end
-                end
-            end
-            
+               
+        function filterGradient(obj)
+            g = obj.gradient;
             gf = zeros(size(obj.Msmooth,1),obj.nVariables);
             for ivar = 1:obj.nVariables
-                gs = squeeze(g(:,:,ivar));
+                gs = g(:,:,ivar);
                 gf(:,ivar) = obj.filter.getP1fromP0(gs);
             end
-            g = obj.Msmooth*gf;
-            obj.gradient = g(:);
+            %gf = obj.Msmooth*gf;
+            g = gf(:);
+            obj.gradient = g;
         end
+        
+        function v = getPdeVariableToPrint(obj,p)
+            cParams.physicalProblem = p;
+            g = PdeVariableToPrintGetter(cParams);
+            v = g.compute();
+        end   
+        
+        function fP = addHomogPrintVariablesNames(obj,fP)
+            fH = obj.homogenizedVariablesComputer.createPrintVariables();
+            nP = numel(fP);
+            for i = 1:numel(fH)
+                fP{nP+i} = fH{i};
+            end
+        end
+        
+
+        
+      function updateAlpha(obj)
+          if isequal(obj.designVariable.type,'MicroParams')
+            if isfield(obj.physicalProblem.variables,'principalStress')
+            cParams.pD = obj.physicalProblem.variables.principalDirections;
+            cParams.pS = obj.physicalProblem.variables.principalStress;
+            obj.orientationUpdater.compute(cParams);
+            alpha = obj.orientationUpdater.alpha;            
+            obj.designVariable.alpha = alpha;
+            end
+          end
+      end        
+        
+      function fP = addHomogVariables(obj,fP)
+          fH = obj.homogenizedVariablesComputer.addPrintableVariables(obj.designVariable);
+          for i = 1:numel(fH)
+              fP{end+1} = fH{i};
+          end
+      end
         
     end
     
     methods (Access = private)
         
         function initPrincipalDirections(obj)
-            ndim = obj.physicalProblem.mesh.ndim;
-            nelem = obj.physicalProblem.element.nelem;
-            alpha0 = zeros(ndim,nelem);
-            alpha0(1,:) = 1;
-            obj.physicalProblem.variables.principalDirections = alpha0;
-            obj.designVariable.alpha = alpha0;
+            if isempty(obj.designVariable.alpha)
+                ndim   = obj.physicalProblem.mesh.ndim;
+                nelem  = obj.physicalProblem.element.nelem;
+                alpha0 = zeros(ndim,nelem);
+                alpha0(1,:) = 1;
+                obj.designVariable.alpha = alpha0;
+            end
+            obj.physicalProblem.variables.principalDirections = obj.designVariable.alpha;            
         end
-        
-        function updateAlpha(obj)
-            cParams.pD = obj.physicalProblem.variables.principalDirections;
-            cParams.pS = obj.physicalProblem.variables.principalStress;
-            obj.orientationUpdater.compute(cParams);
-            alpha = obj.orientationUpdater.alpha;            
-            obj.designVariable.alpha = alpha;
-        end
-        
+                 
     end
+    
+
     
     methods (Access = protected, Abstract)
         computeFunctionValue(obj)
-        updateGradient(obj)
-        solvePDEs(obj)
+        computeGradientValue(obj)
+        solveState(obj)
+        solveAdjoint(obj)
     end
 end

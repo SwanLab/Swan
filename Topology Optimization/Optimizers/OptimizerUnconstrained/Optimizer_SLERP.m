@@ -1,11 +1,7 @@
 classdef Optimizer_SLERP < Optimizer_Unconstrained
     
-    properties (Access = public)
-        theta = 0.1
-    end
-    
     properties (GetAccess = public, SetAccess = protected)
-        type = 'SLERP'
+        type = 'SLERP'        
     end
     
     properties  (GetAccess = public, SetAccess = private)
@@ -17,6 +13,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         normalizedGrad
         coefPhi
         coefGrad
+        theta                
     end
     
     methods (Access = public)
@@ -26,31 +23,40 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         end
         
         function compute(obj)
-            phi = obj.designVariable.value;
-            g   = obj.objectiveFunction.gradient;
-            obj.computeNormalizedLevelSet(phi);
-            obj.computeNormalizedGradient(g);
+            obj.computeNormalizedLevelSet();
+            obj.computeNormalizedGradient();
             obj.computeTheta();
             obj.computeCoeficients();
             phi = obj.updateLevelSet();
             obj.updateOptimalityConditionValue();
-            obj.designVariable.value = phi;
+            obj.designVariable.update(phi);
         end
+        
+        function storeConvergenceVariablesValues(obj)
+            obj.convergenceVars.reset();
+            obj.convergenceVars.append(obj.incF);
+            obj.convergenceVars.append(obj.incX);
+            obj.convergenceVars.append(obj.lineSearch.value);
+            obj.convergenceVars.append(obj.lineSearch.nTrials);            
+            obj.convergenceVars.append(obj.obtainThetaValue());            
+        end           
         
     end
     
     methods (Access = private)
         
-        function computeNormalizedLevelSet(obj,phi)
+        function computeNormalizedLevelSet(obj)
+            phi = obj.designVariable.value;
             obj.normalizedPhi = obj.normalizeFunction(phi);
         end
         
-        function computeNormalizedGradient(obj,g)
+        function computeNormalizedGradient(obj)
+            g   = obj.objectiveFunction.gradient;            
             obj.normalizedGrad = obj.normalizeFunction(g);
         end
         
         function computeCoeficients(obj)
-            k = obj.lineSearch.kappa;
+            k = obj.lineSearch.value;
             t = obj.theta;
             obj.coefPhi  = sin((1-k)*t)/sin(t);
             obj.coefGrad = sin(k*t)/sin(t);
@@ -71,8 +77,17 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             obj.theta = max(real(acos(phiXg)),1e-14);
         end
         
+        function t = obtainThetaValue(obj)
+            if isempty(obj.theta)
+                obj.computeNormalizedLevelSet();
+                obj.computeNormalizedGradient();
+                obj.computeTheta(); 
+            end
+            t = obj.theta*180/pi;
+        end
+        
         function updateOptimalityConditionValue(obj)
-            obj.opt_cond = obj.theta;
+            obj.optimalityCond = obj.thetaToNorm(obj.theta);
         end
         
         function x = normalizeFunction(obj,x)
@@ -81,14 +96,20 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             x = x/xNorm;
         end
         
-    end
+    end    
     
-    methods (Access = protected)
+    methods (Access = private, Static)
         
-        function opt = obtainOptimalityTolerance(obj)
-            opt = (0.0175/1e-3)*obj.targetParameters.optimality_tol;            
+        function norm = thetaToNorm(theta)
+            y0 = 1e-4;
+            y1 = 1e-3;
+            x0 = 0.1*pi/180;
+            x1 = 1*pi/180;
+            f = @(x) y0 + (y1-y0)/(x1-x0)*(x-x0);
+            norm = f(theta);
         end
         
     end
+    
     
 end
