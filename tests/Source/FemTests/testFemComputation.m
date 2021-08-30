@@ -19,13 +19,25 @@ classdef testFemComputation < handle
     methods (Access = protected)
         
         function computeVariableThroughFemSolver(obj)
-            femSolver = FEM.create(obj.testName);
-            props.kappa = .9107;
-            props.mu    = .3446;        
-            femSolver.setMatProps(props);            
-            femSolver.computeVariables;
-            obj.fem = femSolver;
+            obj.fem = FEM.create(obj.testName);
+            obj.createMaterialProperties();
+            obj.fem.computeVariables();
         end
+        
+
+        
+    end
+    
+    methods (Access = private)
+        
+        function createMaterialProperties(obj)
+            q = Quadrature.set(obj.fem.mesh.type);
+            q.computeQuadrature('LINEAR');
+            I = ones(obj.fem.mesh.nelem,q.ngaus);            
+            p.kappa = .9107*I;
+            p.mu    = .3446*I;               
+            obj.fem.setMatProps(p)        
+        end        
         
     end
     

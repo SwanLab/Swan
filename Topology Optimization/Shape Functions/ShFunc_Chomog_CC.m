@@ -4,6 +4,8 @@ classdef ShFunc_Chomog_CC < ShFunc_Chomog %%NOT WORKING%%
                             1, 1,1
                             1,1,1];
     end
+    
+    
     methods
         function obj=ShFunc_Chomog_CC(settings)
             obj.init(settings);

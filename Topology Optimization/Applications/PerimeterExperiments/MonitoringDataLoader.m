@@ -22,7 +22,7 @@ classdef MonitoringDataLoader < handle
     methods (Access = public)
         
         function obj = MonitoringDataLoader(cParams)
-            obj.init(cParams)
+            obj.init(cParams);
         end
         
         function fieldsD = obtainData(obj)

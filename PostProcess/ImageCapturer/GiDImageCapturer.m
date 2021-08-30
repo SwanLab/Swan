@@ -7,7 +7,7 @@ classdef GiDImageCapturer < handle
         gidPath 
         swanPath
         pathTcl
-        outPutFolderPath
+        %outPutFolderPath
         outputImageName
     end
     
@@ -16,7 +16,7 @@ classdef GiDImageCapturer < handle
         function obj = GiDImageCapturer(cParams)
             obj.init(cParams);
             obj.createPathNames();
-           obj.writeCallGiDTclFile();                 
+            obj.writeCallGiDTclFile();                 
         end
         
         function capture(obj)
@@ -42,22 +42,22 @@ classdef GiDImageCapturer < handle
         
         function createPathNames(obj)
             obj.pathTcl = [obj.swanPath,'PostProcess/ImageCapturer/'];
-            obj.outPutFolderPath = [obj.swanPath,'Output/',obj.resultsFile,'/'];
+            %obj.outPutFolderPath = [obj.swanPath,'Output/',obj.resultsFile,'/'];
             obj.outputImageName = [obj.outPutImageName];            
         end
         
         function writeCallGiDTclFile(obj)
             tclFile = 'callGiDCapturer.tcl';
             obj.inputFileName = char(obj.inputFileName);
-            %stlFileTocall = 'CaptureImage.tcl';
-            stlFileTocall = 'CaptureImage3.tcl';
-           % stlFileTocall = 'CaptureImageColor.tcl';
-          %  stlFileTocall = 'CaptureSmoothImageColor.tcl';
+            %tclFileTocall = 'CaptureImage.tcl';
+            tclFileTocall = 'CaptureImage3.tcl';
+           % tclFileTocall = 'CaptureImageColor.tcl';
+           %  tclFileTocall = 'CaptureSmoothImageColor.tcl';
 
             
             fid = fopen([obj.pathTcl,tclFile],'w+');
             fprintf(fid,['set path "',obj.pathTcl,'"\n']);
-            fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
+            fprintf(fid,['set tclFile "',tclFileTocall,'"\n']);
             fprintf(fid,['source $path$tclFile \n']);
             fprintf(fid,['set output ',obj.outputImageName,' \n']);
             fprintf(fid,['set inputFile ',obj.inputFileName,'\n']);
@@ -74,10 +74,10 @@ classdef GiDImageCapturer < handle
         function cropImage(obj)
             inputImage  = [' ',obj.outputImageName,'.png'];
             outPutImage = inputImage;
-            %convert     = 'convert -crop 700x700+0+0 -gravity Center';
-           % convert     = 'convert -crop 500x500+0+0 -gravity Center';                        
+           % convert     = 'convert -crop 700x700+0+0 -gravity Center';
+            convert     = 'convert -crop 442x442+0+0 -gravity Center';                        
             %convert     = 'convert -crop 1500x1500+0+0 -gravity Center';
-            convert     = 'convert -crop 600x300+0+0 -gravity Center';
+           % convert     = 'convert -crop 600x300+0+0 -gravity Center';
             command = strcat(convert,' ',inputImage,' ',outPutImage);
             system(command);
         end

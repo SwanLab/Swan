@@ -116,7 +116,8 @@ classdef PST4VoigtFourthOrderTensorSymbolically < PST4VoigtFourthOrderTensor
             OutStresses = obj.OutOfPlaneStresses;
             OutStrains  = obj.OutOfPlaneSymbolicStrains;
             OutStrains  = solve(OutStresses == 0,OutStrains);
-            obj.OutOfPlaneSymbolicStrains = struct2array(OutStrains);
+            oS = struct2cell(OutStrains);
+            obj.OutOfPlaneSymbolicStrains = [oS{:}];
         end
         
         function computeTensorVoigtInPlaneStress(obj)

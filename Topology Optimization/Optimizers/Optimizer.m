@@ -97,7 +97,7 @@ classdef Optimizer < handle
         end
         
         function updateStatus(obj)
-            obj.hasFinished = obj.hasConverged || obj.hasExceededStepIterations;
+            obj.hasFinished = obj.hasConverged || obj.hasExceededStepIterations();
         end
         
         function printOptimizerVariable(obj)

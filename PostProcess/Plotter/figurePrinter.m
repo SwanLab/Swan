@@ -5,8 +5,10 @@ classdef figurePrinter < handle
         y0 = 500;
         width = 600;
         height = 600;
-        labelFontSize = 30;
-        fontSize = 20;
+        %labelFontSize = 30;
+        labelFontSize = 200;
+        %fontSize = 20;
+        fontSize = 30;        
         outFormat = '-dpng';
         figID
     end

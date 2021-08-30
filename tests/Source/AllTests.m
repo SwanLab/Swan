@@ -6,6 +6,3 @@ ReadingFilesTests;
 PlottingTests;
 HomogenizationTests;
 ImageProcessingTests;
-%AmplificatorTests;
-%PrintingTests;
-

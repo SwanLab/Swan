@@ -48,7 +48,8 @@ classdef SimpAllInterpolationImplicit < MaterialInterpolation
             eq(3) = obj.rationalFunctionDerivative(coef,r1) - df1;
             eq(4) = obj.rationalFunctionDerivative(coef,r0) - df0;
             c = solve(eq,[c1,c2,c3,c4]);
-            c = struct2array(c);            
+            c = struct2cell(c);    
+            c = [c{:}];
         end
         
         function dmu0 = computeDmu0(obj)

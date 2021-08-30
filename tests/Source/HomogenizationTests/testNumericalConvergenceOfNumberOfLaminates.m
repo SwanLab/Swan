@@ -46,7 +46,7 @@ classdef testNumericalConvergenceOfNumberOfLaminates < testShowingError
                 obj.computeName(iLevel);
                 obj.computeHomogenization(iLevel);
                 obj.AllCh{iLevel}      = obj.Ch;
-                obj.AllVolume(iLevel)  = obj.Volume;
+                obj.AllVolume(iLevel,:)  = obj.Volume;
             end
         end
         
@@ -91,7 +91,7 @@ classdef testNumericalConvergenceOfNumberOfLaminates < testShowingError
             ChError = norm(NormCh - meanChNorm);
         end
         
-        function volError = ComputeVolumeSimilarity(obj)
+        function volError = ComputeVolumeSimilarity(obj)        
             Volumes = obj.AllVolume;
             meanVolumes = mean(Volumes);
             volError = norm(Volumes - meanVolumes);

@@ -17,26 +17,25 @@ classdef TopOptTests < testRunner
         
         function loadTests(obj)
             obj.tests = {...  
-                'testMicro2';                
-                'testM1M2';   
-                
-                'testCantilever';
-                'testDualNestedInPrimalWithProjectedGradient';                
-                'testCantilever3';                
-                'testDualNestedInPrimalWithSlerp';
-                'testCantilever2';                
-                'testBridge2';
-                'testGripping';
+               'testCantilever2';          
+               'testCantilever';
+               'testGripping';
+               'testMicro';               
+               'testMicro2';  
+               'testDualNestedInPrimalWithProjectedGradient';                
+               'testCantilever3';                
+               'testDualNestedInPrimalWithSlerp';                           
+               'testAnalyticVsRegularizedPerimeter';                
+               'testSuperEllipseExponent';
+               'testInteriorPerimeter';         
+               'SimplAllTest3DExplicitVsImplicit';
+               'SimplAllTest2DExplicitVsImplicit';                
+               'testVigdergauzMicroStructureWithStrain';                                               
+               'testVigdergauzMicroStructure';
+                'testM1M2';                                                         
                 'testStressM1M2';
-                'testMicro';                             
-                'testAnalyticVsRegularizedPerimeter';                
-                'testSuperEllipseExponent';
-                'testInteriorPerimeter';
-                'SimplAllTest3DExplicitVsImplicit';
-                'SimplAllTest2DExplicitVsImplicit';                                
-                'testBridge';
-                'testVigdergauzMicroStructure';
-                'testVigdergauzMicroStructureWithStrain';                                
+                'testBridge2';               
+                'testBridge';                              
                 };
         end
         

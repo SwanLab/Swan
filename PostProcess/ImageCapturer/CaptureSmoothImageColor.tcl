@@ -18,5 +18,5 @@ proc CaptureImage {pathFileVar outputFileVar} {
     GiD_Process Results ContOptions SetMinOptions MinColor Standard Mescape
     GiD_Process Results ContOptions SetMaxOptions MaxColor Standard Mescape
     GiD_Process Results ContOptions ColorRamp Tangent MEscape
-    GiD_Process Quit
+#    GiD_Process Quit
 }

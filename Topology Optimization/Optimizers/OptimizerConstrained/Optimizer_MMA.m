@@ -421,8 +421,8 @@ classdef Optimizer_MMA < Optimizer
                     steg = 2*steg;
                 end
                 if ittt > 198
-                    epsi
-                    ittt
+                    epsi;
+                    ittt;
                 end
                 epsi = 0.1*epsi;
             end
