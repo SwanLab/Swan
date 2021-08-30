@@ -2,6 +2,7 @@ classdef Material < handle
     
     properties (Access = protected)
         nElem
+        nGaus
     end
     
     

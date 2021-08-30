@@ -1,0 +1,44 @@
+classdef PlotCapturerOfMaterialDesignExperiment < handle
+    
+    properties (Access = public)
+        
+    end
+    
+    properties (Access = private)
+        
+    end
+    
+    properties (Access = private)
+        
+    end
+    
+    methods (Access = public)
+        
+        function obj = PlotCapturerOfMaterialDesignExperiment(cParams)
+            obj.init(cParams)
+            
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function init(obj,cParams)
+            
+        end
+        
+        function captureImage(obj,iepsilon)
+                i = iepsilon;
+                f = obj.inputFile;
+                outPutNameWithIter = [obj.outputFigureName,'Epsilon',num2str(i)];
+                inputFileName = fullfile('Output',f,[f,num2str(i),'.flavia.res']);
+                s.fileName = f;
+                s.outPutImageName = outPutNameWithIter;
+                s.inputFileName   = inputFileName;
+                imageCapturer = GiDImageCapturer(s);
+                imageCapturer.capture();
+        end        
+        
+    end
+    
+end

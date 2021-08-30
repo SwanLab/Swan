@@ -1,11 +1,9 @@
 classdef Element_Elastic < Element
-    %Element_Elastic Summary of this class goes here
-    %   Detailed explanation goes here
+
     properties (Access = public)
         fextRed
     end
-    
-    
+        
     properties
         fext
         interpolation_u

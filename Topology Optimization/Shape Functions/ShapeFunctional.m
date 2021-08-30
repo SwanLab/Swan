@@ -101,8 +101,7 @@ classdef ShapeFunctional < handle
             diffReacProb.preProcess();
             obj.Msmooth = diffReacProb.element.M;
             obj.dvolu   = diffReacProb.geometry.dvolu;
-        end
-        
+        end       
 
     end
     

@@ -10,6 +10,7 @@ classdef Optimizer_Unconstrained < handle
     properties (GetAccess = public, SetAccess = protected)
         designImproved
         maxIncrNormX
+        minIncrNormX
     end
 
     properties (GetAccess = public, SetAccess = private)
@@ -54,7 +55,8 @@ classdef Optimizer_Unconstrained < handle
         function obj = Optimizer_Unconstrained(cParams)
             obj.objectiveFunction  = cParams.lagrangian;
             obj.hasConverged       = false;
-            obj.maxIncrNormX       = 1e-8;1e-2;
+            obj.minIncrNormX       = 1e-8;%1e-2;
+            obj.maxIncrNormX       = 5*1e-2;
             obj.convergenceVars    = cParams.convergenceVars;
             obj.targetParameters   = cParams.targetParameters;
             obj.designVariable     = cParams.designVariable;            
@@ -99,9 +101,9 @@ classdef Optimizer_Unconstrained < handle
         end
 
         function computeOptimizerFlagConvergence(obj)
-            costDecreased = obj.hasCostDecreased();
-            smallChangeX  = obj.isVariableChangeSmall();
-            isIterValid   = costDecreased;% && smallChangeX;
+            costDecreased    = obj.hasCostDecreased();
+            xNotLargyChanged = obj.hasXNotLarglyChanged();
+            isIterValid   = costDecreased && xNotLargyChanged;
             isLSsmall = obj.isLineSearchTooSmall();
             obj.hasConverged = isIterValid || isLSsmall;
         end
@@ -111,9 +113,13 @@ classdef Optimizer_Unconstrained < handle
         end
 
         function itIs = isVariableChangeSmall(obj)
-            itIs = obj.incX < obj.maxIncrNormX;
+            itIs = obj.incX < obj.minIncrNormX;
         end
 
+        function itIs = hasXNotLarglyChanged(obj)
+            itIs = obj.incX < obj.maxIncrNormX;
+        end        
+        
         function computeIncrements(obj)
             normXsquare = obj.designVariable.computeL2normIncrement();
             obj.incX = sqrt(normXsquare);

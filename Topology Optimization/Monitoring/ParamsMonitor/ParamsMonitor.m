@@ -257,7 +257,7 @@ classdef ParamsMonitor < ParamsMonitor_Interface
             switch title
                 case {'Line Search','outit','Line Search trials'}
                     type = 'bar';
-                case {'kktnorm','Norm L2','inf_{pr}','inf_{du}'}
+                case {'kktnorm','Norm L2','inf_{pr}','inf_{du}','C - C not scaled'}
                     type = 'log';
                 otherwise 
                     type = 'plot';

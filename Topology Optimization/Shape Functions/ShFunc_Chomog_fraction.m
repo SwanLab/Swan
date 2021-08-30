@@ -1,67 +1,54 @@
 classdef ShFunc_Chomog_fraction < ShFunc_Chomog
    
     properties (Access = private)
+        invChAA
+        invChBB
+        invChAB
+        invChBA
+    end
+    
+    properties (Access = private)
         alpha
         beta
-        
-        Saa
-        Sbb
-        Sab
-        Sba
-        S
     end
     
     methods (Access = public)
         
-        function obj=ShFunc_Chomog_fraction(settings)
-            obj@ShFunc_Chomog(settings);
-            obj.alpha=settings.alpha/norm(settings.alpha);
-            obj.beta=settings.beta/norm(settings.beta);
+        function obj=ShFunc_Chomog_fraction(cParams)
+            obj.initChomog(cParams);
+            obj.alpha = cParams.alpha/norm(cParams.alpha);
+            obj.beta  = cParams.beta/norm(cParams.beta);
         end
         
-        function computeFunctionAndGradient(obj)
-            obj.computePhysicalData();
-            obj.computeInvChProyections();
-            obj.computeFunction();
-            obj.normalizeFunction();
-            obj.computeGradient();
-            obj.normalizeGradient();
+        function computeFunctionValue(obj) 
+            obj.computeInvChProyections();            
+            obj.value = obj.invChAB/obj.invChAA + obj.invChBA/obj.invChBB;
+        end               
+                
+        function computeGradientValue(obj)
+            obj.computeChDerivative(); 
+            a = obj.alpha;
+            b = obj.beta;
+            beta1 = obj.invChAA*b - obj.invChAB*a;
+            beta2 = obj.invChBB*a - obj.invChBA*b;
+            g1    = obj.computedChInv(obj.Chomog,a,beta1);
+            g2    = obj.computedChInv(obj.Chomog,b,beta2);
+            grad = g1/(obj.invChAA)^2 + g2/(obj.invChBB)^2;            
+            obj.gradient = grad;
         end
-        
-        function computeFunction(obj)            
-            obj.value = obj.Sab/obj.Saa + obj.Sba/obj.Sbb;
-        end           
-    
         
     end
     
     methods (Access = private)
-                
-        function computeGradient(obj)
-            obj.compute_Chomog_Derivatives(); 
-            a = obj.alpha;
-            b = obj.beta;
-            beta1 = obj.Saa*b - obj.Sab*a;
-            beta2 = obj.Sbb*a - obj.Sba*b;
-            g1 = obj.derivative_projection_Chomog(obj.S,a,beta1);
-            g2 = obj.derivative_projection_Chomog(obj.S,b,beta2);
-            gradient = g1/(obj.Saa)^2 + g2/(obj.Sbb)^2;            
-            mass = obj.Msmooth;
-            gradient=obj.filter.getP1fromP0(gradient(:));
-            gradient = mass*gradient;
-            obj.gradient = gradient;
-        end
-        
-
         
         function computeInvChProyections(obj)
-            obj.S = inv(obj.Chomog);
+            invCh = inv(obj.Chomog);
             a = obj.alpha;
             b = obj.beta;
-            obj.Sab  = obj.projection_Chomog(obj.S,a,b);
-            obj.Sba  = obj.projection_Chomog(obj.S,b,a);
-            obj.Saa  = obj.projection_Chomog(obj.S,a,a);
-            obj.Sbb  = obj.projection_Chomog(obj.S,b,b);
+            obj.invChAB  = obj.projectTensor(invCh,a,b);
+            obj.invChBA  = obj.projectTensor(invCh,b,a);
+            obj.invChAA  = obj.projectTensor(invCh,a,a);
+            obj.invChBB  = obj.projectTensor(invCh,b,b);
         end
         
     end

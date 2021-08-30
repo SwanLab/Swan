@@ -103,14 +103,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             obj.updateLagrangian();
         end
 
-        function updateOldValues(obj)
-            obj.designVariable.updateOld();
-            obj.dualVariable.updateOld();
-            obj.cost.updateOld();
-            obj.constraint.updateOld();
-            obj.updateLagrangian();
-            obj.lagrangian.updateOld();
-        end
+
 
         function computeFeasibleDesignVariable(obj)
             if obj.isNotFeasible()
@@ -149,6 +142,20 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             cParams.dualVariable = obj.dualVariable;
             obj.lagrangianSettings = cParams;
         end
+        
+        function updateLagrangian(obj)
+            obj.lagrangian.computeFunction();
+            obj.lagrangian.computeGradient();
+        end         
+        
+        function updateOldValues(obj)
+            obj.designVariable.updateOld();
+            obj.dualVariable.updateOld();
+            obj.cost.updateOld();
+            obj.constraint.updateOld();
+            obj.updateLagrangian();
+            obj.lagrangian.updateOld();
+        end        
 
     end
 
@@ -184,11 +191,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
         function itIs = isLineSeachTooSmall(obj)
             itIs = obj.unconstrainedOptimizer.isLineSearchTooSmall();
         end
-
-        function updateLagrangian(obj)
-            obj.lagrangian.computeFunction();
-            obj.lagrangian.computeGradient();
-        end               
+             
 
 
     end

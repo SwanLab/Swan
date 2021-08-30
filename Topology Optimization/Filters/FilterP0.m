@@ -30,13 +30,13 @@ classdef FilterP0 < handle
             nelem = size(conec,1);
             nnode = size(shape,1);
             
-            phiP0 = zeros(ngaus,nelem);
+            phiP0 = zeros(nelem,ngaus);
             phi   = obj.levelSet;            
             for igaus = 1:ngaus
                 for inode = 1:nnode
                     nodes = conec(:,inode);
-                    phiN(1,:) = phi(nodes);
-                    phiP0(igaus,:) = phiP0(igaus,:) + shape(inode,igaus)*phiN;
+                    phiN = phi(nodes);
+                    phiP0(:,igaus) = phiP0(:,igaus) + shape(inode,igaus)*phiN;
                 end
             end            
             obj.levelSet0 = phiP0;           

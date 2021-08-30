@@ -68,6 +68,7 @@ classdef testAnalyticVsRegularizedPerimeter < testShowingError
             s.scalarProductSettings.epsilon = 0.01;
             s.scalarProductSettings.mesh = Mesh_Total(obj.backgroundMesh);
             s.isFixed = [];
+            s.value = [];
             obj.levelSet = DesignVariable.create(s);
         end        
 
