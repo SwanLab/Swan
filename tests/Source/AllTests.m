@@ -1,8 +1,8 @@
-%FemTests;
-%UnfittedIntegrationTests;
-%VectorizedTriangulationTests;
+FemTests;
+UnfittedIntegrationTests;
+VectorizedTriangulationTests;
 TopOptTests;
-%ReadingFilesTests;
-%PlottingTests;
-%HomogenizationTests;
-%ImageProcessingTests;
+ReadingFilesTests;
+PlottingTests;
+HomogenizationTests;
+ImageProcessingTests;
