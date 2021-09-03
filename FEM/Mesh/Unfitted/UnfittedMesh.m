@@ -54,6 +54,10 @@ classdef UnfittedMesh < handle
             obj.plotter.plotBoundary();
         end
         
+        function plotStructure(obj)
+            obj.plotter.plotDomainInBlack();
+        end
+        
         function plot(obj)
             obj.plotter.plotDomain();
         end
