@@ -25,10 +25,10 @@ classdef LevelSetCreator < handle
     
     methods (Access = protected)
         
-        function obj = compute(obj,input)
-            obj.lsSize    = size(input.coord(:,1));
-            obj.ndim      = input.ndim;
-            obj.nodeCoord = input.coord;
+        function obj = compute(obj,cParams)
+            obj.lsSize    = size(cParams.coord(:,1));
+            obj.ndim      = cParams.ndim;
+            obj.nodeCoord = cParams.coord;
             obj.computeLevelSet();
           %  obj.perturbLevelSetWhenIsZeroInNode();
         end

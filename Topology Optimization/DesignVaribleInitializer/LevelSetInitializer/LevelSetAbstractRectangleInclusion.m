@@ -16,6 +16,7 @@ classdef LevelSetAbstractRectangleInclusion < ...
     end
     
     methods (Access = protected)
+        
         function computeLevelSet(obj)
             obj.computeCenter();
             obj.computeInclusionWidths();
@@ -38,7 +39,7 @@ classdef LevelSetAbstractRectangleInclusion < ...
             y = y0 - obj.center(2);
             wx = obj.widthX;
             wy = obj.widthY;
-            obj.pos = [x/wx,y/wy];
+            obj.pos = [x./wx,y./wy];
         end
         
         function computeLevelSetValue(obj)

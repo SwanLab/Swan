@@ -13,13 +13,13 @@ classdef UnfittedMeshPlotter < handle
             obj.init(cParams)
         end
         
-        function plotDomainInBlack(obj)
-            obj.faceColor = 'black';
+        function plotDomainInColor(obj,color)
+            obj.faceColor = color;
             obj.edgeAlpha = 0;
             obj.faceAlpha = 1;
             obj.plotInner();
             obj.plotInnerCut();
-        end
+        end      
         
         function plotDomain(obj)
             obj.faceColor = [];
@@ -117,6 +117,9 @@ classdef UnfittedMeshPlotter < handle
                 end
             end
         end
+        
+       
+        
     end
     
     
