@@ -11,7 +11,8 @@ classdef Integrator_Simple < Integrator
             s.mesh         = obj.mesh;
             s.globalConnec = obj.globalConnec;
             s.npnod        = obj.npnod;
-            lhs = LHSintegrator(s);
+            s.type         = 'MassMatrix';
+            lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
         

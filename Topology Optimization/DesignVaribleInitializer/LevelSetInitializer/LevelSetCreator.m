@@ -4,7 +4,7 @@ classdef LevelSetCreator < handle
         nodeCoord
         levelSet
         lsSize
-        ndim
+        ndim        
     end
     
     methods (Access = public)

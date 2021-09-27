@@ -56,7 +56,12 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         end        
         
         function createCellCoord(obj)
-            [y1,y2] = obj.applyMapping();                                                                                                                                                                  
+            xy = obj.mesh.coord;            
+            x1 = xy(:,1);
+            x2 = xy(:,2);        
+            y1 = x1;
+            y2 = x2;           
+            [y1,y2] = obj.applyMapping(y1,y2);                                                                                                                                                                  
             [y1,y2] = obj.transformToFastCoord(y1,y2);                                           
             [y1,y2] = obj.makeCoordPeriodic(y1,y2);                                                          
             obj.cellCoord = [y1,y2];
@@ -69,14 +74,24 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
            obj.levelSet = ls.getValue;
         end
         
-        function [y1,y2] = applyMapping(obj)
-            s.mesh  = obj.mesh;
+        function [y1,y2] = applyMapping(obj,x1,x2)
+            sM.coord = [x1,x2];
+            sM.connec = obj.mesh.connec;
+            m = Mesh(sM);            
+            s.mesh  = m;
             s.theta = obj.angle;
             map = ConformalMappingComputer(s);
             map.compute();
             map.plot();
             y1 = map.phi(:,1);
-            y2 = map.phi(:,2); 
+            y2 = map.phi(:,2);
+%             theta = obj.angle; 
+%             R(1,1,:) = cos(theta);
+%             R(1,2,:) = -sin(theta);
+%             R(2,1,:) = sin(theta);
+%             R(2,2,:) = cos(theta);
+%             y1 = (squeeze(R(1,1,:)).*x1 + squeeze(R(1,2,:)).*x2);
+%             y2 = (squeeze(R(2,1,:)).*x1 + squeeze(R(2,2,:)).*x2);           
         end    
         
         function [y1,y2] = transformToFastCoord(obj,x1,x2)

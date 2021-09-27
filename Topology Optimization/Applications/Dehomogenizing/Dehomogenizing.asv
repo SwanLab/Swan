@@ -122,7 +122,18 @@ classdef Dehomogenizing < handle
             obj.uMesh.compute(ls)
         end        
         
-        function ls = createLevelSet(obj)
+        function ls = createLevelSet(obj)  
+            s.coord = obj.coord;
+            s.mMin  = 0.58;
+            s.mMax  = 0.28;
+            s.qMin  = 36;
+            s.qMax  = 36;
+            ls = obj.createSuperEllipseLevelSet(s);
+        end
+        
+        function ls = createSuperEllipseLevelSet(obj,s)
+          
+
             s.coord = obj.coord;            
             s.type   = 'periodicAndOriented';            
             s.mesh   = obj.backgroundMesh;
@@ -134,24 +145,19 @@ classdef Dehomogenizing < handle
             ls = levelSet.getValue();   
         end     
         
-        function s = createLevelSetCellParams(obj)
-           sE = obj.createSuperEllipseParams();
+  
+    end
+    
+    methods (Access = private, Static)
+        
+        function s = createLevelSetCellParams(obj,distr)
            s.type   = 'smoothRectangle';            
-           s.widthH = sE.m1;
-           s.widthV = sE.m2;
-           s.pnorm  = sE.q;
+           q        = distr.q;             
+           s.widthH = distr.m1;
+           s.widthV = distr.m2;
+           s.pnorm  = q;
            s.ndim   = 2;
         end   
-        
-        function sE = createSuperEllipseParams(obj)
-           s.coord = obj.coord;
-           s.mMin  = 0.58;
-           s.mMax  = 0.28;
-           s.qMin  = 36;
-           s.qMax  = 36;            
-           sE = SuperEllipseDistributionExample(s);
-           sE.computeParameters();            
-        end
                    
     end
     
