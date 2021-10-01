@@ -1,0 +1,81 @@
+classdef MeshSymmetrizer < handle
+    
+    properties (Access = public)
+        symmetricMesh
+    end
+    
+    properties (Access = private)
+        mesh
+        symmetricLine
+    end
+    
+    methods (Access = public)
+        
+        function obj = MeshSymmetrizer(cParams)
+            obj.init(cParams);
+        end
+        
+        function compute(obj)
+            s.coord  = obj.computeCoord();
+            s.connec = obj.computeConnec();
+            obj.symmetricMesh = Mesh(s);
+        end
+    end
+    
+    methods (Access = private)
+        
+        function init(obj,cParams)
+            obj.mesh          = cParams.mesh;
+            obj.symmetricLine = cParams.symmetricLine;
+        end
+        
+        function coord  =computeCoord(obj)
+            sCoord = obj.computeSymmetricCoord();
+            coord  = [obj.mesh.coord;sCoord];
+        end
+        
+        function coord = computeSymmetricCoord(obj)
+            s.coord = obj.mesh.coord;
+            s.line  = obj.symmetricLine;
+            sP = SymmetricPointComputer(s);
+            coord = sP.computeSymmetricCoord();
+        end
+        
+        function connec = computeConnec(obj)
+            sConnec = obj.computeSymmetricConnec();
+            connec  = [obj.mesh.connec;sConnec];
+        end
+        
+        function sConnec = computeSymmetricConnec(obj)
+            sConnec = obj.duplicateConnec();
+            nnode  = obj.mesh.nnode;
+            for iNode = 1:nnode
+                nodes = obj.mesh.connec(:,iNode);
+                coord = obj.mesh.coord(nodes,:);
+                isInLine = obj.isNodeInSymmetricLine(coord);
+                nodesInLine = nodes(isInLine,1);
+                
+                sConnec(isInLine,iNode) = nodesInLine;
+            end
+        end
+        
+        function assignNodesInSymLine()
+            
+        end
+        
+        function sConnec = duplicateConnec(obj)
+            npnod   = obj.mesh.npnod;
+            connec = obj.mesh.connec;
+            sConnec = connec + npnod;
+        end
+        
+        function itIs = isNodeInSymmetricLine(obj,coord)
+            s.coord = coord;
+            s.line = obj.symmetricLine;
+            sP = SymmetricPointComputer(s);
+            itIs = sP.isNodeInLine();
+        end
+        
+    end
+    
+end

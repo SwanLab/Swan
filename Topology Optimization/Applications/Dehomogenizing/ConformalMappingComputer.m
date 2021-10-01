@@ -21,8 +21,7 @@ classdef ConformalMappingComputer < handle
         
         function phiV = compute(obj)
             obj.computeDilation();
-            obj.computeFirstComponent();
-            obj.computeSecondComponent();
+            obj.computeMapping();
             phiV = obj.phi;
         end
         
@@ -41,7 +40,7 @@ classdef ConformalMappingComputer < handle
             y = obj.mesh.coord(:,2);
             z = obj.dilation;
             F = scatteredInterpolant(x,y,z);
-            n  =100;
+            n = 100;
             [xv,yv] = meshgrid(min(x):1/n:max(x),min(y):1/n:max(y));
             zv = F(xv,yv);
             %zv = griddata(x,y,z,xv,yv);
@@ -71,7 +70,6 @@ classdef ConformalMappingComputer < handle
             colorbar
         end
         
-        
         function init(obj,cParams)
             obj.theta    = cParams.theta;
             obj.mesh     = cParams.mesh;
@@ -84,9 +82,14 @@ classdef ConformalMappingComputer < handle
             obj.dilation = d.compute();           
         end
         
-        function computeFirstComponent(obj)
-           iDim = 1; 
-           obj.phi(:,iDim) = obj.computeComponent(iDim);
+        function computeMapping(obj)
+           nDim = 2;
+           nnod = obj.mesh.npnod;
+           phiV = zeros(nnod,nDim);
+           for iDim = 1:nDim
+             phiV(:,iDim) = obj.computeComponent(iDim);
+           end
+           obj.phi = phiV;
         end
 
         function computeSecondComponent(obj)

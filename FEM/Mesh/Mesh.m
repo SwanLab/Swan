@@ -183,7 +183,7 @@ classdef Mesh < handle
                     n(:,1:obj.nelem) = squeeze(normal)';
                     xy = obj.computeBaricenter();
                     q = quiver3(xy(1,:),xy(2,:),xy(3,:),n(1,:),n(2,:),n(3,:),'k');
-                    h = obj.computeMeanCellSize;
+                    h = obj.computeMeanCellSize();
                     q.LineWidth = h;
                     q.Marker = '.';
                     q.MaxHeadSize = 1;

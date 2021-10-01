@@ -11,6 +11,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
     
     properties (Access = private)
       mesh
+      backgroundMesh
       angle        
       cellLevelSetParams
       nCells
@@ -39,6 +40,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         
         function init(obj,cParams)
            obj.mesh               = cParams.mesh;
+           obj.backgroundMesh     = cParams.backgroundMesh;
            obj.angle              = cParams.angle;
            obj.cellLevelSetParams = cParams.cellLevelSetParams; 
            obj.nCells             = cParams.nCells;
@@ -77,7 +79,18 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             map.plot();
             y1 = map.phi(:,1);
             y2 = map.phi(:,2); 
-        end    
+            y1 = obj.interpolateFunction(y1);
+            y2 = obj.interpolateFunction(y2);
+        end   
+        
+        function vq = interpolateFunction(obj,v)
+            X = obj.mesh.coord(:,1);
+            Y = obj.mesh.coord(:,2);
+            F = scatteredInterpolant(X,Y,v);
+            xB = obj.backgroundMesh.coord(:,1);
+            yB = obj.backgroundMesh.coord(:,2);
+            vq = F(xB,yB);
+        end           
         
         function [y1,y2] = transformToFastCoord(obj,x1,x2)
             y1 = obj.computeMicroCoordinate(x1);

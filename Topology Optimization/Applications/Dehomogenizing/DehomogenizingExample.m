@@ -76,21 +76,37 @@ classdef DehomogenizingExample < handle
         function createBackgroundMesh(obj)
             x1 = linspace(min(obj.mesh.coord(:,1)),max(obj.mesh.coord(:,1)),obj.nx1);
             x2 = linspace(min(obj.mesh.coord(:,2)),max(obj.mesh.coord(:,2)),obj.nx2);
-            x1T = repmat(x1,obj.nx2,1);
-            x2T = repmat(x2',1,obj.nx1);
-            coord = [x1T(:),x2T(:)];            
-            xy = coord;
-            x1 = xy(:,1);
-            x2 = xy(:,2);
-            connec   = delaunay(x1,x2);
-            s.coord  = [x1,x2];
-            s.connec = connec;
-            obj.backgroundMesh = Mesh(s);
+            
+            %x1T = repmat(x1,obj.nx2,1);
+            %x2T = repmat(x2',1,obj.nx1);
+            %coord = [x1T(:),x2T(:)];            
+            %xy = coord;
+            %connec   = delaunay(xy(:,1),xy(:,2));
+            %s.coord  = [xy(:,1),xy(:,2)];
+            %s.connec = connec;
+            %obj.backgroundMesh = Mesh(s);
+            
+            
+%             x1min = min(x1);
+%             x1max = max(x1);
+%             x2min = min(x2);
+%             x2max = max(x2);
+%             [coordinates, nodes,nel,nnode] = MeshRectangular(x1max-x1min,x2max-x2min,obj.nx1,obj.nx2);
+%             s.coord(:,1) = coordinates(:,1)+x1min;
+%             s.coord(:,2) = coordinates(:,2)+x2min;
+%             s.connec = nodes;
+%             obj.backgroundMesh = Mesh(s);   
+            
+             [xv,yv] = meshgrid(x1,x2); 
+             [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');             
+             s.coord  = V(:,1:2);
+             s.connec = F;
+             obj.backgroundMesh = Mesh(s);            
         end
         
         function createOrientation(obj)
-            x1 = obj.interpolateFunction(obj.alphaM(:,1));
-            x2 = obj.interpolateFunction(obj.alphaM(:,2));
+            x1 = (obj.alphaM(:,1));
+            x2 = (obj.alphaM(:,2));
             obj.theta = atan2(x2,x1);
         end
         
@@ -124,6 +140,7 @@ classdef DehomogenizingExample < handle
             s.nCells             = obj.nCells;
             s.theta              = obj.theta;
             s.cellLevelSetParams = obj.cellLevelSetParams;
+            s.mesh               = obj.mesh;
             d = Dehomogenizer(s);
             d.compute();
             d.plot();

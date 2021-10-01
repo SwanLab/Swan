@@ -14,6 +14,7 @@ classdef Dehomogenizer < handle
         backgroundMesh
         nCells
         theta
+        mesh
     end
     
     methods (Access = public)
@@ -41,6 +42,7 @@ classdef Dehomogenizer < handle
             obj.nCells             = cParams.nCells;
             obj.theta              = cParams.theta;
             obj.cellLevelSetParams = cParams.cellLevelSetParams;            
+            obj.mesh               = cParams.mesh;
         end
         
         function createBoundaryMesh(obj)
@@ -61,8 +63,8 @@ classdef Dehomogenizer < handle
         
         function plotOrientation(obj)
             figure()
-            x = obj.backgroundMesh.coord(:,1);
-            y = obj.backgroundMesh.coord(:,2);
+            x = obj.mesh.coord(:,1);
+            y = obj.mesh.coord(:,2);
             t  = obj.theta;
             ct = cos(t(:,1));
             st = sin(t(:,1));
@@ -77,7 +79,8 @@ classdef Dehomogenizer < handle
         function ls = createLevelSet(obj)
             s.coord = obj.backgroundMesh.coord;            
             s.type   = 'periodicAndOriented';            
-            s.mesh   = obj.backgroundMesh;
+            s.backgroundMesh   = obj.backgroundMesh;
+            s.mesh   = obj.mesh;
             s.ndim   = 2;            
             s.angle  = obj.theta;
             s.nCells = obj.nCells;

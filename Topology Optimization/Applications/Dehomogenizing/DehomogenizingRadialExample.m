@@ -106,6 +106,7 @@ classdef DehomogenizingRadialExample < handle
             s.nCells             = obj.nCells;
             s.theta              = obj.theta;
             s.cellLevelSetParams = obj.cellLevelSetParams;
+            s.mesh               = obj.backgroundMesh;
             d = Dehomogenizer(s);
             d.compute();
             d.plot();            
