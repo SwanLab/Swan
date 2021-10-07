@@ -1,4 +1,4 @@
-classdef test2dTriangle < testCheckStoredWithFemComputedVariable
+classdef test2dTriangle < testCheckStoredWithFemComputedVariable & matlab.unittest.TestCase
     
     
     properties (Access = protected)
@@ -9,11 +9,10 @@ classdef test2dTriangle < testCheckStoredWithFemComputedVariable
     methods (Access = protected)
         
         function selectComputedVar(obj)
-            obj.computedVar{1} = obj.fem.variables.d_u;            
+            obj.computedVar{1} = obj.fem.variables.d_u;
         end
         
     end
-    
 
 end
 
