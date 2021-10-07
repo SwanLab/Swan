@@ -1,20 +1,23 @@
-classdef NewMatlabTest3dTetrahedra < handle
+classdef NewMatlabTest < handle
     
     properties (Access = protected)
-        testName = 'test3d_tetrahedra';  
-        variablesToStore = {'d_u'};
+        testName;  
+        variablesToStore
         storedVar
-        error
         computedVar
         fem
         FileName
+        TestComputationHandler
+        TestVariableHandler
     end
        
     methods
-        function obj = NewMatlabTest3dTetrahedra()
-           obj.computeVariableThroughFemSolver()
-           obj.selectComputedVar();
-           obj.loadStoredVariable();
+        function obj = NewMatlabTest(cParams)
+            obj.testName         = cParams.testName;
+            obj.variablesToStore = cParams.variablesToStore;
+            obj.computeVariableThroughFemSolver()
+            obj.selectComputedVar();
+            obj.loadStoredVariable();
         end
     end
 
@@ -67,16 +70,16 @@ classdef NewMatlabTest3dTetrahedra < handle
         function createMaterialProperties(obj)
             q = Quadrature.set(obj.fem.mesh.type);
             q.computeQuadrature('LINEAR');
-            I = ones(obj.fem.mesh.nelem,q.ngaus);            
+            I = ones(obj.fem.mesh.nelem,q.ngaus);
             p.kappa = .9107*I;
-            p.mu    = .3446*I;               
-            obj.fem.setMatProps(p)        
-        end        
-        
+            p.mu    = .3446*I;
+            obj.fem.setMatProps(p)     
+        end
+
     end
 
-    %% pel suite
-    methods (Access = public) % nou
+    methods (Access = public)
+
         function error =computeErrorForTest(obj)
             d = numel(obj.variablesToStore);
             err = ones(d,1);
@@ -86,7 +89,7 @@ classdef NewMatlabTest3dTetrahedra < handle
                 err(ivar) = norm(sV - cV)/norm(sV);
             end
             error = norm(err);
-        end        
+        end    
     end
 
 end

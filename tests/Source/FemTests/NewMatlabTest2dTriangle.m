@@ -3,9 +3,7 @@ classdef NewMatlabTest2dTriangle < handle
     properties (Access = protected)
         testName = 'test2d_triangle';
         variablesToStore = {'d_u'};
-        tol = 1e-6;
         storedVar
-        error
         computedVar
         fem
         FileName
