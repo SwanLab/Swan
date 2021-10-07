@@ -1,7 +1,7 @@
-classdef NewMatlabTest2dTriangle < handle
+classdef NewMatlabTest3dTetrahedra < handle
     
     properties (Access = protected)
-        testName = 'test2d_triangle';
+        testName = 'test3d_tetrahedra';  
         variablesToStore = {'d_u'};
         tol = 1e-6;
         storedVar
@@ -12,12 +12,13 @@ classdef NewMatlabTest2dTriangle < handle
     end
        
     methods
-        function obj = NewMatlabTest2dTriangle()
+        function obj = NewMatlabTest3dTetrahedra()
            obj.computeVariableThroughFemSolver()
            obj.selectComputedVar();
            obj.loadStoredVariable();
         end
     end
+
 
     methods (Access = protected)
         
@@ -26,7 +27,6 @@ classdef NewMatlabTest2dTriangle < handle
         end
         
     end
-
     %% testStoredComputedChecker
     methods (Access = protected) % heredat de testStoredComputedChecker
         function computeError(obj)
@@ -89,6 +89,6 @@ classdef NewMatlabTest2dTriangle < handle
             error = norm(err);
         end        
     end
-    
+
 end
 
