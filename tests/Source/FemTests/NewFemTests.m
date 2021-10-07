@@ -1,5 +1,9 @@
-classdef NewFemTests < handle % nota: extends TestRunner de normal
+classdef NewFemTests < handle & matlab.unittest.TestCase % nota: extends TestRunner de normal
     % https://www.mathworks.com/help/matlab/ref/matlab.unittest.constraints-package.html
+    properties (TestParameter)
+        paramtests = {'NewMatlabTest2dTriangle'};
+    end
+
     properties (Access = protected)
         FieldOfStudy = 'FEM'
         tests
@@ -24,6 +28,11 @@ classdef NewFemTests < handle % nota: extends TestRunner de normal
             obj.tests = {'NewMatlabTest2dTriangle'};
         end
 
+        function runSingleTest(obj, teststr)
+            test = eval(teststr);
+            test.checkTestPassed(teststr);
+        end
+
         function runTests(obj)
             nTests = size(obj.tests,1);
             for itest = 1: nTests
@@ -33,6 +42,15 @@ classdef NewFemTests < handle % nota: extends TestRunner de normal
             end
         end
     end
+    
+    methods (Test)
+        function testNumel(testCase, paramtests) % 3 tests
+            inst = eval(paramtests);
+            err = inst.computeErrorForTest();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+    end 
     
 end
 

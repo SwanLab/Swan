@@ -1,4 +1,7 @@
 classdef TestCarpet < handle & matlab.unittest.TestCase
+    % Una suite agrupa tests  els fa correr de manera relativament
+    % senzilla. Per exemple, aqui sota, hi ha un testcase construit amb
+    % diferents parametres per generar tests
     properties (TestParameter)
         type = {'single','double','uint16'};
         level = struct('small',2,'medium',4,'large',6);
