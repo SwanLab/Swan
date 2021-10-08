@@ -2,10 +2,10 @@ classdef NewMatlabTestStokes < NewMatlabTest
 
     methods (Access = protected)
         
-        function selectComputedVar(obj)
-            obj.computedVar{1} = obj.fem.variables.u;
-            obj.computedVar{2} = obj.fem.variables.p;
-        end
+%         function selectComputedVar(obj)
+%             obj.computedVar{1} = obj.fem.variables.u;
+%             obj.computedVar{2} = obj.fem.variables.p;
+%         end
 
     end
 

@@ -37,12 +37,21 @@ classdef NewMatlabTest < handle
             vars = obj.fem.variables;
             toStore = obj.variablesToStore;
             fnms = fieldnames(vars);
+            totalComputationVariables = numel(fnms);
+            totalStoredVariables = size(toStore,2);
             count = 1;
-            for i = 1:numel(vars)
-                if strcmp(fnms(i),toStore{i})
+            for i = 1:totalComputationVariables
+                calcVar = fnms(i);
+                storVar = toStore(count);
+                if strcmp(calcVar, storVar)
                     obj.computedVar{count} = vars.(fnms{i});
-                    count = count + 1;
+                    if count == totalStoredVariables
+                        return;
+                    else
+                        count = count+1;
+                    end
                 end
+
             end
         end
         
