@@ -15,6 +15,9 @@ classdef NewMatlabTest < handle
         function obj = NewMatlabTest(cParams)
             obj.testName         = cParams.testName;
             obj.variablesToStore = cParams.variablesToStore;
+%             solverType = cParams.solver;
+%             obj.TestComputationHandler = NewTestComputationHandler.create(solverType);
+
             obj.computeVariableThroughFemSolver()
             obj.selectComputedVar();
             obj.loadStoredVariable();
@@ -25,22 +28,18 @@ classdef NewMatlabTest < handle
     methods (Access = protected)
         
         function selectComputedVar(obj)
-            obj.computedVar{1} = obj.fem.variables.d_u;
+            vars = obj.fem.variables;
+            toStore = obj.variablesToStore;
+            fnms = fieldnames(vars);
+            count = 1;
+            for i = 1:numel(vars)
+                if strcmp(fnms(i),toStore{i})
+                    obj.computedVar{count} = vars.(fnms{i});
+                    count = count + 1;
+                end
+            end
         end
         
-    end
-    %% testStoredComputedChecker
-    methods (Access = protected) % heredat de testStoredComputedChecker
-        function computeError(obj)
-            d = numel(obj.variablesToStore);
-            err = ones(d,1);
-            for ivar = 1:d
-                sV = obj.storedVar{ivar};
-                cV = obj.computedVar{ivar};
-                err(ivar) = norm(sV - cV)/norm(sV);
-            end
-            obj.error = norm(err);
-        end        
     end
 
     %% testLoadStoredVariable

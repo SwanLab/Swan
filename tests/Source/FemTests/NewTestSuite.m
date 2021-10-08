@@ -8,6 +8,7 @@ classdef NewTestSuite < handle
 
         function obj = NewTestSuite()
             suite = matlab.unittest.TestSuite.fromFile('NewFemTests.m');
+            suite = matlab.unittest.TestSuite.fromFile('NewFemTests.m', 'Tag','stokes');
             results = suite.run;
             table(results)
         end
