@@ -17,7 +17,6 @@ classdef NewMatlabTest < handle
             obj.variablesToStore = cParams.variablesToStore;
 %             solverType = cParams.solver;
 %             obj.TestComputationHandler = NewTestComputationHandler.create(solverType);
-
             obj.computeVariableThroughFemSolver()
             obj.selectComputedVar();
             obj.loadStoredVariable();
@@ -25,7 +24,14 @@ classdef NewMatlabTest < handle
     end
 
 
+   
     methods (Access = protected)
+
+        function computeVariableThroughFemSolver(obj)
+            obj.fem = FEM.create(obj.testName);
+            obj.createMaterialProperties();
+            obj.fem.computeVariables();
+        end
         
         function selectComputedVar(obj)
             vars = obj.fem.variables;
@@ -44,29 +50,17 @@ classdef NewMatlabTest < handle
 
     %% testLoadStoredVariable
     
-    methods (Access = private) % heredat de testLoadStoredVariable
-        function loadStoredVariable(obj)
+    methods (Access = private)
+        
+        function loadStoredVariable(obj) % heredat de testLoadStoredVariable
             file2load = obj.testName;
             load(file2load);
             for icell = 1:numel(obj.variablesToStore)
               obj.storedVar{icell} = eval(obj.variablesToStore{icell});
             end
         end
-    end
 
-    %% testFemComputation
-    
-    methods (Access = protected) % heredat de testFemComputation
-        function computeVariableThroughFemSolver(obj)
-            obj.fem = FEM.create(obj.testName);
-            obj.createMaterialProperties();
-            obj.fem.computeVariables();
-        end        
-    end
-    
-    methods (Access = private) % heredat de testFemComputation
-        
-        function createMaterialProperties(obj)
+        function createMaterialProperties(obj) % heredat de testFemComputation
             q = Quadrature.set(obj.fem.mesh.type);
             q.computeQuadrature('LINEAR');
             I = ones(obj.fem.mesh.nelem,q.ngaus);
