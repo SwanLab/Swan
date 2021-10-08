@@ -2,26 +2,17 @@ classdef (TestTags = {'FEM'}) ...
         NewFemTests < handle & matlab.unittest.TestCase
     % https://www.mathworks.com/help/matlab/ref/matlab.unittest.constraints-package.html
     properties (TestParameter)
-        paramtests = {'NewMatlabTest2dTriangle', 'NewMatlabTest3dTetrahedra'};
         duTests = {'test2d_triangle', 'test2d_quad', 'test3d_tetrahedra', 'test3d_hexahedra'}
         stokesTests = {'test2d_stokes_triangle'}
+        microTests = {'test2d_micro'}
     end
 
     properties (Access = protected)
         FieldOfStudy = 'FEM'
         tests
     end
-    
-    methods (Test, TestTags = {'Passed', 'Legacy'})
-        function testPassedLegacy(testCase, paramtests)
-            inst = eval(paramtests);
-            err = inst.computeErrorForTest();
-            tol = 1e-6;
-            testCase.verifyLessThanOrEqual(err, tol)
-        end
-    end 
 
-    methods (Test, TestTags = {'Passed', 'Nou', 'du'})
+    methods (Test, TestTags = {'Passed', 'Classic', 'du'})
         function testPassed(testCase, duTests)
             s.testName = duTests;
             s.variablesToStore = {'d_u'};
@@ -31,10 +22,9 @@ classdef (TestTags = {'FEM'}) ...
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
-    end 
+    end
 
-
-    methods (Test, TestTags = {'Passed', 'Nou', 'stokes'})
+    methods(Test, TestTags = {'Passed', 'Classic', 'stokes'})
         function testPassedStokes(testCase, stokesTests)
             s.testName = stokesTests;
 %             s.variablesToStore = {'variable.u','variable.p'};
@@ -45,6 +35,19 @@ classdef (TestTags = {'FEM'}) ...
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
-    end 
+    end
+
+
+    methods(Test, TestTags = {'Passed', 'Nou', 'micro'})
+        function testMicro(testCase, microTests)
+            s.testName = microTests;
+            s.variablesToStore = {'Chomog'};
+            s.solver = 'FEM_SOLVER';
+            inst = NewMatlabTest2dMicro(s);
+            err = inst.computeErrorForTest();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+    end
 end
 
