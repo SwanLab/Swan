@@ -15,8 +15,6 @@ classdef NewMatlabTest < handle
         function obj = NewMatlabTest(cParams)
             obj.testName         = cParams.testName;
             obj.variablesToStore = cParams.variablesToStore;
-%             solverType = cParams.solver;
-%             obj.TestComputationHandler = NewTestComputationHandler.create(solverType);
             obj.computeVariableThroughFemSolver()
             obj.selectComputedVar();
             obj.loadStoredVariable();

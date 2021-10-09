@@ -15,7 +15,7 @@ classdef FemTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {...
-                'testPrincipalDirection2D';
+                'testPrincipalDirection2Dnou';
                 'testPrincipalDirection3D';                
                 };
         end

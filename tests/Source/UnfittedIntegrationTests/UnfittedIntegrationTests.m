@@ -35,9 +35,9 @@ classdef UnfittedIntegrationTests < testRunner
            'testVolumeSphereHexahedra';
             
              'testSurfaceCylinderTetrahedra';
-         %   'testSurfaceCylinderHexahedra';
-         %   'testVolumeCylinderTetrahedra';
-         %   'testVolumeCylinderHexahedra';
+           'testSurfaceCylinderHexahedra';
+           'testVolumeCylinderTetrahedra';
+           'testVolumeCylinderHexahedra';
             
             
             };

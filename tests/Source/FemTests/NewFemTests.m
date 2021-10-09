@@ -1,43 +1,41 @@
-classdef (TestTags = {'FEM'}) ...
-        NewFemTests < handle & matlab.unittest.TestCase
-    % https://www.mathworks.com/help/matlab/ref/matlab.unittest.constraints-package.html
+classdef NewFemTests < handle & matlab.unittest.TestCase
+
     properties (TestParameter)
         duTests = {'test2d_triangle', 'test2d_quad', 'test3d_tetrahedra', 'test3d_hexahedra'}
         stokesTests = {'test2d_stokes_triangle'}
         microTests = {'test2d_micro'}
     end
 
-    properties (Access = protected)
-        FieldOfStudy = 'FEM'
-        tests
-    end
+    methods (Test, TestTags = {'FEM', 'Passed', 'Classic', 'du'})
 
-    methods (Test, TestTags = {'Passed', 'Classic', 'du'})
         function testPassed(testCase, duTests)
-            s.testName = duTests;
+            s.solver           = 'FEM_SOLVER';
+            s.testName         = duTests;
             s.variablesToStore = {'d_u'};
-            s.solver = 'FEM_SOLVER';
-            inst = NewMatlabTest(s);
-            err = inst.computeErrorForTest();
+            test = NewMatlabTest(s);
+            err = test.computeErrorForTest();
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
+
     end
 
-    methods(Test, TestTags = {'Passed', 'Classic', 'stokes'})
+    methods(Test, TestTags = {'FEM', 'Passed', 'Classic', 'Stokes'})
+
         function testStokes(testCase, stokesTests)
-            s.testName = stokesTests;
+            s.solver           = 'FEM_SOLVER';
+            s.testName         = stokesTests;
             s.variablesToStore = {'u','p'};
-            s.solver = 'FEM_SOLVER';
             inst = NewMatlabTestStokes(s);
             err = inst.computeErrorForTest();
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
+
     end
 
+    methods(Test, TestTags = {'FEM', 'Classic', 'Micro'})
 
-    methods(Test, TestTags = {'Passed', 'Nou', 'micro'})
         function testMicro(testCase, microTests)
             s.testName = microTests;
             s.variablesToStore = {'Chomog'};
@@ -47,6 +45,34 @@ classdef (TestTags = {'FEM'}) ...
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
+
     end
+
+    methods(Test, TestTags = {'FEM', 'Classic', 'PrincipalDirection'})
+
+        function testPrincipalDirection2D(testCase)
+            s.stressDim = 3;
+            s.pdim      = '2D';
+            s.nelem     = 6400;
+            s.nGaus     = 3;
+            inst = NewTestPrincipalDirection(s);
+            err = inst.computeError();
+            tol = 1e-12;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+        function testPrincipalDirection3D(testCase)
+            s.stressDim = 6;
+            s.pdim      = '3D';
+            s.nelem     = 6400;
+            s.nGaus     = 3;
+            inst = NewTestPrincipalDirection(s);
+            err = inst.computeError();
+            tol = 1e-12;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+    end
+
 end
 
