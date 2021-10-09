@@ -1,4 +1,4 @@
-classdef NewMatlabTest2dMicro < NewMatlabTest
+classdef Micro2DTest < PrecomputedVariableTest
 
     methods (Access = protected)
         function computeVariableThroughFemSolver(obj)
