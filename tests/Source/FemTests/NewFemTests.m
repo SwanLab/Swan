@@ -25,9 +25,8 @@ classdef (TestTags = {'FEM'}) ...
     end
 
     methods(Test, TestTags = {'Passed', 'Classic', 'stokes'})
-        function testPassedStokes(testCase, stokesTests)
+        function testStokes(testCase, stokesTests)
             s.testName = stokesTests;
-%             s.variablesToStore = {'variable.u','variable.p'};
             s.variablesToStore = {'u','p'};
             s.solver = 'FEM_SOLVER';
             inst = NewMatlabTestStokes(s);
