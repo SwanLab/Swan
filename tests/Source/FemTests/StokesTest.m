@@ -1,4 +1,4 @@
-classdef NewMatlabTestStokes < NewMatlabTest
+classdef StokesTest < PrecomputedVariableTest
 
     methods (Access = protected)
         function computeVariableThroughFemSolver(obj)

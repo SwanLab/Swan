@@ -1,4 +1,4 @@
-classdef NewFemTests < handle & matlab.unittest.TestCase
+classdef FemTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
         duTests = {'test2d_triangle', 'test2d_quad', 'test3d_tetrahedra', 'test3d_hexahedra'}
@@ -8,12 +8,12 @@ classdef NewFemTests < handle & matlab.unittest.TestCase
 
     methods (Test, TestTags = {'FEM', 'Passed', 'Classic', 'du'})
 
-        function testPassed(testCase, duTests)
+        function testDisplacement(testCase, duTests)
             s.solver           = 'FEM_SOLVER';
             s.testName         = duTests;
             s.variablesToStore = {'d_u'};
-            test = NewMatlabTest(s);
-            err = test.computeErrorForTest();
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
@@ -26,8 +26,8 @@ classdef NewFemTests < handle & matlab.unittest.TestCase
             s.solver           = 'FEM_SOLVER';
             s.testName         = stokesTests;
             s.variablesToStore = {'u','p'};
-            inst = NewMatlabTestStokes(s);
-            err = inst.computeErrorForTest();
+            inst = StokesTest(s);
+            err = inst.computeError();
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
@@ -40,8 +40,8 @@ classdef NewFemTests < handle & matlab.unittest.TestCase
             s.testName = microTests;
             s.variablesToStore = {'Chomog'};
             s.solver = 'FEM_SOLVER';
-            inst = NewMatlabTest2dMicro(s);
-            err = inst.computeErrorForTest();
+            inst = Micro2DTest(s);
+            err = inst.computeError();
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
@@ -55,7 +55,7 @@ classdef NewFemTests < handle & matlab.unittest.TestCase
             s.pdim      = '2D';
             s.nelem     = 6400;
             s.nGaus     = 3;
-            inst = NewTestPrincipalDirection(s);
+            inst = PrincipalDirectionTest(s);
             err = inst.computeError();
             tol = 1e-12;
             testCase.verifyLessThanOrEqual(err, tol)
@@ -66,7 +66,7 @@ classdef NewFemTests < handle & matlab.unittest.TestCase
             s.pdim      = '3D';
             s.nelem     = 6400;
             s.nGaus     = 3;
-            inst = NewTestPrincipalDirection(s);
+            inst = PrincipalDirectionTest(s);
             err = inst.computeError();
             tol = 1e-12;
             testCase.verifyLessThanOrEqual(err, tol)

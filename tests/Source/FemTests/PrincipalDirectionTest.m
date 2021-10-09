@@ -1,4 +1,4 @@
-classdef NewTestPrincipalDirection < handle
+classdef PrincipalDirectionTest < handle
      
      properties (Access = protected)
         stressDim
@@ -15,7 +15,7 @@ classdef NewTestPrincipalDirection < handle
     
     methods (Access = public)
        
-        function obj = NewTestPrincipalDirection(cParams)
+        function obj = PrincipalDirectionTest(cParams)
             obj.init(cParams);
         end
         

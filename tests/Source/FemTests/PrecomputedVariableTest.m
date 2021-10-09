@@ -1,4 +1,4 @@
-classdef NewMatlabTest < handle
+classdef PrecomputedVariableTest < handle
     
     properties (Access = protected)
         testName;  
@@ -12,7 +12,7 @@ classdef NewMatlabTest < handle
     end
        
     methods
-        function obj = NewMatlabTest(cParams)
+        function obj = PrecomputedVariableTest(cParams)
             obj.testName         = cParams.testName;
             obj.variablesToStore = cParams.variablesToStore;
             obj.computeVariableThroughFemSolver()
@@ -80,7 +80,7 @@ classdef NewMatlabTest < handle
 
     methods (Access = public)
 
-        function error =computeErrorForTest(obj)
+        function error =computeError(obj)
             d = numel(obj.variablesToStore);
             err = ones(d,1);
             for ivar = 1:d
