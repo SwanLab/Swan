@@ -1,4 +1,4 @@
-classdef NewUnfittedIntegrationTest < testUnfitted
+classdef UnfittedIntegrationTest < testUnfitted
     
     properties (Access = protected)
         testName;
@@ -16,7 +16,7 @@ classdef NewUnfittedIntegrationTest < testUnfitted
     methods (Access = public)
 
         
-        function obj = NewUnfittedIntegrationTest(cParams)
+        function obj = UnfittedIntegrationTest(cParams)
             obj.init(cParams);
             obj.createTopOpt();
             obj.integrateSurface();
