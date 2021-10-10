@@ -21,7 +21,7 @@ classdef UnfittedIntegrationTests < testRunner
             obj.tests = {...
             
             % agrupables analytical 2pi
-           'MatlabtestPerimeterCircleTriangle'; % externalInt + perimeter
+%            'MatlabtestPerimeterCircleTriangle'; % externalInt + perimeter
 %            'testPerimeterCircleQuadrilateral'; % externalInt + perimeter
 %            
 %             % agrupables analytical pi
@@ -37,14 +37,15 @@ classdef UnfittedIntegrationTests < testRunner
 %             % agrupables analytical 4pi
 %            'testSurfaceSphereHexahedra';
 %           'testSurfaceSphereTetrahedra';
+
 %             % agrupables analytical 4/3 *pi
 %            'testVolumeSphereTetrahedra';
 %            'testVolumeSphereHexahedra';
 %             
-%              'testSurfaceCylinderTetrahedra';
-%            'testSurfaceCylinderHexahedra';
-%            'testVolumeCylinderTetrahedra';
-%            'testVolumeCylinderHexahedra';
+             'testSurfaceCylinderTetrahedra';
+           'testSurfaceCylinderHexahedra';
+           'testVolumeCylinderTetrahedra';
+           'testVolumeCylinderHexahedra';
             
             
             };

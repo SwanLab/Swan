@@ -55,7 +55,7 @@ classdef testUnfitted < test
         
         function translateToNewSettings(obj)
             translator = SettingsTranslator();
-            translator.translate(obj.settings);
+            translator.translate(obj.settings); % peta aqui
             fileName = translator.fileName;
             obj.settings  = SettingsTopOptProblem(fileName);
         end

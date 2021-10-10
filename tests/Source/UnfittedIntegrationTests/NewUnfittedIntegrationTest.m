@@ -1,26 +1,42 @@
 classdef NewUnfittedIntegrationTest < testUnfitted
     
     properties (Access = protected)
-        testName = 'test_circle_triangle';
-        analyticalValue = 2*pi;
-        meshType = 'BOUNDARY';
+        testName;
+        analyticalValue;
+        meshType;
+        meshIncludeBoxContour;
+    end
+
+    properties (Access = private)
+        varAdim
     end
 
     %% Heredat de testUnfittedPerimeterIntegration
-    properties (Access = protected)
-        meshIncludeBoxContour = false
-    end
     
     methods (Access = public)
 
         
-        function obj = NewUnfittedIntegrationTest()
+        function obj = NewUnfittedIntegrationTest(cParams)
+            obj.init(cParams);
             obj.createTopOpt();
             obj.integrateSurface();
         end
     end
-    %% Heredat de testUnfittedIntegration_ExternalIntegrator
-    methods (Access = protected)
+
+    methods (Access = private)
+
+        function init(obj, cParams)
+            obj.testName = cParams.testName;
+            obj.analyticalValue = cParams.analyticalValue;
+            obj.meshType = cParams.meshType;
+            obj.meshIncludeBoxContour = cParams.meshIncludeBoxContour;
+        end
+        
+        function integrateSurface(obj)
+            obj.createMesh();
+            geomVar = obj.computeGeometricalVariable();
+            obj.varAdim = geomVar/obj.analyticalValue;
+        end
         
         function totalIntegral = computeGeometricalVariable(obj)
             switch obj.meshType  
@@ -33,52 +49,23 @@ classdef NewUnfittedIntegrationTest < testUnfitted
         end
         
     end
-    
-    %% Heredat de testShowingError
-   
-    properties (Access = protected)
-       error
-    end
-        
-    methods (Access = protected)
-        function printTestPassed(obj)
-           cprintf('green',obj.FileName);                                    
-           cprintf('green',' PASSED.');
-           cprintf('black',['Error: ',num2str(obj.error),'\n']);
-        end
-        
-        function printTestNotPassed(obj)
-            cprintf('red',obj.FileName);                        
-            cprintf('red',' FAILED.');
-            cprintf('red',['Error: ',num2str(obj.error),'\n']);
-        end
-        
-        function hasPassed = hasPassed(obj)
-            obj.computeError()
-            hasPassed = obj.error < obj.tol();
-        end
-    end
 
     %% Heredat de testUnfittedIntegration
-    properties (Access = private)
-        varAdim
+    methods (Access = public)
+        
+        function error = computeError(obj)
+            error = abs(obj.varAdim - 1);
+        end
+        
     end
-    properties (Access = protected)
-        tol = 6e-2;
-    end
+
     methods (Access = protected)
-        
-        function integrateSurface(obj)
-            obj.createMesh();
-            
-            geomVar = obj.computeGeometricalVariable();
-            obj.varAdim = geomVar/obj.analyticalValue;
+        function printTestNotPassed()
         end
-        
-        function computeError(obj)
-            obj.error = abs(obj.varAdim - 1);
+        function printTestPassed()
         end
-        
+        function hasPassed()
+        end
     end
 end
 

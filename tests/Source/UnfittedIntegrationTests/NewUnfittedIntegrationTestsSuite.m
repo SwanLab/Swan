@@ -6,7 +6,9 @@ classdef NewUnfittedIntegrationTestsSuite < handle
             % Nota: queda corregir que els tests puguin correr fora
             % d'aquest directori
 %             suite = matlab.unittest.TestSuite.fromFile('NewUnfittedIntegrationTests.m');
-            suite = matlab.unittest.TestSuite.fromFile('NewUnfittedIntegrationTests.m', 'Tag','Nou');
+            cami = './tests/Source/UnfittedIntegrationTests/NewUnfittedIntegrationTests.m'; % des de /swan/
+%             cami = 'NewUnfittedIntegrationTests.m';
+            suite = matlab.unittest.TestSuite.fromFile(cami, 'Tag','Nou');
             results = suite.run;
             table(results)
         end
