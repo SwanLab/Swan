@@ -1,4 +1,4 @@
-classdef NewTestOneTetrahedronAllRand <  handle
+classdef TestOneTetrahedronAllRand <  handle
     
     methods (Static)
 
@@ -16,7 +16,7 @@ classdef NewTestOneTetrahedronAllRand <  handle
                     position = randperm(4,2);
                     ls(position) = -ls(position);
                     s.levelSet = ls;
-                    test = NewVectorizedTriangulationTest(s);
+                    test = VectorizedTriangulationTest(s);
                 case {'3Vs1'}
                     difPos = randperm(4,1);
                     isPositive = randperm(2,1);
@@ -28,7 +28,7 @@ classdef NewTestOneTetrahedronAllRand <  handle
                     end
                     ls(position) = -ls(position);
                     s.levelSet = ls;
-                    test = NewVectorizedTriangulationTest(s);
+                    test = VectorizedTriangulationTest(s);
                 otherwise
                     error('Invalid Tetrahedron Test Type.')
             end
