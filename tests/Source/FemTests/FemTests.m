@@ -6,7 +6,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
         microTests = {'test2d_micro'}
     end
 
-    methods (Test, TestTags = {'FEM', 'Passed', 'Classic', 'du'})
+    methods (Test, TestTags = {'FEM', 'Passed', 'Classic', 'Displacement'})
 
         function testDisplacement(testCase, duTests)
             s.solver           = 'FEM_SOLVER';

@@ -10,8 +10,6 @@ classdef UnfittedIntegrationTest < testUnfitted
     properties (Access = private)
         varAdim
     end
-
-    %% Heredat de testUnfittedPerimeterIntegration
     
     methods (Access = public)
 
@@ -26,9 +24,9 @@ classdef UnfittedIntegrationTest < testUnfitted
     methods (Access = private)
 
         function init(obj, cParams)
-            obj.testName = cParams.testName;
+            obj.testName        = cParams.testName;
+            obj.meshType        = cParams.meshType;
             obj.analyticalValue = cParams.analyticalValue;
-            obj.meshType = cParams.meshType;
             obj.meshIncludeBoxContour = cParams.meshIncludeBoxContour;
         end
         
@@ -45,12 +43,10 @@ classdef UnfittedIntegrationTest < testUnfitted
                 case 'BOUNDARY'
                     totalIntegral = obj.unfittedMesh.computePerimeter();
             end
-
         end
         
     end
 
-    %% Heredat de testUnfittedIntegration
     methods (Access = public)
         
         function error = computeError(obj)
@@ -59,6 +55,7 @@ classdef UnfittedIntegrationTest < testUnfitted
         
     end
 
+    %% Heredat de testUnfitted, s'ha de declarar buit
     methods (Access = protected)
         function printTestNotPassed()
         end

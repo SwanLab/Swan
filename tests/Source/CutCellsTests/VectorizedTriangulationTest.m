@@ -175,7 +175,7 @@ classdef VectorizedTriangulationTest < testShowingError
         
         function error = computeConnecBoundaryCutMeshError(obj)
             cV = obj.connecBcutMesh;
-            cU = obj.uMesh.boundaryCutMesh.mesh.connec;
+            cU = obj.uMesh.boundaryCutMesh.mesh.connec; % peta aqui
             areEquiv = obj.areConnecEquivalent(cU,cV);
             error = sum(~areEquiv)/length(areEquiv);
         end        

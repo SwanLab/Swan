@@ -10,7 +10,8 @@ classdef OneTetrahedronRandCoordOrderedConnecCase11 <  VectorizedTriangulationTe
             obj.coord = rand(4,3);            
             obj.connec = [1 2 3 4];
             obj.boundaryConnec = [1 2 3;1 2 4;1 3 4;2 3 4];     
-            obj.levelSet = [-7.8496;-9.7731;8.3404;-8.3622];            
+            obj.levelSet = [-7.8496;-9.7731;8.3404;-8.3622];    
+            obj.connecBcutMesh = [6 5 7]; % afegit meu        
         end
                
     end

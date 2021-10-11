@@ -13,12 +13,12 @@ classdef VectorizedTriangulationTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {... 
-                             'OneTetrahedronIsoCoordOrderedConnecCase7';
-                            'OneTetrahedronRandCoordOrderedConnecCase7';
-%                            'OneTetrahedronIsoCoordOrderedConnecCase11';
-%                           'OneTetrahedronRandCoordOrderedConnecCase11';
-%                            'OneTetrahedronIsoCoordOrderedConnecCase13';
-%                           'OneTetrahedronRandCoordOrderedConnecCase13';
+%                              'OneTetrahedronIsoCoordOrderedConnecCase7';
+%                             'OneTetrahedronRandCoordOrderedConnecCase7';
+%                            'OneTetrahedronIsoCoordOrderedConnecCase11'; % Failed
+%                           'OneTetrahedronRandCoordOrderedConnecCase11'; % Failed
+                           'OneTetrahedronIsoCoordOrderedConnecCase13';
+                          'OneTetrahedronRandCoordOrderedConnecCase13';
 %                            'OneTetrahedronIsoCoordOrderedConnecCase8';
 %                           'OneTetrahedronRandCoordOrderedConnecCase8';
 %                             'OneTetrahedronIsoCoordOrderedConnecCase4';

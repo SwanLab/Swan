@@ -1,4 +1,4 @@
-classdef UnfittedIntegrationTests < handle & matlab.unittest.TestCase
+classdef NewVectorizedTriangulationTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
         circleTests = {'test_circle_triangle', 'test_circle_quadrilateral'}
