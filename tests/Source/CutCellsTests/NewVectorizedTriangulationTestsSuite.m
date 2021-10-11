@@ -8,7 +8,7 @@ classdef NewVectorizedTriangulationTestsSuite < handle
 %             suite = matlab.unittest.TestSuite.fromFile('NewVectorizedTriangulationTests.m');
             cami = './tests/Source/CutCellsTests/NewVectorizedTriangulationTests.m'; % des de /swan/
 %             cami = 'NewUnfittedIntegrationTests.m';
-            suite = matlab.unittest.TestSuite.fromFile(cami, 'Tag','VectorizedTriangulation');
+            suite = matlab.unittest.TestSuite.fromFile(cami, 'Tag','Nou'); % VectorizedTriangulation
             results = suite.run;
             table(results)
         end

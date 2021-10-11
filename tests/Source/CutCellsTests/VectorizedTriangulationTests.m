@@ -13,35 +13,35 @@ classdef VectorizedTriangulationTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {... 
-%                              'OneTetrahedronIsoCoordOrderedConnecCase7';
-%                             'OneTetrahedronRandCoordOrderedConnecCase7';
-%                            'OneTetrahedronIsoCoordOrderedConnecCase11'; % Failed
-%                           'OneTetrahedronRandCoordOrderedConnecCase11'; % Failed
-                           'OneTetrahedronIsoCoordOrderedConnecCase13';
-                          'OneTetrahedronRandCoordOrderedConnecCase13';
-%                            'OneTetrahedronIsoCoordOrderedConnecCase8';
-%                           'OneTetrahedronRandCoordOrderedConnecCase8';
-%                             'OneTetrahedronIsoCoordOrderedConnecCase4';
-%                           'OneTetrahedronRandCoordOrderedConnecCase4';
-%                             'OneTetrahedronIsoCoordOrderedConnecCase2';
-%                           'OneTetrahedronRandCoordOrderedConnecCase2';
-%                             'OneTetrahedronIsoCoordOrderedConnecCase14';
-%                           'OneTetrahedronRandCoordOrderedConnecCase14';
-%                             'OneTetrahedronIsoCoordOrderedConnecCase1';
-%                           'OneTetrahedronRandCoordOrderedConnecCase1';
-%                            'OneTetrahedronAllRand3Vs1';
-%                              'TwoTetrahedronIsoCoordOrderedConnecCase3VsOnePoint'
-%                              'OneTetrahedronIsoCoordOrderedConnecCase6';
-%                              'OneTetrahedronIsoCoordOrderedConnecCase9';
-%                               'OneTetrahedronIsoCoordOrderedConnecCase12';
+%                             'OneTetrahedronRandCoordOrderedConnecCase7'; %funciona
+%                             'OneTetrahedronRandCoordOrderedConnecCase11';
+%                             'OneTetrahedronRandCoordOrderedConnecCase13';
+%                             'OneTetrahedronRandCoordOrderedConnecCase8';
+%                             'OneTetrahedronRandCoordOrderedConnecCase4';
+%                             'OneTetrahedronRandCoordOrderedConnecCase2';
+%                             'OneTetrahedronRandCoordOrderedConnecCase14';
+%                             'OneTetrahedronRandCoordOrderedConnecCase1';
+%                               'OneTetrahedronIsoCoordOrderedConnecCase1';
+%                               'OneTetrahedronIsoCoordOrderedConnecCase2';
 %                               'OneTetrahedronIsoCoordOrderedConnecCase3';
-%                               'OneTetrahedronIsoCoordOrderedConnecCase10';
+%                               'OneTetrahedronIsoCoordOrderedConnecCase4';
 %                               'OneTetrahedronIsoCoordOrderedConnecCase5';
-%                               'OneTetrahedronAllRand2Vs2';
-%                              'TwoTetrahedronIsoCoordOrderedConnecCase2Vs2Point';
-%                               'TwoTetrahedronIsoCoordOrderedConnecCaseBothCases';
-%               'TwoTetrahedronIsoCoordRandConnecCaseBothCases';  
+%                               'OneTetrahedronIsoCoordOrderedConnecCase6';
+%                               'OneTetrahedronIsoCoordOrderedConnecCase7'; %funciona
+%                               'OneTetrahedronIsoCoordOrderedConnecCase8';
+%                               'OneTetrahedronIsoCoordOrderedConnecCase9';
+%                               'OneTetrahedronIsoCoordOrderedConnecCase10';
+%                               'OneTetrahedronIsoCoordOrderedConnecCase11';
+%                               'OneTetrahedronIsoCoordOrderedConnecCase12';
+%                               'OneTetrahedronIsoCoordOrderedConnecCase13';
+%                               'OneTetrahedronIsoCoordOrderedConnecCase14';
 %               'FindingBug'
+%               'OneTetrahedronAllRand3Vs1';
+%               'OneTetrahedronAllRand2Vs2';
+%               'TwoTetrahedronIsoCoordOrderedConnecCase3VsOnePoint'
+%               'TwoTetrahedronIsoCoordOrderedConnecCase2Vs2Point';
+%               'TwoTetrahedronIsoCoordOrderedConnecCaseBothCases';
+%               'TwoTetrahedronIsoCoordRandConnecCaseBothCases';  
             };
         end
     end
