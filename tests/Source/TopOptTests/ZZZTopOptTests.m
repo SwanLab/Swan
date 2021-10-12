@@ -1,6 +1,7 @@
 classdef ZZZTopOptTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
+        compTestsNO = {'test_M1M2', 'test_StressM1M2'}
         compTests = {'test_bridge', 'test_bridge2', ...
             'test_cantilever', 'test_cantilever2', 'test_cantilever3', ...
             'test_micro', 'test_micro2', ...
@@ -52,7 +53,7 @@ classdef ZZZTopOptTests < handle & matlab.unittest.TestCase
 
     end
 
-    methods (Test, TestTags = {'TopOpt', 'Passed', 'Nou', 'Displacement', 'Slow'})
+    methods (Test, TestTags = {'TopOpt', 'Passed', 'Classic', 'Displacement', 'Slow'})
 
         function testSimp(testCase, explicitImplicitTests)
             cd ../../../ % NOOOO, al segon test torna a saltar enrere

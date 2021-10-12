@@ -9,8 +9,9 @@ classdef PrecomputedVariableTest < handle
         FileName
         computerType
     end
-       
-    methods
+
+    methods (Access = public)
+
         function obj = PrecomputedVariableTest(cParams)
             obj.testName         = cParams.testName;
             obj.variablesToStore = cParams.variablesToStore;
@@ -19,6 +20,18 @@ classdef PrecomputedVariableTest < handle
             obj.selectComputedVar();
             obj.loadStoredVariable();
         end
+
+        function error =computeError(obj)
+            d = numel(obj.variablesToStore);
+            err = ones(d,1);
+            for ivar = 1:d
+                sV = obj.storedVar{ivar};
+                cV = obj.computedVar{ivar};
+                err(ivar) = norm(sV - cV)/norm(sV);
+            end
+            error = norm(err);
+        end
+
     end
 
 
@@ -88,23 +101,9 @@ classdef PrecomputedVariableTest < handle
             I = ones(obj.computation.mesh.nelem,q.ngaus);
             p.kappa = .9107*I;
             p.mu    = .3446*I;
-            obj.computation.setMatProps(p)     
+            obj.computation.setMatProps(p);
         end
 
-    end
-
-    methods (Access = public)
-
-        function error =computeError(obj)
-            d = numel(obj.variablesToStore);
-            err = ones(d,1);
-            for ivar = 1:d
-                sV = obj.storedVar{ivar};
-                cV = obj.computedVar{ivar};
-                err(ivar) = norm(sV - cV)/norm(sV);
-            end
-            error = norm(err);
-        end    
     end
 
 end

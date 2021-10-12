@@ -25,7 +25,7 @@ classdef testVigdergauzMicroStructure < testShowingError & testTopOptComputation
     methods (Access = protected)
         
         function selectComputedVar(obj)
-            obj.designVariable = obj.topOpt.designVariable;
+            obj.designVariable = obj.computation.designVariable;
         end
         
         function computeError(obj)
@@ -44,7 +44,7 @@ classdef testVigdergauzMicroStructure < testShowingError & testTopOptComputation
         end
         
         function createUnfittedMesh(obj)
-            meshBackground = obj.topOpt.designVariable.mesh;
+            meshBackground = obj.computation.designVariable.mesh;
             s.backgroundMesh  = meshBackground.innerMeshOLD;
             s.boundaryMesh    = meshBackground.boxFaceMeshes;
             cParams = SettingsMeshUnfitted(s);

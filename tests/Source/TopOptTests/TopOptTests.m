@@ -16,30 +16,10 @@ classdef TopOptTests < testRunner
     methods (Access = protected)
         
         function loadTests(obj)
-            obj.tests = {...  
-                %% testTopOptCheckingDesignVariable
-%                'testBridge2';
-%                'testBridge';
-%                'testCantilever2';
-%                'testCantilever';
-%                'testGripping';
-%                'testMicro';
-%                'testMicro2';
-%                'testDualNestedInPrimalWithProjectedGradient';
-%                'testCantilever3';
-%                'testInteriorPerimeter';
-%                'testDualNestedInPrimalWithSlerp';
+            obj.tests = {...
                 %%
-%                'testAnalyticVsRegularizedPerimeter'; %tipusdiferent
-
-                %%
-%                'testSuperEllipseExponent';
-                %%
-%                'SimplAllTest3DExplicitVsImplicit';
-%                'SimplAllTest2DExplicitVsImplicit';
-                %%
-%                'testVigdergauzMicroStructureWithStrain';
-%                'testVigdergauzMicroStructure';
+               'testVigdergauzMicroStructureWithStrain';
+               'testVigdergauzMicroStructure';
                 %%
 %                 'testM1M2'; % no funciona
 %                 'testStressM1M2'; % no funciona
