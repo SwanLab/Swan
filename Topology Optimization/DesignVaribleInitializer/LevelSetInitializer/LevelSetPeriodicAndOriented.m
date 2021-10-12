@@ -47,14 +47,8 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         end
         
         function createEpsilon(obj)
-            xy = obj.mesh.coord;
-            x1max = max(xy(:,1));
-            x1min = min(xy(:,1));
-            x2max = max(xy(:,2));
-            x2min = min(xy(:,2));            
-            xMax = max(x1max,x2max);
-            xMin = min(x1min,x2min);
-            obj.epsilon = (xMax-xMin)/obj.nCells;            
+            L = obj.mesh.computeCharacteristicLength();
+            obj.epsilon = L/obj.nCells;            
         end        
         
         function createCellCoord(obj)
@@ -78,10 +72,74 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             map.compute();
             map.plot();
             y1 = map.phi(:,1);
-            y2 = map.phi(:,2); 
+            y2 = map.phi(:,2);
+            
+            
+          %  r = map.dilation;
+            r = obj.interpolateFunction(map.dilation);
+            
+            hC = obj.epsilon*exp(-r);
+            
+            m1 = obj.cellLevelSetParams.widthH;
+            m2 = obj.cellLevelSetParams.widthV;
+            
+            hmin = min(hC);
+            hmax = max(hC);
+            hcut = (hmax+hmin)/4;%/2;
+     %       hcut = 0.05*obj.epsilon;
+  
+            
+           % m1 = obj.thresh(hcut,hC,m1);
+           % m2 = obj.thresh(hcut,hC,m2);
+            
+            obj.cellLevelSetParams.widthH = m1;
+            obj.cellLevelSetParams.widthV = m2;
+            
+            
             y1 = obj.interpolateFunction(y1);
             y2 = obj.interpolateFunction(y2);
+            
         end   
+        
+        function m = thresh(obj,hcut,hC,m)     
+            
+            alpha = hcut./hC;
+    
+            isTooSmall = alpha < 2; 
+            
+            p = sum(isTooSmall)/size(isTooSmall,1);
+            
+            isMSmall05 = m < 0.5;
+            isMLarge05 = ~isMSmall05;
+            
+            
+            m(isTooSmall & isMSmall05) = 0;
+            m(isTooSmall & isMLarge05) = 1;                    
+
+            isHcLargerThan2Hmin = alpha < 1/2;
+            isMSmallerThan1_HminHc = m < alpha;
+            isMLargerThan2_HminHc = m > 0.5*alpha;
+            itIs = isHcLargerThan2Hmin & isMSmallerThan1_HminHc & isMLargerThan2_HminHc;
+            m(itIs) = alpha(itIs);
+            
+            isMLargerThan2_HminHc = m < 0.5*alpha;
+            itIs = isHcLargerThan2Hmin & isMLargerThan2_HminHc;
+            m(itIs) = 0;         
+            
+            
+            isMSmallerThan1_HminHc = m > 1- alpha;
+            isMLargerThan2_HminHc = m < 1 - 0.5*alpha;
+            itIs = isHcLargerThan2Hmin & isMSmallerThan1_HminHc & isMLargerThan2_HminHc;
+            m(itIs) = 1- alpha(itIs);
+            
+            isMLargerThan2_HminHc = m > 1 - 0.5*alpha;
+            itIs = isHcLargerThan2Hmin & isMLargerThan2_HminHc;
+            m(itIs) = 1;         
+            
+            
+            
+            
+        end
         
         function vq = interpolateFunction(obj,v)
             X = obj.mesh.coord(:,1);

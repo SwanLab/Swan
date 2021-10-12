@@ -29,15 +29,16 @@ classdef DehomogenizingRadialExample < handle
     methods (Access = private)
         
         function init(obj)
-            obj.nx1    = 25*2;
-            obj.nx2    = 25;
-            obj.nCells = 20;
+            obj.nx1    = 225*2;
+            obj.nx2    = 225;
+            obj.nCells = 16;
         end
                
         function createBackgroundMesh(obj)
             
             x1 = linspace(-1,1,obj.nx1);
             x2 = linspace(0,1,obj.nx2);
+           
             x1T = repmat(x1,obj.nx2,1);
             x2T = repmat(x2',1,obj.nx1);     
             
@@ -49,29 +50,26 @@ classdef DehomogenizingRadialExample < handle
 %             obj.backgroundMesh = Mesh(s);
 %             
                        
-            x1 = linspace(-1,1,obj.nx1);           
-            x2 = linspace(0,1,obj.nx2);                                 
-            x1min = min(x1);
-            x1max = max(x1);
-            x2min = min(x2);
-            x2max = max(x2);
-            [coordinates, nodes,nel,nnode] = MeshRectangular(x1max-x1min,x2max-x2min,obj.nx1,obj.nx2);
-            s.coord(:,1) = coordinates(:,1)+x1min;
-            s.coord(:,2) = coordinates(:,2)+x2min;
-            s.connec = nodes;
-            obj.backgroundMesh = Mesh(s);  
-            obj.backgroundMesh.plot()
+                             
+%             x1min = min(x1);
+%             x1max = max(x1);
+%             x2min = min(x2);
+%             x2max = max(x2);
+%             [coordinates, nodes,nel,nnode] = MeshRectangular(x1max-x1min,x2max-x2min,obj.nx1,obj.nx2);
+%             s.coord(:,1) = coordinates(:,1)+x1min;
+%             s.coord(:,2) = coordinates(:,2)+x2min;
+%             s.connec = nodes;
+%             obj.backgroundMesh = Mesh(s);  
+%             obj.backgroundMesh.plot()
             
-             
-%             x1 = linspace(-1,1,obj.nx1);           
-%             x2 = linspace(0,1,obj.nx2);                                 
-%             [xv,yv] = meshgrid(x1,x2); 
-%              [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');             
-%              s.coord  = V(:,1:2);
-%              s.connec = F;
-%              obj.backgroundMesh = Mesh(s);  
-%              obj.backgroundMesh.plot()
-%              obj.coord = s.coord;
+                                
+             [xv,yv] = meshgrid(x1,x2); 
+             [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');             
+             s.coord  = V(:,1:2);
+             s.connec = F;
+             obj.backgroundMesh = Mesh(s);  
+             obj.backgroundMesh.plot()
+            % obj.coord = s.coord;
             
         end
         
@@ -83,10 +81,10 @@ classdef DehomogenizingRadialExample < handle
 
         function createSuperEllipseParams(obj)
            s.coord = obj.backgroundMesh.coord;
-           s.mMin  = 0.58;
-           s.mMax  = 0.28;
-           s.qMin  = 36;
-           s.qMax  = 36;            
+           s.mMin  = 0.6;
+           s.mMax  = 0.98;
+           s.qMin  = 32;
+           s.qMax  = 32;            
            sE = SuperEllipseDistributionExample(s);
            sE.computeParameters();            
            obj.superEllipse = sE;

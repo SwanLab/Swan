@@ -2,10 +2,11 @@ classdef ConformalMappingComputer < handle
     
     properties (Access = public)
        phi
+       dilation
     end
     
     properties (Access = private)
-       dilation
+       
     end
     
     properties (Access = private)

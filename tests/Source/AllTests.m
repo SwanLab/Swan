@@ -6,3 +6,4 @@ ReadingFilesTests;
 PlottingTests;
 HomogenizationTests;
 ImageProcessingTests;
+DehomogenizingTests;

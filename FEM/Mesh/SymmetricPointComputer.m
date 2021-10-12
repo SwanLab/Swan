@@ -5,7 +5,7 @@ classdef SymmetricPointComputer < handle
     end
     
     properties (Access = private)
-        coord
+        vector
         line
     end
     
@@ -20,10 +20,10 @@ classdef SymmetricPointComputer < handle
             itIs = dist < obj.tol;            
         end
         
-        function s = computeSymmetricCoord(obj)
+        function s = computeSymmetricVector(obj)
             pr = obj.computePRvector();
-            p  = obj.coord;
-            s = p + 2*pr;
+            p  = obj.vector;            
+            s = 2*pr + p;
         end        
         
     end
@@ -31,9 +31,9 @@ classdef SymmetricPointComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.coord = cParams.coord;
-            obj.line  = cParams.line;
-            obj.tol           = 1e-12;            
+            obj.vector = cParams.vector;
+            obj.line   = cParams.line;
+            obj.tol    = 1e-13;            
         end
         
         function pr = computePRvector(obj)
@@ -49,7 +49,7 @@ classdef SymmetricPointComputer < handle
         end
         
         function pq = computePQvector(obj)
-            p = obj.coord;            
+            p = obj.vector;            
             q = obj.line.point;            
             ndim = size(p,2);
             pq = zeros(size(p));
@@ -61,9 +61,9 @@ classdef SymmetricPointComputer < handle
         function rq = computeRQvector(obj,pq)
             u  = obj.line.vector;
             nnode = size(pq,1);
-            vector = repmat(u',nnode,1);
-            proj = dot(pq,vector,2);
-            rq   = proj.*vector;
+            uVect = repmat(u',nnode,1);
+            proj = dot(pq,uVect,2);
+            rq   = proj.*uVect;
         end
         
     end

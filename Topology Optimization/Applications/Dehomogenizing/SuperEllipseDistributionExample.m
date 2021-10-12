@@ -44,8 +44,9 @@ classdef SuperEllipseDistributionExample < handle
         function computeM1M2(obj)
             x1 = obj.coord(:,1);
             x2 = obj.coord(:,2);
-            obj.m1 = obj.createLinearFunction(x1,obj.mMin,obj.mMax);
-            obj.m2 = obj.createLinearFunction(x2,obj.mMin,obj.mMax);
+            r = sqrt(x1.^2 + x2.^2);
+            obj.m1 = obj.createLinearFunction(r,obj.mMin,obj.mMax);
+            obj.m2 = obj.createLinearFunction(r,obj.mMin,obj.mMax);
         end
         
         function computeSmoothExponent(obj) 

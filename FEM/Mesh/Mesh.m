@@ -91,7 +91,7 @@ classdef Mesh < handle
         function L = computeCharacteristicLength(obj)
             xmin = min(obj.coord);
             xmax = max(obj.coord);
-            L = norm(xmax-xmin);%/2;
+            L = norm(xmax-xmin);
         end
         
         function changeCoordinates(obj,newCoords)
@@ -151,20 +151,12 @@ classdef Mesh < handle
             obj.edges = edge;
         end
         
-        function newMesh = computeCanonicalMesh(obj)
-            [~,ind,ind2] = unique(obj.connec);
-            newConnec = reshape(ind2,[],obj.nnode);
-            newCoord = zeros(size(ind,1),obj.nnode);
-            for inode = 1:obj.nnode
-                oldNode = obj.connec(:,inode);
-                newNode = newConnec(:,inode);
-                newCoord(newNode,:) = obj.coord(oldNode,:);
-            end
-            s.coord = newCoord;
-            s.connec = newConnec;
-            s.kFace = obj.kFace;
-            newMesh = Mesh(s);
-        end
+        function m = computeCanonicalMesh(obj)
+            s.remainingNodes = unique(obj.connec);  
+            s.mesh        = obj;
+            c = CannonicalMeshComputer(s);
+            m = c.compute();          
+        end        
         
         function setMasterSlaveNodes(obj,nodes)
             obj.masterSlaveNodes = nodes;
@@ -264,7 +256,7 @@ classdef Mesh < handle
         end
         
     end
-    
+        
     methods (Access = private, Static)
         
         function [coord, connec] = readCoordConnec(testName)
