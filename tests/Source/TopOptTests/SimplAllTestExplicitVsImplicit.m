@@ -1,4 +1,4 @@
-classdef SimplAllTestExplicitVsImplicit < testShowingError
+classdef SimplAllTestExplicitVsImplicit < handle
     
      properties (Access = protected)
        tol = 1e-12;        
@@ -14,17 +14,27 @@ classdef SimplAllTestExplicitVsImplicit < testShowingError
         dim
      end     
     
-    methods (Access = protected)
+     methods (Access = public)
+       
+        function obj = SimplAllTestExplicitVsImplicit(dim)
+            obj.dim = dim;
+            obj.init();
+            obj.createProperties();
+            obj.computeExplicitMaterialInterpolation();
+            obj.computeImplicitMaterialInterpolation();            
+        end
         
-        function computeError(obj)  
+        function error = computeError(obj)  
             mE = obj.matInterpExplicit;
             mI = obj.matInterpImplicit;      
             err(1) = norm(mE.mu(:) - mI.mu(:));
             err(2) = norm(mE.kappa(:) - mI.kappa(:));            
             err(3) = norm(mE.dmu(:) - mI.dmu(:));                        
             err(4) = norm(mE.dkappa(:) - mI.dkappa(:));                        
-            obj.error = max(err);
+            error = max(err);
         end
+     end
+    methods (Access = protected)
         
         function init(obj)
             obj.nElem = 800;

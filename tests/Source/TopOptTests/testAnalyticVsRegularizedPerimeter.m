@@ -1,4 +1,4 @@
-classdef testAnalyticVsRegularizedPerimeter < testShowingError
+classdef testAnalyticVsRegularizedPerimeter < handle
     
     properties (Access = private)
         designVariable
@@ -14,36 +14,30 @@ classdef testAnalyticVsRegularizedPerimeter < testShowingError
     
     properties (Access = protected)
         testName = 'testAnalyticVsRegularizedPerimeter';
-        tol
     end
     
     methods (Access = public)
         
         function obj = testAnalyticVsRegularizedPerimeter()
             obj.init();
-            obj.createBackgroundAndBoundaryMesh();            
+            obj.createBackgroundAndBoundaryMesh();
             obj.createLevelSet();
             obj.computeRegularizedPerimeter();
         end
-        
-    end
-    
-    methods (Access = protected)
-        
-        function computeError(obj)
+
+        function error = computeError(obj)
             aP = obj.analyticPerimeter;
             nP = obj.regularizedPerimeter;
-            obj.error = abs(aP - nP)/aP;
+            error = abs(aP - nP)/aP;
         end
-        
+
     end
-    
+
     methods (Access = private)
         
         function init(obj)
-            obj.tol = 5e-2;
             obj.radius = 0.31;
-            obj.analyticPerimeter = 2*pi*obj.radius;   
+            obj.analyticPerimeter = 2*pi*obj.radius;
             obj.inputFile = 'SquareMacroTriangle';
         end
         
@@ -52,16 +46,16 @@ classdef testAnalyticVsRegularizedPerimeter < testShowingError
             s.isBackgroundMeshRectangularBox = true;
             mCreator = BackgroundAndBoundaryMeshCreatorFromInputFile(s);
             obj.backgroundMesh = mCreator.backgroundMesh;
-            obj.boundaryMesh   = mCreator.boundaryMesh;            
+            obj.boundaryMesh   = mCreator.boundaryMesh;
         end
         
-        function createLevelSet(obj)           
+        function createLevelSet(obj)
             domainLength = max(obj.backgroundMesh.coord(:,1)) - min(obj.backgroundMesh.coord(:,1));
-            halfSide = domainLength/2;            
+            halfSide = domainLength/2;
             sa.fracRadius = (obj.radius/halfSide);
             sa.coord      = obj.backgroundMesh.coord;
             sa.ndim       = obj.backgroundMesh.ndim;
-            s.creatorSettings = sa;            
+            s.creatorSettings = sa;
             s.initialCase = 'circleInclusion';
             s.type = 'LevelSet';
             s.mesh = Mesh_Total(obj.backgroundMesh);
@@ -70,29 +64,28 @@ classdef testAnalyticVsRegularizedPerimeter < testShowingError
             s.isFixed = [];
             s.value = [];
             obj.levelSet = DesignVariable.create(s);
-        end        
+        end
 
-          
-         function computeRegularizedPerimeter(obj)
+        function computeRegularizedPerimeter(obj)
             s = obj.createPerimeterParams();
             perimeterFunc = ShFunc_Perimeter(s);
             perimeterFunc.computeFunctionAndGradient();
             per = perimeterFunc.value*perimeterFunc.value0;
-            obj.regularizedPerimeter = per;             
-        end     
+            obj.regularizedPerimeter = per;
+        end
         
         function s = createPerimeterParams(obj)
            sC.inputFile      = obj.inputFile;
-           sC.mesh           = obj.backgroundMesh; 
+           sC.mesh           = obj.backgroundMesh;
            sC.designVariable = obj.levelSet;
            sC.epsilon        = obj.backgroundMesh.computeMeanCellSize();
            sC.scale          = 'MACRO';
            sC.type           = 'perimeterInterior';
            sC.isRobinTermAdded = false;
-           fCreator = PerimeterParamsCreator(sC);        
+           fCreator = PerimeterParamsCreator(sC);
            s = fCreator.perimeterParams;
-        end     
-                   
+        end
+
     end
-    
+
 end

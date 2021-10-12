@@ -7,14 +7,15 @@ classdef ZZZTopOptTests < handle & matlab.unittest.TestCase
             'testDualNestedInPrimal_WithProjectedGradient', ...
             'testDualNestedInPrimal_WithSlerp', ...
             'test_interiorPerimeter'}
+        explicitImplicitTests = {'2D', '3D'}
     end
 
     methods (Test, TestTags = {'TopOpt', 'Passed', 'Classic', 'Displacement', 'Slow'})
 
-        function testDisplacement(testCase, didnt)
+        function testDisplacement(testCase, compTests)
             cd ../../../ % NOOOO, al segon test torna a saltar enrere
             s.computerType    = 'TOPOPT';
-            s.testName         = didnt;
+            s.testName         = compTests;
             s.variablesToStore = {'x'};
             test = PrecomputedVariableTest(s);
             err = test.computeError();
@@ -27,14 +28,37 @@ classdef ZZZTopOptTests < handle & matlab.unittest.TestCase
 
     methods (Test, TestTags = {'TopOpt', 'Passed', 'Classic', 'Displacement', 'Slow'})
 
-        function testAnalyticVsRegularizedPerimeter(testCase, didnt)
+        function testAnalyticVsRegularizedPerimeter(testCase)
             cd ../../../ % NOOOO, al segon test torna a saltar enrere
-            s.computerType    = 'TOPOPT';
-            s.testName         = didnt;
-            s.variablesToStore = {'x'};
-            test = PrecomputedVariableTest(s);
+            test = testAnalyticVsRegularizedPerimeter();
             err = test.computeError();
-            tol = 1e-6;
+            tol = 5e-2;
+            testCase.verifyLessThanOrEqual(err, tol)
+            cd ./tests/Source/TopOptTests/
+        end
+
+    end
+
+    methods (Test, TestTags = {'TopOpt', 'Passed', 'Classic', 'Displacement', 'Slow'})
+
+        function testSuperEllipseExponent(testCase)
+            cd ../../../ % NOOOO, al segon test torna a saltar enrere
+            test = testSuperEllipseExponent();
+            err = test.computeError();
+            tol = 1e-12;
+            testCase.verifyLessThanOrEqual(err, tol)
+            cd ./tests/Source/TopOptTests/
+        end
+
+    end
+
+    methods (Test, TestTags = {'TopOpt', 'Passed', 'Nou', 'Displacement', 'Slow'})
+
+        function testSimp(testCase, explicitImplicitTests)
+            cd ../../../ % NOOOO, al segon test torna a saltar enrere
+            test = SimplAllTestExplicitVsImplicit(explicitImplicitTests);
+            err = test.computeError();
+            tol = 1e-12;
             testCase.verifyLessThanOrEqual(err, tol)
             cd ./tests/Source/TopOptTests/
         end

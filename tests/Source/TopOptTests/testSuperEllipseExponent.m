@@ -1,4 +1,4 @@
-classdef testSuperEllipseExponent < testShowingError 
+classdef testSuperEllipseExponent < handle
     
     properties (Access = private)
         dataFile = 'test_superEllipseExponent'
@@ -15,26 +15,17 @@ classdef testSuperEllipseExponent < testShowingError
     methods (Access = public)
         
         function obj = testSuperEllipseExponent()
-            obj.init();
             obj.loadData();
             obj.computeExponent();
         end
-        
-    end
-    
-    methods (Access = protected)
-        
-        function computeError(obj)
-            obj.error = norm(obj.qD - obj.q(:))/norm(obj.qD);
+
+        function error = computeError(obj)
+            error = norm(obj.qD - obj.q(:))/norm(obj.qD);
         end
-        
+
     end
     
     methods (Access = private)
-        
-        function init(obj)
-            obj.tol = 1e-12;
-        end
         
         function loadData(obj)
             d = load(obj.dataFile);
@@ -48,9 +39,8 @@ classdef testSuperEllipseExponent < testShowingError
             s.m2 = obj.m2;
             o = SmoothingExponentComputerOptimal(s);
             obj.q = o.compute();
-        end               
-        
+        end
+
     end
-    
-    
+
 end

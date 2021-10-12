@@ -29,9 +29,9 @@ classdef TopOptTests < testRunner
 %                'testCantilever3';
 %                'testInteriorPerimeter';
 %                'testDualNestedInPrimalWithSlerp';
-
                 %%
 %                'testAnalyticVsRegularizedPerimeter'; %tipusdiferent
+
                 %%
 %                'testSuperEllipseExponent';
                 %%
