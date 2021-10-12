@@ -1,4 +1,4 @@
-classdef ZZZtestVigdergauzMicroStructure < handle
+classdef TestVigdergauzMicroStructure < handle
     
     properties (Access = private)
         designVariable
@@ -12,7 +12,7 @@ classdef ZZZtestVigdergauzMicroStructure < handle
     
     methods (Access = public)
         
-        function obj = ZZZtestVigdergauzMicroStructure(cParams)
+        function obj = TestVigdergauzMicroStructure(cParams)
             obj.init(cParams);
             obj.createUnfittedMesh();
             obj.computeFractionVolume();

@@ -1,4 +1,4 @@
-classdef testSuperEllipseExponent < handle
+classdef TestSuperEllipseExponent < handle
     
     properties (Access = private)
         dataFile = 'test_superEllipseExponent'
@@ -14,7 +14,7 @@ classdef testSuperEllipseExponent < handle
     
     methods (Access = public)
         
-        function obj = testSuperEllipseExponent()
+        function obj = TestSuperEllipseExponent()
             obj.loadData();
             obj.computeExponent();
         end
