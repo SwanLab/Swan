@@ -7,7 +7,7 @@ classdef testTopOptCheckingDesignVariable < testCheckStoredWithTopOptComputedVar
     methods (Access = protected)
         
         function selectComputedVar(obj)
-            obj.computedVar{1} = obj.topOpt.designVariable.value;            
+            obj.computedVar{1} = obj.computation.designVariable.value;            
         end
         
     end

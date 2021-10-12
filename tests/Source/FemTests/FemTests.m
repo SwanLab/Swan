@@ -9,7 +9,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'FEM', 'Passed', 'Classic', 'Displacement'})
 
         function testDisplacement(testCase, duTests)
-            s.solver           = 'FEM_SOLVER';
+            s.computerType    = 'FEM';
             s.testName         = duTests;
             s.variablesToStore = {'d_u'};
             test = PrecomputedVariableTest(s);
@@ -23,10 +23,10 @@ classdef FemTests < handle & matlab.unittest.TestCase
     methods(Test, TestTags = {'FEM', 'Passed', 'Classic', 'Stokes'})
 
         function testStokes(testCase, stokesTests)
-            s.solver           = 'FEM_SOLVER';
+            s.computerType     = 'STOKES';
             s.testName         = stokesTests;
             s.variablesToStore = {'u','p'};
-            inst = StokesTest(s);
+            inst = PrecomputedVariableTest(s);
             err = inst.computeError();
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
@@ -39,8 +39,8 @@ classdef FemTests < handle & matlab.unittest.TestCase
         function testMicro(testCase, microTests)
             s.testName = microTests;
             s.variablesToStore = {'Chomog'};
-            s.solver = 'FEM_SOLVER';
-            inst = Micro2DTest(s);
+            s.computerType = 'MICRO';
+            inst = PrecomputedVariableTest(s);
             err = inst.computeError();
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)

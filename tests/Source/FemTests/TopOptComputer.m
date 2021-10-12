@@ -1,40 +1,34 @@
-classdef testTopOptComputation < handle
-    
-    properties (Abstract, Access = protected)
+classdef TopOptComputer < handle
+
+    properties (Access = public)
+        computation
+    end
+
+    properties (Access = private)
         testName
+        settings
     end
-    
-    properties (Access = protected)
-       computation
-       settings
-    end
-    
-    methods (Access = protected)
-        
-        function obj = testTopOptComputation()
-           obj.createSettings();
-           obj.computeVariableThroughTopOptSolver();
-           obj.selectComputedVar();
+
+    methods (Access = public)
+        function obj = TopOptComputer(cParams)
+            obj.testName = cParams.testName;
         end
-    end
-    
-    methods (Access = protected)
-        
-        function computeVariableThroughTopOptSolver(obj)
+
+        function compute(obj)
+            obj.createSettings();
             topOptSolver = TopOpt_Problem(obj.settings);
             topOptSolver.computeVariables();
             obj.computation = topOptSolver;
         end
+    end
+
+    methods (Access = private)
           
         function createSettings(obj)
             obj.createOldSettings();
             obj.translateToNewSettings();
         end
-        
-    end
-    
-    methods (Access = private)
-        
+
         function createOldSettings(obj)
             fileName = obj.testName;
             s = Settings(fileName);             
@@ -51,12 +45,6 @@ classdef testTopOptComputation < handle
             fileName = translator.fileName;
             obj.settings  = SettingsTopOptProblem(fileName);
         end
-        
-    end
-    
-    methods (Abstract, Access = protected)
-        selectComputedVar(obj)
-    end
-    
-end
 
+    end
+end

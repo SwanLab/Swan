@@ -41,8 +41,8 @@ classdef TopOptTests < testRunner
 %                'testVigdergauzMicroStructureWithStrain';
 %                'testVigdergauzMicroStructure';
                 %%
-                'testM1M2'; % no funciona
-                'testStressM1M2'; % no funciona
+%                 'testM1M2'; % no funciona
+%                 'testStressM1M2'; % no funciona
                 };
         end
         

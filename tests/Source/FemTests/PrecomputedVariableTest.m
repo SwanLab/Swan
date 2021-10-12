@@ -5,17 +5,17 @@ classdef PrecomputedVariableTest < handle
         variablesToStore
         storedVar
         computedVar
-        fem
+        computation
         FileName
-        TestComputationHandler
-        TestVariableHandler
+        computerType
     end
        
     methods
         function obj = PrecomputedVariableTest(cParams)
             obj.testName         = cParams.testName;
             obj.variablesToStore = cParams.variablesToStore;
-            obj.computeVariableThroughFemSolver()
+            obj.computerType     = cParams.computerType;
+            obj.computeVariable()
             obj.selectComputedVar();
             obj.loadStoredVariable();
         end
@@ -25,15 +25,30 @@ classdef PrecomputedVariableTest < handle
    
     methods (Access = protected)
 
+        function computeVariable(obj)
+            s.testName = obj.testName;
+            testComputer = TestComputer.create(obj.computerType, s);
+            testComputer.compute();
+            obj.computation = testComputer.computation;
+        end
+
         function computeVariableThroughFemSolver(obj)
-            obj.fem = FEM.create(obj.testName);
+            obj.computation = FEM.create(obj.testName);
             obj.createMaterialProperties();
-            obj.fem.computeVariables();
+            obj.computation.computeVariables();
         end
         
         function selectComputedVar(obj)
-            vars = obj.fem.variables;
             toStore = obj.variablesToStore;
+            comp = obj.computation;
+            if isprop(comp, 'variables')
+                vars = obj.computation.variables;
+            elseif isprop(comp, 'designVariable')
+                vars = struct(obj.computation.designVariable);
+                valX = toStore{1};
+                [vars.(valX)] = vars.value;
+                vars = rmfield(vars, 'value');
+            end
             fnms = fieldnames(vars);
             totalComputationVariables = numel(fnms);
             totalStoredVariables = size(toStore,2);
@@ -68,12 +83,12 @@ classdef PrecomputedVariableTest < handle
         end
 
         function createMaterialProperties(obj) % heredat de testFemComputation
-            q = Quadrature.set(obj.fem.mesh.type);
+            q = Quadrature.set(obj.computation.mesh.type);
             q.computeQuadrature('LINEAR');
-            I = ones(obj.fem.mesh.nelem,q.ngaus);
+            I = ones(obj.computation.mesh.nelem,q.ngaus);
             p.kappa = .9107*I;
             p.mu    = .3446*I;
-            obj.fem.setMatProps(p)     
+            obj.computation.setMatProps(p)     
         end
 
     end
