@@ -21,7 +21,7 @@ classdef PrecomputedVariableTest < handle
             obj.loadStoredVariable();
         end
 
-        function error =computeError(obj)
+        function error = computeError(obj)
             d = numel(obj.variablesToStore);
             err = ones(d,1);
             for ivar = 1:d
@@ -34,8 +34,6 @@ classdef PrecomputedVariableTest < handle
 
     end
 
-
-   
     methods (Access = protected)
 
         function computeVariable(obj)
@@ -103,4 +101,3 @@ classdef PrecomputedVariableTest < handle
     end
 
 end
-

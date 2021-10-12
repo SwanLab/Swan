@@ -8,16 +8,18 @@ classdef (Abstract) TestComputer < handle
 
         function computer = create(solver_type, s)    
             switch solver_type
-                case {'STOKES'}
-                    computer = StokesComputer(s);
                 case {'FEM'}
                     computer = FemComputer(s);
-                case {'MICRO'}
-                    computer = MicroComputer(s);
-                case {'TOPOPT'}
-                    computer = TopOptComputer(s);
                 case {'GMSH'}
                     computer = GMSHComputer(s);
+                case {'IMAGE'}
+                    computer = ImageProcessingComputer(s);
+                case {'MICRO'}
+                    computer = MicroComputer(s);
+                case {'STOKES'}
+                    computer = StokesComputer(s);
+                case {'TOPOPT'}
+                    computer = TopOptComputer(s);
                 otherwise
                     error('Invalid Computer Type.')
             end

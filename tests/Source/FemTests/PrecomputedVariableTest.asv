@@ -21,7 +21,7 @@ classdef PrecomputedVariableTest < handle
             obj.loadStoredVariable();
         end
 
-        function error =computeError(obj)
+        function error = computeError(obj)
             d = numel(obj.variablesToStore);
             err = ones(d,1);
             for ivar = 1:d
@@ -34,8 +34,6 @@ classdef PrecomputedVariableTest < handle
 
     end
 
-
-   
     methods (Access = protected)
 
         function computeVariable(obj)
@@ -65,20 +63,16 @@ classdef PrecomputedVariableTest < handle
             fnms = fieldnames(vars);
             totalComputationVariables = numel(fnms);
             totalStoredVariables = size(toStore,2);
-            count = 1;
             for i = 1:totalComputationVariables
                 calcVar = fnms(i);
-                storVar = toStore(count);
-                if strcmp(calcVar, storVar)
-                    obj.computedVar{count} = vars.(fnms{i});
-                    if count == totalStoredVariables
-                        return;
-                    else
-                        count = count+1;
+                for j = 1:totalStoredVariables
+                    storVar = toStore(j);
+                    if strcmp(calcVar, storVar)
+                        obj.computedVar{j} = vars.(fnms{i});
+                        break
                     end
                 end
             end
-            
         end
         
     end
@@ -107,4 +101,3 @@ classdef PrecomputedVariableTest < handle
     end
 
 end
-
