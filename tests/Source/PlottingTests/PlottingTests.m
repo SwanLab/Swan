@@ -14,23 +14,28 @@ classdef PlottingTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {... 
-            'testTriangleToyUntittedExample'                
-            'testQuadToyUntittedExample'                
-            'testCircumferenceQuadrilateral'                
-            'testCircumferenceTriangle'            
-            'testPlotCircleTriangle'                 
-            'testPlotCircleQuadrilateral'   
-            
-            'testRectangleTriangle'
-            'testRectangleQuadrilateral'      
-            'testSmoothRectangleTriangle'
-            'testSmoothRectangleQuadrilateral'                            
+            %% coords, levelset especificats (PlottingToyUnfittedExample)
+            'testTriangleToyUntittedExample'
+            'testQuadToyUntittedExample'
+            %% meshContour, boundary/int... (testPlotting)
+            'testCircumferenceQuadrilateral'
+            'testCircumferenceTriangle'
+            'testPlotCircleTriangle'
+            'testPlotCircleQuadrilateral'
 
             'testPlotSphereTetrahedra';
-             'testPlotSphereHexahedra';              
+             'testPlotSphereHexahedra';
+            
+            %% meshContour, boundary/int... (testPlotting_Composite)
+            'testRectangleTriangle'
+            'testRectangleQuadrilateral'
+            'testSmoothRectangleTriangle'
+            'testSmoothRectangleQuadrilateral'
+
              'testPlotCylinderTetrahedra';
-             'testPlotCylinderHexahedra';  
-             'testPlotLargeCylinderTethaedra';            
+             'testPlotCylinderHexahedra';
+             %% bolet
+             'testPlotLargeCylinderTethaedra';
             };
         end
     end

@@ -5,7 +5,7 @@ classdef ReadingFilesTestsSuite < handle
         function obj = ReadingFilesTestsSuite()
             % Nota: queda corregir que els tests puguin correr fora
             % d'aquest directori
-            suite = matlab.unittest.TestSuite.fromFile('ZReadingFilesTests.m', 'Tag','ReadingFiles');
+            suite = matlab.unittest.TestSuite.fromFile('ReadingFilesTests.m', 'Tag','ReadingFiles');
             results = suite.run;
             table(results)
         end
