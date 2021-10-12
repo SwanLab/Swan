@@ -1,11 +1,10 @@
 classdef testCommutingHomogPlaneStressWithZeroPoisson < ...
-             testCommutingHomogPlaneStress &...
-             testShowingError
-    
-    properties (Access = protected)
+             handle & testCommutingHomogPlaneStress
+
+    properties (Access = public)
         tol = 1e-12;
     end
-    
+
     methods (Access = protected, Static)
         
         function nu = createPoissonValue()
@@ -13,15 +12,14 @@ classdef testCommutingHomogPlaneStressWithZeroPoisson < ...
         end
     end
     
-    methods (Access = protected)
+    methods (Access = public)
                
-        function computeError(obj)
+        function error = computeError(obj)
             c1 = obj.vhpTensor.getValue();
             c2 = obj.vphTensor.getValue();
-            obj.error = norm(c2-c1)/norm(c1);
+            error = norm(c2-c1)/norm(c1);
         end
         
     end
     
 end
-

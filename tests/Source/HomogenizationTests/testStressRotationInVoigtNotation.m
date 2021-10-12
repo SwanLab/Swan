@@ -1,4 +1,8 @@
-classdef testStressRotationInVoigtNotation < testShowingError
+classdef testStressRotationInVoigtNotation < handle
+    
+    properties (Access = public)
+        tol =  1e-14;
+    end
     
     properties (Access = protected)
         direction
@@ -6,13 +10,22 @@ classdef testStressRotationInVoigtNotation < testShowingError
         stressVoigt
         rotatedStressByVoigt
         rotatedStress
-        tol =  1e-14;
     end
     
     properties (Access = private)
         angle
     end
     
+    methods (Access = public)
+
+        function error = computeError(obj)
+            rotStre        = obj.rotatedStress.getValue();
+            rotStreByVoigt = obj.rotatedStressByVoigt.getValue();
+            error = norm(double(rotStre) - double(rotStreByVoigt));
+        end
+
+    end
+
     methods (Access = protected)
         
         function compute(obj)
@@ -40,12 +53,6 @@ classdef testStressRotationInVoigtNotation < testShowingError
             rotS = Rotator.rotate(obj.stress,a,d);
         end
         
-        function computeError(obj)
-            rotStre        = obj.rotatedStress.getValue();
-            rotStreByVoigt = obj.rotatedStressByVoigt.getValue();
-            obj.error = norm(double(rotStre) - double(rotStreByVoigt));
-        end
-        
     end
     
     methods (Access = private)
@@ -59,7 +66,7 @@ classdef testStressRotationInVoigtNotation < testShowingError
             dir   = obj.direction;
             stre = obj.stressVoigt;
             rotStre = Rotator.rotate(stre,theta,dir);
-            obj.rotatedStressByVoigt = rotStre;            
+            obj.rotatedStressByVoigt = rotStre;
         end
         
     end

@@ -1,15 +1,20 @@
 classdef testHorizontalTensorRotatedVsVPH < ...
-        testHorizontalTensorRotatedVsSequentialLaminate & ...
-        testShowingError
+        handle & testHorizontalTensorRotatedVsSequentialLaminate
     
-    properties (Access = protected)
+    properties (Access = public)
         tol = 1e-12;
     end
     
     methods (Access = public)
         
         function obj = testHorizontalTensorRotatedVsVPH()
-            obj.computeTest()
+            obj.computeTest();
+        end
+
+        function error = computeError(obj)
+            rotHor = obj.rotHorTensor.getValue();
+            lTens  = obj.lamTensor.getValue();
+            error = norm(rotHor - lTens);
         end
     end
     
@@ -24,14 +29,7 @@ classdef testHorizontalTensorRotatedVsVPH < ...
             lam      = VoigtPlaneStressHomogHomogenizer(c0,c1,dir,m1,frac);
             obj.lamTensor = lam.getPlaneStressHomogenizedTensor();
         end
-        
-        function computeError(obj)
-            rotHor = obj.rotHorTensor.getValue();
-            lTens  = obj.lamTensor.getValue();
-            obj.error = norm(rotHor - lTens);
-        end
-        
-    end
-    
-end
 
+    end
+
+end

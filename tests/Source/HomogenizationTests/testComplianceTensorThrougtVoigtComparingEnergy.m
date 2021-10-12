@@ -1,6 +1,6 @@
-classdef testComplianceTensorThrougtVoigtComparingEnergy < testShowingError
+classdef testComplianceTensorThrougtVoigtComparingEnergy < handle
     
-    properties (Access = protected)
+    properties (Access = public)
          tol = 1e-10;
     end
     
@@ -10,30 +10,37 @@ classdef testComplianceTensorThrougtVoigtComparingEnergy < testShowingError
         stiffTensor
         compTensor
         energyStiffTensProd
-        energyCompTensProd        
+        energyCompTensProd
     end
     
     methods (Access = public)
         
-        function obj = testComplianceTensorThrougtVoigtComparingEnergy()
-            obj.computeEnergies
-        end
+       function obj = testComplianceTensorThrougtVoigtComparingEnergy()
+           obj.computeEnergies();
+       end
+
+       function error = computeError(obj)
+           es = obj.energyStiffTensProd; 
+           ec = obj.energyCompTensProd; 
+           error = norm(es - ec);
+       end
+
     end
     
     methods (Access = private)
         
-        function computeEnergies(obj)            
-            obj.generateStrain()
-            obj.generateFourthOrderTensor()
-            obj.computeStressTensor()
-            obj.computeComplianceTensor()
-            obj.computeEnergyByStifnessTensorProduct()   
-            obj.computeEnergyByComplianceTensorProduct()
+        function computeEnergies(obj)
+            obj.generateStrain();
+            obj.generateFourthOrderTensor();
+            obj.computeStressTensor();
+            obj.computeComplianceTensor();
+            obj.computeEnergyByStifnessTensorProduct();
+            obj.computeEnergyByComplianceTensorProduct();
         end
         
         function generateStrain(obj)
             obj.strain = Strain3DTensor;
-            obj.strain.createRandomTensor()
+            obj.strain.createRandomTensor();
         end
         
         function generateFourthOrderTensor(obj)
@@ -70,15 +77,5 @@ classdef testComplianceTensorThrougtVoigtComparingEnergy < testShowingError
         end
         
     end
-       
-    methods (Access = protected)
-       function computeError(obj)
-           es = obj.energyStiffTensProd; 
-           ec = obj.energyCompTensProd; 
-           obj.error = norm(es - ec);
-        end 
-        
-    end
-    
-end
 
+end

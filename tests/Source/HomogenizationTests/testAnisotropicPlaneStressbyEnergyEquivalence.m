@@ -1,6 +1,6 @@
-classdef testAnisotropicPlaneStressbyEnergyEquivalence < testShowingError
+classdef testAnisotropicPlaneStressbyEnergyEquivalence < handle
     
-    properties (Access = protected)
+    properties (Access = public)
         tol = 1e-10;
     end
     
@@ -25,12 +25,18 @@ classdef testAnisotropicPlaneStressbyEnergyEquivalence < testShowingError
             obj.computeTensorEnergyInPlaneStress()
         end
         
+        function error = computeError(obj)
+            enPS = double(obj.energyFromPS);
+            enTens  = obj.energyFromTensor;
+            error =  norm(enPS - enTens);
+        end
+        
     end
     
     methods (Access = private)
         
         function init(obj)            
-            obj.computeConstitutiveTensor()            
+            obj.computeConstitutiveTensor()
             obj.computeStrainTensor()
         end
         
@@ -58,7 +64,7 @@ classdef testAnisotropicPlaneStressbyEnergyEquivalence < testShowingError
         
         function computeStrainTensor(obj)
             obj.strain        = Strain3DTensor();
-            obj.strain.makeItPlaneStressCompatible(obj.Ch);                                    
+            obj.strain.makeItPlaneStressCompatible(obj.Ch);
             obj.strainVoigt   = Tensor2VoigtConverter.convert(obj.strain);
             obj.strainVoigtPS = PlaneStressTransformer.transform(obj.strainVoigt);
         end
@@ -72,16 +78,5 @@ classdef testAnisotropicPlaneStressbyEnergyEquivalence < testShowingError
         end
         
     end
-    
-    methods (Access = protected)
-        
-        function computeError(obj)
-            enPS = double(obj.energyFromPS);
-            enTens  = obj.energyFromTensor;
-            obj.error =  norm(enPS - enTens);
-        end
 
-    end
 end
-
-
