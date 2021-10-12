@@ -40,7 +40,7 @@ classdef ZZPlottingTests < handle & matlab.unittest.TestCase
 
     end
 
-    methods (Test, TestTags = {'PlottingTests', 'FileBased', 'Nou'})
+    methods (Test, TestTags = {'PlottingTests', 'FileBased'})
 
         function testPlottingNormal(testCase, plottingTests)
             cd ../../../
