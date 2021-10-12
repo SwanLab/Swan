@@ -1,4 +1,4 @@
-classdef testPlotLargeCylinderTethaedra < handle
+classdef TestPlotLargeCylinderTethaedra < handle
                                      
     properties (Access = private)
         backgroundMesh
@@ -9,7 +9,7 @@ classdef testPlotLargeCylinderTethaedra < handle
     
     methods (Access = public)
         
-        function obj = testPlotLargeCylinderTethaedra() 
+        function obj = TestPlotLargeCylinderTethaedra() 
             obj.createBackgroundMesh();
             obj.createBoundaryMesh();
             obj.createLevelSet();

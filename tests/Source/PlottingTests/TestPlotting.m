@@ -1,4 +1,4 @@
-classdef ZZTestPlotting < testUnfitted
+classdef TestPlotting < testUnfitted
     
     properties (Access = protected)
         testName;
@@ -13,7 +13,7 @@ classdef ZZTestPlotting < testUnfitted
     methods (Access = public)
 
         
-        function obj = ZZTestPlotting(cParams)
+        function obj = TestPlotting(cParams)
             obj.init(cParams);
             obj.createTopOpt();
             obj.createMesh();
