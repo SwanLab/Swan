@@ -65,16 +65,20 @@ classdef PrecomputedVariableTest < handle
             fnms = fieldnames(vars);
             totalComputationVariables = numel(fnms);
             totalStoredVariables = size(toStore,2);
+            count = 1;
             for i = 1:totalComputationVariables
                 calcVar = fnms(i);
-                for j = 1:totalStoredVariables
-                    storVar = toStore(j);
-                    if strcmp(calcVar, storVar)
-                        obj.computedVar{j} = vars.(fnms{i});
-                        break
+                storVar = toStore(count);
+                if strcmp(calcVar, storVar)
+                    obj.computedVar{count} = vars.(fnms{i});
+                    if count == totalStoredVariables
+                        return;
+                    else
+                        count = count+1;
                     end
                 end
             end
+            
         end
         
     end

@@ -16,6 +16,8 @@ classdef (Abstract) TestComputer < handle
                     computer = MicroComputer(s);
                 case {'TOPOPT'}
                     computer = TopOptComputer(s);
+                case {'GMSH'}
+                    computer = GMSHComputer(s);
                 otherwise
                     error('Invalid Computer Type.')
             end
