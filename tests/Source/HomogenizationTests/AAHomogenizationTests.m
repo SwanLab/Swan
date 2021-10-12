@@ -23,9 +23,19 @@ classdef AAHomogenizationTests < handle & matlab.unittest.TestCase
                 'TestTwoRankSequentialLaminate';
                 'testHorizontalTensorRotatedVsVPH';
                 }
+            passedTests = {...
+                'testDiagonalLaminate';
+                'testNotCommutingHomogPlaneStress';
+                'testSymmetrizeFourthOrderTensor';
+                'testHorizontalTensorRotatedVsVHP';
+                'testHorizontalTensorRotatedVsRank2';
+                'testHorizontalTensorRotatedVsHVP';
+                'TestGeneralTwoRankSequentialLaminate';
+                'testHorizontalLaminate';
+                }
     end
 
-    methods (Test, TestTags = {'HomogenizationTests', 'ShowingError', 'Nou'})
+    methods (Test, TestTags = {'HomogenizationTests', 'ShowingError'})
 
         function testsError(testCase, errorTests)
             cd ../../../
@@ -33,6 +43,18 @@ classdef AAHomogenizationTests < handle & matlab.unittest.TestCase
             err = test.computeError();
             tol = test.tol;
             testCase.verifyLessThanOrEqual(err, tol)
+            cd ./tests/Source/HomogenizationTests/
+        end
+
+    end
+
+    methods (Test, TestTags = {'HomogenizationTests', 'NotShowingError'})
+
+        function testsPassed(testCase, passedTests)
+            cd ../../../
+            test = eval(passedTests);
+            passed = test.hasPassed();
+            verifyTrue(testCase, passed)
             cd ./tests/Source/HomogenizationTests/
         end
 

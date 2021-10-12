@@ -1,5 +1,5 @@
 classdef testHorizontalTensorRotatedVsVPH < ...
-        handle & testHorizontalTensorRotatedVsSequentialLaminate
+        testHorizontalTensorRotatedVsSequentialLaminate
     
     properties (Access = public)
         tol = 1e-12;
