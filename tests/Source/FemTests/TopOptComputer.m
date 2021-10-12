@@ -2,11 +2,11 @@ classdef TopOptComputer < handle
 
     properties (Access = public)
         computation
+        settings
     end
 
     properties (Access = private)
         testName
-        settings
     end
 
     methods (Access = public)

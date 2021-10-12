@@ -8,13 +8,15 @@ classdef ZZZTopOptTests < handle & matlab.unittest.TestCase
             'testDualNestedInPrimal_WithProjectedGradient', ...
             'testDualNestedInPrimal_WithSlerp', ...
             'test_interiorPerimeter'}
-        explicitImplicitTests = {'2D', '3D'}
+        dimensions = {'2D', '3D'}
+        vigdergauzTests = {'test_VigergauzMicroStructure', 'test_VigergauzMicroStructureFromStrain'}
+        vigdergauzVolumes = {0.6, 0.75}
     end
 
     methods (Test, TestTags = {'TopOpt', 'Passed', 'Classic', 'Displacement', 'Slow'})
 
         function testDisplacement(testCase, compTests)
-            cd ../../../ % NOOOO, al segon test torna a saltar enrere
+            cd ../../../
             s.computerType    = 'TOPOPT';
             s.testName         = compTests;
             s.variablesToStore = {'x'};
@@ -30,7 +32,7 @@ classdef ZZZTopOptTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'TopOpt', 'Passed', 'Classic', 'Displacement', 'Slow'})
 
         function testAnalyticVsRegularizedPerimeter(testCase)
-            cd ../../../ % NOOOO, al segon test torna a saltar enrere
+            cd ../../../
             test = testAnalyticVsRegularizedPerimeter();
             err = test.computeError();
             tol = 5e-2;
@@ -43,7 +45,7 @@ classdef ZZZTopOptTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'TopOpt', 'Passed', 'Classic', 'Displacement', 'Slow'})
 
         function testSuperEllipseExponent(testCase)
-            cd ../../../ % NOOOO, al segon test torna a saltar enrere
+            cd ../../../
             test = testSuperEllipseExponent();
             err = test.computeError();
             tol = 1e-12;
@@ -55,11 +57,26 @@ classdef ZZZTopOptTests < handle & matlab.unittest.TestCase
 
     methods (Test, TestTags = {'TopOpt', 'Passed', 'Classic', 'Displacement', 'Slow'})
 
-        function testSimp(testCase, explicitImplicitTests)
-            cd ../../../ % NOOOO, al segon test torna a saltar enrere
-            test = SimplAllTestExplicitVsImplicit(explicitImplicitTests);
+        function testSimp(testCase, dimensions)
+            cd ../../../
+            test = SimplAllTestExplicitVsImplicit(dimensions);
             err = test.computeError();
             tol = 1e-12;
+            testCase.verifyLessThanOrEqual(err, tol)
+            cd ./tests/Source/TopOptTests/
+        end
+
+    end
+
+    methods (Test, TestTags = {'TopOpt', 'Passed', 'Nou', 'Displacement', 'Slow'})
+
+        function testVigdergauz(testCase, vigdergauzTests, vigdergauzVolumes)
+            cd ../../../
+            s.testName = vigdergauzTests;
+            s.volume = vigdergauzVolumes;
+            test = ZZZtestVigdergauzMicroStructure(s);
+            err = test.computeError();
+            tol = 2*1e-1;
             testCase.verifyLessThanOrEqual(err, tol)
             cd ./tests/Source/TopOptTests/
         end
