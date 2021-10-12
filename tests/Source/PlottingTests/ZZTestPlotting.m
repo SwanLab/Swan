@@ -15,7 +15,7 @@ classdef ZZTestPlotting < testUnfitted
         
         function obj = ZZTestPlotting(cParams)
             obj.init(cParams);
-            obj.createTopOpt(); % peta aqui
+            obj.createTopOpt();
             obj.createMesh();
             obj.plot();
         end
@@ -31,6 +31,12 @@ classdef ZZTestPlotting < testUnfitted
             view(obj.getViewAngle());
         end
 
+        function passed = computePassed(obj)
+            d = load(obj.testName);
+            itIs = isequaln(obj.unfittedMesh,d.unfittedMesh);
+            passed = itIs;
+        end
+
     end
 
     methods (Access = private)
@@ -40,17 +46,15 @@ classdef ZZTestPlotting < testUnfitted
             obj.meshType        = cParams.meshType;
             obj.meshIncludeBoxContour = cParams.meshIncludeBoxContour;
         end
-        
-    end
 
-    methods (Access = public)
-
-        function passed = computeError(obj)
-            d = load(obj.testName);
-            itIs = isequaln(obj.unfittedMesh,d.unfittedMesh);
-            passed = itIs;
+        function angle = getViewAngle(obj)
+            if isprop(obj,'viewAngle')
+                angle = obj.viewAngle;
+            else
+                angle = [0 0 1];
+            end
         end
-
+        
     end
 
     %% Heredat de testUnfitted, s'ha de declarar buit

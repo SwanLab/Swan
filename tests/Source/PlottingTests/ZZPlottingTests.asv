@@ -8,10 +8,10 @@ classdef ZZPlottingTests < handle & matlab.unittest.TestCase
         compositeTests = {'test_rectangle_triangle_plot', 'test_rectangle_quadrilateral_plot', ...
             'test_smoothRectangle_triangle', 'test_smoothRectangle_quadrilateral', ...
             'test_cylinder_tetrahedra', 'test_cylinder_hexahedra'}
-        cylinderTests = {'testPlotLargeCylinderTethaedra'}
+        boletTests = {'testPlotLargeCylinderTethaedra'}
     end
 
-    methods (Test, TestTags = {'PlottingTests', 'Toy'})
+    methods (Test, TestTags = {'PlottingTests', 'Toy', 'Nou'})
 
         function testTriangleToy(testCase)
             cd ../../../
@@ -40,39 +40,19 @@ classdef ZZPlottingTests < handle & matlab.unittest.TestCase
 
     end
 
-    methods (Test, TestTags = {'PlottingTests', 'FileBased', 'Nou'})
-
-        function testPlottingNormal(testCase, plottingTests)
-            cd ../../../
-            s.testName              = plottingTests;
-            s.meshType              = 'BOUNDARY';
-            s.meshIncludeBoxContour = false;
-            test = ZZTestPlotting(s);
-            passed = test.computePassed();
-            verifyTrue(testCase, passed)
-            cd ./tests/Source/PlottingTests/
-        end
-
-        function testComposite(testCase, compositeTests)
-            cd ../../../
-            s.testName              = compositeTests;
-            s.meshType              = 'BOUNDARY';
-            s.meshIncludeBoxContour = true;
-            test = ZZTestPlotting(s);
-            passed = true; % hmmm, pero aixi es com era originalment
-            verifyTrue(testCase, passed)
-            cd ./tests/Source/PlottingTests/
-        end
-
-    end
-
-    methods (Test, TestTags = {'PlottingTests', 'Cylinder'})
-
-        function testCylinder(testCase)
-            test = testPlotLargeCylinderTethaedra();
-            passed = true; % hmmm, pero aixi es com era originalment
-            verifyTrue(testCase, passed)
-        end
-
-    end
+%     methods (Test, TestTags = {'PlottingTests', 'Passed', 'Classic', 'Displacement'})
+% 
+%         function testDisplacement(testCase, coordTests)
+%             cd ../../../
+%             s.testName              = coordTests;
+%             s.meshType              = 'BOUNDARY';
+%             s.meshIncludeBoxContour = false;
+%             test = ZZTestPlotting(s);
+%             err = test.computeError();
+%             tol = 1e-6;
+%             testCase.verifyLessThanOrEqual(err, tol)
+%             cd ./tests/Source/PlottingTests/
+%         end
+% 
+%     end
 end

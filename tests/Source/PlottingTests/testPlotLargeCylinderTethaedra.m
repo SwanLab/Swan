@@ -1,5 +1,4 @@
-classdef testPlotLargeCylinderTethaedra < testNotShowingError...
-                                         & test
+classdef testPlotLargeCylinderTethaedra < handle
                                      
     properties (Access = private)
         backgroundMesh
@@ -17,14 +16,6 @@ classdef testPlotLargeCylinderTethaedra < testNotShowingError...
             obj.createUnfittedMesh();
             obj.plotUnfittedMesh();
         end
-        
-    end
-    
-    methods (Access = protected)        
-       
-        function hasPassed = hasPassed(obj)
-            hasPassed = true;
-        end        
         
     end
     
