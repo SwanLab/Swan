@@ -17,7 +17,7 @@ classdef TestVigdergauzMicroStructure < handle
             obj.createUnfittedMesh();
             obj.computeFractionVolume();
         end
-        
+
         function error = computeError(obj)
             v = obj.volume;
             nv = obj.numericalVolume;
@@ -37,9 +37,8 @@ classdef TestVigdergauzMicroStructure < handle
             obj.computation = computer.computation;
             obj.settings = computer.settings;
             obj.designVariable = obj.computation.designVariable;
-
         end
-        
+
         function createUnfittedMesh(obj)
             meshBackground = obj.computation.designVariable.mesh;
             s.backgroundMesh  = meshBackground.innerMeshOLD;
@@ -48,13 +47,12 @@ classdef TestVigdergauzMicroStructure < handle
             obj.unfittedMesh = UnfittedMesh(cParams);
             obj.unfittedMesh.compute(obj.designVariable.value); % peta aqui
         end
-        
+
         function computeFractionVolume(obj)
             v = obj.unfittedMesh.computeMass();
-            obj.numericalVolume = v;              
+            obj.numericalVolume = v;
         end
 
     end
-    
-    
+
 end

@@ -26,8 +26,8 @@ classdef FemTests < handle & matlab.unittest.TestCase
             s.computerType     = 'STOKES';
             s.testName         = stokesTests;
             s.variablesToStore = {'u','p'};
-            inst = PrecomputedVariableTest(s);
-            err = inst.computeError();
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
@@ -40,8 +40,8 @@ classdef FemTests < handle & matlab.unittest.TestCase
             s.testName = microTests;
             s.variablesToStore = {'Chomog'};
             s.computerType = 'MICRO';
-            inst = PrecomputedVariableTest(s);
-            err = inst.computeError();
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
@@ -55,8 +55,8 @@ classdef FemTests < handle & matlab.unittest.TestCase
             s.pdim      = '2D';
             s.nelem     = 6400;
             s.nGaus     = 3;
-            inst = PrincipalDirectionTest(s);
-            err = inst.computeError();
+            test = PrincipalDirectionTest(s);
+            err = test.computeError();
             tol = 1e-12;
             testCase.verifyLessThanOrEqual(err, tol)
         end
@@ -66,8 +66,8 @@ classdef FemTests < handle & matlab.unittest.TestCase
             s.pdim      = '3D';
             s.nelem     = 6400;
             s.nGaus     = 3;
-            inst = PrincipalDirectionTest(s);
-            err = inst.computeError();
+            test = PrincipalDirectionTest(s);
+            err = test.computeError();
             tol = 1e-12;
             testCase.verifyLessThanOrEqual(err, tol)
         end
@@ -75,4 +75,3 @@ classdef FemTests < handle & matlab.unittest.TestCase
     end
 
 end
-

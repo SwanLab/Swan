@@ -1,5 +1,5 @@
 classdef testCommutingHomogPlaneStressWithZeroPoisson < ...
-             handle & testCommutingHomogPlaneStress
+             testCommutingHomogPlaneStress
 
     properties (Access = public)
         tol = 1e-12;

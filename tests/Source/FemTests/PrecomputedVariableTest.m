@@ -6,7 +6,6 @@ classdef PrecomputedVariableTest < handle
         storedVar
         computedVar
         computation
-        FileName
         computerType
     end
 

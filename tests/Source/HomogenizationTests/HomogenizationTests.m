@@ -13,7 +13,6 @@ classdef HomogenizationTests < handle & matlab.unittest.TestCase
                 'testInverseNonSymmetricFourthOrderTensor';
                 'testInverseOfInverseForStiffTensor';
                 'testIsotropicFourthOrderTensor'
-                'testInverseSymmetricFourthOrderTensor';
                 'testSymmetrizeIsotropicFourthOrderTensor';
                 'testSymmetryForIAniTensorInVoigt'
                 'testMakeAnisotorpicTensorPlaneStressSymbolically';
@@ -25,13 +24,13 @@ classdef HomogenizationTests < handle & matlab.unittest.TestCase
                 }
             passedTests = {...
                 'testDiagonalLaminate';
+                'testHorizontalLaminate';
+                'TestGeneralTwoRankSequentialLaminate';
                 'testNotCommutingHomogPlaneStress';
                 'testSymmetrizeFourthOrderTensor';
                 'testHorizontalTensorRotatedVsVHP';
                 'testHorizontalTensorRotatedVsRank2';
                 'testHorizontalTensorRotatedVsHVP';
-                'TestGeneralTwoRankSequentialLaminate';
-                'testHorizontalLaminate';
                 }
     end
 

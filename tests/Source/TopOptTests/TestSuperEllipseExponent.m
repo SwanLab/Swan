@@ -8,10 +8,6 @@ classdef TestSuperEllipseExponent < handle
         q
     end
     
-    properties (Access = protected)
-        tol
-    end
-    
     methods (Access = public)
         
         function obj = TestSuperEllipseExponent()

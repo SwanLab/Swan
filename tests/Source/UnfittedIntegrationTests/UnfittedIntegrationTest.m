@@ -19,6 +19,11 @@ classdef UnfittedIntegrationTest < testUnfitted
             obj.createTopOpt();
             obj.integrateSurface();
         end
+        
+        function error = computeError(obj)
+            error = abs(obj.varAdim - 1);
+        end
+
     end
 
     methods (Access = private)
@@ -43,14 +48,6 @@ classdef UnfittedIntegrationTest < testUnfitted
                 case 'BOUNDARY'
                     totalIntegral = obj.unfittedMesh.computePerimeter();
             end
-        end
-        
-    end
-
-    methods (Access = public)
-        
-        function error = computeError(obj)
-            error = abs(obj.varAdim - 1);
         end
         
     end
