@@ -44,7 +44,9 @@ classdef SuperEllipseDistributionExample < handle
         function computeM1M2(obj)
             x1 = obj.coord(:,1);
             x2 = obj.coord(:,2);
-            r = sqrt(x1.^2 + x2.^2);
+            p = 16;
+            r = (x1.^p + x2.^p).^(1/p);
+            r = r.^(1/p);
             obj.m1 = obj.createLinearFunction(r,obj.mMin,obj.mMax);
             obj.m2 = obj.createLinearFunction(r,obj.mMin,obj.mMax);
         end

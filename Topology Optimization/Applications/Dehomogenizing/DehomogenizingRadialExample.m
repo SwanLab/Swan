@@ -29,8 +29,8 @@ classdef DehomogenizingRadialExample < handle
     methods (Access = private)
         
         function init(obj)
-            obj.nx1    = 225*2;
-            obj.nx2    = 225;
+            obj.nx1    = 125*2;
+            obj.nx2    = 125;
             obj.nCells = 16;
         end
                
@@ -59,8 +59,8 @@ classdef DehomogenizingRadialExample < handle
 %             s.coord(:,1) = coordinates(:,1)+x1min;
 %             s.coord(:,2) = coordinates(:,2)+x2min;
 %             s.connec = nodes;
-%             obj.backgroundMesh = Mesh(s);  
-%             obj.backgroundMesh.plot()
+%             obj.backgroundMesh = Mesh(s);              
+%             obj.backgroundMesh.plot();
             
                                 
              [xv,yv] = meshgrid(x1,x2); 
@@ -69,7 +69,7 @@ classdef DehomogenizingRadialExample < handle
              s.connec = F;
              obj.backgroundMesh = Mesh(s);  
              obj.backgroundMesh.plot()
-            % obj.coord = s.coord;
+%             obj.coord = s.coord;
             
         end
         
@@ -81,8 +81,8 @@ classdef DehomogenizingRadialExample < handle
 
         function createSuperEllipseParams(obj)
            s.coord = obj.backgroundMesh.coord;
-           s.mMin  = 0.6;
-           s.mMax  = 0.98;
+           s.mMin  = 0.4;
+           s.mMax  = 0.99;
            s.qMin  = 32;
            s.qMax  = 32;            
            sE = SuperEllipseDistributionExample(s);

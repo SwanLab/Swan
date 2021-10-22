@@ -31,6 +31,7 @@ classdef Dehomogenizer < handle
         function plot(obj)
             obj.plotOrientation();
             obj.plotStructure();
+            obj.plotComponents();
         end
         
     end
@@ -58,7 +59,7 @@ classdef Dehomogenizer < handle
             s.boundaryMesh   = obj.boundaryMesh;
             s.backgroundMesh = obj.backgroundMesh;
             obj.uMesh = UnfittedMesh(s);
-            obj.uMesh.compute(ls)
+            obj.uMesh.compute(ls);
         end               
         
         function plotOrientation(obj)
@@ -74,6 +75,12 @@ classdef Dehomogenizer < handle
         function plotStructure(obj)
             figure()
             obj.uMesh.plotStructureInColor('black');
+        end
+        
+        function plotComponents(obj)
+            s.unfittedMesh = obj.uMesh;
+            sp = UnfittedMeshSplitter(s);
+            sp.split();                        
         end
 
         function ls = createLevelSet(obj)

@@ -15,7 +15,7 @@ classdef DehomogenizingTests < testRunner
     methods (Access = protected)
         function loadTests(obj)
             obj.tests = {'MeshSymmetrizerTest'; 
-                'ScalarSymmetrizerTest'};            
+                'ScalarSymmetrizerTest';'MeshComponentCounterTest'};            
         end
     end
 end

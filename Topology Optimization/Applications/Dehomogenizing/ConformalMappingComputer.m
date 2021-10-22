@@ -37,17 +37,10 @@ classdef ConformalMappingComputer < handle
         
         function plotDilation(obj)
             figure()
-            x = obj.mesh.coord(:,1);
-            y = obj.mesh.coord(:,2);
-            z = obj.dilation;
-            F = scatteredInterpolant(x,y,z);
-            n = 100;
-            [xv,yv] = meshgrid(min(x):1/n:max(x),min(y):1/n:max(y));
-            zv = F(xv,yv);
-            %zv = griddata(x,y,z,xv,yv);
-            surf(xv,yv,zv);
-            view(0,90)
-            colorbar
+            s.mesh  = obj.mesh;
+            s.field = obj.dilation;
+            n = NodalFieldPlotter(s);
+            n.plot();
             shading interp
         end
         
@@ -62,12 +55,8 @@ classdef ConformalMappingComputer < handle
             figure()
             x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);
-            F = scatteredInterpolant(x,y,z);
-            n  =100;
-            [xv,yv] = meshgrid(min(x):1/n:max(x),min(y):1/n:max(y));
-            zv = F(xv,yv);
-            %zv = griddata(x,y,z,xv,yv);
-            contour(xv,yv,zv,50,'LineWidth',5);
+            [~,h] = tricontour(obj.mesh.connec,x,y,z,50);
+            set(h,'LineWidth',5);
             colorbar
         end
         

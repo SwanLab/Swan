@@ -43,19 +43,26 @@ classdef DehomogenizingExample < handle
         
         function init(obj)
             obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/Example/';
-            obj.fileName = 'CantileverSymmetricWithoutFixing';
-            obj.nx1    = 152;
-            obj.nx2    = 152;            
-            obj.nCells = 16;
+            %obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';
+            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+            %obj.fileName = 'CantileverSymmetricWithoutFixing';
+            %obj.fileName = 'ExperimentingPlotSuperEllipse';
+            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+            obj.nx1    = 222;
+            obj.nx2    = 222;            
+            obj.nCells = 46;
         end
         
         function loadDataExperiment(obj)
-            iteration = 216;
+            %iteration = 216;
+            %iteration = 64;
+            iteration = 665;
             s.fileName = [obj.fileName,num2str(iteration)];
             s.folderPath = fullfile(obj.filePath );
             w = WrapperMshResFiles(s);
             w.compute();
-            w = obj.symmetrizeData(w);
+            %w = obj.symmetrizeData(w);
+            w = obj.arrangeData(w);
             obj.m1M    = w.m1;
             obj.m2M    = w.m2;
             obj.qM     = w.q;
@@ -68,8 +75,16 @@ classdef DehomogenizingExample < handle
             sa = sin(obj.alphaRot);                      
             x1r = ca*x1 - sa*x2;
             x2r = sa*x1 + ca*x2;                        
-        end
+       end
         
+       function wC = arrangeData(obj,w)
+            wC.m1 = w.dataRes.DesignVar1;
+            wC.m2 = w.dataRes.DesignVar2;
+            wC.q = w.dataRes.SuperEllipseExponent;
+          	wC.alpha = obj.interpolateAlpha(w.dataRes.AlphaGauss',w.mesh);            
+            wC.mesh  = w.mesh;
+       end
+       
         function wC = symmetrizeData(obj,w)
             coordT = w.mesh.coord;
             coordT(:,1) = coordT(:,1) + 0;%3;            
@@ -133,19 +148,18 @@ classdef DehomogenizingExample < handle
             x1 = linspace(min(obj.mesh.coord(:,1)),max(obj.mesh.coord(:,1)),obj.nx1);
             x2 = linspace(min(obj.mesh.coord(:,2)),max(obj.mesh.coord(:,2)),obj.nx2);
             
-            
+%             
             FV.vertices = [obj.mesh.coord,zeros(size(obj.mesh.coord,1),1)];
             FV.faces    = obj.mesh.connec;
             FV2 = refinepatch(FV);
             FV2 = refinepatch(FV2);
-            %FV2 = refinepatch(FV2);
          %   FV2 = refinepatch(FV2);
-
-            
+         %   FV2 = refinepatch(FV2);
+% 
+%             
             s.coord = FV2.vertices(:,1:2);
             s.connec = FV2.faces;
             m = Mesh(s);
-            
             obj.backgroundMesh = m;
             
             %x1T = repmat(x1,obj.nx2,1);
@@ -167,10 +181,10 @@ classdef DehomogenizingExample < handle
 %             x2min = min(x2);
 %             x2max = max(x2);
 %             [coordinates, nodes,nel,nnode] = MeshRectangular(x1max-x1min,x2max-x2min,obj.nx1,obj.nx2);
-%             s.coord(:,1) = coordinates(:,1)+x1min;
-%             s.coord(:,2) = coordinates(:,2)+x2min;
-%             s.connec = nodes;
-%             obj.backgroundMesh = Mesh(s);   
+%             sC.coord(:,1) = coordinates(:,1)+x1min;
+%             sC.coord(:,2) = coordinates(:,2)+x2min;
+%             sC.connec = nodes;
+%             obj.backgroundMesh = Mesh(sC);   
             
 %              [xv,yv] = meshgrid(x1,x2); 
 %              [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');             
