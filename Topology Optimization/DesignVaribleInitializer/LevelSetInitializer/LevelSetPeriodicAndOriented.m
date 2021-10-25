@@ -1,9 +1,5 @@
 classdef LevelSetPeriodicAndOriented < LevelSetCreator
-    
-    properties (Access = public)
-        
-    end
-    
+ 
     properties (Access = private)
         epsilon
         cellCoord
@@ -85,28 +81,26 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         end 
         
         function thresholdParameters(obj)
-            r = obj.mapping.dilation;
-            r = obj.interpolateFunction(r);
-            
-            hC = obj.epsilon*exp(-r);
-            
+            mL = obj.computeMinLengthInUnitCell();
+            s.minLengthInUnitCell = mL;
             m1 = obj.cellLevelSetParams.widthH;
             m2 = obj.cellLevelSetParams.widthV;
-            
+            t = MparameterThresholder(s);
+            m1 = t.thresh(m1);
+            m2 = t.thresh(m2);            
+            obj.cellLevelSetParams.widthH = m1;
+            obj.cellLevelSetParams.widthV = m2;                        
+        end
+        
+        function t = computeMinLengthInUnitCell(obj)
+            r = obj.mapping.dilation;
+            r = obj.interpolateFunction(r);            
+            hC = obj.epsilon*exp(-r);
             hmin = min(hC);
             hmax = max(hC);
            % hcut = (hmax+hmin)/0.6;%/4;%/2;
             hcut = 0.1*obj.epsilon;
-            
-            
-            s.minLengthInUnitCell = hcut./hC;            
-            t = MparameterThresholder(s);
-            m1 = t.thresh(m1);
-            m2 = t.thresh(m2);
-            
-            obj.cellLevelSetParams.widthH = m1;
-            obj.cellLevelSetParams.widthV = m2;            
-            
+            t = hcut./hC;                           
         end
         
         function vq = interpolateFunction(obj,v)

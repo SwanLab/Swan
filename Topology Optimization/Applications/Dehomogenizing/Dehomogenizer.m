@@ -81,6 +81,7 @@ classdef Dehomogenizer < handle
             s.unfittedMesh = obj.uMesh;
             sp = UnfittedMeshSplitter(s);
             sp.split();                        
+            sp.plot();
         end
 
         function ls = createLevelSet(obj)

@@ -27,6 +27,7 @@ classdef Mesh < handle
         geometry        
     end
     
+        
     methods (Access = public)
         
         function obj = Mesh(cParams)

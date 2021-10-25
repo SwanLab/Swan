@@ -31,8 +31,8 @@ classdef MeshComponentCounterTest < testShowingError
         end        
         
         function createBackgroundMesh(obj)
-           x1 = linspace(0,1,30);
-           x2 = linspace(0,1,30);
+           x1 = linspace(0,1,3);
+           x2 = linspace(0,1,3);
            [x1,x2] = meshgrid(x1,x2); 
            x3 = zeros(size(x2));
            [F,V] = mesh2tri(x1,x2,x3,'x');
@@ -73,6 +73,7 @@ classdef MeshComponentCounterTest < testShowingError
             s.unfittedMesh = obj.uMesh;
             sp = UnfittedMeshSplitter(s);
             sp.split();
+            sp.plot();
         end
         
         
