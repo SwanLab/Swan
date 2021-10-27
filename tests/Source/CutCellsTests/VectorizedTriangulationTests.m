@@ -9,7 +9,8 @@ classdef VectorizedTriangulationTests < handle & matlab.unittest.TestCase
     end
 
     methods (Test, ...
-            TestTags = {'VectorizedTriangulation', 'original', 'Tetrahedron', 'IsoCoord', 'OrderedConnec'})
+            TestTags = {'VectorizedTriangulation', ...
+            'Tetrahedron', 'IsoCoord', 'OrderedConnec'})
         function testIsoCoord(testCase, levelSet1, levelSet2, levelSet3, lvlSet4)
             s.coord    = [0 0 0; 1 0 0; 0 1 0; 0 0 1];
             s.connec   = [1 2 3 4];
@@ -25,7 +26,8 @@ classdef VectorizedTriangulationTests < handle & matlab.unittest.TestCase
     end
 
     methods (Test, ...
-            TestTags = {'VectorizedTriangulation', 'Classic', 'Tetrahedron', 'IsoCoord', 'OrderedConnec'})
+            TestTags = {'VectorizedTriangulation', ...
+            'Tetrahedron', 'IsoCoord', 'OrderedConnec'})
         function testRandCoord(testCase, levelSet1, levelSet2, levelSet3, lvlSet4)
             s.coord    = rand(4,3);
             s.connec   = [1 2 3 4];
@@ -41,7 +43,8 @@ classdef VectorizedTriangulationTests < handle & matlab.unittest.TestCase
     end
 
     methods (Test, ...
-            TestTags = {'VectorizedTriangulation', 'Classic', 'Tetrahedron', 'IsoCoord', 'OrderedConnec'})
+            TestTags = {'VectorizedTriangulation', ...
+            'Tetrahedron', 'IsoCoord', 'OrderedConnec'})
         function testFindingBug(testCase)
             s.coord    = [0    0    0;
                           1    0    0;
@@ -60,7 +63,7 @@ classdef VectorizedTriangulationTests < handle & matlab.unittest.TestCase
     end
 
     methods (Test, ...
-            TestTags = {'VectorizedTriangulation', 'Classic', 'AllRand'})
+            TestTags = {'VectorizedTriangulation', 'AllRand'})
 
         function testOneTetrahedronAllRand (testCase,allRandTests)
             test = TestOneTetrahedronAllRand.create(allRandTests);
