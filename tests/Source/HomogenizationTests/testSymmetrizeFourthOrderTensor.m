@@ -1,4 +1,4 @@
-classdef testSymmetrizeFourthOrderTensor < testNotShowingError
+classdef testSymmetrizeFourthOrderTensor < handle
     
     properties (Access = protected)
            Cani
@@ -7,15 +7,25 @@ classdef testSymmetrizeFourthOrderTensor < testNotShowingError
            nonEnergy
     end
     
-    methods
+    methods (Access = public)
         
         function obj = testSymmetrizeFourthOrderTensor()
             obj.computeAnisotropicFourthOrderTensor();
             obj.computeAplicationWithRandomSymetricTensor()
         end
-        
-       
-        
+
+        function hasPassed = hasPassed(obj)
+            meanEn = mean(obj.energy(1:4));
+            desV = obj.energy(1:4) - meanEn;
+            PreservedBySymmetry = norm(desV) < 1e-12;
+            NotPreservedByNoSymmetry = abs(meanEn - obj.nonEnergy) > 1e-12;
+            hasPassed = PreservedBySymmetry && NotPreservedByNoSymmetry ;
+        end
+
+    end
+
+    methods (Access = private)
+
         function computeAnisotropicFourthOrderTensor(obj)
             obj.Cani = SymmetricFourthOrder3DTensor();
             obj.Cani.createRandomTensor();
@@ -44,17 +54,7 @@ classdef testSymmetrizeFourthOrderTensor < testNotShowingError
             obj.energy = e;
             obj.nonEnergy = nE;
         end
-        
-        end
-    
-    methods (Access = protected)    
-        function hasPassed = hasPassed(obj)
-            meanEn = mean(obj.energy(1:4));
-            desV = obj.energy(1:4) - meanEn;
-            PreservedBySymmetry = norm(desV) < 1e-12;
-            NotPreservedByNoSymmetry = abs(meanEn - obj.nonEnergy) > 1e-12;
-            hasPassed = PreservedBySymmetry && NotPreservedByNoSymmetry ;
-        end
-    end
-end
 
+    end
+
+end

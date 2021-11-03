@@ -1,8 +1,8 @@
-FemTests;
-UnfittedIntegrationTests;
-VectorizedTriangulationTests;
-TopOptTests;
-ReadingFilesTests;
-PlottingTests;
-HomogenizationTests;
-ImageProcessingTests;
+FemTestsSuite;
+UnfittedIntegrationTestsSuite;
+VectorizedTriangulationTestsSuite;
+TopOptTestsSuite;
+ReadingFilesTestsSuite;
+PlottingTestsSuite;
+HomogenizationTestsSuite;
+ImageProcessingTestsSuite;

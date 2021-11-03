@@ -1,9 +1,9 @@
-classdef TestTwoRankSequentialLaminate < testShowingError
-    
-    properties (Access = protected)
+classdef TestTwoRankSequentialLaminate < handle
+
+    properties (Access = public)
         tol = 1e-12; 
     end
-    
+
     properties (Access = private)
       C0
       C1  
@@ -23,33 +23,43 @@ classdef TestTwoRankSequentialLaminate < testShowingError
     methods (Access = public) 
         
         function obj = TestTwoRankSequentialLaminate()
-            obj.createTensors()
-            obj.createParameters()
-            obj.loadHomogenizedCheckedConstitutiveTensor()
-            obj.computeTwoRankSequentialLaminate()
-            obj.computeTwoRankSequentialLaminateFromAllaireTestedWebPageCode()
+            obj.createTensors();
+            obj.createParameters();
+            obj.loadHomogenizedCheckedConstitutiveTensor();
+            obj.computeTwoRankSequentialLaminate();
+            obj.computeTwoRankSequentialLaminateFromAllaireTestedWebPageCode();
         end
-    end    
-   
+
+        function error = computeError(obj)
+            InitCh  = double(obj.FirstCheckedRank2Ch);
+            R2Ch    = double(obj.Rank2Ch);
+            R2ChWeb = double(obj.WebRank2Ch);
+            err1  = norm(InitCh - R2Ch)/norm(R2Ch);
+            err2  = norm(R2ChWeb- R2Ch)/norm(R2Ch);
+            error = max(err1,err2);
+        end
+
+    end
+
     methods (Access = private)
-        
+
         function createTensors(obj)
-            obj.createStiffTensor()
-            obj.createWeakTensor()
-            obj.storeLambda2D()
-            obj.makeTensorsVoigtPlaneStress()
+            obj.createStiffTensor();
+            obj.createWeakTensor();
+            obj.storeLambda2D();
+            obj.makeTensorsVoigtPlaneStress();
         end
                        
         function createStiffTensor(obj)
             obj.lambda = 0.7500;
             obj.mu     = 0.3750;     
-            obj.C1 = IsotropicConstitutiveTensor.createWithLambdaAndMu(obj.lambda,obj.mu);                        
+            obj.C1 = IsotropicConstitutiveTensor.createWithLambdaAndMu(obj.lambda,obj.mu);
         end
         
         function createWeakTensor(obj)
             E  = obj.C1.getYoung();
             nu = obj.C1.getPoisson();
-            epsil = 1.0000e-03;            
+            epsil = 1.0000e-03;
             E0 = epsil*E;
             nu0 = nu;
             obj.C0 = IsotropicConstitutiveTensor(E0,nu0);
@@ -104,10 +114,10 @@ classdef TestTwoRankSequentialLaminate < testShowingError
                                           -0.155777642710044  -0.074187675387998   0.032148130248805];
         end
         
-        function computeTwoRankSequentialLaminate(obj)           
+        function computeTwoRankSequentialLaminate(obj)
             dir{1} = obj.d1;
             dir{2} = obj.d2;
-            params = [obj.m1;obj.m2];            
+            params = [obj.m1;obj.m2];
             theta = obj.FractionVolume;
             c1    = obj.C1.getValue();
             c0    = obj.C0.getValue();
@@ -119,7 +129,7 @@ classdef TestTwoRankSequentialLaminate < testShowingError
         end
         
         
-        function computeTwoRankSequentialLaminateFromAllaireTestedWebPageCode(obj)            
+        function computeTwoRankSequentialLaminateFromAllaireTestedWebPageCode(obj)
             %Lambda   = obj.lambda2D;
             Lambda2D = obj.lambda2D;
             muV = obj.mu();
@@ -141,17 +151,5 @@ classdef TestTwoRankSequentialLaminate < testShowingError
         end
         
     end
-    
-    methods (Access = protected)
-        function computeError(obj)
-            InitCh  = double(obj.FirstCheckedRank2Ch);
-            R2Ch    = double(obj.Rank2Ch);
-            R2ChWeb = double(obj.WebRank2Ch);
-            
-            err1  = norm(InitCh - R2Ch)/norm(R2Ch);
-            err2  = norm(R2ChWeb- R2Ch)/norm(R2Ch);;
-            obj.error = max(err1,err2);
-        end
-    end
-    
+
 end

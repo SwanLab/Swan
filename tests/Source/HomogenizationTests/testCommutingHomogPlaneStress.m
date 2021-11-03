@@ -1,6 +1,6 @@
 classdef testCommutingHomogPlaneStress < handle
     
-    properties (Access = private)        
+    properties (Access = private)
         theta
         direction
         stiffTensor
@@ -9,7 +9,7 @@ classdef testCommutingHomogPlaneStress < handle
     
     properties (Access = protected)
         vhpTensor
-        vphTensor        
+        vphTensor
     end
     
     methods (Access = public)
@@ -55,17 +55,14 @@ classdef testCommutingHomogPlaneStress < handle
             c1     = obj.stiffTensor;
             dir{1} = obj.direction;
             m1     = 1;
-            seqHomog = VoigtHomogPlaneStressHomogenizer(c0,c1,dir,m1,obj.theta);  
+            seqHomog = VoigtHomogPlaneStressHomogenizer(c0,c1,dir,m1,obj.theta);
             obj.vhpTensor  = seqHomog.getPlaneStressHomogenizedTensor();
         end 
        
     end
-    
 
-    
     methods (Access = protected, Abstract, Static)
         createPoissonValue(obj)
     end
     
 end
-

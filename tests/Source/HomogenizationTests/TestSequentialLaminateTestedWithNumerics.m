@@ -1,10 +1,10 @@
-classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
+classdef TestSequentialLaminateTestedWithNumerics < handle
 
     properties (Access = private)
-        microFile = 'RVE_Square_Triangle_FineFine';   
+        microFile = 'RVE_Square_Triangle_FineFine';
         fileOutputName = 'SeqLaminate';
     end
-    
+
     properties (Access = protected)
         LaminateDirection
         Theta
@@ -17,12 +17,26 @@ classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
         MixtureCh
         Rank2Ch
         NumericalCh
-        SeqLamCh          
+        SeqLamCh
         
         FiberDirection
     end
-    
-  
+
+    methods (Access = public)
+
+        function hasPassed = hasPassed(obj) 
+            ChNum   = obj.NumericalCh.getValue();
+            ChSL    = obj.SeqLamCh.getValue();
+            ChMix   = obj.MixtureCh.getValue();
+            ChRank  = obj.Rank2Ch.getValue();
+            firstCondition  = obj.relativeNorm(ChSL,ChNum)   < 1e-2;
+            secondCondition = obj.relativeNorm(ChMix,ChNum)  < 1e-3;
+            thirdCondition  = obj.relativeNorm(ChRank,ChNum) < 1e-10;
+            hasPassed = firstCondition & secondCondition & thirdCondition;
+        end
+
+    end
+
     methods (Access = protected)
 
         function compute(obj)
@@ -34,18 +48,7 @@ classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
             obj.computeRank2HomogenizerTensor();
             obj.computeMixtureTheoryTensor();
         end
-        
-        function hasPassed = hasPassed(obj) 
-            ChNum   = obj.NumericalCh.getValue();
-            ChSL    = obj.SeqLamCh.getValue();
-            ChMix   = obj.MixtureCh.getValue();
-            ChRank  = obj.Rank2Ch.getValue();            
-            firstCondition  = obj.relativeNorm(ChSL,ChNum)   < 1e-2;
-            secondCondition = obj.relativeNorm(ChMix,ChNum)  < 1e-3;
-            thirdCondition  = obj.relativeNorm(ChRank,ChNum) < 1e-10;
-            hasPassed = firstCondition & secondCondition & thirdCondition;
-        end        
-        
+
     end
     
     methods (Access = private)
@@ -93,7 +96,7 @@ classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
             obj.SeqLamCh  = SeqHomog.getPlaneStressHomogenizedTensor();
         end
         
-        function computeRank2HomogenizerTensor(obj)            
+        function computeRank2HomogenizerTensor(obj)
             C0 = obj.WeakTensor;
             C1 = obj.StiffTensor;
             dir{1} = obj.LaminateDirection;
@@ -108,11 +111,11 @@ classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
             d = [0 0 1];
             dir = Vector3D;
             dir.setValue(d);
-            dir.normalize();            
+            dir.normalize();
             angle = -acos(dot(obj.FiberDirection.getValue(),[1 0 0]));
             vFrac = obj.Theta;
             homogenizer = MixtureTheoryHomogenizer(C1,C0,dir,angle,vFrac);
-            obj.MixtureCh = homogenizer.Ch;            
+            obj.MixtureCh = homogenizer.Ch;
         end
         
         function Ch = rotateCh(obj,homog)
@@ -128,7 +131,7 @@ classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
         function relNorm = relativeNorm(A,B)
             relNorm = norm(A - B)/norm(B);
         end
-        
+
     end
    
     methods (Abstract,Access = protected)
@@ -136,4 +139,3 @@ classdef TestSequentialLaminateTestedWithNumerics < testNotShowingError
         loadFiberDirection(obj)
     end
 end
-

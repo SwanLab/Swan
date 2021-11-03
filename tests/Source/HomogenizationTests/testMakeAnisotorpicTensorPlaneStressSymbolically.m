@@ -1,10 +1,13 @@
-classdef testMakeAnisotorpicTensorPlaneStressSymbolically < testShowingError
-    
+classdef testMakeAnisotorpicTensorPlaneStressSymbolically < handle
+
+    properties (Access = public)
+        tol = 1e-10;
+    end
+
     properties (Access = protected)
         ChVoigt
         ChSym
         ChNum
-        tol = 1e-10;
     end
     
     methods (Access = public)
@@ -14,7 +17,13 @@ classdef testMakeAnisotorpicTensorPlaneStressSymbolically < testShowingError
            obj.createPlaneStressTensorSymbolically()
            obj.createNumericFourthOrderTensor();
         end
-        
+
+        function error = computeError(obj)
+            cSym = double(obj.ChSym.getValue);
+            cNum = obj.ChNum.getValue;
+            error = norm(cSym(:) - cNum(:));
+        end
+
     end
     
     methods (Access = private)
@@ -27,24 +36,14 @@ classdef testMakeAnisotorpicTensorPlaneStressSymbolically < testShowingError
         
         function createPlaneStressTensorSymbolically(obj)
             t = obj.ChVoigt.getValue();
-            tPS = PST4VoigtFourthOrderTensorSymbolically(t);            
+            tPS = PST4VoigtFourthOrderTensorSymbolically(t);
             obj.ChSym = tPS;
         end
         
         function createNumericFourthOrderTensor(obj)
            t = obj.ChVoigt;
-           obj.ChNum = PlaneStressTransformer.transform(t); 
+           obj.ChNum = PlaneStressTransformer.transform(t);
         end
     end
-    
-    
-    methods (Access = protected)
-        function computeError(obj)
-            cSym = double(obj.ChSym.getValue);
-            cNum = obj.ChNum.getValue;
-            obj.error = norm(cSym(:) - cNum(:));
-        end
-    end
+
 end
-
-

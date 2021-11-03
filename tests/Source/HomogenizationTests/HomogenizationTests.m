@@ -1,23 +1,9 @@
-classdef HomogenizationTests < testRunner
-    
-    properties (Access = protected)
-        FieldOfStudy = 'Homogenization'
-        tests
-    end
-    
-    methods (Access = public)
-        function obj = HomogenizationTests()
-            obj@testRunner();
-        end
-    end
-    
-    methods (Access = protected)
-        function loadTests(obj)
-            obj.tests = {...
+classdef HomogenizationTests < handle & matlab.unittest.TestCase
+
+    properties (TestParameter)
+            errorTests = {...
                 'testNumericalConvergenceOfNumberOfLaminates';
-                'testDiagonalLaminate';
                 'testCommutingHomogPlaneStressWithZeroPoisson';
-                'testNotCommutingHomogPlaneStress';
                 'testCommutingVoigtHomog';
                 'testAnisotropicPlaneStressbyEnergyEquivalence';
                 'testStressInPlaneStress';
@@ -27,25 +13,50 @@ classdef HomogenizationTests < testRunner
                 'testInverseNonSymmetricFourthOrderTensor';
                 'testInverseOfInverseForStiffTensor';
                 'testIsotropicFourthOrderTensor'
-                'testInverseSymmetricFourthOrderTensor';
                 'testSymmetrizeIsotropicFourthOrderTensor';
                 'testSymmetryForIAniTensorInVoigt'
                 'testMakeAnisotorpicTensorPlaneStressSymbolically';
                 'testEnergyEquivalenceVoigtAndTensorNotationForIsoTensor';
                 'testEnergyEquivalenceVoigtAndTensorNotationForIAniTensor';
-                'testSymmetrizeFourthOrderTensor';
                 'testComplianceTensorThrougtVoigtComparingEnergy';
                 'TestTwoRankSequentialLaminate';
-                'testHorizontalTensorRotatedVsVHP';
                 'testHorizontalTensorRotatedVsVPH';
+                }
+            passedTests = {...
+                'testDiagonalLaminate';
+                'testHorizontalLaminate';
+                'TestGeneralTwoRankSequentialLaminate';
+                'testNotCommutingHomogPlaneStress';
+                'testSymmetrizeFourthOrderTensor';
+                'testHorizontalTensorRotatedVsVHP';
                 'testHorizontalTensorRotatedVsRank2';
                 'testHorizontalTensorRotatedVsHVP';
-                'TestGeneralTwoRankSequentialLaminate';
-                'testHorizontalLaminate';
-                };
-        end
-        
+                }
     end
-    
-end
 
+    methods (Test, TestTags = {'HomogenizationTests', 'ShowingError'})
+
+        function testsError(testCase, errorTests)
+            cd ../../../
+            test = eval(errorTests);
+            err = test.computeError();
+            tol = test.tol;
+            testCase.verifyLessThanOrEqual(err, tol)
+            cd ./tests/Source/HomogenizationTests/
+        end
+
+    end
+
+    methods (Test, TestTags = {'HomogenizationTests', 'NotShowingError'})
+
+        function testsPassed(testCase, passedTests)
+            cd ../../../
+            test = eval(passedTests);
+            passed = test.hasPassed();
+            verifyTrue(testCase, passed)
+            cd ./tests/Source/HomogenizationTests/
+        end
+
+    end
+
+end

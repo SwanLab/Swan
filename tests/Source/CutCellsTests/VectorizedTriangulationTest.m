@@ -1,8 +1,4 @@
-classdef VectorizedTriangulationTest < testShowingError
-    
-    properties (Access = protected)
-        tol = 1e-14;
-    end
+classdef VectorizedTriangulationTest < handle
     
     properties (Access = private)
         uMesh
@@ -18,26 +14,40 @@ classdef VectorizedTriangulationTest < testShowingError
         levelSet
         determinant
         determinant2
-        
         connecBcutMesh
     end
     
     methods (Access = public)
         
-        function obj = VectorizedTriangulationTest()
-            obj.init();
+        function obj = VectorizedTriangulationTest(cParams)
+            obj.init(cParams);
             obj.computeDeterminant();
             obj.computeDeterminant2();
             obj.createBackgroundMesh();
             obj.createBoundaryMesh();
             obj.createUnfittedMesh();
             obj.plotUnfittedMeshCutPointsAndNormals();
-            obj.computeValidInnerAndBoundaryCutMesh();            
+            obj.computeValidInnerAndBoundaryCutMesh();
+        end
+        
+        function error = computeError(obj)
+            errorV = obj.computeVolumeError();
+            errorC = obj.computeConnecInnerCutMeshError();
+            errorB = obj.computeConnecBoundaryCutMeshError();
+            error = errorV + errorC + errorB;
         end
         
     end
     
     methods (Access = private)
+        
+        function init(obj, cParams)
+            obj.coord    = cParams.coord;            
+            obj.connec   = cParams.connec;
+            obj.levelSet = cParams.levelSet;            
+            obj.boundaryConnec = cParams.boundaryConnec; 
+            obj.connecBcutMesh = cParams.connecBcutMesh;      
+        end
         
         function createBackgroundMesh(obj)
             s.connec = obj.connec;
@@ -45,25 +55,15 @@ classdef VectorizedTriangulationTest < testShowingError
             m = Mesh(s);
             obj.backgroundMesh = m;
         end
-        
+
     end
     
     methods (Access = protected)
         
-        function computeError(obj)
-            errorV = obj.computeVolumeError();
-            errorC = obj.computeConnecInnerCutMeshError();
-            errorB = obj.computeConnecBoundaryCutMeshError();
-            obj.error = errorV + errorC + errorB;
-            det  = obj.determinant();
-            det2 = obj.determinant2();
-            bCutMeshVolume = obj.computeVolumes(obj.uMesh.boundaryCutMesh.mesh);
-        end
-        
         function computeValidInnerAndBoundaryCutMesh(obj)
             s.backgroundMesh = obj.backgroundMesh;
             s.levelSet       = obj.levelSet;
-            s.boundaryConnec = obj.boundaryConnec;            
+            s.boundaryConnec = obj.boundaryConnec;
             c = ComputingInnerAndBoundaryCutMesh(s);
             c.compute();
             obj.validInnerCutMesh = c.innerCutMesh;
@@ -108,7 +108,7 @@ classdef VectorizedTriangulationTest < testShowingError
             s.boundaryConnec = obj.boundaryConnec;
             c = ComputingInnerAndBoundaryCutMesh(s);
             c.compute();
-            xCoord = c.cutCoordComputer;            
+            xCoord = c.cutCoordComputer;
             x = xCoord.xCutPoints(:,1);
             y = xCoord.xCutPoints(:,2);
             z = xCoord.xCutPoints(:,3);
@@ -117,7 +117,7 @@ classdef VectorizedTriangulationTest < testShowingError
         end
         
         function plotNormals(obj)
-            m = obj.uMesh.boundaryCutMesh.mesh;            
+            m = obj.uMesh.boundaryCutMesh.mesh;
             m.plotNormals();
         end
         
@@ -175,7 +175,7 @@ classdef VectorizedTriangulationTest < testShowingError
         
         function error = computeConnecBoundaryCutMeshError(obj)
             cV = obj.connecBcutMesh;
-            cU = obj.uMesh.boundaryCutMesh.mesh.connec;
+            cU = obj.uMesh.boundaryCutMesh.mesh.connec; % peta aqui
             areEquiv = obj.areConnecEquivalent(cU,cV);
             error = sum(~areEquiv)/length(areEquiv);
         end        
@@ -200,7 +200,7 @@ classdef VectorizedTriangulationTest < testShowingError
         end
         
         function c = sortConnec(connec)
-            c = sort(connec')';            
+            c = sort(connec')';
         end
         
         function areEquiv = areConnecEquivalent(connecA,connecB)
@@ -209,13 +209,10 @@ classdef VectorizedTriangulationTest < testShowingError
                connecBp = circshift(connecB',iperm)';
                isEqual(:,iperm) = sum(abs(connecA - connecBp),2) < 1e-14;
             end
-            areEquiv = any(isEqual,2);               
-        end        
+            areEquiv = any(isEqual,2);
+        end
         
     end
-    
-    methods (Access = protected, Abstract)
-        init(obj)        
-    end
-    
+
 end
+

@@ -1,16 +1,11 @@
 classdef testStressRotationInVoigtNotationIn3D < testStressRotationInVoigtNotation
-    
-    properties (Access = private)
 
-       
-    end
-    
     methods (Access = public)
         
         function obj = testStressRotationInVoigtNotationIn3D()
             obj.compute()
         end
-        
+
     end
 
     methods (Access = protected)
@@ -20,9 +15,8 @@ classdef testStressRotationInVoigtNotationIn3D < testStressRotationInVoigtNotati
             dim = obj.direction.getTensorSize();
             obj.direction.setValue(rand(dim));
             obj.direction.normalize();
-        end        
+        end
 
-    end    
-        
-    
+    end
+
 end

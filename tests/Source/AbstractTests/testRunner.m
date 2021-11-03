@@ -8,10 +8,10 @@ classdef testRunner < handle
     methods (Access = protected)
         
         function obj = testRunner()
-            obj.addPath()
-            obj.printHeader()
+%             obj.addPath()
+%             obj.printHeader()
             obj.compute()
-            obj.printTail()
+%             obj.printTail()
         end
         
         function runTests(obj)
