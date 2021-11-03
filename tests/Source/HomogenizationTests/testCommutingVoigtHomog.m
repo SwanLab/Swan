@@ -1,27 +1,33 @@
-classdef testCommutingVoigtHomog < testShowingError
+classdef testCommutingVoigtHomog < handle
     
     properties (Access = private)
         theta
         direction
         stiffTensor
         weakTensor
-        vhpTensor        
+        vhpTensor
         hvpTensor
     end
     
-    properties (Access = protected)
+    properties (Access = public)
         tol = 1e-12;
     end
     
     methods (Access = public)
         
-        function obj = testCommutingVoigtHomog
+        function obj = testCommutingVoigtHomog()
             obj.init()
             obj.computeWeakStiffTensor()
             obj.computeHomogVoigtPlaneStressTensor()
             obj.computeVoigtHomogPlaneStressTensor()
         end
-        
+       
+         function error = computeError(obj)
+            c1 = obj.vhpTensor.getValue();
+            c2 = obj.hvpTensor.getValue();
+            error = norm(c2-c1)/norm(c1);
+         end
+
     end
     
     methods (Access = private)
@@ -50,7 +56,7 @@ classdef testCommutingVoigtHomog < testShowingError
             m1     = 1;
             seqHomog = HomogVoigtPlaneStressHomogenizer(c0,c1,dir,m1,obj.theta);
             obj.hvpTensor  = seqHomog.getPlaneStressHomogenizedTensor();
-        end   
+        end
         
         function computeVoigtHomogPlaneStressTensor(obj)
             c0     = obj.weakTensor;
@@ -62,16 +68,6 @@ classdef testCommutingVoigtHomog < testShowingError
         end
         
     end
-    
-     methods (Access = protected)
-       
-         function computeError(obj)
-            c1 = obj.vhpTensor.getValue();
-            c2 = obj.hvpTensor.getValue();
-            obj.error = norm(c2-c1)/norm(c1);
-         end        
-        
-    end
-    
+
 end
 

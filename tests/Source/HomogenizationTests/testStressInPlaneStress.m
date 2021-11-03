@@ -1,14 +1,12 @@
-classdef testStressInPlaneStress < testShowingError
+classdef testStressInPlaneStress < handle
     
-    properties (Access = protected)
+    properties (Access = public)
         tol = 1e-12;
     end
     
     properties (Access = private)
-        
         stressFromTensorProduct
         stressFromVoigtProduct
-        
         strain
         strainVoigtPS
         Ch
@@ -25,6 +23,12 @@ classdef testStressInPlaneStress < testShowingError
             obj.computeStressFromVoigtProduct()
         end
         
+        function error = computeError(obj)
+            sV  = obj.stressFromVoigtProduct;
+            sT = obj.stressFromTensorProduct;
+            error = norm(sV - sT);
+        end
+
     end
     
     methods (Access = private)
@@ -56,16 +60,5 @@ classdef testStressInPlaneStress < testShowingError
         end
         
     end
-    
-    methods (Access = protected)
-        
-        function computeError(obj)
-            sV  = obj.stressFromVoigtProduct;
-            sT = obj.stressFromTensorProduct;
-            obj.error = norm(sV - sT);
-        end
-        
-        
-    end
-end
 
+end

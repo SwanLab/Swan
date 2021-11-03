@@ -1,6 +1,6 @@
-classdef testInverseOfInverseForStiffTensor < testShowingError
+classdef testInverseOfInverseForStiffTensor < handle
     
-    properties (Access = protected)
+    properties (Access = public)
         tol = 1e-10;
     end
     
@@ -18,6 +18,12 @@ classdef testInverseOfInverseForStiffTensor < testShowingError
               obj.createInvInvStiffTensor()
         end
         
+        function error = computeError(obj)
+            c = obj.ctens.getValue();
+            invInvC = obj.invInvCtens.getValue();
+            error = norm(c(:) - invInvC(:));
+        end
+
     end
     
     methods (Access = private)
@@ -38,13 +44,5 @@ classdef testInverseOfInverseForStiffTensor < testShowingError
         end
 
     end
-       
-    methods (Access = protected)
-        function computeError(obj)
-            c = obj.ctens.getValue();
-            invInvC = obj.invInvCtens.getValue();
-            obj.error = norm(c(:) - invInvC(:));
-        end
-    end
-end
 
+end

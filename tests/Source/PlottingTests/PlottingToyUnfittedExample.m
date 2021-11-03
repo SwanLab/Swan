@@ -1,9 +1,10 @@
-classdef PlottingToyUnfittedExample < testNotShowingError
+classdef PlottingToyUnfittedExample < handle
     
     properties (SetAccess = protected, GetAccess = private)
         coord
         connec
         levelSet
+        testName
     end
     
     properties (Access = private)
@@ -12,9 +13,32 @@ classdef PlottingToyUnfittedExample < testNotShowingError
        unfittedMesh
     end
     
-
-    methods (Access = protected)
+    methods (Access = public)
         
+        function obj = PlottingToyUnfittedExample(cParams)
+            figure()
+            obj.init(cParams);
+            obj.compute();
+            obj.plot();
+        end
+
+        function passed = hasPassed(obj)
+            d = load(obj.testName);
+            itIs = isequaln(obj.unfittedMesh,d.unfittedMesh);
+            passed = itIs;
+        end
+
+    end
+
+    methods (Access = private)
+
+        function init(obj, cParams)
+            obj.coord    = cParams.coord;
+            obj.connec   = cParams.connec;
+            obj.levelSet = cParams.levelSet;
+            obj.testName = cParams.testName;
+        end
+
         function compute(obj)
             obj.computeBackgroundMesh();
             obj.computeBoundaryMeshes();
@@ -22,25 +46,13 @@ classdef PlottingToyUnfittedExample < testNotShowingError
         end
         
         function plot(obj)
-            figure();            
-            obj.plotUnfittedMesh();              
+            figure();
+            obj.plotUnfittedMesh();
             obj.plotGaussPointsInUnfittedMesh(obj.unfittedMesh)
-            obj.plotUnfittedBoundaryMesh();              
-        end        
-        
-        function hasPassed = hasPassed(obj)
-            d = load(obj.testName);     
-            itIs = isequaln(obj.unfittedMesh,d.unfittedMesh);            
-            hasPassed = itIs;
-        end        
-        
-    end    
-    
-    methods (Access = private)
-        
-    
-        
-       function computeBackgroundMesh(obj)
+            obj.plotUnfittedBoundaryMesh();
+        end
+
+        function computeBackgroundMesh(obj)
             s.coord  = obj.coord;
             s.connec = obj.connec;
             obj.backgroundMesh = Mesh(s);
@@ -50,7 +62,7 @@ classdef PlottingToyUnfittedExample < testNotShowingError
             s.backgroundMesh = obj.backgroundMesh;
             s.dimension = 1:obj.backgroundMesh.ndim;
             bC = BoundaryMeshCreatorFromRectangularBox(s);
-            obj.boundaryMeshes = bC.create();                        
+            obj.boundaryMeshes = bC.create();
         end
         
         function computeUnfittedMesh(obj)
@@ -72,26 +84,26 @@ classdef PlottingToyUnfittedExample < testNotShowingError
         end
         
         function plotInnerGaussPoints(obj,innerMesh)
-             if ~isempty(innerMesh)            
-                mesh = innerMesh.mesh;               
+             if ~isempty(innerMesh)
+                mesh = innerMesh.mesh;
                 color = [0.8500    0.3250    0.0980];
-                obj.plotGaussPoints(mesh,'LINEAR',color)    
-            end            
+                obj.plotGaussPoints(mesh,'LINEAR',color)
+             end
         end
         
         function plotInnerCutGaussPoints(obj,innerCutMesh)
             if ~isempty(innerCutMesh)
-                mesh = innerCutMesh.mesh;               
+                mesh = innerCutMesh.mesh;
                 color = [0.4940    0.1840    0.5560];
-                obj.plotGaussPoints(mesh,'QUADRATIC',color)   
-            end            
+                obj.plotGaussPoints(mesh,'QUADRATIC',color)
+            end
         end
         
         function plotBoundaryCutGaussPoints(obj,boundaryCutMesh)
-            if ~isempty(boundaryCutMesh)   
+            if ~isempty(boundaryCutMesh)
                 mesh = boundaryCutMesh.mesh;
                 color = [0.9290    0.6940    0.1250];
-                obj.plotGaussPoints(mesh,'QUADRATIC',color);            
+                obj.plotGaussPoints(mesh,'QUADRATIC',color);
             end            
         end
         
@@ -100,24 +112,23 @@ classdef PlottingToyUnfittedExample < testNotShowingError
             meshes = bMesh.getActiveMesh();
             for iMesh = 1:numel(meshes)
                 mesh = meshes{iMesh};
-                obj.plotGaussPointsInUnfittedMesh(mesh)                
-            end            
-        end        
-    
+                obj.plotGaussPointsInUnfittedMesh(mesh)
+            end
+        end
+
     end
-    
+
     methods (Access = private, Static)
-        
+
         function plotGaussPoints(mesh,quadType,color)
             quad = Quadrature.set(mesh.type);
-            quad.computeQuadrature(quadType);                  
+            quad.computeQuadrature(quadType);
             xCutB = mesh.computeXgauss(quad.posgp);
-            p = plot(xCutB(1,:),xCutB(2,:),'s','MarkerSize',5);  
+            p = plot(xCutB(1,:),xCutB(2,:),'s','MarkerSize',5);
             p.MarkerEdgeColor = color;
             p.Color = color;
-            p.MarkerFaceColor = color;               
-        end    
-        
-    end      
-    
+            p.MarkerFaceColor = color;
+        end
+
+    end
 end

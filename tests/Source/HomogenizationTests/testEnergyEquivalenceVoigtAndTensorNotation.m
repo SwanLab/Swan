@@ -1,18 +1,19 @@
-classdef testEnergyEquivalenceVoigtAndTensorNotation < testShowingError
+classdef testEnergyEquivalenceVoigtAndTensorNotation < handle
     
+    properties (Access = public)
+        tol = 1e-10;
+    end
+
     properties (Access = protected)
         voigtEnergy
         tensorEnergy
-        
         strain
         strainVoigt
         Ch
         ChVoigt
-        
-        tol = 1e-10;
     end
     
-    methods (Access = protected)
+    methods (Access = public)
         
         function obj = testEnergyEquivalenceVoigtAndTensorNotation()
             obj.init()
@@ -20,8 +21,8 @@ classdef testEnergyEquivalenceVoigtAndTensorNotation < testShowingError
             obj.computeVoigtEnergy();
         end
         
-        function computeError(obj)
-            obj.error = abs(obj.voigtEnergy - obj.tensorEnergy);
+        function error = computeError(obj)
+            error = abs(obj.voigtEnergy - obj.tensorEnergy);
         end
     end
     
@@ -54,10 +55,9 @@ classdef testEnergyEquivalenceVoigtAndTensorNotation < testShowingError
         end
         
     end
-    
+
     methods (Abstract)
        generateFourthOrderTensor(obj) 
     end
-    
 
 end

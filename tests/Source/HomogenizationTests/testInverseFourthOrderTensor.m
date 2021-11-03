@@ -1,8 +1,11 @@
-classdef testInverseFourthOrderTensor < testShowingError
+classdef testInverseFourthOrderTensor < handle
     
+    properties (Access = public)
+        tol = 1e-12;
+    end
+
     properties (Access = protected)
         tensor
-        tol = 1e-12;
     end
     
     properties (Access = private)
@@ -10,8 +13,7 @@ classdef testInverseFourthOrderTensor < testShowingError
         identity
         expectedIdentity
     end
-       
-    
+
     methods (Access = public)
         
         function obj = testInverseFourthOrderTensor() 
@@ -20,12 +22,17 @@ classdef testInverseFourthOrderTensor < testShowingError
             obj.createIdentityFourthOrderTensor()
             obj.obtainExpectedIdentityFourthOrderTensor()
         end
-      
-        
+
+        function error = computeError(obj)
+            I = obj.identity;
+            Ie = obj.expectedIdentity;            
+            error = norm(I(:)-Ie(:))/norm(I(:));
+        end
+
     end
     
     methods (Access = private)
-                
+
         function invertFourthOrderTensor(obj)
             A = obj.tensor;
             Ainv = Inverter.invert(A);
@@ -71,21 +78,10 @@ classdef testInverseFourthOrderTensor < testShowingError
         end
         
     end
-    
-    
-    methods (Access = protected)
-                
-        function computeError(obj)
-            I = obj.identity;
-            Ie = obj.expectedIdentity;            
-            obj.error = norm(I(:)-Ie(:))/norm(I(:));
-        end
-    end
-    
+
     methods (Abstract, Access = protected, Static)
         computeIdentityTensor(obj)
         createRandomFourthOrderTensor(obj)
     end
     
 end
-

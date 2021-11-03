@@ -1,9 +1,6 @@
 classdef testEnergyEquivalenceVoigtAndTensorNotationForIsoTensor  ...
          < testEnergyEquivalenceVoigtAndTensorNotation
     
-    properties 
-    end
-    
     methods (Access = public)
         
         function obj = testEnergyEquivalenceVoigtAndTensorNotationForIsoTensor()
@@ -11,7 +8,7 @@ classdef testEnergyEquivalenceVoigtAndTensorNotationForIsoTensor  ...
         end
         
     end
-    
+
     methods 
         function generateFourthOrderTensor(obj)
              obj.Ch = IsotropicConstitutiveTensor(1,1/3);
@@ -19,5 +16,3 @@ classdef testEnergyEquivalenceVoigtAndTensorNotationForIsoTensor  ...
     end
 
 end
-
-

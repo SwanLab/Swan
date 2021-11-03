@@ -1,6 +1,6 @@
-classdef testIsotropicFourthOrderTensor < testShowingError
+classdef testIsotropicFourthOrderTensor < handle
     
-    properties (Access = protected)
+    properties (Access = public)
          tol = 1e-12;
     end
     
@@ -17,11 +17,18 @@ classdef testIsotropicFourthOrderTensor < testShowingError
             obj.computeCheckedTensor();
             obj.computeToCheckTensor()
         end
+
+        function error = computeError(obj)
+            cV = obj.cVoigt.getValue();
+            cVe = obj.cVoigtExplicit;
+            error = norm(cV(:) - cVe(:));
+        end
+
     end
     
     methods (Access = private)
         
-        function computeCheckedTensor(obj)        
+        function computeCheckedTensor(obj)
           coef = obj.E/((obj.nu + 1)*(1 - 2*obj.nu));
           c1 = 1 - obj.nu;
           c2 = (1 - 2*obj.nu)/2;
@@ -31,9 +38,9 @@ classdef testIsotropicFourthOrderTensor < testShowingError
                      c3  c3  c1   0   0   0;
                       0   0   0  c2   0   0;
                       0   0   0   0  c2   0;
-                      0   0   0   0   0  c2];          
+                      0   0   0   0   0  c2];
           C = coef*C;
-          obj.cVoigtExplicit = C;          
+          obj.cVoigtExplicit = C;
         end
         
         function computeToCheckTensor(obj)
@@ -42,13 +49,5 @@ classdef testIsotropicFourthOrderTensor < testShowingError
         end
 
     end
-    
-    methods (Access = protected)
-        function computeError(obj)
-            cV = obj.cVoigt.getValue();
-            cVe = obj.cVoigtExplicit;
-            obj.error = norm(cV(:) - cVe(:));
-        end
-    end
-end
 
+end

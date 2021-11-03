@@ -1,23 +1,22 @@
-classdef ReadingFilesTests < testRunner
-    
-    
-    properties (Access = protected)
-        FieldOfStudy = 'ReadingFiles'
-        tests
+classdef ReadingFilesTests < handle & matlab.unittest.TestCase
+
+    properties (TestParameter)
+        readingTests = {'testReadingGmsh'}
     end
-    
-    methods (Access = public)
-        function obj = ReadingFilesTests()
-            obj@testRunner();
+
+    methods (Test, TestTags = {'ReadingFiles', 'Fast', 'Gmsh'})
+
+        function testDisplacement(testCase, readingTests)
+            s.computerType    = 'GMSH';
+            s.testName         = readingTests;
+            s.variablesToStore = {'connec', 'coord', 'isElemInThisSet', ...
+                                  'masterSlave', 'corners'};
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-13;
+            testCase.verifyLessThanOrEqual(err, tol)
         end
-    end
-    
-    methods (Access = protected)
-        function loadTests(obj)
-            obj.tests = {...  
-                'testReadingGmsh';                
-                };
-        end
+
     end
     
 end
