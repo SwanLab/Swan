@@ -1,12 +1,14 @@
 classdef LHSintegrator < handle
-    
-    properties (Access = private)
+
+    properties (Access = protected) %previously private
         quadrature
-        interpolation        
-        LHScells        
+        interpolation
+        LHScells
+        problemData % new
+        fileName % new
     end
     
-    properties (Access = private)
+    properties (Access = protected) %previously private
         mesh
         globalConnec
         npnod
@@ -22,7 +24,11 @@ classdef LHSintegrator < handle
         
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
-            LHS = obj.assembleMatrix(lhs);    
+            LHS = obj.assembleMatrix(lhs);
+        end
+
+        function q = getQuadrature(obj)
+            q = obj.quadrature;
         end
         
     end
@@ -33,18 +39,22 @@ classdef LHSintegrator < handle
             obj.mesh          = cParams.mesh;
             obj.globalConnec  = cParams.globalConnec;
             obj.npnod         = cParams.npnod;
+            obj.fileName      = cParams.fileName;
+            if isfield(cParams, 'problemData')
+                obj.problemData = cParams.problemData;
+            end
         end
         
        function createQuadrature(obj)
            quad = Quadrature.set(obj.mesh.type);
-           quad.computeQuadrature('LINEAR');            
+           quad.computeQuadrature('LINEAR');
            obj.quadrature = quad;
        end
 
         function createInterpolation(obj)
             int = Interpolation.create(obj.mesh,'LINEAR');
             int.computeShapeDeriv(obj.quadrature.posgp);
-            obj.interpolation = int;                        
+            obj.interpolation = int;
         end        
         
         function lhs = computeElementalLHS(obj)

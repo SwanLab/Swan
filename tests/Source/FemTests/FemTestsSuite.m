@@ -6,11 +6,10 @@ classdef FemTestsSuite < handle
             % Nota: queda corregir que els tests puguin correr fora
             % d'aquest directori
 %             suite = matlab.unittest.TestSuite.fromFile('FemTests.m');
-            suite = matlab.unittest.TestSuite.fromFile('FemTests.m', 'Tag','FEM');
+            suite = matlab.unittest.TestSuite.fromFile('FemTests.m', 'Tag','Triangle');
             results = suite.run;
             table(results)
         end
 
     end
 end
-

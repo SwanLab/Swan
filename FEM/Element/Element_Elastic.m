@@ -147,7 +147,7 @@ classdef Element_Elastic < Element
                     for jv = 1:obj.nnode*obj.dof.nunkn
                         for istre = 1:obj.nstre
                             for jstre = 1:obj.nstre
-                                v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:,igaus).*Bmat(jstre,jv,:));
+                                v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:,igaus).*Bmat(jstre,jv,:)); %
                                 Ke(iv,jv,:) = squeeze(Ke(iv,jv,:)) + v(:).*obj.geometry.dvolu(:,igaus);
                             end
                         end
@@ -161,8 +161,7 @@ classdef Element_Elastic < Element
             %  obj.DeltaC.obtainChangedElements(obj.material.C)
             %  obj.K_generator.generate(obj.material.C);
             %  K = obj.K_generator.getStiffMatrix();
-            
-            
+
             obj.StiffnessMatrix.compute(obj.material.C);
             K = obj.StiffnessMatrix.K;
         end
@@ -217,9 +216,7 @@ classdef Element_Elastic < Element
         end
         
     end
-    
-    
-    
+
     methods(Access = protected)
         function FextSuperficial = computeSuperficialFext(obj)
             FextSuperficial = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);

@@ -62,7 +62,7 @@ classdef ElasticDim < handle
             for igaus = 1:ngaus
                 Bmat(igaus,:,:,:) = obj.computeB(igaus);
             end
-        end
+      end
         
     end
     

@@ -27,28 +27,24 @@ classdef KGeneratorWithfullStoredB < handle
             obj.dim = dim; 
             obj.nunkn = dim.nunkn;
             obj.dvolum = dvolum;
-            
+
             obj.ndofGlobal = max(max(connectivities))*dim.nunkn;
-                
-            obj.nt = obj.dim.ngaus*obj.dim.nelem*obj.dim.nstre;    
+
+            obj.nt = obj.dim.ngaus*obj.dim.nelem*obj.dim.nstre;
             obj.computeBtot();  
         end
         
         function compute(obj,Cmat)
-
-                      
             obj.computeCmatBlockDiagonal(Cmat);
-            obj.computeStiffnes()            
+            obj.computeStiffnes()
         end
         
         function  computeStiffnes(obj)
-
             B = obj.Btot;
             CB = obj.CmatTot*B;
-            obj.K = B'*CB;            
+            obj.K = B'*CB;
         end
-        
-        
+
         function computeCmatBlockDiagonal(obj,Cmat)
             obj.CmatTot = sparse(obj.nt,obj.nt);
             for istre = 1:obj.dim.nstre
@@ -57,10 +53,9 @@ classdef KGeneratorWithfullStoredB < handle
                         posI = (istre)+(obj.dim.nstre)*(igaus-1) : obj.dim.ngaus*obj.dim.nstre : obj.nt ;
                         posJ = (jstre)+(obj.dim.nstre)*(igaus-1) : obj.dim.ngaus*obj.dim.nstre : obj.nt ;
                         
-                        Ct = squeeze(Cmat(istre,jstre,:,igaus)).*obj.dvolum(:,igaus);                        
+                        Ct = squeeze(Cmat(istre,jstre,:,igaus)).*obj.dvolum(:,igaus);
                         obj.CmatTot = obj.CmatTot + sparse(posI,posJ,Ct,obj.nt,obj.nt);
                     end
-                        
                 end
             end
         end
@@ -82,8 +77,7 @@ classdef KGeneratorWithfullStoredB < handle
                 obj.Btot = obj.Btot + sparse(1:obj.nt,dofs,obj.Bfull(:,idof),obj.nt,obj.ndofGlobal);
             end
         end
-        
-        
+
     end
-    
+
 end
