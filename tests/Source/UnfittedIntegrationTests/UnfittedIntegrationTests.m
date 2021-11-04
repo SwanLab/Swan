@@ -9,7 +9,10 @@ classdef UnfittedIntegrationTests < handle & matlab.unittest.TestCase
 
     methods (Test, TestTags = {'UnfittedIntegration', 'Classic', 'Perimeter', 'Circle'})
         function testPerimeterCircle(testCase, circleTests)
-            cd ../../../ % NOOOO, al segon test torna a saltar enrere
+            % Changes in directories are used to fix the current directory
+            % so that Unit Tests can pass. This should not be an issue when
+            % OldSettings disappear.
+            cd ../../../
             s.testName              = circleTests;
             s.analyticalValue       = 2*pi;
             s.meshType              = 'BOUNDARY';
@@ -26,7 +29,7 @@ classdef UnfittedIntegrationTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'UnfittedIntegration', 'Classic', 'Area', 'Circle'})
 
         function testAreaCircle(testCase, circleTests)
-            cd ../../../ % NOOOO, al segon test torna a saltar enrere
+            cd ../../../
             s.testName              = circleTests;
             s.analyticalValue       = pi;
             s.meshType              = 'INTERIOR';
@@ -43,7 +46,7 @@ classdef UnfittedIntegrationTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'UnfittedIntegration', 'Classic', 'Perimeter', 'Rectanngle'})
 
         function testRectangle(testCase, rectangleTests)
-            cd ../../../ % NOOOO, al segon test torna a saltar enrere
+            cd ../../../
             s.testName              = rectangleTests;
             s.analyticalValue       = 6;
             s.meshType              = 'BOUNDARY';
@@ -60,7 +63,7 @@ classdef UnfittedIntegrationTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'UnfittedIntegration', 'Classic', 'Surface', 'Sphere'})
 
         function testSurfaceSphere(testCase, sphereTests)
-            cd ../../../ % NOOOO, al segon test torna a saltar enrere
+            cd ../../../
             s.testName              = sphereTests;
             s.analyticalValue       = 4*pi;
             s.meshType              = 'BOUNDARY';
@@ -77,7 +80,7 @@ classdef UnfittedIntegrationTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'UnfittedIntegration', 'Classic', 'Volume', 'Sphere'})
 
         function testVolumeSphere(testCase, sphereTests)
-            cd ../../../ % NOOOO, al segon test torna a saltar enrere
+            cd ../../../
             s.testName              = sphereTests;
             s.analyticalValue       = (4/3)*pi;
             s.meshType              = 'INTERIOR';
@@ -94,11 +97,11 @@ classdef UnfittedIntegrationTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'UnfittedIntegration', 'Classic', 'Surface', 'Cylinder'})
 
         function testSurfaceCylinder(testCase, cylinderTests)
-            cd ../../../ % NOOOO, al segon test torna a saltar enrere
+            cd ../../../
             s.testName              = cylinderTests;
             s.analyticalValue       = pi*2 + 2*pi*2;
             s.meshType              = 'BOUNDARY';
-            s.meshIncludeBoxContour = true; % no hi ha diferencia amb false
+            s.meshIncludeBoxContour = true; % irrelevant
             test = UnfittedIntegrationTest(s);
             err = test.computeError();
             tol = 6e-2;
@@ -111,11 +114,11 @@ classdef UnfittedIntegrationTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'UnfittedIntegration', 'Nou', 'Volume', 'Cylinder'})
 
         function testVolumeCylinder(testCase, cylinderTests)
-            cd ../../../ % NOOOO, al segon test torna a saltar enrere
+            cd ../../../
             s.testName              = cylinderTests;
             s.analyticalValue       = pi*2;
             s.meshType              = 'INTERIOR';
-            s.meshIncludeBoxContour = false; % no hi ha diferencia amb true
+            s.meshIncludeBoxContour = false; % irrelevant
             test = UnfittedIntegrationTest(s);
             err = test.computeError();
             tol = 6e-2;

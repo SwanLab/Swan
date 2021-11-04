@@ -53,7 +53,7 @@ classdef VectorizedTriangulationTests < handle & matlab.unittest.TestCase
             s.connec   = [2 1 3 4];
             s.levelSet = [-3.9507; 15.2486; -10.0641; 5.1921];
             s.boundaryConnec = [2 4 1;2 4 3;2 1 3;4 1 3];
-            s.connecBcutMesh = [5 6 7]; % afegit meu
+            s.connecBcutMesh = [5 6 7]; % Irrelevant but needed
             test = VectorizedTriangulationTest(s);
             err = test.computeError();
             tol = 1e-14;
@@ -83,7 +83,7 @@ classdef VectorizedTriangulationTests < handle & matlab.unittest.TestCase
                         2 3 4 5];
             s.boundaryConnec = [1 2 3;1 2 4;1 3 4;5 2 3;5 2 4;5 3 4];
             s.levelSet =  [7.8496; 5.7731; -8.3404; -8.3622; 10.3622];
-            s.connecBcutMesh = [5 6 7]; % collita propia
+            s.connecBcutMesh = [5 6 7]; % Irrelevant but needed
             test = VectorizedTriangulationTest(s);
             err = test.computeError();
             tol = 1e-14;
@@ -96,7 +96,7 @@ classdef VectorizedTriangulationTests < handle & matlab.unittest.TestCase
                         2 3 4 5];
             s.boundaryConnec = [1 2 3; 1 2 4; 1 3 4; 5 2 3; 5 2 4; 5 3 4];
             s.levelSet = [-7.8496; 5.7731; -8.3404; -8.3622; -10.3622];
-            s.connecBcutMesh = [5 6 7]; % collita propia
+            s.connecBcutMesh = [5 6 7]; % Irrelevant but needed
             test = VectorizedTriangulationTest(s);
             err = test.computeError();
             tol = 1e-14;
@@ -108,7 +108,7 @@ classdef VectorizedTriangulationTests < handle & matlab.unittest.TestCase
             s.connec = [1 2 3 4;
                         2 3 4 5];
             s.boundaryConnec = [1 2 3;1 2 4;1 3 4;5 2 3;5 2 4;5 3 4];
-            s.connecBcutMesh = [6 5 7]; % afegit meu
+            s.connecBcutMesh = [6 5 7]; % Irrelevant but needed
             s.levelSet = [-7.8496; 5.7731; -8.3404; -8.3622; 10.3622];
             test = VectorizedTriangulationTest(s);
             err = test.computeError();
@@ -123,10 +123,10 @@ classdef VectorizedTriangulationTests < handle & matlab.unittest.TestCase
             s.boundaryConnec = boundary(s.coord);
             ls = 10 * rand(size(s.coord,1),1);
             number = randperm(size(s.coord,1),1);
-            position = randperm(size(s.coord,1),number);      
+            position = randperm(size(s.coord,1),number);
             ls(position) = -ls(position);
             s.levelSet = ls;
-            s.connecBcutMesh = [6 5 7]; % afegit meu
+            s.connecBcutMesh = [6 5 7]; % Irrelevant but needed
             test = VectorizedTriangulationTest(s);
             err = test.computeError();
             tol = 1e-14;

@@ -3,9 +3,8 @@ classdef ReadingFilesTestsSuite < handle
     methods
 
         function obj = ReadingFilesTestsSuite()
-            % Nota: queda corregir que els tests puguin correr fora
-            % d'aquest directori
-            suite = matlab.unittest.TestSuite.fromFile('ReadingFilesTests.m', 'Tag','ReadingFiles');
+            path = './tests/Source/ReadingFilesTests/ReadingFilesTests.m';
+            suite = matlab.unittest.TestSuite.fromFile(path, 'Tag','ReadingFiles');
             results = suite.run;
             table(results)
         end

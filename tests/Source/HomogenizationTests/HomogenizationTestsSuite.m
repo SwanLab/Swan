@@ -3,10 +3,8 @@ classdef HomogenizationTestsSuite < handle
     methods
 
         function obj = HomogenizationTestsSuite()
-            % Nota: queda corregir que els tests puguin correr fora
-            % d'aquest directori
-            cami = './tests/Source/HomogenizationTests/HomogenizationTests.m'; % des de /swan/
-            suite = matlab.unittest.TestSuite.fromFile(cami, 'Tag','HomogenizationTests');
+            path = './tests/Source/HomogenizationTests/HomogenizationTests.m';
+            suite = matlab.unittest.TestSuite.fromFile(path, 'Tag','HomogenizationTests');
             results = suite.run;
             table(results)
         end
