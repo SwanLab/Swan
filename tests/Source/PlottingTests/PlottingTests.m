@@ -59,7 +59,7 @@ classdef PlottingTests < handle & matlab.unittest.TestCase
             s.meshType              = 'BOUNDARY';
             s.meshIncludeBoxContour = true;
             test = TestPlotting(s);
-            passed = true; % hmmm, pero aixi es com era originalment
+            passed = true;
             verifyTrue(testCase, passed)
             cd ./tests/Source/PlottingTests/
         end
@@ -70,7 +70,7 @@ classdef PlottingTests < handle & matlab.unittest.TestCase
 
         function testCylinder(testCase)
             test = TestPlotLargeCylinderTethaedra();
-            passed = true; % hmmm, pero aixi es com era originalment
+            passed = true;
             verifyTrue(testCase, passed)
         end
 

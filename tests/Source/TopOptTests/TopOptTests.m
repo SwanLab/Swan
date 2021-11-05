@@ -1,7 +1,7 @@
 classdef TopOptTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
-        compTestsNO = {'test_M1M2', 'test_StressM1M2'} % ja no funcionaven
+        compTestsDehomog = {'test_M1M2', 'test_StressM1M2'} % Dehomog
         compTests = {'test_bridge', 'test_bridge2', ...
             'test_cantilever', 'test_cantilever2', 'test_cantilever3', ...
             'test_micro', 'test_micro2', ...
@@ -85,4 +85,3 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
     end
 
 end
-
