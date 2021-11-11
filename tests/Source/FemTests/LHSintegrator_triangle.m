@@ -10,7 +10,6 @@ classdef LHSintegrator_triangle < LHSintegrator
     end
 
     properties (Access = public)
-        bcApplier
         Kred
         dof
     end
@@ -22,84 +21,38 @@ classdef LHSintegrator_triangle < LHSintegrator
     end
    methods (Access = protected)
         
-        function lhs = computeElementalLHS(obj)
-            dShape2 = obj.interpolation.deriv;
-            dShape = obj.computeGradient();
-            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
-            ngaus  = obj.quadrature.ngaus;
-            nelem  = obj.mesh.nelem;
-            nnode  = obj.mesh.nnode;
-            lhs = zeros(nnode,nnode,nelem);
-            for igaus = 1:ngaus
-                dv(1,1,:) = dvolu(igaus,:);
-                for iNode = 1:nnode
-                   for jNode = 1:nnode 
-                      dNi = dShape(:,iNode,:,igaus);
-                      dNj = dShape(:,jNode,:,igaus);
-                      dNidNj = sum(dNi.*dNj,1);
-                      lhs(iNode,jNode,:) = lhs(iNode,jNode,:) + dNidNj.*dv;
-                   end
-                end
-            end
-        end
-        
    end
     
    methods (Access = private)
 
-       function grad = computeGradient(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
-            m.type = obj.mesh.type;
-            int = Interpolation.create(m,'LINEAR');
-            int.computeShapeDeriv(obj.quadrature.posgp);
-            s.mesh = obj.mesh;
-            g = Geometry.create(s);
-            g.computeGeometry(obj.quadrature,int);
-            grad = g.cartd;
-       end
-
        function initcopiat(obj)
            obj.geometria();
-            Bmat = obj.computeBmat();
-            ngaus   = obj.quadrature.ngaus;
-            dimen   = obj.computeDim(ngaus);
-            obj.dim = dimen;
-            connect = obj.mesh.connec;
-            dvolum = obj.geometry.dvolu;
-            obj.K_generator = StiffnessMatrixGenerator(connect,Bmat,dvolum,dimen);
-            obj.Bmatrix = obj.computeB_InMatrixForm();
-            obj.StiffnessMatrix = KGeneratorWithfullStoredB(dimen,connect,obj.Bmatrix,dvolum);
-            dEps = obj.computedEps();
-            K = obj.computeStiffnessMatrixSYM();
-            bca = obj.createBCApplier();
-            obj.bcApplier = bca;
-            obj.Kred = bca.fullToReducedMatrix(K);
+           Bmat = obj.computeBmat();
+           ngaus   = obj.quadrature.ngaus;
+           dimen   = obj.computeDim(ngaus);
+           obj.dim = dimen;
+           connect = obj.mesh.connec;
+           dvolum = obj.geometry.dvolu;
+           obj.K_generator = StiffnessMatrixGenerator(connect,Bmat,dvolum,dimen);
+           obj.Bmatrix = obj.computeB_InMatrixForm();
+           obj.StiffnessMatrix = KGeneratorWithfullStoredB(dimen,connect,obj.Bmatrix,dvolum);
+           dEps = obj.computedEps();
+           K = obj.computeStiffnessMatrixSYM();
+           obj.Kred = obj.bcApplier.fullToReducedMatrix(K);
        end
 
-        function bcApplier = createBCApplier(obj)
-            nfields = 1;
-            interp{1} = obj.interpolation; % legacy, apparently
-            obj.dof = DOF_Elastic(obj.fileName,obj.mesh,obj.problemData.pdim,nfields,interp);
-            cParams.nfields = nfields; % hmmmm, apparently it is so
-            cParams.dof = obj.dof;
-            cParams.scale = obj.problemData.scale;
-            cParams.type = 'Dirichlet'; % defined in Element
-            bcApplier = BoundaryConditionsApplier.create(cParams);
-        end
-
         % copiat de Element_Elastic
-        function dim = computeDim(obj,ngaus)
-            dim                = DimensionVariables();
-            dim.nnode          = obj.mesh.nnode;
-            dim.nunkn          = 2;
-            dim.nstre          = 3;
-            dim.ndof           = obj.npnod*dim.nunkn;
-            dim.nelem          = obj.mesh.nelem;
-            dim.ndofPerElement = dim.nnode*dim.nunkn;
-            dim.ngaus          = ngaus;
-            dim.nentries       = dim.nelem*(dim.ndofPerElement)^2;
-        end
+       function dim = computeDim(obj,ngaus)
+           dim                = DimensionVariables();
+           dim.nnode          = obj.mesh.nnode;
+           dim.nunkn          = 2;
+           dim.nstre          = 3;
+           dim.ndof           = obj.npnod*dim.nunkn;
+           dim.nelem          = obj.mesh.nelem;
+           dim.ndofPerElement = dim.nnode*dim.nunkn;
+           dim.ngaus          = ngaus;
+           dim.nentries       = dim.nelem*(dim.ndofPerElement)^2;
+       end
        %copiat de ElasticDim
       function Bmat = computeBmat(obj)
             ngaus = obj.quadrature.ngaus;

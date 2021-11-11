@@ -1,16 +1,12 @@
 classdef Integrator < handle
 
-    properties (Access = public)
-        bcApplier % new
-        dof % new
-    end
-
     properties (GetAccess = protected, SetAccess = protected)
        npnod 
        globalConnec
        mesh
        problemData % new
        fileName % new
+       bcApplier % new
     end
     
     methods (Static, Access = public)
@@ -28,6 +24,7 @@ classdef Integrator < handle
             obj.npnod = cParams.npnod;
             obj.fileName    = cParams.fileName;
             obj.problemData = cParams.problemData;
+            obj.bcApplier   = cParams.bcApplier;
         end
         
         function quadrature = computeQuadrature(obj,quadOrder)
@@ -72,4 +69,3 @@ classdef Integrator < handle
     end
 
 end
-

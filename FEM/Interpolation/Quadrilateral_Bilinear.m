@@ -22,15 +22,15 @@ classdef Quadrilateral_Bilinear < Interpolation
             obj.ndime = 2;
             obj.nnode = 4;
             obj.pos_nodes = [-1 -1; 1 -1; 1 1; -1 1];
-            obj.isoDv = 4;                        
+            obj.isoDv = 4;
         end
         
         function computeShapes(obj,posgp)
             ngaus = size(posgp,2);
-            nelem = size(posgp,3);            
+            nelem = size(posgp,3);
             s = posgp(1,:,:);
             t = posgp(2,:,:);
-            I = ones(size(t));          
+            I = ones(size(t));
             obj.shape = zeros(obj.nnode,ngaus,nelem);
             obj.shape(1,:,:) = 0.25*(I-t-s+s.*t);
             obj.shape(2,:,:) = 0.25*(I-t+s-s.*t);
@@ -52,7 +52,7 @@ classdef Quadrilateral_Bilinear < Interpolation
             obj.deriv(2,1,:,:) = 0.25*(-I+s);
             obj.deriv(2,2,:,:) = 0.25*(-I-s);
             obj.deriv(2,3,:,:) = 0.25*(+I+s);
-            obj.deriv(2,4,:,:) = 0.25*(+I-s);            
+            obj.deriv(2,4,:,:) = 0.25*(+I-s);
         end
         
         function computeCases(obj)
@@ -147,8 +147,5 @@ classdef Quadrilateral_Bilinear < Interpolation
         end
         
     end
-    
-    
-    
-end
 
+end

@@ -16,11 +16,10 @@ classdef Integrator_Simple < Integrator
             s.npnod        = obj.npnod;
             s.problemData  = obj.problemData;
             s.fileName     = obj.fileName;
+            s.bcApplier    = obj.bcApplier;
             lhs = LHSintegrator_triangle(s);
             lhs.copiat();
             obj.Kred = lhs.Kred;
-            obj.bcApplier = lhs.bcApplier;
-            obj.dof = lhs.dof;
             LHS = lhs.compute();
             obj.lhsint = lhs;
         end

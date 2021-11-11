@@ -6,6 +6,7 @@ classdef LHSintegrator < handle
         LHScells
         problemData % new
         fileName % new
+        bcApplier % new
     end
     
     properties (Access = protected) %previously private
@@ -40,9 +41,8 @@ classdef LHSintegrator < handle
             obj.globalConnec  = cParams.globalConnec;
             obj.npnod         = cParams.npnod;
             obj.fileName      = cParams.fileName;
-            if isfield(cParams, 'problemData')
-                obj.problemData = cParams.problemData;
-            end
+            obj.bcApplier     = cParams.bcApplier;
+            obj.problemData   = cParams.problemData;
         end
         
        function createQuadrature(obj)
@@ -55,7 +55,7 @@ classdef LHSintegrator < handle
             int = Interpolation.create(obj.mesh,'LINEAR');
             int.computeShapeDeriv(obj.quadrature.posgp);
             obj.interpolation = int;
-        end        
+        end
         
         function lhs = computeElementalLHS(obj)
             shapes = obj.interpolation.shape;
