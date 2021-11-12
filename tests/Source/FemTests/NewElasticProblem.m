@@ -18,6 +18,7 @@ classdef NewElasticProblem < NewFEM
 
         % Poda 1
         quadrature
+        dim
     end
 
     %% Public methods definition ==========================================
@@ -30,14 +31,14 @@ classdef NewElasticProblem < NewFEM
 
         function computeVariables(obj)
             lhs = obj.integrator.computeLHS(); % lhs need to be adapted
-            Kred = obj.integrator.Kred;
-            fNodal = obj.computeExternalForces();
+            Kred = obj.reduceStiffnessMatrix();
+            forces = obj.computeExternalForces();
 %             R = obj.compute_imposed_displacement_force(obj.K);
 %             obj.fext = Fext + R;
-            fext_red = obj.bcApplier.fullToReducedVector(fNodal);
+            Fred = obj.reduceForcesMatrix(forces);
 %             obj.rhs = obj.integrator.integrate(fNodal);
-            u = obj.solver.solve(Kred,fext_red);
-            obj.variables = obj.computeVars(u);
+            u = obj.solver.solve(Kred,Fred);
+            obj.variables = obj.processVars(u);
         end
 
     end
@@ -47,10 +48,68 @@ classdef NewElasticProblem < NewFEM
         function preProcess(obj)
             obj.readProblemData(obj.fileName); % creem Mesh
             obj.createQuadrature();
+            obj.createMaterial();
             obj.createInterpolation();
             obj.createBCApplier();
+            obj.computeDimensions();
             obj.createIntegrators();
             obj.createSolver();
+        end
+
+        function Fred = reduceForcesMatrix(obj, forces)
+            Fred = obj.bcApplier.fullToReducedVector(forces);
+        end
+
+        function Kred = reduceStiffnessMatrix(obj)
+            K = obj.computeStiffnessMatrixSYM();
+            Kred = obj.bcApplier.fullToReducedMatrix(K);
+        end
+
+        function K = computeStiffnessMatrixSYM(obj)
+            obj.computeC();
+            obj.integrator.StiffnessMatrix.compute(obj.material.C);
+            K = obj.integrator.StiffnessMatrix.K;
+        end
+
+        % Element_Elastic
+        function dim = computeDimensions(obj)
+            dim                = DimensionVariables();
+            dim.nnode          = obj.mesh.nnode;
+            dim.nunkn          = 2;
+            dim.nstre          = 3;
+            dim.ndof           = obj.mesh.npnod*dim.nunkn;
+            dim.nelem          = obj.mesh.nelem;
+            dim.ndofPerElement = dim.nnode*dim.nunkn;
+            dim.ngaus          = obj.quadrature.ngaus;
+            dim.nentries       = dim.nelem*(dim.ndofPerElement)^2;
+            obj.dim = dim;
+        end
+
+        % IsotropicElasticMaterial
+        function computeC(obj)
+            I = ones(obj.mesh.nelem,obj.quadrature.ngaus);
+            kappa = .9107*I;
+            mu    = .3446*I;
+            nElem = size(mu,1);
+            nGaus = size(mu,2);
+            m = mu;
+            l = kappa - mu;
+            C = zeros(obj.dim.nstre,obj.dim.nstre,nElem,nGaus);
+            C(1,1,:,:)= 2*m+l;
+            C(1,2,:,:)= l;
+            C(2,1,:,:)= l;
+            C(2,2,:,:)= 2*m+l;
+            C(3,3,:,:)= m;
+            obj.material.C = C;
+        end
+
+        function createMaterial(obj)
+            s.ptype = obj.problemData.ptype;
+            s.pdim  = obj.problemData.pdim;
+            s.nelem = obj.mesh.nelem;
+            s.geometry = obj.geometry;
+            s.mesh  = obj.mesh;
+            obj.material = Material.create(s);
         end
 
         function createIntegrators(obj)
@@ -89,7 +148,7 @@ classdef NewElasticProblem < NewFEM
             obj.solver = Solver.create;
         end
 
-        function variables = computeVars(obj, uL)
+        function variables = processVars(obj, uL)
             variables.d_u = obj.computeDisplacements(uL);
         end
 

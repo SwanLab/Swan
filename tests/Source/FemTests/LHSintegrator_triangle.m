@@ -3,7 +3,6 @@ classdef LHSintegrator_triangle < LHSintegrator
     properties(Access = private)
         K_generator
         Bmatrix
-        StiffnessMatrix
         geometry
         dim
         material
@@ -12,36 +11,27 @@ classdef LHSintegrator_triangle < LHSintegrator
     properties (Access = public)
         Kred
         dof
+        StiffnessMatrix
     end
 
     methods (Access = public)
-        function copiat(obj)
-            obj.initcopiat();
-        end
-    end
-   methods (Access = protected)
-        
-   end
-    
-   methods (Access = private)
 
-       function initcopiat(obj)
-           obj.geometria();
+        function computeTriangleLHS(obj)
+           obj.createGeometry();
            Bmat = obj.computeBmat();
            ngaus   = obj.quadrature.ngaus;
-           dimen   = obj.computeDim(ngaus);
-           obj.dim = dimen;
+           obj.dim   = obj.computeDim(ngaus);
            connect = obj.mesh.connec;
            dvolum = obj.geometry.dvolu;
-           obj.K_generator = StiffnessMatrixGenerator(connect,Bmat,dvolum,dimen);
+           obj.K_generator = StiffnessMatrixGenerator(connect,Bmat,dvolum,obj.dim);
            obj.Bmatrix = obj.computeB_InMatrixForm();
-           obj.StiffnessMatrix = KGeneratorWithfullStoredB(dimen,connect,obj.Bmatrix,dvolum);
-           dEps = obj.computedEps();
-           K = obj.computeStiffnessMatrixSYM();
-           obj.Kred = obj.bcApplier.fullToReducedMatrix(K);
-       end
+           obj.StiffnessMatrix = KGeneratorWithfullStoredB(obj.dim,connect,obj.Bmatrix,dvolum);
+        end
+    end
 
-        % copiat de Element_Elastic
+   methods (Access = private)
+
+       % Element_Elastic
        function dim = computeDim(obj,ngaus)
            dim                = DimensionVariables();
            dim.nnode          = obj.mesh.nnode;
@@ -53,8 +43,9 @@ classdef LHSintegrator_triangle < LHSintegrator
            dim.ngaus          = ngaus;
            dim.nentries       = dim.nelem*(dim.ndofPerElement)^2;
        end
-       %copiat de ElasticDim
-      function Bmat = computeBmat(obj)
+       
+       % ElasticDim
+       function Bmat = computeBmat(obj)
             ngaus = obj.quadrature.ngaus;
             nnode = obj.interpolation.nnode;
             nunkn = 2; %hardcoded
@@ -64,23 +55,9 @@ classdef LHSintegrator_triangle < LHSintegrator
             for igaus = 1:ngaus
                 Bmat(igaus,:,:,:) = obj.computeB(igaus);
             end
-      end
-
-       %copiat de ElasticDim
-       function dEps = computedEps(obj)
-            dvolum = obj.geometry.dvolu';
-            nv     = obj.dim.nnode*2;
-            dEps = zeros(nv,obj.quadrature.ngaus,obj.dim.nstre,obj.dim.nelem);
-            for igaus = 1:obj.quadrature.ngaus
-               B  = obj.computeB(igaus); 
-               Bm = permute(B,[2 1 3]);
-               dvG(1,1,:) = squeeze(dvolum(igaus,:));
-               dvGm = repmat(dvG,nv,obj.dim.nstre,1); % 3 hardcoded
-               dEps(:,igaus,:,:) = Bm.*dvGm;
-            end
        end
       
-       function geometria(obj)
+       function createGeometry(obj)
             s.mesh = obj.mesh;
             obj.geometry = Geometry.create(s);
             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation);
@@ -99,7 +76,8 @@ classdef LHSintegrator_triangle < LHSintegrator
                 B(3,j+1,:)= obj.geometry.cartd(1,i,:,igaus);
             end
         end
-       %copiat de Element_Elastic
+
+        % Element_Elastic
         function createPrincipalDirection(obj, pdim)
             s.eigenValueComputer.type = 'PRECOMPUTED';
             s.type = pdim;
@@ -113,38 +91,6 @@ classdef LHSintegrator_triangle < LHSintegrator
             str = obj.principalDirectionComputer.principalStress;
         end
 
-        function fesMaterial(obj)
-            s.ptype = obj.problemData.ptype;
-            s.pdim  = obj.problemData.pdim;
-            s.nelem = obj.mesh.nelem;
-            s.geometry = obj.geometry;
-            s.mesh  = obj.mesh;            
-            obj.material = Material.create(s);
-        end
-
-        function K = computeStiffnessMatrixSYM(obj)
-            obj.fesMaterial();
-            obj.computeC();
-            obj.StiffnessMatrix.compute(obj.material.C);
-            K = obj.StiffnessMatrix.K;
-        end
-
-        function computeC(obj) %IsotropicElasticMaterial
-            I = ones(obj.mesh.nelem,obj.quadrature.ngaus);
-            kappa = .9107*I;
-            mu    = .3446*I;
-            nElem = size(mu,1);
-            nGaus = size(mu,2);
-            m = mu;
-            l = kappa - mu;
-            C = zeros(obj.dim.nstre,obj.dim.nstre,nElem,nGaus);             
-            C(1,1,:,:)= 2*m+l;
-            C(1,2,:,:)= l;
-            C(2,1,:,:)= l;
-            C(2,2,:,:)= 2*m+l;
-            C(3,3,:,:)= m;
-            obj.material.C = C;
-        end
         function Bmatrix = computeB_InMatrixForm(obj)
             ndofPerElement = obj.dim.ndofPerElement;
             Bfull = zeros(obj.quadrature.ngaus,obj.dim.nstre,ndofPerElement,obj.dim.nelem);

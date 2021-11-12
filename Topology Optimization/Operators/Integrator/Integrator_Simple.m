@@ -2,6 +2,7 @@ classdef Integrator_Simple < Integrator
     properties
         lhsint
         Kred
+        StiffnessMatrix
     end
     methods (Access = public)
         
@@ -18,8 +19,8 @@ classdef Integrator_Simple < Integrator
             s.fileName     = obj.fileName;
             s.bcApplier    = obj.bcApplier;
             lhs = LHSintegrator_triangle(s);
-            lhs.copiat();
-            obj.Kred = lhs.Kred;
+            lhs.computeTriangleLHS();
+            obj.StiffnessMatrix = lhs.StiffnessMatrix;
             LHS = lhs.compute();
             obj.lhsint = lhs;
         end
