@@ -13,6 +13,7 @@ classdef LHSintegrator < handle
         mesh
         globalConnec
         npnod
+        dim
     end
     
     methods (Access = public)
@@ -43,6 +44,7 @@ classdef LHSintegrator < handle
             obj.fileName      = cParams.fileName;
             obj.bcApplier     = cParams.bcApplier;
             obj.problemData   = cParams.problemData;
+            obj.dim           = cParams.dim;
         end
         
        function createQuadrature(obj)

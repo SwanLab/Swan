@@ -18,6 +18,7 @@ classdef Integrator_Simple < Integrator
             s.problemData  = obj.problemData;
             s.fileName     = obj.fileName;
             s.bcApplier    = obj.bcApplier;
+            s.dim          = obj.dim;
             lhs = LHSintegrator_triangle(s);
             lhs.computeTriangleLHS();
             obj.StiffnessMatrix = lhs.StiffnessMatrix;

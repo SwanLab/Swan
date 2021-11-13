@@ -1,17 +1,8 @@
 classdef NewElasticProblem < NewFEM
-    %Elastic_Problem Summary of this class goes here
-    % Detailed explanation goes here
-    
-    %% Public GetAccess properties definition =============================
-    properties (GetAccess = public, SetAccess = public)
-        meshNova
-        lhs
-        integrator
-    end
 
     properties (Access = private)
+        integrator
         material
-        fileName
         nFields
         interp
         bcApplier
@@ -21,16 +12,22 @@ classdef NewElasticProblem < NewFEM
         dim
     end
 
-    %% Public methods definition ==========================================
     methods (Access = public)
-        function obj = NewElasticProblem(fileName)
-            obj.fileName = fileName;
-            obj.nFields = 1;
-            obj.preProcess();
+
+        function obj = NewElasticProblem(cParams)
+            obj.init(cParams);
+            obj.readProblemData();
+            obj.createQuadrature();
+            obj.computeDimensions();
+            obj.createMaterial();
+            obj.createInterpolation();
+            obj.createBCApplier();
+            obj.createIntegrators();
+            obj.createSolver();
         end
 
         function computeVariables(obj)
-            lhs = obj.integrator.computeLHS(); % lhs need to be adapted
+            obj.integrator.computeLHS(); % lhs need to be adapted
             Kred = obj.reduceStiffnessMatrix();
             forces = obj.computeExternalForces();
 %             R = obj.compute_imposed_displacement_force(obj.K);
@@ -44,16 +41,10 @@ classdef NewElasticProblem < NewFEM
     end
     
     methods (Access = private)
-
-        function preProcess(obj)
-            obj.readProblemData(obj.fileName); % creem Mesh
-            obj.createQuadrature();
-            obj.createMaterial();
-            obj.createInterpolation();
-            obj.createBCApplier();
-            obj.computeDimensions();
-            obj.createIntegrators();
-            obj.createSolver();
+        
+        function init(obj, cParams)
+            obj.fileName = cParams.fileName;
+            obj.nFields = 1;
         end
 
         function Fred = reduceForcesMatrix(obj, forces)
@@ -75,13 +66,14 @@ classdef NewElasticProblem < NewFEM
         function dim = computeDimensions(obj)
             dim                = DimensionVariables();
             dim.nnode          = obj.mesh.nnode;
-            dim.nunkn          = 2;
-            dim.nstre          = 3;
+            dim.nunkn          = obj.createNUnkn();
+            dim.nstre          = obj.createNstre();
             dim.ndof           = obj.mesh.npnod*dim.nunkn;
             dim.nelem          = obj.mesh.nelem;
             dim.ndofPerElement = dim.nnode*dim.nunkn;
             dim.ngaus          = obj.quadrature.ngaus;
             dim.nentries       = dim.nelem*(dim.ndofPerElement)^2;
+            dim.ndim           = obj.createNdim();
             obj.dim = dim;
         end
 
@@ -120,6 +112,7 @@ classdef NewElasticProblem < NewFEM
             s.globalConnec = obj.mesh.connec;
             s.problemData  = obj.problemData;
             s.bcApplier    = obj.bcApplier;
+            s.dim          = obj.dim;
             obj.integrator = Integrator.create(s);
         end
 
@@ -166,32 +159,38 @@ classdef NewElasticProblem < NewFEM
         end
 
         function FextSuperficial = computeSuperficialFext(obj)
-            nnode = 3;
-            nunkn = 2;
-            nelem = 16;
+            d = obj.dim;
+            nnode = d.nnode;
+            nunkn = d.nunkn;
+            nelem = obj.mesh.nelem;
             FextSuperficial = zeros(nnode*nunkn,1,nelem);
         end
         
         function FextVolumetric = computeVolumetricFext(obj)
-            nnode = 3;
-            nunkn = 2;
-            nelem = 16;
+            d = obj.dim;
+            nnode = d.nnode;
+            nunkn = d.nunkn;
+            nelem = obj.mesh.nelem;
             FextVolumetric = zeros(nnode*nunkn,1,nelem);
         end
 
         function b = AssembleVector(obj,b_elem_cell)
             nfields = 1;
-            for ifield = 1:nfields
-                b_elem = b_elem_cell{ifield,1};
-                b = zeros(obj.dof.ndof(ifield),1);
-                for i = 1:obj.interp{ifield}.nnode*obj.dof.nunkn(ifield)
-                    for igaus = 1:size(b_elem,2)
-                    c = squeeze(b_elem(i,igaus,:));
-                    idof_elem = obj.dof.in_elem{ifield}(i,:);
-                    b = b + sparse(idof_elem,1,c',obj.dof.ndof(ifield),1);
+            for iField = 1:nfields
+                bElem = b_elem_cell{iField,1};
+                b = zeros(obj.dof.ndof(iField),1);
+                nUnkn = obj.dof.nunkn(iField);
+                nNode = obj.interp{iField}.nnode;
+                nDof = nNode*nUnkn;
+                nGaus = size(bElem,2);
+                for iDof = 1:nDof
+                    for igaus = 1:nGaus
+                        c = squeeze(bElem(iDof,igaus,:));
+                        idof_elem = obj.dof.in_elem{iField}(iDof,:);
+                        b = b + sparse(idof_elem,1,c',obj.dof.ndof(iField),1);
                     end
                 end
-                b_global{ifield,1} = b;
+                b_global{iField,1} = b;
             end
             b=cell2mat(b_global);
         end
@@ -203,6 +202,37 @@ classdef NewElasticProblem < NewFEM
                 FextPoint(obj.dof.neumann) = obj.dof.neumann_values;
             end
         end
+
+        function nUnkn = createNUnkn(obj)
+            pdim = obj.problemData.pdim;
+            switch pdim
+                case '2D'
+                    nUnkn = 2;
+                case '3D'
+                    nUnkn = 3;
+            end
+        end
+
+        function ndim = createNdim(obj)
+            pdim = obj.problemData.pdim;
+            switch pdim
+                case '2D'
+                    ndim = 2;
+                case '3D'
+                    ndim = 3;
+            end
+        end
+
+        function nstre = createNstre(obj)
+            pdim = obj.problemData.pdim;
+            switch pdim
+                case '2D'
+                    nstre = 3;
+                case '3D'
+                    nstre = 6;
+            end
+        end
+
     end
 
 end

@@ -14,6 +14,11 @@ classdef NewFEM < handle
         solver
         iter = 0;   
         inputReader
+        fileName
+    end
+
+    properties (Access = private)
+        femData
     end
     
     methods (Access = public)
@@ -32,7 +37,8 @@ classdef NewFEM < handle
                 case 'ELASTIC'
                     switch s.scale
                         case 'MACRO'
-                            obj = NewElasticProblem(fileName);
+                            s.fileName = fileName;
+                            obj = NewElasticProblem(s);
                         case 'MICRO'
                             obj = Elastic_Problem_Micro(fileName);
                     end
@@ -130,18 +136,10 @@ classdef NewFEM < handle
     
     methods (Access = protected)
         
-        function readProblemData(obj,fileName)
-            femReader = FemInputReader_GiD();
-            s = femReader.read(fileName);
-
-            obj.problemData.fileName = fileName;
-            obj.problemData.scale = s.scale;
-            obj.problemData.pdim  = s.pdim;
-            obj.problemData.ptype = s.ptype;
-            obj.problemData.nelem = s.mesh.nelem;
-            obj.problemData.bc.dirichlet = s.dirichlet;
-            obj.problemData.bc.pointload = s.pointload;
-            obj.mesh = s.mesh;
+        function readProblemData(obj)
+            obj.createFemData()
+            obj.createProblemData();
+            obj.mesh = obj.femData.mesh;
         end
         
         function createMesh(obj)
@@ -159,6 +157,24 @@ classdef NewFEM < handle
             dI.outName = fileName;
             ps = PostProcessDataBaseCreator(dI);
             d = ps.getValue();
+        end
+
+        function createFemData(obj)
+            fName = obj.fileName;
+            femReader = FemInputReader_GiD();
+            obj.femData = femReader.read(fName);
+        end
+
+        function createProblemData(obj)
+            s = obj.femData;
+            pd.fileName     = obj.fileName;
+            pd.scale        = s.scale;
+            pd.pdim         = s.pdim;
+            pd.ptype        = s.ptype;
+            pd.nelem        = s.mesh.nelem;
+            pd.bc.dirichlet = s.dirichlet;
+            pd.bc.pointload = s.pointload;
+            obj.problemData = pd;
         end
 
     end

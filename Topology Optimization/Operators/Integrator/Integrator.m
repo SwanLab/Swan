@@ -7,6 +7,7 @@ classdef Integrator < handle
        problemData % new
        fileName % new
        bcApplier % new
+       dim % new
     end
     
     methods (Static, Access = public)
@@ -25,6 +26,7 @@ classdef Integrator < handle
             obj.fileName    = cParams.fileName;
             obj.problemData = cParams.problemData;
             obj.bcApplier   = cParams.bcApplier;
+            obj.dim         = cParams.dim;
         end
         
         function quadrature = computeQuadrature(obj,quadOrder)
