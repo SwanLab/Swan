@@ -37,12 +37,11 @@ classdef HomogenizationTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'HomogenizationTests', 'ShowingError'})
 
         function testsError(testCase, errorTests)
-            cd ../../../
+            testCase.fixFolder();
             test = eval(errorTests);
             err = test.computeError();
             tol = test.tol;
             testCase.verifyLessThanOrEqual(err, tol)
-            cd ./tests/Source/HomogenizationTests/
         end
 
     end
@@ -50,13 +49,21 @@ classdef HomogenizationTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'HomogenizationTests', 'NotShowingError'})
 
         function testsPassed(testCase, passedTests)
-            cd ../../../
+            testCase.fixFolder();
             test = eval(passedTests);
             passed = test.hasPassed();
             verifyTrue(testCase, passed)
-            cd ./tests/Source/HomogenizationTests/
         end
 
+    end
+
+    methods (Access = private)
+        
+        function fixFolder(testCase)
+            import matlab.unittest.fixtures.CurrentFolderFixture
+            changeToFolder = '../../';
+            testCase.applyFixture(CurrentFolderFixture(changeToFolder));
+        end
     end
 
 end
