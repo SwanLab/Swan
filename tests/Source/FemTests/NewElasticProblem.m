@@ -25,7 +25,7 @@ classdef NewElasticProblem < NewFEM
             obj.createIntegrators();
             obj.createSolver();
         end
-
+        
         function computeVariables(obj)
             obj.integrator.computeLHS(); % lhs need to be adapted
             Kred = obj.reduceStiffnessMatrix();
@@ -37,7 +37,7 @@ classdef NewElasticProblem < NewFEM
             u = obj.solver.solve(Kred,Fred);
             obj.variables = obj.processVars(u);
         end
-
+        
     end
     
     methods (Access = private)
@@ -79,6 +79,16 @@ classdef NewElasticProblem < NewFEM
 
         % IsotropicElasticMaterial
         function computeC(obj)
+            pdim = obj.problemData.pdim;
+            switch pdim
+                case '2D'
+                    obj.computeC2D();
+                case '3D'
+                    obj.computeC3D();
+            end
+        end
+        
+        function computeC2D(obj)
             I = ones(obj.mesh.nelem,obj.quadrature.ngaus);
             kappa = .9107*I;
             mu    = .3446*I;
@@ -92,6 +102,30 @@ classdef NewElasticProblem < NewFEM
             C(2,1,:,:)= l;
             C(2,2,:,:)= 2*m+l;
             C(3,3,:,:)= m;
+            obj.material.C = C;
+        end
+        
+        function computeC3D(obj)
+            I = ones(obj.mesh.nelem,obj.quadrature.ngaus);
+            kappa = .9107*I;
+            mu    = .3446*I;
+            nElem = size(mu,1);
+            nGaus = size(mu,2);
+            m = mu;
+            l = kappa - 2/3*mu;
+            C = zeros(obj.dim.nstre,obj.dim.nstre,nElem,nGaus);
+            C(1,1,:,:) = 2*m + l;
+            C(2,2,:,:) = 2*m + l;
+            C(3,3,:,:) = 2*m + l;
+            C(1,2,:,:) = l;
+            C(2,1,:,:) = l;
+            C(1,3,:,:) = l;
+            C(3,1,:,:) = l;
+            C(3,2,:,:) = l;
+            C(2,3,:,:) = l;
+            C(4,4,:,:) = m;
+            C(5,5,:,:) = m;
+            C(6,6,:,:) = m;
             obj.material.C = C;
         end
 
