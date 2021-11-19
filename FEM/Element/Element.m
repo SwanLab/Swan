@@ -14,7 +14,7 @@ classdef Element < handle
     end   
     
     properties (Access = protected)
-        bcType        
+        bcType
         interp
     end
     

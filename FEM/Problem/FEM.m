@@ -1,4 +1,4 @@
-classdef FEM < handle
+    classdef FEM < handle
     
     properties (GetAccess = public, SetAccess = public)
         problemData

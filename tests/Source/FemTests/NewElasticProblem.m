@@ -37,7 +37,7 @@ classdef NewElasticProblem < NewFEM
             u = obj.solver.solve(Kred,Fred);
             obj.variables = obj.processVars(u);
         end
-        
+    
     end
     
     methods (Access = private)
@@ -63,18 +63,13 @@ classdef NewElasticProblem < NewFEM
         end
 
         % Element_Elastic
-        function dim = computeDimensions(obj)
-            dim                = DimensionVariables();
-            dim.nnode          = obj.mesh.nnode;
-            dim.nunkn          = obj.createNUnkn();
-            dim.nstre          = obj.createNstre();
-            dim.ndof           = obj.mesh.npnod*dim.nunkn;
-            dim.nelem          = obj.mesh.nelem;
-            dim.ndofPerElement = dim.nnode*dim.nunkn;
-            dim.ngaus          = obj.quadrature.ngaus;
-            dim.nentries       = dim.nelem*(dim.ndofPerElement)^2;
-            dim.ndim           = obj.createNdim();
-            obj.dim = dim;
+        function computeDimensions(obj)
+            s.ngaus = obj.quadrature.ngaus;
+            s.mesh  = obj.mesh;
+            s.pdim  = obj.problemData.pdim;
+            d     = DimensionVariables(s);
+            d.compute();
+            obj.dim = d;
         end
 
         % IsotropicElasticMaterial
@@ -234,36 +229,6 @@ classdef NewElasticProblem < NewFEM
             FextPoint = zeros(obj.dof.ndof,1);
             if ~isempty(obj.dof.neumann)
                 FextPoint(obj.dof.neumann) = obj.dof.neumann_values;
-            end
-        end
-
-        function nUnkn = createNUnkn(obj)
-            pdim = obj.problemData.pdim;
-            switch pdim
-                case '2D'
-                    nUnkn = 2;
-                case '3D'
-                    nUnkn = 3;
-            end
-        end
-
-        function ndim = createNdim(obj)
-            pdim = obj.problemData.pdim;
-            switch pdim
-                case '2D'
-                    ndim = 2;
-                case '3D'
-                    ndim = 3;
-            end
-        end
-
-        function nstre = createNstre(obj)
-            pdim = obj.problemData.pdim;
-            switch pdim
-                case '2D'
-                    nstre = 3;
-                case '3D'
-                    nstre = 6;
             end
         end
 
