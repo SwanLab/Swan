@@ -5,7 +5,7 @@ classdef Interpolation < handle
         order
         
         ndime
-        nnode       
+        nnode
         
         pos_nodes
         shape
@@ -38,7 +38,7 @@ classdef Interpolation < handle
         
         function init(obj,cParams)
             obj.type  = cParams.mesh.type;
-            obj.order = cParams.order;            
+            obj.order = cParams.order;
         end
         
     end

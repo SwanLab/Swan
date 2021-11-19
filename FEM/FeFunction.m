@@ -27,16 +27,16 @@ classdef FeFunction < handle
             q.computeQuadrature('CONSTANT');
             xV = q.posgp;
             fCenter = obj.interpolateFunction(xV);
-            fC = squeeze(fCenter);            
+            fC = squeeze(fCenter);
        end
         
        function fxV = interpolateFunction(obj,xV)  
             func = obj.fElem;
-            obj.interpolation.computeShapeDeriv(xV);           
-            shapes = obj.interpolation.shape;           
+            obj.interpolation.computeShapeDeriv(xV);
+            shapes = obj.interpolation.shape;
             nNode  = size(shapes,1);
             nGaus  = size(shapes,2); 
-            nF     = size(func,1);                        
+            nF     = size(func,1);
             nElem  = size(func,3);
             fxV = zeros(nF,nGaus,nElem);
             for kNode = 1:nNode
@@ -45,7 +45,7 @@ classdef FeFunction < handle
                 f = bsxfun(@times,shapeKJ,fKJ);
                 fxV = fxV + f;
             end
-       end                       
+       end
        
    end
    
@@ -54,7 +54,7 @@ classdef FeFunction < handle
        function init(obj,cParams)
            obj.connec = cParams.connec;
            obj.type   = cParams.type;
-           obj.fNodes = cParams.fNodes;           
+           obj.fNodes = cParams.fNodes;
        end
        
        function createInterpolation(obj)
@@ -78,7 +78,5 @@ classdef FeFunction < handle
        end
 
    end
-    
-    
-    
+
 end

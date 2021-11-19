@@ -9,6 +9,7 @@ classdef DimensionVariables
         ndofPerElement 
         ngaus
         nentries
+        ndim
     end
     
     methods

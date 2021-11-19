@@ -25,38 +25,55 @@ classdef RHSintegrator < handle
             nnode  = size(shapes,1);
             nelem  = size(shapes,2);
             int = zeros(nnode,nelem);
+%             for igaus = 1:obj.quadrature.ngaus
+%                 fdv   = fdV(igaus,:);
+%                 shape = shapes(:, :, igaus); % canviat
+%                 int = int + bsxfun(@times,shape,fdv);
+%             end
             for igaus = 1:obj.quadrature.ngaus
-                fdv   = fdV(igaus,:);
-                shape = shapes(:,:,igaus);
-                int = int + bsxfun(@times,shape,fdv);
+                for iField = 1:2 %nunkn
+                    fdv = fG(:,:,iField).* dV;
+                    shape = shapes(:, :, igaus); % canviat
+                    int = int + bsxfun(@times,shape,fdv);
+                end
             end
-            int = transpose(int);            
+            int = transpose(int);
         end
         
-        function int = integrateWithShapeDerivative(obj)
+        function int = integrateWithShapeDerivative(obj) %copiat de Dehomogenizing
             fG      = obj.fGauss;
             dV      = obj.computeDvolume();
             grad    = obj.computeGrad();
             nnode   = size(grad,2);
             ndim    = size(grad,1);
             nelem   = obj.mesh.nelem;
-            int = zeros(nnode,nelem);            
+            int = zeros(nnode,nelem);
             for igaus = 1:obj.quadrature.ngaus
                 for idime = 1:ndim
                     fI     = squeezeParticular(fG(idime,igaus,:),1);
-                    fdV    = (fI.*dV(igaus,:));
+                    fdV    = (fI.*dV(igaus));
                     dShape = squeeze(grad(idime,:,:,igaus));
                     intI = bsxfun(@times,dShape,fdV);
                     int = int + intI;
                 end
             end
-            int = transpose(int);            
-        end 
-        
+            int = transpose(int);
+        end
+
     end
     
     methods (Access = private)
-        
+
+        function grad = computeGrad(obj)
+            m.type = obj.mesh.type;
+            int = Interpolation.create(m,'LINEAR');
+            int.computeShapeDeriv(obj.xGauss);
+            s.mesh = obj.mesh;
+            g = Geometry.create(s);
+            g.computeGeometry(obj.quadrature,int);
+            grad = g.cartd;            
+        end
+
         function init(obj,cParams)
             obj.fGauss    = cParams.fGauss;
             obj.xGauss    = cParams.xGauss;
@@ -76,29 +93,12 @@ classdef RHSintegrator < handle
             dV = obj.mesh.computeDvolume(q);            
         end        
         
-        function grad = computeGrad(obj)
-            m.type = obj.mesh.type;
-            int = Interpolation.create(m,'LINEAR');
-            int.computeShapeDeriv(obj.xGauss);
-            s.mesh = obj.mesh;
-            g = Geometry.create(s);
-            g.computeGeometry(obj.quadrature,int);
-            grad = g.cartd;            
-        end
-        
         function shapes = computeShapeFunctions(obj)
             m.type = obj.type;
             int = Interpolation.create(m,'LINEAR');
             int.computeShapeDeriv(obj.xGauss);
             shapes = permute(int.shape,[1 3 2]);            
         end          
-        
-        function dShapes = computeShapeFunctionsDerivative(obj)
-            m.type = obj.type;
-            int = Interpolation.create(m,'LINEAR');
-            int.computeShapeDeriv(obj.xGauss);
-            dShapes = int.deriv;            
-        end                  
         
     end
     

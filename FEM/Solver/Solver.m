@@ -1,9 +1,7 @@
 classdef Solver < handle
-    properties
-        
-    end
-    
+
     methods (Static)
+
         function stype = create()
             solver_type = 'DIRECT';
             switch solver_type
@@ -18,6 +16,7 @@ classdef Solver < handle
                     error('Invalid stype.')
             end
         end
+
     end
+
 end
-    

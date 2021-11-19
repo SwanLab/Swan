@@ -3,7 +3,11 @@ classdef Integrator < handle
     properties (GetAccess = protected, SetAccess = protected)
        npnod 
        globalConnec
-       mesh       
+       mesh
+       problemData % new
+       fileName % new
+       bcApplier % new
+       dim % new
     end
     
     methods (Static, Access = public)
@@ -19,12 +23,16 @@ classdef Integrator < handle
         function init(obj,cParams)
             obj.mesh  = cParams.mesh;
             obj.npnod = cParams.npnod;
+            obj.fileName    = cParams.fileName;
+            obj.problemData = cParams.problemData;
+            obj.bcApplier   = cParams.bcApplier;
+            obj.dim         = cParams.dim;
         end
         
         function quadrature = computeQuadrature(obj,quadOrder)
             quadrature = Quadrature.set(obj.mesh.type);
             quadrature.computeQuadrature(quadOrder);
-        end                
+        end
         
         function f = assembleIntegrand(obj,rhsCells)
             integrand = rhsCells;
@@ -37,7 +45,7 @@ classdef Integrator < handle
                 con = connec(:,inode);
                 f = f + accumarray(con,int,[ndofs,1],@sum,0);
             end
-        end   
+        end
         
         function rhsC = computeElementalRHS(obj,fGauss,xGauss,type,quadOrder)
             s.fGauss    = fGauss;
@@ -47,20 +55,19 @@ classdef Integrator < handle
             s.quadOrder = quadOrder;
             rhs = RHSintegrator(s);
             rhsC = rhs.integrate();
-        end        
-        
+%             rhsC = rhs.integrateWithShapeDerivative();
+        end
+
         function fG = computeFgauss(obj,fNodal,xGauss,connec,type)
             s.fNodes = fNodal;
             s.connec = connec;
             s.type   = type;
             f = FeFunction(s);
             fG = f.interpolateFunction(xGauss);
-            fG = permute(fG,[2 3 1]);  
-        end
-        
-    end
-    
-    
-    
-end
+            fG = permute(fG,[2 3 1]); 
 
+        end
+
+    end
+
+end
