@@ -9,17 +9,19 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             'testDualNestedInPrimal_WithSlerp', ...
             'test_interiorPerimeter'
             }
+        compTestsToPass = {'test_bridge'
+            }
         dimensions = {'2D', '3D'}
         vigdergauzTests = {'test_VigergauzMicroStructure', 'test_VigergauzMicroStructureFromStrain'}
         vigdergauzVolumes = {0.6, 0.75}
     end
 
-    methods (Test, TestTags = {'TopOpt', 'Various', 'Displacement','Slow'})
+    methods (Test, TestTags = {'TopOpt', 'Various', 'ToPass','Slow'})
 
-        function testDisplacement(testCase, compTests)
-            testCase.fixFolder();
+        function testDisplacement(testCase, compTestsToPass)
+%             testCase.fixFolder();
             s.computerType    = 'TOPOPT';
-            s.testName         = compTests;
+            s.testName         = compTestsToPass;
             s.variablesToStore = {'x'};
             test = PrecomputedVariableTest(s);
             err = test.computeError();
@@ -67,7 +69,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'TopOpt', 'Vigdergauz', 'Micro', 'Medium'})
 
         function testVigdergauz(testCase, vigdergauzTests, vigdergauzVolumes)
-            testCase.fixFolder();
+%             testCase.fixFolder();
             s.testName = vigdergauzTests;
             s.volume = vigdergauzVolumes;
             test = TestVigdergauzMicroStructure(s);

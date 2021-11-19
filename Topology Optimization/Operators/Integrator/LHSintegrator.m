@@ -5,7 +5,6 @@ classdef LHSintegrator < handle
         interpolation
         LHScells
         problemData % new
-        fileName % new
         bcApplier % new
     end
     
@@ -41,7 +40,6 @@ classdef LHSintegrator < handle
             obj.mesh          = cParams.mesh;
             obj.globalConnec  = cParams.globalConnec;
             obj.npnod         = cParams.npnod;
-            obj.fileName      = cParams.fileName;
             obj.bcApplier     = cParams.bcApplier;
             obj.problemData   = cParams.problemData;
             obj.dim           = cParams.dim;
