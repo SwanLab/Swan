@@ -17,7 +17,7 @@ classdef PnormDescriptor < NormDescriptor
             for idim = 1:size(x,2)
                xnorm = xnorm + abs(x(:,idim)).^p; 
             end
-            d = xnorm.^(1/p);
+            d = xnorm.^(1./p);
             obj.dist = d;
         end
         

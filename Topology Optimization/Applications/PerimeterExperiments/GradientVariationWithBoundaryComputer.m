@@ -106,9 +106,9 @@ classdef GradientVariationWithBoundaryComputer < handle
         end
         
         function fInterp = interpolateValue(obj,xpos,fNodal)
-            interpolation = Interpolation.create(obj.backgroundMesh,'LINEAR');
-            interpolation.computeShapeDeriv(xpos);
-            shape = interpolation.shape;
+            interp = Interpolation.create(obj.backgroundMesh,'LINEAR');
+            interp.computeShapeDeriv(xpos);
+            shape = interp.shape;
             fInterp = 0;
             for inode = 1:length(shape)
                 fInterp = fInterp + fNodal(inode)*shape(inode);

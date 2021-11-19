@@ -3,8 +3,11 @@ classdef MeshPlotter < handle
     properties (Access = private)
         mesh
         isBackground
+        faceColor
+        faceAlpha
+        edgeAlpha
     end
-    
+      
     methods (Access = public)
         
         function obj = MeshPlotter(cParams)
@@ -32,6 +35,9 @@ classdef MeshPlotter < handle
         function init(obj,cParams)
             obj.mesh         = cParams.mesh;
             obj.isBackground = cParams.isBackground;
+            obj.faceColor    = cParams.faceColor;
+            obj.faceAlpha    = cParams.faceAlpha;
+            obj.edgeAlpha    = cParams.edgeAlpha;            
         end
         
         function plotBackgroundMesh(obj)
@@ -75,7 +81,32 @@ classdef MeshPlotter < handle
         end
         
         
-        function plotSurfaceMesh(obj)
+%         function plotSurfaceMesh(obj)
+%             m = obj.mesh;
+%             if size(m.connec,2) == 3 && size(m.coord,2) == 3
+%                 x = m.coord(:,1);
+%                 y = m.coord(:,2);
+%                 z = m.coord(:,3);
+%                 p = trisurf(m.connec,x,y,z);
+%                 p.FaceColor = [1 0 0];
+%                 p.FaceAlpha = 1;
+%                 p.EdgeColor = 'none';
+%                 hold on
+%             else
+%                 p = patch('vertices',m.coord,'faces',m.connec);
+%                 p.EdgeAlpha = 0.5;
+%                 p.EdgeLighting = 'flat';
+%                 p.FaceColor = 'red';%[167,238,237]/265; 'green';'red';%
+%                 p.FaceLighting = 'flat';
+%                 p.FaceAlpha = 0.3;
+%                 p.LineWidth = 1.5;
+%                 axis('equal');
+%                 hold on
+%             end
+%             
+%         end
+        
+        function plotSurfaceMesh(obj) %Black
             m = obj.mesh;
             if size(m.connec,2) == 3 && size(m.coord,2) == 3
                 x = m.coord(:,1);
@@ -88,15 +119,15 @@ classdef MeshPlotter < handle
                 hold on
             else
                 p = patch('vertices',m.coord,'faces',m.connec);
-                p.EdgeAlpha = 0.5;
+                p.EdgeAlpha = obj.edgeAlpha;
                 p.EdgeLighting = 'flat';
-                p.FaceColor = 'red';%[167,238,237]/265; 'green';'red';%
+                p.FaceColor = obj.faceColor;%[167,238,237]/265; 'green';'red';%
                 p.FaceLighting = 'flat';
-                p.FaceAlpha = 0.3;1;
+                p.FaceAlpha = obj.faceAlpha;
                 p.LineWidth = 1.5;
                 axis('equal');
                 hold on
-            end
+            end            
             
         end
         

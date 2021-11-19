@@ -7,6 +7,9 @@ classdef SettingsMeshPlotter < AbstractSettings
     properties (Access = public)
         mesh
         isBackground
+        faceColor
+        faceAlpha
+        edgeAlpha        
     end
     
     methods (Access = public)
