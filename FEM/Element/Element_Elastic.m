@@ -15,7 +15,7 @@ classdef Element_Elastic < Element
         connec
         Bmatrix
     end
-        
+    
     properties (Access = private)
         pdim
     end
@@ -84,15 +84,6 @@ classdef Element_Elastic < Element
         end
         
         function dim = computeDim(obj,ngaus)
-%             dim                = DimensionVariables();
-%             dim.nnode          = obj.nnode;
-%             dim.nunkn          = obj.dof.nunkn;
-%             dim.nstre          = obj.nstre;
-%             dim.ndof           = obj.dof.ndof;
-%             dim.nelem          = obj.nelem;
-%             dim.ndofPerElement = dim.nnode*dim.nunkn;
-%             dim.ngaus          = ngaus;
-%             dim.nentries       = dim.nelem*(dim.ndofPerElement)^2;
             m.nelem = obj.nelem;
             m.npnod = obj.dof.ndof/obj.dof.nunkn;
             m.nnode = obj.nnode;

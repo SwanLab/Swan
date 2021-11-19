@@ -1,9 +1,4 @@
 classdef Element_DiffReact < Element
-    %Element_DiffReact Summary of this class goes here
-    %   Detailed explanation goes here
-    
-    % !! CONSIDER TO IMPLEMENT A CONSTRUCTOR THAT DEFINES B & C DIMENS AT
-    % THE PRE-PROCESS !!
     
     properties
         mesh
@@ -18,12 +13,14 @@ classdef Element_DiffReact < Element
         nstre
         addRobinTerm
         boundaryMesh
+        pdim
     end
     
     methods %(Access = ?Physical_Problem)
-        function obj = Element_DiffReact(mesh,geometry,material,dof,scale,addRobinTerm,bcType,interp,boundaryMesh)
+        function obj = Element_DiffReact(mesh,geometry,material,dof,scale,pdim, addRobinTerm,bcType,interp,boundaryMesh)
             obj.mesh = mesh;
             obj.addRobinTerm = addRobinTerm;
+            obj.pdim = pdim;
             obj.bcType = bcType;
             obj.initElement(geometry,mesh,material,dof,scale,interp);
             obj.nstre = 2;
@@ -138,6 +135,14 @@ classdef Element_DiffReact < Element
                 cParams.geometryType = obj.mesh.type;
                 params.compositeParams{iMesh} = cParams;
             end
+        end
+        
+        function dim = computeDim(obj)
+            s.ngaus = obj.quadrature.ngaus;
+            s.mesh  = obj.mesh;
+            s.pdim  = obj.pdim;
+            dim    = DimensionVariables(s);
+            dim.compute();
         end
         
     end
