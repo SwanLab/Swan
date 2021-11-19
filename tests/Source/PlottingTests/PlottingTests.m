@@ -14,7 +14,7 @@ classdef PlottingTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'PlottingTests', 'Toy'})
 
         function testTriangleToy(testCase)
-            cd ../../../
+            testCase.fixFolder();
             s.testName = 'test_triangleToyUntittedExample';
             s.coord  = [0 0;1 0;1 1;0 1;2 0;2 1;0 2;1 2;2 2; 0.5 0.5;1.5 0.5; 0.5 1.5; 1.5 1.5];
             s.connec = [1 2 10; 2 3 10; 10 3 4; 10 4 1; 2 11 3; 2 5 11; 5 6 11; 11 6 3; 3 8 12;
@@ -23,11 +23,10 @@ classdef PlottingTests < handle & matlab.unittest.TestCase
             test = PlottingToyUnfittedExample(s);
             passed = test.hasPassed();
             verifyTrue(testCase, passed)
-            cd ./tests/Source/PlottingTests/
         end
 
         function testQuadToy(testCase)
-            cd ../../../
+            testCase.fixFolder();
             s.testName = 'test_quadToyUntittedExample';
             s.coord  = [0 0;1 0;1 1;0 1;2 0;2 1;0 2;1 2;2 2];
             s.connec = [1 2 3 4; 2 5 6 3; 4 3 8 7; 3 6 9 8];
@@ -35,7 +34,6 @@ classdef PlottingTests < handle & matlab.unittest.TestCase
             test = PlottingToyUnfittedExample(s);
             passed = test.hasPassed();
             verifyTrue(testCase, passed)
-            cd ./tests/Source/PlottingTests/
         end
 
     end
@@ -43,25 +41,23 @@ classdef PlottingTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'PlottingTests', 'FileBased'})
 
         function testPlottingNormal(testCase, plottingTests)
-            cd ../../../
+            testCase.fixFolder();
             s.testName              = plottingTests;
             s.meshType              = 'BOUNDARY';
             s.meshIncludeBoxContour = false;
             test = TestPlotting(s);
             passed = test.computePassed();
             verifyTrue(testCase, passed)
-            cd ./tests/Source/PlottingTests/
         end
 
         function testComposite(testCase, compositeTests)
-            cd ../../../
+            testCase.fixFolder();
             s.testName              = compositeTests;
             s.meshType              = 'BOUNDARY';
             s.meshIncludeBoxContour = true;
             test = TestPlotting(s);
             passed = true;
             verifyTrue(testCase, passed)
-            cd ./tests/Source/PlottingTests/
         end
 
     end
@@ -75,4 +71,14 @@ classdef PlottingTests < handle & matlab.unittest.TestCase
         end
 
     end
+
+    methods (Access = private)
+        
+        function fixFolder(testCase)
+            import matlab.unittest.fixtures.CurrentFolderFixture
+            changeToFolder = '../../../';
+            testCase.applyFixture(CurrentFolderFixture(changeToFolder));
+        end
+    end
+
 end
