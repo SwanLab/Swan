@@ -4,8 +4,6 @@ classdef LHSintegrator < handle
         quadrature
         interpolation
         LHScells
-        problemData % new
-        bcApplier % new
     end
     
     properties (Access = protected) %previously private
@@ -40,7 +38,6 @@ classdef LHSintegrator < handle
             obj.mesh          = cParams.mesh;
             obj.globalConnec  = cParams.globalConnec;
             obj.npnod         = cParams.npnod;
-            obj.bcApplier     = cParams.bcApplier;
             obj.dim           = cParams.dim;
         end
         

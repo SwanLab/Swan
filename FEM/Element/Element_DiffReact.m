@@ -13,14 +13,12 @@ classdef Element_DiffReact < Element
         nstre
         addRobinTerm
         boundaryMesh
-        pdim
     end
     
     methods %(Access = ?Physical_Problem)
-        function obj = Element_DiffReact(mesh,geometry,material,dof,scale,pdim, addRobinTerm,bcType,interp,boundaryMesh)
+        function obj = Element_DiffReact(mesh,geometry,material,dof,scale, addRobinTerm,bcType,interp,boundaryMesh)
             obj.mesh = mesh;
             obj.addRobinTerm = addRobinTerm;
-            obj.pdim = pdim;
             obj.bcType = bcType;
             obj.initElement(geometry,mesh,material,dof,scale,interp);
             obj.nstre = 2;
@@ -112,20 +110,16 @@ classdef Element_DiffReact < Element
         end        
         
         function params = createIntegratorParams(obj)
-            params.type = 'COMPOSITE';
+            params.type  = 'COMPOSITE';
             params.npnod = obj.mesh.npnod;
-            
             s.backgroundMesh = obj.mesh;
-            s.dimension = 1:s.backgroundMesh.ndim;
-            s.type = 'FromReactangularBox';
-            bC = BoundaryMeshCreator.create(s);
+            s.dimension      = 1:s.backgroundMesh.ndim;
+            s.type           = 'FromReactangularBox';
+            bC      = BoundaryMeshCreator.create(s);
             bMeshes = bC.create();
-            
             bMeshes = obj.boundaryMesh;
-            
             nBoxFaces = numel(bMeshes);
-            
-            
+            params.dim = obj.computeDim();
             for iMesh = 1:nBoxFaces
                 boxFaceMesh = bMeshes{iMesh};
                 cParams.mesh = boxFaceMesh.mesh;
@@ -140,9 +134,18 @@ classdef Element_DiffReact < Element
         function dim = computeDim(obj)
             s.ngaus = obj.quadrature.ngaus;
             s.mesh  = obj.mesh;
-            s.pdim  = obj.pdim;
+            s.pdim  = obj.createPdim();
             dim    = DimensionVariables(s);
             dim.compute();
+        end
+
+        function pdim = createPdim(obj)
+            switch obj.mesh.ndim
+                case 2
+                    pdim = '2D';
+                case 3
+                    pdim = '3D';
+            end
         end
         
     end

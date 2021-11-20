@@ -85,9 +85,8 @@ classdef DiffReact_Problem < FEM
         function setElement(obj)
             isRobinTermAdded = obj.isRobinTermAdded;
             bcType = obj.bcApplierType;
-            pdim = '2D';
             obj.element = Element_DiffReact(obj.mesh,obj.geometry,...
-                obj.material,obj.dof,obj.problemData.scale,pdim,isRobinTermAdded,bcType,obj.interp,obj.boundaryMesh);
+                obj.material,obj.dof,obj.problemData.scale,isRobinTermAdded,bcType,obj.interp,obj.boundaryMesh);
         end
         
         function setDOFs(obj)

@@ -4,8 +4,6 @@ classdef Integrator < handle
        npnod 
        globalConnec
        mesh
-       problemData % new
-       bcApplier % new
        dim % new
     end
     
@@ -22,8 +20,9 @@ classdef Integrator < handle
         function init(obj,cParams)
             obj.mesh  = cParams.mesh;
             obj.npnod = cParams.npnod;
-            obj.bcApplier   = cParams.bcApplier;
-            obj.dim         = cParams.dim;
+            if isfield(cParams, 'dim')
+                obj.dim   = cParams.dim;
+            end
         end
         
         function quadrature = computeQuadrature(obj,quadOrder)
