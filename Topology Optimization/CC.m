@@ -2,18 +2,18 @@ classdef CC < handle & matlab.mixin.Copyable
     
     properties (Access = public)
         value
-        gradient         
+        gradient
     end
     
-    properties (GetAccess = public, SetAccess = private)       
+    properties (GetAccess = public, SetAccess = private)
         shapeFunctions
         nSF
     end
     
     properties (Access = private)
-        sizeDesigVar     
+        sizeDesigVar
         valueOld
-        gradientOld        
+        gradientOld
     end
     
     methods (Access = protected, Abstract)
@@ -46,7 +46,7 @@ classdef CC < handle & matlab.mixin.Copyable
         
         function restart(obj)
             obj.value    = obj.valueOld;
-            obj.gradient = obj.gradientOld;            
+            obj.gradient = obj.gradientOld;
         end
         
         function updateOld(obj)
@@ -60,9 +60,9 @@ classdef CC < handle & matlab.mixin.Copyable
         
         function obj = init(obj,cParams)
             obj.nSF   = 0;
-            obj.sizeDesigVar = size(cParams.designVar.value);            
+            obj.sizeDesigVar = size(cParams.designVar.value);
             obj.createShapeFunctions(cParams);
-        end        
+        end
         
     end
     
@@ -70,10 +70,10 @@ classdef CC < handle & matlab.mixin.Copyable
         
         function initValueAndGradient(obj)
             obj.value = 0;
-            obj.gradient = zeros(obj.sizeDesigVar);            
+            obj.gradient = zeros(obj.sizeDesigVar);
         end
         
-        function createShapeFunctions(obj,cParams)     
+        function createShapeFunctions(obj,cParams)
             nS = cParams.nShapeFuncs;
             for iS = 1:nS
                 s = cParams.shapeFuncSettings{iS};
@@ -90,7 +90,7 @@ classdef CC < handle & matlab.mixin.Copyable
             obj.shapeFunctions{obj.nSF+1} = shapeFunction;
             obj.nSF = obj.nSF+1;
         end
-              
+       
     end
     
 end

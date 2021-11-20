@@ -15,7 +15,6 @@ classdef Integrator_Simple < Integrator
             s.mesh         = obj.mesh;
             s.globalConnec = obj.globalConnec;
             s.npnod        = obj.npnod;
-            s.problemData  = obj.problemData;
             s.bcApplier    = obj.bcApplier;
             s.dim          = obj.dim;
             lhs = LHSintegrator_triangle(s);

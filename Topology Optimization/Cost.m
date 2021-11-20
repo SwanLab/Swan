@@ -11,7 +11,7 @@ classdef Cost < CC
     methods (Access = public)
         
         function obj = Cost(cParams)
-            obj.weights = cParams.weights;            
+            obj.weights = cParams.weights;
             obj.init(cParams);  
         end
         

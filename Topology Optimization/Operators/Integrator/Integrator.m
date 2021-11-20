@@ -22,7 +22,6 @@ classdef Integrator < handle
         function init(obj,cParams)
             obj.mesh  = cParams.mesh;
             obj.npnod = cParams.npnod;
-            obj.problemData = cParams.problemData;
             obj.bcApplier   = cParams.bcApplier;
             obj.dim         = cParams.dim;
         end

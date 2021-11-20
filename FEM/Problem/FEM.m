@@ -1,4 +1,4 @@
-    classdef FEM < handle
+classdef FEM < handle
     
     properties (GetAccess = public, SetAccess = public)
         problemData
@@ -12,7 +12,7 @@
     
     properties (Access = protected)
         solver
-        iter = 0;   
+        iter = 0;
         inputReader
     end
     
@@ -96,7 +96,7 @@
         end
         
         function setMatProps(obj,s)
-           obj.element.material.compute(s);           
+           obj.element.material.compute(s);
         end
         
         function setC(obj,C)
@@ -116,11 +116,11 @@
             postprocess = Postprocess_PhysicalProblem;
             res_file = evnt.AffectedObject.res_file;
             postprocess.print_slave(obj,res_file,obj.variables);
-        end        
+        end
         
        function syncPostProcess(obj,evtobj)
             addlistener(evtobj,'res_file','PostSet',@obj.print_slave);
-        end        
+       end
         
         function i = getIter(obj)
             i = obj.iter;
@@ -146,7 +146,7 @@
         
         function createMesh(obj)
             s.coord  = obj.inputReader.coord;
-            s.connec = obj.inputReader.connec;            
+            s.connec = obj.inputReader.connec;
             obj.mesh = Mesh(s);
         end
         
@@ -158,7 +158,7 @@
             dI.mesh    = obj.mesh;
             dI.outName = fileName;
             ps = PostProcessDataBaseCreator(dI);
-            d = ps.getValue();           
+            d = ps.getValue();
         end
         
     end

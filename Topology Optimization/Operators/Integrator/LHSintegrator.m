@@ -41,7 +41,6 @@ classdef LHSintegrator < handle
             obj.globalConnec  = cParams.globalConnec;
             obj.npnod         = cParams.npnod;
             obj.bcApplier     = cParams.bcApplier;
-            obj.problemData   = cParams.problemData;
             obj.dim           = cParams.dim;
         end
         
