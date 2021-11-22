@@ -27,7 +27,7 @@ classdef NewElasticProblem < NewFEM
         end
         
         function computeVariables(obj)
-            obj.integrator.computeLHS(); % lhs need to be adapted
+            obj.integrator.computeFemLHS(); % lhs need to be adapted
             Kred = obj.reduceStiffnessMatrix();
             forces = obj.computeExternalForces();
 %             R = obj.compute_imposed_displacement_force(obj.K);

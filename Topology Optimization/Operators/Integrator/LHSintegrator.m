@@ -68,7 +68,7 @@ classdef LHSintegrator < handle
                 Aij = bsxfun(@times,NiNj,dv);
                 lhs = lhs + Aij;
             end
-        end        
+        end
         
         function A = assembleMatrix(obj,aElem)
             connec = obj.globalConnec;
@@ -80,14 +80,14 @@ classdef LHSintegrator < handle
             nnode2 = size(connec,2);
             A = sparse(ndofs,ndofs);
             for i = 1:nnode1*nunkn1
-                nodeI = connec(:,i);                
+                nodeI = connec(:,i);
                 for j = 1:nnode2*nunkn2
                     nodeJ = connec(:,j);
                     a = squeeze(Ae(i,j,:));
                     A = A + sparse(nodeI,nodeJ,a,ndofs,ndofs);
                 end
             end
-        end        
+        end
         
     end
     

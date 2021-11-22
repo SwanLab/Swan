@@ -13,7 +13,7 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
             obj.init(cParams);
             fileName = cParams.femSettings.fileName;
             obj.createEquilibriumProblem(fileName);
-            obj.createOrientationUpdater();                                    
+            obj.createOrientationUpdater();
         end
         
         function fP = addPrintableVariables(obj)
@@ -33,7 +33,7 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
             t{1} = 'Compliance non scaled';
         end
         
-        function fP = createPrintVariables(obj)           
+        function fP = createPrintVariables(obj)
             types = {'Elasticity','ScalarGauss','VectorGauss'...
                         'VectorGauss'};
             names = {'Primal','ComplianceGauss','AlphaGauss',...
@@ -59,13 +59,13 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
             phy = obj.physicalProblem;
             dvolum  = phy.geometry.dvolu;
             stress = phy.variables.stress;
-            strain = phy.variables.strain;            
+            strain = phy.variables.strain;
             ngaus  = phy.element.quadrature.ngaus;
             nelem  = phy.mesh.nelem;
             c = zeros(nelem,ngaus);
             for igaus = 1:ngaus
                 stressG = squeeze(stress(igaus,:,:));
-                strainG  = squeeze(strain(igaus,:,:));  
+                strainG  = squeeze(strain(igaus,:,:));
                 e = stressG.*strainG;
                 c(:,igaus) = c(:,igaus) + sum(e)';
             end
@@ -73,19 +73,19 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
             int = c.*dvolum;
             obj.value = sum(int(:));
         end
-                    
+        
         function computeGradientValue(obj)
             eu    = obj.physicalProblem.variables.strain;
             ep    = obj.physicalProblem.variables.strain;
             nelem = obj.physicalProblem.mesh.nelem;
             ngaus = obj.physicalProblem.element.quadrature.ngaus;
-            nstre = obj.physicalProblem.element.getNstre();             
+            nstre = obj.physicalProblem.element.getNstre();
             g = zeros(nelem,ngaus,obj.nVariables);
             for igaus = 1:ngaus
                 for istre = 1:nstre
                     for jstre = 1:nstre
                         eu_i = squeeze(eu(igaus,istre,:));
-                        ep_j = squeeze(ep(igaus,jstre,:));                        
+                        ep_j = squeeze(ep(igaus,jstre,:));
                         for ivar = 1:obj.nVariables
                             dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:,igaus));
                             g(:,igaus,ivar) = g(:,igaus,ivar) + (-eu_i.*dCij.*ep_j);
@@ -98,7 +98,7 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         
         function f = getPdesVariablesToPrint(obj)
             f{1} = obj.getPdeVariableToPrint(obj.physicalProblem);
-        end           
+        end
         
     end
     

@@ -148,8 +148,7 @@ classdef DiffReact_Problem < FEM
                 obj.boundaryMesh = bC.create();
             end
         end
-        
-        
+    
     end
     
 end

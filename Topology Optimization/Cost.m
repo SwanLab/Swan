@@ -12,7 +12,7 @@ classdef Cost < CC
         
         function obj = Cost(cParams)
             obj.weights = cParams.weights;
-            obj.init(cParams);  
+            obj.init(cParams);
         end
         
         function c = computeNonNormalizedValue(obj)

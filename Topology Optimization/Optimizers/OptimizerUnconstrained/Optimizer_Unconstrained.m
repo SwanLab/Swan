@@ -24,7 +24,7 @@ classdef Optimizer_Unconstrained < handle
         designVariable
         xOld
         incX
-        incF        
+        incF
     end
 
     properties (Access = private)
@@ -59,7 +59,7 @@ classdef Optimizer_Unconstrained < handle
             obj.maxIncrNormX       = 5*1e-2;
             obj.convergenceVars    = cParams.convergenceVars;
             obj.targetParameters   = cParams.targetParameters;
-            obj.designVariable     = cParams.designVariable;            
+            obj.designVariable     = cParams.designVariable;
             obj.createScalarProductCalculator(cParams);
             obj.createLineSearch(cParams);
         end
@@ -74,7 +74,7 @@ classdef Optimizer_Unconstrained < handle
                 obj.objectiveFunction.updateBecauseOfPrimal();
                 obj.updateConvergenceParams();
                 if ~obj.hasConverged
-                    obj.updateLineSearch();            
+                    obj.updateLineSearch();
                 end
             end
             obj.revertIfDesignNotImproved();
@@ -82,7 +82,7 @@ classdef Optimizer_Unconstrained < handle
 
         function init(obj)
             obj.objectiveFunction.updateOld();
-            obj.tryLineSearch();                                
+            obj.tryLineSearch();
             obj.hasConverged = false;
         end
 
@@ -130,7 +130,7 @@ classdef Optimizer_Unconstrained < handle
             optimTol = obj.obtainOptimalityTolerance();
             optCond  = obj.optimalityCond;
             isNot = optCond >= optimTol;
-            smallChangeX  = obj.isVariableChangeSmall();            
+            smallChangeX  = obj.isVariableChangeSmall();
             itIs = ~isNot || smallChangeX ;
         end
 
@@ -140,14 +140,14 @@ classdef Optimizer_Unconstrained < handle
         
         function startLineSearch(obj)
             obj.lineSearch.computeStartingValue();
-        end        
+        end
         
         function itIs = isLineSearchTooSmall(obj)
-            itIs = obj.lineSearch.isTooSmall();            
+            itIs = obj.lineSearch.isTooSmall();
         end
         
         function updateLineSearch(obj)
-            obj.lineSearch.update();            
+            obj.lineSearch.update();
         end
 
     end
@@ -156,7 +156,7 @@ classdef Optimizer_Unconstrained < handle
         
         function opt = obtainOptimalityTolerance(obj)
             opt = obj.targetParameters.optimality_tol;
-        end        
+        end
         
         function createScalarProductCalculator(obj,cParams)
             s = cParams.scalarProductSettings;

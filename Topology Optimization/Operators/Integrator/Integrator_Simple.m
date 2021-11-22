@@ -4,7 +4,7 @@ classdef Integrator_Simple < Integrator
         Kred
         StiffnessMatrix
     end
-    
+
     methods (Access = public)
         
         function obj = Integrator_Simple(cParams)
@@ -13,6 +13,16 @@ classdef Integrator_Simple < Integrator
         end
         
         function LHS = computeLHS(obj)
+            s.mesh         = obj.mesh;
+            s.globalConnec = obj.globalConnec;
+            s.npnod        = obj.npnod;
+            s.dim          = obj.dim;
+            lhs = LHSintegrator(s);
+            LHS = lhs.compute();
+            obj.lhsint = lhs;
+        end
+
+        function computeFemLHS(obj)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.globalConnec;
             s.npnod        = obj.npnod;

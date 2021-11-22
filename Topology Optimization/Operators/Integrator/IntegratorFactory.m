@@ -16,4 +16,3 @@ classdef IntegratorFactory
         end
     end
 end
-

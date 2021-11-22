@@ -2,12 +2,12 @@ classdef RHSintegrator < handle
 
     properties (Access = private)
         fGauss
-        xGauss        
+        xGauss
         mesh
         type
         quadOrder
         
-        quadrature        
+        quadrature
     end
     
     methods (Access = public)
@@ -71,7 +71,7 @@ classdef RHSintegrator < handle
             s.mesh = obj.mesh;
             g = Geometry.create(s);
             g.computeGeometry(obj.quadrature,int);
-            grad = g.cartd;            
+            grad = g.cartd;
         end
 
         function init(obj,cParams)
@@ -86,19 +86,19 @@ classdef RHSintegrator < handle
            q = Quadrature.set(obj.mesh.type);
            q.computeQuadrature(obj.quadOrder);
            obj.quadrature = q;
-       end          
+        end
         
         function dV = computeDvolume(obj)
             q = obj.quadrature;
-            dV = obj.mesh.computeDvolume(q);            
-        end        
+            dV = obj.mesh.computeDvolume(q);
+        end
         
         function shapes = computeShapeFunctions(obj)
             m.type = obj.type;
             int = Interpolation.create(m,'LINEAR');
             int.computeShapeDeriv(obj.xGauss);
-            shapes = permute(int.shape,[1 3 2]);            
-        end          
+            shapes = permute(int.shape,[1 3 2]);
+        end
         
     end
     

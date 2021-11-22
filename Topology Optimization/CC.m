@@ -38,8 +38,8 @@ classdef CC < handle & matlab.mixin.Copyable
                 obj.shapeFunctions{iSF}.computeFunction();
                 obj.updateFields(iSF);
             end
-        end        
-                       
+        end
+        
         function objClone = clone(obj)
             objClone = copy(obj);
         end
@@ -84,8 +84,7 @@ classdef CC < handle & matlab.mixin.Copyable
                 obj.append(shapeFunction);
             end
         end
-        
-        
+
         function append(obj,shapeFunction)
             obj.shapeFunctions{obj.nSF+1} = shapeFunction;
             obj.nSF = obj.nSF+1;

@@ -85,12 +85,12 @@ classdef Element_DiffReact < Element
                     inc = bsxfun(@times,dv,dNdN);
                     Ke = Ke + inc;
                 end
-            end            
+            end
         end
         
         function Me = computeElementalMassMatrix(obj)
             obj.quadrature.computeQuadrature('QUADRATICMASS');
-            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);            
+            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
             shapes = obj.interpolation_u.shape;
             dvolu  = obj.geometry.dvolu;
             ngaus  = obj.quadrature.ngaus;
@@ -107,7 +107,7 @@ classdef Element_DiffReact < Element
             end            
             obj.quadrature.computeQuadrature('LINEAR');
             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
-        end        
+        end
         
         function params = createIntegratorParams(obj)
             params.type  = 'COMPOSITE';
@@ -171,5 +171,3 @@ classdef Element_DiffReact < Element
         end
     end
 end
-
-

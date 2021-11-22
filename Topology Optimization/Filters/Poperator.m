@@ -9,8 +9,8 @@ classdef Poperator < handle
       nnode
       npnod
       connec
-      diffReacProb      
-      M       
+      diffReacProb
+      M
    end
     
    methods (Access = public)
@@ -41,12 +41,12 @@ classdef Poperator < handle
                 case 'MICRO'
                     obj.diffReacProb = DiffReact_Problem_Micro(s);
             end
-        end       
+        end
        
         function createMassMatrix(obj)
             obj.diffReacProb.preProcess();
             obj.M = obj.diffReacProb.element.M;
-        end       
+        end
        
        function createOperator(obj)
             nelem  = obj.nelem;
@@ -62,11 +62,9 @@ classdef Poperator < handle
             end
             m = T*sum(obj.M,2);
             mInv = spdiags(1./m,0,length(m),length(m));
-            obj.value = mInv*T;           
+            obj.value = mInv*T;
        end
 
    end
 
-    
-    
 end
