@@ -4,12 +4,12 @@ classdef Quadrature_Tetrahedra < Quadrature
             computeQuadrature@Quadrature(obj,order);
             switch order
                 case 'CONSTANT'
-                    obj.ngaus = 1;          % tetrahedra
+                    obj.ngaus = 1; % tetrahedra
                     obj.weigp = 1/6;
-                    obj.posgp = [1/4;1/4;1/4];                    
+                    obj.posgp = [1/4;1/4;1/4];
                     
                 case 'LINEAR'
-                    obj.ngaus = 1;          % tetrahedra
+                    obj.ngaus = 1; % tetrahedra
                     obj.weigp = 1/6;
                     obj.posgp = [1/4;1/4;1/4];
                     

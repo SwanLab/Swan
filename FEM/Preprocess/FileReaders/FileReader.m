@@ -10,7 +10,7 @@ classdef FileReader < handle
         
         function openFile(obj)
             obj.fid = fopen(obj.filePath);
-        end        
+        end
         
         function closeFile(obj)
             fclose(obj.fid);

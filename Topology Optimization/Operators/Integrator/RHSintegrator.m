@@ -13,7 +13,7 @@ classdef RHSintegrator < handle
     methods (Access = public)
         
         function obj = RHSintegrator(cParams)
-            obj.init(cParams)   
+            obj.init(cParams);
             obj.computeQuadrature();
         end
         

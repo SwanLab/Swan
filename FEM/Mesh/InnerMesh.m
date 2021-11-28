@@ -1,8 +1,8 @@
 classdef InnerMesh < handle
     
     properties (GetAccess = public, SetAccess = private)
-       fullCells        
-       backgroundMesh    
+       fullCells
+       backgroundMesh
        mesh
        globalConnec
     end
@@ -40,8 +40,8 @@ classdef InnerMesh < handle
             connecF = connecB(obj.fullCells,:);
             allNodes = connecF(:);
             [uNodes,ind,ind2] = unique(allNodes,'rows','stable');
-            obj.all2unique  = ind;    
-            obj.unique2all  = ind2;   
+            obj.all2unique  = ind;
+            obj.unique2all  = ind2;
             obj.uniqueNodes = uNodes;
         end
         
@@ -54,9 +54,9 @@ classdef InnerMesh < handle
         
         function computeConnec(obj)
             nnode = size(obj.backgroundMesh.connec,2);
-            nCell = size(obj.fullCells,1);             
+            nCell = size(obj.fullCells,1);
             obj.connec = reshape(obj.unique2all,nCell,nnode);
-        end          
+        end
         
         function createMesh(obj)
             s.coord  = obj.coord;
@@ -67,7 +67,7 @@ classdef InnerMesh < handle
         
         function computeGlobalConnec(obj)
             con  = obj.backgroundMesh.connec;
-            obj.globalConnec = con(obj.fullCells,:);            
+            obj.globalConnec = con(obj.fullCells,:);
         end
         
     end

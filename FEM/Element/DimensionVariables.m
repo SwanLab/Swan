@@ -44,7 +44,7 @@ classdef DimensionVariables < handle
             obj.ngaus = cParams.ngaus;
         end
         
-        function nUnkn = createNUnkn(obj)
+        function nUnkn = createNUnkn(obj) % createNUnknPerField
             switch obj.pdim
                 case '2D'
                     nUnkn = 2;

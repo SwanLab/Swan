@@ -22,6 +22,8 @@ classdef Integrator < handle
             obj.npnod = cParams.npnod;
             if isfield(cParams, 'dim')
                 obj.dim   = cParams.dim;
+            else
+                obj.computeDim();
             end
         end
         
@@ -60,8 +62,26 @@ classdef Integrator < handle
             s.type   = type;
             f = FeFunction(s);
             fG = f.interpolateFunction(xGauss);
-            fG = permute(fG,[2 3 1]); 
+            fG = permute(fG,[2 3 1]);
 
+        end
+        
+        function computeDim(obj)
+            s.ngaus = [];
+            s.mesh  = obj.mesh;
+            s.pdim  = obj.createPdim();
+            d    = DimensionVariables(s);
+            d.compute();
+            obj.dim = d;
+        end
+
+        function pdim = createPdim(obj)
+            switch obj.mesh.ndim
+                case 2
+                    pdim = '2D';
+                case 3
+                    pdim = '3D';
+            end
         end
 
     end

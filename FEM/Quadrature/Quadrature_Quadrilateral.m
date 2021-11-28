@@ -21,7 +21,7 @@ classdef Quadrature_Quadrilateral < Quadrature
                     obj.weigp =  [1,1,1,1];%1*ones(1,obj.ngaus);
 
                 case 'QUADRATICMSS' %SERENDIPITY, QUADRILATERAL QUADRATIC NOT IMPLEMENTED
-                    obj.ngaus = 9;                    
+                    obj.ngaus = 9;
                     % Compute WEIGP and POSGP
                     a =  0.77459667;
                     obj.posgp(:,1) = [ 0,+a];

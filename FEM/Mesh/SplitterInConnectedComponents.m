@@ -14,14 +14,14 @@ classdef SplitterInConnectedComponents < handle
     methods (Access = public)
         
         function obj = SplitterInConnectedComponents(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)
         end
         
         function c = split(obj)
-            obj.computeEdges(); 
+            obj.computeEdges();
             obj.computeAdjacencyMatrix();
             obj.computeGraph();
-            obj.computeConnectedComponents();            
+            obj.computeConnectedComponents();
             c = obj.connectedComp;
         end
         
@@ -37,12 +37,12 @@ classdef SplitterInConnectedComponents < handle
             s.nodesByElem = obj.faces;
             edge = EdgesConnectivitiesComputer(s);
             edge.compute();
-            obj.edges = edge.nodesInEdges;            
-        end        
+            obj.edges = edge.nodesInEdges;
+        end
         
         function [A] = computeAdjacencyMatrix(obj)
             nodeA = obj.edges(:,1);
-            nodeB = obj.edges(:,2);      
+            nodeB = obj.edges(:,2);
             A = sparse(nodeA,nodeB,1);
             obj.adjancyMatrix = A+A';
         end
@@ -57,9 +57,8 @@ classdef SplitterInConnectedComponents < handle
             g = obj.graphV;
             comp = conncomp(g);
             obj.connectedComp = comp;
-        end        
-
+        end
+    
     end
-    
-    
+
 end

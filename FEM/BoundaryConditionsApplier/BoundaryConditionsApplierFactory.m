@@ -19,5 +19,3 @@ classdef BoundaryConditionsApplierFactory < handle
     end
     
 end
-
-

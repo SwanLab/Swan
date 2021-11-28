@@ -27,13 +27,13 @@ classdef Mesh_Total < Mesh_Composite
             obj.init(cParams);
             obj.createInteriorMesh();
             obj.createBoxFaceMeshes();
-            obj.defineActiveMeshes();            
+            obj.defineActiveMeshes();
             obj.type = obj.innerMeshOLD.type;
             obj.nelem = size(obj.connec,1);
             obj.npnod = obj.innerMeshOLD.npnod;
             obj.nnode = obj.innerMeshOLD.nnode;
             obj.createInterpolation();
-            obj.computeElementCoordinates();             
+            obj.computeElementCoordinates();
         end
         
         function S = computeMeanCellSize(obj)
@@ -47,7 +47,7 @@ classdef Mesh_Total < Mesh_Composite
         function init(obj,cParams)
             obj.coord  = cParams.coord;
             obj.connec = cParams.connec;
-            obj.obtainExteriorMesh(cParams);              
+            obj.obtainExteriorMesh(cParams);
             obj.ndim   = size(obj.coord,2);
             obj.embeddedDim = obj.ndim;
         end
@@ -109,9 +109,8 @@ classdef Mesh_Total < Mesh_Composite
         function defineActiveMeshes(obj)
             obj.activeMeshesList = find([false true(1,obj.nBoxFaces)]);
             obj.nActiveMeshes     = numel(obj.activeMeshesList);
-        end        
+        end
         
     end
-    
     
 end

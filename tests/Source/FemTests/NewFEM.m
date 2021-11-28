@@ -12,7 +12,7 @@ classdef NewFEM < handle
     
     properties (Access = protected)
         solver
-        iter = 0;   
+        iter = 0;
         inputReader
         fileName
     end
@@ -102,7 +102,7 @@ classdef NewFEM < handle
         end
         
         function setMatProps(obj,s)
-           obj.element.material.compute(s);           
+           obj.element.material.compute(s);
         end
         
         function setC(obj,C)
@@ -122,7 +122,7 @@ classdef NewFEM < handle
             postprocess = Postprocess_PhysicalProblem;
             res_file = evnt.AffectedObject.res_file;
             postprocess.print_slave(obj,res_file,obj.variables);
-        end        
+        end
         
        function syncPostProcess(obj,evtobj)
             addlistener(evtobj,'res_file','PostSet',@obj.print_slave);

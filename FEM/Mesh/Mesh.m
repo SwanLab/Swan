@@ -24,7 +24,7 @@ classdef Mesh < handle
     
     properties (Access = private)
         xFE
-        geometry        
+        geometry
     end
     
         
@@ -153,11 +153,11 @@ classdef Mesh < handle
         end
         
         function m = computeCanonicalMesh(obj)
-            s.remainingNodes = unique(obj.connec);  
+            s.remainingNodes = unique(obj.connec);
             s.mesh        = obj;
             c = CannonicalMeshComputer(s);
-            m = c.compute();          
-        end        
+            m = c.compute();
+        end
         
         function setMasterSlaveNodes(obj,nodes)
             obj.masterSlaveNodes = nodes;
@@ -187,7 +187,6 @@ classdef Mesh < handle
         end
         
     end
-    
     
     methods (Access = private)
         
@@ -236,7 +235,7 @@ classdef Mesh < handle
         
         function computeCoordFEfunction(obj)
             s.connec   = obj.connec;
-            s.type     = obj.type;            
+            s.type     = obj.type;
             s.fNodes   = obj.coord;
             obj.xFE = FeFunction(s);
         end

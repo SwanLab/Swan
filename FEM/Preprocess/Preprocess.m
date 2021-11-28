@@ -37,7 +37,7 @@ classdef Preprocess<handle
                 else
                 end
                 
-                if exist('pointload_complete','var')                
+                if exist('pointload_complete','var')
                     data.pointload = pointload_complete;
                 else
                     data.pointload = [];
@@ -57,7 +57,7 @@ classdef Preprocess<handle
             else
                 forces = [];
             end
-                        
+            
             if exist('External_border_nodes','var')
                 full_dirichlet_data= External_border_nodes;
             else
@@ -90,7 +90,7 @@ classdef Preprocess<handle
             
             s.mesh = mesh;
             s.interpolation = interp{1};
-            c = ConnecCoordFromInterpAndMesh(s);            
+            c = ConnecCoordFromInterpAndMesh(s);
             c.compute();
             xpoints = c.coord;
             

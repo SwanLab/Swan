@@ -14,14 +14,14 @@ classdef CannonicalMeshComputer < handle
     methods (Access = public)
         
         function obj = CannonicalMeshComputer(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)
         end
 
         function m = compute(obj)
             obj.computeNewNodes();
             obj.computeNewCoord();
             obj.computeNewConnec();
-            m = obj.createCanonicalMesh(); 
+            m = obj.createCanonicalMesh();
         end
         
     end
@@ -56,7 +56,7 @@ classdef CannonicalMeshComputer < handle
         function m = createCanonicalMesh(obj)
             s.connec = obj.newConnec;
             s.coord  = obj.newCoord;
-            m = Mesh(s); 
+            m = Mesh(s);
         end
         
     end

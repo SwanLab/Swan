@@ -1,7 +1,7 @@
 classdef GmsFile2SwanFileConverter < handle
     
     properties (Access = private)
-        readData         
+        readData
         gmsFile
         outPutDir
         outPutFileName
@@ -25,7 +25,7 @@ classdef GmsFile2SwanFileConverter < handle
         function init(obj,gmsFile,outPutDir,outPutFileName)
             obj.gmsFile = gmsFile;
             obj.outPutDir = outPutDir;
-            obj.outPutFileName = outPutFileName;            
+            obj.outPutFileName = outPutFileName;
         end
         
         function readGmsFile(obj)
@@ -46,9 +46,8 @@ classdef GmsFile2SwanFileConverter < handle
             data.fileName   = obj.outPutFileName;
             fp = InputFemFilePrinter(data);
             fp.print();
-        end        
+        end
         
     end
-    
     
 end
