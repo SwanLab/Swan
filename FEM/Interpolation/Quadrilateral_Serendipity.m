@@ -9,11 +9,11 @@ classdef Quadrilateral_Serendipity < Interpolation
             obj.type = 'QUADRILATERAL';
             obj.ndime = 2;
             obj.nnode = 8;
-            obj.computeCoordAndConnec();            
+            obj.computeCoordAndConnec();
         end
         
         function computeShapeDeriv(obj,posgp)
-            ngaus = 9;                    
+            ngaus = 9;
             a =  0.77459667;
             posgp(1,:) = [ 0,+a];
             posgp(2,:) = [ 0, 0];

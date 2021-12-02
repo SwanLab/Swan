@@ -12,7 +12,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
             fileName = cParams.femSettings.fileName;
             obj.createEquilibriumProblem(fileName);
             obj.createAdjointProblem(fileName);
-            obj.createOrientationUpdater();                     
+            obj.createOrientationUpdater();
         end
 
     end
@@ -27,21 +27,21 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
         
         function solveState(obj)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
-            obj.physicalProblem.computeVariables();            
-        end        
+            obj.physicalProblem.computeVariables();
+        end
 
         function computeGradientValue(obj)
             eu    = obj.physicalProblem.variables.strain;
             ep    = obj.adjointProblem.variables.strain;
             nelem = obj.physicalProblem.mesh.nelem;
             ngaus = obj.physicalProblem.element.quadrature.ngaus;
-            nstre = obj.physicalProblem.element.getNstre();             
+            nstre = obj.physicalProblem.element.getNstre();
             g = zeros(nelem,ngaus,obj.nVariables);
             for igaus = 1:ngaus
                 for istre = 1:nstre
                     for jstre = 1:nstre
                         eu_i = squeeze(eu(igaus,istre,:));
-                        ep_j = squeeze(ep(igaus,jstre,:));                         
+                        ep_j = squeeze(ep(igaus,jstre,:));
                         for ivar = 1:obj.nVariables
                             dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:));
                             g(:,igaus,ivar) = eu_i.*dCij.*ep_j;
@@ -60,7 +60,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
         function f = getPdesVariablesToPrint(obj)
             f{1} = obj.getPdeVariablesToPrint(obj.physicalProblem);
             f{2} = obj.getPdeVariablesToPrint(obj.adjointProblem);
-        end        
+        end
         
         function fP = addPrintableVariables(obj)
             phy = obj.getPdesVariablesToPrint();
@@ -70,14 +70,14 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
             fP{4}.value = abs(obj.designVariable.alpha);
             fP{5}.value = obj.getRegularizedDesignVariable();
             fP{6}.value = obj.homogenizedVariablesComputer.addPrintableVariables(obj.designVariable);
-        end         
+        end
         
         function fP = createPrintVariables(obj)
             fP{1}.type  = 'Elasticity';
             fP{2}.type  = 'Elasticity';
-            fP{1}.name  = 'Primal';            
-            fP{2}.name  = 'Dual';            
-        end        
+            fP{1}.name  = 'Primal';
+            fP{2}.name  = 'Dual';
+        end
 
     end
 

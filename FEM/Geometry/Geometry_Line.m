@@ -1,7 +1,7 @@
 classdef Geometry_Line < Geometry
     
     properties (Access = public)
-        normalVector        
+        normalVector
     end
     
     properties (Access = private)

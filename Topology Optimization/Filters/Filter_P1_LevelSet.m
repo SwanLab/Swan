@@ -12,7 +12,7 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
         geometry
         quadrature
 
-        domainType        
+        domainType
         projector
         
         interp

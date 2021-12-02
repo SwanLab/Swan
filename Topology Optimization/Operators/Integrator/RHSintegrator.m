@@ -8,6 +8,7 @@ classdef RHSintegrator < handle
         quadOrder
         
         quadrature
+        nunknPerField
     end
     
     methods (Access = public)
@@ -31,7 +32,8 @@ classdef RHSintegrator < handle
 %                 int = int + bsxfun(@times,shape,fdv);
 %             end
             for igaus = 1:obj.quadrature.ngaus
-                for iField = 1:2 %nunkn
+                nunkn = obj.nunknPerField;
+                for iField = 1:nunkn %nunkn
                     fdv = fG(:,:,iField).* dV;
                     shape = shapes(:, :, igaus); % canviat
                     int = int + bsxfun(@times,shape,fdv);
@@ -80,6 +82,11 @@ classdef RHSintegrator < handle
             obj.mesh      = cParams.mesh;
             obj.type      = cParams.type;
             obj.quadOrder = cParams.quadOrder;
+            if isfield(cParams, 'nunknPerField')
+                obj.nunknPerField = cParams.nunknPerField;
+            else
+                obj.nunknPerField = 2;
+            end
         end
         
         function q = computeQuadrature(obj)

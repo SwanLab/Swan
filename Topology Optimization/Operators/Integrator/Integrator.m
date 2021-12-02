@@ -1,10 +1,13 @@
 classdef Integrator < handle
 
+    properties (Access = public)
+       dim % new
+    end
+
     properties (GetAccess = protected, SetAccess = protected)
        npnod 
        globalConnec
        mesh
-       dim % new
     end
     
     methods (Static, Access = public)
@@ -51,6 +54,7 @@ classdef Integrator < handle
             s.mesh      = obj.mesh;
             s.type      = type;
             s.quadOrder = quadOrder;
+            s.nunknPerField = obj.dim.nunknPerField;
             rhs = RHSintegrator(s);
             rhsC = rhs.integrate();
 %             rhsC = rhs.integrateWithShapeDerivative();

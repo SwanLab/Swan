@@ -12,7 +12,7 @@ classdef ShFunc_Chomog_EnforceCh_CCstar_eq < ShFunc_Chomog_EnforceCh
         
         function computeCostAndGradient(obj,x)
             obj.computePhysicalData(x);
-            obj.computeCCstar(x);  
+            obj.computeCCstar(x);
             
             obj.value = obj.value(obj.component);
             obj.gradient = obj.gradient(:,obj.component);
@@ -20,6 +20,6 @@ classdef ShFunc_Chomog_EnforceCh_CCstar_eq < ShFunc_Chomog_EnforceCh
             obj.gradient = obj.gradient/obj.initial_value;
             obj.passFilter();
         end
-    end   
+    end
 end
 

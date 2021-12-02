@@ -10,7 +10,7 @@ classdef ChTargetFactory < handle
                     E1  = cParams.E_plus;
                     E0  = cParams.E_minus;
                     nu1 = cParams.nu_plus;
-                    nu0 = cParams.nu_minus;                    
+                    nu0 = cParams.nu_minus;
                     kappa_f = @(E,nu) E/2*(1-nu);
                     mu_f = @(E,nu) E/2*(1-nu);
                     
@@ -51,7 +51,7 @@ classdef ChTargetFactory < handle
                            
                     %Ch_star = [0.0129   -0.0158    0.0000;
                     %           -0.0158    0.0812   -0.0000;
-                    %           0.0000   -0.0000    0.0021];       
+                    %           0.0000   -0.0000    0.0021];
                     
                     Ch_star = [  0.0157   -0.0174   -0.0000;
                                 -0.0174    0.0815   -0.0000;
@@ -91,7 +91,7 @@ classdef ChTargetFactory < handle
                 case 'Vfrac04b' %Circle of 0.4 radius
                          Ch_star = [ 0.7519    0.2237   -0.0000;
                                   0.2237    0.7519   -0.0000;
-                                 -0.0000   -0.0000    0.2245];                             
+                                 -0.0000   -0.0000    0.2245];
                     
                 case 'Vfrac03'
                     Ch_star =[
@@ -99,10 +99,10 @@ classdef ChTargetFactory < handle
                         0.0407    0.0611         0
                         0         0    0.0204];
                     
-                case 'HorizontalRectangleInclusion'                         
+                case 'HorizontalRectangleInclusion'
                     Ch_star = [0.4637    0.0010    0.0000
                                0.0010    0.0031    0.0000
-                               -0.0000    0.0000    0.0011];                          
+                               -0.0000    0.0000    0.0011];
 
                 case 'Composite'
                     Ch_star =[1 0.15 0;

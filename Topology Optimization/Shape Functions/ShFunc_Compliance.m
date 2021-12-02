@@ -40,7 +40,7 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
                         'AlphaAbsGauss'};
             fP = obj.obtainPrintVariables(types,names);
             fP = obj.addHomogPrintVariablesNames(fP);
-        end        
+        end
         
     end
     

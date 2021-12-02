@@ -16,7 +16,7 @@ classdef GeometryTypeComputer < handle
     methods (Access = public)
         
         function obj = GeometryTypeComputer(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)
         end
         
         function g = compute(obj)
@@ -28,7 +28,7 @@ classdef GeometryTypeComputer < handle
                     g = 'Surface';
                 case 3
                     g = 'Volume';
-            end            
+            end
         end
         
     end

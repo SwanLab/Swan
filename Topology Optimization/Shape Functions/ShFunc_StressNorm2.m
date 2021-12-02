@@ -29,10 +29,10 @@ classdef ShFunc_StressNorm2 < ShFunWithElasticPdes
             obj.createEquilibriumProblem(fileName);
             obj.createAdjointProblem(fileName);
             obj.createOrientationUpdater();
-            obj.createElementsToOptimize();           
+            obj.createElementsToOptimize();
             obj.updateHomogenizedMaterialProperties();  
             obj.nelem = obj.physicalProblem.mesh.nelem;
-            obj.ngaus = obj.physicalProblem.element.quadrature.ngaus;            
+            obj.ngaus = obj.physicalProblem.element.quadrature.ngaus;
         end
         
         function f = getPdesVariablesToPrint(obj)

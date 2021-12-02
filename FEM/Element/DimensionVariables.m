@@ -10,6 +10,7 @@ classdef DimensionVariables < handle
         ngaus
         nentries
         ndim
+        nunknPerField
     end
 
     properties (Access = private)
@@ -25,7 +26,7 @@ classdef DimensionVariables < handle
 
         function compute(obj)
             obj.nnode          = obj.mesh.nnode;
-            obj.nunkn          = obj.createNUnkn();
+            obj.nunkn          = obj.createNUnknPerField();
             obj.nstre          = obj.createNstre();
             obj.ndof           = obj.mesh.npnod*obj.nunkn;
             obj.nelem          = obj.mesh.nelem;
@@ -34,6 +35,9 @@ classdef DimensionVariables < handle
             obj.ndim           = obj.createNdim();
         end
 
+        function applyNUnknPerField(obj, num)
+            obj.nunknPerField = num;
+        end
     end
     
     methods (Access = private)
@@ -44,12 +48,14 @@ classdef DimensionVariables < handle
             obj.ngaus = cParams.ngaus;
         end
         
-        function nUnkn = createNUnkn(obj) % createNUnknPerField
+        function nUnkn = createNUnknPerField(obj) % createNUnknPerField
             switch obj.pdim
                 case '2D'
                     nUnkn = 2;
                 case '3D'
                     nUnkn = 3;
+                case 'FILTER'
+                    nUnkn = 1;
             end
         end
 
@@ -59,6 +65,8 @@ classdef DimensionVariables < handle
                     ndim = 2;
                 case '3D'
                     ndim = 3;
+                case 'FILTER'
+                    ndim = [];
             end
         end
 
@@ -68,6 +76,8 @@ classdef DimensionVariables < handle
                     nstre = 3;
                 case '3D'
                     nstre = 6;
+                case 'FILTER'
+                    nstre = [];
             end
         end
 

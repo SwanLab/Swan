@@ -10,7 +10,7 @@ classdef ShapeFunctionProjector_ForTriangles < ShapeFunctionProjector
            coord  = obj.mesh.coord';
            connec = obj.mesh.connec';
            xProj = obj.faireF2(coord,connec,x); 
-        end    
+        end
         
     end
     
@@ -64,7 +64,7 @@ classdef ShapeFunctionProjector_ForTriangles < ShapeFunctionProjector
             F = F-accumarray(ps(2,:)',((psis(1,:)./(psis(1,:)-psis(2,:))).*A/3)',[np,1],@sum,0);
             F = F-accumarray(ps(3,:)',((psis(1,:)./(psis(1,:)-psis(3,:))).*A/3)',[np,1],@sum,0);
             aire = aire-sum(A);
-        end  
+        end
         
         
     end

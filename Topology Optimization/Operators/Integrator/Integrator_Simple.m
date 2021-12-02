@@ -49,6 +49,7 @@ classdef Integrator_Simple < Integrator
         
         function rhs = integrateFgauss(obj,fGauss,xGauss,quadOrder)
             type     = obj.mesh.type;
+            dim.nfields = 1;
             rhsCells = obj.computeElementalRHS(fGauss,xGauss,type,quadOrder);
             rhs = obj.assembleIntegrand(rhsCells);
         end

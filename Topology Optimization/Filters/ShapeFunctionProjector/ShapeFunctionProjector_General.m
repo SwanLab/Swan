@@ -22,6 +22,7 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
                 s.mesh = obj.unfittedMesh;
                 s.type = 'Unfitted';
                 s.dim  = obj.computeDim(s.mesh.backgroundMesh);
+                s.dim.applyNUnknPerField(1);
                 s.npnod = obj.unfittedMesh.backgroundMesh.npnod;
                 integrator = Integrator.create(s);
                 fInt = integrator.integrateInDomain(fNodes);
@@ -48,12 +49,13 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
         end
 
         function pdim = createPdim(obj, mesh)
-            switch mesh.ndim
-                case 2
-                    pdim = '2D';
-                case 3
-                    pdim = '3D';
-            end
+%             switch mesh.ndim
+%                 case 2
+%                     pdim = '2D';
+%                 case 3
+%                     pdim = '3D';
+%             end
+            pdim = 'FILTER';
         end
 
     end

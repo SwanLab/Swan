@@ -63,7 +63,6 @@ classdef Integrator_Unfitted < Integrator
             s.globalConnec          = gConnec;
             s.npnod                 = obj.mesh.backgroundMesh.npnod;
             s.backgroundMeshType    = mesh.backgroundMesh.type;
-            s.dim.nunknPerField = 1;
         end
         
         function computeBoundaryIntegrators(obj)

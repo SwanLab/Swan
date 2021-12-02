@@ -18,16 +18,16 @@ classdef ShFunc_Chomog_alphabeta < ShFunc_Chomog
             invChAB = obj.projectTensor(invCh,obj.alpha,obj.beta);
             obj.value = invChAB;
         end        
-                       
+        
         function computeGradientValue(obj)
             obj.computeChDerivative();
-            dinvChAB = obj.computedChInv(obj.Chomog,obj.alpha,obj.beta);            
+            dinvChAB = obj.computedChInv(obj.Chomog,obj.alpha,obj.beta);
             obj.gradient = dinvChAB;
         end
                 
         function q = getQuad(obj)
             q = obj.physicalProblem.element.quadrature;
-        end        
+        end
         
     end
     

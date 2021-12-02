@@ -35,7 +35,7 @@ classdef Quadrilateral_Bilinear < Interpolation
             obj.shape(1,:,:) = 0.25*(I-t-s+s.*t);
             obj.shape(2,:,:) = 0.25*(I-t+s-s.*t);
             obj.shape(3,:,:) = 0.25*(I+t+s+s.*t);
-            obj.shape(4,:,:) = 0.25*(I+t-s-s.*t); 
+            obj.shape(4,:,:) = 0.25*(I+t-s-s.*t);
         end
         
         function computeShapeDerivatives(obj,posgp)
