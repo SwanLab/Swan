@@ -21,12 +21,12 @@ classdef SuperEllipseDistributionExample < handle
     methods (Access = public)
         
         function obj = SuperEllipseDistributionExample(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)
         end
         
         function computeParameters(obj)
             obj.computeM1M2();
-            obj.computeSmoothExponent();            
+            obj.computeSmoothExponent();
         end
         
     end
@@ -51,9 +51,9 @@ classdef SuperEllipseDistributionExample < handle
             obj.m2 = obj.createLinearFunction(r,obj.mMin,obj.mMax);
         end
         
-        function computeSmoothExponent(obj) 
+        function computeSmoothExponent(obj)
             x1 = obj.coord(:,1);
-            x2 = obj.coord(:,2);             
+            x2 = obj.coord(:,2);
             xM = max(x1,x2);
             obj.q = obj.createLinearFunction(xM,obj.qMin,obj.qMax);
         end
@@ -69,6 +69,6 @@ classdef SuperEllipseDistributionExample < handle
             f = (m);
         end
         
-    end    
+    end
     
 end

@@ -43,7 +43,7 @@ for iter = 1:nIteration
     
     if iter == 1 || iter/10 == floor(iter/10)
         print(folder,fCase,stresLpNorm,stressMax,iter)
-    end        
+    end
     
     
 end

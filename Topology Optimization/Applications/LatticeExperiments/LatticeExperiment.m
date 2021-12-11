@@ -37,10 +37,10 @@ classdef LatticeExperiment < handle
                 %'CantileverSymmetricWithoutFixing';
                 %'ArchSymSuperEllipseDesignVariable'
    %'LshapeCoarseSuperEllipseDesignVariable'
-            %       'ExperimentingPlotSuperEllipseArchDesignVariable'                
-        %  'ExperimentingPlotSuperEllipseArch';              
+            %       'ExperimentingPlotSuperEllipseArchDesignVariable'
+        %  'ExperimentingPlotSuperEllipseArch';
  %              'ExperimentingPlotRectangle';
-        %'ExperimentingPlotSuperEllipse';              
+        %'ExperimentingPlotSuperEllipse';
             %'CantileverSymmetricMeshSuperEllipsePDEDouble'
           %  'LatticeExperimentInputCantileverSymmetricMeshSuperEllipseP1';
          %   'LatticeExperimentInputCantileverSymmetricMeshRectangleP1'
@@ -57,27 +57,27 @@ classdef LatticeExperiment < handle
                 %'LatticeExperimentInputBulkSymRectangle'
                 %'LatticeExperimentInputCantileverTriNewRectangle';
        %         'LatticeExperimentInputCantileverTriFineRectangle'
-                %'LatticeExperimentInputLshapeExtendedRectangle';                
+                %'LatticeExperimentInputLshapeExtendedRectangle';
                 %'LatticeExperimentInputLshapeExtendedSuperEllipse';
               %  'LatticeExperimentInputBulkFineRectangle';
               %'LatticeExperimentInputBulkSuperEllipse';
 
             %   'LatticeExperimentInputLshapeTriFineRectangle';
-            %  'LatticeExperimentInputLshapeTriFineSuperEllipse';                
+            %  'LatticeExperimentInputLshapeTriFineSuperEllipse';
             %'LatticeExperimentInputArchTriYSuperEllipse';
             %'LatticeExperimentInputArchTriYRectangle';  
              
         %  'LatticeExperimentInputCantileverTriSuperEllipse';
-         %   'LatticeExperimentInputCantileverTriRectangle';                                             
+         %   'LatticeExperimentInputCantileverTriRectangle';
              %  'LatticeExperimentInputCantileverTriFineSuperEllipse';
              %  'LatticeExperimentInputCantileverTriFineRectangle'; 
                          %     'LatticeExperimentInputCantileverTriFineEllipse';
 
                
-               %'LatticeExperimentInputArchTriFineRectangle';                                                             
+               %'LatticeExperimentInputArchTriFineRectangle';
                %'LatticeExperimentInputArchTriFineSuperEllipse';
-               %'LatticeExperimentInputLshapeTriFineEllipse';  
-               %'LatticeExperimentInputArchTriFineEllipse';                 
+               %'LatticeExperimentInputLshapeTriFineEllipse';
+               %'LatticeExperimentInputArchTriFineEllipse';
                };
             
         end
@@ -89,7 +89,7 @@ classdef LatticeExperiment < handle
         end
         
         function solveProblem(obj)
-            obj.topOptProblem = TopOpt_Problem(obj.topOptSet);  
+            obj.topOptProblem = TopOpt_Problem(obj.topOptSet);
             obj.topOptProblem.computeVariables(); 
             obj.topOptProblem.postProcess();
         end

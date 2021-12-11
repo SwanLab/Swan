@@ -14,7 +14,7 @@ f = figure();
 hold on
 it = 1;
 for iPlot = 1:numel(fCase)
-    fName = fullfile(folder{iPlot},fCase{iPlot});    
+    fName = fullfile(folder{iPlot},fCase{iPlot});
     [xV,yV,cV] = getCostFunctions(fName);
     for iline = 1:size(yV,2)
         p{it} = plot(xV,yV(:,iline),'Color',cV(:,iline));

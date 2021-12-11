@@ -22,7 +22,7 @@ classdef StressNormFromVademecumComputer < handle
     methods (Access = public)
         
         function obj = StressNormFromVademecumComputer(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)
         end
         
         function v = compute(obj)
@@ -53,7 +53,7 @@ classdef StressNormFromVademecumComputer < handle
             for iStep = 1:nP
                 obj.stressNormFunctional.setPnorm(obj.pNorm(iStep))
                 obj.stressNormFunctional.computeFunction();
-                v = obj.stressNormFunctional.value;                
+                v = obj.stressNormFunctional.value;
                 valueR(iStep) = v*(value0);
             end
         end
@@ -72,14 +72,14 @@ classdef StressNormFromVademecumComputer < handle
         
         function s = createScalarProductParams(obj)
             s.epsilon = [];
-            s.mesh = obj.mesh;            
+            s.mesh = obj.mesh;
         end
         
         function s = createCreatorSettings(obj)
             s.m1 = obj.m1;
             s.m2 = obj.m2;
             s.homogSettings.fileName = obj.vademecumName;
-            s.homogSettings.type     = 'ByVademecum';            
+            s.homogSettings.type     = 'ByVademecum';
         end
         
         function createStressNormFunctional(obj)
@@ -96,12 +96,12 @@ classdef StressNormFromVademecumComputer < handle
         function femS = createFemSettings(obj)
             femS.fileName = obj.fileName;
             femS.scale = 'MACRO';
-            femS.mesh = obj.mesh;            
+            femS.mesh = obj.mesh;
         end
         
         function s = createFilterSettings(obj)
             s.filterType = 'PDE';
-            s.femSettings = obj.createFemSettings();                        
+            s.femSettings = obj.createFemSettings();
         end
         
         function targetParams = createTargetParameters(obj)
@@ -116,7 +116,7 @@ classdef StressNormFromVademecumComputer < handle
             s.fileName = obj.vademecumName;
             s.nelem = obj.mesh.nelem;
             homogVar = HomogenizedVarComputer.create(s);
-        end        
+        end
         
     end
     

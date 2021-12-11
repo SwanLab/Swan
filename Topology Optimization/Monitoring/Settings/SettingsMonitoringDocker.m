@@ -19,7 +19,7 @@ classdef SettingsMonitoringDocker < AbstractSettings
         
         designVariable
         dualVariable
-        optimizerNames        
+        optimizerNames
         cost
         constraint
         

@@ -36,7 +36,7 @@ classdef ComparingSuperEllipseVsRectangle < handle
             finalIter = '589';'485';'405';'250';'296';
             fCase = [obj.microCase,'Rotation',meshType];
             obj.path = ['/media/alex/My Passport/LatticeResults/StressNorm',fCase,'/'];
-            obj.fileResName  = ['ExperimentingPlot',finalIter];   
+            obj.fileResName  = ['ExperimentingPlot',finalIter];
             obj.fileNameMesh = ['CantileverSquare',meshType];
             obj.pNorm = 2:2:32;
         end
@@ -61,14 +61,14 @@ classdef ComparingSuperEllipseVsRectangle < handle
         
         function computeDesignParamsFromSuperEllipseExample(obj)
             obj.m1S = obj.dataRes.DesignVar1;
-            obj.m2S = obj.dataRes.DesignVar2;              
-            [obj.m1R,obj.m2R] = obj.computeRectangleM1M2FromSuperEllipseM1M2(obj.m1S,obj.m2S);                        
+            obj.m2S = obj.dataRes.DesignVar2;
+            [obj.m1R,obj.m2R] = obj.computeRectangleM1M2FromSuperEllipseM1M2(obj.m1S,obj.m2S);
         end
         
         function computeDesignParamsFromrectangleExample(obj)
             obj.m1S = obj.dataRes.DesignVar1;
-            obj.m2S = obj.dataRes.DesignVar2;              
-            [obj.m1R,obj.m2R] = obj.computeRectangleM1M2FromSuperEllipseM1M2(obj.m1S,obj.m2S);                        
+            obj.m2S = obj.dataRes.DesignVar2;
+            [obj.m1R,obj.m2R] = obj.computeRectangleM1M2FromSuperEllipseM1M2(obj.m1S,obj.m2S);
         end
                 
         function computeStresses(obj)
@@ -77,7 +77,7 @@ classdef ComparingSuperEllipseVsRectangle < handle
            f = figure();
            hold on
            p{1} = plot(obj.pNorm,valueR);
-           p{2} = plot(obj.pNorm,valueS);           
+           p{2} = plot(obj.pNorm,valueS);
            legend({'Rectangle','SuperEllipse'},'Location','Best');
            xlabel('p');
            ylabel('||\sigma||_p');
@@ -89,25 +89,25 @@ classdef ComparingSuperEllipseVsRectangle < handle
         function value = computeStressNormSuperEllipse(obj)
             s.m1            = obj.m1S;
             s.m2            = obj.m2S;
-            s.alpha         = obj.dataRes.AlphaGauss';                        
+            s.alpha         = obj.dataRes.AlphaGauss';
             s.vademecumName = 'SuperEllipseQOptAnalytic';
             s.mesh          = obj.mesh;
             s.fileName      = obj.fileNameMesh;
-            s.pNorm         = obj.pNorm;            
+            s.pNorm         = obj.pNorm;
             sC = StressNormFromVademecumComputer(s);
-            value = sC.compute();             
+            value = sC.compute();
         end        
         
         function value = computeStressNormRectangle(obj)
             s.m1            = obj.m1R;
             s.m2            = obj.m2R;
-            s.alpha         = obj.dataRes.AlphaGauss';                        
+            s.alpha         = obj.dataRes.AlphaGauss';
             s.vademecumName = 'SuperEllipseQMax';
             s.mesh          = obj.mesh;
             s.fileName      = obj.fileNameMesh;
             s.pNorm         = obj.pNorm;
             sC = StressNormFromVademecumComputer(s);
-            value = sC.compute();                        
+            value = sC.compute();
         end
         
     end
@@ -116,17 +116,17 @@ classdef ComparingSuperEllipseVsRectangle < handle
        
         function [m1R,m2R] = computeRectangleM1M2FromSuperEllipseM1M2(m1S,m2S)           
             sE   = SuperEllipseParamsRelator;
-            s.type  = 'Optimal';            
+            s.type  = 'Optimal';
             s.m1    = m1S;
-            s.m2    = m2S;       
-            sM = SmoothingExponentComputer.create(s);            
-            qS(:,1) = sM.compute();               
+            s.m2    = m2S;
+            sM = SmoothingExponentComputer.create(s);
+            qS(:,1) = sM.compute();
             rho  = sE.rho(m1S,m2S,qS);
-            xi   = sE.xi(m1S,m2S);             
+            xi   = sE.xi(m1S,m2S);
             s.type  = 'Given';
-            s.q    = 32*ones(size(m1S));                    
-            sM = SmoothingExponentComputer.create(s);           
-            qR(:,1) = sM.compute();              
+            s.q    = 32*ones(size(m1S));
+            sM = SmoothingExponentComputer.create(s);
+            qR(:,1) = sM.compute();
             m1R = sE.mx(xi,rho,qR);
             m2R = sE.my(xi,rho,qR);
         end
@@ -134,12 +134,12 @@ classdef ComparingSuperEllipseVsRectangle < handle
         function [m1S,m2S] = computeSuperEllipseM1M2FromRectangleM1M2(m1R,m2R)
             sE   = SuperEllipseParamsRelator;
             rho  = sE.rho(m1R,m2R,q);
-            xi   = sE.xi(m1R,m2R);             
+            xi   = sE.xi(m1R,m2R);
             s.type  = 'Optimal';
             s.m1    = [];
-            s.m2    = [];       
-            sM = SmoothingExponentComputer.create(s);            
-            qS(:,1) = sM.computeQ(rho,xi);   
+            s.m2    = [];
+            sM = SmoothingExponentComputer.create(s);
+            qS(:,1) = sM.computeQ(rho,xi);
             m1S = sE.mx(xi,rho,qS);
             m2S = sE.my(xi,rho,qS);
         end                

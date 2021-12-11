@@ -34,16 +34,16 @@ classdef ConvergencePlotComputerMaterialDesignExperimentCircle < handle
         function init(obj)
             obj.filesPath = '/media/alex/MyPassport/MaterialDesign/CStar/';
             obj.outPutPlotPath = '/home/alex/Dropbox/MaterialDesign/CC';
-            obj.linesData = [1:6,9:15];            
-            obj.barData = [7:8];          
+            obj.linesData = [1:6,9:15];
+            obj.barData = [7:8];
             obj.alphas = {'0.10','0.00'};
-            obj.legends = {'$\alpha=0.1$','$\alpha=0$'};                
+            obj.legends = {'$\alpha=0.1$','$\alpha=0$'};
             obj.testNames = {'LargeCircleWithPerimeter10_1b/','LargeCircleWithPerimeter10_12b'};
         end
         
         function loadFieldsData(obj)
             for iCase = 1:numel(obj.testNames)
-                testPath = fullfile(obj.filesPath,obj.testNames{iCase},'/');                     
+                testPath = fullfile(obj.filesPath,obj.testNames{iCase},'/');
                 s.testPath  = testPath;
                 s.linesData = obj.linesData;
                 s.barData   = obj.barData;
@@ -61,13 +61,13 @@ classdef ConvergencePlotComputerMaterialDesignExperimentCircle < handle
         
         function plotCost(obj)
             for iCase = 1:numel(obj.testNames)
-                fieldData = obj.fieldsData{iCase};                
+                fieldData = obj.fieldsData{iCase};
                 fieldToPlot = 'C - C not scaled';
                 [x,y] = obj.obtainField(fieldToPlot,fieldData);
                 p{iCase} = semilogy(x,y);
                 hold on
-            end              
-            legend(obj.legends,'Interpreter','latex','Location','Best'); 
+            end
+            legend(obj.legends,'Interpreter','latex','Location','Best');
             f = figure(1);
             p = plotPrinter(f,p);
             p.print(fullfile(obj.outPutPlotPath,'Cost'))
@@ -76,14 +76,14 @@ classdef ConvergencePlotComputerMaterialDesignExperimentCircle < handle
         function plotPerimeter(obj)
             figure(2)
             for iCase = 1:numel(obj.testNames)
-                fieldData = obj.fieldsData{iCase};                
+                fieldData = obj.fieldsData{iCase};
                 fieldToPlot = 'Perimeter non scaled';
-                %fieldToPlot = ['PerimeterInterior (wt. ',obj.alphas{iCase},')'];                
+                %fieldToPlot = ['PerimeterInterior (wt. ',obj.alphas{iCase},')'];
                 [x,y] = obj.obtainField(fieldToPlot,fieldData);
                 p{iCase} = plot(x,y);
                 hold on
             end               
-            legend(obj.legends,'Interpreter','latex','Location','Best'); 
+            legend(obj.legends,'Interpreter','latex','Location','Best');
             f = figure(2);
             p = plotPrinter(f,p);
             p.print(fullfile(obj.outPutPlotPath,'Perimeter'))
@@ -92,13 +92,13 @@ classdef ConvergencePlotComputerMaterialDesignExperimentCircle < handle
         function plotVolum(obj)
             figure(3)
             for iCase = 1:numel(obj.testNames)
-                fieldData = obj.fieldsData{iCase};                
-                fieldToPlot = 'Volum';                
+                fieldData = obj.fieldsData{iCase};
+                fieldToPlot = 'Volum';
                 [x,y] = obj.obtainField(fieldToPlot,fieldData);
                 p{iCase} = plot(x,y);
                 hold on
             end   
-            legend(obj.legends,'Interpreter','latex','Location','Best'); 
+            legend(obj.legends,'Interpreter','latex','Location','Best');
             f = figure(3);
             p = plotPrinter(f,p);
             p.print(fullfile(obj.outPutPlotPath,'Volume'))
@@ -107,16 +107,16 @@ classdef ConvergencePlotComputerMaterialDesignExperimentCircle < handle
         function plotEpsilon(obj)
             figure(4)
             for iCase = 1:numel(obj.testNames)
-                fieldData = obj.fieldsData{iCase};                
-                [x,y] = obj.obtainField('epsilon over h',fieldData);                
+                fieldData = obj.fieldsData{iCase};
+                [x,y] = obj.obtainField('epsilon over h',fieldData);
                 p{iCase} = plot(x,y);
                 hold on
-            end               
-            legend(obj.legends,'Interpreter','latex','Location','Best'); 
+            end
+            legend(obj.legends,'Interpreter','latex','Location','Best');
             f = figure(4);
             p = plotPrinter(f,p);
             p.print(fullfile(obj.outPutPlotPath,'Epsilon'))
-        end          
+        end
         
     end
     
@@ -130,7 +130,7 @@ classdef ConvergencePlotComputerMaterialDesignExperimentCircle < handle
                     yV = fieldData{iField}.yValue;
                 end
             end
-        end        
+        end
         
     end
     

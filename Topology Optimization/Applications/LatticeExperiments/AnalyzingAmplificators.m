@@ -1,7 +1,7 @@
 classdef AnalyzingAmplificators < handle
     
     properties (Access = private)
-       homog 
+       homog
        m1
        m2
     end
@@ -11,7 +11,7 @@ classdef AnalyzingAmplificators < handle
         pNorm
         path
     end
-        
+    
     
     methods (Access = public)
         
@@ -42,7 +42,7 @@ classdef AnalyzingAmplificators < handle
         function createHomogenizedComputer(obj)
            s.type = 'ByVademecum';
            s.fileName = obj.fileName;
-           h = HomogenizedVarComputer.create(s);     
+           h = HomogenizedVarComputer.create(s);
            obj.homog = h;
         end
         
@@ -50,13 +50,13 @@ classdef AnalyzingAmplificators < handle
             x{1} = obj.m1;
             x{2} = obj.m2;
             x{3} = [ones(1,length(obj.m1));zeros(1,length(obj.m1))];
-            obj.homog.computePtensor(x,obj.pNorm);            
+            obj.homog.computePtensor(x,obj.pNorm);
         end
         
-        function plot(obj)    
+        function plot(obj)
             obj.plot1111();
             obj.plot2222();
-            obj.plot1212();            
+            obj.plot1212();
             obj.printFigure(f,h)
         end
         
@@ -66,7 +66,7 @@ classdef AnalyzingAmplificators < handle
             obj.plotComponent(comp,name);
         end
         
-        function plot1111(obj)            
+        function plot1111(obj)
             comp = 1287;
             name = 'P1111';
             obj.plotComponent(comp,name);
@@ -75,22 +75,22 @@ classdef AnalyzingAmplificators < handle
         function plot2222(obj)
             comp = 495;
             name = 'P2222';
-            obj.plotComponent(comp,name);            
+            obj.plotComponent(comp,name);
         end
         
         function plotComponent(obj,comp,name)
-            f = figure();              
+            f = figure();
             Pp = obj.homog.Pp(comp,:);
             Ppn = (Pp).^(1/obj.pNorm);
             h{1} = semilogy(obj.m2,(Ppn),'+-');
-            legend(name);            
+            legend(name);
             obj.printFigure(f,h,name)
         end
         
         function printFigure(obj,f,h,name)
-            outputName = [obj.path,name,'m2_05'];            
+            outputName = [obj.path,name,'m2_05'];
             printer = plotPrinter(f,h);
-            printer.print(outputName);            
+            printer.print(outputName);
         end
         
     end

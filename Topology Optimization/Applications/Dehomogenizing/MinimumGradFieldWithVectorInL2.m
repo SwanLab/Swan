@@ -13,7 +13,7 @@ classdef MinimumGradFieldWithVectorInL2 < handle
     methods (Access = public)
         
         function obj = MinimumGradFieldWithVectorInL2(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)
         end
 
         function u = solve(obj)
@@ -56,7 +56,7 @@ classdef MinimumGradFieldWithVectorInL2 < handle
             s.type         = 'MassMatrix';
             lhs = LHSintegrator.create(s);
             M = lhs.compute();
-        end        
+        end
         
         function computeRHS(obj)
             q = Quadrature.set(obj.mesh.type);
@@ -89,7 +89,7 @@ classdef MinimumGradFieldWithVectorInL2 < handle
             s = Solver.create();
             u = s.solve(obj.LHS,obj.RHS);
             u = u(1:end-1);
-        end        
+        end
         
     end
     
