@@ -51,7 +51,13 @@ classdef Integrator_Unfitted < Integrator
             s.type         = 'SIMPLE';
             s.globalConnec = innerMesh.globalConnec;
             s.npnod        = obj.mesh.backgroundMesh.npnod;
-            s.dim.nunknPerField = 1;
+            if isfield(obj, 'dim')
+                if isfield(obj.dim, 'nunknPerField')
+                    s.nunknPerField = obj.dim.nunknPerField;
+                end
+            else
+                s.nunknPerField = 2;
+            end
 %             s.dim.nunknPerField = obj.dim.nunknPerField;
         end
         
