@@ -9,9 +9,9 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             'testDualNestedInPrimal_WithSlerp', ...
             'test_interiorPerimeter'
             }
+%         compTestsToPass = {'test_bridge'}
+%         compTestsToPass = {'test_interiorPerimeter'}
         compTests = {'test_bridge'}
-%         compTestsToPass = {'test_bridge'
-%             }
         dimensions = {'2D', '3D'}
         vigdergauzTests = {'test_VigergauzMicroStructure', 'test_VigergauzMicroStructureFromStrain'}
         vigdergauzVolumes = {0.6, 0.75}

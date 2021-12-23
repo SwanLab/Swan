@@ -39,7 +39,7 @@ classdef DirichletConditionsApplier < BoundaryConditionsApplier
             uD = obj.computeUd();
             dirichlet = obj.computeDirichlet();
             free = obj.computeGlobalFree();
-        end        
+        end
         
         
     end

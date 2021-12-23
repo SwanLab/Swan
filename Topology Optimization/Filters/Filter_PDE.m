@@ -23,7 +23,7 @@ classdef Filter_PDE < Filter
            %!!!! EHHH 
            % x_reg = x;
            for igaus = 1:obj.quadrature.ngaus
-                x0(:,igaus) = obj.Anodal2Gauss{igaus}*x_reg;                
+                x0(:,igaus) = obj.Anodal2Gauss{igaus}*x_reg;
            end
         end
         
@@ -47,7 +47,7 @@ classdef Filter_PDE < Filter
         function computeLHS(obj)
             lhs = obj.diffReacProb.element.computeLHS();
             obj.LHS = decomposition(lhs);
-        end                
+        end
         
     end
     
@@ -55,7 +55,7 @@ classdef Filter_PDE < Filter
         
         function intX = integrate_P1_function_with_shape_function(obj,x)
             ndof = size(obj.Anodal2Gauss{1},2);
-            intX = zeros(ndof,1);            
+            intX = zeros(ndof,1);
             for igaus = 1:obj.quadrature.ngaus
                 dVG = obj.geometry.dvolu(:,igaus);
                 xG = x(:,igaus);
@@ -70,14 +70,13 @@ classdef Filter_PDE < Filter
             x_reg = obj.diffReacProb.variables.x;
         end
 
-        
         function itHas = hasEpsilonChanged(obj,eps)
             if isempty(obj.epsilon)
                 obj.epsilon = 0;
             end
             var = abs(eps - obj.epsilon)/eps;
             itHas = var > 1e-15;
-        end        
+        end
         
     end
     
