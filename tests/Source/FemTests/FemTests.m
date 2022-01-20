@@ -1,7 +1,8 @@
 classdef FemTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
-        duTests = {'test2d_triangle', 'test2d_quad', 'test3d_tetrahedra', 'test3d_hexahedra'}
+        duTests = {'test2d_triangle'};
+        %duTests = {'test2d_triangle', 'test2d_quad', 'test3d_tetrahedra', 'test3d_hexahedra'}
         stokesTests = {'test2d_stokes_triangle'}
         microTests = {'test2d_micro'}
     end

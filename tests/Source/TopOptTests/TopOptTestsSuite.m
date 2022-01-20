@@ -8,7 +8,7 @@ classdef TopOptTestsSuite < handle
             % Nota II: Els Vigdergauz .mat i .m no coincideixen en
             % resultats!
             cami = './tests/Source/TopOptTests/TopOptTests.m'; % des de /swan/
-            suite = matlab.unittest.TestSuite.fromFile(cami, 'Tag','TopOpt');
+            suite = matlab.unittest.TestSuite.fromFile(cami, 'Tag',{'Various'});
             results = suite.run;
             table(results)
         end

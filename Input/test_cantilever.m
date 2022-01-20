@@ -3,8 +3,8 @@ ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'compliance','perimeter'};
-weights = [1 0.1];
+cost = {'compliance'};
+weights = [1];
 constraint = {'volumeConstraint'};
 constraint_case = 'EQUALITY';
 optimizerUnconstrained = 'PROJECTED GRADIENT'; 
@@ -15,7 +15,7 @@ filterType = 'P1';
 line_search_initiator = 'INCREASING LAST STEP';
 
 
-nsteps = 1;
+nsteps = 7;
 Vfrac_final = 0.3;
 optimality_final =1e-3;
 constr_final = 1e-5;
@@ -32,9 +32,9 @@ TOL.E_minus = 1e-3;
 TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
-plotting = false;
+plotting = true;
 printing = false;
 printing_physics = false;
-monitoring = false;
-monitoring_interval = 1;
-maxiter = 15;
+monitoring = true;
+monitoring_interval = 10;
+maxiter = 150;
