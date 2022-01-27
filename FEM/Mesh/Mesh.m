@@ -13,7 +13,6 @@ classdef Mesh < handle
         nelem
         ndim
         
-        
         coordElem
         interpolation
         

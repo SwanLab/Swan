@@ -161,7 +161,7 @@ classdef NewElasticProblem < NewFEM
         end
 
          function createInterpolation(obj)
-             int = Interpolation.create(obj.mesh,'LINEAR');
+             int = obj.mesh.interpolation;
              %int.computeShapeDeriv(obj.quadrature.posgp);
              obj.interp{1} = int;
          end
@@ -207,15 +207,15 @@ classdef NewElasticProblem < NewFEM
             nfields = 1;
             for iField = 1:nfields
                 bElem = b_elem_cell{iField,1};
-                b = zeros(obj.dof.ndof(iField),1);
-                nUnkn = obj.dof.nunkn(iField);
-                nNode = obj.interp{iField}.nnode;
-                nDof = nNode*nUnkn;
+                b = zeros(obj.dim.ndof(iField),1);
+                nUnkn = obj.dim.nunkn(iField);
+                nNode = obj.dim.nnode;
+                nDof  = obj.dim.ndofPerElement;
                 nGaus = size(bElem,2);
                 for iDof = 1:nDof
                     for igaus = 1:nGaus
                         c = squeeze(bElem(iDof,igaus,:));
-                        idof_elem = obj.dof.in_elem{iField}(iDof,:);
+                        idof_elem = obj.dof.in_elem{iField}(iDof,:); % each column contains the dofs of each element
                         b = b + sparse(idof_elem,1,c',obj.dof.ndof(iField),1);
                     end
                 end
@@ -226,12 +226,14 @@ classdef NewElasticProblem < NewFEM
 
         function FextPoint = computePunctualFext(obj)
             %Compute Global Puntual Forces (Not well-posed in FEM)
-            FextPoint = zeros(obj.dof.ndof,1);
+            FextPoint = zeros(obj.dim.ndof,1);
             if ~isempty(obj.dof.neumann)
                 FextPoint(obj.dof.neumann) = obj.dof.neumann_values;
             end
         end
 
     end
+
+    function coordsToDOFs()
 
 end
