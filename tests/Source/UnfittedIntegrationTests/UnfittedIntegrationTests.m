@@ -38,7 +38,7 @@ classdef UnfittedIntegrationTests < handle & matlab.unittest.TestCase
 
     end
 
-    methods (Test, TestTags = {'UnfittedIntegration', 'Classic', 'Perimeter', 'Rectangle'})
+    methods (Test, TestTags = {'UnfittedIntegration', 'Classic', 'Perimeter', 'Rectanngle'})
 
         function testRectangle(testCase, rectangleTests)
             testCase.fixFolder();
