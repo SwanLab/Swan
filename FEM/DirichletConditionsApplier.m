@@ -44,7 +44,10 @@ classdef DirichletConditionsApplier < BoundaryConditionsApplier
         
     end
     
+    
     methods (Access = private)
+        
+    
         
         function uD = computeUd(obj)
             global_ndof=0;
@@ -73,6 +76,7 @@ classdef DirichletConditionsApplier < BoundaryConditionsApplier
             end
             free = cell2mat(free);
         end
+        
         
     end
     
