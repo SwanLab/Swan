@@ -234,6 +234,6 @@ classdef NewElasticProblem < NewFEM
 
     end
 
-    function coordsToDOFs()
+  %  function coordsToDOFs()
 
 end
