@@ -34,7 +34,7 @@ classdef RHSintegrator < handle
             for igaus = 1:obj.quadrature.ngaus
                 nunkn = obj.nunknPerField;
                 for iField = 1:nunkn %nunkn
-                    fdv = fG(:,:,iField).* dV;
+                    fdv = fG(igaus,:,iField).* dV(igaus,:);
                     shape = shapes(:, :, igaus); % canviat
                     int = int + bsxfun(@times,shape,fdv);
                 end
@@ -82,10 +82,14 @@ classdef RHSintegrator < handle
             obj.mesh      = cParams.mesh;
             obj.type      = cParams.type;
             obj.quadOrder = cParams.quadOrder;
-            if isfield(cParams, 'nunknPerField')
+            if isfield(cParams, 'nunknPerField') 
+                if ~isempty(cParams.nunknPerField)
                 obj.nunknPerField = cParams.nunknPerField;
+                else
+                  obj.nunknPerField = 1;        
+                end
             else
-                obj.nunknPerField = 2;
+                obj.nunknPerField = 1;
             end
         end
         
