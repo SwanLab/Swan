@@ -77,7 +77,6 @@ classdef DirichletConditionsApplier < BoundaryConditionsApplier
             free = cell2mat(free);
         end
         
-        
     end
     
 end

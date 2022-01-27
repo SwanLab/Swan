@@ -26,9 +26,9 @@ classdef AbstractMesh < handle
             xV = obj.xFE.computeValueInCenterElement();
        end
        
-       function xGauss = computeXgauss(obj,xV)                
-            xGauss = obj.xFE.interpolateFunction(xV);            
-       end   
+       function xGauss = computeXgauss(obj,xV)
+            xGauss = obj.xFE.interpolateFunction(xV);
+       end
        
        function dvolume = computeDvolume(obj,quad)
             s.mesh = obj;
@@ -36,14 +36,14 @@ classdef AbstractMesh < handle
             g.computeGeometry(quad,obj.interpolation);
             dvolume = g.dvolu;
             dvolume = dvolume';
-       end  
+       end
        
        function q = computeElementQuality(obj)
             quad = Quadrature.set(obj.type);
             quad.computeQuadrature('CONSTANT');
             volume = obj.computeDvolume(quad); 
             L(1,:) = obj.computeSquarePerimeter();
-            q = 4*sqrt(3)*volume./L;           
+            q = 4*sqrt(3)*volume./L;
        end
        
        function v = computeVolume(obj)
@@ -56,22 +56,22 @@ classdef AbstractMesh < handle
         function computeEdges(obj)
             s.nodesByElem = obj.connec;
             edge = EdgesConnectivitiesComputer(s);
-            edge.compute();            
+            edge.compute();
             obj.edges = edge;
-        end       
-                
+        end
+    
     end
     
     methods (Access = protected)
-               
+        
         function createInterpolation(obj)
-            obj.interpolation = Interpolation.create(obj,'LINEAR');            
-        end        
+            obj.interpolation = Interpolation.create(obj,'LINEAR');
+        end
         
         function computeElementCoordinates(obj)
             obj.computeCoordFEfunction();
             obj.coordElem = obj.xFE.fElem;
-        end                
+        end
         
     end
     
@@ -81,7 +81,7 @@ classdef AbstractMesh < handle
             s.connec   = obj.connec;
             s.type     = obj.type;
             s.fNodes = obj.coord;
-            obj.xFE = FeFunction(s);             
+            obj.xFE = FeFunction(s);
         end
         
         function L = computeSquarePerimeter(obj)

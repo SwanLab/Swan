@@ -17,16 +17,16 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         function obj = Optimizer_HJ(cParams)
             designVar = cParams.designVariable;
             
-            obj@Optimizer_Unconstrained(cParams);            
+            obj@Optimizer_Unconstrained(cParams);
             obj.setupFilter(cParams.scalarProductSettings.epsilon,designVar);
         end
         
         function phi = compute(obj)
             phi = obj.designVariable.value;
-            g   = obj.objectiveFunction.gradient;                        
+            g   = obj.objectiveFunction.gradient;
             phi = obj.updateLevelSet(phi,g);
-            obj.updateOptimalityConditionValue();            
-            obj.designVariable.update(phi);            
+            obj.updateOptimalityConditionValue();
+            obj.designVariable.update(phi);
         end
        
     end
@@ -35,18 +35,18 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         
         function updateOptimalityConditionValue(obj)
             obj.optimalityCond = obj.lineSearch.value;
-        end        
+        end
         
         function V = computeVelocity(obj,g)
-            V     = -obj.filter.regularize(g);           
+            V     = -obj.filter.regularize(g);
             Vnorm = max(abs(V(:)));
             V     = V/Vnorm;
         end
-                
+        
         function solvedPhi = updateLevelSet(obj,phi,g)
             V     = obj.computeVelocity(g);
             dt    = obj.lineSearch.value;
-          %  for i = 1:obj.lineSearch.HJiter                
+          %  for i = 1:obj.lineSearch.HJiter
                 phi = phi - dt*V;
                 phi = phi/norm(phi);
          %   end
@@ -57,7 +57,7 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
             s = SettingsFilter('paramsFilter_PDE_Boundary.json');
             s.mesh = designVar.mesh.innerMeshOLD;
             s.designVarType = designVar.type;
-            s.quadratureOrder = 'LINEAR';   
+            s.quadratureOrder = 'LINEAR';
             s.femSettings.scale = 'MACRO';
             s.designVariable = designVar;
             obj.filter = Filter.create(s);

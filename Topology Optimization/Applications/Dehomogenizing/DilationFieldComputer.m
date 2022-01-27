@@ -8,7 +8,7 @@ classdef DilationFieldComputer < handle
     methods (Access = public)
         
         function obj = DilationFieldComputer(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)
         end
         
         function d = compute(obj)
@@ -27,7 +27,7 @@ classdef DilationFieldComputer < handle
         function r = computeDilationField(obj)
             s.fGauss = obj.computeThetaGradient();
             s.mesh   = obj.mesh;
-            varProb  = MinimumGradFieldWithVectorInL2(s);            
+            varProb  = MinimumGradFieldWithVectorInL2(s);
             r = varProb.solve();
         end
         
@@ -47,10 +47,10 @@ classdef DilationFieldComputer < handle
             for igaus = q.ngaus
                 for inode = 1:obj.mesh.nnode
                    nodeI = nodes(:,inode);
-                   fI = f(nodeI);  
+                   fI = f(nodeI);
                    for idim = 1:obj.mesh.ndim
-                    dN = squeeze(grad(idim,inode,:,igaus));    
-                    gF = squeeze(gradF(idim,igaus,:)); 
+                    dN = squeeze(grad(idim,inode,:,igaus));
+                    gF = squeeze(gradF(idim,igaus,:));
                     gradF(idim,igaus,:) = gF + fI.*dN;%bsxfun(@times,dN,fI);
                    end
                 end
@@ -58,7 +58,7 @@ classdef DilationFieldComputer < handle
             gradT = zeros(size(gradF));
             gradT(1,:,:) = -gradF(2,:,:);
             gradT(2,:,:) = gradF(1,:,:);
-        end        
+        end
         
     end
     

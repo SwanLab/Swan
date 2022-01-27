@@ -10,7 +10,7 @@ classdef Hexahedra_Linear < Interpolation
         
         function computeShapeDeriv(obj,posgp)
             ngaus = size(posgp,2);
-            nelem = size(posgp,3);             
+            nelem = size(posgp,3);
             obj.shape = zeros(obj.nnode,ngaus,nelem);
             obj.deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);
             s=posgp(1,:,:);

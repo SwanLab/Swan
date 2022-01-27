@@ -11,13 +11,13 @@ classdef ConformalMappingComputer < handle
     
     properties (Access = private)
        theta 
-       mesh        
+       mesh
     end
     
     methods (Access = public)
         
         function obj = ConformalMappingComputer(cParams)
-            obj.init(cParams);            
+            obj.init(cParams);
         end
         
         function phiV = compute(obj)
@@ -69,7 +69,7 @@ classdef ConformalMappingComputer < handle
             s.theta = obj.theta;
             s.mesh  = obj.mesh;
             d = DilationFieldComputer(s);
-            obj.dilation = d.compute();           
+            obj.dilation = d.compute();
         end
         
         function computeMapping(obj)
@@ -83,30 +83,30 @@ classdef ConformalMappingComputer < handle
         end
 
         function computeSecondComponent(obj)
-           iDim = 2; 
+           iDim = 2;
            obj.phi(:,iDim) = obj.computeComponent(iDim);
         end
-              
+        
         function phi = computeComponent(obj,idim)
             s.fGauss = obj.computeVectorComponent(idim);
             s.mesh   = obj.mesh;
-            varProb  = MinimumGradFieldWithVectorInL2(s);            
+            varProb  = MinimumGradFieldWithVectorInL2(s);
             phi = varProb.solve();
         end
         
         function b = computeVector(obj,idim)
-           er = exp(obj.dilation); 
+           er = exp(obj.dilation);
            erCos = er.*cos(obj.theta);
            erSin = er.*sin(obj.theta);
            Q(1,1,:) = erCos;
            Q(1,2,:) = -erSin;
            Q(2,1,:) = erSin;
            Q(2,2,:) = erCos;
-           b = squeezeParticular(Q(:,idim,:),2);            
+           b = squeezeParticular(Q(:,idim,:),2);
         end
         
         function fG = computeVectorComponent(obj,idim)
-            b = obj.computeVector(idim);            
+            b = obj.computeVector(idim);
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('LINEAR');
             xGauss = q.posgp;
@@ -116,10 +116,10 @@ classdef ConformalMappingComputer < handle
                 s.connec = obj.mesh.connec;
                 s.type   = obj.mesh.type;
                 f = FeFunction(s);
-                fG(idim,:,:) = f.interpolateFunction(xGauss);            
-            end     
-        end        
-        
+                fG(idim,:,:) = f.interpolateFunction(xGauss);
+            end
+        end
+    
     end
     
 end

@@ -44,8 +44,8 @@ classdef Optimizer < handle
        function solveProblem(obj)
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
-         %   obj.lagrangian.updateBecauseOfPrimal();            
-         %   obj.unconstrainedOptimizer.startLineSearch();            
+         %   obj.lagrangian.updateBecauseOfPrimal();
+         %   obj.unconstrainedOptimizer.startLineSearch();
             obj.printOptimizerVariable();
             obj.hasFinished = false;
 
@@ -66,7 +66,7 @@ classdef Optimizer < handle
         
         function saveMonitoring(obj)
             obj.monitor.saveMonitorFigure();
-        end         
+        end
         
     end
     
@@ -113,9 +113,9 @@ classdef Optimizer < handle
         end
         
         function printHistoryFinalValues(obj)
-            obj.historyPrinter.printFinal();                    
+            obj.historyPrinter.printFinal();
         end
-               
+        
     end
     
     methods (Access = private)
@@ -177,8 +177,6 @@ classdef Optimizer < handle
             d.constraint = obj.constraint;
             d.designVar  = obj.designVariable.type;
         end
-        
-
         
     end
     

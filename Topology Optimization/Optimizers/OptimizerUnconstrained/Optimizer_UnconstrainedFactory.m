@@ -9,7 +9,7 @@ classdef Optimizer_UnconstrainedFactory < handle
                 case 'HAMILTON-JACOBI'
                     op = Optimizer_HJ(cParams);
                 case 'PROJECTED GRADIENT'
-                    op = Optimizer_PG(cParams);     
+                    op = Optimizer_PG(cParams);
                 otherwise
                     error('Invalid Unconstrained optimizer.')
             end

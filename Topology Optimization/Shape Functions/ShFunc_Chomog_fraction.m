@@ -21,19 +21,19 @@ classdef ShFunc_Chomog_fraction < ShFunc_Chomog
         end
         
         function computeFunctionValue(obj) 
-            obj.computeInvChProyections();            
+            obj.computeInvChProyections();
             obj.value = obj.invChAB/obj.invChAA + obj.invChBA/obj.invChBB;
-        end               
-                
+        end
+        
         function computeGradientValue(obj)
-            obj.computeChDerivative(); 
+            obj.computeChDerivative();
             a = obj.alpha;
             b = obj.beta;
             beta1 = obj.invChAA*b - obj.invChAB*a;
             beta2 = obj.invChBB*a - obj.invChBA*b;
             g1    = obj.computedChInv(obj.Chomog,a,beta1);
             g2    = obj.computedChInv(obj.Chomog,b,beta2);
-            grad = g1/(obj.invChAA)^2 + g2/(obj.invChBB)^2;            
+            grad = g1/(obj.invChAA)^2 + g2/(obj.invChBB)^2;
             obj.gradient = grad;
         end
         

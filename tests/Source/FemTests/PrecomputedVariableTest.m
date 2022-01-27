@@ -1,5 +1,5 @@
 classdef PrecomputedVariableTest < handle
-    
+
     properties (Access = protected)
         testName;  
         variablesToStore
@@ -31,6 +31,9 @@ classdef PrecomputedVariableTest < handle
             error = norm(err);
         end
 
+        function comp = getComputation(obj)
+            comp = obj.computation;
+        end
     end
 
     methods (Access = private)

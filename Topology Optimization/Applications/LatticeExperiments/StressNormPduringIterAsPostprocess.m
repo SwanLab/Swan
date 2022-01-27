@@ -30,7 +30,7 @@ classdef StressNormPduringIterAsPostprocess < handle
             obj.obtainCost();
             value = zeros(length(obj.pNorm),obj.finalIter);
             for iter = 1:obj.finalIter
-                fNameIter = [obj.fileResName,num2str(iter)];  
+                fNameIter = [obj.fileResName,num2str(iter)];
                 obj.wrapResAndMesh(fNameIter);
                 value(:,iter) = obj.computeStressNorm();
                 if mod(iter,1)== 0
@@ -47,21 +47,21 @@ classdef StressNormPduringIterAsPostprocess < handle
         function init(obj)
             obj.valueT = 0.18324;
             %obj.valueT  = 34.6295;
-            %obj.valueT = 0.5646;            
+            %obj.valueT = 0.5646;
             %obj.microCase = 'Rectangle';
             obj.microCase = 'SuperEllipse';
-            meshType = 'Small';            
-            %meshType  = 'Medium';            
+            meshType = 'Small';
+            %meshType  = 'Medium';
             obj.finalIter = 73;%607;%20;%46;%607;%42;18;405;42;296;57;46;250;485;250;
 %             fCase = [obj.microCase,meshType];
-%             obj.caseName = ['ExperimentingPlot'];            
+%             obj.caseName = ['ExperimentingPlot'];
 %             obj.path = ['/media/alex/My Passport/LatticeResults/StressNorm',fCase,'/'];
-%             obj.fileResName  = ['ExperimentingPlot']; 
+%             obj.fileResName  = ['ExperimentingPlot'];
             
-            fCase = [obj.microCase,meshType];            
+            fCase = [obj.microCase,meshType];
             obj.caseName = ['ExperimentingPlot7',fCase];
-            obj.path = ['/media/alex/My Passport/LatticeResults/',obj.caseName,'/'];            
-            obj.fileResName  = ['ExperimentingPlot',obj.microCase]; 
+            obj.path = ['/media/alex/My Passport/LatticeResults/',obj.caseName,'/'];
+            obj.fileResName  = ['ExperimentingPlot',obj.microCase];
             obj.fileNameMesh = ['CantileverSquare',meshType];
             obj.pNorm = 2:2:16;
         end
@@ -85,7 +85,7 @@ classdef StressNormPduringIterAsPostprocess < handle
             plot(1:iter,value(:,1:iter))   
             hold off
             drawnow
-        end       
+        end
         
         function plotFinal(obj,value)
             f = figure(1);
@@ -93,11 +93,11 @@ classdef StressNormPduringIterAsPostprocess < handle
             p{1} = plot(obj.iterC,obj.cost*obj.valueT);
             hold on
             for i = 1:size(value,1)
-              p{i+1} = plot(value(i,:));   
+              p{i+1} = plot(value(i,:));
             end
            pP = plotPrinter(f,p);
            fName = ['/home/alex/Dropbox/GregoireMeeting7Decembre/',obj.caseName];
-           pP.print(fName)            
+           pP.print(fName)
         end
         
         function wrapResAndMesh(obj,fileNameIter)
@@ -112,23 +112,20 @@ classdef StressNormPduringIterAsPostprocess < handle
          function value = computeStressNorm(obj)
             s.m1            = obj.dataRes.DesignVar1;
             s.m2            = obj.dataRes.DesignVar2;
-            s.alpha         = obj.dataRes.AlphaGauss';    
+            s.alpha         = obj.dataRes.AlphaGauss';
             switch obj.microCase 
                 case 'Rectangle'
-                    s.vademecumName = 'SuperEllipseQMax';                    
+                    s.vademecumName = 'SuperEllipseQMax';
                 case 'SuperEllipse'
-                    s.vademecumName = 'SuperEllipseQOptAnalytic';                    
+                    s.vademecumName = 'SuperEllipseQOptAnalytic';
             end
             s.mesh          = obj.mesh;
             s.fileName      = obj.fileNameMesh;
-            s.pNorm         = obj.pNorm;            
+            s.pNorm         = obj.pNorm;
             sC = StressNormFromVademecumComputer(s);
-            value = sC.compute();             
-        end              
-        
-        
-                
-        
+            value = sC.compute();
+         end
+    
     end
     
 end

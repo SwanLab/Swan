@@ -1,9 +1,7 @@
 classdef NeumannConditionsApplier < BoundaryConditionsApplier
     
-    
     methods (Access = public)
 
-        
         function Ared = fullToReducedMatrix(obj,A)
             Ared = A;
         end
@@ -15,9 +13,7 @@ classdef NeumannConditionsApplier < BoundaryConditionsApplier
         function b = reducedToFullVector(obj,bfree)
            b = bfree;
         end
-            
-        
+
     end
-  
-    
+
 end

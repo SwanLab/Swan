@@ -26,7 +26,7 @@ classdef MonitoringDocker < handle
         
         function createMonitors(obj,cParams)
             obj.createParamsMonitor(cParams);
-            obj.createDesignVarMonitor(cParams);            
+            obj.createDesignVarMonitor(cParams);
         end
         
         function createParamsMonitor(obj,cParams)
@@ -51,7 +51,7 @@ classdef MonitoringDocker < handle
             s.bc             = cParams.boundaryConditions;
             s.designVariable = cParams.designVariable;
             s.optimizerNames  = cParams.optimizerNames;
-            s.dim            = cParams.dim; 
+            s.dim            = cParams.dim;
             s.scale          = cParams.scale;
             s.mesh           = cParams.mesh;
             f = DesignVarMonitorFactory;

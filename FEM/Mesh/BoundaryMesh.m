@@ -1,17 +1,17 @@
 classdef BoundaryMesh < handle
     
     properties (Access = public)
-       nodesInBoxFaces       
+       nodesInBoxFaces
        mesh
        globalConnec
-       dimension       
-       isRectangularBox 
+       dimension
+       isRectangularBox
     end
     
     properties (Access = private)
-       connec       
-       coord           
-       kFace       
+       connec
+       coord
+       kFace
     end
     
     properties (Access = private)
@@ -50,8 +50,9 @@ classdef BoundaryMesh < handle
             nodes = find(obj.nodesInBoxFaces);
             for inode = 1:size(obj.connec,2)
                obj.globalConnec(:,inode) = nodes(obj.connec(:,inode));
-            end            
+            end
         end
+        
     end
     
 end

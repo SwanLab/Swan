@@ -2,7 +2,7 @@ classdef Geometry < handle
     
     properties (GetAccess = public, SetAccess = protected)
         dvolu
-    end    
+    end
     
     properties (SetAccess = private, GetAccess = protected)
         quadrature
@@ -11,7 +11,7 @@ classdef Geometry < handle
     end
     
     properties (Access = protected)
-        coordElem            
+        coordElem
         permutation
     end
     
@@ -20,7 +20,7 @@ classdef Geometry < handle
         function obj = create(cParams)
             f = GeometryFactory();
             obj = f.create(cParams);
-        end               
+        end
         
     end
     
@@ -30,12 +30,12 @@ classdef Geometry < handle
             obj.interpolationVariable = interpV;
             obj.quadrature = quad;
             obj.computeShapeFunctions();
-        end        
+        end
        
        function init(obj,cParams)
             obj.mesh = cParams.mesh;
-            obj.coordElem = permute(obj.mesh.coordElem,obj.permutation);                         
-       end        
+            obj.coordElem = permute(obj.mesh.coordElem,obj.permutation);
+       end
        
     end
     
@@ -45,7 +45,7 @@ classdef Geometry < handle
             xpg = obj.quadrature.posgp;
             obj.interpolationVariable.computeShapeDeriv(xpg)
             obj.mesh.interpolation.computeShapeDeriv(xpg);
-        end        
+        end
        
     end
     

@@ -90,7 +90,7 @@ classdef TopOpt_Problem < handle
             s = cParams.designVarSettings;
             s.mesh = obj.mesh;
             s.scalarProductSettings.epsilon = obj.incrementalScheme.targetParams.epsilon;
-            s.scalarProductSettings.mesh    = obj.mesh.innerMeshOLD;            
+            s.scalarProductSettings.mesh    = obj.mesh.innerMeshOLD;
             obj.designVariable = DesignVariable.create(s);
         end
         

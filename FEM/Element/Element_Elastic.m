@@ -4,7 +4,7 @@ classdef Element_Elastic < Element
         fextRed
     end
         
-    properties
+    properties (Access = public)
         fext
         interpolation_u
         K
@@ -14,6 +14,10 @@ classdef Element_Elastic < Element
         dim
         connec
         Bmatrix
+    end
+    
+    properties (Access = private)
+        pdim
     end
     
     properties (Access = protected, Abstract)
@@ -52,6 +56,7 @@ classdef Element_Elastic < Element
     methods %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
         function compute(obj,mesh,geometry,material,dof,problemData,interp)
             obj.interpolation_u = interp{1};
+            obj.pdim = problemData.pdim;
             obj.initElement(geometry,mesh,material,dof,problemData.scale,interp)
             obj.nfields=1;
             
@@ -79,15 +84,14 @@ classdef Element_Elastic < Element
         end
         
         function dim = computeDim(obj,ngaus)
-            dim                = DimensionVariables();
-            dim.nnode          = obj.nnode;
-            dim.nunkn          = obj.dof.nunkn;
-            dim.nstre          = obj.nstre;
-            dim.ndof           = obj.dof.ndof;
-            dim.nelem          = obj.nelem;
-            dim.ndofPerElement = dim.nnode*dim.nunkn;
-            dim.ngaus          = ngaus;
-            dim.nentries       = dim.nelem*(dim.ndofPerElement)^2;
+            m.nelem = obj.nelem;
+            m.npnod = obj.dof.ndof/obj.dof.nunkn;
+            m.nnode = obj.nnode;
+            s.ngaus = ngaus;
+            s.mesh  = m;
+            s.pdim  = obj.pdim;
+            dim    = DimensionVariables(s);
+            dim.compute();
         end
         
         function initialize_dvolum(obj)
@@ -147,7 +151,7 @@ classdef Element_Elastic < Element
                     for jv = 1:obj.nnode*obj.dof.nunkn
                         for istre = 1:obj.nstre
                             for jstre = 1:obj.nstre
-                                v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:,igaus).*Bmat(jstre,jv,:));
+                                v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:,igaus).*Bmat(jstre,jv,:)); %
                                 Ke(iv,jv,:) = squeeze(Ke(iv,jv,:)) + v(:).*obj.geometry.dvolu(:,igaus);
                             end
                         end
@@ -161,8 +165,7 @@ classdef Element_Elastic < Element
             %  obj.DeltaC.obtainChangedElements(obj.material.C)
             %  obj.K_generator.generate(obj.material.C);
             %  K = obj.K_generator.getStiffMatrix();
-            
-            
+
             obj.StiffnessMatrix.compute(obj.material.C);
             K = obj.StiffnessMatrix.K;
         end
@@ -217,9 +220,7 @@ classdef Element_Elastic < Element
         end
         
     end
-    
-    
-    
+
     methods(Access = protected)
         function FextSuperficial = computeSuperficialFext(obj)
             FextSuperficial = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);

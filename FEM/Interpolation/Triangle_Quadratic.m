@@ -18,9 +18,9 @@ classdef Triangle_Quadratic < Interpolation
         
         function computeParams(obj)
             obj.type = 'TRIANGLE_QUADRATIC';
-            obj.ndime = 2;         
+            obj.ndime = 2;
             obj.nnode = 6;
-            obj.pos_nodes = [0,0 ; 1 0; 0,1 ; 0.5,0 ; 0.5,0.5 ; 0,0.5];       
+            obj.pos_nodes = [0,0 ; 1 0; 0,1 ; 0.5,0 ; 0.5,0.5 ; 0,0.5];
         end
         
         function computeShapes(obj,posgp)
@@ -34,7 +34,7 @@ classdef Triangle_Quadratic < Interpolation
                     4*s*(1.0-s-t);...
                     4*s*t;...
                     4*t*(1.0-s-t)];
-            end            
+            end
         end
         
         function computeShapeDerivatives(obj,posgp)
@@ -44,7 +44,7 @@ classdef Triangle_Quadratic < Interpolation
                 t = posgp(2,igaus);
                 obj.deriv(:,:,igaus) = [4*(s+t)-3,    4*s-1 , 0.0     4*(1.0-t)-8*s ,  4*t ,    -4*t; ...
                                         4*(s+t)-3.0,  0.0  ,  4*t-1.0 ,    -4*s    ,   4*s  ,   4*(1.0-s)-8*t];
-            end        
+            end
         end
         
     end

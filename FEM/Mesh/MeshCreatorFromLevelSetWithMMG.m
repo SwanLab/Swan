@@ -12,14 +12,14 @@ classdef MeshCreatorFromLevelSetWithMMG < handle
         fileName
         hausdV
         hMinV
-        hMaxV   
+        hMaxV
         hMesh
     end
     
     methods (Access = public)
         
         function obj = MeshCreatorFromLevelSetWithMMG(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)
         end
 
         function m = create(obj)
@@ -45,39 +45,39 @@ classdef MeshCreatorFromLevelSetWithMMG < handle
             %obj.hMaxV  = 0.01;%0.005
             obj.hausdV = obj.hMesh;%0.005
             obj.hMinV  = obj.hMesh/10;%0.0005
-            obj.hMaxV  = obj.hMesh;%0.005            
+            obj.hMaxV  = obj.hMesh;%0.005
         end
         
         function createMeshBackgroundMmg(obj)
-            mshG = obj.createMeshBackgroundGypsiLab();            
-            obj.meshBackgroundMmg  = mmg(mshG,1e-3);            
+            mshG = obj.createMeshBackgroundGypsiLab();
+            obj.meshBackgroundMmg  = mmg(mshG,1e-3);
         end
         
         function mshG = createMeshBackgroundGypsiLab(obj)
             mesh  = obj.meshBackground;
             coord = mesh.coord;
             coord(:,3) = 0;
-            mshG = msh(coord,mesh.connec);            
+            mshG = msh(coord,mesh.connec);
         end
         
         function setMeshBackgroundMmgParameters(obj) 
             mesh = obj.meshBackgroundMmg;
             hausd(mesh,obj.hausdV);
             hmin(mesh,obj.hMinV);
-            hmax(mesh,obj.hMaxV);                        
+            hmax(mesh,obj.hMaxV);
             mesh.oldFileName = [obj.fileName,'Out'];
-            mesh.newFileName = [obj.fileName,'In'];      
-            map(mesh,obj.levelSetValue);            
+            mesh.newFileName = [obj.fileName,'In'];
+            map(mesh,obj.levelSetValue);
         end
         
         function createUnfittedMeshMmg(obj)
-            uMesh = runLs(obj.meshBackgroundMmg);   
+            uMesh = runLs(obj.meshBackgroundMmg);
             obj.unfittedMeshMmg = uMesh;
         end
         
         function m = createMesh(obj)
             [s.coord,s.connec] = obj.obtainCoordsAndConnec();
-            obj.newMesh = Mesh().create(s);                        
+            obj.newMesh = Mesh().create(s);
         end
         
         function [coord,connec] = obtainCoordsAndConnec(obj)
@@ -85,14 +85,14 @@ classdef MeshCreatorFromLevelSetWithMMG < handle
             it = uMesh.col == 3;
             connec = uMesh.elt(it,:);
             coord  = uMesh.vtx(:,1:2);
-            [coord,connec] = obj.computeUniqueCoordConnec(coord,connec);                                    
-        end        
+            [coord,connec] = obj.computeUniqueCoordConnec(coord,connec);
+        end
         
         function plotMesh(obj)
             figure(100)
             clf
             obj.newMesh.plot();
-            drawnow                        
+            drawnow
         end
         
     end
@@ -101,7 +101,7 @@ classdef MeshCreatorFromLevelSetWithMMG < handle
         
         function [newCoord,newConnec] = computeUniqueCoordConnec(coord,connec)
             allNodes = connec(:);
-            [uNodes,ind,ind2] = unique(allNodes,'rows','stable');            
+            [uNodes,ind,ind2] = unique(allNodes,'rows','stable');
             allCoords    = coord;
             uniqueCoords = allCoords(uNodes,:);
             newCoord    = uniqueCoords;

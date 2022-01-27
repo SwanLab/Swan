@@ -20,7 +20,7 @@ classdef SimplAllTestExplicitVsImplicit < handle
             obj.computeImplicitMaterialInterpolation();
         end
         
-        function error = computeError(obj)  
+        function error = computeError(obj)
             mE = obj.matInterpExplicit;
             mI = obj.matInterpImplicit;
             err(1) = norm(mE.mu(:) - mI.mu(:));

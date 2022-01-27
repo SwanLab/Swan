@@ -35,20 +35,20 @@ classdef DesignCapturerOfMaterialDesignExperiment < handle
             %obj.iterations = round(linspace(1,133,15));
             
          %   obj.experimentPath = '/media/alex/MyPassport/MaterialDesign/CStar/LargeCircleWithPerimeter10_12c';
-         %   obj.iterations = round(linspace(1,67,15));            
+         %   obj.iterations = round(linspace(1,67,15));
             
-           % obj.experimentPath = '/media/alex/MyPassport/MaterialDesign/CStar/LargeCircleWithPerimeter10_1c';            
+           % obj.experimentPath = '/media/alex/MyPassport/MaterialDesign/CStar/LargeCircleWithPerimeter10_1c';
            % obj.iterations = round(linspace(1,154,15));
          
-            %obj.experimentPath = '/media/alex/MyPassport/MaterialDesign/CStar/HorizontalFromCircleWithPerimeter10_8_LargeCircle';            
+            %obj.experimentPath = '/media/alex/MyPassport/MaterialDesign/CStar/HorizontalFromCircleWithPerimeter10_8_LargeCircle';
            % obj.iterations = round(linspace(1,27,9));
                      
-            obj.experimentPath = '/media/alex/MyPassport/MaterialDesign/CStar/NegPoissonNoPerimeter5x6';            
+            obj.experimentPath = '/media/alex/MyPassport/MaterialDesign/CStar/NegPoissonNoPerimeter5x6';
             obj.iterations = round(linspace(1,162,10));
             
             
-            %obj.experimentPath = '/home/alex/git-repos/Swan/Output/HorizontalMaterialDesign';         
-            %obj.iterations = 0;            
+            %obj.experimentPath = '/home/alex/git-repos/Swan/Output/HorizontalMaterialDesign';
+            %obj.iterations = 0;
             
         end
         

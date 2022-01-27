@@ -10,7 +10,7 @@ classdef GmsReader < FileReader
     
     properties (Access = private)
         readDataBase
-        adaptedDB        
+        adaptedDB
     end
         
     methods (Access = public)
@@ -35,7 +35,7 @@ classdef GmsReader < FileReader
         
     end
     
-    methods (Access = private)       
+    methods (Access = private)
         
         function init(obj,path)
             obj.filePath = path;
@@ -68,14 +68,13 @@ classdef GmsReader < FileReader
         
         function adaptVariables(obj)
             gA = GmsVariablesAdapter(obj.readDataBase);
-            obj.adaptedDB = gA.getAdaptedDB();          
+            obj.adaptedDB = gA.getAdaptedDB();
         end
         
         function var = readLine(obj)
             line = fgetl(obj.fid);
             var = str2num(line);
-        end        
+        end
     end
-    
-    
+
 end

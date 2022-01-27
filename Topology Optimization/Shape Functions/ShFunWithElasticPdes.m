@@ -6,7 +6,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
     end
     
     properties (Access = private)
-        orientationUpdater 
+        orientationUpdater
         alpha
     end
     
@@ -17,24 +17,24 @@ classdef ShFunWithElasticPdes < ShapeFunctional
     methods (Access = public)
         
         function computeFunctionAndGradient(obj)
-            obj.updateAlpha();            
-            obj.computeFunction();  
-            obj.updateAlpha();                        
+            obj.updateAlpha();
+            obj.computeFunction();
+            obj.updateAlpha();
             obj.computeGradient();
-            obj.updateAlpha();            
+            obj.updateAlpha();
         end
         
         function computeFunction(obj)
-            obj.updateHomogenizedMaterialProperties();                 
+            obj.updateHomogenizedMaterialProperties();
             obj.solveState();
-            obj.computeFunctionValue();     
-            obj.normalizeFunction();            
+            obj.computeFunctionValue();
+            obj.normalizeFunction();
         end
         
         function computeGradient(obj)
             obj.solveAdjoint();
-            obj.computeGradientValue();    
-            obj.filterGradient();                        
+            obj.computeGradientValue();
+            obj.filterGradient();
             obj.normalizeGradient();
         end
         
@@ -56,7 +56,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         
         function createOrientationUpdater(obj)
             cParams.type = 'MinimumEigenValue';
-            obj.orientationUpdater = OrientationUpdater.create(cParams);            
+            obj.orientationUpdater = OrientationUpdater.create(cParams);
         end
         
         function createEquilibriumProblem(obj,fileName)
@@ -82,7 +82,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             xf{ivar+1} = obj.designVariable.alpha;
             obj.regDesignVariable = xf;
         end
-               
+        
         function filterGradient(obj)
             g = obj.gradient;
             gf = zeros(size(obj.Msmooth,1),obj.nVariables);
@@ -99,7 +99,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             cParams.physicalProblem = p;
             g = PdeVariableToPrintGetter(cParams);
             v = g.compute();
-        end   
+        end
         
         function fP = addHomogPrintVariablesNames(obj,fP)
             fH = obj.homogenizedVariablesComputer.createPrintVariables();
@@ -108,20 +108,18 @@ classdef ShFunWithElasticPdes < ShapeFunctional
                 fP{nP+i} = fH{i};
             end
         end
-        
-
-        
+      
       function updateAlpha(obj)
           if isequal(obj.designVariable.type,'MicroParams')
             if isfield(obj.physicalProblem.variables,'principalStress')
             cParams.pD = obj.physicalProblem.variables.principalDirections;
             cParams.pS = obj.physicalProblem.variables.principalStress;
             obj.orientationUpdater.compute(cParams);
-            alpha = obj.orientationUpdater.alpha;            
+            alpha = obj.orientationUpdater.alpha;
             obj.designVariable.alpha = alpha;
             end
           end
-      end        
+      end
         
       function fP = addHomogVariables(obj,fP)
           fH = obj.homogenizedVariablesComputer.addPrintableVariables(obj.designVariable);
@@ -142,13 +140,11 @@ classdef ShFunWithElasticPdes < ShapeFunctional
                 alpha0(1,:) = 1;
                 obj.designVariable.alpha = alpha0;
             end
-            obj.physicalProblem.variables.principalDirections = obj.designVariable.alpha;            
+            obj.physicalProblem.variables.principalDirections = obj.designVariable.alpha;
         end
-                 
+    
     end
-    
 
-    
     methods (Access = protected, Abstract)
         computeFunctionValue(obj)
         computeGradientValue(obj)

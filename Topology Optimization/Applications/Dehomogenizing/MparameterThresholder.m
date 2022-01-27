@@ -9,8 +9,8 @@ classdef MparameterThresholder < handle
     end
     
     properties (Access = private)
-       minLengthInUnitCell 
-       m0V 
+       minLengthInUnitCell
+       m0V
        m1V
     end
     
@@ -22,7 +22,7 @@ classdef MparameterThresholder < handle
             obj.m1V = 1;
         end
         
-        function m = thresh(obj,m)     
+        function m = thresh(obj,m)
             obj.mV = m;
             obj.thresholdingWhenTooSmallCell();
             obj.thresholdingLimitCases();
@@ -48,7 +48,7 @@ classdef MparameterThresholder < handle
             m0 = obj.m0V;
             m1 = obj.m1V;
             mT = m;
-            mT(isSmall) = m0 + (m1-m0)*heaviside(m(isSmall)-1/2);                       
+            mT(isSmall) = m0 + (m1-m0)*heaviside(m(isSmall)-1/2);
             obj.mV = mT;
         end
         
@@ -59,43 +59,43 @@ classdef MparameterThresholder < handle
         
         function thresholdingLeftCellFrame(obj)
            m = obj.mV; 
-           t = obj.minLengthInUnitCell;                      
-           mMin = obj.m0V*ones(size(t));  
+           t = obj.minLengthInUnitCell;
+           mMin = obj.m0V*ones(size(t));
            mMax = mMin + t;  
            obj.mV = obj.thresholdCellFrame(m,mMin,mMax); 
         end
         
         function thresholdingRightCellFrame(obj)
-           m = obj.mV;             
-           t = obj.minLengthInUnitCell;                       
-           mMax = obj.m1V*ones(size(t));  
-           mMin = mMax - t;  
+           m = obj.mV;
+           t = obj.minLengthInUnitCell;
+           mMax = obj.m1V*ones(size(t));
+           mMin = mMax - t;
            obj.mV = obj.thresholdCellFrame(m,mMin,mMax); 
-        end    
+        end
         
         function m = thresholdCellFrame(obj,m,mMin,mMax)
-           isMin = obj.isMin(m,mMin,mMax); 
+           isMin = obj.isMin(m,mMin,mMax);
            isMax = obj.isMax(m,mMin,mMax);
            m(isMin) = mMin(isMin);
-           m(isMax) = mMax(isMax);                        
+           m(isMax) = mMax(isMax);
         end
         
         function itIs = isMin(obj,m,mMin,mMax)
-           isFrame        = obj.isInFrameAndCellNotSmall(m,mMin,mMax); 
-           isCloseToMmin  = obj.isMcloseToMmin(m,mMin,mMax);           
+           isFrame        = obj.isInFrameAndCellNotSmall(m,mMin,mMax);
+           isCloseToMmin  = obj.isMcloseToMmin(m,mMin,mMax);
            itIs           = isFrame & isCloseToMmin;
         end
         
         function itIs = isMax(obj,m,mMin,mMax)
-           isFrame        = obj.isInFrameAndCellNotSmall(m,mMin,mMax); 
-           isCloseToMmax  = ~obj.isMcloseToMmin(m,mMin,mMax);           
+           isFrame        = obj.isInFrameAndCellNotSmall(m,mMin,mMax);
+           isCloseToMmax  = ~obj.isMcloseToMmin(m,mMin,mMax);
            itIs           = isFrame & isCloseToMmax;
-        end                
+        end
         
         function itIs = isInFrameAndCellNotSmall(obj,m,mMin,mMax)
-           isInFrame      = mMin < m & m < mMax;   
-           isCellNotSmall = ~obj.isCellTooSmall();                       
-           itIs = isInFrame & isCellNotSmall;      
+           isInFrame      = mMin < m & m < mMax;
+           isCellNotSmall = ~obj.isCellTooSmall();
+           itIs = isInFrame & isCellNotSmall;
         end
         
     end
@@ -103,9 +103,9 @@ classdef MparameterThresholder < handle
     methods (Access = private, Static)
         
         function itIs = isMcloseToMmin(m,mMin,mMax)
-           itIs = (m - mMin) < (mMax - mMin)/2;            
+           itIs = (m - mMin) < (mMax - mMin)/2;
         end
-                
+        
     end
     
 end

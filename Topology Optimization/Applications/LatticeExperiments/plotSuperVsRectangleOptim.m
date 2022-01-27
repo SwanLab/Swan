@@ -7,7 +7,7 @@ h{1} = plot(iter,[cost;maxStress]','b');
 hline = findobj(gcf, 'type', 'line');
 set(hline(1),'LineStyle','--')
 
-folderS = ['/home/alex/Desktop/ExperimentingPlotSuperEllipse',mCase,'/'];  
+folderS = ['/home/alex/Desktop/ExperimentingPlotSuperEllipse',mCase,'/'];
 [iter,costS,maxStressS] = obtainCostShapes(folderS);
 hold on
 h{2} = plot(iter,[costS;maxStressS]','r');

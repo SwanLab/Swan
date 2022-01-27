@@ -8,10 +8,10 @@ classdef Cholesky_Direct_Solver < Solver
     end
     
     methods (Static)
+
         function x =  preccg(A,b,R1,R2,mmax,tol)
             n = length(A); x = zeros(n,1); r = b-A*x;
             res = zeros(1,mmax); res(1) = dot(r,r); aux = norm(b);
-            
             z = R2\(R1\r);
             z0 = z'*r;
             d = z;
@@ -35,6 +35,7 @@ classdef Cholesky_Direct_Solver < Solver
                 warning('Maximum number of iterations exceeded.')
             end
         end
-    end
-end
 
+    end
+
+end

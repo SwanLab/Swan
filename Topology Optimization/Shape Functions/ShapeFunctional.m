@@ -42,8 +42,8 @@ classdef ShapeFunctional < handle
             obj.createMsmoothAndDvolu(cParams);
             obj.homogenizedVariablesComputer = cParams.homogVarComputer;
             obj.designVariable = cParams.designVariable;
-            obj.target_parameters = cParams.targetParameters; 
-            obj.nVariables = obj.designVariable.nVariables;            
+            obj.target_parameters = cParams.targetParameters;
+            obj.nVariables = obj.designVariable.nVariables;
         end
         
         function normalizeFunction(obj)
@@ -63,7 +63,7 @@ classdef ShapeFunctional < handle
             for i = 1:numel(fH)
                 fP{nP+i} = fH{i};
             end
-        end        
+        end
     end
     
     methods (Access = protected, Static)
@@ -73,8 +73,8 @@ classdef ShapeFunctional < handle
             for iV = 1:numel(types)
                fP{iV}.type = types{iV}; 
                fP{iV}.name = names{iV};
-            end 
-        end        
+            end
+        end
         
     end
     
@@ -101,7 +101,7 @@ classdef ShapeFunctional < handle
             diffReacProb.preProcess();
             obj.Msmooth = diffReacProb.element.M;
             obj.dvolu   = diffReacProb.geometry.dvolu;
-        end       
+        end
 
     end
     

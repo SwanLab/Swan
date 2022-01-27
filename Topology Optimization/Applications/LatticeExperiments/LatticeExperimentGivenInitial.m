@@ -13,7 +13,7 @@ classdef LatticeExperimentGivenInitial < handle
     properties (Access = private)
         fileNames
         topOptSet
-        topOptProblem        
+        topOptProblem
     end
     
     methods (Access = public)
@@ -21,7 +21,7 @@ classdef LatticeExperimentGivenInitial < handle
         function obj = LatticeExperimentGivenInitial()
             obj.init();
             for icases = 1:numel(obj.fileNames)
-                obj.readInitial();                                
+                obj.readInitial();
                 obj.createSettings(icases);
                 obj.solveProblem();
                 close all

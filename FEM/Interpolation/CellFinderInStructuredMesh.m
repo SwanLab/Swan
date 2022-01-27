@@ -71,7 +71,7 @@ classdef CellFinderInStructuredMesh < handle
             lIndex = zeros(size(imin));
             lIndex(minPos) = imin(minPos);
             lIndex(minNeg) = imin(minNeg)-1;
-        end        
+        end
         
         function txi = obtainCoordinate(xpoints,xi,index)
             inc = xpoints - xi(index);

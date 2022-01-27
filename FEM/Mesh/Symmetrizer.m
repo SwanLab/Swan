@@ -21,10 +21,10 @@ classdef Symmetrizer < handle
             obj.init(cParams);
             obj.createSymmetricPointComputer();
             obj.createSymmetrizedMesh();
-            obj.createMeshMerger();                        
+            obj.createMeshMerger();
         end
         
-        function m = computeSymmetricMesh(obj)          
+        function m = computeSymmetricMesh(obj)
             m = obj.meshMerger.compute();
         end
         
@@ -39,9 +39,9 @@ classdef Symmetrizer < handle
             nodes = obj.meshMerger.computeRemainingNodes();
             fS = obj.computeFsymmetric(f);
             fD   = [f;fS];
-            sF   = fD(nodes,:);        
-        end        
-        
+            sF   = fD(nodes,:);
+        end
+
     end
     
     methods (Access = private)
@@ -55,16 +55,16 @@ classdef Symmetrizer < handle
             s.vector = f;
             s.line  = obj.symmetricLine;
             s.line.point = [0,0];
-            sP = SymmetricPointComputer(s);            
-            fSym = sP.computeSymmetricVector();                         
-        end        
+            sP = SymmetricPointComputer(s);
+            fSym = sP.computeSymmetricVector();
+        end
         
         function createSymmetricPointComputer(obj)
             s.vector = obj.mesh.coord;
             s.line   = obj.symmetricLine;
             sP = SymmetricPointComputer(s);
             obj.symmetricPoint = sP;
-        end        
+        end
         
         function createSymmetrizedMesh(obj)
             sConnec(:,[1 3 2]) = obj.mesh.connec(:,[1 2 3]);
@@ -76,7 +76,7 @@ classdef Symmetrizer < handle
         end
 
         function createMeshMerger(obj)
-            isInSymLine = obj.symmetricPoint.isNodeInLine;            
+            isInSymLine = obj.symmetricPoint.isNodeInLine;
             s.meshA  = obj.mesh;
             s.meshB  = obj.symmetrizedMesh;
             s.isMergedNodeA = isInSymLine;

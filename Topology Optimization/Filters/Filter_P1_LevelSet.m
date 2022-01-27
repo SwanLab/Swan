@@ -12,7 +12,7 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
         geometry
         quadrature
 
-        domainType        
+        domainType
         projector
         
         interp
@@ -23,12 +23,12 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
         function obj = Filter_P1_LevelSet(cParams)
             obj.init(cParams);
             obj.domainType = cParams.domainType;
-            obj.createQuadrature();            
+            obj.createQuadrature();
             obj.createProjector();
             obj.createInterpolation();
             obj.createGeometry();
             obj.createPoperator(cParams);
-            obj.disableDelaunayWarning();      
+            obj.disableDelaunayWarning();
         end
         
         function preProcess(obj)
@@ -36,7 +36,7 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
         
         function x_reg = getP1fromP0(obj,x0)
             RHS = obj.integrateRHS(x0);
-            P = obj.Poper.value;            
+            P = obj.Poper.value;
             x_reg = P'*RHS;
         end
         
@@ -46,7 +46,7 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
                 x0 = zeros(length(xR),obj.quadrature.ngaus);
                 for igaus = 1:obj.quadrature.ngaus
                     x0(:,igaus) = xR;
-                end                
+                end
             else
                 x0 = obj.x_reg;
             end
@@ -59,7 +59,7 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
         
         function x0 = computeP0fromP1(obj,x)
             xN = obj.projector.project(x);
-            P  = obj.Poper.value;            
+            P  = obj.Poper.value;
             x0 = P*xN;
         end
         
@@ -67,12 +67,12 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
     
     methods (Access = private)
         
-        function createPoperator(obj,cPar)            
+        function createPoperator(obj,cPar)
             cParams.nnode  = obj.mesh.nnode;
             cParams.npnod  = obj.mesh.npnod;
             cParams.connec = obj.mesh.connec;
             cParams.nelem  = obj.mesh.nelem;
-            cParams.diffReactEq = cPar.femSettings;            
+            cParams.diffReactEq = cPar.femSettings;
             obj.Poper = Poperator(cParams);
         end
         
@@ -80,9 +80,9 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
             cParams.mesh = obj.mesh;
             cParams.domainType = obj.domainType;
             cParams.type = obj.mesh.type;
-            obj.projector = ShapeFunctionProjector.create(cParams);                                    
+            obj.projector = ShapeFunctionProjector.create(cParams);
         end
-                
+        
         function intX = integrateRHS(obj,x)
             intX = zeros(obj.mesh.nelem,1);
             ngaus = size(x,2);
@@ -109,10 +109,10 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
         function createQuadrature(obj)
             obj.quadrature = Quadrature.set(obj.mesh.type);
             obj.quadrature.computeQuadrature(obj.quadratureOrder);
-        end        
+        end
         
         function createInterpolation(obj)
-            obj.interp = Interpolation.create(obj.mesh,'LINEAR');    
+            obj.interp = Interpolation.create(obj.mesh,'LINEAR');
         end
         
         function createGeometry(obj)

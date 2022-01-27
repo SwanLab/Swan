@@ -37,7 +37,7 @@ classdef ZeroLinePlotAdder < handle
             yp = yp(:);
             tri = delaunay(xp,yp);
             s.coord = [xp yp];
-            s.connec = tri;           
+            s.connec = tri;
             mesh = Mesh_Total(s);
             obj.meshBackground = mesh;
         end
@@ -47,8 +47,8 @@ classdef ZeroLinePlotAdder < handle
             s.backgroundMesh = obj.meshBackground.innerMeshOLD;
             s.boundaryMesh   = obj.meshBackground.boxFaceMeshes;
             s.unfittedType   = 'BOUNDARY';
-            s.isInBoundary = false;                        
-            cParams = SettingsMeshUnfitted(s);            
+            s.isInBoundary = false;
+            cParams = SettingsMeshUnfitted(s);
             uMesh = UnfittedMesh(cParams);
             levelSet = obj.z;
             uMesh.compute(levelSet);
@@ -69,11 +69,5 @@ classdef ZeroLinePlotAdder < handle
         end
         
     end
-    
-    
-    
-    
-    
-    
-    
+
 end

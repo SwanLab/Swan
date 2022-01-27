@@ -122,6 +122,7 @@ classdef DiffReact_Problem < FEM
             if isfield(s,'fileName')
                 obj.problemData.fileName = s.fileName;
                 obj.createBoundaryMesh(s.fileName);
+%                 obj.problemData.pdim = s.mesh.ndim; % new
             end
             
         end
@@ -147,8 +148,7 @@ classdef DiffReact_Problem < FEM
                 obj.boundaryMesh = bC.create();
             end
         end
-        
-        
+    
     end
     
 end

@@ -16,15 +16,15 @@ classdef Quadrature < handle
         
     end
     
-    methods (Static, Access = public)        
+    methods (Static, Access = public)
         function quadrature = set(type)
             switch type
                 case 'LINE'
                     quadrature = Quadrature_Line;
                 case 'TRIANGLE'
-                    quadrature = Quadrature_Triangle;                    
-                case 'QUAD'                    
-                    quadrature = Quadrature_Quadrilateral;                    
+                    quadrature = Quadrature_Triangle;
+                case 'QUAD'
+                    quadrature = Quadrature_Quadrilateral;
                 case 'TETRAHEDRA'
                     quadrature = Quadrature_Tetrahedra;
                 case 'HEXAHEDRA'

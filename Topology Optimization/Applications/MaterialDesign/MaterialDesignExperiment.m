@@ -41,7 +41,7 @@ classdef MaterialDesignExperiment < handle
                             % 'CompositeMaterialDesignTriLevelSetPDE';
                            % 'CompositeMaterialDesignQuadLevelSetP1';
                            %  'CompositeMaterialDesignQuadLevelSetPDE';
-                             };            
+                             };
         end
         
         
@@ -51,8 +51,8 @@ classdef MaterialDesignExperiment < handle
         end
         
         function solveProblem(obj)
-            obj.topOptProblem = TopOpt_Problem(obj.topOptSet);  
-            obj.topOptProblem.computeVariables(); 
+            obj.topOptProblem = TopOpt_Problem(obj.topOptSet);
+            obj.topOptProblem.computeVariables();
             obj.topOptProblem.postProcess();
         end
     end
