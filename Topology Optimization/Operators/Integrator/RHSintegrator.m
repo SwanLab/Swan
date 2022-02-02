@@ -26,16 +26,11 @@ classdef RHSintegrator < handle
             nnode  = size(shapes,1);
             nelem  = size(shapes,2);
             int = zeros(nnode,nelem);
-%             for igaus = 1:obj.quadrature.ngaus
-%                 fdv   = fdV(igaus,:);
-%                 shape = shapes(:, :, igaus); % canviat
-%                 int = int + bsxfun(@times,shape,fdv);
-%             end
             for igaus = 1:obj.quadrature.ngaus
                 nunkn = obj.nunknPerField;
-                for iField = 1:nunkn %nunkn
-                    fdv = fG(igaus,:,iField).* dV(igaus,:);
-                    shape = shapes(:, :, igaus); % canviat
+                for iField = 1:nunkn
+                    fdv = fG(igaus,:,iField).*dV(igaus,:);
+                    shape = shapes(:, :, igaus);
                     int = int + bsxfun(@times,shape,fdv);
                 end
             end
