@@ -24,8 +24,8 @@ classdef Elastic_Problem < FEM
             obj.createInterpolation();
             obj.createDOF();
             obj.createMaterial();
-            obj.createSolver(); 
-            obj.createElement();            
+            obj.createSolver();
+            obj.createElement();
         end
 
         function computeVariables(obj)
@@ -40,7 +40,7 @@ classdef Elastic_Problem < FEM
             %obj.element.computeRHS();
             f = obj.element.bcApplier.fullToReducedVector(fbody);
             u = obj.solver.solve(Kred,f);
-            obj.variables = obj.element.computeVars(u);                        
+            obj.variables = obj.element.computeVars(u);
         end
         
         function c = computeCompliance(obj)
@@ -118,7 +118,7 @@ classdef Elastic_Problem < FEM
             s.pdim  = obj.problemData.pdim;
             s.nelem = obj.mesh.nelem;
             s.geometry = obj.geometry;
-            s.mesh  = obj.mesh;            
+            s.mesh  = obj.mesh;
             obj.material = Material.create(s);
         end
         

@@ -25,9 +25,9 @@ classdef Elastic_Problem_Micro < FEM
         function obj = Elastic_Problem_Micro(fileName)
             obj.fileName = fileName;
             obj.nFields = 1;
-            obj.readProblemData(fileName);            
+            obj.readProblemData(fileName);
             obj.createGeometry();
-            obj.createInterpolation();            
+            obj.createInterpolation();
             obj.createDOF();
             obj.createMaterial();
             obj.createSolver();
@@ -37,11 +37,11 @@ classdef Elastic_Problem_Micro < FEM
         function setMesh(obj,mesh)
             obj.mesh = mesh;
             obj.createGeometry();
-            obj.createInterpolation();            
+            obj.createInterpolation();
             obj.setDOF();
             obj.createMaterial();
             obj.createSolver();
-            obj.createElement();            
+            obj.createElement();
         end
         
         function [Ch,tstrain,tstress] = computeChomog(obj)
@@ -113,7 +113,7 @@ classdef Elastic_Problem_Micro < FEM
                          c = c + Cm.*eiV.*ejV;
                         end
                     end
-                    cC = c.*dV';                    
+                    cC = c.*dV';
                     Ch3(istre,jstre) = sum(cC(:));
                 end
             end
@@ -131,14 +131,14 @@ classdef Elastic_Problem_Micro < FEM
             obj.element.quadrature.computeQuadrature('LINEAR');
             obj.element.geometry.computeGeometry(obj.element.quadrature,obj.element.interpolation_u);
             nstre = obj.element.getNstre();
-            basis = diag(ones(nstre,1));          
+            basis = diag(ones(nstre,1));
             var2print = cell(nstre,1);
             for istre=1:nstre
                 stress = basis(istre,:);
                 v = obj.computeVariablesForGivenStress(stress,obj.Chomog);
                 var2print{istre}= v;
             end
-           obj.variables2printStressBasis = var2print;            
+           obj.variables2printStressBasis = var2print;
         end
         
         function v = computeGeometricalVolume(obj)
@@ -150,12 +150,12 @@ classdef Elastic_Problem_Micro < FEM
             obj.element.computeRHS();
             u = obj.solver.solve(Kred,obj.element.fextRed);
             obj.variables = obj.element.computeVars(u);
-        end        
+        end
         
         function stress = computeVarFromStress(obj,stress)
            Ch = obj.computeChomog();
            varFromCh = obj.variables;
-           v  = obj.computeVariablesForGivenStress(stress,Ch);  
+           v  = obj.computeVariablesForGivenStress(stress,Ch);
            v.varFromCh = varFromCh;
            obj.variables = v;
            stress = v.stress;
@@ -176,7 +176,7 @@ classdef Elastic_Problem_Micro < FEM
             else
                 int = sNorm.^p;
                 sPnorm = sum(int(:).*dV(:))^(1/p);
-            end            
+            end
         end
         
     end
@@ -194,7 +194,7 @@ classdef Elastic_Problem_Micro < FEM
             v.d_u = obj.variables.d_u;
             v.fext = obj.variables.fext;
             v.Ch   = obj.Chomog;
-        end        
+        end
         
         function createGeometry(obj)
             s.mesh = obj.mesh;
@@ -202,7 +202,7 @@ classdef Elastic_Problem_Micro < FEM
         end
         
         function createInterpolation(obj)
-            obj.interp{1} = Interpolation.create(obj.mesh,'LINEAR');                                    
+            obj.interp{1} = Interpolation.create(obj.mesh,'LINEAR');
         end
         
         function createMaterial(obj)
@@ -224,7 +224,7 @@ classdef Elastic_Problem_Micro < FEM
         
         function setDOF(obj,mesh)
             obj.dof.setMesh(obj.mesh);
-        end        
+        end
         
         function createElement(obj)
             obj.element = Element_Elastic.create(obj.mesh,obj.geometry,obj.material,obj.dof,obj.problemData,obj.interp);
