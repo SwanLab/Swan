@@ -1,4 +1,8 @@
-classdef NewElasticProblem < NewFEM
+classdef NewElasticProblem < handle %NewFEM
+
+    properties (GetAccess=public, SetAccess = private)
+        variables        
+    end
 
     properties (Access = private)
         integrator
@@ -9,7 +13,16 @@ classdef NewElasticProblem < NewFEM
 
         % Poda 1
         quadrature
-        dim
+        dim       
+    end
+
+    properties (Access = private)
+        fileName
+        femData
+        mesh
+        problemData
+        dof
+        solver        
     end
 
     methods (Access = public)
@@ -46,6 +59,30 @@ classdef NewElasticProblem < NewFEM
             obj.fileName = cParams.fileName;
             obj.nFields = 1;
         end
+
+        function readProblemData(obj)
+            obj.createFemData();
+            obj.createProblemData();
+            obj.mesh = obj.femData.mesh;
+        end      
+
+        function createFemData(obj)
+            fName       = obj.fileName;
+            femReader   = FemInputReader_GiD();
+            obj.femData = femReader.read(fName);
+        end
+
+        function createProblemData(obj)
+            s = obj.femData;
+            pd.fileName     = obj.fileName;
+            pd.scale        = s.scale;
+            pd.pdim         = s.pdim;
+            pd.ptype        = s.ptype;
+            pd.nelem        = s.mesh.nelem;
+            pd.bc.dirichlet = s.dirichlet;
+            pd.bc.pointload = s.pointload;
+            obj.problemData = pd;
+        end        
 
         function Fred = reduceForcesMatrix(obj, forces)
             Fred = obj.bcApplier.fullToReducedVector(forces);
@@ -128,7 +165,7 @@ classdef NewElasticProblem < NewFEM
             s.ptype = obj.problemData.ptype;
             s.pdim  = obj.problemData.pdim;
             s.nelem = obj.mesh.nelem;
-            s.geometry = obj.geometry;
+            %s.geometry = obj.geometry;
             s.mesh  = obj.mesh;
             obj.material = Material.create(s);
         end
