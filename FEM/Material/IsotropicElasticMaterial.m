@@ -1,22 +1,22 @@
 classdef IsotropicElasticMaterial < ElasticMaterial
 
     properties (GetAccess = public, SetAccess = protected)
-        nstre                       
+        nstre
     end
     
     properties (Access = protected)
         kappa
         mu
-        lambda       
+        lambda
     end
-            
-    methods (Access = public)        
+    
+    methods (Access = public)
         
         function compute(obj,s)
             obj.kappa = s.kappa;
             obj.mu    = s.mu;
             obj.nElem = size(obj.mu,1);
-            obj.nGaus = size(obj.mu,2);            
+            obj.nGaus = size(obj.mu,2);
             obj.computeC();
         end
         
@@ -29,7 +29,7 @@ classdef IsotropicElasticMaterial < ElasticMaterial
         end
         
     end
-            
+    
     methods (Access = protected, Abstract)
         computeC(obj)
     end
@@ -38,7 +38,7 @@ classdef IsotropicElasticMaterial < ElasticMaterial
        
         function mu = computeMuFromYoungAndNu(E,nu)
             mu = E./(2*(1+nu));
-        end        
+        end
     end
     
 end

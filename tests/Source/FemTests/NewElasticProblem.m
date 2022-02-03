@@ -67,7 +67,7 @@ classdef NewElasticProblem < NewFEM
             s.ngaus = obj.quadrature.ngaus;
             s.mesh  = obj.mesh;
             s.pdim  = obj.problemData.pdim;
-            d     = DimensionVariables(s);
+            d       = DimensionVariables(s);
             d.compute();
             obj.dim = d;
         end
@@ -134,7 +134,7 @@ classdef NewElasticProblem < NewFEM
         end
 
         function createIntegrators(obj)
-            s.type = 'SIMPLE';
+            s.type  = 'SIMPLE';
             s.mesh  = obj.mesh;
             s.npnod = obj.mesh.npnod;
             s.fileName     = obj.fileName;
@@ -161,7 +161,7 @@ classdef NewElasticProblem < NewFEM
         end
 
          function createInterpolation(obj)
-             int = Interpolation.create(obj.mesh,'LINEAR');
+             int = obj.mesh.interpolation;
              %int.computeShapeDeriv(obj.quadrature.posgp);
              obj.interp{1} = int;
          end
@@ -207,10 +207,10 @@ classdef NewElasticProblem < NewFEM
             nfields = 1;
             for iField = 1:nfields
                 bElem = b_elem_cell{iField,1};
-                b = zeros(obj.dof.ndof(iField),1);
-                nUnkn = obj.dof.nunkn(iField);
-                nNode = obj.interp{iField}.nnode;
-                nDof = nNode*nUnkn;
+                b = zeros(obj.dim.ndof(iField),1);
+                nUnkn = obj.dim.nunkn(iField);
+                nNode = obj.dim.nnode;
+                nDof = obj.dim.ndofPerElement;
                 nGaus = size(bElem,2);
                 for iDof = 1:nDof
                     for igaus = 1:nGaus
@@ -226,7 +226,7 @@ classdef NewElasticProblem < NewFEM
 
         function FextPoint = computePunctualFext(obj)
             %Compute Global Puntual Forces (Not well-posed in FEM)
-            FextPoint = zeros(obj.dof.ndof,1);
+            FextPoint = zeros(obj.dim.ndof,1);
             if ~isempty(obj.dof.neumann)
                 FextPoint(obj.dof.neumann) = obj.dof.neumann_values;
             end

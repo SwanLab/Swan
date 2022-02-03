@@ -19,17 +19,17 @@ classdef ElasticDim < handle
         end
         
         function dEps = computedEps(obj)
-            dvolum = obj.geometry.dvolu';            
+            dvolum = obj.geometry.dvolu';
             nv     = obj.nnode*obj.dof.nunkn;
             dEps = zeros(nv,obj.quadrature.ngaus,obj.nstre,obj.nelem);
             for igaus = 1:obj.quadrature.ngaus
-               B  = obj.computeB(igaus); 
+               B  = obj.computeB(igaus);
                Bm = permute(B,[2 1 3]);
                dvG(1,1,:) = squeeze(dvolum(igaus,:));
                dvGm = repmat(dvG,nv,obj.nstre,1);
                dEps(:,igaus,:,:) = Bm.*dvGm;
             end
-        end      
+        end
         
     end
     
