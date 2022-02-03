@@ -1,12 +1,9 @@
 classdef LHSintegrator < handle
 
-    properties (Access = protected) %previously private
+    properties (Access = protected) 
         quadrature
         interpolation
         LHScells
-    end
-    
-    properties (Access = protected) %previously private
         mesh
         globalConnec
         npnod

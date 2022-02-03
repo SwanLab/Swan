@@ -1,10 +1,5 @@
 classdef Integrator_Simple < Integrator
-    properties
-        lhsint
-        Kred
-        StiffnessMatrix
-    end
-
+    
     methods (Access = public)
         
         function obj = Integrator_Simple(cParams)
@@ -19,19 +14,15 @@ classdef Integrator_Simple < Integrator
             s.dim          = obj.dim;
             lhs = LHSintegrator(s);
             LHS = lhs.compute();
-            obj.lhsint = lhs;
         end
 
-        function computeFemLHS(obj)
+        function LHS = computeFemLHS(obj)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.globalConnec;
             s.npnod        = obj.npnod;
             s.dim          = obj.dim;
             lhs = LHSintegrator_triangle(s);
-            lhs.computeTriangleLHS();
-            obj.StiffnessMatrix = lhs.StiffnessMatrix;
-            LHS = lhs.compute();
-            obj.lhsint = lhs;
+            LHS = lhs.computeTriangleLHS();
         end
         
         function rhs = integrate(obj,fNodal)

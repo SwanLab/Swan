@@ -3,19 +3,12 @@ classdef LHSintegrator_triangle < LHSintegrator
     properties(Access = private)
         K_generator
         Bmatrix
-        geometry
-        material
-    end
-
-    properties (Access = public)
-        Kred
-        dof
-        StiffnessMatrix
+        geometry        
     end
 
     methods (Access = public)
 
-        function computeTriangleLHS(obj)
+        function LHS = computeTriangleLHS(obj)
            obj.createGeometry();
            Bmat = obj.computeBmat();
 %            ngaus   = obj.quadrature.ngaus;
@@ -24,27 +17,13 @@ classdef LHSintegrator_triangle < LHSintegrator
            dvolum = obj.geometry.dvolu;
            obj.K_generator = StiffnessMatrixGenerator(connect,Bmat,dvolum,obj.dim);
            obj.Bmatrix = obj.computeB_InMatrixForm();
-           obj.StiffnessMatrix = KGeneratorWithfullStoredB(obj.dim,connect,obj.Bmatrix,dvolum);
+           LHS = KGeneratorWithfullStoredB(obj.dim,connect,obj.Bmatrix,dvolum);
         end
     end
 
    methods (Access = private)
 
-       % Element_Elastic
-%        function dim = computeDim(obj,ngaus)
-%            dim                = DimensionVariables();
-%            dim.nnode          = obj.mesh.nnode;
-%            dim.nunkn          = ;
-%            dim.nstre          = 3;
-%            dim.ndof           = obj.npnod*dim.nunkn;
-%            dim.nelem          = obj.mesh.nelem;
-%            dim.ndofPerElement = dim.nnode*dim.nunkn;
-%            dim.ngaus          = ngaus;
-%            dim.nentries       = dim.nelem*(dim.ndofPerElement)^2;
-%        end
-       
-       % ElasticDim
-       function Bmat = computeBmat(obj)
+           function Bmat = computeBmat(obj)
             ngaus = obj.quadrature.ngaus;
             nelem = obj.mesh.nelem;
             nstre = obj.dim.nstre;
