@@ -3,7 +3,7 @@ classdef LHSintegrator_triangle < LHSintegrator
     properties(Access = private)
         K_generator
         Bmatrix
-        geometry        
+        geometry
     end
 
     methods (Access = public)
@@ -23,7 +23,7 @@ classdef LHSintegrator_triangle < LHSintegrator
 
    methods (Access = private)
 
-           function Bmat = computeBmat(obj)
+       function Bmat = computeBmat(obj)
             ngaus = obj.quadrature.ngaus;
             nelem = obj.mesh.nelem;
             nstre = obj.dim.nstre;
@@ -52,8 +52,8 @@ classdef LHSintegrator_triangle < LHSintegrator
 
        function B = computeB2D(obj,igaus)
             nstre = obj.dim.nstre;
-            nnode = obj.mesh.nnode;
-            nelem = obj.mesh.nelem;
+            nnode = obj.dim.nnode;
+            nelem = obj.dim.nelem;
             nunkn = obj.dim.nunkn; 
             ndofPerElement = obj.dim.ndofPerElement;
             B = zeros(nstre,ndofPerElement,nelem);

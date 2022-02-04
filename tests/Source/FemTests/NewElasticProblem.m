@@ -25,7 +25,7 @@ classdef NewElasticProblem < handle %NewFEM
         dof
         stiffnessMatrix
         forces
-        solver        
+        solver
     end
 
     methods (Access = public)
@@ -57,7 +57,7 @@ classdef NewElasticProblem < handle %NewFEM
             obj.nFields = 1;
         end
 
-        function computeStiffnessMatrix(obj)            
+        function computeStiffnessMatrix(obj)
             obj.LHS = obj.integrator.computeFemLHS(); % lhs need to be adapted
             K = obj.reduceStiffnessMatrix();
             obj.stiffnessMatrix = K;
@@ -65,11 +65,11 @@ classdef NewElasticProblem < handle %NewFEM
 
         function computeForces(obj)
             f    = obj.computeExternalForces();
-            fRed = obj.reduceForcesMatrix(f);            
+            fRed = obj.reduceForcesMatrix(f);
             obj.forces = fRed; 
 %             R = obj.compute_imposed_displacement_force(obj.K);
 %             obj.fext = Fext + R;
-%             obj.rhs = obj.integrator.integrate(fNodal);            
+%             obj.rhs = obj.integrator.integrate(fNodal);
         end
 
 
@@ -188,7 +188,7 @@ classdef NewElasticProblem < handle %NewFEM
             s.type         = 'SIMPLE';
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
-            s.globalConnec = obj.mesh.connec;            
+            s.globalConnec = obj.mesh.connec;
             s.dim          = obj.dim;
             obj.integrator = Integrator.create(s);
         end
@@ -223,7 +223,7 @@ classdef NewElasticProblem < handle %NewFEM
             Fred = obj.forces;
             u = obj.solver.solve(Kred,Fred);
             u = obj.bcApplier.reducedToFullVector(u);
-            obj.variables.d_u = u;           
+            obj.variables.d_u = u;
         end
 
         function Fext = computeExternalForces(obj)

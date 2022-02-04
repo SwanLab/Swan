@@ -1,6 +1,6 @@
 classdef LHSintegrator < handle
 
-    properties (Access = protected) 
+    properties (Access = protected)
         quadrature
         interpolation
         LHScells
