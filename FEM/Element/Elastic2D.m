@@ -15,7 +15,7 @@ classdef Elastic2D < ElasticDim
                 B(3,j,:)  = obj.geometry.cartd(2,i,:,igaus);
                 B(3,j+1,:)= obj.geometry.cartd(1,i,:,igaus);
             end
-        end        
+        end
         
         
     end

@@ -1,7 +1,7 @@
 classdef LHSintegrator_triangle < LHSintegrator
     
     properties(Access = private)
-        K_generator
+%         K_generator
         Bmatrix
         geometry
     end
@@ -11,11 +11,9 @@ classdef LHSintegrator_triangle < LHSintegrator
         function LHS = computeTriangleLHS(obj)
            obj.createGeometry();
            Bmat = obj.computeBmat();
-%            ngaus   = obj.quadrature.ngaus;
-%            obj.dim   = obj.computeDim(ngaus);
            connect = obj.mesh.connec;
            dvolum = obj.geometry.dvolu;
-           obj.K_generator = StiffnessMatrixGenerator(connect,Bmat,dvolum,obj.dim);
+%            obj.K_generator = StiffnessMatrixGenerator(connect,Bmat,dvolum,obj.dim);
            obj.Bmatrix = obj.computeB_InMatrixForm();
            LHS = KGeneratorWithfullStoredB(obj.dim,connect,obj.Bmatrix,dvolum);
         end

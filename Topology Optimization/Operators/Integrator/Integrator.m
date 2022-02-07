@@ -67,7 +67,6 @@ classdef Integrator < handle
             f = FeFunction(s);
             fG = f.interpolateFunction(xGauss);
             fG = permute(fG,[2 3 1]);
-
         end
         
         function computeDim(obj)

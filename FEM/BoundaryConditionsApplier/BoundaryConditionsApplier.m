@@ -10,7 +10,7 @@ classdef BoundaryConditionsApplier < handle
     end
     
     methods (Access = public, Abstract)
-        fullToReducedMatrix(obj) 
+        fullToReducedMatrix(obj)
         fullToReducedVector(obj)
         reducedToFullVector(obj)
     end
