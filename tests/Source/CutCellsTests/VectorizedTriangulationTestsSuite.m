@@ -4,7 +4,7 @@ classdef VectorizedTriangulationTestsSuite < handle
 
         function obj = VectorizedTriangulationTestsSuite()
             path = './tests/Source/CutCellsTests/VectorizedTriangulationTests.m';
-            suite = matlab.unittest.TestSuite.fromFile(path, 'Tag','RandCoord'); %VectorizedTriangulation
+            suite = matlab.unittest.TestSuite.fromFile(path, 'Tag','IsoCoord'); %VectorizedTriangulation, IsoCoord
             results = suite.run;
             table(results)
         end
