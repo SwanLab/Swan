@@ -135,7 +135,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         function initPrincipalDirections(obj)
             if isempty(obj.designVariable.alpha)
                 ndim   = obj.physicalProblem.mesh.ndim;
-                nelem  = obj.physicalProblem.element.nelem;
+                nelem  = obj.physicalProblem.mesh.nelem;
                 alpha0 = zeros(ndim,nelem);
                 alpha0(1,:) = 1;
                 obj.designVariable.alpha = alpha0;

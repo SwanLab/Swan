@@ -15,6 +15,10 @@ classdef Element_Elastic < Element
         connec
         Bmatrix
     end
+
+    properties (Access = protected)
+        mesh
+    end
     
     properties (Access = private)
         pdim
@@ -59,7 +63,7 @@ classdef Element_Elastic < Element
             obj.pdim = problemData.pdim;
             obj.initElement(geometry,mesh,material,dof,problemData.scale,interp)
             obj.nfields=1;
-            
+            obj.mesh = mesh;
             obj.initialize_dvolum()
             Bmat   = obj.computeBmat();
             dvolum = obj.geometry.dvolu;
@@ -68,6 +72,7 @@ classdef Element_Elastic < Element
             dimen   = obj.computeDim(ngaus);
             connect = mesh.connec;%obj.interp{1}.T;
             
+
             
             obj.dim = dimen;
             obj.connec = connect;
@@ -77,8 +82,17 @@ classdef Element_Elastic < Element
             
             obj.Bmatrix = obj.computeB_InMatrixForm();
             
-            
-            obj.StiffnessMatrix = KGeneratorWithfullStoredB(obj.dim,obj.connec,obj.Bmatrix,dvolum);
+            s.type = 'ElasticStiffnessMatrixOld';
+            s.mesh         = obj.mesh;
+            s.npnod        = obj.mesh.npnod;
+            s.globalConnec = obj.mesh.connec;
+            s.dim          = obj.dim;
+            s.material     = obj.material;
+            LHS = LHSintegrator.create(s);            
+           
+            obj.StiffnessMatrix = LHS;
+          
+           % obj.StiffnessMatrix = KGeneratorWithfullStoredB(obj.dim,obj.connec,obj.Bmatrix,dvolum);
             
             
         end
@@ -165,9 +179,9 @@ classdef Element_Elastic < Element
             %  obj.DeltaC.obtainChangedElements(obj.material.C)
             %  obj.K_generator.generate(obj.material.C);
             %  K = obj.K_generator.getStiffMatrix();
-
-            obj.StiffnessMatrix.compute(obj.material.C);
-            K = obj.StiffnessMatrix.K;
+            obj.StiffnessMatrix.setMaterial(obj.material.C);
+            K = obj.StiffnessMatrix.compute();
+            %K = obj.StiffnessMatrix.K;
         end
         
         

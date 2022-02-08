@@ -1,6 +1,10 @@
 classdef KGeneratorWithfullStoredB < handle
     
-    properties
+    properties (Access = public)
+       
+    end
+
+    properties (Access = private)
         nodesInElement
         VectorDimensions
         dofsPerElement
@@ -10,13 +14,13 @@ classdef KGeneratorWithfullStoredB < handle
         nunkn
         dim
         ndofGlobal
-        CmatTot
-        K
+        CmatTot       
         dvolum
         nt
+        K
     end
     
-    methods
+    methods (Access = public)
         
         function obj = KGeneratorWithfullStoredB(dim,connectivities,Bfull,dvolum)
             obj.dofsPerElement   = dim.ndofPerElement;
@@ -34,11 +38,15 @@ classdef KGeneratorWithfullStoredB < handle
             obj.computeBtot();  
         end
         
-        function compute(obj,Cmat)
+        function K = compute(obj,Cmat)
             obj.computeCmatBlockDiagonal(Cmat);
-            obj.computeStiffnes()
+            obj.computeStiffnes();
+            K = obj.K;
         end
         
+    end
+    
+    methods (Access = private)
         function  computeStiffnes(obj)
             B = obj.Btot;
             CB = obj.CmatTot*B;

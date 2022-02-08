@@ -1,11 +1,10 @@
 classdef NewElasticProblem < handle %NewFEM
 
-    properties (GetAccess=public, SetAccess = private)
+    properties (GetAccess = public, SetAccess = private)
         variables
     end
 
     properties (Access = private)
-        integrator
         material
         nFields
         interp
@@ -36,11 +35,12 @@ classdef NewElasticProblem < handle %NewFEM
             obj.createQuadrature();
             obj.computeDimensions();
             obj.createMaterial();
+            obj.computeMaterialProperties();
             obj.createInterpolation();
-            obj.createBCApplier();
-            obj.createIntegrators();
+            obj.createBCApplier();            
             obj.createSolver();
         end
+
         
         function computeVariables(obj)
             obj.computeStiffnessMatrix()
@@ -105,10 +105,11 @@ classdef NewElasticProblem < handle %NewFEM
             obj.material = Material.create(s);
         end
 
-        function props = setMaterialProperties(obj)
+        function computeMaterialProperties(obj)
             I = ones(obj.dim.nelem,obj.dim.ngaus);
-            props.kappa = .9107*I;
-            props.mu    = .3446*I;
+            s.kappa = .9107*I;
+            s.mu    = .3446*I;
+            obj.material.compute(s);            
         end
 
         function createInterpolation(obj)
@@ -126,19 +127,9 @@ classdef NewElasticProblem < handle %NewFEM
             obj.bcApplier = BoundaryConditionsApplier.create(cParams);
         end
 
-        function createIntegrators(obj)
-            s.type         = 'SIMPLE';
-            s.mesh         = obj.mesh;
-            s.npnod        = obj.mesh.npnod;
-            s.globalConnec = obj.mesh.connec;
-            s.dim          = obj.dim;
-            obj.integrator = Integrator.create(s);
-        end
-
         function createSolver(obj)
             obj.solver = Solver.create;
         end
-
 
         function computeStiffnessMatrix(obj)
             s.type = 'ElasticStiffnessMatrixOld';
@@ -146,23 +137,11 @@ classdef NewElasticProblem < handle %NewFEM
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.dim;
+            s.material     = obj.material;
             LHS = LHSintegrator.create(s);
-            Kgen = LHS.compute();
-            % construct LHS!!
-            % computeFemLHS() still needs to be adapted so that it does not
-            % use K generators
-            %Kgen = obj.integrator.computeFemLHS();
-            K    = obj.computeStiffnessMatrixSYM(Kgen);            
-     %       Kboogaloo = obj.integrator.computeLHS();
+            K   = LHS.compute();
             Kred = obj.bcApplier.fullToReducedMatrix(K);
             obj.stiffnessMatrix = Kred;
-        end
-
-        function K = computeStiffnessMatrixSYM(obj, Kgen)
-            cParams = obj.setMaterialProperties();
-            obj.material.compute(cParams);
-            Kgen.compute(obj.material.C);
-            K = Kgen.K;
         end
 
         function computeForces(obj)
