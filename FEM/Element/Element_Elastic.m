@@ -92,8 +92,7 @@ classdef Element_Elastic < Element
            
             obj.StiffnessMatrix = LHS;
           
-           % obj.StiffnessMatrix = KGeneratorWithfullStoredB(obj.dim,obj.connec,obj.Bmatrix,dvolum);
-            
+             
             
         end
         

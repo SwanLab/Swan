@@ -75,7 +75,6 @@ classdef KGeneratorWithfullStoredB < handle
         end
         
         
-        
         function GlobalDofs = computeBtot(obj)
             obj.Btot = sparse(obj.nt,obj.ndofGlobal);
             for idof=1:obj.dofsPerElement
