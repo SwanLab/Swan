@@ -28,8 +28,11 @@ fem.plot();
 
 %Top uses NewFem instaead of FEM
 
-% In NewElastic replace integrator by LHSintegrator
-% Create LHSintergrator_StiffnessElasticOld child of LHSintergrator_Stiffness
- %with  its own compute wiht info from computeKgenerator
-% Create  LHSintergrator_StiffnessElastic 
-% LHS integrator is composed by integrator_simple for assemnbly
+% 1. Vectorized test fix
+% 2. Delete KgeneratorWithFullStoredB
+% 3. Clean LHSintegratorStiffnessElasticStoredB
+% 4. Create input data for NewFem (mesh,bc,material)
+% 5. Create  LHSintergrator_StiffnessElastic 
+% 6. DOF+ Boudnary
+% 7. Force use integrator for assembly
+% 8. LHS integrator must be composed by integrator_simple for assemnbly
