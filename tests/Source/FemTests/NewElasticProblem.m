@@ -139,16 +139,21 @@ classdef NewElasticProblem < handle %NewFEM
             obj.solver = Solver.create;
         end
 
-        function Fred = reduceForcesMatrix(obj, forces)
-            Fred = obj.bcApplier.fullToReducedVector(forces);
-        end
 
         function computeStiffnessMatrix(obj)
+            s.type = 'ElasticStiffnessMatrixOld';
+            s.mesh         = obj.mesh;
+            s.npnod        = obj.mesh.npnod;
+            s.globalConnec = obj.mesh.connec;
+            s.dim          = obj.dim;
+            LHS = LHSintegrator.create(s);
+            Kgen = LHS.compute();
+            % construct LHS!!
             % computeFemLHS() still needs to be adapted so that it does not
             % use K generators
-            Kgen = obj.integrator.computeFemLHS();
-            Kboogaloo = obj.integrator.computeLHS();
-            K    = obj.computeStiffnessMatrixSYM(Kgen);
+            %Kgen = obj.integrator.computeFemLHS();
+            K    = obj.computeStiffnessMatrixSYM(Kgen);            
+     %       Kboogaloo = obj.integrator.computeLHS();
             Kred = obj.bcApplier.fullToReducedMatrix(K);
             obj.stiffnessMatrix = Kred;
         end
@@ -176,6 +181,10 @@ classdef NewElasticProblem < handle %NewFEM
             fcomp = ForcesComputer(s);
             f = fcomp.compute();
         end
+
+        function Fred = reduceForcesMatrix(obj, forces)
+            Fred = obj.bcApplier.fullToReducedVector(forces);
+        end        
        
         function u = computeDisplacements(obj)
             Kred = obj.stiffnessMatrix;

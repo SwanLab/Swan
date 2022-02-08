@@ -12,7 +12,8 @@ classdef Integrator_Simple < Integrator
             s.globalConnec = obj.globalConnec;
             s.npnod        = obj.npnod;
             s.dim          = obj.dim;
-            lhs = LHSintegrator(s);
+            s.type = 'MassMatrix';
+            lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
 
@@ -20,7 +21,7 @@ classdef Integrator_Simple < Integrator
             s.mesh         = obj.mesh;
             s.globalConnec = obj.globalConnec;
             s.npnod        = obj.npnod;
-            s.dim          = obj.dim;
+            s.dim          = obj.dim;            
             lhs  = LHSintegrator(s);
             Kgen = lhs.computeKgenerator();
         end
