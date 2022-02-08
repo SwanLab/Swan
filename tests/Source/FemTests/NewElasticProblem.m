@@ -14,7 +14,7 @@ classdef NewElasticProblem < handle %NewFEM
         % Poda 1
         quadrature
         dim
-        LHS
+        % Kgen %"LHS"
     end
 
     properties (Access = private)
@@ -55,29 +55,6 @@ classdef NewElasticProblem < handle %NewFEM
         function init(obj, cParams)
             obj.fileName = cParams.fileName;
             obj.nFields = 1;
-        end
-
-        function computeStiffnessMatrix(obj)
-            obj.LHS = obj.integrator.computeFemLHS(); % lhs need to be adapted
-            K = obj.reduceStiffnessMatrix();
-            obj.stiffnessMatrix = K;
-        end
-
-        function computeForces(obj)
-            f    = obj.computeExternalForces();
-            fRed = obj.reduceForcesMatrix(f);
-            obj.forces = fRed; 
-%             R = obj.compute_imposed_displacement_force(obj.K);
-%             obj.fext = Fext + R;
-%             obj.rhs = obj.integrator.integrate(fNodal);
-        end
-
-        function f = computeExternalForces(obj)
-            s.dim  = obj.dim;
-            s.dof  = obj.dof;
-            s.mesh = obj.mesh;
-            fcomp = ForcesComputer(s);
-            f = fcomp.compute();
         end
 
         function readProblemData(obj)
@@ -166,16 +143,38 @@ classdef NewElasticProblem < handle %NewFEM
             Fred = obj.bcApplier.fullToReducedVector(forces);
         end
 
-        function Kred = reduceStiffnessMatrix(obj)
-            K = obj.computeStiffnessMatrixSYM();
+        function computeStiffnessMatrix(obj)
+            % computeFemLHS() still needs to be adapted so that it does not
+            % use K generators
+            Kgen = obj.integrator.computeFemLHS();
+            Kboogaloo = obj.integrator.computeLHS();
+            K    = obj.computeStiffnessMatrixSYM(Kgen);
             Kred = obj.bcApplier.fullToReducedMatrix(K);
+            obj.stiffnessMatrix = Kred;
         end
 
-        function K = computeStiffnessMatrixSYM(obj)
+        function K = computeStiffnessMatrixSYM(obj, Kgen)
             cParams = obj.setMaterialProperties();
             obj.material.compute(cParams);
-            obj.LHS.compute(obj.material.C);
-            K = obj.LHS.K;
+            Kgen.compute(obj.material.C);
+            K = Kgen.K;
+        end
+
+        function computeForces(obj)
+            f    = obj.computeExternalForces();
+            fRed = obj.reduceForcesMatrix(f);
+            obj.forces = fRed; 
+%             R = obj.compute_imposed_displacement_force(obj.K);
+%             obj.fext = Fext + R;
+%             obj.rhs = obj.integrator.integrate(fNodal);
+        end
+
+        function f = computeExternalForces(obj)
+            s.dim  = obj.dim;
+            s.dof  = obj.dof;
+            s.mesh = obj.mesh;
+            fcomp = ForcesComputer(s);
+            f = fcomp.compute();
         end
        
         function u = computeDisplacements(obj)

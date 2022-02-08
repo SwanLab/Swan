@@ -1,8 +1,5 @@
 classdef ForcesComputer < handle
 
-    properties (Access = public)
-    end
-
     properties (Access = private)
         dim
         mesh

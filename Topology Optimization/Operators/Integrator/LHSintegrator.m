@@ -1,6 +1,6 @@
 classdef LHSintegrator < handle
 
-    properties (Access = protected)
+    properties (Access = private)
         quadrature
         interpolation
         LHScells
@@ -10,6 +10,10 @@ classdef LHSintegrator < handle
         dim
     end
     
+    properties (Access = private)
+        geometry
+    end
+
     methods (Access = public)
         
         function obj = LHSintegrator(cParams)
@@ -20,6 +24,7 @@ classdef LHSintegrator < handle
         
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
+%             lhs = obj.computeActualElementalLHS();
             LHS = obj.assembleMatrix(lhs);
         end
 
@@ -27,6 +32,17 @@ classdef LHSintegrator < handle
             q = obj.quadrature;
         end
         
+        function Kgen = computeKgenerator(obj)
+            % Previously computeTriangleLHS
+            % Should really become a LHS computer and avoid using K
+            % generators, using shape functions instead.
+           obj.createGeometry();
+           connect = obj.mesh.connec;
+           dvolum = obj.geometry.dvolu;
+           Bmatrix = obj.computeB_InMatrixForm();
+           Kgen = KGeneratorWithfullStoredB(obj.dim,connect,Bmatrix,dvolum);
+        end
+
     end
     
     methods (Access = private)
@@ -50,12 +66,29 @@ classdef LHSintegrator < handle
             obj.interpolation = int;
         end
         
+        function lhs = computeActualElementalLHS(obj)
+            shapes = obj.interpolation.deriv;
+            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
+            ngaus  = obj.dim.ngaus;
+            nelem  = obj.dim.nelem;
+            nnode  = obj.dim.nnode;
+            lhs = zeros(nnode,nnode,nelem);
+            for igaus = 1:ngaus
+                dv(1,1,:) = dvolu(igaus,:);
+                Ni = shapes(:,igaus);
+                Nj = shapes(:,igaus);
+                NiNj = Ni*Nj';
+                Aij = bsxfun(@times,NiNj,dv);
+                lhs = lhs + Aij;
+            end
+        end
+        
         function lhs = computeElementalLHS(obj)
             shapes = obj.interpolation.shape;
             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
-            ngaus  = obj.quadrature.ngaus;
-            nelem  = obj.mesh.nelem;
-            nnode  = obj.mesh.nnode;
+            ngaus  = obj.quadrature.ngaus; % can't change to
+            nelem  = obj.mesh.nelem;       % dim because TopOpt
+            nnode  = obj.mesh.nnode;       % crashes
             lhs = zeros(nnode,nnode,nelem);
             for igaus = 1:ngaus
                 dv(1,1,:) = dvolu(igaus,:);
@@ -86,6 +119,48 @@ classdef LHSintegrator < handle
             end
         end
         
+        %% LHSintegrator_triangle
+      
+       function createGeometry(obj)
+            s.mesh = obj.mesh;
+            obj.geometry = Geometry.create(s);
+            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation);
+       end
+
+        % Element_Elastic
+        function createPrincipalDirection(obj, pdim)
+            s.eigenValueComputer.type = 'PRECOMPUTED';
+            s.type = pdim;
+            p = PrincipalDirectionComputer.create(s);
+            obj.principalDirectionComputer = p;
+        end
+        
+        function [dir,str] = computePrincipalStressDirection(obj,tensor)
+            obj.principalDirectionComputer.compute(tensor);
+            dir = obj.principalDirectionComputer.direction;
+            str = obj.principalDirectionComputer.principalStress;
+        end
+
+        function Bmatrix = computeB_InMatrixForm(obj)
+            ndofPerElement = obj.dim.ndofPerElement;
+            Bfull = zeros(obj.quadrature.ngaus,obj.dim.nstre,ndofPerElement,obj.dim.nelem);
+            Bmatrix = zeros(obj.quadrature.ngaus*obj.dim.nelem*obj.dim.nstre,ndofPerElement);
+            for igaus = 1:obj.quadrature.ngaus
+                unitaryIndex = false(obj.quadrature.ngaus*obj.dim.nstre,1);
+                pos = obj.dim.nstre*(igaus-1) + 1 : obj.dim.nstre*(igaus) ;
+                unitaryIndex(pos) = true;
+                
+                Index = repmat(unitaryIndex,obj.dim.nelem,1);
+                s.dim = obj.dim;
+                s.geometry = obj.geometry;
+                Bcomputer = BMatrixComputer(s);
+                Belem = Bcomputer.compute(igaus);
+                Bfull(igaus,:,:,:) = Belem;
+                Bshif = reshape(permute(Belem,[1 3 2]),obj.dim.nelem*obj.dim.nstre,ndofPerElement);
+                Bmatrix(Index,:) = Bshif;
+            end
+        end
+
     end
     
 end

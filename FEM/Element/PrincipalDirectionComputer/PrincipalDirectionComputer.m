@@ -7,25 +7,25 @@ classdef PrincipalDirectionComputer < handle
    
    properties (Access = protected)
        eigenComputer
-       ndim    
+       ndim
        eType
-   end    
+   end
     
    methods (Access = public, Static)
        
        function obj = create(cParams)
            f = PrincipalDirectionComputerFactory();
-           obj = f.create(cParams);           
-       end       
+           obj = f.create(cParams);
+       end
        
    end
    
    methods (Access = protected)
-               
+       
        function init(obj,cParams)
-          obj.eType = cParams.eigenValueComputer.type; 
-          obj.createEigenValueAndVectorFunction();            
-       end       
+          obj.eType = cParams.eigenValueComputer.type;
+          obj.createEigenValueAndVectorFunction();
+       end
        
    end
    
@@ -41,7 +41,7 @@ classdef PrincipalDirectionComputer < handle
    end
    
    methods (Access = public, Abstract)
-      compute(obj) 
-   end   
+      compute(obj)
+   end
     
 end
