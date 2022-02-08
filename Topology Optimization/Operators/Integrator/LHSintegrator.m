@@ -29,18 +29,6 @@ classdef LHSintegrator < handle
 
     methods (Access = public)
         
-%         function obj = LHSintegrator(cParams)
-%             obj.init(cParams)
-%             obj.createQuadrature();
-%             obj.createInterpolation();
-%         end
-        
-        function LHS = compute(obj)
-            lhs = obj.computeElementalLHS();
-%             lhs = obj.computeActualElementalLHS();
-            LHS = obj.assembleMatrix(lhs);
-        end
-
         function q = getQuadrature(obj)
             q = obj.quadrature;
         end
@@ -68,45 +56,6 @@ classdef LHSintegrator < handle
             obj.interpolation = int;
         end
 
-    end
-    
-    methods (Access = private)
-   
-        
-        function lhs = computeActualElementalLHS(obj)
-            shapes = obj.interpolation.deriv;
-            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
-            ngaus  = obj.dim.ngaus;
-            nelem  = obj.dim.nelem;
-            nnode  = obj.dim.nnode;
-            lhs = zeros(nnode,nnode,nelem);
-            for igaus = 1:ngaus
-                dv(1,1,:) = dvolu(igaus,:);
-                Ni = shapes(:,igaus);
-                Nj = shapes(:,igaus);
-                NiNj = Ni*Nj';
-                Aij = bsxfun(@times,NiNj,dv);
-                lhs = lhs + Aij;
-            end
-        end
-        
-        function lhs = computeElementalLHS(obj)
-            shapes = obj.interpolation.shape;
-            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
-            ngaus  = obj.quadrature.ngaus; % can't change to
-            nelem  = obj.mesh.nelem;       % dim because TopOpt
-            nnode  = obj.mesh.nnode;       % crashes
-            lhs = zeros(nnode,nnode,nelem);
-            for igaus = 1:ngaus
-                dv(1,1,:) = dvolu(igaus,:);
-                Ni = shapes(:,igaus);
-                Nj = shapes(:,igaus);
-                NiNj = Ni*Nj';
-                Aij = bsxfun(@times,NiNj,dv);
-                lhs = lhs + Aij;
-            end
-        end
-        
         function A = assembleMatrix(obj,aElem)
             connec = obj.globalConnec;
             ndofs  = obj.npnod;
@@ -124,7 +73,48 @@ classdef LHSintegrator < handle
                     A = A + sparse(nodeI,nodeJ,a,ndofs,ndofs);
                 end
             end
-        end
+        end        
+
+    end
+    
+    methods (Access = private)
+   
+        
+%         function lhs = computeActualElementalLHS(obj)
+%             shapes = obj.interpolation.deriv;
+%             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
+%             ngaus  = obj.dim.ngaus;
+%             nelem  = obj.dim.nelem;
+%             nnode  = obj.dim.nnode;
+%             lhs = zeros(nnode,nnode,nelem);
+%             for igaus = 1:ngaus
+%                 dv(1,1,:) = dvolu(igaus,:);
+%                 Ni = shapes(:,igaus);
+%                 Nj = shapes(:,igaus);
+%                 NiNj = Ni*Nj';
+%                 Aij = bsxfun(@times,NiNj,dv);
+%                 lhs = lhs + Aij;
+%             end
+%         end
+        
+%         function lhs = computeElementalLHS(obj)
+%             shapes = obj.interpolation.shape;
+%             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
+%             ngaus  = obj.quadrature.ngaus; % can't change to
+%             nelem  = obj.mesh.nelem;       % dim because TopOpt
+%             nnode  = obj.mesh.nnode;       % crashes
+%             lhs = zeros(nnode,nnode,nelem);
+%             for igaus = 1:ngaus
+%                 dv(1,1,:) = dvolu(igaus,:);
+%                 Ni = shapes(:,igaus);
+%                 Nj = shapes(:,igaus);
+%                 NiNj = Ni*Nj';
+%                 Aij = bsxfun(@times,NiNj,dv);
+%                 lhs = lhs + Aij;
+%             end
+%         end
+        
+      
         
         %% LHSintegrator_triangle
       

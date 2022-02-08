@@ -7,6 +7,11 @@ classdef LHSintergrator_Stiffness < LHSintegrator
             obj.createQuadrature();
             obj.createInterpolation();
         end
+
+        function LHS = compute(obj)
+            lhs = obj.computeElementalLHS();
+            LHS = obj.assembleMatrix(lhs);
+        end         
         
     end
     
