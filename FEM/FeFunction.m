@@ -22,7 +22,7 @@ classdef FeFunction < handle
            obj.computeFnodesByelem();
        end
        
-       function fC = computeValueInCenterElement(obj)          
+       function fC = computeValueInCenterElement(obj)
             q = Quadrature.set(obj.type);
             q.computeQuadrature('CONSTANT');
             xV = q.posgp;
@@ -30,12 +30,12 @@ classdef FeFunction < handle
             fC = squeeze(fCenter);
        end
         
-       function fxV = interpolateFunction(obj,xV)  
+       function fxV = interpolateFunction(obj,xV)
             func = obj.fElem;
             obj.interpolation.computeShapeDeriv(xV);
             shapes = obj.interpolation.shape;
             nNode  = size(shapes,1);
-            nGaus  = size(shapes,2); 
+            nGaus  = size(shapes,2);
             nF     = size(func,1);
             nElem  = size(func,3);
             fxV = zeros(nF,nGaus,nElem);

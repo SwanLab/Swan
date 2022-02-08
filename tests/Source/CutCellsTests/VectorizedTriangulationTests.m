@@ -1,50 +1,82 @@
 classdef VectorizedTriangulationTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
-        levelSet1 = struct('positive', 7.8496, 'negative', -7.8496);
-        levelSet2 = struct('positive', 9.7731, 'negative', -9.7731);
-        levelSet3 = struct('positive', 8.3404, 'negative', -8.3404);
-        lvlSet4 = struct('positive', 8.3622, 'negative', -8.3622);
+        levelSet1 = struct('pos', 7.8496, 'neg', -7.8496);
+        levelSet2 = struct('pos', 9.7731, 'neg', -9.7731);
+        levelSet3 = struct('pos', 8.3404, 'neg', -8.3404);
+        levelSet4 = struct('pos', 8.3622, 'neg', -8.3622);
         allRandTests = {'2Vs2', '3Vs1'}
     end
 
     methods (Test, ...
             TestTags = {'VectorizedTriangulation', ...
             'Tetrahedron', 'IsoCoord', 'OrderedConnec'})
-        function testIsoCoord(testCase, levelSet1, levelSet2, levelSet3, lvlSet4)
-            s.coord    = [0 0 0; 1 0 0; 0 1 0; 0 0 1];
-            s.connec   = [1 2 3 4];
-            s.levelSet = [levelSet1; levelSet2; levelSet3; lvlSet4];
-            s.boundaryConnec = [1 2 3;1 2 4;1 3 4;2 3 4];
-            s.connecBcutMesh = [5 6 7];
-            test = VectorizedTriangulationTest(s);
-            err = test.computeError();
-            tol = 1e-14;
-            testCase.verifyLessThanOrEqual(err, tol)
+        function testIsoCoord(testCase, levelSet1, levelSet2, levelSet3, levelSet4)
+            sign1 = sign(levelSet1);
+            sign2 = sign(levelSet2);
+            sign3 = sign(levelSet3);
+            sign4 = sign(levelSet4);
+
+            if ~((sign1 == sign2) && (sign2 == sign3) && (sign3 == sign4))
+                s.coord    = [0 0 0; 1 0 0; 0 1 0; 0 0 1];
+                s.connec   = [1 2 3 4];
+                s.levelSet = [levelSet1; levelSet2; levelSet3; levelSet4];
+                s.boundaryConnec = [1 2 3;1 2 4;1 3 4;2 3 4];
+                s.connecBcutMesh = [5 6 7];
+                test = VectorizedTriangulationTest(s);
+                err = test.computeError();
+                tol = 1e-14;
+                testCase.verifyLessThanOrEqual(err, tol)
+            else
+                passed = true;
+                verifyTrue(testCase, passed)
+            end
         end
 
     end
 
     methods (Test, ...
             TestTags = {'VectorizedTriangulation', ...
-            'Tetrahedron', 'IsoCoord', 'OrderedConnec'})
-        function testRandCoord(testCase, levelSet1, levelSet2, levelSet3, lvlSet4)
-            s.coord    = rand(4,3);
-            s.connec   = [1 2 3 4];
-            s.levelSet = [levelSet1; levelSet2; levelSet3; lvlSet4];
-            s.boundaryConnec = [1 2 3;1 2 4;1 3 4;2 3 4];
-            s.connecBcutMesh = [5 6 7];
-            test = VectorizedTriangulationTest(s);
-            err = test.computeError();
-            tol = 1e-14;
-            testCase.verifyLessThanOrEqual(err, tol)
+            'Tetrahedron', 'RandCoord', 'OrderedConnec'})
+        function testRandCoord(testCase, levelSet1, levelSet2, levelSet3, levelSet4)
+            sign1 = sign(levelSet1);
+            sign2 = sign(levelSet2);
+            sign3 = sign(levelSet3);
+            sign4 = sign(levelSet4);
+            paramCombination = [sign1, sign2, sign3, sign4];
+            valid = [
+                    -1 +1 +1 +1;
+                    +1 -1 +1 +1;
+                    +1 +1 -1 +1;
+                    -1 -1 -1 +1;
+                    +1 +1 +1 -1;
+                    -1 -1 +1 -1;
+                    -1 +1 -1 -1;
+                    +1 -1 -1 -1;
+                ];
+            isItValidTest = ismember(paramCombination,valid,'rows');
+
+            if (isItValidTest)
+                s.coord    = rand(4,3);
+                s.connec   = [1 2 3 4];
+                s.levelSet = [levelSet1; levelSet2; levelSet3; levelSet4];
+                s.boundaryConnec = [1 2 3;1 2 4;1 3 4;2 3 4];
+                s.connecBcutMesh = [5 6 7];
+                test = VectorizedTriangulationTest(s);
+                err = test.computeError();
+                tol = 1e-14;
+                testCase.verifyLessThanOrEqual(err, tol)
+            else
+                passed = true;
+                verifyTrue(testCase, passed)
+            end
         end
 
     end
 
     methods (Test, ...
             TestTags = {'VectorizedTriangulation', ...
-            'Tetrahedron', 'IsoCoord', 'OrderedConnec', 'ShallPass'})
+            'Tetrahedron', 'FindingBug', 'OrderedConnec', 'ShallPass'})
         function testFindingBug(testCase)
             s.coord    = [0    0    0;
                           1    0    0;

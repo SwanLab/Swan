@@ -16,13 +16,13 @@ classdef Integrator_Simple < Integrator
             LHS = lhs.compute();
         end
 
-        function LHS = computeFemLHS(obj)
+        function Kgen = computeFemLHS(obj)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.globalConnec;
             s.npnod        = obj.npnod;
             s.dim          = obj.dim;
-            lhs = LHSintegrator_triangle(s);
-            LHS = lhs.computeTriangleLHS();
+            lhs  = LHSintegrator(s);
+            Kgen = lhs.computeKgenerator();
         end
         
         function rhs = integrate(obj,fNodal)

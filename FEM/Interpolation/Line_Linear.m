@@ -21,7 +21,7 @@ classdef Line_Linear < Interpolation
             obj.ndime = 1;
             obj.nnode = 2;
             obj.pos_nodes = [-1; 1];
-            obj.isoDv = 2;  
+            obj.isoDv = 2;
         end
         
         function computeShapes(obj,posgp)
