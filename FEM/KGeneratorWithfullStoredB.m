@@ -19,6 +19,10 @@ classdef KGeneratorWithfullStoredB < handle
         nt
         K
     end
+
+    properties (Access = private)
+        Cmat
+    end
     
     methods (Access = public)
         
@@ -38,10 +42,14 @@ classdef KGeneratorWithfullStoredB < handle
             obj.computeBtot();  
         end
         
-        function K = compute(obj,Cmat)
-            obj.computeCmatBlockDiagonal(Cmat);
+        function K = compute(obj)
+            obj.computeCmatBlockDiagonal();
             obj.computeStiffnes();
             K = obj.K;
+        end
+
+        function setMaterial(obj, Cmat)
+            obj.Cmat = Cmat;
         end
         
     end
@@ -53,7 +61,8 @@ classdef KGeneratorWithfullStoredB < handle
             obj.K = B'*CB;
         end
 
-        function computeCmatBlockDiagonal(obj,Cmat)
+        function computeCmatBlockDiagonal(obj)
+            Cmat = obj.Cmat;
             obj.CmatTot = sparse(obj.nt,obj.nt);
             for istre = 1:obj.dim.nstre
                 for jstre = 1:obj.dim.nstre

@@ -140,6 +140,7 @@ classdef NewElasticProblem < handle %NewFEM
             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
             K   = LHS.compute();
+            K    = obj.computeStiffnessMatrixSYM(Kgen); 
             Kred = obj.bcApplier.fullToReducedMatrix(K);
             obj.stiffnessMatrix = Kred;
         end

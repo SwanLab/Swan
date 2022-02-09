@@ -87,10 +87,11 @@ classdef Element_Elastic < Element
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.dim;
-            s.material     = obj.material;
-            LHS = LHSintegrator.create(s);            
+%             s.material     = obj.material;
+%             LHS = LHSintegrator.create(s);            
            
-            obj.StiffnessMatrix = LHS;
+%             obj.StiffnessMatrix = LHS;
+            obj.StiffnessMatrix = KGeneratorWithfullStoredB(obj.dim,obj.connec,obj.Bmatrix,dvolum);
           
              
             
