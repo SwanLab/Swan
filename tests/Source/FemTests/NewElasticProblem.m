@@ -37,7 +37,7 @@ classdef NewElasticProblem < handle %NewFEM
             obj.createMaterial();
             obj.computeMaterialProperties();
             obj.createInterpolation();
-            obj.createBCApplier();            
+            obj.createBCApplier();
             obj.createSolver();
         end
 
@@ -109,7 +109,7 @@ classdef NewElasticProblem < handle %NewFEM
             I = ones(obj.dim.nelem,obj.dim.ngaus);
             s.kappa = .9107*I;
             s.mu    = .3446*I;
-            obj.material.compute(s);            
+            obj.material.compute(s);
         end
 
         function createInterpolation(obj)
@@ -147,7 +147,7 @@ classdef NewElasticProblem < handle %NewFEM
         function computeForces(obj)
             f    = obj.computeExternalForces();
             fRed = obj.reduceForcesMatrix(f);
-            obj.forces = fRed; 
+            obj.forces = fRed;
 %             R = obj.compute_imposed_displacement_force(obj.K);
 %             obj.fext = Fext + R;
 %             obj.rhs = obj.integrator.integrate(fNodal);
@@ -163,7 +163,7 @@ classdef NewElasticProblem < handle %NewFEM
 
         function Fred = reduceForcesMatrix(obj, forces)
             Fred = obj.bcApplier.fullToReducedVector(forces);
-        end        
+        end
        
         function u = computeDisplacements(obj)
             Kred = obj.stiffnessMatrix;
