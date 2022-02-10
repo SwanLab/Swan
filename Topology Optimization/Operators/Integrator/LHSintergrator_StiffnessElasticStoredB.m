@@ -8,9 +8,9 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
 %         dofsPerElement
 %         nodesInElement
 %         VectorDimensions
-        Bfull
-        nunkn
-        dvolum
+%         Bfull
+%         nunkn
+%         dvolum
         ndofGlobal
         nt
     end
@@ -52,6 +52,9 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
             LHS = obj.computeStiffness(CmatTot);
         end
         
+        function setMaterialC(obj, Cmat)
+            obj.material.C = Cmat;
+        end
     end
     
    methods (Access = protected)

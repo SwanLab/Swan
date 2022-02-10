@@ -65,24 +65,17 @@ classdef Element_Elastic < Element
             obj.mesh = mesh;
             obj.initElement(geometry,mesh,material,dof,problemData.scale,interp);
             obj.initialize_dvolum();
-            ngaus   = obj.quadrature.ngaus;
-            dimen   = obj.computeDim(ngaus);
-            connect = mesh.connec;%obj.interp{1}.T;
+%             ngaus   = obj.quadrature.ngaus;
+            dimen   = obj.computeDim();
+%             connect = mesh.connec;%obj.interp{1}.T;
             dvolum = obj.geometry.dvolu;
             obj.dim = dimen;
-            obj.connec = connect;
-
-
-
-            Bmat   = obj.computeBmat();
-            
-            
-
+%             obj.connec = connect;
+%             Bmat   = obj.computeBmat();
             
             %            obj.DeltaC = ContitutiveTensorIncrement();
             
-            obj.Bmatrix = obj.computeB_InMatrixForm();
-            % lmao K_generator is useless
+%             obj.Bmatrix = obj.computeB_InMatrixForm();
 %             obj.K_generator = StiffnessMatrixGenerator(connect,Bmat,dvolum,dimen);
             
             
@@ -91,19 +84,19 @@ classdef Element_Elastic < Element
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.dim;
-%             s.material     = obj.material;
-%             LHS = LHSintegrator.create(s);            
+            s.material     = obj.material;
+            LHS = LHSintegrator.create(s);            
            
-%             obj.StiffnessMatrix = LHS;
-            obj.StiffnessMatrix = KGeneratorWithfullStoredB(obj.dim,obj.connec,obj.Bmatrix,dvolum);
+            obj.StiffnessMatrix = LHS;
+%             obj.StiffnessMatrix = KGeneratorWithfullStoredB(obj.dim,obj.connec,obj.Bmatrix,dvolum);
             
         end
         
-        function dim = computeDim(obj,ngaus)
+        function dim = computeDim(obj)
             m.nelem = obj.nelem;
             m.npnod = obj.dof.ndof/obj.dof.nunkn;
             m.nnode = obj.nnode;
-            s.ngaus = ngaus;
+            s.ngaus = obj.quadrature.ngaus;
             s.mesh  = m;
             s.pdim  = obj.pdim;
             dim    = DimensionVariables(s);
@@ -181,7 +174,7 @@ classdef Element_Elastic < Element
             %  obj.DeltaC.obtainChangedElements(obj.material.C)
             %  obj.K_generator.generate(obj.material.C);
             %  K = obj.K_generator.getStiffMatrix();
-            obj.StiffnessMatrix.setMaterial(obj.material.C);
+            obj.StiffnessMatrix.setMaterialC(obj.material.C);
             K = obj.StiffnessMatrix.compute();
             %K = obj.StiffnessMatrix.K;
         end

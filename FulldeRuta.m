@@ -28,8 +28,8 @@ fem.plot();
 
 %Top uses NewFem instaead of FEM
 
-% 1. Vectorized test fix
-% 2. Delete KgeneratorWithFullStoredB
+% 1. Vectorized test fix {{done}}
+% 2. Delete KgeneratorWithFullStoredB {{done}}
 % 3. Clean LHSintegratorStiffnessElasticStoredB
 % 4. Create input data for NewFem (mesh,bc,material)
 % 5. Create  LHSintergrator_StiffnessElastic 
