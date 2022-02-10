@@ -1,53 +1,24 @@
 classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
-  
-    properties (Access = public)
-        K
-    end
 
     properties (Access = private)
-%         dofsPerElement
-%         nodesInElement
-%         VectorDimensions
-%         Bfull
-%         nunkn
-%         dvolum
-        ndofGlobal
         nt
-    end
-
-    properties (Access = private)
         material
         geometry
         Btot
-        nodesInElement
-        VectorDimensions
     end
 
     methods (Access = public)
         
         function obj = LHSintergrator_StiffnessElasticStoredB(cParams)
             obj.init(cParams)
-            obj.material = cParams.material;
             obj.createQuadrature();
             obj.createInterpolation();
-
-            % B calculations from Element
+            obj.initOwn(cParams);
             obj.createGeometry();
-            Bmat = obj.computeBmat();
-            Bmatrix = obj.computeB_InMatrixForm();
-
-            % B calculations from KGenerator
-            d = obj.dim;
-            obj.nt = d.ngaus*d.nelem*d.nstre;
-            obj.ndofGlobal = max(max(obj.globalConnec))*d.nunkn;
-            obj.nodesInElement   = reshape(repmat(1:d.nnode,d.nunkn,1),1,[]);
-            obj.VectorDimensions = repmat(1:d.nunkn,1,d.nnode);
-            obj.Btot = obj.computeBtot(Bmatrix);
+            obj.computeB();
         end
 
         function LHS = compute(obj)
-%             lhs = obj.computeElementalLHS();
-%             LHS = obj.assembleMatrix(lhs);
             CmatTot = obj.computeCmatBlockDiagonal();
             LHS = obj.computeStiffness(CmatTot);
         end
@@ -68,6 +39,12 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
    end
     
    methods (Access = private)
+       
+       function initOwn(obj, cParams)
+            obj.material = cParams.material;
+            d            = obj.dim;
+            obj.nt       = d.ngaus*d.nelem*d.nstre;
+       end
 
        function createGeometry(obj)
            s.mesh = obj.mesh;
@@ -75,34 +52,27 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation);
        end
 
+       function computeB(obj)
+           Bmatrix  = obj.computeB_InMatrixForm();
+           obj.Btot = obj.computeBtot(Bmatrix);
+       end
+
        function Bmatrix = computeB_InMatrixForm(obj)
            d = obj.dim;
-           Bfull = zeros(d.ngaus,d.nstre,d.ndofPerElement,d.nelem);
            Bmatrix = zeros(d.ngaus*d.nelem*d.nstre,d.ndofPerElement);
            for igaus = 1:d.ngaus
                unitaryIndex = false(d.ngaus*d.nstre,1);
-               pos = d.nstre*(igaus-1) + 1 : d.nstre*(igaus) ;
+               pos = d.nstre*(igaus-1) + 1 : d.nstre*(igaus);
                unitaryIndex(pos) = true;
-               
-               Index = repmat(unitaryIndex,d.nelem,1);
-               Bfull(igaus,:,:,:) = obj.computeB(igaus);
-               Bshif = reshape(permute(obj.computeB(igaus),[1 3 2]),d.nelem*d.nstre,d.ndofPerElement);
-               Bmatrix(Index,:) = Bshif;
+               index = repmat(unitaryIndex,d.nelem,1);
+               Bmat = obj.computeBmat(igaus);
+               Bpermuted = permute(Bmat,[1 3 2]);
+               Bshif = reshape(Bpermuted,d.nelem*d.nstre,d.ndofPerElement);
+               Bmatrix(index,:) = Bshif;
            end
        end
 
-       function Bmat = computeBmat(obj)
-            ngaus = obj.quadrature.ngaus;
-            nelem = obj.mesh.nelem;
-            nstre = obj.dim.nstre;
-            ndofPerElement = obj.dim.ndofPerElement;
-            Bmat = zeros(ngaus,nstre,ndofPerElement,nelem);
-            for igaus = 1:ngaus
-                Bmat(igaus,:,:,:) = obj.computeB(igaus);
-            end
-       end
-
-       function B = computeB(obj,igaus)
+       function B = computeBmat(obj,igaus)
            ndim = obj.dim.ndim;
            switch ndim
                case 2
@@ -113,76 +83,88 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
        end
 
        function B = computeB2D(obj,igaus)
-            nstre = obj.dim.nstre;
-            nnode = obj.dim.nnode;
-            nelem = obj.dim.nelem;
-            nunkn = obj.dim.nunkn; 
-            ndofPerElement = obj.dim.ndofPerElement;
-            B = zeros(nstre,ndofPerElement,nelem);
-            for i = 1:nnode
-                j = nunkn*(i-1)+1;
-                B(1,j,:)  = obj.geometry.cartd(1,i,:,igaus);
-                B(2,j+1,:)= obj.geometry.cartd(2,i,:,igaus);
-                B(3,j,:)  = obj.geometry.cartd(2,i,:,igaus);
-                B(3,j+1,:)= obj.geometry.cartd(1,i,:,igaus);
-            end
+           d = obj.dim;
+           nstre          = d.nstre;
+           nnode          = d.nnode;
+           nelem          = d.nelem;
+           nunkn          = d.nunkn;
+           ndofPerElement = d.ndofPerElement;
+           cartd = obj.geometry.cartd;
+           B = zeros(nstre,ndofPerElement,nelem);
+           for i = 1:nnode
+               j = nunkn*(i-1)+1;
+               B(1,j,:)   = cartd(1,i,:,igaus);
+               B(2,j+1,:) = cartd(2,i,:,igaus);
+               B(3,j,:)   = cartd(2,i,:,igaus);
+               B(3,j+1,:) = cartd(1,i,:,igaus);
+           end
        end
 
        function [B] = computeB3D(obj,igaus)
            d = obj.dim;
-            B = zeros(d.nstre,d.ndofPerElement,d.nelem);
-            for inode=1:d.nnode
-                j = d.nunkn*(inode-1)+1;
-                % associated to normal strains
-                B(1,j,:) = obj.geometry.cartd(1,inode,:,igaus);
-                B(2,j+1,:) = obj.geometry.cartd(2,inode,:,igaus);
-                B(3,j+2,:) = obj.geometry.cartd(3,inode,:,igaus);
-                % associated to shear strain, gamma12
-                B(4,j,:) = obj.geometry.cartd(2,inode,:,igaus);
-                B(4,j+1,:) = obj.geometry.cartd(1,inode,:,igaus);
-                % associated to shear strain, gamma13
-                B(5,j,:) = obj.geometry.cartd(3,inode,:,igaus);
-                B(5,j+2,:) = obj.geometry.cartd(1,inode,:,igaus);
-                % associated to shear strain, gamma23
-                B(6,j+1,:) = obj.geometry.cartd(3,inode,:,igaus);
-                B(6,j+2,:) = obj.geometry.cartd(2,inode,:,igaus);
-            end
-       end
-
-       function CmatTot = computeCmatBlockDiagonal(obj)
-           Cmat = obj.material.C;
-           CmatTot = sparse(obj.nt,obj.nt);
-           dvol = obj.geometry.dvolu;
-           for istre = 1:obj.dim.nstre
-               for jstre = 1:obj.dim.nstre
-                   for igaus = 1:obj.dim.ngaus
-                       posI = (istre)+(obj.dim.nstre)*(igaus-1) : obj.dim.ngaus*obj.dim.nstre : obj.nt ;
-                       posJ = (jstre)+(obj.dim.nstre)*(igaus-1) : obj.dim.ngaus*obj.dim.nstre : obj.nt ;
-                       
-                       Ct = squeeze(Cmat(istre,jstre,:,igaus)).*dvol(:,igaus);
-                       CmatTot = CmatTot + sparse(posI,posJ,Ct,obj.nt,obj.nt);
-                   end
-               end
+           cartd = obj.geometry.cartd;
+           B = zeros(d.nstre,d.ndofPerElement,d.nelem);
+           for inode=1:d.nnode
+               j = d.nunkn*(inode-1)+1;
+               % associated to normal strains
+               B(1,j,:)   = cartd(1,inode,:,igaus);
+               B(2,j+1,:) = cartd(2,inode,:,igaus);
+               B(3,j+2,:) = cartd(3,inode,:,igaus);
+               % associated to shear strain, gamma12
+               B(4,j,:)   = cartd(2,inode,:,igaus);
+               B(4,j+1,:) = cartd(1,inode,:,igaus);
+               % associated to shear strain, gamma13
+               B(5,j,:)   = cartd(3,inode,:,igaus);
+               B(5,j+2,:) = cartd(1,inode,:,igaus);
+               % associated to shear strain, gamma23
+               B(6,j+1,:) = cartd(3,inode,:,igaus);
+               B(6,j+2,:) = cartd(2,inode,:,igaus);
            end
        end
        
        function Bt = computeBtot(obj, Bfull)
-           Bt = sparse(obj.nt,obj.ndofGlobal);
+           ndofGlob = max(max(obj.globalConnec))*obj.dim.nunkn;
+           Bt = sparse(obj.nt,ndofGlob);
            d = obj.dim;
+           ngaus = d.ngaus;
+           nstre = d.nstre;
+           ntot  = obj.nt;
            for idof=1:d.ndofPerElement
                GlobalDofs = obj.transformLocal2Global(idof);
-               dofs = repmat(GlobalDofs',d.ngaus*d.nstre,1);
+               dofs = repmat(GlobalDofs',ngaus*nstre,1);
                dofs = dofs(:);
-               Bt = Bt + sparse(1:obj.nt,dofs,Bfull(:,idof),obj.nt,obj.ndofGlobal);
+               Bt = Bt + sparse(1:ntot,dofs,Bfull(:,idof),ntot,ndofGlob);
            end
-%            obj.Btot = Bt;
        end
 
+       function CmatTot = computeCmatBlockDiagonal(obj)
+           nstre = obj.dim.nstre;
+           ngaus = obj.dim.ngaus;
+           ntot  = obj.nt;
+           Cmat    = obj.material.C;
+           CmatTot = sparse(ntot,ntot);
+           dvol = obj.geometry.dvolu;
+           for istre = 1:nstre
+               for jstre = 1:nstre
+                   for igaus = 1:ngaus
+                       posI = (istre)+(nstre)*(igaus-1) : ngaus*nstre : ntot;
+                       posJ = (jstre)+(nstre)*(igaus-1) : ngaus*nstre : ntot ;
+                       
+                       Ct = squeeze(Cmat(istre,jstre,:,igaus)).*dvol(:,igaus);
+                       CmatTot = CmatTot + sparse(posI,posJ,Ct,ntot,ntot);
+                   end
+               end
+           end
+       end
 
        function GlobalDofs = transformLocal2Global(obj,LocalDof)
-           LocalNode        = obj.nodesInElement(LocalDof);
-           VectorDimension  = obj.VectorDimensions(LocalDof);
-           GlobalDofs       = obj.dim.nunkn*(obj.globalConnec(:,LocalNode)-1) + VectorDimension;
+           d = obj.dim;
+           connec = obj.globalConnec;
+           nodesInElement   = reshape(repmat(1:d.nnode,d.nunkn,1),1,[]);
+           vectorDimensions = repmat(1:d.nunkn,1,d.nnode);
+           localNode        = nodesInElement(LocalDof);
+           vectorDimension  = vectorDimensions(LocalDof);
+           GlobalDofs       = d.nunkn*(connec(:,localNode)-1) + vectorDimension;
        end
 
        function K = computeStiffness(obj,CmatTot)
