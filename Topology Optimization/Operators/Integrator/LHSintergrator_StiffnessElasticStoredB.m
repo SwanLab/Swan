@@ -1,7 +1,6 @@
 classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
 
     properties (Access = private)
-        nt
         material
         geometry
         Btot
@@ -41,9 +40,7 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
    methods (Access = private)
        
        function initOwn(obj, cParams)
-            d = obj.dim;
             obj.material = cParams.material;
-            obj.nt       = d.ngaus*d.nelem*d.nstre;
        end
 
        function createGeometry(obj)
@@ -53,9 +50,8 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
        end
 
        function computeB(obj)
-           s.nt          = obj.nt;
-           s.dim         = obj.dim;
-           s.geometry    = obj.geometry;
+           s.dim          = obj.dim;
+           s.geometry     = obj.geometry;
            s.globalConnec = obj.globalConnec;
            BMC  = BMatrixComputer(s);
            obj.Btot = BMC.compute();
@@ -64,7 +60,7 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
        function CmatTot = computeCmatBlockDiagonal(obj)
            nstre = obj.dim.nstre;
            ngaus = obj.dim.ngaus;
-           ntot  = obj.nt;
+           ntot  = obj.dim.nt;
            Cmat    = obj.material.C;
            CmatTot = sparse(ntot,ntot);
            dvol = obj.geometry.dvolu;
@@ -72,7 +68,7 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
                for jstre = 1:nstre
                    for igaus = 1:ngaus
                        posI = (istre)+(nstre)*(igaus-1) : ngaus*nstre : ntot;
-                       posJ = (jstre)+(nstre)*(igaus-1) : ngaus*nstre : ntot ;
+                       posJ = (jstre)+(nstre)*(igaus-1) : ngaus*nstre : ntot;
                        
                        Ct = squeeze(Cmat(istre,jstre,:,igaus)).*dvol(:,igaus);
                        CmatTot = CmatTot + sparse(posI,posJ,Ct,ntot,ntot);
@@ -82,9 +78,9 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
        end
 
        function K = computeStiffness(obj,CmatTot)
-           B = obj.Btot;
+           B  = obj.Btot;
            CB = CmatTot*B;
-           K = B'*CB;
+           K  = B'*CB;
        end
 
    end

@@ -4,7 +4,6 @@ classdef BMatrixComputer < handle
         dim
         geometry
         globalConnec
-        nt
     end
     
     methods (Access = public)
@@ -23,7 +22,6 @@ classdef BMatrixComputer < handle
     methods (Access = private)
         
         function init(obj, cParams)
-            obj.nt           = cParams.nt;
             obj.dim          = cParams.dim;
             obj.geometry     = cParams.geometry;
             obj.globalConnec = cParams.globalConnec;
@@ -99,7 +97,7 @@ classdef BMatrixComputer < handle
            ngaus = d.ngaus;
            nstre = d.nstre;
            nunkn = d.nunkn;
-           ntot  = obj.nt;
+           ntot  = d.nt;
            ndofGlob = max(max(obj.globalConnec))*nunkn;
            Bt = sparse(ntot,ndofGlob);
            for idof=1:d.ndofPerElement
@@ -109,7 +107,7 @@ classdef BMatrixComputer < handle
                Bt = Bt + sparse(1:ntot,dofs,Bfull(:,idof),ntot,ndofGlob);
            end
        end
-       
+
        function GlobalDofs = transformLocal2Global(obj,LocalDof)
            d = obj.dim;
            connec = obj.globalConnec;
