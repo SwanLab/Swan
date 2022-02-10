@@ -5,12 +5,12 @@ classdef LHSintegrator < handle
         quadrature
         interpolation     
         dim
+        globalConnec
     end
 
     properties (Access = private)
 
         LHScells
-        globalConnec
         npnod
     end
     

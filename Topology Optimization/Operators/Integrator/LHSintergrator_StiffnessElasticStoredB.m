@@ -1,9 +1,13 @@
 classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
   
+    properties (Access = public)
+        K
+    end
+
     properties (Access = private)
-        dofsPerElement
-        nodesInElement
-        VectorDimensions
+%         dofsPerElement
+%         nodesInElement
+%         VectorDimensions
         Bfull
         nunkn
         dvolum
@@ -14,7 +18,9 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
     properties (Access = private)
         material
         geometry
-        Btot;
+        Btot
+        nodesInElement
+        VectorDimensions
     end
 
     methods (Access = public)
@@ -30,15 +36,20 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
             Bmat = obj.computeBmat();
             Bmatrix = obj.computeB_InMatrixForm();
 
-            obj.Btot = ;
+            % B calculations from KGenerator
+            d = obj.dim;
+            obj.nt = d.ngaus*d.nelem*d.nstre;
+            obj.ndofGlobal = max(max(obj.globalConnec))*d.nunkn;
+            obj.nodesInElement   = reshape(repmat(1:d.nnode,d.nunkn,1),1,[]);
+            obj.VectorDimensions = repmat(1:d.nunkn,1,d.nnode);
+            obj.Btot = obj.computeBtot(Bmatrix);
         end
 
         function LHS = compute(obj)
 %             lhs = obj.computeElementalLHS();
 %             LHS = obj.assembleMatrix(lhs);
-            Btot = obj.Btot;
             CmatTot = obj.computeCmatBlockDiagonal();
-            LHS = obj.computeStiffness(Btot, CmatTot);
+            LHS = obj.computeStiffness(CmatTot);
         end
         
     end
@@ -138,34 +149,43 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
        function CmatTot = computeCmatBlockDiagonal(obj)
            Cmat = obj.material.C;
            CmatTot = sparse(obj.nt,obj.nt);
+           dvol = obj.geometry.dvolu;
            for istre = 1:obj.dim.nstre
                for jstre = 1:obj.dim.nstre
                    for igaus = 1:obj.dim.ngaus
                        posI = (istre)+(obj.dim.nstre)*(igaus-1) : obj.dim.ngaus*obj.dim.nstre : obj.nt ;
                        posJ = (jstre)+(obj.dim.nstre)*(igaus-1) : obj.dim.ngaus*obj.dim.nstre : obj.nt ;
                        
-                       Ct = squeeze(Cmat(istre,jstre,:,igaus)).*obj.dvolum(:,igaus);
+                       Ct = squeeze(Cmat(istre,jstre,:,igaus)).*dvol(:,igaus);
                        CmatTot = CmatTot + sparse(posI,posJ,Ct,obj.nt,obj.nt);
                    end
                end
            end
        end
        
-       function GlobalDofs = computeBtot(obj)
-           obj.Btot = sparse(obj.nt,obj.ndofGlobal);
-           for idof=1:obj.dofsPerElement
+       function Bt = computeBtot(obj, Bfull)
+           Bt = sparse(obj.nt,obj.ndofGlobal);
+           d = obj.dim;
+           for idof=1:d.ndofPerElement
                GlobalDofs = obj.transformLocal2Global(idof);
-               dofs = repmat(GlobalDofs',obj.dim.ngaus*obj.dim.nstre,1);
+               dofs = repmat(GlobalDofs',d.ngaus*d.nstre,1);
                dofs = dofs(:);
-               obj.Btot = obj.Btot + sparse(1:obj.nt,dofs,obj.Bfull(:,idof),obj.nt,obj.ndofGlobal);
+               Bt = Bt + sparse(1:obj.nt,dofs,Bfull(:,idof),obj.nt,obj.ndofGlobal);
            end
+%            obj.Btot = Bt;
        end
 
 
        function GlobalDofs = transformLocal2Global(obj,LocalDof)
            LocalNode        = obj.nodesInElement(LocalDof);
            VectorDimension  = obj.VectorDimensions(LocalDof);
-           GlobalDofs       = obj.nunkn*(obj.connectivities(:,LocalNode)-1) + VectorDimension;
+           GlobalDofs       = obj.dim.nunkn*(obj.globalConnec(:,LocalNode)-1) + VectorDimension;
+       end
+
+       function K = computeStiffness(obj,CmatTot)
+           B = obj.Btot;
+           CB = CmatTot*B;
+           K = B'*CB;
        end
 
    end
