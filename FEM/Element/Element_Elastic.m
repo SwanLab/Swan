@@ -61,26 +61,30 @@ classdef Element_Elastic < Element
         function compute(obj,mesh,geometry,material,dof,problemData,interp)
             obj.interpolation_u = interp{1};
             obj.pdim = problemData.pdim;
-            obj.initElement(geometry,mesh,material,dof,problemData.scale,interp)
             obj.nfields=1;
             obj.mesh = mesh;
-            obj.initialize_dvolum()
-            Bmat   = obj.computeBmat();
-            dvolum = obj.geometry.dvolu;
-            
+            obj.initElement(geometry,mesh,material,dof,problemData.scale,interp);
+            obj.initialize_dvolum();
             ngaus   = obj.quadrature.ngaus;
             dimen   = obj.computeDim(ngaus);
             connect = mesh.connec;%obj.interp{1}.T;
+            dvolum = obj.geometry.dvolu;
+            obj.dim = dimen;
+            obj.connec = connect;
+
+
+
+            Bmat   = obj.computeBmat();
+            
             
 
             
-            obj.dim = dimen;
-            obj.connec = connect;
             %            obj.DeltaC = ContitutiveTensorIncrement();
             
-            obj.K_generator = StiffnessMatrixGenerator(connect,Bmat,dvolum,dimen);
-            
             obj.Bmatrix = obj.computeB_InMatrixForm();
+            % lmao K_generator is useless
+%             obj.K_generator = StiffnessMatrixGenerator(connect,Bmat,dvolum,dimen);
+            
             
             s.type = 'ElasticStiffnessMatrixOld';
             s.mesh         = obj.mesh;
@@ -92,8 +96,6 @@ classdef Element_Elastic < Element
            
 %             obj.StiffnessMatrix = LHS;
             obj.StiffnessMatrix = KGeneratorWithfullStoredB(obj.dim,obj.connec,obj.Bmatrix,dvolum);
-          
-             
             
         end
         

@@ -64,7 +64,7 @@ classdef Element_Elastic_Micro < Element_Elastic
             sigma = zeros(obj.nstre,ngaus,obj.nelem);
             for igaus = 1:ngaus
                 Bmat    = obj.computeB(igaus);
-                dV(:,1) = obj.geometry.dvolu(:,igaus);                
+                dV(:,1) = obj.geometry.dvolu(:,igaus);
                 for istre = 1:obj.nstre
                     for jstre = 1:obj.nstre
                         Cij = squeeze(Cmat(istre,jstre,:,igaus));

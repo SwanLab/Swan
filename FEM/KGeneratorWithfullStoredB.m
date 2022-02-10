@@ -21,12 +21,21 @@ classdef KGeneratorWithfullStoredB < handle
     end
 
     properties (Access = private)
-        Cmat
+        Cmat % it works.
+        interpolation
+        pdim
+        nfields
+        mesh
+        
     end
     
     methods (Access = public)
         
         function obj = KGeneratorWithfullStoredB(dim,connectivities,Bfull,dvolum)
+%         function obj = KGeneratorWithfullStoredB(mesh,geometry,material,dof,problemData,interp)
+%             obj.copiant(mesh,geometry,material,dof,problemData,interp);
+
+
             obj.dofsPerElement   = dim.ndofPerElement;
             obj.nodesInElement   = reshape(repmat(1:dim.nnode,dim.nunkn,1),1,[]);
             obj.VectorDimensions = repmat(1:dim.nunkn,1,dim.nnode);
@@ -54,6 +63,11 @@ classdef KGeneratorWithfullStoredB < handle
         
     end
     
+
+    methods (Access = private) 
+
+    end
+
     methods (Access = private)
         function  computeStiffnes(obj)
             B = obj.Btot;

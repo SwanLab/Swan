@@ -20,12 +20,12 @@ classdef LHSintegratorFactory < handle
                    % elemntal B + assamly --> globalB
                    % elemntal C + assamly --> globalC
                    % global B'*C*B 
-                   obj = LHSintergratorStiffnessElasticStoredB(cParams);
+                   obj = LHSintergrator_StiffnessElasticStoredB(cParams);
                    %globalB in contructor
 
            end
            
-       end       
+       end
        
    end
     
