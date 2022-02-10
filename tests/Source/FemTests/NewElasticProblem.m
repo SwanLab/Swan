@@ -71,11 +71,9 @@ classdef NewElasticProblem < handle %NewFEM
 
         function createProblemData(obj)
             s = obj.femData;
-            pd.fileName     = obj.fileName;
             pd.scale        = s.scale;
             pd.pdim         = s.pdim;
             pd.ptype        = s.ptype;
-            pd.nelem        = s.mesh.nelem;
             pd.bc.dirichlet = s.dirichlet;
             pd.bc.pointload = s.pointload;
             obj.problemData = pd;

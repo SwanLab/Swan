@@ -9,12 +9,34 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             'testDualNestedInPrimal_WithSlerp', ...
             'test_interiorPerimeter'
             }
+        fastDisp = {'test_bridge2', ...
+            'test_cantilever', 'test_cantilever2', 'test_cantilever3', ...
+            'test_micro', 'test_micro2', ...
+            'testDualNestedInPrimal_WithProjectedGradient', ...
+            'testDualNestedInPrimal_WithSlerp', ...
+            'test_interiorPerimeter'
+            }
 %         compTestsToPass = {'test_bridge'}
 %         compTestsToPass = {'test_interiorPerimeter'}
         compTests = {'test_bridge'}
         dimensions = {'2D', '3D'}
         vigdergauzTests = {'test_VigergauzMicroStructure', 'test_VigergauzMicroStructureFromStrain'}
         vigdergauzVolumes = {0.6, 0.75}
+    end
+
+    methods (Test, TestTags = {'TopOpt', 'Various', 'FastDisp'})
+
+        function testFastDisplacement(testCase, fastDisp)
+%             testCase.fixFolder();
+            s.computerType    = 'TOPOPT';
+            s.testName         = fastDisp;
+            s.variablesToStore = {'x'};
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
     end
 
     methods (Test, TestTags = {'TopOpt', 'Various', 'ToPass','Slow'})

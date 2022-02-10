@@ -5,7 +5,7 @@ classdef OptimalExponentClosestToVigergauz < handle
         error
         mx
         my
-        frames  
+        frames
         qIter
     end
     
@@ -32,7 +32,7 @@ classdef OptimalExponentClosestToVigergauz < handle
             obj.problem = p;
             [x,fsol] = fminbnd(obj.problem);
             obj.qOpt = x;
-            obj.error = fsol;        
+            obj.error = fsol;
             obj.mx = obj.comparator.mx;
             obj.my = obj.comparator.my;
         end
@@ -45,7 +45,7 @@ classdef OptimalExponentClosestToVigergauz < handle
           obj.rho = cParams.rho;
           obj.txi = cParams.txi;
           obj.savingFrames = cParams.savingFrames;
-          obj.comparator = VigdergauzSuperEllipseComparator;          
+          obj.comparator = VigdergauzSuperEllipseComparator;
        end
        
         function d = vigdergauzSuperEllipseDistance(obj,q)
@@ -56,7 +56,7 @@ classdef OptimalExponentClosestToVigergauz < handle
                 obj.qIter{end+1} = q;
             end
             d = obj.comparator.rhoDifferenceNorm;
-        end       
+        end
        
    end
     
