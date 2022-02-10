@@ -101,7 +101,7 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
        end
 
        function [B] = computeB3D(obj,igaus)
-           d = obj.dim;
+           d     = obj.dim;
            cartd = obj.geometry.cartd;
            B = zeros(d.nstre,d.ndofPerElement,d.nelem);
            for inode=1:d.nnode
