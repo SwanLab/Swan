@@ -30,7 +30,7 @@ fem.plot();
 
 % 1. Vectorized test fix {{done}}
 % 2. Delete KgeneratorWithFullStoredB {{done}}
-% 3. Clean LHSintegratorStiffnessElasticStoredB
+% 3. Clean LHSintegratorStiffnessElasticStoredB {{done}} (?)
 % 4. Create input data for NewFem (mesh,bc,material)
 % 5. Create  LHSintergrator_StiffnessElastic 
 % 6. DOF+ Boudnary
