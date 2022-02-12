@@ -135,7 +135,8 @@ classdef Element_DiffReact < Element
         function dim = computeDim(obj)
             s.ngaus = obj.quadrature.ngaus;
             s.mesh  = obj.mesh;
-            s.pdim  = obj.createPdim();
+%             s.pdim  = obj.createPdim();
+            s.pdim  = 'FILTER';
             dim    = DimensionVariables(s);
             dim.compute();
         end
