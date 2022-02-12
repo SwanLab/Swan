@@ -11,7 +11,7 @@ classdef LHSintergrator_Mass < LHSintegrator
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
             LHS = obj.assembleMatrix(lhs);
-        end        
+        end
         
     end
     

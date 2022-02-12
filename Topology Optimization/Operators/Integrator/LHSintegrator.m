@@ -3,7 +3,7 @@ classdef LHSintegrator < handle
     properties (Access = protected)
         mesh   
         quadrature
-        interpolation     
+        interpolation
         dim
         globalConnec
     end
@@ -73,12 +73,11 @@ classdef LHSintegrator < handle
                     A = A + sparse(nodeI,nodeJ,a,ndofs,ndofs);
                 end
             end
-        end        
+        end
 
     end
     
     methods (Access = private)
-   
         
         %% LHSintegrator_triangle
       
@@ -95,7 +94,6 @@ classdef LHSintegrator < handle
             dir = obj.principalDirectionComputer.direction;
             str = obj.principalDirectionComputer.principalStress;
         end
-  
 
     end
     

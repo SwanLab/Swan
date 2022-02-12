@@ -1,8 +1,8 @@
-classdef LHSintergrator_Stiffness < LHSintegrator
+classdef LHSintergrator_StiffnessElastic < LHSintegrator
   
     methods (Access = public)
         
-        function obj = LHSintergrator_Stiffness(cParams)
+        function obj = LHSintergrator_StiffnessElastic(cParams)
             obj.init(cParams)
             obj.createQuadrature();
             obj.createInterpolation();
