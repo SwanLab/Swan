@@ -1,5 +1,5 @@
 classdef LHSintergrator_StiffnessElastic < LHSintegrator
-  
+
     methods (Access = public)
         
         function obj = LHSintergrator_StiffnessElastic(cParams)
@@ -9,8 +9,9 @@ classdef LHSintergrator_StiffnessElastic < LHSintegrator
         end
 
         function LHS = compute(obj)
-            lhs = obj.computeElementalLHS();
-            LHS = obj.assembleMatrix(lhs);
+            obj.C = obj.computeElasticityMatrix();
+            lhs   = obj.computeElementalLHS();
+            LHS   = obj.assembleMatrix(lhs);
         end
         
     end
@@ -41,6 +42,26 @@ classdef LHSintergrator_StiffnessElastic < LHSintegrator
    end
     
    methods (Access = private)
+
+       function C = computeElasticityMatrix(obj)
+           nstre = obj.dim.nstre;
+           ngaus = obj.dim.ngaus;
+           ntot  = obj.dim.nt;
+           Cmat    = obj.material.C;
+           CmatTot = sparse(ntot,ntot);
+           dvol = obj.geometry.dvolu;
+           for istre = 1:nstre
+               for jstre = 1:nstre
+                   for igaus = 1:ngaus
+                       posI = (istre)+(nstre)*(igaus-1) : ngaus*nstre : ntot;
+                       posJ = (jstre)+(nstre)*(igaus-1) : ngaus*nstre : ntot;
+                       
+                       Ct = squeeze(Cmat(istre,jstre,:,igaus)).*dvol(:,igaus);
+                       CmatTot = CmatTot + sparse(posI,posJ,Ct,ntot,ntot);
+                   end
+               end
+           end
+       end
        
        function grad = computeGradient(obj)
             q = Quadrature.set(obj.mesh.type);

@@ -1,7 +1,7 @@
 classdef LHSintegrator < handle
 
     properties (Access = protected)
-        mesh   
+        mesh
         quadrature
         interpolation
         dim
