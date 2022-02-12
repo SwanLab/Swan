@@ -1,7 +1,6 @@
 classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
 
     properties (Access = private)
-        material
         geometry
         Btot
     end
@@ -12,7 +11,6 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
             obj.init(cParams)
             obj.createQuadrature();
             obj.createInterpolation();
-            obj.initOwn(cParams);
             obj.createGeometry();
             obj.computeB();
         end
@@ -38,10 +36,6 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
    end
     
    methods (Access = private)
-       
-       function initOwn(obj, cParams)
-            obj.material = cParams.material;
-       end
 
        function createGeometry(obj)
            s.mesh = obj.mesh;

@@ -6,10 +6,10 @@ classdef LHSintegrator < handle
         interpolation
         dim
         globalConnec
+        material
     end
 
     properties (Access = private)
-
         LHScells
         npnod
     end
@@ -38,10 +38,13 @@ classdef LHSintegrator < handle
     methods (Access = protected)
      
         function init(obj,cParams)
-            obj.mesh          = cParams.mesh;
-            obj.globalConnec  = cParams.globalConnec;
-            obj.npnod         = cParams.npnod;
-            obj.dim           = cParams.dim;
+            obj.dim          = cParams.dim;
+            obj.mesh         = cParams.mesh;
+            obj.npnod        = cParams.npnod;
+            obj.globalConnec = cParams.globalConnec;
+            if isfield(cParams, 'material') % Compatibility with MassMatrix
+                obj.material   = cParams.material;
+            end
         end
         
        function createQuadrature(obj)
