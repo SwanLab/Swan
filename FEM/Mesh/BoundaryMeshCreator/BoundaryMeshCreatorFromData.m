@@ -17,7 +17,7 @@ classdef BoundaryMeshCreatorFromData < BoundaryMeshCreator
     methods (Access = public)
         
         function obj = BoundaryMeshCreatorFromData(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)
         end
         
         function m = create(obj)
@@ -27,13 +27,12 @@ classdef BoundaryMeshCreatorFromData < BoundaryMeshCreator
             s.connec = [kConnec(1:end-1),kConnec(2:end)];
             %s.connec = obj.computeConnectivitiesFromData(obj.borderElements(:,2:end));
            
-            
             s.nodesInBoxFaces = false(size(obj.backgroundMesh.coord,1),1);
             s.nodesInBoxFaces(nodes,1) = true;
             s.isRectangularBox = false;
             s.dimension = 1;
             s.kFace      = obj.backgroundMesh.kFace;
-            m{1} = BoundaryMesh(s);            
+            m{1} = BoundaryMesh(s);
         end
         
     end

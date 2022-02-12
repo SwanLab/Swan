@@ -119,7 +119,7 @@ classdef Element_DiffReact < Element
             bMeshes = bC.create();
             bMeshes = obj.boundaryMesh;
             nBoxFaces = numel(bMeshes);
-            params.dim = obj.computeDim();
+            dim = obj.computeDim();
             for iMesh = 1:nBoxFaces
                 boxFaceMesh = bMeshes{iMesh};
                 cParams.mesh = boxFaceMesh.mesh;
@@ -127,6 +127,7 @@ classdef Element_DiffReact < Element
                 cParams.globalConnec = boxFaceMesh.globalConnec;
                 cParams.npnod        = obj.mesh.npnod;
                 cParams.geometryType = obj.mesh.type;
+                cParams.dim          = dim;
                 params.compositeParams{iMesh} = cParams;
             end
         end
@@ -145,6 +146,8 @@ classdef Element_DiffReact < Element
                     pdim = '2D';
                 case 3
                     pdim = '3D';
+                case 'FILTER'
+                    pdim = 'FILTER';
             end
         end
         

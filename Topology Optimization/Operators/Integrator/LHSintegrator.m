@@ -61,7 +61,8 @@ classdef LHSintegrator < handle
 
         function A = assembleMatrix(obj,aElem)
             connec = obj.globalConnec;
-            ndofs  = obj.npnod;
+            ndofs  = obj.npnod; % should be obj.dim.ndof
+            ndofs  = obj.dim.ndof; % should be obj.dim.ndof
             Ae     = aElem;
             nunkn1 = 1;
             nunkn2 = 1;
