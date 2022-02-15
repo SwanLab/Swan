@@ -116,7 +116,7 @@ classdef Mesh < handle
         end
         
         function dvolume = computeDvolume(obj,quad)
-            g = obj.geometry;    
+            g = obj.geometry;
             g.computeGeometry(quad,obj.interpolation);
             dvolume = g.dvolu;
             dvolume = dvolume';
@@ -125,7 +125,7 @@ classdef Mesh < handle
         function n = getNormals(obj)
             quad = Quadrature.set(obj.type);
             quad.computeQuadrature('CONSTANT');
-            g = obj.geometry;    
+            g = obj.geometry;
             g.computeGeometry(quad,obj.interpolation);
             n = g.normalVector;
         end
@@ -166,7 +166,7 @@ classdef Mesh < handle
         function computeMasterSlaveNodes(obj)
            mR = MasterSlaveRelator(obj.coord);
            nodes = mR.getRelation();
-           obj.masterSlaveNodes = nodes; 
+           obj.masterSlaveNodes = nodes;
         end
         
         function plotNormals(obj)

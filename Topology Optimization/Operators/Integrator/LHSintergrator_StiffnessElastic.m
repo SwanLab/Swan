@@ -18,6 +18,8 @@ classdef LHSintergrator_StiffnessElastic < LHSintegrator
    methods (Access = protected)
         
         function lhs = computeElementalLHS(obj)
+            % Belytschko page 226 (243)
+            % Is the gradient okay?
             dShape = obj.computeGradient();
             if (obj.dim.ndim == 2)
                 nelem = obj.dim.nelem;
@@ -58,7 +60,7 @@ classdef LHSintergrator_StiffnessElastic < LHSintegrator
             g.computeGeometry(obj.quadrature,int);
             grad = g.cartd;
        end
-
+       
    end
-    
+   
 end
