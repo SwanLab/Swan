@@ -7,6 +7,6 @@ classdef SimpInterpolationP3 < SimpInterpolation
             obj.pExp = 3;
             obj.computeSymbolicInterpolationFunctions();
         end
-           
+        
     end
 end

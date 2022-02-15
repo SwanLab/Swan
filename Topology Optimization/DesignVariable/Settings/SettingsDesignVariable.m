@@ -41,7 +41,7 @@ classdef SettingsDesignVariable < AbstractSettings
             end
         end
         
-        function initLevelSetCreator(obj)            
+        function initLevelSetCreator(obj)
             s = obj.creatorSettings;
             s.type = obj.initialCase;
             obj.creatorSettings = SettingsLevelSetCreator().create(s);

@@ -1,19 +1,19 @@
 classdef DualVariable < handle
     
     properties (Access = public)
-       value 
+       value
     end
     
     properties (Access = private)
-       nConstraints 
-       valueOld       
+       nConstraints
+       valueOld
     end
     
    methods (Access = public, Static)
        
        function obj = DualVariable(cParams)
            obj.nConstraints = cParams.nConstraints;
-           obj.value        = zeros(1,obj.nConstraints);           
+           obj.value        = zeros(1,obj.nConstraints);
        end
        
    end
@@ -30,5 +30,4 @@ classdef DualVariable < handle
        
    end
 
-    
 end

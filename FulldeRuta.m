@@ -28,23 +28,23 @@ fem.plot();
 
 %Top uses NewFem instaead of FEM
 
-%% 1. Vectorized test fix {{done}}
-% {{Done}}, committed and pushed. Pending approval of pull request.
+% 1. Vectorized test fix {{done}}
+%   {{Done}}, committed and pushed. Pending approval of pull request.
 
-%% 2. Delete KgeneratorWithFullStoredB {{done}}
-% {{Done}}, committed and pushed. Pending approval of pull request.
+% 2. Delete KgeneratorWithFullStoredB {{done}}
+%   {{Done}}, committed and pushed. Pending approval of pull request.
 
-%% 3. Clean LHSintegratorStiffnessElasticStoredB {{done}} (?)
-% {{Done}} (?), committed and pushed. Pending approval of pull request.
+% 3. Clean LHSintegratorStiffnessElasticStoredB {{done}} (?)
+%   {{Done}} (?), committed and pushed. Pending approval of pull request.
 
-%% 4. Create input data for NewFem (mesh,bc,material)
-% {{Done}}-ish. It needs:
-%     - mesh
-%     - pdim
-%     - ptype, scale
-%     - problemID (fileName) for DOF compatibility
-%     - dirichlet
-%     - pointload
+% 4. Create input data for NewFem (mesh,bc,material)
+%    {{Done}}-ish. It needs:
+%         - mesh
+%         - pdim
+%         - ptype, scale
+%         - problemID (fileName) for DOF compatibility
+%         - dirichlet
+%         - pointload
 
 %% 5. Create  LHSintergrator_StiffnessElastic 
 % 6. DOF+ Boudnary

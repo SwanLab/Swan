@@ -4,11 +4,11 @@ classdef SimpAllInterpolationExplicit3D < SimpAllInterpolationExplicit
         
         function obj = SimpAllInterpolationExplicit3D(cParams)
             obj.init(cParams);
-            obj.nstre = 6;  
+            obj.nstre = 6;
             obj.computeSymbolicInterpolationFunctions();
         end
 
-    end    
+    end
   
 end
 

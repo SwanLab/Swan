@@ -3,7 +3,7 @@ classdef OptimalOrientationComputer < handle
     properties (GetAccess = public, SetAccess = private)
         optimalAngle
         compliance
-        Rsigma        
+        Rsigma
     end
     
     properties (Access = private)
@@ -18,11 +18,11 @@ classdef OptimalOrientationComputer < handle
             obj.init();
         end
              
-        function compute(obj,stress,Ctensor)            
+        function compute(obj,stress,Ctensor)
             obj.stress = stress;
-            obj.Ctensor = Ctensor;            
+            obj.Ctensor = Ctensor;
             obj.computeCompliance();
-            obj.obtainOptimalAngle();            
+            obj.obtainOptimalAngle();
         end
        
     end
@@ -35,7 +35,7 @@ classdef OptimalOrientationComputer < handle
         end
         
         function createAngle(obj)
-            obj.angle = sym('a','real');            
+            obj.angle = sym('a','real');
         end
         
         function createRotationMatrix(obj)
@@ -52,7 +52,7 @@ classdef OptimalOrientationComputer < handle
             s = obj.stress;
             C = obj.Ctensor;
             Rs = obj.Rsigma;
-            c = s'*Rs'*inv(C)*Rs*s;            
+            c = s'*Rs'*inv(C)*Rs*s;
             obj.compliance = matlabFunction(c);
         end
         
@@ -60,7 +60,6 @@ classdef OptimalOrientationComputer < handle
            x = fminbnd(obj.compliance,-pi,pi);
            obj.optimalAngle = x;
         end
-        
         
     end
 end

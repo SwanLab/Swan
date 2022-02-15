@@ -1,21 +1,21 @@
 classdef InactiveConstraintsModifier < handle
     
     properties (Access = public)
-        constraint        
+        constraint
     end
     
     properties (Access = private)
         dualVariable
         penalty
         isInactive
-        threshold        
-    end    
+        threshold
+    end
     
     methods (Access = public, Static)
         
         function obj = create(constraintCase)
             factory = InactiveConstraintsModifierFactory;
-            obj = factory.create(constraintCase);            
+            obj = factory.create(constraintCase);
         end
         
     end
@@ -28,17 +28,17 @@ classdef InactiveConstraintsModifier < handle
         end
         
        function modify(obj,penalty)
-            obj.penalty = penalty;            
+            obj.penalty = penalty;
             obj.computeThreshold();
             obj.obtainInactiveConstraints();
             obj.modifyValue();
-            obj.modifyGradient();            
+            obj.modifyGradient();
         end
         
     end
     
     methods (Access = private)
-                               
+        
         function obtainInactiveConstraints(obj)
             obj.isInactive = obj.threshold > obj.constraint.value;
         end

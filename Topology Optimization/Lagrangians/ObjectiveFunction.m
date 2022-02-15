@@ -7,19 +7,19 @@ classdef ObjectiveFunction < handle
     
     properties (Access = protected)
         cost
-        constraint  
+        constraint
         dualVariable
     end
     
     properties (Access = private)
-        valueOld        
+        valueOld
     end
     
     methods (Access = public, Static)
         
         function obj = create(cParams)
             f = ObjectiveFunctionFactory();
-            obj = f.create(cParams);            
+            obj = f.create(cParams);
         end
         
     end
@@ -28,7 +28,7 @@ classdef ObjectiveFunction < handle
         
         function init(obj,cParams)
             obj.cost         = cParams.cost;
-            obj.constraint   = cParams.constraint;   
+            obj.constraint   = cParams.constraint;
             obj.dualVariable = cParams.dualVariable;
         end
         

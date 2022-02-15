@@ -67,7 +67,7 @@ classdef TargetParamsManager < handle
 %             obj.epsilonPer.update(i);
 %             epsi(i,1) = obj.epsilonPer.value;
 %             %obj.volumeFrac.update(i);
-%             %epsi(i,1) = obj.volumeFrac.value;            
+%             %epsi(i,1) = obj.volumeFrac.value;
 %             end
 %             plot(epsi,'+')
         end
@@ -81,7 +81,7 @@ classdef TargetParamsManager < handle
             obj.targetParams.epsilon_perimeter = obj.epsilonPer.value;
             obj.targetParams.epsilon_isotropy = obj.epsilonIso.value;
             obj.targetParams.stressNormExponent = obj.stressNormExponent.value;
-            obj.targetParams.iStep = obj.iStep;            
+            obj.targetParams.iStep = obj.iStep;
         end
         
     end

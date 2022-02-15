@@ -40,7 +40,7 @@ classdef ComparePedersenWithPrincipalStress < handle
                     obj.computeGamma();
                     obj.computeOrientations();
                     obj.computeMinimalComplianceOrientation();
-                    obj.compareResults();                    
+                    obj.compareResults();
                 end
             end
             

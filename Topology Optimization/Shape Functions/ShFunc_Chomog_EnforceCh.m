@@ -13,7 +13,7 @@ classdef ShFunc_Chomog_EnforceCh < ShFunc_Chomog
     
     properties (Access = protected)
         pNorm
-    end    
+    end
     
     methods (Access = public)
         

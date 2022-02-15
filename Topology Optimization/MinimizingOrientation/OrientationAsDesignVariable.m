@@ -1,7 +1,7 @@
 classdef OrientationAsDesignVariable < handle
     
     properties (GetAccess = public, SetAccess = private)
-        cost        
+        cost
     end
     
     properties (GetAccess = private, SetAccess = public)
@@ -9,7 +9,7 @@ classdef OrientationAsDesignVariable < handle
     end
     
     properties (Access = private)
-        nCostFigure        
+        nCostFigure
         orientationUpdaterType
         phyP
         hC
@@ -30,7 +30,7 @@ classdef OrientationAsDesignVariable < handle
             obj.computeInitialCost();
         end
         
-        function compute(obj)            
+        function compute(obj)
             for i = 2:obj.niter
                 obj.iter = i;
                 obj.updateAlpha();
@@ -75,7 +75,7 @@ classdef OrientationAsDesignVariable < handle
             obj.createOrientationUpdater();
             obj.nStressFigure = 200;
             obj.nCostFigure = 100;
-            obj.niter = 10;            
+            obj.niter = 10;
         end
         
         function updateAlpha(obj)
@@ -173,7 +173,7 @@ classdef OrientationAsDesignVariable < handle
             figure(obj.nCostFigure);
             plot(obj.cost);
             drawnow
-        end        
+        end
         
     end
     
