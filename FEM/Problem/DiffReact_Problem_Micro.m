@@ -4,7 +4,7 @@ classdef DiffReact_Problem_Micro < DiffReact_Problem
         
         function setElement(obj)
             isRobinTermAdded = obj.isRobinTermAdded;
-            bcType = obj.bcApplierType;            
+            bcType = obj.bcApplierType;
             obj.element = Element_DiffReact_Micro(obj.mesh,obj.geometry,...
                 obj.material,obj.dof,obj.problemData.scale,isRobinTermAdded,bcType,obj.interp,obj.boundaryMesh);
         end

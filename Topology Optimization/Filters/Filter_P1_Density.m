@@ -3,17 +3,17 @@ classdef Filter_P1_Density < handle %Filter_P1
     properties (Access = private)
        mesh
        quadratureOrder
-               
+        
         Poper
 
         x
-        x_reg        
+        x_reg
 
         geometry
         quadrature
         
         M
-        Kernel        
+        Kernel
         interp
     end
     
@@ -46,7 +46,7 @@ classdef Filter_P1_Density < handle %Filter_P1
         function x0 = getP0fromP1(obj,x)
             if obj.xHasChanged(x)
                 xR = obj.computeP0fromP1(x);
-                x0 = zeros(length(xR),obj.quadrature.ngaus);                
+                x0 = zeros(length(xR),obj.quadrature.ngaus);
                 for igaus = 1:obj.quadrature.ngaus
                     x0(:,igaus) = xR;
                 end
@@ -67,7 +67,7 @@ classdef Filter_P1_Density < handle %Filter_P1
         function updateStoredValues(obj,x,x0)
             obj.x = x;
             obj.x_reg = x0;
-        end        
+        end
         
         function init(obj,cParams)
             obj.createDiffReacProblem(cParams);
@@ -82,7 +82,7 @@ classdef Filter_P1_Density < handle %Filter_P1
 %             s.type = obj.mesh.type;
 %             s.fNodes = x;
 %             fe = FeFunction(s);
-%             x0 = fe.computeValueInCenterElement();            
+%             x0 = fe.computeValueInCenterElement();
             %
         end
         
@@ -106,7 +106,7 @@ classdef Filter_P1_Density < handle %Filter_P1
                 case 'MICRO'
                     pB = DiffReact_Problem_Micro(s);
             end
-        end        
+        end
         
         function intX = integrateRHS(obj,x)
             intX = zeros(obj.mesh.nelem,1);
@@ -132,13 +132,13 @@ classdef Filter_P1_Density < handle %Filter_P1
         end
         
         function createInterpolation(obj)
-            obj.interp = Interpolation.create(obj.mesh,'LINEAR');    
-        end           
-                
+            obj.interp = Interpolation.create(obj.mesh,'LINEAR');
+        end
+        
         function createGeometry(obj)
             s.mesh = obj.mesh;
             obj.geometry = Geometry.create(s);
-            obj.geometry.computeGeometry(obj.quadrature,obj.interp);        
+            obj.geometry.computeGeometry(obj.quadrature,obj.interp);
         end
         
     end

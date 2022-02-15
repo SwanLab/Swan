@@ -31,7 +31,6 @@ classdef NewElasticProblem < handle %NewFEM
 
         function obj = NewElasticProblem(cParams)
             obj.init(cParams);
-            obj.readProblemData();
             obj.createQuadrature();
             obj.computeDimensions();
             obj.createMaterial();
@@ -53,32 +52,17 @@ classdef NewElasticProblem < handle %NewFEM
     methods (Access = private)
         
         function init(obj, cParams)
-            obj.fileName = cParams.fileName;
             obj.nFields = 1;
-        end
-
-        function readProblemData(obj)
-            obj.createFemData();
-            obj.createProblemData();
-            obj.mesh = obj.femData.mesh;
-        end
-
-        function createFemData(obj)
-            fName       = obj.fileName;
-            femReader   = FemInputReader_GiD();
-            obj.femData = femReader.read(fName);
-        end
-
-        function createProblemData(obj)
-            s = obj.femData;
-            pd.scale        = s.scale;
-            pd.pdim         = s.pdim;
-            pd.ptype        = s.ptype;
-            pd.bc.dirichlet = s.dirichlet;
-            pd.bc.pointload = s.pointload;
+            obj.mesh        = cParams.mesh;
+            obj.fileName    = cParams.problemID;
+            pd.scale        = cParams.scale;
+            pd.pdim         = cParams.pdim;
+            pd.ptype        = cParams.ptype;
+            pd.bc.dirichlet = cParams.dirichlet;
+            pd.bc.pointload = cParams.pointload;
             obj.problemData = pd;
         end
-        
+
         function createQuadrature(obj)
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature('LINEAR');

@@ -1,7 +1,7 @@
 classdef Filter_PDE_LevelSet < Filter_PDE
     
     properties (Access = public)
-        unfittedMesh        
+        unfittedMesh
     end
     
     properties(Access = private)
@@ -25,7 +25,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             obj.nelem = obj.mesh.nelem;
             obj.npnod = obj.mesh.npnod;
             obj.ngaus = obj.quadrature.ngaus;
-            obj.Anodal2Gauss = obj.computeA(); 
+            obj.Anodal2Gauss = obj.computeA();
         end
         
         function preProcess(obj)
@@ -60,7 +60,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
                 int = Integrator.create(s);
                 fInt = int.integrateInDomain(fNodes);
             end
-        end    
+        end
         
         function fInt = computeRHSinBoundary(obj,fNodes)
             ls = obj.levelSet.value;

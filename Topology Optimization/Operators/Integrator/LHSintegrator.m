@@ -64,8 +64,8 @@ classdef LHSintegrator < handle
 %             ndofs  = obj.npnod; % should be obj.dim.ndof
             ndofs  = obj.dim.ndof; % should be obj.dim.ndof
             Ae     = aElem;
-            nunkn1 = 1;
-            nunkn2 = 1;
+            nunkn1 = obj.dim.nunkn;
+            nunkn2 = obj.dim.nunkn;
             nnode1 = size(connec,2);
             nnode2 = size(connec,2);
             A = sparse(ndofs,ndofs);
@@ -79,12 +79,57 @@ classdef LHSintegrator < handle
             end
         end
 
+%         function A = assembleMatrix(obj,aElem)
+%             connec = obj.globalConnec;
+%             nunkn     = obj.dim.nunkn;
+%             nnode     = obj.dim.nnode;
+%             ndofs     = obj.dim.ndof; % should be obj.dim.ndof
+%             ndofsElem = obj.dim.ndofPerElement;
+%             Ae     = aElem;
+%             A = sparse(ndofs,ndofs);
+%             for iunkn = 1:nunkn
+%                 for i = 1:nnode
+%                     nodeI = connec(:,i);
+%                     NODEI = nunkn*(nodeI-1)+iunkn;
+%                     for j = 1:nnode
+%                         nodeJ = connec(:,j); %DOF = ni*(nod-1)+dir;
+%                         NODEJ = nunkn*(nodeJ-1)+iunkn;
+%                         a = squeeze(Ae(i,j,:));
+%                         A = A + sparse(NODEI,NODEJ,a,ndofs,ndofs);
+%                     end
+%                 end
+%             end
+%         end
+
+%         function A = assembleMatrix(obj,aElem)
+%             connec = obj.globalConnec;
+%             nunkn     = obj.dim.nunkn;
+%             nnode     = obj.dim.nnode;
+%             ndofs     = obj.dim.ndof; % should be obj.dim.ndof
+%             ndofsElem = obj.dim.ndofPerElement;
+%             Ae     = aElem;
+%             A = sparse(ndofs,ndofs);
+%             for iunkn = 1:nunkn
+%                 for i = 1:nnode
+%                     nodeI = connec(:,i);
+%                     NODEI = nunkn*(nodeI-1)+iunkn;
+%                     for j = 1:nnode
+%                         nodeJ = connec(:,j); %DOF = ni*(nod-1)+dir;
+%                         NODEJ = nunkn*(nodeJ-1)+iunkn;
+%                         a = squeeze(Ae(i,j,:));
+%                         A = A + sparse(NODEI,NODEJ,a,ndofs,ndofs);
+%                     end
+%                 end
+%             end
+%         end
+
     end
     
     methods (Access = private)
         
-        %% LHSintegrator_triangle
-      
+        function Aglo = nod2dof(obj,AnodGLO,ndim)
+        end
+
         % Element_Elastic
         function createPrincipalDirection(obj, pdim)
             s.eigenValueComputer.type = 'PRECOMPUTED';

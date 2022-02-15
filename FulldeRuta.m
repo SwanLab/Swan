@@ -35,12 +35,18 @@ fem.plot();
 % {{Done}}, committed and pushed. Pending approval of pull request.
 
 %% 3. Clean LHSintegratorStiffnessElasticStoredB {{done}} (?)
-% {{Done}}, committed and pushed. Pending approval of pull request.
+% {{Done}} (?), committed and pushed. Pending approval of pull request.
 
 %% 4. Create input data for NewFem (mesh,bc,material)
-% Need to think about the endgame for GiD files
+% {{Done}}-ish. It needs:
+%     - mesh
+%     - pdim
+%     - ptype, scale
+%     - problemID (fileName) for DOF compatibility
+%     - dirichlet
+%     - pointload
 
-% 5. Create  LHSintergrator_StiffnessElastic 
+%% 5. Create  LHSintergrator_StiffnessElastic 
 % 6. DOF+ Boudnary
 % 7. Force use integrator for assembly
 % 8. LHS integrator must be composed by integrator_simple for assemnbly
