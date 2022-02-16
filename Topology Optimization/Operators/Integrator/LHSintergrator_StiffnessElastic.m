@@ -21,25 +21,26 @@ classdef LHSintergrator_StiffnessElastic < LHSintegrator
             % Belytschko page 226 (243)
             % Is the gradient okay?
             dShape = obj.computeGradient();
-            if (obj.dim.ndim == 2)
-                nelem = obj.dim.nelem;
-                zer = zeros(1,3,nelem);
-                dShape = [dShape; zer];
-            end
+%             if (obj.dim.ndim == 2)
+%                 nelem = obj.dim.nelem;
+%                 zer = zeros(1,3,nelem);
+%                 dShape = [dShape; zer];
+%             end
             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
             ngaus  = obj.quadrature.ngaus;
             nelem  = obj.mesh.nelem;
             nnode  = obj.mesh.nnode;
+            nStre = obj.dim.nstre;
             lhs = zeros(nnode,nnode,nelem);
             for igaus = 1:ngaus
                 dv(1,1,:) = dvolu(igaus,:);
-                for iNode = 1:nnode
-                   for jNode = 1:nnode
-                      dNi = dShape(:,iNode,:,igaus);
-                      C   = obj.material.C;
-                      dNj = dShape(:,jNode,:,igaus);
+                for iStre = 1:nStre
+                   for jStre = 1:nStre
+                      dNi = dShape(:,iStre,:,igaus);
+                      C   = obj.material.C(iStre,jStre,:);
+                      dNj = dShape(:,jStre,:,igaus);
                       dNidNj = sum(dNi.*C.*dNj,[1,2]);
-                      lhs(iNode,jNode,:) = lhs(iNode,jNode,:) + dNidNj.*dv;
+                      lhs(iStre,jStre,:) = lhs(iStre,jStre,:) + dNidNj.*dv;
                    end
                 end
             end

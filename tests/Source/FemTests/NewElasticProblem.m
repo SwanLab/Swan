@@ -119,9 +119,9 @@ classdef NewElasticProblem < handle %NewFEM
         end
 
         function createBCApplier(obj)
-%             obj.dof = DOF_Elastic(obj.fileName,obj.mesh,obj.problemData.pdim,obj.nFields,obj.interp);
-%             cParams.dof     = obj.dof;
-            s.BC      = obj.boundaryConditions;
+             obj.dof = DOF_Elastic(obj.fileName,obj.mesh,obj.problemData.pdim,obj.nFields,obj.interp);
+             s.dof     = obj.dof;
+           % s.BC      = obj.boundaryConditions;
             s.dim     = obj.dim;
             s.nfields = obj.nFields;
             s.scale   = obj.problemData.scale;
@@ -134,7 +134,7 @@ classdef NewElasticProblem < handle %NewFEM
         end
 
         function computeStiffnessMatrix(obj)
-            s.type = 'ElasticStiffnessMatrixOld';
+            s.type = 'ElasticStiffnessMatrix';
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;

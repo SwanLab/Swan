@@ -16,7 +16,7 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
         end
 
         function LHS = compute(obj)
-            CmatTot = obj.computeCmatBlockDiagonal();
+            CmatTot = obj.assemblyCmat();
             LHS = obj.computeStiffness(CmatTot);
         end
         
@@ -39,8 +39,11 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
 
        function createGeometry(obj)
            s.mesh = obj.mesh;
-           obj.geometry = Geometry.create(s);
-           obj.geometry.computeGeometry(obj.quadrature,obj.interpolation);
+           g      = Geometry.create(s);
+           quad   = obj.quadrature;
+           interp = obj.interpolation;
+           g.computeGeometry(quad,interp); 
+           obj.geometry = g;
        end
 
        function computeB(obj)
@@ -51,7 +54,7 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
            obj.Btot = BMC.compute();
        end
 
-       function CmatTot = computeCmatBlockDiagonal(obj)
+       function CmatTot = assemblyCmat(obj)
            nstre = obj.dim.nstre;
            ngaus = obj.dim.ngaus;
            ntot  = obj.dim.nt;
@@ -61,6 +64,7 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
            for istre = 1:nstre
                for jstre = 1:nstre
                    for igaus = 1:ngaus
+
                        posI = (istre)+(nstre)*(igaus-1) : ngaus*nstre : ntot;
                        posJ = (jstre)+(nstre)*(igaus-1) : ngaus*nstre : ntot;
                        

@@ -13,8 +13,8 @@ classdef BMatrixComputer < handle
         end
 
         function Btot = compute(obj)
-           Bmatrix  = obj.computeB_InMatrixForm();
-           Btot     = obj.computeBtot(Bmatrix);
+           Bmatrix  = obj.computeBinMatrixForm();
+           Btot     = obj.assembleMatrix(Bmatrix);
         end
 
     end
@@ -31,91 +31,131 @@ classdef BMatrixComputer < handle
            ndim = obj.dim.ndim;
            switch ndim
                case 2
-                   B = obj.computeB2D(igaus);
+                   B = obj.computeBin2D(igaus);
                case 3
-                   B = obj.computeB3D(igaus);
+                   B = obj.computeBin3D(igaus);
            end
        end
 
-       function B = computeB2D(obj,igaus)
+       function B = computeBin2D(obj,igaus)
            d = obj.dim;
            nstre          = d.nstre;
            nnode          = d.nnode;
            nelem          = d.nelem;
            nunkn          = d.nunkn;
            ndofPerElement = d.ndofPerElement;
-           cartd = obj.geometry.cartd;
+           dNdx = obj.geometry.cartd;
            B = zeros(nstre,ndofPerElement,nelem);
            for i = 1:nnode
                j = nunkn*(i-1)+1;
-               B(1,j,:)   = cartd(1,i,:,igaus);
-               B(2,j+1,:) = cartd(2,i,:,igaus);
-               B(3,j,:)   = cartd(2,i,:,igaus);
-               B(3,j+1,:) = cartd(1,i,:,igaus);
+               B(1,j,:)   = dNdx(1,i,:,igaus);
+               B(2,j+1,:) = dNdx(2,i,:,igaus);
+               B(3,j,:)   = dNdx(2,i,:,igaus);
+               B(3,j+1,:) = dNdx(1,i,:,igaus);
            end
        end
 
-       function [B] = computeB3D(obj,igaus)
-           d     = obj.dim;
-           cartd = obj.geometry.cartd;
+       function B = computeBin3D(obj,igaus)
+           d    = obj.dim;
+           dNdx = obj.geometry.cartd;
            B = zeros(d.nstre,d.ndofPerElement,d.nelem);
            for inode=1:d.nnode
                j = d.nunkn*(inode-1)+1;
                % associated to normal strains
-               B(1,j,:)   = cartd(1,inode,:,igaus);
-               B(2,j+1,:) = cartd(2,inode,:,igaus);
-               B(3,j+2,:) = cartd(3,inode,:,igaus);
+               B(1,j,:)   = dNdx(1,inode,:,igaus);
+               B(2,j+1,:) = dNdx(2,inode,:,igaus);
+               B(3,j+2,:) = dNdx(3,inode,:,igaus);
                % associated to shear strain, gamma12
-               B(4,j,:)   = cartd(2,inode,:,igaus);
-               B(4,j+1,:) = cartd(1,inode,:,igaus);
+               B(4,j,:)   = dNdx(2,inode,:,igaus);
+               B(4,j+1,:) = dNdx(1,inode,:,igaus);
                % associated to shear strain, gamma13
-               B(5,j,:)   = cartd(3,inode,:,igaus);
-               B(5,j+2,:) = cartd(1,inode,:,igaus);
+               B(5,j,:)   = dNdx(3,inode,:,igaus);
+               B(5,j+2,:) = dNdx(1,inode,:,igaus);
                % associated to shear strain, gamma23
-               B(6,j+1,:) = cartd(3,inode,:,igaus);
-               B(6,j+2,:) = cartd(2,inode,:,igaus);
+               B(6,j+1,:) = dNdx(3,inode,:,igaus);
+               B(6,j+2,:) = dNdx(2,inode,:,igaus);
            end
        end
 
-       function Bmatrix = computeB_InMatrixForm(obj)
-           d = obj.dim;
-           Bmatrix = zeros(d.ngaus*d.nelem*d.nstre,d.ndofPerElement);
+       function Bmatrix = computeBinMatrixForm(obj)
+           d  = obj.dim;
+           nB = d.nstre*d.ngaus*d.nelem; 
+           Bmatrix = zeros(nB,d.ndofPerElement);
            for igaus = 1:d.ngaus
-               unitaryIndex = false(d.ngaus*d.nstre,1);
-               pos = d.nstre*(igaus-1) + 1 : d.nstre*(igaus);
-               unitaryIndex(pos) = true;
-               index = repmat(unitaryIndex,d.nelem,1);
-               Bmat = obj.computeBmat(igaus);
-               Bpermuted = permute(Bmat,[1 3 2]);
-               Bshif = reshape(Bpermuted,d.nelem*d.nstre,d.ndofPerElement);
-               Bmatrix(index,:) = Bshif;
+               Bgaus = obj.computeBmatrix(igaus);
+               index = obj.computeGlobalIndex(igaus);               
+               Bmatrix(index,:) = Bgaus;
            end
+       end
+
+       function B = computeBmatrix(obj,igaus)
+            d  = obj.dim;           
+            Bmat = obj.computeBmat(igaus);
+            Bper = permute(Bmat,[1 3 2]);
+            B    = reshape(Bper,d.nelem*d.nstre,d.ndofPerElement);
+       end
+
+       function index = computeGlobalIndex(obj,igaus)
+           d = obj.dim;           
+           uIndex = obj.computeUnitaryIndex(igaus);
+           index = repmat(uIndex,d.nelem,1);
+       end
+
+       function index = computeUnitaryIndex(obj,igaus)
+           d = obj.dim;
+           nGaus = d.ngaus;
+           nStre = d.nstre;
+           index = false(nGaus*nStre,1);
+           pos =  nStre*(igaus-1) + (1:nStre);
+           index(pos) = true;
        end
        
-       function Bt = computeBtot(obj, Bfull)
+       function Bt = assembleMatrix(obj, Bfull)
            d = obj.dim;
-           ngaus = d.ngaus;
-           nstre = d.nstre;
-           nunkn = d.nunkn;
            ntot  = d.nt;
-           ndofGlob = max(max(obj.globalConnec))*nunkn;
+           ndofGlob = d.ndof;
            Bt = sparse(ntot,ndofGlob);
-           for idof=1:d.ndofPerElement
-               GlobalDofs = obj.transformLocal2Global(idof);
-               dofs = repmat(GlobalDofs',ngaus*nstre,1);
-               dofs = dofs(:);
-               Bt = Bt + sparse(1:ntot,dofs,Bfull(:,idof),ntot,ndofGlob);
+           for idof = 1:d.ndofPerElement
+               dofs  = obj.computeGlobalDofs(idof);
+               Bidof = Bfull(:,idof);
+               Bdof = obj.computeBdofBySparse(Bidof,dofs);
+              % Bdof = obj.computeBdofByAccumarray(Bidof,dofs,ntot,ndofGlob);               
+               Bt = Bt + Bdof;
            end
        end
 
-       function GlobalDofs = transformLocal2Global(obj,LocalDof)
+      function Bdof = computeBdofByAccumarray(obj,Bidof,dofs)    
            d = obj.dim;
-           connec = obj.globalConnec;
-           nodesInElement   = reshape(repmat(1:d.nnode,d.nunkn,1),1,[]);
-           vectorDimensions = repmat(1:d.nunkn,1,d.nnode);
-           localNode        = nodesInElement(LocalDof);
-           vectorDimension  = vectorDimensions(LocalDof);
-           GlobalDofs       = d.nunkn*(connec(:,localNode)-1) + vectorDimension;
+           ntot  = d.nt;
+           Bdof = accumarray(dofs,Bidof,[ntot 1]);
+       end       
+
+       function Bdof = computeBdofBySparse(obj,Bidof,dofs)
+           d = obj.dim;           
+           ntot  = d.nt;
+           ndofGlob = d.ndof;
+           Bdof = sparse(1:ntot,dofs,Bidof,ntot,ndofGlob);
+       end
+
+       function dofs = computeGlobalDofs(obj,idof)
+           d = obj.dim;
+           ngaus = d.ngaus;
+           nstre = d.nstre;           
+           gDofs = obj.transformLocal2Global(idof);
+           dofs = repmat(gDofs',ngaus*nstre,1);
+           dofs = dofs(:);
+       end       
+
+       function gDofs = transformLocal2Global(obj,iDof)
+           d     = obj.dim;
+           nunkn = d.nunkn;
+           nodes        = obj.globalConnec;
+           nodesInElem  = reshape(repmat(1:d.nnode,d.nunkn,1),1,[]);
+           dofs         = repmat(1:d.nunkn,1,d.nnode);
+           inode        = nodesInElem(iDof);
+           iunkn        = dofs(iDof);
+           nodeI        = nodes(:,inode);
+           gDofs   = nunkn*(nodeI-1) + iunkn;
        end
 
     end
