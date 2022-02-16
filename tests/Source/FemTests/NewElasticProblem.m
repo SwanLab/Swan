@@ -14,6 +14,7 @@ classdef NewElasticProblem < handle %NewFEM
         quadrature
         dim
         % Kgen %"LHS"
+        boundaryConditions
     end
 
     properties (Access = private)
@@ -36,6 +37,7 @@ classdef NewElasticProblem < handle %NewFEM
             obj.createMaterial();
             obj.computeMaterialProperties();
             obj.createInterpolation();
+            obj.createBoundaryConditions();
             obj.createBCApplier();
             obj.createSolver();
         end
@@ -100,13 +102,31 @@ classdef NewElasticProblem < handle %NewFEM
             obj.interp{1} = int;
         end
 
+        function createBoundaryConditions(obj)
+            % Will merge boundary + DOF
+            % DOF currently used for BCApplier and ForcesComputer
+            % ForcesComputer: uses dof.neumann + dof.neumann_values +
+            %                 in_elem
+            % BCApplier: uses dirichlet + dirichlet_values + ndof + free
+            %                 free + periodic_free + periodic_constrained
+
+            s.dim          = obj.dim;            
+            s.bc           = obj.problemData.bc;
+            s.globalConnec = obj.mesh.connec;
+            bc = BoundaryConditions(s);
+            bc.compute();
+            obj.boundaryConditions = bc;
+        end
+
         function createBCApplier(obj)
-            obj.dof = DOF_Elastic(obj.fileName,obj.mesh,obj.problemData.pdim,obj.nFields,obj.interp);
-            cParams.nfields = obj.nFields;
-            cParams.dof     = obj.dof;
-            cParams.scale   = obj.problemData.scale;
-            cParams.type    = 'Dirichlet'; % defined in Element
-            obj.bcApplier = BoundaryConditionsApplier.create(cParams);
+%             obj.dof = DOF_Elastic(obj.fileName,obj.mesh,obj.problemData.pdim,obj.nFields,obj.interp);
+%             cParams.dof     = obj.dof;
+            s.BC      = obj.boundaryConditions;
+            s.dim     = obj.dim;
+            s.nfields = obj.nFields;
+            s.scale   = obj.problemData.scale;
+            s.type    = 'Dirichlet'; % defined in Element
+            obj.bcApplier = BoundaryConditionsApplier.create(s);
         end
 
         function createSolver(obj)
