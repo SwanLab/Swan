@@ -23,7 +23,7 @@ classdef HomogenizedVarComputerFromInterpolation ...
             nStres = obj.material.nstre;
             obj.C  = zeros(nStres,nStres,obj.nElem,nGaus);
             obj.dC = zeros(nStres,nStres,nvar,obj.nElem,nGaus);
-            for igaus = 1:nGaus           
+            for igaus = 1:nGaus
                 rhoV = rho(:,igaus);
                 p = obj.interpolation.computeMatProp(rhoV);
                 obj.C(:,:,:,igaus)  = obj.computeC(p.mu,p.kappa);
@@ -36,7 +36,7 @@ classdef HomogenizedVarComputerFromInterpolation ...
         end
         
         function computeDensity(obj,x)
-            rho = x{1};            
+            rho = x{1};
             obj.rho = rho;
             obj.drho{1} = ones(size(rho));
         end
@@ -44,7 +44,7 @@ classdef HomogenizedVarComputerFromInterpolation ...
         function computePtensor(obj,x,pNorm)
             rho = x{1};
             nvar = 1;
-            nGaus  = size(rho,2);  
+            nGaus  = size(rho,2);
             nStres = obj.material.nstre;
             obj.Pp   = zeros(nStres,nStres,obj.nElem,nGaus);
             obj.dPp = zeros(nStres,nStres,nvar,obj.nElem,nGaus);
@@ -56,17 +56,17 @@ classdef HomogenizedVarComputerFromInterpolation ...
                 for ivar = 1:nvar
                     obj.dPp(iStres,iStres,ivar,:,:) = dPr(rho)';
                 end
-            end            
+            end
         end
         
-        function fP = addPrintableVariables(obj,x)            
+        function fP = addPrintableVariables(obj,x)
             fP{1}.value = obj.rho;
         end
         
         function fP = createPrintVariables(obj)
-            fP{1}.type = 'ScalarGauss';            
-            fP{1}.name = 'DensityGauss';            
-        end        
+            fP{1}.type = 'ScalarGauss';
+            fP{1}.name = 'DensityGauss';
+        end
         
     end
     
@@ -78,9 +78,9 @@ classdef HomogenizedVarComputerFromInterpolation ...
         end
         
         function createMaterial(obj)
-            s.pdim  = obj.pdim;            
+            s.pdim  = obj.pdim;
             s.ptype = 'ELASTIC';
-            obj.material = Material.create(s);            
+            obj.material = Material.create(s);
         end
         
         function createMaterialInterpolation(obj,cParams)
@@ -97,7 +97,7 @@ classdef HomogenizedVarComputerFromInterpolation ...
             s.kappa = kappa;
             s.mu    = mu;
             obj.material.compute(s);
-            C  = obj.material.C;            
+            C  = obj.material.C;
         end
         
     end

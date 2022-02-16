@@ -47,7 +47,7 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
     methods (Access = protected)
         
         function solveState(obj)
-            obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C)
+            obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C) % (:,:,7200,4); cmat
             obj.physicalProblem.computeVariables();
         end
         

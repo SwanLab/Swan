@@ -3,13 +3,13 @@ classdef DesignVariable < handle
     properties (GetAccess = public, SetAccess = protected)
         mesh
         type
-        nVariables        
-        value           
+        nVariables
+        value
     end
     
     properties (Access = public)
         alpha
-        rho        
+        rho
     end
     
     properties (GetAccess = public, SetAccess = private)
@@ -17,12 +17,12 @@ classdef DesignVariable < handle
     end
     
     properties (Access = private) 
-        valueOld                                        
+        valueOld
         alphaOld
     end
     
     properties (Access = protected)
-       isFixed 
+       isFixed
     end
     
     methods (Access = public, Abstract)

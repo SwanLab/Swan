@@ -14,6 +14,7 @@ classdef NewElasticProblem < handle %NewFEM
         quadrature
         dim
         % Kgen %"LHS"
+        boundaryConditions
     end
 
     properties (Access = private)
@@ -31,13 +32,13 @@ classdef NewElasticProblem < handle %NewFEM
 
         function obj = NewElasticProblem(cParams)
             obj.init(cParams);
-            obj.readProblemData();
             obj.createQuadrature();
             obj.computeDimensions();
             obj.createMaterial();
             obj.computeMaterialProperties();
             obj.createInterpolation();
-            obj.createBCApplier();            
+            obj.createBoundaryConditions();
+            obj.createBCApplier();
             obj.createSolver();
         end
 
@@ -53,34 +54,17 @@ classdef NewElasticProblem < handle %NewFEM
     methods (Access = private)
         
         function init(obj, cParams)
-            obj.fileName = cParams.fileName;
             obj.nFields = 1;
-        end
-
-        function readProblemData(obj)
-            obj.createFemData();
-            obj.createProblemData();
-            obj.mesh = obj.femData.mesh;
-        end
-
-        function createFemData(obj)
-            fName       = obj.fileName;
-            femReader   = FemInputReader_GiD();
-            obj.femData = femReader.read(fName);
-        end
-
-        function createProblemData(obj)
-            s = obj.femData;
-            pd.fileName     = obj.fileName;
-            pd.scale        = s.scale;
-            pd.pdim         = s.pdim;
-            pd.ptype        = s.ptype;
-            pd.nelem        = s.mesh.nelem;
-            pd.bc.dirichlet = s.dirichlet;
-            pd.bc.pointload = s.pointload;
+            obj.mesh        = cParams.mesh;
+            obj.fileName    = cParams.problemID;
+            pd.scale        = cParams.scale;
+            pd.pdim         = cParams.pdim;
+            pd.ptype        = cParams.ptype;
+            pd.bc.dirichlet = cParams.dirichlet;
+            pd.bc.pointload = cParams.pointload;
             obj.problemData = pd;
         end
-        
+
         function createQuadrature(obj)
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature('LINEAR');
@@ -109,7 +93,7 @@ classdef NewElasticProblem < handle %NewFEM
             I = ones(obj.dim.nelem,obj.dim.ngaus);
             s.kappa = .9107*I;
             s.mu    = .3446*I;
-            obj.material.compute(s);            
+            obj.material.compute(s);
         end
 
         function createInterpolation(obj)
@@ -118,13 +102,31 @@ classdef NewElasticProblem < handle %NewFEM
             obj.interp{1} = int;
         end
 
+        function createBoundaryConditions(obj)
+            % Will merge boundary + DOF
+            % DOF currently used for BCApplier and ForcesComputer
+            % ForcesComputer: uses dof.neumann + dof.neumann_values +
+            %                 in_elem
+            % BCApplier: uses dirichlet + dirichlet_values + ndof + free
+            %                 free + periodic_free + periodic_constrained
+
+            s.dim          = obj.dim;            
+            s.bc           = obj.problemData.bc;
+            s.globalConnec = obj.mesh.connec;
+            bc = BoundaryConditions(s);
+            bc.compute();
+            obj.boundaryConditions = bc;
+        end
+
         function createBCApplier(obj)
-            obj.dof = DOF_Elastic(obj.fileName,obj.mesh,obj.problemData.pdim,obj.nFields,obj.interp);
-            cParams.nfields = obj.nFields;
-            cParams.dof     = obj.dof;
-            cParams.scale   = obj.problemData.scale;
-            cParams.type    = 'Dirichlet'; % defined in Element
-            obj.bcApplier = BoundaryConditionsApplier.create(cParams);
+%             obj.dof = DOF_Elastic(obj.fileName,obj.mesh,obj.problemData.pdim,obj.nFields,obj.interp);
+%             cParams.dof     = obj.dof;
+            s.BC      = obj.boundaryConditions;
+            s.dim     = obj.dim;
+            s.nfields = obj.nFields;
+            s.scale   = obj.problemData.scale;
+            s.type    = 'Dirichlet'; % defined in Element
+            obj.bcApplier = BoundaryConditionsApplier.create(s);
         end
 
         function createSolver(obj)
@@ -147,7 +149,7 @@ classdef NewElasticProblem < handle %NewFEM
         function computeForces(obj)
             f    = obj.computeExternalForces();
             fRed = obj.reduceForcesMatrix(f);
-            obj.forces = fRed; 
+            obj.forces = fRed;
 %             R = obj.compute_imposed_displacement_force(obj.K);
 %             obj.fext = Fext + R;
 %             obj.rhs = obj.integrator.integrate(fNodal);
@@ -163,7 +165,7 @@ classdef NewElasticProblem < handle %NewFEM
 
         function Fred = reduceForcesMatrix(obj, forces)
             Fred = obj.bcApplier.fullToReducedVector(forces);
-        end        
+        end
        
         function u = computeDisplacements(obj)
             Kred = obj.stiffnessMatrix;

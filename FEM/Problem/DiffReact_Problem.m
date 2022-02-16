@@ -7,8 +7,8 @@ classdef DiffReact_Problem < FEM
     properties (Access = protected)
         isRobinTermAdded
         bcApplierType
-       interp  
-       boundaryMesh
+        interp
+        boundaryMesh
     end
     
     methods (Access = public)

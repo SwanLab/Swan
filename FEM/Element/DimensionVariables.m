@@ -6,11 +6,13 @@ classdef DimensionVariables < handle
         nstre
         ndof
         nelem
-        ndofPerElement 
+        ndofPerElement
         ngaus
         nentries
         ndim
         nunknPerField
+        nt
+        npnod
     end
 
     properties (Access = private)
@@ -33,6 +35,8 @@ classdef DimensionVariables < handle
             obj.ndofPerElement = obj.nnode*obj.nunkn;
             obj.nentries       = obj.nelem*(obj.ndofPerElement)^2;
             obj.ndim           = obj.createNdim();
+            obj.nt             = obj.ngaus*obj.nelem*obj.nstre;
+            obj.npnod          = obj.mesh.npnod;
         end
 
         function applyNUnknPerField(obj, num)

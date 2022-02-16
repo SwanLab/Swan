@@ -55,7 +55,7 @@ classdef FemInputReader_GiD < handle
         function readFile(obj,fileName)
             data = Preprocess.readFromGiD(fileName);
             if isequal(data.scale,'MICRO')
-               [~,~,~,obj.masterSlave] = Preprocess.getBC_mechanics(fileName); 
+               [~,~,~,obj.masterSlave] = Preprocess.getBC_mechanics(fileName);
             end
             obj.pdim = data.problem_dim;
             obj.geometryType = data.geometry;

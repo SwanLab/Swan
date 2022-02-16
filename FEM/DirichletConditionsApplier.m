@@ -3,13 +3,22 @@ classdef DirichletConditionsApplier < BoundaryConditionsApplier
     properties (Access = private)
         nfields
         dof
+        boundaryConditions
+        ndof
     end
     
     methods (Access = public)
         
         function obj = DirichletConditionsApplier(cParams)
             obj.nfields = cParams.nfields;
-            obj.dof     = cParams.dof;
+            if isfield(cParams, 'BC') % new
+                obj.dof   = cParams.BC;
+                obj.ndof = cParams.dim.ndof;
+            else
+                obj.dof     = cParams.dof;
+                obj.ndof    = cParams.dof.ndof;
+            end
+
         end
         
         function Ared = fullToReducedMatrix(obj,A)
@@ -25,7 +34,7 @@ classdef DirichletConditionsApplier < BoundaryConditionsApplier
         function b = reducedToFullVector(obj,bfree)
             [dirichlet,uD,free] = obj.compute_global_dirichlet_free_uD();
             nsteps = length(bfree(1,:));
-            ndof = sum(obj.dof.ndof);
+            ndof = sum(obj.ndof);
             uD = repmat(uD,1,nsteps);
             
             b = zeros(ndof,nsteps);
@@ -47,13 +56,11 @@ classdef DirichletConditionsApplier < BoundaryConditionsApplier
     
     methods (Access = private)
         
-    
-        
         function uD = computeUd(obj)
             global_ndof=0;
             for ifield=1:obj.nfields
                 uD{ifield,1} = obj.dof.dirichlet_values{ifield};
-                global_ndof=global_ndof+obj.dof.ndof(ifield);
+                global_ndof=global_ndof+obj.ndof(ifield);
             end
             uD = cell2mat(uD);
         end
@@ -62,7 +69,7 @@ classdef DirichletConditionsApplier < BoundaryConditionsApplier
             global_ndof=0;
             for ifield=1:obj.nfields
                 dirichlet{ifield,1} = obj.dof.dirichlet{ifield}+global_ndof;
-                global_ndof=global_ndof+obj.dof.ndof(ifield);
+                global_ndof=global_ndof+obj.ndof(ifield);
             end
             dirichlet = cell2mat(dirichlet);
         end
@@ -72,13 +79,11 @@ classdef DirichletConditionsApplier < BoundaryConditionsApplier
             free = cell(obj.nfields,1);
             for ifield=1:obj.nfields
                 free{ifield,1} = obj.dof.free{ifield}' + global_ndof;
-                global_ndof=global_ndof+obj.dof.ndof(ifield);
+                global_ndof=global_ndof+obj.ndof(ifield);
             end
             free = cell2mat(free);
         end
         
-        
     end
     
 end
-

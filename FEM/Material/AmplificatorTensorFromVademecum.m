@@ -44,7 +44,7 @@ classdef AmplificatorTensorFromVademecum < VariableFromVademecum
                 for imy = 1:length(myV)
                     P = var{imx,imy}.(obj.fieldName);
                     for iPnorm = 1:numel(P)
-                    obj.P2t{iPnorm}(imx,imy,:) = P{iPnorm};                   
+                    obj.P2t{iPnorm}(imx,imy,:) = P{iPnorm};
                     end
                 end
             end
@@ -68,7 +68,7 @@ classdef AmplificatorTensorFromVademecum < VariableFromVademecum
                     dP2(i,j,:,1) = dp(:,1);
                     dP2(i,j,:,2) = dp(:,2);
                 end
-            end           
+            end
             ptt = obj.makeSmall(obj.P2t{iP},pNorm);
             [Pp0,dPp] = obj.interpolator.interpolate(ptt);
             Pp  = obj.makeLarge(Pp0,pNorm);
@@ -86,7 +86,7 @@ classdef AmplificatorTensorFromVademecum < VariableFromVademecum
         function pt = makeSmall(obj,pt,pNorm)
           %  pt = pt;
           %  pt = sign(pt).*(abs(pt).^(1/(1*pNorm)));
-            pt = obj.symlog(pt);                        
+            pt = obj.symlog(pt);
         end
         
         function Pp = makeLarge(obj,Pp,pNorm)
@@ -102,12 +102,12 @@ classdef AmplificatorTensorFromVademecum < VariableFromVademecum
             dPp(:,:,2) = dPp(:,:,2).*exp(abs(Pp));
           %  dPp = dPp;
         end
-                
+        
         
         function iP = computePNormIndex(obj,p)
            pC = 2:2:32;
            isIndex = p == pC;
-           iP = find(isIndex);            
+           iP = find(isIndex);
         end
 
         function P = transformVector2tensor(obj,Pv)

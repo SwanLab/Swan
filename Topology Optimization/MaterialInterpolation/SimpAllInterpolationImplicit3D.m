@@ -10,5 +10,4 @@ classdef SimpAllInterpolationImplicit3D < SimpAllInterpolationImplicit
         
     end
     
-    
 end

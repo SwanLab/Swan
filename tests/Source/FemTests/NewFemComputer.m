@@ -14,7 +14,8 @@ classdef NewFemComputer < handle
         end
 
         function compute(obj)
-            obj.computation = NewFEM.create(obj.testName);
+            s = FemInputReader_GiD().read(obj.testName);
+            obj.computation = NewFEM.create(s);
             obj.computation.computeVariables();
         end
     end
@@ -27,7 +28,7 @@ classdef NewFemComputer < handle
             I = ones(obj.computation.mesh.nelem,q.ngaus);
             p.kappa = .9107*I;
             p.mu    = .3446*I;
-            obj.computation.setMatProps(p)     
+            obj.computation.setMatProps(p);
         end
 
     end

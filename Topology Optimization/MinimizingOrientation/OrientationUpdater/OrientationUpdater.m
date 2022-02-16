@@ -3,7 +3,7 @@ classdef OrientationUpdater < handle
     properties (GetAccess = public, SetAccess = protected)
         alpha
     end
-        
+    
     properties (Access = protected)
         eigenVectors
         eigenValues
@@ -14,7 +14,7 @@ classdef OrientationUpdater < handle
         
         function obj = create(cParams)
            f = OrientationUpdaterFactory();
-           obj = f.create(cParams);            
+           obj = f.create(cParams);
         end
         
     end
@@ -23,7 +23,7 @@ classdef OrientationUpdater < handle
            
         function compute(obj,cParams)
             obj.eigenVectors = cParams.pD;
-            obj.eigenValues  = cParams.pS;      
+            obj.eigenValues  = cParams.pS;
             obj.computeOptimalIndexOrientation();
             obj.computeOrientation();
         end
@@ -36,10 +36,10 @@ classdef OrientationUpdater < handle
             pD  = obj.eigenVectors;
             ind = obj.optimalIndexOrientation;
             isFirstOptimal  = ind == 1;
-            isSecondOptimal = ind == 2;                
+            isSecondOptimal = ind == 2;
             dir(:,isFirstOptimal)  = squeeze(pD(:,1,isFirstOptimal));
             dir(:,isSecondOptimal) = squeeze(pD(:,2,isSecondOptimal));
-            obj.alpha = dir;            
+            obj.alpha = dir;
         end
         
     end

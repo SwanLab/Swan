@@ -31,7 +31,7 @@ classdef MicroParams < DesignVariable
             %             isForOptimizing = ~isDirichletPart & ~isNeumannPart;
             % %             obj.isElementToOptimize = isForOptimizing;
             xV          = obj.splitDesignVariable(x);
-            xVn = cell(size(xV));            
+            xVn = cell(size(xV));
             if ~isempty(obj.isFixed)
                 fixedValues = obj.splitDesignVariable(obj.isFixed.values);
                 fixNodes = obj.isFixed.nodes;
@@ -66,7 +66,7 @@ classdef MicroParams < DesignVariable
         end
         
         function xf = getVariablesToPlot(obj)
-            xf    = obj.splitDesignVariable(obj.value);            
+            xf    = obj.splitDesignVariable(obj.value);
             xf{3} = obj.computeDensity();
         end
         
@@ -128,14 +128,14 @@ classdef MicroParams < DesignVariable
         
         function x = assambleDesignVariable(obj,xS)
             nVar = obj.nVariables;
-            nx = length(xS{1});            
+            nx = length(xS{1});
             x = zeros(nVar*nx,1);
             for ivar = 1:nVar
                 i0 = nx*(ivar-1) + 1;
                 iF = nx*ivar;
                 xs = xS{ivar};
                 x(i0:iF) = xs;
-            end            
+            end
         end
         
     end

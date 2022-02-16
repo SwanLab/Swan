@@ -34,17 +34,17 @@ classdef HomogenizedVarComputerFromVademecum ...
             obj.createRotator();
         end
         
-        function computeCtensor(obj,x)            
-            obj.obtainReferenceConsistutiveTensor(x);            
-            alpha = x{3};                        
+        function computeCtensor(obj,x)
+            obj.obtainReferenceConsistutiveTensor(x);
+            alpha = x{3};
             obj.rotateConstitutiveTensor(alpha);
         end
         
         function computePtensor(obj,x,pNorm)
             obj.pNorm = pNorm;
-            obj.obtainReferenceAmplificatorTensor(x,pNorm);            
-            alpha = x{3};                        
-            obj.rotateAmplificatorTensor(alpha);            
+            obj.obtainReferenceAmplificatorTensor(x,pNorm);
+            alpha = x{3};
+            obj.rotateAmplificatorTensor(alpha);
         end
         
         function computeDensity(obj,x)
@@ -54,23 +54,23 @@ classdef HomogenizedVarComputerFromVademecum ...
             obj.rho = rho;
             obj.drho{1} = drho(:,1);
             obj.drho{2} = drho(:,2);
-        end        
+        end
         
-        function fP = addPrintableVariables(obj,x)            
+        function fP = addPrintableVariables(obj,x)
             obj.superEllipseExp = obj.computeSuperEllipseExponent(x);
             obj.computeXiSymmetry(x);
             fP{1}.value = obj.rho;
-            fP{2}.value = obj.superEllipseExp;  
-            fP{3}.value = obj.xiSymmetry;       
+            fP{2}.value = obj.superEllipseExp;
+            fP{3}.value = obj.xiSymmetry;
             pMax = 32;
             fP{4}.value = obj.computePcomponents(pMax,x);
         end
         
         function PpV = computePcomponents(obj,p,x)
-           % xR = obj.reshapeDesignVariable(x);                        
+           % xR = obj.reshapeDesignVariable(x);
            % mx = xR{1};
           %  my = xR{2};
-            %[~,~,Pp,~] = obj.Ptensor.compute([mx,my],p); 
+            %[~,~,Pp,~] = obj.Ptensor.compute([mx,my],p);
             Pp = obj.PpRef;
             Ppv = (abs(Pp)).^(1/(p/2))';
             [PpV,ind] = max(Ppv');
@@ -78,14 +78,14 @@ classdef HomogenizedVarComputerFromVademecum ...
         end
         
         function fP = createPrintVariables(obj)
-            fP{1}.type = 'ScalarGauss';            
+            fP{1}.type = 'ScalarGauss';
             fP{2}.type = 'ScalarNodal';
             fP{3}.type = 'ScalarNodal';
-            fP{4}.type = 'ScalarGauss';                        
-            fP{1}.name = 'DensityGauss';            
-            fP{2}.name = 'SuperEllipseExponent'; 
-            fP{3}.name = 'XiSymmetry'; 
-            fP{4}.name = 'Pmax'; 
+            fP{4}.type = 'ScalarGauss';
+            fP{1}.name = 'DensityGauss';
+            fP{2}.name = 'SuperEllipseExponent';
+            fP{3}.name = 'XiSymmetry';
+            fP{4}.name = 'Pmax';
         end
         
     end
@@ -93,27 +93,27 @@ classdef HomogenizedVarComputerFromVademecum ...
     methods (Access = private)
         
         function init(obj,cParams)
-           obj.fileName = cParams.fileName; 
+           obj.fileName = cParams.fileName;
         end
         
         function loadVademecum(obj)
             s.fileName = [obj.fileName,'WithAmplificators'];
             v = VademecumVariablesLoader(s);
-            v.load();            
+            v.load();
             obj.vademecum = v;
         end
         
         function loadHomogenizedVariables(obj)
             obj.Ctensor = obj.vademecum.Ctensor;
             obj.Ptensor = obj.vademecum.Ptensor;
-            obj.density = obj.vademecum.density;            
+            obj.density = obj.vademecum.density;
         end
         
         function createSuperEllipseExponent(obj,m1,m2)
             switch obj.fileName
                 case 'SuperEllipseQMax'
                     s.type = 'Given';
-                    s.q    = 32*ones(size(m1));                    
+                    s.q    = 32*ones(size(m1));
                 case 'SuperEllipseQ2' 
                     s.type = 'Given';
                     s.q    = 2*ones(size(m1));
@@ -128,43 +128,43 @@ classdef HomogenizedVarComputerFromVademecum ...
             obj.superEllipseExponent = sM;
         end
         
-        function createRotator(obj)            
-            obj.rotator = ConstitutiveTensorRotator();                                    
+        function createRotator(obj)
+            obj.rotator = ConstitutiveTensorRotator();
         end
-                
+        
         function obtainReferenceConsistutiveTensor(obj,x)
             mx = x{1};
             my = x{2};
             [c,dc] = obj.Ctensor.compute([mx,my]);
             obj.Cref  = c;
-            obj.dCref = permute(dc,[1 2 4 3 5]);            
-        end        
+            obj.dCref = permute(dc,[1 2 4 3 5]);
+        end
         
-        function obtainReferenceAmplificatorTensor(obj,x,pNorm)            
+        function obtainReferenceAmplificatorTensor(obj,x,pNorm)
             obj.xV = x;
             mx = x{1};
             my = x{2};
             [P2,dP2,Pp,dPp] = obj.Ptensor.compute([mx,my],pNorm);
             obj.P2Ref  = P2;
-            obj.dP2Ref = permute(dP2,[1 2 4 3]);  
+            obj.dP2Ref = permute(dP2,[1 2 4 3]);
             obj.PpRef  = Pp;
             obj.dPpRef = dPp;
-        end                
+        end
       
         function rotateConstitutiveTensor(obj,alpha)
-            obj.rotator.evaluateRotationMatrixForC(alpha);            
-            cr  = obj.Cref;    
+            obj.rotator.evaluateRotationMatrixForC(alpha);
+            cr  = obj.Cref;
             dCr = obj.dCref;
             
            c           = obj.rotator.rotateC(cr);
            dc(:,:,1,:) = obj.rotator.rotateC(squeeze(dCr(:,:,1,:)));
-           dc(:,:,2,:) = obj.rotator.rotateC(squeeze(dCr(:,:,2,:)));     
+           dc(:,:,2,:) = obj.rotator.rotateC(squeeze(dCr(:,:,2,:)));
 
             %c = cr;
-            %dc = dCr;            
+            %dc = dCr;
             
             obj.C = c;
-            obj.dC = dc;  
+            obj.dC = dc;
         end
   
         function rotateAmplificatorTensor(obj,alpha)
@@ -188,7 +188,7 @@ classdef HomogenizedVarComputerFromVademecum ...
         end
         
         function q = computeSuperEllipseExponent(obj,x)
-            xR = obj.reshapeDesignVariable(x);            
+            xR = obj.reshapeDesignVariable(x);
             m1 = xR{1};
             m2 = xR{2};
             q = obj.computeSuperEllipse(m1,m2);
@@ -196,12 +196,12 @@ classdef HomogenizedVarComputerFromVademecum ...
         
         function q = computeSuperEllipse(obj,m1,m2)
             obj.createSuperEllipseExponent(m1,m2);
-            q(:,1) = obj.superEllipseExponent.compute();            
+            q(:,1) = obj.superEllipseExponent.compute();
         end
         
-        function computeXiSymmetry(obj,x)     
+        function computeXiSymmetry(obj,x)
             sRelator = SuperEllipseParamsRelator;
-            xR = obj.reshapeDesignVariable(x);            
+            xR = obj.reshapeDesignVariable(x);
             m1 = xR{1};
             m2 = xR{2};
             [rho,~] = obj.density.compute([m1,m2]);
@@ -209,23 +209,23 @@ classdef HomogenizedVarComputerFromVademecum ...
             xiUB = sRelator.xiUB(rho);
             xiS  = abs(xi-pi/4)./(xiUB - pi/4);
             obj.xiSymmetry = 1 - xiS;
-        end        
+        end
         
     end
     
     methods (Access = private, Static)
-                
+        
         function xR = reshapeDesignVariable(x)
             xV = x.value;
-            nV = x.nVariables;            
+            nV = x.nVariables;
             nx = length(xV)/nV;
             xR = cell(nV,1);
             for ivar = 1:nV
                 i0 = nx*(ivar-1) + 1;
                 iF = nx*ivar;
-                xR{ivar} = xV(i0:iF);                 
-            end                
-        end       
+                xR{ivar} = xV(i0:iF);
+            end
+        end
         
     end
     

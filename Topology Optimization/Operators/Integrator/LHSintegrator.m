@@ -1,16 +1,16 @@
 classdef LHSintegrator < handle
 
     properties (Access = protected)
-        mesh   
+        mesh
         quadrature
-        interpolation     
+        interpolation
         dim
+        globalConnec
+        material
     end
 
     properties (Access = private)
-
         LHScells
-        globalConnec
         npnod
     end
     
@@ -38,10 +38,13 @@ classdef LHSintegrator < handle
     methods (Access = protected)
      
         function init(obj,cParams)
-            obj.mesh          = cParams.mesh;
-            obj.globalConnec  = cParams.globalConnec;
-            obj.npnod         = cParams.npnod;
-            obj.dim           = cParams.dim;
+            obj.dim          = cParams.dim;
+            obj.mesh         = cParams.mesh;
+            obj.npnod        = cParams.npnod;
+            obj.globalConnec = cParams.globalConnec;
+            if isfield(cParams, 'material') % Compatibility with MassMatrix
+                obj.material   = cParams.material;
+            end
         end
         
        function createQuadrature(obj)
@@ -58,30 +61,28 @@ classdef LHSintegrator < handle
 
         function A = assembleMatrix(obj,aElem)
             connec = obj.globalConnec;
-            ndofs  = obj.npnod;
+%             ndofs  = obj.npnod; % should be obj.dim.ndof
+            ndofs  = obj.dim.ndof; % should be obj.dim.ndof
             Ae     = aElem;
-            nunkn1 = 1;
-            nunkn2 = 1;
+            nunkn1 = obj.dim.nunkn;
+            nunkn2 = obj.dim.nunkn;
             nnode1 = size(connec,2);
             nnode2 = size(connec,2);
             A = sparse(ndofs,ndofs);
-            for i = 1:nnode1*nunkn1
+            for i = 1:nnode1*nunkn1 % changed that
                 nodeI = connec(:,i);
-                for j = 1:nnode2*nunkn2
+                for j = 1:nnode2*nunkn2 % changed that as well
                     nodeJ = connec(:,j);
                     a = squeeze(Ae(i,j,:));
                     A = A + sparse(nodeI,nodeJ,a,ndofs,ndofs);
                 end
             end
-        end        
+        end
 
     end
     
     methods (Access = private)
-   
-        
-        %% LHSintegrator_triangle
-      
+
         % Element_Elastic
         function createPrincipalDirection(obj, pdim)
             s.eigenValueComputer.type = 'PRECOMPUTED';
@@ -95,7 +96,6 @@ classdef LHSintegrator < handle
             dir = obj.principalDirectionComputer.direction;
             str = obj.principalDirectionComputer.principalStress;
         end
-  
 
     end
     

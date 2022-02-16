@@ -51,26 +51,26 @@ classdef BoundaryMeshCreatorFromRectangularBox < BoundaryMeshCreator
             s.kFace      = obj.backgroundMesh.kFace;
             s.isRectangularBox = true;
             m = BoundaryMesh(s);
-        end       
+        end
         
         function coords = computeCoords(obj,nodes)
-            coords = obj.backgroundMesh.coord(nodes,:);            
-        end        
+            coords = obj.backgroundMesh.coord(nodes,:);
+        end
         
         function connec = computeConnectivities(obj,nodes,iDime)
-            facetCoords = obj.computeFacetCoords(nodes,iDime);                                    
+            facetCoords = obj.computeFacetCoords(nodes,iDime);
             switch obj.nDim
                 case 2
                     connec = obj.computeConnectivities1D(facetCoords);
                 case 3
                     connec = obj.computeConnectivities2D(facetCoords);
-            end            
+            end
         end
         
         function nodes = obtainBoxNodes(obj,iDime,iSide)
             dim = obj.dimension(iDime);
             coordDim = obj.backgroundMesh.coord(:,dim);
-            switch iSide 
+            switch iSide
                 case 1
                     xL = min(coordDim);
                 case 2
@@ -80,29 +80,29 @@ classdef BoundaryMeshCreatorFromRectangularBox < BoundaryMeshCreator
         end
         
         function facetCoord = computeFacetCoords(obj,nodes,idime)
-            coord      = obj.backgroundMesh.coord(nodes,:); 
+            coord      = obj.backgroundMesh.coord(nodes,:);
             facetDim   = setdiff(1:obj.nDim,idime);
             facetCoord = coord(:,obj.dimension(facetDim));
-        end   
+        end
 
         function iFace = computeIface(obj,iSide,iDime)
             iFace = (iDime-1)*obj.nSides + iSide;
-        end         
+        end
         
     end
     
     methods (Access = private, Static)
-                
+        
         function connec = computeConnectivities1D(coord)
             [~,I] = sort(coord);
             connec = [I circshift(I,-1)];
             connec(end,:) = [];
-        end                
+        end
         
         function connec = computeConnectivities2D(coord)
             DT = delaunayTriangulation(coord);
             connec = DT.ConnectivityList;
-        end    
+        end
         
     end
     

@@ -13,7 +13,7 @@ classdef AugmentedLagrangian < ObjectiveFunction
         function obj = AugmentedLagrangian(cParams)
             obj.init(cParams);
             obj.createConstraintModifier(cParams);
-            obj.createPenalty();           
+            obj.createPenalty();
         end
         
         function updateBecauseOfPrimal(obj)
@@ -21,7 +21,7 @@ classdef AugmentedLagrangian < ObjectiveFunction
             obj.constraint.computeFunctionAndGradient();
             obj.modifyInactiveConstraints();
             obj.computeFunction();
-            obj.computeGradient();            
+            obj.computeGradient();
         end
         
         function updateBecauseOfDual(obj)
@@ -35,9 +35,9 @@ classdef AugmentedLagrangian < ObjectiveFunction
     methods (Access = private)
         
         function createPenalty(obj)
-            nConstraints = obj.constraint.nSF;            
-            obj.penalty = ones(1,nConstraints);                         
-        end        
+            nConstraints = obj.constraint.nSF;
+            obj.penalty = ones(1,nConstraints);
+        end
         
         function computeFunction(obj)
             l  = obj.dualVariable.value;

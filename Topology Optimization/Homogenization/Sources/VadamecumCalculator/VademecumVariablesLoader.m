@@ -9,7 +9,7 @@ classdef VademecumVariablesLoader < handle
     properties (Access = private)
         fileName
         vadVariables
-        interpolator        
+        interpolator
     end
     
     methods (Access = public)
@@ -22,8 +22,8 @@ classdef VademecumVariablesLoader < handle
             obj.loadVademecumVariables();
             obj.createInterpolator();
             obj.computeConstitutiveFromVademecum();
-            obj.computePtensorFromVademecum();            
-            obj.computeDensityFromVademecum();            
+            obj.computePtensorFromVademecum();
+            obj.computeDensityFromVademecum();
         end
         
     end
@@ -31,7 +31,7 @@ classdef VademecumVariablesLoader < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.fileName = cParams.fileName;            
+            obj.fileName = cParams.fileName;
         end
         
         function loadVademecumVariables(obj)
@@ -66,7 +66,7 @@ classdef VademecumVariablesLoader < handle
             s.vadVariables = obj.vadVariables;
             s.interpolator = obj.interpolator;
             pt = AmplificatorTensorFromVademecum(s);
-            obj.Ptensor = pt;            
+            obj.Ptensor = pt;
         end
         
     end

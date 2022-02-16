@@ -9,7 +9,7 @@ classdef ShapeFunctionProjector_ForTriangles < ShapeFunctionProjector
         function xProj = project(obj,x)
            coord  = obj.mesh.coord';
            connec = obj.mesh.connec';
-           xProj = obj.faireF2(coord,connec,x); 
+           xProj = obj.faireF2(coord,connec,x);
         end
         
     end

@@ -16,8 +16,20 @@ classdef VectorizedTriangulationTests < handle & matlab.unittest.TestCase
             sign2 = sign(levelSet2);
             sign3 = sign(levelSet3);
             sign4 = sign(levelSet4);
+            paramCombination = [sign1, sign2, sign3, sign4];
+            invalid = [
+                    +1 +1 +1 +1;
+                    +1 +1 -1 -1;
+                    +1 -1 +1 -1;
+                    +1 -1 -1 +1; %
+                    -1 +1 +1 -1;
+                    -1 +1 -1 +1;
+                    -1 -1 +1 +1;
+                    -1 -1 -1 -1;
+                ];
+            isItValidTest = ~ismember(paramCombination,invalid,'rows');
 
-            if ~((sign1 == sign2) && (sign2 == sign3) && (sign3 == sign4))
+            if (isItValidTest)
                 s.coord    = [0 0 0; 1 0 0; 0 1 0; 0 0 1];
                 s.connec   = [1 2 3 4];
                 s.levelSet = [levelSet1; levelSet2; levelSet3; levelSet4];

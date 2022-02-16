@@ -1,7 +1,7 @@
 classdef ShapeFunctionProjector < handle
     
     properties (Access = protected)
-        mesh 
+        mesh
      end
 
     methods (Access = public, Static)

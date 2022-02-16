@@ -71,7 +71,7 @@ classdef ShapeFunctional < handle
         function fP = obtainPrintVariables(types,names)
             fP = cell(numel(types),1);
             for iV = 1:numel(types)
-               fP{iV}.type = types{iV}; 
+               fP{iV}.type = types{iV};
                fP{iV}.name = names{iV};
             end
         end

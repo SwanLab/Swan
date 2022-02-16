@@ -69,7 +69,7 @@ classdef AbstractSettings < handle
                    error('Invalid extension');
             end
             %f = [f,'.json'];
-            %obj.loadParamsFromJSON(f);            
+            %obj.loadParamsFromJSON(f);
             obj.loadedFile = f;
             obj.assignParams();
         end
