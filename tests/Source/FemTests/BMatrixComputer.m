@@ -83,20 +83,20 @@ classdef BMatrixComputer < handle
            Bmatrix = zeros(nB,d.ndofPerElement);
            for igaus = 1:d.ngaus
                Bgaus = obj.computeBmatrix(igaus);
-               index = obj.computeGlobalIndex(igaus);               
+               index = obj.computeGlobalIndex(igaus);
                Bmatrix(index,:) = Bgaus;
            end
        end
 
        function B = computeBmatrix(obj,igaus)
-            d  = obj.dim;           
+            d  = obj.dim;
             Bmat = obj.computeBmat(igaus);
             Bper = permute(Bmat,[1 3 2]);
             B    = reshape(Bper,d.nelem*d.nstre,d.ndofPerElement);
        end
 
        function index = computeGlobalIndex(obj,igaus)
-           d = obj.dim;           
+           d = obj.dim;
            uIndex = obj.computeUnitaryIndex(igaus);
            index = repmat(uIndex,d.nelem,1);
        end
@@ -119,19 +119,19 @@ classdef BMatrixComputer < handle
                dofs  = obj.computeGlobalDofs(idof);
                Bidof = Bfull(:,idof);
                Bdof = obj.computeBdofBySparse(Bidof,dofs);
-              % Bdof = obj.computeBdofByAccumarray(Bidof,dofs,ntot,ndofGlob);               
+              % Bdof = obj.computeBdofByAccumarray(Bidof,dofs,ntot,ndofGlob);
                Bt = Bt + Bdof;
            end
        end
 
-      function Bdof = computeBdofByAccumarray(obj,Bidof,dofs)    
+      function Bdof = computeBdofByAccumarray(obj,Bidof,dofs)
            d = obj.dim;
            ntot  = d.nt;
            Bdof = accumarray(dofs,Bidof,[ntot 1]);
-       end       
+      end
 
        function Bdof = computeBdofBySparse(obj,Bidof,dofs)
-           d = obj.dim;           
+           d = obj.dim;
            ntot  = d.nt;
            ndofGlob = d.ndof;
            Bdof = sparse(1:ntot,dofs,Bidof,ntot,ndofGlob);
@@ -140,11 +140,11 @@ classdef BMatrixComputer < handle
        function dofs = computeGlobalDofs(obj,idof)
            d = obj.dim;
            ngaus = d.ngaus;
-           nstre = d.nstre;           
+           nstre = d.nstre;
            gDofs = obj.transformLocal2Global(idof);
            dofs = repmat(gDofs',ngaus*nstre,1);
            dofs = dofs(:);
-       end       
+       end
 
        function gDofs = transformLocal2Global(obj,iDof)
            d     = obj.dim;

@@ -42,7 +42,7 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
            g      = Geometry.create(s);
            quad   = obj.quadrature;
            interp = obj.interpolation;
-           g.computeGeometry(quad,interp); 
+           g.computeGeometry(quad,interp);
            obj.geometry = g;
        end
 
