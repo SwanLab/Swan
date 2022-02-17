@@ -59,22 +59,44 @@ classdef LHSintegrator < handle
             obj.interpolation = int;
         end
 
+%         function A = assembleMatrix(obj,aElem)
+%             connec = obj.globalConnec;
+% %             ndofs  = obj.npnod; % should be obj.dim.ndof
+%             ndofs  = obj.dim.ndof; % should be obj.dim.ndof
+%             Ae     = aElem;
+%             nunkn1 = obj.dim.nunkn;
+%             nunkn2 = obj.dim.nunkn;
+%             nnode1 = size(connec,2);
+%             nnode2 = size(connec,2);
+%             A = sparse(ndofs,ndofs);
+%             for i = 1:nnode1 % changed that
+%                 nodeI = connec(:,i);
+%                 for j = 1:nnode2 % changed that as well
+%                     nodeJ = connec(:,j);
+%                     a = squeeze(Ae(i,j,:));
+%                     A = A + sparse(nodeI,nodeJ,a,ndofs,ndofs);
+%                 end
+%             end
+%         end
+
         function A = assembleMatrix(obj,aElem)
             connec = obj.globalConnec;
-%             ndofs  = obj.npnod; % should be obj.dim.ndof
-            ndofs  = obj.dim.ndof; % should be obj.dim.ndof
+            nunkn     = obj.dim.nunkn;
+            nnode     = obj.dim.nnode;
+            ndofs     = obj.dim.ndof; % should be obj.dim.ndof
+            ndofsElem = obj.dim.ndofPerElement;
             Ae     = aElem;
-            nunkn1 = obj.dim.nunkn;
-            nunkn2 = obj.dim.nunkn;
-            nnode1 = size(connec,2);
-            nnode2 = size(connec,2);
             A = sparse(ndofs,ndofs);
-            for i = 1:nnode1*nunkn1 % changed that
-                nodeI = connec(:,i);
-                for j = 1:nnode2*nunkn2 % changed that as well
-                    nodeJ = connec(:,j);
-                    a = squeeze(Ae(i,j,:));
-                    A = A + sparse(nodeI,nodeJ,a,ndofs,ndofs);
+            for iunkn = 1:nunkn
+                for i = 1:nnode % changed that
+                    nodeI = connec(:,i);
+                    NODEI = nunkn*(nodeI-1)+iunkn;
+                    for j = 1:nnode % changed that as well
+                        nodeJ = connec(:,j);
+                        NODEJ = nunkn*(nodeJ-1)+iunkn;
+                        a = squeeze(Ae(i,j,:));
+                        A = A + sparse(NODEI,NODEJ,a,ndofs,ndofs);
+                    end
                 end
             end
         end
