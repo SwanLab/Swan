@@ -3,7 +3,7 @@ classdef ForcesComputer < handle
     properties (Access = private)
         dim
         mesh
-        dof
+        boundaryConditions
     end
     
     methods (Access = public)
@@ -25,9 +25,9 @@ classdef ForcesComputer < handle
     methods (Access = private)
 
         function init(obj, s)
-            obj.dim  = s.dim;
-            obj.mesh = s.mesh;
-            obj.dof  = s.dof;
+            obj.dim                = s.dim;
+            obj.mesh               = s.mesh;
+            obj.boundaryConditions = s.BC;
         end
 
         function Fs = computeSuperficialFext(obj)
@@ -59,7 +59,7 @@ classdef ForcesComputer < handle
                 for iDof = 1:nDofPerElem
                     for igaus = 1:nGaus
                         c = squeeze(bElem(iDof,igaus,:));
-                        idof_elem = obj.dof.in_elem{iField}(iDof,:);
+                        idof_elem = obj.boundaryConditions.in_elem{iField}(iDof,:);
                         b = b + sparse(idof_elem,1,c',nDof,1);
                     end
                 end
@@ -70,9 +70,11 @@ classdef ForcesComputer < handle
 
         function Fp = computePunctualFext(obj)
             %Compute Global Puntual Forces (Not well-posed in FEM)
+            neumann       = obj.boundaryConditions.neumann;
+            neumannValues = obj.boundaryConditions.neumann_values;
             Fp = zeros(obj.dim.ndof,1);
-            if ~isempty(obj.dof.neumann)
-                Fp(obj.dof.neumann) = obj.dof.neumann_values;
+            if ~isempty(neumann)
+                Fp(neumann) = neumannValues;
             end
         end
 

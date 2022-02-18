@@ -24,7 +24,7 @@ fem.plot();
 %% Todo
 % change name cartd per dNdx
 % LHSintegrator_Stiffness : create geometry in init.
-%try sparse vs accumarray in assemblyCmat, assembleMatrix (BMatrixComputer) and LHSintegrator 
+% try sparse vs accumarray in assemblyCmat, assembleMatrix (BMatrixComputer) and LHSintegrator 
 % posI, posJ in LHSintergrator_StiffnessElasticStoredB
 %LHSintergrator_StiffnessElastic (computeB) 
 % 6. DOF+ Boudnary

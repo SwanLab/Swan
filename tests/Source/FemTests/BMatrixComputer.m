@@ -119,19 +119,19 @@ classdef BMatrixComputer < handle
                dofs  = obj.computeGlobalDofs(idof);
                Bidof = Bfull(:,idof);
                Bdof = obj.computeBdofBySparse(Bidof,dofs);
-               Bdof2 = obj.computeBdofByAccumarray(Bidof,dofs);
+%                Bdof = obj.computeBdofByAccumarray(Bidof,dofs);
                Bt = Bt + Bdof;
            end
        end
 
-      function Bdof2 = computeBdofByAccumarray(obj,Bidof,dofs)
+      function Bdof = computeBdofByAccumarray(obj,Bidof,dofs)
            d = obj.dim;
            ntot  = d.nt;
            ndof = d.ndof;
            posI = 1:ntot;
            index = [posI', dofs];
 %            Bdof = accumarray(dofs,Bidof,[ntot 1]);
-           Bdof2 = accumarray(index,Bidof,[ntot ndof],[],[],true);
+           Bdof = accumarray(index,Bidof,[ntot ndof],[],[],true);
       end
 
        function Bdof = computeBdofBySparse(obj,Bidof,dofs)

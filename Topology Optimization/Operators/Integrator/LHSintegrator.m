@@ -118,7 +118,9 @@ classdef LHSintegrator < handle
                 for j = 1:nnode*nunkn
                     dofsJ = dofConnec(:,j);
                     a = squeeze(Ae(i,j,:));
-                    A = A + sparse(dofsI,dofsJ,a,ndofs,ndofs);
+                    Aadd = obj.computeAaddBySparse(a, dofsI, dofsJ);
+%                     Aadd = obj.computeAaddBySparse(a, dofsI, dofsJ);
+                    A = A + Aadd;
                 end
             end
         end
@@ -126,6 +128,19 @@ classdef LHSintegrator < handle
     end
     
     methods (Access = private)
+
+        function Cadd = computeAaddBySparse(obj,a, dofsI, dofsJ)
+           d = obj.dim;
+           ndofs = d.ndof;
+           Cadd = sparse(dofsI,dofsJ,a,ndofs,ndofs);
+        end
+
+        function Cadd = computeAaddByAccumarray(obj,a, dofsI, dofsJ)
+           d = obj.dim;
+           ndofs = d.ndof;
+           index = [dofsI', dofsJ'];
+           Cadd = accumarray(index,a,[ndofs ndofs],[],[],true);
+        end
 
         function dof_elem = computeDOFconnec(obj)
             connec = obj.globalConnec;

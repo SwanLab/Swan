@@ -5,6 +5,8 @@ classdef BoundaryConditions < handle
         dirichlet_values
         free
         in_elem
+        neumann
+        neumann_values
     end
 
     properties (Access = private)
@@ -22,8 +24,11 @@ classdef BoundaryConditions < handle
 
         function compute(obj)
             [dirID, dirVals]     = obj.formatInputData(obj.dirichletInput);
+            [neuID, neuVals]     = obj.formatInputData(obj.pointloadInput);
             obj.dirichlet{1}        = dirID;
             obj.dirichlet_values{1} = dirVals;
+            obj.neumann             = neuID;
+            obj.neumann_values      = neuVals;
             obj.free{1}             = obj.computeFreeDOF();
             obj.in_elem{1}          = obj.compute_idx();
         end
