@@ -21,7 +21,6 @@ fem = FEM.create(s);
 fem().solve();
 fem.plot();
 
-
 % LHSintegrator_Stiffness : create geometry in init.
 % change name cartd per dNdx
 %try sparse vs accumarray in assemblyCmat, assembleMatrix (BMatrixComputer) and LHSintegrator 
@@ -29,7 +28,8 @@ fem.plot();
 %LHSintergrator_StiffnessElastic (computeB) 
 % 6. DOF+ Boudnary
 % 4. Create input data for NewFem (mesh,bc,material)
-
+% investigate why nnode is not correct in TopOptTests (reads 3, should be 2)
+% make test3d_hexahedra go faster
 
 
 % Inputa data
