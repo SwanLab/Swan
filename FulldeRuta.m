@@ -30,6 +30,7 @@ fem.plot();
 % 4. Create input data for NewFem (mesh,bc,material)
 % investigate why nnode is not correct in TopOptTests (reads 3, should be 2)
 % make test3d_hexahedra go faster
+% % time lost during squeeze (+33.000 calls) in computeElementalLHS
 
 
 % Inputa data

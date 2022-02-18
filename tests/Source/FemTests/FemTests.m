@@ -5,6 +5,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
         quad = {'test2d_quad'}
         tests2d = {'test2d_triangle', 'test2d_quad'}
         tests3d = {'test3d_tetrahedra', 'test3d_hexahedra'}
+        hexahedra = {'test3d_hexahedra'}
         duTests = {'test2d_triangle', 'test2d_quad', 'test3d_tetrahedra', 'test3d_hexahedra'}
         stokesTests = {'test2d_stokes_triangle'}
         microTests = {'test2d_micro'}
@@ -67,6 +68,21 @@ classdef FemTests < handle & matlab.unittest.TestCase
         end
 
     end
+
+    methods (Test, TestTags = {'Hexahedra'})
+
+        function testHexahedra(testCase, hexahedra)
+            s.computerType    = 'NEWFEM';
+            s.testName         = hexahedra;
+            s.variablesToStore = {'d_u'};
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+    end
+
     methods (Test, TestTags = {'FEM', 'Passed', 'Classic', 'Displacement', 'ToPass'})
 
         function testDisplacement(testCase, duTests)
