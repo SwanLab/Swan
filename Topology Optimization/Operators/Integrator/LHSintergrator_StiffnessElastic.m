@@ -52,7 +52,7 @@ classdef LHSintergrator_StiffnessElastic < LHSintegrator
 %         end
         
           function lhs = computeElementalLHS(obj)
-            dShape = obj.geometry.cartd;
+            dShape = obj.geometry.dNdx;
             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
             ngaus  = obj.quadrature.ngaus;
             nelem  = obj.dim.nelem;

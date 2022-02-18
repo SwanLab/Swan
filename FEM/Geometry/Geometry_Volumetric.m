@@ -1,7 +1,7 @@
 classdef Geometry_Volumetric < Geometry
     
     properties (GetAccess = public, SetAccess = private)
-        cartd
+        dNdx
     end
     
     properties (Access = private)
@@ -37,7 +37,7 @@ classdef Geometry_Volumetric < Geometry
             nDime = obj.interpolationVariable.ndime;
             nNode = obj.interpolationVariable.nnode;
             nGaus = obj.quadrature.ngaus;
-            obj.cartd = zeros(nDime,nNode,obj.mesh.nelem,nGaus);
+            obj.dNdx = zeros(nDime,nNode,obj.mesh.nelem,nGaus);
             obj.detJ  = zeros(obj.mesh.nelem,nGaus);
             obj.dvolu = zeros(obj.mesh.nelem,nGaus);  
         end
@@ -80,7 +80,7 @@ classdef Geometry_Volumetric < Geometry
                 dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
                 dShapeDx  = dShapeDx + dSDx_KI;
             end
-            obj.cartd(:,:,:,igaus) = dShapeDx;
+            obj.dNdx(:,:,:,igaus) = dShapeDx;
         end
         
         function invJ = computeInvJacobian(obj)

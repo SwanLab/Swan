@@ -40,7 +40,7 @@ classdef Element_Thermal < Element
             
             for igaus = 1 :obj.geometry.ngaus
                 % Strain-displacement matrix
-                Bmat = obj.computeB(obj.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
+                Bmat = obj.computeB(obj.nunkn,obj.nelem,obj.nnode,obj.geometry.dNdx(:,:,:,igaus));
                 
                 % Compute Ke
                 if obj.nelem < 1000 %Just to reduce test.m compute time TO BE REMOVED
@@ -65,12 +65,12 @@ classdef Element_Thermal < Element
     end
     
     methods (Static)
-        function [B] = computeB(nunkn,nelem,nnode,cartd)
+        function [B] = computeB(nunkn,nelem,nnode,dNdx)
             B = zeros(2,nnode*nunkn,nelem);
             for inode=1:nnode
                 j = nunkn*(inode-1)+1;
-                B(1,j,:)=cartd(1,inode,:);
-                B(2,j,:)=cartd(2,inode,:);
+                B(1,j,:)=dNdx(1,inode,:);
+                B(2,j,:)=dNdx(2,inode,:);
             end
         end
     end

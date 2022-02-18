@@ -6,7 +6,7 @@ classdef Isotropic2dHyperElasticMaterial < ElasticMaterial
         mup
         lambdap
         connec
-        cartd
+        dNdx
         nnode
         coord
         sigma
@@ -16,7 +16,7 @@ classdef Isotropic2dHyperElasticMaterial < ElasticMaterial
         function obj = Isotropic2dHyperElasticMaterial(cParams)
             obj.nelem = cParams.nelem;
             obj.connec= cParams.connec;
-            obj.cartd = cParams.cartd;
+            obj.dNdx = cParams.dNdx;
             obj.nnode = cParams.nnode;
 %             obj.coord = coord(:,1:2);
             obj = computeCtens(obj,cParams.coord(:,1:2)); % obj.computeCtens
@@ -31,7 +31,7 @@ classdef Isotropic2dHyperElasticMaterial < ElasticMaterial
             x = reshape(x,[2,obj.nnode,obj.nelem]);
             
             % Jacobian
-            [Fjacb,blcg] = obj.computeDefGradient(x,obj.cartd,obj.nnode,obj.nelem);
+            [Fjacb,blcg] = obj.computeDefGradient(x,obj.dNdx,obj.nnode,obj.nelem);
             
             % Effective Lame moduli
             obj.mup     = (obj.mu-obj.lambda*log(Fjacb))./Fjacb;
@@ -85,13 +85,13 @@ classdef Isotropic2dHyperElasticMaterial < ElasticMaterial
     
     methods (Static)
         %% Compute deformation gradient tensor
-        function [Fjacb,blcg] = computeDefGradient(x,cartd0,nnode,nelem)
+        function [Fjacb,blcg] = computeDefGradient(x,dNdx0,nnode,nelem)
             F = repmat(eye(3),[1 1 nelem]);
             for i = 1:2 % 2D
                 f = zeros(2,nnode,nelem);
                 for j = 1:2
                     for a = 1:nnode
-                        inc = x(i,a,:).*cartd0(j,a,:);
+                        inc = x(i,a,:).*dNdx0(j,a,:);
                         f(j,a,:) = f(j,a,:) + inc;
                     end
                     F(i,j,:) = sum(f(j,:,:));

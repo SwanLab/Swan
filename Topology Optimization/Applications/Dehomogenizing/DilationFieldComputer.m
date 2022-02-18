@@ -40,7 +40,7 @@ classdef DilationFieldComputer < handle
             s.mesh = obj.mesh;
             g = Geometry.create(s);
             g.computeGeometry(q,int);
-            grad = g.cartd;
+            grad = g.dNdx;
             nodes = obj.mesh.connec;
             f = obj.theta;
             gradF = zeros(obj.mesh.ndim,q.ngaus,obj.mesh.nelem);

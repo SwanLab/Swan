@@ -44,7 +44,7 @@ classdef BMatrixComputer < handle
            nelem          = d.nelem;
            nunkn          = d.nunkn;
            ndofPerElement = d.ndofPerElement;
-           dNdx = obj.geometry.cartd;
+           dNdx = obj.geometry.dNdx;
            B = zeros(nstre,ndofPerElement,nelem);
            for i = 1:nnode
                j = nunkn*(i-1)+1;
@@ -57,7 +57,7 @@ classdef BMatrixComputer < handle
 
        function B = computeBin3D(obj,igaus)
            d    = obj.dim;
-           dNdx = obj.geometry.cartd;
+           dNdx = obj.geometry.dNdx;
            B = zeros(d.nstre,d.ndofPerElement,d.nelem);
            for inode=1:d.nnode
                j = d.nunkn*(inode-1)+1;
