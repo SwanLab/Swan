@@ -1,11 +1,16 @@
 classdef LHSintergrator_StiffnessElastic < LHSintegrator
 
+    properties (Access = private)
+        geometry
+    end
+
     methods (Access = public)
         
         function obj = LHSintergrator_StiffnessElastic(cParams)
             obj.init(cParams)
             obj.createQuadrature();
             obj.createInterpolation();
+            obj.createGeometry();
         end
 
         function LHS = compute(obj)
@@ -47,7 +52,7 @@ classdef LHSintergrator_StiffnessElastic < LHSintegrator
 %         end
         
           function lhs = computeElementalLHS(obj)
-            dShape = obj.computeGradient();
+            dShape = obj.geometry.cartd;
             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
             ngaus  = obj.quadrature.ngaus;
             nelem  = obj.dim.nelem;
@@ -134,18 +139,15 @@ classdef LHSintergrator_StiffnessElastic < LHSintegrator
            end
        end
 
-       function grad = computeGradient(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
-            m.type = obj.mesh.type;
-            int = Interpolation.create(m,'LINEAR');
-            int.computeShapeDeriv(obj.quadrature.posgp);
+       function createGeometry(obj)
+            q   = obj.quadrature;
+            int = obj.interpolation;
+            int.computeShapeDeriv(q.posgp);
             s.mesh = obj.mesh;
             g = Geometry.create(s);
-            g.computeGeometry(obj.quadrature,int);
-            grad = g.cartd;
+            g.computeGeometry(q,int);
+            obj.geometry = g;
        end
-
        
    end
    
