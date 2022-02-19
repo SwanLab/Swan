@@ -25,10 +25,10 @@ classdef QuadrilaterSubTriangulator < handle
             
             for is = 1:2
                 subTriang = obj.subTriangulation(:,:,is);
-                connecL             = obj.computeSubtriangulation(subTriang);                
+                connecL             = obj.computeSubtriangulation(subTriang);
                 conne               = obj.divideInSubTriangle(obj.connec,connecL);
 
-                xB = permute(obj.xLocalVertex,[3 2 1]);                
+                xB = permute(obj.xLocalVertex,[3 2 1]);
                 xCoordsIsoBoundaryS = obj.divideInSubTriangle(xB,connecL);
                 
                 xCoordsIsoBoundaryS = permute(xCoordsIsoBoundaryS,[4 1 2 3]);
@@ -95,7 +95,7 @@ classdef QuadrilaterSubTriangulator < handle
             obj.subTriangulation(:,:,2) = [2 3 4; 4 1 2];
         end
         
-        function [xCoordsIsoBoundaryR] = divideInSubTriangle(obj,xB,connecL)                        
+        function [xCoordsIsoBoundaryR] = divideInSubTriangle(obj,xB,connecL)
             
             
      %       connB = obj.localToGlobal(connecL,connec);
@@ -150,7 +150,7 @@ classdef QuadrilaterSubTriangulator < handle
         end
         
         function connec = computeSubtriangulation(obj,subTriang)
-            nodes = obj.obtainOrderedNodes();            
+            nodes = obj.obtainOrderedNodes();
             connec = zeros(size(nodes,1),3,2);
             for inode = 1:3
                 for itriangle = 1:2
@@ -158,8 +158,6 @@ classdef QuadrilaterSubTriangulator < handle
                 end
             end
         end
-                
-        
         
     end
     

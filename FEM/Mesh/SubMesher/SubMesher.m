@@ -2,7 +2,7 @@ classdef SubMesher < handle
     
     properties (Access = public)
        subMesh
-       localMesh        
+       localMesh
     end
     
     properties (Access = private)
@@ -17,7 +17,7 @@ classdef SubMesher < handle
             obj.computeLocalMesh();
             obj.computeSubMesh();
         end
-              
+        
     end
     
     methods (Access = private)
@@ -32,8 +32,8 @@ classdef SubMesher < handle
                 2 3 5;
                 3 4 5;
                 1 5 4];
-            s.coord =  obj.computeCoordLocal();  
-            obj.localMesh = Mesh(s);                        
+            s.coord =  obj.computeCoordLocal();
+            obj.localMesh = Mesh(s);
         end
         
         function xIsoCoord = computeCoordLocal(obj)
@@ -44,9 +44,9 @@ classdef SubMesher < handle
         
         function computeSubMesh(obj)
             s.connec = obj.computeSubMeshConnec();
-            s.coord  = obj.computeSubMeshCoord();            
+            s.coord  = obj.computeSubMeshCoord();
             obj.subMesh = Mesh(s);
-        end                
+        end
         
         function x = computeXisoQuad(obj)
             int = Interpolation.create(obj.mesh,'LINEAR');
@@ -80,7 +80,7 @@ classdef SubMesher < handle
         function nNodes = computeNewNodes(obj)
             nelemOld = obj.mesh.nelem;
             nNodes(:,1) = (obj.lastNode+1):(obj.lastNode + nelemOld);
-        end        
+        end
         
         function newCoord = computeSubMeshCoord(obj)
             xC = obj.mesh.computeBaricenter();

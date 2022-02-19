@@ -1,7 +1,7 @@
 classdef UnfittedBoundaryMesh < handle
     
     properties (Access = public)
-        meshes        
+        meshes
     end
     
     properties (Access = private)
@@ -32,7 +32,7 @@ classdef UnfittedBoundaryMesh < handle
         end
         
         function m = getActiveMesh(obj)
-            m = obj.getActiveField(obj.meshes);                         
+            m = obj.getActiveField(obj.meshes);
         end
         
         function g = getGlobalConnec(obj)
@@ -55,7 +55,7 @@ classdef UnfittedBoundaryMesh < handle
         function init(obj,cParams)
             obj.boundaryMesh = cParams.boundaryMesh;
             obj.nBoundaries  = numel(obj.boundaryMesh);
-            obj.activeMeshes = false(obj.nBoundaries,1);            
+            obj.activeMeshes = false(obj.nBoundaries,1);
         end
         
         function createUnfittedMeshes(obj)
@@ -74,21 +74,21 @@ classdef UnfittedBoundaryMesh < handle
             for iBoundary = 1:obj.nBoundaries
                 m = obj.boundaryMesh{iBoundary};
                 obj.globalConnec{iBoundary} = m.globalConnec;
-            end            
+            end
         end
         
         function obtainNodesInBoxFaces(obj)
             for iBoundary = 1:obj.nBoundaries
                 m = obj.boundaryMesh{iBoundary};
                 obj.nodesInBoxFaces{iBoundary} = m.nodesInBoxFaces;
-            end            
-        end        
+            end
+        end
         
         function computeActiveMesh(obj)
-            for iBoundary = 1:obj.nBoundaries                
+            for iBoundary = 1:obj.nBoundaries
                 isActive = obj.isUnfittedMeshActive(iBoundary);
                 obj.activeMeshes(iBoundary) = isActive;
-            end            
+            end
         end
         
         function computeUnfittedMeshes(obj)
@@ -97,36 +97,36 @@ classdef UnfittedBoundaryMesh < handle
                 if isMeshActive
                    obj.computeUnfittedMesh(iBoundary);
                 end
-            end            
-        end     
+            end
+        end
         
         function computeUnfittedMesh(obj,iBoundary)
             nodes = obj.nodesInBoxFaces{iBoundary};
-            ls    = obj.levelSet(nodes);            
+            ls    = obj.levelSet(nodes);
             obj.meshes{iBoundary}.compute(ls);
         end
         
         function itIs = isUnfittedMeshActive(obj,iBoundary)
             nodes = obj.nodesInBoxFaces{iBoundary};
-            ls    = obj.levelSet(nodes);          
+            ls    = obj.levelSet(nodes);
             itIs = any(sign(ls)<0);
         end
         
         function activeFields = getActiveField(obj,fields)
             activeFields = cell(0);
             iMesh = 1;
-            for iBoundary = 1:obj.nBoundaries       
+            for iBoundary = 1:obj.nBoundaries
                 isMeshActive = obj.activeMeshes(iBoundary);
                 if isMeshActive
                    activeFields{iMesh} = fields{iBoundary};
                    iMesh = iMesh +1;
                 end
-            end              
-        end       
+            end
+        end
         
     end
     
-    methods (Access = private, Static)    
+    methods (Access = private, Static)
     
         function m = createBoundaryMesh(bMesh)
             s.backgroundMesh = bMesh.mesh;

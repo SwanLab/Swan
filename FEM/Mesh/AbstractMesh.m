@@ -17,7 +17,7 @@ classdef AbstractMesh < handle
     end
     
     properties (Access = private)
-       xFE 
+       xFE
     end
     
     methods (Access = public)
@@ -49,7 +49,7 @@ classdef AbstractMesh < handle
        function v = computeVolume(obj)
             quad = Quadrature.set(obj.type);
             quad.computeQuadrature('CONSTANT');
-            v = obj.computeDvolume(quad); 
+            v = obj.computeDvolume(quad);
             v = sum(v(:));
        end
        

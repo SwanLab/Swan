@@ -5,18 +5,18 @@ classdef AllSubCellsConnecComputer < handle
         xNodesInSubCells
     end
     
-    properties (Access = private)        
+    properties (Access = private)
         xNodesInSubCellsByElem
-        cellMesher        
+        cellMesher
     end
     
     properties (Access = private)
         allNodesInElem
-        xAllNodesInElem        
+        xAllNodesInElem
         subCellCases
         nElem
         nCases
-        nodesInSubCells        
+        nodesInSubCells
         subMeshConnecParams
     end
     
@@ -63,7 +63,7 @@ classdef AllSubCellsConnecComputer < handle
                     obj.cellMesher = TriangleSubMeshConnecComputer(s);
                 case {7,8}
                     obj.cellMesher = TethaedraSubMeshConnecComputer(s);
-            end            
+            end
         end
         
         function permuteXallNodes(obj)
@@ -80,7 +80,7 @@ classdef AllSubCellsConnecComputer < handle
                     nSubCellsByElem = 4;
                 case 8
                     nSubCellsByElem = 6;
-            end                      
+            end
             nSubCellNodes   = obj.cellMesher.nSubCellNodes;
             nodes = zeros(nSubCellNodes,nSubCellsByElem,obj.nElem);
             obj.nodesInSubCells = nodes;
@@ -126,8 +126,8 @@ classdef AllSubCellsConnecComputer < handle
             nDim = size(obj.xAllNodesInElem,3);
             nSubCellsByElem = obj.cellMesher.nSubCellsByElem;
             nSubCellNodes   = obj.cellMesher.nSubCellNodes;
-            nSubCells       = obj.nElem*nSubCellsByElem;            
-            obj.xNodesInSubCells = zeros(nSubCellNodes,nSubCells,nDim);            
+            nSubCells       = obj.nElem*nSubCellsByElem;
+            obj.xNodesInSubCells = zeros(nSubCellNodes,nSubCells,nDim);
             for idim = 1:nDim
                 x = obj.xNodesInSubCellsByElem(:,:,:,idim);
                 xAll = obj.concatenateSubCells(x);
@@ -146,7 +146,7 @@ classdef AllSubCellsConnecComputer < handle
             nSubCellsByElem = obj.cellMesher.nSubCellsByElem;
             nSubCellNodes   = obj.cellMesher.nSubCellNodes;
             nSubCells       = obj.nElem*nSubCellsByElem;
-            allNodes = reshape(nodesByElem,nSubCellNodes,nSubCells);                      
+            allNodes = reshape(nodesByElem,nSubCellNodes,nSubCells);
         end
         
     end

@@ -1,7 +1,7 @@
 classdef CutMesh < handle
     
     properties (GetAccess = protected, SetAccess = private)
-        backgroundMesh        
+        backgroundMesh
         levelSet
         cutCells
     end
@@ -12,7 +12,7 @@ classdef CutMesh < handle
         cellContainingSubcell  
         boundaryMesh
         cellContainingSubCellBoundary
-        xCoordsIsoBoundary        
+        xCoordsIsoBoundary
     end
     
     properties (SetAccess = protected, GetAccess = public) 
@@ -24,13 +24,13 @@ classdef CutMesh < handle
         
         function obj = create(cParams)
             f = CutMeshFactory();
-            obj = f.create(cParams);            
+            obj = f.create(cParams);
         end
         
     end
     
     methods (Abstract, Access = public)
-        compute(obj)        
+        compute(obj)
     end
     
     methods (Access = protected)
@@ -53,7 +53,7 @@ classdef CutMesh < handle
             s.xCoordsIso            = obj.xCoordsIsoBoundary;
             s.cellContainingSubcell = obj.cellContainingSubCellBoundary;
             obj.boundaryCutMesh = BoundaryCutMesh(s);
-        end        
+        end
         
     end
     

@@ -13,7 +13,7 @@ classdef EdgeCutInElemComputer < handle
     methods (Access = public)
         
         function obj = EdgeCutInElemComputer(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)
         end
         
         function isEdgeCut = compute(obj)
@@ -22,7 +22,7 @@ classdef EdgeCutInElemComputer < handle
                 edge = obj.edgesInElem(:,iedge);
                 isEdgeCut(iedge,:) = obj.isEdgeCut(edge);
             end
-        end            
+        end
         
     end
     

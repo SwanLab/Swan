@@ -2,7 +2,7 @@ classdef CutCoordinatesComputer < handle
     
     properties (GetAccess = public, SetAccess = private)
       coord
-      xCutPoints      
+      xCutPoints
     end
     
     properties (Access = private)
@@ -37,11 +37,11 @@ classdef CutCoordinatesComputer < handle
         end
         
         function computeCutPoints(obj)
-            shapes = obj.computeShapes();            
+            shapes = obj.computeShapes();
             shapeA = shapes(:,1);
-            shapeB = shapes(:,2);            
+            shapeB = shapes(:,2);
             node1 = obj.nodesInEdges(obj.isEdgeCut,1);
-            node2 = obj.nodesInEdges(obj.isEdgeCut,2);            
+            node2 = obj.nodesInEdges(obj.isEdgeCut,2);
             xA  = obj.backgroundCoord(node1,:);
             xB  = obj.backgroundCoord(node2,:);
             xCut = zeros(size(xA));
@@ -50,7 +50,7 @@ classdef CutCoordinatesComputer < handle
                 xCut(:,idim) = xA(:,idim).*shapeA + xB(:,idim).*shapeB;
             end
             obj.xCutPoints = xCut;
-        end        
+        end
         
         function shapes = computeShapes(obj)
             m.type = 'LINE';
@@ -59,7 +59,7 @@ classdef CutCoordinatesComputer < handle
             int = Interpolation.create(m,'LINEAR');
             xCutIso = obj.xCutEdgePoint';
             int.computeShapeDeriv(xCutIso);
-            shapes = int.shape';            
+            shapes = int.shape';
         end
         
         function computeCutMeshCoordinates(obj)

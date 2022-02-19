@@ -52,7 +52,7 @@ classdef BestSubCellCaseSelector < handle
                 desviation = desviation + desv;
             end                        
             homogeonity = -sqrt(desviation);
-            m = 0.9*quality + 0.1*homogeonity;            
+            m = 0.9*quality + 0.1*homogeonity;
         end
         
         function q = computeQuality(obj,nodes)
@@ -61,7 +61,7 @@ classdef BestSubCellCaseSelector < handle
             if size(obj.coord,2) == 3
                s.kFace = -1;
             end
-            m = Mesh(s);            
+            m = Mesh(s);
             q = m.computeElementQuality();
         end
       

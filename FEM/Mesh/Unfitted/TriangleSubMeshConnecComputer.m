@@ -7,16 +7,16 @@ classdef TriangleSubMeshConnecComputer < handle
     
     properties (Access = private)
         connecCase
-        imax        
+        imax
     end
     
     properties (Access = private)
         localTriangleConnecCases
-        localQuadConnecCases      
+        localQuadConnecCases
         cellNodes
         nSubCellsByQuad
         nSubCases
-        nElemInCase          
+        nElemInCase
         bestSubCellCaseSelectorParams
     end
     
@@ -28,7 +28,7 @@ classdef TriangleSubMeshConnecComputer < handle
         
         function compute(obj,nodes,icase)
             obj.nElemInCase = size(nodes,1);
-            obj.cellNodes   = nodes;                        
+            obj.cellNodes   = nodes;
             obj.computeBestQuadrilateralConnec(icase);
             obj.computeConnecCase(icase);
         end
@@ -36,14 +36,14 @@ classdef TriangleSubMeshConnecComputer < handle
         function nodePartition = partition(obj,nodes)
             connec = permute(obj.connecCase,[3 1 2]);
             nodePartition = obj.initNodePartition();
-            nNodesSubCell = size(nodes,2);                        
+            nNodesSubCell = size(nodes,2);
             for isubcell = 1:obj.nSubCellsByElem
                 for inode = 1:obj.nSubCellNodes
                     node = connec(:,isubcell,inode);
                     ind  = obj.computeAbsoluteMatrixIndex(node,nNodesSubCell);
                     nodePartition(inode,isubcell,:) = nodes(ind);
                 end
-            end            
+            end
         end
         
     end
@@ -51,7 +51,7 @@ classdef TriangleSubMeshConnecComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            s = cParams.bestSubCellCaseSelector;            
+            s = cParams.bestSubCellCaseSelector;
             obj.bestSubCellCaseSelectorParams = s;
             obj.nSubCellNodes   = 3;
             obj.nSubCellsByQuad = 2;
@@ -78,7 +78,7 @@ classdef TriangleSubMeshConnecComputer < handle
             nodes(:,:,2,2) = [1 4 5;1 5 3];
             
             nodes(:,:,1,3) = [1 2 5;2 4 5];
-            nodes(:,:,2,3) = [1 4 5;1 2 4];            
+            nodes(:,:,2,3) = [1 4 5;1 2 4];
             obj.localQuadConnecCases = nodes;
         end
         
@@ -90,18 +90,18 @@ classdef TriangleSubMeshConnecComputer < handle
                 node = obj.cellNodes(:,localNode);
                 connec(inode,:) = node;
             end
-            obj.connecSubTriangle = connec;            
+            obj.connecSubTriangle = connec;
         end
         
         function computeBestQuadrilateralConnec(obj,icase)
             localConnec = obj.localQuadConnecCases(:,:,:,icase);
-            connecCases = obj.computeSubCasesConnec(localConnec);                        
+            connecCases = obj.computeSubCasesConnec(localConnec);
             s = obj.bestSubCellCaseSelectorParams;
             s.nodesSubCases = connecCases;
             bestCase = BestSubCellCaseSelector(s);
-            obj.imax = bestCase.compute();            
-        end        
-               
+            obj.imax = bestCase.compute();
+        end
+        
         function connec = computeSubCasesConnec(obj,localConnecCases)
             connec = obj.initQuadConnecCases();
             for isubCase = 1:obj.nSubCases
@@ -127,32 +127,32 @@ classdef TriangleSubMeshConnecComputer < handle
             for isubCase = 1:obj.nSubCases
                 isActive = obj.imax == isubCase;
                 nodesT = obj.localTriangleConnecCases(icase,:);
-                nodesQ = obj.localQuadConnecCases(:,:,isubCase,icase);                
+                nodesQ = obj.localQuadConnecCases(:,:,isubCase,icase);
                 for inode = 1:obj.nSubCellNodes 
                     nodes(1,inode,isActive) = nodesT(inode);
                     nodes(2,inode,isActive) = nodesQ(1,inode);
                     nodes(3,inode,isActive) = nodesQ(2,inode);
                 end
             end
-            obj.connecCase = nodes;            
-        end                
+            obj.connecCase = nodes;
+        end
         
         function c = initNodePartition(obj)
-            c = zeros(obj.nSubCellNodes,obj.nSubCellsByElem,obj.nElemInCase);             
-        end         
+            c = zeros(obj.nSubCellNodes,obj.nSubCellsByElem,obj.nElemInCase);
+        end
         
         function ind = computeAbsoluteMatrixIndex(obj,colums,nNodesSubCell)
             nElem = obj.nElemInCase;
             rows = (1:nElem)';
-            ind = sub2ind([nElem,nNodesSubCell],rows,colums);            
-        end        
+            ind = sub2ind([nElem,nNodesSubCell],rows,colums);
+        end
         
         function connec = initConnecQuad(obj)
             n1 = obj.nSubCellsByQuad;
             n2 = obj.nSubCellNodes;
-            n3 = obj.nElemInCase;            
+            n3 = obj.nElemInCase;
             connec = zeros(n1,n2,n3);
-        end        
+        end
         
         function connec = initQuadConnecCases(obj)
             n1 = obj.nSubCellsByQuad;

@@ -22,7 +22,7 @@ classdef BoundaryMesh < handle
         
         function obj = BoundaryMesh(cParams)
             obj.init(cParams)
-            obj.createMesh();  
+            obj.createMesh();
             obj.createGlobalConnec();
         end
         
