@@ -34,7 +34,7 @@ classdef NewFEM < handle
         function obj = create(s)
             % this only works for elastic macro
 %             s = FemInputReader_GiD().read(fileName);
-            switch s.ptype
+            switch s.type
                 case 'ELASTIC'
                     switch s.scale
                         case 'MACRO'

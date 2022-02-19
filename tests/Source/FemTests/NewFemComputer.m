@@ -14,7 +14,7 @@ classdef NewFemComputer < handle
         end
 
         function compute(obj)
-            s = FemInputReader_GiD().read(obj.testName);
+            s = obj.createFEMparameters();
             obj.computation = NewFEM.create(s);
             obj.computation.computeVariables();
         end
@@ -22,6 +22,22 @@ classdef NewFemComputer < handle
 
     methods (Access = private)
 
+        function s = createFEMparameters(obj)
+            gidParams = obj.createGiDparameters();
+            s.dim       = gidParams.pdim;
+            s.type      = gidParams.ptype;
+            s.scale     = gidParams.scale;
+            s.mesh      = gidParams.mesh;
+            s.dirichlet = gidParams.dirichlet;
+            s.pointload = gidParams.pointload;
+        end
+
+        function gidParams = createGiDparameters(obj)
+            file = obj.testName;
+            gidReader = FemInputReader_GiD();
+            gidParams = gidReader.read(file);
+        end
+        
         function createMaterialProperties(obj)
             q = Quadrature.set(obj.computation.mesh.type);
             q.computeQuadrature('LINEAR');

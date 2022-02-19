@@ -13,16 +13,13 @@ classdef NewElasticProblem < handle %NewFEM
         % Poda 1
         quadrature
         dim
-        % Kgen %"LHS"
         boundaryConditions
     end
 
     properties (Access = private)
-        fileName
         femData
         mesh
         problemData
-        dof
         stiffnessMatrix
         forces
         solver
@@ -41,10 +38,9 @@ classdef NewElasticProblem < handle %NewFEM
             obj.createBCApplier();
             obj.createSolver();
         end
-
         
         function computeVariables(obj)
-            obj.computeStiffnessMatrix()
+            obj.computeStiffnessMatrix();
             obj.computeForces();
             obj.computeDisplacements();
         end
@@ -56,10 +52,9 @@ classdef NewElasticProblem < handle %NewFEM
         function init(obj, cParams)
             obj.nFields = 1;
             obj.mesh        = cParams.mesh;
-            obj.fileName    = cParams.problemID;
             pd.scale        = cParams.scale;
-            pd.pdim         = cParams.pdim;
-            pd.ptype        = cParams.ptype;
+            pd.pdim         = cParams.dim;
+            pd.ptype        = cParams.type;
             pd.bc.dirichlet = cParams.dirichlet;
             pd.bc.pointload = cParams.pointload;
             obj.problemData = pd;
@@ -98,19 +93,11 @@ classdef NewElasticProblem < handle %NewFEM
 
         function createInterpolation(obj)
             int = obj.mesh.interpolation;
-            %int.computeShapeDeriv(obj.quadrature.posgp);
             obj.interp{1} = int;
         end
 
         function createBoundaryConditions(obj)
-            % Will merge boundary + DOF
-            % DOF currently used for BCApplier and ForcesComputer
-            % ForcesComputer: uses dof.neumann + dof.neumann_values +
-            %                 in_elem
-            % BCApplier: uses dirichlet + dirichlet_values + ndof + free
-            %                 free + periodic_free + periodic_constrained
-
-            s.dim          = obj.dim;            
+            s.dim          = obj.dim;
             s.bc           = obj.problemData.bc;
             s.globalConnec = obj.mesh.connec;
             bc = BoundaryConditions(s);
@@ -119,8 +106,6 @@ classdef NewElasticProblem < handle %NewFEM
         end
 
         function createBCApplier(obj)
-%             obj.dof = DOF_Elastic(obj.fileName,obj.mesh,obj.problemData.pdim,obj.nFields,obj.interp);
-%             s.dof     = obj.dof;
             s.BC      = obj.boundaryConditions;
             s.dim     = obj.dim;
             s.nfields = obj.nFields;
