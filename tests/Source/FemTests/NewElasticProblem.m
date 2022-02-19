@@ -172,18 +172,14 @@ classdef NewElasticProblem < handle %NewFEM
         
         function plotFem2D(obj)
             coords = obj.computeDisplacedCoords();
-            obj.plotNodes();
-            obj.plotDisplacement(coords);
+            obj.plotNodes2D();
+            obj.plotDisplacement2D(coords);
         end
-
-        function plotNodes(obj)
-            Tn = obj.mesh.connec;
-            x  = obj.mesh.coord(:,1);
-            y  = obj.mesh.coord(:,2);
-            figure()
-            hold on
-            colormap jet;
-            plot(x(Tn)',y(Tn)','--','linewidth',0.5);
+        
+        function plotFem3D(obj)
+            coords = obj.computeDisplacedCoords();
+            obj.plotNodes3D();
+            obj.plotDisplacement3D(coords);
         end
         
         function dispCoords = computeDisplacedCoords(obj)
@@ -199,7 +195,17 @@ classdef NewElasticProblem < handle %NewFEM
             dispCoords = coords + delta;
         end
         
-        function plotDisplacement(obj, coords)
+        function plotNodes2D(obj)
+            Tn = obj.mesh.connec;
+            x  = obj.mesh.coord(:,1);
+            y  = obj.mesh.coord(:,2);
+            figure()
+            hold on
+            colormap jet;
+            plot(x(Tn)',y(Tn)','--','linewidth',0.5);
+        end
+        
+        function plotDisplacement2D(obj, coords)
             ndim = obj.dim.ndim;
             ndof = obj.dim.ndof;
             x = coords(1:ndim:ndof);
@@ -207,7 +213,28 @@ classdef NewElasticProblem < handle %NewFEM
             Tn   = obj.mesh.connec;
             plot(x(Tn)',y(Tn)','-k','linewidth',0.5);
         end
-
+        
+        function plotNodes3D(obj)
+            Tn = obj.mesh.connec;
+            x  = obj.mesh.coord(:,1);
+            y  = obj.mesh.coord(:,2);
+            z  = obj.mesh.coord(:,3);
+            figure()
+            hold on
+            colormap jet;
+            plot3(x(Tn)',y(Tn)',z(Tn)','--','linewidth',0.5);
+        end
+        
+        function plotDisplacement3D(obj, coords)
+            ndim = obj.dim.ndim;
+            ndof = obj.dim.ndof;
+            x = coords(1:ndim:ndof);
+            y = coords(2:ndim:ndof);
+            z = coords(3:ndim:ndof);
+            Tn   = obj.mesh.connec;
+            plot3(x(Tn)',y(Tn)',z(Tn)','-k','linewidth',0.5);
+        end
+        
     end
 
 end
