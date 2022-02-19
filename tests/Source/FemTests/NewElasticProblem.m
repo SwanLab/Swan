@@ -14,6 +14,7 @@ classdef NewElasticProblem < handle %NewFEM
         quadrature
         dim
         boundaryConditions
+        displacement
     end
 
     properties (Access = private)
@@ -43,11 +44,51 @@ classdef NewElasticProblem < handle %NewFEM
             obj.computeForces();
             obj.computeDisplacements();
         end
+
+        function plot(obj)
+            ndim = obj.dim.ndim;
+            coords = obj.computeDisplacedCoords();
+            obj.plotNodes();
+            obj.plotDisplacement(coords);
+        end
     
     end
     
     methods (Access = private)
         
+        function plotNodes(obj)
+            Tn   = obj.mesh.connec;
+            x    = obj.mesh.coord(:,1);
+            y    = obj.mesh.coord(:,2);
+            figure()
+            hold on
+            colormap jet;
+            plot(x(Tn)',y(Tn)','--','linewidth',0.5);
+        end
+        
+        function dispCoords = computeDisplacedCoords(obj)
+            ndim = obj.dim.ndim;
+            ndof = obj.dim.ndof;
+
+            coords = zeros(ndof,1);
+            for i = 1:ndim
+                dofs = i:ndim:ndof;
+                coor = obj.mesh.coord(:,i);
+                coords(dofs) = coor;
+            end
+            delta = obj.variables.d_u;
+            dispCoords = coords + delta;
+        end
+
+        function plotDisplacement(obj, coords)
+            ndim = obj.dim.ndim;
+            ndof = obj.dim.ndof;
+            x = coords(1:ndim:ndof);
+            y = coords(2:ndim:ndof);
+            Tn   = obj.mesh.connec;
+            plot(x(Tn)',y(Tn)','-k','linewidth',0.5);
+        end
+
         function init(obj, cParams)
             obj.nFields = 1;
             obj.mesh        = cParams.mesh;
