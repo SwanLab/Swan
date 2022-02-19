@@ -138,10 +138,6 @@ classdef NewFEM < handle
 
     methods (Access = private)
 
-        function createProblemParams(obj, fileName)
-
-        end
-
         function d = createPostProcessDataBase(obj,fileName)
             dI.mesh    = obj.mesh;
             dI.outName = fileName;

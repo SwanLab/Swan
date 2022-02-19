@@ -1,26 +1,40 @@
-%Mesh
+%% Initial concept
+% %Mesh
+% 
+% %BC(dirichlet, newuman)
+% 
+% % Material
+% 
+% s.kappa = ...
+% s.mu = ...
+% s.mesh = 
+% %s.E   = 
+% %s.n_u = ...
+% Material(s)
+% 
+% % FEM
+% s.mesh = mesh;
+% s.boundaryConditions = BC;
+% s.material = material;
+% s.type = 'ELASTIC';
+% s.dim = '2D';
+% fem = FEM.create(s);
+% fem().solve();
+% fem.plot();
 
-%BC(dirichlet, newuman)
+%% Initial result
 
-% Material
+load("newFemParams.mat")
+% Contains:
+%     - dim
+%     - type
+%     - scale
+%     - mesh
+%     - dirichlet
+%     - pointload
 
-s.kappa = ...
-s.mu = ...
-s.mesh = 
-%s.E   = 
-%s.n_u = ...
-Material(s)
-
-% FEM
-s.mesh = mesh;
-s.boundaryConditions = BC;
-s.material = material;
-s.type = 'ELASTIC';
-s.dim = '2D';
-fem = FEM.create(s);
-fem().solve();
-fem.plot();
-
+fem = NewFEM.create(s);
+fem.solve();
 %% Todo
 % change name cartd per dNdx
 % LHSintegrator_Stiffness : create geometry in init.
@@ -33,7 +47,7 @@ fem.plot();
 % make test3d_hexahedra go faster
 % % time lost during squeeze (+33.000 calls) in computeElementalLHS
 
-%%
+%% Old To-do
 
 % Inputa data
 % DOF + bondary

@@ -17,7 +17,6 @@ classdef NewElasticProblem < handle %NewFEM
     end
 
     properties (Access = private)
-        femData
         mesh
         problemData
         stiffnessMatrix
@@ -39,7 +38,7 @@ classdef NewElasticProblem < handle %NewFEM
             obj.createSolver();
         end
         
-        function computeVariables(obj)
+        function solve(obj)
             obj.computeStiffnessMatrix();
             obj.computeForces();
             obj.computeDisplacements();

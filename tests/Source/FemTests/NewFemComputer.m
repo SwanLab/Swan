@@ -16,7 +16,7 @@ classdef NewFemComputer < handle
         function compute(obj)
             s = obj.createFEMparameters();
             obj.computation = NewFEM.create(s);
-            obj.computation.computeVariables();
+            obj.computation.solve();
         end
     end
 
