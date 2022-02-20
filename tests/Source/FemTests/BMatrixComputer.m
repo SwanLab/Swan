@@ -124,7 +124,14 @@ classdef BMatrixComputer < handle
            end
        end
 
-      function Bdof = computeBdofByAccumarray(obj,Bidof,dofs)
+       function Bdof = computeBdofBySparse(obj,Bidof,dofs)
+           d = obj.dim;
+           ntot  = d.nt;
+           ndofGlob = d.ndof;
+           Bdof = sparse(1:ntot,dofs,Bidof,ntot,ndofGlob);
+       end
+
+       function Bdof = computeBdofByAccumarray(obj,Bidof,dofs)
            d = obj.dim;
            ntot  = d.nt;
            ndof = d.ndof;
@@ -132,13 +139,6 @@ classdef BMatrixComputer < handle
            index = [posI', dofs];
 %            Bdof = accumarray(dofs,Bidof,[ntot 1]);
            Bdof = accumarray(index,Bidof,[ntot ndof],[],[],true);
-      end
-
-       function Bdof = computeBdofBySparse(obj,Bidof,dofs)
-           d = obj.dim;
-           ntot  = d.nt;
-           ndofGlob = d.ndof;
-           Bdof = sparse(1:ntot,dofs,Bidof,ntot,ndofGlob);
        end
 
        function dofs = computeGlobalDofs(obj,idof)
