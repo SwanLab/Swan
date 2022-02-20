@@ -35,6 +35,8 @@ load("newFemParams.mat")
 
 fem = NewFEM.create(s);
 fem.solve();
+fem.plot();
+
 %% Todo
 % change name cartd per dNdx
 % LHSintegrator_Stiffness : create geometry in init.
