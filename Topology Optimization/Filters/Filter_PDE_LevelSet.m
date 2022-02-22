@@ -1,7 +1,7 @@
 classdef Filter_PDE_LevelSet < Filter_PDE
     
     properties (Access = public)
-        unfittedMesh        
+        unfittedMesh
     end
     
     properties(Access = private)
@@ -16,8 +16,8 @@ classdef Filter_PDE_LevelSet < Filter_PDE
         function obj = Filter_PDE_LevelSet(cParams)
             obj.init(cParams)
             obj.levelSet = cParams.designVariable;
-            obj.epsilon = cParams.mesh.computeMeanCellSize();            
-            obj.domainType = cParams.domainType;            
+            obj.epsilon = cParams.mesh.computeMeanCellSize();
+            obj.domainType = cParams.domainType;
             obj.diffReacProb.preProcess();
             obj.createQuadrature();
             obj.createInterpolation();
@@ -25,12 +25,12 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             obj.nelem = obj.mesh.nelem;
             obj.npnod = obj.mesh.npnod;
             obj.ngaus = obj.quadrature.ngaus;
-            obj.Anodal2Gauss = obj.computeA(); 
+            obj.Anodal2Gauss = obj.computeA();
         end
         
         function preProcess(obj)
-            preProcess@Filter(obj)                                    
-            obj.Anodal2Gauss = obj.computeA();  
+            preProcess@Filter(obj)
+            obj.Anodal2Gauss = obj.computeA();
             obj.diffReacProb.setEpsilon(obj.epsilon);
             obj.computeLHS();
         end
@@ -57,10 +57,10 @@ classdef Filter_PDE_LevelSet < Filter_PDE
                 uMesh = obj.levelSet.getUnfittedMesh();
                 s.mesh = uMesh;
                 s.type = 'Unfitted';
-                int = Integrator.create(s);            
-                fInt = int.integrateInDomain(fNodes);                    
+                int = Integrator.create(s);
+                fInt = int.integrateInDomain(fNodes);
             end
-        end    
+        end
         
         function fInt = computeRHSinBoundary(obj,fNodes)
             ls = obj.levelSet.value;
@@ -70,12 +70,10 @@ classdef Filter_PDE_LevelSet < Filter_PDE
                 uMesh = obj.levelSet.getUnfittedMesh();
                 s.mesh = uMesh;
                 s.type = 'Unfitted';
-                int = Integrator.create(s);            
-                fInt = int.integrateInBoundary(fNodes);                    
+                int = Integrator.create(s);
+                fInt = int.integrateInBoundary(fNodes);
             end
-        end             
-        
-        
+        end
         
         function createQuadrature(obj)
             obj.quadrature = Quadrature.set(obj.mesh.type);
@@ -90,7 +88,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             s.mesh = obj.mesh;
             obj.geometry = Geometry.create(s);
             obj.geometry.computeGeometry(obj.quadrature,obj.interp);
-        end              
+        end
         
     end
     

@@ -1,7 +1,7 @@
 classdef Geometry_Surface < Geometry
     
     properties (Access = public)
-        normalVector        
+        normalVector
     end
     
     properties (Access = private)
@@ -12,7 +12,7 @@ classdef Geometry_Surface < Geometry
     methods (Access = public)
         
         function obj = Geometry_Surface(cParams)
-            obj.permutation = [3 2 1];                        
+            obj.permutation = [3 2 1];
             obj.init(cParams);
         end
         
@@ -33,11 +33,11 @@ classdef Geometry_Surface < Geometry
             nDime   = obj.mesh.ndim;
             nGaus   = obj.quadrature.ngaus;
             nElem   = obj.mesh.nelem;
-            nNode   = obj.mesh.nnode;            
+            nNode   = obj.mesh.nnode;
             xp      = obj.coordElem;
             deriv   = obj.mesh.interpolation.deriv(:,:,:);
             dShapes = permute(deriv,[1 3 2]);
-            obj.drDtxi = zeros(nGaus,nElem,nEmb,nDime);            
+            obj.drDtxi = zeros(nGaus,nElem,nEmb,nDime);
             for idime = 1:nDime
                 dxDtxi = zeros(nElem,nEmb,nGaus);
                 for inode = 1:nNode
@@ -46,23 +46,23 @@ classdef Geometry_Surface < Geometry
                     dxDtxi = dxDtxi + bsxfun(@times,xV,dShape);
                 end
                 obj.drDtxi(:,:,:,idime) = permute(dxDtxi,[3 1 2]);
-            end            
+            end
         end
         
         function computeNormals(obj)
             nDime   = obj.mesh.ndim;
             nGaus   = obj.quadrature.ngaus;
-            nElem   = obj.mesh.nelem;            
-            obj.normalVector = zeros(nGaus,nElem,nDime);            
+            nElem   = obj.mesh.nelem;
+            obj.normalVector = zeros(nGaus,nElem,nDime);
             DxDtxi = obj.drDtxi(:,:,1,1);
             DxDeta = obj.drDtxi(:,:,2,1);
             DyDtxi = obj.drDtxi(:,:,1,2);
             DyDeta = obj.drDtxi(:,:,2,2);
             DzDtxi = obj.drDtxi(:,:,1,3);
-            DzDeta = obj.drDtxi(:,:,2,3);            
+            DzDeta = obj.drDtxi(:,:,2,3);
             obj.normalVector(:,:,1) = DyDtxi.*DzDeta - DzDtxi.*DyDeta;
             obj.normalVector(:,:,2) = DzDtxi.*DxDeta - DxDtxi.*DzDeta;
-            obj.normalVector(:,:,3) = DxDtxi.*DyDeta - DyDtxi.*DxDeta;            
+            obj.normalVector(:,:,3) = DxDtxi.*DyDeta - DyDtxi.*DxDeta;
         end
         
         function computeJacobian(obj)

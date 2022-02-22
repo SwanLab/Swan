@@ -10,28 +10,28 @@ classdef SimpAllInterpolationExplicit < MaterialInterpolation
         function [kS,dkS] = computeKappaSymbolicFunctionAndDerivative(obj)
             kS = obj.computeSymKappa();
             dkS = diff(kS);
-        end        
+        end
         
         function mu = computeSymMu(obj)
             m0 = obj.matProp.mu0;
             m1 = obj.matProp.mu1;
             k0 = obj.matProp.kappa0;
-            k1 = obj.matProp.kappa1;            
+            k1 = obj.matProp.kappa1;
             eta0 = obj.computeEtaMu(m0,k0);
             eta1 = obj.computeEtaMu(m1,k1);
             c  = obj.computeCoeff(m0,m1,eta0,eta1);
-            mu = obj.computeRationalFunction(c);            
+            mu = obj.computeRationalFunction(c);
         end
         
         function kappa = computeSymKappa(obj)
             m0 = obj.matProp.mu0;
             m1 = obj.matProp.mu1;
             k0 = obj.matProp.kappa0;
-            k1 = obj.matProp.kappa1;            
+            k1 = obj.matProp.kappa1;
             eta0 = obj.computeEtaKappa(m0);
             eta1 = obj.computeEtaKappa(m1);
             c     = obj.computeCoeff(k0,k1,eta0,eta1);
-            kappa = obj.computeRationalFunction(c);            
+            kappa = obj.computeRationalFunction(c);
         end
         
     end
@@ -55,7 +55,7 @@ classdef SimpAllInterpolationExplicit < MaterialInterpolation
         end
         
         function f = computeRationalFunction(s)
-            rho = sym('rho','positive');            
+            rho = sym('rho','positive');
             n01 = s.n01;
             n0  = s.n0;
             n1  = s.n1;
@@ -66,6 +66,6 @@ classdef SimpAllInterpolationExplicit < MaterialInterpolation
             f = num/den;
         end
         
-    end    
+    end
     
 end

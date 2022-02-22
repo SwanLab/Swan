@@ -14,7 +14,7 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
         function C = computeC(obj)
             m = obj.mu;
             l = obj.computeLambdaFromMuAndKappa(obj.mu,obj.kappa);
-            C = zeros(obj.nstre,obj.nstre,obj.nElem,obj.nGaus);                        
+            C = zeros(obj.nstre,obj.nstre,obj.nElem,obj.nGaus);
             C(1,1,:,:)= 2*m+l;
             C(1,2,:,:)= l;
             C(2,1,:,:)= l;
@@ -33,7 +33,7 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
         
         function nu = computeNuFromMuAndKappa(mu,kappa)
             nu = (kappa - mu)/(kappa +mu);
-        end        
+        end
         
         function k = computeKappaFromYoungAndNu(E,nu)
             k = E/(2*(1-nu));

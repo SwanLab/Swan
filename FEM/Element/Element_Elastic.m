@@ -4,7 +4,7 @@ classdef Element_Elastic < Element
         fextRed
     end
         
-    properties
+    properties (Access = public)
         fext
         interpolation_u
         K
@@ -14,6 +14,14 @@ classdef Element_Elastic < Element
         dim
         connec
         Bmatrix
+    end
+
+    properties (Access = protected)
+        mesh
+    end
+    
+    properties (Access = private)
+        pdim
     end
     
     properties (Access = protected, Abstract)
@@ -51,43 +59,30 @@ classdef Element_Elastic < Element
     
     methods %(Access = {?Physical_Problem, ?Element_Elastic_Micro, ?Element})
         function compute(obj,mesh,geometry,material,dof,problemData,interp)
-            obj.interpolation_u = interp{1};
-            obj.initElement(geometry,mesh,material,dof,problemData.scale,interp)
-            obj.nfields=1;
-            
-            obj.initialize_dvolum()
-            Bmat   = obj.computeBmat();
-            dvolum = obj.geometry.dvolu;
-            
-            ngaus   = obj.quadrature.ngaus;
-            dimen   = obj.computeDim(ngaus);
-            connect = mesh.connec;%obj.interp{1}.T;
-            
-            
-            obj.dim = dimen;
-            obj.connec = connect;
-            %            obj.DeltaC = ContitutiveTensorIncrement();
-            
-            obj.K_generator = StiffnessMatrixGenerator(connect,Bmat,dvolum,dimen);
-            
-            obj.Bmatrix = obj.computeB_InMatrixForm();
-            
-            
-            obj.StiffnessMatrix = KGeneratorWithfullStoredB(obj.dim,obj.connec,obj.Bmatrix,dvolum);
-            
-            
+            obj.initElasticElement(interp, problemData, mesh);
+            obj.initElement(geometry,mesh,material,dof,problemData.scale,interp);
+            obj.initialize_dvolum();
+            obj.computeDim();
+            s.type = 'ElasticStiffnessMatrixOld';
+            s.mesh         = obj.mesh;
+            s.npnod        = obj.mesh.npnod;
+            s.globalConnec = obj.mesh.connec;
+            s.dim          = obj.dim;
+            s.material     = obj.material;
+            LHS = LHSintegrator.create(s);
+            obj.StiffnessMatrix = LHS;
         end
         
-        function dim = computeDim(obj,ngaus)
-            dim                = DimensionVariables();
-            dim.nnode          = obj.nnode;
-            dim.nunkn          = obj.dof.nunkn;
-            dim.nstre          = obj.nstre;
-            dim.ndof           = obj.dof.ndof;
-            dim.nelem          = obj.nelem;
-            dim.ndofPerElement = dim.nnode*dim.nunkn;
-            dim.ngaus          = ngaus;
-            dim.nentries       = dim.nelem*(dim.ndofPerElement)^2;
+        function computeDim(obj)
+            m.nelem = obj.nelem;
+            m.npnod = obj.dof.ndof/obj.dof.nunkn;
+            m.nnode = obj.nnode;
+            s.ngaus = obj.quadrature.ngaus;
+            s.mesh  = m;
+            s.pdim  = obj.pdim;
+            d = DimensionVariables(s);
+            d.compute();
+            obj.dim = d;
         end
         
         function initialize_dvolum(obj)
@@ -147,7 +142,7 @@ classdef Element_Elastic < Element
                     for jv = 1:obj.nnode*obj.dof.nunkn
                         for istre = 1:obj.nstre
                             for jstre = 1:obj.nstre
-                                v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:,igaus).*Bmat(jstre,jv,:));
+                                v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:,igaus).*Bmat(jstre,jv,:)); %
                                 Ke(iv,jv,:) = squeeze(Ke(iv,jv,:)) + v(:).*obj.geometry.dvolu(:,igaus);
                             end
                         end
@@ -161,10 +156,9 @@ classdef Element_Elastic < Element
             %  obj.DeltaC.obtainChangedElements(obj.material.C)
             %  obj.K_generator.generate(obj.material.C);
             %  K = obj.K_generator.getStiffMatrix();
-            
-            
-            obj.StiffnessMatrix.compute(obj.material.C);
-            K = obj.StiffnessMatrix.K;
+            obj.StiffnessMatrix.setMaterialC(obj.material.C);
+            K = obj.StiffnessMatrix.compute();
+            %K = obj.StiffnessMatrix.K;
         end
         
         
@@ -202,6 +196,13 @@ classdef Element_Elastic < Element
     end
     
     methods (Access = private)
+
+        function initElasticElement(obj, interp, problemData, mesh)
+            obj.interpolation_u = interp{1};
+            obj.pdim            = problemData.pdim;
+            obj.nfields         = 1;
+            obj.mesh            = mesh;
+        end
         
         function createPrincipalDirection(obj, pdim)
             s.eigenValueComputer.type = 'PRECOMPUTED';
@@ -217,9 +218,7 @@ classdef Element_Elastic < Element
         end
         
     end
-    
-    
-    
+
     methods(Access = protected)
         function FextSuperficial = computeSuperficialFext(obj)
             FextSuperficial = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);

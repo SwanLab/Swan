@@ -5,7 +5,7 @@ classdef Volume_constraint < ShFunc_Volume
         volum
     end
     
-    methods (Access = public)        
+    methods (Access = public)
         
         function  obj = Volume_constraint(cParams)
             obj@ShFunc_Volume(cParams);
@@ -28,7 +28,7 @@ classdef Volume_constraint < ShFunc_Volume
         
         function t = getTitlesToPlot(obj)
             t{1} = 'Volum';
-        end       
+        end
         
         
     end

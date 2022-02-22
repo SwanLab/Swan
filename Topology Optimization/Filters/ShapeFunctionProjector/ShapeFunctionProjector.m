@@ -1,7 +1,7 @@
 classdef ShapeFunctionProjector < handle
     
     properties (Access = protected)
-        mesh 
+        mesh
      end
 
     methods (Access = public, Static)
@@ -16,7 +16,7 @@ classdef ShapeFunctionProjector < handle
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.mesh = cParams.mesh;            
+            obj.mesh = cParams.mesh;
         end
         
     end

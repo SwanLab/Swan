@@ -8,12 +8,12 @@ classdef ConnecRenumbering < handle
     methods (Access = public)
         
         function obj = ConnecRenumbering(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)
         end
 
         function newConnec = renumber(obj,connec)
             nodes = obj.oldNodes;
-            M = zeros(max(nodes(:)),1);       
+            M = zeros(max(nodes(:)),1);
             M(nodes)= obj.newNodes;
             newConnec = M(connec);
         end

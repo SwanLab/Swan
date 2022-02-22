@@ -43,9 +43,9 @@ classdef DesignVarMonitor_LevelSet < DesignVarMonitor_Abstract
         function refreshFigure(obj)
             figure(obj.figHandle.Number)
             cla reset;
-            hold on       
-            uMesh = obj.designVar.getUnfittedMesh;            
-            uMesh.plot();   
+            hold on
+            uMesh = obj.designVar.getUnfittedMesh;
+            uMesh.plot();
         end
         
     end

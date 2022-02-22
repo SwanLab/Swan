@@ -5,7 +5,7 @@ classdef Optimizer_PrimalDual < Optimizer
     end
     
     properties (Access = protected)
-        lagrangian       
+        lagrangian
         lagrangianSettings
     end
     
@@ -18,8 +18,8 @@ classdef Optimizer_PrimalDual < Optimizer
         function solveProblem(obj)
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
-            obj.lagrangian.updateBecauseOfPrimal();            
-            obj.unconstrainedOptimizer.startLineSearch();            
+            obj.lagrangian.updateBecauseOfPrimal();
+            obj.unconstrainedOptimizer.startLineSearch();
             obj.printOptimizerVariable();
             obj.hasFinished = false;
 
@@ -49,7 +49,7 @@ classdef Optimizer_PrimalDual < Optimizer
             obj.constraint.updateOld();
             obj.updateLagrangian();
             obj.lagrangian.updateOld();
-        end        
+        end
        
         function updateConvergenceStatus(obj)
             isOptimal   = obj.unconstrainedOptimizer.isOptimal();
@@ -63,38 +63,37 @@ classdef Optimizer_PrimalDual < Optimizer
             constrTol        = obj.targetParameters.constr_tol(active_constr);
             isNotFeasible = any(any(constraintValues > constrTol));
             itIs = ~isNotFeasible;
-        end   
+        end
         
         function createLagrangian(obj)
             obj.createLagrangianSettings();
             cParams = obj.lagrangianSettings;
             obj.lagrangian = ObjectiveFunction.create(cParams);
-        end        
+        end
         
        function createOptimizerUnconstrained(obj,cParams)
-            cParams.lagrangian      = obj.lagrangian;           
+            cParams.lagrangian      = obj.lagrangian;
             cParams.convergenceVars = obj.convergenceVars;
-            obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams);              
+            obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams);
        end 
        
         function updateLagrangian(obj)
             obj.lagrangian.computeFunction();
             obj.lagrangian.computeGradient();
-        end           
+        end
         
     end
-    
-    
+
     methods (Access = private)
        
         function increaseIter(obj)
             obj.nIter = obj.nIter+1;
-        end        
+        end
         
     end
     
     methods (Access = protected, Abstract)
-        createLagrangianSettings(obj)        
+        createLagrangianSettings(obj)
     end
     
 end

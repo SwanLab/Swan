@@ -1,82 +1,102 @@
 classdef LHSintegrator < handle
-    
+
     properties (Access = protected)
+        mesh
         quadrature
-        interpolation        
-        mesh        
-    end
-    
-    properties (Access = private)
+        interpolation
+        dim
         globalConnec
+        material
+    end
+
+    properties (Access = private)
+        LHScells
         npnod
     end
     
+    properties (Access = private)
+        geometry
+    end
+
     methods (Access = public, Static)
-       
+        
         function obj = create(s)
             f = LHSintegratorFactory();
             obj = f.create(s);
         end
-        
+
     end
-    
+
     methods (Access = public)
-               
-        function LHS = compute(obj)
-            lhs = obj.computeElementalLHS();
-            LHS = obj.assembleMatrix(lhs);    
-        end
         
-        function LHS = computeStiffnessMatrix(obj)
-            lhs = obj.computeElementalStiffness();
-            LHS = obj.assembleMatrix(lhs);                
+        function q = getQuadrature(obj)
+            q = obj.quadrature;
         end
-        
+ 
     end
-    
+
     methods (Access = protected)
-        
+     
         function init(obj,cParams)
-            obj.mesh          = cParams.mesh;
-            obj.globalConnec  = cParams.globalConnec;
-            obj.npnod         = cParams.npnod;
+            obj.dim          = cParams.dim;
+            obj.mesh         = cParams.mesh;
+            obj.npnod        = cParams.npnod;
+            obj.globalConnec = cParams.globalConnec;
+            if isfield(cParams, 'material') % Compatibility with MassMatrix
+                obj.material   = cParams.material;
+            end
         end
         
        function createQuadrature(obj)
            quad = Quadrature.set(obj.mesh.type);
-           quad.computeQuadrature('LINEAR');            
+           quad.computeQuadrature('LINEAR');
            obj.quadrature = quad;
        end
 
         function createInterpolation(obj)
             int = Interpolation.create(obj.mesh,'LINEAR');
             int.computeShapeDeriv(obj.quadrature.posgp);
-            obj.interpolation = int;                        
-        end        
-     
+            obj.interpolation = int;
+        end
+
         function A = assembleMatrix(obj,aElem)
             connec = obj.globalConnec;
-            ndofs  = obj.npnod;
+%             ndofs  = obj.npnod; % should be obj.dim.ndof
+            ndofs  = obj.dim.ndof; % should be obj.dim.ndof
             Ae     = aElem;
-            nunkn1 = 1;
-            nunkn2 = 1;
+            nunkn1 = obj.dim.nunkn;
+            nunkn2 = obj.dim.nunkn;
             nnode1 = size(connec,2);
             nnode2 = size(connec,2);
             A = sparse(ndofs,ndofs);
-            for i = 1:nnode1*nunkn1
-                nodeI = connec(:,i);                
-                for j = 1:nnode2*nunkn2
+            for i = 1:nnode1*nunkn1 % changed that
+                nodeI = connec(:,i);
+                for j = 1:nnode2*nunkn2 % changed that as well
                     nodeJ = connec(:,j);
                     a = squeeze(Ae(i,j,:));
                     A = A + sparse(nodeI,nodeJ,a,ndofs,ndofs);
                 end
             end
-        end        
-        
+        end
+
     end
     
-    methods (Abstract, Access = protected)
-       computeElementalLHS(obj) 
+    methods (Access = private)
+
+        % Element_Elastic
+        function createPrincipalDirection(obj, pdim)
+            s.eigenValueComputer.type = 'PRECOMPUTED';
+            s.type = pdim;
+            p = PrincipalDirectionComputer.create(s);
+            obj.principalDirectionComputer = p;
+        end
+        
+        function [dir,str] = computePrincipalStressDirection(obj,tensor)
+            obj.principalDirectionComputer.compute(tensor);
+            dir = obj.principalDirectionComputer.direction;
+            str = obj.principalDirectionComputer.principalStress;
+        end
+
     end
     
 end

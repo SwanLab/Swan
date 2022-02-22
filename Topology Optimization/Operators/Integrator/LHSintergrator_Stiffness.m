@@ -7,6 +7,11 @@ classdef LHSintergrator_Stiffness < LHSintegrator
             obj.createQuadrature();
             obj.createInterpolation();
         end
+
+        function LHS = compute(obj)
+            lhs = obj.computeElementalLHS();
+            LHS = obj.assembleMatrix(lhs);
+        end
         
     end
     
@@ -27,7 +32,7 @@ classdef LHSintergrator_Stiffness < LHSintegrator
                       dNi = dShape(:,iNode,:,igaus);
                       dNj = dShape(:,jNode,:,igaus);
                       dNidNj = sum(dNi.*dNj,1);
-                      lhs(iNode,jNode,:) = lhs(iNode,jNode,:) + dNidNj.*dv;                      
+                      lhs(iNode,jNode,:) = lhs(iNode,jNode,:) + dNidNj.*dv;
                    end
                 end
             end
@@ -46,7 +51,7 @@ classdef LHSintergrator_Stiffness < LHSintegrator
             s.mesh = obj.mesh;
             g = Geometry.create(s);
             g.computeGeometry(obj.quadrature,int);
-            grad = g.cartd;                       
+            grad = g.cartd;
        end
        
    end

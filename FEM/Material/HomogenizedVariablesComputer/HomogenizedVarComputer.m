@@ -2,13 +2,13 @@ classdef HomogenizedVarComputer < handle
     
     properties (Access = public)
         Cref
-        dCref        
+        dCref
         C
         dC
         rho
         drho
         Pp
-        dPp      
+        dPp
     end
     
     methods (Access = public, Static)
@@ -25,5 +25,5 @@ classdef HomogenizedVarComputer < handle
         computePtensor(obj)
         computeDensity(obj)
     end
-        
+    
 end

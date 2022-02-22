@@ -14,7 +14,7 @@ classdef Element < handle
     end   
     
     properties (Access = protected)
-        bcType        
+        bcType
         interp
     end
     
@@ -30,8 +30,8 @@ classdef Element < handle
         
     end
     
-    methods (Access = protected)        
-        function initElement(obj,geometry,mesh,material,dof,scale,interp)            
+    methods (Access = protected)
+        function initElement(obj,geometry,mesh,material,dof,scale,interp)
             obj.interp = interp;
             obj.nelem = mesh.nelem;
             obj.scale = scale;
@@ -47,10 +47,10 @@ classdef Element < handle
             obj.assign_dirichlet_values();
         end
     end
-    
+
     methods
-        
-        function createBoundaryConditionasApplier(obj)            
+
+        function createBoundaryConditionasApplier(obj)
             cParams.nfields = obj.nfields;
             cParams.dof = obj.dof;
             cParams.scale = obj.scale;
@@ -59,7 +59,7 @@ classdef Element < handle
         end
         
         function bc = getBcApplier(obj)
-            bc = obj.bcApplier;            
+            bc = obj.bcApplier;
         end
         
         function [r,dr] = computeResidual(obj,x)
@@ -69,10 +69,10 @@ classdef Element < handle
             % - residual: r = LHS*x - RHS
             % - residual derivative: dr = LHS
             % *************************************************************
-            
+
             RHS = obj.computeRHS;
             LHS = obj.computeLHS*x;
-            
+
             r = LHS*x - RHS;
             dr = LHS;
         end
@@ -113,8 +113,7 @@ classdef Element < handle
             end
             b=cell2mat(b_global);
         end
-        
-        
+
         % Matrix function
         function [A] = AssembleMatrix(obj,A_elem,ifield,jfield)
             
@@ -128,7 +127,7 @@ classdef Element < handle
                 end
             end
             
-            if ifield == 1 && jfield == 1
+            if ifield == 1 && jfield == 1 %pel termic
                 A = 1/2 * (A + A');
             end
         end
@@ -168,17 +167,15 @@ classdef Element < handle
                 R = zeros(sum(obj.dof.ndof(:)),1);
             end
         end
-        
- 
+
     end
     
     methods (Access = protected)
        
         function init(obj,geo)
-            
+
         end
-        
-        
+
     end
     
     methods (Abstract, Access = protected)

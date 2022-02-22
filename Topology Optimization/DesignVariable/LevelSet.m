@@ -3,12 +3,12 @@ classdef LevelSet < DesignVariable
     properties (Access = private)
         creatorSettings
         unfittedMesh
-    end    
+    end
     
     methods (Access = public)
         
         function obj = LevelSet(cParams)
-            obj.nVariables = 1;            
+            obj.nVariables = 1;
             obj.init(cParams);
             obj.creatorSettings      = cParams.creatorSettings;
             obj.creatorSettings.type = cParams.initialCase;
@@ -34,11 +34,11 @@ classdef LevelSet < DesignVariable
         
         function vf = computeVolumeFraction(obj)
             q = Quadrature.set(obj.unfittedMesh.backgroundMesh.type);
-            q.computeQuadrature('CONSTANT');            
-            bM = obj.unfittedMesh.backgroundMesh;            
+            q.computeQuadrature('CONSTANT');
+            bM = obj.unfittedMesh.backgroundMesh;
             dv = obj.unfittedMesh.computeDvolume(q);
-            dVT = bM.computeDvolume(q)';  
-            vf = dv./dVT;               
+            dVT = bM.computeDvolume(q)';
+            vf = dv./dVT;
         end
         
     end
@@ -52,12 +52,12 @@ classdef LevelSet < DesignVariable
             lsCreator  = LevelSetCreator.create(s);
             lsValue = lsCreator.getValue();
             obj.value = lsValue;
-        end        
+        end
         
         function createUnfittedMesh(obj)
             s.backgroundMesh = obj.mesh.innerMeshOLD;
             s.boundaryMesh   = obj.mesh.boxFaceMeshes;
-            cParams = SettingsMeshUnfitted(s);           
+            cParams = SettingsMeshUnfitted(s);
             obj.unfittedMesh = UnfittedMesh(cParams);
             obj.updateUnfittedMesh();
         end
@@ -69,4 +69,3 @@ classdef LevelSet < DesignVariable
     end
     
 end
-

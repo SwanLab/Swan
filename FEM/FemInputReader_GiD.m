@@ -4,12 +4,10 @@ classdef FemInputReader_GiD < handle
         pdim
         dirichlet
         pointload
-    end
-    
-    properties (GetAccess = public,SetAccess = public)
         ptype
         scale
         problemID
+        fileName
     end
     
     properties (Access = public)
@@ -19,12 +17,13 @@ classdef FemInputReader_GiD < handle
     end
     
     properties (Access = private)
-        masterSlave    
+        masterSlave
     end
     
     methods (Access = public)
         
         function s = read(obj,fileName)
+            obj.fileName = fileName;
             if ~isempty(fileName)
                 obj.readFile(fileName);
             end
@@ -56,7 +55,7 @@ classdef FemInputReader_GiD < handle
         function readFile(obj,fileName)
             data = Preprocess.readFromGiD(fileName);
             if isequal(data.scale,'MICRO')
-               [~,~,~,obj.masterSlave] = Preprocess.getBC_mechanics(fileName); 
+               [~,~,~,obj.masterSlave] = Preprocess.getBC_mechanics(fileName);
             end
             obj.pdim = data.problem_dim;
             obj.geometryType = data.geometry;

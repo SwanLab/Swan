@@ -3,13 +3,13 @@ classdef DesignVariable < handle
     properties (GetAccess = public, SetAccess = protected)
         mesh
         type
-        nVariables        
-        value           
+        nVariables
+        value
     end
     
     properties (Access = public)
         alpha
-        rho        
+        rho
     end
     
     properties (GetAccess = public, SetAccess = private)
@@ -17,12 +17,12 @@ classdef DesignVariable < handle
     end
     
     properties (Access = private) 
-        valueOld                                        
+        valueOld
         alphaOld
     end
     
     properties (Access = protected)
-       isFixed 
+       isFixed
     end
     
     methods (Access = public, Abstract)
@@ -34,12 +34,12 @@ classdef DesignVariable < handle
         function designVariable = create(cParams)
             f = DesignVariableFactory();
             designVariable = f.create(cParams);
-        end        
+        end
         
     end
     
     methods (Access = public)
-                
+        
         function restart(obj)
             obj.update(obj.valueOld);
             obj.alpha = obj.alphaOld;
@@ -50,7 +50,7 @@ classdef DesignVariable < handle
             if ~isempty(obj.isFixed)
                obj.value(obj.isFixed.nodes) = obj.isFixed.values;
             end
-        end        
+        end
         
         function updateOld(obj)
             obj.valueOld = obj.value;
@@ -98,7 +98,7 @@ classdef DesignVariable < handle
             s = cParams.scalarProductSettings;
             s.nVariables = obj.nVariables;
             s.femSettings.mesh = obj.mesh;
-            obj.scalarProduct = ScalarProduct(s);        
+            obj.scalarProduct = ScalarProduct(s);
         end
         
     end

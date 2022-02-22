@@ -9,7 +9,7 @@ classdef SettingsMeshPlotter < AbstractSettings
         isBackground
         faceColor
         faceAlpha
-        edgeAlpha        
+        edgeAlpha
     end
     
     methods (Access = public)
@@ -22,5 +22,5 @@ classdef SettingsMeshPlotter < AbstractSettings
         end
         
     end
-        
+
 end

@@ -49,7 +49,7 @@ classdef NamingManager < handle
         end
         
         function name = getConvVarNames(obj,i)
-            name = obj.convVarsNames{i};            
+            name = obj.convVarsNames{i};
         end
         
     end

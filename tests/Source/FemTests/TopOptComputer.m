@@ -31,9 +31,9 @@ classdef TopOptComputer < handle
 
         function createOldSettings(obj)
             fileName = obj.testName;
-            s = Settings(fileName);             
+            s = Settings(fileName);
             s.warningHoleBC = false;
-            s.printIncrementalIter = false; 
+            s.printIncrementalIter = false;
             s.printChangingFilter = false;
             s.printing = false;
             obj.settings = s;

@@ -3,14 +3,13 @@ classdef TopOptTestsSuite < handle
     methods
 
         function obj = TopOptTestsSuite()
-            % Nota: queda corregir que els tests puguin correr fora
-            % d'aquest directori
-            % Nota II: Els Vigdergauz .mat i .m no coincideixen en
-            % resultats!
-            cami = './tests/Source/TopOptTests/TopOptTests.m'; % des de /swan/
-            suite = matlab.unittest.TestSuite.fromFile(cami, 'Tag',{'Various'});
+            warning('off', 'MATLAB:structOnObject')
+            path = './tests/Source/TopOptTests/TopOptTests.m';
+            suite = matlab.unittest.TestSuite.fromFile(path, 'Tag','FastDisp');%ToPass
             results = suite.run;
+            results = runtests("TopOptTests","ProcedureName","testFastDisplacement", 'Debug', true);
             table(results)
+            warning('on', 'MATLAB:structOnObject')
         end
 
     end

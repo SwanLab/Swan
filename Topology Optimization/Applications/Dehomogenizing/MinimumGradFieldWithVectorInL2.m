@@ -8,12 +8,14 @@ classdef MinimumGradFieldWithVectorInL2 < handle
     properties (Access = private)
         mesh
         fGauss
+        dim
     end
     
     methods (Access = public)
         
         function obj = MinimumGradFieldWithVectorInL2(cParams)
-            obj.init(cParams)            
+            obj.init(cParams);
+            obj.createDimension();
         end
 
         function u = solve(obj)
@@ -29,6 +31,18 @@ classdef MinimumGradFieldWithVectorInL2 < handle
         function init(obj,cParams)
             obj.mesh   = cParams.mesh;
             obj.fGauss = cParams.fGauss;
+
+        end
+
+        function createDimension(obj)
+            q = Quadrature();
+            q = q.set(obj.mesh.type);
+            s.mesh = obj.mesh;
+            s.pdim = 'FILTER';
+            s.ngaus = q.ngaus;
+            d = DimensionVariables(s);
+            d.compute();
+            obj.dim = d;
         end
         
         function computeLHS(obj)
@@ -45,6 +59,7 @@ classdef MinimumGradFieldWithVectorInL2 < handle
             s.globalConnec = obj.mesh.connec;
             s.npnod        = obj.mesh.npnod;
             s.type         = 'StiffnessMatrix';
+            s.dim          = obj.dim;
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end
@@ -54,9 +69,10 @@ classdef MinimumGradFieldWithVectorInL2 < handle
             s.globalConnec = obj.mesh.connec;
             s.npnod        = obj.mesh.npnod;
             s.type         = 'MassMatrix';
+            s.dim          = obj.dim;
             lhs = LHSintegrator.create(s);
             M = lhs.compute();
-        end        
+        end
         
         function computeRHS(obj)
             q = Quadrature.set(obj.mesh.type);
@@ -89,7 +105,7 @@ classdef MinimumGradFieldWithVectorInL2 < handle
             s = Solver.create();
             u = s.solve(obj.LHS,obj.RHS);
             u = u(1:end-1);
-        end        
+        end
         
     end
     

@@ -27,7 +27,6 @@ classdef DehomogenizingExample < handle
     end
     
     methods (Access = public)
-                
 
         function obj = DehomogenizingExample()
             obj.init();
@@ -56,8 +55,8 @@ classdef DehomogenizingExample < handle
            %obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
            %obj.iteration = 665;         
         
-            obj.nx1    = 222;
-            obj.nx2    = 222;            
+            obj.nx1    = 22;
+            obj.nx2    = 22;
             obj.nCells = 46;
         end
         
@@ -76,24 +75,24 @@ classdef DehomogenizingExample < handle
             obj.alphaM = w.alpha;%obj.interpolateAlpha(w.dataRes.AlphaGauss');
         end
         
-       function [x1r,x2r] = rotateCoord(obj,x1,x2)            
+       function [x1r,x2r] = rotateCoord(obj,x1,x2)
             ca = cos(obj.alphaRot);
-            sa = sin(obj.alphaRot);                      
+            sa = sin(obj.alphaRot);
             x1r = ca*x1 - sa*x2;
-            x2r = sa*x1 + ca*x2;                        
+            x2r = sa*x1 + ca*x2;
        end
         
        function wC = arrangeData(obj,w)
             wC.m1 = w.dataRes.DesignVar1;
             wC.m2 = w.dataRes.DesignVar2;
-            wC.q  = w.dataRes.SuperEllipseExponent;
-          	wC.alpha = obj.interpolateAlpha(w.dataRes.AlphaGauss',w.mesh);            
+            wC.q = w.dataRes.SuperEllipseExponent;
+          	wC.alpha = obj.interpolateAlpha(w.dataRes.AlphaGauss',w.mesh);
             wC.mesh  = w.mesh;
        end
        
         function wC = symmetrizeData(obj,w)
             coordT = w.mesh.coord;
-            coordT(:,1) = coordT(:,1) + 0;%3;            
+            coordT(:,1) = coordT(:,1) + 0;%3;
             coordT(:,2) = coordT(:,2) + 0;%2;
          %   [x1,x2] = obj.rotateCoord(coordT(:,1),coordT(:,2));
     %        coordT(:,1) = x1;
@@ -106,24 +105,23 @@ classdef DehomogenizingExample < handle
             m = w.mesh;
             sM = obj.createMeshSymetrizer(m);
             wC.mesh = sM.computeSymmetricMesh();
-            
 
             alpha = obj.interpolateAlpha(w.dataRes.AlphaGauss',m);
             
             wC.m1 = sM.symmetrizeScalarField(w.dataRes.DesignVar1);
             wC.m2 = sM.symmetrizeScalarField(w.dataRes.DesignVar2);
             wC.q  = sM.symmetrizeScalarField(w.dataRes.SuperEllipseExponent);
-            wC.alpha = sM.symmetrizeVectorField(alpha);              
+            wC.alpha = sM.symmetrizeVectorField(alpha);
             
            % sQ.mesh = w.mesh;
            % sQ.symmetricLine.vector = [1;0];
-            %sQ.symmetricLine.point = [0;2];            
+            %sQ.symmetricLine.point = [0;2];
             %sM2 = Symmetrizer(sQ);
             %sM2.compute();
             
-%             wC.m1 = w.dataRes.DesignVar1;         
-%             wC.m2 = w.dataRes.DesignVar2;         
-%             wC.q  = w.dataRes.SuperEllipseExponent;  
+%             wC.m1 = w.dataRes.DesignVar1;
+%             wC.m2 = w.dataRes.DesignVar2;
+%             wC.q  = w.dataRes.SuperEllipseExponent;
 %             wC.alpha = alpha;
 %             wC.mesh = w.mesh;
             
@@ -134,7 +132,7 @@ classdef DehomogenizingExample < handle
         function mS = createMeshSymetrizer(obj,mesh)
             s.mesh = mesh;
             s.symmetricLine.vector = [1;0];
-            s.symmetricLine.point = [0,0];           
+            s.symmetricLine.point = [0,0];
             mS = Symmetrizer(s);
         end
         
@@ -174,7 +172,7 @@ classdef DehomogenizingExample < handle
 
 %             x1T = x1;
 %             x2T = x2;
-%             coord = [x1T(:),x2T(:)];            
+%             coord = [x1T(:),x2T(:)];
 %             xy = coord;
 %             connec   = delaunay(xy(:,1),xy(:,2));
 %             s.coord  = [xy(:,1),xy(:,2)];
@@ -190,13 +188,13 @@ classdef DehomogenizingExample < handle
 %             sC.coord(:,1) = coordinates(:,1)+x1min;
 %             sC.coord(:,2) = coordinates(:,2)+x2min;
 %             sC.connec = nodes;
-%             obj.backgroundMesh = Mesh(sC);   
+%             obj.backgroundMesh = Mesh(sC);
             
 %              [xv,yv] = meshgrid(x1,x2); 
-%              [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');             
+%              [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
 %              s.coord  = V(:,1:2);
 %              s.connec = F;
-%              obj.backgroundMesh = Mesh(s);            
+%              obj.backgroundMesh = Mesh(s);
         end
         
         function createOrientation(obj)
@@ -219,7 +217,7 @@ classdef DehomogenizingExample < handle
             xB = obj.backgroundMesh.coord(:,1);
             yB = obj.backgroundMesh.coord(:,2);
             vq = F(xB,yB);
-        end        
+        end
         
         function createLevelSetCellParams(obj)
             s.type   = 'smoothRectangle';

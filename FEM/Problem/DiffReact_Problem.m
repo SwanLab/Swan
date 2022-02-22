@@ -7,8 +7,8 @@ classdef DiffReact_Problem < FEM
     properties (Access = protected)
         isRobinTermAdded
         bcApplierType
-       interp  
-       boundaryMesh
+        interp
+        boundaryMesh
     end
     
     methods (Access = public)
@@ -122,6 +122,7 @@ classdef DiffReact_Problem < FEM
             if isfield(s,'fileName')
                 obj.problemData.fileName = s.fileName;
                 obj.createBoundaryMesh(s.fileName);
+%                 obj.problemData.pdim = s.mesh.ndim; % new
             end
             
         end
@@ -147,8 +148,7 @@ classdef DiffReact_Problem < FEM
                 obj.boundaryMesh = bC.create();
             end
         end
-        
-        
+    
     end
     
 end

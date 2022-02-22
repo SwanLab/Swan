@@ -11,8 +11,8 @@ classdef Cost < CC
     methods (Access = public)
         
         function obj = Cost(cParams)
-            obj.weights = cParams.weights;            
-            obj.init(cParams);  
+            obj.weights = cParams.weights;
+            obj.init(cParams);
         end
         
         function c = computeNonNormalizedValue(obj)

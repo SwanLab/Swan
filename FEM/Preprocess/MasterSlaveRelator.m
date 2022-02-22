@@ -33,16 +33,16 @@ classdef MasterSlaveRelator < handle
             obj.y = coord(:,2);
             obj.allNodes(:,1) = 1:size(obj.x,1);
         end
-                
+        
         function computeNodesInFaces(obj,coord)
-            cD = CellNodesDescriptor(coord);                        
+            cD = CellNodesDescriptor(coord);
             corners = cD.cornerNodes;
             obj.nodesInXmin = setdiff(cD.nodesInXmin,corners);
             obj.nodesInXmax = setdiff(cD.nodesInXmax,corners);
             obj.nodesInYmin = setdiff(cD.nodesInYmin,corners);
             obj.nodesInYmax = setdiff(cD.nodesInYmax,corners);
         end
-               
+        
         function computeMasterSlaveRelation(obj)
             [masterFaceX,slaveFaceX] = obj.computeMasterSlaveNodesInFaceX();
             [masterFaceY,slaveFaceY] = obj.computeMasterSlaveNodesInFaceY();
@@ -90,6 +90,5 @@ classdef MasterSlaveRelator < handle
         end
         
     end
-    
     
 end

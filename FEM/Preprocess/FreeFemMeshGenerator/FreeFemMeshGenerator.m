@@ -7,9 +7,9 @@ classdef FreeFemMeshGenerator < handle
         intElements
         borderElements
         qNorm
-        fileName        
+        fileName
         printingDir
-        filePath        
+        filePath
         freeFemModelFile
         freeFemFileName
         freeFemFile
@@ -21,14 +21,14 @@ classdef FreeFemMeshGenerator < handle
     methods (Access = public)
         
         function obj = FreeFemMeshGenerator(d)
-           obj.init(d)             
+           obj.init(d)
         end
         
         function generate(obj)
             obj.createInputData();
             obj.printFreeFemFile();
-            obj.computeMeshWithFreeFem();            
-        end        
+            obj.computeMeshWithFreeFem();
+        end
         
     end
         
@@ -38,11 +38,11 @@ classdef FreeFemMeshGenerator < handle
             obj.loadSettignsParams(d);
             obj.filePath         = fullfile(obj.printingDir,obj.fileName);
             obj.freeFemModelFile = fullfile('Input',obj.freeFemFileName,[obj.freeFemFileName,'Model','.edp']);
-            obj.freeFemFile      = [obj.filePath,'.edp'];                        
+            obj.freeFemFile      = [obj.filePath,'.edp'];
         end
         
         function loadSettignsParams(obj,d)
-          fields = fieldnames(d);            
+          fields = fieldnames(d);
           for i = 1:length(fields)
                 param = fields(i);
                 param = param{1};
@@ -51,10 +51,9 @@ classdef FreeFemMeshGenerator < handle
                 else
                     obj.warnOfInvalidCustomParams(param);
                 end
-          end  
+          end
         end
         
-               
         function createInputData(obj)
             obj.inputData.reals   = obj.createRealInputData();
             obj.inputData.strings = obj.createStringInputData();

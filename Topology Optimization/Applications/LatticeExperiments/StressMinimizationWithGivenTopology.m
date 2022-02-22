@@ -24,8 +24,8 @@ classdef StressMinimizationWithGivenTopology < handle
         function obj = StressMinimizationWithGivenTopology()
             obj.init();
             obj.wrapResAndMesh();
-            obj.createTopOpt();                             
-            obj.createDesignVariable(); 
+            obj.createTopOpt();
+            obj.createDesignVariable();
             obj.solveTopOpt();
         end
         
@@ -35,25 +35,25 @@ classdef StressMinimizationWithGivenTopology < handle
         
         function init(obj)
             obj.microCase = 'Rectangle';
-            obj.vademecumName = 'SuperEllipseQMax';             
-            meshType  = 'Medium';                        
-            fCase = [obj.microCase,meshType];            
+            obj.vademecumName = 'SuperEllipseQMax';
+            meshType  = 'Medium';
+            fCase = [obj.microCase,meshType];
             obj.path = ['/media/alex/My Passport/LatticeResults/StressNorm',fCase,'/'];
-            obj.fileResName  = 'ExperimentingPlot'; 
+            obj.fileResName  = 'ExperimentingPlot';
             obj.initialIter = 3;
         end
         
         function createTopOpt(obj)
-            s = SettingsTopOptProblem('ExperimentingPlotRectangle');  
+            s = SettingsTopOptProblem('ExperimentingPlotRectangle');
             s.designVarSettings.creatorSettings.m1 = obj.dataRes.DesignVar1;
             s.designVarSettings.creatorSettings.m2 = obj.dataRes.DesignVar2;
             s.designVarSettings.creatorSettings.alpha0 =  obj.dataRes.AlphaGauss';
-            obj.topOptProblem = TopOpt_Problem(s);              
+            obj.topOptProblem = TopOpt_Problem(s);
         end        
         
         function solveTopOpt(obj)
-            obj.topOptProblem.computeVariables(); 
-            obj.topOptProblem.postProcess();            
+            obj.topOptProblem.computeVariables();
+            obj.topOptProblem.postProcess();
         end
         
         function wrapResAndMesh(obj)
@@ -79,14 +79,14 @@ classdef StressMinimizationWithGivenTopology < handle
         
         function s = createScalarProductParams(obj)
             s.epsilon = [];
-            s.mesh = obj.mesh;            
+            s.mesh = obj.mesh;
         end
         
         function s = createCreatorSettings(obj)
             s.m1 = obj.dataRes.DesignVar1;
             s.m2 = obj.dataRes.DesignVar2;
             s.homogSettings.fileName = obj.vademecumName;
-            s.homogSettings.type     = 'ByVademecum';            
+            s.homogSettings.type     = 'ByVademecum';
         end                
         
     end

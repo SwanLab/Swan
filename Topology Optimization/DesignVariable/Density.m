@@ -8,7 +8,7 @@ classdef Density < DesignVariable
     methods (Access = public)
         
         function obj = Density(cParams)
-            obj.nVariables = 1;                        
+            obj.nVariables = 1;
             obj.init(cParams);
             obj.initCase = cParams.initialCase;
             obj.creatorSettings  = cParams.creatorSettings;
@@ -24,7 +24,7 @@ classdef Density < DesignVariable
             s.type   = obj.mesh.type;
             s.fNodes = obj.value;
             f = FeFunction(s);
-            rho = f.computeValueInCenterElement();            
+            rho = f.computeValueInCenterElement();
         end
         
     end
@@ -36,11 +36,11 @@ classdef Density < DesignVariable
             switch s.type 
                 case 'FromLevelSet'
                     s.ndim  = obj.mesh.ndim;
-                    s.coord = obj.mesh.coord;     
-                    s.type  = obj.initCase;                    
+                    s.coord = obj.mesh.coord;
+                    s.type  = obj.initCase;
                     lsCreator  = LevelSetCreator.create(s);
                     phi        = lsCreator.getValue();
-                    obj.value  = 1 - heaviside(phi);                    
+                    obj.value  = 1 - heaviside(phi);
                 case 'Given'
                     obj.value = s.rho0.*ones(size(obj.mesh.coord,1),1);
             end

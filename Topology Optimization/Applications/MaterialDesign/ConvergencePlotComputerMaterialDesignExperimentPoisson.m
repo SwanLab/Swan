@@ -33,16 +33,16 @@ classdef ConvergencePlotComputerMaterialDesignExperimentPoisson < handle
         function init(obj)
             obj.filesPath = '/media/alex/MyPassport/MaterialDesign/CStar/';
             obj.outPutPlotPath = '/home/alex/Dropbox/MaterialDesign/CC/Poisson/';
-            %obj.linesData = [1:2,5:10];            
-            %obj.barData = [3:4];         
-            obj.linesData = [1:6,9:15];            
-            obj.barData = [7:8];                      
+            %obj.linesData = [1:2,5:10];
+            %obj.barData = [3:4];
+            obj.linesData = [1:6,9:15];
+            obj.barData = [7:8];
             obj.testNames = {'NegPoissonNoPerimeter5x6/'};
         end
         
         function loadFieldsData(obj)
             for iCase = 1:numel(obj.testNames)
-                testPath = fullfile(obj.filesPath,obj.testNames{iCase},'/');                     
+                testPath = fullfile(obj.filesPath,obj.testNames{iCase},'/');
                 s.testPath  = testPath;
                 s.linesData = obj.linesData;
                 s.barData   = obj.barData;
@@ -55,19 +55,19 @@ classdef ConvergencePlotComputerMaterialDesignExperimentPoisson < handle
             p{1} = obj.plotCost();
             p{2} = obj.plotVolum();
             f = figure(1);
-            legend({'$||\bf{C}(\rho) - {C}^*||_2$','$\textrm{Vol}(\rho)$'},'Interpreter','latex','Location','Best');             
-            p = plotPrinter(f,p);            
-            p.print(fullfile(obj.outPutPlotPath,'CostAndVolume'))            
+            legend({'$||\bf{C}(\rho) - {C}^*||_2$','$\textrm{Vol}(\rho)$'},'Interpreter','latex','Location','Best');
+            p = plotPrinter(f,p);
+            p.print(fullfile(obj.outPutPlotPath,'CostAndVolume'))
         end
         
         function p = plotCost(obj)
             for iCase = 1:numel(obj.testNames)
-                fieldData = obj.fieldsData{iCase};                
+                fieldData = obj.fieldsData{iCase};
                 fieldToPlot = 'C - C not scaled';
                 [x,y] = obj.obtainField(fieldToPlot,fieldData);
                 p = semilogy(x,y);
                 hold on
-            end              
+            end
         end
         
         function p = plotVolum(obj)
@@ -75,14 +75,14 @@ classdef ConvergencePlotComputerMaterialDesignExperimentPoisson < handle
             hold on
             yyaxis right
             for iCase = 1:numel(obj.testNames)
-                fieldData = obj.fieldsData{iCase};                
-                fieldToPlot = 'Volum';                
+                fieldData = obj.fieldsData{iCase};
+                fieldToPlot = 'Volum';
                 [x,y] = obj.obtainField(fieldToPlot,fieldData);
                 p = plot(x,y);
                 ylim([0,1])
                 hold on
-            end   
-        end            
+            end
+        end
         
     end
     
@@ -96,7 +96,7 @@ classdef ConvergencePlotComputerMaterialDesignExperimentPoisson < handle
                     yV = fieldData{iField}.yValue;
                 end
             end
-        end        
+        end
         
     end
     

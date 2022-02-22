@@ -9,7 +9,7 @@ classdef Lagrangian < ObjectiveFunction
         function computeFunction(obj)
             l  = obj.dualVariable.value;
             c  = obj.constraint.value;
-            j  = obj.cost.value;            
+            j  = obj.cost.value;
             obj.value = j + l*c;
         end
         
@@ -18,7 +18,7 @@ classdef Lagrangian < ObjectiveFunction
             dj  = obj.cost.gradient;
             dc  = obj.constraint.gradient;
             g = dj + dc*l;
-            obj.gradient = g;            
+            obj.gradient = g;
         end
         
     end

@@ -11,7 +11,7 @@ classdef ObjectiveFunctionFactory < handle
                    obj = Lagrangian(cParams);
            end
            
-       end       
+       end
        
    end
     

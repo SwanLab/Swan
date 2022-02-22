@@ -4,7 +4,7 @@ classdef Geometry_Volumetric < Geometry
         cartd
     end
     
-    properties (Access = private)              
+    properties (Access = private)
         matrixInverter
         jacobian
         detJ
@@ -13,14 +13,14 @@ classdef Geometry_Volumetric < Geometry
     methods (Access = public)
         
         function obj = Geometry_Volumetric(cParams)
-            obj.permutation = [2 1 3];                        
+            obj.permutation = [2 1 3];
             obj.init(cParams);
         end
         
         function computeGeometry(obj,quad,interpV)
             obj.initGeometry(interpV,quad);
             obj.initVariables();
-            obj.matrixInverter = MatrixVectorizedInverter();            
+            obj.matrixInverter = MatrixVectorizedInverter();
             for igaus = 1:obj.quadrature.ngaus
                 obj.computeJacobian(igaus);
                 obj.computeJacobianDeterminant(igaus);
@@ -47,7 +47,7 @@ classdef Geometry_Volumetric < Geometry
             nNode   = obj.mesh.nnode;
             nElem   = obj.mesh.nelem;
             dShapes = obj.mesh.interpolation.deriv(:,:,igaus);
-            jac = zeros(nDime,nDime,nElem);           
+            jac = zeros(nDime,nDime,nElem);
             for kNode = 1:nNode
                 dShapeIK = dShapes(:,kNode);
                 xKJ      = obj.coordElem(kNode,:,:);

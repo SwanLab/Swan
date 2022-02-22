@@ -7,7 +7,7 @@ classdef ShapeFunctionProjectorFactory < handle
                case 'TRIANGLE'
                    obj = ShapeFunctionProjector_ForTriangles(cParams);
                otherwise
-                   obj = ShapeFunctionProjector_General(cParams);                   
+                   obj = ShapeFunctionProjector_General(cParams);
            end
        end
        

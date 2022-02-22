@@ -4,27 +4,27 @@ classdef SimpAllInterpolationImplicit < MaterialInterpolation
         
         function [mS,dmS] = computeMuSymbolicFunctionAndDerivative(obj)
             dmu0 = obj.computeDmu0();
-            dmu1 = obj.computeDmu1();            
+            dmu1 = obj.computeDmu1();
             s.f0  = obj.matProp.mu0;
             s.f1  = obj.matProp.mu1;
             s.df0 = dmu0;
-            s.df1 = dmu1;               
+            s.df1 = dmu1;
             [mS,dmS] = obj.computeParameterInterpolationAndDeirvative(s);
         end
         
         function [kS,dkS] = computeKappaSymbolicFunctionAndDerivative(obj)
             dk0 = obj.computeDmu0();
-            dk1 = obj.computeDmu1();                        
+            dk1 = obj.computeDmu1();
             s.f0  = obj.matProp.kappa0;
             s.f1  = obj.matProp.kappa1;
             s.df0 = dk0;
-            s.df1 = dk1;            
+            s.df1 = dk1;
             [kS,dkS] = obj.computeParameterInterpolationAndDeirvative(s);
         end
-                
+        
         function [f,df] = computeParameterInterpolationAndDeirvative(obj,s)
             c = obj.computeCoefficients(s);
-            rho = sym('rho','positive');            
+            rho = sym('rho','positive');
             fSym  = obj.rationalFunction(c,rho);
             dfSym = obj.rationalFunctionDerivative(c,rho);
             f  = simplify(fSym);
@@ -36,10 +36,10 @@ classdef SimpAllInterpolationImplicit < MaterialInterpolation
             f0  = s.f0;
             df1 = s.df1;
             df0 = s.df0;
-            c1 = sym('c1','real'); 
-            c2 = sym('c2','real');            
-            c3 = sym('c3','real');            
-            c4 = sym('c4','real');            
+            c1 = sym('c1','real');
+            c2 = sym('c2','real');
+            c3 = sym('c3','real');
+            c4 = sym('c4','real');
             coef = [c1 c2 c3 c4];
             r1 = obj.matProp.rho1;
             r0 = obj.matProp.rho0;
@@ -48,15 +48,15 @@ classdef SimpAllInterpolationImplicit < MaterialInterpolation
             eq(3) = obj.rationalFunctionDerivative(coef,r1) - df1;
             eq(4) = obj.rationalFunctionDerivative(coef,r0) - df0;
             c = solve(eq,[c1,c2,c3,c4]);
-            c = struct2cell(c);    
+            c = struct2cell(c);
             c = [c{:}];
         end
         
         function dmu0 = computeDmu0(obj)
             E1  = obj.matProp.E1;
-            E0  = obj.matProp.E0;            
-            nu1 = obj.matProp.nu1;            
-            nu0 = obj.matProp.nu0;                        
+            E0  = obj.matProp.E0;
+            nu1 = obj.matProp.nu1;
+            nu0 = obj.matProp.nu0;
             mu0 = obj.matProp.mu0;
             [pMu0,~] = obj.computePmuPkappa(E0,E1,nu0,nu1);
             dmu0    = -mu0*pMu0;
@@ -64,9 +64,9 @@ classdef SimpAllInterpolationImplicit < MaterialInterpolation
         
         function dmu1 = computeDmu1(obj)
             E1  = obj.matProp.E1;
-            E0  = obj.matProp.E0;            
-            nu1 = obj.matProp.nu1;            
-            nu0 = obj.matProp.nu0;                        
+            E0  = obj.matProp.E0;
+            nu1 = obj.matProp.nu1;
+            nu0 = obj.matProp.nu0;
             mu1 = obj.matProp.mu1;
             [pMu1,~] = obj.computePmuPkappa(E1,E0,nu1,nu0);
             dmu1    = mu1*pMu1;
@@ -74,23 +74,23 @@ classdef SimpAllInterpolationImplicit < MaterialInterpolation
         
         function dkappa0 = computeDKappa0(obj)
             E1  = obj.matProp.E1;
-            E0  = obj.matProp.E0;            
-            nu1 = obj.matProp.nu1;            
-            nu0 = obj.matProp.nu0;                        
-            kappa0 = obj.matProp.kappa0;            
+            E0  = obj.matProp.E0;
+            nu1 = obj.matProp.nu1;
+            nu0 = obj.matProp.nu0;
+            kappa0 = obj.matProp.kappa0;
             [~,pKappa0] = obj.computePmuPkappa(E0,E1,nu0,nu1);
-            dkappa0 = -kappa0*pKappa0;            
+            dkappa0 = -kappa0*pKappa0;
         end
         
         function dkappa1 = computeDKappa1(obj)
             E1  = obj.matProp.E1;
-            E0  = obj.matProp.E0;            
-            nu1 = obj.matProp.nu1;            
-            nu0 = obj.matProp.nu0;                        
-            kappa1 = obj.matProp.kappa1;            
+            E0  = obj.matProp.E0;
+            nu1 = obj.matProp.nu1;
+            nu0 = obj.matProp.nu0;
+            kappa1 = obj.matProp.kappa1;
             [~,pKappa1] = obj.computePmuPkappa(E1,E0,nu1,nu0);
-            dkappa1 = kappa1*pKappa1;            
-        end                
+            dkappa1 = kappa1*pKappa1;
+        end
         
     end
     
@@ -120,18 +120,18 @@ classdef SimpAllInterpolationImplicit < MaterialInterpolation
             dr = dr1 + dr2;
         end
         
-        function [pMu,pKappa] = computePmuPkappa(E_matrix,E_inclusion,nu_matrix,nu_inclusion)       
+        function [pMu,pKappa] = computePmuPkappa(E_matrix,E_inclusion,nu_matrix,nu_inclusion)
             a = (1+nu_matrix)/(1-nu_matrix);
             b = (3-nu_matrix)/(1+nu_matrix);
             gam = E_inclusion/E_matrix;
             tau1 = (1+nu_inclusion)/(1+nu_matrix);
             tau2 = (1-nu_inclusion)/(1-nu_matrix);
-            tau3 = (nu_inclusion*(3*nu_matrix-4)+1)/(nu_matrix*(3*nu_matrix-4)+1);            
+            tau3 = (nu_inclusion*(3*nu_matrix-4)+1)/(nu_matrix*(3*nu_matrix-4)+1);
             p1 = (1/(b*gam+tau1)*(1+b)*(tau1-gam));
-            p2 = (1/(b*gam+tau1)*0.5*(a-b)*(gam*(gam-2*tau3)+tau1*tau2)/(a*gam+tau2));            
+            p2 = (1/(b*gam+tau1)*0.5*(a-b)*(gam*(gam-2*tau3)+tau1*tau2)/(a*gam+tau2));
             pMu = p1;
             pKappa = 2*p2 + p1;
-        end        
+        end
         
     end
     

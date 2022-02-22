@@ -7,6 +7,6 @@ classdef BoundaryMeshCreator < handle
             obj = f.create(cParams);
         end
         
-    end    
+    end
     
 end

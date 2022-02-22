@@ -27,7 +27,7 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
         
         function initPlotting(obj)
             obj.patchHandle = patch(obj.axes,'Faces',obj.mesh.connec,'Vertices',obj.mesh.coord,...
-               'EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);            
+               'EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
             set(obj.axes,'ALim',[0, 1],'XTick',[],'YTick',[]);
             %obj.plot();
             obj.BCplotter.plot();

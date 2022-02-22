@@ -122,12 +122,12 @@ classdef ParamsMonitor < ParamsMonitor_Interface
                     title = titles{iv};
                     obj.initFigure(title);
                 end
-            end                                 
+            end
         end
         
         function obj = initFigure(obj,title)
             chartType = obj.getChartType(title);
-            newFig = DisplayFactory.create(chartType,title);            
+            newFig = DisplayFactory.create(chartType,title);
             obj.appendFigure(newFig);
         end
         
@@ -176,7 +176,7 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         function updateCost(obj)
             obj.updateFigure(obj.cost.value);
             for i = 1:obj.nCostFuncs
-                shape = obj.cost.shapeFunctions{i};                
+                shape = obj.cost.shapeFunctions{i};
                 value = shape.value;
                 obj.updateFigure(value);
             end
@@ -202,9 +202,9 @@ classdef ParamsMonitor < ParamsMonitor_Interface
         end
         
         function updateShapeFunctionsVar(obj)
-            obj.updateShapeFunctionsVarFromFunctional(obj.cost);                     
+            obj.updateShapeFunctionsVarFromFunctional(obj.cost);
             obj.updateShapeFunctionsVarFromFunctional(obj.constraint);
-        end       
+        end
         
         function updateShapeFunctionsVarFromFunctional(obj,functional)
             nShapes = numel(functional.shapeFunctions);
@@ -215,8 +215,8 @@ classdef ParamsMonitor < ParamsMonitor_Interface
                     value = values{iv};
                     obj.updateFigure(value);
                 end
-            end                        
-        end            
+            end
+        end
         
         function updateFigure(obj,value)
             obj.figures{obj.iRefresh}.updateParams(obj.iteration,value,obj);
@@ -245,7 +245,7 @@ classdef ParamsMonitor < ParamsMonitor_Interface
            s.costFuncNames   = cParams.costFuncNames;
            s.costWeights     = cParams.costWeights;
            s.constraintFuncs = cParams.constraintFuncs;
-           s.optimizerNames   = cParams.optimizerNames; 
+           s.optimizerNames   = cParams.optimizerNames;
            obj.namingManager = NamingManager(s);
         end
         

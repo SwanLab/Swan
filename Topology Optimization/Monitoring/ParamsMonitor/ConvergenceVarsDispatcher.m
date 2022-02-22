@@ -5,7 +5,7 @@ classdef ConvergenceVarsDispatcher < handle
         function names = dispatchNames(cParams)
             switch cParams.type
                 case {'AlternatingPrimalDual','DualNestedInPrimal'}
-                    names = {'\Deltacost';'Norm L2';'Line Search';'Line Search trials'};                    
+                    names = {'\Deltacost';'Norm L2';'Line Search';'Line Search trials'};
                     switch cParams.primal
                         case 'SLERP'
                             names{end+1} = '\theta';

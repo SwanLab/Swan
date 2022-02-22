@@ -18,7 +18,7 @@ classdef MeshMerger < handle
     methods (Access = public)
         
         function obj = MeshMerger(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)
             obj.computeNodesA();
             obj.computeNodesB();
             obj.computeAllNodes();
@@ -75,7 +75,7 @@ classdef MeshMerger < handle
             isMa = obj.isMergedNodeA;
             isMb = obj.isMergedNodeB;
             mNodesA          = nA;
-            mNodesB(isMb,1)  = nA(isMa);            
+            mNodesB(isMb,1)  = nA(isMa);
             mNodesB(~isMb,1) = nB(~isMb);
             nodes = [mNodesA;mNodesB];
             obj.mergedNodes = nodes;
@@ -89,11 +89,11 @@ classdef MeshMerger < handle
         end
 
         function mConnec = computeMergedConnec(obj)
-            aConnec = obj.computeAllConnec();            
+            aConnec = obj.computeAllConnec();
             s.oldNodes = obj.allNodes;
             s.newNodes = obj.mergedNodes;
             c = ConnecRenumbering(s);
-            mConnec = c.renumber(aConnec);                
+            mConnec = c.renumber(aConnec);
         end
         
         function connec = computeAllConnec(obj)
@@ -101,7 +101,7 @@ classdef MeshMerger < handle
             connecA = obj.meshA.connec;
             connecB = obj.meshB.connec + npnodA;
             connec = [connecA;connecB];
-        end        
+        end
 
         function mCoord = computeMergedCoord(obj)
             coordA = obj.meshA.coord;
@@ -110,7 +110,7 @@ classdef MeshMerger < handle
         end
 
         function m = computeCanonicalMergedMesh(obj)
-            s.remainingNodes = obj.computeRemainingNodes();  
+            s.remainingNodes = obj.computeRemainingNodes();
             s.mesh           = obj.mergedMesh;
             c = CannonicalMeshComputer(s);
             m = c.compute();
