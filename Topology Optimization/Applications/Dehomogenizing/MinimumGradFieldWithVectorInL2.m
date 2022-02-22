@@ -31,7 +31,6 @@ classdef MinimumGradFieldWithVectorInL2 < handle
         function init(obj,cParams)
             obj.mesh   = cParams.mesh;
             obj.fGauss = cParams.fGauss;
-
         end
 
         function createDimension(obj)
