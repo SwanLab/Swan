@@ -38,7 +38,7 @@ classdef NewElasticProblem < handle %NewFEM
             obj.createBCApplier();
             obj.createSolver();
         end
-        
+
         function solve(obj)
             obj.computeStiffnessMatrix();
             obj.computeForces();
@@ -46,17 +46,22 @@ classdef NewElasticProblem < handle %NewFEM
         end
 
         function plot(obj)
-            ndim = obj.dim.ndim;
-            switch ndim
-                case 2
-                    obj.plotFem2D();
-                case 3
-                    obj.plotFem3D();
-            end
+            s.dim            = obj.dim;
+            s.mesh           = obj.mesh;
+            s.displacement = obj.variables.d_u;
+            plotter = FEMPlotter(s);
+            plotter.plot();
+            %             ndim = obj.dim.ndim;
+            %             switch ndim
+            %                 case 2
+            %                     obj.plotFem2D();
+            %                 case 3
+            %                     obj.plotFem3D();
+            %             end
         end
-    
+
     end
-    
+
     methods (Access = private)
 
         function init(obj, cParams)
@@ -75,7 +80,7 @@ classdef NewElasticProblem < handle %NewFEM
             quad.computeQuadrature('LINEAR');
             obj.quadrature = quad;
         end
-        
+
         function computeDimensions(obj)
             s.ngaus = obj.quadrature.ngaus;
             s.mesh  = obj.mesh;
@@ -145,9 +150,9 @@ classdef NewElasticProblem < handle %NewFEM
             f    = obj.computeExternalForces();
             fRed = obj.reduceForcesMatrix(f);
             obj.forces = fRed;
-%             R = obj.compute_imposed_displacement_force(obj.K);
-%             obj.fext = Fext + R;
-%             obj.rhs = obj.integrator.integrate(fNodal);
+            %             R = obj.compute_imposed_displacement_force(obj.K);
+            %             obj.fext = Fext + R;
+            %             obj.rhs = obj.integrator.integrate(fNodal);
         end
 
         function f = computeExternalForces(obj)
@@ -161,7 +166,7 @@ classdef NewElasticProblem < handle %NewFEM
         function Fred = reduceForcesMatrix(obj, forces)
             Fred = obj.bcApplier.fullToReducedVector(forces);
         end
-       
+
         function u = computeDisplacements(obj)
             Kred = obj.stiffnessMatrix;
             Fred = obj.forces;
@@ -169,72 +174,7 @@ classdef NewElasticProblem < handle %NewFEM
             u = obj.bcApplier.reducedToFullVector(u);
             obj.variables.d_u = u;
         end
-        
-        function plotFem2D(obj)
-            coords = obj.computeDisplacedCoords();
-            obj.plotNodes2D();
-            obj.plotDisplacement2D(coords);
-        end
-        
-        function plotFem3D(obj)
-            coords = obj.computeDisplacedCoords();
-            obj.plotNodes3D();
-            obj.plotDisplacement3D(coords);
-        end
-        
-        function dispCoords = computeDisplacedCoords(obj)
-            ndim = obj.dim.ndim;
-            ndof = obj.dim.ndof;
-            coords = zeros(ndof,1);
-            for i = 1:ndim
-                dofs = i:ndim:ndof;
-                coor = obj.mesh.coord(:,i);
-                coords(dofs) = coor;
-            end
-            delta = obj.variables.d_u;
-            dispCoords = coords + delta;
-        end
-        
-        function plotNodes2D(obj)
-            Tn = obj.mesh.connec;
-            x  = obj.mesh.coord(:,1);
-            y  = obj.mesh.coord(:,2);
-            figure()
-            hold on
-            colormap jet;
-            plot(x(Tn)',y(Tn)','--','linewidth',0.5);
-        end
-        
-        function plotDisplacement2D(obj, coords)
-            ndim = obj.dim.ndim;
-            ndof = obj.dim.ndof;
-            x = coords(1:ndim:ndof);
-            y = coords(2:ndim:ndof);
-            Tn   = obj.mesh.connec;
-            plot(x(Tn)',y(Tn)','-k','linewidth',0.5);
-        end
-        
-        function plotNodes3D(obj)
-            Tn = obj.mesh.connec;
-            x  = obj.mesh.coord(:,1);
-            y  = obj.mesh.coord(:,2);
-            z  = obj.mesh.coord(:,3);
-            figure()
-            hold on
-            colormap jet;
-            plot3(x(Tn)',y(Tn)',z(Tn)','--','linewidth',0.5);
-        end
-        
-        function plotDisplacement3D(obj, coords)
-            ndim = obj.dim.ndim;
-            ndof = obj.dim.ndof;
-            x = coords(1:ndim:ndof);
-            y = coords(2:ndim:ndof);
-            z = coords(3:ndim:ndof);
-            Tn   = obj.mesh.connec;
-            plot3(x(Tn)',y(Tn)',z(Tn)','-k','linewidth',0.5);
-        end
-        
+
     end
 
 end
