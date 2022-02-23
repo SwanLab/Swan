@@ -34,7 +34,7 @@ classdef NewFEM < handle
         function obj = create(s)
             % this only works for elastic macro
 %             s = FemInputReader_GiD().read(fileName);
-            switch s.ptype
+            switch s.type
                 case 'ELASTIC'
                     switch s.scale
                         case 'MACRO'
@@ -137,10 +137,6 @@ classdef NewFEM < handle
     end
 
     methods (Access = private)
-
-        function createProblemParams(obj, fileName)
-
-        end
 
         function d = createPostProcessDataBase(obj,fileName)
             dI.mesh    = obj.mesh;

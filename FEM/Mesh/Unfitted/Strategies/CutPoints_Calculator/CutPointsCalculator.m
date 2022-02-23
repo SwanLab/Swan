@@ -10,7 +10,7 @@ classdef CutPointsCalculator < handle
         backgroundCutCells
         backgroundGeomInterpolation
         levelSet  
-        activeCutPoints        
+        activeCutPoints
         index1
         index2
         lsNode1
@@ -21,7 +21,7 @@ classdef CutPointsCalculator < handle
         
         function init(obj,cParams)
             obj.backgroundMesh      = cParams.backgroundMesh;
-            obj.levelSet            = cParams.levelSet_background;            
+            obj.levelSet            = cParams.levelSet_background;
             obj.backgroundCutCells  = cParams.backgroundCutCells;
             obj.backgroundGeomInterpolation =  Interpolation.create(obj.backgroundMesh,'LINEAR');
         end
@@ -44,7 +44,7 @@ classdef CutPointsCalculator < handle
     methods (Access = private)
         
         function cP = getThisCellActiveCutPointsIso(obj,i)
-            cutNode = obj.activeCutPoints(:,:,i);            
+            cutNode = obj.activeCutPoints(:,:,i);
             cP = obj.cutPointsIso(cutNode,:,i);
         end
         
@@ -73,13 +73,13 @@ classdef CutPointsCalculator < handle
             ls2(:,:,:) = ls(obj.index2);
             obj.lsNode1 = ls1;
             obj.lsNode2 = ls2;
-      end        
+      end
             
         function computeActiveCutPoints(obj)
             ls1 = obj.lsNode1;
             ls2 = obj.lsNode2;
-            obj.activeCutPoints = sign(ls1.*ls2)<=0;                       
-        end      
+            obj.activeCutPoints = sign(ls1.*ls2)<=0;
+        end
         
         function computeCutPointsIso(obj)
             [x1,x2] = obj.computeNodesIsoCoords();
@@ -93,9 +93,9 @@ classdef CutPointsCalculator < handle
         
         function xCut = computeCutPoint(obj,x1,x2)
             ls1 = obj.lsNode1;
-            ls2 = obj.lsNode2;            
+            ls2 = obj.lsNode2;
             xCut = x1+ls1.*(x2-x1)./(ls1-ls2);
-        end 
+        end
         
         function [x1,x2] = computeNodesIsoCoords(obj)
             node1 = obj.backgroundGeomInterpolation.iteration(1,:);
@@ -106,7 +106,7 @@ classdef CutPointsCalculator < handle
             nCutCells = length(obj.backgroundCutCells);
             x1 = repmat(xNodes1,[1 1 nCutCells]);
             x2 = repmat(xNodes2,[1 1 nCutCells]);
-        end              
+        end
         
         function [x1,x2] = computeNodesGlobalCoords(obj)
             ndim  = obj.backgroundMesh.ndim;
@@ -121,7 +121,7 @@ classdef CutPointsCalculator < handle
                 x1(:,idim,:) = xNode1;
                 x2(:,idim,:) = xNode2;
             end
-        end        
+        end
         
     end
     

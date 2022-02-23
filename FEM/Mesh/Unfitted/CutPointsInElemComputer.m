@@ -13,9 +13,9 @@ classdef CutPointsInElemComputer < handle
 
     end
     
-    properties (Access = private)        
+    properties (Access = private)
         cutEdgeInElem
-        isEdgeCutInElem        
+        isEdgeCutInElem
         
         isEdgeCut
         edgesInElem
@@ -26,7 +26,7 @@ classdef CutPointsInElemComputer < handle
         all2Cut
         
         allNodesinElemParams
-        allNodesInElemCoordParams        
+        allNodesInElemCoordParams
     end
     
     methods (Access = public)
@@ -59,7 +59,7 @@ classdef CutPointsInElemComputer < handle
         
 
         function computeEdgeCutPointsInElem(obj)
-            edges = obj.edgesInElem;                          
+            edges = obj.edgesInElem;
             cEdgeInElem = obj.all2Cut.compute(edges);
             nAllEdges = size(obj.isEdgeCut,1);
             cutPoint = zeros(nAllEdges,1);
@@ -70,7 +70,7 @@ classdef CutPointsInElemComputer < handle
                 edgeCutPoint(:,iedge) = cutPoint(edge);
             end
             obj.edgeCutPointInElem = edgeCutPoint;
-        end        
+        end
         
         function computeAllNodesInElem(obj)
             edge = obj.edgeCutPointInElem;
@@ -84,7 +84,7 @@ classdef CutPointsInElemComputer < handle
         
         function computeXallNodesInElemAndXcut(obj)
             s = obj.allNodesInElemCoordParams;
-            s.all2Cut               = obj.all2Cut;        
+            s.all2Cut               = obj.all2Cut;
             s.edgeCutPointInElem    = obj.edgeCutPointInElem;
             a = AllNodesInElemCoordinatesComputer(s);
             a.compute();

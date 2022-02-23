@@ -3,7 +3,7 @@ classdef ForcesComputer < handle
     properties (Access = private)
         dim
         mesh
-        dof
+        boundaryConditions
     end
     
     methods (Access = public)
@@ -25,9 +25,9 @@ classdef ForcesComputer < handle
     methods (Access = private)
 
         function init(obj, s)
-            obj.dim  = s.dim;
-            obj.mesh = s.mesh;
-            obj.dof  = s.dof;
+            obj.dim                = s.dim;
+            obj.mesh               = s.mesh;
+            obj.boundaryConditions = s.BC;
         end
 
         function Fs = computeSuperficialFext(obj)
@@ -47,32 +47,38 @@ classdef ForcesComputer < handle
         end
 
         function b = assembleVector(obj, Fsup, Fvol)
-            bElem_cell = {Fsup + Fvol};
-            nfields = 1;
-            d = obj.dim;
-            for iField = 1:nfields
-                bElem = bElem_cell{iField,1};
-                b = zeros(obj.dim.ndof(iField),1);
-                nDofPerElem = d.ndofPerElement;
-                nDof = d.ndof(iField);
-                nGaus = size(bElem,2);
-                for iDof = 1:nDofPerElem
-                    for igaus = 1:nGaus
-                        c = squeeze(bElem(iDof,igaus,:));
-                        idof_elem = obj.dof.in_elem{iField}(iDof,:);
-                        b = b + sparse(idof_elem,1,c',nDof,1);
-                    end
-                end
-                b_global{iField,1} = b;
+            forces = squeeze(Fsup + Fvol);
+            ndofPerElem = obj.dim.ndofPerElement;
+            ndof        = obj.dim.ndof;
+            dofsInElemCell = obj.boundaryConditions.dofsInElem;
+            dofsInElem = cell2mat(dofsInElemCell);
+            b = zeros(ndof,1);
+            for iDof = 1:ndofPerElem
+                dofs = dofsInElem(iDof,:);
+                c = forces(iDof,:);
+                badd = obj.computeAddVectorBySparse(dofs, c);
+                % badd = obj.computeAddVectorByAccumarray(dofs, c);
+                b = b + badd;
             end
-            b=cell2mat(b_global);
+        end
+
+        function Bdof = computeAddVectorBySparse(obj,dofs, c)
+           ndof = obj.dim.ndof;
+           Bdof = sparse(dofs,1,c',ndof,1);
+        end
+
+        function Bdof = computeAddVectorByAccumarray(obj,dofs,c)
+           ndof = obj.dim.ndof;
+           Bdof = accumarray(dofs',c',[ndof 1]);
         end
 
         function Fp = computePunctualFext(obj)
             %Compute Global Puntual Forces (Not well-posed in FEM)
+            neumann       = obj.boundaryConditions.neumann;
+            neumannValues = obj.boundaryConditions.neumann_values;
             Fp = zeros(obj.dim.ndof,1);
-            if ~isempty(obj.dof.neumann)
-                Fp(obj.dof.neumann) = obj.dof.neumann_values;
+            if ~isempty(neumann)
+                Fp(neumann) = neumannValues;
             end
         end
 

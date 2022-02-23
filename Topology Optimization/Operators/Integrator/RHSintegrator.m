@@ -68,7 +68,7 @@ classdef RHSintegrator < handle
             s.mesh = obj.mesh;
             g = Geometry.create(s);
             g.computeGeometry(obj.quadrature,int);
-            grad = g.cartd;
+            grad = g.dNdx;
         end
 
         function init(obj,cParams)

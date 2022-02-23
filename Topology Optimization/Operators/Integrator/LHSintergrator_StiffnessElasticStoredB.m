@@ -42,7 +42,7 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
            g      = Geometry.create(s);
            quad   = obj.quadrature;
            interp = obj.interpolation;
-           g.computeGeometry(quad,interp); 
+           g.computeGeometry(quad,interp);
            obj.geometry = g;
        end
 
@@ -69,11 +69,25 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
                        posJ = (jstre)+(nstre)*(igaus-1) : ngaus*nstre : ntot;
                        
                        Ct = squeeze(Cmat(istre,jstre,:,igaus)).*dvol(:,igaus);
-                       CmatTot = CmatTot + sparse(posI,posJ,Ct,ntot,ntot);
+                       Cadd = obj.computeCaddBySparse(Ct, posI, posJ);
+                       CmatTot = CmatTot + Cadd;
                    end
                end
            end
        end
+
+       function Cadd = computeCaddBySparse(obj,Ct, posI, posJ)
+           d = obj.dim;
+           ntot  = d.nt;
+           Cadd = sparse(posI,posJ,Ct,ntot,ntot);
+       end
+
+       function Cadd = computeCaddByAccumarray(obj,Ct, posI, posJ)
+           d = obj.dim;
+           ntot  = d.nt;
+           index = [posI', posJ'];
+           Cadd = accumarray(index,Ct,[ntot ntot],[],[],true);
+      end
 
        function K = computeStiffness(obj,CmatTot)
            B  = obj.Btot;

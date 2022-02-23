@@ -13,16 +13,13 @@ classdef NewElasticProblem < handle %NewFEM
         % Poda 1
         quadrature
         dim
-        % Kgen %"LHS"
         boundaryConditions
+        displacement
     end
 
     properties (Access = private)
-        fileName
-        femData
         mesh
         problemData
-        dof
         stiffnessMatrix
         forces
         solver
@@ -41,25 +38,33 @@ classdef NewElasticProblem < handle %NewFEM
             obj.createBCApplier();
             obj.createSolver();
         end
-
         
-        function computeVariables(obj)
-            obj.computeStiffnessMatrix()
+        function solve(obj)
+            obj.computeStiffnessMatrix();
             obj.computeForces();
             obj.computeDisplacements();
+        end
+
+        function plot(obj)
+            ndim = obj.dim.ndim;
+            switch ndim
+                case 2
+                    obj.plotFem2D();
+                case 3
+                    obj.plotFem3D();
+            end
         end
     
     end
     
     methods (Access = private)
-        
+
         function init(obj, cParams)
             obj.nFields = 1;
             obj.mesh        = cParams.mesh;
-            obj.fileName    = cParams.problemID;
             pd.scale        = cParams.scale;
-            pd.pdim         = cParams.pdim;
-            pd.ptype        = cParams.ptype;
+            pd.pdim         = cParams.dim;
+            pd.ptype        = cParams.type;
             pd.bc.dirichlet = cParams.dirichlet;
             pd.bc.pointload = cParams.pointload;
             obj.problemData = pd;
@@ -98,19 +103,11 @@ classdef NewElasticProblem < handle %NewFEM
 
         function createInterpolation(obj)
             int = obj.mesh.interpolation;
-            %int.computeShapeDeriv(obj.quadrature.posgp);
             obj.interp{1} = int;
         end
 
         function createBoundaryConditions(obj)
-            % Will merge boundary + DOF
-            % DOF currently used for BCApplier and ForcesComputer
-            % ForcesComputer: uses dof.neumann + dof.neumann_values +
-            %                 in_elem
-            % BCApplier: uses dirichlet + dirichlet_values + ndof + free
-            %                 free + periodic_free + periodic_constrained
-
-            s.dim          = obj.dim;            
+            s.dim          = obj.dim;
             s.bc           = obj.problemData.bc;
             s.globalConnec = obj.mesh.connec;
             bc = BoundaryConditions(s);
@@ -119,9 +116,7 @@ classdef NewElasticProblem < handle %NewFEM
         end
 
         function createBCApplier(obj)
-             obj.dof = DOF_Elastic(obj.fileName,obj.mesh,obj.problemData.pdim,obj.nFields,obj.interp);
-             s.dof     = obj.dof;
-           % s.BC      = obj.boundaryConditions;
+            s.BC      = obj.boundaryConditions;
             s.dim     = obj.dim;
             s.nfields = obj.nFields;
             s.scale   = obj.problemData.scale;
@@ -157,7 +152,7 @@ classdef NewElasticProblem < handle %NewFEM
 
         function f = computeExternalForces(obj)
             s.dim  = obj.dim;
-            s.dof  = obj.dof;
+            s.BC   = obj.boundaryConditions;
             s.mesh = obj.mesh;
             fcomp = ForcesComputer(s);
             f = fcomp.compute();
@@ -174,7 +169,72 @@ classdef NewElasticProblem < handle %NewFEM
             u = obj.bcApplier.reducedToFullVector(u);
             obj.variables.d_u = u;
         end
-
+        
+        function plotFem2D(obj)
+            coords = obj.computeDisplacedCoords();
+            obj.plotNodes2D();
+            obj.plotDisplacement2D(coords);
+        end
+        
+        function plotFem3D(obj)
+            coords = obj.computeDisplacedCoords();
+            obj.plotNodes3D();
+            obj.plotDisplacement3D(coords);
+        end
+        
+        function dispCoords = computeDisplacedCoords(obj)
+            ndim = obj.dim.ndim;
+            ndof = obj.dim.ndof;
+            coords = zeros(ndof,1);
+            for i = 1:ndim
+                dofs = i:ndim:ndof;
+                coor = obj.mesh.coord(:,i);
+                coords(dofs) = coor;
+            end
+            delta = obj.variables.d_u;
+            dispCoords = coords + delta;
+        end
+        
+        function plotNodes2D(obj)
+            Tn = obj.mesh.connec;
+            x  = obj.mesh.coord(:,1);
+            y  = obj.mesh.coord(:,2);
+            figure()
+            hold on
+            colormap jet;
+            plot(x(Tn)',y(Tn)','--','linewidth',0.5);
+        end
+        
+        function plotDisplacement2D(obj, coords)
+            ndim = obj.dim.ndim;
+            ndof = obj.dim.ndof;
+            x = coords(1:ndim:ndof);
+            y = coords(2:ndim:ndof);
+            Tn   = obj.mesh.connec;
+            plot(x(Tn)',y(Tn)','-k','linewidth',0.5);
+        end
+        
+        function plotNodes3D(obj)
+            Tn = obj.mesh.connec;
+            x  = obj.mesh.coord(:,1);
+            y  = obj.mesh.coord(:,2);
+            z  = obj.mesh.coord(:,3);
+            figure()
+            hold on
+            colormap jet;
+            plot3(x(Tn)',y(Tn)',z(Tn)','--','linewidth',0.5);
+        end
+        
+        function plotDisplacement3D(obj, coords)
+            ndim = obj.dim.ndim;
+            ndof = obj.dim.ndof;
+            x = coords(1:ndim:ndof);
+            y = coords(2:ndim:ndof);
+            z = coords(3:ndim:ndof);
+            Tn   = obj.mesh.connec;
+            plot3(x(Tn)',y(Tn)',z(Tn)','-k','linewidth',0.5);
+        end
+        
     end
 
 end

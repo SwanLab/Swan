@@ -21,7 +21,7 @@ classdef MeshPlotter < handle
             else
                 if m.ndim + m.kFace == 1 
                     obj.plotLineMesh();
-                elseif m.ndim + m.kFace == 2  
+                elseif m.ndim + m.kFace == 2
                     obj.plotSurfaceMesh();
                 end
                 
@@ -37,7 +37,7 @@ classdef MeshPlotter < handle
             obj.isBackground = cParams.isBackground;
             obj.faceColor    = cParams.faceColor;
             obj.faceAlpha    = cParams.faceAlpha;
-            obj.edgeAlpha    = cParams.edgeAlpha;            
+            obj.edgeAlpha    = cParams.edgeAlpha;
         end
         
         function plotBackgroundMesh(obj)
@@ -63,21 +63,21 @@ classdef MeshPlotter < handle
             p.LineWidth = 0.5;
             p.LineStyle = '-';
             axis('equal');
-            nodes = unique(m.connec(:));            
+            nodes = unique(m.connec(:));
             if size(m.coord,2) == 3
                 x = m.coord(:,1);
                 y = m.coord(:,2);
-                z = m.coord(:,3);                   
+                z = m.coord(:,3);
                 hold on
-                p = plot3(x(nodes),y(nodes),z(nodes),'.r');                
+                p = plot3(x(nodes),y(nodes),z(nodes),'.r');
                 p.MarkerSize = 6;
             else
                 x = m.coord(:,1);
                 y = m.coord(:,2);
                 hold on
-                p = plot(x(nodes),y(nodes),'.r');                                
+                p = plot(x(nodes),y(nodes),'.r');
                 p.MarkerSize = 14;
-            end            
+            end
         end
         
         
@@ -127,7 +127,7 @@ classdef MeshPlotter < handle
                 p.LineWidth = 1.5;
                 axis('equal');
                 hold on
-            end            
+            end
             
         end
         

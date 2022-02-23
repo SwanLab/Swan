@@ -2,22 +2,22 @@ classdef AllNodesInElemComputer < handle
     
    properties (Access = public)
        allNodesInElem
-       cutNodesInElem       
+       cutNodesInElem
    end
    
-   properties (Access = private)       
+   properties (Access = private)
    end
 
    properties (Access = private)
        firstCutEdge
        vertexNodesInElem
-       finalNodeNumber             
-   end   
+       finalNodeNumber
+   end
    
    methods (Access = public)
        
        function obj = AllNodesInElemComputer(cParams)
-          obj.init(cParams) 
+          obj.init(cParams)
        end
        
        function compute(obj)
@@ -43,10 +43,10 @@ classdef AllNodesInElemComputer < handle
         end
         
         function cutNode = computeCutNodePerElem(obj)
-            firstCutEdgePerElem = obj.firstCutEdge;                               
-            cutNode = firstCutEdgePerElem + obj.finalNodeNumber;  
+            firstCutEdgePerElem = obj.firstCutEdge;
+            cutNode = firstCutEdgePerElem + obj.finalNodeNumber;
             obj.cutNodesInElem = cutNode;
-        end             
+        end
        
    end
     

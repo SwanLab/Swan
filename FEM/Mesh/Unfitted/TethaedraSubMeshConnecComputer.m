@@ -27,15 +27,15 @@ classdef TethaedraSubMeshConnecComputer < handle
                     obj.nSubCellsByElem = 4;
                 case 8
                     obj.nSubCellsByElem = 6;
-            end              
+            end
             
             obj.nElemInCase = size(nodes,1);
             obj.cellNodes   = nodes;
             nodesC = zeros(obj.nSubCellsByElem,obj.nSubCellNodes,obj.nElemInCase);
             isActive = true(obj.nElemInCase,1);
             switch mode(size(nodes,2))
-                case 7                
-                     [nodesT,nodesP] = obj.computeNodesTAndNodesP(icase);                    
+                case 7
+                     [nodesT,nodesP] = obj.computeNodesTAndNodesP(icase);
                     for inode = 1:obj.nSubCellNodes
                         nodesC(1,inode,isActive) = nodesT(inode);
                         nodesC(2,inode,isActive) = nodesP(1,inode);
@@ -49,9 +49,9 @@ classdef TethaedraSubMeshConnecComputer < handle
                         nodesC(2,inode,isActive) = nodesCC(2,inode);
                         nodesC(3,inode,isActive) = nodesCC(3,inode);
                         nodesC(4,inode,isActive) = nodesCC(4,inode);
-                        nodesC(5,inode,isActive) = nodesCC(5,inode);   
-                        nodesC(6,inode,isActive) = nodesCC(6,inode);                        
-                    end                    
+                        nodesC(5,inode,isActive) = nodesCC(5,inode);
+                        nodesC(6,inode,isActive) = nodesCC(6,inode);
+                    end 
                     
                     
             end
@@ -99,7 +99,7 @@ classdef TethaedraSubMeshConnecComputer < handle
             
         end
         
-        function [nodesT,nodesP] = computeNodesTAndNodesP(obj,icase)            
+        function [nodesT,nodesP] = computeNodesTAndNodesP(obj,icase)
             switch icase
                 case 4
                     nodesT = [5 6 7 4];
@@ -107,7 +107,7 @@ classdef TethaedraSubMeshConnecComputer < handle
                     %nodesP = [1 5 6 7;1 2 7 6;1 2 3 7];
                 case 3
                     nodesP = [5 6 7 1 ;2 7 6 1;2 4 7 1 ];
-                    nodesP = obj.prismaTriangulation([5 7 6],[1 4 2]);  
+                    nodesP = obj.prismaTriangulation([5 7 6],[1 4 2]);
                     nodesT = [5 7 6 3];
                     
                     
@@ -116,12 +116,12 @@ classdef TethaedraSubMeshConnecComputer < handle
                 case 2
                     nodesT = [5 6 7 2];
 %                    nodesP = [1 5 6 7;1 4 7 6;6 1 4 3];
-                    nodesP = obj.prismaTriangulation([5 6 7],[1 3 4]);  
+                    nodesP = obj.prismaTriangulation([5 6 7],[1 3 4]);
                     
                 case 1
                     nodesT = [6 7 1 5];
 %                    nodesP = [5 6 7 2;4 2 7 6;2 3 6 4];
-                    nodesP = obj.prismaTriangulation([5 7 6],[2 4 3]);  
+                    nodesP = obj.prismaTriangulation([5 7 6],[2 4 3]);
                     
             end
             
@@ -132,7 +132,7 @@ classdef TethaedraSubMeshConnecComputer < handle
              nodes =  [nodesA(1) nodesA(2) nodesA(3) nodesB(1);
                        nodesA(1) nodesA(2) nodesA(3) nodesB(2);
                        nodesA(1) nodesA(2) nodesA(3) nodesB(3)];
-        end        
+       end
         
         function nodes = prismaTriangulation(obj,nodesA,nodesB)
              nodes =  [nodesB(1) nodesA(1) nodesA(2) nodesA(3);
