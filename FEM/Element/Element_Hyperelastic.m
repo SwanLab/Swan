@@ -64,7 +64,7 @@ classdef Element_Hyperelastic < Element
                             jL = obj.geometry.ndime*(b-1) + j;
                             for k = 1:obj.geometry.ndime
                                 for l = 1:obj.geometry.ndime
-                                    kconst(iL,jL,:) = squeeze(kconst(iL,jL,:)) + squeeze(obj.material.cartd(k,a,:).*ctens(i,k,j,l).*obj.material.cartd(l,b,:)).*squeeze(obj.geometry.dvolu);
+                                    kconst(iL,jL,:) = squeeze(kconst(iL,jL,:)) + squeeze(obj.material.dNdx(k,a,:).*ctens(i,k,j,l).*obj.material.dNdx(l,b,:)).*squeeze(obj.geometry.dvolu);
                                 end
                             end
                         end
@@ -90,7 +90,7 @@ classdef Element_Hyperelastic < Element
                             jL = obj.geometry.ndime*(b-1) + j;
                             for k = 1:obj.geometry.ndime
                                 for l = 1:obj.geometry.ndime
-                                    ksigma(iL,jL,:) = squeeze(ksigma(iL,jL,:)) + squeeze(obj.material.cartd(k,a,:).*obj.material.sigma(k,l,:).*obj.material.cartd(l,b).*dk(i,j,:)).*squeeze(obj.geometry.dvolu);
+                                    ksigma(iL,jL,:) = squeeze(ksigma(iL,jL,:)) + squeeze(obj.material.dNdx(k,a,:).*obj.material.sigma(k,l,:).*obj.material.dNdx(l,b).*dk(i,j,:)).*squeeze(obj.geometry.dvolu);
                                 end
                             end
                         end
@@ -115,7 +115,7 @@ classdef Element_Hyperelastic < Element
                     iL = obj.geometry.ndime*(a-1) + i;
                     t = zeros(length(obj.dof.ndof),1,obj.nelem);
                     for j = 1:obj.geometry.ndime
-                        t(j,:) = obj.material.sigma(i,j,:).*obj.material.cartd(j,a,:);
+                        t(j,:) = obj.material.sigma(i,j,:).*obj.material.dNdx(j,a,:);
                     end
                     t = squeeze(sum(t)).*squeeze(obj.geometry.dvolu);
                     t = permute(t,[3 2 1]);

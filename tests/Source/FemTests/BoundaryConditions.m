@@ -4,7 +4,9 @@ classdef BoundaryConditions < handle
         dirichlet
         dirichlet_values
         free
-        in_elem
+        dofsInElem
+        neumann
+        neumann_values
     end
 
     properties (Access = private)
@@ -22,10 +24,13 @@ classdef BoundaryConditions < handle
 
         function compute(obj)
             [dirID, dirVals]     = obj.formatInputData(obj.dirichletInput);
+            [neuID, neuVals]     = obj.formatInputData(obj.pointloadInput);
             obj.dirichlet{1}        = dirID;
             obj.dirichlet_values{1} = dirVals;
+            obj.neumann             = neuID;
+            obj.neumann_values      = neuVals;
             obj.free{1}             = obj.computeFreeDOF();
-            obj.in_elem{1}          = obj.compute_idx();
+            obj.dofsInElem{1}       = obj.computeDofsInElem();
         end
     end
 
@@ -41,8 +46,8 @@ classdef BoundaryConditions < handle
         function [dofs, vals] = formatInputData(obj, data)
             inod = data(:,1);
             iunk = data(:,2);
-            dofs = obj.nod2dof(inod,iunk);
             vals = data(:,3);
+            dofs = obj.nod2dof(inod,iunk);
         end
 
         function idof = nod2dof(obj, inode, iunkn)
@@ -57,17 +62,17 @@ classdef BoundaryConditions < handle
             free  = setdiff(1:ndof,cnstr{1});
         end
 
-        function dof_elem = compute_idx(obj)
+        function dofsElem = computeDofsInElem(obj)
             connec = obj.globalConnec;
             nunkn  = obj.dim.nunkn;
             nnode  = obj.dim.nnode;
-            dof_elem  = zeros(nnode*nunkn,size(connec,1));
+            dofsElem  = zeros(nnode*nunkn,size(connec,1));
             for inode = 1:nnode
                 for iunkn = 1:nunkn
-                    idof_elem = obj.nod2dof(inode,iunkn);
-                    global_node = connec(:,inode);
-                    idof_global = obj.nod2dof(global_node,iunkn);
-                    dof_elem(idof_elem,:) = idof_global;
+                    idofElem   = obj.nod2dof(inode,iunkn);
+                    globalNode = connec(:,inode);
+                    idofGlobal = obj.nod2dof(globalNode,iunkn);
+                    dofsElem(idofElem,:) = idofGlobal;
                 end
             end
             

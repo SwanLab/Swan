@@ -63,7 +63,7 @@ classdef Element_DiffReact_Micro < Element_DiffReact
             eforce = zeros(obj.dof.nunkn*obj.nnode,1,obj.nelem);
             sigma = zeros(obj.nstre,1,obj.nelem);
             for igaus = 1:obj.quadrature.ngaus
-                Bmat = obj.computeB(obj.dof.nunkn,obj.nelem,obj.nnode,obj.geometry.cartd(:,:,:,igaus));
+                Bmat = obj.computeB(obj.dof.nunkn,obj.nelem,obj.nnode,obj.geometry.dNdx(:,:,:,igaus));
                 for istre = 1:obj.nstre
                     for jstre = 1:obj.nstre
                         sigma(istre,:) = sigma(istre,:) + squeeze(Cmat(istre,jstre)*vstrain(jstre))';

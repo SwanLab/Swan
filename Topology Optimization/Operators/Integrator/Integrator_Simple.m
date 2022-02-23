@@ -16,16 +16,7 @@ classdef Integrator_Simple < Integrator
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
-
-        function Kgen = computeFemLHS(obj)
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.globalConnec;
-            s.npnod        = obj.npnod;
-            s.dim          = obj.dim;
-            lhs  = LHSintegrator(s);
-            Kgen = lhs.computeKgenerator();
-        end
-        
+       
         function rhs = integrate(obj,fNodal)
             quadOrder = 'LINEAR';
             rhs = obj.integrateFnodal(fNodal,quadOrder);

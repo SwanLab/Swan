@@ -20,7 +20,7 @@ classdef InnerCutMesh < handle
         function init(obj,cParams)
             obj.mesh                  = cParams.mesh;
             obj.xCoordsIso            = cParams.xCoordsIso;
-            obj.cellContainingSubcell = cParams.cellContainingSubcell;            
+            obj.cellContainingSubcell = cParams.cellContainingSubcell;
         end
             
     end

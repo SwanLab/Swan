@@ -1,17 +1,17 @@
 classdef AllEdges2CutEdgesComputer < handle
     
     properties (GetAccess = public, SetAccess = private)
-        nCutEdgeByElem        
+        nCutEdgeByElem
     end
     
-   properties (Access = private) 
-        isEdgeCutInElem    
+   properties (Access = private)
+        isEdgeCutInElem
    end
     
    methods (Access = public)
        
        function obj = AllEdges2CutEdgesComputer(cParams)
-          obj.init(cParams) 
+          obj.init(cParams)
        end
        
        function edge = compute(obj,allEdges)
@@ -19,7 +19,7 @@ classdef AllEdges2CutEdgesComputer < handle
             allEdges = transpose(allEdges);
             cutEdges = allEdges(obj.isEdgeCutInElem);
             cutEdges = reshape(cutEdges,obj.nCutEdgeByElem,nElem);
-            edge     = transpose(cutEdges);           
+            edge     = transpose(cutEdges);
        end
        
        
@@ -30,7 +30,7 @@ classdef AllEdges2CutEdgesComputer < handle
        
        function init(obj,cParams)
            obj.isEdgeCutInElem = cParams.isEdgeCutInElem;
-           obj.nCutEdgeByElem = unique(sum(obj.isEdgeCutInElem,1));            
+           obj.nCutEdgeByElem = unique(sum(obj.isEdgeCutInElem,1));
        end
        
    end

@@ -6,12 +6,12 @@ classdef CutEdgesComputer < handle
     end
     
     properties (Access = private)
-        isoCoords               
+        isoCoords
     end
     
     properties (Access = private)
         nodesInEdges
-        levelSet        
+        levelSet
     end
     
     methods (Access = public)
@@ -46,7 +46,7 @@ classdef CutEdgesComputer < handle
         
         function computeXcutEdgePoint(obj)
             nodes           = obj.nodesInEdges;
-            nodesInCutEdges = nodes(obj.isEdgeCut,:); 
+            nodesInCutEdges = nodes(obj.isEdgeCut,:);
             node1 = nodesInCutEdges(:,1);
             node2 = nodesInCutEdges(:,2);
             ls1 = obj.levelSet(node1);

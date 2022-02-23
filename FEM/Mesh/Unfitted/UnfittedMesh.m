@@ -32,7 +32,7 @@ classdef UnfittedMesh < handle
             obj.levelSet = lSet;
             obj.classifyCells();
             obj.computeInnerMesh();
-            if ~isempty(obj.cutCells)                 
+            if ~isempty(obj.cutCells)
                 obj.computeCutMesh();
                 obj.computeInnerCutMesh();
                 obj.computeBoundaryCutMesh();
@@ -41,8 +41,8 @@ classdef UnfittedMesh < handle
                 obj.innerCutMesh    = [];
                 obj.boundaryCutMesh = [];
             end
-            obj.computeUnfittedBoxMesh();            
-            obj.createPlotter();            
+            obj.computeUnfittedBoxMesh();
+            obj.createPlotter();
         end
         
         function createPlotter(obj)
@@ -56,7 +56,7 @@ classdef UnfittedMesh < handle
         
         function plotStructureInColor(obj,color)
             obj.plotter.plotDomainInColor(color);
-        end        
+        end
         
         function plot(obj)
             obj.plotter.plotDomain();
@@ -69,16 +69,16 @@ classdef UnfittedMesh < handle
         function plotNormals(obj)
             if ~isempty(obj.boundaryCutMesh)
                 obj.boundaryCutMesh.mesh.plotNormals();
-            end            
+            end
         end
         
         function dv = computeDvolume(obj,quad)
-            if ~isempty(obj.innerMesh)            
+            if ~isempty(obj.innerMesh)
                 dvI = obj.computeInnerDvolume(quad);
             else 
                 dvI = 0;
             end
-            dvC = obj.computeInnerCutDvolume(quad);    
+            dvC = obj.computeInnerCutDvolume(quad);
             dv = dvC + dvI;
         end
         
@@ -98,13 +98,13 @@ classdef UnfittedMesh < handle
         
         function dvolume = computeInnerCutDvolume(obj,quad)
             nelem = obj.backgroundMesh.nelem;
-            ngaus = quad.ngaus;  
-            dvolume = zeros(nelem,ngaus);   
+            ngaus = quad.ngaus;
+            dvolume = zeros(nelem,ngaus);
             if ~isempty(obj.innerCutMesh)
-            cCells = obj.innerCutMesh.cellContainingSubcell;                
-            dv = obj.innerCutMesh.mesh.computeDvolume(quad);                        
+            cCells = obj.innerCutMesh.cellContainingSubcell;
+            dv = obj.innerCutMesh.mesh.computeDvolume(quad);
             for igaus = 1:ngaus
-               dvolume(:,igaus) = accumarray(cCells,dv(igaus,:)',[nelem,1],@sum,0);            
+               dvolume(:,igaus) = accumarray(cCells,dv(igaus,:)',[nelem,1],@sum,0);
             end
             end
         end
@@ -130,7 +130,7 @@ classdef UnfittedMesh < handle
             nodes = obj.backgroundMesh.connec;
             ls = zeros(size(nodes));
             for iNode = 1:size(nodes,2)
-                ls(:,iNode) = obj.levelSet(nodes(:,iNode));            
+                ls(:,iNode) = obj.levelSet(nodes(:,iNode));
             end
         end
         
@@ -198,7 +198,7 @@ classdef UnfittedMesh < handle
             fInt = integrator.integrateInBoundary(f);
             %%Now to check IntegrateNodal, later by obj.mesh.computeMass
             %disp('Boundary')
-            %sum(fInt<0)/size(fInt,1)           
+            %sum(fInt<0)/size(fInt,1)
             mass = sum(fInt);
         end
         

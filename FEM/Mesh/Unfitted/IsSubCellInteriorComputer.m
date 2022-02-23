@@ -8,14 +8,14 @@ classdef IsSubCellInteriorComputer < handle
         subCellCases
         levelSet
         allNodesInElem
-        nSubCellsByElem    
+        nSubCellsByElem
         nodesInSubCells
     end
     
     methods (Access = public)
         
         function obj = IsSubCellInteriorComputer(cParams)
-            obj.init(cParams);            
+            obj.init(cParams);
         end
         
         function compute(obj)
@@ -27,7 +27,7 @@ classdef IsSubCellInteriorComputer < handle
             itIs(1,isTriInt)  = true;
             itIs(2,~isTriInt) = true;
             itIs(3,~isTriInt) = true;
-            obj.isSubCellInterior = itIs;  
+            obj.isSubCellInterior = itIs;
 %             subCellInt = false(nSubCells,nElem);
 %             for iSubCell = 1:3
 %                 nodes = squeeze(obj.nodesInSubCells(:,iSubCell,:));

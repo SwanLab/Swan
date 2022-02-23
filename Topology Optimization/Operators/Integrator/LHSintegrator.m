@@ -42,9 +42,6 @@ classdef LHSintegrator < handle
             obj.mesh         = cParams.mesh;
             obj.npnod        = cParams.npnod;
             obj.globalConnec = cParams.globalConnec;
-            if isfield(cParams, 'material') % Compatibility with MassMatrix
-                obj.material   = cParams.material;
-            end
         end
         
        function createQuadrature(obj)
@@ -60,21 +57,22 @@ classdef LHSintegrator < handle
         end
 
         function A = assembleMatrix(obj,aElem)
-            connec = obj.globalConnec;
-%             ndofs  = obj.npnod; % should be obj.dim.ndof
-            ndofs  = obj.dim.ndof; % should be obj.dim.ndof
+            connec    = obj.globalConnec;
+            dofConnec = obj.computeDOFconnec();
+            ndofs  = obj.dim.ndof;
+            nunkn  = obj.dim.nunkn;
+%             nnode  = obj.dim.nnode;
+            nnode  = size(connec,2); % pending review why TopOptTests take incorrect nnode
             Ae     = aElem;
-            nunkn1 = obj.dim.nunkn;
-            nunkn2 = obj.dim.nunkn;
-            nnode1 = size(connec,2);
-            nnode2 = size(connec,2);
             A = sparse(ndofs,ndofs);
-            for i = 1:nnode1*nunkn1 % changed that
-                nodeI = connec(:,i);
-                for j = 1:nnode2*nunkn2 % changed that as well
-                    nodeJ = connec(:,j);
+            for i = 1:nnode*nunkn
+                dofsI = dofConnec(:,i);
+                for j = 1:nnode*nunkn
+                    dofsJ = dofConnec(:,j);
                     a = squeeze(Ae(i,j,:));
-                    A = A + sparse(nodeI,nodeJ,a,ndofs,ndofs);
+                    Aadd = obj.computeAaddBySparse(a, dofsI, dofsJ);
+%                     Aadd = obj.computeAaddByAccumarray(a, dofsI, dofsJ);
+                    A = A + Aadd;
                 end
             end
         end
@@ -82,6 +80,40 @@ classdef LHSintegrator < handle
     end
     
     methods (Access = private)
+
+        function Cadd = computeAaddBySparse(obj,a, dofsI, dofsJ)
+           d = obj.dim;
+           ndofs = d.ndof;
+           Cadd = sparse(dofsI,dofsJ,a,ndofs,ndofs);
+        end
+
+        function Cadd = computeAaddByAccumarray(obj,a, dofsI, dofsJ)
+           d = obj.dim;
+           ndofs = d.ndof;
+           index = [dofsI', dofsJ'];
+           Cadd = accumarray(index,a,[ndofs ndofs],[],[],true);
+        end
+
+        function dof_elem = computeDOFconnec(obj)
+            connec = obj.globalConnec;
+            nunkn  = obj.dim.nunkn;
+            nnode  = size(connec,2);
+            dof_elem  = zeros(nnode*nunkn,size(connec,1));
+            for inode = 1:nnode
+                for iunkn = 1:nunkn
+                    idof_elem = obj.nod2dof(inode,iunkn);
+                    global_node = connec(:,inode);
+                    idof_global = obj.nod2dof(global_node,iunkn);
+                    dof_elem(idof_elem,:) = idof_global;
+                end
+            end
+            dof_elem = dof_elem';
+        end
+
+        function idof = nod2dof(obj, inode, iunkn)
+            nunkn = obj.dim.nunkn;
+            idof(:,1)= nunkn*(inode - 1) + iunkn;
+        end
 
         % Element_Elastic
         function createPrincipalDirection(obj, pdim)

@@ -10,8 +10,8 @@ classdef Element < handle
         dof
         uD
         nfields
-        bcApplier 
-    end   
+        bcApplier
+    end
     
     properties (Access = protected)
         bcType
@@ -25,7 +25,7 @@ classdef Element < handle
     methods (Access = public)
        
         function obj = Element()
-          obj.bcType = 'Dirichlet';  
+          obj.bcType = 'Dirichlet';
         end
         
     end
@@ -42,7 +42,7 @@ classdef Element < handle
             obj.geometry = geometry;
             obj.quadrature = Quadrature.set(mesh.type);
             obj.material = material;
-            obj.dof = dof;            
+            obj.dof = dof;
             obj.createBoundaryConditionasApplier();
             obj.assign_dirichlet_values();
         end

@@ -75,7 +75,7 @@ classdef Element_DiffReact < Element
             ngaus = obj.quadrature.ngaus;
             Ke = zeros(ndof,ndof,obj.nelem);
             for igaus = 1:ngaus
-                dShapeDx = obj.geometry.cartd(:,:,:,igaus);
+                dShapeDx = obj.geometry.dNdx(:,:,:,igaus);
                 Bmat     = obj.computeB(obj.dof.nunkn,obj.nelem,obj.nnode,dShapeDx);
                 for istre = 1:obj.nstre
                     BmatI = Bmat(istre,:,:);
@@ -165,12 +165,12 @@ classdef Element_DiffReact < Element
     end
     
     methods (Static)
-        function [B] = computeB(nunkn,nelem,nnode,cartd)
+        function [B] = computeB(nunkn,nelem,nnode,dNdx)
             B = zeros(2,nnode*nunkn,nelem);
             for inode=1:nnode
                 j = nunkn*(inode-1)+1;
-                B(1,j,:)=cartd(1,inode,:);
-                B(2,j,:)=cartd(2,inode,:);
+                B(1,j,:)=dNdx(1,inode,:);
+                B(2,j,:)=dNdx(2,inode,:);
             end
         end
     end

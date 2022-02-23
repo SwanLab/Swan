@@ -41,7 +41,7 @@ classdef SubcellsMesher < handle
         
         function obj = create(cParams)
             f = SubcellsMesherFactory();
-            obj = f.create(cParams);            
+            obj = f.create(cParams);
         end
         
     end
@@ -64,10 +64,10 @@ classdef SubcellsMesher < handle
     
     methods (Access = protected)
         
-        function init(obj,cParams)         
+        function init(obj,cParams)
             obj.posNodes = cParams.posNodes;
             obj.levelSetBackground = cParams.levelSetBackground;
-            obj.coordsBackground = cParams.coordsBackground;            
+            obj.coordsBackground = cParams.coordsBackground;
         end 
     end
     

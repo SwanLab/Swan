@@ -1,11 +1,17 @@
 classdef LHSintergrator_Stiffness < LHSintegrator
-  
+    
+    properties (Access = private)
+        geometry
+    end
+
     methods (Access = public)
         
         function obj = LHSintergrator_Stiffness(cParams)
-            obj.init(cParams)
+            obj.init(cParams);
+            obj.material = cParams.material;            
             obj.createQuadrature();
             obj.createInterpolation();
+            obj.createGeometry();
         end
 
         function LHS = compute(obj)
@@ -18,8 +24,7 @@ classdef LHSintergrator_Stiffness < LHSintegrator
    methods (Access = protected)
         
         function lhs = computeElementalLHS(obj)
-            dShape2 = obj.interpolation.deriv;
-            dShape = obj.computeGradient();
+            dShape = obj.geometry.dNdx;
             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
             ngaus  = obj.quadrature.ngaus;
             nelem  = obj.mesh.nelem;
@@ -28,7 +33,7 @@ classdef LHSintergrator_Stiffness < LHSintegrator
             for igaus = 1:ngaus
                 dv(1,1,:) = dvolu(igaus,:);
                 for iNode = 1:nnode
-                   for jNode = 1:nnode 
+                   for jNode = 1:nnode
                       dNi = dShape(:,iNode,:,igaus);
                       dNj = dShape(:,jNode,:,igaus);
                       dNidNj = sum(dNi.*dNj,1);
@@ -42,16 +47,14 @@ classdef LHSintergrator_Stiffness < LHSintegrator
     
    methods (Access = private)
        
-       function grad = computeGradient(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
-            m.type = obj.mesh.type;
-            int = Interpolation.create(m,'LINEAR');
-            int.computeShapeDeriv(obj.quadrature.posgp);
+       function createGeometry(obj)
+            q   = obj.quadrature;
+            int = obj.interpolation;
+            int.computeShapeDeriv(q.posgp);
             s.mesh = obj.mesh;
             g = Geometry.create(s);
-            g.computeGeometry(obj.quadrature,int);
-            grad = g.cartd;
+            g.computeGeometry(q,int);
+            obj.geometry = g;
        end
        
    end

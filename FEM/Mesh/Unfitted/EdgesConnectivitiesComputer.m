@@ -11,13 +11,13 @@ classdef EdgesConnectivitiesComputer < handle
     properties (Access = private)
         allToUnique
         uniqueToAll
-        nodesInAllEdges                
+        nodesInAllEdges
     end
     
     properties (Access = private)
         nodesByElem
         nElem
-        nAllEdges       
+        nAllEdges
         localEdgesInElem
     end
     
@@ -43,12 +43,12 @@ classdef EdgesConnectivitiesComputer < handle
             obj.nodesByElem = cParams.nodesByElem;
             nNodes = size(cParams.nodesByElem,2);
             switch nNodes
-                case 3            
+                case 3
                     obj.localEdgesInElem = nchoosek(1:nNodes,2);%[1 2; 2 3; 3 1];
-                    obj.localEdgesInElem = [1 2; 2 3; 3 1];                    
+                    obj.localEdgesInElem = [1 2; 2 3; 3 1];
                 case 4
                     obj.localEdgesInElem =  nchoosek(1:nNodes,2);%[1 2; 2 3; 3 1];
-            end            
+            end
             obj.nElem = size(obj.nodesByElem,1);
             obj.nEdgeByElem = size(obj.localEdgesInElem,1);
             obj.nNodeByEdge = size(obj.localEdgesInElem,2);
@@ -102,15 +102,15 @@ classdef EdgesConnectivitiesComputer < handle
         function computeLocalOrientedEdgeConnec(obj)
             edgeConnec = zeros(obj.nElem,obj.nEdgeByElem,obj.nNodeByEdge);
             for iedge = 1:obj.nEdgeByElem
-                isOriented = obj.isEdgeOriented(iedge);                
+                isOriented = obj.isEdgeOriented(iedge);
                 nodeA = obj.localEdgesInElem(iedge,1);
                 nodeB = obj.localEdgesInElem(iedge,2);
                 edgeConnec(isOriented,iedge,1)  = nodeA;
                 edgeConnec(isOriented,iedge,2)  = nodeB;
                 edgeConnec(~isOriented,iedge,1) = nodeB;
                 edgeConnec(~isOriented,iedge,2) = nodeA;
-            end            
-            obj.localNodeByEdgeByElem = edgeConnec;            
+            end
+            obj.localNodeByEdgeByElem = edgeConnec;
         end
         
         function itIs = isEdgeOriented(obj,iedge)

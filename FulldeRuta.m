@@ -1,36 +1,68 @@
-%Mesh
+%% Initial concept
+% %Mesh
+% 
+% %BC(dirichlet, newuman)
+% 
+% % Material
+% 
+% s.kappa = ...
+% s.mu = ...
+% s.mesh = 
+% %s.E   = 
+% %s.n_u = ...
+% Material(s)
+% 
+% % FEM
+% s.mesh = mesh;
+% s.boundaryConditions = BC;
+% s.material = material;
+% s.type = 'ELASTIC';
+% s.dim = '2D';
+% fem = FEM.create(s);
+% fem().solve();
+% fem.plot();
 
-%BC(dirichlet, newuman)
+%% Initial result
 
-% Material
+load("newFemParams.mat")
+% Contains:
+%     - dim
+%     - type
+%     - scale
+%     - mesh
+%     - dirichlet
+%     - pointload
 
-s.kappa = ...
-s.mu = ...
-s.mesh = 
-%s.E   = 
-%s.n_u = ...
-Material(s)
 
-% FEM
-s.mesh = mesh;
-s.boundaryConditions = BC;
-s.material = material;
-s.type = 'ELASTIC';
-s.dim = '2D';
-fem = FEM.create(s);
-fem().solve();
+
+
+fem = NewFEM.create(s);
+fem.solve();
 fem.plot();
 
+% Create example 2D not using load
+% Create example 3D not using load
+% eliminate istre,jstre loop 
+% investigate how to efficiently multiply B,C,B
+% Use BmatrixComputer in LHSintegrator_StifnessElastic
+% With large example compare Sparse vs Accumarray
+% eliminate computeLHS from Integrator_Simple
+% Element_DiffReact K, M, Mr with LHSintegrator
+% Eliminate computeLHS from integratorComposite
 
-% LHSintegrator_Stiffness : create geometry in init.
+%% Todo
 % change name cartd per dNdx
-%try sparse vs accumarray in assemblyCmat, assembleMatrix (BMatrixComputer) and LHSintegrator 
+% LHSintegrator_Stiffness : create geometry in init.
+% try sparse vs accumarray in assemblyCmat, assembleMatrix (BMatrixComputer) and LHSintegrator 
 % posI, posJ in LHSintergrator_StiffnessElasticStoredB
 %LHSintergrator_StiffnessElastic (computeB) 
 % 6. DOF+ Boudnary
 % 4. Create input data for NewFem (mesh,bc,material)
+% investigate why nnode is not correct in TopOptTests (reads 3, should be 2)
+% make test3d_hexahedra go faster
+% % time lost during squeeze (+33.000 calls) in computeElementalLHS
 
-
+%% Old To-do
 
 % Inputa data
 % DOF + bondary

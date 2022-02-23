@@ -110,7 +110,7 @@ classdef Element_Stokes < Element
             obj.quadrature.computeQuadrature('QUADRATIC');
             obj.geometry(1).computeGeometry(obj.quadrature,obj.interpolation_v);
             for igauss = 1 :obj.quadrature.ngaus
-                Bmat = obj.computeB(nunkn,nelem,obj.interpolation_v.nnode,obj.geometry(1).cartd(:,:,:,igauss));
+                Bmat = obj.computeB(nunkn,nelem,obj.interpolation_v.nnode,obj.geometry(1).dNdx(:,:,:,igauss));
                 %                 B_p=reshape(Bmat,[geometry.nnode*nunkn,1,nelem]);
                 for iv=1:obj.interpolation_v.nnode*nunkn
                     for jv=1:obj.interpolation_v.nnode*nunkn
@@ -139,7 +139,7 @@ classdef Element_Stokes < Element
                     for inode_test = 1:obj.interpolation_v.nnode
                         for idime = 1:obj.interpolation_v.ndime
                             dof_test = inode_test*nunkn_u - nunkn_u + idime;
-                            v= squeeze (obj.geometry(1).cartd(idime,inode_test,:,igauss));
+                            v= squeeze (obj.geometry(1).dNdx(idime,inode_test,:,igauss));
                             D(dof_test,inode_var,:)= squeeze(D(dof_test,inode_var,:)) - v(:).*obj.interpolation_p.shape(inode_var,igauss)...
                                 .*obj.geometry(1).dvolu(:,igauss);
                         end
@@ -148,14 +148,14 @@ classdef Element_Stokes < Element
             end
         end
         
-        function B = computeB(obj,nunkn,nelem,nnode,cartd)
+        function B = computeB(obj,nunkn,nelem,nnode,dNdx)
             B = zeros(2,nnode*nunkn,nelem);
             for i = 1:nnode
                 j = nunkn*(i-1)+1;
-                B(1,j,:)  = cartd(1,i,:);
-                B(2,j+1,:)= cartd(1,i,:);
-                B(3,j,:)  = cartd(2,i,:);
-                B(4,j+1,:)= cartd(2,i,:);
+                B(1,j,:)  = dNdx(1,i,:);
+                B(2,j+1,:)= dNdx(1,i,:);
+                B(3,j,:)  = dNdx(2,i,:);
+                B(4,j+1,:)= dNdx(2,i,:);
             end
         end
         
