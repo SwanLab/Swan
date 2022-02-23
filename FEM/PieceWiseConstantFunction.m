@@ -7,6 +7,7 @@ classdef PieceWiseConstantFunction < handle
     properties (Access = private)
         integrator
         quadrature
+        dim
     end
     
     properties (Access = private)
@@ -19,10 +20,11 @@ classdef PieceWiseConstantFunction < handle
         
         function obj = PieceWiseConstantFunction(cParams)
             obj.init(cParams);
+            obj.createQuadrature();            
+            obj.createDimensions();
         end
         
         function fNodal = projectToLinearNodalFunction(obj)
-            obj.createQuadrature();
             obj.createIntegrator();           
             LHS = obj.computeLHS();
             RHS = obj.computeRHS();
@@ -43,8 +45,19 @@ classdef PieceWiseConstantFunction < handle
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature(obj.quadOrder); 
             obj.quadrature = q;
-        end        
-        
+        end      
+
+        function createDimensions(obj)
+            q = Quadrature();
+            q = q.set(obj.mesh.type);
+            s.mesh = obj.mesh;
+            s.pdim = 'FILTER';
+            s.ngaus = q.ngaus;
+            d = DimensionVariables(s);
+            d.compute();
+            obj.dim = d;
+        end
+
         function createIntegrator(obj)
             s.type = 'SIMPLE';
             s.mesh = obj.mesh;
@@ -66,7 +79,13 @@ classdef PieceWiseConstantFunction < handle
         end
         
         function LHS = computeLHS(obj)
-           LHS = obj.integrator.computeLHS();
+            s.mesh         = obj.mesh;
+            s.globalConnec = obj.mesh.connec;
+            s.npnod        = obj.mesh.npnod;
+            s.type         = 'MassMatrix';
+            s.dim          = obj.dim;
+            lhs = LHSintegrator.create(s);
+            LHS = lhs.compute();
         end
         
         function RHS = computeRHS(obj)

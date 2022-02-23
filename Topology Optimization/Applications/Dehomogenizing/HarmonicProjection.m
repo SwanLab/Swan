@@ -1,19 +1,17 @@
 classdef HarmonicProjection < handle
     
-    properties (Access = public)
-        
-    end
-    
-    properties (Access = private)
-       orientationAngle
-       mesh        
-    end
-    
     properties (Access = private)
         dim
         massMatrix
         stiffnessMatrix
-        rhsU
+        reducedStiffnessMatrix
+        LHS
+        solver
+    end    
+
+    properties (Access = private)
+       mesh   
+       boundaryMesh
     end
     
     methods (Access = public)
@@ -23,13 +21,34 @@ classdef HarmonicProjection < handle
             obj.createDimension();
             obj.computeMassMatrix();
             obj.computeStiffnessMatrix();
+            obj.computeReducedStiffnessMatrix();
+            obj.computeLHS();
+            obj.createSolver()
         end
         
-        function project(obj)
-            LHS = obj.computeLHS();
-            rhs = obj.computeRHS(1);
+        function [vH,errF] = project(obj,v)
+            lhs = obj.LHS;
+            rhs = obj.computeRHS(v);
+            vH  = obj.solver.solve(lhs,rhs);
+            vH  = vH(1:obj.dim.npnod,1);
 
+            Kred = obj.reducedStiffnessMatrix;            
+            M    = obj.massMatrix;
+            grad = Kred*vH;
+            errC = norm(grad);
+            errF = (v-vH)'*M*(v-vH)/(v'*M*v);
         end
+
+        function [vH,errF] = projectByDual(obj,v)
+            Kred = obj.reducedStiffnessMatrix;            
+            M    = obj.massMatrix;            
+            lhs = Kred*(M\Kred');
+            rhs = Kred*v;            
+            lambda  = obj.solver.solve(lhs,rhs);
+            vH = v - M\(Kred'*lambda);
+            errC = norm(Kred*vH);
+            errF = (v-vH)'*M*(v-vH)/(v'*M*v);
+        end        
         
     end
     
@@ -37,7 +56,7 @@ classdef HarmonicProjection < handle
         
         function init(obj,cParams)
            obj.mesh             = cParams.mesh;
-           obj.orientationAngle = cParams.orientationAngle;
+           obj.boundaryMesh     = cParams.boundaryMesh;
         end
         
         function createDimension(obj)
@@ -59,6 +78,8 @@ classdef HarmonicProjection < handle
             s.dim          = obj.dim;
             lhs = LHSintegrator.create(s);
             M = lhs.compute();
+            %M = diag(sum(M));
+            %M = eye(size(M,1));
             obj.massMatrix = M;
         end
 
@@ -71,21 +92,36 @@ classdef HarmonicProjection < handle
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
             obj.stiffnessMatrix = K;
-       end           
+       end        
 
-       function LHS = computeLHS(obj)
-           x = obj.mesh.coord(:,1);
-           y = obj.mesh.coord(:,2);
-           b = boundary(x,y,1);
+       function computeReducedStiffnessMatrix(obj)
+           b    = obj.boundaryMesh;
            nInt = setdiff(1:obj.dim.npnod,b);
            K    = obj.stiffnessMatrix; 
            Kred = K(nInt,:);
-           M    = obj.massMatrix;
-           Z    = zeros(length(nInt),length(nInt));
-           LHS  = [M,Kred';Kred,Z];
+           obj.reducedStiffnessMatrix = Kred;
        end
 
-        function computeRHS(obj,idim)
+       function createSolver(obj)
+            s = Solver.create();
+            obj.solver = s;
+       end
+
+       function  computeLHS(obj)
+           Kred = obj.reducedStiffnessMatrix;
+           M    = obj.massMatrix;
+           Z    = obj.computeZeroFunction();
+           lhs  = [M,Kred';Kred,Z];
+           obj.LHS = lhs;
+       end
+
+       function Z = computeZeroFunction(obj)
+           b    = obj.boundaryMesh;
+           nInt = setdiff(1:obj.dim.npnod,b);           
+           Z    = zeros(length(nInt),length(nInt));           
+       end
+
+        function rhs = computeRHS(obj,v)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('LINEAR');
             s.mesh  = obj.mesh;
@@ -94,8 +130,11 @@ classdef HarmonicProjection < handle
             s.dim   = obj.dim;
             s.type = 'SIMPLE';
             int = Integrator.create(s);
-            rhsC = int.integrateFnodal(obj.orientationAngle(:,idim),q.order);
-            obj.rhsU = obj.assembleIntegrand(rhsC);        
+            rhs = int.integrateFnodal(v,q.order);
+            b = obj.boundaryMesh;
+            nInt = setdiff(1:obj.dim.npnod,b);
+            Z   = zeros(length(nInt),1);
+            rhs = [rhs;Z];
         end
 
     end
