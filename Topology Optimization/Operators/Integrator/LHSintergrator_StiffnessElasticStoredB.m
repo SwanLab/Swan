@@ -8,7 +8,8 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
     methods (Access = public)
         
         function obj = LHSintergrator_StiffnessElasticStoredB(cParams)
-            obj.init(cParams)
+            obj.init(cParams);
+            obj.material = cParams.material;            
             obj.createQuadrature();
             obj.createInterpolation();
             obj.createGeometry();

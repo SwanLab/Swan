@@ -42,9 +42,6 @@ classdef LHSintegrator < handle
             obj.mesh         = cParams.mesh;
             obj.npnod        = cParams.npnod;
             obj.globalConnec = cParams.globalConnec;
-            if isfield(cParams, 'material') % Compatibility with MassMatrix
-                obj.material   = cParams.material;
-            end
         end
         
        function createQuadrature(obj)
@@ -59,53 +56,8 @@ classdef LHSintegrator < handle
             obj.interpolation = int;
         end
 
-%         function A = assembleMatrix(obj,aElem)
-%             connec = obj.globalConnec;
-% %             ndofs  = obj.npnod; % should be obj.dim.ndof
-%             ndofs  = obj.dim.ndof; % should be obj.dim.ndof
-%             Ae     = aElem;
-%             nunkn1 = obj.dim.nunkn;
-%             nunkn2 = obj.dim.nunkn;
-%             nnode1 = size(connec,2);
-%             nnode2 = size(connec,2);
-%             A = sparse(ndofs,ndofs);
-%             for i = 1:nnode1 % changed that
-%                 nodeI = connec(:,i);
-%                 for j = 1:nnode2 % changed that as well
-%                     nodeJ = connec(:,j);
-%                     a = squeeze(Ae(i,j,:));
-%                     A = A + sparse(nodeI,nodeJ,a,ndofs,ndofs);
-%                 end
-%             end
-%         end
-
-%         function A = assembleMatrix(obj,aElem)
-%             connec = obj.globalConnec;
-%             dofConnec = obj.computeDOFconnec();
-% %             ndofs  = obj.npnod; % should be obj.dim.ndof
-%             ndofs  = obj.dim.ndof; % should be obj.dim.ndof
-%             Ae     = aElem;
-%             nunkn = obj.dim.nunkn
-%             nunkn1 = obj.dim.nunkn;;
-%             nunkn2 = obj.dim.nunkn;
-%             nnode1 = size(connec,2);
-%             nnode2 = size(connec,2);
-%             A = sparse(ndofs,ndofs);
-%             for iunkn = 1:nunkn
-%                 for i = 1:nnode1 % changed that
-%                     nodeI = connec(:,i);
-% %                     dofsI = nunkn*(nodeI - 1) + iunkn;
-%                     for j = 1:nnode2 % changed that as well
-%                         nodeJ = connec(:,j);
-%                         a = squeeze(Ae(i,j,:)); % it does NOT access i,j>3
-%                         A = A + sparse(nodeI,nodeJ,a,ndofs,ndofs);
-%                     end
-%                 end
-%             end
-%         end
-
         function A = assembleMatrix(obj,aElem)
-            connec = obj.globalConnec;
+            connec    = obj.globalConnec;
             dofConnec = obj.computeDOFconnec();
             ndofs  = obj.dim.ndof;
             nunkn  = obj.dim.nunkn;
@@ -119,7 +71,7 @@ classdef LHSintegrator < handle
                     dofsJ = dofConnec(:,j);
                     a = squeeze(Ae(i,j,:));
                     Aadd = obj.computeAaddBySparse(a, dofsI, dofsJ);
-%                     Aadd = obj.computeAaddBySparse(a, dofsI, dofsJ);
+%                     Aadd = obj.computeAaddByAccumarray(a, dofsI, dofsJ);
                     A = A + Aadd;
                 end
             end

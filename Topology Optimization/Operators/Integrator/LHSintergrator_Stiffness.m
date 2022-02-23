@@ -7,7 +7,8 @@ classdef LHSintergrator_Stiffness < LHSintegrator
     methods (Access = public)
         
         function obj = LHSintergrator_Stiffness(cParams)
-            obj.init(cParams)
+            obj.init(cParams);
+            obj.material = cParams.material;            
             obj.createQuadrature();
             obj.createInterpolation();
             obj.createGeometry();
@@ -23,7 +24,6 @@ classdef LHSintergrator_Stiffness < LHSintegrator
    methods (Access = protected)
         
         function lhs = computeElementalLHS(obj)
-%             dShape2 = obj.interpolation.deriv;
             dShape = obj.geometry.dNdx;
             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
             ngaus  = obj.quadrature.ngaus;

@@ -33,9 +33,22 @@ load("newFemParams.mat")
 %     - dirichlet
 %     - pointload
 
+
+
+
 fem = NewFEM.create(s);
 fem.solve();
 fem.plot();
+
+% Create example 2D not using load
+% Create example 3D not using load
+% eliminate istre,jstre loop 
+% investigate how to efficiently multiply B,C,B
+% Use BmatrixComputer in LHSintegrator_StifnessElastic
+% With large example compare Sparse vs Accumarray
+% eliminate computeLHS from Integrator_Simple
+% Element_DiffReact K, M, Mr with LHSintegrator
+% Eliminate computeLHS from integratorComposite
 
 %% Todo
 % change name cartd per dNdx

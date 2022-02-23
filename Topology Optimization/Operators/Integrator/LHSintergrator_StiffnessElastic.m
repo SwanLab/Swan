@@ -7,7 +7,8 @@ classdef LHSintergrator_StiffnessElastic < LHSintegrator
     methods (Access = public)
         
         function obj = LHSintergrator_StiffnessElastic(cParams)
-            obj.init(cParams)
+            obj.init(cParams);
+            obj.material = cParams.material;                        
             obj.createQuadrature();
             obj.createInterpolation();
             obj.createGeometry();
@@ -56,31 +57,23 @@ classdef LHSintergrator_StiffnessElastic < LHSintegrator
             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
             ngaus  = obj.quadrature.ngaus;
             nelem  = obj.dim.nelem;
-            nnode  = obj.dim.nnode;
-            nunkn  = obj.dim.nunkn;
+
             nstre = obj.dim.nstre;
-            lhs = zeros(nnode*nunkn,nnode*nunkn,nelem);
+            npe   = obj.dim.ndofPerElement;
+            lhs = zeros(npe,npe,nelem);
             for igaus = 1:ngaus
                 Bmat = obj.computeB(dShape, igaus);
-                Cmat = obj.material.C;
-                dv(1,1,:) = dvolu(igaus,:);
-%                 for iElem = 1:nelem
-%                     b = B(:,:,iElem);
-%                     c = obj.material.C(:,:,iElem);
-%                     bt = permute(b,[2 1 3]);
-%                     dV = dvolu(iElem);
-%                     val = bt*c*b*dV;
-%                     lhs(:,:,iElem) = val;
-%                 end
-                for iv = 1:nnode*nunkn
-                    for jv = 1:nnode*nunkn
-                        for istre = 1:nstre
-                            for jstre = 1:nstre
-                                v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:,igaus).*Bmat(jstre,jv,:)); %
-                                lhs(iv,jv,:) = squeeze(lhs(iv,jv,:)) + v(:).*dvolu(igaus,:)';
-                            end
-                        end
-                        
+                Cmat = obj.material.C(:,:,:,igaus);
+                dV    = dvolu(igaus,:)';
+                for istre = 1:nstre
+                    for jstre = 1:nstre
+                        Cij   = squeeze(Cmat(istre,jstre,:));                        
+                        c(1,1,:) = Cij.*dV;
+                        Bi = Bmat(istre,:,:); 
+                        CB = bsxfun(@times,Bi,c);
+                        Bj = permute(Bmat(jstre,:,:),[2 1 3]); 
+                        t = bsxfun(@times,CB,Bj);                     
+                        lhs = lhs + t;
                     end
                 end
 

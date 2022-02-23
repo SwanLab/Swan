@@ -3,7 +3,7 @@ classdef LHSintergrator_Mass < LHSintegrator
     methods (Access = public)
         
         function obj = LHSintergrator_Mass(cParams)
-            obj.init(cParams)
+            obj.init(cParams);
             obj.createQuadrature();
             obj.createInterpolation();
         end
