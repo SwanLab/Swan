@@ -5,7 +5,7 @@ classdef GradientMethod < handle
         differentiableFunction
         designVariable
     end
-    
+
     methods (Access = public)
         
         function obj = GradientMethod(cParams)

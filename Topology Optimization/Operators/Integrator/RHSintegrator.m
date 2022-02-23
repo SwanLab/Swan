@@ -81,7 +81,7 @@ classdef RHSintegrator < handle
                 if ~isempty(cParams.nunknPerField)
                 obj.nunknPerField = cParams.nunknPerField;
                 else
-                  obj.nunknPerField = 1;        
+                  obj.nunknPerField = 1;
                 end
             else
                 obj.nunknPerField = 1;
