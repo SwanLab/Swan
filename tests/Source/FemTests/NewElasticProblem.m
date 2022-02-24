@@ -51,13 +51,6 @@ classdef NewElasticProblem < handle %NewFEM
             s.displacement = obj.variables.d_u;
             plotter = FEMPlotter(s);
             plotter.plot();
-            %             ndim = obj.dim.ndim;
-            %             switch ndim
-            %                 case 2
-            %                     obj.plotFem2D();
-            %                 case 3
-            %                     obj.plotFem3D();
-            %             end
         end
 
     end
