@@ -1,46 +1,53 @@
-%% Initial concept
-% %Mesh
-% 
-% %BC(dirichlet, newuman)
-% 
-% % Material
-% 
-% s.kappa = ...
-% s.mu = ...
-% s.mesh = 
-% %s.E   = 
-% %s.n_u = ...
-% Material(s)
-% 
-% % FEM
-% s.mesh = mesh;
-% s.boundaryConditions = BC;
-% s.material = material;
-% s.type = 'ELASTIC';
-% s.dim = '2D';
-% fem = FEM.create(s);
-% fem().solve();
-% fem.plot();
+%% 2D Example
+% Cantilever beam
+clc; clear; close all;
 
-%% Initial result
+% Coordinates
+x = 0:0.1:1;
+y = 0:0.05:0.25;
 
-load("newFemParams.mat")
-% Contains:
-%     - dim
-%     - type
-%     - scale
-%     - mesh
-%     - dirichlet
-%     - pointload
+%Mesh
+[X,Y,Z] = meshgrid(x,y,0);
+fvc = surf2patch(X,Y,Z,'triangles');
+fvc.vertices(:,3) = []; % 2D
+coords = fvc.vertices;
+connec = fvc.faces;
+m.coord = coords;
+m.connec = connec;
+p.mesh = Mesh(m);
+npnod = size(coords,1);
 
+% Boundary conditions
+dirichNodes = find(coords(:,1) == 0 );
+ndirich = size(dirichNodes,1);
+dirichlet = [dirichNodes,   ones(ndirich,1), zeros(ndirich,1);
+             dirichNodes, 2*ones(ndirich,1), zeros(ndirich,1)];
+neumann   = [npnod, 2, 0.0001];
 
+% FEM parameters
+p.dim = '2D';
+p.type = 'ELASTIC';
+p.scale = 'MACRO';
+p.dirichlet = dirichlet;
+p.pointload = neumann;
 
-
-fem = NewFEM.create(s);
+% Solution
+fem = NewFEM.create(p);
 fem.solve();
 fem.plot();
 
-% Create example 2D not using load
+%% Visualize
+
+%             Tn = connec;
+%             x  = coords(:,1);
+%             y  = coords(:,2);
+%             figure()
+%             hold on
+%             colormap jet;
+%             plot(x(Tn)',y(Tn)','--','linewidth',0.5);
+
+%% Todo
+% {{done}} Create example 2D not using load
 % Create example 3D not using load
 % eliminate istre,jstre loop 
 % investigate how to efficiently multiply B,C,B
@@ -50,46 +57,6 @@ fem.plot();
 % Element_DiffReact K, M, Mr with LHSintegrator
 % Eliminate computeLHS from integratorComposite
 
-%% Todo
-% change name cartd per dNdx
-% LHSintegrator_Stiffness : create geometry in init.
-% try sparse vs accumarray in assemblyCmat, assembleMatrix (BMatrixComputer) and LHSintegrator 
-% posI, posJ in LHSintergrator_StiffnessElasticStoredB
-%LHSintergrator_StiffnessElastic (computeB) 
-% 6. DOF+ Boudnary
-% 4. Create input data for NewFem (mesh,bc,material)
-% investigate why nnode is not correct in TopOptTests (reads 3, should be 2)
-% make test3d_hexahedra go faster
-% % time lost during squeeze (+33.000 calls) in computeElementalLHS
-
-%% Old To-do
-
-% Inputa data
-% DOF + bondary
-% Stifness with integrator
-% Forces * BC inside + integrator
-
-%Top uses NewFem instaead of FEM
-
-% 1. Vectorized test fix {{done}}
-%   {{Done}}, committed and pushed. Pending approval of pull request.
-
-% 2. Delete KgeneratorWithFullStoredB {{done}}
-%   {{Done}}, committed and pushed. Pending approval of pull request.
-
-% 3. Clean LHSintegratorStiffnessElasticStoredB {{done}} (?)
-%   {{Done}} (?), committed and pushed. Pending approval of pull request.
-
-% 4. Create input data for NewFem (mesh,bc,material)
-%    {{Done}}-ish. It needs:
-%         - mesh
-%         - pdim
-%         - ptype, scale
-%         - problemID (fileName) for DOF compatibility
-%         - dirichlet
-%         - pointload
-
-%% 5. Create  LHSintergrator_StiffnessElastic 
-% 6. DOF+ Boudnary
+%% Endgame
 % 7. Force use integrator for assembly
 % 8. LHS integrator must be composed by integrator_simple for assemnbly
