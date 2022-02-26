@@ -24,6 +24,8 @@ classdef BMatrixComputer < handle
                     B = obj.computeBin2D(igaus);
                 case 3
                     B = obj.computeBin3D(igaus);
+                case -1 
+                    B = obj.computeBinFilter(igaus);
             end
         end
 
@@ -74,6 +76,17 @@ classdef BMatrixComputer < handle
                 % associated to shear strain, gamma23
                 B(6,j+1,:) = dNdx(3,inode,:,igaus);
                 B(6,j+2,:) = dNdx(2,inode,:,igaus);
+            end
+        end
+
+        function [B] = computeBinFilter(obj, igaus)
+            d    = obj.dim;
+            dNdx = obj.geometry.dNdx(:,:,:,igaus);
+            B = zeros(2,d.nnode*d.nunkn,d.nelem);
+            for inode = 1:d.nnode
+                j = d.nunkn*(inode-1) + 1;
+                B(1,j,:) = dNdx(1,inode,:);
+                B(2,j,:) = dNdx(2,inode,:);
             end
         end
 

@@ -16,7 +16,7 @@ classdef DesignVariable < handle
         scalarProduct
     end
     
-    properties (Access = private) 
+    properties (Access = private)
         valueOld
         alphaOld
     end

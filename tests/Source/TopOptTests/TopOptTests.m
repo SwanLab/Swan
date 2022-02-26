@@ -18,7 +18,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             }
 %         compTestsToPass = {'test_bridge'}
 %         compTestsToPass = {'test_interiorPerimeter'}
-        compTests = {'test_bridge'}
+        cantileverTests = {'test_cantilever2', 'test_cantilever3'}
         dimensions = {'2D', '3D'}
         vigdergauzTests = {'test_VigergauzMicroStructure', 'test_VigergauzMicroStructureFromStrain'}
         vigdergauzVolumes = {0.6, 0.75}
@@ -30,6 +30,21 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
 %             testCase.fixFolder();
             s.computerType    = 'TOPOPT';
             s.testName         = fastDisp;
+            s.variablesToStore = {'x'};
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+    end
+
+    methods (Test, TestTags = {'Cantilever'})
+
+        function testCantilever(testCase, cantileverTests)
+%             testCase.fixFolder();
+            s.computerType    = 'TOPOPT';
+            s.testName         = cantileverTests;
             s.variablesToStore = {'x'};
             test = PrecomputedVariableTest(s);
             err = test.computeError();

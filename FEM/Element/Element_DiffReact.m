@@ -52,6 +52,15 @@ classdef Element_DiffReact < Element
             Ke = obj.computeElementalStiffnessMatrix();
             Kg = obj.AssembleMatrix(Ke,1,1); % !!
             obj.K = Kg;
+
+            s.type = 'StiffnessMatrix';
+            s.mesh         = obj.mesh;
+            s.npnod        = obj.mesh.npnod;
+            s.globalConnec = obj.mesh.connec;
+            s.dim          = obj.computeDimFilter();
+%             s.material     = obj.material;
+            LHS = LHSintegrator.create(s);
+            obj.K = LHS.compute();
         end
         
         function computeMassMatrix(obj)
@@ -119,7 +128,7 @@ classdef Element_DiffReact < Element
             bMeshes = bC.create();
             bMeshes = obj.boundaryMesh;
             nBoxFaces = numel(bMeshes);
-            dim = obj.computeDim();
+            dim = obj.computeDimFilter();
             for iMesh = 1:nBoxFaces
                 boxFaceMesh = bMeshes{iMesh};
                 cParams.mesh = boxFaceMesh.mesh;
@@ -133,6 +142,15 @@ classdef Element_DiffReact < Element
         end
         
         function dim = computeDim(obj)
+            s.ngaus = obj.quadrature.ngaus;
+            s.mesh  = obj.mesh;
+            s.pdim  = obj.createPdim();
+%             s.pdim  = 'FILTER';
+            dim    = DimensionVariables(s);
+            dim.compute();
+        end
+        
+        function dim = computeDimFilter(obj)
             s.ngaus = obj.quadrature.ngaus;
             s.mesh  = obj.mesh;
 %             s.pdim  = obj.createPdim();
