@@ -49,18 +49,18 @@ classdef Element_DiffReact < Element
     methods (Access = private)
         
         function computeStiffnessMatrix(obj)
-            Ke = obj.computeElementalStiffnessMatrix();
-            Kg = obj.AssembleMatrix(Ke,1,1); % !!
-            obj.K = Kg;
+%             Ke = obj.computeElementalStiffnessMatrix();
+%             Kg = obj.AssembleMatrix(Ke,1,1); % !!
+%             obj.K = Kg;
 
-%             s.type = 'StiffnessMatrix';
-%             s.mesh         = obj.mesh;
-%             s.npnod        = obj.mesh.npnod;
-%             s.globalConnec = obj.mesh.connec;
-%             s.dim          = obj.computeDimFilter();
-% %             s.material     = obj.material;
-%             LHS = LHSintegrator.create(s);
-%             obj.K = LHS.compute();
+            s.type = 'StiffnessMatrix';
+            s.mesh         = obj.mesh;
+            s.npnod        = obj.mesh.npnod;
+            s.globalConnec = obj.mesh.connec;
+            s.dim          = obj.computeDimFilter();
+%             s.material     = obj.material;
+            LHS = LHSintegrator.create(s);
+            obj.K = LHS.compute();
         end
         
         function computeMassMatrix(obj)

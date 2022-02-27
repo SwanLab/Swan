@@ -4,7 +4,7 @@ classdef PlottingTestsSuite < handle
 
         function obj = PlottingTestsSuite()
             path = './tests/Source/PlottingTests/PlottingTests.m';
-            suite = matlab.unittest.TestSuite.fromFile(path, 'Tag','PlottingTests');
+            suite = matlab.unittest.TestSuite.fromFile(path, 'Tag','ToPass'); %PlottingTests
             results = suite.run;
             table(results)
         end
