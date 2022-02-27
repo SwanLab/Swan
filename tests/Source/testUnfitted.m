@@ -29,9 +29,9 @@ classdef testUnfitted < test
             bM  = obj.computation.designVariable.mesh;
             s.backgroundMesh = bM.innerMeshOLD;
             s.boundaryMesh   = bM.boxFaceMeshes;
-            cParams = SettingsMeshUnfitted(s);            
+            cParams = SettingsMeshUnfitted(s);
             obj.unfittedMesh = UnfittedMesh(cParams);
-            obj.unfittedMesh.compute(obj.levelSet); 
+            obj.unfittedMesh.compute(obj.levelSet);
         end
         
     end

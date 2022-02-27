@@ -1,14 +1,14 @@
 classdef test < handle
     
     properties (Access = protected)
-       FileName 
+       FileName
     end
     
     methods (Access = public)
         
         function checkTestPassed(obj,FileName)
             obj.FileName = FileName;
-            if obj.hasPassed()                
+            if obj.hasPassed()
                 obj.printTestPassed()
             else
                 obj.printTestNotPassed()

@@ -7,15 +7,15 @@ classdef Integrator_Simple < Integrator
             obj.globalConnec = cParams.globalConnec;
         end
         
-        function LHS = computeLHS(obj)
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.globalConnec;
-            s.npnod        = obj.npnod;
-            s.dim          = obj.dim;
-            s.type = 'MassMatrix';
-            lhs = LHSintegrator.create(s);
-            LHS = lhs.compute();
-        end
+%         function LHS = computeLHS(obj)
+%             s.mesh         = obj.mesh;
+%             s.globalConnec = obj.globalConnec;
+%             s.npnod        = obj.npnod;
+%             s.dim          = obj.dim;
+%             s.type = 'MassMatrix';
+%             lhs = LHSintegrator.create(s);
+%             LHS = lhs.compute();
+%         end
        
         function rhs = integrate(obj,fNodal)
             quadOrder = 'LINEAR';

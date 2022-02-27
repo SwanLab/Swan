@@ -5,10 +5,15 @@
 % investigate how to efficiently multiply B,C,B
 % {{done}} Use BmatrixComputer in LHSintegrator_StifnessElastic
 % With large example compare Sparse vs Accumarray
-% eliminate computeLHS from Integrator_Simple
 % Element_DiffReact K, M, Mr with LHSintegrator
 %         - K done (had to fix LHSintegrator_Stiffness)
-% Eliminate computeLHS from integratorComposite
+%         - M done
+%         - Mr done
+%         NOTE: this change affects PlottingTests. Not yet solved!
+% READY - Eliminate computeLHS from Integrator_Simple
+% * after solving the issues with PlottingTests
+% READY - Eliminate computeLHS from integratorComposite
+% * after solving the issues with PlottingTests
 
 % NEW: fix LHSintegrator_Stiffness
 

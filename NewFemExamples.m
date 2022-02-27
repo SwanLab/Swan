@@ -89,30 +89,15 @@ x = 0:0.1:1;
 y = 0:0.05:0.25;
 z = 0:0.05:0.25;
 
-% x = linspace(0,1,10);
-% y = linspace(0,1,10);
-% z = linspace(0,2,20);
-% [X,Y,Z] = meshgrid(x,y,z);
-% coord  = [X(:) Y(:) Z(:)];
-% d = delaunayTriangulation(coord);
-% s.connec = d.ConnectivityList;
-% s.coord  = coord;
-% obj.backgroundMesh = Mesh(s);
-
-%Mesh
+x = linspace(0,1,5);
+y = linspace(0,1,5);
+z = linspace(0,2,10);
 [X,Y,Z] = meshgrid(x,y,z);
-% fvc = surf2patch(X,Y,Z,'f');
-sizeX = size(X,1);
-sizeY = size(X,2);
-sizeZ = size(X,3);
-fvc = surf2patch(reshape(X,sizeX*sizeY,sizeZ),reshape(Y,sizeX*sizeY,sizeZ),reshape(Z,sizeX*sizeY,sizeZ));
-% fvc.vertices(:,3) = []; % 2D
-
-coords = fvc.vertices;
-connec = fvc.faces;
-m.coord = coords;
-m.connec = connec;
-p.mesh = Mesh(m);
+coords  = [X(:) Y(:) Z(:)];
+d = delaunayTriangulation(coords);
+s.connec = d.ConnectivityList;
+s.coord  = coords;
+p.mesh = Mesh(s);
 npnod = size(coords,1);
 
 % Boundary conditions
@@ -121,7 +106,7 @@ ndirich = size(dirichNodes,1);
 dirichlet = [dirichNodes,   ones(ndirich,1), zeros(ndirich,1);
              dirichNodes, 2*ones(ndirich,1), zeros(ndirich,1);
              dirichNodes, 3*ones(ndirich,1), zeros(ndirich,1)];
-neumann   = [npnod, 2, 1];
+neumann   = [npnod, 2, 0.0001];
 
 % FEM parameters
 p.dim = '3D';

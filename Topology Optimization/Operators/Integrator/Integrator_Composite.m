@@ -16,12 +16,12 @@ classdef Integrator_Composite < Integrator
             obj.createIntegrators(cParams);
         end
         
-        function A = computeLHS(obj)
-            A = sparse(obj.npnod,obj.npnod);
-            for iInt = 1:obj.nInt
-                A = A + obj.integrators{iInt}.computeLHS();
-            end
-        end
+%         function A = computeLHS(obj)
+%             A = sparse(obj.npnod,obj.npnod);
+%             for iInt = 1:obj.nInt
+%                 A = A + obj.integrators{iInt}.computeLHS();
+%             end
+%         end
         
         function f = integrate(obj,nodalFunc)
             f = cell(1,obj.nInt);

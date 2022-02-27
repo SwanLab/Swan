@@ -53,27 +53,47 @@ classdef Element_DiffReact < Element
             Kg = obj.AssembleMatrix(Ke,1,1); % !!
             obj.K = Kg;
 
-            s.type = 'StiffnessMatrix';
+%             s.type = 'StiffnessMatrix';
+%             s.mesh         = obj.mesh;
+%             s.npnod        = obj.mesh.npnod;
+%             s.globalConnec = obj.mesh.connec;
+%             s.dim          = obj.computeDimFilter();
+% %             s.material     = obj.material;
+%             LHS = LHSintegrator.create(s);
+%             obj.K = LHS.compute();
+        end
+        
+        function computeMassMatrix(obj)
+%             Me = obj.computeElementalMassMatrix();
+%             Mg = obj.AssembleMatrix(Me,1,1); % !!
+%             obj.M = Mg;
+
+            s.type         = 'MassMatrix';
+            s.quadType     = 'QUADRATICMASS';
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.computeDimFilter();
 %             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
-            obj.K = LHS.compute();
-        end
-        
-        function computeMassMatrix(obj)
-            Me = obj.computeElementalMassMatrix();
-            Mg = obj.AssembleMatrix(Me,1,1); % !!
-            obj.M = Mg;
+            obj.M = LHS.compute();
         end
         
         function computeBoundaryMassMatrix(obj)
             if obj.addRobinTerm
                 cParams = obj.createIntegratorParams();
-                integrator = Integrator.create(cParams);
-                obj.Mr = integrator.computeLHS();
+                nInt = numel(cParams.compositeParams);
+                ndof = cParams.compositeParams{1}.dim.ndof;
+                LHS = sparse(ndof,ndof);
+                for iInt = 1:nInt
+                    s = cParams.compositeParams{iInt};
+                    s.type = 'MassMatrix';
+                    s.quadType = 'LINEAR';
+                    lhs = LHSintegrator.create(s);
+                    LHSadd = lhs.compute();
+                    LHS = LHS + LHSadd;
+                end
+                obj.Mr = LHS;
             end
         end
         
