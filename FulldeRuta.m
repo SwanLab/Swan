@@ -9,10 +9,10 @@
 %         - K done (had to fix LHSintegrator_Stiffness)
 %         - M done
 %         - Mr done
-%         NOTE: this change affects PlottingTests. Not yet solved!
-% READY - Eliminate computeLHS from Integrator_Simple
+%         NOTE: this change affects PlottingTests. Solved, though!
+% DONE - Eliminate computeLHS from Integrator_Simple
 % * after solving the issues with PlottingTests
-% READY - Eliminate computeLHS from integratorComposite
+% DONE - Eliminate computeLHS from integratorComposite
 % * after solving the issues with PlottingTests
 
 % NEW: fix LHSintegrator_Stiffness
