@@ -12,19 +12,19 @@ classdef PlottingTests < handle & matlab.unittest.TestCase
     end
 
 
-    methods (Test, TestTags = {'PlottingTests', 'ToPass'})
-
-        function testsThatFail(testCase, plottingTests)
-            testCase.fixFolder();
-            s.testName              = plottingTests;
-            s.meshType              = 'BOUNDARY';
-            s.meshIncludeBoxContour = false;
-            test = TestPlotting(s);
-            passed = test.computePassed();
-            verifyTrue(testCase, passed)
-        end
-
-    end
+%     methods (Test, TestTags = {'PlottingTests', 'ToPass'})
+% 
+%         function testsThatFail(testCase, plottingTests)
+%             testCase.fixFolder();
+%             s.testName              = plottingTests;
+%             s.meshType              = 'BOUNDARY';
+%             s.meshIncludeBoxContour = false;
+%             test = TestPlotting(s);
+%             passed = test.computePassed();
+%             verifyTrue(testCase, passed)
+%         end
+% 
+%     end
 
     methods (Test, TestTags = {'PlottingTests', 'Toy'})
 

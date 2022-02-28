@@ -35,15 +35,7 @@ classdef TestPlotting < testUnfitted
             d = load(obj.testName);
             result = obj.unfittedMesh;
             loaded = d.unfittedMesh;
-            equalities = [
-            isequaln(result.innerMesh,loaded.innerMesh)
-            isequaln(result.innerCutMesh,loaded.innerCutMesh)
-            isequaln(result.boundaryCutMesh,loaded.boundaryCutMesh)
-            isequaln(result.unfittedBoundaryMesh,loaded.unfittedBoundaryMesh)
-            isequaln(result.backgroundMesh, loaded.backgroundMesh)
-            ]
-            itIs = isequaln(result,loaded);
-            passed = itIs;
+            passed = isequaln(result,loaded);
         end
 
     end

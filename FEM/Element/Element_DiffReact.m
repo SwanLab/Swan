@@ -25,6 +25,8 @@ classdef Element_DiffReact < Element
             obj.nfields = 1;
             obj.interpolation_u = interp{1};
             obj.boundaryMesh = boundaryMesh;
+            obj.quadrature.computeQuadrature('LINEAR');
+            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
             obj.computeStiffnessMatrix();
             obj.computeMassMatrix();
             obj.computeBoundaryMassMatrix();
@@ -49,10 +51,6 @@ classdef Element_DiffReact < Element
     methods (Access = private)
         
         function computeStiffnessMatrix(obj)
-%             Ke = obj.computeElementalStiffnessMatrix();
-%             Kg = obj.AssembleMatrix(Ke,1,1); % !!
-%             obj.K = Kg;
-
             s.type = 'StiffnessMatrix';
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
@@ -64,10 +62,6 @@ classdef Element_DiffReact < Element
         end
         
         function computeMassMatrix(obj)
-%             Me = obj.computeElementalMassMatrix();
-%             Mg = obj.AssembleMatrix(Me,1,1); % !!
-%             obj.M = Mg;
-
             s.type         = 'MassMatrix';
             s.quadType     = 'QUADRATICMASS';
             s.mesh         = obj.mesh;
