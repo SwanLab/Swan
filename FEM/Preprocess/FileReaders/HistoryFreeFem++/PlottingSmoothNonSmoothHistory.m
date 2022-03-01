@@ -3,11 +3,11 @@ classdef PlottingSmoothNonSmoothHistory < handle
     properties (Access = private)
         caseNames
         caseName
-        iter       
+        iter
         color
         cost
         lambda
-        resultsDir        
+        resultsDir
     end
     
     methods (Access = public)
@@ -36,17 +36,17 @@ classdef PlottingSmoothNonSmoothHistory < handle
                 obj.caseName = obj.caseNames{icell};
                 obj.obtainCostAndLambda();
             end
-        end        
+        end
         
         function obtainCostAndLambda(obj)
             fullPath = [obj.resultsDir,[obj.caseName,'Results'],'/ctl/History.txt'];
             d.filePath = fullPath;
             rH = ReadingHistoryFile(d);
             obj.cost{obj.iter} = rH.cost;
-            obj.lambda{obj.iter} = rH.lambda;            
-        end                
+            obj.lambda{obj.iter} = rH.lambda;
+        end
         
-        function plotHistory(obj)            
+        function plotHistory(obj)
             obj.plotVariable(obj.cost,'Cost');
             obj.plotVariable(obj.lambda,'Lambda');
         end
@@ -57,13 +57,11 @@ classdef PlottingSmoothNonSmoothHistory < handle
             for icell = 1:numel(var)
                 h{icell} = plot(var{icell},[obj.color{icell},'+-']);
             end
-            legend(obj.caseNames)            
+            legend(obj.caseNames)
             pp = plotPrinter(f,h); 
-            pp.print([obj.resultsDir,name])            
+            pp.print([obj.resultsDir,name])
         end
         
     end
-    
-    
     
 end

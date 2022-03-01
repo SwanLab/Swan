@@ -40,7 +40,7 @@ classdef GmsVariablesAdapter < handle
             obj.connecInfo = d.connecInfo;
             obj.facetsInfo = d.facetsInfo;
         end
-                
+        
         function obtainCoordinates(obj)
             coordi = obj.nodeInfo;
             obj.adaptedDataBase.coord = zeros(obj.nnode,3);
