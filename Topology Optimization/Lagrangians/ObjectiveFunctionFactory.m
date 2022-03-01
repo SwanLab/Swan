@@ -1,6 +1,5 @@
 classdef ObjectiveFunctionFactory < handle
-    
-    
+   
    methods (Access = public, Static)
        
        function obj = create(cParams)
@@ -10,11 +9,8 @@ classdef ObjectiveFunctionFactory < handle
                case 'Lagrangian'
                    obj = Lagrangian(cParams);
            end
-           
        end
        
    end
-    
-    
-    
+   
 end

@@ -1,8 +1,16 @@
 %% Todo
 % {{done}} Create example 2D not using load
 % {{done}}-ish Create example 3D not using load
-% eliminate istre,jstre loop 
+% eliminate istre,jstre loop
+%       % examples of bsxfun:
+%           - 
+%           - 
+%           - 
+%           - 
+%           - 
 % investigate how to efficiently multiply B,C,B
+%   - bsxfun seems like the way to go. There are other ways, but they are
+%     slower the more elements are added.
 % {{done}} Use BmatrixComputer in LHSintegrator_StifnessElastic
 % With large example compare Sparse vs Accumarray
 % Element_DiffReact K, M, Mr with LHSintegrator
