@@ -23,7 +23,7 @@ classdef LHSintergrator_StiffnessElastic < LHSintegrator
 
     methods (Access = protected)
 
-        function lhs = computeElementalLHS(obj)
+        function lhs = computeElementalLHS2(obj)
             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
             ngaus  = obj.quadrature.ngaus;
             nelem  = obj.dim.nelem;
@@ -49,45 +49,55 @@ classdef LHSintergrator_StiffnessElastic < LHSintegrator
             end
         end
 
-%         function lhs = computeElementalLHS(obj)
-%             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
-%             ngaus  = obj.quadrature.ngaus;
-%             nelem  = obj.dim.nelem;
-%             nstre  = obj.dim.nstre;
-%             npe    = obj.dim.ndofPerElement;
-%             lhs = zeros(npe,npe,nelem);
-%             Bcomp = obj.createBComputer();
+        %% From Element_DiffReact
+%         function Ke = computeElementalStiffnessMatrix(obj)
+%             obj.quadrature.computeQuadrature('LINEAR');
+%             obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
+%             ndof  = obj.dof.nunkn*obj.nnode;
+%             ngaus = obj.quadrature.ngaus;
+%             Ke = zeros(ndof,ndof,obj.nelem);
 %             for igaus = 1:ngaus
-%                 Bmat = Bcomp.computeBmat(igaus);
-%                 Cmat = obj.material.C(:,:,:,igaus);
-% 
-% %                 for istre = 1:nstre
-% %                     BmatI = Bmat(istre,:,:);
-% %                     CmatI = Cmat(istre,:,:);
-% %                     BmatJ = permute(Bmat(istre,:,:),[2 1 3]);
-% %                     dNdN = bsxfun(@times,BmatJ,BmatI);
-% %                     dv(1,1,:) = dvolu(igaus,:)';
-% %                     inc = bsxfun(@times,dv,dNdN);
-% %                     lhs = lhs + inc;
-% %                 end
-% 
-% 
-%                 dV    = dvolu(igaus,:)';
-%                 for istre = 1:nstre
-%                     for jstre = 1:nstre
-%                         C = Cmat(istre,jstre,:);
-%                         Cij = squeeze(C);
-%                         c(1,1,:) = Cij.*dV;
-%                         Bi = Bmat(istre,:,:);
-%                         BiC = bsxfun(@times,Bi,c);
-%                         Bj = permute(Bmat(jstre,:,:),[2 1 3]);
-%                         t = bsxfun(@times,BiC,Bj);
-%                         lhs = lhs + t;
-%                     end
+%                 dShapeDx = obj.geometry.dNdx(:,:,:,igaus);
+%                 Bmat     = obj.computeB(obj.dof.nunkn,obj.nelem,obj.nnode,dShapeDx);
+%                 for istre = 1:obj.nstre
+%                     BmatI = Bmat(istre,:,:);
+%                     BmatJ = permute(Bmat(istre,:,:),[2 1 3]);
+%                     dNdN = bsxfun(@times,BmatJ,BmatI);
+%                     dv(1,1,:) = obj.geometry.dvolu(:,igaus);
+%                     inc = bsxfun(@times,dv,dNdN);
+%                     Ke = Ke + inc;
 %                 end
-%                 
 %             end
 %         end
+
+        %% New attempt
+
+
+        function lhs = computeElementalLHS(obj)
+            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
+            ngaus  = obj.quadrature.ngaus;
+            nelem  = obj.dim.nelem;
+            nstre  = obj.dim.nstre;
+            npe    = obj.dim.ndofPerElement;
+            lhs = zeros(npe,npe,nelem);
+            Bcomp = obj.createBComputer();
+            for igaus = 1:ngaus
+                Bmat = Bcomp.computeBmat(igaus);
+                Cmat = obj.material.C(:,:,:,igaus);
+                dV    = dvolu(igaus,:)';
+                for istre = 1:nstre
+                    for jstre = 1:nstre
+                        Cij   = squeeze(Cmat(istre,jstre,:));
+                        c(1,1,:) = Cij.*dV;
+                        Bi = Bmat(istre,:,:);
+                        CB = bsxfun(@times,Bi,c);
+                        Bj = permute(Bmat(jstre,:,:),[2 1 3]);
+                        t = bsxfun(@times,CB,Bj);
+                        lhs = lhs + t;
+                    end
+                end
+            end
+        end
 
     end
 

@@ -91,47 +91,6 @@ classdef Element_DiffReact < Element
             end
         end
         
-        function Ke = computeElementalStiffnessMatrix(obj)
-            obj.quadrature.computeQuadrature('LINEAR');
-            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
-            ndof  = obj.dof.nunkn*obj.nnode;
-            ngaus = obj.quadrature.ngaus;
-            Ke = zeros(ndof,ndof,obj.nelem);
-            for igaus = 1:ngaus
-                dShapeDx = obj.geometry.dNdx(:,:,:,igaus);
-                Bmat     = obj.computeB(obj.dof.nunkn,obj.nelem,obj.nnode,dShapeDx);
-                for istre = 1:obj.nstre
-                    BmatI = Bmat(istre,:,:);
-                    BmatJ = permute(Bmat(istre,:,:),[2 1 3]);
-                    dNdN = bsxfun(@times,BmatJ,BmatI);
-                    dv(1,1,:) = obj.geometry.dvolu(:,igaus);
-                    inc = bsxfun(@times,dv,dNdN);
-                    Ke = Ke + inc;
-                end
-            end
-        end
-        
-        function Me = computeElementalMassMatrix(obj)
-            obj.quadrature.computeQuadrature('QUADRATICMASS');
-            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
-            shapes = obj.interpolation_u.shape;
-            dvolu  = obj.geometry.dvolu;
-            ngaus  = obj.quadrature.ngaus;
-            nelem  = obj.mesh.nelem;
-            nnode  = obj.mesh.nnode;
-            Me = zeros(nnode,nnode,nelem);
-            for igaus = 1:ngaus
-                dv(1,1,:) = dvolu(:,igaus);
-                Ni = shapes(:,igaus);
-                Nj = shapes(:,igaus);
-                NiNj = Ni*Nj';
-                Mij = bsxfun(@times,NiNj,dv);
-                Me = Me + Mij;
-            end            
-            obj.quadrature.computeQuadrature('LINEAR');
-            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
-        end
-        
         function params = createIntegratorParams(obj)
             params.type  = 'COMPOSITE';
             params.npnod = obj.mesh.npnod;
