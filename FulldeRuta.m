@@ -47,3 +47,4 @@
 % comparing product: pagemtimes, istrjstreLoop, pagefun 
 % comparing assembly: accumarray and sparse (Assembler)
 % comparing commutative of (product + assembly) vs (assembly + product)
+%%
