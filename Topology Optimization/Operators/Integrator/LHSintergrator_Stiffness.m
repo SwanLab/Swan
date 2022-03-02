@@ -8,7 +8,6 @@ classdef LHSintergrator_Stiffness < LHSintegrator
         
         function obj = LHSintergrator_Stiffness(cParams)
             obj.init(cParams);
-%             obj.material = cParams.material;
             obj.createQuadrature();
             obj.createInterpolation();
             obj.createGeometry();
@@ -23,49 +22,25 @@ classdef LHSintergrator_Stiffness < LHSintegrator
     
    methods (Access = protected)
         
-%         function lhs = computeElementalLHS(obj)
-%             dShape = obj.geometry.dNdx;
-%             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
-%             ngaus  = obj.quadrature.ngaus;
-%             nelem  = obj.mesh.nelem;
-%             nnode  = obj.mesh.nnode;
-%             lhs = zeros(nnode,nnode,nelem);
-%             for igaus = 1:ngaus
-%                 dv(1,1,:) = dvolu(igaus,:);
-%                 for iNode = 1:nnode
-%                    for jNode = 1:nnode
-%                       dNi = dShape(:,iNode,:,igaus);
-%                       dNj = dShape(:,jNode,:,igaus);
-%                       dNidNj = sum(dNi.*dNj,1);
-%                       lhs(iNode,jNode,:) = lhs(iNode,jNode,:) + dNidNj.*dv;
-%                    end
-%                 end
-%             end
-%         end
-        
         function lhs = computeElementalLHS(obj)
-            dShape = obj.geometry.dNdx;
-            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
-            ngaus  = obj.quadrature.ngaus;
-            nelem  = obj.mesh.nelem;
-            nnode  = obj.mesh.nnode;
-            nstre  = obj.dim.nstre;
-            ndpe   = obj.dim.ndofPerElement;
+            dvolu = obj.mesh.computeDvolume(obj.quadrature);
+            ngaus = obj.quadrature.ngaus;
+            nelem = obj.mesh.nelem;
+            nstre = obj.dim.nstre;
+            ndpe  = obj.dim.ndofPerElement;
             lhs = zeros(ndpe,ndpe,nelem);
             Bcomp = obj.createBComputer();
-
             for igaus = 1:ngaus
                 Bmat = Bcomp.computeBmat(igaus);
                 for istre = 1:nstre
                     BmatI = Bmat(istre,:,:);
-                    BmatJ = permute(Bmat(istre,:,:),[2 1 3]);
+                    BmatJ = permute(BmatI,[2 1 3]);
                     dNdN = bsxfun(@times,BmatJ,BmatI);
                     dv(1,1,:) = dvolu(igaus, :);
                     inc = bsxfun(@times,dv,dNdN);
                     lhs = lhs + inc;
                 end
             end
-
         end
         
    end

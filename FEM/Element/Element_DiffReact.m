@@ -55,7 +55,7 @@ classdef Element_DiffReact < Element
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
-            s.dim          = obj.computeDimFilter();
+            s.dim          = obj.computeDim();
 %             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
             obj.K = LHS.compute();
@@ -67,7 +67,7 @@ classdef Element_DiffReact < Element
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
-            s.dim          = obj.computeDimFilter();
+            s.dim          = obj.computeDim();
 %             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
             obj.M = LHS.compute();
@@ -101,7 +101,7 @@ classdef Element_DiffReact < Element
             bMeshes = bC.create();
             bMeshes = obj.boundaryMesh;
             nBoxFaces = numel(bMeshes);
-            dim = obj.computeDimFilter();
+            dim = obj.computeDim();
             for iMesh = 1:nBoxFaces
                 boxFaceMesh = bMeshes{iMesh};
                 cParams.mesh = boxFaceMesh.mesh;
@@ -115,15 +115,6 @@ classdef Element_DiffReact < Element
         end
         
         function dim = computeDim(obj)
-            s.ngaus = obj.quadrature.ngaus;
-            s.mesh  = obj.mesh;
-            s.pdim  = obj.createPdim();
-%             s.pdim  = 'FILTER';
-            dim    = DimensionVariables(s);
-            dim.compute();
-        end
-        
-        function dim = computeDimFilter(obj)
             s.ngaus = obj.quadrature.ngaus;
             s.mesh  = obj.mesh;
 %             s.pdim  = obj.createPdim();
@@ -146,6 +137,7 @@ classdef Element_DiffReact < Element
     end
     
     methods(Access = protected) % Only the child sees the function
+
         function FextSuperficial = computeSuperficialFext(obj)
             FextSuperficial = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);
         end
@@ -153,16 +145,7 @@ classdef Element_DiffReact < Element
         function FextVolumetric = computeVolumetricFext(obj)
             FextVolumetric = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);
         end
+        
     end
-    
-    methods (Static)
-        function [B] = computeB(nunkn,nelem,nnode,dNdx)
-            B = zeros(2,nnode*nunkn,nelem);
-            for inode=1:nnode
-                j = nunkn*(inode-1)+1;
-                B(1,j,:)=dNdx(1,inode,:);
-                B(2,j,:)=dNdx(2,inode,:);
-            end
-        end
-    end
+
 end
