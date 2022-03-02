@@ -14,9 +14,9 @@ kfrac = 1.05;
 designVariable = 'Density';
 filterType = 'P1';
 
-nsteps = 5;
-Vfrac_final = 0.5;
-optimality_final =1e-8;
+nsteps = 2;
+Vfrac_final = 0.8;
+optimality_final =1e-3;
 constr_final =1e-3;
 
 Vfrac_initial = 1;
@@ -32,9 +32,8 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 % For all tests
-plotting = true;
+plotting = false;
 printing = false;
 printing_physics = false;
-monitoring = true;
-monitoring_interval = 10;
-maxiter = 500;
+monitoring = false;
+maxiter = 5;
