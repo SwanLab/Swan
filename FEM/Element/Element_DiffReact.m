@@ -15,7 +15,7 @@ classdef Element_DiffReact < Element
         boundaryMesh
     end
     
-    methods %(Access = ?Physical_Problem)
+    methods 
         function obj = Element_DiffReact(mesh,geometry,material,dof,scale, addRobinTerm,bcType,interp,boundaryMesh)
             obj.mesh = mesh;
             obj.addRobinTerm = addRobinTerm;
@@ -56,7 +56,6 @@ classdef Element_DiffReact < Element
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.computeDim();
-%             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
             obj.K = LHS.compute();
         end
@@ -68,7 +67,6 @@ classdef Element_DiffReact < Element
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.computeDim();
-%             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
             obj.M = LHS.compute();
         end
@@ -117,7 +115,6 @@ classdef Element_DiffReact < Element
         function dim = computeDim(obj)
             s.ngaus = obj.quadrature.ngaus;
             s.mesh  = obj.mesh;
-%             s.pdim  = obj.createPdim();
             s.pdim  = 'FILTER';
             dim    = DimensionVariables(s);
             dim.compute();
