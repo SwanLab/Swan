@@ -62,7 +62,7 @@ classdef IntegratorUnfitted < Integrator
              
             
             dV = dvolum;
-            fdV(1,:,:) = Fgauss.*dV;   
+            fdV(1,:,:) = Fgauss.*dV;
             shapes = permute(shapes,[1 3 2]);
             shapeValues = bsxfun(@times,shapes,fdV);
             shapeValues = sum(shapeValues,3);

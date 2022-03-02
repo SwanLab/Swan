@@ -40,7 +40,7 @@ classdef GlobalDofs < handle
                     obj.storeUpperDiagonalEntries()
                     obj.storeLowerDiagonalEntries()
                 end
-            end            
+            end
         end
         
     end

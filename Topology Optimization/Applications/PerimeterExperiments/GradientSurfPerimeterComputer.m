@@ -1,31 +1,31 @@
 classdef GradientSurfPerimeterComputer < handle
-    
+
     properties (Access = private)
         outPutFolder
         iMesh
         figureID
         gExperiment
     end
-    
+
     properties (Access = private)
         inputFiles
         outputFolder
         levelSetParams
         circleCase
     end
-    
+
     methods (Access = public)
-        
+
         function obj = GradientSurfPerimeterComputer(cParams)
             obj.init(cParams)
         end
-        
-        function compute(obj)            
+
+        function compute(obj)
             for im = 1:numel(obj.inputFiles)
                 obj.iMesh = im;
-                obj.createGradientVariationExperiment();                
+                obj.createGradientVariationExperiment();
                 nEpsilon = length(obj.gExperiment.regularizedPerimeter.epsilons);
-                for iEpsilon = 1:nEpsilon                    
+                for iEpsilon = 1:nEpsilon
                     obj.plotSurf(iEpsilon);
                     obj.addXYlabel();
                     obj.addTitle(iEpsilon);
@@ -33,31 +33,31 @@ classdef GradientSurfPerimeterComputer < handle
                 end
             end
         end
-        
+
     end
-    
+
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.inputFiles   = cParams.inputFiles; 
+            obj.inputFiles   = cParams.inputFiles;
             obj.outputFolder = cParams.outputFolder;
-            obj.levelSetParams = cParams.levelSetParams; 
+            obj.levelSetParams = cParams.levelSetParams;
             obj.circleCase = cParams.circleCase;
-        end        
-        
+        end
+
         function createGradientVariationExperiment(obj)
             s.levelSetParams = obj.levelSetParams;
             s.inputFile      = obj.inputFiles{obj.iMesh};
             s.iMesh          = obj.iMesh;
             g = GradientVariationExperiment(s);
             obj.gExperiment = g;
-        end        
-        
+        end
+
         function addXYlabel(obj)
             xlabel('$x$','interpreter','latex')
             ylabel('$y$','interpreter','latex')
         end
-        
+
         function plotSurf(obj,iEpsilon)
             coord = obj.gExperiment.backgroundMesh.coord;
             x = coord(:,1);
@@ -67,16 +67,16 @@ classdef GradientSurfPerimeterComputer < handle
             tri = delaunay(x,y);
             f = figure();
             h = trisurf(tri,x,y,z);
-            shading interp            
-            obj.figureID = f;         
-            ar = get(gca,'DataAspectRatio');            
+            shading interp
+            obj.figureID = f;
+            ar = get(gca,'DataAspectRatio');
             obj.plotBoundaryCutMesh(tri,x,y,z)
             set(gca,'DataAspectRatio',ar);
             view(-60,25);
-      end
-        
+        end
+
         function plotBoundaryCutMesh(obj,tri,x,y,z)
-            m = obj.computeBoundaryCutMesh();            
+            m = obj.computeBoundaryCutMesh();
             %nodes = unique(m.connec(:));
             Xi = m.coord(:,1);
             Yi = m.coord(:,2);
@@ -91,11 +91,11 @@ classdef GradientSurfPerimeterComputer < handle
             mB = Mesh(s);
             hold on
             mB.plot
-           % axes(axes_h)
-           % axis(axis_h)
-           % view(a,b)
+            % axes(axes_h)
+            % axis(axis_h)
+            % view(a,b)
         end
-        
+
         function mBCut = computeBoundaryCutMesh(obj)
             g = obj.gExperiment;
             s.backgroundMesh = g.backgroundMesh;
@@ -105,7 +105,7 @@ classdef GradientSurfPerimeterComputer < handle
             bCut = uMesh.boundaryCutMesh;
             mBCut = bCut.mesh;
         end
-        
+
         function printSurf(obj,iEpsilon)
             part1 = [obj.outputFolder,obj.circleCase,'GradientMesh',num2str(obj.iMesh)];
             part2 = ['Epsilon',num2str(iEpsilon)];
@@ -113,7 +113,7 @@ classdef GradientSurfPerimeterComputer < handle
             printer = surfPrinter(obj.figureID);
             printer.print(outFile)
         end
-        
+
         function addTitle(obj,iEpsilon)
             epsilons = obj.gExperiment.regularizedPerimeter.epsilons;
             h = obj.gExperiment.backgroundMesh.computeMeanCellSize;
@@ -130,8 +130,8 @@ classdef GradientSurfPerimeterComputer < handle
             end
             titleStr = ['$',firstStr,secondStr,epsStr,thirdStr,hStr,'$'];
             title(titleStr,'interpreter','latex');
-        end        
-        
+        end
+
     end
-    
+
 end

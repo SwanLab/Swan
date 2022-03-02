@@ -15,7 +15,7 @@ classdef Element_DiffReact < Element
         boundaryMesh
     end
     
-    methods %(Access = ?Physical_Problem)
+    methods 
         function obj = Element_DiffReact(mesh,geometry,material,dof,scale, addRobinTerm,bcType,interp,boundaryMesh)
             obj.mesh = mesh;
             obj.addRobinTerm = addRobinTerm;
@@ -25,6 +25,8 @@ classdef Element_DiffReact < Element
             obj.nfields = 1;
             obj.interpolation_u = interp{1};
             obj.boundaryMesh = boundaryMesh;
+            obj.quadrature.computeQuadrature('LINEAR');
+            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
             obj.computeStiffnessMatrix();
             obj.computeMassMatrix();
             obj.computeBoundaryMassMatrix();
@@ -49,64 +51,42 @@ classdef Element_DiffReact < Element
     methods (Access = private)
         
         function computeStiffnessMatrix(obj)
-            Ke = obj.computeElementalStiffnessMatrix();
-            Kg = obj.AssembleMatrix(Ke,1,1); % !!
-            obj.K = Kg;
+            s.type = 'StiffnessMatrix';
+            s.mesh         = obj.mesh;
+            s.npnod        = obj.mesh.npnod;
+            s.globalConnec = obj.mesh.connec;
+            s.dim          = obj.computeDim();
+            LHS = LHSintegrator.create(s);
+            obj.K = LHS.compute();
         end
         
         function computeMassMatrix(obj)
-            Me = obj.computeElementalMassMatrix();
-            Mg = obj.AssembleMatrix(Me,1,1); % !!
-            obj.M = Mg;
+            s.type         = 'MassMatrix';
+            s.quadType     = 'QUADRATICMASS';
+            s.mesh         = obj.mesh;
+            s.npnod        = obj.mesh.npnod;
+            s.globalConnec = obj.mesh.connec;
+            s.dim          = obj.computeDim();
+            LHS = LHSintegrator.create(s);
+            obj.M = LHS.compute();
         end
         
         function computeBoundaryMassMatrix(obj)
             if obj.addRobinTerm
                 cParams = obj.createIntegratorParams();
-                integrator = Integrator.create(cParams);
-                obj.Mr = integrator.computeLHS();
-            end
-        end
-        
-        function Ke = computeElementalStiffnessMatrix(obj)
-            obj.quadrature.computeQuadrature('LINEAR');
-            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
-            ndof  = obj.dof.nunkn*obj.nnode;
-            ngaus = obj.quadrature.ngaus;
-            Ke = zeros(ndof,ndof,obj.nelem);
-            for igaus = 1:ngaus
-                dShapeDx = obj.geometry.dNdx(:,:,:,igaus);
-                Bmat     = obj.computeB(obj.dof.nunkn,obj.nelem,obj.nnode,dShapeDx);
-                for istre = 1:obj.nstre
-                    BmatI = Bmat(istre,:,:);
-                    BmatJ = permute(Bmat(istre,:,:),[2 1 3]);
-                    dNdN = bsxfun(@times,BmatJ,BmatI);
-                    dv(1,1,:) = obj.geometry.dvolu(:,igaus);
-                    inc = bsxfun(@times,dv,dNdN);
-                    Ke = Ke + inc;
+                nInt = numel(cParams.compositeParams);
+                ndof = cParams.compositeParams{1}.dim.ndof;
+                LHS = sparse(ndof,ndof);
+                for iInt = 1:nInt
+                    s = cParams.compositeParams{iInt};
+                    s.type = 'MassMatrix';
+                    s.quadType = 'LINEAR';
+                    lhs = LHSintegrator.create(s);
+                    LHSadd = lhs.compute();
+                    LHS = LHS + LHSadd;
                 end
+                obj.Mr = LHS;
             end
-        end
-        
-        function Me = computeElementalMassMatrix(obj)
-            obj.quadrature.computeQuadrature('QUADRATICMASS');
-            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
-            shapes = obj.interpolation_u.shape;
-            dvolu  = obj.geometry.dvolu;
-            ngaus  = obj.quadrature.ngaus;
-            nelem  = obj.mesh.nelem;
-            nnode  = obj.mesh.nnode;
-            Me = zeros(nnode,nnode,nelem);
-            for igaus = 1:ngaus
-                dv(1,1,:) = dvolu(:,igaus);
-                Ni = shapes(:,igaus);
-                Nj = shapes(:,igaus);
-                NiNj = Ni*Nj';
-                Mij = bsxfun(@times,NiNj,dv);
-                Me = Me + Mij;
-            end            
-            obj.quadrature.computeQuadrature('LINEAR');
-            obj.geometry.computeGeometry(obj.quadrature,obj.interpolation_u);
         end
         
         function params = createIntegratorParams(obj)
@@ -135,7 +115,6 @@ classdef Element_DiffReact < Element
         function dim = computeDim(obj)
             s.ngaus = obj.quadrature.ngaus;
             s.mesh  = obj.mesh;
-%             s.pdim  = obj.createPdim();
             s.pdim  = 'FILTER';
             dim    = DimensionVariables(s);
             dim.compute();
@@ -155,6 +134,7 @@ classdef Element_DiffReact < Element
     end
     
     methods(Access = protected) % Only the child sees the function
+
         function FextSuperficial = computeSuperficialFext(obj)
             FextSuperficial = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);
         end
@@ -162,16 +142,7 @@ classdef Element_DiffReact < Element
         function FextVolumetric = computeVolumetricFext(obj)
             FextVolumetric = zeros(obj.nnode*obj.dof.nunkn,1,obj.nelem);
         end
+        
     end
-    
-    methods (Static)
-        function [B] = computeB(nunkn,nelem,nnode,dNdx)
-            B = zeros(2,nnode*nunkn,nelem);
-            for inode=1:nnode
-                j = nunkn*(inode-1)+1;
-                B(1,j,:)=dNdx(1,inode,:);
-                B(2,j,:)=dNdx(2,inode,:);
-            end
-        end
-    end
+
 end

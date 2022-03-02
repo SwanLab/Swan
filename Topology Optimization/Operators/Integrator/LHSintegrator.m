@@ -90,7 +90,7 @@ classdef LHSintegrator < handle
         function Cadd = computeAaddByAccumarray(obj,a, dofsI, dofsJ)
            d = obj.dim;
            ndofs = d.ndof;
-           index = [dofsI', dofsJ'];
+           index = [dofsI, dofsJ];
            Cadd = accumarray(index,a,[ndofs ndofs],[],[],true);
         end
 

@@ -33,8 +33,9 @@ classdef TestPlotting < testUnfitted
 
         function passed = computePassed(obj)
             d = load(obj.testName);
-            itIs = isequaln(obj.unfittedMesh,d.unfittedMesh);
-            passed = itIs;
+            result = obj.unfittedMesh;
+            loaded = d.unfittedMesh;
+            passed = isequaln(result,loaded);
         end
 
     end

@@ -70,7 +70,7 @@ classdef DimensionVariables < handle
                 case '3D'
                     ndim = 3;
                 case 'FILTER'
-                    ndim = [];
+                    ndim = -1;
             end
         end
 
@@ -81,7 +81,7 @@ classdef DimensionVariables < handle
                 case '3D'
                     nstre = 6;
                 case 'FILTER'
-                    nstre = [];
+                    nstre = 2;
             end
         end
 

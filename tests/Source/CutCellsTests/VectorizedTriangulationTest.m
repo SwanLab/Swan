@@ -42,11 +42,11 @@ classdef VectorizedTriangulationTest < handle
     methods (Access = private)
         
         function init(obj, cParams)
-            obj.coord    = cParams.coord;            
+            obj.coord    = cParams.coord;
             obj.connec   = cParams.connec;
-            obj.levelSet = cParams.levelSet;            
-            obj.boundaryConnec = cParams.boundaryConnec; 
-            obj.connecBcutMesh = cParams.connecBcutMesh;      
+            obj.levelSet = cParams.levelSet;
+            obj.boundaryConnec = cParams.boundaryConnec;
+            obj.connecBcutMesh = cParams.connecBcutMesh;
         end
         
         function createBackgroundMesh(obj)
@@ -178,7 +178,7 @@ classdef VectorizedTriangulationTest < handle
             cU = obj.uMesh.boundaryCutMesh.mesh.connec; % peta aqui
             areEquiv = obj.areConnecEquivalent(cU,cV);
             error = sum(~areEquiv)/length(areEquiv);
-        end        
+        end
         
         function error = computeVolumeError(obj)
             vV = obj.computeVolumes(obj.validInnerCutMesh.mesh);

@@ -1,18 +1,18 @@
 classdef SettingsTranslator < handle
-    
+
     properties (GetAccess = public, SetAccess = private)
         fileName
         filePath
     end
-    
+
     properties (Access = private)
         oldSettings
         propList
         nProps
     end
-    
+
     methods (Access = public)
-        
+
         function translate(obj,oldSettings)
             obj.init(oldSettings);
             for i = 1:obj.nProps
@@ -29,19 +29,19 @@ classdef SettingsTranslator < handle
                     s.designVarSettings.initialCase = value;
                 elseif strcmp(prop,'m1')
                     if ~isempty(value)
-                       s.designVarSettings.creatorSettings.m1 = value;
+                        s.designVarSettings.creatorSettings.m1 = value;
                     end
-                elseif strcmp(prop,'m2')                    
+                elseif strcmp(prop,'m2')
                     if ~isempty(value)
-                       s.designVarSettings.creatorSettings.m2 = value;
+                        s.designVarSettings.creatorSettings.m2 = value;
                     end
-                elseif strcmp(prop,'alpha0')                    
+                elseif strcmp(prop,'alpha0')
                     if ~isempty(value)
-                       s.designVarSettings.creatorSettings.alpha0 = value;
-                    end                    
+                        s.designVarSettings.creatorSettings.alpha0 = value;
+                    end
                 elseif strcmp(prop,'rho0')
                     if ~isempty(value)
-                       s.designVarSettings.creatorSettings.rho = value;
+                        s.designVarSettings.creatorSettings.rho = value;
                     end
                 elseif strcmp(prop,'levelSetDataBase')
                     s = obj.translateLevelSetCreator(s);
@@ -64,7 +64,7 @@ classdef SettingsTranslator < handle
                 elseif strcmp(prop,'stressNormExponent_initial')
                     s.incrementalSchemeSettings.targetParamsSettings.stressNormExponentInitial = value;
                 elseif strcmp(prop,'stressNormExponent_final')
-                    s.incrementalSchemeSettings.targetParamsSettings.stressNormExponentFinal = value;                    
+                    s.incrementalSchemeSettings.targetParamsSettings.stressNormExponentFinal = value;
                 elseif strcmp(prop,'cost')
                     for k = 1:length(value)
                         s.costSettings.shapeFuncSettings{k}.type = value{k};
@@ -75,7 +75,7 @@ classdef SettingsTranslator < handle
                             end
                         elseif strcmp(value{k},'enforceCh_CCstar_L2')
                             s.costSettings.shapeFuncSettings{k}.ChTarget.type = oldSettings.selectiveC_Cstar;
-                            
+
                         elseif strcmp(value{k},'perimeterConstraint')
                             if isprop(oldSettings,'Perimeter_target')
                                 s.costSettings.shapeFuncSettings{k}.perimeterTarget = oldSettings.Perimeter_target;
@@ -98,12 +98,12 @@ classdef SettingsTranslator < handle
                     end
                 elseif strcmp(prop,'constraintDomainNotOptimizable')
                     for k = 1:numel(value)
-                        s.constraintSettings.shapeFuncSettings{k}.domainNotOptimizable = value{k};                      
-                    end                    
+                        s.constraintSettings.shapeFuncSettings{k}.domainNotOptimizable = value{k};
+                    end
                 elseif strcmp(prop,'costDomainNotOptimizable')
                     for k = 1:numel(value)
-                        s.costSettings.shapeFuncSettings{k}.domainNotOptimizable = value{k};                      
-                    end                                        
+                        s.costSettings.shapeFuncSettings{k}.domainNotOptimizable = value{k};
+                    end
                 elseif strcmp(prop,'optimizer')
                     s.optimizerSettings.type = value;
                 elseif strcmp(prop,'constraint_case')
@@ -140,27 +140,27 @@ classdef SettingsTranslator < handle
                     s.optimizerSettings.monitoringDockerSettings.shallDisplayDesignVar = value;
                 elseif strcmp(prop,'showBC')
                     s.optimizerSettings.monitoringDockerSettings.shallShowBoundaryConditions = value;
-               elseif strcmp(prop,'isDesignVariableFixed')
-                   s.designVarSettings.isFixed = value;               
+                elseif strcmp(prop,'isDesignVariableFixed')
+                    s.designVarSettings.isFixed = value;
                 end
             end
             if strcmp(s.designVarSettings.type,'MicroParams')
-               s.designVarSettings.creatorSettings.homogSettings = s.homogenizedVarComputerSettings;
-            end            
-                                 
+                s.designVarSettings.creatorSettings.homogSettings = s.homogenizedVarComputerSettings;
+            end
+
             obj.exportFile(s);
         end
-        
+
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj,oldSettings)
             obj.oldSettings = oldSettings;
             obj.propList = fieldnames(oldSettings);
             obj.nProps = length(obj.propList);
         end
-        
+
         function exportFile(obj,s)
             obj.getFilePath();
             str = jsonencode(s);
@@ -168,19 +168,19 @@ classdef SettingsTranslator < handle
             fprintf(fid,str);
             fclose(fid);
         end
-        
+
         function getFileName(obj)
             old = obj.oldSettings.case_file;
             new = old;
             %new = [old '.json'];
             obj.fileName = new;
         end
-        
+
         function getFilePath(obj)
             obj.getFileName();
             obj.filePath = fullfile('.','tests','Applications',obj.fileName);
         end
-        
+
         function s = translateLevelSetCreator(obj,s)
             prop = obj.oldSettings.levelSetDataBase;
             if ~isempty(prop)
@@ -192,7 +192,7 @@ classdef SettingsTranslator < handle
                 end
             end
         end
-        
+
         function s = translateHomogenizedVariablesComputer(obj,s)
             old = obj.oldSettings;
             switch s.homogenizedVarComputerSettings.type
@@ -208,11 +208,11 @@ classdef SettingsTranslator < handle
                     end
                 case 'ByVademecum'
                     if isprop(old,'vademecumFileName')
-                        s.homogenizedVarComputerSettings.fileName = old.vademecumFileName;                        
+                        s.homogenizedVarComputerSettings.fileName = old.vademecumFileName;
                     end
             end
         end
-        
+
     end
-    
+
 end

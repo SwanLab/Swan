@@ -38,7 +38,7 @@ classdef MeshTypeComputer < handle
         
         function init(obj,cParams)
             obj.geometryType = cParams.geometryType;
-            obj.nnode        =  cParams.nnode;
+            obj.nnode        = cParams.nnode;
         end
         
     end

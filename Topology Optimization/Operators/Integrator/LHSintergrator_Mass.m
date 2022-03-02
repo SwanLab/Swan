@@ -1,9 +1,14 @@
 classdef LHSintergrator_Mass < LHSintegrator
-    
+
+    properties (Access = private)
+        quadType
+    end
+
     methods (Access = public)
         
         function obj = LHSintergrator_Mass(cParams)
             obj.init(cParams);
+            obj.quadType = cParams.quadType;
             obj.createQuadrature();
             obj.createInterpolation();
         end
@@ -40,6 +45,12 @@ classdef LHSintergrator_Mass < LHSintegrator
                 lhs = lhs + Aij;
             end
         end
+
+       function createQuadrature(obj)
+           quad = Quadrature.set(obj.mesh.type);
+           quad.computeQuadrature(obj.quadType);
+           obj.quadrature = quad;
+       end
         
     end
     

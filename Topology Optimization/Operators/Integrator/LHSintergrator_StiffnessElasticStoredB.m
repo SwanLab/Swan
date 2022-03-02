@@ -65,11 +65,10 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
            for istre = 1:nstre
                for jstre = 1:nstre
                    for igaus = 1:ngaus
-
                        posI = (istre)+(nstre)*(igaus-1) : ngaus*nstre : ntot;
                        posJ = (jstre)+(nstre)*(igaus-1) : ngaus*nstre : ntot;
-                       
-                       Ct = squeeze(Cmat(istre,jstre,:,igaus)).*dvol(:,igaus);
+                       Ci = Cmat(istre,jstre,:,igaus);
+                       Ct = squeeze(Ci).*dvol(:,igaus);
                        Cadd = obj.computeCaddBySparse(Ct, posI, posJ);
                        CmatTot = CmatTot + Cadd;
                    end
