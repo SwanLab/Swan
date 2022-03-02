@@ -42,7 +42,7 @@ classdef DimensionVariables < handle
         function applyNUnknPerField(obj, num)
             obj.nunknPerField = num;
         end
-       
+        
     end
     
     methods (Access = private)

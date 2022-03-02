@@ -1,12 +1,30 @@
 %% To-do
-%a) s.pdim 'FILTER'. pdim to nDim, nunkn to dimField, nFields, dimAllFields
-%b) % % accumarray and sparse only in Assembler. BMatrixComputer,
-% LHSintegrator_StiffnessElasticStoredB, LHSintegrator use Assembler.
-% c) % NewFemExamples as a class and following cleancode techniques
-% d) % DiffReact_Problem to NewDiffReactProblem and delete Element_DiffReact (%)
-% and use it in FilterPDE
-% e) % FEM to NewFem in TopOpt 
-% f) First examples of: 
-% comparing product: pagemtimes, istrjstreLoop, pagefun 
-% comparing assembly: accumarray and sparse (Assembler)
-% comparing commutative of (product + assembly) vs (assembly + product)
+
+% a) RENAMING
+%       - s.pdim 'FILTER'. 
+%    OK!   - pdim to nDim, nunkn to dimField, nFields, dimAllFields
+
+% b) ASSEMBLER
+%    OK!   - Accumarray and sparse only in Assembler. 
+%       - BMatrixComputer uses Assembler.
+%       - LHSintegrator_StiffnessElasticStoredB uses Assembler.
+%    OK!   - LHSintegrator uses Assembler.
+
+% c) EXAMPLES
+%       - NewFemExamples as a class
+%       - Following cleancode techniques
+
+% d) DIFFREACT_PROBLEM
+%       - DiffReact_Problem to NewDiffReactProblem
+%       - Delete Element_DiffReact (%)
+%       - Use it in FilterPDE
+
+% e) TOPOPT
+%       - FEM to NewFem in TopOpt 
+
+% f) COMPARISON
+%       - First examples of: 
+%       - Comparing product: pagemtimes, istrjstreLoop, pagefun 
+%       - Comparing assembly: accumarray and sparse (Assembler)
+%       - Comparing commutative of (product + assembly) vs
+%           (assembly + product)

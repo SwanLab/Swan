@@ -23,7 +23,7 @@ classdef LHSintegratorFactory < handle
                    obj = LHSintergrator_StiffnessElasticStoredB(cParams);
                    %globalB in contructor
            end
-           
+
        end
        
    end

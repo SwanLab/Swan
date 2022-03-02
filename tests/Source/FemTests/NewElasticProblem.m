@@ -1,6 +1,7 @@
 classdef NewElasticProblem < handle %NewFEM
 
-    properties (GetAccess = public, SetAccess = private)
+%     properties (GetAccess = public, SetAccess = private)
+    properties (Access = public)
         variables
     end
 
@@ -51,6 +52,18 @@ classdef NewElasticProblem < handle %NewFEM
             s.displacement = obj.variables.d_u;
             plotter = FEMPlotter(s);
             plotter.plot();
+        end
+
+        function dim = getDimensions(obj)
+            dim = obj.dim;
+        end
+
+        function setC(obj, C)
+            obj.material.C = C;
+        end
+
+        function dvolu = getDvolume(obj)
+            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
         end
 
     end
