@@ -33,17 +33,17 @@ classdef ForcesComputer < handle
         function Fs = computeSuperficialFext(obj)
             d = obj.dim;
             nnode = d.nnode;
-            nunkn = d.nunkn;
+            ndimf = d.ndimField;
             nelem = d.nelem;
-            Fs = zeros(nnode*nunkn,1,nelem);
+            Fs = zeros(nnode*ndimf,1,nelem);
         end
         
         function Fv = computeVolumetricFext(obj)
             d = obj.dim;
             nnode = d.nnode;
-            nunkn = d.nunkn;
+            ndimf = d.ndimField;
             nelem = d.nelem;
-            Fv = zeros(nnode*nunkn,1,nelem);
+            Fv = zeros(nnode*ndimf,1,nelem);
         end
 
         function b = assembleVector(obj, Fsup, Fvol)

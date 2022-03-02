@@ -44,12 +44,12 @@ classdef BMatrixComputer < handle
             nstre          = d.nstre;
             nnode          = d.nnode;
             nelem          = d.nelem;
-            nunkn          = d.nunkn;
+            ndimf          = d.ndimField;
             ndofPerElement = d.ndofPerElement;
             dNdx = obj.geometry.dNdx;
             B = zeros(nstre,ndofPerElement,nelem);
             for i = 1:nnode
-                j = nunkn*(i-1)+1;
+                j = ndimf*(i-1)+1;
                 B(1,j,:)   = dNdx(1,i,:,igaus);
                 B(2,j+1,:) = dNdx(2,i,:,igaus);
                 B(3,j,:)   = dNdx(2,i,:,igaus);
@@ -62,7 +62,7 @@ classdef BMatrixComputer < handle
             dNdx = obj.geometry.dNdx;
             B = zeros(d.nstre,d.ndofPerElement,d.nelem);
             for inode=1:d.nnode
-                j = d.nunkn*(inode-1)+1;
+                j = d.ndimField*(inode-1)+1;
                 % associated to normal strains
                 B(1,j,:)   = dNdx(1,inode,:,igaus);
                 B(2,j+1,:) = dNdx(2,inode,:,igaus);
@@ -82,9 +82,9 @@ classdef BMatrixComputer < handle
         function [B] = computeBinFilter(obj, igaus)
             d    = obj.dim;
             dNdx = obj.geometry.dNdx(:,:,:,igaus);
-            B = zeros(2,d.nnode*d.nunkn,d.nelem);
+            B = zeros(2,d.nnode*d.ndimField,d.nelem);
             for inode = 1:d.nnode
-                j = d.nunkn*(inode-1) + 1;
+                j = d.ndimField*(inode-1) + 1;
                 B(1,j,:) = dNdx(1,inode,:);
                 B(2,j,:) = dNdx(2,inode,:);
             end
@@ -165,14 +165,15 @@ classdef BMatrixComputer < handle
 
         function gDofs = transformLocal2Global(obj,iDof)
             d     = obj.dim;
-            nunkn = d.nunkn;
+            ndimf = d.ndimField;
+            nnode = d.nnode;
             nodes        = obj.globalConnec;
-            nodesInElem  = reshape(repmat(1:d.nnode,d.nunkn,1),1,[]);
-            dofs         = repmat(1:d.nunkn,1,d.nnode);
+            nodesInElem  = reshape(repmat(1:nnode,ndimf,1),1,[]);
+            dofs         = repmat(1:ndimf,1,nnode);
             inode        = nodesInElem(iDof);
             iunkn        = dofs(iDof);
             nodeI        = nodes(:,inode);
-            gDofs   = nunkn*(nodeI-1) + iunkn;
+            gDofs   = ndimf*(nodeI-1) + iunkn;
         end
 
     end

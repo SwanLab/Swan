@@ -51,8 +51,8 @@ classdef BoundaryConditions < handle
         end
 
         function idof = nod2dof(obj, inode, iunkn)
-            nunkn = obj.dim.nunkn;
-            idof(:,1)= nunkn*(inode - 1) + iunkn;
+            ndimf = obj.dim.ndimField;
+            idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
         
         function free = computeFreeDOF(obj)
@@ -64,11 +64,11 @@ classdef BoundaryConditions < handle
 
         function dofsElem = computeDofsInElem(obj)
             connec = obj.globalConnec;
-            nunkn  = obj.dim.nunkn;
+            ndimf  = obj.dim.ndimField;
             nnode  = obj.dim.nnode;
-            dofsElem  = zeros(nnode*nunkn,size(connec,1));
+            dofsElem  = zeros(nnode*ndimf,size(connec,1));
             for inode = 1:nnode
-                for iunkn = 1:nunkn
+                for iunkn = 1:ndimf
                     idofElem   = obj.nod2dof(inode,iunkn);
                     globalNode = connec(:,inode);
                     idofGlobal = obj.nod2dof(globalNode,iunkn);

@@ -60,14 +60,14 @@ classdef LHSintegrator < handle
             connec    = obj.globalConnec;
             dofConnec = obj.computeDOFconnec();
             ndofs  = obj.dim.ndof;
-            nunkn  = obj.dim.nunkn;
+            ndimf  = obj.dim.ndimField;
 %             nnode  = obj.dim.nnode;
             nnode  = size(connec,2); % pending review why TopOptTests take incorrect nnode
             Ae     = aElem;
             A = sparse(ndofs,ndofs);
-            for i = 1:nnode*nunkn
+            for i = 1:nnode*ndimf
                 dofsI = dofConnec(:,i);
-                for j = 1:nnode*nunkn
+                for j = 1:nnode*ndimf
                     dofsJ = dofConnec(:,j);
                     a = squeeze(Ae(i,j,:));
                     Aadd = obj.computeAaddBySparse(a, dofsI, dofsJ);
@@ -96,11 +96,11 @@ classdef LHSintegrator < handle
 
         function dof_elem = computeDOFconnec(obj)
             connec = obj.globalConnec;
-            nunkn  = obj.dim.nunkn;
+            ndimf  = obj.dim.ndimField;
             nnode  = size(connec,2);
-            dof_elem  = zeros(nnode*nunkn,size(connec,1));
+            dof_elem  = zeros(nnode*ndimf,size(connec,1));
             for inode = 1:nnode
-                for iunkn = 1:nunkn
+                for iunkn = 1:ndimf
                     idof_elem = obj.nod2dof(inode,iunkn);
                     global_node = connec(:,inode);
                     idof_global = obj.nod2dof(global_node,iunkn);
@@ -111,8 +111,8 @@ classdef LHSintegrator < handle
         end
 
         function idof = nod2dof(obj, inode, iunkn)
-            nunkn = obj.dim.nunkn;
-            idof(:,1)= nunkn*(inode - 1) + iunkn;
+            ndimf = obj.dim.ndimField;
+            idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
 
         % Element_Elastic
