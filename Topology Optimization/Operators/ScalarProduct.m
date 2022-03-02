@@ -59,11 +59,11 @@ classdef ScalarProduct < handle
                 i0 = nx*(ivar-1) + 1;
                 iF = nx*ivar;
                 fs = f(i0:iF);
-                gs = g(i0:iF);                
+                gs = g(i0:iF);
                 n = n + fs'*K*gs;
-            end              
+            end
         end
         
-    end    
+    end
     
 end

@@ -1,5 +1,5 @@
 classdef Hexahedra_Linear < Interpolation
-    
+
     methods (Access = public)
 
         function obj = Hexahedra_Linear(cParams)
@@ -7,7 +7,7 @@ classdef Hexahedra_Linear < Interpolation
             obj.computeParams();
             obj.computeCases();
         end
-        
+
         function computeShapeDeriv(obj,posgp)
             ngaus = size(posgp,2);
             nelem = size(posgp,3);
@@ -31,11 +31,11 @@ classdef Hexahedra_Linear < Interpolation
                 obj.deriv(3,inode,:,:)=lcord(inode,3).*(ones(1,size(posgp,2))+lcord(inode,1)*s).*(ones(1,size(posgp,2))+lcord(inode,2)*t)/8;
             end
         end
-        
+
     end
-    
+
     methods (Access = private)
-        
+
         function computeParams(obj)
             obj.ndime = 3;
             obj.nnode = 8;
@@ -48,8 +48,8 @@ classdef Hexahedra_Linear < Interpolation
                 +1 -1 +1;
                 +1 +1 +1;
                 -1 +1 +1];
-        end            
-        
+        end
+
         function computeCases(obj)
             obj.iteration=[1 1 1 2 2 3 3 4 5 5 6 7;
                 2 4 5 3 6 4 7 8 6 8 7 8];
@@ -57,7 +57,7 @@ classdef Hexahedra_Linear < Interpolation
             %Case 9 to 20: Nodes iteration(:,i) different
             %Case 21 to 45: Three consecutive nodes equal
             %Case 1: -1 1 1 1 1 1 1 1
-            
+
             %Case 1: -1 1 1 1 1 1 1 1
             obj.cases(:,:,1)=[
                 10     8    11     7
@@ -73,7 +73,7 @@ classdef Hexahedra_Linear < Interpolation
                 10    11     1     9
                 zeros(4,4)
                 ];
-            
+
             %Case 2: 1 -1 1 1 1 1 1 1
             obj.cases(:,:,2)=[
                 4    10     8     9
@@ -89,7 +89,7 @@ classdef Hexahedra_Linear < Interpolation
                 6     5     8    11
                 zeros(4,4)
                 ];
-            
+
             %Case 3: 1 1 -1 1 1 1 1 1
             obj.cases(:,:,3)=[
                 11     5     8    10
@@ -105,7 +105,7 @@ classdef Hexahedra_Linear < Interpolation
                 6     5    11     9
                 zeros(4,4)
                 ];
-            
+
             %Case 4: 1 1 1 -1 1 1 1 1
             obj.cases(:,:,4)=[
                 11     6     5     9
@@ -121,7 +121,7 @@ classdef Hexahedra_Linear < Interpolation
                 9     5     1     2
                 zeros(4,4)
                 ];
-            
+
             %Case 5: 1 1 1 1 -1 1 1 1
             obj.cases(:,:,5)=[
                 11     5     9    10
@@ -137,7 +137,7 @@ classdef Hexahedra_Linear < Interpolation
                 4     9     1     2
                 zeros(4,4)
                 ];
-            
+
             %Case 6: 1 1 1 1 1 -1 1 1
             obj.cases(:,:,6)=[
                 4     5     1    10
@@ -153,7 +153,7 @@ classdef Hexahedra_Linear < Interpolation
                 4     1     2     9
                 zeros(4,4)
                 ];
-            
+
             %Case 7: 1 1 1 1 1 1 -1 1
             obj.cases(:,:,7)=[
                 4     5     1    11
@@ -169,7 +169,7 @@ classdef Hexahedra_Linear < Interpolation
                 1     2     9    10
                 zeros(4,4)
                 ];
-            
+
             %Case 8: 1 1 1 1 1 1 1 -1
             obj.cases(:,:,8)=[
                 7     6    11     3
@@ -185,7 +185,7 @@ classdef Hexahedra_Linear < Interpolation
                 9    10     1     2
                 zeros(4,4)
                 ];
-            
+
             %Case 9: -1 -1 1 1 1 1 1 1
             obj.cases(:,:,9)=[
                 9     8    12    11
@@ -202,7 +202,7 @@ classdef Hexahedra_Linear < Interpolation
                 9    10     2    12
                 zeros(3,4)
                 ];
-            
+
             %Case 10: -1 1 1 -1 1 1 1 1
             obj.cases(:,:,10)=[
                 12     9     4    11
@@ -219,7 +219,7 @@ classdef Hexahedra_Linear < Interpolation
                 4    10     1     9
                 zeros(3,4)
                 ];
-            
+
             %Case 11: -1 1 1 1 -1 1 1 1
             obj.cases(:,:,11)=[
                 9    12    11     3
@@ -236,7 +236,7 @@ classdef Hexahedra_Linear < Interpolation
                 10    12     5     9
                 zeros(3,4)
                 ];
-            
+
             %Case 12: 1 -1 -1 1 1 1 1 1
             obj.cases(:,:,12)=[
                 11     4     9     8
@@ -253,7 +253,7 @@ classdef Hexahedra_Linear < Interpolation
                 3    11     2    10
                 zeros(3,4)
                 ];
-            
+
             %Case 13: 1 -1 1 1 1 -1 1 1
             obj.cases(:,:,13)=[
                 9     5    11     8
@@ -270,7 +270,7 @@ classdef Hexahedra_Linear < Interpolation
                 6    10    11    12
                 zeros(3,4)
                 ];
-            
+
             %Case 14: 1 1 -1 -1 1 1 1 1
             obj.cases(:,:,14)=[
                 12    11    10     3
@@ -287,7 +287,7 @@ classdef Hexahedra_Linear < Interpolation
                 12     6    10    11
                 zeros(3,4)
                 ];
-            
+
             %Case 15: 1 1 -1 1 1 1 -1 1
             obj.cases(:,:,15)=[
                 10     5    12     8
@@ -304,7 +304,7 @@ classdef Hexahedra_Linear < Interpolation
                 12    11     3     7
                 zeros(3,4)
                 ];
-            
+
             %Case 16: 1 1 1 -1 1 1 1 -1
             obj.cases(:,:,16)=[
                 12     7     6     3
@@ -321,7 +321,7 @@ classdef Hexahedra_Linear < Interpolation
                 11     5     9     2
                 zeros(3,4)
                 ];
-            
+
             %Case 17: 1 1 1 1 -1 -1 1 1
             obj.cases(:,:,17)=[
                 11     6    10    12
@@ -338,7 +338,7 @@ classdef Hexahedra_Linear < Interpolation
                 4     9     2    10
                 zeros(3,4)
                 ];
-            
+
             %Case 18: 1 1 1 1 -1 1 1 -1
             obj.cases(:,:,18)=[
                 12     6     2     3
@@ -355,7 +355,7 @@ classdef Hexahedra_Linear < Interpolation
                 4     9     1     2
                 zeros(3,4)
                 ];
-            
+
             %Case 19: 1 1 1 1 1 -1 -1 1
             obj.cases(:,:,19)=[
                 12     4    11     8
@@ -372,7 +372,7 @@ classdef Hexahedra_Linear < Interpolation
                 9     1    11     4
                 zeros(3,4)
                 ];
-            
+
             %Case 20: 1 1 1 1 1 1 -1 -1
             obj.cases(:,:,20)=[
                 6     2    11    12
@@ -389,7 +389,7 @@ classdef Hexahedra_Linear < Interpolation
                 5     1    11     2
                 zeros(3,4)
                 ];
-            
+
             %Case 21: -1 -1 -1 1 1 1 1 1
             obj.cases(:,:,21)=[
                 5    10     8    11
@@ -408,7 +408,7 @@ classdef Hexahedra_Linear < Interpolation
                 4     8     9    12
                 9     8    10    12
                 ];
-            
+
             %Case 22: -1 -1 1 -1 1 1 1 1
             obj.cases(:,:,22)=[
                 13     9     4    12
@@ -427,7 +427,7 @@ classdef Hexahedra_Linear < Interpolation
                 2     9    11    10
                 1     9     2    10
                 ];
-            
+
             %Case 23: -1 -1 1 1 -1 1 1 1
             obj.cases(:,:,23)=[
                 8     7    10     3
@@ -446,7 +446,7 @@ classdef Hexahedra_Linear < Interpolation
                 9    11     2    10
                 9    11     1     2
                 ];
-            
+
             %Case 24: -1 -1 1 1 1 -1 1 1
             obj.cases(:,:,24)=[
                 9     8    10    12
@@ -464,9 +464,9 @@ classdef Hexahedra_Linear < Interpolation
                 11    10     2    12
                 2    12     6    11
                 9    10    11    12
-                
+
                 ];
-            
+
             %Case 25: -1 1 -1 -1 1 1 1 1
             obj.cases(:,:,25)=[
                 13     6    10    12
@@ -484,9 +484,9 @@ classdef Hexahedra_Linear < Interpolation
                 13     9     4    11
                 13    11    10     9
                 10     6     9    11
-                
+
                 ];
-            
+
             %Case 26: -1 1 1 -1 -1 1 1 1
             obj.cases(:,:,26)=[
                 10     7    12     6
@@ -504,9 +504,9 @@ classdef Hexahedra_Linear < Interpolation
                 5     1    13     9
                 11    13     1     9
                 11     1     4     9
-                
+
                 ];
-            
+
             %Case 27: -1 1 1 -1 1 1 1 -1
             obj.cases(:,:,27)=[
                 12     6     9    13
@@ -524,9 +524,9 @@ classdef Hexahedra_Linear < Interpolation
                 12     6    10     9
                 4    10     9    11
                 4    10     1     9
-                
+
                 ];
-            
+
             %Case 28: -1 1 1 1 -1 -1 1 1
             obj.cases(:,:,28)=[
                 13     8     7     3
@@ -544,9 +544,9 @@ classdef Hexahedra_Linear < Interpolation
                 12     9    10    11
                 12     5    10     9
                 5     1    10     9
-                
+
                 ];
-            
+
             %Case 29: -1 1 1 1 -1 1 1 -1
             obj.cases(:,:,29)=[
                 11    10     4     3
@@ -564,9 +564,9 @@ classdef Hexahedra_Linear < Interpolation
                 11    13     9     3
                 11     9    10     3
                 11    12    10     9
-                
+
                 ];
-            
+
             %Case 30: 1 -1 -1 -1 1 1 1 1
             obj.cases(:,:,30)=[
                 13    10     4     3
@@ -584,9 +584,9 @@ classdef Hexahedra_Linear < Interpolation
                 11     9    12     3
                 13     5     9    11
                 13    11     9    12
-                
+
                 ];
-            
+
             %Case 31: 1 -1 -1 1 1 -1 1 1
             obj.cases(:,:,31)=[
                 9     4     5     8
@@ -604,9 +604,9 @@ classdef Hexahedra_Linear < Interpolation
                 10     9    13    12
                 2     9    12    13
                 6     2    12    13
-                
+
                 ];
-            
+
             %Case 32: 1 -1 -1 1 1 1 -1 1
             obj.cases(:,:,32)=[
                 3    12     7    13
@@ -624,9 +624,9 @@ classdef Hexahedra_Linear < Interpolation
                 8     5     9    13
                 8     5     4     9
                 5     1     4     9
-                
+
                 ];
-            
+
             %Case 33: 1 -1 1 1 -1 -1 1 1
             obj.cases(:,:,33)=[
                 8    12     4    11
@@ -644,9 +644,9 @@ classdef Hexahedra_Linear < Interpolation
                 4    10     1     9
                 9     6     2    11
                 8    12    11    13
-                
+
                 ];
-            
+
             %Case 34: 1 -1 1 1 1 -1 -1 1
             obj.cases(:,:,34)=[
                 9     4     5     8
@@ -665,9 +665,9 @@ classdef Hexahedra_Linear < Interpolation
                 4    10     3    11
                 6    10    12    11
                 6     2    12    10
-                
+
                 ];
-            
+
             %Case 35: 1 1 -1 -1 1 1 -1 1
             obj.cases(:,:,35)=[
                 13    12    10     3
@@ -685,9 +685,9 @@ classdef Hexahedra_Linear < Interpolation
                 13    12     9    10
                 12     6     9    10
                 10     6     9     2
-                
+
                 ];
-            
+
             %Case 36: 1 1 -1 -1 1 1 1 -1
             obj.cases(:,:,36)=[
                 4    13     9    11
@@ -705,9 +705,9 @@ classdef Hexahedra_Linear < Interpolation
                 9    12    10    13
                 9    12     2    10
                 4    11     9    10
-                
+
                 ];
-            
+
             %Case 37: 1 1 -1 1 1 -1 -1 1
             obj.cases(:,:,37)=[
                 7    10     6    13
@@ -725,9 +725,9 @@ classdef Hexahedra_Linear < Interpolation
                 7     9    10    13
                 7     3     9    13
                 3    11     9    13
-                
+
                 ];
-            
+
             %Case 38: 1 1 -1 1 1 1 -1 -1
             obj.cases(:,:,38)=[
                 9     1    12    10
@@ -745,9 +745,9 @@ classdef Hexahedra_Linear < Interpolation
                 11     8    12    13
                 5     2    12     6
                 5     1    12     2
-                
+
                 ];
-            
+
             %Case 39: 1 1 1 -1 -1 1 1 -1
             obj.cases(:,:,39)=[
                 9    12     2    11
@@ -765,9 +765,9 @@ classdef Hexahedra_Linear < Interpolation
                 13    12     2     6
                 9    10     2    12
                 9    10     1     2
-                
+
                 ];
-            
+
             %Case 40: 1 1 1 -1 1 1 -1 -1
             obj.cases(:,:,40)=[
                 10    11    13     2
@@ -785,9 +785,9 @@ classdef Hexahedra_Linear < Interpolation
                 9    12     2    13
                 9    12     5     2
                 9     5     1     2
-                
+
                 ];
-            
+
             %Case 41: 1 1 1 1 -1 -1 -1 1
             obj.cases(:,:,41)=[
                 5    10    12     6
@@ -805,9 +805,9 @@ classdef Hexahedra_Linear < Interpolation
                 4     9     1     2
                 6    11    13     7
                 6    10    13    11
-                
+
                 ];
-            
+
             %Case 42: 1 1 1 1 -1 -1 1 -1
             obj.cases(:,:,42)=[
                 12     5     9    10
@@ -825,9 +825,9 @@ classdef Hexahedra_Linear < Interpolation
                 11    13     9    10
                 11    10     9     2
                 12     5    10     6
-                
+
                 ];
-            
+
             %Case 43: 1 1 1 1 -1 1 -1 -1
             obj.cases(:,:,43)=[
                 11    13     9    10
@@ -845,9 +845,9 @@ classdef Hexahedra_Linear < Interpolation
                 11    10     9     2
                 4     9     1     2
                 11     9     4     2
-                
+
                 ];
-            
+
             %Case 44: 1 1 1 1 1 -1 -1 -1
             obj.cases(:,:,44)=[
                 12    10     6     9
@@ -865,9 +865,9 @@ classdef Hexahedra_Linear < Interpolation
                 11     1     4     2
                 11     9     1     2
                 11    12     1     9
-                
+
                 ];
-            
+
             %Case 45: -1 -1 -1 -1 1 1 1 1
             obj.cases(:,:,45)=[
                 10     8     6    11
@@ -884,7 +884,7 @@ classdef Hexahedra_Linear < Interpolation
                 12     8     5    10
                 zeros(3,4)
                 ];
-            
+
             %Case 46: -1 1 1 -1 -1 1 1 -1
             obj.cases(:,:,46)=[
                 1     5     9     4
@@ -901,7 +901,7 @@ classdef Hexahedra_Linear < Interpolation
                 2    11     6    12
                 zeros(3,4)
                 ];
-            
+
             %Case 47: -1 -1 1 1 -1 -1 1 1
             obj.cases(:,:,47)=[
                 10    11     6    12
@@ -918,7 +918,7 @@ classdef Hexahedra_Linear < Interpolation
                 4     8    11    10
                 zeros(3,4)
                 ];
-            
+
             %Case 48: -1 -1 1 -1 -1 1 1 1
             obj.cases(:,:,48)=[
                 11    12    13     7
@@ -937,7 +937,7 @@ classdef Hexahedra_Linear < Interpolation
                 3    11     9     7
                 zeros(1,4)
                 ];
-            
+
             %Case 49: -1 -1 -1 1 1 -1 1 1
             obj.cases(:,:,49)=[
                 1    10     2     9
@@ -956,7 +956,7 @@ classdef Hexahedra_Linear < Interpolation
                 14     2    13    11
                 zeros(1,4)
                 ];
-            
+
             %Case 50: 1 -1 -1 -1 1 1 -1 1
             obj.cases(:,:,50)=[
                 8     5    12    14
@@ -975,7 +975,7 @@ classdef Hexahedra_Linear < Interpolation
                 5     1    10     9
                 zeros(1,4)
                 ];
-            
+
             %Case 51: -1 1 -1 -1 1 1 1 -1
             obj.cases(:,:,51)=[
                 11    12     4    14
@@ -1097,7 +1097,7 @@ classdef Hexahedra_Linear < Interpolation
             obj.selectcases(16,277)=51;
             obj.selectcases(20,226)=51;
         end
-        
+
     end
-    
+
 end

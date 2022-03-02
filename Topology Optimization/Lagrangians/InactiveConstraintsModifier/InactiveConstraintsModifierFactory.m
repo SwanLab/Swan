@@ -1,4 +1,4 @@
-classdef InactiveConstraintsModifierFactory < handle    
+classdef InactiveConstraintsModifierFactory < handle
     
     methods (Access = public, Static)
         
@@ -16,5 +16,5 @@ classdef InactiveConstraintsModifierFactory < handle
         end
         
     end
-               
+    
 end
