@@ -5,13 +5,14 @@ materialType = 'ISOTROPIC';
 initial_case = 'full';
 cost = {'compliance'};
 weights = [1];
-constraint = {'volumeConstraint'; 'perimeterConstraint'};
-optimizer = 'IPOPT';
+constraint = {'volumeConstraint'};
+optimizerUnconstrained = 'PROJECTED GRADIENT'; 
+optimizer = 'MMA';
 incrementFactor = 1;
 designVariable = 'Density';
 filterType = 'P1';
 
-nsteps = 1;
+nsteps = 6;
 Vfrac_final = 0.6;
 optimality_final =1e-3;
 constr_final =1e-3;

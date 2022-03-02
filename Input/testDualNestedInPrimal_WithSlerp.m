@@ -1,4 +1,4 @@
-filename = 'CantileverBeam_Triangle_Linear_Fine';
+filename = 'CantileverBeam_Triangle_Linear';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -14,8 +14,8 @@ kfrac = 1.05;
 designVariable = 'LevelSet';
 filterType = 'P1';
 
-nsteps = 1;
-Vfrac_final = 0.8;
+nsteps = 7;
+Vfrac_final = 0.3;
 optimality_final =1e-3;
 constr_final =1e-3;
 
@@ -32,8 +32,9 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 % For all tests
-plotting = false;
+plotting = true;
 printing = false;
 printing_physics = false;
-monitoring = false;
-maxiter = 2;
+monitoring = true;
+monitoring_interval = 10;
+maxiter = 200;

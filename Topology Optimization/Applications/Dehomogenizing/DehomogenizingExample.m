@@ -19,6 +19,7 @@ classdef DehomogenizingExample < handle
     properties (Access = private)
         filePath
         fileName
+        iteration
         nCells
         nx1
         nx2
@@ -43,21 +44,25 @@ classdef DehomogenizingExample < handle
         
         function init(obj)
             obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/Example/';
-            %obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';
-            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-            %obj.fileName = 'CantileverSymmetricWithoutFixing';
-            %obj.fileName = 'ExperimentingPlotSuperEllipse';
-            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-            obj.nx1    = 222;
-            obj.nx2    = 222;
+            obj.fileName = 'CantileverSymmetricWithoutFixing';
+            obj.iteration = 216;
+% 
+%            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+%            obj.fileName = 'ExperimentingPlotSuperEllipse';
+%            obj.iteration = 64;
+            
+           %obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+           %obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+           %obj.iteration = 665;         
+        
+            obj.nx1    = 22;
+            obj.nx2    = 22;
             obj.nCells = 46;
         end
         
         function loadDataExperiment(obj)
-            %iteration = 216;
-            %iteration = 64;
-            iteration = 665;
-            s.fileName = [obj.fileName,num2str(iteration)];
+
+            s.fileName = [obj.fileName,num2str(obj.iteration)];
             s.folderPath = fullfile(obj.filePath );
             w = WrapperMshResFiles(s);
             w.compute();

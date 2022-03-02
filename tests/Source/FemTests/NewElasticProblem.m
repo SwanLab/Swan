@@ -127,7 +127,7 @@ classdef NewElasticProblem < handle %NewFEM
         end
 
         function computeStiffnessMatrix(obj)
-            s.type = 'ElasticStiffnessMatrix';
+            s.type = 'ElasticStiffnessMatrixOld';
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;

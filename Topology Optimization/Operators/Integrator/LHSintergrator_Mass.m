@@ -22,6 +22,12 @@ classdef LHSintergrator_Mass < LHSintegrator
     
     methods (Access = protected)
         
+       function createQuadrature(obj)
+           quad = Quadrature.set(obj.mesh.type);
+           quad.computeQuadrature('QUADRATIC');            
+           obj.quadrature = quad;
+       end        
+        
         function lhs = computeElementalLHS(obj)
             shapes = obj.interpolation.shape;
             quad   = obj.quadrature;
