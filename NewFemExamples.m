@@ -1,10 +1,37 @@
-%% 2D Example
-% Cantilever beam
 clc; clear; close all;
 
+% 2D
+index = 1;
+for i = 0.01:0.005:0.5
+    gg = @() example2D(i);
+    temps(index) = timeit(gg);
+    connecs(index) = size(example2D(i),1);
+    index = index+1;
+end
+
+plot(0.01:0.005:0.5, temps)
+plot(0.01:0.005:0.5, connecs)
+
+% 3D
+for i = 2:1:10
+    gg = @() example3D(i);
+    temps(i) = timeit(gg);
+    connecs(i) = size(example3D(i),1);
+end
+
+plot(1:1:10, temps)
+plot(1:1:10, connecs)
+
+% example3D()
+
+%% 2D Example
+% Cantilever beam
+function connec = example2D(mstep)
+% clc; clear; close all;
+
 % Coordinates
-x = 0:0.1:1;
-y = 0:0.05:0.25;
+x = 0:  mstep  :1;
+y = 0: mstep/2 :0.25;
 
 %Mesh
 [X,Y,Z] = meshgrid(x,y,0);
@@ -34,67 +61,26 @@ p.pointload = neumann;
 % Solution
 fem = NewFEM.create(p);
 fem.solve();
-fem.plot();
-
-%% 3D reference
-clc; clear; close all;
-load("newFemHexahedra.mat")
-
-%% Small 3D attempt
-clc; clear;
-
-cm.coord = [0, 0, 0;
-            1, 0, 0;
-            0, 1, 0;
-            1, 1, 0;
-            0, 0, 1;
-            1, 0, 1;
-            0, 1, 1;
-            1, 1, 1;
-           ];
-cm.connec = [1 2 3 4 5 6 7 8];
-cubeMesh = Mesh(cm);
-dirichlet = [1 1 0;
-             1 2 0;
-             1 3 0;
-             2 1 0;
-             2 2 0;
-             2 3 0;
-             5 1 0;
-             5 2 0;
-             5 3 0;
-             6 1 0;
-             6 2 0;
-             6 3 0;];
-neumann = [7, 3, 0.5;
-           8, 3, 0.5;
-           ];
-p.dim = '3D';
-p.type = 'ELASTIC';
-p.scale = 'MACRO';
-p.mesh  = cubeMesh;
-p.dirichlet = dirichlet;
-p.pointload = neumann;
-
-fem = NewFEM.create(p);
-fem.solve();
-fem.plot();
+% fem.plot();
+end
 
 %% 3D Example
 % Cantilever beam
-clc; clear; close all;
+function connec  = example3D(mstep)
+% clc; clear; close all;
 
 % Coordinates
-x = 0:0.1:1;
-y = 0:0.05:0.25;
-z = 0:0.05:0.25;
+% x = 0:  mstep  :1;
+% y = 0: mstep/2 :0.25;
+% z = 0: mstep/2 :0.25;
 
-x = linspace(0,1,5);
-y = linspace(0,1,5);
-z = linspace(0,2,10);
+x = linspace(0,1,mstep);
+y = linspace(0,1,mstep);
+z = linspace(0,2,mstep*2);
 [X,Y,Z] = meshgrid(x,y,z);
 coords  = [X(:) Y(:) Z(:)];
 d = delaunayTriangulation(coords);
+connec = d.ConnectivityList;
 s.connec = d.ConnectivityList;
 s.coord  = coords;
 p.mesh = Mesh(s);
@@ -118,8 +104,9 @@ p.pointload = neumann;
 % Solution
 fem = NewFEM.create(p);
 fem.solve();
-fem.plot();
+% fem.plot();
 
+end
 %% Visualize
 
 %             Tn = connec;
