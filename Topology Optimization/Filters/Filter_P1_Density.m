@@ -94,7 +94,7 @@ classdef Filter_P1_Density < handle %Filter_P1
         function createMassMatrix(obj,cParams)
             diffReacProb = obj.createDiffReacProblem(cParams);
             diffReacProb.preProcess();
-            obj.M = diffReacProb.element.M;
+            obj.M = diffReacProb.getM();
         end
         
         function pB = createDiffReacProblem(obj,cParams)

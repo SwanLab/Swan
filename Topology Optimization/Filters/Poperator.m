@@ -45,7 +45,7 @@ classdef Poperator < handle
        
         function createMassMatrix(obj)
             obj.diffReacProb.preProcess();
-            obj.M = obj.diffReacProb.element.M;
+            obj.M = obj.diffReacProb.getM();
         end
        
        function createOperator(obj)

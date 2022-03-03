@@ -35,6 +35,7 @@ classdef NewDiffReactProblem < handle %FEM
         M,K, Mr
         epsilon
         bcApplier
+        quadrature
     end
 
     methods (Access = public)
@@ -45,6 +46,7 @@ classdef NewDiffReactProblem < handle %FEM
             obj.computeDimensions();
             obj.createBoundaryConditions();
             obj.createBCApplier();
+            obj.addGeometry();
             obj.computeStiffnessMatrix();     % They
             obj.computeMassMatrix();          % are the
             obj.computeBoundaryMassMatrix();  % same! :)
@@ -57,19 +59,19 @@ classdef NewDiffReactProblem < handle %FEM
                 obj.createGeometry(obj.mesh);
             end
             obj.setDOFs();
-            obj.setElement();
+%             obj.setElement();
             obj.solver = Solver.create();
         end
         
         function computeVariables(obj,x)
             if obj.isRobinTermAdded
-                LHS = obj.element.computeLHS();
+                LHS = obj.computeLHS();
                 x_reg = obj.solver.solve(LHS,x);
                 obj.variables.x = x_reg;
             else
-                bc = obj.element.getBcApplier();
+                bc = obj.bcApplier;
                 x_red  = bc.fullToReducedVector(x);
-                LHS = obj.element.computeLHS();
+                LHS = obj.computeLHS();
                 x_reg = obj.solver.solve(LHS,x_red);
                 obj.variables.x = bc.reducedToFullVector(x_reg);
             end
@@ -78,7 +80,7 @@ classdef NewDiffReactProblem < handle %FEM
 
         function obj = setEpsilon(obj,epsilon)
             obj.epsilon = epsilon;
-            obj.element.setEpsilon(epsilon);
+%             obj.element.setEpsilon(epsilon);
         end
         
         function createGeometry(obj,mesh)
@@ -93,6 +95,14 @@ classdef NewDiffReactProblem < handle %FEM
                 LHS = obj.epsilon^2*obj.K + obj.M;
                 LHS = obj.bcApplier.fullToReducedMatrix(LHS);
             end
+        end
+
+        function M = getM(obj) %new
+            M = obj.M;
+        end
+
+        function M = getK(obj) %new
+            M = obj.K;
         end
 
     end
@@ -167,6 +177,14 @@ classdef NewDiffReactProblem < handle %FEM
             s.type    = obj.bcApplierType;
             s.nfields = 1;
             obj.bcApplier = BoundaryConditionsApplier.create(s);
+        end
+
+        function addGeometry(obj)
+            obj.quadrature = Quadrature.set(obj.mesh.type);
+            obj.quadrature.computeQuadrature('LINEAR');
+            s.mesh = obj.mesh;
+            obj.geometry = Geometry.create(s);
+            obj.geometry.computeGeometry(obj.quadrature,obj.interp{1});
         end
         
         function computeStiffnessMatrix(obj)

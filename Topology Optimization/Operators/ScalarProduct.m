@@ -48,8 +48,8 @@ classdef ScalarProduct < handle
             s.mesh = cParams.mesh;
             physProb = NewDiffReactProblem(s);
             physProb.preProcess();
-            obj.Ksmooth = physProb.element.K;
-            obj.Msmooth = physProb.element.M;
+            obj.Ksmooth = physProb.getK();
+            obj.Msmooth = physProb.getM();
         end
         
         function n = computeProduct(obj,K,f,g)
