@@ -44,10 +44,14 @@ classdef BoundaryConditions < handle
         end
 
         function [dofs, vals] = formatInputData(obj, data)
-            inod = data(:,1);
-            iunk = data(:,2);
-            vals = data(:,3);
-            dofs = obj.nod2dof(inod,iunk);
+            dofs = [];
+            vals = [];
+            if ~isempty(data)
+                inod = data(:,1);
+                iunk = data(:,2);
+                vals = data(:,3);
+                dofs = obj.nod2dof(inod,iunk);
+            end
         end
 
         function idof = nod2dof(obj, inode, iunkn)

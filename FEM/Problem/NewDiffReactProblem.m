@@ -28,22 +28,26 @@ classdef NewDiffReactProblem < handle %FEM
         inputReader
     end
 
+    % new properties
+    properties (Access = private)
+        dim
+        boundaryConditions
+        M,K, Mr
+        epsilon
+        bcApplier
+    end
+
     methods (Access = public)
         
         function obj = NewDiffReactProblem(cParams)
-%             display(cParams)
-            if isfield(cParams,'isRobinTermAdded')
-                obj.isRobinTermAdded = cParams.isRobinTermAdded;
-                obj.bcApplierType = cParams.bcApplierType;
-            else
-                obj.isRobinTermAdded = false;
-                obj.bcApplierType = '';
-            end
-
-            obj.setupFromMesh(cParams);
-            obj.problemData.ptype = 'DIFF-REACT';
-            obj.setScale();
+            obj.init(cParams);
             obj.createInterpolation();
+            obj.computeDimensions();
+            obj.createBoundaryConditions();
+            obj.createBCApplier();
+            obj.computeStiffnessMatrix();     % They
+            obj.computeMassMatrix();          % are the
+            obj.computeBoundaryMassMatrix();  % same! :)
         end
         
         function preProcess(obj)
@@ -73,6 +77,7 @@ classdef NewDiffReactProblem < handle %FEM
         
 
         function obj = setEpsilon(obj,epsilon)
+            obj.epsilon = epsilon;
             obj.element.setEpsilon(epsilon);
         end
         
@@ -81,6 +86,15 @@ classdef NewDiffReactProblem < handle %FEM
             obj.geometry = Geometry.create(s);
         end
         
+        function LHS = computeLHS(obj)
+            if obj.isRobinTermAdded
+                LHS = obj.epsilon^2*obj.K + obj.M + (obj.epsilon)*obj.Mr;
+            else
+                LHS = obj.epsilon^2*obj.K + obj.M;
+                LHS = obj.bcApplier.fullToReducedMatrix(LHS);
+            end
+        end
+
     end
     
     methods (Access = protected)
@@ -104,15 +118,119 @@ classdef NewDiffReactProblem < handle %FEM
     
     methods (Access = private)
         
-        function createInterpolation(obj)
-            if contains(class(obj.mesh),'Total')
-                obj.interp{1} =Interpolation.create(obj.mesh.innerMeshOLD,'LINEAR');
+        function init(obj, cParams)
+            obj.setupRobinTermAndBCApplier(cParams)
+            obj.setupFromMesh(cParams);
+            obj.problemData.ptype = 'DIFF-REACT';
+            obj.problemData.pdim = '1D';
+            obj.setScale();
+        end
+
+        function setupRobinTermAndBCApplier(obj, cParams)
+            if isfield(cParams,'isRobinTermAdded')
+                obj.isRobinTermAdded = cParams.isRobinTermAdded;
+                obj.bcApplierType = cParams.bcApplierType;
             else
-                obj.interp{1} =Interpolation.create(obj.mesh,'LINEAR');
+                obj.isRobinTermAdded = false;
+                obj.bcApplierType = '';
             end
-            
+        end
+
+        function createInterpolation(obj)
+            int = obj.mesh.interpolation;
+            obj.interp{1} = int;
         end
         
+        function computeDimensions(obj)
+            s.ngaus = [];
+            s.mesh  = obj.mesh;
+            s.pdim  = obj.problemData.pdim;
+            d       = DimensionVariables(s);
+            d.compute();
+            obj.dim = d;
+        end
+
+        function createBoundaryConditions(obj)
+            s.dim          = obj.dim;
+            s.globalConnec = obj.mesh.connec;
+            s.bc.dirichlet = [];
+            s.bc.pointload = [];
+            bc = BoundaryConditions(s);
+            bc.compute();
+            obj.boundaryConditions = bc;
+        end
+
+        function createBCApplier(obj)
+            s.BC      = obj.boundaryConditions;
+            s.dim     = obj.dim;
+            s.scale   = obj.problemData.scale;
+            s.type    = obj.bcApplierType;
+            s.nfields = 1;
+            obj.bcApplier = BoundaryConditionsApplier.create(s);
+        end
+        
+        function computeStiffnessMatrix(obj)
+            s.type = 'StiffnessMatrix';
+            s.mesh         = obj.mesh;
+            s.npnod        = obj.mesh.npnod;
+            s.globalConnec = obj.mesh.connec;
+            s.dim          = obj.dim;
+            LHS = LHSintegrator.create(s);
+            obj.K = LHS.compute();
+        end
+        
+        function computeMassMatrix(obj)
+            s.type         = 'MassMatrix';
+            s.quadType     = 'QUADRATICMASS';
+            s.mesh         = obj.mesh;
+            s.npnod        = obj.mesh.npnod;
+            s.globalConnec = obj.mesh.connec;
+            s.dim          = obj.dim;
+            LHS = LHSintegrator.create(s);
+            obj.M = LHS.compute();
+        end
+        
+        function computeBoundaryMassMatrix(obj)
+            if obj.isRobinTermAdded
+                cParams = obj.createIntegratorParams();
+                nInt = numel(cParams.compositeParams);
+                ndof = cParams.compositeParams{1}.dim.ndof;
+                LHS = sparse(ndof,ndof);
+                for iInt = 1:nInt
+                    s = cParams.compositeParams{iInt};
+                    s.type = 'MassMatrix';
+                    s.quadType = 'LINEAR';
+                    lhs = LHSintegrator.create(s);
+                    LHSadd = lhs.compute();
+                    LHS = LHS + LHSadd;
+                end
+                obj.Mr = LHS;
+            end
+        end
+        
+        function params = createIntegratorParams(obj)
+            params.type  = 'COMPOSITE';
+            params.npnod = obj.mesh.npnod;
+            s.backgroundMesh = obj.mesh;
+            s.dimension      = 1:s.backgroundMesh.ndim;
+            s.type           = 'FromReactangularBox';
+            bC = BoundaryMeshCreator.create(s);
+            bC.create();
+            bMeshes = obj.boundaryMesh;
+            nBoxFaces = numel(bMeshes);
+            d = obj.dim;
+            for iMesh = 1:nBoxFaces
+                boxFaceMesh = bMeshes{iMesh};
+                cParams.mesh = boxFaceMesh.mesh;
+                cParams.type = 'SIMPLE';
+                cParams.globalConnec = boxFaceMesh.globalConnec;
+                cParams.npnod        = obj.mesh.npnod;
+                cParams.geometryType = obj.mesh.type;
+                cParams.dim          = d;
+                params.compositeParams{iMesh} = cParams;
+            end
+        end
+
         function setupFromMesh(obj,s)
             obj.mesh = s.mesh;
             obj.problemData.fileName = s.fileName;
@@ -123,11 +241,7 @@ classdef NewDiffReactProblem < handle %FEM
             run(fileName);
             if exist('External_border_nodes','var') && ~isempty(External_border_nodes)
                 s.borderNodes    = External_border_nodes;
-                if exist('External_border_elements','var') 
-                    s.borderElements = External_border_elements;
-                else
-                    s.borderElements = [];
-                end
+                s.borderElements = External_border_elements;
                 s.backgroundMesh = obj.mesh;
                 s.type = 'FromData';
                 b = BoundaryMeshCreator.create(s);
