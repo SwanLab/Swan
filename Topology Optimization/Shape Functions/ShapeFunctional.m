@@ -94,7 +94,7 @@ classdef ShapeFunctional < handle
             
             switch s.scale
                 case 'MACRO'
-                    diffReacProb = DiffReact_Problem(s);
+                    diffReacProb = NewDiffReactProblem(s);
                 case 'MICRO'
                     diffReacProb = DiffReact_Problem_Micro(s);
             end

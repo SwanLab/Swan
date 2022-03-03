@@ -55,7 +55,7 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
 %                 case 3
 %                     pdim = '3D';
 %             end
-            pdim = 'FILTER';
+            pdim = '1D';
         end
 
     end

@@ -20,12 +20,12 @@ classdef BMatrixComputer < handle
         function B = computeBmat(obj,igaus)
             ndim = obj.dim.ndim;
             switch ndim
+                case 1
+                    B = obj.computeBin1D(igaus);
                 case 2
                     B = obj.computeBin2D(igaus);
                 case 3
                     B = obj.computeBin3D(igaus);
-                case -1 
-                    B = obj.computeBinFilter(igaus);
             end
         end
 
@@ -79,7 +79,7 @@ classdef BMatrixComputer < handle
             end
         end
 
-        function [B] = computeBinFilter(obj, igaus)
+        function [B] = computeBin1D(obj, igaus)
             d    = obj.dim;
             dNdx = obj.geometry.dNdx(:,:,:,igaus);
             B = zeros(2,d.nnode*d.ndimField,d.nelem);
@@ -124,56 +124,10 @@ classdef BMatrixComputer < handle
         end
 
         function Bt = assembleMatrix(obj, Bfull)
-            d = obj.dim;
-            ntot  = d.nt;
-            ndofGlob = d.ndof;
-            Bt = sparse(ntot,ndofGlob);
-            for idof = 1:d.ndofPerElement
-                dofs  = obj.computeGlobalDofs(idof);
-                Bidof = Bfull(:,idof);
-                Bdof = obj.computeBdofBySparse(Bidof,dofs);
-                %                Bdof = obj.computeBdofByAccumarray(Bidof,dofs);
-                Bt = Bt + Bdof;
-            end
-        end
-
-        function Bdof = computeBdofBySparse(obj,Bidof,dofs)
-            d = obj.dim;
-            ntot  = d.nt;
-            ndofGlob = d.ndof;
-            Bdof = sparse(1:ntot,dofs,Bidof,ntot,ndofGlob);
-        end
-
-        function Bdof = computeBdofByAccumarray(obj,Bidof,dofs)
-            d = obj.dim;
-            ntot  = d.nt;
-            ndof = d.ndof;
-            posI = 1:ntot;
-            index = [posI', dofs];
-            %            Bdof = accumarray(dofs,Bidof,[ntot 1]);
-            Bdof = accumarray(index,Bidof,[ntot ndof],[],[],true);
-        end
-
-        function dofs = computeGlobalDofs(obj,idof)
-            d = obj.dim;
-            ngaus = d.ngaus;
-            nstre = d.nstre;
-            gDofs = obj.transformLocal2Global(idof);
-            dofs = repmat(gDofs',ngaus*nstre,1);
-            dofs = dofs(:);
-        end
-
-        function gDofs = transformLocal2Global(obj,iDof)
-            d     = obj.dim;
-            ndimf = d.ndimField;
-            nnode = d.nnode;
-            nodes        = obj.globalConnec;
-            nodesInElem  = reshape(repmat(1:nnode,ndimf,1),1,[]);
-            dofs         = repmat(1:ndimf,1,nnode);
-            inode        = nodesInElem(iDof);
-            iunkn        = dofs(iDof);
-            nodeI        = nodes(:,inode);
-            gDofs   = ndimf*(nodeI-1) + iunkn;
+            s.dim = obj.dim;
+            s.globalConnec = obj.globalConnec;
+            assembler = Assembler(s);
+            Bt = assembler.assembleB(Bfull);
         end
 
     end

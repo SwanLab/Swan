@@ -115,20 +115,9 @@ classdef Element_DiffReact < Element
         function dim = computeDim(obj)
             s.ngaus = obj.quadrature.ngaus;
             s.mesh  = obj.mesh;
-            s.pdim  = 'FILTER';
+            s.pdim  = '1D';
             dim    = DimensionVariables(s);
             dim.compute();
-        end
-
-        function pdim = createPdim(obj)
-            switch obj.mesh.ndim
-                case 2
-                    pdim = '2D';
-                case 3
-                    pdim = '3D';
-                case 'FILTER'
-                    pdim = 'FILTER';
-            end
         end
         
     end

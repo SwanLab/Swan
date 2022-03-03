@@ -1,13 +1,13 @@
 %% To-do
 
 % a) RENAMING
-%       - s.pdim 'FILTER'. 
+%    OK!   - s.pdim 'FILTER'. 
 %    OK!   - pdim to nDim, nunkn to dimField, nFields, dimAllFields
 
 % b) ASSEMBLER
 %    OK!   - Accumarray and sparse only in Assembler. 
-%       - BMatrixComputer uses Assembler.
-%       - LHSintegrator_StiffnessElasticStoredB uses Assembler.
+%    MEH   - BMatrixComputer uses Assembler.
+%    MEH   - LHSintegrator_StiffnessElasticStoredB uses Assembler.
 %    OK!   - LHSintegrator uses Assembler.
 
 % c) EXAMPLES

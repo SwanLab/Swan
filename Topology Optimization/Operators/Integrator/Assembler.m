@@ -15,6 +15,14 @@ classdef Assembler < handle
             A = obj.assembleMatrix(aElem);
         end
 
+        function B = assembleB(obj, Bfull)
+            B = obj.assembleBMatrix(Bfull);
+        end
+
+        function C = assembleC(obj, Cmat, dvol)
+            C = obj.assembleCMatrix(Cmat, dvol);
+        end
+
     end
 
     methods (Access = private)
@@ -80,6 +88,95 @@ classdef Assembler < handle
             ndimf = obj.dim.ndimField;
             idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
+
+        %% B matrix assembly
+        function Bt = assembleBMatrix(obj, Bfull)
+            d = obj.dim;
+            ntot  = d.nt;
+            ndofGlob = d.ndof;
+            Bt = sparse(ntot,ndofGlob);
+            for idof = 1:d.ndofPerElement
+                dofs  = obj.computeGlobalDofs(idof);
+                Bidof = Bfull(:,idof);
+                Bdof = obj.computeBdofBySparse(Bidof,dofs);
+                %                Bdof = obj.computeBdofByAccumarray(Bidof,dofs);
+                Bt = Bt + Bdof;
+            end
+        end
+
+        function dofs = computeGlobalDofs(obj,idof)
+            d = obj.dim;
+            ngaus = d.ngaus;
+            nstre = d.nstre;
+            gDofs = obj.transformLocal2Global(idof);
+            dofs = repmat(gDofs',ngaus*nstre,1);
+            dofs = dofs(:);
+        end
+
+        function gDofs = transformLocal2Global(obj,iDof)
+            d     = obj.dim;
+            ndimf = d.ndimField;
+            nnode = d.nnode;
+            nodes        = obj.globalConnec;
+            nodesInElem  = reshape(repmat(1:nnode,ndimf,1),1,[]);
+            dofs         = repmat(1:ndimf,1,nnode);
+            inode        = nodesInElem(iDof);
+            iunkn        = dofs(iDof);
+            nodeI        = nodes(:,inode);
+            gDofs   = ndimf*(nodeI-1) + iunkn;
+        end
+
+        function Bdof = computeBdofBySparse(obj,Bidof,dofs)
+            d = obj.dim;
+            ntot  = d.nt;
+            ndofGlob = d.ndof;
+            Bdof = sparse(1:ntot,dofs,Bidof,ntot,ndofGlob);
+        end
+
+        function Bdof = computeBdofByAccumarray(obj,Bidof,dofs)
+            d = obj.dim;
+            ntot  = d.nt;
+            ndof = d.ndof;
+            posI = 1:ntot;
+            index = [posI', dofs];
+            %            Bdof = accumarray(dofs,Bidof,[ntot 1]);
+            Bdof = accumarray(index,Bidof,[ntot ndof],[],[],true);
+        end
+
+        %% C matrix assembly
+
+       function CmatTot = assembleCMatrix(obj, Cmat, dvol)
+           nstre = obj.dim.nstre;
+           ngaus = obj.dim.ngaus;
+           ntot  = obj.dim.nt;
+           CmatTot = sparse(ntot,ntot);
+           for istre = 1:nstre
+               for jstre = 1:nstre
+                   for igaus = 1:ngaus
+                       posI = (istre)+(nstre)*(igaus-1) : ngaus*nstre : ntot;
+                       posJ = (jstre)+(nstre)*(igaus-1) : ngaus*nstre : ntot;
+                       Ci = Cmat(istre,jstre,:,igaus);
+                       Ct = squeeze(Ci).*dvol(:,igaus);
+                       Cadd = obj.computeCaddBySparse(Ct, posI, posJ);
+                       CmatTot = CmatTot + Cadd;
+                   end
+               end
+           end
+       end
+
+       function Cadd = computeCaddBySparse(obj,Ct, posI, posJ)
+           d = obj.dim;
+           ntot  = d.nt;
+           Cadd = sparse(posI,posJ,Ct,ntot,ntot);
+       end
+
+       function Cadd = computeCaddByAccumarray(obj,Ct, posI, posJ)
+           d = obj.dim;
+           ntot  = d.nt;
+           index = [posI', posJ'];
+           Cadd = accumarray(index,Ct,[ntot ntot],[],[],true);
+      end
+
 
     end
 

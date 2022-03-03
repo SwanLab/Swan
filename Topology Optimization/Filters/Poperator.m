@@ -37,7 +37,7 @@ classdef Poperator < handle
             s = cParams.diffReactEq;
             switch s.scale
                 case 'MACRO'
-                    obj.diffReacProb = DiffReact_Problem(s);
+                    obj.diffReacProb = NewDiffReactProblem(s);
                 case 'MICRO'
                     obj.diffReacProb = DiffReact_Problem_Micro(s);
             end

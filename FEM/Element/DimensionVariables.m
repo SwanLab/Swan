@@ -55,34 +55,34 @@ classdef DimensionVariables < handle
         
         function ndimf = createDimPerField(obj) % createNUnknPerField
             switch obj.pdim
+                case '1D'
+                    ndimf = 1;
                 case '2D'
                     ndimf = 2;
                 case '3D'
                     ndimf = 3;
-                case 'FILTER'
-                    ndimf = 1;
             end
         end
 
         function ndim = createNdim(obj)
             switch obj.pdim
+                case '1D'
+                    ndim = 1;
                 case '2D'
                     ndim = 2;
                 case '3D'
                     ndim = 3;
-                case 'FILTER'
-                    ndim = -1;
             end
         end
 
         function nstre = createNstre(obj)
             switch obj.pdim
+                case '1D'
+                    nstre = 2;
                 case '2D'
                     nstre = 3;
                 case '3D'
                     nstre = 6;
-                case 'FILTER'
-                    nstre = 2;
             end
         end
 

@@ -46,7 +46,7 @@ classdef ScalarProduct < handle
         function createMatrices(obj,cParams)
             s = cParams.femSettings;
             s.mesh = cParams.mesh;
-            physProb = DiffReact_Problem(s);
+            physProb = NewDiffReactProblem(s);
             physProb.preProcess();
             obj.Ksmooth = physProb.element.K;
             obj.Msmooth = physProb.element.M;

@@ -63,7 +63,7 @@ classdef HarmonicProjection < handle
             q = Quadrature();
             q = q.set(obj.mesh.type);
             s.mesh = obj.mesh;
-            s.pdim = 'FILTER';
+            s.pdim = '1D';
             s.ngaus = q.ngaus;
             d = DimensionVariables(s);
             d.compute();
