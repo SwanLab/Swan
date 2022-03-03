@@ -31,30 +31,16 @@ classdef NewDiffReactProblem < handle %FEM
     methods (Access = public)
         
         function obj = NewDiffReactProblem(cParams)
-            
+%             display(cParams)
             if isfield(cParams,'isRobinTermAdded')
                 obj.isRobinTermAdded = cParams.isRobinTermAdded;
-            else
-                obj.isRobinTermAdded = false;
-            end
-            
-            if isfield(cParams,'bcApplierType')
                 obj.bcApplierType = cParams.bcApplierType;
             else
+                obj.isRobinTermAdded = false;
                 obj.bcApplierType = '';
             end
-            
-            if ischar(cParams)
-                obj.setupFromGiDFile(cParams);
-            elseif isstruct(cParams)
-                if isfield(cParams,'mesh')
-                    obj.setupFromMesh(cParams);
-                else
-                    obj.setupFromGiDFile(cParams.fileName);
-                end
-            else
-                error('Invalid input type');
-            end
+
+            obj.setupFromMesh(cParams);
             obj.problemData.ptype = 'DIFF-REACT';
             obj.setScale();
             obj.createInterpolation();
@@ -127,21 +113,10 @@ classdef NewDiffReactProblem < handle %FEM
             
         end
         
-        function setupFromGiDFile(obj,fileName)
-            obj.inputReader.read(fileName);
-            obj.createMesh();
-            obj.createBoundaryMesh(fileName);
-            obj.problemData.fileName = fileName;
-        end
-        
         function setupFromMesh(obj,s)
             obj.mesh = s.mesh;
-            if isfield(s,'fileName')
-                obj.problemData.fileName = s.fileName;
-                obj.createBoundaryMesh(s.fileName);
-%                 obj.problemData.pdim = s.mesh.ndim; % new
-            end
-            
+            obj.problemData.fileName = s.fileName;
+            obj.createBoundaryMesh(s.fileName);
         end
         
         function createBoundaryMesh(obj,fileName)

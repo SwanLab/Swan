@@ -1,4 +1,4 @@
-classdef DiffReact_Problem_Micro < DiffReact_Problem
+classdef DiffReact_Problem_Micro < DiffReact_Problem %NewDiffReactProblem, DiffReact_Problem
 
     methods (Access = protected)
         
