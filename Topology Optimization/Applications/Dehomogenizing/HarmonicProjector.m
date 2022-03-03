@@ -1,4 +1,4 @@
-classdef HarmonicProjection < handle
+classdef HarmonicProjector < handle
     
     properties (Access = private)
         dim
@@ -16,7 +16,7 @@ classdef HarmonicProjection < handle
     
     methods (Access = public)
         
-        function obj = HarmonicProjection(cParams)
+        function obj = HarmonicProjector(cParams)
             obj.init(cParams);
             obj.createDimension();
             obj.computeMassMatrix();
@@ -26,29 +26,31 @@ classdef HarmonicProjection < handle
             obj.createSolver()
         end
         
-        function [vH,errF] = project(obj,v)
+        function vH = project(obj,v)
             lhs = obj.LHS;
             rhs = obj.computeRHS(v);
             vH  = obj.solver.solve(lhs,rhs);
-            vH  = vH(1:obj.dim.npnod,1);
-
-            Kred = obj.reducedStiffnessMatrix;            
-            M    = obj.massMatrix;
-            grad = Kred*vH;
-            errC = norm(grad);
-            errF = (v-vH)'*M*(v-vH)/(v'*M*v);
+            vH  = vH(1:obj.dim.npnod,1);            
         end
 
-        function [vH,errF] = projectByDual(obj,v)
+        function vH = projectByDual(obj,v)
             Kred = obj.reducedStiffnessMatrix;            
             M    = obj.massMatrix;            
             lhs = Kred*(M\Kred');
             rhs = Kred*v;            
             lambda  = obj.solver.solve(lhs,rhs);
             vH = v - M\(Kred'*lambda);
-            errC = norm(Kred*vH);
-            errF = (v-vH)'*M*(v-vH)/(v'*M*v);
-        end        
+        end    
+
+        function cost = computeCost(obj,v,vH)
+            M    = obj.massMatrix;                        
+            cost = (v-vH)'*M*(v-vH)/(v'*M*v);            
+        end
+
+        function optDual = computeDualOptimality(obj,vH)
+            Kred = obj.reducedStiffnessMatrix;            
+            optDual = norm(Kred*vH);
+        end
         
     end
     
@@ -76,6 +78,7 @@ classdef HarmonicProjection < handle
             s.npnod        = obj.mesh.npnod;
             s.type         = 'MassMatrix';
             s.dim          = obj.dim;
+            s.quadType     = 'QUADRATIC';
             lhs = LHSintegrator.create(s);
             M = lhs.compute();
             %M = diag(sum(M));
