@@ -16,8 +16,9 @@
 
 % d) DIFFREACT_PROBLEM
 %    OK!   - DiffReact_Problem to NewDiffReactProblem
-%       - Delete Element_DiffReact (%)
+%    OK!   - Delete Element_DiffReact (%)
 %    OK!   - Use it in FilterPDE
+%       - Cleanup on NewDiffReact
 
 % e) TOPOPT
 %       - FEM to NewFem in TopOpt 
