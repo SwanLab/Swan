@@ -48,8 +48,8 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         
         function solveState(obj)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C) % (:,:,7200,4); cmat
-            obj.physicalProblem.computeVariables();
-%             obj.physicalProblem.solve();
+%             obj.physicalProblem.computeVariables();
+            obj.physicalProblem.solve();
         end
         
         function solveAdjoint(obj)
@@ -57,19 +57,20 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         end
         
         function computeFunctionValue(obj)
-            phy = obj.physicalProblem;
-            dvolum  = phy.geometry.dvolu;
-            stress = phy.variables.stress;
-            strain = phy.variables.strain;
-            ngaus  = phy.element.quadrature.ngaus;
-            nelem  = phy.mesh.nelem;
 %             phy = obj.physicalProblem;
-%             dvolum = phy.getDvolume();
+%             dvolum  = phy.geometry.dvolu;
 %             stress = phy.variables.stress;
 %             strain = phy.variables.strain;
-%             dim    = phy.getDimensions(); 
-%             ngaus  = dim.ngaus;
-%             nelem  = dim.nelem;
+%             ngaus  = phy.element.quadrature.ngaus;
+%             nelem  = phy.mesh.nelem;
+            phy = obj.physicalProblem;
+            dvolum = phy.getDvolume()';
+            stress = phy.variables.stress;
+            strain = phy.variables.strain;
+            dim    = phy.getDimensions(); 
+            ngaus  = dim.ngaus;
+            nelem  = dim.nelem;
+
             c = zeros(nelem,ngaus);
             for igaus = 1:ngaus
                 stressG = squeeze(stress(igaus,:,:));
@@ -86,13 +87,13 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
             phy = obj.physicalProblem;
             eu    = phy.variables.strain;
             ep    = phy.variables.strain;
-            nelem = obj.physicalProblem.mesh.nelem;
-            ngaus = obj.physicalProblem.element.quadrature.ngaus;
-            nstre = obj.physicalProblem.element.getNstre();
-%             dim    = phy.getDimensions(); 
-%             ngaus  = dim.ngaus;
-%             nelem  = dim.nelem;
-%             nstre  = dim.nstre;
+%             nelem = obj.physicalProblem.mesh.nelem;
+%             ngaus = obj.physicalProblem.element.quadrature.ngaus;
+%             nstre = obj.physicalProblem.element.getNstre();
+            dim    = phy.getDimensions(); 
+            ngaus  = dim.ngaus;
+            nelem  = dim.nelem;
+            nstre  = dim.nstre;
             g = zeros(nelem,ngaus,obj.nVariables);
             for igaus = 1:ngaus
                 for istre = 1:nstre

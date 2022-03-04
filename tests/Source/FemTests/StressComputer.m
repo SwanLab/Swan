@@ -30,7 +30,7 @@ classdef StressComputer < handle
             ngaus = obj.dim.ngaus;
             nstre = obj.dim.nstre;
             Cmat  = obj.C;
-            strn  = obj.strain;
+            strn  = permute(obj.strain,[2 3 1]);
             stress = zeros(size(strn));
             for igaus = 1:ngaus
                 for istre=1:nstre
@@ -43,6 +43,7 @@ classdef StressComputer < handle
                     end
                 end
             end
+            stress = permute(stress, [3 1 2]);
         end
         
     end

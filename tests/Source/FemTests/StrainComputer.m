@@ -66,6 +66,7 @@ classdef StrainComputer < handle
                     end
                 end
             end
+            strain = permute(strain, [3 1 2]);
         end
 
         function Bmat = computeB(obj,igaus)
