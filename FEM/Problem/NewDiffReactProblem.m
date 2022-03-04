@@ -1,9 +1,5 @@
 classdef NewDiffReactProblem < handle %FEM
     
-    properties
-        material
-    end
-    
     properties (Access = protected)
         isRobinTermAdded
         bcApplierType
@@ -11,19 +7,9 @@ classdef NewDiffReactProblem < handle %FEM
         boundaryMesh
     end
     
-    
-    properties (GetAccess = public, SetAccess = public) %FEM
-        problemData
+    properties (GetAccess = public, SetAccess = private) %FEM
         geometry
-        mesh
-        Fext
         variables
-    end
-    
-    properties (Access = protected) %FEM
-        solver
-        iter = 0;
-        inputReader
     end
 
     % new properties
@@ -33,7 +19,9 @@ classdef NewDiffReactProblem < handle %FEM
         M,K, Mr
         epsilon
         bcApplier
-        quadrature
+        solver
+        problemData
+        mesh
     end
 
     methods (Access = public)
@@ -44,35 +32,30 @@ classdef NewDiffReactProblem < handle %FEM
             obj.computeDimensions();
             obj.createBoundaryConditions();
             obj.createBCApplier();
-            obj.addGeometry();
+            obj.createGeometry();
             obj.createSolver();
-            obj.computeStiffnessMatrix();     % They
-            obj.computeMassMatrix();          % are the
-            obj.computeBoundaryMassMatrix();  % same! :)
+            obj.computeStiffnessMatrix();
+            obj.computeMassMatrix();
+            obj.computeBoundaryMassMatrix();
         end
         
         function computeVariables(obj,x)
             if obj.isRobinTermAdded
-                LHS = obj.computeLHS();
-                x_reg = obj.solver.solve(LHS,x);
-                obj.variables.x = x_reg;
+                LHS  = obj.computeLHS();
+                xReg = obj.solver.solve(LHS,x);
+                obj.variables.x = xReg;
             else
-                bc = obj.bcApplier;
-                x_red  = bc.fullToReducedVector(x);
-                LHS = obj.computeLHS();
-                x_reg = obj.solver.solve(LHS,x_red);
-                obj.variables.x = bc.reducedToFullVector(x_reg);
+                bc   = obj.bcApplier;
+                xRed = bc.fullToReducedVector(x);
+                LHS  = obj.computeLHS();
+                xReg = obj.solver.solve(LHS,xRed);
+                obj.variables.x = bc.reducedToFullVector(xReg);
             end
         end
         
 
         function obj = setEpsilon(obj,epsilon)
             obj.epsilon = epsilon;
-        end
-        
-        function createGeometry(obj,mesh)
-            s.mesh = mesh;
-            obj.geometry = Geometry.create(s);
         end
         
         function LHS = computeLHS(obj)
@@ -107,19 +90,8 @@ classdef NewDiffReactProblem < handle %FEM
         function init(obj, cParams)
             obj.setupRobinTermAndBCApplier(cParams)
             obj.setupFromMesh(cParams);
-            obj.problemData.ptype = 'DIFF-REACT';
             obj.problemData.pdim = '1D';
             obj.setScale();
-        end
-
-        function setupRobinTermAndBCApplier(obj, cParams)
-            if isfield(cParams,'isRobinTermAdded')
-                obj.isRobinTermAdded = cParams.isRobinTermAdded;
-                obj.bcApplierType = cParams.bcApplierType;
-            else
-                obj.isRobinTermAdded = false;
-                obj.bcApplierType = '';
-            end
         end
 
         function createInterpolation(obj)
@@ -155,12 +127,13 @@ classdef NewDiffReactProblem < handle %FEM
             obj.bcApplier = BoundaryConditionsApplier.create(s);
         end
 
-        function addGeometry(obj)
-            obj.quadrature = Quadrature.set(obj.mesh.type);
-            obj.quadrature.computeQuadrature('LINEAR');
+        function createGeometry(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('LINEAR');
             s.mesh = obj.mesh;
-            obj.geometry = Geometry.create(s);
-            obj.geometry.computeGeometry(obj.quadrature,obj.interp{1});
+            g = Geometry.create(s);
+            g.computeGeometry(q,obj.interp{1});
+            obj.geometry = g;
         end
         
         function createSolver(obj)
@@ -226,6 +199,16 @@ classdef NewDiffReactProblem < handle %FEM
                 cParams.geometryType = obj.mesh.type;
                 cParams.dim          = d;
                 params.compositeParams{iMesh} = cParams;
+            end
+        end
+
+        function setupRobinTermAndBCApplier(obj, cParams)
+            if isfield(cParams,'isRobinTermAdded')
+                obj.isRobinTermAdded = cParams.isRobinTermAdded;
+                obj.bcApplierType = cParams.bcApplierType;
+            else
+                obj.isRobinTermAdded = false;
+                obj.bcApplierType = '';
             end
         end
 

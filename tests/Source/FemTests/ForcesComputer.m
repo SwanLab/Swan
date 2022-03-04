@@ -20,6 +20,18 @@ classdef ForcesComputer < handle
             Fext = FextSupVol +  Fpoint;
         end
 
+        function R = computeReactions(obj, K)
+            bc      = obj.boundaryConditions;
+            dirich  = bc.dirichlet{1};
+            dirichV = bc.dirichlet_values{1};
+            if ~isempty(dirich)
+                R = -K(:,dirich)*dirichV;
+            else
+                R = zeros(sum(obj.dim.ndof(:)),1);
+            end
+
+        end
+
     end
 
     methods (Access = private)

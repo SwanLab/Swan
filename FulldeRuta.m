@@ -9,6 +9,7 @@
 %    MEH   - BMatrixComputer uses Assembler.
 %    MEH   - LHSintegrator_StiffnessElasticStoredB uses Assembler.
 %    OK!   - LHSintegrator uses Assembler.
+%       - ForcesComputer uses Assembler.
 
 % c) EXAMPLES
 %       - NewFemExamples as a class
@@ -18,7 +19,7 @@
 %    OK!   - DiffReact_Problem to NewDiffReactProblem
 %    OK!   - Delete Element_DiffReact (%)
 %    OK!   - Use it in FilterPDE
-%       - Cleanup on NewDiffReact
+%    MEH   - Cleanup on NewDiffReact
 
 % e) TOPOPT
 %       - FEM to NewFem in TopOpt 
