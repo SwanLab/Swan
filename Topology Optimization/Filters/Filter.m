@@ -43,7 +43,6 @@ classdef Filter < handle
     methods (Access = public)
         
         function preProcess(obj)
-            obj.diffReacProb.preProcess();
             obj.createQuadrature();
             obj.createInterpolation();
             obj.createGeometry();

@@ -47,7 +47,6 @@ classdef ScalarProduct < handle
             s = cParams.femSettings;
             s.mesh = cParams.mesh;
             physProb = NewDiffReactProblem(s);
-            physProb.preProcess();
             obj.Ksmooth = physProb.getK();
             obj.Msmooth = physProb.getM();
         end

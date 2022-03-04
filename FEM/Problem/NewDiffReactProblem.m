@@ -16,8 +16,6 @@ classdef NewDiffReactProblem < handle %FEM
         problemData
         geometry
         mesh
-        dof
-        element
         Fext
         variables
     end
@@ -47,20 +45,10 @@ classdef NewDiffReactProblem < handle %FEM
             obj.createBoundaryConditions();
             obj.createBCApplier();
             obj.addGeometry();
+            obj.createSolver();
             obj.computeStiffnessMatrix();     % They
             obj.computeMassMatrix();          % are the
             obj.computeBoundaryMassMatrix();  % same! :)
-        end
-        
-        function preProcess(obj)
-            if contains(class(obj.mesh),'Total')
-                obj.createGeometry(obj.mesh.innerMeshOLD);
-            else
-                obj.createGeometry(obj.mesh);
-            end
-            obj.setDOFs();
-%             obj.setElement();
-            obj.solver = Solver.create();
         end
         
         function computeVariables(obj,x)
@@ -80,7 +68,6 @@ classdef NewDiffReactProblem < handle %FEM
 
         function obj = setEpsilon(obj,epsilon)
             obj.epsilon = epsilon;
-%             obj.element.setEpsilon(epsilon);
         end
         
         function createGeometry(obj,mesh)
@@ -108,17 +95,6 @@ classdef NewDiffReactProblem < handle %FEM
     end
     
     methods (Access = protected)
-        
-        function setElement(obj)
-            isRobinTermAdded = obj.isRobinTermAdded;
-            bcType = obj.bcApplierType;
-            obj.element = Element_DiffReact(obj.mesh,obj.geometry,...
-                obj.material,obj.dof,obj.problemData.scale,isRobinTermAdded,bcType,obj.interp,obj.boundaryMesh);
-        end
-        
-        function setDOFs(obj)
-            obj.dof = DOF_DiffReact(obj.mesh,obj.interp);
-        end
         
         function setScale(obj)
             obj.problemData.scale = 'MACRO';
@@ -187,6 +163,10 @@ classdef NewDiffReactProblem < handle %FEM
             obj.geometry.computeGeometry(obj.quadrature,obj.interp{1});
         end
         
+        function createSolver(obj)
+            obj.solver = Solver.create();
+        end
+
         function computeStiffnessMatrix(obj)
             s.type = 'StiffnessMatrix';
             s.mesh         = obj.mesh;

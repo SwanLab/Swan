@@ -98,7 +98,6 @@ classdef ShapeFunctional < handle
                 case 'MICRO'
                     diffReacProb = DiffReact_Problem_Micro(s);
             end
-%             diffReacProb.preProcess();
             obj.Msmooth = diffReacProb.getM();
             obj.dvolu   = diffReacProb.geometry.dvolu;
         end
