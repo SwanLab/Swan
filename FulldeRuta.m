@@ -22,7 +22,7 @@
 %    MEH   - Cleanup on NewDiffReact
 
 % e) TOPOPT
-%       - FEM to NewFem in TopOpt 
+%    OK!   - FEM to NewFem in TopOpt 
 
 % f) COMPARISON
 %       - First examples of: 
