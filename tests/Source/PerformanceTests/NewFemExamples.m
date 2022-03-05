@@ -1,3 +1,11 @@
+clc; clear;
+
+s.dim    = '3D';
+s.len    = 1;
+s.height = 0.1;
+beam = CantileverBeam(s);
+beam.create(5,5);
+%% 
 clc; clear; close all;
 
 % 2D
