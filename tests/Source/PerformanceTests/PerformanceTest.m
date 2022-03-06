@@ -12,6 +12,7 @@ classdef PerformanceTest < handle
         length, height
         dirichlet
         neumann
+        connec
     end
     
     methods (Access = public)
@@ -20,10 +21,14 @@ classdef PerformanceTest < handle
             obj.init(cParams)
         end
 
-        function sol = compute(obj)
-            obj.createCantileverBeam();
+        function sol = compute(obj,step)
+            obj.createCantileverBeam(step);
             obj.computeBoundaryConditions();
             sol = obj.computeSolution();
+        end
+
+        function connec = getConnec(obj)
+            connec = obj.mesh.connec;
         end
         
     end
@@ -36,12 +41,14 @@ classdef PerformanceTest < handle
             obj.height = cParams.height;
         end
         
-        function createCantileverBeam(obj)
+        function createCantileverBeam(obj,step)
             s.dim    = obj.dim;
             s.len    = obj.length;
             s.height = obj.height;
             beam     = CantileverBeam(s);
-            obj.mesh = beam.create(5,5);
+            Nx = fix(obj.length/step + 1);
+            Ny = fix(obj.height/step + 1);
+            obj.mesh = beam.create(Nx,Ny);
         end
         
         function computeBoundaryConditions(obj)

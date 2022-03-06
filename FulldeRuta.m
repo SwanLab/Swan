@@ -12,8 +12,8 @@
 %       - ForcesComputer uses Assembler.
 
 % c) EXAMPLES
-%       - NewFemExamples as a class
-%       - Following cleancode techniques
+%    OK!   - NewFemExamples as a class
+%    OK!   - Following cleancode techniques
 
 % d) DIFFREACT_PROBLEM
 %    OK!   - DiffReact_Problem to NewDiffReactProblem

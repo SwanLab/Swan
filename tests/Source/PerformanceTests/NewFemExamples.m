@@ -4,7 +4,7 @@ s.dim    = '2D';
 s.length    = 1;
 s.height = 0.1;
 test = PerformanceTest(s);
-sol = test.compute();
+sol = test.compute(0.05);
 %% 
 clc; clear; close all;
 
