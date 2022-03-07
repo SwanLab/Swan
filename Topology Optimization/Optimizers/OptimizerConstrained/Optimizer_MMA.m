@@ -203,7 +203,7 @@ classdef Optimizer_MMA < Optimizer
             Q = max(-dfdx,0);
             %P(find(dfdx > 0)) = dfdx(find(dfdx > 0));
             %Q(find(dfdx < 0)) = -dfdx(find(dfdx < 0));
-            PQ = 0.001*(P + Q) + raa0*eeem*xmamiinv';
+            PQ = 0.001*(P + Q) + raa0*(eeem*xmamiinv');
             %PQ = 0.001*(P + Q) + raa0*eeem*xmamiinv;
             P = P + PQ;
             Q = Q + PQ;
