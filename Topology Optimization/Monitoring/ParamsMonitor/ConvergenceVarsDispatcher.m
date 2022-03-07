@@ -15,6 +15,14 @@ classdef ConvergenceVarsDispatcher < handle
                     names = {'kktnorm';'outit'};
                 case 'IPOPT'
                     names = {'inf_{pr}','inf_{du}','Norm L2'};
+                case 'fmincon'
+                    switch cParams.alg
+                        case 'sqp'
+                            names = {'Norm L2','First order optimal condition','Step length'};
+                        case 'interior-point'
+                            names = {'Norm L2','First order optimal condition','Trust region radius'};
+                        otherwise
+                    end
                 otherwise
                     error('Invalid optimizer name');
             end
