@@ -214,8 +214,10 @@ classdef NewDiffReactProblem < handle %FEM
 
         function setupFromMesh(obj,s)
             obj.mesh = s.mesh;
-            obj.problemData.fileName = s.fileName;
-            obj.createBoundaryMesh(s.fileName);
+            if isfield(s,'fileName') % UnffitedIntegration
+                obj.problemData.fileName = s.fileName;
+                obj.createBoundaryMesh(s.fileName);
+            end
         end
         
         function createBoundaryMesh(obj,fileName)

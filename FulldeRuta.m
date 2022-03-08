@@ -14,6 +14,7 @@
 % c) EXAMPLES
 %    OK!   - NewFemExamples as a class
 %    OK!   - Following cleancode techniques
+%    BTW   - Created CantileverBeam, PerformanceTests
 
 % d) DIFFREACT_PROBLEM
 %    OK!   - DiffReact_Problem to NewDiffReactProblem
