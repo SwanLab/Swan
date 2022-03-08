@@ -1,4 +1,4 @@
-classdef NewElasticProblem < handle %NewFEM
+classdef NewElasticProblemMicro < handle %NewFEM
 
 %     properties (GetAccess = public, SetAccess = private)
     properties (Access = public)

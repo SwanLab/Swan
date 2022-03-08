@@ -23,6 +23,10 @@ classdef Assembler < handle
             C = obj.assembleCMatrix(Cmat, dvol);
         end
 
+        function V = assembleV(obj, F, dofs)
+            V = obj.assembleVector(F, dofs);
+        end
+
     end
 
     methods (Access = private)
@@ -89,6 +93,31 @@ classdef Assembler < handle
             idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
 
+        %% Vector assembly
+
+        function V = assembleVector(obj, F, dofsInElem)
+            ndofPerElem = obj.dim.ndofPerElement;
+            ndof        = obj.dim.ndof;
+            V = zeros(ndof,1);
+            for iDof = 1:ndofPerElem
+                dofs = dofsInElem(iDof,:);
+                c = F(iDof,:);
+                Fadd = obj.computeAddVectorBySparse(dofs, c);
+                % Fadd = obj.computeAddVectorByAccumarray(dofs, c);
+                V = V + Fadd;
+            end
+        end
+
+        function Vadd = computeAddVectorBySparse(obj,dofs, c)
+           ndof = obj.dim.ndof;
+           Vadd = sparse(dofs,1,c',ndof,1);
+        end
+
+        function Vadd = computeAddVectorByAccumarray(obj,dofs,c)
+           ndof = obj.dim.ndof;
+           Vadd = accumarray(dofs',c',[ndof 1]);
+        end
+        
         %% B matrix assembly
         function Bt = assembleBMatrix(obj, Bfull)
             d = obj.dim;

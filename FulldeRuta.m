@@ -9,7 +9,8 @@
 %    MEH   - BMatrixComputer uses Assembler.
 %    MEH   - LHSintegrator_StiffnessElasticStoredB uses Assembler.
 %    OK!   - LHSintegrator uses Assembler.
-%       - ForcesComputer uses Assembler.
+%    BTW   - ForcesComputer uses Assembler. (-ish)
+%    ???   - StrainComputer, StressComputer
 
 % c) EXAMPLES
 %    OK!   - NewFemExamples as a class

@@ -15,7 +15,8 @@ classdef ForcesComputer < handle
         function Fext = compute(obj)
             Fsup       = obj.computeSuperficialFext;
             Fvol       = obj.computeVolumetricFext;
-            FextSupVol = obj.assembleVector(Fsup, Fvol);
+            forces     = squeeze(Fsup + Fvol);
+            FextSupVol = obj.assembleVector(forces);
             Fpoint     = obj.computePunctualFext();
             Fext = FextSupVol +  Fpoint;
         end
@@ -58,30 +59,13 @@ classdef ForcesComputer < handle
             Fv = zeros(nnode*ndimf,1,nelem);
         end
 
-        function b = assembleVector(obj, Fsup, Fvol)
-            forces = squeeze(Fsup + Fvol);
-            ndofPerElem = obj.dim.ndofPerElement;
-            ndof        = obj.dim.ndof;
+        function b = assembleVector(obj, forces)
             dofsInElemCell = obj.boundaryConditions.dofsInElem;
             dofsInElem = cell2mat(dofsInElemCell);
-            b = zeros(ndof,1);
-            for iDof = 1:ndofPerElem
-                dofs = dofsInElem(iDof,:);
-                c = forces(iDof,:);
-                badd = obj.computeAddVectorBySparse(dofs, c);
-                % badd = obj.computeAddVectorByAccumarray(dofs, c);
-                b = b + badd;
-            end
-        end
-
-        function Bdof = computeAddVectorBySparse(obj,dofs, c)
-           ndof = obj.dim.ndof;
-           Bdof = sparse(dofs,1,c',ndof,1);
-        end
-
-        function Bdof = computeAddVectorByAccumarray(obj,dofs,c)
-           ndof = obj.dim.ndof;
-           Bdof = accumarray(dofs',c',[ndof 1]);
+            s.dim          = obj.dim;
+            s.globalConnec = [];
+            assembler = Assembler(s);
+            b = assembler.assembleV(forces,dofsInElem);
         end
 
         function Fp = computePunctualFext(obj)
