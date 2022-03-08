@@ -22,6 +22,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             'testDualNestedInPrimal_WithSlerp', ...
             'test_interiorPerimeter'
             }
+        micro = {'test_micro', 'test_micro2'}
 %         compTestsToPass = {'test_bridge'}
 %         compTestsToPass = {'test_interiorPerimeter'}
         cantileverTests = {'test_cantilever2', 'test_cantilever3'}
@@ -45,6 +46,20 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
 
     end
 
+    methods (Test, TestTags = {'Micro'})
+
+        function testMicro(testCase, micro)
+%             testCase.fixFolder();
+            s.computerType    = 'TOPOPT';
+            s.testName         = micro;
+            s.variablesToStore = {'x'};
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+    end
     methods (Test, TestTags = {'TopOpt', 'Various', 'FastDisp'})
 
         function testFastDisplacement(testCase, fastDisp)

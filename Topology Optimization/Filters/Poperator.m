@@ -39,7 +39,7 @@ classdef Poperator < handle
                 case 'MACRO'
                     obj.diffReacProb = NewDiffReactProblem(s);
                 case 'MICRO'
-                    obj.diffReacProb = DiffReact_Problem_Micro(s);
+                    obj.diffReacProb = NewDiffReactProblemMicro(s);
             end
         end
        

@@ -9,7 +9,11 @@ classdef PeriodicBoundaryConditionApplier < BoundaryConditionsApplier
         
         function obj = PeriodicBoundaryConditionApplier(cParams)
             obj.nfields = cParams.nfields;
-            obj.dof = cParams.dof;
+            if isfield(cParams, 'dof')
+                obj.dof = cParams.dof;
+            else
+                % DOF is useless...
+            end
         end
         
         function Ared = fullToReducedMatrix(obj,A)

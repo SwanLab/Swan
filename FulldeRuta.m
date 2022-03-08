@@ -21,6 +21,7 @@
 %    OK!   - Delete Element_DiffReact (%)
 %    OK!   - Use it in FilterPDE
 %    MEH   - Cleanup on NewDiffReact
+%    BTW   - NewDiffReactProblemMicro also done
 
 % e) TOPOPT
 %    OK!   - FEM to NewFem in TopOpt 

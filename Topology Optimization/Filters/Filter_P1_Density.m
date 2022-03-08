@@ -103,7 +103,7 @@ classdef Filter_P1_Density < handle %Filter_P1
                 case 'MACRO'
                     pB = NewDiffReactProblem(s);
                 case 'MICRO'
-                    pB = DiffReact_Problem_Micro(s);
+                    pB = NewDiffReactProblemMicro(s);
             end
         end
         

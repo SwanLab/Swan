@@ -7,7 +7,7 @@ classdef NewDiffReactProblem < handle %FEM
         boundaryMesh
     end
     
-    properties (GetAccess = public, SetAccess = private) %FEM
+    properties (GetAccess = public, SetAccess = protected) %FEM
         geometry
         variables
     end
@@ -18,10 +18,15 @@ classdef NewDiffReactProblem < handle %FEM
         boundaryConditions
         M,K, Mr
         epsilon
-        bcApplier
+%         bcApplier
         solver
-        problemData
+%         problemData
         mesh
+    end
+
+    properties (Access = protected)
+        problemData
+        bcApplier
     end
 
     methods (Access = public)
