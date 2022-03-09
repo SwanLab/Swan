@@ -4,6 +4,7 @@ classdef ForcesComputer < handle
         dim
         mesh
         boundaryConditions
+        vstrain
     end
     
     methods (Access = public)
@@ -37,10 +38,13 @@ classdef ForcesComputer < handle
 
     methods (Access = private)
 
-        function init(obj, s)
-            obj.dim                = s.dim;
-            obj.mesh               = s.mesh;
-            obj.boundaryConditions = s.BC;
+        function init(obj, cParams)
+            obj.dim                = cParams.dim;
+            obj.mesh               = cParams.mesh;
+            obj.boundaryConditions = cParams.BC;
+            if isfield(cParams, 'vstrain')
+                obj.vstrain = cParams.vstrain;
+            end
         end
 
         function Fs = computeSuperficialFext(obj)
@@ -57,6 +61,9 @@ classdef ForcesComputer < handle
             ndimf = d.ndimField;
             nelem = d.nelem;
             Fv = zeros(nnode*ndimf,1,nelem);
+            if ~isempty(obj.vstrain)
+                Fv = Fv + obj.computeStrainRHS();
+            end
         end
 
         function b = assembleVector(obj, forces)
@@ -76,6 +83,39 @@ classdef ForcesComputer < handle
             if ~isempty(neumann)
                 Fp(neumann) = neumannValues;
             end
+        end
+
+        
+        function F = computeStrainRHS(obj,vstrain)
+            Cmat = obj.material.C;
+            ngaus = obj.dim.ngaus;
+            nunkn = obj.dim.ndimf;
+            nstre = obj.dim.nstre;
+            nelem = obj.dim.nelem;
+
+            eforce = zeros(nunkn*nnode,ngaus,nelem);
+            sigma = zeros(nstre,ngaus,nelem);
+            for igaus = 1:ngaus
+                Bmat    = obj.computeB(igaus);
+                dV(:,1) = obj.geometry.dvolu(:,igaus);
+                for istre = 1:nstre
+                    for jstre = 1:nstre
+                        Cij = squeeze(Cmat(istre,jstre,:,igaus));
+                        vj  = vstrain(jstre);
+                        si  = squeeze(sigma(istre,igaus,:));
+                        sigma(istre,igaus,:) = si + Cij*vj;
+                    end
+                end
+                for iv = 1:nnode*nunkn
+                    for istre = 1:nstre
+                        Biv_i = squeeze(Bmat(istre,iv,:));
+                        si    = squeeze(sigma(istre,igaus,:));
+                        Fiv   = squeeze(eforce(iv,igaus,:));
+                        eforce(iv,igaus,:) = Fiv + Biv_i.*si.*dV;
+                    end
+                end
+            end
+            F = -eforce;
         end
 
     end

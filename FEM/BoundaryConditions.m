@@ -7,6 +7,9 @@ classdef BoundaryConditions < handle
         dofsInElem
         neumann
         neumann_values
+        masterSlave
+        periodic_free
+        periodic_constrained
     end
 
     properties (Access = private)
@@ -32,6 +35,18 @@ classdef BoundaryConditions < handle
             obj.free{1}             = obj.computeFreeDOF();
             obj.dofsInElem{1}       = obj.computeDofsInElem();
         end
+
+        
+        function periodic_dof = compute_periodic_nodes(obj,periodic_nodes)
+            nunkn = obj.dim.ndimField;
+            nlib = size(periodic_nodes,1);
+            periodic_dof = zeros(nlib*nunkn,1);
+            for iunkn = 1:nunkn
+                index_glib = nlib*(iunkn - 1) + [1:nlib];
+                periodic_dof(index_glib,1) = obj.nod2dof(periodic_nodes,iunkn);
+            end
+        end
+        
     end
 
     methods (Access = private)
@@ -41,6 +56,9 @@ classdef BoundaryConditions < handle
             obj.globalConnec   = cParams.globalConnec;
             obj.dirichletInput = cParams.bc.dirichlet;
             obj.pointloadInput = cParams.bc.pointload;
+            if isfield(cParams.bc, 'masterSlave')
+                obj.masterSlave = cParams.bc.masterSlave;
+            end
         end
 
         function [dofs, vals] = formatInputData(obj, data)

@@ -6,14 +6,14 @@ classdef NewElasticProblem < handle %NewFEM
     end
 
     properties (Access = private)
-        material
+%         material
         nFields
         interp
         bcApplier
 
         % Poda 1
-        quadrature
-        dim
+%         quadrature
+%         dim
         boundaryConditions
         displacement
     end
@@ -25,6 +25,12 @@ classdef NewElasticProblem < handle %NewFEM
         stiffnessMatrixRed
         forces
         solver
+    end
+
+    properties (Access = protected)
+        quadrature
+        dim
+        material
     end
 
     methods (Access = public)
@@ -82,6 +88,9 @@ classdef NewElasticProblem < handle %NewFEM
             pd.ptype        = cParams.type;
             pd.bc.dirichlet = cParams.dirichlet;
             pd.bc.pointload = cParams.pointload;
+            if isequal(pd.scale,'MICRO')
+                pd.bc.masterSlave = cParams.masterSlave;
+            end
             obj.problemData = pd;
         end
 
@@ -170,6 +179,10 @@ classdef NewElasticProblem < handle %NewFEM
             s.dim  = obj.dim;
             s.BC   = obj.boundaryConditions;
             s.mesh = obj.mesh;
+            if isfield(obj, 'vstrain')
+                disp('hey')
+                s.vstrain = obj.vstrain;
+            end
             fcomp = ForcesComputer(s);
             F = fcomp.compute();
             R = fcomp.computeReactions(obj.stiffnessMatrix);

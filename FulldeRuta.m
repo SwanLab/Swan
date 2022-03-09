@@ -13,16 +13,17 @@
 %    ???   - StrainComputer, StressComputer
 
 % c) EXAMPLES
-%    OK!   - NewFemExamples as a class
+%    OK!   - NewFemExamples as a class (-> moved to PerformanceTests)
 %    OK!   - Following cleancode techniques
-%    BTW   - Created CantileverBeam, PerformanceTests
+%    BTW   - Created CantileverBeam, PerformanceTests, PerformanceTest
 
 % d) DIFFREACT_PROBLEM
 %    OK!   - DiffReact_Problem to NewDiffReactProblem
-%    OK!   - Delete Element_DiffReact (%)
+%    OK!   - Delete Element_DiffReact
 %    OK!   - Use it in FilterPDE
-%    MEH   - Cleanup on NewDiffReact
+%    MEH   - Cleanup on NewDiffReactProblem
 %    BTW   - NewDiffReactProblemMicro also done
+%    BTW   - Halfway there on NewElasticProblemMicro* (more below)
 
 % e) TOPOPT
 %    OK!   - FEM to NewFem in TopOpt 
@@ -33,3 +34,7 @@
 %       - Comparing assembly: accumarray and sparse (Assembler)
 %       - Comparing commutative of (product + assembly) vs
 %           (assembly + product)
+
+% *On NewElasticProblemMicro: it still needs heavy refactoring and it is
+% not yet ready for NewFEM. Need some time to assess how to properly
+% organize BoundaryConditions and ForcesComputer

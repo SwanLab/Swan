@@ -1,224 +1,141 @@
-classdef NewElasticProblemMicro < handle %NewFEM
-
-%     properties (GetAccess = public, SetAccess = private)
-    properties (Access = public)
-        variables
-    end
+classdef NewElasticProblemMicro < NewElasticProblem %NewFEM
 
     properties (Access = private)
-        material
-        nFields
-        interp
-        bcApplier
-
-        % Poda 1
-        quadrature
-        dim
-        boundaryConditions
-        displacement
-    end
-
-    properties (Access = private)
-        mesh
-        problemData
-        stiffnessMatrix
-        stiffnessMatrixRed
-        forces
-        solver
+        Chomog
+        variables2print
+        tstrain
+        tstress
+        vstrain
     end
 
     methods (Access = public)
 
-        function obj = NewElasticProblem(cParams)
-            obj.init(cParams);
-            obj.createQuadrature();
-            obj.computeDimensions();
-            obj.createMaterial();
-            obj.computeMaterialProperties();
-            obj.createInterpolation();
-            obj.createBoundaryConditions();
-            obj.createBCApplier();
-            obj.createSolver();
+        function solveMicro(obj)
+            obj.computeStressStrainAndCh();
         end
+        
+        function [Ch,tstrain,tstress] = computeChomog(obj)
+            nstre = obj.dim.nstre;
+            ngaus = obj.dim.ngaus;
+            nelem = obj.dim.nelem;
+            ndof  = obj.dim.ndof;
+            basis = diag(ones(nstre,1));
+            tstrain  = zeros(nstre,ngaus,nstre,nelem);
+            tstrainF = zeros(nstre,ngaus,nstre,nelem);
+            tstress  = zeros(nstre,ngaus,nstre,nelem);
+            tdisp    = zeros(nstre,ndof);
+            
+            Ch2 = zeros(nstre,nstre);
+            Ch = zeros(nstre,nstre);
+            
+            var2print = cell(nstre,1);
+            for istre=1:nstre
+                strain = basis(istre,:);
+                obj.vstrain = strain;
+                obj.computeStressStrainAndCh();
+                obj.solve();
+                Ch(:,istre) = obj.variables.stress_homog;
+                tstrain(istre,:,:,:) = obj.variables.strain;
+                tstrainF(istre,:,:,:) = obj.variables.strain_fluct;
+                tstress(istre,:,:,:) = obj.variables.stress;
+                
+                tdisp(istre,:) = obj.variables.d_u;
+                var2print{istre}.stress = obj.variables.stress;
+                var2print{istre}.strain = obj.variables.strain;
+                var2print{istre}.stress_fluct = obj.variables.strain_fluct;
+                var2print{istre}.strain_fluct = obj.variables.strain_fluct;
+                var2print{istre}.d_u = obj.variables.d_u;
+                var2print{istre}.fext = obj.variables.fext;
+            end
+            obj.variables.Chomog  = Ch;
+            obj.variables.tstrain = tstrain;
+            obj.variables.tstress = tstress;
+            obj.variables.tdisp   = tdisp;
+            
+            dV = obj.getDvolume()';
+            for istre = 1:nstre
+                for jstre = 1:nstre
+                    s = squeezeParticular(tstress(istre,:,:,:),1);
+                    e = squeezeParticular(tstrain(jstre,:,:,:),1);
+                    ener = (s.*e);
+                    en = sum(ener,2);
+                    en = squeezeParticular(en,2);
+                    Ch2(istre,jstre) = en(:)'*dV(:);
+                end
+            end
+            
+            
+            Cmat = obj.material.C;
+            
+            Ch3 = zeros(nstre,nstre);
+            ngaus = size(tstrain,2);
+            nelem = size(tstrain,4);
+            for istre = 1:nstre
+                for jstre = 1:nstre
+                   ei(1:ngaus,:,:) = squeeze(tstrain(istre,:,:,:));
+                   ej(1:ngaus,:,:) = squeeze(tstrain(jstre,:,:,:));
+                   c = zeros(ngaus,nelem);
+                    for kstre = 1:nstre
+                        for lstre = 1:nstre
+                         eiV(1:ngaus,:) = squeeze(ei(:,kstre,:));
+                         ejV(1:ngaus,:) = squeeze(ej(:,lstre,:));
+                         Cm = squeezeParticular(Cmat(kstre,lstre,:,:),1);
+                         Cm = squeezeParticular(Cm,1)';
+                         %Cm  = repmat(Cmm,ngaus,1);
+                         c = c + Cm.*eiV.*ejV;
+                        end
+                    end
+                    cC = c.*dV';
+                    Ch3(istre,jstre) = sum(cC(:));
+                end
+            end
+            
 
-        function solve(obj)
-            obj.computeStiffnessMatrix();
-            obj.computeForces();
-            obj.computeDisplacements();
-            obj.computeStrain();
-            obj.computeStress();
-            obj.computePrincipalDirection();
-        end
-
-        function plot(obj)
-            s.dim            = obj.dim;
-            s.mesh           = obj.mesh;
-            s.displacement = obj.variables.d_u;
-            plotter = FEMPlotter(s);
-            plotter.plot();
-        end
-
-        function dim = getDimensions(obj)
-            dim = obj.dim;
-        end
-
-        function setC(obj, C)
-            obj.material.C = C;
-        end
-
-        function dvolu = getDvolume(obj)
-            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
+            
+            obj.variables2print = var2print;
+            
+            obj.Chomog = Ch;
+            obj.tstrain = tstrain;
+            obj.tstress = tstress;
         end
 
     end
 
     methods (Access = private)
 
-        function init(obj, cParams)
-            obj.nFields = 1;
-            obj.mesh        = cParams.mesh;
-            pd.scale        = cParams.scale;
-            pd.pdim         = cParams.dim;
-            pd.ptype        = cParams.type;
-            pd.bc.dirichlet = cParams.dirichlet;
-            pd.bc.pointload = cParams.pointload;
-            obj.problemData = pd;
+        function vars = computeStressStrainAndCh(obj)
+            vars = obj.variables;
+            vars.stress_fluct = permute(vars.stress,[2 3 1]);
+            vars.strain_fluct = permute(vars.strain,[2 3 1]);
+            Cmat = obj.material.C;
+            ngaus = obj.dim.ngaus;
+            nstre = obj.dim.nstre;
+            nelem = obj.dim.nelem;
+            dV = obj.getDvolume()';
+            
+            vars.stress = zeros(ngaus,nstre,nelem);
+            vars.strain = zeros(ngaus,nstre,nelem);
+            vars.stress_homog = zeros(nstre,1);
+            vol_dom = 1;%sum(sum(obj.geometry.dvolu));
+            
+            for igaus = 1:ngaus
+                vars.strain(igaus,1:nstre,:) = obj.vstrain.*ones(1,nstre,nelem) + vars.strain_fluct(igaus,1:nstre,:);
+                for istre = 1:nstre
+                    for jstre = 1:nstre
+                        C  = squeeze(squeeze(Cmat(istre,jstre,:,igaus)));
+                        vars.stress(igaus,istre,:) = squeeze(vars.stress(igaus,istre,:)) + 1/vol_dom*C.* squeeze(vars.strain(igaus,jstre,:));
+                    end
+                end
+                % Contribution to Chomogenized
+                for istre = 1:nstre
+                    vars.stress_homog(istre) = vars.stress_homog(istre) +  1/vol_dom *(squeeze(vars.stress(igaus,istre,:)))'*dV(:,igaus);
+                end
+                
+            end
+            
+            obj.variables = vars;
         end
-
-        function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
-            obj.quadrature = quad;
-        end
-
-        function computeDimensions(obj)
-            s.ngaus = obj.quadrature.ngaus;
-            s.mesh  = obj.mesh;
-            s.pdim  = obj.problemData.pdim;
-            d       = DimensionVariables(s);
-            d.compute();
-            obj.dim = d;
-        end
-
-        function createMaterial(obj)
-            s.ptype = obj.problemData.ptype;
-            s.pdim  = obj.problemData.pdim;
-            s.nelem = obj.mesh.nelem;
-            %s.geometry = obj.geometry; % Hyperelastic
-            s.mesh  = obj.mesh;
-            obj.material = Material.create(s);
-        end
-
-        function computeMaterialProperties(obj)
-            I = ones(obj.dim.nelem,obj.dim.ngaus);
-            s.kappa = .9107*I;
-            s.mu    = .3446*I;
-            obj.material.compute(s);
-        end
-
-        function createInterpolation(obj)
-            int = obj.mesh.interpolation;
-            obj.interp{1} = int;
-        end
-
-        function createBoundaryConditions(obj)
-            s.dim          = obj.dim;
-            s.bc           = obj.problemData.bc;
-            s.globalConnec = obj.mesh.connec;
-            bc = BoundaryConditions(s);
-            bc.compute();
-            obj.boundaryConditions = bc;
-        end
-
-        function createBCApplier(obj)
-            s.BC      = obj.boundaryConditions;
-            s.dim     = obj.dim;
-            s.nfields = obj.nFields;
-            s.scale   = obj.problemData.scale;
-            s.type    = 'Dirichlet'; % defined in Element
-            obj.bcApplier = BoundaryConditionsApplier.create(s);
-        end
-
-        function createSolver(obj)
-            obj.solver = Solver.create;
-        end
-
-        function computeStiffnessMatrix(obj)
-            s.type = 'ElasticStiffnessMatrixOld';
-            s.mesh         = obj.mesh;
-            s.npnod        = obj.mesh.npnod;
-            s.globalConnec = obj.mesh.connec;
-            s.dim          = obj.dim;
-            s.material     = obj.material;
-            LHS = LHSintegrator.create(s);
-            K   = LHS.compute();
-            Kred = obj.bcApplier.fullToReducedMatrix(K);
-            obj.stiffnessMatrix    = K;
-            obj.stiffnessMatrixRed = Kred;
-        end
-
-        function computeForces(obj)
-            f    = obj.computeExternalForces();
-            fRed = obj.reduceForcesMatrix(f);
-            obj.forces = fRed;
-            %             R = obj.compute_imposed_displacement_force(obj.K);
-            %             obj.fext = Fext + R;
-            %             obj.rhs = obj.integrator.integrate(fNodal);
-        end
-
-        function F = computeExternalForces(obj)
-            s.dim  = obj.dim;
-            s.BC   = obj.boundaryConditions;
-            s.mesh = obj.mesh;
-            fcomp = ForcesComputer(s);
-            F = fcomp.compute();
-            R = fcomp.computeReactions(obj.stiffnessMatrix);
-            obj.variables.fext = F + R;
-        end
-
-        function Fred = reduceForcesMatrix(obj, forces)
-            Fred = obj.bcApplier.fullToReducedVector(forces);
-        end
-
-        function u = computeDisplacements(obj)
-            Kred = obj.stiffnessMatrixRed;
-            Fred = obj.forces;
-            u = obj.solver.solve(Kred,Fred);
-            u = obj.bcApplier.reducedToFullVector(u);
-            obj.variables.d_u = u;
-        end
-
-        function computeStrain(obj)
-            s.dim                = obj.dim;
-            s.mesh               = obj.mesh;
-            s.quadrature         = obj.quadrature;
-            s.displacement       = obj.variables.d_u;
-            s.interpolation      = obj.interp{1};
-            s.boundaryConditions = obj.boundaryConditions;
-            scomp  = StrainComputer(s);
-            strain = scomp.compute();
-            obj.variables.strain = strain;
-        end
-
-        function computeStress(obj)
-            s.C      = obj.material.C;
-            s.dim    = obj.dim;
-            s.strain = obj.variables.strain;
-            scomp  = StressComputer(s);
-            stress = scomp.compute();
-            obj.variables.stress = stress;
-        end
-
-        function computePrincipalDirection(obj)
-            stress = obj.variables.stress;
-            s.type = obj.problemData.pdim;
-            s.eigenValueComputer.type = 'PRECOMPUTED';
-            pcomp = PrincipalDirectionComputer.create(s);
-            pcomp.compute(stress);
-            obj.variables.principalDirections = pcomp.direction;
-            obj.variables.principalStress     = pcomp.principalStress;
-        end
-
+        
     end
 
 end

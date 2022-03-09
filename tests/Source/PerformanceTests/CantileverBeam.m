@@ -37,15 +37,15 @@ classdef CantileverBeam < handle
         end
 
         function mesh = create2Dcantilever(obj, xdiv, ydiv)
-            coords = obj.computeCoords2D(xdiv, ydiv);
-            connec = obj.computeConnec2D(xdiv, ydiv);
-            mesh   = obj.createMesh(coords, connec);
+            obj.computeCoords2D(xdiv, ydiv);
+            obj.computeConnec2D(xdiv, ydiv);
+            mesh = obj.createMesh();
         end
 
         function mesh = create3Dcantilever(obj, xdiv, ydiv)
-            coords = obj.computeCoords3D(xdiv, ydiv);
-            connec = obj.computeConnec3D(xdiv, ydiv);
-            mesh   = obj.createMesh(coords, connec);
+            obj.computeCoords3D(xdiv, ydiv);
+            obj.computeConnec3D(xdiv, ydiv);
+            mesh = obj.createMesh();
         end
 
         function coords = computeCoords2D(obj, xdiv, ydiv)
@@ -58,8 +58,8 @@ classdef CantileverBeam < handle
             obj.coords = coords;
         end
 
-        function connec = computeConnec2D(obj, xdiv, ydiv)
-            connec = [];
+        function computeConnec2D(obj, xdiv, ydiv)
+            conn = [];
             for j = 0:1:ydiv-1
                 for i = 1:1:xdiv
                     node1 = j*(xdiv+1)+i;
@@ -67,13 +67,13 @@ classdef CantileverBeam < handle
                     node3 = (j+1)*(xdiv+1)+i;
                     node4 = (j+1)*(xdiv+1)+i+1;
                     elem = [node1, node2, node3, node4];
-                    connec = [connec;elem];
+                    conn = [conn;elem];
                 end
             end
-            obj.connec = connec;
+            obj.connec = conn;
         end
 
-        function coords = computeCoords3D(obj, xdiv, ydiv)
+        function computeCoords3D(obj, xdiv, ydiv)
             x = linspace(0, obj.len,    xdiv+1);
             y = linspace(0, obj.height, ydiv+1);
             z = linspace(0, obj.height, ydiv+1);
@@ -82,12 +82,12 @@ classdef CantileverBeam < handle
             Xr = reshape(X, npnod,1);
             Yr = reshape(Y, npnod,1);
             Zr = reshape(Z, npnod,1);
-            coords = [Xr, Yr, Zr];
-            obj.coords = coords;
+            coor = [Xr, Yr, Zr];
+            obj.coords = coor;
         end
 
-        function connec = computeConnec3D(obj, xdiv, ydiv)
-            connec = [];
+        function computeConnec3D(obj, xdiv, ydiv)
+            conn = [];
             for z = 0:1:ydiv-1
                 for j = 0:1:ydiv-1
                     for i = 1:1:xdiv
@@ -103,16 +103,16 @@ classdef CantileverBeam < handle
                         node8 = (j+1)*(xdiv+1)+i+1 + addZ1;
                         elem = [node1, node2, node3, node4, ...
                                 node5, node6, node7, node8];
-                        connec = [connec; elem];
+                        conn = [conn; elem];
                     end
                 end
             end
-            obj.connec = connec;
+            obj.connec = conn;
         end
 
-        function mesh = createMesh(obj, coords, connec)
-            m.coord = coords;
-            m.connec = connec;
+        function mesh = createMesh(obj)
+            m.coord  = obj.coords;
+            m.connec = obj.connec;
             mesh = Mesh(m);
         end
         
