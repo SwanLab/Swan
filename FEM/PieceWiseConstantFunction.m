@@ -84,6 +84,7 @@ classdef PieceWiseConstantFunction < handle
             s.npnod        = obj.mesh.npnod;
             s.type         = 'MassMatrix';
             s.dim          = obj.dim;
+            s.quadType     = 'QUADRATIC';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
