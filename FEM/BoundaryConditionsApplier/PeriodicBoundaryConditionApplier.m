@@ -3,13 +3,23 @@ classdef PeriodicBoundaryConditionApplier < BoundaryConditionsApplier
     properties (Access = private)
         nfields
         dof
+        ndof
     end
     
     methods (Access = public)
         
         function obj = PeriodicBoundaryConditionApplier(cParams)
             obj.nfields = cParams.nfields;
-            obj.dof = cParams.dof;
+            if isfield(cParams, 'BC') % new
+                obj.dof = cParams.BC;
+                MS = obj.dof.masterSlave;
+                obj.dof.periodic_free = obj.dof.compute_periodic_nodes(MS(:,1));
+                obj.dof.periodic_constrained = obj.dof.compute_periodic_nodes(MS(:,2));
+                obj.ndof = cParams.dim.ndof;
+            else
+                obj.dof = cParams.dof;
+                obj.ndof = obj.dof.ndof;
+            end
         end
         
         function Ared = fullToReducedMatrix(obj,A)
@@ -41,7 +51,7 @@ classdef PeriodicBoundaryConditionApplier < BoundaryConditionsApplier
             vP = obj.dof.periodic_free;
             vI = setdiff(vF{1},vP);
             
-            b = zeros(obj.dof.ndof,1);
+            b = zeros(obj.ndof,1);
             b(vI) = bfree(1:1:size(vI,2));
             b(obj.dof.periodic_free) = bfree(size(vI,2)+1:1:size(bfree,1));
             b(obj.dof.periodic_constrained) = b(obj.dof.periodic_free);

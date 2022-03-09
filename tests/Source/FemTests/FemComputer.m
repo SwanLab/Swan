@@ -28,7 +28,7 @@ classdef FemComputer < handle
             I = ones(obj.computation.mesh.nelem,q.ngaus);
             p.kappa = .9107*I;
             p.mu    = .3446*I;
-            obj.computation.setMatProps(p)     
+            obj.computation.setMatProps(p)
         end
 
     end

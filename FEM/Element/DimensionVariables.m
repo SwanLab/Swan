@@ -2,7 +2,7 @@ classdef DimensionVariables < handle
     
     properties (Access = public)
         nnode
-        nunkn
+        ndimField
         nstre
         ndof
         nelem
@@ -28,11 +28,11 @@ classdef DimensionVariables < handle
 
         function compute(obj)
             obj.nnode          = obj.mesh.nnode;
-            obj.nunkn          = obj.createNUnknPerField();
+            obj.ndimField      = obj.createDimPerField();
             obj.nstre          = obj.createNstre();
-            obj.ndof           = obj.mesh.npnod*obj.nunkn;
+            obj.ndof           = obj.mesh.npnod*obj.ndimField;
             obj.nelem          = obj.mesh.nelem;
-            obj.ndofPerElement = obj.nnode*obj.nunkn;
+            obj.ndofPerElement = obj.nnode*obj.ndimField;
             obj.nentries       = obj.nelem*(obj.ndofPerElement)^2;
             obj.ndim           = obj.createNdim();
             obj.nt             = obj.ngaus*obj.nelem*obj.nstre;
@@ -42,6 +42,7 @@ classdef DimensionVariables < handle
         function applyNUnknPerField(obj, num)
             obj.nunknPerField = num;
         end
+        
     end
     
     methods (Access = private)
@@ -52,36 +53,36 @@ classdef DimensionVariables < handle
             obj.ngaus = cParams.ngaus;
         end
         
-        function nUnkn = createNUnknPerField(obj) % createNUnknPerField
+        function ndimf = createDimPerField(obj) % createNUnknPerField
             switch obj.pdim
+                case '1D'
+                    ndimf = 1;
                 case '2D'
-                    nUnkn = 2;
+                    ndimf = 2;
                 case '3D'
-                    nUnkn = 3;
-                case 'FILTER'
-                    nUnkn = 1;
+                    ndimf = 3;
             end
         end
 
         function ndim = createNdim(obj)
             switch obj.pdim
+                case '1D'
+                    ndim = 1;
                 case '2D'
                     ndim = 2;
                 case '3D'
                     ndim = 3;
-                case 'FILTER'
-                    ndim = -1;
             end
         end
 
         function nstre = createNstre(obj)
             switch obj.pdim
+                case '1D'
+                    nstre = 2;
                 case '2D'
                     nstre = 3;
                 case '3D'
                     nstre = 6;
-                case 'FILTER'
-                    nstre = 2;
             end
         end
 

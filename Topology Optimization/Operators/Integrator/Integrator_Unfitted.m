@@ -58,7 +58,6 @@ classdef Integrator_Unfitted < Integrator
             else
                 s.nunknPerField = 2;
             end
-%             s.dim.nunknPerField = obj.dim.nunknPerField;
         end
         
         function s = createInnerCutParams(obj,gConnec,mesh)
@@ -71,7 +70,6 @@ classdef Integrator_Unfitted < Integrator
             s.npnod                 = obj.mesh.backgroundMesh.npnod;
             s.backgroundMeshType    = mesh.backgroundMesh.type;
             s.dim.nunknPerField = 1;
-%             s.dim.nunknPerField = obj.dim.nunknPerField;
         end
         
         function computeBoundaryIntegrators(obj)

@@ -30,8 +30,8 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             obj.unconstrainedOptimizer.startLineSearch();
             obj.unconstrainedOptimizer.updateConvergenceParams();
             obj.refreshMonitoring();
-            obj.printOptimizerVariable();            
-       %     obj.printHistory();            
+            obj.printOptimizerVariable();
+       %     obj.printHistory();
             obj.nIter = obj.nIter+1;
             
             
@@ -47,9 +47,9 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             obj.refreshMonitoring();
             obj.printHistory();
             obj.saveDesignVariable();
-            obj.printOptimizerVariable();            
-       %     obj.printHistory();            
-            obj.nIter = obj.nIter+1;            
+            obj.printOptimizerVariable();
+       %     obj.printHistory();
+            obj.nIter = obj.nIter+1;
 
             %obj.hasFinished = false;
             obj.updateStatus();
@@ -58,12 +58,12 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             while ~obj.hasFinished
              
 
-                obj.unconstrainedOptimizer.tryLineSearch();                
+                obj.unconstrainedOptimizer.tryLineSearch();
                 while ~obj.hasUnconstraintedOptimizerConverged()
                     obj.restartValues();
                     obj.computeValue();
                     if ~obj.hasUnconstraintedOptimizerConverged()
-                        obj.unconstrainedOptimizer.updateLineSearch();  
+                        obj.unconstrainedOptimizer.updateLineSearch();
                     end
                 end
 
@@ -83,7 +83,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
                 obj.nIter = obj.nIter+1;
             end
             %obj.printOptimizerVariable();
-            %obj.printHistory();            
+            %obj.printHistory();
             obj.hasConverged = 0;
             obj.printHistoryFinalValues();
         end
@@ -92,7 +92,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             x = obj.designVariable.value;
             mesh = obj.designVariable.mesh.innerMeshOLD;
             path = 'Output/CantileverTetraPerimeterTotal/DesignVariable';
-            %save([path,num2str(obj.nIter)],'x','mesh');            
+            %save([path,num2str(obj.nIter)],'x','mesh');
         end
 
         function restartValues(obj)
@@ -146,7 +146,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
         function updateLagrangian(obj)
             obj.lagrangian.computeFunction();
             obj.lagrangian.computeGradient();
-        end         
+        end
         
         function updateOldValues(obj)
             obj.designVariable.updateOld();
@@ -155,7 +155,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             obj.constraint.updateOld();
             obj.updateLagrangian();
             obj.lagrangian.updateOld();
-        end        
+        end
 
     end
 

@@ -45,7 +45,7 @@ classdef Filter_PDE < Filter
     methods (Access = protected)
         
         function computeLHS(obj)
-            lhs = obj.diffReacProb.element.computeLHS();
+            lhs = obj.diffReacProb.computeLHS();
             obj.LHS = decomposition(lhs);
         end
         

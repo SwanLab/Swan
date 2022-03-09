@@ -32,10 +32,10 @@ classdef Optimizer_MMA < Optimizer
     
     methods (Access = public)
         
-        function obj = Optimizer_MMA(cParams)     
+        function obj = Optimizer_MMA(cParams)
             obj.init(cParams);
             obj.upperBound = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound = cParams.uncOptimizerSettings.lb;             
+            obj.lowerBound = cParams.uncOptimizerSettings.lb;
             obj.maxoutit = 1e4;
         end
         

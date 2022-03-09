@@ -1,50 +1,53 @@
-%% Todo
-% {{done}} Create example 2D not using load
-% {{done}}-ish Create example 3D not using load
-% eliminate istre,jstre loop
-%        - used pagemtimes, dont know if it is possible in any other way
-%          since you seem to be screwed after opening the product
-%        - pagefun requires the Parallel Computing Toolbox, should we
-%          explore it? Apparently it is *sometimes* faster by parallelizing
-%          and using the GPU
-%        - apparently pagefun is better than the mtimesx function available
-%          at Matlab Central
-%        - 
-%        - 
-% investigate how to efficiently multiply B,C,B
-%   - bsxfun seems like the way to go. There are other ways, but they are
-%     slower the more elements are added.
-%   - vectorization is slower, using repmat and reshape is also slower
-% {{done}} Use BmatrixComputer in LHSintegrator_StifnessElastic
-% With large example compare Sparse vs Accumarray
-% Element_DiffReact K, M, Mr with LHSintegrator
-%         - K done (had to fix LHSintegrator_Stiffness)
-%         - M done
-%         - Mr done
-%         NOTE: this change affects PlottingTests. Solved, though!
-% DONE - Eliminate computeLHS from Integrator_Simple
-% * after solving the issues with PlottingTests
-% DONE - Eliminate computeLHS from integratorComposite
-% * after solving the issues with PlottingTests
+%% To-do
 
-% NEW: fix LHSintegrator_Stiffness (now it's also more efficient)
+% a) RENAMING
+%    OK!   - s.pdim 'FILTER'. 
+%    OK!   - pdim to nDim, nunkn to dimField, nFields, dimAllFields
 
-%% Endgame
-% 7. Force use integrator for assembly
-% 8. LHS integrator must be composed by integrator_simple for assemnbly
+% b) ASSEMBLER
+%    OK!   - Accumarray and sparse only in Assembler. 
+%    MEH   - BMatrixComputer uses Assembler.
+%    MEH   - LHSintegrator_StiffnessElasticStoredB uses Assembler.
+%    OK!   - LHSintegrator uses Assembler.
+%    BTW   - ForcesComputer uses Assembler. (-ish)
+%    ???   - StrainComputer, StressComputer
 
+% c) EXAMPLES
+%    OK!   - NewFemExamples as a class (-> moved to PerformanceTests)
+%    OK!   - Following cleancode techniques
+%    BTW   - Created CantileverBeam, PerformanceTests, PerformanceTest
 
+% d) DIFFREACT_PROBLEM
+%    OK!   - DiffReact_Problem to NewDiffReactProblem
+%    OK!   - Delete Element_DiffReact
+%    OK!   - Use it in Filter_PDE
+%    MEH   - Cleanup on NewDiffReactProblem
+%    BTW   - NewDiffReactProblemMicro also done
+%    BTW   - Halfway there on NewElasticProblemMicro* (more below)
 
+% e) TOPOPT
+%    OK!   - FEM to NewFem in TopOpt 
 
-%a) s.pdim 'FILTER'. pdim to nDim, nunkn to dimField, nFields, dimAllFields
-%b) % % accumarray and sparse only in Assembler. BMatrixComputer,
-% LHSintegrator_StiffnessElasticStoredB, LHSintegrator use Assembler.
-% c) % NewFemExamples as a class and following cleancode techniques
-% d) % DiffReact_Problem to NewDiffReactProblem and delete Element_DiffReact (%)
-% and use it in FilterPDE
-% e) % FEM to NewFem in TopOpt 
-% f) First examples of: 
-% comparing product: pagemtimes, istrjstreLoop, pagefun 
-% comparing assembly: accumarray and sparse (Assembler)
-% comparing commutative of (product + assembly) vs (assembly + product)
-%%
+% f) COMPARISON
+%       - First examples of: 
+%       - Comparing product: pagemtimes, istrjstreLoop, pagefun 
+%       - Comparing assembly: accumarray and sparse (Assembler)
+%       - Comparing commutative of (product + assembly) vs
+%           (assembly + product)
+
+% *On NewElasticProblemMicro: it still needs heavy refactoring and it is
+% not yet ready for NewFEM. Need some time to assess how to properly
+% organize BoundaryConditions and ForcesComputer
+
+% Project chapter
+
+% Delete Element_DiffReact
+% Delete ElasticProblem?
+% Delete DiffReact_Problem?
+% Clean  NewDiffReactProblem
+
+% Simplify and clean BoundaryConditions and % BoundaryConditionsApplier
+
+% Simplify Assembler
+% CantileverBeamMeshCreator and modify
+% Stress/StrainComputer increase performance through ("vectorize"/bsxfun/assmelby+product)
