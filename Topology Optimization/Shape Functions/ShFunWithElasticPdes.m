@@ -60,7 +60,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         end
         
         function createEquilibriumProblem(obj,fileName)
-%             obj.physicalProblem = FEM.create(fileName);
+%            obj.physicalProblem = FEM.create(fileName);
             s = obj.createFEMparameters(fileName);
             obj.physicalProblem = NewFEM.create(s);
             obj.initPrincipalDirections();
@@ -92,7 +92,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
                 gs = g(:,:,ivar);
                 gf(:,ivar) = obj.filter.getP1fromP0(gs);
             end
-            %gf = obj.Msmooth*gf;
+            gf = obj.Msmooth*gf;
             g = gf(:);
             obj.gradient = g;
         end

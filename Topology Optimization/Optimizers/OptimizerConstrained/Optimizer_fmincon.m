@@ -22,7 +22,7 @@ classdef Optimizer_fmincon < Optimizer
     methods (Access = public)
 
         function obj = Optimizer_fmincon(cParams)
-            obj.algorithm  = 'sqp';
+            obj.algorithm  = 'interior-point';
             cParams.monitoringDockerSettings.optimizerNames.alg = obj.algorithm;
             cParams.optimizerNames.alg = obj.algorithm;
             obj.init(cParams);
