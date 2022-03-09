@@ -7,6 +7,9 @@ classdef BoundaryConditions < handle
         dofsInElem
         neumann
         neumann_values
+        masterSlave
+        periodic_free
+        periodic_constrained
     end
 
     properties (Access = private)
@@ -32,6 +35,18 @@ classdef BoundaryConditions < handle
             obj.free{1}             = obj.computeFreeDOF();
             obj.dofsInElem{1}       = obj.computeDofsInElem();
         end
+
+        
+        function periodic_dof = compute_periodic_nodes(obj,periodic_nodes)
+            nunkn = obj.dim.ndimField;
+            nlib = size(periodic_nodes,1);
+            periodic_dof = zeros(nlib*nunkn,1);
+            for iunkn = 1:nunkn
+                index_glib = nlib*(iunkn - 1) + [1:nlib];
+                periodic_dof(index_glib,1) = obj.nod2dof(periodic_nodes,iunkn);
+            end
+        end
+        
     end
 
     methods (Access = private)
@@ -41,18 +56,25 @@ classdef BoundaryConditions < handle
             obj.globalConnec   = cParams.globalConnec;
             obj.dirichletInput = cParams.bc.dirichlet;
             obj.pointloadInput = cParams.bc.pointload;
+            if isfield(cParams.bc, 'masterSlave')
+                obj.masterSlave = cParams.bc.masterSlave;
+            end
         end
 
         function [dofs, vals] = formatInputData(obj, data)
-            inod = data(:,1);
-            iunk = data(:,2);
-            vals = data(:,3);
-            dofs = obj.nod2dof(inod,iunk);
+            dofs = [];
+            vals = [];
+            if ~isempty(data)
+                inod = data(:,1);
+                iunk = data(:,2);
+                vals = data(:,3);
+                dofs = obj.nod2dof(inod,iunk);
+            end
         end
 
         function idof = nod2dof(obj, inode, iunkn)
-            nunkn = obj.dim.nunkn;
-            idof(:,1)= nunkn*(inode - 1) + iunkn;
+            ndimf = obj.dim.ndimField;
+            idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
         
         function free = computeFreeDOF(obj)
@@ -64,11 +86,11 @@ classdef BoundaryConditions < handle
 
         function dofsElem = computeDofsInElem(obj)
             connec = obj.globalConnec;
-            nunkn  = obj.dim.nunkn;
+            ndimf  = obj.dim.ndimField;
             nnode  = obj.dim.nnode;
-            dofsElem  = zeros(nnode*nunkn,size(connec,1));
+            dofsElem  = zeros(nnode*ndimf,size(connec,1));
             for inode = 1:nnode
-                for iunkn = 1:nunkn
+                for iunkn = 1:ndimf
                     idofElem   = obj.nod2dof(inode,iunkn);
                     globalNode = connec(:,inode);
                     idofGlobal = obj.nod2dof(globalNode,iunkn);

@@ -18,7 +18,6 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             obj.levelSet = cParams.designVariable;
             obj.epsilon = cParams.mesh.computeMeanCellSize();
             obj.domainType = cParams.domainType;
-            obj.diffReacProb.preProcess();
             obj.createQuadrature();
             obj.createInterpolation();
             obj.computeGeometry();

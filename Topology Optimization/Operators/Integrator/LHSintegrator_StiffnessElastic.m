@@ -1,4 +1,4 @@
-classdef LHSintergrator_StiffnessElastic < LHSintegrator
+classdef LHSintegrator_StiffnessElastic < LHSintegrator
 
     properties (Access = private)
         geometry
@@ -6,7 +6,7 @@ classdef LHSintergrator_StiffnessElastic < LHSintegrator
 
     methods (Access = public)
 
-        function obj = LHSintergrator_StiffnessElastic(cParams)
+        function obj = LHSintegrator_StiffnessElastic(cParams)
             obj.init(cParams);
             obj.material = cParams.material;
             obj.createQuadrature();

@@ -34,7 +34,7 @@ classdef Optimizer_IPOPT < Optimizer
         function solveProblem(obj)
             obj.cost.computeFunctionAndGradient();
             obj.updateIpoptOptions();
-            obj.designVariable.updateOld();                
+            obj.designVariable.updateOld();
             x = obj.callIpopt();
             obj.designVariable.update(x);
         end
@@ -91,9 +91,9 @@ classdef Optimizer_IPOPT < Optimizer
             obj.data = data;
             obj.nIter = obj.nIter+1;
             if ~isempty(data.x)
-                obj.designVariable.update(data.x);                
+                obj.designVariable.update(data.x);
                 normXsquare = obj.designVariable.computeL2normIncrement();
-                obj.designVariable.updateOld();                
+                obj.designVariable.updateOld();
                 incX = sqrt(normXsquare);
             end
             obj.updateStatus();
@@ -114,7 +114,7 @@ classdef Optimizer_IPOPT < Optimizer
             opt.ipopt.hessian_approximation = 'limited-memory';
             opt.ipopt.limited_memory_update_type = 'bfgs';
             opt.ipopt.mu_strategy                = 'adaptive'; 
-            opt.ipopt.mu_init                = 0.01;             
+            opt.ipopt.mu_init                = 0.01;
             opt.ub = obj.upperBound*ones(obj.nX,1);
             opt.lb = obj.lowerBound*ones(obj.nX,1);
             if strcmp(obj.constraintCase,'EQUALITY')
@@ -134,7 +134,7 @@ classdef Optimizer_IPOPT < Optimizer
         function updateIpoptOptions(obj)
             obj.options.constr_viol_tol = obj.obtainConstraintTolerance();
             obj.options.compl_inf_tol   = obj.obtainConstraintTolerance();
-            obj.options.tol             = obj.obtainOptimalityTolerance();            
+            obj.options.tol             = obj.obtainOptimalityTolerance();
         end
         
         function ot = obtainOptimalityTolerance(obj)

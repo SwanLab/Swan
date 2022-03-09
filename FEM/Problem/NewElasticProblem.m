@@ -1,18 +1,19 @@
 classdef NewElasticProblem < handle %NewFEM
 
-    properties (GetAccess = public, SetAccess = private)
+%     properties (GetAccess = public, SetAccess = private)
+    properties (Access = public)
         variables
     end
 
     properties (Access = private)
-        material
+%         material
         nFields
         interp
         bcApplier
 
         % Poda 1
-        quadrature
-        dim
+%         quadrature
+%         dim
         boundaryConditions
         displacement
     end
@@ -21,8 +22,15 @@ classdef NewElasticProblem < handle %NewFEM
         mesh
         problemData
         stiffnessMatrix
+        stiffnessMatrixRed
         forces
         solver
+    end
+
+    properties (Access = protected)
+        quadrature
+        dim
+        material
     end
 
     methods (Access = public)
@@ -43,6 +51,9 @@ classdef NewElasticProblem < handle %NewFEM
             obj.computeStiffnessMatrix();
             obj.computeForces();
             obj.computeDisplacements();
+            obj.computeStrain();
+            obj.computeStress();
+            obj.computePrincipalDirection();
         end
 
         function plot(obj)
@@ -51,6 +62,18 @@ classdef NewElasticProblem < handle %NewFEM
             s.displacement = obj.variables.d_u;
             plotter = FEMPlotter(s);
             plotter.plot();
+        end
+
+        function dim = getDimensions(obj)
+            dim = obj.dim;
+        end
+
+        function setC(obj, C)
+            obj.material.C = C;
+        end
+
+        function dvolu = getDvolume(obj)
+            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
         end
 
     end
@@ -65,6 +88,9 @@ classdef NewElasticProblem < handle %NewFEM
             pd.ptype        = cParams.type;
             pd.bc.dirichlet = cParams.dirichlet;
             pd.bc.pointload = cParams.pointload;
+            if isequal(pd.scale,'MICRO')
+                pd.bc.masterSlave = cParams.masterSlave;
+            end
             obj.problemData = pd;
         end
 
@@ -136,7 +162,8 @@ classdef NewElasticProblem < handle %NewFEM
             LHS = LHSintegrator.create(s);
             K   = LHS.compute();
             Kred = obj.bcApplier.fullToReducedMatrix(K);
-            obj.stiffnessMatrix = Kred;
+            obj.stiffnessMatrix    = K;
+            obj.stiffnessMatrixRed = Kred;
         end
 
         function computeForces(obj)
@@ -148,12 +175,18 @@ classdef NewElasticProblem < handle %NewFEM
             %             obj.rhs = obj.integrator.integrate(fNodal);
         end
 
-        function f = computeExternalForces(obj)
+        function F = computeExternalForces(obj)
             s.dim  = obj.dim;
             s.BC   = obj.boundaryConditions;
             s.mesh = obj.mesh;
+            if isfield(obj, 'vstrain')
+                disp('hey')
+                s.vstrain = obj.vstrain;
+            end
             fcomp = ForcesComputer(s);
-            f = fcomp.compute();
+            F = fcomp.compute();
+            R = fcomp.computeReactions(obj.stiffnessMatrix);
+            obj.variables.fext = F + R;
         end
 
         function Fred = reduceForcesMatrix(obj, forces)
@@ -161,11 +194,42 @@ classdef NewElasticProblem < handle %NewFEM
         end
 
         function u = computeDisplacements(obj)
-            Kred = obj.stiffnessMatrix;
+            Kred = obj.stiffnessMatrixRed;
             Fred = obj.forces;
             u = obj.solver.solve(Kred,Fred);
             u = obj.bcApplier.reducedToFullVector(u);
             obj.variables.d_u = u;
+        end
+
+        function computeStrain(obj)
+            s.dim                = obj.dim;
+            s.mesh               = obj.mesh;
+            s.quadrature         = obj.quadrature;
+            s.displacement       = obj.variables.d_u;
+            s.interpolation      = obj.interp{1};
+            s.boundaryConditions = obj.boundaryConditions;
+            scomp  = StrainComputer(s);
+            strain = scomp.compute();
+            obj.variables.strain = strain;
+        end
+
+        function computeStress(obj)
+            s.C      = obj.material.C;
+            s.dim    = obj.dim;
+            s.strain = obj.variables.strain;
+            scomp  = StressComputer(s);
+            stress = scomp.compute();
+            obj.variables.stress = stress;
+        end
+
+        function computePrincipalDirection(obj)
+            stress = obj.variables.stress;
+            s.type = obj.problemData.pdim;
+            s.eigenValueComputer.type = 'PRECOMPUTED';
+            pcomp = PrincipalDirectionComputer.create(s);
+            pcomp.compute(stress);
+            obj.variables.principalDirections = pcomp.direction;
+            obj.variables.principalStress     = pcomp.principalStress;
         end
 
     end

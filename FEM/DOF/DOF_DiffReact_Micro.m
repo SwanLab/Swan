@@ -18,7 +18,7 @@ classdef DOF_DiffReact_Micro < DOF
             if isempty(mesh.masterSlaveNodes)
                mesh.computeMasterSlaveNodes;
             end
-            obj.master_slave = mesh.masterSlaveNodes;            
+            obj.master_slave = mesh.masterSlaveNodes;
             obj.periodic_free = obj.compute_periodic_nodes(obj.master_slave(:,1),obj.nunkn);
             obj.periodic_constrained = obj.compute_periodic_nodes(obj.master_slave(:,2),obj.nunkn);
             obj.computeDOF(mesh,interp);

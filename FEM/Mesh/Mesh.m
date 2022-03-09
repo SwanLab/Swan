@@ -121,6 +121,10 @@ classdef Mesh < handle
             dvolume = g.dvolu;
             dvolume = dvolume';
         end
+
+        function geo = getGeometry(obj)
+            geo = obj.geometry;
+        end
         
         function n = getNormals(obj)
             quad = Quadrature.set(obj.type);
