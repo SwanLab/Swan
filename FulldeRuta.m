@@ -20,7 +20,7 @@
 % d) DIFFREACT_PROBLEM
 %    OK!   - DiffReact_Problem to NewDiffReactProblem
 %    OK!   - Delete Element_DiffReact
-%    OK!   - Use it in FilterPDE
+%    OK!   - Use it in Filter_PDE
 %    MEH   - Cleanup on NewDiffReactProblem
 %    BTW   - NewDiffReactProblemMicro also done
 %    BTW   - Halfway there on NewElasticProblemMicro* (more below)
@@ -38,3 +38,16 @@
 % *On NewElasticProblemMicro: it still needs heavy refactoring and it is
 % not yet ready for NewFEM. Need some time to assess how to properly
 % organize BoundaryConditions and ForcesComputer
+
+% Project chapter
+
+% Delete Element_DiffReact
+% Delete ElasticProblem?
+% Delete DiffReact_Problem?
+% Clean  NewDiffReactProblem
+
+% Simplify and clean BoundaryConditions and % BoundaryConditionsApplier
+
+% Simplify Assembler
+% CantileverBeamMeshCreator and modify
+% Stress/StrainComputer increase performance through ("vectorize"/bsxfun/assmelby+product)
