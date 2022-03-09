@@ -19,9 +19,12 @@ classdef LHSintegratorFactory < handle
                case 'ElasticStiffnessMatrixOld'
                    % elemntal B + assamly --> globalB
                    % elemntal C + assamly --> globalC
-                   % global B'*C*B 
+                   % global B'*C*B
                    obj = LHSintergrator_StiffnessElasticStoredB(cParams);
                    %globalB in contructor
+               case 'AnisotropicStiffnessMatrix'
+                   % dB'*Celas*dB
+                   obj = LHSintergratorAnisotropicStiffness(cParams);
            end
            
        end
