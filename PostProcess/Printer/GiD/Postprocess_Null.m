@@ -1,6 +1,7 @@
-classdef Postprocess_Null < Postprocess
+classdef Postprocess_Null < handle
     
     methods (Access = public)
+
         
         function  print(obj,iter,d)
         end

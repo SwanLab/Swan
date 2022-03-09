@@ -93,8 +93,7 @@ classdef Filter_P1_Density < handle %Filter_P1
         
         function createMassMatrix(obj,cParams)
             diffReacProb = obj.createDiffReacProblem(cParams);
-            diffReacProb.preProcess();
-            obj.M = diffReacProb.element.M;
+            obj.M = diffReacProb.getM();
         end
         
         function pB = createDiffReacProblem(obj,cParams)
@@ -102,9 +101,9 @@ classdef Filter_P1_Density < handle %Filter_P1
             s.mesh = cParams.mesh;
             switch s.scale
                 case 'MACRO'
-                    pB = DiffReact_Problem(s);
+                    pB = NewDiffReactProblem(s);
                 case 'MICRO'
-                    pB = DiffReact_Problem_Micro(s);
+                    pB = NewDiffReactProblemMicro(s);
             end
         end
         

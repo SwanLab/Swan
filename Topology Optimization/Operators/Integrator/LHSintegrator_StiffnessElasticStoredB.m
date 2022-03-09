@@ -1,4 +1,4 @@
-classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
+classdef LHSintegrator_StiffnessElasticStoredB < LHSintegrator
 
     properties (Access = private)
         geometry
@@ -7,9 +7,9 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
 
     methods (Access = public)
         
-        function obj = LHSintergrator_StiffnessElasticStoredB(cParams)
+        function obj = LHSintegrator_StiffnessElasticStoredB(cParams)
             obj.init(cParams);
-            obj.material = cParams.material;            
+            obj.material = cParams.material;
             obj.createQuadrature();
             obj.createInterpolation();
             obj.createGeometry();
@@ -56,38 +56,13 @@ classdef LHSintergrator_StiffnessElasticStoredB < LHSintegrator
        end
 
        function CmatTot = assemblyCmat(obj)
-           nstre = obj.dim.nstre;
-           ngaus = obj.dim.ngaus;
-           ntot  = obj.dim.nt;
-           Cmat    = obj.material.C;
-           CmatTot = sparse(ntot,ntot);
+           Cmat = obj.material.C;
            dvol = obj.geometry.dvolu;
-           for istre = 1:nstre
-               for jstre = 1:nstre
-                   for igaus = 1:ngaus
-                       posI = (istre)+(nstre)*(igaus-1) : ngaus*nstre : ntot;
-                       posJ = (jstre)+(nstre)*(igaus-1) : ngaus*nstre : ntot;
-                       Ci = Cmat(istre,jstre,:,igaus);
-                       Ct = squeeze(Ci).*dvol(:,igaus);
-                       Cadd = obj.computeCaddBySparse(Ct, posI, posJ);
-                       CmatTot = CmatTot + Cadd;
-                   end
-               end
-           end
+           s.dim = obj.dim;
+           s.globalConnec = [];
+           assembler = Assembler(s);
+           CmatTot = assembler.assembleC(Cmat, dvol);
        end
-
-       function Cadd = computeCaddBySparse(obj,Ct, posI, posJ)
-           d = obj.dim;
-           ntot  = d.nt;
-           Cadd = sparse(posI,posJ,Ct,ntot,ntot);
-       end
-
-       function Cadd = computeCaddByAccumarray(obj,Ct, posI, posJ)
-           d = obj.dim;
-           ntot  = d.nt;
-           index = [posI', posJ'];
-           Cadd = accumarray(index,Ct,[ntot ntot],[],[],true);
-      end
 
        function K = computeStiffness(obj,CmatTot)
            B  = obj.Btot;

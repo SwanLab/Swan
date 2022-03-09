@@ -11,9 +11,9 @@ classdef OptimizerAlternatingPrimalDual < Optimizer_PrimalDual
     methods (Access = public)
         
         function obj = OptimizerAlternatingPrimalDual(cParams)
-            obj.init(cParams);            
+            obj.init(cParams);
             obj.createLagrangian();
-            obj.createOptimizerUnconstrained(cParams.uncOptimizerSettings);                        
+            obj.createOptimizerUnconstrained(cParams.uncOptimizerSettings);
             obj.createDualUpdater();
         end
         
@@ -29,36 +29,34 @@ classdef OptimizerAlternatingPrimalDual < Optimizer_PrimalDual
     methods (Access = protected)
         
         function createLagrangianSettings(obj)
-            cParams.type           = 'AugmentedLagrangian';            
+            cParams.type           = 'AugmentedLagrangian';
             cParams.constraintCase = obj.constraintCase;
             cParams.cost           = obj.cost;
             cParams.constraint     = obj.constraint;
-            cParams.dualVariable   = obj.dualVariable;            
+            cParams.dualVariable   = obj.dualVariable;
             obj.lagrangianSettings = cParams;
         end
         
     end
     
     methods (Access = private)
-               
-                   
+        
         function createDualUpdater(obj)
             cParams.type                = 'AugmentedLagrangian';
             cParams.augmentedLagrangian = obj.lagrangian;
             cParams.constraint          = obj.constraint;
             cParams.dualVariable        = obj.dualVariable;
             obj.dualUpdater = DualUpdater.create(cParams);
-        end   
+        end
         
-        function updateDualVariable(obj)            
+        function updateDualVariable(obj)
             obj.dualUpdater.updateDualVariable();
-            obj.lagrangian.updateBecauseOfDual();            
-        end        
+            obj.lagrangian.updateBecauseOfDual();
+        end
         
         function updatePrimalVariable(obj)
             obj.unconstrainedOptimizer.update();
         end
-        
         
     end
     
