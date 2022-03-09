@@ -1,16 +1,24 @@
+clc; clear;
+
+s.dim    = '2D';
+s.length    = 1;
+s.height = 0.1;
+test = PerformanceTest(s);
+sol = test.compute(0.05);
+%% 
 clc; clear; close all;
 
 % 2D
-index = 1;
-for i = 0.01:0.005:0.5
-    gg = @() example2D(i);
-    temps(index) = timeit(gg);
-    connecs(index) = size(example2D(i),1);
-    index = index+1;
-end
-
-plot(0.01:0.005:0.5, temps)
-plot(0.01:0.005:0.5, connecs)
+% index = 1;
+% for i = 0.01:0.005:0.5
+%     gg = @() example2D(i);
+%     temps(index) = timeit(gg);
+%     connecs(index) = size(example2D(i),1);
+%     index = index+1;
+% end
+% 
+% plot(0.01:0.005:0.5, temps)
+% plot(0.01:0.005:0.5, connecs)
 
 % 3D
 for i = 2:1:10
@@ -33,15 +41,15 @@ function connec = example2D(mstep)
 x = 0:  mstep  :1;
 y = 0: mstep/2 :0.25;
 
-%Mesh
-[X,Y,Z] = meshgrid(x,y,0);
-fvc = surf2patch(X,Y,Z,'triangles');
-fvc.vertices(:,3) = []; % 2D
-coords = fvc.vertices;
-connec = fvc.faces;
-m.coord = coords;
-m.connec = connec;
-p.mesh = Mesh(m);
+% Mesh II
+
+s.dim    = '2D';
+s.len    = 1;
+s.height = 0.1;
+beam = CantileverBeam(s);
+mesh = beam.create(5,5);
+coords = mesh.coord;
+connec = mesh.connec;
 npnod = size(coords,1);
 
 % Boundary conditions
@@ -55,6 +63,7 @@ neumann   = [npnod, 2, 0.0001];
 p.dim = '2D';
 p.type = 'ELASTIC';
 p.scale = 'MACRO';
+p.mesh  = mesh;
 p.dirichlet = dirichlet;
 p.pointload = neumann;
 
@@ -74,16 +83,14 @@ function connec  = example3D(mstep)
 % y = 0: mstep/2 :0.25;
 % z = 0: mstep/2 :0.25;
 
-x = linspace(0,1,mstep);
-y = linspace(0,1,mstep);
-z = linspace(0,2,mstep*2);
-[X,Y,Z] = meshgrid(x,y,z);
-coords  = [X(:) Y(:) Z(:)];
-d = delaunayTriangulation(coords);
-connec = d.ConnectivityList;
-s.connec = d.ConnectivityList;
-s.coord  = coords;
-p.mesh = Mesh(s);
+% Mesh II
+s.dim    = '3D';
+s.len    = 1;
+s.height = 0.1;
+beam = CantileverBeam(s);
+mesh = beam.create(5,5);
+coords = mesh.coord;
+connec = mesh.connec;
 npnod = size(coords,1);
 
 % Boundary conditions
@@ -98,6 +105,7 @@ neumann   = [npnod, 2, 0.0001];
 p.dim = '3D';
 p.type = 'ELASTIC';
 p.scale = 'MACRO';
+p.mesh = mesh;
 p.dirichlet = dirichlet;
 p.pointload = neumann;
 

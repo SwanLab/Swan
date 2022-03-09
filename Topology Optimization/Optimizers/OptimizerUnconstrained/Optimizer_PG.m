@@ -18,12 +18,12 @@ classdef Optimizer_PG < Optimizer_Unconstrained
         function obj = Optimizer_PG(cParams)
             obj@Optimizer_Unconstrained(cParams);
             obj.upperBound = cParams.ub;
-            obj.lowerBound = cParams.lb;            
+            obj.lowerBound = cParams.lb;
         end
         
         function compute(obj)
             x_n      = obj.designVariable.value;
-            gradient = obj.objectiveFunction.gradient;            
+            gradient = obj.objectiveFunction.gradient;
             x_new = x_n-obj.lineSearch.value*gradient;
             ub = obj.upperBound*ones(length(x_n(:,1)),1);
             lb = obj.lowerBound*ones(length(x_n(:,1)),1);

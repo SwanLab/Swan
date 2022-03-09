@@ -1,7 +1,7 @@
 classdef Optimizer_SLERP < Optimizer_Unconstrained
     
     properties (GetAccess = public, SetAccess = protected)
-        type = 'SLERP'        
+        type = 'SLERP'
     end
     
     properties  (GetAccess = public, SetAccess = private)
@@ -13,7 +13,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         normalizedGrad
         coefPhi
         coefGrad
-        theta                
+        theta
     end
     
     methods (Access = public)
@@ -37,9 +37,9 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             obj.convergenceVars.append(obj.incF);
             obj.convergenceVars.append(obj.incX);
             obj.convergenceVars.append(obj.lineSearch.value);
-            obj.convergenceVars.append(obj.lineSearch.nTrials);            
-            obj.convergenceVars.append(obj.obtainThetaValue());            
-        end           
+            obj.convergenceVars.append(obj.lineSearch.nTrials);
+            obj.convergenceVars.append(obj.obtainThetaValue());
+        end
         
     end
     
@@ -51,7 +51,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
         end
         
         function computeNormalizedGradient(obj)
-            g   = obj.objectiveFunction.gradient;            
+            g   = obj.objectiveFunction.gradient;
             obj.normalizedGrad = obj.normalizeFunction(g);
         end
         
@@ -96,7 +96,7 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             x = x/xNorm;
         end
         
-    end    
+    end
     
     methods (Access = private, Static)
         

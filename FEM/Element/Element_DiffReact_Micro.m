@@ -9,7 +9,7 @@ classdef Element_DiffReact_Micro < Element_DiffReact
             end
         end
         
-        function Ared = fullToReducedMatrix(obj,A)                
+        function Ared = fullToReducedMatrix(obj,A)
             vF = obj.dof.free;
             vP = obj.dof.periodic_free;
             vQ = obj.dof.periodic_constrained;
@@ -58,7 +58,7 @@ classdef Element_DiffReact_Micro < Element_DiffReact
     end
     
     methods (Access = private)
-        function F = computeStrainRHS(obj,vstrain)            
+        function F = computeStrainRHS(obj,vstrain)
             Cmat = obj.material.C;
             eforce = zeros(obj.dof.nunkn*obj.nnode,1,obj.nelem);
             sigma = zeros(obj.nstre,1,obj.nelem);

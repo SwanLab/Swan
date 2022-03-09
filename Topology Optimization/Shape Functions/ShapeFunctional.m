@@ -94,12 +94,11 @@ classdef ShapeFunctional < handle
             
             switch s.scale
                 case 'MACRO'
-                    diffReacProb = DiffReact_Problem(s);
+                    diffReacProb = NewDiffReactProblem(s);
                 case 'MICRO'
-                    diffReacProb = DiffReact_Problem_Micro(s);
+                    diffReacProb = NewDiffReactProblemMicro(s);
             end
-            diffReacProb.preProcess();
-            obj.Msmooth = diffReacProb.element.M;
+            obj.Msmooth = diffReacProb.getM();
             obj.dvolu   = diffReacProb.geometry.dvolu;
         end
 
