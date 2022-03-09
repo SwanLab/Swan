@@ -1,12 +1,13 @@
-filename = 'Cantileverbeam_Quadrilateral_Bilinear';
+filename = 'Cantilever';%'CantileverBeam_Triangle_Linear';
 ptype = 'MACRO';
 method = 'SIMP_P3';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
 cost = {'compliance'};
 weights = [1];
-constraint = {'volumeConstraint'; 'perimeterConstraint'};
-optimizer = 'IPOPT';
+constraint = {'volumeConstraint'};
+optimizerUnconstrained = 'PROJECTED GRADIENT'; 
+optimizer = 'fmincon';%'AlternatingPrimalDual';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
 incrementFactor = 1;
 designVariable = 'Density';
 filterType = 'P1';
@@ -29,8 +30,8 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 % For all tests
-plotting = false;
+plotting = true;
 printing = false;
 printing_physics = false;
-monitoring = false;
-maxiter = 3;
+monitoring = true;
+maxiter = 300;

@@ -106,6 +106,7 @@ classdef FEMInputWriter < handle
             obj.writeNeumannData(fileID);
             obj.writeNodesSolid(fileID);
             obj.writeExternalBorderNodes(fileID);
+            obj.writeExternalBorderElements(fileID);
             fclose(fileID);
         end
         
@@ -159,6 +160,12 @@ classdef FEMInputWriter < handle
             end
             fprintf(fileID,'];\n');
         end
+
+        function writeExternalBorderElements(obj,fileID)
+            fprintf(fileID,'%%%% External Border Elements\n%% Node\n');
+            fprintf(fileID,'External_border_elements = [\n');
+            fprintf(fileID,'];\n');
+        end        
     end
     
     methods (Access = private, Static)
