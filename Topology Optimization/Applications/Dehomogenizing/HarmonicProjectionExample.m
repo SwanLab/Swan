@@ -86,12 +86,18 @@ classdef HarmonicProjectionExample < handle
 
         function plotOrientation(obj,t,iFigure)
             figure(1)
-            subplot(1,3,iFigure)
+            subplot(1,2,iFigure)
             x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);
             tx = cos(t);
             ty = sin(t);
             quiver(x,y,tx,ty)
+            figure(2)
+            subplot(1,2,iFigure)
+            s.mesh = obj.mesh;
+            s.field = t;
+            p = NodalFieldPlotter(s);
+            p.plot()
         end
 
         function project(obj)
