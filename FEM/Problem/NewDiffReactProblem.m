@@ -129,6 +129,7 @@ classdef NewDiffReactProblem < handle %FEM
             s.scale   = obj.problemData.scale;
             s.type    = obj.bcApplierType;
             s.nfields = 1;
+            s.mesh = obj.mesh;
             obj.bcApplier = BoundaryConditionsApplier.create(s);
         end
 

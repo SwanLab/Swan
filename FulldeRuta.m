@@ -1,53 +1,31 @@
 %% To-do
 
-% a) RENAMING
-%    OK!   - s.pdim 'FILTER'. 
-%    OK!   - pdim to nDim, nunkn to dimField, nFields, dimAllFields
 
-% b) ASSEMBLER
-%    OK!   - Accumarray and sparse only in Assembler. 
-%    MEH   - BMatrixComputer uses Assembler.
-%    MEH   - LHSintegrator_StiffnessElasticStoredB uses Assembler.
-%    OK!   - LHSintegrator uses Assembler.
-%    BTW   - ForcesComputer uses Assembler. (-ish)
-%    ???   - StrainComputer, StressComputer
+% a) PROJECT CHARTER
 
-% c) EXAMPLES
-%    OK!   - NewFemExamples as a class (-> moved to PerformanceTests)
-%    OK!   - Following cleancode techniques
-%    BTW   - Created CantileverBeam, PerformanceTests, PerformanceTest
+% b) PROBLEM CLEANUP
+%       - Delete ElementDiffReact
+%       - Delete ElasticProblem?
+%       - Delete DiffReact_Problem?
+%       - Clean NewDiffReactProblem
 
-% d) DIFFREACT_PROBLEM
-%    OK!   - DiffReact_Problem to NewDiffReactProblem
-%    OK!   - Delete Element_DiffReact
-%    OK!   - Use it in Filter_PDE
-%    MEH   - Cleanup on NewDiffReactProblem
-%    BTW   - NewDiffReactProblemMicro also done
-%    BTW   - Halfway there on NewElasticProblemMicro* (more below)
+% c) BOUNDARY CONDITIONS
+%       - Simplify and clean BoundaryConditions
+%       - Simplify and clean BoundaryConditionsApplier
 
-% e) TOPOPT
-%    OK!   - FEM to NewFem in TopOpt 
+% c) OTHER CLEANUP
+%       - Simplify Assembler
+%       - CantileverBeam to CantileverBeamMeshCreator
+%       - Fix CantileverBeamMeshCreator for 2D meshes
+%       - Fix CantileverBeamMeshCreator for 3D meshes
+%       - StressComputer increase performance through ("vectorize"/bsxfun/assmelby+product)
+%       - StrainComputer increase performance through ("vectorize"/bsxfun/assmelby+product)
 
-% f) COMPARISON
+
+
+% z) COMPARISON
 %       - First examples of: 
 %       - Comparing product: pagemtimes, istrjstreLoop, pagefun 
 %       - Comparing assembly: accumarray and sparse (Assembler)
 %       - Comparing commutative of (product + assembly) vs
 %           (assembly + product)
-
-% *On NewElasticProblemMicro: it still needs heavy refactoring and it is
-% not yet ready for NewFEM. Need some time to assess how to properly
-% organize BoundaryConditions and ForcesComputer
-
-% Project chapter
-
-% Delete Element_DiffReact
-% Delete ElasticProblem?
-% Delete DiffReact_Problem?
-% Clean  NewDiffReactProblem
-
-% Simplify and clean BoundaryConditions and % BoundaryConditionsApplier
-
-% Simplify Assembler
-% CantileverBeamMeshCreator and modify
-% Stress/StrainComputer increase performance through ("vectorize"/bsxfun/assmelby+product)
