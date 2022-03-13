@@ -109,6 +109,10 @@ classdef ShFunc_Chomog < ShapeFunctional
             nStre = obj.physicalProblem.element.getNstre();
             nelem = obj.physicalProblem.mesh.nelem;
             ngaus = obj.physicalProblem.element.quadrature.ngaus;
+%             dim = obj.physicalProblem.getDimensions();
+%             nStre = dim.nstre;
+%             nelem = dim.nelem;
+%             ngaus = dim.ngaus;
             
             
             dChV = zeros(nStre,nStre,nelem,ngaus);
@@ -133,11 +137,15 @@ classdef ShFunc_Chomog < ShapeFunctional
         function initChomog(obj,cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
+            fileName = cParams.femSettings.fileName;
+            s = obj.createFEMparameters(fileName);
+%             obj.physicalProblem = NewFEM.create(s);
             obj.physicalProblem = FEM.create(cParams.femSettings.fileName);
         end
         
         function solveState(obj)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C)
+%             obj.physicalProblem.solve();
             obj.physicalProblem.computeChomog();
             obj.Chomog  = obj.physicalProblem.variables.Chomog;
             obj.tstrain = obj.physicalProblem.variables.tstrain;
@@ -169,14 +177,20 @@ classdef ShFunc_Chomog < ShapeFunctional
         
         function n = getnStre(obj)
             n = obj.physicalProblem.element.getNstre();
+%             dim = obj.physicalProblem.getDimensions();
+%             n = dim.nstre;
         end
         
         function n = getnElem(obj)
             n = obj.physicalProblem.element.nelem;
+%             dim = obj.physicalProblem.getDimensions();
+%             n = dim.nelem;
         end
         
         function n = getnGaus(obj)
             n = size(obj.tstrain,2);
+%             dim = obj.physicalProblem.getDimensions();
+%             n = dim.ndim;
         end
         
     end
@@ -189,5 +203,25 @@ classdef ShFunc_Chomog < ShapeFunctional
             aCb = sum(aCb(:));
         end
         
+    end
+
+    methods (Access = private)
+
+        function s = createFEMparameters(obj, fileName)
+            gidParams = obj.createGiDparameters(fileName);
+            s.dim       = gidParams.pdim;
+            s.type      = gidParams.ptype;
+            s.scale     = gidParams.scale;
+            s.mesh      = gidParams.mesh;
+            s.dirichlet = gidParams.dirichlet;
+            s.pointload = gidParams.pointload;
+            s.masterSlave = gidParams.masterSlave;
+        end
+
+        function gidParams = createGiDparameters(obj, file)
+            gidReader = FemInputReader_GiD();
+            gidParams = gidReader.read(file);
+        end
+
     end
 end

@@ -31,6 +31,9 @@ classdef NewElasticProblem < handle %NewFEM
         quadrature
         dim
         material
+
+
+        vstrain
     end
 
     methods (Access = public)
@@ -88,7 +91,10 @@ classdef NewElasticProblem < handle %NewFEM
             pd.ptype        = cParams.type;
             pd.bc.dirichlet = cParams.dirichlet;
             pd.bc.pointload = cParams.pointload;
-            if isequal(pd.scale,'MICRO')
+%             if isequal(pd.scale,'MICRO')
+%                 pd.bc.masterSlave = cParams.masterSlave;
+%             end
+            if isfield(cParams,'masterSlave')
                 pd.bc.masterSlave = cParams.masterSlave;
             end
             obj.problemData = pd;
@@ -179,7 +185,7 @@ classdef NewElasticProblem < handle %NewFEM
             s.dim  = obj.dim;
             s.BC   = obj.boundaryConditions;
             s.mesh = obj.mesh;
-            if isfield(obj, 'vstrain')
+            if isfield(obj, 'vstrain') % should be isprop
                 disp('hey')
                 s.vstrain = obj.vstrain;
             end

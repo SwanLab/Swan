@@ -42,8 +42,8 @@ classdef NewFEM < handle
 %                             s = createProblemParams(fileName);
                             obj = NewElasticProblem(s);
                         case 'MICRO'
-                            obj = Elastic_Problem_Micro(fileName);
-%                             obj = NewElasticProblemMicro(s);
+%                             obj = Elastic_Problem_Micro(fileName);
+                            obj = NewElasticProblemMicro(s);
                     end
                 case 'THERMAL'
                     obj = Thermal_Problem(fileName);

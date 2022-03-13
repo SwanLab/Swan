@@ -5,7 +5,6 @@ classdef NewElasticProblemMicro < NewElasticProblem %NewFEM
         variables2print
         tstrain
         tstress
-        vstrain
     end
 
     methods (Access = public)
