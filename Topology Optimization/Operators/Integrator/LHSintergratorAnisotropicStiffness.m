@@ -37,11 +37,11 @@ classdef LHSintergratorAnisotropicStiffness < LHSintegrator
                 for istre = 1:nstre
                     BmatI = Bmat(istre,:,:);
                     BmatJ = permute(BmatI,[2 1 3]);
-%                     dNdN = bsxfun(@times,BmatJ,BmatI);
-                    dNC = bsxfun(@times,BmatJ,obj.Celas);
-                    dNCdN = bsxfun(@times,dNC,BmatI);
+                    dNdN = bsxfun(@times,BmatJ,BmatI);
+%                     dNC = bsxfun(@times,BmatJ,obj.Celas);
+%                     dNCdN = bsxfun(@times,dNdN,BmatI);
                     dv(1,1,:) = dvolu(igaus, :);
-                    inc = bsxfun(@times,dv,dNCdN);
+                    inc = bsxfun(@times,dv,dNdN);
                     lhs = lhs + inc;
                 end
             end

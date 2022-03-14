@@ -5,6 +5,8 @@ clc
 
 load('AnisotropicData.mat')
 s.type = 'AnisotropicStiffnessMatrix';
+s.dim.ndim = 1;
+s.dim.ndimField = 1;
 
 C = zeros(s.mesh.nnode,s.mesh.nnode,s.mesh.nelem);
 for i = 1:s.mesh.nelem
