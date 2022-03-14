@@ -202,7 +202,7 @@ classdef NewElasticProblem < handle %NewFEM
             s.geometry = obj.geometry;
             s.dvolume  = obj.getDvolume();
             if isprop(obj, 'vstrain') % should be isprop
-                disp('hey')
+%                 disp('hey')
                 s.vstrain = obj.vstrain;
             end
             fcomp = ForcesComputer(s);

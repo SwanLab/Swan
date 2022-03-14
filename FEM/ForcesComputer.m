@@ -93,7 +93,8 @@ classdef ForcesComputer < handle
 
         
         function F = computeStrainRHS(obj,vstrain)
-            Cmat  = obj.material.C(:,:,1);
+%             Cmat  = obj.material.C(:,:,1);
+            Cmat  = obj.material.C;
             ngaus = obj.dim.ngaus;
             nunkn = obj.dim.ndimField;
             nstre = obj.dim.nstre;
