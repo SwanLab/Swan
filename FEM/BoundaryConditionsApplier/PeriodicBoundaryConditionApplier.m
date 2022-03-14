@@ -18,8 +18,9 @@ classdef PeriodicBoundaryConditionApplier < BoundaryConditionsApplier
                    mesh.computeMasterSlaveNodes();
                    MS = mesh.masterSlaveNodes;
                 end
-                obj.dof.periodic_free = obj.dof.compute_periodic_nodes(MS(:,1));
-                obj.dof.periodic_constrained = obj.dof.compute_periodic_nodes(MS(:,2));
+                obj.dof.periodic_free = obj.dof.computePeriodicNodes(MS(:,1));
+                obj.dof.periodic_constrained = obj.dof.computePeriodicNodes(MS(:,2));
+                obj.dof.free{1} = obj.dof.computeFreeDOF();
                 obj.ndof = cParams.dim.ndof;
             else
                 obj.dof = cParams.dof;

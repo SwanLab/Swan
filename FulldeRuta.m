@@ -6,6 +6,7 @@
 % b) PROBLEM CLEANUP
 %       - Delete ElementDiffReact
 %       - Delete ElasticProblem?
+%               - ShFunc_Chomog
 %       - Delete DiffReact_Problem?
 %       - Clean NewDiffReactProblem
 

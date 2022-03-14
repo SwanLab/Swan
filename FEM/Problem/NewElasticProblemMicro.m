@@ -31,8 +31,9 @@ classdef NewElasticProblemMicro < NewElasticProblem %NewFEM
             for istre=1:nstre
                 strain = basis(istre,:);
                 obj.vstrain = strain;
-                obj.computeStressStrainAndCh();
                 obj.solve();
+                obj.computeStressStrainAndCh();
+%                 obj.solve();
                 Ch(:,istre) = obj.variables.stress_homog;
                 tstrain(istre,:,:,:) = obj.variables.strain;
                 tstrainF(istre,:,:,:) = obj.variables.strain_fluct;

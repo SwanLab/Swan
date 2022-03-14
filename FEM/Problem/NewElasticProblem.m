@@ -25,6 +25,7 @@ classdef NewElasticProblem < handle %NewFEM
         stiffnessMatrixRed
         forces
         solver
+        geometry
     end
 
     properties (Access = protected)
@@ -45,6 +46,7 @@ classdef NewElasticProblem < handle %NewFEM
             obj.createMaterial();
             obj.computeMaterialProperties();
             obj.createInterpolation();
+            obj.createGeometry();
             obj.createBoundaryConditions();
             obj.createBCApplier();
             obj.createSolver();
@@ -135,11 +137,22 @@ classdef NewElasticProblem < handle %NewFEM
             int = obj.mesh.interpolation;
             obj.interp{1} = int;
         end
+       
+        function createGeometry(obj)
+            q   = obj.quadrature;
+            int = obj.interp{1};
+            int.computeShapeDeriv(q.posgp);
+            s.mesh = obj.mesh;
+            g = Geometry.create(s);
+            g.computeGeometry(q,int);
+            obj.geometry = g;
+        end
 
         function createBoundaryConditions(obj)
             s.dim          = obj.dim;
             s.bc           = obj.problemData.bc;
             s.globalConnec = obj.mesh.connec;
+            s.mesh = obj.mesh;
             bc = BoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;
@@ -155,7 +168,7 @@ classdef NewElasticProblem < handle %NewFEM
         end
 
         function createSolver(obj)
-            obj.solver = Solver.create;
+            obj.solver = Solver.create();
         end
 
         function computeStiffnessMatrix(obj)
@@ -185,7 +198,10 @@ classdef NewElasticProblem < handle %NewFEM
             s.dim  = obj.dim;
             s.BC   = obj.boundaryConditions;
             s.mesh = obj.mesh;
-            if isfield(obj, 'vstrain') % should be isprop
+            s.material = obj.material;
+            s.geometry = obj.geometry;
+            s.dvolume  = obj.getDvolume();
+            if isprop(obj, 'vstrain') % should be isprop
                 disp('hey')
                 s.vstrain = obj.vstrain;
             end
