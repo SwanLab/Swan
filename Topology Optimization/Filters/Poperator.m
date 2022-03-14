@@ -37,15 +37,14 @@ classdef Poperator < handle
             s = cParams.diffReactEq;
             switch s.scale
                 case 'MACRO'
-                    obj.diffReacProb = DiffReact_Problem(s);
+                    obj.diffReacProb = NewDiffReactProblem(s);
                 case 'MICRO'
-                    obj.diffReacProb = DiffReact_Problem_Micro(s);
+                    obj.diffReacProb = NewDiffReactProblemMicro(s);
             end
         end
        
         function createMassMatrix(obj)
-            obj.diffReacProb.preProcess();
-            obj.M = obj.diffReacProb.element.M;
+            obj.M = obj.diffReacProb.getM();
         end
        
        function createOperator(obj)

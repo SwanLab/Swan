@@ -69,10 +69,12 @@ classdef HarmonicProjectionExample < handle
             alpha0  = d.dataRes.AlphaGauss;
             alpha(:,1) = obj.interpolateOrientationAngle(alpha0(:,1));
             alpha(:,2) = obj.interpolateOrientationAngle(alpha0(:,2));
-            obj.plotOrientation(alpha,1);
+            theta(:,1) = atan2(alpha(:,1),alpha(:,2));  
+            obj.plotOrientation(theta,1);
             alpha = obj.projectInUnitBall(alpha);
-            obj.plotOrientation(alpha,2);
-            obj.orientationAngle = alpha;
+            theta(:,1) = atan2(alpha(:,1),alpha(:,2));  
+            obj.plotOrientation(theta,1);
+            obj.orientationAngle = theta;
         end
 
         function vI = interpolateOrientationAngle(obj,v0)
@@ -84,69 +86,55 @@ classdef HarmonicProjectionExample < handle
 
         function plotOrientation(obj,t,iFigure)
             figure(1)
-            subplot(1,3,iFigure)
+            subplot(1,2,iFigure)
             x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);
-            tx = t(:,1);
-            ty = t(:,2);
+            tx = cos(t);
+            ty = sin(t);
             quiver(x,y,tx,ty)
+            figure(2)
+            subplot(1,2,iFigure)
+            s.mesh = obj.mesh;
+            s.field = t;
+            p = NodalFieldPlotter(s);
+            p.plot()
         end
 
         function project(obj)
-            alpha0 = obj.orientationAngle;            
-            z = zeros(size(alpha0));
-            v = alpha0;
-            t = 1*1e-2;
-            for i = 1:100000
-                j = 2*(i-1)+1;
-                
-                r  = (0*alpha0+t*(v-z))/(0+t);
-                u = obj.projectInHarmonicSpace(r);
-                cost(j)     = obj.computeCost(u,alpha0);
-                optDualH(j) = obj.computeDualHarmonicOptimality(u);
-                optDualU(j) = obj.computeDualUnitBallOptimality(u);
-
-               
-                v = obj.projectInUnitBall(u+z);
-                cost(j+1)     = obj.computeCost(v,alpha0);
-                optDualH(j+1) = obj.computeDualHarmonicOptimality(v);
-                optDualU(j+1) = obj.computeDualUnitBallOptimality(v);                
+            theta0 = obj.orientationAngle;            
+            u      = theta0;
+            lambda = obj.computeInitialLambda();
+            error = 1;
+            i = 1;
+            while error > 1e-12
+                cost(i)      = obj.computeCost(u,theta0);
+                optPrimal(i) = obj.computePrimalOptimaility(lambda,u,theta0);
+                optDual(i)   = obj.computeDualHarmonicOptimality(u);
+                error = norm([optPrimal,optDual]);
+                [u,lambda]   = obj.solveProblem(u);
 
 
-
-
-
-%                 figure(102)
-%                 clf
-%                 hold on
-%                 plot(optDualH(1:2:j),'-+')
-%                 plot(optDualU(1:2:j),'-+')
-%                 hold off
-
-                if mod(i,100) == 0      
                 figure(100)
                 clf
-                hold on
-                plot(1:2:j,cost(1:2:j)','-+')                
-                plot(2:2:j+1,cost(2:2:j+1)','-+')
-                hold off
+                plot(cost,'-+')                
+
 
                 figure(101)
                 clf
                 hold on
-                plot(1:2:j,optDualU(1:2:j)','-+')                
-                plot(2:2:j+1,optDualH(2:2:j+1)','-+')
+                plot(optPrimal','-+')                
+                plot(optDual','-+')
                 hold off
-                 obj.plotOrientation(u,1) 
-                 obj.plotOrientation(v,2)     
-                 obj.plotOrientation(z,3)                  
-                end
-                z = z + t*(u-v);               
+
+                obj.plotOrientation(u,2) 
+       
 
             end
-            alpha0 = obj.projectInUnitBall(alpha0);
-            obj.plotOrientation(alpha0)
-            plot(log([cost' optDualH' optDualU']))
+        end
+
+        function [v,lambda] = solveProblem(obj,vH)
+           h  = obj.harmonicProjector;
+           [v,lambda] = h.solveProblem(vH);
         end
 
         function createHarmonicProjection(obj)
@@ -176,29 +164,24 @@ classdef HarmonicProjectionExample < handle
             end
         end
 
-        function costT = computeCost(obj,v,vP)
-            h     = obj.harmonicProjector;            
-            nDim  = size(v,2);
-            cost  = zeros(nDim,1);            
-            for iDim = 1:nDim
-                vI  = v(:,iDim);
-                vPI = vP(:,iDim);
-                c   = h.computeCost(vI,vPI);             
-                cost(iDim) = c;
-            end            
-            costT = sum(cost);
+        function lambda0 = computeInitialLambda(obj)
+            h = obj.harmonicProjector;
+            lambda0 = h.computeInitalLambda();
+        end
+
+        function c = computeCost(obj,v,vH)
+            h = obj.harmonicProjector;            
+            c = h.computeCost(v,vH);             
         end        
 
-        function dualOptT = computeDualHarmonicOptimality(obj,v)
-            h       = obj.harmonicProjector;            
-            nDim    = size(v,2);
-            dualOpt = zeros(nDim,1);            
-            for iDim = 1:nDim
-                vI  = v(:,iDim);
-                d   = h.computeDualOptimality(vI);             
-                dualOpt(iDim) = d;
-            end            
-            dualOptT = sum(dualOpt);
+        function d = computePrimalOptimaility(obj,lambda,v,vH)
+            h = obj.harmonicProjector;   
+            d = h.computePrimalOptimaility(lambda,v,vH);
+        end
+
+        function d = computeDualHarmonicOptimality(obj,v)
+            h = obj.harmonicProjector;   
+            d = h.computeDualOptimality(v);             
         end   
 
         function dualOptT = computeDualUnitBallOptimality(obj,v)

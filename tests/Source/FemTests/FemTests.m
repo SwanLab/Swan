@@ -86,7 +86,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'FEM', 'Passed', 'Classic', 'Displacement', 'ToPass'})
 
         function testDisplacement(testCase, duTests)
-            s.computerType    = 'NEWFEM';
+            s.computerType    = 'NEWFEM'; %NEWFEM
             s.testName         = duTests;
             s.variablesToStore = {'d_u'};
             test = PrecomputedVariableTest(s);

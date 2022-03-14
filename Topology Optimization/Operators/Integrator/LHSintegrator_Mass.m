@@ -1,4 +1,4 @@
-classdef LHSintergrator_Mass < LHSintegrator
+classdef LHSintegrator_Mass < LHSintegrator
 
     properties (Access = private)
         quadType
@@ -6,7 +6,7 @@ classdef LHSintergrator_Mass < LHSintegrator
 
     methods (Access = public)
         
-        function obj = LHSintergrator_Mass(cParams)
+        function obj = LHSintegrator_Mass(cParams)
             obj.init(cParams);
             obj.quadType = cParams.quadType;
             obj.createQuadrature();

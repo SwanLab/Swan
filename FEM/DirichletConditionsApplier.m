@@ -13,7 +13,7 @@ classdef DirichletConditionsApplier < BoundaryConditionsApplier
             obj.nfields = cParams.nfields;
             if isfield(cParams, 'BC') % new
                 obj.dof   = cParams.BC;
-                obj.ndof = cParams.dim.ndof;
+                obj.ndof  = cParams.dim.ndof;
             else
                 obj.dof     = cParams.dof;
                 obj.ndof    = cParams.dof.ndof;

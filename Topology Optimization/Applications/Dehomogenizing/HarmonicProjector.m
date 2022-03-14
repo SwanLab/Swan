@@ -26,11 +26,25 @@ classdef HarmonicProjector < handle
             obj.createSolver()
         end
         
-        function vH = project(obj,v)
-            lhs = obj.LHS;
-            rhs = obj.computeRHS(v);
-            vH  = obj.solver.solve(lhs,rhs);
-            vH  = vH(1:obj.dim.npnod,1);            
+        function lambda0 = computeInitalLambda(obj)
+            b    = obj.boundaryMesh;
+            nInt = setdiff(1:obj.dim.npnod,b);
+            lambda0 = zeros(length(nInt),1);
+        end
+
+        function [v,lambda] = solveProblem(obj,vH)
+            lhs    = obj.LHS;
+            rhs    = obj.computeRHS(vH);
+            sol    = obj.solver.solve(lhs,rhs);
+            v      = sol(1:obj.dim.npnod,1);            
+            lambda = sol(obj.dim.npnod+1:end,1);            
+        end
+
+        function optPrim = computePrimalOptimaility(obj,lambda,v,vH)
+            M        = obj.massMatrix;  
+            Kred     = obj.reducedStiffnessMatrix;  
+            gradPrim = M*(v-vH) + (Kred'*lambda);
+            optPrim  = norm(gradPrim);
         end
 
         function vH = projectByDual(obj,v)
@@ -65,7 +79,7 @@ classdef HarmonicProjector < handle
             q = Quadrature();
             q = q.set(obj.mesh.type);
             s.mesh = obj.mesh;
-            s.pdim = 'FILTER';
+            s.pdim = '1D';
             s.ngaus = q.ngaus;
             d = DimensionVariables(s);
             d.compute();

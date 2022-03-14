@@ -118,7 +118,7 @@ classdef Optimizer_Unconstrained < handle
 
         function itIs = hasXNotLarglyChanged(obj)
             itIs = obj.incX < obj.maxIncrNormX;
-        end        
+        end
         
         function computeIncrements(obj)
             normXsquare = obj.designVariable.computeL2normIncrement();

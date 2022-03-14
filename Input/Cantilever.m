@@ -9740,3 +9740,7 @@ External_border_nodes = [
 3199;
 3200;
 ];
+%% External Border Elements
+% Node
+External_border_elements = [
+];

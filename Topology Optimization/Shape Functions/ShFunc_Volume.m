@@ -43,11 +43,10 @@ classdef ShFunc_Volume < ShapeFunctional
                 gs = g{ivar}/obj.geometricVolume;
                 gf(:,ivar) = obj.filter.getP1fromP0((gs));
             end
-           % g = obj.Msmooth*gf;
-            g = gf;
-            obj.gradient = g(:);
-            
-            obj.gradient = ones(size(g(:)))/obj.geometricVolume;
+            g = obj.Msmooth*gf;
+            %g = gf;
+            obj.gradient = g(:);            
+            %obj.gradient = ones(size(g(:)))/obj.geometricVolume;
         end
         
         function updateHomogenizedMaterialProperties(obj)
