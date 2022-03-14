@@ -28,21 +28,17 @@ classdef LHSintergratorAnisotropicStiffness < LHSintegrator
             dvolu = obj.mesh.computeDvolume(obj.quadrature);
             ngaus = obj.quadrature.ngaus;
             nelem = obj.mesh.nelem;
-            nstre = obj.dim.nstre;
             ndpe  = obj.dim.ndofPerElement;
             lhs = zeros(ndpe,ndpe,nelem);
+            C   = obj.Celas;
             Bcomp = obj.createBComputer();
             for igaus = 1:ngaus
                 Bmat = Bcomp.computeBmat(igaus);
-                for istre = 1:nstre
-                    BmatI = Bmat(istre,:,:);
-                    BmatJ = permute(BmatI,[2 1 3]);
-                    dNdN = bsxfun(@times,BmatJ,BmatI);
-%                     dNC = bsxfun(@times,BmatJ,obj.Celas);
-%                     dNCdN = bsxfun(@times,dNdN,BmatI);
-                    dv(1,1,:) = dvolu(igaus, :);
-                    inc = bsxfun(@times,dv,dNdN);
-                    lhs = lhs + inc;
+                for iel = 1:nelem
+                    BmatEl = Bmat(:,:,iel);
+                    dNdN = BmatEl'*C(:,:,iel)*BmatEl;
+                    dV = dvolu(igaus,iel);
+                    lhs(:,:,iel) = lhs(:,:,iel) + dNdN*dV;
                 end
             end
         end

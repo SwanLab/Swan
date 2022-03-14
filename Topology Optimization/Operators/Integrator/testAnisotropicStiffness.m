@@ -8,9 +8,9 @@ s.type = 'AnisotropicStiffnessMatrix';
 s.dim.ndim = 1;
 s.dim.ndimField = 1;
 
-C = zeros(s.mesh.nnode,s.mesh.nnode,s.mesh.nelem);
+C = zeros(s.mesh.ndim,s.mesh.ndim,s.mesh.nelem);
 for i = 1:s.mesh.nelem
-    C(:,:,i) = eye(s.mesh.nnode); % Per què 4x4 en comptes de 8x8?
+    C(:,:,i) = eye(s.mesh.ndim);
 end
 s.Celas = C;
 
