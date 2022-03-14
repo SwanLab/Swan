@@ -106,13 +106,13 @@ classdef ShFunc_Chomog < ShapeFunctional
         function computeChDerivative(obj)
             dC = obj.homogenizedVariablesComputer.dC;
             
-            nStre = obj.physicalProblem.element.getNstre();
-            nelem = obj.physicalProblem.mesh.nelem;
-            ngaus = obj.physicalProblem.element.quadrature.ngaus;
-%             dim = obj.physicalProblem.getDimensions();
-%             nStre = dim.nstre;
-%             nelem = dim.nelem;
-%             ngaus = dim.ngaus;
+%             nStre = obj.physicalProblem.element.getNstre();
+%             nelem = obj.physicalProblem.mesh.nelem;
+%             ngaus = obj.physicalProblem.element.quadrature.ngaus;
+            dim = obj.physicalProblem.getDimensions();
+            nStre = dim.nstre;
+            nelem = dim.nelem;
+            ngaus = dim.ngaus;
             
             
             dChV = zeros(nStre,nStre,nelem,ngaus);
@@ -139,8 +139,8 @@ classdef ShFunc_Chomog < ShapeFunctional
             obj.init(cParams);
             fileName = cParams.femSettings.fileName;
             s = obj.createFEMparameters(fileName);
-%             obj.physicalProblem = NewFEM.create(s);
-            obj.physicalProblem = FEM.create(cParams.femSettings.fileName);
+            obj.physicalProblem = NewFEM.create(s);
+%             obj.physicalProblem = FEM.create(cParams.femSettings.fileName);
         end
         
         function solveState(obj)
@@ -176,21 +176,21 @@ classdef ShFunc_Chomog < ShapeFunctional
         end
         
         function n = getnStre(obj)
-            n = obj.physicalProblem.element.getNstre();
-%             dim = obj.physicalProblem.getDimensions();
-%             n = dim.nstre;
+%             n = obj.physicalProblem.element.getNstre();
+            dim = obj.physicalProblem.getDimensions();
+            n = dim.nstre;
         end
         
         function n = getnElem(obj)
-            n = obj.physicalProblem.element.nelem;
-%             dim = obj.physicalProblem.getDimensions();
-%             n = dim.nelem;
+%             n = obj.physicalProblem.element.nelem;
+            dim = obj.physicalProblem.getDimensions();
+            n = dim.nelem;
         end
         
         function n = getnGaus(obj)
-            n = size(obj.tstrain,2);
-%             dim = obj.physicalProblem.getDimensions();
-%             n = dim.ndim;
+%             n = size(obj.tstrain,2);
+            dim = obj.physicalProblem.getDimensions();
+            n = dim.ndim;
         end
         
     end

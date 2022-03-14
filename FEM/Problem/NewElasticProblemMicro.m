@@ -105,8 +105,10 @@ classdef NewElasticProblemMicro < NewElasticProblem %NewFEM
 
         function vars = computeStressStrainAndCh(obj)
             vars = obj.variables;
-            vars.stress_fluct = permute(vars.stress,[2 3 1]);
-            vars.strain_fluct = permute(vars.strain,[2 3 1]);
+%             vars.stress_fluct = permute(vars.stress,[2 3 1]);
+%             vars.strain_fluct = permute(vars.strain,[2 3 1]);
+            vars.stress_fluct = vars.stress;
+            vars.strain_fluct = vars.strain;
             Cmat = obj.material.C;
             ngaus = obj.dim.ngaus;
             nstre = obj.dim.nstre;
