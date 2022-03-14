@@ -28,16 +28,16 @@ classdef EdcByLevelSetCreator < ElementalDensityCreator
     methods (Access = private)
        
         function createLevelSet(obj,cParams)
-           d = cParams.levelSetCreatorDataBase;             
+           d = cParams.levelSetCreatorDataBase;
            lsC = LevelSetCreator.create(d);
-           obj.levelSet = lsC.getValue();             
+           obj.levelSet = lsC.getValue();
         end
         
         function computeDensity(obj,cParams)
             lS = obj.levelSet;
-            d = cParams.filterDataBase; 
+            d = cParams.filterDataBase;
             filter = FilterP0(lS,d);
-            obj.density = filter.getDensity();            
+            obj.density = filter.getDensity();
         end
         
     end

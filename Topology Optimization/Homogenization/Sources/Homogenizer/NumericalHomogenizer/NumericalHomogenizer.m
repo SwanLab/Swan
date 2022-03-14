@@ -75,7 +75,7 @@ classdef NumericalHomogenizer < handle
         end
         
         function createMicroProblem(obj)
-            obj.buildMicroProblem();            
+            obj.buildMicroProblem();
             obj.createInterpolation();
             obj.createElementalDensityCreator();
             obj.obtainDensity();
@@ -85,7 +85,7 @@ classdef NumericalHomogenizer < handle
         
         function buildMicroProblem(obj)
             obj.microProblem = Elastic_Problem_Micro(obj.fileName);
-        end        
+        end
         
         function createInterpolation(obj)
             d = SettingsInterpolation();
@@ -123,7 +123,7 @@ classdef NumericalHomogenizer < handle
             d.shape = obj.microProblem.element.interpolation_u.shape;
             d.conec = obj.microProblem.mesh.connec;
             d.quadr = obj.microProblem.element.quadrature;
-        end        
+        end
         
         function obtainDensity(obj)
             obj.density = obj.elemDensCr.getDensity();
@@ -154,16 +154,16 @@ classdef NumericalHomogenizer < handle
             
             
             %obj.microProblem.computeStressBasisCellProblem();
-            %var = obj.microProblem.variables2printStressBasis();            
+            %var = obj.microProblem.variables2printStressBasis();
         end
         
         function computeVolumeValue(obj)
             cParams.coord  = obj.microProblem.mesh.coord;
             cParams.connec = obj.microProblem.mesh.connec;
-            mesh = Mesh_Total(cParams);                        
+            mesh = Mesh_Total(cParams);
             d = obj.volDataBase;
             s = SettingsDesignVariable();
-            s.type = 'Density';            
+            s.type = 'Density';
             s.mesh = mesh;%obj.microProblem.mesh;
             s.initialCase  = 'given';
             s.creatorSettings.value = obj.elemDensCr.getLevelSet();
@@ -187,10 +187,10 @@ classdef NumericalHomogenizer < handle
         end
         
         function mesh = setMasterSlaveNodes(obj,mesh)
-                       
+           
         end
-               
-        function obtainIntegrationUsedVariables(obj)        
+        
+        function obtainIntegrationUsedVariables(obj)
            intVar.nstre  = obj.microProblem.element.getNstre();
            intVar.geoVol = obj.microProblem.computeGeometricalVolume();
            intVar.ngaus  = obj.microProblem.element.quadrature.ngaus;
