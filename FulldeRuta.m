@@ -5,11 +5,11 @@
 
 % b) PROBLEM CLEANUP
 %     OK!  - Delete Element_DiffReact
-%       - Delete ElasticProblem?
+%     OK!  - Delete ElasticProblem?
 %     OK!          - Fix NewElasticProblemMicro
 %     OK!          - Fix micro FemTests
 %     OK!          - Fix micro TopOptTests
-%               - Fix micro HomogenizationTests
+%     OK!          - Fix micro HomogenizationTests
 %     OK!  - Delete DiffReact_Problem?
 %       - Clean NewDiffReactProblem
 
