@@ -4,10 +4,13 @@
 % a) PROJECT CHARTER
 
 % b) PROBLEM CLEANUP
-%       - Delete ElementDiffReact
+%     OK!  - Delete Element_DiffReact
 %       - Delete ElasticProblem?
-%               - ShFunc_Chomog
-%       - Delete DiffReact_Problem?
+%     OK!          - Fix NewElasticProblemMicro
+%     OK!          - Fix micro FemTests
+%     OK!          - Fix micro TopOptTests
+%               - Fix micro HomogenizationTests
+%     OK!  - Delete DiffReact_Problem?
 %       - Clean NewDiffReactProblem
 
 % c) BOUNDARY CONDITIONS

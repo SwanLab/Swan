@@ -8,7 +8,7 @@ classdef NumericalHomogenizer < handle
         matValues
         elemDensCr
         cellVariables
-        integrationVar        
+        integrationVar
     end
     
     properties (Access = private)
@@ -29,6 +29,7 @@ classdef NumericalHomogenizer < handle
         postProcess
         
         microProblem
+        dim
         density
         levelSet
         resFile
@@ -49,7 +50,7 @@ classdef NumericalHomogenizer < handle
             obj.computeCellVariables();
             obj.obtainIntegrationUsedVariables();
             obj.print();
-            obj.captureImage();            
+            obj.captureImage();
         end
         
         function m = getMicroProblem(obj)
@@ -76,6 +77,7 @@ classdef NumericalHomogenizer < handle
         
         function createMicroProblem(obj)
             obj.buildMicroProblem();
+            obj.getProblemDimensions();
             obj.createInterpolation();
             obj.createElementalDensityCreator();
             obj.obtainDensity();
@@ -84,7 +86,12 @@ classdef NumericalHomogenizer < handle
         end
         
         function buildMicroProblem(obj)
-            obj.microProblem = Elastic_Problem_Micro(obj.fileName);
+            s = obj.createFEMparameters();
+            obj.microProblem = NewFEM.create(s);
+        end
+
+        function getProblemDimensions(obj)
+            obj.dim = obj.microProblem.getDimensions();
         end
         
         function createInterpolation(obj)
@@ -93,7 +100,7 @@ classdef NumericalHomogenizer < handle
             d.constitutiveProperties  = obj.matDataBase.matProp;
             d.typeOfMaterial = obj.matDataBase.materialType;
             d.dim  = obj.pdim;
-            d.nElem = obj.microProblem.mesh.nelem;
+            d.nElem = obj.dim.nelem;
             mI  = MaterialInterpolation.create(d);
             obj.interpolation = mI;
             obj.matValues = d.constitutiveProperties;
@@ -115,14 +122,15 @@ classdef NumericalHomogenizer < handle
         
         function d = createLevelSetCreatorDataBase(obj)
             d = obj.lsDataBase;
-            d.ndim  = obj.microProblem.mesh.ndim;
-            d.coord = obj.microProblem.mesh.coord;
+            d.ndim  = obj.dim.ndim;
+            d.coord = obj.microProblem.getMesh().coord;
         end
         
         function d = createFilterDataBase(obj)
-            d.shape = obj.microProblem.element.interpolation_u.shape;
-            d.conec = obj.microProblem.mesh.connec;
-            d.quadr = obj.microProblem.element.quadrature;
+            prob = obj.microProblem;
+            d.shape = prob.getInterpolation().shape;
+            d.conec = prob.getMesh().connec;
+            d.quadr = prob.getQuadrature();
         end
         
         function obtainDensity(obj)
@@ -149,7 +157,7 @@ classdef NumericalHomogenizer < handle
             cV.Ch      = obj.microProblem.variables.Chomog;
             cV.tstress = obj.microProblem.variables.tstress;
             cV.tstrain = obj.microProblem.variables.tstrain;
-            cV.displ   = obj.microProblem.variables.tdisp; 
+            cV.displ   = obj.microProblem.variables.tdisp;
             obj.cellVariables = cV;
             
             
@@ -158,17 +166,20 @@ classdef NumericalHomogenizer < handle
         end
         
         function computeVolumeValue(obj)
-            cParams.coord  = obj.microProblem.mesh.coord;
-            cParams.connec = obj.microProblem.mesh.connec;
+            prob = obj.microProblem;
+            mpMesh = prob.getMesh();
+            cParams.coord  = mpMesh.coord;
+            cParams.connec = mpMesh.connec;
             mesh = Mesh_Total(cParams);
+
             d = obj.volDataBase;
             s = SettingsDesignVariable();
             s.type = 'Density';
             s.mesh = mesh;%obj.microProblem.mesh;
             s.initialCase  = 'given';
             s.creatorSettings.value = obj.elemDensCr.getLevelSet();
-            s.creatorSettings.ndim  = obj.microProblem.mesh.ndim;
-            s.creatorSettings.coord = obj.microProblem.mesh.coord; 
+            s.creatorSettings.ndim  = obj.dim.ndim;
+            s.creatorSettings.coord = mpMesh.coord; 
             scalarPr.epsilon = 1e-3;
             scalarPr.mesh = mesh.innerMeshOLD;
             s.scalarProductSettings    = scalarPr;
@@ -191,11 +202,12 @@ classdef NumericalHomogenizer < handle
         end
         
         function obtainIntegrationUsedVariables(obj)
-           intVar.nstre  = obj.microProblem.element.getNstre();
-           intVar.geoVol = obj.microProblem.computeGeometricalVolume();
-           intVar.ngaus  = obj.microProblem.element.quadrature.ngaus;
-           intVar.dV     = obj.microProblem.geometry.dvolu;
-           obj.integrationVar = intVar;
+            mProb = obj.microProblem;
+            intVar.nstre  = obj.dim.nstre;
+            intVar.ngaus  = obj.dim.ngaus;
+            intVar.geoVol = mProb.computeGeometricalVolume();
+            intVar.dV     = mProb.getDvolume();
+            obj.integrationVar = intVar;
         end
         
         function print(obj)
@@ -206,7 +218,7 @@ classdef NumericalHomogenizer < handle
                 d.var2print{end+1} = obj.microProblem;
                % obj.microProblem.variables.var2print = obj.microProblem.variablesStressBasis.var2print;
                 d.var2print{end+1} = obj.microProblem;
-                d.quad = obj.microProblem.element.quadrature;
+                d.quad = obj.microProblem.getQuadrature();
                 obj.postProcess.print(obj.iter,d);
                 obj.resFile = obj.postProcess.getResFile();
             end
@@ -228,7 +240,7 @@ classdef NumericalHomogenizer < handle
         end
         
         function dB = createPostProcessDataBase(obj)
-            dI.mesh            = obj.microProblem.mesh;
+            dI.mesh            = obj.microProblem.getMesh();
             dI.outName         = obj.outputName;
             dI.pdim            = obj.pdim;
             dI.ptype           = 'MICRO';
@@ -248,6 +260,23 @@ classdef NumericalHomogenizer < handle
                 imageCapturer = GiDImageCapturer(s);
                 imageCapturer.capture();
             end
+        end
+
+        function s = createFEMparameters(obj)
+            gidParams = obj.createGiDparameters();
+            s.dim       = gidParams.pdim;
+            s.type      = gidParams.ptype;
+            s.scale     = gidParams.scale;
+            s.mesh      = gidParams.mesh;
+            s.dirichlet = gidParams.dirichlet;
+            s.pointload = gidParams.pointload;
+            s.masterSlave = gidParams.masterSlave;
+        end
+
+        function gidParams = createGiDparameters(obj)
+            file = obj.fileName;
+            gidReader = FemInputReader_GiD();
+            gidParams = gidReader.read(file);
         end
         
     end

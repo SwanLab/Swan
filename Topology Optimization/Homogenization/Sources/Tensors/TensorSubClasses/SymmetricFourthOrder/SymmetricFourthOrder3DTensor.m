@@ -4,7 +4,7 @@ classdef SymmetricFourthOrder3DTensor < FourthOrder3DTensor
         
         function obj = SymmetricFourthOrder3DTensor()
         end
-               
+        
         function createRandomTensor(obj)
             obj.createRandomTensor@FourthOrder3DTensor();
             obj.MakeMajorAndMinorSymmetrization();
@@ -13,7 +13,7 @@ classdef SymmetricFourthOrder3DTensor < FourthOrder3DTensor
         function MakeMajorAndMinorSymmetrization(obj)
             Symmetrizer = FourthOrderSymmetrizer;
             obj.tensorValue = Symmetrizer.symmetrize(obj.tensorValue);
-        end            
+        end
         
     end
     

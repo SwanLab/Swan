@@ -9,7 +9,7 @@ classdef ElementalDensityCreator < handle
        
        function eC = create(type,cParams)
           f = ElementalDensityCreatorFactory();
-          eC = f.create(type); 
+          eC = f.create(type);
           eC.createDensity(cParams);
        end
    end

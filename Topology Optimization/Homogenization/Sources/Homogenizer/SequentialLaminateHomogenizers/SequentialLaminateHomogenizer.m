@@ -42,9 +42,9 @@ classdef SequentialLaminateHomogenizer < handle
                 d = dir{irank};
                 d.normalize();
                 obj.directions(irank,:) = d.getValue();
-            end            
+            end
         end
-               
+        
         function checkConsistencyLaminateParamsAndDirections(obj)
             assert(size(obj.directions,1) == length(obj.laminateParams))
         end
@@ -67,7 +67,6 @@ classdef SequentialLaminateHomogenizer < handle
             hom = Homogenizer(c0,c1,ani,mi,angle);
             obj.homogTensor = hom.getHomogenizedTensor();
         end
-        
         
          function makeHomogenizedTensorPlaneStress(obj)
             ht = obj.homogTensor;
@@ -92,14 +91,12 @@ classdef SequentialLaminateHomogenizer < handle
         function transformAnisotropicTensorsInVoigtNotation(obj)
             for irank = 1:obj.rank
                 ani  = obj.anisotropicTensors{irank};
-                vAni = Tensor2VoigtConverter.convert(ani);                
+                vAni = Tensor2VoigtConverter.convert(ani);
                 obj.anisotropicTensors{irank} = vAni;
             end
 
         end
     end
     
-
-      
 end
 

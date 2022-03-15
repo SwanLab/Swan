@@ -2,7 +2,7 @@ classdef TensorRepresentation < RepresentationDescriptor
     
     properties (Access = protected)
         dim 
-    end  
+    end
     
     methods (Access = public)
         

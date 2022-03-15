@@ -9,10 +9,30 @@ classdef NewElasticProblemMicro < NewElasticProblem %NewFEM
 
     methods (Access = public)
 
+        function setMatProps(obj,s)
+           obj.material.compute(s);
+        end
+
         function solveMicro(obj)
             obj.computeStressStrainAndCh();
         end
+
+        function mesh = getMesh(obj)
+            mesh  = obj.mesh;
+        end
         
+        function interp = getInterpolation(obj)
+            interp  = obj.interp{1};
+        end
+
+        function quad = getQuadrature(obj)
+            quad  = obj.quadrature;
+        end
+        
+        function v = computeGeometricalVolume(obj)
+            v = 1;%sum(sum(obj.geometry.dvolu));
+        end
+
         function [Ch,tstrain,tstress] = computeChomog(obj)
             nstre = obj.dim.nstre;
             ngaus = obj.dim.ngaus;

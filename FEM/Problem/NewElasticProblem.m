@@ -8,10 +8,8 @@ classdef NewElasticProblem < handle %NewFEM
     properties (Access = private)
 %         material
         nFields
-        interp
+%         interp
         bcApplier
-
-        % Poda 1
 %         quadrature
 %         dim
         boundaryConditions
@@ -19,7 +17,7 @@ classdef NewElasticProblem < handle %NewFEM
     end
 
     properties (Access = private)
-        mesh
+%         mesh
         problemData
         stiffnessMatrix
         stiffnessMatrixRed
@@ -33,8 +31,9 @@ classdef NewElasticProblem < handle %NewFEM
         dim
         material
 
-
         vstrain
+
+        mesh, interp % For Homogenization
     end
 
     methods (Access = public)

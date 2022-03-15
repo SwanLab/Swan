@@ -23,7 +23,6 @@ classdef Tensor2VoigtConverter < handle
             obj.createTensorVoigt();
             obj.representTensorInVoigt()
         end
-  
         
     end
     
