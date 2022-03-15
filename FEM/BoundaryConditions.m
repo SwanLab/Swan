@@ -18,7 +18,6 @@ classdef BoundaryConditions < handle
         pointloadInput
         globalConnec
 
-        mesh
     end
     
     methods (Access = public)

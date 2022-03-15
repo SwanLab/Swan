@@ -7,8 +7,8 @@
 %     OK!  - Delete Element_DiffReact
 %     OK!  - Delete ElasticProblem?
 %     OK!          - Fix NewElasticProblemMicro
-%     OK!          - Fix micro FemTests
-%     OK!          - Fix micro TopOptTests
+%     OK!          - Fix micro FemTests/FemTestsSuite
+%     OK!          - Fix micro TopOptTests/TopOptTestsSuite
 %     OK!          - Fix micro HomogenizationTests
 %     OK!  - Delete DiffReact_Problem?
 %       - Clean NewDiffReactProblem

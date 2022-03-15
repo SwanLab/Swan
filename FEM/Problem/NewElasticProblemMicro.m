@@ -49,24 +49,18 @@ classdef NewElasticProblemMicro < NewElasticProblem %NewFEM
             
             var2print = cell(nstre,1);
             for istre=1:nstre
-                strain = basis(istre,:);
-                obj.vstrain = strain;
+                obj.vstrain = basis(istre,:);
                 obj.solve();
                 obj.computeStressStrainAndCh();
-%                 obj.solve();
-                Ch(:,istre) = obj.variables.stress_homog;
-                tstrain(istre,:,:,:) = obj.variables.strain;
+                Ch(:,istre)           = obj.variables.stress_homog;
+                tstrain(istre,:,:,:)  = obj.variables.strain;
                 tstrainF(istre,:,:,:) = obj.variables.strain_fluct;
-                tstress(istre,:,:,:) = obj.variables.stress;
-                
-                tdisp(istre,:) = obj.variables.d_u;
-                var2print{istre}.stress = obj.variables.stress;
-                var2print{istre}.strain = obj.variables.strain;
-                var2print{istre}.stress_fluct = obj.variables.strain_fluct;
-                var2print{istre}.strain_fluct = obj.variables.strain_fluct;
-                var2print{istre}.d_u = obj.variables.d_u;
-                var2print{istre}.fext = obj.variables.fext;
+                tstress(istre,:,:,:)  = obj.variables.stress;
+                tdisp(istre,:)        = obj.variables.d_u;
+                var2print{istre} = obj.assignVarsToPrint();
             end
+            obj.variables2print = var2print;
+
             obj.variables.Chomog  = Ch;
             obj.variables.tstrain = tstrain;
             obj.variables.tstress = tstress;
@@ -110,10 +104,6 @@ classdef NewElasticProblemMicro < NewElasticProblem %NewFEM
                 end
             end
             
-
-            
-            obj.variables2print = var2print;
-            
             obj.Chomog = Ch;
             obj.tstrain = tstrain;
             obj.tstress = tstress;
@@ -125,11 +115,9 @@ classdef NewElasticProblemMicro < NewElasticProblem %NewFEM
 
         function vars = computeStressStrainAndCh(obj)
             vars = obj.variables;
-%             vars.stress_fluct = permute(vars.stress,[2 3 1]);
-%             vars.strain_fluct = permute(vars.strain,[2 3 1]);
             vars.stress_fluct = vars.stress;
             vars.strain_fluct = vars.strain;
-            Cmat = obj.material.C;
+            Cmat  = obj.material.C;
             ngaus = obj.dim.ngaus;
             nstre = obj.dim.nstre;
             nelem = obj.dim.nelem;
@@ -144,20 +132,37 @@ classdef NewElasticProblemMicro < NewElasticProblem %NewFEM
                 vars.strain(igaus,1:nstre,:) = obj.vstrain.*ones(1,nstre,nelem) + vars.strain_fluct(igaus,1:nstre,:);
                 for istre = 1:nstre
                     for jstre = 1:nstre
-                        C  = squeeze(squeeze(Cmat(istre,jstre,:,igaus)));
-                        vars.stress(igaus,istre,:) = squeeze(vars.stress(igaus,istre,:)) + 1/vol_dom*C.* squeeze(vars.strain(igaus,jstre,:));
+                        Cij = squeeze(Cmat(istre,jstre,:,igaus));
+                        C  = squeeze(Cij);
+                        strs = squeeze(vars.stress(igaus,istre,:));
+                        strn = squeeze(vars.strain(igaus,jstre,:));
+                        vars.stress(igaus,istre,:) = strs + 1/vol_dom* C.* strn;
                     end
                 end
                 % Contribution to Chomogenized
                 for istre = 1:nstre
-                    vars.stress_homog(istre) = vars.stress_homog(istre) +  1/vol_dom *(squeeze(vars.stress(igaus,istre,:)))'*dV(:,igaus);
+                    strs = squeeze(vars.stress(igaus,istre,:));
+                    vars.stress_homog(istre) = vars.stress_homog(istre) +  1/vol_dom *(strs)'*dV(:,igaus);
                 end
                 
             end
             
             obj.variables = vars;
         end
-        
+
+        function microVars = assignMicroVars(obj, istre)
+        end
+
+        function v2p = assignVarsToPrint(obj)
+            vars = obj.variables;
+            v2p.d_u          = vars.d_u;
+            v2p.fext         = vars.fext;
+            v2p.stress       = vars.stress;
+            v2p.strain       = vars.strain;
+            v2p.stress_fluct = vars.strain_fluct;
+            v2p.strain_fluct = vars.strain_fluct;
+        end
+
     end
 
 end

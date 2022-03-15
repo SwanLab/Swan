@@ -151,7 +151,6 @@ classdef NewElasticProblem < handle %NewFEM
             s.dim          = obj.dim;
             s.bc           = obj.problemData.bc;
             s.globalConnec = obj.mesh.connec;
-            s.mesh = obj.mesh;
             bc = BoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;
@@ -188,9 +187,6 @@ classdef NewElasticProblem < handle %NewFEM
             f    = obj.computeExternalForces();
             fRed = obj.reduceForcesMatrix(f);
             obj.forces = fRed;
-            %             R = obj.compute_imposed_displacement_force(obj.K);
-            %             obj.fext = Fext + R;
-            %             obj.rhs = obj.integrator.integrate(fNodal);
         end
 
         function F = computeExternalForces(obj)
@@ -200,8 +196,7 @@ classdef NewElasticProblem < handle %NewFEM
             s.material = obj.material;
             s.geometry = obj.geometry;
             s.dvolume  = obj.getDvolume();
-            if isprop(obj, 'vstrain') % should be isprop
-%                 disp('hey')
+            if isprop(obj, 'vstrain')
                 s.vstrain = obj.vstrain;
             end
             fcomp = ForcesComputer(s);
