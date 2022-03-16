@@ -4,7 +4,7 @@ classdef ConvergenceVarsDispatcher < handle
         
         function names = dispatchNames(cParams)
             switch cParams.type
-                case {'AlternatingPrimalDual','DualNestedInPrimal'}
+                case {'AlternatingPrimalDual','DualNestedInPrimal','NullSpace'}
                     names = {'\Deltacost';'Norm L2';'Line Search';'Line Search trials'};
                     switch cParams.primal
                         case 'SLERP'

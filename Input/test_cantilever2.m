@@ -1,4 +1,4 @@
-filename = 'Cantilever';%'CantileverBeam_Triangle_Linear';
+filename = 'CantileverArnau';%'Cantilever';%'CantileverBeam_Triangle_Linear';
 ptype = 'MACRO';
 method = 'SIMP_P3';
 materialType = 'ISOTROPIC';
@@ -6,14 +6,14 @@ initial_case = 'full';
 cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
-optimizerUnconstrained = 'PROJECTED GRADIENT'; 
-optimizer = 'fmincon';%'AlternatingPrimalDual';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
+optimizerUnconstrained = 'PROJECTED GRADIENT';%'PROJECTED GRADIENT'; 
+optimizer = 'AlternatingPrimalDual';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
 incrementFactor = 1;
-designVariable = 'Density';
+designVariable = 'Density';%'Density';
 filterType = 'P1';
 
 nsteps = 1;
-Vfrac_final = 0.6;
+Vfrac_final = 0.5;
 optimality_final =1e-3;
 constr_final =1e-3;
 

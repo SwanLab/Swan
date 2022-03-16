@@ -14,6 +14,8 @@ classdef OptimizerFactory < handle
                     op = OptimizerDualNestedInPrimal(cParams);
                 case 'fmincon'
                     op = Optimizer_fmincon(cParams);
+                case 'NullSpace'
+                    op = Optimizer_NullSpace(cParams);
                 otherwise
                     error('Invalid optimizer.')
             end

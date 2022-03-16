@@ -229,7 +229,7 @@ classdef NewDiffReactProblem < handle %FEM
             run(fileName);
             if exist('External_border_nodes','var') && ~isempty(External_border_nodes)
                 s.borderNodes    = External_border_nodes;
-                s.borderElements = External_border_elements;
+                s.borderElements = [];%External_border_elements;
                 s.backgroundMesh = obj.mesh;
                 s.type = 'FromData';
                 b = BoundaryMeshCreator.create(s);

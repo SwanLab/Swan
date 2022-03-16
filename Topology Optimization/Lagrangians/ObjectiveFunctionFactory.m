@@ -8,6 +8,8 @@ classdef ObjectiveFunctionFactory < handle
                    obj = AugmentedLagrangian(cParams);
                case 'Lagrangian'
                    obj = Lagrangian(cParams);
+               case 'NullSpace'
+                   obj = NullSpace(cParams);
            end
        end
        
