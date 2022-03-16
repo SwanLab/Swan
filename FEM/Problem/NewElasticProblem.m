@@ -191,7 +191,7 @@ classdef NewElasticProblem < handle %NewFEM
 
         function F = computeExternalForces(obj)
             s.dim  = obj.dim;
-            s.BC   = obj.boundaryConditions;
+            s.BC   = obj.boundaryConditions; %dofsInElem, Neumann
             s.mesh = obj.mesh;
             s.material = obj.material;
             s.geometry = obj.geometry;
@@ -223,7 +223,7 @@ classdef NewElasticProblem < handle %NewFEM
             s.quadrature         = obj.quadrature;
             s.displacement       = obj.variables.d_u;
             s.interpolation      = obj.interp{1};
-            s.boundaryConditions = obj.boundaryConditions;
+            s.boundaryConditions = obj.boundaryConditions; %dofsInElem
             scomp  = StrainComputer(s);
             strain = scomp.compute();
             obj.variables.strain = strain;

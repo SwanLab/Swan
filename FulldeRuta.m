@@ -2,6 +2,11 @@
 
 
 % a) PROJECT CHARTER
+%     OK!  - Objectives
+%     OK!  - Scope
+%     OK!  - Requirements
+%     OK!  - Justification
+%       - Calendar
 
 % b) PROBLEM CLEANUP
 %     OK!  - Delete Element_DiffReact
@@ -33,3 +38,10 @@
 %       - Comparing assembly: accumarray and sparse (Assembler)
 %       - Comparing commutative of (product + assembly) vs
 %           (assembly + product)
+
+%% Comments
+%       - We are three problems away from deleting them entirely (as well
+%         as DOFs and Elements):  
+%           - Hyperelastic_Problem is not used at all
+%           - Thermal_Problem is not used at all
+%           - Stokes_Problem is used in one test

@@ -33,7 +33,7 @@ classdef DenoisingProblem < handle
             obj.createNoisyImage(cParams);
             obj.computeNoisyImageNorm();
             obj.createDesignVariable();
-            obj.createIterator(cParams);            
+            obj.createIterator(cParams);
             obj.createEnergyFunction(cParams);
             obj.createL1Proximal(cParams);
             obj.createOptimizer(cParams);
@@ -57,7 +57,7 @@ classdef DenoisingProblem < handle
         
         function updatePlottingData(obj)
             p = obj.plottingData;
-            i = obj.iterator.value;             
+            i = obj.iterator.value;
             p.cost(i) = obj.energyFunction.value;
             p.dualGap(i) = obj.dualGap; 
             obj.plottingData = p;
@@ -126,11 +126,11 @@ classdef DenoisingProblem < handle
             s.b = obj.noisyImage;
             s.designVariable = obj.designVariable;
             c = QuadraticFunction(s);
-            obj.energyFunction = c;            
+            obj.energyFunction = c;
         end
         
         function createL1Proximal(obj,cParams)
-            s.lambda = cParams.totalVariationWeigth;            
+            s.lambda = cParams.totalVariationWeigth;
             s.imageSize = obj.imageSize;
             s.designVariable = obj.designVariable;
             obj.l1Proximal = L1VectorNormProximal(s);
@@ -152,7 +152,7 @@ classdef DenoisingProblem < handle
             obj.dualGap = gap/gN;
         end
         
-        function createOptimizer(obj,cParams)            
+        function createOptimizer(obj,cParams)
             sg.designVariable = obj.designVariable;
             sg.differentiableFunction = obj.energyFunction;
             sg.designVariable = obj.designVariable;
@@ -164,7 +164,7 @@ classdef DenoisingProblem < handle
             
             s.proximal = obj.l1Proximal;
             s.type     = cParams.optimizer;
-            s.iterator = obj.iterator;            
+            s.iterator = obj.iterator;
             obj.optimizer = SplittingAlgorithm.create(s);
         end
         
