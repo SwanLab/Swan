@@ -38,22 +38,6 @@ classdef NewBoundaryConditions < handle
             obj.neumann_values      = neuVals;
             obj.free{1}             = obj.computeFreeDOF();
         end
-        
-        function periodic_dof = computePeriodicNodes(obj,periodic_nodes)
-            nunkn = obj.dim.ndimField;
-            nlib = size(periodic_nodes,1);
-            periodic_dof = zeros(nlib*nunkn,1);
-            for iunkn = 1:nunkn
-                index_glib = nlib*(iunkn - 1) + [1:nlib];
-                periodic_dof(index_glib,1) = obj.nod2dof(periodic_nodes,iunkn);
-            end
-        end
-
-        function free = computeFreeDOF(obj)
-            ndof  = obj.dim.ndof;
-            cnstr = [obj.periodic_constrained;obj.dirichlet{1}];
-            free  = setdiff(1:ndof,cnstr);
-        end
 
         function red = fullToReducedMatrix(obj, mat)
             switch obj.scale
@@ -93,9 +77,41 @@ classdef NewBoundaryConditions < handle
             obj.dofsInElem     = cParams.dofsInElem;
             obj.dirichletInput = cParams.bc.dirichlet;
             obj.pointloadInput = cParams.bc.pointload;
-            if isfield(cParams.bc, 'masterSlave')
-                obj.masterSlave = cParams.bc.masterSlave;
+            obj.initPeriodicMasterSlave(cParams);
+        end
+
+        function initPeriodicMasterSlave(obj, cParams)
+
+            switch obj.scale
+                case 'MICRO'
+                    if isfield(cParams.bc, 'masterSlave')
+                        obj.masterSlave = cParams.bc.masterSlave;
+                    end
+                    MS = obj.masterSlave;
+                    if isempty(MS)
+                       mesh = cParams.mesh;
+                       mesh.computeMasterSlaveNodes();
+                       MS = mesh.masterSlaveNodes;
+                    end
+                    obj.periodic_free = obj.computePeriodicNodes(MS(:,1));
+                    obj.periodic_constrained = obj.computePeriodicNodes(MS(:,2));
             end
+        end
+        
+        function periodic_dof = computePeriodicNodes(obj,periodic_nodes)
+            nunkn = obj.dim.ndimField;
+            nlib = size(periodic_nodes,1);
+            periodic_dof = zeros(nlib*nunkn,1);
+            for iunkn = 1:nunkn
+                index_glib = nlib*(iunkn - 1) + [1:nlib];
+                periodic_dof(index_glib,1) = obj.nod2dof(periodic_nodes,iunkn);
+            end
+        end
+
+        function free = computeFreeDOF(obj)
+            ndof  = obj.dim.ndof;
+            cnstr = [obj.periodic_constrained;obj.dirichlet{1}];
+            free  = setdiff(1:ndof,cnstr);
         end
 
         function [dofs, vals] = formatInputData(obj, data)
@@ -108,12 +124,6 @@ classdef NewBoundaryConditions < handle
                 dofs = obj.nod2dof(inod,iunk);
             end
         end
-
-%         function free = computeFreeDOF(obj)
-%             ndof  = obj.dim.ndof;
-%             cnstr = [obj.periodic_constrained;obj.dirichlet{1}];
-%             free  = setdiff(1:ndof,cnstr);
-%         end
 
         function idof = nod2dof(obj, inode, iunkn)
             ndimf = obj.dim.ndimField;
@@ -128,7 +138,6 @@ classdef NewBoundaryConditions < handle
         end
         
         function b_red = reduceVectorDirichlet(obj,b)
-%             fr = obj.computeGlobalFree();
             fr = obj.free{1}';
             b_red = b(fr);
         end
@@ -159,15 +168,17 @@ classdef NewBoundaryConditions < handle
         end
 
         function b = expandVectorDirichlet(obj,bfree)
-            [dirichlet,uD,free] = obj.compute_global_dirichlet_free_uD();
+            dir = obj.dirichlet{1};
+            uD = obj.dirichlet_values{1};
+            fr = obj.free{1};
             nsteps = length(bfree(1,:));
             ndof = sum(obj.dim.ndof);
             uD = repmat(uD,1,nsteps);
             
             b = zeros(ndof,nsteps);
-            b(free,:) = bfree;
-            if ~isempty(dirichlet)
-                b(dirichlet,:) = uD;
+            b(fr,:) = bfree;
+            if ~isempty(dir)
+                b(dir,:) = uD;
             end
         end
 
@@ -189,44 +200,6 @@ classdef NewBoundaryConditions < handle
                mesh.computeMasterSlaveNodes();
                MS = mesh.masterSlaveNodes;
             end
-        end
-
-        function free = computeGlobalFree(obj)
-            global_ndof=0;
-            nfields = 1;
-            ndof    = obj.dim.ndof;
-            free = cell(nfields,1);
-            for ifield=1:nfields
-                free{ifield,1} = obj.free{ifield}' + global_ndof;
-                global_ndof = global_ndof + ndof(ifield);
-            end
-            free = cell2mat(free);
-        end
-
-        function [dirichlet,uD,free] = compute_global_dirichlet_free_uD(obj)
-            uD = obj.computeUd();
-            dirichlet = obj.computeDirichlet();
-            free = obj.computeGlobalFree();
-        end
-        
-        function uD = computeUd(obj)
-            global_ndof=0;
-            nfields = 1;
-            for ifield=1:nfields
-                uD{ifield,1} = obj.dirichlet_values{ifield};
-                global_ndof=global_ndof+obj.dim.ndof(ifield);
-            end
-            uD = cell2mat(uD);
-        end
-        
-        function dirichlet = computeDirichlet(obj)
-            global_ndof=0;
-            nfields = 1;
-            for ifield=1:nfields
-                dirichlet{ifield,1} = obj.dirichlet{ifield}+global_ndof;
-                global_ndof=global_ndof+obj.dim.ndof(ifield);
-            end
-            dirichlet = cell2mat(dirichlet);
         end
 
     end

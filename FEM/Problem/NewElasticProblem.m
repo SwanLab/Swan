@@ -52,7 +52,7 @@ classdef NewElasticProblem < handle %NewFEM
             obj.createGeometry();
 %             obj.createBoundaryConditions();
             obj.createNewBoundaryConditions();
-            obj.createBCApplier();
+%             obj.createBCApplier();
             obj.createSolver();
         end
 
@@ -180,6 +180,7 @@ classdef NewElasticProblem < handle %NewFEM
             s.type       = 'Dirichlet';
             s.bc         = obj.problemData.bc;
             s.scale      = obj.problemData.scale;
+            s.mesh       = obj.mesh;
             s.dofsInElem = obj.dofsInElem;
             bc = NewBoundaryConditions(s);
             bc.compute();

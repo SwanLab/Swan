@@ -40,7 +40,7 @@ classdef NewDiffReactProblem < handle %FEM
             obj.computeDimensions();
 %             obj.createBoundaryConditions();
             obj.createNewBoundaryConditions();
-            obj.createBCApplier();
+%             obj.createBCApplier();
             obj.createGeometry();
             obj.createSolver();
             obj.computeStiffnessMatrix();
@@ -155,6 +155,7 @@ classdef NewDiffReactProblem < handle %FEM
             s.bc.dirichlet = [];
             s.bc.pointload = [];
             s.scale      = obj.problemData.scale;
+            s.mesh       = obj.mesh;
             s.dofsInElem = obj.dofsInElem;
             bc = NewBoundaryConditions(s);
             bc.compute();
