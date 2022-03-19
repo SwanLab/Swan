@@ -38,7 +38,7 @@ classdef NewDiffReactProblem < handle %FEM
             obj.init(cParams);
             obj.createInterpolation();
             obj.computeDimensions();
-            obj.createBoundaryConditions();
+%             obj.createBoundaryConditions();
             obj.createNewBoundaryConditions();
             obj.createBCApplier();
             obj.createGeometry();

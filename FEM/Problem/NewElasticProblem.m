@@ -50,7 +50,7 @@ classdef NewElasticProblem < handle %NewFEM
             obj.computeMaterialProperties();
             obj.createInterpolation();
             obj.createGeometry();
-            obj.createBoundaryConditions();
+%             obj.createBoundaryConditions();
             obj.createNewBoundaryConditions();
             obj.createBCApplier();
             obj.createSolver();
