@@ -22,6 +22,9 @@ classdef NewDiffReactProblem < handle %FEM
         solver
 %         problemData
         mesh
+
+
+        dofsInElem
     end
 
     properties (Access = protected)
@@ -36,6 +39,7 @@ classdef NewDiffReactProblem < handle %FEM
             obj.createInterpolation();
             obj.computeDimensions();
             obj.createBoundaryConditions();
+            obj.createNewBoundaryConditions();
             obj.createBCApplier();
             obj.createGeometry();
             obj.createSolver();
@@ -50,7 +54,8 @@ classdef NewDiffReactProblem < handle %FEM
                 xReg = obj.solver.solve(LHS,x);
                 obj.variables.x = xReg;
             else
-                bc   = obj.bcApplier;
+%                 bc   = obj.bcApplier;
+                bc   = obj.boundaryConditions;
                 xRed = bc.fullToReducedVector(x);
                 LHS  = obj.computeLHS();
                 xReg = obj.solver.solve(LHS,xRed);
@@ -68,7 +73,7 @@ classdef NewDiffReactProblem < handle %FEM
                 LHS = obj.epsilon^2*obj.K + obj.M + (obj.epsilon)*obj.Mr;
             else
                 LHS = obj.epsilon^2*obj.K + obj.M;
-                LHS = obj.bcApplier.fullToReducedMatrix(LHS);
+                LHS = obj.boundaryConditions.fullToReducedMatrix(LHS);
             end
         end
 
@@ -113,12 +118,45 @@ classdef NewDiffReactProblem < handle %FEM
             obj.dim = d;
         end
 
+        function computeDofConnectivity(obj)
+            connec = obj.mesh.connec;
+            ndimf  = obj.dim.ndimField;
+            nnode  = obj.dim.nnode;
+            dofsElem  = zeros(nnode*ndimf,size(connec,1));
+            for inode = 1:nnode
+                for iunkn = 1:ndimf
+                    idofElem   = obj.nod2dof(inode,iunkn);
+                    globalNode = connec(:,inode);
+                    idofGlobal = obj.nod2dof(globalNode,iunkn);
+                    dofsElem(idofElem,:) = idofGlobal;
+                end
+            end
+            obj.dofsInElem = dofsElem;
+        end
+
+        function idof = nod2dof(obj, inode, iunkn)
+            ndimf = obj.dim.ndimField;
+            idof(:,1)= ndimf*(inode - 1) + iunkn;
+        end
+
         function createBoundaryConditions(obj)
             s.dim          = obj.dim;
             s.globalConnec = obj.mesh.connec;
             s.bc.dirichlet = [];
             s.bc.pointload = [];
             bc = BoundaryConditions(s);
+            bc.compute();
+            obj.boundaryConditions = bc;
+        end
+
+        function createNewBoundaryConditions(obj)
+            s.dim        = obj.dim;
+            s.type       = 'Dirichlet';
+            s.bc.dirichlet = [];
+            s.bc.pointload = [];
+            s.scale      = obj.problemData.scale;
+            s.dofsInElem = obj.dofsInElem;
+            bc = NewBoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;
         end

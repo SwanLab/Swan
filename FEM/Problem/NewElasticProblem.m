@@ -24,6 +24,9 @@ classdef NewElasticProblem < handle %NewFEM
         forces
         solver
         geometry
+        newBC
+
+        dofsInElem
     end
 
     properties (Access = protected)
@@ -42,11 +45,13 @@ classdef NewElasticProblem < handle %NewFEM
             obj.init(cParams);
             obj.createQuadrature();
             obj.computeDimensions();
+            obj.computeDofConnectivity();
             obj.createMaterial();
             obj.computeMaterialProperties();
             obj.createInterpolation();
             obj.createGeometry();
             obj.createBoundaryConditions();
+            obj.createNewBoundaryConditions();
             obj.createBCApplier();
             obj.createSolver();
         end
@@ -92,11 +97,10 @@ classdef NewElasticProblem < handle %NewFEM
             pd.ptype        = cParams.type;
             pd.bc.dirichlet = cParams.dirichlet;
             pd.bc.pointload = cParams.pointload;
-%             if isequal(pd.scale,'MICRO')
-%                 pd.bc.masterSlave = cParams.masterSlave;
-%             end
             if isfield(cParams,'masterSlave')
-                pd.bc.masterSlave = cParams.masterSlave;
+%                 pd.bc.masterSlave = cParams.masterSlave;
+                obj.mesh.computeMasterSlaveNodes();
+                pd.bc.masterSlave = obj.mesh.masterSlaveNodes;
             end
             obj.problemData = pd;
         end
@@ -114,6 +118,22 @@ classdef NewElasticProblem < handle %NewFEM
             d       = DimensionVariables(s);
             d.compute();
             obj.dim = d;
+        end
+
+        function computeDofConnectivity(obj)
+            connec = obj.mesh.connec;
+            ndimf  = obj.dim.ndimField;
+            nnode  = obj.dim.nnode;
+            dofsElem  = zeros(nnode*ndimf,size(connec,1));
+            for inode = 1:nnode
+                for iunkn = 1:ndimf
+                    idofElem   = obj.nod2dof(inode,iunkn);
+                    globalNode = connec(:,inode);
+                    idofGlobal = obj.nod2dof(globalNode,iunkn);
+                    dofsElem(idofElem,:) = idofGlobal;
+                end
+            end
+            obj.dofsInElem = dofsElem;
         end
 
         function createMaterial(obj)
@@ -148,10 +168,20 @@ classdef NewElasticProblem < handle %NewFEM
         end
 
         function createBoundaryConditions(obj)
-            s.dim          = obj.dim;
-            s.bc           = obj.problemData.bc;
-            s.globalConnec = obj.mesh.connec;
+            s.dim = obj.dim;
+            s.bc  = obj.problemData.bc;
             bc = BoundaryConditions(s);
+            bc.compute();
+            obj.boundaryConditions = bc;
+        end
+
+        function createNewBoundaryConditions(obj)
+            s.dim        = obj.dim;
+            s.type       = 'Dirichlet';
+            s.bc         = obj.problemData.bc;
+            s.scale      = obj.problemData.scale;
+            s.dofsInElem = obj.dofsInElem;
+            bc = NewBoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;
         end
@@ -161,7 +191,8 @@ classdef NewElasticProblem < handle %NewFEM
             s.dim     = obj.dim;
             s.nfields = obj.nFields;
             s.scale   = obj.problemData.scale;
-            s.type    = 'Dirichlet'; % defined in Element
+%             s.type    = 'Dirichlet'; % defined in Element
+            s.type    = ''; % Actually, scale is used...
             obj.bcApplier = BoundaryConditionsApplier.create(s);
         end
 
@@ -178,7 +209,8 @@ classdef NewElasticProblem < handle %NewFEM
             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
             K   = LHS.compute();
-            Kred = obj.bcApplier.fullToReducedMatrix(K);
+%             Kred = obj.bcApplier.fullToReducedMatrix(K);
+            Kred = obj.boundaryConditions.fullToReducedMatrix(K);
             obj.stiffnessMatrix    = K;
             obj.stiffnessMatrixRed = Kred;
         end
@@ -190,12 +222,13 @@ classdef NewElasticProblem < handle %NewFEM
         end
 
         function F = computeExternalForces(obj)
-            s.dim  = obj.dim;
-            s.BC   = obj.boundaryConditions; %dofsInElem, Neumann
-            s.mesh = obj.mesh;
-            s.material = obj.material;
-            s.geometry = obj.geometry;
-            s.dvolume  = obj.getDvolume();
+            s.dim         = obj.dim;
+            s.BC          = obj.boundaryConditions; %dofsInElem, Neumann
+            s.dofsInElem  = obj.dofsInElem;
+            s.mesh        = obj.mesh;
+            s.material    = obj.material;
+            s.geometry    = obj.geometry;
+            s.dvolume     = obj.getDvolume();
             if isprop(obj, 'vstrain')
                 s.vstrain = obj.vstrain;
             end
@@ -206,14 +239,16 @@ classdef NewElasticProblem < handle %NewFEM
         end
 
         function Fred = reduceForcesMatrix(obj, forces)
-            Fred = obj.bcApplier.fullToReducedVector(forces);
+%             Fred = obj.bcApplier.fullToReducedVector(forces);
+            Fred = obj.boundaryConditions.fullToReducedVector(forces);
         end
 
         function u = computeDisplacements(obj)
             Kred = obj.stiffnessMatrixRed;
             Fred = obj.forces;
             u = obj.solver.solve(Kred,Fred);
-            u = obj.bcApplier.reducedToFullVector(u);
+%             u = obj.bcApplier.reducedToFullVector(u);
+            u = obj.boundaryConditions.reducedToFullVector(u);
             obj.variables.d_u = u;
         end
 
@@ -223,7 +258,7 @@ classdef NewElasticProblem < handle %NewFEM
             s.quadrature         = obj.quadrature;
             s.displacement       = obj.variables.d_u;
             s.interpolation      = obj.interp{1};
-            s.boundaryConditions = obj.boundaryConditions; %dofsInElem
+            s.dofsInElem         = obj.dofsInElem;
             scomp  = StrainComputer(s);
             strain = scomp.compute();
             obj.variables.strain = strain;
@@ -246,6 +281,11 @@ classdef NewElasticProblem < handle %NewFEM
             pcomp.compute(stress);
             obj.variables.principalDirections = pcomp.direction;
             obj.variables.principalStress     = pcomp.principalStress;
+        end
+
+        function idof = nod2dof(obj, inode, iunkn)
+            ndimf = obj.dim.ndimField;
+            idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
 
     end

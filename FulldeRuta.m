@@ -1,14 +1,6 @@
 %% To-do
 
-
-% a) PROJECT CHARTER
-%     OK!  - Objectives
-%     OK!  - Scope
-%     OK!  - Requirements
-%     OK!  - Justification
-%       - Calendar
-
-% b) PROBLEM CLEANUP
+% a) PROBLEM CLEANUP
 %     OK!  - Delete Element_DiffReact
 %     OK!  - Delete ElasticProblem?
 %     OK!          - Fix NewElasticProblemMicro
@@ -18,7 +10,7 @@
 %     OK!  - Delete DiffReact_Problem?
 %       - Clean NewDiffReactProblem
 
-% c) BOUNDARY CONDITIONS
+% b) BOUNDARY CONDITIONS
 %       - Simplify and clean BoundaryConditions
 %       - Simplify and clean BoundaryConditionsApplier
 

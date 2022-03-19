@@ -7,7 +7,7 @@ classdef StrainComputer < handle
         quadrature
         displacement
         interpolation
-        boundaryConditions
+        dofsInElem
     end
     
     methods (Access = public)
@@ -31,7 +31,7 @@ classdef StrainComputer < handle
             obj.quadrature         = cParams.quadrature;
             obj.displacement       = cParams.displacement;
             obj.interpolation      = cParams.interpolation;
-            obj.boundaryConditions = cParams.boundaryConditions;
+            obj.dofsInElem         = cParams.dofsInElem;
         end
        
         function createGeometry(obj)
@@ -50,7 +50,7 @@ classdef StrainComputer < handle
             ngaus = obj.dim.ngaus;
             nnode = obj.dim.nnode;
             nunkn = obj.dim.ndimField;
-            idx = obj.boundaryConditions.dofsInElem{1};
+            idx = obj.dofsInElem;
             d_u = obj.displacement;
             strain = zeros(nstre,nelem,ngaus);
             for igaus = 1:ngaus
