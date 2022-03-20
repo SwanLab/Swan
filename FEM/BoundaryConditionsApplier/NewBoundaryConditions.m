@@ -81,7 +81,6 @@ classdef NewBoundaryConditions < handle
         end
 
         function initPeriodicMasterSlave(obj, cParams)
-
             switch obj.scale
                 case 'MICRO'
                     if isfield(cParams.bc, 'masterSlave')
@@ -98,13 +97,13 @@ classdef NewBoundaryConditions < handle
             end
         end
         
-        function periodic_dof = computePeriodicNodes(obj,periodic_nodes)
+        function perDof = computePeriodicNodes(obj,perNodes)
             nunkn = obj.dim.ndimField;
-            nlib = size(periodic_nodes,1);
-            periodic_dof = zeros(nlib*nunkn,1);
+            nlib = size(perNodes,1);
+            perDof = zeros(nlib*nunkn,1);
             for iunkn = 1:nunkn
-                index_glib = nlib*(iunkn - 1) + [1:nlib];
-                periodic_dof(index_glib,1) = obj.nod2dof(periodic_nodes,iunkn);
+                indDof = nlib*(iunkn - 1) + [1:nlib];
+                perDof(indDof,1) = obj.nod2dof(perNodes,iunkn);
             end
         end
 
@@ -169,8 +168,8 @@ classdef NewBoundaryConditions < handle
 
         function b = expandVectorDirichlet(obj,bfree)
             dir = obj.dirichlet{1};
-            uD = obj.dirichlet_values{1};
-            fr = obj.free{1};
+            uD  = obj.dirichlet_values{1};
+            fr  = obj.free{1};
             nsteps = length(bfree(1,:));
             ndof = sum(obj.dim.ndof);
             uD = repmat(uD,1,nsteps);
@@ -185,12 +184,12 @@ classdef NewBoundaryConditions < handle
         function b = expandVectorPeriodic(obj,bfree)
             vF = obj.free;
             vP = obj.periodic_free;
+            vC = obj.periodic_constrained;
             vI = setdiff(vF{1},vP);
-            
             b = zeros(obj.dim.ndof,1);
             b(vI) = bfree(1:1:size(vI,2));
-            b(obj.periodic_free) = bfree(size(vI,2)+1:1:size(bfree,1));
-            b(obj.periodic_constrained) = b(obj.periodic_free);
+            b(vP) = bfree(size(vI,2)+1:1:size(bfree,1));
+            b(vC) = b(vP);
         end
 
         function MS = computeMasterSlave(obj)

@@ -148,16 +148,6 @@ classdef NewDiffReactProblem < handle %FEM
             idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
 
-%         function createBoundaryConditions(obj)
-%             s.dim          = obj.dim;
-%             s.globalConnec = obj.mesh.connec;
-%             s.bc.dirichlet = [];
-%             s.bc.pointload = [];
-%             bc = BoundaryConditions(s);
-%             bc.compute();
-%             obj.boundaryConditions = bc;
-%         end
-
         function createNewBoundaryConditions(obj)
             s.dim        = obj.dim;
             s.type       = 'Dirichlet';
@@ -170,16 +160,6 @@ classdef NewDiffReactProblem < handle %FEM
             bc.compute();
             obj.boundaryConditions = bc;
         end
-
-%         function createBCApplier(obj)
-%             s.BC      = obj.boundaryConditions;
-%             s.dim     = obj.dim;
-%             s.scale   = obj.problemData.scale;
-%             s.type    = obj.bcApplierType;
-%             s.nfields = 1;
-%             s.mesh = obj.mesh;
-%             obj.bcApplier = BoundaryConditionsApplier.create(s);
-%         end
 
         function createGeometry(obj)
             q = Quadrature.set(obj.mesh.type);

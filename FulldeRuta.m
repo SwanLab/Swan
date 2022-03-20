@@ -15,7 +15,16 @@
 %       - Simplify and clean NewBoundaryConditions
 
 % c) OTHER CLEANUP
+
+% c.1) ASSEMBLER
 %       - Simplify Assembler
+%       - Use dofsInElem at assembleMatrix()
+%       - Use dofsInElem at assembleBMatrix()
+%       - Explore alternate ways to assemble B and C
+%           (LHSintegrator_StiffnessElasticStoredB)
+%       - Delete globalConnec from LHSintegrator/Assembler
+
+% c.2) CANTILEVER BEAM
 %       - CantileverBeam to CantileverBeamMeshCreator
 %       - Fix CantileverBeamMeshCreator for 2D meshes
 %       - Fix CantileverBeamMeshCreator for 3D meshes

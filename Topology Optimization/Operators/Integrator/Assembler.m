@@ -45,8 +45,6 @@ classdef Assembler < handle
             nnode  = obj.dim.nnode;
             Ae     = aElem;
             A = sparse(ndofs,ndofs);
-            assemblenum1 = size(aElem,1);
-            assemblenum2 = size(aElem,2);
             for i = 1:nnode*ndimf
                 dofsI = dofConnec(:,i);
                 for j = 1:nnode*ndimf
