@@ -148,15 +148,15 @@ classdef NewDiffReactProblem < handle %FEM
             idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
 
-        function createBoundaryConditions(obj)
-            s.dim          = obj.dim;
-            s.globalConnec = obj.mesh.connec;
-            s.bc.dirichlet = [];
-            s.bc.pointload = [];
-            bc = BoundaryConditions(s);
-            bc.compute();
-            obj.boundaryConditions = bc;
-        end
+%         function createBoundaryConditions(obj)
+%             s.dim          = obj.dim;
+%             s.globalConnec = obj.mesh.connec;
+%             s.bc.dirichlet = [];
+%             s.bc.pointload = [];
+%             bc = BoundaryConditions(s);
+%             bc.compute();
+%             obj.boundaryConditions = bc;
+%         end
 
         function createNewBoundaryConditions(obj)
             s.dim        = obj.dim;
@@ -171,15 +171,15 @@ classdef NewDiffReactProblem < handle %FEM
             obj.boundaryConditions = bc;
         end
 
-        function createBCApplier(obj)
-            s.BC      = obj.boundaryConditions;
-            s.dim     = obj.dim;
-            s.scale   = obj.problemData.scale;
-            s.type    = obj.bcApplierType;
-            s.nfields = 1;
-            s.mesh = obj.mesh;
-            obj.bcApplier = BoundaryConditionsApplier.create(s);
-        end
+%         function createBCApplier(obj)
+%             s.BC      = obj.boundaryConditions;
+%             s.dim     = obj.dim;
+%             s.scale   = obj.problemData.scale;
+%             s.type    = obj.bcApplierType;
+%             s.nfields = 1;
+%             s.mesh = obj.mesh;
+%             obj.bcApplier = BoundaryConditionsApplier.create(s);
+%         end
 
         function createGeometry(obj)
             q = Quadrature.set(obj.mesh.type);
@@ -225,8 +225,8 @@ classdef NewDiffReactProblem < handle %FEM
                 LHS = sparse(ndof,ndof);
                 for iInt = 1:nInt
                     s = cParams.compositeParams{iInt};
-                    s.type       = 'MassMatrix';
-                    s.quadType   = 'LINEAR';
+                    s.type     = 'MassMatrix';
+                    s.quadType = 'LINEAR';
                     lhs = LHSintegrator.create(s);
                     LHSadd = lhs.compute();
                     LHS = LHS + LHSadd;
@@ -250,14 +250,13 @@ classdef NewDiffReactProblem < handle %FEM
                 boxFaceMesh = bMeshes{iMesh};
                 bfMesh  = boxFaceMesh.mesh;
                 gConnec = boxFaceMesh.globalConnec;
+                nnode   = size(gConnec,2);
+                d.applyNnode(nnode);
                 d2 = obj.computeDimensions(bfMesh);
                 cParams.mesh = bfMesh;
                 cParams.type = 'SIMPLE';
                 cParams.globalConnec = gConnec;
                 cParams.dofsInElem   = obj.computeDofConnectivity(d2,gConnec);
-%                 cParams.dofsInElem   = [];
-                cParams.npnod        = obj.mesh.npnod;
-                cParams.geometryType = obj.mesh.type;
                 cParams.dim          = d;
                 params.compositeParams{iMesh} = cParams;
             end

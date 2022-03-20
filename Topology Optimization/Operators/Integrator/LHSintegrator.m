@@ -10,15 +10,6 @@ classdef LHSintegrator < handle
         material
     end
 
-    properties (Access = private)
-        LHScells
-        npnod
-    end
-    
-    properties (Access = private)
-        geometry
-    end
-
     methods (Access = public, Static)
         
         function obj = create(s)
@@ -41,7 +32,6 @@ classdef LHSintegrator < handle
         function init(obj,cParams)
             obj.dim          = cParams.dim;
             obj.mesh         = cParams.mesh;
-            obj.npnod        = cParams.npnod;
             obj.globalConnec = cParams.globalConnec;
             obj.dofsInElem   = cParams.dofsInElem;
         end
