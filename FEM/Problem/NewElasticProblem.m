@@ -206,6 +206,7 @@ classdef NewElasticProblem < handle %NewFEM
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
+            s.dofsInElem   = obj.dofsInElem;
             s.dim          = obj.dim;
             s.material     = obj.material;
             LHS = LHSintegrator.create(s);

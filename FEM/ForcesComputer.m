@@ -79,6 +79,7 @@ classdef ForcesComputer < handle
 %             dofsInElem = cell2mat(dofsInElemCell);
             s.dim          = obj.dim;
             s.globalConnec = [];
+            s.dofsInElem = [];
             assembler = Assembler(s);
             b = assembler.assembleV(forces,obj.dofsInElem);
         end
@@ -108,6 +109,7 @@ classdef ForcesComputer < handle
             s.dim = obj.dim;
             s.geometry = obj.geometry;
             s.globalConnec = [];
+            s.dofsInElem = [];
             Bcomp = BMatrixComputer(s);
             for igaus = 1:ngaus
                 Bmat    = Bcomp.computeBmat(igaus);

@@ -37,7 +37,8 @@ classdef NewDiffReactProblem < handle %FEM
         function obj = NewDiffReactProblem(cParams)
             obj.init(cParams);
             obj.createInterpolation();
-            obj.computeDimensions();
+            obj.computeProblemDimensions();
+            obj.computeProblemDofConnectivity();
 %             obj.createBoundaryConditions();
             obj.createNewBoundaryConditions();
 %             obj.createBCApplier();
@@ -109,19 +110,28 @@ classdef NewDiffReactProblem < handle %FEM
             obj.interp{1} = int;
         end
         
-        function computeDimensions(obj)
+        function computeProblemDimensions(obj)
+            m = obj.mesh;
+            obj.dim = obj.computeDimensions(m);
+        end
+
+        function d = computeDimensions(obj, mesh)
             s.ngaus = [];
-            s.mesh  = obj.mesh;
+            s.mesh  = mesh;
             s.pdim  = obj.problemData.pdim;
             d       = DimensionVariables(s);
             d.compute();
-            obj.dim = d;
         end
 
-        function computeDofConnectivity(obj)
-            connec = obj.mesh.connec;
-            ndimf  = obj.dim.ndimField;
-            nnode  = obj.dim.nnode;
+        function computeProblemDofConnectivity(obj)
+            d = obj.dim;
+            c = obj.mesh.connec;
+            obj.dofsInElem = obj.computeDofConnectivity(d, c);
+        end
+
+        function dofsElem = computeDofConnectivity(obj, dim, connec)
+            ndimf  = dim.ndimField;
+            nnode  = dim.nnode;
             dofsElem  = zeros(nnode*ndimf,size(connec,1));
             for inode = 1:nnode
                 for iunkn = 1:ndimf
@@ -131,7 +141,6 @@ classdef NewDiffReactProblem < handle %FEM
                     dofsElem(idofElem,:) = idofGlobal;
                 end
             end
-            obj.dofsInElem = dofsElem;
         end
 
         function idof = nod2dof(obj, inode, iunkn)
@@ -190,6 +199,7 @@ classdef NewDiffReactProblem < handle %FEM
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
+            s.dofsInElem   = obj.dofsInElem;
             s.dim          = obj.dim;
             LHS = LHSintegrator.create(s);
             obj.K = LHS.compute();
@@ -200,6 +210,7 @@ classdef NewDiffReactProblem < handle %FEM
             s.quadType     = 'QUADRATICMASS';
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
+            s.dofsInElem   = obj.dofsInElem;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.dim;
             LHS = LHSintegrator.create(s);
@@ -214,8 +225,8 @@ classdef NewDiffReactProblem < handle %FEM
                 LHS = sparse(ndof,ndof);
                 for iInt = 1:nInt
                     s = cParams.compositeParams{iInt};
-                    s.type = 'MassMatrix';
-                    s.quadType = 'LINEAR';
+                    s.type       = 'MassMatrix';
+                    s.quadType   = 'LINEAR';
                     lhs = LHSintegrator.create(s);
                     LHSadd = lhs.compute();
                     LHS = LHS + LHSadd;
@@ -237,9 +248,14 @@ classdef NewDiffReactProblem < handle %FEM
             d = obj.dim;
             for iMesh = 1:nBoxFaces
                 boxFaceMesh = bMeshes{iMesh};
-                cParams.mesh = boxFaceMesh.mesh;
+                bfMesh  = boxFaceMesh.mesh;
+                gConnec = boxFaceMesh.globalConnec;
+                d2 = obj.computeDimensions(bfMesh);
+                cParams.mesh = bfMesh;
                 cParams.type = 'SIMPLE';
-                cParams.globalConnec = boxFaceMesh.globalConnec;
+                cParams.globalConnec = gConnec;
+                cParams.dofsInElem   = obj.computeDofConnectivity(d2,gConnec);
+%                 cParams.dofsInElem   = [];
                 cParams.npnod        = obj.mesh.npnod;
                 cParams.geometryType = obj.mesh.type;
                 cParams.dim          = d;

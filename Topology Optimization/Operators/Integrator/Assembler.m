@@ -3,6 +3,7 @@ classdef Assembler < handle
     properties (Access = private)
         dim
         globalConnec
+        dofsInElem
     end
 
     methods (Access = public)
@@ -34,11 +35,15 @@ classdef Assembler < handle
         function init(obj, cParams)
             obj.dim          = cParams.dim;
             obj.globalConnec = cParams.globalConnec;
+            obj.dofsInElem   = cParams.dofsInElem;
         end
 
         function A = assembleMatrix(obj, aElem)
             connec    = obj.globalConnec;
-            dofConnec = obj.computeDOFconnec();
+%             dofConnec = obj.globalConnec;
+            dofConnecII = obj.dofsInElem';
+            dofConnec = obj.computeDOFconnec;
+            iseq = isequal(dofConnec, dofConnecII);
             ndofs  = obj.dim.ndof;
             ndimf  = obj.dim.ndimField;
 %             nnode  = obj.dim.nnode;

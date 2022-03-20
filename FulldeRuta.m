@@ -11,8 +11,8 @@
 %       - Clean NewDiffReactProblem
 
 % b) BOUNDARY CONDITIONS
-%       - Simplify and clean BoundaryConditions
-%       - Simplify and clean BoundaryConditionsApplier
+%       - Merge BoundaryConditions and BoundaryConditionsApplier
+%       - Simplify and clean NewBoundaryConditions
 
 % c) OTHER CLEANUP
 %       - Simplify Assembler
