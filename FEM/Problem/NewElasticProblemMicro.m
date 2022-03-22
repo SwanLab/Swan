@@ -1,9 +1,5 @@
 classdef NewElasticProblemMicro < NewElasticProblem %NewFEM
 
-    properties (Access = private)
-        variables2print
-    end
-
     methods (Access = public)
 
         function setMatProps(obj,s)
@@ -56,37 +52,32 @@ classdef NewElasticProblemMicro < NewElasticProblem %NewFEM
     methods (Access = private)
 
         function vars = computeStressStrainAndCh(obj)
-            vars = obj.variables;
-            vars.stress_fluct = vars.stress;
-            vars.strain_fluct = vars.strain;
+            vStrn = obj.vstrain;
+            vars  = obj.variables;
             Cmat  = obj.material.C;
             ngaus = obj.dim.ngaus;
             nstre = obj.dim.nstre;
             nelem = obj.dim.nelem;
+            strFluct = vars.strain;
             dV = obj.getDvolume()';
             
             vars.stress = zeros(ngaus,nstre,nelem);
             vars.strain = zeros(ngaus,nstre,nelem);
             vars.stress_homog = zeros(nstre,1);
-            vol_dom = 1;%sum(sum(obj.geometry.dvolu));
             
             for igaus = 1:ngaus
-                vars.strain(igaus,1:nstre,:) = obj.vstrain.*ones(1,nstre,nelem) + vars.strain_fluct(igaus,1:nstre,:);
+                vars.strain(igaus,1:nstre,:) = vStrn.*ones(1,nstre,nelem) + strFluct(igaus,1:nstre,:);
                 for istre = 1:nstre
                     for jstre = 1:nstre
-                        Cij = squeeze(Cmat(istre,jstre,:,igaus));
-                        C  = squeeze(Cij);
+                        Cij  = squeeze(Cmat(istre,jstre,:,igaus));
+                        C    = squeeze(Cij);
                         strs = squeeze(vars.stress(igaus,istre,:));
                         strn = squeeze(vars.strain(igaus,jstre,:));
-                        vars.stress(igaus,istre,:) = strs + 1/vol_dom* C.* strn;
+                        vars.stress(igaus,istre,:) = strs + C.* strn;
                     end
-                end
-                % Contribution to Chomogenized
-                for istre = 1:nstre
                     strs = squeeze(vars.stress(igaus,istre,:));
-                    vars.stress_homog(istre) = vars.stress_homog(istre) +  1/vol_dom *(strs)'*dV(:,igaus);
-                end
-                
+                    vars.stress_homog(istre) = vars.stress_homog(istre) + (strs)'*dV(:,igaus);
+                end                
             end
             obj.variables = vars;
         end
