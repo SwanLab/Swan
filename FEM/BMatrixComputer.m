@@ -13,9 +13,11 @@ classdef BMatrixComputer < handle
             obj.init(cParams);
         end
 
-        function Btot = compute(obj)
-            Bmatrix  = obj.computeBinMatrixForm();
-            Btot     = obj.assembleMatrix(Bmatrix);
+        function [Btot, Balt] = compute(obj)
+            Bmatrix = obj.computeBinMatrixForm();
+            Btot    = obj.assembleMatrix(Bmatrix);
+%             Balt = obj.computeAlternateB();
+            Balt = 0;
         end
 
         function B = computeBmat(obj,igaus)
@@ -131,6 +133,16 @@ classdef BMatrixComputer < handle
             s.dofsInElem   = obj.dofsInElem;
             assembler = Assembler(s);
             Bt = assembler.assembleB(Bfull);
+        end
+
+
+        function Bmatrix = computeAlternateB(obj)
+            d  = obj.dim;
+            nB = d.nstre*d.ngaus*d.nelem;
+            Bmatrix = zeros(nB,d.ndofPerElement);
+            for igaus = 1:d.ngaus
+                Bmat = obj.computeBmat(igaus);
+            end
         end
 
     end

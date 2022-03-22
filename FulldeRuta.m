@@ -18,7 +18,7 @@
 
 % c.1) ASSEMBLER
 %       - Simplify Assembler
-%       - Use dofsInElem at assembleMatrix()
+%     OK!  - Use dofsInElem at assembleMatrix()
 %       - Use dofsInElem at assembleBMatrix()
 %       - Explore alternate ways to assemble B and C
 %           (LHSintegrator_StiffnessElasticStoredB)
