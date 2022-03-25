@@ -8,7 +8,7 @@ classdef NumericalHomogenizerWithStressPrinter < CompositeResultsPrinter
         
         function obj = NumericalHomogenizerWithStressPrinter(d)
             obj.simulationStr = 'NumericalHomogenizerWithStress';
-            obj.printerNames = d.printers;            
+            obj.printerNames = d.printers;
             obj.init(d);
         end
         
@@ -51,12 +51,12 @@ classdef NumericalHomogenizerWithStressPrinter < CompositeResultsPrinter
         function storeNumericalHomogenizerFields(printer,d)
             di.fields = d.fields;
             printer.storeFieldsToPrint(di);
-        end        
+        end
         
         function storeMicroFields(printer,d)
             d.phyProblems{1} = d.fields;
-            printer.storeFieldsToPrint(d);            
-        end        
+            printer.storeFieldsToPrint(d);
+        end
         
     end
     

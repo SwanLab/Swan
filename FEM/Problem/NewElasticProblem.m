@@ -85,6 +85,10 @@ classdef NewElasticProblem < handle %NewFEM
             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
         end
 
+        function quad = getQuadrature(obj)
+            quad  = obj.quadrature;
+        end
+
     end
 
     methods (Access = private)

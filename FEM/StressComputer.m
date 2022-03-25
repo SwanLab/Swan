@@ -14,6 +14,8 @@ classdef StressComputer < handle
 
         function stress = compute(obj)
             stress = obj.computeStress();
+%             stress = obj.computeStressBsxfun();
+%             stress = obj.computeStressLooping();
         end
         
     end
@@ -27,6 +29,22 @@ classdef StressComputer < handle
         end
 
         function stress = computeStress(obj)
+            Cmat  = obj.C;
+            strn  = permute(obj.strain,[2 3 1]);
+            strn2(:,1,:,:) = strn;
+            stress=squeeze(pagemtimes(Cmat,strn2));
+            stress = permute(stress, [3 1 2]);
+        end
+
+        function stress = computeStressBsxfun(obj)
+            Cmat  = obj.C;
+            strn  = permute(obj.strain,[2 3 1]);
+            strn2(:,1,:,:) = strn;
+            stress=squeeze(pagemtimes(Cmat,strn2));
+            stress = permute(stress, [3 1 2]);
+        end
+
+        function stress = computeStressLooping(obj)
             ngaus = obj.dim.ngaus;
             nstre = obj.dim.nstre;
             Cmat  = obj.C;

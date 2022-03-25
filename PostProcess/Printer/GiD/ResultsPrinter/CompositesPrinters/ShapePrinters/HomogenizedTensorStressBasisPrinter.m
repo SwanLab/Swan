@@ -3,7 +3,7 @@ classdef HomogenizedTensorStressBasisPrinter < AbstractHomogenizedTensorPrinter
     methods (Access = public)
         
         function obj = HomogenizedTensorStressBasisPrinter(d)
-            obj.simulationStr = 'HomogenizedTensorStressBasis';            
+            obj.simulationStr = 'HomogenizedTensorStressBasis';
             obj.computeNstre(d.ndim);
             obj.init(d);
         end
@@ -20,9 +20,9 @@ classdef HomogenizedTensorStressBasisPrinter < AbstractHomogenizedTensorPrinter
                 p = obj.printers{istre};
                 p.storeFieldsToPrint(di);
                 p.setStrVariablesNames('StressBasis');
-                p.setStrVariablesMicroCase(istre)                                
+                p.setStrVariablesMicroCase(istre);
             end
-        end        
+        end
     end
     
 end

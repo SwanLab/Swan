@@ -28,9 +28,14 @@
 %       - CantileverBeam to CantileverBeamMeshCreator
 %       - Fix CantileverBeamMeshCreator for 2D meshes
 %       - Fix CantileverBeamMeshCreator for 3D meshes
-%       - StressComputer increase performance through ("vectorize"/bsxfun/assmelby+product)
-%       - StrainComputer increase performance through ("vectorize"/bsxfun/assmelby+product)
-
+%       - StressComputer increase performance
+%           OK!  - Through "vectorize"
+%           OK!  - Through bsxfun
+%             - Through assembly+product
+%       - StrainComputer increase performance
+%             - Through "vectorize"
+%             - Through bsxfun
+%             - Through assembly+product
 
 
 % z) COMPARISON

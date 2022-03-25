@@ -1,4 +1,4 @@
-classdef NewElasticProblemMicro < NewElasticProblem %NewFEM
+classdef NewElasticProblemMicro < NewElasticProblem
 
     methods (Access = public)
 
@@ -12,10 +12,6 @@ classdef NewElasticProblemMicro < NewElasticProblem %NewFEM
         
         function interp = getInterpolation(obj)
             interp  = obj.interp{1};
-        end
-
-        function quad = getQuadrature(obj)
-            quad  = obj.quadrature;
         end
         
         function v = computeGeometricalVolume(obj)
@@ -77,7 +73,7 @@ classdef NewElasticProblemMicro < NewElasticProblem %NewFEM
                     end
                     strs = squeeze(vars.stress(igaus,istre,:));
                     vars.stress_homog(istre) = vars.stress_homog(istre) + (strs)'*dV(:,igaus);
-                end                
+                end
             end
             obj.variables = vars;
         end

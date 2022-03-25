@@ -66,7 +66,7 @@ classdef ShFunc_Chomog < ShapeFunctional
         end
         
         function q = getQuad(obj)
-            q = obj.physicalProblem.element.quadrature;
+            q = obj.physicalProblem.getQuadrature();
         end
         
         function computeFunction(obj)
