@@ -12,17 +12,13 @@ classdef NewDiffReactProblem < handle %FEM
         variables
     end
 
-    % new properties
     properties (Access = private)
         dim
         boundaryConditions
         M,K, Mr
         epsilon
-%         bcApplier
         solver
-%         problemData
         mesh
-
 
         dofsInElem
     end
@@ -39,9 +35,7 @@ classdef NewDiffReactProblem < handle %FEM
             obj.createInterpolation();
             obj.computeProblemDimensions();
             obj.computeProblemDofConnectivity();
-%             obj.createBoundaryConditions();
             obj.createNewBoundaryConditions();
-%             obj.createBCApplier();
             obj.createGeometry();
             obj.createSolver();
             obj.computeStiffnessMatrix();
@@ -78,11 +72,11 @@ classdef NewDiffReactProblem < handle %FEM
             end
         end
 
-        function M = getM(obj) %new
+        function M = getM(obj)
             M = obj.M;
         end
 
-        function M = getK(obj) %new
+        function M = getK(obj)
             M = obj.K;
         end
 

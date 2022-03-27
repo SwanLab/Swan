@@ -11,8 +11,8 @@
 %       - Clean NewDiffReactProblem
 
 % b) BOUNDARY CONDITIONS
-%       - Merge BoundaryConditions and BoundaryConditionsApplier
-%       - Simplify and clean NewBoundaryConditions
+%     OK!  - Merge BoundaryConditions and BoundaryConditionsApplier
+%     OK!  - Simplify and clean NewBoundaryConditions
 
 % c) OTHER CLEANUP
 
@@ -25,9 +25,9 @@
 %       - Delete globalConnec from LHSintegrator/Assembler
 
 % c.2) CANTILEVER BEAM
-%       - CantileverBeam to CantileverBeamMeshCreator
-%       - Fix CantileverBeamMeshCreator for 2D meshes
-%       - Fix CantileverBeamMeshCreator for 3D meshes
+%     OK!  - CantileverBeam to CantileverBeamMeshCreator
+%     OK!  - Fix CantileverBeamMeshCreator for 2D meshes
+%     OK!  - Fix CantileverBeamMeshCreator for 3D meshes
 %       - StressComputer increase performance
 %           OK!  - Through "vectorize"
 %           OK!  - Through bsxfun
