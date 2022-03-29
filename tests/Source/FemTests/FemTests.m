@@ -10,6 +10,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
         stokesTests = {'test2d_stokes_triangle'}
         microTests = {'test2d_micro'}
         thermalTests = {'test_thermal'}
+        hyperelasticTests = {'test_hyperelastic'}
     end
 
     methods (Test, TestTags = {'Triangle'})
@@ -132,6 +133,20 @@ classdef FemTests < handle & matlab.unittest.TestCase
             s.testName = thermalTests;
             s.variablesToStore = {'Chomog'};
             s.computerType = 'MICRO';
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+    end
+
+    methods(Test, TestTags = {'Hyperelastic'})
+
+        function testHyperelastic(testCase, hyperelasticTests)
+            s.testName = hyperelasticTests;
+            s.variablesToStore = {'d_u'};
+            s.computerType = 'NEWFEM';
             test = PrecomputedVariableTest(s);
             err = test.computeError();
             tol = 1e-6;

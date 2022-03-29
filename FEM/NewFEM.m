@@ -50,7 +50,7 @@ classdef NewFEM < handle
                 case 'DIFF-REACT'
                     obj = DiffReact_Problem(fileName);
                 case 'HYPERELASTIC'
-                    obj = Hyperelastic_Problem(fileName);
+                    obj = Hyperelastic_Problem(s);
                 case 'Stokes'
                     obj = Stokes_Problem(fileName);
             end

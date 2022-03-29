@@ -70,7 +70,7 @@ classdef FemInputReader_GiD < handle
             obj.coord  = obj.coord(:,2:ndim+1);
             obj.connec = data.connectivities(:,2:end);
             
-            if strcmpi(data.problem_type,'elastic')
+            if strcmpi(data.problem_type,'elastic') || strcmpi(data.problem_type,'hyperelastic')
                 if isfield(data,'dirichlet_data')
                     obj.dirichlet = data.dirichlet_data;
                     obj.pointload = data.pointload;

@@ -18,10 +18,10 @@ classdef MaterialFactory < handle
                 case 'HYPERELASTIC'
                     switch cParams.pdim
                         case '2D'
-                            cParams.connec = mesh.connec;
-                            cParams.dNdx  = geometry(1).dNdx;
-                            cParams.nnode  = geometry(1).interpolation.nnode;
-                            cParams.coord  = mesh.coord;
+                            cParams.connec = cParams.mesh.connec;
+                            cParams.dNdx   = cParams.geometry.dNdx;
+                            cParams.nnode  = cParams.mesh.nnode;
+                            cParams.coord  = cParams.mesh.coord;
                             material = Isotropic2dHyperElasticMaterial(cParams);
                     end
                     
