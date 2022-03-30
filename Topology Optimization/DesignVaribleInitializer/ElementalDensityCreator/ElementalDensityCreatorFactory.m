@@ -2,7 +2,7 @@ classdef ElementalDensityCreatorFactory < handle
     
     
    methods (Access = public, Static)
-              
+       
        function e = create(type)
             switch type
                 case 'ElementalDensityCreatorByLevelSetCreator'
@@ -10,7 +10,7 @@ classdef ElementalDensityCreatorFactory < handle
                 case 'ElementalDensityCreatorByLevelSet'
                     e = EdcByLevelSet();
                 case 'EdcExplicit'
-            end              
+            end
        end
        
        function p = createPrinters(type)
@@ -20,12 +20,11 @@ classdef ElementalDensityCreatorFactory < handle
                case 'ElementalDensityCreatorByLevelSet'
                    p = {'DensityGauss','LevelSet'};
                case 'EdcExplicit'
-                   p = {'DensityGauss'};                   
-           end                      
+                   p = {'DensityGauss'};
+           end
        end
        
        
    end
-    
     
 end

@@ -5,6 +5,10 @@ classdef ForcesComputer < handle
         mesh
         boundaryConditions
         vstrain
+        material
+        geometry
+        dvolume
+        dofsInElem
     end
     
     methods (Access = public)
@@ -42,6 +46,10 @@ classdef ForcesComputer < handle
             obj.dim                = cParams.dim;
             obj.mesh               = cParams.mesh;
             obj.boundaryConditions = cParams.BC;
+            obj.dofsInElem         = cParams.dofsInElem;
+            obj.material           = cParams.material;
+            obj.geometry           = cParams.geometry;
+            obj.dvolume            = cParams.dvolume';
             if isfield(cParams, 'vstrain')
                 obj.vstrain = cParams.vstrain;
             end
@@ -62,17 +70,18 @@ classdef ForcesComputer < handle
             nelem = d.nelem;
             Fv = zeros(nnode*ndimf,1,nelem);
             if ~isempty(obj.vstrain)
-                Fv = Fv + obj.computeStrainRHS();
+                Fv = Fv + obj.computeStrainRHS(obj.vstrain);
             end
         end
 
         function b = assembleVector(obj, forces)
-            dofsInElemCell = obj.boundaryConditions.dofsInElem;
-            dofsInElem = cell2mat(dofsInElemCell);
+%             dofsInElemCell = obj.dofsInElem;
+%             dofsInElem = cell2mat(dofsInElemCell);
             s.dim          = obj.dim;
             s.globalConnec = [];
+            s.dofsInElem = [];
             assembler = Assembler(s);
-            b = assembler.assembleV(forces,dofsInElem);
+            b = assembler.assembleV(forces,obj.dofsInElem);
         end
 
         function Fp = computePunctualFext(obj)
@@ -87,17 +96,24 @@ classdef ForcesComputer < handle
 
         
         function F = computeStrainRHS(obj,vstrain)
-            Cmat = obj.material.C;
+%             Cmat  = obj.material.C(:,:,1);
+            Cmat  = obj.material.C;
             ngaus = obj.dim.ngaus;
-            nunkn = obj.dim.ndimf;
+            nunkn = obj.dim.ndimField;
             nstre = obj.dim.nstre;
             nelem = obj.dim.nelem;
+            nnode = obj.dim.nnode;
 
             eforce = zeros(nunkn*nnode,ngaus,nelem);
             sigma = zeros(nstre,ngaus,nelem);
+            s.dim = obj.dim;
+            s.geometry = obj.geometry;
+            s.globalConnec = [];
+            s.dofsInElem = [];
+            Bcomp = BMatrixComputer(s);
             for igaus = 1:ngaus
-                Bmat    = obj.computeB(igaus);
-                dV(:,1) = obj.geometry.dvolu(:,igaus);
+                Bmat    = Bcomp.computeBmat(igaus);
+                dV(:,1) = obj.dvolume(:,igaus);
                 for istre = 1:nstre
                     for jstre = 1:nstre
                         Cij = squeeze(Cmat(istre,jstre,:,igaus));

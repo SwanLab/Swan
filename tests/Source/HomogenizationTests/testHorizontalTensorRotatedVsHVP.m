@@ -11,7 +11,7 @@ classdef testHorizontalTensorRotatedVsHVP < ...
             rotHor = obj.rotHorTensor.getValue();
             lTens  = obj.lamTensor.getValue();
             lb = norm(rotHor - lTens) > 1e-12;
-            ub = norm(rotHor - lTens) < 1e-2; 
+            ub = norm(rotHor - lTens) < 1e-2;
             hasPassed = lb & ub;
         end
 

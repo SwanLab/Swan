@@ -7,7 +7,7 @@ classdef FourthOrder3DTensor < AbstractTensor ...
         
         function obj = FourthOrder3DTensor()
         end
-               
+        
         function createRandomTensor(obj)
             obj.createRandomTensor@AbstractTensor();
         end
@@ -20,8 +20,6 @@ classdef FourthOrder3DTensor < AbstractTensor ...
             obj.tensorSize = [3,3,3,3];
         end
     end
-    
-    
     
 end
 

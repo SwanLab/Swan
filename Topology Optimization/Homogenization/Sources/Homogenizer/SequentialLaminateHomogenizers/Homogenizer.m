@@ -48,7 +48,7 @@ classdef Homogenizer < handle
         function computeMatrixAndFiberComplianceTensors(obj)
             obj.invMatTensor = Inverter.invert(obj.matTensor);
             obj.invFibTensor = Inverter.invert(obj.fibTensor);
-        end        
+        end
         
         function computeIncrementalTensor(obj)
             S0  = obj.invMatTensor;
@@ -57,10 +57,10 @@ classdef Homogenizer < handle
             s0 = S0.getValue();
             s1 = S1.getValue();
             s01 = s0 - s1;
-            S01.setValue(s01);            
+            S01.setValue(s01);
             C01 = Inverter.invert(S01);
             obj.incremTensor = C01;
-        end            
+        end
         
         function computeAnisotropicContributionTensor(obj)
             tensorSize = obj.anisotropicTensors{1}.getTensorSize();

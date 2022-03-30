@@ -4,7 +4,7 @@ classdef ComplianceAndAdjointPrinter < CompositeResultsPrinter
         
         function obj = ComplianceAndAdjointPrinter(d)
             obj.init(d);
-        end        
+        end
         
     end
     
@@ -20,15 +20,15 @@ classdef ComplianceAndAdjointPrinter < CompositeResultsPrinter
             obj.storeComplianceFields(d);
             obj.storeAdjointFields(d);
        %     obj.storeRegularizedDensity(d);
-        end        
+        end
 
         function createHeadPrinter(obj,d,dh)
             phyPr = d.cost.shapeFunctions{1}.getPhysicalProblems();
             d.quad = phyPr{1}.element.quadrature;
             obj.printers{1}.createHeadPrinter(d,dh);
             h = obj.printers{1}.getHeadPrinter();
-            obj.headPrinter = h;            
-        end                
+            obj.headPrinter = h;
+        end
         
     end
     
@@ -46,10 +46,10 @@ classdef ComplianceAndAdjointPrinter < CompositeResultsPrinter
         
      %   function p = createRegularizedDensityPrinter(d)
      %       p = ResultsPrinter.create('DensityGauss',d);
-     %   end        
+     %   end
         
         function storeFieldsToPrintFromPhyPr(printer,phyPr)
-            d.fields = phyPr.variables;            
+            d.fields = phyPr.variables;
             printer.storeFieldsToPrint(d);
         end
         
@@ -59,18 +59,18 @@ classdef ComplianceAndAdjointPrinter < CompositeResultsPrinter
         
         function storeComplianceFields(obj,d)
             d.fields = d.phyProblems{1}.variables;
-            obj.printers{1}.storeFieldsToPrint(d); 
+            obj.printers{1}.storeFieldsToPrint(d);
         end
         
         function storeAdjointFields(obj,d)
             d.fields = d.phyProblems{2}.variables;
-            obj.printers{2}.storeFieldsToPrint(d); 
+            obj.printers{2}.storeFieldsToPrint(d);
         end
         
         function storeRegularizedDensity(obj,d)
      %       d.fields = d.regDensity;
      %       obj.printers{3}.storeFieldsToPrint(d);
-        end                        
+        end
         
     end
 end

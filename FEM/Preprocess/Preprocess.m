@@ -29,7 +29,7 @@ classdef Preprocess<handle
             data.problem_type = strjoin(Data_prb(5));
             data.scale = strjoin(Data_prb(6));
             
-            if strcmpi(data.problem_type,'elastic')
+            if strcmpi(data.problem_type,'elastic') || strcmpi(data.problem_type,'hyperelastic')
                 if exist('dirichlet_data','var')
                     data.dirichlet_data = dirichlet_data;
                 elseif exist('lnodes','var')

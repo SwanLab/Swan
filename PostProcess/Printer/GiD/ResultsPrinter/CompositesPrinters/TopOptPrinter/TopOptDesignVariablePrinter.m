@@ -5,7 +5,7 @@ classdef TopOptDesignVariablePrinter < CompositeResultsPrinter
         function obj = TopOptDesignVariablePrinter(d)
             obj.init(d);
         end
-               
+        
     end
     
     methods (Access = protected)
@@ -14,7 +14,7 @@ classdef TopOptDesignVariablePrinter < CompositeResultsPrinter
             for iV = 1:d.nDesignVariables
                 dVi = ['DesignVar',num2str(iV)];
                 d.name = dVi;
-                type = 'ScalarNodal';                
+                type = 'ScalarNodal';
                 obj.printers{iV} = ResultsPrinter.create(type,d);
             end
         end
@@ -25,7 +25,7 @@ classdef TopOptDesignVariablePrinter < CompositeResultsPrinter
                 d.fields = dI.fields{iprinter};
                 p.storeFieldsToPrint(d);
             end
-        end               
+        end
         
     end
     

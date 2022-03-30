@@ -42,6 +42,10 @@ classdef DimensionVariables < handle
         function applyNUnknPerField(obj, num)
             obj.nunknPerField = num;
         end
+
+        function applyNnode(obj, num)
+            obj.nnode = num;
+        end
         
     end
     

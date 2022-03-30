@@ -1,14 +1,14 @@
 classdef VoigtRepresentation < RepresentationDescriptor
     
     properties (Access = protected)
-        dimVoigt 
+        dimVoigt
     end 
     
     methods (Access = public)
         
         function d = getVoigtDimension(obj)
           d = obj.dimVoigt;
-        end    
+        end
     end
     
     methods (Access = protected)

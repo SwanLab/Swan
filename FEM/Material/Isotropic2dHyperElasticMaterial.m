@@ -11,6 +11,10 @@ classdef Isotropic2dHyperElasticMaterial < ElasticMaterial
         coord
         sigma
     end
+
+    properties (Access = private)
+        nelem
+    end
     
     methods
         function obj = Isotropic2dHyperElasticMaterial(cParams)

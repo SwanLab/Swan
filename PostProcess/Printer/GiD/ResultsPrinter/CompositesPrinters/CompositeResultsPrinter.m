@@ -47,7 +47,7 @@ classdef CompositeResultsPrinter < ResultsPrinter
                 p = obj.printers{iprinter};
                 p.storeFieldsToPrint(d);
             end
-        end                
+        end
         
     end
     
@@ -60,7 +60,7 @@ classdef CompositeResultsPrinter < ResultsPrinter
                 hG = p.getHasGaussData();
                 obj.hasGaussData = hG || obj.hasGaussData;
             end
-        end            
+        end
         
         function setSimulationStrToPrinters(obj)
             s = obj.simulationStr;

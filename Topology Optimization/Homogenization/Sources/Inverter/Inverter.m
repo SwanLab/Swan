@@ -35,15 +35,15 @@ classdef Inverter < handle
                 if  strcmp(obj.tensor.getElasticityCase,'3D')
                     if  strcmp(obj.tensor.getRepresentation(),'voigt')
                         obj.invertedTensor = Compliance3DVoigtTensor();
-                    else                    
+                    else
                         obj.invertedTensor = Compliance3DTensor();
                     end
                 elseif strcmp(obj.tensor.getElasticityCase,'planeStress')
                     if strcmp(obj.tensor.getRepresentation(),'voigt')
                         obj.invertedTensor = CompliancePlaneStressVoigtTensor();
-                    else                    
+                    else
                         obj.invertedTensor = CompliancePlaneStressTensor();
-                    end                    
+                    end
                 end
             elseif strcmp(obj.tensor.getFieldName,'compliance')
                 if  strcmp(obj.tensor.getElasticityCase,'3D')
@@ -51,13 +51,13 @@ classdef Inverter < handle
                        obj.invertedTensor = Stiffness3DVoigtTensor();
                     else
                        obj.invertedTensor = Stiffness3DTensor();
-                    end                    
+                    end
                 elseif strcmp(obj.tensor.getElasticityCase,'planeStress')
                     if strcmp(obj.tensor.getRepresentation(),'voigt')
                        obj.invertedTensor = StiffnessPlaneStressVoigtTensor();
                     else
                        obj.invertedTensor = StiffnessPlaneStressTensor();
-                    end                    
+                    end
                 end
             else
                 obj.invertedTensor = obj.tensor.clone();
@@ -76,10 +76,8 @@ classdef Inverter < handle
     end
     
     methods (Abstract, Access = protected)
-       computeInverse(obj) 
+       computeInverse(obj)
     end
-    
-    
 
 end
 

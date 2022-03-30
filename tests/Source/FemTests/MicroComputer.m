@@ -13,22 +13,13 @@ classdef MicroComputer < handle
             obj.testName = cParams.testName;
         end
 
-        function compute(obj) %new
+        function compute(obj)
             s = obj.createFEMparameters();
             femSolver = NewElasticProblemMicro(s);
-            femSolver.solve();
             femSolver.computeChomog();
             obj.computation = femSolver;
         end
 
-%         function compute(obj) %old
-%             femSolver = Elastic_Problem_Micro.create(obj.testName);
-%             props.kappa = .9107;
-%             props.mu    = .3446;
-%             femSolver.setMatProps(props);
-%             femSolver.computeChomog();
-%             obj.computation = femSolver;
-%         end
     end
 
     methods (Access = private)

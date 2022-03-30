@@ -2,7 +2,7 @@ classdef AbstractHomogenizedTensorPrinter < CompositeResultsPrinter
     
     properties (Access = protected)
         nstre
-    end    
+    end
     
     methods (Access = protected)
         
@@ -22,7 +22,7 @@ classdef AbstractHomogenizedTensorPrinter < CompositeResultsPrinter
             elseif ndim == 3
                 obj.nstre = 6;
             end
-        end        
+        end
         
     end
     
@@ -31,23 +31,23 @@ classdef AbstractHomogenizedTensorPrinter < CompositeResultsPrinter
         function p = createMicroProblemsPrinters(obj,d)
             for istre = 1:obj.nstre
                 p{istre} = ResultsPrinter.create('ElasticityMicro',d);
-                obj.printers{istre} = p;                
+                obj.printers{istre} = p;
             end
         end
         
         function p = createRegularizedDensityPrinter(obj,d)
             p = ResultsPrinter.create('DensityGauss',d);
-        end                        
-                
+        end
+        
         function storeRegularizedDensity(obj,d)
             d.fields = d.regDensity;
             obj.printers{obj.nstre+1}.storeFieldsToPrint(d);
-        end                        
+        end
         
     end
     
     methods (Access = protected, Abstract)
-       storeMicroProblemsFields(obj)      
-    end    
+       storeMicroProblemsFields(obj)
+    end
     
 end

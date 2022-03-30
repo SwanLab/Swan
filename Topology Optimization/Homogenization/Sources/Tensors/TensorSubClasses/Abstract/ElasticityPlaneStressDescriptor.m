@@ -3,7 +3,7 @@ classdef ElasticityPlaneStressDescriptor < ElasticityCaseDescriptor
     methods (Access = protected)
         
         function loadElasticityCaseVariable(obj)
-            obj.elasticityCase = 'planeStress';            
+            obj.elasticityCase = 'planeStress';
         end
      
     end

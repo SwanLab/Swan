@@ -34,10 +34,10 @@ classdef ShapesPrinter < CompositeResultsPrinter
         
         function storeFieldsToPrint(obj,d)
             obj.obtainAllShapes(d);
-            obj.obtainPrintableIndex();            
+            obj.obtainPrintableIndex();
             for iprinter = 1:numel(obj.printers)
                 index = obj.printableIndex(iprinter);
-                shape = obj.allShapes{index};   
+                shape = obj.allShapes{index};
                 fP = shape.addPrintableVariables();
                 d.fieldToPrint = fP;
                 p = obj.printers{iprinter};
@@ -51,16 +51,16 @@ classdef ShapesPrinter < CompositeResultsPrinter
                 shape = obj.allShapes{index};
                 if obj.getHasGaussData()
                   if ~isfield(d,'quad')
-                      d.quad = shape.getQuad();                       
+                      d.quad = shape.getQuad();
                   else
                       if isempty(d.quad)
-                        d.quad = shape.getQuad();                       
+                        d.quad = shape.getQuad();
                       end
-                  end                      
+                  end
                 else
                     d.quad = [];
                 end
-                p = obj.printers{iprinter};                
+                p = obj.printers{iprinter};
                 p.createHeadPrinter(d,dh);
                 if p.getHasGaussData()
                     h = p.getHeadPrinter();
@@ -70,10 +70,10 @@ classdef ShapesPrinter < CompositeResultsPrinter
                     h = p.getHeadPrinter();
                     obj.headPrinter = h;
                 end
-            end             
+            end
         end
-               
-    end   
+        
+    end
     
     methods (Access = private)
         
@@ -86,14 +86,14 @@ classdef ShapesPrinter < CompositeResultsPrinter
             nShape = numel(d.cost.shapeFunctions);
             for ishape = 1:nShape
                 obj.allShapes{ishape} = d.cost.shapeFunctions{ishape};
-            end            
+            end
         end
         
         function obtainConstraintShapes(obj,d)
-            nShape = numel(d.constraint.shapeFunctions);            
+            nShape = numel(d.constraint.shapeFunctions);
             for ishape = 1:nShape
                 obj.allShapes{end + ishape} = d.constraint.shapeFunctions{ishape};
-            end            
+            end
         end
         
         function obtainPrintableIndex(obj)
