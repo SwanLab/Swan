@@ -7,7 +7,7 @@ classdef StrainComputer < handle
         quadrature
         displacement
         interpolation
-        boundaryConditions
+        dofsInElem
     end
     
     methods (Access = public)
@@ -31,7 +31,7 @@ classdef StrainComputer < handle
             obj.quadrature         = cParams.quadrature;
             obj.displacement       = cParams.displacement;
             obj.interpolation      = cParams.interpolation;
-            obj.boundaryConditions = cParams.boundaryConditions;
+            obj.dofsInElem         = cParams.dofsInElem;
         end
        
         function createGeometry(obj)
@@ -50,7 +50,7 @@ classdef StrainComputer < handle
             ngaus = obj.dim.ngaus;
             nnode = obj.dim.nnode;
             nunkn = obj.dim.ndimField;
-            idx = obj.boundaryConditions.dofsInElem{1};
+            idx = obj.dofsInElem;
             d_u = obj.displacement;
             strain = zeros(nstre,nelem,ngaus);
             for igaus = 1:ngaus
@@ -59,6 +59,7 @@ classdef StrainComputer < handle
                     for inode=1:nnode
                         for idime=1:nunkn
                             ievab = nunkn*(inode-1)+idime;
+%                             disp(ievab)
                             B = squeeze(Bmat(istre,ievab,:));
                             u = d_u(idx(ievab,:));
                             strain(istre,:,igaus)=strain(istre,:,igaus)+(B.*u)';
@@ -66,6 +67,21 @@ classdef StrainComputer < handle
                     end
                 end
             end
+%             % It really doesnt work
+%             strain2 = zeros(nstre,nelem,ngaus);
+%             for igaus = 1:ngaus
+%                 Bmat = obj.computeB(igaus);
+%                 for istre=1:nstre
+%                     newSize = size(Bmat,2) * size(Bmat,3);
+%                     Bstre = squeeze(Bmat(istre,:,:));
+%                     Bstre = reshape(Bstre, [newSize 1]);
+%                     idxVert = reshape(idx, [newSize 1]);
+%                     totalBstre = accumarray(idxVert,Bstre);
+%                     calculatedStrainAtDofs = totalBstre.*obj.displacement;
+%                     strainToAdd = sum(reshape(calculatedStrainAtDofs(idxVert), [12,48]));
+%                     strain2(istre,:,igaus) = strainToAdd;
+%                 end
+%             end
             strain = permute(strain, [3 1 2]);
         end
 
@@ -73,6 +89,7 @@ classdef StrainComputer < handle
             s.dim          = obj.dim;
             s.geometry     = obj.geometry;
             s.globalConnec = [];
+            s.dofsInElem = [];
             Bcomp = BMatrixComputer(s);
             Bmat = Bcomp.computeBmat(igaus);
         end

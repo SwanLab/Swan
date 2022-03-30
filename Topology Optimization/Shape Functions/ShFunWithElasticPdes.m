@@ -47,7 +47,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         end
         
         function q = getQuad(obj)
-            q = obj.physicalProblem.element.quadrature;
+            q = obj.physicalProblem.getQuadrature();
         end
         
     end

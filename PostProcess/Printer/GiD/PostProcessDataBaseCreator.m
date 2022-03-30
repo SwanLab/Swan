@@ -21,7 +21,7 @@ classdef PostProcessDataBaseCreator < handle
             d.etype = obj.computeGiDElementType(d.gtype);
             obj.data = d;
         end
-                
+        
         function d = getValue(obj)
             d = obj.data;
         end

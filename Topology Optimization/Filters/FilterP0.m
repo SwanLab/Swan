@@ -3,7 +3,7 @@ classdef FilterP0 < handle
    properties (Access = private)
        levelSet
        levelSet0
-       dens0       
+       dens0
    end
     
    methods (Access = public)
@@ -24,22 +24,22 @@ classdef FilterP0 < handle
        
        function computeElementalLevelSet(obj,d)
             shape = d.shape;
-            conec = d.conec;            
+            conec = d.conec;
             quadr = d.quadr;
             ngaus = quadr.ngaus;
             nelem = size(conec,1);
             nnode = size(shape,1);
             
             phiP0 = zeros(nelem,ngaus);
-            phi   = obj.levelSet;            
+            phi   = obj.levelSet;
             for igaus = 1:ngaus
                 for inode = 1:nnode
                     nodes = conec(:,inode);
                     phiN = phi(nodes);
                     phiP0(:,igaus) = phiP0(:,igaus) + shape(inode,igaus)*phiN;
                 end
-            end            
-            obj.levelSet0 = phiP0;           
+            end
+            obj.levelSet0 = phiP0;
        end
        
         function computeDensityP0(obj)
@@ -52,10 +52,9 @@ classdef FilterP0 < handle
    methods (Access = private, Static)
         
         function dens = computeDensity(phi)
-            dens = 1 - heaviside(phi);            
+            dens = 1 - heaviside(phi);
         end
        
    end
    
-    
 end

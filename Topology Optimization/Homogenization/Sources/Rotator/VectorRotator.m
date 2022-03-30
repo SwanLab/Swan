@@ -77,12 +77,12 @@ classdef VectorRotator < Rotator
             obj.rotationMatrix = R1 + R2 + R3;
         end
         
-        function A = createSecondTermMatrix(obj)            
+        function A = createSecondTermMatrix(obj)
             if obj.isSymbolic()
               A = sym(zeros(obj.dim,obj.dim));
             else
               A = zeros(obj.dim,obj.dim);
-            end                         
+            end
         end
         
         function itIs = isSymbolic(obj)

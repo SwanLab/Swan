@@ -14,8 +14,8 @@ classdef PdeVariableToPrintGetter < handle
             p = obj.physicalProblem;
             v.stress = p.variables.stress;
             v.strain = p.variables.strain;
-            v.u      = obj.splitDisplacement(p.variables.d_u,p.dof.nunkn);
-            v.quad   = p.element.quadrature;
+            v.u      = obj.splitDisplacement(p.variables.d_u,p.getDimensions().ndimField);
+            v.quad   = p.getQuadrature();
         end
         
     end

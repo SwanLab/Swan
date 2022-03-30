@@ -12,16 +12,15 @@ classdef NewDiffReactProblem < handle %FEM
         variables
     end
 
-    % new properties
     properties (Access = private)
         dim
         boundaryConditions
         M,K, Mr
         epsilon
-%         bcApplier
         solver
-%         problemData
         mesh
+
+        dofsInElem
     end
 
     properties (Access = protected)
@@ -34,9 +33,9 @@ classdef NewDiffReactProblem < handle %FEM
         function obj = NewDiffReactProblem(cParams)
             obj.init(cParams);
             obj.createInterpolation();
-            obj.computeDimensions();
-            obj.createBoundaryConditions();
-            obj.createBCApplier();
+            obj.computeProblemDimensions();
+            obj.computeProblemDofConnectivity();
+            obj.createNewBoundaryConditions();
             obj.createGeometry();
             obj.createSolver();
             obj.computeStiffnessMatrix();
@@ -50,7 +49,8 @@ classdef NewDiffReactProblem < handle %FEM
                 xReg = obj.solver.solve(LHS,x);
                 obj.variables.x = xReg;
             else
-                bc   = obj.bcApplier;
+%                 bc   = obj.bcApplier;
+                bc   = obj.boundaryConditions;
                 xRed = bc.fullToReducedVector(x);
                 LHS  = obj.computeLHS();
                 xReg = obj.solver.solve(LHS,xRed);
@@ -68,15 +68,15 @@ classdef NewDiffReactProblem < handle %FEM
                 LHS = obj.epsilon^2*obj.K + obj.M + (obj.epsilon)*obj.Mr;
             else
                 LHS = obj.epsilon^2*obj.K + obj.M;
-                LHS = obj.bcApplier.fullToReducedMatrix(LHS);
+                LHS = obj.boundaryConditions.fullToReducedMatrix(LHS);
             end
         end
 
-        function M = getM(obj) %new
+        function M = getM(obj)
             M = obj.M;
         end
 
-        function M = getK(obj) %new
+        function M = getK(obj)
             M = obj.K;
         end
 
@@ -104,32 +104,55 @@ classdef NewDiffReactProblem < handle %FEM
             obj.interp{1} = int;
         end
         
-        function computeDimensions(obj)
+        function computeProblemDimensions(obj)
+            m = obj.mesh;
+            obj.dim = obj.computeDimensions(m);
+        end
+
+        function d = computeDimensions(obj, mesh)
             s.ngaus = [];
-            s.mesh  = obj.mesh;
+            s.mesh  = mesh;
             s.pdim  = obj.problemData.pdim;
             d       = DimensionVariables(s);
             d.compute();
-            obj.dim = d;
         end
 
-        function createBoundaryConditions(obj)
-            s.dim          = obj.dim;
-            s.globalConnec = obj.mesh.connec;
+        function computeProblemDofConnectivity(obj)
+            d = obj.dim;
+            c = obj.mesh.connec;
+            obj.dofsInElem = obj.computeDofConnectivity(d, c);
+        end
+
+        function dofsElem = computeDofConnectivity(obj, dim, connec)
+            ndimf  = dim.ndimField;
+            nnode  = dim.nnode;
+            dofsElem  = zeros(nnode*ndimf,size(connec,1));
+            for inode = 1:nnode
+                for iunkn = 1:ndimf
+                    idofElem   = obj.nod2dof(inode,iunkn);
+                    globalNode = connec(:,inode);
+                    idofGlobal = obj.nod2dof(globalNode,iunkn);
+                    dofsElem(idofElem,:) = idofGlobal;
+                end
+            end
+        end
+
+        function idof = nod2dof(obj, inode, iunkn)
+            ndimf = obj.dim.ndimField;
+            idof(:,1)= ndimf*(inode - 1) + iunkn;
+        end
+
+        function createNewBoundaryConditions(obj)
+            s.dim        = obj.dim;
+            s.type       = 'Dirichlet';
             s.bc.dirichlet = [];
             s.bc.pointload = [];
-            bc = BoundaryConditions(s);
+            s.scale      = obj.problemData.scale;
+            s.mesh       = obj.mesh;
+            s.dofsInElem = obj.dofsInElem;
+            bc = NewBoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;
-        end
-
-        function createBCApplier(obj)
-            s.BC      = obj.boundaryConditions;
-            s.dim     = obj.dim;
-            s.scale   = obj.problemData.scale;
-            s.type    = obj.bcApplierType;
-            s.nfields = 1;
-            obj.bcApplier = BoundaryConditionsApplier.create(s);
         end
 
         function createGeometry(obj)
@@ -150,6 +173,7 @@ classdef NewDiffReactProblem < handle %FEM
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
+            s.dofsInElem   = obj.dofsInElem;
             s.dim          = obj.dim;
             LHS = LHSintegrator.create(s);
             obj.K = LHS.compute();
@@ -160,6 +184,7 @@ classdef NewDiffReactProblem < handle %FEM
             s.quadType     = 'QUADRATICMASS';
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
+            s.dofsInElem   = obj.dofsInElem;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.dim;
             LHS = LHSintegrator.create(s);
@@ -174,7 +199,7 @@ classdef NewDiffReactProblem < handle %FEM
                 LHS = sparse(ndof,ndof);
                 for iInt = 1:nInt
                     s = cParams.compositeParams{iInt};
-                    s.type = 'MassMatrix';
+                    s.type     = 'MassMatrix';
                     s.quadType = 'LINEAR';
                     lhs = LHSintegrator.create(s);
                     LHSadd = lhs.compute();
@@ -197,11 +222,15 @@ classdef NewDiffReactProblem < handle %FEM
             d = obj.dim;
             for iMesh = 1:nBoxFaces
                 boxFaceMesh = bMeshes{iMesh};
-                cParams.mesh = boxFaceMesh.mesh;
+                bfMesh  = boxFaceMesh.mesh;
+                gConnec = boxFaceMesh.globalConnec;
+                nnode   = size(gConnec,2);
+                d.applyNnode(nnode);
+                d2 = obj.computeDimensions(bfMesh);
+                cParams.mesh = bfMesh;
                 cParams.type = 'SIMPLE';
-                cParams.globalConnec = boxFaceMesh.globalConnec;
-                cParams.npnod        = obj.mesh.npnod;
-                cParams.geometryType = obj.mesh.type;
+                cParams.globalConnec = gConnec;
+                cParams.dofsInElem   = obj.computeDofConnectivity(d2,gConnec);
                 cParams.dim          = d;
                 params.compositeParams{iMesh} = cParams;
             end

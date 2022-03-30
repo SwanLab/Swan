@@ -10,7 +10,7 @@ classdef TestSequentialLaminateTestedWithNumerics < handle
         Theta
         FractionVolume
        
-        StiffTensor 
+        StiffTensor
         WeakTensor
         MaterialValues
        
@@ -58,7 +58,7 @@ classdef TestSequentialLaminateTestedWithNumerics < handle
            obj.loadFiberDirection()
         end
         
-        function computeNumericallyChForLaminate(obj)  
+        function computeNumericallyChForLaminate(obj)
            d = obj.createNumericalHomogenizerDataBase();
            homog = NumericalHomogenizer(d);
            homog.compute();

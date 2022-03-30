@@ -3,7 +3,7 @@ classdef HomogenizedTensorPrinter < AbstractHomogenizedTensorPrinter
     methods (Access = public)
         
         function obj = HomogenizedTensorPrinter(d)
-            obj.simulationStr = 'HomogenizedTensor';            
+            obj.simulationStr = 'HomogenizedTensor';
             obj.computeNstre(d.ndim);
             obj.init(d);
         end
@@ -11,7 +11,7 @@ classdef HomogenizedTensorPrinter < AbstractHomogenizedTensorPrinter
     end
     
     methods (Access = protected)
-               
+        
         function storeMicroProblemsFields(obj,d)
             microProblems = d.phyProblems{1};
             fields = microProblems.variables2print;
@@ -19,10 +19,10 @@ classdef HomogenizedTensorPrinter < AbstractHomogenizedTensorPrinter
                 di.fields = fields{istre};
                 p = obj.printers{istre};
                 p.storeFieldsToPrint(di);
-                p.setStrVariablesMicroCase(istre)                                
-            end                       
-        end               
+                p.setStrVariablesMicroCase(istre)
+            end
+        end
         
-    end    
+    end
     
 end

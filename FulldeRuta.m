@@ -1,53 +1,43 @@
 %% To-do
 
-% a) RENAMING
-%    OK!   - s.pdim 'FILTER'. 
-%    OK!   - pdim to nDim, nunkn to dimField, nFields, dimAllFields
 
-% b) ASSEMBLER
-%    OK!   - Accumarray and sparse only in Assembler. 
-%    MEH   - BMatrixComputer uses Assembler.
-%    MEH   - LHSintegrator_StiffnessElasticStoredB uses Assembler.
-%    OK!   - LHSintegrator uses Assembler.
-%    BTW   - ForcesComputer uses Assembler. (-ish)
-%    ???   - StrainComputer, StressComputer
+% a) BOUNDARY CONDITIONS
+%     OK!  - Merge BoundaryConditions and BoundaryConditionsApplier
+%     OK!  - Simplify and clean NewBoundaryConditions
 
-% c) EXAMPLES
-%    OK!   - NewFemExamples as a class (-> moved to PerformanceTests)
-%    OK!   - Following cleancode techniques
-%    BTW   - Created CantileverBeam, PerformanceTests, PerformanceTest
+% b) PROBLEM CLEANUP
+%     OK!  - Clean NewDiffReactProblem
+%     OK!  - Clean NewElasticProblemMicro
+%     HMM  - Clean Thermal_Problem
+%               - Created test_thermal
+%               - "Material not yet implemented"
+%               - The physics don't really pop up in NewDiffReactProblem
+%     HMM  - Clean Hyperelastic_Problem
+%               - Created test_thyperelastic
+%               - Problem was not working properly
+%               - Uses discontinued methods? Don't really know
+%                 Isotropic2dHyperElasticMaterial
 
-% d) DIFFREACT_PROBLEM
-%    OK!   - DiffReact_Problem to NewDiffReactProblem
-%    OK!   - Delete Element_DiffReact
-%    OK!   - Use it in Filter_PDE
-%    MEH   - Cleanup on NewDiffReactProblem
-%    BTW   - NewDiffReactProblemMicro also done
-%    BTW   - Halfway there on NewElasticProblemMicro* (more below)
+% c) OTHER CLEANUP
 
-% e) TOPOPT
-%    OK!   - FEM to NewFem in TopOpt 
+% c.1) ASSEMBLER
+%       - Simplify Assembler
+%     OK!  - Use dofsInElem at assembleMatrix()
+%          - Use dofsInElem at assembleBMatrix()
+%               - See c.2 
+%          - Explore alternate ways to assemble B and C
+%           (LHSintegrator_StiffnessElasticStoredB)
+%          - Delete globalConnec from LHSintegrator/Assembler
 
-% f) COMPARISON
-%       - First examples of: 
-%       - Comparing product: pagemtimes, istrjstreLoop, pagefun 
-%       - Comparing assembly: accumarray and sparse (Assembler)
-%       - Comparing commutative of (product + assembly) vs
-%           (assembly + product)
-
-% *On NewElasticProblemMicro: it still needs heavy refactoring and it is
-% not yet ready for NewFEM. Need some time to assess how to properly
-% organize BoundaryConditions and ForcesComputer
-
-% Project chapter
-
-% Delete Element_DiffReact
-% Delete ElasticProblem?
-% Delete DiffReact_Problem?
-% Clean  NewDiffReactProblem
-
-% Simplify and clean BoundaryConditions and % BoundaryConditionsApplier
-
-% Simplify Assembler
-% CantileverBeamMeshCreator and modify
-% Stress/StrainComputer increase performance through ("vectorize"/bsxfun/assmelby+product)
+% c.2) CANTILEVER BEAM
+%     OK!  - CantileverBeam to CantileverBeamMeshCreator
+%     OK!  - Fix CantileverBeamMeshCreator for 2D meshes
+%     OK!  - Fix CantileverBeamMeshCreator for 3D meshes
+%       - StressComputer increase performance
+%           OK!  - Through "vectorize"
+%           OK!  - Through bsxfun
+%             - Through assembly+product
+%       - StrainComputer increase performance
+%             - Through "vectorize"
+%             - Through bsxfun
+%             - Through assembly+product
