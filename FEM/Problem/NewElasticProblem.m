@@ -1,23 +1,13 @@
-classdef NewElasticProblem < handle %NewFEM
-
-%     properties (GetAccess = public, SetAccess = private)
+classdef NewElasticProblem < handle
+    
     properties (Access = public)
         variables
     end
 
     properties (Access = private)
-%         material
         nFields
-%         interp
-        bcApplier
-%         quadrature
-%         dim
         boundaryConditions
         displacement
-    end
-
-    properties (Access = private)
-%         mesh
         problemData
         stiffnessMatrix
         stiffnessMatrixRed
@@ -50,9 +40,7 @@ classdef NewElasticProblem < handle %NewFEM
             obj.computeMaterialProperties();
             obj.createInterpolation();
             obj.createGeometry();
-%             obj.createBoundaryConditions();
             obj.createNewBoundaryConditions();
-%             obj.createBCApplier();
             obj.createSolver();
         end
 
@@ -102,7 +90,6 @@ classdef NewElasticProblem < handle %NewFEM
             pd.bc.dirichlet = cParams.dirichlet;
             pd.bc.pointload = cParams.pointload;
             if isfield(cParams,'masterSlave')
-%                 pd.bc.masterSlave = cParams.masterSlave;
                 obj.mesh.computeMasterSlaveNodes();
                 pd.bc.masterSlave = obj.mesh.masterSlaveNodes;
             end
@@ -144,7 +131,6 @@ classdef NewElasticProblem < handle %NewFEM
             s.ptype = obj.problemData.ptype;
             s.pdim  = obj.problemData.pdim;
             s.nelem = obj.mesh.nelem;
-            %s.geometry = obj.geometry; % Hyperelastic
             s.mesh  = obj.mesh;
             obj.material = Material.create(s);
         end
@@ -171,14 +157,6 @@ classdef NewElasticProblem < handle %NewFEM
             obj.geometry = g;
         end
 
-        function createBoundaryConditions(obj)
-            s.dim = obj.dim;
-            s.bc  = obj.problemData.bc;
-            bc = BoundaryConditions(s);
-            bc.compute();
-            obj.boundaryConditions = bc;
-        end
-
         function createNewBoundaryConditions(obj)
             s.dim        = obj.dim;
             s.type       = 'Dirichlet';
@@ -189,16 +167,6 @@ classdef NewElasticProblem < handle %NewFEM
             bc = NewBoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;
-        end
-
-        function createBCApplier(obj)
-            s.BC      = obj.boundaryConditions;
-            s.dim     = obj.dim;
-            s.nfields = obj.nFields;
-            s.scale   = obj.problemData.scale;
-%             s.type    = 'Dirichlet'; % defined in Element
-            s.type    = ''; % Actually, scale is used...
-            obj.bcApplier = BoundaryConditionsApplier.create(s);
         end
 
         function createSolver(obj)
@@ -215,7 +183,6 @@ classdef NewElasticProblem < handle %NewFEM
             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
             K   = LHS.compute();
-%             Kred = obj.bcApplier.fullToReducedMatrix(K);
             Kred = obj.boundaryConditions.fullToReducedMatrix(K);
             obj.stiffnessMatrix    = K;
             obj.stiffnessMatrixRed = Kred;
@@ -245,7 +212,6 @@ classdef NewElasticProblem < handle %NewFEM
         end
 
         function Fred = reduceForcesMatrix(obj, forces)
-%             Fred = obj.bcApplier.fullToReducedVector(forces);
             Fred = obj.boundaryConditions.fullToReducedVector(forces);
         end
 
@@ -253,7 +219,6 @@ classdef NewElasticProblem < handle %NewFEM
             Kred = obj.stiffnessMatrixRed;
             Fred = obj.forces;
             u = obj.solver.solve(Kred,Fred);
-%             u = obj.bcApplier.reducedToFullVector(u);
             u = obj.boundaryConditions.reducedToFullVector(u);
             obj.variables.d_u = u;
         end
