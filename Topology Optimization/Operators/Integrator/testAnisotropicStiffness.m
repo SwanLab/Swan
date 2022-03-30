@@ -7,6 +7,7 @@ load('AnisotropicData.mat')
 s.type = 'AnisotropicStiffnessMatrix';
 s.dim.ndim = 1;
 s.dim.ndimField = 1;
+s.dofsInElem = s.globalConnec';
 
 C = zeros(s.mesh.ndim,s.mesh.ndim,s.mesh.nelem);
 for i = 1:s.mesh.nelem
