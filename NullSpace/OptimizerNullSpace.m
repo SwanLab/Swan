@@ -37,6 +37,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.nX         = length(obj.designVariable.value);
             obj.cost.computeFunctionAndGradient();
             obj.costOld    = obj.cost.value;
+            obj.lambda     = 0;            
             obj.solveProblem();
         end
 
@@ -56,11 +57,12 @@ classdef OptimizerNullSpace < Optimizer
             obj.acceptableStep   = false;
             obj.lineSearchTrials = 0;
             x0                   = obj.designVariable.value;
+            mOld = obj.computeMeritFunction(x0);            
             obj.saveOldValues(x0);
             while ~obj.acceptableStep
                 obj.updateDualDirect();
                 x = obj.updatePrimal(x0);
-                obj.checkStep(x,x0);
+                obj.checkStep(x,x0,mOld);
             end
             obj.updateOldValues(x);
         end
@@ -69,16 +71,21 @@ classdef OptimizerNullSpace < Optimizer
             obj.cost.computeFunctionAndGradient();
             x       = obj.designVariable.value;
             g       = obj.cost.gradient;
-            obj.tau = sqrt(norm(x)/norm(g));
+            if isempty(obj.tau)
+                obj.tau = 0.1*sqrt(norm(x)/norm(g));
+            else
+                obj.tau = 3*obj.tau;
+            end
         end
 
         function obj = updateDualDirect(obj)
             obj.constraint.computeFunctionAndGradient();
             obj.cost.computeFunctionAndGradient();
+            x = obj.designVariable.value;
             A = obj.constraint.gradient;
-            b = obj.cost.gradient;
-            c = obj.constraint.value;
-            l = (A'*A)^(-1)*(c - obj.tau*b'*A);
+            c = x-obj.tau*obj.cost.gradient;
+            b = A'*x - obj.constraint.value ;
+            l = (A'*A)\(c'*A - b);
             obj.lambda = l;
         end
 
@@ -140,13 +147,16 @@ classdef OptimizerNullSpace < Optimizer
             A      = obj.constraint.gradient;
             b      = obj.cost.gradient;
             l      = obj.lambda;
-            alphaC = 0.01*obj.tau;
-            xN     = x0 - t*b - alphaC*A*(A'*A)^(-1)*l;
-            x      = min(ub,max(xN,lb));
+            alphaC = 0.01*obj.tau;            
+            %xN     = x0 - t*b - alphaC*A*(A'*A)^(+1)*l;
+            
+            x  = obj.designVariable.value;            
+            c  = x - obj.tau*obj.cost.gradient;
+            xN = c - A*l;
+            x  = min(ub,max(xN,lb));
         end
 
-        function obj = checkStep(obj,x,x0)
-            mOld = obj.computeMeritFunction(x0);
+        function checkStep(obj,x,x0,mOld)
             mNew = obj.computeMeritFunction(x);
             if mNew < mOld || obj.lineSearchTrials > obj.maxLineSearchTrials
                 obj.acceptableStep = true;
@@ -165,8 +175,8 @@ classdef OptimizerNullSpace < Optimizer
             C         = obj.constraint.value;
             DC        = obj.constraint.gradient';
             J         = obj.cost.value;
-            alphaJ    = 1e-2;
-            alphaC    = 1e-2;
+            alphaJ    = 1;
+            alphaC    = 0.1;
             S         = (DC*DC')^-1;
             mF        = alphaJ*(J + l*C) + alphaC/2*C'*S*C;
         end

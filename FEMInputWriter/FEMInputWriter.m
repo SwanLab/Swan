@@ -98,7 +98,7 @@ classdef FEMInputWriter < handle
         end
         
         function writeFile(obj)
-            fileID = fopen(['Swan-master/',obj.fileName],'w');
+            fileID = fopen([obj.fileName],'w');
             obj.writeProblemData(fileID);
             obj.writeCoordinates(fileID);
             obj.writeConnectivities(fileID);
