@@ -50,19 +50,6 @@ classdef Optimizer_fmincon < Optimizer
         function x = callfmincon(obj)
             PROBLEM         = obj.problem;
             PROBLEM.options = obj.options;
-%             x               = PROBLEM.x0;
-%             [c0,dc0] = PROBLEM.objective(x); 
-%             eps = 1e-6;
-%             for i = 1:length(x)
-%                 xd = x;
-%                 xd(i) = xd(i) + eps;
-%                 [c,~] = PROBLEM.objective(xd); 
-%                 dc(i) = (c - c0)/eps;
-%             end
-%             close all
-%             plot(dc0);
-%             hold on
-%             plot(dc);
             x = fmincon(PROBLEM);
         end
 

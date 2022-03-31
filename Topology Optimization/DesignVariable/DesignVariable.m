@@ -62,7 +62,7 @@ classdef DesignVariable < handle
         end
         
         function norm = computeL2normIncrement(obj)
-           x = obj.value;
+           x  = obj.value;
            x0 = obj.valueOld;
            incX  = x - x0;
            nIncX = obj.scalarProduct.computeSP_M(incX,incX);

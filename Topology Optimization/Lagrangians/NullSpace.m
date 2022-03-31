@@ -39,8 +39,8 @@ classdef NullSpace < ObjectiveFunction
             C         = obj.constraint.value;
             DC        = obj.constraint.gradient';
             J         = obj.cost.value;
-            alphaJ    = 0.001;
-            alphaC    = 0.001;
+            alphaJ    = 1e-2;
+            alphaC    = 1e-2;
             S         = (DC*DC')^-1;
             v         = alphaJ*(J + l*C) + alphaC/2*C'*S*C;
             obj.value = v;
@@ -49,8 +49,8 @@ classdef NullSpace < ObjectiveFunction
         function computeGradient(obj)
             C         = obj.constraint.value;
             Jgrad     = obj.cost.gradient;
-            alphaJ    = 0.001;
-            alphaC    = 0.001;
+            alphaJ    = 1e-2;
+            alphaC    = 1e-2;
             DC        = obj.constraint.gradient';
             S         = (DC*DC')^-1;
             A         = DC'*S*DC;
