@@ -3,6 +3,7 @@
 %           - Stokes_Problem still uses BoundaryConditionsApplier
 %                   - Left for legacy purposes
 %           - Rename New stuff to just the name
+%                   - ElasticProblemMicro, DiffReactProblemMicro
 %           - Delete old DOFs and Elements
 %           - Move dofsInElem to LHSintegrator
 

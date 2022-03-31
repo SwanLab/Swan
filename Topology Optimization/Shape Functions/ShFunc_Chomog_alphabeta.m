@@ -26,7 +26,7 @@ classdef ShFunc_Chomog_alphabeta < ShFunc_Chomog
         end
         
         function q = getQuad(obj)
-            q = obj.physicalProblem.element.quadrature;
+            q = obj.physicalProblem.getQuadrature();
         end
         
     end
