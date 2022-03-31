@@ -22,6 +22,9 @@ classdef LHSintegratorFactory < handle
                    % global B'*C*B 
                    obj = LHSintegrator_StiffnessElasticStoredB(cParams);
                    %globalB in contructor
+               case 'AdvectionMatrix'
+                   %cross(b,grad(b))
+                   obj = LHSintegrator_Advection(cParams);
            end
 
        end
