@@ -8,15 +8,15 @@ classdef NodalFieldPlotter < handle
     methods (Access = public)
         
         function obj = NodalFieldPlotter(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)
         end
         
         function plot(obj)
             x = obj.mesh.coord(:,1);
-            y = obj.mesh.coord(:,2);                                     
+            y = obj.mesh.coord(:,2);
             z = obj.field;
             %figure()
-            trisurf(obj.mesh.connec,x,y,z)            
+            trisurf(obj.mesh.connec,x,y,z)
             view(0,90)
             colorbar
         end

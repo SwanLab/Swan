@@ -41,7 +41,7 @@ classdef MeshPrinter < GiDPrinter
                 obj.(fieldsNames{ifield}) = fieldValue;
             end
         end
-                     
+        
         function printFemMatOoHeader(obj)
             iD = obj.fileID;
             h = FemMatOoHeader();
@@ -77,7 +77,7 @@ classdef MeshPrinter < GiDPrinter
             nN = obj.nnode;
             printFormat = 'MESH "WORKPIECE" dimension %3.0f   Elemtype %s   Nnode %2.0f \n \n';
             fprintf(iD,printFormat,nD,eT,nN);
-        end        
+        end
         
     end
     

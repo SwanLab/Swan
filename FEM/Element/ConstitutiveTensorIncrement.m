@@ -43,9 +43,5 @@ classdef ConstitutiveTensorIncrement < handle
         
     end
     
-    
-    
-    
-    
 end
 

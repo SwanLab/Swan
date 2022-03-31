@@ -65,7 +65,7 @@ classdef PerformanceTest < handle
         
         function fem = computeSolution(obj)
             p = obj.createFEMparameters();
-            fem = NewFEM.create(p);
+            fem = FEM.create(p);
             fem.solve();
         end
         

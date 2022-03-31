@@ -14,21 +14,37 @@ classdef FemComputer < handle
         end
 
         function compute(obj)
-            obj.computation = FEM.create(obj.testName);
-            obj.createMaterialProperties();
-            obj.computation.computeVariables();
+            s = obj.createFEMparameters();
+            obj.computation = FEM.create(s);
+            obj.computation.solve();
         end
     end
 
     methods (Access = private)
 
+        function s = createFEMparameters(obj)
+            gidParams = obj.createGiDparameters();
+            s.dim       = gidParams.pdim;
+            s.type      = gidParams.ptype;
+            s.scale     = gidParams.scale;
+            s.mesh      = gidParams.mesh;
+            s.dirichlet = gidParams.dirichlet;
+            s.pointload = gidParams.pointload;
+        end
+
+        function gidParams = createGiDparameters(obj)
+            file = obj.testName;
+            gidReader = FemInputReader_GiD();
+            gidParams = gidReader.read(file);
+        end
+        
         function createMaterialProperties(obj)
             q = Quadrature.set(obj.computation.mesh.type);
             q.computeQuadrature('LINEAR');
             I = ones(obj.computation.mesh.nelem,q.ngaus);
             p.kappa = .9107*I;
             p.mu    = .3446*I;
-            obj.computation.setMatProps(p)
+            obj.computation.setMatProps(p);
         end
 
     end

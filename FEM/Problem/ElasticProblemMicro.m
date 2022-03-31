@@ -1,4 +1,4 @@
-classdef NewElasticProblemMicro < NewElasticProblem
+classdef ElasticProblemMicro < ElasticProblem
 
     methods (Access = public)
 

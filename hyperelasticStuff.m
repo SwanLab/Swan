@@ -1,7 +1,7 @@
 filename = 'test_hyperelastic';
 s = createFEMparameters(filename);
 
-fem = NewFEM.create(s);
+fem = FEM.create(s);
 
 function s = createFEMparameters(file)
     gidParams = createGiDparameters(file);

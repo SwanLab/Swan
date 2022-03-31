@@ -16,7 +16,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'Triangle'})
 
         function testTriangle(testCase, triangle)
-            s.computerType    = 'NEWFEM';
+            s.computerType    = 'FEM';
             s.testName         = triangle;
             s.variablesToStore = {'d_u'};
             test = PrecomputedVariableTest(s);
@@ -30,7 +30,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'Quad'})
 
         function testQuad(testCase, quad)
-            s.computerType    = 'NEWFEM';
+            s.computerType    = 'FEM';
             s.testName         = quad;
             s.variablesToStore = {'d_u'};
             test = PrecomputedVariableTest(s);
@@ -45,7 +45,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'2D'})
 
         function test2d(testCase, tests2d)
-            s.computerType    = 'NEWFEM';
+            s.computerType    = 'FEM';
             s.testName         = tests2d;
             s.variablesToStore = {'d_u'};
             test = PrecomputedVariableTest(s);
@@ -60,7 +60,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'3D'})
 
         function test3d(testCase, tests3d)
-            s.computerType    = 'NEWFEM';
+            s.computerType    = 'FEM';
             s.testName         = tests3d;
             s.variablesToStore = {'d_u'};
             test = PrecomputedVariableTest(s);
@@ -74,7 +74,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'Hexahedra'})
 
         function testHexahedra(testCase, hexahedra)
-            s.computerType    = 'NEWFEM';
+            s.computerType    = 'FEM';
             s.testName         = hexahedra;
             s.variablesToStore = {'d_u'};
             test = PrecomputedVariableTest(s);
@@ -88,7 +88,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'FEM', 'Passed', 'Classic', 'Displacement', 'ToPass'})
 
         function testDisplacement(testCase, duTests)
-            s.computerType    = 'NEWFEM'; %NEWFEM
+            s.computerType    = 'FEM'; %FEM
             s.testName         = duTests;
             s.variablesToStore = {'d_u'};
             test = PrecomputedVariableTest(s);
@@ -146,7 +146,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
         function testHyperelastic(testCase, hyperelasticTests)
             s.testName = hyperelasticTests;
             s.variablesToStore = {'d_u'};
-            s.computerType = 'NEWFEM';
+            s.computerType = 'FEM';
             test = PrecomputedVariableTest(s);
             err = test.computeError();
             tol = 1e-6;

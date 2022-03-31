@@ -3,7 +3,7 @@ classdef StressDescriptor < FieldNameDescriptor
     methods (Access = protected)
         
         function loadFieldVariable(obj)
-            obj.fieldName = 'stress';            
+            obj.fieldName = 'stress';
         end
         
     end

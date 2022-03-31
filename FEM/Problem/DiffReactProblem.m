@@ -1,13 +1,12 @@
-classdef NewDiffReactProblem < handle %FEM
+classdef DiffReactProblem < handle
     
     properties (Access = protected)
         isRobinTermAdded
-        bcApplierType
         interp
         boundaryMesh
     end
     
-    properties (GetAccess = public, SetAccess = protected) %FEM
+    properties (GetAccess = public, SetAccess = protected)
         geometry
         variables
     end
@@ -30,12 +29,12 @@ classdef NewDiffReactProblem < handle %FEM
 
     methods (Access = public)
         
-        function obj = NewDiffReactProblem(cParams)
+        function obj = DiffReactProblem(cParams)
             obj.init(cParams);
             obj.createInterpolation();
             obj.computeProblemDimensions();
             obj.computeProblemDofConnectivity();
-            obj.createNewBoundaryConditions();
+            obj.createBoundaryConditions();
             obj.createGeometry();
             obj.createSolver();
             obj.computeStiffnessMatrix();
@@ -142,15 +141,13 @@ classdef NewDiffReactProblem < handle %FEM
             idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
 
-        function createNewBoundaryConditions(obj)
-            s.dim        = obj.dim;
-            s.type       = 'Dirichlet';
+        function createBoundaryConditions(obj)
+            s.dim          = obj.dim;
+            s.mesh         = obj.mesh;
+            s.scale        = obj.problemData.scale;
             s.bc.dirichlet = [];
             s.bc.pointload = [];
-            s.scale      = obj.problemData.scale;
-            s.mesh       = obj.mesh;
-            s.dofsInElem = obj.dofsInElem;
-            bc = NewBoundaryConditions(s);
+            bc = BoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;
         end
@@ -239,10 +236,8 @@ classdef NewDiffReactProblem < handle %FEM
         function setupRobinTermAndBCApplier(obj, cParams)
             if isfield(cParams,'isRobinTermAdded')
                 obj.isRobinTermAdded = cParams.isRobinTermAdded;
-                obj.bcApplierType = cParams.bcApplierType;
             else
                 obj.isRobinTermAdded = false;
-                obj.bcApplierType = '';
             end
         end
 

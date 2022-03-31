@@ -1,4 +1,4 @@
-classdef NewElasticProblem < handle
+classdef ElasticProblem < handle
     
     properties (Access = public)
         variables
@@ -31,7 +31,7 @@ classdef NewElasticProblem < handle
 
     methods (Access = public)
 
-        function obj = NewElasticProblem(cParams)
+        function obj = ElasticProblem(cParams)
             obj.init(cParams);
             obj.createQuadrature();
             obj.computeDimensions();
@@ -40,7 +40,7 @@ classdef NewElasticProblem < handle
             obj.computeMaterialProperties();
             obj.createInterpolation();
             obj.createGeometry();
-            obj.createNewBoundaryConditions();
+            obj.createBoundaryConditions();
             obj.createSolver();
         end
 
@@ -157,14 +157,12 @@ classdef NewElasticProblem < handle
             obj.geometry = g;
         end
 
-        function createNewBoundaryConditions(obj)
+        function createBoundaryConditions(obj)
             s.dim        = obj.dim;
-            s.type       = 'Dirichlet';
-            s.bc         = obj.problemData.bc;
-            s.scale      = obj.problemData.scale;
             s.mesh       = obj.mesh;
-            s.dofsInElem = obj.dofsInElem;
-            bc = NewBoundaryConditions(s);
+            s.scale      = obj.problemData.scale;
+            s.bc         = obj.problemData.bc;
+            bc = BoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;
         end

@@ -1,6 +1,32 @@
 %% To-do
+% a) CLEANUP
+%           - Stokes_Problem still uses BoundaryConditionsApplier
+%                   - Left for legacy purposes
+%           - Rename New stuff to just the name
+%           - Delete old DOFs and Elements
+%           - Move dofsInElem to LHSintegrator
+
+% b) CLOSING
+%           - Adapt Thermal_Problem via NewDiffReactProblem
+%           - Add vars2print for micro
+
+% c) RESULT VISUALIZATIONS
+%           - Set up GiD for ThermalProblem and visualize results
+%           - Set up GiD for Micro problem and visualize results
+
+% d) PERFORMANCE
+%           - See below
 
 
+% - Stokes encara fa servir bcapplier
+% - Tancar tèrmic i micro
+% - Visualitzar resultats amb gid
+% - Mirar Strain computer
+
+
+
+
+%% Old to-do
 % a) BOUNDARY CONDITIONS
 %     OK!  - Merge BoundaryConditions and BoundaryConditionsApplier
 %     OK!  - Simplify and clean NewBoundaryConditions
@@ -13,7 +39,7 @@
 %               - "Material not yet implemented"
 %               - The physics don't really pop up in NewDiffReactProblem
 %     HMM  - Clean Hyperelastic_Problem
-%               - Created test_thyperelastic
+%               - Created test_hyperelastic
 %               - Problem was not working properly
 %               - Uses discontinued methods? Don't really know
 %                 Isotropic2dHyperElasticMaterial

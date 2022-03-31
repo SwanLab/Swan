@@ -14,6 +14,11 @@ classdef FEM < handle
         solver
         iter = 0;
         inputReader
+        fileName
+    end
+
+    properties (Access = private)
+        femData
     end
     
     methods (Access = public)
@@ -26,22 +31,21 @@ classdef FEM < handle
     
     methods (Static, Access = public)
         
-        function obj = create(fileName)
-            s = FemInputReader_GiD().read(fileName);
-            switch s.ptype
+        function obj = create(s)
+            switch s.type
                 case 'ELASTIC'
                     switch s.scale
                         case 'MACRO'
-                            obj = Elastic_Problem(fileName);
+                            obj = ElasticProblem(s);
                         case 'MICRO'
-                            obj = Elastic_Problem_Micro(fileName);
+                            obj = ElasticProblemMicro(s);
                     end
                 case 'THERMAL'
                     obj = Thermal_Problem(fileName);
                 case 'DIFF-REACT'
                     obj = DiffReact_Problem(fileName);
                 case 'HYPERELASTIC'
-                    obj = Hyperelastic_Problem(fileName);
+                    obj = Hyperelastic_Problem(s);
                 case 'Stokes'
                     obj = Stokes_Problem(fileName);
             end
@@ -127,45 +131,21 @@ classdef FEM < handle
         end
         
     end
-    
-    methods (Access = protected)
-        
-        function readProblemData(obj,fileName)
-            femReader = FemInputReader_GiD();
-            s = femReader.read(fileName);
-            
-            obj.problemData.fileName = fileName;
-            obj.problemData.scale = s.scale;
-            obj.problemData.pdim  = s.pdim;
-            obj.problemData.ptype = s.ptype;
-            obj.problemData.nelem = s.mesh.nelem;
-            obj.problemData.bc.dirichlet = s.dirichlet;
-            obj.problemData.bc.pointload = s.pointload;
-            obj.mesh = s.mesh;
-        end
-        
-        function createMesh(obj)
-            s.coord  = obj.inputReader.coord;
-            s.connec = obj.inputReader.connec;
-            obj.mesh = Mesh(s);
-        end
-        
-    end
-    
+
     methods (Access = private)
-        
+
         function d = createPostProcessDataBase(obj,fileName)
             dI.mesh    = obj.mesh;
             dI.outName = fileName;
             ps = PostProcessDataBaseCreator(dI);
             d = ps.getValue();
         end
-        
+
     end
     
     methods (Access = public, Abstract)
         %preProcess(obj)
         computeVariables(obj)
     end
-    
+
 end

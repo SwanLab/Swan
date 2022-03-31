@@ -56,9 +56,9 @@ classdef Filter < handle
             end
             switch s.scale
                 case 'MACRO'
-                    obj.diffReacProb = NewDiffReactProblem(s);
+                    obj.diffReacProb = DiffReactProblem(s);
                 case 'MICRO'
-                    obj.diffReacProb = NewDiffReactProblemMicro(s);
+                    obj.diffReacProb = DiffReactProblemMicro(s);
             end
         end
         

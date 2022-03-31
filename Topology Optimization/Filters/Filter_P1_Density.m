@@ -101,9 +101,9 @@ classdef Filter_P1_Density < handle %Filter_P1
             s.mesh = cParams.mesh;
             switch s.scale
                 case 'MACRO'
-                    pB = NewDiffReactProblem(s);
+                    pB = DiffReactProblem(s);
                 case 'MICRO'
-                    pB = NewDiffReactProblemMicro(s);
+                    pB = DiffReactProblemMicro(s);
             end
         end
         
