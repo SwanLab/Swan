@@ -3,7 +3,7 @@ classdef Assembler < handle
     properties (Access = private)
         dim
         globalConnec
-        dofsInElem
+        %dofsInElem
     end
 
     methods (Access = public)
@@ -35,11 +35,10 @@ classdef Assembler < handle
         function init(obj, cParams)
             obj.dim          = cParams.dim;
             obj.globalConnec = cParams.globalConnec;
-            obj.dofsInElem   = cParams.dofsInElem;
         end
 
         function A = assembleMatrix(obj, aElem)
-            dofConnec = obj.dofsInElem';
+            dofConnec = obj.computeDofConnectivity()';
             ndofs  = obj.dim.ndof;
             ndimf  = obj.dim.ndimField;
             nnode  = obj.dim.nnode;
@@ -55,6 +54,27 @@ classdef Assembler < handle
                     A = A + Aadd;
                 end
             end
+        end
+
+        function dofConnec = computeDofConnectivity(obj)
+            connec = obj.globalConnec;
+            ndimf  = obj.dim.ndimField;
+            nnode  = obj.dim.nnode;
+            dofsElem  = zeros(nnode*ndimf,size(connec,1));
+            for inode = 1:nnode
+                for iunkn = 1:ndimf
+                    idofElem   = obj.nod2dof(inode,iunkn);
+                    globalNode = connec(:,inode);
+                    idofGlobal = obj.nod2dof(globalNode,iunkn);
+                    dofsElem(idofElem,:) = idofGlobal;
+                end
+            end
+            dofConnec = dofsElem;
+        end
+
+        function idof = nod2dof(obj, inode, iunkn)
+            ndimf = obj.dim.ndimField;
+            idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
 
         function Cadd = computeAaddBySparse(obj,a, dofsI, dofsJ)

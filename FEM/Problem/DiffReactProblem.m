@@ -33,7 +33,7 @@ classdef DiffReactProblem < handle
             obj.init(cParams);
             obj.createInterpolation();
             obj.computeProblemDimensions();
-            obj.computeProblemDofConnectivity();
+%             obj.computeProblemDofConnectivity();
             obj.createBoundaryConditions();
             obj.createGeometry();
             obj.createSolver();
@@ -170,7 +170,7 @@ classdef DiffReactProblem < handle
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
-            s.dofsInElem   = obj.dofsInElem;
+%             s.dofsInElem   = obj.dofsInElem;
             s.dim          = obj.dim;
             LHS = LHSintegrator.create(s);
             obj.K = LHS.compute();
@@ -181,7 +181,7 @@ classdef DiffReactProblem < handle
             s.quadType     = 'QUADRATICMASS';
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
-            s.dofsInElem   = obj.dofsInElem;
+%             s.dofsInElem   = obj.dofsInElem;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.dim;
             LHS = LHSintegrator.create(s);
@@ -223,11 +223,11 @@ classdef DiffReactProblem < handle
                 gConnec = boxFaceMesh.globalConnec;
                 nnode   = size(gConnec,2);
                 d.applyNnode(nnode);
-                d2 = obj.computeDimensions(bfMesh);
+%                 d2 = obj.computeDimensions(bfMesh);
                 cParams.mesh = bfMesh;
                 cParams.type = 'SIMPLE';
                 cParams.globalConnec = gConnec;
-                cParams.dofsInElem   = obj.computeDofConnectivity(d2,gConnec);
+%                 cParams.dofsInElem   = obj.computeDofConnectivity(d2,gConnec);
                 cParams.dim          = d;
                 params.compositeParams{iMesh} = cParams;
             end

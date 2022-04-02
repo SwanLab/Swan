@@ -2,14 +2,16 @@
 % a) CLEANUP
 %           - Stokes_Problem still uses BoundaryConditionsApplier
 %                   - Left for legacy purposes
-%           - Rename New stuff to just the name
+%       OK! - Rename New stuff to just the name
+%                   - ElasticProblem, DiffReactProblem
 %                   - ElasticProblemMicro, DiffReactProblemMicro
 %           - Delete old DOFs and Elements
+%                   - Stokes, Hyperelastic?
 %           - Move dofsInElem to LHSintegrator
 
 % b) CLOSING
 %           - Adapt Thermal_Problem via NewDiffReactProblem
-%           - Add vars2print for micro
+%       OK! - Add vars2print for micro
 
 % c) RESULT VISUALIZATIONS
 %           - Set up GiD for ThermalProblem and visualize results
@@ -24,7 +26,7 @@
 % - Visualitzar resultats amb gid
 % - Mirar Strain computer
 
-
+%% Report
 
 
 %% Old to-do

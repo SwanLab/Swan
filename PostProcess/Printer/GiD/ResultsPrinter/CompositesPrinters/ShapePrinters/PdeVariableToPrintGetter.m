@@ -14,8 +14,6 @@ classdef PdeVariableToPrintGetter < handle
             p = obj.physicalProblem;
             if isempty(p.variables)
                 p.computeChomog();
-            else 
-                disp('hey')
             end
             v.stress = p.variables.stress;
             v.strain = p.variables.strain;
