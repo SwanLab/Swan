@@ -1,8 +1,8 @@
 classdef ElasticityMicroResultsPrinter < ResultsPrinter  
     
     properties (Access = protected)
-        simulationStr        
-        hasGaussData = true;       
+        simulationStr
+        hasGaussData = true;
     end
     
     properties (Access = private)
@@ -47,8 +47,8 @@ classdef ElasticityMicroResultsPrinter < ResultsPrinter
             VectorGaussPrinter(obj.dSig);
             VectorGaussPrinter(obj.dStr);
             VectorGaussPrinter(obj.dSigFluc);
-            VectorGaussPrinter(obj.dStrFluc);            
-        end        
+            VectorGaussPrinter(obj.dStrFluc);
+        end
         
         function setStrVariablesMicroCase(obj,nCase)
             obj.nCase = nCase;
@@ -63,12 +63,12 @@ classdef ElasticityMicroResultsPrinter < ResultsPrinter
             obj.forStrBase  = [obj.forStrBase,name];
         end
     end
-        
+    
     methods (Access = protected)
         
         function storeFieldsToPrint(obj,d)
-            obj.fields = d.fields; 
-        end                        
+            obj.fields = d.fields;
+        end
         
     end
     
@@ -87,7 +87,7 @@ classdef ElasticityMicroResultsPrinter < ResultsPrinter
         function createDataBases(obj,iter,fileID)
             f = obj.fields;
             obj.dDisp    = obj.createVectorDataBase(iter,fileID,f.d_u,obj.dispStr,'OnNodes',obj.displCompStr);
-            obj.dFor     = obj.createVectorDataBase(iter,fileID,f.fext,obj.forStr,'OnNodes',obj.forCompStr);            
+            obj.dFor     = obj.createVectorDataBase(iter,fileID,f.fext,obj.forStr,'OnNodes',obj.forCompStr);
             obj.dSig     = obj.createVectorGaussDataBase(iter,fileID,f.stress, obj.stressStr,'OnGaussPoints',obj.stressCompStr);
             obj.dStr     = obj.createVectorGaussDataBase(iter,fileID,f.strain, obj.strainStr,'OnGaussPoints',obj.strainCompStr);
             obj.dSigFluc = obj.createVectorGaussDataBase(iter,fileID,f.stress_fluct, obj.stressFlucStr,'OnGaussPoints',obj.stressCompStr);
@@ -95,7 +95,6 @@ classdef ElasticityMicroResultsPrinter < ResultsPrinter
         end
         
     end
-    
     
 end
 

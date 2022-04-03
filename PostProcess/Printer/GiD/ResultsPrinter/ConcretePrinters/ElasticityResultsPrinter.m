@@ -38,9 +38,9 @@ classdef ElasticityResultsPrinter < ResultsPrinter ...
     methods (Access = protected)
         
         function storeFieldsToPrint(obj,d)
-            obj.fields = d.fields; 
+            obj.fields = d.fields;
         end
-                    
+        
     end
     
     methods (Access = private)
@@ -50,7 +50,7 @@ classdef ElasticityResultsPrinter < ResultsPrinter ...
             obj.stressStr = [obj.stressStr,n];
             obj.strainStr = [obj.strainStr,n];
             obj.dispStr   = [obj.dispStr,n];
-        end        
+        end
         
         function createDataBases(obj,fields,iter,fileID)
             f = fields;
@@ -60,7 +60,6 @@ classdef ElasticityResultsPrinter < ResultsPrinter ...
         end
         
     end
-    
     
 end
 

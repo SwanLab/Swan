@@ -1,13 +1,12 @@
-classdef VectorNodalPrinter < VectorPrinter 
-    
+classdef VectorNodalPrinter < VectorPrinter
     
     methods (Access = public)
         
         function obj = VectorNodalPrinter(d)
             obj.nComp = size(d.fieldValues,2);
             obj.init(d);
-            obj.createFormatString();            
-            obj.createFieldRepresenter();            
+            obj.createFormatString();
+            obj.createFieldRepresenter();
             obj.print();
         end
     end
@@ -21,7 +20,7 @@ classdef VectorNodalPrinter < VectorPrinter
                 fieldValue = d.(ifieldName);
                 obj.(fieldsNames{ifield}) = fieldValue;
             end
-        end       
+        end
     
         function createFieldRepresenter(obj)
             s.fileID        = obj.fileID;
@@ -33,7 +32,7 @@ classdef VectorNodalPrinter < VectorPrinter
             s.fieldValues   = obj.fieldValues;
             s.nComp         = obj.nComp;
             obj.fieldRepresenter = NodalFieldPrinter(s);
-        end        
+        end
         
     end
     

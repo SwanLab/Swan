@@ -39,7 +39,7 @@ classdef ElasticityMicroDefinedByLevelSet < CompositeResultsPrinter
         
         function storeMicroFields(obj,d)
             d.fields = d.microVar;
-            obj.printers{3}.storeFieldsToPrint(d); 
+            obj.printers{3}.storeFieldsToPrint(d);
             obj.printers{3}.setStrVariablesMicroCase([])
         end
         

@@ -59,6 +59,18 @@ classdef ThermalProblem < handle
             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
         end
 
+        function print(obj,fileName)
+            dI = obj.createPostProcessDataBase(fileName);
+            dI.pdim = '1D';
+            dI.ptype = 'THERMAL';
+            dI.name = 'temp';
+            postprocess = Postprocess('ScalarNodal',dI);
+            q = obj.quadrature;
+            d.fields = obj.variables.d_u;
+            d.quad = q;
+            postprocess.print(1,d);
+        end
+
     end
 
     methods (Access = private)
@@ -168,6 +180,15 @@ classdef ThermalProblem < handle
             obj.variables.d_u = u;
         end
 
+        function d = createPostProcessDataBase(obj,fileName)
+            dI.mesh    = obj.mesh;
+            dI.outName = fileName;
+            dI.pdim = '1D';
+            dI.ptype = 'THERMAL';
+            ps = PostProcessDataBaseCreator(dI);
+            d = ps.getValue();
+        end
+        
     end
 
 end

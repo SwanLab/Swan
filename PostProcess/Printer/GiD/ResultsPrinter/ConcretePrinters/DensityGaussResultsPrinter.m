@@ -14,7 +14,7 @@ classdef DensityGaussResultsPrinter < ResultsPrinter
         function obj = DensityGaussResultsPrinter(d)
             obj.init(d);
         end
-               
+        
         function printResults(obj,iter,fileID)
             dens(:,1,:) = obj.fields';
             dS = obj.createScalarGaussDataBase(iter,fileID,dens, obj.fieldName,'OnGaussPoints');
@@ -30,8 +30,8 @@ classdef DensityGaussResultsPrinter < ResultsPrinter
         end
         
         function createHeadPrinter(obj,d,dh)
-            obj.headPrinter = GaussHeadPrinter(d,dh);            
-        end       
+            obj.headPrinter = GaussHeadPrinter(d,dh);
+        end
         
     end
     
