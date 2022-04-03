@@ -33,7 +33,6 @@ classdef DiffReactProblem < handle
             obj.init(cParams);
             obj.createInterpolation();
             obj.computeProblemDimensions();
-%             obj.computeProblemDofConnectivity();
             obj.createBoundaryConditions();
             obj.createGeometry();
             obj.createSolver();
@@ -48,7 +47,6 @@ classdef DiffReactProblem < handle
                 xReg = obj.solver.solve(LHS,x);
                 obj.variables.x = xReg;
             else
-%                 bc   = obj.bcApplier;
                 bc   = obj.boundaryConditions;
                 xRed = bc.fullToReducedVector(x);
                 LHS  = obj.computeLHS();
@@ -114,26 +112,6 @@ classdef DiffReactProblem < handle
             s.pdim  = obj.problemData.pdim;
             d       = DimensionVariables(s);
             d.compute();
-        end
-
-        function computeProblemDofConnectivity(obj)
-            d = obj.dim;
-            c = obj.mesh.connec;
-            obj.dofsInElem = obj.computeDofConnectivity(d, c);
-        end
-
-        function dofsElem = computeDofConnectivity(obj, dim, connec)
-            ndimf  = dim.ndimField;
-            nnode  = dim.nnode;
-            dofsElem  = zeros(nnode*ndimf,size(connec,1));
-            for inode = 1:nnode
-                for iunkn = 1:ndimf
-                    idofElem   = obj.nod2dof(inode,iunkn);
-                    globalNode = connec(:,inode);
-                    idofGlobal = obj.nod2dof(globalNode,iunkn);
-                    dofsElem(idofElem,:) = idofGlobal;
-                end
-            end
         end
 
         function idof = nod2dof(obj, inode, iunkn)

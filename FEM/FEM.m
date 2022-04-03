@@ -41,9 +41,9 @@ classdef FEM < handle
                             obj = ElasticProblemMicro(s);
                     end
                 case 'THERMAL'
-                    obj = Thermal_Problem(fileName);
+                    obj = ThermalProblem(s);
                 case 'DIFF-REACT'
-                    obj = DiffReact_Problem(fileName);
+                    obj = DiffReactProblem(fileName);
                 case 'HYPERELASTIC'
                     obj = Hyperelastic_Problem(s);
                 case 'Stokes'

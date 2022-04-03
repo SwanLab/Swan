@@ -1,8 +1,8 @@
 classdef ElasticityResultsPrinter < ResultsPrinter ...
-                                    
+    
     properties (Access = protected)
         simulationStr = 'ElasticityResults';
-        hasGaussData = true;       
+        hasGaussData = true;
     end
     
     properties (Access = private)
@@ -30,7 +30,7 @@ classdef ElasticityResultsPrinter < ResultsPrinter ...
             obj.createDataBases(obj.fields,iter,fileID);
             VectorGaussPrinter(obj.dSig);
             VectorGaussPrinter(obj.dStr);
-            VectorNodalPrinter(obj.dV);                     
+            VectorNodalPrinter(obj.dV);
         end
         
     end

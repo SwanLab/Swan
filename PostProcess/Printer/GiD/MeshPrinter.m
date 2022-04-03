@@ -32,7 +32,7 @@ classdef MeshPrinter < GiDPrinter
     end
     
     methods (Access = private)
-                
+        
         function init(obj,d)
             fieldsNames = fieldnames(d);
             for ifield = 1:length(fieldsNames)
@@ -80,8 +80,6 @@ classdef MeshPrinter < GiDPrinter
         end
         
     end
-    
-    
     
 end
 

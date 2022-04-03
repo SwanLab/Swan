@@ -18,6 +18,8 @@ classdef (Abstract) TestComputer < handle
                     computer = MicroComputer(s);
                 case {'STOKES'}
                     computer = StokesComputer(s);
+                case {'THERMAL'}
+                    computer = ThermalComputer(s);
                 case {'TOPOPT'}
                     computer = TopOptComputer(s);
                 otherwise

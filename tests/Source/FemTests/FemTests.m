@@ -131,8 +131,8 @@ classdef FemTests < handle & matlab.unittest.TestCase
 
         function testThermal(testCase, thermalTests)
             s.testName = thermalTests;
-            s.variablesToStore = {'Chomog'};
-            s.computerType = 'MICRO';
+            s.variablesToStore = {'d_u'};
+            s.computerType = 'THERMAL';
             test = PrecomputedVariableTest(s);
             err = test.computeError();
             tol = 1e-6;

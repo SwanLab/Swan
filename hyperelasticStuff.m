@@ -1,8 +1,15 @@
-filename = 'test_hyperelastic';
-s = createFEMparameters(filename);
+%% Hyperelastic
+% filename = 'test_hyperelastic';
+% s = createFEMparameters(filename);
+% 
+% fem = FEM.create(s);
 
+%% Thermal
+filename = 'test_thermal';
+s = createFEMparameters(filename);
 fem = FEM.create(s);
 
+%% Functions
 function s = createFEMparameters(file)
     gidParams = createGiDparameters(file);
     s.dim       = gidParams.pdim;

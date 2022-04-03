@@ -7,10 +7,10 @@
 %                   - ElasticProblemMicro, DiffReactProblemMicro
 %           - Delete old DOFs and Elements
 %                   - Stokes, Hyperelastic?
-%           - Move dofsInElem to LHSintegrator
+%       OK! - Move dofsInElem to LHSintegrator
 
 % b) CLOSING
-%           - Adapt Thermal_Problem via NewDiffReactProblem
+%           - Adapt ThermalProblem via NewDiffReactProblem
 %       OK! - Add vars2print for micro
 
 % c) RESULT VISUALIZATIONS

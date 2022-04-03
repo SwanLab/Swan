@@ -9,6 +9,7 @@ classdef ForcesComputer < handle
         geometry
         dvolume
         dofsInElem
+        globalConnec
     end
     
     methods (Access = public)
@@ -50,6 +51,7 @@ classdef ForcesComputer < handle
             obj.material           = cParams.material;
             obj.geometry           = cParams.geometry;
             obj.dvolume            = cParams.dvolume';
+            obj.globalConnec       = cParams.globalConnec;
             if isfield(cParams, 'vstrain')
                 obj.vstrain = cParams.vstrain;
             end
@@ -78,7 +80,7 @@ classdef ForcesComputer < handle
 %             dofsInElemCell = obj.dofsInElem;
 %             dofsInElem = cell2mat(dofsInElemCell);
             s.dim          = obj.dim;
-            s.globalConnec = [];
+            s.globalConnec = obj.globalConnec;
             s.dofsInElem = [];
             assembler = Assembler(s);
             b = assembler.assembleV(forces,obj.dofsInElem);

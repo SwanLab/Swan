@@ -93,6 +93,7 @@ classdef Assembler < handle
         %% Vector assembly
 
         function V = assembleVector(obj, F, dofsInElem)
+            dofsInElem = obj.computeDofConnectivity();
             ndofPerElem = obj.dim.ndofPerElement;
             ndof        = obj.dim.ndof;
             V = zeros(ndof,1);

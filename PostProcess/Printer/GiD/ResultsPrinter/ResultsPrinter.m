@@ -26,14 +26,14 @@ classdef ResultsPrinter < GiDPrinter
             obj.iter = iter;
             obj.createFileName(iter);
             obj.openFile();
-            obj.storeFieldsToPrint(d); 
+            obj.storeFieldsToPrint(d);
             dh = obj.createHeadPrinterCommonInfo();
-            obj.createHeadPrinter(d,dh)            
+            obj.createHeadPrinter(d,dh)
             obj.printHeader();
             obj.printResults(iter,obj.fileID);
             obj.closeFile();
         end
-                
+        
         function setSimulationStr(obj,s)
             obj.simulationStr = s;
         end
@@ -84,11 +84,11 @@ classdef ResultsPrinter < GiDPrinter
         
         function createHeadPrinter(obj,d,dh)
             if obj.getHasGaussData()
-                obj.headPrinter = GaussHeadPrinter(d,dh);            
+                obj.headPrinter = GaussHeadPrinter(d,dh);
             else
-                obj.headPrinter = NoGaussHeadPrinter(dh);            
+                obj.headPrinter = NoGaussHeadPrinter(dh);
             end
-        end  
+        end
         
     end
     
@@ -104,14 +104,14 @@ classdef ResultsPrinter < GiDPrinter
             d.gaussDescriptor = 'Guass up?';
         end
         
-         function printHeader(obj)
-             obj.headPrinter.print();
-         end
-                     
+        function printHeader(obj)
+            obj.headPrinter.print();
+        end
+        
     end
     
     methods (Abstract, Access = protected)
-        storeFieldsToPrint(obj)      
+        storeFieldsToPrint(obj)
     end
     
     methods (Abstract, Access = public)

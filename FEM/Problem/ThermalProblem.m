@@ -1,4 +1,4 @@
-classdef ElasticProblem < handle
+classdef ThermalProblem < handle
     
     properties (Access = public)
         variables
@@ -31,15 +31,12 @@ classdef ElasticProblem < handle
 
     methods (Access = public)
 
-        function obj = ElasticProblem(cParams)
+        function obj = ThermalProblem(cParams)
             obj.init(cParams);
-            obj.createQuadrature();
-            obj.computeDimensions();
-            obj.computeDofConnectivity();
-            obj.createMaterial();
-            obj.computeMaterialProperties();
             obj.createInterpolation();
+            obj.createQuadrature();
             obj.createGeometry();
+            obj.computeDimensions();
             obj.createBoundaryConditions();
             obj.createSolver();
         end
@@ -48,9 +45,6 @@ classdef ElasticProblem < handle
             obj.computeStiffnessMatrix();
             obj.computeForces();
             obj.computeDisplacements();
-            obj.computeStrain();
-            obj.computeStress();
-            obj.computePrincipalDirection();
         end
 
         function plot(obj)
@@ -61,20 +55,8 @@ classdef ElasticProblem < handle
             plotter.plot();
         end
 
-        function dim = getDimensions(obj)
-            dim = obj.dim;
-        end
-
-        function setC(obj, C)
-            obj.material.C = C;
-        end
-
         function dvolu = getDvolume(obj)
             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
-        end
-
-        function quad = getQuadrature(obj)
-            quad  = obj.quadrature;
         end
 
     end
@@ -85,14 +67,10 @@ classdef ElasticProblem < handle
             obj.nFields = 1;
             obj.mesh        = cParams.mesh;
             pd.scale        = cParams.scale;
-            pd.pdim         = cParams.dim;
+            pd.pdim         = '1D';
             pd.ptype        = cParams.type;
             pd.bc.dirichlet = cParams.dirichlet;
             pd.bc.pointload = cParams.pointload;
-            if isfield(cParams,'masterSlave')
-                obj.mesh.computeMasterSlaveNodes();
-                pd.bc.masterSlave = obj.mesh.masterSlaveNodes;
-            end
             obj.problemData = pd;
         end
 
@@ -109,37 +87,6 @@ classdef ElasticProblem < handle
             d       = DimensionVariables(s);
             d.compute();
             obj.dim = d;
-        end
-
-        function computeDofConnectivity(obj)
-            connec = obj.mesh.connec;
-            ndimf  = obj.dim.ndimField;
-            nnode  = obj.dim.nnode;
-            dofsElem  = zeros(nnode*ndimf,size(connec,1));
-            for inode = 1:nnode
-                for iunkn = 1:ndimf
-                    idofElem   = obj.nod2dof(inode,iunkn);
-                    globalNode = connec(:,inode);
-                    idofGlobal = obj.nod2dof(globalNode,iunkn);
-                    dofsElem(idofElem,:) = idofGlobal;
-                end
-            end
-            obj.dofsInElem = dofsElem;
-        end
-
-        function createMaterial(obj)
-            s.ptype = obj.problemData.ptype;
-            s.pdim  = obj.problemData.pdim;
-            s.nelem = obj.mesh.nelem;
-            s.mesh  = obj.mesh;
-            obj.material = Material.create(s);
-        end
-
-        function computeMaterialProperties(obj)
-            I = ones(obj.dim.nelem,obj.dim.ngaus);
-            s.kappa = .9107*I;
-            s.mu    = .3446*I;
-            obj.material.compute(s);
         end
 
         function createInterpolation(obj)
@@ -172,13 +119,12 @@ classdef ElasticProblem < handle
         end
 
         function computeStiffnessMatrix(obj)
-            s.type = 'ElasticStiffnessMatrixOld';
+            s.type = 'StiffnessMatrix';
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
 %             s.dofsInElem   = obj.dofsInElem;
             s.dim          = obj.dim;
-            s.material     = obj.material;
             LHS = LHSintegrator.create(s);
             K   = LHS.compute();
             Kred = obj.boundaryConditions.fullToReducedMatrix(K);
@@ -220,42 +166,6 @@ classdef ElasticProblem < handle
             u = obj.solver.solve(Kred,Fred);
             u = obj.boundaryConditions.reducedToFullVector(u);
             obj.variables.d_u = u;
-        end
-
-        function computeStrain(obj)
-            s.dim                = obj.dim;
-            s.mesh               = obj.mesh;
-            s.quadrature         = obj.quadrature;
-            s.displacement       = obj.variables.d_u;
-            s.interpolation      = obj.interp{1};
-            s.dofsInElem         = obj.dofsInElem;
-            scomp  = StrainComputer(s);
-            strain = scomp.compute();
-            obj.variables.strain = strain;
-        end
-
-        function computeStress(obj)
-            s.C      = obj.material.C;
-            s.dim    = obj.dim;
-            s.strain = obj.variables.strain;
-            scomp  = StressComputer(s);
-            stress = scomp.compute();
-            obj.variables.stress = stress;
-        end
-
-        function computePrincipalDirection(obj)
-            stress = obj.variables.stress;
-            s.type = obj.problemData.pdim;
-            s.eigenValueComputer.type = 'PRECOMPUTED';
-            pcomp = PrincipalDirectionComputer.create(s);
-            pcomp.compute(stress);
-            obj.variables.principalDirections = pcomp.direction;
-            obj.variables.principalStress     = pcomp.principalStress;
-        end
-
-        function idof = nod2dof(obj, inode, iunkn)
-            ndimf = obj.dim.ndimField;
-            idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
 
     end
