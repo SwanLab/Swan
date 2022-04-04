@@ -12,36 +12,40 @@ classdef NewFilter < handle
     end
     
     properties (GetAccess = protected, SetAccess = protected)
-        P_operator
-        
+        Poper  
         geometry
-        quadrature
-        %interpolation
-        
+        quadrature   
         mesh
         nnode
         npnod
-        shape
-        
+        shape  
         quadratureOrder
-        
     end
     
-    properties (Access = private)
+    properties (Access = protected)
         interp
+        M
+        Kernel
     end
-    
+
     methods (Access = public, Static)
-       
+
         function obj = create(cParams)
-           f = FilterFactory();
-           obj = f.create(cParams);
+            f = FilterFactory();
+            obj = f.create(cParams);
         end
-        
+
     end
-    
-    methods (Access = public)
-        
+
+    methods(Access = public)
+
+        function varInitialization(obj,cParams)
+            obj.init(cParams);
+            obj.createMassMatrix(cParams);
+            obj.preProcess();
+            obj.createPoperator(cParams);
+        end
+
         function preProcess(obj)
             obj.createQuadrature();
             obj.createInterpolation();
@@ -49,19 +53,21 @@ classdef NewFilter < handle
             obj.storeParams();
         end
         
-        function obj = createDiffReacProblem(obj,cParams)
+    end
+
+    methods (Access = public, Static)
+
+        function pB = createDiffReacProblem(cParams)
             s = cParams.femSettings;
-            if isprop(cParams,'mesh')
-                s.mesh = cParams.mesh;
-            end
+            s.mesh = cParams.mesh;
             switch s.scale
                 case 'MACRO'
-                    obj.diffReacProb = NewDiffReactProblem(s);
+                    pB = NewDiffReactProblem(s);
                 case 'MICRO'
-                    obj.diffReacProb = NewDiffReactProblemMicro(s);
+                    pB = NewDiffReactProblemMicro(s);
             end
         end
-        
+
     end
     
     methods (Access = protected)
@@ -71,31 +77,6 @@ classdef NewFilter < handle
             obj.mesh = cParams.mesh;
             obj.quadratureOrder = cParams.quadratureOrder;
         end
-        
-        function A_nodal_2_gauss = computeA(obj)
-            A0 = sparse(obj.nelem,obj.npnod);
-            A_nodal_2_gauss = cell(obj.ngaus,1);
-            fn = ones(1,obj.npnod);
-            
-            nodes = obj.mesh.connec;
-            fN = zeros(obj.nnode,obj.nelem);
-            fg = zeros(obj.ngaus,obj.nelem);
-            
-            for igaus = 1:obj.ngaus
-                A_nodal_2_gauss{igaus} = A0;
-                for inode = 1:obj.nnode
-                    node   = nodes(:,inode);
-                    fN     = fn(node);
-                    shapeN = obj.shape(inode,igaus);
-                    fg(igaus,:) = fg(igaus,:) + shapeN*fN;
-                    Ni = ones(obj.nelem,1)*shapeN;
-                    A  = sparse(1:obj.nelem,node,Ni,obj.nelem,obj.npnod);
-                    A_nodal_2_gauss{igaus} = A_nodal_2_gauss{igaus} + A;
-                end
-            end
-        end
-        
-  
         
         function itHas = xHasChanged(obj,x)
             itHas = ~isequal(x,obj.x);
@@ -132,15 +113,21 @@ classdef NewFilter < handle
             obj.ngaus = obj.quadrature.ngaus;
             obj.shape = obj.interp.shape;
         end
-        
-        function computeElementalMassMatrix(obj)
-            nel = obj.geometry.interpolation.nelem;
-            for igauss = 1:obj.quadrature.ngaus
-                dvolu = obj.geometry.dvolu(:,igauss);
-                obj.M0{igauss} = sparse(1:nel,1:nel,dvolu);
-            end
+
+        function createMassMatrix(obj,cParams)
+            obj.diffReacProb = obj.createDiffReacProblem(cParams);
+            obj.M = obj.diffReacProb.getM();
         end
-        
+
+        function createPoperator(obj,cPar)
+            cParams.nelem  = obj.mesh.nelem;
+            cParams.nnode  = obj.mesh.nnode;
+            cParams.npnod  = obj.mesh.npnod;
+            cParams.connec = obj.mesh.connec;
+            cParams.diffReactEq = cPar.femSettings;
+            obj.Poper = Poperator(cParams);
+        end
+
     end
-    
+
 end
