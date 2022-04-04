@@ -4,18 +4,18 @@ method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
 cost = {'compliance','perimeter'};
-weights = [1 0.1];
+weights = [1,0.01];
 constraint = {'volumeConstraint'};
-%optimizerUnconstrained = 'PROJECTED GRADIENT'; 
-optimizer = 'MMA';%'DualNestedInPrimal';%'DualNestedInPrimal';
+optimizerUnconstrained = 'SLERP'; 
+optimizer = 'DualNestedInPrimal';%'DualNestedInPrimal';%'DualNestedInPrimal';
 incrementFactor = 1;
 kfrac = 1.05;
-designVariable = 'Density';
-filterType = 'P1';
+designVariable = 'LevelSet';
+filterType = 'PDE';
 
 
-nsteps = 6;
-Vfrac_final = 0.4;
+nsteps = 12;
+Vfrac_final = 0.6;
 optimality_final =1e-5;
 constr_final =1e-5;
 
@@ -36,4 +36,4 @@ plotting = true;
 printing = false;
 printing_physics = false;
 monitoring = true;
-maxiter = 300;
+maxiter = 200;

@@ -26,7 +26,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
         micro = {'test_micro', 'test_micro2'}
 %         compTestsToPass = {'test_bridge'}
 %         compTestsToPass = {'test_interiorPerimeter'}
-        cantileverTests = {'test_cantilever2', 'test_cantilever3'}
+        cantileverTests = {'test_cantilever'}
         dimensions = {'2D', '3D'}
         vigdergauzTests = {'test_VigergauzMicroStructure', 'test_VigergauzMicroStructureFromStrain'}
         vigdergauzVolumes = {0.6, 0.75}

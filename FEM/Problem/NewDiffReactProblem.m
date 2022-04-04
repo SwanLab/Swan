@@ -169,6 +169,15 @@ classdef NewDiffReactProblem < handle %FEM
         end
 
         function computeStiffnessMatrix(obj)
+%             switch obj.material
+%                 case 'isotropy'
+%                     s.type = 'StiffnessMatrix';
+%                 case 'anisotropy'
+%                     s.type = 'AnisotropicStiffnessMatrix';
+%                     for i = 1:size(obj.mesh.connec,1)
+%                         s.Celas(:,:,i) = [1, 0; 0, 1]; % Rotation matrix
+%                     end
+%             end
             s.type = 'StiffnessMatrix';
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
