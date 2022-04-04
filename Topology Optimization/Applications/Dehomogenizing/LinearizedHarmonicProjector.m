@@ -33,8 +33,7 @@ classdef LinearizedHarmonicProjector < handle
             lambda0 = zeros(length(nInt),1);
         end
 
-        function [v,lambda] = solveProblem(obj,v0,vH)
-            
+        function [v,lambda] = solveProblem(obj,v0,vH)            
             vH = obj.projectUnitBall(vH);
             obj.plotOrientation(vH,1);
             i = 1;
@@ -62,7 +61,8 @@ classdef LinearizedHarmonicProjector < handle
                 i = i + 1;                
                 figure(99)
                 plot(log10(err))                               
-                vH = v;                
+                vH = v;     
+             %   vH = obj.projectUnitBall(vH);
             end
 
 

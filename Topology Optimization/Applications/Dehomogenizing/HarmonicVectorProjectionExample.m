@@ -181,9 +181,9 @@ classdef HarmonicVectorProjectionExample < handle
             end
         end
 
-        function [v,lambda] = solveProblem(obj,vH,alpha0)
+        function [v,lambda] = solveProblem(obj,alpha0,vH)
            h  = obj.harmonicProjector;
-           [v,lambda] = h.solveProblem(vH,alpha0);
+           [v,lambda] = h.solveProblem(alpha0,vH);
         end
 
         function createHarmonicProjection(obj)

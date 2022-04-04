@@ -48,23 +48,33 @@ classdef LHSintegrator_Advection < LHSintegrator
                 dV(:,1) = dvolu(igaus, :);                
                 for iNode = 1:3
                     dNi = squeezeParticular(dNg(:,iNode,:),2);
+                    Ni = N(iNode,igaus);
                     for jNode = 1:3
-                        dNj = squeezeParticular(dNg(:,jNode,:),2);                       
+                        dNj = squeezeParticular(dNg(:,jNode,:),2);   
+                        Nj = N(jNode,igaus);
                         for kNode = 1:3
                             bXk = squeeze(bElem(1,kNode,:));
                             bYk = squeeze(bElem(2,kNode,:));
                             Nk = N(kNode,igaus);
+                            dNk = squeezeParticular(dNg(:,kNode,:),2);   
+                            
 
                             dNxi(:,1) = squeeze(dNi(1,:));
                             dNyi(:,1) = squeeze(dNi(2,:));
                             dNxj(:,1) = squeeze(dNj(1,:));
                             dNyj(:,1) = squeeze(dNj(2,:));
+                            dNxk(:,1) = squeeze(dNk(1,:));
+                            dNyk(:,1) = squeeze(dNj(2,:));
 
-                            intX(1,1,:) = dNxi.*(dNyj.*Nk.*bXk - dNxj.*Nk.*bYk).*dV;
-                            aX(iNode,jNode,:) = aX(iNode,jNode,:) + intX;
+                            intXA(1,1,:) = dNxi.*(dNyj.*Nk.*bXk - dNxj.*Nk.*bYk).*dV;
+                            intXB(1,1,:) = dNxi.*(Nj.*dNyk.*bXk - Nj.*dNxk.*bYk).*dV;
 
-                            intY(1,1,:) = dNyi.*(dNyj.*Nk.*bXk - dNxj.*Nk.*bYk).*dV;
-                            aY(iNode,jNode,:) = aY(iNode,jNode,:) + intY;                            
+                            aX(iNode,jNode,:) = aX(iNode,jNode,:) + intXA + intXB;
+
+                            intYA(1,1,:) = dNyi.*(dNyj.*Nk.*bXk - dNxj.*Nk.*bYk).*dV;
+                            intYB(1,1,:) = dNyi.*(Nj.*dNyk.*bXk - Nj.*dNxk.*bYk).*dV;
+
+                            aY(iNode,jNode,:) = aY(iNode,jNode,:) + intYA + intYB;                            
 
                         end                   
                     end
