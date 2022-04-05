@@ -13,7 +13,14 @@ classdef Assembler < handle
         end
 
         function A = assemble(obj, aElem)
-            A = obj.assembleMatrix(aElem);
+%             disp('normal')
+%             tic
+%                 A = obj.assembleMatrix(aElem);
+%             toc
+%             disp('nou')
+%             tic
+                A = obj.assembleMatrixViaIndices(aElem);
+%             toc
         end
 
         function B = assembleB(obj, Bfull)
@@ -50,12 +57,60 @@ classdef Assembler < handle
                     dofsJ = dofConnec(:,j);
                     a = squeeze(Ae(i,j,:));
                     Aadd = obj.computeAaddBySparse(a, dofsI, dofsJ);
-%                     Aadd = obj.computeAaddByAccumarray(a, dofsI, dofsJ);
+                    Aadd = obj.computeAaddByAccumarray(a, dofsI, dofsJ);
                     A = A + Aadd;
                 end
             end
         end
 
+        function A = assembleMatrixViaIndices3(obj, aElem)
+            disp('(--calculem DOF connec')
+            tic
+            dofConnec = obj.computeDofConnectivity()';
+            toc
+            disp('--)')
+%             dofConnec = obj.computeDofConnectivity()';
+            ndimf  = obj.dim.ndimField;
+            nnode  = obj.dim.nnode;
+            Ae     = aElem;
+%             A = sparse(ndofs,ndofs);
+            res = [];
+            for i = 1:nnode*ndimf
+                dofsI = dofConnec(:,i);
+                for j = 1:nnode*ndimf
+                    dofsJ = dofConnec(:,j);
+                    a = squeeze(Ae(i,j,:));
+                    res = [res; dofsI, dofsJ, a];
+                end
+            end
+            A = sparse(res(:,1), res(:,2), res(:,3));
+        end
+
+        function A = assembleMatrixViaIndices(obj, aElem)
+            dofConnec = obj.computeDofConnectivity()';
+            ndimf  = obj.dim.ndimField;
+            nnode  = obj.dim.nnode;
+            Ae     = aElem;
+            ndofEl = nnode*ndimf;
+            ndof = obj.dim.ndof;
+            nelem  = size(dofConnec, 1); % obj.dim.nelem does NOT work
+%             A = sparse(ndofs,ndofs);
+            res = zeros(ndofEl^2 * nelem, 3);
+            strt = 1;
+            fnsh = nelem;
+            for i = 1:ndofEl
+                dofsI = dofConnec(:,i);
+                for j = 1:ndofEl
+                    dofsJ = dofConnec(:,j);
+                    a = squeeze(Ae(i,j,:));
+                    matRes = [dofsI, dofsJ, a];
+                    res(strt:fnsh,:) = matRes;
+                    strt = strt + nelem;
+                    fnsh = fnsh + nelem;
+                end
+            end
+            A = sparse(res(:,1), res(:,2), res(:,3), ndof, ndof);
+        end
         function dofConnec = computeDofConnectivity(obj)
             connec = obj.globalConnec;
             ndimf  = obj.dim.ndimField;

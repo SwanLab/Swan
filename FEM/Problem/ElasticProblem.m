@@ -45,7 +45,14 @@ classdef ElasticProblem < handle
         end
 
         function solve(obj)
-            obj.computeStiffnessMatrix();
+%             disp('Elemental + assemble')
+%             tic
+                obj.computeStiffnessMatrix();
+%             toc
+%             disp('Old / assemble + product')
+%             tic
+%                 obj.computeStiffnessMatrixOld();
+%             toc
             obj.computeForces();
             obj.computeDisplacements();
             obj.computeStrain();
@@ -172,6 +179,21 @@ classdef ElasticProblem < handle
         end
 
         function computeStiffnessMatrix(obj)
+            s.type = 'ElasticStiffnessMatrix';
+            s.mesh         = obj.mesh;
+            s.npnod        = obj.mesh.npnod;
+            s.globalConnec = obj.mesh.connec;
+%             s.dofsInElem   = obj.dofsInElem;
+            s.dim          = obj.dim;
+            s.material     = obj.material;
+            LHS = LHSintegrator.create(s);
+            K   = LHS.compute();
+            Kred = obj.boundaryConditions.fullToReducedMatrix(K);
+            obj.stiffnessMatrix    = K;
+            obj.stiffnessMatrixRed = Kred;
+        end
+
+        function computeStiffnessMatrixOld(obj)
             s.type = 'ElasticStiffnessMatrixOld';
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;

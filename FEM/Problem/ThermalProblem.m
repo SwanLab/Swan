@@ -61,7 +61,7 @@ classdef ThermalProblem < handle
 
         function print(obj,fileName)
             dI = obj.createPostProcessDataBase(fileName);
-            dI.pdim = '1D';
+            dI.pdim = '2D';
             dI.ptype = 'THERMAL';
             dI.name = 'temp';
             postprocess = Postprocess('ScalarNodal',dI);
@@ -183,7 +183,7 @@ classdef ThermalProblem < handle
         function d = createPostProcessDataBase(obj,fileName)
             dI.mesh    = obj.mesh;
             dI.outName = fileName;
-            dI.pdim = '1D';
+            dI.pdim = '2D';
             dI.ptype = 'THERMAL';
             ps = PostProcessDataBaseCreator(dI);
             d = ps.getValue();

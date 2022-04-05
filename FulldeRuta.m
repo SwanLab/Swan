@@ -5,7 +5,7 @@
 %       OK! - Rename New stuff to just the name
 %                   - ElasticProblem, DiffReactProblem
 %                   - ElasticProblemMicro, DiffReactProblemMicro
-%           - Delete old DOFs and Elements
+%       OK!    - Delete old DOFs and Elements
 %                   - Stokes, Hyperelastic?
 %       OK! - Move dofsInElem to LHSintegrator
 
@@ -17,7 +17,10 @@
 %           - Set up GiD for ThermalProblem and visualize results
 %           - Set up GiD for Micro problem and visualize results
 
-% d) PERFORMANCE
+% d) DOFSINELEM
+%           - 
+
+% e) PERFORMANCE
 %           - See below
 
 
@@ -27,6 +30,9 @@
 % - Mirar Strain computer
 
 %% Report
+% We are NOT using the sparse method properly. It is way better to generate
+% arrays of indices and values, and then call the sparse function to
+% assemble the matrix.
 
 
 %% Old to-do
