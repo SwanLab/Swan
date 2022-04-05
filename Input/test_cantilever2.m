@@ -1,4 +1,4 @@
-filename = 'CantileverArnau';%'Cantilever';%'CantileverBeam_Triangle_Linear';
+filename = 'CantileverArnau2';%'Cantilever';%'CantileverBeam_Triangle_Linear';
 ptype = 'MACRO';
 method = 'SIMP_P3';
 materialType = 'ISOTROPIC';
