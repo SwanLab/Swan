@@ -3,7 +3,7 @@ classdef testHorizontalTensorRotatedVsSequentialLaminate < handle
     properties (Access = protected)
         C0
         C1
-        lamDir  
+        lamDir
         lamPar
         theta
         lamTensor
@@ -15,7 +15,7 @@ classdef testHorizontalTensorRotatedVsSequentialLaminate < handle
         horLamDir
         rotDir 
         horTensor
-    end    
+    end
     
     methods (Access = protected)
         
@@ -23,7 +23,7 @@ classdef testHorizontalTensorRotatedVsSequentialLaminate < handle
             obj.init()
             obj.computeHorizontalLaminate()
             obj.rotateHorizontalLaminate()
-            obj.computeLaminateDirectly()            
+            obj.computeLaminateDirectly()
         end
     end
     
@@ -41,7 +41,7 @@ classdef testHorizontalTensorRotatedVsSequentialLaminate < handle
             obj.lamPar = 1;
             obj.theta = rand(1);
         end
-                       
+        
         function createRotationParams(obj)
             obj.rotDir = Vector3D();
             obj.rotDir.setValue([0; 0 ;1]);
@@ -58,7 +58,7 @@ classdef testHorizontalTensorRotatedVsSequentialLaminate < handle
             a  = obj.angle;
             dir2Rotate = Vector3D();
             dir2Rotate.setValue(obj.horLamDir.getValue());
-            rotatedDir = Rotator.rotate(dir2Rotate,a,d);            
+            rotatedDir = Rotator.rotate(dir2Rotate,a,d);
             obj.lamDir = rotatedDir;
         end
         
@@ -83,7 +83,7 @@ classdef testHorizontalTensorRotatedVsSequentialLaminate < handle
         
         function rotateHorizontalLaminate(obj)
             dir = obj.rotDir;
-            alpha = (pi - obj.angle);    
+            alpha = (pi - obj.angle);
             Chor = obj.horTensor;
             obj.rotHorTensor = Rotator.rotate(Chor,alpha,dir);
         end
@@ -91,7 +91,7 @@ classdef testHorizontalTensorRotatedVsSequentialLaminate < handle
     end
     
     methods (Abstract, Access = protected)
-        computeLaminateDirectly(obj)  
+        computeLaminateDirectly(obj)
     end
     
 end

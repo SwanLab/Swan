@@ -43,9 +43,9 @@ classdef PerformanceTest < handle
         
         function createCantileverBeam(obj,step)
             s.dim    = obj.dim;
-            s.len    = obj.length;
+            s.length = obj.length;
             s.height = obj.height;
-            beam     = CantileverBeam(s);
+            beam     = CantileverBeamMeshCreator(s);
             Nx = fix(obj.length/step + 1);
             Ny = fix(obj.height/step + 1);
             obj.mesh = beam.create(Nx,Ny);

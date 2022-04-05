@@ -1,4 +1,4 @@
-classdef CantileverBeam < handle
+classdef CantileverBeamMeshCreator < handle
     
     properties (Access = public)
         connec
@@ -7,13 +7,13 @@ classdef CantileverBeam < handle
     
     properties (Access = private)
         dim
-        len
+        length
         height
     end
     
     methods (Access = public)
         
-        function obj = CantileverBeam(cParams)
+        function obj = CantileverBeamMeshCreator(cParams)
             obj.init(cParams)
         end
 
@@ -32,7 +32,7 @@ classdef CantileverBeam < handle
         
         function init(obj,cParams)
             obj.dim    = cParams.dim;
-            obj.len    = cParams.len;
+            obj.length = cParams.length;
             obj.height = cParams.height;
         end
 
@@ -49,7 +49,7 @@ classdef CantileverBeam < handle
         end
 
         function coords = computeCoords2D(obj, xdiv, ydiv)
-            x = linspace(0, obj.len,    xdiv+1);
+            x = linspace(0, obj.length, xdiv+1);
             y = linspace(0, obj.height, ydiv+1);
             [X,Y,Z] = meshgrid(x,y,0);
             fvc = surf2patch(X,Y,Z,'triangles');
@@ -60,21 +60,21 @@ classdef CantileverBeam < handle
 
         function computeConnec2D(obj, xdiv, ydiv)
             conn = [];
-            for j = 0:1:ydiv-1
-                for i = 1:1:xdiv
-                    node1 = j*(xdiv+1)+i;
-                    node2 = j*(xdiv+1)+i+1;
-                    node3 = (j+1)*(xdiv+1)+i;
-                    node4 = (j+1)*(xdiv+1)+i+1;
-                    elem = [node1, node2, node3, node4];
-                    conn = [conn;elem];
+            for j = 0:1:xdiv-1
+                for i = 1:1:ydiv
+                    node1 = j*(ydiv+1) + i;
+                    node2 = node1 + 1;
+                    node3 = node1 + (ydiv+1);
+                    node4 = node2 + (ydiv+1);
+                    elem = [node1, node2, node4, node3];
+                    conn = [conn; elem];
                 end
             end
             obj.connec = conn;
         end
 
         function computeCoords3D(obj, xdiv, ydiv)
-            x = linspace(0, obj.len,    xdiv+1);
+            x = linspace(0, obj.length,    xdiv+1);
             y = linspace(0, obj.height, ydiv+1);
             z = linspace(0, obj.height, ydiv+1);
             [X,Y,Z] = meshgrid(x,y,z);
@@ -88,20 +88,38 @@ classdef CantileverBeam < handle
 
         function computeConnec3D(obj, xdiv, ydiv)
             conn = [];
-            for z = 0:1:ydiv-1
-                for j = 0:1:ydiv-1
-                    for i = 1:1:xdiv
-                        addZ = (xdiv+1)*(ydiv+1)*z;
-                        addZ1 = (xdiv+1)*(ydiv+1)*(z+1);
-                        node1 = j*(xdiv+1)+i + addZ;
-                        node2 = j*(xdiv+1)+i+1 + addZ;
-                        node3 = (j+1)*(xdiv+1)+i + addZ;
-                        node4 = (j+1)*(xdiv+1)+i+1 + addZ;
-                        node5 = j*(xdiv+1)+i + addZ1;
-                        node6 = j*(xdiv+1)+i+1 + addZ1;
-                        node7 = (j+1)*(xdiv+1)+i + addZ1;
-                        node8 = (j+1)*(xdiv+1)+i+1 + addZ1;
-                        elem = [node1, node2, node3, node4, ...
+%             for z = 0:1:ydiv-1
+%                 for j = 0:1:ydiv-1
+%                     for i = 1:1:xdiv
+%                         addZ = (xdiv+1)*(ydiv+1)*z;
+%                         addZ1 = (xdiv+1)*(ydiv+1)*(z+1);
+%                         node1 = j*(xdiv+1)+i + addZ;
+%                         node2 = j*(xdiv+1)+i+1 + addZ;
+%                         node3 = (j+1)*(xdiv+1)+i + addZ;
+%                         node4 = (j+1)*(xdiv+1)+i+1 + addZ;
+%                         node5 = j*(xdiv+1)+i + addZ1;
+%                         node6 = j*(xdiv+1)+i+1 + addZ1;
+%                         node7 = (j+1)*(xdiv+1)+i + addZ1;
+%                         node8 = (j+1)*(xdiv+1)+i+1 + addZ1;
+%                         elem = [node1, node2, node3, node4, ...
+%                                 node5, node6, node7, node8];
+%                         conn = [conn; elem];
+%                     end
+%                 end
+%             end
+            for z = 0:1:ydiv
+                for j = 0:1:xdiv-1
+                    for i = 1:1:ydiv
+                        addZ  = (xdiv+1)*(ydiv+1)*z;
+                        node1 = j*(ydiv+1) + i;
+                        node2 = node1 + 1;
+                        node3 = node1 + (ydiv+1);
+                        node4 = node2 + (ydiv+1);
+                        node5 = j*(ydiv+1) + i + addZ;
+                        node6 = node5 + 1;
+                        node7 = node5 + (ydiv+1);
+                        node8 = node6 + (ydiv+1);
+                        elem = [node1, node2, node4, node3, ...
                                 node5, node6, node7, node8];
                         conn = [conn; elem];
                     end

@@ -18,15 +18,15 @@ classdef TopOptElementalDensityPrinter < CompositeResultsPrinter
         function storeFieldsToPrint(obj,d)
             phyPr = d.cost.shapeFunctions{1}.getPhysicalProblems();
             d.fields = obj.computeElementalDensity(d.x,phyPr{1});
-            obj.printers{1}.storeFieldsToPrint(d);            
-        end       
+            obj.printers{1}.storeFieldsToPrint(d);
+        end
         
         function createHeadPrinter(obj,d,dh)
             phyPr = d.cost.shapeFunctions{1}.getPhysicalProblems();
             d.quad = phyPr{1}.element.quadrature;
             obj.printers{1}.createHeadPrinter(d,dh);
             h = obj.printers{1}.getHeadPrinter();
-            obj.headPrinter = h;            
+            obj.headPrinter = h;
         end
     end
     

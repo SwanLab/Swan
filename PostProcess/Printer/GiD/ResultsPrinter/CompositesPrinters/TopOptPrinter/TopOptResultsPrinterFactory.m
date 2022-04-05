@@ -25,12 +25,12 @@ classdef TopOptResultsPrinterFactory < handle
                     p{1} = TopOptDesignVariablePrinter(d);
                 case {'DesignAndElementalDensity'}
                     p{1} = TopOptDesignVariablePrinter(d);
-                    p{2} = TopOptElementalDensityPrinter(d);                    
+                    p{2} = TopOptElementalDensityPrinter(d);
                 case {'ElementalDensity'}
                     p = {TopOptElementalDensityPrinter(d)};
                  case {'DesignAndShapes'}
                      p = {ShapesPrinter(d),...
-                         TopOptDesignVariablePrinter(d)};                    
+                         TopOptDesignVariablePrinter(d)};
                 case {'DesignElementalDensityAndShape'}
                     p = {TopOptDesignVariablePrinter(d),...
                         ShapesPrinter(d),...

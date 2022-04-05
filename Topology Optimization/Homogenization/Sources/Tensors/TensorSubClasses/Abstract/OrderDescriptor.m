@@ -17,7 +17,7 @@ classdef OrderDescriptor < handle
     end
     
     methods (Access = protected, Abstract)
-        loadOrderVariable(obj)        
+        loadOrderVariable(obj)
     end
     
 end

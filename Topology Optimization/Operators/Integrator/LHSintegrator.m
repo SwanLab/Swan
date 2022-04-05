@@ -6,16 +6,8 @@ classdef LHSintegrator < handle
         interpolation
         dim
         globalConnec
+        dofsInElem
         material
-    end
-
-    properties (Access = private)
-        LHScells
-        npnod
-    end
-    
-    properties (Access = private)
-        geometry
     end
 
     methods (Access = public, Static)
@@ -40,8 +32,8 @@ classdef LHSintegrator < handle
         function init(obj,cParams)
             obj.dim          = cParams.dim;
             obj.mesh         = cParams.mesh;
-            obj.npnod        = cParams.npnod;
             obj.globalConnec = cParams.globalConnec;
+            obj.dofsInElem   = cParams.dofsInElem;
         end
         
        function createQuadrature(obj)
@@ -59,6 +51,7 @@ classdef LHSintegrator < handle
         function LHS = assembleMatrix(obj,LHSelem)
             s.dim          = obj.dim;
             s.globalConnec = obj.globalConnec;
+            s.dofsInElem   = obj.dofsInElem;
             assembler = Assembler(s);
             LHS = assembler.assemble(LHSelem);
         end

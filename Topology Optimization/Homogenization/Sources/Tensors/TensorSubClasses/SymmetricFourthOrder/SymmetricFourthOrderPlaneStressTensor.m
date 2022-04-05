@@ -2,9 +2,7 @@ classdef SymmetricFourthOrderPlaneStressTensor <  AbstractTensor ...
                                               & FourthOrderDescriptor ...
                                               & TensorRepresentation ...
                                               & ElasticityPlaneStressDescriptor
-    
-                                        
-                                          
+
     methods (Access = public)
         
         function obj = SymmetricFourthOrderPlaneStressTensor()
@@ -22,8 +20,6 @@ classdef SymmetricFourthOrderPlaneStressTensor <  AbstractTensor ...
             obj.tensorSize = [2,2,2,2];
         end
     end
-    
-    
     
 end
 

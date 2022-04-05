@@ -12,7 +12,7 @@ classdef MixtureTheoryHomogenizer < handle
         Ey
         nu_xy
         nu_yx
-        mu        
+        mu
         dir
         ChHorizontal
         Vfrac
@@ -34,7 +34,7 @@ classdef MixtureTheoryHomogenizer < handle
         function init(obj,C1,C0,Dir,angle,Vfrac)
             obj.C1 = C1;
             obj.C0 = C0;
-            obj.angle = angle;            
+            obj.angle = angle;
             obj.dir = Dir;
             obj.Vfrac = Vfrac;
         end
@@ -42,8 +42,8 @@ classdef MixtureTheoryHomogenizer < handle
         function computeOrthotropicProperties(obj)
             E1 = obj.C1.getYoung();
             E0 = obj.C0.getYoung();
-            nu1 = obj.C1.getPoisson(); 
-            nu0 = obj.C0.getPoisson(); 
+            nu1 = obj.C1.getPoisson();
+            nu0 = obj.C0.getPoisson();
             mu1 = obj.C1.getMu();
             mu0 = obj.C0.getMu();
             Vol = obj.Vfrac;
@@ -51,17 +51,17 @@ classdef MixtureTheoryHomogenizer < handle
             
             obj.Ex = obj.serialize(E1,E0,Vol);
             obj.Ey = obj.parelalize(E1,E0,Vol);
-            obj.nu_xy = obj.serialize(nu1,nu0,Vol);           
+            obj.nu_xy = obj.serialize(nu1,nu0,Vol);
             obj.nu_yx = obj.nu_xy*obj.Ey/obj.Ex;
             obj.mu = obj.parelalize(mu1,mu0,Vol);
         end
 
         function computeHorizontalHomogenizedTensor(obj)
-            E1    = obj.Ex; 
+            E1    = obj.Ex;
             E2    = obj.Ey;
             nu_12 = obj.nu_xy;
             nu_21 = obj.nu_yx;
-            Mu    = obj.mu;  
+            Mu    = obj.mu;
             
             C = zeros(3,3);
             C(1,1) = E1/(1-nu_12*nu_21);
@@ -72,14 +72,12 @@ classdef MixtureTheoryHomogenizer < handle
             obj.ChHorizontal  = C;
         end
         
-
-        
         function rotateHorizontalHomogenizedTensor(obj)
             d = obj.dir;
             a = obj.angle;
             ChHor = obj.ChHorizontal;
             C = SymmetricFourthOrderPlaneStressVoigtTensor();
-            C.setValue(ChHor);            
+            C.setValue(ChHor);
             obj.Ch = Rotator.rotate(C,a,d);
         end
 
@@ -95,9 +93,5 @@ classdef MixtureTheoryHomogenizer < handle
         end
         
     end
-
-
     
 end
-
-

@@ -47,10 +47,10 @@ classdef ShFunc_StressNormInCell < ShFunWithElasticPdes
             obj.updateMaterialProperties(x);
             obj.solveCellProblem();
             stress = obj.physProb.variables.stress;
-            ngaus = obj.physProb.element.quadrature.ngaus;            
+            ngaus = obj.physProb.element.quadrature.ngaus;
             nstre = obj.physProb.element.getNstre();
             V = sum(sum(obj.physProb.geometry.dvolu));
-            dV = obj.physProb.element.geometry.dvolu;            
+            dV = obj.physProb.element.geometry.dvolu;
             s = obj.obtainMaxSigmaNorm(stress,ngaus,nstre,dV,V);
         end
         
@@ -67,8 +67,8 @@ classdef ShFunc_StressNormInCell < ShFunWithElasticPdes
         
         function solvePDEs(obj)
            obj.computeHomogenizedTensor();
-           obj.computeHomogenizedStrain();            
-           obj.solveCellProblem(); 
+           obj.computeHomogenizedStrain();
+           obj.solveCellProblem();
         end
         
         function computeFunctionValue(obj)
@@ -85,7 +85,7 @@ classdef ShFunc_StressNormInCell < ShFunWithElasticPdes
         function solveCellProblem(obj)
             cellProblem = obj.physProb;
             sH(1,:) = obj.strainHomog;
-            cellProblem.element.setVstrain(sH);            
+            cellProblem.element.setVstrain(sH);
             cellProblem.setMatProps(obj.matProps);
             cellProblem.computeVariables();
         end
@@ -141,7 +141,7 @@ classdef ShFunc_StressNormInCell < ShFunWithElasticPdes
                     s = s + Sistre;
                 end
                 v = max([sqrt(s);v]);
-            end            
+            end
             
         end
         
