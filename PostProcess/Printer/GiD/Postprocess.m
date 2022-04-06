@@ -1,6 +1,6 @@
 classdef Postprocess < handle
        
-    properties (Access = protected)                  
+    properties (Access = protected)
         outFileName
         resultsDir
         
@@ -8,21 +8,21 @@ classdef Postprocess < handle
         meshPrinter
         
         mshDataBase
-        resDataBase        
+        resDataBase
     end
     
     
      methods (Access = public)
  
-        function obj = Postprocess(postCase,d)            
-            obj.init(d);          
+        function obj = Postprocess(postCase,d)
+            obj.init(d);
             obj.createOutputDirectory();
             obj.createMeshPrinter();
             obj.createResultPrinter(postCase);
         end
-               
+        
         function  print(obj,iter,d)
-            obj.printMeshFile(iter);            
+            obj.printMeshFile(iter);
             obj.printResFile(iter,d)
         end
         
@@ -35,22 +35,22 @@ classdef Postprocess < handle
     methods (Access = private)
         
         function init(obj,d)
-            obj.outFileName = d.outFileName; 
+            obj.outFileName = d.outFileName;
             obj.createResultsDirName();
-            obj.computeDataBaseForMeshFile(d);                       
-            obj.computeDataBaseForResFile(d); 
+            obj.computeDataBaseForMeshFile(d);
+            obj.computeDataBaseForResFile(d);
         end
         
         function createMeshPrinter(obj)
-            obj.meshPrinter = MeshPrinter();            
+            obj.meshPrinter = MeshPrinter();
         end
         
         function createResultPrinter(obj,postCase)
             obj.resultPrinter  = ResultsPrinter.create(postCase,obj.resDataBase);
         end
         
-        function printResFile(obj,iter,d)           
-            obj.resultPrinter.print(iter,d);            
+        function printResFile(obj,iter,d)
+            obj.resultPrinter.print(iter,d);
         end
         
        	function printMeshFile(obj,iter)
@@ -60,16 +60,16 @@ classdef Postprocess < handle
         end
         
         function createOutputDirectory(obj)
-            dir = obj.resultsDir;            
+            dir = obj.resultsDir;
             if ~exist(dir,'dir')
                 mkdir(dir)
-            end            
+            end
         end
         
         function computeDataBaseForResFile(obj,dI)
             obj.resDataBase = dI;
             obj.resDataBase.resultsDir = obj.resultsDir;
-        end       
+        end
         
         function computeDataBaseForMeshFile(obj,dI)
             d.coordinates    = dI.coordinates;
@@ -84,11 +84,11 @@ classdef Postprocess < handle
             d.resultsDir     = obj.resultsDir;
             obj.mshDataBase = d;
         end
-                  
-         function createResultsDirName(obj)
-            path = pwd;
-            obj.resultsDir = fullfile(path,'Output',obj.outFileName);                          
-         end
+        
+        function createResultsDirName(obj)
+           path = pwd;
+           obj.resultsDir = fullfile(path,'Output',obj.outFileName);
+        end
          
      end
 

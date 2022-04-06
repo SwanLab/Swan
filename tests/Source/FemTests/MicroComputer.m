@@ -15,7 +15,7 @@ classdef MicroComputer < handle
 
         function compute(obj)
             s = obj.createFEMparameters();
-            femSolver = NewElasticProblemMicro(s);
+            femSolver = ElasticProblemMicro(s);
             femSolver.computeChomog();
             obj.computation = femSolver;
         end

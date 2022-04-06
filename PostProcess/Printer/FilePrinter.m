@@ -2,10 +2,9 @@ classdef FilePrinter < handle
     
     properties (Access = protected)
         fileID
-        fileName       
+        fileName
         openMode = 'w'
     end
-    
     
     methods (Access = protected)
         
@@ -18,6 +17,5 @@ classdef FilePrinter < handle
         end
         
     end
-
     
 end

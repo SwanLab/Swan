@@ -15,7 +15,7 @@ classdef ScalarNodalVariablePrinter < ResultsPrinter
             obj.init(d);
             obj.fieldName = d.fieldName;
             obj.simulationStr = d.fieldName;
-        end        
+        end
         
         function printResults(obj,iter,fileID)
             f = obj.fields;

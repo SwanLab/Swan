@@ -14,7 +14,7 @@ classdef StokesComputer < handle
         end
 
         function compute(obj)
-            femSolver = FEM.create(obj.testName);
+            femSolver = StokesFEM.create(obj.testName);
             femSolver.computeVariables;
             obj.computation = femSolver;
         end

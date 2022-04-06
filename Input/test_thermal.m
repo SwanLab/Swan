@@ -65,19 +65,16 @@ connec = [
 % Node            Dimension                Value
 
 dirichlet_data = [
-  1 1 0
-                            1 2 0
+                            1 1 0
                             3 1 0
-                            3 2 0
                             8 1 0
-                            8 2 0
 ];
 
 %% Force Prescribed
 % Node                Dimension                Value
 
 pointload_complete = [
-11 2 -1
+11 1 -1
 ];
 
 %% Volumetric Force

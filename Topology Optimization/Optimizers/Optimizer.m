@@ -160,7 +160,7 @@ classdef Optimizer < handle
             if cParams.shallPrint
                 d = obj.createPostProcessDataBase(cParams);
                 d.printMode = cParams.printMode;
-                d.nDesignVariables = obj.designVariable.nVariables;                
+                d.nDesignVariables = obj.designVariable.nVariables;
                 obj.postProcess = Postprocess('TopOptProblem',d);
             end
         end

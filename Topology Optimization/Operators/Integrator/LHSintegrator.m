@@ -6,7 +6,7 @@ classdef LHSintegrator < handle
         interpolation
         dim
         globalConnec
-        dofsInElem
+%         dofsInElem
         material
     end
 
@@ -33,7 +33,7 @@ classdef LHSintegrator < handle
             obj.dim          = cParams.dim;
             obj.mesh         = cParams.mesh;
             obj.globalConnec = cParams.globalConnec;
-            obj.dofsInElem   = cParams.dofsInElem;
+%             obj.dofsInElem   = cParams.dofsInElem;
         end
         
        function createQuadrature(obj)
@@ -51,7 +51,7 @@ classdef LHSintegrator < handle
         function LHS = assembleMatrix(obj,LHSelem)
             s.dim          = obj.dim;
             s.globalConnec = obj.globalConnec;
-            s.dofsInElem   = obj.dofsInElem;
+%             s.dofsInElem   = obj.dofsInElem;
             assembler = Assembler(s);
             LHS = assembler.assemble(LHSelem);
         end

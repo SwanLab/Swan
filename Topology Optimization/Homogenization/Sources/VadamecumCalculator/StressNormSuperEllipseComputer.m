@@ -39,17 +39,17 @@ classdef StressNormSuperEllipseComputer < handle
             var.Ctensor = mProblem.variables.varFromCh.Chomog;
             var.tstress = mProblem.variables.varFromCh.tstress;
             var.tstrain = mProblem.variables.varFromCh.tstrain;
-            var.displ   = mProblem.variables.varFromCh.tdisp;    
+            var.displ   = mProblem.variables.varFromCh.tdisp;
             var.volume  = mProblem.mesh.computeVolume();
             var.mesh    = mProblem.mesh;
             
             quad = Quadrature.set(var.mesh.geometryType);
             quad.computeQuadrature('CONSTANT');
-            volume = var.mesh.computeDvolume(quad);  
-            var.integrationVar.dV    = volume;            
+            volume = var.mesh.computeDvolume(quad);
+            var.integrationVar.dV    = volume;
             var.integrationVar.nstre = size(var.tstress,1);
             var.integrationVar.ngaus = size(var.tstress,2);
-            var.integrationVar.geoVol = obj.meshBackground.computeVolume();            
+            var.integrationVar.geoVol = obj.meshBackground.computeVolume();
         end
         
         function printImage(obj)
@@ -125,13 +125,13 @@ classdef StressNormSuperEllipseComputer < handle
             s.levelSetCreatorSettings = s;
             s.type = 'LevelSet';
             
-            s.scalarProductSettings.epsilon = 1;            
-            levelSet = LevelSet(s);            
+            s.scalarProductSettings.epsilon = 1;
+            levelSet = LevelSet(s);
             ls = levelSet.value;
         end
         
         function createBackgroundMesh(obj)
-            obj.testName = 'RVE_Square_Triangle_FineFine';            
+            obj.testName = 'RVE_Square_Triangle_FineFine';
             %obj.testName = 'RVE_Square_Triangle_Fine';
             s.testName = obj.testName;
             obj.meshBackground = Mesh().createFromFile(s); 
@@ -150,7 +150,7 @@ classdef StressNormSuperEllipseComputer < handle
             obj.createBackgroundMesh();
             obj.createMesh();
             femSolver = Elastic_Problem_Micro.create(obj.testName);
-            femSolver.setMesh(obj.mesh);            
+            femSolver.setMesh(obj.mesh);
             props.kappa = .75;
             props.mu    = .375;
             femSolver.setMatProps(props);

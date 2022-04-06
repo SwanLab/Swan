@@ -35,13 +35,13 @@ classdef ResultsPrinterFactory < handle
                 case {'PerimeterPrinter'}
                     p = PerimeterPrinter(d);
                 case {'VectorGauss'}
-                    d.fieldName = d.name;                                        
-                    p = VectorGaussVariablePrinter(d);                              
+                    d.fieldName = d.name;
+                    p = VectorGaussVariablePrinter(d);
                 case {'ScalarGauss'}
-                    d.fieldName = d.name;                    
+                    d.fieldName = d.name;
                     p = ScalarGaussVariablePrinter(d);
                 case {'ScalarNodal'}
-                    d.fieldName = d.name;                    
+                    d.fieldName = d.name;
                     p = ScalarNodalVariablePrinter(d);
                 otherwise
                     p = [];

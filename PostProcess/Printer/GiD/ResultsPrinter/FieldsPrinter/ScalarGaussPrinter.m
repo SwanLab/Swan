@@ -5,14 +5,14 @@ classdef ScalarGaussPrinter < ScalarPrinter
         nelem
         gaussDescriptor
     end    
-                   
+    
     methods (Access = public)
         
         function obj = ScalarGaussPrinter(d)
             obj.ngaus = size(d.fieldValues,1);
-            obj.nelem = size(d.fieldValues,3);             
+            obj.nelem = size(d.fieldValues,3);
             obj.init(d);
-            obj.createFieldRepresenter();            
+            obj.createFieldRepresenter();
             obj.print();
         end
         
