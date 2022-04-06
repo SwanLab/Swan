@@ -60,30 +60,35 @@ classdef ElasticProblemMicro < ElasticProblem
             ngaus = obj.dim.ngaus;
             nstre = obj.dim.nstre;
             nelem = obj.dim.nelem;
-            strFluct = vars.strain;
             dV = obj.getDvolume()';
+            strainFluct = vars.strain;
+            stressFluct = vars.stress;
             
-            vars.stress_fluct = vars.stress;
-            vars.strain_fluct = vars.strain;
-            
-            vars.stress = zeros(ngaus,nstre,nelem);
-            vars.strain = zeros(ngaus,nstre,nelem);
-            vars.stress_homog = zeros(nstre,1);
+            stress = zeros(ngaus,nstre,nelem);
+            strain = zeros(ngaus,nstre,nelem);
+            stressHomog = zeros(nstre,1);
             
             for igaus = 1:ngaus
-                vars.strain(igaus,1:nstre,:) = vStrn.*ones(1,nstre,nelem) + strFluct(igaus,1:nstre,:);
+                strain(igaus,1:nstre,:) = vStrn.*ones(1,nstre,nelem) + strainFluct(igaus,1:nstre,:);
                 for istre = 1:nstre
                     for jstre = 1:nstre
                         Cij  = squeeze(Cmat(istre,jstre,:,igaus));
                         C    = squeeze(Cij);
-                        strs = squeeze(vars.stress(igaus,istre,:));
-                        strn = squeeze(vars.strain(igaus,jstre,:));
-                        vars.stress(igaus,istre,:) = strs + C.* strn;
+                        strs = squeeze(stress(igaus,istre,:));
+                        strn = squeeze(strain(igaus,jstre,:));
+                        stress(igaus,istre,:) = strs + C.* strn;
                     end
-                    strs = squeeze(vars.stress(igaus,istre,:));
-                    vars.stress_homog(istre) = vars.stress_homog(istre) + (strs)'*dV(:,igaus);
+                    strs = squeeze(stress(igaus,istre,:));
+                    stressHomog(istre) = stressHomog(istre) + (strs)'*dV(:,igaus);
                 end
             end
+
+            vars.stress_fluct = stressFluct;
+            vars.strain_fluct = strainFluct;
+
+            vars.stress = stress;
+            vars.strain = strain;
+            vars.stress_homog = stressHomog;
             obj.variables = vars;
         end
 

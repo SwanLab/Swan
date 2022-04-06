@@ -21,3 +21,15 @@
 %           - See report.mlx
 
 
+%%% 
+%dofInElem by composition --->  Assembler and Forces
+% DiffReac in Newmann and Robin (Two diff react)
+% Clean Therma, Elastic, DiffReac --- (only) dim, boundary, LHS,RHS, u..
+% Clean dofsInElem THerma, Elastic
+% MaterProperties data as input 
+% Clean ElasticProblemMicro ---> vars, vars2Print, Chomog, variables....
+% Test coming from GiD (Swan.gid)
+% Performance (time) vs nElem: for different cases
+% replace applyNode --- for nnode = size(globalconnec,2) in Assembler
+
+

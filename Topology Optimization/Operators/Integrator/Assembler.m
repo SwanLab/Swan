@@ -111,6 +111,7 @@ classdef Assembler < handle
             end
             A = sparse(res(:,1), res(:,2), res(:,3), ndof, ndof);
         end
+        
         function dofConnec = computeDofConnectivity(obj)
             connec = obj.globalConnec;
             ndimf  = obj.dim.ndimField;
