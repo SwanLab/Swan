@@ -17,7 +17,7 @@ classdef NewFilterFactory < handle
                         case {'Density','MicroParams'}
                             filter = NewFilter_PDE_Density(cParams);
                         case 'LevelSet'
-                            filter = Filter_PDE_LevelSet(cParams);
+                            filter = NewFilter_PDE_LevelSet(cParams);
                     end
                 case 'AnisotropicP1'
                     switch factoryParams.designVarType
