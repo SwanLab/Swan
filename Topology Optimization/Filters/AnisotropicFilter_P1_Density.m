@@ -1,4 +1,4 @@
-classdef NewFilter_P1_Density < handle
+classdef AnisotropicFilter_P1_Density < handle
 
     properties (Access = private)
         mesh
@@ -21,7 +21,7 @@ classdef NewFilter_P1_Density < handle
 
     methods (Access = public)
         
-        function obj = NewFilter_P1_Density(cParams)
+        function obj = AnisotropicFilter_P1_Density(cParams)
             obj.init(cParams);
             obj.createMassMatrix(cParams);
             obj.createPoperator(cParams);
@@ -60,7 +60,7 @@ classdef NewFilter_P1_Density < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            %obj.createDiffReacProblem(cParams);
+            obj.createDiffReacProblem(cParams);
             obj.mesh = cParams.mesh;
             obj.quadratureOrder = cParams.quadratureOrder;
         end
@@ -124,6 +124,7 @@ classdef NewFilter_P1_Density < handle
         function pB = createDiffReacProblem(cParams)
             s = cParams.femSettings;
             s.mesh = cParams.mesh;
+            s.anisotropic = true;
             switch s.scale
                 case 'MACRO'
                     pB = NewDiffReactProblem(s);

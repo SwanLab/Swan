@@ -38,7 +38,7 @@ classdef NewDiffReactProblem < handle %FEM
             obj.createNewBoundaryConditions();
             obj.createGeometry();
             obj.createSolver();
-            obj.computeStiffnessMatrix();
+            obj.computeStiffnessMatrix(cParams);
             obj.computeMassMatrix();
             obj.computeBoundaryMassMatrix();
         end
@@ -168,17 +168,15 @@ classdef NewDiffReactProblem < handle %FEM
             obj.solver = Solver.create();
         end
 
-        function computeStiffnessMatrix(obj)
-%             switch obj.material
-%                 case 'isotropy'
-%                     s.type = 'StiffnessMatrix';
-%                 case 'anisotropy'
-%                     s.type = 'AnisotropicStiffnessMatrix';
-%                     for i = 1:size(obj.mesh.connec,1)
-%                         s.Celas(:,:,i) = [1, 0; 0, 1]; % Rotation matrix
-%                     end
-%             end
-            s.type = 'StiffnessMatrix';
+        function computeStiffnessMatrix(obj,cParams)
+            if exist('cParams.anisotropic')
+                    s.type = 'AnisotropicStiffnessMatrix';
+                    for i = 1:size(obj.mesh.connec,1)
+                        s.Celas(:,:,i) = [1, 0; 0, 1]; % Rotation matrix
+                    end
+            else
+                s.type = 'StiffnessMatrix';
+            end
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
