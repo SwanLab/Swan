@@ -61,6 +61,4 @@ classdef EigenValueAndVectorComputerSymbolic < EigenValueAndVectorComputer
         
     end
     
-    
-    
 end

@@ -15,8 +15,14 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
         end
 
         function LHS = compute(obj)
-%             lhs   = obj.computeElementalLHS();
-            lhs   = obj.computeElementalLHSPagemtimes();
+%             disp('Elemental')
+%             tic
+%                 lhs   = obj.computeElementalLHS();
+%             toc
+%             disp('Pagemtimes')
+%             tic
+                lhs   = obj.computeElementalLHSPagemtimes();
+%             toc
             LHS   = obj.assembleMatrix(lhs);
         end
 
@@ -76,7 +82,7 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
             s.dim          = obj.dim;
             s.geometry     = obj.geometry;
             s.globalConnec = obj.globalConnec;
-            s.dofsInElem   = obj.dofsInElem;
+%             s.dofsInElem   = obj.dofsInElem;
             Bcomp = BMatrixComputer(s);
         end
 

@@ -1,4 +1,8 @@
-classdef NewElasticProblemMicro < NewElasticProblem
+classdef ElasticProblemMicro < ElasticProblem
+
+    properties (Access = public)
+        variables2print
+    end
 
     methods (Access = public)
 
@@ -36,7 +40,9 @@ classdef NewElasticProblemMicro < NewElasticProblem
                 tStrn(istre,:,:,:)  = vars.strain;
                 tStrss(istre,:,:,:) = vars.stress;
                 tDisp(istre,:)      = vars.d_u;
+                v2p = obj.assignVarsToPrint(istre);
             end
+            obj.variables2print   = v2p;
             obj.variables.Chomog  = Ch;
             obj.variables.tstrain = tStrn;
             obj.variables.tstress = tStrss;
@@ -56,6 +62,9 @@ classdef NewElasticProblemMicro < NewElasticProblem
             nelem = obj.dim.nelem;
             strFluct = vars.strain;
             dV = obj.getDvolume()';
+            
+            vars.stress_fluct = vars.stress;
+            vars.strain_fluct = vars.strain;
             
             vars.stress = zeros(ngaus,nstre,nelem);
             vars.strain = zeros(ngaus,nstre,nelem);
@@ -78,6 +87,15 @@ classdef NewElasticProblemMicro < NewElasticProblem
             obj.variables = vars;
         end
 
+        function v2p = assignVarsToPrint(obj, istre)
+            vars = obj.variables;
+            v2p{istre}.d_u          = vars.d_u;
+            v2p{istre}.fext         = vars.fext;
+            v2p{istre}.stress       = vars.stress;
+            v2p{istre}.strain       = vars.strain;
+            v2p{istre}.stress_fluct = vars.stress_fluct;
+            v2p{istre}.strain_fluct = vars.strain_fluct;
+        end
     end
 
 end

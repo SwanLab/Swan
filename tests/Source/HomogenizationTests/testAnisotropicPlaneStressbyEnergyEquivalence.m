@@ -35,7 +35,7 @@ classdef testAnisotropicPlaneStressbyEnergyEquivalence < handle
     
     methods (Access = private)
         
-        function init(obj)            
+        function init(obj)
             obj.computeConstitutiveTensor()
             obj.computeStrainTensor()
         end
@@ -72,7 +72,7 @@ classdef testAnisotropicPlaneStressbyEnergyEquivalence < handle
         function computeVoigtEnergyInPlaneStress(obj)
             obj.energyFromPS = EnergyComputer.compute(obj.ChVoigtPS,obj.strainVoigtPS);
         end
-                
+        
         function computeTensorEnergyInPlaneStress(obj)
             obj.energyFromTensor = EnergyComputer.compute(obj.Ch,obj.strain);
         end

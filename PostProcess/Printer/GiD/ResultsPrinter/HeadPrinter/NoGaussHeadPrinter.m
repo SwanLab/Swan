@@ -1,11 +1,10 @@
 classdef NoGaussHeadPrinter < HeadPrinter
     
-    
     methods (Access = public)
         
         function obj = NoGaussHeadPrinter(dh)
            obj.fileID = dh.fileID;
-        end        
+        end
         
         function print(obj)
             obj.printInitialLine();

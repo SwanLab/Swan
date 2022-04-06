@@ -8,8 +8,6 @@ classdef (Abstract) TestComputer < handle
 
         function computer = create(solver_type, s)
             switch solver_type
-                case {'NEWFEM'}
-                    computer = NewFemComputer(s);
                 case {'FEM'}
                     computer = FemComputer(s);
                 case {'GMSH'}
@@ -20,6 +18,8 @@ classdef (Abstract) TestComputer < handle
                     computer = MicroComputer(s);
                 case {'STOKES'}
                     computer = StokesComputer(s);
+                case {'THERMAL'}
+                    computer = ThermalComputer(s);
                 case {'TOPOPT'}
                     computer = TopOptComputer(s);
                 otherwise

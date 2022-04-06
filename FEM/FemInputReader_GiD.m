@@ -70,7 +70,9 @@ classdef FemInputReader_GiD < handle
             obj.coord  = obj.coord(:,2:ndim+1);
             obj.connec = data.connectivities(:,2:end);
             
-            if strcmpi(data.problem_type,'elastic') || strcmpi(data.problem_type,'hyperelastic')
+            if strcmpi(data.problem_type,'elastic') ...
+            || strcmpi(data.problem_type,'hyperelastic') ...
+            || strcmpi(data.problem_type,'thermal')
                 if isfield(data,'dirichlet_data')
                     obj.dirichlet = data.dirichlet_data;
                     obj.pointload = data.pointload;
@@ -80,6 +82,8 @@ classdef FemInputReader_GiD < handle
         
         function d = getDimension(obj)
             switch obj.pdim
+                case '1D'
+                    d = 1;
                 case '2D'
                     d = 2;
                 case '3D'

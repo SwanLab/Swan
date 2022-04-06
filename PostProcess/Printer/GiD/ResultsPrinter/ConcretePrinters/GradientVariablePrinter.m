@@ -13,7 +13,7 @@ classdef GradientVariablePrinter < ResultsPrinter
         
         function obj = GradientVariablePrinter(d)
             obj.init(d);
-        end        
+        end
         
         function printResults(obj,iter,fileID)
             f = obj.fields;

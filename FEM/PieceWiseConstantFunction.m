@@ -20,15 +20,15 @@ classdef PieceWiseConstantFunction < handle
         
         function obj = PieceWiseConstantFunction(cParams)
             obj.init(cParams);
-            obj.createQuadrature();            
+            obj.createQuadrature();
             obj.createDimensions();
         end
         
         function fNodal = projectToLinearNodalFunction(obj)
-            obj.createIntegrator();           
+            obj.createIntegrator();
             LHS = obj.computeLHS();
             RHS = obj.computeRHS();
-            fNodal = (LHS\RHS);         
+            fNodal = (LHS\RHS);
         end
         
     end
@@ -43,9 +43,9 @@ classdef PieceWiseConstantFunction < handle
         
         function q = createQuadrature(obj)
             q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature(obj.quadOrder); 
+            q.computeQuadrature(obj.quadOrder);
             obj.quadrature = q;
-        end      
+        end
 
         function createDimensions(obj)
             q = Quadrature();
@@ -63,7 +63,7 @@ classdef PieceWiseConstantFunction < handle
             s.mesh = obj.mesh;
             s.npnod = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
-            int = Integrator.create(s);  
+            int = Integrator.create(s);
             obj.integrator = int;
         end
         
@@ -92,7 +92,7 @@ classdef PieceWiseConstantFunction < handle
         function RHS = computeRHS(obj)
             fG = obj.computeFgauss;
             xG = obj.computeXgauss;
-            RHS = obj.integrator.integrateFgauss(fG,xG,obj.quadOrder);                        
+            RHS = obj.integrator.integrateFgauss(fG,xG,obj.quadOrder);
         end
         
     end

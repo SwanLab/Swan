@@ -11,7 +11,7 @@ classdef DensityResultsPrinter < DesignVariablePrinter
         function obj = DensityResultsPrinter(d)
             obj.init(d);
         end
-           
+        
     end
     
 end

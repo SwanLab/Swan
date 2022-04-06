@@ -1,8 +1,17 @@
-filename = 'test_hyperelastic';
+%% Hyperelastic
+% filename = 'test_hyperelastic';
+% s = createFEMparameters(filename);
+% 
+% fem = FEM.create(s);
+
+%% Thermal
+filename = 'test_thermal';
 s = createFEMparameters(filename);
+fem = FEM.create(s);
+fem.solve();
+fem.print(filename)
 
-fem = NewFEM.create(s);
-
+%% Functions
 function s = createFEMparameters(file)
     gidParams = createGiDparameters(file);
     s.dim       = gidParams.pdim;
@@ -17,3 +26,19 @@ function gidParams = createGiDparameters(file)
     gidReader = FemInputReader_GiD();
     gidParams = gidReader.read(file);
 end
+
+function postProcess(fileName)
+    dI = obj.createPostProcessDataBase(fileName);
+    postprocess = Postprocess('ScalarNodal',dI);
+    q = obj.element.quadrature; 
+    d.fields = obj.variables;
+    d.quad = q;
+    postprocess.print(obj.iter,d);
+end
+
+    function d = createPostProcessDataBase(obj,fileName)
+        dI.mesh    = obj.mesh;
+        dI.outName = fileName;
+        ps = PostProcessDataBaseCreator(dI);
+        d = ps.getValue();
+    end

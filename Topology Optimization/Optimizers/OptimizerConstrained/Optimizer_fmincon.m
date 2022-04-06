@@ -38,7 +38,7 @@ classdef Optimizer_fmincon < Optimizer
 
          function solveProblem(obj)
             obj.cost.computeFunctionAndGradient();
-            obj.designVariable.updateOld();                
+            obj.designVariable.updateOld();
             x = obj.callfmincon();
             obj.designVariable.update(x);
          end
@@ -166,7 +166,7 @@ classdef Optimizer_fmincon < Optimizer
 
                     obj.updateStatus();
                     obj.printOptimizerVariable();
-                    obj.dualVariable.value = zeros(obj.constraint.nSF,1);            
+                    obj.dualVariable.value = zeros(obj.constraint.nSF,1);
                     obj.convergenceVars.reset();
                     obj.convergenceVars.append(incX);
                     obj.convergenceVars.append(foOpt);

@@ -133,7 +133,7 @@ classdef ShFunc_Chomog < ShapeFunctional
             obj.init(cParams);
             fileName = cParams.femSettings.fileName;
             s = obj.createFEMparameters(fileName);
-            obj.physicalProblem = NewFEM.create(s);
+            obj.physicalProblem = FEM.create(s);
         end
         
         function solveState(obj)
