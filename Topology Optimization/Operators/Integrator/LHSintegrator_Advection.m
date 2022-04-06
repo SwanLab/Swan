@@ -15,17 +15,19 @@ classdef LHSintegrator_Advection < LHSintegrator
             obj.createGeometry();
         end
 
-        function [LHSX,LHSY] = compute(obj)
-            [lhsX,lhsY] = obj.computeElementalLHS();
-            LHSX = obj.assembleMatrix(lhsX);
-            LHSY = obj.assembleMatrix(lhsY);
+        function [CX,CY,DX,DY] = compute(obj)
+            [CX,CY,DX,DY] = obj.computeElementalLHS();
+            CX = obj.assembleMatrix(CX);
+            CY = obj.assembleMatrix(CY);
+            DX = obj.assembleMatrix(DX);
+            DY = obj.assembleMatrix(DY);
         end
         
     end
     
    methods (Access = protected)
         
-        function [lhsX,lhsY] = computeElementalLHS(obj)
+        function [CX,CY,DX,DY] = computeElementalLHS(obj)
             dvolu = obj.mesh.computeDvolume(obj.quadrature);
             ngaus = obj.quadrature.ngaus;
             nelem = obj.mesh.nelem;
@@ -40,8 +42,10 @@ classdef LHSintegrator_Advection < LHSintegrator
             s.fNodes = obj.b;
             bF = FeFunction(s);
             bElem = bF.fElem;
-            aX = zeros(ndpe,ndpe,nelem);
-            aY = zeros(ndpe,ndpe,nelem);
+            cX = zeros(ndpe,ndpe,nelem);
+            cY = zeros(ndpe,ndpe,nelem);
+            dX = zeros(ndpe,ndpe,nelem);
+            dY = zeros(ndpe,ndpe,nelem);            
 
             for igaus = 1:ngaus
                 dNg = dN(:,:,:,igaus);
@@ -64,24 +68,33 @@ classdef LHSintegrator_Advection < LHSintegrator
                             dNxj(:,1) = squeeze(dNj(1,:));
                             dNyj(:,1) = squeeze(dNj(2,:));
                             dNxk(:,1) = squeeze(dNk(1,:));
-                            dNyk(:,1) = squeeze(dNj(2,:));
+                            dNyk(:,1) = squeeze(dNk(2,:));
 
-                            intXA(1,1,:) = dNxi.*(dNyj.*Nk.*bXk - dNxj.*Nk.*bYk).*dV;
-                            intXB(1,1,:) = dNxi.*(Nj.*dNyk.*bXk - Nj.*dNxk.*bYk).*dV;
 
-                            aX(iNode,jNode,:) = aX(iNode,jNode,:) + intXA + intXB;
+                            Cijk = Ni.*(dNxj.*bXk + dNyj.*bYk);
+                            Di   = Nk.*(-dNxi.*bYk + dNyi.*bXk);
 
-                            intYA(1,1,:) = dNyi.*(dNyj.*Nk.*bXk - dNxj.*Nk.*bYk).*dV;
-                            intYB(1,1,:) = dNyi.*(Nj.*dNyk.*bXk - Nj.*dNxk.*bYk).*dV;
+                            cXv(1,1,:) = dNyk.*Cijk.*dV;
+                            dXv(1,1,:) = dNxj.*Di.*dV;
 
-                            aY(iNode,jNode,:) = aY(iNode,jNode,:) + intYA + intYB;                            
+                            cX(iNode,jNode,:) = cX(iNode,jNode,:) + cXv;
+                            dX(iNode,jNode,:) = dX(iNode,jNode,:) + dXv;
+
+                            cYv(1,1,:) = -dNxk.*Cijk.*dV;
+                            dYv(1,1,:) = dNyj.*Di.*dV;
+
+                            cY(iNode,jNode,:) = cY(iNode,jNode,:) + cYv;
+                            dY(iNode,jNode,:) = dY(iNode,jNode,:) + dYv;
+
 
                         end                   
                     end
                 end
             end
-            lhsX = aY;
-            lhsY = aY;
+            CX = cX;
+            CY = cY;
+            DX = dX;
+            DY = dY;
         end
         
    end

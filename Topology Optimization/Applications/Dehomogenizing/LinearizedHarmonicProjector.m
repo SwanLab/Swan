@@ -38,31 +38,46 @@ classdef LinearizedHarmonicProjector < handle
             obj.plotOrientation(vH,1);
             i = 1;
             isErrorLarge = true;
+            lambda = obj.computeInitalLambda();
+            tau =1000;
             while isErrorLarge
                 obj.plotOrientation(vH,2);
-                [Ax,Ay] = obj.computeAdvectionMatrix(vH);
-                for idim = 1:2
-                    switch idim
-                        case 1
-                            A = Ax;
-                        case 2
-                            A = Ay;
-                    end
-                    Ared = obj.computeReducedAdvectionMatrix(A);
-                    obj.computeLHS(Ared);
-                    lhs    = obj.LHS;
-                    rhs    = obj.computeRHS(v0(:,idim));
-                    sol    = obj.solver.solve(lhs,rhs);
-                    v(:,idim) = sol(1:obj.dim.npnod,1);
-                    lambda(:,idim) = sol(obj.dim.npnod+1:end,1);
-                end  
+
+                obj.computeLHS(vH);
+                lhs    = obj.LHS;
+                rhs    = obj.computeRHS(v0);
+
+
+                % gradient                            
+                I = 1:2*obj.dim.npnod;
+                Il = (2*obj.dim.npnod + 1):length(rhs);
+                x = [vH(:,1);vH(:,2)];
+                res = lhs(I,I)*x - rhs(I,1);
+                sol = x - tau*(res);
+                lambda = lambda + (lhs(Il,I)*x );
+                indexX = 1:obj.dim.npnod;
+                indexY = (obj.dim.npnod) + (1:obj.dim.npnod);                
+                v(:,1) = sol(indexX,1);
+                v(:,2) = sol(indexY,1);                
+
+                % Picard
+                %sol    = obj.solver.solve(lhs,rhs); 
+%                 indexX = 1:obj.dim.npnod;
+%                 indexY = (obj.dim.npnod) + (1:obj.dim.npnod);
+%                 indexL = (2*(obj.dim.npnod) + 1):length(sol);
+%                 v(:,1) = sol(indexX,1);
+%                 v(:,2) = sol(indexY,1);
+%                 lambda = sol(indexL,1);
+
+                
+
                 err(i) = norm(vH(:)-v(:))/norm(v(:));
-                isErrorLarge = err(i) > 1e-2;
+                isErrorLarge = err(i) > 1e-9;
                 i = i + 1;                
                 figure(99)
                 plot(log10(err))                               
                 vH = v;     
-             %   vH = obj.projectUnitBall(vH);
+            %    vH = obj.projectUnitBall(vH);
             end
 
 
@@ -155,7 +170,7 @@ classdef LinearizedHarmonicProjector < handle
             obj.massMatrix = M;
         end
 
-        function [LHSX,LHSY] = computeAdvectionMatrix(obj,vH)
+        function [CX,CY,DX,DY] = computeAdvectionMatrix(obj,vH)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
             s.npnod        = obj.mesh.npnod;
@@ -164,7 +179,7 @@ classdef LinearizedHarmonicProjector < handle
             s.dofsInElem   = obj.dofsInElem; 
             s.b            = vH;
             lhs = LHSintegrator.create(s);
-            [LHSX,LHSY] =  lhs.compute();
+            [CX,CY,DX,DY] = lhs.compute();
        end        
 
        function Ared = computeReducedAdvectionMatrix(obj,A)
@@ -194,10 +209,16 @@ classdef LinearizedHarmonicProjector < handle
            obj.dofsInElem = dofsElem;
        end
 
-       function  computeLHS(obj,A)
+       function  computeLHS(obj,vH)
+           [Cx,Cy,Dx,Dy] = obj.computeAdvectionMatrix(vH);
+           Cx = obj.computeReducedAdvectionMatrix(Cx);
+           Cy = obj.computeReducedAdvectionMatrix(Cy);
+           Dx = obj.computeReducedAdvectionMatrix(Dx);
+           Dy = obj.computeReducedAdvectionMatrix(Dy);
            M    = obj.massMatrix;
+           Zb   = zeros(size(M));
            Z    = obj.computeZeroFunction();
-           lhs  = [M,A';A,Z];
+           lhs  = [M,Zb,(1*Cx+Dx)';Zb,M,(1*Cy+Dy)';Dx,Dy,Z];
            obj.LHS = lhs;
        end
 
@@ -216,11 +237,12 @@ classdef LinearizedHarmonicProjector < handle
             s.dim   = obj.dim;
             s.type = 'SIMPLE';
             int = Integrator.create(s);
-            rhs = int.integrateFnodal(v,q.order);
+            rhs1 = int.integrateFnodal(v(:,1),q.order);
+            rhs2 = int.integrateFnodal(v(:,2),q.order);
             b = obj.boundaryMesh;
             nInt = setdiff(1:obj.dim.npnod,b);
             Z   = zeros(length(nInt),1);
-            rhs = [rhs;Z];
+            rhs = [rhs1;rhs2;Z];
         end
 
         function idof = nod2dof(obj, inode, iunkn)
