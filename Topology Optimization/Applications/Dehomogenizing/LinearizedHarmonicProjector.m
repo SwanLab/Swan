@@ -9,7 +9,6 @@ classdef LinearizedHarmonicProjector < handle
         reducedAdvectionMatrixY
         LHS
         solver
-        dofsInElem
     end    
 
     properties (Access = private)
@@ -22,7 +21,6 @@ classdef LinearizedHarmonicProjector < handle
         function obj = LinearizedHarmonicProjector(cParams)
             obj.init(cParams);            
             obj.createDimension();
-            obj.computeDofConnectivity();            
             obj.computeMassMatrix();
             obj.createSolver()
         end
@@ -162,7 +160,7 @@ classdef LinearizedHarmonicProjector < handle
             s.type         = 'MassMatrix';
             s.dim          = obj.dim;
             s.quadType     = 'QUADRATIC';
-            s.dofsInElem   = obj.dofsInElem;    
+         
             lhs = LHSintegrator.create(s);
             M = lhs.compute();
             %M = diag(sum(M));
@@ -176,7 +174,6 @@ classdef LinearizedHarmonicProjector < handle
             s.npnod        = obj.mesh.npnod;
             s.type         = 'AdvectionMatrix';
             s.dim          = obj.dim;
-            s.dofsInElem   = obj.dofsInElem; 
             s.b            = vH;
             lhs = LHSintegrator.create(s);
             [CX,CY,DX,DY] = lhs.compute();
@@ -193,21 +190,6 @@ classdef LinearizedHarmonicProjector < handle
             obj.solver = s;
        end
 
-       function computeDofConnectivity(obj)
-           connec = obj.mesh.connec;
-           ndimf  = obj.dim.ndimField;
-           nnode  = obj.dim.nnode;
-           dofsElem  = zeros(nnode*ndimf,size(connec,1));
-           for inode = 1:nnode
-               for iunkn = 1:ndimf
-                   idofElem   = obj.nod2dof(inode,iunkn);
-                   globalNode = connec(:,inode);
-                   idofGlobal = obj.nod2dof(globalNode,iunkn);
-                   dofsElem(idofElem,:) = idofGlobal;
-               end
-           end
-           obj.dofsInElem = dofsElem;
-       end
 
        function  computeLHS(obj,vH)
            [Cx,Cy,Dx,Dy] = obj.computeAdvectionMatrix(vH);
@@ -245,10 +227,7 @@ classdef LinearizedHarmonicProjector < handle
             rhs = [rhs1;rhs2;Z];
         end
 
-        function idof = nod2dof(obj, inode, iunkn)
-            ndimf = obj.dim.ndimField;
-            idof(:,1)= ndimf*(inode - 1) + iunkn;
-        end        
+      
 
     end
     

@@ -8,7 +8,6 @@ classdef PieceWiseConstantFunction < handle
         integrator
         quadrature
         dim
-        dofsInElem
     end
     
     properties (Access = private)
@@ -23,7 +22,6 @@ classdef PieceWiseConstantFunction < handle
             obj.init(cParams);
             obj.createQuadrature();
             obj.createDimensions();
-            obj.computeDofConnectivity();
         end
         
         function fNodal = projectToLinearNodalFunction(obj)
@@ -87,37 +85,15 @@ classdef PieceWiseConstantFunction < handle
             s.type         = 'MassMatrix';
             s.dim          = obj.dim;
             s.quadType     = 'QUADRATIC';
-            s.dofsInElem   = obj.dofsInElem;
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
-
-       function computeDofConnectivity(obj)
-           connec = obj.mesh.connec;
-           ndimf  = obj.dim.ndimField;
-           nnode  = obj.dim.nnode;
-           dofsElem  = zeros(nnode*ndimf,size(connec,1));
-           for inode = 1:nnode
-               for iunkn = 1:ndimf
-                   idofElem   = obj.nod2dof(inode,iunkn);
-                   globalNode = connec(:,inode);
-                   idofGlobal = obj.nod2dof(globalNode,iunkn);
-                   dofsElem(idofElem,:) = idofGlobal;
-               end
-           end
-           obj.dofsInElem = dofsElem;
-       end        
         
         function RHS = computeRHS(obj)
             fG = obj.computeFgauss;
             xG = obj.computeXgauss;
             RHS = obj.integrator.integrateFgauss(fG,xG,obj.quadOrder);
-        end
-
-        function idof = nod2dof(obj, inode, iunkn)
-            ndimf = obj.dim.ndimField;
-            idof(:,1)= ndimf*(inode - 1) + iunkn;
-        end         
+        end       
         
     end
     
