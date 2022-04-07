@@ -50,31 +50,39 @@ classdef LinearizedHarmonicProjector < handle
                 I = 1:2*obj.dim.npnod;
                 Il = (2*obj.dim.npnod + 1):length(rhs);
                 x = [vH(:,1);vH(:,2)];
-                res = lhs(I,I)*x - rhs(I,1);
-                sol = x - tau*(res);
-                lambda = lambda + (lhs(Il,I)*x );
-                indexX = 1:obj.dim.npnod;
-                indexY = (obj.dim.npnod) + (1:obj.dim.npnod);                
-                v(:,1) = sol(indexX,1);
-                v(:,2) = sol(indexY,1);                
+                res  = lhs(I,I)*x - rhs(I,1);
+                resC = lhs(I,I)*x - rhs(I,1);
+
+
+%                 sol = x - tau*(res);
+%                 lambda = lambda + (lhs(Il,I)*x );
+%                 indexX = 1:obj.dim.npnod;
+%                 indexY = (obj.dim.npnod) + (1:obj.dim.npnod);                
+%                 v(:,1) = sol(indexX,1);
+%                 v(:,2) = sol(indexY,1);                
 
                 % Picard
-                %sol    = obj.solver.solve(lhs,rhs); 
-%                 indexX = 1:obj.dim.npnod;
-%                 indexY = (obj.dim.npnod) + (1:obj.dim.npnod);
-%                 indexL = (2*(obj.dim.npnod) + 1):length(sol);
-%                 v(:,1) = sol(indexX,1);
-%                 v(:,2) = sol(indexY,1);
-%                 lambda = sol(indexL,1);
+                sol    = obj.solver.solve(lhs,rhs); 
+                indexX = 1:obj.dim.npnod;
+                indexY = (obj.dim.npnod) + (1:obj.dim.npnod);
+                indexL = (2*(obj.dim.npnod) + 1):length(sol);
+                v(:,1) = sol(indexX,1);
+                v(:,2) = sol(indexY,1);
+                lambda = sol(indexL,1);
 
                 
 
-                err(i) = norm(vH(:)-v(:))/norm(v(:));
-                isErrorLarge = err(i) > 1e-9;
+               % err(i) = norm(vH(:)-v(:))/norm(v(:));
+                err(i) = norm(res);
+
+
+                isErrorLarge = err(i) > 1e-12;
                 i = i + 1;                
                 figure(99)
-                plot(log10(err))                               
-                vH = v;     
+                plot(log10(err)) 
+                theta = 0.01;
+                v = obj.projectUnitBall(v);
+                vH = theta*v + (1-theta)*vH ;     
             %    vH = obj.projectUnitBall(vH);
             end
 
