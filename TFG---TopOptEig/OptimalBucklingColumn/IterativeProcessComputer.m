@@ -187,12 +187,14 @@ classdef IterativeProcessComputer < handle
         end
 
         function createCost(obj)
-            s.nElem = obj.nElem;
-            s.designVariable = obj.designVariable;
-            s.nShapeFunction = 1;
-            s.type{1} = 'firstEignValue_functional';
-            s.settings = [];
-            obj.cost = Cost(s);
+            sF.designVariable = obj.designVariable;
+            sF.nElem          = obj.nElem;
+            sF.type = 'firstEignValue_functional';            
+            sC.weights = 1;
+            sC.nShapeFuncs = 1;
+            sC.designVar = obj.designVariable;         
+            sC.shapeFuncSettings{1} = sF;
+            obj.cost = Cost(sC);
         end
 
         function createEigModes(obj)
@@ -204,8 +206,6 @@ classdef IterativeProcessComputer < handle
             s.designVariable = obj.designVariable;
             obj.eigenModes = EigModes(s);
         end
-
-        
 
         function createConstraint(obj)
             s.designVariable = obj.designVariable;

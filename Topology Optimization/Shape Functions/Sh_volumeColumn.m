@@ -22,7 +22,7 @@ classdef Sh_volumeColumn < ShapeFunctional
 
     end
     
-    methods (Access = private)
+    methods (Access = protected)
         
         function init(obj,cParams)
             obj.nElem = cParams.nElem;

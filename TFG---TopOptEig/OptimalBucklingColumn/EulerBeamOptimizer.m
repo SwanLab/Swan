@@ -59,8 +59,9 @@ classdef EulerBeamOptimizer < handle
 
         function createDesignVariable(obj)
             N = obj.nElem;
-            x = ones(N+1,1);            
-            des = DesignVariable();
+            x = ones(N+1,1);   
+            s.type = 'AreaColumn';
+            des = DesignVariable.create(s);
             des.update(x);
             obj.designVariable = des;  
          end
@@ -78,7 +79,6 @@ classdef EulerBeamOptimizer < handle
             mmaVarComp = MMAVariablesComputer(s);
             obj.mmaVarComputer = mmaVarComp;
         end
-
 
         function obj = computeIterativeProcess(obj)
             s.mmaVarComputer = obj.mmaVarComputer;

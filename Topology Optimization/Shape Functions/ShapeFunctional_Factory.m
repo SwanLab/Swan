@@ -10,13 +10,21 @@ classdef ShapeFunctional_Factory < handle
     methods (Access = public)
         
         function sF = create(obj,cParams)
-            obj.designVar = cParams.designVariable;
-            obj.homogVarComputer = cParams.homogVarComputer;
-            obj.targetParameters = cParams.targetParameters;
+            obj.designVar        = cParams.designVariable;
+
+            if isfield(cParams,'homogenizedVarComputer')
+                obj.homogVarComputer = cParams.homogenizedVarComputer;
+            end
+            if isfield(cParams,'targetParameters')
+                obj.targetParameters = cParams.targetParameters;
+            end
             
-            cParams.mesh = cParams.designVariable.mesh.innerMeshOLD;
-            cParams.filterParams.mesh = cParams.designVariable.mesh.innerMeshOLD;
-            cParams.filterParams.designVarType = cParams.designVariable.type;
+            if ~isempty(cParams.designVariable.mesh)
+                mOld = cParams.designVariable.mesh.innerMeshOLD;
+                cParams.mesh = mOld;
+                cParams.filterParams.mesh          = mOld;
+                cParams.filterParams.designVarType = cParams.designVariable.type;
+            end
             
             switch cParams.type
                 case 'compliance'
@@ -72,7 +80,7 @@ classdef ShapeFunctional_Factory < handle
                 case 'doubleEig2'
                     sF = Sh_doubleSecondEig(cParams);
                 case 'volumeColumn'
-                    sF = Sh_volume(cParams);                    
+                    sF = Sh_volumeColumn(cParams);                    
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end
