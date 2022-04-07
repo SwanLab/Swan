@@ -5,15 +5,16 @@ classdef EigModesPlotter < handle
     end
     
     properties (Access = private)
-        
-    end
-    
-    properties (Access = private)
         iter
         E1
         E2
-       mode1
-       mode2
+        mode1
+        mode2
+    end
+    
+    properties (Access = private)
+        nElem
+        length
     end
     
     methods (Access = public)
@@ -22,10 +23,10 @@ classdef EigModesPlotter < handle
             obj.init(cParams)            
         end
         
-        function plot(obj,x,N,L,v1,v2,iter,D)
+        function plot(obj,x,v1,v2,iter,D)
            obj.computeConvergence2Eigenvalues(iter,D)
-           obj.computeBucklingModes(N,v1,v2);
-           obj.plotEigModes(x,N,L);
+           obj.computeBucklingModes(v1,v2);
+           obj.plotEigModes(x);
         end
         
     end
@@ -33,20 +34,21 @@ classdef EigModesPlotter < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            
+            obj.nElem  = cParams.nElem;
+            obj.length = cParams.length;
         end
 
         function computeConvergence2Eigenvalues(obj,iter,D)
-            obj.iter  = iter;
+            obj.iter     = iter;
             obj.E1(iter) = D(1,1);
             obj.E2(iter) = D(2,2);
         end           
         
-        function plotEigModes(obj,x,N,L)
+        function plotEigModes(obj,x)
+            N = obj.nElem;
+            L = obj.length;
             mod1 = obj.mode1;
             mod2 = obj.mode2;
-        %N = obj.nElem;
-            %L = obj.length;
             % axis and profile
             ch = 0:L:1-L;
             h  = 0:L:1;
@@ -72,8 +74,8 @@ classdef EigModesPlotter < handle
             axis([0 65 0 100]);
         end
         
-        function computeBucklingModes(obj,nElem,v1,v2)
-            N = nElem;
+        function computeBucklingModes(obj,v1,v2)
+            N = obj.nElem;
             Mode1=zeros(2*N+2);
             Mode2=zeros(2*N+2);
             for i=3:2*N

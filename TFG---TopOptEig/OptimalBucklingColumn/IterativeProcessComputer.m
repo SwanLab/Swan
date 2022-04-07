@@ -200,11 +200,30 @@ classdef IterativeProcessComputer < handle
             s.freeNodes  = obj.freeNodes;
             s.nElem      = obj.nElem;
             s.length     = obj.length;
+            s.stiffnessMatComputer = obj.createStiffnessMatrix();
+            s.bendingMatComputer   = obj.createBendingMatrix();
+            s.designVariable       = obj.designVariable;
+            obj.eigenModes = EigModes(s);
+        end
+
+        function K = createStiffnessMatrix(obj)
+            s.nElem          = obj.nElem;
+            s.length         = obj.length;
+            s.youngModulus   = obj.youngModulus;
+            s.inertiaMoment  = obj.inertiaMoment;
+            K = StiffnessMatrixComputer(s);
+        end
+
+        function B = createBendingMatrix(obj)
+            s.nElem          = obj.nElem;
+            s.length         = obj.length;
             s.youngModulus   = obj.youngModulus;
             s.inertiaMoment  = obj.inertiaMoment;
             s.designVariable = obj.designVariable;
-            obj.eigenModes = EigModes(s);
+            B = BendingMatrixComputer(s);
         end
+
+
 
         function createConstraint(obj)
             sF1.nElem          = obj.nElem;

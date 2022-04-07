@@ -1,15 +1,13 @@
 classdef EigModes < handle
     
     properties (Access = public)
-        lambda 
+         
     end
     
     properties (Access = private)
         freeNodes
         nElem
         length
-        youngModulus
-        inertiaMoment
         stiffnessMatrix
         bendingMatrix
 
@@ -19,6 +17,7 @@ classdef EigModes < handle
         v2
         D
         eigModesPlotter
+        lambda
     end
 
     properties (Access = private)
@@ -31,14 +30,12 @@ classdef EigModes < handle
         
         function obj = EigModes(cParams)
             obj.init(cParams)
-            obj.createStiffnessMatrix();
-            obj.createBendingMatrix();
             obj.createEigModesPlotter();
         end             
 
         function plot(obj,x,iter)
             p = obj.eigModesPlotter;
-            p.plot(x,obj.nElem,obj.length,obj.v1,obj.v2,iter,obj.D)
+            p.plot(x,obj.v1,obj.v2,iter,obj.D)
         end
 
         function fx = provideFunction(obj,eigNum)
@@ -107,29 +104,11 @@ classdef EigModes < handle
             obj.freeNodes      = cParams.freeNodes;
             obj.nElem          = cParams.nElem;
             obj.length         = cParams.length;
-            obj.youngModulus   = cParams.youngModulus;
-            obj.inertiaMoment  = cParams.inertiaMoment;
             obj.designVariable = cParams.designVariable;
+            obj.stiffnessMatComputer = cParams.stiffnessMatComputer;
+            obj.bendingMatComputer   = cParams.bendingMatComputer;
         end
 
-         function createStiffnessMatrix(obj)
-            s.nElem          = obj.nElem;
-            s.length         = obj.length;
-            s.youngModulus   = obj.youngModulus;
-            s.inertiaMoment  = obj.inertiaMoment;
-            obj.stiffnessMatComputer = StiffnessMatrixComputer(s);
-
-        end
-
-        function createBendingMatrix(obj)
-            s.nElem          = obj.nElem;
-            s.length         = obj.length;
-            s.youngModulus   = obj.youngModulus;
-            s.inertiaMoment  = obj.inertiaMoment;
-            s.designVariable = obj.designVariable;
-            obj.bendingMatComputer = BendingMatrixComputer(s);
-        end
-        
         function computeEigenModesAndValues(obj) 
             obj.stiffnessMatComputer.compute();
             obj.bendingMatComputer.compute();            
@@ -143,7 +122,8 @@ classdef EigModes < handle
         end
 
         function createEigModesPlotter(obj)
-            s = [];
+            s.length = obj.length;
+            s.nElem  = obj.nElem;
             p = EigModesPlotter(s);
             obj.eigModesPlotter = p;
         end
