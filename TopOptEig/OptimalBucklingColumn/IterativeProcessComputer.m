@@ -211,6 +211,7 @@ classdef IterativeProcessComputer < handle
             s.length         = obj.length;
             s.youngModulus   = obj.youngModulus;
             s.inertiaMoment  = obj.inertiaMoment;
+            s.freeNodes      = obj.freeNodes;
             K = StiffnessMatrixComputer(s);
         end
 
@@ -219,6 +220,7 @@ classdef IterativeProcessComputer < handle
             s.length         = obj.length;
             s.youngModulus   = obj.youngModulus;
             s.inertiaMoment  = obj.inertiaMoment;
+            s.freeNodes      = obj.freeNodes;
             s.designVariable = obj.designVariable;
             B = BendingMatrixComputer(s);
         end
@@ -228,11 +230,13 @@ classdef IterativeProcessComputer < handle
         function createConstraint(obj)
             sF1.nElem          = obj.nElem;
             sF1.eigModes       = obj.eigenModes;
-            sF1.type = 'doubleEig1';  
+            sF1.eigNum         = 1;
+            sF1.type = 'doubleEig';  
 
             sF2.nElem          = obj.nElem;
-            sF2.eigModes       = obj.eigenModes;            
-            sF2.type = 'doubleEig2';  
+            sF2.eigModes       = obj.eigenModes;  
+            sF2.eigNum         = 2;
+            sF2.type = 'doubleEig';  
 
             sF3.nElem          = obj.nElem;
             sF3.type = 'volumeColumn';              
@@ -267,8 +271,16 @@ classdef IterativeProcessComputer < handle
             obj.plot(iter)
             figure(3)
             plot(obj.costHistory)
+            grid on
+            grid minor
+            xlabel('Number of Iteration','Interpreter', 'latex','fontsize',18,'fontweight','b');
+            ylabel('Cost','Interpreter', 'latex','fontsize',18,'fontweight','b');
             figure(4)
             plot(obj.vol)
+            grid on
+            grid minor
+            xlabel('Number of Iteration','Interpreter', 'latex','fontsize',18,'fontweight','b');
+            ylabel('Volume','Interpreter', 'latex','fontsize',18,'fontweight','b');
         end
 
         function plot(obj,iter)

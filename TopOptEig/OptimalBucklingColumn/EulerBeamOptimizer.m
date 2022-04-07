@@ -32,15 +32,6 @@ classdef EulerBeamOptimizer < handle
         end
 
     end
-
-%% TO DO LIST
-
-% eigenModes have stifness and bending inside  (DONE)
-% eigenModes prvoide first and second eignvalue derivate (Sh_doubleFirst
-% and second)  (DONE)
-
-% 4. plotBeam in 3D 
-%%
     
     methods (Access = private)
         

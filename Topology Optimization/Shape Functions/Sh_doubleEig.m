@@ -1,18 +1,14 @@
-classdef Sh_doubleSecondEig < ShapeFunctional
+classdef Sh_doubleEig < ShapeFunctional
     
     properties (Access = private)
         nElem
         eigNum
-    end
-
-    properties (Access = private)
         eigModes
-
     end
 
     methods (Access = public)
         
-        function obj = Sh_doubleSecondEig(cParams)
+        function obj = Sh_doubleEig(cParams)
             obj.init(cParams)
         end
 
@@ -29,7 +25,7 @@ classdef Sh_doubleSecondEig < ShapeFunctional
             obj.nElem = cParams.nElem;
             obj.designVariable = cParams.designVariable;
             obj.eigModes = cParams.eigModes;
-            obj.eigNum = 2;
+            obj.eigNum = cParams.eigNum;
         end
     end
     

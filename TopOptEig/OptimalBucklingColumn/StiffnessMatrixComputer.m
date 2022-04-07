@@ -1,15 +1,20 @@
 classdef StiffnessMatrixComputer < handle
     
     properties (Access = public)       
-        stiffnessMatrix
+        freeStiffnessMatrix
     end
-    
+
     properties (Access = private)
+        stiffnessMatrix
         elementalStiffnessMatrix
+    end
+
+    properties (Access = private)
         nElem
         length
         youngModulus
         inertiaMoment
+        freeNodes
     end
     
     methods (Access = public)
@@ -23,15 +28,23 @@ classdef StiffnessMatrixComputer < handle
             obj.computeStiffnessMatrix();
         end
 
+       
+        function Kfree = provideFreeStiffnessMatrix(obj)
+            free = obj.freeNodes;
+            K = obj.stiffnessMatrix;
+            Kfree  = K(free,free);
+        end
+
     end
     
     methods (Access = private)
         
         function obj = init(obj,cParams)
-            obj.nElem        = cParams.nElem;
-            obj.length       = cParams.length;
-            obj.youngModulus = cParams.youngModulus;
+            obj.nElem         = cParams.nElem;
+            obj.length        = cParams.length;
+            obj.youngModulus  = cParams.youngModulus;
             obj.inertiaMoment = cParams.inertiaMoment;
+            obj.freeNodes     = cParams.freeNodes;
         end
 
         function obj = computeElementalStiffnessMatrix(obj)

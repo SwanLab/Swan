@@ -5,7 +5,6 @@ classdef EigModes < handle
     end
     
     properties (Access = private)
-        freeNodes
         nElem
         length
 
@@ -99,7 +98,6 @@ classdef EigModes < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.freeNodes      = cParams.freeNodes;
             obj.nElem          = cParams.nElem;
             obj.length         = cParams.length;
             obj.designVariable = cParams.designVariable;
@@ -110,11 +108,8 @@ classdef EigModes < handle
         function computeEigenModesAndValues(obj) 
             obj.stiffnessMatComputer.compute();
             obj.bendingMatComputer.compute();            
-            B = obj.bendingMatComputer.bendingMatrix;
-            K = obj.stiffnessMatComputer.stiffnessMatrix;
-            free   = obj.freeNodes;
-            Bfree  = B(free,free);
-            Kfree  = K(free,free);
+            Kfree  = obj.stiffnessMatComputer.provideFreeStiffnessMatrix();
+            Bfree  = obj.bendingMatComputer.provideFreeBendingMatrix();
             obj.computeEigenFunctionAndValues(Bfree,Kfree);
          
         end
@@ -126,7 +121,7 @@ classdef EigModes < handle
             obj.eigModesPlotter = p;
         end
 
-        function l = computeLambda(obj,iter)
+        function l = computeLambda(obj)
             l = sort(diag(obj.D));       
         end
 

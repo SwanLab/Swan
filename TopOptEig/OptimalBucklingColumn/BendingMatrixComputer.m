@@ -1,16 +1,21 @@
 classdef BendingMatrixComputer < handle
     
     properties (Access = public)
-        bendingMatrix
-        elementalBendingMatrix 
+        elementalBendingMatrix
+        freeBendingMatrix
     end
-    
+
+    properties (Access = private)
+        bendingMatrix
+    end
+
     properties (Access = private)
         nElem
         length
         youngModulus
         inertiaMoment
         designVariable
+        freeNodes
     end
     
     methods (Access = public)
@@ -23,17 +28,24 @@ classdef BendingMatrixComputer < handle
             obj.computeElementalBendingMatrix();
             obj.computeBendingMatrix();
         end
-        
+
+        function Bfree = provideFreeBendingMatrix(obj)
+            free = obj.freeNodes;
+            B = obj.bendingMatrix;
+            Bfree  = B(free,free);
+        end
+
     end
     
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.nElem        = cParams.nElem;
-            obj.length       = cParams.length;
-            obj.youngModulus = cParams.youngModulus;
-            obj.inertiaMoment = cParams.inertiaMoment;
+            obj.nElem          = cParams.nElem;
+            obj.length         = cParams.length;
+            obj.youngModulus   = cParams.youngModulus;
+            obj.inertiaMoment  = cParams.inertiaMoment;
             obj.designVariable = cParams.designVariable;
+            obj.freeNodes      = cParams.freeNodes;
         end
         
          
