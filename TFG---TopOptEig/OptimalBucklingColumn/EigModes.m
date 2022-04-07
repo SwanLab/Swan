@@ -12,14 +12,13 @@ classdef EigModes < handle
         inertiaMoment
         stiffnessMatrix
         bendingMatrix
-        e
-        E1
-        E2
+
 
         V
         v1
         v2
         D
+        eigModesPlotter
     end
 
     properties (Access = private)
@@ -34,13 +33,12 @@ classdef EigModes < handle
             obj.init(cParams)
             obj.createStiffnessMatrix();
             obj.createBendingMatrix();
+            obj.createEigModesPlotter();
         end             
 
         function plot(obj,x,iter)
-            s = [];
-            obj.computeConvergence2Eigenvalues(iter);                                                            
-            p = EigModesPlotter(s);
-            p.plot(x,obj.nElem,obj.length,obj.v1,obj.v2,obj.e,obj.E1,obj.E2)
+            p = obj.eigModesPlotter;
+            p.plot(x,obj.nElem,obj.length,obj.v1,obj.v2,iter,obj.D)
         end
 
         function fx = provideFunction(obj,eigNum)
@@ -144,6 +142,12 @@ classdef EigModes < handle
          
         end
 
+        function createEigModesPlotter(obj)
+            s = [];
+            p = EigModesPlotter(s);
+            obj.eigModesPlotter = p;
+        end
+
         function l = computeLambda(obj,iter)
             l = sort(diag(obj.D));       
         end
@@ -166,11 +170,7 @@ classdef EigModes < handle
             obj.v2 = v2;             
         end
 
-        function computeConvergence2Eigenvalues(obj,iter)
-            obj.e(iter)  = iter;
-            obj.E1(iter) = obj.D(1,1);
-            obj.E2(iter) = obj.D(2,2);
-        end   
+
           
 
     end
