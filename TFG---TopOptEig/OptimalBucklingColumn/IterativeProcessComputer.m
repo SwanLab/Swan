@@ -165,12 +165,12 @@ classdef IterativeProcessComputer < handle
             x = obj.designVariable.value;
             xval = x;
 
-            obj.constraint.computeFunctionAndGradient(iter); 
+            obj.constraint.computeFunctionAndGradient(); 
             fval = obj.constraint.value;
             dfdx = obj.constraint.gradient';
             dfdx2 = 0;            
             
-            obj.cost.computeFunctionAndGradient(iter); 
+            obj.cost.computeFunctionAndGradient(); 
             f0val = obj.cost.value;
             df0dx = obj.cost.gradient;
             df0dx2 = 0;
@@ -187,7 +187,6 @@ classdef IterativeProcessComputer < handle
         end
 
         function createCost(obj)
-            sF.designVariable = obj.designVariable;
             sF.nElem          = obj.nElem;
             sF.type = 'firstEignValue_functional';            
             sC.weights = 1;
@@ -208,21 +207,25 @@ classdef IterativeProcessComputer < handle
         end
 
         function createConstraint(obj)
-            s.designVariable = obj.designVariable;
-            s.nElem = obj.nElem;
-            s.freeNodes = obj.freeNodes;
-            s.length = obj.length;
-            s.youngModulus = obj.youngModulus;
-            s.inertiaMoment = obj.inertiaMoment; 
-            s.nConstraints = obj.nConstraints;
-            s.settings.eigMod = obj.eigenModes;
-            s.settings.bendingMat = obj.bendingMatComputer;
-            s.settings.stiffnessMat = obj.stiffnessMatComputer;
-            s.type{1} = 'doubleEig1';
-            s.type{2} = 'doubleEig2';
-            s.type{3} = 'volume';
-            s.nShapeFuncs = 3;
-            obj.constraint = Constraint2(s);
+            sF1.nElem          = obj.nElem;
+            sF1.eigModes       = obj.eigenModes;
+            sF1.type = 'doubleEig1';  
+
+            sF2.nElem          = obj.nElem;
+            sF2.eigModes       = obj.eigenModes;            
+            sF2.type = 'doubleEig2';  
+
+            sF3.nElem          = obj.nElem;
+            sF3.type = 'volumeColumn';              
+
+
+            sC.nShapeFuncs = 3;
+            sC.designVar = obj.designVariable;   
+            sC.dualVariable  = [];
+            sC.shapeFuncSettings{1} = sF1;
+            sC.shapeFuncSettings{2} = sF2;
+            sC.shapeFuncSettings{3} = sF3;
+            obj.constraint = Constraint(sC);
         end
 
         function displayIteration(obj)
@@ -242,16 +245,16 @@ classdef IterativeProcessComputer < handle
             x = obj.designVariable.value;
             obj.costHistory(iter) = obj.cost.value;
             obj.vol(iter) = (1/N)*sum(x(1:N));
-            obj.plot()
+            obj.plot(iter)
             figure(3)
             plot(obj.costHistory)
             figure(4)
             plot(obj.vol)
         end
 
-        function plot(obj)
+        function plot(obj,iter)
             x = obj.designVariable.value;
-            obj.eigenModes.plot(x);
+            obj.eigenModes.plot(x,iter);
         end                            
            
     end

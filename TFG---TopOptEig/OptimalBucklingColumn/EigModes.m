@@ -36,22 +36,22 @@ classdef EigModes < handle
             obj.createBendingMatrix();
         end             
 
-        function plot(obj,x)
+        function plot(obj,x,iter)
             s = [];
+            obj.computeConvergence2Eigenvalues(iter);                                                            
             p = EigModesPlotter(s);
             p.plot(x,obj.nElem,obj.length,obj.v1,obj.v2,obj.e,obj.E1,obj.E2)
         end
 
-        function fx = provideFunction(obj,iter,eigNum)
+        function fx = provideFunction(obj,eigNum)
             obj.computeEigenModesAndValues();            
-            obj.lambda = obj.computeLambda(iter);                
+            obj.lambda = obj.computeLambda();                
             x = obj.designVariable.value;
             N = obj.nElem;
             fx = x(N+1)-obj.lambda(eigNum);
-            obj.computeConvergence2Eigenvalues(iter);                                                
         end
 
-        function grad = provideDerivative(obj,iter,eigNum)
+        function grad = provideDerivative(obj,eigNum)
             obj.reorderModes(obj.lambda,obj.V,obj.D);
             Belem =  obj.bendingMatComputer.elementalBendingMatrix;
             x = obj.designVariable.value;
@@ -112,9 +112,6 @@ classdef EigModes < handle
             obj.youngModulus   = cParams.youngModulus;
             obj.inertiaMoment  = cParams.inertiaMoment;
             obj.designVariable = cParams.designVariable;
-            obj.e         = zeros(0);
-            obj.E1        = zeros(0);
-            obj.E2        = zeros(0);
         end
 
          function createStiffnessMatrix(obj)
@@ -174,14 +171,7 @@ classdef EigModes < handle
             obj.E1(iter) = obj.D(1,1);
             obj.E2(iter) = obj.D(2,2);
         end   
-
-        function createConvengeceParam(obj,nIter)
-            obj.e  = zeros(nIter);
-            obj.E1 = zeros(nIter);
-            obj.E2 = zeros(nIter);
-        end              
-
-
+          
 
     end
     

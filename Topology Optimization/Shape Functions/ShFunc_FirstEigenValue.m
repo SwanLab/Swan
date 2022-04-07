@@ -10,9 +10,9 @@ classdef ShFunc_FirstEigenValue < ShapeFunctional
             obj.init(cParams)
         end
         
-        function computeFunctionAndGradient(obj,iter)
-            obj.computeFunction(iter);
-            obj.computeGradient(iter);
+        function computeFunctionAndGradient(obj)
+            obj.computeFunction();
+            obj.computeGradient();
         end
         
     end
@@ -28,14 +28,14 @@ classdef ShFunc_FirstEigenValue < ShapeFunctional
     
     methods (Access = public)
 
-        function computeFunction(obj,iter)
+        function computeFunction(obj)
             N = obj.nElem;
             x = obj.designVariable.value;
             f0val = -x(N+1);
             obj.value = f0val;
         end
 
-        function computeGradient(obj,iter)
+        function computeGradient(obj)
             N = obj.nElem;
             df0dx = zeros(N+1,1);
             df0dx(N+1) = -1;

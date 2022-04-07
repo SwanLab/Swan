@@ -3,7 +3,6 @@ classdef Sh_doubleSecondEig < ShapeFunctional
     properties (Access = private)
         nElem
         eigNum
-        designVariable
     end
 
     properties (Access = private)
@@ -18,33 +17,33 @@ classdef Sh_doubleSecondEig < ShapeFunctional
             obj.init(cParams)
         end
 
-        function computeFunctionAndGradient(obj,iter)
-            obj.computeFunction(iter);
+        function computeFunctionAndGradient(obj)
+            obj.computeFunction();
             obj.computeGradient();
         end
         
     end
 
-    methods (Access = private)
+    methods (Access = protected)
 
         function init(obj,cParams)
             obj.nElem = cParams.nElem;
             obj.designVariable = cParams.designVariable;
-            obj.eigModes = cParams.settings.eigMod;
+            obj.eigModes = cParams.eigModes;
             obj.eigNum = 2;
         end
     end
     
     methods (Access = public)
 
-        function computeFunction(obj,iter)
+        function computeFunction(obj)
            eigN = obj.eigNum;
-           obj.value = obj.eigModes.provideFunction(iter,eigN);
+           obj.value = obj.eigModes.provideFunction(eigN);
         end
 
-        function computeGradient(obj,iter)
+        function computeGradient(obj)
             eigN = obj.eigNum;
-            dfdx = obj.eigModes.provideDerivative(iter,eigN);
+            dfdx = obj.eigModes.provideDerivative(eigN);
             obj.gradient = dfdx';
         end
     end
