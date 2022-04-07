@@ -58,16 +58,15 @@ classdef EigModesPlotter < handle
         end
 
         function plotBucklingModes(obj,m1,m2)
-            N = 10;%obj.nElem;
             L = obj.length;
             h  = 0:L:1;
             mod1 = m1;
             mod2 = m2;
-            subplot(2,2,2); plot(h,-mod1(1:2:2*(N+1)));
+            subplot(2,2,2); plot(h,-mod1(1:2:end));
             grid on
             grid minor
             title('First Buckling Mode','Interpreter', 'latex','FontSize',14, 'fontweight','b')
-            subplot(2,2,4); plot(h,-mod2(1:2:2*(N+1)));
+            subplot(2,2,4); plot(h,-mod2(1:2:end));
             grid on
             grid minor
             title('Second Buckling Mode','Interpreter', 'latex','FontSize',14, 'fontweight','b')
@@ -83,7 +82,7 @@ classdef EigModesPlotter < handle
             grid minor
             xlabel('Number of Iteration','Interpreter', 'latex','fontsize',18,'fontweight','b');
             ylabel('Eigenvalues','Interpreter', 'latex','fontsize',18,'fontweight','b');
-            axis([0 65 0 100]);
+            axis([0 obj.iter 0 100]);
         end
         
         

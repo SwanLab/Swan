@@ -34,9 +34,9 @@ classdef ShFunc_FirstEigenValue < ShapeFunctional
         end
 
         function computeGradient(obj)
-            N = obj.designVariable.getNelem();
-            df0dx = zeros(N+1,1);
-            df0dx(N+1) = -1;
+            x = obj.designVariable.value;
+            df0dx = zeros(size(x));
+            df0dx(end) = -1;
             obj.gradient = df0dx;   
         end
 

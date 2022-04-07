@@ -141,8 +141,8 @@ classdef EigModes < handle
 
         function [m1,m2] = computeBucklingModes(obj,v1,v2)
             N = obj.designVariable.getNelem();
-            Mode1=zeros(2*(N+1));
-            Mode2=zeros(2*(N+1));
+            Mode1=zeros(2*(N+1),1);
+            Mode2=zeros(2*(N+1),1);
             for i=3:2*N
                 Mode1(i)=v1(i-2);
                 Mode2(i)=v2(i-2);

@@ -25,7 +25,7 @@ classdef AreaColumn < DesignVariable
         end
 
         function V = computeVolum(obj)
-            N = obj.getNelem();
+            N = obj.nElem;
             A = obj.getColumnArea();
             V = (1/N)*sum(A);
         end

@@ -16,6 +16,12 @@ classdef EulerBeamOptimizer < handle
         maxIter 
     end
 
+    % Mesh (lenght only to create mesh, delete elsewhere)
+    % Kelem  + assembly
+    % plot modes getting displacement
+    % Solve for a non-structured mesh
+
+
     properties (Access = private)
         designVariable
         freeNodes
