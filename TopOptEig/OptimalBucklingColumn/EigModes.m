@@ -5,7 +5,6 @@ classdef EigModes < handle
     end
     
     properties (Access = private)
-        nElem
         length
 
 
@@ -30,24 +29,24 @@ classdef EigModes < handle
             obj.createEigModesPlotter();
         end             
 
-        function plot(obj,x,iter)
+        function plot(obj,A,iter)
             p = obj.eigModesPlotter;
-            p.plot(x,obj.v1,obj.v2,iter,obj.D)
+            [m1,m2] = obj.computeBucklingModes(obj.v1,obj.v2);
+            p.plot(A,m1,m2,iter,obj.D)
         end
 
         function fx = provideFunction(obj,eigNum)
             obj.computeEigenModesAndValues();            
             obj.lambda = obj.computeLambda();                
-            x = obj.designVariable.value;
-            N = obj.nElem;
-            fx = x(N+1)-obj.lambda(eigNum);
+            gamma = obj.designVariable.getFirstEigenMode();            
+            fx = gamma-obj.lambda(eigNum);
         end
 
         function grad = provideDerivative(obj,eigNum)
             obj.reorderModes(obj.lambda,obj.V,obj.D);
             Belem =  obj.bendingMatComputer.elementalBendingMatrix;
-            x = obj.designVariable.value;
-            N = obj.nElem;
+            x = obj.designVariable.getColumnArea;
+            N = obj.designVariable.getNelem();
             if abs(obj.D(2,2)-obj.D(1,1))> 1
                 W=zeros(2*N+2,2);
                 for i=3:2*N
@@ -98,7 +97,6 @@ classdef EigModes < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.nElem          = cParams.nElem;
             obj.length         = cParams.length;
             obj.designVariable = cParams.designVariable;
             obj.stiffnessMatComputer = cParams.stiffnessMatComputer;
@@ -110,13 +108,11 @@ classdef EigModes < handle
             obj.bendingMatComputer.compute();            
             Kfree  = obj.stiffnessMatComputer.provideFreeStiffnessMatrix();
             Bfree  = obj.bendingMatComputer.provideFreeBendingMatrix();
-            obj.computeEigenFunctionAndValues(Bfree,Kfree);
-         
+            obj.computeEigenFunctionAndValues(Bfree,Kfree);         
         end
 
         function createEigModesPlotter(obj)
             s.length = obj.length;
-            s.nElem  = obj.nElem;
             p = EigModesPlotter(s);
             obj.eigModesPlotter = p;
         end
@@ -142,6 +138,18 @@ classdef EigModes < handle
             obj.v1 = v1;
             obj.v2 = v2;             
         end
+
+        function [m1,m2] = computeBucklingModes(obj,v1,v2)
+            N = obj.designVariable.getNelem();
+            Mode1=zeros(2*(N+1));
+            Mode2=zeros(2*(N+1));
+            for i=3:2*N
+                Mode1(i)=v1(i-2);
+                Mode2(i)=v2(i-2);
+            end
+            m1 = Mode1;
+            m2 = Mode2;
+        end             
 
 
           

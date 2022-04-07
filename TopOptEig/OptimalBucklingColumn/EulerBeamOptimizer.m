@@ -18,6 +18,7 @@ classdef EulerBeamOptimizer < handle
 
     properties (Access = private)
         designVariable
+        freeNodes
         nIter
         mmaVarComputer
     end
@@ -27,6 +28,7 @@ classdef EulerBeamOptimizer < handle
         function obj = EulerBeamOptimizer()
             obj.init()
             obj.createDesignVariable();
+            obj.createBoundaryConditions()
             obj.createMMA();
             obj.computeIterativeProcess()
         end
@@ -50,12 +52,21 @@ classdef EulerBeamOptimizer < handle
 
         function createDesignVariable(obj)
             N = obj.nElem;
-            x = ones(N+1,1);   
-            s.type = 'AreaColumn';
+            s.type  = 'AreaColumn';
+            s.nElem = obj.nElem;
             des = DesignVariable.create(s);
-            des.update(x);
+            x0 = ones(N+1,1);               
+            des.update(x0);
             obj.designVariable = des;  
-         end
+        end
+
+        function createBoundaryConditions(obj)
+            N = obj.nElem;
+            fixnodes = union([1,2], [2*N+1,2*N+2]);
+            nodes = 1:2*N+2;
+            free  = setdiff(nodes,fixnodes);
+            obj.freeNodes = free;
+        end        
 
         function obj = createMMA(obj)
             s.nElem         = obj.nElem;
@@ -73,7 +84,7 @@ classdef EulerBeamOptimizer < handle
 
         function obj = computeIterativeProcess(obj)
             s.mmaVarComputer = obj.mmaVarComputer;
-            s.nElem          = obj.nElem;
+            s.freeNodes      = obj.freeNodes;
             s.nConstraints   = obj.nConstraints; 
             s.length         = obj.length;
             s.nValues        = obj.nValues;
@@ -84,6 +95,7 @@ classdef EulerBeamOptimizer < handle
             s.maxIter        = obj.maxIter;
             s.optimizerType  = obj.optimizerType;
             s.designVariable = obj.designVariable;
+            s.nElem          = obj.nElem;
             solution = IterativeProcessComputer(s);
             solution.compute();
             obj.designVariable = solution.designVariable;

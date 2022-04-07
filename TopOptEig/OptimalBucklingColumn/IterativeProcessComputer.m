@@ -30,6 +30,7 @@ classdef IterativeProcessComputer < handle
         E1
         E2
         freeNodes
+        
     end
 
     properties (Access = private)
@@ -56,7 +57,6 @@ classdef IterativeProcessComputer < handle
 
         function obj = IterativeProcessComputer(cParams)
             obj.init(cParams);
-            obj.computeBoundaryConditions();            
             obj.createCost();
             obj.createEigModes();
             obj.createConstraint();
@@ -70,7 +70,8 @@ classdef IterativeProcessComputer < handle
     methods (Access = private)
 
          function init(obj,cParams)
-            obj.nElem          = cParams.nElem;
+            obj.nElem          = cParams.nElem;             
+            obj.freeNodes      = cParams.freeNodes;
             obj.nConstraints   = cParams.nConstraints;
             obj.length         = cParams.length;
             obj.youngModulus   = cParams.youngModulus;
@@ -152,13 +153,7 @@ classdef IterativeProcessComputer < handle
             obj.hasFinished = (obj.change <= 0.0005) || (obj.nIter >= obj.maxIter);
         end
 
-        function computeBoundaryConditions(obj)
-            N = obj.nElem;
-            fixnodes = union([1,2], [2*N+1,2*N+2]);
-            nodes = 1:2*N+2;
-            free  = setdiff(nodes,fixnodes);
-            obj.freeNodes = free;
-        end
+
 
         function computeNewDesign(obj)
             iter = obj.nIter;
@@ -187,7 +182,6 @@ classdef IterativeProcessComputer < handle
         end
 
         function createCost(obj)
-            sF.nElem          = obj.nElem;
             sF.type = 'firstEignValue_functional';            
             sC.weights = 1;
             sC.nShapeFuncs = 1;
@@ -198,7 +192,6 @@ classdef IterativeProcessComputer < handle
 
         function createEigModes(obj)
             s.freeNodes  = obj.freeNodes;
-            s.nElem      = obj.nElem;
             s.length     = obj.length;
             s.stiffnessMatComputer = obj.createStiffnessMatrix();
             s.bendingMatComputer   = obj.createBendingMatrix();
@@ -225,20 +218,15 @@ classdef IterativeProcessComputer < handle
             B = BendingMatrixComputer(s);
         end
 
-
-
         function createConstraint(obj)
-            sF1.nElem          = obj.nElem;
             sF1.eigModes       = obj.eigenModes;
             sF1.eigNum         = 1;
             sF1.type = 'doubleEig';  
 
-            sF2.nElem          = obj.nElem;
             sF2.eigModes       = obj.eigenModes;  
             sF2.eigNum         = 2;
             sF2.type = 'doubleEig';  
 
-            sF3.nElem          = obj.nElem;
             sF3.type = 'volumeColumn';              
 
 
@@ -252,22 +240,19 @@ classdef IterativeProcessComputer < handle
         end
 
         function displayIteration(obj)
-            x = obj.designVariable.value;
-            N = obj.nElem;
+            V = obj.designVariable.computeVolum();
             f0val = obj.cost.value;
             iter  = obj.nIter;
             disp([' It.: ' sprintf('%4i',iter) ' Obj.: ' sprintf('%10.4f',f0val) ...
-                ' Vol.: ' sprintf('%6.3f',  (1/N)*(sum(x)-x(N+1))  ) ...
+                ' Vol.: ' sprintf('%6.3f',V) ...
                 ' ch.: ' sprintf('%6.3f',''  )])
             %(obj.constraint.D(2,2)-obj.constraint.D(1,1))
         end
 
         function plotFigures(obj)
-            N = obj.nElem;
             iter = obj.nIter;
-            x = obj.designVariable.value;
             obj.costHistory(iter) = obj.cost.value;
-            obj.vol(iter) = (1/N)*sum(x(1:N));
+            obj.vol(iter) = obj.designVariable.computeVolum();
             obj.plot(iter)
             figure(3)
             plot(obj.costHistory)
@@ -284,8 +269,8 @@ classdef IterativeProcessComputer < handle
         end
 
         function plot(obj,iter)
-            x = obj.designVariable.value;
-            obj.eigenModes.plot(x,iter);
+            A = obj.designVariable.getColumnArea;
+            obj.eigenModes.plot(A,iter);
         end                            
            
     end

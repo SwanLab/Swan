@@ -65,12 +65,11 @@ classdef StiffnessMatrixComputer < handle
             c5 = L^2;
         end
 
-
         function computeStiffnessMatrix(obj)
             Ke = obj.elementalStiffnessMatrix;
             N = obj.nElem;
-            K = sparse(2*N+2, 2*N+2);
-            for iElem = 1: N
+            K = sparse(2*(N+1), 2*(N+1));
+            for iElem = 1:N
                 iDof=[2*iElem-1; 2*iElem; 2*(iElem+1)-1; 2*(iElem+1)];
                 K(iDof,iDof)=K(iDof,iDof)+ Ke;
             end

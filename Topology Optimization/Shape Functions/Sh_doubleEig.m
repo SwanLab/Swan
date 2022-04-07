@@ -22,7 +22,6 @@ classdef Sh_doubleEig < ShapeFunctional
     methods (Access = protected)
 
         function init(obj,cParams)
-            obj.nElem = cParams.nElem;
             obj.designVariable = cParams.designVariable;
             obj.eigModes = cParams.eigModes;
             obj.eigNum = cParams.eigNum;

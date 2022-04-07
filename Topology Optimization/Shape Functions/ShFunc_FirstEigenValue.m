@@ -1,7 +1,7 @@
 classdef ShFunc_FirstEigenValue < ShapeFunctional
    
     properties (Access = private)
-        nElem
+
     end
     
     methods (Access = public)
@@ -20,7 +20,6 @@ classdef ShFunc_FirstEigenValue < ShapeFunctional
     methods (Access = protected)
 
         function init(obj,cParams)
-            obj.nElem = cParams.nElem;
             obj.designVariable = cParams.designVariable;
         end
         
@@ -29,14 +28,13 @@ classdef ShFunc_FirstEigenValue < ShapeFunctional
     methods (Access = public)
 
         function computeFunction(obj)
-            N = obj.nElem;
-            x = obj.designVariable.value;
-            f0val = -x(N+1);
+            gamma = obj.designVariable.getFirstEigenMode();
+            f0val = -gamma;
             obj.value = f0val;
         end
 
         function computeGradient(obj)
-            N = obj.nElem;
+            N = obj.designVariable.getNelem();
             df0dx = zeros(N+1,1);
             df0dx(N+1) = -1;
             obj.gradient = df0dx;   
