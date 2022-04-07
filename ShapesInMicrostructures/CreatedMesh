@@ -1,0 +1,154 @@
+%% Data file
+
+Data_prb = {
+'TRIANGLE' ;
+'SI' ;
+'2D' ;
+'Plane_Stress' ;
+'ELASTIC' ;
+'MICRO' ;
+};
+
+
+coord = [
+1 0 0 0
+2 1 0 0
+3 1.70711 0.707107 0
+4 0.707107 0.707107 0
+5 0.333333 0 0
+6 0.666667 0 0
+7 1.2357 0.235702 0
+8 1.4714 0.471405 0
+9 1.37377 0.707107 0
+10 1.04044 0.707107 0
+11 0.471405 0.471405 0
+12 0.235702 0.235702 0
+13 0.569036 0.235702 0
+14 0.902369 0.235702 0
+15 0.804738 0.471405 0
+16 1.13807 0.471405 0
+];
+
+pointload = [
+];
+
+
+
+connec = [
+1 16 14 7
+2 13 6 14
+3 12 1 5
+4 13 14 15
+5 12 5 13
+6 11 13 15
+7 5 6 13
+8 6 2 14
+9 11 12 13
+10 4 11 15
+11 14 16 15
+12 15 10 4
+13 15 16 10
+14 16 7 8
+15 10 16 9
+16 14 2 7
+17 9 16 8
+18 9 8 3
+];
+
+%% Variable Prescribed
+% Node 	 Dimension 	 Value
+
+dirichlet_data = [
+1 1 0
+1 2 0
+2 1 0
+2 2 0
+3 1 0
+3 2 0
+4 1 0
+4 2 0
+];
+
+
+%% Force Prescribed
+% Node 	 Dimension 	 Value
+
+pointload_complete = [
+];
+
+
+%% Volumetric Force
+% Element 	 Dimension 	 Force_Dim
+
+Vol_force = [
+];
+
+
+%% Group Elements
+% Element 	 Group_num
+
+Group = [
+];
+
+
+%% Group Elements
+% Elements that are considered holes initially
+% Element
+
+Initial_holes = [
+];
+
+
+%% Boundary Elements
+% Elements that can not be removed
+% Element
+
+Boundary_elements = [
+];
+
+
+%% Micro Gauss Post
+% Element
+
+Micro_gauss_post = [
+];
+
+
+%% Master-Slave
+
+Master_slave = [
+5 10
+6 9
+7 12
+8 11
+];
+
+%% Nodes Solid
+% Nodes that must remain
+% Nodes
+
+% nodesolid = 1;
+
+
+%% External Border Elements
+% Detect the elements that define the edge of the domain
+% Element 	 Node(1) 	 Node(2)
+
+External_border_elements = [
+];
+
+
+%% External Border Nodes
+% Detect the nodes that define the edge of the domain
+% Node 	 
+
+External_border_nodes = [
+];
+
+
+%% Materials
+% Materials that have been used
+% Material_Num 	 Mat_density 	 Young_Modulus 	 Poisson
+
+Materials = [
+];
