@@ -8,8 +8,6 @@ classdef EigModes < handle
         freeNodes
         nElem
         length
-        stiffnessMatrix
-        bendingMatrix
 
 
         V
