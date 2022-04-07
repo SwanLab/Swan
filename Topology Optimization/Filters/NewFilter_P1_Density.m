@@ -1,23 +1,25 @@
 classdef NewFilter_P1_Density < handle
 
     properties (Access = private)
-        mesh
-        quadratureOrder
-        Poper
-        x
-        x_reg
-        geometry
-        quadrature
-        M
-        Kernel
-        interp
-        nelem
-        nnode
-        npnod
-        ngaus
-        shape
-        diffReacProb
+         mesh
+         quadratureOrder
+%         Poper
+%         x
+%         x_reg
+%         geometry
+%         quadrature
+%         M
+%         Kernel
+%         interp
+%         nelem
+%         nnode
+%         npnod
+%         ngaus
+%         shape
+         diffReacProb
+
     end
+
 
     methods (Access = public)
         
