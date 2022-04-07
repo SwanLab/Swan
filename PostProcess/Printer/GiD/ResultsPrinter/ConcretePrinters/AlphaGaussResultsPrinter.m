@@ -14,7 +14,7 @@ classdef AlphaGaussResultsPrinter < ResultsPrinter
         function obj = AlphaGaussResultsPrinter(d)
             obj.init(d);
         end
-               
+        
         function printResults(obj,iter,fileID)
             alpha(1,:,:) = obj.fields;
             dS = obj.createVectorGaussDataBase(iter,fileID,alpha, obj.fieldName,'OnGaussPoints','A');
@@ -30,8 +30,8 @@ classdef AlphaGaussResultsPrinter < ResultsPrinter
         end
         
         function createHeadPrinter(obj,d,dh)
-            obj.headPrinter = GaussHeadPrinter(d,dh);            
-        end       
+            obj.headPrinter = GaussHeadPrinter(d,dh);
+        end
         
     end
     

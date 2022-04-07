@@ -56,32 +56,16 @@ classdef StrainComputer < handle
             for igaus = 1:ngaus
                 Bmat = obj.computeB(igaus);
                 for istre=1:nstre
-                    for inode=1:nnode
-                        for idime=1:nunkn
-                            ievab = nunkn*(inode-1)+idime;
+                    for ievab=1:nnode*nunkn
+%                             ievab = nunkn*(inode-1)+idime;
 %                             disp(ievab)
                             B = squeeze(Bmat(istre,ievab,:));
                             u = d_u(idx(ievab,:));
                             strain(istre,:,igaus)=strain(istre,:,igaus)+(B.*u)';
-                        end
+                        
                     end
                 end
             end
-%             % It really doesnt work
-%             strain2 = zeros(nstre,nelem,ngaus);
-%             for igaus = 1:ngaus
-%                 Bmat = obj.computeB(igaus);
-%                 for istre=1:nstre
-%                     newSize = size(Bmat,2) * size(Bmat,3);
-%                     Bstre = squeeze(Bmat(istre,:,:));
-%                     Bstre = reshape(Bstre, [newSize 1]);
-%                     idxVert = reshape(idx, [newSize 1]);
-%                     totalBstre = accumarray(idxVert,Bstre);
-%                     calculatedStrainAtDofs = totalBstre.*obj.displacement;
-%                     strainToAdd = sum(reshape(calculatedStrainAtDofs(idxVert), [12,48]));
-%                     strain2(istre,:,igaus) = strainToAdd;
-%                 end
-%             end
             strain = permute(strain, [3 1 2]);
         end
 

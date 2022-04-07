@@ -1,10 +1,10 @@
 classdef GaussFieldPrinter < FieldRepresenterPrinter
 
-    properties (Access = private)     
+    properties (Access = private)
         gaussDescriptor
         ngaus
-        nelem         
-    end    
+        nelem
+    end
     
     methods (Access = public)
         

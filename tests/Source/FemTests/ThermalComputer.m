@@ -1,4 +1,4 @@
-classdef NewFemComputer < handle
+classdef ThermalComputer < handle
 
     properties (Access = public)
         computation
@@ -9,13 +9,13 @@ classdef NewFemComputer < handle
     end
 
     methods (Access = public)
-        function obj = NewFemComputer(cParams)
+        function obj = ThermalComputer(cParams)
             obj.testName = cParams.testName;
         end
 
         function compute(obj)
             s = obj.createFEMparameters();
-            obj.computation = NewFEM.create(s);
+            obj.computation = FEM.create(s);
             obj.computation.solve();
         end
     end
@@ -36,15 +36,6 @@ classdef NewFemComputer < handle
             file = obj.testName;
             gidReader = FemInputReader_GiD();
             gidParams = gidReader.read(file);
-        end
-        
-        function createMaterialProperties(obj)
-            q = Quadrature.set(obj.computation.mesh.type);
-            q.computeQuadrature('LINEAR');
-            I = ones(obj.computation.mesh.nelem,q.ngaus);
-            p.kappa = .9107*I;
-            p.mu    = .3446*I;
-            obj.computation.setMatProps(p);
         end
 
     end

@@ -1,13 +1,12 @@
-classdef NewDiffReactProblem < handle %FEM
+classdef DiffReactProblem < handle
     
     properties (Access = protected)
         isRobinTermAdded
-        bcApplierType
         interp
         boundaryMesh
     end
     
-    properties (GetAccess = public, SetAccess = protected) %FEM
+    properties (GetAccess = public, SetAccess = protected)
         geometry
         variables
     end
@@ -30,12 +29,11 @@ classdef NewDiffReactProblem < handle %FEM
 
     methods (Access = public)
         
-        function obj = NewDiffReactProblem(cParams)
+        function obj = DiffReactProblem(cParams)
             obj.init(cParams);
             obj.createInterpolation();
             obj.computeProblemDimensions();
-            obj.computeProblemDofConnectivity();
-            obj.createNewBoundaryConditions();
+            obj.createBoundaryConditions();
             obj.createGeometry();
             obj.createSolver();
             obj.computeStiffnessMatrix(cParams);
@@ -49,7 +47,6 @@ classdef NewDiffReactProblem < handle %FEM
                 xReg = obj.solver.solve(LHS,x);
                 obj.variables.x = xReg;
             else
-%                 bc   = obj.bcApplier;
                 bc   = obj.boundaryConditions;
                 xRed = bc.fullToReducedVector(x);
                 LHS  = obj.computeLHS();
@@ -117,40 +114,18 @@ classdef NewDiffReactProblem < handle %FEM
             d.compute();
         end
 
-        function computeProblemDofConnectivity(obj)
-            d = obj.dim;
-            c = obj.mesh.connec;
-            obj.dofsInElem = obj.computeDofConnectivity(d, c);
-        end
-
-        function dofsElem = computeDofConnectivity(obj, dim, connec)
-            ndimf  = dim.ndimField;
-            nnode  = dim.nnode;
-            dofsElem  = zeros(nnode*ndimf,size(connec,1));
-            for inode = 1:nnode
-                for iunkn = 1:ndimf
-                    idofElem   = obj.nod2dof(inode,iunkn);
-                    globalNode = connec(:,inode);
-                    idofGlobal = obj.nod2dof(globalNode,iunkn);
-                    dofsElem(idofElem,:) = idofGlobal;
-                end
-            end
-        end
-
         function idof = nod2dof(obj, inode, iunkn)
             ndimf = obj.dim.ndimField;
             idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
 
-        function createNewBoundaryConditions(obj)
-            s.dim        = obj.dim;
-            s.type       = 'Dirichlet';
+        function createBoundaryConditions(obj)
+            s.dim          = obj.dim;
+            s.mesh         = obj.mesh;
+            s.scale        = obj.problemData.scale;
             s.bc.dirichlet = [];
             s.bc.pointload = [];
-            s.scale      = obj.problemData.scale;
-            s.mesh       = obj.mesh;
-            s.dofsInElem = obj.dofsInElem;
-            bc = NewBoundaryConditions(s);
+            bc = BoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;
         end
@@ -180,7 +155,7 @@ classdef NewDiffReactProblem < handle %FEM
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
-            s.dofsInElem   = obj.dofsInElem;
+%             s.dofsInElem   = obj.dofsInElem;
             s.dim          = obj.dim;
             LHS = LHSintegrator.create(s);
             obj.K = LHS.compute();
@@ -191,7 +166,7 @@ classdef NewDiffReactProblem < handle %FEM
             s.quadType     = 'QUADRATICMASS';
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
-            s.dofsInElem   = obj.dofsInElem;
+%             s.dofsInElem   = obj.dofsInElem;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.dim;
             LHS = LHSintegrator.create(s);
@@ -233,11 +208,11 @@ classdef NewDiffReactProblem < handle %FEM
                 gConnec = boxFaceMesh.globalConnec;
                 nnode   = size(gConnec,2);
                 d.applyNnode(nnode);
-                d2 = obj.computeDimensions(bfMesh);
+%                 d2 = obj.computeDimensions(bfMesh);
                 cParams.mesh = bfMesh;
                 cParams.type = 'SIMPLE';
                 cParams.globalConnec = gConnec;
-                cParams.dofsInElem   = obj.computeDofConnectivity(d2,gConnec);
+%                 cParams.dofsInElem   = obj.computeDofConnectivity(d2,gConnec);
                 cParams.dim          = d;
                 params.compositeParams{iMesh} = cParams;
             end
@@ -246,10 +221,8 @@ classdef NewDiffReactProblem < handle %FEM
         function setupRobinTermAndBCApplier(obj, cParams)
             if isfield(cParams,'isRobinTermAdded')
                 obj.isRobinTermAdded = cParams.isRobinTermAdded;
-                obj.bcApplierType = cParams.bcApplierType;
             else
                 obj.isRobinTermAdded = false;
-                obj.bcApplierType = '';
             end
         end
 

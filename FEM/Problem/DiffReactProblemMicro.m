@@ -1,4 +1,4 @@
-classdef NewDiffReactProblemMicro < NewDiffReactProblem
+classdef DiffReactProblemMicro < DiffReactProblem
 
     methods (Access = protected)
         

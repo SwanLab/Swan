@@ -1,4 +1,8 @@
-classdef NewElasticProblemMicro < NewElasticProblem
+classdef ElasticProblemMicro < ElasticProblem
+
+    properties (Access = public)
+        variables2print
+    end
 
     methods (Access = public)
 
@@ -36,7 +40,9 @@ classdef NewElasticProblemMicro < NewElasticProblem
                 tStrn(istre,:,:,:)  = vars.strain;
                 tStrss(istre,:,:,:) = vars.stress;
                 tDisp(istre,:)      = vars.d_u;
+                v2p = obj.assignVarsToPrint(istre);
             end
+            obj.variables2print   = v2p;
             obj.variables.Chomog  = Ch;
             obj.variables.tstrain = tStrn;
             obj.variables.tstress = tStrss;
@@ -54,30 +60,47 @@ classdef NewElasticProblemMicro < NewElasticProblem
             ngaus = obj.dim.ngaus;
             nstre = obj.dim.nstre;
             nelem = obj.dim.nelem;
-            strFluct = vars.strain;
             dV = obj.getDvolume()';
+            strainFluct = vars.strain;
+            stressFluct = vars.stress;
             
-            vars.stress = zeros(ngaus,nstre,nelem);
-            vars.strain = zeros(ngaus,nstre,nelem);
-            vars.stress_homog = zeros(nstre,1);
+            stress = zeros(ngaus,nstre,nelem);
+            strain = zeros(ngaus,nstre,nelem);
+            stressHomog = zeros(nstre,1);
             
             for igaus = 1:ngaus
-                vars.strain(igaus,1:nstre,:) = vStrn.*ones(1,nstre,nelem) + strFluct(igaus,1:nstre,:);
+                strain(igaus,1:nstre,:) = vStrn.*ones(1,nstre,nelem) + strainFluct(igaus,1:nstre,:);
                 for istre = 1:nstre
                     for jstre = 1:nstre
                         Cij  = squeeze(Cmat(istre,jstre,:,igaus));
                         C    = squeeze(Cij);
-                        strs = squeeze(vars.stress(igaus,istre,:));
-                        strn = squeeze(vars.strain(igaus,jstre,:));
-                        vars.stress(igaus,istre,:) = strs + C.* strn;
+                        strs = squeeze(stress(igaus,istre,:));
+                        strn = squeeze(strain(igaus,jstre,:));
+                        stress(igaus,istre,:) = strs + C.* strn;
                     end
-                    strs = squeeze(vars.stress(igaus,istre,:));
-                    vars.stress_homog(istre) = vars.stress_homog(istre) + (strs)'*dV(:,igaus);
+                    strs = squeeze(stress(igaus,istre,:));
+                    stressHomog(istre) = stressHomog(istre) + (strs)'*dV(:,igaus);
                 end
             end
+
+            vars.stress_fluct = stressFluct;
+            vars.strain_fluct = strainFluct;
+
+            vars.stress = stress;
+            vars.strain = strain;
+            vars.stress_homog = stressHomog;
             obj.variables = vars;
         end
 
+        function v2p = assignVarsToPrint(obj, istre)
+            vars = obj.variables;
+            v2p{istre}.d_u          = vars.d_u;
+            v2p{istre}.fext         = vars.fext;
+            v2p{istre}.stress       = vars.stress;
+            v2p{istre}.strain       = vars.strain;
+            v2p{istre}.stress_fluct = vars.stress_fluct;
+            v2p{istre}.strain_fluct = vars.strain_fluct;
+        end
     end
 
 end

@@ -1,4 +1,4 @@
-classdef FEM < handle
+classdef StokesFEM < handle
     
     properties (GetAccess = public, SetAccess = public)
         problemData
@@ -18,7 +18,7 @@ classdef FEM < handle
     
     methods (Access = public)
         
-        function obj = FEM()
+        function obj = StokesFEM()
             obj.inputReader = FemInputReader_GiD();
         end
         

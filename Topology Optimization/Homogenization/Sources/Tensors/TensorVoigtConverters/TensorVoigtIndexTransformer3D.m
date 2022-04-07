@@ -1,7 +1,5 @@
 classdef TensorVoigtIndexTransformer3D < TensorVoigtIndexTransformer
     
-    
-    
     methods (Access = protected)
         
         function loadVoigt2Tensor(obj)

@@ -1,4 +1,4 @@
-classdef Stokes_Problem < FEM
+classdef Stokes_Problem < StokesFEM
     %Stokes_Problem Summary of this class goes here
     % Detailed explanation goes here
     

@@ -1,8 +1,8 @@
 classdef PlaneStressIndex < handle
     
     properties (Access = private)
-        InPlane  
-        OutPlane 
+        InPlane
+        OutPlane
     end
     
     methods (Access = public)
@@ -10,7 +10,7 @@ classdef PlaneStressIndex < handle
         function obj = PlaneStressIndex()
             obj.createInPlaneIndex()
             obj.createOutPlaneIndex()
-        end       
+        end
         
         function Index = getInPlaneIndex(obj)
             Index = obj.InPlane;

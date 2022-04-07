@@ -1,4 +1,4 @@
-classdef NewBoundaryConditions < handle
+classdef BoundaryConditions < handle
 
     properties (GetAccess = public)
         dirichlet
@@ -14,15 +14,13 @@ classdef NewBoundaryConditions < handle
     properties (Access = private)
         dim
         scale
-        dofsInElem
-        applierType
         dirichletInput
         pointloadInput
     end
     
     methods (Access = public)
         
-        function obj = NewBoundaryConditions(cParams)
+        function obj = BoundaryConditions(cParams)
             obj.init(cParams);
         end
 
@@ -73,8 +71,6 @@ classdef NewBoundaryConditions < handle
         function init(obj,cParams)
             obj.dim            = cParams.dim;
             obj.scale          = cParams.scale;
-            obj.applierType    = cParams.type;
-            obj.dofsInElem     = cParams.dofsInElem;
             obj.dirichletInput = cParams.bc.dirichlet;
             obj.pointloadInput = cParams.bc.pointload;
             obj.initPeriodicMasterSlave(cParams);

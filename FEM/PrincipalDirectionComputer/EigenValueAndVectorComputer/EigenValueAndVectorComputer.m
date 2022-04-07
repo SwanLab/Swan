@@ -22,14 +22,8 @@ classdef EigenValueAndVectorComputer < handle
         
         function init(obj,cParams)
             obj.ndim = cParams.ndim;
-        end        
+        end
         
     end
-    
-    
-    
-    
-    
-    
     
 end

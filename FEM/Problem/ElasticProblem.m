@@ -1,4 +1,4 @@
-classdef NewElasticProblem < handle
+classdef ElasticProblem < handle
     
     properties (Access = public)
         variables
@@ -31,7 +31,7 @@ classdef NewElasticProblem < handle
 
     methods (Access = public)
 
-        function obj = NewElasticProblem(cParams)
+        function obj = ElasticProblem(cParams)
             obj.init(cParams);
             obj.createQuadrature();
             obj.computeDimensions();
@@ -40,12 +40,19 @@ classdef NewElasticProblem < handle
             obj.computeMaterialProperties();
             obj.createInterpolation();
             obj.createGeometry();
-            obj.createNewBoundaryConditions();
+            obj.createBoundaryConditions();
             obj.createSolver();
         end
 
         function solve(obj)
-            obj.computeStiffnessMatrix();
+%             disp('Elemental + assemble')
+%             tic
+                obj.computeStiffnessMatrix();
+%             toc
+%             disp('Old / assemble + product')
+%             tic
+%                 obj.computeStiffnessMatrixOld();
+%             toc
             obj.computeForces();
             obj.computeDisplacements();
             obj.computeStrain();
@@ -157,14 +164,12 @@ classdef NewElasticProblem < handle
             obj.geometry = g;
         end
 
-        function createNewBoundaryConditions(obj)
+        function createBoundaryConditions(obj)
             s.dim        = obj.dim;
-            s.type       = 'Dirichlet';
-            s.bc         = obj.problemData.bc;
-            s.scale      = obj.problemData.scale;
             s.mesh       = obj.mesh;
-            s.dofsInElem = obj.dofsInElem;
-            bc = NewBoundaryConditions(s);
+            s.scale      = obj.problemData.scale;
+            s.bc         = obj.problemData.bc;
+            bc = BoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;
         end
@@ -174,11 +179,26 @@ classdef NewElasticProblem < handle
         end
 
         function computeStiffnessMatrix(obj)
+            s.type = 'ElasticStiffnessMatrix';
+            s.mesh         = obj.mesh;
+            s.npnod        = obj.mesh.npnod;
+            s.globalConnec = obj.mesh.connec;
+%             s.dofsInElem   = obj.dofsInElem;
+            s.dim          = obj.dim;
+            s.material     = obj.material;
+            LHS = LHSintegrator.create(s);
+            K   = LHS.compute();
+            Kred = obj.boundaryConditions.fullToReducedMatrix(K);
+            obj.stiffnessMatrix    = K;
+            obj.stiffnessMatrixRed = Kred;
+        end
+
+        function computeStiffnessMatrixOld(obj)
             s.type = 'ElasticStiffnessMatrixOld';
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
-            s.dofsInElem   = obj.dofsInElem;
+%             s.dofsInElem   = obj.dofsInElem;
             s.dim          = obj.dim;
             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
@@ -202,6 +222,7 @@ classdef NewElasticProblem < handle
             s.material    = obj.material;
             s.geometry    = obj.geometry;
             s.dvolume     = obj.getDvolume();
+            s.globalConnec = obj.mesh.connec;
             if isprop(obj, 'vstrain')
                 s.vstrain = obj.vstrain;
             end

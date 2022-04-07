@@ -87,7 +87,7 @@ classdef NumericalHomogenizer < handle
         
         function buildMicroProblem(obj)
             s = obj.createFEMparameters();
-            obj.microProblem = NewFEM.create(s);
+            obj.microProblem = FEM.create(s);
         end
 
         function getProblemDimensions(obj)

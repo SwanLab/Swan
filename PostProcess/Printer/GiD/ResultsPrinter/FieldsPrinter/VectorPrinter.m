@@ -1,9 +1,9 @@
 classdef VectorPrinter < FieldPrinter
     
-    properties (Access = protected)        
+    properties (Access = protected)
         fieldType = 'Vector';
-        fieldComponentName  
-        formatString        
+        fieldComponentName
+        formatString
         nComp
     end
     

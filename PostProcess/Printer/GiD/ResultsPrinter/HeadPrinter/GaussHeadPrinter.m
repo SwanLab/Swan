@@ -11,13 +11,13 @@ classdef GaussHeadPrinter < HeadPrinter
     methods (Access = public)
         
         function obj = GaussHeadPrinter(d,dh)
-           obj.init(d,dh); 
+           obj.init(d,dh);
         end
        
-        function print(obj)            
+        function print(obj)
             obj.printInitialLine();
             obj.printFemMatOoHeader();
-            obj.printGaussPointsHeader();            
+            obj.printGaussPointsHeader();
         end
         
     end
@@ -30,7 +30,7 @@ classdef GaussHeadPrinter < HeadPrinter
             obj.ndim   = dh.ndim;
             obj.posgp = d.quad.posgp';
             obj.ngaus = d.quad.ngaus;
-        end                
+        end
         
        function printGaussPointsHeader(obj)
             iD = obj.fileID;

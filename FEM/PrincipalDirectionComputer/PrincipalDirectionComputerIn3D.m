@@ -18,17 +18,16 @@ classdef PrincipalDirectionComputerIn3D < PrincipalDirectionComputer
             s12 = squeeze(tensor(1,4,:));
             s13 = squeeze(tensor(1,5,:));
             s23 = squeeze(tensor(1,6,:));
-            eG = obj.eigenComputer;            
+            eG = obj.eigenComputer;
             for i = 1:obj.ndim
                 for j = 1:obj.ndim
                     d = eG.eigenVectorFunction{i,j}(s1,s12,s13,s2,s23,s3);
-                    obj.direction(i,j,:) = real(d);                    
+                    obj.direction(i,j,:) = real(d);
                     obj.assertSmallImaginaryValue(d);
                 end
             end
         end
 
-        
     end
     
  
@@ -38,7 +37,7 @@ classdef PrincipalDirectionComputerIn3D < PrincipalDirectionComputer
         function assertSmallImaginaryValue(d)
             imagD = imag(d);
 %             assert(norm(imagD(:)) < 1e6) % To be fixed
-        end        
+        end
         
     end
     
