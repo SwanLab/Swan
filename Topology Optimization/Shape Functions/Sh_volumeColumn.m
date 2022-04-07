@@ -1,4 +1,4 @@
-classdef Sh_volume < ShapeFunctional
+classdef Sh_volumeColumn < ShapeFunctional
     
     properties (Access = public)
         
@@ -11,7 +11,7 @@ classdef Sh_volume < ShapeFunctional
     
     methods (Access = public)
         
-        function obj = Sh_volume(cParams)
+        function obj = Sh_volumeColumn(cParams)
             obj.init(cParams)
 
         end

@@ -1,4 +1,4 @@
-classdef Cost < CC
+classdef Cost2 < CC
     
     properties (Access = private)
         designVariable
@@ -7,7 +7,7 @@ classdef Cost < CC
     
     methods (Access = public)
         
-        function obj = Cost(cParams)
+        function obj = Cost2(cParams)
             obj.init(cParams)
         end
         
