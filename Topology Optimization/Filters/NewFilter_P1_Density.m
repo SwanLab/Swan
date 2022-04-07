@@ -60,7 +60,6 @@ classdef NewFilter_P1_Density < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            %obj.createDiffReacProblem(cParams);
             obj.mesh = cParams.mesh;
             obj.quadratureOrder = cParams.quadratureOrder;
         end

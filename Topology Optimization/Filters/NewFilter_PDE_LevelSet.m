@@ -99,6 +99,7 @@ classdef NewFilter_PDE_LevelSet < handle
 
         function x0 = getP0fromP1(obj,x)
             obj.x_reg =  obj.getP1fromP1(x);
+            x0 = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
                 x0(:,igaus) = obj.Anodal2Gauss{igaus}*obj.x_reg;
             end
@@ -123,37 +124,35 @@ classdef NewFilter_PDE_LevelSet < handle
             obj.quadrature = P1proc.quadrature;
             obj.interp     = P1proc.interp;
             obj.geometry   = P1proc.geometry;
-            obj.nelem      = obj.mesh.nelem;
             obj.nnode      = obj.mesh.nnode;
-            obj.npnod      = obj.mesh.npnod;
-            obj.ngaus      = obj.quadrature.ngaus;
             obj.shape      = obj.interp.shape;
         end
 
         function fInt = computeRHS(obj,fNodes)
             ls = obj.levelSet.value;
+            int  = obj.obtainRHSintegrator();
             if all(ls>0)
                 fInt = zeros(size(ls));
             else
-                uMesh = obj.levelSet.getUnfittedMesh();
-                s.mesh = uMesh;
-                s.type = 'Unfitted';
-                int = Integrator.create(s);
                 fInt = int.integrateInDomain(fNodes);
             end
         end
 
         function fInt = computeRHSinBoundary(obj,fNodes)
             ls = obj.levelSet.value;
+            int  = obj.obtainRHSintegrator();
             if all(ls>0)
                 fInt = zeros(size(ls));
             else
-                uMesh = obj.levelSet.getUnfittedMesh();
-                s.mesh = uMesh;
-                s.type = 'Unfitted';
-                int = Integrator.create(s);
                 fInt = int.integrateInBoundary(fNodes);
             end
+        end
+
+        function int = obtainRHSintegrator(obj)
+            uMesh = obj.levelSet.getUnfittedMesh();
+            s.mesh = uMesh;
+            s.type = 'Unfitted';
+            int = Integrator.create(s);
         end
 
         function createQuadrature(obj)
@@ -172,25 +171,15 @@ classdef NewFilter_PDE_LevelSet < handle
         end
 
         function A_nodal_2_gauss = computeA(obj)
-            A0 = sparse(obj.nelem,obj.npnod);
-            A_nodal_2_gauss = cell(obj.ngaus,1);
-            fn = ones(1,obj.npnod);
-
-            nodes = obj.mesh.connec;
-            fg = zeros(obj.ngaus,obj.nelem);
-
-            for igaus = 1:obj.ngaus
-                A_nodal_2_gauss{igaus} = A0;
-                for inode = 1:obj.nnode
-                    node   = nodes(:,inode);
-                    fN     = fn(node);
-                    shapeN = obj.shape(inode,igaus);
-                    fg(igaus,:) = fg(igaus,:) + shapeN*fN;
-                    Ni = ones(obj.nelem,1)*shapeN;
-                    A  = sparse(1:obj.nelem,node,Ni,obj.nelem,obj.npnod);
-                    A_nodal_2_gauss{igaus} = A_nodal_2_gauss{igaus} + A;
-                end
-            end
+            s.nnode  = obj.nnode;
+            s.nelem  = obj.nelem;
+            s.npnod  = obj.npnod;
+            s.ngaus  = obj.ngaus;
+            s.connec = obj.mesh.connec;
+            s.shape  = obj.shape;
+            Acomp = Anodal2gausComputer(s);
+            Acomp.compute();
+            A_nodal_2_gauss = Acomp.A_nodal_2_gauss;
         end
 
         function computeLHS(obj)
@@ -199,7 +188,6 @@ classdef NewFilter_PDE_LevelSet < handle
         end
 
         function x_reg = solve_filter(obj,RHS)
-            %x_reg = obj.LHS\(RHS);
             obj.diffReacProb.computeVariables(RHS);
             x_reg = obj.diffReacProb.variables.x;
         end

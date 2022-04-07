@@ -71,25 +71,15 @@ classdef NewFilter_PDE_Density < handle
         end
 
         function A_nodal_2_gauss = computeA(obj)
-            A0 = sparse(obj.nelem,obj.npnod);
-            A_nodal_2_gauss = cell(obj.ngaus,1);
-            fn = ones(1,obj.npnod);
-
-            nodes = obj.mesh.connec;
-            fg = zeros(obj.ngaus,obj.nelem);
-
-            for igaus = 1:obj.ngaus
-                A_nodal_2_gauss{igaus} = A0;
-                for inode = 1:obj.nnode
-                    node   = nodes(:,inode);
-                    fN     = fn(node);
-                    shapeN = obj.shape(inode,igaus);
-                    fg(igaus,:) = fg(igaus,:) + shapeN*fN;
-                    Ni = ones(obj.nelem,1)*shapeN;
-                    A  = sparse(1:obj.nelem,node,Ni,obj.nelem,obj.npnod);
-                    A_nodal_2_gauss{igaus} = A_nodal_2_gauss{igaus} + A;
-                end
-            end
+            s.nnode  = obj.nnode;
+            s.nelem  = obj.nelem;
+            s.npnod  = obj.npnod;
+            s.ngaus  = obj.ngaus;
+            s.connec = obj.mesh.connec;
+            s.shape  = obj.shape;
+            Acomp = Anodal2gausComputer(s);
+            Acomp.compute();
+            A_nodal_2_gauss = Acomp.A_nodal_2_gauss;
         end
 
         function computeLHS(obj)
