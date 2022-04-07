@@ -91,7 +91,7 @@ classdef NewFilter_PDE_LevelSet < handle
             end
             switch s.scale
                 case 'MACRO'
-                    obj.diffReacProb = NewDiffReactProblem(s);
+                    obj.diffReacProb = DiffReactProblem(s);
                 case 'MICRO'
                     obj.diffReacProb = NewDiffReactProblemMicro(s);
             end

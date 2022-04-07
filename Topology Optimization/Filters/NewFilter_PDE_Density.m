@@ -92,7 +92,7 @@ classdef NewFilter_PDE_Density < handle
             s.mesh = cParams.mesh;
             switch s.scale
                 case 'MACRO'
-                    obj.diffReacProb = NewDiffReactProblem(s);
+                    obj.diffReacProb = DiffReactProblem(s);
                 case 'MICRO'
                     obj.diffReacProb = NewDiffReactProblemMicro(s);
             end
