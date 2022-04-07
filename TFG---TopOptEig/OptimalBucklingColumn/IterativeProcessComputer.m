@@ -221,7 +221,7 @@ classdef IterativeProcessComputer < handle
             s.type{1} = 'doubleEig1';
             s.type{2} = 'doubleEig2';
             s.type{3} = 'volume';
-            s.nShapeFunction = 3;
+            s.nShapeFuncs = 3;
             obj.constraint = Constraint2(s);
         end
 
