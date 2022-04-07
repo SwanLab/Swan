@@ -2,7 +2,6 @@ classdef ShFunc_FirstEigenValue < ShapeFunctional
    
     properties (Access = private)
         nElem
-        designVariable
     end
     
     methods (Access = public)
