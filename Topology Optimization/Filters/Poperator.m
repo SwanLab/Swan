@@ -35,12 +35,8 @@ classdef Poperator < handle
        
         function obj = createDiffReacProblem(obj,cParams)
             s = cParams.diffReactEq;
-            switch s.scale
-                case 'MACRO'
-                    obj.diffReacProb = DiffReactProblem(s);
-                case 'MICRO'
-                    obj.diffReacProb = DiffReactProblemMicro(s);
-            end
+            s.type = 'DIFF-REACT';
+            obj.diffReacProb = FEM.create(s);
         end
        
         function createMassMatrix(obj)

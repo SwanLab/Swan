@@ -26,7 +26,7 @@ classdef FEM < handle
                 case 'THERMAL'
                     obj = ThermalProblem(s);
                 case 'DIFF-REACT'
-                    obj = DiffReactProblem(fileName);
+                    obj = DiffReactProblem.create(s);
                 case 'HYPERELASTIC'
                     obj = Hyperelastic_Problem(s);
                 case 'Stokes'

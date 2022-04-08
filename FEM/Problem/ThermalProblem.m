@@ -14,7 +14,6 @@ classdef ThermalProblem < handle
         forces
         solver
         geometry
-        newBC
 
         dofsInElem
     end
@@ -135,7 +134,6 @@ classdef ThermalProblem < handle
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
-%             s.dofsInElem   = obj.dofsInElem;
             s.dim          = obj.dim;
             LHS = LHSintegrator.create(s);
             K   = LHS.compute();
@@ -153,7 +151,6 @@ classdef ThermalProblem < handle
         function F = computeExternalForces(obj)
             s.dim         = obj.dim;
             s.BC          = obj.boundaryConditions; %dofsInElem, Neumann
-            s.dofsInElem  = obj.dofsInElem;
             s.mesh        = obj.mesh;
             s.material    = obj.material;
             s.geometry    = obj.geometry;

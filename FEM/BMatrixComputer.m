@@ -4,7 +4,6 @@ classdef BMatrixComputer < handle
         dim
         geometry
         globalConnec
-        dofsInElem
     end
 
     methods (Access = public)
@@ -16,7 +15,6 @@ classdef BMatrixComputer < handle
         function [Btot, Balt] = compute(obj)
             Bmatrix = obj.computeBinMatrixForm();
             Btot    = obj.assembleMatrix(Bmatrix);
-%             Balt = obj.computeAlternateB();
             Balt = 0;
         end
 
@@ -40,7 +38,6 @@ classdef BMatrixComputer < handle
             obj.dim          = cParams.dim;
             obj.geometry     = cParams.geometry;
             obj.globalConnec = cParams.globalConnec;
-%             obj.dofsInElem   = cParams.dofsInElem;
         end
 
         function B = computeBin2D(obj,igaus)
@@ -130,7 +127,6 @@ classdef BMatrixComputer < handle
         function Bt = assembleMatrix(obj, Bfull)
             s.dim = obj.dim;
             s.globalConnec = obj.globalConnec;
-%             s.dofsInElem   = obj.dofsInElem;
             assembler = Assembler(s);
             Bt = assembler.assembleB(Bfull);
         end

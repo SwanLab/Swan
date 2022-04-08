@@ -47,7 +47,6 @@ classdef ForcesComputer < handle
             obj.dim                = cParams.dim;
             obj.mesh               = cParams.mesh;
             obj.boundaryConditions = cParams.BC;
-            obj.dofsInElem         = cParams.dofsInElem;
             obj.material           = cParams.material;
             obj.geometry           = cParams.geometry;
             obj.dvolume            = cParams.dvolume';
@@ -77,13 +76,10 @@ classdef ForcesComputer < handle
         end
 
         function b = assembleVector(obj, forces)
-%             dofsInElemCell = obj.dofsInElem;
-%             dofsInElem = cell2mat(dofsInElemCell);
             s.dim          = obj.dim;
             s.globalConnec = obj.globalConnec;
-            s.dofsInElem = [];
             assembler = Assembler(s);
-            b = assembler.assembleV(forces,obj.dofsInElem);
+            b = assembler.assembleV(forces);
         end
 
         function Fp = computePunctualFext(obj)
@@ -111,7 +107,6 @@ classdef ForcesComputer < handle
             s.dim = obj.dim;
             s.geometry = obj.geometry;
             s.globalConnec = [];
-            s.dofsInElem = [];
             Bcomp = BMatrixComputer(s);
             for igaus = 1:ngaus
                 Bmat    = Bcomp.computeBmat(igaus);
