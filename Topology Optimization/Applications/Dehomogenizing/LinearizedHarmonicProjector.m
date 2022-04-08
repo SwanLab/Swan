@@ -49,10 +49,22 @@ classdef LinearizedHarmonicProjector < handle
                 % gradient                            
                 I = 1:2*obj.dim.npnod;
                 Il = (2*obj.dim.npnod + 1):length(rhs);
-                x = [vH(:,1);vH(:,2)];
-                res  = lhs(I,I)*x - rhs(I,1);
-                resC = lhs(I,I)*x - rhs(I,1);
+                x = [vH(:,1);vH(:,2);lambda];
+                res  = lhs*x - rhs;
+                resP = res(I);
+                resD = res(Il);
 
+
+                b    = obj.boundaryMesh;
+                nInt = setdiff(1:obj.dim.npnod,b);                               
+                x = obj.mesh.coord(:,1);
+                y = obj.mesh.coord(:,2);
+                z = zeros(size(x));
+                z(nInt) = resD;
+                figure()
+                trisurf(obj.mesh.connec,x,y,z)
+                view(0,90)
+                colorbar
 
 %                 sol = x - tau*(res);
 %                 lambda = lambda + (lhs(Il,I)*x );
@@ -71,19 +83,20 @@ classdef LinearizedHarmonicProjector < handle
                 lambda = sol(indexL,1);
 
                 
-
-               % err(i) = norm(vH(:)-v(:))/norm(v(:));
-                err(i) = norm(res);
-
+                
+                % err(i) = norm(vH(:)-v(:))/norm(v(:));
+                err(i)  = norm(res);
+                errP(i) = norm(resP);                
+                errD(i) = norm(resD);
 
                 isErrorLarge = err(i) > 1e-12;
                 i = i + 1;                
                 figure(99)
                 plot(log10(err)) 
-                theta = 0.01;
+                theta = 0.99;
                 v = obj.projectUnitBall(v);
                 vH = theta*v + (1-theta)*vH ;     
-            %    vH = obj.projectUnitBall(vH);
+                vH = obj.projectUnitBall(vH);
             end
 
 
@@ -190,7 +203,7 @@ classdef LinearizedHarmonicProjector < handle
        function Ared = computeReducedAdvectionMatrix(obj,A)
            b    = obj.boundaryMesh;
            nInt = setdiff(1:obj.dim.npnod,b);
-           Ared = A(nInt,:);
+           Ared = A(:,nInt);
        end
 
        function createSolver(obj)
@@ -208,7 +221,7 @@ classdef LinearizedHarmonicProjector < handle
            M    = obj.massMatrix;
            Zb   = zeros(size(M));
            Z    = obj.computeZeroFunction();
-           lhs  = [M,Zb,(1*Cx+Dx)';Zb,M,(1*Cy+Dy)';Dx,Dy,Z];
+           lhs  = [M,Zb,(1*Cx+Dx);Zb,M,(1*Cy+Dy);(0*Cx + Dx)',(0*Cy + Dy)',Z];
            obj.LHS = lhs;
        end
 
@@ -232,7 +245,13 @@ classdef LinearizedHarmonicProjector < handle
             b = obj.boundaryMesh;
             nInt = setdiff(1:obj.dim.npnod,b);
             Z   = zeros(length(nInt),1);
-            rhs = [rhs1;rhs2;Z];
+
+
+           [Cx,Cy,Dx,Dy] = obj.computeAdvectionMatrix(v);
+           Cx = obj.computeReducedAdvectionMatrix(Cx);
+           Cy = obj.computeReducedAdvectionMatrix(Cy);            
+           res = 0*Cx'*v(:,1) + 0*Cy'*v(:,2);
+            rhs = [rhs1;rhs2;Z+res];
         end
 
       

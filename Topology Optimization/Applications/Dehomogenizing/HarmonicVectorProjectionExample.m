@@ -68,9 +68,24 @@ classdef HarmonicVectorProjectionExample < handle
         function storeOrientationAngle(obj)
             d = obj.experimentData;
             alpha0  = d.dataRes.AlphaGauss;
-            obj.plotAlpha0(alpha0);
+          %  obj.plotAlpha0(alpha0);
             alpha(:,1) = obj.interpolateOrientationAngle(alpha0(:,1));
             alpha(:,2) = obj.interpolateOrientationAngle(alpha0(:,2));
+           
+            x2 = obj.mesh.coord(:,2);
+            x1 = obj.mesh.coord(:,1);
+            
+            %theta = atan2(x2,x1);            
+            %thetaV = pi/6;
+%            theta = thetaV*ones(size(x2));
+            
+           % theta = rand(1)*x1 + rand(1)*x2 + rand(1);
+
+
+          %  alpha(:,1) = cos(theta);
+          %  alpha(:,2) = sin(theta);            
+            
+            
             theta(:,1) = atan2(alpha(:,1),alpha(:,2));  
             obj.plotOrientation(alpha,1);
             alpha = obj.projectInUnitBall(alpha);

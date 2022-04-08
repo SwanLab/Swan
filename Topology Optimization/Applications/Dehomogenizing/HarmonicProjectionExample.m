@@ -69,6 +69,7 @@ classdef HarmonicProjectionExample < handle
             alpha0  = d.dataRes.AlphaGauss;
             alpha(:,1) = obj.interpolateOrientationAngle(alpha0(:,1));
             alpha(:,2) = obj.interpolateOrientationAngle(alpha0(:,2));
+
             theta(:,1) = atan2(alpha(:,1),alpha(:,2));  
             obj.plotOrientation(theta,1);
             alpha = obj.projectInUnitBall(alpha);
