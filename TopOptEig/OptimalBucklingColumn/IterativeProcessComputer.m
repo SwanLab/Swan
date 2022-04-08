@@ -77,9 +77,7 @@ classdef IterativeProcessComputer < handle
             obj.nElem          = cParams.nElem;             
             obj.freeNodes      = cParams.freeNodes;
             obj.nConstraints   = cParams.nConstraints;
-           %  obj.length         = cParams.length;
             obj.mesh            = cParams.mesh;
-           % obj.Tdof           = cParams.Tdof;
             obj.Tnod           = cParams.Tnod;
             obj.dim            = cParams.dim;
             obj.youngModulus   = cParams.youngModulus;
@@ -201,6 +199,7 @@ classdef IterativeProcessComputer < handle
         function createEigModes(obj)
             s.freeNodes  = obj.freeNodes;
             s.mesh       = obj.mesh;
+            s.dim        = obj.dim;
             s.stiffnessMatComputer = obj.createStiffnessMatrix();
             s.bendingMatComputer   = obj.createBendingMatrix();
             s.designVariable       = obj.designVariable;
@@ -260,7 +259,6 @@ classdef IterativeProcessComputer < handle
             disp([' It.: ' sprintf('%4i',iter) ' Obj.: ' sprintf('%10.4f',f0val) ...
                 ' Vol.: ' sprintf('%6.3f',V) ...
                 ' ch.: ' sprintf('%6.3f',''  )])
-            %(obj.constraint.D(2,2)-obj.constraint.D(1,1))
         end
 
         function plotFigures(obj)

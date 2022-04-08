@@ -48,7 +48,6 @@ classdef EigModesPlotter < handle
         end
         
         function plotColumnArea(obj,A)            
-            % ch = 0:L:1-L; % 
             z = sqrt(A); 
             msh = obj.mesh;
             obj.lElem(1,1) = abs(msh(2)-msh(1));
@@ -65,15 +64,13 @@ classdef EigModesPlotter < handle
         end
 
         function plotBucklingModes(obj,m1,m2)
-%             L = obj.length;
-%             h  = 0:L:1;
             mod1 = m1;
             mod2 = m2;
-            subplot(2,2,2); plot(obj.mesh,-mod1(1:2:end));
+            subplot(2,2,2); plot(obj.mesh,-mod1);
             grid on
             grid minor
             title('First Buckling Mode','Interpreter', 'latex','FontSize',14, 'fontweight','b')
-            subplot(2,2,4); plot(obj.mesh,-mod2(1:2:end));
+            subplot(2,2,4); plot(obj.mesh,-mod2);
             grid on
             grid minor
             title('Second Buckling Mode','Interpreter', 'latex','FontSize',14, 'fontweight','b')

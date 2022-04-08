@@ -7,6 +7,7 @@ classdef EigModes < handle
     properties (Access = private)
         length
         mesh
+        dim
 
         V
         v1
@@ -45,10 +46,11 @@ classdef EigModes < handle
         function grad = provideDerivative(obj,eigNum)
             obj.reorderModes(obj.lambda,obj.V,obj.D);
             Belem =  obj.bendingMatComputer.elementalBendingMatrix;
+            d = obj.dim;
             x = obj.designVariable.getColumnArea;
             N = obj.designVariable.getNelem();
             if abs(obj.D(2,2)-obj.D(1,1))> 1
-                W=zeros(2*N+2,2);
+                W=zeros(d.nDof,2);
                 for i=3:2*N
                     W(i,1)=obj.v1(i-2);
                 end
@@ -64,8 +66,8 @@ classdef EigModes < handle
             else
                 obj.D
                 disp('dobles')
-                Q1=zeros(2*N+2,1);
-                Q2=zeros(2*N+2,1);
+                Q1=zeros(d.nDof,1);
+                Q2=zeros(d.nDof,1);
                 dQ1=zeros(N,1);
                 dQ2=zeros(N,1);
                 dQ1Q2=zeros(N,1);
@@ -97,8 +99,8 @@ classdef EigModes < handle
     methods (Access = private)
 
         function init(obj,cParams)
-%            obj.length         = cParams.length;
             obj.mesh           = cParams.mesh;
+            obj.dim            = cParams.dim;
             obj.designVariable = cParams.designVariable;
             obj.stiffnessMatComputer = cParams.stiffnessMatComputer;
             obj.bendingMatComputer   = cParams.bendingMatComputer;
@@ -130,17 +132,17 @@ classdef EigModes < handle
         
         function reorderModes(obj,lambda,V,D)
             if lambda(1)==D(1,1)
-                v1=V(:,1);
-                v2=V(:,2);
+                V1=V(:,1);
+                V2=V(:,2);
             else
-                v1=V(:,2);
-                v2=V(:,1);
+                V1=V(:,2);
+                V2=V(:,1);
             end
-            obj.v1 = v1;
-            obj.v2 = v2;             
+            obj.v1 = V1;
+            obj.v2 = V2;             
         end
 
-        function [m1,m2] = computeBucklingModes(obj,v1,v2)
+        function [m1disp,m2disp] = computeBucklingModes(obj,v1,v2)
             N = obj.designVariable.getNelem();
             Mode1=zeros(2*(N+1),1);
             Mode2=zeros(2*(N+1),1);
@@ -150,10 +152,9 @@ classdef EigModes < handle
             end
             m1 = Mode1;
             m2 = Mode2;
+            m1disp = m1(1:2:end);
+            m2disp = m2(1:2:end);
         end             
-
-
-          
 
     end
     

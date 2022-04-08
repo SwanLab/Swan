@@ -49,7 +49,6 @@ classdef StiffnessMatrixComputer < handle
             obj.mesh          = cParams.mesh;
             obj.dim           = cParams.dim;
             obj.Tnod          = cParams.Tnod;
-           % obj.length        = cParams.length;
             obj.youngModulus  = cParams.youngModulus;
             obj.inertiaMoment = cParams.inertiaMoment;
             obj.freeNodes     = cParams.freeNodes;

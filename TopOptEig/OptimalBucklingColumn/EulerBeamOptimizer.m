@@ -26,10 +26,10 @@ classdef EulerBeamOptimizer < handle
        nNodE
    end
 
-    % Mesh (lenght only to create mesh, delete elsewhere)
-    % Kelem  + assembly
-    % plot modes getting displacement
-    % Solve for a non-structured mesh
+    % Mesh (lenght only to create mesh, delete elsewhere)  (DONE)
+    % Kelem  + assembly    (DONE)
+    % plot modes getting displacement (DONE)
+    % Solve for a non-structured mesh (DONE)
 
 
     properties (Access = private)
@@ -100,9 +100,9 @@ classdef EulerBeamOptimizer < handle
         end
 
         function createBoundaryConditions(obj)
-            N = obj.nElem;
-            fixnodes = union([1,2], [2*N+1,2*N+2]);
-            nodes = 1:2*N+2;
+            d = obj.dim;
+            fixnodes = union([1,2], [d.nDof-1,d.nDof]);
+            nodes = 1:d.nDof;
             free  = setdiff(nodes,fixnodes);
             obj.freeNodes = free;
         end        
@@ -124,10 +124,8 @@ classdef EulerBeamOptimizer < handle
             s.mmaVarComputer = obj.mmaVarComputer;
             s.freeNodes      = obj.freeNodes;
             s.nConstraints   = obj.nConstraints;
-            s.mesh        = obj.mesh;
-            s.Tnod        = obj.Tnod;
-            % s.Tdof        = obj.Tdof;
-            % s.length         = obj.length;
+            s.mesh           = obj.mesh;
+            s.Tnod           = obj.Tnod;
             s.nValues        = obj.nValues;
             s.dim            = obj.dim;
             s.youngModulus   = obj.youngModulus;
