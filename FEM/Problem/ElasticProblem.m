@@ -5,7 +5,6 @@ classdef ElasticProblem < handle
     end
 
     properties (Access = private)
-        nFields
         boundaryConditions
         displacement
         problemData
@@ -15,8 +14,7 @@ classdef ElasticProblem < handle
         solver
         geometry
         newBC
-
-        dofsInElem
+        materialProperties
     end
 
     properties (Access = protected)
@@ -35,9 +33,7 @@ classdef ElasticProblem < handle
             obj.init(cParams);
             obj.createQuadrature();
             obj.computeDimensions();
-            obj.computeDofConnectivity();
             obj.createMaterial();
-            obj.computeMaterialProperties();
             obj.createInterpolation();
             obj.createGeometry();
             obj.createBoundaryConditions();
@@ -89,7 +85,6 @@ classdef ElasticProblem < handle
     methods (Access = private)
 
         function init(obj, cParams)
-            obj.nFields = 1;
             obj.mesh        = cParams.mesh;
             pd.scale        = cParams.scale;
             pd.pdim         = cParams.dim;
@@ -101,6 +96,8 @@ classdef ElasticProblem < handle
                 pd.bc.masterSlave = obj.mesh.masterSlaveNodes;
             end
             obj.problemData = pd;
+            obj.materialProperties.kappa = .9107;
+            obj.materialProperties.mu    = .3446;
         end
 
         function createQuadrature(obj)
@@ -118,35 +115,17 @@ classdef ElasticProblem < handle
             obj.dim = d;
         end
 
-        function computeDofConnectivity(obj)
-            connec = obj.mesh.connec;
-            ndimf  = obj.dim.ndimField;
-            nnode  = obj.dim.nnode;
-            dofsElem  = zeros(nnode*ndimf,size(connec,1));
-            for inode = 1:nnode
-                for iunkn = 1:ndimf
-                    idofElem   = obj.nod2dof(inode,iunkn);
-                    globalNode = connec(:,inode);
-                    idofGlobal = obj.nod2dof(globalNode,iunkn);
-                    dofsElem(idofElem,:) = idofGlobal;
-                end
-            end
-            obj.dofsInElem = dofsElem;
-        end
-
         function createMaterial(obj)
+            I = ones(obj.dim.nelem,obj.dim.ngaus);
             s.ptype = obj.problemData.ptype;
             s.pdim  = obj.problemData.pdim;
             s.nelem = obj.mesh.nelem;
             s.mesh  = obj.mesh;
-            obj.material = Material.create(s);
-        end
-
-        function computeMaterialProperties(obj)
-            I = ones(obj.dim.nelem,obj.dim.ngaus);
-            s.kappa = .9107*I;
-            s.mu    = .3446*I;
-            obj.material.compute(s);
+            s.kappa = obj.materialProperties.kappa*I;
+            s.mu    = obj.materialProperties.mu*I;
+            mat = Material.create(s);
+            mat.compute(s);
+            obj.material = mat;
         end
 
         function createInterpolation(obj)
@@ -183,7 +162,6 @@ classdef ElasticProblem < handle
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
-%             s.dofsInElem   = obj.dofsInElem;
             s.dim          = obj.dim;
             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
@@ -198,7 +176,6 @@ classdef ElasticProblem < handle
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
-%             s.dofsInElem   = obj.dofsInElem;
             s.dim          = obj.dim;
             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
@@ -216,8 +193,7 @@ classdef ElasticProblem < handle
 
         function F = computeExternalForces(obj)
             s.dim         = obj.dim;
-            s.BC          = obj.boundaryConditions; %dofsInElem, Neumann
-            s.dofsInElem  = obj.dofsInElem;
+            s.BC          = obj.boundaryConditions; %Neumann
             s.mesh        = obj.mesh;
             s.material    = obj.material;
             s.geometry    = obj.geometry;
@@ -250,7 +226,6 @@ classdef ElasticProblem < handle
             s.quadrature         = obj.quadrature;
             s.displacement       = obj.variables.d_u;
             s.interpolation      = obj.interp{1};
-            s.dofsInElem         = obj.dofsInElem;
             scomp  = StrainComputer(s);
             strain = scomp.compute();
             obj.variables.strain = strain;
@@ -273,11 +248,6 @@ classdef ElasticProblem < handle
             pcomp.compute(stress);
             obj.variables.principalDirections = pcomp.direction;
             obj.variables.principalStress     = pcomp.principalStress;
-        end
-
-        function idof = nod2dof(obj, inode, iunkn)
-            ndimf = obj.dim.ndimField;
-            idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
 
     end

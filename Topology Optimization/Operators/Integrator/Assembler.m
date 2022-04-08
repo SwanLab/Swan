@@ -3,7 +3,6 @@ classdef Assembler < handle
     properties (Access = private)
         dim
         globalConnec
-        %dofsInElem
     end
 
     methods (Access = public)

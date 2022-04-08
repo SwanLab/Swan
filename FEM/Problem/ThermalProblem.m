@@ -5,7 +5,6 @@ classdef ThermalProblem < handle
     end
 
     properties (Access = private)
-        nFields
         boundaryConditions
         displacement
         problemData
@@ -14,8 +13,6 @@ classdef ThermalProblem < handle
         forces
         solver
         geometry
-
-        dofsInElem
     end
 
     properties (Access = protected)
@@ -75,7 +72,6 @@ classdef ThermalProblem < handle
     methods (Access = private)
 
         function init(obj, cParams)
-            obj.nFields = 1;
             obj.mesh        = cParams.mesh;
             pd.scale        = cParams.scale;
             pd.pdim         = '1D';
@@ -150,7 +146,7 @@ classdef ThermalProblem < handle
 
         function F = computeExternalForces(obj)
             s.dim         = obj.dim;
-            s.BC          = obj.boundaryConditions; %dofsInElem, Neumann
+            s.BC          = obj.boundaryConditions; % Neumann
             s.mesh        = obj.mesh;
             s.material    = obj.material;
             s.geometry    = obj.geometry;

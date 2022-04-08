@@ -24,13 +24,13 @@
 %%% 
 % OK! DiffReac in Newmann and Robin (Two diff react)
 % OK! replace applyNode --- for nnode = size(globalconnec,2) in Assembler
+% OK! Clean dofsInElem THerma, Elastic
+% OK! dofInElem by composition --->  Assembler and Forces
+% OK! MaterProperties data as input 
 
 % Clean ElasticProblemMicro ---> vars, vars2Print, Chomog, variables....
 
-% dofInElem by composition --->  Assembler and Forces
 % Clean Thermal, Elastic, DiffReac --- (only) dim, boundary, LHS,RHS, u..
-% Clean dofsInElem THerma, Elastic
-% MaterProperties data as input 
 % Test coming from GiD (Swan.gid)
 % Performance (time) vs nElem: for different cases
 
