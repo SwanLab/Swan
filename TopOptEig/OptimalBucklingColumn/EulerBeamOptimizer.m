@@ -5,9 +5,12 @@ classdef EulerBeamOptimizer < handle
     end
     
     properties (Access = private)
+        nDim
         nElem
         nConstraints
-        length
+        columnLength
+        nNodes
+        mesh
         nValues
         youngModulus
         inertiaMoment
@@ -15,6 +18,13 @@ classdef EulerBeamOptimizer < handle
         maxThick
         maxIter 
     end
+
+   properties (Access = private)
+       dim
+       nDofN
+       Tnod
+       nNodE
+   end
 
     % Mesh (lenght only to create mesh, delete elsewhere)
     % Kelem  + assembly
@@ -33,6 +43,7 @@ classdef EulerBeamOptimizer < handle
         
         function obj = EulerBeamOptimizer()
             obj.init()
+            obj.createMesh();
             obj.createDesignVariable();
             obj.createBoundaryConditions()
             obj.createMMA();
@@ -46,7 +57,7 @@ classdef EulerBeamOptimizer < handle
         function init(obj)
             obj.nElem         = 10;
             obj.nConstraints  = 3; 
-            obj.length        = 1/obj.nElem; 
+            obj.columnLength  = 1; 
             obj.nValues       = obj.nElem+1;
             obj.youngModulus  = 1;
             obj.inertiaMoment = 1;  
@@ -56,10 +67,32 @@ classdef EulerBeamOptimizer < handle
             obj.maxIter       = 1000;
         end
 
+        function createMesh(obj)
+            obj.dim.nNod  = obj.nElem + 1;                  % num of nodes
+            obj.mesh      = linspace(0,obj.columnLength,obj.dim.nNod)';
+            obj.dim.nDim  = size(obj.mesh,2);               % dimension of the problem
+            obj.dim.nNodE = 2;                              % num of node per element
+            obj.Tnod      = obj.nodesConnectivityMatrix();
+            obj.dim.nDofN = 2;                              % num of DOFs per element
+            obj.dim.nDof  = obj.dim.nNod*obj.dim.nDofN;     % num of DOFs
+            
+        end
+
+        function Tnod = nodesConnectivityMatrix(obj) % better to be an input
+            Tnod = zeros(obj.nElem,obj.nNodE);
+            e = 1;
+            for iElem = 1: obj.nElem
+                Tnod(iElem,1) = e;
+                e = e + 1;
+                Tnod(iElem,2) = e;
+            end
+        end
+
         function createDesignVariable(obj)
             N = obj.nElem;
             s.type  = 'AreaColumn';
             s.nElem = obj.nElem;
+            s.mesh  = obj.mesh;
             des = DesignVariable.create(s);
             x0 = ones(N+1,1);               
             des.update(x0);
@@ -76,8 +109,7 @@ classdef EulerBeamOptimizer < handle
 
         function obj = createMMA(obj)
             s.nElem         = obj.nElem;
-            s.nConstraints  = obj.nConstraints; 
-            s.length        = obj.length;
+            s.nConstraints  = obj.nConstraints;
             s.youngModulus  = obj.youngModulus;
             s.inertiaMoment = obj.inertiaMoment;
             s.minThick      = obj.minThick;
@@ -91,9 +123,13 @@ classdef EulerBeamOptimizer < handle
         function obj = computeIterativeProcess(obj)
             s.mmaVarComputer = obj.mmaVarComputer;
             s.freeNodes      = obj.freeNodes;
-            s.nConstraints   = obj.nConstraints; 
-            s.length         = obj.length;
+            s.nConstraints   = obj.nConstraints;
+            s.mesh        = obj.mesh;
+            s.Tnod        = obj.Tnod;
+            % s.Tdof        = obj.Tdof;
+            % s.length         = obj.length;
             s.nValues        = obj.nValues;
+            s.dim            = obj.dim;
             s.youngModulus   = obj.youngModulus;
             s.inertiaMoment  = obj.inertiaMoment;
             s.minThick       = obj.minThick;

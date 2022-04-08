@@ -19,6 +19,10 @@ classdef IterativeProcessComputer < handle
         nElem
         nConstraints
         length
+       % Tdof
+        Tnod
+        mesh
+        dim
         nValues
         youngModulus
         inertiaMoment
@@ -73,7 +77,11 @@ classdef IterativeProcessComputer < handle
             obj.nElem          = cParams.nElem;             
             obj.freeNodes      = cParams.freeNodes;
             obj.nConstraints   = cParams.nConstraints;
-            obj.length         = cParams.length;
+           %  obj.length         = cParams.length;
+            obj.mesh            = cParams.mesh;
+           % obj.Tdof           = cParams.Tdof;
+            obj.Tnod           = cParams.Tnod;
+            obj.dim            = cParams.dim;
             obj.youngModulus   = cParams.youngModulus;
             obj.inertiaMoment  = cParams.inertiaMoment;
             obj.minThick       = cParams.minThick;
@@ -192,7 +200,7 @@ classdef IterativeProcessComputer < handle
 
         function createEigModes(obj)
             s.freeNodes  = obj.freeNodes;
-            s.length     = obj.length;
+            s.mesh       = obj.mesh;
             s.stiffnessMatComputer = obj.createStiffnessMatrix();
             s.bendingMatComputer   = obj.createBendingMatrix();
             s.designVariable       = obj.designVariable;
@@ -201,7 +209,10 @@ classdef IterativeProcessComputer < handle
 
         function K = createStiffnessMatrix(obj)
             s.nElem          = obj.nElem;
+            s.Tnod           = obj.Tnod;
+            s.mesh           = obj.mesh;
             s.length         = obj.length;
+            s.dim            = obj.dim;
             s.youngModulus   = obj.youngModulus;
             s.inertiaMoment  = obj.inertiaMoment;
             s.freeNodes      = obj.freeNodes;
@@ -210,7 +221,10 @@ classdef IterativeProcessComputer < handle
 
         function B = createBendingMatrix(obj)
             s.nElem          = obj.nElem;
+            s.Tnod           = obj.Tnod;
+            s.mesh           = obj.mesh;
             s.length         = obj.length;
+            s.dim            = obj.dim;
             s.youngModulus   = obj.youngModulus;
             s.inertiaMoment  = obj.inertiaMoment;
             s.freeNodes      = obj.freeNodes;

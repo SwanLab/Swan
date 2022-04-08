@@ -6,7 +6,7 @@ classdef EigModes < handle
     
     properties (Access = private)
         length
-
+        mesh
 
         V
         v1
@@ -53,13 +53,13 @@ classdef EigModes < handle
                     W(i,1)=obj.v1(i-2);
                 end
                 for i=1:N
-                    dfdx(1,i)= -(2*x(i,1))*(W(2*(i-1)+1: 2*(i-1)+4,1)'*Belem*W(2*(i-1)+1: 2*(i-1)+4,1));
+                    dfdx(1,i)= -(2*x(i,1))*(W(2*(i-1)+1: 2*(i-1)+4,1)'*Belem(:,:,i)*W(2*(i-1)+1: 2*(i-1)+4,1));
                 end
                 for i=3:2*N
                     W(i,2)=obj.v2(i-2);
                 end
                 for i=1:N
-                    dfdx(2,i)= -(2*x(i,1))*(W(2*(i-1)+1: 2*(i-1)+4,2)'*Belem*W(2*(i-1)+1: 2*(i-1)+4,2));
+                    dfdx(2,i)= -(2*x(i,1))*(W(2*(i-1)+1: 2*(i-1)+4,2)'*Belem(:,:,i)*W(2*(i-1)+1: 2*(i-1)+4,2));
                 end
             else
                 obj.D
@@ -77,9 +77,9 @@ classdef EigModes < handle
                 end
                 A  = zeros(2,2);
                 for i=1:N
-                    dQ1(i,1)= (2*x(i,1))*(Q1(2*(i-1)+1: 2*(i-1)+4,1)'*Belem*Q1(2*(i-1)+1: 2*(i-1)+4,1));
-                    dQ2(i,1)= (2*x(i,1))*(Q2(2*(i-1)+1: 2*(i-1)+4,1)'*Belem*Q2(2*(i-1)+1: 2*(i-1)+4,1));
-                    dQ1Q2(i,1)= (2*x(i,1))*(Q1(2*(i-1)+1: 2*(i-1)+4,1)'*Belem*Q2(2*(i-1)+1: 2*(i-1)+4,1));
+                    dQ1(i,1)= (2*x(i,1))*(Q1(2*(i-1)+1: 2*(i-1)+4,1)'*Belem(:,:,i)*Q1(2*(i-1)+1: 2*(i-1)+4,1));
+                    dQ2(i,1)= (2*x(i,1))*(Q2(2*(i-1)+1: 2*(i-1)+4,1)'*Belem(:,:,i)*Q2(2*(i-1)+1: 2*(i-1)+4,1));
+                    dQ1Q2(i,1)= (2*x(i,1))*(Q1(2*(i-1)+1: 2*(i-1)+4,1)'*Belem(:,:,i)*Q2(2*(i-1)+1: 2*(i-1)+4,1));
                     A = [dQ1(i,1) dQ1Q2(i,1); dQ1Q2(i,1) dQ2(i,1)];
                     [U,R] = eigs(A,2,'SM');
                     S = sort(diag(R));
@@ -97,7 +97,8 @@ classdef EigModes < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.length         = cParams.length;
+%            obj.length         = cParams.length;
+            obj.mesh           = cParams.mesh;
             obj.designVariable = cParams.designVariable;
             obj.stiffnessMatComputer = cParams.stiffnessMatComputer;
             obj.bendingMatComputer   = cParams.bendingMatComputer;
@@ -112,7 +113,7 @@ classdef EigModes < handle
         end
 
         function createEigModesPlotter(obj)
-            s.length = obj.length;
+            s.mesh = obj.mesh;
             p = EigModesPlotter(s);
             obj.eigModesPlotter = p;
         end

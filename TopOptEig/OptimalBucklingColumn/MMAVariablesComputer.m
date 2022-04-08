@@ -19,7 +19,6 @@ classdef MMAVariablesComputer < handle
         nElem
         nConstraints
         nValues
-        length
         youngModulus
         inertiaMoment
         minThick
@@ -63,8 +62,7 @@ classdef MMAVariablesComputer < handle
         
         function init(obj,cParams)
             obj.nElem        = cParams.nElem;
-            obj.nConstraints = cParams.nConstraints; % m
-            obj.length       = cParams.length;
+            obj.nConstraints = cParams.nConstraints; 
             obj.youngModulus = cParams.youngModulus;
             obj.inertiaMoment = cParams.inertiaMoment;
             obj.minThick      = cParams.minThick;
