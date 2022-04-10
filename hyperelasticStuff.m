@@ -4,7 +4,7 @@
 % 
 % fem = FEM.create(s);
 %% Thermal
-filename = 'Cantilever119Kelem';
+filename = 'Cantilever338K';
 s = createFEMparameters(filename);
 fem = FEM.create(s);
 tic
