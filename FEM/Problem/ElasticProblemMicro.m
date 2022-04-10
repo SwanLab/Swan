@@ -32,6 +32,7 @@ classdef ElasticProblemMicro < ElasticProblem
             tStrss = zeros(nstre,ngaus,nstre,nelem);
             tDisp  = zeros(nstre,ndof);
             Ch = zeros(nstre,nstre);
+            v2p = cell(1,nstre);
             for istre=1:nstre
                 obj.vstrain = basis(istre,:);
                 obj.solve();
@@ -40,9 +41,10 @@ classdef ElasticProblemMicro < ElasticProblem
                 tStrn(istre,:,:,:)  = vars.strain;
                 tStrss(istre,:,:,:) = vars.stress;
                 tDisp(istre,:)      = vars.d_u;
-                v2p = obj.assignVarsToPrint(istre);
+                v2p{istre} = obj.assignVarsToPrint();
             end
             obj.variables2print   = v2p;
+            disp(v2p)
             obj.variables.Chomog  = Ch;
             obj.variables.tstrain = tStrn;
             obj.variables.tstress = tStrss;
@@ -92,14 +94,14 @@ classdef ElasticProblemMicro < ElasticProblem
             obj.variables = vars;
         end
 
-        function v2p = assignVarsToPrint(obj, istre)
+        function v2p = assignVarsToPrint(obj)
             vars = obj.variables;
-            v2p{istre}.d_u          = vars.d_u;
-            v2p{istre}.fext         = vars.fext;
-            v2p{istre}.stress       = vars.stress;
-            v2p{istre}.strain       = vars.strain;
-            v2p{istre}.stress_fluct = vars.stress_fluct;
-            v2p{istre}.strain_fluct = vars.strain_fluct;
+            v2p.d_u          = vars.d_u;
+            v2p.fext         = vars.fext;
+            v2p.stress       = vars.stress;
+            v2p.strain       = vars.strain;
+            v2p.stress_fluct = vars.stress_fluct;
+            v2p.strain_fluct = vars.strain_fluct;
         end
     end
 

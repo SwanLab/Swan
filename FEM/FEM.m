@@ -44,7 +44,7 @@ classdef FEM < handle
             q = obj.getQuadrature();
             d.fields = obj.variables;
             d.quad = q;
-            postprocess.print(obj.iter,d);
+            postprocess.print(1,d);
         end
         
     end

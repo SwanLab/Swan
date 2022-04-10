@@ -34,4 +34,3 @@
 % Test coming from GiD (Swan.gid)
 % Performance (time) vs nElem: for different cases
 
-

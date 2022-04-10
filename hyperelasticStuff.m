@@ -3,13 +3,20 @@
 % s = createFEMparameters(filename);
 % 
 % fem = FEM.create(s);
-
 %% Thermal
-filename = 'test_thermal';
+filename = 'CantileverSimple';
 s = createFEMparameters(filename);
 fem = FEM.create(s);
 fem.solve();
 fem.print(filename)
+
+
+%% Thermal
+% filename = 'test_thermal';
+% s = createFEMparameters(filename);
+% fem = FEM.create(s);
+% fem.solve();
+% fem.print(filename)
 
 %% Functions
 function s = createFEMparameters(file)

@@ -18,9 +18,6 @@ classdef ThermalProblem < handle
     properties (Access = protected)
         quadrature
         dim
-        material
-
-        vstrain
 
         mesh, interp % For Homogenization
     end
@@ -40,15 +37,7 @@ classdef ThermalProblem < handle
         function solve(obj)
             obj.computeStiffnessMatrix();
             obj.computeForces();
-            obj.computeDisplacements();
-        end
-
-        function plot(obj)
-            s.dim            = obj.dim;
-            s.mesh           = obj.mesh;
-            s.displacement = obj.variables.d_u;
-            plotter = FEMPlotter(s);
-            plotter.plot();
+            obj.computeTemperatures();
         end
 
         function dvolu = getDvolume(obj)
@@ -148,13 +137,10 @@ classdef ThermalProblem < handle
             s.dim         = obj.dim;
             s.BC          = obj.boundaryConditions; % Neumann
             s.mesh        = obj.mesh;
-            s.material    = obj.material;
+            s.material    = [];
             s.geometry    = obj.geometry;
             s.dvolume     = obj.getDvolume();
             s.globalConnec = obj.mesh.connec;
-            if isprop(obj, 'vstrain')
-                s.vstrain = obj.vstrain;
-            end
             fcomp = ForcesComputer(s);
             F = fcomp.compute();
             R = fcomp.computeReactions(obj.stiffnessMatrix);
@@ -165,12 +151,12 @@ classdef ThermalProblem < handle
             Fred = obj.boundaryConditions.fullToReducedVector(forces);
         end
 
-        function u = computeDisplacements(obj)
+        function t = computeTemperatures(obj)
             Kred = obj.stiffnessMatrixRed;
             Fred = obj.forces;
-            u = obj.solver.solve(Kred,Fred);
-            u = obj.boundaryConditions.reducedToFullVector(u);
-            obj.variables.d_u = u;
+            t = obj.solver.solve(Kred,Fred);
+            t = obj.boundaryConditions.reducedToFullVector(t);
+            obj.variables.d_u = t;
         end
 
         function d = createPostProcessDataBase(obj,fileName)

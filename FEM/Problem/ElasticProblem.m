@@ -79,6 +79,19 @@ classdef ElasticProblem < handle
         function quad = getQuadrature(obj)
             quad  = obj.quadrature;
         end
+        
+        function print(obj,fileName)
+            dI = obj.createPostProcessDataBase(fileName);
+            dI.pdim = '2D';
+            dI.ptype = 'ELASTICTY';
+            dI.name = '';
+            postprocess = Postprocess('Elasticity',dI); % not a scalar
+            q = obj.getQuadrature();
+            d.fields = obj.variables;
+            d.fields.u = obj.splitDisplacement();
+            d.quad = q;
+            postprocess.print(1,d);
+        end
 
     end
 
@@ -248,6 +261,27 @@ classdef ElasticProblem < handle
             pcomp.compute(stress);
             obj.variables.principalDirections = pcomp.direction;
             obj.variables.principalStress     = pcomp.principalStress;
+        end
+
+        function d = createPostProcessDataBase(obj,fileName)
+            dI.mesh    = obj.mesh;
+            dI.outName = fileName;
+            dI.pdim = '2D';
+            dI.ptype = 'ELASTIC';
+            ps = PostProcessDataBaseCreator(dI);
+            d = ps.getValue();
+        end
+        
+        function uM = splitDisplacement(obj)
+            u = obj.variables.d_u;
+            nu = obj.dim.ndimField;
+            nnode = round(length(u)/nu);
+            nodes = 1:nnode;
+            uM = zeros(nnode,nu);
+            for idim = 1:nu
+                dofs = nu*(nodes-1)+idim;
+                uM(:,idim) = u(dofs);
+            end
         end
 
     end
