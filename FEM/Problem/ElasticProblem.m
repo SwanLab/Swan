@@ -84,6 +84,18 @@ classdef ElasticProblem < handle
             quad  = obj.quadrature;
         end
 
+        function print(obj,filename)
+            s.quad = obj.quadrature;
+            s.mesh = obj.mesh;
+            s.iter = 0;
+            s.variables = obj.variables2print{1};
+            s.ptype     = obj.problemData.ptype;
+            s.ndim      = obj.dim.ndim;
+            s.pdim      = obj.problemData.pdim;
+            fPrinter = FemPrinter(s);
+            fPrinter.print(filename);
+         end
+
     end
 
     methods (Access = private)

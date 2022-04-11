@@ -9,15 +9,9 @@
 filename = 'Square25x25';
 s = createFEMparameters(filename);
 fem = FEM.create(s);
-fem.solve();
+fem.computeChomog();
+fem.print(filename);
 
-a.quad = fem.getQuadrature();
-a.mesh = s.mesh;
-a.iter = 0;
-a.variables = fem.variables;
-
-fPrinter = FemPrinter(a);
-fPrinter.print(filename);
 
 %% Functions
 function s = createFEMparameters(file)

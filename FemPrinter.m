@@ -1,10 +1,13 @@
 classdef FemPrinter < handle
     
-    properties (Access = public)
+    properties (Access = private)
         mesh
         quad
         iter
         variables
+        ndim
+        pdim
+        ptype
     end
     
     properties (Access = private)
@@ -18,15 +21,21 @@ classdef FemPrinter < handle
             obj.quad = cParams.quad;
             obj.iter = cParams.iter;
             obj.variables = cParams.variables;
+            obj.ndim  = cParams.ndim;
+            obj.ptype = cParams.ptype;
+            obj.pdim  = cParams.pdim;
         end
         
         function print(obj,fileName)
             dI = obj.createPostProcessDataBase(fileName);
-            postprocess = Postprocess('Elasticity',dI);
-            q = obj.getQuadrature();
+            dI.ndim   = obj.ndim;
+            dI.pdim   = obj.pdim;
+            dI.ptype  = obj.ptype;            
+            p = Postprocess('ElasticityMicro',dI);
+            q        = obj.quad;
             d.fields = obj.variables;
-            d.quad = q;
-            postprocess.print(obj.iter,d);
+            d.quad   = q;
+            p.print(obj.iter,d);
         end
         
     end
@@ -34,10 +43,10 @@ classdef FemPrinter < handle
     methods (Access = private)
         
         function d = createPostProcessDataBase(obj,fileName)
-            dI.mesh    = obj.mesh;
-            dI.outName = fileName;
+            dI.mesh        = obj.mesh;
+            dI.outFileName = fileName;
             ps = PostProcessDataBaseCreator(dI);
-            d = ps.getValue();
+            d = ps.create();
         end
         
     end
