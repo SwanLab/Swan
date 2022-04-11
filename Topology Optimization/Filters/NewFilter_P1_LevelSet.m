@@ -8,18 +8,14 @@ classdef NewFilter_P1_LevelSet <  handle
         x_reg
         geometry
         quadrature
-        domainType
         projector
-        interp
     end
     
     methods (Access = public)
         
         function obj = NewFilter_P1_LevelSet(cParams)
             obj.init(cParams);
-            obj.domainType = cParams.domainType;
-            obj.preProcess();
-            obj.createProjector();
+            obj.createProjector(cParams);
             obj.createPoperator(cParams);
             obj.disableDelaunayWarning();
         end
@@ -30,7 +26,6 @@ classdef NewFilter_P1_LevelSet <  handle
             P1proc = P1preProcessor(s);
             P1proc.preProcess();
             obj.quadrature = P1proc.quadrature;
-            obj.interp = P1proc.interp;
             obj.geometry = P1proc.geometry;
         end
         
@@ -52,35 +47,36 @@ classdef NewFilter_P1_LevelSet <  handle
             end
             obj.updateStoredValues(x,x0);
         end
-        
+
     end
-    
-    methods (Access = protected)
-        
+
+    methods (Access = private)
+
+        function init(obj,cParams)
+            obj.mesh = cParams.mesh;
+            obj.quadratureOrder = cParams.quadratureOrder;
+        end
+
         function x0 = computeP0fromP1(obj,x)
             xN = obj.projector.project(x);
             P  = obj.Poper.value;
             x0 = P*xN;
         end
-        
-    end
-    
-    methods (Access = private)
-        
-        function createPoperator(obj,cPar)
-            cParams.nnode  = obj.mesh.nnode;
-            cParams.npnod  = obj.mesh.npnod;
-            cParams.connec = obj.mesh.connec;
-            cParams.nelem  = obj.mesh.nelem;
-            cParams.diffReactEq = cPar.femSettings;
-            obj.Poper = Poperator(cParams);
+
+        function createPoperator(obj,cParams)
+            s.nnode  = obj.mesh.nnode;
+            s.npnod  = obj.mesh.npnod;
+            s.connec = obj.mesh.connec;
+            s.nelem  = obj.mesh.nelem;
+            s.diffReactEq = cParams.femSettings;
+            obj.Poper = Poperator(s);
         end
         
-        function createProjector(obj)
-            cParams.mesh = obj.mesh;
-            cParams.domainType = obj.domainType;
-            cParams.type = obj.mesh.type;
-            obj.projector = ShapeFunctionProjector.create(cParams);
+        function createProjector(obj,cParams)
+            s.mesh = cParams.mesh;
+            s.type = cParams.mesh.type;
+            s.domainType = cParams.domainType;
+            obj.projector = ShapeFunctionProjector.create(s);
         end
         
         function intX = integrateRHS(obj,x)
@@ -99,11 +95,6 @@ classdef NewFilter_P1_LevelSet <  handle
         function updateStoredValues(obj,x,x0)
             obj.x = x;
             obj.x_reg = x0;
-        end
-        
-        function init(obj,cParams)
-            obj.mesh = cParams.mesh;
-            obj.quadratureOrder = cParams.quadratureOrder;
         end
 
     end

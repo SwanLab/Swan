@@ -1,23 +1,15 @@
 classdef NewFilter_P1_Density < handle
 
     properties (Access = private)
-         mesh
-         quadratureOrder
-%         Poper
-%         x
-%         x_reg
-%         geometry
-%         quadrature
-%         M
-%         Kernel
-%         interp
-%         nelem
-%         nnode
-%         npnod
-%         ngaus
-%         shape
-         diffReacProb
-
+        mesh
+        quadratureOrder
+        Poper
+        x
+        x_reg
+        geometry
+        quadrature
+        M
+        Kernel
     end
 
 
@@ -67,8 +59,8 @@ classdef NewFilter_P1_Density < handle
         end
 
         function createMassMatrix(obj,cParams)
-            obj.diffReacProb = obj.createDiffReacProblem(cParams);
-            obj.M = obj.diffReacProb.getM();
+            diffReacProb = obj.createDiffReacProblem(cParams);
+            obj.M = diffReacProb.getM();
         end
 
         function createPoperator(obj,cPar)
@@ -82,13 +74,7 @@ classdef NewFilter_P1_Density < handle
 
         function storeParams(obj,P1proc)
             obj.quadrature = P1proc.quadrature;
-            obj.interp     = P1proc.interp;
             obj.geometry   = P1proc.geometry;
-            obj.nelem      = obj.mesh.nelem;
-            obj.nnode      = obj.mesh.nnode;
-            obj.npnod      = obj.mesh.npnod;
-            obj.ngaus      = obj.quadrature.ngaus;
-            obj.shape      = obj.interp.shape;
         end
 
         function itHas = xHasChanged(obj,x)
@@ -129,7 +115,7 @@ classdef NewFilter_P1_Density < handle
                 case 'MACRO'
                     pB = DiffReactProblem(s);
                 case 'MICRO'
-                    pB = NewDiffReactProblemMicro(s);
+                    pB = DiffReactProblemMicro(s);
             end
         end
 
