@@ -27,12 +27,12 @@ classdef TotalCoordinatesCalculator < handle
             obj.vertCoord = cParams.vertCoord;
             obj.boundCoord = cParams.boundCoord;
             obj.div = cParams.div;
-            obj.totalCoord = zeros(obj.nodes.total,2);
+            obj.totalCoord = [];
         end
         
         function initBoundary(obj)
             boundNodes = obj.nodes.bound;
-            obj.totalCoord(1:boundNodes,:) = obj.totalCoord(1:boundNodes,:)+obj.boundCoord;
+            obj.totalCoord(1:boundNodes,:) = obj.boundCoord;
         end
         
     end    

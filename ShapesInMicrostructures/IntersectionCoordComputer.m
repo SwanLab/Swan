@@ -51,7 +51,7 @@ classdef IntersectionCoordComputer < TotalCoordinatesCalculator
                     else
                         [x,y] = IntersectionCoordComputer.computeGeneralIntersection(pA,pB,obj.vA,obj.vB);
                     end
-                    obj.totalCoord(intNode,:) = obj.totalCoord(intNode,:)+[x y];
+                    obj.totalCoord(intNode,:) = [x y];
                     intNode = intNode+1;
                 end
             end

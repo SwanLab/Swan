@@ -36,7 +36,7 @@ classdef DiagonalCoordComputer < TotalCoordinatesCalculator
             pA = obj.vertCoord(1,:);
             centerVec = vA/2;
             obj.O = pA+centerVec;
-            obj.totalCoord(obj.intNode,:) = obj.totalCoord(obj.intNode,:)+obj.O;
+            obj.totalCoord(obj.intNode,:) = obj.O;
         end
         
         function computeTotalCoord(obj)
@@ -57,7 +57,7 @@ classdef DiagonalCoordComputer < TotalCoordinatesCalculator
                 diagA = obj.O-obj.vertCoord(iDiag,:);
                 vecDiv = iDiv*diagA/obj.diagDiv;
                 pos = obj.vertCoord(iDiag,:)+vecDiv;
-                obj.totalCoord(obj.intNode,:) = obj.totalCoord(obj.intNode,:)+pos;
+                obj.totalCoord(obj.intNode,:) = pos;
                 obj.intNode = obj.intNode+1;
             end
             newVert = obj.totalCoord(obj.intNode-nsides:obj.intNode-1,:);
@@ -68,10 +68,18 @@ classdef DiagonalCoordComputer < TotalCoordinatesCalculator
             for iMaster = 1:nsides/2
                 vertA = newVert(iMaster,:);
                 vertB = newVert(iMaster+1,:);
+                bool = 0;
+                while bool == 0
+                    if norm((vertB-vertA)/obj.div_aux(iMaster)) > obj.div(iMaster)/obj.c(iMaster)
+                        obj.div_aux(iMaster) = obj.div_aux(iMaster)+1;
+                    else
+                        bool = 1;
+                    end
+                end
                 for intDiv = 1:obj.div_aux(iMaster)-1
                     sideVec = intDiv*(vertB-vertA)/obj.div_aux(iMaster);
                     sidePos = vertA+sideVec;
-                    obj.totalCoord(obj.intNode,:) = obj.totalCoord(obj.intNode,:)+sidePos;
+                    obj.totalCoord(obj.intNode,:) = sidePos;
                     obj.intNode = obj.intNode+1;
                 end
             end
@@ -91,7 +99,7 @@ classdef DiagonalCoordComputer < TotalCoordinatesCalculator
                 for intDiv = 1:obj.div_aux(iSlave)-1
                     sideVec = intDiv*(vertB-vertA)/obj.div_aux(iSlave);
                     sidePos = vertA+sideVec;
-                    obj.totalCoord(obj.intNode,:) = obj.totalCoord(obj.intNode,:)+sidePos;
+                    obj.totalCoord(obj.intNode,:) = sidePos;
                     obj.intNode = obj.intNode+1;
                 end
             end
