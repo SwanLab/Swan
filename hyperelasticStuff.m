@@ -9,7 +9,14 @@ filename = 'test2d_micro';
 s = createFEMparameters(filename);
 fem = FEM.create(s);
 fem.solve();
-fem.print(filename);
+
+s.quad = fem.getQuadrature();
+s.mesh = fem.mesh;
+s.iter = fem.iter;
+s.variables = fem.variables;
+
+fPrinter = FemPrinter(s);
+fPrinter.print(filename);
 
 %% Functions
 function s = createFEMparameters(file)
