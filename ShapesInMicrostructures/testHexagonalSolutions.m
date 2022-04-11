@@ -4,7 +4,7 @@ function testHexagonalSolutions
     sideLength = [1,1,1];
     theta = [0,60,120];
     divUnit = 3;
-
+    
 
 
 end
