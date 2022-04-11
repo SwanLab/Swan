@@ -1,5 +1,5 @@
-classdef NewFilter_PDE_Density < handle
-    
+classdef AnisotropicFilter_PDE_Density < handle
+
     properties (Access = private)
         epsilon
         diffReacProb
@@ -14,7 +14,7 @@ classdef NewFilter_PDE_Density < handle
 
     methods (Access = public)
 
-        function obj = NewFilter_PDE_Density(cParams)
+        function obj = AnisotropicFilter_PDE_Density(cParams)
             obj.init(cParams);
             obj.epsilon = cParams.mesh.computeMeanCellSize();
         end
@@ -79,7 +79,7 @@ classdef NewFilter_PDE_Density < handle
             s.mesh = cParams.mesh;
             switch s.scale
                 case 'MACRO'
-                    obj.diffReacProb = DiffReactProblem(s);
+                    obj.diffReacProb = NewAnisoDiffReactProblem(s);
                 case 'MICRO'
                     obj.diffReacProb = DiffReactProblemMicro(s);
             end

@@ -3,6 +3,7 @@ classdef LHSintergratorAnisotropicStiffness < LHSintegrator
     properties (Access = private)
         geometry
         Celas
+        dofsInElem
     end
 
     methods (Access = public)

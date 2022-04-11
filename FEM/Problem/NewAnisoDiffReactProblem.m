@@ -1,9 +1,11 @@
-classdef DiffReactProblem < handle
+classdef NewAnisoDiffReactProblem < handle
     
     properties (Access = protected)
         isRobinTermAdded
         interp
         boundaryMesh
+        alpha
+        priority = 1
     end
     
     properties (GetAccess = public, SetAccess = protected)
@@ -44,7 +46,7 @@ classdef DiffReactProblem < handle
 
     methods (Access = public)
         
-        function obj = DiffReactProblem(cParams)
+        function obj = NewAnisoDiffReactProblem(cParams)
             obj.init(cParams);
             obj.createInterpolation();
             obj.computeProblemDimensions();
@@ -159,16 +161,19 @@ classdef DiffReactProblem < handle
         end
 
         function computeStiffnessMatrix(obj,cParams)
-            s.type = 'StiffnessMatrix';
+            s.type = 'AnisotropicStiffnessMatrix';
+            for i = 1:size(obj.mesh.connec,1)
+                s.Celas(:,:,i) = [obj.priority, 0; 0, 1]; % Rotation matrix
+            end
             s.mesh         = obj.mesh;
             s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
-            %             s.dofsInElem   = obj.dofsInElem;
+            s.dofsInElem   = obj.dofsInElem;
             s.dim          = obj.dim;
             LHS = LHSintegrator.create(s);
             obj.K = LHS.compute();
         end
-
+        
         function computeMassMatrix(obj)
             s.type         = 'MassMatrix';
             s.quadType     = 'QUADRATICMASS';
