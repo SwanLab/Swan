@@ -11,12 +11,12 @@ s = createFEMparameters(filename);
 fem = FEM.create(s);
 fem.solve();
 
-s.quad = fem.getQuadrature();
-s.mesh = fem.mesh;
-s.iter = fem.iter;
-s.variables = fem.variables;
+a.quad = fem.getQuadrature();
+a.mesh = s.mesh;
+a.iter = 0;
+a.variables = fem.variables;
 
-fPrinter = FemPrinter(s);
+fPrinter = FemPrinter(a);
 fPrinter.print(filename);
 
 %% Functions
