@@ -101,6 +101,7 @@ classdef ElasticProblemMicro < ElasticProblem
             v2p{istre}.stress_fluct = vars.stress_fluct;
             v2p{istre}.strain_fluct = vars.strain_fluct;
         end
+        
     end
 
 end

@@ -1,4 +1,4 @@
-filename = 'test2d_micro';
+filename = 'Square25x25';
 ptype = 'MICRO';
 method = 'SIMP_P3';
 materialType = 'ISOTROPIC';

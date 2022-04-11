@@ -11,15 +11,15 @@ function SquaredMeshCreator()
     vertIndex(:,1) = 1:nsides;
     plotVertices(vertIndex,coord);
     plotMasterSlaveNodes(masterSlaveIndex,coord);
-    writeFEMreadingfunction(coord,connec,masterSlaveIndex,'Hexagon25x25x25.m', vertCoord);
+    writeFEMreadingfunction(coord,connec,masterSlaveIndex,'IrrHexagon50x25x50.m', vertCoord);
 end
 
 function  [dim,divUnit,c,theta] = obtainInitialData()
 % Datos de entrada del programa. COMPLETAMENTE GENERAL
     dim = 2;
-    divUnit = 25; %Divisions/length of the side
-    c = [1,1,1];
-    theta = [0,60,120];
+    divUnit = 5; %Divisions/length of the side
+    c = [2,1,2];
+    theta = [0,45,90];
 end
 
 function nsides = obtainPolygonSides(c,theta)
@@ -61,7 +61,7 @@ div = divUnit*c;
     boundNodes = round(boundNodes);
     vertCoord = zeros(nsides,dim);
     boundary = zeros(boundNodes,dim);
-    coord = zeros(nnodes,dim);
+    coord = [];
 end
 
 function vertCoord = computeVertCoord(vertCoord,c,theta,nsides)
@@ -143,7 +143,7 @@ intNode = boundNodes+1;
                         x = (pB(2)-pA(2)+pA(1)*vB(2)/vB(1)+pB(1)*vA(2)/vA(1))/(vB(2)/vB(1)-vA(2)/vA(1));
                         y = (x-pB(1))*vA(2)/vA(1)+pB(2);
                     end
-                    coord(intNode,:) = coord(intNode,:)+[x y];
+                    coord(intNode,:) = [x y];
                     intNode = intNode+1;
                 end
             end
@@ -166,7 +166,7 @@ intNode = boundNodes+1;
                 diagA = O-vertCoord(iDiag,:);
                 vecDiv = iDiv*diagA/diagDiv;
                 pos = vertCoord(iDiag,:)+vecDiv;
-                coord(intNode,:) = coord(intNode,:)+pos;
+                coord(intNode,:) = pos;
                 intNode = intNode+1;
             end
             % Aplicar aquí los nodos internos a las rectas
@@ -174,10 +174,18 @@ intNode = boundNodes+1;
             for iMaster = 1:nsides/2
                 vertA = newVert(iMaster,:);
                 vertB = newVert(iMaster+1,:);
+                bool = 0;
+                while bool == 0
+                    if norm((vertB-vertA)/div(iMaster)) > 1/divUnit
+                        div(iMaster) = div(iMaster)+1;
+                    else
+                        bool = 1;
+                    end
+                end
                 for intDiv = 1:div(iMaster)-1
                     sideVec = intDiv*(vertB-vertA)/div(iMaster);
                     sidePos = vertA+sideVec;
-                    coord(intNode,:) = coord(intNode,:)+sidePos;
+                    coord(intNode,:) = sidePos;
                     intNode = intNode+1;
                 end
             end
