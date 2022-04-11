@@ -11,15 +11,15 @@ function SquaredMeshCreator()
     vertIndex(:,1) = 1:nsides;
     plotVertices(vertIndex,coord);
     plotMasterSlaveNodes(masterSlaveIndex,coord);
-    writeFEMreadingfunction(coord,connec,masterSlaveIndex,'IrrHexagon50x25x50.m', vertCoord);
+    writeFEMreadingfunction(coord,connec,masterSlaveIndex,'Hexagon50x25x50.m', vertCoord);
 end
 
 function  [dim,divUnit,c,theta] = obtainInitialData()
 % Datos de entrada del programa. COMPLETAMENTE GENERAL
     dim = 2;
-    divUnit = 5; %Divisions/length of the side
-    c = [2,1,2];
-    theta = [0,45,90];
+    divUnit = 3; %Divisions/length of the side
+    c = [1,1,1];
+    theta = [0,60,120];
 end
 
 function nsides = obtainPolygonSides(c,theta)
@@ -116,7 +116,7 @@ end
 function coord = computeMeshCoord(nsides,vertCoord,divUnit,c,boundary,boundNodes,coord,div)
 % Obtención de las coordenadas dentro de la boundary. GENERAL para los
 % casos considerados
-coord(1:boundNodes,:) = coord(1:boundNodes,:)+boundary;
+coord(1:boundNodes,:) = boundary;
 intNode = boundNodes+1;
     switch nsides
         case 4
@@ -155,7 +155,7 @@ intNode = boundNodes+1;
         pA = vertCoord(1,:);
         centerVec = vA/2;
         O = pA+centerVec;
-        coord(intNode,:) = coord(intNode,:)+O;
+        coord(intNode,:) = O;
         % Cálculo de las divisiones a aplicar por recta
         diagDiv = max(div);
         div = div-1;
@@ -200,7 +200,7 @@ intNode = boundNodes+1;
                 for intDiv = 1:div(iSlave)-1
                     sideVec = intDiv*(vertB-vertA)/div(iSlave);
                     sidePos = vertA+sideVec;
-                    coord(intNode,:) = coord(intNode,:)+sidePos;
+                    coord(intNode,:) = sidePos;
                     intNode = intNode+1;
                 end
             end

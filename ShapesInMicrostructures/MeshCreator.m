@@ -37,7 +37,6 @@ classdef MeshCreator < handle
             obj.plotVertices();
             obj.plotMasterSlaveNodes();
         end
-
         
     end
     

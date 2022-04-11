@@ -7,7 +7,7 @@ classdef TesterFactory < handle
                 case 'QuadrilateralNodesCalculatorTester'
                     obj = QuadrilateralNodesCalculatorTester(initialData);
                 case 'HexagonalNodesCalculatorTester'
-%                     obj = HexagonalNodesCalculatorTester(initialData);
+                     obj = HexagonalNodesCalculatorTester(initialData);
                 case 'VertexCoordinatesCalculatorTester'
                     obj = VertexCoordinatesCalculatorTester(initialData);
                 case 'BoundaryCoordinatesCalculatorTester'
@@ -17,7 +17,7 @@ classdef TesterFactory < handle
                 case 'IntersectionCoordComputerTester'
                     obj = IntersectionCoordComputerTester(initialData);
                 case 'DiagonalCoordComputerTester'
-%                     obj = DiagonalCoordComputerTester(initialData);
+                     obj = DiagonalCoordComputerTester(initialData);
                 case 'MasterSlaveComputerTester'
                     obj = MasterSlaveComputerTester(initialData);
                 case 'MeshCreatorTester'

@@ -70,7 +70,7 @@ classdef DiagonalCoordComputer < TotalCoordinatesCalculator
                 vertB = newVert(iMaster+1,:);
                 bool = 0;
                 while bool == 0
-                    if norm((vertB-vertA)/obj.div_aux(iMaster)) > obj.div(iMaster)/obj.c(iMaster)
+                    if norm((vertB-vertA)/obj.div_aux(iMaster)) > obj.c(iMaster)/obj.div(iMaster)
                         obj.div_aux(iMaster) = obj.div_aux(iMaster)+1;
                     else
                         bool = 1;

@@ -7,7 +7,7 @@ classdef HexagonalNodesCalculator < NodesCalculator
         totalNodes
     end
     
-    methods (Access = protected)
+    methods (Access = public)
         
         function obj = HexagonalNodesCalculator(cParams)
             obj.init(cParams);
