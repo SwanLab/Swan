@@ -16,7 +16,7 @@ classdef ScalarGaussVariablePrinter < ResultsPrinter
             obj.fieldName = d.fieldName;
             obj.simulationStr = [d.fieldName,'Gauss'];
         end
-               
+        
         function printResults(obj,iter,fileID)
             field(:,1,:) = obj.fields';
             dS = obj.createScalarGaussDataBase(iter,fileID,field, obj.fieldName,'OnGaussPoints');
@@ -32,8 +32,8 @@ classdef ScalarGaussVariablePrinter < ResultsPrinter
         end
         
         function createHeadPrinter(obj,d,dh)
-            obj.headPrinter = GaussHeadPrinter(d,dh);            
-        end       
+            obj.headPrinter = GaussHeadPrinter(d,dh);
+        end
         
     end
     

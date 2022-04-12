@@ -4,7 +4,6 @@ classdef GaussResultsPrinter < handle
         dataBase
     end
     
-    
     methods (Access = public)
         
         function obj = GaussResultsPrinter(d,dh)
@@ -26,7 +25,7 @@ classdef GaussResultsPrinter < handle
             dI.gaussDescriptor = 'Guass up?';
             dI.posgp = d.quad.posgp';
             dI.ngaus = d.quad.ngaus;
-            obj.headPrinterDataBase = dI; 
+            obj.headPrinterDataBase = dI;
         end
         
 %         function storeQuadInfo(obj,d)
@@ -40,6 +39,5 @@ classdef GaussResultsPrinter < handle
 %         createScalarDataBase(obj)
 %         createVectorDataBase(obj)
 %     end
-    
     
 end

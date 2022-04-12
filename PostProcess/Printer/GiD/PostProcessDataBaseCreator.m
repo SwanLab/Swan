@@ -45,6 +45,8 @@ classdef PostProcessDataBaseCreator < handle
         
         function n = computeNdim(p)
             switch p
+                case '1D'
+                    n = 1;
                 case '2D'
                     n = 2;
                 case '3D'

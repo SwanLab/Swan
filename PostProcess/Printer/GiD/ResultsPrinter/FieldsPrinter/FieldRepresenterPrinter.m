@@ -1,5 +1,5 @@
 classdef FieldRepresenterPrinter < handle
-  
+
     properties (Access = protected)
         fileID
         fieldName
@@ -7,14 +7,14 @@ classdef FieldRepresenterPrinter < handle
         fieldType
         fieldPosition
         simulationStr
-        fieldValues             
-        nComp        
+        fieldValues
+        nComp
     end
-    
-    methods (Access = public, Abstract)        
-       printResultsLineHeader(obj)
-       printFieldLines(obj)
+
+    methods (Access = public, Abstract)
+        printResultsLineHeader(obj)
+        printFieldLines(obj)
     end
-    
+
 
 end

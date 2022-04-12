@@ -32,8 +32,8 @@ classdef FieldPrinter < handle
         
         function printResultsLineHeader(obj)
            obj.fieldRepresenter.printResultsLineHeader()
-        end        
-                
+        end
+        
     end
     
  end

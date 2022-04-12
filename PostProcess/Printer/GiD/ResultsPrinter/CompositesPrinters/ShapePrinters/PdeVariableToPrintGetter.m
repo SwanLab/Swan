@@ -12,6 +12,9 @@ classdef PdeVariableToPrintGetter < handle
         
         function v = compute(obj)
             p = obj.physicalProblem;
+            if isempty(p.variables)
+                p.computeChomog();
+            end
             v.stress = p.variables.stress;
             v.strain = p.variables.strain;
             v.u      = obj.splitDisplacement(p.variables.d_u,p.getDimensions().ndimField);

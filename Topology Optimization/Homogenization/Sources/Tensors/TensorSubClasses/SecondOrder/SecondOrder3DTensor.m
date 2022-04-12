@@ -18,8 +18,6 @@ classdef SecondOrder3DTensor < AbstractTensor ...
     
     methods (Access = protected)
 
-
-        
         function loadTensorSize(obj)
             obj.tensorSize = [3,3];
         end
