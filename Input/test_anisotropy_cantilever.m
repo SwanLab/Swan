@@ -1,21 +1,22 @@
 % filename = 'Cantileverbeam_Quadrilateral_Bilinear';
-filename = 'CantileverBeam_Triangle_Linear';
+filename = 'ArchTriFine';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'compliance';'perimeter'};
-weights = [1 0.1];
+cost = {'compliance'};
+weights = [1];
 constraint = {'volumeConstraint'};
-optimizer = 'SLERP'; 
+optimizerUnconstrained = 'PROJECTED GRADIENT'; % SLERP
+optimizer = 'DualNestedInPrimal';
 incrementFactor = 1;
-designVariable = 'LevelSet';
+designVariable = 'Density'; % LevelSet
 filterType = 'AnisotropicPDE';
 
 shFuncParamsName = 'paramsTestCantilever3';
 
-nsteps = 5;
-Vfrac_final = 0.3;
+nsteps = 20;
+Vfrac_final = 0.15;
 optimality_final =1e-3;
 constr_final =1e-3;
 
@@ -36,4 +37,5 @@ plotting = true;
 printing = false;
 printing_physics = false;
 monitoring = true;
-maxiter = 150;
+monitoring_interval = 1;
+maxiter = 200;
