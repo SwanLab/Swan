@@ -1,8 +1,8 @@
 function testQuadrilateralSolutions
     %PREAMBLE
     % test for the squaredMesh with sideLength = 1 and unitDiv = 3
-    sideLength = [1,1];
-    theta = [0,90];
+    sideLength = [2,1,2];
+    theta = [0,45,90];
     divUnit = 3;
     % Initial Data
     nV = load('nvert.mat');
@@ -24,10 +24,11 @@ function testQuadrilateralSolutions
     initialData.coord = c.coord;
     
     %TESTERS
-    testers = {'NodesCalculatorTester','VertexCoordinatesCalculatorTester',...
-    'BoundaryCoordinatesCalculatorTester','IntersectionCoordComputerTester',...
-    'MasterSlaveComputerTester','QuadrilateralNodesCalculatorTester',...
-    'NodeCoordinatesComputerTester','MeshCreatorTester'};
+%     testers = {'NodesCalculatorTester','VertexCoordinatesCalculatorTester',...
+%     'BoundaryCoordinatesCalculatorTester','IntersectionCoordComputerTester',...
+%     'MasterSlaveComputerTester','QuadrilateralNodesCalculatorTester',...
+%     'NodeCoordinatesComputerTester','MeshCreatorTester'};
+    testers = {'MeshCreatorTester'};
     
     for iTest = 1:length(testers)
         Tester.create(testers{iTest},initialData);

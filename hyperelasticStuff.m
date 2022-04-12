@@ -6,7 +6,7 @@
 
 % Microstructure
 %filename = 'test2d_micro';
-filename = 'Square25x25';
+filename = 'IrrHexagon50x25x50';
 s = createFEMparameters(filename);
 fem = FEM.create(s);
 fem.computeChomog();

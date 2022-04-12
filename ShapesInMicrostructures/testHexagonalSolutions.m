@@ -23,7 +23,8 @@ function testHexagonalSolutions
     initialData.boundCoord = b.boundary;
     initialData.totalCoord = c.coord;
     
-    testers = {'DiagonalCoordComputerTester','HexagonalNodesCalculatorTester'};
+    testers = {'DiagonalCoordComputerTester','HexagonalNodesCalculatorTester'...
+        };
     for iTest = 1:length(testers)
         Tester.create(testers{iTest},initialData);
     end

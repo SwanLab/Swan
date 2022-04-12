@@ -1,4 +1,4 @@
-filename = 'Square25x25';
+filename = 'IrrHexagon50x25x50';
 ptype = 'MICRO';
 method = 'SIMP_P3';
 materialType = 'ISOTROPIC';
@@ -39,8 +39,8 @@ micro.alpha =[1 0 0]';%[1 0 0]'
 micro.beta =[0 -1 0]';%[0 -1 0]'
 
 % For all tests
-plotting = false;
-printing = false;
-printing_physics = false;
-monitoring = false;
+plotting = true;
+printing = true;
+printing_physics = true;
+monitoring = true;
 maxiter = 3;
