@@ -3,14 +3,32 @@
 % s = createFEMparameters(filename);
 % 
 % fem = FEM.create(s);
-%% Thermal
-filename = 'Cantilever338K';
-s = createFEMparameters(filename);
-fem = FEM.create(s);
-tic
-fem.solve();
-toc
-fem.print(filename)
+%% Performance
+tests = {'Cantilever1Kelem', 'Cantilever4Kelem', 'Cantilever18Kelem', ...
+    'Cantilever50Kelem', 'Cantilever74Kelem', 'Cantilever119Kelem', ...
+    'Cantilever216Kelem', 'Cantilever338K'};
+index = 1;
+for test = tests
+    s = createFEMparameters(test{1});
+    fem = FEM.create(s);
+    tic
+    for i  = 1:5
+        tic
+        fem.solve();
+        resultsNew{index}(i) = toc;
+    end
+    disp(resultsNew)
+    index = index + 1;
+end
+a = 0;
+
+% filename = 'Cantilever119Kelem';
+% s = createFEMparameters(filename);
+% fem = FEM.create(s);
+% tic
+% fem.solve();
+% toc
+% % fem.print(filename)
 
 
 %% Thermal
