@@ -4,34 +4,30 @@ classdef Optimizer_fmincon < Optimizer
         type = 'fmincon';
     end
 
-    properties
+    properties (Access = private)
         problem
-        nConstr
-        info
-        constraintTolerance
-        optimalityTolerance
+        iterDisplay
         data
         upperBound
         lowerBound
-        functions
         nX
         options
         algorithm
     end
 
+
     methods (Access = public)
 
         function obj = Optimizer_fmincon(cParams)
-            obj.algorithm  = 'interior-point';
-            cParams.monitoringDockerSettings.optimizerNames.alg = obj.algorithm;
+            obj.algorithm              = 'sqp';
             cParams.optimizerNames.alg = obj.algorithm;
+            obj.outputFunction         = cParams.outputFunction.monitoring;
+            cParams.monitoringDockerSettings.optimizerNames.alg = obj.algorithm;
             obj.init(cParams);
-            obj.upperBound = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound = cParams.uncOptimizerSettings.lb;
-            obj.nConstr    = cParams.nConstr;
-            obj.maxIter    = cParams.maxIter;
-            obj.nIter      = -1;
-            obj.nX         = length(obj.designVariable.value);
+            obj.upperBound             = cParams.uncOptimizerSettings.ub;
+            obj.lowerBound             = cParams.uncOptimizerSettings.lb;
+            obj.iterDisplay            = cParams.outputFunction.iterDisplay;
+            obj.nX                     = length(obj.designVariable.value);
             obj.createProblem();
             obj.createOptions();
         end
@@ -112,7 +108,7 @@ classdef Optimizer_fmincon < Optimizer
             opts.SpecifyConstraintGradient = true;
             opts.CheckGradients            = false;
             opts.ConstraintTolerance       = 1e-4;
-            opts.Display                   = "none";
+            opts.Display                   = obj.iterDisplay;
             opts.EnableFeasibilityMode     = false;
             opts.HessianApproximation      = 'bfgs';
             opts.HessianFcn                = [];
@@ -135,38 +131,15 @@ classdef Optimizer_fmincon < Optimizer
                 case "init"
                     
                 case "iter"
-                    obj.data  = params;
-                    obj.nIter = obj.nIter+1;
+                    obj.updateIterInfo();
                     obj.designVariable.update(x);
-                    foOpt       = params.firstorderopt;
-                    normXsquare = obj.designVariable.computeL2normIncrement();
-                    obj.designVariable.updateOld();
-                    incX = sqrt(normXsquare);
-
-                    switch obj.algorithm
-                        case 'sqp'
-                            stepL = params.stepsize;
-                        case 'interior-point'
-                            stepL = params.trustregionradius;
-                        otherwise
-                    end
-
-                    obj.updateStatus();
-                    obj.printOptimizerVariable();
-                    obj.dualVariable.value = zeros(obj.constraint.nSF,1);            
-                    obj.convergenceVars.reset();
-                    obj.convergenceVars.append(incX);
-                    obj.convergenceVars.append(foOpt);
-                    obj.convergenceVars.append(stepL);
-                    obj.refreshMonitoring();
-                    obj.printHistory();
-                otherwise
-                    
+                    params.algorithm   = obj.algorithm;
+                    params.nIter       = obj.nIter;
+                    params.hasFinished = obj.hasFinished; 
+                    obj.outputFunction.monitoring.compute(params);
             end
         end
 
     end
-
-
 
 end

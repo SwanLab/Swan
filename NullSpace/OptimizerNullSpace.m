@@ -4,13 +4,12 @@ classdef OptimizerNullSpace < Optimizer
         type = 'NullSpace';
     end
 
-    properties (Access = public)
+    properties (Access = private)
         tau
         lineSearchTrials
         lineSearch
         maxLineSearchTrials = 100
         costOld
-        nConstr
         upperBound
         lowerBound
         tol = 1e-4
@@ -29,15 +28,16 @@ classdef OptimizerNullSpace < Optimizer
 
     methods
         function obj = OptimizerNullSpace(cParams)
+            obj.outputFunction = cParams.outputFunction.monitoring;
             obj.init(cParams);
             obj.upperBound = cParams.uncOptimizerSettings.ub;
             obj.lowerBound = cParams.uncOptimizerSettings.lb;
-            obj.nConstr    = cParams.nConstr;
             obj.maxIter    = cParams.maxIter;
             obj.nX         = length(obj.designVariable.value);
             obj.cost.computeFunctionAndGradient();
             obj.costOld    = obj.cost.value;
-            obj.lambda     = 0;            
+            obj.designVariable.updateOld();
+            obj.lambda         = 0;
             obj.solveProblem();
         end
 
@@ -61,7 +61,7 @@ classdef OptimizerNullSpace < Optimizer
             mOld = obj.computeMeritFunction(x0);            
             while ~obj.acceptableStep
                 obj.updateDualDirect();
-                x = obj.updatePrimal(x0);
+                x = obj.updatePrimal();
                 obj.checkStep(x,x0,mOld);
             end
             obj.updateOldValues(x);
@@ -85,7 +85,7 @@ classdef OptimizerNullSpace < Optimizer
             A = obj.constraint.gradient;
             c = x-obj.tau*obj.cost.gradient;
             b = A'*x - obj.constraint.value ;
-            l = (A'*A)\(c'*A - b);
+            l = (A'*A)\((c'*A)' - b);
             obj.lambda = l;
         end
 
@@ -140,7 +140,7 @@ classdef OptimizerNullSpace < Optimizer
 %             obj.options = opts;
 %         end
 % 
-        function x = updatePrimal(obj,x0)
+        function x = updatePrimal(obj)
             lb     = obj.lowerBound;
             ub     = obj.upperBound;
             t      = obj.tau;
@@ -161,7 +161,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.acceptableStep = true;
             elseif obj.tau < 1e-9
                 obj.acceptableStep = true;
-                obj.tau = 0.1*sqrt(norm(obj.designVariable.value)/norm(obj.cost.gradient));
+                obj.tau = 0.1;
             else
                 obj.tau = obj.tau/2;
                 obj.designVariable.update(x0);
@@ -176,23 +176,24 @@ classdef OptimizerNullSpace < Optimizer
             x0        = obj.oldDesignVariable;
             l         = obj.lambda;
             C         = obj.constraint.value;
-            DC        = obj.constraint.gradient';
+%             DC        = obj.constraint.gradient';
             J         = obj.cost.value;
             DJ        = obj.cost.gradient';
             t         = obj.tau;
-            alphaJ    = 1;
-            alphaC    = 1;
-            S         = (DC*DC')^-1;
+%             alphaJ    = 1;
+%             alphaC    = 1;
+%             S         = (DC*DC')^-1;
 %             mF        = alphaJ*(J + l*C) + alphaC/2*C'*S*C;
-            mF        = J + l*C + (DJ + l*C)*(x-x0) + 1/(2*t)*norm(x-x0)^2;
+            mF        = J + l'*C; %+ (DJ + l*C)*(x-x0) + 1/(2*t)*norm(x-x0)^2;
         end
 
         function obj = saveOldValues(obj,x)
             obj.designVariable.update(x);
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
-            obj.oldCost           = obj.cost.value;
-            obj.oldDesignVariable = x;
+            obj.oldCost            = obj.cost.value;
+            obj.oldDesignVariable  = x;
+            obj.dualVariable.value = obj.lambda;
         end
 
         function obj = updateOldValues(obj,x)
@@ -203,7 +204,7 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function obj = checkConvergence(obj)
-           if abs(obj.oldCost - obj.cost.value) < obj.tol && obj.constraint.value < 0
+           if abs(obj.oldCost - obj.cost.value) < obj.tol && max(obj.constraint.value) < 0
                obj.HasConverged = true;
            else
                
@@ -212,23 +213,14 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function obj = updateMonitoring(obj)
-            cost                   = obj.cost.value;
-            deltaCost              = cost - obj.oldCost;
-            x0                     = obj.oldDesignVariable;
-            x                      = obj.designVariable.value;
-            normXsquare            = norm(x-x0);
-            obj.lineSearch         = obj.tau;
-            incX                   = sqrt(normXsquare);
-            obj.dualVariable.value = obj.lambda;
-            obj.updateStatus();
-            obj.printOptimizerVariable();
-            obj.convergenceVars.reset();
-            obj.convergenceVars.append(deltaCost);
-            obj.convergenceVars.append(incX);
-            obj.convergenceVars.append(obj.lineSearch);
-            obj.convergenceVars.append(obj.lineSearchTrials);
-            obj.refreshMonitoring();
-            obj.printHistory();
+            obj.updateIterInfo();
+            s.nIter            = obj.nIter;
+            s.tau              = obj.tau;
+            s.lineSearch       = obj.lineSearch;
+            s.lineSearchTrials = obj.lineSearchTrials;
+            s.oldCost          = obj.oldCost;
+            s.hasFinished      = obj.hasFinished;
+            obj.outputFunction.monitoring.compute(s);
         end
 
     end

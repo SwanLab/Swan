@@ -1,0 +1,40 @@
+classdef MonitoringManager < handle
+    
+    properties (Access = public)
+        monitoring
+    end
+    
+    properties (Access = private)
+        
+    end
+    
+    properties (Access = private)
+        
+    end
+    
+    methods (Access = public)
+        
+        function obj = MonitoringManager(cParams)
+            switch cParams.outputFunction.type
+                case 'Academic'
+                    obj.computeAcademicMonitoring(cParams);
+                case 'Topology'
+                    obj.computeTopologyMonitoring(cParams);
+            end
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function computeAcademicMonitoring(obj,cParams)
+            obj.monitoring = AcademicMonitoring(cParams);
+        end
+        
+        function computeTopologyMonitoring(obj,cParams)
+            obj.monitoring = TopologyMonitoring(cParams);
+        end
+        
+    end
+    
+end

@@ -16,7 +16,7 @@ classdef Optimizer < handle
         constraintCase
         historyPrinter
         targetParameters
-        
+        outputFunction
         maxIter
         incrementalScheme
     end
@@ -26,15 +26,15 @@ classdef Optimizer < handle
     end
     
     properties (Access = private)
-        postProcess
-        monitor
+        optimizerType
     end
     
     methods (Access = public, Static)
         
         function obj = create(cParams)
-            f = OptimizerFactory();
-            obj = f.create(cParams);
+            cParams.outputFunction.monitoring = MonitoringManager(cParams);
+            f               = OptimizerFactory();
+            obj             = f.create(cParams);
         end
         
     end
@@ -62,21 +62,13 @@ classdef Optimizer < handle
 
             obj.hasConverged = 0;
             obj.printHistoryFinalValues();
-        end
-        
-        function saveMonitoring(obj)
-            obj.monitor.saveMonitorFigure();
-        end
+       end
+
+       % PETARA PER TOT ARREU CAL ARREGLAR
         
     end
     
     methods (Access = protected)
-        
-        function refreshMonitoring(obj)
-            iStep = obj.incrementalScheme.iStep;
-            nStep = obj.incrementalScheme.nSteps;
-            obj.monitor.refresh(obj.nIter,obj.hasFinished,iStep,nStep);
-        end
         
         function init(obj,cParams)
             obj.nIter             = 0;
@@ -89,80 +81,35 @@ classdef Optimizer < handle
             obj.maxIter           = cParams.maxIter;
             obj.incrementalScheme = cParams.incrementalScheme;
             obj.targetParameters  = cParams.targetParameters;
-            
-            obj.createHistoryPrinter(cParams.historyPrinterSettings);
-            obj.createConvergenceVariables(cParams);
-            obj.createMonitorDocker(cParams.monitoringDockerSettings);
-            obj.createPostProcess(cParams.postProcessSettings);
+            obj.optimizerType     = cParams.outputFunction.type;
+            obj.outputFunction.monitoring.create(cParams);
         end
-        
-        function updateStatus(obj)
-            obj.hasFinished = obj.hasConverged || obj.hasExceededStepIterations();
-        end
-        
-        function printOptimizerVariable(obj)
-            if ~isempty(obj.postProcess)
-            d.fields  = obj.designVariable.getVariablesToPlot();
-            d.cost = obj.cost;
-            d.constraint = obj.constraint;
-            obj.postProcess.print(obj.nIter,d);
+
+        function updateIterInfo(obj)
+            switch obj.optimizerType
+                case 'Topology'
+                    obj.increaseIter();
+                    obj.updateStatus();
+                otherwise
             end
-        end
-        
-        function printHistory(obj)
-            iStep = obj.incrementalScheme.iStep;
-            obj.historyPrinter.print(obj.nIter,iStep);
-        end
-        
-        function printHistoryFinalValues(obj)
-            obj.historyPrinter.printFinal();
         end
         
     end
     
     methods (Access = private)
-        
+
         function increaseIter(obj)
             obj.nIter = obj.nIter+1;
-        end 
+        end
+
+        function updateStatus(obj)
+            obj.hasFinished = obj.hasConverged || obj.hasExceededStepIterations();
+        end
         
         function itHas = hasExceededStepIterations(obj)
             iStep = obj.incrementalScheme.iStep;
             nStep = obj.incrementalScheme.nSteps;
             itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
-        end
-        
-        function createHistoryPrinter(obj,cParams)
-            cParams.optimizer  = obj;
-            cParams.cost       = obj.cost;
-            cParams.constraint = obj.constraint;
-            obj.historyPrinter = OptimizationMetricsPrinterFactory.create(cParams);
-        end
-        
-        function createConvergenceVariables(obj,cParams)
-            s = cParams.optimizerNames;
-            cVarD = ConvergenceVarsDispatcher.dispatchNames(s);
-            n = numel(cVarD);
-            cVar = ConvergenceVariables(n);
-            obj.convergenceVars = cVar;
-        end
-        
-        function createMonitorDocker(obj,s)
-            s.designVariable  = obj.designVariable;
-            s.dualVariable    = obj.dualVariable;
-            s.cost            = obj.cost;
-            s.constraint      = obj.constraint;
-            s.convergenceVars = obj.convergenceVars;
-            obj.monitor = MonitoringDocker(s);
-        end
-        
-        function createPostProcess(obj,cParams)
-            if cParams.shallPrint
-                d = obj.createPostProcessDataBase(cParams);
-                d.printMode = cParams.printMode;
-                d.nDesignVariables = obj.designVariable.nVariables;                
-                obj.postProcess = Postprocess('TopOptProblem',d);
-            end
         end
         
         function d = createPostProcessDataBase(obj,cParams)

@@ -17,9 +17,12 @@ classdef SettingsOptimizer < AbstractSettings
         cost
         constraint
         
+        outF
         shallPrint
         printMode
-        
+        outputFunction
+        ub
+        lb
         uncOptimizerSettings
         monitoringDockerSettings
         incrementalScheme
