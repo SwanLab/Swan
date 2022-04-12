@@ -84,6 +84,18 @@ classdef ElasticProblem < handle
             quad  = obj.quadrature;
         end
 
+        function print(obj,filename)
+            s.quad = obj.quadrature;
+            s.mesh = obj.mesh;
+            s.iter = 0;
+            s.variables = obj.variables2print{1};
+            s.ptype     = obj.problemData.ptype;
+            s.ndim      = obj.dim.ndim;
+            s.pdim      = obj.problemData.pdim;
+            fPrinter = FemPrinter(s);
+            fPrinter.print(filename);
+         end
+
     end
 
     methods (Access = private)
@@ -96,10 +108,11 @@ classdef ElasticProblem < handle
             pd.ptype        = cParams.type;
             pd.bc.dirichlet = cParams.dirichlet;
             pd.bc.pointload = cParams.pointload;
-            if isfield(cParams,'masterSlave')
-                obj.mesh.computeMasterSlaveNodes();
-                pd.bc.masterSlave = obj.mesh.masterSlaveNodes;
-            end
+            pd.bc.masterSlave = cParams.masterSlave;
+%             if isfield(cParams,'masterSlave')
+%                 obj.mesh.computeMasterSlaveNodes();
+%                 pd.bc.masterSlave = obj.mesh.masterSlaveNodes;
+%             end
             obj.problemData = pd;
         end
 

@@ -4,12 +4,21 @@
 % 
 % fem = FEM.create(s);
 
-%% Thermal
-filename = 'test_thermal';
+% Microstructure
+%filename = 'test2d_micro';
+filename = 'IrrHexagon50x25x50';
 s = createFEMparameters(filename);
 fem = FEM.create(s);
-fem.solve();
-fem.print(filename)
+fem.computeChomog();
+fem.print(filename);
+
+
+% %% Thermal
+% filename = 'test_thermal';
+% s = createFEMparameters(filename);
+% fem = FEM.create(s);
+% fem.solve();
+% fem.print(filename)
 
 %% Functions
 function s = createFEMparameters(file)
@@ -19,6 +28,7 @@ s.type      = gidParams.ptype;
 s.scale     = gidParams.scale;
 s.mesh      = gidParams.mesh;
 s.dirichlet = gidParams.dirichlet;
+s.masterSlave = gidParams.masterSlave;
 s.pointload = gidParams.pointload;
 end
 
