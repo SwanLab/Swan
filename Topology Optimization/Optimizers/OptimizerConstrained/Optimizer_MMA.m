@@ -28,14 +28,22 @@ classdef Optimizer_MMA < Optimizer
         dfdx
         upperBound
         lowerBound
+        cost
+        constraint
+        designVariable
+        dualVariable
+        hasConverged
+        hasFinished
+        nIter
+        maxIter
     end
     
     methods (Access = public)
         
         function obj = Optimizer_MMA(cParams)
             obj.init(cParams);
-            obj.upperBound = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound = cParams.uncOptimizerSettings.lb;
+%             obj.upperBound = cParams.uncOptimizerSettings.ub;
+%             obj.lowerBound = cParams.uncOptimizerSettings.lb;
             obj.maxoutit = 1e4;
         end
         
@@ -67,17 +75,34 @@ classdef Optimizer_MMA < Optimizer
             obj.historicalVariables.kktnorm = kktnorm;
             
             obj.updateConvergenceStatus();
-            
+            obj.updateIterInfo();
+            s.KKTnorm  = kktnorm;
+            s.ouitFrac = obj.outit/obj.maxouit;
+
             obj.dualVariable.value = lam;
-            obj.convergenceVars.reset();
-            obj.convergenceVars.append(kktnorm);
-            obj.convergenceVars.append(obj.outit/obj.maxoutit);
+%             obj.convergenceVars.reset();
+%             obj.convergenceVars.append(kktnorm);
+%             obj.convergenceVars.append(obj.outit/obj.maxoutit);
             obj.designVariable.update(x);
+            obj.outputFunction.monitoring.compute(s);
         end
         
     end
     
     methods (Access = private)
+
+        function init(obj,cParams)
+            obj.outputFunction         = cParams.outputFunction.monitoring;
+            obj.upperBound             = cParams.uncOptimizerSettings.ub;
+            obj.lowerBound             = cParams.uncOptimizerSettings.lb;
+            obj.cost                   = cParams.cost;
+            obj.constraint             = cParams.constraint;
+            obj.designVariable         = cParams.designVar;
+            obj.dualVariable           = cParams.dualVariable;
+            obj.maxIter                = cParams.maxIter;
+            obj.hasConverged           = false;
+            obj.nIter                  = 0;
+        end
         
         function [f,df,c,dc] = funmma(obj)
             f  = obj.cost.value;
@@ -456,6 +481,25 @@ classdef Optimizer_MMA < Optimizer
             residu = [residu1' residu2']';
             residunorm = sqrt(residu'*residu);
             residumax = max(abs(residu));
+        end
+
+        function updateIterInfo(obj)
+            obj.increaseIter();
+            obj.updateStatus();
+        end
+
+        function increaseIter(obj)
+            obj.nIter = obj.nIter + 1;
+        end
+
+        function updateStatus(obj)
+            obj.hasFinished = obj.hasConverged || obj.hasExceededStepIterations();
+        end
+
+        function itHas = hasExceededStepIterations(obj)
+            iStep = obj.incrementalScheme.iStep;
+            nStep = obj.incrementalScheme.nSteps;
+            itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
         end
         
     end

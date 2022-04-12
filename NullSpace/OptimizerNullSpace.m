@@ -14,42 +14,65 @@ classdef OptimizerNullSpace < Optimizer
         lowerBound
         tol = 1e-4
         nX
-        HasConverged
+        hasConverged
         acceptableStep
         oldDesignVariable
         oldCost
         problem
         options
         lambda
+        cost
+        constraint
+        designVariable
+        outputFunction
+        incrementalScheme
+        maxIter
+        nIter
+        dualVariable
+        hasFinished
     end
 
-    properties (Access = private)
-    end
-
-    methods
+    methods (Access = public) 
+        
         function obj = OptimizerNullSpace(cParams)
-            obj.outputFunction = cParams.outputFunction.monitoring;
             obj.init(cParams);
-            obj.upperBound = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound = cParams.uncOptimizerSettings.lb;
-            obj.maxIter    = cParams.maxIter;
-            obj.nX         = length(obj.designVariable.value);
-            obj.cost.computeFunctionAndGradient();
-            obj.costOld    = obj.cost.value;
-            obj.designVariable.updateOld();
-            obj.lambda         = 0;
-            obj.solveProblem();
+            obj.outputFunction.monitoring.create(cParams);
+            obj.prepareFirstIter();
+%             obj.solveProblem();
         end
 
-
         function obj = solveProblem(obj)
-            obj.HasConverged = false;
-            obj.nIter        = 0;
-            while ~obj.HasConverged
+            while ~obj.hasConverged
                 obj.update();
                 obj.updateMonitoring();
                 obj.checkConvergence();
             end
+        end
+
+    end
+
+    methods(Access = private)
+
+        function init(obj,cParams)
+            obj.outputFunction         = cParams.outputFunction.monitoring;
+            obj.upperBound             = cParams.uncOptimizerSettings.ub;
+            obj.lowerBound             = cParams.uncOptimizerSettings.lb;
+            obj.cost                   = cParams.cost;
+            obj.constraint             = cParams.constraint;
+            obj.designVariable         = cParams.designVar;
+            obj.dualVariable           = cParams.dualVariable;
+            obj.incrementalScheme      = cParams.incrementalScheme;
+            obj.nX                     = length(obj.designVariable.value);
+            obj.maxIter                = cParams.maxIter;
+            obj.hasConverged           = false;
+            obj.nIter                  = 0;
+        end
+
+        function prepareFirstIter(obj)
+            obj.cost.computeFunctionAndGradient();
+            obj.costOld    = obj.cost.value;
+            obj.designVariable.updateOld();
+            obj.lambda         = 0;
         end
 
         function obj = update(obj)
@@ -205,7 +228,7 @@ classdef OptimizerNullSpace < Optimizer
 
         function obj = checkConvergence(obj)
            if abs(obj.oldCost - obj.cost.value) < obj.tol && max(obj.constraint.value) < 0
-               obj.HasConverged = true;
+               obj.hasConverged = true;
            else
                
            end
@@ -223,5 +246,25 @@ classdef OptimizerNullSpace < Optimizer
             obj.outputFunction.monitoring.compute(s);
         end
 
+        function updateIterInfo(obj)
+            obj.increaseIter();
+            obj.updateStatus();
+        end
+
+        function increaseIter(obj)
+            obj.nIter = obj.nIter + 1;
+        end
+
+        function updateStatus(obj)
+            obj.hasFinished = obj.hasConverged || obj.hasExceededStepIterations();
+        end
+
+        function itHas = hasExceededStepIterations(obj)
+            iStep = obj.incrementalScheme.iStep;
+            nStep = obj.incrementalScheme.nSteps;
+            itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
+        end
+
     end
+
 end

@@ -7,27 +7,29 @@ classdef Optimizer_fmincon < Optimizer
     properties (Access = private)
         problem
         iterDisplay
-        data
         upperBound
         lowerBound
         nX
         options
         algorithm
+        outputFunction
+        incrementalScheme
+        cost
+        constraint
+        designVariable
+        maxIter
+        hasConverged
+        nIter
+        hasFinished
     end
 
 
     methods (Access = public)
 
         function obj = Optimizer_fmincon(cParams)
-            obj.algorithm              = 'sqp';
-            cParams.optimizerNames.alg = obj.algorithm;
-            obj.outputFunction         = cParams.outputFunction.monitoring;
-            cParams.monitoringDockerSettings.optimizerNames.alg = obj.algorithm;
+            obj.initOptimizer(cParams);
             obj.init(cParams);
-            obj.upperBound             = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound             = cParams.uncOptimizerSettings.lb;
-            obj.iterDisplay            = cParams.outputFunction.iterDisplay;
-            obj.nX                     = length(obj.designVariable.value);
+            obj.outputFunction.monitoring.create(cParams);
             obj.createProblem();
             obj.createOptions();
         end
@@ -42,6 +44,24 @@ classdef Optimizer_fmincon < Optimizer
     end
 
     methods (Access = private)
+
+        function init(obj,cParams)
+            obj.algorithm              = 'sqp';
+            cParams.optimizerNames.alg = obj.algorithm;
+%             obj.outputFunction         = cParams.outputFunction.monitoring;
+            obj.upperBound             = cParams.uncOptimizerSettings.ub;
+            obj.lowerBound             = cParams.uncOptimizerSettings.lb;
+            obj.iterDisplay            = cParams.outputFunction.iterDisplay;
+%             obj.cost                   = cParams.cost;
+%             obj.constraint             = cParams.constraint;
+%             obj.designVariable         = cParams.designVar;
+            obj.incrementalScheme      = cParams.incrementalScheme;
+            obj.nX                     = length(obj.designVariable.value);
+%             obj.maxIter                = cParams.maxIter;
+%             obj.hasConverged           = false;
+%             obj.nIter                  = 0;
+            cParams.monitoringDockerSettings.optimizerNames.alg = obj.algorithm;
+        end
 
         function x = callfmincon(obj)
             PROBLEM         = obj.problem;
@@ -119,6 +139,25 @@ classdef Optimizer_fmincon < Optimizer
             opts.StepTolerance	           = 1e-15;
             opts.OutputFcn                 = @(x,optimvalues,state)obj.myoutput(x,optimvalues,state);
             obj.options                    = opts;
+        end
+
+        function updateIterInfo(obj)
+            obj.increaseIter();
+            obj.updateStatus();
+        end
+
+        function increaseIter(obj)
+            obj.nIter = obj.nIter + 1;
+        end
+
+        function updateStatus(obj)
+            obj.hasFinished = obj.hasConverged || obj.hasExceededStepIterations();
+        end
+
+        function itHas = hasExceededStepIterations(obj)
+            iStep = obj.incrementalScheme.iStep;
+            nStep = obj.incrementalScheme.nSteps;
+            itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
         end
 
     end

@@ -108,7 +108,7 @@ classdef ElasticProblem < handle
             pd.ptype        = cParams.type;
             pd.bc.dirichlet = cParams.dirichlet;
             pd.bc.pointload = cParams.pointload;
-            pd.bc.masterSlave = cParams.masterSlave;
+%             pd.bc.masterSlave = cParams.masterSlave;
 %             if isfield(cParams,'masterSlave')
 %                 obj.mesh.computeMasterSlaveNodes();
 %                 pd.bc.masterSlave = obj.mesh.masterSlaveNodes;

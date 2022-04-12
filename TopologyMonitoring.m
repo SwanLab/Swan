@@ -122,7 +122,9 @@ classdef TopologyMonitoring < handle
         end
         
         function plotMMA(obj,x,ccParams)
-            
+            obj.convergenceVars.reset();
+            obj.convergenceVars.append(s.KKTnorm);
+            obj.convergenceVars.append(s.outitFrac);
         end
 
         function createHistoryPrinter(obj,cParams)
@@ -154,8 +156,20 @@ classdef TopologyMonitoring < handle
                 obj.postProcess    = Postprocess('TopOptProblem',d);
             end
         end
-        
-        
+
+        function d = createPostProcessDataBase(obj,cParams)
+            d.mesh    = obj.designVariable.mesh;
+            d.outName = cParams.femFileName;
+            d.pdim    = cParams.pdim;
+            d.ptype   = cParams.ptype;
+            ps = PostProcessDataBaseCreator(d);
+            d  = ps.getValue();
+            d.optimizer  = obj.type;
+            d.cost       = obj.cost;
+            d.constraint = obj.constraint;
+            d.designVar  = obj.designVariable.type;
+        end
+               
         function printOptimizerVariable(obj)
             if ~isempty(obj.postProcess)
             d.fields     = obj.designVariable.getVariablesToPlot();

@@ -34,6 +34,7 @@ classdef TopOpt_Problem < handle
             obj.computeBounds();
             obj.optimizerSettings.outputFunction.type        = 'Topology';
             obj.optimizerSettings.outputFunction.iterDisplay = 'none';
+            obj.optimizerSettings.outputFunction.monitoring  = MonitoringManager(obj.optimizerSettings);
             obj.optimizer = Optimizer.create(obj.optimizerSettings);
         end
 
