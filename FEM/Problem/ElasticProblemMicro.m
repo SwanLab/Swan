@@ -93,8 +93,9 @@ classdef ElasticProblemMicro < ElasticProblem
 
         function assignVarsToPrint(obj, istre)
             vars = obj.variables;
-            obj.variables2print{istre}.d_u          = vars.d_u;
-            obj.variables2print{istre}.fext         = vars.fext;
+            ndimField = obj.dim.ndimField; 
+            obj.variables2print{istre}.d_u          = reshape(vars.d_u',ndimField,[])';
+            obj.variables2print{istre}.fext         = reshape(vars.fext',ndimField,[])';
             obj.variables2print{istre}.stress       = vars.stress;
             obj.variables2print{istre}.strain       = vars.strain;
             obj.variables2print{istre}.stress_fluct = vars.stress_fluct;

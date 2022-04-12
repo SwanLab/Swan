@@ -4,7 +4,7 @@
 % 
 % fem = FEM.create(s);
 
-%% Microstructure
+% Microstructure
 %filename = 'test2d_micro';
 filename = 'Square25x25';
 s = createFEMparameters(filename);
@@ -12,6 +12,13 @@ fem = FEM.create(s);
 fem.computeChomog();
 fem.print(filename);
 
+
+% %% Thermal
+% filename = 'test_thermal';
+% s = createFEMparameters(filename);
+% fem = FEM.create(s);
+% fem.solve();
+% fem.print(filename)
 
 %% Functions
 function s = createFEMparameters(file)
