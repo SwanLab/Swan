@@ -1,4 +1,4 @@
-classdef NewFilter_PDE_LevelSet < handle
+classdef AnisotropicFilter_PDE_LevelSet < handle
 
     properties(Access = private)
         interp
@@ -15,7 +15,7 @@ classdef NewFilter_PDE_LevelSet < handle
 
     methods (Access = public)
 
-        function obj = NewFilter_PDE_LevelSet(cParams)
+        function obj = AnisotropicFilter_PDE_LevelSet(cParams)
             obj.init(cParams)
             obj.levelSet = cParams.designVariable;
             obj.epsilon = cParams.mesh.computeMeanCellSize();
@@ -56,7 +56,7 @@ classdef NewFilter_PDE_LevelSet < handle
             end
             switch s.scale
                 case 'MACRO'
-                    obj.diffReacProb = DiffReactProblem(s);
+                    obj.diffReacProb = NewAnisoDiffReactProblem(s);
                 case 'MICRO'
                     obj.diffReacProb = DiffReactProblemMicro(s);
             end
