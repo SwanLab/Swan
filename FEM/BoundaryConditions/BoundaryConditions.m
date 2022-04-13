@@ -84,9 +84,12 @@ classdef BoundaryConditions < handle
                     end
                     MS = obj.masterSlave;
                     if isempty(MS)
-                       mesh = cParams.mesh;
-                       mesh.computeMasterSlaveNodes();
-                       MS = mesh.masterSlaveNodes;
+                        mesh = cParams.mesh;
+                        if isempty(mesh.masterSlaveNodes)
+                            mesh.computeMasterSlaveNodes();
+                        end
+                        MS = mesh.masterSlaveNodes;
+                        obj.masterSlave = MS;
                     end
                     obj.periodic_free = obj.computePeriodicNodes(MS(:,1));
                     obj.periodic_constrained = obj.computePeriodicNodes(MS(:,2));
@@ -192,7 +195,9 @@ classdef BoundaryConditions < handle
             MS = obj.masterSlave;
             if isempty(MS)
                mesh = cParams.mesh;
-               mesh.computeMasterSlaveNodes();
+                if isempty(mesh.masterSlaveNodes)
+                  mesh.computeMasterSlaveNodes();
+                end                              
                MS = mesh.masterSlaveNodes;
             end
         end
