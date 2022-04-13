@@ -1,31 +1,38 @@
 classdef PostProcessDataBaseCreator < handle
-    
-    properties (Access = protected)
-        data
+
+    properties (Access = private)
+        mesh 
+        outFileName
     end
     
     methods (Access = public)
         
         function obj = PostProcessDataBaseCreator(dI)
-            mesh          = dI.mesh;
-            d.outFileName = dI.outName;
-            d.coordinates = mesh.coord;
-            d.connectivities = mesh.connec;
-            d.nnode = size(mesh.connec,2);
-            d.npnod = size(mesh.coord,1);
-            d.gtype = mesh.type;
-            d.pdim  = dI.pdim;
-            d.nelem = size(mesh.connec,1);
-            d.ptype = dI.ptype;
-            d.ndim  = obj.computeNdim(d.pdim);
+            obj.init(dI);
+        end
+
+        function data = create(obj)
+            d.outFileName = obj.outFileName;
+            d.coordinates = obj.mesh.coord;
+            d.connectivities = obj.mesh.connec;
+            d.nnode = size(obj.mesh.connec,2);
+            d.npnod = size(obj.mesh.coord,1);
+            d.gtype = obj.mesh.type;
+            d.nelem = size(obj.mesh.connec,1);
             d.etype = obj.computeGiDElementType(d.gtype);
-            obj.data = d;
+            data = d;
         end
         
-        function d = getValue(obj)
-            d = obj.data;
+       
+    end
+
+    methods (Access = private)
+
+        function init(obj,cParams)
+            obj.mesh        = cParams.mesh;
+            obj.outFileName = cParams.outFileName;
         end
-        
+
     end
        
     methods (Access = private, Static)
@@ -43,16 +50,7 @@ classdef PostProcessDataBaseCreator < handle
             end
         end
         
-        function n = computeNdim(p)
-            switch p
-                case '1D'
-                    n = 1;
-                case '2D'
-                    n = 2;
-                case '3D'
-                    n = 3;
-            end
-        end
+
         
     end
     
