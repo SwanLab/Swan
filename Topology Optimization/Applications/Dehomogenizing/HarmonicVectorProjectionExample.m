@@ -78,12 +78,12 @@ classdef HarmonicVectorProjectionExample < handle
             %theta = atan2(x2,x1);            
             %thetaV = pi/6;
 %            theta = thetaV*ones(size(x2));
-            
-           % theta = rand(1)*x1 + rand(1)*x2 + rand(1);
-
-
-          %  alpha(:,1) = cos(theta);
-          %  alpha(:,2) = sin(theta);            
+%             
+%             theta = rand(1)*x1 + rand(1)*x2 + rand(1);
+% 
+% 
+%             alpha(:,1) = cos(theta);
+%             alpha(:,2) = sin(theta);            
             
             
             theta(:,1) = atan2(alpha(:,1),alpha(:,2));  
@@ -139,7 +139,7 @@ classdef HarmonicVectorProjectionExample < handle
             ty = alpha0(:,2);
             quiver(x,y,tx,ty)
 
-            theta = atan2(alpha0(:,1),alpha0(:,2));
+            theta = atan2(ty,tx);
             dalpha0(:,1) = cos(2*theta);
             dalpha0(:,2) = sin(2*theta);
 
@@ -162,11 +162,11 @@ classdef HarmonicVectorProjectionExample < handle
               %  optDual(i)   = obj.computeDualHarmonicOptimality(u);
               %  error = norm([optPrimal,optDual]);
                 
-                theta = atan2(u(:,1),u(:,2));
+                theta = atan2(u(:,2),u(:,1));
                 u2(:,1) = cos(2*theta);
                 u2(:,2) = sin(2*theta);
                 [uNew2,lambda] = obj.solveProblem(dalpha0,u2);
-                theta = 0.5*atan2(uNew2(:,1),uNew2(:,2));
+                theta = 0.5*atan2(uNew2(:,2),uNew2(:,1));
                 uNew(:,1) = cos(theta);
                 uNew(:,2) = sin(theta);
                 

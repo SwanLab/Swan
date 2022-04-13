@@ -221,7 +221,7 @@ classdef LinearizedHarmonicProjector < handle
            M    = obj.massMatrix;
            Zb   = zeros(size(M));
            Z    = obj.computeZeroFunction();
-           lhs  = [M,Zb,(1*Cx+Dx);Zb,M,(1*Cy+Dy);(0*Cx + Dx)',(0*Cy + Dy)',Z];
+           lhs  = [M,Zb,(0*Cx+1*Dx);Zb,M,(0*Cy+1*Dy);(0*Cx + Dx)',(0*Cy + Dy)',Z];
            obj.LHS = lhs;
        end
 
