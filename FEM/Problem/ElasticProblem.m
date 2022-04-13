@@ -13,7 +13,6 @@ classdef ElasticProblem < handle
         forces
         solver
         geometry
-        newBC
         materialProperties
     end
 
@@ -31,24 +30,15 @@ classdef ElasticProblem < handle
 
         function obj = ElasticProblem(cParams)
             obj.init(cParams);
-            obj.createQuadrature();
             obj.computeDimensions();
             obj.createMaterial();
-            obj.createInterpolation();
-            obj.createGeometry();
             obj.createBoundaryConditions();
             obj.createSolver();
         end
 
         function solve(obj)
-%             disp('Elemental + assemble')
-%             tic
-                obj.computeStiffnessMatrix();
-%             toc
-%             disp('Old / assemble + product')
-%             tic
-%                 obj.computeStiffnessMatrixOld();
-%             toc
+            obj.computeStiffnessMatrix();
+%             obj.computeStiffnessMatrixOld();
             obj.computeForces();
             obj.computeDisplacements();
             obj.computeStrain();
@@ -111,6 +101,9 @@ classdef ElasticProblem < handle
             obj.problemData = pd;
             obj.materialProperties.kappa = .9107;
             obj.materialProperties.mu    = .3446;
+            obj.createQuadrature();
+            obj.createInterpolation();
+            obj.createGeometry();
         end
 
         function createQuadrature(obj)

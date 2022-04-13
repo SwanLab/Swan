@@ -70,7 +70,7 @@ classdef DiffReactProblem < handle
             obj.mesh = cParams.mesh;
             obj.problemData.pdim = '1D';
             obj.problemData.scale = cParams.scale;
-            if isfield(cParams,'fileName') % UnffitedIntegration
+            if isfield(cParams,'fileName') % Robin
                 obj.problemData.fileName = cParams.fileName;
             end
         end
