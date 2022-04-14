@@ -20,8 +20,8 @@ classdef testComplianceTensorThrougtVoigtComparingEnergy < handle
        end
 
        function error = computeError(obj)
-           es = obj.energyStiffTensProd; 
-           ec = obj.energyCompTensProd; 
+           es = obj.energyStiffTensProd;
+           ec = obj.energyCompTensProd;
            error = norm(es - ec);
        end
 

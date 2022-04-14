@@ -28,7 +28,7 @@ classdef RankTwoLaminateHomogenizer < handle
        function obj = RankTwoLaminateHomogenizer(C1,C0,dir,mi,theta,lambda2D,mu)
             obj.init(C1,C0,dir,mi,theta,lambda2D,mu)
             obj.computeMatrixAndFiberComplianceTensors()
-            obj.computeAnisotropicTensors()            
+            obj.computeAnisotropicTensors()
             obj.computeIncrementalTensor()
             obj.computeAnisotropicContributionTensor();
             obj.computeThetaTensor()
@@ -66,11 +66,11 @@ classdef RankTwoLaminateHomogenizer < handle
             obj.incremTensor = C01;
        end
         
-      function computeAnisotropicTensors(obj)            
-            d1 = obj.dir{1};           
-            d2 = obj.dir{2};           
+      function computeAnisotropicTensors(obj)
+            d1 = obj.dir{1};
+            d2 = obj.dir{2};
             obj.ani1 = obj.computeAnisotropicTensor(d1);
-            obj.ani2 = obj.computeAnisotropicTensor(d2);            
+            obj.ani2 = obj.computeAnisotropicTensor(d2);
       end
          
       function computeAnisotropicContributionTensor(obj)
@@ -78,7 +78,7 @@ classdef RankTwoLaminateHomogenizer < handle
             m2 = obj.mi(2);
             Cm1 = obj.ani1;
             Cm2 = obj.ani2;
-            Cm = Cm1*m1 + Cm2*m2;  
+            Cm = Cm1*m1 + Cm2*m2;
             obj.aniTensor = Cm;
       end
        
@@ -93,7 +93,7 @@ classdef RankTwoLaminateHomogenizer < handle
       function computeThetaTensor(obj)
          C01 = obj.incremTensor;
          Ca  = obj.aniTensor;
-         Ctheta = C01 + obj.theta*Ca;   
+         Ctheta = C01 + obj.theta*Ca;
          Stheta = obj.invertTensor(Ctheta);
          obj.invThetaTensor = Stheta;
       end
@@ -128,10 +128,8 @@ classdef RankTwoLaminateHomogenizer < handle
             
             InvCh = [InvC11   InvC21  InvC13;
                      InvC21   InvC22  InvC23;
-                     InvC13   InvC23  InvC33];            
+                     InvC13   InvC23  InvC33];
         end
-         
-          
         
     end
     

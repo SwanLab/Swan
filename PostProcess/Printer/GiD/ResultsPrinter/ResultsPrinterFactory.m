@@ -43,6 +43,10 @@ classdef ResultsPrinterFactory < handle
                 case {'ScalarNodal'}
                     d.fieldName = d.name;
                     p = ScalarNodalVariablePrinter(d);
+                case {'DensityGauss'}
+                    p = DensityGaussResultsPrinter(d);
+                case {'LevelSet'}
+                    p = LevelSetResultsPrinter(d);
                 otherwise
                     p = [];
             end

@@ -3,7 +3,6 @@ classdef Assembler < handle
     properties (Access = private)
         dim
         globalConnec
-        %dofsInElem
     end
 
     methods (Access = public)
@@ -31,8 +30,8 @@ classdef Assembler < handle
             C = obj.assembleCMatrix(Cmat, dvol);
         end
 
-        function V = assembleV(obj, F, dofs)
-            V = obj.assembleVector(F, dofs);
+        function V = assembleV(obj, F)
+            V = obj.assembleVector(F);
         end
 
     end
@@ -44,12 +43,12 @@ classdef Assembler < handle
             obj.globalConnec = cParams.globalConnec;
         end
 
-        function A = assembleMatrix(obj, aElem)
+        function A = assembleMatrix(obj, Ae)
+            connec    = obj.globalConnec;
             dofConnec = obj.computeDofConnectivity()';
             ndofs  = obj.dim.ndof;
             ndimf  = obj.dim.ndimField;
-            nnode  = obj.dim.nnode;
-            Ae     = aElem;
+            nnode  = size(connec, 2);
             A = sparse(ndofs,ndofs);
             for i = 1:nnode*ndimf
                 dofsI = dofConnec(:,i);
@@ -57,44 +56,20 @@ classdef Assembler < handle
                     dofsJ = dofConnec(:,j);
                     a = squeeze(Ae(i,j,:));
                     Aadd = obj.computeAaddBySparse(a, dofsI, dofsJ);
-                    Aadd = obj.computeAaddByAccumarray(a, dofsI, dofsJ);
+%                     Aadd = obj.computeAaddByAccumarray(a, dofsI, dofsJ);
                     A = A + Aadd;
                 end
             end
         end
 
-        function A = assembleMatrixViaIndices3(obj, aElem)
-            disp('(--calculem DOF connec')
-            tic
+        function A = assembleMatrixViaIndices(obj, Ae)
+            connec    = obj.globalConnec;
             dofConnec = obj.computeDofConnectivity()';
-            toc
-            disp('--)')
-%             dofConnec = obj.computeDofConnectivity()';
+            ndof   = obj.dim.ndof;
             ndimf  = obj.dim.ndimField;
-            nnode  = obj.dim.nnode;
-            Ae     = aElem;
-%             A = sparse(ndofs,ndofs);
-            res = [];
-            for i = 1:nnode*ndimf
-                dofsI = dofConnec(:,i);
-                for j = 1:nnode*ndimf
-                    dofsJ = dofConnec(:,j);
-                    a = squeeze(Ae(i,j,:));
-                    res = [res; dofsI, dofsJ, a];
-                end
-            end
-            A = sparse(res(:,1), res(:,2), res(:,3));
-        end
-
-        function A = assembleMatrixViaIndices(obj, aElem)
-            dofConnec = obj.computeDofConnectivity()';
-            ndimf  = obj.dim.ndimField;
-            nnode  = obj.dim.nnode;
-            Ae     = aElem;
+            nelem  = size(dofConnec, 1);
+            nnode  = size(connec, 2);
             ndofEl = nnode*ndimf;
-            ndof = obj.dim.ndof;
-            nelem  = size(dofConnec, 1); % obj.dim.nelem does NOT work
-%             A = sparse(ndofs,ndofs);
             res = zeros(ndofEl^2 * nelem, 3);
             strt = 1;
             fnsh = nelem;
@@ -115,7 +90,7 @@ classdef Assembler < handle
         function dofConnec = computeDofConnectivity(obj)
             connec = obj.globalConnec;
             ndimf  = obj.dim.ndimField;
-            nnode  = obj.dim.nnode;
+            nnode  = size(connec,2);
             dofsElem  = zeros(nnode*ndimf,size(connec,1));
             for inode = 1:nnode
                 for iunkn = 1:ndimf
@@ -148,7 +123,7 @@ classdef Assembler < handle
 
         %% Vector assembly
 
-        function V = assembleVector(obj, F, dofsInElem)
+        function V = assembleVector(obj, F)
             dofsInElem = obj.computeDofConnectivity();
             ndofPerElem = obj.dim.ndofPerElement;
             ndof        = obj.dim.ndof;

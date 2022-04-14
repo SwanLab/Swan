@@ -18,7 +18,7 @@ classdef DesignVariableCreatorSettings < handle
     methods (Access = public)
         
         function obj = DesignVariableCreatorSettings(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)
         end
         
         function s = create(obj)
@@ -28,7 +28,7 @@ classdef DesignVariableCreatorSettings < handle
             s.initialCase             = 'full';
             s.creatorSettings         = obj.createLevelSetParams();
             s.scalarProductSettings   = obj.createScalarProductParams();
-            s.femData                 = obj.createFemContainerData();            
+            s.femData                 = obj.createFemContainerData();
         end
         
     end
@@ -38,7 +38,7 @@ classdef DesignVariableCreatorSettings < handle
         function init(obj,cParams)
             obj.mesh      = cParams.mesh;
             obj.inputFile = cParams.inputFile;
-            obj.scale     = cParams.scale;            
+            obj.scale     = cParams.scale;
             obj.type      = cParams.type;
         end
         
