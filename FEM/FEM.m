@@ -35,29 +35,5 @@ classdef FEM < handle
         end
         
     end
-    
-    methods (Access = public)
-        
-        function print(obj,fileName)
-            dI = obj.createPostProcessDataBase(fileName);
-            postprocess = Postprocess('Elasticity',dI);
-            q = obj.getQuadrature();
-            d.fields = obj.variables;
-            d.quad = q;
-            postprocess.print(1,d);
-        end
-        
-    end
-
-    methods (Access = private)
-
-        function d = createPostProcessDataBase(obj,fileName)
-            dI.mesh    = obj.mesh;
-            dI.outName = fileName;
-            ps = PostProcessDataBaseCreator(dI);
-            d = ps.getValue();
-        end
-
-    end
 
 end
