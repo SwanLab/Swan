@@ -60,7 +60,7 @@ classdef ElasticProblemMicro < ElasticProblem
             ngaus = obj.dim.ngaus;
             nstre = obj.dim.nstre;
             nelem = obj.dim.nelem;
-            dV = obj.getDvolume()';
+            dV = obj.mesh.computeDvolume(obj.quadrature)';
             strainFluct = vars.strain;
             stressFluct = vars.stress;
             

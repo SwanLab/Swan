@@ -61,7 +61,12 @@ classdef FemInputReader_GiD < handle
         
         function readFile(obj,fileName)
             data = Preprocess.readFromGiD(fileName);
-            [~,~,bNodes,bElem,mSlave] = Preprocess.getBC_mechanics(fileName);
+            if ~isequal(data.problem_type,'Stokes') 
+                [~,~,bNodes,bElem,mSlave] = Preprocess.getBC_mechanics(fileName);
+                obj.boundaryNodes = bNodes;
+                obj.boundaryElements = bElem;     
+                obj.masterSlave = mSlave;               
+            end
 
             obj.pdim = data.problem_dim;
             obj.geometryType = data.geometry;
@@ -72,9 +77,7 @@ classdef FemInputReader_GiD < handle
             ndim = obj.getDimension();
             obj.coord  = obj.coord(:,2:ndim+1);
             obj.connec = data.connectivities(:,2:end);
-            obj.boundaryNodes = bNodes;
-            obj.boundaryElements = bElem;
-            obj.masterSlave = mSlave;
+
             
             if strcmpi(data.problem_type,'elastic') ...
             || strcmpi(data.problem_type,'hyperelastic') ...

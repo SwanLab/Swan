@@ -62,14 +62,14 @@ classdef ElasticProblem < handle
             obj.material.C = C;
         end
 
-        function dvolu = getDvolume(obj)
-            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
-        end
-
-        function quad = getQuadrature(obj)
-            quad  = obj.quadrature;
-        end
-        
+%         function dvolu = getDvolume(obj)
+%             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
+%         end
+% 
+%         function quad = getQuadrature(obj)
+%             quad  = obj.quadrature;
+%         end
+%         
 %         function print(obj,fileName)
 %             dI = obj.createPostProcessDataBase(fileName);
 %             dI.pdim = '2D';
@@ -215,7 +215,7 @@ classdef ElasticProblem < handle
             s.mesh        = obj.mesh;
             s.material    = obj.material;
             s.geometry    = obj.geometry;
-            s.dvolume     = obj.getDvolume();
+            s.dvolume     = obj.mesh.computeDvolume(obj.quadrature);
             s.globalConnec = obj.mesh.connec;
             if isprop(obj, 'vstrain')
                 s.vstrain = obj.vstrain;
