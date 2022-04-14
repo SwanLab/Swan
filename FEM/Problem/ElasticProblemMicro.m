@@ -41,10 +41,8 @@ classdef ElasticProblemMicro < ElasticProblem
                 tStrn(istre,:,:,:)  = vars.strain;
                 tStrss(istre,:,:,:) = vars.stress;
                 tDisp(istre,:)      = vars.d_u;
-                v2p{istre} = obj.assignVarsToPrint();
+                obj.assignVarsToPrint(istre);
             end
-            obj.variables2print   = v2p;
-            disp(v2p)
             obj.variables.Chomog  = Ch;
             obj.variables.tstrain = tStrn;
             obj.variables.tstress = tStrss;
@@ -94,15 +92,17 @@ classdef ElasticProblemMicro < ElasticProblem
             obj.variables = vars;
         end
 
-        function v2p = assignVarsToPrint(obj)
+        function assignVarsToPrint(obj, istre)
             vars = obj.variables;
-            v2p.d_u          = vars.d_u;
-            v2p.fext         = vars.fext;
-            v2p.stress       = vars.stress;
-            v2p.strain       = vars.strain;
-            v2p.stress_fluct = vars.stress_fluct;
-            v2p.strain_fluct = vars.strain_fluct;
+            ndimField = obj.dim.ndimField; 
+            obj.variables2print{istre}.d_u          = reshape(vars.d_u',ndimField,[])';
+            obj.variables2print{istre}.fext         = reshape(vars.fext',ndimField,[])';
+            obj.variables2print{istre}.stress       = vars.stress;
+            obj.variables2print{istre}.strain       = vars.strain;
+            obj.variables2print{istre}.stress_fluct = vars.stress_fluct;
+            obj.variables2print{istre}.strain_fluct = vars.strain_fluct;
         end
+        
     end
 
 end
