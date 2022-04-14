@@ -1,43 +1,30 @@
 %% Hyperelastic
-% filename = 'test_hyperelastic';
-% s = createFEMparameters(filename);
-% 
-% fem = FEM.create(s);
-%% Performance
-tests = {'Cantilever1Kelem', 'Cantilever4Kelem', 'Cantilever18Kelem', ...
-    'Cantilever50Kelem', 'Cantilever74Kelem', 'Cantilever119Kelem', ...
-    'Cantilever216Kelem', 'Cantilever338K'};
-index = 1;
-for test = tests
-    s = createFEMparameters(test{1});
-    fem = FEM.create(s);
-    tic
-    for i  = 1:5
-        tic
-        fem.solve();
-        resultsNew{index}(i) = toc;
-    end
-    disp(resultsNew)
-    index = index + 1;
-end
-a = 0;
-
-% filename = 'Cantilever119Kelem';
-% s = createFEMparameters(filename);
-% fem = FEM.create(s);
-% tic
-% fem.solve();
-% toc
-% % fem.print(filename)
-
-
 % Microstructure
 filename = 'test2d_micro';
 %filename = 'IrrHexagon50x25x50';
-s = createFEMparameters(filename);
+s = createParameters(filename);
+d = createDensity(s.mesh);
+
+
 fem = FEM.create(s);
 fem.computeChomog();
 fem.print(filename);
+
+
+function d = createDensity(mesh)
+s.type = 'Density';
+s.mesh = mesh;
+s.value = [];
+s.initialCase = 'circleInclusion';
+s.creatorSettings.type = 'FromLevelSet';
+s.creatorSettings.fracRadius = 0.5;
+d = Density(s);
+
+s.mesh = mesh;
+s.field = d.value;
+p = NodalFieldPlotter(s);
+p.plot()
+end
 
 
 % %% Thermal
@@ -48,7 +35,7 @@ fem.print(filename);
 % fem.print(filename)
 
 %% Functions
-function s = createFEMparameters(file)
+function s = createParameters(file)
 gidParams = createGiDparameters(file);
 s.dim       = gidParams.pdim;
 s.type      = gidParams.ptype;
