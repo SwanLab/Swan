@@ -81,7 +81,7 @@ classdef DesignVariable < handle
               obj.isFixed = cParams.isFixed;
             end
             obj.initValue(cParams);
-            if isfield(cParams,'scalarProductSettings')            
+            if isprop(cParams,'scalarProductSettings')  
                 obj.createScalarProduct(cParams);
             end
         end

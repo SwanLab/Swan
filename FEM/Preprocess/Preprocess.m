@@ -47,7 +47,7 @@ classdef Preprocess<handle
             end
         end
         
-        function [fixnodes,forces,full_dirichlet_data,Master_slave] = getBC_mechanics(filename)
+        function [fixnodes,forces,boundaryNodes,boundaryElements,Master_slave] = getBC_mechanics(filename)
             run(filename)
             if exist('lnodes','var')
                 dirichlet_data=lnodes;
@@ -61,14 +61,20 @@ classdef Preprocess<handle
             end
             
             if exist('External_border_nodes','var')
-                full_dirichlet_data= External_border_nodes;
+                boundaryNodes= External_border_nodes;
             else
-                full_dirichlet_data = [];
+                boundaryNodes = [];
             end
+
+            if exist('External_border_elements','var')
+                boundaryElements = External_border_elements;
+            else
+                boundaryElements = [];
+            end            
             
-            if ~isempty(full_dirichlet_data)
-                full_dirichlet_data(:,2)=ones(length(full_dirichlet_data(:,1)),1);
-                full_dirichlet_data(:,3)=zeros(length(full_dirichlet_data(:,1)),1);
+            if ~isempty(boundaryNodes)
+                boundaryNodes(:,2)=ones(length(boundaryNodes(:,1)),1);
+                boundaryNodes(:,3)=zeros(length(boundaryNodes(:,1)),1);
             end
             
             if ~exist('Master_slave','var')

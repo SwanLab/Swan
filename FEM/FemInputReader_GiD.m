@@ -18,6 +18,8 @@ classdef FemInputReader_GiD < handle
     
     properties (Access = private)
         masterSlave
+        boundaryNodes
+        boundaryElements
     end
     
     methods (Access = public)
@@ -49,17 +51,18 @@ classdef FemInputReader_GiD < handle
     methods (Access = private)
         
         function m = createMesh(obj)
-            sM.coord  = obj.coord;
-            sM.connec = obj.connec;
-            m = Mesh(sM);
-            m.setMasterSlaveNodes(obj.masterSlave)
+            s.coord  = obj.coord;
+            s.connec = obj.connec;
+            s.masterSlaveNodes = obj.masterSlave;
+            s.boundaryNodes    = obj.boundaryNodes;
+            s.boundaryElements = obj.boundaryElements;
+            m = Mesh(s);       
         end
         
         function readFile(obj,fileName)
             data = Preprocess.readFromGiD(fileName);
-            if isequal(data.scale,'MICRO')
-               [~,~,~,obj.masterSlave] = Preprocess.getBC_mechanics(fileName);
-            end
+            [~,~,bNodes,bElem,mSlave] = Preprocess.getBC_mechanics(fileName);
+
             obj.pdim = data.problem_dim;
             obj.geometryType = data.geometry;
             obj.ptype = data.problem_type;
@@ -69,6 +72,9 @@ classdef FemInputReader_GiD < handle
             ndim = obj.getDimension();
             obj.coord  = obj.coord(:,2:ndim+1);
             obj.connec = data.connectivities(:,2:end);
+            obj.boundaryNodes = bNodes;
+            obj.boundaryElements = bElem;
+            obj.masterSlave = mSlave;
             
             if strcmpi(data.problem_type,'elastic') ...
             || strcmpi(data.problem_type,'hyperelastic') ...

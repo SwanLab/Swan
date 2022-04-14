@@ -70,18 +70,18 @@ classdef ElasticProblem < handle
             quad  = obj.quadrature;
         end
         
-        function print(obj,fileName)
-            dI = obj.createPostProcessDataBase(fileName);
-            dI.pdim = '2D';
-            dI.ptype = 'ELASTICTY';
-            dI.name = '';
-            postprocess = Postprocess('Elasticity',dI); % not a scalar
-            q = obj.getQuadrature();
-            d.fields = obj.variables;
-            d.fields.u = obj.splitDisplacement();
-            d.quad = q;
-            postprocess.print(1,d);
-        end
+%         function print(obj,fileName)
+%             dI = obj.createPostProcessDataBase(fileName);
+%             dI.pdim = '2D';
+%             dI.ptype = 'ELASTICTY';
+%             dI.name = '';
+%             postprocess = Postprocess('Elasticity',dI); % not a scalar
+%             q = obj.getQuadrature();
+%             d.fields = obj.variables;
+%             d.fields.u = obj.splitDisplacement();
+%             d.quad = q;
+%             postprocess.print(1,d);
+%         end
 
         function print(obj,filename)
             s.quad = obj.quadrature;

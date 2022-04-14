@@ -6,8 +6,8 @@ classdef DiffReactProblem_Neumann < DiffReactProblem
             bc   = obj.boundaryConditions;
             xRed = bc.fullToReducedVector(x);
             LHS  = obj.computeLHS();
-            xReg = obj.solver.solve(LHS,xRed);
-            obj.variables.x = bc.reducedToFullVector(xReg);
+            x = obj.solver.solve(LHS,xRed);
+            obj.variables.x = bc.reducedToFullVector(x);
         end
         
         function LHS = computeLHS(obj)

@@ -3,14 +3,17 @@ classdef DiffReactProblem_Robin < DiffReactProblem
     methods (Access = public)
         
         function computeVariables(obj,x)
+            bc   = obj.boundaryConditions;
+            xRed = bc.fullToReducedVector(x);
             LHS  = obj.computeLHS();
-            xReg = obj.solver.solve(LHS,x);
-            obj.variables.x = xReg;
+            x = obj.solver.solve(LHS,xRed);
+            obj.variables.x = bc.reducedToFullVector(x);
         end
         
         function LHS = computeLHS(obj)
             Mr = obj.computeBoundaryMassMatrix();
             LHS = obj.epsilon^2*obj.K + obj.M + (obj.epsilon)*Mr;
+            LHS = obj.boundaryConditions.fullToReducedMatrix(LHS);            
         end
         
     end
@@ -18,58 +21,38 @@ classdef DiffReactProblem_Robin < DiffReactProblem
     methods (Access = private)
         
         function Mr = computeBoundaryMassMatrix(obj)
-            cParams = obj.createIntegratorParams();
-            nInt = numel(cParams.compositeParams);
-            ndof = cParams.compositeParams{1}.dim.ndof;
+            s = obj.createIntegratorParams();
+            nInt = numel(s.compositeParams);
+            ndof = s.compositeParams{1}.dim.ndof;
             LHS = sparse(ndof,ndof);
             for iInt = 1:nInt
-                s = cParams.compositeParams{iInt};
-                s.type     = 'MassMatrix';
-                s.quadType = 'LINEAR';
-                lhs = LHSintegrator.create(s);
+                sL = s.compositeParams{iInt};
+                sL.type     = 'MassMatrix';
+                sL.quadType = 'LINEAR';
+                lhs = LHSintegrator.create(sL);
                 LHSadd = lhs.compute();
                 LHS = LHS + LHSadd;
             end
             Mr = LHS;
         end
         
-        function params = createIntegratorParams(obj)
-            params.type  = 'COMPOSITE';
-            params.npnod = obj.mesh.npnod;
-            fileName = obj.problemData.fileName;
-            bMeshes  = obj.createBoundaryMesh(fileName);
+        function cParams = createIntegratorParams(obj)
+            cParams.type  = 'COMPOSITE';
+            cParams.npnod = obj.mesh.npnod;
+            bMeshes  = obj.mesh.createBoundaryMesh();
             nBoxFaces = numel(bMeshes);
             d = obj.dim;
             for iMesh = 1:nBoxFaces
-                boxFaceMesh = bMeshes{iMesh};
-                bfMesh  = boxFaceMesh.mesh;
-                gConnec = boxFaceMesh.globalConnec;
-                cParams.dim  = d;
-                cParams.mesh = bfMesh;
-                cParams.type = 'SIMPLE';
-                cParams.globalConnec = gConnec;
-                params.compositeParams{iMesh} = cParams;
+                bMesh = bMeshes{iMesh};
+                m  = bMesh.mesh;
+                s.dim  = d;
+                s.mesh = m;
+                s.type = 'SIMPLE';
+                s.globalConnec = bMesh.globalConnec;
+                cParams.compositeParams{iMesh} = s;
             end
         end
-        
-        function boundaryMesh = createBoundaryMesh(obj,fileName)
-            run(fileName);
-            if exist('External_border_nodes','var') && ~isempty(External_border_nodes)
-                s.borderNodes    = External_border_nodes;
-                s.borderElements = External_border_elements;
-                s.backgroundMesh = obj.mesh;
-                s.type = 'FromData';
-                b = BoundaryMeshCreator.create(s);
-                boundaryMesh = b.create();
-            else
-                s.backgroundMesh = obj.mesh;
-                s.dimension = 1:obj.mesh.ndim;
-                s.type = 'FromReactangularBox';
-                bC = BoundaryMeshCreator.create(s);
-                boundaryMesh = bC.create();
-            end
-        end
-
+   
     end
     
 end
