@@ -16,7 +16,7 @@ classdef MMAVariablesComputer < handle
     end
     
     properties (Access = private) 
-        nElem
+        mesh
         nConstraints
         nValues
         youngModulus
@@ -61,19 +61,17 @@ classdef MMAVariablesComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.nElem        = cParams.nElem;
-            obj.nConstraints = cParams.nConstraints; 
-            obj.youngModulus = cParams.youngModulus;
-            obj.inertiaMoment = cParams.inertiaMoment;
+            obj.nConstraints = cParams.nConstraints;           
             obj.minThick      = cParams.minThick;
             obj.maxThick      = cParams.maxThick;
             obj.nValues      =  cParams.nValues;
-            obj.x0           = cParams.x0;
+            obj.designVariable = cParams.designVariable;
+            obj.mesh           = cParams.mesh;
         end
 
         function obj = computeInitialVariablesMMA(obj)
-            x = obj.x0;
-            N = obj.nElem;
+            x = obj.designVariable.value;
+            N = obj.mesh.nelem;
             n_val = obj.nValues;
             m = obj.nConstraints;
             alpha = obj.minThick;

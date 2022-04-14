@@ -7,37 +7,30 @@ classdef AreaColumn < DesignVariable
     properties (Access = private)
         
     end
-    
-    properties (Access = private)
-        nElem
-    end
-    
+       
     methods (Access = public)
         
         function obj = AreaColumn(cParams)
-            obj.init(cParams)            
+            obj.init(cParams);
+            obj.createInitialValue();
         end
 
         function A = getColumnArea(obj)
            x = obj.value;
-           N = obj.nElem;
+           N = obj.mesh.nelem;
            A = x(1:N);
         end
 
         function V = computeVolum(obj)
-            N = obj.nElem;
+            N = obj.mesh.nelem;
             A = obj.getColumnArea();
             V = (1/N)*sum(A);
         end
         
         function gamma = getFirstEigenMode(obj)
            x = obj.value;
-           N = obj.nElem;
+           N = obj.mesh.nelem;
            gamma = x(N+1);  
-        end
-
-        function nElem = getNelem(obj)
-            nElem = obj.nElem;
         end
 
         function v = getVariablesToPlot(obj)
@@ -49,9 +42,14 @@ classdef AreaColumn < DesignVariable
     methods (Access = protected)
         
         function init(obj,cParams)
-           obj.nElem = cParams.nElem; 
+            obj.mesh = cParams.mesh;
         end
         
+        function createInitialValue(obj)
+            N = obj.mesh.nelem;
+            x0 = ones(N+1,1);               
+            obj.update(x0);        
+        end
     end
-    
+
 end

@@ -26,8 +26,6 @@ classdef IterativeProcessComputer < handle
         nValues
         youngModulus
         inertiaMoment
-        minThick
-        maxThick
         nIter
         maxIter
         e
@@ -74,16 +72,12 @@ classdef IterativeProcessComputer < handle
     methods (Access = private)
 
          function init(obj,cParams)
-            obj.nElem          = cParams.nElem;             
             obj.freeNodes      = cParams.freeNodes;
             obj.nConstraints   = cParams.nConstraints;
             obj.mesh            = cParams.mesh;
-            obj.Tnod           = cParams.Tnod;
             obj.dim            = cParams.dim;
             obj.youngModulus   = cParams.youngModulus;
             obj.inertiaMoment  = cParams.inertiaMoment;
-            obj.minThick       = cParams.minThick;
-            obj.maxThick       = cParams.maxThick;
             obj.nValues        = cParams.nValues;
             obj.nIter          =  0;
             obj.mmaVarComputer = cParams.mmaVarComputer;
@@ -159,8 +153,6 @@ classdef IterativeProcessComputer < handle
             obj.hasFinished = (obj.change <= 0.0005) || (obj.nIter >= obj.maxIter);
         end
 
-
-
         function computeNewDesign(obj)
             iter = obj.nIter;
             x = obj.designVariable.value;
@@ -207,10 +199,7 @@ classdef IterativeProcessComputer < handle
         end
 
         function K = createStiffnessMatrix(obj)
-            s.nElem          = obj.nElem;
-            s.Tnod           = obj.Tnod;
             s.mesh           = obj.mesh;
-            s.length         = obj.length;
             s.dim            = obj.dim;
             s.youngModulus   = obj.youngModulus;
             s.inertiaMoment  = obj.inertiaMoment;
@@ -219,10 +208,7 @@ classdef IterativeProcessComputer < handle
         end
 
         function B = createBendingMatrix(obj)
-            s.nElem          = obj.nElem;
-            s.Tnod           = obj.Tnod;
             s.mesh           = obj.mesh;
-            s.length         = obj.length;
             s.dim            = obj.dim;
             s.youngModulus   = obj.youngModulus;
             s.inertiaMoment  = obj.inertiaMoment;

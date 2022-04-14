@@ -10,11 +10,8 @@ classdef BendingMatrixComputer < handle
     end
 
     properties (Access = private)
-        nElem
-        %length
         dim
         mesh
-        Tnod
         youngModulus
         inertiaMoment
         designVariable
@@ -30,7 +27,7 @@ classdef BendingMatrixComputer < handle
         function compute(obj)
             obj.computeConnectivityMatrix();
             obj.computeElementalBendingMatrix();
-            obj.computeBendingMatrix();
+            obj.assemblyBendingMatrix();
         end
 
         function Bfree = provideFreeBendingMatrix(obj)
@@ -44,11 +41,8 @@ classdef BendingMatrixComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.nElem          = cParams.nElem;
-            % obj.length         = cParams.length;
             obj.dim            = cParams.dim;
             obj.mesh           = cParams.mesh;
-            obj.Tnod           = cParams.Tnod;
             obj.youngModulus   = cParams.youngModulus;
             obj.inertiaMoment  = cParams.inertiaMoment;
             obj.designVariable = cParams.designVariable;
@@ -56,14 +50,16 @@ classdef BendingMatrixComputer < handle
         end
 
         function computeConnectivityMatrix(obj)
+            connec = obj.mesh.connec;            
             d = obj.dim;
-            nel = obj.nElem;
-            Td = zeros(nel,d.nNodE*d.nDofN);
-            for iElem=1 : nel
-                for a = 1 : d.nNodE
+            nElem = obj.mesh.nelem;
+            Td = zeros(nElem,d.nNodE*d.nDofN);
+            for iElem= 1 : nElem
+                for iNode = 1 : d.nNodE
                     for j=1:d.nDofN
-                        i = d.nDofN*(a-1) + j;
-                        Td(iElem,i) = d.nDofN*(obj.Tnod(iElem,a)-1) + j;
+                        i = d.nDofN*(iNode-1) + j;
+                        node = connec(iElem,iNode);
+                        Td(iElem,i) = d.nDofN*(node-1) + j;
                     end
                 end
             end
@@ -72,14 +68,14 @@ classdef BendingMatrixComputer < handle
 
          
         function Be = computeElementalBendingMatrix(obj)
-            % L = obj.length;
             d = obj.dim;
             E = obj.youngModulus;
             I = obj.inertiaMoment;
+            nElem = obj.mesh.nelem;            
             Edof = d.nNodE*d.nDofN;
-            Be = zeros(Edof ,Edof ,obj.nElem);
-            for iElem=1: obj.nElem
-                l = obj.computeLength(iElem,d);
+            Be = zeros(Edof ,Edof ,nElem);
+            for iElem = 1:nElem
+                l = obj.computeLength(iElem,d)
                 [c1,c2,c3,c4] = obj.coeffsBending(l,E,I);
                 Be(1,1:4,iElem) = c1*[c2 c3 -c2 c3];
                 Be(2,1:4,iElem) = c1*[c3 c4 -c3 c4/2];
@@ -90,16 +86,16 @@ classdef BendingMatrixComputer < handle
         end
 
         function l = computeLength(obj,iElem,d)
-            msh = obj.mesh;
+            coord = obj.mesh.coord;
             if d.nDim == 1
-                xA = msh(iElem,1);
-                xB = msh(iElem+1,1);
+                xA = coord(iElem,1);
+                xB = coord(iElem+1,1);
                 l = abs(xA-xB);
             elseif d.nDim == 2
-                xA = msh(iElem,1);
-                yA = msh(iElem,2);
-                xB = msh(iElem+1,1);
-                yB = msh(iElem+1,2);
+                xA = coord(iElem,1);
+                yA = coord(iElem,2);
+                xB = coord(iElem+1,1);
+                yB = coord(iElem+1,2);
                 l = sqrt((xB-xA)^2+(yB-yA)^2);
             end
         end
@@ -111,23 +107,21 @@ classdef BendingMatrixComputer < handle
             c4 = 4*l^2;
         end
         
-        function computeBendingMatrix(obj)
+        function assemblyBendingMatrix(obj)
             d = obj.dim;
             x = obj.designVariable.value;
-            N = obj.nElem;
+            nElem = obj.mesh.nelem;
             Be = obj.elementalBendingMatrix;           
             B  = sparse(d.nDof, d.nDof);
             Tdof = obj.connectivityMatrix;
             Edof = d.nNodE*d.nDofN;
-            for iElem = 1: N
+            for iElem = 1: nElem
                 for iRow = 1:Edof
                     iDof = Tdof(iElem,iRow);
                     for iColum = 1:Edof
                         Bij = Be(iRow,iColum,iElem);
                         jDof = Tdof(iElem,iColum);
                         B(iDof,jDof) = B(iDof,jDof) + (x(iElem)^2)*Bij;
-%                         iDof=[2*iElem-1; 2*iElem; 2*(iElem+1)-1; 2*(iElem+1)];
-%                         B(iDof,iDof)=B(iDof,iDof)+(x(iElem)^2)*obj.elementalBendingMatrix;
     
                     end
                 end

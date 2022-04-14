@@ -31,6 +31,14 @@ classdef EulerBeamOptimizer < handle
     % plot modes getting displacement (DONE)
     % Solve for a non-structured mesh (DONE)
 
+    % use dimension class for dim
+    % length with geometry    
+    % stiffnes and bending with LHSintegrator..
+    % derivative "clean"/ "understand"    
+    % MMa from Swan
+    % Plot column area
+
+
 
     properties (Access = private)
         designVariable
@@ -44,6 +52,7 @@ classdef EulerBeamOptimizer < handle
         function obj = EulerBeamOptimizer()
             obj.init()
             obj.createMesh();
+            obj.createDimensions();
             obj.createDesignVariable();
             obj.createBoundaryConditions()
             obj.createMMA();
@@ -55,7 +64,7 @@ classdef EulerBeamOptimizer < handle
     methods (Access = private)
         
         function init(obj)
-            obj.nElem         = 10;
+            obj.nElem         = 20;
             obj.nConstraints  = 3; 
             obj.columnLength  = 1; 
             obj.nValues       = obj.nElem+1;
@@ -68,17 +77,45 @@ classdef EulerBeamOptimizer < handle
         end
 
         function createMesh(obj)
-            obj.dim.nNod  = obj.nElem + 1;                  % num of nodes
-            obj.mesh      = linspace(0,obj.columnLength,obj.dim.nNod)';
-            obj.dim.nDim  = size(obj.mesh,2);               % dimension of the problem
-            obj.dim.nNodE = 2;                              % num of node per element
-            obj.Tnod      = obj.nodesConnectivityMatrix();
-            obj.dim.nDofN = 2;                              % num of DOFs per element
-            obj.dim.nDof  = obj.dim.nNod*obj.dim.nDofN;     % num of DOFs
-            
+            s.coord  = obj.createCoordinates();
+            s.connec = obj.createConnectivity();
+            s.type = 'LINE';
+            m = Mesh(s);
+            obj.mesh = m;
+
+            s.mesh = obj.mesh;
+
+
+           quad = Quadrature.set(obj.mesh.type);
+           quad.computeQuadrature('LINEAR');
+
+            q   = quad;
+            int = Interpolation.create(obj.mesh,'LINEAR');
+            int.computeShapeDeriv(q.posgp);
+
+            g = Geometry.create(s);   
+            g.computeGeometry(q,int)    
+            l = sum(g.dvolu,2);
         end
 
-        function Tnod = nodesConnectivityMatrix(obj) % better to be an input
+        function createDimensions(obj)
+            d.nNod  = obj.mesh.npnod;                  % num of nodes
+            d.nDim  = size(obj.mesh,2);               % dimension of the problem
+            d.nNodE = 2;                              % num of node per element
+            d.nDofN = 2;                              % num of DOFs per element
+            d.nDof  = d.nNod*d.nDofN;     % num of DOFs
+            obj.dim = d;
+        end
+
+        function coord = createCoordinates(obj)
+            nnode = obj.nElem + 1;
+            x = [0;rand(nnode-2,1);1]*obj.columnLength;
+            x = sort(x);
+            coord = x;
+           % coord = linspace(0,obj.columnLength,nnode)';
+        end
+
+        function Tnod = createConnectivity(obj) % better to be an input
             Tnod = zeros(obj.nElem,obj.nNodE);
             e = 1;
             for iElem = 1: obj.nElem
@@ -89,13 +126,9 @@ classdef EulerBeamOptimizer < handle
         end
 
         function createDesignVariable(obj)
-            N = obj.nElem;
             s.type  = 'AreaColumn';
-            s.nElem = obj.nElem;
             s.mesh  = obj.mesh;
             des = DesignVariable.create(s);
-            x0 = ones(N+1,1);               
-            des.update(x0);
             obj.designVariable = des;  
         end
 
@@ -108,14 +141,12 @@ classdef EulerBeamOptimizer < handle
         end        
 
         function obj = createMMA(obj)
-            s.nElem         = obj.nElem;
             s.nConstraints  = obj.nConstraints;
-            s.youngModulus  = obj.youngModulus;
-            s.inertiaMoment = obj.inertiaMoment;
             s.minThick      = obj.minThick;
             s.maxThick      = obj.maxThick;
             s.nValues       = obj.nValues;
-            s.x0            = obj.designVariable.value;
+            s.designVariable = obj.designVariable;
+            s.mesh           = obj.mesh;
             mmaVarComp = MMAVariablesComputer(s);
             obj.mmaVarComputer = mmaVarComp;
         end
@@ -125,17 +156,13 @@ classdef EulerBeamOptimizer < handle
             s.freeNodes      = obj.freeNodes;
             s.nConstraints   = obj.nConstraints;
             s.mesh           = obj.mesh;
-            s.Tnod           = obj.Tnod;
             s.nValues        = obj.nValues;
             s.dim            = obj.dim;
             s.youngModulus   = obj.youngModulus;
             s.inertiaMoment  = obj.inertiaMoment;
-            s.minThick       = obj.minThick;
-            s.maxThick       = obj.maxThick;
             s.maxIter        = obj.maxIter;
             s.optimizerType  = obj.optimizerType;
             s.designVariable = obj.designVariable;
-            s.nElem          = obj.nElem;
             solution = IterativeProcessComputer(s);
             solution.compute();
             obj.designVariable = solution.designVariable;

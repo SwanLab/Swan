@@ -13,10 +13,7 @@ classdef EigModesPlotter < handle
     end
     
     properties (Access = private)
-        nElem
-        %length
         mesh
-        lElem
     end
     
     methods (Access = public)
@@ -37,7 +34,6 @@ classdef EigModesPlotter < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            % obj.length = cParams.length;
             obj.mesh   = cParams.mesh;
         end
 
@@ -49,13 +45,9 @@ classdef EigModesPlotter < handle
         
         function plotColumnArea(obj,A)            
             z = sqrt(A); 
-            msh = obj.mesh;
-            obj.lElem(1,1) = abs(msh(2)-msh(1));
-            for iElem=2: length(z)
-                obj.lElem(iElem,1) = obj.lElem(iElem-1) + abs(msh(iElem+1)-msh(iElem));
-            end
+            xBar = obj.mesh.computeBaricenter();
             figure(1)
-            subplot(2,2,[1 3]);plot(obj.lElem,z)
+            subplot(2,2,[1 3]);plot(xBar,z)
             grid on
             grid minor
             title('Clamped-Clamped Column Profile','Interpreter', 'latex','FontSize',20, 'fontweight','b');
@@ -64,13 +56,14 @@ classdef EigModesPlotter < handle
         end
 
         function plotBucklingModes(obj,m1,m2)
-            mod1 = m1;
+            mod1 = m1;           
             mod2 = m2;
-            subplot(2,2,2); plot(obj.mesh,-mod1);
+            coord = obj.mesh.coord;
+            subplot(2,2,2); plot(coord,-mod1);
             grid on
             grid minor
             title('First Buckling Mode','Interpreter', 'latex','FontSize',14, 'fontweight','b')
-            subplot(2,2,4); plot(obj.mesh,-mod2);
+            subplot(2,2,4); plot(coord,-mod2);
             grid on
             grid minor
             title('Second Buckling Mode','Interpreter', 'latex','FontSize',14, 'fontweight','b')
@@ -87,8 +80,7 @@ classdef EigModesPlotter < handle
             xlabel('Number of Iteration','Interpreter', 'latex','fontsize',18,'fontweight','b');
             ylabel('Eigenvalues','Interpreter', 'latex','fontsize',18,'fontweight','b');
             axis([0 60 0 100]);
-        end
-        
+        end        
         
     end
     

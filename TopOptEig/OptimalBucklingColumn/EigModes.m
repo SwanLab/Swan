@@ -47,20 +47,20 @@ classdef EigModes < handle
             obj.reorderModes(obj.lambda,obj.V,obj.D);
             Belem =  obj.bendingMatComputer.elementalBendingMatrix;
             d = obj.dim;
-            x = obj.designVariable.getColumnArea;
-            N = obj.designVariable.getNelem();
+            x = obj.designVariable.getColumnArea();
+            nElem = obj.mesh.nelem;
             if abs(obj.D(2,2)-obj.D(1,1))> 1
                 W=zeros(d.nDof,2);
-                for i=3:2*N
+                for i=3:2*nElem
                     W(i,1)=obj.v1(i-2);
                 end
-                for i=1:N
+                for i=1:nElem
                     dfdx(1,i)= -(2*x(i,1))*(W(2*(i-1)+1: 2*(i-1)+4,1)'*Belem(:,:,i)*W(2*(i-1)+1: 2*(i-1)+4,1));
                 end
-                for i=3:2*N
+                for i=3:2*nElem
                     W(i,2)=obj.v2(i-2);
                 end
-                for i=1:N
+                for i=1:nElem
                     dfdx(2,i)= -(2*x(i,1))*(W(2*(i-1)+1: 2*(i-1)+4,2)'*Belem(:,:,i)*W(2*(i-1)+1: 2*(i-1)+4,2));
                 end
             else
@@ -68,18 +68,19 @@ classdef EigModes < handle
                 disp('dobles')
                 Q1=zeros(d.nDof,1);
                 Q2=zeros(d.nDof,1);
-                dQ1=zeros(N,1);
-                dQ2=zeros(N,1);
-                dQ1Q2=zeros(N,1);
-                for i=3:2*N
+                dQ1=zeros(nElem,1);
+                dQ2=zeros(nElem,1);
+                dQ1Q2=zeros(nElem,1);
+                for i=3:2*nElem
                     Q1(i,1)=obj.V(i-2,1);
                 end
-                for i=3:2*N
+                for i=3:2*nElem
                     Q2(i,1)=obj.V(i-2,2);
                 end
                 A  = zeros(2,2);
-                for i=1:N
-                    dQ1(i,1)= (2*x(i,1))*(Q1(2*(i-1)+1: 2*(i-1)+4,1)'*Belem(:,:,i)*Q1(2*(i-1)+1: 2*(i-1)+4,1));
+                for i=1:nElem
+                    indexQ1 = 2*(i-1)+1: 2*(i-1)+4;
+                    dQ1(i,1)= (2*x(i,1))*(Q1(2*(i-1)+1: 2*(i-1)+4,1)'*Belem(:,:,i)*Q1(indexQ1,1));
                     dQ2(i,1)= (2*x(i,1))*(Q2(2*(i-1)+1: 2*(i-1)+4,1)'*Belem(:,:,i)*Q2(2*(i-1)+1: 2*(i-1)+4,1));
                     dQ1Q2(i,1)= (2*x(i,1))*(Q1(2*(i-1)+1: 2*(i-1)+4,1)'*Belem(:,:,i)*Q2(2*(i-1)+1: 2*(i-1)+4,1));
                     A = [dQ1(i,1) dQ1Q2(i,1); dQ1Q2(i,1) dQ2(i,1)];
@@ -89,8 +90,8 @@ classdef EigModes < handle
                     dfdx(2,i)=-S(2);
                 end
             end
-            dfdx(1,N+1)=1;
-            dfdx(2,N+1)=1;
+            dfdx(1,nElem+1)=1;
+            dfdx(2,nElem+1)=1;
             grad = dfdx(eigNum,:);
         end
 
@@ -143,7 +144,7 @@ classdef EigModes < handle
         end
 
         function [m1disp,m2disp] = computeBucklingModes(obj,v1,v2)
-            N = obj.designVariable.getNelem();
+            N = obj.mesh.nelem;
             Mode1=zeros(2*(N+1),1);
             Mode2=zeros(2*(N+1),1);
             for i=3:2*N

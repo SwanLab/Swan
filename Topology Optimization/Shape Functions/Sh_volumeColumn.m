@@ -38,9 +38,9 @@ classdef Sh_volumeColumn < ShapeFunctional
         end
 
         function computeGradient(obj)
-            N = obj.designVariable.getNelem();
-            dfdx = zeros(1,N+1);
-            dfdx(1,1:N)=(1/N)*ones(1,N);
+            nElem = obj.designVariable.mesh.nelem;
+            dfdx = zeros(1,nElem+1);
+            dfdx(1,1:nElem)=(1/nElem)*ones(1,nElem);
             obj.gradient = dfdx;
         end
 
