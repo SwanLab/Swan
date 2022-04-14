@@ -64,7 +64,7 @@ classdef EulerBeamOptimizer < handle
     methods (Access = private)
         
         function init(obj)
-            obj.nElem         = 20;
+            obj.nElem         = 10;
             obj.nConstraints  = 3; 
             obj.columnLength  = 1; 
             obj.nValues       = obj.nElem+1;
@@ -99,11 +99,12 @@ classdef EulerBeamOptimizer < handle
         end
 
         function createDimensions(obj)
-            d.nNod  = obj.mesh.npnod;                  % num of nodes
-            d.nDim  = size(obj.mesh,2);               % dimension of the problem
-            d.nNodE = 2;                              % num of node per element
-            d.nDofN = 2;                              % num of DOFs per element
-            d.nDof  = d.nNod*d.nDofN;     % num of DOFs
+            s.mesh = obj.mesh;
+            s.pdim = '1D'; 
+            s.ngaus = 2;
+            d = DimensionVariables(s);
+            d.compute();
+            d.ndof = 2*d.ndof; %%%%% Hay que arreglarlo !!!!!
             obj.dim = d;
         end
 
@@ -111,11 +112,11 @@ classdef EulerBeamOptimizer < handle
             nnode = obj.nElem + 1;
             x = [0;rand(nnode-2,1);1]*obj.columnLength;
             x = sort(x);
-            coord = x;
-           % coord = linspace(0,obj.columnLength,nnode)';
+            % coord = x;
+            coord = linspace(0,obj.columnLength,nnode)';
         end
 
-        function Tnod = createConnectivity(obj) % better to be an input
+        function Tnod = createConnectivity(obj)
             Tnod = zeros(obj.nElem,obj.nNodE);
             e = 1;
             for iElem = 1: obj.nElem
@@ -134,8 +135,8 @@ classdef EulerBeamOptimizer < handle
 
         function createBoundaryConditions(obj)
             d = obj.dim;
-            fixnodes = union([1,2], [d.nDof-1,d.nDof]);
-            nodes = 1:d.nDof;
+            fixnodes = union([1,2], [d.ndof-1,d.ndof]);
+            nodes = 1:d.ndof;
             free  = setdiff(nodes,fixnodes);
             obj.freeNodes = free;
         end        

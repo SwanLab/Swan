@@ -52,13 +52,13 @@ classdef StiffnessMatrixComputer < handle
         function computeConnectivityMatrix(obj)
             Tnod = obj.mesh.connec;
             d = obj.dim;
-            nElem = obj.mesh.nelem;
-            Td = zeros(nElem,d.nNodE*d.nDofN);
+            nElem = d.nelem;
+            Td = zeros(nElem,d.nnode*d.nstre);
             for iElem=1 : nElem
-                for a = 1 : d.nNodE
-                    for j=1:d.nDofN
-                        i = d.nDofN*(a-1) + j;
-                        Td(iElem,i) = d.nDofN*(Tnod(iElem,a)-1) + j;
+                for a = 1 : d.nnode
+                    for j=1:d.nstre
+                        i = d.nstre*(a-1) + j;
+                        Td(iElem,i) = d.nstre*(Tnod(iElem,a)-1) + j;
                     end
                 end
             end
@@ -67,8 +67,8 @@ classdef StiffnessMatrixComputer < handle
 
         function obj = computeElementalStiffnessMatrix(obj)
             d = obj.dim;
-            Edof  = d.nNodE*d.nDofN;
-            nElem = obj.mesh.nelem;           
+            Edof  = d.nnode*d.nstre;
+            nElem = d.nelem;           
             Ke = zeros(Edof,Edof,nElem);
             for iElem=1:nElem
                 l = obj.computeLength(iElem,d);
@@ -83,11 +83,11 @@ classdef StiffnessMatrixComputer < handle
 
         function l = computeLength(obj,iElem,d)
             coord = obj.mesh.coord;
-            if d.nDim == 1
+            if d.ndim == 1
                 xA = coord(iElem,1);
                 xB = coord(iElem+1,1);
                 l = abs(xA-xB);
-            elseif d.nDim == 2
+            elseif d.ndim == 2
                 xA = coord(iElem,1);
                 yA = coord(iElem,2);
                 xB = coord(iElem+1,1);
@@ -108,9 +108,9 @@ classdef StiffnessMatrixComputer < handle
             d  = obj.dim;
             Ke = obj.elementalStiffnessMatrix;
             N  = obj.mesh.nelem;
-            K  = sparse(d.nDof,d.nDof);
+            K  = sparse(d.ndof,d.ndof);
             Tdof = obj.connectivityMatrix;
-            Edof = d.nNodE*d.nDofN;
+            Edof = d.nnode*d.nstre;
             for iElem = 1:N
                 for iRow = 1:Edof
                     iDof = Tdof(iElem,iRow);

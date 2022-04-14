@@ -48,9 +48,9 @@ classdef EigModes < handle
             Belem =  obj.bendingMatComputer.elementalBendingMatrix;
             d = obj.dim;
             x = obj.designVariable.getColumnArea();
-            nElem = obj.mesh.nelem;
+            nElem = d.nelem;
             if abs(obj.D(2,2)-obj.D(1,1))> 1
-                W=zeros(d.nDof,2);
+                W=zeros(d.ndof,2);
                 for i=3:2*nElem
                     W(i,1)=obj.v1(i-2);
                 end
@@ -66,8 +66,8 @@ classdef EigModes < handle
             else
                 obj.D
                 disp('dobles')
-                Q1=zeros(d.nDof,1);
-                Q2=zeros(d.nDof,1);
+                Q1=zeros(d.ndof,1);
+                Q2=zeros(d.ndof,1);
                 dQ1=zeros(nElem,1);
                 dQ2=zeros(nElem,1);
                 dQ1Q2=zeros(nElem,1);
@@ -100,9 +100,9 @@ classdef EigModes < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh           = cParams.mesh;
-            obj.dim            = cParams.dim;
-            obj.designVariable = cParams.designVariable;
+            obj.mesh                 = cParams.mesh;
+            obj.dim                  = cParams.dim;
+            obj.designVariable       = cParams.designVariable;
             obj.stiffnessMatComputer = cParams.stiffnessMatComputer;
             obj.bendingMatComputer   = cParams.bendingMatComputer;
         end

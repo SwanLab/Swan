@@ -6,7 +6,9 @@ classdef IterativeProcessComputer < handle
          optimizerType
      end
 
-     properties (Access = private)
+     properties (Access = private) % Classes
+         mesh
+         dim
          optimizer
          cost
          constraint
@@ -16,13 +18,10 @@ classdef IterativeProcessComputer < handle
      end
     
     properties (Access = private)
-        nElem
+        % nElem
         nConstraints
         length
-       % Tdof
         Tnod
-        mesh
-        dim
         nValues
         youngModulus
         inertiaMoment

@@ -12,6 +12,10 @@ classdef LHSintegratorFactory < handle
                    %(computeElementalLHS) dN*dN
                    %+ assembleMatrix (LHSintegrator through integrator)
                    obj = LHSintegrator_Stiffness(cParams);
+               case 'StiffnessMatrixColumn'
+                   %(computeElementalLHS) dN*dN
+                   %+ assembleMatrix (LHSintegrator through integrator)
+                   obj = LHSintegrator_StiffnessColumn(cParams);
                case 'ElasticStiffnessMatrix'
                    %(computeElementalLHS) dN*C*dN (B*C*B)
                    %+ assembleMatrix (LHSintegrator through integrator)
