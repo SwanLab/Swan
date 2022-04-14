@@ -62,13 +62,13 @@ classdef ElasticProblem < handle
             obj.material.C = C;
         end
 
-%         function dvolu = getDvolume(obj)
-%             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
-%         end
-% 
-%         function quad = getQuadrature(obj)
-%             quad  = obj.quadrature;
-%         end
+        function dvolu = getDvolume(obj)
+            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
+        end
+
+        function quad = getQuadrature(obj)
+            quad  = obj.quadrature;
+        end
 %         
 %         function print(obj,fileName)
 %             dI = obj.createPostProcessDataBase(fileName);
