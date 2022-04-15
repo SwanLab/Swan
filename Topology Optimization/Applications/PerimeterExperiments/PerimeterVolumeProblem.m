@@ -31,7 +31,7 @@ classdef PerimeterVolumeProblem < handle
         
         function init(obj)
             obj.fileName = 'PerimeterVolumeTest';
-            obj.inputFile = 'SquareMacroStrucutred';   
+            obj.inputFile = 'SquareMacroStrucutred';
             obj.nx = 100;
             obj.ny = 100;
             obj.type = 'QUAD';%'QUAD'%'TRIANGLE';%
@@ -47,23 +47,23 @@ classdef PerimeterVolumeProblem < handle
             s.scale           = 'MACRO';
             s.pdim            = '2D';
             s.ptype           = 'ELASTIC';
-            s.resultsDir      = fullfile('Input',obj.inputFile);    
+            s.resultsDir      = fullfile('Input',obj.inputFile);
             s.type            = 'TRIANGLE';
             iPrinter = InputFemFilePrinter(s);
             iPrinter.print();
         end
         
         function createSettings(obj)
-           s = SettingsTopOptProblem(obj.fileName); 
+           s = SettingsTopOptProblem(obj.fileName);
            s = obj.setInitialAndFinalEpsilon(s);
            obj.topOptSet = s;
-        end        
+        end
         
         function s = setInitialAndFinalEpsilon(obj,s)
            sT = s.incrementalSchemeSettings.targetParamsSettings;
            m  = obj.mesh;
            sT.epsilonPerFinal   = 2*m.computeMeanCellSize();
-           sT.epsilonPerInitial = 124*m.computeMeanCellSize();           
+           sT.epsilonPerInitial = 124*m.computeMeanCellSize();
            %sT.epsilonPerInitial = m.computeCharacteristicLength();
            s.incrementalSchemeSettings.targetParamsSettings = sT;
         end
@@ -100,7 +100,7 @@ classdef PerimeterVolumeProblem < handle
         end
 
         function solve(obj)
-            obj.topOptProblem = TopOpt_Problem(obj.topOptSet);  
+            obj.topOptProblem = TopOpt_Problem(obj.topOptSet);
             obj.topOptProblem.computeVariables();
             obj.topOptProblem.postProcess();
         end

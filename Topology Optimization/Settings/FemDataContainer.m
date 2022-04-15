@@ -1,4 +1,3 @@
-
 classdef FemDataContainer < AbstractSettings
     
     properties (Access = protected)

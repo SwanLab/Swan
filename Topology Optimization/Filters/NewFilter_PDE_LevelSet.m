@@ -130,6 +130,7 @@ classdef NewFilter_PDE_LevelSet < handle
 
         function x_reg = solveFilter(obj,RHS)
             obj.diffReacProb.computeVariables(RHS);
+%             obj.diffReacProb.create(RHS);
             x_reg = obj.diffReacProb.variables.x;
         end
 

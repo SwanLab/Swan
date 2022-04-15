@@ -62,7 +62,7 @@ classdef IsotropicConstitutiveTensor < Stiffness3DTensor
             obj.lambda   = obj.computeLambdaFromYoungAndPoisson(obj.E,obj.nu);
             obj.lambda2D = obj.computeLambda2DFromYoungAndPoisson(obj.E,obj.nu);
             obj.kappa    = obj.computeKappaFromLambdaAndMu(obj.lambda,obj.mu);
-            obj.kappa2D  = obj.computeKappa2DFromLambdaAndMu(obj.lambda,obj.mu);    
+            obj.kappa2D  = obj.computeKappa2DFromLambdaAndMu(obj.lambda,obj.mu);
             obj.simplifyExpressions()
         end
         
@@ -78,10 +78,10 @@ classdef IsotropicConstitutiveTensor < Stiffness3DTensor
             end            
         end
         
-        function itIs = isDataSymbolic(obj)            
+        function itIs = isDataSymbolic(obj)
             isYoungSymbolic   = obj.isSymbolic(obj.E);
-            isPoissonSymbolic = obj.isSymbolic(obj.nu);                        
-            itIs = isYoungSymbolic || isPoissonSymbolic;            
+            isPoissonSymbolic = obj.isSymbolic(obj.nu);
+            itIs = isYoungSymbolic || isPoissonSymbolic;
         end
         
         function a = simplifyExpression(obj,a)

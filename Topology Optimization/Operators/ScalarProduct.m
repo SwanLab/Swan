@@ -46,7 +46,9 @@ classdef ScalarProduct < handle
         function createMatrices(obj,cParams)
             s = cParams.femSettings;
             s.mesh = cParams.mesh;
-            physProb = DiffReactProblem(s);
+            s.scale = 'MACRO';
+            s.type = 'DIFF-REACT';
+            physProb = FEM.create(s);
             obj.Ksmooth = physProb.getK();
             obj.Msmooth = physProb.getM();
         end

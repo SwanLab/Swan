@@ -31,7 +31,7 @@ classdef FemPrinter < handle
             dI.ndim   = obj.ndim;
             dI.pdim   = obj.pdim;
             dI.ptype  = obj.ptype;            
-            p = Postprocess('ElasticityMicro',dI);
+            p = Postprocess('HomogenizedTensor',dI);
             q        = obj.quad;
             d.fields = obj.variables;
             d.quad   = q;

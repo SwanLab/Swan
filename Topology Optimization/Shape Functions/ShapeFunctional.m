@@ -91,15 +91,10 @@ classdef ShapeFunctional < handle
         function createMsmoothAndDvolu(obj,cParams)
             s = cParams.femSettings;
             s.mesh = cParams.mesh;
-            
-            switch s.scale
-                case 'MACRO'
-                    diffReacProb = DiffReactProblem(s);
-                case 'MICRO'
-                    diffReacProb = DiffReactProblemMicro(s);
-            end
+            s.type = 'DIFF-REACT';
+            diffReacProb = FEM.create(s);
             obj.Msmooth = diffReacProb.getM();
-            obj.dvolu   = diffReacProb.geometry.dvolu;
+            obj.dvolu   = diffReacProb.computeDvolume();
         end
 
     end

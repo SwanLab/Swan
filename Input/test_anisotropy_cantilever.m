@@ -1,5 +1,6 @@
 % filename = 'Cantileverbeam_Quadrilateral_Bilinear';
-filename = 'ArchTriFine';
+% filename = 'ArchTriFine';
+filename = 'BridgeCool_Quadrilateral_Bilinear_Structured_Fine';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -13,10 +14,10 @@ incrementFactor = 1;
 designVariable = 'Density'; % LevelSet
 filterType = 'AnisotropicPDE';
 
-shFuncParamsName = 'paramsTestCantilever3';
+% shFuncParamsName = 'paramsTestCantilever3';
 
-nsteps = 20;
-Vfrac_final = 0.15;
+nsteps = 1;
+Vfrac_final = 0.30; % 0.15
 optimality_final =1e-3;
 constr_final =1e-3;
 
@@ -38,4 +39,4 @@ printing = false;
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 200;
+maxiter = 2000;

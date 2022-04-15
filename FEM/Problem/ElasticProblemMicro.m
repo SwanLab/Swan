@@ -32,6 +32,7 @@ classdef ElasticProblemMicro < ElasticProblem
             tStrss = zeros(nstre,ngaus,nstre,nelem);
             tDisp  = zeros(nstre,ndof);
             Ch = zeros(nstre,nstre);
+            v2p = cell(1,nstre);
             for istre=1:nstre
                 obj.vstrain = basis(istre,:);
                 obj.solve();
@@ -59,7 +60,7 @@ classdef ElasticProblemMicro < ElasticProblem
             ngaus = obj.dim.ngaus;
             nstre = obj.dim.nstre;
             nelem = obj.dim.nelem;
-            dV = obj.getDvolume()';
+            dV = obj.mesh.computeDvolume(obj.quadrature)';
             strainFluct = vars.strain;
             stressFluct = vars.stress;
             

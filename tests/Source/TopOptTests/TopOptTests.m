@@ -24,7 +24,6 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             'test_interiorPerimeter'
             }
        micro = {'test_micro', 'test_micro2'}
-%          micro = {'test_micro'}
 %         compTestsToPass = {'test_bridge'}
 %         compTestsToPass = {'test_interiorPerimeter'}
         cantileverTests = {'test_cantilever','test_cantilever3','test_interiorPerimeter','test_anisotropy_cantilever'}
