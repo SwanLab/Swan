@@ -54,12 +54,8 @@ classdef NewFilter_PDE_LevelSet < handle
             if isprop(cParams,'mesh')
                 s.mesh = cParams.mesh;
             end
-            switch s.scale
-                case 'MACRO'
-                    obj.diffReacProb = DiffReactProblem(s);
-                case 'MICRO'
-                    obj.diffReacProb = DiffReactProblemMicro(s);
-            end
+            s.type = 'DIFF-REACT';
+            obj.diffReacProb = FEM.create(s);
         end
 
         function x0 = getP0fromP1(obj,x)
@@ -130,7 +126,6 @@ classdef NewFilter_PDE_LevelSet < handle
 
         function x_reg = solveFilter(obj,RHS)
             obj.diffReacProb.computeVariables(RHS);
-%             obj.diffReacProb.create(RHS);
             x_reg = obj.diffReacProb.variables.x;
         end
 

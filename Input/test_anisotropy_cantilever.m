@@ -10,13 +10,13 @@ weights = [1];
 constraint = {'volumeConstraint'};
 optimizerUnconstrained = 'PROJECTED GRADIENT'; % SLERP
 optimizer = 'DualNestedInPrimal';
-incrementFactor = 1;
+incrementFactor = 1; % 1.5,2.0
 designVariable = 'Density'; % LevelSet
 filterType = 'AnisotropicPDE';
 
 % shFuncParamsName = 'paramsTestCantilever3';
 
-nsteps = 1;
+nsteps = 14; % 5%/step is OK
 Vfrac_final = 0.30; % 0.15
 optimality_final =1e-3;
 constr_final =1e-3;

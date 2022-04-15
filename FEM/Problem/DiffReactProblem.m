@@ -19,7 +19,7 @@ classdef DiffReactProblem < handle
     % IsoLaplac(u) = f
     % IsoVectLaplac(u) = f
     
-    properties (Access = private)
+    properties (Access = protected)
         dim
         M,K
         mesh

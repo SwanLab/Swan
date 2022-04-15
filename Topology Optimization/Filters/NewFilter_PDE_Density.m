@@ -76,13 +76,11 @@ classdef NewFilter_PDE_Density < handle
 
         function createDiffReacProblem(obj,cParams)
             s = cParams.femSettings;
-            s.mesh = cParams.mesh;
-            switch s.scale
-                case 'MACRO'
-                    obj.diffReacProb = DiffReactProblem(s);
-                case 'MICRO'
-                    obj.diffReacProb = DiffReactProblemMicro(s);
+            if isprop(cParams,'mesh')
+                s.mesh = cParams.mesh;
             end
+            s.type = 'DIFF-REACT';
+            obj.diffReacProb = FEM.create(s);
         end
 
         function A_nodal_2_gauss = computeA(obj)

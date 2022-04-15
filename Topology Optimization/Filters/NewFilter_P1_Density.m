@@ -110,13 +110,11 @@ classdef NewFilter_P1_Density < handle
 
         function pB = createDiffReacProblem(cParams)
             s = cParams.femSettings;
-            s.mesh = cParams.mesh;
-            switch s.scale
-                case 'MACRO'
-                    pB = DiffReactProblem(s);
-                case 'MICRO'
-                    pB = DiffReactProblemMicro(s);
+            if isprop(cParams,'mesh')
+                s.mesh = cParams.mesh;
             end
+            s.type = 'DIFF-REACT';
+            pB = FEM.create(s);
         end
 
     end
