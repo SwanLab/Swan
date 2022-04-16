@@ -1,8 +1,9 @@
 classdef LHSintegrator_StiffnessElasticStoredB < LHSintegrator
 
     properties (Access = private)
-        geometry
         Btot
+        material
+        geometry
     end
 
     methods (Access = public)
