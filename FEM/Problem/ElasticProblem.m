@@ -80,7 +80,7 @@ classdef ElasticProblem < handle
             s.pdim      = obj.problemData.pdim;
             s.type      = obj.createPrintType();
             fPrinter = FemPrinter(s);
-            fPrinter.print(filename);            
+            fPrinter.print(filename);
         end
 
     end
@@ -94,10 +94,6 @@ classdef ElasticProblem < handle
             pd.ptype        = cParams.type;
             pd.bc.dirichlet = cParams.dirichlet;
             pd.bc.pointload = cParams.pointload;
-            if isfield(cParams,'masterSlave')
-                obj.mesh.computeMasterSlaveNodes();
-                pd.bc.masterSlave = obj.mesh.masterSlaveNodes;
-            end
             obj.problemData = pd;
             obj.materialProperties.kappa = .9107;
             obj.materialProperties.mu    = .3446;
@@ -199,7 +195,7 @@ classdef ElasticProblem < handle
 
         function F = computeExternalForces(obj)
             s.dim         = obj.dim;
-            s.BC          = obj.boundaryConditions; %Neumann
+            s.BC          = obj.boundaryConditions;
             s.mesh        = obj.mesh;
             s.material    = obj.material;
             s.geometry    = obj.geometry;

@@ -4,22 +4,23 @@
 %       OK!      - dispacth trhough LHSintegrator
 %       OK!      - merge problemdimensions and dimensions, no need
 %       OK! - create LHS integrator for boundaryMassmatrix
-%       YET - DiffReact tests
-%                - DiffReactProblem
-%                - DiffReactProblem_Neumann, DiffReactProblem_Robin
-%       YET - Maybe
+%       YET - DiffReactProblem tests
+%       YET - Maybe some additional cleanup can be made
 
-% b) ELASTIC
-%       YET - Precomputedvariabletest overwrite results
-%                - ElasticProblem, ElasticProblemMicro
-%       YET - masterSlaveNodes not in Mesh...in BoundaryConditions
+% b) MINOR CLEANUP
+%       YET - improve performance graph using average + deviation
+%       OK! - Precomputedvariabletest overwrite results
+
+% c) ELASTIC
+%       OK! - masterSlaveNodes not in Mesh...in BoundaryConditions
+%                - Pending createRectangularMesh at ShapesInMicrostructures
 %       YET - s.material as an input
 %       YET - refactoring ElasticProblemMicro
 
-% c) STOKES
+% d) STOKES
 %       YET - Restore Stokes
 
-% d) PREPROCESS
+% e) PREPROCESS
 %           - Refactroing PreProcessing--FemInputReader
 
 

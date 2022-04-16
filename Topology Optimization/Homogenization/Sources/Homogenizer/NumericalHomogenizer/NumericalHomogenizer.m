@@ -189,7 +189,7 @@ classdef NumericalHomogenizer < handle
             d.filterParams.designVarType = desVar.type;
             d.filterParams = SettingsFilter(d.filterParams);
             d.mesh = mesh.innerMeshOLD;
-            d.mesh.computeMasterSlaveNodes();
+%             d.mesh.computeMasterSlaveNodes();
             d.designVariable = desVar;
             vComputer = ShFunc_Volume(d);
             vComputer.computeFunctionFromDensity(obj.density);

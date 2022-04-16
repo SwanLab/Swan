@@ -26,7 +26,6 @@ classdef LHSintegrator_DiffReactRobin < LHSintegrator
         function computeStiffnessMatrix(obj)
             s.type = 'StiffnessMatrix';
             s.mesh         = obj.mesh;
-            s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.dim;
             LHS = LHSintegrator.create(s);
@@ -37,7 +36,6 @@ classdef LHSintegrator_DiffReactRobin < LHSintegrator
             s.type         = 'MassMatrix';
             s.quadType     = 'QUADRATICMASS';
             s.mesh         = obj.mesh;
-            s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.dim;
             LHS = LHSintegrator.create(s);
