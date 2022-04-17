@@ -13,6 +13,7 @@ classdef StiffnessMatrixComputer < handle
     properties (Access = private)
         dim
         mesh
+        geometry
         youngModulus
         inertiaMoment
         freeNodes
@@ -44,6 +45,7 @@ classdef StiffnessMatrixComputer < handle
         function obj = init(obj,cParams)
             obj.mesh          = cParams.mesh;
             obj.dim           = cParams.dim;
+            obj.geometry      = cParams.geometry;
             obj.youngModulus  = cParams.youngModulus;
             obj.inertiaMoment = cParams.inertiaMoment;
             obj.freeNodes     = cParams.freeNodes;
@@ -70,9 +72,10 @@ classdef StiffnessMatrixComputer < handle
             Edof  = d.nnode*d.nstre;
             nElem = d.nelem;           
             Ke = zeros(Edof,Edof,nElem);
+            l = obj.computeLength;
             for iElem=1:nElem
-                l = obj.computeLength(iElem,d);
-                [c1,c2,c3,c4,c5] = obj.coeffsStiffness(l);
+                length = l(iElem);
+                [c1,c2,c3,c4,c5] = obj.coeffsStiffness(length);
                 Ke(1,1:4,iElem) = c1*[c2 c3 -c2 c3];
                 Ke(2,1:4,iElem) = c1*[c3 c4 -c3 -c5];
                 Ke(3,1:4,iElem) = c1*[-c2 -c3 c2 -c3];
@@ -81,19 +84,9 @@ classdef StiffnessMatrixComputer < handle
             obj.elementalStiffnessMatrix = Ke;
         end
 
-        function l = computeLength(obj,iElem,d)
-            coord = obj.mesh.coord;
-            if d.ndim == 1
-                xA = coord(iElem,1);
-                xB = coord(iElem+1,1);
-                l = abs(xA-xB);
-            elseif d.ndim == 2
-                xA = coord(iElem,1);
-                yA = coord(iElem,2);
-                xB = coord(iElem+1,1);
-                yB = coord(iElem+1,2);
-                l = sqrt((xB-xA)^2+(yB-yA)^2);
-            end
+        function l = computeLength(obj)
+            g = obj.geometry;
+            l = sum(g.dvolu,2);
         end
 
         function [c1,c2,c3,c4,c5] = coeffsStiffness(obj,l)
@@ -107,7 +100,7 @@ classdef StiffnessMatrixComputer < handle
         function assemblyStiffnessMatrix(obj)
             d  = obj.dim;
             Ke = obj.elementalStiffnessMatrix;
-            N  = obj.mesh.nelem;
+            N  = d.nelem;
             K  = sparse(d.ndof,d.ndof);
             Tdof = obj.connectivityMatrix;
             Edof = d.nnode*d.nstre;

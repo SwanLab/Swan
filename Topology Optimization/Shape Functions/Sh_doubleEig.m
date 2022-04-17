@@ -1,7 +1,6 @@
 classdef Sh_doubleEig < ShapeFunctional
     
     properties (Access = private)
-        nElem
         eigNum
         eigModes
     end

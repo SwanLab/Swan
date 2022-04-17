@@ -19,8 +19,6 @@ classdef MMAVariablesComputer < handle
         mesh
         nConstraints
         nValues
-        youngModulus
-        inertiaMoment
         minThick
         maxThick
     end

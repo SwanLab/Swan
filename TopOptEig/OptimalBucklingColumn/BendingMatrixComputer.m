@@ -12,6 +12,7 @@ classdef BendingMatrixComputer < handle
     properties (Access = private)
         dim
         mesh
+        geometry
         youngModulus
         inertiaMoment
         designVariable
@@ -43,6 +44,7 @@ classdef BendingMatrixComputer < handle
         function init(obj,cParams)
             obj.dim            = cParams.dim;
             obj.mesh           = cParams.mesh;
+            obj.geometry       = cParams.geometry;
             obj.youngModulus   = cParams.youngModulus;
             obj.inertiaMoment  = cParams.inertiaMoment;
             obj.designVariable = cParams.designVariable;
@@ -74,9 +76,10 @@ classdef BendingMatrixComputer < handle
             nElem = d.nelem;            
             Edof = d.nnode*d.nstre;
             Be = zeros(Edof ,Edof ,nElem);
+            l = obj.computeLength();
             for iElem = 1:nElem
-                l = obj.computeLength(iElem,d);
-                [c1,c2,c3,c4] = obj.coeffsBending(l,E,I);
+                length = l(iElem);
+                [c1,c2,c3,c4] = obj.coeffsBending(length,E,I);
                 Be(1,1:4,iElem) = c1*[c2 c3 -c2 c3];
                 Be(2,1:4,iElem) = c1*[c3 c4 -c3 c4/2];
                 Be(3,1:4,iElem) = c1*[-c2 -c3 c2 -c3];
@@ -85,19 +88,9 @@ classdef BendingMatrixComputer < handle
             obj.elementalBendingMatrix  = Be;
         end
 
-        function l = computeLength(obj,iElem,d)
-            coord = obj.mesh.coord;
-            if d.ndim == 1
-                xA = coord(iElem,1);
-                xB = coord(iElem+1,1);
-                l = abs(xA-xB);
-            elseif d.ndim == 2
-                xA = coord(iElem,1);
-                yA = coord(iElem,2);
-                xB = coord(iElem+1,1);
-                yB = coord(iElem+1,2);
-                l = sqrt((xB-xA)^2+(yB-yA)^2);
-            end
+        function l = computeLength(obj)
+            g = obj.geometry;
+            l = sum(g.dvolu,2);
         end
 
         function [c1,c2,c3,c4] = coeffsBending(obj,l,E,I)

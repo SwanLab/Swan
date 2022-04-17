@@ -5,11 +5,9 @@ classdef EulerBeamOptimizer < handle
     end
     
     properties (Access = private)
-        nDim
         nElem
         nConstraints
         columnLength
-        nNodes
         mesh
         nValues
         youngModulus
@@ -21,9 +19,7 @@ classdef EulerBeamOptimizer < handle
 
    properties (Access = private)
        dim
-       nDofN
-       Tnod
-       nNodE
+       geometry
    end
 
     % Mesh (lenght only to create mesh, delete elsewhere)  (DONE)
@@ -31,8 +27,8 @@ classdef EulerBeamOptimizer < handle
     % plot modes getting displacement (DONE)
     % Solve for a non-structured mesh (DONE)
 
-    % use dimension class for dim
-    % length with geometry    
+    % use dimension class for dim (DONE)
+    % length with geometry  (DONE)
     % stiffnes and bending with LHSintegrator..
     % derivative "clean"/ "understand"    
     % MMa from Swan
@@ -93,9 +89,27 @@ classdef EulerBeamOptimizer < handle
             int = Interpolation.create(obj.mesh,'LINEAR');
             int.computeShapeDeriv(q.posgp);
 
-            g = Geometry.create(s);   
-            g.computeGeometry(q,int)    
-            l = sum(g.dvolu,2);
+            obj.geometry = Geometry.create(s);
+            obj.geometry.computeGeometry(q,int)
+        end
+
+        function coord = createCoordinates(obj)
+            nnod = obj.nElem + 1;
+            x = [0;rand(nnod-2,1);1]*obj.columnLength;
+            x = sort(x);
+            % coord = x;
+            coord = linspace(0,obj.columnLength,nnod)';
+        end
+
+        function Tnod = createConnectivity(obj)
+            nNode = 2;
+            Tnod = zeros(obj.nElem,nNode);
+            e = 1;
+            for iElem = 1: obj.nElem
+                Tnod(iElem,1) = e;
+                e = e + 1;
+                Tnod(iElem,2) = e;
+            end
         end
 
         function createDimensions(obj)
@@ -106,24 +120,6 @@ classdef EulerBeamOptimizer < handle
             d.compute();
             d.ndof = 2*d.ndof; %%%%% Hay que arreglarlo !!!!!
             obj.dim = d;
-        end
-
-        function coord = createCoordinates(obj)
-            nnode = obj.nElem + 1;
-            x = [0;rand(nnode-2,1);1]*obj.columnLength;
-            x = sort(x);
-            % coord = x;
-            coord = linspace(0,obj.columnLength,nnode)';
-        end
-
-        function Tnod = createConnectivity(obj)
-            Tnod = zeros(obj.nElem,obj.nNodE);
-            e = 1;
-            for iElem = 1: obj.nElem
-                Tnod(iElem,1) = e;
-                e = e + 1;
-                Tnod(iElem,2) = e;
-            end
         end
 
         function createDesignVariable(obj)
@@ -157,6 +153,7 @@ classdef EulerBeamOptimizer < handle
             s.freeNodes      = obj.freeNodes;
             s.nConstraints   = obj.nConstraints;
             s.mesh           = obj.mesh;
+            s.geometry       = obj.geometry;
             s.nValues        = obj.nValues;
             s.dim            = obj.dim;
             s.youngModulus   = obj.youngModulus;

@@ -5,10 +5,8 @@ classdef EigModes < handle
     end
     
     properties (Access = private)
-        length
         mesh
         dim
-
         V
         v1
         v2

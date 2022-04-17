@@ -9,43 +9,25 @@ classdef IterativeProcessComputer < handle
      properties (Access = private) % Classes
          mesh
          dim
+         geometry
          optimizer
          cost
          constraint
-         stiffnessMatComputer
-         bendingMatComputer
          eigenModes
      end
     
     properties (Access = private)
-        % nElem
         nConstraints
-        length
-        Tnod
         nValues
         youngModulus
         inertiaMoment
         nIter
         maxIter
-        e
-        E1
-        E2
         freeNodes
-        
     end
 
     properties (Access = private)
         mmaVarComputer
-        xMin
-        xMax
-        xOld1
-        xOld2
-        lOW
-        uPP
-        a0Val
-        aMMA
-        dVal
-        cVal
         hasFinished
         change
         costHistory
@@ -73,8 +55,9 @@ classdef IterativeProcessComputer < handle
          function init(obj,cParams)
             obj.freeNodes      = cParams.freeNodes;
             obj.nConstraints   = cParams.nConstraints;
-            obj.mesh            = cParams.mesh;
+            obj.mesh           = cParams.mesh;
             obj.dim            = cParams.dim;
+            obj.geometry       = cParams.geometry;
             obj.youngModulus   = cParams.youngModulus;
             obj.inertiaMoment  = cParams.inertiaMoment;
             obj.nValues        = cParams.nValues;
@@ -200,6 +183,7 @@ classdef IterativeProcessComputer < handle
         function K = createStiffnessMatrix(obj)
             s.mesh           = obj.mesh;
             s.dim            = obj.dim;
+            s.geometry        = obj.geometry;
             s.youngModulus   = obj.youngModulus;
             s.inertiaMoment  = obj.inertiaMoment;
             s.freeNodes      = obj.freeNodes;
@@ -209,6 +193,7 @@ classdef IterativeProcessComputer < handle
         function B = createBendingMatrix(obj)
             s.mesh           = obj.mesh;
             s.dim            = obj.dim;
+            s.geometry        = obj.geometry;
             s.youngModulus   = obj.youngModulus;
             s.inertiaMoment  = obj.inertiaMoment;
             s.freeNodes      = obj.freeNodes;
