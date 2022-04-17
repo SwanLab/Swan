@@ -86,7 +86,8 @@ classdef NumericalHomogenizer < handle
         end
         
         function buildMicroProblem(obj)
-            s = obj.createFEMparameters();
+            a.fileName = obj.fileName;
+            s = FemDataContainer(a);
             obj.microProblem = FEM.create(s);
         end
 
@@ -260,23 +261,6 @@ classdef NumericalHomogenizer < handle
                 imageCapturer = GiDImageCapturer(s);
                 imageCapturer.capture();
             end
-        end
-
-        function s = createFEMparameters(obj)
-            gidParams = obj.createGiDparameters();
-            s.dim       = gidParams.pdim;
-            s.type      = gidParams.ptype;
-            s.scale     = gidParams.scale;
-            s.mesh      = gidParams.mesh;
-            s.dirichlet = gidParams.dirichlet;
-            s.pointload = gidParams.pointload;
-            s.masterSlave = gidParams.masterSlave;
-        end
-
-        function gidParams = createGiDparameters(obj)
-            file = obj.fileName;
-            gidReader = FemInputReader_GiD();
-            gidParams = gidReader.read(file);
         end
         
     end

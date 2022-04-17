@@ -14,7 +14,8 @@
 % c) ELASTIC
 %       OK! - masterSlaveNodes not in Mesh...in BoundaryConditions
 %                - Pending createRectangularMesh at ShapesInMicrostructures
-%       YET - s.material as an input
+%       OK! - s.material as an input (FemDataContainer)
+%       YET      - Perhaps material should not take ngaus
 %       YET - refactoring ElasticProblemMicro
 
 % d) STOKES
