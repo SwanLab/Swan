@@ -21,31 +21,25 @@ classdef OptimizerNullSpace < Optimizer
         problem
         options
         lambda
-        cost
-        constraint
-        designVariable
-        outputFunction
         incrementalScheme
-        maxIter
-        nIter
-        dualVariable
         hasFinished
     end
 
     methods (Access = public) 
         
         function obj = OptimizerNullSpace(cParams)
+            obj.initOptimizer(cParams);
             obj.init(cParams);
             obj.outputFunction.monitoring.create(cParams);
             obj.prepareFirstIter();
-%             obj.solveProblem();
         end
 
         function obj = solveProblem(obj)
             while ~obj.hasConverged
                 obj.update();
+                obj.updateIterInfo();
                 obj.updateMonitoring();
-                obj.checkConvergence();
+%                 obj.checkConvergence();
             end
         end
 
@@ -54,7 +48,6 @@ classdef OptimizerNullSpace < Optimizer
     methods(Access = private)
 
         function init(obj,cParams)
-            obj.outputFunction         = cParams.outputFunction.monitoring;
             obj.upperBound             = cParams.uncOptimizerSettings.ub;
             obj.lowerBound             = cParams.uncOptimizerSettings.lb;
             obj.cost                   = cParams.cost;
@@ -72,7 +65,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.cost.computeFunctionAndGradient();
             obj.costOld    = obj.cost.value;
             obj.designVariable.updateOld();
-            obj.lambda         = 0;
+            obj.lambda     = 0;
         end
 
         function obj = update(obj)
@@ -169,20 +162,29 @@ classdef OptimizerNullSpace < Optimizer
             t      = obj.tau;
             A      = obj.constraint.gradient;
             b      = obj.cost.gradient;
-            l      = obj.lambda;           
+            l      = obj.lambda;
             x      = obj.designVariable.value;            
             c      = x - t*b;
+%             S      = (A'*A)^-1;
+%             nu     = -t*S*A'*b - l*A'*S*A;
+%             xN     = c - A*nu;
             xN     = c - A*l;
-            x      = min(ub,max(xN,lb));
+%             aJ = 1;
+%             aC = 0.1;
+%             I  = ones(1,size(A,2));
+%             eJ = (I - A*S*A')*b;
+%             eC = S*A;
+%             xN = x - t*(aJ*eJ + aC*l*eC);
+            x  = min(ub,max(xN,lb));
 %             alphaC = 0.01*obj.tau;            
-%             xN     = x0 - t*b - alphaC*A*(A'*A)^(+1)*l; 
+%             xN     = x0 - t*b - alphaC*A*(A'*A)^(+1)*l;
         end
 
         function checkStep(obj,x,x0,mOld)
             mNew = obj.computeMeritFunction(x);
             if mNew < mOld
                 obj.acceptableStep = true;
-            elseif obj.tau < 1e-9
+            elseif obj.tau < 1e-10
                 obj.acceptableStep = true;
                 obj.tau = 0.1;
             else

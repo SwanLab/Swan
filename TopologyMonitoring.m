@@ -109,22 +109,27 @@ classdef TopologyMonitoring < handle
             obj.printHistory();
         end
         
-        function plotAugmentedLagrangian(obj,x,cParams)
+        function plotAugmentedLagrangian(obj,cParams)
             
         end
         
-        function plotBisection(obj,x,cParams)
+        function plotBisection(obj,cParams)
             
         end
         
-        function plotIPOPT(obj,x,ccParams)
+        function plotIPOPT(obj,cParams)
             
         end
         
-        function plotMMA(obj,x,ccParams)
+        function plotMMA(obj,cParams)
+            obj.hasFinished = cParams.hasFinished;
+            obj.nIter       = cParams.nIter;
+            obj.printOptimizerVariable();
             obj.convergenceVars.reset();
-            obj.convergenceVars.append(s.KKTnorm);
-            obj.convergenceVars.append(s.outitFrac);
+            obj.convergenceVars.append(cParams.KKTnorm);
+            obj.convergenceVars.append(cParams.outitFrac);
+            obj.refreshMonitoring();
+            obj.printHistory();
         end
 
         function createHistoryPrinter(obj,cParams)

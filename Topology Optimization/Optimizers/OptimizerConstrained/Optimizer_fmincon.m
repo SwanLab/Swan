@@ -12,14 +12,8 @@ classdef Optimizer_fmincon < Optimizer
         nX
         options
         algorithm
-        outputFunction
         incrementalScheme
-        cost
-        constraint
-        designVariable
-        maxIter
         hasConverged
-        nIter
         hasFinished
     end
 
@@ -48,18 +42,12 @@ classdef Optimizer_fmincon < Optimizer
         function init(obj,cParams)
             obj.algorithm              = 'sqp';
             cParams.optimizerNames.alg = obj.algorithm;
-%             obj.outputFunction         = cParams.outputFunction.monitoring;
             obj.upperBound             = cParams.uncOptimizerSettings.ub;
             obj.lowerBound             = cParams.uncOptimizerSettings.lb;
             obj.iterDisplay            = cParams.outputFunction.iterDisplay;
-%             obj.cost                   = cParams.cost;
-%             obj.constraint             = cParams.constraint;
-%             obj.designVariable         = cParams.designVar;
             obj.incrementalScheme      = cParams.incrementalScheme;
             obj.nX                     = length(obj.designVariable.value);
-%             obj.maxIter                = cParams.maxIter;
-%             obj.hasConverged           = false;
-%             obj.nIter                  = 0;
+            obj.hasConverged           = false;
             cParams.monitoringDockerSettings.optimizerNames.alg = obj.algorithm;
         end
 
