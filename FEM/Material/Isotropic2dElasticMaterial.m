@@ -3,11 +3,11 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
     methods (Access = public)
         
         function obj = Isotropic2dElasticMaterial(cParams)
-            obj.init(cParams);    
-            obj.nstre = 3;            
+            obj.init(cParams);
+            obj.nstre = 3;
         end
         
-    end    
+    end
     
     methods (Access = protected)
         

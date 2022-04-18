@@ -60,7 +60,7 @@ classdef NumericalHomogenizerDataBase < handle
             
             scalarPr.epsilon = 1e-3;
             scalarPr.mesh = meshT.innerMeshOLD;
-            s.scalarProductSettings = scalarPr;            
+            s.scalarProductSettings = scalarPr;
             
             designVar = DesignVariable.create(s);% Density(s);
             d.femSettings.fileName = obj.femFileName;

@@ -30,7 +30,7 @@ classdef testInverseOfInverseForStiffTensor < handle
         
         function createStiffTensor(obj)
             obj.ctens = Stiffness3DTensor();
-            obj.ctens.createRandomTensor();            
+            obj.ctens.createRandomTensor();
         end
         
         function createInvStiffTensor(obj)
@@ -38,7 +38,7 @@ classdef testInverseOfInverseForStiffTensor < handle
             obj.invCtens = Inverter.invert(c);
         end
         
-        function createInvInvStiffTensor(obj)            
+        function createInvInvStiffTensor(obj)
             invC = obj.invCtens;
             obj.invInvCtens = Inverter.invert(invC);
         end

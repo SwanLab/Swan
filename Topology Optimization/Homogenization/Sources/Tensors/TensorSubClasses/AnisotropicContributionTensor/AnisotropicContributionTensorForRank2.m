@@ -66,7 +66,7 @@ classdef AnisotropicContributionTensorForRank2 < handle
             ey = obj.dir(2);
             muT = obj.mu;
             K = obj.Kparameter;
-            C33 = ( 4*muT - 1/muT*(2*muT)^2 + K*(4*muT*ex*ey)^2 )/2;            
+            C33 = ( 4*muT - 1/muT*(2*muT)^2 + K*(4*muT*ex*ey)^2 )/2;
         end
         
         function C21 = computeC21(obj) 
@@ -78,7 +78,7 @@ classdef AnisotropicContributionTensorForRank2 < handle
             C21 = ( 2*lam - 1/muT*(2*lam*(lam+2*muT)) + K*2*((lam+2*muT)*ey^2+lam*ex^2)*((lam+2*muT)*ex^2+lam*ey^2) )/2;
         end
         
-        function C23 = computeC23(obj) 
+        function C23 = computeC23(obj)
             ex = obj.dir(1);
             ey = obj.dir(2);
             C23 = obj.computeCrossThirdTerms(ex,ey);

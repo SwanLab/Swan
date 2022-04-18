@@ -61,7 +61,6 @@ classdef LHSintegrator_Stiffness < LHSintegrator
             s.dim          = obj.dim;
             s.geometry     = obj.geometry;
             s.globalConnec = obj.globalConnec;
-%             s.dofsInElem   = obj.dofsInElem;
             Bcomp = BMatrixComputer(s);
         end
        
