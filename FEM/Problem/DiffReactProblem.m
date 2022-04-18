@@ -25,6 +25,17 @@ classdef DiffReactProblem < handle
             obj.createProblemLHS();
         end
         
+        function solve(obj)
+            obj.epsilon = .1857;
+            bc  = obj.boundaryConditions;
+            M = obj.problemLHS.K;
+            rhs = M*ones(size(M,1), 1);
+            RHS = bc.fullToReducedVector(rhs);
+            LHS = obj.computeLHS();
+            x = obj.solver.solve(LHS,RHS);
+            obj.variables.x = bc.reducedToFullVector(x);
+        end
+
         function computeVariables(obj,rhs)
             bc  = obj.boundaryConditions;
             RHS = bc.fullToReducedVector(rhs);
@@ -58,6 +69,21 @@ classdef DiffReactProblem < handle
             g = Geometry.create(s);
             g.computeGeometry(q,int);
             dvol = g.dvolu;
+        end
+       
+        function print(obj,filename)
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature('LINEAR');
+            s.quad = quad;
+            s.mesh = obj.mesh;
+            s.iter = 0;
+            s.fields    = obj.createVariablesToPrint();
+            s.ptype     = 'DIFF-REACT';
+            s.ndim      = obj.dim.ndim;
+            s.pdim      = '2D';
+            s.type      = obj.createPrintType();
+            fPrinter = FemPrinter(s);
+            fPrinter.print(filename);
         end
 
     end
@@ -113,6 +139,14 @@ classdef DiffReactProblem < handle
                     type = 'DiffReactNeumann';
             end
             obj.LHStype = type;
+        end
+
+        function f = createVariablesToPrint(obj)
+            f = obj.variables.x;
+        end
+
+        function t = createPrintType(obj)
+           t = 'ScalarNodal';
         end
     
     end

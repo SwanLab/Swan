@@ -65,7 +65,6 @@ classdef Element_Stokes < Element
             for ifield = 1:obj.nfields
                 for jfield = 1:obj.nfields
                     obj.LHS_elem{ifield,jfield} = obj.computeMatrix(obj.nelem,obj.material,dt,ifield,jfield);
-                    % mat = obj.computeMatrix(obj.nelem,obj.geometry(ifield),obj.geometry(jfield),obj.material,ifield,jfield);
                     LHS{ifield,jfield} = obj.AssembleMatrix(obj.LHS_elem{ifield,jfield},ifield,jfield);
                 end
             end
@@ -83,17 +82,23 @@ classdef Element_Stokes < Element
         
         function M = compute_M(obj,nelem,dt)
             nunkn = obj.dof.nunkn(1);
-            M = zeros(nunkn*obj.interpolation_v.nnode,nunkn*obj.interpolation_v.nnode,nelem);
+            nnode = obj.interpolation_v.nnode;
+            ndimf = nunkn*nnode; % ndofs
+            M = zeros(ndimf, ndimf, nelem);
             
             for igauss = 1 :obj.quadrature.ngaus
-                for inode= 1:obj.interpolation_v.nnode
-                    for jnode= 1:obj.interpolation_v.nnode
+                for inode= 1:nnode
+                    for jnode= 1:nnode
                         for iunkn= 1:nunkn
                             for junkn= 1:nunkn
-                                v = squeeze(obj.interpolation_v.shape(inode,igauss,:).*obj.interpolation_v.shape(jnode,igauss,:));
-                                M(nunkn*(inode-1)+iunkn,nunkn*(jnode-1)+junkn,:)= squeeze(M(nunkn*(inode-1)+iunkn,nunkn*(jnode-1)+junkn,:)) ...
-                                    + v(:)/dt.*obj.geometry(1).dvolu(:,igauss);
-                                %                                 obj.LHS(iv,jv,:) = squeeze(obj.LHS(iv,jv,:)) + v(:).*geometry.dvolu(:,igauss);
+                                idof = nunkn*(inode-1)+iunkn;
+                                jdof = nunkn*(jnode-1)+junkn;
+                                dvol = obj.geometry(1).dvolu(:,igauss);
+                                Ni = obj.interpolation_v.shape(inode,igauss,:);
+                                Nj = obj.interpolation_v.shape(jnode,igauss,:);
+                                v = squeeze(Ni.*Nj);
+                                M(idof, jdof, :)= squeeze(M(idof,jdof,:)) ...
+                                    + v(:)/dt.*dvol;
                             end
                         end
                     end
@@ -104,16 +109,18 @@ classdef Element_Stokes < Element
         
         function K = compute_K(obj,nelem,material)
             nunkn = obj.dof.nunkn(1);
-            K = zeros(nunkn*obj.interpolation_v.nnode,nunkn*obj.interpolation_v.nnode,nelem);
+            nnode = obj.interpolation_v.nnode;
+            ndimf = nunkn*nnode; % ndofs
+            K = zeros(ndimf, ndimf, nelem);
             
             Cmat = material.mu;
             obj.quadrature.computeQuadrature('QUADRATIC');
             obj.geometry(1).computeGeometry(obj.quadrature,obj.interpolation_v);
             for igauss = 1 :obj.quadrature.ngaus
-                Bmat = obj.computeB(nunkn,nelem,obj.interpolation_v.nnode,obj.geometry(1).dNdx(:,:,:,igauss));
-                %                 B_p=reshape(Bmat,[geometry.nnode*nunkn,1,nelem]);
-                for iv=1:obj.interpolation_v.nnode*nunkn
-                    for jv=1:obj.interpolation_v.nnode*nunkn
+                dNdx = obj.geometry(1).dNdx(:,:,:,igauss);
+                Bmat = obj.computeB(nunkn, nelem, nnode, dNdx);
+                for iv=1:ndimf
+                    for jv=1:ndimf
                         for istre=1:nunkn*obj.interpolation_v.ndime
                             for jstre=1:nunkn*obj.interpolation_v.ndime
                                 v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:).*Bmat(jstre,jv,:));
@@ -129,16 +136,17 @@ classdef Element_Stokes < Element
         end
         
         function D = compute_D(obj,nelem)
-            nunkn_u=obj.dof.nunkn(1);
+            nunknU = obj.dof.nunkn(1);
+            nnodeV = obj.interpolation_v.nnode;
             
-            D = zeros(nunkn_u*obj.interpolation_v.nnode,obj.interpolation_p.nnode,nelem);
+            D = zeros(nunknU*obj.interpolation_v.nnode,obj.interpolation_p.nnode,nelem);
             obj.quadrature.computeQuadrature('QUADRATIC');
             obj.geometry(2).computeGeometry(obj.quadrature,obj.interpolation_p);
             for igauss=1:obj.quadrature.ngaus
                 for inode_var = 1:obj.interpolation_p.nnode
-                    for inode_test = 1:obj.interpolation_v.nnode
+                    for inode_test = 1:nnodeV
                         for idime = 1:obj.interpolation_v.ndime
-                            dof_test = inode_test*nunkn_u - nunkn_u + idime;
+                            dof_test = inode_test*nunknU - nunknU + idime;
                             v= squeeze (obj.geometry(1).dNdx(idime,inode_test,:,igauss));
                             D(dof_test,inode_var,:)= squeeze(D(dof_test,inode_var,:)) - v(:).*obj.interpolation_p.shape(inode_var,igauss)...
                                 .*obj.geometry(1).dvolu(:,igauss);

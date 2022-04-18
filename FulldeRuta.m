@@ -19,10 +19,12 @@
 %       YET - refactoring ElasticProblemMicro
 
 % d) STOKES
-%       YET - Restore Stokes
+%       YET - Restore Stokes_Problem
+%               - FemTestsSuite, FemTests
+%               - StokesComputer, StokesFEM
 
 % e) PREPROCESS
-%           - Refactroing PreProcessing--FemInputReader
+%           - Refactoring PreProcessing--FemInputReader
 
 
 % masterSlaveNodes not in Mesh...in BoundaryConditions

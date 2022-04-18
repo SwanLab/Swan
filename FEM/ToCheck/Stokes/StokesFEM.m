@@ -43,7 +43,7 @@ classdef StokesFEM < handle
                 case 'HYPERELASTIC'
                     obj = Hyperelastic_Problem(fileName);
                 case 'Stokes'
-                    obj = Stokes_Problem(fileName);
+                    obj = NewStokesProblem(fileName);
             end
         end
         
