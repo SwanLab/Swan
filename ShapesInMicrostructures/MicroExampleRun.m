@@ -2,7 +2,7 @@ function MicroExampleRun
 
 %Microstructure
 filename = 'test2d_micro';
-%filename = 'IrrHexagon50x25x50';
+%filename = 'Square25x25';
 s = createParameters(filename);
 density = createDensity(s.mesh);
 
