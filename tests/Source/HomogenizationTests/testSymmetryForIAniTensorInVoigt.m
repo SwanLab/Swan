@@ -20,7 +20,7 @@ classdef testSymmetryForIAniTensorInVoigt < handle
         
         function error = computeError(obj)
             c    = obj.ChVoigt.getValue();
-            cSym = obj.ChVoigtSym;            
+            cSym = obj.ChVoigtSym;
             error = norm(c(:) - cSym(:));
         end
 

@@ -54,12 +54,8 @@ classdef Filter < handle
             if isprop(cParams,'mesh')
                 s.mesh = cParams.mesh;
             end
-            switch s.scale
-                case 'MACRO'
-                    obj.diffReacProb = DiffReactProblem(s);
-                case 'MICRO'
-                    obj.diffReacProb = DiffReactProblemMicro(s);
-            end
+            s.type = 'DIFF-REACT';
+            obj.diffReacProb = FEM.create(s);
         end
         
     end

@@ -18,6 +18,8 @@ classdef Mesh < handle
         interpolation
         
         edges
+        boundaryNodes
+        boundaryElements
         
         masterSlaveNodes
     end
@@ -189,6 +191,23 @@ classdef Mesh < handle
                     axis equal
             end
         end
+
+        function bMesh = createBoundaryMesh(obj)
+            if isempty(obj.boundaryNodes) || isempty(obj.boundaryElements)
+                s.backgroundMesh = obj;
+                s.dimension = 1:obj.ndim;
+                s.type = 'FromReactangularBox';
+                bC = BoundaryMeshCreator.create(s);
+                bMesh = bC.create();
+            else                
+                s.borderNodes    = obj.boundaryNodes;
+                s.borderElements = obj.boundaryElements; 
+                s.backgroundMesh = obj;
+                s.type = 'FromData';
+                b = BoundaryMeshCreator.create(s);
+                bMesh = b.create();
+            end
+        end
         
     end
     
@@ -196,6 +215,15 @@ classdef Mesh < handle
         
         function init(obj,cParams)
             s = SettingsMesh(cParams);
+            if isfield(cParams,'boundaryNodes')
+               obj.boundaryNodes = cParams.boundaryNodes; 
+            end
+            if isfield(cParams,'boundaryElements')
+               obj.boundaryElements = cParams.boundaryElements; 
+            end            
+            if isfield(cParams,'masterSlaveNodes')
+               obj.masterSlaveNodes = cParams.masterSlaveNodes; 
+            end
             obj.coord  = s.coord;
             obj.connec = s.connec;
             obj.type   = s.type;

@@ -46,7 +46,11 @@ classdef DimensionVariables < handle
         function applyNnode(obj, num)
             obj.nnode = num;
         end
-        
+
+        function applyNelem(obj, num)
+            obj.nelem = num;
+        end
+
     end
     
     methods (Access = private)

@@ -32,6 +32,7 @@ classdef ElasticProblemMicro < ElasticProblem
             tStrss = zeros(nstre,ngaus,nstre,nelem);
             tDisp  = zeros(nstre,ndof);
             Ch = zeros(nstre,nstre);
+            v2p = cell(1,nstre);
             for istre=1:nstre
                 obj.vstrain = basis(istre,:);
                 obj.solve();
@@ -48,6 +49,19 @@ classdef ElasticProblemMicro < ElasticProblem
             obj.variables.tdisp   = tDisp;
         end
 
+%         function print(obj,filename)
+%             s.quad = obj.quadrature;
+%             s.mesh = obj.mesh;
+%             s.iter = 0;
+%             s.variables = obj.variables2print;
+%             s.ptype     = obj.problemData.ptype;
+%             s.ndim      = obj.dim.ndim;
+%             s.pdim      = obj.problemData.pdim;
+%             s.type      = 'HomogenizedTensor';
+%             fPrinter = FemPrinter(s);
+%             fPrinter.print(filename);
+%          end        
+
     end
 
     methods (Access = private)
@@ -59,7 +73,7 @@ classdef ElasticProblemMicro < ElasticProblem
             ngaus = obj.dim.ngaus;
             nstre = obj.dim.nstre;
             nelem = obj.dim.nelem;
-            dV = obj.getDvolume()';
+            dV = obj.mesh.computeDvolume(obj.quadrature)';
             strainFluct = vars.strain;
             stressFluct = vars.stress;
             
@@ -103,5 +117,17 @@ classdef ElasticProblemMicro < ElasticProblem
         end
         
     end
+
+    methods (Access = protected)
+
+        function f = createVariablesToPrint(obj)
+            f = obj.variables2print;
+        end
+
+        function t = createPrintType(obj)
+           t = 'HomogenizedTensor';
+        end
+
+    end    
 
 end

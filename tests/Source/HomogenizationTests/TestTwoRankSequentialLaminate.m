@@ -1,26 +1,26 @@
 classdef TestTwoRankSequentialLaminate < handle
 
     properties (Access = public)
-        tol = 1e-12; 
+        tol = 1e-12;
     end
 
     properties (Access = private)
       C0
-      C1  
-      mu      
+      C1
+      mu
       lambda
       lambda2D
-      FractionVolume            
+      FractionVolume
       d1
-      d2      
+      d2
       m1
-      m2      
+      m2
       FirstCheckedRank2Ch
       WebRank2Ch
       Rank2Ch
     end
     
-    methods (Access = public) 
+    methods (Access = public)
         
         function obj = TestTwoRankSequentialLaminate()
             obj.createTensors();
@@ -49,10 +49,10 @@ classdef TestTwoRankSequentialLaminate < handle
             obj.storeLambda2D();
             obj.makeTensorsVoigtPlaneStress();
         end
-                       
+        
         function createStiffTensor(obj)
             obj.lambda = 0.7500;
-            obj.mu     = 0.3750;     
+            obj.mu     = 0.3750;
             obj.C1 = IsotropicConstitutiveTensor.createWithLambdaAndMu(obj.lambda,obj.mu);
         end
         

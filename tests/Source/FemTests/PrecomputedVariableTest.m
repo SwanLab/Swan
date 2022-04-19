@@ -1,7 +1,7 @@
 classdef PrecomputedVariableTest < handle
 
     properties (Access = protected)
-        testName;  
+        testName  
         variablesToStore
         storedVar
         computedVar

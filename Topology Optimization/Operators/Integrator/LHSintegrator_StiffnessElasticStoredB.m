@@ -51,9 +51,8 @@ classdef LHSintegrator_StiffnessElasticStoredB < LHSintegrator
            s.dim          = obj.dim;
            s.geometry     = obj.geometry;
            s.globalConnec = obj.globalConnec;
-%            s.dofsInElem   = obj.dofsInElem;
            BMC  = BMatrixComputer(s);
-           [obj.Btot, Balt] = BMC.compute();
+           obj.Btot = BMC.compute();
        end
 
        function CmatTot = assemblyCmat(obj)
@@ -61,7 +60,6 @@ classdef LHSintegrator_StiffnessElasticStoredB < LHSintegrator
            dvol = obj.geometry.dvolu;
            s.dim = obj.dim;
            s.globalConnec = [];
-           s.dofsInElem = [];
            assembler = Assembler(s);
            CmatTot = assembler.assembleC(Cmat, dvol);
        end

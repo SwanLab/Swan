@@ -1,4 +1,4 @@
-classdef Filter_P1_Density < handle %Filter_P1
+classdef Filter_P1_Density < handle
     
     properties (Access = private)
        mesh
@@ -99,12 +99,8 @@ classdef Filter_P1_Density < handle %Filter_P1
         function pB = createDiffReacProblem(obj,cParams)
             s = cParams.femSettings;
             s.mesh = cParams.mesh;
-            switch s.scale
-                case 'MACRO'
-                    pB = DiffReactProblem(s);
-                case 'MICRO'
-                    pB = DiffReactProblemMicro(s);
-            end
+            s.type = 'DIFF-REACT';
+            pB = FEM.create(s);
         end
         
         function intX = integrateRHS(obj,x)
