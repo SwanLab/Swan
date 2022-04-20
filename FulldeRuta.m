@@ -54,4 +54,5 @@
 % DiffReact delete getM and getK and setEpsilon and computeDvolume
 % setLHStype in DiffReact in Filter
 % Crate RHS integrator for Elastic, ElasticMicro and thermal
+% dimEscalar, vector....by fields...nElem,nDim private in dim
 % Stokes..
