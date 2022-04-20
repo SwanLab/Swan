@@ -17,7 +17,6 @@ classdef MeshCreator < handle
     methods (Access = public)
         
         function obj = MeshCreator(cParams)
-            obj.filename = 'CreatedMesh';
             obj.init(cParams);
         end
         
@@ -46,6 +45,7 @@ classdef MeshCreator < handle
             obj.c = cParams.c;
             obj.theta = cParams.theta;
             obj.div = cParams.divUnit*obj.c;
+            obj.filename = cParams.filename;
         end
         
         function obtainDimensions(obj)
@@ -68,7 +68,12 @@ classdef MeshCreator < handle
         end
         
         function connectNodes(obj)
-            obj.connec = delaunay(obj.coord);
+            s.nodes = obj.nodes;
+            s.coord = obj.coord;
+            s.theta = obj.theta;
+            a = NodesConnector(s);
+            a.computeConnections();
+            obj.connec = a.connec;
         end
         
         function obtainMasterSlaveNodes(obj)

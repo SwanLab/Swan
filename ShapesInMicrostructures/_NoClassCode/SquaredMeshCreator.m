@@ -11,15 +11,15 @@ function SquaredMeshCreator()
     vertIndex(:,1) = 1:nsides;
     plotVertices(vertIndex,coord);
     plotMasterSlaveNodes(masterSlaveIndex,coord);
-    writeFEMreadingfunction(coord,connec,masterSlaveIndex,'Square25x25.m', vertCoord);
+    writeFEMreadingfunction(coord,connec,masterSlaveIndex,'IrrHexagon50x25x50.m', vertCoord);
 end
 
 function  [dim,divUnit,c,theta] = obtainInitialData()
 % Datos de entrada del programa. COMPLETAMENTE GENERAL
     dim = 2;
-    divUnit = 25; %Divisions/length of the side
-    c = [1,1];
-    theta = [0,90];
+    divUnit = 20; %Divisions/length of the side
+    c = [2,1,2];
+    theta = [0,45,90];
 end
 
 function nsides = obtainPolygonSides(c,theta)
