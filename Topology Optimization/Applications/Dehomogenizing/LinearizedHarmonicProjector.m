@@ -28,7 +28,7 @@ classdef LinearizedHarmonicProjector < handle
         function lambda0 = computeInitalLambda(obj)
             b    = obj.boundaryMesh;
             nInt = setdiff(1:obj.dim.npnod,b);
-            lambda0 = zeros(length(nInt),1);
+            lambda0 = 0*ones(length(nInt),1);
         end
 
         function [v,lambda] = solveProblem(obj,v0,vH)            
@@ -37,13 +37,18 @@ classdef LinearizedHarmonicProjector < handle
             i = 1;
             isErrorLarge = true;
             lambda = obj.computeInitalLambda();
-            tau =1000;
+            lambdaOld = lambda;
+            tau = 1000;
+            rhs    = obj.computeRHS(v0);
+            t = 1;
             while isErrorLarge
-                obj.plotOrientation(vH,2);
+                 if mod(i,10) == 0
+                     obj.plotOrientation(vH,2);
+                 end
+
 
                 obj.computeLHS(vH);
                 lhs    = obj.LHS;
-                rhs    = obj.computeRHS(v0);
 
 
                 % gradient                            
@@ -55,16 +60,16 @@ classdef LinearizedHarmonicProjector < handle
                 resD = res(Il);
 
 
-                b    = obj.boundaryMesh;
-                nInt = setdiff(1:obj.dim.npnod,b);                               
-                x = obj.mesh.coord(:,1);
-                y = obj.mesh.coord(:,2);
-                z = zeros(size(x));
-                z(nInt) = resD;
-                figure()
-                trisurf(obj.mesh.connec,x,y,z)
-                view(0,90)
-                colorbar
+%                 b    = obj.boundaryMesh;
+%                 nInt = setdiff(1:obj.dim.npnod,b);                               
+%                 x = obj.mesh.coord(:,1);
+%                 y = obj.mesh.coord(:,2);
+%                 z = zeros(size(x));
+%                 z(nInt) = resD;
+%                 figure()
+%                 trisurf(obj.mesh.connec,x,y,z)
+%                 view(0,90)
+%                 colorbar
 
 %                 sol = x - tau*(res);
 %                 lambda = lambda + (lhs(Il,I)*x );
@@ -88,15 +93,27 @@ classdef LinearizedHarmonicProjector < handle
                 err(i)  = norm(res);
                 errP(i) = norm(resP);                
                 errD(i) = norm(resD);
+                incX(i) = norm(v(:)-vH(:));
+                incL(i) = norm(lambda-lambdaOld);
 
-                isErrorLarge = err(i) > 1e-12;
-                i = i + 1;                
+                lambdaOld = lambda;
+                isErrorLarge = err(i) > 1e-13;
+
+                if mod(i,10) == 0
                 figure(99)
-                plot(log10(err)) 
-                theta = 0.99;
-                v = obj.projectUnitBall(v);
-                vH = theta*v + (1-theta)*vH ;     
-                vH = obj.projectUnitBall(vH);
+                semilogy(1:i,([err;errP;errD;incX;incL])) 
+                legend('res','resP','resD','incX','incL')
+                end                
+                                
+                
+                theta = 0.5;
+             %   v = obj.projectUnitBall(v);
+                vH = theta*v + (1-theta)*vH ;    
+%                 if mod(t,1000) == 0
+%                 vH = obj.projectUnitBall(vH);
+%                 t = t+1;
+%                 end
+                i = i + 1;
             end
 
 
@@ -196,6 +213,8 @@ classdef LinearizedHarmonicProjector < handle
             s.type         = 'AdvectionMatrix';
             s.dim          = obj.dim;
             s.b            = vH;
+            s.quadType     = 'QUADRATIC';
+            
             lhs = LHSintegrator.create(s);
             [CX,CY,DX,DY] = lhs.compute();
        end        
@@ -221,7 +240,7 @@ classdef LinearizedHarmonicProjector < handle
            M    = obj.massMatrix;
            Zb   = zeros(size(M));
            Z    = obj.computeZeroFunction();
-           lhs  = [M,Zb,(0*Cx+1*Dx);Zb,M,(0*Cy+1*Dy);(0*Cx + Dx)',(0*Cy + Dy)',Z];
+           lhs  = [M,Zb,(-Dx+Cx);Zb,M,(Dy-Cy);(-Dx+Cx)',(Dy-Cy)',Z];
            obj.LHS = lhs;
        end
 
@@ -240,18 +259,21 @@ classdef LinearizedHarmonicProjector < handle
             s.dim   = obj.dim;
             s.type = 'SIMPLE';
             int = Integrator.create(s);
-            rhs1 = int.integrateFnodal(v(:,1),q.order);
-            rhs2 = int.integrateFnodal(v(:,2),q.order);
+      %      rhs1 = int.integrateFnodal(v(:,1),q.order);
+       %     rhs2 = int.integrateFnodal(v(:,2),q.order);
+
+
+            M = obj.massMatrix;
+            rhs1 = M*v(:,1);
+            rhs2 = M*v(:,2);
+
+
             b = obj.boundaryMesh;
             nInt = setdiff(1:obj.dim.npnod,b);
             Z   = zeros(length(nInt),1);
 
 
-           [Cx,Cy,Dx,Dy] = obj.computeAdvectionMatrix(v);
-           Cx = obj.computeReducedAdvectionMatrix(Cx);
-           Cy = obj.computeReducedAdvectionMatrix(Cy);            
-           res = 0*Cx'*v(:,1) + 0*Cy'*v(:,2);
-            rhs = [rhs1;rhs2;Z+res];
+            rhs = [rhs1;rhs2;Z];
         end
 
       

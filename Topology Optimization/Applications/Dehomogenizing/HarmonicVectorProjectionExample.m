@@ -74,13 +74,13 @@ classdef HarmonicVectorProjectionExample < handle
            
             x2 = obj.mesh.coord(:,2);
             x1 = obj.mesh.coord(:,1);
-            
-            %theta = atan2(x2,x1);            
-            %thetaV = pi/6;
-%            theta = thetaV*ones(size(x2));
 %             
+%             theta = atan2(x2,x1);            
+%             thetaV = pi/6;
+%            theta = thetaV*ones(size(x2));
+% %             
 %             theta = rand(1)*x1 + rand(1)*x2 + rand(1);
-% 
+
 % 
 %             alpha(:,1) = cos(theta);
 %             alpha(:,2) = sin(theta);            
@@ -188,7 +188,7 @@ classdef HarmonicVectorProjectionExample < handle
 %                 plot(optPrimal','-+')                
 %                 plot(optDual','-+')
 %                 hold off
-                isErrorLarge = err(i) > 1e-3;
+                isErrorLarge = true;% err(i) > 1e-13;
                 i = i +1;
                 obj.plotOrientation(u,2) 
        

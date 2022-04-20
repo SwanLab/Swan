@@ -3,6 +3,7 @@ classdef LHSintegrator_Advection < LHSintegrator
     properties (Access = private)
         geometry
         b
+        quadType
     end
 
     methods (Access = public)
@@ -10,6 +11,7 @@ classdef LHSintegrator_Advection < LHSintegrator
         function obj = LHSintegrator_Advection(cParams)
             obj.init(cParams);
             obj.b = cParams.b;
+            obj.quadType = cParams.quadType;            
             obj.createQuadrature();
             obj.createInterpolation();
             obj.createGeometry();
@@ -70,18 +72,18 @@ classdef LHSintegrator_Advection < LHSintegrator
                             dNxk(:,1) = squeeze(dNk(1,:));
                             dNyk(:,1) = squeeze(dNk(2,:));
 
+                            
+                            ck = Ni.*(dNxj.*dNxk + dNyj.*dNyk);
+                            dk = Nk.*(dNxj.*dNxi + dNyj.*dNyi);
 
-                            Cijk = Ni.*(dNxj.*bXk + dNyj.*bYk);
-                            Di   = Nk.*(-dNxi.*bYk + dNyi.*bXk);
-
-                            cXv(1,1,:) = dNyk.*Cijk.*dV;
-                            dXv(1,1,:) = dNxj.*Di.*dV;
+                            cXv(1,1,:) = bYk.*ck.*dV;
+                            dXv(1,1,:) = bYk.*dk.*dV;
 
                             cX(iNode,jNode,:) = cX(iNode,jNode,:) + cXv;
                             dX(iNode,jNode,:) = dX(iNode,jNode,:) + dXv;
 
-                            cYv(1,1,:) = -dNxk.*Cijk.*dV;
-                            dYv(1,1,:) = dNyj.*Di.*dV;
+                            cYv(1,1,:) = bXk.*ck.*dV;
+                            dYv(1,1,:) = bXk.*dk.*dV;
 
                             cY(iNode,jNode,:) = cY(iNode,jNode,:) + cYv;
                             dY(iNode,jNode,:) = dY(iNode,jNode,:) + dYv;
@@ -96,6 +98,13 @@ classdef LHSintegrator_Advection < LHSintegrator
             DX = dX;
             DY = dY;
         end
+
+
+       function createQuadrature(obj)
+           quad = Quadrature.set(obj.mesh.type);
+           quad.computeQuadrature(obj.quadType);
+           obj.quadrature = quad;
+       end        
         
    end
     
