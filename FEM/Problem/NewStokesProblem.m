@@ -14,6 +14,9 @@ classdef NewStokesProblem < handle
         material
         solver
         fileName
+
+        dim
+        boundaryConditions
     end
 
     methods (Access = public)
@@ -23,6 +26,7 @@ classdef NewStokesProblem < handle
             obj.readProblemData(fileName);
             obj.createGeometry();
             obj.createInterpolation();
+            obj.createDimensions();
             obj.createDOF();
             obj.createBoundaryConditions();
             obj.createMaterial();
@@ -64,11 +68,52 @@ classdef NewStokesProblem < handle
             obj.interp{2}=Interpolation.create(obj.mesh,interpP);
         end
 
+        function createDimensions(obj)
+            s.ngaus = [];
+            s.mesh  = obj.mesh;
+            s.pdim  = obj.problemData.pdim;
+            dimV    = DimensionVariables(s);
+            dimP    = DimensionVariables(s);
+            dimV.compute();
+            dimP.compute();
+            dimP.applyNdimfield(1);
+            obj.dim{1} = dimV;
+            obj.dim{2} = dimP;
+        end
+
         function createDOF(obj)
             obj.dof = DOF_Stokes(obj.fileName,obj.mesh,obj.geometry,obj.interp);
         end
 
         function createBoundaryConditions(obj)
+            PP = Preprocess;
+            pD = obj.problemData;
+            [fixnodes,forces,~,~] = PP.getBC_fluids...
+                (pD.fileName, obj.mesh, obj.geometry,obj.interp);
+            % fixnodes = dirichlet_data;
+            % forces = neumann_data;
+            obj.createBCvelocity();
+            obj.createBCpressure();
+        end
+
+        function createBCvelocity(obj, dirichlet, neumann)
+            s.dim        = obj.dim{1};
+            s.mesh       = obj.mesh; % nope
+            s.scale      = obj.problemData.scale;
+            s.bc         = obj.problemData.bc;
+            bcV = BoundaryConditions(s);
+            bcV.compute();
+            obj.boundaryConditions{1} = bcV;
+        end
+
+        function createBCpressure(obj)
+            s.dim = obj.dim{2};
+            s.mesh       = obj.mesh;
+            s.scale      = obj.problemData.scale;
+            s.bc         = obj.problemData.bc;
+            bcP = BoundaryConditions(s);
+            bcP.compute();
+            obj.boundaryConditions{2} = bcP;
         end
 
         function createMaterial(obj)
@@ -77,7 +122,7 @@ classdef NewStokesProblem < handle
         end
 
         function createElement(obj)
-            obj.element  = Element_Stokes(obj.geometry,obj.mesh,obj.material,obj.dof,obj.problemData,obj.interp);
+            obj.element  = Element_Stokes(obj.geometry,obj.mesh,obj.material,obj.dof,obj.problemData,obj.interp, obj.dim);
         end
 
         function createSolver(obj)

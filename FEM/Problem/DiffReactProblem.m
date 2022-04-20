@@ -77,11 +77,11 @@ classdef DiffReactProblem < handle
             s.quad = quad;
             s.mesh = obj.mesh;
             s.iter = 0;
-            s.fields    = obj.createVariablesToPrint();
+            s.fields    = obj.variables.x;
             s.ptype     = 'DIFF-REACT';
-            s.ndim      = obj.dim.ndim;
-            s.pdim      = '2D';
-            s.type      = obj.createPrintType();
+            s.ndim      = 2;
+            s.pdim      = obj.problemData.pdim;
+            s.type      = 'ScalarNodal';
             fPrinter = FemPrinter(s);
             fPrinter.print(filename);
         end
@@ -139,14 +139,6 @@ classdef DiffReactProblem < handle
                     type = 'DiffReactNeumann';
             end
             obj.LHStype = type;
-        end
-
-        function f = createVariablesToPrint(obj)
-            f = obj.variables.x;
-        end
-
-        function t = createPrintType(obj)
-           t = 'ScalarNodal';
         end
     
     end

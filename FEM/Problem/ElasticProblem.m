@@ -146,7 +146,6 @@ classdef ElasticProblem < handle
         function computeStiffnessMatrix(obj)
             s.type = 'ElasticStiffnessMatrix';
             s.mesh         = obj.mesh;
-            s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.dim;
             s.material     = obj.material;

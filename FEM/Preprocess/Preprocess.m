@@ -132,8 +132,8 @@ classdef Preprocess<handle
                 for inode = 1: nnode
                     if xpoints(inode,1) ==0  || xpoints(inode,1) == 1 ...
                             || xpoints(inode,2) == 0 || xpoints(inode,2) == 1
-                        fixnodes(ind,:)=[inode 1 0];
-                        fixnodes(ind+1,:)=[inode 2 0];
+                        fixnodes(ind,:) = [inode 1 0];
+                        fixnodes(ind+1,:) = [inode 2 0];
                         ind = ind+2;
                         
                     end

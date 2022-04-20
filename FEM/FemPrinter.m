@@ -33,7 +33,7 @@ classdef FemPrinter < handle
             dI.ndim   = obj.ndim;
             dI.pdim   = obj.pdim;
             dI.ptype  = obj.ptype;      
-            dI.name = '';
+            dI.name = 'field';
             p = Postprocess(obj.type,dI);
             q        = obj.quad;
             d.fields = obj.fields;

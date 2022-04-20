@@ -1,38 +1,48 @@
 %% To-do
-% a) DIFF-REACT
+% a) DIFFREACTPROBLEM
 %       OK! - merge diffreacProblemRobin and Neuman...
 %       OK!      - dispacth trhough LHSintegrator
 %       OK!      - merge problemdimensions and dimensions, no need
 %       OK! - create LHS integrator for boundaryMassmatrix
 %       YET - DiffReactProblem tests
-%       YET - Maybe some additional cleanup can be made
+
+        % Comments:
+        %       - DiffReactTests: RHS? Dirichlet? Neumann?
+        %       - Separate problemLHS from LHSintegrators in a new class?
 
 % b) MINOR CLEANUP
 %       YET - improve performance graph using average + deviation
 %       OK! - Precomputedvariabletest overwrite results
 
-% c) ELASTIC
+        % Comments:
+        %       - AbstractSettings was the one, line 89
+
+% c) ELASTICPROBLEM
 %       OK! - masterSlaveNodes not in Mesh...in BoundaryConditions
 %                - Pending createRectangularMesh at ShapesInMicrostructures
 %       OK! - s.material as an input (FemDataContainer)
-%       YET      - Perhaps material should not take ngaus
 %       YET - refactoring ElasticProblemMicro
 
+        % Comments:
+        %       - Perhaps material should not take ngaus
+        %       - This way, quad, interp, and geometry *may* only be used
+        %         as part of the RHS + strain/stress
+        %       - If we end up doing the problemLHS thing, it could also
+        %         lead to a problemRHS with all of this
+
 % d) STOKES
-%       YET - Restore Stokes_Problem
+%       WIP - Restore Stokes_Problem
 %               - FemTestsSuite, FemTests
 %               - StokesComputer, StokesFEM
 
+        % Comments:
+        %       - Seems to be made just for that one test. See
+        %         test2d_stokes_triangle (Vol_force, pressure, velocity)
+        %       - Is the mesh even used? Looks like it's all interpolations
+        %       - Separate DimensionVariables? Separate BoundaryConditions?
+        %       - The RHS thing could be useful here. The ForcesComputer in
+        %         ElasticProblem should be completely different, maybe a
+        %         change in the architecture could make it easier.
+
 % e) PREPROCESS
-%           - Refactoring PreProcessing--FemInputReader
-
-
-% masterSlaveNodes not in Mesh...in BoundaryConditions
-% diffreact tests
-% create LHS integrator for boundaryMassmatrix
-% Precomputedvariabletest overwrite results
-% merge diffreacProblemRobin and Neuman...dispacth trhough LHSintegrator
-% createMaterial
-% Refactoring ElasticProblemMicro
-% Restore Stokes
-% Refactroing PreProcessing--FemInputReader
+%           - Refactoring PreProcess -- FemInputReader_GiD.m
