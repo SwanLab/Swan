@@ -46,3 +46,12 @@
 
 % e) PREPROCESS
 %           - Refactoring PreProcess -- FemInputReader_GiD.m
+
+
+
+% delete interp in ElasticProblem
+% In Filter use LHSintegrator rather than DiffReact
+% DiffReact delete getM and getK and setEpsilon and computeDvolume
+% setLHStype in DiffReact in Filter
+% Crate RHS integrator for Elastic, ElasticMicro and thermal
+% Stokes..
