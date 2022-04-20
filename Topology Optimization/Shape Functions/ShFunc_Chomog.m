@@ -132,7 +132,8 @@ classdef ShFunc_Chomog < ShapeFunctional
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
             fileName = cParams.femSettings.fileName;
-            s = obj.createFEMparameters(fileName);
+            a.fileName = fileName;
+            s = FemDataContainer(a);
             obj.physicalProblem = FEM.create(s);
         end
         
@@ -193,24 +194,5 @@ classdef ShFunc_Chomog < ShapeFunctional
         end
         
     end
-
-    methods (Access = private)
-
-        function s = createFEMparameters(obj, fileName)
-            gidParams = obj.createGiDparameters(fileName);
-            s.dim       = gidParams.pdim;
-            s.type      = gidParams.ptype;
-            s.scale     = gidParams.scale;
-            s.mesh      = gidParams.mesh;
-            s.dirichlet = gidParams.dirichlet;
-            s.pointload = gidParams.pointload;
-            s.masterSlave = gidParams.masterSlave;
-        end
-
-        function gidParams = createGiDparameters(obj, file)
-            gidReader = FemInputReader_GiD();
-            gidParams = gidReader.read(file);
-        end
-
-    end
+    
 end
