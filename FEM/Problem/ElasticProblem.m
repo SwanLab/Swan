@@ -13,7 +13,6 @@ classdef ElasticProblem < handle
         forces
         solver
         geometry
-        materialProperties
     end
 
     properties (Access = protected)
@@ -31,7 +30,6 @@ classdef ElasticProblem < handle
         function obj = ElasticProblem(cParams)
             obj.init(cParams);
             obj.computeDimensions();
-            obj.createMaterial();
             obj.createBoundaryConditions();
             obj.createSolver();
         end
@@ -80,7 +78,7 @@ classdef ElasticProblem < handle
             s.pdim      = obj.problemData.pdim;
             s.type      = obj.createPrintType();
             fPrinter = FemPrinter(s);
-            fPrinter.print(filename);            
+            fPrinter.print(filename);
         end
 
     end
@@ -89,18 +87,13 @@ classdef ElasticProblem < handle
 
         function init(obj, cParams)
             obj.mesh        = cParams.mesh;
+            obj.material    = cParams.material;
             pd.scale        = cParams.scale;
             pd.pdim         = cParams.dim;
             pd.ptype        = cParams.type;
-            pd.bc.dirichlet = cParams.dirichlet;
-            pd.bc.pointload = cParams.pointload;
-            if isfield(cParams,'masterSlave')
-                obj.mesh.computeMasterSlaveNodes();
-                pd.bc.masterSlave = obj.mesh.masterSlaveNodes;
-            end
+            pd.bc.dirichlet = cParams.bc.dirichlet;
+            pd.bc.pointload = cParams.bc.pointload;
             obj.problemData = pd;
-            obj.materialProperties.kappa = .9107;
-            obj.materialProperties.mu    = .3446;
             obj.createQuadrature();
             obj.createInterpolation();
             obj.createGeometry();
@@ -119,19 +112,6 @@ classdef ElasticProblem < handle
             d       = DimensionVariables(s);
             d.compute();
             obj.dim = d;
-        end
-
-        function createMaterial(obj)
-            I = ones(obj.dim.nelem,obj.dim.ngaus);
-            s.ptype = obj.problemData.ptype;
-            s.pdim  = obj.problemData.pdim;
-            s.nelem = obj.mesh.nelem;
-            s.mesh  = obj.mesh;
-            s.kappa = obj.materialProperties.kappa*I;
-            s.mu    = obj.materialProperties.mu*I;
-            mat = Material.create(s);
-            mat.compute(s);
-            obj.material = mat;
         end
 
         function createInterpolation(obj)
@@ -166,7 +146,6 @@ classdef ElasticProblem < handle
         function computeStiffnessMatrix(obj)
             s.type = 'ElasticStiffnessMatrix';
             s.mesh         = obj.mesh;
-            s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.dim;
             s.material     = obj.material;
@@ -199,7 +178,7 @@ classdef ElasticProblem < handle
 
         function F = computeExternalForces(obj)
             s.dim         = obj.dim;
-            s.BC          = obj.boundaryConditions; %Neumann
+            s.BC          = obj.boundaryConditions;
             s.mesh        = obj.mesh;
             s.material    = obj.material;
             s.geometry    = obj.geometry;

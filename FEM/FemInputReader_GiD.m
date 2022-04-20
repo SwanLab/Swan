@@ -44,6 +44,9 @@ classdef FemInputReader_GiD < handle
             if isequal(obj.scale,'MICRO')
                 s.masterSlave = obj.masterSlave;
             end
+            if isequal(obj.ptype,'Stokes')
+                disp('Stokes!')
+            end
         end
         
     end
@@ -56,16 +59,19 @@ classdef FemInputReader_GiD < handle
             s.masterSlaveNodes = obj.masterSlave;
             s.boundaryNodes    = obj.boundaryNodes;
             s.boundaryElements = obj.boundaryElements;
-            m = Mesh(s);       
+            m = Mesh(s);
         end
         
         function readFile(obj,fileName)
             data = Preprocess.readFromGiD(fileName);
-            if ~isequal(data.problem_type,'Stokes') 
+            if isequal(data.problem_type,'Stokes')
+%                 [fixnodes,forces,~,~] = Preprocess.getBC_fluids(fileName);
+            end
+            if ~isequal(data.problem_type,'Stokes')
                 [~,~,bNodes,bElem,mSlave] = Preprocess.getBC_mechanics(fileName);
                 obj.boundaryNodes = bNodes;
-                obj.boundaryElements = bElem;     
-                obj.masterSlave = mSlave;               
+                obj.boundaryElements = bElem;
+                obj.masterSlave = mSlave;
             end
 
             obj.pdim = data.problem_dim;

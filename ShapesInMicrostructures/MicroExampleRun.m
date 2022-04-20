@@ -1,25 +1,46 @@
-%% Hyperelastic
-% Microstructure
-%filename = 'test2d_micro';
+function MicroExampleRun
+
+%Microstructure
+filename = 'test2d_micro';
 %filename = 'IrrHexagon50x25x50';
-% s = createParameters(filename);
-% d = createDensity(s.mesh);
-% 
-% mI = createMaterialInterpolation(s.mesh,d);
-% mat = createMaterial(s.mesh,mI);
-% 
-% fem = FEM.create(s);
-% fem.setC(mat.C);
-% fem.computeChomog();
-% fem.print(filename);
-
-
-%MacroExample
-filename = 'test2d_triangle';
 s = createParameters(filename);
+density = createDensity(s.mesh);
+
+mI = createMaterialInterpolation(s.mesh,density);
+mat = createMaterial(s.mesh,mI);
+
 fem = FEM.create(s);
-fem.solve();
-fem.print(filename);
+fem.setC(mat.C);
+fem.computeChomog();
+%fem.print(filename);
+
+printInGiD(fem,s.mesh,filename,density)
+
+
+% %MacroExample
+% filename = 'test2d_triangle';
+% s = createParameters(filename);
+% fem = FEM.create(s);
+% fem.solve();
+% fem.print(filename);
+end
+
+function printInGiD(fem,mesh,filename,density)
+quad = Quadrature.set(mesh.type);
+quad.computeQuadrature('LINEAR');
+dI = createPostProcessDataBase(mesh,filename);
+dI.ndim   = 2;
+dI.pdim   = '2D';
+dI.ptype  = 'ELASTIC';
+dI.name = '';
+dI.printers = {'HomogenizedTensor','DensityGauss'};
+p = Postprocess('NumericalHomogenizer',dI);
+dP.fields{1} = fem.variables2print;
+dP.fields{2} = density;
+dP.quad   = quad;
+iter = 0;
+p.print(iter,dP);
+end
 
 function dE = createDensity(mesh)
 s.type = 'Density';
@@ -108,9 +129,9 @@ d.quad = q;
 postprocess.print(obj.iter,d);
 end
 
-function d = createPostProcessDataBase(obj,fileName)
-dI.mesh    = obj.mesh;
-dI.outName = fileName;
+function d = createPostProcessDataBase(mesh,fileName)
+dI.mesh    = mesh;
+dI.outFileName = fileName;
 ps = PostProcessDataBaseCreator(dI);
-d = ps.getValue();
+d = ps.create();
 end

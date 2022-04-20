@@ -1,24 +1,22 @@
-classdef DiffReactProblem_Robin < DiffReactProblem
-    
+classdef LHSintegrator_MassBoundary < LHSintegrator
+
+    properties (Access = private)
+        quadType
+    end
+
     methods (Access = public)
         
-        function computeVariables(obj,x)
-            bc   = obj.boundaryConditions;
-            xRed = bc.fullToReducedVector(x);
-            LHS  = obj.computeLHS();
-            x = obj.solver.solve(LHS,xRed);
-            obj.variables.x = bc.reducedToFullVector(x);
+        function obj = LHSintegrator_MassBoundary(cParams)
+            obj.init(cParams);
         end
-        
-        function LHS = computeLHS(obj)
-            Mr = obj.computeBoundaryMassMatrix();
-            LHS = obj.epsilon^2*obj.K + obj.M + (obj.epsilon)*Mr;
-            LHS = obj.boundaryConditions.fullToReducedMatrix(LHS);            
+
+        function LHS = compute(obj)
+            LHS = obj.computeBoundaryMassMatrix();
         end
         
     end
-
-    methods (Access = private)
+    
+    methods (Access = protected)
         
         function Mr = computeBoundaryMassMatrix(obj)
             s = obj.createIntegratorParams();
@@ -52,7 +50,7 @@ classdef DiffReactProblem_Robin < DiffReactProblem
                 cParams.compositeParams{iMesh} = s;
             end
         end
-   
+        
     end
     
 end
