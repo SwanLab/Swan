@@ -1,23 +1,20 @@
 % filename = 'Cantileverbeam_Quadrilateral_Bilinear';
 % filename = 'ArchTriFine';
-filename = 'BridgeCool_Quadrilateral_Bilinear_Structured_Fine';
+filename = 'Bridge_Anisotropic';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
 cost = {'compliance','perimeter'};
-weights = [1,0.1];
+weights = [1,0.05];
 constraint = {'volumeConstraint'};
-optimizerUnconstrained = 'SLERP'; % SLERP
+optimizerUnconstrained = 'SLERP';
 optimizer = 'DualNestedInPrimal';
-incrementFactor = 1.75; % 1.5,2.0
-designVariable = 'LevelSet'; % LevelSet
-% filterType = 'AnisotropicPDE';
+incrementFactor = 1.75; % Recommended: 1.5; 2.0
+designVariable = 'LevelSet';
 filterType = 'PDE';
 
-% shFuncParamsName = 'paramsTestCantilever3';
-
-nsteps = 14; % 5%/step is OK
+nsteps = 14; % Recommended slope: 5%/step is OK
 Vfrac_final = 0.30; % 0.15
 optimality_final =1e-3;
 constr_final =1e-3;
