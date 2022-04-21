@@ -9,7 +9,6 @@ classdef IterativeProcessComputer < handle
      properties (Access = private) % Classes
          mesh
          dim
-         geometry
          optimizer
          cost
          constraint
@@ -57,7 +56,6 @@ classdef IterativeProcessComputer < handle
             obj.nConstraints   = cParams.nConstraints;
             obj.mesh           = cParams.mesh;
             obj.dim            = cParams.dim;
-            obj.geometry       = cParams.geometry;
             obj.youngModulus   = cParams.youngModulus;
             obj.inertiaMoment  = cParams.inertiaMoment;
             obj.nValues        = cParams.nValues;
@@ -183,7 +181,6 @@ classdef IterativeProcessComputer < handle
         function K = createStiffnessMatrix(obj)
             s.mesh           = obj.mesh;
             s.dim            = obj.dim;
-            s.geometry        = obj.geometry;
             s.youngModulus   = obj.youngModulus;
             s.inertiaMoment  = obj.inertiaMoment;
             s.freeNodes      = obj.freeNodes;
@@ -193,7 +190,6 @@ classdef IterativeProcessComputer < handle
         function B = createBendingMatrix(obj)
             s.mesh           = obj.mesh;
             s.dim            = obj.dim;
-            s.geometry        = obj.geometry;
             s.youngModulus   = obj.youngModulus;
             s.inertiaMoment  = obj.inertiaMoment;
             s.freeNodes      = obj.freeNodes;

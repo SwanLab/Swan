@@ -26,6 +26,8 @@ classdef LHSintegratorFactory < handle
                    % global B'*C*B 
                    obj = LHSintegrator_StiffnessElasticStoredB(cParams);
                    %globalB in contructor
+               case 'BendingMatrix'
+                   obj = LHSintegrator_Bending(cParams);
            end
 
        end

@@ -22,7 +22,8 @@ classdef BendingMatrixComputer < handle
     methods (Access = public)
         
         function obj = BendingMatrixComputer(cParams)
-            obj.init(cParams)
+            obj.init(cParams);
+            obj.createGeometry();
         end
         
         function compute(obj)
@@ -44,24 +45,37 @@ classdef BendingMatrixComputer < handle
         function init(obj,cParams)
             obj.dim            = cParams.dim;
             obj.mesh           = cParams.mesh;
-            obj.geometry       = cParams.geometry;
             obj.youngModulus   = cParams.youngModulus;
             obj.inertiaMoment  = cParams.inertiaMoment;
             obj.designVariable = cParams.designVariable;
             obj.freeNodes      = cParams.freeNodes;
         end
 
+        function createGeometry(obj)
+            s.mesh = obj.mesh;
+
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature('LINEAR');
+
+            q   = quad;
+            int = Interpolation.create(obj.mesh,'LINEAR');
+            int.computeShapeDeriv(q.posgp);
+
+            obj.geometry = Geometry.create(s);
+            obj.geometry.computeGeometry(q,int)
+        end
+
         function computeConnectivityMatrix(obj)
-            connec = obj.mesh.connec;            
+            Tnod = obj.mesh.connec;
             d = obj.dim;
-            nElem = obj.mesh.nelem;
-            Td = zeros(nElem,d.nnode*d.nstre);
-            for iElem= 1 : nElem
-                for iNode = 1 : d.nnode
-                    for j=1:d.nstre
-                        i = d.nstre*(iNode-1) + j;
-                        node = connec(iElem,iNode);
-                        Td(iElem,i) = d.nstre*(node-1) + j;
+            nElem = d.nelem;
+            Td = zeros(nElem,d.ndofPerElement);  
+            ndofn = d.ndimField;
+            for iElem=1 : nElem
+                for a = 1 : ndofn
+                    for j=1:ndofn
+                        i = ndofn*(a-1) + j;
+                        Td(iElem,i) = ndofn*(Tnod(iElem,a)-1) + j;
                     end
                 end
             end
@@ -73,8 +87,8 @@ classdef BendingMatrixComputer < handle
             d = obj.dim;
             E = obj.youngModulus;
             I = obj.inertiaMoment;
-            nElem = d.nelem;            
-            Edof = d.nnode*d.nstre;
+            nElem = d.nelem;   
+            Edof = d.ndofPerElement;
             Be = zeros(Edof ,Edof ,nElem);
             l = obj.computeLength();
             for iElem = 1:nElem
@@ -107,7 +121,7 @@ classdef BendingMatrixComputer < handle
             Be = obj.elementalBendingMatrix;           
             B  = sparse(d.ndof, d.ndof);
             Tdof = obj.connectivityMatrix;
-            Edof = d.nnode*d.nstre;
+            Edof = d.ndofPerElement;
             for iElem = 1: nElem
                 for iRow = 1:Edof
                     iDof = Tdof(iElem,iRow);

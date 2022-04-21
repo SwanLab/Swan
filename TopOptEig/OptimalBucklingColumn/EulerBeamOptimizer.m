@@ -19,17 +19,17 @@ classdef EulerBeamOptimizer < handle
 
    properties (Access = private)
        dim
-       geometry
    end
 
     % Mesh (lenght only to create mesh, delete elsewhere)  (DONE)
     % Kelem  + assembly    (DONE)
     % plot modes getting displacement (DONE)
-    % Solve for a non-structured mesh (DONE)
+
 
     % use dimension class for dim (DONE)
     % length with geometry  (DONE)
     % stiffnes and bending with LHSintegrator..
+    % Solve for a non-structured mesh 
     % derivative "clean"/ "understand"    
     % MMa from Swan
     % Plot column area
@@ -78,19 +78,6 @@ classdef EulerBeamOptimizer < handle
             s.type = 'LINE';
             m = Mesh(s);
             obj.mesh = m;
-
-            s.mesh = obj.mesh;
-
-
-           quad = Quadrature.set(obj.mesh.type);
-           quad.computeQuadrature('LINEAR');
-
-            q   = quad;
-            int = Interpolation.create(obj.mesh,'LINEAR');
-            int.computeShapeDeriv(q.posgp);
-
-            obj.geometry = Geometry.create(s);
-            obj.geometry.computeGeometry(q,int)
         end
 
         function coord = createCoordinates(obj)
@@ -114,11 +101,10 @@ classdef EulerBeamOptimizer < handle
 
         function createDimensions(obj)
             s.mesh = obj.mesh;
-            s.pdim = '1D'; 
+            s.pdim = '2D'; % Para que tenga 4 dofs por elemento
             s.ngaus = 2;
             d = DimensionVariables(s);
             d.compute();
-            d.ndof = 2*d.ndof; %%%%% Hay que arreglarlo !!!!!
             obj.dim = d;
         end
 
@@ -153,7 +139,6 @@ classdef EulerBeamOptimizer < handle
             s.freeNodes      = obj.freeNodes;
             s.nConstraints   = obj.nConstraints;
             s.mesh           = obj.mesh;
-            s.geometry       = obj.geometry;
             s.nValues        = obj.nValues;
             s.dim            = obj.dim;
             s.youngModulus   = obj.youngModulus;
