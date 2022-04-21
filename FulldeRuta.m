@@ -49,10 +49,12 @@
 
 
 
-% delete interp in ElasticProblem
-% In Filter use LHSintegrator rather than DiffReact
-% DiffReact delete getM and getK and setEpsilon and computeDvolume
-% setLHStype in DiffReact in Filter
-% Crate RHS integrator for Elastic, ElasticMicro and thermal
-% dimEscalar, vector....by fields...nElem,nDim private in dim
-% Stokes..
+% YET delete interp in ElasticProblem
+% OK! In Filter use LHSintegrator rather than DiffReact
+% OK! DiffReact delete getM and getK and setEpsilon and computeDvolume
+% OK* setLHStype in DiffReact in Filter
+% YET Crate RHS integrator for Elastic, ElasticMicro and thermal
+% YET dimEscalar, vector....by fields...nElem,nDim private in dim
+% YET Stokes..
+
+% Check test_VigergauzMicroStructureFromStrain, test_bridge

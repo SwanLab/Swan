@@ -30,8 +30,8 @@ classdef Filter_PDE_LevelSet < Filter_PDE
         function preProcess(obj)
             preProcess@Filter(obj)
             obj.Anodal2Gauss = obj.computeA();
-            obj.diffReacProb.setEpsilon(obj.epsilon);
-            obj.computeLHS();
+%             obj.diffReacProb.setEpsilon(obj.epsilon);
+            obj.computeLHS(obj.epsilon);
         end
         
         function RHS = integrate_L2_function_with_shape_function(obj,x)

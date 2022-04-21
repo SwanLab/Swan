@@ -24,7 +24,6 @@ classdef Filter < handle
         shape
         
         quadratureOrder
-        
     end
     
     properties (Access = private)
@@ -51,6 +50,11 @@ classdef Filter < handle
         
         function obj = createDiffReacProblem(obj,cParams)
             s = cParams.femSettings;
+            if isfield(cParams.femSettings,'LHStype')
+                s.LHStype = cParams.femSettings.LHStype;
+            else
+                s.LHStype = 'DiffReactNeumann';
+            end
             if isprop(cParams,'mesh')
                 s.mesh = cParams.mesh;
             end

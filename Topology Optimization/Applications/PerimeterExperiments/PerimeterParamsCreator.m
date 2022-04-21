@@ -39,9 +39,9 @@ classdef PerimeterParamsCreator < handle
         end
         
         function createPerimeterParams(obj)
-            obj.perimeterParams = SettingsShapeFunctional();                              
-            obj.perimeterParams.type = 'perimeterInterior';            
-            obj.perimeterParams.designVariable = obj.designVariable;     
+            obj.perimeterParams = SettingsShapeFunctional();
+            obj.perimeterParams.type = 'perimeterInterior';
+            obj.perimeterParams.designVariable = obj.designVariable;
             obj.perimeterParams.mesh = obj.mesh;
         end
            
@@ -57,23 +57,23 @@ classdef PerimeterParamsCreator < handle
             s.femSettings = obj.createFemParams();
             s.designVarType = 'LevelSet';
             s.mesh = obj.mesh;
-            obj.perimeterParams.filterParams = s;            
-        end        
+            obj.perimeterParams.filterParams = s;
+        end
         
         function s = createFemParams(obj)
             s.fileName = obj.inputFile;
             s.scale    = obj.scale;
             s.mesh     = obj.mesh;
             s.isRobinTermAdded = obj.isRobinTermAdded;
-        end        
+        end
         
         function addTargetParamters(obj)
             s = TargetParameters();
             s.epsilon_perimeter = obj.epsilon;
             s.epsilon = obj.epsilon;
-            obj.perimeterParams.targetParameters = s;            
+            obj.perimeterParams.targetParameters = s;
         end
-                               
-    end
         
+    end
+    
 end

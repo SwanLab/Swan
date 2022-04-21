@@ -7,7 +7,8 @@ classdef ScalarProduct < handle
     end
     
     properties (Access = private)
-       nVariables 
+       nVariables
+       mesh
     end
     
     methods (Access = public)
@@ -44,13 +45,12 @@ classdef ScalarProduct < handle
         end
         
         function createMatrices(obj,cParams)
-            s = cParams.femSettings;
-            s.mesh = cParams.mesh;
-            s.scale = 'MACRO';
-            s.type = 'DIFF-REACT';
-            physProb = FEM.create(s);
-            obj.Ksmooth = physProb.getK();
-            obj.Msmooth = physProb.getM();
+            obj.mesh = cParams.mesh;
+            dim = obj.computeDimensions();
+            M = obj.computeMassMatrix(dim);
+            K = obj.computeStiffnessMatrix(dim);
+            obj.Ksmooth = K;
+            obj.Msmooth = M;
         end
         
         function n = computeProduct(obj,K,f,g)
@@ -63,6 +63,34 @@ classdef ScalarProduct < handle
                 gs = g(i0:iF);
                 n = n + fs'*K*gs;
             end
+        end
+
+        function dim = computeDimensions(obj)
+            s.ngaus = [];
+            s.mesh  = obj.mesh;
+            s.pdim  = '1D';
+            d       = DimensionVariables(s);
+            d.compute();
+            dim = d;
+        end
+        
+        function M = computeMassMatrix(obj, dim)
+            s.type         = 'MassMatrix';
+            s.quadType     = 'QUADRATICMASS';
+            s.mesh         = obj.mesh;
+            s.globalConnec = obj.mesh.connec;
+            s.dim          = dim;
+            LHS = LHSintegrator.create(s);
+            M = LHS.compute();
+        end
+    
+        function K = computeStiffnessMatrix(obj, dim)
+            s.type = 'StiffnessMatrix';
+            s.mesh         = obj.mesh;
+            s.globalConnec = obj.mesh.connec;
+            s.dim          = dim;
+            LHS = LHSintegrator.create(s);
+            K = LHS.compute();
         end
         
     end
