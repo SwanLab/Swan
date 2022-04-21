@@ -25,16 +25,13 @@ classdef EulerBeamOptimizer < handle
     % Kelem  + assembly    (DONE)
     % plot modes getting displacement (DONE)
 
-
     % use dimension class for dim (DONE)
     % length with geometry  (DONE)
-    % stiffnes and bending with LHSintegrator..
+    % stiffnes and bending with LHSintegrator.. (DONE)
     % Solve for a non-structured mesh 
     % derivative "clean"/ "understand"    
     % MMa from Swan
     % Plot column area
-
-
 
     properties (Access = private)
         designVariable

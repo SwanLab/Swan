@@ -73,28 +73,6 @@ classdef LHSintegrator_StiffnessColumn < LHSintegrator
             obj.geometry = g;
         end
 
-%         function LHS = assembleMatrixColumn(obj,Ke)
-%             d  = obj.dim;
-%             N  = d.nelem;
-%             K  = sparse(d.ndof,d.ndof);
-%             Tdof = obj.globalConnec;   %%%%%% globalConnec: Tnod o Tdof?
-%             for iElem = 1:N
-%                 for iRow = 1:d.ndofPerElement
-%                     iDof = Tdof(iElem,iRow);
-%                     for iColum = 1:d.ndofPerElement
-%                         Kij = Ke(iRow,iColum,iElem);
-%                         jDof = Tdof(iElem,iColum);
-%                         K(iDof,jDof) = K(iDof,jDof) + Kij;
-%                     end
-%                 end
-%             end
-%             LHS = K;
-%         end
-
-    end
-    
-    methods (Access = protected)
-
     end
     
 end

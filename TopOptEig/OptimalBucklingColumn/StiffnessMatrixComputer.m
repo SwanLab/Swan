@@ -1,16 +1,13 @@
 classdef StiffnessMatrixComputer < handle
 
     properties (Access = private)
-        connectivityMatrix
         LHS
         stiffnessMatrix
-        elementalStiffnessMatrix
     end
 
     properties (Access = private)
         dim
         mesh
-        geometry
         youngModulus
         inertiaMoment
         freeNodes
@@ -40,8 +37,6 @@ classdef StiffnessMatrixComputer < handle
         function obj = init(obj,cParams)
             obj.mesh          = cParams.mesh;
             obj.dim           = cParams.dim;
-            obj.youngModulus  = cParams.youngModulus;
-            obj.inertiaMoment = cParams.inertiaMoment;
             obj.freeNodes     = cParams.freeNodes;
         end
 
