@@ -31,6 +31,18 @@ classdef PrecomputedVariableTest < handle
             error = norm(err);
         end
 
+        function overwriteResults(obj)
+            % NOTE: change the variable name "x" to the one in the .mat
+            % file so that it works
+            variableNames = who('-file', obj.testName);
+            d = numel(variableNames);
+            for ivar = 1:d
+                varName = variableNames{ivar};
+                eval([varName ' = obj.computedVar{ivar}' ])
+                save(obj.testName, varName, '-append')
+            end
+        end
+
         function comp = getComputation(obj)
             comp = obj.computation;
         end

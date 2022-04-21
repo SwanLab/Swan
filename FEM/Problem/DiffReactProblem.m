@@ -4,40 +4,49 @@ classdef DiffReactProblem < handle
         variables
     end
     
-    properties (Access = protected)
+    properties (Access = private)
         dim
-        M,K
         mesh
         solver
         epsilon
+        LHStype
+        problemLHS
         problemData
         boundaryConditions
-    end
-
-    methods (Static, Access = public)
-
-        function obj = create(s)
-            isRobin = isfield(s, 'isRobinTermAdded') ...
-                      && s.isRobinTermAdded == 1;
-            switch isRobin
-                case true
-                    obj = DiffReactProblem_Robin(s);
-                case false
-                    obj = DiffReactProblem_Neumann(s);
-            end
-        end
-
     end
 
     methods (Access = public)
         
         function obj = DiffReactProblem(cParams)
             obj.init(cParams);
-            obj.computeProblemDimensions();
+            obj.computeDimensions();
             obj.createBoundaryConditions();
             obj.createSolver();
-            obj.computeStiffnessMatrix();
-            obj.computeMassMatrix();
+            obj.createProblemLHS();
+        end
+        
+        function solve(obj)
+            obj.epsilon = .1857;
+            bc  = obj.boundaryConditions;
+            M = obj.problemLHS.K;
+            rhs = M*ones(size(M,1), 1);
+            RHS = bc.fullToReducedVector(rhs);
+            LHS = obj.computeLHS();
+            x = obj.solver.solve(LHS,RHS);
+            obj.variables.x = bc.reducedToFullVector(x);
+        end
+
+        function computeVariables(obj,rhs)
+            bc  = obj.boundaryConditions;
+            RHS = bc.fullToReducedVector(rhs);
+            LHS = obj.computeLHS();
+            x = obj.solver.solve(LHS,RHS);
+            obj.variables.x = bc.reducedToFullVector(x);
+        end
+        
+        function LHS = computeLHS(obj)
+            lhs = obj.problemLHS.compute(obj.epsilon);
+            LHS = obj.boundaryConditions.fullToReducedMatrix(lhs);
         end
 
         function obj = setEpsilon(obj,epsilon)
@@ -45,11 +54,11 @@ classdef DiffReactProblem < handle
         end
 
         function M = getM(obj)
-            M = obj.M;
+            M = obj.problemLHS.M;
         end
 
         function K = getK(obj)
-            K = obj.K;
+            K = obj.problemLHS.K;
         end
 
         function dvol = computeDvolume(obj)
@@ -61,6 +70,21 @@ classdef DiffReactProblem < handle
             g.computeGeometry(q,int);
             dvol = g.dvolu;
         end
+       
+        function print(obj,filename)
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature('LINEAR');
+            s.quad = quad;
+            s.mesh = obj.mesh;
+            s.iter = 0;
+            s.fields    = obj.variables.x;
+            s.ptype     = 'DIFF-REACT';
+            s.ndim      = 2;
+            s.pdim      = obj.problemData.pdim;
+            s.type      = 'ScalarNodal';
+            fPrinter = FemPrinter(s);
+            fPrinter.print(filename);
+        end
 
     end
     
@@ -70,23 +94,16 @@ classdef DiffReactProblem < handle
             obj.mesh = cParams.mesh;
             obj.problemData.pdim = '1D';
             obj.problemData.scale = cParams.scale;
-            if isfield(cParams,'fileName') % Robin
-                obj.problemData.fileName = cParams.fileName;
-            end
-        end
-        
-        function computeProblemDimensions(obj)
-            m = obj.mesh;
-            obj.dim = obj.computeDimensions(m);
+            obj.setLHStype(cParams);
         end
 
-        function d = computeDimensions(obj, mesh)
+        function computeDimensions(obj)
             s.ngaus = [];
-            s.mesh  = mesh;
+            s.mesh  = obj.mesh;
             s.pdim  = obj.problemData.pdim;
             dims    = DimensionVariables(s);
             dims.compute();
-            d = dims;
+            obj.dim = dims;
         end
 
         function createBoundaryConditions(obj)
@@ -104,27 +121,26 @@ classdef DiffReactProblem < handle
             obj.solver = Solver.create();
         end
 
-        function computeStiffnessMatrix(obj)
-            s.type = 'StiffnessMatrix';
-            s.mesh         = obj.mesh;
-            s.npnod        = obj.mesh.npnod;
-            s.globalConnec = obj.mesh.connec;
+        function createProblemLHS(obj)
+            s.type         = obj.LHStype;
             s.dim          = obj.dim;
-            LHS = LHSintegrator.create(s);
-            obj.K = LHS.compute();
+            s.mesh         = obj.mesh;
+            s.globalConnec = [];
+            obj.problemLHS = LHSintegrator.create(s);
         end
-        
-        function computeMassMatrix(obj)
-            s.type         = 'MassMatrix';
-            s.quadType     = 'QUADRATICMASS';
-            s.mesh         = obj.mesh;
-            s.npnod        = obj.mesh.npnod;
-            s.globalConnec = obj.mesh.connec;
-            s.dim          = obj.dim;
-            LHS = LHSintegrator.create(s);
-            obj.M = LHS.compute();
+
+        function setLHStype(obj, cParams)
+            isRobinAdded = isfield(cParams, 'isRobinTermAdded') ...
+                               && cParams.isRobinTermAdded == 1;
+            switch isRobinAdded
+                case true
+                    type = 'DiffReactRobin';
+                case false
+                    type = 'DiffReactNeumann';
+            end
+            obj.LHStype = type;
         end
     
     end
-    
+
 end
