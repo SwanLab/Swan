@@ -63,7 +63,7 @@ classdef SettingsOptimizer < AbstractSettings
             obj.monitoringDockerSettings = SettingsMonitoringDocker(s);
             
             s2.problemID          = obj.problemData.caseFileName;
-            s2.dim                = obj.problemData.femData.pdim;
+            s2.dim                = obj.problemData.femData.dim;
             s2.costFuncNames      = obj.problemData.costFunctions;
             s2.costWeights        = obj.problemData.costWeights;
             s2.constraintFuncs    = obj.problemData.constraintFunctions;
@@ -93,8 +93,8 @@ classdef SettingsOptimizer < AbstractSettings
             obj.postProcessSettings.printMode   = obj.printMode;
             obj.postProcessSettings.femFileName = obj.problemData.caseFileName;
             %obj.postProcessSettings.femFileName = obj.problemData.femData.fileName;
-            obj.postProcessSettings.pdim  = obj.problemData.femData.pdim;
-            obj.postProcessSettings.ptype = obj.problemData.femData.ptype;
+            obj.postProcessSettings.pdim  = obj.problemData.femData.dim;
+            obj.postProcessSettings.ptype = obj.problemData.femData.type;
         end
         
         function initOptimizerUnconstrainedSettings(obj)

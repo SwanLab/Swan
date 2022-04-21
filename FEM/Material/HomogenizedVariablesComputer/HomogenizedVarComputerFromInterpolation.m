@@ -19,7 +19,7 @@ classdef HomogenizedVarComputerFromInterpolation ...
         function computeCtensor(obj,x)
             rho = x{1};
             nvar = 1;
-            nGaus  = size(rho,2);  
+            nGaus  = size(rho,2);
             nStres = obj.material.nstre;
             obj.C  = zeros(nStres,nStres,obj.nElem,nGaus);
             obj.dC = zeros(nStres,nStres,nvar,obj.nElem,nGaus);

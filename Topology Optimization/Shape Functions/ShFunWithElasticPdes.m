@@ -60,7 +60,8 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         end
         
         function createEquilibriumProblem(obj,fileName)
-            s = obj.createFEMparameters(fileName);
+            a.fileName = fileName;
+            s = FemDataContainer(a);
             obj.physicalProblem = FEM.create(s);
             obj.initPrincipalDirections();
         end

@@ -58,7 +58,7 @@ classdef SettingsTopOptProblem < AbstractSettings
         function createHomogenizedVarComputerSettings(obj)
             s = obj.homogenizedVarComputerSettings;
             s.nelem = obj.problemData.femData.nelem;
-            s.dim   = obj.problemData.femData.pdim;
+            s.dim   = obj.problemData.femData.dim;
             obj.homogenizedVarComputerSettings = SettingsHomogenizedVarComputer.create(s);
         end
         
@@ -100,7 +100,7 @@ classdef SettingsTopOptProblem < AbstractSettings
         function createVideoManagerSettings(obj)
             s.shallPrint    = obj.optimizerSettings.shallPrint;
             s.designVarType = obj.designVarSettings.type;
-            s.pdim          = obj.problemData.femData.pdim;
+            s.pdim          = obj.problemData.femData.dim;
             s.caseFileName  = obj.fileName;            
             obj.videoMakerSettings = SettingsVideoMaker(s);
         end

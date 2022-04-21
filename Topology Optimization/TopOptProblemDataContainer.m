@@ -39,8 +39,8 @@ classdef TopOptProblemDataContainer < AbstractSettings
             
             obj.mesh  = s.mesh;
             obj.femData.scale = s.scale;
-            obj.femData.pdim  = s.pdim;
-            obj.femData.ptype = s.ptype;
+            obj.femData.dim  = s.pdim;
+            obj.femData.type = s.ptype;
             obj.femData.nelem = s.mesh.nelem;
             obj.femData.bc.dirichlet = s.dirichlet;
             obj.femData.bc.pointload = s.pointload;

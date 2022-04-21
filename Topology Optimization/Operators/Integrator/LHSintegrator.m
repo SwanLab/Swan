@@ -6,7 +6,6 @@ classdef LHSintegrator < handle
         interpolation
         dim
         globalConnec
-        material
     end
 
     methods (Access = public, Static)

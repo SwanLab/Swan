@@ -49,11 +49,6 @@ classdef Hyperelastic_Problem < FEM
             pd.ptype        = cParams.type;
             pd.bc.dirichlet = cParams.dirichlet;
             pd.bc.pointload = cParams.pointload;
-            if isfield(cParams,'masterSlave')
-%                 pd.bc.masterSlave = cParams.masterSlave;
-                obj.mesh.computeMasterSlaveNodes();
-                pd.bc.masterSlave = obj.mesh.masterSlaveNodes;
-            end
             obj.problemData = pd;
         end
         

@@ -35,16 +35,16 @@ classdef HomogenizationTests < handle & matlab.unittest.TestCase
             elementdiffreact = {'testHorizontalTensorRotatedVsHVP'};
     end
 
-    methods (Test, TestTags = {'HomogenizationTests', 'Elementdiffreact'})
-
-        function testsElementdiffreact(testCase, elementdiffreact)
-            testCase.fixFolder();
-            test = eval(elementdiffreact);
-            passed = test.hasPassed();
-            verifyTrue(testCase, passed)
-        end
-
-    end
+%     methods (Test, TestTags = {'HomogenizationTests', 'Elementdiffreact'})
+% 
+%         function testsElementdiffreact(testCase, elementdiffreact)
+%             testCase.fixFolder();
+%             test = eval(elementdiffreact);
+%             passed = test.hasPassed();
+%             verifyTrue(testCase, passed)
+%         end
+% 
+%     end
 
     methods (Test, TestTags = {'HomogenizationTests', 'ShowingError'})
 
