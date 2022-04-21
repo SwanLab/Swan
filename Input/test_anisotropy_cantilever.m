@@ -5,14 +5,15 @@ ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'compliance'};
-weights = [1];
+cost = {'compliance','perimeter'};
+weights = [1,0.1];
 constraint = {'volumeConstraint'};
-optimizerUnconstrained = 'PROJECTED GRADIENT'; % SLERP
+optimizerUnconstrained = 'SLERP'; % SLERP
 optimizer = 'DualNestedInPrimal';
-incrementFactor = 1; % 1.5,2.0
-designVariable = 'Density'; % LevelSet
-filterType = 'AnisotropicPDE';
+incrementFactor = 1.75; % 1.5,2.0
+designVariable = 'LevelSet'; % LevelSet
+% filterType = 'AnisotropicPDE';
+filterType = 'PDE';
 
 % shFuncParamsName = 'paramsTestCantilever3';
 
