@@ -44,50 +44,37 @@ classdef EigModesPlotter < handle
         end
         
         function plotColumnArea(obj,A)      
-            % 1. habría que pasarle la clase dim
             z = sqrt(A); 
-            nelem = obj.mesh.nelem;
             coord = obj.mesh.coord;
+            nelem = obj.mesh.nelem;
             nnod = nelem+1;
-            vertex = zeros(4*nelem+1,2);  %%%%%% Ponerlo genérico
-            
+            scale = 0.3;
+            dimFig   = 2;
+            vertElem = 4;
+            vertex = zeros(vertElem*nelem+1,dimFig);
             for iNod = 1:nnod-1
-                vertex(2*iNod-1,:)   = [0.2*z(iNod)/2 coord(iNod)];
-                vertex(2*iNod,:) = [0.2*z(iNod)/2 coord(iNod+1)];
+                vertex(2*iNod-1,:)   = [scale*z(iNod)/2 coord(iNod)];
+                vertex(2*iNod,:) = [scale*z(iNod)/2 coord(iNod+1)];
             end
-
-            vertex(2*nelem+1:4*nelem,1) = - fliplr(vertex(1:2*nelem,1)')';
-            vertex(2*nelem+1:4*nelem,2) = fliplr(vertex(1:2*nelem,2)')';
+            vertex(dimFig*nelem+1:vertElem*nelem,1) = - fliplr(vertex(1:dimFig*nelem,1)')';
+            vertex(dimFig*nelem+1:vertElem*nelem,2) = fliplr(vertex(1:dimFig*nelem,2)')';
             vertex(end,:) = vertex(1,:);
             pgon = polyshape(vertex);
-            tr = triangulation(pgon);
-            model = createpde;
-            tnodes = tr.Points';
-            telements = tr.ConnectivityList';
-            geometryFromMesh(model,tnodes,telements);
-            generateMesh(model,'GeometricOrder','linear','Hmax',0.1)
-            coord = model.Mesh.Nodes';
-            connec = model.Mesh.Elements';
-            s.coord = coord;
-            s.connec = connec;
-            m = Mesh(s);
-
-            figure(1);
+            figure(1)
             clf
-            m.plot();
+            plot(pgon);
             grid on
             grid minor
-            title('Clamped-Clamped Column Profile','Interpreter', 'latex','FontSize',20, 'fontweight','b');
+            title('Clamped-Clamped Column Profile (2D)','Interpreter', 'latex','FontSize',20, 'fontweight','b');
             xlabel('A(x)','Interpreter', 'latex','fontsize',14,'fontweight','b');
             ylabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
-            
 
             xBar = obj.mesh.computeBaricenter();
             figure(2)
             subplot(2,2,[1 3]);plot(xBar,z)
             grid on
             grid minor
-            title('Clamped-Clamped Column Profile','Interpreter', 'latex','FontSize',20, 'fontweight','b');
+            title('Clamped-Clamped Column Profile (1D)','Interpreter', 'latex','FontSize',20, 'fontweight','b');
             xlabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
             ylabel('A(x)','Interpreter', 'latex','fontsize',14,'fontweight','b');
         end

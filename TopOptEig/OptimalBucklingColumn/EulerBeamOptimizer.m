@@ -1,4 +1,8 @@
 classdef EulerBeamOptimizer < handle
+
+    properties (Access = public)
+        columnMesh
+    end
     
     properties (Access = protected)
         optimizerType
@@ -32,43 +36,22 @@ classdef EulerBeamOptimizer < handle
    
 
     %%% Refactoring
-    % delete elemental loop LHS Bending
+    % delete elemental loop LHS Bending  
     % delete elemental loop LHS Stifness
     % delete StifnessMatrixComputer
     % delete BendingMatrixComputer
-    % assambly matrix in Bending
+    % assambly matrix in Bending 
 
     %%% Next
-    % derivative "clean"/ "understand"    
-    % Plot column area with polyshape and generateMesh
-    % postprocess with GiD; (with Alex)
-    % create shape functions cubic 1D (Interpolation)
+    % 1. derivative "clean"/ "understand"    
+    % 2. Plot column area with polyshape and generateMesh (DONE) --> Too slow
+    %    to plot all iterations
+    % 3. postprocess with GiD; (with Alex)
+    % 4. create shape functions cubic 1D (Interpolation) 
     
     %%% Future
     % MMa from Swan    
     % Use shape functions for elemental stifness and bending
-
-
-
-%pgon = polyshape([0 0 1 1],[1 0 0 1])
-% tr = triangulation(pgon);
-% model = createpde;
-% tnodes = tr.Points';
-% telements = tr.ConnectivityList';
-% geometryFromMesh(model,tnodes,telements);
-% pdegplot(model)
-% figure
-% pdemesh(model)
-% generateMesh(model,'GeometricOrder','linear','Hmax',0.1)
-% figure
-% pdemesh(model)
-% model
-% coord = model.Mesh.Nodes';
-% connec = model.Mesh.Elements';
-% s.coord = coord;
-% s.connec = connec;
-% m = Mesh(s);
-% m.plot();
 
     properties (Access = private)
         designVariable
@@ -87,6 +70,8 @@ classdef EulerBeamOptimizer < handle
             obj.createBoundaryConditions()
             obj.createMMA();
             obj.computeIterativeProcess()
+            %  obj.computePostProcess();
+            obj.createPostProcess();
         end
 
     end
@@ -182,8 +167,17 @@ classdef EulerBeamOptimizer < handle
             s.designVariable = obj.designVariable;
             solution = IterativeProcessComputer(s);
             solution.compute();
-            obj.designVariable = solution.designVariable;
-        end     
+        end
+
+        function createPostProcess(obj)
+            s.designVariable = obj.designVariable;
+            s.dim            = obj.dim;
+            s.mesh           = obj.mesh;
+            s.scale          = 0.3;
+            post = PostProcessColumn(s);
+            post.plotColumn();
+            obj.columnMesh = post.m;
+        end
         
     end
 end
