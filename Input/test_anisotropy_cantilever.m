@@ -14,8 +14,8 @@ incrementFactor = 1.75; % Recommended: 1.5; 2.0
 designVariable = 'LevelSet';
 filterType = 'PDE';
 
-nsteps = 10; % Recommended slope: 5%/step is OK
-Vfrac_final = 0.50; % 0.15
+nsteps = 1; % Recommended slope: 5%/step is OK
+Vfrac_final = 0.30;
 optimality_final =1e-3;
 constr_final =1e-3;
 
