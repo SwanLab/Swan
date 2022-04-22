@@ -55,7 +55,6 @@ classdef NewFilter_PDE_LevelSet < handle
                 s.mesh = cParams.mesh;
             end
             s.type = 'DIFF-REACT';
-            s = obj.checkAnisotropy(cParams,s);
             obj.diffReacProb = FEM.create(s);
         end
 
@@ -139,19 +138,6 @@ classdef NewFilter_PDE_LevelSet < handle
                 A = obj.Anodal2Gauss{igaus};
                 intX = intX + A'*(xG.*dVG);
             end
-        end
-
-    end
-
-% Add in ShapeFunc in the Future:
-
-    methods (Static, Access = private)
-
-        function s = checkAnisotropy(cParams,s)
-%             s.isAnisotropyAdded = cParams.isAnisotropyAdded;
-%             s.CAnisotropic      = cParams.CAnisotropic;
-            s.isAnisotropyAdded = 1;
-            s.CAnisotropic = [1,0;0,1];
         end
 
     end

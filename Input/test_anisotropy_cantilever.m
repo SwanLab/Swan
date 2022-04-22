@@ -5,7 +5,7 @@ ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'compliance','perimeter'};
+cost = {'compliance','anisotropicPerimeter2D'};
 weights = [1,0.05];
 constraint = {'volumeConstraint'};
 optimizerUnconstrained = 'SLERP';
@@ -14,8 +14,8 @@ incrementFactor = 1.75; % Recommended: 1.5; 2.0
 designVariable = 'LevelSet';
 filterType = 'PDE';
 
-nsteps = 14; % Recommended slope: 5%/step is OK
-Vfrac_final = 0.30; % 0.15
+nsteps = 10; % Recommended slope: 5%/step is OK
+Vfrac_final = 0.50; % 0.15
 optimality_final =1e-3;
 constr_final =1e-3;
 
