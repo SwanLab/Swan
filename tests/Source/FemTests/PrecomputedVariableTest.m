@@ -1,7 +1,7 @@
 classdef PrecomputedVariableTest < handle
 
     properties (Access = protected)
-        testName;  
+        testName  
         variablesToStore
         storedVar
         computedVar
@@ -29,6 +29,18 @@ classdef PrecomputedVariableTest < handle
                 err(ivar) = norm(sV - cV)/norm(sV);
             end
             error = norm(err);
+        end
+
+        function overwriteResults(obj)
+            % NOTE: change the variable name "x" to the one in the .mat
+            % file so that it works
+            variableNames = who('-file', obj.testName);
+            d = numel(variableNames);
+            for ivar = 1:d
+                varName = variableNames{ivar};
+                eval([varName ' = obj.computedVar{ivar}' ])
+                save(obj.testName, varName, '-append')
+            end
         end
 
         function comp = getComputation(obj)

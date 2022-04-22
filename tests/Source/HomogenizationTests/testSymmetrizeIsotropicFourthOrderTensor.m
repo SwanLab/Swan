@@ -33,7 +33,7 @@ classdef testSymmetrizeIsotropicFourthOrderTensor < handle
         function createSymmetricFourthOrderTensor(obj)
             obj.Csym = SymmetricFourthOrder3DTensor();
             obj.Csym.setValue(obj.Ciso.getValue());
-            obj.Csym.MakeMajorAndMinorSymmetrization();  
+            obj.Csym.MakeMajorAndMinorSymmetrization();
         end
 
     end

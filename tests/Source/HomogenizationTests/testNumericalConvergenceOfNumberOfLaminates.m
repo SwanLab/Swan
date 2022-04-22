@@ -4,7 +4,7 @@ classdef testNumericalConvergenceOfNumberOfLaminates < handle
        tol = 1e-12 
     end
     
-    properties (Access = private)        
+    properties (Access = private)
         fiberDirection
         nLevelsOfFibers
         Ch
@@ -93,7 +93,7 @@ classdef testNumericalConvergenceOfNumberOfLaminates < handle
         
         function ChError = ComputeChSimilarity(obj)
             NormCh = obj.ChNorm;
-            meanChNorm = mean(NormCh); 
+            meanChNorm = mean(NormCh);
             ChError = norm(NormCh - meanChNorm);
         end
         

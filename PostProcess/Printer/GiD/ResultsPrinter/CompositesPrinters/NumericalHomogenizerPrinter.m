@@ -23,12 +23,12 @@ classdef NumericalHomogenizerPrinter < CompositeResultsPrinter
             end
         end
         
-        function storeFieldsToPrint(obj,d)
+        function storeFieldsToPrint(obj,dI)
             for iprint = 1:numel(obj.printerNames)
                 printerName = obj.printerNames{iprint};
                 printer  = obj.printers{iprint};
-                d.fields = d.var2print{iprint};
-                obj.storePrinterFields(printer,printerName,d)
+                d.fields = dI.fields{iprint};
+                 obj.storePrinterFields(printer,printerName,d)
             end
         end
         

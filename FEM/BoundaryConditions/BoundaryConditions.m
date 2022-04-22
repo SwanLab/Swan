@@ -24,9 +24,6 @@ classdef BoundaryConditions < handle
             obj.init(cParams);
         end
 
-%         function updateDirichlet(obj)
-%         end
-
         function compute(obj)
             [dirID, dirVals]     = obj.formatInputData(obj.dirichletInput);
             [neuID, neuVals]     = obj.formatInputData(obj.pointloadInput);
@@ -79,14 +76,14 @@ classdef BoundaryConditions < handle
         function initPeriodicMasterSlave(obj, cParams)
             switch obj.scale
                 case 'MICRO'
-                    if isfield(cParams.bc, 'masterSlave')
+                    if isprop(cParams.bc, 'masterSlave')
                         obj.masterSlave = cParams.bc.masterSlave;
                     end
                     MS = obj.masterSlave;
                     if isempty(MS)
-                       mesh = cParams.mesh;
-                       mesh.computeMasterSlaveNodes();
-                       MS = mesh.masterSlaveNodes;
+                        mesh = cParams.mesh;
+                        MS = obj.computeMasterSlave(mesh.coord);
+                        obj.masterSlave = MS;
                     end
                     obj.periodic_free = obj.computePeriodicNodes(MS(:,1));
                     obj.periodic_constrained = obj.computePeriodicNodes(MS(:,2));
@@ -138,7 +135,7 @@ classdef BoundaryConditions < handle
         end
 
         function Ared = reduceMatrixPeriodic(obj,A)
-            MS = obj.computeMasterSlave();
+            MS = obj.masterSlave;
             vF = obj.free{1};
             vP = obj.computePeriodicNodes(MS(:,1));
             vQ = obj.computePeriodicNodes(MS(:,2));
@@ -188,13 +185,9 @@ classdef BoundaryConditions < handle
             b(vC) = b(vP);
         end
 
-        function MS = computeMasterSlave(obj)
-            MS = obj.masterSlave;
-            if isempty(MS)
-               mesh = cParams.mesh;
-               mesh.computeMasterSlaveNodes();
-               MS = mesh.masterSlaveNodes;
-            end
+        function MS = computeMasterSlave(obj, coord)
+           mR = MasterSlaveRelator(coord);
+           MS = mR.getRelation();
         end
 
     end

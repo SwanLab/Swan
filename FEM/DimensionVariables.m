@@ -39,14 +39,25 @@ classdef DimensionVariables < handle
             obj.npnod          = obj.mesh.npnod;
         end
 
+        function applyNdimfield(obj, num)
+            obj.ndimField = num;
+            obj.ndofPerElement = obj.nnode*obj.ndimField;
+            obj.nentries       = obj.nelem*(obj.ndofPerElement)^2;
+            obj.ndof           = obj.mesh.npnod*obj.ndimField;
+        end
+
         function applyNUnknPerField(obj, num)
             obj.nunknPerField = num;
         end
-
+        
         function applyNnode(obj, num)
             obj.nnode = num;
         end
-        
+
+        function applyNelem(obj, num)
+            obj.nelem = num;
+        end
+
     end
     
     methods (Access = private)

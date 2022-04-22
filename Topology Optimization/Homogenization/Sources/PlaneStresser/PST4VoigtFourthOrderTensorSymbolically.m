@@ -38,7 +38,7 @@ classdef PST4VoigtFourthOrderTensorSymbolically < PST4VoigtFourthOrderTensor
         end
         
         function t = getValue(obj)
-            t = obj.TensorInPlaneStress;            
+            t = obj.TensorInPlaneStress;
         end
     end
     
@@ -133,7 +133,7 @@ classdef PST4VoigtFourthOrderTensorSymbolically < PST4VoigtFourthOrderTensor
         
         function fillTensorComponent(obj,i,j,TensorValue,StrainValue,Strain)
             
-            for icoef = 1:length(StrainValue)                
+            for icoef = 1:length(StrainValue)
                 if StrainValue(icoef) == Strain
                     if ~isempty(TensorValue(1))
                         if obj.isThirdComponent(j)
@@ -151,7 +151,7 @@ classdef PST4VoigtFourthOrderTensorSymbolically < PST4VoigtFourthOrderTensor
             if ~obj.isInputNotSymbollic()
                t = double(t);
             end
-            obj.psTensor.setValue(t);            
+            obj.psTensor.setValue(t);
         end
         
         function itIsNotSym = isInputNotSymbollic(obj)

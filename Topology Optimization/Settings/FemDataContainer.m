@@ -1,4 +1,3 @@
-
 classdef FemDataContainer < AbstractSettings
     
     properties (Access = protected)
@@ -8,11 +7,13 @@ classdef FemDataContainer < AbstractSettings
     properties (Access = public)
         fileName
         scale
-        pdim
-        ptype
+        dim
+        type
         nelem
         bc
         mesh
+        material
+        ngaus
     end
     
     methods (Access = public)
@@ -31,6 +32,8 @@ classdef FemDataContainer < AbstractSettings
         function init(obj)
             if ~isempty(obj.fileName)
                 obj.readFemInputFile();
+                obj.getNgaus();
+                obj.createMaterial();
             end
         end
         
@@ -40,13 +43,32 @@ classdef FemDataContainer < AbstractSettings
             
             obj.mesh   = s.mesh;
             obj.scale  = s.scale;
-            obj.pdim   = s.pdim;
-            obj.ptype  = s.ptype;
+            obj.dim   = s.pdim;
+            obj.type  = s.ptype;
             obj.nelem  = s.mesh.nelem;
             obj.bc.dirichlet = s.dirichlet;
             obj.bc.pointload = s.pointload;
         end
-        
+
+        function createMaterial(obj)
+            I = ones(obj.nelem,obj.ngaus);
+            s.ptype = obj.type;
+            s.pdim  = obj.dim;
+            s.nelem = obj.nelem;
+            s.mesh  = obj.mesh;
+            s.kappa = .9107*I;
+            s.mu    = .3446*I;
+            mat = Material.create(s);
+            mat.compute(s);
+            obj.material = mat;
+        end
+
+        function getNgaus(obj)
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature('LINEAR');
+            obj.ngaus = quad.ngaus;
+        end
+
     end
     
 end
