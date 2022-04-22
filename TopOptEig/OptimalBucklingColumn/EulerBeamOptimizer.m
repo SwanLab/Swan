@@ -28,10 +28,24 @@ classdef EulerBeamOptimizer < handle
     % use dimension class for dim (DONE)
     % length with geometry  (DONE)
     % stiffnes and bending with LHSintegrator.. (DONE)
-    % Solve for a non-structured mesh 
+    % Solve for a non-structured mesh (DONE)
+   
+
+    %%% Refactoring
+    % delete elemental loop LHS Bending
+    % delete elemental loop LHS Stifness
+    % delete StifnessMatrixComputer
+    % delete BendingMatrixComputer
+    % assambly matrix in Bending
+
+    %%% Next
     % derivative "clean"/ "understand"    
-    % MMa from Swan
     % Plot column area
+    
+    %%% Future
+    % MMa from Swan    
+    % Use shape functions for elemental stifness and bending
+
 
     properties (Access = private)
         designVariable
@@ -57,7 +71,7 @@ classdef EulerBeamOptimizer < handle
     methods (Access = private)
         
         function init(obj)
-            obj.nElem         = 10;
+            obj.nElem         = 20;
             obj.nConstraints  = 3; 
             obj.columnLength  = 1; 
             obj.nValues       = obj.nElem+1;
@@ -79,8 +93,8 @@ classdef EulerBeamOptimizer < handle
 
         function coord = createCoordinates(obj)
             nnod = obj.nElem + 1;
-            x = [0;rand(nnod-2,1);1]*obj.columnLength;
-            x = sort(x);
+            % x = [0;rand(nnod-2,1);1]*obj.columnLength;
+            % x = sort(x);
             % coord = x;
             coord = linspace(0,obj.columnLength,nnod)';
         end

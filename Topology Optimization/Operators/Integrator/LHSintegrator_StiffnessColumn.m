@@ -46,19 +46,6 @@ classdef LHSintegrator_StiffnessColumn < LHSintegrator
             lhs = Ke;
         end
 
-        function l = computeLength(obj)
-            g = obj.geometry;
-            l = sum(g.dvolu,2);
-        end
-
-        function [c1,c2,c3,c4,c5] = coeffsStiffness(obj,l)
-            c1 = 1/(30*l);
-            c2 = 36;
-            c3 = 3*l;
-            c4 = 4*l^2;
-            c5 = l^2;
-        end
-
     end
     
     methods (Access = private)
@@ -72,6 +59,19 @@ classdef LHSintegrator_StiffnessColumn < LHSintegrator
             g.computeGeometry(q,int);
             obj.geometry = g;
         end
+
+        function l = computeLength(obj)
+            g = obj.geometry;
+            l = sum(g.dvolu,2);
+        end
+
+        function [c1,c2,c3,c4,c5] = coeffsStiffness(obj,l)
+            c1 = 1/(30*l);
+            c2 = 36;
+            c3 = 3*l;
+            c4 = 4*l^2;
+            c5 = l^2;
+        end        
 
     end
     

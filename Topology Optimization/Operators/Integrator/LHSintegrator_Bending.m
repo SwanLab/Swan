@@ -18,7 +18,7 @@ classdef LHSintegrator_Bending < LHSintegrator
         
         function obj = LHSintegrator_Bending(cParams)
             obj.init(cParams);
-            obj.initSpecific(cParams);
+            obj.initBending(cParams);
             obj.createQuadrature();
             obj.createInterpolation();
             obj.createGeometry();
@@ -52,24 +52,13 @@ classdef LHSintegrator_Bending < LHSintegrator
             obj.elementalBendingMatrix = Be;
             lhs  = Be;
         end
-
-        function l = computeLength(obj)
-            g = obj.geometry;
-            l = sum(g.dvolu,2);
-        end
-
-        function [c1,c2,c3,c4] = coeffsBending(obj,l,E,I)
-            c1 = E*I/l^3;
-            c2 = 12;
-            c3 = 6*l;
-            c4 = 4*l^2;
-        end
+    
 
     end
 
     methods (Access = private)
 
-        function obj = initSpecific(obj,cParams)
+        function obj = initBending(obj,cParams)
             obj.youngModulus   = cParams.youngModulus;
             obj.inertiaMoment  = cParams.inertiaMoment;
             obj.designVariable = cParams.designVariable; 
@@ -84,6 +73,18 @@ classdef LHSintegrator_Bending < LHSintegrator
             g.computeGeometry(q,int);
             obj.geometry = g;
         end
+
+        function l = computeLength(obj)
+            g = obj.geometry;
+            l = sum(g.dvolu,2);
+        end
+
+        function [c1,c2,c3,c4] = coeffsBending(obj,l,E,I)
+            c1 = E*I/l^3;
+            c2 = 12;
+            c3 = 6*l;
+            c4 = 4*l^2;
+        end        
 
         function LHS = assemblyBendingMatrix(obj,Be)
             d = obj.dim;
