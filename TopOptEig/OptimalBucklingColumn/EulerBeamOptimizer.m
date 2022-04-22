@@ -50,8 +50,6 @@ classdef EulerBeamOptimizer < handle
 
 
 
-
-
 %pgon = polyshape([0 0 1 1],[1 0 0 1])
 % tr = triangulation(pgon);
 % model = createpde;
@@ -96,7 +94,7 @@ classdef EulerBeamOptimizer < handle
     methods (Access = private)
         
         function init(obj)
-            obj.nElem         = 20;
+            obj.nElem         = 10;
             obj.nConstraints  = 3; 
             obj.columnLength  = 1; 
             obj.nValues       = obj.nElem+1;
@@ -118,9 +116,9 @@ classdef EulerBeamOptimizer < handle
 
         function coord = createCoordinates(obj)
             nnod = obj.nElem + 1;
-            % x = [0;rand(nnod-2,1);1]*obj.columnLength;
-            % x = sort(x);
-            % coord = x;
+             x = [0;rand(nnod-2,1);1]*obj.columnLength;
+             x = sort(x);
+             % coord = x;
             coord = linspace(0,obj.columnLength,nnod)';
         end
 
@@ -137,7 +135,7 @@ classdef EulerBeamOptimizer < handle
 
         function createDimensions(obj)
             s.mesh = obj.mesh;
-            s.pdim = '2D'; % Para que tenga 4 dofs por elemento
+            s.pdim = '2D';
             s.ngaus = 2;
             d = DimensionVariables(s);
             d.compute();

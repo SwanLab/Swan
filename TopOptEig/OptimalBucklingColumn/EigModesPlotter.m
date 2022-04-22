@@ -43,10 +43,47 @@ classdef EigModesPlotter < handle
             obj.E2(iter) = D(2,2);
         end
         
-        function plotColumnArea(obj,A)            
+        function plotColumnArea(obj,A)      
+            % 1. habría que pasarle la clase dim
             z = sqrt(A); 
+            nelem = obj.mesh.nelem;
+            coord = obj.mesh.coord;
+            nnod = nelem+1;
+            vertex = zeros(4*nelem+1,2);  %%%%%% Ponerlo genérico
+            
+            for iNod = 1:nnod-1
+                vertex(2*iNod-1,:)   = [0.2*z(iNod)/2 coord(iNod)];
+                vertex(2*iNod,:) = [0.2*z(iNod)/2 coord(iNod+1)];
+            end
+
+            vertex(2*nelem+1:4*nelem,1) = - fliplr(vertex(1:2*nelem,1)')';
+            vertex(2*nelem+1:4*nelem,2) = fliplr(vertex(1:2*nelem,2)')';
+            vertex(end,:) = vertex(1,:);
+            pgon = polyshape(vertex);
+            tr = triangulation(pgon);
+            model = createpde;
+            tnodes = tr.Points';
+            telements = tr.ConnectivityList';
+            geometryFromMesh(model,tnodes,telements);
+            generateMesh(model,'GeometricOrder','linear','Hmax',0.1)
+            coord = model.Mesh.Nodes';
+            connec = model.Mesh.Elements';
+            s.coord = coord;
+            s.connec = connec;
+            m = Mesh(s);
+
+            figure(1);
+            clf
+            m.plot();
+            grid on
+            grid minor
+            title('Clamped-Clamped Column Profile','Interpreter', 'latex','FontSize',20, 'fontweight','b');
+            xlabel('A(x)','Interpreter', 'latex','fontsize',14,'fontweight','b');
+            ylabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
+            
+
             xBar = obj.mesh.computeBaricenter();
-            figure(1)
+            figure(2)
             subplot(2,2,[1 3]);plot(xBar,z)
             grid on
             grid minor
@@ -70,7 +107,8 @@ classdef EigModesPlotter < handle
         end
 
         function plotEigenvaluesAndIterations(obj)
-            figure(2)
+            figure(3)
+            clf
             hold on
             plot(1:obj.iter,obj.E1);
             plot(1:obj.iter,obj.E2);

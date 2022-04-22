@@ -232,13 +232,13 @@ classdef IterativeProcessComputer < handle
             obj.costHistory(iter) = obj.cost.value;
             obj.vol(iter) = obj.designVariable.computeVolum();
             obj.plot(iter)
-            figure(3)
+            figure(4)
             plot(obj.costHistory)
             grid on
             grid minor
             xlabel('Number of Iteration','Interpreter', 'latex','fontsize',18,'fontweight','b');
             ylabel('Cost','Interpreter', 'latex','fontsize',18,'fontweight','b');
-            figure(4)
+            figure(5)
             plot(obj.vol)
             grid on
             grid minor
