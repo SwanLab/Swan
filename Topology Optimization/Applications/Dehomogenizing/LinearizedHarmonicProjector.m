@@ -37,6 +37,9 @@ classdef LinearizedHarmonicProjector < handle
             i = 1;
             isErrorLarge = true;
             lambda = obj.computeInitalLambda();
+            npnod = obj.dim.npnod;
+            eta    = zeros(npnod,1);
+            etaOld = eta;
             lambdaOld = lambda;
             tau = 1000;
             rhs    = obj.computeRHS(v0);
@@ -52,13 +55,15 @@ classdef LinearizedHarmonicProjector < handle
 
 
                 % gradient                            
-                I = 1:2*obj.dim.npnod;
-                Il = (2*obj.dim.npnod + 1):length(rhs);
-                x = [vH(:,1);vH(:,2);lambda];
+                I = 1:2*npnod;
+                nInt = obj.computeNint();
+                Il =  (2*npnod + 1):(2*npnod +length(nInt));
+                Ieta = (2*npnod + length(nInt) + 1):(2*npnod + length(nInt) + npnod);
+                x = [vH(:,1);vH(:,2);lambda;eta];
                 res  = lhs*x - rhs;
                 resP = res(I);
                 resD = res(Il);
-
+                resE = res(Ieta);
 
 %                 b    = obj.boundaryMesh;
 %                 nInt = setdiff(1:obj.dim.npnod,b);                               
@@ -82,10 +87,12 @@ classdef LinearizedHarmonicProjector < handle
                 sol    = obj.solver.solve(lhs,rhs); 
                 indexX = 1:obj.dim.npnod;
                 indexY = (obj.dim.npnod) + (1:obj.dim.npnod);
-                indexL = (2*(obj.dim.npnod) + 1):length(sol);
+                indexL = (2*npnod + 1):(2*npnod +length(nInt));
+                indexEta = (2*npnod + length(nInt) + 1):(2*npnod + length(nInt) + npnod);
                 v(:,1) = sol(indexX,1);
                 v(:,2) = sol(indexY,1);
                 lambda = sol(indexL,1);
+                eta    = sol(indexEta,1);
 
                 
                 
@@ -93,16 +100,19 @@ classdef LinearizedHarmonicProjector < handle
                 err(i)  = norm(res);
                 errP(i) = norm(resP);                
                 errD(i) = norm(resD);
+                errE(i) = norm(resE);
                 incX(i) = norm(v(:)-vH(:));
                 incL(i) = norm(lambda-lambdaOld);
+                incE(i) = norm(eta-etaOld);
 
                 lambdaOld = lambda;
+                etaOld = eta;
                 isErrorLarge = err(i) > 1e-13;
 
                 if mod(i,10) == 0
                 figure(99)
-                semilogy(1:i,([err;errP;errD;incX;incL])) 
-                legend('res','resP','resD','incX','incL')
+                semilogy(1:i,([err;errP;errD;errE;incX;incL;incE])) 
+                legend('res','resP','resD','resE','incX','incL','incE')
                 end                
                                 
                 
@@ -111,6 +121,14 @@ classdef LinearizedHarmonicProjector < handle
                 vH = theta*v + (1-theta)*vH ;    
 %                 if mod(t,1000) == 0
 %                 vH = obj.projectUnitBall(vH);
+
+              %  theta2 = 0;
+              %  normvH = obj.computeNorm(vH);
+               % normT = theta2*normvH + (1-theta2)*1;
+              %  vH = vH./normT;
+
+
+
 %                 t = t+1;
 %                 end
                 i = i + 1;
@@ -118,6 +136,12 @@ classdef LinearizedHarmonicProjector < handle
 
 
 
+        end
+
+        function norm = computeNorm(obj,v)
+         vx = v(:,1);
+         vy = v(:,2);
+         norm = sqrt(vx.^2 + vy.^2);
         end
 
         function tp = projectUnitBall(obj,t)
@@ -206,7 +230,7 @@ classdef LinearizedHarmonicProjector < handle
             obj.massMatrix = M;
         end
 
-        function [CX,CY,DX,DY] = computeAdvectionMatrix(obj,vH)
+        function [CX,CY,DX,DY,EX,EY] = computeAdvectionMatrix(obj,vH)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
             s.npnod        = obj.mesh.npnod;
@@ -216,12 +240,11 @@ classdef LinearizedHarmonicProjector < handle
             s.quadType     = 'QUADRATIC';
             
             lhs = LHSintegrator.create(s);
-            [CX,CY,DX,DY] = lhs.compute();
+            [CX,CY,DX,DY,EX,EY] = lhs.compute();
        end        
 
        function Ared = computeReducedAdvectionMatrix(obj,A)
-           b    = obj.boundaryMesh;
-           nInt = setdiff(1:obj.dim.npnod,b);
+           nInt = obj.computeNint();
            Ared = A(:,nInt);
        end
 
@@ -232,22 +255,27 @@ classdef LinearizedHarmonicProjector < handle
 
 
        function  computeLHS(obj,vH)
-           [Cx,Cy,Dx,Dy] = obj.computeAdvectionMatrix(vH);
+           [Cx,Cy,Dx,Dy,Ex,Ey] = obj.computeAdvectionMatrix(vH);
            Cx = obj.computeReducedAdvectionMatrix(Cx);
            Cy = obj.computeReducedAdvectionMatrix(Cy);
            Dx = obj.computeReducedAdvectionMatrix(Dx);
            Dy = obj.computeReducedAdvectionMatrix(Dy);
            M    = obj.massMatrix;
            Zb   = zeros(size(M));
-           Z    = obj.computeZeroFunction();
-           lhs  = [M,Zb,(-Dx+Cx);Zb,M,(Dy-Cy);(-Dx+Cx)',(Dy-Cy)',Z];
+           Zbred = obj.computeReducedAdvectionMatrix(Zb);
+           Z    = obj.computeZeroMatrix();
+           lhs  = [M,Zb,(-Dx+Cx),Ex;Zb,M,(Dy-Cy),Ey;(-Dx+Cx)',(Dy-Cy)',Z,Zbred';Ex',Ey',Zbred,Zb];
            obj.LHS = lhs;
        end
 
-       function Z = computeZeroFunction(obj)
-           b    = obj.boundaryMesh;
-           nInt = setdiff(1:obj.dim.npnod,b);           
+       function Z = computeZeroMatrix(obj)
+           nInt = obj.computeNint();
            Z    = zeros(length(nInt),length(nInt));           
+       end
+
+       function nInt = computeNint(obj)
+            b    = obj.boundaryMesh;
+           nInt = setdiff(1:obj.dim.npnod,b);                     
        end
 
         function rhs = computeRHS(obj,v)
@@ -268,12 +296,11 @@ classdef LinearizedHarmonicProjector < handle
             rhs2 = M*v(:,2);
 
 
-            b = obj.boundaryMesh;
-            nInt = setdiff(1:obj.dim.npnod,b);
+            nInt = obj.computeNint();
             Z   = zeros(length(nInt),1);
+            I   = ones(size(M,1),1);
 
-
-            rhs = [rhs1;rhs2;Z];
+            rhs = [rhs1;rhs2;Z;I];
         end
 
       

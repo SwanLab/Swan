@@ -17,19 +17,21 @@ classdef LHSintegrator_Advection < LHSintegrator
             obj.createGeometry();
         end
 
-        function [CX,CY,DX,DY] = compute(obj)
-            [CX,CY,DX,DY] = obj.computeElementalLHS();
+        function [CX,CY,DX,DY,EX,EY] = compute(obj)
+            [CX,CY,DX,DY,EX,EY] = obj.computeElementalLHS();
             CX = obj.assembleMatrix(CX);
             CY = obj.assembleMatrix(CY);
             DX = obj.assembleMatrix(DX);
             DY = obj.assembleMatrix(DY);
+            EX = obj.assembleMatrix(EX);
+            EY = obj.assembleMatrix(EY);
         end
         
     end
     
    methods (Access = protected)
         
-        function [CX,CY,DX,DY] = computeElementalLHS(obj)
+        function [CX,CY,DX,DY,EX,EY] = computeElementalLHS(obj)
             dvolu = obj.mesh.computeDvolume(obj.quadrature);
             ngaus = obj.quadrature.ngaus;
             nelem = obj.mesh.nelem;
@@ -47,7 +49,9 @@ classdef LHSintegrator_Advection < LHSintegrator
             cX = zeros(ndpe,ndpe,nelem);
             cY = zeros(ndpe,ndpe,nelem);
             dX = zeros(ndpe,ndpe,nelem);
-            dY = zeros(ndpe,ndpe,nelem);            
+            dY = zeros(ndpe,ndpe,nelem);    
+            eX = zeros(ndpe,ndpe,nelem);
+            eY = zeros(ndpe,ndpe,nelem);  
 
             for igaus = 1:ngaus
                 dNg = dN(:,:,:,igaus);
@@ -87,7 +91,14 @@ classdef LHSintegrator_Advection < LHSintegrator
 
                             cY(iNode,jNode,:) = cY(iNode,jNode,:) + cYv;
                             dY(iNode,jNode,:) = dY(iNode,jNode,:) + dYv;
+                            
 
+                            e = Ni.*Nj.*Nk;
+                            eXV(1,1,:) = e.*bXk.*dV;
+                            eYV(1,1,:) = e.*bYk.*dV;
+
+                            eX(iNode,jNode,:) = eX(iNode,jNode,:) + eXV;
+                            eY(iNode,jNode,:) = eY(iNode,jNode,:) + eYV;
 
                         end                   
                     end
@@ -97,6 +108,8 @@ classdef LHSintegrator_Advection < LHSintegrator
             CY = cY;
             DX = dX;
             DY = dY;
+            EX = eX;
+            EY = eY;
         end
 
 
