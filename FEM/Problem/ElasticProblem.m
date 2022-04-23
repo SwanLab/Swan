@@ -9,8 +9,7 @@ classdef ElasticProblem < handle
         displacement
         problemData
         stiffnessMatrix
-        stiffnessMatrixRed
-        forces
+        RHS
         solver
         geometry
     end
@@ -134,9 +133,7 @@ classdef ElasticProblem < handle
             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
             K   = LHS.compute();
-            Kred = obj.boundaryConditions.fullToReducedMatrix(K);
             obj.stiffnessMatrix    = K;
-            obj.stiffnessMatrixRed = Kred;
         end
 
         function computeStiffnessMatrixOld(obj)
@@ -148,18 +145,10 @@ classdef ElasticProblem < handle
             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
             K   = LHS.compute();
-            Kred = obj.boundaryConditions.fullToReducedMatrix(K);
             obj.stiffnessMatrix    = K;
-            obj.stiffnessMatrixRed = Kred;
         end
 
         function computeForces(obj)
-            f    = obj.computeExternalForces();
-            fRed = obj.reduceForcesMatrix(f);
-            obj.forces = fRed;
-        end
-
-        function F = computeExternalForces(obj)
             s.dim         = obj.dim;
             s.BC          = obj.boundaryConditions;
             s.mesh        = obj.mesh;
@@ -169,20 +158,18 @@ classdef ElasticProblem < handle
                 s.vstrain = obj.vstrain;
             end
             fcomp = ForcesComputer(s);
-            F = fcomp.compute();
+            f = fcomp.compute();
             R = fcomp.computeReactions(obj.stiffnessMatrix);
-            obj.variables.fext = F + R;
-        end
-
-        function Fred = reduceForcesMatrix(obj, forces)
-            Fred = obj.boundaryConditions.fullToReducedVector(forces);
+            obj.variables.fext = f + R;
+            obj.RHS = f;
         end
 
         function u = computeDisplacements(obj)
-            Kred = obj.stiffnessMatrixRed;
-            Fred = obj.forces;
+            bc = obj.boundaryConditions;
+            Kred = bc.fullToReducedMatrix(obj.stiffnessMatrix);
+            Fred = bc.fullToReducedVector(obj.RHS);
             u = obj.solver.solve(Kred,Fred);
-            u = obj.boundaryConditions.reducedToFullVector(u);
+            u = bc.reducedToFullVector(u);
             obj.variables.d_u = u;
         end
 

@@ -90,8 +90,8 @@ classdef PieceWiseConstantFunction < handle
         end
         
         function RHS = computeRHS(obj)
-            fG = obj.computeFgauss;
-            xG = obj.computeXgauss;
+            fG = obj.computeFgauss();
+            xG = obj.computeXgauss();
             RHS = obj.integrator.integrateFgauss(fG,xG,obj.quadOrder);
         end
         

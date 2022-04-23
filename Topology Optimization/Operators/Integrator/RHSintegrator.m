@@ -10,6 +10,15 @@ classdef RHSintegrator < handle
         quadrature
         nunknPerField
     end
+
+    methods (Access = public, Static)
+        
+        function obj = create(s)
+            f = RHSintegratorFactory();
+            obj = f.create(s);
+        end
+
+    end
     
     methods (Access = public)
         
@@ -37,7 +46,7 @@ classdef RHSintegrator < handle
             int = transpose(int);
         end
         
-        function int = integrateWithShapeDerivative(obj) %copiat de Dehomogenizing
+        function int = integrateWithShapeDerivative(obj)
             fG      = obj.fGauss;
             dV      = obj.computeDvolume();
             grad    = obj.computeGrad();
@@ -77,7 +86,7 @@ classdef RHSintegrator < handle
             obj.mesh      = cParams.mesh;
             obj.type      = cParams.type;
             obj.quadOrder = cParams.quadOrder;
-            if isfield(cParams, 'nunknPerField') 
+            if isfield(cParams, 'nunknPerField')
                 if ~isempty(cParams.nunknPerField)
                 obj.nunknPerField = cParams.nunknPerField;
                 else

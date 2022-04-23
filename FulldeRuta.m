@@ -52,7 +52,7 @@
 % OK! In Filter use LHSintegrator rather than DiffReact
 % OK! DiffReact delete getM and getK and setEpsilon and computeDvolume
 % OK* setLHStype in DiffReact in Filter
-% YET Crate RHS integrator for Elastic, ElasticMicro and thermal
+% YET Create RHSintegrator for Elastic, ElasticMicro and thermal
 % OK! delete interp in ElasticProblem
 % YET dimEscalar, vector....by fields...nElem,nDim private in dim
 % YET Stokes..
