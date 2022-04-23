@@ -15,6 +15,8 @@ classdef ForcesComputer < handle
 
         function obj = ForcesComputer(cParams)
             obj.init(cParams);
+            obj.createGeometry();
+            obj.computeDvolume();
         end
 
         function Fext = compute(obj)
@@ -47,12 +49,27 @@ classdef ForcesComputer < handle
             obj.mesh               = cParams.mesh;
             obj.boundaryConditions = cParams.BC;
             obj.material           = cParams.material;
-            obj.geometry           = cParams.geometry;
-            obj.dvolume            = cParams.dvolume';
             obj.globalConnec       = cParams.globalConnec;
             if isfield(cParams, 'vstrain')
                 obj.vstrain = cParams.vstrain;
             end
+        end
+       
+        function createGeometry(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('LINEAR');
+            int = obj.mesh.interpolation;
+            int.computeShapeDeriv(q.posgp);
+            s.mesh = obj.mesh;
+            g = Geometry.create(s);
+            g.computeGeometry(q,int);
+            obj.geometry = g;
+        end
+
+        function computeDvolume(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('LINEAR');
+            obj.dvolume = obj.mesh.computeDvolume(q)';
         end
 
         function Fs = computeSuperficialFext(obj)

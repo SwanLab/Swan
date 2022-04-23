@@ -22,7 +22,7 @@ classdef ElasticProblem < handle
 
         vstrain
 
-        mesh, interp % For Homogenization
+        mesh % For Homogenization
     end
 
     methods (Access = public)
@@ -95,8 +95,6 @@ classdef ElasticProblem < handle
             pd.bc.pointload = cParams.bc.pointload;
             obj.problemData = pd;
             obj.createQuadrature();
-            obj.createInterpolation();
-            obj.createGeometry();
         end
 
         function createQuadrature(obj)
@@ -112,21 +110,6 @@ classdef ElasticProblem < handle
             d       = DimensionVariables(s);
             d.compute();
             obj.dim = d;
-        end
-
-        function createInterpolation(obj)
-            int = obj.mesh.interpolation;
-            obj.interp{1} = int;
-        end
-       
-        function createGeometry(obj)
-            q   = obj.quadrature;
-            int = obj.interp{1};
-            int.computeShapeDeriv(q.posgp);
-            s.mesh = obj.mesh;
-            g = Geometry.create(s);
-            g.computeGeometry(q,int);
-            obj.geometry = g;
         end
 
         function createBoundaryConditions(obj)
@@ -181,8 +164,6 @@ classdef ElasticProblem < handle
             s.BC          = obj.boundaryConditions;
             s.mesh        = obj.mesh;
             s.material    = obj.material;
-            s.geometry    = obj.geometry;
-            s.dvolume     = obj.mesh.computeDvolume(obj.quadrature);
             s.globalConnec = obj.mesh.connec;
             if isprop(obj, 'vstrain')
                 s.vstrain = obj.vstrain;
@@ -208,9 +189,7 @@ classdef ElasticProblem < handle
         function computeStrain(obj)
             s.dim                = obj.dim;
             s.mesh               = obj.mesh;
-            s.quadrature         = obj.quadrature;
             s.displacement       = obj.variables.d_u;
-            s.interpolation      = obj.interp{1};
             scomp  = StrainComputer(s);
             strain = scomp.compute();
             obj.variables.strain = strain;
@@ -244,7 +223,6 @@ classdef ElasticProblem < handle
             d = ps.getValue();
         end
 
-        
         function uM = splitDisplacement(obj)
             u = obj.variables.d_u;
             nu = obj.dim.ndimField;

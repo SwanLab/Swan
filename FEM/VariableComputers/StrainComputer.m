@@ -4,9 +4,7 @@ classdef StrainComputer < handle
         dim
         mesh
         geometry
-        quadrature
         displacement
-        interpolation
     end
     
     methods (Access = public)
@@ -27,14 +25,13 @@ classdef StrainComputer < handle
         function init(obj,cParams)
             obj.dim                = cParams.dim;
             obj.mesh               = cParams.mesh;
-            obj.quadrature         = cParams.quadrature;
             obj.displacement       = cParams.displacement;
-            obj.interpolation      = cParams.interpolation;
         end
        
         function createGeometry(obj)
-            q   = obj.quadrature;
-            int = obj.interpolation;
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('LINEAR');
+            int = obj.mesh.interpolation;
             int.computeShapeDeriv(q.posgp);
             s.mesh = obj.mesh;
             g = Geometry.create(s);
