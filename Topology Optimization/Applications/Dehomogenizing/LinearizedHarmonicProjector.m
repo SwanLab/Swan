@@ -55,15 +55,28 @@ classdef LinearizedHarmonicProjector < handle
 
 
                 % gradient                            
-                I = 1:2*npnod;
-                nInt = obj.computeNint();
-                Il =  (2*npnod + 1):(2*npnod +length(nInt));
-                Ieta = (2*npnod + length(nInt) + 1):(2*npnod + length(nInt) + npnod);
+                [iX,iY,iL,iE] = obj.computeIndex();
                 x = [vH(:,1);vH(:,2);lambda;eta];
                 res  = lhs*x - rhs;
-                resP = res(I);
-                resD = res(Il);
-                resE = res(Ieta);
+                resP = res([iX,iY]);
+                resD = res(iL);
+                resE = res(iE);
+% 
+%                 iB   = [iX,iY];
+%                 i1   = 1:length(iX);
+%                 i2   = i1 + obj.dim.npnod;
+%                 iB1  = iB(i1);
+%                 iB2  = iB(i2);
+%                 xb1   = x(iB1);
+%                 xb2   = x(iB2);
+%                 LHSb1 = lhs(iE(i1),iB1);
+%                 LHSb2 = lhs(iE(i1),iB2);
+%               
+%                 resb1 = LHSb1*xb1;
+%                 resb2 = LHSb2*xb2;
+%                 a = [resb1 + resb2,rhs(iE(i1))];
+%                 a(1:10,:)
+                
 
 %                 b    = obj.boundaryMesh;
 %                 nInt = setdiff(1:obj.dim.npnod,b);                               
@@ -85,14 +98,11 @@ classdef LinearizedHarmonicProjector < handle
 
                 % Picard
                 sol    = obj.solver.solve(lhs,rhs); 
-                indexX = 1:obj.dim.npnod;
-                indexY = (obj.dim.npnod) + (1:obj.dim.npnod);
-                indexL = (2*npnod + 1):(2*npnod +length(nInt));
-                indexEta = (2*npnod + length(nInt) + 1):(2*npnod + length(nInt) + npnod);
-                v(:,1) = sol(indexX,1);
-                v(:,2) = sol(indexY,1);
-                lambda = sol(indexL,1);
-                eta    = sol(indexEta,1);
+                [iX,iY,iL,iE] = obj.computeIndex();
+                v(:,1) = sol(iX,1);
+                v(:,2) = sol(iY,1);
+                lambda = sol(iL,1);
+                eta    = sol(iE,1);
 
                 
                 
@@ -116,11 +126,12 @@ classdef LinearizedHarmonicProjector < handle
                 end                
                                 
                 
-                theta = 0.5;
+                theta = 0.4;0.5;
              %   v = obj.projectUnitBall(v);
                 vH = theta*v + (1-theta)*vH ;    
-%                 if mod(t,1000) == 0
-%                 vH = obj.projectUnitBall(vH);
+%                  if mod(i,10) == 0
+%                  vH = obj.projectUnitBall(vH);
+%                  end
 
               %  theta2 = 0;
               %  normvH = obj.computeNorm(vH);
@@ -136,6 +147,15 @@ classdef LinearizedHarmonicProjector < handle
 
 
 
+        end
+
+        function [iX,iY,iL,iE] = computeIndex(obj)
+            npnod = obj.dim.npnod;
+            nInt  = obj.computeNint();
+            iX = 1:npnod;
+            iY = (npnod) + (1:npnod);
+            iL = (2*npnod + 1):(2*npnod +length(nInt));
+            iE = (2*npnod + length(nInt) + 1):(2*npnod + length(nInt) + npnod);
         end
 
         function norm = computeNorm(obj,v)
@@ -156,8 +176,9 @@ classdef LinearizedHarmonicProjector < handle
             y = obj.mesh.coord(:,2);
             tx = t(:,1);
             ty = t(:,2);
-            quiver(x,y,tx,ty);
+           
             tp = obj.projectUnitBall(t);
+            quiver(x,y,tx-tp(:,1),ty-tp(:,2),1.1);
             tx = tp(:,1);
             ty = tp(:,2);
             subplot(2,2,2*(2-1)+iFigure)            
@@ -237,7 +258,7 @@ classdef LinearizedHarmonicProjector < handle
             s.type         = 'AdvectionMatrix';
             s.dim          = obj.dim;
             s.b            = vH;
-            s.quadType     = 'QUADRATIC';
+            s.quadType     = 'CUBIC';
             
             lhs = LHSintegrator.create(s);
             [CX,CY,DX,DY,EX,EY] = lhs.compute();
@@ -300,7 +321,7 @@ classdef LinearizedHarmonicProjector < handle
             Z   = zeros(length(nInt),1);
             I   = ones(size(M,1),1);
 
-            rhs = [rhs1;rhs2;Z;I];
+            rhs = [rhs1;rhs2;Z;M*I];
         end
 
       
