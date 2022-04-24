@@ -16,7 +16,7 @@ classdef ElasticProblem < handle
 
     properties (Access = protected)
         quadrature
-        dim
+        dim, dim2
         material
 
         vstrain
@@ -29,6 +29,7 @@ classdef ElasticProblem < handle
         function obj = ElasticProblem(cParams)
             obj.init(cParams);
             obj.computeDimensions();
+            obj.computeNewDimensions();
             obj.createBoundaryConditions();
             obj.createSolver();
         end
@@ -111,6 +112,17 @@ classdef ElasticProblem < handle
             obj.dim = d;
         end
 
+        function computeNewDimensions(obj)
+            s.fieldName = 'u';
+            s.mesh = obj.mesh;
+            s.ndimf = str2double(regexp(obj.problemData.pdim,'\d*','Match'));
+
+            d = DimensionVector(s);
+            d.create(s)
+            d.applyNgaus(obj.quadrature.ngaus);
+            obj.dim = d;
+        end
+
         function createBoundaryConditions(obj)
             s.dim        = obj.dim;
             s.mesh       = obj.mesh;
@@ -133,7 +145,7 @@ classdef ElasticProblem < handle
             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
             K   = LHS.compute();
-            obj.stiffnessMatrix    = K;
+            obj.stiffnessMatrix = K;
         end
 
         function computeStiffnessMatrixOld(obj)
@@ -145,7 +157,7 @@ classdef ElasticProblem < handle
             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
             K   = LHS.compute();
-            obj.stiffnessMatrix    = K;
+            obj.stiffnessMatrix = K;
         end
 
         function computeForces(obj)

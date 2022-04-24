@@ -66,12 +66,9 @@ classdef ScalarProduct < handle
         end
 
         function dim = computeDimensions(obj)
-            s.ngaus = [];
-            s.mesh  = obj.mesh;
-            s.pdim  = '1D';
-            d       = DimensionVariables(s);
-            d.compute();
-            dim = d;
+            s.name = 'x';
+            s.mesh = obj.mesh;
+            dim = DimensionScalar(s);
         end
         
         function M = computeMassMatrix(obj, dim)

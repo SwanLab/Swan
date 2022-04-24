@@ -81,6 +81,18 @@ classdef NewStokesProblem < handle
             obj.dim{2} = dimP;
         end
 
+        function computeNewDimensions(obj)
+            v.fieldName = 'v';
+            v.mesh = obj.mesh;
+            v.ndimf = 2;
+            vDim = DimensionVector(v);
+            vDim.create(v)
+            p.name = 'p';
+            p.mesh = obj.mesh;
+            p.ndimf = 1;
+            pDim = DimensionScalar(p);
+            objdims = {vDim, pDim};
+        end
         function createDOF(obj)
             obj.dof = DOF_Stokes(obj.fileName,obj.mesh,obj.geometry,obj.interp);
         end

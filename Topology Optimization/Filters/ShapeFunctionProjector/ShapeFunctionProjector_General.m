@@ -41,21 +41,10 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
         end
         
         function dim = computeDim(obj, mesh)
-            s.ngaus = [];
-            s.mesh  = obj.mesh;
-            s.pdim  = obj.createPdim(mesh);
-            dim    = DimensionVariables(s);
-            dim.compute();
-        end
-
-        function pdim = createPdim(obj, mesh)
-%             switch mesh.ndim
-%                 case 2
-%                     pdim = '2D';
-%                 case 3
-%                     pdim = '3D';
-%             end
-            pdim = '1D';
+            s.name = 'x';
+            s.mesh = obj.mesh;
+            dims   = DimensionScalar(s);
+            dim = dims;
         end
 
     end

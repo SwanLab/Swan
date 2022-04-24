@@ -103,12 +103,10 @@ classdef ShapeFunctional < handle
         end
 
         function computeDimensions(obj)
-            s.ngaus = [];
-            s.mesh  = obj.mesh;
-            s.pdim  = '1D';
-            d       = DimensionVariables(s);
-            d.compute();
-            obj.dim = d;
+            s.name = 'x';
+            s.mesh = obj.mesh;
+            dims   = DimensionScalar(s);
+            obj.dim = dims;
         end
         
         function M = computeMassMatrix(obj)

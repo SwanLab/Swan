@@ -77,11 +77,9 @@ classdef DiffReactProblem < handle
         end
 
         function computeDimensions(obj)
-            s.ngaus = [];
-            s.mesh  = obj.mesh;
-            s.pdim  = obj.problemData.pdim;
-            dims    = DimensionVariables(s);
-            dims.compute();
+            s.name = 'x';
+            s.mesh = obj.mesh;
+            dims   = DimensionScalar(s);
             obj.dim = dims;
         end
 
