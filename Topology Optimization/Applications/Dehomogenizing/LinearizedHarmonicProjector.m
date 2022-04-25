@@ -31,6 +31,8 @@ classdef LinearizedHarmonicProjector < handle
             lambda0 = 0*ones(length(nInt),1);
         end
 
+
+
         function [v,lambda] = solveProblem(obj,v0,vH)            
             vH = obj.projectUnitBall(vH);
             obj.plotOrientation(vH,1);
@@ -78,16 +80,7 @@ classdef LinearizedHarmonicProjector < handle
 %                 a(1:10,:)
                 
 
-%                 b    = obj.boundaryMesh;
-%                 nInt = setdiff(1:obj.dim.npnod,b);                               
-%                 x = obj.mesh.coord(:,1);
-%                 y = obj.mesh.coord(:,2);
-%                 z = zeros(size(x));
-%                 z(nInt) = resD;
-%                 figure()
-%                 trisurf(obj.mesh.connec,x,y,z)
-%                 view(0,90)
-%                 colorbar
+              
 
 %                 sol = x - tau*(res);
 %                 lambda = lambda + (lhs(Il,I)*x );
@@ -123,10 +116,12 @@ classdef LinearizedHarmonicProjector < handle
                 figure(99)
                 semilogy(1:i,([err;errP;errD;errE;incX;incL;incE])) 
                 legend('res','resP','resD','resE','incX','incL','incE')
+                errN = obj.computeErrorNorm(vH);
+                obj.plotResiudalUnitBall(resE,errN)
                 end                
                                 
                 
-                theta = 0.4;0.5;
+                theta = 0.5;
              %   v = obj.projectUnitBall(v);
                 vH = theta*v + (1-theta)*vH ;    
 %                  if mod(i,10) == 0
@@ -169,6 +164,23 @@ classdef LinearizedHarmonicProjector < handle
             tp = uP.project(t);
         end
 
+        function plotResiudalUnitBall(obj,resE,errN)
+            x = obj.mesh.coord(:,1);
+            y = obj.mesh.coord(:,2);
+            % z = zeros(size(x));
+            z = resE;
+            figure(55)
+            clf
+            subplot(1,2,1)
+            trisurf(obj.mesh.connec,x,y,resE)
+            view(0,90)
+            colorbar
+            subplot(1,2,2)
+            trisurf(obj.mesh.connec,x,y,errN)     
+            view(0,90)  
+            colorbar
+        end
+
         function plotOrientation(obj,t,iFigure)
             figure(100)
             subplot(2,2,iFigure)            
@@ -183,6 +195,11 @@ classdef LinearizedHarmonicProjector < handle
             ty = tp(:,2);
             subplot(2,2,2*(2-1)+iFigure)            
             quiver(x,y,tx,ty);            
+        end
+
+        function errN = computeErrorNorm(obj,t)
+            tNorm = obj.computeNorm(t);
+            errN = abs(1-tNorm);
         end
 
         function optPrim = computePrimalOptimaility(obj,lambda,v,vH)
@@ -285,7 +302,12 @@ classdef LinearizedHarmonicProjector < handle
            Zb   = zeros(size(M));
            Zbred = obj.computeReducedAdvectionMatrix(Zb);
            Z    = obj.computeZeroMatrix();
+
+           %Ex = diag(sum(Ex));
+           %Ey = diag(sum(Ey));
+
            lhs  = [M,Zb,(-Dx+Cx),Ex;Zb,M,(Dy-Cy),Ey;(-Dx+Cx)',(Dy-Cy)',Z,Zbred';Ex',Ey',Zbred,Zb];
+           %lhs  = [M,Zb,(-Dx+Cx),Ex;Zb,M,(Dy-Cy),Ey;(-Dx+Cx)',(Dy-Cy)',Z,Zbred';Ex',Ey',Zbred,Zb];
            obj.LHS = lhs;
        end
 
@@ -321,7 +343,10 @@ classdef LinearizedHarmonicProjector < handle
             Z   = zeros(length(nInt),1);
             I   = ones(size(M,1),1);
 
+%            rhs = [rhs1;rhs2;Z;M*I];
+            %M2 = diag(sum(M));
             rhs = [rhs1;rhs2;Z;M*I];
+
         end
 
       

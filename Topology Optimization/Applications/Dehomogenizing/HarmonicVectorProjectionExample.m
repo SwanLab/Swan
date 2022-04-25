@@ -21,7 +21,7 @@ classdef HarmonicVectorProjectionExample < handle
         unitBallProjector
         orientationVector
     end
-
+    
     methods (Access = public)
 
         function obj = HarmonicVectorProjectionExample()
@@ -40,6 +40,7 @@ classdef HarmonicVectorProjectionExample < handle
     methods (Access = private)
 
         function init(obj)
+            close all
             obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
             obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
             obj.iteration = 665;
