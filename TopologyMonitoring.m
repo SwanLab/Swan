@@ -33,7 +33,7 @@ classdef TopologyMonitoring < handle
                     obj.plotFmincon(cParams);
                 case 'NullSpace'
                     obj.plotNullSpace(cParams);
-                case 'AugmentedLagrangian'
+                case 'AlternatingPrimalDual'
                     obj.plotAugmentedLagrangian(cParams);
                 case 'Bisection'
                     obj.plotBisection(cParams);
@@ -105,12 +105,29 @@ classdef TopologyMonitoring < handle
             obj.convergenceVars.append(incX);
             obj.convergenceVars.append(obj.lineSearch);
             obj.convergenceVars.append(obj.lineSearchTrials);
+            obj.convergenceVars.append(cParams.meritNew);
             obj.refreshMonitoring();
             obj.printHistory();
         end
         
         function plotAugmentedLagrangian(obj,cParams)
-            
+            deltaCost              = obj.cost.value - cParams.oldCost;
+            obj.nIter              = cParams.nIter;
+            normXsquare            = obj.designVariable.computeL2normIncrement();
+            obj.lineSearch         = cParams.tau;
+            obj.lineSearchTrials   = cParams.lineSearchTrials;
+            obj.hasFinished        = cParams.hasFinished;
+            incX                   = sqrt(normXsquare);
+            obj.designVariable.updateOld();
+            obj.printOptimizerVariable();
+            obj.convergenceVars.reset();
+            obj.convergenceVars.append(deltaCost);
+            obj.convergenceVars.append(incX);
+            obj.convergenceVars.append(obj.lineSearch);
+            obj.convergenceVars.append(obj.lineSearchTrials);
+            obj.convergenceVars.append(cParams.meritNew);
+            obj.refreshMonitoring();
+            obj.printHistory();
         end
         
         function plotBisection(obj,cParams)

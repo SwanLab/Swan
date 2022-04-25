@@ -1,7 +1,7 @@
-classdef OptimizerNullSpace < Optimizer
+classdef OptimizerAugmentedLagrangian < Optimizer
 
     properties (GetAccess = public, SetAccess = protected)
-        type = 'NullSpace';
+        type = 'Augmented Lagrangian';
     end
 
     properties (Access = private)
@@ -12,7 +12,7 @@ classdef OptimizerNullSpace < Optimizer
         costOld
         upperBound
         lowerBound
-        tol = 1e-3
+        tol = 1e-6
         nX
         hasConverged
         acceptableStep
@@ -25,11 +25,12 @@ classdef OptimizerNullSpace < Optimizer
         hasFinished
         mOld
         meritNew
+        penalty
     end
 
     methods (Access = public) 
         
-        function obj = OptimizerNullSpace(cParams)
+        function obj = OptimizerAugmentedLagrangian(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
             obj.outputFunction.monitoring.create(cParams);
@@ -38,7 +39,7 @@ classdef OptimizerNullSpace < Optimizer
 
         function obj = solveProblem(obj)
             while ~obj.hasConverged
-              obj.update();
+                obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
@@ -67,7 +68,8 @@ classdef OptimizerNullSpace < Optimizer
             obj.cost.computeFunctionAndGradient();
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
-            obj.lambda = 0;
+            obj.lambda  = 0;
+            obj.penalty = 10;
         end
 
         function obj = update(obj)
@@ -91,81 +93,25 @@ classdef OptimizerNullSpace < Optimizer
             l       = obj.lambda;
             DJ      = obj.cost.gradient;
             Dg      = obj.constraint.gradient;
-            aJ      = 1;
-            DmF     = aJ*(DJ + l*Dg);
+            g       = obj.constraint.value;
+            p       = obj.penalty;
+            DmF     = DJ + l*g + p*g*Dg;
             if obj.nIter == 0
                 obj.tau = 1*sqrt(norm(DmF)/norm(x));
             else
                 obj.tau = 1.05*obj.tau;
             end
-            obj.tau = min(obj.tau,1.2);
         end
 
         function obj = updateDualDirect(obj)
             obj.constraint.computeFunctionAndGradient();
-            obj.cost.computeFunctionAndGradient();
-            DJ = obj.cost.gradient;
-            Dg = obj.constraint.gradient;
-            g  = obj.constraint.value;
-            S  = (Dg'*Dg)^-1;
-            t  = obj.tau;
-            aC = 1;
-            aJ = 1;
-            l  = aC/aJ*S*(g - t*Dg'*DJ);
+            l   = obj.lambda;
+            g   = obj.constraint.value;
+            p   = obj.penalty;
+            l   = l + p*g;
             obj.lambda = l;
         end
 
-%         function obj = updateDualQuadProg(obj)
-%             obj.constraint.computeFunctionAndGradient();
-%             obj.cost.computeFunctionAndGradient();
-%             obj.computeDualProblemParameters();
-%             obj.computeDualProblemOptions();
-%             PROBLEM         = obj.problem;
-%             PROBLEM.options = obj.options;
-%             l = quadprog(PROBLEM);
-%             obj.lambda = l;
-%         end
-% 
-%          function computeDualProblemParameters(obj)
-%             A = obj.constraint.gradient;
-%             b = obj.cost.gradient;
-%             c = obj.constraint.value;
-%             prob.H      = A'*A;
-%             prob.f      = c - obj.tau*b'*A;
-%             prob.A      = [];
-%             prob.b      = [];
-%             prob.Aeq    = [];
-%             prob.beq    = [];
-%             prob.lb     = -inf;
-%             prob.ub     = inf;
-%             prob.x0     = zeros(length(prob.H),1);
-%             prob.solver = 'quadprog';
-%             obj.problem = prob;
-%         end
-% 
-%         function computeDualProblemOptions(obj)
-%             opts = optimoptions("quadprog");
-%             opts = struct( ...
-%                 'Algorithm','interior-point-convex', ...
-%                 'Diagnostics','off', ...
-%                 'Display','none', ...
-%                 'HessMult',[], ...
-%                 'MaxIter',1e3, ...
-%                 'MaxPCGIter','max(1,floor(numberOfVariables/2))', ...
-%                 'PrecondBandWidth',0, ...
-%                 'ProblemdefOptions', struct, ...
-%                 'TolCon',1e-5, ...
-%                 'TolFun',[], ...
-%                 'TolFunValue', [], ...
-%                 'TolPCG',0.1, ...
-%                 'TolX',100*eps, ...
-%                 'TypicalX','ones(numberOfVariables,1)', ...
-%                 'LinearSolver', 'auto', ...
-%                 'ObjectiveLimit', -1e20 ...
-%                 );
-%             obj.options = opts;
-%         end
-% 
         function x = updatePrimal(obj)
             lb      = obj.lowerBound;
             ub      = obj.upperBound;
@@ -175,24 +121,14 @@ classdef OptimizerNullSpace < Optimizer
             DJ      = obj.cost.gradient;
             l       = obj.lambda;
             x       = obj.designVariable.value;
-            S       = (Dg'*Dg)^-1;
-            aJ  = 1;
-            aC  = 1;
-            dAJ     = aJ*(DJ + l*Dg);
-            dAC     = aC*Dg'*S*Dg;
-            dx      = -t*(dAJ);
+            p       = obj.penalty;
+            dx      = -t*(DJ + (l + p*g)*Dg);
             xN      = x + dx;
             x       = min(ub,max(xN,lb));
         end
 
         function checkStep(obj,x,x0)
             mNew = obj.computeMeritFunction(x);
-
-            if obj.nIter == 0 && mNew == obj.mOld
-                obj.acceptableStep = true;
-                obj.updateDualDirect();
-                obj.meritNew = mNew;
-            end
             if mNew < obj.mOld
                 obj.acceptableStep = true;
                 obj.updateDualDirect();
@@ -210,17 +146,11 @@ classdef OptimizerNullSpace < Optimizer
             obj.designVariable.update(x)
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
-            DJ     = obj.cost.gradient;
             J      = obj.cost.value;
-            Dg     = obj.constraint.gradient;
             g      = obj.constraint.value;
             l      = obj.lambda;
-            S      = (Dg'*Dg)^-1;
-            aJ     = 1;
-            aC     = 0.1;
-            AJ     = aJ*(J + l*g);
-            AC     = aC/2*g'*S*g;
-            mF     = AJ;
+            rho    = obj.penalty;
+            mF     = J + l'*g + 0.5*rho*g*g;
         end
 
         function obj = saveOldValues(obj,x)
@@ -239,7 +169,7 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function obj = checkConvergence(obj)
-           if abs(obj.oldCost - obj.cost.value) < obj.tol && max(obj.constraint.value) <= 0
+           if abs(obj.meritNew - obj.mOld) < obj.tol && max(obj.constraint.value) <= 0
                obj.hasConverged = true;
            else
                

@@ -5,7 +5,7 @@ classdef OptimizerFactory < handle
         function op = create(cParams)
             switch cParams.type
                 case 'AlternatingPrimalDual'
-                    op = OptimizerAlternatingPrimalDual(cParams);
+                    op = OptimizerAugmentedLagrangian(cParams);
                 case 'MMA'
                     op = Optimizer_MMA(cParams);
                 case 'IPOPT'
