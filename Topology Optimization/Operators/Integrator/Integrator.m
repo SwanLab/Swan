@@ -50,7 +50,6 @@ classdef Integrator < handle
             s.mesh      = obj.mesh;
             s.type      = type;
             s.quadOrder = quadOrder;
-%             s.nunknPerField = obj.dim.nunknPerField;
             rhs = RHSintegrator(s);
             rhsC = rhs.integrate();
 %             rhsC = rhs.integrateWithShapeDerivative();
@@ -70,11 +69,11 @@ classdef Integrator < handle
         end
         
         function computeDim(obj)
-            s.ngaus = [];
-            s.mesh  = obj.mesh;
-            s.pdim  = obj.createPdim();
-            d    = DimensionVariables(s);
-            d.compute();
+            s.fieldName = 'u';
+            s.mesh = obj.mesh;
+            s.ndimf = obj.mesh.ndim; % !!
+            d = DimensionVector(s);
+            d.create(s)
             obj.dim = d;
         end
 

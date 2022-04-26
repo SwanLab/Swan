@@ -21,8 +21,6 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
                 obj.unfittedMesh.compute(ls);
                 s.mesh = obj.unfittedMesh;
                 s.type = 'Unfitted';
-                s.dim  = obj.computeDim(s.mesh.backgroundMesh);
-%                 s.dim.applyNUnknPerField(1);
                 s.npnod = obj.unfittedMesh.backgroundMesh.npnod;
                 integrator = Integrator.create(s);
                 fInt = integrator.integrateInDomain(fNodes);

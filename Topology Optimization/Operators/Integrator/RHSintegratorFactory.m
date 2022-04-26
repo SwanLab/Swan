@@ -18,7 +18,12 @@ classdef RHSintegratorFactory < handle
                    obj = RHSintegrator_ShapeDerivative(cParams);
                case 'Elastic'
                    % Computes the RHS for ELASTIC problems
-                   obj = RHSintegrator_Elastic(cParams);
+                   switch cParams.scale
+                       case 'MACRO'
+                            obj = RHSintegrator_ElasticMacro(cParams);
+                       case 'MICRO'
+                            obj = RHSintegrator_ElasticMicro(cParams);
+                   end
            end
        end
        

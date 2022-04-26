@@ -1,4 +1,4 @@
-classdef RHSintegrator_ShapeFunctionCell < handle
+classdef RHSintegrator_ShapeDerivative < handle
 
     properties (Access = private)
         npnod
@@ -15,7 +15,7 @@ classdef RHSintegrator_ShapeFunctionCell < handle
     methods (Access = public)
 
         % Via Integrator_Simple + Integrator
-        function obj = RHSintegrator_ShapeFunctionCell(cParams)
+        function obj = RHSintegrator_ShapeDerivative(cParams)
             obj.init(cParams);
         end
 
@@ -62,31 +62,33 @@ classdef RHSintegrator_ShapeFunctionCell < handle
         end
         
         function rhs = integrateFgauss(obj)
-            rhsCells = obj.computeElementalRHS();
-            rhs = obj.assembleIntegrand(rhsCells);
+            rhsElem = obj.computeElementalRHS();
+            rhs = obj.assembleIntegrand(rhsElem);
         end
         
-        function rhsC = computeElementalRHS(obj) % integrate@RHSintegrator
-            fG     = obj.fGauss;
-            dV     = obj.computeDvolume();
-%             fdV    = (fG.*dV);
-            shapes = obj.computeShapeFunctions();
-            nnode  = size(shapes,1);
-            nelem  = size(shapes,2);
+        function rhs = computeElementalRHS(obj)
+            % integrateWithShapeDerivative@RHSintegrator
+            fG      = obj.fGauss;
+            dV      = obj.computeDvolume();
+            grad    = obj.computeGrad();
+            nnode   = size(grad,2);
+            ndim    = size(grad,1);
+            nelem   = obj.mesh.nelem;
             int = zeros(nnode,nelem);
             for igaus = 1:obj.quadrature.ngaus
-                nunkn = obj.nunknPerField;
-                for iField = 1:nunkn
-                    fdv = fG(igaus,:,iField).*dV(igaus,:);
-                    shape = shapes(:, :, igaus);
-                    int = int + bsxfun(@times,shape,fdv);
+                for idime = 1:ndim
+                    fI     = squeezeParticular(fG(idime,igaus,:),1);
+                    fdV    = (fI.*dV(igaus));
+                    dShape = squeeze(grad(idime,:,:,igaus));
+                    intI = bsxfun(@times,dShape,fdV);
+                    int = int + intI;
                 end
             end
-            rhsC = transpose(int);
+            rhs = transpose(int);
         end
 
-        function f = assembleIntegrand(obj,rhsCells)
-            integrand = rhsCells;
+        function f = assembleIntegrand(obj,rhsElem)
+            integrand = rhsElem;
             ndofs = obj.npnod;
             connec = obj.globalConnec;
             nnode  = size(connec,2);
@@ -102,11 +104,15 @@ classdef RHSintegrator_ShapeFunctionCell < handle
             q = obj.quadrature;
             dV = obj.mesh.computeDvolume(q);
         end
-        
-        function shapes = computeShapeFunctions(obj)
-            int = Interpolation.create(obj.mesh,'LINEAR');
+
+        function grad = computeGrad(obj)
+            m.type = obj.mesh.type;
+            int = Interpolation.create(m,'LINEAR');
             int.computeShapeDeriv(obj.xGauss);
-            shapes = permute(int.shape,[1 3 2]);
+            s.mesh = obj.mesh;
+            g = Geometry.create(s);
+            g.computeGeometry(obj.quadrature,int);
+            grad = g.dNdx;
         end
 
     end

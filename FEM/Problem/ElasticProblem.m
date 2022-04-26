@@ -161,6 +161,8 @@ classdef ElasticProblem < handle
         end
 
         function computeForces(obj)
+            s.type = 'Elastic';
+            s.scale       = obj.problemData.scale;
             s.dim         = obj.dim;
             s.BC          = obj.boundaryConditions;
             s.mesh        = obj.mesh;
@@ -169,11 +171,11 @@ classdef ElasticProblem < handle
             if isprop(obj, 'vstrain')
                 s.vstrain = obj.vstrain;
             end
-            fcomp = ForcesComputer(s);
-            f = fcomp.compute();
-            R = fcomp.computeReactions(obj.stiffnessMatrix);
-            obj.variables.fext = f + R;
-            obj.RHS = f;
+            RHSint = RHSintegrator.create(s);
+            rhs = RHSint.compute();
+            R = RHSint.computeReactions(obj.stiffnessMatrix);
+            obj.variables.fext = rhs + R;
+            obj.RHS = rhs;
         end
 
         function u = computeDisplacements(obj)

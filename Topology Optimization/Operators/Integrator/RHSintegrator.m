@@ -30,14 +30,14 @@ classdef RHSintegrator < handle
         function int = integrate(obj)
             fG     = obj.fGauss;
             dV     = obj.computeDvolume();
-            fdV    = (fG.*dV);
+%             fdV    = (fG.*dV);
             shapes = obj.computeShapeFunctions();
             nnode  = size(shapes,1);
             nelem  = size(shapes,2);
             int = zeros(nnode,nelem);
             for igaus = 1:obj.quadrature.ngaus
                 nunkn = obj.nunknPerField;
-                for iField = 1:nunkn
+                for iField = 1:nunkn % Apparently it really is always 1
                     fdv = fG(igaus,:,iField).*dV(igaus,:);
                     shape = shapes(:, :, igaus);
                     int = int + bsxfun(@times,shape,fdv);
@@ -86,15 +86,7 @@ classdef RHSintegrator < handle
             obj.mesh      = cParams.mesh;
             obj.type      = cParams.type;
             obj.quadOrder = cParams.quadOrder;
-            if isfield(cParams, 'nunknPerField')
-                if ~isempty(cParams.nunknPerField)
-                obj.nunknPerField = cParams.nunknPerField;
-                else
-                  obj.nunknPerField = 1;
-                end
-            else
-                obj.nunknPerField = 1;
-            end
+            obj.nunknPerField = 1;
         end
         
         function q = computeQuadrature(obj)

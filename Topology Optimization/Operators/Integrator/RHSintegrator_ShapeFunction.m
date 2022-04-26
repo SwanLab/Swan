@@ -36,17 +36,7 @@ classdef RHSintegrator_ShapeFunction < handle
             obj.fNodal       = cParams.fNodal;
             obj.quadOrder    = cParams.quadOrder;
             obj.globalConnec = cParams.globalConnec;
-
-
-            if isfield(cParams, 'nunknPerField')
-                if ~isempty(cParams.nunknPerField)
-                obj.nunknPerField = cParams.nunknPerField;
-                else
-                  obj.nunknPerField = 1;
-                end
-            else
-                obj.nunknPerField = 1;
-            end
+            obj.nunknPerField = 1;
         end
         
         function computeQuadrature(obj)
