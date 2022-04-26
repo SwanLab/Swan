@@ -24,17 +24,6 @@ classdef DiffReactProblem < handle
             obj.createSolver();
             obj.createProblemLHS();
         end
-        
-        function solve(obj)
-            obj.epsilon = .1857;
-            bc  = obj.boundaryConditions;
-            M = obj.problemLHS.K;
-            rhs = M*ones(size(M,1), 1);
-            RHS = bc.fullToReducedVector(rhs);
-            LHS = obj.computeLHS();
-            x = obj.solver.solve(LHS,RHS);
-            obj.variables.x = bc.reducedToFullVector(x);
-        end
 
         function computeVariables(obj,rhs)
             bc  = obj.boundaryConditions;
@@ -58,7 +47,7 @@ classdef DiffReactProblem < handle
             s.iter = 0;
             s.fields    = obj.variables.x;
             s.ptype     = 'DIFF-REACT';
-            s.ndim      = 2;
+            s.ndim      = 3;
             s.pdim      = obj.problemData.pdim;
             s.type      = 'ScalarNodal';
             fPrinter = FemPrinter(s);

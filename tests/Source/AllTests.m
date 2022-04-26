@@ -1,4 +1,5 @@
 FemTestsSuite;
+DiffReactTestsSuite;
 UnfittedIntegrationTestsSuite;
 VectorizedTriangulationTestsSuite;
 close all;
