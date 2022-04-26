@@ -3,6 +3,7 @@
 %       OK! - In Filter use LHSintegrator rather than DiffReact.
 %       OK! - Delete getM and getK and setEpsilon and computeDvolume
 %       OK* - setLHStype in DiffReact in Filter
+%       OK! - DiffReactTestsSuite created
 
 % b) ELASTICPROBLEM, DIMENSIONS and INTEGRATORS
 %       OK! - delete interp in ElasticProblem
@@ -18,21 +19,11 @@
         %       - Is it useful, though?
         %       - MinimumGradFieldWithVectorInL2, called from
         %         DilationFieldComputer. fNodal?
+        %       - Tests are missing to cover stuff eg. HarmonicProjector.
+        %         HarmonicProjectionExample exists, but...
 
 % d) STOKES
 %       WIP - Restore Stokes_Problem
 %               - FemTestsSuite, FemTests
 %               - StokesComputer, StokesFEM
 
-
-
-
-% OK! In Filter use LHSintegrator rather than DiffReact
-% OK! DiffReact delete getM and getK and setEpsilon and computeDvolume
-% OK* setLHStype in DiffReact in Filter
-% YET Create RHSintegrator for Elastic, ElasticMicro and thermal
-% OK! delete interp in ElasticProblem
-% OK* dimEscalar, vector....by fields...nElem,nDim private in dim
-% YET Stokes..
-
-% Check test_VigergauzMicroStructureFromStrain, test_bridge
