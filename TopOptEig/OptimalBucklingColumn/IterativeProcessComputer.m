@@ -179,22 +179,24 @@ classdef IterativeProcessComputer < handle
         end
 
         function K = createStiffnessMatrix(obj)
-            s.mesh           = obj.mesh;
-            s.dim            = obj.dim;
-            s.youngModulus   = obj.youngModulus;
-            s.inertiaMoment  = obj.inertiaMoment;
+            s.type = 'StiffnessMatrixColumn';
+            s.dim = obj.dim;
+            s.mesh = obj.mesh;
+            s.globalConnec = obj.mesh.connec;
             s.freeNodes      = obj.freeNodes;
-            K = StiffnessMatrixComputer(s);
+            K = LHSintegrator.create(s);
         end
 
         function B = createBendingMatrix(obj)
-            s.mesh           = obj.mesh;
-            s.dim            = obj.dim;
-            s.youngModulus   = obj.youngModulus;
+            s.type         = 'BendingMatrix';
+            s.dim          = obj.dim;
+            s.mesh         = obj.mesh;
+            s.globalConnec = obj.mesh.connec;
             s.inertiaMoment  = obj.inertiaMoment;
-            s.freeNodes      = obj.freeNodes;
+            s.youngModulus   = obj.youngModulus;
             s.designVariable = obj.designVariable;
-            B = BendingMatrixComputer(s);
+            s.freeNodes      = obj.freeNodes;
+            B = LHSintegrator.create(s);
         end
 
         function createConstraint(obj)
@@ -207,7 +209,6 @@ classdef IterativeProcessComputer < handle
             sF2.type = 'doubleEig';  
 
             sF3.type = 'volumeColumn';              
-
 
             sC.nShapeFuncs = 3;
             sC.designVar = obj.designVariable;   

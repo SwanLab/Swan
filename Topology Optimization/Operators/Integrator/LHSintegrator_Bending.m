@@ -2,12 +2,14 @@ classdef LHSintegrator_Bending < LHSintegrator
     
     properties (Access = public)
         elementalBendingMatrix
+        bendingMatrix
     end
     
     properties (Access = private)
         youngModulus
         inertiaMoment
         designVariable
+        freeNodes
     end
     
     properties (Access = private)
@@ -27,6 +29,12 @@ classdef LHSintegrator_Bending < LHSintegrator
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
             LHS = obj.assemblyBendingMatrix(lhs);
+        end
+
+        function Bfree = provideFreeBendingMatrix(obj)
+            free = obj.freeNodes;
+            B = obj.bendingMatrix;
+            Bfree  = B(free,free);
         end
 
     end
@@ -52,7 +60,6 @@ classdef LHSintegrator_Bending < LHSintegrator
             obj.elementalBendingMatrix = Be;
             lhs  = Be;
         end
-    
 
     end
 
@@ -62,6 +69,7 @@ classdef LHSintegrator_Bending < LHSintegrator
             obj.youngModulus   = cParams.youngModulus;
             obj.inertiaMoment  = cParams.inertiaMoment;
             obj.designVariable = cParams.designVariable; 
+            obj.freeNodes      = cParams.freeNodes;
         end
 
         function createGeometry(obj)
@@ -84,7 +92,7 @@ classdef LHSintegrator_Bending < LHSintegrator
             c2 = 12;
             c3 = 6*l;
             c4 = 4*l^2;
-        end        
+        end  
 
         function LHS = assemblyBendingMatrix(obj,Be)
             d = obj.dim;
@@ -103,6 +111,7 @@ classdef LHSintegrator_Bending < LHSintegrator
                     end
                 end
             end
+            obj.bendingMatrix = B;
             LHS = B;
         end
 

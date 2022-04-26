@@ -2,9 +2,11 @@ classdef LHSintegrator_StiffnessColumn < LHSintegrator
     
     properties (Access = public)
         geometry
+        stiffnessMatrix
     end
     
     properties (Access = private)
+        freeNodes
     end
     
     properties (Access = protected)
@@ -14,7 +16,8 @@ classdef LHSintegrator_StiffnessColumn < LHSintegrator
     methods (Access = public)
         
         function obj = LHSintegrator_StiffnessColumn(cParams)
-            obj.init(cParams)  
+            obj.init(cParams) 
+            obj.initStiffnessColumn(cParams);
             obj.createQuadrature();
             obj.createInterpolation();
             obj.createGeometry();
@@ -23,6 +26,13 @@ classdef LHSintegrator_StiffnessColumn < LHSintegrator
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
             LHS = obj.assembleMatrix(lhs);
+            obj.stiffnessMatrix = LHS;
+        end
+
+        function Kfree = provideFreeStiffnessMatrix(obj)
+            free = obj.freeNodes;
+            K = obj.stiffnessMatrix;
+            Kfree  = K(free,free);
         end
 
     end
@@ -49,6 +59,10 @@ classdef LHSintegrator_StiffnessColumn < LHSintegrator
     end
     
     methods (Access = private)
+
+        function initStiffnessColumn(obj,cParams)
+            obj.freeNodes = cParams.freeNodes;
+        end
 
         function createGeometry(obj)
             q   = obj.quadrature;

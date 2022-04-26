@@ -36,11 +36,12 @@ classdef EulerBeamOptimizer < handle
    
 
     %%% Refactoring
-    % delete elemental loop LHS Bending  
-    % delete elemental loop LHS Stifness
-    % delete StifnessMatrixComputer
-    % delete BendingMatrixComputer
-    % assambly matrix in Bending 
+    % delete elemental loop LHS Bending
+    % delete elemental loop LHS Stiffness
+    % delete StifnessMatrixComputer (DONE)
+    % delete BendingMatrixComputer  (DONE)
+        % (provide free matrix inside LHS integrator) okey??
+    % assambly matrix in Bending  (DONE)
 
     %%% Next
     % 1. derivative "clean"/ "understand"    
@@ -70,8 +71,7 @@ classdef EulerBeamOptimizer < handle
             obj.createBoundaryConditions()
             obj.createMMA();
             obj.computeIterativeProcess()
-            %  obj.computePostProcess();
-            obj.createPostProcess();
+            obj.PostProcess();
         end
 
     end
@@ -169,7 +169,7 @@ classdef EulerBeamOptimizer < handle
             solution.compute();
         end
 
-        function createPostProcess(obj)
+        function PostProcess(obj)
             s.designVariable = obj.designVariable;
             s.dim            = obj.dim;
             s.mesh           = obj.mesh;
