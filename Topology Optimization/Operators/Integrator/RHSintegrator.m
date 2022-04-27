@@ -8,7 +8,6 @@ classdef RHSintegrator < handle
         quadOrder
         
         quadrature
-        nunknPerField
     end
 
     methods (Access = public, Static)
@@ -36,12 +35,9 @@ classdef RHSintegrator < handle
             nelem  = size(shapes,2);
             int = zeros(nnode,nelem);
             for igaus = 1:obj.quadrature.ngaus
-                nunkn = obj.nunknPerField;
-                for iField = 1:nunkn % Apparently it really is always 1
-                    fdv = fG(igaus,:,iField).*dV(igaus,:);
-                    shape = shapes(:, :, igaus);
-                    int = int + bsxfun(@times,shape,fdv);
-                end
+                fdv = fG(igaus,:).*dV(igaus,:);
+                shape = shapes(:, :, igaus);
+                int = int + bsxfun(@times,shape,fdv);
             end
             int = transpose(int);
         end
@@ -86,7 +82,6 @@ classdef RHSintegrator < handle
             obj.mesh      = cParams.mesh;
             obj.type      = cParams.type;
             obj.quadOrder = cParams.quadOrder;
-            obj.nunknPerField = 1;
         end
         
         function q = computeQuadrature(obj)

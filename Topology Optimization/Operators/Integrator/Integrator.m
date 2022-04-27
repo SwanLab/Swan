@@ -45,6 +45,7 @@ classdef Integrator < handle
         end
         
         function rhsC = computeElementalRHS(obj,fGauss,xGauss,type,quadOrder)
+            s.fType     = 'Gauss';
             s.fGauss    = fGauss;
             s.xGauss    = xGauss;
             s.mesh      = obj.mesh;

@@ -76,6 +76,7 @@ classdef MinimumGradFieldWithVectorInL2 < handle
         function computeRHS(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('LINEAR');
+            s.fType     = 'Gauss';
             s.fGauss    = obj.fGauss;
             s.xGauss    = q.posgp;
             s.mesh      = obj.mesh;

@@ -1,5 +1,5 @@
 classdef HarmonicProjector < handle
-    
+
     properties (Access = private)
         dim
         massMatrix
@@ -7,15 +7,15 @@ classdef HarmonicProjector < handle
         reducedStiffnessMatrix
         LHS
         solver
-    end    
+    end
 
     properties (Access = private)
-       mesh   
-       boundaryMesh
+        mesh
+        boundaryMesh
     end
-    
+
     methods (Access = public)
-        
+
         function obj = HarmonicProjector(cParams)
             obj.init(cParams);
             obj.createDimension();
@@ -25,7 +25,7 @@ classdef HarmonicProjector < handle
             obj.computeLHS();
             obj.createSolver()
         end
-        
+
         function lambda0 = computeInitalLambda(obj)
             b    = obj.boundaryMesh;
             nInt = setdiff(1:obj.dim.npnod,b);
@@ -36,45 +36,45 @@ classdef HarmonicProjector < handle
             lhs    = obj.LHS;
             rhs    = obj.computeRHS(vH);
             sol    = obj.solver.solve(lhs,rhs);
-            v      = sol(1:obj.dim.npnod,1);            
-            lambda = sol(obj.dim.npnod+1:end,1);            
+            v      = sol(1:obj.dim.npnod,1);
+            lambda = sol(obj.dim.npnod+1:end,1);
         end
 
         function optPrim = computePrimalOptimaility(obj,lambda,v,vH)
-            M        = obj.massMatrix;  
-            Kred     = obj.reducedStiffnessMatrix;  
+            M        = obj.massMatrix;
+            Kred     = obj.reducedStiffnessMatrix;
             gradPrim = M*(v-vH) + (Kred'*lambda);
             optPrim  = norm(gradPrim);
         end
 
         function vH = projectByDual(obj,v)
-            Kred = obj.reducedStiffnessMatrix;            
-            M    = obj.massMatrix;            
+            Kred = obj.reducedStiffnessMatrix;
+            M    = obj.massMatrix;
             lhs = Kred*(M\Kred');
-            rhs = Kred*v;            
+            rhs = Kred*v;
             lambda  = obj.solver.solve(lhs,rhs);
             vH = v - M\(Kred'*lambda);
-        end    
+        end
 
         function cost = computeCost(obj,v,vH)
-            M    = obj.massMatrix;                        
-            cost = (v-vH)'*M*(v-vH)/(v'*M*v);            
+            M    = obj.massMatrix;
+            cost = (v-vH)'*M*(v-vH)/(v'*M*v);
         end
 
         function optDual = computeDualOptimality(obj,vH)
-            Kred = obj.reducedStiffnessMatrix;            
+            Kred = obj.reducedStiffnessMatrix;
             optDual = norm(Kred*vH);
         end
-        
+
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj,cParams)
-           obj.mesh             = cParams.mesh;
-           obj.boundaryMesh     = cParams.boundaryMesh;
+            obj.mesh             = cParams.mesh;
+            obj.boundaryMesh     = cParams.boundaryMesh;
         end
-        
+
         function createDimension(obj)
             q = Quadrature();
             q = q.set(obj.mesh.type);
@@ -84,8 +84,8 @@ classdef HarmonicProjector < handle
             d = DimensionVariables(s);
             d.compute();
             obj.dim = d;
-        end        
-        
+        end
+
         function computeMassMatrix(obj)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
@@ -100,7 +100,7 @@ classdef HarmonicProjector < handle
             obj.massMatrix = M;
         end
 
-       function K = computeStiffnessMatrix(obj)
+        function K = computeStiffnessMatrix(obj)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
             s.npnod        = obj.mesh.npnod;
@@ -109,52 +109,46 @@ classdef HarmonicProjector < handle
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
             obj.stiffnessMatrix = K;
-       end        
+        end
 
-       function computeReducedStiffnessMatrix(obj)
-           b    = obj.boundaryMesh;
-           nInt = setdiff(1:obj.dim.npnod,b);
-           K    = obj.stiffnessMatrix; 
-           Kred = K(nInt,:);
-           obj.reducedStiffnessMatrix = Kred;
-       end
+        function computeReducedStiffnessMatrix(obj)
+            b    = obj.boundaryMesh;
+            nInt = setdiff(1:obj.dim.npnod,b);
+            K    = obj.stiffnessMatrix;
+            Kred = K(nInt,:);
+            obj.reducedStiffnessMatrix = Kred;
+        end
 
-       function createSolver(obj)
+        function createSolver(obj)
             s = Solver.create();
             obj.solver = s;
-       end
+        end
 
-       function  computeLHS(obj)
-           Kred = obj.reducedStiffnessMatrix;
-           M    = obj.massMatrix;
-           Z    = obj.computeZeroFunction();
-           lhs  = [M,Kred';Kred,Z];
-           obj.LHS = lhs;
-       end
+        function  computeLHS(obj)
+            Kred = obj.reducedStiffnessMatrix;
+            M    = obj.massMatrix;
+            Z    = obj.computeZeroFunction();
+            lhs  = [M,Kred';Kred,Z];
+            obj.LHS = lhs;
+        end
 
-       function Z = computeZeroFunction(obj)
-           b    = obj.boundaryMesh;
-           nInt = setdiff(1:obj.dim.npnod,b);           
-           Z    = zeros(length(nInt),length(nInt));           
-       end
+        function Z = computeZeroFunction(obj)
+            b    = obj.boundaryMesh;
+            nInt = setdiff(1:obj.dim.npnod,b);
+            Z    = zeros(length(nInt),length(nInt));
+        end
 
         function rhs = computeRHS(obj,fNod)
+            % Untested but should work
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('LINEAR');
-%             s.mesh  = obj.mesh;
-%             s.globalConnec = obj.mesh.connec;
-%             s.npnod = obj.dim.npnod;
-%             s.dim   = obj.dim;
-%             s.type = 'SIMPLE';
-%             int = Integrator.create(s);
-%             rhs = int.integrateFnodal(fNod,q.order);
-            % Untested but should work
-            s.type = 'ShapeFunction';
-            s.mesh = obj.mesh;
-            s.meshType = obj.mesh.type;
-            s.fNodal = fNod;
+            s.type      = 'ShapeFunction';
+            s.mesh      = obj.mesh;
+            s.meshType  = obj.mesh.type;
+            s.fType     = 'Nodal';
+            s.fNodal    = fNod;
             s.quadOrder = q.order;
-            s.npnod = obj.dim.npnod;
+            s.npnod     = obj.dim.npnod;
             s.globalConnec = obj.globalConnec;
             RHS = RHSintegrator.create(s);
             rhs = RHS.compute();
@@ -165,5 +159,5 @@ classdef HarmonicProjector < handle
         end
 
     end
-    
+
 end

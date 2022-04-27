@@ -9,7 +9,6 @@ classdef RHSintegrator_ShapeDerivative < handle
         fGauss
         quadOrder
         quadrature
-        nunknPerField
     end
 
     methods (Access = public)
@@ -36,7 +35,6 @@ classdef RHSintegrator_ShapeDerivative < handle
             obj.fNodal       = cParams.fNodal;
             obj.quadOrder    = cParams.quadOrder;
             obj.globalConnec = cParams.globalConnec;
-            obj.nunknPerField = 1;
         end
         
         function computeQuadrature(obj)

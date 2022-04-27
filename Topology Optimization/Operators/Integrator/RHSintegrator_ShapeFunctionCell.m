@@ -9,7 +9,6 @@ classdef RHSintegrator_ShapeFunctionCell < handle
         fGauss
         quadOrder
         quadrature
-        nunknPerField
     end
 
     methods (Access = public)
@@ -36,7 +35,6 @@ classdef RHSintegrator_ShapeFunctionCell < handle
             obj.fNodal       = cParams.fNodal;
             obj.quadOrder    = cParams.quadOrder;
             obj.globalConnec = cParams.globalConnec;
-            obj.nunknPerField = 1;
         end
         
         function computeQuadrature(obj)
@@ -75,12 +73,9 @@ classdef RHSintegrator_ShapeFunctionCell < handle
             nelem  = size(shapes,2);
             int = zeros(nnode,nelem);
             for igaus = 1:obj.quadrature.ngaus
-                nunkn = obj.nunknPerField;
-                for iField = 1:nunkn
-                    fdv = fG(igaus,:,iField).*dV(igaus,:);
-                    shape = shapes(:, :, igaus);
-                    int = int + bsxfun(@times,shape,fdv);
-                end
+                fdv = fG(igaus,:).*dV(igaus,:);
+                shape = shapes(:, :, igaus);
+                int = int + bsxfun(@times,shape,fdv);
             end
             rhsC = transpose(int);
         end

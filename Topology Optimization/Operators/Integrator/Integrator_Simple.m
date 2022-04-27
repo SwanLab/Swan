@@ -13,12 +13,13 @@ classdef Integrator_Simple < Integrator
         end
         
         function rhs = integrateFnodal(obj,fNodal,quadOrder)
-            s.type = 'ShapeFunction';
-            s.mesh = obj.mesh;
-            s.meshType = obj.mesh.type;
-            s.fNodal = fNodal;
+            s.type      = 'ShapeFunction';
+            s.mesh      = obj.mesh;
+            s.meshType  = obj.mesh.type;
+            s.fType     = 'Nodal';
+            s.fNodal    = fNodal;
             s.quadOrder = quadOrder;
-            s.npnod = obj.npnod;
+            s.npnod     = obj.npnod;
             s.globalConnec = obj.globalConnec;
             RHS = RHSintegrator.create(s);
             rhs = RHS.compute();
