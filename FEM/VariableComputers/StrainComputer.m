@@ -43,9 +43,9 @@ classdef StrainComputer < handle
         function strain = computeStrain(obj)
             nstre = obj.dim.nstre;
             nelem = obj.dim.nelem;
-            ngaus = obj.dim.ngaus;
             nnode = obj.dim.nnode;
             nunkn = obj.dim.ndimField;
+            ngaus = obj.quadrature.ngaus;
             d_u = obj.displacement;
             connec = obj.mesh.connec;
             strain = zeros(nstre,nelem,ngaus);

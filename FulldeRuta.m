@@ -28,16 +28,16 @@
 %               - StokesComputer, StokesFEM
 
 
-% +++QUadratic shape functions for thermal, elastic, elastic_micro with
-% corresponding tests
-% ++++"integrate" all RHS
-% ++++nstre only in elasticity  (maybe in Bmatrix) and rename it as nVoigt
-% +++trying to avoid using nelem from dim
-% +++trying to avoid ngaus from dim 
-% ++++ndofPerNode (and ndofPerElem) in interpolation times npnod (nnode) of mesh gives ndof of field (in
-% dim)
-% ++++ nnode ---> nnodePerElem (in mesh)
-% create dimensions from s.type (Scalar/Vector)
-% OK! delete nunkn in RHS
+%     - Quadratic shape functions for thermal, elastic, elastic_micro with
+%       corresponding tests
+%     - "integrate" all RHS
+%     - nstre only in elasticity  (maybe in Bmatrix) and rename it as nVoigt
+%     - trying to avoid using nelem from dim
+% OK! - trying to avoid ngaus from dim 
+%     - ndofPerNode (and ndofPerElem) in interpolation times npnod (nnode)
+%       of mesh gives ndof of field (in dim)
+%     - nnode ---> nnodePerElem (in mesh)
+%     - create dimensions from s.type (Scalar/Vector)
+% OK! - delete nunkn in RHS
 
 % Re-use FeFunction for displacements.... with its own dimensions

@@ -7,7 +7,7 @@ classdef DimensionVariables < handle
         ndof
         nelem
         ndofPerElement
-        ngaus
+%         ngaus
         ndim
         nunknPerField
         npnod
@@ -60,7 +60,6 @@ classdef DimensionVariables < handle
         function obj = init(obj, cParams)
             obj.mesh  = cParams.mesh;
             obj.pdim  = cParams.pdim;
-            obj.ngaus = cParams.ngaus;
         end
         
         function ndimf = createDimPerField(obj) % createNUnknPerField

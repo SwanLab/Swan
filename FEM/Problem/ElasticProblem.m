@@ -34,8 +34,8 @@ classdef ElasticProblem < handle
         end
 
         function solve(obj)
-            obj.computeStiffnessMatrix();
-%             obj.computeStiffnessMatrixOld();
+%             obj.computeStiffnessMatrix();
+            obj.computeStiffnessMatrixOld();
             obj.computeForces();
             obj.computeDisplacements();
             obj.computeStrain();
@@ -106,10 +106,8 @@ classdef ElasticProblem < handle
             s.fieldName = 'u';
             s.mesh = obj.mesh;
             s.ndimf = str2double(regexp(obj.problemData.pdim,'\d*','Match'));
-
             d = DimensionVector(s);
             d.create(s)
-            d.applyNgaus(obj.quadrature.ngaus);
             obj.dim = d;
         end
 

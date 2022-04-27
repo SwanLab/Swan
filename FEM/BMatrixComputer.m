@@ -91,10 +91,11 @@ classdef BMatrixComputer < handle
         end
 
         function Bmatrix = computeBinMatrixForm(obj)
+            ngaus = size(obj.geometry.dNdx,4);
             d  = obj.dim;
-            nB = d.nstre*d.ngaus*d.nelem;
+            nB = d.nstre*ngaus*d.nelem;
             Bmatrix = zeros(nB,d.ndofPerElement);
-            for igaus = 1:d.ngaus
+            for igaus = 1:ngaus
                 Bgaus = obj.computeBmatrix(igaus);
                 index = obj.computeGlobalIndex(igaus);
                 Bmatrix(index,:) = Bgaus;
@@ -116,7 +117,7 @@ classdef BMatrixComputer < handle
 
         function index = computeUnitaryIndex(obj,igaus)
             d = obj.dim;
-            nGaus = d.ngaus;
+            nGaus = size(obj.geometry.dNdx,4);
             nStre = d.nstre;
             index = false(nGaus*nStre,1);
             pos =  nStre*(igaus-1) + (1:nStre);
@@ -126,8 +127,11 @@ classdef BMatrixComputer < handle
         function Bt = assembleMatrix(obj, Bfull)
             s.dim = obj.dim;
             s.globalConnec = obj.globalConnec;
+            dNdx = obj.geometry.dNdx;
+            d.nelem = size(dNdx,3);
+            d.ngaus = size(dNdx,4);
             assembler = Assembler(s);
-            Bt = assembler.assembleB(Bfull);
+            Bt = assembler.assembleB(Bfull, d);
         end
 
     end

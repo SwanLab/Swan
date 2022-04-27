@@ -9,12 +9,14 @@ classdef RHSintegrator_ElasticMicro < handle
         geometry
         dvolume
         globalConnec
+        quadrature
     end
     
     methods (Access = public)
 
         function obj = RHSintegrator_ElasticMicro(cParams)
             obj.init(cParams);
+            obj.createQuadrature();
             obj.createGeometry();
             obj.computeDvolume();
         end
@@ -52,9 +54,14 @@ classdef RHSintegrator_ElasticMicro < handle
             obj.vstrain            = cParams.vstrain;
         end
        
-        function createGeometry(obj)
+        function createQuadrature(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('LINEAR');
+            obj.quadrature = q;
+        end
+
+        function createGeometry(obj)
+            q = obj.quadrature;
             int = obj.mesh.interpolation;
             int.computeShapeDeriv(q.posgp);
             s.mesh = obj.mesh;
@@ -64,8 +71,7 @@ classdef RHSintegrator_ElasticMicro < handle
         end
 
         function computeDvolume(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
+            q = obj.quadrature;
             obj.dvolume = obj.mesh.computeDvolume(q)';
         end
 
@@ -88,11 +94,11 @@ classdef RHSintegrator_ElasticMicro < handle
         
         function F = computeStrainRHS(obj,vstrain)
             Cmat  = obj.material.C;
-            ngaus = obj.dim.ngaus;
             nunkn = obj.dim.ndimField;
             nstre = obj.dim.nstre;
             nelem = obj.dim.nelem;
             nnode = obj.dim.nnode;
+            ngaus = obj.quadrature.ngaus;
 
             eforce = zeros(nunkn*nnode,ngaus,nelem);
             sigma = zeros(nstre,ngaus,nelem);

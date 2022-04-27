@@ -67,8 +67,9 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
             dvolum = phy.getDvolume()';
             stress = phy.variables.stress;
             strain = phy.variables.strain;
-            dim    = phy.getDimensions(); 
-            ngaus  = dim.ngaus;
+            quad   = phy.getQuadrature();
+            dim    = phy.getDimensions();
+            ngaus  = quad.ngaus;
             nelem  = dim.nelem;
 
             c = zeros(nelem,ngaus);
@@ -91,7 +92,8 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
 %             ngaus = obj.physicalProblem.element.quadrature.ngaus;
 %             nstre = obj.physicalProblem.element.getNstre();
             dim    = phy.getDimensions(); 
-            ngaus  = dim.ngaus;
+            quad   = phy.getQuadrature();
+            ngaus  = quad.ngaus;
             nelem  = dim.nelem;
             nstre  = dim.nstre;
             g = zeros(nelem,ngaus,obj.nVariables);

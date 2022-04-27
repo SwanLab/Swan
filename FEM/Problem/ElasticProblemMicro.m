@@ -25,9 +25,9 @@ classdef ElasticProblemMicro < ElasticProblem
 
         function Ch = computeChomog(obj)
             nstre = obj.dim.nstre;
-            ngaus = obj.dim.ngaus;
             nelem = obj.dim.nelem;
             ndof  = obj.dim.ndof;
+            ngaus = obj.quadrature.ngaus;
             basis = diag(ones(nstre,1));
             tStrn  = zeros(nstre,ngaus,nstre,nelem);
             tStrss = zeros(nstre,ngaus,nstre,nelem);
@@ -71,9 +71,9 @@ classdef ElasticProblemMicro < ElasticProblem
             vStrn = obj.vstrain;
             vars  = obj.variables;
             Cmat  = obj.material.C;
-            ngaus = obj.dim.ngaus;
             nstre = obj.dim.nstre;
             nelem = obj.dim.nelem;
+            ngaus = obj.quadrature.ngaus;
             dV = obj.mesh.computeDvolume(obj.quadrature)';
             strainFluct = vars.strain;
             stressFluct = vars.stress;

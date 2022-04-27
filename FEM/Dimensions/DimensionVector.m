@@ -9,8 +9,6 @@ classdef DimensionVector < handle
         ndofPerElement
         ndof
         nstre
-
-        ngaus % should NOT be here
     end
     
     properties (Access = private)
@@ -39,7 +37,7 @@ classdef DimensionVector < handle
             obj.npnod          = msh.npnod;
             obj.nnode          = msh.interpolation.nnode;
             obj.ndimField      = ndimf;
-            obj.ndofPerElement = obj.nnode * obj.ndimField;
+            obj.ndofPerElement = obj.nnode*obj.ndimField;
             obj.ndof           = ndimf*obj.npnod;
             obj.nstre          = obj.computeNstress(); %nvoigt?
         end
@@ -51,10 +49,6 @@ classdef DimensionVector < handle
                 name = dim.name;
                 obj.scalarFields.(name) = dim;
             end
-        end
-
-        function applyNgaus(obj, ngaus)
-            obj.ngaus = ngaus;
         end
         
     end

@@ -10,7 +10,6 @@ classdef DimensionScalar < handle
         ndof
 
         nstre %nvoigt
-        %ngaus
     end
     
     properties (Access = private)
