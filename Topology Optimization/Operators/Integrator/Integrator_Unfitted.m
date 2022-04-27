@@ -8,9 +8,6 @@ classdef Integrator_Unfitted < Integrator
         
         function obj = Integrator_Unfitted(cParams)
             obj.mesh = cParams.mesh;
-            if isfield(cParams, 'dim')
-                obj.dim   = cParams.dim;
-            end
         end
         
         function int = integrateInDomain(obj,F)
@@ -51,13 +48,6 @@ classdef Integrator_Unfitted < Integrator
             s.type         = 'SIMPLE';
             s.globalConnec = innerMesh.globalConnec;
             s.npnod        = obj.mesh.backgroundMesh.npnod;
-            if isfield(obj, 'dim')
-                if isfield(obj.dim, 'nunknPerField')
-                    s.nunknPerField = obj.dim.nunknPerField;
-                end
-            else
-                s.nunknPerField = 2;
-            end
         end
         
         function s = createInnerCutParams(obj,gConnec,mesh)
@@ -69,7 +59,6 @@ classdef Integrator_Unfitted < Integrator
             s.globalConnec          = gConnec;
             s.npnod                 = obj.mesh.backgroundMesh.npnod;
             s.backgroundMeshType    = mesh.backgroundMesh.type;
-            s.dim.nunknPerField = 1;
         end
         
         function computeBoundaryIntegrators(obj)

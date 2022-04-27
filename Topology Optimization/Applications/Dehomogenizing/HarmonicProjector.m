@@ -138,16 +138,26 @@ classdef HarmonicProjector < handle
            Z    = zeros(length(nInt),length(nInt));           
        end
 
-        function rhs = computeRHS(obj,v)
+        function rhs = computeRHS(obj,fNod)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('LINEAR');
-            s.mesh  = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
+%             s.mesh  = obj.mesh;
+%             s.globalConnec = obj.mesh.connec;
+%             s.npnod = obj.dim.npnod;
+%             s.dim   = obj.dim;
+%             s.type = 'SIMPLE';
+%             int = Integrator.create(s);
+%             rhs = int.integrateFnodal(fNod,q.order);
+            % Untested but should work
+            s.type = 'ShapeFunction';
+            s.mesh = obj.mesh;
+            s.meshType = obj.mesh.type;
+            s.fNodal = fNod;
+            s.quadOrder = q.order;
             s.npnod = obj.dim.npnod;
-            s.dim   = obj.dim;
-            s.type = 'SIMPLE';
-            int = Integrator.create(s);
-            rhs = int.integrateFnodal(v,q.order);
+            s.globalConnec = obj.globalConnec;
+            RHS = RHSintegrator.create(s);
+            rhs = RHS.compute();
             b = obj.boundaryMesh;
             nInt = setdiff(1:obj.dim.npnod,b);
             Z   = zeros(length(nInt),1);

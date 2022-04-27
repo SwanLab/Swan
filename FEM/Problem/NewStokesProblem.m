@@ -69,18 +69,19 @@ classdef NewStokesProblem < handle
         end
 
         function createDimensions(obj)
-            s.ngaus = [];
-            s.mesh  = obj.mesh;
-            s.pdim  = obj.problemData.pdim;
-            dimV    = DimensionVariables(s);
-            dimP    = DimensionVariables(s);
-            dimV.compute();
-            dimP.compute();
-            dimP.applyNdimfield(1);
-            obj.dim{1} = dimV;
-            obj.dim{2} = dimP;
+            v.fieldName = 'v';
+            v.mesh = obj.mesh;
+            v.ndimf = 2;
+            vDim = DimensionVector(v);
+            vDim.create(v)
+            p.name = 'p';
+            p.mesh = obj.mesh;
+            p.ndimf = 1;
+            pDim = DimensionScalar(p);
+            obj.dim = {vDim, pDim};
+            % This is wrong. The mesh creates a linear interpolation by
+            % default, with no option to change it.
         end
-
         function createDOF(obj)
             obj.dof = DOF_Stokes(obj.fileName,obj.mesh,obj.geometry,obj.interp);
         end

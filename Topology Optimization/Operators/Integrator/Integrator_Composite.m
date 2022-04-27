@@ -54,7 +54,6 @@ classdef Integrator_Composite < Integrator
             params = cParams.compositeParams;
             for iInt = 1:obj.nInt
                 s = params{iInt};
-%                 s.dim = cParams.dim;
                 integrator = Integrator.create(s);
                 obj.integrators{end+1} = integrator;
             end
