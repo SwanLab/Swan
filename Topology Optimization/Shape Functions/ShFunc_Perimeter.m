@@ -20,7 +20,6 @@ classdef ShFunc_Perimeter < ShapeFunctional
         function obj = ShFunc_Perimeter(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             cParams.filterParams.filterType = 'PDE';
-            cParams.filterParams.femSettings.bcApplierType = 'Neumann';
             obj.init(cParams);
           %  obj.initFrame();
         end

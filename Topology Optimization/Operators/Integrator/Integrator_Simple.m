@@ -13,16 +13,20 @@ classdef Integrator_Simple < Integrator
         end
         
         function rhs = integrateFnodal(obj,fNodal,quadOrder)
-            connec   = obj.mesh.connec;
-            xGauss   = obj.computeGaussPoints(quadOrder);
-            type     = obj.mesh.type;
-            fGauss   = obj.computeFgauss(fNodal,xGauss,connec,type);
-            rhs = obj.integrateFgauss(fGauss,xGauss,quadOrder);
+            s.type = 'ShapeFunction';
+            s.mesh = obj.mesh;
+            s.meshType = obj.mesh.type;
+            s.fNodal = fNodal;
+            s.quadOrder = quadOrder;
+            s.npnod = obj.npnod;
+            s.globalConnec = obj.globalConnec;
+            RHS = RHSintegrator.create(s);
+            rhs = RHS.compute();
         end
-        
+
+        % integrateFgauss is apparently used by PieceWiseConstantFunction
         function rhs = integrateFgauss(obj,fGauss,xGauss,quadOrder)
             type     = obj.mesh.type;
-            dim.nfields = 1;
             rhsCells = obj.computeElementalRHS(fGauss,xGauss,type,quadOrder);
             rhs = obj.assembleIntegrand(rhsCells);
         end

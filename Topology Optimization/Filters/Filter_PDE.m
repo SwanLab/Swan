@@ -35,8 +35,7 @@ classdef Filter_PDE < Filter
         function obj = updateEpsilon(obj,epsilon)
             if obj.hasEpsilonChanged(epsilon)
                 obj.epsilon = epsilon;
-                obj.diffReacProb.setEpsilon(epsilon);
-                obj.computeLHS();
+                obj.computeLHS(epsilon);
             end
         end
         
@@ -44,8 +43,8 @@ classdef Filter_PDE < Filter
     
     methods (Access = protected)
         
-        function computeLHS(obj)
-            lhs = obj.diffReacProb.computeLHS();
+        function computeLHS(obj, epsilon)
+            lhs = obj.diffReacProb.computeLHS(epsilon);
             obj.LHS = decomposition(lhs);
         end
         

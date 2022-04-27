@@ -15,7 +15,8 @@ classdef ElasticProblemMicro < ElasticProblem
         end
         
         function interp = getInterpolation(obj)
-            interp  = obj.interp{1};
+            interp  = obj.mesh.interpolation;
+            interp.computeShapeDeriv(obj.quadrature.posgp);
         end
         
         function v = computeGeometricalVolume(obj)

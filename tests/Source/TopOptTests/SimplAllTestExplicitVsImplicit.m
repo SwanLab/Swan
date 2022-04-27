@@ -37,7 +37,7 @@ classdef SimplAllTestExplicitVsImplicit < handle
             obj.nElem = 800;
             obj.nGaus = 4;
             obj.rho = rand(obj.nElem,obj.nGaus);
-        end    
+        end
         
         function createProperties(obj)
             sC = SettingsConstitutiveProperties();
