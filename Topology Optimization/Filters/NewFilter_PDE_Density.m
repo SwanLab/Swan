@@ -7,15 +7,18 @@ classdef NewFilter_PDE_Density < handle
         quadratureOrder
         Anodal2Gauss
         quadrature
+        M
         interp
         geometry
         x_reg
+        LHS
     end
 
     methods (Access = public)
 
         function obj = NewFilter_PDE_Density(cParams)
             obj.init(cParams);
+            obj.createMassMatrix();
             obj.epsilon = cParams.mesh.computeMeanCellSize();
         end
 
@@ -26,7 +29,8 @@ classdef NewFilter_PDE_Density < handle
             P1proc.preProcess();
             obj.storeParams(P1proc);
             obj.Anodal2Gauss = obj.computeA();
-            obj.diffReacProb.setEpsilon(obj.epsilon);
+            lhs = obj.diffReacProb.computeLHS(obj.epsilon);
+            obj.LHS = decomposition(lhs);
         end
 
         function x0 = getP0fromP1(obj,x)
@@ -38,13 +42,14 @@ classdef NewFilter_PDE_Density < handle
         end
 
         function RHS = integrate_L2_function_with_shape_function(obj,x)
-            RHS = obj.diffReacProb.getM()*x;
+            RHS = obj.M*x;
         end
 
         function obj = updateEpsilon(obj,epsilon)
             if obj.hasEpsilonChanged(epsilon)
                 obj.epsilon = epsilon;
-                obj.diffReacProb.setEpsilon(epsilon);
+                lhs = obj.diffReacProb.computeLHS(epsilon);
+                obj.LHS = decomposition(lhs);
             end
         end
 
@@ -68,6 +73,18 @@ classdef NewFilter_PDE_Density < handle
             obj.quadratureOrder = cParams.quadratureOrder;
         end
 
+        function createMassMatrix(obj)
+            ss.name        = 'x';
+            ss.mesh        = obj.mesh;
+            s.dim          = DimensionScalar(ss);
+            s.type         = 'MassMatrix';
+            s.quadType     = 'QUADRATICMASS';
+            s.mesh         = obj.mesh;
+            s.globalConnec = obj.mesh.connec;
+            lhs = LHSintegrator.create(s);
+            obj.M = lhs.compute();
+        end
+
         function storeParams(obj,P1proc)
             obj.quadrature = P1proc.quadrature;
             obj.interp     = P1proc.interp;
@@ -76,6 +93,11 @@ classdef NewFilter_PDE_Density < handle
 
         function createDiffReacProblem(obj,cParams)
             s = cParams.femSettings;
+            if isfield(cParams.femSettings,'LHStype')
+                s.LHStype = cParams.femSettings.LHStype;
+            else
+                s.LHStype = 'DiffReactNeumann';
+            end
             if isprop(cParams,'mesh')
                 s.mesh = cParams.mesh;
             end

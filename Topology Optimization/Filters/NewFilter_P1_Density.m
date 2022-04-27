@@ -17,7 +17,7 @@ classdef NewFilter_P1_Density < handle
         
         function obj = NewFilter_P1_Density(cParams)
             obj.init(cParams);
-            obj.createMassMatrix(cParams);
+            obj.createMassMatrix();
             obj.createPoperator(cParams);
             obj.createFilterKernel();
         end
@@ -58,9 +58,16 @@ classdef NewFilter_P1_Density < handle
             obj.quadratureOrder = cParams.quadratureOrder;
         end
 
-        function createMassMatrix(obj,cParams)
-            diffReacProb = obj.createDiffReacProblem(cParams);
-            obj.M = diffReacProb.getM();
+        function createMassMatrix(obj)
+            ss.name        = 'x';
+            ss.mesh        = obj.mesh;
+            s.dim          = DimensionScalar(ss);
+            s.type         = 'MassMatrix';
+            s.quadType     = 'QUADRATICMASS';
+            s.mesh         = obj.mesh;
+            s.globalConnec = obj.mesh.connec;
+            LHS = LHSintegrator.create(s);
+            obj.M = LHS.compute();
         end
 
         function createPoperator(obj,cPar)
@@ -102,19 +109,6 @@ classdef NewFilter_P1_Density < handle
                 dvolu = obj.geometry.dvolu(:,igaus);
                 intX = intX + dvolu.*x(:,igaus);
             end
-        end
-
-    end
-
-    methods (Access = private, Static)
-
-        function pB = createDiffReacProblem(cParams)
-            s = cParams.femSettings;
-            if isprop(cParams,'mesh')
-                s.mesh = cParams.mesh;
-            end
-            s.type = 'DIFF-REACT';
-            pB = FEM.create(s);
         end
 
     end

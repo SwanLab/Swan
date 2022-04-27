@@ -11,6 +11,7 @@ classdef NewFilter_PDE_LevelSet < handle
         quadrature
         geometry
         diffReacProb
+        LHS
     end
 
     methods (Access = public)
@@ -28,7 +29,8 @@ classdef NewFilter_PDE_LevelSet < handle
             P1proc.preProcess();
             obj.storeParams(P1proc);
             obj.Anodal2Gauss = obj.computeA();
-            obj.diffReacProb.setEpsilon(obj.epsilon);
+            lhs = obj.diffReacProb.computeLHS(obj.epsilon);
+            obj.LHS = decomposition(lhs);
         end
 
         function RHS = integrate_L2_function_with_shape_function(obj,x)
@@ -40,7 +42,8 @@ classdef NewFilter_PDE_LevelSet < handle
         function obj = updateEpsilon(obj,epsilon)
             if obj.hasEpsilonChanged(epsilon)
                 obj.epsilon = epsilon;
-                obj.diffReacProb.setEpsilon(epsilon);
+                lhs = obj.diffReacProb.computeLHS(epsilon);
+                obj.LHS = decomposition(lhs);
             end
         end
 
@@ -51,6 +54,11 @@ classdef NewFilter_PDE_LevelSet < handle
 
         function obj = createDiffReacProblem(obj,cParams)
             s = cParams.femSettings;
+            if isfield(cParams.femSettings,'LHStype')
+                s.LHStype = cParams.femSettings.LHStype;
+            else
+                s.LHStype = 'DiffReactNeumann';
+            end
             if isprop(cParams,'mesh')
                 s.mesh = cParams.mesh;
             end
