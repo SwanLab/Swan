@@ -27,3 +27,22 @@
 %               - FemTestsSuite, FemTests
 %               - StokesComputer, StokesFEM
 
+
+% fix newdimensions in ElasticProblem
+% quadrature as input in strain
+% in Filter create MassMatrix when construction
+
+
+% +++QUadratic shape functions for thermal, elastic, elastic_micro with
+% corresponding tests
+% ++++"integrate" all RHS
+% ++++nstre only in elasticity  (maybe in Bmatrix) and rename it as nVoigt
+% +++trying to avoid using nelem from dim
+% +++trying to avoid ngaus from dim 
+% ++++ndofPerNode (and ndofPerElem) in interpolation times npnod (nnode) of mesh gives ndof of field (in
+% dim)
+% ++++ nnode ---> nnodePerElem (in mesh)
+% create dimensions from type
+% delete nunkn in RHS
+
+% Re-use FeFunction for displacements.... with its own dimensions
