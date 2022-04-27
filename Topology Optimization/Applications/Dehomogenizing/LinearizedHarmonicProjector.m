@@ -121,7 +121,7 @@ classdef LinearizedHarmonicProjector < handle
                 end                
                                 
                 
-                theta = 0.5;
+                theta = 0.95;0.5;
              %   v = obj.projectUnitBall(v);
                 vH = theta*v + (1-theta)*vH ;    
 %                  if mod(i,10) == 0
