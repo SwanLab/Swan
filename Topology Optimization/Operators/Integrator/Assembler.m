@@ -150,7 +150,7 @@ classdef Assembler < handle
         %% B matrix assembly
         function Bt = assembleBMatrix(obj, Bfull)
             d = obj.dim;
-            ntot  = d.nt;
+            ntot  = d.ngaus*d.nelem*d.nstre;
             ndofGlob = d.ndof;
             Bt = sparse(ntot,ndofGlob);
             for idof = 1:d.ndofPerElement
@@ -186,14 +186,14 @@ classdef Assembler < handle
 
         function Bdof = computeBdofBySparse(obj,Bidof,dofs)
             d = obj.dim;
-            ntot  = d.nt;
+            ntot  = d.ngaus*d.nelem*d.nstre;
             ndofGlob = d.ndof;
             Bdof = sparse(1:ntot,dofs,Bidof,ntot,ndofGlob);
         end
 
         function Bdof = computeBdofByAccumarray(obj,Bidof,dofs)
             d = obj.dim;
-            ntot  = d.nt;
+            ntot  = d.ngaus*d.nelem*d.nstre;
             ndof = d.ndof;
             posI = 1:ntot;
             index = [posI', dofs];
@@ -204,9 +204,10 @@ classdef Assembler < handle
         %% C matrix assembly
 
        function CmatTot = assembleCMatrix(obj, Cmat, dvol)
-           nstre = obj.dim.nstre;
-           ngaus = obj.dim.ngaus;
-           ntot  = obj.dim.nt;
+           d = obj.dim;
+           nstre = d.nstre;
+           ngaus = d.ngaus;
+           ntot  = ngaus*d.nelem*nstre;
            CmatTot = sparse(ntot,ntot);
            for istre = 1:nstre
                for jstre = 1:nstre
@@ -224,13 +225,13 @@ classdef Assembler < handle
 
        function Cadd = computeCaddBySparse(obj,Ct, posI, posJ)
            d = obj.dim;
-           ntot  = d.nt;
+           ntot  = d.ngaus*d.nelem*d.nstre;
            Cadd = sparse(posI,posJ,Ct,ntot,ntot);
        end
 
        function Cadd = computeCaddByAccumarray(obj,Ct, posI, posJ)
            d = obj.dim;
-           ntot  = d.nt;
+           ntot  = d.ngaus*d.nelem*d.nstre;
            index = [posI', posJ'];
            Cadd = accumarray(index,Ct,[ntot ntot],[],[],true);
       end

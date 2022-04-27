@@ -32,6 +32,6 @@ classdef SettingsShapeFunctional < AbstractSettings
             s = f.create(cParams);
         end
         
-    end       
+    end
     
 end

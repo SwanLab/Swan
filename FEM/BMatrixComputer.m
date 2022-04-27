@@ -18,24 +18,14 @@ classdef BMatrixComputer < handle
         end
 
         function B = computeBmat(obj,igaus)
-            ndim = obj.dim.ndim;
-            switch ndim
-                case 1
-                    B = obj.computeBin1D(igaus);
+            nstre = obj.dim.nstre;
+            switch nstre
                 case 2
-                    B = obj.computeBin2D(igaus);
+                    B = obj.computeBin1D(igaus);
                 case 3
+                    B = obj.computeBin2D(igaus);
+                case 6
                     B = obj.computeBin3D(igaus);
-            end
-        end
-
-
-        function Bmatrix = computeAlternateB(obj)
-            d  = obj.dim;
-            nB = d.nstre*d.ngaus*d.nelem;
-            Bmatrix = zeros(nB,d.ndofPerElement);
-            for igaus = 1:d.ngaus
-                Bmat = obj.computeBmat(igaus);
             end
         end
 
