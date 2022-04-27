@@ -9,6 +9,7 @@ classdef Filter < handle
     properties (Access = protected)
         x
         x_reg
+        M
     end
     
     properties (GetAccess = protected, SetAccess = protected)
@@ -70,6 +71,8 @@ classdef Filter < handle
             obj.createDiffReacProblem(cParams);
             obj.mesh = cParams.mesh;
             obj.quadratureOrder = cParams.quadratureOrder;
+            dim = obj.computeDimensions();
+            obj.computeMassMatrix(dim);
         end
         
         function A_nodal_2_gauss = computeA(obj)
@@ -109,6 +112,22 @@ classdef Filter < handle
     end
     
     methods (Access = private)
+
+        function dim = computeDimensions(obj)
+            s.name = 'x';
+            s.mesh = obj.mesh;
+            dim   = DimensionScalar(s);
+        end
+        
+        function M = computeMassMatrix(obj, dim)
+            s.type         = 'MassMatrix';
+            s.quadType     = 'QUADRATICMASS';
+            s.mesh         = obj.mesh;
+            s.globalConnec = obj.mesh.connec;
+            s.dim          = dim;
+            LHS = LHSintegrator.create(s);
+            obj.M = LHS.compute();
+        end
         
         function createInterpolation(obj)
             obj.interp = Interpolation.create(obj.mesh,'LINEAR');

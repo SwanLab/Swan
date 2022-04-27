@@ -28,11 +28,6 @@
 %               - StokesComputer, StokesFEM
 
 
-% fix newdimensions in ElasticProblem
-% quadrature as input in strain
-% in Filter create MassMatrix when construction
-
-
 % +++QUadratic shape functions for thermal, elastic, elastic_micro with
 % corresponding tests
 % ++++"integrate" all RHS

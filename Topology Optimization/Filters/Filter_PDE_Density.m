@@ -1,5 +1,5 @@
 classdef Filter_PDE_Density < Filter_PDE
-    
+
     methods (Access = public)
         
         function obj = Filter_PDE_Density(cParams)
@@ -16,31 +16,9 @@ classdef Filter_PDE_Density < Filter_PDE
         end
         
         function RHS = integrate_L2_function_with_shape_function(obj,x)
-            dim = obj.computeDimensions();
-            M = obj.computeMassMatrix(dim);
-            RHS = M*x;
+            RHS = obj.M*x;
         end
         
-    end
-
-    methods (Access = private)
-
-        function dim = computeDimensions(obj)
-            s.name = 'x';
-            s.mesh = obj.mesh;
-            dim   = DimensionScalar(s);
-        end
-        
-        function M = computeMassMatrix(obj, dim)
-            s.type         = 'MassMatrix';
-            s.quadType     = 'QUADRATICMASS';
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.dim          = dim;
-            LHS = LHSintegrator.create(s);
-            M = LHS.compute();
-        end
-
     end
     
 end
