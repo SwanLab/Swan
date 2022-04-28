@@ -11,7 +11,7 @@ classdef OptimizerFactory < handle
                 case 'IPOPT'
                     op = Optimizer_IPOPT(cParams);
                 case 'DualNestedInPrimal'
-                    op = OptimizerDualNestedInPrimal(cParams);
+                    op = OptimizerBisection(cParams);
                 case 'fmincon'
                     op = Optimizer_fmincon(cParams);
                 case 'NullSpace'

@@ -7,12 +7,12 @@ cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
 optimizerUnconstrained = 'PROJECTED GRADIENT';%'PROJECTED GRADIENT'; 
-optimizer = 'AlternatingPrimalDual';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
+optimizer = 'DualNestedInPrimal';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
 incrementFactor = 1;
 designVariable = 'Density';%'Density';
 filterType = 'P1';
 
-nsteps = 1;
+nsteps = 3;
 Vfrac_final = 0.4;
 optimality_final =1e-3;
 constr_final =1e-3;
