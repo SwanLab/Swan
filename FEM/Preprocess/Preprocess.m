@@ -85,12 +85,9 @@ classdef Preprocess<handle
         
         function [fixnodes,forces,full_dirichlet_data,Master_slave] = getBC_fluids(filename,mesh,geometry,interp)
             run(filename)
-            nelem= mesh.nelem;
-            full_dirichlet_data=External_border_nodes;
-            if ~isempty(full_dirichlet_data)
-                full_dirichlet_data(:,2)=ones(length(full_dirichlet_data(:,1)),1);
-                full_dirichlet_data(:,3)=zeros(length(full_dirichlet_data(:,1)),1);
-            end
+            obj = Preprocess;
+            full_dirichlet_data = obj.getFullDirichletData(External_border_nodes);
+
             
             if ~exist('Master_slave','var')
                 Master_slave = [];
@@ -102,6 +99,31 @@ classdef Preprocess<handle
             c.compute();
             xpoints = c.coord;
             
+            fixnodes_u = obj.getFixedVelocityNodes(xpoints, velocity);
+            fixnodes_p = obj.getFixedPressureNodes(pressure);
+            forces = obj.getVolumetricForces(Vol_force, mesh, geometry, interp);
+            fixnodes{1} = fixnodes_u;
+            fixnodes{2} = fixnodes_p;
+        end
+        
+        function forces_adjoint=getBC_adjoint(filename)
+            run(filename)
+            forces_adjoint = pointload_adjoint;
+        end
+    end
+
+    methods (Static, Access = private)
+        
+        function data = getFullDirichletData(externalBorderNodes)
+            fullDirichletData = externalBorderNodes;
+            if ~isempty(fullDirichletData)
+                fullDirichletData(:,2) = ones(length(fullDirichletData(:,1)),1);
+                fullDirichletData(:,3) = zeros(length(fullDirichletData(:,1)),1);
+            end
+            data = fullDirichletData;
+        end
+
+        function nodes = getFixedVelocityNodes(xpoints, velocity)
             nnode   = length(xpoints(:,1));
             
             if (~isempty(velocity))
@@ -110,16 +132,18 @@ classdef Preprocess<handle
                 for inode = 1: nnode
                     if xpoints(inode,1) ==0  || xpoints(inode,1) == 1 ...
                             || xpoints(inode,2) == 0 || xpoints(inode,2) == 1
-                        fixnodes(ind,:)=[inode 1 0];
-                        fixnodes(ind+1,:)=[inode 2 0];
+                        fixnodes(ind,:) = [inode 1 0];
+                        fixnodes(ind+1,:) = [inode 2 0];
                         ind = ind+2;
                         
                     end
                 end
-                fixnodes_u=fixnodes;
+                nodes=fixnodes;
                 
             end
-            
+        end
+
+        function nodes = getFixedPressureNodes(pressure)
             if (~isempty(pressure))
                 % if strcmp(geometry(2).interpolation.order,geometry(.order) ==1
                 fixnodes_p = pressure;
@@ -140,7 +164,10 @@ classdef Preprocess<handle
                 %                     obj.iD_p(i) = obj.fixnodes_p(i,1)*nunkn_p - nunkn_p + obj.fixnodes_p(i,2);
                 %                 end
             end
-            
+            nodes = fixnodes_p;
+        end
+
+        function forces = getVolumetricForces(Vol_force, mesh, geometry, interp)
             if (~isempty(Vol_force))
                 %                 ind=1;
                 
@@ -158,6 +185,7 @@ classdef Preprocess<handle
                 geom.computeGeometry(quadrature,interp{1})
                 xV = quadrature.posgp;
                 xGauss = mesh.computeXgauss(xV);
+                nelem = mesh.nelem;
                 for ielem = 1:nelem
                     ind=1;
                     for igaus = 1:quadrature.ngaus
@@ -173,14 +201,8 @@ classdef Preprocess<handle
             else
                 forces = [];
             end
-            clear fixnodes;
-            fixnodes{1} = fixnodes_u;
-            fixnodes{2} = fixnodes_p;
         end
-        
-        function forces_adjoint=getBC_adjoint(filename)
-            run(filename)
-            forces_adjoint = pointload_adjoint;
-        end
+
     end
+
 end

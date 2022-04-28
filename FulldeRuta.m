@@ -1,53 +1,58 @@
 %% To-do
-% a) CLEANUP
-%       OK! - Rename New stuff to just the name
-%                - ElasticProblem, DiffReactProblem
-%                - ElasticProblemMicro, DiffReactProblemMicro
-%       OK! - Delete old DOFs and Elements
-%                - Stokes, Hyperelastic?
-%       OK! - Move dofsInElem to LHSintegrator
-%           - Stokes_Problem still uses BoundaryConditionsApplier
-%                - Left for legacy purposes
+% a) DIFFREACTPROBLEM
+%       OK! - merge diffreacProblemRobin and Neuman...
+%       OK!      - dispacth trhough LHSintegrator
+%       OK!      - merge problemdimensions and dimensions, no need
+%       OK! - create LHS integrator for boundaryMassmatrix
+%       YET - DiffReactProblem tests
 
-% b) CLOSING
-%       OK! - Adapt ThermalProblem via NewDiffReactProblem
-%       OK! - Add vars2print for micro
+        % Comments:
+        %       - DiffReactTests: RHS? Dirichlet? Neumann?
+        %       - Separate problemLHS from LHSintegrators in a new class?
 
-% c) RESULT VISUALIZATIONS
-%       OK! - Set up GiD for ThermalProblem and visualize results
-%       OK! - Set up GiD for Micro problem and visualize results
+% b) MINOR CLEANUP
+%       YET - improve performance graph using average + deviation
+%       OK! - Precomputedvariabletest overwrite results
 
-% d) PERFORMANCE
-%           - See report.mlx
+        % Comments:
+        %       - AbstractSettings was the one, line 89
+
+% c) ELASTICPROBLEM
+%       OK! - masterSlaveNodes not in Mesh...in BoundaryConditions
+%                - Pending createRectangularMesh at ShapesInMicrostructures
+%       OK! - s.material as an input (FemDataContainer)
+%       YET - refactoring ElasticProblemMicro
+
+        % Comments:
+        %       - Perhaps material should not take ngaus
+        %       - This way, quad, interp, and geometry *may* only be used
+        %         as part of the RHS + strain/stress
+        %       - If we end up doing the problemLHS thing, it could also
+        %         lead to a problemRHS with all of this
+
+% d) STOKES
+%       WIP - Restore Stokes_Problem
+%               - FemTestsSuite, FemTests
+%               - StokesComputer, StokesFEM
+
+        % Comments:
+        %       - Seems to be made just for that one test. See
+        %         test2d_stokes_triangle (Vol_force, pressure, velocity)
+        %       - Is the mesh even used? Looks like it's all interpolations
+        %       - Separate DimensionVariables? Separate BoundaryConditions?
+        %       - The RHS thing could be useful here. The ForcesComputer in
+        %         ElasticProblem should be completely different, maybe a
+        %         change in the architecture could make it easier.
+
+% e) PREPROCESS
+%           - Refactoring PreProcess -- FemInputReader_GiD.m
 
 
-%%% 
-% OK! replace applyNode --- for nnode = size(globalconnec,2) in Assembler
-% OK! Clean dofsInElem THerma, Elastic
-% OK! dofInElem by composition --->  Assembler and Forces
-% OK! MaterProperties data as input 
-% OK! Performance (time) vs nElem: for different cases
 
-% Clean ElasticProblemMicro ---> vars, vars2Print, Chomog, variables....
-
-% OK! DiffReac in Newmann and Robin (Two diff react)
-
-% Clean Thermal, Elastic, DiffReac --- (only) dim, boundary, LHS,RHS, u..
-%   - DiffReactProblem: it's pretty clean, since quad, interp and geom are
-%                       not called anywhere else.
-%   - ElasticProblem: it's tough, since it really needs to be calculated in
-%                     that class as it's needed elsewhere. Moved to init.
-
-
-% Test coming from GiD (Swan.gid)
-
-% masterSlaveNodes not in Mesh...in BoundaryConditions
-% diffreact tests
-% create LHS integrator for boundaryMassmatrix
-% Pcomputed variable rewritte results
-% merge diffreacProblemRobin and Neuman...dispacth trhough LHSintegrator
-% createMaterial
-% Refactoring ElasticProblemMicro
-% Restore Stokes
-% Refactroing PreProcessing--FemInputReader
-%
+% delete interp in ElasticProblem
+% In Filter use LHSintegrator rather than DiffReact
+% DiffReact delete getM and getK and setEpsilon and computeDvolume
+% setLHStype in DiffReact in Filter
+% Crate RHS integrator for Elastic, ElasticMicro and thermal
+% dimEscalar, vector....by fields...nElem,nDim private in dim
+% Stokes..

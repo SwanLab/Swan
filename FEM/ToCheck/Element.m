@@ -127,9 +127,10 @@ classdef Element < handle
                 end
             end
             
-            if ifield == 1 && jfield == 1 %pel termic
-                A = 1/2 * (A + A');
-            end
+            % Substituted by obj.symGradient(A)
+%             if ifield == 1 && jfield == 1 %pel termic
+%                 A = 1/2 * (A + A');
+%             end
         end
         
         function [idx1,idx2,nunkn1,nunkn2,nnode1,nnode2,col,row] = get_assemble_parameters(obj,ifield,jfield)

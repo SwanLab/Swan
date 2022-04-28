@@ -2,6 +2,7 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
 
     properties (Access = private)
         geometry
+        material
     end
 
     methods (Access = public)
