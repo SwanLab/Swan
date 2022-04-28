@@ -69,10 +69,10 @@ classdef HarmonicProjectionExample < handle
             alpha0  = d.dataRes.AlphaGauss;
             alpha(:,1) = obj.interpolateOrientationAngle(alpha0(:,1));
             alpha(:,2) = obj.interpolateOrientationAngle(alpha0(:,2));
-            theta(:,1) = atan2(alpha(:,1),alpha(:,2));  
+            theta(:,1) = atan2(alpha(:,1),alpha(:,2));
             obj.plotOrientation(theta,1);
             alpha = obj.projectInUnitBall(alpha);
-            theta(:,1) = atan2(alpha(:,1),alpha(:,2));  
+            theta(:,1) = atan2(alpha(:,1),alpha(:,2));
             obj.plotOrientation(theta,1);
             obj.orientationAngle = theta;
         end
@@ -81,7 +81,7 @@ classdef HarmonicProjectionExample < handle
             s.mesh    = obj.mesh;
             s.fValues = v0;
             p = PieceWiseConstantFunction(s);
-            vI = p.projectToLinearNodalFunction(); 
+            vI = p.projectToLinearNodalFunction();
         end
 
         function plotOrientation(obj,t,iFigure)
@@ -101,7 +101,7 @@ classdef HarmonicProjectionExample < handle
         end
 
         function project(obj)
-            theta0 = obj.orientationAngle;            
+            theta0 = obj.orientationAngle;
             u      = theta0;
             lambda = obj.computeInitialLambda();
             error = 1;
@@ -113,28 +113,24 @@ classdef HarmonicProjectionExample < handle
                 error = norm([optPrimal,optDual]);
                 [u,lambda]   = obj.solveProblem(u);
 
-
                 figure(100)
                 clf
-                plot(cost,'-+')                
-
+                plot(cost,'-+')
 
                 figure(101)
                 clf
                 hold on
-                plot(optPrimal','-+')                
+                plot(optPrimal','-+')
                 plot(optDual','-+')
                 hold off
 
-                obj.plotOrientation(u,2) 
-       
-
+                obj.plotOrientation(u,2)
             end
         end
 
         function [v,lambda] = solveProblem(obj,vH)
-           h  = obj.harmonicProjector;
-           [v,lambda] = h.solveProblem(vH);
+            h  = obj.harmonicProjector;
+            [v,lambda] = h.solveProblem(vH);
         end
 
         function createHarmonicProjection(obj)
@@ -170,24 +166,24 @@ classdef HarmonicProjectionExample < handle
         end
 
         function c = computeCost(obj,v,vH)
-            h = obj.harmonicProjector;            
-            c = h.computeCost(v,vH);             
-        end        
+            h = obj.harmonicProjector;
+            c = h.computeCost(v,vH);
+        end
 
         function d = computePrimalOptimaility(obj,lambda,v,vH)
-            h = obj.harmonicProjector;   
+            h = obj.harmonicProjector;
             d = h.computePrimalOptimaility(lambda,v,vH);
         end
 
         function d = computeDualHarmonicOptimality(obj,v)
-            h = obj.harmonicProjector;   
-            d = h.computeDualOptimality(v);             
-        end   
+            h = obj.harmonicProjector;
+            d = h.computeDualOptimality(v);
+        end
 
         function dualOptT = computeDualUnitBallOptimality(obj,v)
             u = obj.unitBallProjector;
             dualOptT = u.computeDualOptimality(v);
-        end             
+        end
 
     end
 

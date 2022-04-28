@@ -8,10 +8,8 @@ classdef DimensionVariables < handle
         nelem
         ndofPerElement
         ngaus
-        nentries
         ndim
         nunknPerField
-        nt
         npnod
     end
 
@@ -33,16 +31,13 @@ classdef DimensionVariables < handle
             obj.ndof           = obj.mesh.npnod*obj.ndimField;
             obj.nelem          = obj.mesh.nelem;
             obj.ndofPerElement = obj.nnode*obj.ndimField;
-            obj.nentries       = obj.nelem*(obj.ndofPerElement)^2;
             obj.ndim           = obj.createNdim();
-            obj.nt             = obj.ngaus*obj.nelem*obj.nstre;
             obj.npnod          = obj.mesh.npnod;
         end
 
         function applyNdimfield(obj, num)
             obj.ndimField = num;
             obj.ndofPerElement = obj.nnode*obj.ndimField;
-            obj.nentries       = obj.nelem*(obj.ndofPerElement)^2;
             obj.ndof           = obj.mesh.npnod*obj.ndimField;
         end
 

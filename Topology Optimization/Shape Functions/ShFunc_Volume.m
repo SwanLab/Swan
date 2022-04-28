@@ -45,7 +45,7 @@ classdef ShFunc_Volume < ShapeFunctional
             end
             g = obj.Msmooth*gf;
             %g = gf;
-            obj.gradient = g(:);            
+            obj.gradient = g(:);
             %obj.gradient = ones(size(g(:)))/obj.geometricVolume;
         end
         

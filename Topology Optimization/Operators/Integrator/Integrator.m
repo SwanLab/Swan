@@ -34,6 +34,26 @@ classdef Integrator < handle
             quadrature = Quadrature.set(obj.mesh.type);
             quadrature.computeQuadrature(quadOrder);
         end
+
+        function fG = computeFgauss(obj,fNodal,xGauss,connec,type)
+            s.fNodes = fNodal;
+            s.connec = connec;
+            s.type   = type;
+            f = FeFunction(s);
+            fG = f.interpolateFunction(xGauss);
+            fG = permute(fG,[2 3 1]);
+        end
+        
+        function rhsC = computeElementalRHS(obj,fGauss,xGauss,type,quadOrder)
+            s.fGauss    = fGauss;
+            s.xGauss    = xGauss;
+            s.mesh      = obj.mesh;
+            s.type      = type;
+            s.quadOrder = quadOrder;
+            rhs = RHSintegrator(s);
+            rhsC = rhs.integrate();
+%             rhsC = rhs.integrateWithShapeDerivative();
+        end
         
         function f = assembleIntegrand(obj,rhsCells)
             integrand = rhsCells;
@@ -48,33 +68,12 @@ classdef Integrator < handle
             end
         end
         
-        function rhsC = computeElementalRHS(obj,fGauss,xGauss,type,quadOrder)
-            s.fGauss    = fGauss;
-            s.xGauss    = xGauss;
-            s.mesh      = obj.mesh;
-            s.type      = type;
-            s.quadOrder = quadOrder;
-            s.nunknPerField = obj.dim.nunknPerField;
-            rhs = RHSintegrator(s);
-            rhsC = rhs.integrate();
-%             rhsC = rhs.integrateWithShapeDerivative();
-        end
-
-        function fG = computeFgauss(obj,fNodal,xGauss,connec,type)
-            s.fNodes = fNodal;
-            s.connec = connec;
-            s.type   = type;
-            f = FeFunction(s);
-            fG = f.interpolateFunction(xGauss);
-            fG = permute(fG,[2 3 1]);
-        end
-        
         function computeDim(obj)
-            s.ngaus = [];
-            s.mesh  = obj.mesh;
-            s.pdim  = obj.createPdim();
-            d    = DimensionVariables(s);
-            d.compute();
+            s.fieldName = 'u';
+            s.mesh = obj.mesh;
+            s.ndimf = obj.mesh.ndim; % !!
+            d = DimensionVector(s);
+            d.create(s)
             obj.dim = d;
         end
 
