@@ -5,11 +5,8 @@ classdef DimensionVariables < handle
         ndimField
         nstre
         ndof
-        nelem
         ndofPerElement
-%         ngaus
         ndim
-        nunknPerField
         npnod
     end
 
@@ -27,9 +24,7 @@ classdef DimensionVariables < handle
         function compute(obj)
             obj.nnode          = obj.mesh.nnode;
             obj.ndimField      = obj.createDimPerField();
-            obj.nstre          = obj.createNstre();
             obj.ndof           = obj.mesh.npnod*obj.ndimField;
-            obj.nelem          = obj.mesh.nelem;
             obj.ndofPerElement = obj.nnode*obj.ndimField;
             obj.ndim           = obj.createNdim();
             obj.npnod          = obj.mesh.npnod;
@@ -41,18 +36,6 @@ classdef DimensionVariables < handle
             obj.ndof           = obj.mesh.npnod*obj.ndimField;
         end
 
-        function applyNUnknPerField(obj, num)
-            obj.nunknPerField = num;
-        end
-        
-        function applyNnode(obj, num)
-            obj.nnode = num;
-        end
-
-        function applyNelem(obj, num)
-            obj.nelem = num;
-        end
-
     end
     
     methods (Access = private)
@@ -62,7 +45,7 @@ classdef DimensionVariables < handle
             obj.pdim  = cParams.pdim;
         end
         
-        function ndimf = createDimPerField(obj) % createNUnknPerField
+        function ndimf = createDimPerField (obj) % createNUnknPerField
             switch obj.pdim
                 case '1D'
                     ndimf = 1;

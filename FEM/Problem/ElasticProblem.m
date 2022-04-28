@@ -34,8 +34,8 @@ classdef ElasticProblem < handle
         end
 
         function solve(obj)
-%             obj.computeStiffnessMatrix();
-            obj.computeStiffnessMatrixOld();
+            obj.computeStiffnessMatrix();
+%             obj.computeStiffnessMatrixOld();
             obj.computeForces();
             obj.computeDisplacements();
             obj.computeStrain();
@@ -44,8 +44,8 @@ classdef ElasticProblem < handle
         end
 
         function plot(obj)
-            s.dim            = obj.dim;
-            s.mesh           = obj.mesh;
+            s.dim          = obj.dim;
+            s.mesh         = obj.mesh;
             s.displacement = obj.variables.d_u;
             plotter = FEMPlotter(s);
             plotter.plot();

@@ -41,13 +41,13 @@ classdef StrainComputer < handle
         end
         
         function strain = computeStrain(obj)
-            nstre = obj.dim.nstre;
-            nelem = obj.dim.nelem;
+            d_u = obj.displacement;
+            connec = obj.mesh.connec;
+            nelem = size(connec,1);
+            nstre = obj.getNstre();
             nnode = obj.dim.nnode;
             nunkn = obj.dim.ndimField;
             ngaus = obj.quadrature.ngaus;
-            d_u = obj.displacement;
-            connec = obj.mesh.connec;
             strain = zeros(nstre,nelem,ngaus);
             for igaus = 1:ngaus
                 Bmat = obj.computeB(igaus);
@@ -66,6 +66,11 @@ classdef StrainComputer < handle
                 end
             end
             strain = permute(strain, [3 1 2]);
+        end
+
+        function nstre = getNstre(obj)
+            nstreVals = [2, 3, 6];
+            nstre = nstreVals(obj.dim.ndimField);
         end
 
         function Bmat = computeB(obj,igaus)

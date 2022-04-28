@@ -95,8 +95,8 @@ classdef RHSintegrator_ElasticMicro < handle
         function F = computeStrainRHS(obj,vstrain)
             Cmat  = obj.material.C;
             nunkn = obj.dim.ndimField;
-            nstre = obj.dim.nstre;
-            nelem = obj.dim.nelem;
+            nstre = size(Cmat,1);
+            nelem = size(Cmat,3);
             nnode = obj.dim.nnode;
             ngaus = obj.quadrature.ngaus;
 
