@@ -1,5 +1,9 @@
 classdef NewFilter_PDE_LevelSet < handle
 
+    properties (Access = private) 
+        
+    end
+
     properties(Access = private)
         interp
         levelSet
@@ -120,7 +124,7 @@ classdef NewFilter_PDE_LevelSet < handle
             int = Integrator.create(s);
         end
 
-        function A_nodal_2_gauss = computeA(obj)
+        function A = computeA(obj)
             s.nnode  = obj.mesh.nnode;
             s.nelem  = obj.mesh.nelem;
             s.npnod  = obj.mesh.npnod;
@@ -129,7 +133,7 @@ classdef NewFilter_PDE_LevelSet < handle
             s.shape  = obj.interp.shape;
             Acomp = Anodal2gausComputer(s);
             Acomp.compute();
-            A_nodal_2_gauss = Acomp.A_nodal_2_gauss;
+            A = Acomp.A_nodal_2_gauss;
         end
 
         function x_reg = solveFilter(obj,RHS)
