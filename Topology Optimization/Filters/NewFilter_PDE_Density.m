@@ -55,7 +55,7 @@ classdef NewFilter_PDE_Density < handle
 
         function x_reg = getP1fromP1(obj,x)
             RHS = obj.integrate_L2_function_with_shape_function(x);
-            x_reg = obj.solve_filter(RHS);
+            x_reg = obj.solveFilter(RHS);
         end
 
         function x_reg = getP1fromP0(obj,x0)
@@ -115,11 +115,6 @@ classdef NewFilter_PDE_Density < handle
             Acomp = Anodal2gausComputer(s);
             Acomp.compute();
             A_nodal_2_gauss = Acomp.A_nodal_2_gauss;
-        end
-
-        function x_reg = solve_filter(obj,RHS)
-            obj.diffReacProb.computeVariables(RHS);
-            x_reg = obj.diffReacProb.variables.x;
         end
 
         function itHas = hasEpsilonChanged(obj,eps)
