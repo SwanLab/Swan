@@ -47,18 +47,18 @@ classdef EigModes < handle
             d = obj.dim;
             x = obj.designVariable.getColumnArea();
             nElem = d.nelem;
-            if abs(obj.D(2,2)-obj.D(1,1))> 1
+            if abs(obj.D(2,2)-obj.D(1,1))> 1 % simple case
                 W=zeros(d.ndof,2);
-                for i=3:2*nElem
+                for i=3:2*nElem %% eigenvector 1 de posición quitando las boundary condition
                     W(i,1)=obj.v1(i-2);
                 end
-                for i=1:nElem
+                for i=1:nElem %% derivada1 = vT * (2*Be*x) * v
                     dfdx(1,i)= -(2*x(i,1))*(W(2*(i-1)+1: 2*(i-1)+4,1)'*Belem(:,:,i)*W(2*(i-1)+1: 2*(i-1)+4,1));
                 end
-                for i=3:2*nElem
+                for i=3:2*nElem %% eigenvector 2 de posición quitando las boundary condition
                     W(i,2)=obj.v2(i-2);
                 end
-                for i=1:nElem
+                for i=1:nElem %% derivada1 = vT * (2*Be*x) * v
                     dfdx(2,i)= -(2*x(i,1))*(W(2*(i-1)+1: 2*(i-1)+4,2)'*Belem(:,:,i)*W(2*(i-1)+1: 2*(i-1)+4,2));
                 end
             else
