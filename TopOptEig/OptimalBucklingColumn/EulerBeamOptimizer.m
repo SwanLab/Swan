@@ -25,35 +25,22 @@ classdef EulerBeamOptimizer < handle
        dim
    end
 
-    % Mesh (lenght only to create mesh, delete elsewhere)  (DONE)
-    % Kelem  + assembly    (DONE)
-    % plot modes getting displacement (DONE)
-
-    % use dimension class for dim (DONE)
-    % length with geometry  (DONE)
-    % stiffnes and bending with LHSintegrator.. (DONE)
-    % Solve for a non-structured mesh (DONE)
-   
+%% TO DO LIST (29 april - 5 may)
 
     %%% Refactoring
     % delete elemental loop LHS Bending
-    % delete elemental loop LHS Stiffness
-    % delete StifnessMatrixComputer (DONE)
-    % delete BendingMatrixComputer  (DONE)
-        % (provide free matrix inside LHS integrator) okey??
-    % assambly matrix in Bending  (DONE)
+    % delete elemental loop LHS Stiffness 
+    % delete LHS from TopOpt and transform the good one from Swan (DONE)
 
     %%% Next
     % 1. derivative "clean"/ "understand"    
-    % 2. Plot column area with polyshape and generateMesh (DONE) --> Too slow
-    %    to plot all iterations
+    % 2. MMa from Swan 
     % 3. postprocess with GiD; (with Alex)
-    % 4. create shape functions cubic 1D (Interpolation) 
+    % 4. create shape functions cubic 1D (Interpolation) (finally???)
     
     %%% Future
-    % MMa from Swan    
     % Use shape functions for elemental stifness and bending
-
+%%
     properties (Access = private)
         designVariable
         freeNodes

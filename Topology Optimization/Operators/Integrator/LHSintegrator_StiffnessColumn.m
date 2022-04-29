@@ -44,15 +44,24 @@ classdef LHSintegrator_StiffnessColumn < LHSintegrator
             nElem = d.nelem; 
             Edof = d.ndofPerElement;
             Ke = zeros(Edof,Edof,nElem);
-            l = obj.computeLength;
-            for iElem=1:nElem
-                length = l(iElem);
-                [c1,c2,c3,c4,c5] = obj.coeffsStiffness(length);
-                Ke(1,1:4,iElem) = c1*[c2 c3 -c2 c3];
-                Ke(2,1:4,iElem) = c1*[c3 c4 -c3 -c5];
-                Ke(3,1:4,iElem) = c1*[-c2 -c3 c2 -c3];
-                Ke(4,1:4,iElem) = c1*[c3 -c5 -c3 c4];
-            end
+            l = obj.computeLength();
+            [c1,c2,c3,c4,c5] = obj.coeffsStiffness(l);
+            Ke(1,1,:) = c1.*c2;
+            Ke(1,2,:) = c1.*c3;
+            Ke(1,3,:) = -c1.*c2;
+            Ke(1,4,:) = c1.*c3;
+            Ke(2,1,:) = c1.*c3;
+            Ke(2,2,:) = c1.*c4;
+            Ke(2,3,:) = -c1.*c3;
+            Ke(2,4,:) = -c1.*c5;
+            Ke(3,1,:) = -c1.*c2;
+            Ke(3,2,:) = -c1.*c3;
+            Ke(3,3,:) = c1.*c2;
+            Ke(3,4,:) = -c1.*c3;
+            Ke(4,1,:) = c1.*c3;
+            Ke(4,2,:) = -c1.*c5;
+            Ke(4,3,:) = -c1.*c3;
+            Ke(4,4,:) = c1.*c4;
             lhs = Ke;
         end
 
@@ -80,11 +89,11 @@ classdef LHSintegrator_StiffnessColumn < LHSintegrator
         end
 
         function [c1,c2,c3,c4,c5] = coeffsStiffness(obj,l)
-            c1 = 1/(30*l);
-            c2 = 36;
-            c3 = 3*l;
-            c4 = 4*l^2;
-            c5 = l^2;
+            c1 = (1./(30*l))';
+            c2 = 36*ones(1,length(l));
+            c3 = (3*l)';
+            c4 = (4*l.^2)';
+            c5 = (l.^2)';
         end        
 
     end

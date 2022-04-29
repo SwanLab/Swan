@@ -1,5 +1,5 @@
 classdef LHSintegrator_Bending < LHSintegrator
-    
+
     properties (Access = public)
         elementalBendingMatrix
         bendingMatrix
@@ -27,8 +27,10 @@ classdef LHSintegrator_Bending < LHSintegrator
         end
 
         function LHS = compute(obj)
+            obj.computeElementalBendingMatrix();
             lhs = obj.computeElementalLHS();
-            LHS = obj.assemblyBendingMatrix(lhs);
+            LHS = obj.assembleMatrix(lhs);
+            obj.bendingMatrix = LHS;
         end
 
         function Bfree = provideFreeBendingMatrix(obj)
@@ -41,7 +43,7 @@ classdef LHSintegrator_Bending < LHSintegrator
 
     methods (Access = protected)
 
-        function lhs = computeElementalLHS(obj)
+        function lhs = computeElementalBendingMatrix(obj)
             d = obj.dim;
             E = obj.youngModulus;
             I = obj.inertiaMoment;
@@ -49,16 +51,50 @@ classdef LHSintegrator_Bending < LHSintegrator
             Edof = d.ndofPerElement;
             Be = zeros(Edof ,Edof ,nElem);
             l = obj.computeLength();
-            for iElem = 1:nElem
-                length = l(iElem);
-                [c1,c2,c3,c4] = obj.coeffsBending(length,E,I);
-                Be(1,1:4,iElem) = c1*[c2 c3 -c2 c3];
-                Be(2,1:4,iElem) = c1*[c3 c4 -c3 c4/2];
-                Be(3,1:4,iElem) = c1*[-c2 -c3 c2 -c3];
-                Be(4,1:4,iElem) = c1*[c3 c4/2 -c3 c4];
-            end
+            [c1,c2,c3,c4] = obj.coeffsBending(l,E,I);
+            Be(1,1,:) = c1.*c2;
+            Be(1,2,:) = c1.*c3;
+            Be(1,3,:) = -c1.*c2;
+            Be(1,4,:) = c1.*c3;
+            Be(2,1,:) = c1.*c3;
+            Be(2,2,:) = c1.*c4;
+            Be(2,3,:) = -c1.*c3;
+            Be(2,4,:) = c1.*c4/2;
+            Be(3,1,:) = -c1.*c2;
+            Be(3,2,:) = -c1.*c3;
+            Be(3,3,:) = c1.*c2;
+            Be(3,4,:) = -c1.*c3;
+            Be(4,1,:) = c1.*c3;
+            Be(4,2,:) = c1.*c4/2;
+            Be(4,3,:) = -c1.*c3;
+            Be(4,4,:) = c1.*c4;
             obj.elementalBendingMatrix = Be;
             lhs  = Be;
+        end
+
+        function lhs = computeElementalLHS(obj)
+            Be = obj.elementalBendingMatrix;
+            A = obj.designVariable.getColumnArea;
+            d = obj.dim;
+            nElem = obj.mesh.nelem;
+            desVar = (A.^2)';
+            Edof = d.ndofPerElement;
+            lhs = zeros(Edof,Edof,nElem);
+            for iElem = 1:nElem
+                lhs(:,:,iElem) = desVar(iElem).*Be(:,:,iElem);
+            end 
+        end
+
+        function l = computeLength(obj)
+            g = obj.geometry;
+            l = sum(g.dvolu,2);
+        end
+
+        function [c1,c2,c3,c4] = coeffsBending(obj,l,E,I)
+            c1 = (E*I./l.^3)';
+            c2 = 12*ones(1,length(l));
+            c3 = (6*l)';
+            c4 = (4*l.^2)';
         end
 
     end
@@ -80,55 +116,6 @@ classdef LHSintegrator_Bending < LHSintegrator
             g = Geometry.create(s);
             g.computeGeometry(q,int);
             obj.geometry = g;
-        end
-
-        function l = computeLength(obj)
-            g = obj.geometry;
-            l = sum(g.dvolu,2);
-        end
-
-        function [c1,c2,c3,c4] = coeffsBending(obj,l,E,I)
-            c1 = E*I/l^3;
-            c2 = 12;
-            c3 = 6*l;
-            c4 = 4*l^2;
-        end  
-
-        function LHS = assemblyBendingMatrix(obj,Be)
-            d = obj.dim;
-            x = obj.designVariable.value;
-            nElem = obj.mesh.nelem;
-            B  = sparse(d.ndof, d.ndof);
-            Tdof = obj.computeDOFconnec();
-            Edof = d.ndofPerElement;
-            for iElem = 1: nElem
-                for iRow = 1:Edof
-                    iDof = Tdof(iElem,iRow);
-                    for iColum = 1:Edof
-                        Bij = Be(iRow,iColum,iElem);
-                        jDof = Tdof(iElem,iColum);
-                        B(iDof,jDof) = B(iDof,jDof) + (x(iElem)^2)*Bij;
-                    end
-                end
-            end
-            obj.bendingMatrix = B;
-            LHS = B;
-        end
-
-        function Td = computeDOFconnec(obj)
-            Tnod = obj.mesh.connec;
-            d = obj.dim;
-            nElem = d.nelem;
-            Td = zeros(nElem,d.ndofPerElement);
-            ndofn = d.ndimField;
-            for iElem=1 : nElem
-                for a = 1 : ndofn
-                    for j=1:ndofn
-                        i = ndofn*(a-1) + j;
-                        Td(iElem,i) = ndofn*(Tnod(iElem,a)-1) + j;
-                    end
-                end
-            end
         end
 
     end

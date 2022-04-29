@@ -44,7 +44,7 @@ classdef EigModesPlotter < handle
         end
         
         function plotColumnArea(obj,A)      
-            z = sqrt(A); 
+            z = A; 
             coord = obj.mesh.coord;
             nelem = obj.mesh.nelem;
             nnod = nelem+1;
