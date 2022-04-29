@@ -1,6 +1,6 @@
 classdef ShapeFunctional < handle
     
-    properties
+    properties (Access = public)
         value
         gradient
         filter
@@ -14,6 +14,11 @@ classdef ShapeFunctional < handle
         nVariables
         designVariable
         target_parameters;
+    end
+
+    properties (Access = private)
+        dim
+        mesh
     end
     
     methods (Access = public, Static)
@@ -89,12 +94,29 @@ classdef ShapeFunctional < handle
         end
         
         function createMsmoothAndDvolu(obj,cParams)
-            s = cParams.femSettings;
-            s.mesh = cParams.mesh;
-            s.type = 'DIFF-REACT';
-            diffReacProb = FEM.create(s);
-            obj.Msmooth = diffReacProb.getM();
-            obj.dvolu   = diffReacProb.computeDvolume();
+            obj.mesh = cParams.mesh;
+            obj.computeDimensions();
+            q = Quadrature.set(cParams.mesh.type);
+            q.computeQuadrature('LINEAR');
+            obj.Msmooth = obj.computeMassMatrix();
+            obj.dvolu = cParams.mesh.computeDvolume(q)';
+        end
+
+        function computeDimensions(obj)
+            s.name = 'x';
+            s.mesh = obj.mesh;
+            dims   = DimensionScalar(s);
+            obj.dim = dims;
+        end
+        
+        function M = computeMassMatrix(obj)
+            s.type         = 'MassMatrix';
+            s.quadType     = 'QUADRATICMASS';
+            s.mesh         = obj.mesh;
+            s.globalConnec = obj.mesh.connec;
+            s.dim          = obj.dim;
+            LHS = LHSintegrator.create(s);
+            M = LHS.compute();
         end
 
     end

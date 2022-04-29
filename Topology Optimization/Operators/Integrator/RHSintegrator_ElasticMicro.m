@@ -1,4 +1,4 @@
-classdef ForcesComputer < handle
+classdef RHSintegrator_ElasticMicro < handle
 
     properties (Access = private)
         dim
@@ -13,14 +13,15 @@ classdef ForcesComputer < handle
     
     methods (Access = public)
 
-        function obj = ForcesComputer(cParams)
+        function obj = RHSintegrator_ElasticMicro(cParams)
             obj.init(cParams);
+            obj.createGeometry();
+            obj.computeDvolume();
         end
 
         function Fext = compute(obj)
-            Fsup       = obj.computeSuperficialFext;
-            Fvol       = obj.computeVolumetricFext;
-            forces     = squeeze(Fsup + Fvol);
+            Fvol       = obj.computeStrainRHS(obj.vstrain);
+            forces     = squeeze(Fvol);
             FextSupVol = obj.assembleVector(forces);
             Fpoint     = obj.computePunctualFext();
             Fext = FextSupVol +  Fpoint;
@@ -47,31 +48,25 @@ classdef ForcesComputer < handle
             obj.mesh               = cParams.mesh;
             obj.boundaryConditions = cParams.BC;
             obj.material           = cParams.material;
-            obj.geometry           = cParams.geometry;
-            obj.dvolume            = cParams.dvolume';
             obj.globalConnec       = cParams.globalConnec;
-            if isfield(cParams, 'vstrain')
-                obj.vstrain = cParams.vstrain;
-            end
+            obj.vstrain            = cParams.vstrain;
+        end
+       
+        function createGeometry(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('LINEAR');
+            int = obj.mesh.interpolation;
+            int.computeShapeDeriv(q.posgp);
+            s.mesh = obj.mesh;
+            g = Geometry.create(s);
+            g.computeGeometry(q,int);
+            obj.geometry = g;
         end
 
-        function Fs = computeSuperficialFext(obj)
-            d = obj.dim;
-            nnode = d.nnode;
-            ndimf = d.ndimField;
-            nelem = d.nelem;
-            Fs = zeros(nnode*ndimf,1,nelem);
-        end
-        
-        function Fv = computeVolumetricFext(obj)
-            d = obj.dim;
-            nnode = d.nnode;
-            ndimf = d.ndimField;
-            nelem = d.nelem;
-            Fv = zeros(nnode*ndimf,1,nelem);
-            if ~isempty(obj.vstrain)
-                Fv = Fv + obj.computeStrainRHS(obj.vstrain);
-            end
+        function computeDvolume(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('LINEAR');
+            obj.dvolume = obj.mesh.computeDvolume(q)';
         end
 
         function b = assembleVector(obj, forces)
@@ -90,7 +85,6 @@ classdef ForcesComputer < handle
                 Fp(neumann) = neumannValues;
             end
         end
-
         
         function F = computeStrainRHS(obj,vstrain)
             Cmat  = obj.material.C;

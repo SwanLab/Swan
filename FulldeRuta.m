@@ -1,58 +1,43 @@
 %% To-do
 % a) DIFFREACTPROBLEM
-%       OK! - merge diffreacProblemRobin and Neuman...
-%       OK!      - dispacth trhough LHSintegrator
-%       OK!      - merge problemdimensions and dimensions, no need
-%       OK! - create LHS integrator for boundaryMassmatrix
-%       YET - DiffReactProblem tests
+%       OK! - In Filter use LHSintegrator rather than DiffReact.
+%       OK! - Delete getM and getK and setEpsilon and computeDvolume
+%       OK* - setLHStype in DiffReact in Filter
+%       OK! - DiffReactTestsSuite created
+
+% b) ELASTICPROBLEM, DIMENSIONS and INTEGRATORS
+%       OK! - delete interp in ElasticProblem
+%       OK* - dimEscalar, vector....by fields...nElem,nDim private in dim
+%               - DimensionScalar, DimensionVector
+%       OK* - Create RHSintegrator for Elastic, ElasticMicro and thermal
 
         % Comments:
-        %       - DiffReactTests: RHS? Dirichlet? Neumann?
-        %       - Separate problemLHS from LHSintegrators in a new class?
-
-% b) MINOR CLEANUP
-%       YET - improve performance graph using average + deviation
-%       OK! - Precomputedvariabletest overwrite results
-
-        % Comments:
-        %       - AbstractSettings was the one, line 89
-
-% c) ELASTICPROBLEM
-%       OK! - masterSlaveNodes not in Mesh...in BoundaryConditions
-%                - Pending createRectangularMesh at ShapesInMicrostructures
-%       OK! - s.material as an input (FemDataContainer)
-%       YET - refactoring ElasticProblemMicro
-
-        % Comments:
-        %       - Perhaps material should not take ngaus
-        %       - This way, quad, interp, and geometry *may* only be used
-        %         as part of the RHS + strain/stress
-        %       - If we end up doing the problemLHS thing, it could also
-        %         lead to a problemRHS with all of this
+        %       - I started inverting the approach to Integrators and
+        %         RHSintegrators, as discussed a while ago. Previously,
+        %         RHSintegrators computed only the elemental RHS via
+        %         fGauss, and *not* the RHS.
+        %       - Is it useful, though?
+        %       - MinimumGradFieldWithVectorInL2, called from
+        %         DilationFieldComputer. fNodal?
+        %       - Tests are missing to cover stuff eg. HarmonicProjector.
+        %         HarmonicProjectionExample exists, but...
 
 % d) STOKES
 %       WIP - Restore Stokes_Problem
 %               - FemTestsSuite, FemTests
 %               - StokesComputer, StokesFEM
 
-        % Comments:
-        %       - Seems to be made just for that one test. See
-        %         test2d_stokes_triangle (Vol_force, pressure, velocity)
-        %       - Is the mesh even used? Looks like it's all interpolations
-        %       - Separate DimensionVariables? Separate BoundaryConditions?
-        %       - The RHS thing could be useful here. The ForcesComputer in
-        %         ElasticProblem should be completely different, maybe a
-        %         change in the architecture could make it easier.
 
-% e) PREPROCESS
-%           - Refactoring PreProcess -- FemInputReader_GiD.m
+% +++QUadratic shape functions for thermal, elastic, elastic_micro with
+% corresponding tests
+% ++++"integrate" all RHS
+% ++++nstre only in elasticity  (maybe in Bmatrix) and rename it as nVoigt
+% +++trying to avoid using nelem from dim
+% +++trying to avoid ngaus from dim 
+% ++++ndofPerNode (and ndofPerElem) in interpolation times npnod (nnode) of mesh gives ndof of field (in
+% dim)
+% ++++ nnode ---> nnodePerElem (in mesh)
+% create dimensions from type
+% delete nunkn in RHS
 
-
-
-% delete interp in ElasticProblem
-% In Filter use LHSintegrator rather than DiffReact
-% DiffReact delete getM and getK and setEpsilon and computeDvolume
-% setLHStype in DiffReact in Filter
-% Crate RHS integrator for Elastic, ElasticMicro and thermal
-% dimEscalar, vector....by fields...nElem,nDim private in dim
-% Stokes..
+% Re-use FeFunction for displacements.... with its own dimensions
