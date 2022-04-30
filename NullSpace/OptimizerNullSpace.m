@@ -25,6 +25,7 @@ classdef OptimizerNullSpace < Optimizer
         hasFinished
         mOld
         meritNew
+        nConstr
     end
 
     methods (Access = public) 
@@ -38,7 +39,7 @@ classdef OptimizerNullSpace < Optimizer
 
         function obj = solveProblem(obj)
             while ~obj.hasConverged
-              obj.update();
+                obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
@@ -57,6 +58,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.designVariable         = cParams.designVar;
             obj.dualVariable           = cParams.dualVariable;
             obj.incrementalScheme      = cParams.incrementalScheme;
+            obj.nConstr                = cParams.nConstr;
             obj.nX                     = length(obj.designVariable.value);
             obj.maxIter                = cParams.maxIter;
             obj.hasConverged           = false;
@@ -67,7 +69,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.cost.computeFunctionAndGradient();
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
-            obj.lambda = 0;
+            obj.lambda  = zeros(obj.nConstr,1);
         end
 
         function obj = update(obj)
@@ -92,7 +94,7 @@ classdef OptimizerNullSpace < Optimizer
             DJ      = obj.cost.gradient;
             Dg      = obj.constraint.gradient;
             aJ      = 1;
-            DmF     = aJ*(DJ + l*Dg);
+            DmF     = aJ*(DJ + l'*Dg');
             if obj.nIter == 0
                 obj.tau = 1*sqrt(norm(DmF)/norm(x));
             else
@@ -104,14 +106,14 @@ classdef OptimizerNullSpace < Optimizer
         function obj = updateDualDirect(obj)
             obj.constraint.computeFunctionAndGradient();
             obj.cost.computeFunctionAndGradient();
-            DJ = obj.cost.gradient;
-            Dg = obj.constraint.gradient;
-            g  = obj.constraint.value;
-            S  = (Dg'*Dg)^-1;
-            t  = obj.tau;
-            aC = 1;
-            aJ = 1;
-            l  = aC/aJ*S*(g - t*Dg'*DJ);
+            DJ         = obj.cost.gradient;
+            Dg         = obj.constraint.gradient;
+            g          = obj.constraint.value;
+            S          = (Dg*Dg')^-1;
+            t          = obj.tau;
+            aC         = 1;
+            aJ         = 1;
+            l          = aC/aJ*S*(g - t*Dg'*DJ);
             obj.lambda = l;
         end
 
@@ -171,15 +173,11 @@ classdef OptimizerNullSpace < Optimizer
             ub      = obj.upperBound;
             t       = obj.tau;
             Dg      = obj.constraint.gradient;
-            g       = obj.constraint.value;
             DJ      = obj.cost.gradient;
             l       = obj.lambda;
             x       = obj.designVariable.value;
-            S       = (Dg'*Dg)^-1;
-            aJ  = 1;
-            aC  = 1;
-            dAJ     = aJ*(DJ + l*Dg);
-            dAC     = aC*Dg'*S*Dg;
+            aJ      = 1;
+            dAJ     = aJ*(DJ + (l'*Dg')');
             dx      = -t*(dAJ);
             xN      = x + dx;
             x       = min(ub,max(xN,lb));
@@ -187,7 +185,6 @@ classdef OptimizerNullSpace < Optimizer
 
         function checkStep(obj,x,x0)
             mNew = obj.computeMeritFunction(x);
-
             if obj.nIter == 0 && mNew == obj.mOld
                 obj.acceptableStep = true;
                 obj.updateDualDirect();
@@ -210,16 +207,11 @@ classdef OptimizerNullSpace < Optimizer
             obj.designVariable.update(x)
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
-            DJ     = obj.cost.gradient;
             J      = obj.cost.value;
-            Dg     = obj.constraint.gradient;
             g      = obj.constraint.value;
             l      = obj.lambda;
-            S      = (Dg'*Dg)^-1;
             aJ     = 1;
-            aC     = 0.1;
-            AJ     = aJ*(J + l*g);
-            AC     = aC/2*g'*S*g;
+            AJ     = aJ*(J + l'*g);
             mF     = AJ;
         end
 

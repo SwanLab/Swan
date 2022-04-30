@@ -31,16 +31,12 @@ classdef AcademicProblem
             d.init(x0);
             j.dV                         = d;
             c.dV                         = d;
-            s.constraintCase             = [];
             s.designVar                  = d;
-            s.dualVariable               = [];
-            s.maxIter                    = [];
-            s.incrementalScheme          = [];
-            s.targetParameters           = [];
             s.cost                       = AcademicCost(j);
             s.constraint                 = AcademicConstraint(c);
             s.outputFunction.type        = "Academic";
             s.outputFunction.iterDisplay = "iter";
+            s.outputFunction.monitoring  = MonitoringManager(s);
             opt = Optimizer.create(s);
             opt.solveProblem();
             d.value

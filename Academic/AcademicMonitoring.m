@@ -31,7 +31,7 @@ classdef AcademicMonitoring < handle
                     obj.plotNullSpace(cParams);
                 case 'AugmentedLagrangian'
                     obj.plotAugmentedLagrangian(cParams);
-                case 'Bisection'
+                case 'DualNestedInPrimal'
                     obj.plotBisection(cParams);
                 case 'IPOPT'
                     obj.plotIPOPT(cParams);
