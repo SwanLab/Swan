@@ -35,7 +35,7 @@ classdef TopologyMonitoring < handle
                     obj.plotNullSpace(cParams);
                 case 'AlternatingPrimalDual'
                     obj.plotAugmentedLagrangian(cParams);
-                case 'Bisection'
+                case 'DualNestedInPrimal'
                     obj.plotBisection(cParams);
                 case 'IPOPT'
                     obj.plotIPOPT(cParams);
@@ -104,8 +104,6 @@ classdef TopologyMonitoring < handle
             obj.convergenceVars.append(deltaCost);
             obj.convergenceVars.append(incX);
             obj.convergenceVars.append(obj.lineSearch);
-            obj.convergenceVars.append(obj.lineSearchTrials);
-            obj.convergenceVars.append(cParams.meritNew);
             obj.refreshMonitoring();
             obj.printHistory();
         end
@@ -145,7 +143,6 @@ classdef TopologyMonitoring < handle
             obj.convergenceVars.append(incX);
             obj.convergenceVars.append(obj.lineSearch);
             obj.convergenceVars.append(obj.lineSearchTrials);
-            obj.convergenceVars.append(cParams.meritNew);
             obj.refreshMonitoring();
             obj.printHistory();
         end

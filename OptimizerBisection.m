@@ -25,6 +25,7 @@ classdef OptimizerBisection < Optimizer
         mOld
         meritNew
         constrProjector
+        isInitialStep
     end
 
     methods (Access = public) 
@@ -38,6 +39,8 @@ classdef OptimizerBisection < Optimizer
         end
 
         function obj = solveProblem(obj)
+            obj.hasConverged  = false;
+            obj.isInitialStep = true;
             while ~obj.hasConverged
                 obj.update();
                 obj.updateIterInfo();
@@ -60,7 +63,6 @@ classdef OptimizerBisection < Optimizer
             obj.incrementalScheme      = cParams.incrementalScheme;
             obj.nX                     = length(obj.designVariable.value);
             obj.maxIter                = cParams.maxIter;
-            obj.hasConverged           = false;
             obj.nIter                  = 0;
         end
 
@@ -74,78 +76,46 @@ classdef OptimizerBisection < Optimizer
         function obj = update(obj)
             x0 = obj.designVariable.value;
             obj.saveOldValues(x0);
-            obj.mOld = obj.computeMeritFunction(x0);
             obj.calculateInitialStep();
             obj.acceptableStep   = false;
             obj.lineSearchTrials = 0;
             while ~obj.acceptableStep
-                x = obj.updatePrimal();
-                x = obj.constrProjector.project(x);
-                obj.checkStep(x,x0);
+                t = obj.tau;
+                obj.constrProjector.project(t);
+                obj.checkStep();
             end
-            obj.updateOldValues(x);
         end
 
         function obj = calculateInitialStep(obj)
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
             x       = obj.designVariable.value;
-            l       = obj.lambda;
+            l       = obj.dualVariable.value;
             DJ      = obj.cost.gradient;
             Dg      = obj.constraint.gradient;
             DmF     = DJ + l*Dg;
             if obj.nIter == 0
-                obj.tau = 1*sqrt(norm(DmF)/norm(x));
+                obj.tau = 10*sqrt(norm(DmF)/norm(x));
             else
                 obj.tau = 1.5*obj.tau;
             end
         end
 
-        function obj = updateDualDirect(obj)
-            obj.constraint.computeFunctionAndGradient();
+        function checkStep(obj)
             obj.cost.computeFunctionAndGradient();
-            DJ = obj.cost.gradient;
-            Dg = obj.constraint.gradient;
-            g  = obj.constraint.value;
-            S  = (Dg'*Dg)^-1;
-            t  = obj.tau;
-            aC = 1;
-            aJ = 1;
-            l  = aC/aJ*S*(g - t*Dg'*DJ);
-            obj.lambda = l;
-        end
-
-        function x = updatePrimal(obj)
-            lb      = obj.lowerBound;
-            ub      = obj.upperBound;
-            t       = obj.tau;
-            Dg      = obj.constraint.gradient;
-            DJ      = obj.cost.gradient;
-            l       = obj.lambda;
-            x       = obj.designVariable.value;
-            dx      = -t*(DJ + l*Dg);
-            xN      = x + dx;
-            x       = min(ub,max(xN,lb));
-        end
-
-        function checkStep(obj,x,x0)
-            mNew = obj.computeMeritFunction(x);
-
-            if obj.nIter == 0 && mNew == obj.mOld
+            J = obj.cost.value;
+            if obj.isInitialStep
                 obj.acceptableStep = true;
-                obj.updateDualDirect();
-                obj.meritNew = mNew;
-            end
-            if mNew < obj.mOld
-                obj.acceptableStep = true;
-                obj.updateDualDirect();
-                obj.meritNew = mNew;
-            elseif obj.tau < 1e-10
-                error('Convergence could not be achieved (step length too small)')
+                obj.isInitialStep  = false;
             else
-                obj.tau = obj.tau/2;
-                obj.designVariable.update(x0);
-                obj.lineSearchTrials = obj.lineSearchTrials + 1;
+                if J < obj.oldCost
+                    obj.acceptableStep = true;
+                elseif obj.tau < 1e-10
+                    error('Convergence could not be achieved (step length too small)')
+                else
+                    obj.tau = obj.tau/2;
+                    obj.lineSearchTrials = obj.lineSearchTrials + 1;
+                end
             end
         end
 
@@ -174,7 +144,7 @@ classdef OptimizerBisection < Optimizer
         end
 
         function obj = checkConvergence(obj)
-           if abs(obj.oldCost - obj.cost.value) < obj.tol && max(obj.constraint.value) <= 0
+           if abs(obj.oldCost - obj.cost.value) < obj.tol && abs(obj.constraint.value) <= 1e-4
                obj.hasConverged = true;
            else
                
@@ -190,7 +160,6 @@ classdef OptimizerBisection < Optimizer
             s.lineSearchTrials = obj.lineSearchTrials;
             s.oldCost          = obj.oldCost;
             s.hasFinished      = obj.hasFinished;
-            s.meritNew         = obj.meritNew;
             obj.outputFunction.monitoring.compute(s);
         end
 
