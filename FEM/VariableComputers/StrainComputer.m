@@ -45,7 +45,7 @@ classdef StrainComputer < handle
             connec = obj.mesh.connec;
             nelem = size(connec,1);
             nstre = obj.getNstre();
-            nnode = obj.dim.nnode;
+            nnode = obj.dim.nnodeElem;
             nunkn = obj.dim.ndimField;
             ngaus = obj.quadrature.ngaus;
             strain = zeros(nstre,nelem,ngaus);

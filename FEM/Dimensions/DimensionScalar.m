@@ -3,7 +3,7 @@ classdef DimensionScalar < handle
     properties (GetAccess = public, SetAccess = private)
         name
         npnod
-        nnode
+        nnodeElem
         ndimField
         ndofPerElement
         ndof
@@ -26,7 +26,7 @@ classdef DimensionScalar < handle
         function init(obj, cParams)
             obj.ndimField      = 1; % by definition
             obj.name           = cParams.name;
-            obj.nnode          = cParams.mesh.interpolation.nnode;
+            obj.nnodeElem      = cParams.mesh.interpolation.nnode;
             obj.ndofPerElement = cParams.mesh.interpolation.nnode;
             obj.ndof           = cParams.mesh.npnod;
 

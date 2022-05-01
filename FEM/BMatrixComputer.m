@@ -47,7 +47,7 @@ classdef BMatrixComputer < handle
             d = obj.dim;
             dNdx = obj.geometry.dNdx;
             nstre = obj.nvoigt;
-            nnode = d.nnode;
+            nnode = d.nnodeElem;
             ndimf = d.ndimField;
             ndofE = d.ndofPerElement;
             nelem = size(dNdx,3);
@@ -66,7 +66,7 @@ classdef BMatrixComputer < handle
             dNdx = obj.geometry.dNdx;
             nelem = size(dNdx,3);
             B = zeros(obj.nvoigt,d.ndofPerElement,nelem);
-            for inode = 1:d.nnode
+            for inode = 1:d.nnodeElem
                 j = d.ndimField*(inode-1)+1;
                 % associated to normal strains
                 B(1,j,:)   = dNdx(1,inode,:,igaus);
@@ -88,8 +88,8 @@ classdef BMatrixComputer < handle
             d     = obj.dim;
             nelem = size(obj.geometry.dNdx,3);
             dNdx  = obj.geometry.dNdx(:,:,:,igaus);
-            B = zeros(obj.nvoigt,d.nnode*d.ndimField,nelem);
-            for inode = 1:d.nnode
+            B = zeros(obj.nvoigt,d.nnodeElem*d.ndimField,nelem);
+            for inode = 1:d.nnodeElem
                 j = d.ndimField*(inode-1) + 1;
                 B(1,j,:) = dNdx(1,inode,:);
                 B(2,j,:) = dNdx(2,inode,:);

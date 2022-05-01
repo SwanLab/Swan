@@ -173,7 +173,7 @@ classdef Assembler < handle
         function gDofs = transformLocal2Global(obj,iDof)
             d     = obj.dim;
             ndimf = d.ndimField;
-            nnode = d.nnode;
+            nnode = d.nnodeElem;
             nodes        = obj.globalConnec;
             nodesInElem  = reshape(repmat(1:nnode,ndimf,1),1,[]);
             dofs         = repmat(1:ndimf,1,nnode);

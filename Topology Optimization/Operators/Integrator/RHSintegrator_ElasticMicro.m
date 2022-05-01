@@ -97,7 +97,7 @@ classdef RHSintegrator_ElasticMicro < handle
             nunkn = obj.dim.ndimField;
             nstre = size(Cmat,1);
             nelem = size(Cmat,3);
-            nnode = obj.dim.nnode;
+            nnode = obj.dim.nnodeElem;
             ngaus = obj.quadrature.ngaus;
 
             eforce = zeros(nunkn*nnode,ngaus,nelem);

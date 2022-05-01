@@ -3,7 +3,7 @@ classdef DimensionVector < handle
     properties (GetAccess = public, SetAccess = private)
         scalarFields
         npnod
-        nnode
+        nnodeElem
         ndimField
         ndofPerElement
         ndof
@@ -32,9 +32,9 @@ classdef DimensionVector < handle
             % hmmm, its the same as dimensionScalar
             obj.mesh           = msh;
             obj.npnod          = msh.npnod;
-            obj.nnode          = msh.interpolation.nnode;
+            obj.nnodeElem      = msh.interpolation.nnode;
             obj.ndimField      = ndimf;
-            obj.ndofPerElement = obj.nnode*obj.ndimField;
+            obj.ndofPerElement = obj.nnodeElem*obj.ndimField;
             obj.ndof           = ndimf*obj.npnod;
         end
 
