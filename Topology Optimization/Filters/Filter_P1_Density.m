@@ -124,8 +124,8 @@ classdef Filter_P1_Density < handle
         
         function createPoperator(obj,cPar)
             cParams.nelem  = obj.mesh.nelem;
-            cParams.nnode  = obj.mesh.nnode;
-            cParams.npnod  = obj.mesh.npnod;
+            cParams.nnode  = obj.mesh.nnodeElem;
+            cParams.npnod  = obj.mesh.nnodes;
             cParams.connec = obj.mesh.connec;
             cParams.diffReactEq = cPar.femSettings;
             obj.Poper = Poperator(cParams);

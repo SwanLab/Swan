@@ -1,13 +1,13 @@
 classdef DimensionVariables < handle
     
     properties (Access = public)
-        nnode
+        nnodeElem
         ndimField
         nstre
         ndof
         ndofPerElement
         ndim
-        npnod
+        nnodes
     end
 
     properties (Access = private)
@@ -34,18 +34,18 @@ classdef DimensionVariables < handle
         end
 
         function compute(obj)
-            obj.nnode          = obj.mesh.nnodeElem;
+            obj.nnodeElem      = obj.mesh.nnodeElem;
             obj.ndimField      = obj.createDimPerField();
-            obj.ndof           = obj.mesh.npnod*obj.ndimField;
-            obj.ndofPerElement = obj.nnode*obj.ndimField;
+            obj.ndof           = obj.mesh.nnodes*obj.ndimField;
+            obj.ndofPerElement = obj.nnodeElem*obj.ndimField;
             obj.ndim           = obj.createNdim();
-            obj.npnod          = obj.mesh.npnod;
+            obj.nnodes          = obj.mesh.nnodes;
         end
 
         function applyNdimfield(obj, num)
             obj.ndimField = num;
-            obj.ndofPerElement = obj.nnode*obj.ndimField;
-            obj.ndof           = obj.mesh.npnod*obj.ndimField;
+            obj.ndofPerElement = obj.nnodeElem*obj.ndimField;
+            obj.ndof           = obj.mesh.nnodes*obj.ndimField;
         end
 
     end

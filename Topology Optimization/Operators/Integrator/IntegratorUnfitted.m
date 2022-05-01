@@ -72,8 +72,8 @@ classdef IntegratorUnfitted < Integrator
         
         
         function M2 = rearrangeOutputRHS(obj,shapes)
-            npnod = obj.meshBackground.npnod;
-            nnode = obj.meshBackground.nnode;
+            npnod = obj.meshBackground.nnodes;
+            nnode = obj.meshBackground.nnodeElem;
             
             M2 = zeros(npnod,1);
             for inode = 1:nnode
@@ -111,12 +111,12 @@ classdef IntegratorUnfitted < Integrator
             quad  = obj.quadrature;
             quadU = obj.computePosGP(coord,inter,quad);
             obj.unfittedQuad = quadU;
-        end           
+        end
         
         function shapes = computeShapes(obj)
             xGauss = obj.unfittedQuad(:,:,:);
             obj.backgroundInterp.computeShapeDeriv(xGauss);
-            shapes = obj.backgroundInterp.shape;                        
+            shapes = obj.backgroundInterp.shape;
         end
         
         function computeThisQuadrature(obj)
@@ -146,7 +146,7 @@ classdef IntegratorUnfitted < Integrator
         function Fgaus = interpolateFunctionInGaussPoints(obj,F,shapes)
             connec = obj.meshUnfitted.globalConnec;
             nCell = obj.meshUnfitted.nelem;
-            nnode = obj.meshBackground.nnode;         
+            nnode = obj.meshBackground.nnodeElem;
             ngaus = size(shapes,2);
             Fgaus = zeros(nCell,ngaus);
           %  shapes2 = permute(shapes,[2 3 1]);

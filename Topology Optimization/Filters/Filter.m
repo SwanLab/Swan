@@ -147,8 +147,8 @@ classdef Filter < handle
         
         function storeParams(obj)
             obj.nelem = obj.mesh.nelem;
-            obj.nnode = obj.mesh.nnode;
-            obj.npnod = obj.mesh.npnod;
+            obj.nnode = obj.mesh.nnodeElem;
+            obj.npnod = obj.mesh.nnodes;
             obj.ngaus = obj.quadrature.ngaus;
             obj.shape = obj.interp.shape;
         end

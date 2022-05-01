@@ -22,7 +22,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             obj.createInterpolation();
             obj.computeGeometry();
             obj.nelem = obj.mesh.nelem;
-            obj.npnod = obj.mesh.npnod;
+            obj.npnod = obj.mesh.nnodes;
             obj.ngaus = obj.quadrature.ngaus;
             obj.Anodal2Gauss = obj.computeA();
         end

@@ -177,7 +177,7 @@ classdef UnfittedMesh < handle
     methods (Access = public)
         
         function mass = computeMass(obj)
-            npnod = obj.backgroundMesh.npnod;
+            npnod = obj.backgroundMesh.nnodes;
             f = ones(npnod,1);
             s.mesh = obj;
             s.type = 'Unfitted';
@@ -190,7 +190,7 @@ classdef UnfittedMesh < handle
         end
         
         function mass = computePerimeter(obj)
-            npnod = obj.backgroundMesh.npnod;
+            npnod = obj.backgroundMesh.nnodes;
             f = ones(npnod,1);
             s.mesh = obj;
             s.type = 'Unfitted';

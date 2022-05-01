@@ -44,7 +44,7 @@ classdef Geometry_Volumetric < Geometry
           
         function computeJacobian(obj,igaus)
             nDime   = obj.mesh.ndim;
-            nNode   = obj.mesh.nnode;
+            nNode   = obj.mesh.nnodeElem;
             nElem   = obj.mesh.nelem;
             dShapes = obj.mesh.interpolation.deriv(:,:,igaus);
             jac = zeros(nDime,nDime,nElem);

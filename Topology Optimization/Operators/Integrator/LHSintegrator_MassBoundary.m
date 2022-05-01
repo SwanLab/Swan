@@ -36,7 +36,6 @@ classdef LHSintegrator_MassBoundary < LHSintegrator
         
         function cParams = createIntegratorParams(obj)
             cParams.type  = 'COMPOSITE';
-            cParams.npnod = obj.mesh.npnod;
             bMeshes  = obj.mesh.createBoundaryMesh();
             nBoxFaces = numel(bMeshes);
             d = obj.dim;

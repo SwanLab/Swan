@@ -28,7 +28,7 @@ classdef HarmonicProjector < handle
 
         function lambda0 = computeInitalLambda(obj)
             b    = obj.boundaryMesh;
-            nInt = setdiff(1:obj.dim.npnod,b);
+            nInt = setdiff(1:obj.dim.nnodes,b);
             lambda0 = zeros(length(nInt),1);
         end
 
@@ -36,8 +36,8 @@ classdef HarmonicProjector < handle
             lhs    = obj.LHS;
             rhs    = obj.computeRHS(vH);
             sol    = obj.solver.solve(lhs,rhs);
-            v      = sol(1:obj.dim.npnod,1);
-            lambda = sol(obj.dim.npnod+1:end,1);
+            v      = sol(1:obj.dim.nnodes,1);
+            lambda = sol(obj.dim.nnodes+1:end,1);
         end
 
         function optPrim = computePrimalOptimaility(obj,lambda,v,vH)
@@ -89,7 +89,6 @@ classdef HarmonicProjector < handle
         function computeMassMatrix(obj)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
-            s.npnod        = obj.mesh.npnod;
             s.type         = 'MassMatrix';
             s.dim          = obj.dim;
             s.quadType     = 'QUADRATIC';
@@ -103,7 +102,6 @@ classdef HarmonicProjector < handle
         function K = computeStiffnessMatrix(obj)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
-            s.npnod        = obj.mesh.npnod;
             s.type         = 'StiffnessMatrix';
             s.dim          = obj.dim;
             lhs = LHSintegrator.create(s);
@@ -113,7 +111,7 @@ classdef HarmonicProjector < handle
 
         function computeReducedStiffnessMatrix(obj)
             b    = obj.boundaryMesh;
-            nInt = setdiff(1:obj.dim.npnod,b);
+            nInt = setdiff(1:obj.dim.nnodes,b);
             K    = obj.stiffnessMatrix;
             Kred = K(nInt,:);
             obj.reducedStiffnessMatrix = Kred;
@@ -134,7 +132,7 @@ classdef HarmonicProjector < handle
 
         function Z = computeZeroFunction(obj)
             b    = obj.boundaryMesh;
-            nInt = setdiff(1:obj.dim.npnod,b);
+            nInt = setdiff(1:obj.dim.nnodes,b);
             Z    = zeros(length(nInt),length(nInt));
         end
 
@@ -148,12 +146,12 @@ classdef HarmonicProjector < handle
             s.fType     = 'Nodal';
             s.fNodal    = fNod;
             s.quadOrder = q.order;
-            s.npnod     = obj.dim.npnod;
+            s.npnod     = obj.dim.nnodes;
             s.globalConnec = obj.globalConnec;
             RHS = RHSintegrator.create(s);
             rhs = RHS.compute();
             b = obj.boundaryMesh;
-            nInt = setdiff(1:obj.dim.npnod,b);
+            nInt = setdiff(1:obj.dim.nnodes,b);
             Z   = zeros(length(nInt),1);
             rhs = [rhs;Z];
         end

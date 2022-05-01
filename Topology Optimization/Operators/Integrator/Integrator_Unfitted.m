@@ -31,7 +31,7 @@ classdef Integrator_Unfitted < Integrator
         
         function s = createInteriorParams(obj,mesh,connec)
             s.type = 'COMPOSITE';
-            s.npnod = mesh.backgroundMesh.npnod;
+            s.npnod = mesh.backgroundMesh.nnodes;
             s.compositeParams = cell(0);
             if ~isempty(mesh.innerMesh)
                 s.compositeParams{1} = obj.createInnerParams(mesh.innerMesh);
@@ -47,7 +47,7 @@ classdef Integrator_Unfitted < Integrator
             s.mesh         = innerMesh.mesh;
             s.type         = 'SIMPLE';
             s.globalConnec = innerMesh.globalConnec;
-            s.npnod        = obj.mesh.backgroundMesh.npnod;
+            s.npnod        = obj.mesh.backgroundMesh.nnodes;
         end
         
         function s = createInnerCutParams(obj,gConnec,mesh)
@@ -57,14 +57,14 @@ classdef Integrator_Unfitted < Integrator
             s.xCoordsIso            = innerCutMesh.xCoordsIso;
             s.cellContainingSubcell = innerCutMesh.cellContainingSubcell;
             s.globalConnec          = gConnec;
-            s.npnod                 = obj.mesh.backgroundMesh.npnod;
+            s.npnod                 = obj.mesh.backgroundMesh.nnodes;
             s.backgroundMeshType    = mesh.backgroundMesh.type;
         end
         
         function computeBoundaryIntegrators(obj)
             uMesh  = obj.mesh;
             s.type = 'COMPOSITE';
-            s.npnod = uMesh.backgroundMesh.npnod; 
+            s.npnod = uMesh.backgroundMesh.nnodes; 
             s.compositeParams = obj.computeBoundaryParams();
             obj.integrators = Integrator.create(s);
         end
@@ -96,7 +96,7 @@ classdef Integrator_Unfitted < Integrator
             s.xCoordsIso            = boundaryCutMesh.xCoordsIso;
             s.cellContainingSubcell = boundaryCutMesh.cellContainingSubcell;
             s.globalConnec          = gConnec;
-            s.npnod                 = obj.mesh.backgroundMesh.npnod;
+            s.npnod                 = obj.mesh.backgroundMesh.nnodes;
             s.backgroundMeshType    = obj.mesh.backgroundMesh.type;
        end
         

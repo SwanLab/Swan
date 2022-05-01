@@ -61,7 +61,7 @@ classdef PieceWiseConstantFunction < handle
         function createIntegrator(obj)
             s.type = 'SIMPLE';
             s.mesh = obj.mesh;
-            s.npnod = obj.mesh.npnod;
+            s.npnod = obj.mesh.nnodes;
             s.globalConnec = obj.mesh.connec;
             int = Integrator.create(s);
             obj.integrator = int;
@@ -81,7 +81,6 @@ classdef PieceWiseConstantFunction < handle
         function LHS = computeLHS(obj)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
-            s.npnod        = obj.mesh.npnod;
             s.type         = 'MassMatrix';
             s.dim          = obj.dim;
             s.quadType     = 'QUADRATIC';

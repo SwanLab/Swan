@@ -1,9 +1,9 @@
 classdef Mesh < handle
     
     properties (GetAccess = public, SetAccess = private)
-        nnode
         nnodeElem
-        npnod
+%         npnod
+        nnodes
         type
         kFace
         geometryType
@@ -232,10 +232,10 @@ classdef Mesh < handle
         end
         
         function computeDimensionParams(obj)
-            obj.npnod = size(obj.coord,1);
+%             obj.npnod = size(obj.coord,1);
+            obj.nnodes = size(obj.coord,1);
             obj.ndim  = size(obj.coord,2);
             obj.nelem = size(obj.connec,1);
-            obj.nnode = size(obj.connec,2);
             obj.nnodeElem = size(obj.connec,2);
         end
         
