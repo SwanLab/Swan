@@ -1,20 +1,20 @@
 % filename = 'Cantileverbeam_Quadrilateral_Bilinear';
 % filename = 'ArchTriFine';
 % filename = 'BridgeCool_Quadrilateral_Bilinear_Structured_Fine';
-% filename = 'Square2x2_10000el';
-filename = 'Bridge_Anisotropic';
+filename = 'Square2x2_10000el';
+% filename = 'Bridge_Anisotropic';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'full';
-cost = {'compliance'};
+initial_case = 'squareInclusion';
+cost = {'anisotropicPerimeter2D'};
 weights = [1];
 constraint = {'volumeConstraint'};
 % constraint_case = 'EQUALITY';
-optimizerUnconstrained = 'PROJECTED GRADIENT';
+optimizerUnconstrained = 'SLERP';
 optimizer = 'DualNestedInPrimal';
 incrementFactor = 1.5; % Recommended: 1.5; 2.0
-designVariable = 'Density';
+designVariable = 'LevelSet';
 filterType = 'P1';
 
 nsteps = 3; % Recommended slope: 5%/step is OK

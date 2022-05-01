@@ -70,12 +70,14 @@ classdef ShapeFunctional_Factory < handle
                     %cParams.designVariable = cParams.designVariable.value;
                     cParams.filterParams.femSettings.isAnisotropyAdded = true;
                     cParams.filterParams.femSettings.CAnisotropic = [1,0;0,100];
+                    cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
                     sF = ShFunc_Perimeter(cParams);
                 case 'anisotropicPerimeterInterior2D'
                     cParams.filterParams.femSettings.isRobinTermAdded = false;
                     %cParams.designVariable = cParams.designVariable.value;
                     cParams.filterParams.femSettings.isAnisotropyAdded = true;
                     cParams.filterParams.femSettings.CAnisotropic = [1,0;0,100];
+                    cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
                     sF = ShFunc_Perimeter(cParams);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')

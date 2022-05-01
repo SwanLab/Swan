@@ -3,8 +3,7 @@ classdef NewFilter_PDE_Density < handle
     properties (Access = private)
         epsilon
         diffReacProb
-        mesh
-        quadratureOrder
+        Acomp
         Anodal2Gauss
         quadrature
         M
@@ -12,6 +11,11 @@ classdef NewFilter_PDE_Density < handle
         geometry
         x_reg
         LHS
+    end
+
+    properties (Access = private)
+        mesh
+        quadratureOrder
     end
 
     methods (Access = public)
@@ -59,8 +63,10 @@ classdef NewFilter_PDE_Density < handle
         end
 
         function x_reg = getP1fromP0(obj,x0)
-            RHS = obj.integrateP1FunctionWithShapeFunction(x0);
-            x_reg = obj.solveFilter(RHS);
+            s.geometry = obj.geometry;
+            s.x        = x0;
+            RHS        = obj.Acomp.integrateP1FunctionWithShapeFunction(s);
+            x_reg      = obj.solveFilter(RHS);
         end
 
     end
@@ -106,15 +112,15 @@ classdef NewFilter_PDE_Density < handle
         end
 
         function A_nodal_2_gauss = computeA(obj)
-            s.nnode  = obj.mesh.nnode;
-            s.nelem  = obj.mesh.nelem;
-            s.npnod  = obj.mesh.npnod;
-            s.ngaus  = obj.quadrature.ngaus;
-            s.connec = obj.mesh.connec;
-            s.shape  = obj.interp.shape;
-            Acomp = Anodal2gausComputer(s);
-            Acomp.compute();
-            A_nodal_2_gauss = Acomp.A_nodal_2_gauss;
+            s.nnode   = obj.mesh.nnode;
+            s.nelem   = obj.mesh.nelem;
+            s.npnod   = obj.mesh.npnod;
+            s.ngaus   = obj.quadrature.ngaus;
+            s.connec  = obj.mesh.connec;
+            s.shape   = obj.interp.shape;
+            obj.Acomp = Anodal2gausComputer(s);
+            obj.Acomp.compute();
+            A_nodal_2_gauss = obj.Acomp.A_nodal_2_gauss;
         end
 
         function itHas = hasEpsilonChanged(obj,eps)
@@ -128,17 +134,6 @@ classdef NewFilter_PDE_Density < handle
         function x_reg = solveFilter(obj,RHS)
             obj.diffReacProb.computeVariables(RHS);
             x_reg = obj.diffReacProb.variables.x;
-        end
-
-        function intX = integrateP1FunctionWithShapeFunction(obj,x)
-            ndof = size(obj.Anodal2Gauss{1},2);
-            intX = zeros(ndof,1);
-            for igaus = 1:obj.quadrature.ngaus
-                dVG = obj.geometry.dvolu(:,igaus);
-                xG = x(:,igaus);
-                A = obj.Anodal2Gauss{igaus};
-                intX = intX + A'*(xG.*dVG);
-            end
         end
 
     end

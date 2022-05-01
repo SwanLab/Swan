@@ -1,14 +1,17 @@
 classdef NewFilter_P1_LevelSet <  handle
     
     properties (Access = private)
-        mesh        
-        quadratureOrder
         Poper
         x
         x_reg
         geometry
         quadrature
         projector
+    end
+
+    properties (Access = private)
+        mesh
+        quadratureOrder
     end
     
     methods (Access = public)

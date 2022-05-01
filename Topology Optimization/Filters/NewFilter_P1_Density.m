@@ -1,8 +1,6 @@
 classdef NewFilter_P1_Density < handle
 
     properties (Access = private)
-        mesh
-        quadratureOrder
         Poper
         x
         x_reg
@@ -12,6 +10,10 @@ classdef NewFilter_P1_Density < handle
         Kernel
     end
 
+    properties (Access = private)
+        mesh
+        quadratureOrder
+    end
 
     methods (Access = public)
         
