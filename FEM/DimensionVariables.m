@@ -15,6 +15,18 @@ classdef DimensionVariables < handle
         mesh
     end
     
+    methods (Static, Access = public)
+
+        function obj = create(cParams)
+            switch cParams.type
+                case 'Scalar'
+                    obj = DimensionScalar(cParams);
+                case 'Vector'
+                    obj = DimensionVector(cParams);
+            end
+        end
+    end
+    
     methods (Access = public)
 
         function obj = DimensionVariables(cParams)
@@ -22,7 +34,7 @@ classdef DimensionVariables < handle
         end
 
         function compute(obj)
-            obj.nnode          = obj.mesh.nnode;
+            obj.nnode          = obj.mesh.nnodeElem;
             obj.ndimField      = obj.createDimPerField();
             obj.ndof           = obj.mesh.npnod*obj.ndimField;
             obj.ndofPerElement = obj.nnode*obj.ndimField;

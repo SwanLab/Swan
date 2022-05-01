@@ -66,9 +66,10 @@ classdef DiffReactProblem < handle
         end
 
         function computeDimensions(obj)
+            s.type = 'Scalar';
             s.name = 'x';
             s.mesh = obj.mesh;
-            dims   = DimensionScalar(s);
+            dims   = DimensionVariables.create(s);
             obj.dim = dims;
         end
 

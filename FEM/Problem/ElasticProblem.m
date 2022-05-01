@@ -103,11 +103,12 @@ classdef ElasticProblem < handle
         end
 
         function computeDimensions(obj)
+            s.type = 'Vector';
             s.fieldName = 'u';
             s.mesh = obj.mesh;
             s.ndimf = str2double(regexp(obj.problemData.pdim,'\d*','Match'));
-            d = DimensionVector(s);
-            d.create(s)
+            d = DimensionVariables.create(s);
+            d.compute(s)
             obj.dim = d;
         end
 

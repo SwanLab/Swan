@@ -39,9 +39,10 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
         end
         
         function dim = computeDim(obj, mesh)
+            s.type = 'Scalar';
             s.name = 'x';
             s.mesh = obj.mesh;
-            dims   = DimensionScalar(s);
+            dims   = DimensionVariables.create(s);
             dim = dims;
         end
 

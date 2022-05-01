@@ -70,11 +70,12 @@ classdef Integrator < handle
         end
         
         function computeDim(obj)
+            s.type = 'Vector';
             s.fieldName = 'u';
             s.mesh = obj.mesh;
             s.ndimf = obj.mesh.ndim; % !!
-            d = DimensionVector(s);
-            d.create(s)
+            d = DimensionVariables.create(s);
+            d.compute(s)
             obj.dim = d;
         end
 

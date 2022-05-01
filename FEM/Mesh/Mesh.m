@@ -2,6 +2,7 @@ classdef Mesh < handle
     
     properties (GetAccess = public, SetAccess = private)
         nnode
+        nnodeElem
         npnod
         type
         kFace
@@ -235,11 +236,12 @@ classdef Mesh < handle
             obj.ndim  = size(obj.coord,2);
             obj.nelem = size(obj.connec,1);
             obj.nnode = size(obj.connec,2);
+            obj.nnodeElem = size(obj.connec,2);
         end
         
         function computeType(obj)
             s.geometryType = obj.geometryType;
-            s.nnode        = obj.nnode;
+            s.nnodeElem    = obj.nnodeElem;
             t = MeshTypeComputer(s);
             obj.type = t.compute();
         end

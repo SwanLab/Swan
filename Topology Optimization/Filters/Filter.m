@@ -114,9 +114,10 @@ classdef Filter < handle
     methods (Access = private)
 
         function dim = computeDimensions(obj)
+            s.type = 'Scalar';
             s.name = 'x';
             s.mesh = obj.mesh;
-            dim   = DimensionScalar(s);
+            dim   = DimensionVariables.create(s);
         end
         
         function M = computeMassMatrix(obj, dim)

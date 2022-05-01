@@ -19,7 +19,7 @@ classdef DimensionVector < handle
             obj.init(cParams);
         end
 
-        function create(obj, cParams)
+        function compute(obj, cParams)
             ndimf = cParams.ndimf;
             msh   = cParams.mesh;
             fieldName = cParams.fieldName;

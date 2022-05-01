@@ -1,31 +1,30 @@
 %% To-do
-% a) DIFFREACTPROBLEM
-%       OK! - In Filter use LHSintegrator rather than DiffReact.
-%       OK! - Delete getM and getK and setEpsilon and computeDvolume
-%       OK* - setLHStype in DiffReact in Filter
-%       OK! - DiffReactTestsSuite created
+% a) DIMENSIONS
+%       OK! - Delete nunkn in RHS
+%       OK! - Avoid using nelem from dim
+%       OK! - Avoid using ngaus from dim 
+%       OK* - nstre only in elasticity  (maybe in Bmatrix) and rename it
+%             as nVoigt
+%       YET - ndofPerNode (and ndofPerElem) in interpolation times npnod
+%             (nnode) of mesh gives ndof of field (in dim)
+%       YET - nnode ---> nnodePerElem (in Mesh)
+%       YET - create dimensions from s.type (Scalar/Vector)
 
-% b) ELASTICPROBLEM, DIMENSIONS and INTEGRATORS
-%       OK! - delete interp in ElasticProblem
-%       OK* - dimEscalar, vector....by fields...nElem,nDim private in dim
-%               - DimensionScalar, DimensionVector
-%       OK* - Create RHSintegrator for Elastic, ElasticMicro and thermal
+% b) INTEGRATORS
+%       YET - "integrate" all RHS
 
-        % Comments:
-        %       - I started inverting the approach to Integrators and
-        %         RHSintegrators, as discussed a while ago. Previously,
-        %         RHSintegrators computed only the elemental RHS via
-        %         fGauss, and *not* the RHS.
-        %       - Is it useful, though?
-        %       - MinimumGradFieldWithVectorInL2, called from
-        %         DilationFieldComputer. fNodal?
-        %       - Tests are missing to cover stuff eg. HarmonicProjector.
-        %         HarmonicProjectionExample exists, but...
+% c) TESTS
+%       YET - Quadratic shape functions for thermal, elastic, elastic_micro with
+%             corresponding tests
 
 % d) STOKES
 %       WIP - Restore Stokes_Problem
 %               - FemTestsSuite, FemTests
 %               - StokesComputer, StokesFEM
+
+% z) LONG-TERM
+%       WIP - Re-use FeFunction for displacements... with its own
+%             dimensions
 
 
 %     - Quadratic shape functions for thermal, elastic, elastic_micro with
@@ -36,7 +35,7 @@
 % OK! - trying to avoid ngaus from dim 
 %     - ndofPerNode (and ndofPerElem) in interpolation times npnod (nnode)
 %       of mesh gives ndof of field (in dim)
-%     - nnode ---> nnodePerElem (in mesh)
+%     - nnode ---> nnodePerElem (in Mesh)
 %     - create dimensions from s.type (Scalar/Vector)
 % OK! - delete nunkn in RHS
 
