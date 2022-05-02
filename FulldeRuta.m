@@ -13,7 +13,7 @@
 %       OK! - create dimensions from s.type (Scalar/Vector)
 
 % b) INTEGRATORS
-%       YET - "integrate" all RHS
+%       OK* - "integrate" all RHS
 
 % c) TESTS
 %       YET - Quadratic shape functions for thermal, elastic, elastic_micro
@@ -31,7 +31,7 @@
 
 %     - Quadratic shape functions for thermal, elastic, elastic_micro with
 %       corresponding tests
-%     - "integrate" all RHS
+% OK* - "integrate" all RHS
 % OK* - nstre only in elasticity  (maybe in Bmatrix) and rename it as nVoigt
 % OK! - trying to avoid using nelem from dim
 % OK! - trying to avoid ngaus from dim 

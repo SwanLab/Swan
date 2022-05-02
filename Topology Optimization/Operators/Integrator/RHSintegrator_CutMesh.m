@@ -4,7 +4,6 @@ classdef RHSintegrator_CutMesh < handle
         npnod
         mesh
         globalConnec
-        fNodal
         xGauss
         fGauss
         quadOrder
@@ -24,11 +23,11 @@ classdef RHSintegrator_CutMesh < handle
             obj.init(cParams);
         end
 
-        function rhs = compute(obj)
+        function rhs = compute(obj, fNodal)
             obj.computeSubCellConnec();
             obj.computeQuadrature();
             obj.computeGaussPoints();
-            obj.computeFgauss();
+            obj.computeFgauss(fNodal);
             rhsCut = obj.computeElementalRHS();
             rhsCells = obj.assembleSubcellsInCells(rhsCut);
             rhs = obj.assembleIntegrand(rhsCells);
@@ -41,8 +40,7 @@ classdef RHSintegrator_CutMesh < handle
         function init(obj, cParams)
             obj.mesh         = cParams.mesh;
             obj.npnod        = cParams.npnod;
-            obj.fNodal       = cParams.fNodal;
-            obj.quadOrder    = cParams.quadOrder;
+            obj.quadOrder    = 'LINEAR';
             obj.globalConnec = cParams.globalConnec;
 
             obj.backgroundMeshType  = cParams.backgroundMeshType;
@@ -84,8 +82,8 @@ classdef RHSintegrator_CutMesh < handle
             lConnec = reshape(1:nElem*nNode,nNode,nElem)';
         end
 
-        function computeFgauss(obj)
-            s.fNodes = obj.fNodal;
+        function computeFgauss(obj, fNodal)
+            s.fNodes = fNodal;
             s.connec = obj.subCellConnec;
             s.type   = obj.backgroundMeshType;
             f = FeFunction(s);

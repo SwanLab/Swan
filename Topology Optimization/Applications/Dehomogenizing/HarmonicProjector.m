@@ -143,13 +143,11 @@ classdef HarmonicProjector < handle
             s.type      = 'ShapeFunction';
             s.mesh      = obj.mesh;
             s.meshType  = obj.mesh.type;
-            s.fType     = 'Nodal';
-            s.fNodal    = fNod;
             s.quadOrder = q.order;
             s.npnod     = obj.dim.nnodes;
             s.globalConnec = obj.globalConnec;
             RHS = RHSintegrator.create(s);
-            rhs = RHS.compute();
+            rhs = RHS.compute(fNod);
             b = obj.boundaryMesh;
             nInt = setdiff(1:obj.dim.nnodes,b);
             Z   = zeros(length(nInt),1);

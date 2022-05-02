@@ -19,7 +19,8 @@ classdef RHSintegrator_ShapeFunction < handle
             obj.init(cParams);
         end
 
-        function rhs = compute(obj)
+        function rhs = compute(obj, fNodal)
+            obj.computeFgaussFromFnodal(fNodal);
             rhsElem = obj.computeElementalRHS();
             rhs = obj.assembleIntegrand(rhsElem);
         end
@@ -31,16 +32,9 @@ classdef RHSintegrator_ShapeFunction < handle
         function init(obj, cParams)
             obj.mesh         = cParams.mesh;
             obj.npnod        = cParams.npnod;
-            obj.quadOrder    = cParams.quadOrder;
+            obj.quadOrder    = 'LINEAR';
             obj.globalConnec = cParams.globalConnec;
             obj.quadrature   = obj.computeQuadrature();
-            if isequal(cParams.fType,'Nodal')
-                obj.fNodal   = cParams.fNodal;
-                obj.computeFgaussFromFnodal();
-            elseif isequal(cParams.fType,'Gauss')
-                obj.xGauss   = cParams.xGauss;
-                obj.fGauss   = cParams.fGauss;
-            end
         end
         
         function q = computeQuadrature(obj)
@@ -48,9 +42,9 @@ classdef RHSintegrator_ShapeFunction < handle
             q.computeQuadrature(obj.quadOrder);
         end
         
-        function computeFgaussFromFnodal(obj)
+        function computeFgaussFromFnodal(obj, fNodal)
             obj.computeGaussPoints();
-            obj.computeFgauss();
+            obj.computeFgauss(fNodal);
         end
 
         function computeGaussPoints(obj)
@@ -59,8 +53,8 @@ classdef RHSintegrator_ShapeFunction < handle
             obj.xGauss = xG;
         end
 
-        function computeFgauss(obj)
-            s.fNodes = obj.fNodal;
+        function computeFgauss(obj, fNodal)
+            s.fNodes = fNodal;
             s.connec = obj.globalConnec;
             s.type   = obj.mesh.type;
             f = FeFunction(s);

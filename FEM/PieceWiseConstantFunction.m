@@ -67,7 +67,7 @@ classdef PieceWiseConstantFunction < handle
         end
         
         function RHS = computeRHS(obj)
-            % Untested but should work
+            % Untested but should NOT work
             s.type      = 'ShapeFunction';
             s.mesh      = obj.mesh;
             s.meshType  = obj.mesh.type;
