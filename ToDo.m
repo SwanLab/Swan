@@ -7,7 +7,6 @@
 % two type of private properties in all newFilters OK
 
 % PENDING (sorted by priority)
-% Restore diffReactProblem anisotropy dispatching -> create LHS in NewFilters (delete diffReact in Filters)  OK en LevelSet
+% Restore diffReactProblem anisotropy dispatching -> create LHS in NewFilters (delete diffReact in Filters)  OK
 % delete "anistropy dispatching in LHS Robin and Neuman
-% perimeters in shape funcional Factory together
 % clean code

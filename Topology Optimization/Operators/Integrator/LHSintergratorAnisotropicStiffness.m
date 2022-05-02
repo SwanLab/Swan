@@ -2,6 +2,7 @@ classdef LHSintergratorAnisotropicStiffness < LHSintegrator
     
     properties (Access = private)
         geometry
+        CAnisotropic
         Celas
         dofsInElem
     end
@@ -17,6 +18,7 @@ classdef LHSintergratorAnisotropicStiffness < LHSintegrator
         end
 
         function LHS = compute(obj)
+            obj.assemblyCMatrix();
             lhs = obj.computeElementalLHS();
             LHS = obj.assembleMatrix(lhs);
         end
@@ -49,7 +51,7 @@ classdef LHSintergratorAnisotropicStiffness < LHSintegrator
    methods (Access = private)
        
        function initAnisotropicTensor(obj,cParams)
-           obj.Celas = cParams.Celas;
+           obj.CAnisotropic = cParams.CAnisotropic;
        end
        
         function createGeometry(obj)
@@ -69,7 +71,15 @@ classdef LHSintergratorAnisotropicStiffness < LHSintegrator
             s.dofsInElem   = obj.dofsInElem;
             Bcomp = BMatrixComputer(s);
         end
-       
+
+        function assemblyCMatrix(obj)
+            nelem = size(obj.mesh.connec,1);
+            C = zeros(size(obj.CAnisotropic,1),size(obj.CAnisotropic,2),nelem);
+            for i = 1:nelem
+                C(:,:,i) = obj.CAnisotropic;
+            end
+            obj.Celas = C;
+        end
    end
-    
+
 end

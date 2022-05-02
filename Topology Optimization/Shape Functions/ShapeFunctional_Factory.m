@@ -66,14 +66,14 @@ classdef ShapeFunctional_Factory < handle
                 case 'volumeConstraint'
                     sF = Volume_constraint(cParams);
                 case 'anisotropicPerimeter2D'
-                    cParams.filterParams.femSettings.isRobinTermAdded = true;
+                    cParams.filterParams.femSettings.LHStype = 'AnisotropicDiffReactRobin';
                     %cParams.designVariable = cParams.designVariable.value;
                     cParams.filterParams.femSettings.isAnisotropyAdded = true;
                     cParams.filterParams.femSettings.CAnisotropic = [1,0;0,100];
                     cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
                     sF = ShFunc_Perimeter(cParams);
                 case 'anisotropicPerimeterInterior2D'
-                    cParams.filterParams.femSettings.isRobinTermAdded = false;
+                    cParams.filterParams.femSettings.LHStype = 'AnisotropicDiffReactNeumann';
                     %cParams.designVariable = cParams.designVariable.value;
                     cParams.filterParams.femSettings.isAnisotropyAdded = true;
                     cParams.filterParams.femSettings.CAnisotropic = [1,0;0,100];

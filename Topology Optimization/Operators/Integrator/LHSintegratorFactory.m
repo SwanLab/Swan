@@ -38,15 +38,29 @@ classdef LHSintegratorFactory < handle
                    % Creates a composite LHS for DiffReact problems with
                    % the ROBIN TERM. Includes a stiffness matrix, a mass
                    % matrix, and a boundary mass matrix.
+                   cParams.stiffType = 'StiffnessMatrix';
                    obj = LHSintegrator_DiffReactRobin(cParams);
                case 'DiffReactNeumann'
                    % Creates a composite LHS for DiffReact problems with
                    % NO ROBIN TERM. Includes a stiffness matrix and a mass
                    % matrix, and NO boundary mass matrix.
+                   cParams.stiffType = 'StiffnessMatrix';
+                   obj = LHSintegrator_DiffReactNeumann(cParams);
+               case 'AnisotropicDiffReactRobin'
+                   % Creates a composite LHS for DiffReact problems with
+                   % the ROBIN TERM. Includes a stiffness matrix, a mass
+                   % matrix, and a boundary mass matrix.
+                   cParams.stiffType = 'AnisotropicStiffnessMatrix';
+                   obj = LHSintegrator_DiffReactRobin(cParams);
+               case 'AnisotropicDiffReactNeumann'
+                   % Creates a composite LHS for DiffReact problems with
+                   % NO ROBIN TERM. Includes a stiffness matrix and a mass
+                   % matrix, and NO boundary mass matrix.
+                   cParams.stiffType = 'AnisotropicStiffnessMatrix';
                    obj = LHSintegrator_DiffReactNeumann(cParams);
            end
        end
-       
+
    end
-    
+
 end
