@@ -22,16 +22,9 @@ classdef LHSintegrator_DiffReactNeumann < LHSintegrator
     methods (Access = private)
 
         function computeStiffnessMatrix(obj,cParams)
-            s.type = cParams.stiffType;
-            isAnisotropyAdded = isfield(cParams, 'isAnisotropyAdded') ...
-                && cParams.isAnisotropyAdded == 1;
-            if (isAnisotropyAdded)
-                s.CAnisotropic = cParams.CAnisotropic; % Rotation matrix
-            end
-            s.mesh         = obj.mesh;
-            s.npnod        = obj.mesh.npnod;
+            s = cParams;
             s.globalConnec = obj.mesh.connec;
-            s.dim          = obj.dim;
+            s.type = cParams.stiffType;
             LHS = LHSintegrator.create(s);
             obj.K = LHS.compute();
         end

@@ -8,5 +8,5 @@
 
 % PENDING (sorted by priority)
 % Restore diffReactProblem anisotropy dispatching -> create LHS in NewFilters (delete diffReact in Filters)  OK
-% delete "anistropy dispatching in LHS Robin and Neuman
+% delete "anistropy dispatching in LHS Robin and Neuman  OK
 % clean code
