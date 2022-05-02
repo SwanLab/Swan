@@ -2,7 +2,6 @@ classdef NewFilter_PDE_Density < handle
     
     properties (Access = private)
         epsilon
-        diffReacProb
         Acomp
         Anodal2Gauss
         quadrature
@@ -16,12 +15,15 @@ classdef NewFilter_PDE_Density < handle
     properties (Access = private)
         mesh
         quadratureOrder
+        femSettings
+        LHStype
     end
 
     methods (Access = public)
 
         function obj = NewFilter_PDE_Density(cParams)
             obj.init(cParams);
+            obj.init2(cParams);
             obj.createMassMatrix();
             obj.epsilon = cParams.mesh.computeMeanCellSize();
         end
@@ -33,7 +35,7 @@ classdef NewFilter_PDE_Density < handle
             P1proc.preProcess();
             obj.storeParams(P1proc);
             obj.Anodal2Gauss = obj.computeA();
-            lhs = obj.diffReacProb.computeLHS(obj.epsilon);
+            lhs = obj.createProblemLHS();
             obj.LHS = decomposition(lhs);
         end
 
@@ -52,7 +54,7 @@ classdef NewFilter_PDE_Density < handle
         function obj = updateEpsilon(obj,epsilon)
             if obj.hasEpsilonChanged(epsilon)
                 obj.epsilon = epsilon;
-                lhs = obj.diffReacProb.computeLHS(epsilon);
+                lhs = obj.createProblemLHS();
                 obj.LHS = decomposition(lhs);
             end
         end
@@ -74,7 +76,6 @@ classdef NewFilter_PDE_Density < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.createDiffReacProblem(cParams);
             obj.mesh = cParams.mesh;
             obj.quadratureOrder = cParams.quadratureOrder;
         end
@@ -95,20 +96,6 @@ classdef NewFilter_PDE_Density < handle
             obj.quadrature = P1proc.quadrature;
             obj.interp     = P1proc.interp;
             obj.geometry   = P1proc.geometry;
-        end
-
-        function createDiffReacProblem(obj,cParams)
-            s = cParams.femSettings;
-            if isfield(cParams.femSettings,'LHStype')
-                s.LHStype = cParams.femSettings.LHStype;
-            else
-                s.LHStype = 'DiffReactNeumann';
-            end
-            if isprop(cParams,'mesh')
-                s.mesh = cParams.mesh;
-            end
-            s.type = 'DIFF-REACT';
-            obj.diffReacProb = FEM.create(s);
         end
 
         function A_nodal_2_gauss = computeA(obj)
@@ -132,8 +119,40 @@ classdef NewFilter_PDE_Density < handle
         end
 
         function x_reg = solveFilter(obj,RHS)
-            obj.diffReacProb.computeVariables(RHS);
-            x_reg = obj.diffReacProb.variables.x;
+            x_reg = obj.LHS\(RHS);
+        end
+
+        function lhs = createProblemLHS(obj)
+            s.type         = obj.LHStype;
+            ss.name = 'x';
+            ss.mesh = obj.mesh;
+            dims   = DimensionScalar(ss);
+            s.dim          = dims;
+            s.mesh         = obj.mesh;
+            if isfield(obj.femSettings,'isAnisotropyAdded')
+                s.isAnisotropyAdded = obj.femSettings.isAnisotropyAdded;
+            end
+            if isfield(obj.femSettings,'CAnisotropic')
+                s.CAnisotropic = obj.femSettings.CAnisotropic;
+            end
+            s.globalConnec = [];
+            problemLHS = LHSintegrator.create(s);
+            lhs = problemLHS.compute(obj.epsilon);
+            s.scale = obj.femSettings.scale;
+            s.bc.dirichlet = [];
+            s.bc.pointload = [];
+            bc = BoundaryConditions(s);
+            bc.compute();
+            lhs = bc.fullToReducedMatrix(lhs);
+        end
+
+        function init2(obj,cParams)
+            obj.femSettings = cParams.femSettings;
+            if isfield(cParams.femSettings,'LHStype')
+                obj.LHStype = cParams.femSettings.LHStype;
+            else
+                obj.LHStype = 'DiffReactNeumann';
+            end
         end
 
     end

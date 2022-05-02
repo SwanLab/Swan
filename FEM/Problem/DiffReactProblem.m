@@ -39,7 +39,7 @@ classdef DiffReactProblem < handle
             obj.createSolver();
             obj.computeStiffnessMatrix(cParams);
             obj.computeMassMatrix();
-            obj.createProblemLHS(cParams);
+            obj.createProblemLHS();
         end
 
         function computeVariables(obj,rhs)
@@ -117,16 +117,10 @@ classdef DiffReactProblem < handle
             s.quadType     = 'QUADRATICMASS';
         end
 
-        function createProblemLHS(obj,cParams)
+        function createProblemLHS(obj)
             s.type         = obj.LHStype;
             s.dim          = obj.dim;
             s.mesh         = obj.mesh;
-            if isfield(cParams,'isAnisotropyAdded')
-                s.isAnisotropyAdded = cParams.isAnisotropyAdded;
-            end
-            if isfield(cParams,'CAnisotropic')
-                s.CAnisotropic = cParams.CAnisotropic;
-            end
             s.globalConnec = [];
             obj.problemLHS = LHSintegrator.create(s);
         end
