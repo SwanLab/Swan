@@ -7,8 +7,10 @@
 %             as nVoigt
 %       YET - ndofPerNode (and ndofPerElem) in interpolation times npnod
 %             (nnode) of mesh gives ndof of field (in dim)
-%       YET - nnode ---> nnodePerElem (in Mesh)
-%       YET - create dimensions from s.type (Scalar/Vector)
+%                   - ndofPerNode in interpolation?
+%       OK* - nnode ---> nnodePerElem (in Mesh)
+%       OK! - npnod ---> nnodes (in Mesh)
+%       OK! - create dimensions from s.type (Scalar/Vector)
 
 % b) INTEGRATORS
 %       YET - "integrate" all RHS
@@ -35,8 +37,9 @@
 % OK! - trying to avoid ngaus from dim 
 %     - ndofPerNode (and ndofPerElem) in interpolation times npnod (nnode)
 %       of mesh gives ndof of field (in dim)
-%     - nnode ---> nnodePerElem (in Mesh)
-%     - create dimensions from s.type (Scalar/Vector)
+% OK* - nnode ---> nnodePerElem (in Mesh)
+% OK! - npnod ---> nnodes(in Mesh)
+% OK! - create dimensions from s.type (Scalar/Vector)
 % OK! - delete nunkn in RHS
 
 % Re-use FeFunction for displacements.... with its own dimensions

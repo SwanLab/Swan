@@ -73,7 +73,7 @@ classdef ElasticProblem < handle
             s.iter = 0;
             s.fields    = obj.createVariablesToPrint();
             s.ptype     = obj.problemData.ptype;
-            s.ndim      = obj.dim.ndim;
+            s.ndim      = obj.dim.ndimField;
             s.pdim      = obj.problemData.pdim;
             s.type      = obj.createPrintType();
             fPrinter = FemPrinter(s);
@@ -176,10 +176,10 @@ classdef ElasticProblem < handle
         end
 
         function computeStrain(obj)
-            s.dim                = obj.dim;
-            s.mesh               = obj.mesh;
-            s.quadrature         = obj.quadrature;
-            s.displacement       = obj.variables.d_u;
+            s.dim          = obj.dim;
+            s.mesh         = obj.mesh;
+            s.quadrature   = obj.quadrature;
+            s.displacement = obj.variables.d_u;
             scomp  = StrainComputer(s);
             strain = scomp.compute();
             obj.variables.strain = strain;
