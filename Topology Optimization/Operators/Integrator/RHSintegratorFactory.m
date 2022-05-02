@@ -8,10 +8,10 @@ classdef RHSintegratorFactory < handle
                    % Computes the RHS using the NODAL FORCES and SHAPE
                    % FUNCTIONS
                    obj = RHSintegrator_ShapeFunction(cParams);
-               case 'ShapeFunctionCell'
+               case 'CutMesh'
                    % Computes the RHS using the NODAL FORCES and SHAPE
                    % FUNCTIONS for CUT meshes
-                   obj = RHSintegrator_ShapeFunctionCutMesh(cParams);
+                   obj = RHSintegrator_CutMesh(cParams);
                case 'ShapeDerivative'
                    % Computes the RHS using the NODAL FORCES and SHAPE
                    % FUNCTIONS' DERIVATIVE

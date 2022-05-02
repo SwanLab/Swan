@@ -16,8 +16,8 @@
 %       YET - "integrate" all RHS
 
 % c) TESTS
-%       YET - Quadratic shape functions for thermal, elastic, elastic_micro with
-%             corresponding tests
+%       YET - Quadratic shape functions for thermal, elastic, elastic_micro
+%             with corresponding tests
 
 % d) STOKES
 %       WIP - Restore Stokes_Problem

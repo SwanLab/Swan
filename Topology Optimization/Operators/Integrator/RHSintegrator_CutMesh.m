@@ -1,4 +1,4 @@
-classdef RHSintegrator_ShapeFunctionCell < handle
+classdef RHSintegrator_CutMesh < handle
 
     properties (Access = private)
         npnod
@@ -9,20 +9,29 @@ classdef RHSintegrator_ShapeFunctionCell < handle
         fGauss
         quadOrder
         quadrature
+
+        backgroundMeshType
+
+        xCoordsIso
+        cellContainingSubcell
+        subCellConnec
     end
 
     methods (Access = public)
 
         % Via Integrator_Simple + Integrator
-        function obj = RHSintegrator_ShapeFunctionCell(cParams)
+        function obj = RHSintegrator_CutMesh(cParams)
             obj.init(cParams);
         end
 
         function rhs = compute(obj)
+            obj.computeSubCellConnec();
             obj.computeQuadrature();
             obj.computeGaussPoints();
             obj.computeFgauss();
-            rhs = obj.integrateFgauss();
+            rhsCut = obj.computeElementalRHS();
+            rhsCells = obj.assembleSubcellsInCells(rhsCut);
+            rhs = obj.assembleIntegrand(rhsCells);
         end
 
     end
@@ -35,6 +44,16 @@ classdef RHSintegrator_ShapeFunctionCell < handle
             obj.fNodal       = cParams.fNodal;
             obj.quadOrder    = cParams.quadOrder;
             obj.globalConnec = cParams.globalConnec;
+
+            obj.backgroundMeshType  = cParams.backgroundMeshType;
+
+            obj.xCoordsIso   = cParams.xCoordsIso;
+            obj.cellContainingSubcell = cParams.cellContainingSubcell;
+        end
+        
+        function computeSubCellConnec(obj)
+            cells = obj.cellContainingSubcell;
+            obj.subCellConnec = obj.globalConnec(cells,:);
         end
         
         function computeQuadrature(obj)
@@ -45,23 +64,34 @@ classdef RHSintegrator_ShapeFunctionCell < handle
         
         function computeGaussPoints(obj)
             q = obj.quadrature;
-            xG = repmat(q.posgp,[1,1,obj.mesh.nelem]);
-            obj.xGauss = xG;
+            s.connec = obj.computeSubCellsLocalConnec();
+            s.fNodes = obj.computeSubCellsLocalCoord();
+            s.type   = obj.mesh.type;
+            x = FeFunction(s);
+            obj.xGauss = x.interpolateFunction(q.posgp);
+        end
+        
+        function c = computeSubCellsLocalCoord(obj)
+            coord = obj.xCoordsIso; 
+            nDim  = size(coord,1);
+            c = reshape(coord,nDim,[])';
+        end
+        
+        function lConnec = computeSubCellsLocalConnec(obj)
+            coord = obj.xCoordsIso;
+            nElem = size(coord,3);
+            nNode = size(coord,2);
+            lConnec = reshape(1:nElem*nNode,nNode,nElem)';
         end
 
         function computeFgauss(obj)
             s.fNodes = obj.fNodal;
-            s.connec = obj.globalConnec;
-            s.type   = obj.mesh.type;
+            s.connec = obj.subCellConnec;
+            s.type   = obj.backgroundMeshType;
             f = FeFunction(s);
             fG = f.interpolateFunction(obj.xGauss);
             fG = permute(fG,[2 3 1]);
             obj.fGauss = fG;
-        end
-        
-        function rhs = integrateFgauss(obj)
-            rhsCells = obj.computeElementalRHS();
-            rhs = obj.assembleIntegrand(rhsCells);
         end
         
         function rhsC = computeElementalRHS(obj) % integrate@RHSintegrator
@@ -78,6 +108,19 @@ classdef RHSintegrator_ShapeFunctionCell < handle
                 int = int + bsxfun(@times,shape,fdv);
             end
             rhsC = transpose(int);
+        end
+        
+        function rhsCells = assembleSubcellsInCells(obj,rhsCut)
+            nnode = size(obj.globalConnec,2);
+            nelem = size(obj.globalConnec,1);
+            cellNum = obj.cellContainingSubcell;
+            totalInt = zeros(nelem,nnode);
+            for iNode = 1:nnode
+                int = rhsCut(:,iNode);
+                intGlobal = accumarray(cellNum,int,[nelem,1],@sum,0);
+                totalInt(:,iNode) = totalInt(:,iNode) + intGlobal;
+            end
+            rhsCells = totalInt;
         end
 
         function f = assembleIntegrand(obj,rhsCells)
@@ -99,7 +142,8 @@ classdef RHSintegrator_ShapeFunctionCell < handle
         end
         
         function shapes = computeShapeFunctions(obj)
-            int = Interpolation.create(obj.mesh,'LINEAR');
+            m.type = obj.backgroundMeshType;
+            int = Interpolation.create(m,'LINEAR');
             int.computeShapeDeriv(obj.xGauss);
             shapes = permute(int.shape,[1 3 2]);
         end
