@@ -87,12 +87,12 @@ classdef ElasticProblem < handle
 
         function init(obj, cParams)
             obj.mesh        = cParams.mesh;
-            obj.material    = cParams.material;
+            % obj.material    = cParams.material;
             pd.scale        = cParams.scale;
             pd.pdim         = cParams.dim;
             pd.ptype        = cParams.type;
-            pd.bc.dirichlet = cParams.bc.dirichlet;
-            pd.bc.pointload = cParams.bc.pointload;
+            pd.bc.dirichlet = cParams.dirichlet;
+            pd.bc.pointload = cParams.pointload;
             obj.problemData = pd;
             obj.createQuadrature();
             obj.createInterpolation();

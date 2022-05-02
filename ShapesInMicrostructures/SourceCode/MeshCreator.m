@@ -44,7 +44,7 @@ classdef MeshCreator < handle
         function init(obj,cParams)
             obj.c = cParams.c;
             obj.theta = cParams.theta;
-            obj.div = cParams.divUnit*obj.c;
+            obj.div = round(cParams.divUnit*obj.c);
             obj.filename = cParams.filename;
         end
         
@@ -71,6 +71,7 @@ classdef MeshCreator < handle
             s.nodes = obj.nodes;
             s.coord = obj.coord;
             s.theta = obj.theta;
+            s.div = obj.div;
             a = NodesConnector(s);
             a.computeConnections();
             obj.connec = a.connec;
