@@ -9,7 +9,9 @@ classdef NewFilter_PDE_LevelSet < handle
         x_reg
         quadrature
         geometry
+        dim
         LHS
+        bc
     end
 
     properties (Access = private)
@@ -22,20 +24,21 @@ classdef NewFilter_PDE_LevelSet < handle
     methods (Access = public)
 
         function obj = NewFilter_PDE_LevelSet(cParams)
-            obj.init(cParams)
-            obj.init2(cParams);
+            obj.init(cParams);
+            obj.computeDimension();
+            obj.computeBoundaryConditions();
             obj.levelSet = cParams.designVariable;
             obj.epsilon = cParams.mesh.computeMeanCellSize();
         end
 
-        function preProcess(obj)
+        function preProcess(obj,cParams)
             s.mesh            = obj.mesh;
             s.quadratureOrder = obj.quadratureOrder;
             P1proc            = P1preProcessor(s);
             P1proc.preProcess();
             obj.storeParams(P1proc);
             obj.Anodal2Gauss = obj.computeA();
-            lhs = obj.createProblemLHS();
+            lhs = obj.createProblemLHS(cParams);
             obj.LHS = decomposition(lhs);
         end
 
@@ -48,7 +51,8 @@ classdef NewFilter_PDE_LevelSet < handle
         function obj = updateEpsilon(obj,epsilon)
             if obj.hasEpsilonChanged(epsilon)
                 obj.epsilon = epsilon;
-                lhs = obj.createProblemLHS();
+                s.femSettings = obj.femSettings;
+                lhs = obj.createProblemLHS(s);
                 obj.LHS = decomposition(lhs);
             end
         end
@@ -80,6 +84,12 @@ classdef NewFilter_PDE_LevelSet < handle
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
             obj.quadratureOrder = cParams.quadratureOrder;
+            obj.femSettings = cParams.femSettings;
+            if isfield(cParams.femSettings,'LHStype')
+                obj.LHStype = cParams.femSettings.LHStype;
+            else
+                obj.LHStype = 'DiffReactNeumann';
+            end
         end
 
         function storeParams(obj,P1proc)
@@ -128,13 +138,26 @@ classdef NewFilter_PDE_LevelSet < handle
         function x_reg = solveFilter(obj,RHS)
             x_reg = obj.LHS\(RHS);
         end
-        % inicio ida de olla:
-        function lhs = createProblemLHS(obj)
+
+        function computeDimension(obj)
+            s.name  = 'x';
+            s.mesh  = obj.mesh;
+            obj.dim = DimensionScalar(s);
+        end
+
+        function computeBoundaryConditions(obj)
+            s.dim          = obj.dim;
+            s.scale        = obj.femSettings.scale;
+            s.bc.dirichlet = [];
+            s.bc.pointload = [];
+            obj.bc         = BoundaryConditions(s);
+            obj.bc.compute();
+        end
+
+        function lhs = createProblemLHS(obj,cParams)
+            s = cParams.femSettings;
             s.type         = obj.LHStype;
-            ss.name = 'x';
-            ss.mesh = obj.mesh;
-            dims   = DimensionScalar(ss);
-            s.dim          = dims;
+            s.dim          = obj.dim;
             s.mesh         = obj.mesh;
             if isfield(obj.femSettings,'isAnisotropyAdded')
                 s.isAnisotropyAdded = obj.femSettings.isAnisotropyAdded;
@@ -145,21 +168,7 @@ classdef NewFilter_PDE_LevelSet < handle
             s.globalConnec = [];
             problemLHS = LHSintegrator.create(s);
             lhs = problemLHS.compute(obj.epsilon);
-            s.scale = obj.femSettings.scale;
-            s.bc.dirichlet = [];
-            s.bc.pointload = [];
-            bc = BoundaryConditions(s);
-            bc.compute();
-            lhs = bc.fullToReducedMatrix(lhs);
-        end
-
-        function init2(obj,cParams)
-            obj.femSettings = cParams.femSettings;
-            if isfield(cParams.femSettings,'LHStype')
-                obj.LHStype = cParams.femSettings.LHStype;
-            else
-                obj.LHStype = 'DiffReactNeumann';
-            end
+            lhs = obj.bc.fullToReducedMatrix(lhs);
         end
 
     end

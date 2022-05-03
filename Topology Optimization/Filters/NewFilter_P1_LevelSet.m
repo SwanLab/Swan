@@ -23,7 +23,7 @@ classdef NewFilter_P1_LevelSet <  handle
             obj.disableDelaunayWarning();
         end
         
-        function preProcess(obj)
+        function preProcess(obj,cParams)
             s.mesh = obj.mesh;
             s.quadratureOrder = obj.quadratureOrder;
             P1proc = P1preProcessor(s);
