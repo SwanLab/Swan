@@ -31,14 +31,14 @@ classdef NewFilter_PDE_LevelSet < handle
             obj.epsilon = cParams.mesh.computeMeanCellSize();
         end
 
-        function preProcess(obj,cParams)
+        function preProcess(obj)
             s.mesh            = obj.mesh;
             s.quadratureOrder = obj.quadratureOrder;
             P1proc            = P1preProcessor(s);
             P1proc.preProcess();
             obj.storeParams(P1proc);
             obj.Anodal2Gauss = obj.computeA();
-            lhs = obj.createProblemLHS(cParams);
+            lhs = obj.createProblemLHS();
             obj.LHS = decomposition(lhs);
         end
 
@@ -51,8 +51,7 @@ classdef NewFilter_PDE_LevelSet < handle
         function obj = updateEpsilon(obj,epsilon)
             if obj.hasEpsilonChanged(epsilon)
                 obj.epsilon = epsilon;
-                s.femSettings = obj.femSettings;
-                lhs = obj.createProblemLHS(s);
+                lhs = obj.createProblemLHS();
                 obj.LHS = decomposition(lhs);
             end
         end
@@ -154,17 +153,11 @@ classdef NewFilter_PDE_LevelSet < handle
             obj.bc.compute();
         end
 
-        function lhs = createProblemLHS(obj,cParams)
-            s = cParams.femSettings;
-            s.type         = obj.LHStype;
-            s.dim          = obj.dim;
-            s.mesh         = obj.mesh;
-            if isfield(obj.femSettings,'isAnisotropyAdded')
-                s.isAnisotropyAdded = obj.femSettings.isAnisotropyAdded;
-            end
-            if isfield(obj.femSettings,'CAnisotropic')
-                s.CAnisotropic = obj.femSettings.CAnisotropic;
-            end
+        function lhs = createProblemLHS(obj)
+            s      = obj.femSettings;
+            s.type = obj.LHStype;
+            s.dim  = obj.dim;
+            s.mesh = obj.mesh;
             s.globalConnec = [];
             problemLHS = LHSintegrator.create(s);
             lhs = problemLHS.compute(obj.epsilon);
