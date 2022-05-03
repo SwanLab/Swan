@@ -46,13 +46,13 @@ classdef Assembler < handle
         function A = assembleMatrix(obj, Ae)
             connec    = obj.globalConnec;
             dofConnec = obj.computeDofConnectivity()';
-            ndofs  = obj.dim.ndof;
-            ndimf  = obj.dim.ndimField;
-            nnode  = size(connec, 2);
+            ndofs   = obj.dim.ndof;
+            ndimf   = obj.dim.ndimField;
+            nnodeEl = size(connec, 2);
             A = sparse(ndofs,ndofs);
-            for i = 1:nnode*ndimf
+            for i = 1:nnodeEl*ndimf
                 dofsI = dofConnec(:,i);
-                for j = 1:nnode*ndimf
+                for j = 1:nnodeEl*ndimf
                     dofsJ = dofConnec(:,j);
                     a = squeeze(Ae(i,j,:));
                     Aadd = obj.computeAaddBySparse(a, dofsI, dofsJ);
@@ -65,11 +65,11 @@ classdef Assembler < handle
         function A = assembleMatrixViaIndices(obj, Ae)
             connec    = obj.globalConnec;
             dofConnec = obj.computeDofConnectivity()';
-            ndof   = obj.dim.ndof;
-            ndimf  = obj.dim.ndimField;
-            nelem  = size(dofConnec, 1);
-            nnode  = size(connec, 2);
-            ndofEl = nnode*ndimf;
+            ndof    = obj.dim.ndof;
+            ndimf   = obj.dim.ndimField;
+            nelem   = size(dofConnec, 1);
+            nnodeEl = size(connec, 2);
+            ndofEl  = nnodeEl*ndimf;
             res = zeros(ndofEl^2 * nelem, 3);
             strt = 1;
             fnsh = nelem;
@@ -88,11 +88,11 @@ classdef Assembler < handle
         end
         
         function dofConnec = computeDofConnectivity(obj)
-            connec = obj.globalConnec;
-            ndimf  = obj.dim.ndimField;
-            nnode  = size(connec,2);
-            dofsElem  = zeros(nnode*ndimf,size(connec,1));
-            for inode = 1:nnode
+            connec  = obj.globalConnec;
+            ndimf   = obj.dim.ndimField;
+            nnodeEl = size(connec,2);
+            dofsElem  = zeros(nnodeEl*ndimf,size(connec,1));
+            for inode = 1:nnodeEl
                 for iunkn = 1:ndimf
                     idofElem   = obj.nod2dof(inode,iunkn);
                     globalNode = connec(:,inode);
@@ -171,12 +171,12 @@ classdef Assembler < handle
         end
 
         function gDofs = transformLocal2Global(obj,iDof)
-            d     = obj.dim;
-            ndimf = d.ndimField;
-            nnode = d.nnodeElem;
+            d       = obj.dim;
+            ndimf   = d.ndimField;
+            nnodeEl = d.nnodeElem;
             nodes        = obj.globalConnec;
-            nodesInElem  = reshape(repmat(1:nnode,ndimf,1),1,[]);
-            dofs         = repmat(1:ndimf,1,nnode);
+            nodesInElem  = reshape(repmat(1:nnodeEl,ndimf,1),1,[]);
+            dofs         = repmat(1:ndimf,1,nnodeEl);
             inode        = nodesInElem(iDof);
             iunkn        = dofs(iDof);
             nodeI        = nodes(:,inode);

@@ -5,7 +5,7 @@
 %       OK! - Avoid using ngaus from dim 
 %       OK* - nstre only in elasticity  (maybe in Bmatrix) and rename it
 %             as nVoigt
-%       YET - ndofPerNode (and ndofPerElem) in interpolation times npnod
+%       IDK - ndofPerNode (and ndofPerElem) in interpolation times npnod
 %             (nnode) of mesh gives ndof of field (in dim)
 %                   - ndofPerNode in interpolation?
 %       OK* - nnode ---> nnodePerElem (in Mesh)
@@ -14,10 +14,23 @@
 
 % b) INTEGRATORS
 %       OK* - "integrate" all RHS
+%               - note: pending more cleanup.
 
 % c) TESTS
-%       YET - Quadratic shape functions for thermal, elastic, elastic_micro
+%       NO* - Quadratic shape functions for thermal, elastic, elastic_micro
 %             with corresponding tests
+%               - When the interpolation is set as quadratic, the
+%                 connectivity matrix must be once again calculated.
+%                 ConnecCoordFromInterpAndMesh is supposed to do it, but it
+%                 does not work as intended.
+%               - Some elements overlap, the original node numeration is
+%                 lost in the process and lose physical meaning
+%               - As a result (?), the stiffness matrix is not invertible.
+%                 If the dofConnec is not to be calculated, the
+%                 alternatives may be more expensive.
+
+%         pd.bc.dirichlet = [10 1 0; 10 2 0; 7 1 0; 7 2 0; 19 1 0; 19 2 0];
+%         pd.bc.pointload = [24 2 -1];
 
 % d) STOKES
 %       WIP - Restore Stokes_Problem
@@ -28,18 +41,3 @@
 %       WIP - Re-use FeFunction for displacements... with its own
 %             dimensions
 
-
-%     - Quadratic shape functions for thermal, elastic, elastic_micro with
-%       corresponding tests
-% OK* - "integrate" all RHS
-% OK* - nstre only in elasticity  (maybe in Bmatrix) and rename it as nVoigt
-% OK! - trying to avoid using nelem from dim
-% OK! - trying to avoid ngaus from dim 
-%     - ndofPerNode (and ndofPerElem) in interpolation times npnod (nnode)
-%       of mesh gives ndof of field (in dim)
-% OK* - nnode ---> nnodePerElem (in Mesh)
-% OK! - npnod ---> nnodes(in Mesh)
-% OK! - create dimensions from s.type (Scalar/Vector)
-% OK! - delete nunkn in RHS
-
-% Re-use FeFunction for displacements.... with its own dimensions
