@@ -9,10 +9,6 @@ classdef LHSintegrator_StiffnessColumn < LHSintegrator
         freeNodes
     end
     
-    properties (Access = protected)
-        
-    end
-    
     methods (Access = public)
         
         function obj = LHSintegrator_StiffnessColumn(cParams)
@@ -29,7 +25,7 @@ classdef LHSintegrator_StiffnessColumn < LHSintegrator
             obj.stiffnessMatrix = LHS;
         end
 
-        function Kfree = provideFreeStiffnessMatrix(obj)
+        function [Kfree,free] = provideFreeStiffnessMatrix(obj)
             free = obj.freeNodes;
             K = obj.stiffnessMatrix;
             Kfree  = K(free,free);
