@@ -126,7 +126,10 @@ classdef NewFilter_PDE_Density < handle
         end
 
         function x_reg = solveFilter(obj,RHS)
-            x_reg = obj.LHS\(RHS);
+            RHS = obj.bc.fullToReducedVector(RHS);
+            Solv = Solver.create();
+            x = Solv.solve(obj.LHS,RHS);
+            x_reg = obj.bc.reducedToFullVector(x);
         end
 
         function computeDimension(obj)

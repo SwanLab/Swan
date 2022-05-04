@@ -37,8 +37,6 @@ classdef DiffReactProblem < handle
             obj.computeDimensions();
             obj.createBoundaryConditions();
             obj.createSolver();
-            obj.computeStiffnessMatrix(cParams);
-            obj.computeMassMatrix();
             obj.createProblemLHS();
         end
 
@@ -103,19 +101,6 @@ classdef DiffReactProblem < handle
         
         function createSolver(obj)
             obj.solver = Solver.create();
-        end
-
-        function computeStiffnessMatrix(obj,cParams)
-            s.type = 'StiffnessMatrix';
-            s.mesh         = obj.mesh;
-            s.npnod        = obj.mesh.npnod;
-            s.globalConnec = obj.mesh.connec;
-            s.dim          = obj.dim;
-        end
-
-        function computeMassMatrix(obj)
-            s.type         = 'MassMatrix';
-            s.quadType     = 'QUADRATICMASS';
         end
 
         function createProblemLHS(obj)
