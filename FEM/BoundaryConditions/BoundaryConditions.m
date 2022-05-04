@@ -76,7 +76,7 @@ classdef BoundaryConditions < handle
         function initPeriodicMasterSlave(obj, cParams)
             switch obj.scale
                 case 'MICRO'
-                    if isprop(cParams.bc, 'masterSlave')
+                    if isfield(cParams.bc, 'masterSlave')
                         obj.masterSlave = cParams.bc.masterSlave;
                     end
                     MS = obj.masterSlave;

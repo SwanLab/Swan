@@ -68,12 +68,14 @@ classdef DiagonalCoordComputer < TotalCoordinatesCalculator
             for iMaster = 1:nsides/2
                 vertA = newVert(iMaster,:);
                 vertB = newVert(iMaster+1,:);
-                bool = 0;
-                while bool == 0
-                    if norm((vertB-vertA)/obj.div_aux(iMaster)) > obj.c(iMaster)/obj.div(iMaster)
-                        obj.div_aux(iMaster) = obj.div_aux(iMaster)+1;
-                    else
-                        bool = 1;
+                if (obj.c(1)~=obj.c(2)) || (obj.c(2)~=obj.c(3))
+                    bool = 0;
+                    while bool == 0
+                        if norm((vertB-vertA)/obj.div_aux(iMaster)) > obj.c(iMaster)/obj.div(iMaster)
+                            obj.div_aux(iMaster) = obj.div_aux(iMaster)+1;
+                        else
+                            bool = 1;
+                        end
                     end
                 end
                 for intDiv = 1:obj.div_aux(iMaster)-1
