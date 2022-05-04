@@ -62,7 +62,8 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
             ngaus  = obj.quadrature.ngaus;
             nelem  = size(obj.material.C,3);
-            npe    = obj.dim.ndofPerElement;
+%             npe    = obj.dim.ndofPerElement;
+            npe    = obj.interpolation.nnode*obj.dim.ndimField;
             lhs = zeros(npe,npe,nelem);
             Bcomp = obj.createBComputer();
             for igaus = 1:ngaus

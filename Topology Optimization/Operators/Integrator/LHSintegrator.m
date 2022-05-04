@@ -41,6 +41,7 @@ classdef LHSintegrator < handle
 
         function createInterpolation(obj)
             int = obj.mesh.interpolation;
+%             int = Interpolation.create(obj.mesh,'QUADRATIC');
             int.computeShapeDeriv(obj.quadrature.posgp);
             obj.interpolation = int;
         end
@@ -48,6 +49,7 @@ classdef LHSintegrator < handle
         function LHS = assembleMatrix(obj,LHSelem)
             s.dim          = obj.dim;
             s.globalConnec = obj.globalConnec;
+            s.nnodeEl      = obj.interpolation.nnode;
             assembler = Assembler(s);
             LHS = assembler.assemble(LHSelem);
         end

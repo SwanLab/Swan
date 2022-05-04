@@ -3,6 +3,7 @@ classdef Assembler < handle
     properties (Access = private)
         dim
         globalConnec
+        nnodeEl
     end
 
     methods (Access = public)
@@ -41,6 +42,9 @@ classdef Assembler < handle
         function init(obj, cParams)
             obj.dim          = cParams.dim;
             obj.globalConnec = cParams.globalConnec;
+            if isfield(cParams, 'nnodeEl')
+                obj.nnodeEl  = cParams.nnodeEl;
+            end
         end
 
         function A = assembleMatrix(obj, Ae)
@@ -90,8 +94,9 @@ classdef Assembler < handle
         function dofConnec = computeDofConnectivity(obj)
             connec  = obj.globalConnec;
             ndimf   = obj.dim.ndimField;
-            nnodeEl = size(connec,2);
-            dofsElem  = zeros(nnodeEl*ndimf,size(connec,1));
+            nnodeEl = size(connec,2); %nope, depends on the interpolation.
+            ndofsEl = nnodeEl * ndimf;
+            dofsElem  = zeros(ndofsEl,size(connec,1));
             for inode = 1:nnodeEl
                 for iunkn = 1:ndimf
                     idofElem   = obj.nod2dof(inode,iunkn);

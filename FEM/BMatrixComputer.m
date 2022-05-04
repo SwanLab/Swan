@@ -47,9 +47,9 @@ classdef BMatrixComputer < handle
             d = obj.dim;
             dNdx = obj.geometry.dNdx;
             nstre = obj.nvoigt;
-            nnode = d.nnodeElem;
             ndimf = d.ndimField;
             ndofE = d.ndofPerElement;
+            nnode = size(dNdx,2);
             nelem = size(dNdx,3);
             B = zeros(nstre,ndofE,nelem);
             for i = 1:nnode
