@@ -9,8 +9,8 @@ classdef Mesh_Total < Mesh_Composite
         
 
         
-        npnod
-        nnode
+        nnodes
+        nnodeElem
         embeddedDim
 
     end
@@ -30,8 +30,8 @@ classdef Mesh_Total < Mesh_Composite
             obj.defineActiveMeshes();
             obj.type = obj.innerMeshOLD.type;
             obj.nelem = size(obj.connec,1);
-            obj.npnod = obj.innerMeshOLD.npnod;
-            obj.nnode = obj.innerMeshOLD.nnode;
+            obj.nnodes = obj.innerMeshOLD.nnodes;
+            obj.nnodeElem = obj.innerMeshOLD.nnodeElem;
             obj.createInterpolation();
             obj.computeElementCoordinates();
         end

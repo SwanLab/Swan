@@ -2,15 +2,11 @@ classdef DimensionScalar < handle
     
     properties (GetAccess = public, SetAccess = private)
         name
-        nelem
-        npnod
-        nnode
+        nnodes
+        nnodeElem
         ndimField
         ndofPerElement
         ndof
-
-        nstre %nvoigt
-        %ngaus
     end
     
     properties (Access = private)
@@ -28,17 +24,12 @@ classdef DimensionScalar < handle
     methods (Access = private)
 
         function init(obj, cParams)
-%             obj.mesh           = cParams.mesh;
             obj.ndimField      = 1; % by definition
             obj.name           = cParams.name;
-            obj.nnode          = cParams.mesh.interpolation.nnode;
+            obj.nnodeElem      = cParams.mesh.interpolation.nnode;
             obj.ndofPerElement = cParams.mesh.interpolation.nnode;
-            obj.ndof           = cParams.mesh.npnod;
-
-            obj.nelem          = cParams.mesh.nelem;
-            obj.npnod          = cParams.mesh.npnod;
-
-            obj.nstre = 2; % by definition. does it make sense?
+            obj.ndof           = cParams.mesh.nnodes;
+            obj.nnodes         = cParams.mesh.nnodes;
         end
 
     end

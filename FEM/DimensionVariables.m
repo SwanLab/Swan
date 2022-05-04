@@ -1,21 +1,30 @@
 classdef DimensionVariables < handle
     
     properties (Access = public)
-        nnode
+        nnodeElem
         ndimField
         nstre
         ndof
-        nelem
         ndofPerElement
-        ngaus
         ndim
-        nunknPerField
-        npnod
+        nnodes
     end
 
     properties (Access = private)
         pdim
         mesh
+    end
+    
+    methods (Static, Access = public)
+
+        function obj = create(cParams)
+            switch cParams.type
+                case 'Scalar'
+                    obj = DimensionScalar(cParams);
+                case 'Vector'
+                    obj = DimensionVector(cParams);
+            end
+        end
     end
     
     methods (Access = public)
@@ -25,32 +34,18 @@ classdef DimensionVariables < handle
         end
 
         function compute(obj)
-            obj.nnode          = obj.mesh.nnode;
+            obj.nnodeElem      = obj.mesh.nnodeElem;
             obj.ndimField      = obj.createDimPerField();
-            obj.nstre          = obj.createNstre();
-            obj.ndof           = obj.mesh.npnod*obj.ndimField;
-            obj.nelem          = obj.mesh.nelem;
-            obj.ndofPerElement = obj.nnode*obj.ndimField;
+            obj.ndof           = obj.mesh.nnodes*obj.ndimField;
+            obj.ndofPerElement = obj.nnodeElem*obj.ndimField;
             obj.ndim           = obj.createNdim();
-            obj.npnod          = obj.mesh.npnod;
+            obj.nnodes          = obj.mesh.nnodes;
         end
 
         function applyNdimfield(obj, num)
             obj.ndimField = num;
-            obj.ndofPerElement = obj.nnode*obj.ndimField;
-            obj.ndof           = obj.mesh.npnod*obj.ndimField;
-        end
-
-        function applyNUnknPerField(obj, num)
-            obj.nunknPerField = num;
-        end
-        
-        function applyNnode(obj, num)
-            obj.nnode = num;
-        end
-
-        function applyNelem(obj, num)
-            obj.nelem = num;
+            obj.ndofPerElement = obj.nnodeElem*obj.ndimField;
+            obj.ndof           = obj.mesh.nnodes*obj.ndimField;
         end
 
     end
@@ -60,10 +55,9 @@ classdef DimensionVariables < handle
         function obj = init(obj, cParams)
             obj.mesh  = cParams.mesh;
             obj.pdim  = cParams.pdim;
-            obj.ngaus = cParams.ngaus;
         end
         
-        function ndimf = createDimPerField(obj) % createNUnknPerField
+        function ndimf = createDimPerField (obj) % createNUnknPerField
             switch obj.pdim
                 case '1D'
                     ndimf = 1;

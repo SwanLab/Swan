@@ -16,7 +16,6 @@ classdef ShFunc_Chomog < ShapeFunctional
     
     methods (Access = public)
         
-        
         function f = getPhysicalProblems(obj)
             f{1} = obj.physicalProblem;
         end
@@ -101,14 +100,15 @@ classdef ShFunc_Chomog < ShapeFunctional
             %gf = obj.Msmooth*gf;
             g = gf(:);
             obj.gradient = g;
-        end                
+        end
         
         function computeChDerivative(obj)
             dC = obj.homogenizedVariablesComputer.dC;
-            dim = obj.physicalProblem.getDimensions();
-            nStre = dim.nstre;
-            nelem = dim.nelem;
-            ngaus = dim.ngaus;
+            p  = obj.physicalProblem;
+            tstr = p.variables.tstrain;
+            nStre = size(tstr,1);
+            nelem = size(tstr,4);
+            ngaus = size(tstr,2);
             dChV = zeros(nStre,nStre,nelem,ngaus);
             for iStre = 1:nStre
                 for jStre = 1:nStre
@@ -169,18 +169,18 @@ classdef ShFunc_Chomog < ShapeFunctional
         end
         
         function n = getnStre(obj)
-            dim = obj.physicalProblem.getDimensions();
-            n = dim.nstre;
-        end
-        
-        function n = getnElem(obj)
-            dim = obj.physicalProblem.getDimensions();
-            n = dim.nelem;
+            ep = obj.physicalProblem.variables.strain;
+            n  = size(ep,2);
         end
         
         function n = getnGaus(obj)
-            dim = obj.physicalProblem.getDimensions();
-            n = dim.ndim;
+            ep = obj.physicalProblem.variables.strain;
+            n  = size(ep,1);
+        end
+        
+        function n = getnElem(obj)
+            ep = obj.physicalProblem.variables.strain;
+            n  = size(ep,3);
         end
         
     end

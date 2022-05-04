@@ -44,8 +44,8 @@ classdef ElasticProblem < handle
         end
 
         function plot(obj)
-            s.dim            = obj.dim;
-            s.mesh           = obj.mesh;
+            s.dim          = obj.dim;
+            s.mesh         = obj.mesh;
             s.displacement = obj.variables.d_u;
             plotter = FEMPlotter(s);
             plotter.plot();
@@ -73,7 +73,7 @@ classdef ElasticProblem < handle
             s.iter = 0;
             s.fields    = obj.createVariablesToPrint();
             s.ptype     = obj.problemData.ptype;
-            s.ndim      = obj.dim.ndim;
+            s.ndim      = obj.dim.ndimField;
             s.pdim      = obj.problemData.pdim;
             s.type      = obj.createPrintType();
             fPrinter = FemPrinter(s);
@@ -103,13 +103,12 @@ classdef ElasticProblem < handle
         end
 
         function computeDimensions(obj)
+            s.type = 'Vector';
             s.fieldName = 'u';
             s.mesh = obj.mesh;
             s.ndimf = str2double(regexp(obj.problemData.pdim,'\d*','Match'));
-
-            d = DimensionVector(s);
-            d.create(s)
-            d.applyNgaus(obj.quadrature.ngaus);
+            d = DimensionVariables.create(s);
+            d.compute(s)
             obj.dim = d;
         end
 
@@ -141,7 +140,6 @@ classdef ElasticProblem < handle
         function computeStiffnessMatrixOld(obj)
             s.type = 'ElasticStiffnessMatrixOld';
             s.mesh         = obj.mesh;
-            s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.dim;
             s.material     = obj.material;
@@ -178,10 +176,10 @@ classdef ElasticProblem < handle
         end
 
         function computeStrain(obj)
-            s.dim                = obj.dim;
-            s.mesh               = obj.mesh;
-            s.quadrature         = obj.quadrature;
-            s.displacement       = obj.variables.d_u;
+            s.dim          = obj.dim;
+            s.mesh         = obj.mesh;
+            s.quadrature   = obj.quadrature;
+            s.displacement = obj.variables.d_u;
             scomp  = StrainComputer(s);
             strain = scomp.compute();
             obj.variables.strain = strain;

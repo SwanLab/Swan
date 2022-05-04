@@ -257,7 +257,7 @@ classdef Element_Stokes < Element
         function computeStiffnessMatrix(obj)
             s.type = 'ElasticStiffnessMatrix';
             s.mesh         = obj.mesh;
-            s.npnod        = obj.mesh.npnod;
+            s.npnod        = obj.mesh.nnodes;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.dim{1};
             s.material     = obj.material;
