@@ -90,8 +90,7 @@ classdef ElasticProblem < handle
             pd.scale        = cParams.scale;
             pd.pdim         = cParams.dim;
             pd.ptype        = cParams.type;
-            pd.bc.dirichlet = cParams.bc.dirichlet;
-            pd.bc.pointload = cParams.bc.pointload;
+            pd.bc           = cParams.bc;
             obj.problemData = pd;
             obj.createQuadrature();
         end
