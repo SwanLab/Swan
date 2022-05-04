@@ -56,7 +56,6 @@ classdef MinimumGradFieldWithVectorInL2 < handle
         function K = computeStiffnessMatrix(obj)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
-            s.npnod        = obj.mesh.npnod;
             s.type         = 'StiffnessMatrix';
             s.dim          = obj.dim;
             lhs = LHSintegrator.create(s);
@@ -66,7 +65,6 @@ classdef MinimumGradFieldWithVectorInL2 < handle
         function M = computeMassMatrix(obj)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
-            s.npnod        = obj.mesh.npnod;
             s.type         = 'MassMatrix';
             s.dim          = obj.dim;
             lhs = LHSintegrator.create(s);
@@ -76,6 +74,7 @@ classdef MinimumGradFieldWithVectorInL2 < handle
         function computeRHS(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('LINEAR');
+            s.fType     = 'Gauss';
             s.fGauss    = obj.fGauss;
             s.xGauss    = q.posgp;
             s.mesh      = obj.mesh;
@@ -89,7 +88,7 @@ classdef MinimumGradFieldWithVectorInL2 < handle
         
         function f = assembleIntegrand(obj,rhsCells)
             integrand = rhsCells;
-            ndofs  = obj.mesh.npnod;
+            ndofs  = obj.mesh.nnodes;
             connec = obj.mesh.connec;
             nnode  = size(connec,2);
             f = zeros(ndofs,1);

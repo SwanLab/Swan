@@ -5,7 +5,6 @@ classdef PieceWiseConstantFunction < handle
     end
     
     properties (Access = private)
-        integrator
         quadrature
         dim
     end
@@ -25,7 +24,6 @@ classdef PieceWiseConstantFunction < handle
         end
         
         function fNodal = projectToLinearNodalFunction(obj)
-            obj.createIntegrator();
             LHS = obj.computeLHS();
             RHS = obj.computeRHS();
             fNodal = (LHS\RHS);
@@ -57,14 +55,30 @@ classdef PieceWiseConstantFunction < handle
             d.compute();
             obj.dim = d;
         end
-
-        function createIntegrator(obj)
-            s.type = 'SIMPLE';
-            s.mesh = obj.mesh;
-            s.npnod = obj.mesh.npnod;
+        
+        function LHS = computeLHS(obj)
+            s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
-            int = Integrator.create(s);
-            obj.integrator = int;
+            s.type         = 'MassMatrix';
+            s.dim          = obj.dim;
+            s.quadType     = 'QUADRATIC';
+            lhs = LHSintegrator.create(s);
+            LHS = lhs.compute();
+        end
+        
+        function RHS = computeRHS(obj)
+            % Untested but should NOT work
+            s.type      = 'ShapeFunction';
+            s.mesh      = obj.mesh;
+            s.meshType  = obj.mesh.type;
+            s.fType     = 'Gauss';
+            s.fGauss    = obj.computeFgauss();
+            s.xGauss    = obj.computeXgauss();
+            s.quadOrder = obj.quadOrder;
+            s.npnod     = obj.mesh.nnodes;
+            s.globalConnec = obj.mesh.connec;
+            rhs = RHSintegrator.create(s);
+            RHS = rhs.compute();
         end
         
         function x = computeXgauss(obj)
@@ -76,23 +90,6 @@ classdef PieceWiseConstantFunction < handle
             ngaus = obj.quadrature.ngaus;
             fV(1,:) = obj.fValues;
             f = repmat(fV,[ngaus,1]);
-        end
-        
-        function LHS = computeLHS(obj)
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.npnod        = obj.mesh.npnod;
-            s.type         = 'MassMatrix';
-            s.dim          = obj.dim;
-            s.quadType     = 'QUADRATIC';
-            lhs = LHSintegrator.create(s);
-            LHS = lhs.compute();
-        end
-        
-        function RHS = computeRHS(obj)
-            fG = obj.computeFgauss;
-            xG = obj.computeXgauss;
-            RHS = obj.integrator.integrateFgauss(fG,xG,obj.quadOrder);
         end
         
     end

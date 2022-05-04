@@ -1,28 +1,30 @@
-classdef Integrator_Composite < Integrator
-    
+classdef RHSintegrator_Composite < handle
+
     properties (GetAccess = public, SetAccess = private)
         integrators
         nInt
+        npnod
     end
-    
+
     properties (Access = private)
-       RHScells
-       RHSsubcells
+        RHScells
+        RHSsubcells
     end
-    
+
     methods (Access = public)
-        
-        function obj = Integrator_Composite(cParams)
+
+        function obj = RHSintegrator_Composite(cParams)
+            obj.init(cParams);
             obj.createIntegrators(cParams);
         end
-        
+
         function f = integrate(obj,nodalFunc)
             f = cell(1,obj.nInt);
             for iInt = 1:obj.nInt
-                f{iInt} = obj.integrators{iInt}.integrate(nodalFunc);
+                f{iInt} = obj.integrators{iInt}.compute(nodalFunc);
             end
         end
-        
+
         function f = integrateAndSum(obj,nodalFunc)
             f = 0;
             for iInt = 1:obj.nInt
@@ -30,37 +32,32 @@ classdef Integrator_Composite < Integrator
                 if contains(class(integrator),'Composite')
                     int = integrator.integrateAndSum(nodalFunc);
                 else
-                    int = integrator.integrate(nodalFunc);
+                    int = integrator.compute(nodalFunc);
                 end
                 f = f + int;
             end
         end
-        
+
     end
-    
+
     methods (Access = private)
-        
-        function createNint(obj,cParams)
+
+        function init(obj, cParams)
             obj.nInt = numel(cParams.compositeParams);
+            obj.npnod = cParams.npnod;
         end
-        
-        function createNpnod(obj,cParams)
-           obj.npnod = cParams.npnod;
-        end
-        
+
+
         function createIntegrators(obj,cParams)
-            obj.createNint(cParams);
-            obj.createNpnod(cParams);
             params = cParams.compositeParams;
             for iInt = 1:obj.nInt
                 s = params{iInt};
-%                 s.dim = cParams.dim;
-                integrator = Integrator.create(s);
+                integrator = RHSintegrator.create(s);
                 obj.integrators{end+1} = integrator;
             end
-            
+
         end
-    
+
     end
-    
+
 end

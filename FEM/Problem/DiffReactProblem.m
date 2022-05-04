@@ -24,51 +24,19 @@ classdef DiffReactProblem < handle
             obj.createSolver();
             obj.createProblemLHS();
         end
-        
-        function solve(obj)
-            obj.epsilon = .1857;
-            bc  = obj.boundaryConditions;
-            M = obj.problemLHS.K;
-            rhs = M*ones(size(M,1), 1);
-            RHS = bc.fullToReducedVector(rhs);
-            LHS = obj.computeLHS();
-            x = obj.solver.solve(LHS,RHS);
-            obj.variables.x = bc.reducedToFullVector(x);
-        end
 
         function computeVariables(obj,rhs)
             bc  = obj.boundaryConditions;
             RHS = bc.fullToReducedVector(rhs);
-            LHS = obj.computeLHS();
+            LHS = obj.computeLHS(obj.epsilon);
             x = obj.solver.solve(LHS,RHS);
             obj.variables.x = bc.reducedToFullVector(x);
         end
         
-        function LHS = computeLHS(obj)
-            lhs = obj.problemLHS.compute(obj.epsilon);
-            LHS = obj.boundaryConditions.fullToReducedMatrix(lhs);
-        end
-
-        function obj = setEpsilon(obj,epsilon)
+        function LHS = computeLHS(obj, epsilon)
             obj.epsilon = epsilon;
-        end
-
-        function M = getM(obj)
-            M = obj.problemLHS.M;
-        end
-
-        function K = getK(obj)
-            K = obj.problemLHS.K;
-        end
-
-        function dvol = computeDvolume(obj)
-            int = obj.mesh.interpolation;
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
-            s.mesh = obj.mesh;
-            g = Geometry.create(s);
-            g.computeGeometry(q,int);
-            dvol = g.dvolu;
+            lhs = obj.problemLHS.compute(epsilon);
+            LHS = obj.boundaryConditions.fullToReducedMatrix(lhs);
         end
        
         function print(obj,filename)
@@ -79,7 +47,7 @@ classdef DiffReactProblem < handle
             s.iter = 0;
             s.fields    = obj.variables.x;
             s.ptype     = 'DIFF-REACT';
-            s.ndim      = 2;
+            s.ndim      = 3;
             s.pdim      = obj.problemData.pdim;
             s.type      = 'ScalarNodal';
             fPrinter = FemPrinter(s);
@@ -91,18 +59,17 @@ classdef DiffReactProblem < handle
     methods (Access = private)
         
         function init(obj, cParams)
-            obj.mesh = cParams.mesh;
-            obj.problemData.pdim = '1D';
+            obj.mesh              = cParams.mesh;
+            obj.LHStype           = cParams.LHStype;
+            obj.problemData.pdim  = '1D';
             obj.problemData.scale = cParams.scale;
-            obj.setLHStype(cParams);
         end
 
         function computeDimensions(obj)
-            s.ngaus = [];
-            s.mesh  = obj.mesh;
-            s.pdim  = obj.problemData.pdim;
-            dims    = DimensionVariables(s);
-            dims.compute();
+            s.type = 'Scalar';
+            s.name = 'x';
+            s.mesh = obj.mesh;
+            dims   = DimensionVariables.create(s);
             obj.dim = dims;
         end
 
@@ -127,18 +94,6 @@ classdef DiffReactProblem < handle
             s.mesh         = obj.mesh;
             s.globalConnec = [];
             obj.problemLHS = LHSintegrator.create(s);
-        end
-
-        function setLHStype(obj, cParams)
-            isRobinAdded = isfield(cParams, 'isRobinTermAdded') ...
-                               && cParams.isRobinTermAdded == 1;
-            switch isRobinAdded
-                case true
-                    type = 'DiffReactRobin';
-                case false
-                    type = 'DiffReactNeumann';
-            end
-            obj.LHStype = type;
         end
     
     end

@@ -1,8 +1,9 @@
 classdef Mesh < handle
     
     properties (GetAccess = public, SetAccess = private)
-        nnode
-        npnod
+        nnodeElem
+%         npnod
+        nnodes
         type
         kFace
         geometryType
@@ -231,15 +232,15 @@ classdef Mesh < handle
         end
         
         function computeDimensionParams(obj)
-            obj.npnod = size(obj.coord,1);
+            obj.nnodes = size(obj.coord,1);
             obj.ndim  = size(obj.coord,2);
             obj.nelem = size(obj.connec,1);
-            obj.nnode = size(obj.connec,2);
+            obj.nnodeElem = size(obj.connec,2);
         end
         
         function computeType(obj)
             s.geometryType = obj.geometryType;
-            s.nnode        = obj.nnode;
+            s.nnodeElem    = obj.nnodeElem;
             t = MeshTypeComputer(s);
             obj.type = t.compute();
         end
@@ -258,6 +259,14 @@ classdef Mesh < handle
         
         function createInterpolation(obj)
             obj.interpolation = Interpolation.create(obj,'LINEAR');
+%             obj.interpolation = Interpolation.create(obj,'QUADRATIC');
+%             s.mesh = obj;
+%             s.interpolation = obj.interpolation;
+%             c = ConnecCoordFromInterpAndMesh(s);
+%             c.compute();
+%             obj.connec = c.connec;
+%             obj.coord = c.coord;
+%             obj.nnodes= size(c.coord,1);
         end
         
         function computeElementCoordinates(obj)

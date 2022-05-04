@@ -9,8 +9,7 @@ classdef ElasticProblem < handle
         displacement
         problemData
         stiffnessMatrix
-        stiffnessMatrixRed
-        forces
+        RHS
         solver
         geometry
     end
@@ -22,7 +21,7 @@ classdef ElasticProblem < handle
 
         vstrain
 
-        mesh, interp % For Homogenization
+        mesh % For Homogenization
     end
 
     methods (Access = public)
@@ -45,8 +44,8 @@ classdef ElasticProblem < handle
         end
 
         function plot(obj)
-            s.dim            = obj.dim;
-            s.mesh           = obj.mesh;
+            s.dim          = obj.dim;
+            s.mesh         = obj.mesh;
             s.displacement = obj.variables.d_u;
             plotter = FEMPlotter(s);
             plotter.plot();
@@ -74,7 +73,7 @@ classdef ElasticProblem < handle
             s.iter = 0;
             s.fields    = obj.createVariablesToPrint();
             s.ptype     = obj.problemData.ptype;
-            s.ndim      = obj.dim.ndim;
+            s.ndim      = obj.dim.ndimField;
             s.pdim      = obj.problemData.pdim;
             s.type      = obj.createPrintType();
             fPrinter = FemPrinter(s);
@@ -95,8 +94,6 @@ classdef ElasticProblem < handle
             pd.bc.pointload = cParams.pointload;
             obj.problemData = pd;
             obj.createQuadrature();
-            obj.createInterpolation();
-            obj.createGeometry();
         end
 
         function createQuadrature(obj)
@@ -106,27 +103,13 @@ classdef ElasticProblem < handle
         end
 
         function computeDimensions(obj)
-            s.ngaus = obj.quadrature.ngaus;
-            s.mesh  = obj.mesh;
-            s.pdim  = obj.problemData.pdim;
-            d       = DimensionVariables(s);
-            d.compute();
-            obj.dim = d;
-        end
-
-        function createInterpolation(obj)
-            int = obj.mesh.interpolation;
-            obj.interp{1} = int;
-        end
-       
-        function createGeometry(obj)
-            q   = obj.quadrature;
-            int = obj.interp{1};
-            int.computeShapeDeriv(q.posgp);
+            s.type = 'Vector';
+            s.fieldName = 'u';
             s.mesh = obj.mesh;
-            g = Geometry.create(s);
-            g.computeGeometry(q,int);
-            obj.geometry = g;
+            s.ndimf = str2double(regexp(obj.problemData.pdim,'\d*','Match'));
+            d = DimensionVariables.create(s);
+            d.compute(s)
+            obj.dim = d;
         end
 
         function createBoundaryConditions(obj)
@@ -151,66 +134,52 @@ classdef ElasticProblem < handle
             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
             K   = LHS.compute();
-            Kred = obj.boundaryConditions.fullToReducedMatrix(K);
-            obj.stiffnessMatrix    = K;
-            obj.stiffnessMatrixRed = Kred;
+            obj.stiffnessMatrix = K;
         end
 
         function computeStiffnessMatrixOld(obj)
             s.type = 'ElasticStiffnessMatrixOld';
             s.mesh         = obj.mesh;
-            s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.dim;
             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
             K   = LHS.compute();
-            Kred = obj.boundaryConditions.fullToReducedMatrix(K);
-            obj.stiffnessMatrix    = K;
-            obj.stiffnessMatrixRed = Kred;
+            obj.stiffnessMatrix = K;
         end
 
         function computeForces(obj)
-            f    = obj.computeExternalForces();
-            fRed = obj.reduceForcesMatrix(f);
-            obj.forces = fRed;
-        end
-
-        function F = computeExternalForces(obj)
+            s.type = 'Elastic';
+            s.scale       = obj.problemData.scale;
             s.dim         = obj.dim;
             s.BC          = obj.boundaryConditions;
             s.mesh        = obj.mesh;
             s.material    = obj.material;
-            s.geometry    = obj.geometry;
-            s.dvolume     = obj.mesh.computeDvolume(obj.quadrature);
             s.globalConnec = obj.mesh.connec;
             if isprop(obj, 'vstrain')
                 s.vstrain = obj.vstrain;
             end
-            fcomp = ForcesComputer(s);
-            F = fcomp.compute();
-            R = fcomp.computeReactions(obj.stiffnessMatrix);
-            obj.variables.fext = F + R;
-        end
-
-        function Fred = reduceForcesMatrix(obj, forces)
-            Fred = obj.boundaryConditions.fullToReducedVector(forces);
+            RHSint = RHSintegrator.create(s);
+            rhs = RHSint.compute();
+            R = RHSint.computeReactions(obj.stiffnessMatrix);
+            obj.variables.fext = rhs + R;
+            obj.RHS = rhs;
         end
 
         function u = computeDisplacements(obj)
-            Kred = obj.stiffnessMatrixRed;
-            Fred = obj.forces;
+            bc = obj.boundaryConditions;
+            Kred = bc.fullToReducedMatrix(obj.stiffnessMatrix);
+            Fred = bc.fullToReducedVector(obj.RHS);
             u = obj.solver.solve(Kred,Fred);
-            u = obj.boundaryConditions.reducedToFullVector(u);
+            u = bc.reducedToFullVector(u);
             obj.variables.d_u = u;
         end
 
         function computeStrain(obj)
-            s.dim                = obj.dim;
-            s.mesh               = obj.mesh;
-            s.quadrature         = obj.quadrature;
-            s.displacement       = obj.variables.d_u;
-            s.interpolation      = obj.interp{1};
+            s.dim          = obj.dim;
+            s.mesh         = obj.mesh;
+            s.quadrature   = obj.quadrature;
+            s.displacement = obj.variables.d_u;
             scomp  = StrainComputer(s);
             strain = scomp.compute();
             obj.variables.strain = strain;
@@ -244,7 +213,6 @@ classdef ElasticProblem < handle
             d = ps.getValue();
         end
 
-        
         function uM = splitDisplacement(obj)
             u = obj.variables.d_u;
             nu = obj.dim.ndimField;

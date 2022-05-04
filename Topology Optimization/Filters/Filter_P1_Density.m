@@ -25,7 +25,7 @@ classdef Filter_P1_Density < handle
         
         function obj = Filter_P1_Density(cParams)
             obj.init(cParams);
-            obj.createMassMatrix(cParams);
+            obj.createMassMatrix();
             obj.createQuadrature();
             obj.createInterpolation();
             obj.createGeometry();
@@ -70,7 +70,6 @@ classdef Filter_P1_Density < handle
         end
         
         function init(obj,cParams)
-            obj.createDiffReacProblem(cParams);
             obj.mesh = cParams.mesh;
             obj.quadratureOrder = cParams.quadratureOrder;
         end
@@ -91,16 +90,27 @@ classdef Filter_P1_Density < handle
             obj.Kernel = P*obj.M;
         end
         
-        function createMassMatrix(obj,cParams)
-            diffReacProb = obj.createDiffReacProblem(cParams);
-            obj.M = diffReacProb.getM();
+        function createMassMatrix(obj)
+            dim  = obj.computeDimensions();
+            Mmat = obj.computeMassMatrix(dim);
+            obj.M = Mmat;
+        end
+
+        function dim = computeDimensions(obj)
+            s.type = 'Scalar';
+            s.name = 'x';
+            s.mesh = obj.mesh;
+            dim   = DimensionVariables.create(s);
         end
         
-        function pB = createDiffReacProblem(obj,cParams)
-            s = cParams.femSettings;
-            s.mesh = cParams.mesh;
-            s.type = 'DIFF-REACT';
-            pB = FEM.create(s);
+        function M = computeMassMatrix(obj, dim)
+            s.type         = 'MassMatrix';
+            s.quadType     = 'QUADRATICMASS';
+            s.mesh         = obj.mesh;
+            s.globalConnec = obj.mesh.connec;
+            s.dim          = dim;
+            LHS = LHSintegrator.create(s);
+            M = LHS.compute();
         end
         
         function intX = integrateRHS(obj,x)
@@ -114,8 +124,8 @@ classdef Filter_P1_Density < handle
         
         function createPoperator(obj,cPar)
             cParams.nelem  = obj.mesh.nelem;
-            cParams.nnode  = obj.mesh.nnode;
-            cParams.npnod  = obj.mesh.npnod;
+            cParams.nnode  = obj.mesh.nnodeElem;
+            cParams.npnod  = obj.mesh.nnodes;
             cParams.connec = obj.mesh.connec;
             cParams.diffReactEq = cPar.femSettings;
             obj.Poper = Poperator(cParams);

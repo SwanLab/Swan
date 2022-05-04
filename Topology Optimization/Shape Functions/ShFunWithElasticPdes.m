@@ -152,8 +152,8 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         function initPrincipalDirections(obj)
             if isempty(obj.designVariable.alpha)
                 dim = obj.physicalProblem.getDimensions();
-                ndim = dim.ndim;
-                nelem = dim.nelem;
+                nelem = size(obj.dvolu,1);
+                ndim = dim.ndimField; %dim.ndim
                 alpha0 = zeros(ndim,nelem);
                 alpha0(1,:) = 1;
                 obj.designVariable.alpha = alpha0;

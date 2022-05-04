@@ -6,7 +6,6 @@ classdef StrainComputer < handle
         geometry
         quadrature
         displacement
-        interpolation
     end
     
     methods (Access = public)
@@ -29,12 +28,11 @@ classdef StrainComputer < handle
             obj.mesh               = cParams.mesh;
             obj.quadrature         = cParams.quadrature;
             obj.displacement       = cParams.displacement;
-            obj.interpolation      = cParams.interpolation;
         end
        
         function createGeometry(obj)
-            q   = obj.quadrature;
-            int = obj.interpolation;
+            q = obj.quadrature;
+            int = obj.mesh.interpolation;
             int.computeShapeDeriv(q.posgp);
             s.mesh = obj.mesh;
             g = Geometry.create(s);
@@ -43,18 +41,18 @@ classdef StrainComputer < handle
         end
         
         function strain = computeStrain(obj)
-            nstre = obj.dim.nstre;
-            nelem = obj.dim.nelem;
-            ngaus = obj.dim.ngaus;
-            nnode = obj.dim.nnode;
-            nunkn = obj.dim.ndimField;
             d_u = obj.displacement;
             connec = obj.mesh.connec;
+            nelem   = size(connec,1);
+            nstre   = obj.getNstre();
+            nnodeEl = obj.dim.nnodeElem;
+            nunkn   = obj.dim.ndimField;
+            ngaus   = obj.quadrature.ngaus;
             strain = zeros(nstre,nelem,ngaus);
             for igaus = 1:ngaus
                 Bmat = obj.computeB(igaus);
                 for istre=1:nstre
-                    for inode=1:nnode
+                    for inode=1:nnodeEl
                         nodes = connec(:,inode);
                         for idime = 1:nunkn
                             dofs = nunkn*(nodes - 1) + idime;
@@ -68,6 +66,11 @@ classdef StrainComputer < handle
                 end
             end
             strain = permute(strain, [3 1 2]);
+        end
+
+        function nstre = getNstre(obj)
+            nstreVals = [2, 3, 6];
+            nstre = nstreVals(obj.dim.ndimField);
         end
 
         function Bmat = computeB(obj,igaus)

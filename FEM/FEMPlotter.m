@@ -14,8 +14,8 @@ classdef FEMPlotter < handle
         end
 
         function plot(obj)
-            ndim = obj.dim.ndim;
-            switch ndim
+            ndimf = obj.dim.ndimField;
+            switch ndimf
                 case 2
                     obj.plotFem2D();
                 case 3
@@ -35,11 +35,11 @@ classdef FEMPlotter < handle
         end
 
         function dispCoords = computeDisplacedCoords(obj)
-            ndim = obj.dim.ndim;
+            ndimf = obj.dim.ndimField;
             ndof = obj.dim.ndof;
             coords = zeros(ndof,1);
-            for i = 1:ndim
-                dofs = i:ndim:ndof;
+            for i = 1:ndimf
+                dofs = i:ndimf:ndof;
                 coor = obj.mesh.coord(:,i);
                 coords(dofs) = coor;
             end
@@ -68,11 +68,11 @@ classdef FEMPlotter < handle
         end
 
         function plotDisplacement2D(obj)
-            ndim   = obj.dim.ndim;
+            ndimf  = obj.dim.ndimField;
             ndof   = obj.dim.ndof;
             coords = obj.dispCoords;
-            x = coords(1:ndim:ndof);
-            y = coords(2:ndim:ndof);
+            x = coords(1:ndimf:ndof);
+            y = coords(2:ndimf:ndof);
             Tn   = obj.mesh.connec;
             plot(x(Tn)',y(Tn)','-k','linewidth',0.5);
         end
@@ -89,12 +89,12 @@ classdef FEMPlotter < handle
         end
 
         function plotDisplacement3D(obj)
-            ndim   = obj.dim.ndim;
+            ndimf  = obj.dim.ndimField;
             ndof   = obj.dim.ndof;
             coords = obj.dispCoords;
-            x = coords(1:ndim:ndof);
-            y = coords(2:ndim:ndof);
-            z = coords(3:ndim:ndof);
+            x = coords(1:ndimf:ndof);
+            y = coords(2:ndimf:ndof);
+            z = coords(3:ndimf:ndof);
             Tn   = obj.mesh.connec;
             plot3(x(Tn)',y(Tn)',z(Tn)','-k','linewidth',0.5);
         end

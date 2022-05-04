@@ -1,58 +1,46 @@
 %% To-do
-% a) DIFFREACTPROBLEM
-%       OK! - merge diffreacProblemRobin and Neuman...
-%       OK!      - dispacth trhough LHSintegrator
-%       OK!      - merge problemdimensions and dimensions, no need
-%       OK! - create LHS integrator for boundaryMassmatrix
-%       YET - DiffReactProblem tests
+% a) DIMENSIONS
+%       OK! - Delete nunkn in RHS
+%       OK! - Avoid using nelem from dim
+%       OK! - Avoid using ngaus from dim 
+%       OK* - nstre only in elasticity  (maybe in Bmatrix) and rename it
+%             as nVoigt
+%       IDK - ndofPerNode (and ndofPerElem) in interpolation times npnod
+%             (nnode) of mesh gives ndof of field (in dim)
+%                   - ndofPerNode in interpolation?
+%       OK* - nnode ---> nnodePerElem (in Mesh)
+%       OK! - npnod ---> nnodes (in Mesh)
+%       OK! - create dimensions from s.type (Scalar/Vector)
 
-        % Comments:
-        %       - DiffReactTests: RHS? Dirichlet? Neumann?
-        %       - Separate problemLHS from LHSintegrators in a new class?
+% b) INTEGRATORS
+%       OK* - "integrate" all RHS
+%               - note: pending more cleanup.
 
-% b) MINOR CLEANUP
-%       YET - improve performance graph using average + deviation
-%       OK! - Precomputedvariabletest overwrite results
+% c) TESTS
+%       NO* - Quadratic shape functions for thermal, elastic, elastic_micro
+%             with corresponding tests
+%               - When the interpolation is set as quadratic, the
+%                 connectivity matrix must be once again calculated.
+%                 ConnecCoordFromInterpAndMesh is supposed to do it, but it
+%                 does not work as intended.
+%               - Some elements overlap, the original node numeration is
+%                 lost in the process and lose physical meaning
+%               - As a result (?), the stiffness matrix is not invertible.
+%                 If the dofConnec is not to be calculated, the
+%                 alternatives may be more expensive.
 
-        % Comments:
-        %       - AbstractSettings was the one, line 89
-
-% c) ELASTICPROBLEM
-%       OK! - masterSlaveNodes not in Mesh...in BoundaryConditions
-%                - Pending createRectangularMesh at ShapesInMicrostructures
-%       OK! - s.material as an input (FemDataContainer)
-%       YET - refactoring ElasticProblemMicro
-
-        % Comments:
-        %       - Perhaps material should not take ngaus
-        %       - This way, quad, interp, and geometry *may* only be used
-        %         as part of the RHS + strain/stress
-        %       - If we end up doing the problemLHS thing, it could also
-        %         lead to a problemRHS with all of this
+%         pd.bc.dirichlet = [10 1 0; 10 2 0; 7 1 0; 7 2 0; 19 1 0; 19 2 0];
+%         pd.bc.pointload = [24 2 -1];
 
 % d) STOKES
 %       WIP - Restore Stokes_Problem
 %               - FemTestsSuite, FemTests
 %               - StokesComputer, StokesFEM
 
-        % Comments:
-        %       - Seems to be made just for that one test. See
-        %         test2d_stokes_triangle (Vol_force, pressure, velocity)
-        %       - Is the mesh even used? Looks like it's all interpolations
-        %       - Separate DimensionVariables? Separate BoundaryConditions?
-        %       - The RHS thing could be useful here. The ForcesComputer in
-        %         ElasticProblem should be completely different, maybe a
-        %         change in the architecture could make it easier.
+% z) LONG-TERM
+%       WIP - Re-use FeFunction for displacements... with its own
+%             dimensions
 
-% e) PREPROCESS
-%           - Refactoring PreProcess -- FemInputReader_GiD.m
-
-
-
-% delete interp in ElasticProblem
-% In Filter use LHSintegrator rather than DiffReact
-% DiffReact delete getM and getK and setEpsilon and computeDvolume
-% setLHStype in DiffReact in Filter
-% Crate RHS integrator for Elastic, ElasticMicro and thermal
-% dimEscalar, vector....by fields...nElem,nDim private in dim
-% Stokes..
+% delete problemData
+% refactoring DImensions (mesh in init and compute)
+% delete nnodes, nnodeElem from Dimensions (or private)

@@ -74,7 +74,7 @@ classdef ConformalMappingComputer < handle
         
         function computeMapping(obj)
            nDim = 2;
-           nnod = obj.mesh.npnod;
+           nnod = obj.mesh.nnodes;
            phiV = zeros(nnod,nDim);
            for iDim = 1:nDim
              phiV(:,iDim) = obj.computeComponent(iDim);
