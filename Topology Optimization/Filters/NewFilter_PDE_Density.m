@@ -106,9 +106,9 @@ classdef NewFilter_PDE_Density < handle
         end
 
         function A_nodal_2_gauss = computeA(obj)
-            s.nnode   = obj.mesh.nnode;
+            s.nnode   = obj.mesh.nnodeElem;
             s.nelem   = obj.mesh.nelem;
-            s.npnod   = obj.mesh.npnod;
+            s.npnod   = obj.mesh.nnodes;
             s.ngaus   = obj.quadrature.ngaus;
             s.connec  = obj.mesh.connec;
             s.shape   = obj.interp.shape;
@@ -138,6 +138,7 @@ classdef NewFilter_PDE_Density < handle
         function computeBoundaryConditions(obj)
             s.dim          = obj.dim;
             s.scale        = obj.femSettings.scale;
+            s.mesh         = obj.mesh;
             s.bc.dirichlet = [];
             s.bc.pointload = [];
             obj.bc         = BoundaryConditions(s);

@@ -45,7 +45,7 @@ classdef DilationFieldComputer < handle
             f = obj.theta;
             gradF = zeros(obj.mesh.ndim,q.ngaus,obj.mesh.nelem);
             for igaus = q.ngaus
-                for inode = 1:obj.mesh.nnode
+                for inode = 1:obj.mesh.nnodeElem
                    nodeI = nodes(:,inode);
                    fI = f(nodeI);
                    for idim = 1:obj.mesh.ndim

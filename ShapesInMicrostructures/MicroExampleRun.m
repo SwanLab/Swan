@@ -9,6 +9,7 @@ density = createDensity(s.mesh);
 mI = createMaterialInterpolation(s.mesh,density);
 mat = createMaterial(s.mesh,mI);
 
+s.material = mat;
 fem = FEM.create(s);
 fem.setC(mat.C);
 fem.computeChomog();
@@ -79,9 +80,11 @@ end
 function mI = createMaterialInterpolation(mesh,dE)
 sD.ngaus = 1;
 sD.mesh  = mesh;
-sD.pdim  = '2D';
-d = DimensionVariables(sD);
-d.compute();
+sD.type  = 'Vector';
+sD.ndimf = 2;
+sD.fieldName = 'Disp';
+d = DimensionVariables.create(sD);
+d.compute(sD);
 s.dim = '2D';
 s.typeOfMaterial = 'ISOTROPIC';
 s.interpolation  = 'SIMPALL';
@@ -111,8 +114,8 @@ s.dim       = gidParams.pdim;
 s.type      = gidParams.ptype;
 s.scale     = gidParams.scale;
 s.mesh      = gidParams.mesh;
-s.dirichlet = gidParams.dirichlet;
-s.pointload = gidParams.pointload;
+s.bc.dirichlet = gidParams.bc.dirichlet;
+s.bc.pointload = gidParams.bc.pointload;
 end
 
 function gidParams = createGiDparameters(file)

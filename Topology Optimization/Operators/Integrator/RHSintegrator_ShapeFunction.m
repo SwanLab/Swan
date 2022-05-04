@@ -4,12 +4,12 @@ classdef RHSintegrator_ShapeFunction < handle
         npnod
         mesh
         globalConnec
+        fType
         fNodal
-        xGauss
         fGauss
+        xGauss
         quadOrder
         quadrature
-        nunknPerField
     end
 
     methods (Access = public)
@@ -19,11 +19,10 @@ classdef RHSintegrator_ShapeFunction < handle
             obj.init(cParams);
         end
 
-        function rhs = compute(obj)
-            obj.computeQuadrature();
-            obj.computeGaussPoints();
-            obj.computeFgauss();
-            rhs = obj.integrateFgauss();
+        function rhs = compute(obj, fNodal)
+            obj.computeFgaussFromFnodal(fNodal);
+            rhsElem = obj.computeElementalRHS();
+            rhs = obj.assembleIntegrand(rhsElem);
         end
 
     end
@@ -33,37 +32,35 @@ classdef RHSintegrator_ShapeFunction < handle
         function init(obj, cParams)
             obj.mesh         = cParams.mesh;
             obj.npnod        = cParams.npnod;
-            obj.fNodal       = cParams.fNodal;
-            obj.quadOrder    = cParams.quadOrder;
+            obj.quadOrder    = 'LINEAR';
             obj.globalConnec = cParams.globalConnec;
-            obj.nunknPerField = 1;
+            obj.quadrature   = obj.computeQuadrature();
         end
         
-        function computeQuadrature(obj)
+        function q = computeQuadrature(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature(obj.quadOrder);
-            obj.quadrature = q;
         end
         
+        function computeFgaussFromFnodal(obj, fNodal)
+            obj.computeGaussPoints();
+            obj.computeFgauss(fNodal);
+        end
+
         function computeGaussPoints(obj)
             q = obj.quadrature;
             xG = repmat(q.posgp,[1,1,obj.mesh.nelem]);
             obj.xGauss = xG;
         end
 
-        function computeFgauss(obj)
-            s.fNodes = obj.fNodal;
+        function computeFgauss(obj, fNodal)
+            s.fNodes = fNodal;
             s.connec = obj.globalConnec;
             s.type   = obj.mesh.type;
             f = FeFunction(s);
             fG = f.interpolateFunction(obj.xGauss);
             fG = permute(fG,[2 3 1]);
             obj.fGauss = fG;
-        end
-        
-        function rhs = integrateFgauss(obj)
-            rhsElem = obj.computeElementalRHS();
-            rhs = obj.assembleIntegrand(rhsElem);
         end
         
         function rhsC = computeElementalRHS(obj) % integrate@RHSintegrator
@@ -75,12 +72,9 @@ classdef RHSintegrator_ShapeFunction < handle
             nelem  = size(shapes,2);
             int = zeros(nnode,nelem);
             for igaus = 1:obj.quadrature.ngaus
-                nunkn = obj.nunknPerField;
-                for iField = 1:nunkn
-                    fdv = fG(igaus,:,iField).*dV(igaus,:);
-                    shape = shapes(:, :, igaus);
-                    int = int + bsxfun(@times,shape,fdv);
-                end
+                fdv = fG(igaus,:).*dV(igaus,:);
+                shape = shapes(:, :, igaus);
+                int = int + bsxfun(@times,shape,fdv);
             end
             rhsC = transpose(int);
         end

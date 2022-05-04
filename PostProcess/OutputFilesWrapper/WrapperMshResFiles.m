@@ -53,7 +53,7 @@ classdef WrapperMshResFiles < handle
             fR = [obj.fileName,'.flavia.res'];
             s.filePath = fullfile(obj.folderPath,fR);                        
             s.nElem     = obj.mesh.nelem;
-            s.nNodes    = obj.mesh.npnod;
+            s.nNodes    = obj.mesh.nnodes;
             s.dimension = obj.mesh.ndim;
             wR = WrapperResFile(s);
             wR.read();

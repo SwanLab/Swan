@@ -67,8 +67,8 @@ classdef NewFilter_P1_LevelSet <  handle
         end
 
         function createPoperator(obj,cParams)
-            s.nnode  = obj.mesh.nnode;
-            s.npnod  = obj.mesh.npnod;
+            s.nnode  = obj.mesh.nnodeElem;
+            s.npnod  = obj.mesh.nnodes;
             s.connec = obj.mesh.connec;
             s.nelem  = obj.mesh.nelem;
             s.diffReactEq = cParams.femSettings;

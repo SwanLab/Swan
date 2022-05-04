@@ -69,15 +69,17 @@ classdef NewStokesProblem < handle
         end
 
         function createDimensions(obj)
+            v.type = 'Vector';
             v.fieldName = 'v';
             v.mesh = obj.mesh;
             v.ndimf = 2;
-            vDim = DimensionVector(v);
-            vDim.create(v)
+            vDim = DimensionVariables.create(v);
+            vDim.compute(v);
+            p.type = 'Scalar';
             p.name = 'p';
             p.mesh = obj.mesh;
             p.ndimf = 1;
-            pDim = DimensionScalar(p);
+            pDim = DimensionVariables.create(p);
             obj.dim = {vDim, pDim};
             % This is wrong. The mesh creates a linear interpolation by
             % default, with no option to change it.

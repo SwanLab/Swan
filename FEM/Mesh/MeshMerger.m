@@ -32,7 +32,7 @@ classdef MeshMerger < handle
         
         function rNodes = computeRemainingNodes(obj)
             aNodes  = obj.allNodes;
-            remainingA = true(obj.meshA.npnod,1);
+            remainingA = true(obj.meshA.nnodes,1);
             remainingB = ~obj.isMergedNodeB;
             remaining  = [remainingA,remainingB];
             rNodes   = aNodes(remaining);
@@ -50,14 +50,14 @@ classdef MeshMerger < handle
         end
 
         function computeNodesA(obj)
-            npnod = obj.meshA.npnod;
+            npnod = obj.meshA.nnodes;
             nodes = (1:npnod)';
             obj.nodesA = nodes;
         end
 
         function computeNodesB(obj)
-            npnodA = obj.meshA.npnod;
-            npnodB = obj.meshB.npnod;
+            npnodA = obj.meshA.nnodes;
+            npnodB = obj.meshB.nnodes;
             nodes = (1:npnodB)' + npnodA;
             obj.nodesB = nodes;
         end
@@ -97,7 +97,7 @@ classdef MeshMerger < handle
         end
         
         function connec = computeAllConnec(obj)
-            npnodA  = obj.meshA.npnod;
+            npnodA  = obj.meshA.nnodes;
             connecA = obj.meshA.connec;
             connecB = obj.meshB.connec + npnodA;
             connec = [connecA;connecB];
