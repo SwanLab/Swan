@@ -39,8 +39,8 @@ classdef FemInputReader_GiD < handle
             s.ptype = obj.ptype;
             s.scale = obj.scale;
             s.problemID = obj.problemID;
-            s.dirichlet = obj.dirichlet;
-            s.pointload = obj.pointload;
+            s.bc.dirichlet = obj.dirichlet;
+            s.bc.pointload = obj.pointload;
             if isequal(obj.scale,'MICRO')
                 s.masterSlave = obj.masterSlave;
             end

@@ -41,3 +41,4 @@
 %       WIP - Re-use FeFunction for displacements... with its own
 %             dimensions
 
+% delete problemData

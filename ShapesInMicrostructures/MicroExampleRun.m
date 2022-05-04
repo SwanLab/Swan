@@ -9,6 +9,7 @@ density = createDensity(s.mesh);
 mI = createMaterialInterpolation(s.mesh,density);
 mat = createMaterial(s.mesh,mI);
 
+s.material = mat;
 fem = FEM.create(s);
 fem.setC(mat.C);
 fem.computeChomog();
@@ -111,8 +112,8 @@ s.dim       = gidParams.pdim;
 s.type      = gidParams.ptype;
 s.scale     = gidParams.scale;
 s.mesh      = gidParams.mesh;
-s.dirichlet = gidParams.dirichlet;
-s.pointload = gidParams.pointload;
+s.bc.dirichlet = gidParams.bc.dirichlet;
+s.bc.pointload = gidParams.bc.pointload;
 end
 
 function gidParams = createGiDparameters(file)
