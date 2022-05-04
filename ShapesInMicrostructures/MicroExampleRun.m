@@ -80,9 +80,11 @@ end
 function mI = createMaterialInterpolation(mesh,dE)
 sD.ngaus = 1;
 sD.mesh  = mesh;
-sD.pdim  = '2D';
-d = DimensionVariables(sD);
-d.compute();
+sD.type  = 'Vector';
+sD.ndimf = 2;
+sD.fieldName = 'Disp';
+d = DimensionVariables.create(sD);
+d.compute(sD);
 s.dim = '2D';
 s.typeOfMaterial = 'ISOTROPIC';
 s.interpolation  = 'SIMPALL';

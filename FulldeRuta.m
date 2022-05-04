@@ -42,3 +42,5 @@
 %             dimensions
 
 % delete problemData
+% refactoring DImensions (mesh in init and compute)
+% delete nnodes, nnodeElem from Dimensions (or private)
