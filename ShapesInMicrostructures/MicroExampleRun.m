@@ -121,8 +121,8 @@ s.dim       = gidParams.pdim;
 s.type      = gidParams.ptype;
 s.scale     = gidParams.scale;
 s.mesh      = gidParams.mesh;
-s.bc.dirichlet = gidParams.bc.dirichlet;
-s.bc.pointload = gidParams.bc.pointload;
+s.bc.dirichlet = gidParams.dirichlet;
+s.bc.pointload = gidParams.pointload;
 end
 
 function gidParams = createGiDparameters(file)
