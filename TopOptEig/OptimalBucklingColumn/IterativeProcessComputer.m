@@ -69,8 +69,11 @@ classdef IterativeProcessComputer < handle
 
 
          function obj = computeIterativeProcess(obj)
-% Refactor Constraint
-% Construct Optimizer;
+
+% % -NOT WORKING WITH THE MMA OF SWAN-  
+% % Refactor Constraint
+% % Construct Optimizer;
+% 
 %              s.designVar = obj.designVariable;
 %              s.type     = obj.optimizerType;
 %              s.constraintCase = 'INEQUALIY';
@@ -87,6 +90,8 @@ classdef IterativeProcessComputer < handle
 %              s.historyPrinterSettings.shallPrint = false;
 %              s.historyPrinterSettings.fileName = 'OptimalBuckling';
 %              s.optimizerNames.type = obj.optimizerType;
+%              s.targetParameters = [];
+%              s.outputFunction.monitoring = [];
 % 
 % 
 %             sm.showOptParams         = true;

@@ -33,7 +33,7 @@ classdef Optimizer_MMA < Optimizer
         hasConverged
         constraintCase
         historicalVariables
-        targetParameters
+        % targetParameters
         KKTnorm
     end
     
