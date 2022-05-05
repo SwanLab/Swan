@@ -31,7 +31,21 @@ classdef TopOpt_Problem < handle
         
         function createOptimizer(obj,settings)
             obj.completeOptimizerSettings(settings);
+            obj.computeBounds();
+            obj.optimizerSettings.outputFunction.type        = 'Topology';
+            obj.optimizerSettings.outputFunction.iterDisplay = 'none';
+            obj.optimizerSettings.outputFunction.monitoring  = MonitoringManager(obj.optimizerSettings);
             obj.optimizer = Optimizer.create(obj.optimizerSettings);
+        end
+
+        function computeBounds(obj)
+            switch obj.designVariable.type 
+                case 'Density'
+                obj.optimizerSettings.ub = 1;
+                obj.optimizerSettings.lb = 0;
+                otherwise
+
+            end
         end
         
         function completeOptimizerSettings(obj,cParams)
@@ -58,7 +72,7 @@ classdef TopOpt_Problem < handle
                 obj.incrementalScheme.next();
                 obj.optimizer.solveProblem();
             end
-            obj.optimizer.saveMonitoring();
+%             obj.optimizer.saveMonitoring();
         end
         
         function postProcess(obj)

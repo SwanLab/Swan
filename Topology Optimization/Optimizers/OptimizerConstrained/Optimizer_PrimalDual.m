@@ -5,6 +5,8 @@ classdef Optimizer_PrimalDual < Optimizer
     end
     
     properties (Access = protected)
+        NSmerit
+        NullSpaceSettings
         lagrangian
         lagrangianSettings
     end
@@ -70,12 +72,24 @@ classdef Optimizer_PrimalDual < Optimizer
             cParams = obj.lagrangianSettings;
             obj.lagrangian = ObjectiveFunction.create(cParams);
         end
+
+        function createNullSpaceMerit(obj)
+            obj.createNullSpaceSettings();
+            cParams = obj.NullSpaceSettings();
+            obj.NSmerit = ObjectiveFunction.create(cParams);
+        end
         
        function createOptimizerUnconstrained(obj,cParams)
             cParams.lagrangian      = obj.lagrangian;
             cParams.convergenceVars = obj.convergenceVars;
             obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams);
        end 
+
+       function createOptimizerUnconstrainedNS(obj,cParams)
+           cParams.NSmerit         = obj.nsMerit;
+           cParams.convergenceVars = obj.convergenceVars;
+           obj.unconstrainedOptimizer = Optimizer_Unconstrained.create(cParams);
+       end
        
         function updateLagrangian(obj)
             obj.lagrangian.computeFunction();

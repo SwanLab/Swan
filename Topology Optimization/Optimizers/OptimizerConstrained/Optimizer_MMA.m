@@ -28,19 +28,46 @@ classdef Optimizer_MMA < Optimizer
         dfdx
         upperBound
         lowerBound
+        hasFinished
+        incrementalScheme
+        hasConverged
+        constraintCase
+        historicalVariables
+        targetParameters
+        KKTnorm
     end
     
     methods (Access = public)
         
         function obj = Optimizer_MMA(cParams)
+            obj.initOptimizer(cParams);
             obj.init(cParams);
-            obj.upperBound = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound = cParams.uncOptimizerSettings.lb;
+            obj.outputFunction.monitoring.create(cParams);
+%             obj.upperBound = cParams.uncOptimizerSettings.ub;
+%             obj.lowerBound = cParams.uncOptimizerSettings.lb;
             obj.maxoutit = 1e4;
         end
+
+       function solveProblem(obj)
+            obj.cost.computeFunctionAndGradient();
+            obj.constraint.computeFunctionAndGradient();
+%             obj.printOptimizerVariable();
+            obj.hasFinished = false;
+            while ~obj.hasFinished
+                obj.update();
+                obj.updateIterInfo();
+                obj.updateMonitoring();
+            end
+%             obj.printOptimizerVariable();
+%             obj.printHistory();
+            obj.hasConverged = 0;
+%             obj.printHistoryFinalValues();
+       end
         
-        function x = update(obj)
+        function update(obj)
             x = obj.designVariable.value;
+            obj.cost.computeFunctionAndGradient();
+            obj.constraint.computeFunctionAndGradient();
             obj.checkInitial(x);
             obj.outit = obj.outit+1;
             obj.outeriter = obj.outeriter+1;
@@ -65,19 +92,32 @@ classdef Optimizer_MMA < Optimizer
                 obj.xmin,obj.xmax,obj.df0dx,obj.fval,obj.dfdx,obj.a0,obj.a,obj.c,obj.d);
             
             obj.historicalVariables.kktnorm = kktnorm;
-            
-            obj.updateConvergenceStatus();
-            
-            obj.dualVariable.value = lam;
-            obj.convergenceVars.reset();
-            obj.convergenceVars.append(kktnorm);
-            obj.convergenceVars.append(obj.outit/obj.maxoutit);
-            obj.designVariable.update(x);
+            obj.dualVariable.value = lam;            
+%             obj.updateConvergenceStatus();
+            obj.KKTnorm     = kktnorm;
         end
         
     end
     
     methods (Access = private)
+
+        function updateMonitoring(obj)
+            s.hasFinished          = obj.hasFinished;
+            s.nIter                = obj.nIter;
+            s.KKTnorm              = obj.KKTnorm;
+            s.outitFrac            = obj.outit/obj.maxoutit;
+            obj.outputFunction.monitoring.compute(s);
+        end
+
+        function init(obj,cParams)
+            obj.outputFunction         = cParams.outputFunction.monitoring;
+            obj.upperBound             = cParams.uncOptimizerSettings.ub;
+            obj.lowerBound             = cParams.uncOptimizerSettings.lb;
+            obj.incrementalScheme      = cParams.incrementalScheme;
+            obj.hasConverged           = false;
+            obj.constraintCase         = cParams.constraintCase;
+            obj.targetParameters       = cParams.targetParameters;
+        end
         
         function [f,df,c,dc] = funmma(obj)
             f  = obj.cost.value;
@@ -119,7 +159,7 @@ classdef Optimizer_MMA < Optimizer
                 obj.upp = obj.xmax;
                 [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
                 obj.m = length(obj.fval);
-                obj.c = 1e3*ones(obj.m,1);
+                obj.c = 1*ones(obj.m,1);
                 obj.d = 0*ones(obj.m,1);
                 obj.a0 = 1;
                 obj.a = 0*ones(obj.m,1);
@@ -227,6 +267,25 @@ classdef Optimizer_MMA < Optimizer
                 c  = [c;-c];
                 dc = [dc;-dc];
             end
+        end
+
+        function updateIterInfo(obj)
+            obj.increaseIter();
+            obj.updateStatus();
+        end
+
+        function increaseIter(obj)
+            obj.nIter = obj.nIter + 1;
+        end
+
+        function updateStatus(obj)
+            obj.hasFinished = obj.hasConverged || obj.hasExceededStepIterations();
+        end
+
+        function itHas = hasExceededStepIterations(obj)
+            iStep = obj.incrementalScheme.iStep;
+            nStep = obj.incrementalScheme.nSteps;
+            itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
         end
         
     end

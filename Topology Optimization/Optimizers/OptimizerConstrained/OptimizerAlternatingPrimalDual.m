@@ -45,6 +45,7 @@ classdef OptimizerAlternatingPrimalDual < Optimizer_PrimalDual
             cParams.type                = 'AugmentedLagrangian';
             cParams.augmentedLagrangian = obj.lagrangian;
             cParams.constraint          = obj.constraint;
+            cParams.cost                = obj.cost;
             cParams.dualVariable        = obj.dualVariable;
             obj.dualUpdater = DualUpdater.create(cParams);
         end
