@@ -41,6 +41,6 @@
 %       WIP - Re-use FeFunction for displacements... with its own
 %             dimensions
 
-% delete problemData
-% refactoring DImensions (mesh in init and compute)
+% OK! delete problemData in ElasticProblem
+% OK! refactoring Dimensions (mesh in init and compute)
 % delete nnodes, nnodeElem from Dimensions (or private)

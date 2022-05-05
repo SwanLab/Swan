@@ -74,7 +74,7 @@ classdef NewStokesProblem < handle
             v.mesh = obj.mesh;
             v.ndimf = 2;
             vDim = DimensionVariables.create(v);
-            vDim.compute(v);
+            vDim.compute();
             p.type = 'Scalar';
             p.name = 'p';
             p.mesh = obj.mesh;

@@ -7,11 +7,15 @@ classdef ElasticProblem < handle
     properties (Access = private)
         boundaryConditions
         displacement
-        problemData
         stiffnessMatrix
         RHS
         solver
         geometry
+
+        scale
+        pdim
+        ptype
+        inputBC
     end
 
     properties (Access = protected)
@@ -72,9 +76,9 @@ classdef ElasticProblem < handle
             s.mesh = obj.mesh;
             s.iter = 0;
             s.fields    = obj.createVariablesToPrint();
-            s.ptype     = obj.problemData.ptype;
+            s.ptype     = obj.ptype;
             s.ndim      = obj.dim.ndimField;
-            s.pdim      = obj.problemData.pdim;
+            s.pdim      = obj.pdim;
             s.type      = obj.createPrintType();
             fPrinter = FemPrinter(s);
             fPrinter.print(filename);
@@ -87,11 +91,10 @@ classdef ElasticProblem < handle
         function init(obj, cParams)
             obj.mesh        = cParams.mesh;
             obj.material    = cParams.material;
-            pd.scale        = cParams.scale;
-            pd.pdim         = cParams.dim;
-            pd.ptype        = cParams.type;
-            pd.bc           = cParams.bc;
-            obj.problemData = pd;
+            obj.scale       = cParams.scale;
+            obj.pdim        = cParams.dim;
+            obj.ptype       = cParams.type;
+            obj.inputBC     = cParams.bc;
             obj.createQuadrature();
         end
 
@@ -105,17 +108,17 @@ classdef ElasticProblem < handle
             s.type = 'Vector';
             s.fieldName = 'u';
             s.mesh = obj.mesh;
-            s.ndimf = str2double(regexp(obj.problemData.pdim,'\d*','Match'));
+            s.ndimf = str2double(regexp(obj.pdim,'\d*','Match'));
             d = DimensionVariables.create(s);
-            d.compute(s)
+            d.compute()
             obj.dim = d;
         end
 
         function createBoundaryConditions(obj)
             s.dim        = obj.dim;
             s.mesh       = obj.mesh;
-            s.scale      = obj.problemData.scale;
-            s.bc         = obj.problemData.bc;
+            s.scale      = obj.scale;
+            s.bc         = obj.inputBC;
             bc = BoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;
@@ -149,7 +152,7 @@ classdef ElasticProblem < handle
 
         function computeForces(obj)
             s.type = 'Elastic';
-            s.scale       = obj.problemData.scale;
+            s.scale       = obj.scale;
             s.dim         = obj.dim;
             s.BC          = obj.boundaryConditions;
             s.mesh        = obj.mesh;
@@ -195,7 +198,7 @@ classdef ElasticProblem < handle
 
         function computePrincipalDirection(obj)
             stress = obj.variables.stress;
-            s.type = obj.problemData.pdim;
+            s.type = obj.pdim;
             s.eigenValueComputer.type = 'PRECOMPUTED';
             pcomp = PrincipalDirectionComputer.create(s);
             pcomp.compute(stress);
