@@ -1,8 +1,9 @@
 function MicroExampleRun
 
 %Microstructure
-filename = 'test2d_micro';
+%filename = 'test2d_micro';
 %filename = 'IrrHexagon50x25x50';
+filename = 'DiamondTest';
 s = createParameters(filename);
 density = createDensity(s.mesh);
 
@@ -16,6 +17,12 @@ fem.computeChomog();
 %fem.print(filename);
 
 printInGiD(fem,s.mesh,filename,density)
+
+% 1. Ch for all shapes with same fraction volume in overleaf
+% 2. obtain optimal topology with given isotropic Ch (obtained by homog an
+%example) with different micro shapes (square, rect, romb, irreg romb, hex)
+%with different initial value (full, circular, rectang, rand)
+
 
 
 % %MacroExample
@@ -114,8 +121,9 @@ s.dim       = gidParams.pdim;
 s.type      = gidParams.ptype;
 s.scale     = gidParams.scale;
 s.mesh      = gidParams.mesh;
-s.bc.dirichlet = gidParams.bc.dirichlet;
-s.bc.pointload = gidParams.bc.pointload;
+s.bc.dirichlet = gidParams.dirichlet;
+s.bc.pointload   = gidParams.pointload;
+s.bc.masterSlave = gidParams.masterSlave;
 end
 
 function gidParams = createGiDparameters(file)
