@@ -12,6 +12,7 @@ classdef AreaColumn < DesignVariable
         
         function obj = AreaColumn(cParams)
             obj.init(cParams);
+            obj.type = 'AreaColumn';
             obj.createInitialValue();
         end
 

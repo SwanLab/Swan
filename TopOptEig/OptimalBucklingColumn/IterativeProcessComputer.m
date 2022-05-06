@@ -115,21 +115,44 @@ classdef IterativeProcessComputer < handle
 %              sp.shallPrint = false;
 %              s.postProcessSettings = sp;
 % 
-%               s = SettingsOptimizer();
-% 
-%               s.type = "MMA";
-%               s.nIter             = 0;
-%               s.cost              = obj.cost;
-%               s.constraint        = obj.constraint;
-%               s.designVariable    = obj.designVariable;
-%               s.dualVariable      = [];obj.dualVariable;
-%               s.maxIter           = 2000;
-%               s.targetParameters  = [];cParams.targetParameters;
-%               s.outputFunction    = cParams.outputFunction.monitoring;
-% 
-% 
-%               obj.optimizer = Optimizer.create(s);    
-%               obj.optimizer.solveProblem();
+
+            s = SettingsOptimizer();
+            s.optimizerNames.type = 'MMA';
+            s.optimizerNames.primal = 'PROJECTED GRADIENT';
+            s.uncOptimizerSettings.scalarProductSettings = obj.designVariable.scalarProduct;
+            
+            s.uncOptimizerSettings.targetParameters = [];%obj.incrementalScheme.targetParams;
+            s.uncOptimizerSettings.designVariable   = obj.designVariable;
+            
+            s.monitoringDockerSettings.mesh = obj.mesh;
+            s.monitoringDockerSettings.optimizerNames = s.optimizerNames;
+            s.designVar         = obj.designVariable;
+            s.targetParameters  = [];%obj.incrementalScheme.targetParams;
+            s.cost              = obj.cost;
+            s.constraint        = obj.constraint;
+            s.incrementalScheme = [];%obj.incrementalScheme;
+            s.dualVariable      = obj.dualVariable;              
+
+              s.ub = 10;
+              s.lb = 0.25;           
+              s.outputFunction.type        = 'Topology';
+              s.outputFunction.iterDisplay = 'none';
+              s.outputFunction.monitoring  = MonitoringManager(s);
+                        
+
+              s.type = "MMA";
+            %  s.nIter             = 0;
+              s.cost              = obj.cost;
+              s.constraint        = obj.constraint;
+              s.designVar         = obj.designVariable;
+              s.dualVariable      = [];obj.dualVariable;
+              s.maxIter           = 2000;
+             
+            %  s.targetParameters  = [];cParams.targetParameters;
+
+
+              obj.optimizer = Optimizer.create(s);    
+              obj.optimizer.solveProblem();
 % 
 % 
 % 

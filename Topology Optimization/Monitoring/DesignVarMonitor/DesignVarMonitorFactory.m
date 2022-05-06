@@ -57,13 +57,15 @@ classdef DesignVarMonitorFactory < handle
                         case '3D'
                             obj.monitor = DesignVarMonitor_LevelSet_3D(mS);
                     end
+                case 'AreaColumn'
+                    obj.monitor = DesignVarMonitor_Null(mS);
                 otherwise
                     error('Invalid Design Variable')
             end
         end
         
         function createBuilder(obj)
-            obj.builder = Factory_BuilderDesignVarMonitor().create(obj.dim);
+            obj.builder = Factory_BuilderDesignVarMonitor().create(obj.mesh.ndim);
         end
         
         function build(obj)

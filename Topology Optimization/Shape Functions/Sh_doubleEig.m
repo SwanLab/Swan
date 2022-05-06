@@ -15,6 +15,10 @@ classdef Sh_doubleEig < ShapeFunctional
             obj.computeFunction();
             obj.computeGradient();
         end
+
+        function t = getTitlesToPlot(obj)
+            t{1} = 'Double Eigen Value';
+        end        
         
     end
 

@@ -14,6 +14,10 @@ classdef ShFunc_FirstEigenValue < ShapeFunctional
             obj.computeFunction();
             obj.computeGradient();
         end
+
+        function t = getTitlesToPlot(obj)
+            t{1} = 'First Eigen Value';
+        end            
         
     end
 

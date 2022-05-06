@@ -19,6 +19,10 @@ classdef Sh_volumeColumn < ShapeFunctional
             obj.computeGradient();
         end
 
+        function t = getTitlesToPlot(obj)
+            t{1} = 'Volume Column';
+        end            
+
     end
     
     methods (Access = protected)
