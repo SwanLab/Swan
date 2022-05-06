@@ -18,7 +18,11 @@ classdef Sh_doubleEig < ShapeFunctional
 
         function t = getTitlesToPlot(obj)
             t{1} = 'Double Eigen Value';
-        end        
+        end  
+
+        function v = getVariablesToPlot(obj)
+            v{1} = obj.value*obj.value0;
+        end 
         
     end
 

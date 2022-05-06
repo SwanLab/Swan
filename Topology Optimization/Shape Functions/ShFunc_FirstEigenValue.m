@@ -19,6 +19,9 @@ classdef ShFunc_FirstEigenValue < ShapeFunctional
             t{1} = 'First Eigen Value';
         end            
         
+        function v = getVariablesToPlot(obj)
+            v{1} = obj.value*obj.value0;
+        end
     end
 
     methods (Access = protected)

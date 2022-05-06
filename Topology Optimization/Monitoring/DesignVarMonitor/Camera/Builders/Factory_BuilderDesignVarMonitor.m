@@ -5,7 +5,7 @@ classdef Factory_BuilderDesignVarMonitor < handle
         function builder = create(dim)
             switch dim
                 case 1
-                    builder = [];
+                    builder = Builder_DesignVarMonitor_2D();
                 case 2
                     builder = Builder_DesignVarMonitor_2D();
                 case 3

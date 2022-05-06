@@ -130,13 +130,15 @@ classdef IterativeProcessComputer < handle
             s.targetParameters  = [];%obj.incrementalScheme.targetParams;
             s.cost              = obj.cost;
             s.constraint        = obj.constraint;
-            s.incrementalScheme = [];%obj.incrementalScheme;
+            s.incrementalScheme.iStep  = 1;%obj.incrementalScheme;
+            s.incrementalScheme.nSteps = 1;
             s.dualVariable      = obj.dualVariable;              
 
               s.ub = 10;
               s.lb = 0.25;           
               s.outputFunction.type        = 'Topology';
               s.outputFunction.iterDisplay = 'none';
+              s.type = 'MMA';
               s.outputFunction.monitoring  = MonitoringManager(s);
                         
 
@@ -160,16 +162,16 @@ classdef IterativeProcessComputer < handle
 
 
 
-
-             obj.change = 1;
-             obj.hasFinished = 0;
-             while ~obj.hasFinished
-                obj.increaseIter();
-                obj.updateStatus();
-                obj.computeNewDesign();
-                obj.displayIteration()
-                obj.plotFigures();
-            end
+% 
+%              obj.change = 1;
+%              obj.hasFinished = 0;
+%              while ~obj.hasFinished
+%                 obj.increaseIter();
+%                 obj.updateStatus();
+%                 obj.computeNewDesign();
+%                 obj.displayIteration()
+%                 obj.plotFigures();
+%             end
 
          end
 

@@ -21,7 +21,11 @@ classdef Sh_volumeColumn < ShapeFunctional
 
         function t = getTitlesToPlot(obj)
             t{1} = 'Volume Column';
-        end            
+        end    
+
+        function v = getVariablesToPlot(obj)
+            v{1} = obj.value*obj.value0;
+        end        
 
     end
     
