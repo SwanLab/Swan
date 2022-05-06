@@ -11,10 +11,8 @@ s.M        = 40;
 s.P        = -100;
 s.DoF      = 2;
 
-
-
-
-
+FEMWriter = FEMInputWriter(s);
+FEMWriter.createTest;
 
 
 s.testName = 'test_cantilever2';%'testJose';%'
