@@ -4,6 +4,7 @@ classdef LHSintergratorAnisotropicStiffness < LHSintegrator
         geometry
         CAnisotropic
         Celas
+        alphaDeg
         dofsInElem
     end
 
@@ -51,7 +52,9 @@ classdef LHSintergratorAnisotropicStiffness < LHSintegrator
    methods (Access = private)
        
        function initAnisotropicTensor(obj,cParams)
-           obj.CAnisotropic = cParams.CAnisotropic;
+           CLocal = cParams.CAnisotropic;
+           obj.alphaDeg = cParams.aniAlphaDeg;
+           obj.CAnisotropic = obj.rotateAnisotropicMatrix(CLocal);
        end
        
         function createGeometry(obj)
@@ -70,6 +73,12 @@ classdef LHSintergratorAnisotropicStiffness < LHSintegrator
             s.globalConnec = obj.globalConnec;
             s.dofsInElem   = obj.dofsInElem;
             Bcomp = BMatrixComputer(s);
+        end
+
+        function CGlobal = rotateAnisotropicMatrix(obj,CLocal)
+            R = [cosd(obj.alphaDeg),-sind(obj.alphaDeg)
+                sind(obj.alphaDeg), cosd(obj.alphaDeg)];
+            CGlobal = R*CLocal*R';
         end
 
         function assemblyCMatrix(obj)
