@@ -79,10 +79,10 @@ classdef CC < handle & matlab.mixin.Copyable
                 s = cParams.shapeFuncSettings{iS};
                 s.designVariable = cParams.designVar;
 
-                if isfield(cParams,'homogenizedVarComputer')
+                if isprop(cParams,'homogenizedVarComputer')
                     s.homogVarComputer = cParams.homogenizedVarComputer;
                 end
-                if isfield(cParams,'targetParameters')
+                if isprop(cParams,'targetParameters')
                     s.targetParameters = cParams.targetParameters;
                 end
                 shapeFunction = ShapeFunctional.create(s);

@@ -12,10 +12,10 @@ classdef ShapeFunctional_Factory < handle
         function sF = create(obj,cParams)
             obj.designVar        = cParams.designVariable;
 
-            if isfield(cParams,'homogenizedVarComputer')
-                obj.homogVarComputer = cParams.homogenizedVarComputer;
+            if isprop(cParams,'homogVarComputer')
+                obj.homogVarComputer = cParams.homogVarComputer;
             end
-            if isfield(cParams,'targetParameters')
+            if isprop(cParams,'targetParameters')
                 obj.targetParameters = cParams.targetParameters;
             end
             
