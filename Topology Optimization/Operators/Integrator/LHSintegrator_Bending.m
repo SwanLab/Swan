@@ -47,7 +47,7 @@ classdef LHSintegrator_Bending < LHSintegrator
             d = obj.dim;
             E = obj.youngModulus;
             I = obj.inertiaMoment;
-            nElem = d.nelem;
+            nElem = obj.mesh.nelem;
             Edof = d.ndofPerElement;
             Be = zeros(Edof ,Edof ,nElem);
             l = obj.computeLength();

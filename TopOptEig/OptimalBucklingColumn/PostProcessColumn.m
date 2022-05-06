@@ -44,10 +44,10 @@ classdef PostProcessColumn < handle
             d     = obj.dim;
             scl   = obj.scale;
             coord = obj.mesh.coord;
-            nnod     = d.nelem+1;
+            nnod     = obj.mesh.nelem+1;
             dimFig   = 2;
             vertElem = 4;
-            vertex = zeros(vertElem*d.nelem+1,dimFig);
+            vertex = zeros(vertElem*obj.mesh.nelem+1,dimFig);
             for iNod = 1:nnod-1
                 vertex(2*iNod-1,:)   = [scl*z(iNod)/2 coord(iNod)];
                 vertex(2*iNod,:) = [scl*z(iNod)/2 coord(iNod+1)];
@@ -73,9 +73,10 @@ classdef PostProcessColumn < handle
         end
 
         function vertex = flip(obj,vertex,vertElem,dimFig)
-            d = obj.dim;
-            vertex(dimFig*d.nelem+1:vertElem*d.nelem,1) = - fliplr(vertex(1:dimFig*d.nelem,1)')';
-            vertex(dimFig*d.nelem+1:vertElem*d.nelem,2) = fliplr(vertex(1:dimFig*d.nelem,2)')';
+            nElem = obj.mesh.nelem;            
+            nodes = dimFig*nElem+1:vertElem*nElem; 
+            vertex(nodes,1) = - fliplr(vertex(1:dimFig*nElem,1)')';
+            vertex(dimFig*nElem+1:vertElem*nElem,2) = fliplr(vertex(1:dimFig*nElem,2)')';
         end
         
         function plotMesh(obj)

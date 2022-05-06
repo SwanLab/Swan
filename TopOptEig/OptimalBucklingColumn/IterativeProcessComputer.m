@@ -115,24 +115,24 @@ classdef IterativeProcessComputer < handle
 %              sp.shallPrint = false;
 %              s.postProcessSettings = sp;
 % 
-
-
-              s.type = "MMA";
-              s.nIter             = 0;
-              s.cost              = obj.cost;
-              s.constraint        = obj.constraint;
-              s.designVariable    = obj.designVariable;
-              s.dualVariable      = [];obj.dualVariable;
-              s.maxIter           = 2000;
-              s.targetParameters  = [];cParams.targetParameters;
-              s.outputFunction    = cParams.outputFunction.monitoring;
-
-
-              obj.optimizer = Optimizer.create(s);    
-              obj.optimizer.solveProblem();
-
-
-
+%               s = SettingsOptimizer();
+% 
+%               s.type = "MMA";
+%               s.nIter             = 0;
+%               s.cost              = obj.cost;
+%               s.constraint        = obj.constraint;
+%               s.designVariable    = obj.designVariable;
+%               s.dualVariable      = [];obj.dualVariable;
+%               s.maxIter           = 2000;
+%               s.targetParameters  = [];cParams.targetParameters;
+%               s.outputFunction    = cParams.outputFunction.monitoring;
+% 
+% 
+%               obj.optimizer = Optimizer.create(s);    
+%               obj.optimizer.solveProblem();
+% 
+% 
+% 
 
 
 

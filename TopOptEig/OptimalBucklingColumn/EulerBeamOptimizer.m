@@ -109,8 +109,12 @@ classdef EulerBeamOptimizer < handle
             s.mesh = obj.mesh;
             s.pdim = '2D';
             s.ngaus = 2;
-            d = DimensionVariables(s);
-            d.compute();
+            s.type = 'Vector';
+            s.name = 'x';
+            s.ndimf = 2;
+            s.fieldName = 'u';
+            d = DimensionVariables.create(s);
+            d.compute(s)
             obj.dim = d;
         end
 

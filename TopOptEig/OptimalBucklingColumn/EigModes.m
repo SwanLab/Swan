@@ -50,8 +50,7 @@ classdef EigModes < handle
             obj.reorderModes(obj.lambda,obj.V,obj.D);
             Belem =  obj.bendingMatComputer.elementalBendingMatrix;
             x = obj.designVariable.getColumnArea();
-            d = obj.dim;
-            nElem = d.nelem;
+            nElem = obj.mesh.nelem;
             eigV1 = obj.D(1,1);
             eigV2 = obj.D(2,2);
             difEigs = abs(eigV2-eigV1);
@@ -75,7 +74,8 @@ classdef EigModes < handle
                 W = zeros(d.ndof,2);
                 W(free,1) = obj.v1;
                 W(free,2) = obj.v2;
-                for i = 1:d.nelem
+                nElem = obj.mesh.nelem;
+                for i = 1:nElem
                     index = 2*(i-1)+1: 2*(i-1)+4;
                     dfdx(1,i) = -(2*x(i,1))*(W(index,1)'*Belem(:,:,i)*W(index,1));
                     dfdx(2,i) = -(2*x(i,1))*(W(index,2)'*Belem(:,:,i)*W(index,2));
@@ -87,7 +87,7 @@ classdef EigModes < handle
             free = obj.freeNodes;
             ndofe = d.ndofPerElement;
             ndofn = d.ndimField;
-            nElem = d.nelem;
+            nElem = obj.mesh.nelem;
             Q1    = zeros(d.ndof,1);
             Q2    = zeros(d.ndof,1);
             dQ1   = zeros(nElem,1);
