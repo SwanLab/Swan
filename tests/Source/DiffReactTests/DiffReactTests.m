@@ -70,9 +70,10 @@ classdef DiffReactTests < matlab.unittest.TestCase
         end
         
         function dim = computeDimensions(testCase, msh)
+            s.type = 'Scalar';
             s.name = 'x';
             s.mesh = msh;
-            dim   = DimensionScalar(s);
+            dim   = DimensionVariables.create(s);
         end
         
         function rhs = createRHS(testCase, mesh, dim)

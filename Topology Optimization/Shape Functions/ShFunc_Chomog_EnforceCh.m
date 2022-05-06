@@ -59,7 +59,7 @@ classdef ShFunc_Chomog_EnforceCh < ShFunc_Chomog
     methods (Access = protected)
         
         function difCp = computeNormP(obj,difC)
-            nStres = obj.physicalProblem.element.getNstre;
+            nStres = obj.getnStre();
             nComp  = obj.computeNcomp(nStres);
             dCp = zeros(nComp,1);
             for iStres = 1:nStres
@@ -104,7 +104,7 @@ classdef ShFunc_Chomog_EnforceCh < ShFunc_Chomog
     methods (Access = private, Static)
         
         function n = computeNcomp(nStre)
-           n = (nStre+1)*nStre/2; 
+           n = (nStre+1)*nStre/2;
         end
         
         function [iv] = vector2Voigt(iStre,jStre)

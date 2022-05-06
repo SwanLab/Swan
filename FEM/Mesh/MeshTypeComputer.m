@@ -1,7 +1,7 @@
 classdef MeshTypeComputer < handle
     
     properties (Access = private)
-        nnode
+        nnodeElem
         geometryType
     end
     
@@ -16,14 +16,14 @@ classdef MeshTypeComputer < handle
                 case 'Line'
                     type = 'LINE';
                 case 'Surface'
-                    switch obj.nnode
+                    switch obj.nnodeElem
                         case 3
                             type = 'TRIANGLE';
                         case 4
                             type = 'QUAD';
                     end
                 case 'Volume'
-                    switch obj.nnode
+                    switch obj.nnodeElem
                         case 4
                             type = 'TETRAHEDRA';
                         case 8
@@ -38,7 +38,7 @@ classdef MeshTypeComputer < handle
         
         function init(obj,cParams)
             obj.geometryType = cParams.geometryType;
-            obj.nnode        = cParams.nnode;
+            obj.nnodeElem    = cParams.nnodeElem;
         end
         
     end

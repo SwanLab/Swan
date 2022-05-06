@@ -33,7 +33,7 @@ classdef Geometry_Surface < Geometry
             nDime   = obj.mesh.ndim;
             nGaus   = obj.quadrature.ngaus;
             nElem   = obj.mesh.nelem;
-            nNode   = obj.mesh.nnode;
+            nNode   = obj.mesh.nnodeElem;
             xp      = obj.coordElem;
             deriv   = obj.mesh.interpolation.deriv(:,:,:);
             dShapes = permute(deriv,[1 3 2]);

@@ -57,19 +57,12 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         end
         
         function computeFunctionValue(obj)
-%             phy = obj.physicalProblem;
-%             dvolum  = phy.geometry.dvolu;
-%             stress = phy.variables.stress;
-%             strain = phy.variables.strain;
-%             ngaus  = phy.element.quadrature.ngaus;
-%             nelem  = phy.mesh.nelem;
             phy = obj.physicalProblem;
             dvolum = phy.getDvolume()';
             stress = phy.variables.stress;
             strain = phy.variables.strain;
-            dim    = phy.getDimensions(); 
-            ngaus  = dim.ngaus;
-            nelem  = dim.nelem;
+            ngaus  = size(strain,1);
+            nelem  = size(strain,3);
 
             c = zeros(nelem,ngaus);
             for igaus = 1:ngaus
@@ -85,20 +78,15 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         
         function computeGradientValue(obj)
             phy = obj.physicalProblem;
-            eu    = phy.variables.strain;
             ep    = phy.variables.strain;
-%             nelem = obj.physicalProblem.mesh.nelem;
-%             ngaus = obj.physicalProblem.element.quadrature.ngaus;
-%             nstre = obj.physicalProblem.element.getNstre();
-            dim    = phy.getDimensions(); 
-            ngaus  = dim.ngaus;
-            nelem  = dim.nelem;
-            nstre  = dim.nstre;
+            ngaus  = size(ep,1);
+            nstre  = size(ep,2);
+            nelem  = size(ep,3);
             g = zeros(nelem,ngaus,obj.nVariables);
             for igaus = 1:ngaus
                 for istre = 1:nstre
                     for jstre = 1:nstre
-                        eu_i = squeeze(eu(igaus,istre,:));
+                        eu_i = squeeze(ep(igaus,istre,:));
                         ep_j = squeeze(ep(igaus,jstre,:));
                         for ivar = 1:obj.nVariables
                             dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:,igaus));

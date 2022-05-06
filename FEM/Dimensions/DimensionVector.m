@@ -2,15 +2,11 @@ classdef DimensionVector < handle
     
     properties (GetAccess = public, SetAccess = private)
         scalarFields
-        nelem
-        npnod
-        nnode
+        nnodes
+        nnodeElem
         ndimField
         ndofPerElement
         ndof
-        nstre
-
-        ngaus % should NOT be here
     end
     
     properties (Access = private)
@@ -23,7 +19,7 @@ classdef DimensionVector < handle
             obj.init(cParams);
         end
 
-        function create(obj, cParams)
+        function compute(obj, cParams)
             ndimf = cParams.ndimf;
             msh   = cParams.mesh;
             fieldName = cParams.fieldName;
@@ -35,13 +31,11 @@ classdef DimensionVector < handle
             end
             % hmmm, its the same as dimensionScalar
             obj.mesh           = msh;
-            obj.nelem          = msh.nelem;
-            obj.npnod          = msh.npnod;
-            obj.nnode          = msh.interpolation.nnode;
+            obj.nnodes         = msh.nnodes;
+            obj.nnodeElem      = msh.interpolation.nnode;
             obj.ndimField      = ndimf;
-            obj.ndofPerElement = obj.nnode * obj.ndimField;
-            obj.ndof           = ndimf*obj.npnod;
-            obj.nstre          = obj.computeNstress(); %nvoigt?
+            obj.ndofPerElement = obj.nnodeElem*obj.ndimField;
+            obj.ndof           = ndimf*obj.nnodes;
         end
 
         function createFromScalars(obj, dims)
@@ -52,10 +46,6 @@ classdef DimensionVector < handle
                 obj.scalarFields.(name) = dim;
             end
         end
-
-        function applyNgaus(obj, ngaus)
-            obj.ngaus = ngaus;
-        end
         
     end
 
@@ -63,17 +53,6 @@ classdef DimensionVector < handle
 
         function init(obj, cParams)
             obj.mesh = cParams.mesh;
-        end
-
-        function nstre = computeNstress(obj) % nvoigt?
-            switch obj.ndimField
-                case 1
-                    nstre = 2; % ?
-                case 2
-                    nstre = 3;
-                case 3
-                    nstre = 6;
-            end
         end
 
     end

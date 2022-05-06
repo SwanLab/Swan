@@ -19,9 +19,9 @@ classdef ShFunc_Chomog_CC < ShFunc_Chomog %%NOT WORKING%%
             costfunc = obj.selectiveC_Cstar.*costfunc;
             
             %Gradient
-            nelem = obj.physicalProblem.getDimensions().nelem;
+            nstre = size(obj.tstrain,1);
             ngaus = size(obj.tstrain,2);
-            nstre = obj.physicalProblem.getDimensions().nstre;
+            nelem = size(obj.tstrain,4);
             
             obj.compute_Chomog_Derivatives(x);
             DtC1 = zeros(ngaus,nelem);

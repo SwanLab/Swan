@@ -1,5 +1,6 @@
 function ComputingTopOpt
 
+
 fileName = 'CantileverArnau2';
 % Data input
 s.testName = [fileName,'.m'];
@@ -10,8 +11,8 @@ s.M        = 40;
 s.P        = -100;
 s.DoF      = 2;
 
-FEMWriter = FEMInputWriter(s);
-FEMWriter.createTest;
+
+
 
 
 

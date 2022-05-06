@@ -72,7 +72,7 @@ classdef RegularizedSuperEllipseExponentPlotter < handle
             s.mesh              = obj.mesh;
             s.backgroundMesh    = obj.mesh;
             s.globalConnec      = obj.mesh.connec;
-            s.npnod = obj.mesh.npnod;
+            s.npnod = obj.mesh.nnodes;
             int = Integrator.create(s);
             int.computeLHS();
             p = 2;            

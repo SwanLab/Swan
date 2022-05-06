@@ -28,7 +28,7 @@ classdef LHSintegrator_Mass < LHSintegrator
             dvolu  = obj.mesh.computeDvolume(quad);
             ngaus  = obj.quadrature.ngaus;
             nelem  = obj.mesh.nelem;
-            nnode  = obj.mesh.nnode;
+            nnode  = obj.mesh.nnodeElem;
             lhs = zeros(nnode,nnode,nelem);
             for igaus = 1:ngaus
                 dv(1,1,:) = dvolu(igaus,:);

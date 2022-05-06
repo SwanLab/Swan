@@ -30,7 +30,7 @@ classdef InterpolationFactory < handle
                             obj = Quadrilateral_Bilinear(cParams);
                         case 'QUADRATIC'
                             warning('PENDING TO BE TRASFORMED TO INTERPOLATION. SEE TRIANGLE_QUADRATIC AS EXAMPLE')
-                            obj = Quadrilateral_Serendipity(cParamsr);
+                            obj = Quadrilateral_Serendipity(cParams);
                         otherwise
                             error('Invalid order for element QUADRILATERAL.');
                     end

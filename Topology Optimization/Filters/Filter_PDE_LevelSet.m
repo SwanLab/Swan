@@ -22,7 +22,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
             obj.createInterpolation();
             obj.computeGeometry();
             obj.nelem = obj.mesh.nelem;
-            obj.npnod = obj.mesh.npnod;
+            obj.npnod = obj.mesh.nnodes;
             obj.ngaus = obj.quadrature.ngaus;
             obj.Anodal2Gauss = obj.computeA();
         end
@@ -56,7 +56,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
                 uMesh = obj.levelSet.getUnfittedMesh();
                 s.mesh = uMesh;
                 s.type = 'Unfitted';
-                int = Integrator.create(s);
+                int = RHSintegrator.create(s);
                 fInt = int.integrateInDomain(fNodes);
             end
         end
@@ -69,7 +69,7 @@ classdef Filter_PDE_LevelSet < Filter_PDE
                 uMesh = obj.levelSet.getUnfittedMesh();
                 s.mesh = uMesh;
                 s.type = 'Unfitted';
-                int = Integrator.create(s);
+                int = RHSintegrator.create(s);
                 fInt = int.integrateInBoundary(fNodes);
             end
         end

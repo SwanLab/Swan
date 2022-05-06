@@ -30,7 +30,7 @@ classdef SettingsMesh < AbstractSettings
         
         function computeType(obj)
             s.geometryType = obj.computeGeometryType();
-            s.nnode        = size(obj.connec,2);
+            s.nnodeElem    = size(obj.connec,2);
             m = MeshTypeComputer(s);
             obj.type = m.compute();
         end

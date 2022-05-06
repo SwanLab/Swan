@@ -32,7 +32,7 @@ classdef FemPrinter < handle
             dI = obj.createPostProcessDataBase(fileName);
             dI.ndim   = obj.ndim;
             dI.pdim   = obj.pdim;
-            dI.ptype  = obj.ptype;      
+            dI.ptype  = obj.ptype;
             dI.name = 'field';
             p = Postprocess(obj.type,dI);
             q        = obj.quad;

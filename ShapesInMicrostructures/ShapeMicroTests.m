@@ -6,9 +6,7 @@
 
 % Microstructure
 %filename = 'test2d_micro';
-%filename = 'IrrHexagon50x25x50';
-filename = 'Hexagon5x5x5';
-%filename = 'Square25x25';
+filename = 'SquareTest';
 s = createFEMparameters(filename);
 
 
