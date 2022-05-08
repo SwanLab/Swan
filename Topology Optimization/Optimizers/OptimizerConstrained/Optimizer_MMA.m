@@ -31,9 +31,7 @@ classdef Optimizer_MMA < Optimizer
         hasFinished
         incrementalScheme
         hasConverged
-        constraintCase
         historicalVariables
-        targetParameters
         KKTnorm
     end
     

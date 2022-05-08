@@ -20,7 +20,6 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         oldCost
         problem
         options
-        lambda
         incrementalScheme
         hasFinished
         mOld
@@ -34,6 +33,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.initOptimizer(cParams);
             obj.init(cParams);
             obj.outputFunction.monitoring.create(cParams);
+            obj.createDualUpdater(cParams);
             obj.prepareFirstIter();
         end
 
@@ -68,8 +68,8 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.cost.computeFunctionAndGradient();
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
-            obj.lambda  = 0;
-            obj.penalty = 10;
+            obj.dualVariable.value = 0;
+            obj.penalty            = 10;
         end
 
         function obj = update(obj)
@@ -90,7 +90,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
             x       = obj.designVariable.value;
-            l       = obj.lambda;
+            l       = obj.dualVariable.value;
             DJ      = obj.cost.gradient;
             Dg      = obj.constraint.gradient;
             g       = obj.constraint.value;
@@ -103,14 +103,14 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             end
         end
 
-        function obj = updateDualDirect(obj)
-            obj.constraint.computeFunctionAndGradient();
-            l   = obj.lambda;
-            g   = obj.constraint.value;
-            p   = obj.penalty;
-            l   = l + p*g;
-            obj.lambda = l;
-        end
+%         function obj = updateDualDirect(obj)
+%             obj.constraint.computeFunctionAndGradient();
+%             l   = obj.lambda;
+%             g   = obj.constraint.value;
+%             p   = obj.penalty;
+%             l   = l + p*g;
+%             obj.lambda = l;
+%         end
 
         function x = updatePrimal(obj)
             lb      = obj.lowerBound;
@@ -119,7 +119,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             Dg      = obj.constraint.gradient;
             g       = obj.constraint.value;
             DJ      = obj.cost.gradient;
-            l       = obj.lambda;
+            l       = obj.dualVariable.value;
             x       = obj.designVariable.value;
             p       = obj.penalty;
             dx      = -t*(DJ + (l + p*g)*Dg);
@@ -131,7 +131,8 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             mNew = obj.computeMeritFunction(x);
             if mNew < obj.mOld
                 obj.acceptableStep = true;
-                obj.updateDualDirect();
+                obj.dualUpdater.updatePenalty(obj.penalty);
+                obj.dualUpdater.update();
                 obj.meritNew = mNew;
             elseif obj.tau < 1e-10
                 error('Convergence could not be achieved (step length too small)')
@@ -148,7 +149,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.constraint.computeFunctionAndGradient();
             J      = obj.cost.value;
             g      = obj.constraint.value;
-            l      = obj.lambda;
+            l      = obj.dualVariable.value;
             rho    = obj.penalty;
             mF     = J + l'*g + 0.5*rho*g*g;
         end
@@ -159,7 +160,6 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.constraint.computeFunctionAndGradient();
             obj.oldCost            = obj.cost.value;
             obj.oldDesignVariable  = x;
-            obj.dualVariable.value = obj.lambda;
         end
 
         function obj = updateOldValues(obj,x)
@@ -169,7 +169,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function obj = checkConvergence(obj)
-           if abs(obj.meritNew - obj.mOld) < obj.tol && max(obj.constraint.value) <= 0
+           if abs(obj.meritNew - obj.mOld) < obj.tol && obj.checkConstraint()
                obj.hasConverged = true;
            else
                
