@@ -32,16 +32,17 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
     methods (Access = protected)
 
         function lhs = computeElementalLHS(obj)
+            C = obj.material.C;
             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
+            nstre  = size(C,1);
+            nelem  = size(C,3);
             ngaus  = obj.quadrature.ngaus;
-            nelem  = obj.dim.nelem;
-            nstre  = obj.dim.nstre;
             npe    = obj.dim.ndofPerElement;
             lhs = zeros(npe,npe,nelem);
             Bcomp = obj.createBComputer();
             for igaus = 1:ngaus
                 Bmat = Bcomp.computeBmat(igaus);
-                Cmat = obj.material.C(:,:,:,igaus);
+                Cmat = C(:,:,:,igaus);
                 dV    = dvolu(igaus,:)';
                 for istre = 1:nstre
                     Bi = Bmat(istre,:,:);
@@ -60,7 +61,7 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
         function lhs = computeElementalLHSPagemtimes(obj)
             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
             ngaus  = obj.quadrature.ngaus;
-            nelem  = obj.dim.nelem;
+            nelem  = size(obj.material.C,3);
             npe    = obj.dim.ndofPerElement;
             lhs = zeros(npe,npe,nelem);
             Bcomp = obj.createBComputer();

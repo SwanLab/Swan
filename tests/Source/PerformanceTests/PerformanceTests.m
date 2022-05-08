@@ -23,7 +23,7 @@ classdef PerformanceTests < handle & matlab.unittest.TestCase
             step = 0.0001;
                 test = PerformanceTest(s);
                 sol = test.compute(step);
-                nelem = sol.getDimensions().nelem;
+                nelem = sol.getMesh().nelem;
                 disp(nelem)
                 temps(index) = toc;
                 nelems(index) = nelem;

@@ -68,7 +68,7 @@ classdef GradientVariationWithBoundaryComputer < handle
            m = m.computeCanonicalMesh(); 
            s.type = 'SIMPLE';
            s.mesh = m;           
-           s.npnod = m.npnod;
+           s.npnod = m.nnodes;
            s.globalConnec = m.connec;
            obj.integrator = Integrator.create(s);            
         end        

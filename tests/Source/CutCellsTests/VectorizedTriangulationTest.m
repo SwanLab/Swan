@@ -126,7 +126,7 @@ classdef VectorizedTriangulationTest < handle
             s.connec = obj.connec;
             mesh = Mesh(s);
             nDime   = mesh.ndim;
-            nNode   = mesh.nnode;
+            nNode   = mesh.nnodeElem;
             nElem   = mesh.nelem;
             q = Quadrature.set(mesh.type);
             q.computeQuadrature('LINEAR');

@@ -71,7 +71,7 @@ classdef SubMesher < handle
         
         function connecE = computeExtendedConnectivities(obj)
             oldConnec = obj.mesh.connec;
-            nnode     = obj.mesh.nnode;
+            nnode     = obj.mesh.nnodeElem;
             nnodeE    = nnode + 1;
             newNodes = obj.computeNewNodes();
             connecE(:,1:nnodeE) = [oldConnec newNodes];
