@@ -28,7 +28,6 @@ classdef NewStokesProblem < handle
             obj.createDimensions();
             obj.createDOF();
             obj.createBoundaryConditions();
-            obj.createMaterial();
             obj.createElement();
             obj.createSolver();
         end
@@ -47,15 +46,16 @@ classdef NewStokesProblem < handle
     methods (Access = private)
         
         function init(obj, cParams)
-            obj.fileName = cParams.fileName;
-%             obj.problemData.fileName = cParams.fileName;
-            obj.problemData.scale = cParams.scale;
-            obj.problemData.pdim  = cParams.dim;
-            obj.problemData.ptype = cParams.type;
-            obj.problemData.nelem = cParams.nelem;
-            obj.problemData.bc.dirichlet = cParams.bc.dirichlet;
-            obj.problemData.bc.pointload = cParams.bc.pointload;
-            obj.mesh = cParams.mesh;
+            pd.scale        = cParams.scale;
+            pd.pdim         = cParams.dim;
+            pd.ptype        = cParams.type;
+            pd.nelem        = cParams.nelem;
+            pd.bc.dirichlet = cParams.bc.dirichlet;
+            pd.bc.pointload = cParams.bc.pointload;
+            obj.mesh        = cParams.mesh;
+            obj.material    = cParams.material;
+            obj.problemData = pd;
+            obj.fileName    = cParams.fileName;
         end
 
         function createGeometry(obj)
@@ -121,14 +121,6 @@ classdef NewStokesProblem < handle
             bcP = BoundaryConditions(s);
             bcP.compute();
             obj.boundaryConditions{2} = bcP;
-        end
-
-        function createMaterial(obj)
-            cParams.nelem = obj.mesh.nelem;
-            mat = Material_Stokes(cParams);
-            mat.compute();
-            obj.material = mat;
-
         end
 
         function createElement(obj)
