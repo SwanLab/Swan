@@ -28,7 +28,7 @@ classdef MaterialFactory < handle
                 case 'THERMAL'
                     error('Still not implemented.')
                 case 'Stokes'
-                    material = Material_Stokes(nelem);
+                    material = Material_Stokes(cParams);
                 otherwise
                     error('Invalid ptype.')
             end

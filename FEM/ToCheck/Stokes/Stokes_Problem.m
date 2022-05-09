@@ -25,7 +25,8 @@ classdef Stokes_Problem < StokesFEM
             cParams.nelem = obj.mesh.nelem;
             obj.material = Material_Stokes(cParams);
             obj.element  = Element_Stokes(obj.geometry,obj.mesh,obj.material,obj.dof,obj.problemData,obj.interp);
-            obj.solver   = Solver.create;
+            s.type = 'DIRECT';
+            obj.solver   = Solver.create(s);
         end
         
         function computeVariables(obj)

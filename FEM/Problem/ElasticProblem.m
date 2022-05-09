@@ -125,7 +125,8 @@ classdef ElasticProblem < handle
         end
 
         function createSolver(obj)
-            obj.solver = Solver.create();
+            s.type =  'DIRECT';
+            obj.solver = Solver.create(s);
         end
 
         function computeStiffnessMatrix(obj)

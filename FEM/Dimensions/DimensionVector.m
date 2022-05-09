@@ -28,12 +28,10 @@ classdef DimensionVector < handle
                 s.name = name;
                 obj.scalarFields.(name) = DimensionScalar(s);
             end
-            obj.mesh           = obj.mesh;
-            obj.ndimField      = ndimf;
-            obj.ndofPerElement = obj.nnodeElem*obj.ndimField;
-            obj.ndof           = ndimf*obj.nnodes;
+            obj.ndof           = ndimf*obj.mesh.nnodes;
             obj.nnodes         = obj.mesh.nnodes;
             obj.nnodeElem      = obj.mesh.interpolation.nnode;
+            obj.ndofPerElement = obj.nnodeElem*obj.ndimField;
         end
 
         function createFromScalars(obj, dims)

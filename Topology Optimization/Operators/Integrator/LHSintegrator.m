@@ -40,8 +40,16 @@ classdef LHSintegrator < handle
        end
 
         function createInterpolation(obj)
-            int = obj.mesh.interpolation;
+%             int = obj.mesh.interpolation;
+            int = Interpolation.create(obj.mesh,'LINEAR');
+
 %             int = Interpolation.create(obj.mesh,'QUADRATIC');
+%             s.mesh = obj.mesh;
+%             s.interpolation = int;
+%             c = ConnecCoordFromInterpAndMesh(s);
+%             c.compute();
+%             obj.globalConnec = c.connec;
+
             int.computeShapeDeriv(obj.quadrature.posgp);
             obj.interpolation = int;
         end
