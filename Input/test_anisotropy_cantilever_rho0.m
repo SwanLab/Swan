@@ -6,9 +6,9 @@ filename = 'jaCantilever';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'full';
-cost = {'compliance'};
-weights = [1];
+initial_case = 'Given';
+cost = {'perimeter'};
+weights = [0.0001];
 constraint = {'volumeConstraint'};
 % constraint_case = 'EQUALITY';
 optimizerUnconstrained = 'PROJECTED GRADIENT';
@@ -17,12 +17,12 @@ incrementFactor = 1.5; % Recommended: 1.5; 2.0
 designVariable = 'Density';
 filterType = 'P1';
 
-nsteps = 1; % Recommended slope: 5%/step is OK
+nsteps = 10; % Recommended slope: 5%/step is OK
 Vfrac_final = 0.50;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 1;
+Vfrac_initial = 0.50;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 Perimeter_target = 5;

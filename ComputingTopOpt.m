@@ -1,22 +1,63 @@
 function ComputingTopOpt
 
-% fileName = 'Cantilever';
-% % Data input
-% s.testName = [fileName,'.m'];
-% s.x1       = 2;
-% s.y1       = 1;
-% s.N        = 80;
-% s.M        = 40;
-% s.P        = -100;
-% s.DoF      = 2;
-% 
-% FEMWriter = FEMInputWriter(s);
-% FEMWriter.createTest;
+jumpTo2ndPart = true;
+
+if jumpTo2ndPart == false
+
+    fileName = 'jaCantilever';
+    % Data input
+    s.testName = [fileName,'.m'];
+    s.x1       = 2;
+    s.y1       = 1;
+    s.N        = 50;
+    s.M        = 25;
+    s.P        = -100;
+    s.DoF      = 2;
+
+    FEMWriter = FEMInputWriter(s);
+    FEMWriter.createTest;
 
 
 
 
-s.testName = 'test_micro';%''testJose';
-t = TopOptComputer(s);
-t.compute();
+    fileName = 'test_anisotropy_cantilever';
+    s = Settings(fileName);
+    s.warningHoleBC = false;
+    s.printIncrementalIter = false;
+    s.printChangingFilter = false;
+    s.printing = false;
+    translator = SettingsTranslator();
+    translator.translate(s);
+    fileName = translator.fileName;
+    settings  = SettingsTopOptProblem(fileName);
+    topOptSolver = TopOpt_Problem(settings);
+    while topOptSolver.incrementalScheme.hasNext()
+        topOptSolver.incrementalScheme.next();
+        topOptSolver.optimizer.solveProblem();
+    end
+
+    rho0 = topOptSolver.designVariable.value;
+    save('rho0.mat','rho0');
+else
+    load('rho0.mat');
+    fileName = 'test_anisotropy_cantilever_rho0';
+
+    s = Settings(fileName);
+    s.warningHoleBC = false;
+    s.printIncrementalIter = false;
+    s.printChangingFilter = false;
+    s.printing = false;
+    translator = SettingsTranslator();
+    translator.translate(s);
+    fileName = translator.fileName;
+    settings  = SettingsTopOptProblem(fileName);
+    settings.designVarSettings.creatorSettings = 'Given';
+    % Empieza lo bueno
+    topOptSolver = TopOpt_Problem(settings);
+    while topOptSolver.incrementalScheme.hasNext()
+        topOptSolver.incrementalScheme.next();
+        topOptSolver.optimizer.solveProblem();
+    end
+end
+
 end

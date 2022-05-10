@@ -57,9 +57,9 @@ classdef SettingsTargetParamsManager < AbstractSettings
             obj.setIfEmpty('epsilonInitial',D);
             obj.setIfEmpty('epsilonFinal',obj.epsilonInitial);
             obj.setIfEmpty('epsilonPerInitial',L);
-%             obj.epsilonPerInitial = 1/25*8;
+            obj.epsilonPerInitial = D; %
             obj.setIfEmpty('epsilonPerFinal',obj.epsilonInitial);
-%             obj.epsilonPerFinal = 1/5000*8;
+            obj.epsilonPerFinal = D; %
             obj.setIfEmpty('epsilonIsoInitial',D);
             obj.setIfEmpty('epsilonIsoFinal',obj.epsilonInitial);
         end
