@@ -1,5 +1,6 @@
 function ComputingTopOpt
 
+rho0Name = 'rho0CantileverGruix.mat';
 jumpTo2ndPart = true;
 
 if jumpTo2ndPart == false
@@ -37,9 +38,9 @@ if jumpTo2ndPart == false
     end
 
     rho0 = topOptSolver.designVariable.value;
-    save('rho0.mat','rho0');
+    save(rho0Name,'rho0');
 else
-    load('rho0.mat');
+    load(rho0Name);
     fileName = 'test_anisotropy_cantilever_rho0';
 
     s = Settings(fileName);
@@ -51,8 +52,8 @@ else
     translator.translate(s);
     fileName = translator.fileName;
     settings  = SettingsTopOptProblem(fileName);
-    settings.designVarSettings.creatorSettings = 'Given';
-    % Empieza lo bueno
+    settings.designVarSettings.creatorSettings.type = 'Given';
+    settings.designVarSettings.creatorSettings.rho0 = rho0;
     topOptSolver = TopOpt_Problem(settings);
     while topOptSolver.incrementalScheme.hasNext()
         topOptSolver.incrementalScheme.next();
