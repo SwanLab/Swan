@@ -7,15 +7,14 @@ classdef PrecomputedVariableTest < handle
         computedVar
         computation
         computerType
+        testResultsName
     end
 
     methods (Access = public)
 
         function obj = PrecomputedVariableTest(cParams)
-            obj.testName         = cParams.testName;
-            obj.variablesToStore = cParams.variablesToStore;
-            obj.computerType     = cParams.computerType;
-            obj.computeVariable()
+            obj.init(cParams);
+            obj.computeVariable(cParams);
             obj.selectComputedVar();
             obj.loadStoredVariable();
         end
@@ -50,7 +49,17 @@ classdef PrecomputedVariableTest < handle
 
     methods (Access = private)
 
-        function computeVariable(obj)
+        function init(obj, cParams)
+            obj.testName         = cParams.testName;
+            obj.variablesToStore = cParams.variablesToStore;
+            obj.computerType     = cParams.computerType;
+            obj.testResultsName  = cParams.testName;
+            if isfield(cParams, 'testResultsName')
+                obj.testResultsName = cParams.testResultsName;
+            end
+        end
+
+        function computeVariable(obj, s)
             s.testName = obj.testName;
             testComputer = TestComputer.create(obj.computerType, s);
             testComputer.compute();
@@ -84,7 +93,7 @@ classdef PrecomputedVariableTest < handle
         end
 
         function loadStoredVariable(obj)
-            file2load = obj.testName;
+            file2load = obj.testResultsName;
             load(file2load);
             for icell = 1:numel(obj.variablesToStore)
               obj.storedVar{icell} = eval(obj.variablesToStore{icell});

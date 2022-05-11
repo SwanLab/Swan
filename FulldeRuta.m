@@ -50,3 +50,6 @@
 % z) LONG-TERM
 %       WIP - Re-use FeFunction for displacements... with its own
 %             dimensions
+
+%- Tests quadratic
+%- Stokes

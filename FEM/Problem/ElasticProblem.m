@@ -28,6 +28,7 @@ classdef ElasticProblem < handle
         mesh % For Homogenization
         interpolation
         interpTranslator
+        interpolationType
     end
 
     methods (Access = public)
@@ -36,6 +37,7 @@ classdef ElasticProblem < handle
             obj.init(cParams);
             obj.computeDimensions();
             obj.updateInputMismatch();
+            obj.createDisplacementField();
             obj.createBoundaryConditions();
             obj.createSolver();
         end
@@ -98,6 +100,11 @@ classdef ElasticProblem < handle
             obj.pdim        = cParams.dim;
             obj.ptype       = cParams.type;
             obj.inputBC     = cParams.bc;
+            if isprop(cParams, 'interpolationType')
+                obj.interpolationType = cParams.interpolationType;
+            else
+                obj.interpolationType = 'LINEAR';
+            end
             obj.createQuadrature();
             obj.createInterpolation();
         end
@@ -109,11 +116,8 @@ classdef ElasticProblem < handle
         end
 
         function createInterpolation(obj)
-%             int = obj.mesh.interpolation;
-            int = Interpolation.create(obj.mesh,'LINEAR');
-
+            int = Interpolation.create(obj.mesh,obj.interpolationType);
 %             int = Interpolation.create(obj.mesh,'QUADRATIC');
-
             int.computeShapeDeriv(obj.quadrature.posgp);
             obj.interpolation = int;
         end
@@ -134,6 +138,9 @@ classdef ElasticProblem < handle
             s.interpolation = obj.interpolation;
             s.inputBC       = obj.inputBC;
             obj.interpTranslator = InterpolationTranslator(s);
+        end
+
+        function createDisplacementField(obj)
         end
 
         function createBoundaryConditions(obj)

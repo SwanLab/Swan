@@ -13,6 +13,7 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
             obj.interpolation = cParams.interpolation;
             obj.createQuadrature();
 %             obj.createInterpolation();
+            obj.quadrature.computeQuadrature(obj.interpolation.order)
             obj.createGeometry();
         end
 
@@ -67,9 +68,10 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
             npe    = obj.interpolation.nnode*obj.dim.ndimField;
             lhs = zeros(npe,npe,nelem);
             Bcomp = obj.createBComputer();
+            Cmat = obj.material.C(:,:,:,1);
             for igaus = 1:ngaus
                 Bmat = Bcomp.computeBmat(igaus);
-                Cmat = obj.material.C(:,:,:,igaus);
+%                 Cmat = obj.material.C(:,:,:,igaus);
                 dV(1,1,:) = dvolu(igaus,:)';
                 Bt   = permute(Bmat,[2 1 3]);
                 BtC  = pagemtimes(Bt,Cmat);
