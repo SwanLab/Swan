@@ -67,8 +67,9 @@ classdef Assembler < handle
         function A = assembleMatrixViaIndices(obj, Ae)
             connec    = obj.globalConnec;
 %             dofConnec = obj.computeDofConnectivity()';
-            ndof    = obj.dim.ndof;
+            nnodes  = obj.dim.nnodes;
             ndimf   = obj.dim.ndimField;
+            ndofs   = ndimf*nnodes;
             nelem   = size(connec, 1);
             nnodeEl = obj.nnodeEl;
             ndofEl  = nnodeEl*ndimf;
@@ -87,14 +88,13 @@ classdef Assembler < handle
                     fnsh = fnsh + nelem;
                 end
             end
-%             ndof = max(max(dofConnec));
-            A = sparse(res(:,1), res(:,2), res(:,3), ndof, ndof);
+            A = sparse(res(:,1), res(:,2), res(:,3), ndofs, ndofs);
         end
         
         function dofConnec = computeDofConnectivity(obj)
             connec  = obj.globalConnec;
             ndimf   = obj.dim.ndimField;
-            nnodeEl = obj.nnodeEl; %nope, depends on the interpolation.
+            nnodeEl = obj.nnodeEl;
             ndofsEl = nnodeEl * ndimf;
             dofsElem  = zeros(ndofsEl,size(connec,1));
             for inode = 1:nnodeEl
@@ -136,19 +136,17 @@ classdef Assembler < handle
             for iDof = 1:ndofPerElem
                 dofs = dofsInElem(iDof,:);
                 c = F(iDof,:);
-                Fadd = obj.computeAddVectorBySparse(dofs, c);
-                % Fadd = obj.computeAddVectorByAccumarray(dofs, c);
+                Fadd = obj.computeAddVectorBySparse(dofs, c, ndof);
+                % Fadd = obj.computeAddVectorByAccumarray(dofs, c, ndof);
                 V = V + Fadd;
             end
         end
 
-        function Vadd = computeAddVectorBySparse(obj,dofs, c)
-           ndof = obj.dim.ndof;
+        function Vadd = computeAddVectorBySparse(obj,dofs, c, ndof)
            Vadd = sparse(dofs,1,c',ndof,1);
         end
 
-        function Vadd = computeAddVectorByAccumarray(obj,dofs,c)
-           ndof = obj.dim.ndof;
+        function Vadd = computeAddVectorByAccumarray(obj,dofs,c, ndof)
            Vadd = accumarray(dofs',c',[ndof 1]);
         end
         

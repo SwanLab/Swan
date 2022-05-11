@@ -10,8 +10,9 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
         function obj = LHSintegrator_StiffnessElastic(cParams)
             obj.init(cParams);
             obj.material = cParams.material;
+            obj.interpolation = cParams.interpolation;
             obj.createQuadrature();
-            obj.createInterpolation();
+%             obj.createInterpolation();
             obj.createGeometry();
         end
 
@@ -84,7 +85,7 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
         function Bcomp = createBComputer(obj)
             s.dim          = obj.dim;
             s.geometry     = obj.geometry;
-            s.globalConnec = obj.globalConnec;
+            s.globalConnec = [];
             Bcomp = BMatrixComputer(s);
         end
 

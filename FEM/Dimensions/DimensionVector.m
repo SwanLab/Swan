@@ -1,13 +1,16 @@
 classdef DimensionVector < handle
     
+    properties (Access = public)
+        ndof
+        nnodes
+    end
+
     properties (GetAccess = public, SetAccess = private)
         fieldName
         scalarFields
-        nnodes
         nnodeElem
         ndimField
         ndofPerElement
-        ndof
     end
     
     properties (Access = private)
@@ -21,14 +24,13 @@ classdef DimensionVector < handle
         end
 
         function compute(obj)
-            ndimf = obj.ndimField;
-            for i = 1:ndimf
+            for i = 1:obj.ndimField
                 name = append(obj.fieldName, int2str(i));
                 s.mesh = obj.mesh;
                 s.name = name;
                 obj.scalarFields.(name) = DimensionScalar(s);
             end
-            obj.ndof           = ndimf*obj.mesh.nnodes;
+            obj.ndof           = obj.ndimField*obj.mesh.nnodes;
             obj.nnodes         = obj.mesh.nnodes;
             obj.nnodeElem      = obj.mesh.interpolation.nnode;
             obj.ndofPerElement = obj.nnodeElem*obj.ndimField;
@@ -51,6 +53,7 @@ classdef DimensionVector < handle
             obj.mesh      = cParams.mesh;
             obj.ndimField = cParams.ndimf;
             obj.fieldName = cParams.fieldName;
+%             obj.interpolation = cParams.interpolation;
         end
 
     end

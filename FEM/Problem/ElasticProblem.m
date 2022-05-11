@@ -26,6 +26,8 @@ classdef ElasticProblem < handle
         vstrain
 
         mesh % For Homogenization
+        interpolation
+        interpTranslator
     end
 
     methods (Access = public)
@@ -33,6 +35,7 @@ classdef ElasticProblem < handle
         function obj = ElasticProblem(cParams)
             obj.init(cParams);
             obj.computeDimensions();
+            obj.updateInputMismatch();
             obj.createBoundaryConditions();
             obj.createSolver();
         end
@@ -96,6 +99,7 @@ classdef ElasticProblem < handle
             obj.ptype       = cParams.type;
             obj.inputBC     = cParams.bc;
             obj.createQuadrature();
+            obj.createInterpolation();
         end
 
         function createQuadrature(obj)
@@ -104,21 +108,40 @@ classdef ElasticProblem < handle
             obj.quadrature = quad;
         end
 
+        function createInterpolation(obj)
+%             int = obj.mesh.interpolation;
+            int = Interpolation.create(obj.mesh,'LINEAR');
+
+%             int = Interpolation.create(obj.mesh,'QUADRATIC');
+
+            int.computeShapeDeriv(obj.quadrature.posgp);
+            obj.interpolation = int;
+        end
+
         function computeDimensions(obj)
-            s.type = 'Vector';
+            s.type      = 'Vector';
             s.fieldName = 'u';
-            s.mesh = obj.mesh;
+            s.mesh      = obj.mesh;
             s.ndimf = str2double(regexp(obj.pdim,'\d*','Match'));
             d = DimensionVariables.create(s);
             d.compute()
             obj.dim = d;
         end
 
+        function updateInputMismatch(obj)
+            s.mesh          = obj.mesh;
+            s.dim           = obj.dim;
+            s.interpolation = obj.interpolation;
+            s.inputBC       = obj.inputBC;
+            obj.interpTranslator = InterpolationTranslator(s);
+        end
+
         function createBoundaryConditions(obj)
-            s.dim        = obj.dim;
-            s.mesh       = obj.mesh;
-            s.scale      = obj.scale;
-            s.bc         = obj.inputBC;
+            s.dim   = obj.dim;
+            s.mesh  = obj.mesh;
+            s.scale = obj.scale;
+            s.bc    = obj.interpTranslator.inputBC;
+            s.ndofs = max(max(obj.interpTranslator.globalConnec))*obj.dim.ndimField;
             bc = BoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;
@@ -131,10 +154,11 @@ classdef ElasticProblem < handle
 
         function computeStiffnessMatrix(obj)
             s.type = 'ElasticStiffnessMatrix';
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.dim          = obj.dim;
-            s.material     = obj.material;
+            s.mesh          = obj.mesh;
+            s.globalConnec  = obj.interpTranslator.globalConnec;
+            s.dim           = obj.dim;
+            s.material      = obj.material;
+            s.interpolation = obj.interpolation;
             LHS = LHSintegrator.create(s);
             K   = LHS.compute();
             obj.stiffnessMatrix = K;
@@ -153,11 +177,11 @@ classdef ElasticProblem < handle
 
         function computeForces(obj)
             s.type = 'Elastic';
-            s.scale       = obj.scale;
-            s.dim         = obj.dim;
-            s.BC          = obj.boundaryConditions;
-            s.mesh        = obj.mesh;
-            s.material    = obj.material;
+            s.scale    = obj.scale;
+            s.dim      = obj.dim;
+            s.BC       = obj.boundaryConditions;
+            s.mesh     = obj.mesh;
+            s.material = obj.material;
             s.globalConnec = obj.mesh.connec;
             if isprop(obj, 'vstrain')
                 s.vstrain = obj.vstrain;
