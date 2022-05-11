@@ -29,7 +29,8 @@ classdef Hyperelastic_Problem < FEM
         
         function preProcess(obj)
             obj.element = Element_Hyperelastic(obj.mesh,obj.geometry,obj.material,obj.dof);
-            obj.solver = Solver.create;
+            s.type = 'DIRECT';
+            obj.solver = Solver.create(s);
         end
         
         function computeVariables(obj)

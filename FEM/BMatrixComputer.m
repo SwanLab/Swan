@@ -47,9 +47,9 @@ classdef BMatrixComputer < handle
             d = obj.dim;
             dNdx = obj.geometry.dNdx;
             nstre = obj.nvoigt;
-            nnode = d.nnodeElem;
             ndimf = d.ndimField;
-            ndofE = d.ndofPerElement;
+            nnode = size(dNdx,2);
+            ndofE = nnode*ndimf;
             nelem = size(dNdx,3);
             B = zeros(nstre,ndofE,nelem);
             for i = 1:nnode
@@ -134,6 +134,7 @@ classdef BMatrixComputer < handle
         function Bt = assembleMatrix(obj, Bfull)
             s.dim = obj.dim;
             s.globalConnec = obj.globalConnec;
+            s.nnodeEl = [];
             dNdx = obj.geometry.dNdx;
             d.nelem = size(dNdx,3);
             d.ngaus = size(dNdx,4);

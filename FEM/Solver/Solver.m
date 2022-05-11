@@ -2,18 +2,24 @@ classdef Solver < handle
 
     methods (Static)
 
-        function stype = create()
-            solver_type = 'DIRECT';
-            switch solver_type
+        function stype = create(cParams)
+%             solver_type = 'DIRECT';
+            switch cParams.type
                 case {'DIRECT'}
                     stype = Direct_Solver();
+
                 case {'CHOLEVSKY'}
                     % At least up to ndof ~5e4, Direct is still faster
                     stype = Cholesky_Direct_Solver();
+
                 case {'ITERATIVE'}
                     error('Not implemented yet')
+
+                case 'Nonlinear'
+                    stype = NonLinear_Solver(cParams);
+
                 otherwise
-                    error('Invalid stype.')
+                    error('Invalid solver type.')
             end
         end
 
