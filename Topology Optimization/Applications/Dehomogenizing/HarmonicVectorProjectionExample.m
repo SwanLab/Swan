@@ -20,6 +20,8 @@ classdef HarmonicVectorProjectionExample < handle
         harmonicProjector
         unitBallProjector
         orientationVector
+        backgroundMesh
+        superEllipse
     end
     
     methods (Access = public)
@@ -32,7 +34,9 @@ classdef HarmonicVectorProjectionExample < handle
             obj.createHarmonicProjection();
             obj.createUnitBallProjector();
             obj.storeOrientationAngle();
+        %    obj.dehomogenize();            
             obj.project()
+            obj.dehomogenize();                        
         end
 
     end
@@ -41,13 +45,13 @@ classdef HarmonicVectorProjectionExample < handle
 
         function init(obj)
             close all
-%             obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-%             obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-%             obj.iteration = 665;
+            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+            obj.iteration = 665;
 % 
-            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-            obj.fileName = 'ExperimentingPlotSuperEllipse';
-            obj.iteration = 64;
+%             obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+%             obj.fileName = 'ExperimentingPlotSuperEllipse';
+%             obj.iteration = 64;
                         
         end
 
@@ -110,7 +114,8 @@ classdef HarmonicVectorProjectionExample < handle
             tx = t(:,1);
             ty = t(:,2);     
             figure(5)
-            quiver(x,y,tx,ty)
+            q = quiver(x,y,tx,ty);
+            q.ShowArrowHead = 'off';
         end
 
         function vI = interpolateOrientationAngle(obj,v0)
@@ -127,7 +132,8 @@ classdef HarmonicVectorProjectionExample < handle
             y = obj.mesh.coord(:,2);
             tx = t(:,1);
             ty = t(:,2);
-            quiver(x,y,tx,ty)
+            q = quiver(x,y,tx,ty);
+            q.ShowArrowHead = 'off';
             figure(2)
             subplot(1,2,iFigure)
             s.mesh = obj.mesh;
@@ -144,8 +150,8 @@ classdef HarmonicVectorProjectionExample < handle
             y = obj.mesh.coord(:,2);
             tx = alpha0(:,1);
             ty = alpha0(:,2);
-            quiver(x,y,tx,ty)
-
+            q = quiver(x,y,tx,ty);
+            q.ShowArrowHead = 'off';
             theta = atan2(ty,tx);
             dalpha0(:,1) = cos(2*theta);
             dalpha0(:,2) = sin(2*theta);
@@ -173,6 +179,7 @@ classdef HarmonicVectorProjectionExample < handle
                 u2(:,1) = cos(2*theta);
                 u2(:,2) = sin(2*theta);
                 [uNew2,lambda] = obj.solveProblem(dalpha0,u2);
+             %   uNew2 = u2;
                 theta = 0.5*atan2(uNew2(:,2),uNew2(:,1));
                 uNew(:,1) = cos(theta);
                 uNew(:,2) = sin(theta);
@@ -195,10 +202,10 @@ classdef HarmonicVectorProjectionExample < handle
 %                 plot(optPrimal','-+')                
 %                 plot(optDual','-+')
 %                 hold off
-                isErrorLarge = true;% err(i) > 1e-13;
+                isErrorLarge = false;true;% err(i) > 1e-13;
                 i = i +1;
                 obj.plotOrientation(u,2) 
-       
+                obj.orientationAngle = theta;
 
             end
         end
@@ -258,7 +265,55 @@ classdef HarmonicVectorProjectionExample < handle
         function dualOptT = computeDualUnitBallOptimality(obj,v)
             u = obj.unitBallProjector;
             dualOptT = u.computeDualOptimality(v);
-        end             
+        end    
+
+       function dehomogenize(obj)
+            obj.createBackgroundMesh();
+            obj.createSuperEllipseParams();
+            s.backgroundMesh     = obj.backgroundMesh;
+            s.nCells             = 46;
+            s.theta              = obj.orientationAngle;
+            s.cellLevelSetParams = obj.createLevelSetCellParams();
+            s.mesh               = obj.mesh;
+            d = Dehomogenizer(s);
+            d.compute();
+            d.plot();
+       end        
+
+        function s = createLevelSetCellParams(obj)
+            s.type   = 'smoothRectangle';
+            s.widthH = obj.superEllipse.m1;
+            s.widthV = obj.superEllipse.m2;
+            s.pnorm  = obj.superEllipse.q;
+            s.ndim   = 2;
+        end       
+
+        function createBackgroundMesh(obj)
+            FV.vertices = [obj.mesh.coord,zeros(size(obj.mesh.coord,1),1)];
+            FV.faces    = obj.mesh.connec;
+            FV2 = refinepatch(FV);
+            FV2 = refinepatch(FV2);
+            s.coord = FV2.vertices(:,1:2);
+            s.connec = FV2.faces;
+            m = Mesh(s);
+            obj.backgroundMesh = m;
+        end        
+
+        function createSuperEllipseParams(obj)
+            sE.m1 = obj.interpolateFunction(obj.experimentData.dataRes.DesignVar1);
+            sE.m2 = obj.interpolateFunction(obj.experimentData.dataRes.DesignVar2);
+            sE.q  = obj.interpolateFunction(obj.experimentData.dataRes.SuperEllipseExponent);
+            obj.superEllipse = sE;
+        end
+        
+        function vq = interpolateFunction(obj,v)
+            X = obj.mesh.coord(:,1);
+            Y = obj.mesh.coord(:,2);
+            F = scatteredInterpolant(X,Y,v);
+            xB = obj.backgroundMesh.coord(:,1);
+            yB = obj.backgroundMesh.coord(:,2);
+            vq = F(xB,yB);
+        end        
 
     end
 

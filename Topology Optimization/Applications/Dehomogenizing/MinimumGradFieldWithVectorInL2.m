@@ -69,6 +69,7 @@ classdef MinimumGradFieldWithVectorInL2 < handle
             s.npnod        = obj.mesh.npnod;
             s.type         = 'MassMatrix';
             s.dim          = obj.dim;
+            s.quadType     = 'QUADRATIC';
             lhs = LHSintegrator.create(s);
             M = lhs.compute();
         end

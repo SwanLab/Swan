@@ -121,7 +121,7 @@ classdef LinearizedHarmonicProjector < handle
                 end                
                                 
                 
-                theta = 0.95;0.5;
+                theta = 0.5;
              %   v = obj.projectUnitBall(v);
                 vH = theta*v + (1-theta)*vH ;    
 %                  if mod(i,10) == 0
@@ -190,7 +190,8 @@ classdef LinearizedHarmonicProjector < handle
             ty = t(:,2);
            
             tp = obj.projectUnitBall(t);
-            quiver(x,y,tx-tp(:,1),ty-tp(:,2),1.1);
+            q = quiver(x,y,tx-tp(:,1),ty-tp(:,2),1.1);
+            q.ShowArrowHead = 'off';
             tx = tp(:,1);
             ty = tp(:,2);
             subplot(2,2,2*(2-1)+iFigure)            
