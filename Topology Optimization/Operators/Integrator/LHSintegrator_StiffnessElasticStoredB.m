@@ -61,6 +61,7 @@ classdef LHSintegrator_StiffnessElasticStoredB < LHSintegrator
            dvol = obj.geometry.dvolu;
            s.dim = obj.dim;
            s.globalConnec = [];
+           s.nnodeEl = [];
            assembler = Assembler(s);
            CmatTot = assembler.assembleC(Cmat, dvol);
        end

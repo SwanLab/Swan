@@ -1,36 +1,46 @@
 %% To-do
-% a) DIMENSIONS
-%       OK! - Delete nunkn in RHS
-%       OK! - Avoid using nelem from dim
-%       OK! - Avoid using ngaus from dim 
-%       OK* - nstre only in elasticity  (maybe in Bmatrix) and rename it
-%             as nVoigt
-%       IDK - ndofPerNode (and ndofPerElem) in interpolation times npnod
-%             (nnode) of mesh gives ndof of field (in dim)
-%                   - ndofPerNode in interpolation?
-%       OK* - nnode ---> nnodePerElem (in Mesh)
-%       OK! - npnod ---> nnodes (in Mesh)
-%       OK! - create dimensions from s.type (Scalar/Vector)
+% a) THE GOOD
 
-% b) INTEGRATORS
-%       OK* - "integrate" all RHS
-%               - note: pending more cleanup.
+%       OK! - delete problemData in ElasticProblem
+%       OK! - refactoring Dimensions (mesh in init and compute)
+%       MEH - delete nnodes, nnodeElem from Dimensions (or private)
 
-% c) TESTS
-%       NO* - Quadratic shape functions for thermal, elastic, elastic_micro
-%             with corresponding tests
-%               - When the interpolation is set as quadratic, the
-%                 connectivity matrix must be once again calculated.
-%                 ConnecCoordFromInterpAndMesh is supposed to do it, but it
-%                 does not work as intended.
-%               - Some elements overlap, the original node numeration is
-%                 lost in the process and lose physical meaning
-%               - As a result (?), the stiffness matrix is not invertible.
-%                 If the dofConnec is not to be calculated, the
-%                 alternatives may be more expensive.
+%           - NewStokesProblem now looks a bit better. Changes made to the
+%             input (via StokesDataContainer) and the solver (via
+%             NonLinear_Solver)
+%           - ConnecCoordFromInterpAndMesh appears to work mostly* fine. It
+%             is completely fine for sure in the Stokes case (hand-checked)
 
-%         pd.bc.dirichlet = [10 1 0; 10 2 0; 7 1 0; 7 2 0; 19 1 0; 19 2 0];
-%         pd.bc.pointload = [24 2 -1];
+% b) THE BAD
+
+%           - *For the simpleInterpTest, the globalConnec given is wrong,
+%             but it may be due to it being a two-element mesh.
+%           - For quadratic interpolations, the stiffness matrix is
+%             singular, and I have no clue as to what is going on
+%             input (via StokesDataContainer) and the solver (via
+%             NonLinear_Solver)
+%                   - Created InterpolationTranslator to solve the mismatch
+%                     between pre-interpolation and post-interp data.
+%                   - The assembly seems to have been performed properly
+%                   - The boundary conditions seem to have been applied
+%                     correctly. Adding an additional Dirichlet condition
+%                     does not seem to help.
+
+% c) THE UGLY
+
+%           - ndof and nnode is still needed in some cases, mainly due to
+%             issues with ndof and Boundary Mass Matrices. Ambitious fix
+%             proposed below
+%           - Physical meaning of the matrices at Element_Stokes? Move to
+%             LHSintegrator?
+%           - What to do with abandoned methods at LHSintegrator + old
+%             assembly?
+
+% Possible concept?
+% Instead of including DimensionVariables as part of the problem, make a
+% new class Field which is part of the problem. THIS class could have the
+% dimensions of the field, its own interpolation + connectivities, and
+% eventually, its own FeFunction
 
 % d) STOKES
 %       WIP - Restore Stokes_Problem
@@ -40,7 +50,3 @@
 % z) LONG-TERM
 %       WIP - Re-use FeFunction for displacements... with its own
 %             dimensions
-
-% delete problemData
-% refactoring DImensions (mesh in init and compute)
-% delete nnodes, nnodeElem from Dimensions (or private)

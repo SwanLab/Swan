@@ -8,12 +8,15 @@ classdef Material_Stokes < Material
         
         function obj = Material_Stokes(cParams)
             obj.nElem = cParams.nelem;
-            mu = zeros(4,4,obj.nElem);
-            mu(1,1,:) = 1;
-            mu(2,2,:) = 1;
-            mu(3,3,:) = 1;
-            mu(4,4,:) = 1;
-            obj.mu = mu;
+        end
+
+        function compute(obj)
+            m = zeros(4,4,obj.nElem);
+            m(1,1,:) = 1;
+            m(2,2,:) = 1;
+            m(3,3,:) = 1;
+            m(4,4,:) = 1;
+            obj.mu = m;
         end
         
     end

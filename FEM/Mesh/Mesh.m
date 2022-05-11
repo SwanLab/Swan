@@ -259,14 +259,6 @@ classdef Mesh < handle
         
         function createInterpolation(obj)
             obj.interpolation = Interpolation.create(obj,'LINEAR');
-%             obj.interpolation = Interpolation.create(obj,'QUADRATIC');
-%             s.mesh = obj;
-%             s.interpolation = obj.interpolation;
-%             c = ConnecCoordFromInterpAndMesh(s);
-%             c.compute();
-%             obj.connec = c.connec;
-%             obj.coord = c.coord;
-%             obj.nnodes= size(c.coord,1);
         end
         
         function computeElementCoordinates(obj)
