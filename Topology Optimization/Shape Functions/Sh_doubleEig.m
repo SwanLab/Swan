@@ -21,7 +21,7 @@ classdef Sh_doubleEig < ShapeFunctional
         end  
 
         function v = getVariablesToPlot(obj)
-            v{1} = obj.value*obj.value0;
+            v{1} = obj.value;%*obj.value0;
         end 
         
     end
@@ -40,12 +40,14 @@ classdef Sh_doubleEig < ShapeFunctional
         function computeFunction(obj)
            eigN = obj.eigNum;
            obj.value = obj.eigModes.provideFunction(eigN);
+           %obj.normalizeFunction();
         end
 
         function computeGradient(obj)
             eigN = obj.eigNum;
             dfdx = obj.eigModes.provideDerivative(eigN);
             obj.gradient = dfdx';
+            %obj.normalizeGradient();
         end
     end
     

@@ -156,8 +156,8 @@ classdef IterativeProcessComputer < handle
               obj.optimizer = Optimizer.create(s);    
               obj.optimizer.solveProblem();
 % 
-% 
-% 
+
+
 
 
 
