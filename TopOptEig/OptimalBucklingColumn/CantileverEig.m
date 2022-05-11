@@ -1,13 +1,14 @@
-filename = 'CantileverBeam_Triangle_Linear';%'Cantilever';%'CantileverBeam_Triangle_Linear';
+filename = 'CantileverBeam_Triangle_Linear'; %'Cantilever';%'CantileverBeam_Triangle_Linear';
 ptype = 'MACRO';
 method = 'SIMP_P3';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'compliance'};
+cost = {'ShFunc_firstEigTop'};
 weights = [1];
-constraint = {'volumeConstraint'};
-optimizerUnconstrained = 'PROJECTED GRADIENT';%'PROJECTED GRADIENT'; 
-optimizer = 'MMA';%'NullSpace';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
+% Create all shape functionals 
+constraint = {'firstFreq','undampedFreeVibrationProblem','orthonormalize','volumeConstraint','minDensity'}; % Change names
+optimizerUnconstrained = 'PROJECTED GRADIENT'; % 'PROJECTED GRADIENT'; 
+optimizer = 'MMA'; %'NullSpace';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
 incrementFactor = 1;
 designVariable = 'Density';%'Density';
 filterType = 'P1';
