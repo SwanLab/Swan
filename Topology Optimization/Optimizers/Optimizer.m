@@ -7,7 +7,7 @@ classdef Optimizer < handle
         constraint
         outputFunction
         maxIter
-        nIter
+        nIter = 0
         targetParameters
         dualUpdater
         constraintCase
@@ -66,7 +66,7 @@ classdef Optimizer < handle
 
         function c = checkEqualityConstraint(obj)
             g = obj.constraint.value;
-            c = abs(g) < obj.targetParameters.constr_tol;
+            c = abs(g) < obj.targetParameters.constr_tol*10;
         end
 
     end

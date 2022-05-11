@@ -25,6 +25,13 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         mOld
         meritNew
         penalty
+
+        globalCost
+        globalConstraint
+        globalCostGradient
+        globalMerit
+        globalLineSearch
+        globalDual
     end
 
     methods (Access = public) 
@@ -43,6 +50,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
+                obj.saveVariablesForAnalysis();
             end
         end
 
@@ -178,7 +186,6 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function obj = updateMonitoring(obj)
-            obj.updateIterInfo();
             s.nIter            = obj.nIter;
             s.tau              = obj.tau;
             s.lineSearch       = obj.lineSearch;
@@ -206,6 +213,25 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             iStep = obj.incrementalScheme.iStep;
             nStep = obj.incrementalScheme.nSteps;
             itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
+        end
+
+        function saveVariablesForAnalysis(obj)
+            i                         = obj.nIter;
+            obj.globalCost(i)         = obj.cost.value;
+            obj.globalConstraint(i)   = obj.constraint.value;
+            obj.globalCostGradient(i) = norm(obj.cost.gradient);
+            obj.globalMerit(i)        = obj.meritNew;
+            obj.globalLineSearch(i)   = obj.tau;
+            obj.globalDual(i)         = obj.dualVariable.value;
+            if obj.hasConverged
+                c = obj.globalCost;
+                h = obj.globalConstraint;
+                g = obj.globalCostGradient;
+                m = obj.globalMerit;
+                t = obj.globalLineSearch;
+                d = obj.globalDual;
+                save('AugLagrangianVariables.mat',"t","m","c","g","h","d");
+            end
         end
 
     end

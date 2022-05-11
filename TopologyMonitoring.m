@@ -104,6 +104,8 @@ classdef TopologyMonitoring < handle
             obj.convergenceVars.append(deltaCost);
             obj.convergenceVars.append(incX);
             obj.convergenceVars.append(obj.lineSearch);
+            obj.convergenceVars.append(obj.lineSearchTrials);
+            obj.convergenceVars.append(cParams.meritNew);
             obj.refreshMonitoring();
             obj.printHistory();
         end
