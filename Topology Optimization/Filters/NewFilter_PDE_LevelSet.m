@@ -136,7 +136,8 @@ classdef NewFilter_PDE_LevelSet < handle
 
         function x_reg = solveFilter(obj,RHS)
             RHS = obj.bc.fullToReducedVector(RHS);
-            Solv = Solver.create();
+            s.type = 'DIRECT';
+            Solv = Solver.create(s);
             x = Solv.solve(obj.LHS,RHS);
             x_reg = obj.bc.reducedToFullVector(x);
         end

@@ -1,6 +1,6 @@
 function ComputingTopOpt
 
-rho0Name = 'rho0CantileverGruix.mat';
+rho0Name = 'rho0.mat';
 jumpTo2ndPart = true;
 
 if jumpTo2ndPart == false
