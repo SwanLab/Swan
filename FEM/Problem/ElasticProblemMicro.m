@@ -25,13 +25,14 @@ classdef ElasticProblemMicro < ElasticProblem
 
         function Ch = computeChomog(obj)
             nelem = size(obj.material.C,3);
-            ndof  = obj.dim.ndof;
+            npnod = max(max(obj.interpTranslator.globalConnec));
+            ndofs = npnod*obj.dim.ndimField;
             nstre = obj.material.nstre;
             ngaus = obj.quadrature.ngaus;
             basis = diag(ones(nstre,1));
             tStrn  = zeros(nstre,ngaus,nstre,nelem);
             tStrss = zeros(nstre,ngaus,nstre,nelem);
-            tDisp  = zeros(nstre,ndof);
+            tDisp  = zeros(nstre,ndofs);
             Ch = zeros(nstre,nstre);
             for istre=1:nstre
                 obj.vstrain = basis(istre,:);
