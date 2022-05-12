@@ -87,7 +87,7 @@ classdef RHSintegrator_ElasticMicro < handle
             %Compute Global Puntual Forces (Not well-posed in FEM)
             neumann       = obj.boundaryConditions.neumann;
             neumannValues = obj.boundaryConditions.neumann_values;
-            Fp = zeros(obj.dim.ndof,1);
+            Fp = zeros(obj.dim.ndofs,1);
             if ~isempty(neumann)
                 Fp(neumann) = neumannValues;
             end
@@ -95,7 +95,7 @@ classdef RHSintegrator_ElasticMicro < handle
         
         function F = computeStrainRHS(obj,vstrain)
             Cmat  = obj.material.C;
-            nunkn = obj.dim.ndimField;
+            nunkn = obj.dim.ndimf;
             nstre = size(Cmat,1);
             nelem = size(Cmat,3);
             nnode = obj.dim.nnodeElem;

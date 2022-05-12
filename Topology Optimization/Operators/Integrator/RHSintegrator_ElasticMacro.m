@@ -29,7 +29,7 @@ classdef RHSintegrator_ElasticMacro < handle
             if ~isempty(dirich)
                 R = -K(:,dirich)*dirichV;
             else
-                R = zeros(sum(obj.dim.ndof(:)),1);
+                R = zeros(sum(obj.dim.ndofss(:)),1);
             end
 
         end
@@ -48,7 +48,7 @@ classdef RHSintegrator_ElasticMacro < handle
             %Compute Global Puntual Forces (Not well-posed in FEM)
             neumann       = obj.boundaryConditions.neumann;
             neumannValues = obj.boundaryConditions.neumann_values;
-            Fp = zeros(obj.dim.ndof,1);
+            Fp = zeros(obj.dim.ndofs,1);
             if ~isempty(neumann)
                 Fp(neumann) = neumannValues;
             end

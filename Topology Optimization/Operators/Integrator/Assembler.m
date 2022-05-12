@@ -48,8 +48,8 @@ classdef Assembler < handle
         function A = assembleMatrix(obj, Ae)
             connec    = obj.globalConnec;
             dofConnec = obj.computeDofConnectivity()';
-            ndofs   = obj.dim.ndof;
-            ndimf   = obj.dim.ndimField;
+            ndofs   = obj.dim.ndofs;
+            ndimf   = obj.dim.ndimf;
             nnodeEl = obj.nnodeEl;
             A = sparse(ndofs,ndofs);
             for i = 1:nnodeEl*ndimf
@@ -68,12 +68,12 @@ classdef Assembler < handle
             connec    = obj.globalConnec;
 %             dofConnec = obj.computeDofConnectivity()';
             nnodes  = obj.dim.nnodes;
-            ndimf   = obj.dim.ndimField;
+            ndimf   = obj.dim.ndimf;
             ndofs   = ndimf*nnodes;
             nelem   = size(connec, 1);
-            nnodeEl = obj.nnodeEl;
-            ndofEl  = nnodeEl*ndimf;
+%             nnodeEl = obj.nnodeEl;
             dofConnec = obj.computeDofConnectivity()';
+            ndofEl  = size(dofConnec,2);
             res = zeros(ndofEl^2 * nelem, 3);
             strt = 1;
             fnsh = nelem;
@@ -93,9 +93,9 @@ classdef Assembler < handle
         
         function dofConnec = computeDofConnectivity(obj)
             connec  = obj.globalConnec;
-            ndimf   = obj.dim.ndimField;
-            nnodeEl = obj.nnodeEl;
-            ndofsEl = nnodeEl * ndimf;
+            ndimf   = obj.dim.ndimf;
+            nnodeEl = size(connec, 2); % obj.dim.nnodeElem
+            ndofsEl = nnodeEl * ndimf; %obj.dim.ndofsElem;
             dofsElem  = zeros(ndofsEl,size(connec,1));
             for inode = 1:nnodeEl
                 for iunkn = 1:ndimf
@@ -109,19 +109,19 @@ classdef Assembler < handle
         end
 
         function idof = nod2dof(obj, inode, iunkn)
-            ndimf = obj.dim.ndimField;
+            ndimf = obj.dim.ndimf;
             idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
 
         function Cadd = computeAaddBySparse(obj,a, dofsI, dofsJ)
            d = obj.dim;
-           ndofs = d.ndof;
+           ndofs = d.ndofs;
            Cadd = sparse(dofsI,dofsJ,a,ndofs,ndofs);
         end
 
         function Cadd = computeAaddByAccumarray(obj,a, dofsI, dofsJ)
            d = obj.dim;
-           ndofs = d.ndof;
+           ndofs = d.ndofs;
            index = [dofsI, dofsJ];
            Cadd = accumarray(index,a,[ndofs ndofs],[],[],true);
         end
@@ -130,8 +130,8 @@ classdef Assembler < handle
 
         function V = assembleVector(obj, F)
             dofsInElem = obj.computeDofConnectivity();
-            ndofPerElem = obj.dim.ndofPerElement;
-            ndof        = obj.dim.ndof;
+            ndofPerElem = obj.dim.ndofsElem;
+            ndof        = obj.dim.ndofs;
             V = zeros(ndof,1);
             for iDof = 1:ndofPerElem
                 dofs = dofsInElem(iDof,:);
@@ -175,7 +175,7 @@ classdef Assembler < handle
 
         function gDofs = transformLocal2Global(obj,iDof)
             d       = obj.dim;
-            ndimf   = d.ndimField;
+            ndimf   = d.ndimf;
             nnodeEl = obj.nnodeEl;
             nodes        = obj.globalConnec;
             nodesInElem  = reshape(repmat(1:nnodeEl,ndimf,1),1,[]);

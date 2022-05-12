@@ -21,7 +21,7 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
 %             disp('Elemental')
 %             tic
 %                 lhs   = obj.computeElementalLHS();
-%             toc
+%             tocº
 %             disp('Pagemtimes')
 %             tic
                 lhs   = obj.computeElementalLHSPagemtimes();
@@ -39,7 +39,7 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
             nstre  = size(C,1);
             nelem  = size(C,3);
             ngaus  = obj.quadrature.ngaus;
-            npe    = obj.dim.ndofPerElement;
+            npe    = obj.dim.ndofsElem;
             lhs = zeros(npe,npe,nelem);
             Bcomp = obj.createBComputer();
             for igaus = 1:ngaus
@@ -64,8 +64,8 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
             dvolu  = obj.mesh.computeDvolume(obj.quadrature);
             ngaus  = obj.quadrature.ngaus;
             nelem  = size(obj.material.C,3);
-%             npe    = obj.dim.ndofPerElement;
-            npe    = obj.interpolation.nnode*obj.dim.ndimField;
+            npe    = obj.dim.ndofsElem;
+%             npe    = obj.dim.nnodeEl*obj.dim.ndimf;
             lhs = zeros(npe,npe,nelem);
             Bcomp = obj.createBComputer();
             Cmat = obj.material.C(:,:,:,1);

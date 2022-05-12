@@ -75,7 +75,7 @@ classdef BoundaryConditions < handle
             if isfield(cParams, 'ndofs') && ~isempty(cParams.ndofs)
                 obj.ndofs = cParams.ndofs;
             else
-                obj.ndofs = obj.dim.ndof;
+                obj.ndofs = obj.dim.ndofs;
             end
             obj.initPeriodicMasterSlave(cParams);
         end
@@ -98,7 +98,7 @@ classdef BoundaryConditions < handle
         end
         
         function perDof = computePeriodicNodes(obj,perNodes)
-            nunkn = obj.dim.ndimField;
+            nunkn = obj.dim.ndimf;
             nlib = size(perNodes,1);
             perDof = zeros(nlib*nunkn,1);
             for iunkn = 1:nunkn
@@ -125,7 +125,7 @@ classdef BoundaryConditions < handle
         end
 
         function idof = nod2dof(obj, inode, iunkn)
-            ndimf = obj.dim.ndimField;
+            ndimf = obj.dim.ndimf;
             idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
 

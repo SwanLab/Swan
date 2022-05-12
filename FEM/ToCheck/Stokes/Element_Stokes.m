@@ -133,7 +133,7 @@ classdef Element_Stokes < Element
         
         function g = compute_velocity_divergence(obj)
             dimP = obj.dim{1};
-            nunkn = dimP.ndimField;
+            nunkn = dimP.ndimf;
             g = zeros(obj.interp{2}.nnode*nunkn,1,obj.nelem);
         end
         
@@ -170,7 +170,7 @@ classdef Element_Stokes < Element
             geometry = geometry(1);
             nnode = obj.interpolation_v.nnode;
             dimV = obj.dim{1};
-            nunkn = dimV.ndimField;
+            nunkn = dimV.ndimf;
             %             f = zeros(nnode*nunkn,1,nelem);
             
             %             obj.RHS = zeros(nnode*nunkn,1,nelem);
@@ -215,7 +215,7 @@ classdef Element_Stokes < Element
         
         function M = compute_M(obj)
             dimV = obj.dim{1};
-            nunkn = dimV.ndimField;
+            nunkn = dimV.ndimf;
             nnode = obj.interpolation_v.nnode;
             ndofs = nunkn*nnode;
             nelem = obj.nelem;
@@ -271,7 +271,7 @@ classdef Element_Stokes < Element
         
         function K = compute_K(obj)
             dimV = obj.dim{1};
-            nunkn = dimV.ndimField;
+            nunkn = dimV.ndimf;
             nnode = obj.interpolation_v.nnode;
             ndofs = nunkn*nnode;
             nelem = obj.nelem;
@@ -304,7 +304,7 @@ classdef Element_Stokes < Element
         function D = compute_D(obj)
             dimV = obj.dim{1};
             nelem = obj.nelem;
-            nunknU = dimV.ndimField;
+            nunknU = dimV.ndimf;
             nnodeV = obj.interpolation_v.nnode;
             
             D = zeros(nunknU*obj.interpolation_v.nnode,obj.interpolation_p.nnode,nelem);

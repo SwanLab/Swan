@@ -29,6 +29,7 @@ classdef ElasticProblem < handle
         interpolation
         interpTranslator
         interpolationType
+        displacementField
     end
 
     methods (Access = public)
@@ -36,7 +37,7 @@ classdef ElasticProblem < handle
         function obj = ElasticProblem(cParams)
             obj.init(cParams);
             obj.computeDimensions();
-            obj.updateInputMismatch();
+%             obj.updateInputMismatch();
             obj.createDisplacementField();
             obj.createBoundaryConditions();
             obj.createSolver();
@@ -53,7 +54,7 @@ classdef ElasticProblem < handle
         end
 
         function plot(obj)
-            s.dim          = obj.dim;
+            s.dim          = obj.displacementField.dim;
             s.mesh         = obj.mesh;
             s.displacement = obj.variables.d_u;
             plotter = FEMPlotter(s);
@@ -61,7 +62,7 @@ classdef ElasticProblem < handle
         end
 
         function dim = getDimensions(obj)
-            dim = obj.dim;
+            dim = obj.displacementField.dim;
         end
 
         function setC(obj, C)
@@ -82,7 +83,7 @@ classdef ElasticProblem < handle
             s.iter = 0;
             s.fields    = obj.createVariablesToPrint();
             s.ptype     = obj.ptype;
-            s.ndim      = obj.dim.ndimField;
+            s.ndim      = obj.displacementField.dim.ndimf;
             s.pdim      = obj.pdim;
             s.type      = obj.createPrintType();
             fPrinter = FemPrinter(s);
@@ -132,23 +133,29 @@ classdef ElasticProblem < handle
             obj.dim = d;
         end
 
-        function updateInputMismatch(obj)
-            s.mesh          = obj.mesh;
-            s.dim           = obj.dim;
-            s.interpolation = obj.interpolation;
-            s.inputBC       = obj.inputBC;
-            obj.interpTranslator = InterpolationTranslator(s);
-        end
+%         function updateInputMismatch(obj)
+%             s.mesh          = obj.mesh;
+% %             s.dim           = obj.dim;
+%             s.interpolation = obj.interpolation;
+%             s.inputBC       = obj.inputBC;
+%             obj.interpTranslator = InterpolationTranslator(s);
+%         end
 
         function createDisplacementField(obj)
+            ndimf = regexp(obj.pdim,'\d*','Match');
+            s.mesh               = obj.mesh;
+            s.ndimf              = str2double(ndimf);
+            s.inputBC            = obj.inputBC;
+            s.interpolationOrder = obj.interpolationType; %obj.interpolationType
+            obj.displacementField = Field(s);
         end
 
         function createBoundaryConditions(obj)
-            s.dim   = obj.dim;
+            s.dim   = obj.displacementField.dim;
             s.mesh  = obj.mesh;
             s.scale = obj.scale;
-            s.bc    = obj.interpTranslator.inputBC;
-            s.ndofs = max(max(obj.interpTranslator.globalConnec))*obj.dim.ndimField;
+            s.bc    = obj.displacementField.inputBC;
+            s.ndofs = obj.displacementField.dim.ndofs;
             bc = BoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;
@@ -162,8 +169,8 @@ classdef ElasticProblem < handle
         function computeStiffnessMatrix(obj)
             s.type = 'ElasticStiffnessMatrix';
             s.mesh          = obj.mesh;
-            s.globalConnec  = obj.interpTranslator.globalConnec;
-            s.dim           = obj.dim;
+            s.globalConnec  = obj.displacementField.connec;
+            s.dim           = obj.displacementField.dim;
             s.material      = obj.material;
             s.interpolation = obj.interpolation;
             LHS = LHSintegrator.create(s);
@@ -174,8 +181,8 @@ classdef ElasticProblem < handle
         function computeStiffnessMatrixOld(obj)
             s.type = 'ElasticStiffnessMatrixOld';
             s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.dim          = obj.dim;
+            s.globalConnec = obj.displacementField.connec;
+            s.dim          = obj.displacementField.dim;
             s.material     = obj.material;
             LHS = LHSintegrator.create(s);
             K   = LHS.compute();
@@ -185,11 +192,11 @@ classdef ElasticProblem < handle
         function computeForces(obj)
             s.type = 'Elastic';
             s.scale    = obj.scale;
-            s.dim      = obj.dim;
+            s.dim      = obj.displacementField.dim;
             s.BC       = obj.boundaryConditions;
             s.mesh     = obj.mesh;
             s.material = obj.material;
-            s.globalConnec = obj.mesh.connec;
+            s.globalConnec = obj.displacementField.connec;
             if isprop(obj, 'vstrain')
                 s.vstrain = obj.vstrain;
             end
@@ -210,10 +217,11 @@ classdef ElasticProblem < handle
         end
 
         function computeStrain(obj)
-            s.dim          = obj.dim;
+            s.dim          = obj.displacementField.dim;
             s.mesh         = obj.mesh;
             s.quadrature   = obj.quadrature;
             s.displacement = obj.variables.d_u;
+            s.dispField    = obj.displacementField;
             scomp  = StrainComputer(s);
             strain = scomp.compute();
             obj.variables.strain = strain;
@@ -221,7 +229,7 @@ classdef ElasticProblem < handle
 
         function computeStress(obj)
             s.C      = obj.material.C;
-            s.dim    = obj.dim;
+            s.dim    = obj.displacementField.dim;
             s.strain = obj.variables.strain;
             scomp  = StressComputer(s);
             stress = scomp.compute();
@@ -249,7 +257,7 @@ classdef ElasticProblem < handle
 
         function uM = splitDisplacement(obj)
             u = obj.variables.d_u;
-            nu = obj.dim.ndimField;
+            nu = obj.displacementField.ndimf;
             nnode = round(length(u)/nu);
             nodes = 1:nnode;
             uM = zeros(nnode,nu);

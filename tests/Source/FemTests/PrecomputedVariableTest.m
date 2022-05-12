@@ -33,12 +33,12 @@ classdef PrecomputedVariableTest < handle
         function overwriteResults(obj)
             % NOTE: change the variable name "x" to the one in the .mat
             % file so that it works
-            variableNames = who('-file', obj.testName);
+            variableNames = who('-file', obj.testResultsName);
             d = numel(variableNames);
             for ivar = 1:d
                 varName = variableNames{ivar};
                 eval([varName ' = obj.computedVar{ivar}' ])
-                save(obj.testName, varName, '-append')
+                save(obj.testResultsName, varName, '-append')
             end
         end
 
