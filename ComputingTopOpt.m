@@ -14,9 +14,7 @@ function ComputingTopOpt
 % FEMWriter.createTest;
 
 
-
-
-s.testName = 'test_micro';%''testJose';
+s.testName = 'IsotropyTest';%''testJose';
 t = TopOptComputer(s);
 t.compute();
 end
