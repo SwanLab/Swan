@@ -35,9 +35,9 @@ classdef EulerBeamOptimizer < handle
     %%% Next
     % 1. derivative "clean"/ "understand" (DONE)  
     % 2. MMa from Swan 
-    % 3. postprocess with GiD; (with Alex)
-    % 4. create shape functions cubic 1D (Interpolation) (finally???)
-    
+    % 3. postprocess with GiD; (with Alex) 
+    % 4. create shape functions cubic 1D (Interpolation) (finally???) 
+     
     %%% Future
     % Use shape functions for elemental stifness and bending
 %%
@@ -114,7 +114,7 @@ classdef EulerBeamOptimizer < handle
             s.ndimf = 2;
             s.fieldName = 'u';
             d = DimensionVariables.create(s);
-            d.compute(s)
+            d.compute();
             obj.dim = d;
         end
 

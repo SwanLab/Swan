@@ -85,8 +85,7 @@ classdef IterativeProcessComputer < handle
 %              s.incrementalScheme.nSteps = 1;
 %              s.targetParameters.optimality_tol = 0.0005;
 %              s.historyPrinterSettings = [];
-%              s.uncOptimizerSettings.ub = 10;
-%              s.uncOptimizerSettings.lb = 0.25;
+
 %              s.historyPrinterSettings.shallPrint = false;
 %              s.historyPrinterSettings.fileName = 'OptimalBuckling';
 %              s.optimizerNames.type = obj.optimizerType;
@@ -106,59 +105,39 @@ classdef IterativeProcessComputer < handle
 %             sm.boundaryConditions = [];
 %             sm.designVariable = obj.designVariable;
 %             sm.optimizerNames.type = obj.optimizerType;
-%             sm.dim = [];
-%             sm.scale = [];
-%             sm.mesh = [];
 % 
 %              s.monitoringDockerSettings = sm;
 % 
 %              sp.shallPrint = false;
 %              s.postProcessSettings = sp;
-% 
+%  
 
+% -------
             s = SettingsOptimizer();
-            s.optimizerNames.type = 'MMA';
+            s.optimizerNames.type = obj.optimizerType;
             s.optimizerNames.primal = 'PROJECTED GRADIENT';
             s.uncOptimizerSettings.scalarProductSettings = obj.designVariable.scalarProduct;
-            
-            s.uncOptimizerSettings.targetParameters = [];%obj.incrementalScheme.targetParams;
             s.uncOptimizerSettings.designVariable   = obj.designVariable;
-            
             s.monitoringDockerSettings.mesh = obj.mesh;
             s.monitoringDockerSettings.optimizerNames = s.optimizerNames;
             s.designVar         = obj.designVariable;
-            s.targetParameters  = [];%obj.incrementalScheme.targetParams;
+            s.targetParameters.optimality_tol  = 0.0005; %obj.incrementalScheme.targetParams;
             s.cost              = obj.cost;
             s.constraint        = obj.constraint;
             s.incrementalScheme.iStep  = 1;%obj.incrementalScheme;
             s.incrementalScheme.nSteps = 1;
             s.dualVariable      = obj.dualVariable;              
+            s.uncOptimizerSettings.ub = 10;
+            s.uncOptimizerSettings.lb = 0.25;        
+            s.outputFunction.type        = 'Topology';
+            s.outputFunction.iterDisplay = 'none';
+            s.type = obj.optimizerType;
+            s.outputFunction.monitoring  = MonitoringManager(s);                  
+            s.maxIter           = 1000;
 
-              s.ub = 10;
-              s.lb = 0.25;           
-              s.outputFunction.type        = 'Topology';
-              s.outputFunction.iterDisplay = 'none';
-              s.type = 'MMA';
-              s.outputFunction.monitoring  = MonitoringManager(s);
-                        
-
-              s.type = "MMA";
-            %  s.nIter             = 0;
-              s.cost              = obj.cost;
-              s.constraint        = obj.constraint;
-              s.designVar         = obj.designVariable;
-              s.dualVariable      = [];obj.dualVariable;
-              s.maxIter           = 2000;
-             
-            %  s.targetParameters  = [];cParams.targetParameters;
-
-
-              obj.optimizer = Optimizer.create(s);    
-              obj.optimizer.solveProblem();
-% 
-
-
-
+            obj.optimizer = Optimizer.create(s);    
+            obj.optimizer.solveProblem();
+% -------
 
 
 
@@ -172,8 +151,8 @@ classdef IterativeProcessComputer < handle
 %                 obj.displayIteration()
 %                 obj.plotFigures();
 %             end
-
-         end
+% 
+          end
 
         function increaseIter(obj)
             obj.nIter = obj.nIter+1;
