@@ -92,6 +92,22 @@ classdef NewStokesProblem < handle
             obj.dof = DOF_Stokes(obj.fileName,obj.mesh,obj.geometry,obj.interp);
         end
 
+        function createVelocityField(obj) % 1 in old notation
+            s.mesh               = obj.mesh;
+            s.ndimf              = 2;
+            s.inputBC            = boundary_velocity;
+            s.interpolationOrder = 'QUADRATIC';
+            obj.pressureField = Field(s);
+        end
+
+        function createPressureField(obj) % 2 in old notation
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1;
+            s.inputBC            = boundary_pressure;
+            s.interpolationOrder = 'LINEAR';
+            obj.pressureField = Field(s);
+        end
+
         function createBoundaryConditions(obj)
             PP = Preprocess;
             pD = obj.problemData;
@@ -124,7 +140,7 @@ classdef NewStokesProblem < handle
         end
 
         function createElement(obj)
-            obj.element  = Element_Stokes(obj.geometry,obj.mesh,obj.material,obj.dof,obj.problemData,obj.interp, obj.dim);
+            obj.element  = Element_Stokes(obj.geometry,obj.mesh,obj.material,obj.dof,obj.problemData,obj.interp);
         end
 
         function createSolver(obj)

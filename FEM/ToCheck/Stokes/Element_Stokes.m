@@ -9,7 +9,7 @@ classdef Element_Stokes < Element
         interpolation_v
         interpolation_p
 
-        dim
+%         dim
     end
 
     properties(Access = private)
@@ -22,9 +22,9 @@ classdef Element_Stokes < Element
     end
     
     methods
-        function obj = Element_Stokes(geometry,mesh,material,dof,problemData,interp, dim)
+        function obj = Element_Stokes(geometry,mesh,material,dof,problemData,interp)
             obj.initElement(geometry,mesh,material,dof,problemData.scale,interp);
-            obj.dim = dim;
+%             obj.dim = dim;
             obj.mesh = mesh;
             %obj.nstre=0;
             obj.nfields=2;
@@ -132,8 +132,8 @@ classdef Element_Stokes < Element
         end
         
         function g = compute_velocity_divergence(obj)
-            dimP = obj.dim{1};
-            nunkn = dimP.ndimf;
+%             dimP = obj.dim{1};
+            nunkn = obj.dof.nunkn(1);
             g = zeros(obj.interp{2}.nnode*nunkn,1,obj.nelem);
         end
         
@@ -169,8 +169,8 @@ classdef Element_Stokes < Element
             idx = obj.dof.in_elem{1};
             geometry = geometry(1);
             nnode = obj.interpolation_v.nnode;
-            dimV = obj.dim{1};
-            nunkn = dimV.ndimf;
+%             dimV = obj.dim{1};
+            nunkn = obj.dof.nunkn(1);
             %             f = zeros(nnode*nunkn,1,nelem);
             
             %             obj.RHS = zeros(nnode*nunkn,1,nelem);
@@ -214,8 +214,10 @@ classdef Element_Stokes < Element
         end
         
         function M = compute_M(obj)
-            dimV = obj.dim{1};
-            nunkn = dimV.ndimf;
+%             dimV = obj.dim{1};
+%             nunkn = dimV.ndimf;
+
+            nunkn = obj.dof.nunkn(1);
             nnode = obj.interpolation_v.nnode;
             ndofs = nunkn*nnode;
             nelem = obj.nelem;
@@ -244,34 +246,35 @@ classdef Element_Stokes < Element
 %             obj.computeMassMatrix();
         end
 
-        function computeMassMatrix(obj)
-            s.type         = 'MassMatrix';
-            s.quadType     = 'QUADRATICMASS'; % INTERPOLATIONTYPE
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.dim          = obj.dim{1};
-            LHS = LHSintegrator.create(s);
-            Mass = LHS.compute();
-        end
-
-        function computeStiffnessMatrix(obj)
-            s.type = 'ElasticStiffnessMatrix';
-            s.mesh         = obj.mesh;
-            s.npnod        = obj.mesh.nnodes;
-            s.globalConnec = obj.mesh.connec;
-            s.dim          = obj.dim{1};
-            s.material     = obj.material;
-%             s.material.C = obj.material.mu;
-            LHS = LHSintegrator.create(s);
-            K   = LHS.compute();
-            Kred = obj.boundaryConditions.fullToReducedMatrix(K);
-            obj.stiffnessMatrix    = K;
-            obj.stiffnessMatrixRed = Kred;
-        end
+%         function computeMassMatrix(obj)
+%             s.type         = 'MassMatrix';
+%             s.quadType     = 'QUADRATICMASS'; % INTERPOLATIONTYPE
+%             s.mesh         = obj.mesh;
+%             s.globalConnec = obj.mesh.connec;
+%             s.dim          = obj.dim{1};
+%             LHS = LHSintegrator.create(s);
+%             Mass = LHS.compute();
+%         end
+% 
+%         function computeStiffnessMatrix(obj)
+%             s.type = 'ElasticStiffnessMatrix';
+%             s.mesh         = obj.mesh;
+%             s.npnod        = obj.mesh.nnodes;
+%             s.globalConnec = obj.mesh.connec;
+%             s.dim          = obj.dim{1};
+%             s.material     = obj.material;
+% %             s.material.C = obj.material.mu;
+%             LHS = LHSintegrator.create(s);
+%             K   = LHS.compute();
+%             Kred = obj.boundaryConditions.fullToReducedMatrix(K);
+%             obj.stiffnessMatrix    = K;
+%             obj.stiffnessMatrixRed = Kred;
+%         end
         
         function K = compute_K(obj)
-            dimV = obj.dim{1};
-            nunkn = dimV.ndimf;
+%             dimV = obj.dim{1};
+%             nunkn = dimV.ndimf;
+            nunkn = obj.dof.nunkn(1);
             nnode = obj.interpolation_v.nnode;
             ndofs = nunkn*nnode;
             nelem = obj.nelem;
@@ -302,9 +305,9 @@ classdef Element_Stokes < Element
         end
         
         function D = compute_D(obj)
-            dimV = obj.dim{1};
+%             dimV = obj.dim{1};
             nelem = obj.nelem;
-            nunknU = dimV.ndimf;
+            nunknU = obj.dof.nunkn(1);
             nnodeV = obj.interpolation_v.nnode;
             
             D = zeros(nunknU*obj.interpolation_v.nnode,obj.interpolation_p.nnode,nelem);
