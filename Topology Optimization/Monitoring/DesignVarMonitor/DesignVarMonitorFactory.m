@@ -58,7 +58,7 @@ classdef DesignVarMonitorFactory < handle
                             obj.monitor = DesignVarMonitor_LevelSet_3D(mS);
                     end
                 case 'AreaColumn'
-                    obj.monitor = DesignVarMonitor_Null(mS);
+                    obj.monitor = DesignVarMonitor_AreaColumn(mS);
                 otherwise
                     error('Invalid Design Variable')
             end

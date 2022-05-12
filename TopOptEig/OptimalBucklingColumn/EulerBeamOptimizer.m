@@ -18,38 +18,22 @@ classdef EulerBeamOptimizer < handle
         inertiaMoment
         minThick
         maxThick
-        maxIter 
+        maxIter
     end
 
-   properties (Access = private)
-       dim
-   end
+    properties (Access = private)
+        dim
+    end
 
-%% TO DO LIST (29 april - 5 may)
-
-    %%% Refactoring
-    % delete elemental loop LHS Bending (DONE)
-    % delete elemental loop LHS Stiffness (DONE)
-    % delete LHS from TopOpt and transform the good one from Swan (DONE)
-
-    %%% Next
-    % 1. derivative "clean"/ "understand" (DONE)  
-    % 2. MMa from Swan 
-    % 3. postprocess with GiD; (with Alex) 
-    % 4. create shape functions cubic 1D (Interpolation) (finally???) 
-     
-    %%% Future
-    % Use shape functions for elemental stifness and bending
-%%
     properties (Access = private)
         designVariable
         freeNodes
         nIter
         mmaVarComputer
     end
-     
+
     methods (Access = public)
-        
+
         function obj = EulerBeamOptimizer()
             obj.init()
             obj.createMesh();

@@ -66,52 +66,7 @@ classdef IterativeProcessComputer < handle
             obj.designVariable = cParams.designVariable;
          end
 
-
-
          function obj = computeIterativeProcess(obj)
-
-% % -NOT WORKING WITH THE MMA OF SWAN-  
-% % Refactor Constraint
-% % Construct Optimizer;
-% 
-%              s.designVar = obj.designVariable;
-%              s.type     = obj.optimizerType;
-%              s.constraintCase = 'INEQUALIY';
-%              s.cost = obj.cost;
-%              s.constraint = obj.constraint;
-%              s.dualVariable.value = zeros(1,obj.nConstraints); 
-%              s.maxIter = obj.maxIter;
-%              s.incrementalScheme.iStep = 1;
-%              s.incrementalScheme.nSteps = 1;
-%              s.targetParameters.optimality_tol = 0.0005;
-%              s.historyPrinterSettings = [];
-
-%              s.historyPrinterSettings.shallPrint = false;
-%              s.historyPrinterSettings.fileName = 'OptimalBuckling';
-%              s.optimizerNames.type = obj.optimizerType;
-%              s.targetParameters = [];
-%              s.outputFunction.monitoring = [];
-% 
-% 
-%             sm.showOptParams         = true;
-%             sm.refreshInterval       = 1;
-%             sm.problemID             = [];
-%             sm.costFuncNames         = [];
-%             sm.costWeights           = [];
-%             sm.constraintFuncs       = [];
-% 
-%             sm.shallDisplayDesignVar = false;
-%             sm.shallShowBoundaryConditions = [];
-%             sm.boundaryConditions = [];
-%             sm.designVariable = obj.designVariable;
-%             sm.optimizerNames.type = obj.optimizerType;
-% 
-%              s.monitoringDockerSettings = sm;
-% 
-%              sp.shallPrint = false;
-%              s.postProcessSettings = sp;
-%  
-
 % -------
             s = SettingsOptimizer();
             s.optimizerNames.type = obj.optimizerType;
@@ -138,10 +93,6 @@ classdef IterativeProcessComputer < handle
             obj.optimizer = Optimizer.create(s);    
             obj.optimizer.solveProblem();
 % -------
-
-
-
-% 
 %              obj.change = 1;
 %              obj.hasFinished = 0;
 %              while ~obj.hasFinished
@@ -151,15 +102,15 @@ classdef IterativeProcessComputer < handle
 %                 obj.displayIteration()
 %                 obj.plotFigures();
 %             end
-% 
-          end
+%
+         end
 
-        function increaseIter(obj)
-            obj.nIter = obj.nIter+1;
-        end
+         function increaseIter(obj)
+             obj.nIter = obj.nIter+1;
+         end
 
-        function updateStatus(obj)
-            obj.hasFinished = (obj.change <= 0.0005) || (obj.nIter >= obj.maxIter);
+         function updateStatus(obj)
+             obj.hasFinished = (obj.change <= 0.0005) || (obj.nIter >= obj.maxIter);
         end
 
         function computeNewDesign(obj)
