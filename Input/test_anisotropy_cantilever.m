@@ -1,8 +1,9 @@
-filename = 'jaCantilever';
+% filename = 'jaCantilever';
 % filename = 'ArchTriFine';
 % filename = 'BridgeCool_Quadrilateral_Bilinear_Structured_Fine';
 % filename = 'Square2x2_10000el';
 % filename = 'Bridge_Anisotropic';
+filename = 'Bridge_UltraFine';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -11,10 +12,10 @@ cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
 % constraint_case = 'EQUALITY';
-optimizerUnconstrained = 'PROJECTED GRADIENT';
+optimizerUnconstrained = 'SLERP';
 optimizer = 'DualNestedInPrimal';
 incrementFactor = 1.5; % Recommended: 1.5; 2.0
-designVariable = 'Density';
+designVariable = 'LevelSet';
 filterType = 'P1';
 
 nsteps = 1; % Recommended slope: 5%/step is OK
