@@ -2,6 +2,7 @@ classdef EulerBeamOptimizer < handle
 
     properties (Access = public)
         columnMesh
+
     end
     
     properties (Access = protected)
@@ -50,7 +51,7 @@ classdef EulerBeamOptimizer < handle
     methods (Access = private)
         
         function init(obj)
-            obj.nElem         = 10;
+            obj.nElem         = 20;
             obj.nConstraints  = 3; 
             obj.columnLength  = 1; 
             obj.nValues       = obj.nElem+1;
@@ -148,7 +149,7 @@ classdef EulerBeamOptimizer < handle
             s.designVariable = obj.designVariable;
             s.dim            = obj.dim;
             s.mesh           = obj.mesh;
-            s.scale          = 0.3;
+            s.scale          = 0.2;
             post = PostProcessColumn(s);
             post.plotColumn();
             obj.columnMesh = post.m;

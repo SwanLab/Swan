@@ -39,9 +39,8 @@ classdef PostProcessColumn < handle
         end
 
         function createPolygon(obj)
-            A = obj.designVariable.getColumnArea;
-            z = sqrt(A); 
-            d     = obj.dim;
+            z = obj.designVariable.getColumnArea;
+            % d     = obj.dim;
             scl   = obj.scale;
             coord = obj.mesh.coord;
             nnod     = obj.mesh.nelem+1;
