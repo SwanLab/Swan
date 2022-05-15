@@ -17,4 +17,5 @@ function ComputingTopOpt
 s.testName = 'IsotropyTest';%''testJose';
 t = TopOptComputer(s);
 t.compute();
+t.computation.cost.shapeFunctions{1,1}.Chomog;
 end
