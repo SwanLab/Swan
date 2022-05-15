@@ -1,4 +1,12 @@
 %% To-do
+
+% a) THE GOOD
+
+%       OK! - The new way of computing the stiffness matrix is
+%             significantly faster (previously: 0.4s, now <0.1s). Also, the
+%             material is basically irrelevant (identity matrix...). Now
+%             uses the Assembler class (+ sym grad?)
+
 % a) THE GOOD
 
 %       OK! - delete problemData in ElasticProblem

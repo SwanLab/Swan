@@ -95,7 +95,6 @@ classdef Field < handle
             for k=1:numel(fn)
                 param = inBC.(fn{k});
                 if isstruct(param)
-                    disp('we got ourselves a struct')
                     if (param.domain == 'Border')
                         x = obj.coord(:,1);
                         y = obj.coord(:,2);
