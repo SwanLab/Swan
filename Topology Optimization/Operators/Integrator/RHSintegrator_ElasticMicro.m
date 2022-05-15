@@ -31,8 +31,8 @@ classdef RHSintegrator_ElasticMicro < handle
 
         function R = computeReactions(obj, K)
             bc      = obj.boundaryConditions;
-            dirich  = bc.dirichlet{1};
-            dirichV = bc.dirichlet_values{1};
+            dirich  = bc.dirichlet;
+            dirichV = bc.dirichlet_values;
             if ~isempty(dirich)
                 R = -K(:,dirich)*dirichV;
             else
