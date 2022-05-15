@@ -30,6 +30,7 @@ classdef Field < handle
             obj.createGeometry();
             obj.updateInputMismatch();
             obj.computeDimensions();
+            obj.translateBoundaryConditions();
             obj.createBoundaryConditions();
         end
 
@@ -70,7 +71,6 @@ classdef Field < handle
         function updateInputMismatch(obj) % perhaps should be renamed
 %             if ~isequal(obj.interpolation.order, 'LINEAR')
                 s.mesh          = obj.mesh;
-%                 s.dim           = obj.dim; % should be deleted from interptranslator
                 s.interpolation = obj.interpolation;
                 s.inputBC       = obj.inputBC;
                 obj.interpTranslator = InterpolationTranslator(s);
@@ -87,6 +87,26 @@ classdef Field < handle
             d = FieldDimensions(s);
             d.compute();
             obj.dim = d;
+        end
+
+        function translateBoundaryConditions(obj)
+            inBC = obj.inputBC;
+            fn = fieldnames(inBC);
+            for k=1:numel(fn)
+                param = inBC.(fn{k});
+                if isstruct(param)
+                    disp('we got ourselves a struct')
+                    if (param.domain == 'Border')
+                        x = obj.coord(:,1);
+                        y = obj.coord(:,2);
+                        idx = find(x == 0 | x == 1 | y == 0 | y == 1);
+                        one = ones(length(idx),1);
+                        newDirich = [idx, one, one*param.value;
+                                     idx, 2*one, one*param.value];
+                        obj.inputBC.dirichlet = newDirich;
+                    end
+                end
+            end
         end
 
         function createBoundaryConditions(obj)

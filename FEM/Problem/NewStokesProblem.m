@@ -62,6 +62,7 @@ classdef NewStokesProblem < handle
             obj.inputBC.pressure  = cParams.bc.pressure;
             obj.inputBC.velocity  = cParams.bc.velocity;
             obj.inputBC.pointload = [];
+            obj.inputBC.velocityBC = cParams.bc.velocityBC;
         end
 
         function createGeometry(obj)
@@ -99,8 +100,10 @@ classdef NewStokesProblem < handle
         end
 
         function createVelocityField(obj) % 1 in old notation
-            bcVelocity = obj.inputBC;
-            bcVelocity.dirichlet = obj.inputBC.velocity;
+%             bcVelocity = obj.inputBC;
+            bcVelocity.dirichlet  = obj.inputBC.velocity;   % Useless
+            bcVelocity.pointload  = [];                     % Useless
+            bcVelocity.velocityBC = obj.inputBC.velocityBC;
             s.mesh               = obj.mesh;
             s.ndimf              = 2;
             s.inputBC            = bcVelocity;
@@ -110,8 +113,9 @@ classdef NewStokesProblem < handle
         end
 
         function createPressureField(obj) % 2 in old notation
-            bcPressure = obj.inputBC;
+%             bcPressure = obj.inputBC;
             bcPressure.dirichlet = obj.inputBC.pressure;
+            bcPressure.pointload  = []; % Useless
             s.mesh               = obj.mesh;
             s.ndimf              = 1;
             s.inputBC            = bcPressure;
@@ -127,10 +131,9 @@ classdef NewStokesProblem < handle
         end
 
         function createSolver(obj)
-            nFields = numel(obj.interp);
-            for ifield = 1:nFields
-                free_dof(ifield) = length(obj.dof.free{ifield});
-            end
+            velFree  = length(obj.velocityField.boundaryConditions.free);
+            prsFree  = length(obj.pressureField.boundaryConditions.free);
+            free_dof = [velFree, prsFree];
             s.tol      = 1e-6;
             s.type     = 'Nonlinear';
             s.element  = obj.element;

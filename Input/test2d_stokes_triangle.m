@@ -96,6 +96,9 @@ connec = [
 %% Variable Prescribed
 % Node            Dimension                Value
 
+velocityBC.domain = 'Border';
+velocityBC.value  = 0;
+
 velocity = [
 1 1 0 
 1 2 0 

@@ -83,7 +83,7 @@ classdef Preprocess<handle
             
         end
         
-        function [velocity, pressure, Vol_force] = getBCFluidsNew(fileName)
+        function [velocity, pressure, Vol_force, velocityBC] = getBCFluidsNew(fileName)
             run(fileName)
         end
 

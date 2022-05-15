@@ -1,7 +1,6 @@
 classdef InterpolationTranslator < handle
     
     properties (GetAccess = public, SetAccess = private)
-        dim
         coord
         connec
         meshConnec
@@ -26,7 +25,6 @@ classdef InterpolationTranslator < handle
     methods (Access = private)
         
         function init(obj,cParams)
-%             obj.dim           = cParams.dim;
             obj.mesh          = cParams.mesh;
             obj.interpolation = cParams.interpolation;
             obj.inputBC       = cParams.inputBC;
@@ -39,7 +37,6 @@ classdef InterpolationTranslator < handle
             if isequal(obj.interpolation.order, 'QUADRATIC')
                 obj.updateConnectivities();
                 obj.updateBoundaryConditions();
-%                 obj.updateDimensions();
             end
         end
 
@@ -69,11 +66,6 @@ classdef InterpolationTranslator < handle
                 obj.inputBC.pointload(:,1) = newNeumann;
             end
         end
-
-%         function updateDimensions(obj)
-%             obj.dim.nnodes = max(max(obj.globalConnec));
-%             obj.dim.ndof   = obj.dim.nnodes * obj.dim.ndimField;
-%         end
 
     end
 

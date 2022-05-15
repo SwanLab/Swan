@@ -49,6 +49,7 @@ classdef StokesDataContainer < AbstractSettings
             obj.bc.velocity = s.velocity;
             obj.bc.pressure = s.pressure;
             obj.bc.forcesFormula = s.forcesFormula;
+            obj.bc.velocityBC    = s.velocityBC;
         end
 
         function createMaterial(obj)
