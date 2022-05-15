@@ -29,7 +29,7 @@ classdef RHSintegrator_ElasticMacro < handle
             if ~isempty(dirich)
                 R = -K(:,dirich)*dirichV;
             else
-                R = zeros(sum(obj.dim.ndofss(:)),1);
+                R = zeros(sum(obj.dim.ndofs(:)),1);
             end
 
         end

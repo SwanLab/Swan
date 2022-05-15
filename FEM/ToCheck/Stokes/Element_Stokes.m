@@ -19,10 +19,12 @@ classdef Element_Stokes < Element
         D
         dt
         mesh
+        velocityField
+        pressureField
     end
     
     methods
-        function obj = Element_Stokes(geometry,mesh,material,dof,problemData,interp)
+        function obj = Element_Stokes(geometry,mesh,material,dof,problemData,interp, vField, pField)
             obj.initElement(geometry,mesh,material,dof,problemData.scale,interp);
 %             obj.dim = dim;
             obj.mesh = mesh;
@@ -30,6 +32,8 @@ classdef Element_Stokes < Element
             obj.nfields=2;
             obj.interpolation_v= interp{1};
             obj.interpolation_p= interp{2};
+            obj.velocityField = vField;
+            obj.pressureField = pField;
         end
         
         function [r,dr] = computeResidual(obj,x,dr,x_n)
@@ -217,23 +221,27 @@ classdef Element_Stokes < Element
 %             dimV = obj.dim{1};
 %             nunkn = dimV.ndimf;
 
-            nunkn = obj.dof.nunkn(1);
-            nnode = obj.interpolation_v.nnode;
-            ndofs = nunkn*nnode;
+            vel = obj.velocityField;
+            nunkn = vel.dim.ndimf;
+            nnode = vel.dim.nnodeElem;
+            ndofs = vel.dim.ndofsElem;
             nelem = obj.nelem;
             dtime = obj.dt;
+            shpeV = vel.interpolation.shape;
+            dvolV = vel.geometry.dvolu;
+            ngaus = size(dvolV,2);
             M = zeros(ndofs, ndofs, nelem);
             
-            for igauss = 1 :obj.quadrature.ngaus
+            for igauss = 1 :ngaus
                 for inode= 1:nnode
                     for jnode= 1:nnode
                         for iunkn= 1:nunkn
                             for junkn= 1:nunkn
                                 idof = nunkn*(inode-1)+iunkn;
                                 jdof = nunkn*(jnode-1)+junkn;
-                                dvol = obj.geometry(1).dvolu(:,igauss);
-                                Ni = obj.interpolation_v.shape(inode,igauss,:);
-                                Nj = obj.interpolation_v.shape(jnode,igauss,:);
+                                dvol = dvolV(:,igauss);
+                                Ni = shpeV(inode,igauss,:);
+                                Nj = shpeV(jnode,igauss,:);
                                 v = squeeze(Ni.*Nj);
                                 M(idof, jdof, :)= squeeze(M(idof,jdof,:)) ...
                                     + v(:)/dtime.*dvol;
@@ -245,54 +253,37 @@ classdef Element_Stokes < Element
             obj.M_elem = M;
 %             obj.computeMassMatrix();
         end
-
-%         function computeMassMatrix(obj)
-%             s.type         = 'MassMatrix';
-%             s.quadType     = 'QUADRATICMASS'; % INTERPOLATIONTYPE
-%             s.mesh         = obj.mesh;
-%             s.globalConnec = obj.mesh.connec;
-%             s.dim          = obj.dim{1};
-%             LHS = LHSintegrator.create(s);
-%             Mass = LHS.compute();
-%         end
-% 
-%         function computeStiffnessMatrix(obj)
-%             s.type = 'ElasticStiffnessMatrix';
-%             s.mesh         = obj.mesh;
-%             s.npnod        = obj.mesh.nnodes;
-%             s.globalConnec = obj.mesh.connec;
-%             s.dim          = obj.dim{1};
-%             s.material     = obj.material;
-% %             s.material.C = obj.material.mu;
-%             LHS = LHSintegrator.create(s);
-%             K   = LHS.compute();
-%             Kred = obj.boundaryConditions.fullToReducedMatrix(K);
-%             obj.stiffnessMatrix    = K;
-%             obj.stiffnessMatrixRed = Kred;
-%         end
         
         function K = compute_K(obj)
 %             dimV = obj.dim{1};
 %             nunkn = dimV.ndimf;
-            nunkn = obj.dof.nunkn(1);
-            nnode = obj.interpolation_v.nnode;
-            ndofs = nunkn*nnode;
+%             nunkn = obj.dof.nunkn(1);
+%             nnode = obj.interpolation_v.nnode;
+%             ndofs = nunkn*nnode;
+            vel = obj.velocityField;
+            nunkn = vel.dim.ndimf;
+            nnode = vel.dim.nnodeElem;
+            ndofs = vel.dim.ndofsElem;
             nelem = obj.nelem;
             material = obj.material;
             K = zeros(ndofs, ndofs, nelem);
             
             Cmat = material.mu;
-            obj.quadrature.computeQuadrature('QUADRATIC');
-            obj.geometry(1).computeGeometry(obj.quadrature,obj.interpolation_v);
-            for igauss = 1 :obj.quadrature.ngaus
-                dNdx = obj.geometry(1).dNdx(:,:,:,igauss);
+%             obj.quadrature.computeQuadrature('QUADRATIC');
+%             obj.geometry(1).computeGeometry(obj.quadrature,obj.interpolation_v);
+            geom = vel.geometry;
+            shape = geom.dNdx;
+            ngaus = size(shape,4);
+            dvolu = geom.dvolu;
+            for igauss = 1:ngaus
+                dNdx = shape(:,:,:,igauss);
                 Bmat = obj.computeB(nunkn, nelem, nnode, dNdx);
                 for iv=1:ndofs
                     for jv=1:ndofs
                         for istre=1:nunkn*obj.interpolation_v.ndime
                             for jstre=1:nunkn*obj.interpolation_v.ndime
                                 v = squeeze(Bmat(istre,iv,:).*Cmat(istre,jstre,:).*Bmat(jstre,jv,:));
-                                K(iv,jv,:)= squeeze(K(iv,jv,:)) + v(:).*obj.geometry(1).dvolu(:,igauss);
+                                K(iv,jv,:)= squeeze(K(iv,jv,:)) + v(:).*dvolu(:,igauss);
                                 %                                 obj.LHS(iv,jv,:) = squeeze(obj.LHS(iv,jv,:)) + v(:).*geometry.dvolu(:,igauss);
                             end
                         end
@@ -307,20 +298,28 @@ classdef Element_Stokes < Element
         function D = compute_D(obj)
 %             dimV = obj.dim{1};
             nelem = obj.nelem;
-            nunknU = obj.dof.nunkn(1);
-            nnodeV = obj.interpolation_v.nnode;
+            vel = obj.velocityField;
+            prs = obj.pressureField;
+            nunknV = vel.dim.ndimf;
+            nnodeV = vel.dim.nnodeElem;
+            nnodeP = prs.dim.nnodeElem;
             
-            D = zeros(nunknU*obj.interpolation_v.nnode,obj.interpolation_p.nnode,nelem);
+            dNdxV = vel.geometry.dNdx;
+            dvolV = vel.geometry.dvolu;
+            shpeP = prs.interpolation.shape; %nope, should be Quadratic
+            ngaus = size(dNdxV,4);
+
+            D = zeros(nunknV*nnodeV,nnodeP,nelem);
             obj.quadrature.computeQuadrature('QUADRATIC');
             obj.geometry(2).computeGeometry(obj.quadrature,obj.interpolation_p);
             for igauss=1:obj.quadrature.ngaus
-                for inode_var = 1:obj.interpolation_p.nnode
+                for inode_var = 1:nnodeP
                     for inode_test = 1:nnodeV
                         for idime = 1:obj.interpolation_v.ndime
-                            dof_test = inode_test*nunknU - nunknU + idime;
+                            dof_test = inode_test*nunknV - nunknV + idime;
                             v= squeeze (obj.geometry(1).dNdx(idime,inode_test,:,igauss));
                             D(dof_test,inode_var,:)= squeeze(D(dof_test,inode_var,:)) - v(:).*obj.interpolation_p.shape(inode_var,igauss)...
-                                .*obj.geometry(1).dvolu(:,igauss);
+                                .*dvolV(:,igauss);
                         end
                     end
                 end

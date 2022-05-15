@@ -7,6 +7,8 @@ classdef Field < handle
         geometry
         boundaryConditions
         inputBC %private
+        fefnc % 
+        interpolation
     end
 
     properties (Access = private)
@@ -14,7 +16,7 @@ classdef Field < handle
         ndimf
         scale
         quadrature
-        interpolation
+%         interpolation
         interpTranslator
         interpolationOrder
     end

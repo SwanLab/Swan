@@ -59,14 +59,15 @@ classdef InterpolationTranslator < handle
             uniqueOldConnec = unique(obj.meshConnec, 'stable');
             uniqueNewConnec = unique(trimmedGlobal, 'stable');
             dirichletNodes = obj.inputBC.dirichlet(:,1)';
-            neumannNodes  = obj.inputBC.pointload(:,1)';
-
             [idxD,~] = find(uniqueOldConnec == dirichletNodes);
             newDirichlet = uniqueNewConnec(idxD);
             obj.inputBC.dirichlet(:,1) = newDirichlet;
-            [idxN,~] = find(uniqueOldConnec == neumannNodes);
-            newNeumann = uniqueNewConnec(idxN);
-            obj.inputBC.pointload(:,1) = newNeumann;
+            if ~isempty(obj.inputBC.pointload)
+                neumannNodes  = obj.inputBC.pointload(:,1)';
+                [idxN,~] = find(uniqueOldConnec == neumannNodes);
+                newNeumann = uniqueNewConnec(idxN);
+                obj.inputBC.pointload(:,1) = newNeumann;
+            end
         end
 
 %         function updateDimensions(obj)

@@ -46,8 +46,9 @@ classdef StokesDataContainer < AbstractSettings
             obj.dim   = s.pdim;
             obj.type  = s.ptype;
             obj.nelem  = s.mesh.nelem;
-            obj.bc.dirichlet = s.dirichlet;
-            obj.bc.pointload = s.pointload;
+            obj.bc.velocity = s.velocity;
+            obj.bc.pressure = s.pressure;
+            obj.bc.forcesFormula = s.forcesFormula;
         end
 
         function createMaterial(obj)
