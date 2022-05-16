@@ -12,10 +12,10 @@ cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
 % constraint_case = 'EQUALITY';
-optimizerUnconstrained = 'SLERP';
+optimizerUnconstrained = 'PROJECTED GRADIENT';
 optimizer = 'DualNestedInPrimal';
 incrementFactor = 1.5; % Recommended: 1.5; 2.0
-designVariable = 'LevelSet';
+designVariable = 'Density';
 filterType = 'P1';
 
 nsteps = 1; % Recommended slope: 5%/step is OK

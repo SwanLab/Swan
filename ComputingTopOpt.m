@@ -1,7 +1,7 @@
 function ComputingTopOpt
 
 rho0Name = 'BridgeUltraFine.mat';
-jumpTo2ndPart = false;
+jumpTo2ndPart = true;
 
 if jumpTo2ndPart == false
 

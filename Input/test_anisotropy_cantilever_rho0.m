@@ -9,13 +9,13 @@ method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
 cost = {'compliance','anisotropicPerimeter2D'};
-weights = [1,0.01];
+weights = [1,0.05];
 constraint = {'volumeConstraint'};
 % constraint_case = 'EQUALITY';
-optimizerUnconstrained = 'SLERP';
-optimizer = 'DualNestedInPrimal';%AlternatingPrimalDual';
+% optimizerUnconstrained = 'PROJECTED GRADIENT';
+optimizer = 'MMA';%AlternatingPrimalDual';
 incrementFactor = 1.5; % Recommended: 1.5; 2.0
-designVariable = 'LevelSet';
+designVariable = 'Density';
 filterType = 'P1';
 % line_search_initiator = 'INCREASING LAST STEP';
 
