@@ -13,6 +13,7 @@ classdef FemInputReader_GiD < handle
         pressure
         forcesFormula
         velocityBC
+        state
     end
     
     properties (Access = public)
@@ -50,6 +51,7 @@ classdef FemInputReader_GiD < handle
                 s.masterSlave = obj.masterSlave;
             end
             if isequal(obj.ptype,'Stokes')
+                s.state    = obj.state;
                 s.velocity = obj.velocity;
                 s.pressure = obj.pressure;
                 s.forcesFormula = obj.forcesFormula;
@@ -73,7 +75,8 @@ classdef FemInputReader_GiD < handle
         function readFile(obj,fileName)
             data = Preprocess.readFromGiD(fileName);
             if isequal(data.problem_type,'Stokes')
-                [vel, prs, forces, velBC] = Preprocess.getBCFluidsNew(fileName);
+                [state, vel, prs, forces, velBC] = Preprocess.getBCFluidsNew(fileName);
+                obj.state = state;
                 obj.velocity = vel;
                 obj.pressure = prs;
                 obj.velocityBC = velBC;

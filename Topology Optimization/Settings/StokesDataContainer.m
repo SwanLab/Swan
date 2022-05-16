@@ -7,6 +7,7 @@ classdef StokesDataContainer < AbstractSettings
     properties (Access = public)
         fileName
         scale
+        state
         dim
         type
         nelem
@@ -41,8 +42,9 @@ classdef StokesDataContainer < AbstractSettings
             femReader = FemInputReader_GiD();
             s = femReader.read(obj.fileName);
             
-            obj.mesh   = s.mesh;
-            obj.scale  = s.scale;
+            obj.mesh  = s.mesh;
+            obj.scale = s.scale;
+            obj.state = s.state;
             obj.dim   = s.pdim;
             obj.type  = s.ptype;
             obj.nelem  = s.mesh.nelem;

@@ -7,7 +7,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
         tests3d = {'test3d_tetrahedra', 'test3d_hexahedra'}
         hexahedra = {'test3d_hexahedra'}
         duTests = {'test2d_triangle', 'test2d_quad', 'test3d_tetrahedra', 'test3d_hexahedra'}
-        stokesTests = {'test2d_stokes_triangle'}
+        stokesTests = {'test2d_stokes_triangle_steady', 'test2d_stokes_triangle_transient'}
         microTests = {'test2d_micro'}
         thermalTests = {'test_thermal'}
         hyperelasticTests = {'test_hyperelastic'}

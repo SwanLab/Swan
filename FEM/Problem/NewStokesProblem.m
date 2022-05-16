@@ -16,6 +16,7 @@ classdef NewStokesProblem < handle
         fileName
 
         dim
+        state
         inputBC
         velocityField
         pressureField
@@ -29,17 +30,15 @@ classdef NewStokesProblem < handle
             obj.createPressureField();
             obj.createGeometry();
             obj.createInterpolation();
-            obj.createDimensions();
             obj.createDOF();
             obj.createElement();
             obj.createSolver();
         end
         
         function computeVariables(obj)
-            p.state    = 'Steady';
-%             p.state      = 'Transient';
-%             p.dt         = 0.01; % For transient cases
-%             p.final_time = 1;    % For transient cases
+            p.state    = obj.state;
+            p.dt         = 0.01; % For transient cases
+            p.final_time = 1;    % For transient cases
             x = obj.solver.solve(p);
             obj.variables = obj.element.computeVars(x);
         end
@@ -49,6 +48,7 @@ classdef NewStokesProblem < handle
     methods (Access = private)
         
         function init(obj, cParams)
+            obj.state       = cParams.state;
             pd.scale        = cParams.scale;
             pd.pdim         = cParams.dim;
             pd.ptype        = cParams.type;
@@ -76,23 +76,6 @@ classdef NewStokesProblem < handle
             interpP = 'LINEAR';
             obj.interp{1}=Interpolation.create(obj.mesh,interpU);
             obj.interp{2}=Interpolation.create(obj.mesh,interpP);
-        end
-
-        function createDimensions(obj)
-            v.type = 'Vector';
-            v.fieldName = 'v';
-            v.mesh = obj.mesh;
-            v.ndimf = 2;
-            vDim = DimensionVariables.create(v);
-            vDim.compute();
-            p.type = 'Scalar';
-            p.name = 'p';
-            p.mesh = obj.mesh;
-            p.ndimf = 1;
-            pDim = DimensionVariables.create(p);
-            obj.dim = {vDim, pDim};
-            % This is wrong. The mesh creates a linear interpolation by
-            % default, with no option to change it.
         end
 
         function createDOF(obj)
