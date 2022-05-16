@@ -76,10 +76,10 @@ classdef Postprocess < handle
             d.connectivities = dI.connectivities;
             d.outFileName    = dI.outFileName;
             d.npnod          = dI.npnod;
-            d.pdim           = dI.pdim;
+            d.pdim           = '2D';%dI.pdim;
             d.nnode          = dI.nnode;
             d.nelem          = dI.nelem;
-            d.ndim           = dI.ndim;
+            d.ndim           = 2;%dI.ndim;
             d.etype          = dI.etype;
             d.resultsDir     = obj.resultsDir;
             obj.mshDataBase = d;

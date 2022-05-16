@@ -1,6 +1,6 @@
 function ComputingTopOpt
 
-rho0Name = 'BridgeUltraFine.mat';
+rho0Name = 'ArchUltraFine.mat';
 jumpTo2ndPart = true;
 
 if jumpTo2ndPart == false

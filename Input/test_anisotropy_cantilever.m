@@ -3,7 +3,8 @@
 % filename = 'BridgeCool_Quadrilateral_Bilinear_Structured_Fine';
 % filename = 'Square2x2_10000el';
 % filename = 'Bridge_Anisotropic';
-filename = 'Bridge_UltraFine';
+% filename = 'Bridge_UltraFine';
+filename = 'ArchUltraFine';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -19,7 +20,7 @@ designVariable = 'Density';
 filterType = 'P1';
 
 nsteps = 1; % Recommended slope: 5%/step is OK
-Vfrac_final = 0.50;
+Vfrac_final = 0.15;
 optimality_final =1e-3;
 constr_final =1e-3;
 
