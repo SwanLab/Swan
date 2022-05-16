@@ -18,6 +18,15 @@ tau.Null   = t;
 grad.Null  = g;
 dual.Null   = d;
 
+load("NullSpaceNoConvergence.mat");
+cost.Null2  = c;
+it.Null2    = 1:length(cost.Null2);
+merit.Null2 = m;
+const.Null2 = h;
+tau.Null2   = t;
+grad.Null2  = g;
+dual.Null2   = d;
+
 load("BisectionVariables.mat");
 cost.Bis  = c;
 it.Bis    = 1:length(c);
@@ -30,28 +39,28 @@ dual.Bis  = d;
 figure(1)
 hold on
 subplot(3,3,1)
-plot(it.Lag,cost.Lag,"red",it.Null,cost.Null,"blue",it.Bis,cost.Bis,"green")
+plot(it.Lag,cost.Lag,"red",it.Null,cost.Null,"blue",it.Null2,cost.Null2,"black",it.Bis,cost.Bis,"green")
 title('Cost')
-legend('Augmented Lagrangian', 'Null Space', 'Bisection')
+legend('Augmented Lagrangian', 'Null Space','Null Space w/o \tau restriction', 'Bisection')
 subplot(3,3,2)
-plot(it.Lag,const.Lag,"red",it.Null,const.Null,"blue",it.Bis,const.Bis,"green")
+plot(it.Lag,const.Lag,"red",it.Null,const.Null,"blue",it.Null2,const.Null2,"black",it.Bis,const.Bis,"green")
 title('Constraint')
-legend('Augmented Lagrangian', 'Null Space', 'Bisection')
+% legend('Augmented Lagrangian', 'Null Space','Null Space w/o \tau restriction', 'Bisection')
 subplot(3,3,3)
-plot(it.Lag,merit.Lag,"red",it.Null,merit.Null,"blue",it.Bis,merit.Bis,"green")
+plot(it.Lag,merit.Lag,"red",it.Null,merit.Null,"blue",it.Null2,merit.Null2,"black",it.Bis,merit.Bis,"green")
 title('Merit function value')
-legend('Augmented Lagrangian', 'Null Space', 'Bisection')
+% legend('Augmented Lagrangian', 'Null Space','Null Space w/o \tau restriction', 'Bisection')
 subplot(3,3,4)
-plot(it.Lag,tau.Lag,"red",it.Null,tau.Null,"blue",it.Bis,tau.Bis,"green")
+plot(it.Lag,tau.Lag,"red",it.Null,tau.Null,"blue",it.Null2,tau.Null2,"black",it.Bis,tau.Bis,"green")
 title('Step length')
-legend('Augmented Lagrangian', 'Null Space', 'Bisection')
+% legend('Augmented Lagrangian', 'Null Space','Null Space w/o \tau restriction', 'Bisection')
 subplot(3,3,5)
-plot(it.Lag,grad.Lag,"red",it.Null,grad.Null,"blue",it.Bis,grad.Bis,"green")
+plot(it.Lag,grad.Lag,"red",it.Null,grad.Null,"blue",it.Null2,grad.Null2,"black",it.Bis,grad.Bis,"green")
 title('Cost gradient norm')
-legend('Augmented Lagrangian', 'Null Space', 'Bisection')
+% legend('Augmented Lagrangian', 'Null Space','Null Space w/o \tau restriction', 'Bisection')
 subplot(3,3,6)
-plot(it.Lag,dual.Lag,"red",it.Null,dual.Null,"blue",it.Bis,dual.Bis,"green")
+plot(it.Lag,dual.Lag,"red",it.Null,dual.Null,"blue",it.Null2,dual.Null2,"black",it.Bis,dual.Bis,"green")
 title('Dual variable \lambda')
-legend('Augmented Lagrangian', 'Null Space', 'Bisection')
+% legend('Augmented Lagrangian', 'Null Space','Null Space w/o \tau restriction', 'Bisection')
 hold off
 

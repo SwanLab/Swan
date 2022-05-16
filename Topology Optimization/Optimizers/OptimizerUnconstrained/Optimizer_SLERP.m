@@ -67,13 +67,13 @@ classdef Optimizer_SLERP < Optimizer_Unconstrained
             cGra = obj.coefGrad;
             phiN = obj.normalizedPhi;
             g    = obj.normalizedGrad;
-            phi = cPhi*phiN + cGra*g;
+            phi  = cPhi*phiN + cGra*g;
         end
         
         function computeTheta(obj)
-            phiN = obj.normalizedPhi;
-            g    = obj.normalizedGrad;
-            phiXg = obj.scalar_product.computeSP(phiN,g);
+            phiN      = obj.normalizedPhi;
+            g         = obj.normalizedGrad;
+            phiXg     = obj.scalar_product.computeSP(phiN,g);
             obj.theta = max(real(acos(phiXg)),1e-14);
         end
         

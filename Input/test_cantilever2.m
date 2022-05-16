@@ -8,12 +8,12 @@ weights = [1];
 constraint = {'volumeConstraint'};
 constraint_case = {'EQUALITY'};
 optimizerUnconstrained = 'PROJECTED GRADIENT';%'PROJECTED GRADIENT'; 
-optimizer = 'DualNestedInPrimal';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
+optimizer = 'NullSpace';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
 incrementFactor = 1;
 designVariable = 'Density';%'Density';
 filterType = 'P1';
 
-nsteps = 3;
+nsteps = 1;
 Vfrac_final = 0.4;
 optimality_final =1e-3;
 constr_final =1e-3;

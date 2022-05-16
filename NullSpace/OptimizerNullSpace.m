@@ -109,7 +109,7 @@ classdef OptimizerNullSpace < Optimizer
             else
                 obj.tau = 1.05*obj.tau;
             end
-            obj.tau = min(obj.tau,1.2);
+%             obj.tau = min(obj.tau,1.2);
         end
 
         function x = updatePrimal(obj)
