@@ -56,7 +56,8 @@ classdef DualUpdater_NullSpace < handle
             t  = obj.tau;
             aJ = 1;
             aC = 1;
-            l  = aC/aJ*S*(h - t*Dh'*DJ);
+            l  = aC/aJ*S*(h - 1*Dh'*DJ);
+%             l  = -aC/aJ*S*Dh'*DJ;
             obj.dualVariable.value = l;
         end
 
