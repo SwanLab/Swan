@@ -63,6 +63,7 @@ classdef NewStokesProblem < handle
             obj.inputBC.velocity  = cParams.bc.velocity;
             obj.inputBC.pointload = [];
             obj.inputBC.velocityBC = cParams.bc.velocityBC;
+            obj.inputBC.forcesFormula = cParams.bc.forcesFormula;
         end
 
         function createGeometry(obj)
@@ -83,7 +84,6 @@ classdef NewStokesProblem < handle
         end
 
         function createVelocityField(obj) % 1 in old notation
-%             bcVelocity = obj.inputBC;
             bcVelocity.dirichlet  = obj.inputBC.velocity;   % Useless
             bcVelocity.pointload  = [];                     % Useless
             bcVelocity.velocityBC = obj.inputBC.velocityBC;
@@ -96,13 +96,13 @@ classdef NewStokesProblem < handle
         end
 
         function createPressureField(obj) % 2 in old notation
-%             bcPressure = obj.inputBC;
             bcPressure.dirichlet = obj.inputBC.pressure;
             bcPressure.pointload  = []; % Useless
             s.mesh               = obj.mesh;
             s.ndimf              = 1;
             s.inputBC            = bcPressure;
             s.interpolationOrder = 'LINEAR';
+            s.quadratureOrder    = 'QUADRATIC';
             s.scale              = 'MACRO';
             obj.pressureField = Field(s);
         end
@@ -110,7 +110,7 @@ classdef NewStokesProblem < handle
         function createElement(obj)
             obj.element  = Element_Stokes(obj.geometry,obj.mesh,...
                 obj.material,obj.dof,obj.problemData,obj.interp,...
-                obj.velocityField, obj.pressureField);
+                obj.velocityField, obj.pressureField, obj.inputBC.forcesFormula);
         end
 
         function createSolver(obj)

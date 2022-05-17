@@ -78,7 +78,8 @@ classdef RHSintegrator_ElasticMicro < handle
         function b = assembleVector(obj, forces)
             s.dim          = obj.dim;
             s.globalConnec = obj.globalConnec;
-            s.nnodeEl      = size(obj.geometry.dNdx,2);
+            s.nnodeEl      = []; % size(obj.geometry.dNdx,2);
+%             F(:,1,:) = forces;
             assembler = Assembler(s);
             b = assembler.assembleV(forces);
         end

@@ -6,10 +6,6 @@ classdef Element_Stokes < Element
         LHS_elem
         LHS
         RHS
-        interpolation_v
-        interpolation_p
-
-%         dim
     end
 
     properties(Access = private)
@@ -21,19 +17,19 @@ classdef Element_Stokes < Element
         mesh
         velocityField
         pressureField
+        forcesFormula
     end
     
     methods
-        function obj = Element_Stokes(geometry,mesh,material,dof,problemData,interp, vField, pField)
+        function obj = Element_Stokes(geometry,mesh,material,dof,problemData,interp, vField, pField,forcesFormula)
             obj.initElement(geometry,mesh,material,dof,problemData.scale,interp);
 %             obj.dim = dim;
             obj.mesh = mesh;
             %obj.nstre=0;
             obj.nfields=2;
-            obj.interpolation_v= interp{1};
-            obj.interpolation_p= interp{2};
             obj.velocityField = vField;
             obj.pressureField = pField;
+            obj.forcesFormula = forcesFormula;
         end
         
         function [r,dr] = computeResidual(obj,x,dr,x_n)
@@ -45,8 +41,16 @@ classdef Element_Stokes < Element
                 Mred_x_n = zeros(lenFreeV,1);
             else
                 % Transient
-                M = obj.AssembleMatrix(obj.M_elem,1,1);
+            
+                s.dim          = obj.velocityField.dim;
+                s.globalConnec = obj.velocityField.connec;
+                s.nnodeEl      = obj.velocityField.dim.nnodeElem;
+                assembler = Assembler(s);
+                M = assembler.assemble(obj.M_elem);
                 M = obj.symGradient(M);
+
+%                 M = obj.AssembleMatrix(obj.M_elem,1,1);
+%                 M = obj.symGradient(M);
                 Mred = M(freeV,freeV);
                 Mred_x_n = Mred*x_n;
             end
@@ -79,13 +83,14 @@ classdef Element_Stokes < Element
         
         function LHS = compute_LHS(obj,dt)
             obj.dt = dt;
-            AA = obj.computeVelocityLHSMatrix();
+            AA = obj.computeVelocityLaplacian();
             D = obj.computeDmatrix();
             BB = obj.computePressureLHSMatrix();
             LHS = [AA, D; D',BB];
         end
         
         function RHS = compute_RHS(obj)
+            % Inefficient. It is always the same.
             Fext = obj.computeVolumetricFext();
             g = obj.compute_velocity_divergence;
             RHS_elem{1,1} = Fext;
@@ -121,7 +126,7 @@ classdef Element_Stokes < Element
             %             end
         end
         
-        function Fext = compute_vol_force_on_gauss_points(obj,f)
+        function Fext = compute_vol_force_on_gauss_points(obj)
             geometry = obj.velocityField.geometry;
             shapesV  = obj.velocityField.interpolation.shape;
             dvol = geometry.dvolu;
@@ -129,6 +134,9 @@ classdef Element_Stokes < Element
             nnode = obj.velocityField.dim.nnodeElem;
             nunkn = obj.velocityField.dim.ndimf;
             Fext = zeros(nnode*nunkn,1,obj.nelem);
+            
+            f = obj.calculateForcesFromExpression();
+                
             for igaus=1:ngaus
                 for inode=1:nnode
                     for iunkn=1:nunkn
@@ -141,6 +149,24 @@ classdef Element_Stokes < Element
                     end
                 end
             end
+        end
+
+        function f = calculateForcesFromExpression(obj)
+            ngaus  = size(obj.velocityField.interpolation.shape,2);
+            xGauss = obj.velocityField.xGauss;
+            nelem = obj.mesh.nelem;
+            for ielem = 1:nelem
+                ind=1;
+                for igaus = 1:ngaus
+                    xG = xGauss(:,igaus,ielem);
+                    pos_node = num2cell(xG);
+                    fCell = obj.forcesFormula(pos_node{:});
+                    fMat = cell2mat(fCell);
+                    F(:,igaus,ielem) = fMat;
+                    ind=ind+length(fMat);
+                end
+            end
+            f = F;
         end
         
         function g = compute_velocity_divergence(obj)
@@ -183,22 +209,20 @@ classdef Element_Stokes < Element
             nnode = obj.velocityField.dim.nnodeElem;
             nunkn = obj.velocityField.dim.ndimf;
             nelem = obj.nelem;
-            dof = obj.dof;
+            Fext = obj.compute_vol_force_on_gauss_points();
 %             f = zeros(nnode*nunkn,1,nelem);
-
 %             obj.RHS = zeros(nnode*nunkn,1,nelem);
             
-            if  ~isempty(dof.neumann_values)
-                if ~ismatrix(dof.neumann_values)
-                    f=dof.neumann_values;
-                    Fext = obj.compute_vol_force_on_gauss_points(f);
-                else
-%                     idx = obj.dof.in_elem{1};
-%                     Fext = obj.compute_vol_force_on_nodes(geometry,idx,nnode,nunkn);
-                end
-            else
-%                 Fext = zeros(nnode*nunkn,1,nelem);
-            end
+%             if  ~isempty(dof.neumann_values)
+%                 if ~ismatrix(dof.neumann_values)
+%                     Fext = obj.compute_vol_force_on_gauss_points();
+%                 else
+% %                     idx = obj.dof.in_elem{1};
+% %                     Fext = obj.compute_vol_force_on_nodes(geometry,idx,nnode,nunkn);
+%                 end
+%             else
+% %                 Fext = zeros(nnode*nunkn,1,nelem);
+%             end
         end
     end
 
@@ -208,8 +232,8 @@ classdef Element_Stokes < Element
             A = 1/2 * (B+B');
         end
 
-        function Aassembled = computeVelocityLHSMatrix(obj)
-            obj.compute_M();
+        function Aassembled = computeVelocityLaplacian(obj)
+            obj.computeMelem();
             obj.computeKelem();
             A = obj.K_elem + obj.M_elem;
             
@@ -225,8 +249,15 @@ classdef Element_Stokes < Element
         end
 
         function Dassembled = computeDmatrix(obj)
-            obj.compute_D();
-            Dassembled = obj.AssembleMatrix(obj.D_elem, 1, 2);
+            obj.computeDelem();
+%             Dassembled = obj.AssembleMatrix(obj.D_elem, 1, 2);
+%             obj.D = Dassembled;
+            s.dim = [];
+            s.nnodeEl = [];
+            s.globalConnec = [];
+            assembler = Assembler(s);
+            Dassembled = assembler.assembleFields(obj.D_elem, ...
+                                    obj.velocityField, obj.pressureField);
             obj.D = Dassembled;
         end
 
@@ -235,10 +266,7 @@ classdef Element_Stokes < Element
             BB = sparse(sz,sz);
         end
         
-        function M = compute_M(obj)
-%             dimV = obj.dim{1};
-%             nunkn = dimV.ndimf;
-
+        function computeMelem(obj)
             vel = obj.velocityField;
             nunkn = vel.dim.ndimf;
             nnode = vel.dim.nnodeElem;
@@ -299,8 +327,7 @@ classdef Element_Stokes < Element
             obj.K_elem = lhs;
         end
         
-        function D = compute_D(obj)
-%             dimV = obj.dim{1};
+        function computeDelem(obj)
             nelem = obj.nelem;
             vel = obj.velocityField;
             prs = obj.pressureField;
@@ -314,15 +341,13 @@ classdef Element_Stokes < Element
             ngaus = size(dNdxV,4);
 
             D = zeros(nunknV*nnodeV,nnodeP,nelem);
-            obj.quadrature.computeQuadrature('QUADRATIC');
-            obj.geometry(2).computeGeometry(obj.quadrature,obj.interpolation_p);
-            for igauss=1:obj.quadrature.ngaus
+            for igauss=1:ngaus
                 for inode_var = 1:nnodeP
                     for inode_test = 1:nnodeV
-                        for idime = 1:obj.interpolation_v.ndime
+                        for idime = 1:vel.interpolation.ndime
                             dof_test = inode_test*nunknV - nunknV + idime;
-                            v= squeeze (obj.geometry(1).dNdx(idime,inode_test,:,igauss));
-                            D(dof_test,inode_var,:)= squeeze(D(dof_test,inode_var,:)) - v(:).*obj.interpolation_p.shape(inode_var,igauss)...
+                            v = squeeze(dNdxV(idime,inode_test,:,igauss));
+                            D(dof_test,inode_var,:)= squeeze(D(dof_test,inode_var,:)) - v(:).*shpeP(inode_var,igauss)...
                                 .*dvolV(:,igauss);
                         end
                     end

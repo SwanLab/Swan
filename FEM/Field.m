@@ -9,6 +9,7 @@ classdef Field < handle
         inputBC %private
         fefnc % 
         interpolation
+        xGauss
     end
 
     properties (Access = private)
@@ -19,6 +20,7 @@ classdef Field < handle
 %         interpolation
         interpTranslator
         interpolationOrder
+        quadratureOrder
     end
 
     methods (Access = public)
@@ -28,6 +30,7 @@ classdef Field < handle
             obj.createQuadrature();
             obj.createInterpolation();
             obj.createGeometry();
+            obj.computeXGauss();
             obj.updateInputMismatch();
             obj.computeDimensions();
             obj.translateBoundaryConditions();
@@ -44,11 +47,17 @@ classdef Field < handle
             obj.scale              = cParams.scale;
             obj.inputBC            = cParams.inputBC;
             obj.interpolationOrder = cParams.interpolationOrder;
+            if isfield(cParams, 'quadratureOrder')
+                obj.quadratureOrder = cParams.quadratureOrder;
+            else
+                obj.quadratureOrder = cParams.interpolationOrder;
+            end
+
         end
 
         function createQuadrature(obj)
             quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature(obj.interpolationOrder);
+            quad.computeQuadrature(obj.quadratureOrder);
             obj.quadrature = quad;
         end
 
@@ -66,6 +75,12 @@ classdef Field < handle
             g = Geometry.create(s);
             g.computeGeometry(q,int);
             obj.geometry = g;
+        end
+
+        function computeXGauss(obj)
+            xV = obj.quadrature.posgp;
+            xG = obj.mesh.computeXgauss(xV);
+            obj.xGauss = xG;
         end
 
         function updateInputMismatch(obj) % perhaps should be renamed
