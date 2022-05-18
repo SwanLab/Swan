@@ -29,10 +29,6 @@ classdef DualUpdater_NullSpace < handle
             end
         end
 
-        function updateTau(obj,t)
-            obj.tau = t;
-        end
-
     end
 
     methods (Access = private)
@@ -53,11 +49,9 @@ classdef DualUpdater_NullSpace < handle
             Dh = obj.constraint.gradient;
             h  = obj.constraint.value;
             S  = (Dh'*Dh)^-1;
-            t  = obj.tau;
             aJ = 1;
             aC = 1;
             l  = aC/aJ*S*(h - 1*Dh'*DJ);
-%             l  = -aC/aJ*S*Dh'*DJ;
             obj.dualVariable.value = l;
         end
 

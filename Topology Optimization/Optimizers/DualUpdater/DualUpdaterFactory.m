@@ -16,11 +16,4 @@ classdef DualUpdaterFactory < handle
     
     end
     
-    methods (Access = private)
-        
-        
-        
-    end
-   
-    
 end

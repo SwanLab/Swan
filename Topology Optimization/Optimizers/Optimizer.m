@@ -10,6 +10,7 @@ classdef Optimizer < handle
         nIter = 0
         targetParameters
         dualUpdater
+        primalUpdater
         constraintCase
     end
     
@@ -41,6 +42,11 @@ classdef Optimizer < handle
             obj.outputFunction    = cParams.outputFunction.monitoring;
         end
 
+        function createPrimalUpdater(obj,cParams)
+            f                 = PrimalUpdaterFactory();
+            obj.primalUpdater = f.create(cParams);
+        end
+
         function createDualUpdater(obj,cParams)
             f               = DualUpdaterFactory();
             obj.dualUpdater = f.create(cParams);      
@@ -66,7 +72,7 @@ classdef Optimizer < handle
 
         function c = checkEqualityConstraint(obj)
             g = obj.constraint.value;
-            c = abs(g) < obj.targetParameters.constr_tol*10;
+            c = abs(g) < obj.targetParameters.constr_tol;
         end
 
     end

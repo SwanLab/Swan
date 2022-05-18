@@ -8,7 +8,6 @@ classdef OptimizerNullSpace < Optimizer
         tau
         lineSearchTrials
         lineSearch
-        maxLineSearchTrials = 100
         costOld
         upperBound
         lowerBound
@@ -18,8 +17,6 @@ classdef OptimizerNullSpace < Optimizer
         acceptableStep
         oldDesignVariable
         oldCost
-        problem
-        options
         incrementalScheme
         hasFinished
         mOld
@@ -40,7 +37,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.initOptimizer(cParams);
             obj.init(cParams);
             obj.outputFunction.monitoring.create(cParams);
-            cParams.tau = obj.tau;
+            obj.createPrimalUpdater(cParams);
             obj.createDualUpdater(cParams);
             obj.prepareFirstIter();
         end
@@ -51,7 +48,6 @@ classdef OptimizerNullSpace < Optimizer
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                obj.saveVariablesForAnalysis();
             end
         end
 
@@ -89,11 +85,8 @@ classdef OptimizerNullSpace < Optimizer
             obj.acceptableStep   = false;
             obj.lineSearchTrials = 0;
             while ~obj.acceptableStep
-%                 obj.dualUpdater.updateTau(obj.tau);
-%                 obj.dualUpdater.update();
                 x = obj.updatePrimal();
                 obj.designVariable.update(x);
-                obj.dualUpdater.updateTau(obj.tau);
                 obj.dualUpdater.update();
                 obj.checkStep(x,x0);
             end
@@ -101,61 +94,46 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function obj = calculateInitialStep(obj)
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
-            x       = obj.designVariable.value;
-            l       = obj.dualVariable.value;
-            DJ      = obj.cost.gradient;
-            Dg      = obj.constraint.gradient;
-            aJ      = 1;
-            DmF     = aJ*(DJ + l'*Dg);
             if obj.nIter == 0
-                obj.tau = 3*sqrt(norm(DmF)/norm(x));
+                obj.cost.computeFunctionAndGradient();
+                obj.constraint.computeFunctionAndGradient();
+                x       = obj.designVariable.value;
+                l       = obj.dualVariable.value;
+                DJ      = obj.cost.gradient;
+                Dg      = obj.constraint.gradient;
+                aJ      = 1;
+                DmF     = aJ*(DJ + l'*Dg);
+                factor  = 3;
+                obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
-                obj.tau = 1.05*obj.tau;
+                factor = 1.2;
+                obj.primalUpdater.increaseStepLength(factor);
             end
-%             obj.tau = min(obj.tau,1.2);
         end
 
         function x = updatePrimal(obj)
-            t       = obj.tau;
+            x       = obj.designVariable.value;
             Dh      = obj.constraint.gradient;
-            h       = obj.constraint.value;
-            S       = (Dh'*Dh)^-1;
             DJ      = obj.cost.gradient;
             l       = obj.dualVariable.value;
             aJ      = 1;
-            aC      = 1;
-            dAJ     = aJ*(DJ + l'*Dh);% + aC*(Dh'*S*h)';
-            x       = obj.projectedGradient(dAJ,t); % primal.updateAndProject(dAJ,stepLength)
-        end
-
-        function x = projectedGradient(obj,dAJ,t)
-            x       = obj.designVariable.value;
-            lb      = obj.lowerBound;
-            ub      = obj.upperBound;
-            dx      = -t*(dAJ);
-            xN      = x + dx;
-            x       = min(ub,max(xN,lb));
+            g       = aJ*(DJ + l'*Dh);
+            x       = obj.primalUpdater.update(g,x);
         end
 
         function checkStep(obj,x,x0)
             mNew = obj.computeMeritFunction(x);
-            if obj.nIter == 0 %&& mNew == obj.mOld
+            if obj.nIter == 0
                 obj.acceptableStep = true;
-%                 obj.dualUpdater.updateTau(obj.tau);
-%                 obj.dualUpdater.update();
-                obj.meritNew = mNew;
+                obj.meritNew       = mNew;
             end
             if mNew < obj.mOld
                 obj.acceptableStep = true;
-%                 obj.dualUpdater.updateTau(obj.tau);
-%                 obj.dualUpdater.update();
                 obj.meritNew = mNew;
-            elseif obj.tau < 1e-10
+            elseif obj.primalUpdater.isTooSmall()
                 error('Convergence could not be achieved (step length too small)')
             else
-                obj.tau = obj.tau/2;
+                obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
                 obj.lineSearchTrials = obj.lineSearchTrials + 1;
             end
@@ -167,12 +145,9 @@ classdef OptimizerNullSpace < Optimizer
             obj.constraint.computeFunctionAndGradient();
             J      = obj.cost.value;
             h      = obj.constraint.value;
-            Dh     = obj.constraint.gradient;
             l      = obj.dualVariable.value;
             aJ     = 1;
-            aC     = 1;
-            S      = (Dh'*Dh)^-1;
-            AJ     = aJ*(J + l'*h);% + aC*(h'*S*h);
+            AJ     = aJ*(J + l'*h);
             mF     = AJ;
         end
 
@@ -201,7 +176,7 @@ classdef OptimizerNullSpace < Optimizer
 
         function obj = updateMonitoring(obj)
             s.nIter            = obj.nIter;
-            s.tau              = obj.tau;
+            s.tau              = obj.primalUpdater.tau;
             s.lineSearch       = obj.lineSearch;
             s.lineSearchTrials = obj.lineSearchTrials;
             s.oldCost          = obj.oldCost;
@@ -235,7 +210,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.globalConstraint(i)   = obj.constraint.value;
             obj.globalCostGradient(i) = norm(obj.cost.gradient);
             obj.globalMerit(i)        = obj.meritNew;
-            obj.globalLineSearch(i)   = obj.tau;
+            obj.globalLineSearch(i)   = obj.primalUpdater.tau;
             obj.globalDual(i)         = obj.dualVariable.value;
             if obj.hasConverged
                 c = obj.globalCost;

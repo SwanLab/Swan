@@ -7,13 +7,13 @@ cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
 constraint_case = {'EQUALITY'};
-optimizerUnconstrained = 'PROJECTED GRADIENT';%'PROJECTED GRADIENT'; 
-optimizer = 'NullSpace';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
+optimizerUnconstrained = 'SLERP';%'PROJECTED GRADIENT'; 
+optimizer = 'AlternatingPrimalDual';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
 incrementFactor = 1;
-designVariable = 'Density';%'Density';
+designVariable = 'LevelSet';%'Density';
 filterType = 'P1';
 
-nsteps = 1;
+nsteps = 3;
 Vfrac_final = 0.4;
 optimality_final =1e-3;
 constr_final =1e-3;
