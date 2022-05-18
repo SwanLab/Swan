@@ -13,6 +13,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         lowerBound
         tol = 1e-6
         nX
+        nConstr
         hasConverged
         acceptableStep
         oldDesignVariable
@@ -60,6 +61,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.lowerBound             = cParams.uncOptimizerSettings.lb;
             obj.cost                   = cParams.cost;
             obj.constraint             = cParams.constraint;
+            obj.nConstr                = cParams.nConstr;
             obj.designVariable         = cParams.designVar;
             obj.dualVariable           = cParams.dualVariable;
             obj.incrementalScheme      = cParams.incrementalScheme;
@@ -73,13 +75,12 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.cost.computeFunctionAndGradient();
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
-            obj.dualVariable.value = 0;
+            obj.dualVariable.value = zeros(obj.nConstr,1);
             obj.penalty            = 10;
         end
 
         function obj = update(obj)
             x0 = obj.designVariable.value;
-            x0 = x0/norm(x0);
             obj.designVariable.update(x0);
             obj.saveOldValues(x0);
             obj.mOld = obj.computeMeritFunction(x0);
@@ -102,7 +103,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             Dg      = obj.constraint.gradient;
             g       = obj.constraint.value;
             p       = obj.penalty;
-            DmF     = DJ + l*g + p*g*Dg;
+            DmF     = DJ + Dg*(l + p*g);
             if obj.nIter == 0
                 factor = 1;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
@@ -119,7 +120,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             l   = obj.dualVariable.value;
             x   = obj.designVariable.value;
             p   = obj.penalty;
-            g   = (DJ + (l + p*h)*Dh);
+            g   = (DJ + Dh*(l + p*h));
             x   = obj.primalUpdater.update(g,x);
         end
 
@@ -147,7 +148,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             g      = obj.constraint.value;
             l      = obj.dualVariable.value;
             rho    = obj.penalty;
-            mF     = J + l'*g + 0.5*rho*g*g;
+            mF     = J + l'*g + 0.5*rho*g'*g;
         end
 
         function obj = saveOldValues(obj,x)

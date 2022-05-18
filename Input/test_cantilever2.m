@@ -5,12 +5,12 @@ materialType = 'ISOTROPIC';
 initial_case = 'full';
 cost = {'compliance'};
 weights = [1];
-constraint = {'volumeConstraint'};
-constraint_case = {'EQUALITY'};
-optimizerUnconstrained = 'SLERP';%'PROJECTED GRADIENT'; 
+constraint = {'volumeConstraint','perimeter'};
+constraint_case = {'EQUALITY','EQUALITY'};
+optimizerUnconstrained = 'PROJECTED GRADIENT';%'PROJECTED GRADIENT'; 
 optimizer = 'AlternatingPrimalDual';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
 incrementFactor = 1;
-designVariable = 'LevelSet';%'Density';
+designVariable = 'Density';%'Density';
 filterType = 'P1';
 
 nsteps = 3;
