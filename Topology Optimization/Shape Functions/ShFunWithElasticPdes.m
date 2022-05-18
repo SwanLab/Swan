@@ -153,7 +153,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             if isempty(obj.designVariable.alpha)
                 dim = obj.physicalProblem.getDimensions();
                 nelem = size(obj.dvolu,1);
-                ndim = dim.ndimField; %dim.ndim
+                ndim = dim.ndimf; %dim.ndim
                 alpha0 = zeros(ndim,nelem);
                 alpha0(1,:) = 1;
                 obj.designVariable.alpha = alpha0;

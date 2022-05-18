@@ -49,14 +49,8 @@ classdef NonLinear_Solver < handle
             x0 = zeros(total_free_dof,1);
             
             r = obj.element.computeResidual(x0,dr);
-            x = x0;
-            while dot(r,r) > obj.tol
-                inc_x = obj.solver.solve(dr,-r);
-                x = x0 + inc_x;
-                % Compute r
-                r = obj.element.computeResidual(x,dr);
-                x0 = x;
-            end
+%             x = x0;
+            x = obj.convergeSolution(dr, r, x0);
             sol = x;
         end
         
@@ -83,6 +77,17 @@ classdef NonLinear_Solver < handle
                 x_n(:,istep) = x;
             end
             sol = x_n;
+        end
+
+        function sol = convergeSolution(obj, dr, r, x0, u_previous_step)
+            while dot(r,r) > obj.tol
+                inc_x = obj.solver.solve(dr,-r);
+                x = x0 + inc_x;
+                % Compute r
+                r = obj.element.computeResidual(x,dr);
+                x0 = x;
+            end
+            sol = x0;
         end
 
     end
