@@ -1,31 +1,35 @@
 % filename = 'jaCantilever';
-% filename = 'ArchTriFine';
-% filename = 'BridgeCool_Quadrilateral_Bilinear_Structured_Fine';
-% filename = 'Square2x2_10000el';
-% filename = 'Bridge_Anisotropic';
 % filename = 'Bridge_UltraFine';
-filename = 'ArchUltraFine';
-ptype = 'MACRO';
+% filename = 'ArchUltraFine';
+filename = 'MicroUltraFine';
+
+%Micro
+epsilon_isotropy_initial=1e-1;
+epsilon_isotropy_final = 1e-3;
+micro.alpha =[1 1 0]';
+micro.beta =[1 1 0]';
+
+ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'compliance','anisotropicPerimeter2D'};
-weights = [1,0.05];
+cost = {'chomog_alphabeta','anisotropicPerimeter2D'};
+weights = [1,2];
 constraint = {'volumeConstraint'};
 % constraint_case = 'EQUALITY';
-% optimizerUnconstrained = 'PROJECTED GRADIENT';
-optimizer = 'MMA';%AlternatingPrimalDual';
+optimizerUnconstrained = 'SLERP';
+optimizer = 'DualNestedInPrimal';%AlternatingPrimalDual';
 incrementFactor = 1.5; % Recommended: 1.5; 2.0
-designVariable = 'Density';
+designVariable = 'LevelSet';
 filterType = 'P1';
 % line_search_initiator = 'INCREASING LAST STEP';
 
 nsteps = 10; % Recommended slope: 5%/step is OK
-Vfrac_final = 0.15;
+Vfrac_final = 0.5;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 0.15;
+Vfrac_initial = 0.5;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 Perimeter_target = 5;

@@ -1,26 +1,30 @@
 % filename = 'jaCantilever';
-% filename = 'ArchTriFine';
-% filename = 'BridgeCool_Quadrilateral_Bilinear_Structured_Fine';
-% filename = 'Square2x2_10000el';
-% filename = 'Bridge_Anisotropic';
 % filename = 'Bridge_UltraFine';
-filename = 'ArchUltraFine';
-ptype = 'MACRO';
+% filename = 'ArchUltraFine';
+filename = 'MicroUltraFine';
+
+%Micro
+epsilon_isotropy_initial=1e-1;
+epsilon_isotropy_final = 1e-3;
+micro.alpha =[1 1 0]';
+micro.beta =[1 1 0]';
+
+ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'full';
-cost = {'compliance'};
+initial_case = 'circleInclusion';
+cost = {'chomog_alphabeta'};
 weights = [1];
 constraint = {'volumeConstraint'};
 % constraint_case = 'EQUALITY';
-optimizerUnconstrained = 'PROJECTED GRADIENT';
+optimizerUnconstrained = 'SLERP';
 optimizer = 'DualNestedInPrimal';
 incrementFactor = 1.5; % Recommended: 1.5; 2.0
-designVariable = 'Density';
+designVariable = 'LevelSet';
 filterType = 'P1';
 
 nsteps = 1; % Recommended slope: 5%/step is OK
-Vfrac_final = 0.15;
+Vfrac_final = 0.5;
 optimality_final =1e-3;
 constr_final =1e-3;
 
@@ -42,4 +46,4 @@ printing = false;
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 2000;
+maxiter = 20; % 00
