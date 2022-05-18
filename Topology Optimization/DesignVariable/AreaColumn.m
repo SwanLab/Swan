@@ -36,7 +36,11 @@ classdef AreaColumn < DesignVariable
 
         function v = getVariablesToPlot(obj)
             v{1} = obj.value;
-        end        
+        end      
+
+        function norm = computeL2normIncrement(obj)
+            norm = 0;
+        end
         
     end
     
@@ -48,7 +52,7 @@ classdef AreaColumn < DesignVariable
         
         function createInitialValue(obj)
             N = obj.mesh.nelem;
-            x0 = ones(N+1,1);               
+            x0 = 3*ones(N+1,1);%ones(N+1,1);               
             obj.update(x0);        
         end
     end

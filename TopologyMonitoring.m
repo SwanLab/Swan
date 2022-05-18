@@ -148,7 +148,16 @@ classdef TopologyMonitoring < handle
         end
         
         function plotIPOPT(obj,cParams)
-            
+            obj.hasFinished = cParams.hasFinished;
+            obj.nIter       = cParams.nIter;
+            normXsquare     = obj.designVariable.computeL2normIncrement();            
+            obj.printOptimizerVariable();
+            obj.convergenceVars.reset();
+            obj.convergenceVars.append(cParams.inf_pr);
+            obj.convergenceVars.append(cParams.inf_du);            
+            obj.convergenceVars.append(sqrt(normXsquare));
+            obj.refreshMonitoring();
+            obj.printHistory();          
         end
         
         function plotMMA(obj,cParams)

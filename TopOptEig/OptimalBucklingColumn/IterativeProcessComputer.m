@@ -88,7 +88,7 @@ classdef IterativeProcessComputer < handle
             s.uncOptimizerSettings.lb = 0.25;        
             s.outputFunction.type        = 'Topology';
             s.outputFunction.iterDisplay = 'none';
-            s.type =  'MMA';
+            s.type = 'MMA';
             s.outputFunction.monitoring  = MonitoringManager(s);                  
             s.maxIter           = 1000;
             s.constraintCase = 'INEQUALITY';
