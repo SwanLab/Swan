@@ -3,13 +3,13 @@ classdef Field < handle
     properties (Access = public)
         dim
         connec
-        coord
-        geometry
-        boundaryConditions
+        coord % should be removed
+        geometry % moved to Mesh
+        boundaryConditions % should be moved
         inputBC %private
-        fefnc % 
+        fefnc % merge
         interpolation
-        xGauss
+        xGauss % no
     end
 
     properties (Access = private)
@@ -18,7 +18,7 @@ classdef Field < handle
         scale
         quadrature
 %         interpolation
-        interpTranslator
+        interpTranslator % new class to do that from Field
         interpolationOrder
         quadratureOrder
     end

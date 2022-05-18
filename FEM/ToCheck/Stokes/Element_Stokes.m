@@ -361,7 +361,7 @@ classdef Element_Stokes < Element
             nunkn = vel.dim.ndimf;
             nnode = vel.dim.nnodeElem;
             nelem = obj.nelem;
-            B = zeros(2,nnode*nunkn,nelem);
+            B = zeros(2,nnode*nunkn,nelem); %check the 2
             for i = 1:nnode
                 j = nunkn*(i-1)+1;
                 B(1,j,:)  = dNdx(1,i,:);

@@ -1,4 +1,16 @@
 %% To-do
+% - Move BC from fields, move geometry to Mesh, give importance to
+% interptranslator in field, LHSintegrator types: field/test function
+
+%% Long-term
+% - FeFunction and Field should converge into one. Mesh.coord could be a
+%   FeFunction: given a quadrature, it returns xGauss 
+
+% - Try out ways to make constructors more elegant, perhaps by grouping up
+%   properties and looping over them, some tagged as RequiredProps and the
+%   rest as OptionalProps.
+
+%% Previous To-do
 
 %       - The new way of computing the stiffness matrix is
 %         significantly faster (previously: 0.4s, now <0.1s). Also, the
