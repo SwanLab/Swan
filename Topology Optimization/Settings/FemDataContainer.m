@@ -14,6 +14,7 @@ classdef FemDataContainer < AbstractSettings
         mesh
         material
         ngaus
+        interpolationType
     end
     
     methods (Access = public)
@@ -48,6 +49,7 @@ classdef FemDataContainer < AbstractSettings
             obj.nelem  = s.mesh.nelem;
             obj.bc.dirichlet = s.dirichlet;
             obj.bc.pointload = s.pointload;
+            obj.interpolationType = 'LINEAR';
         end
 
         function createMaterial(obj)

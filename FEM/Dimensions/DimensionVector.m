@@ -1,16 +1,16 @@
 classdef DimensionVector < handle
     
     properties (Access = public)
-        ndof
+        ndofs
         nnodes
     end
 
     properties (GetAccess = public, SetAccess = private)
         fieldName
         scalarFields
+        ndimf
         nnodeElem
-        ndimField
-        ndofPerElement
+        ndofsElem
     end
     
     properties (Access = private)
@@ -24,21 +24,21 @@ classdef DimensionVector < handle
         end
 
         function compute(obj)
-            for i = 1:obj.ndimField
-                name = append(obj.fieldName, int2str(i));
+            for i = 1:obj.ndimf
+                name = append('field', int2str(i));
                 s.mesh = obj.mesh;
                 s.name = name;
                 obj.scalarFields.(name) = DimensionScalar(s);
             end
-            obj.ndof           = obj.ndimField*obj.mesh.nnodes;
-            obj.nnodes         = obj.mesh.nnodes;
-            obj.nnodeElem      = obj.mesh.interpolation.nnode;
-            obj.ndofPerElement = obj.nnodeElem*obj.ndimField;
+            obj.ndofs     = obj.ndimf*obj.mesh.nnodes;
+            obj.nnodes    = obj.mesh.nnodes;
+            obj.nnodeElem = obj.mesh.interpolation.nnode;
+            obj.ndofsElem = obj.nnodeElem*obj.ndimf;
         end
 
         function createFromScalars(obj, dims)
-            obj.ndimField = numel(dims);
-            for i = 1:obj.ndimField
+            obj.ndimf = numel(dims);
+            for i = 1:obj.ndimf
                 dim = dims{i};
                 name = dim.name;
                 obj.scalarFields.(name) = dim;
@@ -51,8 +51,8 @@ classdef DimensionVector < handle
 
         function init(obj, cParams)
             obj.mesh      = cParams.mesh;
-            obj.ndimField = cParams.ndimf;
-            obj.fieldName = cParams.fieldName;
+            obj.ndimf = cParams.ndimf;
+%             obj.fieldName = cParams.fieldName;
 %             obj.interpolation = cParams.interpolation;
         end
 

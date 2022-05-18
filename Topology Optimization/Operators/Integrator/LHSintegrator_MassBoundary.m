@@ -21,7 +21,7 @@ classdef LHSintegrator_MassBoundary < LHSintegrator
         function Mr = computeBoundaryMassMatrix(obj)
             s = obj.createIntegratorParams();
             nInt = numel(s.compositeParams);
-            ndof = s.compositeParams{1}.dim.ndof;
+            ndof = s.compositeParams{1}.dim.ndofs;
             LHS = sparse(ndof,ndof);
             for iInt = 1:nInt
                 sL = s.compositeParams{iInt};

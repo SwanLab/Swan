@@ -16,27 +16,29 @@ classdef NewStokesProblem < handle
         fileName
 
         dim
-        boundaryConditions
+        state
+        inputBC
+        velocityField
+        pressureField
     end
 
     methods (Access = public)
 
         function obj = NewStokesProblem(cParams)
             obj.init(cParams);
+            obj.createVelocityField();
+            obj.createPressureField();
             obj.createGeometry();
             obj.createInterpolation();
-            obj.createDimensions();
             obj.createDOF();
-            obj.createBoundaryConditions();
             obj.createElement();
             obj.createSolver();
         end
         
         function computeVariables(obj)
-            p.state    = 'Steady';
-%             p.state      = 'Transient';
-%             p.dt         = 0.01; % For transient cases
-%             p.final_time = 1;    % For transient cases
+            p.state    = obj.state;
+            p.dt         = 0.01; % For transient cases
+            p.final_time = 1;    % For transient cases
             x = obj.solver.solve(p);
             obj.variables = obj.element.computeVars(x);
         end
@@ -46,16 +48,22 @@ classdef NewStokesProblem < handle
     methods (Access = private)
         
         function init(obj, cParams)
+            obj.state       = cParams.state;
             pd.scale        = cParams.scale;
             pd.pdim         = cParams.dim;
             pd.ptype        = cParams.type;
             pd.nelem        = cParams.nelem;
-            pd.bc.dirichlet = cParams.bc.dirichlet;
-            pd.bc.pointload = cParams.bc.pointload;
+            pd.bc.pressure  = cParams.bc.pressure;
+            pd.bc.velocity  = cParams.bc.velocity;
             obj.mesh        = cParams.mesh;
             obj.material    = cParams.material;
             obj.problemData = pd;
             obj.fileName    = cParams.fileName;
+            obj.inputBC.pressure  = cParams.bc.pressure;
+            obj.inputBC.velocity  = cParams.bc.velocity;
+            obj.inputBC.pointload = [];
+            obj.inputBC.velocityBC = cParams.bc.velocityBC;
+            obj.inputBC.forcesFormula = cParams.bc.forcesFormula;
         end
 
         function createGeometry(obj)
@@ -71,67 +79,44 @@ classdef NewStokesProblem < handle
             obj.interp{2}=Interpolation.create(obj.mesh,interpP);
         end
 
-        function createDimensions(obj)
-            v.type = 'Vector';
-            v.fieldName = 'v';
-            v.mesh = obj.mesh;
-            v.ndimf = 2;
-            vDim = DimensionVariables.create(v);
-            vDim.compute();
-            p.type = 'Scalar';
-            p.name = 'p';
-            p.mesh = obj.mesh;
-            p.ndimf = 1;
-            pDim = DimensionVariables.create(p);
-            obj.dim = {vDim, pDim};
-            % This is wrong. The mesh creates a linear interpolation by
-            % default, with no option to change it.
-        end
-
         function createDOF(obj)
             obj.dof = DOF_Stokes(obj.fileName,obj.mesh,obj.geometry,obj.interp);
         end
 
-        function createBoundaryConditions(obj)
-            PP = Preprocess;
-            pD = obj.problemData;
-            [fixnodes,forces,~,~] = PP.getBC_fluids...
-                (obj.fileName, obj.mesh, obj.geometry,obj.interp);
-            % fixnodes = dirichlet_data;
-            % forces = neumann_data;
-            obj.createBCvelocity();
-            obj.createBCpressure();
+        function createVelocityField(obj) % 1 in old notation
+            bcVelocity.dirichlet  = obj.inputBC.velocity;   % Useless
+            bcVelocity.pointload  = [];                     % Useless
+            bcVelocity.velocityBC = obj.inputBC.velocityBC;
+            s.mesh               = obj.mesh;
+            s.ndimf              = 2;
+            s.inputBC            = bcVelocity;
+            s.interpolationOrder = 'QUADRATIC';
+            s.scale              = 'MACRO';
+            obj.velocityField = Field(s);
         end
 
-        function createBCvelocity(obj, dirichlet, neumann)
-            s.dim        = obj.dim{1};
-            s.mesh       = obj.mesh; % nope
-            s.scale      = obj.problemData.scale;
-            s.bc         = obj.problemData.bc;
-            bcV = BoundaryConditions(s);
-            bcV.compute();
-            obj.boundaryConditions{1} = bcV;
-        end
-
-        function createBCpressure(obj)
-            s.dim = obj.dim{2};
-            s.mesh   = obj.mesh;
-            s.scale  = obj.problemData.scale;
-            s.bc     = obj.problemData.bc;
-            bcP = BoundaryConditions(s);
-            bcP.compute();
-            obj.boundaryConditions{2} = bcP;
+        function createPressureField(obj) % 2 in old notation
+            bcPressure.dirichlet = obj.inputBC.pressure;
+            bcPressure.pointload  = []; % Useless
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1;
+            s.inputBC            = bcPressure;
+            s.interpolationOrder = 'LINEAR';
+            s.quadratureOrder    = 'QUADRATIC';
+            s.scale              = 'MACRO';
+            obj.pressureField = Field(s);
         end
 
         function createElement(obj)
-            obj.element  = Element_Stokes(obj.geometry,obj.mesh,obj.material,obj.dof,obj.problemData,obj.interp, obj.dim);
+            obj.element  = Element_Stokes(obj.geometry,obj.mesh,...
+                obj.material,obj.dof,obj.problemData,obj.interp,...
+                obj.velocityField, obj.pressureField, obj.inputBC.forcesFormula);
         end
 
         function createSolver(obj)
-            nFields = numel(obj.interp);
-            for ifield = 1:nFields
-                free_dof(ifield) = length(obj.dof.free{ifield});
-            end
+            velFree  = length(obj.velocityField.boundaryConditions.free);
+            prsFree  = length(obj.pressureField.boundaryConditions.free);
+            free_dof = [velFree, prsFree];
             s.tol      = 1e-6;
             s.type     = 'Nonlinear';
             s.element  = obj.element;
