@@ -69,14 +69,16 @@ classdef IterativeProcessComputer < handle
          function obj = computeIterativeProcess(obj)
 % -------
             s = SettingsOptimizer();
-            s.optimizerNames.type = obj.optimizerType;
-            s.optimizerNames.primal = 'PROJECTED GRADIENT';
+            s.optimizerNames.type = 'MMA';
+            s.optimizerNames.primal = 'PORJECTED GRADIENT';
             s.uncOptimizerSettings.scalarProductSettings = obj.designVariable.scalarProduct;
             s.uncOptimizerSettings.designVariable   = obj.designVariable;
             s.monitoringDockerSettings.mesh = obj.mesh;
             s.monitoringDockerSettings.optimizerNames = s.optimizerNames;
+            s.monitoringDockerSettings.refreshInterval = 1;
             s.designVar         = obj.designVariable;
             s.targetParameters.optimality_tol  = 0.0005; %obj.incrementalScheme.targetParams;
+            s.targetParameters.constr_tol = 0.0005;
             s.cost              = obj.cost;
             s.constraint        = obj.constraint;
             s.incrementalScheme.iStep  = 1;%obj.incrementalScheme;
@@ -86,9 +88,10 @@ classdef IterativeProcessComputer < handle
             s.uncOptimizerSettings.lb = 0.25;        
             s.outputFunction.type        = 'Topology';
             s.outputFunction.iterDisplay = 'none';
-            s.type = obj.optimizerType;
+            s.type =  'MMA';
             s.outputFunction.monitoring  = MonitoringManager(s);                  
             s.maxIter           = 1000;
+            s.constraintCase = 'INEQUALITY';
 
             obj.optimizer = Optimizer.create(s);    
             obj.optimizer.solveProblem();

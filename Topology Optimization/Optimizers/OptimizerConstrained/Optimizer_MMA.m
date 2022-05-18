@@ -53,6 +53,7 @@ classdef Optimizer_MMA < Optimizer
             % obj.constraint.computeFunctionAndGradient();
 %             obj.printOptimizerVariable();
             obj.hasFinished = false;
+
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();

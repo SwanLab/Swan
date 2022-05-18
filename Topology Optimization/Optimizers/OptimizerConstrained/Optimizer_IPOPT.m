@@ -15,16 +15,18 @@ classdef Optimizer_IPOPT < Optimizer
         functions
         nX
         options
+        constraintCase
     end
     
     methods (Access = public)
         
         function obj = Optimizer_IPOPT(cParams)
-            obj.init(cParams);
+            obj.initOptimizer(cParams);
             obj.upperBound = cParams.uncOptimizerSettings.ub;
             obj.lowerBound = cParams.uncOptimizerSettings.lb;
             obj.nConstr    = cParams.nConstr;
             obj.maxIter    = cParams.maxIter;
+            obj.constraintCase = cParams.constraintCase;
             obj.nIter      = -1;
             obj.nX         = length(obj.designVariable.value);
             obj.createFunctions();
@@ -142,7 +144,7 @@ classdef Optimizer_IPOPT < Optimizer
         end
         
         function ct = obtainConstraintTolerance(obj)
-            constrTol = obj.targetParameters.constr_tol;
+            constrTol = obj.targetParameters.constr_tol; 
             ct = 0.1*constrTol;
         end
         

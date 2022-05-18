@@ -69,16 +69,19 @@ classdef EigModes < handle
     methods (Access = private)
 
         function dfdx = computeSimpleEig(obj,Belem,x)
-                d = obj.dim;
-                free = obj.freeNodes;
-                W = zeros(d.ndof,2);
-                W(free,1) = obj.v1;
-                W(free,2) = obj.v2;
-                nElem = obj.mesh.nelem;
-                for i = 1:nElem
-                    index = 2*(i-1)+1: 2*(i-1)+4;
-                    dfdx(1,i) = -(2*x(i,1))*(W(index,1)'*Belem(:,:,i)*W(index,1));
-                    dfdx(2,i) = -(2*x(i,1))*(W(index,2)'*Belem(:,:,i)*W(index,2));
+            d = obj.dim;
+            free = obj.freeNodes;
+            ndofe = d.ndofPerElement;
+            ndofn = d.ndimField;
+            W = zeros(d.ndof,2);
+            W(free,1) = obj.v1;
+            W(free,2) = obj.v2;
+            nElem = obj.mesh.nelem;
+            for i = 1:nElem
+                index = ndofn*(i-1)+1: ndofn*(i-1)+ndofe;
+                dx = 2*x(i,1);
+                dfdx(1,i) = -dx*(W(index,1)'*Belem(:,:,i)*W(index,1));
+                dfdx(2,i) = -dx*(W(index,2)'*Belem(:,:,i)*W(index,2));
                 end
         end
 
@@ -88,20 +91,20 @@ classdef EigModes < handle
             ndofe = d.ndofPerElement;
             ndofn = d.ndimField;
             nElem = obj.mesh.nelem;
-            Q1    = zeros(d.ndof,1);
-            Q2    = zeros(d.ndof,1);
-            dQ1   = zeros(nElem,1);
-            dQ2   = zeros(nElem,1);
-            dQ1Q2 = zeros(nElem,1);
-            Q1(free,1) = obj.v1;
-            Q2(free,1) = obj.v2;
+            W1    = zeros(d.ndof,1);
+            W2    = zeros(d.ndof,1);
+            dW1   = zeros(nElem,1);
+            dW2   = zeros(nElem,1);
+            dW1W2 = zeros(nElem,1);
+            W1(free,1) = obj.v1;
+            W2(free,1) = obj.v2;
             for i=1:nElem
                 index = ndofn*(i-1)+1: ndofn*(i-1)+ndofe;
-                der_x = 2*x(i,1);
-                dQ1(i,1)= der_x*(Q1(index,1)'*Belem(:,:,i)*Q1(index,1));
-                dQ2(i,1)= der_x*(Q2(index,1)'*Belem(:,:,i)*Q2(index,1));
-                dQ1Q2(i,1)= (2*x(i,1))*(Q1(index,1)'*Belem(:,:,i)*Q2(index,1));
-                A = [dQ1(i,1) dQ1Q2(i,1); dQ1Q2(i,1) dQ2(i,1)];
+                dx = 2*x(i,1);
+                dW1(i,1)= dx*(W1(index,1)'*Belem(:,:,i)*W1(index,1));
+                dW2(i,1)= dx*(W2(index,1)'*Belem(:,:,i)*W2(index,1));
+                dW1W2(i,1)= (2*x(i,1))*(W1(index,1)'*Belem(:,:,i)*W2(index,1));
+                A = [dW1(i,1) dW1W2(i,1); dW1W2(i,1) dW2(i,1)];
                 [U,R] = eigs(A,2,'SM');
                 S = sort(diag(R));
                 dfdx(1,i) = -S(1);
