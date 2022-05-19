@@ -7,6 +7,7 @@ classdef SLERP < handle
     properties (Access = private)
         phi
         theta
+        scalar_product
     end
 
     methods (Access = public)
@@ -41,21 +42,30 @@ classdef SLERP < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.phi = cParams.designVar;
+            obj.phi            = cParams.designVar;
+            obj.scalar_product = cParams.uncOptimizerSettings.scalarProductSettings;
         end
 
         function computeTheta(obj,g)
-            p         = obj.phi.value;
-            obj.theta = acos((g'*p)/(norm(g)*norm(p)));
+            pN        = obj.normalizeFunction(obj.phi.value);
+            gN        = obj.normalizeFunction(g);
+            obj.theta = max(acos(obj.scalar_product.computeSP(pN,gN)),1e-15);
         end
 
         function p = computeNewLevelSet(obj,g)
-            k = obj.tau;
-            t = obj.theta;
-            p = obj.phi.value;
-            a = sin((1-k)*t)*p;
-            b = sin(k*t)*g/norm(g);
-            p = (a + b)/sin(t); 
+            k  = obj.tau;
+            t  = obj.theta;
+            pN = obj.normalizeFunction(obj.phi.value);
+            gN = obj.normalizeFunction(g);
+            a  = sin((1-k)*t)*pN;
+            b  = sin(k*t)*gN;
+            p  = (a + b)/sin(t); 
+        end
+
+        function x = normalizeFunction(obj,x)
+            norm2 = obj.scalar_product.computeSP(x,x);
+            xNorm = sqrt(norm2);
+            x = x/xNorm;
         end
 
     end
