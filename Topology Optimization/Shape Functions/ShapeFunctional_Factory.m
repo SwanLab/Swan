@@ -10,13 +10,23 @@ classdef ShapeFunctional_Factory < handle
     methods (Access = public)
         
         function sF = create(obj,cParams)
-            obj.designVar = cParams.designVariable;
-            obj.homogVarComputer = cParams.homogVarComputer;
-            obj.targetParameters = cParams.targetParameters;
+            obj.designVar        = cParams.designVariable;
+
+            if isprop(cParams,'homogVarComputer')
+                obj.homogVarComputer = cParams.homogVarComputer;
+            end
+            if isprop(cParams,'targetParameters')
+                obj.targetParameters = cParams.targetParameters;
+            end
             
-            cParams.mesh = cParams.designVariable.mesh.innerMeshOLD;
-            cParams.filterParams.mesh = cParams.designVariable.mesh.innerMeshOLD;
-            cParams.filterParams.designVarType = cParams.designVariable.type;
+            if ~isempty(cParams.designVariable.mesh)
+                if isprop(cParams.designVariable.mesh,'innerMeshOLD')
+                mOld = cParams.designVariable.mesh.innerMeshOLD;
+                cParams.mesh = mOld;
+                cParams.filterParams.mesh          = mOld;
+                cParams.filterParams.designVarType = cParams.designVariable.type;
+                end
+            end
             
             switch cParams.type
                 case 'compliance'
@@ -65,6 +75,14 @@ classdef ShapeFunctional_Factory < handle
                     sF = ShFunc_Volume(cParams);
                 case 'volumeConstraint'
                     sF = Volume_constraint(cParams);
+                case 'firstEignValue_functional'
+                    sF = ShFunc_FirstEigenValue(cParams);
+                case 'doubleEig'
+                    sF = Sh_doubleEig(cParams);
+                case 'volumeColumn'
+                    sF = Sh_volumeColumn(cParams);
+                case 'firstEigTop'
+                    sF = Sh_firstEigTop(cParams);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end

@@ -1,5 +1,6 @@
 function ComputingTopOpt
 
+
 fileName = 'CantileverArnau2';
 % Data input
 s.testName = [fileName,'.m'];
@@ -12,8 +13,6 @@ s.DoF      = 2;
 
 FEMWriter = FEMInputWriter(s);
 FEMWriter.createTest;
-
-
 
 
 s.testName = 'test_cantilever2';%''testJose';

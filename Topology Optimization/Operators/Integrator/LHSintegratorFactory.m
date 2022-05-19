@@ -16,6 +16,10 @@ classdef LHSintegratorFactory < handle
                    % Computes the STIFFNESS MATRIX by first computing the
                    % elemental LHS (dN*dN) and then assembling the result
                    obj = LHSintegrator_Stiffness(cParams);
+               case 'StiffnessMatrixColumn'
+                   %(computeElementalLHS) dN*dN
+                   %+ assembleMatrix (LHSintegrator through integrator)
+                   obj = LHSintegrator_StiffnessColumn(cParams);
                case 'ElasticStiffnessMatrix'
                    % Computes the ELASTIC STIFFNESS MATRIX by first
                    % computing the elemental LHS (dN*C*dN / B*C*B) and then
@@ -27,6 +31,9 @@ classdef LHSintegratorFactory < handle
                    % matrix, and then multiplying B*C*B globally.
                    % Per results, it is less efficient.
                    obj = LHSintegrator_StiffnessElasticStoredB(cParams);
+                   %globalB in contructor
+               case 'BendingMatrix'
+                   obj = LHSintegrator_Bending(cParams);
                case 'DiffReactRobin'
                    % Creates a composite LHS for DiffReact problems with
                    % the ROBIN TERM. Includes a stiffness matrix, a mass
@@ -37,6 +44,7 @@ classdef LHSintegratorFactory < handle
                    % NO ROBIN TERM. Includes a stiffness matrix and a mass
                    % matrix, and NO boundary mass matrix.
                    obj = LHSintegrator_DiffReactNeumann(cParams);
+
            end
        end
        

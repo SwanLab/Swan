@@ -14,6 +14,11 @@ classdef DesignVarMonitor_Null < DesignVarMonitor_Abstract
         function plot(varargin)
         end
         
+        function refresh(obj)
+            obj.plot();
+            drawnow
+        end        
+        
     end
     
     methods (Access = protected)

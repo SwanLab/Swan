@@ -63,7 +63,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.designVariable         = cParams.designVar;
             obj.dualVariable           = cParams.dualVariable;
             obj.incrementalScheme      = cParams.incrementalScheme;
-            obj.nConstr                = cParams.nConstr;
+            obj.nConstr                = cParams.constraint.nSF;
             obj.nX                     = length(obj.designVariable.value);
             obj.maxIter                = cParams.maxIter;
             obj.hasConverged           = false;
@@ -102,7 +102,7 @@ classdef OptimizerNullSpace < Optimizer
                 DJ      = obj.cost.gradient;
                 Dg      = obj.constraint.gradient;
                 aJ      = 1;
-                DmF     = aJ*(DJ + l'*Dg);
+                DmF     = aJ*(DJ + Dg*l);
                 factor  = 3;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
@@ -117,7 +117,7 @@ classdef OptimizerNullSpace < Optimizer
             DJ      = obj.cost.gradient;
             l       = obj.dualVariable.value;
             aJ      = 1;
-            g       = aJ*(DJ + l'*Dh);
+            g       = aJ*(DJ + Dh*l);
             x       = obj.primalUpdater.update(g,x);
         end
 
