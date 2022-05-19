@@ -91,7 +91,7 @@ classdef IterativeProcessComputer < handle
             s.type = 'MMA';%'fmincon';%'MMA';
             s.outputFunction.monitoring  = MonitoringManager(s);                  
             s.maxIter           = 1000;
-            s.constraintCase = 'EQUALITY';
+            s.constraintCase = 'INEQUALITY';
 
             obj.optimizer = Optimizer.create(s);    
             obj.optimizer.solveProblem();
