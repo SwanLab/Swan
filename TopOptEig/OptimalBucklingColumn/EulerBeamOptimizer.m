@@ -77,8 +77,8 @@ classdef EulerBeamOptimizer < handle
              x = sort(x);
              coord = x; 
              %
-            
-             % coord = linspace(0,obj.columnLength,nnod)';
+             
+              coord = linspace(0,obj.columnLength,nnod)';
         end
 
         function Tnod = createConnectivity(obj)

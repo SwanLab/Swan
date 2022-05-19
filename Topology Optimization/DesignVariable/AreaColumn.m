@@ -19,7 +19,7 @@ classdef AreaColumn < DesignVariable
         function A = getColumnArea(obj)
            x = obj.value;
            N = obj.mesh.nelem;
-           A = x(1:N);
+           A = x(1:N,1);
         end
 
         function V = computeVolum(obj)
@@ -52,7 +52,7 @@ classdef AreaColumn < DesignVariable
         
         function createInitialValue(obj)
             N = obj.mesh.nelem;
-            x0 = 1*ones(N+1,1);%ones(N+1,1);               
+            x0 = 1*rand(N+1,1);%ones(N+1,1);               
             obj.update(x0);        
         end
     end

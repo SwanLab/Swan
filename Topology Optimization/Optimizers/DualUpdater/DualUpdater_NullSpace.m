@@ -21,7 +21,7 @@ classdef DualUpdater_NullSpace < handle
         end
 
         function update(obj)
-            switch obj.constraintCase{1}
+            switch obj.constraintCase%{1}
                 case {'EQUALITY'}
                     obj.computeDirectDual();
                 case {'INEQUALITY'}
@@ -70,7 +70,7 @@ classdef DualUpdater_NullSpace < handle
             Dg = obj.constraint.gradient;
             DJ = obj.cost.gradient;
             g  = obj.constraint.value;
-            t  = obj.tau;
+            t  = 1;%obj.tau;
             prob.H      = Dg'*Dg;
             prob.f      = -g + t*Dg'*DJ;%DJ'*Dg;
             prob.A      = [];

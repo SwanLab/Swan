@@ -102,7 +102,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             Dg      = obj.constraint.gradient;
             g       = obj.constraint.value;
             p       = obj.penalty;
-            DmF     = DJ + l*g + p*g*Dg;
+            DmF     = DJ + Dg*(l + p*g);
             if obj.nIter == 0
                 factor = 1;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
@@ -119,7 +119,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             l   = obj.dualVariable.value;
             x   = obj.designVariable.value;
             p   = obj.penalty;
-            g   = (DJ + (l + p*h)*Dh);
+            g   = (DJ + Dh*(l + p*h));
             x   = obj.primalUpdater.update(g,x);
         end
 
@@ -147,7 +147,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             g      = obj.constraint.value;
             l      = obj.dualVariable.value;
             rho    = obj.penalty;
-            mF     = J + l'*g + 0.5*rho*g*g;
+            mF     = J + l'*g + 0.5*rho*g'*g;
         end
 
         function obj = saveOldValues(obj,x)
