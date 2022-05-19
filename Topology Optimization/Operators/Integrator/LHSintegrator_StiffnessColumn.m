@@ -81,7 +81,7 @@ classdef LHSintegrator_StiffnessColumn < LHSintegrator
 
         function l = computeLength(obj)
             g = obj.geometry;
-            l = sum(g.dvolu,2)
+            l = sum(g.dvolu,2);
         end
 
         function [c1,c2,c3,c4,c5] = coeffsStiffness(obj,l)

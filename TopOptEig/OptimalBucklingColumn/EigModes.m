@@ -77,12 +77,21 @@ classdef EigModes < handle
             W(free,1) = obj.v1;
             W(free,2) = obj.v2;
             nElem = obj.mesh.nelem;
+
+         
+
             for i = 1:nElem
                 index = ndofn*(i-1)+1: ndofn*(i-1)+ndofe;
                 dx = 2*x(i,1);
                 dfdx(1,i) = -dx*(W(index,1)'*Belem(:,:,i)*W(index,1));
                 dfdx(2,i) = -dx*(W(index,2)'*Belem(:,:,i)*W(index,2));
-                end
+                
+            end    
+%             q = Quadrature.set(obj.mesh.type);
+%             q.computeQuadrature('LINEAR');
+%             l = sum(obj.mesh.computeDvolume(q));             
+%             dfdx(1,:) = 1./1.*dfdx(1,:); 
+%             dfdx(2,:) = 1./1.*dfdx(2,:); 
         end
 
         function dfdx = computeDoubleEig(obj,Belem,x)
