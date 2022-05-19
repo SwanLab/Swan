@@ -1,22 +1,22 @@
 function ComputingTopOpt
 
-rho0Name = 'MicroUltraFine.mat';
+rho0Name = 'TFM.mat';
 jumpTo2ndPart = true;
 
 if jumpTo2ndPart == false
 
-%     fileName = 'jaCantilever';
-%     % Data input
-%     s.testName = [fileName,'.m'];
-%     s.x1       = 2;
-%     s.y1       = 1;
-%     s.N        = 150;
-%     s.M        = 75;
-%     s.P        = -100;
-%     s.DoF      = 2;
-% 
-%     FEMWriter = FEMInputWriter(s);
-%     FEMWriter.createTest;
+    fileName = 'jaCantilever';
+    % Data input
+    s.testName = [fileName,'.m'];
+    s.x1       = 2;
+    s.y1       = 1;
+    s.N        = 150;
+    s.M        = 75;
+    s.P        = -100;
+    s.DoF      = 2;
+
+    FEMWriter = FEMInputWriter(s);
+    FEMWriter.createTest;
 
 
 

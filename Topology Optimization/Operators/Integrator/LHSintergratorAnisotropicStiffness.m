@@ -32,7 +32,7 @@ classdef LHSintergratorAnisotropicStiffness < LHSintegrator
             dvolu = obj.mesh.computeDvolume(obj.quadrature);
             ngaus = obj.quadrature.ngaus;
             nelem = obj.mesh.nelem;
-            ndpe  = obj.dim.ndofPerElement;
+            ndpe  = obj.dim.ndofsElem;
             lhs = zeros(ndpe,ndpe,nelem);
             C   = obj.Celas;
             Bcomp = obj.createBComputer();

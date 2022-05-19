@@ -1,26 +1,26 @@
-% filename = 'jaCantilever';
+filename = 'jaCantilever';
 % filename = 'Bridge_UltraFine';
 % filename = 'ArchUltraFine';
-filename = 'MicroUltraFine';
+% filename = 'MicroUltraFine';
 
 %Micro
-epsilon_isotropy_initial=1e-1;
-epsilon_isotropy_final = 1e-3;
-micro.alpha =[1 1 0]';
-micro.beta =[1 1 0]';
+% epsilon_isotropy_initial=1e-1;
+% epsilon_isotropy_final = 1e-3;
+% micro.alpha =[1 1 0]';
+% micro.beta =[1 1 0]';
 
-ptype = 'MICRO';
+ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'circleInclusion';
-cost = {'chomog_alphabeta'};
+initial_case = 'full';
+cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
 % constraint_case = 'EQUALITY';
-optimizerUnconstrained = 'SLERP';
+optimizerUnconstrained = 'PROJECTED GRADIENT';
 optimizer = 'DualNestedInPrimal';
 incrementFactor = 1.5; % Recommended: 1.5; 2.0
-designVariable = 'LevelSet';
+designVariable = 'Density';
 filterType = 'P1';
 
 nsteps = 1; % Recommended slope: 5%/step is OK
@@ -46,4 +46,4 @@ printing = false;
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 20; % 00
+maxiter = 2000;
