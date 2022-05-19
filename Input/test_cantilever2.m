@@ -6,10 +6,11 @@ initial_case = 'full';
 cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
-optimizerUnconstrained = 'PROJECTED GRADIENT';%'PROJECTED GRADIENT'; 
-optimizer = 'MMA';%'NullSpace';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
+constraint_case = {'EQUALITY'};
+optimizerUnconstrained = 'SLERP';%'PROJECTED GRADIENT'; 
+optimizer = 'AlternatingPrimalDual';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
 incrementFactor = 1;
-designVariable = 'Density';%'Density';
+designVariable = 'LevelSet';%'Density';
 filterType = 'P1';
 
 nsteps = 3;

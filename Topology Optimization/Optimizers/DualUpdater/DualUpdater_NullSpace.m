@@ -1,45 +1,83 @@
-classdef DualUpdater_NullSpace < DualUpdater
+classdef DualUpdater_NullSpace < handle
 
     properties (Access = private)
        NSmeritFunc
        constraint
        cost
+       designVariable
+       dualVariable
        problem
        options
+       constraintCase
+       tau
+       nConstr
+       constrTol
     end
 
     methods (Access = public)
 
         function obj = DualUpdater_NullSpace(cParams)
-            obj.init(cParams)
-            obj.constraint   = cParams.constraint;
-            obj.cost         = cParams.cost;
-            %obj.NSmeritFunc  = cParams.NSmeritFunc;
+            obj.init(cParams);
         end
 
-        function updateDualVariable(obj)
-            obj.computeDualProblemParameters();
-            obj.computeDualProblemOptions();
-            PROBLEM         = obj.problem;
-            PROBLEM.options = obj.options;
-            mu = quadprog(PROBLEM);
-            obj.dualVariable.value = mu;
+        function update(obj)
+            switch obj.constraintCase{1}
+                case {'EQUALITY'}
+                    obj.computeDirectDual();
+                case {'INEQUALITY'}
+                    obj.computeQuadraticProblem();
+            end
         end
 
     end
 
     methods (Access = private)
 
-        function computeDualProblemParameters(obj)
-            A = obj.constraint.gradient;
-            b = obj.cost.gradient;
-            prob.H      = A'*A;
-            prob.f      = b'*A;
+        function init(obj,cParams)
+            obj.cost           = cParams.cost;
+            obj.constraint     = cParams.constraint;
+            obj.designVariable = cParams.designVar;
+            obj.constraintCase = cParams.constraintCase;
+            obj.dualVariable   = cParams.dualVariable;
+            obj.nConstr        = cParams.nConstr;
+        end
+
+        function computeDirectDual(obj)
+            obj.constraint.computeFunctionAndGradient();
+            obj.cost.computeFunctionAndGradient();
+            DJ = obj.cost.gradient;
+            Dh = obj.constraint.gradient;
+            h  = obj.constraint.value;
+            S  = (Dh'*Dh)^-1;
+            aJ = 1;
+            aC = 1;
+            l  = aC/aJ*S*(h - 1*Dh'*DJ);
+            obj.dualVariable.value = l;
+        end
+
+        function computeQuadraticProblem(obj)
+            obj.constraint.computeFunctionAndGradient();
+            obj.cost.computeFunctionAndGradient();
+            obj.computeDualProblemParameters();
+            obj.computeDualProblemOptions();
+            PROBLEM         = obj.problem;
+            PROBLEM.options = obj.options;
+            l = quadprog(PROBLEM);
+            obj.dualVariable.value = l;
+        end
+
+         function computeDualProblemParameters(obj)
+            Dg = obj.constraint.gradient;
+            DJ = obj.cost.gradient;
+            g  = obj.constraint.value;
+            t  = obj.tau;
+            prob.H      = Dg'*Dg;
+            prob.f      = -g + t*Dg'*DJ;%DJ'*Dg;
             prob.A      = [];
             prob.b      = [];
             prob.Aeq    = [];
             prob.beq    = [];
-            prob.lb     = -inf;
+            prob.lb     = 0;
             prob.ub     = inf;
             prob.x0     = zeros(length(prob.H),1);
             prob.solver = 'quadprog';

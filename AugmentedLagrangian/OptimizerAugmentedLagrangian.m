@@ -8,7 +8,6 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         tau
         lineSearchTrials
         lineSearch
-        maxLineSearchTrials = 100
         costOld
         upperBound
         lowerBound
@@ -18,14 +17,18 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         acceptableStep
         oldDesignVariable
         oldCost
-        problem
-        options
-        lambda
         incrementalScheme
         hasFinished
         mOld
         meritNew
         penalty
+
+        globalCost
+        globalConstraint
+        globalCostGradient
+        globalMerit
+        globalLineSearch
+        globalDual
     end
 
     methods (Access = public) 
@@ -34,6 +37,8 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.initOptimizer(cParams);
             obj.init(cParams);
             obj.outputFunction.monitoring.create(cParams);
+            obj.createPrimalUpdater(cParams);
+            obj.createDualUpdater(cParams);
             obj.prepareFirstIter();
         end
 
@@ -68,12 +73,14 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.cost.computeFunctionAndGradient();
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
-            obj.lambda  = 0;
-            obj.penalty = 10;
+            obj.dualVariable.value = 0;
+            obj.penalty            = 10;
         end
 
         function obj = update(obj)
             x0 = obj.designVariable.value;
+            x0 = x0/norm(x0);
+            obj.designVariable.update(x0);
             obj.saveOldValues(x0);
             obj.mOld = obj.computeMeritFunction(x0);
             obj.calculateInitialStep();
@@ -90,53 +97,43 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
             x       = obj.designVariable.value;
-            l       = obj.lambda;
+            l       = obj.dualVariable.value;
             DJ      = obj.cost.gradient;
             Dg      = obj.constraint.gradient;
             g       = obj.constraint.value;
             p       = obj.penalty;
             DmF     = DJ + l*g + p*g*Dg;
             if obj.nIter == 0
-                obj.tau = 1*sqrt(norm(DmF)/norm(x));
+                factor = 1;
+                obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
-                obj.tau = 1.05*obj.tau;
+                factor = 1.05;
+                obj.primalUpdater.increaseStepLength(factor);
             end
         end
 
-        function obj = updateDualDirect(obj)
-            obj.constraint.computeFunctionAndGradient();
-            l   = obj.lambda;
-            g   = obj.constraint.value;
-            p   = obj.penalty;
-            l   = l + p*g;
-            obj.lambda = l;
-        end
-
         function x = updatePrimal(obj)
-            lb      = obj.lowerBound;
-            ub      = obj.upperBound;
-            t       = obj.tau;
-            Dg      = obj.constraint.gradient;
-            g       = obj.constraint.value;
-            DJ      = obj.cost.gradient;
-            l       = obj.lambda;
-            x       = obj.designVariable.value;
-            p       = obj.penalty;
-            dx      = -t*(DJ + (l + p*g)*Dg);
-            xN      = x + dx;
-            x       = min(ub,max(xN,lb));
+            Dh  = obj.constraint.gradient;
+            h   = obj.constraint.value;
+            DJ  = obj.cost.gradient;
+            l   = obj.dualVariable.value;
+            x   = obj.designVariable.value;
+            p   = obj.penalty;
+            g   = (DJ + (l + p*h)*Dh);
+            x   = obj.primalUpdater.update(g,x);
         end
 
         function checkStep(obj,x,x0)
             mNew = obj.computeMeritFunction(x);
             if mNew < obj.mOld
                 obj.acceptableStep = true;
-                obj.updateDualDirect();
+                obj.dualUpdater.updatePenalty(obj.penalty);
+                obj.dualUpdater.update();
                 obj.meritNew = mNew;
-            elseif obj.tau < 1e-10
+            elseif obj.primalUpdater.isTooSmall()
                 error('Convergence could not be achieved (step length too small)')
             else
-                obj.tau = obj.tau/2;
+                obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
                 obj.lineSearchTrials = obj.lineSearchTrials + 1;
             end
@@ -148,7 +145,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.constraint.computeFunctionAndGradient();
             J      = obj.cost.value;
             g      = obj.constraint.value;
-            l      = obj.lambda;
+            l      = obj.dualVariable.value;
             rho    = obj.penalty;
             mF     = J + l'*g + 0.5*rho*g*g;
         end
@@ -159,7 +156,6 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.constraint.computeFunctionAndGradient();
             obj.oldCost            = obj.cost.value;
             obj.oldDesignVariable  = x;
-            obj.dualVariable.value = obj.lambda;
         end
 
         function obj = updateOldValues(obj,x)
@@ -169,7 +165,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function obj = checkConvergence(obj)
-           if abs(obj.meritNew - obj.mOld) < obj.tol && max(obj.constraint.value) <= 0
+           if abs(obj.meritNew - obj.mOld) < obj.tol && obj.checkConstraint()
                obj.hasConverged = true;
            else
                
@@ -178,9 +174,8 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function obj = updateMonitoring(obj)
-            obj.updateIterInfo();
             s.nIter            = obj.nIter;
-            s.tau              = obj.tau;
+            s.tau              = obj.primalUpdater.tau;
             s.lineSearch       = obj.lineSearch;
             s.lineSearchTrials = obj.lineSearchTrials;
             s.oldCost          = obj.oldCost;
@@ -206,6 +201,35 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             iStep = obj.incrementalScheme.iStep;
             nStep = obj.incrementalScheme.nSteps;
             itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
+        end
+
+        function saveVariablesForAnalysis(obj)
+            i                         = obj.nIter;
+            obj.globalCost(i)         = obj.cost.value;
+            obj.globalConstraint(i)   = obj.constraint.value;
+            obj.globalCostGradient(i) = norm(obj.cost.gradient);
+            obj.globalMerit(i)        = obj.meritNew;
+            obj.globalLineSearch(i)   = obj.primalUpdater.tau;
+            obj.globalDual(i)         = obj.dualVariable.value;
+            if obj.hasConverged
+                c = obj.globalCost;
+                h = obj.globalConstraint;
+                g = obj.globalCostGradient;
+                m = obj.globalMerit;
+                t = obj.globalLineSearch;
+                d = obj.globalDual;
+                save('AugLagrangianVariables.mat',"t","m","c","g","h","d");
+            end
+
+            %
+            m = obj.designVariable.mesh.innerMeshOLD;
+            bm = m.createBoundaryMesh();
+            s.backgroundMesh = m;
+            s.boundaryMesh   = bm;
+            um = UnfittedMesh(s);
+            um.compute(x);
+            um.plot();
+           
         end
 
     end

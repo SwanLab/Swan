@@ -7,8 +7,11 @@ classdef Optimizer < handle
         constraint
         outputFunction
         maxIter
-        nIter
+        nIter = 0
         targetParameters
+        dualUpdater
+        primalUpdater
+        constraintCase
     end
     
     properties (GetAccess = public, SetAccess = protected, Abstract)
@@ -19,8 +22,8 @@ classdef Optimizer < handle
     methods (Access = public, Static)
         
         function obj = create(cParams)
-            f    = OptimizerFactory();
-            obj  = f.create(cParams);
+            f   = OptimizerFactory();
+            obj = f.create(cParams);
         end
         
     end
@@ -35,9 +38,43 @@ classdef Optimizer < handle
             obj.dualVariable      = cParams.dualVariable;
             obj.maxIter           = cParams.maxIter;
             obj.targetParameters  = cParams.targetParameters;
+            obj.constraintCase    = cParams.constraintCase;
             obj.outputFunction    = cParams.outputFunction.monitoring;
         end
+
+        function createPrimalUpdater(obj,cParams)
+            f                 = PrimalUpdaterFactory();
+            obj.primalUpdater = f.create(cParams);
+        end
+
+        function createDualUpdater(obj,cParams)
+            f               = DualUpdaterFactory();
+            obj.dualUpdater = f.create(cParams);      
+        end
         
+        function isAcceptable = checkConstraint(obj)
+            switch obj.constraintCase{1}
+                case {'EQUALITY'}
+                    isAcceptable = obj.checkEqualityConstraint();
+                case {'INEQUALITY'}
+                    isAcceptable = obj.checkInequalityConstraint();
+            end
+        end
+        
+    end
+
+    methods (Access = private)
+
+        function c = checkInequalityConstraint(obj)
+            g = obj.constraint.value;
+            c = g < obj.targetParameters.constr_tol;
+        end
+
+        function c = checkEqualityConstraint(obj)
+            g = obj.constraint.value;
+            c = abs(g) < obj.targetParameters.constr_tol;
+        end
+
     end
     
 end

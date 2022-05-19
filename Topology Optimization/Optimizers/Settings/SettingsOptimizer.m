@@ -16,6 +16,7 @@ classdef SettingsOptimizer < AbstractSettings
         dualVariable
         cost
         constraint
+        tau
         
         outF
         shallPrint

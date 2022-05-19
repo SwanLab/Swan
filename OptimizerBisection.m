@@ -26,6 +26,13 @@ classdef OptimizerBisection < Optimizer
         meritNew
         constrProjector
         isInitialStep
+
+        globalCost
+        globalConstraint
+        globalCostGradient
+        globalMerit
+        globalLineSearch
+        globalDual
     end
 
     methods (Access = public) 
@@ -46,6 +53,7 @@ classdef OptimizerBisection < Optimizer
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
+                obj.saveVariablesForAnalysis();
             end
         end
 
@@ -153,7 +161,6 @@ classdef OptimizerBisection < Optimizer
         end
 
         function obj = updateMonitoring(obj)
-            obj.updateIterInfo();
             s.nIter            = obj.nIter;
             s.tau              = obj.tau;
             s.lineSearch       = obj.lineSearch;
@@ -180,6 +187,27 @@ classdef OptimizerBisection < Optimizer
             iStep = obj.incrementalScheme.iStep;
             nStep = obj.incrementalScheme.nSteps;
             itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
+        end
+
+        function saveVariablesForAnalysis(obj)
+            i                         = obj.nIter + 1;
+            obj.globalCost(i)         = obj.cost.value;
+            obj.globalConstraint(i)   = obj.constraint.value;
+            obj.globalCostGradient(i) = norm(obj.cost.gradient);
+            obj.globalMerit(i)        = obj.cost.value;
+            obj.globalLineSearch(i)   = obj.tau;
+            obj.globalDual(i)         = obj.dualVariable.value;
+            iStep                     = obj.incrementalScheme.iStep;
+            nStep                     = obj.incrementalScheme.nSteps;
+            if obj.hasConverged && iStep == nStep
+                c = obj.globalCost;
+                h = obj.globalConstraint;
+                g = obj.globalCostGradient;
+                m = obj.globalMerit;
+                t = obj.globalLineSearch;
+                d = obj.globalDual;
+                save('BisectionVariables.mat',"t","m","c","g","h","d");
+            end
         end
 
     end
