@@ -1,6 +1,12 @@
 %% To-do
-% - Move BC from fields, move geometry to Mesh, give importance to
-% interptranslator in field, LHSintegrator types: field/test function
+% - Move BC from fields
+% - move geometry to Mesh
+%       - it cannot work properly. For problems such as stokes, there are
+%       two different interpolations. creating the geometry inside the mesh
+%       only allows for one interpolation at a time -- and you cannot copy
+%       the mesh to make a new one becaues of the way matlab handles it
+% - give importance to interptranslator in field
+% - LHSintegrator types: field/test function
 
 %% Long-term
 % - FeFunction and Field should converge into one. Mesh.coord could be a
