@@ -11,6 +11,9 @@ classdef LHSintegrator_Mass < LHSintegrator
             obj.quadType = cParams.quadType;
             obj.createQuadrature();
             obj.createInterpolation();
+            if isfield(cParams, 'interpolation')
+                obj.interpolation = cParams.interpolation;
+            end
         end
 
         function LHS = compute(obj)
@@ -28,7 +31,8 @@ classdef LHSintegrator_Mass < LHSintegrator
             dvolu  = obj.mesh.computeDvolume(quad);
             ngaus  = obj.quadrature.ngaus;
             nelem  = obj.mesh.nelem;
-            nnode  = obj.mesh.nnodeElem;
+%             nnode  = obj.mesh.nnodeElem;
+            nnode  = obj.interpolation.nnode;
             lhs = zeros(nnode,nnode,nelem);
             for igaus = 1:ngaus
                 dv(1,1,:) = dvolu(igaus,:);

@@ -261,6 +261,10 @@ classdef Assembler < handle
             end
         end
         
+      
+        function A = assembleVectorWithFields(obj, Felem, f1, f2)
+        end
+
         function dofConnec = computeFieldDofs(obj, field)
             connec  = field.connec;
             ndimf   = field.dim.ndimf;
