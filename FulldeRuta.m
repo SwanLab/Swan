@@ -1,5 +1,16 @@
 %% To-do
 % - Move BC from fields
+%       - many possibilities to do it, but none that don't smell.
+%           - BoundaryConditionFactory that generates BoundaryCondition,
+%             just like filters?
+%           - Passing a cell array as the input BC for the Boundary
+%             Conditions class? (you lose info like ndimfield)
+%           - Passing a struct where each field indicates type/domain/...?
+%       - It makes no sense to have free_dofs for each field in a cell
+%         array. BoundaryConditions were moved away from Field because of
+%         that.
+%       - it is difficult to sense which will be the winner, perhaps it's
+%         time to push with new features and see what comes up.
 % - move geometry to Mesh
 %       - it cannot work properly. For problems such as stokes, there are
 %       two different interpolations. creating the geometry inside the mesh

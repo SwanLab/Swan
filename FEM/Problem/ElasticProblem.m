@@ -143,10 +143,13 @@ classdef ElasticProblem < handle
         end
 
         function createBoundaryConditions(obj)
+            bc = obj.displacementField.inputBC;
+            bc.ndimf = obj.displacementField.dim.ndimf;
+            bc.ndofs = obj.displacementField.dim.ndofs;
             s.dim   = obj.displacementField.dim;
             s.mesh  = obj.mesh;
             s.scale = obj.scale;
-            s.bc    = obj.displacementField.inputBC;
+            s.bc    = {bc};
             s.ndofs = obj.displacementField.dim.ndofs;
             bc = BoundaryConditions(s);
             bc.compute();

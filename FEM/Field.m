@@ -34,7 +34,29 @@ classdef Field < handle
             obj.updateInputMismatch();
             obj.computeDimensions();
             obj.translateBoundaryConditions();
-            obj.createBoundaryConditions();
+%             obj.createBoundaryConditions();
+        end
+
+        function dirichlet = translateBoundaryConditions(obj)
+            inBC = obj.inputBC;
+            fn = fieldnames(inBC);
+            for k=1:numel(fn)
+                param = inBC.(fn{k});
+                if isstruct(param)
+                    if (param.domain == 'Border')
+                        x = obj.coord(:,1);
+                        y = obj.coord(:,2);
+                        idx = find(x == 0 | x == 1 | y == 0 | y == 1);
+                        one = ones(length(idx),1);
+                        newDirich = [idx, one, one*param.value;
+                                     idx, 2*one, one*param.value];
+                        obj.inputBC.dirichlet = sortrows(newDirich);
+                        dirichlet = sortrows(newDirich);
+                    end
+                end
+            end
+
+            
         end
 
     end
@@ -104,31 +126,13 @@ classdef Field < handle
             obj.dim = d;
         end
 
-        function translateBoundaryConditions(obj)
-            inBC = obj.inputBC;
-            fn = fieldnames(inBC);
-            for k=1:numel(fn)
-                param = inBC.(fn{k});
-                if isstruct(param)
-                    if (param.domain == 'Border')
-                        x = obj.coord(:,1);
-                        y = obj.coord(:,2);
-                        idx = find(x == 0 | x == 1 | y == 0 | y == 1);
-                        one = ones(length(idx),1);
-                        newDirich = [idx, one, one*param.value;
-                                     idx, 2*one, one*param.value];
-                        obj.inputBC.dirichlet = newDirich;
-                    end
-                end
-            end
-        end
-
         function createBoundaryConditions(obj)
+            obj.inputBC.ndimf = obj.dim.ndimf;
             s.dim   = obj.dim;
             s.mesh  = obj.mesh;
             s.scale = obj.scale;
-            s.bc    = obj.inputBC;
-%             s.ndofs = obj.dim.ndofs;
+            s.bc    = {obj.inputBC};
+            s.ndofs = obj.dim.ndofs;
             bc = BoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;

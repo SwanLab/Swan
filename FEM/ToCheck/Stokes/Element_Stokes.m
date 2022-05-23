@@ -19,11 +19,13 @@ classdef Element_Stokes < Element
         pressureField
         forcesFormula
         LHSint
+        boundaryConditions
     end
     
     methods
-        function obj = Element_Stokes(geometry,mesh,material,dof,problemData,interp, vField, pField,forcesFormula)
-            obj.initElement(geometry,mesh,material,dof,problemData.scale,interp);
+        function obj = Element_Stokes(geom,mesh,material,dof,pD,interp, ...
+                vField, pField,forcesFormula, BC)
+            obj.initElement(geom,mesh,material,dof,pD.scale,interp);
 %             obj.dim = dim;
             obj.mesh = mesh;
             %obj.nstre=0;
@@ -31,11 +33,12 @@ classdef Element_Stokes < Element
             obj.velocityField = vField;
             obj.pressureField = pField;
             obj.forcesFormula = forcesFormula;
+            obj.boundaryConditions = BC;
         end
         
         function [r,dr] = computeResidual(obj,x,dr,x_n)
 %             K = compute_LHS(obj);
-            freeV = obj.velocityField.boundaryConditions.free;
+            freeV = obj.boundaryConditions.freeFields{1};
             lenFreeV = length(freeV);
             if (nargin ==3)
                 % Steady
@@ -107,10 +110,6 @@ classdef Element_Stokes < Element
             s.forcesFormula = obj.forcesFormula;
             RHS_int = RHSintegrator.create(s);
             RHS_elem = RHS_int.integrate();
-%             Fext = obj.computeVolumetricFext();
-%             g = obj.compute_velocity_divergence;
-%             RHS_elem{1,1} = Fext;
-%             RHS_elem{2,1} = g;
             RHS = AssembleVector(obj,RHS_elem);
         end
         
