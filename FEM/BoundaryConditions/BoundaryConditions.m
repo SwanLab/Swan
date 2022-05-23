@@ -16,8 +16,6 @@ classdef BoundaryConditions < handle
         scale
         dirichletInput
         pointloadInput
-
-        ndofs
     end
     
     methods (Access = public)
@@ -72,11 +70,6 @@ classdef BoundaryConditions < handle
             obj.scale          = cParams.scale;
             obj.dirichletInput = cParams.bc.dirichlet;
             obj.pointloadInput = cParams.bc.pointload;
-            if isfield(cParams, 'ndofs') && ~isempty(cParams.ndofs)
-                obj.ndofs = cParams.ndofs;
-            else
-                obj.ndofs = obj.dim.ndofs;
-            end
             obj.initPeriodicMasterSlave(cParams);
         end
 
@@ -108,7 +101,7 @@ classdef BoundaryConditions < handle
         end
 
         function free = computeFreeDOF(obj)
-            ndof  = obj.ndofs;
+            ndof  = obj.dim.ndofs;
             cnstr = [obj.periodic_constrained;obj.dirichlet];
             free  = setdiff(1:ndof,cnstr);
         end
@@ -171,7 +164,7 @@ classdef BoundaryConditions < handle
             uD  = obj.dirichlet_values;
             fr  = obj.free;
             nsteps = length(bfree(1,:));
-            ndof = sum(obj.ndofs);
+            ndof = sum(obj.dim.ndofs);
             uD = repmat(uD,1,nsteps);
             
             b = zeros(ndof,nsteps);
@@ -186,7 +179,7 @@ classdef BoundaryConditions < handle
             vP = obj.periodic_free;
             vC = obj.periodic_constrained;
             vI = setdiff(vF,vP);
-            b = zeros(obj.ndofs,1);
+            b = zeros(obj.dim.ndofs,1);
             b(vI) = bfree(1:1:size(vI,2));
             b(vP) = bfree(size(vI,2)+1:1:size(bfree,1));
             b(vC) = b(vP);

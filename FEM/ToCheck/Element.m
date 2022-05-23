@@ -145,13 +145,13 @@ classdef Element < handle
         end
         
         function assign_dirichlet_values(obj)
-            for ifield = 1:obj.nfields
-                if ~isempty(obj.dof.dirichlet{ifield})
-                    obj.uD{ifield} = obj.dof.dirichlet_values{ifield};
-                else
-                    obj.uD = {[]};
-                end
-            end
+%             for ifield = 1:obj.nfields
+%                 if ~isempty(obj.dof.dirichlet{ifield})
+%                     obj.uD{ifield} = obj.dof.dirichlet_values{ifield};
+%                 else
+%                     obj.uD = {[]};
+%                 end
+%             end
         end
         
         function R = compute_imposed_displacement_force(obj,K)

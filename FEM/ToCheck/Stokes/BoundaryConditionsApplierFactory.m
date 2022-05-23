@@ -8,14 +8,14 @@ classdef BoundaryConditionsApplierFactory < handle
                     switch cParams.type
                         case 'Neumann'
                             % Obsolete
-                            obj = NeumannConditionsApplier();
+%                             obj = NeumannConditionsApplier();
                         otherwise
                             % Legacy
                             obj = DirichletConditionsApplier(cParams);
                     end
                 case 'MICRO'
                     % Obsolete
-                    obj = PeriodicBoundaryConditionApplier(cParams);
+%                     obj = PeriodicBoundaryConditionApplier(cParams);
             end
         end
         

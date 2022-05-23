@@ -38,6 +38,7 @@ classdef ElasticProblem < handle
             obj.init(cParams);
             obj.computeDimensions();
             obj.createDisplacementField();
+            obj.createBoundaryConditions();
             obj.createSolver();
         end
 
@@ -141,6 +142,16 @@ classdef ElasticProblem < handle
             obj.displacementField = Field(s);
         end
 
+        function createBoundaryConditions(obj)
+            s.dim   = obj.displacementField.dim;
+            s.mesh  = obj.mesh;
+            s.scale = obj.scale;
+            s.bc    = obj.displacementField.inputBC;
+            s.ndofs = obj.displacementField.dim.ndofs;
+            bc = BoundaryConditions(s);
+            bc.compute();
+            obj.boundaryConditions = bc;
+        end
 
         function createSolver(obj)
             s.type =  'DIRECT';
@@ -174,7 +185,7 @@ classdef ElasticProblem < handle
             s.type = 'Elastic';
             s.scale    = obj.scale;
             s.dim      = obj.displacementField.dim;
-            s.BC       = obj.displacementField.boundaryConditions;
+            s.BC       = obj.boundaryConditions;
             s.mesh     = obj.mesh;
             s.material = obj.material;
             s.globalConnec = obj.displacementField.connec;
@@ -189,7 +200,7 @@ classdef ElasticProblem < handle
         end
 
         function u = computeDisplacements(obj)
-            bc = obj.displacementField.boundaryConditions;
+            bc = obj.boundaryConditions;
             Kred = bc.fullToReducedMatrix(obj.stiffnessMatrix);
             Fred = bc.fullToReducedVector(obj.RHS);
             u = obj.solver.solve(Kred,Fred);
