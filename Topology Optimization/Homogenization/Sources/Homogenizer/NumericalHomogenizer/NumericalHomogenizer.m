@@ -124,7 +124,7 @@ classdef NumericalHomogenizer < handle
         
         function d = createLevelSetCreatorDataBase(obj)
             d = obj.lsDataBase;
-            d.ndim  = obj.dim.ndimField;
+            d.ndim  = obj.dim.ndimf;
             d.coord = obj.microProblem.getMesh().coord;
         end
         
@@ -180,7 +180,7 @@ classdef NumericalHomogenizer < handle
             s.mesh = mesh;%obj.microProblem.mesh;
             s.initialCase  = 'given';
             s.creatorSettings.value = obj.elemDensCr.getLevelSet();
-            s.creatorSettings.ndim  = obj.dim.ndimField;
+            s.creatorSettings.ndim  = obj.dim.ndimf;
             s.creatorSettings.coord = mpMesh.coord;
             scalarPr.epsilon = 1e-3;
             scalarPr.mesh = mesh.innerMeshOLD;

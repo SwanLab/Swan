@@ -3,16 +3,18 @@ classdef StrainComputer < handle
     properties (Access = private)
         dim
         mesh
+        connec
         geometry
         quadrature
         displacement
+        dispField
     end
     
     methods (Access = public)
         
         function obj = StrainComputer(cParams)
             obj.init(cParams)
-            obj.createGeometry();
+%             obj.createGeometry();
         end
 
         function strain = compute(obj)
@@ -24,10 +26,13 @@ classdef StrainComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.dim                = cParams.dim;
+            obj.dispField          = cParams.dispField;
+            obj.dim                = cParams.dispField.dim;
             obj.mesh               = cParams.mesh;
             obj.quadrature         = cParams.quadrature;
             obj.displacement       = cParams.displacement;
+            obj.connec             = cParams.dispField.connec;
+            obj.geometry           = cParams.dispField.geometry;
         end
        
         function createGeometry(obj)
@@ -42,11 +47,11 @@ classdef StrainComputer < handle
         
         function strain = computeStrain(obj)
             d_u = obj.displacement;
-            connec = obj.mesh.connec;
+            connec = obj.connec;
             nelem   = size(connec,1);
             nstre   = obj.getNstre();
             nnodeEl = obj.dim.nnodeElem;
-            nunkn   = obj.dim.ndimField;
+            nunkn   = obj.dim.ndimf;
             ngaus   = obj.quadrature.ngaus;
             strain = zeros(nstre,nelem,ngaus);
             for igaus = 1:ngaus
@@ -70,7 +75,7 @@ classdef StrainComputer < handle
 
         function nstre = getNstre(obj)
             nstreVals = [2, 3, 6];
-            nstre = nstreVals(obj.dim.ndimField);
+            nstre = nstreVals(obj.dim.ndimf);
         end
 
         function Bmat = computeB(obj,igaus)

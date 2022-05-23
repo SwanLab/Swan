@@ -1,4 +1,24 @@
 %% To-do
+
+%       - The new way of computing the stiffness matrix is
+%         significantly faster (previously: 0.4s, now <0.1s). Also, the
+%         material is basically irrelevant (identity matrix...). Now
+%         uses the Assembler class (+ sym grad?)
+
+% Field: - Is it overreaching?
+%        - does a field have BCs? Even Neumann? (maybe, but if there are
+%          two fields who applies them properly?)
+%        - the need to rethink and refactor BCs comes up
+
+% LHSintegrators using only Fields? Does it make sense physically in all
+% cases (eg. ScalarProduct, ShapeFunctional, Poperator)? Also, Assembler...
+
+% Element_Stokes.compute_D -> interp.ndime? Why pressure quadratic
+% quadrature? Also, Matlab feature/issue with copying objects
+
+% Any elegant way to avoid using if isfield to simplify constructors?
+
+%% Previous
 % a) THE GOOD
 
 %       OK! - delete problemData in ElasticProblem
@@ -50,3 +70,6 @@
 % z) LONG-TERM
 %       WIP - Re-use FeFunction for displacements... with its own
 %             dimensions
+
+%- Tests quadratic
+%- Stokes

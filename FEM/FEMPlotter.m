@@ -89,7 +89,7 @@ classdef FEMPlotter < handle
         end
 
         function plotDisplacement3D(obj)
-            ndimf  = obj.dim.ndimField;
+            ndimf  = obj.dim.ndimf;
             ndof   = obj.dim.ndof;
             coords = obj.dispCoords;
             x = coords(1:ndimf:ndof);

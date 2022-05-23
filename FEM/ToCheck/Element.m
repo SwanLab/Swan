@@ -77,25 +77,25 @@ classdef Element < handle
             dr = LHS;
         end
         
-        function Fext = computeExternalForces(obj)
-            FextSuperficial = obj.computeSuperficialFext;
-            FextVolumetric  = obj.computeVolumetricFext;
-            FextSupVol = {FextSuperficial + FextVolumetric};
-            FextSupVol = obj.AssembleVector(FextSupVol);
-            FextPoint = obj.computePunctualFext();
-            Fext = FextSupVol +  FextPoint;
-        end
+%         function Fext = computeExternalForces(obj)
+%             FextSuperficial = obj.computeSuperficialFext;
+%             FextVolumetric  = obj.computeVolumetricFext;
+%             FextSupVol = {FextSuperficial + FextVolumetric};
+%             FextSupVol = obj.AssembleVector(FextSupVol);
+%             FextPoint = obj.computePunctualFext();
+%             Fext = FextSupVol +  FextPoint;
+%         end
         
         % *****************************************************************
         % Assembling Functions
         %******************************************************************
-        function FextPoint = computePunctualFext(obj)
-            %Compute Global Puntual Forces (Not well-posed in FEM)
-            FextPoint = zeros(obj.dof.ndof,1);
-            if ~isempty(obj.dof.neumann)
-                FextPoint(obj.dof.neumann) = obj.dof.neumann_values;
-            end
-        end
+%         function FextPoint = computePunctualFext(obj)
+%             %Compute Global Puntual Forces (Not well-posed in FEM)
+%             FextPoint = zeros(obj.dof.ndof,1);
+%             if ~isempty(obj.dof.neumann)
+%                 FextPoint(obj.dof.neumann) = obj.dof.neumann_values;
+%             end
+%         end
         
         % Vector function
         function b = AssembleVector(obj,b_elem_cell)
@@ -179,10 +179,10 @@ classdef Element < handle
 
     end
     
-    methods (Abstract, Access = protected)
-        r = computeSuperficialFext(obj)
-        r = computeVolumetricFext(obj)
-    end
+%     methods (Abstract, Access = protected)
+%         r = computeSuperficialFext(obj)
+%         r = computeVolumetricFext(obj)
+%     end
     
     %     methods (Abstract, Access = {protected, ?Physical_Problem})
     %             [r,dr] = computeResidual(x)
