@@ -1,5 +1,5 @@
-filename = 'jaCantilever';
-% filename = 'Bridge_UltraFine';
+% filename = 'jaCantilever';
+filename = 'Bridge_UltraFine';
 % filename = 'ArchUltraFine';
 % filename = 'MicroUltraFine';
 
@@ -17,13 +17,13 @@ cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
 % constraint_case = 'EQUALITY';
-optimizerUnconstrained = 'PROJECTED GRADIENT';
+optimizerUnconstrained = 'SLERP';
 optimizer = 'DualNestedInPrimal';
 incrementFactor = 1.5; % Recommended: 1.5; 2.0
-designVariable = 'Density';
+designVariable = 'LevelSet';
 filterType = 'P1';
 
-nsteps = 1; % Recommended slope: 5%/step is OK
+nsteps = 10; % Recommended slope: 5%/step is OK
 Vfrac_final = 0.5;
 optimality_final =1e-3;
 constr_final =1e-3;

@@ -1,5 +1,5 @@
-filename = 'jaCantilever';
-% filename = 'Bridge_UltraFine';
+% filename = 'jaCantilever';
+filename = 'Bridge_UltraFine';
 % filename = 'ArchUltraFine';
 % filename = 'MicroUltraFine';
 
@@ -13,14 +13,14 @@ ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'compliance','anisotropicPerimeter2D'};
-weights = [1,0.01];
+cost = {'compliance','perimeter'};
+weights = [1,0.3];
 constraint = {'volumeConstraint'};
 % constraint_case = 'EQUALITY';
-% optimizerUnconstrained = 'SLERP';
-optimizer = 'MMA';%AlternatingPrimalDual';
+optimizerUnconstrained = 'SLERP';
+optimizer = 'DualNestedInPrimal';%AlternatingPrimalDual';
 incrementFactor = 1.5; % Recommended: 1.5; 2.0
-designVariable = 'Density';
+designVariable = 'LevelSet';
 filterType = 'P1';
 % line_search_initiator = 'INCREASING LAST STEP';
 
@@ -47,4 +47,4 @@ printing = true;
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 200;
+maxiter = 100;
