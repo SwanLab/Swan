@@ -1,19 +1,19 @@
-filename = 'CantileverBeam_Triangle_Linear';%'Cantilever';%'CantileverBeam_Triangle_Linear';
+filename = 'CantileverArnau2';%Cantilever';%'CantileverBeam_Triangle_Linear';
 ptype = 'MACRO';
 method = 'SIMP_P3';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
 cost = {'compliance'};
 weights = [1];
-constraint = {'volumeConstraint','perimeter'};
-constraint_case = {'EQUALITY','EQUALITY'};
+constraint = {'volumeConstraint'};
+constraint_case = {'EQUALITY'};
 optimizerUnconstrained = 'PROJECTED GRADIENT';%'PROJECTED GRADIENT'; 
 optimizer = 'AlternatingPrimalDual';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
 incrementFactor = 1;
 designVariable = 'Density';%'Density';
 filterType = 'P1';
 
-nsteps = 3;
+nsteps = 1;
 Vfrac_final = 0.4;
 optimality_final =1e-3;
 constr_final =1e-3;

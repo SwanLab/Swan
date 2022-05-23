@@ -44,6 +44,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function obj = solveProblem(obj)
+            obj.hasConverged = false;
             while ~obj.hasConverged
                 obj.update();
                 obj.updateIterInfo();
@@ -61,7 +62,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.lowerBound             = cParams.uncOptimizerSettings.lb;
             obj.cost                   = cParams.cost;
             obj.constraint             = cParams.constraint;
-            obj.nConstr                = cParams.nConstr;
+            obj.nConstr                = cParams.constraint.nSF;
             obj.designVariable         = cParams.designVar;
             obj.dualVariable           = cParams.dualVariable;
             obj.incrementalScheme      = cParams.incrementalScheme;

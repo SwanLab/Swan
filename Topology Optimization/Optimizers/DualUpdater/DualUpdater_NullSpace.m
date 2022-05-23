@@ -21,7 +21,7 @@ classdef DualUpdater_NullSpace < handle
         end
 
         function update(obj)
-            switch obj.constraintCase%{1}
+            switch obj.constraintCase{1}
                 case {'EQUALITY'}
                     obj.computeDirectDual();
                 case {'INEQUALITY'}
@@ -39,7 +39,7 @@ classdef DualUpdater_NullSpace < handle
             obj.designVariable = cParams.designVar;
             obj.constraintCase = cParams.constraintCase;
             obj.dualVariable   = cParams.dualVariable;
-            obj.nConstr        = cParams.nConstr;
+            obj.nConstr        = cParams.constraint.nSF;
         end
 
         function computeDirectDual(obj)

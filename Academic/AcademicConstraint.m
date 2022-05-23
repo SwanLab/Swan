@@ -9,6 +9,7 @@ classdef AcademicConstraint < handle
     properties (Access = public)
         value
         gradient
+        nSF
     end
     
     methods (Access = public)

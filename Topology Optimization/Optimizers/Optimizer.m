@@ -67,7 +67,8 @@ classdef Optimizer < handle
 
         function c = checkInequalityConstraint(obj)
             g = obj.constraint.value;
-            c = g < obj.targetParameters.constr_tol;
+            c = any(g > obj.targetParameters.constr_tol);
+            c ~= c;
         end
 
         function c = checkEqualityConstraint(obj)

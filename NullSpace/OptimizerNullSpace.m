@@ -43,6 +43,7 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function obj = solveProblem(obj)
+            obj.hasConverged = false;
             while ~obj.hasConverged
                 obj.update();
                 obj.updateIterInfo();
