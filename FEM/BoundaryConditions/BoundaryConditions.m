@@ -82,6 +82,7 @@ classdef BoundaryConditions < handle
             dirichVals = [];
             neumnnVals = [];
             free       = [];
+            globalNdof = 0;
             for i = 1:nfields
                 bc = s.bc{i};
                 obj.dirichletInput = bc.dirichlet;
@@ -91,13 +92,18 @@ classdef BoundaryConditions < handle
                 inN = bc.pointload;
                 [idxD, valD] = obj.formatInputData(bc.ndimf,inD);
                 [idxN, valN] = obj.formatInputData(bc.ndimf,inN);
-                
+                idxD = idxD + globalNdof;
+                idxN = idxN + globalNdof;
+
                 dirich     = [dirich; idxD];
                 dirichVals = [dirichVals; valD];
                 neumann    = [neumann; idxN];
                 neumnnVals = [neumnnVals; valN];
 
-                obj.freeFields{i} = setdiff(1:bc.ndofs,idxD);
+                firstDof = globalNdof + 1;
+                lastDof  = firstDof + bc.ndofs - 1;
+                obj.freeFields{i} = setdiff(firstDof:lastDof,idxD);
+                globalNdof = globalNdof+ bc.ndofs;
             end
             obj.dirichlet        = dirich;
             obj.dirichlet_values = dirichVals;

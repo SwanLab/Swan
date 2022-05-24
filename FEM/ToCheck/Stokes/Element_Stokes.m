@@ -64,7 +64,8 @@ classdef Element_Stokes < Element
             Fext = Fext + R ;
             
             
-            Fext_red = obj.bcApplier.fullToReducedVector(Fext);
+%             Fext_red = obj.bcApplier.fullToReducedVector(Fext);
+            Fext_red = obj.boundaryConditions.fullToReducedVector(Fext);
             Fext_red(1:lenFreeV,1) = Fext_red(1:lenFreeV,1) + Mred_x_n;
             
             fint_red = dr*x;
@@ -74,12 +75,20 @@ classdef Element_Stokes < Element
             
         end
         
+        function R = compute_imposed_displacement_force(obj,K)
+            % Forces coming from imposed displacement
+            dirichlet = obj.boundaryConditions.dirichlet;
+            uD = obj.boundaryConditions.dirichlet_values;
+            R  = -K(:,dirichlet)*uD;
+        end
+        
         function dr = computedr(obj,dt)
             if nargin < 2
                 dt=inf;
             end
             obj.LHS = compute_LHS(obj,dt);
-            LHSred = obj.bcApplier.fullToReducedMatrix(obj.LHS);
+%             LHSred = obj.bcApplier.fullToReducedMatrix(obj.LHS);
+            LHSred = obj.boundaryConditions.fullToReducedMatrix(obj.LHS);
             dr = LHSred;
         end
         
@@ -114,7 +123,8 @@ classdef Element_Stokes < Element
         end
         
         function variable = computeVars(obj,x_free)
-            x = obj.bcApplier.reducedToFullVector(x_free);
+%             x = obj.bcApplier.reducedToFullVector(x_free);
+            x = obj.boundaryConditions.reducedToFullVector(x_free);
             ndofsV = obj.velocityField.dim.ndofs;
             variable.u = x(1:ndofsV,:);
             variable.p = x(ndofsV+1:end,:);
