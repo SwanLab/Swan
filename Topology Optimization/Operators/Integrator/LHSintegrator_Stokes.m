@@ -38,9 +38,9 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         end
 
         function velLHS = computeVelocityLHS(obj)
-            obj.computeStiffnessMatrix();
+            K = obj.computeVelocityLaplacian();
             obj.computeMassMatrix();
-            A = obj.Kelem + obj.Melem;
+            A = K + obj.Melem;
             s.dim          = obj.velocityField.dim;
             s.globalConnec = obj.velocityField.connec;
             s.nnodeEl      = obj.velocityField.dim.nnodeElem;
@@ -69,32 +69,15 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
             A = 1/2 * (B+B');
         end
 
-        function computeStiffnessMatrix(obj)
-            vel = obj.velocityField;
-            ndofs = vel.dim.ndofsElem;
-            nelem = obj.mesh.nelem;
-
-%             material = obj.material;
-%             Cmat = material.mu;
-            
-            geom = vel.geometry;
-            shape = geom.dNdx;
-            ngaus = size(shape,4);
-            dvolu = geom.dvolu;
-            lhs = zeros(ndofs, ndofs, nelem);
-            for igaus = 1:ngaus
-                dNdx = shape(:,:,:,igaus);
-                dV(1,1,:) = dvolu(:,igaus);
-                Bmat = obj.computeB(dNdx);
-                Bt   = permute(Bmat,[2 1 3]);
-%                 BtC  = pagemtimes(Bt,Cmat);
-%                 BtCB = pagemtimes(BtC, Bmat);
-                BtB = pagemtimes(Bt,Bmat);
-                lhs = lhs + bsxfun(@times, BtB, dV);
-            end
-            obj.Kelem = lhs;
+        function lhs = computeVelocityLaplacian(obj)
+            s.type  = 'Laplacian';
+            s.mesh  = obj.mesh;
+            s.field = obj.velocityField;
+%             s.material = obj.material;
+            LHS = LHSintegrator.create(s);
+            lhs = LHS.compute();
         end
-        
+
         function computeMassMatrix(obj)
             vel = obj.velocityField;
             nunkn = vel.dim.ndimf;
@@ -155,21 +138,6 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
                 end
             end
             obj.Delem = D;
-        end
-        
-        function B = computeB(obj,dNdx)
-            vel = obj.velocityField;
-            nunkn = vel.dim.ndimf;
-            nnode = vel.dim.nnodeElem;
-            nelem = obj.mesh.nelem;
-            B = zeros(4,nnode*nunkn,nelem);
-            for i = 1:nnode
-                j = nunkn*(i-1)+1;
-                B(1,j,:)  = dNdx(1,i,:);
-                B(2,j+1,:)= dNdx(1,i,:);
-                B(3,j,:)  = dNdx(2,i,:);
-                B(4,j+1,:)= dNdx(2,i,:);
-            end
         end
 
     end
