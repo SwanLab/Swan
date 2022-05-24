@@ -5,18 +5,18 @@ classdef Field < handle
         connec
         coord % should be removed
         geometry % moved to Mesh
-        boundaryConditions % should be moved
         inputBC %private
         fefnc % merge
         interpolation
         xGauss % no
+        quadrature % perhaps private
     end
 
     properties (Access = private)
         mesh
         ndimf
         scale
-        quadrature
+%         quadrature
 %         interpolation
         interpTranslator % new class to do that from Field
         interpolationOrder
@@ -34,7 +34,6 @@ classdef Field < handle
             obj.updateInputMismatch();
             obj.computeDimensions();
             obj.translateBoundaryConditions();
-%             obj.createBoundaryConditions();
         end
 
         function dirichlet = translateBoundaryConditions(obj)
@@ -124,18 +123,6 @@ classdef Field < handle
             d = FieldDimensions(s);
             d.compute();
             obj.dim = d;
-        end
-
-        function createBoundaryConditions(obj)
-            obj.inputBC.ndimf = obj.dim.ndimf;
-            s.dim   = obj.dim;
-            s.mesh  = obj.mesh;
-            s.scale = obj.scale;
-            s.bc    = {obj.inputBC};
-            s.ndofs = obj.dim.ndofs;
-            bc = BoundaryConditions(s);
-            bc.compute();
-            obj.boundaryConditions = bc;
         end
 
     end

@@ -2,8 +2,6 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
 
     properties (GetAccess = public, SetAccess = private)
         Melem
-        Kelem
-        Delem, D
     end
 
     properties (Access = private)
@@ -11,6 +9,8 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         mesh
         velocityField
         pressureField
+        
+        D
     end
 
     methods (Access = public)
@@ -22,7 +22,7 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         function LHS = compute(obj)
             velLHS = obj.computeVelocityLHS();
             D      = obj.computeDmatrix();
-            prsLHS = obj.computePressureLHS();
+            prsLHS = obj.computePressureLHS(D);
             LHS = [velLHS, D; D',prsLHS];
         end
 
@@ -38,30 +38,28 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         end
 
         function velLHS = computeVelocityLHS(obj)
-            K = obj.computeVelocityLaplacian();
-            obj.computeMassMatrix();
-            A = K + obj.Melem;
+            Ke = obj.computeVelocityLaplacian();
+            Me = obj.computeMassMatrix();
+            Ae = Ke + Me;
             s.dim          = obj.velocityField.dim;
             s.globalConnec = obj.velocityField.connec;
             s.nnodeEl      = obj.velocityField.dim.nnodeElem;
             assembler = Assembler(s);
-            lhs = assembler.assemble(A);
+            lhs = assembler.assemble(Ae);
             velLHS = obj.symGradient(lhs);
         end
 
         function D = computeDmatrix(obj)
-            obj.computeDelem();
-            s.dim           = [];
-            s.nnodeEl       = [];
-            s.globalConnec  = [];
-            assembler = Assembler(s);
-            D = assembler.assembleFields(obj.Delem, ...
-                          obj.velocityField, obj.pressureField);
-            obj.D = D;
+            s.type = 'StokesD';
+            s.mesh = obj.mesh;
+            s.pressure = obj.pressureField;
+            s.velocity = obj.velocityField;
+            LHS = LHSintegrator.create(s);
+            D = LHS.compute();
         end
 
-        function BB = computePressureLHS(obj)
-            sz = size(obj.D, 2);
+        function BB = computePressureLHS(obj,D)
+            sz = size(D, 2);
             BB = sparse(sz,sz);
         end
 
@@ -78,66 +76,20 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
             lhs = LHS.compute();
         end
 
-        function computeMassMatrix(obj)
+        function M = computeMassMatrix(obj)
             vel = obj.velocityField;
-            nunkn = vel.dim.ndimf;
-            nnode = vel.dim.nnodeElem;
-            ndofs = vel.dim.ndofsElem;
-            nelem = obj.mesh.nelem;
             dtime = obj.dt;
-            shpeV = vel.interpolation.shape;
-            dvolV = vel.geometry.dvolu;
-            ngaus = size(dvolV,2);
-            M = zeros(ndofs, ndofs, nelem);
-            
-            for igauss = 1 :ngaus
-                for inode= 1:nnode
-                    for jnode= 1:nnode
-                        for iunkn= 1:nunkn
-                            for junkn= 1:nunkn
-                                idof = nunkn*(inode-1)+iunkn;
-                                jdof = nunkn*(jnode-1)+junkn;
-                                dvol = dvolV(:,igauss);
-                                Ni = shpeV(inode,igauss,:);
-                                Nj = shpeV(jnode,igauss,:);
-                                v = squeeze(Ni.*Nj);
-                                M(idof, jdof, :)= squeeze(M(idof,jdof,:)) ...
-                                    + v(:)/dtime.*dvol;
-                            end
-                        end
-                    end
-                end
-            end
+            s.type          = 'MassMatrix';
+            s.dim           = vel.dim;
+            s.mesh          = obj.mesh;
+            s.quadType      = 'QUADRATIC';
+            s.globalConnec  = []; %vel.connec;
+            s.interpolation = vel.interpolation;
+            s.quadrature    = vel.quadrature;
+            LHS = LHSintegrator.create(s);
+            lhs = LHS.computeElemental();
+            M = lhs/dtime;
             obj.Melem = M;
-        end
-        
-        function computeDelem(obj)
-            nelem = obj.mesh.nelem;
-            vel = obj.velocityField;
-            prs = obj.pressureField;
-            nunknV = vel.dim.ndimf;
-            nnodeV = vel.dim.nnodeElem;
-            nnodeP = prs.dim.nnodeElem;
-            
-            dNdxV = vel.geometry.dNdx;
-            dvolV = vel.geometry.dvolu;
-            shpeP = prs.interpolation.shape; %nope, should be Quadratic
-            ngaus = size(dNdxV,4);
-
-            D = zeros(nunknV*nnodeV,nnodeP,nelem);
-            for igauss=1:ngaus
-                for inode_var = 1:nnodeP
-                    for inode_test = 1:nnodeV
-                        for idime = 1:vel.interpolation.ndime
-                            dof_test = inode_test*nunknV - nunknV + idime;
-                            v = squeeze(dNdxV(idime,inode_test,:,igauss));
-                            D(dof_test,inode_var,:)= squeeze(D(dof_test,inode_var,:)) - v(:).*shpeP(inode_var,igauss)...
-                                .*dvolV(:,igauss);
-                        end
-                    end
-                end
-            end
-            obj.Delem = D;
         end
 
     end
