@@ -43,24 +43,10 @@ classdef Element < handle
             obj.quadrature = Quadrature.set(mesh.type);
             obj.material = material;
             obj.dof = dof;
-            obj.createBoundaryConditionasApplier();
-            obj.assign_dirichlet_values();
         end
     end
 
     methods
-
-        function createBoundaryConditionasApplier(obj)
-            cParams.nfields = obj.nfields;
-            cParams.dof = obj.dof;
-            cParams.scale = obj.scale;
-            cParams.type = obj.bcType;
-            obj.bcApplier = BoundaryConditionsApplier.create(cParams);
-        end
-        
-        function bc = getBcApplier(obj)
-            bc = obj.bcApplier;
-        end
         
         function [r,dr] = computeResidual(obj,x)
             % !! Currently unused !!
@@ -142,31 +128,6 @@ classdef Element < handle
             nnode2 = obj.interp{jfield}.nnode;
             col = obj.dof.ndof(jfield);
             row = obj.dof.ndof(ifield);
-        end
-        
-        function assign_dirichlet_values(obj)
-            for ifield = 1:obj.nfields
-                if ~isempty(obj.dof.dirichlet{ifield})
-                    obj.uD{ifield} = obj.dof.dirichlet_values{ifield};
-                else
-                    obj.uD = {[]};
-                end
-            end
-        end
-        
-        function R = compute_imposed_displacement_force(obj,K)
-            % Forces coming from imposed displacement
-            cParams.nfields = obj.nfields;
-            cParams.dof = obj.dof;
-            cParams.scale = 'MACRO';
-            cParams.type = 'Dirichlet';
-            bcApplier = BoundaryConditionsApplier.create(cParams);
-            [dirichlet,uD,~] = bcApplier.compute_global_dirichlet_free_uD();
-            if ~isempty(dirichlet)
-                R = -K(:,dirichlet)*uD;
-            else
-                R = zeros(sum(obj.dof.ndof(:)),1);
-            end
         end
 
     end
