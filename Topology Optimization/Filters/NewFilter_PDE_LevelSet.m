@@ -152,8 +152,11 @@ classdef NewFilter_PDE_LevelSet < handle
             s.dim          = obj.dim;
             s.scale        = obj.femSettings.scale;
             s.mesh         = obj.mesh;
-            s.bc.dirichlet = [];
-            s.bc.pointload = [];
+            s.bc{1}.dirichlet = [];
+            s.bc{1}.pointload = [];
+            s.bc{1}.ndimf     = [];
+            s.bc{1}.ndofs     = [];
+            s.ndofs        = obj.dim.ndofs;
             obj.bc         = BoundaryConditions(s);
             obj.bc.compute();
         end
