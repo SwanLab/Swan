@@ -1,4 +1,8 @@
 classdef Optimizer < handle
+
+    properties (Access = public)
+        nIter = 0
+    end
     
     properties (Access = protected)
         designVariable
@@ -6,8 +10,7 @@ classdef Optimizer < handle
         cost
         constraint
         outputFunction
-        maxIter
-        nIter = 0
+        maxIter 
         targetParameters
         dualUpdater
         primalUpdater

@@ -22,14 +22,22 @@ classdef Sh_firstEigTop < ShapeFunctional
     end
 
     methods (Access = protected)
-        
-        function computeFunctionValue(obj) % to discuss the formulation
-            obj.value
-            
+
+        function init(obj,cParams)
+            obj.designVariable = cParams.designVariable;
         end
-        
+    end
+
+    methods (Access = public)
+
+        function computeFunctionValue(obj) % to discuss the formulation
+            gamma = obj.designVariable.getFirstEigenMode();
+            f0val = - gamma;
+            obj.value = f0val;
+        end
+
         function computeGradientValue(obj) % to discuss the formulation
-            obj.gradient
+            obj.gradient ; % = 1;
         end
         
     end

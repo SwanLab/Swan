@@ -22,9 +22,9 @@ classdef DualUpdater_NullSpace < handle
 
         function update(obj)
             switch obj.constraintCase%{1}
-                case {'EQUALITY'}
+                case 'EQUALITY'
                     obj.computeDirectDual();
-                case {'INEQUALITY'}
+                case 'INEQUALITY'
                     obj.computeQuadraticProblem();
             end
         end

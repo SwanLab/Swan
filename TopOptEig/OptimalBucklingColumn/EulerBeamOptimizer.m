@@ -75,10 +75,8 @@ classdef EulerBeamOptimizer < handle
             nnod = obj.nElem + 1;
              x = [0;rand(nnod-2,1);1]*obj.columnLength;
              x = sort(x);
-             coord = x; 
-             %
-             
-              coord = linspace(0,obj.columnLength,nnod)';
+             % coord = x; 
+             coord = linspace(0,obj.columnLength,nnod)';
         end
 
         function Tnod = createConnectivity(obj)

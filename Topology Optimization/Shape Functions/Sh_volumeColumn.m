@@ -55,7 +55,7 @@ classdef Sh_volumeColumn < ShapeFunctional
             %dfdx(2,:) = 1./1.*dfdx(2,:); 
             nElem = obj.designVariable.mesh.nelem;
             dfdx = zeros(1,nElem+1);
-            dfdx(1,1:nElem)= l.';%*ones(1,nElem);% 1/(nElem+1).*ones(1,nElem);
+            dfdx(1,1:nElem)= l';%*ones(1,nElem);% 1/(nElem+1).*ones(1,nElem);
             obj.gradient = dfdx;
         end
 

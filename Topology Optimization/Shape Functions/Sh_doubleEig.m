@@ -21,7 +21,7 @@ classdef Sh_doubleEig < ShapeFunctional
         end  
 
         function v = getVariablesToPlot(obj)
-            v{1} = obj.value; %*obj.value0;
+            v{1} = obj.value; % *obj.value0;
         end 
         
     end

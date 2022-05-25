@@ -1,7 +1,8 @@
+
 function ComputingTopOpt
 
 
-fileName = 'CantileverArnau2';
+fileName = 'CantileverEig.m';
 % Data input
 s.testName = [fileName,'.m'];
 s.x1       = 2;

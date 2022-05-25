@@ -7,7 +7,7 @@ classdef FilterFactory < handle
             switch factoryParams.filterType
                 case 'P1'
                     switch factoryParams.designVariable.type
-                        case {'Density','MicroParams'}
+                        case {'Density','MicroParams','DensityEigModes'}
                             filter = Filter_P1_Density(cParams);
                         case 'LevelSet'
                             filter = Filter_P1_LevelSet(cParams);

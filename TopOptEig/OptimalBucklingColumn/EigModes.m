@@ -133,6 +133,7 @@ classdef EigModes < handle
             obj.bendingMatComputer   = cParams.bendingMatComputer;
         end
 
+        
         function computeEigenModesAndValues(obj) 
             obj.stiffnessMatComputer.compute();
             obj.bendingMatComputer.compute();            

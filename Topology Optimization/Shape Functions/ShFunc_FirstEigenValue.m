@@ -1,4 +1,4 @@
-classdef ShFunc_FirstEigenValue < ShapeFunctional
+classdef ShFunc_FirstEigenValue < ShapeFunctional % 
    
     properties (Access = private)
 
@@ -20,7 +20,7 @@ classdef ShFunc_FirstEigenValue < ShapeFunctional
         end            
         
         function v = getVariablesToPlot(obj)
-            v{1} = obj.value;%*obj.value0;
+            v{1} = obj.value; % *obj.value0;
         end
     end
 

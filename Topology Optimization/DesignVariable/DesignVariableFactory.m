@@ -8,6 +8,8 @@ classdef DesignVariableFactory < handle
                     designVar = LevelSet(cParams);
                 case 'Density'
                     designVar = Density(cParams);
+                case 'DensityEigModes'
+                    designVar = DensityEigModes(cParams);
                 case 'MicroParams'
                     designVar = MicroParams(cParams);
                 case 'AreaColumn'
