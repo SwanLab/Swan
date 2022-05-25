@@ -92,8 +92,11 @@ classdef DiffReactProblem < handle
             s.dim          = obj.dim;
             s.mesh         = obj.mesh;
             s.scale        = obj.problemData.scale;
-            s.bc.dirichlet = [];
-            s.bc.pointload = [];
+            s.ndofs        = obj.dim.ndofs;
+            s.bc{1}.dirichlet = [];
+            s.bc{1}.pointload = [];
+            s.bc{1}.ndimf     = [];
+            s.bc{1}.ndofs     = [];
             bc = BoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;

@@ -58,6 +58,14 @@ classdef LHSintegratorFactory < handle
                    % matrix, and NO boundary mass matrix.
                    cParams.stiffType = 'AnisotropicStiffnessMatrix';
                    obj = LHSintegrator_DiffReactNeumann(cParams);
+               case 'Stokes'
+                   obj = LHSintegrator_Stokes(cParams);
+
+               case 'Laplacian'
+                   obj = LHSintegrator_Laplacian(cParams);
+
+               case 'StokesD'
+                   obj = LHSintegrator_StokesD(cParams);
            end
        end
 
