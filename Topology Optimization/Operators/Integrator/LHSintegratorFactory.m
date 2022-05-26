@@ -44,7 +44,14 @@ classdef LHSintegratorFactory < handle
                    % NO ROBIN TERM. Includes a stiffness matrix and a mass
                    % matrix, and NO boundary mass matrix.
                    obj = LHSintegrator_DiffReactNeumann(cParams);
+               case 'Stokes'
+                   obj = LHSintegrator_Stokes(cParams);
 
+               case 'Laplacian'
+                   obj = LHSintegrator_Laplacian(cParams);
+
+               case 'StokesD'
+                   obj = LHSintegrator_StokesD(cParams);
            end
        end
        

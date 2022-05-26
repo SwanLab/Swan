@@ -24,12 +24,12 @@ classdef RHSintegrator_ElasticMacro < handle
 
         function R = computeReactions(obj, K)
             bc      = obj.boundaryConditions;
-            dirich  = bc.dirichlet{1};
-            dirichV = bc.dirichlet_values{1};
+            dirich  = bc.dirichlet;
+            dirichV = bc.dirichlet_values;
             if ~isempty(dirich)
                 R = -K(:,dirich)*dirichV;
             else
-                R = zeros(sum(obj.dim.ndof(:)),1);
+                R = zeros(sum(obj.dim.ndofs(:)),1);
             end
 
         end
@@ -48,7 +48,7 @@ classdef RHSintegrator_ElasticMacro < handle
             %Compute Global Puntual Forces (Not well-posed in FEM)
             neumann       = obj.boundaryConditions.neumann;
             neumannValues = obj.boundaryConditions.neumann_values;
-            Fp = zeros(obj.dim.ndof,1);
+            Fp = zeros(obj.dim.ndofs,1);
             if ~isempty(neumann)
                 Fp(neumann) = neumannValues;
             end

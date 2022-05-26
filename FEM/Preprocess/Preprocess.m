@@ -83,6 +83,10 @@ classdef Preprocess<handle
             
         end
         
+        function [state, velocity, pressure, Vol_force, velocityBC] = getBCFluidsNew(fileName)
+            run(fileName)
+        end
+
         function [fixnodes,forces,full_dirichlet_data,Master_slave] = getBC_fluids(filename,mesh,geometry,interp)
             run(filename)
             obj = Preprocess;
