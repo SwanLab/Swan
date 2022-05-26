@@ -26,7 +26,6 @@ classdef OptimizerBisection < Optimizer
         meritNew
         constrProjector
         isInitialStep
-        primalUpdater
 
         globalCost
         globalConstraint
@@ -42,7 +41,7 @@ classdef OptimizerBisection < Optimizer
             obj.initOptimizer(cParams);
             obj.init(cParams);
             obj.createPrimalUpdater(cParams);
-            s.pu = obj.primalUpdater;
+            s.primalUpdater = obj.primalUpdater;
             obj.constrProjector = ConstraintProjector(cParams,s);
             obj.outputFunction.monitoring.create(cParams);
             obj.prepareFirstIter();
@@ -56,7 +55,6 @@ classdef OptimizerBisection < Optimizer
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                obj.saveVariablesForAnalysis();
             end
         end
 
@@ -91,8 +89,7 @@ classdef OptimizerBisection < Optimizer
             obj.acceptableStep   = false;
             obj.lineSearchTrials = 0;
             while ~obj.acceptableStep
-                t = obj.tau;
-                obj.constrProjector.project(t);
+                obj.constrProjector.project();
                 obj.checkStep();
             end
         end
@@ -106,7 +103,8 @@ classdef OptimizerBisection < Optimizer
             Dg      = obj.constraint.gradient;
             DmF     = DJ + l*Dg;
             if obj.nIter == 0
-                obj.tau = 10*sqrt(norm(DmF)/norm(x));
+                factor = 10;
+                obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
                 obj.tau = 1.5*obj.tau;
             end
@@ -121,11 +119,12 @@ classdef OptimizerBisection < Optimizer
             else
                 if J < obj.oldCost
                     obj.acceptableStep = true;
-                    obj.primalUpdater.increaseStepLength();
+                    factor = 1.5;
+                    obj.primalUpdater.increaseStepLength(factor);
                 elseif obj.tau < 1e-10
                     error('Convergence could not be achieved (step length too small)')
                 else
-                    obj.tau = obj.tau/2;
+                    obj.primalUpdater.decreaseStepLength();
                     obj.lineSearchTrials = obj.lineSearchTrials + 1;
                 end
             end
@@ -156,7 +155,7 @@ classdef OptimizerBisection < Optimizer
         end
 
         function obj = checkConvergence(obj)
-           if abs(obj.oldCost - obj.cost.value)
+           if abs(obj.oldCost - obj.cost.value) < obj.tol
                obj.hasConverged = true;
            else
                
@@ -166,7 +165,7 @@ classdef OptimizerBisection < Optimizer
 
         function obj = updateMonitoring(obj)
             s.nIter            = obj.nIter;
-            s.tau              = obj.tau;
+            s.tau              = obj.primalUpdater.tau;
             s.lineSearch       = obj.lineSearch;
             s.lineSearchTrials = obj.lineSearchTrials;
             s.oldCost          = obj.oldCost;
