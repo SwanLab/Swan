@@ -26,6 +26,11 @@ classdef DensityEigModes < DesignVariable
             f = FeFunction(s);
             rho = f.computeValueInCenterElement();
         end
+
+        function rho = getDensity(obj)
+            x = obj.value;
+            rho = x(1:end-1);
+        end
         
         function gamma = getFirstEigenMode(obj)
             x = obj.value;
@@ -34,21 +39,21 @@ classdef DensityEigModes < DesignVariable
         
     end
     
-%     methods (Access = protected)
-%         
-%        function init(obj,cParams)
-%             obj.type    = cParams.type;
-%             obj.mesh    = cParams.mesh;
-%             if isfield(cParams,'isFixed')            
-%               obj.isFixed = cParams.isFixed;
-%             end
-%             obj.initValue(cParams);
-%             if isprop(cParams,'scalarProductSettings')
-%                 obj.createScalarProduct(cParams);
-%             end
-%        end
-% 
-%     end
+    methods (Access = protected)
+        
+       function init(obj,cParams)
+            obj.type    = cParams.type;
+            obj.mesh    = cParams.mesh;
+            if isfield(cParams,'isFixed')            
+              obj.isFixed = cParams.isFixed;
+            end
+            obj.initValue(cParams);
+            if isprop(cParams,'scalarProductSettings')
+                obj.createScalarProduct(cParams);
+            end
+       end
+
+    end
 
     methods (Access = private)
 

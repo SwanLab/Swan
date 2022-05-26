@@ -41,8 +41,11 @@ classdef TopOpt_Problem < handle
         function computeBounds(obj)
             switch obj.designVariable.type 
                 case 'Density'
-                obj.optimizerSettings.ub = 1;
-                obj.optimizerSettings.lb = 0;
+                    obj.optimizerSettings.ub = 1;
+                    obj.optimizerSettings.lb = 0;
+                case 'DensityEigModes'
+                    obj.optimizerSettings.ub = 1;
+                    obj.optimizerSettings.lb = 0;
                 otherwise
 
             end
