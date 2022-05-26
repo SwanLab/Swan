@@ -11,7 +11,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         costOld
         upperBound
         lowerBound
-        tol = 1e-6
+        tol = 1e-10
         nX
         nConstr
         hasConverged
@@ -23,6 +23,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         mOld
         meritNew
         penalty
+        meritGradient
 
         globalCost
         globalConstraint
@@ -77,7 +78,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
             obj.dualVariable.value = zeros(obj.nConstr,1);
-            obj.penalty            = 10;
+            obj.penalty            = .01;
         end
 
         function obj = update(obj)
@@ -88,11 +89,24 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.calculateInitialStep();
             obj.acceptableStep   = false;
             obj.lineSearchTrials = 0;
+            obj.computeMeritGradient();
             while ~obj.acceptableStep
                 x = obj.updatePrimal();
+%                 obj.displayIter(x);
                 obj.checkStep(x,x0);
             end
             obj.updateOldValues(x);
+        end
+
+        function displayIter(obj,x)
+            m = obj.designVariable.mesh.innerMeshOLD;
+            bm = m.createBoundaryMesh();
+            s.backgroundMesh = m;
+            s.boundaryMesh   = bm;
+            um = UnfittedMesh(s);
+            um.compute(x);
+            figure()
+            um.plot();
         end
 
         function obj = calculateInitialStep(obj)
@@ -115,14 +129,19 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function x = updatePrimal(obj)
+            x   = obj.designVariable.value;
+            g   = obj.meritGradient;
+            x   = obj.primalUpdater.update(g,x);
+        end
+
+        function computeMeritGradient(obj)
             Dh  = obj.constraint.gradient;
             h   = obj.constraint.value;
             DJ  = obj.cost.gradient;
             l   = obj.dualVariable.value;
-            x   = obj.designVariable.value;
             p   = obj.penalty;
             g   = (DJ + Dh*(l + p*h));
-            x   = obj.primalUpdater.update(g,x);
+            obj.meritGradient = g;
         end
 
         function checkStep(obj,x,x0)

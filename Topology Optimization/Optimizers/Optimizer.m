@@ -53,11 +53,18 @@ classdef Optimizer < handle
         end
         
         function isAcceptable = checkConstraint(obj)
-            switch obj.constraintCase{1}
-                case {'EQUALITY'}
-                    isAcceptable = obj.checkEqualityConstraint();
-                case {'INEQUALITY'}
-                    isAcceptable = obj.checkInequalityConstraint();
+            for i = 1:length(obj.constraint.value)
+                switch obj.constraintCase{i}
+                    case {'EQUALITY'}
+                        fine = obj.checkEqualityConstraint(i);
+                    case {'INEQUALITY'}
+                        fine = obj.checkInequalityConstraint(i);
+                end
+                if fine
+                    isAcceptable = true;
+                else
+                    isAcceptable = false;
+                end
             end
         end
         
@@ -65,14 +72,13 @@ classdef Optimizer < handle
 
     methods (Access = private)
 
-        function c = checkInequalityConstraint(obj)
-            g = obj.constraint.value;
-            c = any(g > obj.targetParameters.constr_tol);
-            c ~= c;
+        function c = checkInequalityConstraint(obj,i)
+            g = obj.constraint.value(i);
+            c = g < obj.targetParameters.constr_tol;
         end
 
-        function c = checkEqualityConstraint(obj)
-            g = obj.constraint.value;
+        function c = checkEqualityConstraint(obj,i)
+            g = obj.constraint.value(i);
             c = abs(g) < obj.targetParameters.constr_tol;
         end
 

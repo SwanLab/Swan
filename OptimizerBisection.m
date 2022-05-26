@@ -26,6 +26,7 @@ classdef OptimizerBisection < Optimizer
         meritNew
         constrProjector
         isInitialStep
+        primalUpdater
 
         globalCost
         globalConstraint
@@ -40,7 +41,9 @@ classdef OptimizerBisection < Optimizer
         function obj = OptimizerBisection(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
-            obj.constrProjector = ConstraintProjector(cParams);
+            obj.createPrimalUpdater(cParams);
+            s.pu = obj.primalUpdater;
+            obj.constrProjector = ConstraintProjector(cParams,s);
             obj.outputFunction.monitoring.create(cParams);
             obj.prepareFirstIter();
         end
@@ -118,6 +121,7 @@ classdef OptimizerBisection < Optimizer
             else
                 if J < obj.oldCost
                     obj.acceptableStep = true;
+                    obj.primalUpdater.increaseStepLength();
                 elseif obj.tau < 1e-10
                     error('Convergence could not be achieved (step length too small)')
                 else
@@ -152,7 +156,7 @@ classdef OptimizerBisection < Optimizer
         end
 
         function obj = checkConvergence(obj)
-           if abs(obj.oldCost - obj.cost.value) < obj.tol && abs(obj.constraint.value) <= 1e-4
+           if abs(obj.oldCost - obj.cost.value)
                obj.hasConverged = true;
            else
                

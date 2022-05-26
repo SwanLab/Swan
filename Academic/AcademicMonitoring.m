@@ -90,7 +90,8 @@ classdef AcademicMonitoring < handle
         end
         
         function plotAugmentedLagrangian(obj,x,cParams)
-            
+            disp(obj.designVariable.value);
+            disp(obj.cost.value);   
         end
         
         function plotBisection(obj,x,cParams)

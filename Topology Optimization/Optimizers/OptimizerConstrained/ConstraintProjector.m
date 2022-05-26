@@ -17,8 +17,8 @@ classdef ConstraintProjector < handle
     
     methods (Access = public)
         
-        function obj = ConstraintProjector(cParams)
-            obj.init(cParams);
+        function obj = ConstraintProjector(cParams,s)
+            obj.init(cParams,s);
             obj.defineProblem();
         end
         
@@ -39,7 +39,7 @@ classdef ConstraintProjector < handle
     
     methods (Access = private)
 
-        function init(obj,cParams)
+        function init(obj,cParams,s)
             obj.cost             = cParams.cost;
             obj.constraint       = cParams.constraint;
             obj.designVariable   = cParams.designVar;
@@ -47,6 +47,7 @@ classdef ConstraintProjector < handle
             obj.targetParameters = cParams.targetParameters;
             obj.upperBound       = cParams.uncOptimizerSettings.ub;
             obj.lowerBound       = cParams.uncOptimizerSettings.lb;
+            obj.primalUpdater    = s.primalUpdater;
         end
         
         function defineProblem(obj)
@@ -97,9 +98,8 @@ classdef ConstraintProjector < handle
             DJ = obj.cost.gradient;
             l  = obj.dualVariable.value;
             x  = obj.designVariable.value;
-            dx = -t*(DJ + l*Dg);
-            xN = x + dx;
-            x  = min(ub,max(xN,lb));
+            g  = DJ + l*Dg;
+            x  = primalUpdater.update(g,x);
             obj.designVariable.update(x);
         end
         

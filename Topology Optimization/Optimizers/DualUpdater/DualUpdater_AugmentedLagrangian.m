@@ -16,12 +16,7 @@ classdef DualUpdater_AugmentedLagrangian < handle
         end
         
         function update(obj)
-            switch obj.constraintCase{1}
-                case {'EQUALITY'}
-                    obj.updateDual();
-                case {'INEQUALITY'}
-                    obj.updateInequalityDual();
-            end
+            obj.updateDual();
         end
 
         function updatePenalty(obj,rho)
@@ -39,28 +34,35 @@ classdef DualUpdater_AugmentedLagrangian < handle
             obj.nConstr        = cParams.constraint.nSF;
         end
 
-        function updateDual(obj)
-            l   = obj.dualVariable.value;
+        function compute(obj,i)
+            l   = obj.dualVariable.value(i);
             rho = obj.penalty;
-            c   = obj.constraint.value;
+            c   = obj.constraint.value(i);
             l   = l + rho.*c;
-            obj.dualVariable.value = l;
+            obj.dualVariable.value(i) = l;
         end
 
-        function updateInequalityDual(obj)
-            if obj.isNotZero()
-                obj.updateDual();
-            else
-                obj.dualVariable.value = zeros(obj.index,1);
+        function updateDual(obj)
+            for i = 1:obj.nConstr
+                switch obj.constraintCase{i}
+                    case 'INEQUALITY'
+                        isZero = obj.checkDual(i);
+                        if isZero
+                            obj.dualVariable.value(i) = 0;
+                        else
+                            obj.compute(i);
+                        end
+                    otherwise
+                        obj.compute(i);
+                end
             end
         end
 
-        function c = isNotZero(obj)
-            g     = obj.constraint.value;
-            l     = obj.dualVariable.value;
-            rho   = obj.penalty;
-            c     = g + l/rho > 0;
-            index = find(c == 0) 
+        function isZero = checkDual(obj,i)
+            g      = obj.constraint.value(i,1);
+            l      = obj.dualVariable.value(i,1);
+            rho    = obj.penalty;
+            isZero = g + l/rho < 0;
         end
 
     end

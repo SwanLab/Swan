@@ -34,7 +34,7 @@ classdef SLERP < handle
         end
 
         function decreaseStepLength(obj)
-            obj.tau = obj.tau/2;
+            obj.tau = obj.tau/1.5;
         end
 
     end
@@ -43,13 +43,15 @@ classdef SLERP < handle
 
         function init(obj,cParams)
             obj.phi            = cParams.designVar;
+%             obj.phi.update(obj.phi.value*3);
             obj.scalar_product = cParams.uncOptimizerSettings.scalarProductSettings;
         end
 
         function computeTheta(obj,g)
-            pN        = obj.normalizeFunction(obj.phi.value);
-            gN        = obj.normalizeFunction(g);
-            obj.theta = max(acos(obj.scalar_product.computeSP(pN,gN)),1e-15);
+            pN   = obj.normalizeFunction(obj.phi.value);
+            gN   = obj.normalizeFunction(g);
+            phiG = obj.scalar_product.computeSP(pN,gN);
+            obj.theta = max(acos(phiG),1e-14);
         end
 
         function p = computeNewLevelSet(obj,g)
@@ -59,7 +61,8 @@ classdef SLERP < handle
             gN = obj.normalizeFunction(g);
             a  = sin((1-k)*t)*pN;
             b  = sin(k*t)*gN;
-            p  = (a + b)/sin(t); 
+            p  = (a + b)/sin(t);
+            p  = obj.normalizeFunction(p);
         end
 
         function x = normalizeFunction(obj,x)
