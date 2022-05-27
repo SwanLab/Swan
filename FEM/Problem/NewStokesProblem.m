@@ -7,7 +7,7 @@ classdef NewStokesProblem < handle
     properties (Access = private)
         mesh
         material
-%         solver
+        solver
 
         dim
         state
@@ -29,6 +29,7 @@ classdef NewStokesProblem < handle
             obj.createVelocityField();
             obj.createPressureField();
             obj.createBoundaryConditions();
+            obj.createSolver();
             obj.computeLHS();
             obj.computeRHS();
         end
@@ -37,24 +38,24 @@ classdef NewStokesProblem < handle
             tol = 1e-6;
             bc  = obj.boundaryConditions;
             free_dof = [length(bc.freeFields{1}), length(bc.freeFields{2})];
+            total_free_dof = sum(free_dof);
             LHSr = bc.fullToReducedMatrix(obj.LHS);
             RHSr = bc.fullToReducedVector(obj.RHS);
 
             switch obj.state
                 case 'Steady'
-                    x = LHSr\RHSr;
+                    x = obj.solver.solve(LHSr, RHSr);
                     obj.variables = obj.separateVariables(x);
 
                 case 'Transient'
                     RHS0 = RHSr;
-                    total_free_dof = sum(free_dof);
                     x_n(:,1) = zeros(total_free_dof,1);
                     x0 = zeros(total_free_dof,1);
                     
                     for istep = 2: obj.finalTime/obj.dtime
                         r = LHSr*x0 - RHSr;
                         while dot(r,r) > tol
-                            inc_x = LHSr\-r;
+                            inc_x = obj.solver.solve(LHSr, -r);
                             x = x0 + inc_x;
                             Fint = LHSr*x;
                             Fext = RHSr;
@@ -89,23 +90,16 @@ classdef NewStokesProblem < handle
         end
 
         function createVelocityField(obj)
-            bcVelocity.dirichlet  = obj.inputBC.velocity;   % Useless
-            bcVelocity.pointload  = [];                     % Useless
-            bcVelocity.velocityBC = obj.inputBC.velocityBC;
             s.mesh               = obj.mesh;
             s.ndimf              = 2;
-            s.inputBC            = bcVelocity;
             s.interpolationOrder = 'QUADRATIC';
             s.scale              = 'MACRO';
             obj.velocityField = Field(s);
         end
 
         function createPressureField(obj)
-            bcPressure.dirichlet = obj.inputBC.pressure;
-            bcPressure.pointload  = []; % Useless
             s.mesh               = obj.mesh;
             s.ndimf              = 1;
-            s.inputBC            = bcPressure;
             s.interpolationOrder = 'LINEAR';
             s.quadratureOrder    = 'QUADRATIC';
             s.scale              = 'MACRO';
@@ -115,7 +109,8 @@ classdef NewStokesProblem < handle
         function createBoundaryConditions(obj)
             vel = obj.velocityField;
             prs = obj.pressureField;
-            bcV.dirichlet = vel.translateBoundaryConditions();
+            newBC = vel.adaptBoundaryConditions(obj.inputBC);
+            bcV.dirichlet = newBC.dirichlet;
             bcV.pointload = [];
             bcV.ndimf     = vel.dim.ndimf;
             bcV.ndofs     = vel.dim.ndofs;
@@ -130,6 +125,11 @@ classdef NewStokesProblem < handle
             s.ndofs = ndofs; % Stokes
             bc = BoundaryConditions(s);
             obj.boundaryConditions = bc;
+        end
+
+        function createSolver(obj)
+            s.type =  'DIRECT';
+            obj.solver = Solver.create(s);
         end
         
         function LHS = computeLHS(obj)

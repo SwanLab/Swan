@@ -1,6 +1,22 @@
 %% Updates
 % - Stokes: For some reason, Transient is consistently way faster than
 %           Steady.
+% LHSintegrator instances
+%   - ScalarProduct (M & K)
+%   - ShapeFunctional (M)
+%   - DiffReactTests (M)
+%   - (PieceWiseConstantFunction) (M)
+%   - DiffReactProblem (LHSintegrator_DiffReactNeumann &
+%                       LHSintegrator_DiffReactRobin)
+%   - ElasticProblem (ElasticStiffness)
+%   - NewStokesProblem (LHSintegrator_Stokes)
+%   - (ThermalProblem)
+%   - (Element_Stokes)
+%   - (HarmonicProjector) (M, K)
+%   - (MinimumGradFieldWithVectorInL2) (M,K)
+%   - Filter (M)
+%   - Filter_P1_Density (M)
+%   - Poperator (M)
 
 %% To-do
 % - Move BC from fields

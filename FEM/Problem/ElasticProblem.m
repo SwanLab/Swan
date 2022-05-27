@@ -136,14 +136,15 @@ classdef ElasticProblem < handle
             ndimf = regexp(obj.pdim,'\d*','Match');
             s.mesh               = obj.mesh;
             s.ndimf              = str2double(ndimf);
-            s.inputBC            = obj.inputBC;
             s.scale              = obj.scale;
             s.interpolationOrder = obj.interpolationType; %obj.interpolationType
-            obj.displacementField = Field(s);
+            f = Field(s);
+            obj.inputBC = f.translateBoundaryConditions(obj.inputBC);
+            obj.displacementField = f;
         end
 
         function createBoundaryConditions(obj)
-            bc = obj.displacementField.inputBC;
+            bc = obj.inputBC;
             bc.ndimf = obj.displacementField.dim.ndimf;
             bc.ndofs = obj.displacementField.dim.ndofs;
             s.dim   = obj.displacementField.dim;
