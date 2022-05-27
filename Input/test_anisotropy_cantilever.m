@@ -1,6 +1,6 @@
 % filename = 'jaCantilever';
-filename = 'Bridge_UltraFine';
-% filename = 'ArchUltraFine';
+% filename = 'Bridge_UltraFine';
+filename = 'ArchUltraFine';
 % filename = 'MicroUltraFine';
 
 %Micro
@@ -23,8 +23,8 @@ incrementFactor = 1.5; % Recommended: 1.5; 2.0
 designVariable = 'LevelSet';
 filterType = 'P1';
 
-nsteps = 10; % Recommended slope: 5%/step is OK
-Vfrac_final = 0.5;
+nsteps = 4; % Recommended slope: 5%/step is OK
+Vfrac_final = 0.15;
 optimality_final =1e-3;
 constr_final =1e-3;
 

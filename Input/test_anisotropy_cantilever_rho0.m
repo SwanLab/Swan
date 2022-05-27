@@ -1,6 +1,6 @@
 % filename = 'jaCantilever';
-filename = 'Bridge_UltraFine';
-% filename = 'ArchUltraFine';
+% filename = 'Bridge_UltraFine';
+filename = 'ArchUltraFine';
 % filename = 'MicroUltraFine';
 
 %Micro
@@ -14,7 +14,7 @@ method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
 cost = {'compliance','anisotropicPerimeterInterior2D'};
-weights = [1,0.3];
+weights = [1,1];
 constraint = {'volumeConstraint'};
 % constraint_case = 'EQUALITY';
 optimizerUnconstrained = 'SLERP';
@@ -25,11 +25,11 @@ filterType = 'P1';
 % line_search_initiator = 'INCREASING LAST STEP';
 
 nsteps = 10; % Recommended slope: 5%/step is OK
-Vfrac_final = 0.5;
+Vfrac_final = 0.15;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 0.5;
+Vfrac_initial = 0.15;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 Perimeter_target = 5;
