@@ -5,22 +5,21 @@ classdef NewStokesProblem < handle
     end
     
     properties (Access = private)
-        interp
-        problemData
-        geometry
         mesh
-        dof
-        element
         material
-        solver
-        fileName
+%         solver
 
         dim
         state
+        dtime
+        finalTime
         inputBC
         velocityField
         pressureField
         boundaryConditions
+
+        LHS, LHSintegrator
+        RHS
     end
 
     methods (Access = public)
@@ -30,19 +29,45 @@ classdef NewStokesProblem < handle
             obj.createVelocityField();
             obj.createPressureField();
             obj.createBoundaryConditions();
-            obj.createGeometry();
-            obj.createInterpolation();
-            obj.createDOF();
-            obj.createElement();
-            obj.createSolver();
+            obj.computeLHS();
+            obj.computeRHS();
         end
         
         function computeVariables(obj)
-            p.state    = obj.state;
-            p.dt         = 0.01; % For transient cases
-            p.final_time = 1;    % For transient cases
-            x = obj.solver.solve(p);
-            obj.variables = obj.element.computeVars(x);
+            tol = 1e-6;
+            bc  = obj.boundaryConditions;
+            free_dof = [length(bc.freeFields{1}), length(bc.freeFields{2})];
+            LHSr = bc.fullToReducedMatrix(obj.LHS);
+            RHSr = bc.fullToReducedVector(obj.RHS);
+
+            switch obj.state
+                case 'Steady'
+                    x = LHSr\RHSr;
+                    obj.variables = obj.separateVariables(x);
+
+                case 'Transient'
+                    RHS0 = RHSr;
+                    total_free_dof = sum(free_dof);
+                    x_n(:,1) = zeros(total_free_dof,1);
+                    x0 = zeros(total_free_dof,1);
+                    
+                    for istep = 2: obj.finalTime/obj.dtime
+                        r = LHSr*x0 - RHSr;
+                        while dot(r,r) > tol
+                            inc_x = LHSr\-r;
+                            x = x0 + inc_x;
+                            Fint = LHSr*x;
+                            Fext = RHSr;
+                            r = Fint - Fext;
+                            x0 = x;
+                        end
+                        x_n(:,istep) = x;
+                        RHSr = obj.updateRHS(RHS0, x0(1:free_dof(1)));
+                    end
+                    x = x_n;
+                    obj.variables = obj.separateVariables(x);
+
+            end
         end
 
     end
@@ -50,42 +75,20 @@ classdef NewStokesProblem < handle
     methods (Access = private)
         
         function init(obj, cParams)
-            obj.state       = cParams.state;
-            pd.scale        = cParams.scale;
-            pd.pdim         = cParams.dim;
-            pd.ptype        = cParams.type;
-            pd.nelem        = cParams.nelem;
-            pd.bc.pressure  = cParams.bc.pressure;
-            pd.bc.velocity  = cParams.bc.velocity;
-            obj.mesh        = cParams.mesh;
-            obj.material    = cParams.material;
-            obj.problemData = pd;
-            obj.fileName    = cParams.fileName;
-            obj.inputBC.pressure  = cParams.bc.pressure;
-            obj.inputBC.velocity  = cParams.bc.velocity;
-            obj.inputBC.pointload = [];
-            obj.inputBC.velocityBC = cParams.bc.velocityBC;
-            obj.inputBC.forcesFormula = cParams.bc.forcesFormula;
+            obj.state      = cParams.state;
+            obj.dtime      = cParams.dtime;
+            obj.finalTime  = cParams.finalTime;
+            obj.mesh       = cParams.mesh;
+            obj.material   = cParams.material;
+            inBC.pressure  = cParams.bc.pressure;
+            inBC.velocity  = cParams.bc.velocity;
+            inBC.pointload = [];
+            inBC.velocityBC    = cParams.bc.velocityBC;
+            inBC.forcesFormula = cParams.bc.forcesFormula;
+            obj.inputBC    = inBC;
         end
 
-        function createGeometry(obj)
-            s.mesh = obj.mesh;
-            obj.geometry    = Geometry.create(s);
-            obj.geometry(2) = Geometry.create(s);
-        end
-        
-        function createInterpolation(obj)
-            interpU = 'QUADRATIC';
-            interpP = 'LINEAR';
-            obj.interp{1}=Interpolation.create(obj.mesh,interpU);
-            obj.interp{2}=Interpolation.create(obj.mesh,interpP);
-        end
-
-        function createDOF(obj)
-            obj.dof = DOF_Stokes(obj.fileName,obj.mesh,obj.geometry,obj.interp);
-        end
-
-        function createVelocityField(obj) % 1 in old notation
+        function createVelocityField(obj)
             bcVelocity.dirichlet  = obj.inputBC.velocity;   % Useless
             bcVelocity.pointload  = [];                     % Useless
             bcVelocity.velocityBC = obj.inputBC.velocityBC;
@@ -97,7 +100,7 @@ classdef NewStokesProblem < handle
             obj.velocityField = Field(s);
         end
 
-        function createPressureField(obj) % 2 in old notation
+        function createPressureField(obj)
             bcPressure.dirichlet = obj.inputBC.pressure;
             bcPressure.pointload  = []; % Useless
             s.mesh               = obj.mesh;
@@ -112,8 +115,6 @@ classdef NewStokesProblem < handle
         function createBoundaryConditions(obj)
             vel = obj.velocityField;
             prs = obj.pressureField;
-%             bcV = vel.boundaryConditions;
-%             bcP = prs.boundaryConditions;
             bcV.dirichlet = vel.translateBoundaryConditions();
             bcV.pointload = [];
             bcV.ndimf     = vel.dim.ndimf;
@@ -130,26 +131,50 @@ classdef NewStokesProblem < handle
             bc = BoundaryConditions(s);
             obj.boundaryConditions = bc;
         end
-
-        function createElement(obj)
-            obj.element  = Element_Stokes(obj.geometry,obj.mesh,...
-                obj.material,obj.dof,obj.problemData,obj.interp,...
-                obj.velocityField, obj.pressureField, ...
-                obj.inputBC.forcesFormula, obj.boundaryConditions);
+        
+        function LHS = computeLHS(obj)
+            s.type          = 'Stokes';
+            s.dt            = obj.dtime;
+            s.mesh          = obj.mesh;
+            s.material      = obj.material;
+            s.velocityField = obj.velocityField;
+            s.pressureField = obj.pressureField;
+            LHS_int = LHSintegrator.create(s);
+            LHS = LHS_int.compute();
+            obj.LHS = LHS;
+            obj.LHSintegrator = LHS_int;
+        end
+        
+        function RHS = computeRHS(obj)
+            s.type          = 'Stokes';
+            s.mesh          = obj.mesh;
+            s.velocityField = obj.velocityField;
+            s.pressureField = obj.pressureField;
+            s.forcesFormula = obj.inputBC.forcesFormula;
+            RHSint = RHSintegrator.create(s);
+            F = RHSint.integrate();
+            dirichlet = obj.boundaryConditions.dirichlet;
+            uD = obj.boundaryConditions.dirichlet_values;
+            R  = -obj.LHS(:,dirichlet)*uD;
+            RHS = F + R;
+            obj.RHS = RHS;
+        end
+        
+        function variable = separateVariables(obj,x_free)
+            x = obj.boundaryConditions.reducedToFullVector(x_free);
+            ndofsV = obj.velocityField.dim.ndofs;
+            variable.u = x(1:ndofsV,:);
+            variable.p = x(ndofsV+1:end,:);
         end
 
-        function createSolver(obj)
-            bc = obj.boundaryConditions;
-%             vel = obj.velocityField;
-%             prs = obj.pressureField;
-%             velCnstr = vel.dim.ndofs - size(vel.inputBC.dirichlet,1);
-%             prsCnstr = prs.dim.ndofs - size(prs.inputBC.dirichlet,1);
-            free_dof = [length(bc.freeFields{1}), length(bc.freeFields{2})];
-            s.tol      = 1e-6;
-            s.type     = 'Nonlinear';
-            s.element  = obj.element;
-            s.free_dof = free_dof;
-            obj.solver = Solver.create(s);
+        function RHS = updateRHS(obj, RHS0, x_n)
+            RHS = zeros(size(RHS0));
+            freeV = obj.boundaryConditions.freeFields{1};
+            lenFreeV = length(freeV);
+            M = obj.LHSintegrator.M;
+            Mred = M(freeV,freeV);
+            Mred_x_n = Mred*x_n;
+            RHS(1:lenFreeV,1) = RHS0(1:lenFreeV,1) + Mred_x_n;
         end
 
     end

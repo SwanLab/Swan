@@ -1,3 +1,7 @@
+%% Updates
+% - Stokes: For some reason, Transient is consistently way faster than
+%           Steady.
+
 %% To-do
 % - Move BC from fields
 %       - many possibilities to do it, but none that don't smell.

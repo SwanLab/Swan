@@ -39,6 +39,10 @@ classdef Assembler < handle
             A = obj.assembleWithFields(Ae, f1, f2);
         end
 
+        function A = assembleVectorFields(obj, Ae, f1, f2)
+            A = obj.assembleVectorWithFields(Ae, f1, f2);
+        end
+
     end
 
     methods (Access = private)
@@ -262,7 +266,26 @@ classdef Assembler < handle
         end
         
       
-        function A = assembleVectorWithFields(obj, Felem, f1, f2)
+        function F = assembleVectorWithFields(obj, FelemCell, f1, f2)
+            fields = {f1,f2};
+            nfields = numel(fields);
+            for ifield = 1:nfields
+                field = fields{ifield};
+                dims  = field.dim;
+                Felem = FelemCell{ifield,1};
+                dofsElem = obj.computeFieldDofs(field);
+                b = zeros(dims.ndofs,1);
+                for i = 1:dims.nnodeElem*dims.ndimf
+                    for igaus = 1:size(Felem,2)
+                    c = squeeze(Felem(i,igaus,:));
+                    idof_elem = dofsElem(i,:);
+                    b = b + sparse(idof_elem,1,c',dims.ndofs,1);
+                    end
+                end
+                b_global{ifield,1} = b;
+            end
+            F =cell2mat(b_global);
+
         end
 
         function dofConnec = computeFieldDofs(obj, field)
