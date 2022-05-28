@@ -1,29 +1,20 @@
 classdef LHSintegrator_Mass < LHSintegrator
 
     properties (Access = private)
-        quadType
+        field
     end
 
     methods (Access = public)
         
         function obj = LHSintegrator_Mass(cParams)
-            obj.init(cParams);
-            obj.quadType = cParams.quadType;
-            obj.createQuadrature();
-            obj.createInterpolation();
-            if isfield(cParams, 'interpolation')
-                obj.interpolation = cParams.interpolation;
-                obj.quadrature    = cParams.quadrature;
-            end
+%             obj.init(cParams);
+            obj.mesh  = cParams.mesh;
+            obj.field = cParams.field;
         end
 
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
-            LHS = obj.assembleMatrix(lhs);
-        end
-
-        function lhs = computeElemental(obj) % Temporary for Stokes
-            lhs = obj.computeElementalLHS();
+            LHS = obj.assembleMatrixField(lhs);
         end
         
     end
@@ -31,14 +22,15 @@ classdef LHSintegrator_Mass < LHSintegrator
     methods (Access = protected)
         
         function lhs = computeElementalLHS(obj)
-            shapes = obj.interpolation.shape;
-            quad   = obj.quadrature;
+            f = obj.field;
+            shapes = f.interpolation.shape;
+            quad   = f.quadrature;
             dvolu  = obj.mesh.computeDvolume(quad);
-            ngaus  = obj.quadrature.ngaus;
+            ngaus  = f.quadrature.ngaus;
             nelem  = obj.mesh.nelem;
 %             nnode  = obj.mesh.nnodeElem;
-            ndimf  = obj.dim.ndimf;
-            nnode  = obj.interpolation.nnode;
+            ndimf  = f.dim.ndimf;
+            nnode  = f.dim.nnodeElem;
 
             % One dimension
 %             lhs = zeros(nnode,nnode,nelem);
@@ -76,10 +68,12 @@ classdef LHSintegrator_Mass < LHSintegrator
 
         end
 
-       function createQuadrature(obj)
-           quad = Quadrature.set(obj.mesh.type);
-           quad.computeQuadrature(obj.quadType);
-           obj.quadrature = quad;
+        function lhs = assembleMatrixField(obj, Ae)
+            s.dim          = obj.field.dim;
+            s.globalConnec = obj.field.connec;
+            s.nnodeEl      = obj.field.dim.nnodeElem;
+            assembler = Assembler(s);
+            lhs = assembler.assembleFields(Ae, obj.field, obj.field);
        end
         
     end

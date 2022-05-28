@@ -250,8 +250,12 @@ classdef Assembler < handle
         function A = assembleWithFields(obj, Aelem, f1, f2)
             % Can be accelerated using indices
             dofsF1 = obj.computeFieldDofs(f1);
-            dofsF2 = obj.computeFieldDofs(f2);
-
+            if isequal(f1, f2)
+                dofsF2 = dofsF1;
+            else
+                dofsF2 = obj.computeFieldDofs(f2);
+            end
+            
             ndofs1 = f1.dim.ndofs;
             ndofs2 = f2.dim.ndofs;
             ndofsElem1 = f1.dim.ndofsElem;

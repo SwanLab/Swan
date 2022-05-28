@@ -14,7 +14,6 @@ classdef Field < handle
     properties (Access = private)
         mesh
         ndimf
-        scale
 %         quadrature
 %         interpolation
         interpTranslator % new class to do that from Field
@@ -65,7 +64,6 @@ classdef Field < handle
         function init(obj, cParams)
             obj.mesh               = cParams.mesh;
             obj.ndimf              = cParams.ndimf;
-            obj.scale              = cParams.scale;
             obj.interpolationOrder = cParams.interpolationOrder;
             if isfield(cParams, 'quadratureOrder')
                 obj.quadratureOrder = cParams.quadratureOrder;

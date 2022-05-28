@@ -9,6 +9,7 @@ classdef ScalarProduct < handle
     properties (Access = private)
        nVariables
        mesh
+       field
     end
     
     methods (Access = public)
@@ -47,7 +48,8 @@ classdef ScalarProduct < handle
         function createMatrices(obj,cParams)
             obj.mesh = cParams.mesh;
             dim = obj.computeDimensions();
-            M = obj.computeMassMatrix(dim);
+            obj.createField();
+            M = obj.computeMassMatrix();
             K = obj.computeStiffnessMatrix(dim);
             obj.Ksmooth = K;
             obj.Msmooth = M;
@@ -71,13 +73,19 @@ classdef ScalarProduct < handle
             s.mesh = obj.mesh;
             dim = DimensionVariables.create(s);
         end
+
+        function createField(obj)
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1;
+            s.interpolationOrder = 'LINEAR';
+            s.quadratureOrder    = 'QUADRATICMASS';
+            obj.field = Field(s);
+        end
         
-        function M = computeMassMatrix(obj, dim)
-            s.type         = 'MassMatrix';
-            s.quadType     = 'QUADRATICMASS';
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.dim          = dim;
+        function M = computeMassMatrix(obj)
+            s.type  = 'MassMatrix';
+            s.mesh  = obj.mesh;
+            s.field = obj.field;
             LHS = LHSintegrator.create(s);
             M = LHS.compute();
         end

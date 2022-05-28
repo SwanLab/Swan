@@ -76,20 +76,11 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         function M = computeMassMatrix(obj)
             vel = obj.velocityField;
             dtime = obj.dt;
-            s.type          = 'MassMatrix';
-            s.dim           = vel.dim;
-            s.mesh          = obj.mesh;
-            s.quadType      = 'QUADRATIC';
-            s.globalConnec  = []; %vel.connec;
-            s.interpolation = vel.interpolation;
-            s.quadrature    = vel.quadrature;
+            s.type  = 'MassMatrix';
+            s.mesh  = obj.mesh;
+            s.field = vel;
             LHS = LHSintegrator.create(s);
-            lhs = LHS.computeElemental();
-            a.dim          = vel.dim;
-            a.globalConnec = vel.connec;
-            a.nnodeEl      = vel.dim.nnodeElem;
-            assembler = Assembler(a);
-            m = assembler.assemble(lhs);
+            m = LHS.compute();
             M = m/dtime;
             obj.M = M;
         end
