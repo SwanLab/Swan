@@ -5,9 +5,9 @@ classdef LHSintegrator_Mass < LHSintegrator
     end
 
     methods (Access = public)
-        
+
         function obj = LHSintegrator_Mass(cParams)
-%             obj.init(cParams);
+            %             obj.init(cParams);
             obj.mesh  = cParams.mesh;
             obj.field = cParams.field;
         end
@@ -16,11 +16,11 @@ classdef LHSintegrator_Mass < LHSintegrator
             lhs = obj.computeElementalLHS();
             LHS = obj.assembleMatrixField(lhs);
         end
-        
+
     end
-    
+
     methods (Access = protected)
-        
+
         function lhs = computeElementalLHS(obj)
             f = obj.field;
             shapes = f.interpolation.shape;
@@ -28,20 +28,20 @@ classdef LHSintegrator_Mass < LHSintegrator
             dvolu  = obj.mesh.computeDvolume(quad);
             ngaus  = f.quadrature.ngaus;
             nelem  = obj.mesh.nelem;
-%             nnode  = obj.mesh.nnodeElem;
+            %             nnode  = obj.mesh.nnodeElem;
             ndimf  = f.dim.ndimf;
             nnode  = f.dim.nnodeElem;
 
             % One dimension
-%             lhs = zeros(nnode,nnode,nelem);
-%             for igaus = 1:ngaus
-%                 dv(1,1,:) = dvolu(igaus,:);
-%                 Ni = shapes(:,igaus);
-%                 Nj = shapes(:,igaus);
-%                 NiNj = Ni*Nj';
-%                 Aij = bsxfun(@times,NiNj,dv);
-%                 lhs = lhs + Aij;
-%             end
+            %             lhs = zeros(nnode,nnode,nelem);
+            %             for igaus = 1:ngaus
+            %                 dv(1,1,:) = dvolu(igaus,:);
+            %                 Ni = shapes(:,igaus);
+            %                 Nj = shapes(:,igaus);
+            %                 NiNj = Ni*Nj';
+            %                 Aij = bsxfun(@times,NiNj,dv);
+            %                 lhs = lhs + Aij;
+            %             end
 
             % N dimensions, pending optimization
             M = zeros(nnode*ndimf,nnode*ndimf,nelem);
@@ -74,8 +74,8 @@ classdef LHSintegrator_Mass < LHSintegrator
             s.nnodeEl      = obj.field.dim.nnodeElem;
             assembler = Assembler(s);
             lhs = assembler.assembleFields(Ae, obj.field, obj.field);
-       end
-        
+        end
+
     end
-    
+
 end

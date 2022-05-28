@@ -67,7 +67,6 @@ classdef NewStokesProblem < handle
                     end
                     x = x_n;
                     obj.variables = obj.separateVariables(x);
-
             end
         end
 

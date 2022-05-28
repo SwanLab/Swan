@@ -3,14 +3,12 @@ classdef LHSintegrator_DiffReactNeumann < LHSintegrator
     properties (GetAccess = public, SetAccess = private)
         M
         K
-        field
     end
 
     methods (Access = public)
 
         function obj = LHSintegrator_DiffReactNeumann(cParams)
             obj.init(cParams);
-            obj.createField();
             obj.computeStiffnessMatrix();
             obj.computeMassMatrix();
         end
@@ -22,32 +20,31 @@ classdef LHSintegrator_DiffReactNeumann < LHSintegrator
     end
 
     methods (Access = private)
-    
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATICMASS';
-            obj.field = Field(s);
-        end
-        
+
         function computeStiffnessMatrix(obj)
+            g.mesh               = obj.mesh;
+            g.ndimf              = 1;
+            g.interpolationOrder = 'LINEAR';
+            f = Field(g);
             s.type = 'StiffnessMatrix';
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.dim          = obj.dim;
+            s.mesh  = obj.mesh;
+            s.field = f;
             LHS = LHSintegrator.create(s);
             obj.K = LHS.compute();
         end
-        
+
         function computeMassMatrix(obj)
+            g.mesh               = obj.mesh;
+            g.ndimf              = 1;
+            g.interpolationOrder = 'LINEAR';
+            g.quadratureOrder    = 'QUADRATICMASS';
+            f = Field(g);
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.field = obj.field;
+            s.field = f;
             LHS = LHSintegrator.create(s);
             obj.M = LHS.compute();
         end
-
 
     end
 

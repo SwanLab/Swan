@@ -1,31 +1,9 @@
 %% Updates
 % - Stokes: For some reason, Transient is consistently way faster than
 %           Steady.
-% LHSintegrator instances
-% MASS
-%   - ScalarProduct (M & K) OK!
-%   - ShapeFunctional (M) OK!
-%   - DiffReactTests (M) OK!
-%   - LHSintegrator_Stokes (M) OK!
-%   - DiffReactProblem (LHSintegrator_DiffReactNeumann & OK!
-%                       LHSintegrator_DiffReactRobin) OK!
-%   - Filter (M) OK!
-%   - Filter_P1_Density (M) OK!
-%   - Poperator (M) OK!
-
-% STIFFNESS
-%   - ScalarProduct (M & K)
-%   - DiffReactProblem (LHSintegrator_DiffReactNeumann &
-%                       LHSintegrator_DiffReactRobin)
-%   - ElasticProblem (ElasticStiffness)
-
-%   - NewStokesProblem (LHSintegrator_Stokes)
-
-%   - (ThermalProblem)
-%   - (Element_Stokes)
-%   - (HarmonicProjector) (M, K)
-%   - (PieceWiseConstantFunction) (M)
-%   - (MinimumGradFieldWithVectorInL2) (M,K)
+% - Field: BoundaryConditions no longer there, but they can be used to
+%          translate.
+% - LHSintegrators: they now take Fields as inputs.
 
 
 %% To-do

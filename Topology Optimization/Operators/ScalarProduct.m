@@ -47,10 +47,8 @@ classdef ScalarProduct < handle
         
         function createMatrices(obj,cParams)
             obj.mesh = cParams.mesh;
-            dim = obj.computeDimensions();
-            obj.createField();
             M = obj.computeMassMatrix();
-            K = obj.computeStiffnessMatrix(dim);
+            K = obj.computeStiffnessMatrix();
             obj.Ksmooth = K;
             obj.Msmooth = M;
         end
@@ -83,18 +81,26 @@ classdef ScalarProduct < handle
         end
         
         function M = computeMassMatrix(obj)
+            g.mesh               = obj.mesh;
+            g.ndimf              = 1;
+            g.interpolationOrder = 'LINEAR';
+            g.quadratureOrder    = 'QUADRATICMASS';
+            f = Field(g);
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.field = obj.field;
+            s.field = f;
             LHS = LHSintegrator.create(s);
             M = LHS.compute();
         end
     
-        function K = computeStiffnessMatrix(obj, dim)
-            s.type = 'StiffnessMatrix';
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.dim          = dim;
+        function K = computeStiffnessMatrix(obj)
+            g.mesh               = obj.mesh;
+            g.ndimf              = 1;
+            g.interpolationOrder = 'LINEAR';
+            f = Field(g);
+            s.type  = 'StiffnessMatrix';
+            s.mesh  = obj.mesh;
+            s.field = f;
             LHS = LHSintegrator.create(s);
             K = LHS.compute();
         end
