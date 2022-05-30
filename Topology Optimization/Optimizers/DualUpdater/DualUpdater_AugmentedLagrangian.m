@@ -51,6 +51,7 @@ classdef DualUpdater_AugmentedLagrangian < handle
                             obj.dualVariable.value(i) = 0;
                         else
                             obj.compute(i);
+                            obj.dualVariable.value(i) = max(0,obj.dualVariable.value(i));
                         end
                     otherwise
                         obj.compute(i);

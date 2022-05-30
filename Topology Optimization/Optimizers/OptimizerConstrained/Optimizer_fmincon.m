@@ -15,6 +15,13 @@ classdef Optimizer_fmincon < Optimizer
         incrementalScheme
         hasConverged
         hasFinished
+        
+        globalCost
+        globalConstraint
+        globalCostGradient
+        globalLineSearch
+        globalDual
+        globalDesignVar
     end
 
 
@@ -40,7 +47,7 @@ classdef Optimizer_fmincon < Optimizer
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.algorithm              = 'sqp';
+            obj.algorithm              = 'interior-point';
             cParams.optimizerNames.alg = obj.algorithm;
             obj.upperBound             = cParams.uncOptimizerSettings.ub;
             obj.lowerBound             = cParams.uncOptimizerSettings.lb;
@@ -55,6 +62,8 @@ classdef Optimizer_fmincon < Optimizer
             PROBLEM         = obj.problem;
             PROBLEM.options = obj.options;
             x = fmincon(PROBLEM);
+            v = obj.globalDesignVar;
+            save('fminconIPOPTacademic4','v');
         end
 
         function createProblem(obj)
@@ -156,10 +165,11 @@ classdef Optimizer_fmincon < Optimizer
             stop      = false;
             switch state
                 case "init"
-                    
+                    obj.globalDesignVar(:,obj.nIter + 1) = x;
                 case "iter"
                     obj.updateIterInfo();
                     obj.designVariable.update(x);
+                    obj.globalDesignVar(:,obj.nIter + 1) = x;
                     params.algorithm   = obj.algorithm;
                     params.nIter       = obj.nIter;
                     params.hasFinished = obj.hasFinished; 

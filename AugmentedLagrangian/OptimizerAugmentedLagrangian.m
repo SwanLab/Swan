@@ -11,7 +11,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         costOld
         upperBound
         lowerBound
-        tol = 1e-10
+        tol = 1e-14
         nX
         nConstr
         hasConverged
@@ -31,6 +31,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         globalMerit
         globalLineSearch
         globalDual
+        globalDesignVar
     end
 
     methods (Access = public) 
@@ -46,11 +47,15 @@ classdef OptimizerAugmentedLagrangian < Optimizer
 
         function obj = solveProblem(obj)
             obj.hasConverged = false;
+            obj.cost.computeFunctionAndGradient();
+            obj.constraint.computeFunctionAndGradient();
+            obj.saveVariablesForAnalysis();
             while ~obj.hasConverged
                 obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
+                obj.saveVariablesForAnalysis();
             end
         end
 
@@ -78,7 +83,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
             obj.dualVariable.value = zeros(obj.nConstr,1);
-            obj.penalty            = .01;
+            obj.penalty            = .001;
         end
 
         function obj = update(obj)
@@ -140,8 +145,21 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             DJ  = obj.cost.gradient;
             l   = obj.dualVariable.value;
             p   = obj.penalty;
-            g   = (DJ + Dh*(l + p*h));
+            gPlus  = max(h,-l/p);
+            g   = (DJ + Dh*(l + p*gPlus));
             obj.meritGradient = g;
+        end
+
+        function mF = computeMeritFunction(obj,x)
+            obj.designVariable.update(x)
+            obj.cost.computeFunctionAndGradient();
+            obj.constraint.computeFunctionAndGradient();
+            J      = obj.cost.value;
+            g      = obj.constraint.value;
+            l      = obj.dualVariable.value;
+            rho    = obj.penalty;
+            gPlus  = max(g,-l/rho);
+            mF     = J + l'*gPlus + 0.5*rho*gPlus'*gPlus;
         end
 
         function checkStep(obj,x,x0)
@@ -158,17 +176,6 @@ classdef OptimizerAugmentedLagrangian < Optimizer
                 obj.designVariable.update(x0);
                 obj.lineSearchTrials = obj.lineSearchTrials + 1;
             end
-        end
-
-        function mF = computeMeritFunction(obj,x)
-            obj.designVariable.update(x)
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
-            J      = obj.cost.value;
-            g      = obj.constraint.value;
-            l      = obj.dualVariable.value;
-            rho    = obj.penalty;
-            mF     = J + l'*g + 0.5*rho*g'*g;
         end
 
         function obj = saveOldValues(obj,x)
@@ -225,33 +232,26 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function saveVariablesForAnalysis(obj)
-            i                         = obj.nIter;
-            obj.globalCost(i)         = obj.cost.value;
-            obj.globalConstraint(i)   = obj.constraint.value;
-            obj.globalCostGradient(i) = norm(obj.cost.gradient);
-            obj.globalMerit(i)        = obj.meritNew;
-            obj.globalLineSearch(i)   = obj.primalUpdater.tau;
-            obj.globalDual(i)         = obj.dualVariable.value;
+            i                           = obj.nIter + 1;
+            obj.globalCost(i)           = obj.cost.value;
+            obj.globalConstraint(:,i)   = obj.constraint.value;
+            obj.globalCostGradient(i)   = norm(obj.cost.gradient);
+%             obj.globalMerit(i)          = obj.meritNew;
+%             obj.globalLineSearch(i)     = obj.primalUpdater.tau;
+            obj.globalDual(:,i)         = obj.dualVariable.value;
+            obj.globalDesignVar(:,i)    = obj.designVariable.value;
             if obj.hasConverged
                 c = obj.globalCost;
                 h = obj.globalConstraint;
                 g = obj.globalCostGradient;
-                m = obj.globalMerit;
-                t = obj.globalLineSearch;
+%                 m = obj.globalMerit;
+%                 t = obj.globalLineSearch;
                 d = obj.globalDual;
-                save('AugLagrangianVariables.mat',"t","m","c","g","h","d");
+                v = obj.globalDesignVar;
+                save('AugmentedLagrAcademic4.mat',"c","g","h","d","v");
             end
-
-            %
-            m = obj.designVariable.mesh.innerMeshOLD;
-            bm = m.createBoundaryMesh();
-            s.backgroundMesh = m;
-            s.boundaryMesh   = bm;
-            um = UnfittedMesh(s);
-            um.compute(x);
-            um.plot();
-           
         end
+
 
     end
 

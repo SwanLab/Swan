@@ -30,6 +30,7 @@ classdef OptimizerNullSpace < Optimizer
         globalMerit
         globalLineSearch
         globalDual
+        globalDesignVar
     end
 
     methods (Access = public) 
@@ -45,11 +46,15 @@ classdef OptimizerNullSpace < Optimizer
 
         function obj = solveProblem(obj)
             obj.hasConverged = false;
+            obj.cost.computeFunctionAndGradient();
+            obj.constraint.computeFunctionAndGradient();
+            obj.saveVariablesForAnalysis();
             while ~obj.hasConverged
                 obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
+                obj.saveVariablesForAnalysis();
             end
         end
 
@@ -82,7 +87,9 @@ classdef OptimizerNullSpace < Optimizer
         function obj = update(obj)
             x0 = obj.designVariable.value;
             obj.saveOldValues(x0);
-%             obj.dualUpdater.update();
+            if obj.nIter ~= 0
+                obj.dualUpdater.update(); %%
+            end
             obj.mOld = obj.computeMeritFunction(x0);
             obj.calculateInitialStep();
             obj.acceptableStep   = false;
@@ -109,7 +116,7 @@ classdef OptimizerNullSpace < Optimizer
                 Dg      = obj.constraint.gradient;
                 aJ      = 1;
                 DmF     = aJ*(DJ + Dg*l);
-                factor  = 1;
+                factor  = 0.1;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
                 factor = 1.2;
@@ -230,21 +237,23 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function saveVariablesForAnalysis(obj)
-            i                         = obj.nIter;
-            obj.globalCost(i)         = obj.cost.value;
-            obj.globalConstraint(i)   = obj.constraint.value;
-            obj.globalCostGradient(i) = norm(obj.cost.gradient);
-            obj.globalMerit(i)        = obj.meritNew;
-            obj.globalLineSearch(i)   = obj.primalUpdater.tau;
-            obj.globalDual(i)         = obj.dualVariable.value;
+            i                           = obj.nIter + 1;
+            obj.globalCost(i)           = obj.cost.value;
+            obj.globalConstraint(:,i)   = obj.constraint.value;
+            obj.globalCostGradient(i)   = norm(obj.cost.gradient);
+%             obj.globalMerit(i)          = obj.meritNew;
+%             obj.globalLineSearch(i)     = obj.primalUpdater.tau;
+            obj.globalDual(:,i)         = obj.dualVariable.value;
+            obj.globalDesignVar(:,i)    = obj.designVariable.value;
             if obj.hasConverged
                 c = obj.globalCost;
                 h = obj.globalConstraint;
                 g = obj.globalCostGradient;
-                m = obj.globalMerit;
-                t = obj.globalLineSearch;
+%                 m = obj.globalMerit;
+%                 t = obj.globalLineSearch;
                 d = obj.globalDual;
-                save('NullSpaceVariables.mat',"t","m","c","g","h","d");
+                v = obj.globalDesignVar;
+                save('NullSpaceVariablesAcademicProva.mat',"c","g","h","d","v");
             end
         end
 

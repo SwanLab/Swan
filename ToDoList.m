@@ -8,6 +8,7 @@
 % ITERACIÓ ÉS DECISIVA, EN EL CAS DE SLERP ES NECESSARI QUE LA DUAL
 % S'ACTUALITZI ABANS DE CALCULAR LA MERIT OLD I EN DENSITY EL CONTRARI.
 % 4) Arreglar MMA i IPOPT per que funcionin amb igual que la resta
-% d'optimizers
+% d'optimizers -- FET
 % 5) Començar casos pràctics GID
-% 6) 
+% 6) tau alpha Null Space
+% 7) SLERP 

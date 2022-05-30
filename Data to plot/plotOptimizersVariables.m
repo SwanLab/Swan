@@ -16,7 +16,8 @@ merit.Null = m;
 const.Null = h;
 tau.Null   = t;
 grad.Null  = g;
-dual.Null   = d;
+dual.Null  = d;
+var.Null   = v;
 
 load("NullSpaceNoConvergence.mat");
 cost.Null2  = c;
