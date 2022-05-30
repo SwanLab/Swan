@@ -4,6 +4,7 @@ classdef BoundaryConditions < handle
         dirichlet
         dirichlet_values
         free
+        freeFields
         neumann
         neumann_values
         masterSlave
@@ -13,11 +14,10 @@ classdef BoundaryConditions < handle
 
     properties (Access = private)
         dim
+        ndofs
         scale
         dirichletInput
         pointloadInput
-
-        ndofs
     end
     
     methods (Access = public)
@@ -27,8 +27,8 @@ classdef BoundaryConditions < handle
         end
 
         function compute(obj)
-            [dirID, dirVals]     = obj.formatInputData(obj.dirichletInput);
-            [neuID, neuVals]     = obj.formatInputData(obj.pointloadInput);
+            [dirID, dirVals]     = obj.formatInputData(obj.dim.ndimf, obj.dirichletInput);
+            [neuID, neuVals]     = obj.formatInputData(obj.dim.ndimf, obj.pointloadInput);
             obj.dirichlet        = dirID;
             obj.dirichlet_values = dirVals;
             obj.neumann          = neuID;
@@ -70,14 +70,46 @@ classdef BoundaryConditions < handle
         function init(obj,cParams)
             obj.dim            = cParams.dim;
             obj.scale          = cParams.scale;
-            obj.dirichletInput = cParams.bc.dirichlet;
-            obj.pointloadInput = cParams.bc.pointload;
-            if isfield(cParams, 'ndofs') && ~isempty(cParams.ndofs)
-                obj.ndofs = cParams.ndofs;
-            else
-                obj.ndofs = obj.dim.ndofs;
-            end
+            obj.ndofs          = cParams.ndofs; % Stokes
             obj.initPeriodicMasterSlave(cParams);
+            obj.initDirichletInput(cParams);
+        end
+
+        function initDirichletInput(obj, s)
+            nfields = numel(s.bc);
+            dirich  = [];
+            neumann    = [];
+            dirichVals = [];
+            neumnnVals = [];
+            free       = [];
+            globalNdof = 0;
+            for i = 1:nfields
+                bc = s.bc{i};
+                obj.dirichletInput = bc.dirichlet;
+                obj.pointloadInput = bc.pointload;
+
+                inD = bc.dirichlet;
+                inN = bc.pointload;
+                [idxD, valD] = obj.formatInputData(bc.ndimf,inD);
+                [idxN, valN] = obj.formatInputData(bc.ndimf,inN);
+                idxD = idxD + globalNdof;
+                idxN = idxN + globalNdof;
+
+                dirich     = [dirich; idxD];
+                dirichVals = [dirichVals; valD];
+                neumann    = [neumann; idxN];
+                neumnnVals = [neumnnVals; valN];
+
+                firstDof = globalNdof + 1;
+                lastDof  = firstDof + bc.ndofs - 1;
+                obj.freeFields{i} = setdiff(firstDof:lastDof,idxD);
+                globalNdof = globalNdof+ bc.ndofs;
+            end
+            obj.dirichlet        = dirich;
+            obj.dirichlet_values = dirichVals;
+            obj.neumann          = neumann;
+            obj.neumann_values   = neumnnVals;
+            obj.free             = obj.computeFreeDOF();
         end
 
         function initPeriodicMasterSlave(obj, cParams)
@@ -103,8 +135,12 @@ classdef BoundaryConditions < handle
             perDof = zeros(nlib*nunkn,1);
             for iunkn = 1:nunkn
                 indDof = nlib*(iunkn - 1) + [1:nlib];
-                perDof(indDof,1) = obj.nod2dof(perNodes,iunkn);
+                perDof(indDof,1) = obj.nod2dof(obj.dim.ndimf, perNodes,iunkn);
             end
+        end
+
+        function free = computeFieldFree(obj, ndofs, dirich)
+            free  = setdiff(1:ndofs,dirich);
         end
 
         function free = computeFreeDOF(obj)
@@ -113,22 +149,21 @@ classdef BoundaryConditions < handle
             free  = setdiff(1:ndof,cnstr);
         end
 
-        function [dofs, vals] = formatInputData(obj, data)
+        function [dofs, vals] = formatInputData(obj, ndimf, data)
             dofs = [];
             vals = [];
             if ~isempty(data)
                 inod = data(:,1);
                 iunk = data(:,2);
                 vals = data(:,3);
-                dofs = obj.nod2dof(inod,iunk);
+                dofs = obj.nod2dof(ndimf, inod,iunk);
             end
         end
 
-        function idof = nod2dof(obj, inode, iunkn)
-            ndimf = obj.dim.ndimf;
+        function idof = nod2dof(obj, ndimf, inode, iunkn)
+%             ndimf = obj.dim.ndimf;
             idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
-
         
         function Ared = reduceMatrixDirichlet(obj,A)
 %             fr = obj.computeGlobalFree();

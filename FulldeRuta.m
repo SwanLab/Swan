@@ -1,4 +1,33 @@
 %% To-do
+% - Move BC from fields
+%       - many possibilities to do it, but none that don't smell.
+%           - BoundaryConditionFactory that generates BoundaryCondition,
+%             just like filters?
+%           - Passing a cell array as the input BC for the Boundary
+%             Conditions class? (you lose info like ndimfield)
+%           - Passing a struct where each field indicates type/domain/...?
+%       - It makes no sense to have free_dofs for each field in a cell
+%         array. BoundaryConditions were moved away from Field because of
+%         that.
+%       - it is difficult to sense which will be the winner, perhaps it's
+%         time to push with new features and see what comes up.
+% - move geometry to Mesh
+%       - it cannot work properly. For problems such as stokes, there are
+%       two different interpolations. creating the geometry inside the mesh
+%       only allows for one interpolation at a time -- and you cannot copy
+%       the mesh to make a new one becaues of the way matlab handles it
+% - give importance to interptranslator in field
+% - LHSintegrator types: field/test function
+
+%% Long-term
+% - FeFunction and Field should converge into one. Mesh.coord could be a
+%   FeFunction: given a quadrature, it returns xGauss 
+
+% - Try out ways to make constructors more elegant, perhaps by grouping up
+%   properties and looping over them, some tagged as RequiredProps and the
+%   rest as OptionalProps.
+
+%% Previous To-do
 
 %       - The new way of computing the stiffness matrix is
 %         significantly faster (previously: 0.4s, now <0.1s). Also, the

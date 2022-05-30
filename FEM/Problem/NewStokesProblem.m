@@ -20,6 +20,7 @@ classdef NewStokesProblem < handle
         inputBC
         velocityField
         pressureField
+        boundaryConditions
     end
 
     methods (Access = public)
@@ -28,6 +29,7 @@ classdef NewStokesProblem < handle
             obj.init(cParams);
             obj.createVelocityField();
             obj.createPressureField();
+            obj.createBoundaryConditions();
             obj.createGeometry();
             obj.createInterpolation();
             obj.createDOF();
@@ -107,16 +109,42 @@ classdef NewStokesProblem < handle
             obj.pressureField = Field(s);
         end
 
+        function createBoundaryConditions(obj)
+            vel = obj.velocityField;
+            prs = obj.pressureField;
+%             bcV = vel.boundaryConditions;
+%             bcP = prs.boundaryConditions;
+            bcV.dirichlet = vel.translateBoundaryConditions();
+            bcV.pointload = [];
+            bcV.ndimf     = vel.dim.ndimf;
+            bcV.ndofs     = vel.dim.ndofs;
+            bcP.dirichlet = obj.inputBC.pressure;
+            bcP.pointload = [];
+            bcP.ndimf     = prs.dim.ndimf;
+            bcP.ndofs     = prs.dim.ndofs;
+            ndofs = vel.dim.ndofs + prs.dim.ndofs;
+            s.dim   = [];
+            s.scale = 'MACRO';
+            s.bc    = {bcV, bcP};
+            s.ndofs = ndofs; % Stokes
+            bc = BoundaryConditions(s);
+            obj.boundaryConditions = bc;
+        end
+
         function createElement(obj)
             obj.element  = Element_Stokes(obj.geometry,obj.mesh,...
                 obj.material,obj.dof,obj.problemData,obj.interp,...
-                obj.velocityField, obj.pressureField, obj.inputBC.forcesFormula);
+                obj.velocityField, obj.pressureField, ...
+                obj.inputBC.forcesFormula, obj.boundaryConditions);
         end
 
         function createSolver(obj)
-            velFree  = length(obj.velocityField.boundaryConditions.free);
-            prsFree  = length(obj.pressureField.boundaryConditions.free);
-            free_dof = [velFree, prsFree];
+            bc = obj.boundaryConditions;
+%             vel = obj.velocityField;
+%             prs = obj.pressureField;
+%             velCnstr = vel.dim.ndofs - size(vel.inputBC.dirichlet,1);
+%             prsCnstr = prs.dim.ndofs - size(prs.inputBC.dirichlet,1);
+            free_dof = [length(bc.freeFields{1}), length(bc.freeFields{2})];
             s.tol      = 1e-6;
             s.type     = 'Nonlinear';
             s.element  = obj.element;
