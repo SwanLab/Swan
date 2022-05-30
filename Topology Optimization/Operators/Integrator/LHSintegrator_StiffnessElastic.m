@@ -10,9 +10,9 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
         function obj = LHSintegrator_StiffnessElastic(cParams)
             obj.init(cParams);
             obj.material = cParams.material;
-            obj.interpolation = cParams.interpolation;
+          %  obj.interpolation = cParams.interpolation;
             obj.createQuadrature();
-%             obj.createInterpolation();
+             obj.createInterpolation();
             obj.quadrature.computeQuadrature(obj.interpolation.order)
             obj.createGeometry();
         end

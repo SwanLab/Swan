@@ -15,7 +15,6 @@ s.DoF      = 2;
 FEMWriter = FEMInputWriter(s);
 FEMWriter.createTest;
 
-
 s.testName = 'test_cantilever2';%''testJose';
 t = TopOptComputer(s);
 t.compute();
