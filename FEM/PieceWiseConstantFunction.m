@@ -49,10 +49,10 @@ classdef PieceWiseConstantFunction < handle
             q = Quadrature();
             q = q.set(obj.mesh.type);
             s.mesh = obj.mesh;
-            s.pdim = '1D';
+            s.name = '';
+            s.type  = 'Scalar';
             s.ngaus = q.ngaus;
-            d = DimensionVariables(s);
-            d.compute();
+            d = DimensionVariables.create(s);
             obj.dim = d;
         end
         
@@ -68,8 +68,8 @@ classdef PieceWiseConstantFunction < handle
         
         function RHS = computeRHS(obj)
 
-            fG = obj.computeFgauss();
-            xG = obj.computeXgauss();
+        %    fG = obj.computeFgauss();
+        %    xG = obj.computeXgauss();
         %    RHS = obj.integrator.integrateFgauss(fG,xG,obj.quadOrder);
 
 
@@ -84,7 +84,7 @@ classdef PieceWiseConstantFunction < handle
             s.npnod     = obj.mesh.nnodes;
             s.globalConnec = obj.mesh.connec;
             rhs = RHSintegrator.create(s);
-            RHS = rhs.compute();
+            RHS = rhs.compute(obj.fValues);
         end
         
         function x = computeXgauss(obj)

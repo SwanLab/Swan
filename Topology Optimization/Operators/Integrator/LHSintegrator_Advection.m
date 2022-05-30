@@ -35,9 +35,9 @@ classdef LHSintegrator_Advection < LHSintegrator
             dvolu = obj.mesh.computeDvolume(obj.quadrature);
             ngaus = obj.quadrature.ngaus;
             nelem = obj.mesh.nelem;
-            nstre = obj.dim.nstre;
-            ndpe  = obj.dim.ndofPerElement;
-            lhs = zeros(ndpe,ndpe,nelem);
+    %        nstre = obj.dim.nstre;
+            ndpe  = obj.dim.ndofsElem;
+    %        lhs = zeros(ndpe,ndpe,nelem);
             dN = obj.geometry.dNdx;
             N  = obj.interpolation.shape;
 

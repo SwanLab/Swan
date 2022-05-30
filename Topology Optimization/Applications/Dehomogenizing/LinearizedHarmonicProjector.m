@@ -27,11 +27,9 @@ classdef LinearizedHarmonicProjector < handle
         
         function lambda0 = computeInitalLambda(obj)
             b    = obj.boundaryMesh;
-            nInt = setdiff(1:obj.dim.npnod,b);
+            nInt = setdiff(1:obj.dim.ndofs,b);
             lambda0 = 0*ones(length(nInt),1);
         end
-
-
 
         function [v,lambda] = solveProblem(obj,v0,vH)            
             vH = obj.projectUnitBall(vH);
@@ -39,7 +37,7 @@ classdef LinearizedHarmonicProjector < handle
             i = 1;
             isErrorLarge = true;
             lambda = obj.computeInitalLambda();
-            npnod = obj.dim.npnod;
+            npnod = obj.dim.ndofs;
             eta    = zeros(npnod,1);
             etaOld = eta;
             lambdaOld = lambda;
@@ -145,7 +143,7 @@ classdef LinearizedHarmonicProjector < handle
         end
 
         function [iX,iY,iL,iE] = computeIndex(obj)
-            npnod = obj.dim.npnod;
+            npnod = obj.dim.ndofs;
             nInt  = obj.computeNint();
             iX = 1:npnod;
             iY = (npnod) + (1:npnod);
@@ -246,18 +244,18 @@ classdef LinearizedHarmonicProjector < handle
         function createDimension(obj)
             q = Quadrature();
             q = q.set(obj.mesh.type);
-            s.mesh = obj.mesh;
-            s.pdim = '1D';
+            s.mesh = obj.mesh;           
             s.ngaus = q.ngaus;
-            d = DimensionVariables(s);
-            d.compute();
+            s.name = '';
+            s.type  = 'Scalar';
+            d = DimensionVariables.create(s);
             obj.dim = d;
         end        
         
         function computeMassMatrix(obj)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
-            s.npnod        = obj.mesh.npnod;
+     %       s.npnod        = obj.mesh.npnod;
             s.type         = 'MassMatrix';
             s.dim          = obj.dim;
             s.quadType     = 'QUADRATIC';
@@ -272,7 +270,7 @@ classdef LinearizedHarmonicProjector < handle
         function [CX,CY,DX,DY,EX,EY] = computeAdvectionMatrix(obj,vH)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
-            s.npnod        = obj.mesh.npnod;
+            s.npnod        = obj.dim.ndofs;
             s.type         = 'AdvectionMatrix';
             s.dim          = obj.dim;
             s.b            = vH;
@@ -288,7 +286,8 @@ classdef LinearizedHarmonicProjector < handle
        end
 
        function createSolver(obj)
-            s = Solver.create();
+            sS.type = 'DIRECT';
+            s = Solver.create(sS);
             obj.solver = s;
        end
 
@@ -319,18 +318,18 @@ classdef LinearizedHarmonicProjector < handle
 
        function nInt = computeNint(obj)
             b    = obj.boundaryMesh;
-           nInt = setdiff(1:obj.dim.npnod,b);                     
+           nInt = setdiff(1:obj.dim.ndofs,b);                     
        end
 
         function rhs = computeRHS(obj,v)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
-            s.mesh  = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.npnod = obj.dim.npnod;
-            s.dim   = obj.dim;
-            s.type = 'SIMPLE';
-            int = Integrator.create(s);
+%             q = Quadrature.set(obj.mesh.type);
+%             q.computeQuadrature('LINEAR');
+%             s.mesh  = obj.mesh;
+%             s.globalConnec = obj.mesh.connec;
+%             s.npnod = obj.dim.ndofs;
+%             s.dim   = obj.dim;
+%             s.type = 'SIMPLE';
+      %      int = Integrator.create(s);
       %      rhs1 = int.integrateFnodal(v(:,1),q.order);
        %     rhs2 = int.integrateFnodal(v(:,2),q.order);
 

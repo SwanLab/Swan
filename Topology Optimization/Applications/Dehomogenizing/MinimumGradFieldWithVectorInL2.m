@@ -37,10 +37,10 @@ classdef MinimumGradFieldWithVectorInL2 < handle
             q = Quadrature();
             q = q.set(obj.mesh.type);
             s.mesh = obj.mesh;
-            s.pdim = '1D';
+            s.name = '';
+            s.type  = 'Scalar';
             s.ngaus = q.ngaus;
-            d = DimensionVariables(s);
-            d.compute();
+            d = DimensionVariables.create(s);
             obj.dim = d;
         end
         
@@ -81,9 +81,11 @@ classdef MinimumGradFieldWithVectorInL2 < handle
             s.mesh      = obj.mesh;
             s.type      = obj.mesh.type;
             s.quadOrder = q.order;
-            rhs = RHSintegrator(s);
-            rhsC = rhs.integrateWithShapeDerivative();
-            rhsV = obj.assembleIntegrand(rhsC);
+            s.npnod     = obj.dim.ndofs;
+            s.type      = 'ShapeDerivative';
+            s.globalConnec = obj.mesh.connec;
+            rhs  = RHSintegrator.create(s);
+            rhsV = rhs.compute();
             obj.RHS = [rhsV;0];
         end
         
