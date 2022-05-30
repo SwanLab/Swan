@@ -7,23 +7,21 @@ classdef ConstraintProjector < handle
         dualVariable
         designVariable
         targetParameters
-%         unconstrainedOptimizer
+        primalUpdater
         lambdaUB
         lambdaLB
         tau
-        lowerBound
-        upperBound
     end
     
     methods (Access = public)
         
-        function obj = ConstraintProjector(cParams)
-            obj.init(cParams);
+        function obj = ConstraintProjector(cParams,s)
+            obj.init(cParams,s);
             obj.defineProblem();
         end
         
-        function project(obj,t)
-            obj.tau = t;
+        function project(obj)
+            obj.tau = obj.primalUpdater.tau;
             tolCons = 1e-2*obj.targetParameters.constr_tol;  
             lambda  = obj.dualVariable.value;
             fref    = obj.computeFeasibleDesignVariable(lambda);
@@ -39,14 +37,13 @@ classdef ConstraintProjector < handle
     
     methods (Access = private)
 
-        function init(obj,cParams)
+        function init(obj,cParams,s)
             obj.cost             = cParams.cost;
             obj.constraint       = cParams.constraint;
             obj.designVariable   = cParams.designVar;
             obj.dualVariable     = cParams.dualVariable;
             obj.targetParameters = cParams.targetParameters;
-            obj.upperBound       = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound       = cParams.uncOptimizerSettings.lb;
+            obj.primalUpdater    = s.primalUpdater;
         end
         
         function defineProblem(obj)
@@ -90,23 +87,13 @@ classdef ConstraintProjector < handle
         end
 
         function x = updatePrimal(obj)
-            lb = obj.lowerBound;
-            ub = obj.upperBound;
-            t  = obj.tau;
             Dg = obj.constraint.gradient;
             DJ = obj.cost.gradient;
             l  = obj.dualVariable.value;
             x  = obj.designVariable.value;
-            dx = -t*(DJ + l*Dg);
-            xN = x + dx;
-            x  = min(ub,max(xN,lb));
+            g  = DJ + l*Dg;
+            x  = obj.primalUpdater.update(g,x);
             obj.designVariable.update(x);
-        end
-        
-        function updateDesignVariable(obj)
-            obj.unconstrainedOptimizer.hasConverged = false;
-            obj.unconstrainedOptimizer.compute();
-            obj.unconstrainedOptimizer.updateConvergenceParams();
         end
         
     end

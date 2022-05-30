@@ -29,7 +29,7 @@ classdef AcademicMonitoring < handle
                     obj.plotFmincon(cParams);
                 case 'NullSpace'
                     obj.plotNullSpace(cParams);
-                case 'AugmentedLagrangian'
+                case 'AlternatingPrimalDual'
                     obj.plotAugmentedLagrangian(cParams);
                 case 'DualNestedInPrimal'
                     obj.plotBisection(cParams);
@@ -90,7 +90,8 @@ classdef AcademicMonitoring < handle
         end
         
         function plotAugmentedLagrangian(obj,x,cParams)
-            
+            disp(obj.designVariable.value);
+            disp(obj.cost.value);   
         end
         
         function plotBisection(obj,x,cParams)

@@ -12,6 +12,7 @@ classdef DualUpdater_NullSpace < handle
        tau
        nConstr
        constrTol
+       dualOld
     end
 
     methods (Access = public)
@@ -21,12 +22,30 @@ classdef DualUpdater_NullSpace < handle
         end
 
         function update(obj)
-            switch obj.constraintCase%{1}
-                case 'EQUALITY'
-                    obj.computeDirectDual();
-                case 'INEQUALITY'
-                    obj.computeQuadraticProblem();
+            k = 1;
+            for i = 1:obj.nConstr
+                switch obj.constraintCase{i}
+                    case {'EQUALITY'}
+                      
+                    case {'INEQUALITY'}
+                        isIneq = true;
+                        pos(k) = i;
+                        k = k + 1;
+                end
             end
+            if isIneq
+                obj.computeQuadraticProblem(pos);
+            else
+                obj.computeDirectDual();
+            end
+        end
+
+        function reset(obj)
+            obj.dualVariable.value = obj.dualOld;
+        end
+
+        function updateOld(obj)
+            obj.dualOld = obj.dualVariable.value;
         end
 
     end
@@ -39,7 +58,8 @@ classdef DualUpdater_NullSpace < handle
             obj.designVariable = cParams.designVar;
             obj.constraintCase = cParams.constraintCase;
             obj.dualVariable   = cParams.dualVariable;
-            obj.nConstr        = cParams.nConstr;
+            obj.dualOld        = obj.dualVariable.value;
+            obj.nConstr        = cParams.constraint.nSF;
         end
 
         function computeDirectDual(obj)
@@ -55,10 +75,10 @@ classdef DualUpdater_NullSpace < handle
             obj.dualVariable.value = l;
         end
 
-        function computeQuadraticProblem(obj)
+        function computeQuadraticProblem(obj,pos)
             obj.constraint.computeFunctionAndGradient();
             obj.cost.computeFunctionAndGradient();
-            obj.computeDualProblemParameters();
+            obj.computeDualProblemParameters(pos);
             obj.computeDualProblemOptions();
             PROBLEM         = obj.problem;
             PROBLEM.options = obj.options;
@@ -66,19 +86,20 @@ classdef DualUpdater_NullSpace < handle
             obj.dualVariable.value = l;
         end
 
-         function computeDualProblemParameters(obj)
+         function computeDualProblemParameters(obj,pos)
             Dg = obj.constraint.gradient;
             DJ = obj.cost.gradient;
             g  = obj.constraint.value;
             t  = 1;%obj.tau;
             prob.H      = Dg'*Dg;
-            prob.f      = -g + t*Dg'*DJ;%DJ'*Dg;
+            prob.f      = -g + t*Dg'*DJ;
             prob.A      = [];
             prob.b      = [];
             prob.Aeq    = [];
             prob.beq    = [];
-            prob.lb     = 0;
-            prob.ub     = inf;
+            prob.lb     = -inf*ones(length(g),1);
+            prob.lb(pos)= 0;
+            prob.ub     = inf*ones(length(g),1);
             prob.x0     = zeros(length(prob.H),1);
             prob.solver = 'quadprog';
             obj.problem = prob;
