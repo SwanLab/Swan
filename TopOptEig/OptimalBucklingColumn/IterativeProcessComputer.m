@@ -88,7 +88,7 @@ classdef IterativeProcessComputer < handle
             s.uncOptimizerSettings.lb = 0.25;        
             s.outputFunction.type        = 'Topology';
             s.outputFunction.iterDisplay = 'none';
-            s.type = 'fmincon';'AlternatingPrimalDual';'NullSpace';'AlternatingPrimalDual';'MMA';'AlternatingPrimalDual';'MMA';%IPOPT';%'fmincon';'MMA';%'fmincon';%'MMA';
+            s.type = 'fmincon';'AlternatingPrimalDual';'NullSpace';'AlternatingPrimalDual';'MMA';'AlternatingPrimalDual';'MMA'; % IPOPT';%'fmincon';'MMA';%'fmincon';%'MMA';
             s.outputFunction.monitoring  = MonitoringManager(s);                  
             s.maxIter           = 1000;
             s.constraintCase = 'INEQUALITY';
