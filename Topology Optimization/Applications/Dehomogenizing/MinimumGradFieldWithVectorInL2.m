@@ -46,7 +46,7 @@ classdef MinimumGradFieldWithVectorInL2 < handle
         
         function computeLHS(obj)
             K = obj.computeStiffnessMatrix();
-            M = obj.computeMassMatrix();
+           % M = obj.computeMassMatrix();
             I = ones(size(K,1),1);
             %eta = 0.01;
             %obj.LHS = K + eta*M;
@@ -62,15 +62,15 @@ classdef MinimumGradFieldWithVectorInL2 < handle
             K = lhs.compute();
         end
         
-        function M = computeMassMatrix(obj)
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.type         = 'MassMatrix';
-            s.dim          = obj.dim;
-            s.quadType     = 'QUADRATIC';
-            lhs = LHSintegrator.create(s);
-            M = lhs.compute();
-        end
+%         function M = computeMassMatrix(obj)
+%             s.mesh         = obj.mesh;
+%             s.globalConnec = obj.mesh.connec;
+%             s.type         = 'MassMatrix';
+%             s.dim          = obj.dim;
+%             s.quadType     = 'QUADRATIC';
+%             lhs = LHSintegrator.create(s);
+%             M = lhs.compute();
+%         end
         
         function computeRHS(obj)
             q = Quadrature.set(obj.mesh.type);
