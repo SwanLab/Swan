@@ -9,12 +9,14 @@ classdef RHSintegrator_ElasticMicro < handle
         geometry
         dvolume
         globalConnec
+        quadrature
     end
     
     methods (Access = public)
 
         function obj = RHSintegrator_ElasticMicro(cParams)
             obj.init(cParams);
+            obj.createQuadrature();
             obj.createGeometry();
             obj.computeDvolume();
         end
@@ -29,8 +31,8 @@ classdef RHSintegrator_ElasticMicro < handle
 
         function R = computeReactions(obj, K)
             bc      = obj.boundaryConditions;
-            dirich  = bc.dirichlet{1};
-            dirichV = bc.dirichlet_values{1};
+            dirich  = bc.dirichlet;
+            dirichV = bc.dirichlet_values;
             if ~isempty(dirich)
                 R = -K(:,dirich)*dirichV;
             else
@@ -52,9 +54,14 @@ classdef RHSintegrator_ElasticMicro < handle
             obj.vstrain            = cParams.vstrain;
         end
        
-        function createGeometry(obj)
+        function createQuadrature(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('LINEAR');
+            obj.quadrature = q;
+        end
+
+        function createGeometry(obj)
+            q = obj.quadrature;
             int = obj.mesh.interpolation;
             int.computeShapeDeriv(q.posgp);
             s.mesh = obj.mesh;
@@ -64,14 +71,15 @@ classdef RHSintegrator_ElasticMicro < handle
         end
 
         function computeDvolume(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
+            q = obj.quadrature;
             obj.dvolume = obj.mesh.computeDvolume(q)';
         end
 
         function b = assembleVector(obj, forces)
             s.dim          = obj.dim;
             s.globalConnec = obj.globalConnec;
+            s.nnodeEl      = []; % size(obj.geometry.dNdx,2);
+%             F(:,1,:) = forces;
             assembler = Assembler(s);
             b = assembler.assembleV(forces);
         end
@@ -80,7 +88,7 @@ classdef RHSintegrator_ElasticMicro < handle
             %Compute Global Puntual Forces (Not well-posed in FEM)
             neumann       = obj.boundaryConditions.neumann;
             neumannValues = obj.boundaryConditions.neumann_values;
-            Fp = zeros(obj.dim.ndof,1);
+            Fp = zeros(obj.dim.ndofs,1);
             if ~isempty(neumann)
                 Fp(neumann) = neumannValues;
             end
@@ -88,11 +96,11 @@ classdef RHSintegrator_ElasticMicro < handle
         
         function F = computeStrainRHS(obj,vstrain)
             Cmat  = obj.material.C;
-            ngaus = obj.dim.ngaus;
-            nunkn = obj.dim.ndimField;
-            nstre = obj.dim.nstre;
-            nelem = obj.dim.nelem;
-            nnode = obj.dim.nnode;
+            nunkn = obj.dim.ndimf;
+            nstre = size(Cmat,1);
+            nelem = size(Cmat,3);
+            nnode = obj.dim.nnodeElem;
+            ngaus = obj.quadrature.ngaus;
 
             eforce = zeros(nunkn*nnode,ngaus,nelem);
             sigma = zeros(nstre,ngaus,nelem);

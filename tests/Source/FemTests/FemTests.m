@@ -7,7 +7,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
         tests3d = {'test3d_tetrahedra', 'test3d_hexahedra'}
         hexahedra = {'test3d_hexahedra'}
         duTests = {'test2d_triangle', 'test2d_quad', 'test3d_tetrahedra', 'test3d_hexahedra'}
-        stokesTests = {'test2d_stokes_triangle'}
+        stokesTests = {'test2d_stokes_triangle_steady', 'test2d_stokes_triangle_transient'}
         microTests = {'test2d_micro'}
         thermalTests = {'test_thermal'}
         hyperelasticTests = {'test_hyperelastic'}
@@ -16,9 +16,25 @@ classdef FemTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'Triangle'})
 
         function testTriangle(testCase, triangle)
-            s.computerType    = 'FEM';
+            s.computerType     = 'FEM';
             s.testName         = triangle;
             s.variablesToStore = {'d_u'};
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+    end
+
+    methods (Test, TestTags = {'FEM', 'Quadratic'})
+
+        function testTriangleQuadratic(testCase, triangle)
+            s.computerType     = 'FEM';
+            s.testName         = triangle;
+            s.testResultsName  = [triangle '_quadratic'];
+            s.variablesToStore = {'d_u'};
+            s.interpolationType = 'QUADRATIC';
             test = PrecomputedVariableTest(s);
             err = test.computeError();
             tol = 1e-6;
@@ -30,7 +46,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'Quad'})
 
         function testQuad(testCase, quad)
-            s.computerType    = 'FEM';
+            s.computerType     = 'FEM';
             s.testName         = quad;
             s.variablesToStore = {'d_u'};
             test = PrecomputedVariableTest(s);

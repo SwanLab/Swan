@@ -11,13 +11,8 @@ classdef DirichletConditionsApplier < BoundaryConditionsApplier
         
         function obj = DirichletConditionsApplier(cParams)
             obj.nfields = cParams.nfields;
-            if isfield(cParams, 'BC') % new
-                obj.dof   = cParams.BC;
-                obj.ndof  = cParams.dim.ndof;
-            else
-                obj.dof     = cParams.dof;
-                obj.ndof    = cParams.dof.ndof;
-            end
+            obj.dof     = cParams.dof;
+            obj.ndof    = cParams.dof.ndof;
 
         end
         
@@ -45,8 +40,8 @@ classdef DirichletConditionsApplier < BoundaryConditionsApplier
         end
         
         function [dirichlet,uD,free] = compute_global_dirichlet_free_uD(obj)
-            uD = obj.computeUd();
-            dirichlet = obj.computeDirichlet();
+            uD = obj.computeUd();               % Dirichlet values
+            dirichlet = obj.computeDirichlet(); % Dirichlet nodes
             free = obj.computeGlobalFree();
         end
         

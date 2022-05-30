@@ -24,16 +24,16 @@ classdef ElasticProblemMicro < ElasticProblem
         end
 
         function Ch = computeChomog(obj)
-            nstre = obj.dim.nstre;
-            ngaus = obj.dim.ngaus;
-            nelem = obj.dim.nelem;
-            ndof  = obj.dim.ndof;
+            nelem = size(obj.material.C,3);
+            npnod = obj.dim.nnodes;
+            ndofs = npnod*obj.dim.ndimf;
+            nstre = obj.material.nstre;
+            ngaus = obj.quadrature.ngaus;
             basis = diag(ones(nstre,1));
             tStrn  = zeros(nstre,ngaus,nstre,nelem);
             tStrss = zeros(nstre,ngaus,nstre,nelem);
-            tDisp  = zeros(nstre,ndof);
+            tDisp  = zeros(nstre,ndofs);
             Ch = zeros(nstre,nstre);
-            v2p = cell(1,nstre);
             for istre=1:nstre
                 obj.vstrain = basis(istre,:);
                 obj.solve();
@@ -71,9 +71,9 @@ classdef ElasticProblemMicro < ElasticProblem
             vStrn = obj.vstrain;
             vars  = obj.variables;
             Cmat  = obj.material.C;
-            ngaus = obj.dim.ngaus;
-            nstre = obj.dim.nstre;
-            nelem = obj.dim.nelem;
+            nstre = obj.material.nstre;
+            nelem = size(Cmat,3);
+            ngaus = obj.quadrature.ngaus;
             dV = obj.mesh.computeDvolume(obj.quadrature)';
             strainFluct = vars.strain;
             stressFluct = vars.stress;
@@ -108,7 +108,7 @@ classdef ElasticProblemMicro < ElasticProblem
 
         function assignVarsToPrint(obj, istre)
             vars = obj.variables;
-            ndimField = obj.dim.ndimField; 
+            ndimField = obj.dim.ndimf; 
             obj.variables2print{istre}.d_u          = reshape(vars.d_u',ndimField,[])';
             obj.variables2print{istre}.fext         = reshape(vars.fext',ndimField,[])';
             obj.variables2print{istre}.stress       = vars.stress;

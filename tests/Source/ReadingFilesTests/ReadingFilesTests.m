@@ -6,7 +6,7 @@ classdef ReadingFilesTests < handle & matlab.unittest.TestCase
 
     methods (Test, TestTags = {'ReadingFiles', 'Fast', 'Gmsh'})
 
-        function testDisplacement(testCase, readingTests)
+        function testReading(testCase, readingTests)
             s.computerType    = 'GMSH';
             s.testName         = readingTests;
             s.variablesToStore = {'connec', 'coord', 'isElemInThisSet', ...

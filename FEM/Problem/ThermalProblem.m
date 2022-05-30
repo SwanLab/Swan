@@ -113,13 +113,13 @@ classdef ThermalProblem < handle
         end
 
         function createSolver(obj)
-            obj.solver = Solver.create();
+            s.type = 'DIRECT';
+            obj.solver = Solver.create(s);
         end
 
         function computeStiffnessMatrix(obj)
             s.type = 'StiffnessMatrix';
             s.mesh         = obj.mesh;
-            s.npnod        = obj.mesh.npnod;
             s.globalConnec = obj.mesh.connec;
             s.dim          = obj.dim;
             LHS = LHSintegrator.create(s);

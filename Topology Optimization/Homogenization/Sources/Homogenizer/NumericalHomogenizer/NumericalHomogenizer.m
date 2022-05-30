@@ -97,11 +97,12 @@ classdef NumericalHomogenizer < handle
         
         function createInterpolation(obj)
             d = SettingsInterpolation();
+            m = obj.microProblem.getMesh();
             d.interpolation = obj.interDataBase.materialInterpolation;
             d.constitutiveProperties  = obj.matDataBase.matProp;
             d.typeOfMaterial = obj.matDataBase.materialType;
             d.dim  = obj.pdim;
-            d.nElem = obj.dim.nelem;
+            d.nElem = m.nelem;
             mI  = MaterialInterpolation.create(d);
             obj.interpolation = mI;
             obj.matValues = d.constitutiveProperties;
@@ -123,7 +124,7 @@ classdef NumericalHomogenizer < handle
         
         function d = createLevelSetCreatorDataBase(obj)
             d = obj.lsDataBase;
-            d.ndim  = obj.dim.ndimField;
+            d.ndim  = obj.dim.ndimf;
             d.coord = obj.microProblem.getMesh().coord;
         end
         
@@ -179,7 +180,7 @@ classdef NumericalHomogenizer < handle
             s.mesh = mesh;%obj.microProblem.mesh;
             s.initialCase  = 'given';
             s.creatorSettings.value = obj.elemDensCr.getLevelSet();
-            s.creatorSettings.ndim  = obj.dim.ndimField;
+            s.creatorSettings.ndim  = obj.dim.ndimf;
             s.creatorSettings.coord = mpMesh.coord;
             scalarPr.epsilon = 1e-3;
             scalarPr.mesh = mesh.innerMeshOLD;
@@ -204,10 +205,10 @@ classdef NumericalHomogenizer < handle
         
         function obtainIntegrationUsedVariables(obj)
             mProb = obj.microProblem;
-            intVar.nstre  = obj.dim.nstre;
-            intVar.ngaus  = obj.dim.ngaus;
             intVar.geoVol = mProb.computeGeometricalVolume();
             intVar.dV     = mProb.getDvolume();
+%             intVar.nstre  = obj.dim.nstre;
+            intVar.ngaus  = size(intVar.dV,2);
             obj.integrationVar = intVar;
         end
         

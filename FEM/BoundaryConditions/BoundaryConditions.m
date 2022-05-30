@@ -4,6 +4,7 @@ classdef BoundaryConditions < handle
         dirichlet
         dirichlet_values
         free
+        freeFields
         neumann
         neumann_values
         masterSlave
@@ -13,6 +14,7 @@ classdef BoundaryConditions < handle
 
     properties (Access = private)
         dim
+        ndofs
         scale
         dirichletInput
         pointloadInput
@@ -25,13 +27,13 @@ classdef BoundaryConditions < handle
         end
 
         function compute(obj)
-            [dirID, dirVals]     = obj.formatInputData(obj.dirichletInput);
-            [neuID, neuVals]     = obj.formatInputData(obj.pointloadInput);
-            obj.dirichlet{1}        = dirID;
-            obj.dirichlet_values{1} = dirVals;
-            obj.neumann             = neuID;
-            obj.neumann_values      = neuVals;
-            obj.free{1}             = obj.computeFreeDOF();
+            [dirID, dirVals]     = obj.formatInputData(obj.dim.ndimf, obj.dirichletInput);
+            [neuID, neuVals]     = obj.formatInputData(obj.dim.ndimf, obj.pointloadInput);
+            obj.dirichlet        = dirID;
+            obj.dirichlet_values = dirVals;
+            obj.neumann          = neuID;
+            obj.neumann_values   = neuVals;
+            obj.free             = obj.computeFreeDOF();
         end
 
         function red = fullToReducedMatrix(obj, mat)
@@ -68,15 +70,52 @@ classdef BoundaryConditions < handle
         function init(obj,cParams)
             obj.dim            = cParams.dim;
             obj.scale          = cParams.scale;
-            obj.dirichletInput = cParams.bc.dirichlet;
-            obj.pointloadInput = cParams.bc.pointload;
+            obj.ndofs          = cParams.ndofs; % Stokes
             obj.initPeriodicMasterSlave(cParams);
+            obj.initDirichletInput(cParams);
+        end
+
+        function initDirichletInput(obj, s)
+            nfields = numel(s.bc);
+            dirich  = [];
+            neumann    = [];
+            dirichVals = [];
+            neumnnVals = [];
+            free       = [];
+            globalNdof = 0;
+            for i = 1:nfields
+                bc = s.bc{i};
+                obj.dirichletInput = bc.dirichlet;
+                obj.pointloadInput = bc.pointload;
+
+                inD = bc.dirichlet;
+                inN = bc.pointload;
+                [idxD, valD] = obj.formatInputData(bc.ndimf,inD);
+                [idxN, valN] = obj.formatInputData(bc.ndimf,inN);
+                idxD = idxD + globalNdof;
+                idxN = idxN + globalNdof;
+
+                dirich     = [dirich; idxD];
+                dirichVals = [dirichVals; valD];
+                neumann    = [neumann; idxN];
+                neumnnVals = [neumnnVals; valN];
+
+                firstDof = globalNdof + 1;
+                lastDof  = firstDof + bc.ndofs - 1;
+                obj.freeFields{i} = setdiff(firstDof:lastDof,idxD);
+                globalNdof = globalNdof+ bc.ndofs;
+            end
+            obj.dirichlet        = dirich;
+            obj.dirichlet_values = dirichVals;
+            obj.neumann          = neumann;
+            obj.neumann_values   = neumnnVals;
+            obj.free             = obj.computeFreeDOF();
         end
 
         function initPeriodicMasterSlave(obj, cParams)
             switch obj.scale
                 case 'MICRO'
-                    if isprop(cParams.bc, 'masterSlave')
+                    if isfield(cParams.bc, 'masterSlave')
                         obj.masterSlave = cParams.bc.masterSlave;
                     end
                     MS = obj.masterSlave;
@@ -91,52 +130,55 @@ classdef BoundaryConditions < handle
         end
         
         function perDof = computePeriodicNodes(obj,perNodes)
-            nunkn = obj.dim.ndimField;
+            nunkn = obj.dim.ndimf;
             nlib = size(perNodes,1);
             perDof = zeros(nlib*nunkn,1);
             for iunkn = 1:nunkn
                 indDof = nlib*(iunkn - 1) + [1:nlib];
-                perDof(indDof,1) = obj.nod2dof(perNodes,iunkn);
+                perDof(indDof,1) = obj.nod2dof(obj.dim.ndimf, perNodes,iunkn);
             end
         end
 
+        function free = computeFieldFree(obj, ndofs, dirich)
+            free  = setdiff(1:ndofs,dirich);
+        end
+
         function free = computeFreeDOF(obj)
-            ndof  = obj.dim.ndof;
-            cnstr = [obj.periodic_constrained;obj.dirichlet{1}];
+            ndof  = obj.ndofs;
+            cnstr = [obj.periodic_constrained;obj.dirichlet];
             free  = setdiff(1:ndof,cnstr);
         end
 
-        function [dofs, vals] = formatInputData(obj, data)
+        function [dofs, vals] = formatInputData(obj, ndimf, data)
             dofs = [];
             vals = [];
             if ~isempty(data)
                 inod = data(:,1);
                 iunk = data(:,2);
                 vals = data(:,3);
-                dofs = obj.nod2dof(inod,iunk);
+                dofs = obj.nod2dof(ndimf, inod,iunk);
             end
         end
 
-        function idof = nod2dof(obj, inode, iunkn)
-            ndimf = obj.dim.ndimField;
+        function idof = nod2dof(obj, ndimf, inode, iunkn)
+%             ndimf = obj.dim.ndimf;
             idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
-
         
         function Ared = reduceMatrixDirichlet(obj,A)
 %             fr = obj.computeGlobalFree();
-            fr = obj.free{1}';
+            fr = obj.free';
             Ared = A(fr,fr);
         end
         
         function b_red = reduceVectorDirichlet(obj,b)
-            fr = obj.free{1}';
+            fr = obj.free';
             b_red = b(fr);
         end
 
         function Ared = reduceMatrixPeriodic(obj,A)
             MS = obj.masterSlave;
-            vF = obj.free{1};
+            vF = obj.free;
             vP = obj.computePeriodicNodes(MS(:,1));
             vQ = obj.computePeriodicNodes(MS(:,2));
             vI = setdiff(vF,vP);
@@ -150,7 +192,7 @@ classdef BoundaryConditions < handle
         end
         
         function b_red = reduceVectorPeriodic(obj,b)
-            vF = obj.free{1};
+            vF = obj.free;
             vP = obj.periodic_free;
             vQ = obj.periodic_constrained;
             vI = setdiff(vF,vP);
@@ -160,11 +202,11 @@ classdef BoundaryConditions < handle
         end
 
         function b = expandVectorDirichlet(obj,bfree)
-            dir = obj.dirichlet{1};
-            uD  = obj.dirichlet_values{1};
-            fr  = obj.free{1};
+            dir = obj.dirichlet;
+            uD  = obj.dirichlet_values;
+            fr  = obj.free;
             nsteps = length(bfree(1,:));
-            ndof = sum(obj.dim.ndof);
+            ndof = sum(obj.ndofs);
             uD = repmat(uD,1,nsteps);
             
             b = zeros(ndof,nsteps);
@@ -178,8 +220,8 @@ classdef BoundaryConditions < handle
             vF = obj.free;
             vP = obj.periodic_free;
             vC = obj.periodic_constrained;
-            vI = setdiff(vF{1},vP);
-            b = zeros(obj.dim.ndof,1);
+            vI = setdiff(vF,vP);
+            b = zeros(obj.ndofs,1);
             b(vI) = bfree(1:1:size(vI,2));
             b(vP) = bfree(size(vI,2)+1:1:size(bfree,1));
             b(vC) = b(vP);

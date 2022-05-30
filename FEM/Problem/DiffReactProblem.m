@@ -66,9 +66,10 @@ classdef DiffReactProblem < handle
         end
 
         function computeDimensions(obj)
+            s.type = 'Scalar';
             s.name = 'x';
             s.mesh = obj.mesh;
-            dims   = DimensionScalar(s);
+            dims   = DimensionVariables.create(s);
             obj.dim = dims;
         end
 
@@ -76,15 +77,19 @@ classdef DiffReactProblem < handle
             s.dim          = obj.dim;
             s.mesh         = obj.mesh;
             s.scale        = obj.problemData.scale;
-            s.bc.dirichlet = [];
-            s.bc.pointload = [];
+            s.ndofs        = obj.dim.ndofs;
+            s.bc{1}.dirichlet = [];
+            s.bc{1}.pointload = [];
+            s.bc{1}.ndimf     = [];
+            s.bc{1}.ndofs     = [];
             bc = BoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;
         end
         
         function createSolver(obj)
-            obj.solver = Solver.create();
+            s.type = 'DIRECT';
+            obj.solver = Solver.create(s);
         end
 
         function createProblemLHS(obj)

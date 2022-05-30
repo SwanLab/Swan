@@ -5,21 +5,21 @@ function SquaredMeshCreator()
     vertCoord = computeVertCoord(vertCoord,c,theta,nsides);
     boundary = computeBoundaryCoord(boundary,vertCoord,c,theta,nsides,div); 
     coord = computeMeshCoord(nsides,vertCoord,divUnit,c,boundary,boundNodes,coord,div);
-    connec = computeConnectivities(coord);
+    connec = computeConnectivities(coord,boundNodes,nsides);
     plotCoordinates(coord,connec);
     masterSlaveIndex = obtainMasterSlaveNodes(vertCoord,boundary,nsides,div,dim,boundNodes); 
     vertIndex(:,1) = 1:nsides;
     plotVertices(vertIndex,coord);
     plotMasterSlaveNodes(masterSlaveIndex,coord);
-    writeFEMreadingfunction(coord,connec,masterSlaveIndex,'Hexagon5x5x5.m', vertCoord);
+    writeFEMreadingfunction(coord,connec,masterSlaveIndex,'IrrHexagon50x25x50.m', vertCoord);
 end
 
 function  [dim,divUnit,c,theta] = obtainInitialData()
 % Datos de entrada del programa. COMPLETAMENTE GENERAL
     dim = 2;
-    divUnit = 5; %Divisions/length of the side
-    c = [1,1,1];
-    theta = [0,60,120];
+    divUnit = 20; %Divisions/length of the side
+    c = [2,1,2];
+    theta = [0,45,90];
 end
 
 function nsides = obtainPolygonSides(c,theta)
@@ -116,10 +116,10 @@ end
 function coord = computeMeshCoord(nsides,vertCoord,divUnit,c,boundary,boundNodes,coord,div)
 % Obtención de las coordenadas dentro de la boundary. GENERAL para los
 % casos considerados
-coord(1:boundNodes,:) = boundary;
-intNode = boundNodes+1;
     switch nsides
         case 4
+            coord(1:boundNodes,:) = boundary;
+            intNode = boundNodes+1;
         % Compute coords by intersections
             vA = vertCoord(2,:)-vertCoord(1,:);
             mA = norm(vA);
@@ -150,6 +150,9 @@ intNode = boundNodes+1;
 
         case 6
         % Compute coords by diagonals
+        %boundary = fixBoundaryCoord(boundary,vertCoord,nsides,div);
+        coord(1:boundNodes,:) = boundary;
+        intNode = boundNodes+1;
         % Sitúa el nodo central
         vA = vertCoord(4,:)-vertCoord(1,:);
         pA = vertCoord(1,:);
@@ -174,12 +177,14 @@ intNode = boundNodes+1;
             for iMaster = 1:nsides/2
                 vertA = newVert(iMaster,:);
                 vertB = newVert(iMaster+1,:);
-                bool = 0;
-                while bool == 0
-                    if norm((vertB-vertA)/div(iMaster)) > 1/divUnit
-                        div(iMaster) = div(iMaster)+1;
-                    else
-                        bool = 1;
+                if (c(1)~=c(2)) || (c(2)~=c(3))
+                    bool = 0;
+                    while bool == 0
+                        if norm((vertB-vertA)/div(iMaster)) > 1/divUnit
+                            div(iMaster) = div(iMaster)+1;
+                        else
+                            bool = 1;
+                        end
                     end
                 end
                 for intDiv = 1:div(iMaster)-1
@@ -209,8 +214,59 @@ intNode = boundNodes+1;
     end
 end
 
-function connec = computeConnectivities(coord)
+% function boundary = fixBoundaryCoord(boundary,vertCoord,nsides,div)
+%     normalVec = zeros(nsides,2);
+%     tol = 1e-12;
+%     for iVert = 1:nsides
+%         % función de obtención de vertices
+%         vertexA = vertCoord(iVert,:);
+%         if iVert == nsides
+%             vertexB = vertCoord(1,:);
+%         else
+%             vertexB = vertCoord(iVert+1,:);
+%         end
+%         % función de obtención del vector unitario
+%         vec = vertexB - vertexA;
+%         mod = norm(vec);
+%         vecU = vec/mod;
+%         % función de obtención de la normal (siempre saliente al lado)
+%         normalVec(iVert,1) = normalVec(iVert,1)+vecU(1,2);
+%         normalVec(iVert,2) = normalVec(iVert,2)-vecU(1,1);
+%     end
+%     cont = 1;
+%     for iMaster = 1:nsides/2
+%         for iDiv = 1:div(iMaster)-1
+%             boundary(cont,:) = boundary(cont,:)+tol*normalVec(iMaster,:);
+%             cont = cont+1;
+%         end
+%     end
+%     for iSlave = 1:nsides/2
+%         for jDiv = 1:div(iSlave)-1
+%             boundary(cont,:) = boundary(cont,:)+tol*normalVec(iMaster+iSlave,:);
+%             cont = cont+1;
+%         end
+%     end
+% end
+
+function connec = computeConnectivities(coord,boundNodes,nsides)
     connec = delaunay(coord);
+    if nsides == 6
+        cont = 1;
+        for i = 1:size(connec,1)
+            found = zeros(1,3);
+            elementNodes = connec(i,:);
+            for j = 1:size(connec,2)
+                if elementNodes(j) < boundNodes+1
+                    found(j) = found(j)+1;
+                end
+            end
+            if sum(found) == 3
+                rowsToDelete(cont,1) = i;
+                cont = cont+1;
+            end
+        end
+        connec(rowsToDelete,:) = [];
+    end
 end
 
 function masterSlave = obtainMasterSlaveNodes(vert,boundary,nsides,div,dim,boundNodes)

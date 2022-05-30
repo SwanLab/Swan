@@ -24,4 +24,3 @@ classdef MicroComputer < handle
     end
 
 end
-

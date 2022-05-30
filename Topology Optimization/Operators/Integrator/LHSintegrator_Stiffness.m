@@ -26,13 +26,13 @@ classdef LHSintegrator_Stiffness < LHSintegrator
             dvolu = obj.mesh.computeDvolume(obj.quadrature);
             ngaus = obj.quadrature.ngaus;
             nelem = obj.mesh.nelem;
-            nstre = obj.dim.nstre;
-            ndpe  = obj.dim.ndofPerElement;
+            ndpe  = obj.dim.ndofsElem;
             lhs = zeros(ndpe,ndpe,nelem);
             Bcomp = obj.createBComputer();
             for igaus = 1:ngaus
                 Bmat = Bcomp.computeBmat(igaus);
-                for istre = 1:nstre
+                nvoigt = size(Bmat,1);
+                for istre = 1:nvoigt
                     BmatI = Bmat(istre,:,:);
                     BmatJ = permute(BmatI,[2 1 3]);
                     dNdN = bsxfun(@times,BmatJ,BmatI);
