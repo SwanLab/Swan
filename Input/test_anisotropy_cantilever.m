@@ -1,15 +1,15 @@
 % filename = 'jaCantilever';
 % filename = 'Bridge_UltraFine';
-filename = 'ArchUltraFine';
-% filename = 'MicroUltraFine';
+% filename = 'ArchUltraFine';
+filename = 'MicroUltraFine';
 
 %Micro
-% epsilon_isotropy_initial=1e-1;
-% epsilon_isotropy_final = 1e-3;
-% micro.alpha =[1 1 0]';
-% micro.beta =[1 1 0]';
+epsilon_isotropy_initial=1e-1;
+epsilon_isotropy_final = 1e-3;
+micro.alpha =[1 1 0]';
+micro.beta =[1 1 0]';
 
-ptype = 'MACRO';
+ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
