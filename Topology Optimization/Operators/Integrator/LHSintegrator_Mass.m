@@ -1,9 +1,14 @@
 classdef LHSintegrator_Mass < LHSintegrator
 
+    properties (Access = public)
+        elemMass
+    end
+    
     properties (Access = private)
         quadType
     end
 
+    
     methods (Access = public)
         
         function obj = LHSintegrator_Mass(cParams)
@@ -73,7 +78,7 @@ classdef LHSintegrator_Mass < LHSintegrator
                 end
             end
             lhs = M;
-
+            obj.elemMass = lhs;  
         end
 
        function createQuadrature(obj)

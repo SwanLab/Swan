@@ -1,3 +1,4 @@
+
 classdef IterativeProcessComputer < handle 
 
      properties (Access = public)
@@ -106,7 +107,7 @@ classdef IterativeProcessComputer < handle
 %                 obj.displayIteration()
 %                 obj.plotFigures();
 %             end
-%
+% 
          end
 
          function increaseIter(obj)

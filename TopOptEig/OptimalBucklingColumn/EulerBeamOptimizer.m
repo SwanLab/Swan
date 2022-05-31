@@ -112,8 +112,8 @@ classdef EulerBeamOptimizer < handle
 
         function createBoundaryConditions(obj)
             d = obj.dim;
-            fixnodes = union([1,2], [d.ndof-1,d.ndof]);
-            nodes = 1:d.ndof;
+            fixnodes = union([1,2], [d.ndofs-1,d.ndofs]);
+            nodes = 1:d.ndofs;
             free  = setdiff(nodes,fixnodes);
             obj.freeNodes = free;
         end        

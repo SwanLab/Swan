@@ -71,34 +71,26 @@ classdef EigModes < handle
         function dfdx = computeSimpleEig(obj,Belem,x)
             d = obj.dim;
             free = obj.freeNodes;
-            ndofe = d.ndofPerElement;
-            ndofn = d.ndimField;
-            W = zeros(d.ndof,2);
+            ndofe = d.ndofsElem;
+            ndofn = d.ndofsElem/d.nnodeElem;
+            W = zeros(d.ndofs,2);
             W(free,1) = obj.v1;
             W(free,2) = obj.v2;
             nElem = obj.mesh.nelem;
-
-         
-
             for i = 1:nElem
                 index = ndofn*(i-1)+1: ndofn*(i-1)+ndofe;
                 dx = 2*x(i,1);
                 dfdx(1,i) = -dx*(W(index,1)'*Belem(:,:,i)*W(index,1));
                 dfdx(2,i) = -dx*(W(index,2)'*Belem(:,:,i)*W(index,2));
-                
             end    
-%             q = Quadrature.set(obj.mesh.type);
-%             q.computeQuadrature('LINEAR');
-%             l = sum(obj.mesh.computeDvolume(q));             
-%             dfdx(1,:) = 1./1.*dfdx(1,:); 
-%             dfdx(2,:) = 1./1.*dfdx(2,:); 
+
         end
 
         function dfdx = computeDoubleEig(obj,Belem,x)
             d    = obj.dim;
             free = obj.freeNodes;
-            ndofe = d.ndofPerElement;
-            ndofn = d.ndimField;
+            ndofe = d.ndofsElem;
+            ndofn = d.ndofsElem/d.nnodeElem;
             nElem = obj.mesh.nelem;
             W1    = zeros(d.ndof,1);
             W2    = zeros(d.ndof,1);

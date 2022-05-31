@@ -48,7 +48,7 @@ classdef LHSintegrator_Bending < LHSintegrator
             E = obj.youngModulus;
             I = obj.inertiaMoment;
             nElem = obj.mesh.nelem;
-            Edof = d.ndofPerElement;
+            Edof = d.ndofsElem;
             Be = zeros(Edof ,Edof ,nElem);
             l = obj.computeLength();
             [c1,c2,c3,c4] = obj.coeffsBending(l,E,I);
@@ -78,7 +78,7 @@ classdef LHSintegrator_Bending < LHSintegrator
             d = obj.dim;
             nElem = obj.mesh.nelem;
             desVar = (A.^2)';
-            Edof = d.ndofPerElement;
+            Edof = d.ndofsElem;
             lhs = zeros(Edof,Edof,nElem);
             for iElem = 1:nElem
                 lhs(:,:,iElem) = desVar(iElem).*Be(:,:,iElem);

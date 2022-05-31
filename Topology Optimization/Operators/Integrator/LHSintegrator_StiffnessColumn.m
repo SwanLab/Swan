@@ -38,7 +38,7 @@ classdef LHSintegrator_StiffnessColumn < LHSintegrator
         function lhs = computeElementalLHS(obj)
             d = obj.dim;
             nElem = obj.mesh.nelem; 
-            Edof = d.ndofPerElement;
+            Edof = d.ndofsElem;
             Ke = zeros(Edof,Edof,nElem);
             l = obj.computeLength();
             [c1,c2,c3,c4,c5] = obj.coeffsStiffness(l);

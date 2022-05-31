@@ -82,9 +82,9 @@ classdef ShapeFunctional_Factory < handle
                 case 'volumeColumn'
                     sF = Sh_volumeColumn(cParams);
                 case 'firstEigTopCost'
-                    sF = Sh_firstEigTopCost(cParams);
+                    sF = ShFunc_firstEigTopCost(cParams);
                 case 'firstEigTopConstraint'
-                    sF = Sh_firstEigTopConst(cParams);
+                    sF = ShFunc_firstEigTopConst(cParams);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end

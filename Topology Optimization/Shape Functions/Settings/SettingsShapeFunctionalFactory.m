@@ -7,7 +7,7 @@ classdef SettingsShapeFunctionalFactory < handle
                 case {'compliance','perimeter','perimeterInterior','volume','volumeConstraint',...
                         'chomog_CC','nonadjoint_compliance','stressNorm'}
                     s = SettingsShapeFunctional(cParams);
-                case 'firstEigTop'
+                case {'firstEigTopCost','firstEigTopConstraint'}
                     s = SettingsShapeFunctional(cParams);
                 case 'perimeterConstraint'
                     s = SettingsShFunc_PerimeterConstraint(cParams);

@@ -1,5 +1,9 @@
 classdef LHSintegrator_StiffnessElastic < LHSintegrator
 
+    properties (Access = public)
+        elemStiff
+    end
+    
     properties (Access = private)
         geometry
         material
@@ -25,6 +29,7 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
 %             disp('Pagemtimes')
 %             tic
                 lhs   = obj.computeElementalLHSPagemtimes();
+                obj.elemStiff = lhs;
 %             toc
             LHS   = obj.assembleMatrix(lhs);
         end
@@ -65,7 +70,7 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
             ngaus  = obj.quadrature.ngaus;
             nelem  = size(obj.material.C,3);
             npe    = obj.dim.ndofsElem;
-%             npe    = obj.dim.nnodeEl*obj.dim.ndimf;
+            % npe    = obj.dim.nnodeEl*obj.dim.ndimf;
             lhs = zeros(npe,npe,nelem);
             Bcomp = obj.createBComputer();
             Cmat = obj.material.C(:,:,:,1);

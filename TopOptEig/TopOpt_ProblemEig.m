@@ -1,15 +1,17 @@
-classdef TopOpt_Problem < handle
+classdef TopOpt_ProblemEig < handle
     
     properties (GetAccess = public, SetAccess = public)
         designVariable
         dualVariable
+        dim
+        eigModes
         cost
         constraint
         optimizer
         incrementalScheme
         optimizerSettings
     end
-    
+
     properties (Access = private)
         mesh
         videoMaker
@@ -18,11 +20,13 @@ classdef TopOpt_Problem < handle
     
     methods (Access = public)
         
-        function obj = TopOpt_Problem(cParams)
+        function obj = TopOpt_ProblemEig(cParams)
             obj.createMesh(cParams);
             obj.createIncrementalScheme(cParams);
             obj.createDesignVariable(cParams);
             obj.createHomogenizedVarComputer(cParams)
+            obj.createDimensionVariables();
+            obj.createEigModes();
             obj.createCostAndConstraint(cParams);
             obj.createDualVariable();
             obj.createOptimizer(cParams);
@@ -40,7 +44,10 @@ classdef TopOpt_Problem < handle
 
         function computeBounds(obj)
             switch obj.designVariable.type 
-                case {'Density','DensityEigModes'}
+                case 'Density'
+                    obj.optimizerSettings.ub = 1;
+                    obj.optimizerSettings.lb = 0;
+                case 'DensityEigModes'
                     obj.optimizerSettings.ub = 1;
                     obj.optimizerSettings.lb = 0;
                 otherwise
@@ -117,6 +124,21 @@ classdef TopOpt_Problem < handle
             s = cParams.homogenizedVarComputerSettings;
             obj.homogenizedVarComputer = HomogenizedVarComputer.create(s);
         end
+
+        function createDimensionVariables(obj)
+            s.type = 'Scalar';
+            s.name = 'x';
+            s.mesh = obj.mesh.innerMeshOLD;
+            dims   = DimensionVariables.create(s);
+            obj.dim = dims;
+        end
+
+        function createEigModes(obj)
+            s.mesh           = obj.mesh.innerMeshOLD;
+            s.designVariable = obj.designVariable;
+            s.dim            = obj.dim;
+            obj.eigModes = EigModesTopology(s);
+        end
         
         function createCostAndConstraint(obj,cParams)
             obj.createCost(cParams);
@@ -128,6 +150,7 @@ classdef TopOpt_Problem < handle
             s.designVar = obj.designVariable;
             s.homogenizedVarComputer = obj.homogenizedVarComputer;
             s.targetParameters = obj.incrementalScheme.targetParams;
+            %s.eigModes = obj.eigModes;
             obj.cost = Cost(s);
         end
         
@@ -137,6 +160,7 @@ classdef TopOpt_Problem < handle
             s.homogenizedVarComputer = obj.homogenizedVarComputer;
             s.targetParameters = obj.incrementalScheme.targetParams;
             s.dualVariable = obj.dualVariable;
+            %s.eigModes = obj.eigModes;
             obj.constraint = Constraint(s);
         end
         

@@ -101,7 +101,7 @@ classdef Assembler < handle
             connec  = obj.globalConnec;
             ndimf   = obj.dim.ndimf;
             nnodeEl = size(connec, 2); % obj.dim.nnodeElem
-            ndofsEl = nnodeEl * ndimf; %obj.dim.ndofsElem;
+            ndofsEl = nnodeEl * ndimf; % obj.dim.ndofsElem;
             dofsElem  = zeros(ndofsEl,size(connec,1));
             for inode = 1:nnodeEl
                 for iunkn = 1:ndimf

@@ -90,15 +90,15 @@ classdef ModalMain < handle
             s.type = 'Density';
             s.mesh = m;
             s.value = [];
-            s.initialCase = 'circle';
+            s.initialCase = 'full';
             s.creatorSettings.type = 'FromLevelSet';
             s.creatorSettings.fracRadius = 0.5;
             d = Density(s);
             
-            %s.mesh = m;
-            %s.field = d.value;
-            %p = NodalFieldPlotter(s);
-            %p.plot()
+%             s.mesh = m;
+%             s.field = d.value;
+%             p = NodalFieldPlotter(s);
+%             p.plot()
             
             sF.connec = m.connec;
             sF.type   = m.type;
@@ -122,7 +122,7 @@ classdef ModalMain < handle
         function createBoundaryConditions(obj)
             d = obj.dim;
             FixNod = obj.computeFixedNodes();
-            FixDof = obj.computeFixedDOFs(FixNod);
+            FixDof = obj.computeFixedDOFs(FixNod); 
             dofs = 1:d.ndofs;
             free  = setdiff(dofs,FixDof);
             obj.freeDOFs = free;
@@ -163,7 +163,7 @@ classdef ModalMain < handle
             sS.globalConnec   = obj.mesh.connec;
             sS.freeNodes      = obj.freeDOFs;
             sS.material       = obj.material;
-            sS.interpolation  = obj.interpolation;
+            sS.interpolation  = int;
             obj.stiffnessMatrixComputer = LHSintegrator.create(sS);
 
             int = Interpolation.create(obj.mesh,'LINEAR');
@@ -229,11 +229,11 @@ classdef ModalMain < handle
         function plotEigModes(obj)
             mod1 = obj.mode1;
             coord = obj.mesh.coord;
-            subplot(2,2,2); plot( mod1(:,1), mod1(:,2));
+            subplot(2,1,1); plot( mod1(:,1), mod1(:,2));
             grid on
             grid minor
             title('First Mode X','Interpreter', 'latex','FontSize',14, 'fontweight','b')
-            subplot(2,2,4); plot(coord(:,2), mod1(:,2));
+            subplot(2,1,2); plot(coord(:,2), mod1(:,2));
             grid on
             grid minor
             title('First Mode Y')
@@ -272,8 +272,8 @@ classdef ModalMain < handle
             DOFl = obj.freeDOFs;
             TypeElement = 'TRIANGLE';
             NameFileMesh = 'PostModes';
-            NameFile_msh = ['GIDPOST/','MODES','_',NameFileMesh,'.msh'] ;
-            NameFile_res= ['GIDPOST/','MODES','_',NameFileMesh,'.res'] ;
+            NameFile_msh = ['GIDPOST/','MODES2','_',NameFileMesh,'.msh'] ;
+            NameFile_res= ['GIDPOST/','MODES2','_',NameFileMesh,'.res'] ;
             MaterialType = ones(size(conn,1),1) ; 
             obj.GidMesh2DFE(NameFile_msh,coor,conn,MaterialType,TypeElement);
             MODESplot = zeros(size(coor,1)*size(coor,2),size(MODES,2)) ;
@@ -286,12 +286,11 @@ classdef ModalMain < handle
         end
 
         function GidMesh2DFE(obj,NameFile,COOR,CONNECT,MaterialType,TypeElement)
-            NAMEPROJ = 'MODES';
+            NAMEPROJ = 'MODES2';
             numer_nodes = 1:size(COOR,1);
             elem_type = TypeElement;
             NNode=size(CONNECT,2);
             ndime = size(COOR,2) ;
-            nnod = size(COOR,1) ;
             npe =  size(CONNECT,2) ;
             nElem = size(CONNECT,1) ;
             fid = fopen(NameFile,'wt');

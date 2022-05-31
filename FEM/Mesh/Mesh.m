@@ -243,7 +243,7 @@ classdef Mesh < handle
             s.nnodeElem    = obj.nnodeElem;
             t = MeshTypeComputer(s);
             obj.type = t.compute();
-        end
+        end 
         
         function computeGeometryType(obj)
             s.ndim  = obj.ndim;
