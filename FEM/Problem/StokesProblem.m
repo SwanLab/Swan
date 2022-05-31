@@ -1,4 +1,4 @@
-classdef NewStokesProblem < handle
+classdef StokesProblem < handle
 
     properties (Access = public)
         variables
@@ -9,7 +9,6 @@ classdef NewStokesProblem < handle
         material
         solver
 
-        dim
         state
         dtime
         finalTime
@@ -24,7 +23,7 @@ classdef NewStokesProblem < handle
 
     methods (Access = public)
 
-        function obj = NewStokesProblem(cParams)
+        function obj = StokesProblem(cParams)
             obj.init(cParams);
             obj.createVelocityField();
             obj.createPressureField();

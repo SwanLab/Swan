@@ -13,7 +13,7 @@ classdef LHSintegrator_DiffReactRobin < LHSintegrator
     methods (Access = public)
 
         function obj = LHSintegrator_DiffReactRobin(cParams)
-            obj.init(cParams);
+            obj.mesh = cParams.mesh;
             obj.computeStiffnessMatrix();
             obj.computeMassMatrix();
             obj.computeBoundaryMassMatrix();
@@ -31,6 +31,7 @@ classdef LHSintegrator_DiffReactRobin < LHSintegrator
             g.mesh               = obj.mesh;
             g.ndimf              = 1;
             g.interpolationOrder = 'LINEAR';
+            g.quadratureOrder    = 'LINEAR';
             f = Field(g);
             s.type = 'StiffnessMatrix';
             s.mesh  = obj.mesh;
@@ -58,10 +59,8 @@ classdef LHSintegrator_DiffReactRobin < LHSintegrator
             g.interpolationOrder = 'LINEAR';
             g.quadratureOrder    = 'QUADRATICMASS';
             f = Field(g);
-            s.type         = 'BoundaryMassMatrix';
-            s.dim          = obj.dim;
-            s.mesh         = obj.mesh;
-            s.globalConnec = [];
+            s.type  = 'BoundaryMassMatrix';
+            s.mesh  = obj.mesh;
             s.field = f;
             LHS = LHSintegrator.create(s);
             obj.Mr = LHS.compute();

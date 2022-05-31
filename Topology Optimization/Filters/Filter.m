@@ -72,7 +72,6 @@ classdef Filter < handle
             obj.createDiffReacProblem(cParams);
             obj.mesh = cParams.mesh;
             obj.quadratureOrder = cParams.quadratureOrder;
-%             dim = obj.computeDimensions();
             obj.createField();
             obj.computeMassMatrix();
         end
@@ -114,13 +113,6 @@ classdef Filter < handle
     end
     
     methods (Access = private)
-
-        function dim = computeDimensions(obj)
-            s.type = 'Scalar';
-            s.name = 'x';
-            s.mesh = obj.mesh;
-            dim   = DimensionVariables.create(s);
-        end
         
         function createField(obj)
             s.mesh               = obj.mesh;

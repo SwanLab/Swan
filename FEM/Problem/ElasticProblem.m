@@ -20,7 +20,6 @@ classdef ElasticProblem < handle
 
     properties (Access = protected)
         quadrature
-        dim
         material
 
         vstrain
@@ -36,7 +35,6 @@ classdef ElasticProblem < handle
 
         function obj = ElasticProblem(cParams)
             obj.init(cParams);
-            obj.computeDimensions();
             obj.createDisplacementField();
             obj.createBoundaryConditions();
             obj.createSolver();
@@ -117,26 +115,14 @@ classdef ElasticProblem < handle
 
         function createInterpolation(obj)
             int = Interpolation.create(obj.mesh,obj.interpolationType);
-%             int = Interpolation.create(obj.mesh,'QUADRATIC');
             int.computeShapeDeriv(obj.quadrature.posgp);
             obj.interpolation = int;
-        end
-
-        function computeDimensions(obj)
-            s.type      = 'Vector';
-            s.fieldName = 'u';
-            s.mesh      = obj.mesh;
-            s.ndimf = str2double(regexp(obj.pdim,'\d*','Match'));
-            d = DimensionVariables.create(s);
-            d.compute()
-            obj.dim = d;
         end
 
         function createDisplacementField(obj)
             ndimf = regexp(obj.pdim,'\d*','Match');
             s.mesh               = obj.mesh;
             s.ndimf              = str2double(ndimf);
-            s.scale              = obj.scale;
             s.interpolationOrder = obj.interpolationType; %obj.interpolationType
             f = Field(s);
             obj.inputBC = f.translateBoundaryConditions(obj.inputBC);
@@ -163,12 +149,10 @@ classdef ElasticProblem < handle
         end
 
         function computeStiffnessMatrix(obj)
-            s.type = 'ElasticStiffnessMatrix';
-            s.mesh          = obj.mesh;
-            s.globalConnec  = obj.displacementField.connec;
-            s.dim           = obj.displacementField.dim;
-            s.material      = obj.material;
-            s.interpolation = obj.interpolation;
+            s.type     = 'ElasticStiffnessMatrix';
+            s.mesh     = obj.mesh;
+            s.field    = obj.displacementField;
+            s.material = obj.material;
             LHS = LHSintegrator.create(s);
             K   = LHS.compute();
             obj.stiffnessMatrix = K;

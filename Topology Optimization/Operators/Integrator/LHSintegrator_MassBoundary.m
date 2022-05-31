@@ -8,7 +8,7 @@ classdef LHSintegrator_MassBoundary < LHSintegrator
     methods (Access = public)
         
         function obj = LHSintegrator_MassBoundary(cParams)
-            obj.init(cParams);
+            obj.mesh  = cParams.mesh;
             obj.field = cParams.field;
         end
 
@@ -21,31 +21,26 @@ classdef LHSintegrator_MassBoundary < LHSintegrator
     methods (Access = protected)
         
         function Mr = computeBoundaryMassMatrix(obj)
-%             ogConnec = obj.field.connec;
             s = obj.createIntegratorParams();
             nInt = numel(s.compositeParams);
-            ndof = s.compositeParams{1}.dim.ndofs;
+            ndof = s.compositeParams{1}.field.dim.ndofs;
             LHS = sparse(ndof,ndof);
             for iInt = 1:nInt
                 sL = s.compositeParams{iInt};
                 sL.type     = 'MassMatrix';
-%                 sL.quadType = 'LINEAR';
                 lhs = LHSintegrator.create(sL);
                 LHSadd = lhs.compute();
                 LHS = LHS + LHSadd;
             end
-%             obj.field.connec = ogConnec;
             Mr = LHS;
         end
         
         function cParams = createIntegratorParams(obj)
             bMeshes  = obj.mesh.createBoundaryMesh();
             nBoxFaces = numel(bMeshes);
-            d = obj.dim;
             for iMesh = 1:nBoxFaces
                 bMesh = bMeshes{iMesh};
                 m  = bMesh.mesh;
-                s.dim  = d;
                 s.mesh = m;
                 s.globalConnec = bMesh.globalConnec;
                 a.ndimf = obj.field.dim.ndimf;

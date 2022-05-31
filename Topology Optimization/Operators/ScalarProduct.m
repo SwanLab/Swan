@@ -65,13 +65,6 @@ classdef ScalarProduct < handle
             end
         end
 
-        function dim = computeDimensions(obj)
-            s.type = 'Scalar';
-            s.name = 'x';
-            s.mesh = obj.mesh;
-            dim = DimensionVariables.create(s);
-        end
-
         function createField(obj)
             s.mesh               = obj.mesh;
             s.ndimf              = 1;
