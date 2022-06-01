@@ -8,6 +8,7 @@ classdef NewFilter_P1_Density < handle
         quadrature
         M
         Kernel
+        field
     end
 
     properties (Access = private)
@@ -58,6 +59,15 @@ classdef NewFilter_P1_Density < handle
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
             obj.quadratureOrder = cParams.quadratureOrder;
+            obj.createField();
+        end
+
+        function createField(obj)
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1;
+            s.interpolationOrder = 'LINEAR';
+            s.quadratureOrder    = 'QUADRATICMASS';
+            obj.field = Field(s);
         end
 
         function createMassMatrix(obj)
@@ -68,6 +78,7 @@ classdef NewFilter_P1_Density < handle
             s.quadType     = 'QUADRATICMASS';
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
+            s.field        = obj.field;
             LHS = LHSintegrator.create(s);
             obj.M = LHS.compute();
         end

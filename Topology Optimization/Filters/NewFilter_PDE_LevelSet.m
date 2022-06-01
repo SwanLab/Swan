@@ -12,6 +12,7 @@ classdef NewFilter_PDE_LevelSet < handle
         dim
         LHS
         bc
+        field
     end
 
     properties (Access = private)
@@ -94,6 +95,15 @@ classdef NewFilter_PDE_LevelSet < handle
             else
                 obj.LHStype = 'DiffReactNeumann';
             end
+            obj.createField();
+        end
+
+        function createField(obj)
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1;
+            s.interpolationOrder = 'LINEAR';
+            s.quadratureOrder    = 'QUADRATICMASS';
+            obj.field = Field(s);
         end
 
         function storeParams(obj,P1proc)

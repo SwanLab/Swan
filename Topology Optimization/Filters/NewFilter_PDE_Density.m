@@ -12,6 +12,7 @@ classdef NewFilter_PDE_Density < handle
         x_reg
         LHS
         bc
+        field
     end
 
     properties (Access = private)
@@ -87,6 +88,15 @@ classdef NewFilter_PDE_Density < handle
             else
                 obj.LHStype = 'DiffReactNeumann';
             end
+            obj.createField();
+        end
+
+        function createField(obj)
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1;
+            s.interpolationOrder = 'LINEAR';
+            s.quadratureOrder    = 'QUADRATICMASS';
+            obj.field = Field(s);
         end
 
         function createMassMatrix(obj)
@@ -95,6 +105,7 @@ classdef NewFilter_PDE_Density < handle
             s.quadType     = 'QUADRATICMASS';
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
+            s.field        = obj.field;
             lhs = LHSintegrator.create(s);
             obj.M = lhs.compute();
         end

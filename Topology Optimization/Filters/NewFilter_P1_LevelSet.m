@@ -7,6 +7,7 @@ classdef NewFilter_P1_LevelSet <  handle
         geometry
         quadrature
         projector
+        field
     end
 
     properties (Access = private)
@@ -22,7 +23,7 @@ classdef NewFilter_P1_LevelSet <  handle
             obj.createPoperator(cParams);
             obj.disableDelaunayWarning();
         end
-        
+
         function preProcess(obj)
             s.mesh = obj.mesh;
             s.quadratureOrder = obj.quadratureOrder;
@@ -58,6 +59,15 @@ classdef NewFilter_P1_LevelSet <  handle
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
             obj.quadratureOrder = cParams.quadratureOrder;
+            obj.createField();
+        end
+
+        function createField(obj)
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1;
+            s.interpolationOrder = 'LINEAR';
+            s.quadratureOrder    = 'QUADRATICMASS';
+            obj.field = Field(s);
         end
 
         function x0 = computeP0fromP1(obj,x)
