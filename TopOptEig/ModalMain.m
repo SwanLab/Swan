@@ -239,127 +239,33 @@ classdef ModalMain < handle
             title('First Mode Y')
         end
 
-        %         function printInGiD(obj)  %% no puedo seguir
-        %             mesh = obj.mesh;
-        %             s.material = obj.material;
-        %             s.type = 'ELASTIC';
-        %             s.scale = 'MACRO';
-        %             fem = FEM.create(s);
-        %             fem.setC(mat.C);
-        %             fem.computeChomog();
-        %             quad = Quadrature.set(mesh.type);
-        %             quad.computeQuadrature('LINEAR');
-        %             dI = createPostProcessDataBase(mesh,'');
-        %             dI.ndim   = 2;
-        %             dI.pdim   = '2D';
-        %             dI.ptype  = 'ELASTIC';
-        %             dI.name = '';
-        %             dI.printers = 'DensityGauss'; % 'HomogenizedTensor'
-        %             p = Postprocess('NumericalHomogenizer',dI);
-        %             dP.fields{1} = fem.variables2print;
-        %             dP.fields{2} = Modes;
-        %             %dP.fields{2} = density;
-        %             dP.quad   = quad;
-        %             iter = 0;
-        %             p.print(iter,dP);
-        %         end
-
-        function printInGiD(obj)
-            coor = obj.coord;
-            conn = obj.connec;
-            MODES = obj.V;
-            posgp = 1;
-            DOFl = obj.freeDOFs;
-            TypeElement = 'TRIANGLE';
-            NameFileMesh = 'PostModes';
-            NameFile_msh = ['GIDPOST/','MODES2','_',NameFileMesh,'.msh'] ;
-            NameFile_res= ['GIDPOST/','MODES2','_',NameFileMesh,'.res'] ;
-            MaterialType = ones(size(conn,1),1) ; 
-            obj.GidMesh2DFE(NameFile_msh,coor,conn,MaterialType,TypeElement);
-            MODESplot = zeros(size(coor,1)*size(coor,2),size(MODES,2)) ;
-            MODESplot(DOFl,:) = MODES;
-            obj.GidResults2DFE_modes(NameFile_res,coor,TypeElement,MODESplot,posgp);
-            cddd = cd ;
-            NAMEFILEOPEN =  [cddd,'/',NameFile_res] ;
-            disp('open GID FILE:')
-            disp(NAMEFILEOPEN)
+        function printInGiD(obj)  %% no puedo seguir
+            fileName = 'Eig';
+            m = obj.mesh;
+            quad = Quadrature.set(m.type);
+            quad.computeQuadrature('LINEAR');
+            dI = obj.createPostProcessDataBase(m,fileName);
+            dI.ndim   = 2;
+            dI.pdim   = '2D';
+            dI.ptype  = 'ELASTIC';
+            dI.name = '';
+            dI.printers = 'DensityGauss'; % 'HomogenizedTensor'
+            p = Postprocess('VectorField',dI);
+            %f.u = obj.mode1;
+            dP.fields.u = obj.mode1;
+            dP.quad   = quad;
+            iter = 0;
+            p.print(iter,dP);
         end
 
-        function GidMesh2DFE(obj,NameFile,COOR,CONNECT,MaterialType,TypeElement)
-            NAMEPROJ = 'MODES2';
-            numer_nodes = 1:size(COOR,1);
-            elem_type = TypeElement;
-            NNode=size(CONNECT,2);
-            ndime = size(COOR,2) ;
-            npe =  size(CONNECT,2) ;
-            nElem = size(CONNECT,1) ;
-            fid = fopen(NameFile,'wt');
-            fprintf(fid,' # ================================================== \n',[]);
-            fprintf(fid,[' # \n'],[]);
-            fprintf(fid,' # POSTPROCESSING WITH GID - MESH FILE \n',[]);
-            fprintf(fid,[' # EXAMPLE NAME: ' NAMEPROJ ' \n'],[]);
-            fprintf(fid,' # ================================================== \n',[]);
-            fprintf(fid,[' MESH "' NAMEPROJ '" dimension ' num2str(ndime) ' Elemtype ' elem_type ...
-                ' Nnode ' num2str(NNode) '\n'],[]);
-            fprintf(fid,' Coordinates \n',[]);
-            fprintf(fid,' # node number   coordinate_x  coordinate_y  coordinate_z \n',[]);
-            format_xnod = [];
-            for k=1:ndime
-                format_xnod = [format_xnod, '%15.5e'];
-            end
-            format_xnod=[' %10i ' format_xnod, '\n'];
-            fprintf(fid,format_xnod,[numer_nodes',COOR(:,1:ndime) ]');
-            fprintf(fid,' end coordinates \n',[]);
-            fprintf(fid,' Elements \n',[]);
-            format_title = ' # element ';
-            for k=1:npe
-                format_title=[format_title, ' node_' num2str(k)];
-            end
-            format_title=[format_title, ' material number \n'];
-            fprintf(fid,format_title,[]);
-            format_icone = [];
-            for k=1:npe
-                format_icone=[format_icone, '%7i'];
-            end
-            format_icone=['%10i ' format_icone, '     %4i ' '\n'];
-            fprintf(fid,format_icone,[(1:nElem)',CONNECT, MaterialType]');
-            fprintf(fid,' end elements ',[]);
-            fclose(fid);
+        function d = createPostProcessDataBase(obj,mesh,fileName)
+            dI.mesh    = mesh;
+            dI.outFileName = fileName;
+            ps = PostProcessDataBaseCreator(dI);
+            d = ps.create();
         end
 
-        function GidResults2DFE_modes(obj,NameFile,COOR,TypeElement,MODES,posgp)
-            elem_type = TypeElement;
-            ndime = size(COOR,2) ;
-            nnod = size(COOR,1) ;
-            npg = size(posgp,2);
-            fid_res = fopen(NameFile,'wt');
-            fprintf(fid_res,'GiD Post Results File 1.0 \n');
-            xg =posgp ;
-            fprintf(fid_res,['GaussPoints "GPset" Elemtype ',elem_type,'\n']);
-            fprintf(fid_res,['Number of Gauss Points: ',num2str(npg),'\n']);
-            fprintf(fid_res,'Nodes not included\n');
-            fprintf(fid_res,'Natural Coordinates: Internal\n');
-            fprintf(fid_res,'End GaussPoints\n');
-            TIMEVECTOR = 1;
-            istep = 1;
-            disp(['istep=',num2str(istep)])
-            for imode = 1:size(MODES,2)
-                d = MODES(:,imode) ;
-                var = reshape(d,ndime,nnod) ;
-                time_step = TIMEVECTOR(istep) ;
-                fprintf(fid_res, ['Result "Mode ',num2str(imode),'"  "Load Analysis" '  num2str(time_step) ' Vector OnNodes  \n' ],[]);
-                if ndime==2
-                    fprintf(fid_res,'ComponentNames "X-DISPL" "Y-DISPL"\n');
-                elseif ndime==3
-                    fprintf(fid_res,'ComponentNames "X-DISPL" "Y-DISPL" "Z-DISPL"\n');
-                end
-                fprintf(fid_res,'Values\n');
-                fORMAT = ['%d',repmat(' %f',1,ndime),'\n'];
-                fprintf(fid_res,fORMAT,[1:nnod;var]);
-                fprintf(fid_res,'End Values\n');
-            end
-            fclose(fid_res);
-        end
+
 
     end
 

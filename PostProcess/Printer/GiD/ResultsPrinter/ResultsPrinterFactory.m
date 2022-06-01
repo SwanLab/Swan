@@ -16,6 +16,8 @@ classdef ResultsPrinterFactory < handle
         
         function createPrinter(obj,resultCase,d)
             switch resultCase
+                case 'VectorField'
+                    p = VectorFieldPrinter(d);
                 case 'Elasticity'
                     p = ElasticityResultsPrinter(d);
                 case 'ElasticityMicro'
