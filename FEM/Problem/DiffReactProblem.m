@@ -5,8 +5,8 @@ classdef DiffReactProblem < handle
     end
     
     properties (Access = private)
-        dim
         mesh
+        field
         solver
         epsilon
         LHStype
@@ -19,7 +19,7 @@ classdef DiffReactProblem < handle
         
         function obj = DiffReactProblem(cParams)
             obj.init(cParams);
-            obj.computeDimensions();
+            obj.createField();
             obj.createBoundaryConditions();
             obj.createSolver();
             obj.createProblemLHS();
@@ -65,19 +65,19 @@ classdef DiffReactProblem < handle
             obj.problemData.scale = cParams.scale;
         end
 
-        function computeDimensions(obj)
-            s.type = 'Scalar';
-            s.name = 'x';
-            s.mesh = obj.mesh;
-            dims   = DimensionVariables.create(s);
-            obj.dim = dims;
+        function createField(obj)
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1;
+            s.interpolationOrder = 'LINEAR';
+            s.quadratureOrder    = 'LINEAR';
+            obj.field = Field(s);
         end
 
         function createBoundaryConditions(obj)
-            s.dim          = obj.dim;
-            s.mesh         = obj.mesh;
-            s.scale        = obj.problemData.scale;
-            s.ndofs        = obj.dim.ndofs;
+            s.dim   = obj.field.dim;
+            s.mesh  = obj.mesh;
+            s.scale = obj.problemData.scale;
+            s.ndofs = obj.field.dim.ndofs;
             s.bc{1}.dirichlet = [];
             s.bc{1}.pointload = [];
             s.bc{1}.ndimf     = [];
@@ -93,10 +93,8 @@ classdef DiffReactProblem < handle
         end
 
         function createProblemLHS(obj)
-            s.type         = obj.LHStype;
-            s.dim          = obj.dim;
-            s.mesh         = obj.mesh;
-            s.globalConnec = [];
+            s.type = obj.LHStype;
+            s.mesh = obj.mesh;
             obj.problemLHS = LHSintegrator.create(s);
         end
     

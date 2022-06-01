@@ -1,32 +1,32 @@
 classdef LHSintegrator_Stiffness < LHSintegrator
-    
+
     properties (Access = private)
         geometry
+        field
     end
 
     methods (Access = public)
-        
+
         function obj = LHSintegrator_Stiffness(cParams)
-            obj.init(cParams);
-            obj.createQuadrature();
-            obj.createInterpolation();
-            obj.createGeometry();
+            obj.mesh  = cParams.mesh;
+            obj.field = cParams.field;
         end
 
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
-            LHS = obj.assembleMatrix(lhs);
+            LHS = obj.assembleMatrixField(lhs);
         end
-        
+
     end
-    
-   methods (Access = protected)
-        
+
+    methods (Access = protected)
+
         function lhs = computeElementalLHS(obj)
-            dvolu = obj.mesh.computeDvolume(obj.quadrature);
-            ngaus = obj.quadrature.ngaus;
+            f = obj.field;
+            dvolu = obj.mesh.computeDvolume(f.quadrature);
+            ngaus = size(dvolu,1);
             nelem = obj.mesh.nelem;
-            ndpe  = obj.dim.ndofsElem;
+            ndpe  = f.dim.ndofsElem;
             lhs = zeros(ndpe,ndpe,nelem);
             Bcomp = obj.createBComputer();
             for igaus = 1:ngaus
@@ -42,11 +42,11 @@ classdef LHSintegrator_Stiffness < LHSintegrator
                 end
             end
         end
-        
-   end
-    
-   methods (Access = private)
-       
+
+    end
+
+    methods (Access = private)
+
         function createGeometry(obj)
             q   = obj.quadrature;
             int = obj.interpolation;
@@ -58,12 +58,20 @@ classdef LHSintegrator_Stiffness < LHSintegrator
         end
 
         function Bcomp = createBComputer(obj)
-            s.dim          = obj.dim;
-            s.geometry     = obj.geometry;
-            s.globalConnec = obj.globalConnec;
+            s.dim          = obj.field.dim;
+            s.geometry     = obj.field.geometry;
+            s.globalConnec = [];
             Bcomp = BMatrixComputer(s);
         end
-       
-   end
-    
+
+        function lhs = assembleMatrixField(obj, Ae)
+            s.dim          = obj.field.dim;
+            s.globalConnec = obj.field.connec;
+            s.nnodeEl      = obj.field.dim.nnodeElem;
+            assembler = Assembler(s);
+            lhs = assembler.assembleFields(Ae, obj.field, obj.field);
+        end
+
+    end
+
 end
