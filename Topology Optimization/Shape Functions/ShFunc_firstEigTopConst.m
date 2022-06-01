@@ -60,6 +60,8 @@ classdef ShFunc_firstEigTopConst < ShapeFunctional
             s.mesh           = obj.msh;
             s.designVariable = obj.designVariable;
             s.dim            = obj.dm;
+            s.Msmooth        = obj.Msmooth;
+            s.filter         = obj.filter;
             obj.eigModes = EigModesTopology(s);
         end
 

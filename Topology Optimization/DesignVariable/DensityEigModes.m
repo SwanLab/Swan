@@ -16,7 +16,7 @@ classdef DensityEigModes < DesignVariable
         end
         
         function v = getVariablesToPlot(obj)
-            v{1} = obj.value;
+            v{1} = obj.value(1:end-1);
         end
         
         function rho = computeVolumeFraction(obj)

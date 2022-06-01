@@ -17,6 +17,8 @@ classdef EigModesTopology < handle
         stiffnessMatrixComputer
         massMatrixComputer
         dofConnec
+        Msmooth
+        filter
     end
     
     properties (Access = private)
@@ -39,13 +41,13 @@ classdef EigModesTopology < handle
             fx = gamma-obj.lambda(1);
         end
         
-        function grad = provideDerivative(obj,eigNum)
+        function grad = provideDerivative(obj)
             obj.reorderModes(obj.lambda,obj.V,obj.D);
             elemStiff = obj.stiffnessMatrixComputer.elemStiff;
             elemMass = obj.massMatrixComputer.elemMass;
             % Belem =  obj.bendingMatComputer.elementalBendingMatrix;
             x = obj.designVariable.getDensity;
-            nElem = obj.mesh.nelem;
+            %nElem = obj.mesh.nelem;
             eigV1 = obj.D(1,1);
             eigV2 = obj.D(2,2);
             difEigs = abs(eigV2-eigV1);
@@ -54,9 +56,10 @@ classdef EigModesTopology < handle
             else
                 dfdx = obj.computeDoubleEig(Belem,x);
             end
-            dfdx(1,nElem+1) = 1;
             % dfdx(2,nElem+1) = 1;
-            grad = dfdx; % (eigNum,:);
+            g = obj.filterGradient(dfdx);
+            grad = g; % (eigNum,:);
+            grad(end+1,1) = 1;
         end
         
     end
@@ -67,6 +70,8 @@ classdef EigModesTopology < handle
             obj.designVariable = cParams.designVariable;
             obj.mesh           = cParams.mesh;
             obj.dim            = cParams.dim;
+            obj.filter         = cParams.filter;
+            obj.Msmooth        = cParams.Msmooth;
         end
 
         function createBoundaryConditions(obj)
@@ -191,32 +196,47 @@ classdef EigModesTopology < handle
         function dfdx = computeSimpleEig(obj,elemStiff,massStiff,eigV1,x)
             d = obj.dim;
             free = obj.freeDOFs;
-            ndofe = d.ndofsElem;
-            ndofn = d.ndofsElem/d.nnodeElem;
+            %ndofe = d.ndofsElem;
+            %ndofn = d.ndofsElem/d.nnodeElem;
             W = zeros(d.ndofs,1);
             W(free,1) = obj.v1;
             % W(free,2) = obj.v2;
             nElem = obj.mesh.nelem;
             DOFconnec = obj.dofConnec';
-            den = obj.densityDOF(x);
+%            den = obj.densityDOF(x);
             for i = 1:nElem
                 nodDofs = DOFconnec(i,:);
-                %index = ndofn*(i-1)+1: ndofn*(i-1)+ndofe;
-                dxS = 3*den(i,1).^2;
-                dxM = 1;
-                dfdx(1,i) = -(W(nodDofs,1)'*(dxS*elemStiff(:,:,i)-eigV1*dxM*massStiff(:,:,i))*W(nodDofs,1));
+                % index = ndofn*(i-1)+1: ndofn*(i-1)+ndofe;
+                % dxS = 3*den(i,1).^2;
+                % dxM = 1;
+                % dfdx(1,i) = -(W(nodDofs,1)'*(dxS*elemStiff(:,:,i)-eigV1*dxM*massStiff(:,:,i))*W(nodDofs,1));
+                dfdx(1,i) = -(W(nodDofs,1)'*(elemStiff(:,:,i)-eigV1*massStiff(:,:,i))*W(nodDofs,1));
                 % dfdx(2,i) = -dx*(W(index,2)'*Belem(:,:,i)*W(index,2));
             end
+
         end
 
-        function xNew = densityDOF(obj,x)
-            m = obj.mesh;
-            xNew = zeros(size(m.coord,1)*m.ndim,1);
-            for i = 1:m.coord
-                xNew(2*iElem-1,1) = x(i,1);
-                xNew(2*iElem,1) = x(i,1);
+        function g = filterGradient(obj,dfdx)
+            g = dfdx';
+            gf = zeros(size(obj.Msmooth,1),obj.designVariable.nVariables);
+            for ivar = 1:obj.designVariable.nVariables
+                gs = g(:,:,ivar);
+                gf(:,ivar) = obj.filter.getP1fromP0(gs);
             end
+            gf = obj.Msmooth*gf;
+            g = gf(:);
         end
+
+
+
+%         function xNew = densityDOF(obj,x)
+%             m = obj.mesh;
+%             xNew = zeros(size(m.coord,1)*m.ndim,1);
+%             for i = 1:m.coord
+%                 xNew(2*iElem-1,1) = x(i,1);
+%                 xNew(2*iElem,1) = x(i,1);
+%             end
+%         end
 
         function dfdx = computeDoubleEig(obj,Belem,x)
             d    = obj.dim;

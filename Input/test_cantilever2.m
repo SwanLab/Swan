@@ -1,4 +1,4 @@
-filename = 'CantileverBeam_Triangle_Linear';
+filename = 'CantileverArnau2';% 'CantileverBeam_Triangle_Linear';
 ptype = 'MACRO';
 method = 'SIMP_P3';
 materialType = 'ISOTROPIC';
@@ -8,7 +8,7 @@ weights = [1];
 constraint = {'volumeConstraint'};
 constraint_case = {'INEQUALITY'};
 optimizerUnconstrained = 'SLERP';%'PROJECTED GRADIENT';
-optimizer = 'DualNestedInPrimal';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
+optimizer = 'fmincon';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
 incrementFactor = 1;
 designVariable = 'Density';%'Density';
 filterType = 'P1';

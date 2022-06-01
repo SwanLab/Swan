@@ -41,6 +41,7 @@ classdef LHSintegratorFactory < handle
                    obj = LHSintegrator_DiffReactNeumann(cParams);
                case 'BendingMatrix'
                    obj = LHSintegrator_Bending(cParams);
+                   
                case 'Stokes'
                    obj = LHSintegrator_Stokes(cParams);
 
