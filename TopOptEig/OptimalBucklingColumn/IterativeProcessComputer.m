@@ -70,7 +70,7 @@ classdef IterativeProcessComputer < handle
          function obj = computeIterativeProcess(obj)
 % -------
             s = SettingsOptimizer();
-            s.optimizerNames.type = 'fmincon';'AlternatingPrimalDual';'NullSpace';'AlternatingPrimalDual';'MMA';'AlternatingPrimalDual';%MMA';%'IPOPT';%fmincon';%'MMA';%'fmincon';'MMA';
+            s.optimizerNames.type = 'AlternatingPrimalDual';%'NullSpace';%'fmincon';'AlternatingPrimalDual';'NullSpace';'AlternatingPrimalDual';'MMA';'AlternatingPrimalDual';%MMA';%'IPOPT';%fmincon';%'MMA';%'fmincon';'MMA';
             s.optimizerNames.primal = 'PROJECTED GRADIENT';
             s.uncOptimizerSettings.scalarProductSettings = obj.designVariable.scalarProduct;
             s.uncOptimizerSettings.designVariable   = obj.designVariable;
@@ -84,15 +84,16 @@ classdef IterativeProcessComputer < handle
             s.constraint        = obj.constraint;
             s.incrementalScheme.iStep  = 1;%obj.incrementalScheme;
             s.incrementalScheme.nSteps = 1;
-            s.dualVariable      = obj.dualVariable;              
+            sD.nConstraints = 3;
+            s.dualVariable     = DualVariable(sD);              
             s.uncOptimizerSettings.ub = 10;
             s.uncOptimizerSettings.lb = 0.25;        
             s.outputFunction.type        = 'Topology';
             s.outputFunction.iterDisplay = 'none';
-            s.type = 'fmincon';'AlternatingPrimalDual';'NullSpace';'AlternatingPrimalDual';'MMA';'AlternatingPrimalDual';'MMA'; % IPOPT';%'fmincon';'MMA';%'fmincon';%'MMA';
+            s.type = 'NullSpace';%'fmincon';'AlternatingPrimalDual';'NullSpace';'AlternatingPrimalDual';'MMA';'AlternatingPrimalDual';'MMA'; % IPOPT';%'fmincon';'MMA';%'fmincon';%'MMA';
             s.outputFunction.monitoring  = MonitoringManager(s);                  
             s.maxIter           = 1000;
-            s.constraintCase = 'INEQUALITY';
+            s.constraintCase = {'INEQUALITY','INEQUALITY','INEQUALITY'};
             %s.primalUpdater = 'PROJECTED GRADIENT';
 
             obj.optimizer = Optimizer.create(s);    
