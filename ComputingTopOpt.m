@@ -1,7 +1,7 @@
 function ComputingTopOpt
 
 rho0Name = 'TFM.mat';
-jumpTo2ndPart = true;
+jumpTo2ndPart = false;
 
 if jumpTo2ndPart == false
 

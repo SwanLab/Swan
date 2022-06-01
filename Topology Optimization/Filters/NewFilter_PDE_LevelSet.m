@@ -76,6 +76,11 @@ classdef NewFilter_PDE_LevelSet < handle
             x_reg      = obj.solveFilter(RHS);
         end
 
+        function q = getQuad(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('LINEAR');
+        end
+
     end
 
     methods (Access = private)

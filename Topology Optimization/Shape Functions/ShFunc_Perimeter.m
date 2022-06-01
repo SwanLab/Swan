@@ -64,7 +64,10 @@ classdef ShFunc_Perimeter < ShapeFunctional
                      'PerimeterGauss','PerimeterNodal'};
             fP = obj.obtainPrintVariables(types,names);
         end
-        
+
+        function q = getQuad(obj)
+            q = obj.filter.getQuad();
+        end  
     end
     
     methods (Access = private)

@@ -60,7 +60,6 @@ classdef LHSintegratorFactory < handle
                    obj = LHSintegrator_DiffReactNeumann(cParams);
                case 'Stokes'
                    obj = LHSintegrator_Stokes(cParams);
-
                case 'Laplacian'
                    obj = LHSintegrator_Laplacian(cParams);
 
@@ -68,7 +67,5 @@ classdef LHSintegratorFactory < handle
                    obj = LHSintegrator_StokesD(cParams);
            end
        end
-
    end
-
 end

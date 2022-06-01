@@ -8,12 +8,14 @@ epsilon_isotropy_initial=1e-1;
 epsilon_isotropy_final = 1e-3;
 micro.alpha =[1 1 0]';
 micro.beta =[1 1 0]';
+fracRadius = 0.5;
+widthSquare = 0.5;
 
 ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'full';
-cost = {'compliance'};
+initial_case = 'squareInclusion';
+cost = {'anisotropicPerimeterInterior2D'};
 weights = [1];
 constraint = {'volumeConstraint'};
 % constraint_case = 'EQUALITY';
@@ -23,12 +25,12 @@ incrementFactor = 1.5; % Recommended: 1.5; 2.0
 designVariable = 'LevelSet';
 filterType = 'P1';
 
-nsteps = 4; % Recommended slope: 5%/step is OK
-Vfrac_final = 0.15;
+nsteps = 5; % Recommended slope: 5%/step is OK
+Vfrac_final = 0.75;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 1;
+Vfrac_initial = 0.75;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 Perimeter_target = 5;
@@ -41,8 +43,8 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 % For all tests
-plotting = true;
-printing = false;
+plotting = false; % true
+printing = true; % false
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
