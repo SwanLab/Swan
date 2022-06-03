@@ -1,5 +1,5 @@
 function ComputingTopOpt
-
+% PENDING: AUTOMATIZE THIS FUNCTION WITH GID PICTUREsss
 rho0Name = 'TFM.mat';
 jumpTo2ndPart = false;
 
@@ -39,6 +39,27 @@ if jumpTo2ndPart == false
 
     rho0 = topOptSolver.designVariable.value;
     save(rho0Name,'rho0');
+
+    % GiD Image Capturer:
+%     outPutImageName = '"testgidpic"';
+%     gidPath = '/home/joseantonio/GiDx64/gid-15.0.4/';
+%     tclFile = 'callGiDCapturer.tcl';
+%     tclFileTocall = 'CaptureImage3.tcl';
+%     fid = fopen('/home/joseantonio/Documentos/GitHub/Swan/PostProcess/ImageCapturer/callGiDCapturer.tcl','w+');
+%     fprintf(fid,['set path "/home/joseantonio/Documentos/GitHub/Swan/PostProcess/ImageCapturer','"\n']);
+%     fprintf(fid,['set tclFile "',tclFileTocall,'"\n']);
+%     fprintf(fid,['source $path$tclFile \n']);
+%     fprintf(fid,['set output ',outPutImageName,' \n']);
+%     fprintf(fid,['set inputFile "',fileName,'"\n']);
+%     fprintf(fid,['CaptureImage $inputFile $output \n']);
+%     fclose(fid);
+%     command = [gidPath,'gid_offscreen -offscreen -t "source ',tclFile,'"'];
+%     system(command);
+%     inputImage  = [' ',outPutImageName,'.png'];
+%     outPutImage = inputImage;
+%     convert     = 'convert -crop 442x442+0+0 -gravity Center';
+%     command = strcat(convert,' ',inputImage,' ',outPutImage);
+%     system(command);
 else
     load(rho0Name);
     fileName = 'test_anisotropy_cantilever_rho0';

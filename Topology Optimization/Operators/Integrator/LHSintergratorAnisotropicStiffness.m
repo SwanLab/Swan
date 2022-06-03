@@ -32,8 +32,6 @@ classdef LHSintergratorAnisotropicStiffness < LHSintegrator
             dvolu = obj.mesh.computeDvolume(obj.quadrature);
             ngaus = obj.quadrature.ngaus;
             nelem = obj.mesh.nelem;
-            ss.name        = 'x';
-            ss.mesh        = obj.mesh;
             ndpe  = obj.dim.ndofsElem;
             lhs = zeros(ndpe,ndpe,nelem);
             C   = obj.Celas;
@@ -69,7 +67,7 @@ classdef LHSintergratorAnisotropicStiffness < LHSintegrator
             obj.geometry = g;
         end
 
-        function Bcomp = createBComputer(obj,dim)
+        function Bcomp = createBComputer(obj)
             s.dim          = obj.dim;
             s.geometry     = obj.geometry;
             s.globalConnec = obj.globalConnec;
