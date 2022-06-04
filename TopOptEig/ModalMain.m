@@ -239,7 +239,7 @@ classdef ModalMain < handle
             title('First Mode Y')
         end
 
-        function printInGiD(obj)  %% no puedo seguir
+        function printInGiD(obj)
             fileName = 'Eig';
             m = obj.mesh;
             quad = Quadrature.set(m.type);

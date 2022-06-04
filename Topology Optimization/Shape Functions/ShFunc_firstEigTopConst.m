@@ -4,6 +4,7 @@ classdef ShFunc_firstEigTopConst < ShapeFunctional
         msh
         dm
         eigModes
+        HomoVariablComputer
     end
 
     methods (Access = public)
@@ -13,6 +14,7 @@ classdef ShFunc_firstEigTopConst < ShapeFunctional
             obj.msh = cParams.mesh;
             obj.createDim()
             obj.createEigModes();
+            obj.HomoVarComputer();
         end
 
         function computeFunctionAndGradient(obj)
@@ -21,7 +23,7 @@ classdef ShFunc_firstEigTopConst < ShapeFunctional
         end
 
         function t = getTitlesToPlot(obj)
-            t{1} = 'First Eigen Value';
+            t{1} = 'First Eigenvalue Constraint';
         end  
 
         function v = getVariablesToPlot(obj)
@@ -29,19 +31,14 @@ classdef ShFunc_firstEigTopConst < ShapeFunctional
         end 
         
     end
-% 
-%     methods (Access = protected)
-% 
-%         function init(obj,cParams)
-%             obj.createFilter(cParams);
-%             % obj.createMsmoothAndDvolu(cParams);
-%             obj.homogenizedVariablesComputer = cParams.homogVarComputer;
-%             obj.designVariable = cParams.designVariable;
-%             obj.target_parameters = cParams.targetParameters;
-%             obj.nVariables = obj.designVariable.nVariables;     
-%         end
-% 
-%     end
+
+    methods (Access = protected)
+
+        function HomoVarComputer(obj)
+            obj.HomoVariablComputer = obj.homogenizedVariablesComputer;
+        end
+
+    end
 
     methods (Access = private)
 
@@ -70,14 +67,13 @@ classdef ShFunc_firstEigTopConst < ShapeFunctional
     methods (Access = public)
 
         function computeFunction(obj)
-            obj.value = obj.eigModes.provideFunction();
-            % obj.normalizeFunction();
+            obj.va
+            lue = obj.eigModes.provideFunction(obj.HomoVariablComputer);
         end
 
         function computeGradient(obj)
             dfdx = obj.eigModes.provideDerivative();
             obj.gradient = dfdx';
-            % obj.normalizeGradient();
         end
     end
     

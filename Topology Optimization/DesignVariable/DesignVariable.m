@@ -42,7 +42,7 @@ classdef DesignVariable < handle
         
         function restart(obj)
             obj.update(obj.valueOld);
-            obj.alpha = obj.alphaOld;
+            obj.alpha = obj.alphaOld; 
         end
         
         function update(obj,value)

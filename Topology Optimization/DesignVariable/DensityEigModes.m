@@ -68,13 +68,13 @@ classdef DensityEigModes < DesignVariable
                 obj.value = ones(size(obj.mesh.coord,1)+1,1);
             end
         end
-
-         function createScalarProduct(obj,cParams)
+ 
+          function createScalarProduct(obj,cParams)
 %             s = cParams.scalarProductSettings;
 %             s.nVariables = obj.nVariables;
 %             s.femSettings.mesh = obj.mesh;
 %             obj.scalarProduct = ScalarProduct(s);
-         end
+          end
 
         function createValue(obj)
             s = obj.creatorSettings;
@@ -86,6 +86,8 @@ classdef DensityEigModes < DesignVariable
                     lsCreator  = LevelSetCreator.create(s);
                     phi        = lsCreator.getValue();
                     obj.value  = 1 - heaviside(phi);
+                    obj.value(end+1,1) = obj.value(1);
+%                    obj.value = s.rho0.*ones(size(obj.mesh.coord,1)+1,1); % final number is the cost
                 case 'Given'
                     obj.value = s.rho0.*ones(size(obj.mesh.coord,1)+1,1); % final number is the cost
             end

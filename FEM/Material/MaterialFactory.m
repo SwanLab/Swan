@@ -5,7 +5,7 @@ classdef MaterialFactory < handle
         
         function material = create(cParams)
             switch cParams.ptype
-                case {'ELASTIC','DIFF-REACT'}
+                case {'ELASTIC','DIFF-REACT','EIGENMODES'}
                     switch cParams.pdim
                         case '2D'
                             cParams.nstre = 3;    

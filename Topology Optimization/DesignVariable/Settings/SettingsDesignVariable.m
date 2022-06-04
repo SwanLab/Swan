@@ -30,7 +30,7 @@ classdef SettingsDesignVariable < AbstractSettings
         
         function init(obj)
             switch obj.type
-                case 'Density'
+                case {'Density','DensityEigModes'}
                     if isfield(obj.creatorSettings,'rho0') 
                         obj.creatorSettings.type = 'Given';
                     else

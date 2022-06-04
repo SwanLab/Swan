@@ -72,8 +72,14 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         end
         
         function filterDesignVariable(obj)
-            nx = length(obj.designVariable.value)/obj.designVariable.nVariables;
-            x  = obj.designVariable.value;
+            switch obj.designVariable.type
+                case 'DensityEigModes'
+                    x  = obj.designVariable.getDensity();
+                    nx = length(x)/obj.designVariable.nVariables;
+                otherwise
+                    nx = length(obj.designVariable.value)/obj.designVariable.nVariables;
+                    x  = obj.designVariable.value;
+            end
             xf = cell(obj.designVariable.nVariables,1);
             for ivar = 1:obj.designVariable.nVariables
                 i0 = nx*(ivar-1) + 1;
@@ -95,6 +101,12 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             gf = obj.Msmooth*gf;
             g = gf(:);
             obj.gradient = g;
+            switch obj.designVariable.type
+                case 'DensityEigModes'
+                    obj.gradient(end+1,1) = 1;
+                otherwise
+                    
+            end
         end
         
         function v = getPdeVariableToPrint(obj,p)

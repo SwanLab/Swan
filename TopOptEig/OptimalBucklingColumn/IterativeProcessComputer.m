@@ -1,4 +1,3 @@
-
 classdef IterativeProcessComputer < handle 
 
      properties (Access = public)

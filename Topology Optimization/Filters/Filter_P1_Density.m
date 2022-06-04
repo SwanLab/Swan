@@ -76,13 +76,11 @@ classdef Filter_P1_Density < handle
       
         function x0 = computeP0fromP1(obj,x)
             x0 = obj.Kernel*x;
-%            %
 %             s.connec = obj.mesh.connec;
 %             s.type = obj.mesh.type;
 %             s.fNodes = x;
 %             fe = FeFunction(s);
 %             x0 = fe.computeValueInCenterElement();
-            %
         end
         
         function createFilterKernel(obj)
@@ -110,7 +108,7 @@ classdef Filter_P1_Density < handle
             s.globalConnec = obj.mesh.connec;
             s.dim          = dim;
             LHS = LHSintegrator.create(s);
-            M = LHS.compute();
+            M = LHS.compute(); 
         end
         
         function intX = integrateRHS(obj,x)
