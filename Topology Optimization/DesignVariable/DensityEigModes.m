@@ -36,6 +36,15 @@ classdef DensityEigModes < DesignVariable
             x = obj.value;
             gamma = x(end);
         end
+
+        function norm = computeL2normIncrement(obj)
+           x  = obj.getDensity();
+           x0 = 1;%obj.valueOld(1:end-1);
+           incX  = x - x0;
+           nIncX = obj.scalarProduct.computeSP_M(incX,incX);
+           nX0   = 1;obj.scalarProduct.computeSP_M(x0,x0);
+           norm  = nIncX/nX0;
+        end        
         
     end
     
@@ -70,10 +79,10 @@ classdef DensityEigModes < DesignVariable
         end
  
           function createScalarProduct(obj,cParams)
-%             s = cParams.scalarProductSettings;
-%             s.nVariables = obj.nVariables;
-%             s.femSettings.mesh = obj.mesh;
-%             obj.scalarProduct = ScalarProduct(s);
+            s = cParams.scalarProductSettings;
+            s.nVariables = obj.nVariables;
+            s.femSettings.mesh = obj.mesh;
+            obj.scalarProduct = ScalarProduct(s);
           end
 
         function createValue(obj)

@@ -67,31 +67,29 @@ classdef ShFunc_Modal < ShFunWithElasticPdes
         
         function computeGradientValue(obj)
              phy = obj.physicalProblem;
-             mesh = phy.mesh;
-             eigModes = phy.variables.eigenModes;
-             eigValues =  phy.variables.eigenValues;
-             mod = eigModes(:,1);
-             val = eigValues(1);
-             ngaus = 1; % pending to generalize
-             nstre = 3; % pending to generalize
-             nelem  = mesh.nelem;
-             g_K = zeros(nelem,ngaus,obj.nVariables);
-             for igaus = 1: ngaus
+             ep    = phy.variables.strain;
+            ngaus  = size(ep,1);
+            nstre  = size(ep,2);
+            nelem  = size(ep,3);
+            gK = zeros(nelem,ngaus,obj.nVariables);             
+             for igaus = 1:ngaus
                  for istre = 1:nstre
                      for jstre = 1:nstre
-                         for ivar = 1; obj.nVariables
+                         eu_i = squeeze(ep(igaus,istre,:));
+                         ep_j = squeeze(ep(igaus,jstre,:));
+                         for ivar = 1:obj.nVariables
                              dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:,igaus));
-                             g_K(:,igaus,ivar) = g_K(:,igaus,ivar) + (mod.*dCij.*mod);
+                             gK(:,igaus,ivar) = gK(:,igaus,ivar) + (-eu_i.*dCij.*ep_j);
                          end
                      end
                  end
-                 g = (mod.*g_K.*mod - val*ones(nelem,1));
-                obj.gradient = g;
              end
-
-
+             eigValues =  phy.variables.eigenValues;
+             val = eigValues(1);
+             g = (gK - val);
+             obj.gradient = g;
         end
-        
+
         function f = getPdesVariablesToPrint(obj)
             f{1} = obj.getPdeVariableToPrint(obj.physicalProblem);
         end

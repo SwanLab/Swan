@@ -12,7 +12,7 @@ classdef DesignVariable < handle
         rho
     end
     
-    properties (GetAccess = public, SetAccess = private)
+    properties (GetAccess = public, SetAccess = protected)
         scalarProduct
     end
     

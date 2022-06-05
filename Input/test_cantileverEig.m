@@ -6,14 +6,14 @@ initial_case = 'full';
 cost = {'firstEigTopCost'};
 weights = [1];
 constraint = {'ModalfirstEigConstraint','volumeConstraint'};
-constraint_case = {'INEQUALITY'};
+constraint_case = {'INEQUALITY','INEQUALITY'};
 optimizerUnconstrained = 'PROJECTED GRADIENT';%'SLERP';%'PROJECTED GRADIENT'; 
 optimizer = 'MMA'; %'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
 incrementFactor = 1;
 designVariable = 'DensityEigModes';%'LevelSet';%'Density';
 filterType = 'P1';
 
-nsteps = 5;
+nsteps = 1;
 Vfrac_final = 0.4;
 optimality_final =1e-5;
 constr_final =1e-3;

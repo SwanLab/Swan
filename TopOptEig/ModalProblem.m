@@ -45,7 +45,7 @@ classdef ModalProblem < handle
             obj.computeStiffnessMatrix();
             obj.computeMassMatrix(xReg);
             obj.computeEigModes();
-            %obj.computeStrain();
+            obj.computeStrain();
             %obj.computeStress();
         end
 
@@ -184,16 +184,16 @@ classdef ModalProblem < handle
         end
 
         function computeMassMatrix(obj,xReg)
-            s.type = 'MassMatrix'; % 'MassMatrixModal'
+            s.type = 'MassMatrixModal';
             s.mesh          = obj.mesh;
             s.quadType      = 'QUADRATICMASS';
             s.globalConnec  = obj.displacementField.connec;
             s.dim           = obj.displacementField.dim;
             s.material      = obj.material;
             s.interpolation = obj.interpolation;
-            s.quadrature    = obj.quadrature;
+            s.quadrature    = obj.quadrature;            
             LHS = LHSintegrator.create(s);
-            M   = LHS.compute(); % xReg
+            M   = LHS.compute(xReg); 
             obj.massMatrix = M;
         end
 
@@ -204,8 +204,8 @@ classdef ModalProblem < handle
             Mfree = obj.provideFreeMatrix(M);
             [v,d] = eigs(Kfree,Mfree,2,'SM');
             V = obj.addBoundaryConditions(v);
-            Vf = obj.filterDOFtoELEM(V);
-            obj.variables.eigenModes  = Vf;
+         %   Vf = obj.filterDOFtoELEM(V);
+            obj.variables.eigenModes  = V;
             lambda = obj.computeLambda(d);
             obj.variables.eigenValues  = lambda;
         end
@@ -239,6 +239,17 @@ classdef ModalProblem < handle
             l = sort(diag(d));
         end
 
+        function computeStrain(obj)
+            obj.createDisplacementField();
+            s.dim          = obj.displacementField.dim;
+            s.mesh         = obj.mesh;
+            s.quadrature   = obj.quadrature;
+            s.displacement = obj.variables.eigenModes(:,1);
+            s.dispField    = obj.displacementField;
+            scomp  = StrainComputer(s);
+            strain = scomp.compute();
+            obj.variables.strain = strain;        
+        end
     end
     
 end
