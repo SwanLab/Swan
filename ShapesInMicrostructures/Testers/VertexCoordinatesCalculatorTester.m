@@ -25,7 +25,12 @@ classdef VertexCoordinatesCalculatorTester < Tester
     methods (Access = private)
         
         function loadCorrectValues(obj)
-            vC = load('vertCoordQuad.mat');
+            switch obj.data.nvert
+                case 4
+                    vC = load('vertCoordQuad.mat');
+                case 6
+                    vC = load('vertCoordHex.mat');
+            end
             obj.corrValues(1).Matrix = vC.vertCoord;
         end
         

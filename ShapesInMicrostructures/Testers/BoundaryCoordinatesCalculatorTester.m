@@ -25,7 +25,12 @@ classdef BoundaryCoordinatesCalculatorTester < Tester
     methods (Access = private)
         
         function loadCorrectValues(obj)
-            bC = load('boundaryQuad.mat');
+            switch obj.data.nvert
+                case 4
+                    bC = load('boundaryQuad.mat');
+                case 6
+                    bC = load('boundCoordHex.mat');
+            end
             obj.corrValues(1).Matrix = bC.boundary;
         end
         

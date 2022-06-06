@@ -1,16 +1,16 @@
-function testHexagonalSolutions
+function testQuadrilateralSolutions
     %PREAMBLE
-    % test for the hexagonalMesh with sideLength = 1 and unitDiv = 3
-    sideLength = [1,1,1];
-    theta = [0,60,120];
+    % test for the squaredMesh with sideLength = 1 and unitDiv = 3
+    sideLength = [1,1];
+    theta = [0,90];
     divUnit = 3;
     % Initial Data
-    nV = load('nvertHex.mat');
-    bN = load('boundNodesHex.mat');
-    tN = load('totalNodesHex.mat');
-    vC = load('vertCoordHex.mat');
-    b = load('boundCoordHex.mat');
-    c = load('totalCoordHex.mat');
+    nV = load('nvertQuad.mat');
+    bN = load('boundNodesQuad.mat');
+    tN = load('totalNodesQuad.mat');
+    vC = load('vertCoordQuad.mat');
+    b = load('boundaryQuad.mat');
+    c = load('coordQuad.mat');
     initialData.c = sideLength;
     initialData.theta = theta;
     initialData.divUnit = divUnit;
@@ -22,12 +22,12 @@ function testHexagonalSolutions
     initialData.vertCoord = vC.vertCoord;
     initialData.boundCoord = b.boundary;
     initialData.coord = c.coord;
-    initialData.filename = 'TestHexagonalSol';
+    initialData.filename = 'TestQuadrilateralSol';
     
     %TESTERS
     testers = {'NodesCalculatorTester','VertexCoordinatesCalculatorTester',...
-    'BoundaryCoordinatesCalculatorTester','DiagonalCoordComputerTester',...
-    'MasterSlaveComputerTester','HexagonalNodesCalculatorTester',...
+    'BoundaryCoordinatesCalculatorTester','IntersectionCoordComputerTester',...
+    'MasterSlaveComputerTester','QuadrilateralNodesCalculatorTester',...
     'NodeCoordinatesComputerTester','MeshCreatorTester'};
     
     for iTest = 1:length(testers)

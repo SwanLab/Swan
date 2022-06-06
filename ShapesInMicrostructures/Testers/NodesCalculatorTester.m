@@ -25,9 +25,16 @@ classdef NodesCalculatorTester < Tester
     methods (Access = protected)
         
         function loadCorrectValues(obj)
-            nV = load('nvertQuad.mat');
-            bN = load('boundNodesQuad.mat');
-            tN = load('totalNodesQuad.mat');
+            switch obj.data.nvert
+                case 4
+                    nV = load('nvertQuad.mat');
+                    bN = load('boundNodesQuad.mat');
+                    tN = load('totalNodesQuad.mat');
+                case 6
+                    nV = load('nvertHex.mat');
+                    bN = load('boundNodesHex.mat');
+                    tN = load('totalNodesHex.mat');
+            end
             obj.corrValues(1).Matrix = nV.nvert;
             obj.corrValues(2).Matrix = bN.boundNodes;
             obj.corrValues(3).Matrix = tN.totalNodes;

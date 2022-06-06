@@ -25,9 +25,16 @@ classdef NodeCoordinatesComputerTester < Tester
     methods (Access = protected)
         
         function loadCorrectValues(obj)
-            vC = load('vertCoordQuad.mat');
-            bC = load('boundaryQuad.mat');
-            tC = load('coordQuad.mat');
+            switch obj.data.nvert
+                case 4
+                    vC = load('vertCoordQuad.mat');
+                    bC = load('boundaryQuad.mat');
+                    tC = load('coordQuad.mat');
+                case 6
+                    vC = load('vertCoordHex.mat');
+                    bC = load('boundCoordHex.mat');
+                    tC = load('totalCoordHex.mat');
+            end
             obj.corrValues(1).Matrix = vC.vertCoord;
             obj.corrValues(2).Matrix = bC.boundary;
             obj.corrValues(3).Matrix = tC.coord;
