@@ -19,6 +19,7 @@ Data_prb = {
 'Stokes';
 'MACRO'
 };
+state = 'Steady';
 
 %% Coordinates
 % Node                X                Y                Z
@@ -95,6 +96,9 @@ connec = [
 
 %% Variable Prescribed
 % Node            Dimension                Value
+
+velocityBC.domain = 'Border';
+velocityBC.value  = 0;
 
 velocity = [
 1 1 0 

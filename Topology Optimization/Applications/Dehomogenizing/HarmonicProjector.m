@@ -118,7 +118,8 @@ classdef HarmonicProjector < handle
         end
 
         function createSolver(obj)
-            s = Solver.create();
+            a.type = 'DIRECT';
+            s = Solver.create(a);
             obj.solver = s;
         end
 

@@ -100,7 +100,8 @@ classdef MinimumGradFieldWithVectorInL2 < handle
         end
         
         function u = solveSystem(obj)
-            s = Solver.create();
+            a.type = 'DIRECT';
+            s = Solver.create(a);
             u = s.solve(obj.LHS,obj.RHS);
             u = u(1:end-1);
         end

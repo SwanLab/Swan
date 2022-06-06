@@ -1,4 +1,4 @@
-classdef FemDataContainer < AbstractSettings
+classdef StokesDataContainer < AbstractSettings
     
     properties (Access = protected)
         defaultParamsName = ''
@@ -7,6 +7,9 @@ classdef FemDataContainer < AbstractSettings
     properties (Access = public)
         fileName
         scale
+        state
+        dtime
+        finalTime
         dim
         type
         nelem
@@ -14,12 +17,11 @@ classdef FemDataContainer < AbstractSettings
         mesh
         material
         ngaus
-        interpolationType
     end
     
     methods (Access = public)
         
-        function obj = FemDataContainer(varargin)
+        function obj = StokesDataContainer(varargin)
             if nargin == 1
                 obj.loadParams(varargin{1});
             end
@@ -42,26 +44,25 @@ classdef FemDataContainer < AbstractSettings
             femReader = FemInputReader_GiD();
             s = femReader.read(obj.fileName);
             
-            obj.mesh   = s.mesh;
-            obj.scale  = s.scale;
-            obj.dim   = s.pdim;
-            obj.type  = s.ptype;
-            obj.nelem  = s.mesh.nelem;
-            obj.bc.dirichlet = s.dirichlet;
-            obj.bc.pointload = s.pointload;
-            obj.interpolationType = 'LINEAR';
+            obj.mesh      = s.mesh;
+            obj.scale     = s.scale;
+            obj.state     = s.state;
+            obj.dtime     = s.dtime;
+            obj.finalTime = s.ftime;
+            obj.dim       = s.pdim;
+            obj.type      = s.ptype;
+            obj.nelem     = s.mesh.nelem;
+            obj.bc.velocity = s.velocity;
+            obj.bc.pressure = s.pressure;
+            obj.bc.forcesFormula = s.forcesFormula;
+            obj.bc.velocityBC    = s.velocityBC;
         end
 
         function createMaterial(obj)
-            I = ones(obj.nelem,obj.ngaus);
             s.ptype = obj.type;
-            s.pdim  = obj.dim;
             s.nelem = obj.nelem;
-            s.mesh  = obj.mesh;
-            s.kappa = .9107*I;
-            s.mu    = .3446*I;
             mat = Material.create(s);
-            mat.compute(s);
+            mat.compute();
             obj.material = mat;
         end
 

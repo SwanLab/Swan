@@ -19,7 +19,7 @@ classdef BMatrixComputer < handle
         end
 
         function B = computeBmat(obj,igaus)
-            ndimf = obj.dim.ndimField;
+            ndimf = obj.dim.ndimf;
             switch ndimf
                 case 1
                     obj.nvoigt = 2;
@@ -47,9 +47,9 @@ classdef BMatrixComputer < handle
             d = obj.dim;
             dNdx = obj.geometry.dNdx;
             nstre = obj.nvoigt;
-            nnode = d.nnodeElem;
-            ndimf = d.ndimField;
-            ndofE = d.ndofPerElement;
+            ndimf = d.ndimf;
+            nnode = size(dNdx,2);
+            ndofE = nnode*ndimf;
             nelem = size(dNdx,3);
             B = zeros(nstre,ndofE,nelem);
             for i = 1:nnode
@@ -65,9 +65,9 @@ classdef BMatrixComputer < handle
             d    = obj.dim;
             dNdx = obj.geometry.dNdx;
             nelem = size(dNdx,3);
-            B = zeros(obj.nvoigt,d.ndofPerElement,nelem);
+            B = zeros(obj.nvoigt,d.ndofsElem,nelem);
             for inode = 1:d.nnodeElem
-                j = d.ndimField*(inode-1)+1;
+                j = d.ndimf*(inode-1)+1;
                 % associated to normal strains
                 B(1,j,:)   = dNdx(1,inode,:,igaus);
                 B(2,j+1,:) = dNdx(2,inode,:,igaus);
@@ -88,9 +88,9 @@ classdef BMatrixComputer < handle
             d     = obj.dim;
             nelem = size(obj.geometry.dNdx,3);
             dNdx  = obj.geometry.dNdx(:,:,:,igaus);
-            B = zeros(obj.nvoigt,d.nnodeElem*d.ndimField,nelem);
+            B = zeros(obj.nvoigt,d.ndofsElem,nelem);
             for inode = 1:d.nnodeElem
-                j = d.ndimField*(inode-1) + 1;
+                j = d.ndimf*(inode-1) + 1;
                 B(1,j,:) = dNdx(1,inode,:);
                 B(2,j,:) = dNdx(2,inode,:);
             end
@@ -99,7 +99,7 @@ classdef BMatrixComputer < handle
         function Bmatrix = computeBinMatrixForm(obj)
             nelem = size(obj.geometry.dNdx,3);
             ngaus = size(obj.geometry.dNdx,4);
-            ndofE = obj.dim.ndofPerElement;
+            ndofE = obj.dim.ndofsElem;
             nB = obj.nvoigt*ngaus*nelem;
             Bmatrix = zeros(nB,ndofE);
             for igaus = 1:ngaus
@@ -134,6 +134,7 @@ classdef BMatrixComputer < handle
         function Bt = assembleMatrix(obj, Bfull)
             s.dim = obj.dim;
             s.globalConnec = obj.globalConnec;
+            s.nnodeEl = [];
             dNdx = obj.geometry.dNdx;
             d.nelem = size(dNdx,3);
             d.ngaus = size(dNdx,4);
