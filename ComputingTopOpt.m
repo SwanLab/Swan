@@ -14,8 +14,8 @@ function ComputingTopOpt
 % FEMWriter.createTest;
 
 
-s.testName = 'IsotropyTest';%''testJose';
+s.testName = 'IsotropyTest2';%''testJose';
 t = TopOptComputer(s);
 t.compute();
-t.computation.cost.shapeFunctions{1,1}.Chomog;
+Ch = t.computation.cost.shapeFunctions{1,1}.Chomog;
 end
