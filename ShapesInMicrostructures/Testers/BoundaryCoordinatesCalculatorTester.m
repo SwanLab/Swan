@@ -25,7 +25,7 @@ classdef BoundaryCoordinatesCalculatorTester < Tester
     methods (Access = private)
         
         function loadCorrectValues(obj)
-            bC = load('boundary.mat');
+            bC = load('boundaryQuad.mat');
             obj.corrValues(1).Matrix = bC.boundary;
         end
         

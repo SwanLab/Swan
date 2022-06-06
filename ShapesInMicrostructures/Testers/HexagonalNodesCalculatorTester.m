@@ -25,10 +25,10 @@ classdef HexagonalNodesCalculatorTester < Tester
     methods (Access = protected)
         
         function loadCorrectValues(obj)
-            bN = load('boundNodesH.mat');
-            tN = load('totalNodesH.mat');
+            bN = load('boundNodesHex.mat');
+            tN = load('totalNodesHex.mat');
             obj.corrValues(1).Matrix = bN.boundNodes;
-            obj.corrValues(2).Matrix = tN.nnodes;
+            obj.corrValues(2).Matrix = tN.totalNodes;
         end
         
         function obtainCalculatedData(obj)

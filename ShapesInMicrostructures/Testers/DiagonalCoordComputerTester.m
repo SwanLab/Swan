@@ -25,7 +25,7 @@ classdef DiagonalCoordComputerTester < Tester
     methods (Access = protected)
         
         function loadCorrectValues(obj)
-            tC = load('totalCoordH.mat');
+            tC = load('totalCoordHex.mat');
             obj.corrValues(1).Matrix = tC.coord;
         end
         

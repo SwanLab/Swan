@@ -25,9 +25,9 @@ classdef MeshCreatorTester < Tester
     methods (Access = protected)
         
         function loadCorrectValues(obj)
-            c = load('coord.mat');
-            cN = load('connec.mat');
-            mS = load('masterSlave.mat');
+            c = load('coordQuad.mat');
+            cN = load('connecQuad.mat');
+            mS = load('masterSlaveQuad.mat');
             obj.corrValues(1).Matrix = c.coord;
             obj.corrValues(2).Matrix = cN.connec;
             obj.corrValues(3).Matrix = mS.masterSlave;

@@ -25,7 +25,12 @@ classdef MasterSlaveComputerTester < Tester
     methods (Access = protected)
         
         function loadCorrectValues(obj)
-            mS = load('masterSlave.mat');
+            switch obj.data.nvert
+                case 4
+                    mS = load('masterSlaveQuad.mat');
+                case 6
+                    mS = load('masterSlaveHex.mat');
+            end
             obj.corrValues(1).Matrix = mS.masterSlave;
         end
         

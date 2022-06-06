@@ -25,7 +25,7 @@ classdef IntersectionCoordComputerTester < Tester
     methods (Access = protected)
         
         function loadCorrectValues(obj)
-            c = load('coord.mat');
+            c = load('coordQuad.mat');
             obj.corrValues(1).Matrix = c.coord;
         end
         

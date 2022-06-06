@@ -25,8 +25,8 @@ classdef QuadrilateralNodesCalculatorTester < Tester
     methods (Access = protected)
         
         function loadCorrectValues(obj)
-            bN = load('boundNodes.mat');
-            tN = load('totalNodes.mat');
+            bN = load('boundNodesQuad.mat');
+            tN = load('totalNodesQuad.mat');
             obj.corrValues(1).Matrix = bN.boundNodes;
             obj.corrValues(2).Matrix = tN.totalNodes;
         end
