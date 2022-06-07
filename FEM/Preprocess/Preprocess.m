@@ -83,13 +83,21 @@ classdef Preprocess<handle
             
         end
         
-        function [state, velocity, pressure, Vol_force, velocityBC, dtime, finalTime] = getBCFluidsNew(fileName)
+        function [data] = getBCFluidsNew(fileName)
             run(fileName)
             if ~exist('dtime', 'var')
                 % Steady
                 dtime = Inf;
                 finalTime = [];
             end
+            data.nu = nu;
+            data.state = state;
+            data.velocity = velocity;
+            data.pressure = pressure;
+            data.Vol_force = Vol_force;
+            data.velocityBC = velocityBC;
+            data.dtime     = dtime;
+            data.finalTime = finalTime;
         end
 
         function [fixnodes,forces,full_dirichlet_data,Master_slave] = getBC_fluids(filename,mesh,geometry,interp)

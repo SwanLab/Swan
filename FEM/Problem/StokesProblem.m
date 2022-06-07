@@ -69,6 +69,42 @@ classdef StokesProblem < handle
             end
         end
 
+        function printPressure(obj, fileName)
+            s = obj.createPressureDataBase(fileName);
+            s.pdim  = '2D';
+            s.name  = 'pressure';
+            s.ptype = 'STOKES';
+            s.ndim  = 2; %obj.dim.ndim;
+            s.pdim  = '2D';
+            postprocess = Postprocess('ScalarNodal',s);
+            q = obj.pressureField.quadrature;
+            d.fields = obj.variables.p;
+            d.quad = q;
+            postprocess.print(1,d);
+        end
+
+        function printVelocity(obj, fileName)
+            velocities = obj.splitVelocity();
+            ux = velocities(:,1);
+            uy = velocities(:,2);
+            velNorm = sqrt(ux.^2 + uy.^2);
+            v.velocities(1,:,:) = velocities';
+            s = obj.createVelocityDataBase(fileName);
+            s.pdim  = '2D';
+            s.name  = 'velocity';
+            s.ptype = 'STOKES';
+            s.ndim  = 2; %obj.dim.ndim;
+            s.pdim  = '2D';
+            postprocess = Postprocess('ScalarNodal',s);
+%             postprocess = Postprocess('VectorGauss',s);
+            q = obj.pressureField.quadrature;
+%             d.fields = velocities(:,1);
+            d.fields = velNorm;
+%             d.fields = v.velocities;
+            d.quad = q;
+            postprocess.print(1,d);
+        end
+
     end
     
     methods (Access = private)
@@ -91,7 +127,6 @@ classdef StokesProblem < handle
             s.mesh               = obj.mesh;
             s.ndimf              = 2;
             s.interpolationOrder = 'QUADRATIC';
-            s.scale              = 'MACRO';
             obj.velocityField = Field(s);
         end
 
@@ -100,7 +135,6 @@ classdef StokesProblem < handle
             s.ndimf              = 1;
             s.interpolationOrder = 'LINEAR';
             s.quadratureOrder    = 'QUADRATIC';
-            s.scale              = 'MACRO';
             obj.pressureField = Field(s);
         end
 
@@ -173,6 +207,39 @@ classdef StokesProblem < handle
             Mred = M(freeV,freeV);
             Mred_x_n = Mred*x_n;
             RHS(1:lenFreeV,1) = RHS0(1:lenFreeV,1) + Mred_x_n;
+        end
+
+        function d = createPressureDataBase(obj,fileName)
+            dI.mesh        = obj.mesh;
+            dI.outFileName = fileName;
+            dI.pdim        = '2D';
+            dI.ptype       = 'STOKES';
+            ps = PostProcessDataBaseCreator(dI);
+            d = ps.create();
+        end
+
+        function d = createVelocityDataBase(obj,fileName)
+            msh.coord = obj.velocityField.coord;
+            msh.connec = obj.velocityField.connec;
+            msh.type = 'TRIANGLE';
+            dI.mesh        = msh;
+            dI.outFileName = fileName;
+            dI.pdim        = '2D';
+            dI.ptype       = 'STOKES';
+            ps = PostProcessDataBaseCreator(dI);
+            d = ps.create();
+        end
+
+        function uM = splitVelocity(obj)
+            u = obj.variables.u;
+            nu = obj.velocityField.dim.ndimf;
+            nnode = round(length(u)/nu);
+            nodes = 1:nnode;
+            uM = zeros(nnode,nu);
+            for idim = 1:nu
+                dofs = nu*(nodes-1)+idim;
+                uM(:,idim) = u(dofs);
+            end
         end
 
     end

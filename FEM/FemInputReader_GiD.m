@@ -16,6 +16,7 @@ classdef FemInputReader_GiD < handle
         state
         dtime
         finalTime
+        nu
     end
     
     properties (Access = public)
@@ -53,6 +54,7 @@ classdef FemInputReader_GiD < handle
                 s.masterSlave = obj.masterSlave;
             end
             if isequal(obj.ptype,'Stokes')
+                s.nu       = obj.nu;
                 s.state    = obj.state;
                 s.dtime    = obj.dtime;
                 s.ftime    = obj.finalTime;
@@ -79,14 +81,15 @@ classdef FemInputReader_GiD < handle
         function readFile(obj,fileName)
             data = Preprocess.readFromGiD(fileName);
             if isequal(data.problem_type,'Stokes')
-                [state, vel, prs, forces, velBC, dtime, fTime] = Preprocess.getBCFluidsNew(fileName);
-                obj.state = state;
-                obj.velocity = vel;
-                obj.pressure = prs;
-                obj.velocityBC = velBC;
-                obj.forcesFormula = forces;
-                obj.dtime = dtime;
-                obj.finalTime = fTime;
+                [preData] = Preprocess.getBCFluidsNew(fileName);
+                obj.nu = preData.nu;
+                obj.state = preData.state;
+                obj.velocity = preData.velocity;
+                obj.pressure = preData.pressure;
+                obj.velocityBC = preData.velocityBC;
+                obj.forcesFormula = preData.Vol_force;
+                obj.dtime = preData.dtime;
+                obj.finalTime = preData.finalTime;
             end
             if ~isequal(data.problem_type,'Stokes')
                 [~,~,bNodes,bElem,mSlave] = Preprocess.getBC_mechanics(fileName);

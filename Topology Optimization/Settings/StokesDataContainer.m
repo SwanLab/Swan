@@ -10,6 +10,7 @@ classdef StokesDataContainer < AbstractSettings
         state
         dtime
         finalTime
+        nu
         dim
         type
         nelem
@@ -49,6 +50,7 @@ classdef StokesDataContainer < AbstractSettings
             obj.state     = s.state;
             obj.dtime     = s.dtime;
             obj.finalTime = s.ftime;
+            obj.nu        = s.nu;
             obj.dim       = s.pdim;
             obj.type      = s.ptype;
             obj.nelem     = s.mesh.nelem;
@@ -61,6 +63,7 @@ classdef StokesDataContainer < AbstractSettings
         function createMaterial(obj)
             s.ptype = obj.type;
             s.nelem = obj.nelem;
+            s.nu    = obj.nu;
             mat = Material.create(s);
             mat.compute();
             obj.material = mat;

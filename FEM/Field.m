@@ -45,13 +45,27 @@ classdef Field < handle
                 if isstruct(param)
                     switch param.domain
                         case 'Border'
-                        x = obj.coord(:,1);
-                        y = obj.coord(:,2);
-                        idx = find(x == 0 | x == 1 | y == 0 | y == 1);
-                        one = ones(length(idx),1);
-                        newDirich = [idx, one, one*param.value;
-                                     idx, 2*one, one*param.value];
-                        newBC.dirichlet = sortrows(newDirich);
+                            x = obj.coord(:,1);
+                            y = obj.coord(:,2);
+                            idx = find(x == 0 | x == 1 | y == 0 | y == 1);
+                            one = ones(length(idx),1);
+                            newDirich = [idx, one, one*param.value;
+                                         idx, 2*one, one*param.value];
+                            newBC.dirichlet = sortrows(newDirich);
+                        case 'Top'
+                            x = obj.coord(:,1);
+                            y = obj.coord(:,2);
+                            lidIdx = find(y == 1);
+                            noSlipIdx = find(x == 0 | x == 1 | y == 0);
+                            oneSlip = ones(length(noSlipIdx),1);
+                            newSlipDirich = [noSlipIdx, oneSlip, oneSlip*0;
+                                         noSlipIdx,  2*oneSlip, oneSlip*0];
+                            oneLid = ones(length(lidIdx),1);
+                            newLidDirich = [lidIdx, oneLid, oneLid*param.value;
+                                         lidIdx, 2*oneLid, oneLid*0];
+                            newDirich = [newLidDirich; newSlipDirich];
+                            newBC.dirichlet = sortrows(newDirich);
+
                     end
                 end
             end

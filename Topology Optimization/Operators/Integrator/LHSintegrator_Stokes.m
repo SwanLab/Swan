@@ -39,9 +39,10 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         end
 
         function LHS = computeVelocityLHS(obj)
+            visc = obj.material.nu;
             K = obj.computeVelocityLaplacian();
             M = obj.computeMassMatrix();
-            lhs = K + M;
+            lhs = visc*K + M;
             LHS = obj.symGradient(lhs);
         end
 

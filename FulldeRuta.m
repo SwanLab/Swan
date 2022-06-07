@@ -1,3 +1,7 @@
+%% Questions
+% - Stokes
+%   Only valid for no-slip conditions?
+
 %% Updates
 % - Field
 %   BoundaryConditions no longer there, but they can be used to

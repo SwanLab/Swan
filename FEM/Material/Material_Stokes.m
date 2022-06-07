@@ -2,12 +2,14 @@ classdef Material_Stokes < Material
     
     properties (Access = public)
         mu
+        nu
     end
     
     methods (Access = public) 
         
         function obj = Material_Stokes(cParams)
             obj.nElem = cParams.nelem;
+            obj.nu    = cParams.nu;
         end
 
         function compute(obj)
