@@ -51,7 +51,7 @@ classdef EulerBeamOptimizer < handle
     methods (Access = private)
         
         function init(obj)
-            obj.nElem         = 10;
+            obj.nElem         = 60;
             obj.nConstraints  = 3; 
             obj.columnLength  = 1; 
             obj.nValues       = obj.nElem+1;

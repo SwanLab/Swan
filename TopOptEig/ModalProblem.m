@@ -17,6 +17,8 @@ classdef ModalProblem < handle
         pdim
         ptype
         inputBC
+        V
+        modes
     end
     
     properties (Access = private)
@@ -24,7 +26,6 @@ classdef ModalProblem < handle
         
         material
 
-        
         interpolation
         interpolationType
         displacementField
@@ -41,12 +42,13 @@ classdef ModalProblem < handle
             % obj.createSolver();
         end
 
-        function solve(obj,xReg)
+        function solve(obj,x)
             obj.computeStiffnessMatrix();
-            obj.computeMassMatrix(xReg);
+            obj.computeMassMatrix(x);
             obj.computeEigModes();
             obj.computeStrain();
-            %obj.computeStress();
+            obj.printInGiD();
+            % obj.computeStress();
         end
 
         function dim = getDimensions(obj)
@@ -93,7 +95,7 @@ classdef ModalProblem < handle
 
         function computeDimensions(obj)
             s.type      = 'Vector';
-            s.fieldName = 'u';
+            s.fieldName = 'Disp';%'u';
             s.mesh      = obj.mesh;
             s.ndimf = str2double(regexp(obj.pdim,'\d*','Match'));
             d = DimensionVariables.create(s);
@@ -112,42 +114,49 @@ classdef ModalProblem < handle
         end
 
         function createBoundaryConditions(obj)
-            d = obj.dim;
-            FixNod = obj.computeFixedNodes();
-            FixDof = obj.computeFixedDOFs(FixNod);
-            dofs = 1:d.ndofs;
-            free  = setdiff(dofs,FixDof);
-            obj.freeDOFs = free;
+            bc = obj.displacementField.inputBC;
+            bc.ndimf = obj.displacementField.dim.ndimf;
+            bc.ndofs = obj.displacementField.dim.ndofs;
+            s.dim   = obj.displacementField.dim;
+            s.mesh  = obj.mesh;
+            s.scale = 'MACRO';
+            s.bc    = {bc};
+            s.ndofs = obj.displacementField.dim.ndofs;
+            bc = BoundaryConditions(s);
+            bc.compute();
+            obj.boundaryConditions = bc;
         end
 
-        function FN = computeFixedNodes(obj)
-            coorX = obj.mesh.coord(:,1);
-            coorY = obj.mesh.coord(:,2);
-            tol = 0.001;
-            minX = min(coorX) + tol;
-            maxX = max(coorX) - tol;
-            minY = min(coorY) + tol;
-            maxY = max(coorX) - tol;
-            FN1 = find(coorX < minX);
-            %FN1 = find(coorX < minX & coorY < 0.3);
-            %FN2 = find(coorX < minX & coorY > (maxY-0.3));
-            FN2 = find(coorX > maxX);
-            %FN3 = find(coorX > maxX & coorY < 0.3);
-            %FN4 = find(coorX > maxX & coorY > (maxY-0.3));
-            FN = [FN1 ; FN2];
-            %FN = [FN1; FN2; FN3; FN4];
-        end
+        %         function createBoundaryConditions(obj)
+        %             d = obj.dim;
+        %             FixNod = obj.computeFixedNodes();
+%             FixDof = obj.computeFixedDOFs(FixNod); 
+%             dofs = 1:d.ndofs;
+%             free  = setdiff(dofs,FixDof);
+%             obj.freeDOFs = free';
+%         end  
 
-        function FixDof = computeFixedDOFs(obj, FixNod)
-            d = obj.dim;
-            nDOFn = d.ndofs/d.nnodes;
-            FD = zeros(nDOFn*length(FixNod),1);
-            for i = 1: length(FixNod)
-                FD(2*i-1,1) = FixNod(i)*2-1;
-                FD(2*i,1) = FixNod(i)*2;
-            end
-            FixDof = FD';
-        end
+%         function FN = computeFixedNodes(obj)
+%             coorX = obj.mesh.coord(:,1);
+%             % coorY = obj.mesh.coord(:,2);
+%             tol = 0.001;
+%             minX = min(coorX) + tol;
+%             maxX = max(coorX) - tol;
+%             FN1 = find(coorX < minX);
+%             FN2 = find(coorX > maxX);
+%             FN = [FN1 ; FN2];
+%         end
+
+%         function FixDof = computeFixedDOFs(obj, FixNod)
+%             d = obj.dim;
+%             nDOFn = d.ndofs/d.nnodes;
+%             FD = zeros(nDOFn*length(FixNod),1);
+%             for i = 1: length(FixNod)
+%                 FD(2*i-1,1) = FixNod(i)*2-1;
+%                 FD(2*i,1) = FixNod(i)*2;
+%             end
+%             FixDof = FD';
+%         end
 
         function createDOFsconnect(obj)
             connec  = obj.mesh.connec;
@@ -193,47 +202,60 @@ classdef ModalProblem < handle
             s.interpolation = obj.interpolation;
             s.quadrature    = obj.quadrature;            
             LHS = LHSintegrator.create(s);
-            M   = LHS.compute(xReg); 
+            M   = LHS.compute(xReg); % xReg 
             obj.massMatrix = M;
         end
 
         function computeEigModes(obj)
+            bc = obj.boundaryConditions;
             K = obj.stiffnessMatrix;
             M = obj.massMatrix;
-            Kfree = obj.provideFreeMatrix(K);
-            Mfree = obj.provideFreeMatrix(M);
+            Kfree = bc.fullToReducedMatrix(K);
+            Mfree = bc.fullToReducedMatrix(M);
             [v,d] = eigs(Kfree,Mfree,2,'SM');
-            V = obj.addBoundaryConditions(v);
-         %   Vf = obj.filterDOFtoELEM(V);
-            obj.variables.eigenModes  = V;
+            obj.computeBucklingModes(v);
+            obj.variables.eigenModes  = obj.V;
+            %obj.variables.mode1 = obj.V(:,1);
+            %obj.variables.mode2 = obj.V(:,2);
             lambda = obj.computeLambda(d);
             obj.variables.eigenValues  = lambda;
         end
 
-        function MatrixFree = provideFreeMatrix(obj,Matrix)
-            free = obj.freeDOFs;
-            MatrixFree = Matrix(free,free);
+        function computeBucklingModes(obj,v)
+            ndof = obj.dim.ndofs;
+            Modes=zeros(ndof,2);
+            free = obj.boundaryConditions.free;
+            Modes(free,1) = v(:,1);
+            Modes(free,2) = v(:,2);
+            obj.variables.modes = Modes;
+            obj.V = Modes;
         end
 
-        function V = addBoundaryConditions(obj,v)
-            free = obj.freeDOFs;
-            V = zeros(obj.dim.ndofs,2);
-            V(free,1) = v(:,1);
-            V(free,2) = v(:,2);
-        end
+%         function MatrixFree = provideFreeMatrix(obj,Matrix)
+%             free = obj.freeDOFs;
+%             MatrixFree = Matrix(free,free);
+%         end
 
-        function V_f = filterDOFtoELEM(obj,V)
-            connec = obj.mesh.connec;
-            nnodeEl = obj.dim.nnodeElem;
-            nunkn   = obj.dim.ndimf;
-            for inode=1:nnodeEl
-                nodes = connec(:,inode);
-                for idime = 1:nunkn
-                    dofs = nunkn*(nodes - 1) + idime;
-                    V_f = V(dofs,:);
-                end
-            end
-        end
+%         function V = addBoundaryConditions(obj,v)
+%             free = obj.freeDOFs;
+%             obj.V = zeros(obj.dim.ndofs,2);
+%             obj.V(free,1) = v(:,1);
+%             obj.V(free,2) = v(:,2);
+%             V = obj.V;
+%         end
+
+%         function V_f = filterDOFtoELEM(obj,V)
+%             connec = obj.mesh.connec;
+%             nnodeEl = obj.dim.nnodeElem;
+%             nunkn   = obj.dim.ndimf;
+%             for inode=1:nnodeEl
+%                 nodes = connec(:,inode);
+%                 for idime = 1:nunkn
+%                     dofs = nunkn*(nodes - 1) + idime;
+%                     V_f = V(dofs,:);
+%                 end
+%             end
+%         end
 
         function l = computeLambda(obj,d)
             l = sort(diag(d));
@@ -249,6 +271,32 @@ classdef ModalProblem < handle
             scomp  = StrainComputer(s);
             strain = scomp.compute();
             obj.variables.strain = strain;        
+        end
+
+        function printInGiD(obj)
+            fileName = 'EigModesPro2';
+            m = obj.mesh;
+            quad = Quadrature.set(m.type);
+            quad.computeQuadrature('LINEAR');
+            dI = obj.createPostProcessDataBase(m,fileName);
+            dI.ndim   = 2;
+            dI.pdim   = '2D';
+            dI.ptype  = 'ELASTIC';
+            dI.name = '';
+            dI.printers = 'DensityGauss'; % 'HomogenizedTensor'
+            p = Postprocess('VectorField',dI);
+            % f.u = obj.mode1;
+            dP.fields.u = obj.variables.modes;
+            dP.quad   = quad;
+            iter = 0;
+            p.print(iter,dP);
+        end
+
+        function d = createPostProcessDataBase(obj,mesh,fileName)
+            dI.mesh    = mesh;
+            dI.outFileName = fileName;
+            ps = PostProcessDataBaseCreator(dI);
+            d = ps.create();
         end
     end
     

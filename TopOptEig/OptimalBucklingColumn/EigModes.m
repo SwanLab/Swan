@@ -92,8 +92,8 @@ classdef EigModes < handle
             ndofe = d.ndofsElem;
             ndofn = d.ndofsElem/d.nnodeElem;
             nElem = obj.mesh.nelem;
-            W1    = zeros(d.ndof,1);
-            W2    = zeros(d.ndof,1);
+            W1    = zeros(d.ndofs,1);
+            W2    = zeros(d.ndofs,1);
             dW1   = zeros(nElem,1);
             dW2   = zeros(nElem,1);
             dW1W2 = zeros(nElem,1);

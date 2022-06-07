@@ -50,7 +50,7 @@ classdef ShFunc_Modal < ShFunWithElasticPdes
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C) % (:,:,7200,4); cmat
 %             obj.physicalProblem.computeVariables();
             x = obj.regDesignVariable;
-            obj.physicalProblem.solve(x);
+            obj.physicalProblem.solve(x); % x
         end
         
         function solveAdjoint(obj)
@@ -86,7 +86,8 @@ classdef ShFunc_Modal < ShFunWithElasticPdes
              end
              eigValues =  phy.variables.eigenValues;
              val = eigValues(1);
-             g = (gK - val);
+             % x = obj.regDesignVariable;
+             g = (gK - val); % x{1}
              obj.gradient = g;
         end
 
