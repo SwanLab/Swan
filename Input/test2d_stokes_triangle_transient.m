@@ -20,6 +20,8 @@ Data_prb = {
 'MACRO'
 };
 state = 'Transient';
+dtime = 0.01;
+finalTime = 1;
 
 %% Coordinates
 % Node                X                Y                Z
