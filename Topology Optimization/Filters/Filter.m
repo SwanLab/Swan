@@ -29,6 +29,7 @@ classdef Filter < handle
     
     properties (Access = private)
         interp
+        field
     end
     
     methods (Access = public, Static)
@@ -71,8 +72,8 @@ classdef Filter < handle
             obj.createDiffReacProblem(cParams);
             obj.mesh = cParams.mesh;
             obj.quadratureOrder = cParams.quadratureOrder;
-            dim = obj.computeDimensions();
-            obj.computeMassMatrix(dim);
+            obj.createField();
+            obj.computeMassMatrix();
         end
         
         function A_nodal_2_gauss = computeA(obj)
@@ -112,20 +113,19 @@ classdef Filter < handle
     end
     
     methods (Access = private)
-
-        function dim = computeDimensions(obj)
-            s.type = 'Scalar';
-            s.name = 'x';
-            s.mesh = obj.mesh;
-            dim   = DimensionVariables.create(s);
-        end
         
-        function M = computeMassMatrix(obj, dim)
-            s.type         = 'MassMatrix';
-            s.quadType     = 'QUADRATICMASS';
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.dim          = dim;
+        function createField(obj)
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1;
+            s.interpolationOrder = 'LINEAR';
+            s.quadratureOrder    = 'QUADRATICMASS';
+            obj.field = Field(s);
+        end
+
+        function computeMassMatrix(obj)
+            s.type  = 'MassMatrix';
+            s.mesh  = obj.mesh;
+            s.field = obj.field;
             LHS = LHSintegrator.create(s);
             obj.M = LHS.compute();
         end
@@ -153,13 +153,13 @@ classdef Filter < handle
             obj.shape = obj.interp.shape;
         end
         
-        function computeElementalMassMatrix(obj)
-            nel = obj.geometry.interpolation.nelem;
-            for igauss = 1:obj.quadrature.ngaus
-                dvolu = obj.geometry.dvolu(:,igauss);
-                obj.M0{igauss} = sparse(1:nel,1:nel,dvolu);
-            end
-        end
+%         function computeElementalMassMatrix(obj)
+%             nel = obj.geometry.interpolation.nelem;
+%             for igauss = 1:obj.quadrature.ngaus
+%                 dvolu = obj.geometry.dvolu(:,igauss);
+%                 obj.M0{igauss} = sparse(1:nel,1:nel,dvolu);
+%             end
+%         end
         
     end
     
