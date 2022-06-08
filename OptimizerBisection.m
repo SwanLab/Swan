@@ -209,7 +209,7 @@ classdef OptimizerBisection < Optimizer
                 m = obj.globalMerit;
                 t = obj.globalLineSearch;
                 d = obj.globalDual;
-                save('BisectionVariables.mat',"t","m","c","g","h","d");
+                save('BisectionVariablesStep1.mat',"t","m","c","g","h","d");
             end
         end
 

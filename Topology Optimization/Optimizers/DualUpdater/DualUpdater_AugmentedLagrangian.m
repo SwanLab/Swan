@@ -63,7 +63,7 @@ classdef DualUpdater_AugmentedLagrangian < handle
             g      = obj.constraint.value(i,1);
             l      = obj.dualVariable.value(i,1);
             rho    = obj.penalty;
-            isZero = g + l/rho < 0;
+            isZero = g < -l/rho;
         end
 
     end

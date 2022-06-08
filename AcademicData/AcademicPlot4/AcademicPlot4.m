@@ -1,7 +1,7 @@
 %% ACADEMIC PLOT TEST 4 %%
 close all
 
-load("NullSpaceVariablesAcademicProva.mat");
+load("NullSpaceAcademicT4.mat");
 cost.Null  = c;
 it.Null    = 1:length(cost.Null);
 % merit.Null = m;
@@ -52,7 +52,7 @@ plot(k4(1,end),k4(2,end),'p','Color','k','LineWidth',2)
 % plot(k5(1,:),k5(2,:),'k','LineWidth',1)
 grid on
 legend('','Null Space','Augmented Lagrangian','fmincon-SQP','fmincon-IPOPT','Initial point','Optimum')
-title('Academic test 4')
+title('Academic test 3')
 xlabel('x_1')
 ylabel('x_2')
 % view(0,90)    % change to top view

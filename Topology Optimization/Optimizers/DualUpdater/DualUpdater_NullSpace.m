@@ -9,7 +9,6 @@ classdef DualUpdater_NullSpace < handle
        problem
        options
        constraintCase
-       tau
        nConstr
        constrTol
        dualOld
@@ -23,10 +22,11 @@ classdef DualUpdater_NullSpace < handle
 
         function update(obj)
             k = 1;
+            isIneq = false;
             for i = 1:obj.nConstr
                 switch obj.constraintCase{i}
                     case {'EQUALITY'}
-                      
+                       
                     case {'INEQUALITY'}
                         isIneq = true;
                         pos(k) = i;
@@ -36,6 +36,8 @@ classdef DualUpdater_NullSpace < handle
             if isIneq
                 obj.computeQuadraticProblem(pos);
             else
+%                 pos = 0;
+%                 obj.computeQuadraticProblem(pos);
                 obj.computeDirectDual();
             end
         end
@@ -71,7 +73,10 @@ classdef DualUpdater_NullSpace < handle
             S  = (Dh'*Dh)^-1;
             aJ = 1;
             aC = 1;
-            l  = aC/aJ*S*(h - 1*Dh'*DJ);
+            f  = 6;
+            AC = min(f,aC/aJ*S*h);
+            AJ = -aC/aJ*S*Dh'*DJ;
+            l  = AC + AJ;
             obj.dualVariable.value = l;
         end
 
@@ -90,16 +95,16 @@ classdef DualUpdater_NullSpace < handle
             Dg = obj.constraint.gradient;
             DJ = obj.cost.gradient;
             g  = obj.constraint.value;
-            t  = 1;%obj.tau;
+            i  = length(g);
             prob.H      = Dg'*Dg;
-            prob.f      = -g + t*Dg'*DJ;
+            prob.f      = -g + Dg'*DJ;
             prob.A      = [];
             prob.b      = [];
             prob.Aeq    = [];
             prob.beq    = [];
-            prob.lb     = -inf*ones(length(g),1);
+            prob.lb     = -inf*ones(i,1);
             prob.lb(pos)= 0;
-            prob.ub     = inf*ones(length(g),1);
+            prob.ub     = 100*ones(length(g),1);
             prob.x0     = zeros(length(prob.H),1);
             prob.solver = 'quadprog';
             obj.problem = prob;

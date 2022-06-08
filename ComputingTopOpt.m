@@ -6,8 +6,8 @@ fileName = 'CantileverArnau2';
 s.testName = [fileName,'.m'];
 s.x1       = 2;
 s.y1       = 1;
-s.N        = 40;
-s.M        = 40;
+s.N        = 60;
+s.M        = 60;
 s.P        = -100;
 s.DoF      = 2;
 

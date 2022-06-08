@@ -1,7 +1,7 @@
 %% ACADEMIC PLOT TEST 2 %%
 close all
 
-load("NullSpaceVariablesAcademic2.mat");
+load("NullSpaceAcademicT2.mat");
 cost.Null  = c;
 it.Null    = 1:length(cost.Null);
 % merit.Null = m;

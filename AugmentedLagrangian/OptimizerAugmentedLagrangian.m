@@ -11,7 +11,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         costOld
         upperBound
         lowerBound
-        tol = 1e-14
+        tol = 1e-3
         nX
         nConstr
         hasConverged
@@ -248,7 +248,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
 %                 t = obj.globalLineSearch;
                 d = obj.globalDual;
                 v = obj.globalDesignVar;
-                save('AugmentedLagrAcademic4.mat',"c","g","h","d","v");
+                save('AugmentedLagrT1.mat',"c","g","h","d","v");
             end
         end
 
