@@ -1,8 +1,8 @@
 classdef Filter_P1_Density < handle
     
     properties (Access = private)
-        mesh
-        quadratureOrder
+       mesh
+       quadratureOrder
         
         Poper
 
@@ -15,8 +15,6 @@ classdef Filter_P1_Density < handle
         M
         Kernel
         interp
-
-        field
     end
     
     properties
@@ -27,7 +25,6 @@ classdef Filter_P1_Density < handle
         
         function obj = Filter_P1_Density(cParams)
             obj.init(cParams);
-            obj.createField();
             obj.createMassMatrix();
             obj.createQuadrature();
             obj.createInterpolation();
@@ -90,22 +87,28 @@ classdef Filter_P1_Density < handle
             P = obj.Poper.value;
             obj.Kernel = P*obj.M;
         end
-
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATICMASS';
-            obj.field = Field(s);
-        end
         
         function createMassMatrix(obj)
-            s.type  = 'MassMatrix';
-            s.mesh  = obj.mesh;
-            s.field = obj.field;
+            dim  = obj.computeDimensions();
+            Mmat = obj.computeMassMatrix(dim);
+            obj.M = Mmat;
+        end
+
+        function dim = computeDimensions(obj)
+            s.type = 'Scalar';
+            s.name = 'x';
+            s.mesh = obj.mesh;
+            dim   = DimensionVariables.create(s);
+        end
+        
+        function M = computeMassMatrix(obj, dim)
+            s.type         = 'MassMatrix';
+            s.quadType     = 'QUADRATICMASS';
+            s.mesh         = obj.mesh;
+            s.globalConnec = obj.mesh.connec;
+            s.dim          = dim;
             LHS = LHSintegrator.create(s);
-            %M = LHS.compute();
-            obj.M = LHS.compute();
+            M = LHS.compute(); 
         end
         
         function intX = integrateRHS(obj,x)

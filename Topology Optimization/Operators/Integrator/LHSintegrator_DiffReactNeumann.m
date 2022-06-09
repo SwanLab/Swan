@@ -8,7 +8,7 @@ classdef LHSintegrator_DiffReactNeumann < LHSintegrator
     methods (Access = public)
 
         function obj = LHSintegrator_DiffReactNeumann(cParams)
-            obj.mesh = cParams.mesh;
+            obj.init(cParams);
             obj.computeStiffnessMatrix();
             obj.computeMassMatrix();
         end
@@ -20,32 +20,26 @@ classdef LHSintegrator_DiffReactNeumann < LHSintegrator
     end
 
     methods (Access = private)
-
+    
         function computeStiffnessMatrix(obj)
-            g.mesh               = obj.mesh;
-            g.ndimf              = 1;
-            g.interpolationOrder = 'LINEAR';
-            g.quadratureOrder    = 'LINEAR';
-            f = Field(g);
             s.type = 'StiffnessMatrix';
-            s.mesh  = obj.mesh;
-            s.field = f;
+            s.mesh         = obj.mesh;
+            s.globalConnec = obj.mesh.connec;
+            s.dim          = obj.dim;
             LHS = LHSintegrator.create(s);
             obj.K = LHS.compute();
         end
-
+        
         function computeMassMatrix(obj)
-            g.mesh               = obj.mesh;
-            g.ndimf              = 1;
-            g.interpolationOrder = 'LINEAR';
-            g.quadratureOrder    = 'QUADRATICMASS';
-            f = Field(g);
-            s.type  = 'MassMatrix';
-            s.mesh  = obj.mesh;
-            s.field = f;
+            s.type         = 'MassMatrix';
+            s.quadType     = 'QUADRATICMASS';
+            s.mesh         = obj.mesh;
+            s.globalConnec = obj.mesh.connec;
+            s.dim          = obj.dim;
             LHS = LHSintegrator.create(s);
             obj.M = LHS.compute();
         end
+
 
     end
 

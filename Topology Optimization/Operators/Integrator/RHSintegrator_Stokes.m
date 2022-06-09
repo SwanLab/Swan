@@ -28,12 +28,12 @@ classdef RHSintegrator_Stokes < handle
             obj.forcesFormula = cParams.forcesFormula;
         end
 
-        function RHS = computeRHS(obj)
+        function RHS_elem = computeRHS(obj)
             Fext = obj.computeVolumetricFext();
             g = obj.computeVelocityDivergence();
-            rhs{1,1} = Fext;
-            rhs{2,1} = g;
-            RHS = obj.assemble(rhs);
+            RHS_elem{1,1} = Fext;
+            RHS_elem{2,1} = g;
+%             RHS = AssembleVector(obj,RHS_elem);
         end
 
         function Fext = computeVolumetricFext(obj)
@@ -83,15 +83,6 @@ classdef RHSintegrator_Stokes < handle
             nunkn = obj.velocityField.dim.ndimf;
             nnode = obj.pressureField.dim.nnodeElem;
             g = zeros(nnode*nunkn,1,obj.mesh.nelem);
-        end
-
-        function RHS = assemble(obj, rhs)
-            s.dim          = [];
-            s.globalConnec = [];
-            s.nnodeEl      = [];
-            assembler = Assembler(s);
-            RHS = assembler.assembleVectorFields(rhs, ...
-                                obj.velocityField, obj.pressureField);
         end
 
     end

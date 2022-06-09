@@ -11,8 +11,8 @@ classdef DiffReactTests < matlab.unittest.TestCase
 
         function testHexagon(testCase, file, LHStype)
             s   = testCase.createFEMparameters(file, LHStype);
-            field = testCase.createField(s.mesh);
-            RHS = testCase.createRHS(s.mesh, field);
+            dim = testCase.computeDimensions(s.mesh);
+            RHS = testCase.createRHS(s.mesh, dim);
             fem = FEM.create(s);
             fem.computeLHS(0.1857);
             fem.computeVariables(RHS);
@@ -29,8 +29,8 @@ classdef DiffReactTests < matlab.unittest.TestCase
         function test3D(testCase, file3d)
             lhstype = 'DiffReactNeumann';
             s   = testCase.createFEMparameters(file3d, lhstype);
-            field = testCase.createField(s.mesh);
-            RHS = testCase.createRHS(s.mesh, field);
+            dim = testCase.computeDimensions(s.mesh);
+            RHS = testCase.createRHS(s.mesh, dim);
             fem = FEM.create(s);
             fem.computeLHS(0.1857);
             fem.computeVariables(RHS);
@@ -69,13 +69,11 @@ classdef DiffReactTests < matlab.unittest.TestCase
             gidParams = gidReader.read(file);
         end
         
-        function field = createField(testCase, msh)
-            s.mesh               = msh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATICMASS';
-            s.scale              = 'MACRO';
-            field = Field(s);
+        function dim = computeDimensions(testCase, msh)
+            s.type = 'Scalar';
+            s.name = 'x';
+            s.mesh = msh;
+            dim   = DimensionVariables.create(s);
         end
         
         function rhs = createRHS(testCase, mesh, dim)
@@ -84,10 +82,12 @@ classdef DiffReactTests < matlab.unittest.TestCase
             rhs = M*u;
         end
         
-        function M = computeM(testCase, mesh, field)
-            s.type  = 'MassMatrix';
-            s.mesh  = mesh;
-            s.field = field;
+        function M = computeM(testCase, mesh, dim)
+            s.type         = 'MassMatrix';
+            s.quadType     = 'QUADRATICMASS';
+            s.mesh         = mesh;
+            s.globalConnec = mesh.connec;
+            s.dim          = dim;
             LHS = LHSintegrator.create(s);
             M = LHS.compute();
         end

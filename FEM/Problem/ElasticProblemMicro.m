@@ -25,8 +25,8 @@ classdef ElasticProblemMicro < ElasticProblem
 
         function Ch = computeChomog(obj)
             nelem = size(obj.material.C,3);
-            npnod = obj.displacementField.dim.nnodes;
-            ndofs = npnod*obj.displacementField.dim.ndimf;
+            npnod = obj.dim.nnodes;
+            ndofs = npnod*obj.dim.ndimf;
             nstre = obj.material.nstre;
             ngaus = obj.quadrature.ngaus;
             basis = diag(ones(nstre,1));
@@ -56,7 +56,7 @@ classdef ElasticProblemMicro < ElasticProblem
 %             s.iter = 0;
 %             s.variables = obj.variables2print;
 %             s.ptype     = obj.problemData.ptype;
-%             s.ndim      = obj.displacementField.dim.ndim;
+%             s.ndim      = obj.dim.ndim;
 %             s.pdim      = obj.problemData.pdim;
 %             s.type      = 'HomogenizedTensor';
 %             fPrinter = FemPrinter(s);
@@ -108,7 +108,7 @@ classdef ElasticProblemMicro < ElasticProblem
 
         function assignVarsToPrint(obj, istre)
             vars = obj.variables;
-            ndimField = obj.displacementField.dim.ndimf; 
+            ndimField = obj.dim.ndimf; 
             obj.variables2print{istre}.d_u          = reshape(vars.d_u',ndimField,[])';
             obj.variables2print{istre}.fext         = reshape(vars.fext',ndimField,[])';
             obj.variables2print{istre}.stress       = vars.stress;

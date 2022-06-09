@@ -36,6 +36,14 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
             cParams = SettingsMeshUnfitted(s);
             obj.unfittedMesh = UnfittedMesh(cParams);
         end
+        
+        function dim = computeDim(obj, mesh)
+            s.type = 'Scalar';
+            s.name = 'x';
+            s.mesh = obj.mesh;
+            dims   = DimensionVariables.create(s);
+            dim = dims;
+        end
 
     end
     

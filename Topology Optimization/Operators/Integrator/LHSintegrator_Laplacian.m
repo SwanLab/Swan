@@ -15,9 +15,9 @@ classdef LHSintegrator_Laplacian < LHSintegrator
             obj.initLaplacian(cParams);
         end
 
-        function LHS = compute(obj)
+        function lhs = compute(obj)
             lhs = obj.computeElementalLHS();
-            LHS = obj.assembleLaplacianMatrix(lhs);
+            %             LHS = obj.assembleMatrix(lhs);
         end
 
     end
@@ -73,14 +73,6 @@ classdef LHSintegrator_Laplacian < LHSintegrator
                 B(3,j,:)  = dNdx(2,i,:);
                 B(4,j+1,:)= dNdx(2,i,:);
             end
-        end
-
-        function lhs = assembleLaplacianMatrix(obj, Ae)
-            s.dim          = obj.field.dim;
-            s.globalConnec = obj.field.connec;
-            s.nnodeEl      = obj.field.dim.nnodeElem;
-            assembler = Assembler(s);
-            lhs = assembler.assemble(Ae);
         end
 
     end

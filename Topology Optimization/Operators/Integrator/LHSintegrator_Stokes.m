@@ -1,7 +1,7 @@
 classdef LHSintegrator_Stokes < handle %LHSintegrator
 
     properties (GetAccess = public, SetAccess = private)
-        M
+        Melem
     end
 
     properties (Access = private)
@@ -9,7 +9,7 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         mesh
         velocityField
         pressureField
-        material
+        
         D
     end
 
@@ -33,16 +33,20 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         function init(obj, cParams)
             obj.dt            = cParams.dt;
             obj.mesh          = cParams.mesh;
-            obj.material      = cParams.material;
             obj.pressureField = cParams.pressureField;
             obj.velocityField = cParams.velocityField;
         end
 
-        function LHS = computeVelocityLHS(obj)
-            K = obj.computeVelocityLaplacian();
-            M = obj.computeMassMatrix();
-            lhs = K + M;
-            LHS = obj.symGradient(lhs);
+        function velLHS = computeVelocityLHS(obj)
+            Ke = obj.computeVelocityLaplacian();
+            Me = obj.computeMassMatrix();
+            Ae = Ke + Me;
+            s.dim          = obj.velocityField.dim;
+            s.globalConnec = obj.velocityField.connec;
+            s.nnodeEl      = obj.velocityField.dim.nnodeElem;
+            assembler = Assembler(s);
+            lhs = assembler.assemble(Ae);
+            velLHS = obj.symGradient(lhs);
         end
 
         function D = computeDmatrix(obj)
@@ -67,22 +71,25 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
             s.type  = 'Laplacian';
             s.mesh  = obj.mesh;
             s.field = obj.velocityField;
-            s.material = obj.material;
+%             s.material = obj.material;
             LHS = LHSintegrator.create(s);
             lhs = LHS.compute();
-            lhs = obj.symGradient(lhs);
         end
 
         function M = computeMassMatrix(obj)
             vel = obj.velocityField;
             dtime = obj.dt;
-            s.type  = 'MassMatrix';
-            s.mesh  = obj.mesh;
-            s.field = vel;
+            s.type          = 'MassMatrix';
+            s.dim           = vel.dim;
+            s.mesh          = obj.mesh;
+            s.quadType      = 'QUADRATIC';
+            s.globalConnec  = []; %vel.connec;
+            s.interpolation = vel.interpolation;
+            s.quadrature    = vel.quadrature;
             LHS = LHSintegrator.create(s);
-            m = LHS.compute();
-            M = m/dtime;
-            obj.M = M;
+            lhs = LHS.computeElemental();
+            M = lhs/dtime;
+            obj.Melem = M;
         end
 
     end

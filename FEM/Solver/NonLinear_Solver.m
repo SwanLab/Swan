@@ -45,11 +45,11 @@ classdef NonLinear_Solver < handle
 
         function sol = solveSteady(obj)
             total_free_dof = sum(obj.free_dof);
-            dt = Inf;
-            dr = obj.element.computedr(dt);
+            dr = obj.element.computedr;
             x0 = zeros(total_free_dof,1);
             
             r = obj.element.computeResidual(x0,dr);
+%             x = x0;
             x = obj.convergeSolution(dr, r, x0);
             sol = x;
         end
