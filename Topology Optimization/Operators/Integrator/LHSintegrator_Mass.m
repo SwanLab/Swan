@@ -1,3 +1,4 @@
+
 classdef LHSintegrator_Mass < LHSintegrator
 
     properties (Access = public)

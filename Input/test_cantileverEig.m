@@ -1,4 +1,4 @@
-filename = 'CantileverBeam_Triangle_LinearEig';%'Cantileverbeam_Hexahedra_Bilinear_Structured'; % 'Bridge'; % Cantilever';%'CantileverBeam_Triangle_Linear';
+filename = 'CantileverBeam_Triangle_Linear';%'Cantileverbeam_Hexahedra_Bilinear_Structured'; % 'Bridge'; % Cantilever';%'CantileverBeam_Triangle_Linear';
 ptype = 'MACRO';
 method = 'SIMP_P3';
 materialType = 'ISOTROPIC';
@@ -14,7 +14,7 @@ designVariable = 'DensityEigModes';%'LevelSet';%'Density';
 filterType = 'P1';
 
 nsteps = 1;
-Vfrac_final = 0.4;
+Vfrac_final = 0.3;
 optimality_final =1e-5;
 constr_final =1e-3;
 
