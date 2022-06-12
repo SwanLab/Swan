@@ -2,6 +2,8 @@ classdef ModalProblem < handle
     
     properties (Access = public)
         variables
+        derMass
+        mesh
     end
     
     properties (Access = private)
@@ -23,13 +25,16 @@ classdef ModalProblem < handle
 
     properties (Access = private)
         quadrature
-        mesh
+        % mesh
         dim
         material
         dofConnec
         interpolation
         interpolationType
         displacementField
+        iter
+        initMassElem
+        
     end
     
     methods (Access = public)
@@ -40,6 +45,7 @@ classdef ModalProblem < handle
             obj.createDisplacementField();
             obj.createBoundaryConditions();
             obj.createDOFsconnect();
+            obj.iter = 0;
         end
 
         function solve(obj,x)
@@ -58,7 +64,6 @@ classdef ModalProblem < handle
         function setC(obj, C)
             obj.material.C = C;
         end
-
 
     end
     
@@ -162,7 +167,8 @@ classdef ModalProblem < handle
         end
 
         function computeMassMatrix(obj,xReg)
-            s.type = 'MassMatrix';
+            obj.iter = obj.iter + 1;
+            s.type = 'MassMatrixModal';
             s.mesh          = obj.mesh;
             s.quadType      = 'QUADRATICMASS';
             s.globalConnec  = obj.displacementField.connec;
@@ -171,8 +177,11 @@ classdef ModalProblem < handle
             s.interpolation = obj.interpolation;
             s.quadrature    = obj.quadrature;            
             LHS = LHSintegrator.create(s);
-            M   = LHS.compute(); % xReg 
+            M = LHS.compute(xReg);
             obj.massMatrix = M;
+            if obj.iter == 1
+                obj.initMassElem = LHS.elemMass;
+            end
         end
 
         function computeEigModes(obj)
@@ -182,14 +191,23 @@ classdef ModalProblem < handle
             Kfree = bc.fullToReducedMatrix(K);
             Mfree = bc.fullToReducedMatrix(M);
             [v,d] = eigs(Kfree,Mfree,2,'SM');
-            obj.computeBucklingModes(v);
+            obj.computeModes(v);
             obj.variables.eigenModes  = obj.V;
             lambda = obj.computeLambda(d);
             obj.variables.eigenValues  = lambda;
+
+            nElem = obj.mesh.nelem;
+            mod = obj.V;
+            dofC = obj.dofConnec';
+            for i = 1:nElem
+                nodDofs = dofC(i,:);
+                dx(i,1) = mod(nodDofs,1)'*obj.initMassElem(:,:,i)*mod(nodDofs,1);
+            end
+            obj.derMass = dx;
         end
 
-        function computeBucklingModes(obj,v)
-            obj.modesF = v
+        function computeModes(obj,v)
+            obj.modesF = v;
             ndof = obj.dim.ndofs;
             Modes=zeros(ndof,2);
             free = obj.boundaryConditions.free;
@@ -199,7 +217,7 @@ classdef ModalProblem < handle
             obj.Mode1x = Modes(1:2:end-1,1);
             obj.Mode1y = Modes(2:2:end,1);
             obj.variables.modes = Modes;
-            obj.V = Modes;
+            obj.V = Modes;            
         end
 
         function l = computeLambda(obj,d)

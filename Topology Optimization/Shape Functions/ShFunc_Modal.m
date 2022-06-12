@@ -1,13 +1,21 @@
 classdef ShFunc_Modal < ShFunWithElasticPdes
-    
+
     properties (Access = private)
         compliance
         fieldToPrint
         adjointProblem
+
     end
-    
+
+    properties (Access = public)
+        mesh
+        Ep1
+        ePrint
+        v
+    end
+
     methods (Access = public)
-        
+
         function obj = ShFunc_Modal(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
@@ -52,11 +60,11 @@ classdef ShFunc_Modal < ShFunWithElasticPdes
             x = obj.regDesignVariable;
             obj.physicalProblem.solve(x); % x
         end
-        
+
         function solveAdjoint(obj)
             obj.adjointProblem = obj.physicalProblem;
         end
-        
+
         function computeFunctionValue(obj)
             phy = obj.physicalProblem;
             lambda = phy.variables.eigenValues;
@@ -64,38 +72,49 @@ classdef ShFunc_Modal < ShFunWithElasticPdes
             fx = gamma-lambda(1);
             obj.value = fx;
         end
-        
+
         function computeGradientValue(obj)
-             phy = obj.physicalProblem;
-             ep    = phy.variables.strain;
+            phy = obj.physicalProblem;
+            ep    = phy.variables.strain;
+            derM = phy.derMass;
+            obj.mesh = phy.mesh;
             ngaus  = size(ep,1);
             nstre  = size(ep,2);
             nelem  = size(ep,3);
-            gK = zeros(nelem,ngaus,obj.nVariables);             
-             for igaus = 1:ngaus
-                 for istre = 1:nstre
-                     for jstre = 1:nstre
-                         eu_i = squeeze(ep(igaus,istre,:));
-                         ep_j = squeeze(ep(igaus,jstre,:));
-                         for ivar = 1:obj.nVariables
-                             dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:,igaus));
-                             gK(:,igaus,ivar) = gK(:,igaus,ivar) + (-eu_i.*dCij.*ep_j);
-                         end
-                     end
-                 end
-             end
-             eigValues =  phy.variables.eigenValues;
-             val = eigValues(1);
-             % x = obj.regDesignVariable;
-             g = (gK - val); % x{1}
-             obj.gradient = g;
+            gK = zeros(nelem,ngaus,obj.nVariables);
+            for igaus = 1:ngaus
+                for istre = 1:nstre
+                    for jstre = 1:nstre
+                        eu_i = squeeze(ep(igaus,istre,:));
+                        ep_j = squeeze(ep(igaus,jstre,:));
+                        for ivar = 1:obj.nVariables
+                            dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:,igaus));
+                            gK(:,igaus,ivar) = gK(:,igaus,ivar) + (-eu_i.*dCij.*ep_j);
+                        end
+                    end
+                end
+            end
+            eigValues =  phy.variables.eigenValues;
+            val = eigValues(1);
+            obj.v = val*derM;
+            % x = obj.regDesignVariable;
+            g = gK - val*derM; % x{1}
+            obj.gradient = g;
+%             ep1 = zeros(3,size(ep,3));
+% 
+%             for i=1 : obj.mesh.nelem
+%             ep1(1,i) = ep(1,1,i);
+%             ep1(2,i) = ep(1,2,i);
+%             ep1(3,i) = ep(1,3,i);
+%             end
+%             obj.Ep1 = ep1; 
         end
 
         function f = getPdesVariablesToPrint(obj)
             f{1} = obj.getPdeVariableToPrint(obj.physicalProblem);
         end
-        
+
     end
-    
+
 end
 

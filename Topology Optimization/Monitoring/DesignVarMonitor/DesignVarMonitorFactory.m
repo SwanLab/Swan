@@ -50,7 +50,7 @@ classdef DesignVarMonitorFactory < handle
             switch obj.designVariable.type
                 case {'Density','MicroParams','DensityEigModes'}
                     obj.monitor = DesignVarMonitor_Density(mS);
-                case 'LevelSet'
+                case {'LevelSet','LevelSetEigModes'}
                     switch obj.dim
                         case '2D'
                             obj.monitor = DesignVarMonitor_LevelSet_2D(mS);

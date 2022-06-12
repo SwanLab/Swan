@@ -30,9 +30,9 @@ classdef LHSintegrator_MassModal < LHSintegrator
             LHS = obj.assembleMatrix(lhs);
         end
 
-        function lhs = computeElemental(obj)
-            lhs = obj.computeElementalLHS();
-        end
+%         function lhs = computeElemental(obj)
+%             lhs = obj.computeElementalLHS();
+%         end
         
     end
 
@@ -69,6 +69,26 @@ classdef LHSintegrator_MassModal < LHSintegrator
             end
             lhs = M;
             obj.elemMass = lhs;
+            lhs = obj.addNonStructuralMass(lhs);
+        end
+
+        function lhs = addNonStructuralMass(obj,lhs)
+            %% CantileverBeam_Triangular
+            % Center of the right side
+%                         lhs(:,:,2) = lhs(:,:,2) + 10*eye(6,6);
+%                         lhs(:,:,7) = lhs(:,:,7) + 10*eye(6,6);
+            % Corners of the right side
+            %             lhs(:,:,214) = lhs(:,:,214) + 20*lhs(:,:,214);
+            %             lhs(:,:,8) = lhs(:,:,8) + 10*lhs(:,:,8);
+            %% CantileverArnau2
+            lhs(:,:,1502) = lhs(:,:,1502) + 10*eye(6,6);
+            lhs(:,:,3022) = lhs(:,:,3022) + 10*eye(6,6);
+            lhs(:,:,1500) = lhs(:,:,1500) + 10*eye(6,6);
+            lhs(:,:,1503) = lhs(:,:,1503) + 10*eye(6,6);
+            lhs(:,:,1461) = lhs(:,:,1461) + 10*eye(6,6);
+            lhs(:,:,1462) = lhs(:,:,1462) + 10*eye(6,6);
+            lhs(:,:,1463) = lhs(:,:,1463) + 10*eye(6,6);
+            lhs(:,:,1464) = lhs(:,:,1464) + 10*eye(6,6);
         end
 
         function createQuadrature(obj)
@@ -76,7 +96,6 @@ classdef LHSintegrator_MassModal < LHSintegrator
             quad.computeQuadrature(obj.quadType);
             obj.quadrature = quad;
         end
-
 
     end
 
@@ -132,7 +151,7 @@ classdef LHSintegrator_MassModal < LHSintegrator
 %                 end
 %             end
 %         end
-
+% 
 %         function dofConnec = computeDofConnectivity(obj)
 %             connec  = obj.globalConnec;
 %             ndimf   = obj.dim.ndimf;
@@ -154,7 +173,5 @@ classdef LHSintegrator_MassModal < LHSintegrator
 %             ndimf = obj.dim.ndimf;
 %             idof(:,1)= ndimf*(inode - 1) + iunkn;
 %         end
-% 
-%     end
 
 end
