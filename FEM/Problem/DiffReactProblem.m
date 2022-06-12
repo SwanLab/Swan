@@ -47,7 +47,7 @@ classdef DiffReactProblem < handle
             s.iter = 0;
             s.fields    = obj.variables.x;
             s.ptype     = 'DIFF-REACT';
-            s.ndim      = 3;
+            s.ndim      = obj.mesh.ndim;
             s.pdim      = obj.problemData.pdim;
             s.type      = 'ScalarNodal';
             fPrinter = FemPrinter(s);

@@ -16,7 +16,7 @@ classdef DiffReactTests < matlab.unittest.TestCase
             fem = FEM.create(s);
             fem.computeLHS(0.1857);
             fem.computeVariables(RHS);
-%             fem.print(filename)
+%             fem.print(file)
             err = testCase.computeError(file, LHStype, fem);
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
@@ -34,7 +34,7 @@ classdef DiffReactTests < matlab.unittest.TestCase
             fem = FEM.create(s);
             fem.computeLHS(0.1857);
             fem.computeVariables(RHS);
-%             fem.print(filename)
+%             fem.print(file3d)
             err = testCase.computeError(file3d, lhstype, fem);
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
