@@ -50,7 +50,7 @@ classdef EulerBeamOptimizer < handle
     methods (Access = private)
         
         function init(obj)
-            obj.nElem         = 30;
+            obj.nElem         = 300;
             obj.nConstraints  = 3; 
             obj.columnLength  = 1; 
             obj.nValues       = obj.nElem+1;
@@ -74,8 +74,8 @@ classdef EulerBeamOptimizer < handle
             nnod = obj.nElem + 1;
              x = [0;rand(nnod-2,1);1]*obj.columnLength;
              x = sort(x);
-             % coord = x; 
-             coord = linspace(0,obj.columnLength,nnod)';
+              coord = x; 
+             %coord = linspace(0,obj.columnLength,nnod)';
         end
 
         function Tnod = createConnectivity(obj)
