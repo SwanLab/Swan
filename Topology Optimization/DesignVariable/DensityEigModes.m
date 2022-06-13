@@ -53,7 +53,7 @@ classdef DensityEigModes < DesignVariable
        function init(obj,cParams)
             obj.type    = cParams.type;
             obj.mesh    = cParams.mesh;
-            if isfield(cParams,'isFixed')            
+            if isprop(cParams,'isFixed')            
               obj.isFixed = cParams.isFixed;
             end
             obj.initValue(cParams);

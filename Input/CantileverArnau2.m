@@ -4,7 +4,7 @@ Data_prb = {
 'SI';
 '2D';
 'Plane_Stress';
-'ELASTIC';
+'EIGENMODES';
 'MACRO';
 };
 %% Coordinates

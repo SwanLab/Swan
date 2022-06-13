@@ -38,29 +38,29 @@ classdef MaterialInterpolation < handle
     methods (Access = public)
         
         function mp = computeMatProp(obj,rho)
-%             mu      = obj.muFunc(rho);
-%             kappa   = obj.kappaFunc(rho);
-%             dmu     = obj.dmuFunc(rho);
-%             dkappa  = obj.dkappaFunc(rho);
+            mu      = obj.muFunc(rho);
+            kappa   = obj.kappaFunc(rho);
+            dmu     = obj.dmuFunc(rho);
+            dkappa  = obj.dkappaFunc(rho);
 
             %-------------- SIMP_modal ----------------------
-            mu = zeros(length(rho),1);
-            kappa = zeros(length(rho),1);
-            dmu = zeros(length(rho),1);
-            dkappa = zeros(length(rho),1);
-            for iElem = 1:length(rho)
-                if rho(iElem) <= 0.1
-                    mu(iElem,1)      = obj.muLFunc(rho(iElem));
-                    kappa(iElem,1)   = obj.kappaLFunc(rho(iElem));
-                    dmu(iElem,1)     = obj.dmuLFunc(); %7.4925e-3; % 3.74625e-4;% 1.873125e-3 ;% obj.dmuLFunc(rho(iElem));
-                    dkappa(iElem,1)  = obj.dkappaLFunc(); % 7.4925e-4; % 3.74625e-3 ;%obj.dkappaLFunc(rho(iElem));
-                else
-                    mu(iElem,1)      = obj.muHFunc(rho(iElem));
-                    kappa(iElem,1)   = obj.kappaHFunc(rho(iElem));
-                    dmu(iElem,1)     = obj.dmuHFunc(rho(iElem));
-                    dkappa(iElem,1)  = obj.dkappaHFunc(rho(iElem));
-                end
-            end
+%             mu = zeros(length(rho),1);
+%             kappa = zeros(length(rho),1);
+%             dmu = zeros(length(rho),1);
+%             dkappa = zeros(length(rho),1);
+%             for iElem = 1:length(rho)
+%                 if rho(iElem) <= 0.1
+%                     mu(iElem,1)      = obj.muLFunc(rho(iElem));
+%                     kappa(iElem,1)   = obj.kappaLFunc(rho(iElem));
+%                     dmu(iElem,1)     = obj.dmuLFunc(); %7.4925e-3; % 3.74625e-4;% 1.873125e-3 ;% obj.dmuLFunc(rho(iElem));
+%                     dkappa(iElem,1)  = obj.dkappaLFunc(); % 7.4925e-4; % 3.74625e-3 ;%obj.dkappaLFunc(rho(iElem));
+%                 else
+%                     mu(iElem,1)      = obj.muHFunc(rho(iElem));
+%                     kappa(iElem,1)   = obj.kappaHFunc(rho(iElem));
+%                     dmu(iElem,1)     = obj.dmuHFunc(rho(iElem));
+%                     dkappa(iElem,1)  = obj.dkappaHFunc(rho(iElem));
+%                 end
+%             end
 %           %------------------------------------
 
             mp.mu     = mu;
@@ -115,37 +115,37 @@ classdef MaterialInterpolation < handle
         end
 
         % -------------- SIMP modal ------------------------------
-        function computeSymbolicInterpolationFunctions(obj)
-            [muLS,muHS,dmuLS,dmuHS,kLS,kHS,dkLS,dkHS] = obj.computeSymbolicMuKappa();
-            obj.muLFunc     = matlabFunction(muLS);
-            obj.muHFunc     = matlabFunction(muHS);
-            obj.dmuLFunc    = matlabFunction(dmuLS);
-            obj.dmuHFunc    = matlabFunction(dmuHS);
-            obj.kappaLFunc  = matlabFunction(kLS);
-            obj.kappaHFunc  = matlabFunction(kHS);
-            obj.dkappaLFunc = matlabFunction(dkLS);
-            obj.dkappaHFunc = matlabFunction(dkHS);
-        end
+%         function computeSymbolicInterpolationFunctions(obj)
+%             [muLS,muHS,dmuLS,dmuHS,kLS,kHS,dkLS,dkHS] = obj.computeSymbolicMuKappa();
+%             obj.muLFunc     = matlabFunction(muLS);
+%             obj.muHFunc     = matlabFunction(muHS);
+%             obj.dmuLFunc    = matlabFunction(dmuLS);
+%             obj.dmuHFunc    = matlabFunction(dmuHS);
+%             obj.kappaLFunc  = matlabFunction(kLS);
+%             obj.kappaHFunc  = matlabFunction(kHS);
+%             obj.dkappaLFunc = matlabFunction(dkLS);
+%             obj.dkappaHFunc = matlabFunction(dkHS);
+%         end
          % -----------------------------------------------------
 
         % -------------- SIMP modal ------------------------------
-        function [muLS,muHS,dmuLS,dmuHS,kLS,kHS,dkLS,dkHS] = computeSymbolicMuKappa(obj)
-            [muLS,muHS,dmuLS,dmuHS] = obj.computeMuSymbolicFunctionAndDerivative();
-            [kLS,kHS,dkLS,dkHS]   = obj.computeKappaSymbolicFunctionAndDerivative;
+%         function [muLS,muHS,dmuLS,dmuHS,kLS,kHS,dkLS,dkHS] = computeSymbolicMuKappa(obj)
+%             [muLS,muHS,dmuLS,dmuHS] = obj.computeMuSymbolicFunctionAndDerivative();
+%             [kLS,kHS,dkLS,dkHS]   = obj.computeKappaSymbolicFunctionAndDerivative;
+%         end
+%          % -----------------------------------------------------
+        function computeSymbolicInterpolationFunctions(obj)
+            [muS,dmuS,kS,dkS] = obj.computeSymbolicMuKappa();
+            obj.muFunc     = matlabFunction(muS);
+            obj.dmuFunc    = matlabFunction(dmuS);
+            obj.kappaFunc  = matlabFunction(kS);
+            obj.dkappaFunc = matlabFunction(dkS);
         end
-         % -----------------------------------------------------
-%         function computeSymbolicInterpolationFunctions(obj)
-%             [muS,dmuS,kS,dkS] = obj.computeSymbolicMuKappa();
-%             obj.muFunc     = matlabFunction(muS);
-%             obj.dmuFunc    = matlabFunction(dmuS);
-%             obj.kappaFunc  = matlabFunction(kS);
-%             obj.dkappaFunc = matlabFunction(dkS);
-%         end
         
-%         function [muS,dmuS,kS,dkS] = computeSymbolicMuKappa(obj)
-%             [muS,dmuS] = obj.computeMuSymbolicFunctionAndDerivative();
-%             [kS,dkS]   = obj.computeKappaSymbolicFunctionAndDerivative;
-%         end
+        function [muS,dmuS,kS,dkS] = computeSymbolicMuKappa(obj)
+            [muS,dmuS] = obj.computeMuSymbolicFunctionAndDerivative();
+            [kS,dkS]   = obj.computeKappaSymbolicFunctionAndDerivative;
+        end
         
         function mu = computeMu(obj,E,nu)
             mat = obj.isoMaterial;

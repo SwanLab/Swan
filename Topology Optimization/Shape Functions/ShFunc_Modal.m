@@ -98,7 +98,7 @@ classdef ShFunc_Modal < ShFunWithElasticPdes
             val = eigValues(1);
             obj.v = val*derM;
             % x = obj.regDesignVariable;
-            g = gK - val*derM; % x{1}
+            g = gK - val*1;%derM; % x{1}
             obj.gradient = g;
 %             ep1 = zeros(3,size(ep,3));
 % 

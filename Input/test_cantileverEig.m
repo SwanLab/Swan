@@ -1,6 +1,6 @@
-filename = 'CantileverArnau2';%'Cantileverbeam_Hexahedra_Bilinear_Structured'; % 'Bridge'; % Cantilever';%'CantileverBeam_Triangle_Linear';
+filename = 'CantileverArnau2';%'Cantileverbeam_Hexahedra_Bilinear_Structured';%CantileverArnau2';%'Cantileverbeam_Hexahedra_Bilinear_Structured'; % 'Bridge'; % Cantilever';%'CantileverBeam_Triangle_Linear';
 ptype = 'MACRO';
-method = 'SIMP_modal';% SIMP_P3
+method = 'SIMPALL';%SIMP_modal';% SIMP_P3
 materialType = 'ISOTROPIC';
 initial_case = 'full';
 cost = {'firstEigTopCost'};
@@ -13,7 +13,7 @@ incrementFactor = 1;
 designVariable = 'DensityEigModes'; % 'LevelSetEigModes';% 'DensityEigModes';%'LevelSet';%'Density';
 filterType = 'P1';
 
-nsteps = 3;
+nsteps = 1;
 Vfrac_final = 0.4;
 optimality_final =1e-7;
 constr_final = 1e-5;

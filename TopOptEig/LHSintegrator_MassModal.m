@@ -61,7 +61,7 @@ classdef LHSintegrator_MassModal < LHSintegrator
                                 Nj = shapes(jnode,igauss,:);
                                 v = squeeze(Ni.*Nj).*rho;
                                 M(idof, jdof, :)= squeeze(M(idof,jdof,:)) ...
-                                    + v(:).*dvol;
+                                    + v(:,igauss).*dvol;
                             end
                         end
                     end
@@ -81,14 +81,14 @@ classdef LHSintegrator_MassModal < LHSintegrator
             %             lhs(:,:,214) = lhs(:,:,214) + 20*lhs(:,:,214);
             %             lhs(:,:,8) = lhs(:,:,8) + 10*lhs(:,:,8);
             %% CantileverArnau2
-            lhs(:,:,1502) = lhs(:,:,1502) + 10*eye(6,6);
-            lhs(:,:,3022) = lhs(:,:,3022) + 10*eye(6,6);
-            lhs(:,:,1500) = lhs(:,:,1500) + 10*eye(6,6);
-            lhs(:,:,1503) = lhs(:,:,1503) + 10*eye(6,6);
-            lhs(:,:,1461) = lhs(:,:,1461) + 10*eye(6,6);
-            lhs(:,:,1462) = lhs(:,:,1462) + 10*eye(6,6);
-            lhs(:,:,1463) = lhs(:,:,1463) + 10*eye(6,6);
-            lhs(:,:,1464) = lhs(:,:,1464) + 10*eye(6,6);
+            lhs(:,:,1502) = lhs(:,:,1502) + 1*eye(6,6);
+ %           lhs(:,:,3022) = lhs(:,:,3022) + 10*eye(6,6);
+ %           lhs(:,:,1500) = lhs(:,:,1500) + 10*eye(6,6);
+ %           lhs(:,:,1503) = lhs(:,:,1503) + 10*eye(6,6);
+%             lhs(:,:,1461) = lhs(:,:,1461) + 10*eye(6,6);
+%             lhs(:,:,1462) = lhs(:,:,1462) + 10*eye(6,6);
+%             lhs(:,:,1463) = lhs(:,:,1463) + 10*eye(6,6);
+%             lhs(:,:,1464) = lhs(:,:,1464) + 10*eye(6,6);
         end
 
         function createQuadrature(obj)

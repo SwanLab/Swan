@@ -47,7 +47,7 @@ classdef AreaColumn < DesignVariable
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.mesh = cParams.mesh;
+            obj.mesh = cParams.mesh;      
         end
         
         function createInitialValue(obj)
