@@ -1,18 +1,14 @@
-classdef ShFunc_Compliance < ShFunWithElasticPdes
-
+classdef ShFunc_Eigenvalue1 < ShFunWithElasticPdes
+    
     properties (Access = private)
         compliance
         fieldToPrint
         adjointProblem
     end
-
-    properties (Access = public)
-        mesh
-    end
-
+    
     methods (Access = public)
-
-        function obj = ShFunc_Compliance(cParams)
+        
+        function obj = ShFunc_Eigenvalue1(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
             fileName = cParams.femSettings.fileName;
@@ -62,7 +58,6 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         
         function computeFunctionValue(obj)
             phy = obj.physicalProblem;
-            obj.mesh = phy.mesh;
             dvolum = phy.getDvolume()';
             stress = phy.variables.stress;
             strain = phy.variables.strain;

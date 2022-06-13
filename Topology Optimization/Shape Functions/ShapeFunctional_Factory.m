@@ -85,6 +85,8 @@ classdef ShapeFunctional_Factory < handle
                     sF = ShFunc_firstEigTopCost(cParams);
                 case 'firstEigTopConstraint'
                     sF = ShFunc_firstEigTopConst(cParams);
+                case 'ModalfirstEigConstraint'
+                    sF = ShFunc_Modal(cParams);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end

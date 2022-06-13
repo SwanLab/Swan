@@ -32,8 +32,8 @@ classdef DesignVarMonitor_AreaColumn < DesignVarMonitor_Abstract
             vertElem = 4;
             vertex = zeros(vertElem*obj.mesh.nelem+1,dimFig);
             for iNod = 1:nnod-1
-                vertex(2*iNod-1,:)   = [scl*z(iNod)/2 coord(iNod)];
-                vertex(2*iNod,:) = [scl*z(iNod)/2 coord(iNod+1)];
+                vertex(2*iNod-1,:)   = [z(iNod)/2 coord(iNod)];
+                vertex(2*iNod,:) = [z(iNod)/2 coord(iNod+1)];
             end
             vertex = obj.flip(vertex,vertElem,dimFig);
             vertex(end,:) = vertex(1,:);
@@ -52,10 +52,10 @@ classdef DesignVarMonitor_AreaColumn < DesignVarMonitor_Abstract
             figure(3)
             clf
             plot(pgon);
-            axis([-1 1 0 1])
+            axis([-2 2 0 1])
             grid on
             grid minor
-            title('Clamped-Clamped Column Profile (2D)','Interpreter', 'latex','FontSize',20, 'fontweight','b');
+            title('Column Profile (2D)','Interpreter', 'latex','FontSize',20, 'fontweight','b');
             xlabel('A(x)','Interpreter', 'latex','fontsize',14,'fontweight','b');
             ylabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
         end

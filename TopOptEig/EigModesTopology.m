@@ -7,6 +7,7 @@ classdef EigModesTopology < handle
         D
         mode1
         mode2
+        xReg
     end
     
     properties (Access = private)
@@ -17,6 +18,17 @@ classdef EigModesTopology < handle
         stiffnessMatrixComputer
         massMatrixComputer
         dofConnec
+        Msmooth
+        filter
+        iter
+        elemStiff
+        elemMass
+        homogenizedVarComputer
+        matInterpolation
+        C
+        dC
+        Cref
+        dCref
     end
     
     properties (Access = private)
@@ -30,33 +42,36 @@ classdef EigModesTopology < handle
             obj.init(cParams);
             obj.createBoundaryConditions();
             obj.createLHS();
+            obj.iter = 0;
         end
         
-        function fx = provideFunction(obj)
+        function fx = provideFunction(obj, homogenizedVariableComputer)
+            obj.homogenizedVarComputer = homogenizedVariableComputer;
             obj.computeEigenModesAndValues();
             obj.lambda = obj.computeLambda();
             gamma = obj.designVariable.getFirstEigenMode();
             fx = gamma-obj.lambda(1);
         end
         
-        function grad = provideDerivative(obj,eigNum)
+        function grad = provideDerivative(obj)
+            obj.iter = obj.iter + 1;
             obj.reorderModes(obj.lambda,obj.V,obj.D);
-            elemStiff = obj.stiffnessMatrixComputer.elemStiff;
-            elemMass = obj.massMatrixComputer.elemMass;
-            % Belem =  obj.bendingMatComputer.elementalBendingMatrix;
-            x = obj.designVariable.getDensity;
-            nElem = obj.mesh.nelem;
+            if obj.iter == 1
+            obj.elemStiff = obj.stiffnessMatrixComputer.elemStiff;
+            obj.elemMass = obj.massMatrixComputer.elemMass;
+            end
             eigV1 = obj.D(1,1);
             eigV2 = obj.D(2,2);
             difEigs = abs(eigV2-eigV1);
-            if difEigs > 1
-                dfdx = obj.computeSimpleEig(elemStiff,elemMass,eigV1,x);
-            else
-                dfdx = obj.computeDoubleEig(Belem,x);
-            end
-            dfdx(1,nElem+1) = 1;
+            %if difEigs > 1
+                dfdx = obj.computeSimpleEig(eigV1);
+            %else
+                %dfdx = obj.computeDoubleEig(Belem,x);
+            %end
             % dfdx(2,nElem+1) = 1;
-            grad = dfdx; % (eigNum,:);
+            g = obj.filterGradient(dfdx);
+            grad = g; % (eigNum,:);
+            grad(end+1,1) = 1;
         end
         
     end
@@ -67,6 +82,8 @@ classdef EigModesTopology < handle
             obj.designVariable = cParams.designVariable;
             obj.mesh           = cParams.mesh;
             obj.dim            = cParams.dim;
+            obj.filter         = cParams.filter;
+            obj.Msmooth        = cParams.Msmooth;
         end
 
         function createBoundaryConditions(obj)
@@ -116,8 +133,7 @@ classdef EigModesTopology < handle
             sS.freeNodes      = obj.freeDOFs;
             sS.material       = obj.material;
             sS.interpolation  = obj.mesh.interpolation;
-            % 
-            % sS.mesh.geometryType = 'Surface';
+
             obj.stiffnessMatrixComputer = LHSintegrator.create(sS);
 
             int = Interpolation.create(obj.mesh,'LINEAR');
@@ -140,8 +156,8 @@ classdef EigModesTopology < handle
         function createDOFsConnec(obj)
             connec  = obj.mesh.connec;
             ndimf   = obj.dim.ndimf;
-            nnodeEl = size(connec, 2); % obj.dim.nnodeElem
-            ndofsEl = nnodeEl * ndimf; % obj.dim.ndofsElem;
+            nnodeEl = size(connec, 2); 
+            ndofsEl = nnodeEl * ndimf; 
             dofsElem  = zeros(ndofsEl,size(connec,1));
             for inode = 1:nnodeEl
                 for iunkn = 1:ndimf
@@ -172,6 +188,7 @@ classdef EigModesTopology < handle
             s.constitutiveProperties.nu_plus = 1/3;
             s.nElem = obj.mesh.nelem;
             m = MaterialInterpolation.create(s);
+            obj.matInterpolation = m;
             rho = designVar.computeVolumeFraction();
             mI = m.computeMatProp(rho);
         end
@@ -188,34 +205,38 @@ classdef EigModesTopology < handle
             obj.material = mat;
         end
 
-        function dfdx = computeSimpleEig(obj,elemStiff,massStiff,eigV1,x)
+        function dfdx = computeSimpleEig(obj,eigV1)
             d = obj.dim;
             free = obj.freeDOFs;
-            ndofe = d.ndofsElem;
-            ndofn = d.ndofsElem/d.nnodeElem;
+            % ndofe = d.ndofsElem;
+            % ndofn = d.ndofsElem/d.nnodeElem;
             W = zeros(d.ndofs,1);
             W(free,1) = obj.v1;
             % W(free,2) = obj.v2;
             nElem = obj.mesh.nelem;
             DOFconnec = obj.dofConnec';
-            den = obj.densityDOF(x);
+%            den = obj.densityDOF(x);
+            xR = obj.xReg{1};
             for i = 1:nElem
                 nodDofs = DOFconnec(i,:);
-                %index = ndofn*(i-1)+1: ndofn*(i-1)+ndofe;
-                dxS = 3*den(i,1).^2;
-                dxM = 1;
-                dfdx(1,i) = -(W(nodDofs,1)'*(dxS*elemStiff(:,:,i)-eigV1*dxM*massStiff(:,:,i))*W(nodDofs,1));
+                % index = ndofn*(i-1)+1: ndofn*(i-1)+ndofe;
+                dxS = 3*(xR(i,1))^2;
+                % dxM = 1;
+                % dfdx(1,i) = -(W(nodDofs,1)'*(dxS*elemStiff(:,:,i)-eigV1*dxM*massStiff(:,:,i))*W(nodDofs,1));
+                dfdx(1,i) = -(W(nodDofs,1)'*(dxS*obj.elemStiff(:,:,i)-eigV1*dxS*obj.elemMass(:,:,i))*W(nodDofs,1)); %
                 % dfdx(2,i) = -dx*(W(index,2)'*Belem(:,:,i)*W(index,2));
             end
         end
 
-        function xNew = densityDOF(obj,x)
-            m = obj.mesh;
-            xNew = zeros(size(m.coord,1)*m.ndim,1);
-            for i = 1:m.coord
-                xNew(2*iElem-1,1) = x(i,1);
-                xNew(2*iElem,1) = x(i,1);
+        function g = filterGradient(obj,dfdx)
+            g = dfdx';
+            gf = zeros(size(obj.Msmooth,1),obj.designVariable.nVariables);
+            for ivar = 1:obj.designVariable.nVariables
+                gs = g(:,:,ivar);
+                gf(:,ivar) = obj.filter.getP1fromP0(gs);
             end
+            gf = obj.Msmooth*gf;
+            g = gf(:);
         end
 
         function dfdx = computeDoubleEig(obj,Belem,x)
@@ -246,6 +267,10 @@ classdef EigModesTopology < handle
         end
 
         function computeEigenModesAndValues(obj)
+            obj.filterDesignVariable()
+            obj.computeTensor();
+            obj.setC(obj.C)
+
             K = obj.stiffnessMatrixComputer.compute();
             M = obj.massMatrixComputer.compute();
             Kfree = obj.provideFreeMatrix(K);
@@ -253,7 +278,80 @@ classdef EigModesTopology < handle
             [v,d] = eigs(Kfree,Mfree,2,'SM');
             obj.V  = v;
             obj.D  = d;
+            obj.printInGID();
             % obj.computeBucklingModes();
+        end
+
+        function filterDesignVariable(obj)
+            x = obj.designVariable.getDensity();
+            nx = length(x)/obj.designVariable.nVariables;
+            xf = cell(obj.designVariable.nVariables,1);
+            for ivar = 1:obj.designVariable.nVariables
+                i0 = nx*(ivar-1) + 1;
+                iF = nx*ivar;
+                xs = x(i0:iF);
+                xf{ivar,1} = obj.filter.getP0fromP1(xs);
+            end
+            obj.xReg = xf;
+            %xf{ivar+1} = obj.designVariable.alpha;
+        end
+
+        function computeTensor(obj)
+            rho = obj.xReg{1};
+            nvar = 1;
+            nGaus  = size(rho,2);
+            nStres = obj.material.nstre;
+            obj.C  = zeros(nStres,nStres,obj.mesh.nelem,nGaus);
+            obj.dC = zeros(nStres,nStres,nvar,obj.mesh.nelem,nGaus);
+            for igaus = 1:nGaus
+                rhoV = rho(:,igaus);
+                p = obj.matInterpolation.computeMatProp(rhoV);
+                obj.C(:,:,:,igaus)  = obj.computeC(p.mu,p.kappa);
+                for ivar = 1:nvar
+                    obj.dC(:,:,1,:,igaus) = obj.computeC(p.dmu,p.dkappa);
+                end
+            end
+            obj.Cref = obj.C;
+            obj.dCref = obj.dC;
+        end
+
+        function C = computeC(obj,mu,kappa)
+            s.kappa = kappa;
+            s.mu    = mu;
+            obj.material.compute(s);
+            C  = obj.material.C;
+        end
+
+        function setC(obj,C)
+            obj.material.C = C;
+        end
+
+        function printInGID(obj)
+            fileName = 'Eig';
+            m = obj.mesh;
+            quad = Quadrature.set(m.type);
+            quad.computeQuadrature('LINEAR');
+            dI = obj.createPostProcessDataBase(m,fileName);
+            dI.ndim   = 2;
+            dI.pdim   = '2D';
+            dI.ptype  = 'ELASTIC';
+            dI.name = '';
+            dI.printers = 'DensityGauss'; % 'HomogenizedTensor'
+            p = Postprocess('VectorField',dI);
+            MODE = zeros(obj.dim.ndofs,2);
+            MODE(obj.freeDOFs,1) =obj.V(:,1);
+            MODE(obj.freeDOFs,2) =obj.V(:,2);
+            dP.fields.u = MODE;
+            dP.quad   = quad;
+            iter = 0;
+            p.print(iter,dP);
+        end
+
+        function d = createPostProcessDataBase(obj,mesh,fileName)
+            dI.mesh    = mesh;
+            dI.outFileName = fileName;
+            ps = PostProcessDataBaseCreator(dI);
+            d = ps.create();
         end
 
         function MatrixFree = provideFreeMatrix(obj,Matrix)
@@ -273,7 +371,7 @@ classdef EigModesTopology < handle
             obj.v2 = V2;
         end
 
-        %         function [Mode1,Mode2] = computeBucklingModes(obj)
+%         function [Mode1,Mode2] = computeBucklingModes(obj)
 %             nnode = obj.mesh.nnodes;
 %             Mode1=zeros(nnode,2);
 %             Mode2=zeros(nnode,2);

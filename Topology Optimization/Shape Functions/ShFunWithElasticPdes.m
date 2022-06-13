@@ -62,6 +62,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         function createEquilibriumProblem(obj,fileName)
             a.fileName = fileName;
             s = FemDataContainer(a);
+            obj.mesh = s.mesh;
             obj.physicalProblem = FEM.create(s);
             obj.initPrincipalDirections();
         end
@@ -72,8 +73,14 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         end
         
         function filterDesignVariable(obj)
-            nx = length(obj.designVariable.value)/obj.designVariable.nVariables;
-            x  = obj.designVariable.value;
+            switch obj.designVariable.type
+                case 'DensityEigModes'
+                    x  = obj.designVariable.getDensity();
+                    nx = length(x)/obj.designVariable.nVariables;
+                otherwise
+                    nx = length(obj.designVariable.value)/obj.designVariable.nVariables;
+                    x  = obj.designVariable.value;
+            end
             xf = cell(obj.designVariable.nVariables,1);
             for ivar = 1:obj.designVariable.nVariables
                 i0 = nx*(ivar-1) + 1;
@@ -95,8 +102,68 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             gf = obj.Msmooth*gf;
             g = gf(:);
             obj.gradient = g;
+            obj.printInGiD(g);
+            switch obj.designVariable.type
+                case 'DensityEigModes'
+                    obj.gradient(end+1,1) = 1;
+                otherwise
+                    
+            end
+%             e1 = obj.filterEp(1);
+%             e2 = obj.filterEp(2);
+%             e3 = obj.filterEp(3);
+%             e = zeros(length(e1),3);
+%             e(:,1) = e1;
+%             e(:,2) = e2;
+%             e(:,3) = e3;
+%             obj.ePrint = e;
+%             obj.printInGiD();
+
+%         g = filterEp(obj,obj.v,1);
+%         obj.printInGiD(g);
+
+
         end
-        
+
+        function g = filterEp(obj,E,num)
+            g = E(num,:);
+            gf = zeros(size(obj.Msmooth,1),3);
+            for ivar = 1:1
+                gs = g(:,:,ivar);
+                gf(:,ivar) = obj.filter.getP1fromP0(gs);
+            end
+            gf = obj.Msmooth*gf;
+            g = gf(:);
+            
+        end
+
+        function printInGiD(obj,g)
+            fileName = 'EigModesG2';
+            m = obj.mesh;
+            quad = Quadrature.set(m.type);
+            quad.computeQuadrature('LINEAR');
+            dI = obj.createPostProcessDataBase(m,fileName);
+            dI.ndim   = 2;
+            dI.pdim   = '2D';
+            dI.ptype  = 'ELASTIC';
+            dI.name = '';
+            dI.printers = 'DensityGauss'; % 'HomogenizedTensor'
+            p = Postprocess('VectorField',dI);
+            % f.u = obj.mode1;
+            zerosss = zeros(length(g),1);
+            dP.fields.u = [obj.gradient zerosss]; %obj.ePrint; %[obj.gradient zerosss];
+            dP.quad   = quad;
+            iter = 0;
+            p.print(iter,dP);
+        end
+
+        function d = createPostProcessDataBase(obj,mesh,fileName)
+            dI.mesh    = mesh;
+            dI.outFileName = fileName;
+            ps = PostProcessDataBaseCreator(dI);
+            d = ps.create();
+        end
+
         function v = getPdeVariableToPrint(obj,p)
             cParams.physicalProblem = p;
             g = PdeVariableToPrintGetter(cParams);

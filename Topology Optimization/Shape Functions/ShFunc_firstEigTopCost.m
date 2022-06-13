@@ -19,6 +19,7 @@ classdef ShFunc_firstEigTopCost < ShapeFunctional
         function v = getVariablesToPlot(obj)
             v{1} = obj.value; % *obj.value0;
         end
+
     end
 
     

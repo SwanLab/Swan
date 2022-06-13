@@ -9,7 +9,7 @@ classdef MaterialInterpolationFactory < handle
                 case '3D'
                   cParams.ndim = 3;
             end
-               
+
             switch cParams.typeOfMaterial
                 case 'ISOTROPIC'
                     switch cParams.interpolation
@@ -36,24 +36,26 @@ classdef MaterialInterpolationFactory < handle
                                         case 'IMPLICIT'
                                             obj = SimpAllInterpolationImplicit3D(cParams);
                                     end
-                                    
+
                             end
                         case 'SIMP_Adaptative'
                             obj = SimpInterpolationAdaptative(cParams);
                         case 'SIMP_P3'
                             obj = SimpInterpolationP3(cParams);
+                        case 'SIMP_modal'
+                            obj = SimpInterpolationModal(cParams);
                         otherwise
                             error('Invalid Material Interpolation method.');
                     end
                 otherwise
                     error('Invalid type of material');
             end
-            
+
         end
-        
-        
+
+
     end
-    
+
     
     
 end

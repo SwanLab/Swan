@@ -2,6 +2,7 @@ classdef ElasticProblem < handle
     
     properties (Access = public)
         variables
+        mesh
     end
 
     properties (Access = private)
@@ -25,7 +26,7 @@ classdef ElasticProblem < handle
 
         vstrain
 
-        mesh % For Homogenization
+        % mesh % For Homogenization
         interpolation
         interpTranslator
         interpolationType

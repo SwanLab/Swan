@@ -1,4 +1,4 @@
-classdef ShFunc_Volume < ShapeFunctional
+classdef ShFunc_VolumeEig < ShapeFunctional
     
     properties (Access = public)
         geometricVolume
@@ -6,7 +6,7 @@ classdef ShFunc_Volume < ShapeFunctional
     
     methods (Access = public)
         
-        function obj = ShFunc_Volume(cParams)
+        function obj = ShFunc_VolumeEig(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
             obj.geometricVolume = sum(obj.dvolu(:));
@@ -45,26 +45,13 @@ classdef ShFunc_Volume < ShapeFunctional
             end
             g = obj.Msmooth*gf;
             %g = gf;
-            switch obj.designVariable.type %% TEMPORARY EIGENMODES
-                case 'DensityEigModes'
-                    g(end+1,1) = 0; 
-                otherwise
-
-            end
             obj.gradient = g(:);
             %obj.gradient = ones(size(g(:)))/obj.geometricVolume;
         end
         
         function updateHomogenizedMaterialProperties(obj)
-            
-            switch obj.designVariable.type  %% TEMPORARY EIGENMODES
-                case 'DensityEigModes'
-                x = obj.designVariable.getDensity();
-                nx = length(x)/obj.designVariable.nVariables;
-                otherwise
-                nx = length(obj.designVariable.value)/obj.designVariable.nVariables;
-                x  = obj.designVariable.value;
-            end
+            nx = length(obj.designVariable.value)/obj.designVariable.nVariables;
+            x  = obj.designVariable.getDensity();
             xf = cell(obj.designVariable.nVariables,1);
             for ivar = 1:obj.nVariables
                 i0 = nx*(ivar-1) + 1;
@@ -77,4 +64,3 @@ classdef ShFunc_Volume < ShapeFunctional
         
     end
 end
-

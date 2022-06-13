@@ -1,4 +1,3 @@
-
 classdef IterativeProcessComputer < handle 
 
      properties (Access = public)
@@ -70,7 +69,8 @@ classdef IterativeProcessComputer < handle
          function obj = computeIterativeProcess(obj)
 % -------
             s = SettingsOptimizer();
-            s.optimizerNames.type = 'AlternatingPrimalDual';%'NullSpace';%'fmincon';'AlternatingPrimalDual';'NullSpace';'AlternatingPrimalDual';'MMA';'AlternatingPrimalDual';%MMA';%'IPOPT';%fmincon';%'MMA';%'fmincon';'MMA';
+            s.optimizerNames.type = 'MMA';'AlternatingPrimalDual';'NullSpace';'AlternatingPrimalDual';'MMA';'AlternatingPrimalDual';%MMA';%'IPOPT';%fmincon';%'MMA';%'fmincon';'MMA';
+
             s.optimizerNames.primal = 'PROJECTED GRADIENT';
             s.uncOptimizerSettings.scalarProductSettings = obj.designVariable.scalarProduct;
             s.uncOptimizerSettings.designVariable   = obj.designVariable;
@@ -78,8 +78,8 @@ classdef IterativeProcessComputer < handle
             s.monitoringDockerSettings.optimizerNames = s.optimizerNames;
             s.monitoringDockerSettings.refreshInterval = 1;
             s.designVar         = obj.designVariable;
-            s.targetParameters.optimality_tol  = 0.0005; %obj.incrementalScheme.targetParams;
-            s.targetParameters.constr_tol = 0.0005;
+            s.targetParameters.optimality_tol  = 0.005; %obj.incrementalScheme.targetParams;
+            s.targetParameters.constr_tol = 0.005;
             s.cost              = obj.cost;
             s.constraint        = obj.constraint;
             s.incrementalScheme.iStep  = 1;%obj.incrementalScheme;

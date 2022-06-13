@@ -14,6 +14,8 @@ classdef DesignVariableFactory < handle
                     designVar = MicroParams(cParams);
                 case 'AreaColumn'
                     designVar = AreaColumn(cParams);
+                case 'LevelSetEigModes'
+                    designVar = LevelSetEigModes(cParams);
             end
         end
         

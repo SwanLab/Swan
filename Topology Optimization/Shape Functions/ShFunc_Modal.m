@@ -1,18 +1,22 @@
-classdef ShFunc_Compliance < ShFunWithElasticPdes
+classdef ShFunc_Modal < ShFunWithElasticPdes
 
     properties (Access = private)
         compliance
         fieldToPrint
         adjointProblem
+
     end
 
     properties (Access = public)
         mesh
+        Ep1
+        ePrint
+        v
     end
 
     methods (Access = public)
 
-        function obj = ShFunc_Compliance(cParams)
+        function obj = ShFunc_Modal(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
             fileName = cParams.femSettings.fileName;
@@ -53,41 +57,31 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         function solveState(obj)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C) % (:,:,7200,4); cmat
 %             obj.physicalProblem.computeVariables();
-            obj.physicalProblem.solve();
+            x = obj.regDesignVariable;
+            obj.physicalProblem.solve(x); % x
         end
-        
+
         function solveAdjoint(obj)
             obj.adjointProblem = obj.physicalProblem;
         end
-        
+
         function computeFunctionValue(obj)
             phy = obj.physicalProblem;
-            obj.mesh = phy.mesh;
-            dvolum = phy.getDvolume()';
-            stress = phy.variables.stress;
-            strain = phy.variables.strain;
-            ngaus  = size(strain,1);
-            nelem  = size(strain,3);
-
-            c = zeros(nelem,ngaus);
-            for igaus = 1:ngaus
-                stressG = squeeze(stress(igaus,:,:));
-                strainG  = squeeze(strain(igaus,:,:));
-                e = stressG.*strainG;
-                c(:,igaus) = c(:,igaus) + sum(e)';
-            end
-            obj.compliance = c;
-            int = c.*dvolum;
-            obj.value = sum(int(:));
+            lambda = phy.variables.eigenValues;
+            gamma = obj.designVariable.getFirstEigenMode();
+            fx = gamma-lambda(1);
+            obj.value = fx;
         end
-        
+
         function computeGradientValue(obj)
             phy = obj.physicalProblem;
             ep    = phy.variables.strain;
+            derM = phy.derMass;
+            obj.mesh = phy.mesh;
             ngaus  = size(ep,1);
             nstre  = size(ep,2);
             nelem  = size(ep,3);
-            g = zeros(nelem,ngaus,obj.nVariables);
+            gK = zeros(nelem,ngaus,obj.nVariables);
             for igaus = 1:ngaus
                 for istre = 1:nstre
                     for jstre = 1:nstre
@@ -95,19 +89,32 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
                         ep_j = squeeze(ep(igaus,jstre,:));
                         for ivar = 1:obj.nVariables
                             dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:,igaus));
-                            g(:,igaus,ivar) = g(:,igaus,ivar) + (-eu_i.*dCij.*ep_j);
+                            gK(:,igaus,ivar) = gK(:,igaus,ivar) + (-eu_i.*dCij.*ep_j);
                         end
                     end
                 end
             end
+            eigValues =  phy.variables.eigenValues;
+            val = eigValues(1);
+            obj.v = val*derM;
+            % x = obj.regDesignVariable;
+            g = gK - val*derM; % x{1}
             obj.gradient = g;
+%             ep1 = zeros(3,size(ep,3));
+% 
+%             for i=1 : obj.mesh.nelem
+%             ep1(1,i) = ep(1,1,i);
+%             ep1(2,i) = ep(1,2,i);
+%             ep1(3,i) = ep(1,3,i);
+%             end
+%             obj.Ep1 = ep1; 
         end
-        
+
         function f = getPdesVariablesToPrint(obj)
             f{1} = obj.getPdeVariableToPrint(obj.physicalProblem);
         end
-        
+
     end
-    
+
 end
 

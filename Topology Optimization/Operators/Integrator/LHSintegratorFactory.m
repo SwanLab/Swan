@@ -8,6 +8,8 @@ classdef LHSintegratorFactory < handle
                    % Computes the MASS MATRIX by first computing the
                    % elemental LHS (N*N) and then assembling the result
                    obj = LHSintegrator_Mass(cParams);
+               case 'MassMatrixModal'
+                   obj = LHSintegrator_MassModal(cParams);
                case 'BoundaryMassMatrix'
                    % Integrates the mass matrix over the boundary elements
                    % of the mesh
@@ -41,6 +43,7 @@ classdef LHSintegratorFactory < handle
                    obj = LHSintegrator_DiffReactNeumann(cParams);
                case 'BendingMatrix'
                    obj = LHSintegrator_Bending(cParams);
+                   
                case 'Stokes'
                    obj = LHSintegrator_Stokes(cParams);
 

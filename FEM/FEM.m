@@ -23,6 +23,8 @@ classdef FEM < handle
                         case 'MICRO'
                             obj = ElasticProblemMicro(s);
                     end
+                case 'EIGENMODES'
+                    obj = ModalProblem(s);
                 case 'THERMAL'
                     obj = ThermalProblem(s);
                 case 'DIFF-REACT'

@@ -16,7 +16,7 @@ classdef DensityEigModes < DesignVariable
         end
         
         function v = getVariablesToPlot(obj)
-            v{1} = obj.value;
+            v{1} = obj.value(1:end-1);
         end
         
         function rho = computeVolumeFraction(obj)
@@ -36,6 +36,15 @@ classdef DensityEigModes < DesignVariable
             x = obj.value;
             gamma = x(end);
         end
+
+        function norm = computeL2normIncrement(obj)
+           x  = obj.getDensity();
+           x0 = 1;%obj.valueOld(1:end-1);
+           incX  = x - x0;
+           nIncX = obj.scalarProduct.computeSP_M(incX,incX);
+           nX0   = 1;obj.scalarProduct.computeSP_M(x0,x0);
+           norm  = nIncX/nX0;
+        end        
         
     end
     
@@ -68,13 +77,13 @@ classdef DensityEigModes < DesignVariable
                 obj.value = ones(size(obj.mesh.coord,1)+1,1);
             end
         end
-
-         function createScalarProduct(obj,cParams)
-%             s = cParams.scalarProductSettings;
-%             s.nVariables = obj.nVariables;
-%             s.femSettings.mesh = obj.mesh;
-%             obj.scalarProduct = ScalarProduct(s);
-         end
+ 
+          function createScalarProduct(obj,cParams)
+            s = cParams.scalarProductSettings;
+            s.nVariables = obj.nVariables;
+            s.femSettings.mesh = obj.mesh;
+            obj.scalarProduct = ScalarProduct(s);
+          end
 
         function createValue(obj)
             s = obj.creatorSettings;
@@ -86,6 +95,8 @@ classdef DensityEigModes < DesignVariable
                     lsCreator  = LevelSetCreator.create(s);
                     phi        = lsCreator.getValue();
                     obj.value  = 1 - heaviside(phi);
+                    obj.value(end+1,1) = obj.value(1);
+%                    obj.value = s.rho0.*ones(size(obj.mesh.coord,1)+1,1); % final number is the cost
                 case 'Given'
                     obj.value = s.rho0.*ones(size(obj.mesh.coord,1)+1,1); % final number is the cost
             end

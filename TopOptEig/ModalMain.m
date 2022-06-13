@@ -19,6 +19,7 @@ classdef ModalMain < handle
         D
         mode1
         mode2
+        modes
     end
     
     methods (Access = public)
@@ -32,7 +33,7 @@ classdef ModalMain < handle
             obj.createBoundaryConditions();
             obj.createLHS();
             obj.solveEigModes();
-            obj.plotEigModes();
+            % obj.plotEigModes();
             obj.printInGiD();
         end
         
@@ -41,8 +42,8 @@ classdef ModalMain < handle
     methods (Access = private)
         
         function init(obj)
-            x1        = linspace(0,3,20);
-            x2        = linspace(0,2,20);
+            x1        = linspace(0,3,100);
+            x2        = linspace(0,2,100);
             [X,Y]     = meshgrid(x1,x2);
             Z         = zeros(size(X));
             xmesh = X;
@@ -94,12 +95,6 @@ classdef ModalMain < handle
             s.creatorSettings.type = 'FromLevelSet';
             s.creatorSettings.fracRadius = 0.5;
             d = Density(s);
-            
-%             s.mesh = m;
-%             s.field = d.value;
-%             p = NodalFieldPlotter(s);
-%             p.plot()
-            
             sF.connec = m.connec;
             sF.type   = m.type;
             sF.fNodes = d.value;
@@ -153,10 +148,7 @@ classdef ModalMain < handle
             int = Interpolation.create(obj.mesh,'LINEAR');
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature('QUADRATIC');
-            sM.quadrature = quad;
-            sM.quadType     = 'QUADRATIC';
             int.computeShapeDeriv(quad.posgp);
-            sM.interpolation  = int;
             sS.type = 'ElasticStiffnessMatrix';
             sS.dim = obj.dim;
             sS.mesh = obj.mesh;
@@ -184,8 +176,10 @@ classdef ModalMain < handle
         function solveEigModes(obj)
             K = obj.stiffnessMatrixComputer.compute();
             M = obj.massMatrixComputer.compute();
-            Kfree = obj.provideFreeMatrix(K);
-            Mfree = obj.provideFreeMatrix(M);
+            Kfree = bc.fullToReducedMatrix(K);
+
+            % Kfree = obj.provideFreeMatrix(K);
+            Mfree = bc.fullToReducedMatrix(M);
             [v,d] = eigs(Kfree,Mfree,2,'SM');
             obj.V  = v;
             obj.D  = d;
@@ -198,18 +192,13 @@ classdef ModalMain < handle
             MatrixFree = Matrix(free,free);
         end
         
-        function [Mode1,Mode2] = computeBucklingModes(obj)
+        function computeBucklingModes(obj)
             nnode = obj.mesh.nnodes;
-            Mode1=zeros(nnode,2);
-            Mode2=zeros(nnode,2);
-            v1 = obj.V(:,1);
-            v2 = obj.V(:,2);
-            for i=1 : nnode-40
-            Mode1(i+40,:) = [v1(2*i-1) v1(2*i)];
-            Mode2(i+40,:) = [v2(2*i-1) v2(2*i)];
-            end
-            obj.mode1 = Mode1; 
-            obj.mode2 = Mode2; 
+            Modes=zeros(nnode,2);
+            free = obj.freeDOFs; 
+            Modes(free,1) = obj.V(:,1);
+            Modes(free,2) = obj.V(:,2);
+            obj.modes = Modes;
         end 
 
         function computeDisplacement(obj,M)
@@ -239,8 +228,8 @@ classdef ModalMain < handle
             title('First Mode Y')
         end
 
-        function printInGiD(obj)  %% no puedo seguir
-            fileName = 'Eig';
+        function printInGiD(obj)
+            fileName = 'EigModesMeshFine';
             m = obj.mesh;
             quad = Quadrature.set(m.type);
             quad.computeQuadrature('LINEAR');
@@ -252,7 +241,7 @@ classdef ModalMain < handle
             dI.printers = 'DensityGauss'; % 'HomogenizedTensor'
             p = Postprocess('VectorField',dI);
             %f.u = obj.mode1;
-            dP.fields.u = obj.mode1;
+            dP.fields.u = obj.modes;
             dP.quad   = quad;
             iter = 0;
             p.print(iter,dP);
@@ -264,8 +253,6 @@ classdef ModalMain < handle
             ps = PostProcessDataBaseCreator(dI);
             d = ps.create();
         end
-
-
 
     end
 
