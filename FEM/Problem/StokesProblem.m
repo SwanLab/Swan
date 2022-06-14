@@ -83,8 +83,8 @@ classdef StokesProblem < handle
             postprocess.print(1,d);
         end
 
-        function printVelocity(obj, fileName)
-            velocities = obj.splitVelocity();
+        function printVelocity(obj, fileName, iter)
+            velocities = obj.splitVelocity(iter);
             ux = velocities(:,1);
             uy = velocities(:,2);
             velNorm = sqrt(ux.^2 + uy.^2);
@@ -102,7 +102,7 @@ classdef StokesProblem < handle
             d.fields = velNorm;
 %             d.fields = v.velocities;
             d.quad = q;
-            postprocess.print(1,d);
+            postprocess.print(iter,d);
         end
 
     end
@@ -230,7 +230,7 @@ classdef StokesProblem < handle
             d = ps.create();
         end
 
-        function uM = splitVelocity(obj)
+        function uM = splitVelocity(obj, iter)
             u = obj.variables.u;
             nu = obj.velocityField.dim.ndimf;
             nnode = round(length(u)/nu);
@@ -238,7 +238,7 @@ classdef StokesProblem < handle
             uM = zeros(nnode,nu);
             for idim = 1:nu
                 dofs = nu*(nodes-1)+idim;
-                uM(:,idim) = u(dofs);
+                uM(:,idim) = u(dofs, iter);
             end
         end
 

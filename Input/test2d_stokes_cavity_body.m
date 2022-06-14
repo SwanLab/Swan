@@ -19,7 +19,9 @@ Data_prb = {
 'Stokes';
 'MACRO'
 };
-state = 'Steady';
+state = 'Transient';
+dtime = 0.01;
+finalTime = 1;
 
 %% Coordinates
 % Node                X                Y                Z
