@@ -73,7 +73,7 @@ classdef DualUpdater_NullSpace < handle
             S  = (Dh'*Dh)^-1;
             aJ = 1;
             aC = 1;
-            f  = 6;
+            f  = inf;
             AC = min(f,aC/aJ*S*h);
             AJ = -aC/aJ*S*Dh'*DJ;
             l  = AC + AJ;

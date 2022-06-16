@@ -1,18 +1,18 @@
-filename = 'CantileverArnau2';%Cantilever';%'CantileverBeam_Triangle_Linear';
+filename = 'bridge_10_2';
 ptype = 'MACRO';
 method = 'SIMP_P3';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'compliance'};
+cost = {'volume'};
 weights = [1];
-constraint = {'volumeConstraint'};
-constraint_case = {'EQUALITY'};
+constraint = {'complianceConstraintC2','complianceConstraintC2','complianceConstraintC2'};
+constraint_case = {'INEQUALITY','INEQUALITY','INEQUALITY'};
 optimizerUnconstrained = 'PROJECTED GRADIENT';%'PROJECTED GRADIENT'; 
 optimizer = 'NullSpace';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
 incrementFactor = 1;
 designVariable = 'Density';%'Density';
 filterType = 'P1';
-outFileName = 'Cantilever0.4V';
+
 nsteps = 1;
 Vfrac_final = 0.4;
 optimality_final =1e-3;
@@ -32,7 +32,7 @@ TOL.nu_minus = 1/3;
 
 % For all tests
 plotting = true;
-printing = true;
+printing = false;
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;

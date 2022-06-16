@@ -10,13 +10,15 @@ classdef FEMInputWriter < handle
         xmesh
         ymesh
         zmesh
-        mesh
         nDirichlet
         nNeumann
+        mesh
         DoF
         dispPrescribed
         pointLoads
         edgeNodes
+        pCase
+        designVarSettings
     end
     
     methods (Access = public)
@@ -27,7 +29,7 @@ classdef FEMInputWriter < handle
         function createTest(obj)
             obj.computeMeshGrid();
             obj.createMesh();
-            obj.computeBoundaryConditions();
+            obj.computeCaseBoundaryConditions();
             obj.computePrescribedDisplacementsMatrix();
             obj.computePrescribedPointLoads();
             obj.computeEdgeNodes();
@@ -38,6 +40,7 @@ classdef FEMInputWriter < handle
     methods (Access = private)
         function init(obj,cParams)
             obj.fileName = cParams.testName;
+            obj.pCase    = cParams.problemCase;
             obj.xmax     = cParams.x1;
             obj.ymax     = cParams.y1;
             obj.Nx       = cParams.N;
@@ -63,8 +66,17 @@ classdef FEMInputWriter < handle
             obj.mesh = Mesh(s);
             obj.mesh.plot;
         end
+
+        function computeCaseBoundaryConditions(obj)
+            switch obj.pCase
+                case 'cantilever'
+                    obj.computeCantileverBoundaryConditions();
+                case 'bridge'
+                    obj.computeBridgeBoundaryConditions();
+            end
+        end
         
-        function computeBoundaryConditions(obj)
+        function computeCantileverBoundaryConditions(obj)
             t              = 0.3*obj.ymax;
             m              = obj.mesh;
             root           = m.coord(:,1) == 0;
@@ -73,6 +85,21 @@ classdef FEMInputWriter < handle
             tip            = tipLength & tipWidth;
             obj.nDirichlet = find(root);
             obj.nNeumann   = find(tip);
+        end
+
+        function computeBridgeBoundaryConditions(obj)
+            t              = 0.1*obj.xmax;
+            iCase          = 4;
+            forcePos       = [iCase*10/9,(iCase+1)*10/9];
+            m              = obj.mesh;
+            sides          = m.coord(:,1) <= t | m.coord(:,1) >= obj.xmax - t;
+            bottom         = m.coord(:,2) == 0;
+            root           = sides & bottom;
+            top            = m.coord(:,2) == obj.ymax;
+            pos            = m.coord(:,1) > forcePos(1) & m.coord(:,1) < forcePos(2);
+            tip            = top & pos;
+            obj.nDirichlet = find(root);
+            obj.nNeumann   = find(tip);            
         end
         
         function computePrescribedDisplacementsMatrix(obj)

@@ -11,7 +11,7 @@ classdef OptimizerNullSpace < Optimizer
         costOld
         upperBound
         lowerBound
-        tol = 1e-3
+        tol = 1e-4
         nX
         hasConverged
         acceptableStep
@@ -116,7 +116,7 @@ classdef OptimizerNullSpace < Optimizer
                 Dg      = obj.constraint.gradient;
                 aJ      = 1;
                 DmF     = aJ*(DJ + Dg*l);
-                factor  = 0.1;
+                factor  = 1;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
                 factor = 1.2;
@@ -253,7 +253,7 @@ classdef OptimizerNullSpace < Optimizer
 %                 t = obj.globalLineSearch;
                 d = obj.globalDual;
                 v = obj.globalDesignVar;
-                save('NullSpaceVariablesAcademicProva.mat',"c","g","h","d","v");
+                save('NullSpaceAprofitantDual.mat',"c","g","h","d","v");
             end
         end
 

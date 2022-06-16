@@ -174,6 +174,9 @@ classdef TopologyMonitoring < handle
         end
 
         function createHistoryPrinter(obj,cParams)
+            cParams.optimizer  = obj;
+            cParams.cost       = obj.cost;
+            cParams.constraint = obj.constraint;
             obj.historyPrinter = OptimizationMetricsPrinterFactory.create(cParams);
         end
         

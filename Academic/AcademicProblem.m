@@ -26,7 +26,7 @@ classdef AcademicProblem
         end
 
         function createOptimizer(obj)
-            run("AcademicTest1.m");
+            run("AcademicTest3.m");
             d                            = DesignVariableAcademic();
             d.init(x0);
             j.dV                         = d;

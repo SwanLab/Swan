@@ -7,6 +7,7 @@ classdef ShapeFunctional < handle
         Msmooth
         dvolu
         value0
+        shNumber
     end
     
     properties (Access = protected)

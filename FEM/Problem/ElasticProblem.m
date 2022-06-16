@@ -2,16 +2,15 @@ classdef ElasticProblem < handle
     
     properties (Access = public)
         variables
+        boundaryConditions
     end
 
     properties (Access = private)
-        boundaryConditions
         displacement
         stiffnessMatrix
         RHS
         solver
         geometry
-
         scale
         pdim
         ptype
