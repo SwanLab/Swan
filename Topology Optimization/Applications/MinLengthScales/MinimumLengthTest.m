@@ -15,6 +15,11 @@ rho = [rho,zeros(1,length(x)-length(rho))];
 
 R = 0.10*max(x); % Filter radius
 
+% -----
+% Choice A
+
+rhoe = zeros(1,N);
+
 for i=1:N % Loop over elements
     xcurr = 0.5*(x(i)+x(i+1));
     iN = find(abs(x-xcurr)<=R); % Neighbourhood
@@ -33,6 +38,29 @@ end
 
 xc = 0.5*(x(1:end-1)+x(2:end));
 rhoe = interp1(xc,rhoe,x);
+
+% Choice B
+s.quadratureOrder = 'LINEAR';
+s.mesh.nnodeElem  = 2;
+s.mesh.nnodes = N+1;
+s.mesh.type = 'LINE';
+s.mesh.kFace = 0;
+s.mesh.geometryType = 'Line';
+s.mesh.coord = x';
+for i=1:N
+    connec(i,1) = i;
+    connec(i,2) = i+1;
+end
+s.mesh.connec = connec;
+s.mesh.nelem = N;
+s.mesh.ndim = 1;
+for i=1:N
+    coordElem(:,:,i) = [x(i),x(i+1)];
+end
+s.mesh.coordElem = coordElem;
+s.mesh.interpolation = Interpolation.create(s.mesh,'LINEAR');
+Filter = Filter_P1_Density(s);
+% -----
 
 beta=120;
 eta=0;
