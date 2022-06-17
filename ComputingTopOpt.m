@@ -1,7 +1,7 @@
 function ComputingTopOpt
 % PENDING: AUTOMATIZE THIS FUNCTION WITH GID PICTUREsss
 rho0Name = 'TFM.mat';
-jumpTo2ndPart = false;
+jumpTo2ndPart = true;
 
 if jumpTo2ndPart == false
 

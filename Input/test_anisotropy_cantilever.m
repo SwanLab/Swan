@@ -8,29 +8,29 @@ epsilon_isotropy_initial=1e-1;
 epsilon_isotropy_final = 1e-3;
 micro.alpha =[1 1 0]';
 micro.beta =[1 1 0]';
-fracRadius = 0.5;
-widthSquare = 0.5;
+fracRadius = 0.2;
+% widthSquare = 0.5;
 
 ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'squareInclusion';
-cost = {'anisotropicPerimeterInterior2D'};
-weights = [1];
+initial_case = 'circleInclusion';
+cost = {'chomog_alphabeta','perimeter'};
+weights = [1,0.052];
 constraint = {'volumeConstraint'};
 % constraint_case = 'EQUALITY';
-optimizerUnconstrained = 'SLERP';
+optimizerUnconstrained = 'PROJECTED GRADIENT';
 optimizer = 'DualNestedInPrimal';
 incrementFactor = 1.5; % Recommended: 1.5; 2.0
-designVariable = 'LevelSet';
+designVariable = 'Density';
 filterType = 'P1';
 
-nsteps = 5; % Recommended slope: 5%/step is OK
-Vfrac_final = 0.75;
+nsteps = 3; % Recommended slope: 5%/step is OK
+Vfrac_final = 0.6;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 0.75;
+Vfrac_initial = 1;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 Perimeter_target = 5;
@@ -43,8 +43,8 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 % For all tests
-plotting = false; % true
-printing = true; % false
+plotting = true; % true
+printing = false; % false
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
