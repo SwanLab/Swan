@@ -209,11 +209,12 @@ classdef TopologyMonitoring < handle
         function d = createPostProcessDataBase(obj,cParams)
             d.mesh    = obj.designVariable.mesh;
             d.outName = cParams.femFileName;
-            d.pdim    = cParams.pdim;
             d.ptype   = cParams.ptype;
             ps = PostProcessDataBaseCreator(d);
-            d  = ps.getValue();
-            d.optimizer  = obj.type;
+            d  = ps.create();
+            d.pdim    = cParams.pdim;     
+            d.ndim    = obj.designVariable.mesh.ndim;
+            d.optimizer  = obj.optimizerName;
             d.cost       = obj.cost;
             d.constraint = obj.constraint;
             d.designVar  = obj.designVariable.type;

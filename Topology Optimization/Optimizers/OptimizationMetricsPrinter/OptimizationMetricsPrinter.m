@@ -39,7 +39,7 @@ classdef OptimizationMetricsPrinter < handle
                 fprintf(fid,strcat('-constraint ',num2str(i),': %f \n'),obj.constraint.shapeFunctions{i}.value);
             end
             
-            obj.printConvergenceVariables(fid);
+           % obj.printConvergenceVariables(fid);
             
             fprintf(fid,'\n');
             
