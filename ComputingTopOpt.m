@@ -16,7 +16,7 @@ function ComputingTopOpt
 
 
 
-s.testName = 'test_micro';%''testJose';
+s.testName = 'test_postprocess';%''testJose';
 t = TopOptComputer(s);
 t.compute();
 end
