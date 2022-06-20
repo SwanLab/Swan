@@ -69,7 +69,8 @@ classdef StokesProblem < handle
             end
         end
 
-        function printPressure(obj, fileName)
+        function printPressure(obj, fileName, iter)
+            prs = obj.variables.p(:,iter);
             s = obj.createPressureDataBase(fileName);
             s.pdim  = '2D';
             s.name  = 'pressure';
@@ -78,9 +79,9 @@ classdef StokesProblem < handle
             s.pdim  = '2D';
             postprocess = Postprocess('ScalarNodal',s);
             q = obj.pressureField.quadrature;
-            d.fields = obj.variables.p;
+            d.fields = prs;
             d.quad = q;
-            postprocess.print(1,d);
+            postprocess.print(iter,d);
         end
 
         function printVelocity(obj, fileName, iter)
@@ -233,7 +234,7 @@ classdef StokesProblem < handle
         function uM = splitVelocity(obj, iter)
             u = obj.variables.u;
             nu = obj.velocityField.dim.ndimf;
-            nnode = round(length(u)/nu);
+            nnode = round(size(u,1)/nu);
             nodes = 1:nnode;
             uM = zeros(nnode,nu);
             for idim = 1:nu

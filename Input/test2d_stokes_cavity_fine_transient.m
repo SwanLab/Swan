@@ -21,7 +21,7 @@ Data_prb = {
 };
 state = 'Transient';
 dtime = 0.01;
-finalTime = 1;
+finalTime = 5;
 
 
 %% Coordinates

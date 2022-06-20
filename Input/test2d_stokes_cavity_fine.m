@@ -1406,7 +1406,7 @@ gidlnods = [
 % Node            Dimension                Value
 
 velocityBC.domain = 'Top';
-velocityBC.value  = 100;
+velocityBC.value  = 1;
 
 % velocityBC.domain = 'Border';
 % velocityBC.value  = 0;
