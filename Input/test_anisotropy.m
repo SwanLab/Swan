@@ -1,4 +1,4 @@
-filename = 'ArchUltraFine';
+filename = 'anisoCantilever';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -11,6 +11,8 @@ optimizer = 'DualNestedInPrimal';
 incrementFactor = 1.5;
 designVariable = 'Density';
 filterType = 'P1';
+anisoScaleAngle = 60;
+anisoOverhangAngle = 90;
 
 nsteps = 1;
 Vfrac_final = 0.6;
@@ -34,4 +36,4 @@ plotting = false;
 printing = false;
 printing_physics = false;
 monitoring = false;
-maxiter = 3;
+maxiter = 20;
