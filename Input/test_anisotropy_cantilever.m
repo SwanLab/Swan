@@ -8,25 +8,25 @@ epsilon_isotropy_initial=1e-1;
 epsilon_isotropy_final = 1e-3;
 micro.alpha =[1 1 0]';
 micro.beta =[1 1 0]';
-fracRadius = 0.2;
-% widthSquare = 0.5;
+% fracRadius = 0.2;
+widthSquare = 0.224;
 
-ptype = 'MICRO';
+ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'circleInclusion';
-cost = {'chomog_alphabeta','perimeter'};
-weights = [1,0.052];
+initial_case = 'squareInclusion';
+cost = {'anisotropicPerimeterInterior2D'};
+weights = [1];
 constraint = {'volumeConstraint'};
 % constraint_case = 'EQUALITY';
-optimizerUnconstrained = 'PROJECTED GRADIENT';
+optimizerUnconstrained = 'SLERP';
 optimizer = 'DualNestedInPrimal';
 incrementFactor = 1.5; % Recommended: 1.5; 2.0
-designVariable = 'Density';
+designVariable = 'LevelSet';
 filterType = 'P1';
 
 nsteps = 3; % Recommended slope: 5%/step is OK
-Vfrac_final = 0.6;
+Vfrac_final = 0.85;
 optimality_final =1e-3;
 constr_final =1e-3;
 
