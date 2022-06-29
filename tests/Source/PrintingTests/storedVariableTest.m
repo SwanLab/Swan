@@ -16,7 +16,7 @@ classdef storedVariableTest < handle
 
         function areEqual = computeError(obj)
             refFile     = [obj.testResultsName,num2str(obj.nIter),'.flavia.res'];
-            currentFile = [obj.testName,num2str(obj.nIter),'.flavia.res'];
+            currentFile = ['Output/',obj.testName,'/',obj.testName,num2str(obj.nIter),'.flavia.res'];
             compare     = FileComparator;
             areEqual    = ~compare.areFilesDifferent(refFile,currentFile);
         end
