@@ -182,7 +182,7 @@ classdef Optimizer_MMA < Optimizer
             raa0 = 1e-5;
             move = 1.0;
             albefa = 0.1;
-            asyinit =0.2 ; % 0.5; 
+            asyinit = 0.1 ; %0.2 % 0.5; 
             asyincr = 1.1; % 1.2;
             asydecr = 0.65; % 0.7
             eeen = ones(n,1);

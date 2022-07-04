@@ -12,7 +12,7 @@ classdef OptimizerBisection < Optimizer
         costOld
         upperBound
         lowerBound
-        tol = 1e-3
+        tol = 1e-5
         nX
         hasConverged
         acceptableStep
@@ -55,6 +55,7 @@ classdef OptimizerBisection < Optimizer
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
+                obj.saveVariablesForAnalysis();
             end
         end
 
@@ -198,7 +199,7 @@ classdef OptimizerBisection < Optimizer
             obj.globalConstraint(i)   = obj.constraint.value;
             obj.globalCostGradient(i) = norm(obj.cost.gradient);
             obj.globalMerit(i)        = obj.cost.value;
-            obj.globalLineSearch(i)   = obj.tau;
+%             obj.globalLineSearch(i)   = obj.tau;
             obj.globalDual(i)         = obj.dualVariable.value;
             iStep                     = obj.incrementalScheme.iStep;
             nStep                     = obj.incrementalScheme.nSteps;
@@ -207,9 +208,9 @@ classdef OptimizerBisection < Optimizer
                 h = obj.globalConstraint;
                 g = obj.globalCostGradient;
                 m = obj.globalMerit;
-                t = obj.globalLineSearch;
+%                 t = obj.globalLineSearch;
                 d = obj.globalDual;
-                save('BisectionVariablesStep1.mat',"t","m","c","g","h","d");
+                save('BisectionVariablesCant04.mat',"m","c","g","h","d");
             end
         end
 

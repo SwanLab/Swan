@@ -11,6 +11,7 @@ n.dual  = d;
 n.iter  = 1:length(c);
 
 load("fminconIPOPTacademic4.mat")
+i = struct();
 i.cost  = c;
 i.const = h;
 i.iter  = 1:length(c);
@@ -25,7 +26,7 @@ plot(a.iter,a.cost,'b',n.iter,n.cost,'g',i.iter,i.cost,'c',s.iter,s.cost,'r')
 xlabel('Iteration')
 ylabel('Cost f(x)')
 legend('Augmented Lagrangian','Null Space','IPOPT','SQP')
-
+xlim([0 127])
 
 subplot(1,2,2)
 plot(a.iter,a.const(1,:),'b',n.iter,n.const(1,:),'g',i.iter,i.const(1,:),'c',s.iter,s.const(1,:),'r',...
@@ -34,7 +35,7 @@ plot(a.iter,a.const(1,:),'b',n.iter,n.const(1,:),'g',i.iter,i.const(1,:),'c',s.i
 xlabel('Iteration')
 ylabel('Constraints')
 legend('Augmented Lagrangian','Null Space','IPOPT','SQP')
-
+xlim([0 127])
 % figure()
 % plot(a.iter,a.dual(1,:),'b',n.iter,n.dual(1,:),'r',a.iter,a.dual(2,:),'b--',n.iter,n.dual(2,:),'r--')
 % xlabel('Iteration')

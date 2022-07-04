@@ -68,7 +68,7 @@ classdef ShFunc_Compliance_constraint < ShFunWithElasticPdes
 
         function computeMaxComplianceCone(obj)
             run("bridgeLoadCasesInformation.m");
-            obj.physicalProblem.boundaryConditions.neumann       = g.four';
+            obj.physicalProblem.boundaryConditions.neumann        = g.four';
             obj.physicalProblem.boundaryConditions.neumann_values = g.fourv';
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
             obj.physicalProblem.solve();
@@ -94,7 +94,7 @@ classdef ShFunc_Compliance_constraint < ShFunWithElasticPdes
             c7 = obj.computeCompliance(g.six,g.sixv);
             c8 = obj.computeCompliance(g.seven,g.sevenv);
             c9 = obj.computeCompliance(g.eight,g.eightv);
-            obj.targetConstraint = max(c1,c2,c3,c4,c5,c6,c7,c8,c9);
+            obj.targetConstraint = max([c1,c2,c3,c4,c5,c6,c7,c8,c9]);
         end
 
         function computeMaxComplianceCfour(obj)

@@ -29,7 +29,7 @@ classdef PostProcessDataBaseCreator < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            cParams.outFileName = 'CantileverNull04';
+            cParams.outFileName = 'BridgeALC2SLERP';
             obj.mesh        = cParams.mesh;
             obj.outFileName = cParams.outFileName;
         end

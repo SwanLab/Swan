@@ -9,7 +9,7 @@ classdef OptimizationMetricsPrinterFactory < handle
                         printer = OptimizationMetricsPrinter_AugLag(cParams);
                     case 'MMA'
                         printer = OptimizationMetricsPrinter_MMA(cParams);
-                    case 'IPOPT'
+                    case {'IPOPT','fmincon'}
                         printer = OptimizationMetricsPrinter_IPOPT(cParams);
                     otherwise
                         error('Invalid optimizer type.')

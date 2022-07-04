@@ -11,7 +11,7 @@ classdef OptimizerNullSpace < Optimizer
         costOld
         upperBound
         lowerBound
-        tol = 1e-4
+        tol = 1e-8
         nX
         hasConverged
         acceptableStep
@@ -48,13 +48,11 @@ classdef OptimizerNullSpace < Optimizer
             obj.hasConverged = false;
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
-            obj.saveVariablesForAnalysis();
             while ~obj.hasConverged
                 obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                obj.saveVariablesForAnalysis();
             end
         end
 
@@ -88,7 +86,7 @@ classdef OptimizerNullSpace < Optimizer
             x0 = obj.designVariable.value;
             obj.saveOldValues(x0);
             if obj.nIter ~= 0
-                obj.dualUpdater.update(); %%
+                obj.dualUpdater.update(); 
             end
             obj.mOld = obj.computeMeritFunction(x0);
             obj.calculateInitialStep();
@@ -143,8 +141,6 @@ classdef OptimizerNullSpace < Optimizer
 
         function computeMeritGradient(obj,DJ,Dg)
             l       = obj.dualVariable.value;
-%             DJ      = obj.cost.gradient;
-%             Dg      = obj.constraint.gradient;
             aJ      = 1;
             DmF     = aJ*(DJ + Dg*l);
             obj.meritGradient = DmF;
@@ -152,7 +148,7 @@ classdef OptimizerNullSpace < Optimizer
 
         function checkStep(obj,x,x0)
             mNew = obj.computeMeritFunction(x);
-            if obj.nIter == 0 %&& mNew < obj.mOld
+            if obj.nIter == 0 %&& mNew <= obj.mOld
                 obj.acceptableStep = true;
                 obj.meritNew       = mNew;
                 obj.dualUpdater.updateOld();
@@ -166,7 +162,6 @@ classdef OptimizerNullSpace < Optimizer
             else
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
-%                 obj.dualUpdater.reset();
                 obj.lineSearchTrials = obj.lineSearchTrials + 1;
             end
         end
@@ -198,7 +193,7 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function obj = checkConvergence(obj)
-           if abs(obj.oldCost - obj.cost.value) < obj.tol && obj.checkConstraint()
+           if abs(obj.meritNew - obj.mOld) < obj.tol && obj.checkConstraint()
                obj.hasConverged = true;
            else
                
@@ -253,7 +248,7 @@ classdef OptimizerNullSpace < Optimizer
 %                 t = obj.globalLineSearch;
                 d = obj.globalDual;
                 v = obj.globalDesignVar;
-                save('NullSpaceAprofitantDual.mat',"c","g","h","d","v");
+                save('NullSpaceCant04.mat',"c","g","h","d","v");
             end
         end
 

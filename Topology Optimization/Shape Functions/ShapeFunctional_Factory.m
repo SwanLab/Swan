@@ -31,9 +31,11 @@ classdef ShapeFunctional_Factory < handle
             switch cParams.type
                 case 'compliance'
                     sF = ShFunc_Compliance(cParams);
-                case {'complianceConstraint','complianceConstraintC1','complianceConstraintC2','complianceConstraintC3',...
+                case {'complianceConstraintC1','complianceConstraintC2','complianceConstraintC3',...
                         'complianceConstraintC4'}
                     sF = ShFunc_Compliance_constraint(cParams);
+                case 'complianceConstraint'
+                    sF = ShFunc_ComplianceComparison_constraint(cParams);
                 case 'stressNorm'
                     sF = ShFunc_StressNorm(cParams);
                     %sF = ShFunc_StressNorm2(cParams);

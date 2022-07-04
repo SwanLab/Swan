@@ -62,10 +62,10 @@ classdef Optimizer_fmincon < Optimizer
             PROBLEM         = obj.problem;
             PROBLEM.options = obj.options;
             x = fmincon(PROBLEM);
-            v = obj.globalDesignVar;
-            c = obj.globalCost;
-            h = obj.globalConstraint;
-            save('fminconIPOPTacademic4','v','c','h');
+%             v = obj.globalDesignVar;
+%             c = obj.globalCost;
+%             h = obj.globalConstraint;
+%             save('fminconIPOPTacademic4','v','c','h');
         end
 
         function createProblem(obj)

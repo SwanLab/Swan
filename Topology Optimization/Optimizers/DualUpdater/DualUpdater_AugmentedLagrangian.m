@@ -6,7 +6,6 @@ classdef DualUpdater_AugmentedLagrangian < handle
        constraint
        nConstr
        constraintCase
-       index
     end
         
     methods (Access = public)
