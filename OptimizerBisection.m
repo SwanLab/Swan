@@ -55,7 +55,6 @@ classdef OptimizerBisection < Optimizer
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                obj.saveVariablesForAnalysis();
             end
         end
 

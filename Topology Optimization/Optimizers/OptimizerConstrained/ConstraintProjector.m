@@ -53,7 +53,6 @@ classdef ConstraintProjector < handle
         end
         
         function computeBounds(obj)
-%             obj.dualVariable.restart();
             lambda = obj.dualVariable.value;            
             fref   = obj.computeFeasibleDesignVariable(lambda);            
             isLB   = false;
