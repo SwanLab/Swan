@@ -37,9 +37,9 @@ classdef LevelSetWithSeveralHoles < LevelSetCreator
         end
         
         function init(obj,cParams)
-            obj.nHoles = [11,5]';%cParams.nHoles;
-            obj.rHoles = 0.5;%cParams.rHoles;
-            obj.phaseHoles = [0,2]';%cParams.phaseHoles;
+            obj.nHoles     = cParams.nHoles;
+            obj.rHoles     = cParams.rHoles;
+            obj.phaseHoles = cParams.phaseHoles;
         end
         
         function cosDir  = computeDirectionalCosinus(obj,coord,dir)
