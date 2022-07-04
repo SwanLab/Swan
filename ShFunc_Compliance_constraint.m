@@ -36,8 +36,7 @@ classdef ShFunc_Compliance_constraint < ShFunWithElasticPdes
     methods (Access = private)
 
         function c = computeCompliance(obj,n,nv)
-            obj.physicalProblem.boundaryConditions.neumann       = n;
-            obj.physicalProblem.boundaryConditions.neumann_values = nv;
+            obj.physicalProblem.boundaryConditions.changeBoundaryConditions(n,nv);
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
             obj.physicalProblem.solve();
             c = obj.computeInitialCompliance();
@@ -68,8 +67,7 @@ classdef ShFunc_Compliance_constraint < ShFunWithElasticPdes
 
         function computeMaxComplianceCone(obj)
             run("bridgeLoadCasesInformation.m");
-            obj.physicalProblem.boundaryConditions.neumann        = g.four';
-            obj.physicalProblem.boundaryConditions.neumann_values = g.fourv';
+            obj.physicalProblem.boundaryConditions.changeBoundaryConditions(g.four',g.fourv');
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
             obj.physicalProblem.solve();
             obj.targetConstraint = obj.computeInitialCompliance();
@@ -179,22 +177,22 @@ classdef ShFunc_Compliance_constraint < ShFunWithElasticPdes
         end
 
         function c = computeInitialCompliance(obj)
-            phy = obj.physicalProblem;
+            phy    = obj.physicalProblem;
             dvolum = phy.getDvolume()';
             stress = phy.variables.stress;
             strain = phy.variables.strain;
             ngaus  = size(strain,1);
             nelem  = size(strain,3);
-            c = zeros(nelem,ngaus);
+            c      = zeros(nelem,ngaus);
             for igaus = 1:ngaus
-                stressG = squeeze(stress(igaus,:,:));
-                strainG  = squeeze(strain(igaus,:,:));
-                e = stressG.*strainG;
+                stressG    = squeeze(stress(igaus,:,:));
+                strainG    = squeeze(strain(igaus,:,:));
+                e          = stressG.*strainG;
                 c(:,igaus) = c(:,igaus) + sum(e)';
             end
             obj.compliance = c;
-            int = c.*dvolum;
-            c = sum(int(:));
+            int            = c.*dvolum;
+            c              = sum(int(:));
         end
         
     end
@@ -206,8 +204,9 @@ classdef ShFunc_Compliance_constraint < ShFunWithElasticPdes
                 obj.computeTargetConstraint();
                 obj.isFirstIter = false;
             end
-            obj.physicalProblem.boundaryConditions.neumann        = obj.loadCase.neumann;
-            obj.physicalProblem.boundaryConditions.neumann_values = obj.loadCase.neumann_values;
+            n  = obj.loadCase.neumann;
+            nv = obj.loadCase.neumann_values;
+            obj.physicalProblem.boundaryConditions.changeBoundaryConditions(n,nv)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
             obj.physicalProblem.solve();
         end
@@ -217,7 +216,7 @@ classdef ShFunc_Compliance_constraint < ShFunWithElasticPdes
         end
         
         function computeFunctionValue(obj)
-            phy = obj.physicalProblem;
+            phy    = obj.physicalProblem;
             dvolum = phy.getDvolume()';
             stress = phy.variables.stress;
             strain = phy.variables.strain;

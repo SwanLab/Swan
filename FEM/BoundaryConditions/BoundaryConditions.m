@@ -5,8 +5,6 @@ classdef BoundaryConditions < handle
         dirichlet_values
         free
         freeFields
-        neumann
-        neumann_values
         masterSlave
         periodic_free
         periodic_constrained
@@ -18,6 +16,8 @@ classdef BoundaryConditions < handle
         scale
         dirichletInput
         pointloadInput
+        neumann
+        neumann_values
     end
     
     methods (Access = public)
@@ -61,6 +61,11 @@ classdef BoundaryConditions < handle
                 case 'MICRO'
                     full = obj.expandVectorPeriodic(vec);
             end
+        end
+
+        function changeBoundaryConditions(obj,neumannDOFs,neumannValues)
+            obj.neumann        = neumannDOFs;
+            obj.neumann_values = neumannValues;
         end
 
     end
