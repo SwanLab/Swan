@@ -8,6 +8,8 @@ classdef StokesDataContainer < AbstractSettings
         fileName
         scale
         state
+        dtime
+        finalTime
         dim
         type
         nelem
@@ -42,12 +44,14 @@ classdef StokesDataContainer < AbstractSettings
             femReader = FemInputReader_GiD();
             s = femReader.read(obj.fileName);
             
-            obj.mesh  = s.mesh;
-            obj.scale = s.scale;
-            obj.state = s.state;
-            obj.dim   = s.pdim;
-            obj.type  = s.ptype;
-            obj.nelem  = s.mesh.nelem;
+            obj.mesh      = s.mesh;
+            obj.scale     = s.scale;
+            obj.state     = s.state;
+            obj.dtime     = s.dtime;
+            obj.finalTime = s.ftime;
+            obj.dim       = s.pdim;
+            obj.type      = s.ptype;
+            obj.nelem     = s.mesh.nelem;
             obj.bc.velocity = s.velocity;
             obj.bc.pressure = s.pressure;
             obj.bc.forcesFormula = s.forcesFormula;
