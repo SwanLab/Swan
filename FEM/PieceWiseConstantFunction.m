@@ -20,7 +20,7 @@ classdef PieceWiseConstantFunction < handle
         function obj = PieceWiseConstantFunction(cParams)
             obj.init(cParams);
             obj.createQuadrature();
-            obj.createDimensions();
+          %  obj.createDimensions();
         end
         
         function fNodal = projectToLinearNodalFunction(obj)
@@ -57,10 +57,19 @@ classdef PieceWiseConstantFunction < handle
         end
         
         function LHS = computeLHS(obj)
+
+
+            sf.mesh  = obj.mesh;
+            sf.ndimf = 1; 
+            sf.interpolationOrder = 'LINEAR';
+            field = Field(sf);
+
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
             s.type         = 'MassMatrix';
-            s.dim          = obj.dim;
+            s.field        = field;            
+
+       %     s.dim          = obj.dim;
             s.quadType     = 'QUADRATIC';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
