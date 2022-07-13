@@ -209,6 +209,19 @@ classdef Mesh < handle
                 bMesh = b.create();
             end
         end
+
+        function mD = createDiscontinousMesh(obj)
+            nodesDisc  = 1:obj.nnodeElem*obj.nelem;
+            connecDisc = reshape(nodesDisc,obj.nnodeElem,obj.nelem)';            
+            s.connec = obj.connec;
+            s.type   = obj.type;
+            s.fNodes = obj.coord;
+            coordF = FeFunction(s);
+            coordD = coordF.computeDiscontinousField();
+            s.connec = connecDisc;
+            s.coord  = coordD;
+            mD = Mesh(s);
+        end
         
     end
     

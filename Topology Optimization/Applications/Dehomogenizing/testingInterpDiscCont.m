@@ -28,62 +28,62 @@ classdef testingInterpDiscCont < handle
     
     methods (Access = private)
         
-        function init(obj)
-            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-            obj.iteration = 665;
-            obj.loadDataExperiment();
-        end
-
-        function loadDataExperiment(obj)
-            s.fileName = [obj.fileName,num2str(obj.iteration)];
-            s.folderPath = fullfile(obj.filePath );
-            w = WrapperMshResFiles(s);
-            w.compute();
-            obj.experimentData = w;
-        end
-
-        function createMesh(obj)
-            d = obj.experimentData;
-            obj.mesh = d.mesh;
-        end
-
-        function computeOrientationAngle(obj)
-            d = obj.experimentData;
-            alpha0  = d.dataRes.AlphaGauss;
-            alpha(:,1) = obj.interpolateOrientationAngle(alpha0(:,1));
-            alpha(:,2) = obj.interpolateOrientationAngle(alpha0(:,2));
-
-
-            theta(:,1) = atan2(alpha(:,1),alpha(:,2));  
-
-            %obj.plotOrientation(theta,1);
-            alpha = obj.projectInUnitBall(alpha);
-            theta(:,1) = atan2(alpha(:,1),alpha(:,2));
-            %obj.plotOrientation(theta,1);
-            obj.orientationAngle = theta;
-       end   
-
-% 
 %         function init(obj)
-%         end        
+%             obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+%             obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+%             obj.iteration = 665;
+%             obj.loadDataExperiment();
+%         end
+% 
+%         function loadDataExperiment(obj)
+%             s.fileName = [obj.fileName,num2str(obj.iteration)];
+%             s.folderPath = fullfile(obj.filePath );
+%             w = WrapperMshResFiles(s);
+%             w.compute();
+%             obj.experimentData = w;
+%         end
 % 
 %         function createMesh(obj)
-%             connec = [1 2 4;
-%                 1 4 3];
-%             coord = [0 0;
-%                 1 0;
-%                 0 1;
-%                 1 1];
-%             sC.connec = connec;
-%             sC.coord  = coord;
-%             mC = Mesh(sC);       
-%             obj.mesh = mC;
+%             d = obj.experimentData;
+%             obj.mesh = d.mesh;
 %         end
-% % 
+% 
 %         function computeOrientationAngle(obj)
-%             obj.orientationAngle  = pi/180*[200;170;60;0];
-%         end
+%             d = obj.experimentData;
+%             alpha0  = d.dataRes.AlphaGauss;
+%             alpha(:,1) = obj.interpolateOrientationAngle(alpha0(:,1));
+%             alpha(:,2) = obj.interpolateOrientationAngle(alpha0(:,2));
+% 
+% 
+%             theta(:,1) = atan2(alpha(:,1),alpha(:,2));  
+% 
+%             %obj.plotOrientation(theta,1);
+%             alpha = obj.projectInUnitBall(alpha);
+%             theta(:,1) = atan2(alpha(:,1),alpha(:,2));
+%             %obj.plotOrientation(theta,1);
+%             obj.orientationAngle = theta;
+%        end   
+
+
+        function init(obj)
+        end        
+
+        function createMesh(obj)
+            connec = [1 2 4;
+                1 4 3];
+            coord = [0 0;
+                1 0;
+                0 1;
+                1 1];
+            sC.connec = connec;
+            sC.coord  = coord;
+            mC = Mesh(sC);       
+            obj.mesh = mC;
+        end
+% 
+        function computeOrientationAngle(obj)
+            obj.orientationAngle  = pi/180*[200;170;60;0];
+        end
     
         function compute(obj)
 
@@ -105,15 +105,16 @@ classdef testingInterpDiscCont < handle
             tC = obj.createUnitOrientedVector(alpha);
             obj.plotOrientation(mC,tC,'r')
             
+            mD = mC.createDiscontinousMesh();
+
             
-            sD.connec = reshape(1:mC.nnodeElem*mC.nelem,mC.nnodeElem,mC.nelem)';
-            d = mC.connec';
-            sD.coord(:,1) = mC.coord(d(:),1);
-            sD.coord(:,2) = mC.coord(d(:),2);
-            mD = Mesh(sD);
-            
-            tD(:,1) = tC(d(:),1);
-            tD(:,2) = tC(d(:),2);
+            s.connec = mC.connec;
+            s.type   = mC.type;
+            s.fNodes = tC;
+            tcF = FeFunction(s);
+            tD = tcF.computeDiscontinousField();
+
+       
             
             figure()
             hold on
@@ -129,6 +130,10 @@ classdef testingInterpDiscCont < handle
             
             
             
+        end
+
+        function createDiscontinousMesh(obj)
+
         end
 
         function vI = interpolateOrientationAngle(obj,v0)
