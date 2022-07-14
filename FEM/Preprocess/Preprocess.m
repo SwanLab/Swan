@@ -83,7 +83,7 @@ classdef Preprocess<handle
             
         end
         
-        function [data] = getBCFluidsNew(fileName)
+        function [data] = getBCFluids(fileName)
             run(fileName)
             if ~exist('dtime', 'var')
                 % Steady
@@ -98,29 +98,6 @@ classdef Preprocess<handle
             data.velocityBC = velocityBC;
             data.dtime     = dtime;
             data.finalTime = finalTime;
-        end
-
-        function [fixnodes,forces,full_dirichlet_data,Master_slave] = getBC_fluids(filename,mesh,geometry,interp)
-            run(filename)
-            obj = Preprocess;
-            full_dirichlet_data = obj.getFullDirichletData(External_border_nodes);
-
-            
-            if ~exist('Master_slave','var')
-                Master_slave = [];
-            end
-            
-            s.mesh = mesh;
-            s.interpolation = interp{1};
-            c = ConnecCoordFromInterpAndMesh(s);
-            c.compute();
-            xpoints = c.coord;
-            
-            fixnodes_u = obj.getFixedVelocityNodes(xpoints, velocity);
-            fixnodes_p = obj.getFixedPressureNodes(pressure);
-            forces = obj.getVolumetricForces(Vol_force, mesh, geometry, interp);
-            fixnodes{1} = fixnodes_u;
-            fixnodes{2} = fixnodes_p;
         end
         
         function forces_adjoint=getBC_adjoint(filename)

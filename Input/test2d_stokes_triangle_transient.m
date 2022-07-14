@@ -21,7 +21,7 @@ Data_prb = {
 };
 state = 'Transient';
 dtime = 0.01;
-finalTime = 5;
+finalTime = 1;
 
 %% Coordinates
 % Node                X                Y                Z

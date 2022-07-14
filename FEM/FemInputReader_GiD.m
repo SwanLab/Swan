@@ -81,7 +81,7 @@ classdef FemInputReader_GiD < handle
         function readFile(obj,fileName)
             data = Preprocess.readFromGiD(fileName);
             if isequal(data.problem_type,'Stokes')
-                [preData] = Preprocess.getBCFluidsNew(fileName);
+                [preData] = Preprocess.getBCFluids(fileName);
                 obj.nu = preData.nu;
                 obj.state = preData.state;
                 obj.velocity = preData.velocity;
