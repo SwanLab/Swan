@@ -8,6 +8,8 @@ classdef BoundaryConditions < handle
         masterSlave
         periodic_free
         periodic_constrained
+        neumann
+        neumann_values
     end
 
     properties (Access = private)
@@ -16,8 +18,6 @@ classdef BoundaryConditions < handle
         scale
         dirichletInput
         pointloadInput
-        neumann
-        neumann_values
     end
     
     methods (Access = public)

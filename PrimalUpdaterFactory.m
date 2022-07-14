@@ -9,6 +9,8 @@ classdef PrimalUpdaterFactory < handle
                     p = SLERP(cParams);
                 case 'PROJECTED GRADIENT'
                     p = ProjectedGradient(cParams);
+                case 'HAMILTON-JACOBI'
+                    p = HamiltonJacobi(cParams);
             end
         end
     

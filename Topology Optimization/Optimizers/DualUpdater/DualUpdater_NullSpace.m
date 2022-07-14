@@ -40,9 +40,9 @@ classdef DualUpdater_NullSpace < handle
 
         function defineRangeStepParameterValue(obj,cParams)
             switch cParams.optimizerNames.primal
-                case 'PROJECTED GRADIENT'
+                case {'PROJECTED GRADIENT','HAMILTON JACOBI'}
                     obj.parameter = inf;
-                case 'SLERP'
+                case {'SLERP'}
                     obj.parameter = 5;
                 otherwise
 

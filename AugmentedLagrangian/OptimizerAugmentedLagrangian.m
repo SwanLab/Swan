@@ -49,13 +49,13 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.hasConverged = false;
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
-            obj.saveVariablesForAnalysis();
+%             obj.saveVariablesForAnalysis();
             while ~obj.hasConverged
                 obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                obj.saveVariablesForAnalysis();
+%                 obj.saveVariablesForAnalysis();
             end
         end
 
@@ -247,19 +247,19 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.globalCost(i)           = obj.cost.value;
             obj.globalConstraint(:,i)   = obj.constraint.value;
             obj.globalCostGradient(i)   = norm(obj.cost.gradient);
-%             obj.globalMerit(i)          = obj.meritNew;
-%             obj.globalLineSearch(i)     = obj.primalUpdater.tau;
+            obj.globalMerit(i)          = obj.meritNew;
+            obj.globalLineSearch(i)     = obj.primalUpdater.tau;
             obj.globalDual(:,i)         = obj.dualVariable.value;
             obj.globalDesignVar(:,i)    = obj.designVariable.value;
             if obj.hasConverged
                 c = obj.globalCost;
                 h = obj.globalConstraint;
                 g = obj.globalCostGradient;
-%                 m = obj.globalMerit;
-%                 t = obj.globalLineSearch;
+                m = obj.globalMerit;
+                t = obj.globalLineSearch;
                 d = obj.globalDual;
                 v = obj.globalDesignVar;
-                save('AugmentedLagrCant04.mat',"c","g","h","d","v");
+                save('name.mat',"c","g","h","d","v");
             end
         end
 

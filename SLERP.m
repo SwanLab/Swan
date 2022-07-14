@@ -43,7 +43,6 @@ classdef SLERP < handle
 
         function init(obj,cParams)
             obj.phi            = cParams.designVar;
-%             obj.phi.update(obj.phi.value*3);
             obj.scalar_product = cParams.uncOptimizerSettings.scalarProductSettings;
         end
 

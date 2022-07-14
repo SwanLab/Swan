@@ -17,22 +17,10 @@ classdef MonitoringManager < handle
         function obj = MonitoringManager(cParams)
             switch cParams.outputFunction.type
                 case 'Academic'
-                    obj.computeAcademicMonitoring(cParams);
+                    obj.monitoring = AcademicMonitoring(cParams);
                 case 'Topology'
-                    obj.computeTopologyMonitoring(cParams);
+                    obj.monitoring = TopologyMonitoring(cParams);
             end
-        end
-        
-    end
-    
-    methods (Access = private)
-        
-        function computeAcademicMonitoring(obj,cParams)
-            obj.monitoring = AcademicMonitoring(cParams);
-        end
-        
-        function computeTopologyMonitoring(obj,cParams)
-            obj.monitoring = TopologyMonitoring(cParams);
         end
         
     end
