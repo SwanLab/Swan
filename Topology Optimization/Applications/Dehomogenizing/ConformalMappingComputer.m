@@ -88,9 +88,11 @@ classdef ConformalMappingComputer < handle
         end
         
         function phi = computeComponent(obj,idim)
-            s.fGauss = obj.computeVectorComponent(idim);
+            s.fGauss  = obj.computeVectorComponentP0(idim);
+            s.fValues = obj.computeVector(idim);
             s.mesh   = obj.mesh;
-            varProb  = MinimumGradFieldWithVectorInL2(s);
+            varProb  = MinimumDiscGradFieldWithVectorInL2(s);
+            %varProb  = MinimumGradFieldWithVectorInL2(s);            
             phi = varProb.solve();
         end
         
@@ -105,7 +107,7 @@ classdef ConformalMappingComputer < handle
            b = squeezeParticular(Q(:,idim,:),2);
         end
         
-        function fG = computeVectorComponent(obj,idim)
+        function fG = computeVectorComponentP0(obj,idim)
             b = obj.computeVector(idim);
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('LINEAR');

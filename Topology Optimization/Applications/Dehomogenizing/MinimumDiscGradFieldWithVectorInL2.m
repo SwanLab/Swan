@@ -1,4 +1,4 @@
-classdef MinimumGradFieldWithVectorInL2 < handle
+classdef MinimumDiscGradFieldWithVectorInL2 < handle
 
     properties (Access = private)
         LHS
@@ -9,18 +9,22 @@ classdef MinimumGradFieldWithVectorInL2 < handle
         mesh
         meshCont
         fGauss
+        fValues
         field
+        fieldDisc
         symCond
     end
     
     methods (Access = public)
         
-        function obj = MinimumGradFieldWithVectorInL2(cParams)
+        function obj = MinimumDiscGradFieldWithVectorInL2(cParams)
             obj.init(cParams);
             obj.createField();
         end
 
         function u = solve(obj)
+            obj.createDiscontinousField();
+            obj.createSymmetricMapCond()
             obj.computeLHS();
             obj.computeRHS();
             u = obj.solveSystem();
@@ -31,8 +35,10 @@ classdef MinimumGradFieldWithVectorInL2 < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh     = cParams.mesh;
+            obj.meshCont = cParams.mesh;
+            obj.mesh     = obj.meshCont.createDiscontinousMesh();
             obj.fGauss   = cParams.fGauss;
+            obj.fValues  = cParams.fValues;
         end
 
         function createField(obj)
@@ -41,9 +47,29 @@ classdef MinimumGradFieldWithVectorInL2 < handle
             s.interpolationOrder = obj.mesh.interpolation.order;
             obj.field = Field(s);
         end
-       
+
+        function createDiscontinousField(obj)
+            s.connec = obj.meshCont.connec;
+            s.type   = obj.meshCont.type;
+            s.fNodes = obj.fValues';
+            f = FeFunction(s);            
+            fD = f.computeDiscontinousField();
+            obj.fieldDisc = fD;
+        end
+
+        function createSymmetricMapCond(obj)   
+            s.meshCont  = obj.meshCont;
+            s.meshDisc  = obj.mesh;
+            s.fieldDisc = obj.fieldDisc;
+            s = SymmetricContMapCondition(s);            
+            sC = s.computeCondition();
+            obj.symCond = sC;            
+        end        
+%         
         function computeLHS(obj)
             K = obj.computeStiffnessMatrix();
+            In = obj.symCond;
+            K = In'*K*In;
            % M = obj.computeMassMatrix();
             I = ones(size(K,1),1);
             %eta = 0.01;
@@ -85,6 +111,8 @@ classdef MinimumGradFieldWithVectorInL2 < handle
             s.globalConnec = obj.mesh.connec;
             rhs  = RHSintegrator.create(s);
             rhsV = rhs.compute();
+            In = obj.symCond;            
+            rhsV = In'*rhsV;
             obj.RHS = [rhsV;0];
         end
         

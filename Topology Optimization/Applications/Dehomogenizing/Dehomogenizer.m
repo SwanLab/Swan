@@ -31,7 +31,7 @@ classdef Dehomogenizer < handle
         function plot(obj)
             obj.plotOrientation();
             obj.plotStructure();
-            obj.plotComponents();
+           % obj.plotComponents();
         end
         
     end

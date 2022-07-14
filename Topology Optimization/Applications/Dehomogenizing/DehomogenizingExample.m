@@ -43,21 +43,21 @@ classdef DehomogenizingExample < handle
     methods (Access = private)
         
         function init(obj)
-            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/Example/';
-            obj.fileName = 'CantileverSymmetricWithoutFixing';
-            obj.iteration = 216;
+%             obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/Example/';
+%             obj.fileName = 'CantileverSymmetricWithoutFixing';
+%             obj.iteration = 216;
 % 
-%            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-%            obj.fileName = 'ExperimentingPlotSuperEllipse';
-%            obj.iteration = 64;
+           obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+           obj.fileName = 'ExperimentingPlotSuperEllipse';
+           obj.iteration = 64;
             
-           %obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-           %obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-           %obj.iteration = 665;         
+%            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+%            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+%            obj.iteration = 665;         
         
             obj.nx1    = 22;
             obj.nx2    = 22;
-            obj.nCells = 46;
+            obj.nCells = 42;
         end
         
         function loadDataExperiment(obj)
@@ -157,8 +157,8 @@ classdef DehomogenizingExample < handle
             FV.faces    = obj.mesh.connec;
             FV2 = refinepatch(FV);
             FV2 = refinepatch(FV2);
-         %   FV2 = refinepatch(FV2);
-         %   FV2 = refinepatch(FV2);
+        %    FV2 = refinepatch(FV2);
+            %FV2 = refinepatch(FV2);
 % 
 %             
             s.coord = FV2.vertices(:,1:2);

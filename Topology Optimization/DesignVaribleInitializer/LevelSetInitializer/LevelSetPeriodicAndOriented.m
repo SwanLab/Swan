@@ -99,7 +99,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             hmin = min(hC);
             hmax = max(hC);
            % hcut = (hmax+hmin)/0.6;%/4;%/2;
-            hcut = 0.1*obj.epsilon;
+            hcut = 0.00001*obj.epsilon;
             t = hcut./hC;                           
         end
         
