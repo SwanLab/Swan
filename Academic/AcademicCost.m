@@ -14,7 +14,7 @@ classdef AcademicCost < handle
     methods (Access = public)
         
         function obj = AcademicCost(cParams)
-            obj.init(cParams)           
+            obj.init(cParams)
         end
         
         function computeFunctionAndGradient(obj)

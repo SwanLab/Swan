@@ -15,7 +15,7 @@ classdef AcademicConstraint < handle
     methods (Access = public)
         
         function obj = AcademicConstraint(cParams)
-            obj.init(cParams)           
+            obj.init(cParams)
         end
         
         function computeFunctionAndGradient(obj)

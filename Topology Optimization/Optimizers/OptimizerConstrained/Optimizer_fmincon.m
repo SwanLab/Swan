@@ -37,7 +37,7 @@ classdef Optimizer_fmincon < Optimizer
 
          function solveProblem(obj)
             obj.cost.computeFunctionAndGradient();
-            obj.designVariable.updateOld();                
+            obj.designVariable.updateOld();
             x = obj.callfmincon();
             obj.designVariable.update(x);
          end
