@@ -76,6 +76,18 @@ body{
     margin:10px 0;
 }
 
+.card-title {
+    font-family: var(--font-main);
+    font-size:1.5em;
+    font-weight:bold;
+    color:var(--dark-color);
+    margin:10px 0;
+}
+
+.card-text {
+    font-family: var(--font-sec);
+    font-size:1.15em;
+}
 .footer{
     background: var(--dark-color);
     color: white;
