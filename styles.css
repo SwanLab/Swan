@@ -4,6 +4,7 @@
 :root {
     --main-bg-color: #1f8fea;
     --dark-color: #183247;
+    --aux-color: #ffc33d;
     --font-main: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     --font-sec: 'Noto Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
@@ -67,6 +68,14 @@ body{
     font-size:1.25em;
 }
 
+.title {
+    font-family: var(--font-main);
+    font-size:2em;
+    font-weight:bold;
+    color:var(--main-bg-color);
+    margin:10px 0;
+}
+
 .footer{
     background: var(--dark-color);
     color: white;
@@ -87,4 +96,15 @@ body{
     padding:1em;
     font-weight:bold;
     text-align:center"
+}
+
+.button:hover{
+    color: var(--aux-color);
+    font-weight:bold;
+    border: 1px solid var(--aux-color);
+}
+
+.toolbar a.toolbar-link:hover{
+    color: var(--aux-color);
+    border-bottom: 5px solid var(--aux-color);
 }
