@@ -12,7 +12,7 @@ classdef PostProcTests < handle & matlab.unittest.TestCase
             s.computerType    = 'TOPOPT';
             s.testName         = fastDisp;
             s.testResultsName  = [fastDisp,'Ref'];
-            test = storedVariableTest(s);
+            test = FileComparatorTest(s);
             err = test.computeError();
             testCase.verifyTrue(err)
         end

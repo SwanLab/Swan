@@ -1,4 +1,4 @@
-filename = 'jaCantilever';
+filename = 'CantileverPostProc';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -34,4 +34,4 @@ plotting = false;
 printing = true;
 printing_physics = false;
 monitoring = false;
-maxiter = 3;
+maxiter = 1;
