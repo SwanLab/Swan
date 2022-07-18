@@ -1,3 +1,90 @@
 *{
-    background-color: rgb(191, 223, 250);
+    margin: 0;
+}
+:root {
+    --main-bg-color: #1f8fea;
+    --dark-color: #183247;
+    --font-main: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-sec: 'Noto Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+body{
+    background: #eff4ff;
+}
+
+.toolbar {
+    background: var(--dark-color);
+    color: white;
+    overflow: hidden;
+    font-family: var(--font-main);
+}
+
+.toolbar a.toolbar-link {
+    float: right;
+    text-align: center;
+    color: white;
+    text-decoration: none;
+    padding: 10px 15px;
+    border-bottom: 5px solid white;
+    margin-left: 10px;
+}
+
+.toolbar a.logo{
+    float: left;
+    margin-left:1%;
+}
+
+.toolbar a.ghlogo {
+    float: right;
+    margin:0 1%;
+}
+
+.main-banner {
+    background: rgb(110,182,241);
+    background: linear-gradient(156deg, rgba(110,182,241,1) 0%, rgba(30,142,234,1) 100%);
+    background-image: radial-gradient(#4aa4ef 1px, #1f8fea 1px);
+    background-size: 20px 20px;
+    
+}
+
+.main-text{
+    font-family: var(--font-main);
+}
+
+.sub-text{
+    font-family:var(--font-sec);
+
+}
+
+.center-box{
+    display:flex;
+    justify-content:center;
+}
+.button {
+    display:inline-block;
+    border: 1px solid white;
+    border-radius:5px;
+    padding:10px 15px;
+    font-size:1.25em;
+}
+
+.footer{
+    background: var(--dark-color);
+    color: white;
+    overflow: hidden;
+    font-family: var(--font-main);
+}
+.footer-flexbox-frame{
+    display: flex;
+    align-items: stretch;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin:auto
+}
+
+.footer-flexbox-item{
+    flex: 1 1 0;
+    margin: 2px;
+    padding:1em;
+    font-weight:bold;
+    text-align:center"
 }
