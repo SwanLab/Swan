@@ -1,9 +1,7 @@
 function MicroExampleRun
 
 %Microstructure
-%filename = 'test2d_micro';
-%filename = 'IrrHexagon50x25x50';
-filename = 'RectangleTest';
+filename = 'test_rectangular';
 s = createParameters(filename);
 density = createDensity(s.mesh);
 
@@ -90,8 +88,8 @@ sD.mesh  = mesh;
 sD.type  = 'Vector';
 sD.ndimf = 2;
 sD.fieldName = 'Disp';
-d = DimensionVariables.create(sD);
-d.compute(sD);
+% d = DimensionVariables.create(sD);
+% d.compute(sD);
 s.dim = '2D';
 s.typeOfMaterial = 'ISOTROPIC';
 s.interpolation  = 'SIMPALL';

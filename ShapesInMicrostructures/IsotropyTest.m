@@ -1,4 +1,4 @@
-filename = 'RectangularTest';
+filename = 'test_rectangular';
 ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -40,8 +40,8 @@ epsilon_isotropy_final = 1e-3;
 selectiveC_Cstar = 'IsotropyHexagon';
 
 % For all tests
-plotting = true;
+plotting = false;
 printing = false;
 printing_physics = false;
-monitoring = true;
-maxiter = 35;
+monitoring = false;
+maxiter = 30;
