@@ -9,3 +9,4 @@ PlottingTestsSuite;
 close all;
 HomogenizationTestsSuite;
 ImageProcessingTestsSuite;
+PostProcTestsSuite;
