@@ -1,4 +1,4 @@
-filename = 'SquareTest';
+filename = 'RectangularTest';
 ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
