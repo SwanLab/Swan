@@ -172,6 +172,17 @@ classdef NewFilter_PDE_Density < handle
             problemLHS = LHSintegrator.create(s);
             lhs = problemLHS.compute(obj.epsilon);
             lhs = obj.bc.fullToReducedMatrix(lhs);
+
+%             s.mesh  = obj.mesh;
+%             s.ndimf = 1;
+%             s.interpolationOrder = 'LINEAR';
+%             f = Field(s);
+%             obj.bc = f.translateBoundaryConditions(obj.bc);
+%             s.field = f;
+%             s.type = obj.LHStype;
+%             problemLHS = LHSintegrator.create(s);
+%             lhs = problemLHS.compute(obj.epsilon);
+%             lhs = obj.bc.fullToReducedMatrix(lhs);
         end
 
     end

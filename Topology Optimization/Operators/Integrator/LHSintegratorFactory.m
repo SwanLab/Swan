@@ -29,7 +29,7 @@ classdef LHSintegratorFactory < handle
                    %globalB in contructor
                case 'AnisotropicStiffnessMatrix'
                    % dB'*Celas*dB
-                   obj = LHSintergratorAnisotropicStiffness(cParams);
+                   obj = LHSintegratorAnisotropicStiffness(cParams);
                    % Computes the ELASTIC STIFFNESS MATRIX by first
                    % computing the *global* B matrix, the *global* C
                    % matrix, and then multiplying B*C*B globally.
