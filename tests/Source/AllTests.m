@@ -1,4 +1,5 @@
 FemTestsSuite;
+MicroShapeTestsSuite;
 DiffReactTestsSuite;
 UnfittedIntegrationTestsSuite;
 VectorizedTriangulationTestsSuite;
