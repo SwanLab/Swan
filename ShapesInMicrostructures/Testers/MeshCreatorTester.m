@@ -4,7 +4,7 @@ classdef MeshCreatorTester < Tester
         data
     end
     
-    properties (Access = protected) 
+    properties (Access = public) 
         testName
         corrValues
         calcValues
@@ -17,7 +17,6 @@ classdef MeshCreatorTester < Tester
             obj.testName = 'MeshCreator';
             obj.loadCorrectValues();
             obj.obtainCalculatedData();
-            obj.verify();
         end
         
     end
@@ -27,7 +26,7 @@ classdef MeshCreatorTester < Tester
         function loadCorrectValues(obj)
             switch obj.data.nvert
                 case 4
-                    c = load('coordQuad.mat');
+                    c = load('totalCoordQuad.mat');
                     cN = load('connecQuad.mat');
                     mS = load('masterSlaveQuad.mat');
                 case 6
