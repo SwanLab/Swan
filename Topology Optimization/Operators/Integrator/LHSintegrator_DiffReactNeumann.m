@@ -8,10 +8,10 @@ classdef LHSintegrator_DiffReactNeumann < LHSintegrator
     methods (Access = public)
 
         function obj = LHSintegrator_DiffReactNeumann(cParams)
-            obj.init(cParams);
+            %             obj.init(cParams);
+            obj.mesh = cParams.mesh;
             obj.computeStiffnessMatrix(cParams);
             obj.computeMassMatrix();
-            obj.mesh = cParams.mesh;
         end
 
         function LHS = compute(obj, epsilon)

@@ -145,9 +145,7 @@ classdef NewFilter_PDE_Density < handle
         end
 
         function computeDimension(obj)
-            s.name  = 'x';
-            s.mesh  = obj.mesh;
-            obj.dim = DimensionScalar(s);
+            obj.dim = obj.field.dim;
         end
 
         function computeBoundaryConditions(obj)
@@ -164,25 +162,14 @@ classdef NewFilter_PDE_Density < handle
         end
 
         function lhs = createProblemLHS(obj)
-            s      = obj.femSettings;
-            s.type = obj.LHStype;
-            s.dim  = obj.dim;
-            s.mesh = obj.mesh;
-            s.globalConnec = [];
+            s          = obj.femSettings;
+            s.mesh     = obj.mesh;
+            s.field    = obj.field;
+            s.type     = obj.LHStype;
             problemLHS = LHSintegrator.create(s);
-            lhs = problemLHS.compute(obj.epsilon);
-            lhs = obj.bc.fullToReducedMatrix(lhs);
-
-%             s.mesh  = obj.mesh;
-%             s.ndimf = 1;
-%             s.interpolationOrder = 'LINEAR';
-%             f = Field(s);
-%             obj.bc = f.translateBoundaryConditions(obj.bc);
-%             s.field = f;
-%             s.type = obj.LHStype;
-%             problemLHS = LHSintegrator.create(s);
-%             lhs = problemLHS.compute(obj.epsilon);
-%             lhs = obj.bc.fullToReducedMatrix(lhs);
+            lhs        = problemLHS.compute(obj.epsilon);
+            obj.bc     = obj.field.translateBoundaryConditions(obj.bc);
+            lhs        = obj.bc.fullToReducedMatrix(lhs);
         end
 
     end

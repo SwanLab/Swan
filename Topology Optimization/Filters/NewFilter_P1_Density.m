@@ -71,9 +71,7 @@ classdef NewFilter_P1_Density < handle
         end
 
         function createMassMatrix(obj)
-            ss.name        = 'x';
-            ss.mesh        = obj.mesh;
-            s.dim          = DimensionScalar(ss);
+            s.dim          = obj.field.dim;
             s.type         = 'MassMatrix';
             s.quadType     = 'QUADRATICMASS';
             s.mesh         = obj.mesh;
