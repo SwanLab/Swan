@@ -3,21 +3,6 @@ classdef DiffReactProblem < handle
     properties (GetAccess = public, SetAccess = protected)
         variables
     end
-
-    % Filter_PDE_Iso_Total
-    % e^2 IsoLaplac(u) + u = u* (neuman)    
-    
-    % Filter_PDE_Iso_Relative
-    % e^2 IsoLaplac(u) + u = u* (Robin)
-    
-    % Filter_PDE_Ani_Total   
-    % e^2 AniLaplac(u) + u = u* (neuman)
-
-    % Filter_PDE_Ani_Total    
-    % e^2 AniLaplac(u) + u = u* (Robin)
-
-    % IsoLaplac(u) = f
-    % IsoVectLaplac(u) = f
     
     properties (Access = private)
         mesh

@@ -13,7 +13,6 @@ classdef LHSintegrator_DiffReactRobin < LHSintegrator
     methods (Access = public)
 
         function obj = LHSintegrator_DiffReactRobin(cParams)
-%             obj.init(cParams);
             obj.mesh = cParams.mesh;
             obj.computeStiffnessMatrix(cParams);
             obj.computeMassMatrix();
