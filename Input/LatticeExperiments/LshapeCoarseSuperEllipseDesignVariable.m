@@ -1,14 +1,14 @@
 %filename = 'CantileverSquareSYmmetricMesh';
 %filename = 'CantileverSquareMedium';
 %'CantileverSquareSYmmetricMesh';
-%filename = 'CantileverSquare';
+filename = 'CantileverSquare';
 %filename = 'CantileverSquareSmall';
 %filename = 'CantileverSquareNew';
 %'CantileverSquareNewFine';
 %filename = 'Cantilever_quad_coarse';
 %filename = 'LshapeTriFine';
 %filename = 'LshapeTri';
-filename = 'LshapeTriSmall';
+%filename = 'LshapeTriSmall';
 %filename = 'Lshape';
 %filename = 'LshapeFine';
 %filename = 'ArchTriFine';
@@ -23,9 +23,9 @@ ptype = 'MACRO';
 initial_case = 'given';
 m1 = 0.0101;
 m2 = 0.0101;
-%cost = {'compliance'};
+cost = {'compliance'};
 %cost = {'stressNorm'};
-cost = {'stressNorm','compliance'};
+%cost = {'stressNorm','compliance'};
 %cost = {'stressNorm','compliance'};
 weights = [1,10];
 %weights = 1;
@@ -57,9 +57,9 @@ ub = 0.989;
 lb = 0.011;
 homegenizedVariablesComputer = 'ByVademecum';
 % 
-%vademecumFileName = 'SuperEllipseQMax';
+vademecumFileName = 'SuperEllipseQMax';
 %vademecumFileName = 'SuperEllipseQ2';
-vademecumFileName = 'SuperEllipseQOptAnalytic';
+%vademecumFileName = 'SuperEllipseQOptAnalytic';
 
 
 
