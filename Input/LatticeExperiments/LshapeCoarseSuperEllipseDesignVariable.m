@@ -1,8 +1,8 @@
 %filename = 'CantileverSquareSYmmetricMesh';
 %filename = 'CantileverSquareMedium';
 %'CantileverSquareSYmmetricMesh';
-filename = 'CantileverSquare';
-%filename = 'CantileverSquareSmall';
+%filename = 'CantileverSquare';
+filename = 'CantileverSquareSmall';
 %filename = 'CantileverSquareNew';
 %'CantileverSquareNewFine';
 %filename = 'Cantilever_quad_coarse';
@@ -57,9 +57,9 @@ ub = 0.989;
 lb = 0.011;
 homegenizedVariablesComputer = 'ByVademecum';
 % 
-vademecumFileName = 'SuperEllipseQMax';
+%vademecumFileName = 'SuperEllipseQMax';
 %vademecumFileName = 'SuperEllipseQ2';
-%vademecumFileName = 'SuperEllipseQOptAnalytic';
+vademecumFileName = 'SuperEllipseQOptAnalytic';
 
 
 
@@ -84,12 +84,12 @@ incrementFactor = 1.95;
 
 
 %kfrac = 2;
-nsteps = 16;%17;
+nsteps = 1;%17;
 
 plotting = true;
 printing = true;
 monitoring = true;
-monitoring_interval = 3;
+monitoring_interval = 1;
 maxiter = 800;
 
 % 
@@ -99,21 +99,21 @@ maxiter = 800;
 % isDirichletPart2 = @(y) y > 0.70 & y < 0.80;
 % isDirichletPartY = @(y) isDirichletPart1(y) | isDirichletPart2(y);
 % isDirichletPart = @(x,y) isDirichletPartX(x) & isDirichletPartY(y);
- isNeumannPartX = @(x) x > (0.96) & x < (1+1e-12);
- isNeumannPartY = @(y) y > 0.35 & y < 0.5;
- 
- isCornerX = @(x) x > (0.4 - 0.05) & x < (0.4 +0.05);
- isCornerY = @(y) y > (0.4 - 0.05) & y < (0.4 +0.05);
- isCornerPart = @(x,y) isCornerX(x) & isCornerY(y);
+%  isNeumannPartX = @(x) x > (0.96) & x < (1+1e-12);
+%  isNeumannPartY = @(y) y > 0.35 & y < 0.5;
+%  
+%  isCornerX = @(x) x > (0.4 - 0.05) & x < (0.4 +0.05);
+%  isCornerY = @(y) y > (0.4 - 0.05) & y < (0.4 +0.05);
+%  isCornerPart = @(x,y) isCornerX(x) & isCornerY(y);
+% % 
+%  isNeumannPart = @(x,y) isNeumannPartX(x) & isNeumannPartY(y);
+% % iNotOptimizable = @(coord) isDirichletPart(coord(:,1),coord(:,2)) & ~isNeumannPart(coord(:,1),coord(:,2));
 % 
- isNeumannPart = @(x,y) isNeumannPartX(x) & isNeumannPartY(y);
-% iNotOptimizable = @(coord) isDirichletPart(coord(:,1),coord(:,2)) & ~isNeumannPart(coord(:,1),coord(:,2));
-
-iNotOptimizable = @(coord) isCornerPart(coord(:,1),coord(:,2)) | isNeumannPart(coord(:,1),coord(:,2));
-
-costDomainNotOptimizable       = {iNotOptimizable};
-constraintDomainNotOptimizable = {[]};
-
-isDesignVariableFixed.nodes  = iNotOptimizable;
-isDesignVariableFixed.values = @(x) [m1*ones(size(x,1),1);m2*ones(size(x,1),1)];
+% iNotOptimizable = @(coord) isCornerPart(coord(:,1),coord(:,2)) | isNeumannPart(coord(:,1),coord(:,2));
+% 
+% costDomainNotOptimizable       = {iNotOptimizable};
+% constraintDomainNotOptimizable = {[]};
+% 
+% isDesignVariableFixed.nodes  = iNotOptimizable;
+% isDesignVariableFixed.values = @(x) [m1*ones(size(x,1),1);m2*ones(size(x,1),1)];
 

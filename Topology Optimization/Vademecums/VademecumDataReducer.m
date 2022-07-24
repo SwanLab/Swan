@@ -21,7 +21,7 @@ classdef VademecumDataReducer < handle
     methods (Access = private)
         
         function init(obj)
-            obj.fileName = 'SuperEllipseQOptAnalytic';%'SuperEllipseQOptAnalytic';%'SuperEllipseQMax';%'SuperEllipseQ2';            
+            obj.fileName = 'SuperEllipseQ2';%'SuperEllipseQOptAnalytic';%'SuperEllipseQOptAnalytic';%'SuperEllipseQMax';%'SuperEllipseQ2';            
             obj.fileNameReduced = [obj.fileName,'Reduced'];
         end
         
