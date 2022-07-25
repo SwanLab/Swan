@@ -1,7 +1,6 @@
 classdef LHSintegratorAnisotropicStiffness < LHSintegrator
     
     properties (Access = private)
-        geometry
         CAnisotropic
         Celas
         alphaDeg
