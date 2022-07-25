@@ -10,7 +10,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             'test_interiorPerimeter'
             }
         fastDisp = {
-            'test_bridge2', ...
+            %'test_bridge2', ...
             'test_cantilever', 'test_cantilever2', 'test_cantilever3', ...
             'test_micro', 'test_micro2', ...
             'testDualNestedInPrimal_WithProjectedGradient', ...
@@ -23,12 +23,11 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             'testDualNestedInPrimal_WithSlerp', ...
             'test_interiorPerimeter'
             }
-        micro = {'test_micro', 'test_micro2'}
-        %         compTestsToPass = {'test_bridge'}
-        %         compTestsToPass = {'test_interiorPerimeter'}
-        cantileverTests = {'test_cantilever','test_cantilever3','test_interiorPerimeter','test_micro'}
-        %                 cantileverTests = {'test_anisotropy_cantilever'}
-        %                 cantileverTests = {'test_micro_Anisotropy'}
+%        micro = {'test_micro', 'test_micro2'}
+         micro = {'test_micro'}
+%         compTestsToPass = {'test_bridge'}
+%         compTestsToPass = {'test_interiorPerimeter'}
+        cantileverTests = {'test_cantilever2', 'test_cantilever3'}
         dimensions = {'2D', '3D'}
         vigdergauzTests = {'test_VigergauzMicroStructure', 'test_VigergauzMicroStructureFromStrain'}
         vigdergauzVolumes = {0.6, 0.75}
@@ -37,7 +36,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'Macro'})
 
         function testMacro(testCase, macro)
-            %             testCase.fixFolder();
+%             testCase.fixFolder();
             s.computerType    = 'TOPOPT';
             s.testName         = macro;
             s.variablesToStore = {'x'};
@@ -52,7 +51,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'Micro'})
 
         function testMicro(testCase, micro)
-            %             testCase.fixFolder();
+%             testCase.fixFolder();
             s.computerType    = 'TOPOPT';
             s.testName         = micro;
             s.variablesToStore = {'x'};

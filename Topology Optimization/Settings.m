@@ -83,8 +83,6 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         isDesignVariableFixed
         costDomainNotOptimizable
         constraintDomainNotOptimizable
-        anisoScaleAngle
-        anisoOverhangAngle
     end
     
     properties %exploring tests
@@ -412,15 +410,7 @@ classdef Settings %< handle%& matlab.mixin.Copyable
             
             if exist('stressNormExponent_final','var')
                 obj.stressNormExponent_final = stressNormExponent_final;
-            end   
-
-            if exist('anisoScaleAngle','var')
-                obj.anisoScaleAngle = anisoScaleAngle;
-            end
-
-            if exist('anisoOverhangAngle','var')
-                obj.anisoOverhangAngle = anisoOverhangAngle;
-            end
+            end            
             
         end
         
