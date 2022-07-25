@@ -1,37 +1,36 @@
-classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
+classdef Filter_P1_LevelSet <  handle
     
     properties (Access = private)
-        mesh        
-        quadratureOrder
-
         Poper
-        
         x
         x_reg
-        
         geometry
         quadrature
-
-        domainType
         projector
-        
-        interp
+        field
+    end
+
+    properties (Access = private)
+        mesh
+        quadratureOrder
     end
     
     methods (Access = public)
         
         function obj = Filter_P1_LevelSet(cParams)
             obj.init(cParams);
-            obj.domainType = cParams.domainType;
-            obj.createQuadrature();
-            obj.createProjector();
-            obj.createInterpolation();
-            obj.createGeometry();
+            obj.createProjector(cParams);
             obj.createPoperator(cParams);
             obj.disableDelaunayWarning();
         end
-        
+
         function preProcess(obj)
+            s.mesh = obj.mesh;
+            s.quadratureOrder = obj.quadratureOrder;
+            P1proc = P1preProcessor(s);
+            P1proc.preProcess();
+            obj.quadrature = P1proc.quadrature;
+            obj.geometry = P1proc.geometry;
         end
         
         function x_reg = getP1fromP0(obj,x0)
@@ -52,35 +51,45 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
             end
             obj.updateStoredValues(x,x0);
         end
-        
+
     end
-    
-    methods (Access = protected)
-        
+
+    methods (Access = private)
+
+        function init(obj,cParams)
+            obj.mesh = cParams.mesh;
+            obj.quadratureOrder = cParams.quadratureOrder;
+            obj.createField();
+        end
+
+        function createField(obj)
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1;
+            s.interpolationOrder = 'LINEAR';
+            s.quadratureOrder    = 'QUADRATICMASS';
+            obj.field = Field(s);
+        end
+
         function x0 = computeP0fromP1(obj,x)
             xN = obj.projector.project(x);
             P  = obj.Poper.value;
             x0 = P*xN;
         end
-        
-    end
-    
-    methods (Access = private)
-        
-        function createPoperator(obj,cPar)
-            cParams.nnode  = obj.mesh.nnodeElem;
-            cParams.npnod  = obj.mesh.nnodes;
-            cParams.connec = obj.mesh.connec;
-            cParams.nelem  = obj.mesh.nelem;
-            cParams.diffReactEq = cPar.femSettings;
-            obj.Poper = Poperator(cParams);
+
+        function createPoperator(obj,cParams)
+            s.nnode  = obj.mesh.nnodeElem;
+            s.npnod  = obj.mesh.nnodes;
+            s.connec = obj.mesh.connec;
+            s.nelem  = obj.mesh.nelem;
+            s.diffReactEq = cParams.femSettings;
+            obj.Poper = Poperator(s);
         end
         
-        function createProjector(obj)
-            cParams.mesh = obj.mesh;
-            cParams.domainType = obj.domainType;
-            cParams.type = obj.mesh.type;
-            obj.projector = ShapeFunctionProjector.create(cParams);
+        function createProjector(obj,cParams)
+            s.mesh = cParams.mesh;
+            s.type = cParams.mesh.type;
+            s.domainType = cParams.domainType;
+            obj.projector = ShapeFunctionProjector.create(s);
         end
         
         function intX = integrateRHS(obj,x)
@@ -99,26 +108,6 @@ classdef Filter_P1_LevelSet <  handle %Filter_LevelSet %& Filter_P1
         function updateStoredValues(obj,x,x0)
             obj.x = x;
             obj.x_reg = x0;
-        end
-        
-        function init(obj,cParams)
-            obj.mesh = cParams.mesh;
-            obj.quadratureOrder = cParams.quadratureOrder;
-        end
-        
-        function createQuadrature(obj)
-            obj.quadrature = Quadrature.set(obj.mesh.type);
-            obj.quadrature.computeQuadrature(obj.quadratureOrder);
-        end
-        
-        function createInterpolation(obj)
-            obj.interp = Interpolation.create(obj.mesh,'LINEAR');
-        end
-        
-        function createGeometry(obj)
-            s.mesh = obj.mesh;
-            obj.geometry = Geometry.create(s);
-            obj.geometry.computeGeometry(obj.quadrature,obj.interp);
         end
 
     end

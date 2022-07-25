@@ -1,8 +1,8 @@
 classdef FilterFactory < handle
-    
-    methods (Access = public)
-        
-        function filter = create(obj,factoryParams)
+
+    methods (Access = public, Static)
+
+        function filter = create(factoryParams)
             cParams = factoryParams;
             switch factoryParams.filterType
                 case 'P1'
@@ -21,7 +21,7 @@ classdef FilterFactory < handle
                     end
             end
         end
-        
+
     end
-    
+
 end

@@ -89,7 +89,7 @@ classdef ShapeFunctional < handle
             s = cParams.filterParams;
             s.femSettings.mesh = s.mesh;
             s.designVariable = cParams.designVariable;
-            obj.filter = NewFilter.create(s);
+            obj.filter = Filter.create(s);
             obj.filter.preProcess();
         end
         
