@@ -55,16 +55,6 @@ classdef LHSintegratorAnisotropicStiffness < LHSintegrator
            obj.alphaDeg = cParams.aniAlphaDeg;
            obj.CAnisotropic = obj.rotateAnisotropicMatrix(CLocal);
        end
-       
-        function createGeometry(obj)
-            q   = obj.quadrature;
-            int = obj.interpolation;
-            int.computeShapeDeriv(q.posgp);
-            s.mesh = obj.mesh;
-            g = Geometry.create(s);
-            g.computeGeometry(q,int);
-            obj.geometry = g;
-        end
 
         function Bcomp = createBComputer(obj)
             s.dim          = obj.field.dim;
