@@ -13,7 +13,8 @@ classdef LHSintegrator_DiffReactRobin < LHSintegrator
     methods (Access = public)
 
         function obj = LHSintegrator_DiffReactRobin(cParams)
-            obj.mesh = cParams.mesh;
+            obj.mesh  = cParams.mesh;
+            obj.field = cParams.field;
             obj.computeStiffnessMatrix(cParams);
             obj.computeMassMatrix();
             obj.computeBoundaryMassMatrix();
@@ -28,44 +29,29 @@ classdef LHSintegrator_DiffReactRobin < LHSintegrator
     methods (Access = private)
     
         function computeStiffnessMatrix(obj,cParams)
-            s = cParams;
+            s              = cParams;
             s.globalConnec = obj.mesh.connec;
-            s.type = cParams.stiffType;
-            g.mesh               = obj.mesh;
-            g.ndimf              = 1;
-            g.interpolationOrder = 'LINEAR';
-            g.quadratureOrder    = 'LINEAR';
-            f = Field(g);
-            s.mesh  = obj.mesh;
-            s.field = f;
-            LHS = LHSintegrator.create(s);
-            obj.K = LHS.compute();
+            s.type         = cParams.stiffType;
+            s.mesh         = obj.mesh;
+            s.field        = obj.field;
+            LHS            = LHSintegrator.create(s);
+            obj.K          = LHS.compute();
         end
 
         function computeMassMatrix(obj)
-            g.mesh               = obj.mesh;
-            g.ndimf              = 1;
-            g.interpolationOrder = 'LINEAR';
-            g.quadratureOrder    = 'QUADRATICMASS';
-            f = Field(g);
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.field = f;
-            LHS = LHSintegrator.create(s);
-            obj.M = LHS.compute();
+            s.field = obj.field;
+            LHS     = LHSintegrator.create(s);
+            obj.M   = LHS.compute();
         end
 
         function computeBoundaryMassMatrix(obj)
-            g.mesh               = obj.mesh;
-            g.ndimf              = 1;
-            g.interpolationOrder = 'LINEAR';
-            g.quadratureOrder    = 'QUADRATICMASS';
-            f = Field(g);
             s.type  = 'BoundaryMassMatrix';
             s.mesh  = obj.mesh;
-            s.field = f;
-            LHS = LHSintegrator.create(s);
-            obj.Mr = LHS.compute();
+            s.field = obj.field;
+            LHS     = LHSintegrator.create(s);
+            obj.Mr  = LHS.compute();
         end
 
     end
