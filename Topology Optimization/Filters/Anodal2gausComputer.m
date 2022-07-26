@@ -26,9 +26,9 @@ classdef Anodal2gausComputer < handle
             ndof = size(obj.A_nodal_2_gauss{1},2);
             intX = zeros(ndof,1);
             for igaus = 1:obj.ngaus
-                dVG = cParams.geometry.dvolu(:,igaus);
-                xG = cParams.x(:,igaus);
-                A = obj.A_nodal_2_gauss{igaus};
+                dVG  = cParams.geometry.dvolu(:,igaus);
+                xG   = cParams.x(:,igaus);
+                A    = obj.A_nodal_2_gauss{igaus};
                 intX = intX + A'*(xG.*dVG);
             end
         end
@@ -45,20 +45,14 @@ classdef Anodal2gausComputer < handle
         end
 
         function computeA(obj)
-            A0 = sparse(obj.nelem,obj.npnod);
-            A2g = cell(obj.ngaus,1);
-            fn = ones(1,obj.npnod);
-
+            A0    = sparse(obj.nelem,obj.npnod);
+            A2g   = cell(obj.ngaus,1);
             nodes = obj.connec;
-            fg = zeros(obj.ngaus,obj.nelem);
-
             for igaus = 1:obj.ngaus
                 A2g{igaus} = A0;
                 for inode = 1:obj.nnode
                     node   = nodes(:,inode);
-                    fN     = fn(node);
                     shapeN = obj.shape(inode,igaus);
-                    fg(igaus,:) = fg(igaus,:) + shapeN*fN;
                     Ni = ones(obj.nelem,1)*shapeN;
                     A  = sparse(1:obj.nelem,node,Ni,obj.nelem,obj.npnod);
                     A2g{igaus} = A2g{igaus} + A;

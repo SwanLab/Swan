@@ -9,7 +9,6 @@ classdef Filter_PDE_LevelSet < handle
         x_reg
         quadrature
         geometry
-        dim
         LHS
         bc
         field
@@ -26,7 +25,6 @@ classdef Filter_PDE_LevelSet < handle
 
         function obj = Filter_PDE_LevelSet(cParams)
             obj.init(cParams);
-            obj.computeDimension();
             obj.computeBoundaryConditions();
             obj.levelSet = cParams.designVariable;
             obj.epsilon = cParams.mesh.computeMeanCellSize();
@@ -152,19 +150,15 @@ classdef Filter_PDE_LevelSet < handle
             x_reg = obj.bc.reducedToFullVector(x);
         end
 
-        function computeDimension(obj)
-            obj.dim = obj.field.dim;
-        end
-
         function computeBoundaryConditions(obj)
-            s.dim          = obj.dim;
+            s.dim          = obj.field.dim;
             s.scale        = obj.femSettings.scale;
             s.mesh         = obj.mesh;
             s.bc{1}.dirichlet = [];
             s.bc{1}.pointload = [];
             s.bc{1}.ndimf     = [];
             s.bc{1}.ndofs     = [];
-            s.ndofs        = obj.dim.ndofs;
+            s.ndofs        = obj.field.dim.ndofs;
             obj.bc         = BoundaryConditions(s);
             obj.bc.compute();
         end

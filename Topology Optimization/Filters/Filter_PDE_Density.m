@@ -8,7 +8,6 @@ classdef Filter_PDE_Density < handle
         M
         interp
         geometry
-        dim
         x_reg
         LHS
         bc
@@ -26,7 +25,6 @@ classdef Filter_PDE_Density < handle
 
         function obj = Filter_PDE_Density(cParams)
             obj.init(cParams);
-            obj.computeDimension();
             obj.computeBoundaryConditions();
             obj.createMassMatrix();
             obj.epsilon = cParams.mesh.computeMeanCellSize();
@@ -100,7 +98,7 @@ classdef Filter_PDE_Density < handle
         end
 
         function createMassMatrix(obj)
-            s.dim          = obj.dim;
+            s.dim          = obj.field.dim;
             s.type         = 'MassMatrix';
             s.quadType     = 'QUADRATICMASS';
             s.mesh         = obj.mesh;
@@ -144,19 +142,15 @@ classdef Filter_PDE_Density < handle
             x_reg = obj.bc.reducedToFullVector(x);
         end
 
-        function computeDimension(obj)
-            obj.dim = obj.field.dim;
-        end
-
         function computeBoundaryConditions(obj)
-            s.dim          = obj.dim;
+            s.dim          = obj.field.dim;
             s.scale        = obj.femSettings.scale;
             s.mesh         = obj.mesh;
             s.bc{1}.dirichlet = [];
             s.bc{1}.pointload = [];
             s.bc{1}.ndimf     = [];
             s.bc{1}.ndofs     = [];
-            s.ndofs        = obj.dim.ndofs;
+            s.ndofs        = obj.field.dim.ndofs;
             obj.bc         = BoundaryConditions(s);
             obj.bc.compute();
         end
