@@ -98,8 +98,8 @@ classdef ConformalMappingComputer < handle
         
         function b = computeVector(obj,idim)
            er = exp(obj.dilation);
-           erCos = er.*cos(obj.theta);
-           erSin = er.*sin(obj.theta);
+           erCos = er.*cos(obj.theta/2);
+           erSin = er.*sin(obj.theta/2);
            Q(1,1,:) = erCos;
            Q(1,2,:) = -erSin;
            Q(2,1,:) = erSin;
