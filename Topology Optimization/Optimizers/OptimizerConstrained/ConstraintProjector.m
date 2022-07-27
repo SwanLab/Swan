@@ -62,13 +62,15 @@ classdef ConstraintProjector < handle
                 lLB = lambda - pow^(i);
                 fLB = obj.computeFeasibleDesignVariable(lLB);
                 
-                
                 lUB = lambda + pow^(i);
                 fUB = obj.computeFeasibleDesignVariable(lUB);
                 
                 isLB = fLB*fref < 0;
                 isUB = fUB*fref < 0;
                 i = i + 1;
+
+                x2 = reshape(obj.designVariable.value,[],2); norm(x2(:,1)-x2(:,2))
+                
             end
             
              if isLB

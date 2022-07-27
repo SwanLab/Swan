@@ -19,9 +19,9 @@ classdef Filter_PDE < Filter
         end
         
         function x0 = getP0fromP1(obj,x)
-            x_reg =  obj.getP1fromP1(x);
+           % x_reg =  obj.getP1fromP1(x);
            %!!!! EHHH 
-           % x_reg = x;
+            x_reg = x;
            for igaus = 1:obj.quadrature.ngaus
                 x0(:,igaus) = obj.Anodal2Gauss{igaus}*x_reg;
            end

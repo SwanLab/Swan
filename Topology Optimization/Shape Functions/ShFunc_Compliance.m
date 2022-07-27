@@ -4,6 +4,7 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         compliance
         fieldToPrint
         adjointProblem
+        gradientGauss
     end
     
     methods (Access = public)
@@ -22,6 +23,7 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
             fP{2}.value = obj.compliance/obj.value0;
             fP{3}.value = obj.designVariable.alpha;
             fP{4}.value = abs(obj.designVariable.alpha);
+            fP{5}.value = permute(obj.gradientGauss,[3 1 2]);
             fP = obj.addHomogVariables(fP);
         end
 
@@ -35,9 +37,9 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         
         function fP = createPrintVariables(obj)
             types = {'Elasticity','ScalarGauss','VectorGauss'...
-                        'VectorGauss'};
+                        'VectorGauss','VectorGauss'};
             names = {'Primal','ComplianceGauss','AlphaGauss',...
-                        'AlphaAbsGauss'};
+                        'AlphaAbsGauss','GradientGauss'};
             fP = obj.obtainPrintVariables(types,names);
             fP = obj.addHomogPrintVariablesNames(fP);
         end
@@ -77,6 +79,11 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         end
         
         function computeGradientValue(obj)
+            obj.computeGradientInGauss();
+            obj.gradient = obj.gradientGauss;
+        end
+
+        function computeGradientInGauss(obj)
             phy = obj.physicalProblem;
             ep    = phy.variables.strain;
             ngaus  = size(ep,1);
@@ -94,8 +101,8 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
                         end
                     end
                 end
-            end
-            obj.gradient = g;
+            end            
+            obj.gradientGauss = g;
         end
         
         function f = getPdesVariablesToPrint(obj)

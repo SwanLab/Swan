@@ -27,8 +27,8 @@ cost = {'compliance'};
 %cost = {'stressNorm'};
 %cost = {'stressNorm','compliance'};
 %cost = {'stressNorm','compliance'};
-weights = [1,10];
-%weights = 1;
+%weights = [1,10];
+weights = 1;
 constraint = {'volumeConstraint'};
 filterType = 'PDE';
 %filterType = 'P1';
@@ -79,7 +79,7 @@ vademecumFileName = 'SuperEllipseQOptAnalytic';
 % rho0 = 0.3;
 
 line_search_initiator = 'INCREASING LAST STEP';
-incrementFactor = 1.95;
+incrementFactor = 1.05;
 %
 
 
