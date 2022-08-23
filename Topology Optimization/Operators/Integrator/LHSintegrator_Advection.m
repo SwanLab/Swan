@@ -4,14 +4,17 @@ classdef LHSintegrator_Advection < LHSintegrator
         geometry
         b
         quadType
+        field
     end
 
     methods (Access = public)
         
         function obj = LHSintegrator_Advection(cParams)
-            obj.init(cParams);
-            obj.b = cParams.b;
-            obj.quadType = cParams.quadType;            
+            obj.mesh         = cParams.mesh;
+            obj.globalConnec = cParams.globalConnec;
+            obj.b            = cParams.b;
+            obj.quadType     = cParams.quadType;    
+            obj.field        = cParams.field;
             obj.createQuadrature();
             obj.createInterpolation();
             obj.createGeometry();
@@ -19,12 +22,12 @@ classdef LHSintegrator_Advection < LHSintegrator
 
         function [CX,CY,DX,DY,EX,EY] = compute(obj)
             [CX,CY,DX,DY,EX,EY] = obj.computeElementalLHS();
-            CX = obj.assembleMatrix(CX);
-            CY = obj.assembleMatrix(CY);
-            DX = obj.assembleMatrix(DX);
-            DY = obj.assembleMatrix(DY);
-            EX = obj.assembleMatrix(EX);
-            EY = obj.assembleMatrix(EY);
+            CX = obj.assembleMatrixField(CX);
+            CY = obj.assembleMatrixField(CY);
+            DX = obj.assembleMatrixField(DX);
+            DY = obj.assembleMatrixField(DY);
+            EX = obj.assembleMatrixField(EX);
+            EY = obj.assembleMatrixField(EY);
         end
         
     end
@@ -36,7 +39,7 @@ classdef LHSintegrator_Advection < LHSintegrator
             ngaus = obj.quadrature.ngaus;
             nelem = obj.mesh.nelem;
     %        nstre = obj.dim.nstre;
-            ndpe  = obj.dim.ndofsElem;
+            ndpe  = obj.field.dim.ndofsElem;
     %        lhs = zeros(ndpe,ndpe,nelem);
             dN = obj.geometry.dNdx;
             N  = obj.interpolation.shape;
@@ -140,6 +143,14 @@ classdef LHSintegrator_Advection < LHSintegrator
             s.dofsInElem   = obj.dofsInElem;
             Bcomp = BMatrixComputer(s);
         end
+
+        function LHS = assembleMatrixField(obj, lhs)
+            s.dim          = obj.field.dim;
+            s.globalConnec = obj.field.connec;
+            s.nnodeEl      = obj.field.dim.nnodeElem;
+            assembler = Assembler(s);
+            LHS = assembler.assembleFields(lhs, obj.field, obj.field);
+        end        
        
    end
     

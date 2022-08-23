@@ -43,7 +43,7 @@ classdef LHSintegratorFactory < handle
                     obj = LHSintegrator_Laplacian(cParams);
                 case 'StokesD'
                     obj = LHSintegrator_StokesD(cParams);
-		case 'AdvectionMatrix'
+		        case 'AdvectionMatrix'
                    %cross(b,grad(b))
                    obj = LHSintegrator_Advection(cParams);                    
             end

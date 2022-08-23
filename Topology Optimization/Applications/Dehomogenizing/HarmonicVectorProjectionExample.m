@@ -45,13 +45,13 @@ classdef HarmonicVectorProjectionExample < handle
 
         function init(obj)
             close all
-            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-            obj.iteration = 665;
-% 
-%             obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-%             obj.fileName = 'ExperimentingPlotSuperEllipse';
-%             obj.iteration = 64;
+%             obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+%             obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+%             obj.iteration = 665;
+
+            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+            obj.fileName = 'ExperimentingPlotSuperEllipse';
+            obj.iteration = 64;
                         
         end
 
@@ -143,69 +143,61 @@ classdef HarmonicVectorProjectionExample < handle
         end
 
         function project(obj)
-            alpha0 = obj.orientationVector;            
+            alphaB = obj.orientationVector;            
 
             figure(23)
             x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);
-            tx = alpha0(:,1);
-            ty = alpha0(:,2);
+            tx = alphaB(:,1);
+            ty = alphaB(:,2);
             q = quiver(x,y,tx,ty);
             q.ShowArrowHead = 'off';
-            theta = atan2(ty,tx);
-            dalpha0(:,1) = cos(2*theta);
-            dalpha0(:,2) = sin(2*theta);
+            beta = atan2(ty,tx);
+            bBar(:,1) = cos(2*beta);
+            bBar(:,2) = sin(2*beta);
 
 
             figure(24)
             x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);
-            tx = dalpha0(:,1);
-            ty = dalpha0(:,2);
+            tx = bBar(:,1);
+            ty = bBar(:,2);
             quiver(x,y,tx,ty)
 
 
-            u      = alpha0;
+            b      = bBar;
             lambda = obj.computeInitialLambda();
             isErrorLarge = true;
             i = 1;
             while isErrorLarge
-                cost(i)      = obj.computeCost(u,alpha0);
+                cost(i)      = obj.computeCost(b,bBar);
               %  optPrimal(i) = obj.computePrimalOptimaility(lambda,u,alpha0);
               %  optDual(i)   = obj.computeDualHarmonicOptimality(u);
               %  error = norm([optPrimal,optDual]);
                 
-                theta = atan2(u(:,2),u(:,1));
-                u2(:,1) = cos(2*theta);
-                u2(:,2) = sin(2*theta);
-                [uNew2,lambda] = obj.solveProblem(dalpha0,u2);
-             %   uNew2 = u2;
-                theta = 0.5*atan2(uNew2(:,2),uNew2(:,1));
-                uNew(:,1) = cos(theta);
-                uNew(:,2) = sin(theta);
-                
-                
-                
+%                 theta = atan2(u(:,2),u(:,1));
+%                 u2(:,1) = cos(2*theta);
+%                 u2(:,2) = sin(2*theta);
+                [uNew,lambda] = obj.solveProblem(bBar,b);
+                beta = atan2(uNew(:,2),uNew(:,1));                               
                 uNew = obj.projectInUnitBall(uNew);
-                err(i) = norm(uNew(:)-u(:))/norm(u(:));
-                u = uNew;
+                
+             %   uNew2 = u2;
+                
+                err(i) = norm(uNew(:)-b(:))/norm(b(:));
+                
+                b = uNew;
                 figure(200)
                 clf
                 plot(cost,'-+')                
 
                 figure(201)
                 plot(err,'-+')    
-% 
-%                 figure(101)
-%                 clf
-%                 hold on
-%                 plot(optPrimal','-+')                
-%                 plot(optDual','-+')
-%                 hold off
-                isErrorLarge = false;true;% err(i) > 1e-13;
+
+                isErrorLarge = err(i) > 1e-13;
                 i = i +1;
-                obj.plotOrientation(u,2) 
-                obj.orientationAngle = theta;
+                obj.plotOrientation(b,2) 
+                obj.orientationAngle = beta;
 
             end
         end
