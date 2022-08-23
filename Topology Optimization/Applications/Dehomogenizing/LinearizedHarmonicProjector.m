@@ -1,7 +1,7 @@
 classdef LinearizedHarmonicProjector < handle
     
     properties (Access = private)
-        dim
+        field
         massMatrix
         advectionMatrixX
         advectionMatrixY
@@ -19,15 +19,15 @@ classdef LinearizedHarmonicProjector < handle
     methods (Access = public)
         
         function obj = LinearizedHarmonicProjector(cParams)
-            obj.init(cParams);            
-            obj.createDimension();
+            obj.init(cParams);     
+            obj.createField();
             obj.computeMassMatrix();
             obj.createSolver()
         end
         
         function lambda0 = computeInitalLambda(obj)
             b    = obj.boundaryMesh;
-            nInt = setdiff(1:obj.dim.ndofs,b);
+            nInt = setdiff(1:obj.field.dim.ndofs,b);
             lambda0 = 0*ones(length(nInt),1);
         end
 
@@ -37,7 +37,7 @@ classdef LinearizedHarmonicProjector < handle
             i = 1;
             isErrorLarge = true;
             lambda = obj.computeInitalLambda();
-            npnod = obj.dim.ndofs;
+            npnod = obj.field.dim.ndofs;
             eta    = zeros(npnod,1);
             etaOld = eta;
             lambdaOld = lambda;
@@ -143,7 +143,7 @@ classdef LinearizedHarmonicProjector < handle
         end
 
         function [iX,iY,iL,iE] = computeIndex(obj)
-            npnod = obj.dim.ndofs;
+            npnod = obj.field.dim.ndofs;
             nInt  = obj.computeNint();
             iX = 1:npnod;
             iY = (npnod) + (1:npnod);
@@ -240,25 +240,25 @@ classdef LinearizedHarmonicProjector < handle
            obj.mesh             = cParams.mesh;
            obj.boundaryMesh     = cParams.boundaryMesh;
         end
-        
-        function createDimension(obj)
-            q = Quadrature();
-            q = q.set(obj.mesh.type);
-            s.mesh = obj.mesh;           
-            s.ngaus = q.ngaus;
-            s.name = '';
-            s.type  = 'Scalar';
-            d = DimensionVariables.create(s);
-            obj.dim = d;
-        end        
+             
+        function createField(obj)
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1;
+            s.interpolationOrder = 'LINEAR';
+            s.quadratureOrder    = 'QUADRATIC';
+            f = Field(s);
+            obj.field = f;
+        end
         
         function computeMassMatrix(obj)
+
+
+            s.field        = obj.field;
             s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-     %       s.npnod        = obj.mesh.npnod;
             s.type         = 'MassMatrix';
-            s.dim          = obj.dim;
-            s.quadType     = 'QUADRATIC';
+            
+
+
          
             lhs = LHSintegrator.create(s);
             M = lhs.compute();
@@ -270,9 +270,8 @@ classdef LinearizedHarmonicProjector < handle
         function [CX,CY,DX,DY,EX,EY] = computeAdvectionMatrix(obj,vH)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
-            s.npnod        = obj.dim.ndofs;
+            s.npnod        = obj.field.dim.ndofs;
             s.type         = 'AdvectionMatrix';
-            s.dim          = obj.dim;
             s.b            = vH;
             s.quadType     = 'CUBIC';
             
@@ -318,7 +317,7 @@ classdef LinearizedHarmonicProjector < handle
 
        function nInt = computeNint(obj)
             b    = obj.boundaryMesh;
-           nInt = setdiff(1:obj.dim.ndofs,b);                     
+           nInt = setdiff(1:obj.field.dim.ndofs,b);                     
        end
 
         function rhs = computeRHS(obj,v)

@@ -25,6 +25,14 @@ classdef RHSintegrator_ShapeFunction < handle
             rhs = obj.assembleIntegrand(rhsElem);
         end
 
+         function rhs = integrateFgauss(obj,fGauss,xGauss)
+            obj.fGauss = fGauss;
+            obj.xGauss = xGauss;
+            rhsCells = obj.computeElementalRHS();
+            rhs = obj.assembleIntegrand(rhsCells);
+        end
+               
+
     end
 
     methods (Access = private)

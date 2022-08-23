@@ -62,27 +62,24 @@ classdef PieceWiseConstantFunction < handle
             sf.mesh  = obj.mesh;
             sf.ndimf = 1; 
             sf.interpolationOrder = 'LINEAR';
+            sf.quadratureOrder = 'QUADRATIC';
             field = Field(sf);
 
             s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
+           % s.globalConnec = obj.mesh.connec;
             s.type         = 'MassMatrix';
             s.field        = field;            
 
        %     s.dim          = obj.dim;
-            s.quadType     = 'QUADRATIC';
+           % s.quadType     = 'QUADRATIC';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
         
         function RHS = computeRHS(obj)
 
-        %    fG = obj.computeFgauss();
-        %    xG = obj.computeXgauss();
-        %    RHS = obj.integrator.integrateFgauss(fG,xG,obj.quadOrder);
 
 
-            % Untested but should NOT work
             s.type      = 'ShapeFunction';
             s.mesh      = obj.mesh;
             s.meshType  = obj.mesh.type;
@@ -93,7 +90,15 @@ classdef PieceWiseConstantFunction < handle
             s.npnod     = obj.mesh.nnodes;
             s.globalConnec = obj.mesh.connec;
             rhs = RHSintegrator.create(s);
-            RHS = rhs.compute(obj.fValues);
+
+
+            fG = obj.computeFgauss();
+            xG = obj.computeXgauss();
+            RHS = rhs.integrateFgauss(fG,xG);
+
+
+
+
         end
         
         function x = computeXgauss(obj)
