@@ -45,13 +45,13 @@ classdef HarmonicVectorProjectionExample < handle
 
         function init(obj)
             close all
-%             obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-%             obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-%             obj.iteration = 665;
+            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+            obj.iteration = 665;
 
-            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-            obj.fileName = 'ExperimentingPlotSuperEllipse';
-            obj.iteration = 64;
+%             obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+%             obj.fileName = 'ExperimentingPlotSuperEllipse';
+%             obj.iteration = 64;
                         
         end
 
@@ -64,8 +64,70 @@ classdef HarmonicVectorProjectionExample < handle
         end
 
         function createMesh(obj)
-            d = obj.experimentData;
-            obj.mesh = d.mesh;
+            %d = obj.experimentData;
+            %obj.mesh = d.mesh;          
+         %   obj.mesh = obj.createSquareMesh();
+            obj.mesh  = obj.createCircularMesh();
+        end
+
+        function m = createSquareMesh(obj)
+            h = 0.05;
+            [X,Y] = meshgrid(-1:h:1,0:h:1); 
+            s.coord(:,1) = X(:);
+            s.coord(:,2) = Y(:);
+            s.connec = delaunay(s.coord); 
+            m = Mesh(s);            
+            m.plot;
+        end
+
+        function m = createCircularMesh(obj)
+             %h = 0.03;
+%             [X,Y] = meshgrid(-1:h:1,0:h:1);                        
+%             isD = (X(:)-0).^2 + (Y(:)-0).^2 - 0.15^2 > 0;
+%             s.coord(:,1) = X(isD);
+%             s.coord(:,2) = Y(isD);
+%             s.connec = delaunay(s.coord); 
+%             m = Mesh(s);            
+%             quad = Quadrature.set(m.type);
+%             quad.computeQuadrature('CONSTANT');
+%             dV = m.computeDvolume(quad);
+%             isElemIns = dV < 1.0001*h^2/2;
+%             s.connec = m.connec(isElemIns,:);
+%             s.coord  = m.coord;
+%             m2 = Mesh(s);
+%             m = m2;
+%             m.plot
+             h = 0.03;
+             model = createpde;
+             vertCoord = [-1 1; 1 1; 1 0; -1 0];
+             x = [-1,1,1,-1];
+             y = [1,1,0,0];
+             R1 = [3,4,vertCoord(:)']';
+
+             centX = 0;
+             centY = 0;
+             rad = 0.1;
+             C1 = [1,centX,centY,rad]';
+             C1 = [C1;zeros(length(R1) - length(C1),1)];
+             gm = [R1,C1];
+             sf = 'R1-C1';
+             ns = char('R1','C1');
+             ns = ns';
+             g = decsg(gm,sf,ns);
+
+             geometryFromEdges(model,g);
+             me = generateMesh(model,'Hmin',h,'Hmax',2*h,'GeometricOrder','linear');
+
+             pdegplot(model,'EdgeLabels','on')
+             axis equal
+             xlim([-1.1,1.1])
+             pdeplot(me)
+
+             
+             s.coord  = me.Nodes';
+             s.connec = me.Elements';
+             m = Mesh(s);
+             m.plot()
         end
 
         function createBoundaryMesh(obj)
@@ -76,25 +138,40 @@ classdef HarmonicVectorProjectionExample < handle
         end
 
         function storeOrientationAngle(obj)
-            d = obj.experimentData;
-            alpha0  = d.dataRes.AlphaGauss;
-          %  obj.plotAlpha0(alpha0);
-            alpha(:,1) = obj.interpolateOrientationAngle(alpha0(:,1));
-            alpha(:,2) = obj.interpolateOrientationAngle(alpha0(:,2));
-           
-            x2 = obj.mesh.coord(:,2);
-            x1 = obj.mesh.coord(:,1);
+%             d = obj.experimentData;
+%             alpha0  = d.dataRes.AlphaGauss;
+%           %  obj.plotAlpha0(alpha0);
+%             alpha(:,1) = obj.interpolateOrientationAngle(alpha0(:,1));
+%             alpha(:,2) = obj.interpolateOrientationAngle(alpha0(:,2));
+%            
+ 
 %             
           %  theta = atan2(x2,x1);            
            
      %       thetaV = pi/6;
      %       theta = thetaV*ones(size(x2));
-% %             
-    %         theta = rand(1)*x1 + rand(1)*x2 + rand(1);
 
-% 
-    %         alpha(:,1) = cos(theta);
-    %         alpha(:,2) = sin(theta);            
+%      % Lineal + noise
+%              x1 = obj.mesh.coord(:,1);    
+%              x2 = obj.mesh.coord(:,2);
+%              theta = 2*rand(1)*x1 + 2*rand(1)*x2 + rand(1) + 0.5*(2*rand(size(x1))-1)/2;
+     
+     % Pi discontinoity + noise
+%              x1 = obj.mesh.coord(:,1);
+%              x2 = obj.mesh.coord(:,2);
+%              theta = zeros(size(x1)) + (pi/2);
+%              theta(x1<0.5) = pi + (pi/2);
+%              theta = theta + 0.5*(2*rand(size(x1))-1)/2;
+%            
+       %%%
+     % Radial + noise
+             x1 = obj.mesh.coord(:,1);
+             x2 = obj.mesh.coord(:,2);
+             theta = atan2(x2,x1) + 1*(2*rand(size(x1))-1)/2;
+%%%
+
+            alpha(:,1) = cos(theta);
+            alpha(:,2) = sin(theta);            
             
             
             theta(:,1) = atan2(alpha(:,1),alpha(:,2));  
@@ -143,18 +220,19 @@ classdef HarmonicVectorProjectionExample < handle
         end
 
         function project(obj)
-            alphaB = obj.orientationVector;            
+            aBar = obj.orientationVector;            
 
             figure(23)
             x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);
-            tx = alphaB(:,1);
-            ty = alphaB(:,2);
-            q = quiver(x,y,tx,ty);
+            aXBar = aBar(:,1);
+            aYBar = aBar(:,2);
+            q = quiver(x,y,aXBar,aYBar);
             q.ShowArrowHead = 'off';
-            beta = atan2(ty,tx);
-            bBar(:,1) = cos(2*beta);
-            bBar(:,2) = sin(2*beta);
+            alpha = atan2(aYBar,aXBar);
+            beta  = 2*alpha;
+            bBar(:,1) = cos(beta);
+            bBar(:,2) = sin(beta);
 
 
             figure(24)
@@ -200,6 +278,34 @@ classdef HarmonicVectorProjectionExample < handle
                 obj.orientationAngle = beta;
 
             end
+
+            
+            bOpt = b;
+            obj.plotOrientationBarAndOptimal(bBar,bOpt);            
+
+            alpha = beta/2;
+            aOpt(:,1) = cos(alpha);
+            aOpt(:,2) = sin(alpha);
+            obj.plotOrientationBarAndOptimal(aBar,aOpt);
+           
+        end
+
+        function plotOrientationBarAndOptimal(obj,bBar,bOpt)
+            figure()
+            subplot(1,2,1)
+            x = obj.mesh.coord(:,1);
+            y = obj.mesh.coord(:,2);
+            tx = bBar(:,1);
+            ty = bBar(:,2);
+            q = quiver(x,y,tx,ty);
+         %   q.ShowArrowHead = 'off';
+            subplot(1,2,2)
+            tx = bOpt(:,1);
+            ty = bOpt(:,2);            
+            q = quiver(x,y,tx,ty);
+         %   q.ShowArrowHead = 'off';
+
+
         end
 
         function [v,lambda] = solveProblem(obj,alpha0,vH)

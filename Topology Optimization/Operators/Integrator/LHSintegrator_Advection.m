@@ -72,16 +72,16 @@ classdef LHSintegrator_Advection < LHSintegrator
                             dNk = squeezeParticular(dNg(:,kNode,:),2);   
                             
 
-                            dNxi(:,1) = squeeze(dNi(1,:));
-                            dNyi(:,1) = squeeze(dNi(2,:));
-                            dNxj(:,1) = squeeze(dNj(1,:));
-                            dNyj(:,1) = squeeze(dNj(2,:));
-                            dNxk(:,1) = squeeze(dNk(1,:));
-                            dNyk(:,1) = squeeze(dNk(2,:));
+                            dNidx(:,1) = squeeze(dNi(1,:));
+                            dNidy(:,1) = squeeze(dNi(2,:));
+                            dNjdx(:,1) = squeeze(dNj(1,:));
+                            dNjdy(:,1) = squeeze(dNj(2,:));
+                            dNkdx(:,1) = squeeze(dNk(1,:));
+                            dNkdy(:,1) = squeeze(dNk(2,:));
 
-                            
-                            ck = Ni.*(dNxj.*dNxk + dNyj.*dNyk);
-                            dk = Nk.*(dNxj.*dNxi + dNyj.*dNyi);
+                         % version 1   
+                            ck = Ni.*(dNjdx.*dNkdx + dNjdy.*dNkdy);
+                            dk = Nk.*(dNjdx.*dNidx + dNjdy.*dNidy);
 
                             cXv(1,1,:) = bYk.*ck.*dV;
                             dXv(1,1,:) = bYk.*dk.*dV;
@@ -94,6 +94,28 @@ classdef LHSintegrator_Advection < LHSintegrator
 
                             cY(iNode,jNode,:) = cY(iNode,jNode,:) + cYv;
                             dY(iNode,jNode,:) = dY(iNode,jNode,:) + dYv;
+ 
+                         % version 2
+% 
+%                             cxk = Ni.*dNkdy.*(dNjdx.*bXk + dNjdx.*bYk);
+%                             cyk = Ni.*dNkdx.*(dNjdx.*bXk + dNjdx.*bYk);
+% 
+%                             dxk = Nk.*dNjdx.*(-dNidy.*bXk  + dNidx.*bYk);
+%                             dyk = Nk.*dNjdy.*( dNidy.*bXk  - dNidx.*bYk);
+% 
+%                             cXv(1,1,:) = cxk.*dV;
+%                             dXv(1,1,:) = dxk.*dV;
+% 
+%                             cX(iNode,jNode,:) = cX(iNode,jNode,:) + cXv;
+%                             dX(iNode,jNode,:) = dX(iNode,jNode,:) + dXv;
+% 
+%                             cYv(1,1,:) = cyk.*dV;
+%                             dYv(1,1,:) = dyk.*dV;
+% 
+%                             cY(iNode,jNode,:) = cY(iNode,jNode,:) + cYv;
+%                             dY(iNode,jNode,:) = dY(iNode,jNode,:) + dYv;
+                    %%%%
+
                             
 
                             e = Ni.*Nj.*Nk;
