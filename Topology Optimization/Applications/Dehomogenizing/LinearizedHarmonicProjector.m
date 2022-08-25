@@ -78,7 +78,7 @@ classdef LinearizedHarmonicProjector < handle
 
                 lambdaOld = lambda;
                 etaOld = eta;
-                isErrorLarge = err(i) > 1e-13;
+                isErrorLarge = err(i) > 1e-2;%1e-13;
 
                 if mod(i,10) == 0
                     obj.plotOrientation(b,2);                    

@@ -45,13 +45,13 @@ classdef HarmonicVectorProjectionExample < handle
 
         function init(obj)
             close all
-            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-            obj.iteration = 665;
-
-%             obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-%             obj.fileName = 'ExperimentingPlotSuperEllipse';
-%             obj.iteration = 64;
+%             obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+%             obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+%             obj.iteration = 665;
+% 
+            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+            obj.fileName = 'ExperimentingPlotSuperEllipse';
+            obj.iteration = 64;
                         
         end
 
@@ -64,11 +64,27 @@ classdef HarmonicVectorProjectionExample < handle
         end
 
         function createMesh(obj)
-            %d = obj.experimentData;
-            %obj.mesh = d.mesh;          
-         %   obj.mesh = obj.createSquareMesh();
-            obj.mesh  = obj.createCircularMesh();
+          %  d = obj.experimentData;
+          %  obj.mesh = d.mesh;          
+           obj.mesh = obj.createSquareMesh();
+          % obj.mesh  = obj.createRectangularWithCircularHoleMesh();
         end
+
+      function aBar = createOrientationByHand(obj)
+           % alpha = obj.createLinealWithNoiseAngle();
+            alpha = obj.createRadialWithNoiseAngle();
+           % alpha = obj.createPiDiscontinuityAndNoiseAngle();
+            aBar(:,1) = cos(alpha);
+            aBar(:,2) = sin(alpha); 
+        end
+
+        function [aBar,bBar] = createOrientationVector(obj)
+            aBar = obj.createOrientationByHand();
+           % aBar = obj.createOrientationFromData();
+            bBar = obj.computeHalfOrientationFromOrientation(aBar);
+            aBar = obj.interpolateOrientation(aBar);
+            bBar = obj.interpolateOrientation(bBar);
+        end        
 
         function m = createSquareMesh(obj)
             h = 0.05;
@@ -80,23 +96,7 @@ classdef HarmonicVectorProjectionExample < handle
             m.plot;
         end
 
-        function m = createCircularMesh(obj)
-             %h = 0.03;
-%             [X,Y] = meshgrid(-1:h:1,0:h:1);                        
-%             isD = (X(:)-0).^2 + (Y(:)-0).^2 - 0.15^2 > 0;
-%             s.coord(:,1) = X(isD);
-%             s.coord(:,2) = Y(isD);
-%             s.connec = delaunay(s.coord); 
-%             m = Mesh(s);            
-%             quad = Quadrature.set(m.type);
-%             quad.computeQuadrature('CONSTANT');
-%             dV = m.computeDvolume(quad);
-%             isElemIns = dV < 1.0001*h^2/2;
-%             s.connec = m.connec(isElemIns,:);
-%             s.coord  = m.coord;
-%             m2 = Mesh(s);
-%             m = m2;
-%             m.plot
+        function m = createRectangularWithCircularHoleMesh(obj)
              h = 0.03;
              model = createpde;
              vertCoord = [-1 1; 1 1; 1 0; -1 0];
@@ -114,10 +114,8 @@ classdef HarmonicVectorProjectionExample < handle
              ns = char('R1','C1');
              ns = ns';
              g = decsg(gm,sf,ns);
-
              geometryFromEdges(model,g);
              me = generateMesh(model,'Hmin',h,'Hmax',2*h,'GeometricOrder','linear');
-
              pdegplot(model,'EdgeLabels','on')
              axis equal
              xlim([-1.1,1.1])
@@ -137,50 +135,44 @@ classdef HarmonicVectorProjectionExample < handle
             obj.boundaryMesh = b;
         end
 
+        function alpha = createLinealWithNoiseAngle(obj)
+             coord0 = obj.mesh.computeBaricenter';
+             x1 = coord0(:,1);
+             x2 = coord0(:,2);
+             alpha = 2*rand(1)*x1 + 2*rand(1)*x2 + rand(1) + 0.5*(2*rand(size(x1))-1)/2;
+        end
+
+        function alpha = createRadialWithNoiseAngle(obj)
+             coord0 = obj.mesh.computeBaricenter';
+             x1 = coord0(:,1);
+             x2 = coord0(:,2);
+             alpha = atan2(x2+0.5,x1) + 1*(2*rand(size(x1))-1)/2;
+        end
+
+        function alpha = createPiDiscontinuityAndNoiseAngle(obj)
+             coord0 = obj.mesh.computeBaricenter';
+             x1 = coord0(:,1);
+             x2 = coord0(:,2);
+             alpha = zeros(size(x1)) + (pi/2);
+             alpha(x1<0.5) = pi + (pi/2);
+             alpha = alpha + 0.5*(2*rand(size(x1))-1)/2;
+        end
+
+        function aBar = createOrientationFromData(obj)
+            d = obj.experimentData;
+            aBar  = d.dataRes.AlphaGauss;
+        end        
+
+  
+
+
         function storeOrientationAngle(obj)
-%             d = obj.experimentData;
-%             alpha0  = d.dataRes.AlphaGauss;
-%           %  obj.plotAlpha0(alpha0);
-%             alpha(:,1) = obj.interpolateOrientationAngle(alpha0(:,1));
-%             alpha(:,2) = obj.interpolateOrientationAngle(alpha0(:,2));
-%            
- 
-%             
-          %  theta = atan2(x2,x1);            
-           
-     %       thetaV = pi/6;
-     %       theta = thetaV*ones(size(x2));
-
-%      % Lineal + noise
-%              x1 = obj.mesh.coord(:,1);    
-%              x2 = obj.mesh.coord(:,2);
-%              theta = 2*rand(1)*x1 + 2*rand(1)*x2 + rand(1) + 0.5*(2*rand(size(x1))-1)/2;
-     
-     % Pi discontinoity + noise
-%              x1 = obj.mesh.coord(:,1);
-%              x2 = obj.mesh.coord(:,2);
-%              theta = zeros(size(x1)) + (pi/2);
-%              theta(x1<0.5) = pi + (pi/2);
-%              theta = theta + 0.5*(2*rand(size(x1))-1)/2;
-%            
-       %%%
-     % Radial + noise
-             x1 = obj.mesh.coord(:,1);
-             x2 = obj.mesh.coord(:,2);
-             theta = atan2(x2,x1) + 1*(2*rand(size(x1))-1)/2;
-%%%
-
-            alpha(:,1) = cos(theta);
-            alpha(:,2) = sin(theta);            
-            
-            
-            theta(:,1) = atan2(alpha(:,1),alpha(:,2));  
-            obj.plotOrientation(alpha,1);
-            alpha = obj.projectInUnitBall(alpha);
-            theta(:,1) = atan2(alpha(:,1),alpha(:,2));  
-            obj.plotOrientation(alpha,1);
-            obj.orientationAngle = theta;
-            obj.orientationVector = alpha;
+            [aBar,bBar] = obj.createOrientationVector();            
+            aBar = obj.projectInUnitBall(aBar);
+            alpha(:,1) = atan2(aBar(:,1),aBar(:,2));  
+            obj.plotOrientation(aBar,1);
+            obj.orientationAngle  = alpha;
+            obj.orientationVector = aBar;            
         end
 
         function plotAlpha0(obj,t)
@@ -195,44 +187,69 @@ classdef HarmonicVectorProjectionExample < handle
             q.ShowArrowHead = 'off';
         end
 
-        function vI = interpolateOrientationAngle(obj,v0)
+        function plotOrientationVector(obj,t)
+            x = obj.mesh.coord(:,1);
+            y = obj.mesh.coord(:,2);
+            tx = t(:,1);
+            ty = t(:,2);
+            q = quiver(x,y,tx,ty);
+            q.ShowArrowHead = 'off';            
+        end
+
+        function a1 = interpolateOrientation(obj,a0)
+            a1(:,1) = obj.interpolateOrientationComponent(a0(:,1));
+            a1(:,2) = obj.interpolateOrientationComponent(a0(:,2));
+        end
+
+        function vI = interpolateOrientationComponent(obj,v0)
             s.mesh    = obj.mesh;
             s.fValues = v0;
             p = PieceWiseConstantFunction(s);
             vI = p.projectToLinearNodalFunction(); 
         end
 
+
         function plotOrientation(obj,t,iFigure)
             figure(1)
             subplot(1,2,iFigure)
-            x = obj.mesh.coord(:,1);
-            y = obj.mesh.coord(:,2);
-            tx = t(:,1);
-            ty = t(:,2);
-            q = quiver(x,y,tx,ty);
-            q.ShowArrowHead = 'off';
+            obj.plotOrientationVector(t);
             figure(2)
-            subplot(1,2,iFigure)
+            subplot(1,2,iFigure)  
+            obj.plotAngleField(t);
+        end
+
+        function plotAngleField(obj,t)
             s.mesh = obj.mesh;
-            s.field = atan2(t(:,1),t(:,2));
+            s.field = atan2(t(:,2),t(:,1));
             p = NodalFieldPlotter(s);
             p.plot()
+            caxis([-pi pi])
+            colormap default
+            cmap_pos = colormap;
+            cmap_neg = flipud(cmap_pos);
+            cmap = [cmap_neg; cmap_pos];
+            colormap(cmap)
+            t= {'-\pi','-3\pi/4','-\pi/2','-\pi/4','0','\pi/4','\pi/2','3\pi/4','\pi'};
+            c = colorbar;
+            c.Ticks = -pi:pi/4:pi;
+            c.TickLabels = t;
+        end
+
+        function b = computeHalfOrientationFromOrientation(obj,a)
+            aXBar = a(:,1);
+            aYBar = a(:,2);
+            alpha = atan2(aYBar,aXBar);
+            beta  = 2*alpha;
+            b(:,1) = cos(beta);
+            b(:,2) = sin(beta);
         end
 
         function project(obj)
-            aBar = obj.orientationVector;            
-
+            [aBar,bBar] = obj.createOrientationVector();            
             figure(23)
-            x = obj.mesh.coord(:,1);
-            y = obj.mesh.coord(:,2);
-            aXBar = aBar(:,1);
-            aYBar = aBar(:,2);
-            q = quiver(x,y,aXBar,aYBar);
-            q.ShowArrowHead = 'off';
-            alpha = atan2(aYBar,aXBar);
-            beta  = 2*alpha;
-            bBar(:,1) = cos(beta);
-            bBar(:,2) = sin(beta);
+            obj.plotOrientationVector(aBar);
+            obj.plotOrientationVector(bBar);
+
 
 
             figure(24)
@@ -272,10 +289,11 @@ classdef HarmonicVectorProjectionExample < handle
                 figure(201)
                 plot(err,'-+')    
 
-                isErrorLarge = err(i) > 1e-13;
+                isErrorLarge = err(i) > 1e-2;%1e-13;
                 i = i +1;
                 obj.plotOrientation(b,2) 
-                obj.orientationAngle = beta;
+                alpha = beta/2;
+                obj.orientationAngle = alpha;
 
             end
 
@@ -288,6 +306,13 @@ classdef HarmonicVectorProjectionExample < handle
             aOpt(:,2) = sin(alpha);
             obj.plotOrientationBarAndOptimal(aBar,aOpt);
            
+            figure()
+            subplot(1,2,1)
+            obj.plotAngleField(bBar)
+            title('$\bar{\beta}$','Interpreter','latex','FontSize',15)
+            subplot(1,2,2)
+            obj.plotAngleField(b)
+            title('${\beta}^*$','Interpreter','latex','FontSize',15)            
         end
 
         function plotOrientationBarAndOptimal(obj,bBar,bOpt)
@@ -367,7 +392,7 @@ classdef HarmonicVectorProjectionExample < handle
 
        function dehomogenize(obj)
             obj.createBackgroundMesh();
-            obj.createSuperEllipseParams();
+         %   obj.createSuperEllipseParams();
             s.backgroundMesh     = obj.backgroundMesh;
             s.nCells             = 46;
             s.theta              = obj.orientationAngle;
@@ -379,10 +404,11 @@ classdef HarmonicVectorProjectionExample < handle
        end        
 
         function s = createLevelSetCellParams(obj)
-            s.type   = 'smoothRectangle';
-            s.widthH = obj.superEllipse.m1;
-            s.widthV = obj.superEllipse.m2;
-            s.pnorm  = obj.superEllipse.q;
+           % s.type   = 'smoothRectangle';
+            s.type   = 'rectangleInclusion';
+            s.widthH = 0.7*ones(size(obj.backgroundMesh.coord,1),1);
+            s.widthV = 0.7*ones(size(obj.backgroundMesh.coord,1),1);
+            %s.pnorm  = obj.superEllipse.q;
             s.ndim   = 2;
         end       
 
@@ -390,6 +416,8 @@ classdef HarmonicVectorProjectionExample < handle
             FV.vertices = [obj.mesh.coord,zeros(size(obj.mesh.coord,1),1)];
             FV.faces    = obj.mesh.connec;
             FV2 = refinepatch(FV);
+            FV2 = refinepatch(FV2);
+            FV2 = refinepatch(FV2);
             FV2 = refinepatch(FV2);
             s.coord = FV2.vertices(:,1:2);
             s.connec = FV2.faces;

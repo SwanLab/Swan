@@ -47,8 +47,8 @@ classdef ConformalMappingComputer < handle
         function plotMapping(obj)
            phi1 = obj.phi(:,1);
            phi2 = obj.phi(:,2);
-           obj.plotContour(phi1); 
-           obj.plotContour(phi2);
+           obj.plotContour((phi1)); 
+           obj.plotContour((phi2));
         end
         
         function plotContour(obj,z)
@@ -92,14 +92,14 @@ classdef ConformalMappingComputer < handle
             s.fValues = obj.computeVector(idim);
             s.mesh   = obj.mesh;
             varProb  = MinimumDiscGradFieldWithVectorInL2(s);
-            %varProb  = MinimumGradFieldWithVectorInL2(s);            
+           % varProb  = MinimumGradFieldWithVectorInL2(s);            
             phi = varProb.solve();
         end
         
         function b = computeVector(obj,idim)
            er = exp(obj.dilation);
-           erCos = er.*cos(obj.theta/2);
-           erSin = er.*sin(obj.theta/2);
+           erCos = er.*cos(obj.theta);
+           erSin = er.*sin(obj.theta);
            Q(1,1,:) = erCos;
            Q(1,2,:) = -erSin;
            Q(2,1,:) = erSin;
