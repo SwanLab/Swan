@@ -35,7 +35,7 @@ classdef HarmonicVectorProjectionExample < handle
             obj.createUnitBallProjector();
             obj.storeOrientationAngle();
         %    obj.dehomogenize();            
-            obj.project()
+          %  obj.project()
             obj.dehomogenize();                        
         end
 
@@ -45,13 +45,13 @@ classdef HarmonicVectorProjectionExample < handle
 
         function init(obj)
             close all
-%             obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-%             obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-%             obj.iteration = 665;
+            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+            obj.iteration = 665;
 % 
-            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-            obj.fileName = 'ExperimentingPlotSuperEllipse';
-            obj.iteration = 64;
+%             obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+%             obj.fileName = 'ExperimentingPlotSuperEllipse';
+%             obj.iteration = 64;
                         
         end
 
@@ -64,10 +64,10 @@ classdef HarmonicVectorProjectionExample < handle
         end
 
         function createMesh(obj)
-          %  d = obj.experimentData;
-          %  obj.mesh = d.mesh;          
-           obj.mesh = obj.createSquareMesh();
-          % obj.mesh  = obj.createRectangularWithCircularHoleMesh();
+            d = obj.experimentData;
+            obj.mesh = d.mesh;          
+          obj.mesh = obj.createSquareMesh();
+         %  obj.mesh  = obj.createRectangularWithCircularHoleMesh();
         end
 
       function aBar = createOrientationByHand(obj)
@@ -80,7 +80,7 @@ classdef HarmonicVectorProjectionExample < handle
 
         function [aBar,bBar] = createOrientationVector(obj)
             aBar = obj.createOrientationByHand();
-           % aBar = obj.createOrientationFromData();
+         %   aBar = obj.createOrientationFromData();
             bBar = obj.computeHalfOrientationFromOrientation(aBar);
             aBar = obj.interpolateOrientation(aBar);
             bBar = obj.interpolateOrientation(bBar);
@@ -89,9 +89,14 @@ classdef HarmonicVectorProjectionExample < handle
         function m = createSquareMesh(obj)
             h = 0.05;
             [X,Y] = meshgrid(-1:h:1,0:h:1); 
-            s.coord(:,1) = X(:);
-            s.coord(:,2) = Y(:);
-            s.connec = delaunay(s.coord); 
+           s.coord(:,1) = X(:);
+           s.coord(:,2) = Y(:);
+           s.connec = delaunay(s.coord); 
+
+%             [F,V] = mesh2tri(X,Y,zeros(size(X)),'x');
+%             s.coord  = V(:,1:2);
+%               s.connec = F;
+
             m = Mesh(s);            
             m.plot;
         end
@@ -146,7 +151,7 @@ classdef HarmonicVectorProjectionExample < handle
              coord0 = obj.mesh.computeBaricenter';
              x1 = coord0(:,1);
              x2 = coord0(:,2);
-             alpha = atan2(x2+0.5,x1) + 1*(2*rand(size(x1))-1)/2;
+             alpha = atan2(x2+0.5,x1) + 0*(2*rand(size(x1))-1)/2;
         end
 
         function alpha = createPiDiscontinuityAndNoiseAngle(obj)
@@ -154,17 +159,14 @@ classdef HarmonicVectorProjectionExample < handle
              x1 = coord0(:,1);
              x2 = coord0(:,2);
              alpha = zeros(size(x1)) + (pi/2);
-             alpha(x1<0.5) = pi + (pi/2);
-             alpha = alpha + 0.5*(2*rand(size(x1))-1)/2;
+             alpha(x1<0) = pi + (pi/2);
+             alpha = alpha;% + 0.5*(2*rand(size(x1))-1)/2;
         end
 
         function aBar = createOrientationFromData(obj)
             d = obj.experimentData;
             aBar  = d.dataRes.AlphaGauss;
         end        
-
-  
-
 
         function storeOrientationAngle(obj)
             [aBar,bBar] = obj.createOrientationVector();            
@@ -244,6 +246,13 @@ classdef HarmonicVectorProjectionExample < handle
             b(:,2) = sin(beta);
         end
 
+        function rho = computeRho(obj)            
+            %rho = obj.experimentData.dataRes.DensityGauss;           
+            %rho = obj.interpolateOrientationComponent(rho);
+            rho = zeros(size(obj.mesh.coord(:,1)));
+            rho(:) = 0.5;
+        end
+
         function project(obj)
             [aBar,bBar] = obj.createOrientationVector();            
             figure(23)
@@ -258,7 +267,8 @@ classdef HarmonicVectorProjectionExample < handle
             tx = bBar(:,1);
             ty = bBar(:,2);
             quiver(x,y,tx,ty)
-
+            
+            rho = obj.computeRho();
 
             b      = bBar;
             lambda = obj.computeInitialLambda();
@@ -273,7 +283,7 @@ classdef HarmonicVectorProjectionExample < handle
 %                 theta = atan2(u(:,2),u(:,1));
 %                 u2(:,1) = cos(2*theta);
 %                 u2(:,2) = sin(2*theta);
-                [uNew,lambda] = obj.solveProblem(bBar,b);
+                [uNew,lambda] = obj.solveProblem(rho,bBar,b);
                 beta = atan2(uNew(:,2),uNew(:,1));                               
                 uNew = obj.projectInUnitBall(uNew);
                 
@@ -333,9 +343,9 @@ classdef HarmonicVectorProjectionExample < handle
 
         end
 
-        function [v,lambda] = solveProblem(obj,alpha0,vH)
+        function [v,lambda] = solveProblem(obj,rho,alpha0,vH)
            h  = obj.harmonicProjector;
-           [v,lambda] = h.solveProblem(alpha0,vH);
+           [v,lambda] = h.solveProblem(rho,alpha0,vH);
         end
 
         function createHarmonicProjection(obj)
@@ -395,7 +405,26 @@ classdef HarmonicVectorProjectionExample < handle
          %   obj.createSuperEllipseParams();
             s.backgroundMesh     = obj.backgroundMesh;
             s.nCells             = 46;
-            s.theta              = obj.orientationAngle;
+
+%              x1 = obj.backgroundMesh.coord(:,1);
+%              x2 = obj.backgroundMesh.coord(:,2);
+%              alpha = zeros(size(x1)) + (pi/2);
+%              alpha(x1<0) = pi + (pi/2);
+%              alpha = alpha;
+% 
+%             
+             alpha  = obj.createRadialWithNoiseAngle();                
+             alpha = obj.interpolateOrientationComponent(alpha);
+             x1 = obj.mesh.coord(:,1);
+             x2 = obj.mesh.coord(:,2);   
+             alpha(x1<0) = alpha(x1<0)  + (pi);
+
+             s.theta              = alpha;
+%            
+            
+
+            %s.theta              = obj.orientationAngle;
+           
             s.cellLevelSetParams = obj.createLevelSetCellParams();
             s.mesh               = obj.mesh;
             d = Dehomogenizer(s);
@@ -418,7 +447,7 @@ classdef HarmonicVectorProjectionExample < handle
             FV2 = refinepatch(FV);
             FV2 = refinepatch(FV2);
             FV2 = refinepatch(FV2);
-            FV2 = refinepatch(FV2);
+            %FV2 = refinepatch(FV2);
             s.coord = FV2.vertices(:,1:2);
             s.connec = FV2.faces;
             m = Mesh(s);

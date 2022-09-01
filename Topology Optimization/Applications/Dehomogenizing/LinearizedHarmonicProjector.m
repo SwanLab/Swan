@@ -31,7 +31,7 @@ classdef LinearizedHarmonicProjector < handle
             lambda0 = 0*ones(length(nInt),1);
         end
 
-        function [bNew,lambda] = solveProblem(obj,bBar,b0)            
+        function [bNew,lambda] = solveProblem(obj,rho,bBar,b0)            
             b = obj.projectUnitBall(b0);
             obj.plotOrientation(b,1);
             i = 1;
@@ -41,11 +41,11 @@ classdef LinearizedHarmonicProjector < handle
             eta    = zeros(npnod,1);
             etaOld = eta;
             lambdaOld = lambda;
-            rhs    = obj.computeRHS(bBar);
+            rhs    = obj.computeRHS(rho,bBar);
             while isErrorLarge
              
 
-                obj.computeLHS(b);
+                obj.computeLHS(rho,b);
                 lhs    = obj.LHS;
 
 
@@ -238,16 +238,17 @@ classdef LinearizedHarmonicProjector < handle
             obj.massMatrix = M;
         end
 
-        function [CX,CY,DX,DY,EX,EY] = computeAdvectionMatrix(obj,vH)
+        function [CX,CY,DX,DY,EX,EY,Kxx,Kxy,Kyy,Mxx,Mxy,Myy,Mrho] = computeAdvectionMatrix(obj,rho,vH)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
             s.field        = obj.field;
             s.type         = 'AdvectionMatrix';
             s.b            = vH;
+            s.rho          = rho;
             s.quadType     = 'CUBIC';
             
             lhs = LHSintegrator.create(s);
-            [CX,CY,DX,DY,EX,EY] = lhs.compute();
+            [CX,CY,DX,DY,EX,EY,Kxx,Kxy,Kyy,Mxx,Mxy,Myy,Mrho] = lhs.compute();
        end        
 
        function Ared = computeReducedAdvectionMatrix(obj,A)
@@ -262,8 +263,9 @@ classdef LinearizedHarmonicProjector < handle
        end
 
 
-       function  computeLHS(obj,vH)
-           [Cx,Cy,Dx,Dy,Ex,Ey] = obj.computeAdvectionMatrix(vH);
+       function  computeLHS(obj,rho,vH)
+          
+           [Cx,Cy,Dx,Dy,Ex,Ey,Kxx,Kxy,Kyy,Mxx,Mxy,Myy,Mrho] = obj.computeAdvectionMatrix(rho,vH);
            Cx = obj.computeReducedAdvectionMatrix(Cx);
            Cy = obj.computeReducedAdvectionMatrix(Cy);
            Dx = obj.computeReducedAdvectionMatrix(Dx);
@@ -277,8 +279,11 @@ classdef LinearizedHarmonicProjector < handle
            %Ey = diag(sum(Ey));
            Ex2 = diag(vH(:,1));
            Ey2 = diag(vH(:,2));
-
-           lhs  = [M,Zb,(-Dx+Cx),Ex;Zb,M,(Dy-Cy),Ey;(-Dx+Cx)',(Dy-Cy)',Z,Zbred';Ex2',Ey2',Zbred,Zb];
+           l = 1;
+           lhs  = [Mrho+l*(Kxx+Mxx),Zb-l*(Kxy+Mxy)   ,(-Dx+Cx),Ex;...
+                   Zb-l*(Kxy+Mxy),Mrho+l*(Kyy+Myy)   ,(Dy-Cy) ,Ey;...
+                  (-Dx+Cx)',(Dy-Cy)',Z,Zbred';...
+                   Ex2',Ey2',Zbred,Zb];
            %lhs  = [M,Zb,(-Dx+Cx),Ex;Zb,M,(Dy-Cy),Ey;(-Dx+Cx)',(Dy-Cy)',Z,Zbred';Ex',Ey',Zbred,Zb];
            obj.LHS = lhs;
        end
@@ -293,7 +298,7 @@ classdef LinearizedHarmonicProjector < handle
            nInt = setdiff(1:obj.field.dim.ndofs,b);                     
        end
 
-        function rhs = computeRHS(obj,v)
+        function rhs = computeRHS(obj,rho,v)
 %             q = Quadrature.set(obj.mesh.type);
 %             q.computeQuadrature('LINEAR');
 %             s.mesh  = obj.mesh;
@@ -307,8 +312,9 @@ classdef LinearizedHarmonicProjector < handle
 
 
             M = obj.massMatrix;
-            rhs1 = M*v(:,1);
-            rhs2 = M*v(:,2);
+            w = 4*(1-rho).*rho;
+            rhs1 = M*(v(:,1).*w);
+            rhs2 = M*(v(:,2).*w);
 
 
             nInt = obj.computeNint();

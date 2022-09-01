@@ -3,6 +3,7 @@ classdef LHSintegrator_Advection < LHSintegrator
     properties (Access = private)
         geometry
         b
+        rho
         quadType
         field
     end
@@ -13,6 +14,7 @@ classdef LHSintegrator_Advection < LHSintegrator
             obj.mesh         = cParams.mesh;
             obj.globalConnec = cParams.globalConnec;
             obj.b            = cParams.b;
+            obj.rho          = cParams.rho;
             obj.quadType     = cParams.quadType;    
             obj.field        = cParams.field;
             obj.createQuadrature();
@@ -20,21 +22,28 @@ classdef LHSintegrator_Advection < LHSintegrator
             obj.createGeometry();
         end
 
-        function [CX,CY,DX,DY,EX,EY] = compute(obj)
-            [CX,CY,DX,DY,EX,EY] = obj.computeElementalLHS();
+        function [CX,CY,DX,DY,EX,EY,Kxx,Kxy,Kyy,Mxx,Mxy,Myy,Mrho] = compute(obj)
+            [CX,CY,DX,DY,EX,EY,Kxx,Kxy,Kyy,Mxx,Mxy,Myy,Mrho] = obj.computeElementalLHS();
             CX = obj.assembleMatrixField(CX);
             CY = obj.assembleMatrixField(CY);
             DX = obj.assembleMatrixField(DX);
             DY = obj.assembleMatrixField(DY);
             EX = obj.assembleMatrixField(EX);
             EY = obj.assembleMatrixField(EY);
+            Kxx = obj.assembleMatrixField(Kxx);
+            Kxy = obj.assembleMatrixField(Kxy);
+            Kyy = obj.assembleMatrixField(Kyy);
+            Mxx = obj.assembleMatrixField(Mxx);
+            Mxy = obj.assembleMatrixField(Mxy);
+            Myy = obj.assembleMatrixField(Myy);
+            Mrho = obj.assembleMatrixField(Mrho);
         end
         
     end
     
    methods (Access = protected)
         
-        function [CX,CY,DX,DY,EX,EY] = computeElementalLHS(obj)
+        function [CX,CY,DX,DY,EX,EY,Kxx,Kxy,Kyy,Mxx,Mxy,Myy,Mrho] = computeElementalLHS(obj)
             dvolu = obj.mesh.computeDvolume(obj.quadrature);
             ngaus = obj.quadrature.ngaus;
             nelem = obj.mesh.nelem;
@@ -49,12 +58,28 @@ classdef LHSintegrator_Advection < LHSintegrator
             s.fNodes = obj.b;
             bF = FeFunction(s);
             bElem = bF.fElem;
+
+            s.connec = obj.mesh.connec;
+            s.type   = obj.mesh.type;
+            s.fNodes = obj.rho;
+            rhoF = FeFunction(s);
+            rhoElem = rhoF.fElem;
+
+
+
             cX = zeros(ndpe,ndpe,nelem);
             cY = zeros(ndpe,ndpe,nelem);
             dX = zeros(ndpe,ndpe,nelem);
             dY = zeros(ndpe,ndpe,nelem);    
             eX = zeros(ndpe,ndpe,nelem);
             eY = zeros(ndpe,ndpe,nelem);  
+            Kxx = zeros(ndpe,ndpe,nelem);  
+            Kyy = zeros(ndpe,ndpe,nelem);  
+            Kxy = zeros(ndpe,ndpe,nelem);  
+            Mxx = zeros(ndpe,ndpe,nelem);  
+            Myy = zeros(ndpe,ndpe,nelem);  
+            Mxy = zeros(ndpe,ndpe,nelem);  
+            Mrho = zeros(ndpe,ndpe,nelem);  
 
             for igaus = 1:ngaus
                 dNg = dN(:,:,:,igaus);
@@ -68,6 +93,8 @@ classdef LHSintegrator_Advection < LHSintegrator
                         for kNode = 1:3
                             bXk = squeeze(bElem(1,kNode,:));
                             bYk = squeeze(bElem(2,kNode,:));
+                            rhok = squeeze(rhoElem(1,kNode,:));
+                            
                             Nk = N(kNode,igaus);
                             dNk = squeezeParticular(dNg(:,kNode,:),2);   
                             
@@ -94,6 +121,47 @@ classdef LHSintegrator_Advection < LHSintegrator
 
                             cY(iNode,jNode,:) = cY(iNode,jNode,:) + cYv;
                             dY(iNode,jNode,:) = dY(iNode,jNode,:) + dYv;
+
+
+
+                            %%% RegularizationTerms
+                    
+                            for lNode = 1:3
+                              
+
+                                Nl = N(lNode,igaus);
+                                dNl = squeezeParticular(dNg(:,lNode,:),2);
+                                dNldx(:,1) = squeeze(dNl(1,:));
+                                dNldy(:,1) = squeeze(dNl(2,:));
+
+                                rhol = squeeze(rhoElem(1,lNode,:));
+                                mr(1,1,:) = 4*Ni.*Nj.*(rhok.*Nk).*(1-rhol).*Nl.*dV;
+                                Mrho(iNode,jNode,:) = Mrho(iNode,jNode,:) + mr;
+                                
+                             
+                                bXl = squeeze(bElem(1,lNode,:));
+                                bYl = squeeze(bElem(2,lNode,:));
+
+                                k0 = (dNidx.*dNjdx + dNidy.*dNjdy).*Nk.*Nl.*dV;
+                                kxx(1,1,:) = (bYk.*bYl).*k0;
+                                kxy(1,1,:) = (bXk.*bYl).*k0;
+                                kyy(1,1,:) = (bXk.*bXl).*k0;
+
+                                m0 = (Ni.*Nj).*(dNldx.*dNkdx+dNldy.*dNkdy).*dV;
+                                mxx(1,1,:) = (bYl.*bYk).*m0;
+                                mxy(1,1,:) = (bXl.*bYk).*m0;
+                                myy(1,1,:) = (bXl.*bXk).*m0;
+
+
+
+                             Kxx(iNode,jNode,:) = Kxx(iNode,jNode,:) + kxx;
+                             Kxy(iNode,jNode,:) = Kxy(iNode,jNode,:) + kxy;
+                             Kyy(iNode,jNode,:) = Kyy(iNode,jNode,:) + kyy;
+
+                             Mxx(iNode,jNode,:) = Mxx(iNode,jNode,:) + mxx;
+                             Mxy(iNode,jNode,:) = Mxy(iNode,jNode,:) + mxy;
+                             Myy(iNode,jNode,:) = Myy(iNode,jNode,:) + myy;
+                            end
  
                          % version 2
 % 

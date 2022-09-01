@@ -36,12 +36,7 @@ classdef ConformalMappingComputer < handle
     methods (Access = private)
         
         function plotDilation(obj)
-            figure()
-            s.mesh  = obj.mesh;
-            s.field = obj.dilation;
-            n = NodalFieldPlotter(s);
-            n.plot();
-            shading interp
+           obj.plotField(obj.dilation);
         end
         
         function plotMapping(obj)
@@ -49,6 +44,15 @@ classdef ConformalMappingComputer < handle
            phi2 = obj.phi(:,2);
            obj.plotContour((phi1)); 
            obj.plotContour((phi2));
+        end
+
+        function plotField(obj,z)
+            figure()
+            s.mesh  = obj.mesh;
+            s.field = z;
+            n = NodalFieldPlotter(s);
+            n.plot();
+            shading interp
         end
         
         function plotContour(obj,z)
@@ -120,6 +124,7 @@ classdef ConformalMappingComputer < handle
                 f = FeFunction(s);
                 fG(idim,:,:) = f.interpolateFunction(xGauss);
             end
+            %%%%% HEREEEE!!!!!
         end
     
     end

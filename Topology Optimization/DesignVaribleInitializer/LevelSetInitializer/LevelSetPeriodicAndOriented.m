@@ -132,7 +132,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
     methods (Access = private, Static)
         
         function f = periodicFunction(y)
-            %f = abs(cos(pi/2*y)).^2;
+           % f = abs(cos(pi/2*y)).^2;
             f = y - floor(y);
         end                        
         
