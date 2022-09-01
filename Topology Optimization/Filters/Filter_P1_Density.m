@@ -4,11 +4,10 @@ classdef Filter_P1_Density < handle
         Poper
         x
         x_reg
-        geometry
-        quadrature
         M
         Kernel
         field
+        fieldM
     end
 
     properties (Access = private)
@@ -17,20 +16,12 @@ classdef Filter_P1_Density < handle
     end
 
     methods (Access = public)
-        
+
         function obj = Filter_P1_Density(cParams)
             obj.init(cParams);
             obj.createMassMatrix();
             obj.createPoperator(cParams);
             obj.createFilterKernel();
-        end
-
-        function preProcess(obj)
-            s.mesh            = obj.mesh;
-            s.quadratureOrder = obj.quadratureOrder;
-            P1proc            = P1preProcessor(s);
-            P1proc.preProcess();
-            obj.storeParams(P1proc);
         end
 
         function x_reg = getP1fromP0(obj,x0)
@@ -42,8 +33,8 @@ classdef Filter_P1_Density < handle
         function x0 = getP0fromP1(obj,x)
             if obj.xHasChanged(x)
                 xR = obj.computeP0fromP1(x);
-                x0 = zeros(length(xR),obj.quadrature.ngaus);
-                for igaus = 1:obj.quadrature.ngaus
+                x0 = zeros(length(xR),obj.field.quadrature.ngaus);
+                for igaus = 1:obj.field.quadrature.ngaus
                     x0(:,igaus) = xR;
                 end
             else
@@ -60,23 +51,32 @@ classdef Filter_P1_Density < handle
             obj.mesh = cParams.mesh;
             obj.quadratureOrder = cParams.quadratureOrder;
             obj.createField();
+            obj.createFieldMass();
         end
 
         function createField(obj)
             s.mesh               = obj.mesh;
             s.ndimf              = 1;
             s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATICMASS';
+            s.quadratureOrder    = 'LINEAR';
             obj.field = Field(s);
         end
 
+        function createFieldMass(obj)
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1;
+            s.interpolationOrder = 'LINEAR';
+            s.quadratureOrder    = 'QUADRATICMASS';
+            obj.fieldM = Field(s);
+        end
+
         function createMassMatrix(obj)
-            s.dim          = obj.field.dim;
+            s.dim          = obj.fieldM.dim;
             s.type         = 'MassMatrix';
             s.quadType     = 'QUADRATICMASS';
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
-            s.field        = obj.field;
+            s.field        = obj.fieldM;
             LHS = LHSintegrator.create(s);
             obj.M = LHS.compute();
         end
@@ -88,11 +88,6 @@ classdef Filter_P1_Density < handle
             cParams.connec = obj.mesh.connec;
             cParams.diffReactEq = cPar.femSettings;
             obj.Poper = Poperator(cParams);
-        end
-
-        function storeParams(obj,P1proc)
-            obj.quadrature = P1proc.quadrature;
-            obj.geometry   = P1proc.geometry;
         end
 
         function itHas = xHasChanged(obj,x)
@@ -117,7 +112,7 @@ classdef Filter_P1_Density < handle
             intX = zeros(obj.mesh.nelem,1);
             ng = size(x,2);
             for igaus = 1:ng
-                dvolu = obj.geometry.dvolu(:,igaus);
+                dvolu = obj.field.geometry.dvolu(:,igaus);
                 intX = intX + dvolu.*x(:,igaus);
             end
         end

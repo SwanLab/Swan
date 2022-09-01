@@ -1,14 +1,11 @@
 classdef Filter_PDE_LevelSet < handle
 
     properties (Access = private)
-        interp
         levelSet
         Acomp
         Anodal2Gauss
         epsilon
         x_reg
-        quadrature
-        geometry
         LHS
         bc
         field
@@ -28,14 +25,6 @@ classdef Filter_PDE_LevelSet < handle
             obj.computeBoundaryConditions();
             obj.levelSet = cParams.designVariable;
             obj.epsilon = cParams.mesh.computeMeanCellSize();
-        end
-
-        function preProcess(obj)
-            s.mesh            = obj.mesh;
-            s.quadratureOrder = obj.quadratureOrder;
-            P1proc            = P1preProcessor(s);
-            P1proc.preProcess();
-            obj.storeParams(P1proc);
             obj.Anodal2Gauss = obj.computeA();
             lhs = obj.createProblemLHS();
             obj.LHS = decomposition(lhs);
@@ -62,14 +51,14 @@ classdef Filter_PDE_LevelSet < handle
 
         function x0 = getP0fromP1(obj,x)
             obj.x_reg =  obj.getP1fromP1(x);
-            x0 = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
-            for igaus = 1:obj.quadrature.ngaus
+            x0 = zeros(obj.mesh.nelem,obj.field.quadrature.ngaus);
+            for igaus = 1:obj.field.quadrature.ngaus
                 x0(:,igaus) = obj.Anodal2Gauss{igaus}*obj.x_reg;
             end
         end
 
         function x_reg = getP1fromP0(obj,x0)
-            s.geometry = obj.geometry;
+            s.geometry = obj.field.geometry;
             s.x        = x0;
             RHS        = obj.Acomp.integrateP1FunctionWithShapeFunction(s);
             x_reg      = obj.solveFilter(RHS);
@@ -95,14 +84,8 @@ classdef Filter_PDE_LevelSet < handle
             s.mesh               = obj.mesh;
             s.ndimf              = 1;
             s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATICMASS';
+            s.quadratureOrder    = 'LINEAR';
             obj.field = Field(s);
-        end
-
-        function storeParams(obj,P1proc)
-            obj.quadrature = P1proc.quadrature;
-            obj.interp     = P1proc.interp;
-            obj.geometry   = P1proc.geometry;
         end
 
         function itHas = hasEpsilonChanged(obj,eps)
@@ -134,9 +117,9 @@ classdef Filter_PDE_LevelSet < handle
             s.nnode   = obj.mesh.nnodeElem;
             s.nelem   = obj.mesh.nelem;
             s.npnod   = obj.mesh.nnodes;
-            s.ngaus   = obj.quadrature.ngaus;
+            s.ngaus   = obj.field.quadrature.ngaus;
             s.connec  = obj.mesh.connec;
-            s.shape   = obj.interp.shape;
+            s.shape   = obj.field.interpolation.shape;
             obj.Acomp = Anodal2gausComputer(s);
             obj.Acomp.compute();
             A = obj.Acomp.A_nodal_2_gauss;

@@ -4,8 +4,6 @@ classdef Filter_P1_LevelSet <  handle
         Poper
         x
         x_reg
-        geometry
-        quadrature
         projector
         field
     end
@@ -23,15 +21,6 @@ classdef Filter_P1_LevelSet <  handle
             obj.createPoperator(cParams);
             obj.disableDelaunayWarning();
         end
-
-        function preProcess(obj)
-            s.mesh = obj.mesh;
-            s.quadratureOrder = obj.quadratureOrder;
-            P1proc = P1preProcessor(s);
-            P1proc.preProcess();
-            obj.quadrature = P1proc.quadrature;
-            obj.geometry = P1proc.geometry;
-        end
         
         function x_reg = getP1fromP0(obj,x0)
             RHS = obj.integrateRHS(x0);
@@ -42,8 +31,8 @@ classdef Filter_P1_LevelSet <  handle
         function x0 = getP0fromP1(obj,x)
             if obj.xHasChanged(x)
                 xR = obj.computeP0fromP1(x);
-                x0 = zeros(length(xR),obj.quadrature.ngaus);
-                for igaus = 1:obj.quadrature.ngaus
+                x0 = zeros(length(xR),obj.field.quadrature.ngaus);
+                for igaus = 1:obj.field.quadrature.ngaus
                     x0(:,igaus) = xR;
                 end
             else
@@ -66,7 +55,7 @@ classdef Filter_P1_LevelSet <  handle
             s.mesh               = obj.mesh;
             s.ndimf              = 1;
             s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATICMASS';
+            s.quadratureOrder    = 'LINEAR';
             obj.field = Field(s);
         end
 
@@ -96,7 +85,7 @@ classdef Filter_P1_LevelSet <  handle
             intX = zeros(obj.mesh.nelem,1);
             ngaus = size(x,2);
             for igaus = 1:ngaus
-                dvolu = obj.geometry.dvolu(:,igaus);
+                dvolu = obj.field.geometry.dvolu(:,igaus);
                 intX = intX + dvolu.*x(:,igaus);
             end
         end

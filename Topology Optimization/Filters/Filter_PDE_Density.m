@@ -4,14 +4,12 @@ classdef Filter_PDE_Density < handle
         epsilon
         Acomp
         Anodal2Gauss
-        quadrature
         M
-        interp
-        geometry
         x_reg
         LHS
         bc
         field
+        fieldM
     end
 
     properties (Access = private)
@@ -28,14 +26,6 @@ classdef Filter_PDE_Density < handle
             obj.computeBoundaryConditions();
             obj.createMassMatrix();
             obj.epsilon = cParams.mesh.computeMeanCellSize();
-        end
-
-        function preProcess(obj)
-            s.mesh            = obj.mesh;
-            s.quadratureOrder = obj.quadratureOrder;
-            P1proc            = P1preProcessor(s);
-            P1proc.preProcess();
-            obj.storeParams(P1proc);
             obj.Anodal2Gauss = obj.computeA();
             lhs = obj.createProblemLHS();
             obj.LHS = decomposition(lhs);
@@ -43,8 +33,8 @@ classdef Filter_PDE_Density < handle
 
         function x0 = getP0fromP1(obj,x)
             obj.x_reg =  obj.getP1fromP1(x);
-            x0 = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
-            for igaus = 1:obj.quadrature.ngaus
+            x0 = zeros(obj.mesh.nelem,obj.field.quadrature.ngaus);
+            for igaus = 1:obj.field.quadrature.ngaus
                 x0(:,igaus) = obj.Anodal2Gauss{igaus}*obj.x_reg;
             end
         end
@@ -67,7 +57,7 @@ classdef Filter_PDE_Density < handle
         end
 
         function x_reg = getP1fromP0(obj,x0)
-            s.geometry = obj.geometry;
+            s.geometry = obj.field.geometry;
             s.x        = x0;
             RHS        = obj.Acomp.integrateP1FunctionWithShapeFunction(s);
             x_reg      = obj.solveFilter(RHS);
@@ -87,40 +77,43 @@ classdef Filter_PDE_Density < handle
                 obj.LHStype = 'DiffReactNeumann';
             end
             obj.createField();
+            obj.createFieldMass();
         end
 
         function createField(obj)
             s.mesh               = obj.mesh;
             s.ndimf              = 1;
             s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATICMASS';
+            s.quadratureOrder    = 'LINEAR';
             obj.field = Field(s);
         end
 
+        function createFieldMass(obj)
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1;
+            s.interpolationOrder = 'LINEAR';
+            s.quadratureOrder    = 'QUADRATICMASS';
+            obj.fieldM = Field(s);
+        end
+
         function createMassMatrix(obj)
-            s.dim          = obj.field.dim;
+            s.dim          = obj.fieldM.dim;
             s.type         = 'MassMatrix';
             s.quadType     = 'QUADRATICMASS';
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
-            s.field        = obj.field;
+            s.field        = obj.fieldM;
             lhs = LHSintegrator.create(s);
             obj.M = lhs.compute();
-        end
-
-        function storeParams(obj,P1proc)
-            obj.quadrature = P1proc.quadrature;
-            obj.interp     = P1proc.interp;
-            obj.geometry   = P1proc.geometry;
         end
 
         function A_nodal_2_gauss = computeA(obj)
             s.nnode   = obj.mesh.nnodeElem;
             s.nelem   = obj.mesh.nelem;
             s.npnod   = obj.mesh.nnodes;
-            s.ngaus   = obj.quadrature.ngaus;
+            s.ngaus   = obj.field.quadrature.ngaus;
             s.connec  = obj.mesh.connec;
-            s.shape   = obj.interp.shape;
+            s.shape   = obj.field.interpolation.shape;
             obj.Acomp = Anodal2gausComputer(s);
             obj.Acomp.compute();
             A_nodal_2_gauss = obj.Acomp.A_nodal_2_gauss;
