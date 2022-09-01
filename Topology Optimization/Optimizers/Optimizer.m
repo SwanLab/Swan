@@ -167,11 +167,12 @@ classdef Optimizer < handle
         
         function d = createPostProcessDataBase(obj,cParams)
             d.mesh    = obj.designVariable.mesh;
-            d.outName = cParams.femFileName;
-            d.pdim    = cParams.pdim;
+            d.outFileName = cParams.femFileName;
             d.ptype   = cParams.ptype;
             ps = PostProcessDataBaseCreator(d);
-            d  = ps.getValue();
+            d  = ps.create();
+            d.ndim       = obj.designVariable.mesh.ndim;
+            d.pdim       = cParams.pdim;
             d.optimizer  = obj.type;
             d.cost       = obj.cost;
             d.constraint = obj.constraint;

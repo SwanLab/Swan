@@ -65,6 +65,24 @@ classdef ShapeFunctional_Factory < handle
                     sF = ShFunc_Volume(cParams);
                 case 'volumeConstraint'
                     sF = Volume_constraint(cParams);
+                case 'anisotropicPerimeter2D'
+                    cParams.filterParams.femSettings.LHStype = 'AnisotropicDiffReactRobin';
+                    %cParams.designVariable = cParams.designVariable.value;
+                    cParams.filterParams.femSettings.isAnisotropyAdded = true;
+                    u = 60;
+                    cParams.filterParams.femSettings.CAnisotropic = [tand(u),0;0,1/tand(u)];
+                    cParams.filterParams.femSettings.aniAlphaDeg = 90;
+                    cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
+                    sF = ShFunc_Perimeter(cParams);
+                case 'anisotropicPerimeterInterior2D'
+                    cParams.filterParams.femSettings.LHStype = 'AnisotropicDiffReactNeumann';
+                    %cParams.designVariable = cParams.designVariable.value;
+                    cParams.filterParams.femSettings.isAnisotropyAdded = true;
+                    u = 60;
+                    cParams.filterParams.femSettings.CAnisotropic = [tand(u),0;0,1/tand(u)];
+                    cParams.filterParams.femSettings.aniAlphaDeg = 90;
+                    cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
+                    sF = ShFunc_Perimeter(cParams);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end
