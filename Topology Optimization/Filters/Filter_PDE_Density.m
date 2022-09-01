@@ -1,4 +1,4 @@
-classdef Filter_PDE_Density < handle
+classdef Filter_PDE_Density < Filter
     
     properties (Access = private)
         epsilon
@@ -8,15 +8,6 @@ classdef Filter_PDE_Density < handle
         x_reg
         LHS
         bc
-        field
-        fieldM
-    end
-
-    properties (Access = private)
-        mesh
-        quadratureOrder
-        femSettings
-        LHStype
     end
 
     methods (Access = public)
@@ -66,35 +57,6 @@ classdef Filter_PDE_Density < handle
     end
 
     methods (Access = private)
-
-        function init(obj,cParams)
-            obj.mesh = cParams.mesh;
-            obj.quadratureOrder = cParams.quadratureOrder;
-            obj.femSettings = cParams.femSettings;
-            if isfield(cParams.femSettings,'LHStype')
-                obj.LHStype = cParams.femSettings.LHStype;
-            else
-                obj.LHStype = 'DiffReactNeumann';
-            end
-            obj.createField();
-            obj.createFieldMass();
-        end
-
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'LINEAR';
-            obj.field = Field(s);
-        end
-
-        function createFieldMass(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATICMASS';
-            obj.fieldM = Field(s);
-        end
 
         function createMassMatrix(obj)
             s.dim          = obj.fieldM.dim;

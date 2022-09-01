@@ -1,4 +1,4 @@
-classdef Filter_P1_Density < handle
+classdef Filter_P1_Density < Filter
 
     properties (Access = private)
         Poper
@@ -6,13 +6,6 @@ classdef Filter_P1_Density < handle
         x_reg
         M
         Kernel
-        field
-        fieldM
-    end
-
-    properties (Access = private)
-        mesh
-        quadratureOrder
     end
 
     methods (Access = public)
@@ -46,29 +39,6 @@ classdef Filter_P1_Density < handle
     end
 
     methods (Access = private)
-
-        function init(obj,cParams)
-            obj.mesh = cParams.mesh;
-            obj.quadratureOrder = cParams.quadratureOrder;
-            obj.createField();
-            obj.createFieldMass();
-        end
-
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'LINEAR';
-            obj.field = Field(s);
-        end
-
-        function createFieldMass(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATICMASS';
-            obj.fieldM = Field(s);
-        end
 
         function createMassMatrix(obj)
             s.dim          = obj.fieldM.dim;

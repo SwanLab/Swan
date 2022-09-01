@@ -1,16 +1,10 @@
-classdef Filter_P1_LevelSet <  handle
+classdef Filter_P1_LevelSet <  Filter
     
     properties (Access = private)
         Poper
         x
         x_reg
         projector
-        field
-    end
-
-    properties (Access = private)
-        mesh
-        quadratureOrder
     end
     
     methods (Access = public)
@@ -44,20 +38,6 @@ classdef Filter_P1_LevelSet <  handle
     end
 
     methods (Access = private)
-
-        function init(obj,cParams)
-            obj.mesh = cParams.mesh;
-            obj.quadratureOrder = cParams.quadratureOrder;
-            obj.createField();
-        end
-
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'LINEAR';
-            obj.field = Field(s);
-        end
 
         function x0 = computeP0fromP1(obj,x)
             xN = obj.projector.project(x);

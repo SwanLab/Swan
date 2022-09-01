@@ -1,4 +1,4 @@
-classdef Filter_PDE_LevelSet < handle
+classdef Filter_PDE_LevelSet < Filter
 
     properties (Access = private)
         levelSet
@@ -8,14 +8,6 @@ classdef Filter_PDE_LevelSet < handle
         x_reg
         LHS
         bc
-        field
-    end
-
-    properties (Access = private)
-        mesh
-        quadratureOrder
-        femSettings
-        LHStype
     end
 
     methods (Access = public)
@@ -67,26 +59,6 @@ classdef Filter_PDE_LevelSet < handle
     end
 
     methods (Access = private)
-
-        function init(obj,cParams)
-            obj.mesh = cParams.mesh;
-            obj.quadratureOrder = cParams.quadratureOrder;
-            obj.femSettings = cParams.femSettings;
-            if isfield(cParams.femSettings,'LHStype')
-                obj.LHStype = cParams.femSettings.LHStype;
-            else
-                obj.LHStype = 'DiffReactNeumann';
-            end
-            obj.createField();
-        end
-
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'LINEAR';
-            obj.field = Field(s);
-        end
 
         function itHas = hasEpsilonChanged(obj,eps)
             if isempty(obj.epsilon)
