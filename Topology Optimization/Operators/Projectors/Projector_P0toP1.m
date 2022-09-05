@@ -27,13 +27,15 @@ classdef Projector_P0toP1 < handle
         end
 
         function xProj = project(obj, x)
-            RHS = zeros(obj.nelem,1);
-            ng = size(x,2);
-            for igaus = 1:ng
+            ndimf  = obj.field.dim.ndimf;
+            RHS = zeros(obj.nelem*ndimf,1);
+            ngaus = size(x,2);
+            for igaus = 1:ngaus
                 dvolu = obj.field.geometry.dvolu(:,igaus);
-                RHS = RHS + dvolu.*x(:,igaus);
+                dv = repmat(dvolu, [ndimf, 1]);
+                RHS = RHS + dv.*x(:,igaus);
             end
-            xProj = obj.value'*RHS;
+            xProj = obj.value'*x;
         end
 
     end
@@ -63,7 +65,7 @@ classdef Projector_P0toP1 < handle
         %% From Poperator.m
         function createField(obj)
             s.mesh               = obj.mesh;
-            s.ndimf              = 1;
+            s.ndimf              = 3;
             s.interpolationOrder = 'LINEAR';
             s.quadratureOrder    = 'QUADRATICMASS';
             obj.field = Field(s);
@@ -81,12 +83,20 @@ classdef Projector_P0toP1 < handle
             nelem  = obj.nelem;
             nnode  = obj.nnode;
             npnod  = obj.npnod;
+            ndimf  = obj.field.dim.ndimf;
             connec = obj.connec;
-            T = sparse(nelem,npnod);
+            T = sparse(nelem*ndimf,npnod*ndimf);
             for inode = 1:nnode
-                nodes(:,1) = connec(:,inode);
-                I = ones(nelem,1);
-                incT = sparse(1:nelem,nodes,I,nelem,npnod);
+                dofsArr = [];
+                nods = connec(:, inode);
+                for idim = 1:ndimf
+                    dofs  = ndimf*(nods - 1) + idim;
+                    dofsArr = [dofsArr; dofs]; 
+                end
+%                 nodes(:,1) = connec(:,inode);
+                nodes(:,1) = dofsArr;
+                I = ones(nelem*ndimf,1);
+                incT = sparse(1:nelem*ndimf,nodes,I,nelem*ndimf,npnod*ndimf);
                 T = T + incT;
             end
             m = T*sum(obj.M,2);

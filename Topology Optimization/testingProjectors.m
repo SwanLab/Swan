@@ -25,4 +25,8 @@ bb.nnode  = size(s.mesh.connec,2);
 bb.npnod  = size(s.mesh.coord,1);
 projector = Projector_P0toP1(bb);
 
-strainP1 = projector.project(strain);
+% strainXX = squeeze(strain(:,1,:));
+% strainP1 = projector.project(strainXX);
+
+strainCol = reshape(strain, [bb.nelem*3, 1]);
+strainP1 = projector.project(strainCol);
