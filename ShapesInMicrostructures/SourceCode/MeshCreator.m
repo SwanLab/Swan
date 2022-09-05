@@ -25,11 +25,11 @@ classdef MeshCreator < handle
             obj.computeNodeCoordinates();
             obj.connectNodes();
             obj.obtainMasterSlaveNodes();
-            obj.writeFEMreadingArchive();       
+%             obj.writeFEMreadingArchive();
         end
         
         function drawMesh(obj)
-           obj.plotCoordinates(); 
+           obj.plotCoordinates();
         end
         
         function plotIndicesOfNodes(obj)
