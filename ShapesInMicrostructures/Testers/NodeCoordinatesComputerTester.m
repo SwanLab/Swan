@@ -4,7 +4,7 @@ classdef NodeCoordinatesComputerTester < Tester
         data
     end
     
-    properties (Access = protected) 
+    properties (Access = public) 
         testName
         corrValues
         calcValues
@@ -17,7 +17,6 @@ classdef NodeCoordinatesComputerTester < Tester
             obj.testName = 'NodeCoordinatesComputer';
             obj.loadCorrectValues();
             obj.obtainCalculatedData();
-            obj.verify();
         end
         
     end
@@ -25,9 +24,16 @@ classdef NodeCoordinatesComputerTester < Tester
     methods (Access = protected)
         
         function loadCorrectValues(obj)
-            vC = load('vertCoord.mat');
-            bC = load('boundary.mat');
-            tC = load('coord.mat');
+            switch obj.data.nvert
+                case 4
+                    vC = load('vertCoordQuad.mat');
+                    bC = load('boundCoordQuad.mat');
+                    tC = load('totalCoordQuad.mat');
+                case 6
+                    vC = load('vertCoordHex.mat');
+                    bC = load('boundCoordHex.mat');
+                    tC = load('totalCoordHex.mat');
+            end
             obj.corrValues(1).Matrix = vC.vertCoord;
             obj.corrValues(2).Matrix = bC.boundary;
             obj.corrValues(3).Matrix = tC.coord;

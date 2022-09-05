@@ -14,9 +14,8 @@ function ComputingTopOpt
 % FEMWriter.createTest;
 
 
-
-
-s.testName = 'test_micro';%''testJose';
+s.testName = 'IsotropyTest2';%''testJose';
 t = TopOptComputer(s);
 t.compute();
+Ch = t.computation.cost.shapeFunctions{1,1}.Chomog;
 end
