@@ -1,22 +1,14 @@
 classdef Tester < handle
     
-    properties (Access = protected, Abstract)
+    properties (Access = public, Abstract)
         testName
         calcValues
         corrValues
     end
     
-    methods (Access = public, Static)
-        
-        function obj = create(type,initialData)
-            obj = TesterFactory.create(type,initialData);            
-        end
-
-    end
-    
-    methods (Access = protected)
+    methods (Access = public)
  
-        function verify(obj)
+        function bool = verify(obj)
             bool = 1;
             iVar = 1;
             while iVar <= size(obj.calcValues,2)
@@ -26,12 +18,15 @@ classdef Tester < handle
                 end
                 iVar = iVar + 1;
             end
-            if bool == 1
-                cprintf('green',['Test pass. ', obj.testName, ' working properly.\n']);
-            else
-                cprintf('red', ['Test NO pass. ', obj.testName, ' failed.\n']);
-            end
-            
+
+        end
+        
+    end
+
+    methods (Access = public, Static)
+        
+        function obj = create(type,initialData)
+            obj = TesterFactory.create(type,initialData);            
         end
         
     end
