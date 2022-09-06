@@ -1,5 +1,5 @@
 %% Create sample FEM results
-clc; clear; close all;
+clear; close all;
 
 file = 'test2d_triangle';
 a.fileName = file;
@@ -27,6 +27,9 @@ projector = Projector_P0toP1(bb);
 
 % strainXX = squeeze(strain(:,1,:));
 % strainP1 = projector.project(strainXX);
+
+% strainOnes = ones(16,1);
+% strainOnesP1 = projector.project(strainOnes);
 
 strainCol = reshape(strain, [bb.nelem*3, 1]);
 strainP1 = projector.project(strainCol);

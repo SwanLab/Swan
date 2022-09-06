@@ -14,7 +14,7 @@ classdef Projector_P0toP1 < handle
         nnode
         npnod
 
-        field, M,
+        field, M
     end
     
     methods (Access = public)
@@ -35,7 +35,7 @@ classdef Projector_P0toP1 < handle
                 dv = repmat(dvolu, [ndimf, 1]);
                 RHS = RHS + dv.*x(:,igaus);
             end
-            xProj = obj.value'*x;
+            xProj = obj.value'*RHS;
         end
 
     end
@@ -93,7 +93,6 @@ classdef Projector_P0toP1 < handle
                     dofs  = ndimf*(nods - 1) + idim;
                     dofsArr = [dofsArr; dofs]; 
                 end
-%                 nodes(:,1) = connec(:,inode);
                 nodes(:,1) = dofsArr;
                 I = ones(nelem*ndimf,1);
                 incT = sparse(1:nelem*ndimf,nodes,I,nelem*ndimf,npnod*ndimf);
