@@ -3,6 +3,7 @@ classdef LinearizedHarmonicProjector < handle
     properties (Access = private)
         field
         massMatrix
+        stiffnessMatrix
         advectionMatrixX
         advectionMatrixY
         reducedAdvectionMatrixX
@@ -22,6 +23,7 @@ classdef LinearizedHarmonicProjector < handle
             obj.init(cParams);     
             obj.createField();
             obj.computeMassMatrix();
+            obj.computeStiffnessMatrix();
             obj.createSolver()
         end
         
@@ -238,6 +240,15 @@ classdef LinearizedHarmonicProjector < handle
             obj.massMatrix = M;
         end
 
+        function computeStiffnessMatrix(obj)        
+            s.field        = obj.field;
+            s.mesh         = obj.mesh;
+            s.type         = 'StiffnessMatrix';
+            lhs = LHSintegrator.create(s);
+            K = lhs.compute();
+            obj.stiffnessMatrix = K;
+        end
+
         function [CX,CY,DX,DY,EX,EY,Kxx,Kxy,Kyy,Mxx,Mxy,Myy,Mrho] = computeAdvectionMatrix(obj,rho,vH)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
@@ -271,6 +282,7 @@ classdef LinearizedHarmonicProjector < handle
            Dx = obj.computeReducedAdvectionMatrix(Dx);
            Dy = obj.computeReducedAdvectionMatrix(Dy);
            M    = obj.massMatrix;
+           K    = obj.stiffnessMatrix;
            Zb   = zeros(size(M));
            Zbred = obj.computeReducedAdvectionMatrix(Zb);
            Z    = obj.computeZeroMatrix();
@@ -280,8 +292,9 @@ classdef LinearizedHarmonicProjector < handle
            Ex2 = diag(vH(:,1));
            Ey2 = diag(vH(:,2));
            l = 1;
-           lhs  = [Mrho+l*(Kxx+Mxx),Zb-l*(Kxy+Mxy)   ,(-Dx+Cx),Ex;...
-                   Zb-l*(Kxy+Mxy),Mrho+l*(Kyy+Myy)   ,(Dy-Cy) ,Ey;...
+           l2 = 0;
+           lhs  = [Mrho+l*(Kxx+Mxx)+l2*K,Zb-l*(Kxy+Mxy),(-Dx+Cx),Ex;...
+                   Zb-l*(Kxy+Mxy),Mrho+l*(Kyy+Myy)+l2*K,(Dy-Cy) ,Ey;...
                   (-Dx+Cx)',(Dy-Cy)',Z,Zbred';...
                    Ex2',Ey2',Zbred,Zb];
            %lhs  = [M,Zb,(-Dx+Cx),Ex;Zb,M,(Dy-Cy),Ey;(-Dx+Cx)',(Dy-Cy)',Z,Zbred';Ex',Ey',Zbred,Zb];

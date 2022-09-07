@@ -42,8 +42,8 @@ classdef ConformalMappingComputer < handle
         function plotMapping(obj)
            phi1 = obj.phi(:,1);
            phi2 = obj.phi(:,2);
-           obj.plotContour((phi1)); 
-           obj.plotContour((phi2));
+           obj.plotContour(abs(phi1)); 
+           obj.plotContour(abs(phi2));
         end
 
         function plotField(obj,z)

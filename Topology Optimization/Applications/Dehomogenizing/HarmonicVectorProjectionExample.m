@@ -34,8 +34,10 @@ classdef HarmonicVectorProjectionExample < handle
             obj.createHarmonicProjection();
             obj.createUnitBallProjector();
             obj.storeOrientationAngle();
-        %    obj.dehomogenize();            
-          %  obj.project()
+          %  obj.dehomogenize(); 
+            obj.computeSingularities();
+            obj.project()
+            obj.computeSingularities();
             obj.dehomogenize();                        
         end
 
@@ -66,7 +68,7 @@ classdef HarmonicVectorProjectionExample < handle
         function createMesh(obj)
             d = obj.experimentData;
             obj.mesh = d.mesh;          
-          obj.mesh = obj.createSquareMesh();
+         % obj.mesh = obj.createSquareMesh();
          %  obj.mesh  = obj.createRectangularWithCircularHoleMesh();
         end
 
@@ -79,8 +81,8 @@ classdef HarmonicVectorProjectionExample < handle
         end
 
         function [aBar,bBar] = createOrientationVector(obj)
-            aBar = obj.createOrientationByHand();
-         %   aBar = obj.createOrientationFromData();
+         %   aBar = obj.createOrientationByHand();
+            aBar = obj.createOrientationFromData();
             bBar = obj.computeHalfOrientationFromOrientation(aBar);
             aBar = obj.interpolateOrientation(aBar);
             bBar = obj.interpolateOrientation(bBar);
@@ -400,6 +402,15 @@ classdef HarmonicVectorProjectionExample < handle
             dualOptT = u.computeDualOptimality(v);
         end    
 
+        function computeSingularities(obj)
+            s.mesh        = obj.mesh;
+            s.orientation(:,1) = cos(obj.orientationAngle);
+            s.orientation(:,2) = sin(obj.orientationAngle);
+            sF = SingularitiesFinder(s);
+            isS = sF.computeSingularElements();
+            sF.plot();
+        end        
+
        function dehomogenize(obj)
             obj.createBackgroundMesh();
          %   obj.createSuperEllipseParams();
@@ -421,9 +432,19 @@ classdef HarmonicVectorProjectionExample < handle
 
              s.theta              = alpha;
 %            
+%                 v = 2*obj.orientationAngle;
+%                 X = obj.mesh.coord(:,1);
+%                 Y = obj.mesh.coord(:,2);
+%                 F = scatteredInterpolant(X,Y,v);
+%                 xB = obj.backgroundMesh.coord(:,1);
+%                 yB = obj.backgroundMesh.coord(:,2);
+%                 vq = F(xB,yB);
+%                 obj.mesh = obj.backgroundMesh;
+%                 s.theta = vq/2;
+
             
 
-            %s.theta              = obj.orientationAngle;
+   %         s.theta              = obj.orientationAngle;
            
             s.cellLevelSetParams = obj.createLevelSetCellParams();
             s.mesh               = obj.mesh;
@@ -444,10 +465,11 @@ classdef HarmonicVectorProjectionExample < handle
         function createBackgroundMesh(obj)
             FV.vertices = [obj.mesh.coord,zeros(size(obj.mesh.coord,1),1)];
             FV.faces    = obj.mesh.connec;
-            FV2 = refinepatch(FV);
+            FV2 = FV;
             FV2 = refinepatch(FV2);
             FV2 = refinepatch(FV2);
-            %FV2 = refinepatch(FV2);
+            FV2 = refinepatch(FV2);
+          %  FV2 = refinepatch(FV2);
             s.coord = FV2.vertices(:,1:2);
             s.connec = FV2.faces;
             m = Mesh(s);
