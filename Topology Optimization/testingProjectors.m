@@ -42,4 +42,4 @@ cc.nelem  = size(s.mesh.connec,1);
 cc.nnode  = size(s.mesh.connec,2);
 cc.npnod  = size(s.mesh.coord,1);
 projector2 = Projector_P1toP0(cc);
-%u_P0 = projector2.project(uCol);
+u_P0 = projector2.project(u)';

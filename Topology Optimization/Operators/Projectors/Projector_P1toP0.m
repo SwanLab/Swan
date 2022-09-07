@@ -11,6 +11,7 @@ classdef Projector_P1toP0 < handle
         nnode
         npnod
         field
+        M
     end
     
     methods (Access = public)
@@ -18,19 +19,12 @@ classdef Projector_P1toP0 < handle
         function obj = Projector_P1toP0(cParams)
             obj.init(cParams);
             obj.createField();
+            obj.createMassMatrix();
             obj.createOperator();
         end
 
         function xProj = project(obj, x)
-            ndimf  = obj.field.dim.ndimf;
-            RHS = zeros(obj.nelem*ndimf,1);
-            ngaus = size(x,2);
-            for igaus = 1:ngaus
-                dvolu = obj.field.geometry.dvolu(:,igaus);
-                dv = repmat(dvolu, [ndimf, 1]);
-                RHS = RHS + dv.*x(:,igaus); % Why dv here instead of obj.value
-            end
-            xProj = obj.value*RHS;
+            xProj = obj.value*obj.M*x;
         end
 
     end
@@ -44,28 +38,23 @@ classdef Projector_P1toP0 < handle
             obj.nnode  = cParams.nnode;
             obj.npnod  = cParams.npnod;
         end
-
-        function computeLHS(obj)
-        end
-
-        function computeRHS(obj)
-            % ez
-        end
-
-        function solve(obj)
-        end
-
-
     
-        %% From Poperator.m
         function createField(obj)
             s.mesh               = obj.mesh;
-            s.ndimf              = 3;
+            s.ndimf              = 1;
             s.interpolationOrder = 'LINEAR';
             s.quadratureOrder    = 'QUADRATICMASS';
             obj.field = Field(s);
         end
-       
+
+        function createMassMatrix(obj)
+            s.type  = 'MassMatrix';
+            s.mesh  = obj.mesh;
+            s.field = obj.field;
+            LHS = LHSintegrator.create(s);
+            obj.M = LHS.compute();
+        end
+
         function createOperator(obj)
             nelem  = obj.nelem;
             nnode  = obj.nnode;
@@ -85,9 +74,11 @@ classdef Projector_P1toP0 < handle
                 incT = sparse(1:nelem*ndimf,nodes,I,nelem*ndimf,npnod*ndimf);
                 T = T + incT;
             end
-            obj.value = eye(nelem*ndimf)*T; % Review
+            m = T*sum(obj.M,2);
+            mInv = spdiags(1./m,0,length(m),length(m));
+            obj.value = mInv*T;
         end
-        
+
     end
 
 end
