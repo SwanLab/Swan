@@ -16,7 +16,7 @@ aa.connec = s.mesh.connec;
 aa.type   = s.mesh.type;
 aa.fNodes = u;
 fefunDisp = FeFunction(aa);
-p0displac = fefunDisp.computeValueInCenterElement();
+p0displac = fefunDisp.computeValueInCenterElement()';
 
 %% P0 to P1
 bb.mesh   = s.mesh;
@@ -42,4 +42,5 @@ cc.nelem  = size(s.mesh.connec,1);
 cc.nnode  = size(s.mesh.connec,2);
 cc.npnod  = size(s.mesh.coord,1);
 projector2 = Projector_P1toP0(cc);
-u_P0 = projector2.project(u)';
+u_P0 = projector2.project(u);
+error = max(max(abs((p0displac-u_P0)./p0displac)));

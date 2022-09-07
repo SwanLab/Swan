@@ -41,7 +41,7 @@ classdef Projector_P1toP0 < handle
     
         function createField(obj)
             s.mesh               = obj.mesh;
-            s.ndimf              = 1;
+            s.ndimf              = 1; % ??
             s.interpolationOrder = 'LINEAR';
             s.quadratureOrder    = 'QUADRATICMASS';
             obj.field = Field(s);
