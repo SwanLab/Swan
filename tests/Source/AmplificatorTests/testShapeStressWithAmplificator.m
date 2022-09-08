@@ -58,7 +58,7 @@ classdef testShapeStressWithAmplificator < testShowingError
             settings = obj.homog.getSettings();
             ls = obj.homog.getLevelSet();
             sF = ShFunc_StressNorm(settings);
-            sF.filter.preProcess();
+%             sF.filter.preProcess();
             sF.setVstrain(obj.strain);
             sF.computeCostAndGradient(ls);
             obj.stressShape = sF;
