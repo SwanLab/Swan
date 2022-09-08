@@ -15,14 +15,17 @@ classdef Projector_P0toP1 < handle
         npnod
 
         field, M
+        fieldP0
     end
     
     methods (Access = public)
 
         function obj = Projector_P0toP1(cParams)
             obj.init(cParams);
-            obj.createField();
-            obj.createMassMatrix();
+            obj.createP1Field();
+            obj.createP1MassMatrix();
+            obj.createP0Field();
+%             obj.createP0MassMatrix();
             obj.createOperator();
         end
 
@@ -63,7 +66,7 @@ classdef Projector_P0toP1 < handle
 
     
         %% From Poperator.m
-        function createField(obj)
+        function createP1Field(obj)
             s.mesh               = obj.mesh;
             s.ndimf              = 3;
             s.interpolationOrder = 'LINEAR';
@@ -71,10 +74,26 @@ classdef Projector_P0toP1 < handle
             obj.field = Field(s);
         end
        
-        function createMassMatrix(obj)
+        function createP1MassMatrix(obj)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
             s.field = obj.field;
+            LHS = LHSintegrator.create(s);
+            obj.M = LHS.compute();
+        end
+
+        function createP0Field(obj)
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1;
+            s.interpolationOrder = 'CONSTANT';
+            f = Field(s);
+            obj.fieldP0 = f;
+        end
+       
+        function createP0MassMatrix(obj)
+            s.type  = 'MassMatrix';
+            s.mesh  = obj.mesh;
+            s.field = obj.fieldP0;
             LHS = LHSintegrator.create(s);
             obj.M = LHS.compute();
         end
