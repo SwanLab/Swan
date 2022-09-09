@@ -20,12 +20,21 @@ classdef P0Function < FeFunction
         function obj = P0Function(cParams)
             obj.init(cParams);
             obj.createQuadrature();
+            obj.createFvaluesByElem();
         end
         
         function fNodal = projectToLinearNodalFunction(obj)
             LHS = obj.computeLHS();
             RHS = obj.computeRHS();
             fNodal = (LHS\RHS);
+        end
+
+        function plot(obj, m, f)
+%             disMesh = m.createDiscontinousMesh();
+%             p0funct = obj.preparePlottingFunction(disMesh, f);
+%             coor = disMesh.coord;
+%             conn = disMesh.connecM;
+%             trisurf(conn, coor(:,1), coor(:,2), p0funct)
         end
         
     end
@@ -36,6 +45,7 @@ classdef P0Function < FeFunction
             obj.mesh      = cParams.mesh;
             obj.fValues   = cParams.fValues;
             obj.quadOrder = 'LINEAR';
+%             obj.connec    = cParams.connec;
         end
         
         function q = createQuadrature(obj)
@@ -86,7 +96,19 @@ classdef P0Function < FeFunction
             f = repmat(fV,[ngaus,1]);
         end
 
-        
+        function p0F = preparePlottingFunction(obj, dM, f)
+            nnodeElem = dM.nnodeElem;
+            fRepeated = zeros(size(f,1), nnodeElem);
+            for iNode = 1:nnodeElem
+                fRepeated(:,iNode) = f;
+            end
+            fRepeated = transpose(fRepeated);
+            p0F = fRepeated(:);
+        end
+
+        function createFvaluesByElem(obj)
+        end
+
     end
     
 end

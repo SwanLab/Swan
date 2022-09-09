@@ -44,10 +44,6 @@ plotDiscontP0(m,f);
 
 function [meshDisc, fDisc] = createDiscontP0(mesh,f)
     meshDisc = mesh.createDiscontinousMesh();
-    connec = meshDisc.connec;
-    xDisc  = meshDisc.coord(:,1);
-    yDisc  = meshDisc.coord(:,2);
-    
     nnodeElem = meshDisc.nnodeElem;
     fRepeted = zeros(size(f,1),nnodeElem);
     for iNode = 1:nnodeElem

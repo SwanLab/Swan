@@ -58,6 +58,11 @@ classdef P1Function < FeFunction
             end
        end
        
+       function plot(obj, m) % 2D domains only
+           figure()
+           trisurf(m.connec, m.coord(:,1), m.coord(:,2), obj.fNodes(:,1))
+       end
+
    end
    
    methods (Access = private)
