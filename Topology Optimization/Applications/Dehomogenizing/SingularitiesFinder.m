@@ -29,6 +29,11 @@ classdef SingularitiesFinder < handle
             obj.createDiscontinousMesh();
             obj.plotOrientationVector();
             obj.plotSingularities();
+
+            b = obj.computeOrientationOfDoubleAngle();
+            b = obj.mapP1ToP1Discontinous(b);
+
+
         end
 
     end
@@ -46,7 +51,7 @@ classdef SingularitiesFinder < handle
         end
 
         function computeSingularities(obj)
-            b = obj.computeOrientationOfDoubleAngle;
+            b = obj.orientation;obj.computeOrientationOfDoubleAngle;
             b = obj.mapP1ToP1Discontinous(b);
             b1 = b(:,:,1);
             b2 = b(:,:,2);
@@ -55,7 +60,7 @@ classdef SingularitiesFinder < handle
             b1b3 = obj.scalarProduct(b1,b3);
             b2b3 = obj.scalarProduct(b2,b3);
             isS = sign(b1b2.*b1b3.*b2b3);
-            obj.isElemSingular = isS;
+            obj.isElemSingular = isS<0;
         end
 
         function b = computeOrientationOfDoubleAngle(obj)
@@ -72,13 +77,15 @@ classdef SingularitiesFinder < handle
 
         function plotOrientationVector(obj)
             figure()
-            a = obj.orientation;
+            a = obj.computeOrientationOfDoubleAngle;            
+          %  a = obj.orientation;
             x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);
             ax = a(:,1);
             ay = a(:,2);
             quiver(x,y,ax,ay);
         end
+
 
         function plotSingularities(obj)
             isSingP1Disc = obj.computeIsSingularP1Discontinous();

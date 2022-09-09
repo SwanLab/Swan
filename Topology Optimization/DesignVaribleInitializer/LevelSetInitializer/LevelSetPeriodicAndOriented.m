@@ -76,8 +76,8 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         function [y1,y2] = applyMapping(obj)
             y1 = obj.mapping.phi(:,1);
             y2 = obj.mapping.phi(:,2);
-            y1 = obj.interpolateFunction(abs(y1));
-            y2 = obj.interpolateFunction(abs(y2));
+            y1 = obj.interpolateFunction(y1);
+            y2 = obj.interpolateFunction(y2);
         end 
         
         function thresholdParameters(obj)

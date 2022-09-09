@@ -42,8 +42,8 @@ classdef ConformalMappingComputer < handle
         function plotMapping(obj)
            phi1 = obj.phi(:,1);
            phi2 = obj.phi(:,2);
-           obj.plotContour(abs(phi1)); 
-           obj.plotContour(abs(phi2));
+           obj.plotContour((phi1)); 
+           obj.plotContour((phi2));
         end
 
         function plotField(obj,z)
@@ -124,7 +124,7 @@ classdef ConformalMappingComputer < handle
                 f = FeFunction(s);
                 fG(idim,:,:) = f.interpolateFunction(xGauss);
             end
-            %%%%% HEREEEE!!!!!
+            %%%%% HEREEEE!!!!! Integrate with more gauss points b
         end
     
     end
