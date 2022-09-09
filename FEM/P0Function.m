@@ -1,4 +1,4 @@
-classdef P0Function < handle
+classdef P0Function < FeFunction
     
     properties (Access = public)
         

@@ -1,8 +1,8 @@
 %% PROJECTORS | To-do
 
-% (T)  Rename FeFunction to P1Function
-% (T)  Rename PiecewiseConstantFunction to P0Function
-% (T)  Make them extend FeFunction (new)
+% Done! (T)  Rename FeFunction to P1Function
+% Done! (T)  Rename PiecewiseConstantFunction to P0Function
+% Done! (T)  Make them extend FeFunction (new)
 
 % (J)  Create plot method for P0Function
 % (T)  Create plot method for P1Function

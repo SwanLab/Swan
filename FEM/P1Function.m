@@ -1,4 +1,4 @@
-classdef P1Function < handle
+classdef P1Function < FeFunction
     
    properties (Access = public)
        fElem
