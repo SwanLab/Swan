@@ -25,20 +25,11 @@ classdef Projector_P0toP1 < handle
             obj.createP1Field();
             obj.createP1MassMatrix();
             obj.createP0Field();
-%             obj.createP0MassMatrix();
-            obj.createOperator();
         end
 
         function xProj = project(obj, x)
-            ndimf  = obj.field.dim.ndimf;
-            RHS = zeros(obj.nelem*ndimf,1);
-            ngaus = size(x,2);
-            for igaus = 1:ngaus
-                dvolu = obj.field.geometry.dvolu(:,igaus);
-                dv = repmat(dvolu, [ndimf, 1]);
-                RHS = RHS + dv.*x(:,igaus);
-            end
-            xProj = obj.value'*RHS;
+            RHS = obj.createRHS(x);
+            xProj = obj.M\RHS;
         end
 
     end
@@ -52,18 +43,6 @@ classdef Projector_P0toP1 < handle
             obj.nnode  = cParams.nnode;
             obj.npnod  = cParams.npnod;
         end
-
-        function computeLHS(obj)
-        end
-
-        function computeRHS(obj)
-            % ez
-        end
-
-        function solve(obj)
-        end
-
-
     
         %% From Poperator.m
         function createP1Field(obj)
@@ -89,37 +68,29 @@ classdef Projector_P0toP1 < handle
             f = Field(s);
             obj.fieldP0 = f;
         end
-       
-        function createP0MassMatrix(obj)
-            s.type  = 'MassMatrix';
-            s.mesh  = obj.mesh;
-            s.field = obj.fieldP0;
-            LHS = LHSintegrator.create(s);
-            obj.M = LHS.compute();
-        end
-       
-        function createOperator(obj)
-            nelem  = obj.nelem;
-            nnode  = obj.nnode;
-            npnod  = obj.npnod;
-            ndimf  = obj.field.dim.ndimf;
-            connec = obj.connec;
-            T = sparse(nelem*ndimf,npnod*ndimf);
-            for inode = 1:nnode
-                dofsArr = [];
-                nods = connec(:, inode);
-                for idim = 1:ndimf
-                    dofs  = ndimf*(nods - 1) + idim;
-                    dofsArr = [dofsArr; dofs]; 
+
+        function rhs = createRHS(obj, fefun)
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature('LINEAR');
+            dV = obj.mesh.computeDvolume(quad);
+            xV = quad.posgp;
+
+            obj.mesh.interpolation.computeShapeDeriv(xV);
+            shape = obj.field.interpolation.shape;
+            nGaus  = quad.ngaus;
+            nF     = size(fefun.fElem,1);
+            nElem  = size(fefun.fElem,3);
+            rhs = zeros(nElem,nF);
+            for igaus = 1:nGaus
+                fGaus = fefun.interpolateFunction(xV(:,igaus));
+                dVg(:,1) = dV(igaus,:);
+                for iF = 1:nF
+                    fGausF = squeeze(fGaus(iF,:,:));
+                    Ni = shape(igaus,:);
+                    int = Ni*fGausF.*dVg;
+                    rhs(:,iF) = rhs(:,iF) + int;
                 end
-                nodes(:,1) = dofsArr;
-                I = ones(nelem*ndimf,1);
-                incT = sparse(1:nelem*ndimf,nodes,I,nelem*ndimf,npnod*ndimf);
-                T = T + incT;
             end
-            m = T*sum(obj.M,2);
-            mInv = spdiags(1./m,0,length(m),length(m));
-            obj.value = mInv*T;
         end
         
     end

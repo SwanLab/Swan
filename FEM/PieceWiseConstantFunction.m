@@ -20,7 +20,6 @@ classdef PieceWiseConstantFunction < handle
         function obj = PieceWiseConstantFunction(cParams)
             obj.init(cParams);
             obj.createQuadrature();
-            obj.createDimensions();
         end
         
         function fNodal = projectToLinearNodalFunction(obj)
@@ -28,8 +27,6 @@ classdef PieceWiseConstantFunction < handle
             RHS = obj.computeRHS();
             fNodal = (LHS\RHS);
         end
-
-        
         
     end
     
@@ -46,24 +43,17 @@ classdef PieceWiseConstantFunction < handle
             q.computeQuadrature(obj.quadOrder);
             obj.quadrature = q;
         end
-
-        function createDimensions(obj)
-            q = Quadrature();
-            q = q.set(obj.mesh.type);
-            s.mesh = obj.mesh;
-            s.pdim = '1D';
-            s.ngaus = q.ngaus;
-            d = DimensionVariables(s);
-            d.compute();
-            obj.dim = d;
-        end
         
         function LHS = computeLHS(obj)
+            sf.mesh  = obj.mesh;
+            sf.ndimf = 1; 
+            sf.interpolationOrder = 'LINEAR';
+            sf.quadratureOrder = 'QUADRATIC';
+            field = Field(sf);
+
             s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
             s.type         = 'MassMatrix';
-            s.dim          = obj.dim;
-            s.quadType     = 'QUADRATIC';
+            s.field        = field;
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
@@ -79,9 +69,10 @@ classdef PieceWiseConstantFunction < handle
             s.npnod     = obj.mesh.nnodes;
             s.globalConnec = obj.mesh.connec;
             rhs = RHSintegrator.create(s);
+
             fG = obj.computeFgauss();
             xG = obj.computeXgauss();
-            RHS = rhs.integrateFgauss(fG,xG);
+            RHS = rhs.compute(fG,xG);
         end
         
         function x = computeXgauss(obj)
@@ -94,6 +85,7 @@ classdef PieceWiseConstantFunction < handle
             fV(1,:) = obj.fValues;
             f = repmat(fV,[ngaus,1]);
         end
+
         
     end
     
