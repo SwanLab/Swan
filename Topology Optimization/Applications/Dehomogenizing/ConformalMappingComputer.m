@@ -115,7 +115,7 @@ classdef ConformalMappingComputer < handle
                 s.fNodes = b(idim,:)';
                 s.connec = obj.mesh.connec;
                 s.type   = obj.mesh.type;
-                f = FeFunction(s);
+                f = P1Function(s);
                 fG(idim,:,:) = f.interpolateFunction(xGauss);
             end
         end

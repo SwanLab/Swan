@@ -65,7 +65,7 @@ classdef RHSintegrator_CutMesh < handle
             s.connec = obj.computeSubCellsLocalConnec();
             s.fNodes = obj.computeSubCellsLocalCoord();
             s.type   = obj.mesh.type;
-            x = FeFunction(s);
+            x = P1Function(s);
             obj.xGauss = x.interpolateFunction(q.posgp);
         end
         
@@ -86,7 +86,7 @@ classdef RHSintegrator_CutMesh < handle
             s.fNodes = fNodal;
             s.connec = obj.subCellConnec;
             s.type   = obj.backgroundMeshType;
-            f = FeFunction(s);
+            f = P1Function(s);
             fG = f.interpolateFunction(obj.xGauss);
             fG = permute(fG,[2 3 1]);
             obj.fGauss = fG;

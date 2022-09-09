@@ -1,4 +1,4 @@
-classdef FeFunction < handle
+classdef P1Function < handle
     
    properties (Access = public)
        fElem
@@ -16,7 +16,7 @@ classdef FeFunction < handle
     
    methods (Access = public)
       
-       function obj = FeFunction(cParams)
+       function obj = P1Function(cParams)
            obj.init(cParams);
            obj.createInterpolation();
            obj.computeFnodesByelem();

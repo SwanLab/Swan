@@ -81,7 +81,7 @@ classdef AbstractMesh < handle
             s.connec   = obj.connec;
             s.type     = obj.type;
             s.fNodes = obj.coord;
-            obj.xFE = FeFunction(s);
+            obj.xFE = P1Function(s);
         end
         
         function L = computeSquarePerimeter(obj)

@@ -23,7 +23,7 @@ uX = u(:,1);
 z.connec = s.mesh.connec;
 z.type   = s.mesh.type;
 z.fNodes = u;
-uFeFun = FeFunction(z);
+uFeFun = P1Function(z);
 
 u_P0 = projector2.project(uFeFun);
 
@@ -37,7 +37,7 @@ figure()
 aa.connec = s.mesh.connec;
 aa.type   = s.mesh.type;
 aa.fNodes = u;
-fefunDisp = FeFunction(aa);
+fefunDisp = P1Function(aa);
 p0displac = fefunDisp.computeValueInCenterElement()';
 plotDiscontP0(m,f);
 

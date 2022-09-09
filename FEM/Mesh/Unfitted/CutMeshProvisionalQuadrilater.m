@@ -64,7 +64,7 @@ classdef CutMeshProvisionalQuadrilater < CutMesh
             s.connec = obj.backgroundMesh.connec;
             s.type   = obj.backgroundMesh.type;
             s.fNodes = ls;
-            f = FeFunction(s);
+            f = P1Function(s);
             lsSubMesh = f.computeValueInCenterElement();
             
             obj.levelSetSubMesh = [ls;lsSubMesh];

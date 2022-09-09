@@ -1,4 +1,4 @@
-classdef PieceWiseConstantFunction < handle
+classdef P0Function < handle
     
     properties (Access = public)
         
@@ -17,7 +17,7 @@ classdef PieceWiseConstantFunction < handle
     
     methods (Access = public)
         
-        function obj = PieceWiseConstantFunction(cParams)
+        function obj = P0Function(cParams)
             obj.init(cParams);
             obj.createQuadrature();
         end

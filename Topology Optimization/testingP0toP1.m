@@ -14,7 +14,7 @@ strain = squeeze(fem.variables.strain)';
 % Create FeFunc strain
 z.mesh    = s.mesh;
 z.fValues = strain(:,1,:);
-strainFeFun = PieceWiseConstantFunction(z);
+strainFeFun = P0Function(z);
 
 
 bb.mesh   = s.mesh;
