@@ -46,6 +46,17 @@ classdef FeFunction < handle
                 fxV = fxV + f;
             end
        end
+
+       function fDisc = computeDiscontinousField(obj)
+            nodesCont  = obj.connec';
+            nodesCont  = nodesCont(:);
+            fDisc  = zeros(size(nodesCont));
+            f      = obj.fNodes;
+            for iDir = 1:size(f,2)
+              fCont = f(nodesCont,iDir);
+              fDisc(:,iDir) = fCont;
+            end
+       end
        
    end
    

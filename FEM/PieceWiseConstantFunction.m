@@ -28,6 +28,8 @@ classdef PieceWiseConstantFunction < handle
             RHS = obj.computeRHS();
             fNodal = (LHS\RHS);
         end
+
+        
         
     end
     
@@ -67,7 +69,6 @@ classdef PieceWiseConstantFunction < handle
         end
         
         function RHS = computeRHS(obj)
-            % Untested but should NOT work
             s.type      = 'ShapeFunction';
             s.mesh      = obj.mesh;
             s.meshType  = obj.mesh.type;
@@ -78,7 +79,9 @@ classdef PieceWiseConstantFunction < handle
             s.npnod     = obj.mesh.nnodes;
             s.globalConnec = obj.mesh.connec;
             rhs = RHSintegrator.create(s);
-            RHS = rhs.compute();
+            fG = obj.computeFgauss();
+            xG = obj.computeXgauss();
+            RHS = rhs.integrateFgauss(fG,xG);
         end
         
         function x = computeXgauss(obj)
