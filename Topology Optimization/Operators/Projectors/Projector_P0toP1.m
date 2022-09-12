@@ -1,35 +1,29 @@
 classdef Projector_P0toP1 < handle
-    
-    % Eventually should become a single projector
-
-    properties (Access = public)
-        value
-    end
 
     properties (Access = private)
-        % From Poperator
         mesh
         connec
         nelem
         nnode
         npnod
-
-        field, M
-        fieldP0
+        quadOrder
+        quadrature
+        field
     end
     
     methods (Access = public)
 
         function obj = Projector_P0toP1(cParams)
             obj.init(cParams);
-            obj.createP1Field();
-            obj.createP1MassMatrix();
-            obj.createP0Field();
+            obj.createQuadrature();
+            obj.createField();
         end
 
         function xProj = project(obj, x)
-            RHS = obj.createRHS(x);
-            xProj = obj.M\RHS;
+            % x should be a P0Function, not a matrix!
+            LHS = obj.computeLHS();
+            RHS = obj.computeRHS(x);
+            xProj = (LHS\RHS);
         end
 
     end
@@ -39,58 +33,59 @@ classdef Projector_P0toP1 < handle
         function init(obj, cParams)
             obj.mesh   = cParams.mesh;
             obj.connec = cParams.connec;
-            obj.nelem  = cParams.nelem;
-            obj.nnode  = cParams.nnode;
-            obj.npnod  = cParams.npnod;
+            obj.quadOrder = 'LINEAR';
         end
-    
-        %% From Poperator.m
-        function createP1Field(obj)
+        
+        function q = createQuadrature(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature(obj.quadOrder);
+            obj.quadrature = q;
+        end
+
+        function createField(obj)
             s.mesh               = obj.mesh;
-            s.ndimf              = 3;
+            s.ndimf              = 1; 
             s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATICMASS';
+            s.quadratureOrder    = 'QUADRATIC';
             obj.field = Field(s);
         end
-       
-        function createP1MassMatrix(obj)
+        
+        function LHS = computeLHS(obj)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
             s.field = obj.field;
-            LHS = LHSintegrator.create(s);
-            obj.M = LHS.compute();
+            lhs = LHSintegrator.create(s);
+            LHS = lhs.compute();
         end
+        
+        function RHS = computeRHS(obj, f)
+            s.type      = 'ShapeFunction';
+            s.mesh      = obj.mesh;
+%             s.meshType  = obj.mesh.type;
+%             s.fType     = 'Gauss';
+%             s.fGauss    = obj.computeFgauss();
+%             s.xGauss    = obj.computeXgauss();
+            s.quadOrder = obj.quadOrder;
+            s.npnod     = obj.mesh.nnodes;
+            s.globalConnec = obj.mesh.connec;
+            rhs = RHSintegrator.create(s);
 
-        function createP0Field(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'CONSTANT';
-            f = Field(s);
-            obj.fieldP0 = f;
+            fG = obj.computeFgauss(f);
+            xG = obj.computeXgauss();
+            RHS = rhs.computeFromFgauss(fG,xG);
         end
-
-        function rhs = createRHS(obj, fefun)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
-            dV = obj.mesh.computeDvolume(quad);
-            xV = quad.posgp;
-
-            obj.mesh.interpolation.computeShapeDeriv(xV);
-            shape = obj.field.interpolation.shape;
-            nGaus  = quad.ngaus;
-            nF     = size(fefun.fElem,1);
-            nElem  = size(fefun.fElem,3);
-            rhs = zeros(nElem,nF);
-            for igaus = 1:nGaus
-                fGaus = fefun.interpolateFunction(xV(:,igaus));
-                dVg(:,1) = dV(igaus,:);
-                for iF = 1:nF
-                    fGausF = squeeze(fGaus(iF,:,:));
-                    Ni = shape(igaus,:);
-                    int = Ni*fGausF.*dVg;
-                    rhs(:,iF) = rhs(:,iF) + int;
-                end
-            end
+        
+        function x = computeXgauss(obj)
+            xG = obj.quadrature.posgp;
+            x = repmat(xG,[1,1,obj.mesh.nelem]);
+        end
+        
+        function f = computeFgauss(obj, f)
+            % to be generalized for n dimensions
+            % should be in P0Function
+            ngaus = obj.quadrature.ngaus;
+            fV(1,:) = f;
+            f = repmat(fV,[ngaus,1]);
         end
         
     end

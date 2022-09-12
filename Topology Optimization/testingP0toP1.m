@@ -17,14 +17,13 @@ z.mesh    = s.mesh;
 z.fValues = strain(:,1,:);
 strainFeFun = P0Function(z);
 
-
+% Create projector
 bb.mesh   = s.mesh;
 bb.connec = s.mesh.connec;
-bb.nelem  = size(s.mesh.connec,1);
-bb.nnode  = size(s.mesh.connec,2);
-bb.npnod  = size(s.mesh.coord,1);
 projector = Projector_P0toP1(bb);
+p1strain = projector.project(strain(:,1,:));
 
 
-strainCol = reshape(strain, [bb.nelem*3, 1]);
-strainP1 = projector.project(strainFeFun);
+% % Using projectors
+% strainCol = reshape(strain, [bb.nelem*3, 1]);
+% strainP1 = projector.project(strainFeFun);
