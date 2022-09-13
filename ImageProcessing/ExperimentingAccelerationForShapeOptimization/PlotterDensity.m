@@ -71,7 +71,7 @@ classdef PlotterDensity < handle
             s = SettingsFilter(s);
             s.femSettings.scale = 'MACRO';
             filterP1 = Filter_P1_Density(s);
-            filterP1.preProcess();
+%             filterP1.preProcess();
             obj.filter = filterP1;
         end
         
