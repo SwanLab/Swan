@@ -19,11 +19,15 @@ classdef Projector_P0toP1 < handle
             obj.createField();
         end
 
-        function xProj = project(obj, x)
+        function xFun = project(obj, x)
             % x should be a P0Function, not a matrix!
             LHS = obj.computeLHS();
             RHS = obj.computeRHS(x);
             xProj = (LHS\RHS);
+            s.type = obj.mesh.type;
+            s.connec = obj.mesh.connec;
+            s.fNodes = xProj;
+            xFun = P1Function(s);
         end
 
     end
@@ -57,24 +61,49 @@ classdef Projector_P0toP1 < handle
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
-        
-        function RHS = computeRHS(obj, f)
-            s.type      = 'ShapeFunction';
-            s.mesh      = obj.mesh;
-%             s.meshType  = obj.mesh.type;
-%             s.fType     = 'Gauss';
-%             s.fGauss    = obj.computeFgauss();
-%             s.xGauss    = obj.computeXgauss();
-            s.quadOrder = obj.quadOrder;
-            s.npnod     = obj.mesh.nnodes;
-            s.globalConnec = obj.mesh.connec;
-            rhs = RHSintegrator.create(s);
 
-            fG = obj.computeFgauss(f);
-            xG = obj.computeXgauss();
-            RHS = rhs.computeFromFgauss(fG,xG);
+        function RHS = computeRHS(obj,fefun)
+            xV = obj.quadrature.posgp;
+            dV = obj.mesh.computeDvolume(obj.quadrature);
+            obj.mesh.interpolation.computeShapeDeriv(xV);
+            shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
+
+            nGaus = obj.quadrature.ngaus;
+            nFlds = size(fefun.fElem, 1);
+            nElem = size(fefun.fElem, 3);
+            nNods = size(shapes,1);
+            rhs = zeros(nNods,nElem, nFlds);
+            
+            % Elemental rhs
+            for igaus = 1:nGaus
+                % fGaus = ...;
+                dVg(:,1) = dV(igaus, :);
+                for iField = 1:nFlds
+                    fG = squeeze(fefun.fElem(iField,:,:));
+                    fdVg = fG.*dVg;
+                    Ni = shapes(:,:, igaus);
+                    rhs(:,:,iField) = rhs(:,:,iField) + bsxfun(@times,Ni,fdVg');
+                end
+            end
+
+            % Potser cal transposar!
+            rhs = permute(rhs, [2 1 3]);
+            % Assembly
+            nDofs = obj.mesh.nnodes;
+            conne = obj.mesh.connec;
+            nNode  = size(conne,2);
+            f = zeros(nDofs,nFlds);
+            for iDim = 1:nFlds
+                for inode = 1:nNode
+                    int = rhs(:,inode,iDim);
+                    con = conne(:,inode);
+                    f(:,iDim) = f(:,iDim) + accumarray(con,int,[nDofs,1],@sum,0);
+                end
+            end
+
+            RHS = f;
         end
-        
+
         function x = computeXgauss(obj)
             xG = obj.quadrature.posgp;
             x = repmat(xG,[1,1,obj.mesh.nelem]);
@@ -86,6 +115,12 @@ classdef Projector_P0toP1 < handle
             ngaus = obj.quadrature.ngaus;
             fV(1,:) = f;
             f = repmat(fV,[ngaus,1]);
+        end
+        
+        function shapes = computeShapeFunctions(obj, xG)
+            int = Interpolation.create(obj.mesh,'LINEAR');
+            int.computeShapeDeriv(xG);
+            shapes = permute(int.shape,[1 3 2]);
         end
         
     end

@@ -20,9 +20,10 @@ classdef Projector_P1toP0 < handle
             obj.createMassMatrix();
         end
 
-        function xProj = project(obj, x)
+        function xFun = project(obj, x)
             RHS = obj.createRHS(x);
-            xProj = obj.M\RHS;
+            s.fElem = obj.M\RHS;
+            xFun = P0Function(s);
         end
 
     end

@@ -13,7 +13,6 @@ strain = squeeze(fem.variables.strain)';
 
 %% P0 to P1
 % Create FeFunc strain
-z.mesh    = s.mesh;
 z.fElem = strain;
 strainFeFun = P0Function(z);
 
@@ -21,7 +20,8 @@ strainFeFun = P0Function(z);
 bb.mesh   = s.mesh;
 bb.connec = s.mesh.connec;
 projector = Projector_P0toP1(bb);
-p1strain = projector.project(strain(:,1,:));
+p1strain = projector.project(strainFeFun);
+% p1strain = projector.project(strain(:,1,:));
 
 
 % % Using projectors

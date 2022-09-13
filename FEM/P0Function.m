@@ -1,14 +1,11 @@
 classdef P0Function < FeFunction
     
-    properties (Access = private)
-        meshDisc
-        fDisc
-    end
-    
-    properties (Access = private)
-       mesh 
+    properties (Access = public)
        fElem
-       fByElem
+    end
+
+    properties (Access = private)
+        % ...
     end
     
     methods (Access = public)
@@ -23,12 +20,12 @@ classdef P0Function < FeFunction
             % value is constant
         end
 
-        function plot(obj)
-            obj.createDiscontinuousP0();
-            coord  = obj.meshDisc.coord;
-            connec = obj.meshDisc.connec;
+        function plot(obj, m)
+            [mD, fD] = obj.createDiscontinuousP0(m);
+            coord  = mD.coord;
+            connec = mD.connec;
             figure()
-            trisurf(connec, coord(:,1), coord(:,2), obj.fDisc)
+            trisurf(connec, coord(:,1), coord(:,2), fD)
         end
 
     end
@@ -36,20 +33,19 @@ classdef P0Function < FeFunction
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh  = cParams.mesh;
             obj.fElem = cParams.fElem;
         end
 
-        function createDiscontinuousP0(obj)
+        function [mD, fD] = createDiscontinuousP0(obj, m)
             dim = 1;
             fEl = squeeze(obj.fElem(dim,:,:));
-            obj.meshDisc = obj.mesh.createDiscontinousMesh();
-            nnodeElem = obj.meshDisc.nnodeElem;
+            mD = m.createDiscontinousMesh();
+            nnodeElem = mD.nnodeElem;
             fRepeated = zeros(size(fEl,1), nnodeElem);
             for iNode = 1:nnodeElem
                 fRepeated(:,iNode) = fEl;
             end
-            obj.fDisc = transpose(fRepeated);
+            fD = transpose(fRepeated);
         end
 
         function createFvaluesByElem(obj)
