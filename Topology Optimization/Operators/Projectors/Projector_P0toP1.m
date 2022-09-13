@@ -94,19 +94,6 @@ classdef Projector_P0toP1 < handle
             end
             RHS = f;
         end
-
-        function x = computeXgauss(obj)
-            xG = obj.quadrature.posgp;
-            x = repmat(xG,[1,1,obj.mesh.nelem]);
-        end
-        
-        function f = computeFgauss(obj, f)
-            % to be generalized for n dimensions
-            % should be in P0Function
-            ngaus = obj.quadrature.ngaus;
-            fV(1,:) = f;
-            f = repmat(fV,[ngaus,1]);
-        end
         
         function shapes = computeShapeFunctions(obj, xG)
             int = Interpolation.create(obj.mesh,'LINEAR');
