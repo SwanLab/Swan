@@ -1,64 +1,48 @@
 classdef P0Function < FeFunction
     
-    properties (Access = public)
-        
-    end
-    
     properties (Access = private)
-        quadrature
-        dim
+        meshDisc
+        fDisc
     end
     
     properties (Access = private)
        mesh 
-       fValues
-       quadOrder
+       fNodes
     end
     
     methods (Access = public)
         
         function obj = P0Function(cParams)
             obj.init(cParams);
-            obj.createFvaluesByElem();
+            obj.createDiscontinuousP0();
         end
 
-        function fxV = interpolateFunction(obj, xV)
-            % Its a p0 function, so no true need to interpolate -- the
-            % value is constant
+        function plot(obj)
+            coord  = obj.meshDisc.coord;
+            connec = obj.meshDisc.connec;
+            figure()
+            trisurf(connec, coord(:,1), coord(:,2), obj.fDisc)
         end
-        
-        function plot(obj, m, f)
-%             disMesh = m.createDiscontinousMesh();
-%             p0funct = obj.preparePlottingFunction(disMesh, f);
-%             coor = disMesh.coord;
-%             conn = disMesh.connecM;
-%             trisurf(conn, coor(:,1), coor(:,2), p0funct)
-        end
-        
+
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj,cParams)
-            obj.mesh      = cParams.mesh;
-            obj.fValues   = cParams.fValues;
-            obj.quadOrder = 'LINEAR';
-%             obj.connec    = cParams.connec;
+            obj.mesh   = cParams.mesh;
+            obj.fNodes = cParams.fNodes;
         end
 
-        function p0F = preparePlottingFunction(obj, dM, f)
-            nnodeElem = dM.nnodeElem;
-            fRepeated = zeros(size(f,1), nnodeElem);
+        function createDiscontinuousP0(obj)
+            obj.meshDisc = obj.mesh.createDiscontinousMesh();
+            nnodeElem = obj.meshDisc.nnodeElem;
+            fRepeated = zeros(size(obj.fNodes,1), nnodeElem);
             for iNode = 1:nnodeElem
-                fRepeated(:,iNode) = f;
+                fRepeated(:,iNode) = obj.fNodes;
             end
-            fRepeated = transpose(fRepeated);
-            p0F = fRepeated(:);
-        end
-
-        function createFvaluesByElem(obj)
+            obj.fDisc = transpose(fRepeated);
         end
 
     end
-    
+
 end

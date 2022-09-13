@@ -40,6 +40,11 @@ fefunDisp = P1Function(aa);
 p0displac = fefunDisp.computeValueInCenterElement()';
 plotDiscontP0(m,f);
 
+% Plot using P0Function
+pp.mesh   = s.mesh;
+pp.fNodes = u_P0(:,1);
+P0Fun     = P0Function(pp);
+P0Fun.plot();
 
 function [meshDisc, fDisc] = createDiscontP0(mesh,f)
     meshDisc = mesh.createDiscontinousMesh();
@@ -50,9 +55,9 @@ function [meshDisc, fDisc] = createDiscontP0(mesh,f)
         fRepeted(:,iNode) = f;
     end
     fRepeted = transpose(fRepeted);
-    fDisc = fRepeted(:);
+    fDisc = fRepeted;
 end
 
 function plotDiscontP0(mesh, f)
     trisurf(mesh.connec, mesh.coord(:,1), mesh.coord(:,2), f)
-end
+end 
