@@ -11,9 +11,6 @@
 % Done! (T)  Create ProjectorP0toP1 following the other example
 % Done! (T)  Check: create P0function, plot and project to P1 (new)
 
-% (J&T) Make the project methods in P0Function and P1Function
-%   use projectors
-
 %% Comments
 % Projector P1 to P0 should return a P0Function...
 %   ... but a P0Function requires a Mesh

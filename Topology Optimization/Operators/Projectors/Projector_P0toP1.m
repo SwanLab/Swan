@@ -20,7 +20,6 @@ classdef Projector_P0toP1 < handle
         end
 
         function xFun = project(obj, x)
-            % x should be a P0Function, not a matrix!
             LHS = obj.computeLHS();
             RHS = obj.computeRHS(x);
             xProj = (LHS\RHS);
@@ -67,14 +66,17 @@ classdef Projector_P0toP1 < handle
             dV = obj.mesh.computeDvolume(obj.quadrature);
             obj.mesh.interpolation.computeShapeDeriv(xV);
             shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
+            conne = obj.mesh.connec;
 
             nGaus = obj.quadrature.ngaus;
             nFlds = size(fefun.fElem, 1);
             nElem = size(fefun.fElem, 3);
             nNods = size(shapes,1);
+            nNode = size(conne,2);
+            nDofs = obj.mesh.nnodes;
+
             rhs = zeros(nNods,nElem, nFlds);
-            
-            % Elemental rhs
+            f = zeros(nDofs,nFlds);
             for igaus = 1:nGaus
                 % fGaus = ...;
                 dVg(:,1) = dV(igaus, :);
@@ -83,24 +85,13 @@ classdef Projector_P0toP1 < handle
                     fdVg = fG.*dVg;
                     Ni = shapes(:,:, igaus);
                     rhs(:,:,iField) = rhs(:,:,iField) + bsxfun(@times,Ni,fdVg');
+                    for inode = 1:nNode
+                        int = rhs(inode,:,iField);
+                        con = conne(:,inode);
+                        f(:,iField) = f(:,iField) + accumarray(con,int,[nDofs,1],@sum,0);
+                    end
                 end
             end
-
-            % Potser cal transposar!
-            rhs = permute(rhs, [2 1 3]);
-            % Assembly
-            nDofs = obj.mesh.nnodes;
-            conne = obj.mesh.connec;
-            nNode  = size(conne,2);
-            f = zeros(nDofs,nFlds);
-            for iDim = 1:nFlds
-                for inode = 1:nNode
-                    int = rhs(:,inode,iDim);
-                    con = conne(:,inode);
-                    f(:,iDim) = f(:,iDim) + accumarray(con,int,[nDofs,1],@sum,0);
-                end
-            end
-
             RHS = f;
         end
 
