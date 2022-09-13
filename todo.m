@@ -4,7 +4,7 @@
 % Done! (T)  Rename PiecewiseConstantFunction to P0Function
 % Done! (T)  Make them extend FeFunction (new)
 
-% (J)  Create plot method for P0Function
+% Done! (J)  Create plot method for P0Function
 % Done! (T)  Create plot method for P1Function
 % (J)  Check: create P1function, plot and project to P0
 

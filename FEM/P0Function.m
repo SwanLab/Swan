@@ -7,7 +7,7 @@ classdef P0Function < FeFunction
     
     properties (Access = private)
        mesh 
-       fNodes
+       fElem
     end
     
     methods (Access = public)
@@ -29,16 +29,16 @@ classdef P0Function < FeFunction
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh   = cParams.mesh;
-            obj.fNodes = cParams.fNodes;
+            obj.mesh  = cParams.mesh;
+            obj.fElem = cParams.fNodes;
         end
 
         function createDiscontinuousP0(obj)
             obj.meshDisc = obj.mesh.createDiscontinousMesh();
             nnodeElem = obj.meshDisc.nnodeElem;
-            fRepeated = zeros(size(obj.fNodes,1), nnodeElem);
+            fRepeated = zeros(size(obj.fElem,1), nnodeElem);
             for iNode = 1:nnodeElem
-                fRepeated(:,iNode) = obj.fNodes;
+                fRepeated(:,iNode) = obj.fElem;
             end
             obj.fDisc = transpose(fRepeated);
         end
