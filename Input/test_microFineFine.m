@@ -1,5 +1,5 @@
 filename='RVE_Square_Triangle_FineFine';
-ptype = 'MACRO';
+ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'squareInclusion';
@@ -12,15 +12,15 @@ incrementFactor = 1.5;
 designVariable = 'Density';
 filterType = 'P1';
 
-widthSquare = 0.5;
+widthSquare = 0.25;
 
 nsteps = 15;
-Vfrac_final = 0.75;
+Vfrac_final = 1-4*widthSquare^2;
 Perimeter_target=5;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 0.75;
+Vfrac_initial = 1-widthSquare^2;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 
@@ -40,6 +40,6 @@ micro.beta =[1 1 0]';
 % For all tests
 plotting = true;
 printing = false;
-monitoring = false;
+monitoring = true;
 monitoring_interval = 1;
 maxiter = 900;
