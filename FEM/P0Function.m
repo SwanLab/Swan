@@ -30,7 +30,7 @@ classdef P0Function < FeFunction
 
         function init(obj,cParams)
             obj.mesh  = cParams.mesh;
-            obj.fElem = cParams.fNodes;
+            obj.fElem = cParams.fElem;
         end
 
         function createDiscontinuousP0(obj)

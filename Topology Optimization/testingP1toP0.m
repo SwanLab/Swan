@@ -42,7 +42,7 @@ plotDiscontP0(m,f);
 
 % Plot using P0Function
 pp.mesh   = s.mesh;
-pp.fNodes = u_P0(:,1);
+pp.fElem = u_P0(:,1);
 P0Fun     = P0Function(pp);
 P0Fun.plot();
 
