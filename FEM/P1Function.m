@@ -59,8 +59,9 @@ classdef P1Function < FeFunction
        end
        
        function plot(obj, m) % 2D domains only
+           dim = 1;
            figure()
-           trisurf(m.connec, m.coord(:,1), m.coord(:,2), obj.fNodes(:,1))
+           trisurf(m.connec, m.coord(:,1), m.coord(:,2), obj.fNodes(:,dim))
        end
 
    end

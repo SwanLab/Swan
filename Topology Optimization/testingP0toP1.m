@@ -5,7 +5,7 @@ clear; close all;
 file = 'test2d_triangle';
 a.fileName = file;
 s = FemDataContainer(a);
-fem = FEM.create(s);
+fem = FEM.create(s); 
 fem.solve();
 
 strain = squeeze(fem.variables.strain)';
@@ -14,7 +14,7 @@ strain = squeeze(fem.variables.strain)';
 %% P0 to P1
 % Create FeFunc strain
 z.mesh    = s.mesh;
-z.fValues = strain(:,1,:);
+z.fElem = strain;
 strainFeFun = P0Function(z);
 
 % Create projector
