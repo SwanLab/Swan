@@ -3,9 +3,6 @@ classdef Projector_P0toP1 < handle
     properties (Access = private)
         mesh
         connec
-        nelem
-        nnode
-        npnod
         quadOrder
         quadrature
         field

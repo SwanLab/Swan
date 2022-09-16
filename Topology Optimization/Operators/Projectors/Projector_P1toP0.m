@@ -7,9 +7,10 @@ classdef Projector_P1toP0 < handle
     properties (Access = private)
         mesh
         connec
-        nelem
-        nnode
-        npnod
+    end
+
+    properties (Access = private)
+        quadrature
         M
     end
 
@@ -17,6 +18,7 @@ classdef Projector_P1toP0 < handle
 
         function obj = Projector_P1toP0(cParams)
             obj.init(cParams);
+            obj.computeQuadrature();
             obj.createMassMatrix();
         end
 
@@ -33,9 +35,6 @@ classdef Projector_P1toP0 < handle
         function init(obj, cParams)
             obj.mesh   = cParams.mesh;
             obj.connec = cParams.connec;
-            obj.nelem  = cParams.nelem;
-            obj.nnode  = cParams.nnode;
-            obj.npnod  = cParams.npnod;
         end
 
         function createMassMatrix(obj)
@@ -46,18 +45,17 @@ classdef Projector_P1toP0 < handle
         end
 
         function rhs = createRHS(obj, fefun)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
-            dV = obj.mesh.computeDvolume(quad);
-            xV = quad.posgp;
-
-            obj.mesh.interpolation.computeShapeDeriv(xV);
-            nGaus  = quad.ngaus;
+            dV = obj.mesh.computeDvolume(obj.quadrature);
+            xV = obj.quadrature.posgp;
+            nGaus  = obj.quadrature.ngaus;
             nF     = size(fefun.fElem,1);
-            nElem  = size(fefun.fElem,3);
+            nElem  = size(obj.mesh.connec,1);
             rhs = zeros(nElem,nF);
+
+            % Separate in two loops
             for igaus = 1:nGaus
-                fGaus = fefun.interpolateFunction(xV(:,igaus));
+                xGaus = xV(:,igaus);
+                fGaus = obj.computeFgaus(fefun, xGaus);
                 dVg(:,1) = dV(igaus,:);
                 for iF = 1:nF
                     fGausF = squeeze(fGaus(iF,:,:));
@@ -66,6 +64,19 @@ classdef Projector_P1toP0 < handle
                     rhs(:,iF) = rhs(:,iF) + int;
                 end
             end
+        end
+
+        function computeQuadrature(obj)
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature('LINEAR');
+            obj.quadrature = quad;
+        end
+    end
+    
+    methods (Access = private, Static)
+
+        function fGaus = computeFgaus(fefun, xGaus)
+            fGaus = fefun.interpolateFunction(xGaus);
         end
 
     end

@@ -11,7 +11,6 @@ classdef P1Function < FeFunction
    properties (Access = private)
       type
       connec
-      fNodes
    end
     
    methods (Access = public)
@@ -51,7 +50,7 @@ classdef P1Function < FeFunction
             nodesCont  = obj.connec';
             nodesCont  = nodesCont(:);
             fDisc  = zeros(size(nodesCont));
-            f      = obj.fNodes;
+            f      = obj.fValues;
             for iDir = 1:size(f,2)
               fCont = f(nodesCont,iDir);
               fDisc(:,iDir) = fCont;
@@ -61,7 +60,7 @@ classdef P1Function < FeFunction
        function plot(obj, m) % 2D domains only
            dim = 1;
            figure()
-           trisurf(m.connec, m.coord(:,1), m.coord(:,2), obj.fNodes(:,dim))
+           trisurf(m.connec, m.coord(:,1), m.coord(:,2), obj.fValues(:,dim))
        end
 
    end
@@ -71,7 +70,7 @@ classdef P1Function < FeFunction
        function init(obj,cParams)
            obj.connec = cParams.connec;
            obj.type   = cParams.type;
-           obj.fNodes = cParams.fNodes;
+           obj.fValues = cParams.fNodes;
        end
        
        function createInterpolation(obj)
@@ -80,18 +79,18 @@ classdef P1Function < FeFunction
        end
        
        function computeFnodesByelem(obj)
-           f = obj.fNodes;
+           f = obj.fValues;
            nNode  = size(obj.connec,2);
            nDime  = size(f,2);
            nElem  = size(obj.connec,1);
-           coordE = zeros(nDime,nNode,nElem);
-           coords = transpose(f);
+           fNodeElem = zeros(nDime,nNode,nElem);
+           fNods  = transpose(f);
            for inode = 1:nNode
                nodes = obj.connec(:,inode);
-               coordNodes = coords(:,nodes);
-               coordE(:,inode,:) = coordNodes;
+               fNode = fNods(:,nodes);
+               fNodeElem(:,inode,:) = fNode;
            end
-           obj.fElem = coordE;
+           obj.fElem = fNodeElem;
        end
 
    end

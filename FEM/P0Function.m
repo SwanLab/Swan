@@ -1,11 +1,11 @@
 classdef P0Function < FeFunction
     
     properties (Access = public)
-       fElem
     end
 
     properties (Access = private)
         % ...
+        fElem % should be a GaussDiscontFunction
     end
     
     methods (Access = public)
@@ -20,7 +20,21 @@ classdef P0Function < FeFunction
             % value is constant
         end
 
+        function fD = copmuteP1DiscontinuousFunction(obj)
+            dim = 1;
+            fEl = squeeze(obj.fValues(dim,:,:));
+            mD = m.createDiscontinousMesh();
+            nnodeElem = mD.nnodeElem;
+            fRepeated = zeros(size(fEl,1), nnodeElem);
+            for iNode = 1:nnodeElem
+                fRepeated(:,iNode) = fEl;
+            end
+            fD = transpose(fRepeated);
+        end
+
         function plot(obj, m)
+            f1 = obj.copmuteP1DiscontinuousFunction(); %public
+            f1.plot();
             [mD, fD] = obj.createDiscontinuousP0(m);
             coord  = mD.coord;
             connec = mD.connec;
@@ -33,7 +47,7 @@ classdef P0Function < FeFunction
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.fElem = cParams.fElem;
+            obj.fValues = cParams.fElem;
         end
 
         function [mD, fD] = createDiscontinuousP0(obj, m)
@@ -49,7 +63,7 @@ classdef P0Function < FeFunction
         end
 
         function createFvaluesByElem(obj)
-            f = obj.fElem;
+            f = obj.fValues;
             nElem = size(f,1);
             nDime = size(f,2);
             obj.fElem = reshape(f',[nDime, 1, nElem]);

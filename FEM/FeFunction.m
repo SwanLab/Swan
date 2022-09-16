@@ -5,7 +5,8 @@ classdef FeFunction < handle
     % account for other types of functions (eg. L2)
     
     properties (Access = public)
-        
+       ndimf
+       fValues
     end
 
     properties (Access = private)

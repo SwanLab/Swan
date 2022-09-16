@@ -1,3 +1,34 @@
+%%
+
+% Delete computeValueInCenterElement in P1Function
+% Think about computeDiscontinousField in P1Function (should return a P1
+%   discontinuous function. More dofs, nodes between elements are not coupled)
+%   - computeFnodesByelem is really a p1 discont function. perhaps rename
+%     to transform or sth like that. move to discont.
+% remove computeDiscontinousField 
+% Create tests for these functions
+%   - White circle in a black square (create using levelset, compare volumes)
+%   - Quadrilateral elements
+%   - Volumes
+
+% P0Function: rename fElem to fValues
+%   - createDiscontinuousP0 is kind of a Discontinuous P1 function
+% P1Function: computeFnodesByElem now public, make it return fElem
+
+% Create P1Function_Discontinuous // 
+
+% Strain should be a FGaussDiscontFunction or sth like that. It's not a P0
+%   function, only true if ngaus = 1. These gauss functions need the
+%   quadrature: when the projector projects, it will evaluate it in these
+%   gauss points
+% FGaussDiscontFunction.plotDiscontinuous()
+
+% Paraview: P1ContFunction or P1DiscontFunction?
+% Matlab wants P1DiscontFunction
+
+% Check: P1DiscontFunction's mass matrix is diagonal
+
+% ProjectorP1toP0: mass matrix should use lhsintegrator
 %% PROJECTORS | To-do
 
 % Done! (T)  Rename FeFunction to P1Function
