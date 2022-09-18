@@ -5,28 +5,32 @@ classdef PathToBoundaryComputer < handle
     end
     
     properties (Access = private)
-        
+       mesh 
+       singularityCoord
+       boundaryPointCoord       
     end
     
     properties (Access = private)
-       mesh
-       coordSingularity
-       coordFinal
        pathVector
        closestVertex
-       vert
+       boundaryNodes
+       connectedVertex       
+       pathVertices       
     end
     
     methods (Access = public)
         
-        function obj = PathToBoundaryComputer()
-            obj.createMesh();
-            obj.createSingularityPoint();
-            obj.createFinalPathPoint();
+        function obj = PathToBoundaryComputer(cParams)
+            obj.init(cParams)
+        end
+        
+        function compute(obj)
             obj.createStraightPathVector();
             obj.computeClosestVertex();
-            obj.computePath();
-            obj.plot();
+            obj.computeBoundaryNodes();
+            obj.computeConnectedVertex();
+            obj.computePathVertices();
+            obj.plot();            
         end
 
         function plot(obj)
@@ -42,175 +46,104 @@ classdef PathToBoundaryComputer < handle
     
     methods (Access = private)
         
-        function createMesh(obj)
-            xmin = 0;
-            xmax = 2;
-            ymin = 0;
-            ymax = 3;
-            nP = 20000;           
-            nB = 100;            
-            xb = xmin + (xmax - xmin)*([0;rand(nB-2,1);1]);
-            yb = xmin + (xmax - xmin)*([0;rand(nB-2,1);1]);
-            
-
-            xI = xmin + (xmax - xmin)*(rand(nP,1));
-            yI = ymin + (ymax - ymin)*(rand(nP,1));            
-
-            xT = [xb;xmin*ones(nB,1);xb;xmax*ones(nB,1);xI];
-            yT = [ymin*ones(nB,1);yb;ymax*ones(nB,1);yb;yI];
-
-            s.coord(:,1) = xT;
-            s.coord(:,2) = yT;
-            s.connec = delaunay(s.coord);
-            
-            xv = linspace(xmin,xmax,3);
-            yv = linspace(ymin,ymax,4);
-            [X,Y] = meshgrid(xv,yv);
-            [F,V] = mesh2tri(X,Y,zeros(size(X)),'x');
-             s.coord  = V(:,1:2);
-             s.connec = F;    
-
-            m = Mesh(s);
-            obj.mesh = m;
-        end
-
-        function createSingularityPoint(obj)
-            obj.coordSingularity = [0.59 2.7];
-        end
-
-        function createFinalPathPoint(obj)
-            obj.coordFinal = [0.59 0];
+        function init(obj,cParams)
+            obj.mesh               = cParams.mesh;
+            obj.singularityCoord   = cParams.singularityCoord;
+            obj.boundaryPointCoord = cParams.boundaryPointCoord;
         end
 
         function createStraightPathVector(obj)
-            OA = obj.coordSingularity;            
-            OB = obj.coordFinal;
+            OA = obj.singularityCoord;            
+            OB = obj.boundaryPointCoord;
             AB = OB - OA;
             obj.pathVector = AB ;
         end        
 
         function computeClosestVertex(obj)
             xy  = obj.mesh.coord;
-            xyS = obj.coordSingularity;
+            xyS = obj.singularityCoord;
             xD  = xy(:,1) - xyS(:,1);
             yD  = xy(:,2) - xyS(:,2);
             dist = sqrt(xD.^2 + yD.^2);
             [~,iD] = min(dist);
             obj.closestVertex = iD;
         end
-
-        function computePath(obj)
-            nodesB = boundary(obj.mesh.coord);
-            obj.mesh.computeEdges();
-
-            
-            isInBoundary = false;
-            i = 1;
-            currentVertex = obj.closestVertex;
-            vertices(i) = currentVertex;
-            while ~isInBoundary
-            nodeA = 1;
-            nodeB = 2;            
-            [candA,maxScA,pA] = obj.computeVertexV(currentVertex,nodeA,nodeB);
-
-
-            nodeA = 2;
-            nodeB = 1;            
-            [candB,maxScB,pB] = obj.computeVertexV(currentVertex,nodeA,nodeB);
-
-            tot = [maxScA, maxScB];
-            pT = [pA,pB];
-            idT = [candA,candB];
-            [~,iDt] = obj.selectVertex(tot,pT);
-            newCurrentVertex = idT(iDt);
-
-            isInBoundary = any(newCurrentVertex == nodesB);
-            currentVertex = newCurrentVertex;
-            i = i +1;
-            vertices(i) = newCurrentVertex;
-            end
-            obj.vert = vertices;
+        
+        function computeBoundaryNodes(obj)
+            coord  = obj.mesh.coord;
+            nodesB = boundary(coord);            
+            obj.boundaryNodes = nodesB;
         end
         
-        function [candB,csTmax,pB] = computeVertexV(obj,currentVertex,nodeA,nodeB)
-            edges = obj.mesh.edges;
-            edgeTrial   = find(edges.nodesInEdges(:,nodeA) == currentVertex);
-            vertexB = edges.nodesInEdges(edgeTrial,nodeB);
-            coordCurrentVertex = obj.mesh.coord(currentVertex,:);
-            coordVertexB = obj.mesh.coord(vertexB,:);
-            vectorTrial(:,1) = coordVertexB(:,1)  - coordCurrentVertex(1);
-            vectorTrial(:,2) = coordVertexB(:,2)  - coordCurrentVertex(2);            
-            direction = obj.pathVector;
-            csT = obj.computeScalarProduct(vectorTrial,direction);
-            %directionEnd(:,1)   = obj.coordFinal(:,1) - coordVertexB(:,1);             
-            %directionEnd(:,2)   = obj.coordFinal(:,2) - coordVertexB(:,2); 
-            directionEnd(:,1)   = obj.coordFinal(:,1) - coordCurrentVertex(:,1);                         
-            directionEnd(:,2)   = obj.coordFinal(:,2) - coordCurrentVertex(:,2); 
-            p = obj.computeProjection(obj.pathVector,vectorTrial,directionEnd);
-            [maxScB,iD] = obj.selectVertex(csT,p);
-            candB = vertexB(iD);
-            pB = p(iD);
-            csTmax = csT(iD);
+        function computeConnectedVertex(obj)
+            obj.mesh.computeEdges();
+            s.edges = obj.mesh.edges;
+            c = ConnectedVertexesComputer(s);
+            obj.connectedVertex = c;
         end
-
-        function csT = computeScalarProduct(obj,a,b)
-            scalarProdVD = obj.scalarProduct(a,b);
-            scalarProdVV = obj.scalarProduct(a,a);
-            scalarProdDD = obj.scalarProduct(b,b);
-            csT = scalarProdVD./(sqrt(scalarProdVV).*sqrt(scalarProdDD));
+        
+        function itIs = isInBoundary(obj,node)
+            nodesB = obj.boundaryNodes;
+            itIs = any(node == nodesB);
         end
-
-        function p = computeProjection(obj,AB,CE,CB)
-            w = obj.computeUnitVector(AB);
-            DB = obj.scalarProduct(CB,w)*w;
-            CD = CB - DB;
-            u = obj.computeUnitVector(CD);
-            p = obj.scalarProduct(CE,u);
+        
+        function computePathVertices(obj)            
+            i = 1;
+            vertex = obj.closestVertex;
+            allVertices(i) = vertex;            
+            while ~obj.isInBoundary(vertex)
+                vertex = obj.selectNewOptimalVertex(vertex);
+                i = i +1;  
+                allVertices(i) = vertex;                                
+            end
+            obj.pathVertices = allVertices;
         end
-
-        function u = computeUnitVector(obj,AB)
-            sqAB = obj.scalarProduct(AB,AB);
-            nAB = sqrt(sqAB);
-            u(:,1) = AB(:,1)./nAB;
-            u(:,2) = AB(:,2)./nAB;
+        
+        function newVertex = selectNewOptimalVertex(obj,oldVertex)
+            tVertexes = obj.computeTrialVertexes(oldVertex);
+            newVertex = obj.computeOptimalVertex(oldVertex,tVertexes);   
         end
-
-        function [maxScB,iD] = selectVertex(obj,csT,p)
-            isP = csT > 0;
-            p(~isP) = -inf;
-            [maxScB,iD] = max(p);
-            %[maxScB,iD] = max(csT);
-        end
-
-        function ab = scalarProduct(obj,a,b)
-            ab = a(:,1).*b(:,1) + a(:,2).*b(:,2); 
-        end
-
+        
+        function tVertexes = computeTrialVertexes(obj,vertex)
+            c = obj.connectedVertex;
+            tVertexes = c.compute(vertex);
+        end             
+        
+        function newVertexes = computeOptimalVertex(obj,currentVertex,trialVertexes)             
+            s.currentVertexCoord  = obj.mesh.coord(currentVertex,:);
+            s.trialVertexesCoord  = obj.mesh.coord(trialVertexes,:);
+            s.boundaryVertexCoord = obj.boundaryPointCoord;
+            s.lineVector          = obj.pathVector;
+            n = NextVertexToBoundaryComputer(s);
+            iD = n.compute();
+            newVertexes = trialVertexes(iD);            
+        end            
+        
         function plotMesh(obj)
             obj.mesh.plot();
         end
-
+        
         function plotStraightPath(obj)
-            xP = [obj.coordSingularity(:,1),obj.coordFinal(:,1)];
-            yP = [obj.coordSingularity(:,2),obj.coordFinal(:,2)];
-            plot(xP,yP,'+-')            
+            xP = [obj.singularityCoord(:,1),obj.boundaryPointCoord(:,1)];
+            yP = [obj.singularityCoord(:,2),obj.boundaryPointCoord(:,2)];
+            plot(xP,yP,'+-')
         end
-
+        
         function plotClosestVertex(obj)
-            cV = obj.closestVertex;            
+            cV = obj.closestVertex;
             x = obj.mesh.coord(cV,1);
             y = obj.mesh.coord(cV,2);
             plot(x,y,'r+')
         end
-
+        
         function plotVerticesPath(obj)
-            cV = obj.vert;            
+            cV = obj.pathVertices;
             x = obj.mesh.coord(cV,1);
             y = obj.mesh.coord(cV,2);
             plot(x,y,'g-')
         end
-
-
+        
     end
+    
     
 end

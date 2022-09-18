@@ -29,11 +29,6 @@ classdef SingularitiesFinder < handle
             obj.createDiscontinousMesh();
             obj.plotOrientationVector();
             obj.plotSingularities();
-
-            b = obj.computeOrientationOfDoubleAngle();
-            b = obj.mapP1ToP1Discontinous(b);
-
-
         end
 
     end
@@ -51,39 +46,27 @@ classdef SingularitiesFinder < handle
         end
 
         function computeSingularities(obj)
-            b = obj.orientation;obj.computeOrientationOfDoubleAngle;
-            b = obj.mapP1ToP1Discontinous(b);
-            b1 = b(:,:,1);
-            b2 = b(:,:,2);
-            b3 = b(:,:,3);
-            b1b2 = obj.scalarProduct(b1,b2);
-            b1b3 = obj.scalarProduct(b1,b3);
-            b2b3 = obj.scalarProduct(b2,b3);
-            isS = sign(b1b2.*b1b3.*b2b3);
+            a = obj.orientation;
+            a = obj.mapP1ToP1Discontinous(a);
+            a1 = a(:,:,1);
+            a2 = a(:,:,2);
+            a3 = a(:,:,3);
+            a1a2 = obj.scalarProduct(a1,a2);
+            a1a3 = obj.scalarProduct(a1,a3);
+            a2a3 = obj.scalarProduct(a2,a3);
+            isS = sign(a1a2.*a1a3.*a2a3);
             obj.isElemSingular = isS<0;
-        end
-
-        function b = computeOrientationOfDoubleAngle(obj)
-            beta = obj.computeBetaAngle();
-            b(:,1) = cos(beta);
-            b(:,2) = sin(beta);
-        end
-
-        function beta = computeBetaAngle(obj)
-            a = obj.orientation;            
-            alpha = atan2(a(:,2),a(:,1));
-            beta = 2*alpha;
         end
 
         function plotOrientationVector(obj)
             figure()
-            a = obj.computeOrientationOfDoubleAngle;            
-          %  a = obj.orientation;
+            a = obj.orientation;
             x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);
             ax = a(:,1);
             ay = a(:,2);
-            quiver(x,y,ax,ay);
+            q = quiver(x,y,ax,ay);
+            q.ShowArrowHead = 'off';
         end
 
 

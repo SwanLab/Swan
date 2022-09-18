@@ -42,8 +42,6 @@ classdef DehomogenizingSingularities < handle
             sF = SingularitiesFinder(s);
             isS = sF.computeSingularElements();
             sF.plot();
-
-
         end
         
         function createBenchmarkMesh(obj)
@@ -58,32 +56,21 @@ classdef DehomogenizingSingularities < handle
            s.coord(:,1) = X(:);
            s.coord(:,2) = Y(:);
            s.connec = delaunay(s.coord); 
-             [F,V] = mesh2tri(X,Y,zeros(size(X)),'x');
-             s.coord  = V(:,1:2);
-               s.connec = F;
-
+%              [F,V] = mesh2tri(X,Y,zeros(size(X)),'x');
+%              s.coord  = V(:,1:2);
+%                s.connec = F;
             m = Mesh(s);            
-            %m.plot;     
             obj.mesh = m;
-
-%             s.coord = [0 0; 0 1; 1 1; 1 0];
-%             s.connec = [1 2 4; 2 3 4];
-%             m = Mesh(s);
-%             obj.mesh = m;
         end        
         
         function createBenchmarkOrientation(obj)
             s1 = 0.32;
-            s2 = 0;-0.81;
+            s2 = -0.8;
             x1 = obj.mesh.coord(:,1);
             x2 = obj.mesh.coord(:,2);
             v(:,1) = cos(pi*(x1 + s1*x2));
             v(:,2) = cos(pi*(x2 + s2*x1));
-            nv  = sqrt(v(:,1).^2 + v(:,2).^2);
-            ex  = [1 0];
-            nex = sqrt(ex(:,1).^2 + ex(:,2).^2);
-            vex = v(:,1)*ex(:,1) + v(:,2)*ex(:,2);
-            beta = acos(vex./(nv.*nex));
+            beta = atan2(v(:,2),v(:,1));
             alpha = beta/2;
             obj.orientation(:,1) = cos(alpha);
             obj.orientation(:,2) = sin(alpha);
@@ -116,13 +103,11 @@ classdef DehomogenizingSingularities < handle
              FV2 = refinepatch(FV2);
              FV2 = refinepatch(FV2);
              FV2 = refinepatch(FV2);
-             %  FV2 = refinepatch(FV2);
              s.coord = FV2.vertices(:,1:2);
              s.connec = FV2.faces;
              m = Mesh(s);
              obj.backgroundMesh = m;
-         end        
-        
+         end                
         
         
     end
