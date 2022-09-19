@@ -87,7 +87,7 @@ classdef TestingCorrectors < handle
             s.singularityCoord   = obj.singularityCoord;
             s.boundaryPointCoord = obj.boundaryPointCoord;
             p = PathToBoundaryComputer(s);
-            p.compute();            
+            [pV,eV] = p.compute();            
         end
         
         

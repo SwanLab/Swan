@@ -14,8 +14,9 @@ classdef PathToBoundaryComputer < handle
        pathVector
        closestVertex
        boundaryNodes
-       connectedVertex       
-       pathVertices       
+       connectedVertex     
+       pathVertices
+       pathEdges
     end
     
     methods (Access = public)
@@ -24,12 +25,14 @@ classdef PathToBoundaryComputer < handle
             obj.init(cParams)
         end
         
-        function compute(obj)
+        function [p,e] = compute(obj)
             obj.createStraightPathVector();
             obj.computeClosestVertex();
             obj.computeBoundaryNodes();
-            obj.computeConnectedVertex();
+            obj.computeMeshEdges();
             obj.computePathVertices();
+            p = obj.pathVertices;
+            e = obj.pathEdges;
             obj.plot();            
         end
 
@@ -75,13 +78,10 @@ classdef PathToBoundaryComputer < handle
             obj.boundaryNodes = nodesB;
         end
         
-        function computeConnectedVertex(obj)
-            obj.mesh.computeEdges();
-            s.edges = obj.mesh.edges;
-            c = ConnectedVertexesComputer(s);
-            obj.connectedVertex = c;
+        function computeMeshEdges(obj)
+            obj.mesh.computeEdges();            
         end
-        
+
         function itIs = isInBoundary(obj,node)
             nodesB = obj.boundaryNodes;
             itIs = any(node == nodesB);
@@ -89,34 +89,47 @@ classdef PathToBoundaryComputer < handle
         
         function computePathVertices(obj)            
             i = 1;
-            vertex = obj.closestVertex;
-            allVertices(i) = vertex;            
+            vertex       = obj.closestVertex;
+            pVertexes    = vertex;
+            pEdges       = zeros(1);
             while ~obj.isInBoundary(vertex)
-                vertex = obj.selectNewOptimalVertex(vertex);
-                i = i +1;  
-                allVertices(i) = vertex;                                
+                edges       = obj.computeAllEdgesOfVertex(vertex);
+                otherVertex = obj.computeOtherVertexOfEdge(edges,vertex);
+                iD          = obj.computeOptimalVertex(vertex,otherVertex);  
+                newVertex   = otherVertex(iD);    
+                newEdge     = edges(iD);    
+                pEdges(i)   = newEdge;
+                i = i + 1;  
+                vertex       = newVertex;                
+                pVertexes(i) = vertex;
             end
-            obj.pathVertices = allVertices;
+            obj.pathVertices = pVertexes;
+            obj.pathEdges    = pEdges;
         end
         
-        function newVertex = selectNewOptimalVertex(obj,oldVertex)
-            tVertexes = obj.computeTrialVertexes(oldVertex);
-            newVertex = obj.computeOptimalVertex(oldVertex,tVertexes);   
+
+        function edges = computeAllEdgesOfVertex(obj,vertex)
+            vertexInEdges = obj.mesh.edges.nodesInEdges;            
+            isInEdge = vertexInEdges == vertex;            
+            allEdges  = 1:size(isInEdge,1);
+            allEdgesA(:,1) = allEdges(isInEdge(:,2));
+            allEdgesB(:,1) = allEdges(isInEdge(:,1));
+            edges = [allEdgesA;allEdgesB];            
         end
         
-        function tVertexes = computeTrialVertexes(obj,vertex)
-            c = obj.connectedVertex;
-            tVertexes = c.compute(vertex);
-        end             
+        function oV = computeOtherVertexOfEdge(obj,edge,vertex)
+            vertexesInEdges = obj.mesh.edges.nodesInEdges;
+            vertexesOfEdge  = vertexesInEdges(edge,:);
+            oV = setdiff(vertexesOfEdge(:),vertex);
+        end                        
         
-        function newVertexes = computeOptimalVertex(obj,currentVertex,trialVertexes)             
+        function iD = computeOptimalVertex(obj,currentVertex,trialVertexes)             
             s.currentVertexCoord  = obj.mesh.coord(currentVertex,:);
             s.trialVertexesCoord  = obj.mesh.coord(trialVertexes,:);
             s.boundaryVertexCoord = obj.boundaryPointCoord;
             s.lineVector          = obj.pathVector;
             n = NextVertexToBoundaryComputer(s);
             iD = n.compute();
-            newVertexes = trialVertexes(iD);            
         end            
         
         function plotMesh(obj)
