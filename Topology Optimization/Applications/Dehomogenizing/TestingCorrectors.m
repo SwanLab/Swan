@@ -38,11 +38,14 @@ classdef TestingCorrectors < handle
                 153.08 154.59 160.26 164.80 152.32 220.74 ...
                 207.13 202.977 190.88 192.77 239.64 241.90 242.28];
             
+         %   x = [0 1 1 0 0.5];
+          %  y = [0 0 1 1 0.5];
+            
             s.coord(:,1) = x;
             s.coord(:,2) = y;                        
             s.connec = delaunay(s.coord);
             m = Mesh(s);
-            m.plot(); 
+            m.plot();
             obj.mesh = m;
         end
         
@@ -87,7 +90,8 @@ classdef TestingCorrectors < handle
             s.singularityCoord   = obj.singularityCoord;
             s.boundaryPointCoord = obj.boundaryPointCoord;
             p = PathToBoundaryComputer(s);
-            [pV,eV] = p.compute();            
+            [pV,eV,cV] = p.compute();            
+
         end
         
         
