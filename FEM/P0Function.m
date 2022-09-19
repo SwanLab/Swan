@@ -4,8 +4,6 @@ classdef P0Function < FeFunction
     end
 
     properties (Access = private)
-        % ...
-        fElem % should be a GaussDiscontFunction
     end
     
     methods (Access = public)
@@ -15,9 +13,10 @@ classdef P0Function < FeFunction
             obj.createFvaluesByElem();
         end
 
-        function fxV = interpolateFunction(obj, xV)
+        function fxV = evaluate(obj, xV)
             % Its a p0 function, so no true need to interpolate -- the
             % value is constant
+            fxV = obj.fValues;
         end
 
         function fD = copmuteP1DiscontinuousFunction(obj)
@@ -47,12 +46,12 @@ classdef P0Function < FeFunction
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.fValues = cParams.fElem;
+            obj.fValues = cParams.fValues;
         end
 
         function [mD, fD] = createDiscontinuousP0(obj, m)
             dim = 1;
-            fEl = squeeze(obj.fElem(dim,:,:));
+            fEl = squeeze(obj.fValues(dim,:,:));
             mD = m.createDiscontinousMesh();
             nnodeElem = mD.nnodeElem;
             fRepeated = zeros(size(fEl,1), nnodeElem);
@@ -66,7 +65,7 @@ classdef P0Function < FeFunction
             f = obj.fValues;
             nElem = size(f,1);
             nDime = size(f,2);
-            obj.fElem = reshape(f',[nDime, 1, nElem]);
+            obj.fValues = reshape(f',[nDime, 1, nElem]);
         end
 
     end

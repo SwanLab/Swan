@@ -1,7 +1,6 @@
 classdef P1Function < FeFunction
     
    properties (Access = public)
-       fElem
    end
     
    properties (Access = private)
@@ -25,12 +24,12 @@ classdef P1Function < FeFunction
             q = Quadrature.set(obj.type);
             q.computeQuadrature('CONSTANT');
             xV = q.posgp;
-            fCenter = obj.interpolateFunction(xV);
+            fCenter = obj.evaluate(xV);
             fC = squeeze(fCenter);
        end
         
-       function fxV = interpolateFunction(obj,xV)
-            func = obj.fElem;
+       function fxV = evaluate(obj,xV) %interpolateFunction
+            func = obj.fValues;
             obj.interpolation.computeShapeDeriv(xV);
             shapes = obj.interpolation.shape;
             nNode  = size(shapes,1);

@@ -1,7 +1,7 @@
 classdef Projector_P1toP0 < handle
-
+    
+    % Rename: Projector_toP0
     properties (Access = public)
-        value
     end
 
     properties (Access = private)
@@ -24,7 +24,7 @@ classdef Projector_P1toP0 < handle
 
         function xFun = project(obj, x)
             RHS = obj.createRHS(x);
-            s.fElem = obj.M\RHS;
+            s.fValues = obj.M\RHS;
             xFun = P0Function(s);
         end
 
@@ -44,18 +44,18 @@ classdef Projector_P1toP0 < handle
             obj.M = diag(dv);
         end
 
-        function rhs = createRHS(obj, fefun)
+        function rhs = createRHS(obj, fun)
             dV = obj.mesh.computeDvolume(obj.quadrature);
             xV = obj.quadrature.posgp;
             nGaus  = obj.quadrature.ngaus;
-            nF     = size(fefun.fElem,1);
+            nF     = size(fun.fValues,1);
             nElem  = size(obj.mesh.connec,1);
             rhs = zeros(nElem,nF);
 
             % Separate in two loops
             for igaus = 1:nGaus
                 xGaus = xV(:,igaus);
-                fGaus = obj.computeFgaus(fefun, xGaus);
+                fGaus = fun.evaluate(xGaus);
                 dVg(:,1) = dV(igaus,:);
                 for iF = 1:nF
                     fGausF = squeeze(fGaus(iF,:,:));
@@ -71,14 +71,6 @@ classdef Projector_P1toP0 < handle
             quad.computeQuadrature('LINEAR');
             obj.quadrature = quad;
         end
-    end
-    
-    methods (Access = private, Static)
-
-        function fGaus = computeFgaus(fefun, xGaus)
-            fGaus = fefun.interpolateFunction(xGaus);
-        end
-
     end
 
 end

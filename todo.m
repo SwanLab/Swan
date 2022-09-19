@@ -1,3 +1,37 @@
+%% PART I: LHS generalization
+% - Allow for both continuous (P1)
+% and discontinuous (P1 and P0) Galerkin
+% - Done:
+%       - P0Func (discontinuous)
+%       - P1Func (continuous)
+% - To do:
+%       - P1Func (discontinuous) (should be similar to P0, M)
+%       - FgaussDiscFunc (discontinuous*)
+
+
+%% PART II: RHS generalization
+% Almost there
+% - Create evaluate functions
+
+%% Cases
+% Six first cases as tests:
+%  - P0 to P1 continuous
+%  - P0 to P1 discontinuous
+%  - P1 contiuous to P0
+%  - P1 discontiuous to P0
+%  - FgaussDiscontinuous to P0
+%  - FgaussDiscontinuous to P1 continuous
+%  - FgaussDiscontinuous to P1 discontinuous (*)
+
+% Plot should only be in P1 Discontinuous
+% Temporarily:
+%  - Projector to p1 continuous
+%  - projector to p0
+%  - projector to p1 discont
+%       - case p0: fRepeated
+%       - case p1: fRepeated
+%       - case fGaussDiscont: ?
+
 %%
 
 % Delete computeValueInCenterElement in P1Function
@@ -29,6 +63,13 @@
 % Check: P1DiscontFunction's mass matrix is diagonal
 
 % ProjectorP1toP0: mass matrix should use lhsintegrator
+
+% Let Paraview print strain as a P1DiscontFunct
+
+% ProjectorFromFgausToP1Discont  (similar to other projectors, mass matrix
+% using LHSintegrator and discontinuousMesh. M should be invertible and
+% have a block-like structure)
+
 %% PROJECTORS | To-do
 
 % Done! (T)  Rename FeFunction to P1Function

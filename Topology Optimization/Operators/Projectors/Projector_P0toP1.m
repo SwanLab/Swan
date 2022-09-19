@@ -1,5 +1,6 @@
 classdef Projector_P0toP1 < handle
 
+    % Projector_toP1
     properties (Access = private)
         mesh
         connec
@@ -58,7 +59,7 @@ classdef Projector_P0toP1 < handle
             LHS = lhs.compute();
         end
 
-        function RHS = computeRHS(obj,fefun)
+        function RHS = computeRHS(obj,fun)
             xV = obj.quadrature.posgp;
             dV = obj.mesh.computeDvolume(obj.quadrature);
             obj.mesh.interpolation.computeShapeDeriv(xV);
@@ -66,8 +67,8 @@ classdef Projector_P0toP1 < handle
             conne = obj.mesh.connec;
 
             nGaus = obj.quadrature.ngaus;
-            nFlds = size(fefun.fElem, 1);
-            nElem = size(fefun.fElem, 3);
+            nFlds = size(fun.fValues, 1);
+            nElem = obj.mesh.nElem;
             nNods = size(shapes,1);
             nNode = size(conne,2);
             nDofs = obj.mesh.nnodes;
@@ -78,7 +79,8 @@ classdef Projector_P0toP1 < handle
                 % fGaus = ...;
                 dVg(:,1) = dV(igaus, :);
                 for iField = 1:nFlds
-                    fG = squeeze(fefun.fElem(iField,:,:));
+                    fG = fun.evaluate(xV); %ideal
+                    fG = squeeze(fun.fElem(iField,:,:));
                     fdVg = fG.*dVg;
                     Ni = shapes(:,:, igaus);
                     rhs(:,:,iField) = rhs(:,:,iField) + bsxfun(@times,Ni,fdVg');
