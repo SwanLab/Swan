@@ -70,7 +70,7 @@ classdef AbstractMesh < handle
         
         function computeElementCoordinates(obj)
             obj.computeCoordFEfunction();
-            obj.coordElem = obj.xFE.fElem;
+            obj.coordElem = obj.xFE.fValues;
         end
         
     end

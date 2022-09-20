@@ -1,4 +1,5 @@
-%% Create sample FEM results
+%% P0 to P1
+% Create sample FEM results
 % WIP ton
 clear; close all;
 
@@ -11,13 +12,12 @@ fem.solve();
 strain = squeeze(fem.variables.strain)';
 
 
-%% P0 to P1
-% Create FeFunc strain
-z.fElem = strain;
-strainFeFun = P0Function(z);
+%% Create FeFunc strain
+z.fValues = strain;
+strainFun = P0Function(z);
 
-% Create projector
-bb.mesh   = s.mesh;
-bb.connec = s.mesh.connec;
-projector = Projector_P0toP1(bb);
-p1strain = projector.project(strainFeFun);
+%% Create projector
+% bb.mesh   = s.mesh;
+% bb.connec = s.mesh.connec;
+% projector = Projector_P0toP1(bb);
+% p1strain = projector.project(strainFun);

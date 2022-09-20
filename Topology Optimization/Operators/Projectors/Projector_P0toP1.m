@@ -68,7 +68,7 @@ classdef Projector_P0toP1 < handle
 
             nGaus = obj.quadrature.ngaus;
             nFlds = size(fun.fValues, 1);
-            nElem = obj.mesh.nElem;
+            nElem = obj.mesh.nelem;
             nNods = size(shapes,1);
             nNode = size(conne,2);
             nDofs = obj.mesh.nnodes;
@@ -79,8 +79,8 @@ classdef Projector_P0toP1 < handle
                 % fGaus = ...;
                 dVg(:,1) = dV(igaus, :);
                 for iField = 1:nFlds
-                    fG = fun.evaluate(xV); %ideal
-                    fG = squeeze(fun.fElem(iField,:,:));
+%                     fG = fun.evaluate(xV); %ideal
+                    fG = squeeze(fun.fValues(iField,:,:));
                     fdVg = fG.*dVg;
                     Ni = shapes(:,:, igaus);
                     rhs(:,:,iField) = rhs(:,:,iField) + bsxfun(@times,Ni,fdVg');

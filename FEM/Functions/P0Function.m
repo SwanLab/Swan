@@ -19,7 +19,7 @@ classdef P0Function < FeFunction
             fxV = obj.fValues;
         end
 
-        function fD = copmuteP1DiscontinuousFunction(obj)
+        function fD = computeP1DiscontinuousFunction(obj)
             dim = 1;
             fEl = squeeze(obj.fValues(dim,:,:));
             mD = m.createDiscontinousMesh();
@@ -32,8 +32,8 @@ classdef P0Function < FeFunction
         end
 
         function plot(obj, m)
-            f1 = obj.copmuteP1DiscontinuousFunction(); %public
-            f1.plot();
+%             f1 = obj.computeP1DiscontinuousFunction(); %public
+%             f1.plot();
             [mD, fD] = obj.createDiscontinuousP0(m);
             coord  = mD.coord;
             connec = mD.connec;
@@ -52,7 +52,7 @@ classdef P0Function < FeFunction
         function [mD, fD] = createDiscontinuousP0(obj, m)
             dim = 1;
             fEl = squeeze(obj.fValues(dim,:,:));
-            mD = m.createDiscontinousMesh();
+            mD = m.createDiscontinuousMesh();
             nnodeElem = mD.nnodeElem;
             fRepeated = zeros(size(fEl,1), nnodeElem);
             for iNode = 1:nnodeElem
