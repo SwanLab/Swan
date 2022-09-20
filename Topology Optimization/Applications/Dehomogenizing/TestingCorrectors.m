@@ -13,6 +13,9 @@ classdef TestingCorrectors < handle
        orientation       
        singularityCoord
        boundaryPointCoord
+       pathVertexes
+       cellRight
+       cellLeft
     end
     
     methods (Access = public)
@@ -24,6 +27,8 @@ classdef TestingCorrectors < handle
             obj.computeSingularities();
             obj.createBoundaryPoint();
             obj.computePathToBoundary();
+            obj.createLeftRightPathElements();   
+            obj.createSymmetricMapCond();
         end
         
     end
@@ -52,7 +57,7 @@ classdef TestingCorrectors < handle
         function createOrientation(obj)
             alpha = pi/180*[190 140 300 150 185 ... 
                             120 75  45  150 130 ...
-                            160 0   190  5  -5   ...
+                            160+180 0   190  5  -5   ...
                             170 0   190 190];
             a(:,1) = cos(alpha);
             a(:,2) = sin(alpha);
@@ -89,10 +94,47 @@ classdef TestingCorrectors < handle
             s.mesh = obj.mesh;
             s.singularityCoord   = obj.singularityCoord;
             s.boundaryPointCoord = obj.boundaryPointCoord;
-            p = PathToBoundaryComputer(s);
-            [pV,eV,cV] = p.compute();            
-
+            p = PathVertexesToBoundaryComputer(s);
+            v = p.compute(); 
+            obj.pathVertexes = v;
         end
+        
+        function createLeftRightPathElements(obj)
+            s.pathVertexes = obj.pathVertexes;
+            s.mesh         = obj.mesh;
+            l = LeftRightCellsOfPathToBoundaryComputer(s);
+            [cR,cL] = l.compute();   
+            l.plot();            
+            obj.cellLeft  = cL;
+            obj.cellRight = cR;
+        end         
+        
+        function createSymmetricMapCond(obj)   
+            s.mesh        = obj.mesh.createDiscontinousMesh();
+            s.orientation = obj.createDiscontinousField(obj.orientation);
+            c = CoherentOrientationSelector(s);
+            isC = c.isOrientationCoherent();
+            
+            isR = obj.cellRight;
+            isL = obj.cellLeft;
+            obj.mesh.connec(isR,:)
+            
+            v = obj.pathVertexes;
+            
+            
+            for iNode = 1:3
+                isC(isR,:)
+                isC(isL,:)
+            end
+        end              
+        
+        function fD = createDiscontinousField(obj,fValues)
+            s.connec = obj.mesh.connec;
+            s.type   = obj.mesh.type;
+            s.fNodes = fValues;
+            f = FeFunction(s);            
+            fD = f.computeDiscontinousField();
+        end        
         
         
     end

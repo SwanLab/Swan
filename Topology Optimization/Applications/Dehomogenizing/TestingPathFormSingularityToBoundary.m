@@ -17,6 +17,9 @@ classdef TestingPathFormSingularityToBoundary < handle
         mesh
         singularityCoord
         boundaryPointCoord
+        pathVertexes
+        cellRight
+        cellLeft        
     end
     
     methods (Access = public)
@@ -28,6 +31,7 @@ classdef TestingPathFormSingularityToBoundary < handle
             obj.createSingularityPoint();
             obj.createFinalPathPoint();
             obj.createPathToBoundary();
+            obj.createLeftRightPathElements();
         end
         
     end
@@ -133,8 +137,19 @@ classdef TestingPathFormSingularityToBoundary < handle
             s.mesh = obj.mesh;
             s.singularityCoord   = obj.singularityCoord;
             s.boundaryPointCoord = obj.boundaryPointCoord;
-            p = PathToBoundaryComputer(s);
-            p.compute();
+            p = PathVertexesToBoundaryComputer(s);
+            v = p.compute();
+            obj.pathVertexes = v;
+        end    
+        
+        function createLeftRightPathElements(obj)
+            s.pathVertexes = obj.pathVertexes;
+            s.mesh         = obj.mesh;
+            l = LeftRightCellsOfPathToBoundaryComputer(s);
+            [cR,cL] = l.compute();   
+            l.plot();
+            obj.cellLeft  = cL;
+            obj.cellRight = cR;            
         end        
         
     end
