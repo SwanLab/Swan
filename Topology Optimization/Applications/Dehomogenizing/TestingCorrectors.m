@@ -120,13 +120,44 @@ classdef TestingCorrectors < handle
             obj.mesh.connec(isR,:)
             
             v = obj.pathVertexes;
+
+            isInPath = [isR isL];
+            vertexInCell  = obj.mesh.connec(isInPath,:);   
+            isCT = isC(isInPath,:);
+            for ivertex = 1:length(v)
+               vI = v(ivertex);                                       
+               val = [];
+               elm = [];
+               for inode = 1:3
+                    isInCell = vertexInCell(:,inode) == vI;
+                    valT = [];
+                    valT(isCT(isInCell,inode) == true,1)  = 1;
+                    valT(isCT(isInCell,inode) == false,1) = -1;
+                    
+                    val = [val ; valT];
+                    elm = [elm  isInPath(isInCell)];
+               end
+               
+               
+               
+               t{ivertex}=val;
+               e{ivertex}=val;
+               
+            end
             
             
             for iNode = 1:3
                 isC(isR,:)
                 isC(isL,:)
             end
-        end              
+        end       
+        
+        function cells = computeAllCellsOfVertex(obj,vertex)
+            vertexInCell  = obj.mesh.connec;            
+            isInCell      = any(vertexInCell == vertex,2);            
+            allCells(:,1) = 1:size(isInCell,1);
+            cells         = allCells(isInCell);                        
+        end        
         
         function fD = createDiscontinousField(obj,fValues)
             s.connec = obj.mesh.connec;
