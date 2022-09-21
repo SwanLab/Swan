@@ -2,7 +2,7 @@ classdef ProjectorsTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
         fastDisp = {
-            'test_P0toP1'
+            'test_P0toP1','test_P1toP0'
             }
     end
         

@@ -8,6 +8,10 @@ classdef ProjectorComputer < handle
         problemType
         testName
         problemTestName
+        projectFrom
+        projectTo
+        fun
+        funProj
     end
 
     methods (Access = public)
@@ -37,24 +41,55 @@ classdef ProjectorComputer < handle
         function saveConfiguration(obj)
             run(obj.testName);
             obj.problemTestName = problemToSolve;
+            obj.projectFrom     = origin;
+            obj.projectTo       = projectDestination;
         end
 
         function computeProjection(obj)
             switch obj.problemType
                 case {'FEM'}
-                    strain = squeeze(obj.computation.variables.strain)';
-                    z.fValues = strain;
-                    strainFun = P0Function(z);
                     a.fileName = obj.problemTestName;
                     s = FemDataContainer(a);
-                    bb.mesh   = s.mesh;
-                    bb.connec = s.mesh.connec;
-                    projector = Projector_P0toP1(bb);
-                    p1strain = projector.project(strainFun);
-                    nrows = numel(p1strain.fValues);
-                    obj.computation.variables.xP = reshape(p1strain.fValues,[nrows,1]);
+                    obj.selectOrigin(s);
+                    obj.selectProjector(s);
+                    nrows = numel(obj.funProj.fValues);
+                    obj.computation.variables.xP = reshape(obj.funProj.fValues,[nrows,1]);
                 case {'TOPOPT'}
                     %...
+            end
+        end
+
+        function selectOrigin(obj,s)
+            switch obj.projectFrom
+                case {'P0'}
+                    strain = squeeze(obj.computation.variables.strain)';
+                    z.fValues = strain;
+                    obj.fun = P0Function(z);
+                case {'P1'}
+                    uCol = obj.computation.variables.d_u;
+                    u    = reshape(uCol,[s.mesh.ndim,s.mesh.nnodes])';
+                    z.connec = s.mesh.connec;
+                    z.type   = s.mesh.type;
+                    z.fNodes = u;
+                    obj.fun  = P1Function(z);
+            end
+        end
+
+        function selectProjector(obj,s)
+            switch obj.projectTo
+                case {'P0'}
+                    b.mesh   = s.mesh;
+                    b.connec = s.mesh.connec;
+                    b.nelem  = size(s.mesh.connec,1);
+                    b.nnode  = size(s.mesh.connec,2);
+                    b.npnod  = size(s.mesh.coord,1);
+                    projector = Projector_P1toP0(b);
+                    obj.funProj = projector.project(obj.fun);
+                case {'P1'}
+                    b.mesh   = s.mesh;
+                    b.connec = s.mesh.connec;
+                    projector = Projector_P0toP1(b);
+                    obj.funProj = projector.project(obj.fun);
             end
         end
 
