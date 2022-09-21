@@ -115,7 +115,8 @@ classdef Mesh < handle
         end
         
         function xGauss = computeXgauss(obj,xV)
-            xGauss = obj.xFE.evaluate(xV);
+            xFEdisc = obj.xFE.computeDiscontinuousField();
+            xGauss = xFEdisc.evaluate(xV);
         end
         
         function dvolume = computeDvolume(obj,quad)
@@ -215,10 +216,10 @@ classdef Mesh < handle
             nNodesDisc = obj.nnodeElem*obj.nelem;
             nodesDisc  = 1:nNodesDisc;
             connecDisc = reshape(nodesDisc,obj.nnodeElem,obj.nelem)';            
-            s.connec = obj.connec;
-            s.type   = obj.type;
-            s.fNodes = obj.coord;
-            coordF = P1Function(s);
+            s.connec  = obj.connec;
+            s.type    = obj.type;
+            s.fValues = obj.coord;
+            coordF  = P1Function(s);
             coordDF = coordF.computeDiscontinuousField();
             coordD = reshape(coordDF.fValues, [ndims, nNodesDisc])';
             s.connec = connecDisc;
@@ -289,13 +290,14 @@ classdef Mesh < handle
         
         function computeElementCoordinates(obj)
             obj.computeCoordFEfunction();
-            obj.coordElem = obj.xFE.fValues;
+            coordFun = obj.xFE.computeDiscontinuousField();
+            obj.coordElem = coordFun.fValues;
         end
         
         function computeCoordFEfunction(obj)
-            s.connec   = obj.connec;
-            s.type     = obj.type;
-            s.fNodes   = obj.coord;
+            s.connec  = obj.connec;
+            s.type    = obj.type;
+            s.fValues = obj.coord;
             obj.xFE = P1Function(s);
         end
         

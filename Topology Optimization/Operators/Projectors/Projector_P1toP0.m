@@ -45,17 +45,19 @@ classdef Projector_P1toP0 < handle
         end
 
         function rhs = createRHS(obj, fun)
+            fDisc = fun.computeDiscontinuousField();
+            fVals = fDisc.fValues;
             dV = obj.mesh.computeDvolume(obj.quadrature);
             xV = obj.quadrature.posgp;
             nGaus  = obj.quadrature.ngaus;
-            nF     = size(fun.fValues,1);
+            nF     = size(fVals,1);
             nElem  = size(obj.mesh.connec,1);
             rhs = zeros(nElem,nF);
 
             % Separate in two loops
             for igaus = 1:nGaus
                 xGaus = xV(:,igaus);
-                fGaus = fun.evaluate(xGaus);
+                fGaus = fDisc.evaluate(xGaus);
                 dVg(:,1) = dV(igaus,:);
                 for iF = 1:nF
                     fGausF = squeeze(fGaus(iF,:,:));

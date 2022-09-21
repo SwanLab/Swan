@@ -12,9 +12,9 @@ uCol   = fem.variables.d_u;
 u      = reshape(uCol,[s.mesh.ndim,s.mesh.nnodes])';
 
 %%  Create a FeFunction
-z.connec = s.mesh.connec;
-z.type   = s.mesh.type;
-z.fNodes = u;
+z.connec  = s.mesh.connec;
+z.type    = s.mesh.type;
+z.fValues = u;
 uFun = P1Function(z);
 uFunD = uFun.computeDiscontinuousField();
 

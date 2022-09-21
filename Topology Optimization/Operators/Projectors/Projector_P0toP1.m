@@ -21,9 +21,9 @@ classdef Projector_P0toP1 < handle
             LHS = obj.computeLHS();
             RHS = obj.computeRHS(x);
             xProj = (LHS\RHS);
-            s.type = obj.mesh.type;
-            s.connec = obj.mesh.connec;
-            s.fNodes = xProj;
+            s.type    = obj.mesh.type;
+            s.connec  = obj.mesh.connec;
+            s.fValues = xProj;
             xFun = P1Function(s);
         end
 
