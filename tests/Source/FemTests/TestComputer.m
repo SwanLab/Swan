@@ -22,6 +22,8 @@ classdef (Abstract) TestComputer < handle
                     computer = ThermalComputer(s);
                 case {'TOPOPT'}
                     computer = TopOptComputer(s);
+                case {'PROJECT'}
+                    computer = ProjectorComputer(s);
                 otherwise
                     error('Invalid Computer Type.')
             end

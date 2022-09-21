@@ -17,7 +17,12 @@ z.fValues = strain;
 strainFun = P0Function(z);
 
 %% Create projector
-% bb.mesh   = s.mesh;
-% bb.connec = s.mesh.connec;
-% projector = Projector_P0toP1(bb);
-% p1strain = projector.project(strainFun);
+bb.mesh   = s.mesh;
+bb.connec = s.mesh.connec;
+projector = Projector_P0toP1(bb);
+p1strain = projector.project(strainFun);
+
+%% Use this to create results for testing:
+nrows = numel(p1strain.fValues);
+xP = reshape(p1strain.fValues,[nrows,1]);
+% save('name.mat','xP');
