@@ -32,7 +32,8 @@ classdef P1Function < FeFunction
 
         function dF = computeDiscontinuousField(obj)
             % Goal: use this function
-            s.fValues = obj.fValues;
+            fRep = obj.repeatFunctionAtNodes();
+            s.fValues = fRep;
             s.connec = obj.connec;
             s.type   = obj.type;
             dF = P1DiscontinuousFunction(s);
@@ -78,6 +79,21 @@ classdef P1Function < FeFunction
                 f = bsxfun(@times,shapeKJ,fKJ);
                 fxV = fxV + f;
             end
+        end
+
+        function fRep = repeatFunctionAtNodes(obj)
+           f = obj.fValues;
+           nNode  = size(obj.connec,2);
+           nDime  = size(f,2);
+           nElem  = size(obj.connec,1);
+           fNodeElem = zeros(nDime,nNode,nElem);
+           fNods  = transpose(f);
+           for inode = 1:nNode
+               nodes = obj.connec(:,inode);
+               fNode = fNods(:,nodes);
+               fNodeElem(:,inode,:) = fNode;
+           end
+           fRep = fNodeElem;
         end
 
     end

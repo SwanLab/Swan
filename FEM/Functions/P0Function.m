@@ -4,6 +4,8 @@ classdef P0Function < FeFunction
     end
 
     properties (Access = private)
+        connec
+        type
     end
     
     methods (Access = public)
@@ -19,16 +21,12 @@ classdef P0Function < FeFunction
             fxV = obj.fValues;
         end
 
-        function fD = computeP1DiscontinuousFunction(obj)
-            dim = 1;
-            fEl = squeeze(obj.fValues(dim,:,:));
-            mD = m.createDiscontinousMesh();
-            nnodeElem = mD.nnodeElem;
-            fRepeated = zeros(size(fEl,1), nnodeElem);
-            for iNode = 1:nnodeElem
-                fRepeated(:,iNode) = fEl;
-            end
-            fD = transpose(fRepeated);
+        function fDfun = computeP1DiscontinuousFunction(obj)
+            fD = obj.createDiscontinuousFunction();
+            s.fValues = fD;
+            s.connec  = obj.connec;
+            s.type    = obj.type;
+            fDfun = P1DiscontinuousFunction(s);            
         end
 
         function plot(obj, m)
@@ -47,18 +45,15 @@ classdef P0Function < FeFunction
 
         function init(obj,cParams)
             obj.fValues = cParams.fValues;
+            obj.connec  = cParams.connec; % Needed for discontinuous
+            obj.type    = cParams.type;
         end
 
         function [mD, fD] = createDiscontinuousP0(obj, m)
             dim = 1;
-            fEl = squeeze(obj.fValues(dim,:,:));
             mD = m.createDiscontinuousMesh();
-            nnodeElem = mD.nnodeElem;
-            fRepeated = zeros(size(fEl,1), nnodeElem);
-            for iNode = 1:nnodeElem
-                fRepeated(:,iNode) = fEl;
-            end
-            fD = transpose(fRepeated);
+            fDmat = obj.createDiscontinuousFunction();
+            fD = fDmat(dim,:,:);
         end
 
         function createFvaluesByElem(obj)
@@ -66,6 +61,21 @@ classdef P0Function < FeFunction
             nElem = size(f,1);
             nDime = size(f,2);
             obj.fValues = reshape(f',[nDime, 1, nElem]);
+        end
+
+        function fD = createDiscontinuousFunction(obj)
+            dim = 1;
+            ndim  = size(obj.fValues, 1);
+            nnodeElem = size(obj.connec,2);
+            fEl = squeeze(obj.fValues(dim,:,:));
+            fRepeated = zeros(ndim, size(fEl,1), nnodeElem);
+            for idim = 1:ndim
+                fEl = squeeze(obj.fValues(idim,:,:));
+                for iNode = 1:nnodeElem
+                    fRepeated(idim, :,iNode) = fEl;
+                end
+            end
+            fD = permute(fRepeated, [1 3 2]);
         end
 
     end

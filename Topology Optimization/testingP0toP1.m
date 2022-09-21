@@ -13,8 +13,13 @@ strain = squeeze(fem.variables.strain)';
 
 
 %% Create FeFunc strain
-z.fValues = strain;
+z.fValues = strain(:,1:2);
+z.connec  = s.mesh.connec;
+z.type    = s.mesh.type;
 strainFun = P0Function(z);
+
+strainP1Disc = strainFun.computeP1DiscontinuousFunction();
+% strainP1Disc.plot(s.mesh);
 
 %% Create projector
 bb.mesh   = s.mesh;

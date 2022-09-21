@@ -16,7 +16,7 @@
 %% Cases
 % Six first cases as tests:
 %  - P0 to P1 continuous - DONE!
-%  - P0 to P1 discontinuous
+%  - P0 to P1 discontinuous - DONE!
 %  - P1 contiuous to P0 - DONE!
 %  - P1 discontiuous to P0
 %  - FgaussDiscontinuous to P0

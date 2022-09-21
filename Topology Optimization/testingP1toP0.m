@@ -20,18 +20,20 @@ uFunD = uFun.computeDiscontinuousField();
 
 
 %% Create the projector
+% To P0
 cc.mesh   = s.mesh;
 cc.connec = s.mesh.connec;
-cc.nelem  = size(s.mesh.connec,1);
-cc.nnode  = size(s.mesh.connec,2);
-cc.npnod  = size(s.mesh.coord,1);
 projector2 = Projector_P1toP0(cc);
 u_P0 = projector2.project(uFun);
+
+% To P1 Discontinuous
+projectorDisc = ProjectorToP1discont(cc);
+% projectorDisc.project(uFun);
 
 %% Plot using P0Function
 % u_P0.plot(s.mesh);
 
 %% Use this to create results for testing:
-nrows = numel(u_P0.fValues);
-xP = reshape(u_P0.fValues,[nrows,1]);
+% nrows = numel(u_P0.fValues);
+% xP = reshape(u_P0.fValues,[nrows,1]);
 % save('name.mat','xP');

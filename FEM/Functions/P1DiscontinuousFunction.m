@@ -19,7 +19,6 @@ classdef P1DiscontinuousFunction < FeFunction
         function obj = P1DiscontinuousFunction(cParams)
             obj.init(cParams)
             obj.createInterpolation();
-            obj.computeFvalues();
         end
 
         function fxV = evaluate(obj, xV)
@@ -56,29 +55,14 @@ classdef P1DiscontinuousFunction < FeFunction
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.fNodes = cParams.fValues;
-            obj.connec = cParams.connec;
-            obj.type   = cParams.type;
+            obj.fValues = cParams.fValues;
+            obj.connec  = cParams.connec;
+            obj.type    = cParams.type;
         end
 
         function createInterpolation(obj)
             m.type = obj.type;
             obj.interpolation = Interpolation.create(m,'LINEAR');
-        end
-
-        function computeFvalues(obj)
-           f = obj.fNodes;
-           nNode  = size(obj.connec,2);
-           nDime  = size(f,2);
-           nElem  = size(obj.connec,1);
-           fNodeElem = zeros(nDime,nNode,nElem);
-           fNods  = transpose(f);
-           for inode = 1:nNode
-               nodes = obj.connec(:,inode);
-               fNode = fNods(:,nodes);
-               fNodeElem(:,inode,:) = fNode;
-           end
-           obj.fValues = fNodeElem; 
         end
         
     end
