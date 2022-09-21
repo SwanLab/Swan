@@ -119,44 +119,84 @@ classdef TestingCorrectors < handle
             isL = obj.cellLeft;
             obj.mesh.connec(isR,:)
             
-            v = obj.pathVertexes;
+            vertex = obj.pathVertexes;
 
             isInPath = [isR isL];
-            vertexInCell  = obj.mesh.connec(isInPath,:);   
-            isCT = isC(isInPath,:);
-            for ivertex = 1:length(v)
-               vI = v(ivertex);                                       
-               val = [];
-               elm = [];
-               for inode = 1:3
-                    isInCell = vertexInCell(:,inode) == vI;
-                    valT = [];
-                    valT(isCT(isInCell,inode) == true,1)  = 1;
-                    valT(isCT(isInCell,inode) == false,1) = -1;
-                    
-                    val = [val ; valT];
-                    elm = [elm  isInPath(isInCell)];
-               end
-               
-               
-               
-               t{ivertex}=val;
-               e{ivertex}=val;
-               
-            end
+  
+            isCT          = isC(isInPath,:);
             
-            
-            for iNode = 1:3
-                isC(isR,:)
-                isC(isL,:)
+            colorEl = cell(size(isC,1),1);
+            refEl = 16;
+            colorEl{16} = 'blue';
+            color = {'blue','red'};
+            valR    = zeros(size(isInPath));
+            for ivertex = 1:length(vertex)
+              vI = vertex(ivertex);
+              isInCell = obj.computeAdjointCells(isInPath,vI);
+              signA  = obj.computeSignOfAdjacentElements(isInPath,isC,vI);
+              refE   = obj.obtainReferenceCell(ivertex,isInPath);
+              colorEl = obj.computeIsSameSign(refE,isInCell,signA,colorEl,color);
             end
-        end       
+            colorEl(isInPath)
+        end
         
-        function cells = computeAllCellsOfVertex(obj,vertex)
-            vertexInCell  = obj.mesh.connec;            
+        function colorEl = computeIsSameSign(obj,refE,isInCell,signA,colorEl,colors)
+            isSameSign = signA == signA(refE);
+            isDifSign  = signA == -signA(refE);
+            colorRef = colorEl{refE};
+            
+            if isequal(colors{1},colorRef)
+                colorEl(isSameSign) = {colors{1}};
+                colorEl(isDifSign)  = {colors{2}};
+            else
+                colorEl(isSameSign) = {colors{2}};
+                colorEl(isDifSign) = {colors{1}};                
+            end
+            
+        end
+        
+        function refEl = obtainReferenceCell(obj,ivertex,isInPath)
+            vertex = obj.pathVertexes;
+            
+            if ivertex == 1
+                refEl = 16;
+            else
+                
+                vI = vertex(ivertex);
+                vB = vertex(ivertex-1);                
+                refEl = obj.computeCellsFromBefore(isInPath,vI,vB);
+                refEl = isInPath(refEl);
+                refEl = refEl(1);
+            end
+        end
+        
+        function signA = computeSignOfAdjacentElements(obj,isInPath,isSign,vertex)
+            isInP = false(size(isSign,1),1);
+            isInP(isInPath) = true;
+            vertexInCell  = obj.mesh.connec(:,:);
+            isSigP         = isSign(:,:);
+            isInCell      = (vertexInCell == vertex);
+            
+            isP = any(isInCell & isSigP,2);
+            isN = any(isInCell & ~isSigP,2);
+            
+            signA = zeros(size(isN));
+            signA(isP,1) = 1;
+            signA(isN,1) = -1;
+        end
+        
+        function t = computeCellsFromBefore(obj,isInPath,vertex,vertexMinus)
+            c  = obj.computeAdjointCells(isInPath,vertex);
+            cM = obj.computeAdjointCells(isInPath,vertexMinus);            
+            t =  c & cM;
+        end
+        
+        function isInCell = computeAdjointCells(obj,isInPath,vertex)
+            vertexInCell  = obj.mesh.connec(isInPath,:);             
             isInCell      = any(vertexInCell == vertex,2);            
             allCells(:,1) = 1:size(isInCell,1);
-            cells         = allCells(isInCell);                        
+            cells         = allCells(isInCell);    
+            cells  = isInPath(cells);            
         end        
         
         function fD = createDiscontinousField(obj,fValues)
