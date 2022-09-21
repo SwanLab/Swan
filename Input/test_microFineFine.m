@@ -1,9 +1,12 @@
-filename='RVE_Square_Triangle_FineFine';
-ptype = 'MICRO';
+% filename='instantSquare';
+filename='CantileverVertical';
+% filename='MBB';
+ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'squareInclusion';
-cost={'anisotropicPerimeterInterior2D'};
+% initial_case = 'squareInclusion';
+initial_case = 'full';
+cost={'compliance'};
 weights=[1];
 constraint = {'volumeConstraint'};
 optimizerUnconstrained = 'PROJECTED GRADIENT';
@@ -12,15 +15,15 @@ incrementFactor = 1.5;
 designVariable = 'Density';
 filterType = 'P1';
 
-widthSquare = 0.25;
+% widthSquare = sqrt(0.14);
 
-nsteps = 15;
-Vfrac_final = 1-4*widthSquare^2;
+nsteps = 16;
+Vfrac_final = 0.2;
 Perimeter_target=5;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 1-widthSquare^2;
+Vfrac_initial = 1;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 
@@ -42,4 +45,4 @@ plotting = true;
 printing = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 900;
+maxiter = 1200;

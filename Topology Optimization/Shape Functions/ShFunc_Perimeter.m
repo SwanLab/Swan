@@ -2,7 +2,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
     
     properties (GetAccess = public, SetAccess = private)
        regularizedDensity  
-
+       physicalProblem
     end
     
     properties (Access = protected)
@@ -14,16 +14,20 @@ classdef ShFunc_Perimeter < ShapeFunctional
     properties (Access = private)
        quad
     end
-    
+
     methods (Access = public)
-        
+
         function obj = ShFunc_Perimeter(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             cParams.filterParams.filterType = 'PDE';
             obj.init(cParams);
-          %  obj.initFrame();
+            %  obj.initFrame();
+            fileName = cParams.femSettings.fileName;
+            a.fileName = fileName;
+            s = FemDataContainer(a);
+            obj.physicalProblem = FEM.create(s);
         end
-        
+
         function computeFunctionAndGradient(obj)
             obj.computeFunction();
             obj.computeGradient();
@@ -61,19 +65,23 @@ classdef ShFunc_Perimeter < ShapeFunctional
         function fP = createPrintVariables(obj)
             types = {'ScalarNodal','ScalarNodal','ScalarGauss','ScalarNodal'};
             names = {'PerimeterGradient','RegularizedDensity',...
-                     'PerimeterGauss','PerimeterNodal'};
+                'PerimeterGauss','PerimeterNodal'};
             fP = obj.obtainPrintVariables(types,names);
         end
-        
+
+        function q = getQuad(obj)
+            q = obj.physicalProblem.getQuadrature();
+        end
+
     end
-    
+
     methods (Access = private)
-        
+
         function updateProtectedVariables(obj)
             obj.updateEpsilonValue()
             obj.updateEpsilonInFilter()
         end
-        
+
         function updateEpsilonValue(obj)
             obj.epsilon = obj.target_parameters.epsilon_perimeter;
         end

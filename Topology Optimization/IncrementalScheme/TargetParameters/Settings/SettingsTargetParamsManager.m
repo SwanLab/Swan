@@ -60,8 +60,8 @@ classdef SettingsTargetParamsManager < AbstractSettings
             obj.setIfEmpty('epsilonPerFinal',obj.epsilonInitial);
             obj.setIfEmpty('epsilonIsoInitial',D);
             obj.setIfEmpty('epsilonIsoFinal',obj.epsilonInitial);
-            obj.epsilonPerInitial = 20*D;
-            obj.epsilonPerFinal   = 2*D;
+%             obj.epsilonPerInitial = 100*D; % 20
+%             obj.epsilonPerFinal   = 200*D; % 2
         end
         
         function setIfEmpty(obj,prop,b)

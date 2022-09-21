@@ -78,9 +78,9 @@ classdef ShapeFunctional_Factory < handle
                     cParams.filterParams.femSettings.LHStype = 'AnisotropicDiffReactNeumann';
                     %cParams.designVariable = cParams.designVariable.value;
                     cParams.filterParams.femSettings.isAnisotropyAdded = true;
-                    u = 85;
+                    u = 60;
                     cParams.filterParams.femSettings.CAnisotropic = [tand(u),0;0,1/tand(u)];
-                    cParams.filterParams.femSettings.aniAlphaDeg = 22.5;
+                    cParams.filterParams.femSettings.aniAlphaDeg = 90;
                     cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
                     sF = ShFunc_Perimeter(cParams);
                 otherwise
