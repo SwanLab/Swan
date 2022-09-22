@@ -1,17 +1,17 @@
 classdef ProjectorsTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
-        fastDisp = {
+        FEMtests = {
             'test_P0toP1','test_P1toP0'
             }
     end
         
-    methods (Test, TestTags = {'Projectors', 'Various', 'FastDisp'})
+    methods (Test, TestTags = {'Projectors', 'Various', 'FEMTests'})
 
-        function testFastDisplacement(testCase, fastDisp)
+        function testProjectorsInFEM(testCase, FEMtests)
             s.computerType     = 'PROJECT';
             s.problemType      = 'FEM';
-            s.testName         = fastDisp;
+            s.testName         = FEMtests;
             s.variablesToStore = {'xP'};
             test = PrecomputedVariableTest(s);
             err = test.computeError();
