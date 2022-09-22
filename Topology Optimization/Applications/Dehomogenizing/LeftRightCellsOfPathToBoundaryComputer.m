@@ -9,8 +9,8 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
         allBaricentersCoord
         cellsOfVertex
         isRight
-        cellRight
-        cellLeft
+        isCellLeft
+        isCellRight
     end
     
     methods (Access = public)
@@ -20,13 +20,12 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
         end
         
         function [cR,cL] = compute(obj)
-           obj.computeAllBaricenterCoords();
+            obj.computeAllBaricenterCoords();
             obj.computeInitCells();
             obj.computeIntermidiateCells();
             obj.computeFinalCells()
-            obj.makeCellsUnique();
-            cR = obj.cellRight;
-            cL = obj.cellLeft;
+            cR = obj.isCellRight;
+            cL = obj.isCellLeft;
         end        
         
         function plot(obj)
@@ -41,6 +40,8 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
         function init(obj,cParams)
             obj.mesh         = cParams.mesh;
             obj.pathVertexes = cParams.pathVertexes;
+            obj.isCellRight = false(obj.mesh.nelem,1);            
+            obj.isCellLeft  = false(obj.mesh.nelem,1);            
         end     
         
         function computeAllBaricenterCoords(obj)
@@ -75,7 +76,7 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
                obj.computeCellsOfVertex(v);
                obj.computeCellsOnRight(v,vNew,vOld);
                obj.appendCellsOnRight();
-               obj.appendCellsOnLeft();
+               obj.appendCellsOnLeft();               
            end
        end
         
@@ -94,7 +95,7 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
             aNext = obj.computeEdgeAngle(vOld,v);
             aBar = obj.computeVertexToBaricenterAngle(v);
             itIs = mod(aBar-aPast,2*pi) < mod(aNext-aPast,2*pi);
-            obj.isRight = itIs;  
+            obj.isRight = itIs;
         end              
         
         function alpha = computeEdgeAngle(obj,vertexI,otherVertex)
@@ -112,11 +113,7 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
             u      = obj.computeUnitVector(coordI,coordB);           
             alpha = obj.computeAngle(u);                        
         end        
-        
-        function makeCellsUnique(obj)
-            obj.cellRight = unique(obj.cellRight);
-            obj.cellLeft = unique(obj.cellLeft);            
-        end
+
         
         function computeCellsOfVertex(obj,vertex)
             c = obj.mesh.computeAllCellsOfVertex(vertex);  
@@ -124,30 +121,26 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
         end        
         
         function appendCellsOnRight(obj)
-            c = obj.cellsOfVertex(obj.isRight);
-            n = length(c);            
-            obj.cellRight(end+1:end+n) = c;
+            obj.isCellRight(obj.cellsOfVertex) = obj.isRight;            
         end
         
         function appendCellsOnLeft(obj)
             isLeft = ~obj.isRight;
-            c = obj.cellsOfVertex(isLeft);
-            n = length(c);
-            obj.cellLeft(end+1:end+n) = c;
+            obj.isCellLeft(obj.cellsOfVertex) = isLeft;            
         end
         
         function plotRightCells(obj)
             figure();
             obj.mesh.plot();
             obj.plotVerticesPath();
-            obj.plotLineOfCells(obj.cellRight);                        
+            obj.plotLineOfCells(obj.isCellRight);                        
         end
         
         function plotLeftCells(obj)
             figure();
             obj.mesh.plot();
             obj.plotVerticesPath();
-            obj.plotLineOfCells(obj.cellLeft);            
+            obj.plotLineOfCells(obj.isCellLeft);            
         end        
         
         function plotLineOfCells(obj,cells)

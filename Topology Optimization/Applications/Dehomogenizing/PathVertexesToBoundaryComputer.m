@@ -46,35 +46,7 @@ classdef PathVertexesToBoundaryComputer < handle
     end
     
     methods (Access = private)
-        
-        function computeLeftRightElements(obj)
-        
-            
-            figure
-            hold on
-            obj.plotMesh();
-            obj.plotStraightPath();
-            obj.plotClosestVertex();
-            obj.plotVerticesPath();
-            
-            s.coord = obj.mesh.coord;
-            s.connec = obj.mesh.connec(cR,:);
-            m = Mesh(s);
-            m.plot()
-            
-            
-            figure
-            hold on
-            obj.plotMesh();
-            obj.plotStraightPath();
-            obj.plotClosestVertex();
-            obj.plotVerticesPath();
-            
-         
-            
-        end
-        
-    
+              
         
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
