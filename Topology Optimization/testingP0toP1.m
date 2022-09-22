@@ -33,6 +33,12 @@ ss.origin = 'P0';
 ss.x      = strainFun;
 strainFundisc = projectorDisc.projectProvisional(ss);
 
+%% Lets create a FGaussFun
+x.fValues = permute(fem.variables.strain,[2 1 3]);
+x.connec  = s.mesh.connec;
+x.type    = s.mesh.type;
+strainGaussDiscFun = FGaussDiscontinuousFunction(x);
+
 %% Use this to create results for testing:
 nrows = numel(p1strain.fValues);
 xP = reshape(p1strain.fValues,[nrows,1]);
