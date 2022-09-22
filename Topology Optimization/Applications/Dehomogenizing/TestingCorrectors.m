@@ -122,13 +122,19 @@ classdef TestingCorrectors < handle
             vertex = obj.pathVertexes;
 
             isInPath = [isR isL];
+            
+            isRight = false(obj.mesh.nelem,1);
+            isLeft  = false(obj.mesh.nelem,1);
+            
+            isRight(isR) = true;
+            isLeft(isL) = true;
   
             isCT          = isC(isInPath,:);
             
-            colorEl = cell(size(isC,1),1);
+            colorEl = zeros(size(isC,1),1);
             refEl = 16;
-            colorEl{16} = 'blue';
-            color = {'blue','red'};
+            colorEl(16) = 1;
+            color = [1,2];
             valR    = zeros(size(isInPath));
             for ivertex = 1:length(vertex)
               vI = vertex(ivertex);
@@ -138,19 +144,40 @@ classdef TestingCorrectors < handle
               colorEl = obj.computeIsSameSign(refE,isInCell,signA,colorEl,color);
             end
             colorEl(isInPath)
+            
+            isRed = colorEl == 2;
+            isBlue= colorEl == 1;
+            
+            isPos = (isRight & isRed) | (isLeft  & isBlue);
+            isNeg = (isLeft  & isRed) | (isRight & isBlue);
+            
+            phiV = zeros(obj.mesh.nelem,obj.mesh.nnodeElem);
+            for ivertex = 1:length(vertex)
+                vI = vertex(ivertex);
+                vertexInCell  = obj.mesh.connec(:,:);
+                isInCell      = (vertexInCell == vI);
+                
+                for inode = 1:3
+                    isInCellNode = isInCell(:,inode);
+                    phiV(isInCellNode & isPos,inode) = 0.5;
+                    phiV(isInCellNode & isNeg,inode) = -0.5;
+                end
+
+            end
+            
         end
         
         function colorEl = computeIsSameSign(obj,refE,isInCell,signA,colorEl,colors)
             isSameSign = signA == signA(refE);
             isDifSign  = signA == -signA(refE);
-            colorRef = colorEl{refE};
+            colorRef = colorEl(refE);
             
-            if isequal(colors{1},colorRef)
-                colorEl(isSameSign) = {colors{1}};
-                colorEl(isDifSign)  = {colors{2}};
+            if isequal(colors(1),colorRef)
+                colorEl(isSameSign) = colors(1);
+                colorEl(isDifSign)  = colors(2);
             else
-                colorEl(isSameSign) = {colors{2}};
-                colorEl(isDifSign) = {colors{1}};                
+                colorEl(isSameSign) = colors(2);
+                colorEl(isDifSign) = colors(1);                
             end
             
         end
