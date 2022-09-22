@@ -101,6 +101,13 @@ classdef ProjectorComputer < handle
                     b.connec    = obj.mesh.connec;
                     projector   = Projector_P0toP1(b);
                     obj.funProj = projector.project(obj.fun);
+                case {'P1disc'}
+                    b.mesh      = obj.mesh;
+                    b.connec    = obj.mesh.connec;
+                    projector   = ProjectorToP1discont(b);
+                    s.origin    = obj.projectFrom; % This line will be deleted once RHS works in P1disc
+                    s.x         = obj.fun;
+                    obj.funProj = projector.projectProvisional(s);
             end
         end
 

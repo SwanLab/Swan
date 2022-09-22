@@ -27,6 +27,12 @@ bb.connec = s.mesh.connec;
 projector = Projector_P0toP1(bb);
 p1strain = projector.project(strainFun);
 
+%% toP1disc
+projectorDisc = ProjectorToP1discont(bb);
+ss.origin = 'P0';
+ss.x      = strainFun;
+strainFundisc = projectorDisc.projectProvisional(ss);
+
 %% Use this to create results for testing:
 nrows = numel(p1strain.fValues);
 xP = reshape(p1strain.fValues,[nrows,1]);

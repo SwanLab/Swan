@@ -34,6 +34,47 @@ classdef ProjectorToP1discont < handle
 %             RHS = obj.computeRHS(x);
         end
 
+        function xFun = projectProvisional(obj,cParams) % THIS WILL BE DELETED ONCE RHS IS OK
+            origin = cParams.origin;
+            x      = cParams.x;
+            switch origin
+                case {'P0'}
+                    dim      = 1;
+                    ndim  = size(x.fValues, 1);
+                    nnodeElem = size(obj.connec,2);
+                    fEl = squeeze(x.fValues(dim,:,:));
+                    fRepeated = zeros(ndim, size(fEl,1), nnodeElem);
+                    for idim = 1:ndim
+                        fEl = squeeze(x.fValues(idim,:,:));
+                        for iNode = 1:nnodeElem
+                            fRepeated(idim, :,iNode) = fEl;
+                        end
+                    end
+                    fD = permute(fRepeated, [1 3 2]);
+                    fD = fD(1,:,:);
+                    s.fValues = fD;
+                    s.connec  = obj.connec;
+                    s.type    = obj.mesh.type;
+                    xFun      = P1DiscontinuousFunction(s);
+                case {'P1'}
+                    f = x.fValues;
+                    nNode  = size(obj.connec,2);
+                    nDime  = size(f,2);
+                    nElem  = size(obj.connec,1);
+                    fNodeElem = zeros(nDime,nNode,nElem);
+                    fNods  = transpose(f);
+                    for inode = 1:nNode
+                        nodes = obj.connec(:,inode);
+                        fNode = fNods(:,nodes);
+                        fNodeElem(:,inode,:) = fNode;
+                    end
+                    s.fValues = fNodeElem;
+                    s.connec = obj.connec;
+                    s.type   = obj.mesh.type;
+                    xFun = P1DiscontinuousFunction(s);
+            end
+        end
+
     end
 
     methods (Access = private)

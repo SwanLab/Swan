@@ -30,6 +30,10 @@ u_P0 = projector2.project(uFun);
 projectorDisc = ProjectorToP1discont(cc);
 % projectorDisc.project(uFun);
 
+ss.origin = 'P1';
+ss.x      = uFun;
+uFundisc = projectorDisc.projectProvisional(ss);
+
 %% Plot using P0Function
 % u_P0.plot(s.mesh);
 
