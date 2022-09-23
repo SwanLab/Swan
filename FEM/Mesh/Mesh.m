@@ -111,7 +111,11 @@ classdef Mesh < handle
         end
         
         function xV = computeBaricenter(obj)
-            xV = obj.xFE.computeValueInCenterElement();
+            s.mesh   = obj;
+            s.connec = obj.connec;
+            projector = Projector_P1toP0(s);
+            xVf = projector.project(obj.xFE);
+            xV  = squeeze(xVf.fValues);
         end
         
         function xGauss = computeXgauss(obj,xV)

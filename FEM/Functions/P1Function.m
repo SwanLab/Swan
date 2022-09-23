@@ -19,17 +19,6 @@ classdef P1Function < FeFunction
             obj.createInterpolation();
         end
 
-        function fC = computeValueInCenterElement(obj)
-            % Goal: delete this function
-            % Yields a different result from projecting to P0 (possibly due
-            % to quadrature order?)
-            q = Quadrature.set(obj.type);
-            q.computeQuadrature('CONSTANT');
-            xV = q.posgp;
-            fCenter = obj.evaluate(xV);
-            fC = squeeze(fCenter);
-        end
-
         function dF = computeDiscontinuousField(obj)
             % Goal: use this function
             fRep = obj.repeatFunctionAtNodes();
@@ -59,26 +48,6 @@ classdef P1Function < FeFunction
         function createInterpolation(obj)
             m.type = obj.type;
             obj.interpolation = Interpolation.create(m,'LINEAR');
-        end
-
-        function fxV = evaluate(obj,xV) % Previously interpolateFunction
-            % Note: function moved to P1DiscontinuousFunction
-            % What shall we do here?
-            fDfun = obj.computeDiscontinuousField();
-            fVals = fDfun.fValues;
-            obj.interpolation.computeShapeDeriv(xV);
-            shapes = obj.interpolation.shape;
-            nNode  = size(shapes,1);
-            nGaus  = size(shapes,2);
-            nF     = size(fVals,1);
-            nElem  = size(fVals,3);
-            fxV = zeros(nF,nGaus,nElem);
-            for kNode = 1:nNode
-                shapeKJ = shapes(kNode,:,:);
-                fKJ     = fVals(:,kNode,:);
-                f = bsxfun(@times,shapeKJ,fKJ);
-                fxV = fxV + f;
-            end
         end
 
         function fRep = repeatFunctionAtNodes(obj)

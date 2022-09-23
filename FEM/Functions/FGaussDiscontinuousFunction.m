@@ -3,6 +3,9 @@ classdef FGaussDiscontinuousFunction < FeFunction
     properties (Access = private)
         connec
         type
+    end
+    
+    properties (Access = private)
         xG
     end
     
@@ -35,6 +38,7 @@ classdef FGaussDiscontinuousFunction < FeFunction
             obj.fValues = cParams.fValues;
             obj.connec  = cParams.connec;
             obj.type    = cParams.type;
+%             obj.xGauss  = cParams.xGauss;
         end
 
         function checkGaussPoints(obj)
