@@ -16,8 +16,9 @@ classdef TestingCorrectors < handle
        pathVertexes
        isCellLeft
        isCellRight
-       isInCellOld
        isVertexInCell
+       areVertexCoherent
+       referenceCells
     end
     
     methods (Access = public)
@@ -32,7 +33,8 @@ classdef TestingCorrectors < handle
             obj.createBoundaryPoint();
             obj.computePathToBoundary();
             obj.createLeftRightPathElements();   
-            obj.createSymmetricMapCond();
+            obj.computeCoherentOrientation();
+            obj.createCorrector();
         end
         
     end
@@ -123,7 +125,7 @@ classdef TestingCorrectors < handle
             
             obj.singularityCoord(:,2) = sCoord(:,2)+0.1;
         end
-        
+
         function createBoundaryPoint(obj)
         %    obj.boundaryPointCoord = [0 150];
         %    obj.boundaryPointCoord = [0.5 1.75];
@@ -149,95 +151,27 @@ classdef TestingCorrectors < handle
             l.plot();            
             obj.isCellLeft  = cL;
             obj.isCellRight = cR;
-        end         
+        end                     
         
-        
-        function isVertexOfCell = computeReferenceCell(obj,ivertex)
-            isInCell = obj.isVertexInCell;
-            if ivertex == 1
-                isVertexOfCell = any(isInCell,2);
-                isVertexOfCell = find(isVertexOfCell);
-                isVertexOfCell = isVertexOfCell(1);
-            else
-                isVertexOfCell = any(obj.isInCellOld,2) & any(isInCell,2);
-                isVertexOfCell = find(isVertexOfCell);
-                isVertexOfCell = isVertexOfCell(1);
-            end
-        end
-        
-        function createSymmetricMapCond(obj)   
+        function computeCoherentOrientation(obj)
             s.mesh        = obj.mesh.createDiscontinousMesh();
             s.orientation = obj.createDiscontinousField(obj.orientation);
             c = CoherentOrientationSelector(s);
-            isVertexOfCellCoherent = c.isOrientationCoherent();
-            
-
-            isUpperCell  = false(obj.mesh.nelem,1);            
-            
-            vertex = obj.pathVertexes;
-
-            phiV = zeros(obj.mesh.nelem,obj.mesh.nnodeElem);
-            
-            
-            for ivertex = 1:length(vertex)
-                vI = vertex(ivertex);
-                obj.isVertexInCell = obj.computeIsVertexInCell(vI);
-                
-                
-                isVertexInCellCoherent    = any(obj.isVertexInCell & isVertexOfCellCoherent,2);
-                isVertexInCellNotCoherent = any(obj.isVertexInCell & ~isVertexOfCellCoherent,2);
-                
-                
-                refE = obj.computeReferenceCell(ivertex);
-                
-                if isVertexInCellCoherent(refE)
-                    isSameCoherent = isVertexInCellCoherent;
-                    isOppositeCoh  = isVertexInCellNotCoherent;
-                else
-                    isSameCoherent = isVertexInCellNotCoherent;
-                    isOppositeCoh  = isVertexInCellCoherent;
-                end
-              
-
-                isUpperCell(isSameCoherent) = isUpperCell(refE);
-                isUpperCell(isOppositeCoh)  = ~isUpperCell(refE);
-                
-                isCellPos = (obj.isCellRight & ~isUpperCell) | (obj.isCellLeft  & isUpperCell);
-                
-                n = obj.mesh.nnodeElem;
-                isCellPosR = repmat(isCellPos,1,n);
-                
-                phiV(obj.isVertexInCell & isCellPosR)  = 0.5;
-                phiV(obj.isVertexInCell & ~isCellPosR) = -0.5;
-                
-                obj.isInCellOld = obj.isVertexInCell;
-            end
-            
-            
-            meshD = obj.mesh.createDiscontinousMesh();
-            
-            figure()
-            s.mesh  = meshD;
-            phiV = phiV';
-            s.field = phiV;
-            n = NodalFieldPlotter(s);
-            n.plot();
-            shading interp    
-            
-            figure()
-            x = meshD.coord(:,1);
-            y = meshD.coord(:,2);
-            z = phiV;
-            [~,h] = tricontour(meshD.connec,x,y,z,50);
-            set(h,'LineWidth',5);
-            colorbar            
-            
-        end
-        
-        function itIs = computeIsVertexInCell(obj,vertex)
-            vertexInCell  = obj.mesh.connec;
-            itIs = (vertexInCell == vertex);        
+            aC = c.isOrientationCoherent();
+            obj.areVertexCoherent = aC;
         end        
+        
+       
+        function createCorrector(obj)   
+            s.isCellLeft        = obj.isCellLeft;
+            s.isCellRight       = obj.isCellRight;
+            s.areVertexCoherent = obj.areVertexCoherent;
+            s.pathVertexes      = obj.pathVertexes;
+            s.mesh              = obj.mesh;
+            c = CorrectorComputer(s);
+            phiV = c.compute();
+            c.plot()
+        end
         
         function fD = createDiscontinousField(obj,fValues)
             s.connec = obj.mesh.connec;
@@ -245,9 +179,10 @@ classdef TestingCorrectors < handle
             s.fNodes = fValues;
             f = FeFunction(s);            
             fD = f.computeDiscontinousField();
-        end        
-        
+        end         
         
     end
+    
+
     
 end
