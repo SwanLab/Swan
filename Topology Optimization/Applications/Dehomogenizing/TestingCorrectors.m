@@ -19,15 +19,17 @@ classdef TestingCorrectors < handle
        isVertexInCell
        areVertexCoherent
        referenceCells
+       symCond
+       correctorValue
     end
     
     methods (Access = public)
         
         function obj = TestingCorrectors()
-            obj.createMesh();            
-            obj.createOrientation();                 
-          %  obj.createBenchmarkMesh();            
-         %   obj.createBenchmarkOrientation();            
+           obj.createMesh();            
+           obj.createOrientation();                 
+   %         obj.createBenchmarkMesh();            
+   %         obj.createBenchmarkOrientation();            
             obj.plotOrientationVector();
             obj.computeSingularities();
             obj.createBoundaryPoint();
@@ -35,6 +37,8 @@ classdef TestingCorrectors < handle
             obj.createLeftRightPathElements();   
             obj.computeCoherentOrientation();
             obj.createCorrector();
+            obj.solveProjection();
+            obj.createSymmetricMapCond();
         end
         
     end
@@ -127,10 +131,10 @@ classdef TestingCorrectors < handle
         end
 
         function createBoundaryPoint(obj)
-        %    obj.boundaryPointCoord = [0 150];
-        %    obj.boundaryPointCoord = [0.5 1.75];
-           obj.boundaryPointCoord(:,1) = 1.75;            
-           obj.boundaryPointCoord(:,2) = obj.singularityCoord(:,2);
+            obj.boundaryPointCoord = [0 150];
+       %     obj.boundaryPointCoord = [0.5 1.75];
+        %   obj.boundaryPointCoord(:,1) = 1.75;            
+        %   obj.boundaryPointCoord(:,2) = obj.singularityCoord(:,2);
 
         end
         
@@ -169,9 +173,46 @@ classdef TestingCorrectors < handle
             s.pathVertexes      = obj.pathVertexes;
             s.mesh              = obj.mesh;
             c = CorrectorComputer(s);
-            phiV = c.compute();
-            c.plot()
+            cV = c.compute();
+            c.plot()                        
+            obj.correctorValue = cV;
         end
+        
+        function fGauss = createCorrectorGradient(obj)
+            cV = obj.correctorValue;
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('LINEAR');  
+            
+            int = Interpolation.create(obj.mesh,obj.mesh.interpolation.order);
+            int.computeShapeDeriv(q.posgp); 
+            dN = int.deriv;
+            fGauss = zeros(obj.mesh.nelem,q.ngaus);
+            for igaus = 1:q.ngaus
+                for iNode = 1:size(dN,2)
+                    grad = dN(igaus,iNode)*cV(:,iNode);
+                    fGauss(:,igaus) = fGauss(:,igaus) + grad;
+                end
+            end            
+        end
+        
+        function solveProjection(obj)
+
+            s.mesh     = obj.mesh;
+            s.fGauss   = obj.createCorrectorGradient();
+            s.fValues  = obj.orientation';            
+            
+            m = MinimumDiscGradFieldWithVectorInL2(s);
+            f = m.solve();
+        end
+        
+        function createSymmetricMapCond(obj)   
+            s.meshCont  = obj.mesh;
+            s.meshDisc  = obj.mesh.createDiscontinousMesh();
+            s.fieldDisc =  obj.createDiscontinousField(obj.orientation);
+            s = SymmetricContMapCondition(s);            
+            sC = s.computeCondition();
+            obj.symCond = sC;            
+        end              
         
         function fD = createDiscontinousField(obj,fValues)
             s.connec = obj.mesh.connec;
