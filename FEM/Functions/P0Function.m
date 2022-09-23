@@ -30,7 +30,7 @@ classdef P0Function < FeFunction
         end
 
         function plot(obj, m)
-            p1DiscFun = obj.computeP1DiscontinuousFunction();
+            p1DiscFun = obj.computeP1DiscontinuousFunction(); % replace with a projector
             p1DiscFun.plot(m);
         end
 

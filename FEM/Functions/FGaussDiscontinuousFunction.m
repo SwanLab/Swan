@@ -16,35 +16,23 @@ classdef FGaussDiscontinuousFunction < FeFunction
         end
 
         function fxV = evaluate(obj, xV)
-            obj.checkGaussPoints();
-            nGaus  = size(obj.xG,2);
-            func   = obj.fValues;
-            for kGaus = 1:nGaus
-                if xV == obj.xG(:,kGaus)
-                    fxV = func(:,kGaus,:);
-                end
-            end
+            assert(xV==obj.quadrature.posgp, 'Gauss points do not match')
+            fxV = obj.fValues;
         end
 
-%         function plot(obj, m)
-            % I DON'T KNOW AT WHICH EXTENT IT MAKES SENSE TO PLOT A FGAUSSDISCFUN
-%         end
+        function plot(obj, m)
+            % Plot using a P1 Disc function
+        end
 
     end
     
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.fValues = cParams.fValues;
-            obj.connec  = cParams.connec;
-            obj.type    = cParams.type;
-%             obj.xGauss  = cParams.xGauss;
-        end
-
-        function checkGaussPoints(obj)
-            q = Quadrature.set(obj.type);
-            q.computeQuadrature('LINEAR');
-            obj.xG = q.posgp;
+            obj.fValues    = cParams.fValues;
+            obj.connec     = cParams.connec;
+            obj.type       = cParams.type;
+            obj.quadrature = cParams.quadrature;
         end
         
     end

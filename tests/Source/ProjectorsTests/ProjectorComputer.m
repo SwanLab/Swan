@@ -107,7 +107,7 @@ classdef ProjectorComputer < handle
                     projector   = ProjectorToP1discont(b);
                     s.origin    = obj.projectFrom; % This line will be deleted once RHS works in P1disc
                     s.x         = obj.fun;
-                    obj.funProj = projector.projectProvisional(s);
+                    obj.funProj = projector.project(s);
             end
         end
 

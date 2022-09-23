@@ -24,17 +24,17 @@ classdef ProjectorToP1discont < handle
 
         function obj = ProjectorToP1discont(cParams)
             obj.init(cParams);
-            obj.createDiscontinuousMesh();
+%             obj.createDiscontinuousMesh();
             obj.createQuadrature();
-            obj.createField();
+%             obj.createField();
         end
 
-        function xFun = project(obj, x)
-            LHS = obj.computeLHS();
+%         function xFun = project(obj, x)
+%             LHS = obj.computeLHS();
 %             RHS = obj.computeRHS(x);
-        end
+%         end
 
-        function xFun = projectProvisional(obj,cParams) % THIS WILL BE DELETED ONCE RHS IS OK
+        function xFun = project(obj,cParams) % THIS WILL BE DELETED ONCE RHS IS OK
             origin = cParams.origin;
             x      = cParams.x;
             switch origin

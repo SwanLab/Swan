@@ -16,8 +16,6 @@ z.connec  = s.mesh.connec;
 z.type    = s.mesh.type;
 z.fValues = u;
 uFun = P1Function(z);
-uFunD = uFun.computeDiscontinuousField();
-
 
 %% Create the projector
 % To P0

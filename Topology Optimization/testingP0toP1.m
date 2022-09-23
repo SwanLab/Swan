@@ -31,7 +31,7 @@ p1strain = projector.project(strainFun);
 projectorDisc = ProjectorToP1discont(bb);
 ss.origin = 'P0';
 ss.x      = strainFun;
-strainFundisc = projectorDisc.projectProvisional(ss);
+strainFundisc = projectorDisc.project(ss);
 
 %% Lets create a FGaussFun
 x.fValues = permute(fem.variables.strain,[2 1 3]);

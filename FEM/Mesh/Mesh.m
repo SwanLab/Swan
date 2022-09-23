@@ -119,8 +119,7 @@ classdef Mesh < handle
         end
         
         function xGauss = computeXgauss(obj,xV)
-            xFEdisc = obj.xFE.computeDiscontinuousField();
-            xGauss = xFEdisc.evaluate(xV);
+            xGauss = obj.xFE.evaluate(xV);
         end
         
         function dvolume = computeDvolume(obj,quad)
@@ -219,13 +218,8 @@ classdef Mesh < handle
             ndims = size(obj.coord, 2);
             nNodesDisc = obj.nnodeElem*obj.nelem;
             nodesDisc  = 1:nNodesDisc;
-            connecDisc = reshape(nodesDisc,obj.nnodeElem,obj.nelem)';            
-            s.connec  = obj.connec;
-            s.type    = obj.type;
-            s.fValues = obj.coord;
-            coordF  = P1Function(s);
-            coordDF = coordF.computeDiscontinuousField();
-            coordD = reshape(coordDF.fValues, [ndims, nNodesDisc])';
+            connecDisc = reshape(nodesDisc,obj.nnodeElem,obj.nelem)';
+            coordD = reshape(obj.xFE.fValues, [ndims, nNodesDisc])';
             s.connec = connecDisc;
             s.coord  = coordD;
             mD = Mesh(s);
@@ -294,15 +288,25 @@ classdef Mesh < handle
         
         function computeElementCoordinates(obj)
             obj.computeCoordFEfunction();
-            coordFun = obj.xFE.computeDiscontinuousField();
-            obj.coordElem = coordFun.fValues;
+            obj.coordElem = obj.xFE.fValues;
+        end
+
+        function p1d = projectToP1Discontinuous(obj, f)
+            s.mesh   = obj;
+            s.connec = obj.connec;
+            s.type   = obj.type;
+            sP.origin = 'P1';
+            sP.x = f;
+            p = ProjectorToP1discont(s);
+            p1d = p.project(sP);
         end
         
         function computeCoordFEfunction(obj)
-            s.connec  = obj.connec;
-            s.type    = obj.type;
+            s.type = obj.type;
+            s.connec = obj.connec;
             s.fValues = obj.coord;
-            obj.xFE = P1Function(s);
+            coordP1 = P1Function(s);
+            obj.xFE = obj.projectToP1Discontinuous(coordP1);
         end
         
         function L = computeSquarePerimeter(obj)

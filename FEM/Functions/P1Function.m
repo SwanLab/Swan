@@ -19,17 +19,28 @@ classdef P1Function < FeFunction
             obj.createInterpolation();
         end
 
-        function dF = computeDiscontinuousField(obj)
-            % Goal: use this function
-            fRep = obj.repeatFunctionAtNodes();
-            s.fValues = fRep;
-            s.connec = obj.connec;
-            s.type   = obj.type;
-            dF = P1DiscontinuousFunction(s);
+        function fxV = evaluate(obj, xV)
+            obj.interpolation.computeShapeDeriv(xV);
+            shapes = obj.interpolation.shape;
+            nNode  = size(shapes,1);
+            nGaus  = size(shapes,2);
+            nF     = size(obj.fValues,2);
+            nElem  = size(obj.connec,1);
+            fxV = zeros(nF,nGaus,nElem);
+            for iGaus = 1:nGaus
+                for iNode = 1:nNode
+                    node = obj.connec(:,iNode);
+                    Ni = shapes(iNode,iGaus,:);
+                    fi = obj.fValues(node,:);
+                    f(:,1,:) = Ni*fi';
+                    fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
+                end
+            end
+
         end
 
         function plot(obj, m) % 2D domains only
-            p1DiscFun = obj.computeDiscontinuousField();
+            p1DiscFun = obj.computeDiscontinuousField(); % replace with a projector
             p1DiscFun.plot(m);
         end
 
@@ -41,6 +52,15 @@ classdef P1Function < FeFunction
             obj.connec = cParams.connec;
             obj.type   = cParams.type;
             obj.fValues = cParams.fValues;
+        end
+
+        function dF = computeDiscontinuousField(obj)
+            % Goal: use this function
+            fRep = obj.repeatFunctionAtNodes();
+            s.fValues = fRep;
+            s.connec = obj.connec;
+            s.type   = obj.type;
+            dF = P1DiscontinuousFunction(s);
         end
 
         function createInterpolation(obj)
