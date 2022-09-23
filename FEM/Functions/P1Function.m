@@ -29,10 +29,8 @@ classdef P1Function < FeFunction
         end
 
         function plot(obj, m) % 2D domains only
-            % Goal: use the P1DiscontinuousFunction instead
-            dim = 1;
-            figure()
-            trisurf(m.connec, m.coord(:,1), m.coord(:,2), obj.fValues(:,dim))
+            p1DiscFun = obj.computeDiscontinuousField();
+            p1DiscFun.plot(m);
         end
 
     end

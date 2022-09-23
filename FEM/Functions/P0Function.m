@@ -30,13 +30,8 @@ classdef P0Function < FeFunction
         end
 
         function plot(obj, m)
-%             f1 = obj.computeP1DiscontinuousFunction(); %public
-%             f1.plot();
-            [mD, fD] = obj.createDiscontinuousP0(m);
-            coord  = mD.coord;
-            connec = mD.connec;
-            figure()
-            trisurf(connec, coord(:,1), coord(:,2), fD)
+            p1DiscFun = obj.computeP1DiscontinuousFunction();
+            p1DiscFun.plot(m);
         end
 
     end
@@ -47,13 +42,6 @@ classdef P0Function < FeFunction
             obj.fValues = cParams.fValues;
             obj.connec  = cParams.connec; % Needed for discontinuous
             obj.type    = cParams.type;
-        end
-
-        function [mD, fD] = createDiscontinuousP0(obj, m)
-            dim = 1;
-            mD = m.createDiscontinuousMesh();
-            fDmat = obj.createDiscontinuousFunction();
-            fD = fDmat(dim,:,:);
         end
 
         function createFvaluesByElem(obj)

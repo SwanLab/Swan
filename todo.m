@@ -15,10 +15,11 @@
 
 %% Cases
 % Six first cases as tests:
-%  - P0 to P1 continuous - DONE!
+%  - P0 to P1 continuous    - DONE!
 %  - P0 to P1 discontinuous - DONE!
-%  - P1 contiuous to P0 - DONE!
-%  - P1 discontiuous to P0
+%  - P1 contiuous to P0     - DONE!*
+%       - Converts to P1 discontinuous and projects
+%  - P1 discontiuous to P0  - NEEDED?*
 %  - FgaussDiscontinuous to P0
 %  - FgaussDiscontinuous to P1 continuous
 %  - FgaussDiscontinuous to P1 discontinuous (*)
@@ -33,14 +34,6 @@
 %       - case fGaussDiscont: ?
 
 %%
-
-% Delete computeValueInCenterElement in P1Function
-% Think about computeDiscontinousField in P1Function (should return a P1
-%   discontinuous function. More dofs, nodes between elements are not coupled)
-%   - computeFnodesByelem is really a p1 discont function. perhaps rename
-%     to transform or sth like that. move to discont.
-
-% remove computeDiscontinousField 
 
 % Create tests for these functions
 %   - White circle in a black square (create using levelset, compare volumes)
