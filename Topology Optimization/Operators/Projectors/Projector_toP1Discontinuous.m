@@ -1,41 +1,55 @@
-classdef Projector_toP1 < handle
+classdef Projector_toP1Discontinuous < handle
+
+    properties (Access = public)
+
+    end
 
     properties (Access = private)
         mesh
         connec
         quadOrder
-        quadrature
-        field
     end
-    
+
+    properties (Access = private)
+        meshD
+        field
+        quadrature
+    end
+
     methods (Access = public)
 
-        function obj = Projector_toP1(cParams)
+        function obj = Projector_toP1Discontinuous(cParams)
             obj.init(cParams);
+            obj.createDiscontinuousMesh();
             obj.createQuadrature();
             obj.createField();
         end
 
-        function xFun = project(obj, x)
+        function xProj = project(obj, x)
             LHS = obj.computeLHS();
             RHS = obj.computeRHS(x);
-            xProj = LHS\RHS;
+            f = LHS\RHS;
+            fVals = obj.reshapeFValues(f, x.ndimf);
             s.type    = obj.mesh.type;
             s.connec  = obj.mesh.connec;
-            s.fValues = xProj;
-            xFun = P1Function(s);
+            s.fValues = fVals;
+            xProj = P1DiscontinuousFunction(s);
         end
 
     end
 
     methods (Access = private)
-        
+
         function init(obj, cParams)
             obj.mesh   = cParams.mesh;
             obj.connec = cParams.connec;
             obj.quadOrder = 'LINEAR';
         end
-        
+
+        function createDiscontinuousMesh(obj)
+            obj.meshD = obj.mesh.createDiscontinuousMesh();
+        end
+
         function q = createQuadrature(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature(obj.quadOrder);
@@ -43,16 +57,16 @@ classdef Projector_toP1 < handle
         end
 
         function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1; 
+            s.mesh               = obj.meshD;
+            s.ndimf              = 1;
             s.interpolationOrder = 'LINEAR';
             s.quadratureOrder    = 'QUADRATIC';
             obj.field = Field(s);
         end
-        
+
         function LHS = computeLHS(obj)
             s.type  = 'MassMatrix';
-            s.mesh  = obj.mesh;
+            s.mesh  = obj.meshD;
             s.field = obj.field;
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
@@ -60,17 +74,17 @@ classdef Projector_toP1 < handle
 
         function RHS = computeRHS(obj,fun)
             xV = obj.quadrature.posgp;
-            dV = obj.mesh.computeDvolume(obj.quadrature);
-            obj.mesh.interpolation.computeShapeDeriv(xV);
-            shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
-            conne = obj.mesh.connec;
+            dV = obj.meshD.computeDvolume(obj.quadrature);
+            obj.meshD.interpolation.computeShapeDeriv(xV);
+            shapes = permute(obj.meshD.interpolation.shape,[1 3 2]);
+            conne = obj.meshD.connec;
 
             nGaus = obj.quadrature.ngaus;
             nFlds = fun.ndimf;
-            nElem = obj.mesh.nelem;
+            nElem = obj.meshD.nelem;
             nNods = size(shapes,1);
             nNode = size(conne,2);
-            nDofs = obj.mesh.nnodes;
+            nDofs = obj.meshD.nnodes;
 
             rhs = zeros(nNods,nElem, nFlds);
             f = zeros(nDofs,nFlds);
@@ -91,13 +105,15 @@ classdef Projector_toP1 < handle
             end
             RHS = f;
         end
-        
-        function shapes = computeShapeFunctions(obj, xG)
-            int = Interpolation.create(obj.mesh,'LINEAR');
-            int.computeShapeDeriv(xG);
-            shapes = permute(int.shape,[1 3 2]);
+
+        function fVals = reshapeFValues(obj, x, nFlds)
+            nElem = obj.meshD.nelem;
+            nNode = obj.meshD.nnodeElem;
+%             fRshp = reshape(x, [nNode, nFlds, nElem]);
+%             fVals = permute(fRshp, [2 1 3]);
+            fVals = reshape(x',nFlds, nNode, nElem);
         end
-        
+
     end
 
 end

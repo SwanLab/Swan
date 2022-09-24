@@ -13,8 +13,9 @@ femU      = reshape(fem.variables.d_u,[s.mesh.ndim,s.mesh.nnodes])';
 
 %% Create functions
 % P0 Function
-z.fValues = femStrain;
-% z.fValues = femStrain(:,1:2);
+% z.fValues = femStrain;
+z.fValues = femStrain(:,1:2);
+% z.fValues = femStrain(:,2);
 z.connec  = s.mesh.connec;
 z.type    = s.mesh.type;
 sigP0 = P0Function(z);
@@ -71,3 +72,12 @@ resP1DtoP1 = projP1.project(uP1D);
 
 % FGauss function to P1
 resFgtoP1 = projP1.project(uFg);
+
+%% Projection to P1 Discontinuous
+% Create the projector
+pp1d.mesh   = s.mesh;
+pp1d.connec = s.mesh.connec;
+projP1D = Projector_toP1Discontinuous(pp1d);
+
+% P0 to P1 Discontinuous
+resP0toP1D = projP1D.project(sigP0);
