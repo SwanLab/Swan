@@ -75,12 +75,11 @@ classdef Projector_P0toP1 < handle
 
             rhs = zeros(nNods,nElem, nFlds);
             f = zeros(nDofs,nFlds);
+            fGaus = fun.evaluate(xV);
             for igaus = 1:nGaus
-                % fGaus = ...;
                 dVg(:,1) = dV(igaus, :);
                 for iField = 1:nFlds
-%                     fG = fun.evaluate(xV); %ideal
-                    fG = squeeze(fun.fValues(iField,:,:));
+                    fG = squeeze(fGaus(iField,:,:));
                     fdVg = fG.*dVg;
                     Ni = shapes(:,:, igaus);
                     rhs(:,:,iField) = rhs(:,:,iField) + bsxfun(@times,Ni,fdVg');

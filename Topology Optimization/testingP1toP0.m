@@ -18,7 +18,7 @@ z.fValues = u;
 uFun = P1Function(z);
 
 %% Create the projector
-% To P0
+% To P0 
 cc.mesh   = s.mesh;
 cc.connec = s.mesh.connec;
 projector2 = Projector_P1toP0(cc);
@@ -26,11 +26,9 @@ u_P0 = projector2.project(uFun);
 
 % To P1 Discontinuous
 projectorDisc = ProjectorToP1discont(cc);
-% projectorDisc.project(uFun);
-
 ss.origin = 'P1';
 ss.x      = uFun;
-uFundisc = projectorDisc.projectProvisional(ss);
+uFundisc = projectorDisc.project(ss);
 
 %% Plot using P0Function
 % u_P0.plot(s.mesh);

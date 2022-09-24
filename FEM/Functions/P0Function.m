@@ -42,6 +42,7 @@ classdef P0Function < FeFunction
             obj.fValues = cParams.fValues;
             obj.connec  = cParams.connec; % Needed for discontinuous
             obj.type    = cParams.type;
+            obj.ndimf   = size(cParams.fValues,2);
         end
 
         function createFvaluesByElem(obj)

@@ -47,11 +47,10 @@ classdef Projector_P1toP0 < handle
         end
 
         function rhs = createRHS(obj, fun)
-            fVals = fun.fValues;
             dV = obj.mesh.computeDvolume(obj.quadrature);
             xV = obj.quadrature.posgp;
             nGaus  = obj.quadrature.ngaus;
-            nF     = size(fVals,2);
+            nF     = fun.ndimf;
             nElem  = size(obj.mesh.connec,1);
             rhs = zeros(nElem,nF);
             fGaus = fun.evaluate(xV);

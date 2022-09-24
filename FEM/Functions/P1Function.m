@@ -49,9 +49,10 @@ classdef P1Function < FeFunction
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.connec = cParams.connec;
-            obj.type   = cParams.type;
+            obj.connec  = cParams.connec;
+            obj.type    = cParams.type;
             obj.fValues = cParams.fValues;
+            obj.ndimf   = size(cParams.fValues,2);
         end
 
         function dF = computeDiscontinuousField(obj)

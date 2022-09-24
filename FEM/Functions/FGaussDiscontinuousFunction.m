@@ -1,12 +1,12 @@
 classdef FGaussDiscontinuousFunction < FeFunction
     
     properties (Access = private)
-        connec
         type
+        connec
+        quadrature
     end
     
     properties (Access = private)
-        xG
     end
     
     methods (Access = public)
@@ -16,7 +16,7 @@ classdef FGaussDiscontinuousFunction < FeFunction
         end
 
         function fxV = evaluate(obj, xV)
-            assert(xV==obj.quadrature.posgp, 'Gauss points do not match')
+            assert(isequal(xV, obj.quadrature.posgp), 'Gauss points do not match')
             fxV = obj.fValues;
         end
 
@@ -33,6 +33,7 @@ classdef FGaussDiscontinuousFunction < FeFunction
             obj.connec     = cParams.connec;
             obj.type       = cParams.type;
             obj.quadrature = cParams.quadrature;
+            obj.ndimf      = size(cParams.fValues,1);
         end
         
     end

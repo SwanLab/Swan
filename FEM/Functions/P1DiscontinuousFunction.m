@@ -58,6 +58,7 @@ classdef P1DiscontinuousFunction < FeFunction
             obj.fValues = cParams.fValues;
             obj.connec  = cParams.connec;
             obj.type    = cParams.type;
+            obj.ndimf   = size(cParams.fValues,1);
         end
 
         function createInterpolation(obj)
