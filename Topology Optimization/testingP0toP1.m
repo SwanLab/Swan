@@ -24,7 +24,7 @@ strainP1Disc = strainFun.computeP1DiscontinuousFunction();
 %% Create projector
 bb.mesh   = s.mesh;
 bb.connec = s.mesh.connec;
-projector = Projector_P0toP1(bb);
+projector = Projector_toP1(bb);
 p1strain = projector.project(strainFun);
 
 %% toP1disc

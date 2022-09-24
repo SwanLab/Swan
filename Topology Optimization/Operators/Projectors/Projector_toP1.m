@@ -1,6 +1,5 @@
-classdef Projector_P0toP1 < handle
+classdef Projector_toP1 < handle
 
-    % Projector_toP1
     properties (Access = private)
         mesh
         connec
@@ -11,7 +10,7 @@ classdef Projector_P0toP1 < handle
     
     methods (Access = public)
 
-        function obj = Projector_P0toP1(cParams)
+        function obj = Projector_toP1(cParams)
             obj.init(cParams);
             obj.createQuadrature();
             obj.createField();

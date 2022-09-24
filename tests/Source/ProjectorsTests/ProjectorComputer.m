@@ -99,7 +99,7 @@ classdef ProjectorComputer < handle
                 case {'P1'}
                     b.mesh      = obj.mesh;
                     b.connec    = obj.mesh.connec;
-                    projector   = Projector_P0toP1(b);
+                    projector   = Projector_toP1(b);
                     obj.funProj = projector.project(obj.fun);
                 case {'P1disc'}
                     b.mesh      = obj.mesh;

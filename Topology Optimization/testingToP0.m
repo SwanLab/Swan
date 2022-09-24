@@ -44,15 +44,30 @@ uFg = FGaussDiscontinuousFunction(x);
 
 %% Projection to P0
 % Create the projector
-pp.mesh   = s.mesh;
-pp.connec = s.mesh.connec;
-projP0 = Projector_toP0(pp);
+pp0.mesh   = s.mesh;
+pp0.connec = s.mesh.connec;
+projP0 = Projector_toP0(pp0);
 
 % P1 to P0
-resP1 = projP0.project(uP1);
+resP1toP0 = projP0.project(uP1);
 
 % P1 Discontinuous to P0
-resP1D = projP0.project(uP1D);
+resP1DtoP0 = projP0.project(uP1D);
 
-% P1 Discontinuous to P0
-resFg = projP0.project(uFg);
+% FGauss function to P0
+resFgtoP0 = projP0.project(uFg);
+
+%% Projection to P1
+% Create the projector
+pp1.mesh   = s.mesh;
+pp1.connec = s.mesh.connec;
+projP1 = Projector_toP1(pp1);
+
+% P0 to P1
+resP0toP1 = projP1.project(sigP0);
+
+% P1 Discontinuous to P1
+resP1DtoP1 = projP1.project(uP1D);
+
+% FGauss function to P1
+resFgtoP1 = projP1.project(uFg);
