@@ -94,7 +94,7 @@ classdef ProjectorComputer < handle
                     b.nelem     = size(obj.mesh.connec,1);
                     b.nnode     = size(obj.mesh.connec,2);
                     b.npnod     = size(obj.mesh.coord,1);
-                    projector   = Projector_P1toP0(b);
+                    projector   = Projector_toP0(b);
                     obj.funProj = projector.project(obj.fun);
                 case {'P1'}
                     b.mesh      = obj.mesh;

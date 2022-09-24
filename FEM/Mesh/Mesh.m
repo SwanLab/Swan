@@ -113,7 +113,7 @@ classdef Mesh < handle
         function xV = computeBaricenter(obj)
             s.mesh   = obj;
             s.connec = obj.connec;
-            projector = Projector_P1toP0(s);
+            projector = Projector_toP0(s);
             xVf = projector.project(obj.xFE);
             xV  = squeeze(xVf.fValues);
         end

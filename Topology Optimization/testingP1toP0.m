@@ -21,7 +21,7 @@ uFun = P1Function(z);
 % To P0 
 cc.mesh   = s.mesh;
 cc.connec = s.mesh.connec;
-projector2 = Projector_P1toP0(cc);
+projector2 = Projector_toP0(cc);
 u_P0 = projector2.project(uFun);
 
 % To P1 Discontinuous

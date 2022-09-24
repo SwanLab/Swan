@@ -1,6 +1,5 @@
-classdef Projector_P1toP0 < handle
+classdef Projector_toP0 < handle
     
-    % Rename: Projector_toP0
     properties (Access = public)
     end
 
@@ -16,7 +15,7 @@ classdef Projector_P1toP0 < handle
 
     methods (Access = public)
 
-        function obj = Projector_P1toP0(cParams)
+        function obj = Projector_toP0(cParams)
             obj.init(cParams);
             obj.computeQuadrature();
             obj.createMassMatrix();

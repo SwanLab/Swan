@@ -46,7 +46,7 @@ uFg = FGaussDiscontinuousFunction(x);
 % Create the projector
 pp.mesh   = s.mesh;
 pp.connec = s.mesh.connec;
-projP0 = Projector_P1toP0(pp);
+projP0 = Projector_toP0(pp);
 
 % P1 to P0
 resP1 = projP0.project(uP1);
