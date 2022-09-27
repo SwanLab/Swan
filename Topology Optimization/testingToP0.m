@@ -81,3 +81,7 @@ projP1D = Projector_toP1Discontinuous(pp1d);
 
 % P0 to P1 Discontinuous
 resP0toP1D = projP1D.project(sigP0);
+
+% P1 to P1 Discontinuous
+resP1toP1D = projP1D.project(uP1);
+resP1toP1D.plot(s.mesh)
