@@ -78,9 +78,9 @@ classdef Projector_toP1 < handle
             for igaus = 1:nGaus
                 dVg(:,1) = dV(igaus, :);
                 for iField = 1:nFlds
-                    fG = squeeze(fGaus(iField,:,:));
+                    fG = squeeze(fGaus(iField,igaus,:));
                     fdVg = fG.*dVg;
-                    Ni = shapes(:,:, igaus);
+                    Ni = shapes(:,:,igaus);
                     rhs(:,:,iField) = rhs(:,:,iField) + bsxfun(@times,Ni,fdVg');
                     for inode = 1:nNode
                         int = rhs(inode,:,iField);
