@@ -85,3 +85,6 @@ resP0toP1D = projP1D.project(sigP0);
 % P1 to P1 Discontinuous
 resP1toP1D = projP1D.project(uP1);
 resP1toP1D.plot(s.mesh)
+
+% FGauss function to P1 Discontinuous
+resFgtoP1D = projP1D.project(uFg);

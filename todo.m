@@ -1,37 +1,12 @@
-%% PART I: LHS generalization
-% - Allow for both continuous (P1)
-% and discontinuous (P1 and P0) Galerkin
-% - Done:
-%       - P0Func (discontinuous)
-%       - P1Func (continuous)
-% - To do:
-%       - P1Func (discontinuous) (should be similar to P0, M)
-%       - FgaussDiscFunc (discontinuous*)
+%% Projector Generalization
 
+% Project analytical functions to P0 P1 P1d (eg. sin)
+% Project L2 functions to P0 P1 P1d (eg. circle w/ heaviside)
+% (CharacteristicFunction)
 
-%% PART II: RHS generalization
-% Almost there
-% - Create evaluate functions
+% Test with quadrilaterals as well
 
-%% Cases
-% Six first cases as tests:
-%  - P0 to P1 continuous    - DONE!
-%  - P0 to P1 discontinuous - DONE!
-%  - P1 contiuous to P0     - DONE!*
-%       - Converts to P1 discontinuous and projects
-%  - P1 discontiuous to P0  - NEEDED?*
-%  - FgaussDiscontinuous to P0
-%  - FgaussDiscontinuous to P1 continuous
-%  - FgaussDiscontinuous to P1 discontinuous (*)
-
-% Plot should only be in P1 Discontinuous
-% Temporarily:
-%  - Projector to p1 continuous
-%  - projector to p0
-%  - projector to p1 discont
-%       - case p0: fRepeated
-%       - case p1: fRepeated
-%       - case fGaussDiscont: ?
+% NOTE: assumption made for FGauss to P1Discont
 
 %%
 

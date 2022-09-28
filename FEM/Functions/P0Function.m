@@ -18,7 +18,13 @@ classdef P0Function < FeFunction
         function fxV = evaluate(obj, xV)
             % Its a p0 function, so no true need to interpolate -- the
             % value is constant
-            fxV = obj.fValues;
+            nGaus = size(xV,2);
+            nFlds = size(obj.fValues,1);
+            nElem = size(obj.fValues,3);
+            fxV = zeros(nFlds,nGaus,nElem);
+            for iGaus = 1:nGaus
+                fxV(:,iGaus,:) = squeeze(obj.fValues);
+            end
         end
 
         function fDfun = computeP1DiscontinuousFunction(obj)
