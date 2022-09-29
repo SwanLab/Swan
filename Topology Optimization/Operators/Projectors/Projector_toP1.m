@@ -33,7 +33,7 @@ classdef Projector_toP1 < Projector
         function init(obj, cParams)
             obj.mesh   = cParams.mesh;
             obj.connec = cParams.connec;
-            obj.quadOrder = 'LINEAR';
+            obj.quadOrder = 'QUADRATIC';
         end
         
         function q = createQuadrature(obj)
@@ -58,6 +58,40 @@ classdef Projector_toP1 < Projector
             LHS = lhs.compute();
         end
 
+%         function RHS = computeRHS(obj,fun)
+%             xV = obj.quadrature.posgp;
+%             dV = obj.mesh.computeDvolume(obj.quadrature);
+%             obj.mesh.interpolation.computeShapeDeriv(xV);
+%             shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
+%             conne = obj.mesh.connec;
+% 
+%             nGaus = obj.quadrature.ngaus;
+%             nFlds = fun.ndimf;
+%             nElem = obj.mesh.nelem;
+%             nNods = size(shapes,1);
+%             nNode = size(conne,2);
+%             nDofs = obj.mesh.nnodes;
+% 
+%             rhs = zeros(nNods,nElem, nFlds);
+%             f = zeros(nDofs,nFlds);
+%             fGaus = fun.evaluate(xV);
+%             for igaus = 1:nGaus
+%                 dVg(:,1) = dV(igaus, :);
+%                 for iField = 1:nFlds
+%                     fG = squeeze(fGaus(iField,igaus,:));
+%                     fdVg = fG.*dVg;
+%                     Ni = shapes(:,:,igaus);
+%                     rhs(:,:,iField) = rhs(:,:,iField) + bsxfun(@times,Ni,fdVg');
+%                     for inode = 1:nNode
+%                         int = rhs(inode,:,iField);
+%                         con = conne(:,inode);
+%                         f(:,iField) = f(:,iField) + accumarray(con,int,[nDofs,1],@sum,0);
+%                     end
+%                 end
+%             end
+%             RHS = f;
+%         end
+
         function RHS = computeRHS(obj,fun)
             xV = obj.quadrature.posgp;
             dV = obj.mesh.computeDvolume(obj.quadrature);
@@ -68,24 +102,30 @@ classdef Projector_toP1 < Projector
             nGaus = obj.quadrature.ngaus;
             nFlds = fun.ndimf;
             nElem = obj.mesh.nelem;
-            nNods = size(shapes,1);
             nNode = size(conne,2);
             nDofs = obj.mesh.nnodes;
 
-            rhs = zeros(nNods,nElem, nFlds);
-            f = zeros(nDofs,nFlds);
+            fLoc = zeros(nNode,nElem,nFlds);
             fGaus = fun.evaluate(xV);
-            for igaus = 1:nGaus
-                dVg(:,1) = dV(igaus, :);
-                for iField = 1:nFlds
-                    fG = squeeze(fGaus(iField,igaus,:));
-                    fdVg = fG.*dVg;
-                    Ni = shapes(:,:,igaus);
-                    rhs(:,:,iField) = rhs(:,:,iField) + bsxfun(@times,Ni,fdVg');
+            for iElem = 1:nElem
+                for igaus = 1:nGaus
+                    dVg(:,1) = dV(igaus, iElem);
+                    for iField = 1:nFlds
+                        fG = squeeze(fGaus(iField,igaus,iElem));
+                        for inode = 1:nNode
+                            Ni = shapes(inode,igaus);
+                            int = Ni*fG*dVg;
+                            fLoc(inode,iElem,iField) = fLoc(inode,iElem,iField) + int;
+                        end
+                    end
+                end
+            end
+            f = zeros(nDofs,nFlds);
+            for iField = 1:nFlds
+                for iElem = 1:nElem
                     for inode = 1:nNode
-                        int = rhs(inode,:,iField);
-                        con = conne(:,inode);
-                        f(:,iField) = f(:,iField) + accumarray(con,int,[nDofs,1],@sum,0);
+                        dofs = conne(iElem,inode);
+                        f(dofs,iField) = f(dofs,iField) + fLoc(inode,iElem,iField);
                     end
                 end
             end

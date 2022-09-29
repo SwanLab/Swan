@@ -17,14 +17,17 @@ x.connec = m.mesh.connec;
 projP1 = Projector_toP1(x);
 resCharFunInP1 = projP1.project(circleFun);
 resCharFunInP1.plot(m.mesh);
-view(0,90)
+% view(0,90)
+title('p1')
 
 % CharFun to P0 Function
 projP0 = Projector_toP0(x);
 resCharFunInP0 = projP0.project(circleFun);
 resCharFunInP0.plot(m.mesh);
+title('p0')
 
 % CharFun to P1 Discontinuous Function
 projP1D = Projector_toP1Discontinuous(x);
 resCharFunInP1D = projP1D.project(circleFun);
 resCharFunInP1D.plot(m.mesh);
+title('p1d')

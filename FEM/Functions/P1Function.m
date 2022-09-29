@@ -40,8 +40,11 @@ classdef P1Function < FeFunction
         end
 
         function plot(obj, m) % 2D domains only
-            p1DiscFun = obj.computeDiscontinuousField(); % replace with a projector
-            p1DiscFun.plot(m);
+            sP.mesh   = m;
+            sP.connec = m.connec;
+            p = Projector_toP1Discontinuous(sP);
+            fP1d = p.project(obj);
+            fP1d.plot(m)
         end
 
     end
