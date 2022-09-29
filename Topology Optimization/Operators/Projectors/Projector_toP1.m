@@ -1,4 +1,4 @@
-classdef Projector_toP1 < handle
+classdef Projector_toP1 < Projector
 
     properties (Access = private)
         mesh

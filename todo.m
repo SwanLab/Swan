@@ -42,4 +42,10 @@
 
 
 %% Comments / Questions
-% - 
+% Loose ends:
+% - Generalize quadOrder properties from projectors;
+% - Correct & prepare more tests once the projectors are 100% generalized;
+% - Generalize plot function to be represented not only for dim=1 but also
+%   for any dim\in_nflds, selected by the user;
+% - Review and finish fgaussdiscontinuous function;
+% - Refactor functions and projectors classes (clean code).

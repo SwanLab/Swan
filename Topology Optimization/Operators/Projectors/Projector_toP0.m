@@ -1,4 +1,4 @@
-classdef Projector_toP0 < handle
+classdef Projector_toP0 < Projector
     
     properties (Access = public)
     end

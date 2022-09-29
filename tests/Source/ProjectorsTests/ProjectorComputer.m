@@ -94,12 +94,14 @@ classdef ProjectorComputer < handle
                     b.nelem     = size(obj.mesh.connec,1);
                     b.nnode     = size(obj.mesh.connec,2);
                     b.npnod     = size(obj.mesh.coord,1);
-                    projector   = Projector_toP0(b);
+                    b.projectorType = 'toP0';
+                    projector   = Projector.create(b);
                     obj.funProj = projector.project(obj.fun);
                 case {'P1'}
                     b.mesh      = obj.mesh;
                     b.connec    = obj.mesh.connec;
-                    projector   = Projector_toP1(b);
+                    b.projectorType = 'toP1';
+                    projector   = Projector.create(b);
                     obj.funProj = projector.project(obj.fun);
                 case {'P1disc'}
                     b.mesh      = obj.mesh;

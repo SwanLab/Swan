@@ -1,4 +1,4 @@
-classdef Projector_toP1Discontinuous < handle
+classdef Projector_toP1Discontinuous < Projector
 
     properties (Access = public)
 
