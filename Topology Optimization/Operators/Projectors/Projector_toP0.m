@@ -39,6 +39,7 @@ classdef Projector_toP0 < Projector
         end
 
         function createMassMatrix(obj)
+            % No connectivities (1,2,3,4,..)
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature('LINEAR');
             dv = obj.mesh.computeDvolume(quad);

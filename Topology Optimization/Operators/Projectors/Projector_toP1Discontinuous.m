@@ -70,6 +70,15 @@ classdef Projector_toP1Discontinuous < Projector
             s.field = obj.field;
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
+
+            sK.type = 'StiffnessMatrix';
+            sK.mesh  = obj.meshD;
+            sK.field = obj.field;
+            lhsK = LHSintegrator.create(sK);
+            LHSK = lhsK.compute();
+
+            epsilon = obj.mesh.computeMeanCellSize();
+            LHS = LHS + LHSK*0^2;
         end
 
         function RHS = computeRHS(obj,fun)
@@ -87,19 +96,20 @@ classdef Projector_toP1Discontinuous < Projector
 
             fLoc = zeros(nNode,nElem,nFlds);
             fGaus = fun.evaluate(xV);
-            for iElem = 1:nElem
+%             for iElem = 1:nElem
                 for igaus = 1:nGaus
-                    dVg(:,1) = dV(igaus, iElem);
+                    dVg(:,1) = dV(igaus, :);
                     for iField = 1:nFlds
-                        fG = squeeze(fGaus(iField,igaus,iElem));
+                        fG = squeeze(fGaus(iField,igaus,:));
                         for inode = 1:nNode
                             Ni = shapes(inode,igaus);
-                            int = Ni*fG*dVg;
-                            fLoc(inode,iElem,iField) = fLoc(inode,iElem,iField) + int;
+                            f(:,1) = squeeze(fLoc(inode,:,iField));
+                            int = Ni.*fG.*dVg;
+                            fLoc(inode,:,iField) = f + int;
                         end
                     end
                 end
-            end
+%             end
             f = zeros(nDofs,nFlds);
             for iField = 1:nFlds
                 for iElem = 1:nElem

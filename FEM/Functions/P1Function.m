@@ -40,11 +40,15 @@ classdef P1Function < FeFunction
         end
 
         function plot(obj, m) % 2D domains only
-            sP.mesh   = m;
-            sP.connec = m.connec;
-            p = Projector_toP1Discontinuous(sP);
-            fP1d = p.project(obj);
-            fP1d.plot(m)
+            x = m.coord(:,1);
+            y = m.coord(:,2);
+            z = obj.fValues;
+            figure()
+            a = trisurf(m.connec,x,y,z);
+            view(0,90)
+%             colorbar
+            shading interp
+            a.EdgeColor = [0 0 0];
         end
 
     end

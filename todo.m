@@ -1,3 +1,22 @@
+%% 
+
+% Jose: 
+% - H1Projection
+% - Delete element loops and clean code of projectos
+% - Use filters in these tests and compare Filters vs L2Projectors vs H1Projectors]
+
+% Ton:
+% - ACCEPT PULL REQUESTS FOR NULLSPACE
+% - projectors without discont mesh (use field as dispatching in lhs
+% integrator assembly)
+% - quadrilateral elements working
+% - assert fgauss
+
+% u -> diff(u) (strain) -> plot -> project p1 p0 p1d
+% Create a function in p1function named function fGaussFun  = comptueGrad(quad)
+% project this function to p1 p0 and p1d. check results. ideally: a
+% quadratic function u = x^2 -> du/dy = 0, du/dx = 2x; only evaluated at
+% gauss points. project 
 %% Projector Generalization
 
 % Project analytical functions to P0 P1 P1d (eg. sin)
@@ -5,6 +24,7 @@
 % (CharacteristicFunction)
 
 % Test with quadrilaterals as well
+%  - Quadrilaterals do NOT work (quadratic quadrature not implemented)
 
 % NOTE: assumption made for FGauss to P1Discont
 

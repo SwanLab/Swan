@@ -56,6 +56,15 @@ classdef Projector_toP1 < Projector
             s.field = obj.field;
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
+
+            sK.type = 'StiffnessMatrix';
+            sK.mesh  = obj.mesh;
+            sK.field = obj.field;
+            lhsK = LHSintegrator.create(sK);
+            LHSK = lhsK.compute();
+
+            epsilon = obj.mesh.computeMeanCellSize()*30;
+            LHS = LHS + LHSK*0^2;
         end
 
 %         function RHS = computeRHS(obj,fun)

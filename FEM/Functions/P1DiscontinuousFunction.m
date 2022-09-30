@@ -46,8 +46,15 @@ classdef P1DiscontinuousFunction < FeFunction
             nnodeEl = size(obj.connec, 2);
             mD = m.createDiscontinuousMesh();
             fD = reshape(obj.fValues, [ndims, nelem*nnodeEl])';
+            x = mD.coord(:,1);
+            y = mD.coord(:,2);
+            z = fD(:,dim);
             figure()
-            trisurf(mD.connec, mD.coord(:,1), mD.coord(:,2), fD(:,dim))
+            a = trisurf(mD.connec, x, y, z);
+%             colorbar
+            shading interp
+            a.EdgeColor = [0 0 0];
+            view(0,90)
         end
 
     end
