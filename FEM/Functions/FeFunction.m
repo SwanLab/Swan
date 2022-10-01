@@ -4,6 +4,10 @@ classdef FeFunction < handle
     % Eventually should extend Function/Field or something like that, to
     % account for other types of functions (eg. L2)
     
+    properties (Constant, Access = public)
+        fType = 'FE'
+    end
+
     properties (Access = public)
        ndimf
        fValues

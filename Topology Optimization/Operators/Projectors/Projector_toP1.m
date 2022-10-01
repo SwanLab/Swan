@@ -4,7 +4,7 @@ classdef Projector_toP1 < Projector
         mesh
         connec
         quadOrder
-        quadrature
+%         quadrature
         field
     end
     
@@ -12,7 +12,7 @@ classdef Projector_toP1 < Projector
 
         function obj = Projector_toP1(cParams)
             obj.init(cParams);
-            obj.createQuadrature();
+%             obj.createQuadrature();
             obj.createField();
         end
 
@@ -33,7 +33,7 @@ classdef Projector_toP1 < Projector
         function init(obj, cParams)
             obj.mesh   = cParams.mesh;
             obj.connec = cParams.connec;
-            obj.quadOrder = 'QUADRATIC';
+            obj.quadOrder = 'LINEAR';
         end
         
         function q = createQuadrature(obj)
@@ -57,14 +57,14 @@ classdef Projector_toP1 < Projector
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
 
-            sK.type = 'StiffnessMatrix';
-            sK.mesh  = obj.mesh;
-            sK.field = obj.field;
-            lhsK = LHSintegrator.create(sK);
-            LHSK = lhsK.compute();
-
-            epsilon = obj.mesh.computeMeanCellSize()*30;
-            LHS = LHS + LHSK*0^2;
+%             sK.type = 'StiffnessMatrix';
+%             sK.mesh  = obj.mesh;
+%             sK.field = obj.field;
+%             lhsK = LHSintegrator.create(sK);
+%             LHSK = lhsK.compute();
+% 
+%             epsilon = obj.mesh.computeMeanCellSize();
+%             LHS = LHS + LHSK*epsilon^2;
         end
 
 %         function RHS = computeRHS(obj,fun)
@@ -102,13 +102,14 @@ classdef Projector_toP1 < Projector
 %         end
 
         function RHS = computeRHS(obj,fun)
-            xV = obj.quadrature.posgp;
-            dV = obj.mesh.computeDvolume(obj.quadrature);
+            quad = obj.createRHSQuadrature(fun);
+            xV = quad.posgp;
+            dV = obj.mesh.computeDvolume(quad);
             obj.mesh.interpolation.computeShapeDeriv(xV);
             shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
             conne = obj.mesh.connec;
 
-            nGaus = obj.quadrature.ngaus;
+            nGaus = quad.ngaus;
             nFlds = fun.ndimf;
             nElem = obj.mesh.nelem;
             nNode = size(conne,2);
@@ -140,11 +141,11 @@ classdef Projector_toP1 < Projector
             end
             RHS = f;
         end
-        
-        function shapes = computeShapeFunctions(obj, xG)
-            int = Interpolation.create(obj.mesh,'LINEAR');
-            int.computeShapeDeriv(xG);
-            shapes = permute(int.shape,[1 3 2]);
+
+        function q = createRHSQuadrature(obj, fun)
+            ord = obj.determineQuadratureOrder(fun);
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature(ord);
         end
         
     end

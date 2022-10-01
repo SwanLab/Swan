@@ -43,7 +43,7 @@ classdef Projector_toP0 < Projector
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature('LINEAR');
             dv = obj.mesh.computeDvolume(quad);
-            obj.M = diag(dv);
+            obj.M = diag(dv(1,:));
         end
 
         function rhs = createRHS(obj, fun)
@@ -56,10 +56,10 @@ classdef Projector_toP0 < Projector
             fGaus = fun.evaluate(xV);
 
             % Separate in two loops
-            for igaus = 1:nGaus
-                dVg(:,1) = dV(igaus,:);
+            for iGaus = 1:nGaus
+                dVg(:,1) = dV(iGaus,:);
                 for iF = 1:nF
-                    fGausF = squeeze(fGaus(iF,:,:));
+                    fGausF = squeeze(fGaus(iF,iGaus,:));
                     Ni = 1;
                     int = Ni*fGausF.*dVg;
                     rhs(:,iF) = rhs(:,iF) + int;

@@ -1,4 +1,4 @@
-classdef AnalyticalFunction < handle
+classdef AnalyticalFunction < L2Function
     
     properties (Access = public)
         ndimf

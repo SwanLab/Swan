@@ -13,7 +13,6 @@ classdef Projector_toP1Discontinuous < Projector
     properties (Access = private)
         meshD
         field
-        quadrature
     end
 
     methods (Access = public)
@@ -21,7 +20,6 @@ classdef Projector_toP1Discontinuous < Projector
         function obj = Projector_toP1Discontinuous(cParams)
             obj.init(cParams);
             obj.createDiscontinuousMesh();
-            obj.createQuadrature();
             obj.createField();
         end
 
@@ -50,12 +48,6 @@ classdef Projector_toP1Discontinuous < Projector
             obj.meshD = obj.mesh.createDiscontinuousMesh();
         end
 
-        function q = createQuadrature(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature(obj.quadOrder);
-            obj.quadrature = q;
-        end
-
         function createField(obj)
             s.mesh               = obj.meshD;
             s.ndimf              = 1;
@@ -71,24 +63,25 @@ classdef Projector_toP1Discontinuous < Projector
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
 
-            sK.type = 'StiffnessMatrix';
-            sK.mesh  = obj.meshD;
-            sK.field = obj.field;
-            lhsK = LHSintegrator.create(sK);
-            LHSK = lhsK.compute();
-
-            epsilon = obj.mesh.computeMeanCellSize();
-            LHS = LHS + LHSK*0^2;
+            %             sK.type = 'StiffnessMatrix';
+            %             sK.mesh  = obj.meshD;
+            %             sK.field = obj.field;
+            %             lhsK = LHSintegrator.create(sK);
+            %             LHSK = lhsK.compute();
+            %
+            %             epsilon = obj.mesh.computeMeanCellSize();
+            %             LHS = LHS + LHSK*epsilon^2;
         end
 
         function RHS = computeRHS(obj,fun)
-            xV = obj.quadrature.posgp;
-            dV = obj.mesh.computeDvolume(obj.quadrature);
+            quad = obj.createRHSQuadrature(fun);
+            xV = quad.posgp;
+            dV = obj.mesh.computeDvolume(quad);
             obj.mesh.interpolation.computeShapeDeriv(xV);
             shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
             conne = obj.meshD.connec;
 
-            nGaus = obj.quadrature.ngaus;
+            nGaus = quad.ngaus;
             nFlds = fun.ndimf;
             nElem = obj.mesh.nelem;
             nNode = size(conne,2);
@@ -96,20 +89,20 @@ classdef Projector_toP1Discontinuous < Projector
 
             fLoc = zeros(nNode,nElem,nFlds);
             fGaus = fun.evaluate(xV);
-%             for iElem = 1:nElem
-                for igaus = 1:nGaus
-                    dVg(:,1) = dV(igaus, :);
-                    for iField = 1:nFlds
-                        fG = squeeze(fGaus(iField,igaus,:));
-                        for inode = 1:nNode
-                            Ni = shapes(inode,igaus);
-                            f(:,1) = squeeze(fLoc(inode,:,iField));
-                            int = Ni.*fG.*dVg;
-                            fLoc(inode,:,iField) = f + int;
-                        end
+            %             for iElem = 1:nElem
+            for igaus = 1:nGaus
+                dVg(:,1) = dV(igaus, :);
+                for iField = 1:nFlds
+                    fG = squeeze(fGaus(iField,igaus,:));
+                    for inode = 1:nNode
+                        Ni = shapes(inode,igaus);
+                        f(:,1) = squeeze(fLoc(inode,:,iField));
+                        int = Ni.*fG.*dVg;
+                        fLoc(inode,:,iField) = f + int;
                     end
                 end
-%             end
+            end
+            %             end
             f = zeros(nDofs,nFlds);
             for iField = 1:nFlds
                 for iElem = 1:nElem
@@ -120,6 +113,12 @@ classdef Projector_toP1Discontinuous < Projector
                 end
             end
             RHS = f;
+        end
+
+        function q = createRHSQuadrature(obj, fun)
+            ord = obj.determineQuadratureOrder(fun);
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature(ord);
         end
 
         function fVals = reshapeFValues(obj, x, nFlds)

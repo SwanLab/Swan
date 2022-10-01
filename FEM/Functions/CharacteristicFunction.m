@@ -1,4 +1,4 @@
-classdef CharacteristicFunction < handle
+classdef CharacteristicFunction < L2Function
 
     properties (Access = private)
         coorP1

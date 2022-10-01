@@ -1,4 +1,4 @@
-%% 
+%% To-do
 
 % Jose: 
 % - H1Projection
@@ -6,66 +6,36 @@
 % - Use filters in these tests and compare Filters vs L2Projectors vs H1Projectors]
 
 % Ton:
-% - ACCEPT PULL REQUESTS FOR NULLSPACE
-% - projectors without discont mesh (use field as dispatching in lhs
-% integrator assembly)
-% - quadrilateral elements working
-% - assert fgauss
+%       - ACCEPT PULL REQUESTS FOR NULLSPACE
+%       - projectors without discont mesh (use field as dispatching in lhs
+%         integrator assembly)
+%       - quadrilateral elements working
+% Done! - assert fgauss
 
 % u -> diff(u) (strain) -> plot -> project p1 p0 p1d
 % Create a function in p1function named function fGaussFun  = comptueGrad(quad)
 % project this function to p1 p0 and p1d. check results. ideally: a
 % quadratic function u = x^2 -> du/dy = 0, du/dx = 2x; only evaluated at
 % gauss points. project 
-%% Projector Generalization
 
-% Project analytical functions to P0 P1 P1d (eg. sin)
-% Project L2 functions to P0 P1 P1d (eg. circle w/ heaviside)
-% (CharacteristicFunction)
+%% Changelog
+% + Added fType to functions to check required quadrature orders and stuff.
+%   Probably could have been done with isa() or class(), but this seems to
+%   be cleaner
 
-% Test with quadrilaterals as well
-%  - Quadrilaterals do NOT work (quadratic quadrature not implemented)
+%% Notes (Ton)
+% FGaussFun SHOULD assert. The discrepancy in quadrature results from the
+% quadrature used in the projector -- perhaps dispatch thru incoming
+% function?
 
-% NOTE: assumption made for FGauss to P1Discont
+% - Quadratic needed for projecting to P1Discontinuous (???) a
+%   Characteristic Function
 
-%%
+%% Next steps
 
-% Create tests for these functions
-%   - White circle in a black square (create using levelset, compare volumes)
-%   - Quadrilateral elements
-%   - Volumes
-
-% P0Function: rename fElem to fValues
-%   - createDiscontinuousP0 is kind of a Discontinuous P1 function
-% P1Function: computeFnodesByElem now public, make it return fElem
-
-% Create P1Function_Discontinuous // 
-
-% Strain should be a FGaussDiscontFunction or sth like that. It's not a P0
-%   function, only true if ngaus = 1. These gauss functions need the
-%   quadrature: when the projector projects, it will evaluate it in these
-%   gauss points
-% FGaussDiscontFunction.plotDiscontinuous()
-
-% Paraview: P1ContFunction or P1DiscontFunction?
-% Matlab wants P1DiscontFunction
-
-% Check: P1DiscontFunction's mass matrix is diagonal
-
-% ProjectorP1toP0: mass matrix should use lhsintegrator
-
-% Let Paraview print strain as a P1DiscontFunct
-
-% ProjectorFromFgausToP1Discont  (similar to other projectors, mass matrix
-% using LHSintegrator and discontinuousMesh. M should be invertible and
-% have a block-like structure)
+% - Volumes?
 
 
-%% Comments / Questions
-% Loose ends:
-% - Generalize quadOrder properties from projectors;
-% - Correct & prepare more tests once the projectors are 100% generalized;
-% - Generalize plot function to be represented not only for dim=1 but also
-%   for any dim\in_nflds, selected by the user;
-% - Review and finish fgaussdiscontinuous function;
-% - Refactor functions and projectors classes (clean code).
+%% Backlog
+
+% - Let Paraview print strain as a P1DiscontFunct

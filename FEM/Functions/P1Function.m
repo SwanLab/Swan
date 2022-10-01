@@ -40,9 +40,10 @@ classdef P1Function < FeFunction
         end
 
         function plot(obj, m) % 2D domains only
+            dim = 1;
             x = m.coord(:,1);
             y = m.coord(:,2);
-            z = obj.fValues;
+            z = obj.fValues(:,dim);
             figure()
             a = trisurf(m.connec,x,y,z);
             view(0,90)
@@ -60,15 +61,6 @@ classdef P1Function < FeFunction
             obj.type    = cParams.type;
             obj.fValues = cParams.fValues;
             obj.ndimf   = size(cParams.fValues,2);
-        end
-
-        function dF = computeDiscontinuousField(obj)
-            % Goal: use this function
-            fRep = obj.repeatFunctionAtNodes();
-            s.fValues = fRep;
-            s.connec = obj.connec;
-            s.type   = obj.type;
-            dF = P1DiscontinuousFunction(s);
         end
 
         function createInterpolation(obj)

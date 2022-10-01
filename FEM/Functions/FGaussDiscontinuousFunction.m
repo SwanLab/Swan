@@ -1,9 +1,18 @@
-classdef FGaussDiscontinuousFunction < FeFunction
+classdef FGaussDiscontinuousFunction < handle
     
-    properties (Access = private)
-        type
-        connec
+    properties (Constant, Access = public)
+        fType = 'GAUSSPOINTS'
+    end
+
+    properties (Access = public)
+        ndimf
+        fValues
         quadrature
+    end
+
+    properties (Access = private)
+        type % not needed apparently
+        connec
     end
     
     properties (Access = private)
@@ -16,15 +25,8 @@ classdef FGaussDiscontinuousFunction < FeFunction
         end
 
         function fxV = evaluate(obj, xV)
-%             assert(isequal(xV, obj.quadrature.posgp), 'Gauss points do not match')
-%             fxV = obj.fValues;
-            nGaus = size(xV,2);
-            nFlds = size(obj.fValues,1);
-            nElem = size(obj.fValues,3);
-            fxV = zeros(nFlds,nGaus,nElem);
-            for iGaus = 1:nGaus
-                fxV(:,iGaus,:) = squeeze(obj.fValues);
-            end
+            assert(isequal(xV, obj.quadrature.posgp), 'Gauss points do not match')
+            fxV = obj.fValues;
         end
 
         function plot(obj, m)

@@ -13,7 +13,18 @@ classdef Projector < handle
 
     end
 
-    methods (Access = protected)
+    methods (Static, Access = protected)
+
+        function ord = determineQuadratureOrder(fun)
+            switch fun.fType
+                case 'L2'
+                    ord = 'QUADRATIC';
+                case 'FE'
+                    ord = 'LINEAR';
+                case 'GAUSSPOINTS'
+                    ord = fun.quadrature.order;
+            end
+        end
 
     end
 
