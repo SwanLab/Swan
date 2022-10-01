@@ -59,8 +59,8 @@ pp1.mesh   = s.mesh;
 pp1.connec = s.mesh.connec;
 projP1 = Projector_toP1(pp1);
 
-% P0 to P1
-resP0toP1 = projP1.project(sigP0);
+% % P0 to P1
+% resP0toP1 = projP1.project(sigP0);
 
 % P1 Discontinuous to P1
 resP1DtoP1 = projP1.project(uP1D);
@@ -74,8 +74,8 @@ pp1d.mesh   = s.mesh;
 pp1d.connec = s.mesh.connec;
 projP1D = Projector_toP1Discontinuous(pp1d);
 
-% P0 to P1 Discontinuous
-resP0toP1D = projP1D.project(sigP0);
+% % P0 to P1 Discontinuous
+% resP0toP1D = projP1D.project(sigP0);
 
 % P1 to P1 Discontinuous
 resP1toP1D = projP1D.project(uP1);

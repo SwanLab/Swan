@@ -9,7 +9,7 @@
 %       - ACCEPT PULL REQUESTS FOR NULLSPACE
 %       - projectors without discont mesh (use field as dispatching in lhs
 %         integrator assembly)
-%       - quadrilateral elements working
+% Done! - quadrilateral elements working
 % Done! - assert fgauss
 
 % u -> diff(u) (strain) -> plot -> project p1 p0 p1d
