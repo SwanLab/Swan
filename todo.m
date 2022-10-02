@@ -7,7 +7,7 @@
 
 % Ton:
 %       - ACCEPT PULL REQUESTS FOR NULLSPACE
-%       - projectors without discont mesh (use field as dispatching in lhs
+% Done* - projectors without discont mesh (use field as dispatching in lhs
 %         integrator assembly)
 % Done! - quadrilateral elements working
 % Done! - assert fgauss
@@ -21,7 +21,7 @@
 %% Changelog
 % + Added fType to functions to check required quadrature orders and stuff.
 %   Probably could have been done with isa() or class(), but this seems to
-%   be cleaner
+%   be cleaner. See new method at Projector
 
 %% Notes (Ton)
 % FGaussFun SHOULD assert. The discrepancy in quadrature results from the

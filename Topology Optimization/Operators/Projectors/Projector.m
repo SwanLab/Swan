@@ -20,7 +20,8 @@ classdef Projector < handle
                 case 'L2'
                     ord = 'QUADRATIC';
                 case 'FE'
-                    ord = 'LINEAR';
+%                     ord = 'LINEAR';
+                    ord = 'QUADRATIC'; % needed to project P1 to P1D
                 case 'GAUSSPOINTS'
                     ord = fun.quadrature.order;
             end
