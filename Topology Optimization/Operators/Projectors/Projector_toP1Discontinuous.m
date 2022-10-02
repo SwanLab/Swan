@@ -53,6 +53,7 @@ classdef Projector_toP1Discontinuous < Projector
             s.ndimf              = 1;
             s.interpolationOrder = 'LINEAR';
             s.quadratureOrder    = 'QUADRATIC';
+            s.
             obj.field = Field(s);
         end
 

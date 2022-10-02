@@ -61,11 +61,11 @@ classdef RHSintegrator_ShapeFunction < handle
         end
 
         function computeFgauss(obj, fNodal)
-            s.fNodes = fNodal;
+            s.fValues= fNodal;
             s.connec = obj.globalConnec;
             s.type   = obj.mesh.type;
             f = P1Function(s);
-            fG = f.interpolateFunction(obj.xGauss);
+            fG = f.evaluate(obj.xGauss);
             fG = permute(fG,[2 3 1]);
             obj.fGauss = fG;
         end
