@@ -10,6 +10,10 @@ classdef ProjectorFactory < handle
                     obj = Projector_toP1(cParams);
                 case 'toP1Disc'
                     obj = Projector_toP1Discontinuous(cParams);
+                case 'toH1P1'
+                    obj = H1Projector_toP1(cParams);
+                case 'toH1P1Disc'
+                    obj = H1Projector_toP1Discontinuous(cParams);
             end
         end
 

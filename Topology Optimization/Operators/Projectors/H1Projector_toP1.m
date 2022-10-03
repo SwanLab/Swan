@@ -1,19 +1,19 @@
-classdef Projector_toP1 < Projector
+classdef H1Projector_toP1 < Projector
 
     properties (Access = private)
         mesh
         connec
         quadOrder
-%         quadrature
-        field
+        fieldMass
+        fieldStiffness
     end
     
     methods (Access = public)
 
-        function obj = Projector_toP1(cParams)
+        function obj = H1Projector_toP1(cParams)
             obj.init(cParams);
-%             obj.createQuadrature();
-            obj.createField();
+            obj.createFieldMass();
+            obj.createFieldStiffness();
         end
 
         function xFun = project(obj, x)
@@ -42,64 +42,44 @@ classdef Projector_toP1 < Projector
             obj.quadrature = q;
         end
 
-        function createField(obj)
+        function createFieldMass(obj)
             s.mesh               = obj.mesh;
             s.ndimf              = 1; 
             s.interpolationOrder = 'LINEAR';
             s.quadratureOrder    = 'QUADRATIC';
-            obj.field = Field(s);
+            obj.fieldMass = Field(s);
+        end
+
+        function createFieldStiffness(obj)
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1; 
+            s.interpolationOrder = 'LINEAR';
+            s.quadratureOrder    = 'CONSTANT';
+            obj.fieldStiffness = Field(s);
         end
         
         function LHS = computeLHS(obj)
-            s.type  = 'MassMatrix';
-            s.mesh  = obj.mesh;
-            s.field = obj.field;
-            lhs = LHSintegrator.create(s);
-            LHS = lhs.compute();
-
-%             sK.type = 'StiffnessMatrix';
-%             sK.mesh  = obj.mesh;
-%             sK.field = obj.field;
-%             lhsK = LHSintegrator.create(sK);
-%             LHSK = lhsK.compute();
-% 
-%             epsilon = obj.mesh.computeMeanCellSize();
-%             LHS = LHS + LHSK*epsilon^2;
+            LHSM    = obj.computeMassMatrix();
+            LHSK    = obj.computeStiffnessMatrix();
+            epsilon = obj.mesh.computeMeanCellSize();
+            LHS     = LHSM + epsilon^2*LHSK;
         end
 
-%         function RHS = computeRHS(obj,fun)
-%             xV = obj.quadrature.posgp;
-%             dV = obj.mesh.computeDvolume(obj.quadrature);
-%             obj.mesh.interpolation.computeShapeDeriv(xV);
-%             shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
-%             conne = obj.mesh.connec;
-% 
-%             nGaus = obj.quadrature.ngaus;
-%             nFlds = fun.ndimf;
-%             nElem = obj.mesh.nelem;
-%             nNods = size(shapes,1);
-%             nNode = size(conne,2);
-%             nDofs = obj.mesh.nnodes;
-% 
-%             rhs = zeros(nNods,nElem, nFlds);
-%             f = zeros(nDofs,nFlds);
-%             fGaus = fun.evaluate(xV);
-%             for igaus = 1:nGaus
-%                 dVg(:,1) = dV(igaus, :);
-%                 for iField = 1:nFlds
-%                     fG = squeeze(fGaus(iField,igaus,:));
-%                     fdVg = fG.*dVg;
-%                     Ni = shapes(:,:,igaus);
-%                     rhs(:,:,iField) = rhs(:,:,iField) + bsxfun(@times,Ni,fdVg');
-%                     for inode = 1:nNode
-%                         int = rhs(inode,:,iField);
-%                         con = conne(:,inode);
-%                         f(:,iField) = f(:,iField) + accumarray(con,int,[nDofs,1],@sum,0);
-%                     end
-%                 end
-%             end
-%             RHS = f;
-%         end
+        function LHSM = computeMassMatrix(obj)
+            s.type  = 'MassMatrix';
+            s.mesh  = obj.mesh;
+            s.field = obj.fieldMass;
+            lhs = LHSintegrator.create(s);
+            LHSM = lhs.compute();
+        end
+
+        function LHSK = computeStiffnessMatrix(obj)
+            s.type  = 'StiffnessMatrix';
+            s.mesh  = obj.mesh;
+            s.field = obj.fieldStiffness;
+            lhs = LHSintegrator.create(s);
+            LHSK = lhs.compute();
+        end
 
         function RHS = computeRHS(obj,fun)
             quad = obj.createRHSQuadrature(fun);

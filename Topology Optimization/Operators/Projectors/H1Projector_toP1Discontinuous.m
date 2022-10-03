@@ -1,4 +1,4 @@
-classdef Projector_toP1Discontinuous < Projector
+classdef H1Projector_toP1Discontinuous < Projector
 
     properties (Access = public)
 
@@ -10,14 +10,16 @@ classdef Projector_toP1Discontinuous < Projector
     end
 
     properties (Access = private)
-        field
+        fieldMass
+        fieldStiffness
     end
 
     methods (Access = public)
 
-        function obj = Projector_toP1Discontinuous(cParams)
+        function obj = H1Projector_toP1Discontinuous(cParams)
             obj.init(cParams);
-            obj.createField();
+            obj.createFieldMass();
+            obj.createFieldStiffness();
         end
 
         function xProj = project(obj, x)
@@ -40,30 +42,45 @@ classdef Projector_toP1Discontinuous < Projector
             obj.connec = cParams.connec;
         end
 
-        function createField(obj)
+        function createFieldMass(obj)
             s.mesh               = obj.mesh;
             s.ndimf              = 1;
             s.interpolationOrder = 'LINEAR';
             s.quadratureOrder    = 'QUADRATIC';
             s.galerkinType       = 'DISCONTINUOUS';
-            obj.field = Field(s);
+            obj.fieldMass = Field(s);
+        end
+
+        function createFieldStiffness(obj)
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1;
+            s.interpolationOrder = 'LINEAR';
+            s.quadratureOrder    = 'CONSTANT';
+            s.galerkinType       = 'DISCONTINUOUS';
+            obj.fieldStiffness = Field(s);
         end
 
         function LHS = computeLHS(obj)
+            LHSM    = obj.computeMassMatrix();
+            LHSK    = obj.computeStiffnessMatrix();
+            epsilon = obj.mesh.computeMeanCellSize();
+            LHS     = LHSM + epsilon^2*LHSK;
+        end
+
+        function LHSM = computeMassMatrix(obj)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.field = obj.field;
+            s.field = obj.fieldMass;
             lhs = LHSintegrator.create(s);
-            LHS = lhs.compute();
+            LHSM = lhs.compute();
+        end
 
-            %             sK.type = 'StiffnessMatrix';
-            %             sK.mesh  = obj.meshD;
-            %             sK.field = obj.field;
-            %             lhsK = LHSintegrator.create(sK);
-            %             LHSK = lhsK.compute();
-            %
-            %             epsilon = obj.mesh.computeMeanCellSize();
-            %             LHS = LHS + LHSK*epsilon^2;
+        function LHSK = computeStiffnessMatrix(obj)
+            s.type  = 'StiffnessMatrix';
+            s.mesh  = obj.mesh;
+            s.field = obj.fieldStiffness;
+            lhs = LHSintegrator.create(s);
+            LHSK = lhs.compute();
         end
 
         function RHS = computeRHS(obj,fun)
