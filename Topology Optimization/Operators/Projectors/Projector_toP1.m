@@ -1,10 +1,6 @@
 classdef Projector_toP1 < Projector
 
     properties (Access = private)
-        mesh
-        connec
-        quadOrder
-%         quadrature
         field
     end
     
@@ -12,7 +8,6 @@ classdef Projector_toP1 < Projector
 
         function obj = Projector_toP1(cParams)
             obj.init(cParams);
-%             obj.createQuadrature();
             obj.createField();
         end
 
@@ -29,18 +24,6 @@ classdef Projector_toP1 < Projector
     end
 
     methods (Access = private)
-        
-        function init(obj, cParams)
-            obj.mesh   = cParams.mesh;
-            obj.connec = cParams.connec;
-            obj.quadOrder = 'LINEAR';
-        end
-        
-        function q = createQuadrature(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature(obj.quadOrder);
-            obj.quadrature = q;
-        end
 
         function createField(obj)
             s.mesh               = obj.mesh;
@@ -56,50 +39,7 @@ classdef Projector_toP1 < Projector
             s.field = obj.field;
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
-
-%             sK.type = 'StiffnessMatrix';
-%             sK.mesh  = obj.mesh;
-%             sK.field = obj.field;
-%             lhsK = LHSintegrator.create(sK);
-%             LHSK = lhsK.compute();
-% 
-%             epsilon = obj.mesh.computeMeanCellSize();
-%             LHS = LHS + LHSK*epsilon^2;
         end
-
-%         function RHS = computeRHS(obj,fun)
-%             xV = obj.quadrature.posgp;
-%             dV = obj.mesh.computeDvolume(obj.quadrature);
-%             obj.mesh.interpolation.computeShapeDeriv(xV);
-%             shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
-%             conne = obj.mesh.connec;
-% 
-%             nGaus = obj.quadrature.ngaus;
-%             nFlds = fun.ndimf;
-%             nElem = obj.mesh.nelem;
-%             nNods = size(shapes,1);
-%             nNode = size(conne,2);
-%             nDofs = obj.mesh.nnodes;
-% 
-%             rhs = zeros(nNods,nElem, nFlds);
-%             f = zeros(nDofs,nFlds);
-%             fGaus = fun.evaluate(xV);
-%             for igaus = 1:nGaus
-%                 dVg(:,1) = dV(igaus, :);
-%                 for iField = 1:nFlds
-%                     fG = squeeze(fGaus(iField,igaus,:));
-%                     fdVg = fG.*dVg;
-%                     Ni = shapes(:,:,igaus);
-%                     rhs(:,:,iField) = rhs(:,:,iField) + bsxfun(@times,Ni,fdVg');
-%                     for inode = 1:nNode
-%                         int = rhs(inode,:,iField);
-%                         con = conne(:,inode);
-%                         f(:,iField) = f(:,iField) + accumarray(con,int,[nDofs,1],@sum,0);
-%                     end
-%                 end
-%             end
-%             RHS = f;
-%         end
 
         function RHS = computeRHS(obj,fun)
             quad = obj.createRHSQuadrature(fun);
@@ -146,4 +86,3 @@ classdef Projector_toP1 < Projector
     end
 
 end
-

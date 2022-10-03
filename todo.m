@@ -3,7 +3,7 @@
 % Jose: 
 % Done! - Delete element loops of projectors
 % Done! - H1Projection
-% - Clean code of projectors
+% Done! - Clean code of projectors
 % - Use filters in these tests and compare Filters vs L2Projectors vs H1Projectors]
 
 % Ton:

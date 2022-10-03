@@ -1,9 +1,6 @@
 classdef H1Projector_toP1 < Projector
 
     properties (Access = private)
-        mesh
-        connec
-        quadOrder
         fieldMass
         fieldStiffness
     end
@@ -29,18 +26,6 @@ classdef H1Projector_toP1 < Projector
     end
 
     methods (Access = private)
-        
-        function init(obj, cParams)
-            obj.mesh   = cParams.mesh;
-            obj.connec = cParams.connec;
-            obj.quadOrder = 'LINEAR';
-        end
-        
-        function q = createQuadrature(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature(obj.quadOrder);
-            obj.quadrature = q;
-        end
 
         function createFieldMass(obj)
             s.mesh               = obj.mesh;
@@ -126,4 +111,3 @@ classdef H1Projector_toP1 < Projector
     end
 
 end
-

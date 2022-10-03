@@ -1,12 +1,4 @@
 classdef Projector_toP0 < Projector
-    
-    properties (Access = public)
-    end
-
-    properties (Access = private)
-        mesh
-        connec
-    end
 
     properties (Access = private)
         quadrature
@@ -33,13 +25,7 @@ classdef Projector_toP0 < Projector
 
     methods (Access = private)
 
-        function init(obj, cParams)
-            obj.mesh   = cParams.mesh;
-            obj.connec = cParams.connec;
-        end
-
         function createMassMatrix(obj)
-            % No connectivities (1,2,3,4,..)
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature('LINEAR');
             dv = obj.mesh.computeDvolume(quad);
@@ -55,7 +41,6 @@ classdef Projector_toP0 < Projector
             rhs = zeros(nElem,nF);
             fGaus = fun.evaluate(xV);
 
-            % Separate in two loops
             for iGaus = 1:nGaus
                 dVg(:,1) = dV(iGaus,:);
                 for iF = 1:nF
@@ -75,4 +60,3 @@ classdef Projector_toP0 < Projector
     end
 
 end
-

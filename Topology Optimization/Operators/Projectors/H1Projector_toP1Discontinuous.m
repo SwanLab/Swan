@@ -1,14 +1,5 @@
 classdef H1Projector_toP1Discontinuous < Projector
 
-    properties (Access = public)
-
-    end
-
-    properties (Access = private)
-        mesh
-        connec
-    end
-
     properties (Access = private)
         fieldMass
         fieldStiffness
@@ -36,11 +27,6 @@ classdef H1Projector_toP1Discontinuous < Projector
     end
 
     methods (Access = private)
-
-        function init(obj, cParams)
-            obj.mesh   = cParams.mesh;
-            obj.connec = cParams.connec;
-        end
 
         function createFieldMass(obj)
             s.mesh               = obj.mesh;
@@ -142,4 +128,3 @@ classdef H1Projector_toP1Discontinuous < Projector
     end
 
 end
-

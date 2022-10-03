@@ -1,7 +1,8 @@
 classdef Projector < handle
 
     properties (Access = protected)
-
+        mesh
+        connec
     end
 
     methods (Static, Access = public)
@@ -25,6 +26,15 @@ classdef Projector < handle
                 case 'GAUSSPOINTS'
                     ord = fun.quadrature.order;
             end
+        end
+
+    end
+
+    methods (Access = protected)
+
+        function init(obj, cParams)
+            obj.mesh   = cParams.mesh;
+            obj.connec = cParams.connec;
         end
 
     end

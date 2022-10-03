@@ -1,14 +1,5 @@
 classdef Projector_toP1Discontinuous < Projector
 
-    properties (Access = public)
-
-    end
-
-    properties (Access = private)
-        mesh
-        connec
-    end
-
     properties (Access = private)
         field
     end
@@ -35,11 +26,6 @@ classdef Projector_toP1Discontinuous < Projector
 
     methods (Access = private)
 
-        function init(obj, cParams)
-            obj.mesh   = cParams.mesh;
-            obj.connec = cParams.connec;
-        end
-
         function createField(obj)
             s.mesh               = obj.mesh;
             s.ndimf              = 1;
@@ -55,15 +41,6 @@ classdef Projector_toP1Discontinuous < Projector
             s.field = obj.field;
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
-
-            %             sK.type = 'StiffnessMatrix';
-            %             sK.mesh  = obj.meshD;
-            %             sK.field = obj.field;
-            %             lhsK = LHSintegrator.create(sK);
-            %             LHSK = lhsK.compute();
-            %
-            %             epsilon = obj.mesh.computeMeanCellSize();
-            %             LHS = LHS + LHSK*epsilon^2;
         end
 
         function RHS = computeRHS(obj,fun)
@@ -125,4 +102,3 @@ classdef Projector_toP1Discontinuous < Projector
     end
 
 end
-
