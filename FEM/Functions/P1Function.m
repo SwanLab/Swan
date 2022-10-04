@@ -30,7 +30,7 @@ classdef P1Function < FeFunction
             for iGaus = 1:nGaus
                 for iNode = 1:nNode
                     node = obj.connec(:,iNode);
-                    Ni = shapes(iNode,iGaus,:);
+                    Ni = shapes(iNode,iGaus);
                     fi = obj.fValues(node,:);
                     f(:,1,:) = Ni*fi';
                     fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;

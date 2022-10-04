@@ -60,8 +60,7 @@ for i = 1:size(coor,1)
     fxy(i) = s.fxy(coor(i,1),coor(i,2));
 end
 
-
-
+% Design variable
 fileName = 'test_FilterVSProjectors';
 q = Settings(fileName);
 q.warningHoleBC = false;
@@ -72,17 +71,13 @@ translator = SettingsTranslator();
 translator.translate(q);
 fileName = translator.fileName;
 settings  = SettingsTopOptProblem(fileName);
+settings.designVarSettings.initialCase = 'given';
+settings.designVarSettings.creatorSettings.value = fxy;
 q = settings.designVarSettings;
-q.mesh = m.mesh;
+q.mesh = Mesh_Total(m.mesh);
+q.scalarProductSettings.epsilon = m.mesh.computeMeanCellSize();
+q.scalarProductSettings.mesh = m.mesh;
 ls = LevelSet(q);
-% PENDING TO FINISH
-
-
-% Design variable
-cParams.value = heaviside(fxy);
-cParams.coord = m.mesh.coord;
-cParams.ndim  = 2;
-ls            = LevelSetGiven(cParams);
 
 % Filter
 y = SettingsFilter();
@@ -93,8 +88,15 @@ y.femSettings.scale = 'MACRO';
 y.femSettings.mesh = m.mesh;
 y.mesh = m.mesh;
 y.designVariable = ls;
-y.designVariable.value = ls.getValue();
 filter = Filter.create(y);
+filteredVals = filter.getP1fromP1(fxy);
+z.connec  = m.mesh.connec;
+z.type    = m.mesh.type;
+z.fValues = filteredVals;
+filterToP1 = P1Function(z);
+filterToP1.plot(m.mesh);
+title('PDE Filter');
+
 
 % 1D - PLOT in function of theta; value(nodes)=f(x)
 %    where nodes: 0-eps <= y-mx <= 0+eps
