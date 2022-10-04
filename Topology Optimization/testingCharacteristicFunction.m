@@ -97,6 +97,27 @@ filterToP1 = P1Function(z);
 filterToP1.plot(m.mesh);
 title('PDE Filter');
 
-
 % 1D - PLOT in function of theta; value(nodes)=f(x)
 %    where nodes: 0-eps <= y-mx <= 0+eps
+X = m.mesh.coord(:,1)-0.5;
+Y = m.mesh.coord(:,2)-0.5;
+theta = 0;
+slope = tan(theta);
+eps = m.mesh.computeMeanCellSize();
+fun = Y-slope*X;
+k1 = fun >= 0-eps;
+k2 = fun <= 0+eps;
+nodesk = find(k1==k2);
+l = sqrt(X(nodesk).^2+Y(nodesk).^2);
+plot(l,filterToP1.fValues(nodesk),'.')
+hold on
+plot(l,resCharFunInH1P1.fValues(nodesk),'.')
+hold on
+plot(l,resCharFunInP1.fValues(nodesk),'.')
+hold off
+grid on
+grid minor
+xlabel('Length','Interpreter','latex')
+ylabel('CharFun','Interpreter','latex')
+legend('PDE Filter','P1(H1) Projection','P1(L2) Projection','Interpreter','latex')
+ylim([-0.1 1.1])

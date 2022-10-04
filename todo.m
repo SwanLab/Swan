@@ -1,10 +1,13 @@
 %% To-do
 
+% Pending:
+% - Projectors/Filters with Triangle&Quads (figures)
+
 % Jose: 
 % Done! - Delete element loops of projectors
 % Done! - H1Projection
-% Done! - Clean code of projectors
-% - Use filters in these tests and compare Filters vs L2Projectors vs H1Projectors]
+% - Clean code of projectors + tests
+% Done! - Use filters in these tests and compare Filters vs L2Projectors vs H1Projectors]
 
 % Ton:
 %       - ACCEPT PULL REQUESTS FOR NULLSPACE
