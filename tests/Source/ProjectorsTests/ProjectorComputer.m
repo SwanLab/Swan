@@ -11,6 +11,7 @@ classdef ProjectorComputer < handle
         fun
         funProj
         mesh
+        var
     end
 
     properties (Access = private)
@@ -47,6 +48,7 @@ classdef ProjectorComputer < handle
             obj.problemTestName = problemToSolve;
             obj.projectFrom     = origin;
             obj.projectTo       = projectDestination;
+            obj.var             = variable;
         end
 
         function computeProjection(obj)
@@ -69,46 +71,26 @@ classdef ProjectorComputer < handle
         end
 
         function selectOrigin(obj)
+            val = obj.computation.variables.(obj.var);
             switch obj.projectFrom
                 case {'P0'}
-                    varP0 = squeeze(obj.computation.variables.strain)';
-                    z.fValues = varP0;
-                    z.connec  = obj.mesh.connec;
-                    z.type    = obj.mesh.type;
-                    obj.fun   = P0Function(z);
+                    val = squeeze(val)';
                 case {'P1'}
-                    varP1 = obj.computation.variables.d_u;
-                    varP1 = reshape(varP1,[obj.mesh.ndim,obj.mesh.nnodes])';
-                    z.connec  = obj.mesh.connec;
-                    z.type    = obj.mesh.type;
-                    z.fValues = varP1;
-                    obj.fun   = P1Function(z);
+                    val = reshape(val,[obj.mesh.ndim,obj.mesh.nnodes])';
             end
+            z.fValues      = val;
+            z.connec       = obj.mesh.connec;
+            z.type         = obj.mesh.type;
+            z.functionType = obj.projectFrom;
+            obj.fun        = FeFunction.create(z);
         end
 
         function selectProjector(obj)
-            switch obj.projectTo
-                case {'P0'}
-                    b.mesh      = obj.mesh;
-                    b.connec    = obj.mesh.connec;
-                    b.nelem     = size(obj.mesh.connec,1);
-                    b.nnode     = size(obj.mesh.connec,2);
-                    b.npnod     = size(obj.mesh.coord,1);
-                    b.projectorType = 'toP0';
-                    projector   = Projector.create(b);
-                    obj.funProj = projector.project(obj.fun);
-                case {'P1'}
-                    b.mesh      = obj.mesh;
-                    b.connec    = obj.mesh.connec;
-                    b.projectorType = 'toP1';
-                    projector   = Projector.create(b);
-                    obj.funProj = projector.project(obj.fun);
-                case {'P1disc'}
-                    b.mesh      = obj.mesh;
-                    b.connec    = obj.mesh.connec;
-                    projector   = Projector_toP1Discontinuous(b);
-                    obj.funProj = projector.project(obj.fun);
-            end
+            s.mesh          = obj.mesh;
+            s.connec        = obj.mesh.connec;
+            s.projectorType = obj.projectTo;
+            projector       = Projector.create(s);
+            obj.funProj     = projector.project(obj.fun);
         end
 
     end

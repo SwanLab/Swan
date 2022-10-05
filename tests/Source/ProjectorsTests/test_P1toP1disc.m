@@ -1,3 +1,4 @@
 problemToSolve = 'test2d_triangle';
 origin = 'P1';
-projectDestination = 'P1disc';
+variable = 'd_u';
+projectDestination = 'toP1Disc';

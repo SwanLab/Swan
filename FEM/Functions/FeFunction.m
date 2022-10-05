@@ -21,6 +21,15 @@ classdef FeFunction < handle
 
         function obj = FeFunction()
         end
+
+    end
+
+    methods (Static, Access = public)
+
+        function obj = create(cParams)
+            fun = FunctionFactory();
+            obj = fun.create(cParams);
+        end
         
     end
 
