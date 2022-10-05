@@ -64,11 +64,15 @@ classdef CutMeshProvisionalQuadrilater < CutMesh
             s.type   = obj.backgroundMesh.type;
             s.fValues = ls;
             f = P1Function(s);
-            x.mesh = obj.backgroundMesh;
-            x.connec = obj.backgroundMesh.connec;
-            ProjP0 = Projector_toP0(x);
-            fSub = ProjP0.project(f);
-            lsSubMesh = squeeze(fSub.fValues);
+            q = Quadrature.set(obj.backgroundMesh.type);
+            q.computeQuadrature('CONSTANT');
+            xV = q.posgp;
+            lsSubMesh = squeeze(f.evaluate(xV));
+%             x.mesh = obj.backgroundMesh;
+%             x.connec = obj.backgroundMesh.connec;
+%             ProjP0 = Projector_toP0(x);
+%             fSub = ProjP0.project(f);
+%             lsSubMesh = squeeze(fSub.fValues);
             obj.levelSetSubMesh = [ls;lsSubMesh];
         end
         
