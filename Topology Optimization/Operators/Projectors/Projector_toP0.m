@@ -27,9 +27,9 @@ classdef Projector_toP0 < Projector
 
         function createMassMatrix(obj)
             quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
+            quad.computeQuadrature('CONSTANT');
             dv = obj.mesh.computeDvolume(quad);
-            obj.M = diag(dv(1,:));
+            obj.M = diag(sum(dv(1,:),1));
         end
 
         function rhs = createRHS(obj, fun)
