@@ -3,12 +3,14 @@
 clear; close all;
 
 file = 'RVE_Square_Triangle';
+% file = 'BridgeCool_Quadrilateral_Bilinear_Structured';
 a.fileName = file;
 m = FemDataContainer(a);
 
 %% Create characteristic function
 s.mesh    = m.mesh;
 s.fxy     = @(x,y) (x-0.5)^2+(y-0.5)^2-0.3^2;
+% s.fxy     = @(x,y) (x-1.5)^2+(y-1)^2-0.6^2;
 circleFun = CharacteristicFunction(s);
 
 %% L2 Projectors
@@ -109,6 +111,7 @@ k1 = fun >= 0-eps;
 k2 = fun <= 0+eps;
 nodesk = find(k1==k2);
 l = sqrt(X(nodesk).^2+Y(nodesk).^2);
+figure
 plot(l,filterToP1.fValues(nodesk),'.')
 hold on
 plot(l,resCharFunInH1P1.fValues(nodesk),'.')
