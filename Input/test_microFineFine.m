@@ -1,22 +1,25 @@
-filename='RVE_Square_Triangle_FineFine';
-ptype = 'MICRO';
+% filename='instantSquare';
+filename='CantileverVertical';
+% filename='MBB';
+ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'horizontalFibers';
-cost={'chomog_alphabeta'};
-weights=[1 0.1];
+% initial_case = 'squareInclusion';
+initial_case = 'full';
+cost={'compliance'};
+weights=[1];
 constraint = {'volumeConstraint'};
-optimizer = 'SLERP'; 
-incrementFactor = 1;
-designVariable = 'LevelSet';
+optimizerUnconstrained = 'PROJECTED GRADIENT';
+optimizer = 'DualNestedInPrimal';
+incrementFactor = 1.5;
+designVariable = 'Density';
 filterType = 'P1';
-            
-levelFibers = 3;
-volumeFibers = 0.5;
 
-nsteps = 1;
-Vfrac_final = 0.5;
-Perimeter_target=1;
+% widthSquare = sqrt(0.14);
+
+nsteps = 16;
+Vfrac_final = 0.2;
+Perimeter_target=5;
 optimality_final =1e-3;
 constr_final =1e-3;
 
@@ -38,7 +41,8 @@ micro.alpha =[1 1 0]';
 micro.beta =[1 1 0]';
 
 % For all tests
-plotting = false;
+plotting = true;
 printing = false;
-monitoring = false;
-maxiter = 3;
+monitoring = true;
+monitoring_interval = 1;
+maxiter = 1200;

@@ -10,7 +10,7 @@ classdef NodesCalculator < handle
     methods (Access = public, Static)
         
         function obj = create(cParams)
-            obj = NodesCalculatorFactory.create(cParams);            
+            obj = NodesCalculatorFactory.create(cParams);
         end
 
     end
