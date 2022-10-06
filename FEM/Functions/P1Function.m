@@ -5,6 +5,7 @@ classdef P1Function < FeFunction
 
     properties (Access = private)
         interpolation
+        geometry % !!
     end
 
     properties (Access = private)
@@ -39,6 +40,41 @@ classdef P1Function < FeFunction
 
         end
 
+        function strain = computeGradientStrain(obj, quad, mesh)
+            % Previous requirements
+            obj.createGeometry(quad, mesh);
+            
+            % On to calculations
+            d_u(1:2:29,1) = obj.fValues(:,1)';
+            d_u(2:2:30,1) = obj.fValues(:,2)';
+
+            obj.interpolation.computeShapeDeriv(quad.posgp);
+            conn = obj.connec;
+            nStre   = obj.getNstre();
+            nElem   = size(conn,1);
+            nNodeEl = size(conn,2);
+            nUnkn   = obj.ndimf;
+            nGaus   = quad.ngaus;
+            strain = zeros(nStre,nElem,nGaus);
+            for igaus = 1:nGaus
+                Bmat = obj.computeB(igaus);
+                for istre=1:nStre
+                    for inode=1:nNodeEl
+                        nodes = conn(:,inode);
+                        for idime = 1:nUnkn
+                            dofs = nUnkn*(nodes - 1) + idime;
+                            ievab = nUnkn*(inode-1)+idime;
+                            B = squeeze(Bmat(istre,ievab,:));
+                            u = d_u(dofs);
+                            strain(istre,:,igaus)=strain(istre,:,igaus)+(B.*u)';
+                        end
+                        
+                    end
+                end
+            end
+            strain = permute(strain, [3 1 2]);
+        end
+
         function plot(obj, m) % 2D domains only
             dim = 1;
             x = m.coord(:,1);
@@ -68,19 +104,30 @@ classdef P1Function < FeFunction
             obj.interpolation = Interpolation.create(m,'LINEAR');
         end
 
-        function fRep = repeatFunctionAtNodes(obj)
-           f = obj.fValues;
-           nNode  = size(obj.connec,2);
-           nDime  = size(f,2);
-           nElem  = size(obj.connec,1);
-           fNodeElem = zeros(nDime,nNode,nElem);
-           fNods  = transpose(f);
-           for inode = 1:nNode
-               nodes = obj.connec(:,inode);
-               fNode = fNods(:,nodes);
-               fNodeElem(:,inode,:) = fNode;
-           end
-           fRep = fNodeElem;
+        function Bmat = computeB(obj,igaus)
+            d.nvoigt = obj.getNstre();
+            d.nnodeElem = size(obj.connec,2);
+            d.ndofsElem = obj.ndimf*(d.nnodeElem);
+            d.ndimf = obj.ndimf;
+            s.dim          = d;
+            s.geometry     = obj.geometry;
+            s.globalConnec = [];
+            Bcomp = BMatrixComputer(s);
+            Bmat = Bcomp.computeBmat(igaus);
+        end
+
+        function createGeometry(obj, quad, mesh)
+            int = obj.interpolation;
+            int.computeShapeDeriv(quad.posgp);
+            s.mesh = mesh;
+            g = Geometry.create(s);
+            g.computeGeometry(quad,int);
+            obj.geometry = g;
+        end
+
+        function nstre = getNstre(obj)
+            nstreVals = [2, 3, 6];
+            nstre = nstreVals(obj.ndimf);
         end
 
     end

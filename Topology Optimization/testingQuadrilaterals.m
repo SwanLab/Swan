@@ -30,12 +30,12 @@ ss.x      = uP1;
 uP1D = projectorDisc.project(ss);
 
 % FGauss function
-quad = Quadrature.set(s.mesh.type);
-quad.computeQuadrature('LINEAR');
+quadrature = Quadrature.set(s.mesh.type);
+quadrature.computeQuadrature('LINEAR');
 x.fValues    = permute(fem.variables.strain,[2 1 3]);
 x.connec     = s.mesh.connec;
 x.type       = s.mesh.type;
-x.quadrature = quad;
+x.quadrature = quadrature;
 uFg = FGaussDiscontinuousFunction(x);
 
 %% Projection to P0
@@ -83,3 +83,7 @@ resP1toP1D.plot(s.mesh)
 
 % FGauss function to P1 Discontinuous
 resFgtoP1D = projP1D.project(uFg);
+
+%% UTILS | CREATE A LINEAR QUADRATURE
+% quadrature = Quadrature.set(s.mesh.type);
+% quadrature.computeQuadrature('LINEAR');

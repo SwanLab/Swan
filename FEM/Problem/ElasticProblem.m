@@ -241,7 +241,7 @@ classdef ElasticProblem < handle
 
         function uM = splitDisplacement(obj)
             u = obj.variables.d_u;
-            nu = obj.displacementField.ndimf;
+            nu = obj.displacementField.dim.ndimf;
             nnode = round(length(u)/nu);
             nodes = 1:nnode;
             uM = zeros(nnode,nu);
