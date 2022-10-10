@@ -10,6 +10,8 @@ classdef DesignVariableFactory < handle
                     designVar = Density(cParams);
                 case 'MicroParams'
                     designVar = MicroParams(cParams);
+                case 'AreaColumn'
+                    designVar = AreaColumn(cParams);
             end
         end
         

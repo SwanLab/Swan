@@ -4,34 +4,33 @@ classdef Optimizer_fmincon < Optimizer
         type = 'fmincon';
     end
 
-    properties
+    properties (Access = private)
         problem
-        nConstr
-        info
-        constraintTolerance
-        optimalityTolerance
-        data
+        iterDisplay
         upperBound
         lowerBound
-        functions
         nX
         options
         algorithm
+        incrementalScheme
+        hasConverged
+        hasFinished
+        
+        globalCost
+        globalConstraint
+        globalCostGradient
+        globalLineSearch
+        globalDual
+        globalDesignVar
     end
+
 
     methods (Access = public)
 
         function obj = Optimizer_fmincon(cParams)
-            obj.algorithm  = 'interior-point';
-            cParams.monitoringDockerSettings.optimizerNames.alg = obj.algorithm;
-            cParams.optimizerNames.alg = obj.algorithm;
+            obj.initOptimizer(cParams);
             obj.init(cParams);
-            obj.upperBound = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound = cParams.uncOptimizerSettings.lb;
-            obj.nConstr    = cParams.nConstr;
-            obj.maxIter    = cParams.maxIter;
-            obj.nIter      = -1;
-            obj.nX         = length(obj.designVariable.value);
+            obj.outputFunction.monitoring.create(cParams);
             obj.createProblem();
             obj.createOptions();
         end
@@ -47,22 +46,21 @@ classdef Optimizer_fmincon < Optimizer
 
     methods (Access = private)
 
+        function init(obj,cParams)
+            obj.algorithm              = 'interior-point';
+            cParams.optimizerNames.alg = obj.algorithm;
+            obj.upperBound             = cParams.uncOptimizerSettings.ub;
+            obj.lowerBound             = cParams.uncOptimizerSettings.lb;
+            obj.iterDisplay            = cParams.outputFunction.iterDisplay;
+            obj.incrementalScheme      = cParams.incrementalScheme;
+            obj.nX                     = length(obj.designVariable.value);
+            obj.hasConverged           = false;
+            cParams.monitoringDockerSettings.optimizerNames.alg = obj.algorithm;
+        end
+
         function x = callfmincon(obj)
             PROBLEM         = obj.problem;
             PROBLEM.options = obj.options;
-%             x               = PROBLEM.x0;
-%             [c0,dc0] = PROBLEM.objective(x); 
-%             eps = 1e-6;
-%             for i = 1:length(x)
-%                 xd = x;
-%                 xd(i) = xd(i) + eps;
-%                 [c,~] = PROBLEM.objective(xd); 
-%                 dc(i) = (c - c0)/eps;
-%             end
-%             close all
-%             plot(dc0);
-%             hold on
-%             plot(dc);
             x = fmincon(PROBLEM);
         end
 
@@ -125,7 +123,7 @@ classdef Optimizer_fmincon < Optimizer
             opts.SpecifyConstraintGradient = true;
             opts.CheckGradients            = false;
             opts.ConstraintTolerance       = 1e-4;
-            opts.Display                   = "none";
+            opts.Display                   = obj.iterDisplay;
             opts.EnableFeasibilityMode     = false;
             opts.HessianApproximation      = 'bfgs';
             opts.HessianFcn                = [];
@@ -138,6 +136,25 @@ classdef Optimizer_fmincon < Optimizer
             obj.options                    = opts;
         end
 
+        function updateIterInfo(obj)
+            obj.increaseIter();
+            obj.updateStatus();
+        end
+
+        function increaseIter(obj)
+            obj.nIter = obj.nIter + 1;
+        end
+
+        function updateStatus(obj)
+            obj.hasFinished = obj.hasConverged || obj.hasExceededStepIterations();
+        end
+
+        function itHas = hasExceededStepIterations(obj)
+            iStep = obj.incrementalScheme.iStep;
+            nStep = obj.incrementalScheme.nSteps;
+            itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
+        end
+
     end
 
     methods (Access = private)
@@ -146,40 +163,17 @@ classdef Optimizer_fmincon < Optimizer
             stop      = false;
             switch state
                 case "init"
-                    
+
                 case "iter"
-                    obj.data  = params;
-                    obj.nIter = obj.nIter+1;
+                    obj.updateIterInfo();
                     obj.designVariable.update(x);
-                    foOpt       = params.firstorderopt;
-                    normXsquare = obj.designVariable.computeL2normIncrement();
-                    obj.designVariable.updateOld();
-                    incX = sqrt(normXsquare);
-
-                    switch obj.algorithm
-                        case 'sqp'
-                            stepL = params.stepsize;
-                        case 'interior-point'
-                            stepL = params.trustregionradius;
-                        otherwise
-                    end
-
-                    obj.updateStatus();
-                    obj.printOptimizerVariable();
-                    obj.dualVariable.value = zeros(obj.constraint.nSF,1);
-                    obj.convergenceVars.reset();
-                    obj.convergenceVars.append(incX);
-                    obj.convergenceVars.append(foOpt);
-                    obj.convergenceVars.append(stepL);
-                    obj.refreshMonitoring();
-                    obj.printHistory();
-                otherwise
-                    
+                    params.algorithm   = obj.algorithm;
+                    params.nIter       = obj.nIter;
+                    params.hasFinished = obj.hasFinished; 
+                    obj.outputFunction.monitoring.compute(params);
             end
         end
 
     end
-
-
 
 end

@@ -30,6 +30,14 @@ classdef ShFunc_Volume < ShapeFunctional
             volume = volume/(obj.geometricVolume);
             obj.value = volume;
         end
+
+        function v = getVariablesToPlot(obj)
+            v{1} = obj.value*obj.value0;
+        end
+
+        function t = getTitlesToPlot(obj)
+            t{1} = 'Volume non scaled';
+        end
         
     end
     

@@ -11,7 +11,7 @@ classdef Settings %< handle%& matlab.mixin.Copyable
         monitoring = true
         monitoring_interval = 10
         maxiter = 2000
-        constraint_case = 'EQUALITY'
+        constraint_case = {'EQUALITY'}
         HJiter0 
         e2 
         ub = 1;
