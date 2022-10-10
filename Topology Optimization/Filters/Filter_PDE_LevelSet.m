@@ -27,6 +27,15 @@ classdef Filter_PDE_LevelSet < Filter
             F = ones(size(ls));
             RHS = obj.computeRHS(F);
         end
+        
+        function RHS = integrateFunctionAlongFacets(obj,F)
+            RHS = obj.computeRHSinBoundary(F);
+        end
+        
+        function x_reg = regularize(obj,F)
+            RHS = obj.integrateFunctionAlongFacets(F);
+            x_reg = obj.solveFilter(RHS);
+        end
 
         function obj = updateEpsilon(obj,epsilon)
             if obj.hasEpsilonChanged(epsilon)
@@ -127,6 +136,19 @@ classdef Filter_PDE_LevelSet < Filter
             lhs        = problemLHS.compute(obj.epsilon);
             obj.bc     = obj.field.translateBoundaryConditions(obj.bc);
             lhs        = obj.bc.fullToReducedMatrix(lhs);
+        end
+        
+        function fInt = computeRHSinBoundary(obj,fNodes)
+            ls = obj.levelSet.value;
+            if all(ls>0)
+                fInt = zeros(size(ls));
+            else
+                uMesh = obj.levelSet.getUnfittedMesh();
+                s.mesh = uMesh;
+                s.type = 'Unfitted';
+                int = RHSintegrator.create(s);
+                fInt = int.integrateInBoundary(fNodes);
+            end
         end
 
     end

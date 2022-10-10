@@ -75,7 +75,6 @@ classdef HamiltonJacobi < handle
             s.femSettings.scale = 'MACRO';
             s.designVariable    = designVar;
             obj.filter          = Filter.create(s);
-            obj.filter.preProcess();
             obj.filter.updateEpsilon(e);
         end
 
