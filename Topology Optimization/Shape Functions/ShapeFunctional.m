@@ -91,7 +91,6 @@ classdef ShapeFunctional < handle
             s.femSettings.mesh = s.mesh;
             s.designVariable = cParams.designVariable;
             obj.filter = Filter.create(s);
-            obj.filter.preProcess();
         end
         
         function createMsmoothAndDvolu(obj,cParams)

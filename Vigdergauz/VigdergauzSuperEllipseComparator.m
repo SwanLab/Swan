@@ -132,7 +132,7 @@ classdef VigdergauzSuperEllipseComparator < handle
             filterParams.designVar = designV;
             filterParams.quadratureOrder = 'LINEAR';
             obj.filter = Filter.create(filterParams);
-            obj.filter.preProcess();
+%             obj.filter.preProcess();
         end
         
         function createQuadrature(obj)

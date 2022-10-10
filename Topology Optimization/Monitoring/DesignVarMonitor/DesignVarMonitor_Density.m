@@ -54,7 +54,6 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
             s.femSettings.scale = cParams.scale;
             s.femSettings.mesh = cParams.mesh.innerMeshOLD;            
             obj.filter = Filter_P1_Density(s);
-            obj.filter.preProcess();
         end
         
         function rhoElem = filterDensity(obj)
