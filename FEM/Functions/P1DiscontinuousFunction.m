@@ -40,7 +40,6 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function plot(obj, m)
-            dim = 1;
             ndims   = size(obj.fValues, 1);
             nelem   = size(obj.connec, 1);
             nnodeEl = size(obj.connec, 2);
@@ -48,13 +47,17 @@ classdef P1DiscontinuousFunction < FeFunction
             fD = reshape(obj.fValues, [ndims, nelem*nnodeEl])';
             x = mD.coord(:,1);
             y = mD.coord(:,2);
-            z = fD(:,dim);
             figure()
-            a = trisurf(mD.connec, x, y, z);
-%             colorbar
-            shading interp
-            a.EdgeColor = [0 0 0];
-            view(0,90)
+            for idim = 1:obj.ndimf
+                subplot(1,obj.ndimf,idim);
+                z = fD(:,idim);
+                a = trisurf(mD.connec,x,y,z);
+                view(0,90)
+    %             colorbar
+                shading interp
+                a.EdgeColor = [0 0 0];
+                title(['dim = ', num2str(idim)]);
+            end
         end
 
     end

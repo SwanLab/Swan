@@ -23,9 +23,7 @@
 % gauss points. project 
 
 %% Changelog
-% + Added fType to functions to check required quadrature orders and stuff.
-%   Probably could have been done with isa() or class(), but this seems to
-%   be cleaner. See new method at Projector
+% + plot() now plots all dimensions
 
 %% Notes (Ton)
 % FGaussFun SHOULD assert. The discrepancy in quadrature results from the
@@ -39,6 +37,7 @@
 
 % - QUESTION: what to do eg. CutMeshProvisionalQuadrilateral. Projector or
 %             evaluate?
+
 
 
 %% Backlog

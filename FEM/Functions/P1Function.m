@@ -79,16 +79,19 @@ classdef P1Function < FeFunction
         end
 
         function plot(obj, m) % 2D domains only
-            dim = 1;
             x = m.coord(:,1);
             y = m.coord(:,2);
-            z = obj.fValues(:,dim);
             figure()
-            a = trisurf(m.connec,x,y,z);
-            view(0,90)
-%             colorbar
-            shading interp
-            a.EdgeColor = [0 0 0];
+            for idim = 1:obj.ndimf
+                subplot(1,obj.ndimf,idim);
+                z = obj.fValues(:,idim);
+                a = trisurf(m.connec,x,y,z);
+                view(0,90)
+    %             colorbar
+                shading interp
+                a.EdgeColor = [0 0 0];
+                title(['dim = ', num2str(idim)]);
+            end
         end
 
     end
