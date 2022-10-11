@@ -76,11 +76,9 @@ classdef H1Projector_toP1 < Projector
 
             nGaus = quad.ngaus;
             nFlds = fun.ndimf;
-            nElem = obj.mesh.nelem;
             nNode = size(conne,2);
             nDofs = obj.mesh.nnodes;
 
-            fLoc  = zeros(nNode,nElem,nFlds);
             fGaus = fun.evaluate(xV);
             f     = zeros(nDofs,nFlds);
             for iField = 1:nFlds
@@ -88,15 +86,11 @@ classdef H1Projector_toP1 < Projector
                     dVg(:,1) = dV(igaus, :);
                     fG = squeeze(fGaus(iField,igaus,:));
                     for inode = 1:nNode
+                        dofs = conne(:,inode);
                         Ni = shapes(inode,igaus);
-                        fL(:,1) = squeeze(fLoc(inode,:,iField));
                         int = Ni*fG.*dVg;
-                        fLoc(inode,:,iField) = fL + int;
+                        f(:,iField) = f(:,iField) + accumarray(dofs,int,[nDofs 1]);
                     end
-                end
-                for iElem = 1:nElem
-                    dofs = conne(iElem,:);
-                    f(dofs,iField) = f(dofs,iField) + fLoc(:,iElem,iField);
                 end
             end
             RHS = f;
