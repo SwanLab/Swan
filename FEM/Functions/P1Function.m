@@ -40,7 +40,7 @@ classdef P1Function < FeFunction
 
         end
 
-        function fun = computeGradientStrain(obj, quad, mesh)
+        function fun = computeGradient(obj, quad, mesh)
             % Previous requirements
             obj.createGeometry(quad, mesh);
             
@@ -70,8 +70,6 @@ classdef P1Function < FeFunction
                     end
                 end
             end
-%             strainFi = permute(strain, [3 1 2]);
-%             strainfv = permute(strainFi, [2 1 3]);
             s.fValues    = permute(strain, [1 3 2]);
             s.ndimf      = nStre;
             s.quadrature = quad;
