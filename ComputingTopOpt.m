@@ -1,5 +1,5 @@
 function ComputingTopOpt
-
+close all
 
 % fileName = 'bridge_10_2';
 fileName = 'CantileverArnau2';
@@ -42,8 +42,8 @@ s.problemCase = 'cantilever';
 % s.DoF      = 2;
 % s.problemCase = 'cantilever3';
 
-FEMWriter = FEMInputWriter(s);
-FEMWriter.createTest;
+% % % % FEMWriter = FEMInputWriter(s);
+% % % % FEMWriter.createTest;
 s.testName = 'test_cantilever2';%''testJose';
 % s.testName = 'test_bridg_multipleLoads';
 t = TopOptComputer(s);

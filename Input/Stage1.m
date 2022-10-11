@@ -6,24 +6,24 @@ materialType = 'ISOTROPIC';
 
 initial_case = 'full';
 
-cost = {'compliance','anisotropicPerimeter2D'};
-weights = [1,0.01];
+cost = {'compliance'};
+weights = [1];
 
 constraint = {'volumeConstraint'};
 constraint_case = {'EQUALITY'};
 
-optimizerUnconstrained = 'SLERP'; 
+optimizerUnconstrained = 'PROJECTED GRADIENT'; 
 optimizer = 'AlternatingPrimalDual';
 incrementFactor = 2;
-designVariable = 'LevelSet';
+designVariable = 'Density';
 filterType = 'P1';
 
-nsteps = 11;
-Vfrac_final = 0.4;
+nsteps = 1;
+Vfrac_final = 0.2;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 0.4;
+Vfrac_initial = 0.2;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 Perimeter_target = 5;
@@ -36,9 +36,9 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 % For all tests
-plotting = false;
-printing = true;
+plotting = true;
+printing = false;
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 1100;
+maxiter = 100;

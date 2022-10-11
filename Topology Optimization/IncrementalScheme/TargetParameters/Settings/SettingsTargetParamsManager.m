@@ -53,15 +53,15 @@ classdef SettingsTargetParamsManager < AbstractSettings
         
         function initEpsilons(obj)
             L = obj.mesh.computeCharacteristicLength();
-            D = obj.mesh.computeMeanCellSize();
-            obj.setIfEmpty('epsilonInitial',D);
+            h = obj.mesh.computeMeanCellSize();
+            obj.setIfEmpty('epsilonInitial',h);
             obj.setIfEmpty('epsilonFinal',obj.epsilonInitial);
             obj.setIfEmpty('epsilonPerInitial',L);
             obj.setIfEmpty('epsilonPerFinal',obj.epsilonInitial);
-            obj.setIfEmpty('epsilonIsoInitial',D);
+            obj.setIfEmpty('epsilonIsoInitial',h);
             obj.setIfEmpty('epsilonIsoFinal',obj.epsilonInitial);
-%             obj.epsilonPerInitial = 100*D; % 20
-%             obj.epsilonPerFinal   = 200*D; % 2
+            obj.epsilonPerInitial = 100*L; % 20      10*L
+            obj.epsilonPerFinal   = h; % 2
         end
         
         function setIfEmpty(obj,prop,b)

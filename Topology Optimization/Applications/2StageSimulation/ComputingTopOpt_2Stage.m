@@ -1,8 +1,9 @@
 function ComputingTopOpt_2Stage
 % checkout: git checkout origin/master -- path/to/file
 % PENDING: AUTOMATIZE THIS FUNCTION WITH GID PICTUREsss
+close all
 rho0Name = 'Simulation.mat';
-jumpTo2ndPart = false;
+jumpTo2ndPart = true;
 
 if jumpTo2ndPart == false
 
@@ -22,7 +23,7 @@ if jumpTo2ndPart == false
 
 
 
-    fileName = 'test_microFineFine';
+    fileName = 'Stage1';
     s = Settings(fileName);
     s.warningHoleBC = false;
     s.printIncrementalIter = false;
@@ -63,7 +64,7 @@ if jumpTo2ndPart == false
 %     system(command);
 else
     load(rho0Name);
-    fileName = 'test_anisotropy_cantilever_rho0';
+    fileName = 'Stage2';
 
     s = Settings(fileName);
     s.warningHoleBC = false;

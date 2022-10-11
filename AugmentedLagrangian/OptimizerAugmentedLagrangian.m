@@ -49,8 +49,10 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.hasConverged = false;
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
-%             obj.saveVariablesForAnalysis();
-            while ~obj.hasConverged
+            %             obj.saveVariablesForAnalysis();
+%                         while ~obj.hasConverged
+            obj.hasFinished = 0;
+            while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
@@ -83,7 +85,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
             obj.dualVariable.value = zeros(obj.nConstr,1);
-            obj.penalty            = 10;
+            obj.penalty            = 10; % 10        5 for stage1
         end
 
         function obj = update(obj)
@@ -124,10 +126,10 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             p       = obj.penalty;
             DmF     = DJ + Dg*(l + p*g);
             if obj.nIter == 0
-                factor = 1;
+                factor = 1.05; % 1.05
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
-                factor = 1.05;
+                factor = 10; %1.05
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end
@@ -181,7 +183,11 @@ classdef OptimizerAugmentedLagrangian < Optimizer
                 obj.dualUpdater.update();
                 obj.meritNew = mNew;
             elseif obj.primalUpdater.isTooSmall()
-                error('Convergence could not be achieved (step length too small)')
+%                 error('Convergence could not be achieved (step length too small)')
+                obj.acceptableStep = true;
+                obj.dualUpdater.updatePenalty(obj.penalty);
+                obj.dualUpdater.update();
+                obj.meritNew = mNew;
             else
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);

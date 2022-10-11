@@ -48,7 +48,8 @@ classdef OptimizerNullSpace < Optimizer
             obj.hasConverged = false;
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
-            while ~obj.hasConverged
+            obj.hasFinished = 0;
+            while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
@@ -117,7 +118,7 @@ classdef OptimizerNullSpace < Optimizer
                 factor  = 1;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
-                factor = 1.2;
+                factor = 1.2; % 1.2
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end
@@ -158,7 +159,10 @@ classdef OptimizerNullSpace < Optimizer
                 obj.meritNew = mNew;
                 obj.dualUpdater.updateOld();
             elseif obj.primalUpdater.isTooSmall()
-                error('Convergence could not be achieved (step length too small)')
+%                 error('Convergence could not be achieved (step length too small)')
+                obj.acceptableStep = true;
+                obj.meritNew = mNew;
+                obj.dualUpdater.updateOld();
             else
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
