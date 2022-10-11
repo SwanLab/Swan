@@ -10,7 +10,7 @@
 % Done! - Use filters in these tests and compare Filters vs L2Projectors vs H1Projectors]
 
 % Ton:
-%       - ACCEPT PULL REQUESTS FOR NULLSPACE
+% Done* - ACCEPT PULL REQUESTS FOR NULLSPACE
 % Done* - projectors without discont mesh (use field as dispatching in lhs
 %         integrator assembly)
 % Done! - quadrilateral elements working

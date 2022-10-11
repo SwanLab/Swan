@@ -11,8 +11,6 @@ classdef FGaussDiscontinuousFunction < handle
     end
 
     properties (Access = private)
-        type % not needed apparently
-        connec
     end
     
     properties (Access = private)
@@ -39,8 +37,6 @@ classdef FGaussDiscontinuousFunction < handle
         
         function init(obj,cParams)
             obj.fValues    = cParams.fValues;
-            obj.connec     = cParams.connec;
-            obj.type       = cParams.type;
             obj.quadrature = cParams.quadrature;
             obj.ndimf      = size(cParams.fValues,1);
         end

@@ -40,14 +40,12 @@ classdef P1Function < FeFunction
 
         end
 
-        function strain = computeGradientStrain(obj, quad, mesh)
+        function fun = computeGradientStrain(obj, quad, mesh)
             % Previous requirements
             obj.createGeometry(quad, mesh);
             
             % On to calculations
-            d_u(1:2:29,1) = obj.fValues(:,1)';
-            d_u(2:2:30,1) = obj.fValues(:,2)';
-
+            d_u = obj.convertFValuesToColumn();
             obj.interpolation.computeShapeDeriv(quad.posgp);
             conn = obj.connec;
             nStre   = obj.getNstre();
@@ -72,7 +70,12 @@ classdef P1Function < FeFunction
                     end
                 end
             end
-            strain = permute(strain, [3 1 2]);
+%             strainFi = permute(strain, [3 1 2]);
+%             strainfv = permute(strainFi, [2 1 3]);
+            s.fValues    = permute(strain, [1 3 2]);
+            s.ndimf      = nStre;
+            s.quadrature = quad;
+            fun = FGaussDiscontinuousFunction(s);
         end
 
         function plot(obj, m) % 2D domains only
@@ -128,6 +131,14 @@ classdef P1Function < FeFunction
         function nstre = getNstre(obj)
             nstreVals = [2, 3, 6];
             nstre = nstreVals(obj.ndimf);
+        end
+
+        function fCol = convertFValuesToColumn(obj)
+            nVals = size(obj.fValues,1)*size(obj.fValues,2);
+            fCol = zeros(nVals,1);
+            for idim = 1:obj.ndimf
+                fCol(idim:obj.ndimf:nVals, 1) = obj.fValues(:,idim)';
+            end
         end
 
     end
