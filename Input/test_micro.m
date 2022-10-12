@@ -6,7 +6,7 @@ initial_case = 'circleInclusion';
 cost = {'chomog_fraction';'perimeter'};
 weights = [1 0.1];
 constraint = {'volumeConstraint'};
-constraint_case = 'INEQUALITY';
+constraint_case = {'INEQUALITY'};
 optimizer = 'MMA'; 
 
 incrementFactor = 1;

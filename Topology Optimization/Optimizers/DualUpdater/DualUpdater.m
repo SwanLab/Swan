@@ -7,7 +7,7 @@ classdef DualUpdater < handle
     methods (Access = public, Static)
     
         function obj = create(cParams)
-            f = DualUpdaterFactory();
+            f   = DualUpdaterFactory();
             obj = f.create(cParams);
         end
     

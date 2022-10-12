@@ -5,20 +5,15 @@ classdef DualUpdaterFactory < handle
     
         function d = create(cParams)
             switch cParams.type
-                case 'AugmentedLagrangian'
-                    d = DualUpdater_AugmentedLagrangian(cParams);                    
+                case 'AlternatingPrimalDual'
+                    d = DualUpdater_AugmentedLagrangian(cParams);
                 case 'LagrangeMultiplierEstimation'
                     
+                case 'NullSpace'
+                    d = DualUpdater_NullSpace(cParams);
             end
         end
     
     end
-    
-    methods (Access = private)
-        
-        
-        
-    end
-   
     
 end

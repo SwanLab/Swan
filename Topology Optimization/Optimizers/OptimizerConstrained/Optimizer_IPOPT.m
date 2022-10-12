@@ -15,20 +15,23 @@ classdef Optimizer_IPOPT < Optimizer
         functions
         nX
         options
+        constraintCase
     end
     
     methods (Access = public)
         
         function obj = Optimizer_IPOPT(cParams)
-            obj.init(cParams);
+            obj.initOptimizer(cParams);
             obj.upperBound = cParams.uncOptimizerSettings.ub;
             obj.lowerBound = cParams.uncOptimizerSettings.lb;
-            obj.nConstr    = cParams.nConstr;
+            obj.nConstr    = cParams.constraint.nSF;
             obj.maxIter    = cParams.maxIter;
+            obj.constraintCase = cParams.constraintCase;
             obj.nIter      = -1;
             obj.nX         = length(obj.designVariable.value);
             obj.createFunctions();
             obj.createOptions();
+            obj.outputFunction.monitoring.create(cParams);            
         end
         
         function solveProblem(obj)
@@ -85,28 +88,40 @@ classdef Optimizer_IPOPT < Optimizer
         end
         
         function stop = outputfun_ipopt(obj,data)
-            stop = true;
-            obj.historicalVariables.inf_pr = data.inf_pr;
-            obj.historicalVariables.inf_du = data.inf_du;
-            obj.data = data;
-            obj.nIter = obj.nIter+1;
-            if ~isempty(data.x)
-                obj.designVariable.update(data.x);
-                normXsquare = obj.designVariable.computeL2normIncrement();
-                obj.designVariable.updateOld();
-                incX = sqrt(normXsquare);
-            end
-            obj.updateStatus();
-            obj.printOptimizerVariable();
-            obj.dualVariable.value = zeros(obj.constraint.nSF,1);
+             obj.nIter = obj.nIter+1;
+
+
+             s.hasFinished          = false;%data.inf_pr;obj.hasFinished;
+             s.nIter                = obj.nIter;
+             s.inf_pr               = data.inf_pr;%obj.KKTnorm;
+             s.inf_du               = data.inf_du;   
+             s.outitFrac            = obj.nIter; %obj.outit/obj.maxoutit;
+             obj.designVariable.updateOld();
+                obj.outputFunction.monitoring.compute(s);
             
-            
-            obj.convergenceVars.reset();
-            obj.convergenceVars.append(data.inf_pr);
-            obj.convergenceVars.append(data.inf_du);
-            obj.convergenceVars.append(incX);
-            obj.refreshMonitoring();
-            obj.printHistory();
+%             obj.historicalVariables.inf_pr = data.inf_pr;
+%             obj.historicalVariables.inf_du = data.inf_du;
+%             obj.data = data;
+%             obj.nIter = obj.nIter+1;
+%             if ~isempty(data.x)
+%                 obj.designVariable.update(data.x);
+%                 normXsquare = obj.designVariable.computeL2normIncrement();
+%                 obj.designVariable.updateOld();
+%                 incX = sqrt(normXsquare);
+%             end
+%             obj.updateStatus();
+%             obj.printOptimizerVariable();
+%             obj.dualVariable.value = zeros(obj.constraint.nSF,1);
+%             
+%             
+%             obj.convergenceVars.reset();
+%             obj.convergenceVars.append(data.inf_pr);
+%             obj.convergenceVars.append(data.inf_du);
+%             obj.convergenceVars.append(incX);
+%             obj.refreshMonitoring();
+%             obj.printHistory();
+             stop = true;
+
         end
         
         function createOptions(obj)
@@ -142,7 +157,7 @@ classdef Optimizer_IPOPT < Optimizer
         end
         
         function ct = obtainConstraintTolerance(obj)
-            constrTol = obj.targetParameters.constr_tol;
+            constrTol = obj.targetParameters.constr_tol; 
             ct = 0.1*constrTol;
         end
         

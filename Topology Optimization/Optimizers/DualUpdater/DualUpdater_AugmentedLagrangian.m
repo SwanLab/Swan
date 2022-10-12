@@ -1,30 +1,70 @@
-classdef DualUpdater_AugmentedLagrangian < DualUpdater
+classdef DualUpdater_AugmentedLagrangian < handle
     
     properties (Access = private)
-       augmentedLagrangian
+       dualVariable
+       penalty
        constraint
+       nConstr
+       constraintCase
     end
         
     methods (Access = public)
         
         function obj = DualUpdater_AugmentedLagrangian(cParams)
             obj.init(cParams)
-            obj.constraint = cParams.constraint;
-            obj.augmentedLagrangian = cParams.augmentedLagrangian;
         end
         
-        function updateDualVariable(obj)
-            l   = obj.dualVariable.value;
-            rho = obj.augmentedLagrangian.penalty;
-            c   = obj.constraint.value';
-            l = l + rho.*c;
-            obj.dualVariable.value = l;
+        function update(obj)
+            obj.updateDual();
+        end
+
+        function updatePenalty(obj,rho)
+            obj.penalty = rho;
         end
         
     end
     
     methods (Access = private)
-           
+
+        function init(obj,cParams)
+            obj.constraint     = cParams.constraint;
+            obj.constraintCase = cParams.constraintCase;
+            obj.dualVariable   = cParams.dualVariable;
+            obj.nConstr        = cParams.constraint.nSF;
+        end
+
+        function compute(obj,i)
+            l   = obj.dualVariable.value(i);
+            rho = obj.penalty;
+            c   = obj.constraint.value(i);
+            l   = l + rho.*c;
+            obj.dualVariable.value(i) = l;
+        end
+
+        function updateDual(obj)
+            for i = 1:obj.nConstr
+                switch obj.constraintCase{i}
+                    case 'INEQUALITY'
+                        isZero = obj.checkDual(i);
+                        if isZero
+                            obj.dualVariable.value(i) = 0;
+                        else
+                            obj.compute(i);
+                            obj.dualVariable.value(i) = max(0,obj.dualVariable.value(i));
+                        end
+                    otherwise
+                        obj.compute(i);
+                end
+            end
+        end
+
+        function isZero = checkDual(obj,i)
+            g      = obj.constraint.value(i,1);
+            l      = obj.dualVariable.value(i,1);
+            rho    = obj.penalty;
+            isZero = g < -l/rho;
+        end
+
     end
     
   

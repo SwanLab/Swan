@@ -46,11 +46,11 @@ classdef LevelSet < DesignVariable
     methods (Access = private)
         
         function createValue(obj)
-            s = obj.creatorSettings;
-            s.ndim  = obj.mesh.ndim;
-            s.coord = obj.mesh.coord;
-            lsCreator  = LevelSetCreator.create(s);
-            lsValue = lsCreator.getValue();
+            s         = obj.creatorSettings;
+            s.ndim    = obj.mesh.ndim;
+            s.coord   = obj.mesh.coord;
+            lsCreator = LevelSetCreator.create(s);
+            lsValue   = lsCreator.getValue();
             obj.value = lsValue;
         end
         

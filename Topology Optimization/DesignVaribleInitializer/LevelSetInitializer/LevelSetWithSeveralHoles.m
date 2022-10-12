@@ -37,8 +37,8 @@ classdef LevelSetWithSeveralHoles < LevelSetCreator
         end
         
         function init(obj,cParams)
-            obj.nHoles = cParams.nHoles;
-            obj.rHoles = cParams.rHoles;
+            obj.nHoles     = cParams.nHoles;
+            obj.rHoles     = cParams.rHoles;
             obj.phaseHoles = cParams.phaseHoles;
         end
         
