@@ -117,7 +117,7 @@ classdef P1Function < FeFunction
             s.geometry     = obj.geometry;
             s.globalConnec = [];
             Bcomp = BMatrixComputer(s);
-            Bmat = Bcomp.computeBmat(igaus);
+            Bmat = Bcomp.compute(igaus);
         end
 
         function createGeometry(obj, quad, mesh)

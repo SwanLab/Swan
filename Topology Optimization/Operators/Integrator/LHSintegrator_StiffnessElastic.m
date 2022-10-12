@@ -68,7 +68,7 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
             Bcomp = obj.createBComputer();
             Cmat = obj.material.C(:,:,:,1);
             for igaus = 1:ngaus
-                Bmat = Bcomp.computeBmat(igaus);
+                Bmat = Bcomp.compute(igaus);
 %                 Cmat = obj.material.C(:,:,:,igaus);
                 dV(1,1,:) = dvolu(igaus,:)';
                 Bt   = permute(Bmat,[2 1 3]);

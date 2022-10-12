@@ -35,7 +35,7 @@ classdef LHSintegratorAnisotropicStiffness < LHSintegrator
             Cmat   = obj.Celas;
             Bcomp = obj.createBComputer();
             for igaus = 1:ngaus
-                Bmat = Bcomp.computeBmat(igaus);
+                Bmat = Bcomp.compute(igaus);
                 dV(1,1,:) = dvolu(igaus,:)';
                 Bt   = permute(Bmat,[2 1 3]);
                 BtC  = pagemtimes(Bt,Cmat);

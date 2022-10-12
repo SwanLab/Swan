@@ -109,7 +109,7 @@ classdef RHSintegrator_ElasticMicro < handle
             s.globalConnec = [];
             Bcomp = BMatrixComputer(s);
             for igaus = 1:ngaus
-                Bmat    = Bcomp.computeBmat(igaus);
+                Bmat    = Bcomp.compute(igaus);
                 dV(:,1) = obj.dvolume(:,igaus);
                 for istre = 1:nstre
                     for jstre = 1:nstre
