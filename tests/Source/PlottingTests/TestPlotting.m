@@ -38,6 +38,10 @@ classdef TestPlotting < testUnfitted
             passed = isequaln(unfittedMesh,loaded);
         end
 
+        function overwriteResults(obj)
+            save(obj.testName, 'unfittedMesh', '-append')
+        end
+
     end
 
     methods (Access = private)

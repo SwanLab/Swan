@@ -24,8 +24,10 @@ classdef PlottingToyUnfittedExample < handle
 
         function passed = hasPassed(obj)
             d = load(obj.testName);
-            itIs = isequaln(obj.unfittedMesh,d.unfittedMesh);
+            unfittedMesh = obj.unfittedMesh;
+            itIs = isequaln(unfittedMesh,d.unfittedMesh);
             passed = itIs;
+%             save(obj.testName, 'unfittedMesh', '-append')
         end
 
     end
