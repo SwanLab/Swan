@@ -34,16 +34,6 @@ classdef StrainComputer < handle
             obj.connec             = cParams.dispField.connec;
             obj.geometry           = cParams.dispField.geometry;
         end
-       
-        function createGeometry(obj)
-            q = obj.quadrature;
-            int = obj.mesh.interpolation;
-            int.computeShapeDeriv(q.posgp);
-            s.mesh = obj.mesh;
-            g = Geometry.create(s);
-            g.computeGeometry(q,int);
-            obj.geometry = g;
-        end
         
         function strain = computeStrain(obj)
             d_u = obj.displacement;

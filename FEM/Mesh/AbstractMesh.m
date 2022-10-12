@@ -70,7 +70,7 @@ classdef AbstractMesh < handle
         
         function computeElementCoordinates(obj)
             obj.computeCoordFEfunction();
-            obj.coordElem = obj.xFE.fElem;
+            obj.coordElem = obj.xFE.fValues;
         end
         
     end
@@ -80,8 +80,8 @@ classdef AbstractMesh < handle
         function computeCoordFEfunction(obj)
             s.connec   = obj.connec;
             s.type     = obj.type;
-            s.fNodes = obj.coord;
-            obj.xFE = FeFunction(s);
+            s.fValues = obj.coord;
+            obj.xFE = P1Function(s);
         end
         
         function L = computeSquarePerimeter(obj)

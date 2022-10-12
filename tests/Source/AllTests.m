@@ -11,3 +11,4 @@ close all;
 HomogenizationTestsSuite;
 ImageProcessingTestsSuite;
 PostProcTestsSuite;
+ProjectorsTestsSuite;

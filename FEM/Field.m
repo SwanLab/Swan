@@ -9,6 +9,7 @@ classdef Field < handle
         interpolation
         xGauss % no
         quadrature % perhaps private
+        galerkinType
     end
 
     properties (Access = private)
@@ -25,6 +26,7 @@ classdef Field < handle
 
         function obj = Field(cParams)
             obj.init(cParams)
+            obj.updateMesh();
             obj.createQuadrature();
             obj.createInterpolation();
             obj.createGeometry();
@@ -71,6 +73,19 @@ classdef Field < handle
                 obj.quadratureOrder = cParams.interpolationOrder;
             end
 
+            if isfield(cParams, 'galerkinType')
+                obj.galerkinType =  cParams.galerkinType;
+            else
+                obj.galerkinType = 'CONTINUOUS';
+            end
+
+        end
+
+        function updateMesh(obj)
+            switch obj.galerkinType
+                case 'DISCONTINUOUS'
+                    obj.mesh = obj.mesh.createDiscontinuousMesh();
+            end
         end
 
         function createQuadrature(obj)

@@ -36,7 +36,12 @@ classdef Assembler < handle
         end
 
         function A = assembleFields(obj, Ae, f1, f2)
-            A = obj.assembleWithFields(Ae, f1, f2);
+            switch f1.galerkinType
+                case 'CONTINUOUS'
+                    A = obj.assembleFieldsCG(Ae, f1, f2);
+                case 'DISCONTINUOUS'
+                    A = obj.assembleFieldsDG(Ae, f1, f2);
+            end
         end
 
         function A = assembleVectorFields(obj, Ae, f1, f2)
@@ -247,7 +252,8 @@ classdef Assembler < handle
 
         %% With Fields
       
-        function A = assembleWithFields(obj, Aelem, f1, f2)
+        function A = assembleFieldsCG(obj, Aelem, f1, f2)
+            % CONTINUOUS GALERKIN
             % Can be accelerated using indices
             dofsF1 = obj.computeFieldDofs(f1);
             if isequal(f1, f2)
@@ -255,6 +261,27 @@ classdef Assembler < handle
             else
                 dofsF2 = obj.computeFieldDofs(f2);
             end
+            
+            ndofs1 = f1.dim.ndofs;
+            ndofs2 = f2.dim.ndofs;
+            ndofsElem1 = f1.dim.ndofsElem;
+            ndofsElem2 = f2.dim.ndofsElem;
+            A = sparse(ndofs1,ndofs2);
+            for i = 1:ndofsElem1
+                for j = 1:ndofsElem2
+                    a = squeeze(Aelem(i,j,:));
+                    A = A + sparse(dofsF1(i,:),dofsF2(j,:),a,ndofs1,ndofs2);
+                end
+            end
+        end
+      
+        function A = assembleFieldsDG(obj, Aelem, f1, f2)
+            % DISCONTINUOUS GALERKIN
+            % Can be accelerated using indices
+            dofs = 1:f1.dim.ndofs;
+            nElem = size(Aelem,3);
+            dofsF1 = reshape(dofs, [f1.dim.nnodeElem,nElem]);
+            dofsF2 = dofsF1;
             
             ndofs1 = f1.dim.ndofs;
             ndofs2 = f2.dim.ndofs;
