@@ -1,4 +1,4 @@
-classdef FGaussDiscontinuousFunction < handle
+ classdef FGaussDiscontinuousFunction < handle
     
     properties (Constant, Access = public)
         fType = 'GAUSSPOINTS'
@@ -27,8 +27,12 @@ classdef FGaussDiscontinuousFunction < handle
             fxV = obj.fValues;
         end
 
-        function plot(obj, m)
-            % Plot using a P1 Disc function
+        function plot(obj, mesh)
+            pp1.mesh   = mesh;
+            pp1.connec = mesh.connec;
+            projP1 = Projector_toP1(pp1);
+            p1fg = projP1.project(obj);
+            p1fg.plot(mesh);
         end
 
     end
