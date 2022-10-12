@@ -1,5 +1,12 @@
 %% To-do
 
+% UML Projectors
+% plot fgaussfun
+% geometry to mesh (jacobian in mesh)
+% BMatComp(dNdx), dndx coming from interp
+% create gradient of function and compSymmVector
+% projectors with unfittedmesh at rhs without it noticing it
+
 % Pending:
 % - Projectors/Filters with Triangle&Quads (figures)
 
