@@ -85,7 +85,6 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
         function Bcomp = createBComputer(obj)
             s.dim          = obj.field.dim;
             s.geometry     = obj.field.geometry;
-            s.globalConnec = [];
             Bcomp = BMatrixComputer(s);
         end
 

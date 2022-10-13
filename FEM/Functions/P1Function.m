@@ -115,7 +115,6 @@ classdef P1Function < FeFunction
             d.ndimf = obj.ndimf;
             s.dim          = d;
             s.geometry     = obj.geometry;
-            s.globalConnec = [];
             Bcomp = BMatrixComputer(s);
             Bmat = Bcomp.compute(igaus);
         end

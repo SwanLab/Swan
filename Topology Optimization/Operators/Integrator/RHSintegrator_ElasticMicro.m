@@ -106,7 +106,6 @@ classdef RHSintegrator_ElasticMicro < handle
             sigma = zeros(nstre,ngaus,nelem);
             s.dim = obj.dim;
             s.geometry = obj.geometry;
-            s.globalConnec = [];
             Bcomp = BMatrixComputer(s);
             for igaus = 1:ngaus
                 Bmat    = Bcomp.compute(igaus);
