@@ -20,16 +20,17 @@ quad = Quadrature.set(s.mesh.type);
 quad.computeQuadrature('LINEAR');
 
 % Calculate gradient
-fg = uP1.computeGradient(quad, s.mesh);
+fg = uP1.computeSymmetricGradient(quad, s.mesh);
 
 % Project
 pp1.mesh   = s.mesh;
 pp1.connec = s.mesh.connec;
 projP1 = Projector_toP1(pp1);
 p1strain = projP1.project(fg);
+p1strain.plot(s.mesh);
 
 %% Testing gradients via AnalyticalFunction
-clear; close all;
+clear; % close all;
 
 % file = 'test2d_triangle';
 file = 'test2d_micro';
@@ -47,12 +48,18 @@ xFun = AnalyticalFunction(sAF);
 quad = Quadrature.set(s.mesh.type);
 quad.computeQuadrature('LINEAR');
 
+
 % Projector to P1
 pp1.mesh   = mesh;
 pp1.connec = mesh.connec;
 projP1 = Projector_toP1(pp1);
 p1fun = projP1.project(xFun);
-p1fun.plot(mesh)
+% p1fun.plot(mesh)
 
-fgauss = p1fun.computeGradient(quad, mesh);
+fgauss = p1fun.computeSymmetricGradient(quad, mesh);
 p1fg = projP1.project(fgauss);
+p1fg.plot(mesh);
+
+% Actual gradient
+gradAF = p1fun.computeGradient(quad,mesh);
+p1fg.plot(mesh);

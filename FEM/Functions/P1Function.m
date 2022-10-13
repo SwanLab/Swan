@@ -40,7 +40,42 @@ classdef P1Function < FeFunction
 
         end
 
-        function fun = computeGradient(obj, quad, mesh)
+        function gradFun = computeGradient(obj, quad, mesh)
+            % Previous requirements
+            obj.createGeometry(quad, mesh);
+
+            % On to calculations
+            dNdx = obj.geometry.dNdx;
+            nDimf = obj.ndimf;
+            nDims = size(dNdx, 1);
+            nNode = size(dNdx, 2);
+            nElem = size(dNdx, 3);
+            nGaus = size(dNdx, 4);
+            
+            grad = zeros(nDims, nElem, nGaus);
+            for iGaus = 1:nGaus
+                dNdx_g = dNdx(:,:,:,iGaus);
+                for iDims = 1:nDims
+                    for iNode = 1:nNode
+                        nodes = obj.connec(:,iNode);
+                        for iUnkn = 1:nDimf
+                            dofs = nDimf*(nodes-1)+iUnkn;
+                            iDof = nDimf*(iNode-1)+iUnkn;
+                            fDof = obj.fValues(dofs);
+                            dNdxDof = dNdx_g(iUnkn, iDof);
+                            prod = (dNdxDof.*fDof)';
+                            grad(iDims,:,iGaus) = grad(iDims,:,iGaus) + prod;
+                        end
+                    end
+                end
+            end
+            s.fValues    = permute(grad, [1 3 2]);
+            s.ndimf      = nDimf;
+            s.quadrature = quad;
+            gradFun = FGaussDiscontinuousFunction(s);
+        end
+
+        function symGradFun = computeSymmetricGradient(obj, quad, mesh)
             % Previous requirements
             obj.createGeometry(quad, mesh);
             
@@ -53,7 +88,7 @@ classdef P1Function < FeFunction
             nNodeEl = size(conn,2);
             nUnkn   = obj.ndimf;
             nGaus   = quad.ngaus;
-            strain = zeros(nStre,nElem,nGaus);
+            symGrad = zeros(nStre,nElem,nGaus);
             for igaus = 1:nGaus
                 Bmat = obj.computeB(igaus);
                 for istre=1:nStre
@@ -61,19 +96,19 @@ classdef P1Function < FeFunction
                         nodes = conn(:,inode);
                         for idime = 1:nUnkn
                             dofs = nUnkn*(nodes - 1) + idime;
-                            ievab = nUnkn*(inode-1)+idime;
-                            B = squeeze(Bmat(istre,ievab,:));
+                            idof = nUnkn*(inode - 1) + idime;
+                            B = squeeze(Bmat(istre,idof,:));
                             u = d_u(dofs);
-                            strain(istre,:,igaus)=strain(istre,:,igaus)+(B.*u)';
+                            symGrad(istre,:,igaus) = symGrad(istre,:,igaus) + (B.*u)';
                         end
                         
                     end
                 end
             end
-            s.fValues    = permute(strain, [1 3 2]);
+            s.fValues    = permute(symGrad, [1 3 2]);
             s.ndimf      = nStre;
             s.quadrature = quad;
-            fun = FGaussDiscontinuousFunction(s);
+            symGradFun = FGaussDiscontinuousFunction(s);
         end
 
         function plot(obj, m) % 2D domains only
