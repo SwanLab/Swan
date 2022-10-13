@@ -62,4 +62,4 @@ p1fg.plot(mesh);
 
 % Actual gradient
 gradAF = p1fun.computeGradient(quad,mesh);
-p1fg.plot(mesh);
+gradAF.plot(mesh);

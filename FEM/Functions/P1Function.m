@@ -62,7 +62,7 @@ classdef P1Function < FeFunction
                             dofs = nDimf*(nodes-1)+iUnkn;
                             iDof = nDimf*(iNode-1)+iUnkn;
                             fDof = obj.fValues(dofs);
-                            dNdxDof = dNdx_g(iUnkn, iDof);
+                            dNdxDof = squeeze(dNdx_g(iDims, iDof,:));
                             prod = (dNdxDof.*fDof)';
                             grad(iDims,:,iGaus) = grad(iDims,:,iGaus) + prod;
                         end
@@ -70,7 +70,7 @@ classdef P1Function < FeFunction
                 end
             end
             s.fValues    = permute(grad, [1 3 2]);
-            s.ndimf      = nDimf;
+%             s.ndimf      = nDimf;
             s.quadrature = quad;
             gradFun = FGaussDiscontinuousFunction(s);
         end
