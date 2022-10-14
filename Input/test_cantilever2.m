@@ -7,7 +7,7 @@ materialType = 'ISOTROPIC';
 initial_case = 'full';
 
 cost = {'compliance','anisotropicPerimeter2D'};
-weights = [1,0.01];
+weights = [1,0.005];
 
 constraint = {'volumeConstraint'};
 constraint_case = {'EQUALITY'};
@@ -36,9 +36,9 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 % For all tests
-plotting = false;
-printing = true;
+plotting = true;
+printing = false;
 printing_physics = false;
 monitoring = true;
-monitoring_interval = 1;
-maxiter = 1100;
+monitoring_interval = 5;
+maxiter = 2200;

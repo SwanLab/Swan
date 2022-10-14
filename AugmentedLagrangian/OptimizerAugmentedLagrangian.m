@@ -85,7 +85,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
             obj.dualVariable.value = zeros(obj.nConstr,1);
-            obj.penalty            = 10; % 10        5 for stage1
+            obj.penalty            = 0.5; % 10        5 for stage1
         end
 
         function obj = update(obj)
@@ -245,7 +245,14 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         function itHas = hasExceededStepIterations(obj)
             iStep = obj.incrementalScheme.iStep;
             nStep = obj.incrementalScheme.nSteps;
-            itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
+%             itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
+            if iStep == 1
+                itHas = obj.nIter >= 300;
+            elseif iStep == 11
+                itHas = obj.nIter >= 2*300 + (9)*30;
+            else
+                itHas = obj.nIter >= 300 + (iStep-1)*30;
+            end
         end
 
         function saveVariablesForAnalysis(obj)
