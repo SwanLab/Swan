@@ -50,7 +50,8 @@ classdef OptimizerBisection < Optimizer
         function obj = solveProblem(obj)
             obj.hasConverged  = false;
             obj.isInitialStep = true;
-            while ~obj.hasConverged
+            obj.hasFinished = false;
+            while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
