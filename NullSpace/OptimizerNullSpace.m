@@ -48,7 +48,8 @@ classdef OptimizerNullSpace < Optimizer
             obj.hasConverged = false;
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
-            while ~obj.hasConverged
+            obj.hasFinished = false;
+            while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
