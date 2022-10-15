@@ -12,6 +12,10 @@ classdef Optimizer < handle
         dualUpdater
         primalUpdater
         constraintCase
+        historyPrinter
+        convergenceVars
+        monitor
+        postProcess
     end
     
     properties (GetAccess = public, SetAccess = protected, Abstract)
@@ -40,6 +44,11 @@ classdef Optimizer < handle
             obj.targetParameters  = cParams.targetParameters;
             obj.constraintCase    = cParams.constraintCase;
             obj.outputFunction    = cParams.outputFunction.monitoring;
+
+            obj.createHistoryPrinter(cParams.historyPrinterSettings);
+            obj.createConvergenceVariables(cParams);
+            obj.createMonitorDocker(cParams.monitoringDockerSettings);
+            obj.createPostProcess(cParams.postProcessSettings);
         end
 
         function createPrimalUpdater(obj,cParams)
@@ -67,7 +76,55 @@ classdef Optimizer < handle
                 end
             end
         end
-        
+
+        function createHistoryPrinter(obj,cParams)
+            cParams.optimizer  = obj;
+            cParams.cost       = obj.cost;
+            cParams.constraint = obj.constraint;
+            cParams.optimizerName = cParams.optimizer.type;
+            obj.historyPrinter = OptimizationMetricsPrinterFactory.create(cParams);
+        end
+
+        function createConvergenceVariables(obj,cParams)
+            s = cParams.optimizerNames;
+            cVarD = ConvergenceVarsDispatcher.dispatchNames(s);
+            n = numel(cVarD);
+            cVar = ConvergenceVariables(n);
+            obj.convergenceVars = cVar;
+        end
+
+        function createMonitorDocker(obj,s)
+            s.designVariable  = obj.designVariable;
+            s.dualVariable    = obj.dualVariable;
+            s.cost            = obj.cost;
+            s.constraint      = obj.constraint;
+            s.convergenceVars = obj.convergenceVars;
+            obj.monitor = MonitoringDocker(s);
+        end
+
+        function createPostProcess(obj,cParams)
+            if cParams.shallPrint
+                d = obj.createPostProcessDataBase(cParams);
+                d.printMode = cParams.printMode;
+                d.nDesignVariables = obj.designVariable.nVariables;
+                obj.postProcess = Postprocess('TopOptProblem',d);
+            end
+        end
+
+        function d = createPostProcessDataBase(obj,cParams)
+            d.mesh    = obj.designVariable.mesh;
+            d.outFileName = cParams.femFileName;
+            d.ptype   = cParams.ptype;
+            ps = PostProcessDataBaseCreator(d);
+            d  = ps.create();
+            d.ndim       = obj.designVariable.mesh.ndim;
+            d.pdim       = cParams.pdim;
+            d.optimizer  = obj.type;
+            d.cost       = obj.cost;
+            d.constraint = obj.constraint;
+            d.designVar  = obj.designVariable.type;
+        end
+
     end
 
     methods (Access = private)
@@ -83,5 +140,5 @@ classdef Optimizer < handle
         end
 
     end
-    
+
 end
