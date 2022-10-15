@@ -20,14 +20,14 @@ quad = Quadrature.set(s.mesh.type);
 quad.computeQuadrature('LINEAR');
 
 % Calculate gradient
-fg = uP1.computeSymmetricGradient(quad, s.mesh);
+grad = uP1.computeGradient(quad,s.mesh);
+symGrad1 = uP1.computeSymmetricGradient(quad, s.mesh);
+symGrad2 = uP1.computeSymmetricGradient2(quad,s.mesh);
 
-% Project
-pp1.mesh   = s.mesh;
-pp1.connec = s.mesh.connec;
-projP1 = Projector_toP1(pp1);
-p1strain = projP1.project(fg);
-p1strain.plot(s.mesh);
+% Plot
+grad.plot(s.mesh);
+symGrad1.plot(s.mesh);
+symGrad2.plot(s.mesh);
 
 %% Testing gradients via AnalyticalFunction
 clear; % close all;
