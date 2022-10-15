@@ -39,15 +39,6 @@ classdef P1Function < FeFunction
             end
 
         end
-%                         for iUnkn = 1:nDimf
-%                             dofs = nDimf*(nodes-1)+iUnkn;
-%                             iDof = nDimf*(iNode-1)+iUnkn;
-%                             disp(iDof)
-%                             fDof = obj.fValues(dofs);
-%                             dNdxDof = squeeze(dNdx_g(iDims, iDof,:));
-%                             prod = (dNdxDof.*fDof)';
-%                             grad(iDims,:,iGaus) = grad(iDims,:,iGaus) + prod;
-%                         end
 
         function gradFun = computeGradient(obj, quad, mesh)
             % Previous requirements
