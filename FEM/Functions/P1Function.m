@@ -39,6 +39,15 @@ classdef P1Function < FeFunction
             end
 
         end
+%                         for iUnkn = 1:nDimf
+%                             dofs = nDimf*(nodes-1)+iUnkn;
+%                             iDof = nDimf*(iNode-1)+iUnkn;
+%                             disp(iDof)
+%                             fDof = obj.fValues(dofs);
+%                             dNdxDof = squeeze(dNdx_g(iDims, iDof,:));
+%                             prod = (dNdxDof.*fDof)';
+%                             grad(iDims,:,iGaus) = grad(iDims,:,iGaus) + prod;
+%                         end
 
         function gradFun = computeGradient(obj, quad, mesh)
             % Previous requirements
@@ -47,29 +56,26 @@ classdef P1Function < FeFunction
             % On to calculations
             dNdx = obj.geometry.dNdx;
             nDimf = obj.ndimf;
-            nDims = size(dNdx, 1);
+            nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
             nNode = size(dNdx, 2);
             nElem = size(dNdx, 3);
             nGaus = size(dNdx, 4);
             
-            grad = zeros(nDims, nElem, nGaus);
+            grad = zeros(nDims,nDimf, nElem, nGaus);
             for iGaus = 1:nGaus
                 dNdx_g = dNdx(:,:,:,iGaus);
                 for iDims = 1:nDims
                     for iNode = 1:nNode
+                        dNdx_i = squeeze(dNdx_g(iDims, iNode,:));
                         nodes = obj.connec(:,iNode);
-                        for iUnkn = 1:nDimf
-                            dofs = nDimf*(nodes-1)+iUnkn;
-                            iDof = nDimf*(iNode-1)+iUnkn;
-                            fDof = obj.fValues(dofs);
-                            dNdxDof = squeeze(dNdx_g(iDims, iDof,:));
-                            prod = (dNdxDof.*fDof)';
-                            grad(iDims,:,iGaus) = grad(iDims,:,iGaus) + prod;
-                        end
+                        f = obj.fValues(nodes,:);
+                        p = (dNdx_i.*f)';
+                        pp(1,:,:) = p;
+                        grad(iDims,:,:,:) = grad(iDims,:,:,:) + pp;
                     end
                 end
             end
-            s.fValues    = permute(grad, [1 3 2]);
+            s.fValues    = reshape(grad, [4, 1,6400]);
 %             s.ndimf      = nDimf;
             s.quadrature = quad;
             gradFun = FGaussDiscontinuousFunction(s);
@@ -97,6 +103,7 @@ classdef P1Function < FeFunction
                         for idime = 1:nUnkn
                             dofs = nUnkn*(nodes - 1) + idime;
                             idof = nUnkn*(inode - 1) + idime;
+                            disp(idof)
                             B = squeeze(Bmat(istre,idof,:));
                             u = d_u(dofs);
                             symGrad(istre,:,igaus) = symGrad(istre,:,igaus) + (B.*u)';
