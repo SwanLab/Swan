@@ -66,12 +66,12 @@ classdef P1Function < FeFunction
                     end
                 end
             end
-            s.fValues    = reshape(grad, [4, 1,6400]);
+            s.fValues    = reshape(grad, [nDims*nDimf,nGaus,nElem]);
 %             s.ndimf      = nDimf;
             s.quadrature = quad;
             gradFun = FGaussDiscontinuousFunction(s);
         end
-
+        
         function symGradFun = computeSymmetricGradient(obj, quad, mesh)
             % Previous requirements
             obj.createGeometry(quad, mesh);
@@ -94,7 +94,6 @@ classdef P1Function < FeFunction
                         for idime = 1:nUnkn
                             dofs = nUnkn*(nodes - 1) + idime;
                             idof = nUnkn*(inode - 1) + idime;
-                            disp(idof)
                             B = squeeze(Bmat(istre,idof,:));
                             u = d_u(dofs);
                             symGrad(istre,:,igaus) = symGrad(istre,:,igaus) + (B.*u)';
@@ -105,6 +104,22 @@ classdef P1Function < FeFunction
             end
             s.fValues    = permute(symGrad, [1 3 2]);
             s.ndimf      = nStre;
+            s.quadrature = quad;
+            symGradFun = FGaussDiscontinuousFunction(s);
+        end
+
+        function symGradFun = computeSymmetricGradient2(obj,quad,mesh)
+            dNdx = obj.geometry.dNdx;
+            nDimf = obj.ndimf;
+            nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
+            nElem = size(dNdx, 3);
+            nGaus = size(dNdx, 4);
+
+            grad = obj.computeGradient(quad,mesh);
+            gradReshp = reshape(grad.fValues, [nDims,nDimf,nGaus,nElem]);
+            symGrad = 0.5*(gradReshp+permute(gradReshp, [2 1 3 4]));
+            
+            s.fValues    = reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
             s.quadrature = quad;
             symGradFun = FGaussDiscontinuousFunction(s);
         end
