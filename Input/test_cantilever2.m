@@ -7,7 +7,7 @@ materialType = 'ISOTROPIC';
 initial_case = 'full';
 
 cost = {'compliance','anisotropicPerimeter2D'};
-weights = [1,0.005];
+weights = [1,1e-5];
 
 constraint = {'volumeConstraint'};
 constraint_case = {'EQUALITY'};
@@ -23,7 +23,7 @@ Vfrac_final = 0.4;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 0.4;
+Vfrac_initial = 0.4; % 0.4 !!!!!
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 Perimeter_target = 5;
