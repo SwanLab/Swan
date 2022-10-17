@@ -158,7 +158,7 @@ classdef P1Function < FeFunction
             obj.interpolation = Interpolation.create(m,'LINEAR');
         end
 
-        function Bmat = computeB(obj,igaus)
+        function Bmat = computeB(obj,igaus) % Can be deleted with old symGrad
             d.nvoigt = obj.getNstre();
             d.nnodeElem = size(obj.connec,2);
             d.ndofsElem = obj.ndimf*(d.nnodeElem);
@@ -178,12 +178,12 @@ classdef P1Function < FeFunction
             obj.geometry = g;
         end
 
-        function nstre = getNstre(obj)
+        function nstre = getNstre(obj) % Can be deleted with old symGrad
             nstreVals = [2, 3, 6];
             nstre = nstreVals(obj.ndimf);
         end
 
-        function fCol = convertFValuesToColumn(obj)
+        function fCol = convertFValuesToColumn(obj)  % Can be deleted with old symGrad
             nVals = size(obj.fValues,1)*size(obj.fValues,2);
             fCol = zeros(nVals,1);
             for idim = 1:obj.ndimf
