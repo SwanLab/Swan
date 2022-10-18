@@ -77,6 +77,15 @@ classdef Optimizer < handle
             end
         end
 
+        function printOptimizerVariable(obj)
+            if ~isempty(obj.postProcess)
+                d.fields  = obj.designVariable.getVariablesToPlot();
+                d.cost = obj.cost;
+                d.constraint = obj.constraint;
+                obj.postProcess.print(obj.nIter,d);
+            end
+        end
+
         function createHistoryPrinter(obj,cParams)
             cParams.optimizer  = obj;
             cParams.cost       = obj.cost;
