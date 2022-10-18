@@ -51,12 +51,14 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.constraint.computeFunctionAndGradient();
 %             obj.saveVariablesForAnalysis();
             obj.hasFinished = 0;
+            obj.printOptimizerVariable();
             while ~obj.hasFinished
 %             while ~obj.hasConverged
                 obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
+                obj.printOptimizerVariable();
 %                 obj.saveVariablesForAnalysis();
             end
         end

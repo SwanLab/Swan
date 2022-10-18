@@ -49,11 +49,13 @@ classdef OptimizerNullSpace < Optimizer
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
             obj.hasFinished = false;
+            obj.printOptimizerVariable();
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
+                obj.printOptimizerVariable();
             end
         end
 
