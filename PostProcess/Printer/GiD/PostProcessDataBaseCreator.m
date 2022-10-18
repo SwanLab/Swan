@@ -29,7 +29,9 @@ classdef PostProcessDataBaseCreator < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            cParams.outFileName = 'BridgeALC2SLERP';
+            if isfield(cParams,'outName')
+                cParams.outFileName = cParams.outName;
+            end
             obj.mesh        = cParams.mesh;
             obj.outFileName = cParams.outFileName;
         end

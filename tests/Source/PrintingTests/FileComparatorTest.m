@@ -19,6 +19,7 @@ classdef FileComparatorTest < handle
             c            = FileComparator;
             areDifferent = c.areFilesDifferent(refFile,currentFile);
             areEqual     = ~areDifferent;
+            delete(currentFile);
         end
 
     end
