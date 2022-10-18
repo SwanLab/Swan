@@ -41,11 +41,7 @@ classdef P1Function < FeFunction
         end
 
         function gradFun = computeGradient(obj, quad, mesh)
-            % Previous requirements
-            obj.createGeometry(quad, mesh);
-
-            % On to calculations
-            dNdx = obj.geometry.dNdx;
+            dNdx = obj.computeCartesianDerivatives(quad,mesh);
             nDimf = obj.ndimf;
             nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
             nNode = size(dNdx, 2);
@@ -110,13 +106,12 @@ classdef P1Function < FeFunction
         end
 
         function symGradFun = computeSymmetricGradient2(obj,quad,mesh)
-            dNdx = obj.geometry.dNdx;
-            nDimf = obj.ndimf;
-            nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
-            nElem = size(dNdx, 3);
-            nGaus = size(dNdx, 4);
-
             grad = obj.computeGradient(quad,mesh);
+            nDimf = obj.ndimf;
+            nDims = size(grad.fValues, 1)/nDimf;
+            nGaus = size(grad.fValues, 2);
+            nElem = size(grad.fValues, 3);
+
             gradReshp = reshape(grad.fValues, [nDims,nDimf,nGaus,nElem]);
             gradT = permute(gradReshp, [2 1 3 4]);
             symGrad = 0.5*(gradReshp + gradT);
@@ -158,6 +153,15 @@ classdef P1Function < FeFunction
             obj.interpolation = Interpolation.create(m,'LINEAR');
         end
 
+        function createGeometry(obj, quad, mesh)
+            int = obj.interpolation;
+            int.computeShapeDeriv(quad.posgp);
+            s.mesh = mesh;
+            g = Geometry.create(s);
+            g.computeGeometry(quad,int);
+            obj.geometry = g;
+        end
+
         function Bmat = computeB(obj,igaus) % Can be deleted with old symGrad
             d.nvoigt = obj.getNstre();
             d.nnodeElem = size(obj.connec,2);
@@ -167,15 +171,6 @@ classdef P1Function < FeFunction
             s.geometry     = obj.geometry;
             Bcomp = BMatrixComputer(s);
             Bmat = Bcomp.compute(igaus);
-        end
-
-        function createGeometry(obj, quad, mesh)
-            int = obj.interpolation;
-            int.computeShapeDeriv(quad.posgp);
-            s.mesh = mesh;
-            g = Geometry.create(s);
-            g.computeGeometry(quad,int);
-            obj.geometry = g;
         end
 
         function nstre = getNstre(obj) % Can be deleted with old symGrad
@@ -188,6 +183,26 @@ classdef P1Function < FeFunction
             fCol = zeros(nVals,1);
             for idim = 1:obj.ndimf
                 fCol(idim:obj.ndimf:nVals, 1) = obj.fValues(:,idim)';
+            end
+        end
+        
+        function dNdx  = computeCartesianDerivatives(obj,quad,mesh)
+            nElem = size(obj.connec,1);
+            nNode = obj.interpolation.nnode;
+            nDime = obj.interpolation.ndime;
+            nGaus = quad.ngaus;
+            invJ  = mesh.computeInverseJacobian(quad,obj.interpolation);
+            dNdx  = zeros(nDime,nNode,nElem,nGaus);
+            dShapeDx  = zeros(nDime,nNode,nElem);
+            for igaus = 1:nGaus
+                dShapes = obj.interpolation.deriv(:,:,igaus);
+                for jDime = 1:nDime
+                    invJ_JI   = invJ(:,jDime,:);
+                    dShape_KJ = dShapes(jDime,:);
+                    dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
+                    dShapeDx  = dShapeDx + dSDx_KI;
+                end
+                dNdx(:,:,:,igaus) = dShapeDx;
             end
         end
 

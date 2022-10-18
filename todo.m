@@ -21,12 +21,23 @@
 % + plot() now plots all dimensions
 
 %% Notes (Ton)
-% FGaussFun SHOULD assert. The discrepancy in quadrature results from the
-% quadrature used in the projector -- perhaps dispatch thru incoming
-% function?
+% Train of thought regarding Geometry/Mesh/Interpolation
 
-% - Quadratic needed for projecting to P1Discontinuous (???) a
-%   Characteristic Function
+%   - Basically, everything is linked up together. Geometry is used as a
+%   flexible tool to perform various actions
+%   - It is also very much dynamic, the same geometry can be re-computed
+%   many times in a single problem with different parameters
+
+%   - When a Mesh is created, a Geometry_Volumetric is also created.
+%   However, nothing else is calculated.
+%   - The calculations are performed when calling computeGeometry(q,int).
+%   Thus, there is no one Jacobian/dNdx: 
+%       - Quad: constant (normals) /linear (linear int) / quadratic (quad
+%       fields)
+%       - Int: linear (mesh) / quadratic (fields)
+
+
+%       - mesh.computeInvJac(q,int)
 
 %% Next steps
 

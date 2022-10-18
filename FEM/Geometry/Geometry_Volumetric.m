@@ -28,6 +28,16 @@ classdef Geometry_Volumetric < Geometry
                 obj.computeCartesianDerivatives(igaus);
             end
         end
+
+        function invJ = computeInverseJacobian(obj,quad,interpV)
+            obj.initGeometry(interpV,quad);
+            obj.initVariables();
+            obj.matrixInverter = MatrixVectorizedInverter();
+            for igaus = 1:obj.quadrature.ngaus
+                obj.computeJacobian(igaus);
+            end
+            invJ = obj.computeInvJacobian();
+        end
         
     end
     

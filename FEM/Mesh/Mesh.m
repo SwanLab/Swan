@@ -128,9 +128,11 @@ classdef Mesh < handle
             dvolume = dvolume';
         end
 
-        function geo = getGeometry(obj)
-            geo = obj.geometry;
+        function invJac = computeInverseJacobian(obj,quad,int)
+            g = obj.geometry;
+            invJac = g.computeInverseJacobian(quad,int);
         end
+
         
         function n = getNormals(obj)
             quad = Quadrature.set(obj.type);
