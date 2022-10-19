@@ -3,11 +3,13 @@ classdef H1Projector_toP1 < Projector
     properties (Access = private)
         fieldMass
         fieldStiffness
+        epsilon
     end
     
     methods (Access = public)
 
         function obj = H1Projector_toP1(cParams)
+            obj.epsilon = cParams.epsilon;
             obj.init(cParams);
             obj.createFieldMass();
             obj.createFieldStiffness();
@@ -46,8 +48,7 @@ classdef H1Projector_toP1 < Projector
         function LHS = computeLHS(obj)
             LHSM    = obj.computeMassMatrix();
             LHSK    = obj.computeStiffnessMatrix();
-            epsilon = obj.mesh.computeMeanCellSize();
-            LHS     = LHSM + epsilon^2*LHSK;
+            LHS     = LHSM + obj.epsilon^2*LHSK;
         end
 
         function LHSM = computeMassMatrix(obj)

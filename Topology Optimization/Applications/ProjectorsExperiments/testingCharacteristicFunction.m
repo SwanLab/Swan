@@ -41,6 +41,7 @@ title('L2p1d')
 % CharFun to P1 Function in H1 domain
 xx = x;
 xx.projectorType = 'toH1P1';
+xx.epsilon = m.mesh.computeMeanCellSize();
 projH1P1 = Projector.create(xx);
 resCharFunInH1P1 = projH1P1.project(circleFun);
 resCharFunInH1P1.plot(m.mesh);
@@ -124,3 +125,58 @@ xlabel('Length','Interpreter','latex')
 ylabel('CharFun','Interpreter','latex')
 legend('PDE Filter','P1(H1) Projection','P1(L2) Projection','Interpreter','latex')
 ylim([-0.1 1.1])
+
+%% Perimeter evolution vs epsilon
+chi = circleFun;
+
+xx = x;
+xx.projectorType = 'toH1P1';
+epsOpt = m.mesh.computeMeanCellSize();
+eps = 0.5*epsOpt:0.25*epsOpt:100*epsOpt;
+P = zeros(size(eps));
+
+for k=1:length(eps)
+    xx.epsilon = eps(k);
+    projH1P1 = Projector.create(xx);
+    rhoe = projH1P1.project(circleFun);
+    P(k) = computePerimeterIntegral(chi,rhoe,eps(k),m);
+end
+
+Ptheo = 2*pi*0.3*ones(size(P));
+
+figure
+plot(eps/epsOpt,Ptheo,eps/epsOpt,P)
+grid on
+grid minor
+legend('Theoretical value','Numerical value','Interpreter','Latex')
+xlabel('$\epsilon/h$','Interpreter','Latex')
+ylabel('Perimeter','Interpreter','Latex')
+
+%% Functions
+
+function P = computePerimeterIntegral(chi,rhoe,eps,m)
+
+order = 'QUADRATIC';
+q = Quadrature.set(m.mesh.type);
+q.computeQuadrature(order);
+xV = q.posgp;
+dV = m.mesh.computeDvolume(q);
+nGaus = q.ngaus;
+nElem = m.mesh.nelem;
+
+fChi = chi.evaluate(xV);
+fRhoe = rhoe.evaluate(xV);
+P = 0;
+
+for i = 1:nElem
+    for igaus = 1:nGaus
+        dVg = dV(igaus, i);
+        fC = fChi(1,igaus,i);
+        fR = fRhoe(1,igaus,i);
+        P = P + (1-fR)*fC*dVg;
+    end
+end
+
+P = P/(2*eps);
+
+end
