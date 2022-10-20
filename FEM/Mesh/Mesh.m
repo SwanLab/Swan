@@ -133,6 +133,11 @@ classdef Mesh < handle
             invJac = g.computeInverseJacobian(quad,int);
         end
 
+        function dNdx = computeCartesianDerivatives(obj,quad,int)
+            g = obj.geometry;
+            g.computeGeometry(quad,int);
+            dNdx = g.dNdx;
+        end
         
         function n = getNormals(obj)
             quad = Quadrature.set(obj.type);
