@@ -1,8 +1,8 @@
 %% Testing funcitons for FEM
-clear; close all;
+clc; clear; close all;
 
-file = 'test2d_triangle';
-% file = 'test2d_quad';
+% file = 'test2d_triangle';
+file = 'test2d_quad';
 a.fileName = file;
 s = FemDataContainer(a);
 fem = FunElasticProblem(s);

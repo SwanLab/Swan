@@ -49,11 +49,12 @@ classdef FunElasticProblem < handle
 
         function createDisplacementFunction(obj)
             strdim = regexp(obj.pdim,'\d*','Match');
-            ndimf  = str2double(strdim);
-            s.ndimf   = ndimf;
+            nDimf  = str2double(strdim);
+            nNodes = size(obj.mesh.coord,1);
+            s.ndimf   = nDimf;
             s.connec  = obj.mesh.connec;
             s.type    = obj.mesh.type;
-            s.fValues = zeros(1,ndimf);
+            s.fValues = zeros(nNodes,nDimf);
             f = P1Function(s);
             obj.displacement = f;
         end

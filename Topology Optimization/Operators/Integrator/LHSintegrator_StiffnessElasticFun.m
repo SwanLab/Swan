@@ -16,7 +16,7 @@ classdef LHSintegrator_StiffnessElasticFun < handle %LHSintegrator
 
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
-            LHS = obj.assembleMatrixField(lhs);
+            LHS = obj.assembleMatrix(lhs);
         end
 
     end
@@ -65,12 +65,11 @@ classdef LHSintegrator_StiffnessElasticFun < handle %LHSintegrator
             Bcomp = BMatrixComputerFun(s);
         end
 
-        function LHS = assembleMatrixField(obj, lhs)
-            s.dim          = obj.field.dim;
-            s.globalConnec = obj.field.connec;
-            s.nnodeEl      = obj.field.dim.nnodeElem;
-            assembler = Assembler(s);
-            LHS = assembler.assembleFunctions(f1, f2, ndofs1, ndofs2, ndofsElem1, ndofsElem2);
+        function LHS = assembleMatrix(obj, lhs)
+            s.connec = obj.mesh.connec; % !!!
+            s.fun    = obj.fun; % !!!
+            assembler = AssemblerFun(s);
+            LHS = assembler.assemble(lhs);
         end
     end
 

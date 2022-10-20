@@ -34,11 +34,11 @@ classdef Assembler < handle
         end
 
         function A = assembleFunctions(obj, Aelem, f1, f2, ndofs1, ndofs2, ndofsElem1, ndofsElem2)
-            dofsF1 = obj.computeFieldDofs(f1);
+            dofsF1 = obj.computeFunctionDofs(f1);
             if isequal(f1, f2)
                 dofsF2 = dofsF1;
             else
-                dofsF2 = obj.computeFieldDofs(f2);
+                dofsF2 = obj.computeFunctionDofs(f2);
             end
             A = sparse(ndofs1,ndofs2);
             for i = 1:ndofsElem1
@@ -243,6 +243,23 @@ classdef Assembler < handle
             dofsElem  = zeros(ndofsEl,size(connec,1));
 %             idof(:,1)= ndimf*(inode - 1) + iunkn;
             for inode = 1:nnodeEl
+                for iunkn = 1:ndimf
+                    idofElem   = ndimf*(inode - 1) + iunkn;
+                    globalNode = connec(:,inode);
+                    idofGlobal = ndimf*(globalNode - 1) + iunkn;
+                    dofsElem(idofElem,:) = idofGlobal;
+                end
+            end
+            dofConnec = dofsElem;
+        end
+
+        function dofConnec = computeFunctionDofs(obj, fun)
+            connec = obj.globalConnec;
+            ndimf  = fun.ndimf;
+            nnode  = size(connec, 2);
+            ndofsE = nnode * ndimf;
+            dofsElem  = zeros(ndofsE,size(connec,1));
+            for inode = 1:nnode
                 for iunkn = 1:ndimf
                     idofElem   = ndimf*(inode - 1) + iunkn;
                     globalNode = connec(:,inode);
