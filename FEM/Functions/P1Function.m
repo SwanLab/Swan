@@ -39,6 +39,26 @@ classdef P1Function < FeFunction
             end
 
         end
+        
+        function dNdx  = computeCartesianDerivatives(obj,quad,mesh)
+            nElem = size(obj.connec,1);
+            nNode = obj.interpolation.nnode;
+            nDime = obj.interpolation.ndime;
+            nGaus = quad.ngaus;
+            invJ  = mesh.computeInverseJacobian(quad,obj.interpolation);
+            dNdx  = zeros(nDime,nNode,nElem,nGaus);
+            dShapeDx  = zeros(nDime,nNode,nElem);
+            for igaus = 1:nGaus
+                dShapes = obj.interpolation.deriv(:,:,igaus);
+                for jDime = 1:nDime
+                    invJ_JI   = invJ(:,jDime,:);
+                    dShape_KJ = dShapes(jDime,:);
+                    dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
+                    dShapeDx  = dShapeDx + dSDx_KI;
+                end
+                dNdx(:,:,:,igaus) = dShapeDx;
+            end
+        end
 
         function gradFun = computeGradient(obj, quad, mesh)
             dNdx = obj.computeCartesianDerivatives(quad,mesh);
@@ -146,6 +166,7 @@ classdef P1Function < FeFunction
             obj.type    = cParams.type;
             obj.fValues = cParams.fValues;
             obj.ndimf   = size(cParams.fValues,2);
+            obj.order   = 'LINEAR';
         end
 
         function createInterpolation(obj)
@@ -183,26 +204,6 @@ classdef P1Function < FeFunction
             fCol = zeros(nVals,1);
             for idim = 1:obj.ndimf
                 fCol(idim:obj.ndimf:nVals, 1) = obj.fValues(:,idim)';
-            end
-        end
-        
-        function dNdx  = computeCartesianDerivatives(obj,quad,mesh)
-            nElem = size(obj.connec,1);
-            nNode = obj.interpolation.nnode;
-            nDime = obj.interpolation.ndime;
-            nGaus = quad.ngaus;
-            invJ  = mesh.computeInverseJacobian(quad,obj.interpolation);
-            dNdx  = zeros(nDime,nNode,nElem,nGaus);
-            dShapeDx  = zeros(nDime,nNode,nElem);
-            for igaus = 1:nGaus
-                dShapes = obj.interpolation.deriv(:,:,igaus);
-                for jDime = 1:nDime
-                    invJ_JI   = invJ(:,jDime,:);
-                    dShape_KJ = dShapes(jDime,:);
-                    dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
-                    dShapeDx  = dShapeDx + dSDx_KI;
-                end
-                dNdx(:,:,:,igaus) = dShapeDx;
             end
         end
 

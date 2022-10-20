@@ -15,15 +15,7 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
         end
 
         function LHS = compute(obj)
-%             disp('Elemental')
-%             tic
-%                 lhs = obj.computeElementalLHS();
-%             toc
-%             disp('Pagemtimes')
-%             tic
-                lhs = obj.computeElementalLHSPagemtimes();
-%             toc
-%             LHS = obj.assembleMatrix(lhs);
+            lhs = obj.computeElementalLHS();
             LHS = obj.assembleMatrixField(lhs);
         end
 
@@ -32,38 +24,10 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
     methods (Access = protected)
 
         function lhs = computeElementalLHS(obj)
-            C = obj.material.C;
-            dvolu  = obj.mesh.computeDvolume(obj.field.quadrature);
-            nstre  = size(C,1);
-            nelem  = size(C,3);
-            ngaus  = obj.field.quadrature.ngaus;
-            npe    = obj.field.dim.ndofsElem;
-            lhs = zeros(npe,npe,nelem);
-            Bcomp = obj.createBComputer();
-            for igaus = 1:ngaus
-                Bmat = Bcomp.computeBmat(igaus);
-                Cmat = C(:,:,:,igaus);
-                dV    = dvolu(igaus,:)';
-                for istre = 1:nstre
-                    Bi = Bmat(istre,:,:);
-                    for jstre = 1:nstre
-                        Cij   = squeeze(Cmat(istre,jstre,:));
-                        c(1,1,:) = Cij.*dV;
-                        CB = bsxfun(@times,Bi,c);
-                        Bj = permute(Bmat(jstre,:,:),[2 1 3]);
-                        t = bsxfun(@times,CB,Bj);
-                        lhs = lhs + t;
-                    end
-                end
-            end
-        end
-
-        function lhs = computeElementalLHSPagemtimes(obj)
             dvolu  = obj.mesh.computeDvolume(obj.field.quadrature);
             ngaus  = obj.field.quadrature.ngaus;
             nelem  = size(obj.material.C,3);
             npe    = obj.field.dim.ndofsElem;
-%             npe    = obj.dim.nnodeEl*obj.dim.ndimf;
             lhs = zeros(npe,npe,nelem);
             Bcomp = obj.createBComputer();
             Cmat = obj.material.C(:,:,:,1);

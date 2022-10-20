@@ -13,14 +13,7 @@ classdef Assembler < handle
         end
 
         function A = assemble(obj, aElem)
-%             disp('normal')
-%             tic
-%                 A = obj.assembleMatrix(aElem);
-%             toc
-%             disp('nou')
-%             tic
-                A = obj.assembleMatrixViaIndices(aElem);
-%             toc
+            A = obj.assembleMatrixViaIndices(aElem);
         end
 
         function V = assembleV(obj, F)
@@ -38,6 +31,22 @@ classdef Assembler < handle
 
         function A = assembleVectorFields(obj, Ae, f1, f2)
             A = obj.assembleVectorWithFields(Ae, f1, f2);
+        end
+
+        function A = assembleFunctions(obj, Aelem, f1, f2, ndofs1, ndofs2, ndofsElem1, ndofsElem2)
+            dofsF1 = obj.computeFieldDofs(f1);
+            if isequal(f1, f2)
+                dofsF2 = dofsF1;
+            else
+                dofsF2 = obj.computeFieldDofs(f2);
+            end
+            A = sparse(ndofs1,ndofs2);
+            for i = 1:ndofsElem1
+                for j = 1:ndofsElem2
+                    a = squeeze(Aelem(i,j,:));
+                    A = A + sparse(dofsF1(i,:),dofsF2(j,:),a,ndofs1,ndofs2);
+                end
+            end
         end
 
     end
@@ -156,7 +165,7 @@ classdef Assembler < handle
         function Vadd = computeAddVectorByAccumarray(obj,dofs,c, ndof)
            Vadd = accumarray(dofs',c',[ndof 1]);
         end
-
+      
         %% With Fields
       
         function A = assembleFieldsCG(obj, Aelem, f1, f2)
