@@ -18,7 +18,7 @@
 
 
 %% Changelog
-% + plot() now plots all dimensions
+% 
 
 %% Notes (Ton)
 % Train of thought regarding Geometry/Mesh/Interpolation
@@ -39,12 +39,15 @@
 
 %       - mesh.computeInvJac(q,int)
 
+%   - P1function.computeGradient() or Gradient(p1fun)?! Two distinct use
+%   cases for (sym)gradient (fValues known vs unknown)
+%   - BoundaryConditions defined as functions?!
+
+% Links: testingGradients, P1Function
+% Links: funProblems, FunElasticProblem
+
 %% Next steps
-
-% - QUESTION: what to do eg. CutMeshProvisionalQuadrilateral. Projector or
-%             evaluate?
-
-
+%
 
 %% Backlog
 

@@ -41,3 +41,11 @@ p1fun.plot(mesh)
 grad1 = p1fun.computeGradient(quad,mesh);
 gradientOp = Gradient();
 grad2 = gradientOp.compute(p1fun, quad, mesh);
+
+%% Boundary conditions as functions
+% AnalyticalFunction
+sAF.fHandle = @(x) [x(1,:,:).^2; x(2,:,:)];
+% sAF.fHandle = @(x) [cos(x(1,:,:).*x(2,:,:)); x(1,:,:).*x(2,:,:)];
+sAF.ndimf   = 2;
+sAF.mesh    = mesh;
+xFun = AnalyticalFunction(sAF);

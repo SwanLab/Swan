@@ -1,8 +1,6 @@
 classdef Gradient < handle
     
     properties (Access = public)
-        hey
-        hey2
     end
     
     properties (Access = private)
