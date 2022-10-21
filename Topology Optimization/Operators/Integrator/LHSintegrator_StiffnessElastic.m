@@ -38,7 +38,6 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
                 Bt   = permute(Bmat,[2 1 3]);
                 BtC  = pagemtimes(Bt,Cmat);
                 BtCB = pagemtimes(BtC, Bmat);
-                storedBmat(:,:,:,igaus) = Bmat;
                 lhs = lhs + bsxfun(@times, BtCB, dV);
             end
         end
