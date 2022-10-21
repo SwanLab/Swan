@@ -45,9 +45,7 @@ classdef P1Function < FeFunction
             nNode = obj.interpolation.nnode;
             nDime = obj.interpolation.ndime;
             nGaus = quad.ngaus;
-%             obj.interpolation.computeShapeDeriv(quad.posgp)
             invJ  = mesh.computeInverseJacobian(quad,obj.interpolation);
-            dNdx  = zeros(nDime,nNode,nElem,nGaus);
             dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
             for igaus = 1:nGaus
                 dShapes = obj.interpolation.deriv(:,:,igaus);
@@ -59,7 +57,6 @@ classdef P1Function < FeFunction
                 end
             end
             dNdx = dShapeDx;
-%             dNdx = mesh.computeCartesianDerivatives(quad,obj.interpolation);
         end
 
         function gradFun = computeGradient(obj, quad, mesh)
