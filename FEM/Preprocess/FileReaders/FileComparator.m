@@ -1,7 +1,7 @@
 classdef FileComparator < handle
 
     properties(Access = private)
-        tol = 1e-6;
+        tol = 1e-4;
     end
 
     methods (Access = public)
