@@ -12,18 +12,18 @@ weights = [1,0.1];
 constraint = {'volumeConstraint'};
 constraint_case = {'EQUALITY'};
 
-optimizerUnconstrained = 'PROJECTED GRADIENT'; 
+optimizerUnconstrained = 'SLERP'; 
 optimizer = 'AlternatingPrimalDual';
 incrementFactor = 2;
-designVariable = 'Density';
+designVariable = 'LevelSet';
 filterType = 'P1';
 
 nsteps = 12;
-Vfrac_final = 0.2;
+Vfrac_final = 0.4;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 0.2;
+Vfrac_initial = 0.4;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 Perimeter_target = 5;
@@ -41,4 +41,4 @@ printing = false;
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 1200;
+maxiter = 2200;

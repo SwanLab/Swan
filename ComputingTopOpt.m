@@ -46,6 +46,7 @@ s.problemCase = 'cantilever';
 % % % % FEMWriter.createTest;
 s.testName = 'test_cantilever2';%''testJose';
 s.testName = 'test_cantilever_nullspace';
+s.testName = 'example_micro_TFMXavi';
 % s.testName = 'test_bridg_multipleLoads';
 t = TopOptComputer(s);
 t.compute();

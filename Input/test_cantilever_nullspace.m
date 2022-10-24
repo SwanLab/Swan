@@ -1,4 +1,5 @@
 filename = 'CantileverVertical';
+filename = 'MBB';
 
 ptype = 'MACRO';
 method = 'SIMPALL';
@@ -7,7 +8,7 @@ materialType = 'ISOTROPIC';
 initial_case = 'full';
 
 cost = {'compliance','anisotropicPerimeter2D'};
-weights = [1,1e-5];
+weights = [1,4e-5];
 
 constraint = {'volumeConstraint'};
 constraint_case = {'EQUALITY'};
@@ -19,7 +20,7 @@ designVariable = 'LevelSet';
 filterType = 'P1';
 
 nsteps = 1;
-Vfrac_final = 0.4;
+Vfrac_final = 0.2;
 optimality_final =1e-3;
 constr_final =1e-3;
 

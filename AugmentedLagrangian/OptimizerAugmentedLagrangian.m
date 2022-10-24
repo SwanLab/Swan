@@ -177,6 +177,9 @@ classdef OptimizerAugmentedLagrangian < Optimizer
 
         function checkStep(obj,x,x0)
             mNew = obj.computeMeritFunction(x);
+            if obj.nIter == 0
+                obj.dualVariable.value = 2.17029;
+            end
             if mNew < obj.mOld
                 obj.acceptableStep = true;
                 obj.dualUpdater.updatePenalty(obj.penalty);
