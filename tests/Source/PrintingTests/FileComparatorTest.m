@@ -17,7 +17,7 @@ classdef FileComparatorTest < handle
             refFile      = [obj.testResultsName,'1','.flavia.res'];
             currentFile  = ['Output/',obj.testName,'/',obj.testName,'1','.flavia.res'];
             c            = FileComparator;
-            areDifferent = c.areFilesDifferent(refFile,currentFile);
+            areDifferent = c.areFilesDifferent(currentFile,refFile);
             areEqual     = ~areDifferent;
             delete(currentFile);
         end
