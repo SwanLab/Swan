@@ -1,7 +1,7 @@
 classdef TopologyMonitoring < handle
     
     properties (Access = public)
-        optimizerName
+        type
         designVariable
         cost
         constraint
@@ -28,7 +28,7 @@ classdef TopologyMonitoring < handle
         end
         
         function compute(obj,cParams)
-            switch obj.optimizerName
+            switch obj.type
                 case 'fmincon'
                     obj.plotFmincon(cParams);
                 case 'NullSpace'
@@ -58,7 +58,7 @@ classdef TopologyMonitoring < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.optimizerName     = cParams.type;
+            obj.type     = cParams.type;
             obj.cost              = cParams.cost;
             obj.constraint        = cParams.constraint;
             obj.designVariable    = cParams.designVar;
@@ -214,7 +214,7 @@ classdef TopologyMonitoring < handle
             d  = ps.create();
             d.pdim    = cParams.pdim;     
             d.ndim    = obj.designVariable.mesh.ndim;
-            d.optimizer  = obj.optimizerName;
+            d.optimizer  = obj.type;
             d.cost       = obj.cost;
             d.constraint = obj.constraint;
             d.designVar  = obj.designVariable.type;

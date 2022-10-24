@@ -51,11 +51,13 @@ classdef OptimizerBisection < Optimizer
             obj.hasConverged  = false;
             obj.isInitialStep = true;
             obj.hasFinished = false;
+            obj.printOptimizerVariable();
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
+                obj.printOptimizerVariable();
             end
         end
 
