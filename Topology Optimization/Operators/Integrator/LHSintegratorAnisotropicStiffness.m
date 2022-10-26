@@ -32,16 +32,15 @@ classdef LHSintegratorAnisotropicStiffness < LHSintegrator
             nelem = obj.mesh.nelem;
             ndpe  = f.dim.ndofsElem;
             lhs = zeros(ndpe,ndpe,nelem);
-            C   = obj.Celas;
+            Cmat   = obj.Celas;
             Bcomp = obj.createBComputer();
             for igaus = 1:ngaus
                 Bmat = Bcomp.computeBmat(igaus);
-                for iel = 1:nelem
-                    BmatEl = Bmat(:,:,iel);
-                    dNdN = BmatEl'*C(:,:,iel)*BmatEl;
-                    dV = dvolu(igaus,iel);
-                    lhs(:,:,iel) = lhs(:,:,iel) + dNdN*dV;
-                end
+                dV(1,1,:) = dvolu(igaus,:)';
+                Bt   = permute(Bmat,[2 1 3]);
+                BtC  = pagemtimes(Bt,Cmat);
+                BtCB = pagemtimes(BtC, Bmat);
+                lhs = lhs + bsxfun(@times, BtCB, dV);
             end
         end
         
@@ -70,10 +69,7 @@ classdef LHSintegratorAnisotropicStiffness < LHSintegrator
 
         function assemblyCMatrix(obj)
             nelem = size(obj.mesh.connec,1);
-            C = zeros(size(obj.CAnisotropic,1),size(obj.CAnisotropic,2),nelem);
-            for i = 1:nelem
-                C(:,:,i) = obj.CAnisotropic;
-            end
+            C = repmat(obj.CAnisotropic, [1 1 nelem]);
             obj.Celas = C;
         end
 

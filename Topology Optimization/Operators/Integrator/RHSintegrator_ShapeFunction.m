@@ -25,6 +25,13 @@ classdef RHSintegrator_ShapeFunction < handle
             rhs = obj.assembleIntegrand(rhsElem);
         end
 
+        function rhs = computeFromFgauss(obj, fGaus, xGaus)
+            obj.fGauss = fGaus;
+            obj.xGauss = xGaus;
+            rhsElem = obj.computeElementalRHS();
+            rhs = obj.assembleIntegrand(rhsElem);
+        end
+
     end
 
     methods (Access = private)
@@ -54,11 +61,11 @@ classdef RHSintegrator_ShapeFunction < handle
         end
 
         function computeFgauss(obj, fNodal)
-            s.fNodes = fNodal;
+            s.fValues= fNodal;
             s.connec = obj.globalConnec;
             s.type   = obj.mesh.type;
-            f = FeFunction(s);
-            fG = f.interpolateFunction(obj.xGauss);
+            f = P1Function(s);
+            fG = f.evaluate(obj.xGauss);
             fG = permute(fG,[2 3 1]);
             obj.fGauss = fG;
         end

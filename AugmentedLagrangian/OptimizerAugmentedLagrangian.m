@@ -49,14 +49,14 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.hasConverged = false;
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
-            %             obj.saveVariablesForAnalysis();
-%                         while ~obj.hasConverged
             obj.hasFinished = 0;
+            obj.printOptimizerVariable();
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
+                obj.printOptimizerVariable();
 %                 obj.saveVariablesForAnalysis();
             end
         end
@@ -186,11 +186,9 @@ classdef OptimizerAugmentedLagrangian < Optimizer
                 obj.dualUpdater.update();
                 obj.meritNew = mNew;
             elseif obj.primalUpdater.isTooSmall()
-%                 error('Convergence could not be achieved (step length too small)')
+                warning('Convergence could not be achieved (step length too small)')
                 obj.acceptableStep = true;
-                obj.dualUpdater.updatePenalty(obj.penalty);
-                obj.dualUpdater.update();
-                obj.meritNew = mNew;
+                obj.meritNew = mNew; % Provisional value
             else
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);

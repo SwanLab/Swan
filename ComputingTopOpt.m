@@ -42,8 +42,6 @@ s.problemCase = 'cantilever';
 % s.DoF      = 2;
 % s.problemCase = 'cantilever3';
 
-% % % % FEMWriter = FEMInputWriter(s);
-% % % % FEMWriter.createTest;
 s.testName = 'test_cantilever2';%''testJose';
 s.testName = 'test_cantilever_nullspace';
 s.testName = 'example_micro_TFMXavi';

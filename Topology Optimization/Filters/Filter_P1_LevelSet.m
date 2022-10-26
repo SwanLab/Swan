@@ -64,8 +64,10 @@ classdef Filter_P1_LevelSet <  Filter
         function intX = integrateRHS(obj,x)
             intX = zeros(obj.mesh.nelem,1);
             ngaus = size(x,2);
+            dV = obj.mesh.computeDvolume(obj.field.quadrature)';
             for igaus = 1:ngaus
-                dvolu = obj.field.geometry.dvolu(:,igaus);
+                dvolu = dV(:,igaus);
+%                 dvolu = obj.field.geometry.dvolu(:,igaus);
                 intX = intX + dvolu.*x(:,igaus);
             end
         end

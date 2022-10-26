@@ -111,11 +111,19 @@ classdef Mesh < handle
         end
         
         function xV = computeBaricenter(obj)
-            xV = obj.xFE.computeValueInCenterElement();
+            q = Quadrature.set(obj.type);
+            q.computeQuadrature('CONSTANT');
+            xV = q.posgp;
+            xV = squeeze(obj.xFE.evaluate(xV));
+%             s.mesh   = obj;
+%             s.connec = obj.connec;
+%             projector = Projector_toP0(s);
+%             xVf = projector.project(obj.xFE);
+%             xV  = squeeze(xVf.fValues);
         end
         
         function xGauss = computeXgauss(obj,xV)
-            xGauss = obj.xFE.interpolateFunction(xV);
+            xGauss = obj.xFE.evaluate(xV);
         end
         
         function dvolume = computeDvolume(obj,quad)
@@ -209,6 +217,27 @@ classdef Mesh < handle
                 bMesh = b.create();
             end
         end
+
+        function mD = createDiscontinuousMesh(obj)
+            ndims = size(obj.coord, 2);
+            nNodesDisc = obj.nnodeElem*obj.nelem;
+            nodesDisc  = 1:nNodesDisc;
+            connecDisc = reshape(nodesDisc,obj.nnodeElem,obj.nelem)';
+            coordD = reshape(obj.xFE.fValues, [ndims, nNodesDisc])';
+            s.connec = connecDisc;
+            s.coord  = coordD;
+            mD = Mesh(s);
+        end
+
+        function fP1 = mapP0ToP1Discontinous(obj,f)
+            nnodeElem = obj.meshDisc.nnodeElem;
+            fRepeted = zeros(size(f,1),nnodeElem);
+            for iNode = 1:nnodeElem
+                fRepeted(:,iNode) = f;
+            end
+            fRepeted = transpose(fRepeted);
+            fP1 = fRepeted(:);
+        end
         
     end
     
@@ -263,14 +292,25 @@ classdef Mesh < handle
         
         function computeElementCoordinates(obj)
             obj.computeCoordFEfunction();
-            obj.coordElem = obj.xFE.fElem;
+            obj.coordElem = obj.xFE.fValues;
+        end
+
+        function p1d = projectToP1Discontinuous(obj, f)
+            s.mesh   = obj;
+            s.connec = obj.connec;
+            s.type   = obj.type;
+            sP.origin = 'P1';
+            sP.x = f;
+            p = ProjectorToP1discont(s);
+            p1d = p.project(sP);
         end
         
         function computeCoordFEfunction(obj)
-            s.connec   = obj.connec;
-            s.type     = obj.type;
-            s.fNodes   = obj.coord;
-            obj.xFE = FeFunction(s);
+            s.type = obj.type;
+            s.connec = obj.connec;
+            s.fValues = obj.coord;
+            coordP1 = P1Function(s);
+            obj.xFE = obj.projectToP1Discontinuous(coordP1);
         end
         
         function L = computeSquarePerimeter(obj)

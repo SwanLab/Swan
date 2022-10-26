@@ -12,6 +12,7 @@ classdef Optimizer < handle
         dualUpdater
         primalUpdater
         constraintCase
+        postProcess
     end
     
     properties (GetAccess = public, SetAccess = protected, Abstract)
@@ -40,6 +41,7 @@ classdef Optimizer < handle
             obj.targetParameters  = cParams.targetParameters;
             obj.constraintCase    = cParams.constraintCase;
             obj.outputFunction    = cParams.outputFunction.monitoring;
+            obj.createPostProcess(cParams.postProcessSettings);
         end
 
         function createPrimalUpdater(obj,cParams)
@@ -67,10 +69,41 @@ classdef Optimizer < handle
                 end
             end
         end
-        
+
+        function printOptimizerVariable(obj)
+            if ~isempty(obj.postProcess)
+                d.fields  = obj.designVariable.getVariablesToPlot();
+                d.cost = obj.cost;
+                d.constraint = obj.constraint;
+                obj.postProcess.print(obj.nIter,d);
+            end
+        end
+
     end
 
     methods (Access = private)
+        function createPostProcess(obj,cParams)
+            if cParams.shallPrint
+                d = obj.createPostProcessDataBase(cParams);
+                d.printMode = cParams.printMode;
+                d.nDesignVariables = obj.designVariable.nVariables;
+                obj.postProcess = Postprocess('TopOptProblem',d);
+            end
+        end
+
+        function d = createPostProcessDataBase(obj,cParams)
+            d.mesh    = obj.designVariable.mesh;
+            d.outFileName = cParams.femFileName;
+            d.ptype   = cParams.ptype;
+            ps = PostProcessDataBaseCreator(d);
+            d  = ps.create();
+            d.ndim       = obj.designVariable.mesh.ndim;
+            d.pdim       = cParams.pdim;
+            d.optimizer  = obj.type;
+            d.cost       = obj.cost;
+            d.constraint = obj.constraint;
+            d.designVar  = obj.designVariable.type;
+        end
 
         function c = checkInequalityConstraint(obj,i)
             g = obj.constraint.value(i);
@@ -83,5 +116,5 @@ classdef Optimizer < handle
         end
 
     end
-    
+
 end
