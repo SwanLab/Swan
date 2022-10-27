@@ -25,17 +25,12 @@ classdef CharacteristicFunction < L2Function
             nGaus = size(xy,2);
             nElem = size(xy,3);
             fxV   = zeros(1,nGaus,nElem);
-            for iElem = 1:nElem
-                for iGaus = 1:nGaus
-                    x = xy(1,iGaus,iElem);
-                    y = xy(2,iGaus,iElem);
-                    f = obj.fxy(x,y);
-                    if f>0
-                        fxV(1,iGaus,iElem) = 0;
-                    else
-                        fxV(1,iGaus,iElem) = 1;
-                    end
-                end
+            for iGaus = 1:nGaus
+                x = xy(1,iGaus,:);
+                y = xy(2,iGaus,:);
+                f = obj.fxy(x,y);
+                fxV(1,iGaus,f>0) = 0;
+                fxV(1,iGaus,f<=0) = 1;
             end
         end
 

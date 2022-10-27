@@ -9,7 +9,7 @@ m = FemDataContainer(a);
 
 %% Create characteristic function
 s.mesh    = m.mesh;
-s.fxy     = @(x,y) (x-0.5)^2+(y-0.5)^2-0.3^2;
+s.fxy     = @(x,y) (x-0.5).^2+(y-0.5).^2-0.3.^2;
 % s.fxy     = @(x,y) (x-1.5)^2+(y-1)^2-0.6^2;
 circleFun = CharacteristicFunction(s);
 

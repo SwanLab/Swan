@@ -30,7 +30,7 @@ classdef LHSintegrator_Stiffness < LHSintegrator
             lhs = zeros(ndpe,ndpe,nelem);
             Bcomp = obj.createBComputer();
             for igaus = 1:ngaus
-                Bmat = Bcomp.computeBmat(igaus);
+                Bmat = Bcomp.compute(igaus);
                 nvoigt = size(Bmat,1);
                 for istre = 1:nvoigt
                     BmatI = Bmat(istre,:,:);
@@ -60,7 +60,6 @@ classdef LHSintegrator_Stiffness < LHSintegrator
         function Bcomp = createBComputer(obj)
             s.dim          = obj.field.dim;
             s.geometry     = obj.field.geometry;
-            s.globalConnec = [];
             Bcomp = BMatrixComputer(s);
         end
 

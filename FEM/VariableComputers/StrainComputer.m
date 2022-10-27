@@ -71,9 +71,8 @@ classdef StrainComputer < handle
         function Bmat = computeB(obj,igaus)
             s.dim          = obj.dim;
             s.geometry     = obj.geometry;
-            s.globalConnec = [];
             Bcomp = BMatrixComputer(s);
-            Bmat = Bcomp.computeBmat(igaus);
+            Bmat = Bcomp.compute(igaus);
         end
     end
     

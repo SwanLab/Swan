@@ -39,8 +39,56 @@ classdef P1Function < FeFunction
             end
 
         end
+        
+        function dNdx  = computeCartesianDerivatives(obj,quad,mesh)
+            nElem = size(obj.connec,1);
+            nNode = obj.interpolation.nnode;
+            nDime = obj.interpolation.ndime;
+            nGaus = quad.ngaus;
+            invJ  = mesh.computeInverseJacobian(quad,obj.interpolation);
+            dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
+            for igaus = 1:nGaus
+                dShapes = obj.interpolation.deriv(:,:,igaus);
+                for jDime = 1:nDime
+                    invJ_JI   = invJ(:,jDime,:,igaus);
+                    dShape_KJ = dShapes(jDime,:);
+                    dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
+                    dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
+                end
+            end
+            dNdx = dShapeDx;
+        end
 
-        function fun = computeGradient(obj, quad, mesh)
+        function gradFun = computeGradient(obj, quad, mesh)
+            dNdx = obj.computeCartesianDerivatives(quad,mesh);
+            nDimf = obj.ndimf;
+            nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
+            nNode = size(dNdx, 2);
+            nElem = size(dNdx, 3);
+            nGaus = size(dNdx, 4);
+            
+            grad = zeros(nDims,nDimf, nElem, nGaus);
+            for iGaus = 1:nGaus
+                dNdx_g = dNdx(:,:,:,iGaus);
+                for iDims = 1:nDims
+                    for iNode = 1:nNode
+                        dNdx_i = squeeze(dNdx_g(iDims, iNode,:));
+                        nodes = obj.connec(:,iNode);
+                        f = obj.fValues(nodes,:);
+                        p = (dNdx_i.*f)';
+                        pp(1,:,:) = p;
+                        grad(iDims,:,:,iGaus) = grad(iDims,:,:,iGaus) + pp;
+                    end
+                end
+            end
+            fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
+            s.fValues = permute(fVR, [1 3 2]);
+%             s.ndimf      = nDimf;
+            s.quadrature = quad;
+            gradFun = FGaussDiscontinuousFunction(s);
+        end
+        
+        function symGradFun = computeSymmetricGradient(obj, quad, mesh)
             % Previous requirements
             obj.createGeometry(quad, mesh);
             
@@ -53,7 +101,7 @@ classdef P1Function < FeFunction
             nNodeEl = size(conn,2);
             nUnkn   = obj.ndimf;
             nGaus   = quad.ngaus;
-            strain = zeros(nStre,nElem,nGaus);
+            symGrad = zeros(nStre,nElem,nGaus);
             for igaus = 1:nGaus
                 Bmat = obj.computeB(igaus);
                 for istre=1:nStre
@@ -61,19 +109,35 @@ classdef P1Function < FeFunction
                         nodes = conn(:,inode);
                         for idime = 1:nUnkn
                             dofs = nUnkn*(nodes - 1) + idime;
-                            ievab = nUnkn*(inode-1)+idime;
-                            B = squeeze(Bmat(istre,ievab,:));
+                            idof = nUnkn*(inode - 1) + idime;
+                            B = squeeze(Bmat(istre,idof,:));
                             u = d_u(dofs);
-                            strain(istre,:,igaus)=strain(istre,:,igaus)+(B.*u)';
+                            symGrad(istre,:,igaus) = symGrad(istre,:,igaus) + (B.*u)';
                         end
                         
                     end
                 end
             end
-            s.fValues    = permute(strain, [1 3 2]);
+            s.fValues    = permute(symGrad, [1 3 2]);
             s.ndimf      = nStre;
             s.quadrature = quad;
-            fun = FGaussDiscontinuousFunction(s);
+            symGradFun = FGaussDiscontinuousFunction(s);
+        end
+
+        function symGradFun = computeSymmetricGradient2(obj,quad,mesh)
+            grad = obj.computeGradient(quad,mesh);
+            nDimf = obj.ndimf;
+            nDims = size(grad.fValues, 1)/nDimf;
+            nGaus = size(grad.fValues, 2);
+            nElem = size(grad.fValues, 3);
+
+            gradReshp = reshape(grad.fValues, [nDims,nDimf,nGaus,nElem]);
+            gradT = permute(gradReshp, [2 1 3 4]);
+            symGrad = 0.5*(gradReshp + gradT);
+            
+            s.fValues    = reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
+            s.quadrature = quad;
+            symGradFun = FGaussDiscontinuousFunction(s);
         end
 
         function plot(obj, m) % 2D domains only
@@ -101,23 +165,12 @@ classdef P1Function < FeFunction
             obj.type    = cParams.type;
             obj.fValues = cParams.fValues;
             obj.ndimf   = size(cParams.fValues,2);
+            obj.order   = 'LINEAR';
         end
 
         function createInterpolation(obj)
             m.type = obj.type;
             obj.interpolation = Interpolation.create(m,'LINEAR');
-        end
-
-        function Bmat = computeB(obj,igaus)
-            d.nvoigt = obj.getNstre();
-            d.nnodeElem = size(obj.connec,2);
-            d.ndofsElem = obj.ndimf*(d.nnodeElem);
-            d.ndimf = obj.ndimf;
-            s.dim          = d;
-            s.geometry     = obj.geometry;
-            s.globalConnec = [];
-            Bcomp = BMatrixComputer(s);
-            Bmat = Bcomp.computeBmat(igaus);
         end
 
         function createGeometry(obj, quad, mesh)
@@ -129,12 +182,23 @@ classdef P1Function < FeFunction
             obj.geometry = g;
         end
 
-        function nstre = getNstre(obj)
+        function Bmat = computeB(obj,igaus) % Can be deleted with old symGrad
+            d.nvoigt = obj.getNstre();
+            d.nnodeElem = size(obj.connec,2);
+            d.ndofsElem = obj.ndimf*(d.nnodeElem);
+            d.ndimf = obj.ndimf;
+            s.dim          = d;
+            s.geometry     = obj.geometry;
+            Bcomp = BMatrixComputer(s);
+            Bmat = Bcomp.compute(igaus);
+        end
+
+        function nstre = getNstre(obj) % Can be deleted with old symGrad
             nstreVals = [2, 3, 6];
             nstre = nstreVals(obj.ndimf);
         end
 
-        function fCol = convertFValuesToColumn(obj)
+        function fCol = convertFValuesToColumn(obj)  % Can be deleted with old symGrad
             nVals = size(obj.fValues,1)*size(obj.fValues,2);
             fCol = zeros(nVals,1);
             for idim = 1:obj.ndimf

@@ -16,36 +16,38 @@
 % - Clean code of projectors + tests
 % Done! - Use filters in these tests and compare Filters vs L2Projectors vs H1Projectors]
 
-% Ton:
-% Done* - ACCEPT PULL REQUESTS FOR NULLSPACE
-% Done* - projectors without discont mesh (use field as dispatching in lhs
-%         integrator assembly)
-% Done! - quadrilateral elements working
-% Done! - assert fgauss
-
-% u -> diff(u) (strain) -> plot -> project p1 p0 p1d
-% Create a function in p1function named function fGaussFun  = comptueGrad(quad)
-% project this function to p1 p0 and p1d. check results. ideally: a
-% quadratic function u = x^2 -> du/dy = 0, du/dx = 2x; only evaluated at
-% gauss points. project 
 
 %% Changelog
-% + plot() now plots all dimensions
+% 
 
 %% Notes (Ton)
-% FGaussFun SHOULD assert. The discrepancy in quadrature results from the
-% quadrature used in the projector -- perhaps dispatch thru incoming
-% function?
+% Train of thought regarding Geometry/Mesh/Interpolation
 
-% - Quadratic needed for projecting to P1Discontinuous (???) a
-%   Characteristic Function
+%   - Basically, everything is linked up together. Geometry is used as a
+%   flexible tool to perform various actions
+%   - It is also very much dynamic, the same geometry can be re-computed
+%   many times in a single problem with different parameters
+
+%   - When a Mesh is created, a Geometry_Volumetric is also created.
+%   However, nothing else is calculated.
+%   - The calculations are performed when calling computeGeometry(q,int).
+%   Thus, there is no one Jacobian/dNdx: 
+%       - Quad: constant (normals) /linear (linear int) / quadratic (quad
+%       fields)
+%       - Int: linear (mesh) / quadratic (fields)
+
+
+%       - mesh.computeInvJac(q,int)
+
+%   - P1function.computeGradient() or Gradient(p1fun)?! Two distinct use
+%   cases for (sym)gradient (fValues known vs unknown)
+%   - BoundaryConditions defined as functions?!
+
+% Links: testingGradients, P1Function
+% Links: funProblems, FunElasticProblem
 
 %% Next steps
-
-% - QUESTION: what to do eg. CutMeshProvisionalQuadrilateral. Projector or
-%             evaluate?
-
-
+%
 
 %% Backlog
 
