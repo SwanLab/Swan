@@ -115,11 +115,6 @@ classdef Mesh < handle
             q.computeQuadrature('CONSTANT');
             xV = q.posgp;
             xV = squeeze(obj.xFE.evaluate(xV));
-%             s.mesh   = obj;
-%             s.connec = obj.connec;
-%             projector = Projector_toP0(s);
-%             xVf = projector.project(obj.xFE);
-%             xV  = squeeze(xVf.fValues);
         end
         
         function xGauss = computeXgauss(obj,xV)
@@ -133,8 +128,9 @@ classdef Mesh < handle
             dvolume = dvolume';
         end
 
-        function geo = getGeometry(obj)
-            geo = obj.geometry;
+        function invJac = computeInverseJacobian(obj,quad,int)
+            g = obj.geometry;
+            invJac = g.computeInverseJacobian(quad,int);
         end
         
         function n = getNormals(obj)

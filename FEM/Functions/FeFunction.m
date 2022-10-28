@@ -10,6 +10,7 @@ classdef FeFunction < handle
 
     properties (Access = public)
        ndimf
+       order
        fValues
     end
 

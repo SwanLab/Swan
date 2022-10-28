@@ -41,7 +41,6 @@ classdef ElasticProblem < handle
 
         function solve(obj)
             obj.computeStiffnessMatrix();
-%             obj.computeStiffnessMatrixOld();
             obj.computeForces();
             obj.computeDisplacements();
             obj.computeStrain();
@@ -152,17 +151,6 @@ classdef ElasticProblem < handle
             s.mesh     = obj.mesh;
             s.field    = obj.displacementField;
             s.material = obj.material;
-            LHS = LHSintegrator.create(s);
-            K   = LHS.compute();
-            obj.stiffnessMatrix = K;
-        end
-
-        function computeStiffnessMatrixOld(obj)
-            s.type = 'ElasticStiffnessMatrixOld';
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.displacementField.connec;
-            s.dim          = obj.displacementField.dim;
-            s.material     = obj.material;
             LHS = LHSintegrator.create(s);
             K   = LHS.compute();
             obj.stiffnessMatrix = K;

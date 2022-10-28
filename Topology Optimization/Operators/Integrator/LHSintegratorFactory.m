@@ -21,12 +21,11 @@ classdef LHSintegratorFactory < handle
                    % computing the elemental LHS (dN*C*dN / B*C*B) and then
                    % assembling the result
                    obj = LHSintegrator_StiffnessElastic(cParams);
-               case 'ElasticStiffnessMatrixOld'
-                   % elemntal B + assamly --> globalB
-                   % elemntal C + assamly --> globalC
-                   % global B'*C*B
-                   obj = LHSintegrator_StiffnessElasticStoredB(cParams);
-                   %globalB in contructor
+               case 'FunElasticStiffnessMatrix'
+                   % Computes the ELASTIC STIFFNESS MATRIX by first
+                   % computing the elemental LHS (dN*C*dN / B*C*B) and then
+                   % assembling the result using functions
+                   obj = LHSintegrator_StiffnessElasticFun(cParams);
                case 'AnisotropicStiffnessMatrix'
                    % dB'*Celas*dB
                    obj = LHSintegratorAnisotropicStiffness(cParams);
