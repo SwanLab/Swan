@@ -44,8 +44,7 @@ s.problemCase = 'cantilever';
 
 s.testName = 'test_cantilever2';%''testJose';
 s.testName = 'test_cantilever_nullspace';
-s.testName = 'example_micro_TFMXavi';
-% s.testName = 'test_bridg_multipleLoads';
+s.testName = 'PerimeterAsConstraint';
 t = TopOptComputer(s);
 t.compute();
 end

@@ -102,9 +102,14 @@ classdef ShFunc_Perimeter < ShapeFunctional
             vfrac = obj.designVariable.computeVolumeFraction();
             s.connec = obj.designVariable.mesh.connec;
             s.type   = obj.designVariable.mesh.type;
-            s.fNodes = 2/(obj.epsilon)*(1 - obj.regularizedDensity);
+            s.fValues = 2/(obj.epsilon)*(1 - obj.regularizedDensity);
             f = P1Function(s);
-            per = f.computeValueInCenterElement();
+            s = [];
+            s.mesh = obj.mesh;
+            s.connec = obj.mesh.connec;
+            ProjP0 = Projector_toP0(s);
+            per = ProjP0.project(f);
+            per = squeeze(per.fValues);
             per = per.*vfrac;
             per0 = per;
         end

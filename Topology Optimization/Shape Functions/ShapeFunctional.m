@@ -14,11 +14,11 @@ classdef ShapeFunctional < handle
         homogenizedVariablesComputer
         nVariables
         designVariable
-        target_parameters;
+        target_parameters
+        mesh
     end
 
     properties (Access = private)
-        mesh
         field
     end
     

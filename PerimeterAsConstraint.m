@@ -1,27 +1,28 @@
-% filename = 'CantileverVertical';
-filename = 'MBB';
+filename = 'SquareForAniTests';
+filename = 'CantileverVertical';
 
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 
-initial_case = 'full'; % full OR circleInclusion
+initial_case = 'full';
 
-cost = {'compliance','anisotropicPerimeter2D'};
-weights = [1,1e-5];
+cost = {'compliance'};
+weights = [1];
 
-constraint = {'volumeConstraint'};
-constraint_case = {'EQUALITY'};
+constraint = {'volumeConstraint','perimeterConstraint'};
+constraint_case = {'EQUALITY','EQUALITY'};
 
 optimizerUnconstrained = 'SLERP'; 
 optimizer = 'NullSpace';
 incrementFactor = 2;
 designVariable = 'LevelSet';
 filterType = 'P1';
-fracRadius = 0.3;
+widthSquare = sqrt(0.15);
 
-nsteps = 1;
-Vfrac_final = 0.2;
+nsteps = 10;
+Vfrac_final = 1-widthSquare^2;
+Vfrac_final = 0.4;
 optimality_final =1e-3;
 constr_final =1e-3;
 
@@ -29,6 +30,7 @@ Vfrac_initial = 1;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 Perimeter_target = 5;
+perimeterTarget = 5;
 
 TOL.rho_plus = 1;
 TOL.rho_minus = 0;
@@ -38,9 +40,9 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 % For all tests
-plotting = false;
-printing = true;
+plotting = true;
+printing = false;
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 5;
-maxiter = 300; % 2200
+maxiter = 300;

@@ -10,7 +10,7 @@ cost = {'compliance','anisotropicPerimeter2D'};
 weights = [1,0.1];
 
 constraint = {'volumeConstraint'};
-constraint_case = {'EQUALITY'};
+constraint_case = {'INEQUALITY'};
 
 optimizerUnconstrained = 'SLERP'; 
 optimizer = 'AlternatingPrimalDual';
