@@ -2,6 +2,7 @@ classdef EulerBeamOptimizer < handle
 
     properties (Access = public)
         columnMesh
+        cost
     end
     
     properties (Access = protected)
@@ -50,16 +51,16 @@ classdef EulerBeamOptimizer < handle
     methods (Access = private)
         
         function init(obj)
-            obj.nElem         = 300;
+            obj.nElem         = 500;
             obj.nConstraints  = 3; 
             obj.columnLength  = 1; 
             obj.nValues       = obj.nElem+1;
             obj.youngModulus  = 1;
             obj.inertiaMoment = 1;  
-            obj.minThick      = 0.4;
-            obj.maxThick      = 5;
+            obj.minThick      = 0.25;
+            obj.maxThick      = 10;
             obj.optimizerType = 'MMA';
-            obj.maxIter       = 1000;
+            obj.maxIter       = 100;
         end
 
         function createMesh(obj)
@@ -72,10 +73,10 @@ classdef EulerBeamOptimizer < handle
 
         function coord = createCoordinates(obj)
             nnod = obj.nElem + 1;
-             x = [0;rand(nnod-2,1);1]*obj.columnLength;
-             x = sort(x);
-              coord = x; 
-             %coord = linspace(0,obj.columnLength,nnod)';
+%              x = [0;rand(nnod-2,1);1]*obj.columnLength;
+%              x = sort(x);
+%               coord = x; 
+             coord = linspace(0,obj.columnLength,nnod)';
         end
 
         function Tnod = createConnectivity(obj)
@@ -142,6 +143,7 @@ classdef EulerBeamOptimizer < handle
             s.designVariable = obj.designVariable;
             solution = IterativeProcessComputer(s);
             solution.compute();
+            obj.cost = obj.designVariable.value(obj.nElem+1);
         end
 
         function PostProcess(obj)

@@ -69,7 +69,7 @@ classdef IterativeProcessComputer < handle
          function obj = computeIterativeProcess(obj)
 % -------
             s = SettingsOptimizer();
-            s.optimizerNames.type = 'AlternatingPrimalDual';'NullSpace';'MMA';'AlternatingPrimalDual';'NullSpace';'AlternatingPrimalDual';'MMA';'AlternatingPrimalDual';%MMA';%'IPOPT';%fmincon';%'MMA';%'fmincon';'MMA';
+            s.optimizerNames.type = 'MMA';% 'AlternatingPrimalDual';'NullSpace';'MMA';'AlternatingPrimalDual';'NullSpace';'AlternatingPrimalDual';'MMA';'AlternatingPrimalDual';%MMA';%'IPOPT';%fmincon';%'MMA';%'fmincon';'MMA';
 
             s.optimizerNames.primal = 'PROJECTED GRADIENT';
             s.uncOptimizerSettings.scalarProductSettings = obj.designVariable.scalarProduct;
@@ -90,9 +90,9 @@ classdef IterativeProcessComputer < handle
             s.uncOptimizerSettings.lb = 0.25;        
             s.outputFunction.type        = 'Topology';
             s.outputFunction.iterDisplay = 'none';
-            s.type = 'AlternatingPrimalDual';%'fmincon';'AlternatingPrimalDual';'NullSpace';'AlternatingPrimalDual';'MMA';'AlternatingPrimalDual';'MMA'; % IPOPT';%'fmincon';'MMA';%'fmincon';%'MMA';
+            s.type = 'MMA';% 'AlternatingPrimalDual';%'fmincon';'AlternatingPrimalDual';'NullSpace';'AlternatingPrimalDual';'MMA';'AlternatingPrimalDual';'MMA'; % IPOPT';%'fmincon';'MMA';%'fmincon';%'MMA';
             s.outputFunction.monitoring  = MonitoringManager(s);                  
-            s.maxIter           = 1000;
+            s.maxIter           = 100;
             s.constraintCase = {'INEQUALITY','INEQUALITY','INEQUALITY'};
             %s.primalUpdater = 'PROJECTED GRADIENT';
 
